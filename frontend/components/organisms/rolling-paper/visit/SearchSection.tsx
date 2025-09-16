@@ -3,6 +3,7 @@
 import React from "react";
 import { Button, Card, Input } from "@/components";
 import { Search, AlertCircle } from "lucide-react";
+import { Spinner as FlowbiteSpinner } from "flowbite-react";
 
 interface SearchSectionProps {
   searchNickname: string;
@@ -63,8 +64,8 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
         >
           {/* 검색 중일 때 로딩 스피너와 텍스트 표시 */}
           {isSearching ? (
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            <div className="flex items-center justify-center space-x-2">
+              <FlowbiteSpinner color="white" size="sm" aria-label="검색 중..." />
               <span>검색 중...</span>
             </div>
           ) : (

@@ -12,7 +12,7 @@ import { ActivityCard } from "@/components/molecules";
 import { useActivityData } from "@/hooks";
 import { userQuery } from "@/lib/api";
 import { AlertTriangle, RefreshCw } from "lucide-react";
-import { Pagination } from "flowbite-react";
+import { Pagination, Spinner as FlowbiteSpinner } from "flowbite-react";
 import { logger } from "@/lib/utils";
 
 const DEFAULT_PAGE = 0;
@@ -162,10 +162,10 @@ const ActivityTabContent: React.FC<ActivityTabContentProps> = memo(({
             className="w-full max-w-xs"
           >
             {isLoadingMore ? (
-              <>
-                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                불러오는 중...
-              </>
+              <div className="flex items-center justify-center">
+                <FlowbiteSpinner color="pink" size="sm" aria-label="불러오는 중..." className="mr-2" />
+                <span>불러오는 중...</span>
+              </div>
             ) : (
               <>더보기 ({items.length} / {totalElements})</>
             )}

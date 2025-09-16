@@ -2,12 +2,8 @@
 
 import { useState } from "react";
 import dynamic from "next/dynamic";
+import { Modal, ModalHeader, ModalBody } from "flowbite-react";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
   Card,
   Badge,
   Button,
@@ -15,9 +11,9 @@ import {
   Tabs,
   TabsContent,
   TabsList,
-  TabsTrigger,
-  Spinner
+  TabsTrigger
 } from "@/components";
+import { Spinner as FlowbiteSpinner } from "flowbite-react";
 import {
   X,
   User,
@@ -50,16 +46,16 @@ interface ReportDetailModalProps {
 
 // 로딩 컴포넌트
 const ReportDetailModalLoading = () => (
-  <Dialog open onOpenChange={() => {}}>
-    <DialogContent className="max-w-2xl max-h-[90vh] p-0">
+  <Modal show onClose={() => {}} size="2xl">
+    <ModalBody>
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="flex flex-col items-center gap-3">
-          <Spinner size="lg" />
+          <FlowbiteSpinner color="pink" size="xl" aria-label="신고 상세 정보 로딩 중..." />
           <p className="text-sm text-brand-secondary">신고 상세 정보 로딩 중...</p>
         </div>
       </div>
-    </DialogContent>
-  </Dialog>
+    </ModalBody>
+  </Modal>
 );
 
 // 실제 모달 컴포넌트
@@ -110,32 +106,21 @@ function ReportDetailModalContent({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] p-0">
-        {/* 모달 헤더 - 그라데이션 배경과 신고 ID 표시 */}
-        <div className="px-6 py-4 border-b bg-gradient-to-r from-purple-50 to-pink-50">
-          <DialogHeader>
-            <div className="flex items-start justify-between">
-              <div>
-                <DialogTitle className="text-xl font-bold text-brand-primary flex items-center gap-2">
-                  <AlertTriangle className="w-5 h-5 text-red-500" />
-                  신고 상세 정보
-                </DialogTitle>
-                <DialogDescription className="mt-1 text-sm text-brand-muted">
-                  신고 ID: #{report.id}
-                </DialogDescription>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onClose}
-                className="h-8 w-8 p-0"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </DialogHeader>
+    <Modal show={isOpen} onClose={onClose} size="2xl">
+      <ModalHeader className="bg-gradient-to-r from-purple-50 to-pink-50">
+        <div className="flex items-start justify-between w-full">
+          <div>
+            <span className="text-xl font-bold text-brand-primary flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-red-500" />
+              신고 상세 정보
+            </span>
+            <p className="mt-1 text-sm text-brand-muted">
+              신고 ID: #{report.id}
+            </p>
+          </div>
         </div>
+      </ModalHeader>
+      <ModalBody className="p-0">
 
         {/* 탭 시스템: 상세정보, 신고내용, 처리작업으로 구성 */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
@@ -344,8 +329,8 @@ function ReportDetailModalContent({
             </TabsContent>
           </ScrollArea>
         </Tabs>
-      </DialogContent>
-    </Dialog>
+      </ModalBody>
+    </Modal>
   );
 }
 

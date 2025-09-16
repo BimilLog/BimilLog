@@ -1,13 +1,6 @@
 import React from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  Button,
-  Input
-} from "@/components";
+import { Modal, ModalHeader, ModalBody, ModalFooter } from "flowbite-react";
+import { Button, Input } from "@/components";
 
 interface PasswordModalProps {
   isOpen: boolean;
@@ -27,11 +20,9 @@ export const PasswordModal = React.memo<PasswordModalProps>(({
   title,
 }) => {
   return (
-    <Dialog open={isOpen} onOpenChange={(open: boolean) => !open && onCancel()}>
-      <DialogContent popup size="sm">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-        </DialogHeader>
+    <Modal show={isOpen} onClose={onCancel} size="sm">
+      <ModalHeader>{title}</ModalHeader>
+      <ModalBody>
         <div className="space-y-4">
           <Input
             type="password"
@@ -41,13 +32,13 @@ export const PasswordModal = React.memo<PasswordModalProps>(({
             autoFocus
           />
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={onCancel}>
-            취소
-          </Button>
-          <Button onClick={onConfirm}>확인</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      </ModalBody>
+      <ModalFooter>
+        <Button variant="outline" onClick={onCancel}>
+          취소
+        </Button>
+        <Button onClick={onConfirm}>확인</Button>
+      </ModalFooter>
+    </Modal>
   );
 });

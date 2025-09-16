@@ -2,13 +2,10 @@
 
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
+import { Modal, ModalHeader, ModalBody, Spinner as FlowbiteSpinner } from "flowbite-react";
 import { Button, Avatar, AvatarFallback, AvatarImage } from "@/components";
 import { getInitials } from "@/lib/utils/format";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
   Spinner,
   EmptyState,
   Alert
@@ -29,26 +26,26 @@ interface KakaoFriendsModalProps {
  * Dynamic import 중 카카오톡 스타일의 로딩 UI를 표시
  */
 const KakaoFriendsModalLoading = () => (
-  <Dialog open onOpenChange={() => {}}>
-    <DialogContent className="max-w-md max-h-[80vh] p-0 overflow-hidden bg-white">
-      <DialogHeader className="px-4 py-3 bg-gradient-to-r from-yellow-400 to-yellow-500 text-black">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-yellow-300 rounded-lg flex items-center justify-center">
-            <Users className="w-5 h-5 text-yellow-800" />
-          </div>
-          <DialogTitle className="text-lg font-bold text-yellow-900">
-            카카오 친구
-          </DialogTitle>
+  <Modal show onClose={() => {}} size="md">
+    <ModalHeader className="bg-gradient-to-r from-yellow-400 to-yellow-500">
+      <div className="flex items-center space-x-2">
+        <div className="w-8 h-8 bg-yellow-300 rounded-lg flex items-center justify-center">
+          <Users className="w-5 h-5 text-yellow-800" />
         </div>
-      </DialogHeader>
+        <span className="text-lg font-bold text-yellow-900">
+          카카오 친구
+        </span>
+      </div>
+    </ModalHeader>
+    <ModalBody>
       <div className="flex items-center justify-center min-h-[300px]">
         <div className="flex flex-col items-center gap-3">
           <Spinner size="lg" />
           <p className="text-sm text-brand-secondary">카카오 친구 목록 로딩 중...</p>
         </div>
       </div>
-    </DialogContent>
-  </Dialog>
+    </ModalBody>
+  </Modal>
 );
 
 /**
@@ -154,51 +151,44 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
 
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md max-h-[80vh] p-0 overflow-hidden bg-white">
-        {/* 카카오톡 브랜드 색상과 스타일로 디자인된 헤더 */}
-        <DialogHeader className="px-4 py-3 bg-gradient-to-r from-yellow-400 to-yellow-500 text-black">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-yellow-300 rounded-lg flex items-center justify-center">
-                <Users className="w-5 h-5 text-yellow-800" />
-              </div>
-              <div>
-                <DialogTitle className="text-lg font-bold text-yellow-900">
-                  카카오 친구
-                </DialogTitle>
-                {/* 친구 총 개수 표시 */}
-                {friendsData && (
-                  <p className="text-sm text-yellow-800 opacity-90">
-                    총 {friendsData.total_count}명
-                  </p>
-                )}
-              </div>
+    <Modal show={isOpen} onClose={onClose} size="md">
+      <ModalHeader className="bg-gradient-to-r from-yellow-400 to-yellow-500">
+        <div className="flex items-center justify-between w-full">
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-yellow-300 rounded-lg flex items-center justify-center">
+              <Users className="w-5 h-5 text-yellow-800" />
             </div>
-            {/* 새로고침 및 닫기 버튼 */}
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={fetchFriends}
-                disabled={isLoading}
-                className="h-8 w-8 text-yellow-800 hover:bg-yellow-300"
-              >
-                <RefreshCw
-                  className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
-                />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onClose}
-                className="h-8 w-8 text-yellow-800 hover:bg-yellow-300"
-              >
-                <X className="h-4 w-4" />
-              </Button>
+            <div>
+              <span className="text-lg font-bold text-yellow-900">
+                카카오 친구
+              </span>
+              {/* 친구 총 개수 표시 */}
+              {friendsData && (
+                <p className="text-sm text-yellow-800 opacity-90">
+                  총 {friendsData.total_count}명
+                </p>
+              )}
             </div>
           </div>
-        </DialogHeader>
+          {/* 새로고침 버튼 */}
+          <div className="flex items-center">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={fetchFriends}
+              disabled={isLoading}
+              className="h-8 w-8 text-yellow-800 hover:bg-yellow-300"
+            >
+              {isLoading ? (
+                <FlowbiteSpinner color="yellow" size="xs" aria-label="새로고침 중..." />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+        </div>
+      </ModalHeader>
+      <ModalBody className="p-0">
 
         {/* 메인 컨텐츠 영역 - 상태별 조건부 렌더링 */}
         <div className="overflow-y-auto max-h-96">
@@ -343,8 +333,8 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
             </p>
           </div>
         )}
-      </DialogContent>
-    </Dialog>
+      </ModalBody>
+    </Modal>
   );
 }
 

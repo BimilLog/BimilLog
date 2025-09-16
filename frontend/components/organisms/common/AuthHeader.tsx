@@ -26,7 +26,8 @@ import {
   DropdownDivider,
   DropdownHeader,
   DropdownItem,
-  Avatar
+  Avatar,
+  Spinner as FlowbiteSpinner
 } from "flowbite-react";
 
 const NotificationBell = dynamic(
@@ -129,7 +130,9 @@ export const AuthHeader = React.memo(() => {
         </button>
 
         {isLoading ? (
-          <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse" />
+          <div className="w-8 h-8 flex items-center justify-center">
+            <FlowbiteSpinner color="pink" size="sm" aria-label="Loading..." />
+          </div>
         ) : isAuthenticated && user ? (
           <>
             <NotificationBell />

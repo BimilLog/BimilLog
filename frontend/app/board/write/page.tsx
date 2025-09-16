@@ -6,7 +6,7 @@ import dynamic from "next/dynamic";
 
 // 분리된 훅과 컴포넌트들 import
 import { useWriteForm } from "@/hooks/features";
-import { AuthHeader, WritePageHeader, Breadcrumb } from "@/components";
+import { AuthHeader, WritePageHeader, Breadcrumb, Spinner } from "@/components";
 
 // WriteForm을 동적 import로 변경하여 Editor 컴포넌트 최적화
 // Quill Editor는 무거운 라이브러리이므로 필요할 때만 로드하여 초기 번들 크기 감소
@@ -14,9 +14,7 @@ const WriteForm = dynamic(() => import("@/components").then(mod => ({ default: m
   // 컴포넌트 로딩 중 표시할 스피너
   loading: () => (
     <div className="flex items-center justify-center p-8">
-      <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-xl flex items-center justify-center">
-        <Save className="w-7 h-7 text-white animate-pulse" />
-      </div>
+      <Spinner size="xl" />
     </div>
   ),
   // Quill Editor는 window 객체를 사용하므로 서버사이드 렌더링 비활성화
@@ -60,11 +58,11 @@ export default function WritePostPage() {
       <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
         <AuthHeader />
         <div className="flex items-center justify-center flex-1 min-h-[calc(100vh-80px)]">
-          <div className="text-center">
-            <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <Save className="w-7 h-7 text-white animate-pulse" />
-            </div>
-            <p className="text-brand-muted">로딩 중...</p>
+          <div className="flex flex-col items-center">
+            <Spinner
+              size="xl"
+              message="로딩 중..."
+            />
           </div>
         </div>
       </div>

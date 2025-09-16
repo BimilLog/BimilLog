@@ -7,10 +7,10 @@ import {
   Tabs,
   TabsContent,
   TabsList,
-  TabsTrigger,
-  Spinner
+  TabsTrigger
 } from "@/components";
 import { AlertTriangle, TrendingUp } from "lucide-react";
+import { Spinner as FlowbiteSpinner } from "flowbite-react";
 import { useAdminAuth, useReports } from "@/hooks/features/admin";
 
 // Dynamic imports for heavy admin components
@@ -24,7 +24,7 @@ const AdminStats = dynamic(
           {[1, 2, 3].map((i) => (
             <div key={i} className="bg-white rounded-xl p-6 shadow-brand-sm border border-gray-100">
               <div className="flex items-center justify-center h-20">
-                <Spinner size="md" />
+                <FlowbiteSpinner color="pink" size="xl" aria-label="Loading..." />
               </div>
             </div>
           ))}
@@ -42,7 +42,7 @@ const ReportListContainer = dynamic(
       <div className="bg-white rounded-xl shadow-brand-sm border border-gray-100 p-6">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="flex flex-col items-center gap-3">
-            <Spinner size="lg" />
+            <FlowbiteSpinner color="pink" size="xl" aria-label="신고 목록 로딩 중..." />
             <p className="text-sm text-brand-secondary">신고 목록 로딩 중...</p>
           </div>
         </div>
@@ -77,7 +77,7 @@ export function AdminClient() {
   if (isAuthLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div>
+        <FlowbiteSpinner color="pink" size="xl" aria-label="Loading..." />
       </div>
     );
   }

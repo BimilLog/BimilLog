@@ -1,13 +1,7 @@
 "use client";
 
 import React, { memo, useMemo } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components";
+import { Modal, ModalHeader, ModalBody, ModalFooter } from "flowbite-react";
 import { Button } from "@/components";
 import { Badge, TimeBadge } from "@/components";
 import { Card, CardContent } from "@/components";
@@ -39,17 +33,17 @@ export const MessageListModal: React.FC<MessageListModalProps> = memo(({
 
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent size="xl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-cyan-800 font-bold text-lg md:text-xl">
-            <MessageSquare className="w-5 h-5 md:w-6 md:h-6" />
-            받은 메시지 목록
-            <Badge variant="secondary" className="bg-cyan-100 text-cyan-700">
-              {messages.length}개
-            </Badge>
-          </DialogTitle>
-        </DialogHeader>
+    <Modal show={isOpen} onClose={onClose} size="xl">
+      <ModalHeader>
+        <span className="flex items-center gap-2 text-cyan-800 font-bold text-lg md:text-xl">
+          <MessageSquare className="w-5 h-5 md:w-6 md:h-6" />
+          받은 메시지 목록
+          <Badge variant="secondary" className="bg-cyan-100 text-cyan-700">
+            {messages.length}개
+          </Badge>
+        </span>
+      </ModalHeader>
+      <ModalBody>
 
         {messages.length === 0 ? (
           <div className="text-center py-12">
@@ -127,18 +121,17 @@ export const MessageListModal: React.FC<MessageListModalProps> = memo(({
             </div>
           </div>
         )}
-
-        <DialogFooter>
-          <Button
-            onClick={onClose}
-            variant="outline"
-            className="w-full"
-          >
-            닫기
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      </ModalBody>
+      <ModalFooter>
+        <Button
+          onClick={onClose}
+          variant="outline"
+          className="w-full"
+        >
+          닫기
+        </Button>
+      </ModalFooter>
+    </Modal>
   );
 });
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { Button, Card, CardContent } from "@/components";
+import { Spinner as FlowbiteSpinner } from "flowbite-react";
 import {
   Smartphone,
   Monitor,
@@ -144,7 +145,9 @@ export default function InstallPage() {
           <h1 className={`text-4xl md:text-6xl font-bold mb-6 ${GRADIENTS.titleText}`}>
             비밀로그를 앱으로 설치하세요
           </h1>
-          <div className="animate-pulse text-cyan-600">로딩 중...</div>
+          <div className="flex items-center justify-center">
+            <FlowbiteSpinner color="pink" size="xl" aria-label="로딩 중..." />
+          </div>
         </div>
       </div>
     );

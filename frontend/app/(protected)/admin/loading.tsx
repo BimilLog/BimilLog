@@ -1,19 +1,16 @@
-import { Shield } from "lucide-react";
+import { Spinner as FlowbiteSpinner } from "flowbite-react";
 
 export default function Loading() {
   return (
     <div className="flex items-center justify-center py-16">
-      <div className="text-center">
-        <div className="flex justify-center mb-4">
-          <Shield className="w-12 h-12 text-blue-600 animate-pulse" />
-        </div>
-        <h2 className="text-lg font-semibold text-brand-primary mb-2">관리자 대시보드</h2>
-        <div className="flex items-center justify-center space-x-2">
-          <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
-          <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
-          <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
-        </div>
-        <p className="text-brand-muted mt-4">로딩 중...</p>
+      <div className="flex flex-col items-center">
+        <FlowbiteSpinner
+          color="pink"
+          size="xl"
+          aria-label="관리자 대시보드 로딩 중"
+        />
+        <h2 className="mt-4 text-lg font-semibold text-brand-primary mb-2">관리자 대시보드</h2>
+        <p className="text-brand-muted">로딩 중...</p>
       </div>
     </div>
   );

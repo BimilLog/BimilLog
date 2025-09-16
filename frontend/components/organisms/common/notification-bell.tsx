@@ -31,6 +31,7 @@ import {
   useDeleteAllNotifications
 } from "@/hooks/features";
 import { useAuth } from "@/hooks";
+import { Spinner as FlowbiteSpinner } from "flowbite-react";
 
 /**
  * 실시간 알림 벨 컴포넌트
@@ -176,9 +177,11 @@ export function NotificationBell() {
             className="text-sm min-h-[44px] min-w-[44px] touch-manipulation"
             title="알림 목록 새로고침"
           >
-            <RefreshCw
-              className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`}
-            />
+            {isLoading ? (
+              <FlowbiteSpinner color="pink" size="sm" aria-label="새로고침 중..." />
+            ) : (
+              <RefreshCw className="w-4 h-4" />
+            )}
           </Button>
           {/* 브라우저 푸시 알림 권한 요청 버튼 */}
           <Button
@@ -229,9 +232,9 @@ export function NotificationBell() {
       <div className="max-h-[50vh] lg:max-h-96 overflow-y-auto">
         {/* 로딩 상태 */}
         {isLoading ? (
-          <div className="p-8 text-center">
-            <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-brand-secondary" />
-            <p className="text-sm text-brand-secondary">알림을 불러오는 중...</p>
+          <div className="p-8 flex flex-col items-center">
+            <FlowbiteSpinner color="pink" size="xl" aria-label="알림을 불러오는 중..." />
+            <p className="mt-2 text-sm text-brand-secondary">알림을 불러오는 중...</p>
           </div>
         ) : notifications.length > 0 ? (
           /* 알림 목록 렌더링 */

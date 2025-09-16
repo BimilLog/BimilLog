@@ -1,5 +1,5 @@
 import React from "react";
-import { ToggleSwitch } from "flowbite-react";
+import { ToggleSwitch, Spinner as FlowbiteSpinner } from "flowbite-react";
 import { Label } from "@/components";
 import { SettingsSection, SettingToggle } from "@/components/molecules";
 import { Bell, Heart, MessageCircle, TrendingUp } from "lucide-react";
@@ -81,7 +81,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
       {saving && (
         <div className="flex items-center justify-center py-4">
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+            <FlowbiteSpinner color="pink" size="sm" aria-label="설정을 저장하는 중..." />
             <span className="text-sm text-brand-muted">설정을 저장하는 중...</span>
           </div>
         </div>

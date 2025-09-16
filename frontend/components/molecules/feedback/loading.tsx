@@ -1,43 +1,18 @@
 import { cn } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
+import { Spinner as FlowbiteSpinner } from "flowbite-react";
 import { Card, CardContent } from "@/components";
 
 interface LoadingProps {
   className?: string;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
   message?: string;
   type?: "default" | "page" | "button" | "card";
-}
-
-// 기본 스피너 컴포넌트 (내부 사용)
-function LoadingIcon({
-  className,
-  size = "md",
-}: {
-  className?: string;
-  size?: "sm" | "md" | "lg";
-}) {
-  const sizeClasses = {
-    sm: "w-4 h-4",
-    md: "w-6 h-6",
-    lg: "w-8 h-8",
-  };
-
-  return (
-    <Loader2
-      className={cn(
-        "animate-spin text-purple-600",
-        sizeClasses[size],
-        className
-      )}
-    />
-  );
 }
 
 // 다양한 로딩 변형들
 export function Loading({
   className,
-  size = "md",
+  size = "xl",
   message,
   type = "default",
 }: LoadingProps) {
@@ -49,9 +24,13 @@ export function Loading({
           className
         )}
       >
-        <div className="text-center">
-          <LoadingIcon size="lg" className="mx-auto mb-4" />
-          <p className="text-brand-muted text-lg">{message || "로딩 중..."}</p>
+        <div className="flex flex-col items-center">
+          <FlowbiteSpinner
+            color="pink"
+            size="xl"
+            aria-label={message || "로딩 중..."}
+          />
+          <p className="mt-4 text-brand-muted text-lg">{message || "로딩 중..."}</p>
         </div>
       </div>
     );
@@ -60,9 +39,13 @@ export function Loading({
   if (type === "card") {
     return (
       <Card variant="elevated" className={className}>
-        <CardContent className="p-8 text-center">
-          <LoadingIcon size="lg" className="mx-auto mb-4" />
-          <p className="text-brand-muted">{message || "로딩 중..."}</p>
+        <CardContent className="p-8 flex flex-col items-center">
+          <FlowbiteSpinner
+            color="pink"
+            size="xl"
+            aria-label={message || "로딩 중..."}
+          />
+          <p className="mt-4 text-brand-muted">{message || "로딩 중..."}</p>
         </CardContent>
       </Card>
     );
@@ -70,8 +53,12 @@ export function Loading({
 
   if (type === "button") {
     return (
-      <div className={cn("flex items-center gap-2", className)}>
-        <LoadingIcon size={size} />
+      <div className={cn("flex items-center justify-center gap-2", className)}>
+        <FlowbiteSpinner
+          color="pink"
+          size={size === "xl" ? "md" : size}
+          aria-label={message || "처리 중..."}
+        />
         <span className="text-sm">{message || "처리 중..."}</span>
       </div>
     );
@@ -80,9 +67,13 @@ export function Loading({
   // default type
   return (
     <div className={cn("flex items-center justify-center p-8", className)}>
-      <div className="text-center">
-        <LoadingIcon size={size} className="mx-auto mb-2" />
-        {message && <p className="text-sm text-brand-muted">{message}</p>}
+      <div className="flex flex-col items-center">
+        <FlowbiteSpinner
+          color="pink"
+          size={size === "xl" ? "xl" : size}
+          aria-label={message || "로딩 중..."}
+        />
+        {message && <p className="mt-2 text-sm text-brand-muted">{message}</p>}
       </div>
     </div>
   );

@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import dynamic from "next/dynamic";
-import { Dialog, DialogContent, DialogTitle, DialogHeader, Button, Spinner } from "@/components";
+import { Modal, ModalHeader, ModalBody, ModalFooter } from "flowbite-react";
+import { Button, Spinner } from "@/components";
 import { useBrowserGuide } from "@/hooks";
 import { CheckCircle, Link, Smartphone, Globe } from "lucide-react";
 import { copyToClipboard } from "@/lib/utils/clipboard";
@@ -27,17 +28,16 @@ interface BrowserGuideModalProps {
 
 // 로딩 컴포넌트
 const BrowserGuideModalLoading = () => (
-  <Dialog open onOpenChange={() => {}}>
-    <DialogContent className="p-6 max-w-md mx-auto" aria-label="브라우저 가이드 로딩">
-      <DialogTitle className="sr-only">브라우저 가이드 로딩</DialogTitle>
+  <Modal show onClose={() => {}} size="md">
+    <ModalBody>
       <div className="flex items-center justify-center min-h-[300px]">
         <div className="flex flex-col items-center gap-3">
           <Spinner size="lg" />
           <p className="text-sm text-brand-secondary">브라우저 가이드 로딩 중...</p>
         </div>
       </div>
-    </DialogContent>
-  </Dialog>
+    </ModalBody>
+  </Modal>
 );
 
 // 실제 모달 컴포넌트
@@ -87,17 +87,19 @@ function BrowserGuideModalContent({
   };
 
   return (
-    <Dialog open={effectiveShow} onOpenChange={handleClose}>
-      <DialogContent className="p-6 max-w-md mx-auto" aria-label="브라우저 가이드">
-        <DialogHeader className="text-center mb-6">
-          <Smartphone className="w-10 h-10 mb-3 text-indigo-600 mx-auto" />
-          <DialogTitle className="text-xl font-bold text-brand-primary mb-2">
+    <Modal show={effectiveShow} onClose={handleClose} size="md">
+      <ModalHeader className="text-center">
+        <div className="flex flex-col items-center">
+          <Smartphone className="w-10 h-10 mb-3 text-indigo-600" />
+          <span className="text-xl font-bold text-brand-primary">
             더 나은 이용을 위해 앱으로 설치해보세요!
-          </DialogTitle>
-          <p className="text-sm text-brand-muted leading-relaxed">
-            비밀로그를 앱으로 설치하면 더 빠르고 편리하게 이용할 수 있어요.
-          </p>
-        </DialogHeader>
+          </span>
+        </div>
+      </ModalHeader>
+      <ModalBody>
+        <p className="text-sm text-brand-muted leading-relaxed text-center mb-6">
+          비밀로그를 앱으로 설치하면 더 빠르고 편리하게 이용할 수 있어요.
+        </p>
 
         <div className="space-y-4 mb-6">
           {/* 플랫폼별 설치 가이드 분기 처리 */}
@@ -161,10 +163,6 @@ function BrowserGuideModalContent({
           )}
         </div>
 
-        <Button onClick={handleClose} variant="outline" className="w-full">
-          닫기
-        </Button>
-
         {/* 디버깅 정보 (개발 환경에서만) */}
         {process.env.NODE_ENV === "development" && (
           <div className="mt-4 p-3 bg-gray-100 rounded text-xs">
@@ -176,8 +174,13 @@ function BrowserGuideModalContent({
             </p>
           </div>
         )}
-      </DialogContent>
-    </Dialog>
+      </ModalBody>
+      <ModalFooter>
+        <Button onClick={handleClose} variant="outline" className="w-full">
+          닫기
+        </Button>
+      </ModalFooter>
+    </Modal>
   );
 }
 

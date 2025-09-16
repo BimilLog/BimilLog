@@ -2,6 +2,7 @@ import React from "react";
 import { Button } from "@/components";
 import { SettingsSection } from "@/components/molecules";
 import { LogOut, AlertTriangle } from "lucide-react";
+import { Spinner as FlowbiteSpinner } from "flowbite-react";
 
 interface AccountSettingsProps {
   withdrawing: boolean;
@@ -37,10 +38,10 @@ export const AccountSettings: React.FC<AccountSettingsProps> = ({
           className="bg-red-600 hover:bg-red-700"
         >
           {withdrawing ? (
-            <>
-              <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin mr-1"></div>
-              처리 중...
-            </>
+            <div className="flex items-center justify-center">
+              <FlowbiteSpinner color="white" size="xs" aria-label="처리 중..." className="mr-1" />
+              <span>처리 중...</span>
+            </div>
           ) : (
             "탈퇴"
           )}

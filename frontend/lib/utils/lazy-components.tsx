@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { ComponentType } from 'react';
+import { Spinner as FlowbiteSpinner } from 'flowbite-react';
 
 // Lazy load heavy components
 export const LazyEditor = dynamic(
@@ -28,7 +29,7 @@ export const LazyKakaoFriendsModal = dynamic(
             <div className="h-6 bg-yellow-300/50 rounded animate-pulse"></div>
           </div>
           <div className="flex items-center justify-center min-h-[300px]">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-yellow-600"></div>
+            <FlowbiteSpinner color="pink" size="xl" aria-label="Loading..." />
           </div>
         </div>
       </div>
@@ -47,7 +48,7 @@ export const LazyReportDetailModal = dynamic(
             <div className="h-6 bg-purple-200 rounded animate-pulse"></div>
           </div>
           <div className="flex items-center justify-center min-h-[400px]">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-600"></div>
+            <FlowbiteSpinner color="pink" size="xl" aria-label="Loading..." />
           </div>
         </div>
       </div>
@@ -63,7 +64,7 @@ export const LazyBrowserGuideModal = dynamic(
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
         <div className="bg-white p-6 rounded-lg max-w-md w-full mx-4">
           <div className="flex items-center justify-center min-h-[200px]">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-600"></div>
+            <FlowbiteSpinner color="pink" size="xl" aria-label="Loading..." />
           </div>
         </div>
       </div>
@@ -110,7 +111,7 @@ export const LazyMessageListModal = dynamic(
     loading: () => (
       <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
         <div className="bg-white rounded-lg p-6 flex flex-col items-center gap-3">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-cyan-600"></div>
+          <FlowbiteSpinner color="pink" size="xl" aria-label="메시지 목록 로딩 중..." />
           <p className="text-sm text-brand-secondary">메시지 목록 로딩 중...</p>
         </div>
       </div>

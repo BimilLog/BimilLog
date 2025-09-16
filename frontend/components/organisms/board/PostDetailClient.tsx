@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { Card } from "@/components";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { Spinner as FlowbiteSpinner } from "flowbite-react";
 import { AuthHeader } from "@/components/organisms/common";
 import {
   ResponsiveAdFitBanner,
@@ -178,7 +179,7 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-50 to-indigo-100 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin" />
+        <FlowbiteSpinner color="pink" size="xl" aria-label="Loading..." />
       </div>
     );
   }

@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type SimplePost } from "@/lib/api";
 import { formatDate } from "@/lib/utils/date";
-import { ThumbsUp, MessageCircle } from "lucide-react";
-import { Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow } from "flowbite-react";
+import { ThumbsUp, MessageCircle, Eye, TrendingUp, Users, Activity } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow, Popover } from "flowbite-react";
 
 interface PopularPostListProps {
   posts: SimplePost[];
@@ -83,16 +83,64 @@ export const PopularPostList = ({
                       {formatDate(post.createdAt)}
                     </TableCell>
                     <TableCell className="text-center">
-                      <span className="flex items-center justify-center">
-                        <ThumbsUp className="w-3 h-3 mr-1" />
-                        {post.likeCount}
-                      </span>
+                      <Popover
+                        trigger="hover"
+                        placement="top"
+                        content={
+                          <div className="p-3 min-w-[180px]">
+                            <div className="flex items-center gap-2 mb-2">
+                              <ThumbsUp className="w-4 h-4 text-purple-600" />
+                              <span className="font-semibold text-sm">좋아요 통계</span>
+                            </div>
+                            <div className="space-y-1 text-xs">
+                              <div className="flex justify-between">
+                                <span className="text-gray-500">현재 좋아요:</span>
+                                <span className="font-medium">{post.likeCount}개</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-500">순위:</span>
+                                <span className="font-medium text-purple-600">#{index + 1}</span>
+                              </div>
+                            </div>
+                          </div>
+                        }
+                      >
+                        <span className="flex items-center justify-center cursor-help">
+                          <ThumbsUp className="w-3 h-3 mr-1" />
+                          {post.likeCount}
+                        </span>
+                      </Popover>
                     </TableCell>
                     <TableCell className="text-center">
-                      <span className="flex items-center justify-center">
-                        <MessageCircle className="w-3 h-3 mr-1" />
-                        {post.commentCount}
-                      </span>
+                      <Popover
+                        trigger="hover"
+                        placement="top"
+                        content={
+                          <div className="p-3 min-w-[180px]">
+                            <div className="flex items-center gap-2 mb-2">
+                              <MessageCircle className="w-4 h-4 text-blue-600" />
+                              <span className="font-semibold text-sm">댓글 통계</span>
+                            </div>
+                            <div className="space-y-1 text-xs">
+                              <div className="flex justify-between">
+                                <span className="text-gray-500">총 댓글:</span>
+                                <span className="font-medium">{post.commentCount}개</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-500">활발도:</span>
+                                <span className="font-medium">
+                                  {post.commentCount > 10 ? '활발' : post.commentCount > 5 ? '보통' : '조용'}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        }
+                      >
+                        <span className="flex items-center justify-center cursor-help">
+                          <MessageCircle className="w-3 h-3 mr-1" />
+                          {post.commentCount}
+                        </span>
+                      </Popover>
                     </TableCell>
                   </TableRow>
                 ))}

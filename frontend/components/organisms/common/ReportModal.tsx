@@ -1,14 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import { Modal, ModalHeader, ModalBody, ModalFooter } from "flowbite-react";
 import { Button } from "@/components";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components";
 import { Textarea } from "@/components";
 import { Alert, AlertDescription } from "@/components";
 import { Flag, AlertTriangle } from "lucide-react";
@@ -67,15 +61,14 @@ export const ReportModal: React.FC<ReportModalProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent size="md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-red-600">
-            <Flag className="w-5 h-5" />
-            {type} 신고하기
-          </DialogTitle>
-        </DialogHeader>
-
+    <Modal show={isOpen} onClose={handleClose} size="md">
+      <ModalHeader>
+        <span className="flex items-center gap-2 text-red-600">
+          <Flag className="w-5 h-5" />
+          {type} 신고하기
+        </span>
+      </ModalHeader>
+      <ModalBody>
         <div className="space-y-4">
           <Alert>
             <AlertTriangle className="h-4 w-4" />
@@ -133,24 +126,23 @@ export const ReportModal: React.FC<ReportModalProps> = ({
             </Alert>
           )}
         </div>
-
-        <DialogFooter className="pt-4">
-          <Button
-            variant="outline"
-            onClick={handleClose}
-            disabled={isSubmitting}
-          >
-            취소
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={!isValid || isSubmitting}
-            className="bg-red-600 hover:bg-red-700 text-white"
-          >
-            {isSubmitting ? "신고 중..." : "신고하기"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      </ModalBody>
+      <ModalFooter>
+        <Button
+          variant="outline"
+          onClick={handleClose}
+          disabled={isSubmitting}
+        >
+          취소
+        </Button>
+        <Button
+          onClick={handleSubmit}
+          disabled={!isValid || isSubmitting}
+          className="bg-red-600 hover:bg-red-700 text-white"
+        >
+          {isSubmitting ? "신고 중..." : "신고하기"}
+        </Button>
+      </ModalFooter>
+    </Modal>
   );
 };

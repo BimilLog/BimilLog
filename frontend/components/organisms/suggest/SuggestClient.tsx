@@ -213,8 +213,8 @@ export default function SuggestClient() {
                     className="w-full bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 py-3 text-lg font-semibold"
                   >
                     {isSubmitting ? (
-                      <div className="flex items-center space-x-2">
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <div className="flex items-center justify-center space-x-2">
+                        <Spinner size="sm" className="text-white" />
                         <span>접수 중...</span>
                       </div>
                     ) : (

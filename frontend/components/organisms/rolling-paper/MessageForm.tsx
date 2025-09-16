@@ -11,6 +11,7 @@ import {
   SelectValue
 } from "@/components/molecules/select";
 import { Send, Snowflake, Waves, IceCream2 } from "lucide-react";
+import { Spinner as FlowbiteSpinner } from "flowbite-react";
 import { getDecoInfo, decoTypeMap, type DecoType } from "@/lib/api";
 import { DecoIcon } from "@/components";
 import { logger } from '@/lib/utils/logger';
@@ -231,8 +232,8 @@ export const MessageForm = React.memo<MessageFormProps>(({
             disabled={isSubmitting}
           >
             {isSubmitting ? (
-              <div className="flex items-center space-x-2">
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <div className="flex items-center justify-center space-x-2">
+                <FlowbiteSpinner color="white" size="sm" aria-label="등록 중..." />
                 <span>등록 중...</span>
               </div>
             ) : (
