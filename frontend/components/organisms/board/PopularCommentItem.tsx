@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/molecules/dropdown-menu";
-import React, { useState } from "react";
+import React from "react";
 import { useToast } from "@/hooks";
 
 interface PopularCommentItemProps {
@@ -27,10 +27,7 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
   onCommentClick,
 }) => {
   const { user, isAuthenticated } = useAuth();
-  const [reportingCommentId, setReportingCommentId] = useState<number | null>(
-    null
-  );
-  const { showSuccess, showError, showFeedback, showWarning } = useToast();
+  const { showError, showFeedback, showWarning } = useToast();
 
   const isMyComment = (comment: Comment) => {
     return user?.userId === comment.userId;

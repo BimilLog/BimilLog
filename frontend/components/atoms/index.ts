@@ -14,7 +14,6 @@ export { Label } from './forms/label';
 
 // Feedback components
 export { Spinner, LoadingSpinner, CuteLoadingSpinner, BrandLoadingSpinner, QuickSpinner } from './feedback/spinner';
-export { ErrorBoundary } from './feedback/error-boundary';
 export { AuthLoadingScreen } from './feedback/auth-loading-screen';
 
 // Action components

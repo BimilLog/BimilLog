@@ -16,8 +16,8 @@ interface WebVitalsMetric {
 // Google Analytics로 Web Vitals 전송
 function sendToGoogleAnalytics(metric: WebVitalsMetric) {
   // gtag이 로드되었는지 확인
-  if (typeof window !== 'undefined' && (window as Window & { gtag?: Function }).gtag) {
-    (window as Window & { gtag?: Function }).gtag?.('event', metric.name, {
+  if (typeof window !== 'undefined' && (window as Window & { gtag?: (...args: unknown[]) => void }).gtag) {
+    (window as Window & { gtag?: (...args: unknown[]) => void }).gtag?.('event', metric.name, {
       event_category: 'Web Vitals',
       event_label: metric.id,
       value: Math.round(metric.name === 'CLS' ? metric.value * 1000 : metric.value),

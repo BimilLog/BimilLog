@@ -65,7 +65,7 @@ export function withPerformanceMonitor<P extends object>(
   Component: React.ComponentType<P>,
   componentName: string
 ) {
-  return (props: P) => {
+  const PerformanceMonitorComponent = (props: P) => {
     const renderStartTime = performance.now();
     
     React.useEffect(() => {
@@ -79,4 +79,7 @@ export function withPerformanceMonitor<P extends object>(
     
     return <Component {...props} />;
   };
+
+  PerformanceMonitorComponent.displayName = `withPerformanceMonitor(${componentName})`;
+  return PerformanceMonitorComponent;
 }

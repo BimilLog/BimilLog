@@ -237,12 +237,12 @@ export default function InstallPage() {
               </InstallStep>
               <InstallStep step={2} bgColor="bg-green-100">
                 위의{" "}
-                <span className="font-bold bg-green-100 px-2 py-1 rounded">"앱 설치"</span>{" "}
+                <span className="font-bold bg-green-100 px-2 py-1 rounded">&quot;앱 설치&quot;</span>{" "}
                 버튼을 클릭하세요
               </InstallStep>
               <InstallStep step={3} bgColor="bg-green-100">
                 설치 확인 창에서{" "}
-                <span className="font-bold bg-green-100 px-2 py-1 rounded">"설치"</span>
+                <span className="font-bold bg-green-100 px-2 py-1 rounded">&quot;설치&quot;</span>
                 를 누르면 완료!
               </InstallStep>
             </InstallGuideCard>

@@ -1,12 +1,12 @@
 import {
   // 과일 관련 아이콘
-  Apple, Cherry, Grape,
+  Apple, Cherry,
   // 음료 관련 아이콘
   Coffee, Wine, Beer, CupSoda,
   // 음식 관련 아이콘
   Cake, Pizza, Fish, Soup, Egg, Cookie, Beef,
   // 동물 관련 아이콘
-  Cat, Dog, Bird, PawPrint, Fish as FishIcon,
+  Cat, Dog, Bird, PawPrint,
   // 자연 관련 아이콘
   Star, Sun, Moon, Mountain, Flower, Flower2, Leaf, Trees,
   Sparkles, Droplet, Waves, TreePalm,

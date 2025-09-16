@@ -50,3 +50,4 @@ export const ReportFilters = React.memo<ReportFiltersProps>(({ filterType, setFi
     </div>
   );
 });
+ReportFilters.displayName = "ReportFilters";

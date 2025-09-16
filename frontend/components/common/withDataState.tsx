@@ -199,7 +199,7 @@ export function useConditionalRender(dataState: DataStateProps) {
       return <LoadingComponent />;
     }
 
-    return <Loading type={type as any} />;
+    return <Loading type={type as "default" | "page" | "button" | "card"} />;
   };
 
   const renderError = (component?: ComponentType<{ error: Error }>) => {

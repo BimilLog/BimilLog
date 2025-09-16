@@ -12,10 +12,13 @@ export const queryClient = new QueryClient({
       // 마운트 시 refetch 비활성화 (필요한 경우만 활성화)
       refetchOnMount: true,
       // 재시도 로직
-      retry: (failureCount, error: any) => {
+      retry: (failureCount, error: unknown) => {
         // 401, 403 에러는 재시도하지 않음
-        if (error?.status === 401 || error?.status === 403) {
-          return false;
+        if (error && typeof error === 'object' && 'status' in error) {
+          const status = (error as { status: number }).status;
+          if (status === 401 || status === 403) {
+            return false;
+          }
         }
         // 최대 2번까지 재시도
         return failureCount < 2;

@@ -196,12 +196,12 @@ export class ErrorHandler {
 }
 
 // handleApiError를 export (기존 코드 호환성)
-export const handleApiError = (error: unknown): void => {
+export const handleApiError = async (error: unknown): Promise<void> => {
   const appError = ErrorHandler.mapApiError(error);
   logger.error(appError.title, appError.message, appError.originalError);
 
   // Toast 표시 로직 - 동적 import를 사용하여 토스트 스토어 순환 의존성 방지
-  const { showToast } = require('@/stores/toast.store').useToastStore.getState();
+  const { showToast } = (await import('@/stores/toast.store')).useToastStore.getState();
   showToast({
     type: 'error',
     message: appError.userMessage || appError.message

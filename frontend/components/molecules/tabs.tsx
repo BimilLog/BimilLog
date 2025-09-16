@@ -14,6 +14,7 @@ const Tabs = React.memo(({ className, ...props }: React.ComponentProps<typeof Ta
     />
   )
 });
+Tabs.displayName = "Tabs";
 
 const TabsList = React.memo(({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.List>) => {
   return (
@@ -27,6 +28,7 @@ const TabsList = React.memo(({ className, ...props }: React.ComponentProps<typeo
     />
   )
 });
+TabsList.displayName = "TabsList";
 
 const TabsTrigger = React.memo(({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.Trigger>) => {
   return (
@@ -40,6 +42,7 @@ const TabsTrigger = React.memo(({ className, ...props }: React.ComponentProps<ty
     />
   )
 });
+TabsTrigger.displayName = "TabsTrigger";
 
 const TabsContent = React.memo(({ className, ...props }: React.ComponentProps<typeof TabsPrimitive.Content>) => {
   return (
@@ -50,5 +53,6 @@ const TabsContent = React.memo(({ className, ...props }: React.ComponentProps<ty
     />
   )
 });
+TabsContent.displayName = "TabsContent";
 
 export { Tabs, TabsList, TabsTrigger, TabsContent }

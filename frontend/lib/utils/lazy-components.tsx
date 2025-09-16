@@ -1,7 +1,6 @@
 "use client";
 
 import dynamic from 'next/dynamic';
-import { ComponentType } from 'react';
 import { Spinner as FlowbiteSpinner } from 'flowbite-react';
 
 // Lazy load heavy components

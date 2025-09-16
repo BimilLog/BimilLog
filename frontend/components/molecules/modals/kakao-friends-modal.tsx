@@ -13,7 +13,7 @@ import {
 import { userQuery, KakaoFriendList } from "@/lib/api";
 import { logger } from '@/lib/utils/logger';
 import { logoutAndRedirectToConsent } from "@/lib/auth/kakao";
-import { Users, MessageCircle, X, RefreshCw, AlertCircle } from "lucide-react";
+import { Users, MessageCircle, RefreshCw, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface KakaoFriendsModalProps {

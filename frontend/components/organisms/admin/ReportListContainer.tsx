@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback, memo } from "react";
+import React, { useState, useMemo, useCallback, memo } from "react";
 import { Card, Input, Badge, Button, Loading } from "@/components";
 import { Search, Filter, ChevronDown, AlertTriangle } from "lucide-react";
 import { ReportFilters } from "./ReportFilters";

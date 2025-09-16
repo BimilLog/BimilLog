@@ -248,3 +248,4 @@ export const MessageForm = React.memo<MessageFormProps>(({
     </form>
   );
 });
+MessageForm.displayName = "MessageForm";

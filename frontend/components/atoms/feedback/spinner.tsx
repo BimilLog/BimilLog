@@ -13,10 +13,7 @@ interface SpinnerProps extends React.HTMLAttributes<HTMLDivElement> {
 export const Spinner = React.forwardRef<HTMLDivElement, SpinnerProps>(
   ({
     size = "xl",
-    variant = "default",
     message,
-    icon = "spinner",
-    animation = "spin",
     className,
     ...props
   }, ref) => {

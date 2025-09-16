@@ -23,7 +23,7 @@ const QuillEditor: React.FC<EditorProps> = ({
 }) => {
   // DOM 요소 및 Quill 인스턴스 참조
   const editorRef = useRef<HTMLDivElement>(null);
-  const quillRef = useRef<any>(null);
+  const quillRef = useRef<unknown>(null);
 
   // 중복 초기화 방지를 위한 플래그
   const isInitializing = useRef(false);
@@ -134,7 +134,14 @@ const QuillEditor: React.FC<EditorProps> = ({
           ],
         });
 
-        const quill = quillRef.current;
+        const quill = quillRef.current as {
+          on: (event: string, handler: () => void) => void;
+          getSemanticHTML?: () => string;
+          root: { innerHTML: string };
+          clipboard: { convert: (options: { html: string }) => unknown };
+          setContents: (delta: unknown, source: string) => void;
+          off?: (event: string, handler?: () => void) => void;
+        };
 
         /**
          * 텍스트 변경 이벤트 리스너 설정
@@ -204,7 +211,7 @@ const QuillEditor: React.FC<EditorProps> = ({
     return () => {
       if (quillRef.current) {
         try {
-          quillRef.current.off("text-change");
+          (quillRef.current as { off: (event: string) => void }).off("text-change");
           quillRef.current = null;
         } catch (err) {
           logger.error("Error cleaning up Quill:", err);
@@ -220,13 +227,19 @@ const QuillEditor: React.FC<EditorProps> = ({
   useEffect(() => {
     if (quillRef.current && isReady && !error) {
       try {
-        const currentContent = quillRef.current.getSemanticHTML
-          ? quillRef.current.getSemanticHTML()
-          : quillRef.current.root.innerHTML;
+        const quill = quillRef.current as {
+          getSemanticHTML?: () => string;
+          root: { innerHTML: string };
+          clipboard: { convert: (options: { html: string }) => unknown };
+          setContents: (delta: unknown, source: string) => void;
+        };
+        const currentContent = quill.getSemanticHTML
+          ? quill.getSemanticHTML()
+          : quill.root.innerHTML;
 
         if (value !== currentContent) {
-          const delta = quillRef.current.clipboard.convert({ html: value });
-          quillRef.current.setContents(delta, "silent");
+          const delta = quill.clipboard.convert({ html: value });
+          quill.setContents(delta, "silent");
         }
       } catch (err) {
         logger.error("Error updating content:", err);

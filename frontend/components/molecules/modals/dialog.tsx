@@ -34,11 +34,11 @@ const Dialog = React.memo(({ open, onOpenChange, children }: DialogProps) => {
   if (trigger && React.isValidElement(trigger)) {
     return (
       <>
-        {React.cloneElement(trigger as React.ReactElement<any>, {
+        {React.cloneElement(trigger as React.ReactElement<{onClick?: () => void}>, {
           onClick: () => handleOpenChange(true),
         })}
         {content && React.isValidElement(content) &&
-          React.cloneElement(content as React.ReactElement<any>, {
+          React.cloneElement(content as React.ReactElement<DialogContentProps>, {
             open: isOpen,
             onClose: () => handleOpenChange(false),
           })
@@ -48,7 +48,7 @@ const Dialog = React.memo(({ open, onOpenChange, children }: DialogProps) => {
   }
 
   return content && React.isValidElement(content) ?
-    React.cloneElement(content as React.ReactElement<any>, {
+    React.cloneElement(content as React.ReactElement<DialogContentProps>, {
       open: isOpen,
       onClose: () => handleOpenChange(false),
     }) : null;
@@ -66,11 +66,11 @@ const DialogTrigger = React.memo(({
   onClick?: () => void;
 }) => {
   if (asChild && React.isValidElement(children)) {
-    return React.cloneElement(children as React.ReactElement<any>, {
+    return React.cloneElement(children as React.ReactElement<{onClick?: (e: React.MouseEvent) => void}>, {
       ...props,
       onClick: (e: React.MouseEvent) => {
         props.onClick?.();
-        (children as any).props?.onClick?.(e);
+        (children as React.ReactElement<{onClick?: (e: React.MouseEvent) => void}>).props?.onClick?.(e);
       },
     });
   }

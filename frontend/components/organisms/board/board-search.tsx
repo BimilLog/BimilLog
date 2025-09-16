@@ -3,9 +3,8 @@
 import { useEffect, useRef } from "react";
 import { Input, Button, Card } from "@/components";
 import { Dropdown, DropdownItem } from "flowbite-react";
-import { Search, ListFilter, Clock, TrendingUp, X, ChevronDown } from "lucide-react";
+import { Search, ListFilter, Clock, X, ChevronDown } from "lucide-react";
 import { useSearchHistory } from "@/hooks/features/useSearchHistory";
-import { addSearchHistory } from "@/lib/utils/search-history";
 
 interface BoardSearchProps {
   searchTerm: string;
@@ -28,10 +27,8 @@ export const BoardSearch = ({
 }: BoardSearchProps) => {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const {
-    searchQuery,
     setSearchQuery,
     recentSearches,
-    topSearches,
     suggestions,
     showSuggestions,
     setShowSuggestions,
@@ -118,12 +115,11 @@ export const BoardSearch = ({
           </div>
 
           {/* 검색 히스토리 및 자동완성 드롭다운 */}
-          {showSuggestions && (
+          {showSuggestions && (suggestions.length > 0 || recentSearches.length > 0) && (
             <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-lg border z-50 max-h-96 overflow-y-auto">
               {/* 검색어 자동완성 */}
               {suggestions.length > 0 && searchTerm && (
                 <div className="p-2 border-b">
-                  <div className="text-xs text-gray-500 mb-1 px-2">자동완성</div>
                   {suggestions.map((suggestion) => (
                     <button
                       key={suggestion.id}
@@ -153,7 +149,7 @@ export const BoardSearch = ({
 
               {/* 최근 검색어 */}
               {recentSearches.length > 0 && (
-                <div className="p-2 border-b">
+                <div className="p-2">
                   <div className="flex items-center justify-between px-2 mb-1">
                     <span className="text-xs text-gray-500 flex items-center gap-1">
                       <Clock className="w-3 h-3" />
@@ -193,43 +189,6 @@ export const BoardSearch = ({
                 </div>
               )}
 
-              {/* 인기 검색어 */}
-              {topSearches.length > 0 && (
-                <div className="p-2">
-                  <div className="text-xs text-gray-500 mb-1 px-2 flex items-center gap-1">
-                    <TrendingUp className="w-3 h-3" />
-                    인기 검색어
-                  </div>
-                  {topSearches.map((search, index) => (
-                    <button
-                      key={search.id}
-                      onClick={() => {
-                        setSearchTerm(search.query);
-                        selectRecentSearch(search);
-                        executeSearch();
-                      }}
-                      className="w-full text-left px-3 py-2 hover:bg-gray-50 rounded-md flex items-center justify-between"
-                    >
-                      <span className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-brand-primary">
-                          {index + 1}
-                        </span>
-                        <span>{search.query}</span>
-                      </span>
-                      <span className="text-xs text-gray-400">
-                        {search.count}회
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* 검색 기록이 없을 때 */}
-              {recentSearches.length === 0 && topSearches.length === 0 && suggestions.length === 0 && (
-                <div className="p-4 text-center text-gray-500 text-sm">
-                  검색 기록이 없습니다
-                </div>
-              )}
             </div>
           )}
         </div>

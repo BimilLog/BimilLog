@@ -2,7 +2,6 @@
 
 import { Breadcrumb as FlowbiteBreadcrumb, BreadcrumbItem as FlowbiteBreadcrumbItem } from "flowbite-react";
 import { HiHome } from "react-icons/hi";
-import type { ComponentProps } from "react";
 
 interface BreadcrumbItem {
   title: string;

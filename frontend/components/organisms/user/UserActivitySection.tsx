@@ -14,6 +14,10 @@ import { userQuery } from "@/lib/api";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import { Pagination, Spinner as FlowbiteSpinner } from "flowbite-react";
 import { logger } from "@/lib/utils";
+import type { Post, SimplePost } from "@/types/domains/post";
+import type { Comment, SimpleComment } from "@/types/domains/comment";
+
+type ActivityItem = Post | SimplePost | Comment | SimpleComment;
 
 const DEFAULT_PAGE = 0;
 const DEFAULT_PAGE_SIZE = 10;
@@ -112,10 +116,10 @@ const ActivityTabContent: React.FC<ActivityTabContentProps> = memo(({
       </div>
 
       <div className="grid gap-6">
-        {items.map((item: any) => (
+        {(items as ActivityItem[]).map((item) => (
           <ActivityCard
-            key={`${contentType}-${(item as any).id}`}
-            item={item as any}
+            key={`${contentType}-${item.id}`}
+            item={item}
             type={contentConfig.isPost ? "post" : "comment"}
             isLiked={contentConfig.isLiked}
           />

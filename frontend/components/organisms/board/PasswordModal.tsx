@@ -42,3 +42,4 @@ export const PasswordModal = React.memo<PasswordModalProps>(({
     </Modal>
   );
 });
+PasswordModal.displayName = "PasswordModal";

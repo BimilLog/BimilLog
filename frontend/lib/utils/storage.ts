@@ -10,17 +10,6 @@ export interface RecentVisit {
   displayName: string;
 }
 
-// localStorage 키 타입
-type LocalStorageKey = 
-  | 'browser-guide-hidden'
-  | 'browser-guide-hide-until'
-  | 'recent-visits';
-
-// sessionStorage 키 타입
-type SessionStorageKey = 
-  | 'tempUserUuid'
-  | 'returnUrl'
-  | 'kakaoConsentUrl';
 
 // 안전한 Storage 접근을 위한 헬퍼 함수
 function isStorageAvailable(type: 'localStorage' | 'sessionStorage'): boolean {

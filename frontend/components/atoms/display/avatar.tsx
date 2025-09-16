@@ -23,8 +23,17 @@ const Avatar = React.memo<AvatarProps>(({
   const [imageError, setImageError] = React.useState(false);
 
   // 이미지 소스 처리
-  const imageSrc = typeof img === 'string' ? img : (typeof img === 'object' && img !== null && 'src' in img) ? (img as any).src : undefined;
+  const imageSrc = typeof img === 'string' ? img : (typeof img === 'object' && img !== null && 'src' in img) ? (img as { src: string }).src : undefined;
   const showImage = imageSrc && !imageError;
+
+  // 이미지 로드 에러 처리
+  React.useEffect(() => {
+    if (imageSrc) {
+      const img = new Image();
+      img.onerror = () => setImageError(true);
+      img.src = imageSrc;
+    }
+  }, [imageSrc]);
 
   // Fallback 텍스트 결정
   const initials = placeholderInitials || fallback || (alt ? getInitials(alt) : 'U');
@@ -51,12 +60,12 @@ Avatar.displayName = "Avatar";
 
 // 기존 API 호환성을 위한 컴포넌트들
 const AvatarImage = React.memo<{ src?: string; alt?: string; className?: string }>(
-  ({ src, alt, className }) => null
+  () => null
 );
 AvatarImage.displayName = "AvatarImage";
 
 const AvatarFallback = React.memo<{ children?: React.ReactNode; className?: string }>(
-  ({ children, className }) => null
+  () => null
 );
 AvatarFallback.displayName = "AvatarFallback";
 

@@ -54,13 +54,11 @@ interface TableRowProps {
 const BoardTableRow = memo<TableRowProps>(({
   post,
   index,
-  variant,
   isRead,
   progress,
   showRanking,
   enablePopover
 }) => {
-  const isPopularVariant = variant === "popular" || variant === "legend";
 
   return (
     <TableRow className="bg-white hover:bg-gray-50">
@@ -189,12 +187,10 @@ const BoardTableRow = memo<TableRowProps>(({
 const BoardMobileCard = memo<TableRowProps>(({
   post,
   index,
-  variant,
   isRead,
   progress,
   showRanking
 }) => {
-  const isPopularVariant = variant === "popular" || variant === "legend";
 
   return (
     <Card variant="elevated" className="hover:shadow-brand-md transition-all">
@@ -304,7 +300,6 @@ export const BoardTable = memo<BoardTableProps>(({
   const postIds = posts.map(post => post.id);
   const { readStatus, progressStatus } = usePostReadStatus(postIds);
 
-  const isPopularVariant = variant === "popular" || variant === "legend";
 
   return (
     <>

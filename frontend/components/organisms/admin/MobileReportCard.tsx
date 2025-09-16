@@ -87,3 +87,4 @@ export const MobileReportCard = React.memo<MobileReportCardProps>(({ report, onV
     </Card>
   );
 });
+MobileReportCard.displayName = "MobileReportCard";

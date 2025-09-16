@@ -1,6 +1,6 @@
 import { apiClient } from '../client'
 import { Report } from '@/types/domains/admin'
-import { ApiResponse, PageResponse } from '@/types/common'
+import { ApiResponse } from '@/types/common'
 
 export const adminQuery = {
   getReports: (page = 0, size = 20, reportType?: string) => {
@@ -15,7 +15,7 @@ export const adminQuery = {
     try {
       const response = await apiClient.get<Report>(`/api/admin/report/${reportId}`)
       return response
-    } catch (error) {
+    } catch {
       return { success: false, error: '신고 내역 조회에 실패했습니다.' }
     }
   },

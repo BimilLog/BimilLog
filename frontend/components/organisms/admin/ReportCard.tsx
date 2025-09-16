@@ -84,3 +84,4 @@ export const ReportCard = React.memo<ReportCardProps>(({ report, onView }) => {
     </tr>
   );
 });
+ReportCard.displayName = "ReportCard";

@@ -81,7 +81,7 @@ export function ToastComponent({ toast, onRemove }: ToastProps) {
       }, toast.duration);
       return () => clearTimeout(timer);
     }
-  }, [toast.duration, toast.id]);
+  }, [toast.duration, toast.id, handleRemove]);
 
   // Feedback 타입 토스트 (Interactive)
   if (toast.type === 'feedback' && (toast.action || toast.undoAction)) {

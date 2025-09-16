@@ -35,3 +35,4 @@ export const AdminStats: React.FC<AdminStatsProps> = React.memo(({ reports }) =>
     </Card>
   );
 });
+AdminStats.displayName = "AdminStats";

@@ -37,7 +37,7 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
   const { isAuthenticated } = useAuth();
 
   // 읽기 진행률 트래킹
-  const { progress, isRead, readingTime } = useReadingProgress({
+  const { progress } = useReadingProgress({
     postId: parseInt(postId),
     autoTrack: true,
   });

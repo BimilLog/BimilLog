@@ -31,3 +31,4 @@ export const PostContent = React.memo<PostContentProps>(({
     </CardContent>
   );
 });
+PostContent.displayName = "PostContent";

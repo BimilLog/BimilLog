@@ -55,7 +55,7 @@ export default function SuggestClient() {
   const [suggestionType, setSuggestionType] = useState<SuggestionType | "">("");
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { showSuccess, showError, showWarning, showFeedback, toasts, removeToast } =
+  const { showError, showWarning, showFeedback, toasts, removeToast } =
     useToast();
 
   const selectedType = suggestionTypes.find(

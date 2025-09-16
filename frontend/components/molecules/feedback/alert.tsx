@@ -93,17 +93,21 @@ AlertDescription.displayName = "AlertDescription";
 export const SuccessAlert = React.memo(({ children, ...props }: Omit<AlertProps, 'variant'>) => (
   <Alert variant="success" {...props}>{children}</Alert>
 ));
+SuccessAlert.displayName = "SuccessAlert";
 
 export const ErrorAlert = React.memo(({ children, ...props }: Omit<AlertProps, 'variant'>) => (
   <Alert variant="destructive" {...props}>{children}</Alert>
 ));
+ErrorAlert.displayName = "ErrorAlert";
 
 export const WarningAlert = React.memo(({ children, ...props }: Omit<AlertProps, 'variant'>) => (
   <Alert variant="warning" {...props}>{children}</Alert>
 ));
+WarningAlert.displayName = "WarningAlert";
 
 export const InfoAlert = React.memo(({ children, ...props }: Omit<AlertProps, 'variant'>) => (
   <Alert variant="info" {...props}>{children}</Alert>
 ));
+InfoAlert.displayName = "InfoAlert";
 
 export { Alert, AlertTitle, AlertDescription, alertVariants, type AlertProps };

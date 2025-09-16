@@ -52,3 +52,4 @@ export const AuthLayout = React.memo<AuthLayoutProps>(({ children }) => {
     </div>
   );
 });
+AuthLayout.displayName = "AuthLayout";

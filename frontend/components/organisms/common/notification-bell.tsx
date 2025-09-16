@@ -62,6 +62,22 @@ export function NotificationBell() {
     requestNotificationPermission,
   } = useNotifications();
 
+  // 외부 클릭 감지로 데스크톱 팝오버 닫기
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [isOpen]);
+
   // API 응답에서 알림 데이터 추출 및 읽지 않은 알림 개수 계산
   const notifications = notificationResponse?.success ? (notificationResponse.data || []) : [];
   const unreadCount = notifications.filter(n => !n.isRead).length;
@@ -139,19 +155,6 @@ export function NotificationBell() {
     }
   };
 
-  // 외부 클릭 감지로 데스크톱 팝오버 닫기
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [isOpen]);
 
   // 알림 패널 내용을 렌더링하는 공통 컴포넌트 (모바일/데스크톱에서 재사용)
   const NotificationContent = () => (

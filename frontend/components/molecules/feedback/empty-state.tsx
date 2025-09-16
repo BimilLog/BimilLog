@@ -283,7 +283,9 @@ EmptyState.displayName = "EmptyState";
 export const CuteEmptyState = React.memo((props: Omit<EmptyStateProps, 'variant'>) => (
   <EmptyState variant="cute" {...props} />
 ));
+CuteEmptyState.displayName = "CuteEmptyState";
 
 export const PlayfulEmptyState = React.memo((props: Omit<EmptyStateProps, 'variant'>) => (
   <EmptyState variant="playful" {...props} />
 ));
+PlayfulEmptyState.displayName = "PlayfulEmptyState";
