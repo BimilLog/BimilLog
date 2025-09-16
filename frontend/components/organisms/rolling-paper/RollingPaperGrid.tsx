@@ -8,7 +8,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components";
-import { Plus, ChevronLeft, ChevronRight, Waves, Snowflake, Sparkles, IceCream2, Diamond, Mail, Star, User, Fish, Zap } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight, Waves, Sparkles, Mail } from "lucide-react";
 import { getDecoInfo } from "@/lib/api";
 import type { RollingPaperMessage, VisitMessage } from "@/types/domains/paper";
 import { MessageForm } from "@/components/organisms/rolling-paper/MessageForm";
@@ -77,24 +77,10 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
     return { pageWidth, pageHeight, totalSlots };
   }, [isMobile]);
 
-  // 데코레이션 아이콘들 메모화 - 제목 주변에 배치되는 장식용 아이콘들
-  const decorationIcons = useMemo(() => ([
-    { Component: Snowflake, className: "w-4 h-4 md:w-6 md:h-6 text-cyan-500", position: "-top-1 md:-top-2 -left-2 md:-left-4 animate-bounce" },
-    { Component: Sparkles, className: "w-3 h-3 md:w-5 md:h-5 text-blue-500", position: "-top-1 -right-3 md:-right-6 animate-pulse" },
-    { Component: IceCream2, className: "w-3 h-3 md:w-4 md:h-4 text-cyan-400", position: "-bottom-1 md:-bottom-2 left-4 md:left-8 animate-bounce delay-300" },
-    { Component: Diamond, className: "w-3 h-3 md:w-5 md:h-5 text-indigo-500", position: "-bottom-1 right-6 md:right-12 animate-pulse delay-500" }
-  ]), []);
 
-  // 떠다니는 데코레이션 메모화 - 롤링페이퍼 전체 배경에 떠다니는 장식 요소들
-  const floatingDecorations = useMemo(() => ([
-    { Component: Star, className: "w-5 h-5 md:w-7 md:h-7 text-yellow-400", position: "top-8 md:top-16 right-4 md:right-8 animate-spin-slow" },
-    { Component: Fish, className: "w-4 h-4 md:w-6 md:h-6 text-blue-500", position: "top-16 md:top-32 left-8 md:left-12 animate-bounce" },
-    { Component: Zap, className: "w-4 h-4 md:w-6 md:h-6 text-cyan-400", position: "bottom-12 md:bottom-20 right-8 md:right-16 animate-pulse" },
-    { Component: User, className: "w-3 h-3 md:w-5 md:h-5 text-indigo-500", position: "bottom-16 md:bottom-32 left-4 md:left-8 animate-bounce delay-700" }
-  ]), []);
 
-  // 바인더 구멍들 메모화 (Array.from 최적화)
-  const binderHoles = useMemo(() => Array.from({ length: 8 }, (_, i) => (
+  // 바인더 구멍들 메모화 - 완벽히 일관된 간격으로 배치
+  const binderHoles = useMemo(() => Array.from({ length: 9 }, (_, i) => (
     <div
       key={`binder-hole-${i}`}
       className="w-4 h-4 md:w-6 md:h-6 bg-white rounded-full shadow-inner border border-cyan-300 md:border-2"
@@ -126,31 +112,37 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
           backgroundSize: "30px 30px, 120px 120px, 15px 15px, 15px 15px",
         }}
       >
-        {/* 바인더 구멍들 */}
-        <div className="absolute left-3 md:left-6 top-12 md:top-16 flex flex-col gap-12 md:gap-16">
+        {/* 바인더 구멍들 - 완벽한 일관성 */}
+        <div className="absolute left-3 md:left-6 top-12 md:top-16 flex flex-col gap-16 md:gap-20">
           {binderHoles}
         </div>
 
         {/* 제목 영역 */}
         <div className="pt-6 md:pt-8 pb-4 md:pb-6 px-12 md:px-20 text-center">
           <div className="relative">
-            <h1 className="text-lg md:text-3xl font-bold text-cyan-800 mb-2 transform -rotate-1">
-              <Waves className="inline w-5 h-5 md:w-7 md:h-7" />
-              {' '}{nickname}님의 롤링페이퍼{' '}
-              <Waves className="inline w-5 h-5 md:w-7 md:h-7" />
-            </h1>
+            {/* 예쁜 제목 카드 */}
+            <div className="bg-gradient-to-r from-cyan-100/90 via-blue-100/90 to-indigo-100/90 rounded-3xl p-6 md:p-8 shadow-xl border-2 border-white/80 backdrop-blur-md mb-6 relative overflow-hidden">
+              {/* 배경 장식 */}
+              <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent pointer-events-none"></div>
 
-            {/* 시원한 데코레이션 */}
-            {decorationIcons.map(({ Component, className, position }, index) => (
-              <div key={`decoration-${index}`} className={`absolute ${position}`}>
-                <Component className={className} />
+              <h1 className="text-xl md:text-4xl font-extrabold mb-4 flex items-center justify-center gap-3 relative z-10">
+                <Waves className="w-6 h-6 md:w-8 md:h-8 text-cyan-500 animate-pulse drop-shadow-md" />
+                <span className="bg-gradient-to-r from-cyan-700 via-blue-700 to-indigo-700 bg-clip-text text-transparent transform hover:scale-105 transition-transform duration-300 drop-shadow-sm">
+                  {nickname}님의 롤링페이퍼
+                </span>
+                <Waves className="w-6 h-6 md:w-8 md:h-8 text-cyan-500 animate-pulse drop-shadow-md" />
+              </h1>
+
+              {/* 메시지 수 카드 */}
+              <div className="inline-flex items-center gap-3 bg-white/80 px-5 py-3 rounded-full shadow-lg border-2 border-cyan-200 relative z-10 backdrop-blur-sm">
+                <Mail className="w-4 h-4 md:w-6 md:h-6 text-cyan-600 animate-bounce drop-shadow-sm" />
+                <span className="text-cyan-800 text-sm md:text-lg font-bold tracking-wide">
+                  총 {messages.length}개의 메시지
+                </span>
+                <Sparkles className="w-4 h-4 md:w-6 md:h-6 text-blue-500 animate-pulse drop-shadow-sm" />
               </div>
-            ))}
+            </div>
 
-            <p className="text-cyan-600 text-xs md:text-sm mt-2 transform rotate-1 font-medium">
-              총 {messages.length}개의 시원한 메시지{' '}
-              <Mail className="inline w-3 h-3 md:w-4 md:h-4" />
-            </p>
           </div>
         </div>
 
@@ -313,12 +305,6 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
           </div>
         </div>
 
-        {/* 떠다니는 데코레이션 */}
-        {floatingDecorations.map(({ Component, className, position }, index) => (
-          <div key={`floating-decoration-${index}`} className={`absolute ${position}`}>
-            <Component className={className} />
-          </div>
-        ))}
       </div>
     </div>
   );

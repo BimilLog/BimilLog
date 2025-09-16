@@ -70,7 +70,12 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({
       )}
 
       {/* Footer */}
-      {showFooter && <HomeFooter />}
+      {showFooter && (
+        <>
+          <div className="border-t-2 border-black"></div>
+          <HomeFooter />
+        </>
+      )}
     </div>
   );
 };

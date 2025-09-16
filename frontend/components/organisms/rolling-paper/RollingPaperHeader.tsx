@@ -61,7 +61,7 @@ export const RollingPaperHeader: React.FC<RollingPaperHeaderProps> = React.memo(
                 messageCount={messageCount}
                 color="yellow"
                 size="sm"
-                className="text-xs !bg-yellow-200 !hover:bg-yellow-300 !text-yellow-800"
+                className="text-xs"
               />
               <Button
                 onClick={handleWebShare}
@@ -104,7 +104,7 @@ export const RollingPaperHeader: React.FC<RollingPaperHeaderProps> = React.memo(
                   messageCount={messageCount}
                   color="yellow"
                   size="sm"
-                  className="px-2 py-1 text-xs h-7 !bg-yellow-200 !hover:bg-yellow-300 !text-yellow-800"
+                  className="px-2 py-1 text-xs h-7"
                 />
                 <Button
                   onClick={handleWebShare}

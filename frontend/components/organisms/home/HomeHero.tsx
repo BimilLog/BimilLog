@@ -75,7 +75,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
                 <KakaoShareButton
                   type="service"
                   size="lg"
-                  className="px-8 py-3 text-lg font-semibold border-purple-200 text-purple-600 hover:bg-purple-50"
+                  className="px-8 py-3 text-lg font-semibold"
                 />
               </div>
             </>
@@ -98,7 +98,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
               <KakaoShareButton
                 type="service"
                 size="lg"
-                className="px-8 py-3 text-lg font-semibold border-purple-200 text-purple-600 hover:bg-purple-50"
+                className="px-8 py-3 text-lg font-semibold"
               />
             </div>
           )}

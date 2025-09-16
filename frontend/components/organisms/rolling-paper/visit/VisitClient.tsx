@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import { Heart, Mail } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRollingPaperSearch } from "@/hooks";
-import { KakaoShareButton } from "@/components/atoms/actions/kakao-share-button";
+import { KakaoShareButton } from "@/components";
 import { AuthHeader } from "@/components/organisms/common";
 import { HomeFooter } from "@/components/organisms/home";
 import { SearchSection } from "./SearchSection";

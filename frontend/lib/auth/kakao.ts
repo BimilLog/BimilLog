@@ -179,9 +179,15 @@ export const initializeKakao = (): Promise<boolean> => {
     // 3단계: SDK는 로드되었지만 초기화되지 않은 상태 - 초기화만 진행
     if (window.Kakao) {
       const appKey = process.env.NEXT_PUBLIC_KAKAO_JAVA_SCRIPT_KEY;
+
       if (appKey) {
-        window.Kakao.init(appKey);
-        resolve(true);
+        try {
+          window.Kakao.init(appKey);
+          resolve(true);
+        } catch (error) {
+          logger.error('카카오 SDK 초기화 실패:', error);
+          resolve(false);
+        }
       } else {
         logger.error('카카오 앱 키가 설정되지 않았습니다.');
         resolve(false);
@@ -198,18 +204,24 @@ export const initializeKakao = (): Promise<boolean> => {
     // 로드 성공 시: SDK 로드 → 초기화 → 완료 신호 전송
     script.onload = () => {
       const appKey = process.env.NEXT_PUBLIC_KAKAO_JAVA_SCRIPT_KEY;
+
       if (appKey && window.Kakao) {
-        window.Kakao.init(appKey);
-        resolve(true);
+        try {
+          window.Kakao.init(appKey);
+          resolve(true);
+        } catch (error) {
+          logger.error('카카오 SDK 로드 후 초기화 실패:', error);
+          resolve(false);
+        }
       } else {
-        logger.error('카카오 SDK 로드 후 초기화 실패');
+        logger.error('카카오 SDK 로드 후 초기화 조건 불충족');
         resolve(false);
       }
     };
 
     // 로드 실패 시: 네트워크 오류나 CDN 문제로 스크립트를 불러올 수 없음
-    script.onerror = () => {
-      logger.error('카카오 SDK 스크립트 로드 실패');
+    script.onerror = (error) => {
+      logger.error('카카오 SDK 스크립트 로드 실패:', error);
       resolve(false);
     };
 

@@ -3,7 +3,6 @@
 import dynamic from "next/dynamic";
 import { Settings as SettingsIcon } from "lucide-react";
 import { CuteLoadingSpinner, ToastContainer, ErrorAlert, Button } from "@/components";
-import { MainLayout } from "@/components/organisms/layout/BaseLayout";
 import { useSettings, useToast } from "@/hooks";
 
 // Dynamic imports for heavy settings components
@@ -55,17 +54,17 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <MainLayout containerClassName="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <CuteLoadingSpinner message="설정을 불러오는 중..." />
         </div>
-      </MainLayout>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <MainLayout containerClassName="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <ErrorAlert>
             <div className="flex items-center justify-between">
@@ -76,12 +75,12 @@ export default function SettingsPage() {
             </div>
           </ErrorAlert>
         </div>
-      </MainLayout>
+      </div>
     );
   }
 
   return (
-    <MainLayout containerClassName="container mx-auto px-4">
+    <div className="container mx-auto px-4">
       <header className="py-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-brand-button rounded-full flex items-center justify-center shadow-brand-lg">
@@ -111,6 +110,6 @@ export default function SettingsPage() {
       </div>
 
       <ToastContainer toasts={toasts} onRemove={removeToast} />
-    </MainLayout>
+    </div>
   );
 }

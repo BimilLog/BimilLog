@@ -4,7 +4,6 @@ import { useMyPage } from "@/hooks";
 import { ProfileCard } from "@/components/molecules";
 import { UserStatsSection, UserActivitySection, BookmarkSection, ActivityInsights, ProfileBadges } from "@/components/organisms/user";
 import { CuteLoadingSpinner } from "@/components";
-import { MainLayout } from "@/components/organisms/layout/BaseLayout";
 
 export default function MyPage() {
   const {
@@ -21,16 +20,16 @@ export default function MyPage() {
 
   if (isLoading || !user) {
     return (
-      <MainLayout containerClassName="container mx-auto px-4">
+      <div className="container mx-auto px-4">
         <div className="flex items-center justify-center py-16">
           <CuteLoadingSpinner message="사용자 정보를 불러오는 중..." />
         </div>
-      </MainLayout>
+      </div>
     );
   }
 
   return (
-    <MainLayout containerClassName="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
       <ProfileCard
         user={user}
         onNicknameChange={handleNicknameChange}
@@ -52,6 +51,6 @@ export default function MyPage() {
       <ActivityInsights />
 
       <UserActivitySection />
-    </MainLayout>
+    </div>
   );
 }

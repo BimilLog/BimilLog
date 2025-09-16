@@ -51,7 +51,7 @@ export function KakaoShareButton({
   author,
   content,
   likes = 0,
-  color = "blue",
+  color = "yellow",
   size = "sm",
   className,
 }: KakaoShareButtonProps) {
@@ -144,7 +144,7 @@ export function KakaoShareButton({
       disabled={isSharing}  // 중복 클릭 방지
       color={color}
       size={size}
-      className={className}
+      className={`!bg-yellow-400 !hover:bg-yellow-500 !text-white ${className}`}
     >
       <MessageCircle className="w-4 h-4 mr-2" />
       {/* 상태별 버튼 텍스트 - 로딩 중이거나 게시글 타입에 따라 다르게 표시 */}

@@ -97,7 +97,7 @@ const nextConfig = withPWA(pwaConfig)({
                             "frame-src 'self' https://accounts.kakao.com https://postfiles.pstatic.net https://t1.daumcdn.net https://analytics.ad.daum.net https://display.ad.daum.net about: chrome-extension:",
                             "object-src 'none'",
                             "base-uri 'self'",
-                            "form-action 'self' https://accounts.kakao.com",
+                            "form-action 'self' https://accounts.kakao.com https://sharer.kakao.com",
                             // 클릭재킹 방지 (X-Frame-Options와 중복이지만 더 정확한 제어)
                             "frame-ancestors 'self'",
                             // 미디어 소스 허용
