@@ -5,7 +5,6 @@ import { MessageSquare } from "lucide-react";
 import { useRollingPaperData } from "@/hooks/features/useRollingPaperData";
 import { useRollingPaperActions } from "@/hooks/features/useRollingPaper";
 import { useRollingPaperGrid } from "@/hooks/features/useRollingPaperGrid";
-import { useRollingPaperShare } from "@/hooks/features/useRollingPaperShare";
 import { useToast } from "@/hooks";
 import { RollingPaperView } from "@/components/organisms/rolling-paper/RollingPaperView";
 import { gridPositionToDBIndex } from "@/lib/utils/rolling-paper";
@@ -38,7 +37,6 @@ export const RollingPaperContainer: React.FC<RollingPaperContainerProps> = ({
   // 그리드 관련 로직
   const {
     totalPages,
-    recentMessages,
     isMobile,
     getMessageAt,
     getCoordsFromPageAndGrid
@@ -51,13 +49,6 @@ export const RollingPaperContainer: React.FC<RollingPaperContainerProps> = ({
 
   // 공개 여부 (현재는 모든 롤링페이퍼가 공개)
   const isPublic = true;
-
-  // 공유 기능
-  const { handleWebShare } = useRollingPaperShare({
-    nickname: targetNickname,
-    messageCount: messages.length,
-    isOwner
-  });
 
   // 하이라이트 지우기
   const clearHighlight = useCallback(() => {
@@ -127,7 +118,6 @@ export const RollingPaperContainer: React.FC<RollingPaperContainerProps> = ({
     isMobile,
     messages,
     messageCount: messages.length,
-    recentMessages,
     totalPages,
     currentPage,
     setCurrentPage,
@@ -137,7 +127,6 @@ export const RollingPaperContainer: React.FC<RollingPaperContainerProps> = ({
     clearHighlight,
     getMessageAt,
     getCoordsFromPageAndGrid,
-    handleWebShare,
     handleMessageSubmit,
     handleMessageClick,
     refetchMessages: async () => {

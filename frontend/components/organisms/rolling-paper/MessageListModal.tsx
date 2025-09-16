@@ -5,7 +5,7 @@ import { Modal, ModalHeader, ModalBody, ModalFooter } from "flowbite-react";
 import { Button } from "@/components";
 import { Badge, TimeBadge } from "@/components";
 import { Card, CardContent } from "@/components";
-import { MessageSquare, Sparkles, Share2 } from "lucide-react";
+import { MessageSquare, Sparkles } from "lucide-react";
 import type { RollingPaperMessage } from "@/types/domains/paper";
 import { DecoIcon } from "@/components";
 
@@ -37,7 +37,7 @@ export const MessageListModal: React.FC<MessageListModalProps> = memo(({
       <ModalHeader>
         <span className="flex items-center gap-2 text-cyan-800 font-bold text-lg md:text-xl">
           <MessageSquare className="w-5 h-5 md:w-6 md:h-6" />
-          받은 메시지 목록
+          메시지 목록
           <Badge variant="secondary" className="bg-cyan-100 text-cyan-700">
             {messages.length}개
           </Badge>
@@ -50,9 +50,9 @@ export const MessageListModal: React.FC<MessageListModalProps> = memo(({
             <div className="w-16 h-16 bg-cyan-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <MessageSquare className="w-8 h-8 text-cyan-400" />
             </div>
-            <p className="text-brand-muted mb-2">아직 받은 메시지가 없어요</p>
-            <p className="text-sm text-brand-secondary flex items-center justify-center gap-2">
-              친구들에게 롤링페이퍼를 공유해보세요! <Share2 className="w-4 h-4 text-blue-500" />
+            <p className="text-brand-muted mb-2">아직 메시지가 없어요</p>
+            <p className="text-sm text-brand-secondary">
+              메시지가 작성되면 여기에 표시됩니다.
             </p>
           </div>
         ) : (

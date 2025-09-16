@@ -154,26 +154,6 @@ export function getPageAndGridPosition(absoluteX: number, absoluteY: number): {
   };
 }
 
-/**
- * 최근 메시지 정렬 (RollingPaperMessage만 해당)
- */
-export function sortMessagesByRecent(
-  messages: (RollingPaperMessage | VisitMessage)[]
-): RollingPaperMessage[] {
-  return messages
-    .filter((msg): msg is RollingPaperMessage => 'createdAt' in msg)
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-}
-
-/**
- * 최근 메시지 N개 가져오기
- */
-export function getRecentMessages(
-  messages: (RollingPaperMessage | VisitMessage)[],
-  count: number = 5
-): RollingPaperMessage[] {
-  return sortMessagesByRecent(messages).slice(0, count);
-}
 
 /**
  * 특정 위치에 메시지가 있는지 확인

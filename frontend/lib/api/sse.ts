@@ -16,8 +16,8 @@ export class SSEManager {
     
     try {
       const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
-      const sseUrl = `${API_BASE_URL}/api/notification/connect`
-      
+      const sseUrl = `${API_BASE_URL}/api/notification/subscribe`
+
       logger.log("SSE 연결 시도:", sseUrl)
       
       this.eventSource = new EventSource(sseUrl, {

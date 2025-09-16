@@ -3,7 +3,6 @@
 import { useMemo, useCallback } from 'react';
 import {
   createMessageGrid,
-  getRecentMessages,
   calculateTotalPages,
   getAbsoluteCoords,
   isMobileDevice,
@@ -18,7 +17,6 @@ interface UseRollingPaperGridProps {
 interface UseRollingPaperGridReturn {
   gridData: (RollingPaperMessage | VisitMessage | null)[][];
   totalPages: number;
-  recentMessages: RollingPaperMessage[];
   isMobile: boolean;
   getMessageAt: (x: number, y: number) => RollingPaperMessage | VisitMessage | null;
   getCoordsFromPageAndGrid: (page: number, gridX: number, gridY: number) => GridPosition;
@@ -43,11 +41,6 @@ export function useRollingPaperGrid({
   const totalPages = useMemo(() => {
     return calculateTotalPages(messages.length);
   }, [messages.length]);
-
-  // 최근 메시지 (최신 5개)
-  const recentMessages = useMemo(() => {
-    return getRecentMessages(messages, 5);
-  }, [messages]);
 
   // 특정 위치의 메시지 가져오기 (1-based 좌표)
   const getMessageAt = useCallback(
@@ -74,7 +67,6 @@ export function useRollingPaperGrid({
   return {
     gridData,
     totalPages,
-    recentMessages,
     isMobile,
     getMessageAt,
     getCoordsFromPageAndGrid,

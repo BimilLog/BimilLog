@@ -133,17 +133,7 @@ export const LazyCommentItem = dynamic(
   }
 );
 
-export const LazyNotificationBell = dynamic(
-  () => import('@/components/organisms/common/notification-bell').then(mod => ({ default: mod.NotificationBell })),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="relative">
-        <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse" />
-      </div>
-    )
-  }
-);
+// LazyNotificationBell removed - NotificationBell is directly imported in AuthHeader
 
 export const LazyRollingPaperGrid = dynamic(
   () => import('@/components/organisms/rolling-paper/RollingPaperGrid').then(mod => ({ default: mod.RollingPaperGrid })),

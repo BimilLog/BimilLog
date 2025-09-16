@@ -4,7 +4,7 @@ import React from "react";
 import dynamic from "next/dynamic";
 import { RollingPaperLayout } from "@/components/organisms/rolling-paper/RollingPaperLayout";
 import { NavigationBar } from "@/components/organisms/rolling-paper/NavigationBar";
-import { SummarySection } from "@/components/organisms/rolling-paper/SummarySection";
+import { MessageListButton } from "@/components/organisms/rolling-paper/MessageListButton";
 import { ResponsiveAdFitBanner } from "@/components";
 import { ToastContainer, Loading, Spinner, type Toast } from "@/components";
 
@@ -43,7 +43,6 @@ interface RollingPaperViewProps {
   isMobile: boolean;
   messages: (RollingPaperMessage | VisitMessage)[];
   messageCount: number;
-  recentMessages: (RollingPaperMessage | VisitMessage)[];
   totalPages: number;
   currentPage: number;
   setCurrentPage: (page: number) => void;
@@ -57,7 +56,6 @@ interface RollingPaperViewProps {
     gridX: number,
     gridY: number
   ) => { x: number; y: number };
-  handleWebShare: () => void;
   handleMessageSubmit?: (position: { x: number; y: number }, data: unknown) => void;
   handleMessageClick: (message: RollingPaperMessage | VisitMessage) => void;
   refetchMessages: () => Promise<void>;
@@ -74,7 +72,6 @@ export const RollingPaperView: React.FC<RollingPaperViewProps> = ({
   isMobile,
   messages,
   messageCount,
-  recentMessages,
   totalPages,
   currentPage,
   setCurrentPage,
@@ -84,7 +81,6 @@ export const RollingPaperView: React.FC<RollingPaperViewProps> = ({
   clearHighlight,
   getMessageAt,
   getCoordsFromPageAndGrid,
-  handleWebShare,
   handleMessageSubmit,
   handleMessageClick,
   refetchMessages,
@@ -122,12 +118,11 @@ export const RollingPaperView: React.FC<RollingPaperViewProps> = ({
         </div>
 
         <div className="mb-8">
-          <SummarySection
+          <MessageListButton
             isOwner={isOwner}
             nickname={targetNickname}
-            messages={recentMessages}
-            onShare={handleWebShare}
-            onMessageClick={handleMessageClick}
+            messageCount={messageCount}
+            onOpenMessageList={() => setIsMessageListOpen(true)}
           />
         </div>
 

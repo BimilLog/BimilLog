@@ -44,6 +44,8 @@ import { Spinner as FlowbiteSpinner } from "flowbite-react";
 export function NotificationBell() {
   // 알림 패널 열림/닫힘 상태 관리
   const [isOpen, setIsOpen] = useState(false);
+  // 미디어 쿼리 기반 모바일/데스크톱 감지
+  const [isMobile, setIsMobile] = useState(false);
   const { isAuthenticated } = useAuth();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -62,6 +64,20 @@ export function NotificationBell() {
     requestNotificationPermission,
   } = useNotifications();
 
+  // 미디어 쿼리 기반 모바일/데스크톱 감지
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 1024); // lg breakpoint
+    };
+
+    // 초기값 설정
+    checkIsMobile();
+
+    // 윈도우 리사이즈 이벤트 리스너
+    window.addEventListener('resize', checkIsMobile);
+    return () => window.removeEventListener('resize', checkIsMobile);
+  }, []);
+
   // 외부 클릭 감지로 데스크톱 팝오버 닫기
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -70,13 +86,13 @@ export function NotificationBell() {
       }
     };
 
-    if (isOpen) {
+    if (isOpen && !isMobile) { // 데스크톱에서만 외부 클릭 감지
       document.addEventListener('mousedown', handleClickOutside);
       return () => {
         document.removeEventListener('mousedown', handleClickOutside);
       };
     }
-  }, [isOpen]);
+  }, [isOpen, isMobile]);
 
   // API 응답에서 알림 데이터 추출 및 읽지 않은 알림 개수 계산
   const notifications = notificationResponse?.success ? (notificationResponse.data || []) : [];
@@ -157,10 +173,14 @@ export function NotificationBell() {
 
 
   // 알림 패널 내용을 렌더링하는 공통 컴포넌트 (모바일/데스크톱에서 재사용)
-  const NotificationContent = () => (
+  const NotificationContent = ({ isMobile = false }: { isMobile?: boolean }) => (
     <div className="w-full max-w-md mx-auto">
-      {/* 접근성: 스크린 리더용 제목 */}
-      <SheetTitle className="sr-only lg:not-sr-only lg:hidden">알림</SheetTitle>
+      {/* 접근성: 모바일에서만 SheetTitle 사용, 데스크톱에서는 일반 span */}
+      {isMobile ? (
+        <SheetTitle className="sr-only">알림</SheetTitle>
+      ) : (
+        <span className="sr-only">알림</span>
+      )}
 
       {/* 알림 패널 헤더 (제목, 새로고침, 브라우저 알림 허용 버튼) */}
       <div className="flex items-center justify-between p-4 border-b bg-white/50">
@@ -346,11 +366,11 @@ export function NotificationBell() {
     </div>
   );
 
-  // CSS 미디어 쿼리 기반 반응형 UI: 모바일은 바텀 시트, 데스크톱은 팝오버
+  // JavaScript 기반 조건부 렌더링: 모바일은 바텀 시트, 데스크톱은 팝오버
   return (
     <div ref={dropdownRef} className="relative">
-      {/* 모바일/태블릿: 바텀 시트(Sheet) UI */}
-      <div className="lg:hidden">
+      {isMobile ? (
+        /* 모바일/태블릿: 바텀 시트(Sheet) UI */
         <Sheet open={isOpen} onOpenChange={handleOpen}>
           <SheetTrigger asChild>
             <Button
@@ -377,43 +397,43 @@ export function NotificationBell() {
           </SheetTrigger>
           {/* 화면 하단에서 올라오는 바텀 시트 (모바일 UX 최적화) */}
           <SheetContent side="bottom" className="h-[80vh] p-0">
-            <NotificationContent />
+            <NotificationContent isMobile={true} />
           </SheetContent>
         </Sheet>
-      </div>
+      ) : (
+        /* 데스크톱: 팝오버 카드 형태 */
+        <>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => handleOpen(!isOpen)}
+            className="relative min-h-[44px] min-w-[44px] touch-manipulation"
+            title={`알림 ${unreadCount > 0 ? `(${unreadCount}개 읽지 않음)` : ""}`}
+          >
+            {/* SSE 연결 상태에 따른 벨 아이콘 변화 */}
+            {isSSEConnected ? (
+              <Bell className="w-5 h-5" />
+            ) : (
+              <BellOff className="w-5 h-5 text-brand-secondary" />
+            )}
+            {/* 읽지 않은 알림 개수 배지 */}
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
+          </Button>
 
-      {/* 데스크톱: 팝오버 카드 형태 */}
-      <div className="hidden lg:block">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => handleOpen(!isOpen)}
-          className="relative min-h-[44px] min-w-[44px] touch-manipulation"
-          title={`알림 ${unreadCount > 0 ? `(${unreadCount}개 읽지 않음)` : ""}`}
-        >
-          {/* SSE 연결 상태에 따른 벨 아이콘 변화 */}
-          {isSSEConnected ? (
-            <Bell className="w-5 h-5" />
-          ) : (
-            <BellOff className="w-5 h-5 text-brand-secondary" />
+          {/* 데스크톱 전용 팝오버 (우측 상단에서 아래로 펼쳐지는 드롭다운) */}
+          {isOpen && (
+            <div className="absolute right-0 top-full mt-2 z-50">
+              <Card className="w-80 shadow-brand-xl border-0 bg-white/90 backdrop-blur-sm">
+                <NotificationContent isMobile={false} />
+              </Card>
+            </div>
           )}
-          {/* 읽지 않은 알림 개수 배지 */}
-          {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
-              {unreadCount > 99 ? "99+" : unreadCount}
-            </span>
-          )}
-        </Button>
-
-        {/* 데스크톱 전용 팝오버 (우측 상단에서 아래로 펼쳐지는 드롭다운) */}
-        {isOpen && (
-          <div className="absolute right-0 top-full mt-2 z-50">
-            <Card className="w-80 shadow-brand-xl border-0 bg-white/90 backdrop-blur-sm">
-              <NotificationContent />
-            </Card>
-          </div>
-        )}
-      </div>
+        </>
+      )}
     </div>
   );
 }
