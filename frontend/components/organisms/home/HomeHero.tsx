@@ -74,7 +74,6 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
               <div className="hidden sm:block">
                 <KakaoShareButton
                   type="service"
-                  variant="outline"
                   size="lg"
                   className="px-8 py-3 text-lg font-semibold border-purple-200 text-purple-600 hover:bg-purple-50"
                 />
@@ -98,7 +97,6 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
             <div className="sm:hidden">
               <KakaoShareButton
                 type="service"
-                variant="outline"
                 size="lg"
                 className="px-8 py-3 text-lg font-semibold border-purple-200 text-purple-600 hover:bg-purple-50"
               />

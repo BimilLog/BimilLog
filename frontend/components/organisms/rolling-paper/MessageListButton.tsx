@@ -3,7 +3,7 @@
 import React from "react";
 import { Button } from "flowbite-react";
 import { Card, CardContent } from "@/components";
-import { MessageSquare, List, Info } from "lucide-react";
+import { List, Info } from "lucide-react";
 import { Badge } from "@/components";
 
 interface MessageListButtonProps {

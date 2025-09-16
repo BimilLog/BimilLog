@@ -77,7 +77,6 @@ export function VisitClient() {
             </div>
             <KakaoShareButton
               type="service"
-              variant="outline"
               size="sm"
               className="px-2 sm:px-3 py-1 text-sm h-8"
             />

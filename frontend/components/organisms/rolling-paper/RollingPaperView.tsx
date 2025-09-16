@@ -3,7 +3,7 @@
 import React from "react";
 import dynamic from "next/dynamic";
 import { RollingPaperLayout } from "@/components/organisms/rolling-paper/RollingPaperLayout";
-import { NavigationBar } from "@/components/organisms/rolling-paper/NavigationBar";
+import { RollingPaperHeader } from "@/components/organisms/rolling-paper/RollingPaperHeader";
 import { ResponsiveAdFitBanner } from "@/components";
 import { ToastContainer, Loading, Spinner, type Toast } from "@/components";
 
@@ -91,7 +91,7 @@ export const RollingPaperView: React.FC<RollingPaperViewProps> = ({
   return (
     <RollingPaperLayout>
       {/* 네비게이션 바: 소유자만 메시지 목록 버튼 활성화, 모바일에서는 페이지네이션 숨김 */}
-      <NavigationBar
+      <RollingPaperHeader
         nickname={targetNickname}
         messageCount={messageCount}
         isOwner={isOwner}

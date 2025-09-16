@@ -4,7 +4,6 @@ export { MessageForm } from './MessageForm';
 export { MessageListButton } from './MessageListButton';
 export { MessageListModal } from './MessageListModal';
 export { MessageView } from './MessageView';
-export { NavigationBar } from './NavigationBar';
 export { PageNavigation } from './PageNavigation';
 export { RecentVisits } from './RecentVisits';
 export { RollingPaperClient } from './RollingPaperClient';

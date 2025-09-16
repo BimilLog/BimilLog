@@ -218,7 +218,6 @@ export const PostHeader = React.memo<PostHeaderProps>(({
             author={post.userName || "익명"}
             content={post.content}
             likes={post.likeCount}
-            variant="outline"
             size="sm"
             className="w-full sm:w-auto"
           />

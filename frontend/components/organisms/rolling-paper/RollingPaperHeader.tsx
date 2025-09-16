@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Button } from "@/components";
+import { Button } from "flowbite-react";
 import { MessageSquare, Share2, List } from "lucide-react";
 import { KakaoShareButton } from "@/components";
 import { useRollingPaperShare } from "@/hooks/features/useRollingPaperShare";
@@ -11,14 +11,23 @@ interface RollingPaperHeaderProps {
   messageCount: number;
   isOwner?: boolean;
   onShowMessages?: () => void;
+  // 페이지네이션 관련
+  currentPage?: number;
+  totalPages?: number;
+  onPageChange?: (page: number) => void;
+  showPagination?: boolean;
   className?: string;
 }
 
-export const RollingPaperHeader: React.FC<RollingPaperHeaderProps> = ({
+export const RollingPaperHeader: React.FC<RollingPaperHeaderProps> = React.memo(({
   nickname,
   messageCount,
   isOwner = false,
   onShowMessages,
+  currentPage = 1,
+  totalPages = 1,
+  onPageChange,
+  showPagination = false,
   className = "",
 }) => {
   const { handleWebShare } = useRollingPaperShare({
@@ -44,30 +53,30 @@ export const RollingPaperHeader: React.FC<RollingPaperHeaderProps> = ({
               </div>
             </div>
             <div className="flex items-center space-x-2 flex-shrink-0">
-              {isOwner && onShowMessages && (
+              {onShowMessages && (
                 <Button
                   onClick={onShowMessages}
-                  variant="outline"
+                  color="blue"
                   size="sm"
-                  className="bg-white/80 h-10 px-3 text-cyan-700 hover:bg-cyan-50 border-cyan-300"
+                  className="text-xs"
                 >
                   <List className="w-4 h-4 mr-1" />
-                  받은 메시지
+                  메시지 목록 보기
                 </Button>
               )}
               <KakaoShareButton
                 type="rollingPaper"
                 userName={nickname}
                 messageCount={messageCount}
-                variant="outline"
+                color="yellow"
                 size="sm"
-                className="h-10 px-3"
+                className="text-xs !bg-yellow-200 !hover:bg-yellow-300 !text-yellow-800"
               />
               <Button
-                variant="outline"
-                size="sm"
-                className="bg-white h-10 px-3"
                 onClick={handleWebShare}
+                color="gray"
+                size="sm"
+                className="text-xs"
               >
                 <Share2 className="w-4 h-4 mr-1" />
                 링크 공유
@@ -77,52 +86,61 @@ export const RollingPaperHeader: React.FC<RollingPaperHeaderProps> = ({
 
           {/* 모바일 레이아웃 */}
           <div className="md:hidden">
-            {/* 상단: 제목 영역 */}
-            <div className="flex items-center space-x-2 mb-3">
-              <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center">
-                <MessageSquare className="w-3 h-3 text-white" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <h1 className="font-bold text-brand-primary text-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2 flex-1 min-w-0">
+                <div className="w-7 h-7 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center">
+                  <MessageSquare className="w-4 h-4 text-white" />
+                </div>
+                <h1 className="font-bold text-brand-primary text-sm truncate">
                   {nickname}님의 롤링페이퍼
                 </h1>
               </div>
+              <div className="flex items-center space-x-1 flex-shrink-0">
+                {onShowMessages && (
+                  <Button
+                    onClick={onShowMessages}
+                    color="blue"
+                    size="sm"
+                    className="px-2 py-1 text-xs h-7"
+                  >
+                    <List className="w-3 h-3 mr-1" />
+                    목록
+                  </Button>
+                )}
+                <KakaoShareButton
+                  type="rollingPaper"
+                  userName={nickname}
+                  messageCount={messageCount}
+                  color="yellow"
+                  size="sm"
+                  className="px-2 py-1 text-xs h-7 !bg-yellow-200 !hover:bg-yellow-300 !text-yellow-800"
+                />
+                <Button
+                  onClick={handleWebShare}
+                  color="gray"
+                  size="sm"
+                  className="px-2 py-1 text-xs h-7"
+                >
+                  <Share2 className="w-3 h-3 mr-1" />
+                  링크
+                </Button>
+              </div>
             </div>
 
-            {/* 하단: 버튼 영역 */}
-            <div className="flex items-center justify-center space-x-2">
-              {isOwner && onShowMessages && (
-                <Button
-                  onClick={onShowMessages}
-                  variant="outline"
-                  size="sm"
-                  className="bg-white/80 h-8 px-2 text-cyan-700 hover:bg-cyan-50 border-cyan-300 flex-1"
-                >
-                  <List className="w-4 h-4 mr-1" />
-                  목록
-                </Button>
-              )}
-              <KakaoShareButton
-                type="rollingPaper"
-                userName={nickname}
-                messageCount={messageCount}
-                variant="outline"
-                size="sm"
-                className="h-8 px-2 flex-1"
-              />
-              <Button
-                variant="outline"
-                size="sm"
-                className="bg-white h-8 px-2 flex-1"
-                onClick={handleWebShare}
-              >
-                <Share2 className="w-4 h-4 mr-1" />
-                링크 공유
-              </Button>
-            </div>
+            {/* 모바일 메시지 카운트 */}
+            {messageCount > 0 && (
+              <div className="mt-2 text-center">
+                <span className="text-xs text-brand-muted">
+                  총 {messageCount}개의 메시지
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </div>
+
     </header>
   );
-};
+});
+
+RollingPaperHeader.displayName = "RollingPaperHeader";
