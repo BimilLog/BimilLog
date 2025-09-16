@@ -134,15 +134,15 @@ ALTER TABLE `token`
 -- 파트 7: 좋아요 테이블 PK 컬럼명 수정
 -- ============================================
 
--- comment_like 테이블 PK 컬럼명 수정
-ALTER TABLE `comment_like`
-  CHANGE COLUMN `comment_like_id` `CommentLike_id` BIGINT NOT NULL AUTO_INCREMENT;
+-- comment_like 테이블 PK 컬럼명은 변경하지 않음 (엔티티가 comment_like_id를 기대)
+-- ALTER TABLE `comment_like`
+--   CHANGE COLUMN `comment_like_id` `CommentLike_id` BIGINT NOT NULL AUTO_INCREMENT;
 
 -- 유니크 제약조건은 이미 V1에 존재하므로 추가하지 않음
 
--- post_like 테이블 PK 컬럼명 수정
-ALTER TABLE `post_like`
-  CHANGE COLUMN `post_like_id` `postLike_id` BIGINT NOT NULL AUTO_INCREMENT;
+-- post_like 테이블 PK 컬럼명은 변경하지 않음 (엔티티가 post_like_id를 기대)
+-- ALTER TABLE `post_like`
+--   CHANGE COLUMN `post_like_id` `postLike_id` BIGINT NOT NULL AUTO_INCREMENT;
 
 -- ============================================
 -- 파트 8: 구 컬럼 정리
@@ -279,26 +279,26 @@ WHERE TABLE_SCHEMA = DATABASE()
     AND TABLE_NAME = 'post'
     AND COLUMN_NAME = 'post_cache_flag';
 
--- 좋아요 테이블 PK 컬럼명 변경 확인
+-- 좋아요 테이블 PK 컬럼명 변경 확인 (변경하지 않았으므로 원래 이름 확인)
 SELECT
     CASE
-        WHEN COUNT(*) = 1 THEN 'SUCCESS: CommentLike_id column exists'
-        ELSE 'ERROR: CommentLike_id column not found'
+        WHEN COUNT(*) = 1 THEN 'SUCCESS: comment_like_id column exists'
+        ELSE 'ERROR: comment_like_id column not found'
     END AS comment_like_pk_status
 FROM information_schema.COLUMNS
 WHERE TABLE_SCHEMA = DATABASE()
     AND TABLE_NAME = 'comment_like'
-    AND COLUMN_NAME = 'CommentLike_id';
+    AND COLUMN_NAME = 'comment_like_id';
 
 SELECT
     CASE
-        WHEN COUNT(*) = 1 THEN 'SUCCESS: postLike_id column exists'
-        ELSE 'ERROR: postLike_id column not found'
+        WHEN COUNT(*) = 1 THEN 'SUCCESS: post_like_id column exists'
+        ELSE 'ERROR: post_like_id column not found'
     END AS post_like_pk_status
 FROM information_schema.COLUMNS
 WHERE TABLE_SCHEMA = DATABASE()
     AND TABLE_NAME = 'post_like'
-    AND COLUMN_NAME = 'postLike_id';
+    AND COLUMN_NAME = 'post_like_id';
 
 -- 메시지 테이블 x, y 컬럼 확인
 SELECT

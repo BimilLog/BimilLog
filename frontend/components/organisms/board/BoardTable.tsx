@@ -88,6 +88,10 @@ const BoardTableRow = memo<TableRowProps>(({
           </>
         )}
       </TableCell>
+      {/* 번호 */}
+      <TableCell className="text-center font-medium">
+        {post.id}
+      </TableCell>
 
       {/* 제목 */}
       <TableCell>
@@ -241,6 +245,9 @@ const BoardMobileCard = memo<TableRowProps>(({
             {/* 순위 또는 뱃지 */}
             {showRanking ? (
               <div className="flex items-center gap-2 mb-2">
+                <Badge variant="secondary" className="text-xs">
+                  번호: {post.id}
+                </Badge>
                 <span className="text-xl font-bold text-purple-600">
                   #{index + 1}
                 </span>
@@ -263,9 +270,14 @@ const BoardMobileCard = memo<TableRowProps>(({
               </div>
             ) : (
               <>
-                {post.postCacheFlag === "NOTICE" && (
-                  <Badge variant="info" icon={Megaphone} className="mb-2">공지</Badge>
-                )}
+                <div className="flex items-center gap-2 mb-2">
+                  <Badge variant="secondary" className="text-xs">
+                    ID: {post.id}
+                  </Badge>
+                  {post.postCacheFlag === "NOTICE" && (
+                    <Badge variant="info" icon={Megaphone}>공지</Badge>
+                  )}
+                </div>
                 {post.postCacheFlag === "REALTIME" && (
                   <Badge variant="destructive" icon={TrendingUp} className="mb-2">실시간</Badge>
                 )}
@@ -369,8 +381,9 @@ export const BoardTable = memo<BoardTableProps>(({
           <TableHead>
             <TableRow>
               <TableHeadCell className={showRanking ? "w-12 text-center" : "w-20"}>
-                {showRanking ? "순위" : "상태"}
+                {showRanking ? "순위" : ""}
               </TableHeadCell>
+              <TableHeadCell className="w-16 text-center">번호</TableHeadCell>
               <TableHeadCell>제목</TableHeadCell>
               <TableHeadCell className="w-24">작성자</TableHeadCell>
               <TableHeadCell className="w-28 hidden sm:table-cell">작성일</TableHeadCell>
@@ -398,7 +411,7 @@ export const BoardTable = memo<BoardTableProps>(({
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={isPopularVariant ? 7 : 6}
+                  colSpan={isPopularVariant ? 8 : 7}
                   className="text-center py-12 text-gray-500"
                 >
                   {variant === "all" ? "게시글이 없습니다." : "인기글이 없습니다."}

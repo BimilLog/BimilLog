@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.sql.DataSource;
@@ -25,7 +24,6 @@ import java.sql.SQLException;
  * @version 2.0.0
  */
 @RestController
-@RequestMapping("/run-sql")
 public class Datainit {
 
     @Autowired
@@ -51,7 +49,7 @@ public class Datainit {
      * @author Jaeik
      * @since 2.0.0
      */
-    @GetMapping("/init-data")
+    @GetMapping("/data")
     public String initSampleData() throws SQLException, IOException {
         try (Connection conn = dataSource.getConnection()) {
             ScriptUtils.executeSqlScript(conn, new ClassPathResource("data.sql"));

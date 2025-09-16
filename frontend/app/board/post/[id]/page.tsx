@@ -16,16 +16,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   try {
     // 서버사이드에서 게시글 데이터 조회하여 SEO 메타데이터 동적 생성
-    const response = await apiClient.get<Post>(`/api/post/${postId}`);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/post/${postId}`, {
+      cache: 'no-store'
+    });
 
-    if (!response.success || !response.data) {
+    if (!response.ok) {
+      throw new Error('Failed to fetch post');
+    }
+
+    const post = await response.json();
+
+    if (!post || !post.id) {
       return {
         title: "게시글을 찾을 수 없습니다 | 비밀로그",
         description: "요청하신 게시글을 찾을 수 없습니다.",
       };
     }
-
-    const post = response.data;
     // HTML 태그 제거 후 160자로 잘라서 meta description 생성
     const truncatedContent = post.content
       .replace(/<[^>]*>/g, "")
@@ -84,14 +90,21 @@ export default async function PostDetailPage({ params }: Props) {
 
   // 서버 컴포넌트에서 초기 데이터 페칭 - 클라이언트 하이드레이션 전에 데이터 확보
   try {
-    const response = await apiClient.get<Post>(`/api/post/${postId}`);
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/post/${postId}`, {
+      cache: 'no-store'
+    });
 
-    if (!response.success || !response.data) {
+    if (!response.ok) {
+      notFound();
+    }
+
+    const post = await response.json();
+
+    if (!post || !post.id) {
       notFound();
     }
 
     // SEO를 위한 구조화된 데이터(JSON-LD) 생성 - 검색엔진이 콘텐츠를 이해할 수 있도록 함
-    const post = response.data;
     const articleJsonLd = generateStructuredData.article(
       post.title,
       post.content,
