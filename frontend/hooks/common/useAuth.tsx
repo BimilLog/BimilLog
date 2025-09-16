@@ -10,14 +10,21 @@ export { usePasswordModal } from './usePasswordModal';
 export { useKakaoCallback, useAuthError, useSignupUuid } from '../features/auth';
 
 // ===== MAIN USE AUTH HOOK =====
-export function useAuth() {
+interface UseAuthOptions {
+  skipRefresh?: boolean; // 초기 로드 시 refreshUser 호출 건너뛰기
+}
+
+export function useAuth(options: UseAuthOptions = {}) {
   const authStore = useAuthStore();
   const { showInfo } = useToastStore();
+  const { skipRefresh = false } = options;
 
-  // 초기 로드 시 사용자 정보 새로고침
+  // 초기 로드 시 사용자 정보 새로고침 (skipRefresh가 false일 때만)
   useEffect(() => {
-    authStore.refreshUser();
-  }, []);
+    if (!skipRefresh) {
+      authStore.refreshUser();
+    }
+  }, [skipRefresh]);
 
   // needsRelogin 이벤트 리스너 - 토큰 만료나 인증 에러 시 전역에서 발생하는 커스텀 이벤트 처리
   useEffect(() => {

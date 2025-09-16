@@ -19,7 +19,7 @@ import { AuthLayout, NicknameSetupForm } from "@/components/organisms/auth";
  * - uuid: 임시 UUID (useSignupUuid 훅에서 자동으로 URL에서 추출)
  */
 export default function SignUpPage() {
-  const { login, isAuthenticated, isLoading } = useAuth();
+  const { login, isAuthenticated, isLoading } = useAuth({ skipRefresh: true });
   const router = useRouter();
   const searchParams = useSearchParams();
   // URL 쿼리에서 required=true인 경우 닉네임 설정이 필요한 회원가입 단계

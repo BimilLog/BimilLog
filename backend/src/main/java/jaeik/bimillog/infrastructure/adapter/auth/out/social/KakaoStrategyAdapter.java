@@ -6,6 +6,7 @@ import jaeik.bimillog.domain.auth.entity.SocialAuthData;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.global.vo.KakaoKeyVO;
+import jaeik.bimillog.infrastructure.adapter.user.out.social.KakaoApiClient;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -24,10 +25,12 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
 
     private final KakaoKeyVO kakaoKeyVO;
     private final KakaoAuthClient kakaoAuthClient;
+    private final KakaoApiClient kakaoApiClient;
 
-    public KakaoStrategyAdapter(KakaoKeyVO kakaoKeyVO, KakaoAuthClient kakaoAuthClient) {
+    public KakaoStrategyAdapter(KakaoKeyVO kakaoKeyVO, KakaoAuthClient kakaoAuthClient, KakaoApiClient kakaoApiClient) {
         this.kakaoKeyVO = kakaoKeyVO;
         this.kakaoAuthClient = kakaoAuthClient;
+        this.kakaoApiClient = kakaoApiClient;
     }
 
     /**
@@ -81,7 +84,7 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
         params.put("target_id", socialId);
 
         try {
-            kakaoAuthClient.unlink("KakaoAK " + kakaoKeyVO.getADMIN_KEY(), params);
+            kakaoApiClient.unlink("KakaoAK " + kakaoKeyVO.getADMIN_KEY(), params);
         } catch (Exception e) {
             throw new RuntimeException("Kakao unlink failed: " + e.getMessage(), e);
         }
@@ -101,7 +104,7 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
     @Override
     public void logout(SocialProvider provider, String accessToken) {
         try {
-            kakaoAuthClient.logout("Bearer " + accessToken, "application/x-www-form-urlencoded;charset=utf-8");
+            kakaoApiClient.logout("Bearer " + accessToken, "application/x-www-form-urlencoded;charset=utf-8");
         } catch (Exception e) {
             // 로그아웃 실패 시에도 플로우를 계속 진행
         }
@@ -157,7 +160,7 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
     @SuppressWarnings("unchecked")
     private SocialAuthData.SocialUserProfile getUserInfo(String accessToken) {
         try {
-            Map<String, Object> responseBody = kakaoAuthClient.getUserInfo("Bearer " + accessToken);
+            Map<String, Object> responseBody = kakaoApiClient.getUserInfo("Bearer " + accessToken);
             
             Map<String, Object> kakaoAccount = (Map<String, Object>) responseBody.get("kakao_account");
             Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");

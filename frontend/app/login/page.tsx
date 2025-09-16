@@ -10,7 +10,7 @@ import { useAuthError } from "@/hooks";
 import { kakaoAuthManager } from "@/lib/auth/kakao";
 
 export default function LoginPage() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth({ skipRefresh: true });
   const router = useRouter();
   const searchParams = useSearchParams();
   const { clearAuthError } = useAuthError();

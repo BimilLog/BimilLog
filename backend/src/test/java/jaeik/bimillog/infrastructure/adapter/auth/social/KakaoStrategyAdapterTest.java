@@ -6,6 +6,7 @@ import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.global.vo.KakaoKeyVO;
 import jaeik.bimillog.infrastructure.adapter.auth.out.social.KakaoAuthClient;
 import jaeik.bimillog.infrastructure.adapter.auth.out.social.KakaoStrategyAdapter;
+import jaeik.bimillog.infrastructure.adapter.user.out.social.KakaoApiClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -48,6 +49,7 @@ class KakaoStrategyAdapterTest {
 
     @Mock private KakaoKeyVO kakaoKeyVO;
     @Mock private KakaoAuthClient kakaoAuthClient;
+    @Mock private KakaoApiClient kakaoApiClient;
 
     private KakaoStrategyAdapter kakaoStrategyAdapter;
 
@@ -59,7 +61,7 @@ class KakaoStrategyAdapterTest {
         lenient().when(kakaoKeyVO.getREDIRECT_URI()).thenReturn(TEST_REDIRECT_URI);
         lenient().when(kakaoKeyVO.getADMIN_KEY()).thenReturn(TEST_ADMIN_KEY);
 
-        kakaoStrategyAdapter = new KakaoStrategyAdapter(kakaoKeyVO, kakaoAuthClient);
+        kakaoStrategyAdapter = new KakaoStrategyAdapter(kakaoKeyVO, kakaoAuthClient, kakaoApiClient);
     }
 
     @Test
@@ -93,7 +95,7 @@ class KakaoStrategyAdapterTest {
         userInfoResponse.put("kakao_account", kakaoAccount);
 
         given(kakaoAuthClient.getToken(anyString(), any(Map.class))).willReturn(tokenResponse);
-        given(kakaoAuthClient.getUserInfo(anyString())).willReturn(userInfoResponse);
+        given(kakaoApiClient.getUserInfo(anyString())).willReturn(userInfoResponse);
 
         // When
         SocialAuthData.AuthenticationResult result = kakaoStrategyAdapter.authenticate(
@@ -119,7 +121,7 @@ class KakaoStrategyAdapterTest {
                    expectedParams.get("client_id").equals(TEST_CLIENT_ID) &&
                    expectedParams.get("code").equals(TEST_AUTH_CODE);
         }));
-        verify(kakaoAuthClient).getUserInfo(eq("Bearer " + TEST_ACCESS_TOKEN));
+        verify(kakaoApiClient).getUserInfo(eq("Bearer " + TEST_ACCESS_TOKEN));
     }
 
     @Test
@@ -145,7 +147,7 @@ class KakaoStrategyAdapterTest {
         tokenResponse.put("refresh_token", TEST_REFRESH_TOKEN);
 
         given(kakaoAuthClient.getToken(anyString(), any(Map.class))).willReturn(tokenResponse);
-        given(kakaoAuthClient.getUserInfo(anyString()))
+        given(kakaoApiClient.getUserInfo(anyString()))
             .willThrow(new RuntimeException("User info request failed"));
 
         // When & Then
@@ -160,13 +162,13 @@ class KakaoStrategyAdapterTest {
     void shouldUnlinkSuccessfully() {
         // Given
         // unlink는 void 메서드이므로 반환값이 없음
-        doNothing().when(kakaoAuthClient).unlink(anyString(), any(Map.class));
+        doNothing().when(kakaoApiClient).unlink(anyString(), any(Map.class));
 
         // When
         kakaoStrategyAdapter.unlink(SocialProvider.KAKAO, TEST_SOCIAL_ID);
 
         // Then
-        verify(kakaoAuthClient).unlink(
+        verify(kakaoApiClient).unlink(
             eq("KakaoAK " + TEST_ADMIN_KEY),
             argThat(params -> {
                 Map<String, String> expectedParams = (Map<String, String>) params;
@@ -181,7 +183,7 @@ class KakaoStrategyAdapterTest {
     void shouldThrowExceptionWhenUnlinkFails() {
         // Given
         doThrow(new RuntimeException("Unlink failed"))
-            .when(kakaoAuthClient).unlink(anyString(), any(Map.class));
+            .when(kakaoApiClient).unlink(anyString(), any(Map.class));
 
         // When & Then
         assertThatThrownBy(() ->
@@ -194,13 +196,13 @@ class KakaoStrategyAdapterTest {
     @DisplayName("logout 성공 - 예외가 발생해도 무시한다")
     void shouldLogoutSuccessfully() {
         // Given
-        doNothing().when(kakaoAuthClient).logout(anyString(), anyString());
+        doNothing().when(kakaoApiClient).logout(anyString(), anyString());
 
         // When
         kakaoStrategyAdapter.logout(SocialProvider.KAKAO, TEST_ACCESS_TOKEN);
 
         // Then
-        verify(kakaoAuthClient).logout(
+        verify(kakaoApiClient).logout(
             eq("Bearer " + TEST_ACCESS_TOKEN),
             eq("application/x-www-form-urlencoded;charset=utf-8")
         );
@@ -211,11 +213,11 @@ class KakaoStrategyAdapterTest {
     void shouldNotThrowExceptionWhenLogoutFails() {
         // Given
         doThrow(new RuntimeException("Logout failed"))
-            .when(kakaoAuthClient).logout(anyString(), anyString());
+            .when(kakaoApiClient).logout(anyString(), anyString());
 
         // When & Then - 예외가 발생하지 않아야 함
         kakaoStrategyAdapter.logout(SocialProvider.KAKAO, TEST_ACCESS_TOKEN);
 
-        verify(kakaoAuthClient).logout(anyString(), anyString());
+        verify(kakaoApiClient).logout(anyString(), anyString());
     }
 }
