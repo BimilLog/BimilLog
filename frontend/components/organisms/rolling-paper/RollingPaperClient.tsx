@@ -2,6 +2,7 @@
 
 import React from "react";
 import { RollingPaperContainer } from "@/components/organisms/rolling-paper/RollingPaperContainer";
+import { useAuth } from "@/hooks";
 
 interface RollingPaperClientProps {
   nickname?: string;
@@ -10,5 +11,9 @@ interface RollingPaperClientProps {
 export const RollingPaperClient: React.FC<RollingPaperClientProps> = ({
   nickname,
 }) => {
-  return <RollingPaperContainer nickname={nickname} />;
+  const { user } = useAuth();
+  // nickname이 없으면(내 롤링페이퍼 페이지) 현재 로그인한 사용자의 userName 사용
+  const targetNickname = nickname || user?.userName;
+
+  return <RollingPaperContainer nickname={targetNickname} />;
 };

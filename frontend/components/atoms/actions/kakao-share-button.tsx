@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "./button";
-import { Share2 } from "lucide-react";
+import { Button } from "flowbite-react";
+import { MessageCircle } from "lucide-react";
 import {
   shareRollingPaper,
   sharePost,
@@ -37,8 +37,8 @@ interface KakaoShareButtonProps {
   content?: string;
   likes?: number;
   // 스타일
-  variant?: "default" | "outline" | "ghost";
-  size?: "default" | "sm" | "lg";
+  color?: "blue" | "gray" | "dark" | "light" | "green" | "red" | "yellow" | "purple";
+  size?: "xs" | "sm" | "md" | "lg" | "xl";
   className?: string;
 }
 
@@ -51,8 +51,8 @@ export function KakaoShareButton({
   author,
   content,
   likes = 0,
-  variant = "default",
-  size = "default",
+  color = "blue",
+  size = "sm",
   className,
 }: KakaoShareButtonProps) {
   // 공유 진행 상태 관리 - 중복 클릭 방지
@@ -142,11 +142,11 @@ export function KakaoShareButton({
     <Button
       onClick={handleShare}
       disabled={isSharing}  // 중복 클릭 방지
-      variant={variant}
+      color={color}
       size={size}
       className={className}
     >
-      <Share2 className="w-4 h-4 mr-2" />
+      <MessageCircle className="w-4 h-4 mr-2" />
       {/* 상태별 버튼 텍스트 - 로딩 중이거나 게시글 타입에 따라 다르게 표시 */}
       {isSharing ? "공유 중..." : type === "post" ? "공유" : "카카오톡 공유"}
     </Button>

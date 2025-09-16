@@ -4,7 +4,6 @@ import React from "react";
 import dynamic from "next/dynamic";
 import { RollingPaperLayout } from "@/components/organisms/rolling-paper/RollingPaperLayout";
 import { NavigationBar } from "@/components/organisms/rolling-paper/NavigationBar";
-import { MessageListButton } from "@/components/organisms/rolling-paper/MessageListButton";
 import { ResponsiveAdFitBanner } from "@/components";
 import { ToastContainer, Loading, Spinner, type Toast } from "@/components";
 
@@ -115,15 +114,6 @@ export const RollingPaperView: React.FC<RollingPaperViewProps> = ({
               className="max-w-full"
             />
           </div>
-        </div>
-
-        <div className="mb-8">
-          <MessageListButton
-            isOwner={isOwner}
-            nickname={targetNickname}
-            messageCount={messageCount}
-            onOpenMessageList={() => setIsMessageListOpen(true)}
-          />
         </div>
 
         <div className="mb-8">

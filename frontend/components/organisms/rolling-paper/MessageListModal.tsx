@@ -37,7 +37,7 @@ export const MessageListModal: React.FC<MessageListModalProps> = memo(({
       <ModalHeader>
         <span className="flex items-center gap-2 text-cyan-800 font-bold text-lg md:text-xl">
           <MessageSquare className="w-5 h-5 md:w-6 md:h-6" />
-          메시지 목록
+          메시지 목록 보기
           <Badge variant="secondary" className="bg-cyan-100 text-cyan-700">
             {messages.length}개
           </Badge>

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Button } from "@/components";
+import { Button } from "flowbite-react";
 import { MessageSquare, Share2, List, ChevronLeft, ChevronRight } from "lucide-react";
 import { KakaoShareButton } from "@/components";
 import { useRollingPaperShare } from "@/hooks/features/useRollingPaperShare";
@@ -57,24 +57,24 @@ export const NavigationBar: React.FC<NavigationBarProps> = React.memo(({
                 type="rollingPaper"
                 userName={nickname}
                 messageCount={messageCount}
-                variant="outline"
+                color="yellow"
                 size="sm"
-                className="text-xs"
+                className="text-xs !bg-yellow-200 !hover:bg-yellow-300 !text-yellow-800"
               />
-              {messageCount > 0 && onShowMessages && (
+              {onShowMessages && (
                 <Button
                   onClick={onShowMessages}
-                  variant="outline"
+                  color="blue"
                   size="sm"
                   className="text-xs"
                 >
                   <List className="w-4 h-4 mr-1" />
-                  전체 메시지
+                  메시지 목록 보기
                 </Button>
               )}
               <Button
                 onClick={handleWebShare}
-                variant="outline"
+                color="gray"
                 size="sm"
                 className="text-xs"
               >
@@ -100,23 +100,24 @@ export const NavigationBar: React.FC<NavigationBarProps> = React.memo(({
                   type="rollingPaper"
                   userName={nickname}
                   messageCount={messageCount}
-                  variant="outline"
+                  color="yellow"
                   size="sm"
-                  className="px-2 py-1 text-xs h-7"
+                  className="px-2 py-1 text-xs h-7 !bg-yellow-200 !hover:bg-yellow-300 !text-yellow-800"
                 />
-                {messageCount > 0 && onShowMessages && (
+                {onShowMessages && (
                   <Button
                     onClick={onShowMessages}
-                    variant="outline"
+                    color="blue"
                     size="sm"
                     className="px-2 py-1 text-xs h-7"
                   >
-                    <List className="w-3 h-3" />
+                    <List className="w-3 h-3 mr-1" />
+                    목록
                   </Button>
                 )}
                 <Button
                   onClick={handleWebShare}
-                  variant="outline"
+                  color="gray"
                   size="sm"
                   className="px-2 py-1 text-xs h-7"
                 >
@@ -144,7 +145,7 @@ export const NavigationBar: React.FC<NavigationBarProps> = React.memo(({
             {/* 페이지 인디케이터 */}
             <div className="flex justify-center items-center space-x-2">
               <Button
-                variant="outline"
+                color="gray"
                 size="sm"
                 onClick={() => onPageChange(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}
@@ -157,7 +158,7 @@ export const NavigationBar: React.FC<NavigationBarProps> = React.memo(({
                 {Array.from({ length: totalPages }, (_, i) => (
                   <Button
                     key={i + 1}
-                    variant={currentPage === i + 1 ? "default" : "outline"}
+                    color={currentPage === i + 1 ? "blue" : "gray"}
                     size="sm"
                     onClick={() => onPageChange(i + 1)}
                     className={`h-8 w-8 p-0 ${
@@ -172,7 +173,7 @@ export const NavigationBar: React.FC<NavigationBarProps> = React.memo(({
               </div>
 
               <Button
-                variant="outline"
+                color="gray"
                 size="sm"
                 onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
                 disabled={currentPage === totalPages}
