@@ -1,12 +1,11 @@
 // Board Feature Components
 export { default as BoardClient } from './BoardClient';
 export { BoardSearch } from './board-search';
-export { PostList } from './post-list';
-export { PopularPostList } from './popular-post-list';
 export { NoticeList } from './notice-list';
 export { BoardPagination } from './board-pagination';
 export { BoardHeader } from './BoardHeader';
 export { BoardTabs } from './BoardTabs';
+export { BoardTable } from './BoardTable';
 
 // Post Detail Components
 export { CommentForm } from './CommentForm';

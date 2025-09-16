@@ -4,10 +4,11 @@ import React, { memo, useMemo } from "react";
 import { Tabs, TabItem } from "flowbite-react";
 import { HiClipboardList, HiTrendingUp, HiSparkles, HiFire } from "react-icons/hi";
 import { NoticeList } from "./notice-list";
-import { PostList } from "./post-list";
-import { PopularPostList } from "./popular-post-list";
+import { BoardTable } from "./BoardTable";
 import { BoardPagination } from "./board-pagination";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components";
 import type { SimplePost } from "@/lib/api";
+import type { PaginationState } from "@/hooks/common/usePagination";
 
 interface BoardTabsProps {
   activeTab: string;
@@ -23,6 +24,7 @@ interface BoardTabsProps {
   realtimePosts: SimplePost[];
   weeklyPosts: SimplePost[];
   legendPosts: SimplePost[];
+  legendPagination?: PaginationState | null;
 }
 
 const BoardTabsComponent: React.FC<BoardTabsProps> = ({
@@ -35,6 +37,7 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
   realtimePosts,
   weeklyPosts,
   legendPosts,
+  legendPagination,
 }) => {
   // 탭 값 매핑
   const getTabValue = (index: number) => {
@@ -54,7 +57,11 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
   };
 
   // 페이지네이션 표시 조건 메모화
-  const showPagination = useMemo(() => activeTab === "all" && totalPages > 0, [activeTab, totalPages]);
+  const showPagination = useMemo(() => {
+    if (activeTab === "all" && totalPages > 0) return true;
+    if (activeTab === "legend" && legendPagination && legendPagination.totalPages > 0) return true;
+    return false;
+  }, [activeTab, totalPages, legendPagination]);
 
   // 탭 스타일 커스터마이징 - 가로 배치를 위한 수정
   const tabsTheme = {
@@ -121,7 +128,10 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
         >
           <div className="space-y-4">
             <NoticeList posts={posts} />
-            <PostList posts={posts} />
+            <BoardTable
+              posts={posts.filter(post => !post.isNotice)}
+              variant="all"
+            />
           </div>
         </TabItem>
         <TabItem
@@ -129,41 +139,68 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
           title="실시간"
           icon={HiFire}
         >
-          <PopularPostList
-            posts={realtimePosts}
-            title="실시간 인기글"
-            icon={<HiFire className="w-5 h-5 text-red-500" />}
-          />
+          <Card variant="elevated">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <HiFire className="w-5 h-5 text-red-500" />
+                <span>실시간 인기글</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <BoardTable
+                posts={realtimePosts}
+                variant="popular"
+              />
+            </CardContent>
+          </Card>
         </TabItem>
         <TabItem
           active={activeTab === "popular"}
           title="주간"
           icon={HiTrendingUp}
         >
-          <PopularPostList
-            posts={weeklyPosts}
-            title="주간 인기글"
-            icon={<HiTrendingUp className="w-5 h-5 text-orange-500" />}
-          />
+          <Card variant="elevated">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <HiTrendingUp className="w-5 h-5 text-orange-500" />
+                <span>주간 인기글</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <BoardTable
+                posts={weeklyPosts}
+                variant="popular"
+              />
+            </CardContent>
+          </Card>
         </TabItem>
         <TabItem
           active={activeTab === "legend"}
           title="레전드"
           icon={HiSparkles}
         >
-          <PopularPostList
-            posts={legendPosts}
-            title="레전드 글"
-            icon={<HiSparkles className="w-5 h-5 text-purple-500" />}
-          />
+          <Card variant="elevated">
+            <CardHeader>
+              <CardTitle className="flex items-center space-x-2">
+                <HiSparkles className="w-5 h-5 text-purple-500" />
+                <span>레전드 글</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <BoardTable
+                posts={legendPosts}
+                variant="legend"
+              />
+            </CardContent>
+          </Card>
         </TabItem>
       </Tabs>
 
       {showPagination && (
         <BoardPagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          setCurrentPage={onPageChange}
+          currentPage={activeTab === "legend" && legendPagination ? legendPagination.currentPage : currentPage}
+          totalPages={activeTab === "legend" && legendPagination ? legendPagination.totalPages : totalPages}
+          setCurrentPage={activeTab === "legend" && legendPagination ? legendPagination.setCurrentPage : onPageChange}
         />
       )}
     </div>

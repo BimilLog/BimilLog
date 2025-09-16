@@ -61,6 +61,10 @@ export function usePostList(pageSize = 30) {
 export function usePopularPostsTabs() {
   const [activeTab, setActiveTab] = useState<'realtime' | 'weekly' | 'legend'>('realtime');
 
+  // 레전드 탭용 페이지네이션
+  const legendPagination = usePagination({ pageSize: 10 });
+
+  // 실시간/주간 인기글 조회
   const { data: popularData, refetch: refetchPopular } = useQuery({
     queryKey: queryKeys.post.popular(),
     queryFn: () => postQuery.getPopular(),
@@ -69,18 +73,39 @@ export function usePopularPostsTabs() {
     gcTime: 10 * 60 * 1000,
   });
 
+  // 레전드 글 조회 (페이징 지원)
+  const { data: legendData, refetch: refetchLegend } = useQuery({
+    queryKey: queryKeys.post.legend({
+      page: legendPagination.currentPage,
+      size: legendPagination.pageSize
+    }),
+    queryFn: () => postQuery.getLegend(legendPagination.currentPage, legendPagination.pageSize),
+    enabled: activeTab === 'legend',
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
+
+  // 레전드 데이터 변경 시 페이지네이션 업데이트
+  useEffect(() => {
+    if (legendData?.data?.totalElements !== undefined) {
+      legendPagination.setTotalItems(legendData.data.totalElements);
+    }
+  }, [legendData?.data?.totalElements]);
 
   // 현재 활성 탭에 따라 표시할 게시글 데이터 선택
   const posts = useMemo(() => {
     if (activeTab === 'realtime') return popularData?.data?.realtime || [];
     if (activeTab === 'weekly') return popularData?.data?.weekly || [];
+    if (activeTab === 'legend') return legendData?.data?.content || [];
     return [];
-  }, [activeTab, popularData]);
+  }, [activeTab, popularData, legendData]);
 
   return {
     posts,
     activeTab,
     setActiveTab,
-    refetch: refetchPopular
+    refetch: activeTab === 'legend' ? refetchLegend : refetchPopular,
+    // 레전드 탭 전용 페이지네이션
+    legendPagination: activeTab === 'legend' ? legendPagination : null
   };
 }

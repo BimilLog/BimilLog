@@ -2,13 +2,13 @@
 
 import { useState, useCallback, useMemo } from 'react';
 
-interface UsePaginationOptions {
+export interface UsePaginationOptions {
   initialPage?: number;
   pageSize?: number;
   totalItems?: number;
 }
 
-interface UsePaginationResult {
+export interface UsePaginationResult {
   currentPage: number;
   pageSize: number;
   totalPages: number;
@@ -26,6 +26,8 @@ interface UsePaginationResult {
   pageRange: number[];
   offset: number;
 }
+
+export type PaginationState = UsePaginationResult;
 
 export function usePagination(options: UsePaginationOptions = {}): UsePaginationResult {
   const {
