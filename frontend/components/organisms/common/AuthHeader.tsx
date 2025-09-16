@@ -240,36 +240,6 @@ export const AuthHeader = React.memo(() => {
             로그인
           </NavbarLink>
         )}
-        {/* 모바일에서만 표시되는 로그인 전용 메뉴 */}
-        {isAuthenticated && (
-          <div className="md:hidden border-t mt-4 pt-4 space-y-2">
-            <NavbarLink as={Link} href="/rolling-paper" className="text-sm flex items-center">
-              <ScrollText className="mr-2 h-4 w-4" />
-              내 롤링페이퍼
-            </NavbarLink>
-            <NavbarLink as={Link} href="/mypage" className="text-sm flex items-center">
-              <UserCircle className="mr-2 h-4 w-4" />
-              마이페이지
-            </NavbarLink>
-            <NavbarLink as={Link} href="/settings" className="text-sm flex items-center">
-              <Settings className="mr-2 h-4 w-4" />
-              설정
-            </NavbarLink>
-            {user?.role === "ADMIN" && (
-              <NavbarLink as={Link} href="/admin" className="text-red-600 text-sm flex items-center">
-                <Shield className="mr-2 h-4 w-4" />
-                관리자
-              </NavbarLink>
-            )}
-            <button
-              onClick={logout}
-              className="w-full text-left text-red-600 text-sm py-2 pr-4 pl-3 flex items-center hover:bg-gray-50 rounded"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              로그아웃
-            </button>
-          </div>
-        )}
       </NavbarCollapse>
     </Navbar>
   );

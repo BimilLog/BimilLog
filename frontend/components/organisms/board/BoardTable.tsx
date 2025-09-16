@@ -8,7 +8,6 @@ import { type SimplePost } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
 import { usePostReadStatus } from "@/hooks/features/useReadingProgress";
 import {
-  CheckCircle,
   Megaphone,
   TrendingUp,
   Calendar,
@@ -45,7 +44,6 @@ interface TableRowProps {
   index: number;
   variant: "all" | "popular" | "legend";
   isRead: boolean;
-  progress: number;
   showRanking?: boolean;
   enablePopover?: boolean;
 }
@@ -55,7 +53,6 @@ const BoardTableRow = memo<TableRowProps>(({
   post,
   index,
   isRead,
-  progress,
   showRanking,
   enablePopover
 }) => {
@@ -91,35 +88,19 @@ const BoardTableRow = memo<TableRowProps>(({
 
       {/* 제목 */}
       <TableCell>
-        <div className="flex items-center gap-2">
-          <Link
-            href={`/board/post/${post.id}`}
-            className={`font-semibold transition-colors line-clamp-2 block flex-1 ${
-              isRead ? 'text-gray-500' : 'text-gray-900 hover:text-purple-600'
-            }`}
-          >
-            {post.title}
-            {post.commentCount > 0 && (
-              <span className="ml-2 text-purple-500 font-normal">
-                [{post.commentCount}]
-              </span>
-            )}
-          </Link>
-          {isRead && (
-            <span title="읽음">
-              <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
+        <Link
+          href={`/board/post/${post.id}`}
+          className={`font-semibold transition-colors line-clamp-2 block ${
+            isRead ? 'text-gray-500' : 'text-gray-900 hover:text-purple-600'
+          }`}
+        >
+          {post.title}
+          {post.commentCount > 0 && (
+            <span className="ml-2 text-purple-500 font-normal">
+              [{post.commentCount}]
             </span>
           )}
-          {!isRead && progress > 0 && progress < 90 && (
-            <div className="w-12 h-1.5 bg-gray-200 rounded-full flex-shrink-0">
-              <div
-                className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"
-                style={{ width: `${progress}%` }}
-                title={`${Math.round(progress)}% 읽음`}
-              />
-            </div>
-          )}
-        </div>
+        </Link>
       </TableCell>
 
       {/* 작성자 */}
@@ -188,8 +169,8 @@ const BoardMobileCard = memo<TableRowProps>(({
   post,
   index,
   isRead,
-  progress,
-  showRanking
+  showRanking,
+  enablePopover
 }) => {
 
   return (
@@ -226,36 +207,19 @@ const BoardMobileCard = memo<TableRowProps>(({
             </div>
 
             {/* 제목 */}
-            <div className="flex items-start gap-2">
-              <Link
-                href={`/board/post/${post.id}`}
-                className={`font-semibold transition-colors line-clamp-2 block text-base flex-1 ${
-                  isRead ? 'text-gray-500' : 'text-brand-primary hover:text-purple-600'
-                }`}
-              >
-                {post.title}
-                {post.commentCount > 0 && (
-                  <span className="ml-2 text-purple-500 font-normal">
-                    [{post.commentCount}]
-                  </span>
-                )}
-              </Link>
-              {isRead && (
-                <span title="읽음">
-                  <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0 mt-1" />
+            <Link
+              href={`/board/post/${post.id}`}
+              className={`font-semibold transition-colors line-clamp-2 block text-base ${
+                isRead ? 'text-gray-500' : 'text-brand-primary hover:text-purple-600'
+              }`}
+            >
+              {post.title}
+              {post.commentCount > 0 && (
+                <span className="ml-2 text-purple-500 font-normal">
+                  [{post.commentCount}]
                 </span>
               )}
-            </div>
-
-            {/* 진행률 바 */}
-            {!isRead && progress > 0 && progress < 90 && (
-              <div className="w-full h-1.5 bg-gray-200 rounded-full mt-2">
-                <div
-                  className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-            )}
+            </Link>
           </div>
         </div>
 
@@ -298,8 +262,7 @@ export const BoardTable = memo<BoardTableProps>(({
 }) => {
   // 읽음 상태 추적 - 모든 variant에서 사용
   const postIds = posts.map(post => post.id);
-  const { readStatus, progressStatus } = usePostReadStatus(postIds);
-
+  const { readStatus } = usePostReadStatus(postIds);
 
   return (
     <>
@@ -328,7 +291,6 @@ export const BoardTable = memo<BoardTableProps>(({
                   index={index}
                   variant={variant}
                   isRead={readStatus[post.id] || false}
-                  progress={progressStatus[post.id] || 0}
                   showRanking={showRanking}
                   enablePopover={enablePopover}
                 />
@@ -357,7 +319,6 @@ export const BoardTable = memo<BoardTableProps>(({
               index={index}
               variant={variant}
               isRead={readStatus[post.id] || false}
-              progress={progressStatus[post.id] || 0}
               showRanking={showRanking}
               enablePopover={enablePopover}
             />

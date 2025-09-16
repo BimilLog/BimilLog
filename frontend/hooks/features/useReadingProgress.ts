@@ -170,7 +170,6 @@ export function useReadingProgress(options: UseReadingProgressOptions = {}) {
  */
 export function usePostReadStatus(postIds: number[]) {
   const [readStatus, setReadStatus] = useState<Record<number, boolean>>({});
-  const [progressStatus, setProgressStatus] = useState<Record<number, number>>({});
 
   useEffect(() => {
     // postIds가 빈 배열이면 처리하지 않음
@@ -179,17 +178,10 @@ export function usePostReadStatus(postIds: number[]) {
     }
 
     const readPosts = getReadPosts();
-    const allProgress = getReadingProgress();
-
     const status: Record<number, boolean> = {};
-    const progress: Record<number, number> = {};
 
     postIds.forEach(id => {
       status[id] = readPosts.includes(id);
-      const postProgress = allProgress.find(p => p.postId === id);
-      if (postProgress) {
-        progress[id] = postProgress.progress;
-      }
     });
 
     // 상태가 실제로 변경되었을 때만 업데이트
@@ -197,12 +189,7 @@ export function usePostReadStatus(postIds: number[]) {
       const hasChanged = JSON.stringify(prevStatus) !== JSON.stringify(status);
       return hasChanged ? status : prevStatus;
     });
-
-    setProgressStatus(prevProgress => {
-      const hasChanged = JSON.stringify(prevProgress) !== JSON.stringify(progress);
-      return hasChanged ? progress : prevProgress;
-    });
   }, [JSON.stringify(postIds)]); // postIds를 문자열로 변환하여 깊은 비교
 
-  return { readStatus, progressStatus };
+  return { readStatus };
 }

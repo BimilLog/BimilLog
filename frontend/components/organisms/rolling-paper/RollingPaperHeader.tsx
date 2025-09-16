@@ -11,11 +11,6 @@ interface RollingPaperHeaderProps {
   messageCount: number;
   isOwner?: boolean;
   onShowMessages?: () => void;
-  // 페이지네이션 관련
-  currentPage?: number;
-  totalPages?: number;
-  onPageChange?: (page: number) => void;
-  showPagination?: boolean;
   className?: string;
 }
 
@@ -24,10 +19,6 @@ export const RollingPaperHeader: React.FC<RollingPaperHeaderProps> = React.memo(
   messageCount,
   isOwner = false,
   onShowMessages,
-  currentPage = 1,
-  totalPages = 1,
-  onPageChange,
-  showPagination = false,
   className = "",
 }) => {
   const { handleWebShare } = useRollingPaperShare({

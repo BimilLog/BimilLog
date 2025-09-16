@@ -1,11 +1,10 @@
 "use client";
 
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useEffect, useState } from 'react';
 import {
   createMessageGrid,
   calculateTotalPages,
   getAbsoluteCoords,
-  isMobileDevice,
   type GridPosition,
 } from '@/lib/utils/rolling-paper';
 import type { RollingPaperMessage, VisitMessage } from '@/types/domains/paper';
@@ -29,18 +28,29 @@ interface UseRollingPaperGridReturn {
 export function useRollingPaperGrid({
   messages,
 }: UseRollingPaperGridProps): UseRollingPaperGridReturn {
-  // 모바일 체크
-  const isMobile = useMemo(() => isMobileDevice(), []);
+  // 모바일 체크 - SSR 호환성을 위해 초기값은 false, 클라이언트에서 실제 크기 측정
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile(); // 초기 실행
+    window.addEventListener('resize', checkMobile);
+
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // 그리드 데이터 생성
   const gridData = useMemo(() => {
-    return createMessageGrid(messages);
-  }, [messages]);
+    return createMessageGrid(messages, isMobile);
+  }, [messages, isMobile]);
 
   // 전체 페이지 수 계산 (고정값)
   const totalPages = useMemo(() => {
-    return calculateTotalPages();
-  }, []);
+    return calculateTotalPages(isMobile);
+  }, [isMobile]);
 
   // 특정 위치의 메시지 가져오기 (1-based 좌표)
   const getMessageAt = useCallback(
@@ -59,9 +69,9 @@ export function useRollingPaperGrid({
   // 페이지와 그리드 위치에서 실제 좌표 계산
   const getCoordsFromPageAndGrid = useCallback(
     (page: number, gridX: number, gridY: number): GridPosition => {
-      return getAbsoluteCoords(page, gridX, gridY);
+      return getAbsoluteCoords(page, gridX, gridY, isMobile);
     },
-    []
+    [isMobile]
   );
 
   return {

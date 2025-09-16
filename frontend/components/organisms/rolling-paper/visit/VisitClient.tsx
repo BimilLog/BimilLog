@@ -49,7 +49,6 @@ export function VisitClient() {
     isSearching,
     searchError,
     handleSearch,
-    handleKeyPress,
   } = useRollingPaperSearch();
 
   // 확인 다이얼로그에서 "내 롤링페이퍼 보기" 클릭 시 처리
@@ -91,7 +90,6 @@ export function VisitClient() {
           isSearching={isSearching}
           searchError={searchError}
           onSearch={handleSearch}
-          onKeyPress={handleKeyPress}
         />
 
         {/* 최근 방문한 롤링페이퍼 */}

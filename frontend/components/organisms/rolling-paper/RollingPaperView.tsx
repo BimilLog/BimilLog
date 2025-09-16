@@ -90,16 +90,12 @@ export const RollingPaperView: React.FC<RollingPaperViewProps> = ({
 }) => {
   return (
     <RollingPaperLayout>
-      {/* 네비게이션 바: 소유자만 메시지 목록 버튼 활성화, 모바일에서는 페이지네이션 숨김 */}
+      {/* 네비게이션 바: 소유자만 메시지 목록 버튼 활성화 */}
       <RollingPaperHeader
         nickname={targetNickname}
         messageCount={messageCount}
         isOwner={isOwner}
         onShowMessages={isOwner ? () => setIsMessageListOpen(true) : undefined}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
-        showPagination={!isMobile && totalPages > 1}
         className="sticky top-[68px] sm:top-[80px] z-40"
       />
 

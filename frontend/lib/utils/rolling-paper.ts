@@ -1,5 +1,3 @@
-import type { RollingPaperMessage, VisitMessage } from '@/types/domains/paper';
-
 /**
  * 롤링페이퍼 그리드 설정
  */
@@ -64,15 +62,17 @@ export function isMobileDevice(): boolean {
 /**
  * 현재 디바이스의 그리드 열 개수 반환
  */
-export function getGridColumns(): number {
-  return isMobileDevice() ? GRID_CONFIG.COLS_MOBILE : GRID_CONFIG.COLS_PC;
+export function getGridColumns(isMobile?: boolean): number {
+  const mobile = isMobile !== undefined ? isMobile : isMobileDevice();
+  return mobile ? GRID_CONFIG.COLS_MOBILE : GRID_CONFIG.COLS_PC;
 }
 
 /**
  * 현재 디바이스의 페이지당 메시지 개수 반환
  */
-export function getMessagesPerPage(): number {
-  return isMobileDevice() ? MESSAGES_PER_PAGE.MOBILE : MESSAGES_PER_PAGE.PC;
+export function getMessagesPerPage(isMobile?: boolean): number {
+  const mobile = isMobile !== undefined ? isMobile : isMobileDevice();
+  return mobile ? MESSAGES_PER_PAGE.MOBILE : MESSAGES_PER_PAGE.PC;
 }
 
 /**
@@ -80,8 +80,9 @@ export function getMessagesPerPage(): number {
  */
 export function createMessageGrid<T extends { x: number; y: number }>(
   messages: T[],
-  cols: number = getGridColumns()
+  isMobile?: boolean
 ): (T | null)[][] {
+  const cols = getGridColumns(isMobile);
   const grid: (T | null)[][] = [];
   const rows = GRID_CONFIG.ROWS;
 
@@ -114,8 +115,8 @@ export function createMessageGrid<T extends { x: number; y: number }>(
  * 전체 페이지 수 계산
  * PC: 2페이지, 모바일: 3페이지로 고정
  */
-export function calculateTotalPages(): number {
-  return isMobileDevice() ? 3 : 2;
+export function calculateTotalPages(isMobile: boolean): number {
+  return isMobile ? 3 : 2;
 }
 
 /**
@@ -126,9 +127,10 @@ export function calculateTotalPages(): number {
 export function getAbsoluteCoords(
   page: number,
   gridX: number,
-  gridY: number
+  gridY: number,
+  isMobile: boolean
 ): GridPosition {
-  const cols = getGridColumns();
+  const cols = getGridColumns(isMobile);
   const baseX = (page - 1) * cols;
   return {
     x: baseX + gridX + 1, // 1-based로 변환
@@ -139,12 +141,12 @@ export function getAbsoluteCoords(
 /**
  * 절대 좌표에서 페이지와 페이지 내 좌표 계산
  */
-export function getPageAndGridPosition(absoluteX: number, absoluteY: number): {
+export function getPageAndGridPosition(absoluteX: number, absoluteY: number, isMobile?: boolean): {
   page: number;
   gridX: number;
   gridY: number;
 } {
-  const cols = getGridColumns();
+  const cols = getGridColumns(isMobile);
   const page = Math.floor((absoluteX - 1) / cols) + 1;
   const gridX = ((absoluteX - 1) % cols) + 1;
 
@@ -171,10 +173,11 @@ export function isPositionOccupied<T extends { x: number; y: number }>(
  */
 export function findEmptyPositions<T extends { x: number; y: number }>(
   messages: T[],
-  page: number = 1
+  page: number = 1,
+  isMobile?: boolean
 ): GridPosition[] {
   const emptyPositions: GridPosition[] = [];
-  const cols = getGridColumns();
+  const cols = getGridColumns(isMobile);
   const rows = GRID_CONFIG.ROWS;
 
   const startCol = (page - 1) * cols + 1;

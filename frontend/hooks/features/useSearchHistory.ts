@@ -29,9 +29,24 @@ export function useSearchHistory(options: UseSearchHistoryOptions = {}) {
 
   // 검색 히스토리 로드
   const loadHistory = useCallback(() => {
-    setRecentSearches(getRecentSearches(10));
-    setTopSearches(getTopSearches(5));
-  }, []);
+    const allHistory = getSearchHistory();
+    const typeFiltered = allHistory.filter(h => {
+      // type이 없으면 기본적으로 'post'로 간주
+      if (!h.type && type === 'post') return true;
+      return h.type === type;
+    });
+
+    setRecentSearches(
+      typeFiltered
+        .sort((a, b) => new Date(b.lastSearched).getTime() - new Date(a.lastSearched).getTime())
+        .slice(0, 10)
+    );
+    setTopSearches(
+      typeFiltered
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 5)
+    );
+  }, [type]);
 
   // 초기 로드 및 자동 정리
   useEffect(() => {
@@ -93,12 +108,30 @@ export function useSearchHistory(options: UseSearchHistoryOptions = {}) {
     return success;
   }, [loadHistory]);
 
-  // 전체 검색 기록 삭제
+  // 전체 검색 기록 삭제 (현재 타입만)
   const clearAll = useCallback(() => {
-    clearSearchHistory();
-    loadHistory();
+    // 현재 타입의 검색 기록만 삭제
+    const allHistory = getSearchHistory();
+    const otherTypeHistory = allHistory.filter(h => {
+      // type이 없으면 'post'로 간주
+      if (!h.type && type === 'post') return false; // 'post' 타입으로 삭제
+      if (!h.type && type !== 'post') return true;  // 다른 타입이면 유지
+      return h.type !== type;
+    });
+
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('bimillog_search_history', JSON.stringify(otherTypeHistory));
+      } catch (error) {
+        console.error('Failed to clear search history:', error);
+      }
+    }
+
+    setRecentSearches([]);
+    setTopSearches([]);
     setSuggestions([]);
-  }, [loadHistory]);
+    setShowSuggestions(false);
+  }, [type]);
 
   // 자동완성 선택
   const selectSuggestion = useCallback((suggestion: SearchHistory) => {

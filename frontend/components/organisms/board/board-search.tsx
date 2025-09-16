@@ -151,9 +151,7 @@ export const BoardSearch = ({
               {recentSearches.length > 0 && (
                 <div className="p-2">
                   <div className="flex items-center justify-between px-2 mb-1">
-                    <span className="text-xs text-gray-500 flex items-center gap-1">
-                      <Clock className="w-3 h-3" />
-                      최근 검색어
+                    <span className="text-xs text-gray-500">
                     </span>
                     <button
                       onClick={clearAll}
