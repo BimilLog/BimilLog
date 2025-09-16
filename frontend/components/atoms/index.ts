@@ -1,5 +1,5 @@
 // Display components
-export { Avatar, AvatarImage, AvatarFallback } from './display/avatar';
+// Avatar components are now imported directly from flowbite-react where needed
 export { Badge } from './display/badge';
 export { TimeBadge } from './display/time-badge';
 export { Icon } from './display/icon';

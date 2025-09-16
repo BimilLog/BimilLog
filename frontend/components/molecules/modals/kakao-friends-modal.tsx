@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Modal, ModalHeader, ModalBody, Spinner as FlowbiteSpinner } from "flowbite-react";
-import { Button, Avatar, AvatarFallback, AvatarImage } from "@/components";
+import { Button } from "@/components";
+import { Avatar } from "flowbite-react";
 import { getInitials } from "@/lib/utils/format";
 import {
   Spinner,
@@ -88,7 +89,7 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
           response?.error || "친구 목록을 가져올 수 없습니다.";
 
         // 카카오 친구 목록 접근 동의가 필요한 경우 감지
-        if (errorMessage.includes("카카오 친구 추가 동의을 해야 합니다")) {
+        if (errorMessage.includes("카카오 친구 추가 동의를 해야 합니다")) {
           setNeedsConsent(true);
           setError("카카오 친구 목록 접근을 위해 추가 동의가 필요합니다.");
         } else {
@@ -263,20 +264,13 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
                     {/* 카카오톡 스타일 아바타 */}
                     <div className="relative">
                       <Avatar
+                        img={friend.profile_thumbnail_image}
+                        alt={friend.profile_nickname}
+                        placeholderInitials={getInitials(friend.profile_nickname)}
                         className="h-12 w-12 ring-2 ring-yellow-200"
                         size="md"
                         rounded
-                        status="online"
-                        statusPosition="bottom-right"
-                      >
-                        <AvatarImage
-                          src={friend.profile_thumbnail_image}
-                          alt={friend.profile_nickname}
-                        />
-                        <AvatarFallback className="bg-yellow-100 text-yellow-800 font-semibold">
-                          {getInitials(friend.profile_nickname)}
-                        </AvatarFallback>
-                      </Avatar>
+                      />
                     </div>
 
                     {/* 친구 정보 (닉네임, 비밀로그 가입 여부) */}

@@ -42,9 +42,9 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
               {/* 모바일: 카카오 친구 확인하기 */}
               <div className="sm:hidden">
                 <Button
-                  color="yellow"
                   size="lg"
                   onClick={onOpenFriendsModal}
+                  className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:bg-gradient-to-l focus:ring-purple-200 dark:focus:ring-purple-800"
                 >
                   <UserCheck className="w-5 h-5 mr-2" />
                   카카오 친구 확인하기
@@ -54,18 +54,17 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
               {/* PC: 카카오 친구 확인하기와 다른 롤링페이퍼 방문하기를 한 줄로 */}
               <div className="hidden sm:flex flex-row gap-4 justify-center items-center">
                 <Button
-                  color="yellow"
                   size="lg"
                   onClick={onOpenFriendsModal}
+                  className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:bg-gradient-to-l focus:ring-purple-200 dark:focus:ring-purple-800"
                 >
                   <UserCheck className="w-5 h-5 mr-2" />
                   카카오 친구 확인하기
                 </Button>
                 <Button
-                  color="cyan"
                   size="lg"
                   onClick={() => window.location.href = '/visit'}
-                  className="!bg-cyan-400 !hover:bg-cyan-500 !text-white"
+                  className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:bg-gradient-to-bl focus:ring-cyan-300 dark:focus:ring-cyan-800"
                 >
                   다른 롤링페이퍼 방문하기
                 </Button>
@@ -85,10 +84,9 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
           {/* 모바일 또는 비로그인: 다른 롤링페이퍼 방문하기 */}
           <div className={isAuthenticated ? "sm:hidden" : ""}>
             <Button
-              color="cyan"
               size="lg"
               onClick={() => window.location.href = '/visit'}
-              className="!bg-cyan-400 !hover:bg-cyan-500 !text-white"
+              className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:bg-gradient-to-bl focus:ring-cyan-300 dark:focus:ring-cyan-800"
             >
               다른 롤링페이퍼 방문하기
             </Button>

@@ -14,7 +14,7 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components";
+import { Avatar } from "flowbite-react";
 import { getInitials } from "@/lib/utils/format";
 import {
   AlertCircle,
@@ -153,15 +153,13 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
             <div className="flex flex-col md:flex-row items-center md:space-x-8">
               <div className="relative mb-4 md:mb-0">
                 <Avatar
+                  img={user.thumbnailImage}
+                  alt={user.userName}
+                  placeholderInitials={getInitials(user.userName)}
                   size="xl"
                   className="w-24 h-24 md:w-32 md:h-32 ring-4 ring-white shadow-brand-lg"
                   rounded
-                >
-                  <AvatarImage src={user.thumbnailImage || undefined} alt={user.userName} />
-                  <AvatarFallback className="text-4xl">
-                    {getInitials(user.userName)}
-                  </AvatarFallback>
-                </Avatar>
+                />
 
                 {user.role === "ADMIN" && (
                   <div className="absolute -top-1 -right-1 w-8 h-8 bg-gradient-to-r from-red-500 to-pink-600 rounded-full flex items-center justify-center">

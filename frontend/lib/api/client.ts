@@ -101,7 +101,10 @@ export class ApiClient {
           let extractedMessage = errorMessage
 
           if (typeof errorData === 'object' && errorData !== null) {
-            if (typeof errorData.message === 'string') {
+            // 백엔드 UserErrorResponse 구조: { errorCode, errorMessage }
+            if (typeof errorData.errorMessage === 'string') {
+              extractedMessage = errorData.errorMessage
+            } else if (typeof errorData.message === 'string') {
               extractedMessage = errorData.message
             } else if (typeof errorData.error === 'string') {
               extractedMessage = errorData.error
