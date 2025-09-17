@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.post.application.service;
 
 
 import jaeik.bimillog.domain.post.application.port.in.PostQueryUseCase;
-import jaeik.bimillog.domain.post.application.port.out.PostCacheQueryPort;
+import jaeik.bimillog.domain.post.application.port.out.RedisPostQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostLikeQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.entity.Post;
@@ -37,7 +37,7 @@ public class PostQueryService implements PostQueryUseCase {
     private final PostQueryPort postQueryPort;
     private final PostLikeQueryPort postLikeQueryPort;
     private final PostCacheSyncService postCacheSyncService;
-    private final PostCacheQueryPort postCacheQueryPort;
+    private final RedisPostQueryPort redisPostQueryPort;
 
     /**
      * <h3>게시판 목록 조회</h3>
@@ -72,7 +72,7 @@ public class PostQueryService implements PostQueryUseCase {
     @Override
     public PostDetail getPost(Long postId, Long userId) {
         // 1. 캐시에서 인기글 조회 시도 (최적화: 1번의 Redis 호출로 통합)
-        PostDetail cachedPost = postCacheQueryPort.getCachedPostIfExists(postId);
+        PostDetail cachedPost = redisPostQueryPort.getCachedPostIfExists(postId);
         if (cachedPost != null) {
             // 캐시 히트: 사용자 좋아요 정보만 추가 확인 필요
             if (userId != null) {
@@ -142,10 +142,10 @@ public class PostQueryService implements PostQueryUseCase {
             throw new PostCustomException(PostErrorCode.INVALID_INPUT_VALUE);
         }
 
-        if (!postCacheQueryPort.hasPopularPostsCache(type)) {
+        if (!redisPostQueryPort.hasPopularPostsCache(type)) {
             postCacheSyncService.updateLegendaryPosts();
         }
-        return postCacheQueryPort.getCachedPostListPaged(pageable);
+        return redisPostQueryPort.getCachedPostListPaged(pageable);
     }
 
     /**
@@ -158,7 +158,7 @@ public class PostQueryService implements PostQueryUseCase {
      */
     @Override
     public List<PostSearchResult> getNoticePosts() {
-        return postCacheQueryPort.getCachedPostList(PostCacheFlag.NOTICE);
+        return redisPostQueryPort.getCachedPostList(PostCacheFlag.NOTICE);
     }
 
     /**
@@ -221,16 +221,16 @@ public class PostQueryService implements PostQueryUseCase {
     @Override
     public Map<String, List<PostSearchResult>> getRealtimeAndWeeklyPosts() {
         // 캐시 상태 확인 및 업데이트
-        if (!postCacheQueryPort.hasPopularPostsCache(PostCacheFlag.REALTIME)) {
+        if (!redisPostQueryPort.hasPopularPostsCache(PostCacheFlag.REALTIME)) {
             postCacheSyncService.updateRealtimePopularPosts();
         }
-        if (!postCacheQueryPort.hasPopularPostsCache(PostCacheFlag.WEEKLY)) {
+        if (!redisPostQueryPort.hasPopularPostsCache(PostCacheFlag.WEEKLY)) {
             postCacheSyncService.updateWeeklyPopularPosts();
         }
 
         // 두 타입의 데이터를 한 번에 조회
-        List<PostSearchResult> realtimePosts = postCacheQueryPort.getCachedPostList(PostCacheFlag.REALTIME);
-        List<PostSearchResult> weeklyPosts = postCacheQueryPort.getCachedPostList(PostCacheFlag.WEEKLY);
+        List<PostSearchResult> realtimePosts = redisPostQueryPort.getCachedPostList(PostCacheFlag.REALTIME);
+        List<PostSearchResult> weeklyPosts = redisPostQueryPort.getCachedPostList(PostCacheFlag.WEEKLY);
 
         return Map.of(
             "realtime", realtimePosts,

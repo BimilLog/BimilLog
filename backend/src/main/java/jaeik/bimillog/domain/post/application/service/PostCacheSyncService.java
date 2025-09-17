@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.post.application.service;
 
-import jaeik.bimillog.domain.post.application.port.out.PostCacheCommandPort;
-import jaeik.bimillog.domain.post.application.port.out.PostCacheSyncPort;
+import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
+import jaeik.bimillog.domain.post.application.port.out.RedisPostSyncPort;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
@@ -40,8 +40,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class PostCacheSyncService {
 
-    private final PostCacheCommandPort postCacheCommandPort;
-    private final PostCacheSyncPort postCacheSyncPort;
+    private final RedisPostCommandPort redisPostCommandPort;
+    private final RedisPostSyncPort redisPostSyncPort;
     private final ApplicationEventPublisher eventPublisher;
 
     /**
@@ -59,7 +59,7 @@ public class PostCacheSyncService {
     public void updateRealtimePopularPosts() {
         processPopularPosts(
                 PostCacheFlag.REALTIME,
-                postCacheSyncPort::findRealtimePopularPosts
+                redisPostSyncPort::findRealtimePopularPosts
         );
     }
 
@@ -76,7 +76,7 @@ public class PostCacheSyncService {
     @Scheduled(fixedRate = 60000 * 1440) // 1일마다
     @Transactional
     public void updateWeeklyPopularPosts() {
-        List<PostSearchResult> posts = postCacheSyncPort.findWeeklyPopularPosts();
+        List<PostSearchResult> posts = redisPostSyncPort.findWeeklyPopularPosts();
         processPopularPosts(PostCacheFlag.WEEKLY, () -> posts);
         publishFeaturedEvent(posts, "주간 인기 게시글로 선정되었어요!", "주간 인기 게시글 선정",
                 "회원님의 게시글 %s 이 주간 인기 게시글로 선정되었습니다.");
@@ -95,7 +95,7 @@ public class PostCacheSyncService {
     @Scheduled(fixedRate = 60000 * 1440) // 1일마다
     @Transactional
     public void updateLegendaryPosts() {
-        List<PostSearchResult> posts = postCacheSyncPort.findLegendaryPosts();
+        List<PostSearchResult> posts = redisPostSyncPort.findLegendaryPosts();
         processPopularPosts(PostCacheFlag.LEGEND, () -> posts);
         publishFeaturedEvent(posts, "명예의 전당에 등극했어요!", "명예의 전당 등극",
                 "회원님의 게시글 %s 이 명예의 전당에 등극했습니다.");
@@ -109,7 +109,7 @@ public class PostCacheSyncService {
      * @param postFinder 인기 게시글 목록을 찾는 메서드
      */
     private void processPopularPosts(PostCacheFlag flag, Supplier<List<PostSearchResult>> postFinder) {
-        postCacheCommandPort.resetPopularFlag(flag);
+        redisPostCommandPort.resetPopularFlag(flag);
         List<PostSearchResult> posts = postFinder.get();
 
         if (posts.isEmpty()) {
@@ -118,14 +118,14 @@ public class PostCacheSyncService {
         }
 
         List<Long> postIds = posts.stream().map(PostSearchResult::getId).collect(Collectors.toList());
-        postCacheCommandPort.applyPopularFlag(postIds, flag);
+        redisPostCommandPort.applyPopularFlag(postIds, flag);
 
         List<PostDetail> fullPosts = posts.stream()
-                .map(post -> postCacheSyncPort.findPostDetail(post.getId()))
+                .map(post -> redisPostSyncPort.findPostDetail(post.getId()))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
-        postCacheCommandPort.cachePostsWithDetails(flag, fullPosts);
+        redisPostCommandPort.cachePostsWithDetails(flag, fullPosts);
         log.info("{} 캐시 업데이트 완료. {}개의 게시글이 처리됨", flag.name(), fullPosts.size());
     }
 

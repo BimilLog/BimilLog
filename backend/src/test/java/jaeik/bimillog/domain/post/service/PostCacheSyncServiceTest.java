@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.post.service;
 
-import jaeik.bimillog.domain.post.application.port.out.PostCacheCommandPort;
-import jaeik.bimillog.domain.post.application.port.out.PostCacheSyncPort;
+import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
+import jaeik.bimillog.domain.post.application.port.out.RedisPostSyncPort;
 import jaeik.bimillog.domain.post.application.service.PostCacheSyncService;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
@@ -37,10 +37,10 @@ import static org.mockito.Mockito.*;
 class PostCacheSyncServiceTest {
 
     @Mock
-    private PostCacheCommandPort postCacheCommandPort;
+    private RedisPostCommandPort redisPostCommandPort;
 
     @Mock
-    private PostCacheSyncPort postCacheSyncPort;
+    private RedisPostSyncPort redisPostSyncPort;
 
 
 
@@ -61,17 +61,17 @@ class PostCacheSyncServiceTest {
         PostDetail fullPost1 = createPostDetail(1L, "제목1", "내용1");
         PostDetail fullPost2 = createPostDetail(2L, "제목2", "내용2");
 
-        given(postCacheSyncPort.findRealtimePopularPosts()).willReturn(posts);
-        given(postCacheSyncPort.findPostDetail(1L)).willReturn(fullPost1);
-        given(postCacheSyncPort.findPostDetail(2L)).willReturn(fullPost2);
+        given(redisPostSyncPort.findRealtimePopularPosts()).willReturn(posts);
+        given(redisPostSyncPort.findPostDetail(1L)).willReturn(fullPost1);
+        given(redisPostSyncPort.findPostDetail(2L)).willReturn(fullPost2);
 
         // When
         postCacheSyncService.updateRealtimePopularPosts();
 
         // Then
-        verify(postCacheCommandPort).resetPopularFlag(PostCacheFlag.REALTIME);
-        verify(postCacheCommandPort).applyPopularFlag(List.of(1L, 2L), PostCacheFlag.REALTIME);
-        verify(postCacheCommandPort).cachePostsWithDetails(PostCacheFlag.REALTIME, List.of(fullPost1, fullPost2));
+        verify(redisPostCommandPort).resetPopularFlag(PostCacheFlag.REALTIME);
+        verify(redisPostCommandPort).applyPopularFlag(List.of(1L, 2L), PostCacheFlag.REALTIME);
+        verify(redisPostCommandPort).cachePostsWithDetails(PostCacheFlag.REALTIME, List.of(fullPost1, fullPost2));
         
         verifyNoInteractions(eventPublisher); // 실시간은 이벤트 발행 안함
     }
@@ -80,18 +80,18 @@ class PostCacheSyncServiceTest {
     @DisplayName("실시간 인기 게시글 업데이트 - 게시글 없음")
     void shouldUpdateRealtimePopularPosts_WhenNoPostsExist() {
         // Given
-        given(postCacheSyncPort.findRealtimePopularPosts()).willReturn(Collections.emptyList());
+        given(redisPostSyncPort.findRealtimePopularPosts()).willReturn(Collections.emptyList());
 
         // When
         postCacheSyncService.updateRealtimePopularPosts();
 
         // Then
-        verify(postCacheCommandPort).resetPopularFlag(PostCacheFlag.REALTIME);
-        verify(postCacheSyncPort).findRealtimePopularPosts();
+        verify(redisPostCommandPort).resetPopularFlag(PostCacheFlag.REALTIME);
+        verify(redisPostSyncPort).findRealtimePopularPosts();
         
         // 게시글이 없으면 캐시 관련 작업 수행 안함
-        verify(postCacheCommandPort, never()).applyPopularFlag(any(), any());
-        verify(postCacheCommandPort, never()).cachePostsWithDetails(any(), any());
+        verify(redisPostCommandPort, never()).applyPopularFlag(any(), any());
+        verify(redisPostCommandPort, never()).cachePostsWithDetails(any(), any());
         verifyNoInteractions(eventPublisher);
     }
 
@@ -106,17 +106,17 @@ class PostCacheSyncServiceTest {
         PostDetail fullPost1 = createPostDetail(1L, "주간인기글1", "내용1");
         PostDetail fullPost2 = createPostDetail(2L, "주간인기글2", "내용2");
 
-        given(postCacheSyncPort.findWeeklyPopularPosts()).willReturn(posts);
-        given(postCacheSyncPort.findPostDetail(1L)).willReturn(fullPost1);
-        given(postCacheSyncPort.findPostDetail(2L)).willReturn(fullPost2);
+        given(redisPostSyncPort.findWeeklyPopularPosts()).willReturn(posts);
+        given(redisPostSyncPort.findPostDetail(1L)).willReturn(fullPost1);
+        given(redisPostSyncPort.findPostDetail(2L)).willReturn(fullPost2);
 
         // When
         postCacheSyncService.updateWeeklyPopularPosts();
 
         // Then
-        verify(postCacheCommandPort).resetPopularFlag(PostCacheFlag.WEEKLY);
-        verify(postCacheCommandPort).applyPopularFlag(List.of(1L, 2L), PostCacheFlag.WEEKLY);
-        verify(postCacheCommandPort).cachePostsWithDetails(PostCacheFlag.WEEKLY, List.of(fullPost1, fullPost2));
+        verify(redisPostCommandPort).resetPopularFlag(PostCacheFlag.WEEKLY);
+        verify(redisPostCommandPort).applyPopularFlag(List.of(1L, 2L), PostCacheFlag.WEEKLY);
+        verify(redisPostCommandPort).cachePostsWithDetails(PostCacheFlag.WEEKLY, List.of(fullPost1, fullPost2));
 
         // 이벤트 발행 검증
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -141,17 +141,17 @@ class PostCacheSyncServiceTest {
         PostDetail fullPost1 = createPostDetail(1L, "익명글", "내용1");
         PostDetail fullPost2 = createPostDetail(2L, "회원글", "내용2");
 
-        given(postCacheSyncPort.findWeeklyPopularPosts()).willReturn(posts);
-        given(postCacheSyncPort.findPostDetail(1L)).willReturn(fullPost1);
-        given(postCacheSyncPort.findPostDetail(2L)).willReturn(fullPost2);
+        given(redisPostSyncPort.findWeeklyPopularPosts()).willReturn(posts);
+        given(redisPostSyncPort.findPostDetail(1L)).willReturn(fullPost1);
+        given(redisPostSyncPort.findPostDetail(2L)).willReturn(fullPost2);
 
         // When
         postCacheSyncService.updateWeeklyPopularPosts();
 
         // Then
-        verify(postCacheCommandPort).resetPopularFlag(PostCacheFlag.WEEKLY);
-        verify(postCacheCommandPort).applyPopularFlag(List.of(1L, 2L), PostCacheFlag.WEEKLY);
-        verify(postCacheCommandPort).cachePostsWithDetails(eq(PostCacheFlag.WEEKLY), any());
+        verify(redisPostCommandPort).resetPopularFlag(PostCacheFlag.WEEKLY);
+        verify(redisPostCommandPort).applyPopularFlag(List.of(1L, 2L), PostCacheFlag.WEEKLY);
+        verify(redisPostCommandPort).cachePostsWithDetails(eq(PostCacheFlag.WEEKLY), any());
 
         // 익명 게시글은 이벤트 발행 안함, 회원 게시글만 이벤트 발행
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -171,16 +171,16 @@ class PostCacheSyncServiceTest {
         
         PostDetail fullPost = createPostDetail(1L, "전설의글", "전설적인 내용");
 
-        given(postCacheSyncPort.findLegendaryPosts()).willReturn(posts);
-        given(postCacheSyncPort.findPostDetail(1L)).willReturn(fullPost);
+        given(redisPostSyncPort.findLegendaryPosts()).willReturn(posts);
+        given(redisPostSyncPort.findPostDetail(1L)).willReturn(fullPost);
 
         // When
         postCacheSyncService.updateLegendaryPosts();
 
         // Then
-        verify(postCacheCommandPort).resetPopularFlag(PostCacheFlag.LEGEND);
-        verify(postCacheCommandPort).applyPopularFlag(List.of(1L), PostCacheFlag.LEGEND);
-        verify(postCacheCommandPort).cachePostsWithDetails(PostCacheFlag.LEGEND, List.of(fullPost));
+        verify(redisPostCommandPort).resetPopularFlag(PostCacheFlag.LEGEND);
+        verify(redisPostCommandPort).applyPopularFlag(List.of(1L), PostCacheFlag.LEGEND);
+        verify(redisPostCommandPort).cachePostsWithDetails(PostCacheFlag.LEGEND, List.of(fullPost));
 
         // 명예의 전당 이벤트 검증
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -200,18 +200,18 @@ class PostCacheSyncServiceTest {
         PostSearchResult legendPost = createPostSearchResult(1L, "전설의글", 1L);
         List<PostSearchResult> posts = List.of(legendPost);
 
-        given(postCacheSyncPort.findLegendaryPosts()).willReturn(posts);
-        given(postCacheSyncPort.findPostDetail(1L)).willReturn(null);
+        given(redisPostSyncPort.findLegendaryPosts()).willReturn(posts);
+        given(redisPostSyncPort.findPostDetail(1L)).willReturn(null);
 
         // When
         postCacheSyncService.updateLegendaryPosts();
 
         // Then
-        verify(postCacheCommandPort).resetPopularFlag(PostCacheFlag.LEGEND);
-        verify(postCacheCommandPort).applyPopularFlag(List.of(1L), PostCacheFlag.LEGEND);
+        verify(redisPostCommandPort).resetPopularFlag(PostCacheFlag.LEGEND);
+        verify(redisPostCommandPort).applyPopularFlag(List.of(1L), PostCacheFlag.LEGEND);
         
         // 상세 정보가 null이면 빈 리스트로 캐시 메서드 호출됨
-        verify(postCacheCommandPort).cachePostsWithDetails(PostCacheFlag.LEGEND, Collections.emptyList());
+        verify(redisPostCommandPort).cachePostsWithDetails(PostCacheFlag.LEGEND, Collections.emptyList());
         
         // 이벤트는 여전히 발행됨
         verify(eventPublisher).publishEvent(any(PostFeaturedEvent.class));
@@ -222,9 +222,9 @@ class PostCacheSyncServiceTest {
     @DisplayName("스케줄링 메서드들의 트랜잭션 동작 검증")
     void shouldVerifyTransactionalBehavior() {
         // Given
-        given(postCacheSyncPort.findRealtimePopularPosts()).willReturn(Collections.emptyList());
-        given(postCacheSyncPort.findWeeklyPopularPosts()).willReturn(Collections.emptyList());
-        given(postCacheSyncPort.findLegendaryPosts()).willReturn(Collections.emptyList());
+        given(redisPostSyncPort.findRealtimePopularPosts()).willReturn(Collections.emptyList());
+        given(redisPostSyncPort.findWeeklyPopularPosts()).willReturn(Collections.emptyList());
+        given(redisPostSyncPort.findLegendaryPosts()).willReturn(Collections.emptyList());
 
         // When - 모든 스케줄링 메서드 호출
         postCacheSyncService.updateRealtimePopularPosts();
@@ -232,10 +232,10 @@ class PostCacheSyncServiceTest {
         postCacheSyncService.updateLegendaryPosts();
 
         // Then - @Transactional 동작을 위한 port 호출 검증
-        verify(postCacheCommandPort, times(3)).resetPopularFlag(any());
-        verify(postCacheSyncPort).findRealtimePopularPosts();
-        verify(postCacheSyncPort).findWeeklyPopularPosts();
-        verify(postCacheSyncPort).findLegendaryPosts();
+        verify(redisPostCommandPort, times(3)).resetPopularFlag(any());
+        verify(redisPostSyncPort).findRealtimePopularPosts();
+        verify(redisPostSyncPort).findWeeklyPopularPosts();
+        verify(redisPostSyncPort).findLegendaryPosts();
     }
 
     @Test
@@ -245,17 +245,17 @@ class PostCacheSyncServiceTest {
         List<PostSearchResult> largePosts = createLargePostList(100);
         List<Long> postIds = largePosts.stream().map(PostSearchResult::getId).toList();
 
-        given(postCacheSyncPort.findWeeklyPopularPosts()).willReturn(largePosts);
+        given(redisPostSyncPort.findWeeklyPopularPosts()).willReturn(largePosts);
         // 모든 상세 정보는 null로 설정하여 상세 캐싱 건너뛰기
-        largePosts.forEach(post -> given(postCacheSyncPort.findPostDetail(post.getId())).willReturn(null));
+        largePosts.forEach(post -> given(redisPostSyncPort.findPostDetail(post.getId())).willReturn(null));
 
         // When
         postCacheSyncService.updateWeeklyPopularPosts();
 
         // Then
-        verify(postCacheCommandPort).resetPopularFlag(PostCacheFlag.WEEKLY);
-        verify(postCacheCommandPort).applyPopularFlag(postIds, PostCacheFlag.WEEKLY);
-        verify(postCacheCommandPort).cachePostsWithDetails(eq(PostCacheFlag.WEEKLY), any());
+        verify(redisPostCommandPort).resetPopularFlag(PostCacheFlag.WEEKLY);
+        verify(redisPostCommandPort).applyPopularFlag(postIds, PostCacheFlag.WEEKLY);
+        verify(redisPostCommandPort).cachePostsWithDetails(eq(PostCacheFlag.WEEKLY), any());
         
         // 100개 게시글 중 userId가 있는 것들만 이벤트 발행 (50개)
         verify(eventPublisher, times(50)).publishEvent(any(PostFeaturedEvent.class));

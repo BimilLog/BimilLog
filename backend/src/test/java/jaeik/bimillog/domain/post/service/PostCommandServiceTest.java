@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.post.service;
 
-import jaeik.bimillog.domain.post.application.port.out.PostCacheCommandPort;
+import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.PostCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.application.service.PostCommandService;
@@ -45,7 +45,7 @@ class PostCommandServiceTest {
     private GlobalUserQueryPort globalUserQueryPort;
 
     @Mock
-    private PostCacheCommandPort postCacheCommandPort;
+    private RedisPostCommandPort redisPostCommandPort;
 
     @Mock
     private User user;
@@ -98,8 +98,8 @@ class PostCommandServiceTest {
         verify(postQueryPort, times(1)).findById(postId);
         verify(post, times(1)).isAuthor(userId);
         verify(post, times(1)).updatePost("수정된 제목", "수정된 내용");
-        verify(postCacheCommandPort, times(1)).deleteCache(null, postId);
-        verifyNoMoreInteractions(postQueryPort, postCommandPort, postCacheCommandPort);
+        verify(redisPostCommandPort, times(1)).deleteCache(null, postId);
+        verifyNoMoreInteractions(postQueryPort, postCommandPort, redisPostCommandPort);
     }
 
     @Test
@@ -117,7 +117,7 @@ class PostCommandServiceTest {
                 .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.POST_NOT_FOUND);
 
         verify(postQueryPort, times(1)).findById(postId);
-        verify(postCacheCommandPort, never()).deleteCache(any(), any());
+        verify(redisPostCommandPort, never()).deleteCache(any(), any());
     }
 
     @Test
@@ -138,7 +138,7 @@ class PostCommandServiceTest {
         verify(postQueryPort, times(1)).findById(postId);
         verify(post, times(1)).isAuthor(userId);
         verify(post, never()).updatePost(anyString(), anyString());
-        verify(postCacheCommandPort, never()).deleteCache(any(), any());
+        verify(redisPostCommandPort, never()).deleteCache(any(), any());
     }
 
     @Test
@@ -160,8 +160,8 @@ class PostCommandServiceTest {
         verify(postQueryPort, times(1)).findById(postId);
         verify(post, times(1)).isAuthor(userId);
         verify(postCommandPort, times(1)).delete(post);
-        verify(postCacheCommandPort, times(1)).deleteCache(null, postId);
-        verifyNoMoreInteractions(postQueryPort, postCommandPort, postCacheCommandPort);
+        verify(redisPostCommandPort, times(1)).deleteCache(null, postId);
+        verifyNoMoreInteractions(postQueryPort, postCommandPort, redisPostCommandPort);
     }
 
     @Test
@@ -180,7 +180,7 @@ class PostCommandServiceTest {
 
         verify(postQueryPort, times(1)).findById(postId);
         verify(postCommandPort, never()).delete(any());
-        verify(postCacheCommandPort, never()).deleteCache(any(), any());
+        verify(redisPostCommandPort, never()).deleteCache(any(), any());
     }
 
     @Test
@@ -201,7 +201,7 @@ class PostCommandServiceTest {
         verify(postQueryPort, times(1)).findById(postId);
         verify(post, times(1)).isAuthor(userId);
         verify(postCommandPort, never()).delete(any());
-        verify(postCacheCommandPort, never()).deleteCache(any(), any());
+        verify(redisPostCommandPort, never()).deleteCache(any(), any());
     }
 
 
@@ -214,7 +214,7 @@ class PostCommandServiceTest {
 
         given(postQueryPort.findById(postId)).willReturn(post);
         given(post.isAuthor(userId)).willReturn(true);
-        doThrow(new RuntimeException("Cache delete failed")).when(postCacheCommandPort).deleteCache(null, postId);
+        doThrow(new RuntimeException("Cache delete failed")).when(redisPostCommandPort).deleteCache(null, postId);
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.updatePost(userId, postId, "title", "content"))
@@ -223,6 +223,6 @@ class PostCommandServiceTest {
 
         // 게시글 수정은 완료되지만 캐시 삭제에서 실패
         verify(post, times(1)).updatePost("title", "content");
-        verify(postCacheCommandPort, times(1)).deleteCache(null, postId);
+        verify(redisPostCommandPort, times(1)).deleteCache(null, postId);
     }
 }

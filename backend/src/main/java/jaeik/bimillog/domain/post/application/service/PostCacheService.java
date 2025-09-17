@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.post.application.service;
 
 import jaeik.bimillog.domain.post.application.port.in.PostCacheUseCase;
-import jaeik.bimillog.domain.post.application.port.out.PostCacheCommandPort;
-import jaeik.bimillog.domain.post.application.port.out.PostCacheSyncPort;
+import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
+import jaeik.bimillog.domain.post.application.port.out.RedisPostSyncPort;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import lombok.RequiredArgsConstructor;
@@ -34,8 +34,8 @@ import java.util.List;
 @Slf4j
 public class PostCacheService implements PostCacheUseCase {
 
-    private final PostCacheCommandPort postCacheCommandPort;
-    private final PostCacheSyncPort postCacheSyncPort;
+    private final RedisPostCommandPort redisPostCommandPort;
+    private final RedisPostSyncPort redisPostSyncPort;
 
 
     /**
@@ -76,10 +76,10 @@ public class PostCacheService implements PostCacheUseCase {
         log.info("공지사항 캐시 추가 시작: postId={}", postId);
 
         // 게시글 상세 정보를 DB에서 조회
-        PostDetail postDetail = postCacheSyncPort.findPostDetail(postId);
+        PostDetail postDetail = redisPostSyncPort.findPostDetail(postId);
         if (postDetail != null) {
             // 단건을 리스트로 감싸서 캐시에 추가
-            postCacheCommandPort.cachePostsWithDetails(PostCacheFlag.NOTICE, List.of(postDetail));
+            redisPostCommandPort.cachePostsWithDetails(PostCacheFlag.NOTICE, List.of(postDetail));
             log.info("공지사항 캐시 추가 완료: postId={}", postId);
         } else {
             log.warn("공지사항 캐시 추가 실패 - 게시글을 찾을 수 없음: postId={}", postId);
@@ -100,7 +100,7 @@ public class PostCacheService implements PostCacheUseCase {
         log.info("공지사항 캐시 제거 시작: postId={}", postId);
 
         // 공지 캐시에서만 삭제 (성능 최적화)
-        postCacheCommandPort.deleteCache(null, postId, PostCacheFlag.NOTICE);
+        redisPostCommandPort.deleteCache(null, postId, PostCacheFlag.NOTICE);
 
         log.info("공지사항 캐시 제거 완료: postId={}", postId);
     }
