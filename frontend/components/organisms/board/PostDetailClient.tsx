@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 import { Card } from "@/components";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
 import { Spinner as FlowbiteSpinner } from "flowbite-react";
 import { AuthHeader } from "@/components/organisms/common";
 import {
@@ -178,7 +176,7 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
   // 로딩 상태
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-brand-gradient flex items-center justify-center">
         <FlowbiteSpinner color="pink" size="xl" aria-label="Loading..." />
       </div>
     );
@@ -187,7 +185,7 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
   // 게시글이 없는 경우
   if (!post) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-50 to-indigo-100 flex items-center justify-center">
+      <div className="min-h-screen bg-brand-gradient flex items-center justify-center">
         <p>게시글을 찾을 수 없습니다.</p>
       </div>
     );
@@ -196,7 +194,7 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
   const commentCount = getTotalCommentCount(comments);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-100 via-purple-50 to-indigo-100">
+    <div className="min-h-screen bg-brand-gradient">
       {/* 읽기 진행률 바 */}
       {progress > 0 && (
         <div className="fixed top-0 left-0 right-0 z-[60] h-1 bg-gray-200">
@@ -232,13 +230,6 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
             ]}
           />
         </div>
-        {/* 뒤로가기 버튼 */}
-        <div className="mb-6">
-          <Link href="/board">
-            <ArrowLeft className="w-5 h-5 inline mr-2" />
-            목록으로 돌아가기
-          </Link>
-        </div>
 
         {/* 게시글 카드 */}
         <Card variant="elevated" className="mb-8">
@@ -255,11 +246,8 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
           />
           <PostActions
             post={post}
-            commentCount={commentCount}
             canModify={canModify()}
-            isAuthenticated={isAuthenticated}
             onDeletePost={postActions.handleDeleteClick}
-            onLike={postActions.handleLike}
           />
         </Card>
 

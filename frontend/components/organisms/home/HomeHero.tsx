@@ -2,7 +2,6 @@
 
 import { Button } from "flowbite-react";
 import { UserCheck } from "lucide-react";
-import Link from "next/link";
 import { KakaoShareButton } from "@/components";
 
 interface HomeHeroProps {

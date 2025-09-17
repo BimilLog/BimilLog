@@ -3,7 +3,8 @@
 import React from "react";
 import dynamic from "next/dynamic";
 import { Button, Input, Textarea, SafeHTML, Spinner, TimeBadge } from "@/components";
-import { ThumbsUp, Reply, Flag, MoreHorizontal, User } from "lucide-react";
+import { Button as FlowbiteButton } from "flowbite-react";
+import { ThumbsUp, Reply, MoreHorizontal, User, ExternalLink } from "lucide-react";
 import { Comment, userCommand } from "@/lib/api";
 import { useAuth } from "@/hooks";
 import {
@@ -15,6 +16,7 @@ import {
 import { useState } from "react";
 import Link from "next/link";
 import { useToast } from "@/hooks";
+import { Popover } from "flowbite-react";
 
 const ReportModal = dynamic(
   () => import("@/components/organisms/common/ReportModal").then(mod => ({ default: mod.ReportModal })),
@@ -180,16 +182,42 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
             {/* 헤더: 닉네임, 날짜, 액션 버튼들 */}
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2 min-w-0 flex-1">
-                <Link
-                  href={`/rolling-paper/${encodeURIComponent(
-                    comment.userName
-                  )}`}
-                  className="font-semibold text-sm sm:text-base hover:text-purple-600 hover:underline transition-colors inline-flex items-center space-x-1 truncate"
-                  title={`${comment.userName}님의 롤링페이퍼 보기`}
-                >
-                  <User className="w-3 h-3 flex-shrink-0" />
-                  <span className="truncate">{comment.userName}</span>
-                </Link>
+                {comment.userName && comment.userName !== "익명" ? (
+                  <Popover
+                    trigger="click"
+                    placement="bottom"
+                    content={
+                      <div className="p-3 w-56">
+                        <div className="flex flex-col space-y-2">
+                          <div className="flex items-center space-x-2">
+                            <User className="w-4 h-4" />
+                            <span className="font-medium">{comment.userName}</span>
+                          </div>
+                          <Link
+                            href={`/rolling-paper/${encodeURIComponent(
+                              comment.userName
+                            )}`}
+                          >
+                            <Button size="sm" className="w-full justify-start">
+                              <ExternalLink className="w-4 h-4 mr-2" />
+                              롤링페이퍼 보기
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
+                    }
+                  >
+                    <button className="font-semibold text-sm sm:text-base hover:text-purple-600 hover:underline transition-colors cursor-pointer inline-flex items-center space-x-1 truncate">
+                      <User className="w-3 h-3 flex-shrink-0" />
+                      <span className="truncate">{comment.userName}</span>
+                    </button>
+                  </Popover>
+                ) : (
+                  <span className="font-semibold text-sm sm:text-base inline-flex items-center space-x-1 truncate text-brand-secondary">
+                    <User className="w-3 h-3 flex-shrink-0" />
+                    <span className="truncate">{comment.userName || "익명"}</span>
+                  </span>
+                )}
                 {comment.popular && (
                   <span className="bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs px-2 py-1 rounded-full font-semibold flex-shrink-0">
                     인기
@@ -201,79 +229,64 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
               {/* 액션 버튼들: 모바일에서는 핵심 기능만 노출, 나머지는 드롭다운으로 처리 */}
               <div className="flex items-center gap-1">
                 {/* 추천 버튼: 로그인/비로그인 상관없이 항상 표시 */}
-                <Button
-                  size="sm"
-                  variant={comment.userLike ? "default" : "outline"}
+                <FlowbiteButton
+                  size="xs"
+                  className="bg-gradient-to-br from-green-400 to-blue-600 text-white hover:bg-gradient-to-bl"
                   onClick={() => onLikeComment(comment)}
-                  className={`text-xs px-2 py-1 h-7 ${
-                    comment.userLike
-                      ? "bg-blue-500 hover:bg-blue-600 text-white"
-                      : "hover:bg-blue-50"
-                  }`}
                 >
-                  <ThumbsUp
-                    className={`w-3 h-3 mr-1 ${
-                      comment.userLike ? "fill-current" : ""
-                    }`}
-                  />
-                  {comment.likeCount}
-                </Button>
+                  <ThumbsUp className="w-4 h-4 mr-2" />
+                  추천 {comment.likeCount}
+                </FlowbiteButton>
 
                 {/* 답글 버튼: 모바일에서도 항상 표시하여 접근성 향상 */}
-                <Button
-                  size="sm"
-                  variant="outline"
+                <FlowbiteButton
+                  size="xs"
+                  className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:bg-gradient-to-l"
                   onClick={() => onReplyTo(comment)}
-                  className="text-xs px-2 py-1 h-7"
                 >
-                  <Reply className="w-3 h-3 mr-1" />
-                  <span className="hidden sm:inline">답글</span>
-                </Button>
+                  <Reply className="w-4 h-4 mr-2" />
+                  답글
+                </FlowbiteButton>
 
-                {/* 추가 액션들: 신고, 수정, 삭제를 드롭다운으로 정리 */}
-                {(!isMyComment(comment) || canModifyComment(comment)) &&
-                  !comment.deleted && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-xs px-2 py-1 h-7 text-brand-secondary hover:text-brand-primary"
-                        >
-                          <MoreHorizontal className="w-3 h-3" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-24">
-                        {/* 다른 사람의 댓글인 경우 신고 버튼 표시 */}
-                        {!isMyComment(comment) && !comment.deleted && (
-                          <DropdownMenuItem
-                            onClick={() => setIsReportModalOpen(true)}
-                            className="text-red-600 hover:text-red-700 cursor-pointer"
-                          >
-                            <Flag className="w-3 h-3 mr-2" />
-                            신고
-                          </DropdownMenuItem>
-                        )}
-                        {/* 본인 댓글이거나 관리자인 경우 수정/삭제 버튼 표시 */}
-                        {canModifyComment(comment) && !comment.deleted && (
-                          <>
-                            <DropdownMenuItem
-                              onClick={() => onEditComment(comment)}
-                              className="cursor-pointer"
-                            >
-                              수정
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => onDeleteComment(comment)}
-                              className="text-red-600 hover:text-red-700 cursor-pointer"
-                            >
-                              삭제
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
+                {/* 신고 버튼: 다른 사람의 댓글인 경우만 표시 */}
+                {!isMyComment(comment) && !comment.deleted && (
+                  <FlowbiteButton
+                    size="xs"
+                    color="red"
+                    onClick={() => setIsReportModalOpen(true)}
+                  >
+                    신고
+                  </FlowbiteButton>
+                )}
+
+                {/* 수정/삭제 버튼을 위한 드롭다운 */}
+                {canModifyComment(comment) && !comment.deleted && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-xs px-2 py-1 h-7 text-brand-secondary hover:text-brand-primary"
+                      >
+                        <MoreHorizontal className="w-3 h-3" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-24">
+                      <DropdownMenuItem
+                        onClick={() => onEditComment(comment)}
+                        className="cursor-pointer"
+                      >
+                        수정
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => onDeleteComment(comment)}
+                        className="text-red-600 hover:text-red-700 cursor-pointer"
+                      >
+                        삭제
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </div>
             </div>
 
