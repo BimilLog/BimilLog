@@ -78,12 +78,12 @@ export const PostContentActions: React.FC<PostContentActionsProps> = ({
       <div className="flex items-center justify-center gap-4 mt-8 pt-6 border-t">
         <Button
           onClick={onLike}
-          color={post.isLiked ? "blue" : "light"}
+          color={post.liked ? "blue" : "light"}
           disabled={!isAuthenticated}
-          className="transition-colors duration-200"
+          className={`transition-colors duration-200 ${post.liked ? 'ring-0 border-0' : ''}`}
         >
           <ThumbsUp
-            className={`w-4 h-4 mr-2 ${post.isLiked ? "fill-current" : ""}`}
+            className={`w-4 h-4 mr-2 ${post.liked ? "fill-current" : ""}`}
           />
           추천 {post.likeCount}
         </Button>

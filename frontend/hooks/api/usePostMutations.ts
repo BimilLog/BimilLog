@@ -110,8 +110,8 @@ export const useLikePost = () => {
           ...old,
           data: {
             ...post,
-            isLiked: !post.isLiked,
-            likeCount: post.isLiked ? post.likeCount - 1 : post.likeCount + 1,
+            liked: !post.liked,
+            likeCount: post.liked ? post.likeCount - 1 : post.likeCount + 1,
           },
         };
       });

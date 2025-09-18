@@ -164,16 +164,13 @@ export class ApiClient {
 
         // API 응답 구조 검증
         if (isValidApiResponse<T>(rawData)) {
-          return {
-            ...rawData,
-            data: this.transformPostData(rawData.data) as T
-          }
+          return rawData
         }
 
         // 원시 데이터를 ApiResponse 구조로 래핑
         return {
           success: true,
-          data: this.transformPostData(rawData) as T,
+          data: rawData as T,
         }
       } catch (parseError) {
         // JSON 파싱 실패 시 cloned response로 텍스트 재시도

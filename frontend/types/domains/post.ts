@@ -19,13 +19,13 @@ export interface Post {
   postCacheFlag?: "NOTICE" | "REALTIME" | "WEEKLY" | "LEGEND"
   createdAt: string  // v2: Instant → ISO string
   updatedAt: string  // v2: Instant → ISO string
-  isLiked: boolean   // v2: userLike → isLiked (현재 사용자의 좋아요 여부)
-  isNotice: boolean  // v2: notice → isNotice (공지사항 여부)
+  liked: boolean     // v2: Jackson이 isLiked를 liked로 직렬화
+  notice: boolean    // v2: Jackson이 isNotice를 notice로 직렬화
   password?: number
 }
 
 // 간단한 게시글 타입 (목록용) - v2 백엔드 SimplePostResDTO 호환
-// Post와 차이: updatedAt, isLiked, password 필드가 없음 (목록에서 불필요한 정보)
+// Post와 차이: updatedAt, liked, password 필드가 없음 (목록에서 불필요한 정보)
 export interface SimplePost {
   id: number         // v2: postId → id
   userId: number
