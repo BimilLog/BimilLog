@@ -2,7 +2,8 @@ package jaeik.bimillog.domain.auth.application.service;
 
 import jaeik.bimillog.domain.admin.event.AdminWithdrawEvent;
 import jaeik.bimillog.domain.auth.application.port.in.UserBanUseCase;
-import jaeik.bimillog.domain.auth.application.port.out.UserBanPort;
+import jaeik.bimillog.domain.auth.application.port.out.JwtPort;
+import jaeik.bimillog.domain.auth.application.port.out.RedisJwtBlacklistPort;
 import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.global.application.port.out.GlobalTokenQueryPort;
@@ -32,7 +33,8 @@ UserBanService implements UserBanUseCase {
 
     private static final Duration DEFAULT_TTL = Duration.ofHours(1);
 
-    private final UserBanPort userBanPort;
+    private final JwtPort jwtPort;
+    private final RedisJwtBlacklistPort redisJwtBlacklistPort;
     private final GlobalTokenQueryPort globalTokenQueryPort;
 
     /**
@@ -49,8 +51,8 @@ UserBanService implements UserBanUseCase {
     @Override
     public boolean isBlacklisted(String token) {
         try {
-            String tokenHash = userBanPort.generateTokenHash(token);
-            boolean isBlacklisted = userBanPort.isBlacklisted(tokenHash);
+            String tokenHash = jwtPort.generateTokenHash(token);
+            boolean isBlacklisted = redisJwtBlacklistPort.isBlacklisted(tokenHash);
 
             if (isBlacklisted) {
                 log.debug("토큰이 블랙리스트에서 발견됨: hash={}", tokenHash.substring(0, 8) + "...");
@@ -87,7 +89,7 @@ UserBanService implements UserBanUseCase {
             List<String> tokenHashes = userTokens.stream()
                     .map(token -> {
                         try {
-                            return userBanPort.generateTokenHash(token.getAccessToken());
+                            return jwtPort.generateTokenHash(token.getAccessToken());
                         } catch (Exception e) {
                             log.warn("토큰 ID {}의 해시 생성 실패: {}", token.getId(), e.getMessage());
                             return null;
@@ -97,7 +99,7 @@ UserBanService implements UserBanUseCase {
                     .collect(Collectors.toList());
 
             if (!tokenHashes.isEmpty()) {
-                userBanPort.blacklistTokenHashes(tokenHashes, reason, DEFAULT_TTL);
+                redisJwtBlacklistPort.blacklistTokenHashes(tokenHashes, reason, DEFAULT_TTL);
                 log.info("사용자 {}의 토큰 {}개가 블랙리스트에 추가됨: 사유={}", userId, tokenHashes.size(), reason);
             } else {
                 log.warn("사용자 {}에 대해 블랙리스트에 추가할 유효한 토큰 해시가 없음", userId);

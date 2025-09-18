@@ -7,9 +7,8 @@ import jaeik.bimillog.domain.user.entity.User;
 import java.util.Optional;
 
 /**
- * <h2>소셜 사용자 관리 포트</h2>
- * <p>소셜 로그인 사용자의 정보 관리를 담당하는 포트입니다.</p>
- * <p>기존 사용자 조회, 사용자 프로필 업데이트 등 사용자 관리 로직</p>
+ * <h2>인증 TO 유저 포트</h2>
+ * <p>인증 도메인에서 유저 도메인에 접근하는 포트 </p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -29,5 +28,19 @@ public interface AuthToUserPort {
      * @since 2.0.0
      */
     Optional<User> findExistingUser(SocialProvider provider, String socialId);
+
+    /**
+     * <h3>소셜 제공자와 소셜 ID로 사용자 존재 여부 확인</h3>
+     * <p>특정 소셜 제공자와 소셜 ID에 해당하는 사용자가 데이터베이스에 차단된 상태로 존재하는지 확인합니다.</p>
+     * <p>소셜 계정 연결 해제 전에 해당 사용자가 실제로 차단된 사용자인지 검증하는데 사용됩니다.</p>
+     * <p>{@link SocialService}에서 소셜 계정 연결 해제 요청 처리 시 사용자 차단 상태 확인을 위해 호출됩니다.</p>
+     *
+     * @param provider 확인할 소셜 제공자 (KAKAO, GOOGLE 등)
+     * @param socialId 확인할 소셜 플랫폼에서의 사용자 고유 ID
+     * @return 해당 소셜 계정이 차단된 상태로 존재하면 true, 아니면 false
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    boolean existsByProviderAndSocialId(SocialProvider provider, String socialId);
 
 }

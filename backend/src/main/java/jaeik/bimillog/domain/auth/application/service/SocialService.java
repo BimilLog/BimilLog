@@ -3,7 +3,11 @@ package jaeik.bimillog.domain.auth.application.service;
 
 import jaeik.bimillog.domain.admin.event.AdminWithdrawEvent;
 import jaeik.bimillog.domain.auth.application.port.in.SocialUseCase;
-import jaeik.bimillog.domain.auth.application.port.out.*;
+import jaeik.bimillog.domain.auth.application.port.out.AuthToUserPort;
+import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
+import jaeik.bimillog.domain.auth.application.port.out.SaveUserPort;
+import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
+import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialAuthData;
 import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
@@ -42,7 +46,6 @@ public class SocialService implements SocialUseCase {
     private final AuthToUserPort authToUserPort;
     private final SaveUserPort saveUserPort;
     private final RedisUserDataPort redisUserDataPort;
-    private final UserBanPort userBanPort;
 
     /**
      * <h3>소셜 플랫폼 로그인 처리</h3>
@@ -71,7 +74,7 @@ public class SocialService implements SocialUseCase {
         SocialAuthData.SocialUserProfile userProfile = authResult.userProfile();
 
         // 2. 블랙리스트 사용자 확인
-        if (userBanPort.existsByProviderAndSocialId(provider, userProfile.socialId())) {
+        if (authToUserPort.existsByProviderAndSocialId(provider, userProfile.socialId())) {
             throw new AuthCustomException(AuthErrorCode.BLACKLIST_USER);
         }
 

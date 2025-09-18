@@ -3,6 +3,7 @@ package jaeik.bimillog.infrastructure.adapter.auth.out.auth;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jaeik.bimillog.domain.auth.application.port.out.JwtPort;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.domain.user.entity.UserDetail;
@@ -12,6 +13,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 
 /**
@@ -24,7 +27,7 @@ import java.util.Date;
  */
 @Component
 @RequiredArgsConstructor
-public class JwtHandler {
+public class JwtHandler implements JwtPort {
 
     @Value("${jwt.secret}")
     private String secretKey;
@@ -184,6 +187,37 @@ public class JwtHandler {
             return remainingTime <= thresholdMillis;
         } catch (Exception e) {
             return false;
+        }
+    }
+
+    /**
+     * <h3>JWT 토큰 해시값 생성</h3>
+     * <p>JWT 토큰을 SHA-256 알고리즘으로 해시하여 블랙리스트 키로 사용할 해시값을 생성합니다.</p>
+     * <p>토큰 블랙리스트 등록 전에 원본 JWT 토큰을 안전한 해시값으로 변환하기 위해 블랙리스트 등록 플로우에서 호출합니다.</p>
+     * <p>전체 토큰을 Redis에 저장하지 않고 해시값만 저장하여 보안성과 메모리 효율성을 향상시킵니다.</p>
+     *
+     * @param token 해시할 JWT 토큰 문자열
+     * @return SHA-256 해시값 (16진수 문자열)
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public String generateTokenHash(String token) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = digest.digest(token.getBytes());
+
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : hashBytes) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) {
+                    hexString.append('0');
+                }
+                hexString.append(hex);
+            }
+            return hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("SHA-256 algorithm not available", e);
         }
     }
 

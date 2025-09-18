@@ -1,5 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.auth.out.auth;
 
+import jaeik.bimillog.domain.auth.application.port.out.JwtPort;
 import jaeik.bimillog.domain.user.entity.UserDetail;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
@@ -20,7 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AuthCookieManager {
 
-    private final JwtHandler jwtHandler;
+    private final JwtPort jwtPort;
 
     public static final String ACCESS_TOKEN_COOKIE = "jwt_access_token";
     public static final String REFRESH_TOKEN_COOKIE = "jwt_refresh_token";
@@ -100,7 +101,7 @@ public class AuthCookieManager {
      * @since 2.0.0
      */
     public ResponseCookie generateJwtAccessCookie(UserDetail userDetail) {
-        String accessToken = jwtHandler.generateAccessToken(userDetail);
+        String accessToken = jwtPort.generateAccessToken(userDetail);
         return ResponseCookie.from(ACCESS_TOKEN_COOKIE, accessToken)
                 .path("/")
                 .maxAge(MAX_AGE)
@@ -120,7 +121,7 @@ public class AuthCookieManager {
      * @since 2.0.0
      */
     public ResponseCookie generateJwtRefreshCookie(UserDetail userDetail) {
-        String refreshToken = jwtHandler.generateRefreshToken(userDetail);
+        String refreshToken = jwtPort.generateRefreshToken(userDetail);
         return ResponseCookie.from(REFRESH_TOKEN_COOKIE, refreshToken)
                 .path("/")
                 .maxAge(MAX_AGE * 720L)

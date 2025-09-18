@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.auth.application.service.SocialService;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.infrastructure.adapter.user.out.jpa.BlackListRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +25,7 @@ import java.util.Optional;
 public class AuthToUserAdapter implements AuthToUserPort {
 
     private final UserQueryUseCase userQueryUseCase;
+    private final BlackListRepository blackListRepository;
 
     /**
      * <h3>기존 소셜 사용자 조회</h3>
@@ -41,6 +43,24 @@ public class AuthToUserAdapter implements AuthToUserPort {
     @Transactional(readOnly = true)
     public Optional<User> findExistingUser(SocialProvider provider, String socialId) {
         return userQueryUseCase.findByProviderAndSocialId(provider, socialId);
+    }
+
+
+    /**
+     * <h3>소셜 계정 영구 차단 여부 확인</h3>
+     * <p>소셜 로그인 시 해당 소셜 계정이 영구 차단된 사용자인지 JPA로 확인합니다.</p>
+     * <p>소셜 로그인 인증 단계에서 차단된 사용자의 로그인 시도를 방지하기 위해 소셜 로그인 검증 플로우에서 호출합니다.</p>
+     * <p>회원 탈퇴나 계정 정지로 인해 BlackList 테이블에 등록된 소셜 계정의 재가입 방지를 위해 사용됩니다.</p>
+     *
+     * @param provider 소셜 로그인 제공자 (KAKAO, NAVER 등)
+     * @param socialId 소셜 로그인 사용자 식별자
+     * @return 블랙리스트에 등록된 경우 true, 아니면 false
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public boolean existsByProviderAndSocialId(SocialProvider provider, String socialId) {
+        return blackListRepository.existsByProviderAndSocialId(provider, socialId);
     }
 
 }

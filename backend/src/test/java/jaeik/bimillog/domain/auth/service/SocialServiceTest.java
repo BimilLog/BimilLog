@@ -55,8 +55,6 @@ class SocialServiceTest {
     @Mock private AuthToUserPort authToUserPort;
     @Mock private SaveUserPort saveUserPort;
     @Mock private RedisUserDataPort redisUserDataPort;
-    @Mock private UserBanPort userBanPort;
-
     private SocialService socialService;
 
     private SocialAuthData.SocialUserProfile testUserProfile;
@@ -71,8 +69,7 @@ class SocialServiceTest {
             strategyRegistry,
             authToUserPort,
             saveUserPort,
-            redisUserDataPort,
-            userBanPort
+            redisUserDataPort
         );
     }
 
@@ -109,7 +106,7 @@ class SocialServiceTest {
             
             User mockUser = mock(User.class);
             given(authToUserPort.findExistingUser(SocialProvider.KAKAO, TEST_SOCIAL_ID)).willReturn(java.util.Optional.of(mockUser));
-            given(userBanPort.existsByProviderAndSocialId(SocialProvider.KAKAO, TEST_SOCIAL_ID)).willReturn(false);
+            given(authToUserPort.existsByProviderAndSocialId(SocialProvider.KAKAO, TEST_SOCIAL_ID)).willReturn(false);
             given(saveUserPort.handleExistingUserLogin(any(SocialAuthData.SocialUserProfile.class), any(Token.class), eq(TEST_FCM_TOKEN))).willReturn(cookies);
 
             // When
@@ -142,7 +139,7 @@ class SocialServiceTest {
             given(strategyRegistry.getStrategy(SocialProvider.KAKAO)).willReturn(kakaoStrategy);
             given(kakaoStrategy.authenticate(SocialProvider.KAKAO, TEST_AUTH_CODE)).willReturn(authResult);
             given(authToUserPort.findExistingUser(SocialProvider.KAKAO, TEST_SOCIAL_ID)).willReturn(java.util.Optional.empty());
-            given(userBanPort.existsByProviderAndSocialId(SocialProvider.KAKAO, TEST_SOCIAL_ID)).willReturn(false);
+            given(authToUserPort.existsByProviderAndSocialId(SocialProvider.KAKAO, TEST_SOCIAL_ID)).willReturn(false);
             given(redisUserDataPort.createTempCookie(anyString())).willReturn(tempCookie);
 
             // When
@@ -172,7 +169,7 @@ class SocialServiceTest {
                 new SocialAuthData.AuthenticationResult(testUserProfile, testToken);
             given(strategyRegistry.getStrategy(SocialProvider.KAKAO)).willReturn(kakaoStrategy);
             given(kakaoStrategy.authenticate(SocialProvider.KAKAO, TEST_AUTH_CODE)).willReturn(authResult);
-            given(userBanPort.existsByProviderAndSocialId(SocialProvider.KAKAO, TEST_SOCIAL_ID)).willReturn(true);
+            given(authToUserPort.existsByProviderAndSocialId(SocialProvider.KAKAO, TEST_SOCIAL_ID)).willReturn(true);
 
             // When & Then
             assertThatThrownBy(() -> socialService.processSocialLogin(SocialProvider.KAKAO, TEST_AUTH_CODE, TEST_FCM_TOKEN))
@@ -181,7 +178,7 @@ class SocialServiceTest {
 
             verify(strategyRegistry).getStrategy(SocialProvider.KAKAO);
             verify(kakaoStrategy).authenticate(SocialProvider.KAKAO, TEST_AUTH_CODE);
-            verify(userBanPort).existsByProviderAndSocialId(SocialProvider.KAKAO, TEST_SOCIAL_ID);
+            verify(authToUserPort).existsByProviderAndSocialId(SocialProvider.KAKAO, TEST_SOCIAL_ID);
         }
     }
 

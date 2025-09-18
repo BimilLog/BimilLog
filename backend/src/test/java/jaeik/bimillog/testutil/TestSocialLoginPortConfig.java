@@ -83,6 +83,11 @@ public class TestSocialLoginPortConfig {
                 return Optional.empty();
             }
 
+            @Override
+            public boolean existsByProviderAndSocialId(SocialProvider provider, String socialId) {
+                // 테스트용 더미 구현 - 항상 false 반환 (블랙리스트에 없음)
+                return false;
+            }
         };
     }
 
