@@ -9,6 +9,8 @@ import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
+import jaeik.bimillog.testutil.TestSettingFactory;
+import jaeik.bimillog.testutil.TestUserFactory;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,23 +51,17 @@ class UserCommandServiceTest {
     void shouldUpdateUserSettings_WhenUserExists() {
         // Given
         Long userId = 1L;
-        Setting existingSetting = Setting.builder()
-                .messageNotification(true)
-                .commentNotification(true)
-                .postFeaturedNotification(false)
+        Setting existingSetting = TestSettingFactory.createCustomSetting(
+                true, true, false);
+
+        User user = TestUserFactory.builder()
+                .withId(userId)
+                .withUserName("testUser")
+                .withSetting(existingSetting)
                 .build();
-        
-        User user = User.builder()
-                .id(userId)
-                .userName("testUser")
-                .setting(existingSetting)
-                .build();
-        
-        Setting newSetting = Setting.builder()
-                .messageNotification(false)
-                .commentNotification(false)
-                .postFeaturedNotification(true)
-                .build();
+
+        Setting newSetting = TestSettingFactory.createCustomSetting(
+                false, false, true);
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
 
@@ -86,11 +82,7 @@ class UserCommandServiceTest {
     void shouldThrowException_WhenUserNotFoundForSettingUpdate() {
         // Given
         Long userId = 999L;
-        Setting newSetting = Setting.builder()
-                .messageNotification(true)
-                .commentNotification(true)
-                .postFeaturedNotification(true)
-                .build();
+        Setting newSetting = TestSettingFactory.createDefaultSetting();
 
         given(userQueryPort.findById(userId)).willReturn(Optional.empty());
 
@@ -109,13 +101,11 @@ class UserCommandServiceTest {
         // Given
         Long userId = 1L;
         String newUserName = "newUserName";
-        
-        User user = User.builder()
-                .id(userId)
-                .userName("oldUserName")
-                .provider(SocialProvider.KAKAO)
-                .socialId("123456")
-                .role(UserRole.USER)
+
+        User user = TestUserFactory.builder()
+                .withId(userId)
+                .withUserName("oldUserName")
+                .withSocialId("123456")
                 .build();
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
@@ -136,10 +126,7 @@ class UserCommandServiceTest {
         // Given
         Long userId = 1L;
         String existingUserName = "existingUser";
-        User user = User.builder()
-                .id(userId)
-                .userName("oldUserName")
-                .build();
+        User user = TestUserFactory.createUserWithIdAndUserName(userId, "oldUserName");
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
 
@@ -178,11 +165,8 @@ class UserCommandServiceTest {
         // Given
         Long userId = 1L;
         String validUserName = "a".repeat(20); // 20자 길이 (제한 내)
-        
-        User user = User.builder()
-                .id(userId)
-                .userName("oldUserName")
-                .build();
+
+        User user = TestUserFactory.createUserWithIdAndUserName(userId, "oldUserName");
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
 
@@ -201,11 +185,8 @@ class UserCommandServiceTest {
         // Given
         Long userId = 1L;
         String validUserName = "user123_"; // 영문, 숫자, 언더스코어만 허용 가정
-        
-        User user = User.builder()
-                .id(userId)
-                .userName("oldUserName")
-                .build();
+
+        User user = TestUserFactory.createUserWithIdAndUserName(userId, "oldUserName");
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
 
@@ -223,23 +204,17 @@ class UserCommandServiceTest {
     void shouldUpdateUserSettings_WhenPartialSetting() {
         // Given
         Long userId = 1L;
-        Setting existingSetting = Setting.builder()
-                .messageNotification(false)
-                .commentNotification(true)
-                .postFeaturedNotification(false)
+        Setting existingSetting = TestSettingFactory.createCustomSetting(
+                false, true, false);
+
+        User user = TestUserFactory.builder()
+                .withId(userId)
+                .withSetting(existingSetting)
                 .build();
-        
-        User user = User.builder()
-                .id(userId)
-                .setting(existingSetting)
-                .build();
-        
-        // 부분적 설정만 포함된 Setting 
-        Setting partialSetting = Setting.builder()
-                .messageNotification(true)
-                .commentNotification(false)
-                .postFeaturedNotification(false)
-                .build();
+
+        // 부분적 설정만 포함된 Setting
+        Setting partialSetting = TestSettingFactory.createCustomSetting(
+                true, false, false);
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
 
@@ -257,13 +232,11 @@ class UserCommandServiceTest {
         // Given: Race Condition 시나리오
         Long userId = 1L;
         String racedUserName = "racedNickname";
-        
-        User user = User.builder()
-                .id(userId)
-                .userName("oldUserName")
-                .provider(SocialProvider.KAKAO)
-                .socialId("123456")
-                .role(UserRole.USER)
+
+        User user = TestUserFactory.builder()
+                .withId(userId)
+                .withUserName("oldUserName")
+                .withSocialId("123456")
                 .build();
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));

@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Configuration;
  * @version 2.0.0
  */
 @Configuration
-@EnableFeignClients(basePackages = "jaeik.bimillog.infrastructure.adapter.api")
+@EnableFeignClients(basePackages = "jaeik.bimillog.infrastructure.adapter.out.api")
 public class FeignConfig {
 
     /**
