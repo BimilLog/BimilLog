@@ -28,7 +28,7 @@ export const useMarkNotificationAsRead = () => {
           ...old,
           data: old.data.map((notification: any) =>
             notification.id === notificationId
-              ? { ...notification, isRead: true }
+              ? { ...notification, read: true }
               : notification
           ),
         };
@@ -117,7 +117,7 @@ export const useMarkAllNotificationsAsRead = () => {
           ...old,
           data: old.data.map((notification: any) => ({
             ...notification,
-            isRead: true,
+            read: true,
           })),
         };
       });

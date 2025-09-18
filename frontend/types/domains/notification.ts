@@ -13,5 +13,5 @@ export interface Notification {
   // ADMIN: 관리자가 보내는 공지사항 또는 경고 메시지
   notificationType: "PAPER" | "COMMENT" | "POST_FEATURED" | "INITIATE" | "ADMIN"  // v2: type → notificationType, updated enum values
   createdAt: string
-  isRead: boolean  // v2: read → isRead
+  read: boolean    // v2: Jackson이 isRead를 read로 직렬화
 }

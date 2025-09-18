@@ -96,7 +96,7 @@ export function NotificationBell() {
 
   // API 응답에서 알림 데이터 추출 및 읽지 않은 알림 개수 계산
   const notifications = notificationResponse?.success ? (notificationResponse.data || []) : [];
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   // 알림 처리 핸들러 함수들 (TanStack Query mutation 실행)
   const handleMarkAsRead = (notificationId: number) => {
@@ -140,9 +140,9 @@ export function NotificationBell() {
   };
 
   // 개별 알림 클릭 시 실행되는 핸들러 (읽음 처리 + 페이지 이동)
-  const handleNotificationClick = async (notification: { id: number; isRead: boolean; url?: string }) => {
+  const handleNotificationClick = async (notification: { id: number; read: boolean; url?: string }) => {
     // 읽지 않은 알림인 경우 자동으로 읽음 처리
-    if (!notification.isRead) {
+    if (!notification.read) {
       handleMarkAsRead(notification.id);
     }
 
@@ -266,7 +266,7 @@ export function NotificationBell() {
               <div
                 key={notification.id}
                 className={`p-4 hover:bg-gray-50 transition-colors cursor-pointer ${
-                  !notification.isRead
+                  !notification.read
                     ? "bg-blue-50/50 border-l-2 border-l-blue-500"
                     : ""
                 }`}
@@ -281,7 +281,7 @@ export function NotificationBell() {
                     {/* 알림 내용 (읽지 않은 알림은 굵게 표시) */}
                     <p
                       className={`text-sm ${
-                        !notification.isRead
+                        !notification.read
                           ? "font-medium text-brand-primary"
                           : "text-brand-muted"
                       }`}
@@ -294,7 +294,7 @@ export function NotificationBell() {
                       {/* 개별 알림 액션 버튼들 */}
                       <div className="flex items-center space-x-1">
                         {/* 읽음 처리 버튼 (읽지 않은 알림에만 표시) */}
-                        {!notification.isRead && (
+                        {!notification.read && (
                           <Button
                             variant="ghost"
                             size="sm"

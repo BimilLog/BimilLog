@@ -43,7 +43,7 @@ export class SSEManager {
             url: data.url || "",
             notificationType: (event.type || "ADMIN") as "PAPER" | "COMMENT" | "POST_FEATURED" | "INITIATE" | "ADMIN",
             createdAt: data.createdAt || new Date().toISOString(),
-            isRead: false
+            read: false
           }
           
           if (event.type === "INITIATE") {
