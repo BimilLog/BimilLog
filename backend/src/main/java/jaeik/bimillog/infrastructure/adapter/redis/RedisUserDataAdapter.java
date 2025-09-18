@@ -7,7 +7,7 @@ import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.infrastructure.adapter.auth.dto.TemporaryUserDataDTO;
-import jaeik.bimillog.infrastructure.auth.AuthCookieManager;
+import jaeik.bimillog.infrastructure.adapter.auth.out.auth.AuthCookieManager;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

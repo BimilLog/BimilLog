@@ -1,6 +1,6 @@
-package jaeik.bimillog.infrastructure.auth;
+package jaeik.bimillog.infrastructure.adapter.auth.out.auth;
 
-import jaeik.bimillog.global.entity.UserDetail;
+import jaeik.bimillog.domain.user.entity.UserDetail;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;

@@ -8,7 +8,7 @@ import jaeik.bimillog.global.annotation.Log;
 import jaeik.bimillog.global.annotation.Log.LogLevel;
 import jaeik.bimillog.infrastructure.adapter.post.dto.PostCreateDTO;
 import jaeik.bimillog.infrastructure.adapter.post.dto.PostUpdateDTO;
-import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
+import jaeik.bimillog.infrastructure.adapter.auth.out.auth.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

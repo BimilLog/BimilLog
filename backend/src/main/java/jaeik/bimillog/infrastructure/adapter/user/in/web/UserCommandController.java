@@ -7,7 +7,7 @@ import jaeik.bimillog.infrastructure.adapter.admin.dto.ReportDTO;
 import jaeik.bimillog.infrastructure.adapter.auth.dto.AuthResponseDTO;
 import jaeik.bimillog.infrastructure.adapter.user.dto.SettingDTO;
 import jaeik.bimillog.infrastructure.adapter.user.dto.UserNameDTO;
-import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
+import jaeik.bimillog.infrastructure.adapter.auth.out.auth.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;

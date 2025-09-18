@@ -1,7 +1,7 @@
-package jaeik.bimillog.infrastructure.auth;
+package jaeik.bimillog.infrastructure.adapter.auth.out.auth;
 
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.global.entity.UserDetail;
+import jaeik.bimillog.domain.user.entity.UserDetail;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;

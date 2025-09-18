@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
 import jaeik.bimillog.infrastructure.adapter.user.out.jpa.TokenRepository;
 import jaeik.bimillog.infrastructure.adapter.user.out.jpa.UserRepository;
 import jaeik.bimillog.infrastructure.adapter.user.out.user.DeleteUserAdapter;
-import jaeik.bimillog.infrastructure.auth.AuthCookieManager;
+import jaeik.bimillog.infrastructure.adapter.auth.out.auth.AuthCookieManager;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -9,7 +9,7 @@ import jaeik.bimillog.global.annotation.Log.LogLevel;
 import jaeik.bimillog.infrastructure.adapter.auth.dto.AuthResponseDTO;
 import jaeik.bimillog.infrastructure.adapter.auth.dto.SignUpRequestDTO;
 import jaeik.bimillog.infrastructure.adapter.auth.dto.SocialLoginRequestDTO;
-import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
+import jaeik.bimillog.infrastructure.adapter.auth.out.auth.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

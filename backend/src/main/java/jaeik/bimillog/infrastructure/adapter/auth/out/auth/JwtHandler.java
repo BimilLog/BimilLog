@@ -1,11 +1,11 @@
-package jaeik.bimillog.infrastructure.auth;
+package jaeik.bimillog.infrastructure.adapter.auth.out.auth;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.global.entity.UserDetail;
+import jaeik.bimillog.domain.user.entity.UserDetail;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;

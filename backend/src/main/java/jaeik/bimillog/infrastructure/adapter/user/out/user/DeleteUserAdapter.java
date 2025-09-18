@@ -7,7 +7,7 @@ import jaeik.bimillog.domain.user.entity.BlackList;
 import jaeik.bimillog.infrastructure.adapter.user.out.jpa.BlackListRepository;
 import jaeik.bimillog.infrastructure.adapter.user.out.jpa.TokenRepository;
 import jaeik.bimillog.infrastructure.adapter.user.out.jpa.UserRepository;
-import jaeik.bimillog.infrastructure.auth.AuthCookieManager;
+import jaeik.bimillog.infrastructure.adapter.auth.out.auth.AuthCookieManager;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;

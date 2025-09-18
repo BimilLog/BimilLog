@@ -10,7 +10,7 @@ import jaeik.bimillog.infrastructure.adapter.post.dto.FullPostDTO;
 import jaeik.bimillog.infrastructure.adapter.post.dto.PostSearchDTO;
 import jaeik.bimillog.infrastructure.adapter.post.dto.SimplePostDTO;
 import jaeik.bimillog.infrastructure.adapter.post.in.web.util.PostViewCookieUtil;
-import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
+import jaeik.bimillog.infrastructure.adapter.auth.out.auth.CustomUserDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;

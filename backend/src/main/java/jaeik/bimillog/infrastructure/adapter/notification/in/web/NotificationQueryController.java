@@ -3,7 +3,7 @@ package jaeik.bimillog.infrastructure.adapter.notification.in.web;
 import jaeik.bimillog.domain.notification.application.port.in.NotificationQueryUseCase;
 import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.infrastructure.adapter.notification.dto.NotificationDTO;
-import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
+import jaeik.bimillog.infrastructure.adapter.auth.out.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

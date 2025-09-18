@@ -12,7 +12,7 @@ import jaeik.bimillog.infrastructure.adapter.post.dto.SimplePostDTO;
 import jaeik.bimillog.infrastructure.adapter.post.in.web.PostResponseMapper;
 import jaeik.bimillog.infrastructure.adapter.user.dto.KakaoFriendsDTO;
 import jaeik.bimillog.infrastructure.adapter.user.dto.SettingDTO;
-import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
+import jaeik.bimillog.infrastructure.adapter.auth.out.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.notification.application.port.in.NotificationQueryU
 import jaeik.bimillog.domain.notification.application.port.out.NotificationQueryPort;
 import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.infrastructure.adapter.notification.in.web.NotificationQueryController;
-import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
+import jaeik.bimillog.infrastructure.adapter.auth.out.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

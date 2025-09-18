@@ -3,7 +3,7 @@ package jaeik.bimillog.infrastructure.adapter.comment.in.web;
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.bimillog.infrastructure.adapter.comment.dto.CommentLikeReqDTO;
 import jaeik.bimillog.infrastructure.adapter.comment.dto.CommentReqDTO;
-import jaeik.bimillog.infrastructure.auth.CustomUserDetails;
+import jaeik.bimillog.infrastructure.adapter.auth.out.auth.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
