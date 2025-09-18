@@ -49,15 +49,7 @@ class CommentToPostAdapterUnitTest {
     @BeforeEach
     void setUp() {
         // 테스트용 사용자 생성
-        Setting setting = Setting.createSetting();
-        testUser = User.builder()
-                .socialId("kakao123")
-                .provider(SocialProvider.KAKAO)
-                .userName("testUser")
-                .socialNickname("테스트유저")
-                .role(UserRole.USER)
-                .setting(setting)
-                .build();
+        testUser = TestUsers.USER1;
 
         // 테스트용 일반 게시글 생성
         testPost = Post.builder()

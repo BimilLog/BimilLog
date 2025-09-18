@@ -67,26 +67,10 @@ class NotificationQueryAdapterTest {
     @BeforeEach
     void setUp() {
         // Given: 테스트용 사용자들 설정 및 저장
-        Setting testSetting = TestSettings.copyWithId(TestSettings.DEFAULT, null);
-        testUser = User.builder()
-                .socialId(TestUsers.USER1.getSocialId())
-                .provider(TestUsers.USER1.getProvider())
-                .userName(TestUsers.USER1.getUserName())
-                .socialNickname(TestUsers.USER1.getSocialNickname())
-                .role(TestUsers.USER1.getRole())
-                .setting(testSetting)
-                .build();
+        testUser = TestUsers.copyWithId(TestUsers.USER1, null);
         testUser = testEntityManager.persistAndFlush(testUser);
 
-        Setting otherSetting = TestSettings.copyWithId(TestSettings.DEFAULT, null);
-        otherUser = User.builder()
-                .socialId(TestUsers.USER2.getSocialId())
-                .provider(TestUsers.USER2.getProvider())
-                .userName(TestUsers.USER2.getUserName())
-                .socialNickname(TestUsers.USER2.getSocialNickname())
-                .role(TestUsers.USER2.getRole())
-                .setting(otherSetting)
-                .build();
+        otherUser = TestUsers.copyWithId(TestUsers.USER2, null);
         otherUser = testEntityManager.persistAndFlush(otherUser);
 
         // 테스트용 사용자 ID 저장

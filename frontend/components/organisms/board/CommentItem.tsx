@@ -231,10 +231,10 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
                 {/* 추천 버튼: 로그인/비로그인 상관없이 항상 표시 */}
                 <FlowbiteButton
                   size="xs"
-                  className="bg-gradient-to-br from-green-400 to-blue-600 text-white hover:bg-gradient-to-bl"
+                  color={comment.userLike ? "blue" : "light"}
                   onClick={() => onLikeComment(comment)}
                 >
-                  <ThumbsUp className="w-4 h-4 mr-2" />
+                  <ThumbsUp className={`w-4 h-4 mr-2 ${comment.userLike ? "fill-current" : ""}`} />
                   추천 {comment.likeCount}
                 </FlowbiteButton>
 

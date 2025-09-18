@@ -29,7 +29,8 @@ export function usePostActions(
   setPasswordModalTitle: (title: string) => void,
   setDeleteMode: (mode: "post" | "comment" | null) => void,
   setModalPassword: (password: string) => void,
-  fetchPost: () => void
+  fetchPost: () => void,
+  setPost?: (post: Post) => void
 ) {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
@@ -86,12 +87,19 @@ export function usePostActions(
   );
 
   const handleLike = useCallback(async () => {
-    if (!postId || isLiking) return;
+    if (!postId || isLiking || !post) return;
 
     setIsLiking(true);
     try {
       const response = await postCommand.like(Number(postId));
       if (response.success) {
+        // 즉시 post 상태 업데이트 (낙관적 업데이트)
+        setPost && setPost({
+          ...post,
+          isLiked: !post.isLiked,
+          likeCount: post.isLiked ? post.likeCount - 1 : post.likeCount + 1
+        });
+        // 백그라운드에서 서버 데이터로 동기화
         fetchPost();
       } else {
         throw new Error(response.message || "좋아요 실패");
@@ -99,10 +107,12 @@ export function usePostActions(
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "좋아요 처리에 실패했습니다.";
       toast.error(errorMessage);
+      // 에러 시 서버 데이터로 되돌리기
+      fetchPost();
     } finally {
       setIsLiking(false);
     }
-  }, [postId, isLiking, fetchPost]);
+  }, [postId, isLiking, post, fetchPost, setPost]);
 
   return {
     handleEdit,

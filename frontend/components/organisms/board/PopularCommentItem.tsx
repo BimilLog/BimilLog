@@ -1,17 +1,14 @@
 "use client";
 
-import { Button, SafeHTML, TimeBadge } from "@/components";
-import { ThumbsUp, MessageSquare, Flag, MoreHorizontal } from "lucide-react";
+import { SafeHTML, TimeBadge, Button } from "@/components";
+import { ThumbsUp, MessageSquare, Flag, User, ExternalLink } from "lucide-react";
 import { Comment, userCommand } from "@/lib/api";
+import { Button as FlowbiteButton } from "flowbite-react";
 import { useAuth } from "@/hooks";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/molecules/dropdown-menu";
 import React from "react";
 import { useToast } from "@/hooks";
+import { Popover } from "flowbite-react";
+import Link from "next/link";
 
 interface PopularCommentItemProps {
   comment: Comment;
@@ -33,7 +30,7 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
     return user?.userId === comment.userId;
   };
 
-  const handleReport = async (comment: Comment) => {
+  const handleReport = async () => {
     if (!isAuthenticated || !user) {
       showWarning("로그인 필요", "로그인이 필요한 기능입니다.");
       return;
@@ -77,9 +74,42 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
       {/* 헤더: 닉네임, 날짜, 액션 버튼들 */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          <p className="font-semibold text-sm sm:text-base text-blue-800 truncate">
-            {comment.userName}
-          </p>
+          {comment.userName && comment.userName !== "익명" ? (
+            <Popover
+              trigger="click"
+              placement="bottom"
+              content={
+                <div className="p-3 w-56">
+                  <div className="flex flex-col space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <User className="w-4 h-4" />
+                      <span className="font-medium">{comment.userName}</span>
+                    </div>
+                    <Link
+                      href={`/rolling-paper/${encodeURIComponent(
+                        comment.userName
+                      )}`}
+                    >
+                      <Button size="sm" className="w-full justify-start">
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        롤링페이퍼 보기
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              }
+            >
+              <button className="font-semibold text-sm sm:text-base text-blue-800 hover:text-purple-600 hover:underline transition-colors cursor-pointer inline-flex items-center space-x-1 truncate">
+                <User className="w-3 h-3 flex-shrink-0" />
+                <span className="truncate">{comment.userName}</span>
+              </button>
+            </Popover>
+          ) : (
+            <span className="font-semibold text-sm sm:text-base inline-flex items-center space-x-1 truncate text-brand-secondary">
+              <User className="w-3 h-3 flex-shrink-0" />
+              <span className="truncate">{comment.userName || "익명"}</span>
+            </span>
+          )}
           <span className="bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs px-2 py-1 rounded-full font-semibold flex-shrink-0">
             인기
           </span>
@@ -89,57 +119,35 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
         {/* 액션 버튼들 */}
         <div className="flex items-center gap-1">
           {/* 추천 버튼 */}
-          <Button
-            size="sm"
-            variant={comment.userLike ? "default" : "outline"}
+          <FlowbiteButton
+            size="xs"
+            color={comment.userLike ? "blue" : "light"}
             onClick={() => onLikeComment(comment)}
-            className={`text-xs px-2 py-1 h-7 ${
-              comment.userLike
-                ? "bg-blue-500 hover:bg-blue-600 text-white"
-                : "hover:bg-blue-50 border-blue-300 text-blue-600"
-            }`}
           >
-            <ThumbsUp
-              className={`w-3 h-3 mr-1 ${
-                comment.userLike ? "fill-current" : ""
-              }`}
-            />
-            {comment.likeCount}
-          </Button>
+            <ThumbsUp className={`w-4 h-4 mr-2 ${comment.userLike ? "fill-current" : ""}`} />
+            추천 {comment.likeCount}
+          </FlowbiteButton>
 
           {/* 답글 버튼 */}
-          <Button
-            size="sm"
-            variant="outline"
+          <FlowbiteButton
+            size="xs"
+            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:bg-gradient-to-l"
             onClick={() => onReplyTo(comment)}
-            className="text-xs px-2 py-1 h-7 border-blue-300 text-blue-600 hover:bg-blue-50"
           >
-            <MessageSquare className="w-3 h-3 mr-1" />
-            <span className="hidden sm:inline">답글</span>
-          </Button>
+            <MessageSquare className="w-4 h-4 mr-2" />
+            답글
+          </FlowbiteButton>
 
           {/* 신고 버튼 (본인 댓글이 아닌 경우만) */}
           {!isMyComment(comment) && !comment.deleted && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="text-xs px-2 py-1 h-7 text-brand-secondary hover:text-brand-primary"
-                >
-                  <MoreHorizontal className="w-3 h-3" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-24">
-                <DropdownMenuItem
-                  onClick={() => handleReport(comment)}
-                  className="text-red-600 hover:text-red-700 cursor-pointer"
-                >
-                  <Flag className="w-3 h-3 mr-2" />
-                  신고
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <FlowbiteButton
+              size="xs"
+              color="red"
+              onClick={handleReport}
+            >
+              <Flag className="w-4 h-4 mr-2" />
+              신고
+            </FlowbiteButton>
           )}
         </div>
       </div>

@@ -59,7 +59,7 @@ class UserQueryServiceTest {
     void shouldFindUser_WhenValidProviderAndSocialId() {
         // Given
         SocialProvider provider = SocialProvider.KAKAO;
-        String socialId = "123456789";
+        String socialId = TestUsers.USER1.getSocialId(); // "kakao123456"
 
         User expectedUser = TestUsers.copyWithId(TestUsers.USER1, 1L);
 
@@ -165,7 +165,7 @@ class UserQueryServiceTest {
     @DisplayName("닉네임으로 사용자 조회 - 정상 케이스")
     void shouldFindUser_WhenValidUserName() {
         // Given
-        String userName = "testUser";
+        String userName = TestUsers.USER1.getUserName(); // "testUser1"
         User expectedUser = TestUsers.copyWithId(TestUsers.USER1, 1L);
 
         given(userQueryPort.findByUserName(userName)).willReturn(Optional.of(expectedUser));

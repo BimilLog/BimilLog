@@ -8,6 +8,7 @@ import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
 import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.testutil.TestUsers;
 import jaeik.bimillog.infrastructure.adapter.out.sse.EmitterRepository;
 import jaeik.bimillog.infrastructure.adapter.out.sse.SseAdapter;
 import org.junit.jupiter.api.BeforeEach;
@@ -65,10 +66,7 @@ class SseAdapterTest {
         tokenId = 100L;
         emitterId = "1_100_1234567890";
         mockEmitter = mock(SseEmitter.class);
-        mockUser = User.builder()
-                .id(userId)
-                .userName("testuser")
-                .build();
+        mockUser = TestUsers.copyWithId(TestUsers.USER1, userId);
     }
 
     @Test

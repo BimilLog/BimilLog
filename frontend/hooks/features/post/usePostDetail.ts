@@ -177,6 +177,7 @@ export function usePostDetail(id: string | null, initialPost?: Post) {
     canModify,
     isMyComment,
     canModifyComment,
+    setPost,
 
     // Modal actions
     setShowPasswordModal,

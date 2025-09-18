@@ -109,7 +109,7 @@ class WithdrawServiceTest {
         
         UserWithdrawnEvent capturedEvent = eventCaptor.getValue();
         assertThat(capturedEvent.userId()).isEqualTo(100L);
-        assertThat(capturedEvent.socialId()).isEqualTo("kakao123");
+        assertThat(capturedEvent.socialId()).isEqualTo(testUser.getSocialId());
         assertThat(capturedEvent.provider()).isEqualTo(SocialProvider.KAKAO);
 
         // 로그아웃 쿠키 생성 검증
@@ -189,7 +189,7 @@ class WithdrawServiceTest {
         
         UserWithdrawnEvent capturedEvent = eventCaptor.getValue();
         assertThat(capturedEvent.userId()).isEqualTo(targetUserId);
-        assertThat(capturedEvent.socialId()).isEqualTo("kakao456");
+        assertThat(capturedEvent.socialId()).isEqualTo(targetUser.getSocialId());
         assertThat(capturedEvent.provider()).isEqualTo(SocialProvider.KAKAO);
     }
 

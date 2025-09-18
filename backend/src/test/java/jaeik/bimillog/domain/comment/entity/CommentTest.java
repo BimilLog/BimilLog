@@ -5,6 +5,8 @@ import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
+import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestSettings;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -22,22 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class CommentTest {
 
     private User createTestUser(Long id) {
-        Setting setting = Setting.builder()
-                .messageNotification(true)
-                .commentNotification(true)
-                .postFeaturedNotification(true)
-                .build();
-                
-        return User.builder()
-                .id(id)
-                .socialId("test_" + id)
-                .socialNickname("테스트사용자_" + id)
-                .thumbnailImage("test-profile.jpg")
-                .userName("testuser_" + id)
-                .provider(SocialProvider.KAKAO)
-                .role(UserRole.USER)
-                .setting(setting)
-                .build();
+        return TestUsers.copyWithId(TestUsers.USER1, id);
     }
 
     private Post createTestPost(User user) {

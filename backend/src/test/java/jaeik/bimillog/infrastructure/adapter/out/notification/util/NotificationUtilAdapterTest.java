@@ -9,6 +9,8 @@ import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.out.notification.util.NotificationUtilAdapter;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
+import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestSettings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -63,38 +65,19 @@ class NotificationUtilAdapterTest {
     @BeforeEach
     void setUp() {
         // Given: 알림이 활성화된 사용자 설정
-        Setting enabledSetting = Setting.builder()
-                .messageNotification(true)
-                .commentNotification(true)
-                .postFeaturedNotification(true)
-                .build();
-
-        enabledUser = User.builder()
-                .socialId("12345")
-                .provider(SocialProvider.KAKAO)
-                .userName("활성화유저")
-                .role(UserRole.USER)
-                .setting(enabledSetting)
-                .build();
-
+        enabledUser = TestUsers.copyWithId(TestUsers.USER1, null);
         enabledUser = testEntityManager.persistAndFlush(enabledUser);
         enabledUserId = enabledUser.getId();
 
         // Given: 알림이 비활성화된 사용자 설정
-        Setting disabledSetting = Setting.builder()
-                .messageNotification(false)
-                .commentNotification(false)
-                .postFeaturedNotification(false)
-                .build();
-
         disabledUser = User.builder()
-                .socialId("67890")
-                .provider(SocialProvider.KAKAO)
-                .userName("비활성화유저")
-                .role(UserRole.USER)
-                .setting(disabledSetting)
+                .socialId(TestUsers.USER2.getSocialId())
+                .provider(TestUsers.USER2.getProvider())
+                .userName(TestUsers.USER2.getUserName())
+                .socialNickname(TestUsers.USER2.getSocialNickname())
+                .role(TestUsers.USER2.getRole())
+                .setting(TestSettings.copyWithId(TestSettings.ALL_DISABLED, null))
                 .build();
-
         disabledUser = testEntityManager.persistAndFlush(disabledUser);
         disabledUserId = disabledUser.getId();
     }

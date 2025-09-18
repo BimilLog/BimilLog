@@ -11,6 +11,8 @@ import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.global.application.port.out.GlobalTokenCommandPort;
 import jaeik.bimillog.domain.user.entity.UserDetail;
+import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestSettings;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -61,14 +63,16 @@ class SaveUserAdapterTest {
         String fcmToken = "fcm-token-12345";
         Long fcmTokenId = 100L;
 
-        User existingUser = User.builder()
-                .id(1L)
+        User existingUser = TestUsers.copyWithId(TestUsers.USER1, 1L);
+        existingUser = User.builder()
+                .id(existingUser.getId())
+                .socialId("123456789")
+                .provider(SocialProvider.KAKAO)
                 .userName("existingUser")
                 .socialNickname("기존닉네임")
                 .thumbnailImage("https://old-profile.jpg")
-                .provider(SocialProvider.KAKAO)
-                .socialId("123456789")
-                .setting(Setting.createSetting())
+                .role(existingUser.getRole())
+                .setting(existingUser.getSetting())
                 .build();
 
         Token existingToken = Token.createTemporaryToken("access-token", "refresh-token");
@@ -140,12 +144,16 @@ class SaveUserAdapterTest {
 
         Token tokenDTO = Token.createTemporaryToken("access-token", "refresh-token");
 
-        User existingUser = User.builder()
-                .id(1L)
-                .userName("existingUser")
-                .provider(SocialProvider.KAKAO)
+        User existingUser = TestUsers.copyWithId(TestUsers.USER1, 1L);
+        existingUser = User.builder()
+                .id(existingUser.getId())
                 .socialId("123456789")
-                .setting(Setting.createSetting())
+                .provider(SocialProvider.KAKAO)
+                .userName("existingUser")
+                .socialNickname(existingUser.getSocialNickname())
+                .thumbnailImage(existingUser.getThumbnailImage())
+                .role(existingUser.getRole())
+                .setting(existingUser.getSetting())
                 .build();
 
         Token savedToken = Token.createTemporaryToken("access-token", "refresh-token");
@@ -180,14 +188,16 @@ class SaveUserAdapterTest {
 
         Token tokenDTO = Token.createTemporaryToken("access-token", "refresh-token");
 
-        User newUser = User.builder()
-                .id(2L)
+        User newUser = TestUsers.copyWithId(TestUsers.USER2, 2L);
+        newUser = User.builder()
+                .id(newUser.getId())
                 .userName(userName)
                 .socialNickname(userProfile.nickname())
                 .thumbnailImage(userProfile.profileImageUrl())
                 .provider(userProfile.provider())
                 .socialId(userProfile.socialId())
-                .setting(Setting.createSetting())
+                .role(newUser.getRole())
+                .setting(newUser.getSetting())
                 .build();
 
         Token newToken = Token.createTemporaryToken("access-token", "refresh-token");
@@ -242,10 +252,16 @@ class SaveUserAdapterTest {
 
         Token tokenDTO = Token.createTemporaryToken("access-token", "refresh-token");
 
-        User newUser = User.builder()
-                .id(3L)
+        User newUser = TestUsers.copyWithId(TestUsers.USER3, 3L);
+        newUser = User.builder()
+                .id(newUser.getId())
                 .userName(userName)
-                .setting(Setting.createSetting())
+                .socialId(newUser.getSocialId())
+                .provider(newUser.getProvider())
+                .socialNickname(newUser.getSocialNickname())
+                .thumbnailImage(newUser.getThumbnailImage())
+                .role(newUser.getRole())
+                .setting(newUser.getSetting())
                 .build();
 
         Token newToken = Token.createTemporaryToken("access-token", "refresh-token");

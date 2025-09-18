@@ -9,6 +9,8 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.security.EncryptionUtil;
+import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestSettings;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -153,11 +155,7 @@ class AdminQueryAdapterIntegrationTest {
      * <h3>테스트용 사용자 생성 및 저장</h3>
      */
     private User createAndSaveUser(String userName, String socialId) {
-        Setting setting = Setting.builder()
-                .commentNotification(true)
-                .messageNotification(true)
-                .postFeaturedNotification(true)
-                .build();
+        Setting setting = TestSettings.copy(TestSettings.DEFAULT);
         entityManager.persist(setting);
 
         User user = User.builder()

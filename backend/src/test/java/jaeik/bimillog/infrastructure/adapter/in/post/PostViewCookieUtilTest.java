@@ -32,7 +32,7 @@ class PostViewCookieUtilTest {
         // 기본 쿠키 배열 설정
         cookies = new Cookie[]{
                 new Cookie("other_cookie", "other_value"),
-                new Cookie("post_views", "123,456,789")
+                new Cookie("post_views", "123_456_789")
         };
     }
 
@@ -65,7 +65,7 @@ class PostViewCookieUtilTest {
     @Test
     @DisplayName("조회 여부 확인 - 부분 문자열 매칭 방지")
     void shouldNotMatchPartialString_WhenCheckingViewHistory() {
-        // Given - postId 12가 "123,456,789"에서 잘못 매칭되지 않아야 함
+        // Given - postId 12가 "123_456_789"에서 잘못 매칭되지 않아야 함
         Long postId = 12L;
 
         // When
@@ -159,7 +159,7 @@ class PostViewCookieUtilTest {
         // Then
         assertThat(result.getName()).isEqualTo("post_views");
         assertThat(result.getValue()).contains("123", "456", "789", "999");
-        String[] viewIds = result.getValue().split(",");
+        String[] viewIds = result.getValue().split("_");
         assertThat(viewIds).hasSize(4);
     }
 
@@ -172,7 +172,7 @@ class PostViewCookieUtilTest {
         // 이미 100개의 ID가 있는 쿠키 생성
         StringBuilder existingViews = new StringBuilder();
         for (int i = 1; i <= 100; i++) {
-            if (i > 1) existingViews.append(",");
+            if (i > 1) existingViews.append("_");
             existingViews.append(i);
         }
         Cookie[] fullCookies = new Cookie[]{new Cookie("post_views", existingViews.toString())};
@@ -181,7 +181,7 @@ class PostViewCookieUtilTest {
         Cookie result = postViewCookieUtil.createViewCookie(fullCookies, postId);
 
         // Then
-        String[] viewIds = result.getValue().split(",");
+        String[] viewIds = result.getValue().split("_");
         assertThat(viewIds.length).isLessThanOrEqualTo(100);
         assertThat(result.getValue()).contains("999"); // 새로운 ID는 포함되어야 함
         
@@ -224,8 +224,8 @@ class PostViewCookieUtilTest {
     }
 
     @Test
-    @DisplayName("쿠키 생성 - 중복 ID 추가 시 중복 허용 (현재 구현)")
-    void shouldDuplicatePostId_WhenAddingExistingPost() {
+    @DisplayName("쿠키 생성 - 중복 ID 추가 시 중복 방지 (현재 구현)")
+    void shouldNotDuplicatePostId_WhenAddingExistingPost() {
         // Given
         Long postId = 123L; // 이미 존재하는 ID
 
@@ -233,17 +233,17 @@ class PostViewCookieUtilTest {
         Cookie result = postViewCookieUtil.createViewCookie(cookies, postId);
 
         // Then
-        String[] viewIds = result.getValue().split(",");
+        String[] viewIds = result.getValue().split("_");
         long count123 = java.util.Arrays.stream(viewIds).filter(id -> "123".equals(id)).count();
-        assertThat(count123).isEqualTo(2); // 현재 구현은 중복을 허용 (기존 1개 + 새로 추가 1개)
-        assertThat(viewIds).hasSize(4); // 기존 3개 + 중복 추가 1개
+        assertThat(count123).isEqualTo(1); // 현재 구현은 중복을 방지 (기존 1개만 유지)
+        assertThat(viewIds).hasSize(3); // 기존 3개 유지 (중복 추가 안됨)
     }
 
     @Test
     @DisplayName("조회 여부 확인 - 정확한 ID 매칭 테스트")
     void shouldMatchExactPostId_WhenCheckingHistory() {
         // Given - 다양한 길이의 ID가 섞여있는 상황
-        Cookie[] mixedCookies = new Cookie[]{new Cookie("post_views", "1,12,123,1234,12345")};
+        Cookie[] mixedCookies = new Cookie[]{new Cookie("post_views", "1_12_123_1234_12345")};
 
         // When & Then
         assertThat(postViewCookieUtil.hasViewed(mixedCookies, 1L)).isTrue();

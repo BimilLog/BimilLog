@@ -9,6 +9,8 @@ import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.domain.user.entity.UserDetail;
 import jaeik.bimillog.infrastructure.adapter.in.comment.dto.CommentReqDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
+import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestSettings;
 
 /**
  * <h2>댓글 테스트 데이터 빌더</h2>
@@ -39,13 +41,9 @@ public class CommentTestDataBuilder {
      */
     public static User createTestUser(String prefix) {
         String timestamp = String.valueOf(System.currentTimeMillis());
-        
-        Setting setting = Setting.builder()
-                .messageNotification(true)
-                .commentNotification(true)
-                .postFeaturedNotification(true)
-                .build();
-        
+
+        Setting setting = TestSettings.DEFAULT;
+
         return User.builder()
                 .socialId(prefix + "_" + timestamp)
                 .socialNickname("테스트사용자_" + prefix)

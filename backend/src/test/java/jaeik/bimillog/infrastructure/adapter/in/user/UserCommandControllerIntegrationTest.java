@@ -13,6 +13,8 @@ import jaeik.bimillog.infrastructure.adapter.in.user.dto.UserNameDTO;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
+import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestSettings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -323,12 +325,6 @@ class UserCommandControllerIntegrationTest {
      * 테스트용 User 엔티티 생성
      */
     private User createTestUser() {
-        Setting setting = Setting.builder()
-                .messageNotification(true)
-                .commentNotification(true)
-                .postFeaturedNotification(true)
-                .build();
-
         return User.builder()
                 .socialId("test-social-id-12345")
                 .socialNickname("통합테스트소셜닉네임")
@@ -336,7 +332,7 @@ class UserCommandControllerIntegrationTest {
                 .userName("통합테스트사용자")
                 .provider(SocialProvider.KAKAO)
                 .role(UserRole.USER)
-                .setting(setting)
+                .setting(TestSettings.DEFAULT)
                 .build();
     }
 
