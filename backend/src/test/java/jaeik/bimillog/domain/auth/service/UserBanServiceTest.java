@@ -61,18 +61,8 @@ class UserBanServiceTest {
     void setUp() {
         testToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.token";
         testTokenHash = "hash123abc";
-        
-        testUser = User.builder()
-                .id(100L)
-                .socialId(TestUsers.USER1.getSocialId())
-                .provider(TestUsers.USER1.getProvider())
-                .userName("testUser")
-                .socialNickname(TestUsers.USER1.getSocialNickname())
-                .thumbnailImage(TestUsers.USER1.getThumbnailImage())
-                .role(TestUsers.USER1.getRole())
-                .setting(TestUsers.USER1.getSetting())
-                .build();
-                
+
+        testUser = TestUsers.copyWithId(TestUsers.USER1, 100L);
         adminUser = TestUsers.ADMIN;
 
         testToken1 = Token.createTemporaryToken("access-token-1", "refresh-token-1");

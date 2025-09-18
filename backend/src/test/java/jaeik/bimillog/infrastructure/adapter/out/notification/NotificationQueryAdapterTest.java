@@ -8,6 +8,8 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
+import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestSettings;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -65,36 +67,26 @@ class NotificationQueryAdapterTest {
     @BeforeEach
     void setUp() {
         // Given: 테스트용 사용자들 설정 및 저장
-        Setting testSetting = Setting.builder()
-                .messageNotification(true)
-                .commentNotification(true)
-                .postFeaturedNotification(true)
-                .build();
-
+        Setting testSetting = TestSettings.copyWithId(TestSettings.DEFAULT, null);
         testUser = User.builder()
-                .socialId("12345")
-                .provider(SocialProvider.KAKAO)
-                .userName("테스트유저")
-                .role(UserRole.USER)
+                .socialId(TestUsers.USER1.getSocialId())
+                .provider(TestUsers.USER1.getProvider())
+                .userName(TestUsers.USER1.getUserName())
+                .socialNickname(TestUsers.USER1.getSocialNickname())
+                .role(TestUsers.USER1.getRole())
                 .setting(testSetting)
                 .build();
-
         testUser = testEntityManager.persistAndFlush(testUser);
 
-        Setting otherSetting = Setting.builder()
-                .messageNotification(true)
-                .commentNotification(true)
-                .postFeaturedNotification(true)
-                .build();
-
+        Setting otherSetting = TestSettings.copyWithId(TestSettings.DEFAULT, null);
         otherUser = User.builder()
-                .socialId("67890")
-                .provider(SocialProvider.KAKAO)
-                .userName("다른유저")
-                .role(UserRole.USER)
+                .socialId(TestUsers.USER2.getSocialId())
+                .provider(TestUsers.USER2.getProvider())
+                .userName(TestUsers.USER2.getUserName())
+                .socialNickname(TestUsers.USER2.getSocialNickname())
+                .role(TestUsers.USER2.getRole())
                 .setting(otherSetting)
                 .build();
-
         otherUser = testEntityManager.persistAndFlush(otherUser);
 
         // 테스트용 사용자 ID 저장

@@ -74,17 +74,7 @@ class WithdrawServiceTest {
 
     @BeforeEach
     void setUp() {
-        testUser = User.builder()
-                .id(100L)
-                .socialId("kakao123")
-                .provider(SocialProvider.KAKAO)
-                .userName("testUser")
-                .socialNickname(TestUsers.USER1.getSocialNickname())
-                .thumbnailImage(TestUsers.USER1.getThumbnailImage())
-                .role(TestUsers.USER1.getRole())
-                .setting(TestUsers.USER1.getSetting())
-                .build();
-                
+        testUser = TestUsers.copyWithId(TestUsers.USER1, 100L);
         adminUser = TestUsers.ADMIN;
 
         logoutCookies = List.of(
@@ -178,16 +168,7 @@ class WithdrawServiceTest {
     void shouldForceWithdraw_WhenValidUserId() {
         // Given
         Long targetUserId = 200L;
-        User targetUser = User.builder()
-                .id(targetUserId)
-                .socialId("kakao456")
-                .provider(SocialProvider.KAKAO)
-                .userName("targetUser")
-                .socialNickname(testUser.getSocialNickname())
-                .thumbnailImage(testUser.getThumbnailImage())
-                .role(testUser.getRole())
-                .setting(testUser.getSetting())
-                .build();
+        User targetUser = TestUsers.copyWithId(TestUsers.USER2, targetUserId);
 
         given(userQueryPort.findById(targetUserId)).willReturn(Optional.of(targetUser));
 
@@ -304,16 +285,7 @@ class WithdrawServiceTest {
     void shouldHandleException_WhenForceWithdrawDataProcessFails() {
         // Given
         Long targetUserId = 200L;
-        User targetUser = User.builder()
-                .id(targetUserId)
-                .socialId("kakao456")
-                .provider(SocialProvider.KAKAO)
-                .userName("targetUser")
-                .socialNickname(testUser.getSocialNickname())
-                .thumbnailImage(testUser.getThumbnailImage())
-                .role(testUser.getRole())
-                .setting(testUser.getSetting())
-                .build();
+        User targetUser = TestUsers.copyWithId(TestUsers.USER2, targetUserId);
 
         given(userQueryPort.findById(targetUserId)).willReturn(Optional.of(targetUser));
         doThrow(new RuntimeException("데이터 처리 실패"))
@@ -333,16 +305,7 @@ class WithdrawServiceTest {
     void shouldAddToBlacklist_WhenUserExists() {
         // Given
         Long userId = 1L;
-        User user = User.builder()
-                .id(userId)
-                .socialId("kakao123")
-                .provider(SocialProvider.KAKAO)
-                .userName("testUser")
-                .socialNickname(testUser.getSocialNickname())
-                .thumbnailImage(testUser.getThumbnailImage())
-                .role(UserRole.USER)
-                .setting(testUser.getSetting())
-                .build();
+        User user = TestUsers.copyWithId(TestUsers.USER1, userId);
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
 
@@ -390,16 +353,7 @@ class WithdrawServiceTest {
     void shouldIgnoreException_WhenDuplicateBlacklistEntry() {
         // Given
         Long userId = 1L;
-        User user = User.builder()
-                .id(userId)
-                .socialId("kakao123")
-                .provider(SocialProvider.KAKAO)
-                .userName("testUser")
-                .socialNickname(testUser.getSocialNickname())
-                .thumbnailImage(testUser.getThumbnailImage())
-                .role(UserRole.USER)
-                .setting(testUser.getSetting())
-                .build();
+        User user = TestUsers.copyWithId(TestUsers.USER1, userId);
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
         willThrow(new DataIntegrityViolationException("Duplicate entry")).given(deleteUserPort).saveBlackList(any(BlackList.class));
@@ -417,16 +371,7 @@ class WithdrawServiceTest {
     void shouldBanUser_WhenUserExists() {
         // Given
         Long userId = 1L;
-        User user = User.builder()
-                .id(userId)
-                .socialId("kakao123")
-                .provider(SocialProvider.KAKAO)
-                .userName("testUser")
-                .socialNickname(testUser.getSocialNickname())
-                .thumbnailImage(testUser.getThumbnailImage())
-                .role(UserRole.USER)
-                .setting(testUser.getSetting())
-                .build();
+        User user = TestUsers.copyWithId(TestUsers.USER1, userId);
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
         // JPA 변경 감지로 자동 저장되므로 userCommandPort 스터빙 불필요
@@ -476,16 +421,8 @@ class WithdrawServiceTest {
     void shouldBanUser_WhenUserAlreadyBanned() {
         // Given
         Long userId = 1L;
-        User user = User.builder()
-                .id(userId)
-                .socialId("kakao123")
-                .provider(SocialProvider.KAKAO)
-                .userName("testUser")
-                .socialNickname(testUser.getSocialNickname())
-                .thumbnailImage(testUser.getThumbnailImage())
-                .role(UserRole.BAN)
-                .setting(testUser.getSetting())
-                .build();
+        User user = TestUsers.copyWithId(TestUsers.USER1, userId);
+        user.updateRole(UserRole.BAN);
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
         // JPA 변경 감지로 자동 저장되므로 userCommandPort 스터빙 불필요

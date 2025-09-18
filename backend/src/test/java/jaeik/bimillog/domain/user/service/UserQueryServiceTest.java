@@ -61,16 +61,7 @@ class UserQueryServiceTest {
         SocialProvider provider = SocialProvider.KAKAO;
         String socialId = "123456789";
 
-        User expectedUser = User.builder()
-                .id(1L)
-                .socialId(socialId)
-                .provider(provider)
-                .userName("testUser")
-                .socialNickname(testUser.getSocialNickname())
-                .thumbnailImage(testUser.getThumbnailImage())
-                .role(UserRole.USER)
-                .setting(testUser.getSetting())
-                .build();
+        User expectedUser = TestUsers.copyWithId(TestUsers.USER1, 1L);
 
         given(userQueryPort.findByProviderAndSocialId(provider, socialId))
                 .willReturn(Optional.of(expectedUser));
@@ -109,16 +100,7 @@ class UserQueryServiceTest {
     void shouldFindUser_WhenValidId() {
         // Given
         Long userId = 1L;
-        User expectedUser = User.builder()
-                .id(userId)
-                .socialId("123456")
-                .provider(SocialProvider.KAKAO)
-                .userName("testUser")
-                .socialNickname(testUser.getSocialNickname())
-                .thumbnailImage(testUser.getThumbnailImage())
-                .role(UserRole.USER)
-                .setting(testUser.getSetting())
-                .build();
+        User expectedUser = TestUsers.copyWithId(TestUsers.USER1, userId);
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(expectedUser));
 
@@ -184,16 +166,7 @@ class UserQueryServiceTest {
     void shouldFindUser_WhenValidUserName() {
         // Given
         String userName = "testUser";
-        User expectedUser = User.builder()
-                .id(1L)
-                .socialId("123456")
-                .provider(SocialProvider.KAKAO)
-                .userName(userName)
-                .socialNickname(testUser.getSocialNickname())
-                .thumbnailImage(testUser.getThumbnailImage())
-                .role(UserRole.USER)
-                .setting(testUser.getSetting())
-                .build();
+        User expectedUser = TestUsers.copyWithId(TestUsers.USER1, 1L);
 
         given(userQueryPort.findByUserName(userName)).willReturn(Optional.of(expectedUser));
 
@@ -228,15 +201,7 @@ class UserQueryServiceTest {
     void shouldGetReferenceById_WhenValidUserId() {
         // Given
         Long userId = 1L;
-        User proxyUser = User.builder()
-                .id(userId)
-                .socialId(testUser.getSocialId())
-                .provider(testUser.getProvider())
-                .userName(testUser.getUserName())
-                .socialNickname(testUser.getSocialNickname())
-                .thumbnailImage(testUser.getThumbnailImage())
-                .role(testUser.getRole())
-                .build();
+        User proxyUser = TestUsers.copyWithId(TestUsers.USER1, userId);
 
         given(userQueryPort.getReferenceById(userId)).willReturn(proxyUser);
 

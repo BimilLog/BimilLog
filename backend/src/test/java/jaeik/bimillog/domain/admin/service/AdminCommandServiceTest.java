@@ -17,6 +17,7 @@ import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -80,12 +81,7 @@ class AdminCommandServiceTest {
         );
 
 
-        testUser = User.builder()
-                .id(200L)
-                .socialId("kakao123")
-                .provider(SocialProvider.KAKAO)
-                .userName("testUser")
-                .build();
+        testUser = TestUsers.copyWithId(TestUsers.USER1, 200L);
     }
 
     @Test
@@ -173,11 +169,7 @@ class AdminCommandServiceTest {
         Long userId = 100L;
         ReportType reportType = ReportType.COMMENT;
         
-        User mockUser = User.builder()
-                .id(userId)
-                .socialId("social123")
-                .provider(SocialProvider.KAKAO)
-                .build();
+        User mockUser = TestUsers.copyWithId(TestUsers.USER1, userId);
         Comment mockComment = Comment.builder()
                 .id(commentId)
                 .user(mockUser)
@@ -254,12 +246,7 @@ class AdminCommandServiceTest {
         Long targetId = 123L;
         String content = "부적절한 댓글입니다";
         
-        User reporter = User.builder()
-                .id(userId)
-                .userName("testuser")
-                .socialId("social123")
-                .provider(SocialProvider.KAKAO)
-                .build();
+        User reporter = TestUsers.copyWithId(TestUsers.USER1, userId);
 
         Report expectedReport = Report.createReport(reportType, targetId, content, reporter);
 
@@ -303,12 +290,7 @@ class AdminCommandServiceTest {
         Long targetId = null;
         String content = "새로운 기능을 건의합니다";
         
-        User reporter = User.builder()
-                .id(userId)
-                .userName("suggester")
-                .socialId("social456")
-                .provider(SocialProvider.KAKAO)
-                .build();
+        User reporter = TestUsers.copyWithId(TestUsers.USER1, userId);
 
         Report expectedReport = Report.createReport(reportType, targetId, content, reporter);
 

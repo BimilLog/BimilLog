@@ -11,6 +11,8 @@ import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentLikeRepository;
 import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentRepository;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
+import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestSettings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -70,41 +72,41 @@ class CommentLikeAdapterIntegrationTest {
         commentRepository.deleteAll();
         
         // 테스트용 사용자들 생성
-        Setting setting1 = Setting.createSetting();
+        Setting setting1 = TestSettings.copyWithId(TestSettings.DEFAULT, null);
         entityManager.persistAndFlush(setting1);
-        
+
         testUser1 = User.builder()
-                .socialId("kakao123")
-                .provider(SocialProvider.KAKAO)
-                .userName("testUser1")
-                .socialNickname("테스트유저1")
-                .role(UserRole.USER)
+                .socialId(TestUsers.USER1.getSocialId())
+                .provider(TestUsers.USER1.getProvider())
+                .userName(TestUsers.USER1.getUserName())
+                .socialNickname(TestUsers.USER1.getSocialNickname())
+                .role(TestUsers.USER1.getRole())
                 .setting(setting1)
                 .build();
         entityManager.persistAndFlush(testUser1);
-        
-        Setting setting2 = Setting.createSetting();
+
+        Setting setting2 = TestSettings.copyWithId(TestSettings.DEFAULT, null);
         entityManager.persistAndFlush(setting2);
-        
+
         testUser2 = User.builder()
-                .socialId("kakao456")
-                .provider(SocialProvider.KAKAO)
-                .userName("testUser2")
-                .socialNickname("테스트유저2")
-                .role(UserRole.USER)
+                .socialId(TestUsers.USER2.getSocialId())
+                .provider(TestUsers.USER2.getProvider())
+                .userName(TestUsers.USER2.getUserName())
+                .socialNickname(TestUsers.USER2.getSocialNickname())
+                .role(TestUsers.USER2.getRole())
                 .setting(setting2)
                 .build();
         entityManager.persistAndFlush(testUser2);
-        
-        Setting setting3 = Setting.createSetting();
+
+        Setting setting3 = TestSettings.copyWithId(TestSettings.DEFAULT, null);
         entityManager.persistAndFlush(setting3);
-        
+
         testUser3 = User.builder()
-                .socialId("kakao789")
-                .provider(SocialProvider.KAKAO)
-                .userName("testUser3")
-                .socialNickname("테스트유저3")
-                .role(UserRole.USER)
+                .socialId(TestUsers.USER3.getSocialId())
+                .provider(TestUsers.USER3.getProvider())
+                .userName(TestUsers.USER3.getUserName())
+                .socialNickname(TestUsers.USER3.getSocialNickname())
+                .role(TestUsers.USER3.getRole())
                 .setting(setting3)
                 .build();
         entityManager.persistAndFlush(testUser3);

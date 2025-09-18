@@ -147,6 +147,18 @@ export class ApiClient {
         }
       }
 
+      // Content-Length 체크로 빈 응답 먼저 처리
+      const contentLength = response.headers.get('content-length')
+      if (contentLength === '0') {
+        return {
+          success: true,
+          data: null as T,
+        }
+      }
+
+      // response body 중복 읽기 방지를 위해 clone
+      const clonedResponse = response.clone()
+
       try {
         const rawData = await response.json()
 
@@ -161,9 +173,9 @@ export class ApiClient {
           data: rawData as T,
         }
       } catch (parseError) {
-        // JSON 파싱 실패 시 텍스트로 재시도
+        // JSON 파싱 실패 시 cloned response로 텍스트 재시도
         try {
-          const text = await response.text()
+          const text = await clonedResponse.text()
           if (text === "OK" || text === "") {
             return {
               success: true,

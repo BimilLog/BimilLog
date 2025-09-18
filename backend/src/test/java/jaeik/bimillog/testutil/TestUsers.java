@@ -85,6 +85,22 @@ public class TestUsers {
     }
 
     /**
+     * 기존 사용자를 복사하며 특정 ID 설정
+     */
+    public static User copyWithId(User user, Long id) {
+        return User.builder()
+                .id(id)
+                .socialId(user.getSocialId())
+                .provider(user.getProvider())
+                .userName(user.getUserName())
+                .socialNickname(user.getSocialNickname())
+                .thumbnailImage(user.getThumbnailImage())
+                .role(user.getRole())
+                .setting(user.getSetting())
+                .build();
+    }
+
+    /**
      * 특정 사용자명을 가진 사용자 생성
      */
     public static User withUserName(String userName) {

@@ -9,6 +9,8 @@ import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.out.api.fcm.FcmAdapter;
 import jaeik.bimillog.infrastructure.adapter.out.api.fcm.FcmApiClient;
 import jaeik.bimillog.infrastructure.adapter.out.notification.jpa.FcmTokenRepository;
+import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestSettings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -52,20 +54,7 @@ class FcmAdapterTest {
     @BeforeEach
     void setUp() {
         // Given: 테스트용 사용자 설정
-        Setting testSetting = Setting.builder()
-                .messageNotification(true)
-                .commentNotification(true)
-                .postFeaturedNotification(true)
-                .build();
-
-        testUser = User.builder()
-                .id(1L)
-                .socialId("12345")
-                .provider(SocialProvider.KAKAO)
-                .userName("테스트유저")
-                .role(UserRole.USER)
-                .setting(testSetting)
-                .build();
+        testUser = TestUsers.copyWithId(TestUsers.USER1, 1L);
 
         testFcmToken = FcmToken.create(testUser, "test-fcm-token");
                 

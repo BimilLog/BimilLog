@@ -73,16 +73,7 @@ class UserFriendServiceTest {
         Integer offset = 0;
         Integer limit = 3;
         
-        User user = User.builder()
-                .id(userId)
-                .socialId(testUser.getSocialId())
-                .provider(testUser.getProvider())
-                .userName("testUser")
-                .socialNickname(testUser.getSocialNickname())
-                .thumbnailImage(testUser.getThumbnailImage())
-                .role(testUser.getRole())
-                .setting(testUser.getSetting())
-                .build();
+        User user = TestUsers.copyWithId(testUser, userId);
         
         Token token = Token.createTemporaryToken("access-token", "refresh-token");
                 
@@ -153,16 +144,7 @@ class UserFriendServiceTest {
         // Given
         Long userId = 1L;
         Long tokenId = 1L;
-        User user = User.builder()
-                .id(userId)
-                .socialId(testUser.getSocialId())
-                .provider(testUser.getProvider())
-                .userName("testUser")
-                .socialNickname(testUser.getSocialNickname())
-                .thumbnailImage(testUser.getThumbnailImage())
-                .role(testUser.getRole())
-                .setting(testUser.getSetting())
-                .build();
+        User user = TestUsers.copyWithId(testUser, userId);
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
         given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.empty());
@@ -182,16 +164,7 @@ class UserFriendServiceTest {
         // Given
         Long userId = 1L;
         Long tokenId = 1L;
-        User user = User.builder()
-                .id(userId)
-                .socialId(testUser.getSocialId())
-                .provider(testUser.getProvider())
-                .userName("testUser")
-                .socialNickname(testUser.getSocialNickname())
-                .thumbnailImage(testUser.getThumbnailImage())
-                .role(testUser.getRole())
-                .setting(testUser.getSetting())
-                .build();
+        User user = TestUsers.copyWithId(testUser, userId);
         
         Token token = Token.createTemporaryToken(null, "refresh-token");
                 
@@ -211,16 +184,7 @@ class UserFriendServiceTest {
         // Given
         Long userId = 1L;
         Long tokenId = 1L;
-        User user = User.builder()
-                .id(userId)
-                .socialId(testUser.getSocialId())
-                .provider(testUser.getProvider())
-                .userName("testUser")
-                .socialNickname(testUser.getSocialNickname())
-                .thumbnailImage(testUser.getThumbnailImage())
-                .role(testUser.getRole())
-                .setting(testUser.getSetting())
-                .build();
+        User user = TestUsers.copyWithId(testUser, userId);
         
         Token token = Token.createTemporaryToken("", "refresh-token");
                 
@@ -240,10 +204,7 @@ class UserFriendServiceTest {
         // Given
         Long userId = 1L;
         Long tokenId = 1L;
-        User user = User.builder()
-                .id(userId)
-                .userName("testUser")
-                .build();
+        User user = TestUsers.copyWithId(TestUsers.USER1, userId);
         
         Token token = Token.createTemporaryToken("access-token", "refresh-token");
                 
@@ -271,10 +232,7 @@ class UserFriendServiceTest {
         // Given
         Long userId = 1L;
         Long tokenId = 1L;
-        User user = User.builder()
-                .id(userId)
-                .userName("testUser")
-                .build();
+        User user = TestUsers.copyWithId(TestUsers.USER1, userId);
         
         Token token = Token.createTemporaryToken("access-token", "refresh-token");
                 
@@ -302,10 +260,7 @@ class UserFriendServiceTest {
         // Given
         Long userId = 1L;
         Long tokenId = 1L;
-        User user = User.builder()
-                .id(userId)
-                .userName("testUser")
-                .build();
+        User user = TestUsers.copyWithId(TestUsers.USER1, userId);
         
         Token token = Token.createTemporaryToken("access-token", "refresh-token");
                 
@@ -327,10 +282,7 @@ class UserFriendServiceTest {
         // Given
         Long userId = 1L;
         Long tokenId = 1L;
-        User user = User.builder()
-                .id(userId)
-                .userName("testUser")
-                .build();
+        User user = TestUsers.copyWithId(TestUsers.USER1, userId);
         
         Token token = Token.createTemporaryToken("access-token", "refresh-token");
                 
@@ -353,10 +305,7 @@ class UserFriendServiceTest {
         Long userId = 1L;
         Long tokenId = 1L;
         
-        User user = User.builder()
-                .id(userId)
-                .userName("testUser")
-                .build();
+        User user = TestUsers.copyWithId(TestUsers.USER1, userId);
         
         Token token = Token.createTemporaryToken("access-token", "refresh-token");
                 
@@ -389,10 +338,7 @@ class UserFriendServiceTest {
         Long userId = 1L;
         Long tokenId = 1L;
         
-        User user = User.builder()
-                .id(userId)
-                .userName("testUser")
-                .build();
+        User user = TestUsers.copyWithId(TestUsers.USER1, userId);
         
         Token token = Token.createTemporaryToken("access-token", "refresh-token");
                 

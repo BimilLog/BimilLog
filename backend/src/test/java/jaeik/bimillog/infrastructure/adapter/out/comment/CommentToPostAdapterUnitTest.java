@@ -8,6 +8,8 @@ import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
+import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestSettings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -169,14 +171,7 @@ class CommentToPostAdapterUnitTest {
     @DisplayName("정상 케이스 - 다양한 사용자가 작성한 게시글 조회")
     void shouldReturnPostFromDifferentUser_WhenDifferentUserPostExists() {
         // Given: 다른 사용자가 작성한 게시글
-        User anotherUser = User.builder()
-                .socialId("another123")
-                .provider(SocialProvider.KAKAO)
-                .userName("anotherUser")
-                .socialNickname("다른유저")
-                .role(UserRole.USER)
-                .setting(Setting.createSetting())
-                .build();
+        User anotherUser = TestUsers.USER2;
 
         Post anotherUserPost = Post.builder()
                 .user(anotherUser)
@@ -195,7 +190,7 @@ class CommentToPostAdapterUnitTest {
         // Then: 다른 사용자 게시글이 올바르게 반환되었는지 검증
         assertThat(result).isNotNull();
         assertThat(result.getUser()).isEqualTo(anotherUser);
-        assertThat(result.getUser().getSocialNickname()).isEqualTo("다른유저");
+        assertThat(result.getUser().getSocialNickname()).isEqualTo("테스트유저2");
         assertThat(result.getTitle()).isEqualTo("다른 사용자 게시글");
 
         // PostQueryUseCase의 메서드가 호출되었는지 검증

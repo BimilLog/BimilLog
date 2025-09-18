@@ -52,7 +52,7 @@ public class PostViewCookieUtil {
                 .map(Cookie::getValue)
                 .filter(Objects::nonNull)
                 .filter(value -> !value.trim().isEmpty())
-                .anyMatch(value -> Arrays.asList(value.split(",")).contains(postId.toString()));
+                .anyMatch(value -> Arrays.asList(value.split("_")).contains(postId.toString()));
     }
 
     /**
@@ -118,7 +118,7 @@ public class PostViewCookieUtil {
         
         // 기존 이력이 있으면 추가
         if (currentViews != null && !currentViews.trim().isEmpty()) {
-            viewList.addAll(Arrays.asList(currentViews.split(",")));
+            viewList.addAll(Arrays.asList(currentViews.split("_")));
         }
         
         // 중복 제거 후 새로운 ID 추가 (이미 있으면 추가하지 않음)
@@ -132,7 +132,7 @@ public class PostViewCookieUtil {
             viewList = viewList.subList(viewList.size() - MAX_VIEWS, viewList.size());
         }
         
-        return String.join(",", viewList);
+        return String.join("_", viewList);
     }
 
     /**

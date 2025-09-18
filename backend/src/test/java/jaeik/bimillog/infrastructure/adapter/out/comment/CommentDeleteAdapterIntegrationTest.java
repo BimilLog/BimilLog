@@ -9,6 +9,8 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentRepository;
+import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestSettings;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -106,16 +108,15 @@ class CommentDeleteAdapterIntegrationTest {
         commentRepository.deleteAll();
         
         // 테스트용 사용자 생성 (각 테스트마다 고유한 ID 사용)
-        String uniqueSocialId = "kakao_delete_" + System.nanoTime();
-        Setting setting = Setting.createSetting();
+        Setting setting = TestSettings.copyWithId(TestSettings.DEFAULT, null);
         entityManager.persistAndFlush(setting);
-        
+
         testUser = User.builder()
-                .socialId(uniqueSocialId) // 나노타임으로 고유성 보장
-                .provider(SocialProvider.KAKAO)
-                .userName("testUserDelete_" + System.nanoTime())
-                .socialNickname("삭제테스트유저")
-                .role(UserRole.USER)
+                .socialId(TestUsers.USER1.getSocialId())
+                .provider(TestUsers.USER1.getProvider())
+                .userName(TestUsers.USER1.getUserName())
+                .socialNickname(TestUsers.USER1.getSocialNickname())
+                .role(TestUsers.USER1.getRole())
                 .setting(setting)
                 .build();
         entityManager.persistAndFlush(testUser);

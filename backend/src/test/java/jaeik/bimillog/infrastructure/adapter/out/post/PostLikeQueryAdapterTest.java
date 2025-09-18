@@ -3,6 +3,7 @@ package jaeik.bimillog.infrastructure.adapter.out.post;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -39,11 +40,8 @@ class PostLikeQueryAdapterTest {
     void setUp() {
         postLikeQueryAdapter = new PostLikeQueryAdapter(jpaQueryFactory);
         
-        testUser = User.builder()
-                .id(1L)
-                .userName("testUser")
-                .build();
-        
+        testUser = TestUsers.copyWithId(TestUsers.USER1, 1L);
+
         testPost = Post.builder()
                 .id(1L)
                 .title("테스트 게시글")
