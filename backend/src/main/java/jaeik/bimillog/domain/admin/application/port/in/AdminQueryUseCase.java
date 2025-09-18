@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.admin.application.port.in;
 
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.infrastructure.adapter.admin.in.web.AdminQueryController;
+import jaeik.bimillog.infrastructure.adapter.in.admin.web.AdminQueryController;
 import org.springframework.data.domain.Page;
 
 /**

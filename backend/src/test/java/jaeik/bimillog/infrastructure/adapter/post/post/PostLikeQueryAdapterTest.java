@@ -3,7 +3,7 @@ package jaeik.bimillog.infrastructure.adapter.post.post;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.infrastructure.adapter.post.out.post.PostLikeQueryAdapter;
+import jaeik.bimillog.infrastructure.adapter.out.post.PostLikeQueryAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

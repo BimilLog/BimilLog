@@ -3,6 +3,7 @@ package jaeik.bimillog.infrastructure.adapter.auth.dto;
 import jaeik.bimillog.domain.auth.entity.SocialAuthData;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.Token;
+import jaeik.bimillog.infrastructure.adapter.out.redis.dto.TemporaryUserDataDTO;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;

@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.admin.application.port.in;
 
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.infrastructure.adapter.admin.in.web.AdminCommandController;
+import jaeik.bimillog.infrastructure.adapter.in.admin.web.AdminCommandController;
 
 /**
  * <h2>관리자 명령 유스케이스</h2>

@@ -5,14 +5,13 @@ import jaeik.bimillog.domain.admin.application.port.in.AdminQueryUseCase;
 import jaeik.bimillog.domain.admin.application.port.out.AdminQueryPort;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.infrastructure.adapter.admin.in.web.AdminQueryController;
+import jaeik.bimillog.infrastructure.adapter.in.admin.web.AdminQueryController;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <h2>관리자 조회 서비스</h2>

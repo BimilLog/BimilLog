@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.comment.application.port.in;
 
-import jaeik.bimillog.infrastructure.adapter.comment.in.listener.CommentRemoveListener;
-import jaeik.bimillog.infrastructure.adapter.comment.in.web.CommentCommandController;
+import jaeik.bimillog.infrastructure.adapter.in.comment.listener.CommentRemoveListener;
+import jaeik.bimillog.infrastructure.adapter.in.comment.web.CommentCommandController;
 
 /**
  * <h2>댓글 명령 유스케이스</h2>

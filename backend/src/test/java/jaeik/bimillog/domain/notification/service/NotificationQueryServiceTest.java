@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.notification.application.port.out.NotificationQuery
 import jaeik.bimillog.domain.notification.application.service.NotificationQueryService;
 import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.infrastructure.adapter.auth.out.auth.CustomUserDetails;
+import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

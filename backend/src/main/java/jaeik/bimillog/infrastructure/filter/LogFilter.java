@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.filter;
 
-import jaeik.bimillog.infrastructure.adapter.auth.out.auth.CustomUserDetails;
+import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

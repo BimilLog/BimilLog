@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.post.application.port.in.PostAdminUseCase;
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
-import jaeik.bimillog.infrastructure.adapter.post.in.web.PostAdminController;
+import jaeik.bimillog.infrastructure.adapter.in.post.web.PostAdminController;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

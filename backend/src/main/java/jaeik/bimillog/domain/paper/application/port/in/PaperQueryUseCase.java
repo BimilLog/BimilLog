@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.paper.application.port.in;
 
 import jaeik.bimillog.domain.paper.entity.MessageDetail;
 import jaeik.bimillog.domain.paper.entity.VisitMessageDetail;
-import jaeik.bimillog.infrastructure.adapter.paper.in.web.PaperQueryController;
+import jaeik.bimillog.infrastructure.adapter.in.paper.web.PaperQueryController;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 
 import java.util.List;

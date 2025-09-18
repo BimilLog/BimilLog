@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.auth.application.port.in;
 
-import jaeik.bimillog.infrastructure.adapter.auth.in.listener.JwtBlacklistListener;
+import jaeik.bimillog.infrastructure.adapter.in.auth.listener.JwtBlacklistListener;
 import jaeik.bimillog.infrastructure.filter.JwtFilter;
 
 /**

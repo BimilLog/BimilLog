@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.post.comment;
 
 import jaeik.bimillog.domain.comment.application.port.in.CommentQueryUseCase;
-import jaeik.bimillog.infrastructure.adapter.post.out.comment.PostToCommentAdapter;
+import jaeik.bimillog.infrastructure.adapter.out.post.PostToCommentAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

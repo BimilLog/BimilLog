@@ -9,7 +9,7 @@ import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.global.application.port.out.GlobalUserQueryPort;
-import jaeik.bimillog.infrastructure.adapter.post.in.web.PostCommandController;
+import jaeik.bimillog.infrastructure.adapter.in.post.web.PostCommandController;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

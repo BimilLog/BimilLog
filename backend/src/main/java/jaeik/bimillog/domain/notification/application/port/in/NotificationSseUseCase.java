@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
-import jaeik.bimillog.infrastructure.adapter.notification.in.web.NotificationSseController;
+import jaeik.bimillog.infrastructure.adapter.in.notification.web.NotificationSseController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**

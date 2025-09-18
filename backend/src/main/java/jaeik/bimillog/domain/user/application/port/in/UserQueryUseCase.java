@@ -7,9 +7,9 @@ import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.infrastructure.adapter.auth.out.auth.SaveUserAdapter;
-import jaeik.bimillog.infrastructure.adapter.user.in.web.UserQueryController;
-import jaeik.bimillog.infrastructure.adapter.api.social.SocialAdapter;
+import jaeik.bimillog.infrastructure.adapter.out.auth.SaveUserAdapter;
+import jaeik.bimillog.infrastructure.adapter.in.user.web.UserQueryController;
+import jaeik.bimillog.infrastructure.adapter.out.api.social.SocialAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 
 import java.util.Optional;

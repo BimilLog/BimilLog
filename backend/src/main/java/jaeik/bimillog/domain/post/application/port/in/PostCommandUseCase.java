@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.post.application.port.in;
 
-import jaeik.bimillog.infrastructure.adapter.post.in.web.PostCommandController;
+import jaeik.bimillog.infrastructure.adapter.in.post.web.PostCommandController;
 
 
 /**

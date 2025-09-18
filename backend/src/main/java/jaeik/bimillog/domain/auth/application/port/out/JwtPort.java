@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.auth.application.port.out;
 
 import jaeik.bimillog.domain.auth.application.service.UserBanService;
 import jaeik.bimillog.domain.user.entity.UserDetail;
-import jaeik.bimillog.infrastructure.adapter.auth.out.auth.AuthCookieManager;
+import jaeik.bimillog.infrastructure.adapter.out.auth.AuthCookieManager;
 import jaeik.bimillog.infrastructure.filter.JwtFilter;
 
 /**

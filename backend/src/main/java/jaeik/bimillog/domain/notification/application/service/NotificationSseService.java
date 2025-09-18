@@ -5,9 +5,9 @@ import jaeik.bimillog.domain.notification.application.port.out.NotificationUrlPo
 import jaeik.bimillog.domain.notification.application.port.out.SsePort;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.SseMessage;
-import jaeik.bimillog.infrastructure.adapter.notification.in.listener.NotificationGenerateListener;
-import jaeik.bimillog.infrastructure.adapter.notification.in.listener.SseEmitterCleanupListener;
-import jaeik.bimillog.infrastructure.adapter.notification.in.web.NotificationSseController;
+import jaeik.bimillog.infrastructure.adapter.in.notification.listener.NotificationGenerateListener;
+import jaeik.bimillog.infrastructure.adapter.in.notification.listener.SseEmitterCleanupListener;
+import jaeik.bimillog.infrastructure.adapter.in.notification.web.NotificationSseController;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;

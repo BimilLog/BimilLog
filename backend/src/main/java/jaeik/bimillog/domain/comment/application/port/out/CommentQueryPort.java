@@ -6,7 +6,7 @@ import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentInfo;
 import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
 import jaeik.bimillog.domain.post.application.service.PostQueryService;
-import jaeik.bimillog.infrastructure.adapter.user.out.external.UserActivityAdapter;
+import jaeik.bimillog.infrastructure.adapter.out.user.UserToPostAndCommentAdapter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -80,7 +80,7 @@ public interface CommentQueryPort {
     /**
      * <h3>사용자 작성 댓글 이력 조회</h3>
      * <p>특정 사용자가 작성한 모든 댓글을 최신순으로 정렬하여 페이지네이션으로 조회합니다.</p>
-     * <p>{@link UserActivityAdapter}에서 사용자 활동 내역 조회 시 호출됩니다.</p>
+     * <p>{@link UserToPostAndCommentAdapter}에서 사용자 활동 내역 조회 시 호출됩니다.</p>
      *
      * @param userId   사용자 ID
      * @param pageable 페이지 정보
@@ -93,7 +93,7 @@ public interface CommentQueryPort {
     /**
      * <h3>사용자 추천 댓글 이력 조회</h3>
      * <p>특정 사용자가 추천한 모든 댓글을 최신 추천순으로 정렬하여 페이지네이션으로 조회합니다.</p>
-     * <p>{@link UserActivityAdapter}에서 사용자 추천 활동 내역 조회 시 호출됩니다.</p>
+     * <p>{@link UserToPostAndCommentAdapter}에서 사용자 추천 활동 내역 조회 시 호출됩니다.</p>
      *
      * @param userId   사용자 ID
      * @param pageable 페이지 정보

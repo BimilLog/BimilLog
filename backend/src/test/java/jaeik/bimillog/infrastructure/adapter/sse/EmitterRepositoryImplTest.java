@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.sse;
 
-import jaeik.bimillog.infrastructure.adapter.sse.EmitterRepositoryImpl;
+import jaeik.bimillog.infrastructure.adapter.out.sse.EmitterRepositoryImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
