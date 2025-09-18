@@ -26,7 +26,6 @@ public interface UserCustomRepository {
      */
     Optional<User> findByIdWithSetting(Long id);
 
-
     /**
      * <h3>주어진 순서대로 사용자 이름 조회</h3>
      * <p>주어진 ID 목록에 해당하는 사용자 이름들을 요청된 순서대로 조회합니다.</p>
