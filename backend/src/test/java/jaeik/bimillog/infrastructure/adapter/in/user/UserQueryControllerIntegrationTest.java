@@ -8,6 +8,8 @@ import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
+import jaeik.bimillog.testutil.TestUserFactory;
+import jaeik.bimillog.testutil.TestSettingFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -315,20 +317,14 @@ class UserQueryControllerIntegrationTest {
      * 테스트용 User 엔티티 생성
      */
     private User createTestUser() {
-        Setting setting = Setting.builder()
-                .messageNotification(true)
-                .commentNotification(true)
-                .postFeaturedNotification(true)
-                .build();
-
-        return User.builder()
-                .socialId("test-social-id-12345")
-                .socialNickname("통합테스트소셜닉네임")
-                .thumbnailImage("http://example.com/integration-test.jpg")
-                .userName("통합테스트사용자")
-                .provider(SocialProvider.KAKAO)
-                .role(UserRole.USER)
-                .setting(setting)
+        return TestUserFactory.builder()
+                .withSocialId("test-social-id-12345")
+                .withSocialNickname("통합테스트소셜닉네임")
+                .withThumbnailImage("http://example.com/integration-test.jpg")
+                .withUserName("통합테스트사용자")
+                .withProvider(SocialProvider.KAKAO)
+                .withRole(UserRole.USER)
+                .withSetting(TestSettingFactory.createDefaultSetting())
                 .build();
     }
 

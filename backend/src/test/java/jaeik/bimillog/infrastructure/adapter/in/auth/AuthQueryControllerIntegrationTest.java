@@ -10,6 +10,8 @@ import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
+import jaeik.bimillog.testutil.TestUserFactory;
+import jaeik.bimillog.testutil.TestSettingFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -151,20 +153,14 @@ class AuthQueryControllerIntegrationTest {
      * 테스트용 User 엔티티 생성 (모든 옵션 지정)
      */
     private User createTestUserWithProvider(String userName, UserRole role, SocialProvider provider) {
-        Setting setting = Setting.builder()
-                .messageNotification(true)
-                .commentNotification(true)
-                .postFeaturedNotification(true)
-                .build();
-
-        return User.builder()
-                .socialId("integration-test-" + userName + "-" + System.currentTimeMillis())
-                .socialNickname(userName + "_소셜닉네임_" + provider.name())
-                .thumbnailImage("http://example.com/" + userName.toLowerCase() + ".jpg")
-                .userName(userName)
-                .provider(provider)
-                .role(role)
-                .setting(setting)
+        return TestUserFactory.builder()
+                .withSocialId("integration-test-" + userName + "-" + System.currentTimeMillis())
+                .withSocialNickname(userName + "_소셜닉네임_" + provider.name())
+                .withThumbnailImage("http://example.com/" + userName.toLowerCase() + ".jpg")
+                .withUserName(userName)
+                .withProvider(provider)
+                .withRole(role)
+                .withSetting(TestSettingFactory.createDefaultSetting())
                 .build();
     }
 
@@ -172,20 +168,14 @@ class AuthQueryControllerIntegrationTest {
      * 테스트용 User 엔티티 생성 (프로필 이미지 없음)
      */
     private User createTestUserWithoutImage(String userName) {
-        Setting setting = Setting.builder()
-                .messageNotification(true)
-                .commentNotification(true)
-                .postFeaturedNotification(true)
-                .build();
-
-        return User.builder()
-                .socialId("no-image-test-" + System.currentTimeMillis())
-                .socialNickname(userName + "_소셜닉네임")
-                .thumbnailImage("") // 빈 이미지
-                .userName(userName)
-                .provider(SocialProvider.KAKAO)
-                .role(UserRole.USER)
-                .setting(setting)
+        return TestUserFactory.builder()
+                .withSocialId("no-image-test-" + System.currentTimeMillis())
+                .withSocialNickname(userName + "_소셜닉네임")
+                .withThumbnailImage("") // 빈 이미지
+                .withUserName(userName)
+                .withProvider(SocialProvider.KAKAO)
+                .withRole(UserRole.USER)
+                .withSetting(TestSettingFactory.createDefaultSetting())
                 .build();
     }
 
