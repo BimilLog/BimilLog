@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.social.kakao;
+package jaeik.bimillog.infrastructure.adapter.api.social.kakao;
 
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.service.SocialService;

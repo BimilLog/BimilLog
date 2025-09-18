@@ -1,6 +1,8 @@
-package jaeik.bimillog.infrastructure.adapter.social.kakao;
+package jaeik.bimillog.infrastructure.adapter.api.social.kakao;
 
 import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jaeik.bimillog.infrastructure.adapter.api.social.kakao.KakaoApiClient;
+import jaeik.bimillog.infrastructure.adapter.api.social.kakao.KakaoSocialAdapter;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.social.kakao;
+package jaeik.bimillog.infrastructure.adapter.api.social.kakao;
 
 import jaeik.bimillog.domain.user.application.port.out.KakaoFriendPort;
 import jaeik.bimillog.domain.user.entity.KakaoFriendsResponseVO;

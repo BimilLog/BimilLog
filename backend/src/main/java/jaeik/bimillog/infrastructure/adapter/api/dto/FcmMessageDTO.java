@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.notification.dto;
+package jaeik.bimillog.infrastructure.adapter.api.dto;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;

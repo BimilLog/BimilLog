@@ -1,10 +1,10 @@
-package jaeik.bimillog.infrastructure.adapter.social.kakao;
+package jaeik.bimillog.infrastructure.adapter.api.social.kakao;
 
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
-import jaeik.bimillog.infrastructure.adapter.social.SocialAdapter;
-import jaeik.bimillog.infrastructure.adapter.user.dto.KakaoFriendsDTO;
+import jaeik.bimillog.infrastructure.adapter.api.social.SocialAdapter;
+import jaeik.bimillog.infrastructure.adapter.api.dto.KakaoFriendsDTO;
 import org.springframework.stereotype.Component;
 
 /**

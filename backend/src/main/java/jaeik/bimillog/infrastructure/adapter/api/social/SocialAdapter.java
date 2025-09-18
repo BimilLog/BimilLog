@@ -1,7 +1,7 @@
-package jaeik.bimillog.infrastructure.adapter.social;
+package jaeik.bimillog.infrastructure.adapter.api.social;
 
 import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.infrastructure.adapter.user.dto.KakaoFriendsDTO;
+import jaeik.bimillog.infrastructure.adapter.api.dto.KakaoFriendsDTO;
 
 /**
  * <h2>소셜 어댑터 인터페이스</h2>

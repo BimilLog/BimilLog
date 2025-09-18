@@ -1,6 +1,6 @@
-package jaeik.bimillog.infrastructure.adapter.fcm;
+package jaeik.bimillog.infrastructure.adapter.api.fcm;
 
-import jaeik.bimillog.infrastructure.adapter.notification.dto.FcmMessageDTO;
+import jaeik.bimillog.infrastructure.adapter.api.dto.FcmMessageDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;

@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.config;
+package jaeik.bimillog.infrastructure.adapter.api;
 
 import feign.Logger;
 import feign.codec.ErrorDecoder;
@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Configuration;
  * @version 2.0.0
  */
 @Configuration
-@EnableFeignClients(basePackages = "jaeik.bimillog.infrastructure.adapter")
+@EnableFeignClients(basePackages = "jaeik.bimillog.infrastructure.adapter.api")
 public class FeignConfig {
 
     /**
@@ -42,20 +42,14 @@ public class FeignConfig {
     @Bean
     public ErrorDecoder errorDecoder() {
         return (methodKey, response) -> {
-            switch (response.status()) {
-                case 400:
-                    return new RuntimeException("Bad Request: " + methodKey);
-                case 401:
-                    return new RuntimeException("Unauthorized: " + methodKey);
-                case 403:
-                    return new RuntimeException("Forbidden: " + methodKey);
-                case 404:
-                    return new RuntimeException("Not Found: " + methodKey);
-                case 500:
-                    return new RuntimeException("Internal Server Error: " + methodKey);
-                default:
-                    return new RuntimeException("HTTP Error " + response.status() + ": " + methodKey);
-            }
+            return switch (response.status()) {
+                case 400 -> new RuntimeException("Bad Request: " + methodKey);
+                case 401 -> new RuntimeException("Unauthorized: " + methodKey);
+                case 403 -> new RuntimeException("Forbidden: " + methodKey);
+                case 404 -> new RuntimeException("Not Found: " + methodKey);
+                case 500 -> new RuntimeException("Internal Server Error: " + methodKey);
+                default -> new RuntimeException("HTTP Error " + response.status() + ": " + methodKey);
+            };
         };
     }
 }

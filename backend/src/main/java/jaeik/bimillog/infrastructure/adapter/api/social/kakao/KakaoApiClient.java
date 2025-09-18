@@ -1,6 +1,6 @@
-package jaeik.bimillog.infrastructure.adapter.social.kakao;
+package jaeik.bimillog.infrastructure.adapter.api.social.kakao;
 
-import jaeik.bimillog.infrastructure.adapter.user.dto.KakaoFriendsDTO;
+import jaeik.bimillog.infrastructure.adapter.api.dto.KakaoFriendsDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;

@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.auth.auth;
+package jaeik.bimillog.infrastructure.adapter.auth.out.auth;
 
 import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.entity.SocialAuthData;

@@ -10,7 +10,7 @@ import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.infrastructure.adapter.comment.dto.SimpleCommentDTO;
 import jaeik.bimillog.infrastructure.adapter.post.dto.SimplePostDTO;
 import jaeik.bimillog.infrastructure.adapter.post.in.web.PostResponseMapper;
-import jaeik.bimillog.infrastructure.adapter.user.dto.KakaoFriendsDTO;
+import jaeik.bimillog.infrastructure.adapter.api.dto.KakaoFriendsDTO;
 import jaeik.bimillog.infrastructure.adapter.user.dto.SettingDTO;
 import jaeik.bimillog.infrastructure.adapter.auth.out.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;

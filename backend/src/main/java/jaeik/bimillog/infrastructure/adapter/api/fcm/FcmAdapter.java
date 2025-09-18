@@ -1,10 +1,10 @@
-package jaeik.bimillog.infrastructure.adapter.fcm;
+package jaeik.bimillog.infrastructure.adapter.api.fcm;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import jaeik.bimillog.domain.notification.application.port.out.FcmPort;
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
-import jaeik.bimillog.infrastructure.adapter.notification.dto.FcmMessageDTO;
+import jaeik.bimillog.infrastructure.adapter.api.dto.FcmMessageDTO;
 import jaeik.bimillog.infrastructure.adapter.notification.out.jpa.FcmTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ClassPathResource;

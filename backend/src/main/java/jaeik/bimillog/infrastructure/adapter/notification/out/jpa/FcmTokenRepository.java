@@ -14,8 +14,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface FcmTokenRepository extends JpaRepository<FcmToken, Long> {
 
-
-
     /**
      * <h3>사용자 ID로 FCM 토큰 삭제</h3>
      * <p>주어진 사용자 ID에 해당하는 모든 FCM 토큰을 삭제합니다.</p>

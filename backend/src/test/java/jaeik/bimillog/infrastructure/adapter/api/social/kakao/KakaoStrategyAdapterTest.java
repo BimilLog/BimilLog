@@ -1,8 +1,11 @@
-package jaeik.bimillog.infrastructure.adapter.social.kakao;
+package jaeik.bimillog.infrastructure.adapter.api.social.kakao;
 
 import jaeik.bimillog.domain.auth.entity.SocialAuthData;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.global.vo.KakaoKeyVO;
+import jaeik.bimillog.infrastructure.adapter.api.social.kakao.KakaoApiClient;
+import jaeik.bimillog.infrastructure.adapter.api.social.kakao.KakaoAuthClient;
+import jaeik.bimillog.infrastructure.adapter.api.social.kakao.KakaoStrategyAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
