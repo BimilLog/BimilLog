@@ -14,6 +14,8 @@ import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
+import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestSettings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -95,14 +97,14 @@ class PaperCommandControllerIntegrationTest {
      * 테스트용 사용자 엔티티 생성 및 저장
      */
     private User createAndSaveUser(String userName, String socialId) {
-        Setting setting = Setting.createSetting();
+        User baseUser = TestUsers.USER1;
         User user = User.builder()
                 .userName(userName)
                 .socialId(socialId)
                 .socialNickname("테스트사용자")
-                .provider(SocialProvider.KAKAO)
-                .role(UserRole.USER)
-                .setting(setting)
+                .provider(baseUser.getProvider())
+                .role(baseUser.getRole())
+                .setting(baseUser.getSetting())
                 .build();
         return userRepository.save(user);
     }
@@ -212,14 +214,14 @@ class PaperCommandControllerIntegrationTest {
     @DisplayName("내 페이퍼에서 메시지 삭제 - 성공")
     void deleteMessage_MyPaper_Success() throws Exception {
         // Given - Admin 패턴을 따라 사용자와 메시지 생성
-        Setting setting = Setting.createSetting();
+        User baseUser = TestUsers.USER1;
         User paperOwner = User.builder()
                 .userName("paperOwner")
                 .socialId("owner123")
                 .socialNickname("페이퍼주인")
-                .provider(SocialProvider.KAKAO)
-                .role(UserRole.USER)
-                .setting(setting)
+                .provider(baseUser.getProvider())
+                .role(baseUser.getRole())
+                .setting(baseUser.getSetting())
                 .build();
         User savedUser = userRepository.save(paperOwner);
         

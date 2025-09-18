@@ -9,6 +9,7 @@ import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSettings;
+import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -141,18 +142,18 @@ class PaperQueryAdapterTest {
     }
 
     private User createAndSaveUser(String userName, String socialId, String socialNickname) {
-        Setting setting = TestSettings.DEFAULT;
-        
-        User user = User.builder()
-                .userName(userName)
+        User baseUser = TestUsers.USER1;
+        User userWithDetails = User.builder()
                 .socialId(socialId)
+                .provider(baseUser.getProvider())
+                .userName(userName)
                 .socialNickname(socialNickname)
-                .provider(SocialProvider.KAKAO)
-                .role(UserRole.USER)
-                .setting(setting)
+                .thumbnailImage(baseUser.getThumbnailImage())
+                .role(baseUser.getRole())
+                .setting(baseUser.getSetting())
                 .build();
-        
-        return testEntityManager.persistAndFlush(user);
+
+        return testEntityManager.persistAndFlush(userWithDetails);
     }
 
     private Message createAndSaveMessage(User user, String content, DecoType decoType, int x, int y) {
