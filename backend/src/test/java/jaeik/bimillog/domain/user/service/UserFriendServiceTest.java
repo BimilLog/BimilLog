@@ -9,6 +9,8 @@ import jaeik.bimillog.domain.user.entity.*;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import jaeik.bimillog.global.application.port.out.GlobalTokenQueryPort;
+import jaeik.bimillog.testutil.TestUsers;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -52,6 +54,16 @@ class UserFriendServiceTest {
     @InjectMocks
     private UserFriendService userFriendService;
 
+    // 테스트 전역 사용자
+    private User testUser;
+    private User adminUser;
+
+    @BeforeEach
+    void setUp() {
+        testUser = TestUsers.USER1;
+        adminUser = TestUsers.ADMIN;
+    }
+
     @Test
     @DisplayName("카카오 친구 목록 조회 - 정상 케이스 (실제 API 응답 구조)")
     void shouldGetKakaoFriendList_WhenValidRequest() {
@@ -63,10 +75,13 @@ class UserFriendServiceTest {
         
         User user = User.builder()
                 .id(userId)
+                .socialId(testUser.getSocialId())
+                .provider(testUser.getProvider())
                 .userName("testUser")
-                .provider(SocialProvider.KAKAO)
-                .socialId("123456")
-                .role(UserRole.USER)
+                .socialNickname(testUser.getSocialNickname())
+                .thumbnailImage(testUser.getThumbnailImage())
+                .role(testUser.getRole())
+                .setting(testUser.getSetting())
                 .build();
         
         Token token = Token.createTemporaryToken("access-token", "refresh-token");
@@ -140,7 +155,13 @@ class UserFriendServiceTest {
         Long tokenId = 1L;
         User user = User.builder()
                 .id(userId)
+                .socialId(testUser.getSocialId())
+                .provider(testUser.getProvider())
                 .userName("testUser")
+                .socialNickname(testUser.getSocialNickname())
+                .thumbnailImage(testUser.getThumbnailImage())
+                .role(testUser.getRole())
+                .setting(testUser.getSetting())
                 .build();
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
@@ -163,7 +184,13 @@ class UserFriendServiceTest {
         Long tokenId = 1L;
         User user = User.builder()
                 .id(userId)
+                .socialId(testUser.getSocialId())
+                .provider(testUser.getProvider())
                 .userName("testUser")
+                .socialNickname(testUser.getSocialNickname())
+                .thumbnailImage(testUser.getThumbnailImage())
+                .role(testUser.getRole())
+                .setting(testUser.getSetting())
                 .build();
         
         Token token = Token.createTemporaryToken(null, "refresh-token");
@@ -186,7 +213,13 @@ class UserFriendServiceTest {
         Long tokenId = 1L;
         User user = User.builder()
                 .id(userId)
+                .socialId(testUser.getSocialId())
+                .provider(testUser.getProvider())
                 .userName("testUser")
+                .socialNickname(testUser.getSocialNickname())
+                .thumbnailImage(testUser.getThumbnailImage())
+                .role(testUser.getRole())
+                .setting(testUser.getSetting())
                 .build();
         
         Token token = Token.createTemporaryToken("", "refresh-token");

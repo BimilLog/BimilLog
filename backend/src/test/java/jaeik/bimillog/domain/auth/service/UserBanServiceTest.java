@@ -6,6 +6,7 @@ import jaeik.bimillog.domain.auth.application.service.UserBanService;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.global.application.port.out.GlobalTokenQueryPort;
+import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -49,7 +50,10 @@ class UserBanServiceTest {
 
     private String testToken;
     private String testTokenHash;
+    
+    // 테스트 전역 사용자
     private User testUser;
+    private User adminUser;
     private Token testToken1;
     private Token testToken2;
 
@@ -60,9 +64,16 @@ class UserBanServiceTest {
         
         testUser = User.builder()
                 .id(100L)
+                .socialId(TestUsers.USER1.getSocialId())
+                .provider(TestUsers.USER1.getProvider())
                 .userName("testUser")
-                .socialId("kakao123")
+                .socialNickname(TestUsers.USER1.getSocialNickname())
+                .thumbnailImage(TestUsers.USER1.getThumbnailImage())
+                .role(TestUsers.USER1.getRole())
+                .setting(TestUsers.USER1.getSetting())
                 .build();
+                
+        adminUser = TestUsers.ADMIN;
 
         testToken1 = Token.createTemporaryToken("access-token-1", "refresh-token-1");
                 

@@ -8,9 +8,10 @@ import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.testutil.TestUserFactory;
-import jaeik.bimillog.testutil.TestSettingFactory;
+import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestSettings;
 import jakarta.persistence.EntityManager;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,23 +89,27 @@ class PostCommandAdapterTest {
     @Autowired
     private TestEntityManager entityManager;
 
+    // 테스트 전역 사용자
+    private User testUser;
+    private User adminUser;
+
+    @BeforeEach
+    void setUp() {
+        testUser = TestUsers.USER1;
+        adminUser = TestUsers.ADMIN;
+    }
 
     @Test
     @DisplayName("정상 케이스 - 조회수 증가")
     void shouldIncrementView_WhenValidPostProvided() {
         // Given: 저장된 게시글 (조회수 0)
-        User user = TestUserFactory.builder()
-                .withUserName("testUser")
-                .withSocialId("123456")
-                .withSocialNickname("테스트유저")
-                .build();
-        entityManager.persistAndFlush(user);
+        entityManager.persistAndFlush(testUser);
 
         String title = "조회수 테스트";
         String content = "조회수 증가 테스트 내용";
         Integer password = 1234;
 
-        Post post = Post.createPost(user, title, content, password);
+        Post post = Post.createPost(testUser, title, content, password);
         Post savedPost = postCommandAdapter.create(post);
         entityManager.flush();
         entityManager.clear();
@@ -127,19 +132,13 @@ class PostCommandAdapterTest {
     @DisplayName("비즈니스 로직 - 공지사항 설정 후 저장")
     void shouldSavePost_WhenSetAsNotice() {
         // Given: 일반 게시글
-        User user = TestUserFactory.builder()
-                .withUserName("admin")
-                .withSocialId("admin123")
-                .withSocialNickname("관리자")
-                .withRole(UserRole.ADMIN)
-                .build();
-        entityManager.persistAndFlush(user);
+        entityManager.persistAndFlush(adminUser);
 
         String title = "공지사항이 될 게시글";
         String content = "중요한 공지입니다.";
         Integer password = 1234;
 
-        Post post = Post.createPost(user, title, content, password);
+        Post post = Post.createPost(adminUser, title, content, password);
         Post savedPost = postCommandAdapter.create(post);
 
         // When: 공지사항으로 설정 후 저장
@@ -158,18 +157,13 @@ class PostCommandAdapterTest {
     @DisplayName("비즈니스 로직 - 캐시 플래그 설정 후 저장")
     void shouldSavePost_WhenCacheFlagSet() {
         // Given: 일반 게시글
-        User user = TestUserFactory.builder()
-                .withUserName("testUser")
-                .withSocialId("123456")
-                .withSocialNickname("테스트유저")
-                .build();
-        entityManager.persistAndFlush(user);
+        entityManager.persistAndFlush(testUser);
 
         String title = "인기 게시글";
         String content = "많이 본 게시글입니다.";
         Integer password = 1234;
 
-        Post post = Post.createPost(user, title, content, password);
+        Post post = Post.createPost(testUser, title, content, password);
         Post savedPost = postCommandAdapter.create(post);
 
         // When: 캐시 플래그 설정 후 저장
@@ -188,18 +182,13 @@ class PostCommandAdapterTest {
     @DisplayName("정상 케이스 - 게시글 삭제")
     void shouldDeletePost_WhenValidPostProvided() {
         // Given: 저장된 게시글
-        User user = TestUserFactory.builder()
-                .withUserName("testUser")
-                .withSocialId("123456")
-                .withSocialNickname("테스트유저")
-                .build();
-        entityManager.persistAndFlush(user);
+        entityManager.persistAndFlush(testUser);
 
         String title = "삭제될 게시글";
         String content = "삭제 테스트 내용";
         Integer password = 1234;
 
-        Post post = Post.createPost(user, title, content, password);
+        Post post = Post.createPost(testUser, title, content, password);
         Post savedPost = postCommandAdapter.create(post);
         entityManager.flush();
         entityManager.clear();

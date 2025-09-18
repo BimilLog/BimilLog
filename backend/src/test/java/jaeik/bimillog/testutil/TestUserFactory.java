@@ -12,8 +12,16 @@ import jaeik.bimillog.domain.user.entity.UserRole;
  *
  * @author Jaeik
  * @version 2.0.0
+ * @deprecated 대신 {@link TestUsers}의 미리 정의된 인스턴스를 사용하세요.
+ *             예: TestUsers.USER1, TestUsers.ADMIN
+ *             더 간단하고 일관된 테스트 데이터 사용이 가능합니다.
  */
+@Deprecated(since = "2.0.0", forRemoval = true)
 public class TestUserFactory {
+
+    /**
+     * @deprecated 대신 {@link TestUsers#USER1}을 사용하세요
+     */
 
     private static final String DEFAULT_SOCIAL_ID = "kakao123456";
     private static final SocialProvider DEFAULT_PROVIDER = SocialProvider.KAKAO;

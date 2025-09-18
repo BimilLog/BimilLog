@@ -9,8 +9,9 @@ import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
-import jaeik.bimillog.testutil.TestSettingFactory;
-import jaeik.bimillog.testutil.TestUserFactory;
+import jaeik.bimillog.testutil.TestSettings;
+import jaeik.bimillog.testutil.TestUsers;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,22 +47,35 @@ class UserCommandServiceTest {
     @InjectMocks
     private UserCommandService userCommandService;
 
+    // 테스트 전역 사용자
+    private User testUser;
+    private User adminUser;
+
+    @BeforeEach
+    void setUp() {
+        testUser = TestUsers.USER1;
+        adminUser = TestUsers.ADMIN;
+    }
+
     @Test
     @DisplayName("사용자 설정 수정 - 정상 케이스")
     void shouldUpdateUserSettings_WhenUserExists() {
         // Given
         Long userId = 1L;
-        Setting existingSetting = TestSettingFactory.createCustomSetting(
-                true, true, false);
+        Setting existingSetting = TestSettings.custom(true, true, false);
 
-        User user = TestUserFactory.builder()
-                .withId(userId)
-                .withUserName("testUser")
-                .withSetting(existingSetting)
+        User user = User.builder()
+                .id(userId)
+                .socialId(testUser.getSocialId())
+                .provider(testUser.getProvider())
+                .userName("testUser")
+                .socialNickname(testUser.getSocialNickname())
+                .thumbnailImage(testUser.getThumbnailImage())
+                .role(testUser.getRole())
+                .setting(existingSetting)
                 .build();
 
-        Setting newSetting = TestSettingFactory.createCustomSetting(
-                false, false, true);
+        Setting newSetting = TestSettings.custom(false, false, true);
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
 
@@ -82,7 +96,7 @@ class UserCommandServiceTest {
     void shouldThrowException_WhenUserNotFoundForSettingUpdate() {
         // Given
         Long userId = 999L;
-        Setting newSetting = TestSettingFactory.createDefaultSetting();
+        Setting newSetting = TestSettings.DEFAULT;
 
         given(userQueryPort.findById(userId)).willReturn(Optional.empty());
 
@@ -102,10 +116,15 @@ class UserCommandServiceTest {
         Long userId = 1L;
         String newUserName = "newUserName";
 
-        User user = TestUserFactory.builder()
-                .withId(userId)
-                .withUserName("oldUserName")
-                .withSocialId("123456")
+        User user = User.builder()
+                .id(userId)
+                .socialId("123456")
+                .provider(testUser.getProvider())
+                .userName("oldUserName")
+                .socialNickname(testUser.getSocialNickname())
+                .thumbnailImage(testUser.getThumbnailImage())
+                .role(testUser.getRole())
+                .setting(testUser.getSetting())
                 .build();
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
@@ -126,7 +145,16 @@ class UserCommandServiceTest {
         // Given
         Long userId = 1L;
         String existingUserName = "existingUser";
-        User user = TestUserFactory.createUserWithIdAndUserName(userId, "oldUserName");
+        User user = User.builder()
+                .id(userId)
+                .socialId(testUser.getSocialId())
+                .provider(testUser.getProvider())
+                .userName("oldUserName")
+                .socialNickname(testUser.getSocialNickname())
+                .thumbnailImage(testUser.getThumbnailImage())
+                .role(testUser.getRole())
+                .setting(testUser.getSetting())
+                .build();
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
 
@@ -166,7 +194,16 @@ class UserCommandServiceTest {
         Long userId = 1L;
         String validUserName = "a".repeat(20); // 20자 길이 (제한 내)
 
-        User user = TestUserFactory.createUserWithIdAndUserName(userId, "oldUserName");
+        User user = User.builder()
+                .id(userId)
+                .socialId(testUser.getSocialId())
+                .provider(testUser.getProvider())
+                .userName("oldUserName")
+                .socialNickname(testUser.getSocialNickname())
+                .thumbnailImage(testUser.getThumbnailImage())
+                .role(testUser.getRole())
+                .setting(testUser.getSetting())
+                .build();
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
 
@@ -186,7 +223,16 @@ class UserCommandServiceTest {
         Long userId = 1L;
         String validUserName = "user123_"; // 영문, 숫자, 언더스코어만 허용 가정
 
-        User user = TestUserFactory.createUserWithIdAndUserName(userId, "oldUserName");
+        User user = User.builder()
+                .id(userId)
+                .socialId(testUser.getSocialId())
+                .provider(testUser.getProvider())
+                .userName("oldUserName")
+                .socialNickname(testUser.getSocialNickname())
+                .thumbnailImage(testUser.getThumbnailImage())
+                .role(testUser.getRole())
+                .setting(testUser.getSetting())
+                .build();
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
 
@@ -204,17 +250,21 @@ class UserCommandServiceTest {
     void shouldUpdateUserSettings_WhenPartialSetting() {
         // Given
         Long userId = 1L;
-        Setting existingSetting = TestSettingFactory.createCustomSetting(
-                false, true, false);
+        Setting existingSetting = TestSettings.custom(false, true, false);
 
-        User user = TestUserFactory.builder()
-                .withId(userId)
-                .withSetting(existingSetting)
+        User user = User.builder()
+                .id(userId)
+                .socialId(testUser.getSocialId())
+                .provider(testUser.getProvider())
+                .userName(testUser.getUserName())
+                .socialNickname(testUser.getSocialNickname())
+                .thumbnailImage(testUser.getThumbnailImage())
+                .role(testUser.getRole())
+                .setting(existingSetting)
                 .build();
 
         // 부분적 설정만 포함된 Setting
-        Setting partialSetting = TestSettingFactory.createCustomSetting(
-                true, false, false);
+        Setting partialSetting = TestSettings.custom(true, false, false);
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
 
@@ -233,10 +283,15 @@ class UserCommandServiceTest {
         Long userId = 1L;
         String racedUserName = "racedNickname";
 
-        User user = TestUserFactory.builder()
-                .withId(userId)
-                .withUserName("oldUserName")
-                .withSocialId("123456")
+        User user = User.builder()
+                .id(userId)
+                .socialId("123456")
+                .provider(testUser.getProvider())
+                .userName("oldUserName")
+                .socialNickname(testUser.getSocialNickname())
+                .thumbnailImage(testUser.getThumbnailImage())
+                .role(testUser.getRole())
+                .setting(testUser.getSetting())
                 .build();
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
