@@ -30,10 +30,9 @@ public interface AuthToUserPort {
     Optional<User> findExistingUser(SocialProvider provider, String socialId);
 
     /**
-     * <h3>소셜 제공자와 소셜 ID로 사용자 존재 여부 확인</h3>
-     * <p>특정 소셜 제공자와 소셜 ID에 해당하는 사용자가 데이터베이스에 차단된 상태로 존재하는지 확인합니다.</p>
-     * <p>소셜 계정 연결 해제 전에 해당 사용자가 실제로 차단된 사용자인지 검증하는데 사용됩니다.</p>
-     * <p>{@link SocialService}에서 소셜 계정 연결 해제 요청 처리 시 사용자 차단 상태 확인을 위해 호출됩니다.</p>
+     * <h3>유저가 블랙리스트에 존재하는지 획인</h3>
+     * <p>특정 소셜 제공자와 소셜 ID에 해당하는 사용자가 블랙리스트에 존재하는지 확인합니다.</p>
+     * <p>{@link SocialService}에서 로그인시 유저가 블랙리스트에 존재하는지 확인합니다.</p>
      *
      * @param provider 확인할 소셜 제공자 (KAKAO, GOOGLE 등)
      * @param socialId 확인할 소셜 플랫폼에서의 사용자 고유 ID
