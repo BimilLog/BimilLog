@@ -11,6 +11,8 @@ import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
+import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestSettings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -72,16 +74,7 @@ class PostAdminControllerIntegrationTest {
                 .build();
 
         // 관리자 사용자 생성 및 저장
-        User adminUserEntity = User.builder()
-                .socialId("admin123")
-                .userName("관리자")
-                .thumbnailImage("http://admin-profile.jpg")
-                .provider(SocialProvider.KAKAO)
-                .role(UserRole.ADMIN)
-                .setting(Setting.createSetting())
-                .build();
-        
-        savedAdminUser = userRepository.save(adminUserEntity);
+        savedAdminUser = userRepository.save(TestUsers.ADMIN);
         
         // 관리자 CustomUserDetails 생성
         UserDetail adminDTO = UserDetail.builder()
@@ -100,16 +93,7 @@ class PostAdminControllerIntegrationTest {
         adminUser = new CustomUserDetails(adminDTO);
 
         // 일반 사용자 생성 및 저장
-        User normalUserEntity = User.builder()
-                .socialId("user123")
-                .userName("일반사용자")
-                .thumbnailImage("http://user-profile.jpg")
-                .provider(SocialProvider.KAKAO)
-                .role(UserRole.USER)
-                .setting(Setting.createSetting())
-                .build();
-        
-        savedNormalUser = userRepository.save(normalUserEntity);
+        savedNormalUser = userRepository.save(TestUsers.USER1);
         
         // 일반 사용자 CustomUserDetails 생성
         UserDetail userDetail = UserDetail.builder()

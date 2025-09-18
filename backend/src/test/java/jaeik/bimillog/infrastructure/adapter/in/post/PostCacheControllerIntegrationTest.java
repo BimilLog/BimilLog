@@ -12,6 +12,8 @@ import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostRepository;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
+import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestSettings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -77,16 +79,7 @@ class PostCacheControllerIntegrationTest {
                 .build();
 
         // 테스트용 사용자 생성 및 저장
-        User user = User.builder()
-                .socialId("test123")
-                .userName("테스트사용자")
-                .thumbnailImage("http://test-profile.jpg")
-                .provider(SocialProvider.KAKAO)
-                .role(UserRole.USER)
-                .setting(Setting.createSetting())
-                .build();
-        
-        savedUser = userRepository.save(user);
+        savedUser = userRepository.save(TestUsers.USER1);
 
         // 좋아요 전용 사용자들 미리 생성
         createLikeUsers();
@@ -99,14 +92,7 @@ class PostCacheControllerIntegrationTest {
         likeUsers = new ArrayList<>();
         // 충분한 좋아요 사용자를 미리 생성 (200명 정도 - 모든 게시글에 좋아요 가능하도록)
         for (int i = 0; i < 200; i++) {
-            User likeUser = User.builder()
-                    .socialId("like_user_" + i)
-                    .userName("좋아요사용자" + i)
-                    .thumbnailImage("http://like-profile" + i + ".jpg")
-                    .provider(SocialProvider.KAKAO)
-                    .role(UserRole.USER)
-                    .setting(Setting.createSetting())
-                    .build();
+            User likeUser = TestUsers.withSocialId("like_user_" + i);
             likeUsers.add(likeUser);
         }
         // 한 번에 저장

@@ -10,6 +10,8 @@ import jaeik.bimillog.infrastructure.adapter.out.redis.RedisPostSyncAdapter;
 import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostLikeRepository;
 import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostRepository;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
+import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestSettings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -92,18 +94,7 @@ class RedisPostSyncAdapterTest {
             System.err.println("데이터베이스 초기화 경고: " + e.getMessage());
         }
 
-        testUser = User.builder()
-                .userName("testUser")
-                .socialId("123456")
-                .provider(SocialProvider.KAKAO)
-                .socialNickname("테스트유저")
-                .role(UserRole.USER)
-                .setting(Setting.builder()
-                        .messageNotification(true)
-                        .commentNotification(true)
-                        .postFeaturedNotification(true)
-                        .build())
-                .build();
+        testUser = TestUsers.USER1;
         entityManager.persistAndFlush(testUser);
     }
 
@@ -136,14 +127,7 @@ class RedisPostSyncAdapterTest {
 
     private void addLikesToPost(Post post, int count) {
         for (int i = 0; i < count; i++) {
-            User liker = User.builder()
-                    .userName("좋아요맨_" + post.getId() + "_" + i)
-                    .socialId("social_" + post.getId() + "_" + i + "_" + System.currentTimeMillis())
-                    .provider(SocialProvider.GOOGLE)
-                    .socialNickname("좋아요맨" + i)
-                    .role(UserRole.USER)
-                    .setting(Setting.builder().build())
-                    .build();
+            User liker = TestUsers.withSocialId("social_" + post.getId() + "_" + i + "_" + System.currentTimeMillis());
             entityManager.persistAndFlush(liker);
 
             PostLike postLike = PostLike.builder()
