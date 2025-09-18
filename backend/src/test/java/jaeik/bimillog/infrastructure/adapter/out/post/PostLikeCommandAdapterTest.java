@@ -8,6 +8,8 @@ import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
+import jaeik.bimillog.testutil.TestUserFactory;
+import jaeik.bimillog.testutil.TestSettingFactory;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -89,13 +91,13 @@ class PostLikeCommandAdapterTest {
     @DisplayName("정상 케이스 - 게시글 추천 저장")
     void shouldSave_WhenValidPostLike() {
         // Given
-        User user = User.builder()
-                .userName("testUser")
-                .socialId("123456")
-                .provider(SocialProvider.KAKAO)
-                .socialNickname("테스트유저")
-                .role(UserRole.USER)
-                .setting(Setting.builder().build())
+        User user = TestUserFactory.builder()
+                .withUserName("testUser")
+                .withSocialId("123456")
+                .withProvider(SocialProvider.KAKAO)
+                .withSocialNickname("테스트유저")
+                .withRole(UserRole.USER)
+                .withSetting(TestSettingFactory.createDefaultSetting())
                 .build();
         entityManager.persistAndFlush(user);
 
@@ -126,13 +128,13 @@ class PostLikeCommandAdapterTest {
     @DisplayName("정상 케이스 - 사용자와 게시글로 추천 삭제")
     void shouldDeleteByUserAndPost_WhenValidPostAndUser() {
         // Given
-        User user = User.builder()
-                .userName("testUser")
-                .socialId("123456")
-                .provider(SocialProvider.KAKAO)
-                .socialNickname("테스트유저")
-                .role(UserRole.USER)
-                .setting(Setting.builder().build())
+        User user = TestUserFactory.builder()
+                .withUserName("testUser")
+                .withSocialId("123456")
+                .withProvider(SocialProvider.KAKAO)
+                .withSocialNickname("테스트유저")
+                .withRole(UserRole.USER)
+                .withSetting(TestSettingFactory.createDefaultSetting())
                 .build();
         entityManager.persistAndFlush(user);
 
@@ -158,23 +160,23 @@ class PostLikeCommandAdapterTest {
     @DisplayName("정상 케이스 - 게시글 ID로 모든 추천 삭제")
     void shouldDeleteAllByPostId_WhenValidPostIdProvided() {
         // Given: 게시글과 여러 사용자의 추천들
-        User user1 = User.builder()
-                .userName("user1")
-                .socialId("123456")
-                .provider(SocialProvider.KAKAO)
-                .socialNickname("유저1")
-                .role(UserRole.USER)
-                .setting(Setting.builder().build())
+        User user1 = TestUserFactory.builder()
+                .withUserName("user1")
+                .withSocialId("123456")
+                .withProvider(SocialProvider.KAKAO)
+                .withSocialNickname("유저1")
+                .withRole(UserRole.USER)
+                .withSetting(TestSettingFactory.createDefaultSetting())
                 .build();
         entityManager.persistAndFlush(user1);
 
-        User user2 = User.builder()
-                .userName("user2")
-                .socialId("654321")
-                .provider(SocialProvider.GOOGLE)
-                .socialNickname("유저2")
-                .role(UserRole.USER)
-                .setting(Setting.builder().build())
+        User user2 = TestUserFactory.builder()
+                .withUserName("user2")
+                .withSocialId("654321")
+                .withProvider(SocialProvider.GOOGLE)
+                .withSocialNickname("유저2")
+                .withRole(UserRole.USER)
+                .withSetting(TestSettingFactory.createDefaultSetting())
                 .build();
         entityManager.persistAndFlush(user2);
 

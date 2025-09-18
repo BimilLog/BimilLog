@@ -8,6 +8,8 @@ import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
+import jaeik.bimillog.testutil.TestUserFactory;
+import jaeik.bimillog.testutil.TestSettingFactory;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -91,17 +93,10 @@ class PostCommandAdapterTest {
     @DisplayName("정상 케이스 - 조회수 증가")
     void shouldIncrementView_WhenValidPostProvided() {
         // Given: 저장된 게시글 (조회수 0)
-        User user = User.builder()
-                .userName("testUser")
-                .socialId("123456")
-                .provider(SocialProvider.KAKAO)
-                .socialNickname("테스트유저")
-                .role(UserRole.USER)
-                .setting(Setting.builder()
-                        .messageNotification(true)
-                        .commentNotification(true)
-                        .postFeaturedNotification(true)
-                        .build())
+        User user = TestUserFactory.builder()
+                .withUserName("testUser")
+                .withSocialId("123456")
+                .withSocialNickname("테스트유저")
                 .build();
         entityManager.persistAndFlush(user);
 
@@ -132,17 +127,11 @@ class PostCommandAdapterTest {
     @DisplayName("비즈니스 로직 - 공지사항 설정 후 저장")
     void shouldSavePost_WhenSetAsNotice() {
         // Given: 일반 게시글
-        User user = User.builder()
-                .userName("admin")
-                .socialId("admin123")
-                .provider(SocialProvider.KAKAO)
-                .socialNickname("관리자")
-                .role(UserRole.ADMIN)
-                .setting(Setting.builder()
-                        .messageNotification(true)
-                        .commentNotification(true)
-                        .postFeaturedNotification(true)
-                        .build())
+        User user = TestUserFactory.builder()
+                .withUserName("admin")
+                .withSocialId("admin123")
+                .withSocialNickname("관리자")
+                .withRole(UserRole.ADMIN)
                 .build();
         entityManager.persistAndFlush(user);
 
@@ -169,17 +158,10 @@ class PostCommandAdapterTest {
     @DisplayName("비즈니스 로직 - 캐시 플래그 설정 후 저장")
     void shouldSavePost_WhenCacheFlagSet() {
         // Given: 일반 게시글
-        User user = User.builder()
-                .userName("testUser")
-                .socialId("123456")
-                .provider(SocialProvider.KAKAO)
-                .socialNickname("테스트유저")
-                .role(UserRole.USER)
-                .setting(Setting.builder()
-                        .messageNotification(true)
-                        .commentNotification(true)
-                        .postFeaturedNotification(true)
-                        .build())
+        User user = TestUserFactory.builder()
+                .withUserName("testUser")
+                .withSocialId("123456")
+                .withSocialNickname("테스트유저")
                 .build();
         entityManager.persistAndFlush(user);
 
@@ -206,17 +188,10 @@ class PostCommandAdapterTest {
     @DisplayName("정상 케이스 - 게시글 삭제")
     void shouldDeletePost_WhenValidPostProvided() {
         // Given: 저장된 게시글
-        User user = User.builder()
-                .userName("testUser")
-                .socialId("123456")
-                .provider(SocialProvider.KAKAO)
-                .socialNickname("테스트유저")
-                .role(UserRole.USER)
-                .setting(Setting.builder()
-                        .messageNotification(true)
-                        .commentNotification(true)
-                        .postFeaturedNotification(true)
-                        .build())
+        User user = TestUserFactory.builder()
+                .withUserName("testUser")
+                .withSocialId("123456")
+                .withSocialNickname("테스트유저")
                 .build();
         entityManager.persistAndFlush(user);
 

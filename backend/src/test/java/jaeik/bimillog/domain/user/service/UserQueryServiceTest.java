@@ -6,6 +6,8 @@ import jaeik.bimillog.domain.user.entity.*;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import jaeik.bimillog.global.application.port.out.GlobalTokenQueryPort;
+import jaeik.bimillog.testutil.TestUserFactory;
+import jaeik.bimillog.testutil.TestSettingFactory;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -48,12 +50,12 @@ class UserQueryServiceTest {
         SocialProvider provider = SocialProvider.KAKAO;
         String socialId = "123456789";
 
-        User expectedUser = User.builder()
-                .id(1L)
-                .userName("testUser")
-                .provider(provider)
-                .socialId(socialId)
-                .role(UserRole.USER)
+        User expectedUser = TestUserFactory.builder()
+                .withId(1L)
+                .withUserName("testUser")
+                .withProvider(provider)
+                .withSocialId(socialId)
+                .withRole(UserRole.USER)
                 .build();
 
         given(userQueryPort.findByProviderAndSocialId(provider, socialId))
@@ -93,12 +95,12 @@ class UserQueryServiceTest {
     void shouldFindUser_WhenValidId() {
         // Given
         Long userId = 1L;
-        User expectedUser = User.builder()
-                .id(userId)
-                .userName("testUser")
-                .provider(SocialProvider.KAKAO)
-                .socialId("123456")
-                .role(UserRole.USER)
+        User expectedUser = TestUserFactory.builder()
+                .withId(userId)
+                .withUserName("testUser")
+                .withProvider(SocialProvider.KAKAO)
+                .withSocialId("123456")
+                .withRole(UserRole.USER)
                 .build();
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(expectedUser));
@@ -165,12 +167,12 @@ class UserQueryServiceTest {
     void shouldFindUser_WhenValidUserName() {
         // Given
         String userName = "testUser";
-        User expectedUser = User.builder()
-                .id(1L)
-                .userName(userName)
-                .provider(SocialProvider.KAKAO)
-                .socialId("123456")
-                .role(UserRole.USER)
+        User expectedUser = TestUserFactory.builder()
+                .withId(1L)
+                .withUserName(userName)
+                .withProvider(SocialProvider.KAKAO)
+                .withSocialId("123456")
+                .withRole(UserRole.USER)
                 .build();
 
         given(userQueryPort.findByUserName(userName)).willReturn(Optional.of(expectedUser));
@@ -206,8 +208,9 @@ class UserQueryServiceTest {
     void shouldGetReferenceById_WhenValidUserId() {
         // Given
         Long userId = 1L;
-        User proxyUser = User.builder()
-                .id(userId)
+        User proxyUser = TestUserFactory.builder()
+                .withId(userId)
+                .withoutSetting()
                 .build();
 
         given(userQueryPort.getReferenceById(userId)).willReturn(proxyUser);
@@ -247,11 +250,11 @@ class UserQueryServiceTest {
     void shouldFindSetting_WhenValidSettingId() {
         // Given
         Long settingId = 1L;
-        Setting expectedSetting = Setting.builder()
-                .id(settingId)
-                .messageNotification(true)
-                .commentNotification(false)
-                .postFeaturedNotification(true)
+        Setting expectedSetting = TestSettingFactory.builder()
+                .withId(settingId)
+                .withMessageNotification(true)
+                .withCommentNotification(false)
+                .withPostFeaturedNotification(true)
                 .build();
 
         given(userQueryPort.findSettingById(settingId)).willReturn(Optional.of(expectedSetting));

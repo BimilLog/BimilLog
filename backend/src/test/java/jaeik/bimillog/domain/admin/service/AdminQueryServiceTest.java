@@ -6,6 +6,7 @@ import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.testutil.TestUserFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -48,25 +49,25 @@ class AdminQueryServiceTest {
 
     @BeforeEach
     void setUp() {
-        User reporter1 = User.builder()
-                .id(100L)
-                .userName("reporter1")
-                .provider(SocialProvider.KAKAO)
-                .socialId("kakao100")
+        User reporter1 = TestUserFactory.builder()
+                .withId(100L)
+                .withUserName("reporter1")
+                .withProvider(SocialProvider.KAKAO)
+                .withSocialId("kakao100")
                 .build();
-        
-        User reporter2 = User.builder()
-                .id(101L)
-                .userName("reporter2")
-                .provider(SocialProvider.KAKAO)
-                .socialId("kakao101")
+
+        User reporter2 = TestUserFactory.builder()
+                .withId(101L)
+                .withUserName("reporter2")
+                .withProvider(SocialProvider.KAKAO)
+                .withSocialId("kakao101")
                 .build();
-        
-        User reporter3 = User.builder()
-                .id(102L)
-                .userName("reporter3")
-                .provider(SocialProvider.KAKAO)
-                .socialId("kakao102")
+
+        User reporter3 = TestUserFactory.builder()
+                .withId(102L)
+                .withUserName("reporter3")
+                .withProvider(SocialProvider.KAKAO)
+                .withSocialId("kakao102")
                 .build();
         
         testReports = List.of(

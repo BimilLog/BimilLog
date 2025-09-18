@@ -14,6 +14,7 @@ import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
+import jaeik.bimillog.testutil.TestUserFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -71,11 +72,11 @@ class WithdrawServiceTest {
 
     @BeforeEach
     void setUp() {
-        testUser = User.builder()
-                .id(100L)
-                .socialId("kakao123")
-                .provider(SocialProvider.KAKAO)
-                .userName("testUser")
+        testUser = TestUserFactory.builder()
+                .withId(100L)
+                .withSocialId("kakao123")
+                .withProvider(SocialProvider.KAKAO)
+                .withUserName("testUser")
                 .build();
 
         logoutCookies = List.of(
@@ -169,11 +170,11 @@ class WithdrawServiceTest {
     void shouldForceWithdraw_WhenValidUserId() {
         // Given
         Long targetUserId = 200L;
-        User targetUser = User.builder()
-                .id(targetUserId)
-                .socialId("kakao456")
-                .provider(SocialProvider.KAKAO)
-                .userName("targetUser")
+        User targetUser = TestUserFactory.builder()
+                .withId(targetUserId)
+                .withSocialId("kakao456")
+                .withProvider(SocialProvider.KAKAO)
+                .withUserName("targetUser")
                 .build();
 
         given(userQueryPort.findById(targetUserId)).willReturn(Optional.of(targetUser));
@@ -291,11 +292,11 @@ class WithdrawServiceTest {
     void shouldHandleException_WhenForceWithdrawDataProcessFails() {
         // Given
         Long targetUserId = 200L;
-        User targetUser = User.builder()
-                .id(targetUserId)
-                .socialId("kakao456")
-                .provider(SocialProvider.KAKAO)
-                .userName("targetUser")
+        User targetUser = TestUserFactory.builder()
+                .withId(targetUserId)
+                .withSocialId("kakao456")
+                .withProvider(SocialProvider.KAKAO)
+                .withUserName("targetUser")
                 .build();
 
         given(userQueryPort.findById(targetUserId)).willReturn(Optional.of(targetUser));
@@ -316,12 +317,12 @@ class WithdrawServiceTest {
     void shouldAddToBlacklist_WhenUserExists() {
         // Given
         Long userId = 1L;
-        User user = User.builder()
-                .id(userId)
-                .socialId("kakao123")
-                .provider(SocialProvider.KAKAO)
-                .userName("testUser")
-                .role(UserRole.USER)
+        User user = TestUserFactory.builder()
+                .withId(userId)
+                .withSocialId("kakao123")
+                .withProvider(SocialProvider.KAKAO)
+                .withUserName("testUser")
+                .withRole(UserRole.USER)
                 .build();
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
@@ -359,9 +360,9 @@ class WithdrawServiceTest {
         // When & Then
         assertThatThrownBy(() -> withdrawService.addToBlacklist(userId))
                 .isInstanceOf(UserCustomException.class)
-                .hasMessage(UserErrorCode.INVALID_INPUT_VALUE.getMessage());
+                .hasMessage(UserErrorCode.USER_NOT_FOUND.getMessage());
 
-        verify(userQueryPort, never()).findById(any());
+        verify(userQueryPort).findById(null);
         verify(deleteUserPort, never()).saveBlackList(any(BlackList.class));
     }
 
@@ -370,12 +371,12 @@ class WithdrawServiceTest {
     void shouldIgnoreException_WhenDuplicateBlacklistEntry() {
         // Given
         Long userId = 1L;
-        User user = User.builder()
-                .id(userId)
-                .socialId("kakao123")
-                .provider(SocialProvider.KAKAO)
-                .userName("testUser")
-                .role(UserRole.USER)
+        User user = TestUserFactory.builder()
+                .withId(userId)
+                .withSocialId("kakao123")
+                .withProvider(SocialProvider.KAKAO)
+                .withUserName("testUser")
+                .withRole(UserRole.USER)
                 .build();
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
@@ -394,12 +395,12 @@ class WithdrawServiceTest {
     void shouldBanUser_WhenUserExists() {
         // Given
         Long userId = 1L;
-        User user = User.builder()
-                .id(userId)
-                .socialId("kakao123")
-                .provider(SocialProvider.KAKAO)
-                .userName("testUser")
-                .role(UserRole.USER)
+        User user = TestUserFactory.builder()
+                .withId(userId)
+                .withSocialId("kakao123")
+                .withProvider(SocialProvider.KAKAO)
+                .withUserName("testUser")
+                .withRole(UserRole.USER)
                 .build();
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
@@ -439,9 +440,9 @@ class WithdrawServiceTest {
         // When & Then
         assertThatThrownBy(() -> withdrawService.banUser(userId))
                 .isInstanceOf(UserCustomException.class)
-                .hasMessage(UserErrorCode.INVALID_INPUT_VALUE.getMessage());
+                .hasMessage(UserErrorCode.USER_NOT_FOUND.getMessage());
 
-        verify(userQueryPort, never()).findById(any());
+        verify(userQueryPort).findById(null);
         verify(userCommandPort, never()).save(any(User.class));
     }
 
@@ -450,12 +451,12 @@ class WithdrawServiceTest {
     void shouldBanUser_WhenUserAlreadyBanned() {
         // Given
         Long userId = 1L;
-        User user = User.builder()
-                .id(userId)
-                .socialId("kakao123")
-                .provider(SocialProvider.KAKAO)
-                .userName("testUser")
-                .role(UserRole.BAN)
+        User user = TestUserFactory.builder()
+                .withId(userId)
+                .withSocialId("kakao123")
+                .withProvider(SocialProvider.KAKAO)
+                .withUserName("testUser")
+                .withRole(UserRole.BAN)
                 .build();
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));

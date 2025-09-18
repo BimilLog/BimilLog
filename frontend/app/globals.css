@@ -41,7 +41,7 @@
   --color-brand-indigo-600: oklch(0.48 0.20 250);
 
   /* 텍스트 컬러 시스템 */
-  --color-text-primary: oklch(0.25 0 0);
+  --color-text-primary: rgb(31, 41, 55);
   --color-text-secondary: oklch(0.45 0 0);
   --color-text-muted: oklch(0.60 0 0);
   --color-text-inverse: oklch(0.98 0 0);

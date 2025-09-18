@@ -1,7 +1,8 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Button, Spinner } from "@/components";
+import { Button } from "flowbite-react";
+import { Spinner } from "@/components";
 import { ThumbsUp, Flag } from "lucide-react";
 import { Post, userCommand } from "@/lib/api";
 import { useAuth, useToast } from "@/hooks";
@@ -77,13 +78,9 @@ export const PostContentActions: React.FC<PostContentActionsProps> = ({
       <div className="flex items-center justify-center gap-4 mt-8 pt-6 border-t">
         <Button
           onClick={onLike}
-          variant={post.isLiked ? "default" : "outline"}
-          className={`${
-            post.isLiked
-              ? "bg-blue-500 hover:bg-blue-600 text-white"
-              : "hover:bg-blue-50 border-blue-300 text-blue-600"
-          } transition-colors duration-200`}
+          color={post.isLiked ? "blue" : "light"}
           disabled={!isAuthenticated}
+          className="transition-colors duration-200"
         >
           <ThumbsUp
             className={`w-4 h-4 mr-2 ${post.isLiked ? "fill-current" : ""}`}
@@ -95,8 +92,8 @@ export const PostContentActions: React.FC<PostContentActionsProps> = ({
         {!isOwnPost && (
           <Button
             onClick={() => setIsReportModalOpen(true)}
-            variant="outline"
-            className="hover:bg-red-50 border-red-300 text-red-600 hover:text-red-700 transition-colors duration-200"
+            color="red"
+            className="transition-colors duration-200"
           >
             <Flag className="w-4 h-4 mr-2" />
             신고

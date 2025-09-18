@@ -127,7 +127,7 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
 
               <h1 className="text-xl md:text-4xl font-extrabold mb-4 flex items-center justify-center gap-3 relative z-10">
                 <Waves className="w-6 h-6 md:w-8 md:h-8 text-cyan-500 animate-pulse drop-shadow-md" />
-                <span className="bg-gradient-to-r from-cyan-700 via-blue-700 to-indigo-700 bg-clip-text text-transparent transform hover:scale-105 transition-transform duration-300 drop-shadow-sm">
+                <span className="text-cyan-700 font-extrabold transform hover:scale-105 transition-transform duration-300 drop-shadow-sm">
                   {nickname}님의 롤링페이퍼
                 </span>
                 <Waves className="w-6 h-6 md:w-8 md:h-8 text-cyan-500 animate-pulse drop-shadow-md" />

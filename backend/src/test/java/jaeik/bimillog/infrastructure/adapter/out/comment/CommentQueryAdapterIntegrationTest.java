@@ -13,6 +13,8 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentLikeRepository;
+import jaeik.bimillog.testutil.TestUserFactory;
+import jaeik.bimillog.testutil.TestSettingFactory;
 import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentRepository;
 import jaeik.bimillog.infrastructure.security.EncryptionUtil;
 import jakarta.persistence.EntityManager;
@@ -133,29 +135,25 @@ class CommentQueryAdapterIntegrationTest {
         commentRepository.deleteAll();
         
         // 테스트용 사용자들 생성
-        Setting setting1 = Setting.createSetting();
+        Setting setting1 = TestSettingFactory.createDefaultSetting();
         entityManager.persistAndFlush(setting1);
-        
-        testUser1 = User.builder()
-                .socialId("kakao123")
-                .provider(SocialProvider.KAKAO)
-                .userName("testUser1")
-                .socialNickname("테스트유저1")
-                .role(UserRole.USER)
-                .setting(setting1)
+
+        testUser1 = TestUserFactory.builder()
+                .withSocialId("kakao123")
+                .withUserName("testUser1")
+                .withSocialNickname("테스트유저1")
+                .withSetting(setting1)
                 .build();
         entityManager.persistAndFlush(testUser1);
         
-        Setting setting2 = Setting.createSetting();
+        Setting setting2 = TestSettingFactory.createDefaultSetting();
         entityManager.persistAndFlush(setting2);
-        
-        testUser2 = User.builder()
-                .socialId("kakao456")
-                .provider(SocialProvider.KAKAO)
-                .userName("testUser2")
-                .socialNickname("테스트유저2")
-                .role(UserRole.USER)
-                .setting(setting2)
+
+        testUser2 = TestUserFactory.builder()
+                .withSocialId("kakao456")
+                .withUserName("testUser2")
+                .withSocialNickname("테스트유저2")
+                .withSetting(setting2)
                 .build();
         entityManager.persistAndFlush(testUser2);
         
@@ -265,16 +263,14 @@ class CommentQueryAdapterIntegrationTest {
 
         // 5개 이상의 추천 생성 (인기 댓글 조건 충족)
         for (int i = 0; i < 6; i++) {
-            Setting setting = Setting.createSetting();
+            Setting setting = TestSettingFactory.createDefaultSetting();
             entityManager.persistAndFlush(setting);
-            
-            User likeUser = User.builder()
-                    .socialId("kakao" + (1000 + i))
-                    .provider(SocialProvider.KAKAO)
-                    .userName("likeUser" + i)
-                    .socialNickname("추천유저" + i)
-                    .role(UserRole.USER)
-                    .setting(setting)
+
+            User likeUser = TestUserFactory.builder()
+                    .withSocialId("kakao" + (1000 + i))
+                    .withUserName("likeUser" + i)
+                    .withSocialNickname("추천유저" + i)
+                    .withSetting(setting)
                     .build();
             entityManager.persistAndFlush(likeUser);
             
@@ -316,16 +312,14 @@ class CommentQueryAdapterIntegrationTest {
 
         // 3개 이상의 추천 생성 (다른 사용자들이 추천)
         for (int i = 0; i < 4; i++) {
-            Setting setting = Setting.createSetting();
+            Setting setting = TestSettingFactory.createDefaultSetting();
             entityManager.persistAndFlush(setting);
-            
-            User likeUser = User.builder()
-                    .socialId("kakao" + (2000 + i))
-                    .provider(SocialProvider.KAKAO)
-                    .userName("likeUser" + i)
-                    .socialNickname("추천유저" + i)
-                    .role(UserRole.USER)
-                    .setting(setting)
+
+            User likeUser = TestUserFactory.builder()
+                    .withSocialId("kakao" + (2000 + i))
+                    .withUserName("likeUser" + i)
+                    .withSocialNickname("추천유저" + i)
+                    .withSetting(setting)
                     .build();
             entityManager.persistAndFlush(likeUser);
             

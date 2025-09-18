@@ -11,6 +11,8 @@ import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
+import jaeik.bimillog.testutil.TestUserFactory;
+import jaeik.bimillog.testutil.TestSettingFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -75,13 +77,13 @@ class PostQueryControllerIntegrationTest {
                 .build();
 
         // 테스트용 사용자 생성 및 저장
-        User user = User.builder()
-                .socialId("12345")
-                .userName("테스트사용자")
-                .thumbnailImage("http://test-profile.jpg")
-                .provider(SocialProvider.KAKAO)
-                .role(UserRole.USER)
-                .setting(Setting.createSetting())
+        User user = TestUserFactory.builder()
+                .withSocialId("12345")
+                .withUserName("테스트사용자")
+                .withThumbnailImage("http://test-profile.jpg")
+                .withProvider(SocialProvider.KAKAO)
+                .withRole(UserRole.USER)
+                .withSetting(TestSettingFactory.createDefaultSetting())
                 .build();
         
         savedUser = userRepository.save(user);

@@ -10,6 +10,8 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
+import jaeik.bimillog.testutil.TestUserFactory;
+import jaeik.bimillog.testutil.TestSettingFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -70,17 +72,10 @@ class PostQueryAdapterTest {
     @BeforeEach
     void setUp() {
         // 테스트용 사용자 생성
-        testUser = User.builder()
-                .userName("testUser")
-                .socialId("123456")
-                .provider(SocialProvider.KAKAO)
-                .socialNickname("테스트유저")
-                .role(UserRole.USER)
-                .setting(Setting.builder()
-                        .messageNotification(true)
-                        .commentNotification(true)
-                        .postFeaturedNotification(true)
-                        .build())
+        testUser = TestUserFactory.builder()
+                .withUserName("testUser")
+                .withSocialId("123456")
+                .withSocialNickname("테스트유저")
                 .build();
         entityManager.persistAndFlush(testUser);
 
@@ -185,17 +180,10 @@ class PostQueryAdapterTest {
     @DisplayName("정상 케이스 - 사용자 추천 게시글 조회")
     void shouldFindLikedPostsByUserId_WhenUserHasLikedPosts() {
         // Given: 사용자가 게시글에 추천을 누름
-        User likeUser = User.builder()
-                .userName("likeUser")
-                .socialId("like123")
-                .provider(SocialProvider.KAKAO)
-                .socialNickname("좋아요유저")
-                .role(UserRole.USER)
-                .setting(Setting.builder()
-                        .messageNotification(true)
-                        .commentNotification(true)
-                        .postFeaturedNotification(true)
-                        .build())
+        User likeUser = TestUserFactory.builder()
+                .withUserName("likeUser")
+                .withSocialId("like123")
+                .withSocialNickname("좋아요유저")
                 .build();
         entityManager.persistAndFlush(likeUser);
 
