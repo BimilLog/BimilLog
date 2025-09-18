@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { KakaoButton, Card, CardContent, CardDescription, CardHeader, CardTitle, ErrorAlert, InfoAlert } from "@/components";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, ErrorAlert, InfoAlert } from "@/components";
+import Image from "next/image";
 import { useAuth } from "@/hooks";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuthLayout } from "@/components/organisms/auth";
@@ -45,7 +46,12 @@ export default function LoginPage() {
   }
 
   return (
-    <AuthLayout>
+    <AuthLayout
+      breadcrumbItems={[
+        { title: "홈", href: "/" },
+        { title: "로그인", href: "/login" },
+      ]}
+    >
       <Card variant="elevated">
         <CardHeader className="text-center pb-2">
           <CardTitle className="text-2xl font-bold">
@@ -66,19 +72,20 @@ export default function LoginPage() {
             </ErrorAlert>
           )}
           
-          <KakaoButton
-            size="full"
+          <button
             onClick={handleLogin}
+            className="w-full transition-all duration-200 hover:opacity-90 active:scale-[0.98] touch-manipulation"
+            aria-label="카카오로 로그인하기"
           >
-            <svg
-              className="w-5 h-5"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
-              <path d="M12 3c5.799 0 10.5 3.664 10.5 8.185 0 4.52-4.701 8.184-10.5 8.184a13.5 13.5 0 0 1-1.727-.11l-4.408 2.883c-.501.265-.678.236-.472-.413l.892-3.678c-2.88-1.46-4.785-3.99-4.785-6.866C1.5 6.665 6.201 3 12 3z" />
-            </svg>
-            카카오로 시작하기
-          </KakaoButton>
+            <Image
+              src="/kakao_login_medium_narrow.png"
+              alt="카카오 로그인"
+              width={300}
+              height={45}
+              className="w-full h-auto max-w-[300px] mx-auto"
+              priority
+            />
+          </button>
           <InfoAlert>
             <div>
               <p className="font-semibold mb-2">로그인 없이도 이용 가능!</p>

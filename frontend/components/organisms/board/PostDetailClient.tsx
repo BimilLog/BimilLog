@@ -62,7 +62,6 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
     setPasswordModalTitle,
     setDeleteMode,
     setTargetComment,
-    setPost,
   } = usePostDetail(postId, initialPost);
 
   // 댓글 액션 관리
@@ -155,8 +154,7 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
     setPasswordModalTitle,
     setDeleteMode,
     setModalPassword,
-    fetchPost,
-    setPost
+    fetchPost
   );
 
   // 비밀번호 모달 제출 - 게시글/댓글 삭제 모드에 따라 분기 처리
