@@ -44,8 +44,8 @@ export function useRollingPaperGrid({
 
   // 그리드 데이터 생성
   const gridData = useMemo(() => {
-    return createMessageGrid(messages, isMobile);
-  }, [messages, isMobile]);
+    return createMessageGrid(messages);
+  }, [messages]);
 
   // 전체 페이지 수 계산 (고정값)
   const totalPages = useMemo(() => {

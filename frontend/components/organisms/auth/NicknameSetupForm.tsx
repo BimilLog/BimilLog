@@ -5,7 +5,7 @@ import { Button } from "@/components";
 import { Input } from "@/components";
 import { Label } from "@/components";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components";
-import { Check, AlertCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { useAuth } from "@/hooks";
 import { useNotificationList } from "@/hooks/features";
 import { useRouter } from "next/navigation";

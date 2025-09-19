@@ -197,8 +197,7 @@ const BoardMobileCard = memo<TableRowProps>(({
   post,
   index,
   isRead,
-  showRanking,
-  enablePopover
+  showRanking
 }) => {
 
   return (

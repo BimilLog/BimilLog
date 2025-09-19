@@ -24,7 +24,6 @@ export const RollingPaperContainer: React.FC<RollingPaperContainerProps> = ({
     messages,
     isLoading,
     isError,
-    error,
     isOwner,
     refetch
   } = useRollingPaperData(nickname);

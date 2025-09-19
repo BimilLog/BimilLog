@@ -53,8 +53,7 @@ export function getMessagesPerPage(isMobile?: boolean): number {
  * 전체 좌표 범위(x: 0~11, y: 0~9)를 처리하도록 수정
  */
 export function createMessageGrid<T extends { x: number; y: number }>(
-  messages: T[],
-  isMobile?: boolean
+  messages: T[]
 ): (T | null)[][] {
   // 전체 좌표 범위를 처리하기 위해 최대 열 개수 사용 (12열: x=0~11)
   const maxCols = 12; // PC 2페이지(0~11), 모바일 3페이지(0~11)

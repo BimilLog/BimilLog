@@ -33,8 +33,6 @@ interface PostHeaderProps {
 export const PostHeader = React.memo<PostHeaderProps>(({
   post,
   commentCount,
-  canModify,
-  onDeleteClick,
 }) => {
   const { showSuccess, showError } = useToast();
 

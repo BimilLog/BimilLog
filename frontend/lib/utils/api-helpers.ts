@@ -94,14 +94,14 @@ export const handleApiError = (
 /**
  * API 호출 래퍼 - 성공/실패 처리 자동화
  */
-interface ApiCallOptions<T> extends SuccessHandlerOptions, ErrorHandlerOptions {
+interface ApiCallOptions extends SuccessHandlerOptions, ErrorHandlerOptions {
   loadingMessage?: string;
   showLoadingToast?: boolean;
 }
 
 export const executeApiCall = async <T>(
   apiCall: () => Promise<ApiResponse<T>>,
-  options: ApiCallOptions<T> = {}
+  options: ApiCallOptions = {}
 ): Promise<T | null> => {
   const {
     loadingMessage = '처리 중...',
@@ -142,7 +142,7 @@ export const executeApiCall = async <T>(
 interface ParallelApiCall<T> {
   name: string;
   call: () => Promise<ApiResponse<T>>;
-  options?: ApiCallOptions<T>;
+  options?: ApiCallOptions;
 }
 
 export const executeParallelApiCalls = async <T>(
@@ -188,7 +188,7 @@ export const executeParallelApiCalls = async <T>(
 /**
  * API 재시도 로직
  */
-interface RetryOptions<T> {
+interface RetryOptions {
   maxRetries?: number;
   retryDelay?: number;
   shouldRetry?: (error: unknown, attempt: number) => boolean;
@@ -197,7 +197,7 @@ interface RetryOptions<T> {
 
 export const executeApiWithRetry = async <T>(
   apiCall: () => Promise<ApiResponse<T>>,
-  options: RetryOptions<T> & ApiCallOptions<T> = {}
+  options: RetryOptions & ApiCallOptions = {}
 ): Promise<T | null> => {
   const {
     maxRetries = 3,
@@ -246,7 +246,7 @@ export const executeApiWithRetry = async <T>(
  */
 const apiCache = new Map<string, { data: any; timestamp: number; ttl: number }>();
 
-interface CacheOptions<T> {
+interface CacheOptions {
   key: string;
   ttl?: number; // milliseconds
   forceRefresh?: boolean;
@@ -254,8 +254,8 @@ interface CacheOptions<T> {
 
 export const executeApiWithCache = async <T>(
   apiCall: () => Promise<ApiResponse<T>>,
-  cacheOptions: CacheOptions<T>,
-  apiOptions: ApiCallOptions<T> = {}
+  cacheOptions: CacheOptions,
+  apiOptions: ApiCallOptions = {}
 ): Promise<T | null> => {
   const { key, ttl = 5 * 60 * 1000, forceRefresh = false } = cacheOptions;
 

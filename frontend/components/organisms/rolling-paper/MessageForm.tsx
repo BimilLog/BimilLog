@@ -23,10 +23,9 @@ interface MessageFormProps {
   onError?: (message: string) => void;
 }
 
-export const MessageForm = React.memo<MessageFormProps>(({ 
-  onSubmit, 
-  onSuccess, 
-  onError 
+export const MessageForm = React.memo<MessageFormProps>(({
+  onSubmit,
+  onError
 }) => {
   const {
     register,
