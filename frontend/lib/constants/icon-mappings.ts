@@ -1,145 +1,160 @@
 import {
-  // 과일 관련 아이콘
-  Apple, Cherry,
   // 음료 관련 아이콘
   Coffee, Wine, Beer, CupSoda,
   // 음식 관련 아이콘
-  Cake, Pizza, Fish, Soup, Egg, Cookie, Beef,
-  // 동물 관련 아이콘
-  Cat, Dog, Bird, PawPrint,
+  Cake, Pizza, Fish, Soup, Egg, Cookie, Beef, Sandwich, Drumstick, Utensils,
   // 자연 관련 아이콘
   Star, Sun, Moon, Mountain, Flower, Flower2, Leaf, Trees,
-  Sparkles, Droplet, Waves, TreePalm,
-  // 몬스터/판타지 관련 아이콘
-  Skull, Flame, Ghost, Eye, Zap,
-  // 기본 모양 아이콘
-  Circle, Package, Utensils, Shield, Snowflake, GlassWater,
+  Sparkles, Droplet, Waves,
   // 기타 아이콘
-  Baby, HelpCircle, Rabbit, Bug, Footprints, Milk, Sandwich,
-  Drumstick,
+  Baby, HelpCircle, Milk, Snowflake,
   type LucideIcon
 } from 'lucide-react';
 import { DecoType } from '@/types/domains/paper';
 
 export interface IconMapping {
-  icon: LucideIcon;
+  icon?: LucideIcon;
+  emoji?: string;
   color: string;
   bgColor?: string;
+  isEmoji?: boolean;
 }
 
 export const decoIconMappings: Record<DecoType, IconMapping> = {
   // 과일류
-  POTATO: { 
-    icon: Circle, 
+  POTATO: {
+    emoji: '🥔',
     color: 'text-yellow-700',
-    bgColor: 'bg-yellow-100'
+    bgColor: 'bg-yellow-100',
+    isEmoji: true
   },
-  CARROT: { 
-    icon: Package, // Carrot 아이콘이 없으므로 대체
+  CARROT: {
+    emoji: '🥕',
     color: 'text-orange-600',
-    bgColor: 'bg-orange-100'
+    bgColor: 'bg-orange-100',
+    isEmoji: true
   },
-  CABBAGE: { 
-    icon: Flower2, 
+  CABBAGE: {
+    emoji: '🥬',
     color: 'text-green-600',
-    bgColor: 'bg-green-100'
+    bgColor: 'bg-green-100',
+    isEmoji: true
   },
-  TOMATO: { 
-    icon: Apple, 
+  TOMATO: {
+    emoji: '🍅',
     color: 'text-red-600',
-    bgColor: 'bg-red-100'
+    bgColor: 'bg-red-100',
+    isEmoji: true
   },
-  STRAWBERRY: { 
-    icon: Cherry, 
+  STRAWBERRY: {
+    emoji: '🍓',
     color: 'text-pink-600',
-    bgColor: 'bg-pink-100'
+    bgColor: 'bg-pink-100',
+    isEmoji: true
   },
-  WATERMELON: { 
-    icon: Circle, 
+  WATERMELON: {
+    emoji: '🍉',
     color: 'text-green-600',
-    bgColor: 'bg-green-100'
+    bgColor: 'bg-green-100',
+    isEmoji: true
   },
-  PUMPKIN: { 
-    icon: Circle, 
+  PUMPKIN: {
+    emoji: '🎃',
     color: 'text-orange-600',
-    bgColor: 'bg-orange-100'
+    bgColor: 'bg-orange-100',
+    isEmoji: true
   },
-  APPLE: { 
-    icon: Apple, 
+  APPLE: {
+    emoji: '🍎',
     color: 'text-red-600',
-    bgColor: 'bg-red-100'
+    bgColor: 'bg-red-100',
+    isEmoji: true
   },
-  GRAPE: { 
-    icon: Cherry, // Grape 아이콘 대체
+  GRAPE: {
+    emoji: '🍇',
     color: 'text-purple-600',
-    bgColor: 'bg-purple-100'
+    bgColor: 'bg-purple-100',
+    isEmoji: true
   },
-  BANANA: { 
-    icon: Package, 
+  BANANA: {
+    emoji: '🍌',
     color: 'text-yellow-600',
-    bgColor: 'bg-yellow-100'
+    bgColor: 'bg-yellow-100',
+    isEmoji: true
   },
-  BLUEBERRY: { 
-    icon: Cherry, 
+  BLUEBERRY: {
+    emoji: '🫐',
     color: 'text-blue-600',
-    bgColor: 'bg-blue-100'
+    bgColor: 'bg-blue-100',
+    isEmoji: true
   },
 
   // 이상한 몬스터류
-  GOBLIN: { 
-    icon: Skull, 
+  GOBLIN: {
+    emoji: '👺',
     color: 'text-green-600',
-    bgColor: 'bg-green-100'
+    bgColor: 'bg-green-100',
+    isEmoji: true
   },
-  SLIME: { 
-    icon: Circle, 
+  SLIME: {
+    emoji: '💧',
     color: 'text-blue-600',
-    bgColor: 'bg-blue-100'
+    bgColor: 'bg-blue-100',
+    isEmoji: true
   },
-  ORC: { 
-    icon: Shield, 
+  ORC: {
+    emoji: '👹',
     color: 'text-gray-600',
-    bgColor: 'bg-gray-100'
+    bgColor: 'bg-gray-100',
+    isEmoji: true
   },
-  DRAGON: { 
-    icon: Flame, 
+  DRAGON: {
+    emoji: '🐉',
     color: 'text-red-600',
-    bgColor: 'bg-red-100'
+    bgColor: 'bg-red-100',
+    isEmoji: true
   },
-  PHOENIX: { 
-    icon: Flame, 
+  PHOENIX: {
+    emoji: '🔥',
     color: 'text-orange-600',
-    bgColor: 'bg-orange-100'
+    bgColor: 'bg-orange-100',
+    isEmoji: true
   },
-  WEREWOLF: { 
-    icon: Dog, 
+  WEREWOLF: {
+    emoji: '🐺',
     color: 'text-gray-600',
-    bgColor: 'bg-gray-100'
+    bgColor: 'bg-gray-100',
+    isEmoji: true
   },
-  ZOMBIE: { 
-    icon: Ghost, 
+  ZOMBIE: {
+    emoji: '🧟',
     color: 'text-gray-600',
-    bgColor: 'bg-gray-100'
+    bgColor: 'bg-gray-100',
+    isEmoji: true
   },
-  KRAKEN: { 
-    icon: Waves, 
+  KRAKEN: {
+    emoji: '🐙',
     color: 'text-blue-600',
-    bgColor: 'bg-blue-100'
+    bgColor: 'bg-blue-100',
+    isEmoji: true
   },
-  CYCLOPS: { 
-    icon: Eye, 
+  CYCLOPS: {
+    emoji: '👁️',
     color: 'text-purple-600',
-    bgColor: 'bg-purple-100'
+    bgColor: 'bg-purple-100',
+    isEmoji: true
   },
-  DEVIL: { 
-    icon: Zap, 
+  DEVIL: {
+    emoji: '😈',
     color: 'text-red-600',
-    bgColor: 'bg-red-100'
+    bgColor: 'bg-red-100',
+    isEmoji: true
   },
-  ANGEL: { 
-    icon: Sparkles, 
+  ANGEL: {
+    emoji: '👼',
     color: 'text-yellow-600',
-    bgColor: 'bg-yellow-100'
+    bgColor: 'bg-yellow-100',
+    isEmoji: true
   },
 
   // 음료류
@@ -158,10 +173,11 @@ export const decoIconMappings: Record<DecoType, IconMapping> = {
     color: 'text-purple-700',
     bgColor: 'bg-purple-100'
   },
-  SOJU: { 
-    icon: GlassWater, 
+  SOJU: {
+    emoji: '🍶',
     color: 'text-blue-600',
-    bgColor: 'bg-blue-100'
+    bgColor: 'bg-blue-100',
+    isEmoji: true
   },
   BEER: { 
     icon: Beer, 
@@ -195,10 +211,11 @@ export const decoIconMappings: Record<DecoType, IconMapping> = {
   },
 
   // 음식류
-  BREAD: { 
-    icon: Package, 
+  BREAD: {
+    emoji: '🍞',
     color: 'text-amber-700',
-    bgColor: 'bg-amber-100'
+    bgColor: 'bg-amber-100',
+    isEmoji: true
   },
   BURGER: { 
     icon: Sandwich, 
@@ -240,35 +257,40 @@ export const decoIconMappings: Record<DecoType, IconMapping> = {
     color: 'text-red-600',
     bgColor: 'bg-red-100'
   },
-  KIMBAP: { 
-    icon: Package, 
+  KIMBAP: {
+    emoji: '🍙',
     color: 'text-green-600',
-    bgColor: 'bg-green-100'
+    bgColor: 'bg-green-100',
+    isEmoji: true
   },
-  SUNDAE: { 
-    icon: Sandwich, 
+  SUNDAE: {
+    emoji: '🌭',
     color: 'text-gray-600',
-    bgColor: 'bg-gray-100'
+    bgColor: 'bg-gray-100',
+    isEmoji: true
   },
-  MANDU: { 
-    icon: Cookie, 
+  MANDU: {
+    emoji: '🥟',
     color: 'text-gray-600',
-    bgColor: 'bg-gray-100'
+    bgColor: 'bg-gray-100',
+    isEmoji: true
   },
   SAMGYEOPSAL: { 
     icon: Beef, 
     color: 'text-pink-600',
     bgColor: 'bg-pink-100'
   },
-  FROZENFISH: { 
-    icon: Fish, 
+  FROZENFISH: {
+    emoji: '🐟',
     color: 'text-blue-600',
-    bgColor: 'bg-blue-100'
+    bgColor: 'bg-blue-100',
+    isEmoji: true
   },
-  HOTTEOK: { 
-    icon: Cookie, 
+  HOTTEOK: {
+    emoji: '🥞',
     color: 'text-brown-600',
-    bgColor: 'bg-yellow-100'
+    bgColor: 'bg-yellow-100',
+    isEmoji: true
   },
   COOKIE: { 
     icon: Cookie, 
@@ -282,90 +304,107 @@ export const decoIconMappings: Record<DecoType, IconMapping> = {
   },
 
   // 동물류
-  CAT: { 
-    icon: Cat, 
+  CAT: {
+    emoji: '🐱',
     color: 'text-gray-600',
-    bgColor: 'bg-gray-100'
+    bgColor: 'bg-gray-100',
+    isEmoji: true
   },
-  DOG: { 
-    icon: Dog, 
+  DOG: {
+    emoji: '🐶',
     color: 'text-yellow-700',
-    bgColor: 'bg-yellow-100'
+    bgColor: 'bg-yellow-100',
+    isEmoji: true
   },
-  RABBIT: { 
-    icon: Rabbit, 
+  RABBIT: {
+    emoji: '🐰',
     color: 'text-pink-600',
-    bgColor: 'bg-pink-100'
+    bgColor: 'bg-pink-100',
+    isEmoji: true
   },
-  FOX: { 
-    icon: Dog, 
+  FOX: {
+    emoji: '🦊',
     color: 'text-orange-600',
-    bgColor: 'bg-orange-100'
+    bgColor: 'bg-orange-100',
+    isEmoji: true
   },
-  TIGER: { 
-    icon: Cat, 
+  TIGER: {
+    emoji: '🐯',
     color: 'text-orange-600',
-    bgColor: 'bg-orange-100'
+    bgColor: 'bg-orange-100',
+    isEmoji: true
   },
-  PANDA: { 
-    icon: Circle, 
+  PANDA: {
+    emoji: '🐼',
     color: 'text-gray-600',
-    bgColor: 'bg-gray-100'
+    bgColor: 'bg-gray-100',
+    isEmoji: true
   },
-  LION: { 
-    icon: Cat, 
+  LION: {
+    emoji: '🦁',
     color: 'text-yellow-600',
-    bgColor: 'bg-yellow-100'
+    bgColor: 'bg-yellow-100',
+    isEmoji: true
   },
-  ELEPHANT: { 
-    icon: Footprints, 
+  ELEPHANT: {
+    emoji: '🐘',
     color: 'text-gray-600',
-    bgColor: 'bg-gray-100'
+    bgColor: 'bg-gray-100',
+    isEmoji: true
   },
-  SQUIRREL: { 
-    icon: Bug, // Squirrel 대체
+  SQUIRREL: {
+    emoji: '🐿️',
     color: 'text-brown-600',
-    bgColor: 'bg-yellow-100'
+    bgColor: 'bg-yellow-100',
+    isEmoji: true
   },
-  HEDGEHOG: { 
-    icon: Bug, 
+  HEDGEHOG: {
+    emoji: '🦔',
     color: 'text-brown-600',
-    bgColor: 'bg-yellow-100'
+    bgColor: 'bg-yellow-100',
+    isEmoji: true
   },
-  CRANE: { 
-    icon: Bird, 
+  CRANE: {
+    emoji: '🦜',
     color: 'text-gray-600',
-    bgColor: 'bg-gray-100'
+    bgColor: 'bg-gray-100',
+    isEmoji: true
   },
-  SPARROW: { 
-    icon: Bird, 
+  SPARROW: {
+    emoji: '🐦',
     color: 'text-brown-600',
-    bgColor: 'bg-yellow-100'
+    bgColor: 'bg-yellow-100',
+    isEmoji: true
   },
-  CHIPMUNK: { 
-    icon: Bug, 
+  CHIPMUNK: {
+    emoji: '🐿️',
     color: 'text-gray-600',
-    bgColor: 'bg-gray-100'
+    bgColor: 'bg-gray-100',
+    isEmoji: true
   },
-  GIRAFFE: { 
-    icon: TreePalm, 
+  GIRAFFE: {
+    emoji: '🦒',
     color: 'text-yellow-600',
-    bgColor: 'bg-yellow-100'
+    bgColor: 'bg-yellow-100',
+    isEmoji: true
   },
-  HIPPO: { 
-    icon: Circle, // Hippo 대체
+  HIPPO: {
+    emoji: '🦛',
     color: 'text-gray-600',
-    bgColor: 'bg-gray-100'
+    bgColor: 'bg-gray-100',
+    isEmoji: true
   },
-  POLARBEAR: { 
-    icon: PawPrint, 
+  POLARBEAR: {
+    emoji: '🐻‍❄️',
     color: 'text-blue-600',
-    bgColor: 'bg-blue-100'
+    bgColor: 'bg-blue-100',
+    isEmoji: true
   },
-  BEAR: { 
-    icon: PawPrint, 
+  BEAR: {
+    emoji: '🐻',
     color: 'text-brown-600',
-    bgColor: 'bg-yellow-100'
+    bgColor: 'bg-yellow-100',
+    isEmoji: true
   },
 
   // 자연류
@@ -446,10 +485,11 @@ export const decoIconMappings: Record<DecoType, IconMapping> = {
     color: 'text-pink-600',
     bgColor: 'bg-pink-100'
   },
-  BALLOON: { 
-    icon: Circle, 
+  BALLOON: {
+    emoji: '🎈',
     color: 'text-red-600',
-    bgColor: 'bg-red-100'
+    bgColor: 'bg-red-100',
+    isEmoji: true
   },
   SNOWMAN: { 
     icon: Snowflake, 
@@ -461,10 +501,11 @@ export const decoIconMappings: Record<DecoType, IconMapping> = {
     color: 'text-pink-600',
     bgColor: 'bg-pink-100'
   },
-  BUBBLE: { 
-    icon: Circle, 
+  BUBBLE: {
+    emoji: '🫧',
     color: 'text-blue-400',
-    bgColor: 'bg-blue-100'
+    bgColor: 'bg-blue-100',
+    isEmoji: true
   }
 };
 

@@ -432,3 +432,19 @@
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
   }
 }
+
+/* 이모지 폰트 스타일링 */
+@layer utilities {
+  .font-emoji {
+    font-family: 'Segoe UI Emoji', 'Apple Color Emoji', 'Noto Color Emoji',
+                 'Android Emoji', 'EmojiOne Color', 'Twemoji Mozilla',
+                 system-ui, -apple-system, sans-serif;
+    font-weight: normal;
+    font-style: normal;
+    line-height: 1;
+    vertical-align: middle;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+}
