@@ -8,7 +8,13 @@ import { paperQuery } from '@/lib/api';
 export const useRollingPaper = (userName: string, enabled: boolean = true) => {
   return useQuery({
     queryKey: queryKeys.paper.detail(userName),
-    queryFn: () => paperQuery.getByUserName(userName),
+    queryFn: async () => {
+      const response = await paperQuery.getByUserName(userName);
+      if (!response.success) {
+        throw new Error(response.error || '롤링페이퍼를 불러올 수 없습니다');
+      }
+      return response;
+    },
     enabled: !!userName && enabled,
     staleTime: 5 * 60 * 1000, // 5분
     gcTime: 10 * 60 * 1000, // 10분

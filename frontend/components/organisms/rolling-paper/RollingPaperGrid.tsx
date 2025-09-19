@@ -1,14 +1,8 @@
 "use client";
 
-import React, { useMemo, memo, useCallback } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components";
-import { Plus, ChevronLeft, ChevronRight, Waves, Sparkles, Mail } from "lucide-react";
+import React, { useMemo, memo, useCallback, useState } from "react";
+import { Modal, ModalBody, ModalHeader } from "flowbite-react";
+import { Plus, ChevronLeft, ChevronRight, Sparkles, Mail, MessageSquare } from "lucide-react";
 import { getDecoInfo } from "@/lib/api";
 import type { RollingPaperMessage, VisitMessage } from "@/types/domains/paper";
 import { MessageForm } from "@/components/organisms/rolling-paper/MessageForm";
@@ -60,6 +54,10 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
   onRefresh,
   className = "",
 }) => {
+  // 모달 상태 관리
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedCell, setSelectedCell] = useState<{ x: number; y: number } | null>(null);
+
   // 페이지 네비게이션 핸들러 최적화
   const handlePreviousPage = useCallback(() => {
     setCurrentPage(Math.max(1, currentPage - 1));
@@ -85,7 +83,24 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
   // 메시지 제출 핸들러 최적화
   const handleMessageSubmit = useCallback((actualX: number, actualY: number, data: unknown) => {
     onMessageSubmit?.({ x: actualX, y: actualY }, data);
+    setModalOpen(false); // 제출 후 모달 닫기
   }, [onMessageSubmit]);
+
+  // 셀 클릭 핸들러
+  const handleCellClick = useCallback((actualX: number, actualY: number) => {
+    if (highlightedPosition && highlightedPosition.x === actualX && highlightedPosition.y === actualY) {
+      onHighlightClear?.();
+      return;
+    }
+
+    const messageAtPosition = getMessageAt(actualX, actualY);
+
+    // 소유자이고 메시지가 없으면 클릭 불가능
+    if (isOwner && !messageAtPosition) return;
+
+    setSelectedCell({ x: actualX, y: actualY });
+    setModalOpen(true);
+  }, [highlightedPosition, onHighlightClear, getMessageAt, isOwner]);
 
   return (
     <div className={`relative max-w-5xl mx-auto mb-6 md:mb-8 ${className}`}>
@@ -192,11 +207,10 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
                 highlightedPosition.y === actualY;
 
               return (
-                <Dialog key={`grid-cell-${actualX}-${actualY}`}>
-                  <DialogTrigger asChild>
-                    <div
-                      onClick={isHighlighted ? onHighlightClear : undefined}
-                      className={`
+                <div
+                  key={`grid-cell-${actualX}-${actualY}`}
+                  onClick={() => handleCellClick(actualX, actualY)}
+                  className={`
                         aspect-square rounded-lg md:rounded-xl border-2 md:border-3 flex items-center justify-center transition-all duration-300 relative
                         ${
                           isHighlighted // 하이라이트된 셀 (최근 작성 메시지 등)
@@ -242,54 +256,75 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
                           ></div>
                         </div>
                       )}
-                    </div>
-                  </DialogTrigger>
-                  {/* 모달: 메시지가 있거나 소유자가 아닌 경우만 표시 */}
-                  {(messageAtPosition || !isOwner) && (
-                    <DialogContent className="max-w-sm md:max-w-md mx-auto bg-gradient-to-br from-cyan-50 to-blue-50 border-2 md:border-4 border-cyan-200 rounded-2xl md:rounded-3xl">
-                      <DialogHeader>
-                        <DialogTitle className="text-center text-cyan-800 font-bold text-sm md:text-base flex items-center justify-center space-x-2">
-                          {messageAtPosition ? (
-                            <>
-                              <Mail className="w-4 h-4" />
-                              <span>메시지 보기</span>
-                            </>
-                          ) : (
-                            <>
-                              <Sparkles className="w-4 h-4" />
-                              <span>새 메시지 작성</span>
-                            </>
-                          )}
-                        </DialogTitle>
-                      </DialogHeader>
-                      {messageAtPosition ? ( // 기존 메시지 보기
-                        <MessageView
-                          message={messageAtPosition}
-                          isOwner={isOwner}
-                          onDelete={onRefresh}
-                          onDeleteSuccess={onSuccess}
-                          onDeleteError={onError}
-                        />
-                      ) : ( // 새 메시지 작성 폼
-                        onMessageSubmit && (
-                          <MessageForm
-                            nickname={nickname}
-                            position={{ x: actualX, y: actualY }} // 백엔드 좌표 전달
-                            onSubmit={(data) => handleMessageSubmit(actualX, actualY, data)}
-                            onSuccess={onSuccess}
-                            onError={onError}
-                          />
-                        )
-                      )}
-                    </DialogContent>
-                  )}
-                </Dialog>
+                </div>
               );
             })}
           </div>
         </div>
 
       </div>
+
+      {/* Flowbite Modal */}
+      {selectedCell && (
+        <Modal
+          show={modalOpen}
+          onClose={() => setModalOpen(false)}
+          dismissible
+          size="md"
+          className="modal-container"
+        >
+          <ModalHeader>
+            <div className="flex items-center space-x-2">
+              {getMessageAt(selectedCell.x, selectedCell.y) ? (
+                <>
+                  <Mail className="w-4 h-4 text-blue-500 fill-blue-500" />
+                  <span>메시지 보기</span>
+                </>
+              ) : (
+                <>
+                  <MessageSquare className="w-4 h-4 text-green-500 fill-green-500" />
+                  <span>메시지 작성</span>
+                </>
+              )}
+            </div>
+          </ModalHeader>
+
+          <ModalBody>
+            <div className="p-0">
+              {(() => {
+                const messageAtPosition = getMessageAt(selectedCell.x, selectedCell.y);
+                if (messageAtPosition) {
+                  // 기존 메시지 보기
+                  return (
+                    <MessageView
+                      message={messageAtPosition}
+                      isOwner={isOwner}
+                      onDelete={() => {
+                        onRefresh?.();
+                        setModalOpen(false);
+                      }}
+                      onDeleteSuccess={onSuccess}
+                      onDeleteError={onError}
+                    />
+                  );
+                } else if (!isOwner && onMessageSubmit) {
+                  // 새 메시지 작성 폼
+                  return (
+                    <MessageForm
+                      nickname={nickname}
+                      position={{ x: selectedCell.x, y: selectedCell.y }}
+                      onSubmit={(data) => handleMessageSubmit(selectedCell.x, selectedCell.y, data)}
+                      onSuccess={onSuccess}
+                      onError={onError}
+                    />
+                  );
+                }
+                return null;
+              })()}
+            </div>
+          </ModalBody>
+        </Modal>
+      )}
     </div>
   );
 });

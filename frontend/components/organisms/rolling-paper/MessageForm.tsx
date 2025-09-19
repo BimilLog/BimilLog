@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/molecules/select";
-import { Send, Snowflake, Waves, IceCream2 } from "lucide-react";
+import { Send, Snowflake, MessageSquare, IceCream2 } from "lucide-react";
 import { Spinner as FlowbiteSpinner } from "flowbite-react";
 import { getDecoInfo, decoTypeMap, type DecoType } from "@/lib/api";
 import { DecoIcon } from "@/components";
@@ -121,7 +121,7 @@ export const MessageForm = React.memo<MessageFormProps>(({
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-bold mb-2 text-cyan-800 flex items-center space-x-1">
-              <Snowflake className="w-4 h-4" />
+              <Snowflake className="w-4 h-4 text-blue-500 fill-blue-500" />
               <span>익명 닉네임</span>
             </label>
             {/* 익명 닉네임 입력: 1-8자 제한, 메시지 작성자 표시용 */}
@@ -156,11 +156,11 @@ export const MessageForm = React.memo<MessageFormProps>(({
 
           <div>
             <label className="block text-sm font-bold mb-2 text-cyan-800 flex items-center space-x-1">
-              <Waves className="w-4 h-4" />
-              <span>시원한 메시지</span>
+              <MessageSquare className="w-4 h-4 text-green-500 fill-green-500" />
+              <span>메시지</span>
             </label>
             <Textarea
-              placeholder="마음을 담은 시원한 메시지를 남겨주세요..."
+              placeholder="마음을 담은 메시지를 남겨주세요..."
               {...register("content", {
                 required: "메시지를 입력해주세요",
                 maxLength: {
@@ -190,7 +190,7 @@ export const MessageForm = React.memo<MessageFormProps>(({
 
           <div>
             <label className="block text-sm font-bold mb-2 text-cyan-800 flex items-center space-x-1">
-              <IceCream2 className="w-4 h-4" />
+              <IceCream2 className="w-4 h-4 text-pink-500 fill-pink-500" />
               <span>장식 선택</span>
             </label>
             {/* 장식 선택: setValue로 폼 상태 업데이트 (react-hook-form 방식) */}

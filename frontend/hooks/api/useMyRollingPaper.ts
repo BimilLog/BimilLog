@@ -13,7 +13,13 @@ export const useMyRollingPaper = (enabled: boolean = true) => {
 
   return useQuery({
     queryKey: queryKeys.paper.my,
-    queryFn: () => paperQuery.getMy(),
+    queryFn: async () => {
+      const response = await paperQuery.getMy();
+      if (!response.success) {
+        throw new Error(response.error || '롤링페이퍼를 불러올 수 없습니다');
+      }
+      return response;
+    },
     enabled: isAuthenticated && enabled,
     staleTime: 5 * 60 * 1000, // 5분
     gcTime: 10 * 60 * 1000, // 10분

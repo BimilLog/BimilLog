@@ -91,9 +91,9 @@ export class ApiClient {
         if (!requiresAuth && response.status === 401) {
           return { success: true, data: null }
         }
-        
+
         let errorMessage = `HTTP error! status: ${response.status}`
-        
+
         try {
           const errorData = await response.json()
 

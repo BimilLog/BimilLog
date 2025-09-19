@@ -24,6 +24,8 @@ export const RollingPaperContainer: React.FC<RollingPaperContainerProps> = ({
   const {
     messages,
     isLoading,
+    isError,
+    error,
     isOwner,
     refetch
   } = useRollingPaperData(nickname);
@@ -90,6 +92,34 @@ export const RollingPaperContainer: React.FC<RollingPaperContainerProps> = ({
           <p className="text-brand-muted font-medium">
             롤링페이퍼를 불러오는 중...
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  // 에러 상태 (존재하지 않는 사용자 등)
+  if (isError) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 flex items-center justify-center px-4">
+        <div className="text-center max-w-md">
+          <div className="w-16 h-16 bg-gradient-to-r from-red-500 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+            <MessageSquare className="w-9 h-9 text-white" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-3">
+            롤링페이퍼를 찾을 수 없습니다
+          </h2>
+          <p className="text-gray-600 mb-2">
+            <span className="font-semibold text-pink-600">{targetNickname}</span>님의 롤링페이퍼가 존재하지 않습니다.
+          </p>
+          <p className="text-sm text-gray-500 mb-6">
+            닉네임을 다시 확인해주세요.
+          </p>
+          <button
+            onClick={() => window.history.back()}
+            className="px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-xl font-medium hover:from-pink-600 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg active:scale-[0.98]"
+          >
+            돌아가기
+          </button>
         </div>
       </div>
     );
