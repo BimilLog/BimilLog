@@ -7,7 +7,6 @@ import { useRollingPaperActions } from "@/hooks/features/useRollingPaper";
 import { useRollingPaperGrid } from "@/hooks/features/useRollingPaperGrid";
 import { useToast } from "@/hooks";
 import { RollingPaperView } from "@/components/organisms/rolling-paper/RollingPaperView";
-import { gridPositionToDBIndex } from "@/lib/utils/rolling-paper";
 import type { RollingPaperMessage, VisitMessage, DecoType } from "@/types/domains/paper";
 
 interface RollingPaperContainerProps {
@@ -65,18 +64,17 @@ export const RollingPaperContainer: React.FC<RollingPaperContainerProps> = ({
     }
   }, [toggleMessageSelection]);
 
-  // 메시지 제출 핸들러 - UI 좌표를 DB 인덱스로 변환하여 저장
+  // 메시지 제출 핸들러 - 0-based 좌표 직접 전달
   const handleMessageSubmit = useCallback(async (position: { x: number; y: number }, data: unknown) => {
     // 타입 검증을 통해 필요한 필드들이 있는지 확인
-    if (data && typeof data === 'object' && 'content' in data && 'anonymity' in data && 'decoType' in data) {
-      const { rowIndex, colIndex } = gridPositionToDBIndex(position);
+    if (data && typeof data === 'object' && 'content' in data && 'anonymousNickname' in data && 'decoType' in data) {
       await handleCreateMessage({
         userName: targetNickname,
         content: data.content as string,
-        anonymity: data.anonymity as string,
+        anonymity: data.anonymousNickname as string,
         decoType: data.decoType as DecoType,
-        rowIndex,
-        colIndex
+        x: position.x,
+        y: position.y
       });
     }
   }, [handleCreateMessage, targetNickname]);
@@ -87,7 +85,7 @@ export const RollingPaperContainer: React.FC<RollingPaperContainerProps> = ({
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 flex items-center justify-center px-4">
         <div className="text-center">
           <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-            <MessageSquare className="w-7 h-7 text-white animate-pulse" />
+            <MessageSquare className="w-7 h-7 stroke-white fill-blue-200 animate-pulse" />
           </div>
           <p className="text-brand-muted font-medium">
             롤링페이퍼를 불러오는 중...
@@ -103,7 +101,7 @@ export const RollingPaperContainer: React.FC<RollingPaperContainerProps> = ({
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 flex items-center justify-center px-4">
         <div className="text-center max-w-md">
           <div className="w-16 h-16 bg-gradient-to-r from-red-500 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-            <MessageSquare className="w-9 h-9 text-white" />
+            <MessageSquare className="w-9 h-9 stroke-white fill-red-200" />
           </div>
           <h2 className="text-2xl font-bold text-gray-800 mb-3">
             롤링페이퍼를 찾을 수 없습니다
@@ -131,7 +129,7 @@ export const RollingPaperContainer: React.FC<RollingPaperContainerProps> = ({
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 flex items-center justify-center px-4">
         <div className="text-center">
           <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-pink-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-            <MessageSquare className="w-7 h-7 text-white" />
+            <MessageSquare className="w-7 h-7 stroke-white fill-gray-200" />
           </div>
           <p className="text-brand-muted font-medium">
             이 롤링페이퍼는 비공개입니다.

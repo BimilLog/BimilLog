@@ -101,7 +101,7 @@ export default function WritePostPage() {
                 </span>
               ) : (
                 <span className="flex items-center gap-1">
-                  <Save className="w-3.5 h-3.5" />
+                  <Save className="w-3.5 h-3.5 stroke-green-600 fill-green-100" />
                   {formatLastSaved}
                 </span>
               )}
@@ -129,7 +129,7 @@ export default function WritePostPage() {
               onClick={() => saveDraftManual(title, content)}
               className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
             >
-              <Save className="w-4 h-4 inline mr-1" />
+              <Save className="w-4 h-4 inline mr-1 stroke-green-600 fill-green-100" />
               수동 저장
             </button>
             {formatLastSaved && (

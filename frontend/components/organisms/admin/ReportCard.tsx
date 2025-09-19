@@ -47,7 +47,7 @@ export const ReportCard = React.memo<ReportCardProps>(({ report, onView }) => {
       </td>
       <td className="px-6 py-4">
         <div className="flex items-center gap-2">
-          <User className="w-4 h-4 text-brand-secondary" />
+          <User className="w-4 h-4 stroke-slate-600 fill-slate-100" />
           <span className="text-sm text-brand-primary">
             {report.reporterName || "익명"}
           </span>
@@ -58,7 +58,7 @@ export const ReportCard = React.memo<ReportCardProps>(({ report, onView }) => {
       </td>
       <td className="px-6 py-4">
         <div className="flex items-center gap-2">
-          <FileText className="w-4 h-4 text-brand-secondary" />
+          <FileText className="w-4 h-4 stroke-blue-600 fill-blue-100" />
           <span className="text-sm text-brand-muted line-clamp-2">
             {report.content}
           </span>
@@ -66,7 +66,7 @@ export const ReportCard = React.memo<ReportCardProps>(({ report, onView }) => {
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
         <div className="flex items-center gap-2 text-sm text-brand-secondary">
-          <Calendar className="w-4 h-4" />
+          <Calendar className="w-4 h-4 stroke-indigo-600 fill-indigo-100" />
           {new Date(report.createdAt).toLocaleDateString('ko-KR')}
         </div>
       </td>
@@ -77,7 +77,7 @@ export const ReportCard = React.memo<ReportCardProps>(({ report, onView }) => {
           onClick={onView}
           className="text-purple-600 hover:text-purple-700 hover:bg-purple-50"
         >
-          <Eye className="w-4 h-4 mr-1" />
+          <Eye className="w-4 h-4 mr-1 stroke-purple-600 fill-purple-100" />
           상세보기
         </Button>
       </td>

@@ -35,7 +35,7 @@ export const RollingPaperHeader: React.FC<RollingPaperHeaderProps> = React.memo(
           <div className="hidden md:flex items-center justify-between">
             <div className="flex items-center space-x-2 flex-1 min-w-0">
               <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center">
-                <MessageSquare className="w-5 h-5 text-white" />
+                <MessageSquare className="w-5 h-5 stroke-white fill-green-200" />
               </div>
               <div className="min-w-0 flex-1">
                 <h1 className="font-bold text-gray-900 text-base truncate">
@@ -51,7 +51,7 @@ export const RollingPaperHeader: React.FC<RollingPaperHeaderProps> = React.memo(
                   size="sm"
                   className="text-xs"
                 >
-                  <List className="w-4 h-4 mr-1" />
+                  <List className="w-4 h-4 mr-1 stroke-slate-600 fill-slate-100" />
                   메시지 목록 보기
                 </Button>
               )}
@@ -80,7 +80,7 @@ export const RollingPaperHeader: React.FC<RollingPaperHeaderProps> = React.memo(
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2 flex-1 min-w-0">
                 <div className="w-7 h-7 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center">
-                  <MessageSquare className="w-4 h-4 text-white" />
+                  <MessageSquare className="w-4 h-4 stroke-white fill-green-200" />
                 </div>
                 <h1 className="font-bold text-gray-900 text-sm truncate">
                   {nickname}님의 롤링페이퍼
@@ -94,7 +94,7 @@ export const RollingPaperHeader: React.FC<RollingPaperHeaderProps> = React.memo(
                     size="sm"
                     className="px-2 py-1 text-xs h-7"
                   >
-                    <List className="w-3 h-3 mr-1" />
+                    <List className="w-3 h-3 mr-1 stroke-slate-600 fill-slate-100" />
                     목록
                   </Button>
                 )}

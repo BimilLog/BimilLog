@@ -8,7 +8,7 @@ export const AdminHeader: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-3">
-            <Shield className="w-6 h-6 text-gradient bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600" />
+            <Shield className="w-6 h-6 stroke-purple-600 fill-purple-100" />
             <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
               관리자 대시보드
             </h1>

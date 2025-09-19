@@ -120,7 +120,7 @@ export const HomeFooter: React.FC = () => {
               rel="noopener noreferrer"
               className="hover:bg-gray-100 rounded-lg p-2"
             >
-              <Github className="w-5 h-5 text-gray-500 hover:text-gray-900 transition-colors" />
+              <Github className="w-5 h-5 stroke-gray-800 fill-gray-100 hover:stroke-gray-900 hover:fill-gray-200 transition-colors" />
             </a>
             <a
               href="https://jaeiktech.tistory.com"
@@ -128,7 +128,7 @@ export const HomeFooter: React.FC = () => {
               rel="noopener noreferrer"
               className="hover:bg-gray-100 rounded-lg p-2"
             >
-              <Contact className="w-5 h-5 text-gray-500 hover:text-gray-900 transition-colors" />
+              <Contact className="w-5 h-5 stroke-slate-600 fill-slate-100 hover:stroke-slate-900 hover:fill-slate-200 transition-colors" />
             </a>
           </div>
         </div>

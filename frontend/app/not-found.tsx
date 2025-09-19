@@ -84,7 +84,7 @@ export default function NotFoundPage() {
           <div className="space-y-3">
             <Button asChild size="lg" className="w-full">
               <Link href="/">
-                <Home className="w-5 h-5 mr-2" />
+                <Home className="w-5 h-5 mr-2 stroke-indigo-600 fill-indigo-100" />
                 홈으로 돌아가기
               </Link>
             </Button>
@@ -92,14 +92,14 @@ export default function NotFoundPage() {
             <div className="grid grid-cols-2 gap-3">
               <Button asChild variant="outline" size="lg">
                 <Link href="/board">
-                  <Search className="w-4 h-4 mr-2" />
+                  <Search className="w-4 h-4 mr-2 stroke-slate-600" />
                   게시판
                 </Link>
               </Button>
 
               <Button asChild variant="outline" size="lg">
                 <Link href="/visit">
-                  <Heart className="w-4 h-4 mr-2" />
+                  <Heart className="w-4 h-4 mr-2 stroke-red-500 fill-red-100" />
                   롤링페이퍼
                 </Link>
               </Button>
@@ -110,7 +110,7 @@ export default function NotFoundPage() {
               size="lg"
               className="w-full"
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
+              <ArrowLeft className="w-4 h-4 mr-2 stroke-slate-600" />
               이전 페이지로
             </BackButton>
           </div>

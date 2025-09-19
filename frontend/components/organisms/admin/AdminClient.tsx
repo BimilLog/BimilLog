@@ -93,7 +93,7 @@ export function AdminClient() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-brand-primary flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
-              <AlertTriangle className="w-6 h-6 text-white" />
+              <AlertTriangle className="w-6 h-6 stroke-white fill-amber-500" />
             </div>
             관리자 대시보드
           </h1>
@@ -110,11 +110,11 @@ export function AdminClient() {
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full max-w-md grid-cols-2">
               <TabsTrigger value="reports" className="flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4" />
+                <AlertTriangle className="w-4 h-4 stroke-amber-600 fill-amber-100" />
                 신고 관리
               </TabsTrigger>
               <TabsTrigger value="stats" className="flex items-center gap-2">
-                <TrendingUp className="w-4 h-4" />
+                <TrendingUp className="w-4 h-4 stroke-green-600 fill-green-100" />
                 상세 통계
               </TabsTrigger>
             </TabsList>
@@ -132,7 +132,7 @@ export function AdminClient() {
             <TabsContent value="stats" className="mt-6">
               <div className="bg-white rounded-xl shadow-brand-sm border border-gray-100 p-8">
                 <div className="text-center text-brand-secondary">
-                  <TrendingUp className="w-12 h-12 mx-auto mb-4 text-brand-muted" />
+                  <TrendingUp className="w-12 h-12 mx-auto mb-4 stroke-gray-400 fill-gray-100" />
                   <p>상세 통계 기능은 준비 중입니다</p>
                 </div>
               </div>

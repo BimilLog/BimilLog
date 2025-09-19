@@ -56,7 +56,7 @@ export const WriteForm: React.FC<WriteFormProps> = ({
     <Card variant="elevated">
       <CardHeader>
         <CardTitle className="flex items-center space-x-2">
-          <Save className="w-5 h-5 text-purple-600" />
+          <Save className="w-5 h-5 stroke-green-600 fill-green-100" />
           <span>게시글 작성</span>
         </CardTitle>
       </CardHeader>
@@ -91,7 +91,7 @@ export const WriteForm: React.FC<WriteFormProps> = ({
               </Label>
               <LazyEditor value={content} onChange={setContent} />
               <p className="text-xs text-brand-secondary flex items-center space-x-1">
-                <Lightbulb className="w-3 h-3" />
+                <Lightbulb className="w-3 h-3 stroke-indigo-600 fill-indigo-100" />
                 <span>다양한 스타일로 내용을 꾸며보세요.</span>
               </p>
             </div>

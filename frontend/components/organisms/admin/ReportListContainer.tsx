@@ -74,7 +74,7 @@ const ReportListContainerComponent: React.FC<ReportListContainerProps> = ({
     <Card className="p-12 text-center">
       <div className="flex flex-col items-center gap-4">
         <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
-          <AlertTriangle className="w-8 h-8 text-brand-secondary" />
+          <AlertTriangle className="w-8 h-8 stroke-amber-600 fill-amber-100" />
         </div>
         <div>
           <h3 className="text-lg font-medium text-brand-primary mb-1">
@@ -100,7 +100,7 @@ const ReportListContainerComponent: React.FC<ReportListContainerProps> = ({
           <div className="space-y-4">
             {/* 검색바 */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-brand-secondary" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 stroke-slate-600" />
               <Input
                 type="text"
                 placeholder="신고 ID, 사용자명, 신고 사유로 검색..."
@@ -118,10 +118,10 @@ const ReportListContainerComponent: React.FC<ReportListContainerProps> = ({
               className="sm:hidden w-full flex items-center justify-between"
             >
               <span className="flex items-center gap-2">
-                <Filter className="w-4 h-4" />
+                <Filter className="w-4 h-4 stroke-slate-600" />
                 필터 옵션
               </span>
-              <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-4 h-4 transition-transform stroke-slate-600 ${showFilters ? 'rotate-180' : ''}`} />
             </Button>
 
             {/* 필터 옵션 */}

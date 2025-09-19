@@ -52,14 +52,12 @@ export function useRollingPaperGrid({
     return calculateTotalPages(isMobile);
   }, [isMobile]);
 
-  // 특정 위치의 메시지 가져오기 (1-based 좌표)
+  // 특정 위치의 메시지 가져오기 (0-based 좌표)
   const getMessageAt = useCallback(
     (x: number, y: number): RollingPaperMessage | VisitMessage | null => {
-      const rowIndex = y - 1; // y 좌표를 행 인덱스로 변환
-      const colIndex = x - 1; // x 좌표를 열 인덱스로 변환
-
-      if (gridData[rowIndex] && gridData[rowIndex][colIndex]) {
-        return gridData[rowIndex][colIndex];
+      // 이미 0-based이므로 그대로 사용
+      if (gridData[y] && gridData[y][x]) {
+        return gridData[y][x];
       }
       return null;
     },

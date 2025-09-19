@@ -67,7 +67,7 @@ export const CommentList = React.memo<CommentListProps>(({
     <Card variant="elevated">
       <CardHeader>
         <CardTitle className="flex items-center space-x-2">
-          <MessageSquare className="w-5 h-5" />
+          <MessageSquare className="w-5 h-5 stroke-blue-600 fill-blue-100" />
           <span>댓글 {commentCount}개</span>
         </CardTitle>
       </CardHeader>

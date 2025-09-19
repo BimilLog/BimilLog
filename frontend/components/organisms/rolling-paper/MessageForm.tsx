@@ -3,15 +3,8 @@
 import React from "react";
 import { useForm } from "react-hook-form";
 import { Button, Input, Textarea } from "@/components";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from "@/components/molecules/select";
-import { Send, Snowflake, MessageSquare, IceCream2 } from "lucide-react";
-import { Spinner as FlowbiteSpinner } from "flowbite-react";
+import { Send, Snowflake, MessageSquare, IceCream2, ChevronDown } from "lucide-react";
+import { Spinner as FlowbiteSpinner, Dropdown, DropdownItem } from "flowbite-react";
 import { getDecoInfo, decoTypeMap, type DecoType } from "@/lib/api";
 import { DecoIcon } from "@/components";
 import { logger } from '@/lib/utils/logger';
@@ -121,7 +114,7 @@ export const MessageForm = React.memo<MessageFormProps>(({
         <div className="space-y-4">
           <div>
             <label className="block text-sm font-bold mb-2 text-cyan-800 flex items-center space-x-1">
-              <Snowflake className="w-4 h-4 text-blue-500 fill-blue-500" />
+              <Snowflake className="w-4 h-4 stroke-blue-500 fill-blue-200" />
               <span>익명 닉네임</span>
             </label>
             {/* 익명 닉네임 입력: 1-8자 제한, 메시지 작성자 표시용 */}
@@ -156,7 +149,7 @@ export const MessageForm = React.memo<MessageFormProps>(({
 
           <div>
             <label className="block text-sm font-bold mb-2 text-cyan-800 flex items-center space-x-1">
-              <MessageSquare className="w-4 h-4 text-green-500 fill-green-500" />
+              <MessageSquare className="w-4 h-4 stroke-green-500 fill-green-200" />
               <span>메시지</span>
             </label>
             <Textarea
@@ -190,40 +183,42 @@ export const MessageForm = React.memo<MessageFormProps>(({
 
           <div>
             <label className="block text-sm font-bold mb-2 text-cyan-800 flex items-center space-x-1">
-              <IceCream2 className="w-4 h-4 text-pink-500 fill-pink-500" />
+              <IceCream2 className="w-4 h-4 stroke-pink-500 fill-pink-200" />
               <span>장식 선택</span>
             </label>
-            {/* 장식 선택: setValue로 폼 상태 업데이트 (react-hook-form 방식) */}
-            <Select
-              value={decoType}
-              onValueChange={(value) => setValue("decoType", value)}
-            >
-              <SelectTrigger className="bg-white/80 border-cyan-200 font-medium">
-                <SelectValue>
+            {/* 장식 선택: Flowbite Dropdown 사용 */}
+            <Dropdown
+              label=""
+              dismissOnClick={true}
+              renderTrigger={() => (
+                <button
+                  type="button"
+                  className="flex w-full items-center justify-between gap-2 rounded-md border bg-white/80 border-cyan-200 px-3 py-2 text-sm font-medium shadow-xs transition-all hover:bg-white/90 focus:outline-none focus:ring-2 focus:ring-cyan-400/50"
+                >
                   <div className="flex items-center space-x-2">
                     <DecoIcon decoType={decoType as DecoType} size="md" showBackground={false} />
                     <span className="font-semibold">
                       {selectedDecoInfo.name}
                     </span>
                   </div>
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent className="bg-white border-cyan-200">
-                {/* 모든 데코 타입 옵션을 아이콘과 함께 표시 */}
-                {decoOptions.map((d) => (
-                  <SelectItem
-                    key={d.value}
-                    value={d.value}
-                    className="font-medium"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <DecoIcon decoType={d.value as DecoType} size="md" showBackground={false} />
-                      <span>{d.info.name}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                  <ChevronDown className="w-4 h-4 opacity-50" />
+                </button>
+              )}
+            >
+              {/* 모든 데코 타입 옵션을 아이콘과 함께 표시 */}
+              {decoOptions.map((d) => (
+                <DropdownItem
+                  key={d.value}
+                  onClick={() => setValue("decoType", d.value)}
+                  className="font-medium"
+                >
+                  <div className="flex items-center space-x-2">
+                    <DecoIcon decoType={d.value as DecoType} size="md" showBackground={false} />
+                    <span>{d.info.name}</span>
+                  </div>
+                </DropdownItem>
+              ))}
+            </Dropdown>
           </div>
 
           <Button

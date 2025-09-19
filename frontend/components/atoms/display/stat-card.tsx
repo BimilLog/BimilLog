@@ -44,7 +44,7 @@ export const StatCard = React.memo<StatCardProps>(({
       </div>
 
       <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        <TrendingUp className="w-4 h-4 text-brand-secondary" />
+        <TrendingUp className="w-4 h-4 stroke-green-600 fill-green-100" />
       </div>
     </CardContent>
   </Card>

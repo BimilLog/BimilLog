@@ -115,8 +115,27 @@ export const EmptyState = React.memo<EmptyStateProps>(({
     showRetry || (defaults as { showRetry?: boolean }).showRetry || false;
 
   const IconComponent = iconMap[type];
-  const icon =
-    customIcon || (IconComponent && <IconComponent className="w-6 h-6" />);
+  const getIconWithColors = () => {
+    if (customIcon) return customIcon;
+    if (!IconComponent) return null;
+
+    const colorClasses = {
+      posts: "stroke-indigo-600 fill-indigo-100",
+      comments: "stroke-green-600 fill-green-100",
+      "liked-posts": "stroke-red-500 fill-red-100",
+      "liked-comments": "stroke-blue-500 fill-blue-100",
+      messages: "stroke-red-500 fill-red-100",
+      search: "stroke-purple-600 fill-purple-100",
+      error: "stroke-red-600 fill-red-100",
+      offline: "stroke-blue-600 fill-blue-100",
+      custom: "stroke-purple-600 fill-purple-100"
+    };
+
+    const colorClass = colorClasses[type] || colorClasses.custom;
+    return <IconComponent className={`w-6 h-6 ${colorClass}`} />;
+  };
+
+  const icon = getIconWithColors();
 
   // 장식용 이모지들
   const decorativeEmojis = {
@@ -188,7 +207,7 @@ export const EmptyState = React.memo<EmptyStateProps>(({
               onClick={onRetry}
               className="flex items-center justify-center min-h-touch"
             >
-              <RefreshCw className="w-4 h-4 mr-2" />
+              <RefreshCw className="w-4 h-4 mr-2 stroke-slate-600" />
               다시 시도
             </Button>
           )}
@@ -253,7 +272,7 @@ export const EmptyState = React.memo<EmptyStateProps>(({
             onClick={onRetry}
             className="flex items-center justify-center min-h-touch"
           >
-            <RefreshCw className="w-4 h-4 mr-2" />
+            <RefreshCw className="w-4 h-4 mr-2 stroke-slate-600" />
             다시 시도
           </Button>
         )}

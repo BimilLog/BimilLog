@@ -153,7 +153,7 @@ const BadgeCard = React.memo(({ badge, isUnlocked, progress = 0, onClick }: Badg
             </div>
             {!isUnlocked && (
               <div className="absolute inset-0 rounded-full bg-gray-900/20 flex items-center justify-center">
-                <Lock className="w-4 h-4 text-white" />
+                <Lock className="w-4 h-4 stroke-white fill-white" />
               </div>
             )}
           </div>
@@ -211,7 +211,7 @@ export const ProfileBadges = React.memo(() => {
     return (
       <div className="space-y-4">
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Trophy className="w-5 h-5" />
+          <Trophy className="w-5 h-5 stroke-yellow-500 fill-yellow-100" />
           프로필 뱃지
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -233,7 +233,7 @@ export const ProfileBadges = React.memo(() => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold flex items-center gap-2">
-          <Trophy className="w-5 h-5" />
+          <Trophy className="w-5 h-5 stroke-yellow-500 fill-yellow-100" />
           프로필 뱃지
         </h2>
         <div className="text-sm text-gray-500">
@@ -245,7 +245,7 @@ export const ProfileBadges = React.memo(() => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="p-4 bg-gradient-to-br from-yellow-50 to-orange-50">
           <div className="flex items-center justify-between mb-2">
-            <Trophy className="w-5 h-5 text-yellow-600" />
+            <Trophy className="w-5 h-5 stroke-yellow-500 fill-yellow-100" />
             <span className="text-2xl font-bold">{unlockedBadges.length}</span>
           </div>
           <p className="text-sm text-gray-600">획득한 뱃지</p>
@@ -253,7 +253,7 @@ export const ProfileBadges = React.memo(() => {
 
         <Card className="p-4 bg-gradient-to-br from-purple-50 to-pink-50">
           <div className="flex items-center justify-between mb-2">
-            <Target className="w-5 h-5 text-purple-600" />
+            <Target className="w-5 h-5 stroke-purple-600 fill-purple-100" />
             <span className="text-2xl font-bold">{completionRate}%</span>
           </div>
           <p className="text-sm text-gray-600">달성률</p>
@@ -261,7 +261,7 @@ export const ProfileBadges = React.memo(() => {
 
         <Card className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50">
           <div className="flex items-center justify-between mb-2">
-            <Star className="w-5 h-5 text-blue-600" />
+            <Star className="w-5 h-5 stroke-blue-600 fill-blue-100" />
             <span className="text-2xl font-bold">
               {tierCounts.find(t => t.tier === 'gold')?.unlocked || 0}
             </span>
@@ -271,7 +271,7 @@ export const ProfileBadges = React.memo(() => {
 
         <Card className="p-4 bg-gradient-to-br from-green-50 to-emerald-50">
           <div className="flex items-center justify-between mb-2">
-            <Sparkles className="w-5 h-5 text-green-600" />
+            <Sparkles className="w-5 h-5 stroke-green-600 fill-green-100" />
             <span className="text-2xl font-bold">{recentBadges.length}</span>
           </div>
           <p className="text-sm text-gray-600">최근 획득</p>
@@ -282,7 +282,7 @@ export const ProfileBadges = React.memo(() => {
       {nextBadges.length > 0 && (
         <Card className="p-4">
           <h3 className="font-medium mb-3 flex items-center gap-2">
-            <Target className="w-4 h-4" />
+            <Target className="w-4 h-4 stroke-purple-600 fill-purple-100" />
             곧 달성 가능한 뱃지
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -374,7 +374,7 @@ export const ProfileBadges = React.memo(() => {
       {/* 티어별 진행도 */}
       <Card className="p-4">
         <h3 className="font-medium mb-4 flex items-center gap-2">
-          <Medal className="w-4 h-4" />
+          <Medal className="w-4 h-4 stroke-yellow-500 fill-yellow-100" />
           티어별 진행도
         </h3>
         <div className="space-y-3">

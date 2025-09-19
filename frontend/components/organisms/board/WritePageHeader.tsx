@@ -28,7 +28,7 @@ export const WritePageHeader: React.FC<WritePageHeaderProps> = ({
             <div className="flex items-center gap-2">
               <Link href="/board">
                 <Button variant="ghost" size="sm" className="pl-0">
-                  <ArrowLeft className="w-4 h-4 mr-1" />
+                  <ArrowLeft className="w-4 h-4 mr-1 stroke-slate-600 fill-slate-100" />
                   <span className="hidden sm:inline">게시판</span>
                 </Button>
               </Link>
@@ -45,7 +45,7 @@ export const WritePageHeader: React.FC<WritePageHeaderProps> = ({
                 onClick={onTogglePreview}
                 className="bg-white"
               >
-                <Eye className="w-4 h-4" />
+                <Eye className="w-4 h-4 stroke-purple-600 fill-purple-100" />
               </Button>
               <Button
                 size="sm"
@@ -53,7 +53,7 @@ export const WritePageHeader: React.FC<WritePageHeaderProps> = ({
                 disabled={isSubmitting || !isFormValid}
                 className="bg-gradient-to-r from-pink-500 to-purple-600"
               >
-                <Save className="w-4 h-4" />
+                <Save className="w-4 h-4 stroke-green-600 fill-green-100" />
               </Button>
             </div>
           </div>
@@ -65,7 +65,7 @@ export const WritePageHeader: React.FC<WritePageHeaderProps> = ({
               onClick={onTogglePreview}
               className="bg-white"
             >
-              <Eye className="w-4 h-4 mr-2" />
+              <Eye className="w-4 h-4 mr-2 stroke-purple-600 fill-purple-100" />
               {isPreview ? "편집" : "미리보기"}
             </Button>
             <Button
@@ -73,7 +73,7 @@ export const WritePageHeader: React.FC<WritePageHeaderProps> = ({
               disabled={isSubmitting || !isFormValid}
               className="bg-gradient-to-r from-pink-500 to-purple-600"
             >
-              <Save className="w-4 h-4 mr-2" />
+              <Save className="w-4 h-4 mr-2 stroke-green-600 fill-green-100" />
               {isSubmitting ? "작성 중..." : "작성완료"}
             </Button>
           </div>

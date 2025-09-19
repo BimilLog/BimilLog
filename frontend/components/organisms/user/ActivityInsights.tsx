@@ -31,7 +31,7 @@ export const ActivityInsights = React.memo(() => {
     return (
       <div className="space-y-4">
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Activity className="w-5 h-5" />
+          <Activity className="w-5 h-5 stroke-orange-600 fill-orange-100" />
           활동 인사이트
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -49,11 +49,11 @@ export const ActivityInsights = React.memo(() => {
     return (
       <div className="space-y-4">
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Activity className="w-5 h-5" />
+          <Activity className="w-5 h-5 stroke-orange-600 fill-orange-100" />
           활동 인사이트
         </h2>
         <Card className="p-8 text-center">
-          <Activity className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+          <Activity className="w-12 h-12 mx-auto mb-4 stroke-orange-600 fill-orange-100 opacity-40" />
           <p className="text-gray-500">아직 활동 데이터가 없습니다.</p>
           <p className="text-sm text-gray-400 mt-2">
             사이트를 이용하면 자동으로 활동이 기록됩니다.
@@ -67,7 +67,7 @@ export const ActivityInsights = React.memo(() => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold flex items-center gap-2">
-          <Activity className="w-5 h-5" />
+          <Activity className="w-5 h-5 stroke-orange-600 fill-orange-100" />
           활동 인사이트
         </h2>
         <div className="flex gap-2">
@@ -76,14 +76,14 @@ export const ActivityInsights = React.memo(() => {
             className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
             title="데이터 내보내기"
           >
-            <Download className="w-4 h-4" />
+            <Download className="w-4 h-4 stroke-blue-600 fill-blue-100" />
           </button>
           <button
             onClick={clearData}
             className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
             title="데이터 초기화"
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="w-4 h-4 stroke-red-600 fill-red-100" />
           </button>
         </div>
       </div>
@@ -92,7 +92,7 @@ export const ActivityInsights = React.memo(() => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="p-4 bg-gradient-to-br from-pink-50 to-purple-50">
           <div className="flex items-center justify-between mb-2">
-            <Flame className="w-5 h-5 text-orange-500" />
+            <Flame className="w-5 h-5 stroke-orange-600 fill-orange-100" />
             <span className="text-2xl font-bold">{stats.activeStreak}</span>
           </div>
           <p className="text-sm text-gray-600">연속 활동일</p>
@@ -103,7 +103,7 @@ export const ActivityInsights = React.memo(() => {
 
         <Card className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50">
           <div className="flex items-center justify-between mb-2">
-            <BarChart3 className="w-5 h-5 text-blue-500" />
+            <BarChart3 className="w-5 h-5 stroke-blue-600 fill-blue-100" />
             <span className="text-2xl font-bold">{stats.totalEvents}</span>
           </div>
           <p className="text-sm text-gray-600">전체 활동</p>
@@ -114,7 +114,7 @@ export const ActivityInsights = React.memo(() => {
 
         <Card className="p-4 bg-gradient-to-br from-green-50 to-emerald-50">
           <div className="flex items-center justify-between mb-2">
-            <TrendingUp className="w-5 h-5 text-green-500" />
+            <TrendingUp className="w-5 h-5 stroke-green-600 fill-green-100" />
             <span className="text-2xl font-bold">
               {weeklyInsights ? `${weeklyInsights.growthRate > 0 ? '+' : ''}${weeklyInsights.growthRate.toFixed(0)}%` : '0%'}
             </span>
@@ -127,7 +127,7 @@ export const ActivityInsights = React.memo(() => {
 
         <Card className="p-4 bg-gradient-to-br from-purple-50 to-pink-50">
           <div className="flex items-center justify-between mb-2">
-            <Clock className="w-5 h-5 text-purple-500" />
+            <Clock className="w-5 h-5 stroke-indigo-600 fill-indigo-100" />
             <span className="text-2xl font-bold">{stats.mostActiveHour}시</span>
           </div>
           <p className="text-sm text-gray-600">활발한 시간</p>
@@ -141,7 +141,7 @@ export const ActivityInsights = React.memo(() => {
       {typeStats && typeStats.length > 0 && (
         <Card className="p-4">
           <h3 className="font-medium mb-4 flex items-center gap-2">
-            <Award className="w-4 h-4" />
+            <Award className="w-4 h-4 stroke-yellow-500 fill-yellow-100" />
             활동 유형별 통계
           </h3>
           <div className="space-y-3">
@@ -171,7 +171,7 @@ export const ActivityInsights = React.memo(() => {
       {/* 최근 30일 활동 히트맵 */}
       <Card className="p-4">
         <h3 className="font-medium mb-4 flex items-center gap-2">
-          <Calendar className="w-4 h-4" />
+          <Calendar className="w-4 h-4 stroke-indigo-600 fill-indigo-100" />
           최근 30일 활동
         </h3>
         <div className="grid grid-cols-7 gap-1">
@@ -217,7 +217,7 @@ export const ActivityInsights = React.memo(() => {
       {/* 시간대별 활동 패턴 */}
       <Card className="p-4">
         <h3 className="font-medium mb-4 flex items-center gap-2">
-          <Clock className="w-4 h-4" />
+          <Clock className="w-4 h-4 stroke-indigo-600 fill-indigo-100" />
           시간대별 활동 패턴
         </h3>
         <div className="flex items-end gap-1 h-32">
@@ -251,7 +251,7 @@ export const ActivityInsights = React.memo(() => {
       {weeklyInsights && (
         <Card className="p-4 bg-gradient-to-r from-purple-50 to-pink-50">
           <h3 className="font-medium mb-3 flex items-center gap-2">
-            <TrendingUp className="w-4 h-4" />
+            <TrendingUp className="w-4 h-4 stroke-green-600 fill-green-100" />
             이번 주 요약
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">

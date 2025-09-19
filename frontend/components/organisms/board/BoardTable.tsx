@@ -115,14 +115,14 @@ const BoardTableRow = memo<TableRowProps>(({
               <div className="p-3 w-56">
                 <div className="flex flex-col space-y-2">
                   <div className="flex items-center space-x-2">
-                    <User className="w-4 h-4" />
+                    <User className="w-4 h-4 stroke-slate-600 fill-slate-100" />
                     <span className="font-medium">{post.userName}</span>
                   </div>
                   <Link
                     href={`/rolling-paper/${encodeURIComponent(post.userName)}`}
                   >
                     <Button size="sm" className="w-full justify-start">
-                      <ExternalLink className="w-4 h-4 mr-2" />
+                      <ExternalLink className="w-4 h-4 mr-2 stroke-blue-600 fill-blue-100" />
                       롤링페이퍼 보기
                     </Button>
                   </Link>
@@ -131,7 +131,7 @@ const BoardTableRow = memo<TableRowProps>(({
             }
           >
             <button className="truncate max-w-20 hover:text-purple-600 hover:underline transition-colors cursor-pointer inline-flex items-center space-x-1">
-              <User className="w-3 h-3" />
+              <User className="w-3 h-3 stroke-slate-600 fill-slate-100" />
               <span>{post.userName}</span>
             </button>
           </Popover>
@@ -156,7 +156,7 @@ const BoardTableRow = memo<TableRowProps>(({
             content={
               <div className="p-3 min-w-[180px]">
                 <div className="flex items-center gap-2 mb-2">
-                  <ThumbsUp className="w-4 h-4 text-purple-600" />
+                  <ThumbsUp className="w-4 h-4 stroke-blue-500 fill-blue-100" />
                   <span className="font-semibold text-sm">좋아요 통계</span>
                 </div>
                 <div className="space-y-1 text-xs">
@@ -175,7 +175,7 @@ const BoardTableRow = memo<TableRowProps>(({
             }
           >
             <span className="flex items-center justify-center cursor-help">
-              <ThumbsUp className="w-3 h-3 mr-1" />
+              <ThumbsUp className="w-3 h-3 mr-1 stroke-blue-500 fill-blue-100" />
               {post.likeCount}
             </span>
           </Popover>
@@ -262,14 +262,14 @@ const BoardMobileCard = memo<TableRowProps>(({
                   <div className="p-3 w-56">
                     <div className="flex flex-col space-y-2">
                       <div className="flex items-center space-x-2">
-                        <User className="w-4 h-4" />
+                        <User className="w-4 h-4 stroke-slate-600 fill-slate-100" />
                         <span className="font-medium">{post.userName}</span>
                       </div>
                       <Link
                         href={`/rolling-paper/${encodeURIComponent(post.userName)}`}
                       >
                         <Button size="sm" className="w-full justify-start">
-                          <ExternalLink className="w-4 h-4 mr-2" />
+                          <ExternalLink className="w-4 h-4 mr-2 stroke-blue-600 fill-blue-100" />
                           롤링페이퍼 보기
                         </Button>
                       </Link>
@@ -278,7 +278,7 @@ const BoardMobileCard = memo<TableRowProps>(({
                 }
               >
                 <button className="hover:text-purple-600 transition-colors truncate max-w-20 cursor-pointer inline-flex items-center space-x-1">
-                  <User className="w-3 h-3" />
+                  <User className="w-3 h-3 stroke-slate-600 fill-slate-100" />
                   <span>{post.userName}</span>
                 </button>
               </Popover>
@@ -291,11 +291,11 @@ const BoardMobileCard = memo<TableRowProps>(({
           </div>
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1">
-              <ThumbsUp className="w-3 h-3" />
+              <ThumbsUp className="w-3 h-3 stroke-blue-500 fill-blue-100" />
               {post.likeCount}
             </span>
             <span className="flex items-center gap-1">
-              <Eye className="w-3 h-3" />
+              <Eye className="w-3 h-3 stroke-purple-600 fill-purple-100" />
               {post.viewCount}
             </span>
           </div>

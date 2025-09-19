@@ -20,7 +20,7 @@ export default function AdminError({
     <div className="flex items-center justify-center p-4 py-16">
       <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-brand-xl p-8 max-w-md w-full text-center">
         <div className="p-4 rounded-full bg-red-100 inline-block mb-6">
-          <AlertTriangle className="w-12 h-12 text-red-600" />
+          <AlertTriangle className="w-12 h-12 stroke-red-600 fill-red-100" />
         </div>
         
         <h2 className="text-2xl font-bold text-brand-primary mb-3">

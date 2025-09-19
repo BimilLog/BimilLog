@@ -63,7 +63,7 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
               className="border-0 rounded-none hover:bg-brand-secondary/10 border-l border-gray-200 h-12"
               disabled={!searchNickname.trim() || isSearching}
             >
-              <Search className="w-5 h-5 text-brand-secondary" />
+              <Search className="w-5 h-5 stroke-slate-600" />
             </Button>
           </div>
         </div>

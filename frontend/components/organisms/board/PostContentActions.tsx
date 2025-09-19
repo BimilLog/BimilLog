@@ -83,7 +83,7 @@ export const PostContentActions: React.FC<PostContentActionsProps> = ({
           className={`transition-colors duration-200 ${post.liked ? 'ring-0 border-0' : ''}`}
         >
           <ThumbsUp
-            className={`w-4 h-4 mr-2 ${post.liked ? "fill-current" : ""}`}
+            className={`w-4 h-4 mr-2 ${post.liked ? "stroke-blue-500 fill-blue-500" : "stroke-blue-500 fill-blue-100"}`}
           />
           추천 {post.likeCount}
         </Button>
@@ -95,7 +95,7 @@ export const PostContentActions: React.FC<PostContentActionsProps> = ({
             color="red"
             className="transition-colors duration-200"
           >
-            <Flag className="w-4 h-4 mr-2" />
+            <Flag className="w-4 h-4 mr-2 stroke-red-500 fill-red-100" />
             신고
           </Button>
         )}

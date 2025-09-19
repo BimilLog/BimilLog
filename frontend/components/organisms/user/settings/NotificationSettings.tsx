@@ -26,7 +26,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
   className,
 }) => (
   <SettingsSection
-    icon={<Bell className="w-5 h-5 text-purple-600" />}
+    icon={<Bell className="w-5 h-5 stroke-purple-500 fill-purple-100" />}
     title="푸시 알림 설정"
     description="각 알림 유형을 개별적으로 설정할 수 있습니다."
     className={className}
@@ -48,7 +48,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
 
       <div className="space-y-4">
         <SettingToggle
-          icon={<Heart className="w-4 h-4" />}
+          icon={<Heart className="w-4 h-4 stroke-red-500 fill-red-100" />}
           label="메시지 알림"
           description="롤링페이퍼에 새로운 메시지가 도착했을 때"
           checked={settings?.messageNotification === true}
@@ -58,7 +58,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
         />
 
         <SettingToggle
-          icon={<MessageCircle className="w-4 h-4" />}
+          icon={<MessageCircle className="w-4 h-4 stroke-green-600 fill-green-100" />}
           label="댓글 알림"
           description="내 게시글에 새로운 댓글이 달렸을 때"
           checked={settings?.commentNotification === true}
@@ -68,7 +68,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
         />
 
         <SettingToggle
-          icon={<TrendingUp className="w-4 h-4" />}
+          icon={<TrendingUp className="w-4 h-4 stroke-green-600 fill-green-100" />}
           label="인기글 알림"
           description="내 게시글이 인기글로 선정되었을 때"
           checked={settings?.postFeaturedNotification === true}

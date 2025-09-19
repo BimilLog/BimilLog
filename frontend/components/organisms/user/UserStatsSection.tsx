@@ -42,15 +42,15 @@ const getActivityLevelWithIcons = (totalScore: number) => {
   
   let badge;
   if (totalScore >= 500) {
-    badge = <Trophy className="w-6 h-6" />;
+    badge = <Trophy className="w-6 h-6 stroke-yellow-500 fill-yellow-100" />;
   } else if (totalScore >= 250) {
-    badge = <Flame className="w-6 h-6" />;
+    badge = <Flame className="w-6 h-6 stroke-orange-600 fill-orange-100" />;
   } else if (totalScore >= 100) {
-    badge = <Star className="w-6 h-6" />;
+    badge = <Star className="w-6 h-6 stroke-yellow-500 fill-yellow-100" />;
   } else if (totalScore >= 25) {
-    badge = <TreePine className="w-6 h-6" />;
+    badge = <TreePine className="w-6 h-6 stroke-green-600 fill-green-100" />;
   } else {
-    badge = <Leaf className="w-6 h-6" />;
+    badge = <Leaf className="w-6 h-6 stroke-green-600 fill-green-100" />;
   }
   
   return { ...baseLevel, badge };
@@ -89,13 +89,13 @@ export const UserStatsSection: React.FC<UserStatsProps> = ({
     return (
       <div className={`space-y-6 mb-8 ${className || ""}`}>
         <Alert className="border-red-200 bg-red-50">
-          <AlertTriangle className="h-4 w-4 text-red-600" />
+          <AlertTriangle className="h-4 w-4 stroke-red-600 fill-red-100" />
           <AlertDescription className="text-red-800">
             <div className="flex items-center justify-between">
               <span>{error}</span>
               {onRetry && (
                 <Button onClick={onRetry} variant="outline" size="sm" className="ml-4">
-                  <RefreshCw className="w-4 h-4 mr-2" />
+                  <RefreshCw className="w-4 h-4 mr-2 stroke-slate-600 fill-slate-100" />
                   다시 시도
                 </Button>
               )}
@@ -110,7 +110,7 @@ export const UserStatsSection: React.FC<UserStatsProps> = ({
     <div className={`space-y-6 mb-8 ${className || ""}`}>
       {partialErrors.length > 0 && (
         <Alert className="border-yellow-200 bg-yellow-50">
-          <Info className="h-4 w-4 text-yellow-600" />
+          <Info className="h-4 w-4 stroke-yellow-500 fill-yellow-100" />
           <AlertDescription>
             <div className="text-yellow-800">
               <p className="font-medium mb-2">일부 통계 정보를 불러오지 못했습니다:</p>
@@ -121,7 +121,7 @@ export const UserStatsSection: React.FC<UserStatsProps> = ({
               </ul>
               {onRetry && (
                 <Button onClick={onRetry} variant="outline" size="sm" className="mt-3">
-                  <RefreshCw className="w-4 h-4 mr-2" />
+                  <RefreshCw className="w-4 h-4 mr-2 stroke-slate-600 fill-slate-100" />
                   다시 시도
                 </Button>
               )}
@@ -150,7 +150,7 @@ export const UserStatsSection: React.FC<UserStatsProps> = ({
               <Badge
                 className={`bg-gradient-to-r ${activityLevel.color} text-white border-0 px-3 py-1`}
               >
-                <Award className="w-4 h-4 mr-1" />
+                <Award className="w-4 h-4 mr-1 stroke-yellow-500 fill-yellow-100" />
                 {activityLevel.level}
               </Badge>
             </div>
@@ -178,7 +178,7 @@ export const UserStatsSection: React.FC<UserStatsProps> = ({
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard
-          icon={<FileText className="w-7 h-7" />}
+          icon={<FileText className="w-7 h-7 stroke-blue-600 fill-blue-100" />}
           value={stats.totalPosts}
           label="작성한 글"
           color="text-blue-600"
@@ -187,7 +187,7 @@ export const UserStatsSection: React.FC<UserStatsProps> = ({
         />
 
         <StatCard
-          icon={<MessageCircle className="w-7 h-7" />}
+          icon={<MessageCircle className="w-7 h-7 stroke-green-600 fill-green-100" />}
           value={stats.totalComments}
           label="작성한 댓글"
           color="text-green-600"
@@ -196,7 +196,7 @@ export const UserStatsSection: React.FC<UserStatsProps> = ({
         />
 
         <StatCard
-          icon={<Heart className="w-7 h-7" />}
+          icon={<Heart className="w-7 h-7 stroke-red-500 fill-red-100" />}
           value={stats.totalLikedPosts}
           label="추천한 글"
           color="text-red-600"
@@ -205,7 +205,7 @@ export const UserStatsSection: React.FC<UserStatsProps> = ({
         />
 
         <StatCard
-          icon={<ThumbsUp className="w-7 h-7" />}
+          icon={<ThumbsUp className="w-7 h-7 stroke-purple-600 fill-purple-100" />}
           value={stats.totalLikedComments}
           label="추천한 댓글"
           color="text-purple-600"
@@ -218,7 +218,7 @@ export const UserStatsSection: React.FC<UserStatsProps> = ({
         <Card variant="elevated">
           <CardContent className="p-4 text-center">
             <div className="flex items-center justify-center space-x-1 mb-2">
-              <Target className="w-5 h-5 text-blue-500" />
+              <Target className="w-5 h-5 stroke-blue-600 fill-blue-100" />
               <span className="font-medium text-brand-primary">총 활동 점수</span>
             </div>
             <p className="text-2xl font-bold text-blue-600">{totalScore}점</p>
@@ -228,7 +228,7 @@ export const UserStatsSection: React.FC<UserStatsProps> = ({
         <Card variant="elevated">
           <CardContent className="p-4 text-center">
             <div className="flex items-center justify-center space-x-1 mb-2">
-              <Heart className="w-5 h-5 text-red-500" />
+              <Heart className="w-5 h-5 stroke-red-500 fill-red-100" />
               <span className="font-medium text-brand-primary">총 추천</span>
             </div>
             <p className="text-2xl font-bold text-red-600">{totalLikes}</p>

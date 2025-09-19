@@ -26,7 +26,6 @@ export {
 // UI 관련 타입
 export {
   type GridPosition,
-  type DBIndex,
   type MessageGrid,
   type RollingPaperViewState,
   type MessageFormData,

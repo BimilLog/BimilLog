@@ -45,7 +45,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
                   onClick={onOpenFriendsModal}
                   className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:bg-gradient-to-l focus:ring-purple-200 dark:focus:ring-purple-800"
                 >
-                  <UserCheck className="w-5 h-5 mr-2" />
+                  <UserCheck className="w-5 h-5 mr-2 stroke-slate-600 fill-slate-100" />
                   카카오 친구 확인하기
                 </Button>
               </div>
@@ -57,7 +57,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
                   onClick={onOpenFriendsModal}
                   className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:bg-gradient-to-l focus:ring-purple-200 dark:focus:ring-purple-800"
                 >
-                  <UserCheck className="w-5 h-5 mr-2" />
+                  <UserCheck className="w-5 h-5 mr-2 stroke-slate-600 fill-slate-100" />
                   카카오 친구 확인하기
                 </Button>
                 <Button

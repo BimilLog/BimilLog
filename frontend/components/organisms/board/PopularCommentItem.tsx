@@ -82,7 +82,7 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
                 <div className="p-3 w-56">
                   <div className="flex flex-col space-y-2">
                     <div className="flex items-center space-x-2">
-                      <User className="w-4 h-4" />
+                      <User className="w-4 h-4 stroke-slate-600 fill-slate-100" />
                       <span className="font-medium">{comment.userName}</span>
                     </div>
                     <Link
@@ -91,7 +91,7 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
                       )}`}
                     >
                       <Button size="sm" className="w-full justify-start">
-                        <ExternalLink className="w-4 h-4 mr-2" />
+                        <ExternalLink className="w-4 h-4 mr-2 stroke-blue-600 fill-blue-100" />
                         롤링페이퍼 보기
                       </Button>
                     </Link>
@@ -100,13 +100,13 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
               }
             >
               <button className="font-semibold text-sm sm:text-base text-blue-800 hover:text-purple-600 hover:underline transition-colors cursor-pointer inline-flex items-center space-x-1 truncate">
-                <User className="w-3 h-3 flex-shrink-0" />
+                <User className="w-3 h-3 flex-shrink-0 stroke-slate-600 fill-slate-100" />
                 <span className="truncate">{comment.userName}</span>
               </button>
             </Popover>
           ) : (
             <span className="font-semibold text-sm sm:text-base inline-flex items-center space-x-1 truncate text-brand-secondary">
-              <User className="w-3 h-3 flex-shrink-0" />
+              <User className="w-3 h-3 flex-shrink-0 stroke-slate-600 fill-slate-100" />
               <span className="truncate">{comment.userName || "익명"}</span>
             </span>
           )}
@@ -124,7 +124,7 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
             color={comment.userLike ? "blue" : "light"}
             onClick={() => onLikeComment(comment)}
           >
-            <ThumbsUp className={`w-4 h-4 mr-2 ${comment.userLike ? "fill-current" : ""}`} />
+            <ThumbsUp className={`w-4 h-4 mr-2 ${comment.userLike ? "stroke-blue-500 fill-blue-500" : "stroke-blue-500 fill-blue-100"}`} />
             추천 {comment.likeCount}
           </FlowbiteButton>
 
@@ -134,7 +134,7 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
             className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:bg-gradient-to-l"
             onClick={() => onReplyTo(comment)}
           >
-            <MessageSquare className="w-4 h-4 mr-2" />
+            <MessageSquare className="w-4 h-4 mr-2 stroke-blue-600 fill-blue-100" />
             답글
           </FlowbiteButton>
 
@@ -145,7 +145,7 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
               color="red"
               onClick={handleReport}
             >
-              <Flag className="w-4 h-4 mr-2" />
+              <Flag className="w-4 h-4 mr-2 stroke-red-500 fill-red-100" />
               신고
             </FlowbiteButton>
           )}

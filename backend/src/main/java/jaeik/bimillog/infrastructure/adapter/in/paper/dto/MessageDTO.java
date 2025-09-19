@@ -77,30 +77,30 @@ public class MessageDTO {
 
     /**
      * <h3>그리드 X 좌표 범위 검증</h3>
-     * <p>메시지 작성 시 x는 1~6 사이여야 합니다.</p>
-     * <p>PC 그리드는 6x10, Mobile 그리드는 4x10을 고려한 제한입니다.</p>
+     * <p>메시지 작성 시 x는 0~11 사이여야 합니다.</p>
+     * <p>PC 그리드는 6x10 2페이지, Mobile 그리드는 4x10 3페이지 고려한 제한입니다.</p>
      *
      * @return true이면 검증 통과, false이면 검증 실패
      * @author Jaeik
      * @since 2.0.0
      */
-    @AssertTrue(message = "x는 1~6 사이여야 합니다.")
+    @AssertTrue(message = "x는 0~11 사이여야 합니다.")
     public boolean isXValid() {
-        return id != null || (x >= 1 && x <= 6);
+        return id != null || (x >= 0 && x <= 11);
     }
 
     /**
      * <h3>그리드 Y 좌표 범위 검증</h3>
-     * <p>메시지 작성 시 y는 1~10 사이여야 합니다.</p>
+     * <p>메시지 작성 시 y는 0~9 사이여야 합니다.</p>
      * <p>PC와 Mobile 그리드 모두 최대 10줄까지 지원합니다.</p>
      *
      * @return true이면 검증 통과, false이면 검증 실패
      * @author Jaeik
      * @since 2.0.0
      */
-    @AssertTrue(message = "y는 1~10 사이여야 합니다.")
+    @AssertTrue(message = "y는 0~9 사이여야 합니다.")
     public boolean isYValid() {
-        return id != null || (y >= 1 && y <= 10);
+        return id != null || (y >= 0 && y <= 9);
     }
 
     /**

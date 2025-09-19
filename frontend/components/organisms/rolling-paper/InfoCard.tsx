@@ -37,7 +37,7 @@ export const InfoCard: React.FC<InfoCardProps> = ({
                   이곳은 나에게 온 메시지들을 볼 수 있는 공간이에요.
                   <span className="block md:inline flex items-center space-x-1">
                     <span>친구들에게 공유하여 메시지를 받아보세요!</span>
-                    <Mail className="w-3 h-3 md:w-4 md:h-4" />
+                    <Mail className="w-3 h-3 md:w-4 md:h-4 stroke-blue-500 fill-blue-200" />
                   </span>
                 </p>
               </div>
@@ -54,7 +54,7 @@ export const InfoCard: React.FC<InfoCardProps> = ({
                   빈 칸을 클릭하여 시원한 메시지를 남겨주세요.
                   <span className="block md:inline flex items-center space-x-1">
                     <span>익명으로 내용은 암호화되어 안전하게 전달됩니다!</span>
-                    <Mail className="w-3 h-3 md:w-4 md:h-4" />
+                    <Mail className="w-3 h-3 md:w-4 md:h-4 stroke-blue-500 fill-blue-200" />
                   </span>
                 </p>
               </div>

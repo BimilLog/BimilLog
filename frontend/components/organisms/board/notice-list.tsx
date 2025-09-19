@@ -9,7 +9,7 @@ interface NoticeListProps {
 }
 
 export const NoticeList = ({ posts }: NoticeListProps) => {
-  const notices = posts.filter((post) => post.isNotice);
+  const notices = posts.filter((post) => post.notice);
 
   if (notices.length === 0) {
     return null;
@@ -45,7 +45,7 @@ export const NoticeList = ({ posts }: NoticeListProps) => {
                       className="hover:text-purple-600 hover:underline transition-colors inline-flex items-center space-x-1"
                       title={`${notice.userName}님의 롤링페이퍼 보기`}
                     >
-                      <User className="w-3 h-3" />
+                      <User className="w-3 h-3 stroke-slate-600 fill-slate-100" />
                       <span>{notice.userName}</span>
                     </Link>
                   </td>

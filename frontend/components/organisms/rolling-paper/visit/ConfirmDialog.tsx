@@ -27,7 +27,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       <ModalBody>
         <div className="text-center">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-100">
-            <PartyPopper className="h-8 w-8 text-blue-600" />
+            <PartyPopper className="h-8 w-8 stroke-purple-500 fill-purple-100" />
           </div>
           <h3 className="mb-5 text-lg font-bold text-gray-900 flex items-center justify-center gap-2">
             <CheckCircle className="w-5 h-5 text-blue-600" />
@@ -43,7 +43,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
               onClick={onGoToMyRollingPaper}
               className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-semibold"
             >
-              <Sparkles className="w-4 h-4 mr-1" />
+              <Sparkles className="w-4 h-4 mr-1 stroke-yellow-500 fill-yellow-100" />
               내 롤링페이퍼 보기
             </Button>
 

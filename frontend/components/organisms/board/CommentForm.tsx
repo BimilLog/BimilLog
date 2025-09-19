@@ -90,7 +90,7 @@ export const CommentForm: React.FC<CommentFormProps> = ({
                 (!isAuthenticated && (!password || !/^\d{4}$/.test(password)))
               }
             >
-              <Send className="w-4 h-4" />
+              <Send className="w-4 h-4 stroke-blue-600 fill-blue-100" />
             </Button>
           </div>
         </form>

@@ -134,11 +134,11 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
 
               {/* 메시지 수 카드 */}
               <div className="inline-flex items-center gap-3 bg-white/80 px-5 py-3 rounded-full shadow-lg border-2 border-cyan-200 relative z-10 backdrop-blur-sm">
-                <Mail className="w-4 h-4 md:w-6 md:h-6 text-cyan-600 animate-bounce drop-shadow-sm" />
+                <Mail className="w-4 h-4 md:w-6 md:h-6 stroke-blue-500 fill-blue-200 animate-bounce drop-shadow-sm" />
                 <span className="text-cyan-800 text-sm md:text-lg font-bold tracking-wide">
                   총 {messages.length}개의 메시지
                 </span>
-                <Sparkles className="w-4 h-4 md:w-6 md:h-6 text-blue-500 animate-pulse drop-shadow-sm" />
+                <Sparkles className="w-4 h-4 md:w-6 md:h-6 stroke-yellow-500 fill-yellow-100 animate-pulse drop-shadow-sm" />
               </div>
             </div>
 
@@ -182,11 +182,11 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
             style={{ gridTemplateColumns: `repeat(${pageWidth}, 1fr)` }}
           >
             {Array.from({ length: totalSlots }, (_, i) => {
-              // 1차원 인덱스를 2차원 그리드 좌표로 변환
+              // 1차원 인덱스를 2차원 그리드 좌표로 변환 (0-based)
               const gridX = i % pageWidth; // 열 위치: 0, 1, 2, 3... (모바일 0~3, PC 0~5)
               const gridY = Math.floor(i / pageWidth); // 행 위치: 0, 1, 2... (0~9)
 
-              // 현재 페이지와 그리드 위치를 백엔드 좌표로 변환
+              // 현재 페이지와 그리드 위치를 전체 좌표로 변환 (0-based)
               // 예: 2페이지, gridX=1, gridY=2 -> PC에서 actualX=7, actualY=2
               const { x: actualX, y: actualY } = getCoordsFromPageAndGrid(
                 currentPage,
@@ -277,12 +277,12 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
             <div className="flex items-center space-x-2">
               {getMessageAt(selectedCell.x, selectedCell.y) ? (
                 <>
-                  <Mail className="w-4 h-4 text-blue-500 fill-blue-500" />
+                  <Mail className="w-4 h-4 stroke-blue-500 fill-blue-200" />
                   <span>메시지 보기</span>
                 </>
               ) : (
                 <>
-                  <MessageSquare className="w-4 h-4 text-green-500 fill-green-500" />
+                  <MessageSquare className="w-4 h-4 stroke-green-500 fill-green-200" />
                   <span>메시지 작성</span>
                 </>
               )}

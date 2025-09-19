@@ -110,7 +110,7 @@ function ReportDetailModalContent({
         <div className="flex items-start justify-between w-full">
           <div>
             <span className="text-xl font-bold text-brand-primary flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-red-500" />
+              <AlertTriangle className="w-5 h-5 stroke-amber-600 fill-amber-100" />
               신고 상세 정보
             </span>
             <p className="mt-1 text-sm text-brand-muted">
@@ -144,7 +144,7 @@ function ReportDetailModalContent({
                 <Card className="p-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
-                      <TypeIcon className="w-5 h-5 text-brand-muted" />
+                      <TypeIcon className="w-5 h-5 stroke-slate-600 fill-slate-100" />
                     </div>
                     <div>
                       <p className="text-xs text-brand-secondary mb-1">신고 유형</p>
@@ -159,7 +159,7 @@ function ReportDetailModalContent({
                 <Card className="p-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
-                      <Hash className="w-5 h-5 text-brand-muted" />
+                      <Hash className="w-5 h-5 stroke-slate-600" />
                     </div>
                     <div>
                       <p className="text-xs text-brand-secondary mb-1">대상 ID</p>
@@ -172,7 +172,7 @@ function ReportDetailModalContent({
                 <Card className="p-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
-                      <User className="w-5 h-5 text-brand-muted" />
+                      <User className="w-5 h-5 stroke-slate-600 fill-slate-100" />
                     </div>
                     <div>
                       <p className="text-xs text-brand-secondary mb-1">신고 대상</p>
@@ -187,7 +187,7 @@ function ReportDetailModalContent({
                 <Card className="p-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
-                      <Calendar className="w-5 h-5 text-brand-muted" />
+                      <Calendar className="w-5 h-5 stroke-indigo-600 fill-indigo-100" />
                     </div>
                     <div>
                       <p className="text-xs text-brand-secondary mb-1">신고일</p>
@@ -202,7 +202,7 @@ function ReportDetailModalContent({
               {/* 신고 시간 상세 정보 */}
               <Card className="p-4 bg-gray-50">
                 <div className="flex items-start gap-3">
-                  <Clock className="w-5 h-5 text-brand-secondary mt-0.5" />
+                  <Clock className="w-5 h-5 stroke-indigo-600 fill-indigo-100 mt-0.5" />
                   <div className="flex-1">
                     <p className="text-sm font-medium text-brand-primary mb-1">신고 시간</p>
                     <p className="text-sm text-brand-muted">
@@ -220,7 +220,7 @@ function ReportDetailModalContent({
                   {/* 신고자가 입력한 신고 사유 */}
                   <div>
                     <h3 className="text-sm font-semibold text-brand-primary mb-2 flex items-center gap-2">
-                      <FileText className="w-4 h-4" />
+                      <FileText className="w-4 h-4 stroke-blue-600 fill-blue-100" />
                       신고 사유
                     </h3>
                     <div className="bg-white rounded-lg border border-gray-200 p-4">
@@ -234,7 +234,7 @@ function ReportDetailModalContent({
                   {report.targetTitle && (
                     <div>
                       <h3 className="text-sm font-semibold text-brand-primary mb-2 flex items-center gap-2">
-                        <MessageSquare className="w-4 h-4" />
+                        <MessageSquare className="w-4 h-4 stroke-slate-600 fill-slate-100" />
                         신고된 콘텐츠
                       </h3>
                       {/* 신고 대상이 된 게시글/댓글의 실제 내용 */}
@@ -254,7 +254,7 @@ function ReportDetailModalContent({
               {/* 주의사항 알림 배너 */}
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                 <div className="flex items-start gap-3">
-                  <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                  <AlertTriangle className="w-5 h-5 stroke-amber-600 fill-amber-100 mt-0.5" />
                   <div>
                     <p className="text-sm font-medium text-yellow-900">주의사항</p>
                     <p className="text-sm text-yellow-700 mt-1">
@@ -271,7 +271,7 @@ function ReportDetailModalContent({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
-                        <Ban className="w-5 h-5 text-orange-600" />
+                        <Ban className="w-5 h-5 stroke-orange-600" />
                       </div>
                       <div>
                         <p className="font-medium text-brand-primary">사용자 차단</p>
@@ -286,7 +286,7 @@ function ReportDetailModalContent({
                       className="text-orange-600 border-orange-200 hover:bg-orange-50"
                     >
                       차단
-                      <ChevronRight className="w-4 h-4 ml-1" />
+                      <ChevronRight className="w-4 h-4 ml-1 stroke-slate-600" />
                     </Button>
                   </div>
                 </Card>
@@ -296,7 +296,7 @@ function ReportDetailModalContent({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
-                        <UserX className="w-5 h-5 text-red-600" />
+                        <UserX className="w-5 h-5 stroke-red-600" />
                       </div>
                       <div>
                         <p className="font-medium text-brand-primary">강제 탈퇴</p>
@@ -311,7 +311,7 @@ function ReportDetailModalContent({
                       className="text-red-600 border-red-200 hover:bg-red-50"
                     >
                       탈퇴
-                      <ChevronRight className="w-4 h-4 ml-1" />
+                      <ChevronRight className="w-4 h-4 ml-1 stroke-slate-600" />
                     </Button>
                   </div>
                 </Card>

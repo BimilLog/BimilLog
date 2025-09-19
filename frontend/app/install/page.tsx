@@ -141,7 +141,7 @@ export default function InstallPage() {
     return (
       <div className={`min-h-screen ${GRADIENTS.primary}`}>
         <div className="container mx-auto px-4 py-16 text-center">
-          <Smartphone className="w-16 h-16 mb-6 animate-pulse text-purple-600 mx-auto" />
+          <Smartphone className="w-16 h-16 mb-6 animate-pulse stroke-purple-600 fill-purple-100 mx-auto" />
           <h1 className={`text-4xl md:text-6xl font-bold mb-6 ${GRADIENTS.titleText}`}>
             비밀로그를 앱으로 설치하세요
           </h1>
@@ -160,7 +160,7 @@ export default function InstallPage() {
         <div className="container mx-auto px-4 py-4 flex items-center gap-4">
           <Button variant="ghost" size="sm" asChild className="hover:bg-cyan-100 text-cyan-700 transition-colors">
             <Link href="/" className="flex items-center gap-2">
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-4 h-4 stroke-slate-600" />
               뒤로가기
             </Link>
           </Button>
@@ -176,7 +176,7 @@ export default function InstallPage() {
       {/* Hero Section */}
       <section className="container mx-auto px-4 py-16 md:py-24 text-center">
         <div className="max-w-4xl mx-auto">
-          <Smartphone className="w-20 h-20 mb-8 animate-bounce text-purple-600 mx-auto" />
+          <Smartphone className="w-20 h-20 mb-8 animate-bounce stroke-purple-600 fill-purple-100 mx-auto" />
           <h1 className={`text-5xl md:text-7xl font-bold mb-8 ${GRADIENTS.titleText} leading-tight`}>
             비밀로그를
             <br className="md:hidden" />
@@ -277,7 +277,7 @@ export default function InstallPage() {
               <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
               <div className="relative z-10">
                 <div className="w-32 h-32 bg-white/20 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                  <Smartphone className="w-16 h-16 text-white" />
+                  <Smartphone className="w-16 h-16 stroke-white fill-white/20" />
                 </div>
                 <h3 className="text-3xl font-bold text-white mb-2 inline-block">비밀로그</h3>
                 <p className="text-cyan-100 text-lg">익명으로 마음을 전하는 특별한 공간</p>
@@ -294,7 +294,7 @@ export default function InstallPage() {
         <div className="max-w-2xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold mb-6 text-brand-primary">
             <span className="flex items-center gap-2 justify-center">
-              지금 바로 설치해보세요! <Rocket className="w-5 h-5 text-pink-500" />
+              지금 바로 설치해보세요! <Rocket className="w-5 h-5 stroke-pink-500 fill-pink-100" />
             </span>
           </h2>
           <p className="text-xl text-brand-muted mb-8">더 나은 비밀로그 경험이 기다리고 있습니다</p>

@@ -84,7 +84,7 @@ export default function SettingsPage() {
       <header className="py-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-brand-button rounded-full flex items-center justify-center shadow-brand-lg">
-            <SettingsIcon className="w-6 h-6 text-white" />
+            <SettingsIcon className="w-6 h-6 stroke-white fill-white/20" />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-brand-primary inline-block">설정</h1>

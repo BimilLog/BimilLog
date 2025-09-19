@@ -75,15 +75,15 @@ export const PostHeader = React.memo<PostHeaderProps>(({
       {/* 제목과 배지 */}
       <div className="mb-4">
         <div className="flex items-center flex-wrap gap-2 mb-3">
-          {post.password && <Lock className="w-4 h-4 text-red-500" />}
-          {post.isNotice && (
+          {post.password && <Lock className="w-4 h-4 stroke-red-500 fill-red-100" />}
+          {post.notice && (
             <Popover
               trigger="hover"
               placement="top"
               content={
                 <div className="p-3 max-w-xs">
                   <div className="flex items-center gap-2 mb-2">
-                    <Megaphone className="w-4 h-4 text-blue-600" />
+                    <Megaphone className="w-4 h-4 stroke-blue-600 fill-blue-100" />
                     <span className="font-semibold text-sm">공지사항</span>
                   </div>
                   <p className="text-xs text-gray-600">
@@ -103,7 +103,7 @@ export const PostHeader = React.memo<PostHeaderProps>(({
               content={
                 <div className="p-3 max-w-xs">
                   <div className="flex items-center gap-2 mb-2">
-                    <TrendingUp className="w-4 h-4 text-red-600" />
+                    <TrendingUp className="w-4 h-4 stroke-red-500 fill-red-100" />
                     <span className="font-semibold text-sm">실시간 인기글</span>
                   </div>
                   <p className="text-xs text-gray-600">
@@ -111,7 +111,7 @@ export const PostHeader = React.memo<PostHeaderProps>(({
                   </p>
                   <div className="mt-2 pt-2 border-t">
                     <div className="flex items-center gap-1 text-xs text-gray-500">
-                      <Award className="w-3 h-3" />
+                      <Award className="w-3 h-3 stroke-indigo-600 fill-indigo-100" />
                       <span>실시간 업데이트</span>
                     </div>
                   </div>
@@ -128,7 +128,7 @@ export const PostHeader = React.memo<PostHeaderProps>(({
               content={
                 <div className="p-3 max-w-xs">
                   <div className="flex items-center gap-2 mb-2">
-                    <Calendar className="w-4 h-4 text-yellow-600" />
+                    <Calendar className="w-4 h-4 stroke-indigo-600 fill-indigo-100" />
                     <span className="font-semibold text-sm">주간 인기글</span>
                   </div>
                   <p className="text-xs text-gray-600">
@@ -137,7 +137,7 @@ export const PostHeader = React.memo<PostHeaderProps>(({
                   </p>
                   <div className="mt-2 pt-2 border-t">
                     <div className="flex items-center gap-1 text-xs text-gray-500">
-                      <Award className="w-3 h-3" />
+                      <Award className="w-3 h-3 stroke-indigo-600 fill-indigo-100" />
                       <span>주간 TOP 게시글</span>
                     </div>
                   </div>
@@ -154,7 +154,7 @@ export const PostHeader = React.memo<PostHeaderProps>(({
               content={
                 <div className="p-3 max-w-xs">
                   <div className="flex items-center gap-2 mb-2">
-                    <Crown className="w-4 h-4 text-purple-600" />
+                    <Crown className="w-4 h-4 stroke-purple-600 fill-purple-100" />
                     <span className="font-semibold text-sm">레전드 게시글</span>
                   </div>
                   <p className="text-xs text-gray-600">
@@ -163,7 +163,7 @@ export const PostHeader = React.memo<PostHeaderProps>(({
                   </p>
                   <div className="mt-2 pt-2 border-t">
                     <div className="flex items-center gap-1 text-xs text-gray-500">
-                      <Award className="w-3 h-3" />
+                      <Award className="w-3 h-3 stroke-indigo-600 fill-indigo-100" />
                       <span>명예의 전당</span>
                     </div>
                   </div>
@@ -193,7 +193,7 @@ export const PostHeader = React.memo<PostHeaderProps>(({
                     <div className="p-3 w-56">
                       <div className="flex flex-col space-y-2">
                         <div className="flex items-center space-x-2">
-                          <User className="w-4 h-4" />
+                          <User className="w-4 h-4 stroke-slate-600 fill-slate-100" />
                           <span className="font-medium">{post.userName}</span>
                         </div>
                         <Link
@@ -202,7 +202,7 @@ export const PostHeader = React.memo<PostHeaderProps>(({
                           )}`}
                         >
                           <Button size="sm" className="w-full justify-start">
-                            <ExternalLink className="w-4 h-4 mr-2" />
+                            <ExternalLink className="w-4 h-4 mr-2 stroke-blue-600 fill-blue-100" />
                             롤링페이퍼 보기
                           </Button>
                         </Link>
@@ -211,7 +211,7 @@ export const PostHeader = React.memo<PostHeaderProps>(({
                   }
                 >
                   <button className="truncate max-w-[120px] md:max-w-none hover:text-purple-600 hover:underline transition-colors cursor-pointer inline-flex items-center space-x-1">
-                    <User className="w-3 h-3" />
+                    <User className="w-3 h-3 stroke-slate-600 fill-slate-100" />
                     <span>{post.userName}</span>
                   </button>
                 </Popover>
@@ -229,15 +229,15 @@ export const PostHeader = React.memo<PostHeaderProps>(({
           {/* 통계 정보 */}
           <div className="flex items-center space-x-4 text-sm text-brand-muted">
             <div className="flex items-center space-x-1">
-              <Eye className="w-4 h-4" />
+              <Eye className="w-4 h-4 stroke-purple-600 fill-purple-100" />
               <span>{post.viewCount}</span>
             </div>
             <div className="flex items-center space-x-1">
-              <ThumbsUp className="w-4 h-4" />
+              <ThumbsUp className="w-4 h-4 stroke-blue-500 fill-blue-100" />
               <span>{post.likeCount}</span>
             </div>
             <div className="flex items-center space-x-1">
-              <MessageSquare className="w-4 h-4" />
+              <MessageSquare className="w-4 h-4 stroke-blue-600 fill-blue-100" />
               <span>{commentCount}</span>
             </div>
           </div>
@@ -263,7 +263,7 @@ export const PostHeader = React.memo<PostHeaderProps>(({
             size="sm"
             className="text-xs"
           >
-            <Share2 className="w-4 h-4 mr-1" />
+            <Share2 className="w-4 h-4 mr-1 stroke-blue-600 fill-blue-100" />
             링크 공유
           </FlowbiteButton>
 
@@ -278,7 +278,7 @@ export const PostHeader = React.memo<PostHeaderProps>(({
                   variant="outline"
                   className="w-full sm:w-auto"
                 >
-                  <Edit className="w-4 h-4 sm:mr-1" />
+                  <Edit className="w-4 h-4 sm:mr-1 stroke-slate-600 fill-slate-100" />
                   <span className="hidden sm:inline">수정</span>
                 </Button>
               </Link>
@@ -288,7 +288,7 @@ export const PostHeader = React.memo<PostHeaderProps>(({
                 onClick={onDeleteClick}
                 className="flex-1 sm:flex-initial"
               >
-                <Trash2 className="w-4 h-4 sm:mr-1" />
+                <Trash2 className="w-4 h-4 sm:mr-1 stroke-red-600 fill-red-100" />
                 <span className="hidden sm:inline">삭제</span>
               </Button>
             </div>
@@ -304,7 +304,7 @@ export const PostHeader = React.memo<PostHeaderProps>(({
     prevProps.post.title === nextProps.post.title &&
     prevProps.post.viewCount === nextProps.post.viewCount &&
     prevProps.post.likeCount === nextProps.post.likeCount &&
-    prevProps.post.isNotice === nextProps.post.isNotice &&
+    prevProps.post.notice === nextProps.post.notice &&
     prevProps.post.postCacheFlag === nextProps.post.postCacheFlag &&
     prevProps.commentCount === nextProps.commentCount
   );

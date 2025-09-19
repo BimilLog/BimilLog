@@ -19,37 +19,10 @@ export const MESSAGES_PER_PAGE = {
  * 그리드 좌표 타입
  */
 export interface GridPosition {
-  x: number; // 1-based (1~6 또는 1~4)
-  y: number; // 1-based (1~10)
+  x: number; // 0-based (0~5 PC, 0~3 Mobile, 최대 0~11)
+  y: number; // 0-based (0~9)
 }
 
-/**
- * DB 인덱스 타입
- */
-export interface DBIndex {
-  rowIndex: number; // 0-based (0~9)
-  colIndex: number; // 0-based (0~5 또는 0~3)
-}
-
-/**
- * UI 좌표(1-based)를 DB 인덱스(0-based)로 변환
- */
-export function gridPositionToDBIndex(position: GridPosition): DBIndex {
-  return {
-    rowIndex: position.y - 1,
-    colIndex: position.x - 1,
-  };
-}
-
-/**
- * DB 인덱스(0-based)를 UI 좌표(1-based)로 변환
- */
-export function dbIndexToGridPosition(index: DBIndex): GridPosition {
-  return {
-    x: index.colIndex + 1,
-    y: index.rowIndex + 1,
-  };
-}
 
 /**
  * 디바이스가 모바일인지 확인
@@ -91,12 +64,10 @@ export function createMessageGrid<T extends { x: number; y: number }>(
     grid[i] = new Array(cols).fill(null);
   }
 
-  // 메시지를 그리드에 배치
+  // 메시지를 그리드에 배치 (이미 0-based)
   messages.forEach(message => {
-    const { rowIndex, colIndex } = gridPositionToDBIndex({
-      x: message.x,
-      y: message.y,
-    });
+    const rowIndex = message.y;
+    const colIndex = message.x;
 
     if (
       rowIndex >= 0 &&
@@ -122,7 +93,7 @@ export function calculateTotalPages(isMobile: boolean): number {
 /**
  * 페이지와 그리드 내 위치에서 실제 전체 좌표 계산
  * 예: 2페이지의 (1,2) -> PC에서 실제 좌표 (7,2)
- * 입력: 0-based gridX/gridY, 출력: 1-based x/y
+ * 입력: 0-based gridX/gridY, 출력: 0-based x/y
  */
 export function getAbsoluteCoords(
   page: number,
@@ -133,13 +104,14 @@ export function getAbsoluteCoords(
   const cols = getGridColumns(isMobile);
   const baseX = (page - 1) * cols;
   return {
-    x: baseX + gridX + 1, // 1-based로 변환
-    y: gridY + 1, // 1-based로 변환
+    x: baseX + gridX, // 0-based 유지
+    y: gridY, // 0-based 유지
   };
 }
 
 /**
  * 절대 좌표에서 페이지와 페이지 내 좌표 계산
+ * 입력: 0-based absoluteX/absoluteY, 출력: page(1-based), gridX/gridY(0-based)
  */
 export function getPageAndGridPosition(absoluteX: number, absoluteY: number, isMobile?: boolean): {
   page: number;
@@ -147,8 +119,8 @@ export function getPageAndGridPosition(absoluteX: number, absoluteY: number, isM
   gridY: number;
 } {
   const cols = getGridColumns(isMobile);
-  const page = Math.floor((absoluteX - 1) / cols) + 1;
-  const gridX = ((absoluteX - 1) % cols) + 1;
+  const page = Math.floor(absoluteX / cols) + 1;
+  const gridX = absoluteX % cols;
 
   return {
     page,
@@ -180,11 +152,11 @@ export function findEmptyPositions<T extends { x: number; y: number }>(
   const cols = getGridColumns(isMobile);
   const rows = GRID_CONFIG.ROWS;
 
-  const startCol = (page - 1) * cols + 1;
-  const endCol = startCol + cols - 1;
+  const startCol = (page - 1) * cols;
+  const endCol = startCol + cols;
 
-  for (let y = 1; y <= rows; y++) {
-    for (let x = startCol; x <= endCol; x++) {
+  for (let y = 0; y < rows; y++) {
+    for (let x = startCol; x < endCol; x++) {
       const position = { x, y };
       if (!isPositionOccupied(messages, position)) {
         emptyPositions.push(position);

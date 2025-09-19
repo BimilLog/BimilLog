@@ -157,17 +157,17 @@ export function NotificationBell() {
   const getNotificationIcon = (notificationType: string) => {
     switch (notificationType) {
       case "PAPER":
-        return <Leaf className="w-4 h-4 text-green-600" />; // 롤링페이퍼 알림
+        return <Leaf className="w-4 h-4 stroke-green-600 fill-green-100" />; // 롤링페이퍼 알림
       case "COMMENT":
-        return <MessageSquare className="w-4 h-4 text-blue-600" />; // 댓글 알림
+        return <MessageSquare className="w-4 h-4 stroke-blue-600 fill-blue-100" />; // 댓글 알림
       case "POST_FEATURED":
-        return <Star className="w-4 h-4 text-yellow-600" />; // 게시글 추천 알림
+        return <Star className="w-4 h-4 stroke-yellow-600 fill-yellow-100" />; // 게시글 추천 알림
       case "ADMIN":
-        return <Shield className="w-4 h-4 text-red-600" />; // 관리자 알림
+        return <Shield className="w-4 h-4 stroke-purple-600 fill-purple-100" />; // 관리자 알림
       case "INITIATE":
-        return <Bell className="w-4 h-4 text-brand-muted" />; // 일반 시스템 알림
+        return <Bell className="w-4 h-4 stroke-purple-500 fill-purple-100" />; // 일반 시스템 알림
       default:
-        return <Bell className="w-4 h-4 text-brand-muted" />; // 기본 알림
+        return <Bell className="w-4 h-4 stroke-purple-500 fill-purple-100" />; // 기본 알림
     }
   };
 
@@ -185,7 +185,7 @@ export function NotificationBell() {
       {/* 알림 패널 헤더 (제목, 새로고침, 브라우저 알림 허용 버튼) */}
       <div className="flex items-center justify-between p-4 border-b bg-white/50">
         <div className="flex items-center gap-2">
-          <Bell className="w-5 h-5 text-brand-primary" />
+          <Bell className="w-5 h-5 text-brand-primary stroke-purple-500 fill-purple-100" />
           <h2 className="text-lg font-semibold text-brand-primary">
             알림 {unreadCount > 0 && `(${unreadCount})`}
           </h2>
@@ -203,7 +203,7 @@ export function NotificationBell() {
             {isLoading ? (
               <FlowbiteSpinner color="pink" size="sm" aria-label="새로고침 중..." />
             ) : (
-              <RefreshCw className="w-4 h-4" />
+              <RefreshCw className="w-4 h-4 stroke-blue-600 fill-blue-100" />
             )}
           </Button>
           {/* 브라우저 푸시 알림 권한 요청 버튼 */}
@@ -214,7 +214,7 @@ export function NotificationBell() {
             className="text-sm min-h-[44px] min-w-[44px] touch-manipulation"
             title="브라우저 알림 허용"
           >
-            <Bell className="w-4 h-4" />
+            <Bell className="w-4 h-4 stroke-purple-500 fill-purple-100" />
           </Button>
         </div>
       </div>
@@ -232,7 +232,7 @@ export function NotificationBell() {
                 className="flex-1 text-sm min-h-[44px] touch-manipulation"
                 title="모든 알림을 읽음으로 처리"
               >
-                <CheckCircle2 className="w-4 h-4 mr-2" />
+                <CheckCircle2 className="w-4 h-4 mr-2 stroke-green-600 fill-green-100" />
                 모두 읽음
               </Button>
             )}
@@ -244,7 +244,7 @@ export function NotificationBell() {
               className="flex-1 text-sm min-h-[44px] text-red-600 hover:text-red-700 border-red-200 hover:border-red-300 touch-manipulation"
               title="모든 알림 삭제"
             >
-              <Trash2 className="w-4 h-4 mr-2" />
+              <Trash2 className="w-4 h-4 mr-2 stroke-red-600 fill-red-100" />
               전체 삭제
             </Button>
           </div>
@@ -305,7 +305,7 @@ export function NotificationBell() {
                             className="h-6 px-2 text-xs text-blue-600 hover:text-blue-700"
                             title="읽음 처리"
                           >
-                            <Eye className="w-3 h-3" />
+                            <Eye className="w-3 h-3 stroke-purple-600 fill-purple-100" />
                           </Button>
                         )}
                         {/* 알림 삭제 버튼 */}
@@ -319,7 +319,7 @@ export function NotificationBell() {
                           className="h-6 px-2 text-xs text-red-600 hover:text-red-700"
                           title="삭제"
                         >
-                          <Trash2 className="w-3 h-3" />
+                          <Trash2 className="w-3 h-3 stroke-red-600 fill-red-100" />
                         </Button>
                       </div>
                     </div>
@@ -331,7 +331,7 @@ export function NotificationBell() {
         ) : (
           /* 알림이 없을 때 표시되는 빈 상태 */
           <div className="p-8 text-center">
-            <BellOff className="w-12 h-12 mx-auto mb-3 text-brand-muted" />
+            <BellOff className="w-12 h-12 mx-auto mb-3 text-brand-muted stroke-gray-500 fill-gray-100" />
             <p className="text-sm text-brand-secondary mb-2">알림이 없습니다</p>
             <p className="text-xs text-brand-secondary">
               새로운 알림이 오면 여기에 표시됩니다
@@ -383,9 +383,9 @@ export function NotificationBell() {
             >
               {/* SSE 연결 상태에 따른 벨 아이콘 변화 */}
               {isSSEConnected ? (
-                <Bell className="w-5 h-5" />
+                <Bell className="w-5 h-5 stroke-purple-500 fill-purple-100" />
               ) : (
-                <BellOff className="w-5 h-5 text-brand-secondary" />
+                <BellOff className="w-5 h-5 text-brand-secondary stroke-gray-500 fill-gray-100" />
               )}
               {/* 읽지 않은 알림 개수 배지 (99개 이상은 99+로 표시) */}
               {unreadCount > 0 && (
@@ -412,9 +412,9 @@ export function NotificationBell() {
           >
             {/* SSE 연결 상태에 따른 벨 아이콘 변화 */}
             {isSSEConnected ? (
-              <Bell className="w-5 h-5" />
+              <Bell className="w-5 h-5 stroke-purple-500 fill-purple-100" />
             ) : (
-              <BellOff className="w-5 h-5 text-brand-secondary" />
+              <BellOff className="w-5 h-5 text-brand-secondary stroke-gray-500 fill-gray-100" />
             )}
             {/* 읽지 않은 알림 개수 배지 */}
             {unreadCount > 0 && (

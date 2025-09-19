@@ -36,7 +36,7 @@ export const MessageListModal: React.FC<MessageListModalProps> = memo(({
     <Modal show={isOpen} onClose={onClose} size="xl">
       <ModalHeader>
         <span className="flex items-center gap-2 text-cyan-800 font-bold text-lg md:text-xl">
-          <MessageSquare className="w-5 h-5 md:w-6 md:h-6" />
+          <MessageSquare className="w-5 h-5 md:w-6 md:h-6 stroke-green-500 fill-green-200" />
           메시지 목록 보기
           <Badge variant="secondary" className="bg-cyan-100 text-cyan-700">
             {messages.length}개
@@ -48,7 +48,7 @@ export const MessageListModal: React.FC<MessageListModalProps> = memo(({
         {messages.length === 0 ? (
           <div className="text-center py-12">
             <div className="w-16 h-16 bg-cyan-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <MessageSquare className="w-8 h-8 text-cyan-400" />
+              <MessageSquare className="w-8 h-8 stroke-green-500 fill-green-200" />
             </div>
             <p className="text-brand-muted mb-2">아직 메시지가 없어요</p>
             <p className="text-sm text-brand-secondary">
@@ -110,7 +110,7 @@ export const MessageListModal: React.FC<MessageListModalProps> = memo(({
                     {/* 클릭 힌트 */}
                     <div className="mt-3 flex items-center justify-end">
                       <div className="flex items-center gap-1 text-xs text-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Sparkles className="w-3 h-3" />
+                        <Sparkles className="w-3 h-3 stroke-yellow-500 fill-yellow-100" />
                         클릭하면 위치로 이동
                       </div>
                     </div>

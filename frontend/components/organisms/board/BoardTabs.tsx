@@ -136,7 +136,7 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
               <div className="space-y-4">
                 <NoticeList posts={posts} />
                 <BoardTable
-                  posts={posts.filter(post => !post.isNotice)}
+                  posts={posts.filter(post => !post.notice)}
                   variant="all"
                 />
               </div>

@@ -45,7 +45,7 @@ export const BoardSearch = ({
                      searchType === "TITLE_CONTENT" ? "제목+내용" :
                      searchType === "AUTHOR" ? "작성자" : "제목"}
                   </span>
-                  <ChevronDown className="w-4 h-4 text-gray-500" />
+                  <ChevronDown className="w-4 h-4 stroke-slate-600 fill-slate-100" />
                 </button>
               )}
             >
@@ -73,20 +73,20 @@ export const BoardSearch = ({
               onClick={executeSearch}
               className="border-0 rounded-none hover:bg-brand-secondary/10 border-l border-gray-200"
             >
-              <Search className="w-5 h-5 text-brand-secondary" />
+              <Search className="w-5 h-5 stroke-blue-600 fill-blue-100" />
             </Button>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <ListFilter className="w-5 h-5 text-brand-secondary" />
+          <ListFilter className="w-5 h-5 stroke-blue-600 fill-blue-100" />
           <Dropdown
             label=""
             dismissOnClick={true}
             renderTrigger={() => (
               <button className="w-[120px] px-3 py-2 bg-white border border-gray-300 rounded-lg hover:border-brand-secondary/50 focus:ring-2 focus:ring-brand-secondary/20 flex items-center justify-between text-sm">
                 <span>{postsPerPage}개씩</span>
-                <ChevronDown className="w-4 h-4 text-gray-500" />
+                <ChevronDown className="w-4 h-4 stroke-slate-600 fill-slate-100" />
               </button>
             )}
           >

@@ -44,7 +44,7 @@ export default function ErrorPage({
                     blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCA5NiA5NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9Ijk2IiBoZWlnaHQ9Ijk2IiBmaWxsPSIjRjNGNEY2IiBvcGFjaXR5PSIwLjUiLz4KPC9zdmc+Cg=="
                   />
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <AlertTriangle className="w-12 h-12 text-red-500" />
+                    <AlertTriangle className="w-12 h-12 stroke-red-600 fill-red-100" />
                   </div>
                 </div>
               </div>
@@ -94,13 +94,13 @@ export default function ErrorPage({
               size="lg"
               className="w-full"
             >
-              <RefreshCw className="w-5 h-5 mr-2" />
+              <RefreshCw className="w-5 h-5 mr-2 stroke-blue-600 fill-blue-100" />
               다시 시도하기
             </Button>
 
             <Button asChild variant="outline" size="lg" className="w-full">
               <Link href="/">
-                <Home className="w-5 h-5 mr-2" />
+                <Home className="w-5 h-5 mr-2 stroke-indigo-600 fill-indigo-100" />
                 홈으로 돌아가기
               </Link>
             </Button>
@@ -110,7 +110,7 @@ export default function ErrorPage({
               size="lg"
               className="w-full"
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
+              <ArrowLeft className="w-4 h-4 mr-2 stroke-slate-600" />
               이전 페이지로
             </BackButton>
           </div>

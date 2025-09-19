@@ -97,7 +97,7 @@ const DialogClose = React.memo(({
 }: React.ComponentProps<"button">) => {
   return (
     <button {...props} onClick={onClick}>
-      {children || <X className="h-4 w-4" />}
+      {children || <X className="h-4 w-4 stroke-slate-600" />}
     </button>
   );
 });

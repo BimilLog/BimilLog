@@ -36,7 +36,7 @@ const CATEGORY_ICONS = {
 
 const TYPE_ICONS = {
   'post': FileText,
-  'rolling-paper': Heart,
+  'rolling-paper': (props: { className?: string }) => <Heart {...props} className={`stroke-red-500 fill-red-100 ${props.className || ''}`} />,
   'comment': MessageCircle,
 };
 
@@ -78,7 +78,7 @@ export function BookmarkSection() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
-              <BookmarkIcon className="w-5 h-5" />
+              <BookmarkIcon className="w-5 h-5 stroke-slate-600 fill-slate-100" />
               내 북마크
               <Badge variant="secondary">{stats.total}</Badge>
             </CardTitle>
@@ -89,7 +89,7 @@ export function BookmarkSection() {
                 onClick={clearAllBookmarks}
                 className="text-red-600 hover:bg-red-50"
               >
-                <Trash2 className="w-4 h-4 mr-1" />
+                <Trash2 className="w-4 h-4 mr-1 stroke-red-600 fill-red-100" />
                 모두 삭제
               </Button>
             )}
@@ -154,14 +154,14 @@ export function BookmarkSection() {
                   : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
               }`}
             >
-              <Heart className="w-3.5 h-3.5 inline mr-1" />
+              <Heart className="w-3.5 h-3.5 inline mr-1 stroke-red-500 fill-red-100" />
               롤링페이퍼 ({stats.byType['rolling-paper']})
             </button>
           </div>
 
           {/* 검색 */}
           <div className="relative mb-4">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 stroke-slate-600 fill-slate-100" />
             <input
               type="text"
               value={searchQuery}
@@ -174,7 +174,7 @@ export function BookmarkSection() {
           {/* 북마크 목록 */}
           {bookmarks.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
-              <BookmarkIcon className="w-12 h-12 mx-auto mb-3 opacity-30" />
+              <BookmarkIcon className="w-12 h-12 mx-auto mb-3 opacity-30 stroke-slate-600 fill-slate-100" />
               <p>북마크가 없습니다</p>
             </div>
           ) : (
@@ -190,7 +190,7 @@ export function BookmarkSection() {
                   >
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       <div className="flex-shrink-0">
-                        <TypeIcon className="w-5 h-5 text-gray-600" />
+                        <TypeIcon className="w-5 h-5 stroke-slate-600 fill-slate-100" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <Link
@@ -200,7 +200,7 @@ export function BookmarkSection() {
                           {bookmark.title}
                         </Link>
                         <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
-                          <CategoryIcon className="w-3 h-3" />
+                          <CategoryIcon className="w-3 h-3 stroke-slate-600 fill-slate-100" />
                           <span>{CATEGORY_LABELS[bookmark.category]}</span>
                           {bookmark.visitCount > 0 && (
                             <span>• 방문 {bookmark.visitCount}회</span>
@@ -214,7 +214,7 @@ export function BookmarkSection() {
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <Link href={bookmark.url}>
                         <Button variant="ghost" size="sm">
-                          <ExternalLink className="w-4 h-4" />
+                          <ExternalLink className="w-4 h-4 stroke-blue-600 fill-blue-100" />
                         </Button>
                       </Link>
                       <Button
@@ -223,7 +223,7 @@ export function BookmarkSection() {
                         onClick={() => removeBookmarkItem(bookmark.id)}
                         className="text-red-600 hover:bg-red-50"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-4 h-4 stroke-red-600 fill-red-100" />
                       </Button>
                     </div>
                   </div>

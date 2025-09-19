@@ -9,7 +9,7 @@ export const BoardHeader = React.memo(() => {
       <div className="container mx-auto px-4 text-center">
         <div className="flex items-center justify-center space-x-3 mb-4">
           <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-            <MessageSquare className="w-7 h-7 text-white" />
+            <MessageSquare className="w-7 h-7 text-white stroke-blue-600 fill-blue-100" />
           </div>
           <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent inline-block">
             커뮤니티 게시판
@@ -23,7 +23,7 @@ export const BoardHeader = React.memo(() => {
             size="lg"
             className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 inline-flex items-center"
           >
-            <Edit className="w-5 h-5 mr-2" />
+            <Edit className="w-5 h-5 mr-2 stroke-slate-600 fill-slate-100" />
             <span>글쓰기</span>
           </Button>
         </Link>

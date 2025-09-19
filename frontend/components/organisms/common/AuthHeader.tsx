@@ -49,10 +49,10 @@ export const AuthHeader = React.memo(() => {
 
 
   const getThemeIcon = () => {
-    if (!mounted) return <Monitor className="w-5 h-5" />;
-    if (theme === 'dark') return <Moon className="w-5 h-5" />;
-    if (theme === 'light') return <Sun className="w-5 h-5" />;
-    return <Monitor className="w-5 h-5" />;
+    if (!mounted) return <Monitor className="w-5 h-5 stroke-slate-600 fill-slate-100" />;
+    if (theme === 'dark') return <Moon className="w-5 h-5 stroke-slate-600 fill-slate-100" />;
+    if (theme === 'light') return <Sun className="w-5 h-5 stroke-slate-600 fill-slate-100" />;
+    return <Monitor className="w-5 h-5 stroke-slate-600 fill-slate-100" />;
   };
 
   return (
@@ -191,29 +191,29 @@ export const AuthHeader = React.memo(() => {
                 )}
               </DropdownHeader>
               <DropdownItem as={Link} href="/rolling-paper">
-                <ScrollText className="mr-2 h-4 w-4" />
+                <ScrollText className="mr-2 h-4 w-4 stroke-slate-600 fill-slate-100" />
                 내 롤링페이퍼
               </DropdownItem>
               <DropdownItem as={Link} href="/mypage">
-                <UserCircle className="mr-2 h-4 w-4" />
+                <UserCircle className="mr-2 h-4 w-4 stroke-slate-600 fill-slate-100" />
                 마이페이지
               </DropdownItem>
               <DropdownItem as={Link} href="/settings">
-                <Settings className="mr-2 h-4 w-4" />
+                <Settings className="mr-2 h-4 w-4 stroke-slate-600 fill-slate-100" />
                 설정
               </DropdownItem>
               {user.role === "ADMIN" && (
                 <>
                   <DropdownDivider />
                   <DropdownItem as={Link} href="/admin" className="text-red-600">
-                    <Shield className="mr-2 h-4 w-4" />
+                    <Shield className="mr-2 h-4 w-4 stroke-purple-600 fill-purple-100" />
                     관리자 페이지
                   </DropdownItem>
                 </>
               )}
               <DropdownDivider />
               <DropdownItem onClick={logout} className="text-red-600">
-                <LogOut className="mr-2 h-4 w-4" />
+                <LogOut className="mr-2 h-4 w-4 stroke-red-600 fill-red-100" />
                 로그아웃
               </DropdownItem>
             </Dropdown>

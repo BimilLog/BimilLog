@@ -6,7 +6,6 @@ import { paperQuery } from '@/lib/api';
 import { useAuth } from '@/hooks';
 import { ErrorHandler } from "@/lib/api/helpers";
 import { logger } from '@/lib/utils/logger';
-import { dbIndexToGridPosition } from '@/lib/utils/rolling-paper';
 import type { DecoType } from '@/types/domains/paper';
 
 // TanStack Query Hooks re-exports
@@ -34,8 +33,8 @@ export function useRollingPaperActions(userName: string) {
     content: string;
     anonymity: string;
     decoType: DecoType;
-    rowIndex: number;
-    colIndex: number;
+    x: number;
+    y: number;
   }) => {
     createMessageMutation.mutate({
       userName: messageData.userName,
@@ -43,10 +42,8 @@ export function useRollingPaperActions(userName: string) {
         decoType: messageData.decoType,
         anonymity: messageData.anonymity,
         content: messageData.content,
-        ...dbIndexToGridPosition({
-          rowIndex: messageData.rowIndex,
-          colIndex: messageData.colIndex
-        })
+        x: messageData.x,
+        y: messageData.y
       }
     });
   }, [createMessageMutation]);

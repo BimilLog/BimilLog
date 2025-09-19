@@ -46,7 +46,7 @@ export const RecentVisits: React.FC = () => {
       <CardHeader className="text-center pb-4">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center space-x-2 text-lg bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-            <Clock className="w-5 h-5 text-blue-600" />
+            <Clock className="w-5 h-5 stroke-indigo-600 fill-indigo-100" />
             <span className="font-bold">최근 방문한 롤링페이퍼</span>
           </CardTitle>
           <Button
@@ -72,7 +72,7 @@ export const RecentVisits: React.FC = () => {
                 className="flex items-center space-x-3 flex-1 min-w-0 hover:text-blue-600 transition-colors"
               >
                 <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-full flex items-center justify-center flex-shrink-0">
-                  <Heart className="w-5 h-5 text-white" />
+                  <Heart className="w-5 h-5 stroke-red-500 fill-red-100" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-brand-primary text-sm truncate">
@@ -101,7 +101,7 @@ export const RecentVisits: React.FC = () => {
         {/* 로컬스토리지 저장 정책 안내 메시지 */}
         <div className="mt-4 pt-3 border-t border-gray-200">
           <p className="text-xs text-brand-secondary text-center flex items-center justify-center space-x-1">
-            <Lightbulb className="w-3 h-3" />
+            <Lightbulb className="w-3 h-3 stroke-yellow-500 fill-yellow-100" />
             <span>최근 {recentVisits.length}개의 방문 기록 (최대 5개까지 저장됩니다)</span>
           </p>
         </div>

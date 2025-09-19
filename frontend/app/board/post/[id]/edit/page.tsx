@@ -82,7 +82,7 @@ export default function EditPostPage() {
                 <div className="flex items-center gap-2">
                   <Link href={`/board/post/${postId}`}>
                     <Button variant="ghost" size="sm" className="pl-0">
-                      <ArrowLeft className="w-4 h-4 mr-1" />
+                      <ArrowLeft className="w-4 h-4 mr-1 stroke-slate-600" />
                       <span className="hidden sm:inline">게시글</span>
                     </Button>
                   </Link>
@@ -99,7 +99,7 @@ export default function EditPostPage() {
                     onClick={() => setIsPreview(!isPreview)}
                     className="bg-white"
                   >
-                    <Eye className="w-4 h-4" />
+                    <Eye className="w-4 h-4 stroke-purple-600 fill-purple-100" />
                   </Button>
                   <Button
                     size="sm"
@@ -107,7 +107,7 @@ export default function EditPostPage() {
                     disabled={isSubmitting || !isFormValid}
                     className="bg-gradient-to-r from-pink-500 to-purple-600"
                   >
-                    <Save className="w-4 h-4" />
+                    <Save className="w-4 h-4 stroke-green-600 fill-green-100" />
                   </Button>
                 </div>
               </div>
@@ -120,7 +120,7 @@ export default function EditPostPage() {
                   onClick={() => setIsPreview(!isPreview)}
                   className="bg-white"
                 >
-                  <Eye className="w-4 h-4 mr-2" />
+                  <Eye className="w-4 h-4 mr-2 stroke-purple-600 fill-purple-100" />
                   {isPreview ? "편집" : "미리보기"}
                 </Button>
                 <Button
@@ -128,7 +128,7 @@ export default function EditPostPage() {
                   disabled={isSubmitting || !isFormValid}
                   className="bg-gradient-to-r from-pink-500 to-purple-600"
                 >
-                  <Save className="w-4 h-4 mr-2" />
+                  <Save className="w-4 h-4 mr-2 stroke-green-600 fill-green-100" />
                   {isSubmitting ? "수정 중..." : "수정완료"}
                 </Button>
               </div>
@@ -140,7 +140,7 @@ export default function EditPostPage() {
           <Card variant="elevated">
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
-                <Save className="w-5 h-5 text-purple-600" />
+                <Save className="w-5 h-5 stroke-purple-600 fill-purple-100" />
                 <span>게시글 수정</span>
               </CardTitle>
             </CardHeader>

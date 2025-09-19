@@ -96,7 +96,7 @@ export function ToastComponent({ toast, onRemove }: ToastProps) {
       >
         <FlowbiteToast className="shadow-lg">
           <div className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-purple-100 text-purple-500">
-            <MessageSquare className="h-5 w-5" />
+            <MessageSquare className="h-5 w-5 stroke-purple-500 fill-purple-100" />
           </div>
           <div className="ml-3 text-sm font-normal">
             <div className="mb-2 text-sm font-semibold text-gray-900">{toast.title}</div>
@@ -123,7 +123,7 @@ export function ToastComponent({ toast, onRemove }: ToastProps) {
                   }}
                   className="inline-flex h-8 items-center gap-1 justify-center rounded-lg border border-gray-300 bg-white px-3 text-center text-xs font-medium text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-200"
                 >
-                  <Undo className="h-3 w-3" />
+                  <Undo className="h-3 w-3 stroke-slate-600" />
                   실행 취소
                 </button>
               )}
@@ -135,7 +135,7 @@ export function ToastComponent({ toast, onRemove }: ToastProps) {
             onClick={handleRemove}
             aria-label="Close"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5 stroke-slate-600" />
           </button>
         </FlowbiteToast>
       </div>
@@ -162,7 +162,15 @@ export function ToastComponent({ toast, onRemove }: ToastProps) {
           theme === "purple" && "bg-purple-100 text-purple-500",
           theme === "gray" && "bg-gray-100 text-gray-500"
         )}>
-          <IconComponent className="h-5 w-5" />
+          <IconComponent className={cn(
+            "h-5 w-5",
+            theme === "green" && "stroke-green-600 fill-green-100",
+            theme === "red" && "stroke-red-600 fill-red-100",
+            theme === "orange" && "stroke-amber-600 fill-amber-100",
+            theme === "blue" && "stroke-blue-600 fill-blue-100",
+            theme === "purple" && "stroke-purple-500 fill-purple-100",
+            theme === "gray" && "stroke-slate-600 fill-slate-100"
+          )} />
         </div>
         <div className="ml-3 text-sm font-normal">
           <span className="mb-1 text-sm font-semibold text-gray-900">{toast.title}</span>
@@ -176,7 +184,7 @@ export function ToastComponent({ toast, onRemove }: ToastProps) {
           onClick={handleRemove}
           aria-label="Close"
         >
-          <X className="w-5 h-5" />
+          <X className="w-5 h-5 stroke-slate-600" />
         </button>
       </FlowbiteToast>
     </div>

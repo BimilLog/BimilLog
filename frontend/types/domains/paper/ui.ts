@@ -7,21 +7,12 @@ import { RollingPaperMessage, VisitMessage } from '@/types/domains/paper';
 // ===== Grid Related Types =====
 
 /**
- * 그리드 위치 타입 (1-based)
- * UI에서 사용하는 좌표
+ * 그리드 위치 타입 (0-based)
+ * UI와 백엔드 모두 0-based 좌표 사용
  */
 export interface GridPosition {
-  x: number; // 1-based (1~6 또는 1~4)
-  y: number; // 1-based (1~10)
-}
-
-/**
- * DB 인덱스 타입 (0-based)
- * 내부 배열 인덱싱에 사용
- */
-export interface DBIndex {
-  rowIndex: number; // 0-based (0~9)
-  colIndex: number; // 0-based (0~5 또는 0~3)
+  x: number; // 0-based (0~11, PC 2페이지=12칸, 모바일 3페이지=12칸)
+  y: number; // 0-based (0~9)
 }
 
 /**
@@ -110,8 +101,8 @@ export interface CreateMessageParams {
   content: string;
   anonymity: string;
   decoType: string;
-  rowIndex: number;
-  colIndex: number;
+  x: number;
+  y: number;
 }
 
 /**

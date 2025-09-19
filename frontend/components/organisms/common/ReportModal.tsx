@@ -64,14 +64,14 @@ export const ReportModal: React.FC<ReportModalProps> = ({
     <Modal show={isOpen} onClose={handleClose} size="md">
       <ModalHeader>
         <span className="flex items-center gap-2 text-red-600">
-          <Flag className="w-5 h-5" />
+          <Flag className="w-5 h-5 stroke-red-600 fill-red-100" />
           {type} 신고하기
         </span>
       </ModalHeader>
       <ModalBody>
         <div className="space-y-4">
           <Alert>
-            <AlertTriangle className="h-4 w-4" />
+            <AlertTriangle className="h-4 w-4 stroke-amber-600 fill-amber-100" />
             <AlertDescription>
               부적절한 내용이나 규정 위반 {type}를 신고해주세요. 허위 신고 시
               제재를 받을 수 있습니다.
@@ -121,7 +121,7 @@ export const ReportModal: React.FC<ReportModalProps> = ({
 
           {error && (
             <Alert variant="destructive">
-              <AlertTriangle className="h-4 w-4" />
+              <AlertTriangle className="h-4 w-4 stroke-amber-600 fill-amber-100" />
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}

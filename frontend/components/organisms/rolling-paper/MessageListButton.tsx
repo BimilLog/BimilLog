@@ -57,7 +57,7 @@ export const MessageListButton: React.FC<MessageListButtonProps> = ({
         size="lg"
         className="group bg-gradient-to-r from-cyan-500 to-blue-500 text-white"
       >
-        <List className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform" />
+        <List className="w-5 h-5 mr-2 group-hover:rotate-12 transition-transform stroke-slate-600 fill-slate-100" />
         메시지 목록 보기
         {messageCount > 0 && (
           <Badge className="ml-2 bg-white/20 text-white border-white/30">

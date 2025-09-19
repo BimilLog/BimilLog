@@ -40,7 +40,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
       <ModalBody>
         <div className="text-center">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gray-100">
-            {icon || <AlertCircle className="h-8 w-8 text-gray-400" />}
+            {icon || <AlertCircle className="h-8 w-8 stroke-red-600 fill-red-100" />}
           </div>
           <h3 className="mb-5 text-lg font-bold text-gray-900">
             {title}
