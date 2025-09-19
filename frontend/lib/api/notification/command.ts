@@ -1,12 +1,21 @@
 import { apiClient } from '../client'
 
+interface BatchUpdateRequest {
+  readIds: number[];
+  deletedIds: number[];
+}
+
 export const notificationCommand = {
-  markAsRead: (notificationId: number) => 
+  markAsRead: (notificationId: number) =>
     apiClient.post(`/api/notification/read/${notificationId}`),
-  
-  markAllAsRead: () => 
+
+  markAllAsRead: () =>
     apiClient.post("/api/notification/read-all"),
-  
-  delete: (notificationId: number) => 
+
+  delete: (notificationId: number) =>
     apiClient.delete(`/api/notification/delete/${notificationId}`),
+
+  // 일괄 업데이트 (읽음/삭제 한번에 처리)
+  batchUpdate: (updates: BatchUpdateRequest) =>
+    apiClient.post("/api/notification/update", updates),
 }

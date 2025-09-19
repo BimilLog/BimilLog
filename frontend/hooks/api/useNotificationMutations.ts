@@ -3,16 +3,22 @@ import { queryKeys, mutationKeys } from '@/lib/tanstack-query/keys';
 import { notificationCommand } from '@/lib/api';
 import { useToastStore } from '@/stores';
 import { logger } from '@/lib/utils/logger';
+import { addPendingRead, addPendingDelete } from '@/lib/utils/notification-sync';
 
 /**
- * 개별 알림 읽음 처리 (낙관적 업데이트)
+ * 개별 알림 읽음 처리 (로컬스토리지 저장 + 낙관적 업데이트)
  */
 export const useMarkNotificationAsRead = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationKey: mutationKeys.notification.markAsRead,
-    mutationFn: (notificationId: number) => notificationCommand.markAsRead(notificationId),
+    mutationFn: async (notificationId: number) => {
+      // 로컬스토리지에 저장 (5분 후 일괄 동기화)
+      addPendingRead(notificationId);
+      // 서버 API 호출하지 않음
+      return { success: true };
+    },
     onMutate: async (notificationId) => {
       // 쿼리 취소 - 경합 상태 방지
       await queryClient.cancelQueries({ queryKey: queryKeys.notification.list() });
@@ -20,7 +26,7 @@ export const useMarkNotificationAsRead = () => {
       // 이전 데이터 백업 - 에러 시 롤백용
       const previousNotifications = queryClient.getQueryData(queryKeys.notification.list());
 
-      // 낙관적 업데이트: 서버 응답 전에 UI에서 즉시 읽음 처리하여 반응성 향상
+      // 낙관적 업데이트: UI에서 즉시 읽음 처리
       queryClient.setQueryData(queryKeys.notification.list(), (old: any) => {
         if (!old?.success || !old?.data) return old;
 
@@ -34,31 +40,32 @@ export const useMarkNotificationAsRead = () => {
         };
       });
 
-      logger.log(`알림 ${notificationId} 읽음 처리 - 낙관적 업데이트`);
+      logger.log(`알림 ${notificationId} 읽음 처리 - 로컬스토리지 저장`);
 
       return { previousNotifications };
     },
     onError: (err, notificationId, context) => {
-      // 오류 시 롤백 - 낙관적 업데이트 취소하여 이전 상태로 복원
+      // 오류 시 롤백
       queryClient.setQueryData(queryKeys.notification.list(), context?.previousNotifications);
       logger.error(`알림 ${notificationId} 읽음 처리 실패:`, err);
-    },
-    onSettled: () => {
-      // 서버와 동기화 - 성공/실패 여부와 관계없이 최신 데이터로 갱신
-      queryClient.invalidateQueries({ queryKey: queryKeys.notification.list() });
     },
   });
 };
 
 /**
- * 개별 알림 삭제 (낙관적 업데이트)
+ * 개별 알림 삭제 (로컬스토리지 저장 + 낙관적 업데이트)
  */
 export const useDeleteNotification = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationKey: ['notification', 'delete'],
-    mutationFn: (notificationId: number) => notificationCommand.delete(notificationId),
+    mutationFn: async (notificationId: number) => {
+      // 로컬스토리지에 저장 (5분 후 일괄 동기화)
+      addPendingDelete(notificationId);
+      // 서버 API 호출하지 않음
+      return { success: true };
+    },
     onMutate: async (notificationId) => {
       // 쿼리 취소 - 경합 상태 방지
       await queryClient.cancelQueries({ queryKey: queryKeys.notification.list() });
@@ -66,7 +73,7 @@ export const useDeleteNotification = () => {
       // 이전 데이터 백업 - 에러 시 롤백용
       const previousNotifications = queryClient.getQueryData(queryKeys.notification.list());
 
-      // 낙관적 업데이트: 서버 응답 전에 UI에서 즉시 삭제하여 반응성 향상
+      // 낙관적 업데이트: UI에서 즉시 삭제
       queryClient.setQueryData(queryKeys.notification.list(), (old: any) => {
         if (!old?.success || !old?.data) return old;
 
@@ -76,7 +83,7 @@ export const useDeleteNotification = () => {
         };
       });
 
-      logger.log(`알림 ${notificationId} 삭제 - 낙관적 업데이트`);
+      logger.log(`알림 ${notificationId} 삭제 - 로컬스토리지 저장`);
 
       return { previousNotifications };
     },
@@ -85,15 +92,11 @@ export const useDeleteNotification = () => {
       queryClient.setQueryData(queryKeys.notification.list(), context?.previousNotifications);
       logger.error(`알림 ${notificationId} 삭제 실패:`, err);
     },
-    onSettled: () => {
-      // 서버와 동기화
-      queryClient.invalidateQueries({ queryKey: queryKeys.notification.list() });
-    },
   });
 };
 
 /**
- * 모든 알림 읽음 처리
+ * 모든 알림 읽음 처리 (즉시 서버 반영)
  */
 export const useMarkAllNotificationsAsRead = () => {
   const queryClient = useQueryClient();
@@ -101,7 +104,24 @@ export const useMarkAllNotificationsAsRead = () => {
 
   return useMutation({
     mutationKey: ['notification', 'markAllAsRead'],
-    mutationFn: notificationCommand.markAllAsRead,
+    mutationFn: async () => {
+      // 현재 알림 목록에서 읽지 않은 알림만 추출
+      const currentData = queryClient.getQueryData(queryKeys.notification.list()) as any;
+      const notifications = currentData?.data || [];
+      const unreadIds = notifications
+        .filter((n: any) => !n.read)
+        .map((n: any) => n.id);
+
+      if (unreadIds.length === 0) {
+        return { success: true };
+      }
+
+      // 일괄 읽음 처리 API 호출
+      return await notificationCommand.batchUpdate({
+        readIds: unreadIds,
+        deletedIds: [],
+      });
+    },
     onMutate: async () => {
       // 쿼리 취소
       await queryClient.cancelQueries({ queryKey: queryKeys.notification.list() });
@@ -163,10 +183,16 @@ export const useDeleteAllNotifications = () => {
       const currentData = queryClient.getQueryData(queryKeys.notification.list()) as any;
       const notifications = currentData?.data || [];
 
-      // 각 알림을 개별적으로 삭제 - API에 일괄 삭제가 없어서 루프 처리
-      for (const notification of notifications) {
-        await notificationCommand.delete(notification.id);
+      if (notifications.length === 0) {
+        return [];
       }
+
+      // 일괄 삭제 API 호출
+      const deleteIds = notifications.map((n: any) => n.id);
+      await notificationCommand.batchUpdate({
+        readIds: [],
+        deletedIds: deleteIds,
+      });
 
       return notifications;
     },

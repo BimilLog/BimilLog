@@ -4,12 +4,9 @@ import { useEditForm } from "@/hooks/features";
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Label, Editor } from "@/components";
 import { ArrowLeft, Save, Eye } from "lucide-react";
 import Link from "next/link";
-import { ToastContainer } from "@/components/molecules/feedback/toast";
 import { AuthHeader } from "@/components/organisms/common";
-import { useToast } from "@/hooks";
 
 export default function EditPostPage() {
-  const { toasts, removeToast } = useToast();
 
   // useEditForm 훅에서 모든 상태와 액션을 가져옴
   const {
@@ -63,7 +60,6 @@ export default function EditPostPage() {
             <p className="text-brand-muted">권한을 확인하는 중...</p>
           </div>
         </div>
-        <ToastContainer toasts={toasts} onRemove={removeToast} />
       </>
     );
   }
@@ -243,7 +239,6 @@ export default function EditPostPage() {
           </Card>
         </div>
       </div>
-      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </>
   );
 }

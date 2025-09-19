@@ -129,6 +129,13 @@ const QuillEditor: React.FC<EditorProps> = ({
         // CSS 스타일 적용 대기 (렌더링 완료 보장)
         await new Promise((resolve) => setTimeout(resolve, 300));
 
+        // 기존 툴바가 있으면 제거 (중복 방지)
+        const existingToolbar = editorRef.current.querySelector('.ql-toolbar');
+        if (existingToolbar) {
+          logger.log("기존 툴바 제거 중...");
+          existingToolbar.remove();
+        }
+
         /**
          * Quill 인스턴스 생성
          * toolbar와 formats를 Quill 2.0에 맞게 안전하게 설정
@@ -244,13 +251,17 @@ const QuillEditor: React.FC<EditorProps> = ({
       if (quillRef.current) {
         try {
           (quillRef.current as { off: (event: string) => void }).off("text-change");
-          quillRef.current = null;
+          // DOM 정리 - 툴바 제거
+          if (editorRef.current) {
+            const toolbar = editorRef.current.querySelector('.ql-toolbar');
+            toolbar?.remove();
+          }
         } catch (err) {
           logger.error("Error cleaning up Quill:", err);
         }
       }
     };
-  }, [onChange, placeholder, value]);
+  }, [onChange, placeholder]);
 
   /**
    * 외부에서 value prop이 변경되었을 때 에디터 내용 동기화

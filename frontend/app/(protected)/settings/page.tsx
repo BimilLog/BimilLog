@@ -2,8 +2,8 @@
 
 import dynamic from "next/dynamic";
 import { Settings as SettingsIcon } from "lucide-react";
-import { CuteLoadingSpinner, ToastContainer, ErrorAlert, Button } from "@/components";
-import { useSettings, useToast } from "@/hooks";
+import { CuteLoadingSpinner, ErrorAlert, Button } from "@/components";
+import { useSettings } from "@/hooks";
 
 // Dynamic imports for heavy settings components
 const NotificationSettings = dynamic(
@@ -50,7 +50,6 @@ export default function SettingsPage() {
     loadSettings,
   } = useSettings();
 
-  const { toasts, removeToast } = useToast();
 
   if (loading) {
     return (
@@ -108,8 +107,6 @@ export default function SettingsPage() {
           />
         </div>
       </div>
-
-      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </div>
   );
 }

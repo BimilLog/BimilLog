@@ -4,6 +4,7 @@ import { notificationQuery } from '@/lib/api';
 
 /**
  * 알림 목록 조회
+ * 알림 패널이 열렸을 때만 수동으로 호출됨
  */
 export const useNotificationList = () => {
   return useQuery({
@@ -11,7 +12,6 @@ export const useNotificationList = () => {
     queryFn: notificationQuery.getAll,
     staleTime: 5 * 60 * 1000, // 5분
     gcTime: 10 * 60 * 1000, // 10분
-    refetchInterval: 5 * 60 * 1000, // 5분마다 자동 새로고침
-    refetchIntervalInBackground: false, // 백그라운드에서는 새로고침 안함
+    enabled: false, // 자동 호출 비활성화 - 패널 열 때만 수동 refetch
   });
 };

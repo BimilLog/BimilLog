@@ -20,7 +20,7 @@ export const WritePageHeader: React.FC<WritePageHeaderProps> = ({
   isFormValid,
 }) => {
   return (
-    <div className="bg-white/60 backdrop-blur-sm border-b sticky top-0 z-40">
+    <div className="bg-white/60 backdrop-blur-sm border-b sticky top-16 z-40">
       <div className="container mx-auto px-4 py-3">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           {/* 좌측: 뒤로가기 및 제목 */}

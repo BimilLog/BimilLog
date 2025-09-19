@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import {
   Bell,
   BellOff,
@@ -20,6 +20,7 @@ import {
   Sheet,
   SheetContent,
   SheetTitle,
+  SheetDescription,
   SheetTrigger,
 } from "@/components";
 import {
@@ -30,8 +31,9 @@ import {
   useMarkAllNotificationsAsRead,
   useDeleteAllNotifications
 } from "@/hooks/features";
+import { useNotificationSync } from "@/hooks/api/useNotificationSync";
 import { useAuth } from "@/hooks";
-import { Spinner as FlowbiteSpinner } from "flowbite-react";
+import { Spinner as FlowbiteSpinner, Badge } from "flowbite-react";
 
 /**
  * 실시간 알림 벨 컴포넌트
@@ -47,7 +49,6 @@ export function NotificationBell() {
   // 미디어 쿼리 기반 모바일/데스크톱 감지
   const [isMobile, setIsMobile] = useState(false);
   const { isAuthenticated } = useAuth();
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // TanStack Query 기반 알림 데이터 관리
   const { data: notificationResponse, isLoading, refetch } = useNotificationList();
@@ -64,10 +65,20 @@ export function NotificationBell() {
     requestNotificationPermission,
   } = useNotifications();
 
+  // 5분마다 로컬스토리지의 변경사항을 서버로 동기화
+  const { syncNow, isSyncing } = useNotificationSync();
+
   // 미디어 쿼리 기반 모바일/데스크톱 감지
   useEffect(() => {
     const checkIsMobile = () => {
-      setIsMobile(window.innerWidth < 1024); // lg breakpoint
+      // 터치 디바이스 + 작은 화면 = 진짜 모바일
+      const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      const isSmallScreen = window.innerWidth < 768; // md 브레이크포인트로 변경
+
+      // 진짜 모바일: 터치 가능 + 화면 작음
+      // 태블릿/PC: 터치 불가 또는 화면 큼
+      // 화면 크기를 우선 기준으로 사용 (반응형 디자인)
+      setIsMobile(isSmallScreen);
     };
 
     // 초기값 설정
@@ -81,7 +92,9 @@ export function NotificationBell() {
   // 외부 클릭 감지로 데스크톱 팝오버 닫기
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      const target = event.target as HTMLElement;
+      // 알림 패널과 버튼 외부 클릭 시 닫기
+      if (!target.closest('.notification-popover') && !target.closest('.notification-button')) {
         setIsOpen(false);
       }
     };
@@ -107,11 +120,33 @@ export function NotificationBell() {
     deleteNotificationMutation.mutate(notificationId);
   };
 
-  const handleMarkAllAsRead = () => {
+  const handleMarkAllAsRead = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    console.log('[DEBUG] 모두 읽음 클릭됨, unreadCount:', unreadCount);
+
+    if (unreadCount === 0) {
+      console.log('[DEBUG] 읽지 않은 알림 없음');
+      return;
+    }
+
     markAllAsReadMutation.mutate();
   };
 
-  const handleDeleteAllNotifications = () => {
+  const handleDeleteAllNotifications = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    console.log('[DEBUG] 모두 삭제 클릭됨, notifications.length:', notifications.length);
+
+    if (notifications.length === 0) {
+      console.log('[DEBUG] 삭제할 알림 없음');
+      return;
+    }
+
     deleteAllNotificationsMutation.mutate();
   };
 
@@ -175,9 +210,14 @@ export function NotificationBell() {
   // 알림 패널 내용을 렌더링하는 공통 컴포넌트 (모바일/데스크톱에서 재사용)
   const NotificationContent = ({ isMobile = false }: { isMobile?: boolean }) => (
     <div className="w-full max-w-md mx-auto">
-      {/* 접근성: 모바일에서만 SheetTitle 사용, 데스크톱에서는 일반 span */}
+      {/* 접근성: 모바일에서만 SheetTitle/SheetDescription 사용, 데스크톱에서는 일반 span */}
       {isMobile ? (
-        <SheetTitle className="sr-only">알림</SheetTitle>
+        <>
+          <SheetTitle className="sr-only">알림</SheetTitle>
+          <SheetDescription className="sr-only">
+            새로운 알림을 확인하고 관리할 수 있습니다
+          </SheetDescription>
+        </>
       ) : (
         <span className="sr-only">알림</span>
       )}
@@ -228,7 +268,7 @@ export function NotificationBell() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handleMarkAllAsRead}
+                onClick={(e) => handleMarkAllAsRead(e)}
                 className="flex-1 text-sm min-h-[44px] touch-manipulation"
                 title="모든 알림을 읽음으로 처리"
               >
@@ -240,7 +280,7 @@ export function NotificationBell() {
             <Button
               variant="outline"
               size="sm"
-              onClick={handleDeleteAllNotifications}
+              onClick={(e) => handleDeleteAllNotifications(e)}
               className="flex-1 text-sm min-h-[44px] text-red-600 hover:text-red-700 border-red-200 hover:border-red-300 touch-manipulation"
               title="모든 알림 삭제"
             >
@@ -340,10 +380,10 @@ export function NotificationBell() {
         )}
       </div>
 
-      {/* SSE 연결 상태 표시 (개발 모드에서만 표시되는 디버깅 정보) */}
+      {/* SSE 연결 및 동기화 상태 표시 (개발 모드에서만 표시되는 디버깅 정보) */}
       {process.env.NODE_ENV === "development" && (
         <div className="p-3 bg-gray-100/80 border-t">
-          <div className="flex items-center justify-between text-xs">
+          <div className="flex items-center justify-between text-xs mb-1">
             <span className="text-brand-muted">알림 상태:</span>
             <span
               className={`font-medium ${
@@ -361,6 +401,24 @@ export function NotificationBell() {
                 : "연결 불가"}
             </span>
           </div>
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-brand-muted">동기화:</span>
+            <div className="flex items-center gap-2">
+              {isSyncing && (
+                <FlowbiteSpinner color="pink" size="xs" aria-label="동기화 중..." />
+              )}
+              <Button
+                variant="ghost"
+                size="xs"
+                onClick={syncNow}
+                disabled={isSyncing}
+                className="text-xs px-2 py-1"
+                title="지금 동기화"
+              >
+                지금 동기화
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -368,7 +426,7 @@ export function NotificationBell() {
 
   // JavaScript 기반 조건부 렌더링: 모바일은 바텀 시트, 데스크톱은 팝오버
   return (
-    <div ref={dropdownRef} className="relative">
+    <div className="relative">
       {isMobile ? (
         /* 모바일/태블릿: 바텀 시트(Sheet) UI */
         <Sheet open={isOpen} onOpenChange={handleOpen}>
@@ -376,7 +434,7 @@ export function NotificationBell() {
             <Button
               variant="ghost"
               size="sm"
-              className="relative min-h-[44px] min-w-[44px] touch-manipulation"
+              className="flex items-center gap-1 min-h-[44px] px-2 touch-manipulation"
               title={`알림 ${
                 unreadCount > 0 ? `(${unreadCount}개 읽지 않음)` : ""
               }`}
@@ -389,9 +447,9 @@ export function NotificationBell() {
               )}
               {/* 읽지 않은 알림 개수 배지 (99개 이상은 99+로 표시) */}
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
+                <Badge color="failure" size="xs" className="px-1.5">
                   {unreadCount > 99 ? "99+" : unreadCount}
-                </span>
+                </Badge>
               )}
             </Button>
           </SheetTrigger>
@@ -407,7 +465,7 @@ export function NotificationBell() {
             variant="ghost"
             size="sm"
             onClick={() => handleOpen(!isOpen)}
-            className="relative min-h-[44px] min-w-[44px] touch-manipulation"
+            className="flex items-center gap-1 min-h-[44px] px-2 touch-manipulation notification-button"
             title={`알림 ${unreadCount > 0 ? `(${unreadCount}개 읽지 않음)` : ""}`}
           >
             {/* SSE 연결 상태에 따른 벨 아이콘 변화 */}
@@ -418,15 +476,15 @@ export function NotificationBell() {
             )}
             {/* 읽지 않은 알림 개수 배지 */}
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
+              <Badge color="failure" size="xs" className="px-1.5">
                 {unreadCount > 99 ? "99+" : unreadCount}
-              </span>
+              </Badge>
             )}
           </Button>
 
           {/* 데스크톱 전용 팝오버 (우측 상단에서 아래로 펼쳐지는 드롭다운) */}
           {isOpen && (
-            <div className="absolute right-0 top-full mt-2 z-50">
+            <div className="absolute right-0 top-full mt-2 z-50 notification-popover">
               <Card className="w-80 shadow-brand-xl border-0 bg-white/90 backdrop-blur-sm">
                 <NotificationContent isMobile={false} />
               </Card>
