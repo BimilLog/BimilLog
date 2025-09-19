@@ -35,7 +35,7 @@ public class PaperCommandController {
      * @author Jaeik
      * @since 2.0.0
      */
-    @PostMapping("{userName}")
+    @PostMapping("/{userName}")
     public ResponseEntity<String> writeMessage(
             @PathVariable String userName,
             @RequestBody @Valid MessageDTO messageDTO) {

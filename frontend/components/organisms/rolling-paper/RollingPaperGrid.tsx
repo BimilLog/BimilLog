@@ -79,16 +79,6 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
 
 
 
-  // 바인더 구멍들 메모화 - 완벽히 일관된 간격으로 배치
-  const binderHoles = useMemo(() => Array.from({ length: 9 }, (_, i) => (
-    <div
-      key={`binder-hole-${i}`}
-      className="w-4 h-4 md:w-6 md:h-6 bg-white rounded-full shadow-inner border border-cyan-300 md:border-2"
-      style={{
-        boxShadow: "inset 0 1px 2px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.1)",
-      }}
-    />
-  )), []);
 
   const { pageWidth, totalSlots } = gridConfig;
 
@@ -112,10 +102,6 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
           backgroundSize: "30px 30px, 120px 120px, 15px 15px, 15px 15px",
         }}
       >
-        {/* 바인더 구멍들 - 완벽한 일관성 */}
-        <div className="absolute left-3 md:left-6 top-12 md:top-16 flex flex-col gap-16 md:gap-20">
-          {binderHoles}
-        </div>
 
         {/* 제목 영역 */}
         <div className="pt-6 md:pt-8 pb-4 md:pb-6 px-12 md:px-20 text-center">
@@ -126,11 +112,9 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
               <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent pointer-events-none"></div>
 
               <h1 className="text-xl md:text-4xl font-extrabold mb-4 flex items-center justify-center gap-3 relative z-10">
-                <Waves className="w-6 h-6 md:w-8 md:h-8 text-cyan-500 animate-pulse drop-shadow-md" />
                 <span className="text-cyan-700 font-extrabold transform hover:scale-105 transition-transform duration-300 drop-shadow-sm">
                   {nickname}님의 롤링페이퍼
                 </span>
-                <Waves className="w-6 h-6 md:w-8 md:h-8 text-cyan-500 animate-pulse drop-shadow-md" />
               </h1>
 
               {/* 메시지 수 카드 */}
@@ -235,7 +219,7 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
                           <DecoIcon
                             decoType={messageAtPosition.decoType}
                             size="lg"
-                            showBackground={false}
+                            showBackground={true}
                             animate="bounce"
                           />
                           {/* 메시지 존재를 나타내는 알림 점 */}

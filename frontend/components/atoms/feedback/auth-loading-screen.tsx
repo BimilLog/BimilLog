@@ -1,4 +1,3 @@
-import { AuthLayout } from "@/components/organisms/auth";
 import { Spinner as FlowbiteSpinner } from "flowbite-react";
 
 interface AuthLoadingScreenProps {
@@ -11,7 +10,7 @@ export function AuthLoadingScreen({
   subMessage
 }: AuthLoadingScreenProps) {
   return (
-    <AuthLayout>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
       <div className="flex flex-col items-center">
         <FlowbiteSpinner
           color="pink"
@@ -25,6 +24,6 @@ export function AuthLoadingScreen({
           <p className="text-brand-muted">{subMessage}</p>
         )}
       </div>
-    </AuthLayout>
+    </div>
   );
 }

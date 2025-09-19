@@ -127,7 +127,7 @@ export function useRollingPaperSearch(): UseRollingPaperSearchReturn {
 
       if (response.success) {
         // 성공 시 해당 사용자의 롤링페이지 페이지로 라우팅
-        router.push(`/rolling-paper/${encodeURIComponent(trimmedNickname)}`);
+        router.push(`/rolling-paper/${trimmedNickname}`);
       } else {
         // 사용자를 찾을 수 없는 경우: 에러 메시지 표시
         const appError = ErrorHandler.mapApiError(new Error(response.error || "사용자를 찾을 수 없습니다"));

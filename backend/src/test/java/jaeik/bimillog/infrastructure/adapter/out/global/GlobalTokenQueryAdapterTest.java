@@ -1,7 +1,6 @@
-package jaeik.bimillog.infrastructure.adapter.out.global.out;
+package jaeik.bimillog.infrastructure.adapter.out.global;
 
 import jaeik.bimillog.domain.user.entity.Token;
-import jaeik.bimillog.infrastructure.adapter.out.global.GlobalTokenQueryAdapter;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.TokenRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

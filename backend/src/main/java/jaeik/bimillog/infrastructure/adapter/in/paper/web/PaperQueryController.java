@@ -61,7 +61,7 @@ public class PaperQueryController {
      * @author Jaeik
      * @since 2.0.0
      */
-    @GetMapping("{userName}")
+    @GetMapping("/{userName}")
     public ResponseEntity<List<VisitMessageDTO>> visitPaper(@PathVariable String userName) {
         List<VisitMessageDetail> visitMessageDetails = paperQueryUseCase.visitPaper(userName);
         List<VisitMessageDTO> visitMessageDTOs = visitMessageDetails.stream()

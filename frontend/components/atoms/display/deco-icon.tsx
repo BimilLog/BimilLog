@@ -57,6 +57,8 @@ export const DecoIcon: React.FC<DecoIconProps> = ({
             sizeClasses[size],
             iconMapping.color || 'text-brand-muted'
           )}
+          fill="currentColor"
+          strokeWidth={1.5}
         />
       </div>
     );
@@ -70,6 +72,8 @@ export const DecoIcon: React.FC<DecoIconProps> = ({
         animationClasses[animate],
         className
       )}
+      fill="currentColor"
+      strokeWidth={1.5}
     />
   );
 };

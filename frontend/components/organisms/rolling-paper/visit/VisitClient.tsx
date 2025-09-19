@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import dynamic from "next/dynamic";
-import { Heart, Mail } from "lucide-react";
+import { Heart, Mail, Share2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useRollingPaperSearch } from "@/hooks";
+import { Button as FlowbiteButton } from "flowbite-react";
+import { useRollingPaperSearch, useToast } from "@/hooks";
 import { KakaoShareButton } from "@/components";
 import { AuthHeader } from "@/components/organisms/common";
 import { HomeFooter } from "@/components/organisms/home";
@@ -41,6 +42,7 @@ export function VisitClient() {
   // 사용자가 자신의 롤링페이퍼를 검색했을 때 표시할 확인 다이얼로그 상태
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const router = useRouter();
+  const { showSuccess, showError } = useToast();
 
   // 롤링페이퍼 검색 관련 상태와 핸들러들
   const {
@@ -55,6 +57,36 @@ export function VisitClient() {
   const handleGoToMyRollingPaper = () => {
     setShowConfirmDialog(false);
     router.push("/rolling-paper");
+  };
+
+  // 링크 공유 핸들러 (게시글 페이지와 동일한 로직)
+  const handleWebShare = async () => {
+    const shareData = {
+      title: '롤링페이퍼 방문 | 비밀로그',
+      text: '익명으로 따뜻한 메시지를 남겨보세요!',
+      url: window.location.href,
+    };
+
+    // 네이티브 공유 API 지원 여부 확인
+    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+      try {
+        await navigator.share(shareData);
+        showSuccess('공유 완료', '롤링페이퍼 방문 페이지가 공유되었습니다.');
+      } catch (error) {
+        // 사용자가 공유를 취소한 경우는 무시
+        if ((error as Error).name !== 'AbortError') {
+          showError('공유 실패', '공유하기에 실패했습니다.');
+        }
+      }
+    } else {
+      // 클립보드 복사 폴백
+      try {
+        await navigator.clipboard.writeText(shareData.url);
+        showSuccess('복사 완료', '링크가 클립보드에 복사되었습니다.');
+      } catch {
+        showError('복사 실패', '링크 복사에 실패했습니다.');
+      }
+    }
   };
 
   return (
@@ -74,11 +106,22 @@ export function VisitClient() {
                 롤링페이퍼 방문
               </h1>
             </div>
-            <KakaoShareButton
-              type="service"
-              size="sm"
-              className="px-2 sm:px-3 py-1 text-sm h-8"
-            />
+            <div className="flex items-center gap-1">
+              <KakaoShareButton
+                type="service"
+                size="sm"
+                className="px-2 sm:px-3 py-1 text-sm h-8"
+              />
+              <FlowbiteButton
+                onClick={handleWebShare}
+                color="gray"
+                size="sm"
+                className="text-xs h-8"
+              >
+                <Share2 className="w-4 h-4 mr-1" />
+                링크 공유
+              </FlowbiteButton>
+            </div>
           </div>
         </div>
       </header>

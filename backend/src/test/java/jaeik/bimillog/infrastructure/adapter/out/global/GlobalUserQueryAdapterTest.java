@@ -1,8 +1,7 @@
-package jaeik.bimillog.infrastructure.adapter.out.global.out;
+package jaeik.bimillog.infrastructure.adapter.out.global;
 
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.infrastructure.adapter.out.global.GlobalUserQueryAdapter;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

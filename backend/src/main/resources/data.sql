@@ -149,26 +149,26 @@ VALUES
     (11, 18, 2),                 -- 18번 댓글 추천
     (12, 20, 2), (13, 20, 3);        -- 20번 댓글 추천
 
--- 롤링페이퍼 메시지 데이터 (x, y 컬럼 사용)
+-- 롤링페이퍼 메시지 데이터 (x, y 컬럼 사용) - 암호화된 content
 INSERT INTO message (message_id, user_id, x, y, anonymity, content, deco_type, created_at, modified_at)
 VALUES
-    (1, 2, 0, 0, '농부', '안녕하세요! 비밀로그 정말 재미있어요. 앞으로도 좋은 서비스 부탁드려요!', 'STRAWBERRY', DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
-    (2, 2, 0, 1, '당근', '버그 신고 글 잘 봤어요. 덕분에 문제가 해결될 것 같아요. 감사합니다!', 'CARROT', DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
-    (3, 2, 0, 2, '커피', '항상 열심히 활동해주셔서 감사해요. 좋은 하루 되세요!', 'COFFEE', DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY)),
-    (4, 2, 1, 0, '고양이', '비밀농부1님의 글들 항상 유익해요. 계속 좋은 글 부탁드려요!', 'CAT', DATE_SUB(NOW(6), INTERVAL 12 HOUR), DATE_SUB(NOW(6), INTERVAL 12 HOUR)),
-    (5, 2, 1, 1, '별빛', '오늘도 좋은 하루 보내세요! 화이팅!', 'STAR', DATE_SUB(NOW(6), INTERVAL 6 HOUR), DATE_SUB(NOW(6), INTERVAL 6 HOUR)),
+    (1, 2, 0, 0, '농부', 'oXEYvoqn1bXQDWiwZS1b8/P9chdaVGVoQa+OqGOwmyULLxy4/ROg8QjvoWhKN6cUKu2G5VlguEY0nPMhUjDLmhZMUxvgSRkWfoIqmQ+pTPIHOzUe6pcs7eB8JDdmdypEjCRHVvZy/UImwbxaTTm8vA==', 'STRAWBERRY', DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
+    (2, 2, 0, 1, '당근', 'dMY54tYCdd1lRuE2dzKWebeFNIYAaDQNLLg6N9F+txgutn/bTc4Hh9tB6+pkilUxrQc24WmYq1PnHC5pothjG2j6l+50GKLcF2l1P+M2i2nOdUJoEPEWCrHWIMFfQJfp', 'CARROT', DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
+    (3, 2, 0, 2, '커피', 'Wp/swJel1cUa0JZmYKCGxdY8q3/vI3uf+Lvj83nJVza5kjuKR7nAR2gWVW6QW2neWPdnf2Mb20fYf2dFI2dcMvFA702Hp3S8xaK7BOQT/h8=', 'COFFEE', DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY)),
+    (4, 2, 1, 0, '고양이', '+UPgH81T8oH/JdM5yBAZ8J9d/XYaS5zFa9W+Qb+S0KwH88UGS5XvnVjaPzRq8n/QkR0ItXO11k+Z9yn2pt9smF10er2QXnNSw8Qn3idqujlJ2gwBv+UHnOue07MpsCY8', 'CAT', DATE_SUB(NOW(6), INTERVAL 12 HOUR), DATE_SUB(NOW(6), INTERVAL 12 HOUR)),
+    (5, 2, 1, 1, '별빛', 'vpk43LiTn33AZIahk/Bkdrfeikmj4HFNy5/PYX03rtD2xIuGlazREeJ4ZP14EicJCIzhFTbyBt9/skvFDpb9WQ==', 'STAR', DATE_SUB(NOW(6), INTERVAL 6 HOUR), DATE_SUB(NOW(6), INTERVAL 6 HOUR)),
 
-    (6, 3, 0, 3, '사과', '익명작가님의 개선 제안들 정말 좋아요! 모두 구현되면 좋겠어요.', 'APPLE', DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
-    (7, 3, 0, 4, '멍멍', '다크모드 제안 너무 좋아요. 빨리 생겼으면 좋겠어요!', 'DOG', DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
-    (8, 3, 0, 5, '달빛', '창의적인 아이디어 항상 감탄하고 있어요. 대단해요!', 'MOON', DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
-    (9, 3, 1, 3, '풍선', '태그 기능 제안 정말 좋았어요. 구현되길 바라요!', 'BALLOON', DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY)),
-    (10, 3, 1, 4, '해바라', '항상 유용한 제안 감사해요. 좋은 하루 되세요!', 'SUNFLOWER', DATE_SUB(NOW(6), INTERVAL 8 HOUR), DATE_SUB(NOW(6), INTERVAL 8 HOUR)),
+    (6, 3, 0, 3, '사과', 'vct16trR+lcKu6WZe3fKUQDhBrIvv3IaNj9arbyMw3yT1Dol/XG4MvCmdvwfF+LyCvXwMjl+vpbat9nDsk7AuaJWtWsXVjczIGrwnr4txAvEhBOr7IDyHl5IQlYDctTi', 'APPLE', DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
+    (7, 3, 0, 4, '멍멍', 'C8MLY30ITER+6kNL62vAQ9Zcohv8RNjTnIDcK2Hl448Cmv1Rc/EYZc0giVee3vpZwui84PvPiBpWU+b/7P1AdZ+rCCgPIgsA9lCGVdv3+T4=', 'DOG', DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
+    (8, 3, 0, 5, '달빛', 'DEi6y1BYrryfJVYYi2pLPE+dV8/pXm+ksR0dSmQl6m+OQ0aMCr9FyOvFlo7k+y5xfLAgxie6KxkJLjBNjDdWdbwwR42BDNZN7G4ri4amv2s=', 'MOON', DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
+    (9, 3, 1, 3, '풍선', 'yc3c9B4g3dChnsK/NxW8sPOfyzG5QTuFMIpO45wiD8hKKic4HXjKBb4FoI+0QI+PNpCQbpL7MYpmJoDGeUayzqS0Ua1akFrJa5JQGs/Ck1Q=', 'BALLOON', DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY)),
+    (10, 3, 1, 4, '해바라', 'oogDmwzcTYhe9B+tEb/4wvYWmKf9WF2Nf8WV3wf1D1cjIYSBxr6PZkJVgm/xjRTLukJuBod6DCKzh2V0mNOLMw==', 'SUNFLOWER', DATE_SUB(NOW(6), INTERVAL 8 HOUR), DATE_SUB(NOW(6), INTERVAL 8 HOUR)),
 
-    (11, 4, 2, 0, '용용', '관리자님 항상 수고 많으세요! 덕분에 깨끗한 커뮤니티가 유지되는 것 같아요.', 'DRAGON', DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
-    (12, 4, 2, 1, '천사', '신고 처리 빨라서 감사해요. 앞으로도 잘 부탁드려요!', 'ANGEL', DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
-    (13, 4, 2, 2, '불새', '롤링메신저님 덕분에 안전한 소통이 가능해요. 감사합니다!', 'PHOENIX', DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
-    (14, 4, 2, 3, '왕관', '관리 업무 정말 고생 많으세요. 항상 응원합니다!', 'STAR', DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
-    (15, 4, 2, 4, '무지개', '공정한 관리 감사해요. 좋은 하루 되세요!', 'RAINBOW', DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY));
+    (11, 4, 2, 0, '용용', 'kPqh+eGx/xXCZebRvMQSmsXYcyog/aX0lHH54i6KmgR4EUv1nuHxKpZGRmY7uxaP0taL9I0lYyB4IJ7GESDN3dQ84+RHlQ2ezdjRg4KMUDlfFYhX4ZTj6wqJfw8j5amDIoioijAStHWw1PFwqQlzgA==', 'DRAGON', DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
+    (12, 4, 2, 1, '천사', 'Swc6933Sj9qA1x4vlm5RZLp1FEpbeQlUfkL2DoGUWU4q7YblWWC4RjSc8yFSMMua7nrN0brJeAN/YLBokRKrjXNTMoGwpG9vCNnssGurFaw=', 'ANGEL', DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
+    (13, 4, 2, 2, '불새', 'aLWa04MllNYa9DIO2TvO34SDVUF5/q0dGLubE19h4CjVV3UqrNh8i5xSu5TWmCY5dIuuKzR7KbJ10/tbILx+ywwtHvORBnDLnDwE2ftq7Wc=', 'PHOENIX', DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
+    (14, 4, 2, 3, '왕관', 'LVoSznMzfeX7KTRfNOxYbR2hyAm4/Y1FDQwWy7AkTz9lfCzayutPyO2OiSq98incGpUdGqfLmx94tjhhzIZml6S0Ua1akFrJa5JQGs/Ck1Q=', 'STAR', DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
+    (15, 4, 2, 4, '무지개', 'H98D1yYWvFAmnJBHJ8xP5DsoulerLLZErer4DxM1XBFQbLkRZaYsqMb08bZXZ+HJfjnzJ4fMa/9/N+FJrV52aQ==', 'RAINBOW', DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY));
 
 -- 신고 데이터 (각 신고 유형별로)
 INSERT INTO report (report_id, user_id, report_type, target_id, content, created_at, modified_at)
