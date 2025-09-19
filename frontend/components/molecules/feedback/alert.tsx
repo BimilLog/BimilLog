@@ -38,15 +38,15 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
 
       switch (variant) {
         case "destructive":
-          return <XCircle className="h-4 w-4 stroke-red-600 fill-red-100" />;
+          return <XCircle className="h-4 w-4 text-red-600" />;
         case "success":
-          return <CheckCircle className="h-4 w-4 stroke-green-600 fill-green-100" />;
+          return <CheckCircle className="h-4 w-4 text-green-600" />;
         case "warning":
-          return <AlertTriangle className="h-4 w-4 stroke-amber-600 fill-amber-100" />;
+          return <AlertTriangle className="h-4 w-4 text-amber-600" />;
         case "info":
-          return <Info className="h-4 w-4 stroke-blue-600 fill-blue-100" />;
+          return <Info className="h-4 w-4 text-blue-600" />;
         default:
-          return <AlertCircle className="h-4 w-4 stroke-red-600 fill-red-100" />;
+          return <AlertCircle className="h-4 w-4 text-red-600" />;
       }
     };
 

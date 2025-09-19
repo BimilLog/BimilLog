@@ -8,8 +8,6 @@ import {
   ThumbsUp,
   MessageSquare,
   Lock,
-  Edit,
-  Trash2,
   User,
   ExternalLink,
   Megaphone,
@@ -266,33 +264,6 @@ export const PostHeader = React.memo<PostHeaderProps>(({
             <Share2 className="w-4 h-4 mr-1" />
             링크 공유
           </FlowbiteButton>
-
-          {canModify() && (
-            <div className="flex gap-2">
-              <Link
-                href={`/board/post/${post.id}/edit`}
-                className="flex-1 sm:flex-initial"
-              >
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="w-full sm:w-auto"
-                >
-                  <Edit className="w-4 h-4 sm:mr-1 stroke-slate-600 fill-slate-100" />
-                  <span className="hidden sm:inline">수정</span>
-                </Button>
-              </Link>
-              <Button
-                size="sm"
-                variant="destructive"
-                onClick={onDeleteClick}
-                className="flex-1 sm:flex-initial"
-              >
-                <Trash2 className="w-4 h-4 sm:mr-1 stroke-red-600 fill-red-100" />
-                <span className="hidden sm:inline">삭제</span>
-              </Button>
-            </div>
-          )}
         </div>
       </div>
     </CardHeader>

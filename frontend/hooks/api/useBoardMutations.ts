@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { mutationKeys, queryKeys } from '@/lib/tanstack-query/keys';
 import { postCommand } from '@/lib/api';
 import { useToast, useAuth } from '@/hooks';
+import { useGlobalToast } from '@/stores/toastStore';
 import { useRouter } from 'next/navigation';
 import { stripHtml, validatePassword } from '@/lib/utils';
 import type { ApiResponse, Post } from '@/types';
@@ -16,7 +17,7 @@ import type { ApiResponse, Post } from '@/types';
  */
 export const useCreateBoardPost = () => {
   const queryClient = useQueryClient();
-  const { showToast } = useToast();
+  const globalToast = useGlobalToast();
   const { user, isAuthenticated } = useAuth();
   const router = useRouter();
 
@@ -47,21 +48,30 @@ export const useCreateBoardPost = () => {
         password: validatedPassword,
       };
 
-      return postCommand.create(postData);
+      const response = await postCommand.create(postData);
+
+      // API 에러 처리
+      if (!response.success) {
+        throw new Error(response.error || '게시글 작성에 실패했습니다.');
+      }
+
+      return response;
     },
     onSuccess: (response) => {
-      if (response.success && response.data) {
+      // 201 Created 또는 성공 응답 처리
+      if (response.data && response.data.id) {
         // 게시글 목록 캐시 무효화
         queryClient.invalidateQueries({ queryKey: queryKeys.post.lists() });
         queryClient.invalidateQueries({ queryKey: queryKeys.post.popular() });
 
-        showToast({ type: 'success', message: '게시글이 성공적으로 작성되었습니다!' });
+        globalToast.success('게시글이 성공적으로 작성되었습니다!');
         router.push(`/board/post/${response.data.id}`);
       }
     },
     onError: (error) => {
+      // 백엔드 에러 메시지를 정확히 표시
       const errorMessage = error instanceof Error ? error.message : '게시글 작성 중 오류가 발생했습니다.';
-      showToast({ type: 'error', message: errorMessage });
+      globalToast.error(errorMessage, '게시글 작성 실패');
     },
   });
 };
@@ -71,25 +81,32 @@ export const useCreateBoardPost = () => {
  */
 export const useUpdateBoardPost = () => {
   const queryClient = useQueryClient();
-  const { showToast } = useToast();
+  const globalToast = useGlobalToast();
   const router = useRouter();
 
   return useMutation({
     mutationKey: mutationKeys.post.update,
-    mutationFn: ({ postId, ...data }: { postId: number } & Parameters<typeof postCommand.update>[0]) =>
-      postCommand.update(data),
-    onSuccess: (response, variables) => {
-      if (response.success) {
-        // 특정 게시글 및 목록 캐시 무효화
-        queryClient.invalidateQueries({ queryKey: queryKeys.post.detail(variables.postId) });
-        queryClient.invalidateQueries({ queryKey: queryKeys.post.lists() });
+    mutationFn: async ({ postId, ...data }: { postId: number } & Parameters<typeof postCommand.update>[0]) => {
+      const response = await postCommand.update(data);
 
-        showToast({ type: 'success', message: '게시글이 수정되었습니다.' });
-        router.push(`/board/post/${variables.postId}`);
+      // API 에러 처리
+      if (!response.success) {
+        throw new Error(response.error || '게시글 수정에 실패했습니다.');
       }
+
+      return { ...response, postId };
+    },
+    onSuccess: (response) => {
+      // 특정 게시글 및 목록 캐시 무효화
+      queryClient.invalidateQueries({ queryKey: queryKeys.post.detail(response.postId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.post.lists() });
+
+      globalToast.success('게시글이 수정되었습니다.');
+      router.push(`/board/post/${response.postId}`);
     },
     onError: (error) => {
-      showToast({ type: 'error', message: '게시글 수정에 실패했습니다.' });
+      const errorMessage = error instanceof Error ? error.message : '게시글 수정에 실패했습니다.';
+      globalToast.error(errorMessage, '게시글 수정 실패');
     },
   });
 };
@@ -99,25 +116,33 @@ export const useUpdateBoardPost = () => {
  */
 export const useDeleteBoardPost = () => {
   const queryClient = useQueryClient();
-  const { showToast } = useToast();
+  const globalToast = useGlobalToast();
   const router = useRouter();
 
   return useMutation({
     mutationKey: mutationKeys.post.delete,
-    mutationFn: postCommand.delete,
-    onSuccess: (response, postId) => {
-      if (response.success) {
-        // 캐시에서 게시글 제거
-        queryClient.removeQueries({ queryKey: queryKeys.post.detail(postId) });
-        queryClient.invalidateQueries({ queryKey: queryKeys.post.lists() });
-        queryClient.invalidateQueries({ queryKey: queryKeys.post.popular() });
+    mutationFn: async (postId: number) => {
+      const response = await postCommand.delete(postId);
 
-        showToast({ type: 'success', message: '게시글이 삭제되었습니다.' });
-        router.push('/board');
+      // API 에러 처리
+      if (!response.success) {
+        throw new Error(response.error || '게시글 삭제에 실패했습니다.');
       }
+
+      return { ...response, postId };
+    },
+    onSuccess: (response) => {
+      // 캐시에서 게시글 제거
+      queryClient.removeQueries({ queryKey: queryKeys.post.detail(response.postId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.post.lists() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.post.popular() });
+
+      globalToast.success('게시글이 삭제되었습니다.');
+      router.push('/board');
     },
     onError: (error) => {
-      showToast({ type: 'error', message: '게시글 삭제에 실패했습니다.' });
+      const errorMessage = error instanceof Error ? error.message : '게시글 삭제에 실패했습니다.';
+      globalToast.error(errorMessage, '게시글 삭제 실패');
     },
   });
 };

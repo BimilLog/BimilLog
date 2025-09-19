@@ -94,6 +94,38 @@ const QuillEditor: React.FC<EditorProps> = ({
           ),
         ]);
 
+        // 에디터 높이 고정을 위한 커스텀 CSS 추가
+        const styleId = "quill-editor-height-fix";
+        if (!document.querySelector(`#${styleId}`)) {
+          const style = document.createElement("style");
+          style.id = styleId;
+          style.textContent = `
+            .ql-container {
+              font-size: 14px;
+            }
+            .ql-editor {
+              max-height: 300px;
+              overflow-y: auto;
+              min-height: 200px;
+            }
+            .ql-editor::-webkit-scrollbar {
+              width: 8px;
+            }
+            .ql-editor::-webkit-scrollbar-track {
+              background: #f1f1f1;
+              border-radius: 4px;
+            }
+            .ql-editor::-webkit-scrollbar-thumb {
+              background: #888;
+              border-radius: 4px;
+            }
+            .ql-editor::-webkit-scrollbar-thumb:hover {
+              background: #555;
+            }
+          `;
+          document.head.appendChild(style);
+        }
+
         // CSS 스타일 적용 대기 (렌더링 완료 보장)
         await new Promise((resolve) => setTimeout(resolve, 300));
 
@@ -255,14 +287,14 @@ const QuillEditor: React.FC<EditorProps> = ({
   if (error) {
     return (
       <div className="w-full">
-        <div className="min-h-[200px] border border-gray-200 rounded-lg bg-white">
+        <div className="h-[400px] border border-gray-200 rounded-lg bg-white flex flex-col">
           <div className="p-3 bg-gray-50 border-b rounded-t-lg">
             <p className="text-sm text-brand-muted">
               간단 편집기 (에디터 로드 실패)
             </p>
           </div>
           <textarea
-            className="w-full h-48 p-4 border-0 resize-none focus:outline-none"
+            className="w-full flex-1 p-4 border-0 resize-none focus:outline-none"
             placeholder={placeholder}
             value={value.replace(/<[^>]*>/g, "")} // HTML 태그 제거
             onChange={(e) => onChange(e.target.value)}
@@ -280,10 +312,12 @@ const QuillEditor: React.FC<EditorProps> = ({
       {/* Quill 에디터가 마운트될 DOM 요소 */}
       <div
         ref={editorRef}
-        className="bg-white min-h-[200px] rounded-lg"
+        className="bg-white h-[400px] rounded-lg border border-gray-200"
         style={{
           fontSize: "14px",
           lineHeight: "1.5",
+          display: "flex",
+          flexDirection: "column",
         }}
       />
       {/* 에디터 초기화 중 로딩 오버레이 */}
@@ -304,7 +338,7 @@ const QuillEditor: React.FC<EditorProps> = ({
  * dynamic import 대기 시간 동안 사용자에게 로딩 상태를 보여줌
  */
 const EditorLoading = () => (
-  <div className="relative min-h-[200px] bg-white rounded-lg border border-gray-200 flex items-center justify-center">
+  <div className="relative h-[400px] bg-white rounded-lg border border-gray-200 flex items-center justify-center">
     <div className="flex flex-col items-center gap-2">
       <Spinner size="md" />
       <p className="text-sm text-brand-secondary">에디터 로딩 중...</p>

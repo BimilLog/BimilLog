@@ -19,6 +19,7 @@ import { PostContent } from "./PostContent";
 import { PostActions } from "./PostActions";
 import { CommentSection } from "./CommentSection";
 import { PasswordModal } from "./PasswordModal";
+import { DeleteConfirmModal } from "@/components/molecules/modals/DeleteConfirmModal";
 
 // 분리된 훅들 import
 import { usePostDetail, usePostActions, useCommentActions } from "@/hooks/features";
@@ -74,6 +75,9 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
   const [replyingTo, setReplyingTo] = useState<Comment | null>(null);
   const [replyContent, setReplyContent] = useState("");
   const [replyPassword, setReplyPassword] = useState("");
+
+  // 삭제 확인 모달 상태 관리
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // CommentSection이 기대하는 시그니처로 래핑 및 핸들러 함수들
   // 새 댓글 작성 시 parentId가 undefined인 공통 핸들러
@@ -156,6 +160,23 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
     setModalPassword,
     fetchPost
   );
+
+  // 게시글 삭제 클릭 핸들러 - 로그인 사용자는 확인 모달, 익명은 비밀번호 모달
+  const handleDeleteClick = () => {
+    if (post?.userName === "익명" || post?.userName === null) {
+      // 익명 게시글의 경우 비밀번호 모달
+      postActions.handleDeleteClick();
+    } else {
+      // 로그인 사용자의 경우 삭제 확인 모달
+      setShowDeleteModal(true);
+    }
+  };
+
+  // 삭제 확인 후 실제 삭제 실행
+  const handleConfirmDelete = async () => {
+    setShowDeleteModal(false);
+    await postActions.handleDelete();
+  };
 
   // 비밀번호 모달 제출 - 게시글/댓글 삭제 모드에 따라 분기 처리
   const handlePasswordSubmit = async () => {
@@ -247,7 +268,7 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
           <PostActions
             post={post}
             canModify={canModify()}
-            onDeletePost={postActions.handleDeleteClick}
+            onDeletePost={handleDeleteClick}
           />
         </Card>
 
@@ -321,6 +342,17 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
             setTargetComment(null);
           }}
           title={passwordModalTitle}
+        />
+
+        {/* 게시글 삭제 확인 모달 */}
+        <DeleteConfirmModal
+          isOpen={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={handleConfirmDelete}
+          title="게시글을 삭제하시겠습니까?"
+          message="이 작업은 되돌릴 수 없습니다. 게시글과 모든 댓글이 삭제됩니다."
+          confirmText="삭제"
+          cancelText="취소"
         />
       </div>
     </div>
