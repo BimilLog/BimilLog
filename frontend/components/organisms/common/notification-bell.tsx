@@ -412,9 +412,9 @@ export function NotificationBell() {
           >
             {/* SSE 연결 상태에 따른 벨 아이콘 변화 */}
             {isSSEConnected ? (
-              <Bell className="w-5 h-5 stroke-purple-500 fill-purple-100" />
+              <Bell className="w-5 h-5 text-purple-500" />
             ) : (
-              <BellOff className="w-5 h-5 text-brand-secondary stroke-gray-500 fill-gray-100" />
+              <BellOff className="w-5 h-5 text-brand-secondary" />
             )}
             {/* 읽지 않은 알림 개수 배지 */}
             {unreadCount > 0 && (

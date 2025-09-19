@@ -50,18 +50,20 @@ export function getMessagesPerPage(isMobile?: boolean): number {
 
 /**
  * 메시지 배열을 2차원 그리드로 변환
+ * 전체 좌표 범위(x: 0~11, y: 0~9)를 처리하도록 수정
  */
 export function createMessageGrid<T extends { x: number; y: number }>(
   messages: T[],
   isMobile?: boolean
 ): (T | null)[][] {
-  const cols = getGridColumns(isMobile);
+  // 전체 좌표 범위를 처리하기 위해 최대 열 개수 사용 (12열: x=0~11)
+  const maxCols = 12; // PC 2페이지(0~11), 모바일 3페이지(0~11)
   const grid: (T | null)[][] = [];
   const rows = GRID_CONFIG.ROWS;
 
-  // 빈 그리드 초기화
+  // 빈 그리드 초기화 (12열로 초기화)
   for (let i = 0; i < rows; i++) {
-    grid[i] = new Array(cols).fill(null);
+    grid[i] = new Array(maxCols).fill(null);
   }
 
   // 메시지를 그리드에 배치 (이미 0-based)
@@ -73,7 +75,7 @@ export function createMessageGrid<T extends { x: number; y: number }>(
       rowIndex >= 0 &&
       rowIndex < rows &&
       colIndex >= 0 &&
-      colIndex < cols
+      colIndex < maxCols
     ) {
       grid[rowIndex][colIndex] = message;
     }

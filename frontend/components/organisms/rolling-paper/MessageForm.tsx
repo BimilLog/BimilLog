@@ -64,9 +64,8 @@ export const MessageForm = React.memo<MessageFormProps>(({
         anonymousNickname: data.anonymousNickname.trim(),
         decoType: data.decoType,
       });
-      // 성공 시에만 리셋 및 성공 메시지
+      // 성공 시에만 리셋 (성공 메시지는 useRollingPaperMutations에서 처리)
       reset();
-      onSuccess?.("메시지가 성공적으로 추가되었습니다!");
     } catch (error) {
       // 실제 에러가 발생했을 때만 에러 처리
       logger.error("Failed to add message:", error);

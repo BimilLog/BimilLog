@@ -93,7 +93,7 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
     try {
       await onMessageSubmit?.({ x: actualX, y: actualY }, data);
       setModalOpen(false); // 성공 시에만 모달 닫기
-      onSuccess?.("메시지가 성공적으로 추가되었습니다!");
+      // 성공 메시지는 useRollingPaperMutations에서 처리하므로 제거
     } catch (error: any) {
       console.error('[RollingPaperGrid] 메시지 제출 실패:', error);
 

@@ -146,7 +146,7 @@ export function KakaoShareButton({
       size={size}
       className={`!bg-yellow-400 !hover:bg-yellow-500 !text-white ${className}`}
     >
-      <MessageCircle className="w-4 h-4 mr-2 stroke-blue-600 fill-blue-100" />
+      <MessageCircle className="w-4 h-4 mr-2" />
       {/* 상태별 버튼 텍스트 - 로딩 중이거나 게시글 타입에 따라 다르게 표시 */}
       {isSharing ? "공유 중..." : "카카오톡 공유"}
     </Button>
