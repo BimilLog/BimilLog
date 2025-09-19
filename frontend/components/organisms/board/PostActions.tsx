@@ -32,7 +32,7 @@ const PostActions = memo(({
           >
             {/* 수정 페이지로 이돔 - 기존 내용을 불러와서 수정 가능 */}
             <a href={`/board/post/${post.id}/edit`}>
-              <Edit className="w-4 h-4 stroke-slate-600 fill-slate-100" />
+              <Edit className="w-4 h-4" />
               <span>수정</span>
             </a>
           </Button>
@@ -43,7 +43,7 @@ const PostActions = memo(({
             onClick={onDeletePost} // 비밀번호 모달을 열어 비밀번호 확인 후 삭제 진행
             className="flex items-center space-x-1 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
           >
-            <Trash2 className="w-4 h-4 stroke-red-600 fill-red-100" />
+            <Trash2 className="w-4 h-4" />
             <span>삭제</span>
           </Button>
         </div>

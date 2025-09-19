@@ -81,12 +81,12 @@ const ActivityTabContent: React.FC<ActivityTabContentProps> = memo(({
   if (error) {
     return (
       <Alert className="border-red-200 bg-red-50 mt-6">
-        <AlertTriangle className="h-4 w-4 stroke-red-600 fill-red-100" />
+        <AlertTriangle className="h-4 w-4" />
         <AlertDescription className="text-red-800">
           <div className="flex items-center justify-between">
             <span>{error}</span>
             <Button onClick={retry} variant="outline" size="sm" className="ml-4">
-              <RefreshCw className="w-4 h-4 mr-2 stroke-slate-600 fill-slate-100" />
+              <RefreshCw className="w-4 h-4 mr-2" />
               다시 시도
             </Button>
           </div>

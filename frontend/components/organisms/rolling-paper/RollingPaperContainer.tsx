@@ -68,7 +68,14 @@ export const RollingPaperContainer: React.FC<RollingPaperContainerProps> = ({
   const handleMessageSubmit = useCallback(async (position: { x: number; y: number }, data: unknown) => {
     // 타입 검증을 통해 필요한 필드들이 있는지 확인
     if (data && typeof data === 'object' && 'content' in data && 'anonymousNickname' in data && 'decoType' in data) {
-      await handleCreateMessage({
+      console.log('[RollingPaperContainer] 메시지 전송 시도:', {
+        position,
+        targetNickname,
+        data
+      });
+
+      // handleCreateMessage가 Promise를 반환하도록 수정
+      return await handleCreateMessage({
         userName: targetNickname,
         content: data.content as string,
         anonymity: data.anonymousNickname as string,
@@ -77,6 +84,7 @@ export const RollingPaperContainer: React.FC<RollingPaperContainerProps> = ({
         y: position.y
       });
     }
+    throw new Error('Invalid message data');
   }, [handleCreateMessage, targetNickname]);
 
   // 로딩 상태

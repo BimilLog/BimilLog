@@ -80,14 +80,46 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
 
   const { pageWidth, totalSlots } = gridConfig;
 
-  // 메시지 제출 핸들러 최적화
-  const handleMessageSubmit = useCallback((actualX: number, actualY: number, data: unknown) => {
-    onMessageSubmit?.({ x: actualX, y: actualY }, data);
-    setModalOpen(false); // 제출 후 모달 닫기
-  }, [onMessageSubmit]);
+  // 메시지 제출 핸들러 - 비동기 처리 및 에러 핸들링
+  const handleMessageSubmit = useCallback(async (actualX: number, actualY: number, data: unknown) => {
+    console.log('[RollingPaperGrid] 메시지 제출:', {
+      actualX,
+      actualY,
+      currentPage,
+      isMobile,
+      pageWidth
+    });
+
+    try {
+      await onMessageSubmit?.({ x: actualX, y: actualY }, data);
+      setModalOpen(false); // 성공 시에만 모달 닫기
+      onSuccess?.("메시지가 성공적으로 추가되었습니다!");
+    } catch (error: any) {
+      console.error('[RollingPaperGrid] 메시지 제출 실패:', error);
+
+      // 에러 메시지 분석
+      const errorMessage = error?.response?.data?.message || error?.message || '';
+
+      if (errorMessage.includes('unique_user_x_y') || errorMessage.includes('중복')) {
+        onError?.("이미 메시지가 있는 위치입니다. 다른 위치를 선택해주세요.");
+      } else if (errorMessage.includes('x는 0~11') || errorMessage.includes('y는 0~9')) {
+        onError?.(`잘못된 위치입니다. (x: ${actualX}, y: ${actualY})`);
+      } else {
+        onError?.("메시지 추가에 실패했습니다. 다시 시도해주세요.");
+      }
+      // 에러 시에도 모달은 열어둠 (재시도 가능)
+    }
+  }, [onMessageSubmit, onSuccess, onError, currentPage, isMobile, pageWidth]);
 
   // 셀 클릭 핸들러
   const handleCellClick = useCallback((actualX: number, actualY: number) => {
+    console.log('[RollingPaperGrid] 셀 클릭:', {
+      actualX,
+      actualY,
+      currentPage,
+      isMobile
+    });
+
     if (highlightedPosition && highlightedPosition.x === actualX && highlightedPosition.y === actualY) {
       onHighlightClear?.();
       return;
@@ -100,7 +132,7 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
 
     setSelectedCell({ x: actualX, y: actualY });
     setModalOpen(true);
-  }, [highlightedPosition, onHighlightClear, getMessageAt, isOwner]);
+  }, [highlightedPosition, onHighlightClear, getMessageAt, isOwner, currentPage, isMobile]);
 
   return (
     <div className={`relative max-w-5xl mx-auto mb-6 md:mb-8 ${className}`}>
@@ -193,6 +225,19 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
                 gridX,
                 gridY
               );
+
+              // 디버깅: 2페이지의 첫 번째 셀일 때 좌표 확인
+              if (currentPage === 2 && i === 0) {
+                console.log('[RollingPaperGrid] 2페이지 첫 셀 좌표:', {
+                  page: currentPage,
+                  gridX,
+                  gridY,
+                  actualX,
+                  actualY,
+                  isMobile,
+                  pageWidth
+                });
+              }
 
               // 해당 좌표에 메시지가 있는지 확인
               const messageAtPosition = getMessageAt(actualX, actualY);
@@ -313,7 +358,13 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
                     <MessageForm
                       nickname={nickname}
                       position={{ x: selectedCell.x, y: selectedCell.y }}
-                      onSubmit={(data) => handleMessageSubmit(selectedCell.x, selectedCell.y, data)}
+                      onSubmit={async (data) => {
+                        console.log('[RollingPaperGrid] 메시지 폼 제출:', {
+                          selectedCell,
+                          data
+                        });
+                        await handleMessageSubmit(selectedCell.x, selectedCell.y, data);
+                      }}
                       onSuccess={onSuccess}
                       onError={onError}
                     />

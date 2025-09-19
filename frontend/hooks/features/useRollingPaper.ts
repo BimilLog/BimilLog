@@ -27,7 +27,7 @@ export function useRollingPaperActions(userName: string) {
   const createMessageMutation = useCreateRollingPaperMessage();
   const deleteMessageMutation = useDeleteRollingPaperMessage();
 
-  // 메시지 작성
+  // 메시지 작성 - Promise 반환
   const handleCreateMessage = useCallback((messageData: {
     userName: string;
     content: string;
@@ -35,16 +35,29 @@ export function useRollingPaperActions(userName: string) {
     decoType: DecoType;
     x: number;
     y: number;
-  }) => {
-    createMessageMutation.mutate({
-      userName: messageData.userName,
-      message: {
-        decoType: messageData.decoType,
-        anonymity: messageData.anonymity,
-        content: messageData.content,
-        x: messageData.x,
-        y: messageData.y
-      }
+  }): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      console.log('[useRollingPaper] 메시지 작성 요청:', messageData);
+
+      createMessageMutation.mutate({
+        userName: messageData.userName,
+        message: {
+          decoType: messageData.decoType,
+          anonymity: messageData.anonymity,
+          content: messageData.content,
+          x: messageData.x,
+          y: messageData.y
+        }
+      }, {
+        onSuccess: () => {
+          console.log('[useRollingPaper] 메시지 작성 성공');
+          resolve();
+        },
+        onError: (error) => {
+          console.error('[useRollingPaper] 메시지 작성 실패:', error);
+          reject(error);
+        }
+      });
     });
   }, [createMessageMutation]);
 

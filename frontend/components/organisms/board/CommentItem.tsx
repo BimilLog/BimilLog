@@ -190,7 +190,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
                       <div className="p-3 w-56">
                         <div className="flex flex-col space-y-2">
                           <div className="flex items-center space-x-2">
-                            <User className="w-4 h-4 stroke-slate-600 fill-slate-100" />
+                            <User className="w-4 h-4" />
                             <span className="font-medium">{comment.userName}</span>
                           </div>
                           <Link
@@ -199,7 +199,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
                             )}`}
                           >
                             <Button size="sm" className="w-full justify-start">
-                              <ExternalLink className="w-4 h-4 mr-2 stroke-blue-600 fill-blue-100" />
+                              <ExternalLink className="w-4 h-4 mr-2" />
                               롤링페이퍼 보기
                             </Button>
                           </Link>
@@ -208,7 +208,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
                     }
                   >
                     <button className="font-semibold text-sm sm:text-base hover:text-purple-600 hover:underline transition-colors cursor-pointer inline-flex items-center space-x-1 truncate">
-                      <User className="w-3 h-3 flex-shrink-0 stroke-slate-600 fill-slate-100" />
+                      <User className="w-3 h-3 flex-shrink-0" />
                       <span className="truncate">{comment.userName}</span>
                     </button>
                   </Popover>
@@ -234,7 +234,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
                   color={comment.userLike ? "blue" : "light"}
                   onClick={() => onLikeComment(comment)}
                 >
-                  <ThumbsUp className={`w-4 h-4 mr-2 ${comment.userLike ? "stroke-blue-500 fill-blue-500" : "stroke-blue-500 fill-blue-100"}`} />
+                  <ThumbsUp className={`w-4 h-4 mr-2 ${comment.userLike ? "fill-current" : ""}`} />
                   추천 {comment.likeCount}
                 </FlowbiteButton>
 
@@ -244,7 +244,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
                   className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:bg-gradient-to-l"
                   onClick={() => onReplyTo(comment)}
                 >
-                  <Reply className="w-4 h-4 mr-2 stroke-blue-600 fill-blue-100" />
+                  <Reply className="w-4 h-4 mr-2" />
                   답글
                 </FlowbiteButton>
 
@@ -268,7 +268,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
                         variant="ghost"
                         className="text-xs px-2 py-1 h-7 text-brand-secondary hover:text-brand-primary"
                       >
-                        <MoreHorizontal className="w-3 h-3 stroke-slate-600 fill-slate-100" />
+                        <MoreHorizontal className="w-3 h-3" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-24">

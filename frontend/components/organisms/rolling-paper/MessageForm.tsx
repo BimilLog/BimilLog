@@ -18,7 +18,7 @@ interface MessageFormData {
 interface MessageFormProps {
   nickname?: string;
   position?: { x: number; y: number };
-  onSubmit: (data: MessageFormData) => void;
+  onSubmit: (data: MessageFormData) => Promise<void>;
   onSuccess?: (message: string) => void;
   onError?: (message: string) => void;
 }
@@ -58,14 +58,17 @@ export const MessageForm = React.memo<MessageFormProps>(({
   // 폼 제출 처리: 입력값 트림 후 상위 컴포넌트로 전달, 성공 시 폼 리셋
   const onSubmitForm = async (data: MessageFormData) => {
     try {
-      onSubmit({
+      // onSubmit이 Promise를 반환하므로 await로 완료를 기다림
+      await onSubmit({
         content: data.content.trim(),
         anonymousNickname: data.anonymousNickname.trim(),
         decoType: data.decoType,
       });
+      // 성공 시에만 리셋 및 성공 메시지
       reset();
       onSuccess?.("메시지가 성공적으로 추가되었습니다!");
     } catch (error) {
+      // 실제 에러가 발생했을 때만 에러 처리
       logger.error("Failed to add message:", error);
       onError?.("메시지 추가에 실패했습니다. 다시 시도해주세요.");
     }

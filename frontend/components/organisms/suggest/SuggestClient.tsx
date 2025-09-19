@@ -41,7 +41,6 @@ const suggestionTypes = [
     description: "새로운 기능이나 기존 기능 개선 아이디어",
     icon: Lightbulb,
     color: "bg-blue-500",
-    iconColors: "stroke-yellow-500 fill-yellow-100",
   },
   {
     value: "ERROR" as const,
@@ -49,7 +48,6 @@ const suggestionTypes = [
     description: "버그, 오작동, 기술적 문제 신고",
     icon: Bug,
     color: "bg-red-500",
-    iconColors: "stroke-red-500 fill-red-100",
   },
 ];
 
@@ -142,9 +140,9 @@ export default function SuggestClient() {
                   >
                     <CardContent className="p-6 text-center">
                       <div
-                        className={`w-12 h-12 bg-gray-50 border-2 border-gray-200 rounded-full flex items-center justify-center mx-auto mb-4`}
+                        className={`w-12 h-12 ${type.color} rounded-full flex items-center justify-center mx-auto mb-4`}
                       >
-                        <Icon className={`w-6 h-6 ${type.iconColors}`} />
+                        <Icon className="w-6 h-6 text-white" />
                       </div>
                       <h3 className="text-lg font-semibold mb-2 text-brand-primary">
                         {type.label}
@@ -166,9 +164,9 @@ export default function SuggestClient() {
                 <div className="flex items-center justify-center space-x-3 mb-2">
                   {selectedType && (
                     <div
-                      className={`w-10 h-10 bg-gray-50 border-2 border-gray-200 rounded-full flex items-center justify-center`}
+                      className={`w-10 h-10 bg-gradient-to-r ${selectedType.color} rounded-full flex items-center justify-center`}
                     >
-                      <selectedType.icon className={`w-5 h-5 ${selectedType.iconColors}`} />
+                      <selectedType.icon className="w-5 h-5 text-white" />
                     </div>
                   )}
                   <CardTitle className="text-2xl text-brand-primary">
@@ -221,7 +219,7 @@ export default function SuggestClient() {
                       </div>
                     ) : (
                       <div className="flex items-center space-x-2">
-                        <Send className="w-5 h-5 stroke-blue-600 fill-blue-100" />
+                        <Send className="w-5 h-5" />
                         <span>건의사항 접수하기</span>
                       </div>
                     )}
@@ -235,7 +233,7 @@ export default function SuggestClient() {
           <Card variant="soft" className="mt-8 border-0 shadow-brand-lg">
             <CardContent className="p-6">
               <h3 className="text-lg font-semibold text-brand-primary mb-3 flex items-center space-x-2">
-                <FileText className="w-5 h-5 stroke-blue-600 fill-blue-100" />
+                <FileText className="w-5 h-5 text-blue-600" />
                 <span>건의하기 안내</span>
               </h3>
               <ul className="space-y-2 text-sm text-brand-muted">

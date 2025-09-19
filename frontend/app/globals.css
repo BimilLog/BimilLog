@@ -448,3 +448,11 @@
     text-rendering: optimizeLegibility;
   }
 }
+
+/* Flowbite 드롭다운 메뉴 스크롤 가능하게 */
+[data-testid="flowbite-dropdown"] > div:last-child,
+[data-testid="flowbite-dropdown-target"],
+[role="menu"] {
+  max-height: 240px !important;
+  overflow-y: auto !important;
+}

@@ -263,7 +263,7 @@ export const PostHeader = React.memo<PostHeaderProps>(({
             size="sm"
             className="text-xs"
           >
-            <Share2 className="w-4 h-4 mr-1 stroke-blue-600 fill-blue-100" />
+            <Share2 className="w-4 h-4 mr-1" />
             링크 공유
           </FlowbiteButton>
 
