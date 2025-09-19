@@ -214,12 +214,12 @@ public class CommentQueryAdapter implements CommentQueryPort {
     public Page<CommentInfo> findCommentsWithOldestOrder(Long postId, Pageable pageable, Long userId) {
         List<CommentInfo> content = jpaQueryFactory
                 .select(getCommentInfoProjectionWithUserLike(userId))
+                .distinct()
                 .from(comment)
                 .leftJoin(comment.user, user)
-                .leftJoin(closure).on(comment.id.eq(closure.descendant.id))
                 .leftJoin(commentLike).on(comment.id.eq(commentLike.comment.id))
                 .where(comment.post.id.eq(postId))
-                .groupBy(comment.id, user.userName, closure.ancestor.id, comment.createdAt)
+                .groupBy(comment.id, user.userName, comment.createdAt)
                 .orderBy(comment.createdAt.asc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())

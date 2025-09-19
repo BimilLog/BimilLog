@@ -73,7 +73,12 @@ public class CommentProjection {
                 comment.content,
                 comment.deleted,
                 comment.createdAt,
-                closure.ancestor.id,
+                // parentId: depth=1인 closure에서 ancestor.id를 가져오거나, 없으면 자기 자신의 id
+                JPAExpressions.select(closure.ancestor.id.coalesce(comment.id))
+                    .from(closure)
+                    .where(closure.descendant.id.eq(comment.id)
+                        .and(closure.depth.eq(1)))
+                    .limit(1),
                 commentLike.countDistinct().coalesce(0L).intValue(),
                 userId != null ? 
                     JPAExpressions.selectOne()
