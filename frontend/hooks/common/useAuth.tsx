@@ -23,6 +23,9 @@ export function useAuth(options: UseAuthOptions = {}) {
   useEffect(() => {
     if (!skipRefresh) {
       authStore.refreshUser();
+    } else {
+      // skipRefresh가 true일 때 로딩 상태를 즉시 false로 설정
+      authStore.setLoading(false);
     }
   }, [skipRefresh]);
 

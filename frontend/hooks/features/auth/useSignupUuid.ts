@@ -9,7 +9,7 @@ import { useSearchParams } from "next/navigation";
  */
 export const useSignupUuid = () => {
   const [tempUuid, setTempUuid] = useState<string | null>(null);
-  const [isValidating, setIsValidating] = useState(false);
+  const [isValidating, setIsValidating] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const searchParams = useSearchParams();
 

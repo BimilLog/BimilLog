@@ -92,6 +92,8 @@ export class ApiClient {
           return { success: true, data: null }
         }
 
+        // response body 중복 읽기 방지를 위해 clone
+        const clonedResponse = response.clone()
         let errorMessage = `HTTP error! status: ${response.status}`
 
         try {
@@ -132,7 +134,8 @@ export class ApiClient {
           logger.warn('Failed to parse error response as JSON:', jsonError)
 
           try {
-            const errorText = await response.text()
+            // clone된 response 사용
+            const errorText = await clonedResponse.text()
             if (errorText) {
               errorMessage = errorText
             }

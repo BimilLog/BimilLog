@@ -148,9 +148,6 @@ export function NicknameSetupForm({ tempUuid, onSuccess, onError }: NicknameSetu
                 }`}
                 disabled={isSubmitting}
               />
-              {isNicknameAvailable === true && (
-                <Check className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-green-500" />
-              )}
               {(isNicknameAvailable === false ||
                 (!isNicknameFormatValid && nickname.length > 0)) && (
                 <AlertCircle className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-red-500" />

@@ -4,7 +4,7 @@ import React from "react";
 import dynamic from "next/dynamic";
 import { Button, Input, Textarea, SafeHTML, Spinner, TimeBadge } from "@/components";
 import { Button as FlowbiteButton } from "flowbite-react";
-import { ThumbsUp, Reply, MoreHorizontal, User, ExternalLink } from "lucide-react";
+import { ThumbsUp, Reply, MoreHorizontal, User, ExternalLink, CornerDownRight } from "lucide-react";
 import { Comment, userCommand } from "@/lib/api";
 import { useAuth } from "@/hooks";
 import {
@@ -36,6 +36,7 @@ const ReportModal = dynamic(
 interface CommentItemProps {
   comment: Comment & { replies?: Comment[] };
   depth: number;
+  parentUserName?: string; // 부모 댓글 작성자명 추가
   editingComment: Comment | null;
   editContent: string;
   editPassword: string;
@@ -64,6 +65,7 @@ interface CommentItemProps {
 export const CommentItem: React.FC<CommentItemProps> = React.memo(({
   comment,
   depth,
+  parentUserName,
   editingComment,
   editContent,
   editPassword,
@@ -136,11 +138,12 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
     <div
       id={`comment-${comment.id}`}
       className={`${
-        depth > 0 ? "border-l-2 border-gray-200 pl-2" : ""
+        depth > 0 ? "border-l-2 border-purple-300 pl-2" : ""
       } transition-colors duration-500`}
       style={{ marginLeft: `${marginLeft}px` }}
+      aria-label={depth > 0 ? "답글" : "댓글"}
     >
-      <div className="p-3 sm:p-4 bg-gray-50 rounded-lg mb-3 comment-content">
+      <div className={`p-3 sm:p-4 ${depth > 0 ? "bg-gray-100" : "bg-gray-50"} rounded-lg mb-3 comment-content`}>
         {/* 댓글 수정 모드: 현재 수정 중인 댓글과 일치할 때 수정 폼 표시 */}
         {editingComment?.id === comment.id ? (
           <div className="p-3 sm:p-4 bg-gray-100 rounded-lg">
@@ -182,6 +185,10 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
             {/* 헤더: 닉네임, 날짜, 액션 버튼들 */}
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2 min-w-0 flex-1">
+                {/* 대댓글인 경우 아이콘 표시 */}
+                {depth > 0 && (
+                  <CornerDownRight className="w-4 h-4 text-purple-500 flex-shrink-0" />
+                )}
                 {comment.userName && comment.userName !== "익명" ? (
                   <Popover
                     trigger="click"
@@ -290,6 +297,13 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
               </div>
             </div>
 
+            {/* 부모 댓글 작성자 표시 (대댓글인 경우) */}
+            {depth > 0 && parentUserName && (
+              <div className="text-sm text-purple-600 mb-2">
+                @{parentUserName}
+              </div>
+            )}
+
             {/* 댓글 내용 */}
             <SafeHTML
               html={comment.content}
@@ -353,6 +367,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
               key={reply.id}
               comment={reply}
               depth={depth + 1}
+              parentUserName={comment.userName || "익명"} // 부모 댓글 작성자명 전달
               editingComment={editingComment}
               editContent={editContent}
               editPassword={editPassword}

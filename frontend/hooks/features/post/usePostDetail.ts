@@ -74,11 +74,15 @@ export function usePostDetail(id: string | null, initialPost?: Post) {
 
     // 부모-자식 관계 설정: parentId가 있으면 해당 부모의 replies에 추가
     comments.forEach((comment) => {
-      if (comment.parentId && commentMap.has(comment.parentId)) {
+      // 클로저 테이블에서 루트 댓글은 parentId가 자기 자신을 가리킴
+      if (comment.parentId === comment.id) {
+        rootComments.push(commentMap.get(comment.id)!);
+      } else if (comment.parentId && commentMap.has(comment.parentId)) {
         const parent = commentMap.get(comment.parentId)!;
         const child = commentMap.get(comment.id)!;
         parent.replies!.push(child);
       } else {
+        // parentId가 없거나 부모를 찾을 수 없는 경우도 루트로 처리
         rootComments.push(commentMap.get(comment.id)!);
       }
     });

@@ -20,7 +20,7 @@ interface AuthLayoutProps {
 
 export const AuthLayout = React.memo<AuthLayoutProps>(({ children, breadcrumbItems }) => {
   return (
-    <div className="min-h-screen bg-brand-gradient">
+    <div className="min-h-screen bg-brand-gradient flex flex-col">
       <AuthHeader />
 
       {breadcrumbItems && (
@@ -29,7 +29,7 @@ export const AuthLayout = React.memo<AuthLayoutProps>(({ children, breadcrumbIte
         </div>
       )}
 
-      <div className="flex items-center justify-center p-4 py-16">
+      <div className="flex-1 flex items-center justify-center p-4 py-16">
         <div className="w-full max-w-md">
 
           {children}
