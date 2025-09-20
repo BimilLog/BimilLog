@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 /**
@@ -44,7 +43,7 @@ public class AdminQueryService implements AdminQueryUseCase {
      */
     @Override
     public Page<Report> getReportList(int page, int size, ReportType reportType) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Pageable pageable = PageRequest.of(page, size);
         return adminQueryPort.findReportsWithPaging(reportType, pageable);
     }
 }

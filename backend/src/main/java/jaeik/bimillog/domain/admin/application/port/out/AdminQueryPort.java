@@ -18,8 +18,7 @@ public interface AdminQueryPort {
 
     /**
      * <h3>신고 목록 페이지네이션 조회</h3>
-     * <p>신고 목록을 페이지네이션으로 조회합니다.</p>
-     * <p>QueryDSL 기반 동적 필터링, fetch join으로 N+1 문제 해결, 최신순 정렬</p>
+     * <p>신고 목록을 페이지네이션 최신순으로 조회합니다.</p>
      * <p>{@link AdminQueryService}에서 관리자 대시보드 신고 목록 조회 시 호출합니다.</p>
      *
      * @param reportType 필터링할 신고 유형 (null이면 전체 신고 조회)

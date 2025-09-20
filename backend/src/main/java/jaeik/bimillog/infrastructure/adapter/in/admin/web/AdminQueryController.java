@@ -32,11 +32,7 @@ public class AdminQueryController {
     /**
      * <h3>신고 목록 페이지네이션 조회 API</h3>
      * <p>관리자 대시보드에서 신고 관리 화면을 표시하기 위한 신고 목록 조회 REST API입니다.</p>
-     * <p>프론트엔드에서 GET /api/admin/reports?page=0&size=10&reportType=POST 형태로 요청됩니다.</p>
-     * <p>ADMIN 권한이 있는 관리자만 접근할 수 있으며, 페이지네이션과 신고 유형별 필터링을 지원합니다.</p>
-     * <p>AdminQueryUseCase.getReportList를 호출하여 도메인에서 신고 데이터를 조회합니다.</p>
-     * <p>도메인 엔티티인 Report를 웹 계층에 적합한 ReportDTO로 변환하여 클라이언트에 응답합니다.</p>
-     * <p>관리자가 효율적으로 신고를 검토하고 제재 여부를 결정할 수 있도록 최신순으로 정렬된 데이터를 제공합니다.</p>
+     * <p>최신순으로 정렬된 데이터를 제공합니다.</p>
      *
      * @param page 페이지 번호 (0부터 시작, 기본값: 0)
      * @param size 페이지당 신고 수 (기본값: 10, 최대 100)

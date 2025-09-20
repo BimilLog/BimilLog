@@ -9,7 +9,6 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.security.EncryptionUtil;
-import jaeik.bimillog.testutil.TestUsers;
 import jaeik.bimillog.testutil.TestSettings;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
@@ -174,7 +173,7 @@ class AdminQueryAdapterIntegrationTest {
     /**
      * <h3>테스트용 신고 생성 및 저장</h3>
      */
-    private Report createAndSaveReport(User reporter, ReportType reportType, Long targetId, String content) {
+    private void createAndSaveReport(User reporter, ReportType reportType, Long targetId, String content) {
         Report report = Report.builder()
                 .reporter(reporter)
                 .reportType(reportType)
@@ -183,6 +182,5 @@ class AdminQueryAdapterIntegrationTest {
                 .build();
 
         entityManager.persist(report);
-        return report;
     }
 }
