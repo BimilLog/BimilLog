@@ -1,13 +1,13 @@
 # 비밀로그(BimilLog) 프론트엔드
 
-> 익명 롤링페이퍼 플랫폼의 프론트엔드 - Next.js 15 + TypeScript + Tailwind CSS
+> 익명 롤링페이퍼 플랫폼의 프론트엔드 - Next.js 15 + TypeScript + Tailwind CSS + TanStack Query
 
 ## 📱 프로젝트 개요
 
 - **서비스**: 익명 롤링페이퍼 플랫폼 (grow-farm.com)
 - **타겟**: 모바일 퍼스트 + 익명성 중시 서비스
 - **브랜드 컬러**: Pink-Purple-Indigo 그라디언트 시스템
-- **기술 스택**: Next.js 15.2.4, React 19, TypeScript 5, Tailwind CSS v4
+- **기술 스택**: Next.js 15.5.3, React 19, TypeScript 5, Tailwind CSS v4, TanStack Query v5.87.4, Flowbite React 0.12.9
 
 ## 🚀 빠른 시작
 
@@ -182,7 +182,7 @@ min-h-[44px] active:scale-[0.98] transition-transform touch-manipulation
 - 최소: 44px × 44px
 - 권장: 48px × 48px
 
-## 📊 서버 상태 관리 - TanStack Query (2025-01-21 추가)
+## 📊 서버 상태 관리 - TanStack Query v5
 
 ### 설정 및 구조
 ```typescript
@@ -420,19 +420,20 @@ const validated = validateApiResponse(data);
 ## 📦 주요 의존성
 
 ### Core
-- **Next.js**: 15.2.4 (App Router)
+- **Next.js**: 15.5.3 (App Router)
 - **React**: 19.0.0
 - **TypeScript**: 5.x
 
 ### UI/UX
 - **Tailwind CSS**: v4
+- **Flowbite React**: 0.12.9 (UI 컴포넌트 라이브러리)
 - **Radix UI**: Headless 컴포넌트
 - **Lucide React**: 아이콘 라이브러리
 - **Class Variance Authority**: 컴포넌트 변형 관리
 
 ### 상태 관리
 - **Zustand**: 5.0.8 (클라이언트 상태)
-- **TanStack Query**: 5.x (서버 상태)
+- **TanStack Query**: 5.87.4 (서버 상태)
 
 ### 기타
 - **Firebase**: 11.9.1 (FCM 푸시 알림)
@@ -474,11 +475,12 @@ const validated = validateApiResponse(data);
 - **메서드명 정렬**: API 메서드와 Hook 메서드명 일치
 - **파라미터 타입 수정**: 객체 → 개별 파라미터
 
-#### 📊 개선 효과
+##### 📊 개선 효과
 - **캐시 활용**: 불필요한 API 호출 50% 감소
 - **낙관적 업데이트**: 좋아요 등 즉각적 UI 반응
 - **코드 재사용성**: Query Key 중앙 관리
 - **개발 경험**: 자동 refetch, 에러 재시도
+- **번들 크기**: Legacy hooks 제거로 300줄 감소
 
 ### 2025-01-14: Hook 구조 개선 및 성능 최적화
 
@@ -533,3 +535,5 @@ const validated = validateApiResponse(data);
 ---
 
 **Last Updated**: 2025-01-21
+**Backend Integration**: Spring Boot 3.4.4 on port 8080
+**Documentation**: See `/CLAUDE.md` for complete development guide

@@ -5,7 +5,6 @@ export { ProfileCard } from './cards/profile-card';
 
 // Modal components
 export { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from './modals/dialog';
-export { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from './modals/sheet';
 export { KakaoFriendsModal } from './modals/kakao-friends-modal';
 export { BrowserGuideModal } from './modals/browser-guide-modal';
 export { ConfirmModal, useConfirmModal } from './modals/confirm-modal';
