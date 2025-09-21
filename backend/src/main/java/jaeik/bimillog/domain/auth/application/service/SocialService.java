@@ -42,7 +42,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class SocialService implements SocialUseCase {
 
-    private final SocialStrategyRegistryPort strategyRegistry;
+    private final SocialStrategyRegistryPort strategyRegistryPort;
     private final AuthToUserPort authToUserPort;
     private final SaveUserPort saveUserPort;
     private final RedisUserDataPort redisUserDataPort;
@@ -67,10 +67,8 @@ public class SocialService implements SocialUseCase {
         validateLogin();
 
         // 1. 전략 포트를 통해 OAuth 인증 수행
-        SocialStrategyPort strategy = strategyRegistry.getStrategy(provider);
-        SocialAuthData.AuthenticationResult authResult =
-            strategy.authenticate(provider, code);
-        
+        SocialStrategyPort strategy = strategyRegistryPort.getStrategy(provider);
+        SocialAuthData.AuthenticationResult authResult = strategy.authenticate(provider, code);
         SocialAuthData.SocialUserProfile userProfile = authResult.userProfile();
 
         // 2. 블랙리스트 사용자 확인
@@ -99,7 +97,7 @@ public class SocialService implements SocialUseCase {
     public void unlinkSocialAccount(SocialProvider provider, String socialId) {
         log.info("소셜 연결 해제 시작 - 제공자: {}, 소셜 ID: {}", provider, socialId);
 
-        SocialStrategyPort strategy = strategyRegistry.getStrategy(provider);
+        SocialStrategyPort strategy = strategyRegistryPort.getStrategy(provider);
         strategy.unlink(provider, socialId);
 
         log.info("소셜 연결 해제 완료 - 제공자: {}, 소셜 ID: {}", provider, socialId);

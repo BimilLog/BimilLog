@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.auth.application.service.SocialService;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 
 /**
- * <h2>소셜 로그인 전략 레지스트리</h2>
+ * <h2>소셜 전략 레지스트리 포트</h2>
  * <p>소셜 제공자별 로그인 전략을 관리하고 조회하는 레지스트리 포트입니다.</p>
  * <p>전략 패턴 구현체들을 중앙에서 관리하여 동적 전략 선택 지원</p>
  *
