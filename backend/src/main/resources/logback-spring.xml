@@ -2,8 +2,8 @@
 <configuration>
     <!-- 프로파일별 CloudWatch 설정 (운영환경만) -->
     <springProfile name="prod | production">
-        <property name="LOG_GROUP" value="/growfarm/application"/>
-        <property name="LOG_STREAM" value="growfarm-${HOSTNAME:-localhost}-${PID:-unknown}"/>
+        <property name="LOG_GROUP" value="/bimillog/application"/>
+        <property name="LOG_STREAM" value="bimillog-${HOSTNAME:-localhost}-${PID:-unknown}"/>
         <property name="AWS_REGION" value="ap-northeast-2"/>
     </springProfile>
 
@@ -92,7 +92,7 @@
         </root>
     </springProfile>
 
-    <!-- 🔴 운영환경 로거 설정 (INFO 레벨) -->
+    <!-- 운영환경 로거 설정 (INFO 레벨) -->
     <springProfile name="prod | production">
         <!-- 애플리케이션 로거 (INFO) -->
         <logger name="jaeik.bimillog" level="INFO" additivity="false">

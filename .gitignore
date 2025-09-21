@@ -7340,3 +7340,4 @@ replay_pid*
 /.cursor/
 /backend/AOP_LOGGING_GUIDE.md
 /backend/src/main/resources/dump/
+/LOGBACK_ANALYSIS.md

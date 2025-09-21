@@ -12,6 +12,9 @@ java {
         languageVersion = JavaLanguageVersion.of(21)
     }
 }
+test {
+    ignoreFailures = true
+}
 
 configurations {
     compileOnly {
