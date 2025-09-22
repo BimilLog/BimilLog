@@ -1,13 +1,12 @@
 package jaeik.bimillog.infrastructure.adapter.in.auth.web;
 
 import jaeik.bimillog.domain.auth.application.port.in.LogoutUseCase;
-import jaeik.bimillog.domain.auth.application.port.in.SignUpUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.SocialUseCase;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
+import jaeik.bimillog.domain.user.application.port.in.SignUpUseCase;
 import jaeik.bimillog.global.annotation.Log;
 import jaeik.bimillog.global.annotation.Log.LogLevel;
 import jaeik.bimillog.infrastructure.adapter.in.auth.dto.AuthResponseDTO;
-import jaeik.bimillog.infrastructure.adapter.in.auth.dto.SignUpRequestDTO;
 import jaeik.bimillog.infrastructure.adapter.in.auth.dto.SocialLoginRequestDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jakarta.validation.Valid;
@@ -69,26 +68,7 @@ public class AuthCommandController {
         };
     }
 
-    /**
-     * <h3>회원가입</h3>
-     * <p>사용자의 회원가입 요청을 처리합니다.</p>
-     *
-     * @param request 회원가입 요청 DTO (userName, uuid)
-     * @return 회원 가입 성공 응답
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @PostMapping("/signup")
-    @Log(level = LogLevel.INFO,
-         logExecutionTime = true,
-         excludeParams = {"uuid"},
-         message = "회원가입 요청")
-    public ResponseEntity<AuthResponseDTO> signUp(@Valid @RequestBody SignUpRequestDTO request) {
-        return ResponseEntity.ok()
-                .headers(headers -> signUpUseCase.signUp(request.getUserName(), request.getUuid()).forEach(cookie ->
-                        headers.add("Set-Cookie", cookie.toString())))
-                .body(AuthResponseDTO.success("회원 가입 성공"));
-    }
+
 
     /**
      * <h3>로그아웃</h3>

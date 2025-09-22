@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.in.auth.dto;
+package jaeik.bimillog.infrastructure.adapter.in.user.dto;
 
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;

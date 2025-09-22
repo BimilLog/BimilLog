@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.user.application.port.in;
 
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.infrastructure.adapter.out.auth.SaveUserAdapter;
+import jaeik.bimillog.infrastructure.adapter.out.user.SaveUserAdapter;
 import jaeik.bimillog.infrastructure.adapter.in.user.web.UserCommandController;
 
 /**

@@ -1,18 +1,16 @@
-package jaeik.bimillog.infrastructure.adapter.out.auth;
+package jaeik.bimillog.infrastructure.adapter.out.user;
 
-import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
-import jaeik.bimillog.domain.auth.application.port.out.SaveUserPort;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
 import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
-import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
+import jaeik.bimillog.domain.user.application.port.out.RedisUserDataPort;
+import jaeik.bimillog.domain.user.application.port.out.SaveUserPort;
 import jaeik.bimillog.domain.user.entity.Setting;
-import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.domain.user.exception.UserCustomException;
-import jaeik.bimillog.domain.user.exception.UserErrorCode;
-import jaeik.bimillog.global.application.port.out.GlobalTokenCommandPort;
 import jaeik.bimillog.domain.user.entity.UserDetail;
+import jaeik.bimillog.global.application.port.out.GlobalTokenCommandPort;
+import jaeik.bimillog.infrastructure.adapter.out.auth.AuthCookieManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
@@ -34,7 +32,6 @@ public class SaveUserAdapter implements SaveUserPort {
 
     private final GlobalTokenCommandPort globalTokenCommandPort;
     private final AuthCookieManager authCookieManager;
-    private final UserQueryUseCase userQueryUseCase;
     private final UserCommandUseCase userCommandUseCase;
     private final RedisUserDataPort redisUserDataPort;
     private final NotificationFcmUseCase notificationFcmUseCase;
@@ -52,22 +49,19 @@ public class SaveUserAdapter implements SaveUserPort {
      */
     @Override
     @Transactional
-    public List<ResponseCookie> handleExistingUserLogin(SocialUserProfile userProfile, String fcmToken) {
-        User user = userQueryUseCase.findByProviderAndSocialId(userProfile.provider(), userProfile.socialId())
-                .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
-
-        user.updateUserInfo(userProfile.nickname(), userProfile.profileImageUrl());
+    public List<ResponseCookie> handleExistingUserLogin(User existingUser, SocialUserProfile userProfile, String fcmToken) {
+        existingUser.updateUserInfo(userProfile.nickname(), userProfile.profileImageUrl());
 
         Token token = userProfile.token();
         Token newToken = Token.builder()
                 .accessToken(token.getAccessToken())
                 .refreshToken(token.getRefreshToken())
-                .users(user)
+                .users(existingUser)
                 .build();
 
-        Long fcmTokenId = registerFcmTokenIfPresent(user.getId(), fcmToken);
+        Long fcmTokenId = registerFcmTokenIfPresent(existingUser, fcmToken);
 
-        return authCookieManager.generateJwtCookie(UserDetail.of(user,
+        return authCookieManager.generateJwtCookie(UserDetail.of(existingUser,
                 globalTokenCommandPort.save(newToken).getId(),
                 fcmTokenId));
     }
@@ -92,7 +86,7 @@ public class SaveUserAdapter implements SaveUserPort {
 
         User user = userCommandUseCase.saveUser(User.createUser(userProfile.socialId(), userProfile.provider(), userProfile.nickname(), userProfile.profileImageUrl(), userName, setting));
 
-        Long fcmTokenId = registerFcmTokenIfPresent(user.getId(), fcmToken);
+        Long fcmTokenId = registerFcmTokenIfPresent(user, fcmToken);
 
         Token token = userProfile.token();
         redisUserDataPort.removeTempData(uuid);
@@ -112,9 +106,9 @@ public class SaveUserAdapter implements SaveUserPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    private Long registerFcmTokenIfPresent(Long userId, String fcmToken) {
+    private Long registerFcmTokenIfPresent(User user, String fcmToken) {
         if (fcmToken != null && !fcmToken.isEmpty()) {
-            return notificationFcmUseCase.registerFcmToken(userId, fcmToken);
+            return notificationFcmUseCase.registerFcmToken(user, fcmToken);
         }
         return null;
     }

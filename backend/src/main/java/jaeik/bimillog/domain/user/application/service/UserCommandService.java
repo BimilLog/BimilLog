@@ -7,7 +7,7 @@ import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
-import jaeik.bimillog.infrastructure.adapter.out.auth.SaveUserAdapter;
+import jaeik.bimillog.infrastructure.adapter.out.user.SaveUserAdapter;
 import jaeik.bimillog.infrastructure.adapter.in.user.web.UserCommandController;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

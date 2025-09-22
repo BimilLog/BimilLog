@@ -1,6 +1,7 @@
-package jaeik.bimillog.domain.auth.entity;
+package jaeik.bimillog.domain.user.entity;
 
-import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.domain.auth.entity.Token;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,18 +19,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TempUserData {
+
     private SocialUserProfile socialUserProfile;
     private String fcmToken;
-    /**
-     * <h3>소셜 프로필 정보 반환</h3>
-     * <p>TempUserData에서 저장된 SocialUserProfile 객체를 반환합니다.</p>
-     * <p>SaveUserPort 등에서 SocialUserProfile이 필요한 경우 사용됩니다.</p>
-     *
-     * @return SocialUserProfile 객체
-     */
-    public SocialUserProfile getSocialUserProfile() {
-        return socialUserProfile;
-    }
 
     /**
      * <h3>토큰 정보 반환</h3>

@@ -2,14 +2,13 @@ package jaeik.bimillog.infrastructure.adapter.out.auth;
 
 import jaeik.bimillog.domain.auth.application.port.out.AuthToUserPort;
 import jaeik.bimillog.domain.auth.application.service.SocialService;
-import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
+import jaeik.bimillog.domain.auth.entity.LoginResult;
+import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.domain.user.application.port.in.UserSaveUseCase;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 /**
  * <h2>소셜 사용자 관리 어댑터</h2>
@@ -23,7 +22,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AuthToUserAdapter implements AuthToUserPort {
 
-    private final UserQueryUseCase userQueryUseCase;
+    private final UserSaveUseCase userSaveUseCase;
 
     /**
      * <h3>기존 소셜 사용자 조회</h3>
@@ -37,12 +36,8 @@ public class AuthToUserAdapter implements AuthToUserPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional(readOnly = true)
-    public Optional<User> findExistingUser(SocialProvider provider, String socialId) {
-        return userQueryUseCase.findByProviderAndSocialId(provider, socialId);
+    public LoginResult userDataProcess(SocialProvider provider, SocialUserProfile profile, String fcmToken) {
+        return userSaveUseCase.saveUserData(provider, profile, fcmToken);
     }
-
-
-
 }

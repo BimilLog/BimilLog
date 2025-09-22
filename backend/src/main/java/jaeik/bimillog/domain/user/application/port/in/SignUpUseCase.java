@@ -1,5 +1,5 @@
 
-package jaeik.bimillog.domain.auth.application.port.in;
+package jaeik.bimillog.domain.user.application.port.in;
 
 import jaeik.bimillog.infrastructure.adapter.in.auth.web.AuthCommandController;
 import org.springframework.http.ResponseCookie;

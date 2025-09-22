@@ -1,10 +1,13 @@
 package jaeik.bimillog.infrastructure.adapter.in.user.web;
 
+import jaeik.bimillog.domain.user.application.port.in.SignUpUseCase;
 import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
 import jaeik.bimillog.domain.user.application.port.in.WithdrawUseCase;
 import jaeik.bimillog.domain.user.event.ReportSubmittedEvent;
+import jaeik.bimillog.global.annotation.Log;
 import jaeik.bimillog.infrastructure.adapter.in.admin.dto.ReportDTO;
 import jaeik.bimillog.infrastructure.adapter.in.auth.dto.AuthResponseDTO;
+import jaeik.bimillog.infrastructure.adapter.in.user.dto.SignUpRequestDTO;
 import jaeik.bimillog.infrastructure.adapter.in.user.dto.SettingDTO;
 import jaeik.bimillog.infrastructure.adapter.in.user.dto.UserNameDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
@@ -28,8 +31,30 @@ import org.springframework.web.bind.annotation.*;
 public class UserCommandController {
 
     private final UserCommandUseCase userCommandUseCase;
+    private final SignUpUseCase signUpUseCase;
     private final ApplicationEventPublisher eventPublisher;
     private final WithdrawUseCase withdrawUseCase;
+
+    /**
+     * <h3>회원가입</h3>
+     * <p>사용자의 회원가입 요청을 처리합니다.</p>
+     *
+     * @param request 회원가입 요청 DTO (userName, uuid)
+     * @return 회원 가입 성공 응답
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @PostMapping("/signup")
+    @Log(level = Log.LogLevel.INFO,
+            logExecutionTime = true,
+            excludeParams = {"uuid"},
+            message = "회원가입 요청")
+    public ResponseEntity<AuthResponseDTO> signUp(@Valid @RequestBody SignUpRequestDTO request) {
+        return ResponseEntity.ok()
+                .headers(headers -> signUpUseCase.signUp(request.getUserName(), request.getUuid()).forEach(cookie ->
+                        headers.add("Set-Cookie", cookie.toString())))
+                .body(AuthResponseDTO.success("회원 가입 성공"));
+    }
 
 
     /**
