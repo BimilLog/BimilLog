@@ -13,7 +13,7 @@ import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import jaeik.bimillog.global.application.port.out.GlobalUserQueryPort;
-import jaeik.bimillog.testutil.TestUserFactory;
+import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -70,11 +70,7 @@ class CommentCommandServiceTest {
 
     @BeforeEach
     void setUp() {
-        testUser = TestUserFactory.builder()
-                .withId(TEST_USER_ID)
-                .withUserName(TEST_USER_NAME)
-                .withSocialId(TEST_SOCIAL_ID)
-                .build();
+        testUser = TestUsers.copyWithId(TestUsers.USER1, TEST_USER_ID);
 
         testPost = Post.builder()
                 .id(300L)
@@ -314,7 +310,7 @@ class CommentCommandServiceTest {
     void shouldThrowException_WhenNotCommentOwner() {
         // Given
         Long userId = 100L;
-        User anotherUser = TestUserFactory.createUserWithIdAndUserName(999L, "anotherUser");
+        User anotherUser = TestUsers.copyWithId(TestUsers.USER3, 999L);
 
         Comment anotherUserComment = Comment.builder()
                 .id(200L)
@@ -520,7 +516,7 @@ class CommentCommandServiceTest {
     void shouldThrowException_WhenNotOwnerTriesToDelete() {
         // Given
         Long requestUserId = 100L;
-        User anotherUser = TestUserFactory.createUserWithIdAndUserName(999L, "anotherUser");
+        User anotherUser = TestUsers.copyWithId(TestUsers.USER3, 999L);
 
         Comment anotherUserComment = Comment.builder()
                 .id(600L)

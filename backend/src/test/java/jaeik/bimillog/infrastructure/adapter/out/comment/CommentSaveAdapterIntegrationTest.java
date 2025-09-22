@@ -9,8 +9,9 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentClosureRepository;
-import jaeik.bimillog.testutil.TestUserFactory;
 import jaeik.bimillog.testutil.TestSettingFactory;
+import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestSettings;
 import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentRepository;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import org.junit.jupiter.api.BeforeEach;
@@ -75,13 +76,13 @@ class CommentSaveAdapterIntegrationTest {
         Setting setting = TestSettingFactory.createDefaultSetting();
         entityManager.persistAndFlush(setting);
 
-        testUser = TestUserFactory.builder()
-                .withSocialId("kakao_test_123")
-                .withProvider(SocialProvider.KAKAO)
-                .withUserName("testUser")
-                .withSocialNickname("테스트유저")
-                .withRole(UserRole.USER)
-                .withSetting(setting)
+        testUser = User.builder()
+                .socialId("kakao_test_123")
+                .provider(SocialProvider.KAKAO)
+                .userName("testUser")
+                .socialNickname("테스트유저")
+                .role(UserRole.USER)
+                .setting(setting)
                 .build();
         entityManager.persistAndFlush(testUser);
 

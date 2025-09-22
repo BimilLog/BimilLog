@@ -8,8 +8,8 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
-import jaeik.bimillog.testutil.TestUserFactory;
-import jaeik.bimillog.testutil.TestSettingFactory;
+import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestSettings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -64,13 +64,7 @@ class PaperCommandAdapterTest {
 
     @BeforeEach
     void setUp() {
-        testUser = TestUserFactory.builder()
-                .withUserName("testUser")
-                .withSocialId("123456")
-                .withProvider(SocialProvider.KAKAO)
-                .withSocialNickname("테스트유저")
-                .withRole(UserRole.USER)
-                .build();
+        testUser = TestUsers.USER1;
         entityManager.persistAndFlush(testUser);
 
         testMessage = Message.builder()

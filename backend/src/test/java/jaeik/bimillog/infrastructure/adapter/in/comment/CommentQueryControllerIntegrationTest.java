@@ -14,8 +14,8 @@ import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
-import jaeik.bimillog.testutil.TestUserFactory;
-import jaeik.bimillog.testutil.TestSettingFactory;
+import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestSettings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -154,14 +154,14 @@ class CommentQueryControllerIntegrationTest {
      * 테스트용 사용자 생성
      */
     private User createTestUser() {
-        return TestUserFactory.builder()
-                .withSocialId("12345")
-                .withSocialNickname("테스트사용자")
-                .withThumbnailImage("test-profile.jpg")
-                .withUserName("testuser")
-                .withProvider(SocialProvider.KAKAO)
-                .withRole(UserRole.USER)
-                .withSetting(TestSettingFactory.createDefaultSetting())
+        return User.builder()
+                .socialId("12345")
+                .socialNickname("테스트사용자")
+                .thumbnailImage("test-profile.jpg")
+                .userName("testuser")
+                .provider(SocialProvider.KAKAO)
+                .role(UserRole.USER)
+                .setting(TestSettings.DEFAULT)
                 .build();
     }
     

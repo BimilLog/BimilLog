@@ -13,8 +13,8 @@ import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
-import jaeik.bimillog.testutil.TestUserFactory;
-import jaeik.bimillog.testutil.TestSettingFactory;
+import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestSettings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -116,13 +116,13 @@ class AdminCommandControllerIntegrationTest {
     @DisplayName("관리자 권한으로 사용자 차단 - 성공")
     void banUser_WithAdminRole_Success() throws Exception {
         // Given - 테스트용 사용자와 게시글 생성
-        var testUser = TestUserFactory.builder()
-                .withSocialId("testuser123")
-                .withSocialNickname("테스트사용자")
-                .withUserName("testuser")
-                .withProvider(SocialProvider.KAKAO)
-                .withRole(UserRole.USER)
-                .withSetting(TestSettingFactory.createAllDisabledSetting())
+        var testUser = User.builder()
+                .socialId("testuser123")
+                .socialNickname("테스트사용자")
+                .userName("testuser")
+                .provider(SocialProvider.KAKAO)
+                .role(UserRole.USER)
+                .setting(TestSettings.ALL_DISABLED)
                 .build();
         var savedUser = userRepository.save(testUser);
         
@@ -228,12 +228,12 @@ class AdminCommandControllerIntegrationTest {
     @DisplayName("관리자 권한으로 사용자 강제 탈퇴 - 성공")
     void forceWithdrawUser_WithAdminRole_Success() throws Exception {
         // Given
-        User testUser = TestUserFactory.builder()
-                .withUserName("testuser")
-                .withSocialId("test123")
-                .withProvider(SocialProvider.KAKAO)
-                .withRole(UserRole.USER)
-                .withSetting(TestSettingFactory.createDefaultSetting())
+        User testUser = User.builder()
+                .userName("testuser")
+                .socialId("test123")
+                .provider(SocialProvider.KAKAO)
+                .role(UserRole.USER)
+                .setting(TestSettings.DEFAULT)
                 .build();
         User savedUser = userRepository.save(testUser);
         

@@ -9,8 +9,8 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.out.notification.jpa.NotificationRepository;
-import jaeik.bimillog.testutil.TestUserFactory;
-import jaeik.bimillog.testutil.TestSettingFactory;
+import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestSettings;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -72,14 +72,8 @@ class NotificationCommandAdapterTest {
 
     @BeforeEach
     void setUp() {
-        // Given: 테스트용 사용자 설정 및 저장
-        Setting testSetting = TestSettingFactory.createDefaultSetting();
-
-        testUser = TestUserFactory.builder()
-                .withSocialId("12345")
-                .withUserName("테스트유저")
-                .withSetting(testSetting)
-                .build();
+        // Given: 테스트용 사용저 설정 및 저장
+        testUser = TestUsers.USER1;
 
         testUser = testEntityManager.persistAndFlush(testUser);
         testUserId = testUser.getId();
@@ -265,13 +259,7 @@ class NotificationCommandAdapterTest {
     @Transactional
     void shouldNotUpdateOtherUsersNotifications_WhenDifferentUserProvided() {
         // Given: 다른 사용자와 그의 알림 생성
-        Setting otherUserSetting = TestSettingFactory.createDefaultSetting();
-
-        User otherUser = TestUserFactory.builder()
-                .withSocialId("67890")
-                .withUserName("다른유저")
-                .withSetting(otherUserSetting)
-                .build();
+        User otherUser = TestUsers.USER2;
 
         otherUser = testEntityManager.persistAndFlush(otherUser);
 

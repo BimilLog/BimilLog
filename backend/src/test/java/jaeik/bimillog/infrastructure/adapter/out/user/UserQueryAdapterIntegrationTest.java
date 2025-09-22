@@ -7,8 +7,9 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.SettingRepository;
-import jaeik.bimillog.testutil.TestUserFactory;
 import jaeik.bimillog.testutil.TestSettingFactory;
+import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestSettings;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -121,24 +122,24 @@ class UserQueryAdapterIntegrationTest {
         testSetting2 = settingRepository.save(testSetting2);
 
         // 사용자 생성
-        testUser1 = TestUserFactory.builder()
-                .withSocialId("kakao123")
-                .withProvider(SocialProvider.KAKAO)
-                .withUserName("testUser1")
-                .withSocialNickname("카카오유저1")
-                .withThumbnailImage("http://example.com/image1.jpg")
-                .withRole(UserRole.USER)
-                .withSetting(testSetting)
+        testUser1 = User.builder()
+                .socialId("kakao123")
+                .provider(SocialProvider.KAKAO)
+                .userName("testUser1")
+                .socialNickname("카카오유저1")
+                .thumbnailImage("http://example.com/image1.jpg")
+                .role(UserRole.USER)
+                .setting(testSetting)
                 .build();
 
-        testUser2 = TestUserFactory.builder()
-                .withSocialId("kakao456")
-                .withProvider(SocialProvider.KAKAO)
-                .withUserName("testUser2")
-                .withSocialNickname("카카오유저2")
-                .withThumbnailImage("http://example.com/image2.jpg")
-                .withRole(UserRole.USER)
-                .withSetting(testSetting2)  // 별도 설정을 가진 사용자
+        testUser2 = User.builder()
+                .socialId("kakao456")
+                .provider(SocialProvider.KAKAO)
+                .userName("testUser2")
+                .socialNickname("카카오유저2")
+                .thumbnailImage("http://example.com/image2.jpg")
+                .role(UserRole.USER)
+                .setting(testSetting2)  // 별도 설정을 가진 사용자
                 .build();
 
         testUser1 = userRepository.save(testUser1);
@@ -241,12 +242,12 @@ class UserQueryAdapterIntegrationTest {
         Setting testSetting3 = TestSettingFactory.createDefaultSetting();
         testSetting3 = settingRepository.save(testSetting3);
 
-        User testUser3 = TestUserFactory.builder()
-                .withSocialId("kakao789")
-                .withProvider(SocialProvider.KAKAO)
-                .withUserName("testUser3")
-                .withRole(UserRole.USER)
-                .withSetting(testSetting3)
+        User testUser3 = User.builder()
+                .socialId("kakao789")
+                .provider(SocialProvider.KAKAO)
+                .userName("testUser3")
+                .role(UserRole.USER)
+                .setting(testSetting3)
                 .build();
         userRepository.save(testUser3);
 

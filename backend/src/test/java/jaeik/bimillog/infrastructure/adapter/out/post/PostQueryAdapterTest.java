@@ -10,8 +10,8 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
-import jaeik.bimillog.testutil.TestUserFactory;
-import jaeik.bimillog.testutil.TestSettingFactory;
+import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestSettings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -72,11 +72,7 @@ class PostQueryAdapterTest {
     @BeforeEach
     void setUp() {
         // 테스트용 사용자 생성
-        testUser = TestUserFactory.builder()
-                .withUserName("testUser")
-                .withSocialId("123456")
-                .withSocialNickname("테스트유저")
-                .build();
+        testUser = TestUsers.USER1;
         entityManager.persistAndFlush(testUser);
 
         // 테스트용 게시글들 생성
@@ -180,11 +176,7 @@ class PostQueryAdapterTest {
     @DisplayName("정상 케이스 - 사용자 추천 게시글 조회")
     void shouldFindLikedPostsByUserId_WhenUserHasLikedPosts() {
         // Given: 사용자가 게시글에 추천을 누름
-        User likeUser = TestUserFactory.builder()
-                .withUserName("likeUser")
-                .withSocialId("like123")
-                .withSocialNickname("좋아요유저")
-                .build();
+        User likeUser = TestUsers.USER2;
         entityManager.persistAndFlush(likeUser);
 
         // 게시글에 좋아요 추가

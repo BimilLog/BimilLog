@@ -9,7 +9,7 @@ import jaeik.bimillog.domain.comment.exception.CommentCustomException;
 import jaeik.bimillog.domain.comment.exception.CommentErrorCode;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
-import jaeik.bimillog.testutil.TestUserFactory;
+import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -60,11 +60,7 @@ class CommentQueryServiceTest {
 
     @BeforeEach
     void setUp() {
-        User testUser = TestUserFactory.builder()
-                .withId(100L)
-                .withUserName("testUser")
-                .withSocialId("kakao123")
-                .build();
+        User testUser = TestUsers.copyWithId(TestUsers.USER1, 100L);
 
         testComment = Comment.builder()
                 .id(200L)

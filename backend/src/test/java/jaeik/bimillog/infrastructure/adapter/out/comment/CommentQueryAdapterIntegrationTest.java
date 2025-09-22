@@ -13,8 +13,8 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentLikeRepository;
-import jaeik.bimillog.testutil.TestUserFactory;
-import jaeik.bimillog.testutil.TestSettingFactory;
+import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestSettings;
 import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentRepository;
 import jaeik.bimillog.infrastructure.security.EncryptionUtil;
 import jakarta.persistence.EntityManager;
@@ -135,26 +135,10 @@ class CommentQueryAdapterIntegrationTest {
         commentRepository.deleteAll();
         
         // 테스트용 사용자들 생성
-        Setting setting1 = TestSettingFactory.createDefaultSetting();
-        entityManager.persistAndFlush(setting1);
-
-        testUser1 = TestUserFactory.builder()
-                .withSocialId("kakao123")
-                .withUserName("testUser1")
-                .withSocialNickname("테스트유저1")
-                .withSetting(setting1)
-                .build();
+        testUser1 = TestUsers.USER1;
         entityManager.persistAndFlush(testUser1);
-        
-        Setting setting2 = TestSettingFactory.createDefaultSetting();
-        entityManager.persistAndFlush(setting2);
 
-        testUser2 = TestUserFactory.builder()
-                .withSocialId("kakao456")
-                .withUserName("testUser2")
-                .withSocialNickname("테스트유저2")
-                .withSetting(setting2)
-                .build();
+        testUser2 = TestUsers.USER2;
         entityManager.persistAndFlush(testUser2);
         
         // 테스트용 게시글 생성
@@ -263,15 +247,10 @@ class CommentQueryAdapterIntegrationTest {
 
         // 5개 이상의 추천 생성 (인기 댓글 조건 충족)
         for (int i = 0; i < 6; i++) {
-            Setting setting = TestSettingFactory.createDefaultSetting();
-            entityManager.persistAndFlush(setting);
-
-            User likeUser = TestUserFactory.builder()
-                    .withSocialId("kakao" + (1000 + i))
-                    .withUserName("likeUser" + i)
-                    .withSocialNickname("추천유저" + i)
-                    .withSetting(setting)
-                    .build();
+            User likeUser = TestUsers.copyWithId(
+                TestUsers.withSocialId("kakao" + (1000 + i)),
+                (long)(1000 + i)
+            );
             entityManager.persistAndFlush(likeUser);
             
             CommentLike like = CommentLike.builder()
@@ -312,15 +291,10 @@ class CommentQueryAdapterIntegrationTest {
 
         // 3개 이상의 추천 생성 (다른 사용자들이 추천)
         for (int i = 0; i < 4; i++) {
-            Setting setting = TestSettingFactory.createDefaultSetting();
-            entityManager.persistAndFlush(setting);
-
-            User likeUser = TestUserFactory.builder()
-                    .withSocialId("kakao" + (2000 + i))
-                    .withUserName("likeUser" + i)
-                    .withSocialNickname("추천유저" + i)
-                    .withSetting(setting)
-                    .build();
+            User likeUser = TestUsers.copyWithId(
+                TestUsers.withSocialId("kakao" + (2000 + i)),
+                (long)(2000 + i)
+            );
             entityManager.persistAndFlush(likeUser);
             
             CommentLike like = CommentLike.builder()

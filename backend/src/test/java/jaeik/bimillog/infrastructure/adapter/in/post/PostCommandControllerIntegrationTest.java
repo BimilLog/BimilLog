@@ -14,8 +14,8 @@ import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
-import jaeik.bimillog.testutil.TestUserFactory;
-import jaeik.bimillog.testutil.TestSettingFactory;
+import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestSettings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -82,13 +82,13 @@ class PostCommandControllerIntegrationTest {
                 .build();
 
         // 테스트용 사용자 생성 및 저장
-        User user = TestUserFactory.builder()
-                .withSocialId("12345")
-                .withUserName("테스트사용자")
-                .withThumbnailImage("http://test-profile.jpg")
-                .withProvider(SocialProvider.KAKAO)
-                .withRole(UserRole.USER)
-                .withSetting(TestSettingFactory.createDefaultSetting())
+        User user = User.builder()
+                .socialId("12345")
+                .userName("테스트사용자")
+                .thumbnailImage("http://test-profile.jpg")
+                .provider(SocialProvider.KAKAO)
+                .role(UserRole.USER)
+                .setting(TestSettings.DEFAULT)
                 .build();
         
         savedUser = userRepository.save(user);
@@ -217,13 +217,13 @@ class PostCommandControllerIntegrationTest {
     @DisplayName("게시글 수정 실패 - 다른 사용자의 게시글")
     void updatePost_Fail_NotAuthor() throws Exception {
         // Given - 다른 사용자의 게시글 생성
-        User anotherUser = TestUserFactory.builder()
-                .withSocialId("99999")
-                .withUserName("다른사용자")
-                .withThumbnailImage("http://another-profile.jpg")
-                .withProvider(SocialProvider.KAKAO)
-                .withRole(UserRole.USER)
-                .withSetting(TestSettingFactory.createDefaultSetting())
+        User anotherUser = User.builder()
+                .socialId("99999")
+                .userName("다른사용자")
+                .thumbnailImage("http://another-profile.jpg")
+                .provider(SocialProvider.KAKAO)
+                .role(UserRole.USER)
+                .setting(TestSettings.DEFAULT)
                 .build();
         
         User savedAnotherUser = userRepository.save(anotherUser);

@@ -8,8 +8,8 @@ import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.testutil.TestUserFactory;
-import jaeik.bimillog.testutil.TestSettingFactory;
+import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestSettings;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -91,14 +91,7 @@ class PostLikeCommandAdapterTest {
     @DisplayName("정상 케이스 - 게시글 추천 저장")
     void shouldSave_WhenValidPostLike() {
         // Given
-        User user = TestUserFactory.builder()
-                .withUserName("testUser")
-                .withSocialId("123456")
-                .withProvider(SocialProvider.KAKAO)
-                .withSocialNickname("테스트유저")
-                .withRole(UserRole.USER)
-                .withSetting(TestSettingFactory.createDefaultSetting())
-                .build();
+        User user = TestUsers.USER1;
         entityManager.persistAndFlush(user);
 
         Post post = Post.createPost(user, "테스트 게시글", "내용", 1234);
@@ -128,14 +121,7 @@ class PostLikeCommandAdapterTest {
     @DisplayName("정상 케이스 - 사용자와 게시글로 추천 삭제")
     void shouldDeleteByUserAndPost_WhenValidPostAndUser() {
         // Given
-        User user = TestUserFactory.builder()
-                .withUserName("testUser")
-                .withSocialId("123456")
-                .withProvider(SocialProvider.KAKAO)
-                .withSocialNickname("테스트유저")
-                .withRole(UserRole.USER)
-                .withSetting(TestSettingFactory.createDefaultSetting())
-                .build();
+        User user = TestUsers.USER1;
         entityManager.persistAndFlush(user);
 
         Post post = Post.createPost(user, "테스트 게시글", "내용", 1234);
@@ -160,24 +146,10 @@ class PostLikeCommandAdapterTest {
     @DisplayName("정상 케이스 - 게시글 ID로 모든 추천 삭제")
     void shouldDeleteAllByPostId_WhenValidPostIdProvided() {
         // Given: 게시글과 여러 사용자의 추천들
-        User user1 = TestUserFactory.builder()
-                .withUserName("user1")
-                .withSocialId("123456")
-                .withProvider(SocialProvider.KAKAO)
-                .withSocialNickname("유저1")
-                .withRole(UserRole.USER)
-                .withSetting(TestSettingFactory.createDefaultSetting())
-                .build();
+        User user1 = TestUsers.USER1;
         entityManager.persistAndFlush(user1);
 
-        User user2 = TestUserFactory.builder()
-                .withUserName("user2")
-                .withSocialId("654321")
-                .withProvider(SocialProvider.GOOGLE)
-                .withSocialNickname("유저2")
-                .withRole(UserRole.USER)
-                .withSetting(TestSettingFactory.createDefaultSetting())
-                .build();
+        User user2 = TestUsers.USER2;
         entityManager.persistAndFlush(user2);
 
         Post post = Post.createPost(user1, "테스트 게시글", "내용", 1234);

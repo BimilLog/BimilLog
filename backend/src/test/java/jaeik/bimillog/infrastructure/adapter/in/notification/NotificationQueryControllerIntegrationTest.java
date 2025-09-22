@@ -13,8 +13,8 @@ import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
-import jaeik.bimillog.testutil.TestUserFactory;
-import jaeik.bimillog.testutil.TestSettingFactory;
+import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestSettings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -176,14 +176,14 @@ class NotificationQueryControllerIntegrationTest {
      * 테스트용 사용자 생성 (파라미터 지정)
      */
     private User createTestUser(String userName, String socialId) {
-        return TestUserFactory.builder()
-                .withSocialId(socialId)
-                .withSocialNickname("테스트사용자")
-                .withThumbnailImage("test-profile.jpg")
-                .withUserName(userName)
-                .withProvider(SocialProvider.KAKAO)
-                .withRole(UserRole.USER)
-                .withSetting(TestSettingFactory.createDefaultSetting())
+        return User.builder()
+                .socialId(socialId)
+                .socialNickname("테스트사용자")
+                .thumbnailImage("test-profile.jpg")
+                .userName(userName)
+                .provider(SocialProvider.KAKAO)
+                .role(UserRole.USER)
+                .setting(TestSettings.DEFAULT)
                 .build();
     }
 
