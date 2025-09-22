@@ -61,11 +61,11 @@ class SignUpServiceTest {
     void setUp() {
         testUserName = "testUser";
         testUuid = "test-uuid-123";
-        
-        testSocialProfile = new SocialUserProfile("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg");
-        testToken = Token.createTemporaryToken("access-token", "refresh-token");
 
-        testTempData = new TempUserData("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg", testToken, "fcm-token");
+        testToken = Token.createTemporaryToken("access-token", "refresh-token");
+        testSocialProfile = new SocialUserProfile("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg", testToken);
+
+        testTempData = TempUserData.from(testSocialProfile, "fcm-token");
         
         testCookies = List.of(
                 ResponseCookie.from("access_token", "access-token").build(),
@@ -81,8 +81,7 @@ class SignUpServiceTest {
         given(saveUserPort.saveNewUser(
                 eq(testUserName),
                 eq(testUuid),
-                eq(testTempData.toSocialUserProfile()),
-                eq(testToken),
+                eq(testSocialProfile),
                 eq("fcm-token")
         )).willReturn(testCookies);
 
@@ -97,8 +96,7 @@ class SignUpServiceTest {
         verify(saveUserPort).saveNewUser(
                 testUserName,
                 testUuid,
-                testTempData.toSocialUserProfile(),
-                testToken,
+                testSocialProfile,
                 "fcm-token"
         );
     }
@@ -121,7 +119,6 @@ class SignUpServiceTest {
                 eq(testUserName),
                 eq(nonExistentUuid),
                 any(),
-                any(),
                 any()
         );
     }
@@ -130,14 +127,13 @@ class SignUpServiceTest {
     @DisplayName("FCM 토큰이 없는 임시 데이터로 회원 가입")
     void shouldSignUp_WhenTemporaryDataWithoutFcmToken() {
         // Given
-        TempUserData tempDataWithoutFcm = new TempUserData("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg", testToken, null);
+        TempUserData tempDataWithoutFcm = TempUserData.from(testSocialProfile, null);
         
         given(redisUserDataPort.getTempData(testUuid)).willReturn(Optional.of(tempDataWithoutFcm));
         given(saveUserPort.saveNewUser(
                 eq(testUserName),
                 eq(testUuid),
-                eq(tempDataWithoutFcm.toSocialUserProfile()),
-                eq(testToken),
+                eq(testSocialProfile),
                 eq(null)
         )).willReturn(testCookies);
 
@@ -148,7 +144,7 @@ class SignUpServiceTest {
         assertThat(result).isEqualTo(testCookies);
         
         verify(redisUserDataPort).getTempData(testUuid);
-        verify(saveUserPort).saveNewUser(testUserName, testUuid, tempDataWithoutFcm.toSocialUserProfile(), testToken, null);
+        verify(saveUserPort).saveNewUser(testUserName, testUuid, testSocialProfile, null);
     }
 
 

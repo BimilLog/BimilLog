@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.out.api.social.kakao;
 
-import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialLoginResultDTO;
+import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.global.vo.KakaoKeyVO;
 import org.junit.jupiter.api.BeforeEach;
@@ -94,7 +94,7 @@ class KakaoStrategyAdapterTest {
         given(kakaoApiClient.getUserInfo(anyString())).willReturn(userInfoResponse);
 
         // When
-        SocialLoginResultDTO result = kakaoStrategyAdapter.authenticate(
+        SocialUserProfile result = kakaoStrategyAdapter.authenticate(
             SocialProvider.KAKAO, TEST_AUTH_CODE);
 
         // Then

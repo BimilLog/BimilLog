@@ -8,7 +8,6 @@ import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.application.port.out.SaveUserPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
-import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialLoginResultDTO;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
@@ -68,7 +67,7 @@ public class SocialService implements SocialUseCase {
 
         // 1. 전략 포트를 통해 OAuth 인증 수행
         SocialStrategyPort strategy = strategyRegistryPort.getStrategy(provider);
-        SocialLoginResultDTO authResult = strategy.authenticate(provider, code);
+        SocialUserProfile authResult = strategy.authenticate(provider, code);
 
         // 2. 블랙리스트 사용자 확인
         if (authToUserPort.existsByProviderAndSocialId(provider, authResult.socialId())) {
@@ -116,17 +115,9 @@ public class SocialService implements SocialUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    private LoginResult processUserLogin(String fcmToken, Optional<User> existingUser, SocialLoginResultDTO authResult) {
+    private LoginResult processUserLogin(String fcmToken, Optional<User> existingUser, SocialUserProfile authResult) {
         if (existingUser.isPresent()) {
-            // SocialUserProfile 재구성
-            SocialUserProfile userProfile = new SocialUserProfile(
-                authResult.socialId(),
-                authResult.email(),
-                authResult.provider(),
-                authResult.nickname(),
-                authResult.profileImageUrl()
-            );
-            List<ResponseCookie> cookies = saveUserPort.handleExistingUserLogin(userProfile, authResult.token(), fcmToken);
+            List<ResponseCookie> cookies = saveUserPort.handleExistingUserLogin(authResult, fcmToken);
             return new LoginResult.ExistingUser(cookies);
         } else {
             return handleNewUser(authResult, fcmToken);
@@ -145,17 +136,9 @@ public class SocialService implements SocialUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    private LoginResult.NewUser handleNewUser(SocialLoginResultDTO authResult, String fcmToken) {
+    private LoginResult.NewUser handleNewUser(SocialUserProfile authResult, String fcmToken) {
         String uuid = UUID.randomUUID().toString();
-        // SocialUserProfile 재구성
-        SocialUserProfile userProfile = new SocialUserProfile(
-            authResult.socialId(),
-            authResult.email(),
-            authResult.provider(),
-            authResult.nickname(),
-            authResult.profileImageUrl()
-        );
-        redisUserDataPort.saveTempData(uuid, userProfile, authResult.token(), fcmToken);
+        redisUserDataPort.saveTempData(uuid, authResult, fcmToken);
         ResponseCookie tempCookie = redisUserDataPort.createTempCookie(uuid);
         return new LoginResult.NewUser(uuid, tempCookie);
     }

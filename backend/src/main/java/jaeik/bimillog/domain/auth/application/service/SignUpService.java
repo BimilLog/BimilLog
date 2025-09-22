@@ -51,7 +51,7 @@ public class SignUpService implements SignUpUseCase {
         }
 
         TempUserData userData = tempUserData.get();
-        return saveUserPort.saveNewUser(userName.trim(), uuid, userData.toSocialUserProfile(), userData.getToken(), userData.getFcmToken());
+        return saveUserPort.saveNewUser(userName.trim(), uuid, userData.getSocialUserProfile(), userData.getFcmToken());
     }
 
 }

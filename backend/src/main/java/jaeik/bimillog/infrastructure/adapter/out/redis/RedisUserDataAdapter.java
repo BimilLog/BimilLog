@@ -22,7 +22,8 @@ import java.util.Optional;
 /**
  * <h2>Redis 사용자 데이터 어댑터</h2>
  * <p>Redis를 사용하여 소셜 로그인 과정에서의 임시 사용자 데이터 관리를 담당합니다.</p>
- * <p>임시 데이터 저장/조회/삭제, 임시 쿠키 생성</p>
+ * <p>임시 데이터 저장/조회/삭제, 임시 쿠키 생성 기능을 구현합니다.</p>
+ * <p>소셜 프로필 정보와 OAuth 토큰(액세스/리프레시)을 5분간 임시 보관합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -44,33 +45,31 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
 
     /**
      * <h3>임시 사용자 데이터 저장</h3>
-     * <p>소셜 로그인 첫 단계에서 획득한 사용자 프로필 정보를 Redis에 임시 저장합니다.</p>
+     * <p>소셜 로그인 첫 단계에서 획득한 사용자 프로필 정보와 OAuth 토큰을 Redis에 임시 저장합니다.</p>
      * <p>소셜 로그인 인증 완료 후 회원가입 페이지로 리다이렉트되기 전에 사용자 데이터를 보관하기 위해 소셜 로그인 플로우에서 호출합니다.</p>
      * <p>비즈니스 규칙:</p>
      * <ul>
      *   <li>UUID는 필수 (null, 빈 문자열 불허)</li>
-     *   <li>userProfile는 필수 (null 불허)</li>
-     *   <li>tokenVO는 필수 (null 불허)</li>
+     *   <li>userProfile는 필수 (null 불허, OAuth 토큰 포함)</li>
      *   <li>fcmToken은 선택적 (null 허용)</li>
      *   <li>동일 UUID 재저장 시 덮어쓰기</li>
      *   <li>Redis TTL로 자동 만료 (5분)</li>
      * </ul>
      *
      * @param uuid 임시 사용자 식별 UUID 키
-     * @param userProfile 소셜 사용자 프로필 (순수 도메인 모델)
-     * @param token 소셜 로그인에서 획득한 토큰 정보
+     * @param userProfile 소셜 사용자 프로필 (OAuth 액세스/리프레시 토큰 포함)
      * @param fcmToken FCM 토큰 (선택적)
-     * @throws CustomException UUID, userProfile, token이 유효하지 않은 경우
+     * @throws CustomException UUID, userProfile이 유효하지 않은 경우
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void saveTempData(String uuid, SocialUserProfile userProfile, Token token, String fcmToken) {
-        validateTempDataInputs(uuid, userProfile, token);
+    public void saveTempData(String uuid, SocialUserProfile userProfile, String fcmToken) {
+        validateTempDataInputs(uuid, userProfile);
 
         executeRedisOperation(() -> {
             String key = buildTempKey(uuid);
-            TempUserData tempData = TempUserData.from(userProfile, token, fcmToken);
+            TempUserData tempData = TempUserData.from(userProfile, fcmToken);
             redisTemplate.opsForValue().set(key, tempData, TTL);
             log.debug("UUID {}에 대한 임시 데이터가 Redis에 성공적으로 저장됨", uuid);
         }, uuid);
@@ -201,13 +200,12 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
      * <p>saveTempData 메서드에서 Redis 저장 전 데이터 무결성을 보장하기 위해 호출됩니다.</p>
      *
      * @param uuid 임시 사용자 식별 UUID
-     * @param userProfile 소셜 사용자 프로필
-     * @param token 토큰 정보
+     * @param userProfile 소셜 사용자 프로필 (토큰 포함)
      * @throws AuthCustomException 유효하지 않은 데이터가 있는 경우
      * @author Jaeik
      * @since 2.0.0
      */
-    private void validateTempDataInputs(String uuid, SocialUserProfile userProfile, Token token) {
+    private void validateTempDataInputs(String uuid, SocialUserProfile userProfile) {
         if (isInvalidUuid(uuid)) {
             log.warn(NULL_UUID_MESSAGE, uuid);
             throw new AuthCustomException(AuthErrorCode.INVALID_TEMP_UUID);
@@ -216,7 +214,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
             log.warn(NULL_PROFILE_MESSAGE, uuid);
             throw new AuthCustomException(AuthErrorCode.INVALID_USER_DATA);
         }
-        if (token == null) {
+        if (userProfile.token() == null) {
             log.warn(NULL_TOKEN_MESSAGE, uuid);
             throw new AuthCustomException(AuthErrorCode.INVALID_TOKEN_DATA);
         }
@@ -269,7 +267,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
      * <p>convertRedisDataToDomain 메서드에서 타입 안전 변환을 위해 호출됩니다.</p>
      *
      * @param uuid 작업 대상 UUID (로깅용)
-     * @param data Redis에서 조회한 원시 데이터 (TempUserData 또는 Map)
+     * @param data Redis에서 조회한 원시 데이터 (TempUserData 또는 LinkedHashMap)
      * @return 변환된 TempUserData 객체
      * @throws AuthCustomException 예상되지 않은 타입이거나 변환 실패 시
      * @author Jaeik
@@ -303,35 +301,53 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
     @SuppressWarnings("unchecked")
     private TempUserData convertMapToTempUserData(Map<?, ?> map) {
         try {
-            Token token = extractTokenFromMap((Map<String, Object>) map.get("token"));
             String fcmToken = (String) map.get("fcmToken");
 
-            // Map에서 각 필드를 직접 추출
+            // 새로운 형식: socialUserProfile 객체가 직접 저장된 경우
+            if (map.containsKey("socialUserProfile")) {
+                Map<String, Object> profileData = (Map<String, Object>) map.get("socialUserProfile");
+
+                String socialId = (String) profileData.get("socialId");
+                String email = (String) profileData.get("email");
+                String provider = (String) profileData.get("provider");
+                String nickname = (String) profileData.get("nickname");
+                String profileImageUrl = (String) profileData.get("profileImageUrl");
+
+                Token token = null;
+                if (profileData.containsKey("token")) {
+                    token = extractTokenFromMap((Map<String, Object>) profileData.get("token"));
+                }
+
+                SocialUserProfile profile = new SocialUserProfile(
+                    socialId,
+                    email,
+                    SocialProvider.valueOf(provider),
+                    nickname,
+                    profileImageUrl,
+                    token
+                );
+
+                return new TempUserData(profile, fcmToken);
+            }
+
+            // 이전 형식과의 호환성: 필드가 직접 저장된 경우
+            Token token = extractTokenFromMap((Map<String, Object>) map.get("token"));
             String socialId = (String) map.get("socialId");
             String email = (String) map.get("email");
             String provider = (String) map.get("provider");
             String nickname = (String) map.get("nickname");
             String profileImageUrl = (String) map.get("profileImageUrl");
 
-            // 이전 형식(socialUserProfile 중첩)과의 호환성을 위한 체크
-            if (socialId == null && map.containsKey("socialUserProfile")) {
-                Map<String, Object> socialData = (Map<String, Object>) map.get("socialUserProfile");
-                socialId = (String) socialData.get("socialId");
-                email = (String) socialData.get("email");
-                provider = (String) socialData.get("provider");
-                nickname = (String) socialData.get("nickname");
-                profileImageUrl = (String) socialData.get("profileImageUrl");
-            }
-
-            return new TempUserData(
-                    socialId,
-                    email,
-                    SocialProvider.valueOf(provider),
-                    nickname,
-                    profileImageUrl,
-                    token,
-                    fcmToken
+            SocialUserProfile profile = new SocialUserProfile(
+                socialId,
+                email,
+                SocialProvider.valueOf(provider),
+                nickname,
+                profileImageUrl,
+                token
             );
+
+            return new TempUserData(profile, fcmToken);
         } catch (Exception e) {
             log.error("LinkedHashMap -> TempUserData 변환 실패: {}", e.getMessage(), e);
             throw new AuthCustomException(AuthErrorCode.INVALID_TEMP_DATA);

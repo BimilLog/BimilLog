@@ -18,43 +18,39 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TempUserData {
-    private String socialId;
-    private String email;
-    private SocialProvider provider;
-    private String nickname;
-    private String profileImageUrl;
-    private Token token;
+    private SocialUserProfile socialUserProfile;
     private String fcmToken;
     /**
-     * <h3>소셜 프로필 정보 추출</h3>
-     * <p>TempUserData에서 SocialUserProfile 객체를 생성하여 반환합니다.</p>
+     * <h3>소셜 프로필 정보 반환</h3>
+     * <p>TempUserData에서 저장된 SocialUserProfile 객체를 반환합니다.</p>
      * <p>SaveUserPort 등에서 SocialUserProfile이 필요한 경우 사용됩니다.</p>
      *
      * @return SocialUserProfile 객체
      */
-    public SocialUserProfile toSocialUserProfile() {
-        return new SocialUserProfile(socialId, email, provider, nickname, profileImageUrl);
+    public SocialUserProfile getSocialUserProfile() {
+        return socialUserProfile;
+    }
+
+    /**
+     * <h3>토큰 정보 반환</h3>
+     * <p>SocialUserProfile에 포함된 Token 객체를 반환합니다.</p>
+     *
+     * @return Token 객체
+     */
+    public Token getToken() {
+        return socialUserProfile != null ? socialUserProfile.token() : null;
     }
 
     /**
      * <h3>팩토리 메서드: SocialUserProfile과 함께 생성</h3>
-     * <p>SocialUserProfile과 Token, fcmToken을 받아 TempUserData를 생성합니다.</p>
-     * <p>기존 코드와의 호환성을 위한 헬퍼 메서드입니다.</p>
+     * <p>SocialUserProfile과 fcmToken을 받아 TempUserData를 생성합니다.</p>
+     * <p>SocialUserProfile에 이미 Token이 포함되어 있어 별도로 전달하지 않습니다.</p>
      *
-     * @param profile 소셜 사용자 프로필
-     * @param token 토큰 정보
+     * @param profile 소셜 사용자 프로필 (토큰 포함)
      * @param fcmToken FCM 토큰
      * @return TempUserData 객체
      */
-    public static TempUserData from(SocialUserProfile profile, Token token, String fcmToken) {
-        return new TempUserData(
-                profile.socialId(),
-                profile.email(),
-                profile.provider(),
-                profile.nickname(),
-                profile.profileImageUrl(),
-                token,
-                fcmToken
-        );
+    public static TempUserData from(SocialUserProfile profile, String fcmToken) {
+        return new TempUserData(profile, fcmToken);
     }
 }

@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.application.port.out.*;
 import jaeik.bimillog.domain.auth.application.service.SocialService;
-import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialLoginResultDTO;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
@@ -63,8 +62,8 @@ class SocialServiceTest {
 
     @BeforeEach
     void setUp() {
-        testUserProfile = new SocialUserProfile(TEST_SOCIAL_ID, null, SocialProvider.KAKAO, TEST_USERNAME, TEST_PROFILE_IMAGE);
         testToken = Token.createTemporaryToken(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
+        testUserProfile = new SocialUserProfile(TEST_SOCIAL_ID, TEST_EMAIL, SocialProvider.KAKAO, TEST_USERNAME, TEST_PROFILE_IMAGE, testToken);
 
         socialService = new SocialService(
             strategyRegistry,
@@ -100,22 +99,13 @@ class SocialServiceTest {
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             mockAnonymousAuthentication(mockedSecurityContext);
 
-            SocialLoginResultDTO authResult =
-                new SocialLoginResultDTO(
-                    TEST_SOCIAL_ID,
-                    null,
-                    SocialProvider.KAKAO,
-                    TEST_USERNAME,
-                    TEST_PROFILE_IMAGE,
-                    testToken
-                );
             given(strategyRegistry.getStrategy(SocialProvider.KAKAO)).willReturn(kakaoStrategy);
-            given(kakaoStrategy.authenticate(SocialProvider.KAKAO, TEST_AUTH_CODE)).willReturn(authResult);
+            given(kakaoStrategy.authenticate(SocialProvider.KAKAO, TEST_AUTH_CODE)).willReturn(testUserProfile);
             
             User mockUser = mock(User.class);
             given(authToUserPort.findExistingUser(SocialProvider.KAKAO, TEST_SOCIAL_ID)).willReturn(java.util.Optional.of(mockUser));
             given(authToUserPort.existsByProviderAndSocialId(SocialProvider.KAKAO, TEST_SOCIAL_ID)).willReturn(false);
-            given(saveUserPort.handleExistingUserLogin(any(SocialUserProfile.class), any(Token.class), eq(TEST_FCM_TOKEN))).willReturn(cookies);
+            given(saveUserPort.handleExistingUserLogin(any(SocialUserProfile.class), eq(TEST_FCM_TOKEN))).willReturn(cookies);
 
             // When
             LoginResult result = socialService.processSocialLogin(SocialProvider.KAKAO, TEST_AUTH_CODE, TEST_FCM_TOKEN);
@@ -129,7 +119,7 @@ class SocialServiceTest {
             verify(kakaoStrategy).authenticate(SocialProvider.KAKAO, TEST_AUTH_CODE);
             verify(authToUserPort).findExistingUser(SocialProvider.KAKAO, TEST_SOCIAL_ID);
             // updateUserInfo는 SaveUserAdapter에서 처리하므로 제거
-            verify(saveUserPort).handleExistingUserLogin(any(SocialUserProfile.class), any(Token.class), eq(TEST_FCM_TOKEN));
+            verify(saveUserPort).handleExistingUserLogin(any(SocialUserProfile.class), eq(TEST_FCM_TOKEN));
         }
     }
 
@@ -142,17 +132,8 @@ class SocialServiceTest {
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             mockAnonymousAuthentication(mockedSecurityContext);
 
-            SocialLoginResultDTO authResult =
-                new SocialLoginResultDTO(
-                    TEST_SOCIAL_ID,
-                    null,
-                    SocialProvider.KAKAO,
-                    TEST_USERNAME,
-                    TEST_PROFILE_IMAGE,
-                    testToken
-                );
             given(strategyRegistry.getStrategy(SocialProvider.KAKAO)).willReturn(kakaoStrategy);
-            given(kakaoStrategy.authenticate(SocialProvider.KAKAO, TEST_AUTH_CODE)).willReturn(authResult);
+            given(kakaoStrategy.authenticate(SocialProvider.KAKAO, TEST_AUTH_CODE)).willReturn(testUserProfile);
             given(authToUserPort.findExistingUser(SocialProvider.KAKAO, TEST_SOCIAL_ID)).willReturn(java.util.Optional.empty());
             given(authToUserPort.existsByProviderAndSocialId(SocialProvider.KAKAO, TEST_SOCIAL_ID)).willReturn(false);
             given(redisUserDataPort.createTempCookie(anyString())).willReturn(tempCookie);
@@ -168,7 +149,7 @@ class SocialServiceTest {
             verify(strategyRegistry).getStrategy(SocialProvider.KAKAO);
             verify(kakaoStrategy).authenticate(SocialProvider.KAKAO, TEST_AUTH_CODE);
             verify(authToUserPort).findExistingUser(SocialProvider.KAKAO, TEST_SOCIAL_ID);
-            verify(redisUserDataPort).saveTempData(anyString(), any(SocialUserProfile.class), any(Token.class), eq(TEST_FCM_TOKEN));
+            verify(redisUserDataPort).saveTempData(anyString(), any(SocialUserProfile.class), eq(TEST_FCM_TOKEN));
             verify(redisUserDataPort).createTempCookie(anyString());
         }
     }
@@ -180,17 +161,8 @@ class SocialServiceTest {
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             mockAnonymousAuthentication(mockedSecurityContext);
 
-            SocialLoginResultDTO authResult =
-                new SocialLoginResultDTO(
-                    TEST_SOCIAL_ID,
-                    null,
-                    SocialProvider.KAKAO,
-                    TEST_USERNAME,
-                    TEST_PROFILE_IMAGE,
-                    testToken
-                );
             given(strategyRegistry.getStrategy(SocialProvider.KAKAO)).willReturn(kakaoStrategy);
-            given(kakaoStrategy.authenticate(SocialProvider.KAKAO, TEST_AUTH_CODE)).willReturn(authResult);
+            given(kakaoStrategy.authenticate(SocialProvider.KAKAO, TEST_AUTH_CODE)).willReturn(testUserProfile);
             given(authToUserPort.existsByProviderAndSocialId(SocialProvider.KAKAO, TEST_SOCIAL_ID)).willReturn(true);
 
             // When & Then

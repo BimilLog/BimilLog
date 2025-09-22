@@ -2,7 +2,7 @@ package jaeik.bimillog.testutil;
 
 import jaeik.bimillog.domain.auth.application.port.out.AuthToUserPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
-import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialLoginResultDTO;
+import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.user.application.port.out.KakaoFriendPort;
 import jaeik.bimillog.domain.user.entity.KakaoFriendsResponseVO;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
@@ -35,7 +35,7 @@ public class TestSocialLoginPortConfig {
             }
 
             @Override
-            public SocialLoginResultDTO authenticate(SocialProvider provider, String code) {
+            public SocialUserProfile authenticate(SocialProvider provider, String code) {
                 // 테스트용 더미 구현
                 String socialId;
 
@@ -51,7 +51,7 @@ public class TestSocialLoginPortConfig {
 
                 Token token = Token.createTemporaryToken("dummy-access-token", "dummy-refresh-token");
 
-                return new SocialLoginResultDTO(
+                return new SocialUserProfile(
                     socialId,
                     "test@example.com",
                     provider,

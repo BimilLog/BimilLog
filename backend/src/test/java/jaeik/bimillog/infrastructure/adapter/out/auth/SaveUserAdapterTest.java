@@ -54,9 +54,8 @@ class SaveUserAdapterTest {
     @DisplayName("기존 사용자 로그인 처리 - 정상적인 업데이트 및 FCM 토큰 ID 반환")
     void shouldHandleExistingUserLogin_WhenValidUserDataProvided() {
         // Given: 기존 사용자와 토큰 정보
-        SocialUserProfile userProfile = new SocialUserProfile("123456789", "test@example.com", SocialProvider.KAKAO, "업데이트된닉네임", "https://updated-profile.jpg");
-
         Token tokenDTO = Token.createTemporaryToken("access-token", "refresh-token");
+        SocialUserProfile userProfile = new SocialUserProfile("123456789", "test@example.com", SocialProvider.KAKAO, "업데이트된닉네임", "https://updated-profile.jpg", tokenDTO);
 
         String fcmToken = "fcm-token-12345";
         Long fcmTokenId = 100L;
@@ -86,7 +85,7 @@ class SaveUserAdapterTest {
         given(authCookieManager.generateJwtCookie(any(UserDetail.class))).willReturn(expectedCookies);
 
         // When: 기존 사용자 로그인 처리
-        List<ResponseCookie> result = saveDataAdapter.handleExistingUserLogin(userProfile, tokenDTO, fcmToken);
+        List<ResponseCookie> result = saveDataAdapter.handleExistingUserLogin(userProfile, fcmToken);
 
         // Then: 사용자 정보 업데이트 검증
         assertThat(existingUser.getSocialNickname()).isEqualTo("업데이트된닉네임");
@@ -117,15 +116,14 @@ class SaveUserAdapterTest {
     @DisplayName("기존 사용자 로그인 - 사용자 미존재 시 예외 발생")
     void shouldThrowException_WhenUserNotFoundInExistingLogin() {
         // Given: 존재하지 않는 사용자 정보
-        SocialUserProfile userProfile = new SocialUserProfile("nonexistent", "nonexistent@example.com", SocialProvider.KAKAO, "존재안함", "https://example.jpg");
-
         Token tokenDTO = Token.createTemporaryToken("access-token", "refresh-token");
+        SocialUserProfile userProfile = new SocialUserProfile("nonexistent", "nonexistent@example.com", SocialProvider.KAKAO, "존재안함", "https://example.jpg", tokenDTO);
 
         given(userQueryUseCase.findByProviderAndSocialId(SocialProvider.KAKAO, "nonexistent"))
                 .willReturn(Optional.empty());
 
         // When & Then: 예외 발생 검증
-        assertThatThrownBy(() -> saveDataAdapter.handleExistingUserLogin(userProfile, tokenDTO, null))
+        assertThatThrownBy(() -> saveDataAdapter.handleExistingUserLogin(userProfile, null))
                 .isInstanceOf(jaeik.bimillog.domain.user.exception.UserCustomException.class)
                 .hasMessage(jaeik.bimillog.domain.user.exception.UserErrorCode.USER_NOT_FOUND.getMessage());
 
@@ -138,9 +136,8 @@ class SaveUserAdapterTest {
     @DisplayName("기존 사용자 로그인 - FCM 토큰 없을 때 등록 미호출")  
     void shouldNotPublishFcmEvent_WhenExistingUserHasNoFcmToken() {
         // Given: FCM 토큰이 없는 기존 사용자 로그인
-        SocialUserProfile userProfile = new SocialUserProfile("123456789", "fcm@example.com", SocialProvider.KAKAO, "FCM없음", "https://example.jpg");
-
         Token tokenDTO = Token.createTemporaryToken("access-token", "refresh-token");
+        SocialUserProfile userProfile = new SocialUserProfile("123456789", "fcm@example.com", SocialProvider.KAKAO, "FCM없음", "https://example.jpg", tokenDTO);
 
         User existingUser = TestUsers.copyWithId(TestUsers.USER1, 1L);
         existingUser = User.builder()
@@ -163,7 +160,7 @@ class SaveUserAdapterTest {
         given(authCookieManager.generateJwtCookie(any(UserDetail.class))).willReturn(List.of());
 
         // When: FCM 토큰 없이 기존 사용자 로그인 처리
-        saveDataAdapter.handleExistingUserLogin(userProfile, tokenDTO, null);
+        saveDataAdapter.handleExistingUserLogin(userProfile, null);
         
         // Then: FCM 토큰 등록이 호출되지 않았는지 검증
         verify(notificationFcmUseCase, never()).registerFcmToken(any(), any());
@@ -182,9 +179,8 @@ class SaveUserAdapterTest {
         String fcmToken = "new-fcm-token";
         Long fcmTokenId = 200L;
 
-        SocialUserProfile userProfile = new SocialUserProfile("987654321", "newuser@example.com", SocialProvider.KAKAO, "신규사용자", "https://new-profile.jpg");
-
         Token tokenDTO = Token.createTemporaryToken("access-token", "refresh-token");
+        SocialUserProfile userProfile = new SocialUserProfile("987654321", "newuser@example.com", SocialProvider.KAKAO, "신규사용자", "https://new-profile.jpg", tokenDTO);
 
         User newUser = TestUsers.copyWithId(TestUsers.USER2, 2L);
         newUser = User.builder()
@@ -210,7 +206,7 @@ class SaveUserAdapterTest {
         given(authCookieManager.generateJwtCookie(any(UserDetail.class))).willReturn(expectedCookies);
 
         // When: 신규 사용자 저장
-        List<ResponseCookie> result = saveDataAdapter.saveNewUser(userName, uuid, userProfile, tokenDTO, fcmToken);
+        List<ResponseCookie> result = saveDataAdapter.saveNewUser(userName, uuid, userProfile, fcmToken);
 
         // Then: 사용자 저장 검증
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
@@ -246,9 +242,8 @@ class SaveUserAdapterTest {
         String uuid = "temp-uuid-67890";
         String fcmToken = null; // FCM 토큰 없음
         
-        SocialUserProfile userProfile = new SocialUserProfile("111222333", "nofcm@example.com", SocialProvider.KAKAO, "FCM없음", "https://no-fcm.jpg");
-
         Token tokenDTO = Token.createTemporaryToken("access-token", "refresh-token");
+        SocialUserProfile userProfile = new SocialUserProfile("111222333", "nofcm@example.com", SocialProvider.KAKAO, "FCM없음", "https://no-fcm.jpg", tokenDTO);
 
         User newUser = TestUsers.copyWithId(TestUsers.USER3, 3L);
         newUser = User.builder()
@@ -269,7 +264,7 @@ class SaveUserAdapterTest {
         given(authCookieManager.generateJwtCookie(any(UserDetail.class))).willReturn(List.of());
 
         // When: FCM 토큰 없이 사용자 저장
-        saveDataAdapter.saveNewUser(userName, uuid, userProfile, tokenDTO, fcmToken);
+        saveDataAdapter.saveNewUser(userName, uuid, userProfile, fcmToken);
 
         // Then: FCM 토큰이 null이므로 FCM 등록 호출되지 않음
         verify(notificationFcmUseCase, never()).registerFcmToken(any(), any());

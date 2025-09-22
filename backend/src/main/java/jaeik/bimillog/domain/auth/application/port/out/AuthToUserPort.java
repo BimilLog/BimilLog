@@ -8,7 +8,8 @@ import java.util.Optional;
 
 /**
  * <h2>인증 TO 유저 포트</h2>
- * <p>인증 도메인에서 유저 도메인에 접근하는 포트 </p>
+ * <p>인증 도메인에서 유저 도메인에 접근하는 포트입니다.</p>
+ * <p>기존 사용자 조회, 블랙리스트 확인 등 사용자 검증 기능</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -30,13 +31,14 @@ public interface AuthToUserPort {
     Optional<User> findExistingUser(SocialProvider provider, String socialId);
 
     /**
-     * <h3>유저가 블랙리스트에 존재하는지 획인</h3>
-     * <p>특정 소셜 제공자와 소셜 ID에 해당하는 사용자가 블랙리스트에 존재하는지 확인합니다.</p>
-     * <p>{@link SocialService}에서 로그인시 유저가 블랙리스트에 존재하는지 확인합니다.</p>
+     * <h3>소셜 계정 차단 여부 확인</h3>
+     * <p>특정 소셜 제공자와 소셜 ID에 해당하는 사용자가 블랙리스트에 등록되어 있는지 확인합니다.</p>
+     * <p>회원 탈퇴하거나 계정 차단된 사용자의 소셜 계정 재가입을 방지하기 위해 사용됩니다.</p>
+     * <p>{@link SocialService}에서 로그인 시 차단된 사용자의 접근을 막기 위해 호출합니다.</p>
      *
      * @param provider 확인할 소셜 제공자 (KAKAO, GOOGLE 등)
      * @param socialId 확인할 소셜 플랫폼에서의 사용자 고유 ID
-     * @return 해당 소셜 계정이 차단된 상태로 존재하면 true, 아니면 false
+     * @return 해당 소셜 계정이 블랙리스트에 등록되어 있으면 true, 아니면 false
      * @author Jaeik
      * @since 2.0.0
      */
