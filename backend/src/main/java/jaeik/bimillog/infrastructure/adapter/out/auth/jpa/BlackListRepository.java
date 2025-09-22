@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.out.user.jpa;
+package jaeik.bimillog.infrastructure.adapter.out.auth.jpa;
 
 import jaeik.bimillog.domain.auth.entity.BlackList;
 import jaeik.bimillog.domain.user.entity.SocialProvider;

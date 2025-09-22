@@ -3,11 +3,7 @@ package jaeik.bimillog.domain.auth.application.service;
 
 import jaeik.bimillog.domain.admin.event.AdminWithdrawEvent;
 import jaeik.bimillog.domain.auth.application.port.in.SocialUseCase;
-import jaeik.bimillog.domain.auth.application.port.out.AuthToUserPort;
-import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
-import jaeik.bimillog.domain.auth.application.port.out.SaveUserPort;
-import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
-import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
+import jaeik.bimillog.domain.auth.application.port.out.*;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
@@ -43,6 +39,7 @@ public class SocialService implements SocialUseCase {
 
     private final SocialStrategyRegistryPort strategyRegistryPort;
     private final AuthToUserPort authToUserPort;
+    private final BlacklistPort blacklistPort;
     private final SaveUserPort saveUserPort;
     private final RedisUserDataPort redisUserDataPort;
 
@@ -70,7 +67,7 @@ public class SocialService implements SocialUseCase {
         SocialUserProfile authResult = strategy.authenticate(provider, code);
 
         // 2. 블랙리스트 사용자 확인
-        if (authToUserPort.existsByProviderAndSocialId(provider, authResult.socialId())) {
+        if (blacklistPort.existsByProviderAndSocialId(provider, authResult.socialId())) {
             throw new AuthCustomException(AuthErrorCode.BLACKLIST_USER);
         }
 
