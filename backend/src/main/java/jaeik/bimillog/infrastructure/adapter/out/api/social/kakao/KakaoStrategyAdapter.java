@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.out.api.social.kakao;
 
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.service.SocialService;
-import jaeik.bimillog.domain.auth.entity.AuthenticationResult;
+import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialLoginResultDTO;
 import jaeik.bimillog.domain.auth.entity.SocialAuthData;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.Token;
@@ -55,15 +55,22 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
      *
      * @param provider 소셜 로그인 제공자 (KAKAO)
      * @param code 카카오 OAuth 2.0 인증 코드
-     * @return AuthenticationResult 로그인 결과
+     * @return SocialLoginResultDTO 로그인 결과
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public AuthenticationResult authenticate(SocialProvider provider, String code) {
+    public SocialLoginResultDTO authenticate(SocialProvider provider, String code) {
         Token token = getToken(code);
         SocialAuthData.SocialUserProfile userProfile = getUserInfo(token.getAccessToken());
-        return new AuthenticationResult(userProfile, token);
+        return new SocialLoginResultDTO(
+                userProfile.socialId(),
+                userProfile.email(),
+                userProfile.provider(),
+                userProfile.nickname(),
+                userProfile.profileImageUrl(),
+                token
+        );
     }
 
     /**

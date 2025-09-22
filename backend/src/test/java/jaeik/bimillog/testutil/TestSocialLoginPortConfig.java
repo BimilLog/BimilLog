@@ -2,8 +2,7 @@ package jaeik.bimillog.testutil;
 
 import jaeik.bimillog.domain.auth.application.port.out.AuthToUserPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
-import jaeik.bimillog.domain.auth.entity.AuthenticationResult;
-import jaeik.bimillog.domain.auth.entity.SocialAuthData;
+import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialLoginResultDTO;
 import jaeik.bimillog.domain.user.application.port.out.KakaoFriendPort;
 import jaeik.bimillog.domain.user.entity.KakaoFriendsResponseVO;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
@@ -36,10 +35,10 @@ public class TestSocialLoginPortConfig {
             }
 
             @Override
-            public AuthenticationResult authenticate(SocialProvider provider, String code) {
+            public SocialLoginResultDTO authenticate(SocialProvider provider, String code) {
                 // 테스트용 더미 구현
                 String socialId;
-                
+
                 // code 값에 따라 신규 사용자/기존 사용자 구분
                 if ("new_user_code".equals(code)) {
                     socialId = "new-user-social-id";
@@ -49,17 +48,17 @@ public class TestSocialLoginPortConfig {
                     // 기본값은 기존 사용자로 처리
                     socialId = "test-social-id";
                 }
-                
-                SocialAuthData.SocialUserProfile profile = new SocialAuthData.SocialUserProfile(
-                    socialId, 
-                    "test@example.com", 
-                    provider, 
-                    "Test User", 
-                    "https://example.com/profile.jpg"
-                );
+
                 Token token = Token.createTemporaryToken("dummy-access-token", "dummy-refresh-token");
-                
-                return new AuthenticationResult(profile, token);
+
+                return new SocialLoginResultDTO(
+                    socialId,
+                    "test@example.com",
+                    provider,
+                    "Test User",
+                    "https://example.com/profile.jpg",
+                    token
+                );
             }
 
             @Override

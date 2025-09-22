@@ -1,12 +1,8 @@
 package jaeik.bimillog.infrastructure.adapter.out.api.social.kakao;
 
-import jaeik.bimillog.domain.auth.entity.AuthenticationResult;
-import jaeik.bimillog.domain.auth.entity.SocialAuthData;
+import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialLoginResultDTO;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.global.vo.KakaoKeyVO;
-import jaeik.bimillog.infrastructure.adapter.out.api.social.kakao.KakaoApiClient;
-import jaeik.bimillog.infrastructure.adapter.out.api.social.kakao.KakaoAuthClient;
-import jaeik.bimillog.infrastructure.adapter.out.api.social.kakao.KakaoStrategyAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -98,18 +94,16 @@ class KakaoStrategyAdapterTest {
         given(kakaoApiClient.getUserInfo(anyString())).willReturn(userInfoResponse);
 
         // When
-        AuthenticationResult result = kakaoStrategyAdapter.authenticate(
+        SocialLoginResultDTO result = kakaoStrategyAdapter.authenticate(
             SocialProvider.KAKAO, TEST_AUTH_CODE);
 
         // Then
         assertThat(result).isNotNull();
-        assertThat(result.userProfile()).satisfies(userProfile -> {
-            assertThat(userProfile.socialId()).isEqualTo(TEST_SOCIAL_ID);
-            assertThat(userProfile.email()).isNull(); // 카카오는 이메일을 제공하지 않음
-            assertThat(userProfile.provider()).isEqualTo(SocialProvider.KAKAO);
-            assertThat(userProfile.nickname()).isEqualTo(TEST_NICKNAME);
-            assertThat(userProfile.profileImageUrl()).isEqualTo(TEST_PROFILE_IMAGE);
-        });
+        assertThat(result.socialId()).isEqualTo(TEST_SOCIAL_ID);
+        assertThat(result.email()).isNull(); // 카카오는 이메일을 제공하지 않음
+        assertThat(result.provider()).isEqualTo(SocialProvider.KAKAO);
+        assertThat(result.nickname()).isEqualTo(TEST_NICKNAME);
+        assertThat(result.profileImageUrl()).isEqualTo(TEST_PROFILE_IMAGE);
         assertThat(result.token()).satisfies(token -> {
             assertThat(token.getAccessToken()).isEqualTo(TEST_ACCESS_TOKEN);
             assertThat(token.getRefreshToken()).isEqualTo(TEST_REFRESH_TOKEN);

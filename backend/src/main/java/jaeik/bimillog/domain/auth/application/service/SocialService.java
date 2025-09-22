@@ -8,14 +8,13 @@ import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.application.port.out.SaveUserPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
-import jaeik.bimillog.domain.auth.entity.AuthenticationResult;
+import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialLoginResultDTO;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialAuthData;
 import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.in.auth.web.AuthCommandController;
 import lombok.RequiredArgsConstructor;
@@ -69,18 +68,17 @@ public class SocialService implements SocialUseCase {
 
         // 1. 전략 포트를 통해 OAuth 인증 수행
         SocialStrategyPort strategy = strategyRegistryPort.getStrategy(provider);
-        AuthenticationResult authResult = strategy.authenticate(provider, code);
-        SocialAuthData.SocialUserProfile userProfile = authResult.userProfile();
+        SocialLoginResultDTO authResult = strategy.authenticate(provider, code);
 
         // 2. 블랙리스트 사용자 확인
-        if (authToUserPort.existsByProviderAndSocialId(provider, userProfile.socialId())) {
+        if (authToUserPort.existsByProviderAndSocialId(provider, authResult.socialId())) {
             throw new AuthCustomException(AuthErrorCode.BLACKLIST_USER);
         }
 
         // 3. 기존 사용자 확인
-        Optional<User> existingUser = authToUserPort.findExistingUser(provider, userProfile.socialId());
+        Optional<User> existingUser = authToUserPort.findExistingUser(provider, authResult.socialId());
 
-        return processUserLogin(fcmToken, existingUser, userProfile, authResult);
+        return processUserLogin(fcmToken, existingUser, authResult);
     }
 
     /**
@@ -113,18 +111,25 @@ public class SocialService implements SocialUseCase {
      *
      * @param fcmToken 푸시 알림용 FCM 토큰 (선택사항)
      * @param existingUser 기존 사용자 확인 결과
-     * @param userProfile 소셜 플랫폼에서 받은 사용자 프로필
      * @param authResult 소셜 로그인 인증 결과
      * @return LoginResult 기존 사용자(쿠키) 또는 신규 사용자(UUID) 정보
      * @author Jaeik
      * @since 2.0.0
      */
-    private LoginResult processUserLogin(String fcmToken, Optional<User> existingUser, SocialAuthData.SocialUserProfile userProfile, AuthenticationResult authResult) {
+    private LoginResult processUserLogin(String fcmToken, Optional<User> existingUser, SocialLoginResultDTO authResult) {
         if (existingUser.isPresent()) {
+            // SocialUserProfile 재구성
+            SocialAuthData.SocialUserProfile userProfile = new SocialAuthData.SocialUserProfile(
+                authResult.socialId(),
+                authResult.email(),
+                authResult.provider(),
+                authResult.nickname(),
+                authResult.profileImageUrl()
+            );
             List<ResponseCookie> cookies = saveUserPort.handleExistingUserLogin(userProfile, authResult.token(), fcmToken);
             return new LoginResult.ExistingUser(cookies);
         } else {
-            return handleNewUser(userProfile, authResult.token(), fcmToken);
+            return handleNewUser(authResult, fcmToken);
         }
     }
 
@@ -134,16 +139,23 @@ public class SocialService implements SocialUseCase {
      * <p>회원가입 페이지에서 사용할 UUID 키와 임시 쿠키를 생성합니다.</p>
      * <p>{@link #processSocialLogin}에서 신규 사용자 판별 후 호출됩니다.</p>
      *
-     * @param userProfile 소셜 플랫폼에서 받은 사용자 프로필
-     * @param token 소셜 로그인으로 발급받은 토큰 정보
+     * @param authResult 소셜 로그인 인증 결과
      * @param fcmToken 푸시 알림용 FCM 토큰 (선택사항)
      * @return NewUser 회원가입용 UUID와 임시 쿠키 정보
      * @author Jaeik
      * @since 2.0.0
      */
-    private LoginResult.NewUser handleNewUser(SocialAuthData.SocialUserProfile userProfile, Token token, String fcmToken) {
+    private LoginResult.NewUser handleNewUser(SocialLoginResultDTO authResult, String fcmToken) {
         String uuid = UUID.randomUUID().toString();
-        redisUserDataPort.saveTempData(uuid, userProfile, token, fcmToken);
+        // SocialUserProfile 재구성
+        SocialAuthData.SocialUserProfile userProfile = new SocialAuthData.SocialUserProfile(
+            authResult.socialId(),
+            authResult.email(),
+            authResult.provider(),
+            authResult.nickname(),
+            authResult.profileImageUrl()
+        );
+        redisUserDataPort.saveTempData(uuid, userProfile, authResult.token(), fcmToken);
         ResponseCookie tempCookie = redisUserDataPort.createTempCookie(uuid);
         return new LoginResult.NewUser(uuid, tempCookie);
     }
