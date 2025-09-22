@@ -2,6 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.out.api.social.kakao;
 
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.service.SocialService;
+import jaeik.bimillog.domain.auth.entity.AuthenticationResult;
 import jaeik.bimillog.domain.auth.entity.SocialAuthData;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.Token;
@@ -59,10 +60,10 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
      * @since 2.0.0
      */
     @Override
-    public SocialAuthData.AuthenticationResult authenticate(SocialProvider provider, String code) {
+    public AuthenticationResult authenticate(SocialProvider provider, String code) {
         Token token = getToken(code);
         SocialAuthData.SocialUserProfile userProfile = getUserInfo(token.getAccessToken());
-        return new SocialAuthData.AuthenticationResult(userProfile, token);
+        return new AuthenticationResult(userProfile, token);
     }
 
     /**

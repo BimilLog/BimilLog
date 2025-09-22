@@ -8,6 +8,7 @@ import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.application.port.out.SaveUserPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
+import jaeik.bimillog.domain.auth.entity.AuthenticationResult;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialAuthData;
 import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
@@ -68,7 +69,7 @@ public class SocialService implements SocialUseCase {
 
         // 1. 전략 포트를 통해 OAuth 인증 수행
         SocialStrategyPort strategy = strategyRegistryPort.getStrategy(provider);
-        SocialAuthData.AuthenticationResult authResult = strategy.authenticate(provider, code);
+        AuthenticationResult authResult = strategy.authenticate(provider, code);
         SocialAuthData.SocialUserProfile userProfile = authResult.userProfile();
 
         // 2. 블랙리스트 사용자 확인
@@ -118,7 +119,7 @@ public class SocialService implements SocialUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    private LoginResult processUserLogin(String fcmToken, Optional<User> existingUser, SocialAuthData.SocialUserProfile userProfile, SocialAuthData.AuthenticationResult authResult) {
+    private LoginResult processUserLogin(String fcmToken, Optional<User> existingUser, SocialAuthData.SocialUserProfile userProfile, AuthenticationResult authResult) {
         if (existingUser.isPresent()) {
             List<ResponseCookie> cookies = saveUserPort.handleExistingUserLogin(userProfile, authResult.token(), fcmToken);
             return new LoginResult.ExistingUser(cookies);

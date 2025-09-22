@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.application.port.out.*;
 import jaeik.bimillog.domain.auth.application.service.SocialService;
+import jaeik.bimillog.domain.auth.entity.AuthenticationResult;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialAuthData;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
@@ -99,8 +100,8 @@ class SocialServiceTest {
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             mockAnonymousAuthentication(mockedSecurityContext);
 
-            SocialAuthData.AuthenticationResult authResult =
-                new SocialAuthData.AuthenticationResult(testUserProfile, testToken);
+            AuthenticationResult authResult =
+                new AuthenticationResult(testUserProfile, testToken);
             given(strategyRegistry.getStrategy(SocialProvider.KAKAO)).willReturn(kakaoStrategy);
             given(kakaoStrategy.authenticate(SocialProvider.KAKAO, TEST_AUTH_CODE)).willReturn(authResult);
             
@@ -134,8 +135,8 @@ class SocialServiceTest {
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             mockAnonymousAuthentication(mockedSecurityContext);
 
-            SocialAuthData.AuthenticationResult authResult =
-                new SocialAuthData.AuthenticationResult(testUserProfile, testToken);
+            AuthenticationResult authResult =
+                new AuthenticationResult(testUserProfile, testToken);
             given(strategyRegistry.getStrategy(SocialProvider.KAKAO)).willReturn(kakaoStrategy);
             given(kakaoStrategy.authenticate(SocialProvider.KAKAO, TEST_AUTH_CODE)).willReturn(authResult);
             given(authToUserPort.findExistingUser(SocialProvider.KAKAO, TEST_SOCIAL_ID)).willReturn(java.util.Optional.empty());
@@ -165,8 +166,8 @@ class SocialServiceTest {
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             mockAnonymousAuthentication(mockedSecurityContext);
 
-            SocialAuthData.AuthenticationResult authResult =
-                new SocialAuthData.AuthenticationResult(testUserProfile, testToken);
+            AuthenticationResult authResult =
+                new AuthenticationResult(testUserProfile, testToken);
             given(strategyRegistry.getStrategy(SocialProvider.KAKAO)).willReturn(kakaoStrategy);
             given(kakaoStrategy.authenticate(SocialProvider.KAKAO, TEST_AUTH_CODE)).willReturn(authResult);
             given(authToUserPort.existsByProviderAndSocialId(SocialProvider.KAKAO, TEST_SOCIAL_ID)).willReturn(true);

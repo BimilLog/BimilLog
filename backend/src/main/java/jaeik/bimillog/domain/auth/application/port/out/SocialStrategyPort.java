@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.auth.application.port.out;
 
 import jaeik.bimillog.domain.auth.application.service.SocialService;
-import jaeik.bimillog.domain.auth.entity.SocialAuthData;
+import jaeik.bimillog.domain.auth.entity.AuthenticationResult;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 
 /**
@@ -37,7 +37,7 @@ public interface SocialStrategyPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    SocialAuthData.AuthenticationResult authenticate(SocialProvider provider, String code);
+    AuthenticationResult authenticate(SocialProvider provider, String code);
 
     /**
      * <h3>소셜 계정 연결 해제</h3>

@@ -1,5 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.out.api.social.kakao;
 
+import jaeik.bimillog.domain.auth.entity.AuthenticationResult;
 import jaeik.bimillog.domain.auth.entity.SocialAuthData;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.global.vo.KakaoKeyVO;
@@ -97,7 +98,7 @@ class KakaoStrategyAdapterTest {
         given(kakaoApiClient.getUserInfo(anyString())).willReturn(userInfoResponse);
 
         // When
-        SocialAuthData.AuthenticationResult result = kakaoStrategyAdapter.authenticate(
+        AuthenticationResult result = kakaoStrategyAdapter.authenticate(
             SocialProvider.KAKAO, TEST_AUTH_CODE);
 
         // Then
