@@ -1,10 +1,9 @@
 package jaeik.bimillog.domain.user.application.port.out;
 
-import jaeik.bimillog.domain.user.application.service.SignUpService;
 import jaeik.bimillog.domain.auth.application.service.SocialService;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.domain.user.application.service.SignUpService;
 import jaeik.bimillog.domain.user.entity.TempUserData;
-import org.springframework.http.ResponseCookie;
 
 import java.util.Optional;
 
@@ -58,16 +57,4 @@ public interface RedisUserDataPort {
      */
     void removeTempData(String uuid);
 
-    /**
-     * <h3>임시 사용자 ID 쿠키 생성</h3>
-     * <p>신규 사용자의 임시 UUID를 브라우저 쿠키로 생성하여 회원가입 플로우를 연결합니다.</p>
-     * <p>소셜 로그인 후 회원가입 페이지에서 임시 데이터에 접근하는데 사용됩니다.</p>
-     * <p>{@link SocialService}에서 신규 사용자 소셜 로그인 완료 시 호출됩니다.</p>
-     *
-     * @param uuid 임시 데이터와 연결된 고유 UUID
-     * @return 임시 UUID가 포함된 HttpOnly 쿠키
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    ResponseCookie createTempCookie(String uuid);
 }

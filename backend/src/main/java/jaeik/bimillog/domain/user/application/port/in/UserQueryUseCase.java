@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.user.application.port.in;
 
-import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.paper.application.service.PaperQueryService;
 import jaeik.bimillog.domain.post.application.service.PostCommandService;
 import jaeik.bimillog.domain.post.application.service.PostInteractionService;
@@ -84,17 +83,6 @@ public interface UserQueryUseCase {
      * @since 2.0.0
      */
     User getReferenceById(Long userId);
-
-    /**
-     * <h3>토큰 ID로 토큰 조회</h3>
-     * <p>다중 로그인 환경에서 JWT에서 파싱된 tokenId로 정확한 기기의 토큰을 조회합니다.</p>
-     *
-     * @param tokenId 토큰 ID (UserDetails.getTokenId()에서 추출)
-     * @return Optional<Token> 조회된 토큰 객체. 존재하지 않으면 Optional.empty()
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    Optional<Token> findTokenById(Long tokenId);
 
     /**
      * <h3>설정 ID로 설정 조회</h3>

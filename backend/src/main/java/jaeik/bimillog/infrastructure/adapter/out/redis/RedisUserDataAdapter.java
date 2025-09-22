@@ -1,18 +1,16 @@
 package jaeik.bimillog.infrastructure.adapter.out.redis;
 
-import jaeik.bimillog.domain.user.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
-import jaeik.bimillog.domain.user.entity.TempUserData;
+import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
+import jaeik.bimillog.domain.user.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.auth.entity.Token;
-import jaeik.bimillog.infrastructure.adapter.out.auth.AuthCookieManager;
+import jaeik.bimillog.domain.user.entity.TempUserData;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -34,7 +32,6 @@ import java.util.Optional;
 public class RedisUserDataAdapter implements RedisUserDataPort {
 
     private final RedisTemplate<String, Object> redisTemplate;
-    private final AuthCookieManager authCookieManager;
 
     private static final String TEMP_KEY_PREFIX = "temp:user:";
     private static final Duration TTL = Duration.ofMinutes(5);
@@ -125,20 +122,6 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
         }, uuid);
     }
 
-    /**
-     * <h3>임시 사용자 ID 쿠키 생성</h3>
-     * <p>소셜 로그인 첫 단계 완료 후 사용자를 회원가입 페이지로 리다이렉트할 때 임시 UUID를 담는 쿠키를 생성합니다.</p>
-     * <p>소셜 로그인 인증 성공 후 임시 데이터 연결을 위해 소셜 로그인 플로우에서 호출합니다.</p>
-     *
-     * @param uuid 임시 사용자 식별 UUID
-     * @return ResponseCookie 임시 사용자 ID 쿠키
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public ResponseCookie createTempCookie(String uuid) {
-        return authCookieManager.createTempCookie(uuid);
-    }
 
     /* ===================== Private Helpers ===================== */
 

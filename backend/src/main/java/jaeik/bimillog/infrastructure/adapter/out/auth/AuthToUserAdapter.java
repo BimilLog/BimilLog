@@ -5,10 +5,16 @@ import jaeik.bimillog.domain.auth.application.service.SocialService;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.user.application.port.in.UserSaveUseCase;
+import jaeik.bimillog.domain.user.entity.ExistedUserDetail;
+import jaeik.bimillog.domain.user.entity.NewUserDetail;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jaeik.bimillog.domain.user.entity.UserDetail;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * <h2>소셜 사용자 관리 어댑터</h2>
@@ -23,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuthToUserAdapter implements AuthToUserPort {
 
     private final UserSaveUseCase userSaveUseCase;
+    private final AuthCookieManager authCookieManager;
 
     /**
      * <h3>기존 소셜 사용자 조회</h3>
@@ -38,6 +45,13 @@ public class AuthToUserAdapter implements AuthToUserPort {
      */
     @Transactional(readOnly = true)
     public LoginResult userDataProcess(SocialProvider provider, SocialUserProfile profile, String fcmToken) {
-        return userSaveUseCase.saveUserData(provider, profile, fcmToken);
+        UserDetail userDetail = userSaveUseCase.saveUserData(provider, profile, fcmToken);
+        if (userDetail instanceof ExistedUserDetail) {
+            List<ResponseCookie> cookies = authCookieManager.generateJwtCookie((ExistedUserDetail) userDetail);
+            return new LoginResult.ExistingUser(cookies);
+        } else {
+           ResponseCookie tempCookie = authCookieManager.createTempCookie((NewUserDetail) userDetail);
+           return new LoginResult.NewUser(((NewUserDetail) userDetail).getUuid(), tempCookie);
+        }
     }
 }

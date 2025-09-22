@@ -39,7 +39,7 @@ public class AuthQueryController {
             throw new AuthCustomException(AuthErrorCode.NULL_SECURITY_CONTEXT);
         }
 
-        UserInfoResponseDTO response = UserInfoResponseDTO.from(userDetails.getUserDetail());
+        UserInfoResponseDTO response = UserInfoResponseDTO.from(userDetails.getExistedUserDetail());
         return ResponseEntity.ok(response);
     }
 }

@@ -1,7 +1,8 @@
 package jaeik.bimillog.infrastructure.adapter.out.auth;
 
 import jaeik.bimillog.domain.auth.application.port.out.JwtPort;
-import jaeik.bimillog.domain.user.entity.UserDetail;
+import jaeik.bimillog.domain.user.entity.ExistedUserDetail;
+import jaeik.bimillog.domain.user.entity.NewUserDetail;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
@@ -38,8 +39,8 @@ public class AuthCookieManager {
      * @author Jaeik
      * @since 2.0.0
      */
-    public ResponseCookie createTempCookie(String uuid) {
-        return ResponseCookie.from(TEMP_USER_ID_COOKIE, uuid)
+    public ResponseCookie createTempCookie(NewUserDetail newUserDetail) {
+        return ResponseCookie.from(TEMP_USER_ID_COOKIE, newUserDetail.getUuid())
                 .path("/")
                 .maxAge(600) // 10분
                 .httpOnly(true)
@@ -58,7 +59,7 @@ public class AuthCookieManager {
      * @author Jaeik
      * @since 2.0.0
      */
-    public List<ResponseCookie> generateJwtCookie(UserDetail userDetail) {
+    public List<ResponseCookie> generateJwtCookie(ExistedUserDetail userDetail) {
         return List.of(generateJwtAccessCookie(userDetail), generateJwtRefreshCookie(userDetail));
     }
 
@@ -100,7 +101,7 @@ public class AuthCookieManager {
      * @author Jaeik
      * @since 2.0.0
      */
-    public ResponseCookie generateJwtAccessCookie(UserDetail userDetail) {
+    public ResponseCookie generateJwtAccessCookie(ExistedUserDetail userDetail) {
         String accessToken = jwtPort.generateAccessToken(userDetail);
         return ResponseCookie.from(ACCESS_TOKEN_COOKIE, accessToken)
                 .path("/")
@@ -120,7 +121,7 @@ public class AuthCookieManager {
      * @author Jaeik
      * @since 2.0.0
      */
-    public ResponseCookie generateJwtRefreshCookie(UserDetail userDetail) {
+    public ResponseCookie generateJwtRefreshCookie(ExistedUserDetail userDetail) {
         String refreshToken = jwtPort.generateRefreshToken(userDetail);
         return ResponseCookie.from(REFRESH_TOKEN_COOKIE, refreshToken)
                 .path("/")

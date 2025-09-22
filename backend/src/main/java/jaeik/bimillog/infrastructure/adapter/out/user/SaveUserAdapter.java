@@ -6,9 +6,9 @@ import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUse
 import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
 import jaeik.bimillog.domain.user.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.user.application.port.out.SaveUserPort;
+import jaeik.bimillog.domain.user.entity.ExistedUserDetail;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.domain.user.entity.UserDetail;
 import jaeik.bimillog.global.application.port.out.GlobalTokenCommandPort;
 import jaeik.bimillog.infrastructure.adapter.out.auth.AuthCookieManager;
 import lombok.RequiredArgsConstructor;
@@ -49,7 +49,7 @@ public class SaveUserAdapter implements SaveUserPort {
      */
     @Override
     @Transactional
-    public List<ResponseCookie> handleExistingUserLogin(User existingUser, SocialUserProfile userProfile, String fcmToken) {
+    public ExistedUserDetail handleExistingUserLogin(User existingUser, SocialUserProfile userProfile, String fcmToken) {
         existingUser.updateUserInfo(userProfile.nickname(), userProfile.profileImageUrl());
 
         Token token = userProfile.token();
@@ -61,9 +61,11 @@ public class SaveUserAdapter implements SaveUserPort {
 
         Long fcmTokenId = registerFcmTokenIfPresent(existingUser, fcmToken);
 
-        return authCookieManager.generateJwtCookie(UserDetail.of(existingUser,
-                globalTokenCommandPort.save(newToken).getId(),
-                fcmTokenId));
+        return ExistedUserDetail.of(existingUser, globalTokenCommandPort.save(newToken).getId(), fcmTokenId);
+
+//        return authCookieManager.generateJwtCookie(UserDetail.of(existingUser,
+//                globalTokenCommandPort.save(newToken).getId(),
+//                fcmTokenId));
     }
 
     /**
@@ -90,7 +92,7 @@ public class SaveUserAdapter implements SaveUserPort {
 
         Token token = userProfile.token();
         redisUserDataPort.removeTempData(uuid);
-        return authCookieManager.generateJwtCookie(UserDetail.of(user,
+        return authCookieManager.generateJwtCookie(ExistedUserDetail.of(user,
                 globalTokenCommandPort.save(Token.createToken(token.getAccessToken(), token.getRefreshToken(), user)).getId(),
                 fcmTokenId));
     }

@@ -1,19 +1,15 @@
 package jaeik.bimillog.domain.user.application.service;
 
-import jaeik.bimillog.domain.user.application.port.out.RedisUserDataPort;
-import jaeik.bimillog.domain.user.application.port.out.SaveUserPort;
-import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.application.port.in.UserSaveUseCase;
+import jaeik.bimillog.domain.user.application.port.out.RedisUserDataPort;
+import jaeik.bimillog.domain.user.application.port.out.SaveUserPort;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.entity.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -36,7 +32,7 @@ public class UserSaveService implements UserSaveUseCase {
      * @since 2.0.0
      */
     @Override
-    public LoginResult saveUserData(SocialProvider provider, SocialUserProfile authResult, String fcmToken) {
+    public UserDetail saveUserData(SocialProvider provider, SocialUserProfile authResult, String fcmToken) {
         Optional<User> existingUser = userQueryPort.findByProviderAndSocialId(provider, authResult.socialId());
         return processUserLogin(fcmToken, existingUser, authResult);
     }
@@ -55,11 +51,10 @@ public class UserSaveService implements UserSaveUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    private LoginResult processUserLogin(String fcmToken, Optional<User> existingUser, SocialUserProfile authResult) {
+    private UserDetail processUserLogin(String fcmToken, Optional<User> existingUser, SocialUserProfile authResult) {
         if (existingUser.isPresent()) {
             User user = existingUser.get();
-            List<ResponseCookie> cookies = saveUserPort.handleExistingUserLogin(user, authResult, fcmToken);
-            return new LoginResult.ExistingUser(cookies);
+            return saveUserPort.handleExistingUserLogin(user, authResult, fcmToken);
         } else {
             return handleNewUser(authResult, fcmToken);
         }
@@ -77,11 +72,10 @@ public class UserSaveService implements UserSaveUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    private LoginResult.NewUser handleNewUser(SocialUserProfile authResult, String fcmToken) {
+    private NewUserDetail handleNewUser(SocialUserProfile authResult, String fcmToken) {
         String uuid = UUID.randomUUID().toString();
         redisUserDataPort.saveTempData(uuid, authResult, fcmToken);
-        ResponseCookie tempCookie = redisUserDataPort.createTempCookie(uuid);
-        return new LoginResult.NewUser(uuid, tempCookie);
+        return NewUserDetail.of(uuid);
     }
 
 

@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.user.application.port.in;
 
-import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jaeik.bimillog.domain.user.entity.UserDetail;
 import jaeik.bimillog.infrastructure.adapter.out.api.social.SocialAdapter;
 import jaeik.bimillog.infrastructure.adapter.out.user.SaveUserAdapter;
 
@@ -19,5 +19,5 @@ public interface UserSaveUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    LoginResult saveUserData(SocialProvider provider, SocialUserProfile profile, String fcmToken);
+    UserDetail saveUserData(SocialProvider provider, SocialUserProfile profile, String fcmToken);
 }

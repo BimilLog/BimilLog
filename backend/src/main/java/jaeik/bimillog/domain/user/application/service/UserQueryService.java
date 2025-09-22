@@ -5,7 +5,6 @@ import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
@@ -114,22 +113,6 @@ public class UserQueryService implements UserQueryUseCase {
     @Transactional(readOnly = true)
     public User getReferenceById(Long userId) {
         return userQueryPort.getReferenceById(userId);
-    }
-
-    /**
-     * <h3>토큰 ID로 토큰 조회</h3>
-     * <p>다중 로그인 환경에서 JWT에서 파싱된 tokenId로 정확한 기기의 토큰을 조회합니다.</p>
-     * <p>{@link UserQueryUseCase}에서 JWT 토큰 기반 인증 시 호출됩니다.</p>
-     *
-     * @param tokenId 토큰 ID (UserDetails.getTokenId()에서 추출)
-     * @return Optional<Token> 조회된 토큰 객체. 존재하지 않으면 Optional.empty()
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public Optional<Token> findTokenById(Long tokenId) {
-        return globalTokenQueryPort.findById(tokenId);
     }
 
     /**
