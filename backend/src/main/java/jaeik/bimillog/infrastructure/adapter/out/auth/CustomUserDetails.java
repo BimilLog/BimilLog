@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.out.auth;
 
-import jaeik.bimillog.domain.user.entity.ExistedUserDetail;
+import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
@@ -27,7 +27,7 @@ import java.util.List;
 @Getter
 public class CustomUserDetails implements UserDetails {
 
-    private final ExistedUserDetail existedUserDetail;
+    private final ExistingUserDetail existingUserDetail;
     private final Collection<? extends GrantedAuthority> authorities;
 
     /**
@@ -39,11 +39,11 @@ public class CustomUserDetails implements UserDetails {
      * 
      * @since 2.0.0
      * @author Jaeik
-     * @param existedUserDetail 사용자 정보 DTO
+     * @param existingUserDetail 사용자 정보 DTO
      */
-    public CustomUserDetails(ExistedUserDetail existedUserDetail) {
-        this.existedUserDetail = existedUserDetail;
-        this.authorities = createAuthorities(existedUserDetail.getRole());
+    public CustomUserDetails(ExistingUserDetail existingUserDetail) {
+        this.existingUserDetail = existingUserDetail;
+        this.authorities = createAuthorities(existingUserDetail.getRole());
     }
 
     /**
@@ -76,7 +76,7 @@ public class CustomUserDetails implements UserDetails {
      * @return 유저 ID
      */
     public Long getUserId() {
-        return existedUserDetail.getUserId();
+        return existingUserDetail.getUserId();
     }
 
     /**
@@ -88,7 +88,7 @@ public class CustomUserDetails implements UserDetails {
      * @return 토큰 ID
      */
     public Long getTokenId() {
-        return existedUserDetail.getTokenId();
+        return existingUserDetail.getTokenId();
     }
 
     /**
@@ -101,7 +101,7 @@ public class CustomUserDetails implements UserDetails {
      * @return FCM 토큰 ID
      */
     public Long getFcmTokenId() {
-        return existedUserDetail.getFcmTokenId();
+        return existingUserDetail.getFcmTokenId();
     }
 
     /**
@@ -114,7 +114,7 @@ public class CustomUserDetails implements UserDetails {
      * @return 설정 ID
      */
     public Long getSettingId() {
-        return existedUserDetail.getSettingId();
+        return existingUserDetail.getSettingId();
     }
 
     /**
@@ -128,7 +128,7 @@ public class CustomUserDetails implements UserDetails {
      */
     @Override
     public String getUsername() {
-        return existedUserDetail.getUserName();
+        return existingUserDetail.getUserName();
     }
 
     /**

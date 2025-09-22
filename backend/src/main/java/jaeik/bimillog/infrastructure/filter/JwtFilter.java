@@ -4,9 +4,8 @@ import jaeik.bimillog.domain.auth.application.port.in.UserBanUseCase;
 import jaeik.bimillog.domain.auth.application.port.out.JwtPort;
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
-import jaeik.bimillog.domain.user.entity.ExistedUserDetail;
+import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.domain.user.entity.UserDetail;
 import jaeik.bimillog.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.infrastructure.adapter.out.auth.AuthCookieManager;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
@@ -118,7 +117,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
                     // 유저 정보 조회 (Setting 포함)
                     User user = userQueryPort.findByIdWithSetting(token.getUsers().getId()).orElseThrow();
-                    ExistedUserDetail userDetail = ExistedUserDetail.of(user, tokenId, null); // fcmTokenId는 null로 설정
+                    ExistingUserDetail userDetail = ExistingUserDetail.of(user, tokenId, null); // fcmTokenId는 null로 설정
 
                     // 새로운 accessTokenCookie 발급
                     ResponseCookie accessCookie = authCookieManager.generateJwtAccessCookie(userDetail);
@@ -147,7 +146,7 @@ public class JwtFilter extends OncePerRequestFilter {
      * @param jwtAccessToken JWT 엑세스 토큰
      */
     private void setAuthentication(String jwtAccessToken) {
-        ExistedUserDetail userDetail = jwtPort.getUserInfoFromToken(jwtAccessToken);
+        ExistingUserDetail userDetail = jwtPort.getUserInfoFromToken(jwtAccessToken);
         CustomUserDetails customUserDetails = new CustomUserDetails(userDetail);
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 customUserDetails,

@@ -6,7 +6,7 @@ import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUse
 import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
 import jaeik.bimillog.domain.user.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.user.application.port.out.SaveUserPort;
-import jaeik.bimillog.domain.user.entity.ExistedUserDetail;
+import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.global.application.port.out.GlobalTokenCommandPort;
@@ -20,11 +20,21 @@ import java.util.List;
 
 /**
  * <h2>사용자 저장 어댑터</h2>
- * <p>소셜 로그인 후 사용자 데이터 저장 및 업데이트를 담당하는 어댑터입니다.</p>
- * <p>신규 사용자 저장, 기존 사용자 로그인 처리, Token 엔티티 생성/저장, JWT 쿠키 발급</p>
+ * <p>User 도메인의 아웃바운드 어댑터로 사용자 데이터 영속성을 담당합니다.</p>
+ * <p>소셜 로그인 사용자의 실제 저장 로직과 관련 엔티티 처리를 수행합니다.</p>
+ *
+ * <h3>주요 책임:</h3>
+ * <ul>
+ *   <li>기존 사용자: 프로필 업데이트, Token 엔티티 생성, FCM 토큰 등록</li>
+ *   <li>신규 사용자: User/Setting 엔티티 생성, 임시 데이터 삭제, JWT 쿠키 발급</li>
+ *   <li>FCM 토큰 관리 및 NotificationFcmUseCase와 통합</li>
+ * </ul>
+ *
+ * <p><b>도메인 분리:</b> Auth 도메인에서 User 도메인으로 이동되어 사용자 데이터 저장 책임만 담당</p>
  *
  * @author Jaeik
  * @version 2.0.0
+ * @since 2025-01
  */
 @Component
 @RequiredArgsConstructor
@@ -49,7 +59,7 @@ public class SaveUserAdapter implements SaveUserPort {
      */
     @Override
     @Transactional
-    public ExistedUserDetail handleExistingUserLogin(User existingUser, SocialUserProfile userProfile, String fcmToken) {
+    public ExistingUserDetail handleExistingUserLogin(User existingUser, SocialUserProfile userProfile, String fcmToken) {
         existingUser.updateUserInfo(userProfile.nickname(), userProfile.profileImageUrl());
 
         Token token = userProfile.token();
@@ -61,11 +71,7 @@ public class SaveUserAdapter implements SaveUserPort {
 
         Long fcmTokenId = registerFcmTokenIfPresent(existingUser, fcmToken);
 
-        return ExistedUserDetail.of(existingUser, globalTokenCommandPort.save(newToken).getId(), fcmTokenId);
-
-//        return authCookieManager.generateJwtCookie(UserDetail.of(existingUser,
-//                globalTokenCommandPort.save(newToken).getId(),
-//                fcmTokenId));
+        return ExistingUserDetail.of(existingUser, globalTokenCommandPort.save(newToken).getId(), fcmTokenId);
     }
 
     /**
@@ -92,7 +98,7 @@ public class SaveUserAdapter implements SaveUserPort {
 
         Token token = userProfile.token();
         redisUserDataPort.removeTempData(uuid);
-        return authCookieManager.generateJwtCookie(ExistedUserDetail.of(user,
+        return authCookieManager.generateJwtCookie(ExistingUserDetail.of(user,
                 globalTokenCommandPort.save(Token.createToken(token.getAccessToken(), token.getRefreshToken(), user)).getId(),
                 fcmTokenId));
     }

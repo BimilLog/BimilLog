@@ -67,7 +67,7 @@ public class SocialService implements SocialUseCase {
         }
 
         // 3. 기존 사용자 확인
-        return authToUserPort.userDataProcess(provider, authResult, fcmToken);
+        return authToUserPort.delegateUserData(provider, authResult, fcmToken);
     }
 
     /**

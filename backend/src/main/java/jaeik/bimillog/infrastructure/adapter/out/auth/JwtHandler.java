@@ -4,7 +4,7 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jaeik.bimillog.domain.auth.application.port.out.JwtPort;
-import jaeik.bimillog.domain.user.entity.ExistedUserDetail;
+import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jakarta.annotation.PostConstruct;
@@ -56,7 +56,7 @@ public class JwtHandler implements JwtPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    public String generateAccessToken(ExistedUserDetail userDetail) {
+    public String generateAccessToken(ExistingUserDetail userDetail) {
         long now = (new Date()).getTime();
         Date validity = new Date(now + 3600000);
 
@@ -86,7 +86,7 @@ public class JwtHandler implements JwtPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    public String generateRefreshToken(ExistedUserDetail userDetail) {
+    public String generateRefreshToken(ExistingUserDetail userDetail) {
         long now = (new Date()).getTime();
         Date validity = new Date(now + (3600000L * 720));
 
@@ -131,10 +131,10 @@ public class JwtHandler implements JwtPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    public ExistedUserDetail getUserInfoFromToken(String jwtAccessToken) {
+    public ExistingUserDetail getUserInfoFromToken(String jwtAccessToken) {
         Claims claims = getClaims(jwtAccessToken);
 
-        return ExistedUserDetail.builder()
+        return ExistingUserDetail.builder()
                 .userId(Long.parseLong(claims.getSubject()))
                 .socialId(claims.get("socialId", String.class))
                 .provider(SocialProvider.valueOf(claims.get("provider", String.class)))

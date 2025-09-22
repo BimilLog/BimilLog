@@ -6,7 +6,7 @@ import jaeik.bimillog.domain.user.application.port.out.SaveUserPort;
 import jaeik.bimillog.domain.user.entity.TempUserData;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
-import jaeik.bimillog.infrastructure.adapter.in.auth.web.AuthCommandController;
+import jaeik.bimillog.infrastructure.adapter.in.user.web.UserCommandController;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
@@ -33,7 +33,7 @@ public class SignUpService implements SignUpUseCase {
      * <h3>신규 사용자 회원 가입 처리</h3>
      * <p>소셜 로그인 후 최초 회원 가입하는 사용자를 시스템에 등록합니다.</p>
      * <p>임시 UUID로 저장된 소셜 인증 정보를 조회하여 실제 사용자 계정을 생성합니다.</p>
-     * <p>{@link AuthCommandController}에서 POST /api/auth/signup 요청 처리 시 호출됩니다.</p>
+     * <p>{@link UserCommandController}에서 POST /api/user/signup 요청 처리 시 호출됩니다.</p>
      *
      * @param userName 사용자가 입력한 표시 이름 (DTO에서 이미 검증됨)
      * @param uuid 임시 소셜 인증 데이터 저장용 UUID 키 (DTO에서 이미 검증됨)

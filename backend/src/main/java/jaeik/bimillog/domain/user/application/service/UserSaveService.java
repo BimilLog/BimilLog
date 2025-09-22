@@ -1,18 +1,39 @@
 package jaeik.bimillog.domain.user.application.service;
 
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
-import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.application.port.in.UserSaveUseCase;
 import jaeik.bimillog.domain.user.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.user.application.port.out.SaveUserPort;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
-import jaeik.bimillog.domain.user.entity.*;
+import jaeik.bimillog.domain.user.entity.NewUserDetail;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.entity.UserDetail;
+import jaeik.bimillog.infrastructure.adapter.out.auth.AuthToUserAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * <h2>사용자 저장 서비스</h2>
+ * <p>소셜 로그인 시 사용자 데이터 저장 및 처리를 담당하는 서비스입니다.</p>
+ * <p>기존 사용자와 신규 사용자를 구분하여 각각 적절한 처리를 수행합니다.</p>
+ * <p>Auth 도메인과 분리되어 순수하게 사용자 데이터 관리 책임만 가집니다.</p>
+ *
+ * <h3>주요 책임:</h3>
+ * <ul>
+ *   <li>소셜 로그인 사용자 조회 및 판별</li>
+ *   <li>기존 사용자: 프로필 업데이트 및 토큰 저장</li>
+ *   <li>신규 사용자: 임시 데이터 저장 및 UUID 발급</li>
+ *   <li>FCM 토큰 등록 요청</li>
+ * </ul>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ * @since 2025-01
+ */
 @Service
 @RequiredArgsConstructor
 public class UserSaveService implements UserSaveUseCase {
@@ -22,17 +43,20 @@ public class UserSaveService implements UserSaveUseCase {
     private final RedisUserDataPort redisUserDataPort;
 
     /**
-     * <h3>소셜 정보로 사용자 조회</h3>
-     * <p>제공자(Provider)와 소셜 ID를 사용하여 사용자를 조회합니다.</p>
-     * <p>{@link UserQueryUseCase}에서 소셜 로그인 사용자 조회 시 호출됩니다.</p>
+     * <h3>사용자 데이터 저장 및 처리</h3>
+     * <p>소셜 로그인 정보를 바탕으로 사용자 데이터를 저장하거나 업데이트합니다.</p>
+     * <p>기존 사용자는 정보를 업데이트하고, 신규 사용자는 임시 데이터를 저장합니다.</p>
+     * <p>{@link AuthToUserAdapter}에서 Auth 도메인의 요청을 받아 호출됩니다.</p>
      *
-     * @param provider 소셜 로그인 제공자
-     * @return Optional<User> 조회된 사용자 객체. 존재하지 않으면 Optional.empty()
+     * @param provider 소셜 로그인 제공자 (KAKAO 등)
+     * @param authResult 소셜 사용자 프로필 정보
+     * @param fcmToken FCM 토큰 (선택사항)
+     * @return UserDetail 기존 사용자(ExistingUserDetail) 또는 신규 사용자(NewUserDetail) 정보
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public UserDetail saveUserData(SocialProvider provider, SocialUserProfile authResult, String fcmToken) {
+    public UserDetail processUserData(SocialProvider provider, SocialUserProfile authResult, String fcmToken) {
         Optional<User> existingUser = userQueryPort.findByProviderAndSocialId(provider, authResult.socialId());
         return processUserLogin(fcmToken, existingUser, authResult);
     }
@@ -42,7 +66,7 @@ public class UserSaveService implements UserSaveUseCase {
      * <p>기존 사용자와 신규 사용자를 구분하여 각각의 로그인 처리를 수행합니다.</p>
      * <p>기존 사용자: 프로필 업데이트 후 즉시 로그인 완료</p>
      * <p>신규 사용자: 임시 데이터 저장 후 회원가입 페이지로 안내</p>
-     * <p>{@link #}에서 OAuth 인증 완료 후 호출됩니다.</p>
+     * <p>{@link #processUserData}에서 OAuth 인증 완료 후 호출됩니다.</p>
      *
      * @param fcmToken 푸시 알림용 FCM 토큰 (선택사항)
      * @param existingUser 기존 사용자 확인 결과
@@ -64,7 +88,7 @@ public class UserSaveService implements UserSaveUseCase {
      * <h3>신규 사용자 임시 데이터 저장</h3>
      * <p>최초 소셜 로그인하는 사용자의 임시 정보를 저장합니다.</p>
      * <p>회원가입 페이지에서 사용할 UUID 키와 임시 쿠키를 생성합니다.</p>
-     * <p>{@link #}에서 신규 사용자 판별 후 호출됩니다.</p>
+     * <p>{@link #processUserLogin}에서 신규 사용자 판별 후 호출됩니다.</p>
      *
      * @param authResult 소셜 로그인 인증 결과
      * @param fcmToken 푸시 알림용 FCM 토큰 (선택사항)

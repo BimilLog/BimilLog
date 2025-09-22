@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.out.auth;
 
 import jaeik.bimillog.domain.auth.application.port.out.JwtPort;
-import jaeik.bimillog.domain.user.entity.ExistedUserDetail;
+import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.NewUserDetail;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
@@ -59,7 +59,7 @@ public class AuthCookieManager {
      * @author Jaeik
      * @since 2.0.0
      */
-    public List<ResponseCookie> generateJwtCookie(ExistedUserDetail userDetail) {
+    public List<ResponseCookie> generateJwtCookie(ExistingUserDetail userDetail) {
         return List.of(generateJwtAccessCookie(userDetail), generateJwtRefreshCookie(userDetail));
     }
 
@@ -101,7 +101,7 @@ public class AuthCookieManager {
      * @author Jaeik
      * @since 2.0.0
      */
-    public ResponseCookie generateJwtAccessCookie(ExistedUserDetail userDetail) {
+    public ResponseCookie generateJwtAccessCookie(ExistingUserDetail userDetail) {
         String accessToken = jwtPort.generateAccessToken(userDetail);
         return ResponseCookie.from(ACCESS_TOKEN_COOKIE, accessToken)
                 .path("/")
@@ -121,7 +121,7 @@ public class AuthCookieManager {
      * @author Jaeik
      * @since 2.0.0
      */
-    public ResponseCookie generateJwtRefreshCookie(ExistedUserDetail userDetail) {
+    public ResponseCookie generateJwtRefreshCookie(ExistingUserDetail userDetail) {
         String refreshToken = jwtPort.generateRefreshToken(userDetail);
         return ResponseCookie.from(REFRESH_TOKEN_COOKIE, refreshToken)
                 .path("/")
