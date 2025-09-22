@@ -6,9 +6,8 @@ import jaeik.bimillog.domain.auth.entity.TempUserData;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.user.entity.Token;
+import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.infrastructure.adapter.out.auth.AuthCookieManager;
-import jaeik.bimillog.infrastructure.adapter.out.redis.dto.TemporaryUserDataDTO;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -71,7 +70,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
 
         executeRedisOperation(() -> {
             String key = buildTempKey(uuid);
-            TemporaryUserDataDTO tempData = TemporaryUserDataDTO.fromDomainProfile(userProfile, token, fcmToken);
+            TempUserData tempData = TempUserData.from(userProfile, token, fcmToken);
             redisTemplate.opsForValue().set(key, tempData, TTL);
             log.debug("UUID {}에 대한 임시 데이터가 Redis에 성공적으로 저장됨", uuid);
         }, uuid);
@@ -256,16 +255,8 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
         }
 
         try {
-            TemporaryUserDataDTO dto = convertToDTO(uuid, data);
-            return Optional.of(new TempUserData(
-                    dto.getSocialId(),
-                    dto.getEmail(),
-                    dto.getProvider(),
-                    dto.getNickname(),
-                    dto.getProfileImageUrl(),
-                    dto.getToken(),
-                    dto.getFcmToken()
-            ));
+            TempUserData tempUserData = convertToTempUserData(uuid, data);
+            return Optional.of(tempUserData);
         } catch (Exception e) {
             log.error("UUID {}에 대한 임시 데이터 변환 실패: {}", uuid, e.getMessage(), e);
             throw new AuthCustomException(AuthErrorCode.INVALID_TEMP_DATA);
@@ -273,23 +264,23 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
     }
 
     /**
-     * <h3>Object를 DTO로 변환</h3>
-     * <p>Redis에서 조회한 Object를 예상되는 타입별로 처리하여 TemporaryUserDataDTO로 변환합니다.</p>
+     * <h3>Object를 TempUserData로 변환</h3>
+     * <p>Redis에서 조회한 Object를 예상되는 타입별로 처리하여 TempUserData로 변환합니다.</p>
      * <p>convertRedisDataToDomain 메서드에서 타입 안전 변환을 위해 호출됩니다.</p>
      *
      * @param uuid 작업 대상 UUID (로깅용)
-     * @param data Redis에서 조회한 원시 데이터 (TemporaryUserDataDTO 또는 Map)
-     * @return 변환된 TemporaryUserDataDTO 객체
+     * @param data Redis에서 조회한 원시 데이터 (TempUserData 또는 Map)
+     * @return 변환된 TempUserData 객체
      * @throws AuthCustomException 예상되지 않은 타입이거나 변환 실패 시
      * @author Jaeik
      * @since 2.0.0
      */
-    private TemporaryUserDataDTO convertToDTO(String uuid, Object data) {
+    private TempUserData convertToTempUserData(String uuid, Object data) {
         return switch (data) {
-            case TemporaryUserDataDTO dto -> dto;
+            case TempUserData tempData -> tempData;
             case Map<?, ?> map -> {
-                log.debug("UUID {}에 대해 LinkedHashMap 타입 데이터를 DTO로 변환 시도", uuid);
-                yield convertMapToDTO(map);
+                log.debug("UUID {}에 대해 LinkedHashMap 타입 데이터를 TempUserData로 변환 시도", uuid);
+                yield convertMapToTempUserData(map);
             }
             default -> {
                 log.warn("UUID {}에 대해 조회된 데이터가 예상 타입이 아님, 실제: {}", uuid, data.getClass().getSimpleName());
@@ -299,18 +290,18 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
     }
 
     /**
-     * <h3>Map을 DTO로 변환</h3>
-     * <p>Redis에서 LinkedHashMap 형태로 역직렬화된 데이터를 TemporaryUserDataDTO로 변환합니다.</p>
-     * <p>convertToDTO 메서드에서 Map 타입 데이터에 대한 변환 처리를 위해 호출됩니다.</p>
+     * <h3>Map을 TempUserData로 변환</h3>
+     * <p>Redis에서 LinkedHashMap 형태로 역직렬화된 데이터를 TempUserData로 변환합니다.</p>
+     * <p>convertToTempUserData 메서드에서 Map 타입 데이터에 대한 변환 처리를 위해 호출됩니다.</p>
      *
      * @param map LinkedHashMap 형태의 Redis 데이터
-     * @return 변환된 TemporaryUserDataDTO 객체
+     * @return 변환된 TempUserData 객체
      * @throws AuthCustomException Map 구조 파싱이나 변환 실패 시
      * @author Jaeik
      * @since 2.0.0
      */
     @SuppressWarnings("unchecked")
-    private TemporaryUserDataDTO convertMapToDTO(Map<?, ?> map) {
+    private TempUserData convertMapToTempUserData(Map<?, ?> map) {
         try {
             Token token = extractTokenFromMap((Map<String, Object>) map.get("token"));
             String fcmToken = (String) map.get("fcmToken");
@@ -332,7 +323,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
                 profileImageUrl = (String) socialData.get("profileImageUrl");
             }
 
-            return new TemporaryUserDataDTO(
+            return new TempUserData(
                     socialId,
                     email,
                     SocialProvider.valueOf(provider),
@@ -342,7 +333,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
                     fcmToken
             );
         } catch (Exception e) {
-            log.error("LinkedHashMap -> TemporaryUserDataDTO 변환 실패: {}", e.getMessage(), e);
+            log.error("LinkedHashMap -> TempUserData 변환 실패: {}", e.getMessage(), e);
             throw new AuthCustomException(AuthErrorCode.INVALID_TEMP_DATA);
         }
     }

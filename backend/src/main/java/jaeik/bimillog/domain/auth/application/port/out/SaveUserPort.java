@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.auth.application.port.out;
 import jaeik.bimillog.domain.auth.application.service.SignUpService;
 import jaeik.bimillog.domain.auth.application.service.SocialService;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
-import jaeik.bimillog.domain.user.entity.Token;
+import jaeik.bimillog.domain.auth.entity.Token;
 import org.springframework.http.ResponseCookie;
 
 import java.util.List;

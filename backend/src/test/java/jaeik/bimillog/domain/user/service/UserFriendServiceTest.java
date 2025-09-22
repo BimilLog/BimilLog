@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.user.service;
 
+import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.application.port.out.KakaoFriendPort;

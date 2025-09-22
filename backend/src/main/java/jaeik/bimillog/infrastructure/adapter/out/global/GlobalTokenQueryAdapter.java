@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.out.global;
 
-import jaeik.bimillog.domain.user.entity.Token;
+import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.TokenRepository;
 import lombok.RequiredArgsConstructor;

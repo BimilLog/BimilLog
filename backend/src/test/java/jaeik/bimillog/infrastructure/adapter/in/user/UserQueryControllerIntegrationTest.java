@@ -1,6 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.in.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.user.entity.*;
 import jaeik.bimillog.domain.user.entity.UserDetail;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.TokenRepository;

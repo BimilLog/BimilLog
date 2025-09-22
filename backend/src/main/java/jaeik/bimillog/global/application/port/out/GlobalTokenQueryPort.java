@@ -1,6 +1,6 @@
 package jaeik.bimillog.global.application.port.out;
 
-import jaeik.bimillog.domain.user.entity.Token;
+import jaeik.bimillog.domain.auth.entity.Token;
 
 import java.util.List;
 import java.util.Optional;

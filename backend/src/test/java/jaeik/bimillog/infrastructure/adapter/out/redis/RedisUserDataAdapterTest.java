@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.entity.TempUserData;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.user.entity.Token;
+import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.infrastructure.adapter.out.auth.AuthCookieManager;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import org.junit.jupiter.api.BeforeEach;
@@ -102,10 +102,10 @@ class RedisUserDataAdapterTest {
         Optional<TempUserData> savedData = redisTempDataAdapter.getTempData(testUuid);
         
         assertThat(savedData).isPresent();
-        assertThat(savedData.get().socialId()).isEqualTo("123456789");
-        assertThat(savedData.get().email()).isEqualTo("test@example.com");
-        assertThat(savedData.get().token().getAccessToken()).isEqualTo("access-token");
-        assertThat(savedData.get().fcmToken()).isEqualTo("test-fcm-token");
+        assertThat(savedData.get().getSocialId()).isEqualTo("123456789");
+        assertThat(savedData.get().getEmail()).isEqualTo("test@example.com");
+        assertThat(savedData.get().getToken().getAccessToken()).isEqualTo("access-token");
+        assertThat(savedData.get().getFcmToken()).isEqualTo("test-fcm-token");
         
         // Redis에서 직접 확인
         String key = "temp:user:" + testUuid;
@@ -224,7 +224,7 @@ class RedisUserDataAdapterTest {
         // Then: FCM 토큰이 null로 저장됨
         Optional<TempUserData> result = redisTempDataAdapter.getTempData(testUuid);
         assertThat(result).isPresent();
-        assertThat(result.get().fcmToken()).isNull();
-        assertThat(result.get().nickname()).isEqualTo("testUser");
+        assertThat(result.get().getFcmToken()).isNull();
+        assertThat(result.get().getNickname()).isEqualTo("testUser");
     }
 }

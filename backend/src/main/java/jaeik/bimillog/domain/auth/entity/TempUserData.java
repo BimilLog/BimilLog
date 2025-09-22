@@ -1,7 +1,9 @@
 package jaeik.bimillog.domain.auth.entity;
 
 import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.user.entity.Token;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
  * <h2>임시 사용자 데이터</h2>
@@ -9,26 +11,20 @@ import jaeik.bimillog.domain.user.entity.Token;
  * <p>Redis에 UUID 키로 저장되어 회원가입 페이지에서 사용자 이름 입력 완료 시 활용됩니다.</p>
  * <p>신규 사용자의 회원가입 프로세스에서 소셜 인증 정보를 안전하게 전달하기 위한 임시 컨테이너입니다.</p>
  *
- * @param socialId 소셜 플랫폼에서의 사용자 고유 ID
- * @param email 사용자 이메일 주소
- * @param provider 소셜 플랫폼 제공자 (KAKAO, GOOGLE 등)
- * @param nickname 소셜 플랫폼에서의 사용자 닉네임
- * @param profileImageUrl 프로필 이미지 URL (선택사항)
- * @param token 소셜 로그인으로 발급받은 토큰 정보
- * @param fcmToken 푸시 알림용 Firebase Cloud Messaging 토큰 (선택사항)
- *
  * @author Jaeik
  * @version 2.0.0
  */
-public record TempUserData(
-        String socialId,
-        String email,
-        SocialProvider provider,
-        String nickname,
-        String profileImageUrl,
-        Token token,
-        String fcmToken
-) {
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+public class TempUserData {
+    private String socialId;
+    private String email;
+    private SocialProvider provider;
+    private String nickname;
+    private String profileImageUrl;
+    private Token token;
+    private String fcmToken;
     /**
      * <h3>소셜 프로필 정보 추출</h3>
      * <p>TempUserData에서 SocialUserProfile 객체를 생성하여 반환합니다.</p>

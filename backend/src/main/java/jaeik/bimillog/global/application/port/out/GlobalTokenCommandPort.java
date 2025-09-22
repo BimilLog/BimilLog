@@ -1,6 +1,6 @@
 package jaeik.bimillog.global.application.port.out;
 
-import jaeik.bimillog.domain.user.entity.Token;
+import jaeik.bimillog.domain.auth.entity.Token;
 
 /**
  * <h2>토큰 명령 공용 포트</h2>

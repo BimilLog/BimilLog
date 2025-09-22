@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.out.api.dto;
 
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.user.entity.Token;
+import jaeik.bimillog.domain.auth.entity.Token;
 
 /**
  * <h3>인증 결과 데이터</h3>
