@@ -2,8 +2,8 @@ package jaeik.bimillog.infrastructure.adapter.out.api.social.kakao;
 
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.service.SocialService;
+import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialLoginResultDTO;
-import jaeik.bimillog.domain.auth.entity.SocialAuthData;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.Token;
 import jaeik.bimillog.global.vo.KakaoKeyVO;
@@ -62,7 +62,7 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
     @Override
     public SocialLoginResultDTO authenticate(SocialProvider provider, String code) {
         Token token = getToken(code);
-        SocialAuthData.SocialUserProfile userProfile = getUserInfo(token.getAccessToken());
+        SocialUserProfile userProfile = getUserInfo(token.getAccessToken());
         return new SocialLoginResultDTO(
                 userProfile.socialId(),
                 userProfile.email(),
@@ -71,6 +71,77 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
                 userProfile.profileImageUrl(),
                 token
         );
+    }
+
+    /**
+     * <h3>카카오 액세스 토큰 발급</h3>
+     * <p>카카오 OAuth 2.0 인증 코드를 사용하여 카카오 인증 서버로부터 액세스 토큰과 리프레시 토큰을 발급받습니다.</p>
+     * <p>카카오 소셜 로그인 처리 내부에서 사용자 정보 조회를 위한 선행 단계로 authenticate() 메서드에서 내부적으로 호출합니다.</p>
+     * <p>Authorization Code Grant 플로우를 사용하여 카카오 인증 서버에 token exchange 요청을 전송합니다.</p>
+     *
+     * @param code 카카오 OAuth 2.0 인증 코드
+     * @return Token 도메인 Token 엔티티
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private Token getToken(String code) {
+        Map<String, String> params = new HashMap<>();
+        params.put("grant_type", "authorization_code");
+        params.put("client_id", kakaoKeyVO.getCLIENT_ID());
+        params.put("client_secret", kakaoKeyVO.getCLIENT_SECRET());
+        params.put("redirect_uri", kakaoKeyVO.getREDIRECT_URI());
+        params.put("code", code);
+
+        try {
+            Map<String, Object> responseBody = kakaoAuthClient.getToken(
+                    "application/x-www-form-urlencoded;charset=utf-8",
+                    params
+            );
+
+            return Token.createTemporaryToken(
+                    (String) responseBody.get("access_token"),
+                    (String) responseBody.get("refresh_token")
+            );
+        } catch (Exception e) {
+            throw new RuntimeException("Kakao token request failed: " + e.getMessage(), e);
+        }
+    }
+
+
+
+    /**
+     * <h3>카카오 사용자 정보 조회</h3>
+     * <p>내부적으로 발급받은 액세스 토큰으로 카카오 사용자 정보 API에서 프로필 데이터를 조회합니다.</p>
+     * <p>카카오 소셜 로그인 처리 내부에서 토큰 발급 후 사용자 정보를 획득하기 위해 authenticate() 메서드에서 내부적으로 호출합니다.</p>
+     * <p>카카오 API 응답에서 필요한 사용자 정보를 추출하여 도메인 SocialUserProfile 로 변환합니다.</p>
+     *
+     * @param accessToken 카카오 액세스 토큰
+     * @return SocialAuthData.SocialUserProfile 도메인 소셜 사용자 프로필
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @SuppressWarnings("unchecked")
+    private SocialUserProfile getUserInfo(String accessToken) {
+        try {
+            Map<String, Object> responseBody = kakaoApiClient.getUserInfo("Bearer " + accessToken);
+
+            Map<String, Object> kakaoAccount = (Map<String, Object>) responseBody.get("kakao_account");
+            Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
+
+            String socialId = String.valueOf(responseBody.get("id"));
+            String nickname = (String) profile.get("nickname");
+            String thumbnailImage = (String) profile.get("thumbnail_image_url");
+
+            return new SocialUserProfile(
+                    socialId,
+                    null, // 카카오는 이메일을 제공하지 않음
+                    SocialProvider.KAKAO,
+                    nickname,
+                    thumbnailImage
+            );
+        } catch (Exception e) {
+            throw new RuntimeException("Kakao user info request failed: " + e.getMessage(), e);
+        }
     }
 
     /**
@@ -117,75 +188,6 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
         }
     }
 
-    /**
-     * <h3>카카오 액세스 토큰 발급</h3>
-     * <p>카카오 OAuth 2.0 인증 코드를 사용하여 카카오 인증 서버로부터 액세스 토큰과 리프레시 토큰을 발급받습니다.</p>
-     * <p>카카오 소셜 로그인 처리 내부에서 사용자 정보 조회를 위한 선행 단계로 authenticate() 메서드에서 내부적으로 호출합니다.</p>
-     * <p>Authorization Code Grant 플로우를 사용하여 카카오 인증 서버에 token exchange 요청을 전송합니다.</p>
-     *
-     * @param code 카카오 OAuth 2.0 인증 코드
-     * @return Token 도메인 Token 엔티티
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private Token getToken(String code) {
-        Map<String, String> params = new HashMap<>();
-        params.put("grant_type", "authorization_code");
-        params.put("client_id", kakaoKeyVO.getCLIENT_ID());
-        params.put("client_secret", kakaoKeyVO.getCLIENT_SECRET());
-        params.put("redirect_uri", kakaoKeyVO.getREDIRECT_URI());
-        params.put("code", code);
 
-        try {
-            Map<String, Object> responseBody = kakaoAuthClient.getToken(
-                    "application/x-www-form-urlencoded;charset=utf-8", 
-                    params
-            );
-            
-            return Token.createTemporaryToken(
-                    (String) responseBody.get("access_token"),
-                    (String) responseBody.get("refresh_token")
-            );
-        } catch (Exception e) {
-            throw new RuntimeException("Kakao token request failed: " + e.getMessage(), e);
-        }
-    }
-
-
-
-    /**
-     * <h3>카카오 사용자 정보 조회</h3>
-     * <p>내부적으로 발급받은 액세스 토큰으로 카카오 사용자 정보 API에서 프로필 데이터를 조회합니다.</p>
-     * <p>카카오 소셜 로그인 처리 내부에서 토큰 발급 후 사용자 정보를 획득하기 위해 authenticate() 메서드에서 내부적으로 호출합니다.</p>
-     * <p>카카오 API 응답에서 필요한 사용자 정보를 추출하여 도메인 SocialUserProfile 로 변환합니다.</p>
-     *
-     * @param accessToken 카카오 액세스 토큰
-     * @return SocialAuthData.SocialUserProfile 도메인 소셜 사용자 프로필
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @SuppressWarnings("unchecked")
-    private SocialAuthData.SocialUserProfile getUserInfo(String accessToken) {
-        try {
-            Map<String, Object> responseBody = kakaoApiClient.getUserInfo("Bearer " + accessToken);
-            
-            Map<String, Object> kakaoAccount = (Map<String, Object>) responseBody.get("kakao_account");
-            Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
-
-            String socialId = String.valueOf(responseBody.get("id"));
-            String nickname = (String) profile.get("nickname");
-            String thumbnailImage = (String) profile.get("thumbnail_image_url");
-
-            return new SocialAuthData.SocialUserProfile(
-                    socialId,
-                    null, // 카카오는 이메일을 제공하지 않음
-                    SocialProvider.KAKAO,
-                    nickname,
-                    thumbnailImage
-            );
-        } catch (Exception e) {
-            throw new RuntimeException("Kakao user info request failed: " + e.getMessage(), e);
-        }
-    }
 
 }

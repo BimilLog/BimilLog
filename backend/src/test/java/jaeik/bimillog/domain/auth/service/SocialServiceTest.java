@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.auth.application.port.out.*;
 import jaeik.bimillog.domain.auth.application.service.SocialService;
 import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialLoginResultDTO;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
-import jaeik.bimillog.domain.auth.entity.SocialAuthData;
+import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
@@ -58,12 +58,12 @@ class SocialServiceTest {
     @Mock private RedisUserDataPort redisUserDataPort;
     private SocialService socialService;
 
-    private SocialAuthData.SocialUserProfile testUserProfile;
+    private SocialUserProfile testUserProfile;
     private Token testToken;
 
     @BeforeEach
     void setUp() {
-        testUserProfile = new SocialAuthData.SocialUserProfile(TEST_SOCIAL_ID, null, SocialProvider.KAKAO, TEST_USERNAME, TEST_PROFILE_IMAGE);
+        testUserProfile = new SocialUserProfile(TEST_SOCIAL_ID, null, SocialProvider.KAKAO, TEST_USERNAME, TEST_PROFILE_IMAGE);
         testToken = Token.createTemporaryToken(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
 
         socialService = new SocialService(
@@ -115,7 +115,7 @@ class SocialServiceTest {
             User mockUser = mock(User.class);
             given(authToUserPort.findExistingUser(SocialProvider.KAKAO, TEST_SOCIAL_ID)).willReturn(java.util.Optional.of(mockUser));
             given(authToUserPort.existsByProviderAndSocialId(SocialProvider.KAKAO, TEST_SOCIAL_ID)).willReturn(false);
-            given(saveUserPort.handleExistingUserLogin(any(SocialAuthData.SocialUserProfile.class), any(Token.class), eq(TEST_FCM_TOKEN))).willReturn(cookies);
+            given(saveUserPort.handleExistingUserLogin(any(SocialUserProfile.class), any(Token.class), eq(TEST_FCM_TOKEN))).willReturn(cookies);
 
             // When
             LoginResult result = socialService.processSocialLogin(SocialProvider.KAKAO, TEST_AUTH_CODE, TEST_FCM_TOKEN);
@@ -129,7 +129,7 @@ class SocialServiceTest {
             verify(kakaoStrategy).authenticate(SocialProvider.KAKAO, TEST_AUTH_CODE);
             verify(authToUserPort).findExistingUser(SocialProvider.KAKAO, TEST_SOCIAL_ID);
             // updateUserInfo는 SaveUserAdapter에서 처리하므로 제거
-            verify(saveUserPort).handleExistingUserLogin(any(SocialAuthData.SocialUserProfile.class), any(Token.class), eq(TEST_FCM_TOKEN));
+            verify(saveUserPort).handleExistingUserLogin(any(SocialUserProfile.class), any(Token.class), eq(TEST_FCM_TOKEN));
         }
     }
 
@@ -168,7 +168,7 @@ class SocialServiceTest {
             verify(strategyRegistry).getStrategy(SocialProvider.KAKAO);
             verify(kakaoStrategy).authenticate(SocialProvider.KAKAO, TEST_AUTH_CODE);
             verify(authToUserPort).findExistingUser(SocialProvider.KAKAO, TEST_SOCIAL_ID);
-            verify(redisUserDataPort).saveTempData(anyString(), any(SocialAuthData.SocialUserProfile.class), any(Token.class), eq(TEST_FCM_TOKEN));
+            verify(redisUserDataPort).saveTempData(anyString(), any(SocialUserProfile.class), any(Token.class), eq(TEST_FCM_TOKEN));
             verify(redisUserDataPort).createTempCookie(anyString());
         }
     }

@@ -1,6 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.out.redis.dto;
 
-import jaeik.bimillog.domain.auth.entity.SocialAuthData;
+import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.Token;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,7 +21,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TemporaryUserDataDTO {
-    private SocialAuthData.SocialUserProfile socialUserProfile;
+    private String socialId;
+    private String email;
+    private SocialProvider provider;
+    private String nickname;
+    private String profileImageUrl;
     private Token token;
     private String fcmToken;
 
@@ -36,12 +41,20 @@ public class TemporaryUserDataDTO {
      * @since 2.0.0
      * @author Jaeik
      */
-    public static TemporaryUserDataDTO fromDomainProfile(SocialAuthData.SocialUserProfile userProfile, Token token, String fcmToken) {
-        return new TemporaryUserDataDTO(userProfile, token, fcmToken);
+    public static TemporaryUserDataDTO fromDomainProfile(SocialUserProfile userProfile, Token token, String fcmToken) {
+        return new TemporaryUserDataDTO(
+                userProfile.socialId(),
+                userProfile.email(),
+                userProfile.provider(),
+                userProfile.nickname(),
+                userProfile.profileImageUrl(),
+                token,
+                fcmToken
+        );
     }
 
     /**
-     * <h3>인프라 DTO를 도메인 모델로 변환</h3>
+     * <h3>인프라 DTO를 도메인 프로필로 변환</h3>
      * <p>SignUpService에서 사용되는 변환 메서드</p>
      * <p>null 체크를 수행하여 안전한 도메인 변환을 보장합니다.</p>
      *
@@ -50,14 +63,14 @@ public class TemporaryUserDataDTO {
      * @since 2.0.0
      * @author Jaeik
      */
-    public SocialAuthData.SocialUserProfile toDomainProfile() {
-        if (socialUserProfile == null) {
-            throw new IllegalArgumentException("socialUserProfile은 null이 될 수 없습니다");
+    public SocialUserProfile toDomainProfile() {
+        if (socialId == null || email == null || provider == null) {
+            throw new IllegalArgumentException("필수 프로필 데이터가 null입니다");
         }
         if (token == null) {
             throw new IllegalArgumentException("token은 null이 될 수 없습니다");
         }
-        return socialUserProfile;
+        return new SocialUserProfile(socialId, email, provider, nickname, profileImageUrl);
     }
 
 }

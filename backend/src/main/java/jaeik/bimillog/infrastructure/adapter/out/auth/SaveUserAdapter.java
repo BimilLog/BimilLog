@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.out.auth;
 
 import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.application.port.out.SaveUserPort;
-import jaeik.bimillog.domain.auth.entity.SocialAuthData;
+import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
 import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
@@ -53,7 +53,7 @@ public class SaveUserAdapter implements SaveUserPort {
      */
     @Override
     @Transactional
-    public List<ResponseCookie> handleExistingUserLogin(SocialAuthData.SocialUserProfile userProfile, Token token, String fcmToken) { // fcmToken 인자 추가
+    public List<ResponseCookie> handleExistingUserLogin(SocialUserProfile userProfile, Token token, String fcmToken) { // fcmToken 인자 추가
         User user = userQueryUseCase.findByProviderAndSocialId(userProfile.provider(), userProfile.socialId())
                 .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
 
@@ -88,7 +88,7 @@ public class SaveUserAdapter implements SaveUserPort {
      */
     @Override
     @Transactional
-    public List<ResponseCookie> saveNewUser(String userName, String uuid, SocialAuthData.SocialUserProfile userProfile, Token token, String fcmToken) { // fcmToken 인자 추가
+    public List<ResponseCookie> saveNewUser(String userName, String uuid, SocialUserProfile userProfile, Token token, String fcmToken) { // fcmToken 인자 추가
         Setting setting = Setting.createSetting();
 
         User user = userCommandUseCase.saveUser(User.createUser(userProfile.socialId(), userProfile.provider(), userProfile.nickname(), userProfile.profileImageUrl(), userName, setting));

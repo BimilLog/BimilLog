@@ -1,7 +1,8 @@
 package jaeik.bimillog.infrastructure.adapter.out.redis;
 
 import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
-import jaeik.bimillog.domain.auth.entity.SocialAuthData;
+import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.domain.auth.entity.TempUserData;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
@@ -65,7 +66,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
      * @since 2.0.0
      */
     @Override
-    public void saveTempData(String uuid, SocialAuthData.SocialUserProfile userProfile, Token token, String fcmToken) {
+    public void saveTempData(String uuid, SocialUserProfile userProfile, Token token, String fcmToken) {
         validateTempDataInputs(uuid, userProfile, token);
 
         executeRedisOperation(() -> {
@@ -80,20 +81,14 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
      * <h3>임시 사용자 데이터 조회</h3>
      * <p>UUID를 사용하여 Redis에서 임시 사용자 데이터를 조회합니다.</p>
      * <p>소셜 로그인 두 번째 단계(회원가입 페이지)에서 사용자가 입력한 닉네임과 함께 저장된 소셜 사용자 정보를 조회하기 위해 회원가입 플로우에서 호출합니다.</p>
-     * <p>비즈니스 규칙:</p>
-     * <ul>
-     *   <li>null UUID는 빈 결과 반환 (예외 아님)</li>
-     *   <li>존재하지 않는 UUID는 빈 결과 반환</li>
-     *   <li>만료된 데이터는 Redis에서 자동 정리됨</li>
-     * </ul>
      *
      * @param uuid 임시 사용자 식별 UUID 키
-     * @return Optional<SocialAuthData.TempUserData> Optional로 감싼 임시 사용자 데이터
+     * @return Optional<TempUserData> Optional로 감싼 임시 사용자 데이터
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public Optional<SocialAuthData.TempUserData> getTempData(String uuid) {
+    public Optional<TempUserData> getTempData(String uuid) {
         if (uuid == null) {
             log.debug("임시 데이터 조회에 null UUID 제공됨, 빈 결과 반환");
             return Optional.empty();
@@ -113,12 +108,6 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
      * <h3>임시 사용자 데이터 삭제</h3>
      * <p>UUID를 사용하여 Redis에서 임시 사용자 데이터를 삭제합니다.</p>
      * <p>소셜 로그인 회원가입 완료 후 임시 데이터를 정리하기 위해 회원가입 성공 플로우에서 호출합니다.</p>
-     * <p>비즈니스 규칙:</p>
-     * <ul>
-     *   <li>null UUID는 무시 (정상 동작)</li>
-     *   <li>존재하지 않는 UUID 삭제는 무시</li>
-     *   <li>삭제 실패 시 로그 기록</li>
-     * </ul>
      *
      * @param uuid 삭제할 임시 사용자 식별 UUID 키
      * @author Jaeik
@@ -219,7 +208,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    private void validateTempDataInputs(String uuid, SocialAuthData.SocialUserProfile userProfile, Token token) {
+    private void validateTempDataInputs(String uuid, SocialUserProfile userProfile, Token token) {
         if (isInvalidUuid(uuid)) {
             log.warn(NULL_UUID_MESSAGE, uuid);
             throw new AuthCustomException(AuthErrorCode.INVALID_TEMP_UUID);
@@ -260,7 +249,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    private Optional<SocialAuthData.TempUserData> convertRedisDataToDomain(String uuid, Object data) {
+    private Optional<TempUserData> convertRedisDataToDomain(String uuid, Object data) {
         if (data == null) {
             log.debug("UUID {}에 대한 임시 데이터가 Redis에서 발견되지 않음", uuid);
             return Optional.empty();
@@ -268,7 +257,15 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
 
         try {
             TemporaryUserDataDTO dto = convertToDTO(uuid, data);
-            return Optional.of(new SocialAuthData.TempUserData(dto.toDomainProfile(), dto.getToken(), dto.getFcmToken()));
+            return Optional.of(new TempUserData(
+                    dto.getSocialId(),
+                    dto.getEmail(),
+                    dto.getProvider(),
+                    dto.getNickname(),
+                    dto.getProfileImageUrl(),
+                    dto.getToken(),
+                    dto.getFcmToken()
+            ));
         } catch (Exception e) {
             log.error("UUID {}에 대한 임시 데이터 변환 실패: {}", uuid, e.getMessage(), e);
             throw new AuthCustomException(AuthErrorCode.INVALID_TEMP_DATA);
@@ -316,10 +313,34 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
     private TemporaryUserDataDTO convertMapToDTO(Map<?, ?> map) {
         try {
             Token token = extractTokenFromMap((Map<String, Object>) map.get("token"));
-            SocialAuthData.SocialUserProfile socialData = extractSocialDataFromMap((Map<String, Object>) map.get("socialUserProfile"));
             String fcmToken = (String) map.get("fcmToken");
 
-            return new TemporaryUserDataDTO(socialData, token, fcmToken);
+            // Map에서 각 필드를 직접 추출
+            String socialId = (String) map.get("socialId");
+            String email = (String) map.get("email");
+            String provider = (String) map.get("provider");
+            String nickname = (String) map.get("nickname");
+            String profileImageUrl = (String) map.get("profileImageUrl");
+
+            // 이전 형식(socialUserProfile 중첩)과의 호환성을 위한 체크
+            if (socialId == null && map.containsKey("socialUserProfile")) {
+                Map<String, Object> socialData = (Map<String, Object>) map.get("socialUserProfile");
+                socialId = (String) socialData.get("socialId");
+                email = (String) socialData.get("email");
+                provider = (String) socialData.get("provider");
+                nickname = (String) socialData.get("nickname");
+                profileImageUrl = (String) socialData.get("profileImageUrl");
+            }
+
+            return new TemporaryUserDataDTO(
+                    socialId,
+                    email,
+                    SocialProvider.valueOf(provider),
+                    nickname,
+                    profileImageUrl,
+                    token,
+                    fcmToken
+            );
         } catch (Exception e) {
             log.error("LinkedHashMap -> TemporaryUserDataDTO 변환 실패: {}", e.getMessage(), e);
             throw new AuthCustomException(AuthErrorCode.INVALID_TEMP_DATA);
@@ -343,23 +364,4 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
         );
     }
 
-    /**
-     * <h3>Map에서 SocialUserProfile 추출</h3>
-     * <p>LinkedHashMap 형태의 소셜 사용자 데이터에서 SocialUserProfile 도메인 객체를 생성합니다.</p>
-     * <p>convertMapToDTO 메서드에서 중첩된 소셜 데이터 추출을 위해 호출됩니다.</p>
-     *
-     * @param socialMap 소셜 사용자 정보가 담긴 Map
-     * @return 추출된 SocialUserProfile 도메인 객체
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private SocialAuthData.SocialUserProfile extractSocialDataFromMap(Map<String, Object> socialMap) {
-        return new SocialAuthData.SocialUserProfile(
-                (String) socialMap.get("socialId"),
-                (String) socialMap.get("email"),
-                SocialProvider.valueOf((String) socialMap.get("provider")),
-                (String) socialMap.get("nickname"),
-                (String) socialMap.get("profileImageUrl")
-        );
-    }
 }

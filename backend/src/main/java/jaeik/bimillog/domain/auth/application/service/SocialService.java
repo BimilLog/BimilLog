@@ -10,7 +10,7 @@ import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
 import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialLoginResultDTO;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
-import jaeik.bimillog.domain.auth.entity.SocialAuthData;
+import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
@@ -119,7 +119,7 @@ public class SocialService implements SocialUseCase {
     private LoginResult processUserLogin(String fcmToken, Optional<User> existingUser, SocialLoginResultDTO authResult) {
         if (existingUser.isPresent()) {
             // SocialUserProfile 재구성
-            SocialAuthData.SocialUserProfile userProfile = new SocialAuthData.SocialUserProfile(
+            SocialUserProfile userProfile = new SocialUserProfile(
                 authResult.socialId(),
                 authResult.email(),
                 authResult.provider(),
@@ -148,7 +148,7 @@ public class SocialService implements SocialUseCase {
     private LoginResult.NewUser handleNewUser(SocialLoginResultDTO authResult, String fcmToken) {
         String uuid = UUID.randomUUID().toString();
         // SocialUserProfile 재구성
-        SocialAuthData.SocialUserProfile userProfile = new SocialAuthData.SocialUserProfile(
+        SocialUserProfile userProfile = new SocialUserProfile(
             authResult.socialId(),
             authResult.email(),
             authResult.provider(),

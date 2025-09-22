@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.auth.application.service;
 import jaeik.bimillog.domain.auth.application.port.in.SignUpUseCase;
 import jaeik.bimillog.domain.auth.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.auth.application.port.out.SaveUserPort;
-import jaeik.bimillog.domain.auth.entity.SocialAuthData;
+import jaeik.bimillog.domain.auth.entity.TempUserData;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.infrastructure.adapter.in.auth.web.AuthCommandController;
@@ -44,14 +44,14 @@ public class SignUpService implements SignUpUseCase {
      */
     @Override
     public List<ResponseCookie> signUp(String userName, String uuid) {
-        Optional<SocialAuthData.TempUserData> tempUserData = redisUserDataPort.getTempData(uuid);
+        Optional<TempUserData> tempUserData = redisUserDataPort.getTempData(uuid);
 
         if (tempUserData.isEmpty()) {
             throw new AuthCustomException(AuthErrorCode.INVALID_TEMP_DATA);
         }
-        
-        SocialAuthData.TempUserData userData = tempUserData.get();
-        return saveUserPort.saveNewUser(userName.trim(), uuid, userData.userProfile(), userData.token(), userData.fcmToken());
+
+        TempUserData userData = tempUserData.get();
+        return saveUserPort.saveNewUser(userName.trim(), uuid, userData.toSocialUserProfile(), userData.token(), userData.fcmToken());
     }
 
 }
