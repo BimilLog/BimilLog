@@ -29,7 +29,8 @@ import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import jaeik.bimillog.testutil.TestUserFactory;
+import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestSettings;
 
 import java.util.Optional;
 
@@ -116,14 +117,14 @@ class UserCommandAdapterIntegrationTest {
         Setting setting = Setting.createSetting();
         setting = settingRepository.save(setting);  // 먼저 설정 저장
         
-        User newUser = TestUserFactory.builder()
-                .withSocialId("kakao123")
-                .withProvider(SocialProvider.KAKAO)
-                .withUserName("testUser")
-                .withSocialNickname("카카오유저")
-                .withThumbnailImage("http://example.com/image.jpg")
-                .withRole(UserRole.USER)
-                .withSetting(setting)
+        User newUser = User.builder()
+                .socialId("kakao123")
+                .provider(SocialProvider.KAKAO)
+                .userName("testUser")
+                .socialNickname("카카오유저")
+                .thumbnailImage("http://example.com/image.jpg")
+                .role(UserRole.USER)
+                .setting(setting)
                 .build();
 
         // When: 사용자 저장
@@ -150,13 +151,13 @@ class UserCommandAdapterIntegrationTest {
         Setting setting = Setting.createSetting();
         setting = settingRepository.save(setting);
         
-        User existingUser = TestUserFactory.builder()
-                .withSocialId("kakao456")
-                .withProvider(SocialProvider.KAKAO)
-                .withUserName("oldUserName")
-                .withSocialNickname("old nickname")
-                .withRole(UserRole.USER)
-                .withSetting(setting)
+        User existingUser = User.builder()
+                .socialId("kakao456")
+                .provider(SocialProvider.KAKAO)
+                .userName("oldUserName")
+                .socialNickname("old nickname")
+                .role(UserRole.USER)
+                .setting(setting)
                 .build();
         existingUser = userRepository.save(existingUser);
 
@@ -193,12 +194,12 @@ class UserCommandAdapterIntegrationTest {
                 .postFeaturedNotification(true)
                 .build();
 
-        User userWithSetting = TestUserFactory.builder()
-                .withSocialId("kakaoWithSetting")
-                .withProvider(SocialProvider.KAKAO)
-                .withUserName("userWithSetting")
-                .withRole(UserRole.USER)
-                .withSetting(setting)
+        User userWithSetting = User.builder()
+                .socialId("kakaoWithSetting")
+                .provider(SocialProvider.KAKAO)
+                .userName("userWithSetting")
+                .role(UserRole.USER)
+                .setting(setting)
                 .build();
 
         // When: 사용자 저장 (설정도 cascade로 함께 저장)
@@ -224,12 +225,12 @@ class UserCommandAdapterIntegrationTest {
         Setting setting1 = Setting.createSetting();
         setting1 = settingRepository.save(setting1);
         
-        User existingUser = TestUserFactory.builder()
-                .withSocialId("kakao111")
-                .withProvider(SocialProvider.KAKAO)
-                .withUserName("duplicateUser")
-                .withRole(UserRole.USER)
-                .withSetting(setting1)
+        User existingUser = User.builder()
+                .socialId("kakao111")
+                .provider(SocialProvider.KAKAO)
+                .userName("duplicateUser")
+                .role(UserRole.USER)
+                .setting(setting1)
                 .build();
         userRepository.save(existingUser);
 
@@ -237,12 +238,12 @@ class UserCommandAdapterIntegrationTest {
         Setting setting2 = Setting.createSetting();
         setting2 = settingRepository.save(setting2);
         
-        User duplicateUser = TestUserFactory.builder()
-                .withSocialId("kakao222")
-                .withProvider(SocialProvider.KAKAO)
-                .withUserName("duplicateUser")  // 중복 닉네임
-                .withRole(UserRole.USER)
-                .withSetting(setting2)
+        User duplicateUser = User.builder()
+                .socialId("kakao222")
+                .provider(SocialProvider.KAKAO)
+                .userName("duplicateUser")  // 중복 닉네임
+                .role(UserRole.USER)
+                .setting(setting2)
                 .build();
 
         // When & Then: 중복 닉네임으로 저장 시 예외 발생
@@ -264,14 +265,14 @@ class UserCommandAdapterIntegrationTest {
                 .postFeaturedNotification(false)
                 .build();
 
-        User complexUser = TestUserFactory.builder()
-                .withSocialId("complexKakaoId")
-                .withProvider(SocialProvider.KAKAO)
-                .withUserName("complexUser")
-                .withSocialNickname("복잡한 카카오 닉네임")
-                .withThumbnailImage("https://complex-image-url.com/profile.jpg")
-                .withRole(UserRole.USER)
-                .withSetting(complexSetting)
+        User complexUser = User.builder()
+                .socialId("complexKakaoId")
+                .provider(SocialProvider.KAKAO)
+                .userName("complexUser")
+                .socialNickname("복잡한 카카오 닉네임")
+                .thumbnailImage("https://complex-image-url.com/profile.jpg")
+                .role(UserRole.USER)
+                .setting(complexSetting)
                 .build();
 
         // When: 복잡한 사용자 저장

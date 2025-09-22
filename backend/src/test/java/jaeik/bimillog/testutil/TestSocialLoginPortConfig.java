@@ -1,6 +1,7 @@
 package jaeik.bimillog.testutil;
 
 import jaeik.bimillog.domain.auth.application.port.out.AuthToUserPort;
+import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.user.application.port.out.KakaoFriendPort;
@@ -82,7 +83,13 @@ public class TestSocialLoginPortConfig {
                 // 테스트용 더미 구현 - 항상 빈 Optional 반환 (신규 사용자로 처리)
                 return Optional.empty();
             }
+        };
+    }
 
+    @Bean
+    @Primary
+    public BlacklistPort testBlacklistPort() {
+        return new BlacklistPort() {
             @Override
             public boolean existsByProviderAndSocialId(SocialProvider provider, String socialId) {
                 // 테스트용 더미 구현 - 항상 false 반환 (블랙리스트에 없음)
