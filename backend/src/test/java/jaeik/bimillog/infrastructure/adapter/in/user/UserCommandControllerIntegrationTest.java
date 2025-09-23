@@ -2,18 +2,18 @@ package jaeik.bimillog.infrastructure.adapter.in.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.domain.user.entity.Setting;
+import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.domain.user.entity.UserDetail;
 import jaeik.bimillog.infrastructure.adapter.in.admin.dto.ReportDTO;
+import jaeik.bimillog.infrastructure.adapter.in.auth.dto.SocialLoginRequestDTO;
 import jaeik.bimillog.infrastructure.adapter.in.user.dto.SettingDTO;
+import jaeik.bimillog.infrastructure.adapter.in.user.dto.SignUpRequestDTO;
 import jaeik.bimillog.infrastructure.adapter.in.user.dto.UserNameDTO;
-import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
+import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
-import jaeik.bimillog.testutil.TestUsers;
 import jaeik.bimillog.testutil.TestSettings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -25,17 +25,19 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+import java.util.Map;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * <h2>사용자 명령 컨트롤러 통합 테스트</h2>
@@ -70,6 +72,41 @@ class UserCommandControllerIntegrationTest {
                 .webAppContextSetup(context)
                 .apply(springSecurity())
                 .build();
+    }
+
+    @Test
+    @DisplayName("회원가입 통합 테스트 - 성공")
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void signUp_IntegrationTest_Success() throws Exception {
+        // Given - 먼저 소셜 로그인으로 temp 데이터를 생성
+        SocialLoginRequestDTO socialRequest = new SocialLoginRequestDTO("KAKAO", "new_user_code", "integration-test-fcm-token");
+
+        // 1. 소셜 로그인으로 임시 데이터 생성
+        var loginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(socialRequest))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        // 2. 응답에서 UUID 추출
+        String responseBody = loginResult.getResponse().getContentAsString();
+        ObjectMapper mapper = new ObjectMapper();
+        var responseMap = mapper.readValue(responseBody, Map.class);
+        String uuid = (String) responseMap.get("uuid");
+
+        // 3. 회원가입 수행
+        SignUpRequestDTO signUpRequest = new SignUpRequestDTO("통합테스트사용자", uuid);
+
+        mockMvc.perform(post("/api/user/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(signUpRequest))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().exists("Set-Cookie"))
+                .andExpect(jsonPath("$.status").value("SUCCESS"))
+                .andExpect(jsonPath("$.data.message").value("회원 가입 성공"));
     }
 
     @Test
@@ -340,7 +377,7 @@ class UserCommandControllerIntegrationTest {
      * 테스트용 CustomUserDetails 생성
      */
     private CustomUserDetails createCustomUserDetails(User user) {
-        UserDetail userDetail = UserDetail.builder()
+        ExistingUserDetail userDetail = ExistingUserDetail.builder()
                 .userId(user.getId())
                 .settingId(user.getSetting().getId())
                 .socialId(user.getSocialId())
@@ -349,6 +386,8 @@ class UserCommandControllerIntegrationTest {
                 .userName(user.getUserName())
                 .provider(user.getProvider())
                 .role(user.getRole())
+                .tokenId(null)
+                .fcmTokenId(null)
                 .build();
 
         return new CustomUserDetails(userDetail);

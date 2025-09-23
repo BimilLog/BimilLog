@@ -29,8 +29,6 @@ import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import jaeik.bimillog.testutil.TestUsers;
-import jaeik.bimillog.testutil.TestSettings;
 
 import java.util.Optional;
 

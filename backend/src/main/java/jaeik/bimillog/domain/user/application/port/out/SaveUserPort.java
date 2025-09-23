@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.user.application.port.out;
 
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.user.application.service.SignUpService;
+import jaeik.bimillog.domain.user.application.service.UserSaveService;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserDetail;
 import org.springframework.http.ResponseCookie;
@@ -22,7 +23,7 @@ public interface SaveUserPort {
      * <h3>기존 사용자 로그인 처리</h3>
      * <p>기존 회원의 소셜 로그인 시 사용자 정보를 업데이트하고 상세 정보를 반환합니다.</p>
      * <p>최신 소셜 프로필 정보 동기화, Token 엔티티 생성/저장, FCM 토큰 등록을 처리합니다.</p>
-     * <p>{@link jaeik.bimillog.domain.user.application.service.UserSaveService}에서 기존 회원 소셜 로그인 완료 처리 시 호출됩니다.</p>
+     * <p>{@link UserSaveService}에서 기존 회원 소셜 로그인 완료 처리 시 호출됩니다.</p>
      *
      * @param existingUser 기존 사용자 엔티티
      * @param userProfile 소셜 플랫폼에서 가져온 최신 사용자 프로필 정보 (OAuth 액세스/리프레시 토큰 포함)

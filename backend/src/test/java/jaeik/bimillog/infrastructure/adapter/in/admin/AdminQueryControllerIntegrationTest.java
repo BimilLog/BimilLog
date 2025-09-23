@@ -1,9 +1,10 @@
 package jaeik.bimillog.infrastructure.adapter.in.admin;
 
 import jaeik.bimillog.domain.admin.entity.ReportType;
+import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.domain.user.entity.UserDetail;
+import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,7 +59,7 @@ class AdminQueryControllerIntegrationTest {
      * 테스트용 관리자 CustomUserDetails 생성
      */
     private CustomUserDetails createAdminUserDetails() {
-        UserDetail adminUserDetail = UserDetail.builder()
+        ExistingUserDetail adminUserDetail = ExistingUserDetail.builder()
                 .userId(1L)
                 .socialId("admin123")
                 .provider(SocialProvider.KAKAO)
@@ -76,7 +77,7 @@ class AdminQueryControllerIntegrationTest {
      * 테스트용 일반 사용자 CustomUserDetails 생성
      */
     private CustomUserDetails createUserUserDetails() {
-        UserDetail userDetail = UserDetail.builder()
+        ExistingUserDetail userDetail = ExistingUserDetail.builder()
                 .userId(2L)
                 .socialId("user123")
                 .provider(SocialProvider.KAKAO)

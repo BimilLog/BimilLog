@@ -1,17 +1,16 @@
 package jaeik.bimillog.infrastructure.adapter.in.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.domain.user.entity.UserDetail;
-import jaeik.bimillog.infrastructure.adapter.in.user.dto.SignUpRequestDTO;
 import jaeik.bimillog.infrastructure.adapter.in.auth.dto.SocialLoginRequestDTO;
-import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
+import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
-import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
 import jaeik.bimillog.testutil.TestSettings;
+import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,8 +24,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
-import java.util.Map;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -111,40 +108,6 @@ class AuthCommandControllerIntegrationTest {
                 .andExpect(jsonPath("$.data.message").value("LOGIN_SUCCESS"));
     }
 
-    @Test
-    @DisplayName("회원가입 통합 테스트 - 성공")
-    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
-    void signUp_IntegrationTest_Success() throws Exception {
-        // Given - 먼저 소셜 로그인으로 temp 데이터를 생성
-        SocialLoginRequestDTO socialRequest = new SocialLoginRequestDTO("KAKAO", "new_user_code", "integration-test-fcm-token");
-        
-        // 1. 소셜 로그인으로 임시 데이터 생성
-        var loginResult = mockMvc.perform(post("/api/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(socialRequest))
-                        .with(csrf()))
-                .andExpect(status().isOk())
-                .andReturn();
-        
-        // 2. 응답에서 UUID 추출
-        String responseBody = loginResult.getResponse().getContentAsString();
-        ObjectMapper mapper = new ObjectMapper();
-        var responseMap = mapper.readValue(responseBody, Map.class);
-        String uuid = (String) responseMap.get("uuid");
-        
-        // 3. 회원가입 수행
-        SignUpRequestDTO signUpRequest = new SignUpRequestDTO("통합테스트사용자", uuid);
-        
-        mockMvc.perform(post("/api/auth/signup")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(signUpRequest))
-                        .with(csrf()))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(header().exists("Set-Cookie"))
-                .andExpect(jsonPath("$.status").value("SUCCESS"))
-                .andExpect(jsonPath("$.data.message").value("회원 가입 성공"));
-    }
 
     @Test
     @DisplayName("로그아웃 통합 테스트 - 성공")
@@ -238,7 +201,7 @@ class AuthCommandControllerIntegrationTest {
      * 테스트용 CustomUserDetails 생성
      */
     private CustomUserDetails createCustomUserDetails(User user) {
-        UserDetail userDetail = UserDetail.builder()
+        ExistingUserDetail userDetail = ExistingUserDetail.builder()
                 .userId(user.getId())
                 .settingId(user.getSetting().getId())
                 .socialId(user.getSocialId())
@@ -247,6 +210,8 @@ class AuthCommandControllerIntegrationTest {
                 .userName(user.getUserName())
                 .provider(user.getProvider())
                 .role(user.getRole())
+                .tokenId(null)
+                .fcmTokenId(null)
                 .build();
 
         return new CustomUserDetails(userDetail);

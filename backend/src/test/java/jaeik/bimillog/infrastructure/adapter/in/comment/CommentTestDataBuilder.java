@@ -2,14 +2,9 @@ package jaeik.bimillog.infrastructure.adapter.in.comment;
 
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.user.entity.Setting;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.domain.user.entity.UserDetail;
+import jaeik.bimillog.domain.user.entity.*;
 import jaeik.bimillog.infrastructure.adapter.in.comment.dto.CommentReqDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
-import jaeik.bimillog.testutil.TestUsers;
 import jaeik.bimillog.testutil.TestSettings;
 
 /**
@@ -182,7 +177,7 @@ public class CommentTestDataBuilder {
      * @return CustomUserDetails 테스트용 사용자 인증 정보
      */
     public static CustomUserDetails createUserDetails(User user) {
-        UserDetail userDetail = UserDetail.builder()
+        ExistingUserDetail userDetail = ExistingUserDetail.builder()
                 .userId(user.getId())
                 .socialId(user.getSocialId())
                 .socialNickname(user.getSocialNickname())

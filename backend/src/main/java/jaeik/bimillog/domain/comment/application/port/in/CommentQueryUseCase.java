@@ -4,8 +4,8 @@ import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentInfo;
 import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
 import jaeik.bimillog.infrastructure.adapter.in.comment.web.CommentQueryController;
-import jaeik.bimillog.infrastructure.adapter.out.post.PostToCommentAdapter;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
+import jaeik.bimillog.infrastructure.adapter.out.post.PostToCommentAdapter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

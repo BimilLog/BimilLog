@@ -2,18 +2,14 @@ package jaeik.bimillog.infrastructure.adapter.in.paper;
 
 import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.entity.Message;
-import jaeik.bimillog.domain.user.entity.Setting;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.domain.user.entity.UserDetail;
+import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.paper.MessageRepository;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
-import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
 import jaeik.bimillog.testutil.TestUsers;
-import jaeik.bimillog.testutil.TestSettings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -87,7 +83,7 @@ class PaperQueryControllerIntegrationTest {
      * 테스트용 CustomUserDetails 생성
      */
     private CustomUserDetails createUserDetails(User user) {
-        UserDetail userDetail = UserDetail.builder()
+        ExistingUserDetail userDetail = ExistingUserDetail.builder()
                 .userId(user.getId())
                 .socialId(user.getSocialId())
                 .provider(user.getProvider())

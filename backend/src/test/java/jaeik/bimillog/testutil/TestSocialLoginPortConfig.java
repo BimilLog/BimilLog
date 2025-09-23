@@ -3,11 +3,12 @@ package jaeik.bimillog.testutil;
 import jaeik.bimillog.domain.auth.application.port.out.AuthToUserPort;
 import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
+import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.user.application.port.out.KakaoFriendPort;
 import jaeik.bimillog.domain.user.entity.KakaoFriendsResponseVO;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -79,9 +80,9 @@ public class TestSocialLoginPortConfig {
     public AuthToUserPort testSocialPort() {
         return new AuthToUserPort() {
             @Override
-            public Optional<User> findExistingUser(SocialProvider provider, String socialId) {
-                // 테스트용 더미 구현 - 항상 빈 Optional 반환 (신규 사용자로 처리)
-                return Optional.empty();
+            public LoginResult delegateUserData(SocialProvider provider, SocialUserProfile profile, String fcmToken) {
+                // 테스트용 더미 구현 - 항상 신규 사용자로 처리
+                return new LoginResult.NewUser("test-uuid", null);
             }
         };
     }

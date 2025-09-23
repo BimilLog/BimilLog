@@ -3,8 +3,8 @@ package jaeik.bimillog.infrastructure.adapter.out.api.social.kakao;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
-import jaeik.bimillog.infrastructure.adapter.out.api.social.SocialAdapter;
 import jaeik.bimillog.infrastructure.adapter.out.api.dto.KakaoFriendsDTO;
+import jaeik.bimillog.infrastructure.adapter.out.api.social.SocialAdapter;
 import org.springframework.stereotype.Component;
 
 /**

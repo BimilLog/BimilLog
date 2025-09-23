@@ -9,8 +9,6 @@ import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.testutil.TestUsers;
-import jaeik.bimillog.infrastructure.adapter.out.sse.EmitterRepository;
-import jaeik.bimillog.infrastructure.adapter.out.sse.SseAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

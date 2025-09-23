@@ -87,7 +87,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, "/").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/auth/login", "/api/global/health", "/api/auth/me", "/api/auth/signup").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/global/health", "/api/auth/me", "/api/user/signup").permitAll()
                         .requestMatchers("/api/comment/like").authenticated()
                         .requestMatchers("/api/comment/**").permitAll()
                         .requestMatchers("/api/post/{postId}/notice").hasRole("ADMIN")

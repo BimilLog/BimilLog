@@ -1,18 +1,15 @@
 package jaeik.bimillog.infrastructure.adapter.in.post;
 
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.user.entity.Setting;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.domain.user.entity.UserDetail;
+import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostRepository;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
-import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
 import jaeik.bimillog.testutil.TestUsers;
-import jaeik.bimillog.testutil.TestSettings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -77,7 +74,7 @@ class PostAdminControllerIntegrationTest {
         savedAdminUser = userRepository.save(TestUsers.ADMIN);
         
         // 관리자 CustomUserDetails 생성
-        UserDetail adminDTO = UserDetail.builder()
+        ExistingUserDetail adminDTO = ExistingUserDetail.builder()
                 .userId(savedAdminUser.getId())
                 .userName(savedAdminUser.getUserName())
                 .role(savedAdminUser.getRole())
@@ -96,7 +93,7 @@ class PostAdminControllerIntegrationTest {
         savedNormalUser = userRepository.save(TestUsers.USER1);
         
         // 일반 사용자 CustomUserDetails 생성
-        UserDetail userDetail = UserDetail.builder()
+        ExistingUserDetail userDetail = ExistingUserDetail.builder()
                 .userId(savedNormalUser.getId())
                 .userName(savedNormalUser.getUserName())
                 .role(savedNormalUser.getRole())

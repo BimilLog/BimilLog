@@ -3,12 +3,14 @@ package jaeik.bimillog.domain.user.service;
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.application.service.UserQueryService;
-import jaeik.bimillog.domain.user.entity.*;
+import jaeik.bimillog.domain.user.entity.Setting;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import jaeik.bimillog.global.application.port.out.GlobalTokenQueryPort;
-import jaeik.bimillog.testutil.TestUsers;
 import jaeik.bimillog.testutil.TestSettings;
+import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -214,27 +216,6 @@ class UserQueryServiceTest {
         assertThat(result).isEqualTo(proxyUser);
         assertThat(result.getId()).isEqualTo(userId);
     }
-
-    @Test
-    @DisplayName("토큰 ID로 토큰 조회 - 정상 케이스")
-    void shouldFindTokenById_WhenTokenIdExists() {
-        // Given
-        Long tokenId = 1L;
-        Token expectedToken = Token.createTemporaryToken("access-token", "refresh-token");
-                
-
-        given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(expectedToken));
-
-        // When
-        Optional<Token> result = userQueryService.findTokenById(tokenId);
-
-        // Then
-        verify(globalTokenQueryPort).findById(tokenId);
-        assertThat(result).isPresent();
-        assertThat(result.get().getAccessToken()).isEqualTo("access-token");
-        assertThat(result.get().getRefreshToken()).isEqualTo("refresh-token");
-    }
-
 
     @Test
     @DisplayName("설정 ID로 설정 조회 - 정상 케이스")

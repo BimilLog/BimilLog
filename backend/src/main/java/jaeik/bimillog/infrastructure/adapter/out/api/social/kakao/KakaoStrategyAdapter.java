@@ -3,8 +3,8 @@ package jaeik.bimillog.infrastructure.adapter.out.api.social.kakao;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.service.SocialService;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.auth.entity.Token;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.global.vo.KakaoKeyVO;
 import org.springframework.stereotype.Component;
 

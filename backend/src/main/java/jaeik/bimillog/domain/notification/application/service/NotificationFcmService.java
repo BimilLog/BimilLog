@@ -6,6 +6,8 @@ import jaeik.bimillog.domain.notification.application.port.out.NotificationUtilP
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
+import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
+import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.global.application.port.out.GlobalUserQueryPort;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +47,10 @@ public class NotificationFcmService implements NotificationFcmUseCase {
      */
     @Override
     public Long registerFcmToken(User user, String fcmToken) {
+        if (user == null) {
+            throw new NotificationCustomException(NotificationErrorCode.NOTIFICATION_USER_NOT_FOUND);
+        }
+
         log.info("FCM 토큰 등록 처리 시작: 사용자 ID={}", user.getId());
 
         if (fcmToken == null || fcmToken.isEmpty()) {

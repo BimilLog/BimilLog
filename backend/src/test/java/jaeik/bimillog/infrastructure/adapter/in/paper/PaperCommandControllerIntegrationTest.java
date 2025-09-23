@@ -3,19 +3,14 @@ package jaeik.bimillog.infrastructure.adapter.in.paper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.entity.Message;
-import jaeik.bimillog.domain.user.entity.Setting;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.domain.user.entity.UserDetail;
+import jaeik.bimillog.domain.user.entity.*;
 import jaeik.bimillog.infrastructure.adapter.in.paper.dto.MessageDTO;
+import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.paper.MessageRepository;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
-import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
 import jaeik.bimillog.testutil.TestUsers;
-import jaeik.bimillog.testutil.TestSettings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -79,7 +74,7 @@ class PaperCommandControllerIntegrationTest {
      * 테스트용 사용자 CustomUserDetails 생성
      */
     private CustomUserDetails createUserDetails() {
-        UserDetail userDetail = UserDetail.builder()
+        ExistingUserDetail userDetail = ExistingUserDetail.builder()
                 .userId(1L)
                 .socialId("user123")
                 .provider(SocialProvider.KAKAO)
@@ -87,6 +82,8 @@ class PaperCommandControllerIntegrationTest {
                 .socialNickname("테스트사용자")
                 .userName("testuser")
                 .role(UserRole.USER)
+                .tokenId(null)
+                .fcmTokenId(null)
                 .tokenId(1L)
                 .fcmTokenId(1L)
                 .build();
@@ -246,7 +243,7 @@ class PaperCommandControllerIntegrationTest {
         String requestBody = objectMapper.writeValueAsString(messageDTO);
         
         // savedUser로 로그인
-        UserDetail ownerUserDetail = UserDetail.builder()
+        ExistingUserDetail ownerUserDetail = ExistingUserDetail.builder()
                 .userId(savedUser.getId())
                 .socialId(savedUser.getSocialId())
                 .provider(savedUser.getProvider())

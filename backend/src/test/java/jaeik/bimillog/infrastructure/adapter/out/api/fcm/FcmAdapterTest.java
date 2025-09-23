@@ -2,15 +2,9 @@ package jaeik.bimillog.infrastructure.adapter.out.api.fcm;
 
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
-import jaeik.bimillog.domain.user.entity.Setting;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.infrastructure.adapter.out.api.fcm.FcmAdapter;
-import jaeik.bimillog.infrastructure.adapter.out.api.fcm.FcmApiClient;
 import jaeik.bimillog.infrastructure.adapter.out.notification.jpa.FcmTokenRepository;
 import jaeik.bimillog.testutil.TestUsers;
-import jaeik.bimillog.testutil.TestSettings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

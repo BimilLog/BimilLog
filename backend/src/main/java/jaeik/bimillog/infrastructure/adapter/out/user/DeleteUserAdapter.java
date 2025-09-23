@@ -1,13 +1,13 @@
 package jaeik.bimillog.infrastructure.adapter.out.user;
 
 import jaeik.bimillog.domain.auth.application.service.LogoutService;
+import jaeik.bimillog.domain.auth.entity.BlackList;
 import jaeik.bimillog.domain.user.application.port.out.DeleteUserPort;
 import jaeik.bimillog.domain.user.application.service.WithdrawService;
-import jaeik.bimillog.domain.auth.entity.BlackList;
+import jaeik.bimillog.infrastructure.adapter.out.auth.AuthCookieManager;
 import jaeik.bimillog.infrastructure.adapter.out.auth.jpa.BlackListRepository;
 import jaeik.bimillog.infrastructure.adapter.out.auth.jpa.TokenRepository;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
-import jaeik.bimillog.infrastructure.adapter.out.auth.AuthCookieManager;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;

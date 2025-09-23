@@ -10,6 +10,7 @@ import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
 import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.global.application.port.out.GlobalUserQueryPort;
+import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -61,40 +62,35 @@ class NotificationFcmServiceTest {
     @DisplayName("FCM 토큰 등록 - 성공")
     void shouldRegisterFcmToken_WhenValidInput() {
         // Given
-        Long userId = 1L;
+        User user = TestUsers.USER1;
         String fcmToken = "valid-fcm-token";
         Long expectedTokenId = 100L;
         FcmToken savedToken = mock(FcmToken.class);
 
-        given(globalUserQueryPort.findById(userId)).willReturn(Optional.of(user));
         given(savedToken.getId()).willReturn(expectedTokenId);
         given(fcmPort.save(any(FcmToken.class))).willReturn(savedToken);
 
         // When
-        Long actualTokenId = notificationFcmService.registerFcmToken(userId, fcmToken);
+        Long actualTokenId = notificationFcmService.registerFcmToken(user, fcmToken);
 
         // Then
-        verify(globalUserQueryPort, times(1)).findById(userId);
         verify(fcmPort, times(1)).save(any(FcmToken.class));
-        verifyNoMoreInteractions(globalUserQueryPort, fcmPort);
+        verifyNoMoreInteractions(fcmPort);
         assertThat(actualTokenId).isEqualTo(expectedTokenId);
     }
 
     @Test
-    @DisplayName("FCM 토큰 등록 - 사용자 없음 예외")
-    void shouldThrowException_WhenUserNotFound() {
+    @DisplayName("FCM 토큰 등록 - 사용자 null 예외")
+    void shouldThrowException_WhenUserIsNull() {
         // Given
-        Long userId = 999L;
+        User user = null;
         String fcmToken = "valid-fcm-token";
-        
-        given(globalUserQueryPort.findById(userId)).willThrow(new NotificationCustomException(NotificationErrorCode.NOTIFICATION_USER_NOT_FOUND));
 
         // When & Then
-        assertThatThrownBy(() -> notificationFcmService.registerFcmToken(userId, fcmToken))
+        assertThatThrownBy(() -> notificationFcmService.registerFcmToken(user, fcmToken))
                 .isInstanceOf(NotificationCustomException.class)
                 .hasFieldOrPropertyWithValue("notificationErrorCode", NotificationErrorCode.NOTIFICATION_USER_NOT_FOUND);
 
-        verify(globalUserQueryPort, times(1)).findById(userId);
         verify(fcmPort, never()).save(any());
     }
 
@@ -102,14 +98,13 @@ class NotificationFcmServiceTest {
     @DisplayName("FCM 토큰 등록 - null 토큰인 경우")
     void shouldNotRegister_WhenFcmTokenIsNull() {
         // Given
-        Long userId = 1L;
+        User user = TestUsers.USER1;
         String fcmToken = null;
 
         // When
-        Long result = notificationFcmService.registerFcmToken(userId, fcmToken);
+        Long result = notificationFcmService.registerFcmToken(user, fcmToken);
 
         // Then
-        verify(globalUserQueryPort, never()).findById(anyLong());
         verify(fcmPort, never()).save(any());
         assertThat(result).isNull();
     }
@@ -118,14 +113,13 @@ class NotificationFcmServiceTest {
     @DisplayName("FCM 토큰 등록 - 빈 토큰인 경우")
     void shouldNotRegister_WhenFcmTokenIsEmpty() {
         // Given
-        Long userId = 1L;
+        User user = TestUsers.USER1;
         String fcmToken = "";
 
         // When
-        Long result = notificationFcmService.registerFcmToken(userId, fcmToken);
+        Long result = notificationFcmService.registerFcmToken(user, fcmToken);
 
         // Then
-        verify(globalUserQueryPort, never()).findById(anyLong());
         verify(fcmPort, never()).save(any());
         assertThat(result).isNull();
     }

@@ -1,15 +1,16 @@
 package jaeik.bimillog.domain.auth.service;
 
-import jaeik.bimillog.domain.auth.application.port.out.*;
+import jaeik.bimillog.domain.auth.application.port.out.AuthToUserPort;
+import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
+import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
+import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
 import jaeik.bimillog.domain.auth.application.service.SocialService;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
-import jaeik.bimillog.domain.user.application.port.out.RedisUserDataPort;
-import jaeik.bimillog.domain.user.application.port.out.SaveUserPort;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -56,8 +57,6 @@ class SocialServiceTest {
     @Mock private SocialStrategyPort kakaoStrategy;
     @Mock private AuthToUserPort authToUserPort;
     @Mock private BlacklistPort blacklistPort;
-    @Mock private SaveUserPort saveUserPort;
-    @Mock private RedisUserDataPort redisUserDataPort;
     private SocialService socialService;
 
     private SocialUserProfile testUserProfile;
@@ -71,9 +70,7 @@ class SocialServiceTest {
         socialService = new SocialService(
             strategyRegistry,
             authToUserPort,
-            blacklistPort,
-            saveUserPort,
-            redisUserDataPort
+            blacklistPort
         );
     }
 
@@ -99,17 +96,15 @@ class SocialServiceTest {
     void shouldProcessSocialLogin_WhenExistingUser() {
         // Given
         List<ResponseCookie> cookies = List.of(ResponseCookie.from("auth", "token").build());
-        
+        LoginResult.ExistingUser existingUserResult = new LoginResult.ExistingUser(cookies);
+
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             mockAnonymousAuthentication(mockedSecurityContext);
 
             given(strategyRegistry.getStrategy(SocialProvider.KAKAO)).willReturn(kakaoStrategy);
             given(kakaoStrategy.authenticate(SocialProvider.KAKAO, TEST_AUTH_CODE)).willReturn(testUserProfile);
-            
-            User mockUser = mock(User.class);
-            given(authToUserPort.findExistingUser(SocialProvider.KAKAO, TEST_SOCIAL_ID)).willReturn(java.util.Optional.of(mockUser));
             given(blacklistPort.existsByProviderAndSocialId(SocialProvider.KAKAO, TEST_SOCIAL_ID)).willReturn(false);
-            given(saveUserPort.handleExistingUserLogin(any(SocialUserProfile.class), eq(TEST_FCM_TOKEN))).willReturn(cookies);
+            given(authToUserPort.delegateUserData(SocialProvider.KAKAO, testUserProfile, TEST_FCM_TOKEN)).willReturn(existingUserResult);
 
             // When
             LoginResult result = socialService.processSocialLogin(SocialProvider.KAKAO, TEST_AUTH_CODE, TEST_FCM_TOKEN);
@@ -121,9 +116,7 @@ class SocialServiceTest {
 
             verify(strategyRegistry).getStrategy(SocialProvider.KAKAO);
             verify(kakaoStrategy).authenticate(SocialProvider.KAKAO, TEST_AUTH_CODE);
-            verify(authToUserPort).findExistingUser(SocialProvider.KAKAO, TEST_SOCIAL_ID);
-            // updateUserInfo는 SaveUserAdapter에서 처리하므로 제거
-            verify(saveUserPort).handleExistingUserLogin(any(SocialUserProfile.class), eq(TEST_FCM_TOKEN));
+            verify(authToUserPort).delegateUserData(SocialProvider.KAKAO, testUserProfile, TEST_FCM_TOKEN);
         }
     }
 
@@ -132,15 +125,15 @@ class SocialServiceTest {
     void shouldProcessSocialLogin_WhenNewUser() {
         // Given
         ResponseCookie tempCookie = ResponseCookie.from("temp", "uuid").build();
-        
+        LoginResult.NewUser newUserResult = new LoginResult.NewUser("test-uuid", tempCookie);
+
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             mockAnonymousAuthentication(mockedSecurityContext);
 
             given(strategyRegistry.getStrategy(SocialProvider.KAKAO)).willReturn(kakaoStrategy);
             given(kakaoStrategy.authenticate(SocialProvider.KAKAO, TEST_AUTH_CODE)).willReturn(testUserProfile);
-            given(authToUserPort.findExistingUser(SocialProvider.KAKAO, TEST_SOCIAL_ID)).willReturn(java.util.Optional.empty());
             given(blacklistPort.existsByProviderAndSocialId(SocialProvider.KAKAO, TEST_SOCIAL_ID)).willReturn(false);
-            given(redisUserDataPort.createTempCookie(anyString())).willReturn(tempCookie);
+            given(authToUserPort.delegateUserData(SocialProvider.KAKAO, testUserProfile, TEST_FCM_TOKEN)).willReturn(newUserResult);
 
             // When
             LoginResult result = socialService.processSocialLogin(SocialProvider.KAKAO, TEST_AUTH_CODE, TEST_FCM_TOKEN);
@@ -148,13 +141,12 @@ class SocialServiceTest {
             // Then
             assertThat(result).isInstanceOf(LoginResult.NewUser.class);
             LoginResult.NewUser newUserResponse = (LoginResult.NewUser) result;
+            assertThat(newUserResponse.uuid()).isEqualTo("test-uuid");
             assertThat(newUserResponse.tempCookie()).isEqualTo(tempCookie);
 
             verify(strategyRegistry).getStrategy(SocialProvider.KAKAO);
             verify(kakaoStrategy).authenticate(SocialProvider.KAKAO, TEST_AUTH_CODE);
-            verify(authToUserPort).findExistingUser(SocialProvider.KAKAO, TEST_SOCIAL_ID);
-            verify(redisUserDataPort).saveTempData(anyString(), any(SocialUserProfile.class), eq(TEST_FCM_TOKEN));
-            verify(redisUserDataPort).createTempCookie(anyString());
+            verify(authToUserPort).delegateUserData(SocialProvider.KAKAO, testUserProfile, TEST_FCM_TOKEN);
         }
     }
 

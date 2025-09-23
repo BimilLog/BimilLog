@@ -2,11 +2,10 @@ package jaeik.bimillog.infrastructure.adapter.out.redis;
 
 import jaeik.bimillog.BimilLogApplication;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
-import jaeik.bimillog.domain.user.entity.TempUserData;
+import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.auth.entity.Token;
-import jaeik.bimillog.infrastructure.adapter.out.auth.AuthCookieManager;
+import jaeik.bimillog.domain.user.entity.TempUserData;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,7 +20,6 @@ import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseCookie;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.Optional;
@@ -29,8 +27,6 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
 
 /**
  * <h2>RedisUserDataAdapter 통합 테스트</h2>
@@ -61,9 +57,7 @@ class RedisUserDataAdapterTest {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
-    @MockitoBean
-    private AuthCookieManager authCookieManager;
-
+    
     private SocialUserProfile testUserProfile;
     private Token testToken;
     private String testUuid;
@@ -188,25 +182,6 @@ class RedisUserDataAdapterTest {
     }
 
 
-    @Test
-    @DisplayName("정상 케이스 - 임시 쿠키 생성")
-    void shouldCreateTempCookie_WhenValidUuidProvided() {
-        // Given: AuthCookieManager에서 반환할 쿠키
-        ResponseCookie expectedCookie = ResponseCookie.from("tempUserId", testUuid)
-                .maxAge(300) // 5분
-                .httpOnly(true)
-                .build();
-        given(authCookieManager.createTempCookie(testUuid)).willReturn(expectedCookie);
-
-        // When: 임시 쿠키 생성
-        ResponseCookie actualCookie = redisTempDataAdapter.createTempCookie(testUuid);
-
-        // Then: 올바른 쿠키 생성 검증
-        assertThat(actualCookie).isEqualTo(expectedCookie);
-        assertThat(actualCookie.getName()).isEqualTo("tempUserId");
-        assertThat(actualCookie.getValue()).isEqualTo(testUuid);
-        verify(authCookieManager).createTempCookie(testUuid);
-    }
 
 
 

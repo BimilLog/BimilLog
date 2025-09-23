@@ -2,16 +2,11 @@ package jaeik.bimillog.infrastructure.adapter.out.redis;
 
 import jaeik.bimillog.BimilLogApplication;
 import jaeik.bimillog.domain.post.entity.*;
-import jaeik.bimillog.domain.user.entity.Setting;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.infrastructure.adapter.out.redis.RedisPostSyncAdapter;
 import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostLikeRepository;
 import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostRepository;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestUsers;
-import jaeik.bimillog.testutil.TestSettings;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
