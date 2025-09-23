@@ -18,7 +18,6 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.http.ResponseCookie;
 import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -49,7 +48,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
         "spring.jpa.hibernate.ddl-auto=create",
         "logging.level.jaeik.bimillog.infrastructure.adapter.auth.out.cache=DEBUG"
 })
-class RedisUserDataAdapterTest {
+class RedisUserDataAdapterIntegrationTest {
 
     @Autowired
     private RedisUserDataAdapter redisTempDataAdapter;

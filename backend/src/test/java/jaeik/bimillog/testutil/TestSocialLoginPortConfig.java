@@ -9,13 +9,11 @@ import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.user.application.port.out.KakaoFriendPort;
 import jaeik.bimillog.domain.user.entity.KakaoFriendsResponseVO;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.user.entity.User;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
 import java.util.Collections;
-import java.util.Optional;
 
 /**
  * <h2>테스트용 소셜 로그인 포트 설정</h2>

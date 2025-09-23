@@ -48,7 +48,7 @@ import static org.mockito.BDDMockito.given;
 )
 @Testcontainers
 @Import({PostQueryAdapter.class, TestContainersConfiguration.class})
-class PostQueryAdapterTest {
+class PostQueryAdapterIntegrationTest {
 
     @Autowired
     private PostQueryAdapter postQueryAdapter;

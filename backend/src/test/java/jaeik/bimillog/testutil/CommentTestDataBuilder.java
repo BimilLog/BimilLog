@@ -1,12 +1,11 @@
-package jaeik.bimillog.infrastructure.adapter.in.comment;
+package jaeik.bimillog.testutil;
 
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.user.entity.*;
+import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
+import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.in.comment.dto.CommentReqDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
-import jaeik.bimillog.testutil.TestSettings;
-import jaeik.bimillog.testutil.TestUsers;
 
 /**
  * <h2>댓글 테스트 데이터 빌더</h2>

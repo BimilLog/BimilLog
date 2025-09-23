@@ -45,7 +45,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestPropertySource(properties = {
         "spring.jpa.hibernate.ddl-auto=create"
 })
-class NotificationQueryAdapterTest {
+class NotificationQueryAdapterIntegrationTest {
 
     @Autowired
     private NotificationQueryAdapter notificationQueryAdapter;

@@ -49,7 +49,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @TestPropertySource(properties = {
         "spring.jpa.hibernate.ddl-auto=create"
 })
-class NotificationCommandAdapterTest {
+class NotificationCommandAdapterIntegrationTest {
 
     @Autowired
     private NotificationCommandAdapter notificationCommandAdapter;

@@ -8,7 +8,6 @@ import jaeik.bimillog.domain.user.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.domain.user.entity.UserDetail;
 import jaeik.bimillog.global.application.port.out.GlobalTokenCommandPort;
 import jaeik.bimillog.infrastructure.adapter.out.auth.AuthCookieManager;
 import jaeik.bimillog.testutil.TestUsers;
@@ -22,10 +21,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseCookie;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;

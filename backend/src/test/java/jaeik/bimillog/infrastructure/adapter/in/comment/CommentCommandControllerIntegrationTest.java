@@ -12,6 +12,7 @@ import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentClosureRepos
 import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentRepository;
 import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostRepository;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
+import jaeik.bimillog.testutil.CommentTestDataBuilder;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
 import org.junit.jupiter.api.AfterEach;

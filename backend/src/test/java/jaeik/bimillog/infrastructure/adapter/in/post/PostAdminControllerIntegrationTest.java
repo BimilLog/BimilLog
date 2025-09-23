@@ -3,7 +3,6 @@ package jaeik.bimillog.infrastructure.adapter.in.post;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.domain.user.entity.UserDetail;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostRepository;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;

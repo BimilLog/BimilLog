@@ -46,7 +46,7 @@ import static org.assertj.core.api.Assertions.assertThat;
         "logging.level.org.hibernate.SQL=DEBUG"
 })
 @DisplayName("PaperQueryAdapter 통합 테스트")
-class PaperQueryAdapterTest {
+class PaperQueryAdapterIntegrationTest {
 
     @Autowired
     private TestEntityManager testEntityManager;

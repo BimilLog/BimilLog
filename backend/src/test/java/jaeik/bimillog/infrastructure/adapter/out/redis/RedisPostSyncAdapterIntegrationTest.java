@@ -51,7 +51,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
         "logging.level.org.springframework.orm.jpa=DEBUG",
         "logging.level.org.springframework.transaction=DEBUG"
 })
-class RedisPostSyncAdapterTest {
+class RedisPostSyncAdapterIntegrationTest {
 
     @Autowired
     private RedisPostSyncAdapter redisPostSyncAdapter;

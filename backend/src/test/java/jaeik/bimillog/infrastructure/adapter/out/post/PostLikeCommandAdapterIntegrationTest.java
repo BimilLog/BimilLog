@@ -1,29 +1,19 @@
 package jaeik.bimillog.infrastructure.adapter.out.post;
 
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.BimilLogApplication;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestUsers;
-import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.TestPropertySource;
-import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,40 +32,8 @@ import static org.assertj.core.api.Assertions.assertThat;
         )
 )
 @Testcontainers
-@EntityScan(basePackages = {
-        "jaeik.bimillog.domain.post.entity",
-        "jaeik.bimillog.domain.user.entity",
-        "jaeik.bimillog.domain.global.entity"
-})
-@EnableJpaRepositories(basePackages = {
-        "jaeik.bimillog.infrastructure.adapter.post.out.persistence.post.post"
-})
-@Import(PostLikeCommandAdapter.class)
-@TestPropertySource(properties = {
-        "spring.jpa.hibernate.ddl-auto=create"
-})
-class PostLikeCommandAdapterTest {
-
-    @Container
-    static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
-            .withDatabaseName("testdb")
-            .withUsername("test")
-            .withPassword("test");
-
-    @DynamicPropertySource
-    static void dynamicProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", mysql::getJdbcUrl);
-        registry.add("spring.datasource.username", mysql::getUsername);
-        registry.add("spring.datasource.password", mysql::getPassword);
-    }
-
-    @TestConfiguration
-    static class TestConfig {
-        @Bean
-        public JPAQueryFactory jpaQueryFactory(EntityManager entityManager) {
-            return new JPAQueryFactory(entityManager);
-        }
-    }
+@Import({PostLikeCommandAdapter.class, TestContainersConfiguration.class})
+class PostLikeCommandAdapterIntegrationTest {
 
     @Autowired
     private PostLikeCommandAdapter postLikeCommandAdapter;
