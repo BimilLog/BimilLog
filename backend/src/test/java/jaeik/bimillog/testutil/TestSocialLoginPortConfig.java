@@ -10,11 +10,16 @@ import jaeik.bimillog.domain.user.entity.KakaoFriendsResponseVO;
 import jaeik.bimillog.domain.user.entity.NewUserDetail;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.UserDetail;
+import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
+import jaeik.bimillog.global.application.port.out.GlobalJwtPort;
+import jaeik.bimillog.global.application.port.out.GlobalCookiePort;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.http.ResponseCookie;
 
 import java.util.Collections;
+import java.util.List;
 
 /**
  * <h2>테스트용 소셜 로그인 포트 설정</h2>
@@ -109,10 +114,88 @@ public class TestSocialLoginPortConfig {
                     Collections.emptyList(), // 빈 친구 목록
                     0, // 전체 친구 수
                     null, // 이전 페이지 URL
-                    null, // 다음 페이지 URL  
+                    null, // 다음 페이지 URL
                     0 // 즐겨찾기 친구 수
                 );
                 return response;
+            }
+        };
+    }
+
+    @Bean
+    @Primary
+    public GlobalJwtPort testGlobalJwtPort() {
+        return new GlobalJwtPort() {
+            @Override
+            public String generateAccessToken(ExistingUserDetail userDetail) {
+                return "test-access-token";
+            }
+
+            @Override
+            public String generateRefreshToken(ExistingUserDetail userDetail) {
+                return "test-refresh-token";
+            }
+
+            @Override
+            public boolean validateToken(String token) {
+                return true;
+            }
+
+            @Override
+            public ExistingUserDetail getUserInfoFromToken(String jwtAccessToken) {
+                return ExistingUserDetail.of(TestUsers.USER1, 1L, 1L);
+            }
+
+            @Override
+            public Long getTokenIdFromToken(String jwtRefreshToken) {
+                return 1L;
+            }
+
+            @Override
+            public boolean shouldRefreshToken(String token, long thresholdDays) {
+                return false;
+            }
+
+            @Override
+            public String generateTokenHash(String token) {
+                return "test-token-hash";
+            }
+        };
+    }
+
+    @Bean
+    @Primary
+    public GlobalCookiePort testGlobalCookiePort() {
+        return new GlobalCookiePort() {
+            @Override
+            public ResponseCookie createTempCookie(NewUserDetail newUserDetail) {
+                return ResponseCookie.from("temp_user_id", newUserDetail.getUuid()).build();
+            }
+
+            @Override
+            public List<ResponseCookie> generateJwtCookie(String accessToken, String refreshToken) {
+                return List.of(
+                    ResponseCookie.from("jwt_access_token", accessToken).build(),
+                    ResponseCookie.from("jwt_refresh_token", refreshToken).build()
+                );
+            }
+
+            @Override
+            public List<ResponseCookie> getLogoutCookies() {
+                return List.of(
+                    ResponseCookie.from("jwt_access_token", "").maxAge(0).build(),
+                    ResponseCookie.from("jwt_refresh_token", "").maxAge(0).build()
+                );
+            }
+
+            @Override
+            public ResponseCookie generateJwtAccessCookie(String accessToken) {
+                return ResponseCookie.from("jwt_access_token", accessToken).build();
+            }
+
+            @Override
+            public ResponseCookie generateJwtRefreshCookie(String refreshToken) {
+                return ResponseCookie.from("jwt_refresh_token", refreshToken).build();
             }
         };
     }

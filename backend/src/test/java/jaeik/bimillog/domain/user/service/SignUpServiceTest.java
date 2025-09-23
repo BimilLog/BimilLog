@@ -11,6 +11,7 @@ import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.TempUserData;
 import jaeik.bimillog.global.application.port.out.GlobalCookiePort;
+import jaeik.bimillog.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -53,6 +54,9 @@ class SignUpServiceTest {
     @Mock
     private GlobalCookiePort globalCookiePort;
 
+    @Mock
+    private GlobalJwtPort globalJwtPort;
+
     @InjectMocks
     private SignUpService signUpService;
 
@@ -62,6 +66,8 @@ class SignUpServiceTest {
     private TempUserData testTempData;
     private List<ResponseCookie> testCookies;
     private ExistingUserDetail testUserDetail;
+    private String testAccessToken = "test-access-token";
+    private String testRefreshToken = "test-refresh-token";
 
     @BeforeEach
     void setUp() {
@@ -91,7 +97,9 @@ class SignUpServiceTest {
                 eq(testSocialProfile),
                 eq("fcm-token")
         )).willReturn(testUserDetail);
-        given(globalCookiePort.generateJwtCookie(testUserDetail)).willReturn(testCookies);
+        given(globalJwtPort.generateAccessToken(testUserDetail)).willReturn(testAccessToken);
+        given(globalJwtPort.generateRefreshToken(testUserDetail)).willReturn(testRefreshToken);
+        given(globalCookiePort.generateJwtCookie(testAccessToken, testRefreshToken)).willReturn(testCookies);
 
         // When
         List<ResponseCookie> result = signUpService.signUp(testUserName, testUuid);
@@ -99,7 +107,7 @@ class SignUpServiceTest {
         // Then
         assertThat(result).isEqualTo(testCookies);
         assertThat(result).hasSize(2);
-        
+
         verify(redisUserDataPort).getTempData(testUuid);
         verify(saveUserPort).saveNewUser(
                 testUserName,
@@ -107,7 +115,9 @@ class SignUpServiceTest {
                 "fcm-token"
         );
         verify(redisUserDataPort).removeTempData(testUuid);
-        verify(globalCookiePort).generateJwtCookie(testUserDetail);
+        verify(globalJwtPort).generateAccessToken(testUserDetail);
+        verify(globalJwtPort).generateRefreshToken(testUserDetail);
+        verify(globalCookiePort).generateJwtCookie(testAccessToken, testRefreshToken);
     }
 
     @Test
@@ -136,25 +146,29 @@ class SignUpServiceTest {
     void shouldSignUp_WhenTemporaryDataWithoutFcmToken() {
         // Given
         TempUserData tempDataWithoutFcm = TempUserData.from(testSocialProfile, null);
-        
+
         given(redisUserDataPort.getTempData(testUuid)).willReturn(Optional.of(tempDataWithoutFcm));
         given(saveUserPort.saveNewUser(
                 eq(testUserName),
                 eq(testSocialProfile),
                 eq(null)
         )).willReturn(testUserDetail);
-        given(globalCookiePort.generateJwtCookie(testUserDetail)).willReturn(testCookies);
+        given(globalJwtPort.generateAccessToken(testUserDetail)).willReturn(testAccessToken);
+        given(globalJwtPort.generateRefreshToken(testUserDetail)).willReturn(testRefreshToken);
+        given(globalCookiePort.generateJwtCookie(testAccessToken, testRefreshToken)).willReturn(testCookies);
 
         // When
         List<ResponseCookie> result = signUpService.signUp(testUserName, testUuid);
 
         // Then
         assertThat(result).isEqualTo(testCookies);
-        
+
         verify(redisUserDataPort).getTempData(testUuid);
         verify(saveUserPort).saveNewUser(testUserName, testSocialProfile, null);
         verify(redisUserDataPort).removeTempData(testUuid);
-        verify(globalCookiePort).generateJwtCookie(testUserDetail);
+        verify(globalJwtPort).generateAccessToken(testUserDetail);
+        verify(globalJwtPort).generateRefreshToken(testUserDetail);
+        verify(globalCookiePort).generateJwtCookie(testAccessToken, testRefreshToken);
     }
 
 

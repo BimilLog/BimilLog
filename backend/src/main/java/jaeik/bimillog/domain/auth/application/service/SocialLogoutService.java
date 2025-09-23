@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.auth.application.service;
 
 import jaeik.bimillog.domain.auth.application.port.in.SocialLogoutUseCase;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
+import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
@@ -17,6 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * <h2>로그아웃 서비스</h2>
@@ -75,24 +77,29 @@ public class SocialLogoutService implements SocialLogoutUseCase {
      */
     private void performSocialLogout(CustomUserDetails userDetails) {
         try {
-            globalTokenQueryPort.findById(userDetails.getTokenId()).ifPresent(token -> {
+            Optional<Token> optionalToken = globalTokenQueryPort.findById(userDetails.getTokenId());
+            if (optionalToken.isPresent()) {
+                Token token = optionalToken.get();
                 if (token.getUsers() != null) {
                     try {
                         strategyRegistry.getStrategy(token.getUsers().getProvider())
-                            .logout(token.getUsers().getProvider(), token.getAccessToken());
+                                .logout(token.getUsers().getProvider(), token.getAccessToken());
                         log.debug("소셜 로그아웃 성공 - 사용자 ID: {}, 제공자: {}",
                                 userDetails.getUserId(), token.getUsers().getProvider());
                     } catch (Exception socialLogoutException) {
                         // 소셜 로그아웃 실패는 전체 프로세스를 방해하지 않도록 로그만 기록
-                        log.warn("소셜 로그아웃 실패 - 사용자 ID: {}, 제공자: {}, 오류: {}", 
-                                userDetails.getUserId(), token.getUsers().getProvider(), socialLogoutException.getMessage());
+                        log.warn("소셜 로그아웃 실패 - 사용자 ID: {}, 제공자: {}, 오류: {}",
+                                userDetails.getUserId(),
+                                token.getUsers().getProvider(),
+                                socialLogoutException.getMessage());
                     }
                 }
-            });
+            }
         } catch (Exception e) {
             // 토큰 조회 실패는 전체 프로세스를 방해하지 않도록 로그만 기록
-            log.warn("토큰 조회 실패 - 사용자 ID: {}, 토큰 ID: {}, 오류: {}", 
+            log.warn("토큰 조회 실패 - 사용자 ID: {}, 토큰 ID: {}, 오류: {}",
                     userDetails.getUserId(), userDetails.getTokenId(), e.getMessage());
         }
     }
+
 }

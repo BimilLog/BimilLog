@@ -10,7 +10,9 @@ import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jaeik.bimillog.domain.user.entity.*;
+import jaeik.bimillog.global.application.port.out.GlobalCookiePort;
+import jaeik.bimillog.global.application.port.out.GlobalJwtPort;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -55,20 +57,42 @@ class SocialLoginServiceTest {
     @Mock private SocialStrategyPort kakaoStrategy;
     @Mock private AuthToUserPort authToUserPort;
     @Mock private BlacklistPort blacklistPort;
+    @Mock private GlobalCookiePort globalCookiePort;
+    @Mock private GlobalJwtPort globalJwtPort;
     private SocialLoginService socialLoginService;
 
     private SocialUserProfile testUserProfile;
     private Token testToken;
+    private ExistingUserDetail existingUserDetail;
+    private NewUserDetail newUserDetail;
 
     @BeforeEach
     void setUp() {
         testToken = Token.createTemporaryToken(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
         testUserProfile = new SocialUserProfile(TEST_SOCIAL_ID, TEST_EMAIL, SocialProvider.KAKAO, TEST_USERNAME, TEST_PROFILE_IMAGE, testToken);
 
+        // 기존 사용자 상세 정보 생성
+        existingUserDetail = ExistingUserDetail.builder()
+            .userId(1L)
+            .tokenId(1L)
+            .socialId(TEST_SOCIAL_ID)
+            .provider(SocialProvider.KAKAO)
+            .settingId(1L)
+            .userName(TEST_USERNAME)
+            .role(UserRole.USER)
+            .socialNickname(TEST_USERNAME)
+            .thumbnailImage(TEST_PROFILE_IMAGE)
+            .build();
+
+        // 신규 사용자 상세 정보 생성
+        newUserDetail = NewUserDetail.of("test-uuid");
+
         socialLoginService = new SocialLoginService(
             strategyRegistry,
             authToUserPort,
-            blacklistPort
+            blacklistPort,
+            globalCookiePort,
+            globalJwtPort
         );
     }
 
@@ -94,7 +118,8 @@ class SocialLoginServiceTest {
     void shouldProcessSocialLogin_WhenExistingUser() {
         // Given
         List<ResponseCookie> cookies = List.of(ResponseCookie.from("auth", "token").build());
-        LoginResult.ExistingUser existingUserResult = new LoginResult.ExistingUser(cookies);
+        String generatedAccessToken = "generated-access-token";
+        String generatedRefreshToken = "generated-refresh-token";
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             mockAnonymousAuthentication(mockedSecurityContext);
@@ -102,7 +127,10 @@ class SocialLoginServiceTest {
             given(strategyRegistry.getStrategy(SocialProvider.KAKAO)).willReturn(kakaoStrategy);
             given(kakaoStrategy.authenticate(SocialProvider.KAKAO, TEST_AUTH_CODE)).willReturn(testUserProfile);
             given(blacklistPort.existsByProviderAndSocialId(SocialProvider.KAKAO, TEST_SOCIAL_ID)).willReturn(false);
-            given(authToUserPort.delegateUserData(SocialProvider.KAKAO, testUserProfile, TEST_FCM_TOKEN)).willReturn(existingUserResult);
+            given(authToUserPort.delegateUserData(SocialProvider.KAKAO, testUserProfile, TEST_FCM_TOKEN)).willReturn(existingUserDetail);
+            given(globalJwtPort.generateAccessToken(existingUserDetail)).willReturn(generatedAccessToken);
+            given(globalJwtPort.generateRefreshToken(existingUserDetail)).willReturn(generatedRefreshToken);
+            given(globalCookiePort.generateJwtCookie(generatedAccessToken, generatedRefreshToken)).willReturn(cookies);
 
             // When
             LoginResult result = socialLoginService.processSocialLogin(SocialProvider.KAKAO, TEST_AUTH_CODE, TEST_FCM_TOKEN);
@@ -115,6 +143,9 @@ class SocialLoginServiceTest {
             verify(strategyRegistry).getStrategy(SocialProvider.KAKAO);
             verify(kakaoStrategy).authenticate(SocialProvider.KAKAO, TEST_AUTH_CODE);
             verify(authToUserPort).delegateUserData(SocialProvider.KAKAO, testUserProfile, TEST_FCM_TOKEN);
+            verify(globalJwtPort).generateAccessToken(existingUserDetail);
+            verify(globalJwtPort).generateRefreshToken(existingUserDetail);
+            verify(globalCookiePort).generateJwtCookie(generatedAccessToken, generatedRefreshToken);
         }
     }
 
@@ -123,7 +154,6 @@ class SocialLoginServiceTest {
     void shouldProcessSocialLogin_WhenNewUser() {
         // Given
         ResponseCookie tempCookie = ResponseCookie.from("temp", "uuid").build();
-        LoginResult.NewUser newUserResult = new LoginResult.NewUser("test-uuid", tempCookie);
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             mockAnonymousAuthentication(mockedSecurityContext);
@@ -131,7 +161,8 @@ class SocialLoginServiceTest {
             given(strategyRegistry.getStrategy(SocialProvider.KAKAO)).willReturn(kakaoStrategy);
             given(kakaoStrategy.authenticate(SocialProvider.KAKAO, TEST_AUTH_CODE)).willReturn(testUserProfile);
             given(blacklistPort.existsByProviderAndSocialId(SocialProvider.KAKAO, TEST_SOCIAL_ID)).willReturn(false);
-            given(authToUserPort.delegateUserData(SocialProvider.KAKAO, testUserProfile, TEST_FCM_TOKEN)).willReturn(newUserResult);
+            given(authToUserPort.delegateUserData(SocialProvider.KAKAO, testUserProfile, TEST_FCM_TOKEN)).willReturn(newUserDetail);
+            given(globalCookiePort.createTempCookie(newUserDetail)).willReturn(tempCookie);
 
             // When
             LoginResult result = socialLoginService.processSocialLogin(SocialProvider.KAKAO, TEST_AUTH_CODE, TEST_FCM_TOKEN);
@@ -145,6 +176,7 @@ class SocialLoginServiceTest {
             verify(strategyRegistry).getStrategy(SocialProvider.KAKAO);
             verify(kakaoStrategy).authenticate(SocialProvider.KAKAO, TEST_AUTH_CODE);
             verify(authToUserPort).delegateUserData(SocialProvider.KAKAO, testUserProfile, TEST_FCM_TOKEN);
+            verify(globalCookiePort).createTempCookie(newUserDetail);
         }
     }
 

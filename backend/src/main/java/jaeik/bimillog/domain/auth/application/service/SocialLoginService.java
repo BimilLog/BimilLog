@@ -71,8 +71,10 @@ public class SocialLoginService implements SocialLoginUseCase {
             throw new AuthCustomException(AuthErrorCode.BLACKLIST_USER);
         }
 
-        UserDetail userDetail =  authToUserPort.delegateUserData(provider, authResult, fcmToken);
+        // 3. 로그인 이후 유저 데이터 작업 유저 도메인으로 책임 위임 결과 값으로 유저 정보 획득
+        UserDetail userDetail = authToUserPort.delegateUserData(provider, authResult, fcmToken);
 
+        // 4. 기존 유저, 신규 유저에 따라 다른 반환값을 LoginResult에 작성
         if (userDetail instanceof ExistingUserDetail) {
             String accessToken = globalJwtPort.generateAccessToken((ExistingUserDetail) userDetail);
             String refreshToken = globalJwtPort.generateRefreshToken((ExistingUserDetail) userDetail);
@@ -83,8 +85,6 @@ public class SocialLoginService implements SocialLoginUseCase {
             return new LoginResult.NewUser(((NewUserDetail) userDetail).getUuid(), tempCookie);
         }
     }
-
-
 
     /**
      * <h3>중복 로그인 방지 검증</h3>
