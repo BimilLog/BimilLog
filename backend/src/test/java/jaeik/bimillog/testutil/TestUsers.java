@@ -85,21 +85,6 @@ public class TestUsers {
     }
 
     /**
-     * 특정 사용자명을 가진 사용자 생성
-     */
-    public static User withUserName(String userName) {
-        return User.builder()
-                .socialId(USER1.getSocialId())
-                .provider(USER1.getProvider())
-                .userName(userName)
-                .socialNickname(USER1.getSocialNickname())
-                .thumbnailImage(USER1.getThumbnailImage())
-                .role(USER1.getRole())
-                .setting(USER1.getSetting())
-                .build();
-    }
-
-    /**
      * 특정 소셜 ID를 가진 사용자 생성
      */
     public static User withSocialId(String socialId) {
@@ -159,36 +144,6 @@ public class TestUsers {
                 .socialNickname(USER1.getSocialNickname())
                 .thumbnailImage(USER1.getThumbnailImage())
                 .role(role)
-                .setting(USER1.getSetting())
-                .build();
-    }
-
-    /**
-     * 특정 provider를 가진 사용자 생성
-     */
-    public static User withProvider(SocialProvider provider) {
-        return User.builder()
-                .socialId(USER1.getSocialId())
-                .provider(provider)
-                .userName(USER1.getUserName())
-                .socialNickname(USER1.getSocialNickname())
-                .thumbnailImage(USER1.getThumbnailImage())
-                .role(USER1.getRole())
-                .setting(USER1.getSetting())
-                .build();
-    }
-
-    /**
-     * 빈 이미지를 가진 사용자 생성
-     */
-    public static User withoutImage() {
-        return User.builder()
-                .socialId(USER1.getSocialId())
-                .provider(USER1.getProvider())
-                .userName(USER1.getUserName())
-                .socialNickname(USER1.getSocialNickname())
-                .thumbnailImage("")
-                .role(USER1.getRole())
                 .setting(USER1.getSetting())
                 .build();
     }
