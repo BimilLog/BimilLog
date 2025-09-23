@@ -84,22 +84,17 @@ class SocialLogoutServiceTest {
         );
     }
 
-    private Token createMockTokenWithUser() {
-        User mockUser = mock(User.class);
+    private Token createMockToken() {
         Token mockToken = mock(Token.class);
-        
-        given(mockUser.getProvider()).willReturn(SocialProvider.KAKAO);
-        given(mockToken.getUsers()).willReturn(mockUser);
         given(mockToken.getAccessToken()).willReturn("mock-access-TemporaryToken");
-        
         return mockToken;
     }
 
     @Test
     @DisplayName("정상적인 로그아웃 처리")
-    void shouldLogout_WhenValidUserDetails() {
+    void shouldLogout_WhenValidUserDetails() throws Exception {
         // Given
-        Token mockToken = createMockTokenWithUser();
+        Token mockToken = createMockToken();
         given(userDetails.getUserId()).willReturn(100L);
         given(userDetails.getTokenId()).willReturn(200L);
         given(userDetails.getSocialProvider()).willReturn(SocialProvider.KAKAO);
@@ -135,7 +130,7 @@ class SocialLogoutServiceTest {
 
     @Test
     @DisplayName("토큰이 존재하지 않는 경우 AuthCustomException 발생")
-    void shouldThrowException_WhenTokenNotFound() {
+    void shouldThrowException_WhenTokenNotFound() throws Exception {
         // Given
         given(userDetails.getUserId()).willReturn(100L);
         given(userDetails.getTokenId()).willReturn(200L);
@@ -144,7 +139,7 @@ class SocialLogoutServiceTest {
         // When & Then
         assertThatThrownBy(() -> socialLogoutService.logout(userDetails))
             .isInstanceOf(AuthCustomException.class)
-            .hasFieldOrPropertyWithValue("errorCode", AuthErrorCode.NOT_FIND_TOKEN);
+            .hasFieldOrPropertyWithValue("authErrorCode", AuthErrorCode.NOT_FIND_TOKEN);
 
         // 예외 발생으로 다른 메서드들은 호출되지 않음
         verify(globalTokenQueryPort).findById(200L);
@@ -158,7 +153,7 @@ class SocialLogoutServiceTest {
     @DisplayName("소셜 로그아웃 실패시에도 전체 로그아웃은 성공")
     void shouldCompleteLogout_WhenSocialLogoutFails() throws Exception {
         // Given
-        Token mockToken = createMockTokenWithUser();
+        Token mockToken = createMockToken();
         given(userDetails.getUserId()).willReturn(100L);
         given(userDetails.getTokenId()).willReturn(200L);
         given(userDetails.getSocialProvider()).willReturn(SocialProvider.KAKAO);
