@@ -80,7 +80,7 @@ class UserSaveServiceTest {
         )).willReturn(Optional.of(testUser));
 
         ExistingUserDetail expectedDetail = ExistingUserDetail.of(testUser, 1L, 100L);
-        given(saveUserPort.handleExistingUserLogin(
+        given(saveUserPort.handleExistingUserData(
             testUser,
             testSocialProfile,
             testFcmToken
@@ -101,7 +101,7 @@ class UserSaveServiceTest {
         assertThat(existingUserDetail.getFcmTokenId()).isEqualTo(100L);
 
         verify(userQueryPort).findByProviderAndSocialId(SocialProvider.KAKAO, "kakao123");
-        verify(saveUserPort).handleExistingUserLogin(testUser, testSocialProfile, testFcmToken);
+        verify(saveUserPort).handleExistingUserData(testUser, testSocialProfile, testFcmToken);
         verify(redisUserDataPort, never()).saveTempData(any(), any(), any());
     }
 
@@ -142,7 +142,7 @@ class UserSaveServiceTest {
         assertThat(profileCaptor.getValue()).isEqualTo(testSocialProfile);
         assertThat(fcmCaptor.getValue()).isEqualTo(testFcmToken);
 
-        verify(saveUserPort, never()).handleExistingUserLogin(any(), any(), any());
+        verify(saveUserPort, never()).handleExistingUserData(any(), any(), any());
     }
 
     @Test
@@ -155,7 +155,7 @@ class UserSaveServiceTest {
         )).willReturn(Optional.of(testUser));
 
         ExistingUserDetail expectedDetail = ExistingUserDetail.of(testUser, 1L, null);
-        given(saveUserPort.handleExistingUserLogin(
+        given(saveUserPort.handleExistingUserData(
             testUser,
             testSocialProfile,
             null
@@ -173,7 +173,7 @@ class UserSaveServiceTest {
         ExistingUserDetail existingUserDetail = (ExistingUserDetail) result;
         assertThat(existingUserDetail.getFcmTokenId()).isNull();
 
-        verify(saveUserPort).handleExistingUserLogin(testUser, testSocialProfile, null);
+        verify(saveUserPort).handleExistingUserData(testUser, testSocialProfile, null);
     }
 
     @Test
@@ -227,7 +227,7 @@ class UserSaveServiceTest {
         )).willReturn(Optional.of(googleUser));
 
         ExistingUserDetail expectedDetail = ExistingUserDetail.of(googleUser, 2L, 200L);
-        given(saveUserPort.handleExistingUserLogin(
+        given(saveUserPort.handleExistingUserData(
             googleUser,
             googleProfile,
             testFcmToken
@@ -243,6 +243,6 @@ class UserSaveServiceTest {
         // Then
         assertThat(result).isInstanceOf(ExistingUserDetail.class);
         verify(userQueryPort).findByProviderAndSocialId(SocialProvider.GOOGLE, "google456");
-        verify(saveUserPort).handleExistingUserLogin(googleUser, googleProfile, testFcmToken);
+        verify(saveUserPort).handleExistingUserData(googleUser, googleProfile, testFcmToken);
     }
 }

@@ -4,7 +4,6 @@ import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
 import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
-import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.global.application.port.out.GlobalTokenCommandPort;
@@ -66,7 +65,7 @@ class SaveUserAdapterTest {
         given(notificationFcmUseCase.registerFcmToken(existingUser, fcmToken)).willReturn(fcmTokenId);
 
         // When: 기존 사용자 로그인 처리
-        ExistingUserDetail result = saveUserAdapter.handleExistingUserLogin(existingUser, userProfile, fcmToken);
+        ExistingUserDetail result = saveUserAdapter.handleExistingUserData(existingUser, userProfile, fcmToken);
 
         // Then: 사용자 정보 업데이트 검증
         assertThat(existingUser.getSocialNickname()).isEqualTo("업데이트된닉네임");
@@ -109,7 +108,7 @@ class SaveUserAdapterTest {
         given(globalTokenCommandPort.save(any(Token.class))).willReturn(savedToken);
 
         // When: FCM 토큰 없이 기존 사용자 로그인 처리
-        ExistingUserDetail result = saveUserAdapter.handleExistingUserLogin(existingUser, userProfile, null);
+        ExistingUserDetail result = saveUserAdapter.handleExistingUserData(existingUser, userProfile, null);
 
         // Then: FCM 토큰 등록이 호출되지 않았는지 검증
         verify(notificationFcmUseCase, never()).registerFcmToken(any(), any());

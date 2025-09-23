@@ -634,10 +634,10 @@ class CommentCommandServiceTest {
         // Given
         given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(testComment);
 
-        // When & Then  
+        // When & Then
         assertThatThrownBy(() -> commentCommandService.updateComment(TEST_COMMENT_ID, TEST_USER_ID, "", null))
                 .isInstanceOf(CommentCustomException.class)
-                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_UPDATE_FAILED);
+                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_WRITE_FAILED);
 
         verify(commentQueryPort).findById(TEST_COMMENT_ID);
     }

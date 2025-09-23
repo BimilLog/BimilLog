@@ -481,9 +481,9 @@ class CommentQueryServiceTest {
                 .userName("user1")
                 .likeCount(0)
                 .userLike(false)
-                .depth(0)
+                .parentId(null)  // 루트 댓글은 parentId가 null
                 .build();
-        
+
         // depth 1 - 첫 번째 레벨 대댓글
         CommentInfo firstLevelReply = CommentInfo.builder()
                 .id(101L)
@@ -491,9 +491,9 @@ class CommentQueryServiceTest {
                 .userName("user2")
                 .likeCount(0)
                 .userLike(false)
-                .depth(1)
+                .parentId(100L)  // 루트 댓글의 자식
                 .build();
-        
+
         // depth 2 - 두 번째 레벨 대댓글
         CommentInfo secondLevelReply = CommentInfo.builder()
                 .id(102L)
@@ -501,7 +501,7 @@ class CommentQueryServiceTest {
                 .userName("user3")
                 .likeCount(0)
                 .userLike(false)
-                .depth(2)
+                .parentId(101L)  // 첫 번째 레벨 대댓글의 자식
                 .build();
         
         List<CommentInfo> hierarchicalComments = List.of(rootComment, firstLevelReply, secondLevelReply);
@@ -517,12 +517,12 @@ class CommentQueryServiceTest {
 
         // Then
         assertThat(result.getContent()).hasSize(3);
-        
-        // depth 검증
-        assertThat(result.getContent().get(0).getDepth()).isEqualTo(0);
-        assertThat(result.getContent().get(1).getDepth()).isEqualTo(1);
-        assertThat(result.getContent().get(2).getDepth()).isEqualTo(2);
-        
+
+        // parentId로 계층 구조 검증
+        assertThat(result.getContent().get(0).getParentId()).isNull(); // 루트 댓글
+        assertThat(result.getContent().get(1).getParentId()).isEqualTo(100L); // 첫 번째 레벨 대댓글
+        assertThat(result.getContent().get(2).getParentId()).isEqualTo(101L); // 두 번째 레벨 대댓글
+
         verify(commentQueryPort).findCommentsWithOldestOrder(eq(postId), any(Pageable.class), eq(100L));
     }
 

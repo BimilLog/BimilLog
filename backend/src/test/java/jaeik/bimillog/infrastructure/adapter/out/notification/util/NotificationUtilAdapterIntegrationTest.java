@@ -4,6 +4,7 @@ import jaeik.bimillog.BimilLogApplication;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSettings;
 import jaeik.bimillog.testutil.TestUsers;
@@ -66,10 +67,17 @@ class NotificationUtilAdapterIntegrationTest {
         enabledUserId = enabledUser.getId();
 
         // Given: 알림이 비활성화된 사용자 설정
-        disabledUser = TestUsers.copyWithIdAndSetting(
-            TestUsers.USER2,
-            null,
-            TestSettings.copyWithId(TestSettings.ALL_DISABLED, null)
+        Setting disabledSetting = TestSettings.copyWithId(TestSettings.ALL_DISABLED, null);
+        disabledSetting = testEntityManager.persistAndFlush(disabledSetting);
+
+        User sourceUser = TestUsers.USER2;
+        disabledUser = User.createUser(
+            sourceUser.getSocialId(),
+            sourceUser.getProvider(),
+            sourceUser.getSocialNickname(),
+            sourceUser.getThumbnailImage(),
+            sourceUser.getUserName(),
+            disabledSetting
         );
         disabledUser = testEntityManager.persistAndFlush(disabledUser);
         disabledUserId = disabledUser.getId();

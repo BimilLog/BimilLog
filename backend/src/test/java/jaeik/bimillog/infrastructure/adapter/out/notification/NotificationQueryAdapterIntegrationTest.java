@@ -6,6 +6,7 @@ import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.NotificationTestDataBuilder;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -74,6 +75,46 @@ class NotificationQueryAdapterIntegrationTest {
 
         testEntityManager.flush();
         testEntityManager.clear();
+    }
+
+    /**
+     * 알림을 생성하고 저장하는 헬퍼 메소드
+     */
+    private void createAndSaveNotification(User user, NotificationType type, String content, String url, boolean isRead) {
+        NotificationTestDataBuilder builder;
+
+        switch (type) {
+            case COMMENT:
+                builder = NotificationTestDataBuilder.aCommentNotification(user, 1L);
+                break;
+            case PAPER:
+                builder = NotificationTestDataBuilder.aPaperMessageNotification(user);
+                break;
+            case POST_FEATURED:
+                builder = NotificationTestDataBuilder.aLikeNotification(user, 1L);  // aPostFeaturedNotification 대신 aLikeNotification 사용
+                break;
+            case ADMIN:
+                builder = NotificationTestDataBuilder.anAdminNotification(user, content);  // message 파라미터 추가
+                break;
+            case INITIATE:
+                builder = NotificationTestDataBuilder.aNotification()  // anInitiateNotification이 없으므로 일반 알림으로 생성
+                    .withReceiver(user)
+                    .withType(NotificationType.INITIATE);
+                break;
+            default:
+                builder = NotificationTestDataBuilder.aCommentNotification(user, 1L);
+        }
+
+        builder = builder.withMessage(content);  // withContent 대신 withMessage 사용
+
+        Notification notification;
+        if (isRead) {
+            notification = builder.asRead().build();
+        } else {
+            notification = builder.asUnread().build();
+        }
+
+        testEntityManager.persistAndFlush(notification);
     }
 
     @Test
@@ -188,8 +229,7 @@ class NotificationQueryAdapterIntegrationTest {
         // Given: 시간차를 둔 알림 생성 (명확한 순서 확인을 위해)
         Notification oldest = testEntityManager.persistAndFlush(
             NotificationTestDataBuilder.aCommentNotification(testUser, 1L)
-                .withContent("가장 오래된 알림")
-                .withUrl("/post/1")
+                .withMessage("가장 오래된 알림")
                 .asUnread()
                 .build()
         );
@@ -198,8 +238,7 @@ class NotificationQueryAdapterIntegrationTest {
 
         Notification middle = testEntityManager.persistAndFlush(
             NotificationTestDataBuilder.aPaperMessageNotification(testUser)
-                .withContent("중간 알림")
-                .withUrl("/paper/2")
+                .withMessage("중간 알림")
                 .asUnread()
                 .build()
         );
@@ -207,9 +246,8 @@ class NotificationQueryAdapterIntegrationTest {
         try { Thread.sleep(10); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
 
         Notification newest = testEntityManager.persistAndFlush(
-            NotificationTestDataBuilder.aPostFeaturedNotification(testUser, 3L)
-                .withContent("가장 최신 알림")
-                .withUrl("/post/3")
+            NotificationTestDataBuilder.aLikeNotification(testUser, 3L)
+                .withMessage("가장 최신 알림")
                 .asUnread()
                 .build()
         );
@@ -240,30 +278,25 @@ class NotificationQueryAdapterIntegrationTest {
         // Given: 현재 사용자와 다른 사용자의 알림 각각 생성
         testEntityManager.persistAndFlush(
             NotificationTestDataBuilder.aCommentNotification(testUser, 1L)
-                .withContent("내 댓글 알림")
-                .withUrl("/post/1")
+                .withMessage("내 댓글 알림")
                 .asUnread()
                 .build()
         );
         testEntityManager.persistAndFlush(
             NotificationTestDataBuilder.aPaperMessageNotification(testUser)
-                .withContent("내 메시지 알림")
-                .withUrl("/paper/2")
+                .withMessage("내 메시지 알림")
                 .asUnread()
                 .build()
         );
 
         testEntityManager.persistAndFlush(
-            NotificationTestDataBuilder.anAdminNotification(otherUser)
-                .withContent("다른 사용자의 관리자 알림")
-                .withUrl("/admin/1")
+            NotificationTestDataBuilder.anAdminNotification(otherUser, "다른 사용자의 관리자 알림")
                 .asUnread()
                 .build()
         );
         testEntityManager.persistAndFlush(
-            NotificationTestDataBuilder.aPostFeaturedNotification(otherUser, 100L)
-                .withContent("다른 사용자의 인기글 알림")
-                .withUrl("/post/100")
+            NotificationTestDataBuilder.aLikeNotification(otherUser, 100L)
+                .withMessage("다른 사용자의 인기글 알림")
                 .asRead()
                 .build()
         );
@@ -306,23 +339,23 @@ class NotificationQueryAdapterIntegrationTest {
                     builder = NotificationTestDataBuilder.aPaperMessageNotification(testUser);
                     break;
                 case POST_FEATURED:
-                    builder = NotificationTestDataBuilder.aPostFeaturedNotification(testUser, (long) i);
+                    builder = NotificationTestDataBuilder.aLikeNotification(testUser, (long) i);
                     break;
                 case ADMIN:
-                    builder = NotificationTestDataBuilder.anAdminNotification(testUser);
+                    builder = NotificationTestDataBuilder.anAdminNotification(testUser, "알림 #" + i);
                     break;
                 case INITIATE:
-                    builder = NotificationTestDataBuilder.anInitiateNotification(testUser);
+                    builder = NotificationTestDataBuilder.aNotification()
+                        .withReceiver(testUser)
+                        .withType(NotificationType.INITIATE);
                     break;
                 default:
                     builder = NotificationTestDataBuilder.aCommentNotification(testUser, (long) i);
             }
 
-            Notification notification = builder
-                .withContent("알림 #" + i)
-                .withUrl("/url/" + i)
-                .build();
+            builder = builder.withMessage("알림 #" + i);
 
+            Notification notification;
             if (isRead) {
                 notification = builder.asRead().build();
             } else {
