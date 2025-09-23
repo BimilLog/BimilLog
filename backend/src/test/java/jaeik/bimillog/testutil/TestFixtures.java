@@ -72,17 +72,7 @@ public class TestFixtures {
         return post;
     }
 
-    /**
-     * 테스트용 댓글 생성
-     * @param post 게시글
-     * @param author 작성자
-     * @param content 댓글 내용
-     * @param parentComment 부모 댓글 (대댓글인 경우)
-     * @return Comment 엔티티
-     */
-    public static Comment createComment(Post post, User author, String content, Comment parentComment) {
-        return Comment.createComment(post, author, content, parentComment != null ? parentComment.getId().intValue() : null);
-    }
+    // TestFixtures.createComment 제거 - CommentTestDataBuilder.createTestComment 사용
 
     /**
      * 테스트용 알림 생성
@@ -237,21 +227,7 @@ public class TestFixtures {
                 .build();
     }
 
-    /**
-     * 댓글 작성 요청 DTO 생성
-     * @param postId 게시글 ID
-     * @param content 댓글 내용
-     * @param parentId 부모 댓글 ID (대댓글인 경우)
-     * @return CommentReqDTO
-     */
-    public static CommentReqDTO createCommentRequest(Long postId, String content, Long parentId) {
-        CommentReqDTO dto = new CommentReqDTO();
-        dto.setPostId(postId);
-        dto.setContent(content);
-        dto.setParentId(parentId);
-        dto.setPassword(1234); // Default password for anonymous comments
-        return dto;
-    }
+    // TestFixtures.createCommentRequest 제거 - CommentTestDataBuilder.createCommentReqDTO 사용
 
     /**
      * 롤링페이퍼 메시지 요청 DTO 생성
@@ -409,7 +385,7 @@ public class TestFixtures {
      * @param fieldName 필드명
      * @param value 설정할 값
      */
-    private static void setFieldValue(Object target, String fieldName, Object value) {
+    public static void setFieldValue(Object target, String fieldName, Object value) {
         try {
             java.lang.reflect.Field field = target.getClass().getDeclaredField(fieldName);
             field.setAccessible(true);

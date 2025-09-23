@@ -12,6 +12,8 @@ import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
 import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestFixtures;
+import jaeik.bimillog.testutil.CommentTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -80,7 +82,7 @@ class CommentQueryControllerIntegrationTest {
         userRepository.save(testUser);
         
         // 테스트용 게시글 생성
-        testPost = createTestPost(testUser);
+        testPost = CommentTestDataBuilder.createTestPost(testUser);
         postRepository.save(testPost);
         
         // 테스트용 댓글들 생성
@@ -91,7 +93,7 @@ class CommentQueryControllerIntegrationTest {
     @DisplayName("댓글 조회 통합 테스트 - 첫 번째 페이지")
     void getComments_FirstPage_IntegrationTest() throws Exception {
         // Given
-        CustomUserDetails userDetails = createUserDetails(testUser);
+        CustomUserDetails userDetails = CommentTestDataBuilder.createUserDetails(testUser);
         
         // When & Then
         mockMvc.perform(get("/api/comment/{postId}", testPost.getId())
@@ -110,10 +112,10 @@ class CommentQueryControllerIntegrationTest {
     @DisplayName("댓글 조회 통합 테스트 - 빈 페이지")
     void getComments_EmptyPage_IntegrationTest() throws Exception {
         // Given - 댓글이 없는 새로운 게시글
-        Post emptyPost = createTestPost(testUser);
+        Post emptyPost = CommentTestDataBuilder.createTestPost(testUser, "빈 게시글", "댓글이 없는 게시글입니다.");
         postRepository.save(emptyPost);
         
-        CustomUserDetails userDetails = createUserDetails(testUser);
+        CustomUserDetails userDetails = CommentTestDataBuilder.createUserDetails(testUser);
         
         // When & Then
         mockMvc.perform(get("/api/comment/{postId}", emptyPost.getId())
@@ -132,7 +134,7 @@ class CommentQueryControllerIntegrationTest {
     @DisplayName("인기댓글 조회 통합 테스트")
     void getPopularComments_IntegrationTest() throws Exception {
         // Given
-        CustomUserDetails userDetails = createUserDetails(testUser);
+        CustomUserDetails userDetails = CommentTestDataBuilder.createUserDetails(testUser);
         
         // When & Then
         mockMvc.perform(get("/api/comment/{postId}/popular", testPost.getId())
@@ -143,47 +145,17 @@ class CommentQueryControllerIntegrationTest {
         // 추천 로직은 별도 CommentLike 엔티티로 관리되므로 실제 추천이 없으면 빈 배열 반환이 정상
     }
     
-    /**
-     * 테스트용 게시글 생성
-     */
-    private Post createTestPost(User user) {
-        return Post.builder()
-                .title("테스트 게시글")
-                .content("테스트 게시글 내용입니다.")
-                .user(user)
-                .build();
-    }
+
     
     /**
      * 테스트용 일반 댓글들 생성
      */
     private void createTestComments() {
         for (int i = 1; i <= 5; i++) {
-            Comment comment = Comment.builder()
-                    .content("테스트 댓글 " + i)
-                    .user(testUser)
-                    .post(testPost)
-                    .deleted(false)
-                    .build();
+            Comment comment = CommentTestDataBuilder.createTestComment(
+                    testUser, testPost, "테스트 댓글 " + i);
             commentRepository.save(comment);
         }
     }
-    
-    
-    /**
-     * 테스트용 CustomUserDetails 생성
-     */
-    private CustomUserDetails createUserDetails(User user) {
-        ExistingUserDetail userDetail = ExistingUserDetail.builder()
-                .userId(user.getId())
-                .socialId(user.getSocialId())
-                .socialNickname(user.getSocialNickname())
-                .thumbnailImage(user.getThumbnailImage())
-                .userName(user.getUserName())
-                .provider(user.getProvider())
-                .role(user.getRole())
-                .build();
-        
-        return new CustomUserDetails(userDetail);
-    }
+
 }

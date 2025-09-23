@@ -70,12 +70,12 @@ public class SaveUserAdapter implements SaveUserPort {
     /**
      * <h3>신규 사용자 등록</h3>
      * <p>소셜 로그인 회원가입에서 입력받은 닉네임과 임시 데이터를 사용하여 신규 회원을 등록합니다.</p>
-     * <p>User 엔티티와 Setting 생성, Token 엔티티 생성/저장, FCM 토큰 등록, 임시 데이터 삭제, JWT 쿠키 발급을 수행합니다.</p>
+     * <p>User 엔티티와 Setting 생성, Token 엔티티 생성/저장, FCM 토큰 등록을 수행합니다.</p>
      *
      * @param userName 사용자가 입력한 닉네임
      * @param userProfile 소셜 사용자 프로필 (OAuth 액세스/리프레시 토큰 포함)
      * @param fcmToken FCM 토큰 (선택적)
-     * @return JWT 인증 쿠키 목록
+     * @return ExistingUserDetail 생성된 사용자 정보를 담은 객체
      * @author Jaeik
      * @since 2.0.0
      */

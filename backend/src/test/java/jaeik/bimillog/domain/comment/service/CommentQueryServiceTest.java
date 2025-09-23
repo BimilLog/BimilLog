@@ -4,12 +4,15 @@ import jaeik.bimillog.domain.comment.application.port.out.CommentQueryPort;
 import jaeik.bimillog.domain.comment.application.service.CommentQueryService;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentInfo;
+import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
 import jaeik.bimillog.domain.comment.exception.CommentCustomException;
 import jaeik.bimillog.domain.comment.exception.CommentErrorCode;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestFixtures;
+import jaeik.bimillog.testutil.CommentTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -61,13 +64,10 @@ class CommentQueryServiceTest {
     @BeforeEach
     void setUp() {
         User testUser = TestUsers.copyWithId(TestUsers.USER1, 100L);
-
-        testComment = Comment.builder()
-                .id(200L)
-                .content("테스트 댓글")
-                .user(testUser)
-                .deleted(false)
-                .build();
+        Post testPost = TestFixtures.createPostWithId(300L, testUser, "테스트 게시글", "게시글 내용");
+        
+        testComment = CommentTestDataBuilder.createTestComment(testUser, testPost, "테스트 댓글");
+        TestFixtures.setFieldValue(testComment, "id", 200L);
 
         commentInfo = CommentInfo.builder()
                 .id(200L)
@@ -441,5 +441,131 @@ class CommentQueryServiceTest {
         assertThat(result.get(4L)).isEqualTo(0);
 
         verify(commentQueryPort).findCommentCountsByPostIds(largePostIds);
+    }
+
+    // === 누락된 테스트 추가 ===
+
+    @Test
+    @DisplayName("삭제된 댓글 처리 확인 (deleted=true)")
+    void shouldHandleDeletedComments() {
+        // Given
+        Comment deletedComment = CommentTestDataBuilder.createTestComment(
+                TestUsers.USER1, TestFixtures.createPost(TestUsers.USER1, "테스트", "내용"), "삭제된 댓글");
+        TestFixtures.setFieldValue(deletedComment, "id", 300L);
+        TestFixtures.setFieldValue(deletedComment, "deleted", true);
+        
+        given(commentQueryPort.findById(300L)).willReturn(deletedComment);
+
+        // When
+        Comment result = commentQueryService.findById(300L);
+
+        // Then
+        assertThat(result.getId()).isEqualTo(300L);
+        assertThat(result.isDeleted()).isTrue();
+        assertThat(result.getContent()).isEqualTo("삭제된 댓글");
+        
+        verify(commentQueryPort).findById(300L);
+    }
+
+    @Test
+    @DisplayName("계층형 댓글 조회 시 depth 처리 검증")
+    void shouldHandleCommentHierarchyWithDepth() {
+        // Given
+        Long postId = 300L;
+        
+        // 계층 구조를 표현하는 CommentInfo 생성
+        // depth 0 - 루트 댓글
+        CommentInfo rootComment = CommentInfo.builder()
+                .id(100L)
+                .content("루트 댓글")
+                .userName("user1")
+                .likeCount(0)
+                .userLike(false)
+                .depth(0)
+                .build();
+        
+        // depth 1 - 첫 번째 레벨 대댓글
+        CommentInfo firstLevelReply = CommentInfo.builder()
+                .id(101L)
+                .content("첫 번째 레벨 대댓글")
+                .userName("user2")
+                .likeCount(0)
+                .userLike(false)
+                .depth(1)
+                .build();
+        
+        // depth 2 - 두 번째 레벨 대댓글
+        CommentInfo secondLevelReply = CommentInfo.builder()
+                .id(102L)
+                .content("두 번째 레벨 대댓글")
+                .userName("user3")
+                .likeCount(0)
+                .userLike(false)
+                .depth(2)
+                .build();
+        
+        List<CommentInfo> hierarchicalComments = List.of(rootComment, firstLevelReply, secondLevelReply);
+        Page<CommentInfo> commentPage = new PageImpl<>(hierarchicalComments);
+
+        given(userDetails.getUserId()).willReturn(100L);
+        given(commentQueryPort.findCommentsWithOldestOrder(eq(postId), any(Pageable.class), eq(100L)))
+                .willReturn(commentPage);
+
+        // When
+        Pageable pageable = Pageable.ofSize(20).withPage(0);
+        Page<CommentInfo> result = commentQueryService.getCommentsOldestOrder(postId, pageable, userDetails);
+
+        // Then
+        assertThat(result.getContent()).hasSize(3);
+        
+        // depth 검증
+        assertThat(result.getContent().get(0).getDepth()).isEqualTo(0);
+        assertThat(result.getContent().get(1).getDepth()).isEqualTo(1);
+        assertThat(result.getContent().get(2).getDepth()).isEqualTo(2);
+        
+        verify(commentQueryPort).findCommentsWithOldestOrder(eq(postId), any(Pageable.class), eq(100L));
+    }
+
+    @Test
+    @DisplayName("삭제된 댓글이 포함된 페이지 조회")
+    void shouldReturnPageWithDeletedComments() {
+        // Given
+        Long postId = 300L;
+        
+        CommentInfo normalComment = CommentInfo.builder()
+                .id(200L)
+                .content("정상 댓글")
+                .userName("user1")
+                .likeCount(5)
+                .userLike(false)
+                .deleted(false)
+                .build();
+                
+        CommentInfo deletedComment = CommentInfo.builder()
+                .id(201L)
+                .content("삭제된 댓글입니다")
+                .userName(null)  // 삭제된 댓글은 사용자 정보가 없을 수 있음
+                .likeCount(0)
+                .userLike(false)
+                .deleted(true)
+                .build();
+        
+        List<CommentInfo> mixedComments = List.of(normalComment, deletedComment);
+        Page<CommentInfo> commentPage = new PageImpl<>(mixedComments);
+
+        given(commentQueryPort.findCommentsWithOldestOrder(eq(postId), any(Pageable.class), isNull()))
+                .willReturn(commentPage);
+
+        // When
+        Pageable pageable = Pageable.ofSize(20).withPage(0);
+        Page<CommentInfo> result = commentQueryService.getCommentsOldestOrder(postId, pageable, null);
+
+        // Then
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getContent().get(0).isDeleted()).isFalse();
+        assertThat(result.getContent().get(1).isDeleted()).isTrue();
+        assertThat(result.getContent().get(1).getContent()).isEqualTo("삭제된 댓글입니다");
+        
+        verify(commentQueryPort).findCommentsWithOldestOrder(eq(postId), any(Pageable.class), isNull());
     }
 }

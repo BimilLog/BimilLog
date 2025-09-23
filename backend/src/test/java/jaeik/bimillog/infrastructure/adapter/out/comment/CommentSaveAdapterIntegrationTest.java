@@ -12,6 +12,9 @@ import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentClosureRepos
 import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentRepository;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSettings;
+import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestFixtures;
+import jaeik.bimillog.testutil.CommentTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -70,36 +73,21 @@ class CommentSaveAdapterIntegrationTest {
         commentClosureRepository.deleteAll();
         commentRepository.deleteAll();
         
-        // 테스트용 사용자 생성
-        Setting setting = TestSettings.DEFAULT;
-        entityManager.persistAndFlush(setting);
-
-        testUser = User.builder()
-                .socialId("kakao_test_123")
-                .provider(SocialProvider.KAKAO)
-                .userName("testUser")
-                .socialNickname("테스트유저")
-                .role(UserRole.USER)
-                .setting(setting)
-                .build();
+        // 테스트용 사용자 생성 - TestUsers 활용
+        testUser = TestUsers.createUnique();
+        entityManager.persistAndFlush(testUser.getSetting());
         entityManager.persistAndFlush(testUser);
 
-        // 테스트용 게시글 생성
-        testPost = Post.builder()
-                .user(testUser)
-                .title("테스트 게시글")
-                .content("테스트 내용")
-                .isNotice(false)
-                .views(0)
-                .build();
+        // 테스트용 게시글 생성 - CommentTestDataBuilder 활용
+        testPost = CommentTestDataBuilder.createTestPost(testUser);
         entityManager.persistAndFlush(testPost);
         
-        // 부모 댓글 생성
-        parentComment = Comment.createComment(testPost, testUser, "부모 댓글", null);
+        // 부모 댓글 생성 - CommentTestDataBuilder 활용
+        parentComment = CommentTestDataBuilder.createTestComment(testUser, testPost, "부모 댓글");
         parentComment = commentRepository.save(parentComment);
         
-        // 자식 댓글 생성
-        childComment = Comment.createComment(testPost, testUser, "자식 댓글", null);
+        // 자식 댓글 생성 - CommentTestDataBuilder 활용
+        childComment = CommentTestDataBuilder.createTestComment(testUser, testPost, "자식 댓글");
         childComment = commentRepository.save(childComment);
     }
 

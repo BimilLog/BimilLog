@@ -35,15 +35,15 @@ public class AuthToUserAdapter implements AuthToUserPort {
     private final UserSaveUseCase userSaveUseCase;
 
     /**
-     * <h3>사용자 데이터 처리 및 로그인 결과 생성</h3>
-     * <p>User 도메인에 사용자 처리를 위임하고 그 결과를 LoginResult로 변환합니다.</p>
-     * <p>기존 사용자는 JWT 쿠키를, 신규 사용자는 임시 쿠키를 생성합니다.</p>
+     * <h3>사용자 데이터 처리 위임</h3>
+     * <p>User 도메인에 사용자 처리를 위임하고 그 결과를 반환합니다.</p>
+     * <p>기존 사용자 또는 신규 사용자 정보를 UserDetail 형태로 반환합니다.</p>
      * <p>{@link SocialService}에서 소셜 로그인 처리 시 호출됩니다.</p>
      *
      * @param provider 소셜 로그인 제공자 (KAKAO 등)
      * @param profile 소셜 사용자 프로필 정보
      * @param fcmToken FCM 토큰 (선택사항)
-     * @return LoginResult 기존 사용자(쿠키) 또는 신규 사용자(UUID) 정보
+     * @return UserDetail 기존 사용자 또는 신규 사용자 정보
      * @author Jaeik
      * @since 2.0.0
      */
