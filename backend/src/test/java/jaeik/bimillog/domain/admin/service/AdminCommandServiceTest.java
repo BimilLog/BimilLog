@@ -17,15 +17,14 @@ import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.testutil.BaseUnitTest;
+import jaeik.bimillog.testutil.TestFixtures;
 import jaeik.bimillog.testutil.TestUsers;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
@@ -43,9 +42,8 @@ import static org.mockito.Mockito.*;
  * @author Jaeik
  * @version 2.0.0
  */
-@ExtendWith(MockitoExtension.class)
 @DisplayName("AdminCommandService 단위 테스트")
-class AdminCommandServiceTest {
+class AdminCommandServiceTest extends BaseUnitTest {
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -65,13 +63,12 @@ class AdminCommandServiceTest {
     @InjectMocks
     private AdminCommandService adminCommandService;
 
-    private User testUser;
     private ReportType testReportType = ReportType.POST;
     private Long testTargetId = 200L;
     private String testContent = "불쾌한 내용";
 
-    @BeforeEach
-    void setUp() {
+    @Override
+    protected void setUpChild() {
         adminCommandService = new AdminCommandService(
                 eventPublisher,
                 adminCommandPort,
@@ -79,19 +76,14 @@ class AdminCommandServiceTest {
                 postQueryUseCase,
                 commentQueryUseCase
         );
-
-
-        testUser = TestUsers.copyWithId(TestUsers.USER1, 200L);
     }
 
     @Test
     @DisplayName("유효한 신고 정보로 사용자 제재 시 성공")
     void shouldBanUser_WhenValidReportDTO() {
         // Given
-        Post testPost = Post.builder()
-                .id(200L)
-                .user(testUser)
-                .build();
+        User userWithId = createTestUserWithId(200L);
+        Post testPost = TestFixtures.createPostWithId(200L, userWithId, "테스트 제목", "테스트 내용");
         given(postQueryUseCase.findById(200L)).willReturn(testPost);
 
         // When
@@ -103,8 +95,8 @@ class AdminCommandServiceTest {
 
         UserBannedEvent capturedEvent = eventCaptor.getValue();
         assertThat(capturedEvent.userId()).isEqualTo(200L);
-        assertThat(capturedEvent.socialId()).isEqualTo("kakao123");
-        assertThat(capturedEvent.provider()).isEqualTo(SocialProvider.KAKAO);
+        assertThat(capturedEvent.socialId()).isEqualTo(userWithId.getSocialId());
+        assertThat(capturedEvent.provider()).isEqualTo(userWithId.getProvider());
     }
 
     @Test
@@ -142,9 +134,10 @@ class AdminCommandServiceTest {
         ReportType commentReportType = ReportType.COMMENT;
         Long commentTargetId = 300L;
         
+        User userWithId = createTestUserWithId(200L);
         Comment testComment = Comment.builder()
                 .id(300L)
-                .user(testUser)
+                .user(userWithId)
                 .build();
         given(commentQueryUseCase.findById(300L)).willReturn(testComment);
 
@@ -157,8 +150,8 @@ class AdminCommandServiceTest {
 
         UserBannedEvent capturedEvent = eventCaptor.getValue();
         assertThat(capturedEvent.userId()).isEqualTo(200L);
-        assertThat(capturedEvent.socialId()).isEqualTo("kakao123");
-        assertThat(capturedEvent.provider()).isEqualTo(SocialProvider.KAKAO);
+        assertThat(capturedEvent.socialId()).isEqualTo(userWithId.getSocialId());
+        assertThat(capturedEvent.provider()).isEqualTo(userWithId.getProvider());
     }
 
     @Test
@@ -169,7 +162,7 @@ class AdminCommandServiceTest {
         Long userId = 100L;
         ReportType reportType = ReportType.COMMENT;
         
-        User mockUser = TestUsers.copyWithId(TestUsers.USER1, userId);
+        User mockUser = createTestUserWithId(userId);
         Comment mockComment = Comment.builder()
                 .id(commentId)
                 .user(mockUser)
@@ -246,7 +239,7 @@ class AdminCommandServiceTest {
         Long targetId = 123L;
         String content = "부적절한 댓글입니다";
         
-        User reporter = TestUsers.copyWithId(TestUsers.USER1, userId);
+        User reporter = createTestUserWithId(userId);
 
         Report expectedReport = Report.createReport(reportType, targetId, content, reporter);
 
@@ -290,7 +283,7 @@ class AdminCommandServiceTest {
         Long targetId = null;
         String content = "새로운 기능을 건의합니다";
         
-        User reporter = TestUsers.copyWithId(TestUsers.USER1, userId);
+        User reporter = createTestUserWithId(userId);
 
         Report expectedReport = Report.createReport(reportType, targetId, content, reporter);
 

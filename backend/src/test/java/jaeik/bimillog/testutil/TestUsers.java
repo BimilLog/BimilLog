@@ -90,12 +90,42 @@ public class TestUsers {
     public static User withSocialId(String socialId) {
         return User.builder()
                 .socialId(socialId)
-                .provider(USER1.getProvider())
+                .provider(SocialProvider.KAKAO)
                 .userName(USER1.getUserName())
                 .socialNickname(USER1.getSocialNickname())
                 .thumbnailImage(USER1.getThumbnailImage())
                 .role(USER1.getRole())
                 .setting(USER1.getSetting())
+                .build();
+    }
+
+    /**
+     * 특정 role을 가진 사용자 생성
+     */
+    public static User withRole(UserRole role) {
+        return User.builder()
+                .socialId(USER1.getSocialId())
+                .provider(USER1.getProvider())
+                .userName(USER1.getUserName())
+                .socialNickname(USER1.getSocialNickname())
+                .thumbnailImage(USER1.getThumbnailImage())
+                .role(role)
+                .setting(USER1.getSetting())
+                .build();
+    }
+
+    /**
+     * 커스텀 설정을 가진 사용자 생성
+     */
+    public static User withSetting(Setting setting) {
+        return User.builder()
+                .socialId(USER1.getSocialId())
+                .provider(USER1.getProvider())
+                .userName(USER1.getUserName())
+                .socialNickname(USER1.getSocialNickname())
+                .thumbnailImage(USER1.getThumbnailImage())
+                .role(USER1.getRole())
+                .setting(setting)
                 .build();
     }
 
@@ -133,35 +163,7 @@ public class TestUsers {
                 .build();
     }
 
-    /**
-     * 특정 role을 가진 사용자 생성
-     */
-    public static User withRole(UserRole role) {
-        return User.builder()
-                .socialId(USER1.getSocialId())
-                .provider(USER1.getProvider())
-                .userName(USER1.getUserName())
-                .socialNickname(USER1.getSocialNickname())
-                .thumbnailImage(USER1.getThumbnailImage())
-                .role(role)
-                .setting(USER1.getSetting())
-                .build();
-    }
 
-    /**
-     * 커스텀 설정을 가진 사용자 생성
-     */
-    public static User withSetting(Setting setting) {
-        return User.builder()
-                .socialId(USER1.getSocialId())
-                .provider(USER1.getProvider())
-                .userName(USER1.getUserName())
-                .socialNickname(USER1.getSocialNickname())
-                .thumbnailImage(USER1.getThumbnailImage())
-                .role(USER1.getRole())
-                .setting(setting)
-                .build();
-    }
 
     // Private constructor to prevent instantiation
     private TestUsers() {}

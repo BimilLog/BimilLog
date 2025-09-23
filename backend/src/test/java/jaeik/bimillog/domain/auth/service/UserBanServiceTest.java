@@ -6,15 +6,15 @@ import jaeik.bimillog.domain.auth.application.service.UserBanService;
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.global.application.port.out.GlobalTokenQueryPort;
+import jaeik.bimillog.testutil.BaseUnitTest;
+import jaeik.bimillog.testutil.TestFixtures;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Duration;
 import java.util.List;
@@ -32,9 +32,8 @@ import static org.mockito.Mockito.*;
  * @author Jaeik
  * @version 2.0.0
  */
-@ExtendWith(MockitoExtension.class)
 @DisplayName("UserBanService 단위 테스트")
-class UserBanServiceTest {
+class UserBanServiceTest extends BaseUnitTest {
 
     @Mock
     private GlobalJwtPort globalJwtPort;
@@ -48,43 +47,32 @@ class UserBanServiceTest {
     @InjectMocks
     private UserBanService userBanService;
 
-    private String testToken;
+    private String testTokenString;
     private String testTokenHash;
-    
-    // 테스트 전역 사용자
-    private User testUser;
-    private User adminUser;
-    private Token testToken1;
-    private Token testToken2;
+    private List<Token> testTokenList;
 
     @BeforeEach
     void setUp() {
-        testToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.TemporaryToken";
+        testTokenString = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.TemporaryToken";
         testTokenHash = "hash123abc";
-
-        testUser = TestUsers.copyWithId(TestUsers.USER1, 100L);
-        adminUser = TestUsers.ADMIN;
-
-        testToken1 = Token.createTemporaryToken("access-TemporaryToken-1", "refresh-TemporaryToken-1");
-                
-
-        testToken2 = Token.createTemporaryToken("access-TemporaryToken-2", "refresh-TemporaryToken-2");
-                
+        
+        // TestFixtures를 활용한 토큰 생성
+        testTokenList = TestFixtures.createMultipleTokens(2);
     }
 
     @Test
     @DisplayName("토큰이 블랙리스트에 있는 경우 true 반환")
     void shouldReturnTrue_WhenTokenIsBlacklisted() {
         // Given
-        given(globalJwtPort.generateTokenHash(testToken)).willReturn(testTokenHash);
+        given(globalJwtPort.generateTokenHash(testTokenString)).willReturn(testTokenHash);
         given(redisJwtBlacklistPort.isBlacklisted(testTokenHash)).willReturn(true);
 
         // When
-        boolean result = userBanService.isBlacklisted(testToken);
+        boolean result = userBanService.isBlacklisted(testTokenString);
 
         // Then
         assertThat(result).isTrue();
-        verify(globalJwtPort).generateTokenHash(testToken);
+        verify(globalJwtPort).generateTokenHash(testTokenString);
         verify(redisJwtBlacklistPort).isBlacklisted(testTokenHash);
     }
 
@@ -92,31 +80,31 @@ class UserBanServiceTest {
     @DisplayName("토큰이 블랙리스트에 없는 경우 false 반환")
     void shouldReturnFalse_WhenTokenIsNotBlacklisted() {
         // Given
-        given(globalJwtPort.generateTokenHash(testToken)).willReturn(testTokenHash);
+        given(globalJwtPort.generateTokenHash(testTokenString)).willReturn(testTokenHash);
         given(redisJwtBlacklistPort.isBlacklisted(testTokenHash)).willReturn(false);
 
         // When
-        boolean result = userBanService.isBlacklisted(testToken);
+        boolean result = userBanService.isBlacklisted(testTokenString);
 
         // Then
         assertThat(result).isFalse();
-        verify(globalJwtPort).generateTokenHash(testToken);
+        verify(globalJwtPort).generateTokenHash(testTokenString);
         verify(redisJwtBlacklistPort).isBlacklisted(testTokenHash);
     }
 
     @Test
-    @DisplayName("토큰 해시 생성 실패 시 안전하게 true 반환")
+    @DisplayName("토큰 해시 생성 실패 시 안전하게 false 반환")
     void shouldReturnFalse_WhenTokenHashGenerationFails() {
         // Given
         doThrow(new RuntimeException("Hash generation failed"))
-                .when(globalJwtPort).generateTokenHash(testToken);
+                .when(globalJwtPort).generateTokenHash(testTokenString);
 
         // When
-        boolean result = userBanService.isBlacklisted(testToken);
+        boolean result = userBanService.isBlacklisted(testTokenString);
 
         // Then
         assertThat(result).isFalse();
-        verify(globalJwtPort).generateTokenHash(testToken);
+        verify(globalJwtPort).generateTokenHash(testTokenString);
         verify(redisJwtBlacklistPort, never()).isBlacklisted(anyString());
     }
 
@@ -124,16 +112,16 @@ class UserBanServiceTest {
     @DisplayName("블랙리스트 확인 실패 시 안전하게 false 반환")
     void shouldReturnFalse_WhenBlacklistCheckFails() {
         // Given
-        given(globalJwtPort.generateTokenHash(testToken)).willReturn(testTokenHash);
+        given(globalJwtPort.generateTokenHash(testTokenString)).willReturn(testTokenHash);
         doThrow(new RuntimeException("Cache check failed"))
                 .when(redisJwtBlacklistPort).isBlacklisted(testTokenHash);
 
         // When
-        boolean result = userBanService.isBlacklisted(testToken);
+        boolean result = userBanService.isBlacklisted(testTokenString);
 
         // Then
         assertThat(result).isFalse();
-        verify(globalJwtPort).generateTokenHash(testToken);
+        verify(globalJwtPort).generateTokenHash(testTokenString);
         verify(redisJwtBlacklistPort).isBlacklisted(testTokenHash);
     }
 
@@ -141,21 +129,20 @@ class UserBanServiceTest {
     @DisplayName("사용자의 모든 토큰을 블랙리스트에 등록 성공")
     void shouldBlacklistAllUserTokens_WhenUserHasTokens() {
         // Given
-        Long userId = 100L;
+        Long userId = testUser.getId() != null ? testUser.getId() : 100L;
         String reason = "Security violation";
-        List<Token> userTokens = List.of(testToken1, testToken2);
         
-        given(globalTokenQueryPort.findAllByUserId(userId)).willReturn(userTokens);
-        given(globalJwtPort.generateTokenHash("access-TemporaryToken-1")).willReturn("hash1");
-        given(globalJwtPort.generateTokenHash("access-TemporaryToken-2")).willReturn("hash2");
+        given(globalTokenQueryPort.findAllByUserId(userId)).willReturn(testTokenList);
+        given(globalJwtPort.generateTokenHash("access-token-0")).willReturn("hash0");
+        given(globalJwtPort.generateTokenHash("access-token-1")).willReturn("hash1");
 
         // When
         userBanService.blacklistAllUserTokens(userId, reason);
 
         // Then
         verify(globalTokenQueryPort).findAllByUserId(userId);
-        verify(globalJwtPort).generateTokenHash("access-TemporaryToken-1");
-        verify(globalJwtPort).generateTokenHash("access-TemporaryToken-2");
+        verify(globalJwtPort).generateTokenHash("access-token-0");
+        verify(globalJwtPort).generateTokenHash("access-token-1");
 
         ArgumentCaptor<List<String>> hashesCaptor = ArgumentCaptor.forClass(List.class);
         ArgumentCaptor<Duration> durationCaptor = ArgumentCaptor.forClass(Duration.class);
@@ -167,7 +154,7 @@ class UserBanServiceTest {
         );
         
         List<String> capturedHashes = hashesCaptor.getValue();
-        assertThat(capturedHashes).containsExactlyInAnyOrder("hash1", "hash2");
+        assertThat(capturedHashes).containsExactlyInAnyOrder("hash0", "hash1");
         assertThat(durationCaptor.getValue()).isEqualTo(Duration.ofHours(1));
     }
 
@@ -194,12 +181,11 @@ class UserBanServiceTest {
         // Given
         Long userId = 100L;
         String reason = "Partial failure test";
-        List<Token> userTokens = List.of(testToken1, testToken2);
         
-        given(globalTokenQueryPort.findAllByUserId(userId)).willReturn(userTokens);
-        given(globalJwtPort.generateTokenHash("access-TemporaryToken-1")).willReturn("hash1");
+        given(globalTokenQueryPort.findAllByUserId(userId)).willReturn(testTokenList);
+        given(globalJwtPort.generateTokenHash("access-token-0")).willReturn("hash0");
         doThrow(new RuntimeException("Hash generation failed"))
-                .when(globalJwtPort).generateTokenHash("access-TemporaryToken-2");
+                .when(globalJwtPort).generateTokenHash("access-token-1");
 
         // When
         userBanService.blacklistAllUserTokens(userId, reason);
@@ -213,7 +199,7 @@ class UserBanServiceTest {
         );
         
         List<String> capturedHashes = hashesCaptor.getValue();
-        assertThat(capturedHashes).containsExactly("hash1");
+        assertThat(capturedHashes).containsExactly("hash0");
     }
 
     @Test
@@ -222,9 +208,8 @@ class UserBanServiceTest {
         // Given
         Long userId = 100L;
         String reason = "Complete failure test";
-        List<Token> userTokens = List.of(testToken1, testToken2);
         
-        given(globalTokenQueryPort.findAllByUserId(userId)).willReturn(userTokens);
+        given(globalTokenQueryPort.findAllByUserId(userId)).willReturn(testTokenList);
         doThrow(new RuntimeException("Hash generation failed"))
                 .when(globalJwtPort).generateTokenHash(anyString());
 
@@ -233,8 +218,8 @@ class UserBanServiceTest {
 
         // Then
         verify(globalTokenQueryPort).findAllByUserId(userId);
-        verify(globalJwtPort).generateTokenHash("access-TemporaryToken-1");
-        verify(globalJwtPort).generateTokenHash("access-TemporaryToken-2");
+        verify(globalJwtPort).generateTokenHash("access-token-0");
+        verify(globalJwtPort).generateTokenHash("access-token-1");
         verify(redisJwtBlacklistPort, never()).blacklistTokenHashes(any(), anyString(), any());
     }
 
@@ -257,6 +242,39 @@ class UserBanServiceTest {
     }
 
 
+
+    @Test
+    @DisplayName("많은 수의 토큰을 블랙리스트에 등록")
+    void shouldHandleManyTokens() {
+        // Given
+        Long userId = 100L;
+        String reason = "Many tokens test";
+        List<Token> manyTokens = TestFixtures.createMultipleTokens(10);
+        
+        given(globalTokenQueryPort.findAllByUserId(userId)).willReturn(manyTokens);
+        for (int i = 0; i < 10; i++) {
+            given(globalJwtPort.generateTokenHash("access-token-" + i)).willReturn("hash" + i);
+        }
+
+        // When
+        userBanService.blacklistAllUserTokens(userId, reason);
+
+        // Then
+        verify(globalTokenQueryPort).findAllByUserId(userId);
+        for (int i = 0; i < 10; i++) {
+            verify(globalJwtPort).generateTokenHash("access-token-" + i);
+        }
+
+        ArgumentCaptor<List<String>> hashesCaptor = ArgumentCaptor.forClass(List.class);
+        verify(redisJwtBlacklistPort).blacklistTokenHashes(
+                hashesCaptor.capture(),
+                eq(reason),
+                any(Duration.class)
+        );
+        
+        List<String> capturedHashes = hashesCaptor.getValue();
+        assertThat(capturedHashes).hasSize(10);
+    }
 
 
 }

@@ -2,12 +2,12 @@ package jaeik.bimillog.infrastructure.adapter.out.global;
 
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.infrastructure.adapter.out.auth.jpa.TokenRepository;
+import jaeik.bimillog.testutil.BaseUnitTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
 import java.util.List;
@@ -24,32 +24,38 @@ import static org.mockito.Mockito.*;
  * @author Jaeik
  * @version 2.0.0
  */
-@ExtendWith(MockitoExtension.class)
 @DisplayName("GlobalTokenQueryAdapter 단위 테스트")
-class GlobalTokenQueryAdapterTest {
+class GlobalTokenQueryAdapterTest extends BaseUnitTest {
 
     @Mock
     private TokenRepository tokenRepository;
 
-    @Mock
-    private Token token;
-
     @InjectMocks
     private GlobalTokenQueryAdapter globalTokenQueryAdapter;
+    
+    private Token testToken;
+    private Token adminToken;
+
+    @Override
+    protected void setUpChild() {
+        // 실제 Token 객체 생성
+        testToken = Token.createToken("test-access", "test-refresh", testUser);
+        adminToken = Token.createToken("admin-access", "admin-refresh", adminUser);
+    }
 
     @Test
     @DisplayName("토큰 ID로 조회 - 토큰 존재")
     void shouldReturnToken_WhenTokenExists() {
         // Given
         Long tokenId = 1L;
-        given(tokenRepository.findById(tokenId)).willReturn(Optional.of(token));
+        given(tokenRepository.findById(tokenId)).willReturn(Optional.of(testToken));
 
         // When
         Optional<Token> result = globalTokenQueryAdapter.findById(tokenId);
 
         // Then
         assertThat(result).isPresent();
-        assertThat(result.get()).isEqualTo(token);
+        assertThat(result.get()).isEqualTo(testToken);
         verify(tokenRepository, times(1)).findById(tokenId);
     }
 
@@ -87,7 +93,8 @@ class GlobalTokenQueryAdapterTest {
     void shouldReturnTokenList_WhenUserHasTokens() {
         // Given
         Long userId = 1L;
-        List<Token> tokens = Arrays.asList(token, mock(Token.class));
+        Token temporaryToken = Token.createTemporaryToken("temp-access", "temp-refresh");
+        List<Token> tokens = Arrays.asList(testToken, temporaryToken);
         given(tokenRepository.findByUsersId(userId)).willReturn(tokens);
 
         // When
@@ -95,7 +102,7 @@ class GlobalTokenQueryAdapterTest {
 
         // Then
         assertThat(result).hasSize(2);
-        assertThat(result).contains(token);
+        assertThat(result).contains(testToken, temporaryToken);
         verify(tokenRepository, times(1)).findByUsersId(userId);
     }
 

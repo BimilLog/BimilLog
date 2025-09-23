@@ -7,15 +7,14 @@ import jaeik.bimillog.domain.user.application.port.out.SaveUserPort;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.application.service.UserSaveService;
 import jaeik.bimillog.domain.user.entity.*;
+import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
@@ -34,9 +33,8 @@ import static org.mockito.Mockito.verify;
  * @author Jaeik
  * @version 2.0.0
  */
-@ExtendWith(MockitoExtension.class)
 @DisplayName("UserSaveService 단위 테스트")
-class UserSaveServiceTest {
+class UserSaveServiceTest extends BaseUnitTest {
 
     @Mock
     private UserQueryPort userQueryPort;
@@ -52,11 +50,10 @@ class UserSaveServiceTest {
 
     private SocialUserProfile testSocialProfile;
     private Token testToken;
-    private User testUser;
     private String testFcmToken;
 
     @BeforeEach
-    void setUp() {
+    protected void setUpChild() {
         testToken = Token.createTemporaryToken("access-TemporaryToken", "refresh-TemporaryToken");
         testSocialProfile = new SocialUserProfile(
             "kakao123",
@@ -66,7 +63,6 @@ class UserSaveServiceTest {
             "profile.jpg",
             testToken
         );
-        testUser = TestUsers.USER1;
         testFcmToken = "fcm-TemporaryToken-123";
     }
 
@@ -220,7 +216,7 @@ class UserSaveServiceTest {
             testToken
         );
 
-        User googleUser = TestUsers.USER2;
+        User googleUser = otherUser;
         given(userQueryPort.findByProviderAndSocialId(
             SocialProvider.GOOGLE,
             "google456"

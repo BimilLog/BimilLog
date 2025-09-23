@@ -58,6 +58,35 @@ public class TestFixtures {
     }
 
     /**
+     * 기본 테스트 게시글 생성 (TestUsers.USER1 사용)
+     * @return Post 엔티티
+     */
+    public static Post createDefaultPost() {
+        return createPost(TestUsers.USER1, "테스트 게시글", "테스트 게시글 내용입니다.");
+    }
+
+    /**
+     * 특정 사용자로 기본 게시글 생성
+     * @param author 작성자
+     * @return Post 엔티티
+     */
+    public static Post createPostWithUser(User author) {
+        return createPost(author, "테스트 게시글", "테스트 게시글 내용입니다.");
+    }
+
+    /**
+     * 세부 정보를 지정한 게시글 생성
+     * @param author 작성자
+     * @param title 제목
+     * @param content 내용
+     * @param password 비밀번호
+     * @return Post 엔티티
+     */
+    public static Post createPostWithDetails(User author, String title, String content, int password) {
+        return Post.createPost(author, title, content, password);
+    }
+
+    /**
      * ID가 포함된 게시글 생성
      * @param id 게시글 ID
      * @param author 작성자
@@ -72,7 +101,7 @@ public class TestFixtures {
         return post;
     }
 
-    // TestFixtures.createComment 제거 - CommentTestDataBuilder.createTestComment 사용
+
 
     /**
      * 테스트용 알림 생성
@@ -227,7 +256,34 @@ public class TestFixtures {
                 .build();
     }
 
-    // TestFixtures.createCommentRequest 제거 - CommentTestDataBuilder.createCommentReqDTO 사용
+    /**
+     * 기본 게시글 작성 요청 DTO 생성
+     * @return PostCreateDTO
+     */
+    public static PostCreateDTO createPostCreateDTO() {
+        return createPostRequest("테스트 게시글 제목", "테스트 게시글 내용입니다.");
+    }
+
+    /**
+     * 게시글 수정 요청 DTO 생성
+     * @param title 제목
+     * @param content 내용
+     * @return PostUpdateDTO
+     */
+    public static jaeik.bimillog.infrastructure.adapter.in.post.dto.PostUpdateDTO createPostUpdateDTO(String title, String content) {
+        return jaeik.bimillog.infrastructure.adapter.in.post.dto.PostUpdateDTO.builder()
+                .title(title)
+                .content(content)
+                .build();
+    }
+
+    /**
+     * 기본 게시글 수정 요청 DTO 생성
+     * @return PostUpdateDTO
+     */
+    public static jaeik.bimillog.infrastructure.adapter.in.post.dto.PostUpdateDTO createPostUpdateDTO() {
+        return createPostUpdateDTO("수정된 제목", "수정된 내용입니다. 10자 이상으로 작성합니다.");
+    }
 
     /**
      * 롤링페이퍼 메시지 요청 DTO 생성
@@ -249,16 +305,7 @@ public class TestFixtures {
         return dto;
     }
 
-    /**
-     * 사용자명 변경 요청 DTO 생성
-     * @param newUserName 새 사용자명
-     * @return UserNameDTO
-     */
-    public static UserNameDTO createUpdateUserNameRequest(String newUserName) {
-        UserNameDTO dto = new UserNameDTO();
-        dto.setUserName(newUserName);
-        return dto;
-    }
+
 
     // ==================== Authentication Objects ====================
 
@@ -269,6 +316,27 @@ public class TestFixtures {
      */
     public static CustomUserDetails createCustomUserDetails(User user) {
         ExistingUserDetail userDetail = createExistingUserDetail(user);
+        return new CustomUserDetails(userDetail);
+    }
+
+    /**
+     * DB에 저장된 사용자로부터 CustomUserDetails 생성
+     * @param savedUser DB에 저장된 사용자 엔티티 (ID 필수)
+     * @return CustomUserDetails
+     */
+    public static CustomUserDetails createCustomUserDetailsFromSavedUser(User savedUser) {
+        ExistingUserDetail userDetail = ExistingUserDetail.builder()
+                .userId(savedUser.getId())
+                .settingId(savedUser.getSetting() != null ? savedUser.getSetting().getId() : null)
+                .socialId(savedUser.getSocialId())
+                .socialNickname(savedUser.getSocialNickname())
+                .thumbnailImage(savedUser.getThumbnailImage())
+                .userName(savedUser.getUserName())
+                .provider(savedUser.getProvider())
+                .role(savedUser.getRole())
+                .tokenId(1L) // 테스트용 토큰 ID
+                .fcmTokenId(null)
+                .build();
         return new CustomUserDetails(userDetail);
     }
 
@@ -340,6 +408,54 @@ public class TestFixtures {
                 .sameSite("Lax")
                 .build();
     }
+    
+    /**
+     * 로그아웃 쿠키 생성 (Auth 테스트용)
+     * @return 로그아웃용 쿠키 리스트 (값이 비어있고 만료시간 0)
+     */
+    public static List<ResponseCookie> createLogoutCookies() {
+        return List.of(
+            ResponseCookie.from("jwt_access_token", "")
+                .path("/")
+                .maxAge(0)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .build(),
+            ResponseCookie.from("jwt_refresh_token", "")
+                .path("/")
+                .maxAge(0)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .build()
+        );
+    }
+    
+    /**
+     * JWT 인증 쿠키 생성 (Auth 테스트용)
+     * @param accessToken 액세스 토큰
+     * @param refreshToken 리프레시 토큰
+     * @return JWT 쿠키 리스트
+     */
+    public static List<ResponseCookie> createJwtCookies(String accessToken, String refreshToken) {
+        return List.of(
+            ResponseCookie.from("jwt_access_token", accessToken)
+                .path("/")
+                .maxAge(60 * 60) // 1시간
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .build(),
+            ResponseCookie.from("jwt_refresh_token", refreshToken)
+                .path("/")
+                .maxAge(60 * 60 * 24 * 7) // 7일
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .build()
+        );
+    }
 
     /**
      * LoginResult.ExistingUser 생성
@@ -358,6 +474,22 @@ public class TestFixtures {
      */
     public static LoginResult.NewUser createNewUserLoginResult(String uuid, ResponseCookie tempCookie) {
         return new LoginResult.NewUser(uuid, tempCookie);
+    }
+    
+
+    
+    /**
+     * 여러 토큰 생성 (Auth 테스트용)
+     * @param count 생성할 토큰 개수
+     * @return 토큰 리스트
+     */
+    public static List<Token> createMultipleTokens(int count) {
+        return java.util.stream.IntStream.range(0, count)
+            .mapToObj(i -> Token.createTemporaryToken(
+                "access-token-" + i,
+                "refresh-token-" + i
+            ))
+            .collect(java.util.stream.Collectors.toList());
     }
 
     // ==================== Utility Methods ====================

@@ -8,15 +8,13 @@ import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import jaeik.bimillog.global.application.port.out.GlobalTokenQueryPort;
+import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.TestSettings;
 import jaeik.bimillog.testutil.TestUsers;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
@@ -33,9 +31,8 @@ import static org.mockito.Mockito.verify;
  * @author Jaeik
  * @version 2.0.0
  */
-@ExtendWith(MockitoExtension.class)
 @DisplayName("UserQueryService 테스트")
-class UserQueryServiceTest {
+class UserQueryServiceTest extends BaseUnitTest {
 
     @Mock
     private UserQueryPort userQueryPort;
@@ -46,24 +43,14 @@ class UserQueryServiceTest {
     @InjectMocks
     private UserQueryService userQueryService;
 
-    // 테스트 전역 사용자
-    private User testUser;
-    private User adminUser;
-
-    @BeforeEach
-    void setUp() {
-        testUser = TestUsers.USER1;
-        adminUser = TestUsers.ADMIN;
-    }
-
     @Test
     @DisplayName("소셜 정보로 사용자 조회 - 정상 케이스")
     void shouldFindUser_WhenValidProviderAndSocialId() {
         // Given
         SocialProvider provider = SocialProvider.KAKAO;
-        String socialId = TestUsers.USER1.getSocialId(); // "kakao123456"
+        String socialId = testUser.getSocialId(); // "kakao123456"
 
-        User expectedUser = TestUsers.copyWithId(TestUsers.USER1, 1L);
+        User expectedUser = createTestUserWithId(1L);
 
         given(userQueryPort.findByProviderAndSocialId(provider, socialId))
                 .willReturn(Optional.of(expectedUser));
@@ -102,7 +89,7 @@ class UserQueryServiceTest {
     void shouldFindUser_WhenValidId() {
         // Given
         Long userId = 1L;
-        User expectedUser = TestUsers.copyWithId(TestUsers.USER1, userId);
+        User expectedUser = createTestUserWithId(userId);
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(expectedUser));
 
@@ -167,8 +154,8 @@ class UserQueryServiceTest {
     @DisplayName("닉네임으로 사용자 조회 - 정상 케이스")
     void shouldFindUser_WhenValidUserName() {
         // Given
-        String userName = TestUsers.USER1.getUserName(); // "testUser1"
-        User expectedUser = TestUsers.copyWithId(TestUsers.USER1, 1L);
+        String userName = testUser.getUserName(); // "testUser1"
+        User expectedUser = createTestUserWithId(1L);
 
         given(userQueryPort.findByUserName(userName)).willReturn(Optional.of(expectedUser));
 
@@ -203,7 +190,7 @@ class UserQueryServiceTest {
     void shouldGetReferenceById_WhenValidUserId() {
         // Given
         Long userId = 1L;
-        User proxyUser = TestUsers.copyWithId(TestUsers.USER1, userId);
+        User proxyUser = createTestUserWithId(userId);
 
         given(userQueryPort.getReferenceById(userId)).willReturn(proxyUser);
 
@@ -221,7 +208,7 @@ class UserQueryServiceTest {
     void shouldFindSetting_WhenValidSettingId() {
         // Given
         Long settingId = 1L;
-        Setting expectedSetting = TestSettings.copyWithId(TestSettings.custom(true, false, true), settingId);
+        Setting expectedSetting = createSettingWithId(createCustomSetting(true, false, true), settingId);
 
         given(userQueryPort.findSettingById(settingId)).willReturn(Optional.of(expectedSetting));
 

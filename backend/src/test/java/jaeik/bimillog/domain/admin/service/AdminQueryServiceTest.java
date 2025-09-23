@@ -5,15 +5,13 @@ import jaeik.bimillog.domain.admin.application.service.AdminQueryService;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.TestUsers;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -34,9 +32,8 @@ import static org.mockito.Mockito.verify;
  * @author Jaeik
  * @version 2.0.0
  */
-@ExtendWith(MockitoExtension.class)
 @DisplayName("AdminQueryService 단위 테스트")
-class AdminQueryServiceTest {
+class AdminQueryServiceTest extends BaseUnitTest {
 
     @Mock
     private AdminQueryPort adminQueryPort;
@@ -46,11 +43,11 @@ class AdminQueryServiceTest {
 
     private List<Report> testReports;
 
-    @BeforeEach
-    void setUp() {
-        User reporter1 = TestUsers.copyWithId(TestUsers.USER1, 100L);
-        User reporter2 = TestUsers.copyWithId(TestUsers.USER2, 101L);
-        User reporter3 = TestUsers.copyWithId(TestUsers.USER3, 102L);
+    @Override
+    protected void setUpChild() {
+        User reporter1 = createTestUserWithId(100L);
+        User reporter2 = createTestUserWithId(101L);
+        User reporter3 = createTestUserWithId(102L);
         
         testReports = List.of(
                 Report.builder()

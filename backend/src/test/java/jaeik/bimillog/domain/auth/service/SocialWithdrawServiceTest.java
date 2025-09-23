@@ -4,14 +4,14 @@ import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
 import jaeik.bimillog.domain.auth.application.service.SocialWithdrawService;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jaeik.bimillog.testutil.BaseAuthUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
@@ -23,12 +23,8 @@ import static org.mockito.Mockito.*;
  * @author Jaeik
  * @version 2.0.0
  */
-@ExtendWith(MockitoExtension.class)
 @DisplayName("SocialWithdrawService 단위 테스트")
-class SocialWithdrawServiceTest {
-
-    private static final String TEST_SOCIAL_ID = "kakao123456";
-    private static final SocialProvider TEST_PROVIDER = SocialProvider.KAKAO;
+class SocialWithdrawServiceTest extends BaseAuthUnitTest {
 
     @Mock
     private SocialStrategyRegistryPort strategyRegistryPort;
@@ -82,35 +78,19 @@ class SocialWithdrawServiceTest {
         doThrow(expectedException).when(socialStrategyPort).unlink(TEST_PROVIDER, TEST_SOCIAL_ID);
 
         // When & Then
-        try {
-            socialWithdrawService.unlinkSocialAccount(TEST_PROVIDER, TEST_SOCIAL_ID);
-        } catch (RuntimeException e) {
-            // 예외가 전파되는지 확인
-            assert e.getMessage().equals("Unlink failed");
-        }
+        assertThatThrownBy(() -> socialWithdrawService.unlinkSocialAccount(TEST_PROVIDER, TEST_SOCIAL_ID))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("Unlink failed");
 
         verify(strategyRegistryPort, times(1)).getStrategy(TEST_PROVIDER);
         verify(socialStrategyPort, times(1)).unlink(TEST_PROVIDER, TEST_SOCIAL_ID);
     }
 
-    @Test
-    @DisplayName("다른 소셜 플랫폼 제공자에 대한 연동 해제 테스트")
-    void shouldHandleDifferentProviders_WhenUnlinking() {
-        // Given
-        SocialProvider[] providers = {SocialProvider.KAKAO};
 
-        for (SocialProvider provider : providers) {
-            // Reset mocks for each iteration
-            reset(strategyRegistryPort, socialStrategyPort);
-            given(strategyRegistryPort.getStrategy(provider)).willReturn(socialStrategyPort);
-            doNothing().when(socialStrategyPort).unlink(provider, TEST_SOCIAL_ID);
 
-            // When
-            socialWithdrawService.unlinkSocialAccount(provider, TEST_SOCIAL_ID);
 
-            // Then
-            verify(strategyRegistryPort).getStrategy(provider);
-            verify(socialStrategyPort).unlink(provider, TEST_SOCIAL_ID);
-        }
-    }
+
+
+
+
 }

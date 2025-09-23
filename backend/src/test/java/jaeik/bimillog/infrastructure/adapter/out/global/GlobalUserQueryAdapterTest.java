@@ -2,12 +2,11 @@ package jaeik.bimillog.infrastructure.adapter.out.global;
 
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
@@ -23,15 +22,11 @@ import static org.mockito.Mockito.verify;
  * @author Jaeik
  * @version 2.0.0
  */
-@ExtendWith(MockitoExtension.class)
 @DisplayName("GlobalUserQueryAdapter 단위 테스트")
-class GlobalUserQueryAdapterTest {
+class GlobalUserQueryAdapterTest extends BaseUnitTest {
 
     @Mock
     private UserQueryUseCase userQueryUseCase;
-
-    @Mock
-    private User user;
 
     @InjectMocks
     private GlobalUserQueryAdapter globalUserQueryAdapter;
@@ -41,14 +36,16 @@ class GlobalUserQueryAdapterTest {
     void shouldReturnUser_WhenUserExists() {
         // Given
         Long userId = 1L;
-        given(userQueryUseCase.findById(userId)).willReturn(Optional.of(user));
+        given(userQueryUseCase.findById(userId)).willReturn(Optional.of(testUser));
 
         // When
         Optional<User> result = globalUserQueryAdapter.findById(userId);
 
         // Then
         assertThat(result).isPresent();
-        assertThat(result.get()).isEqualTo(user);
+        assertThat(result.get()).isEqualTo(testUser);
+        assertThat(result.get().getUserName()).isEqualTo("testUser1");
+        assertThat(result.get().getSocialNickname()).isEqualTo("테스트유저1");
         verify(userQueryUseCase, times(1)).findById(userId);
     }
 
@@ -71,15 +68,15 @@ class GlobalUserQueryAdapterTest {
     @DisplayName("사용자명으로 조회 - 사용자 존재")
     void shouldReturnUser_WhenUserNameExists() {
         // Given
-        String userName = "testUser";
-        given(userQueryUseCase.findByUserName(userName)).willReturn(Optional.of(user));
+        String userName = "testUser1";
+        given(userQueryUseCase.findByUserName(userName)).willReturn(Optional.of(testUser));
 
         // When
         Optional<User> result = globalUserQueryAdapter.findByUserName(userName);
 
         // Then
         assertThat(result).isPresent();
-        assertThat(result.get()).isEqualTo(user);
+        assertThat(result.get()).isEqualTo(testUser);
         verify(userQueryUseCase, times(1)).findByUserName(userName);
     }
 
@@ -102,7 +99,7 @@ class GlobalUserQueryAdapterTest {
     @DisplayName("사용자명 존재 여부 확인 - 존재함")
     void shouldReturnTrue_WhenUserNameExists() {
         // Given
-        String userName = "existingUser";
+        String userName = testUser.getUserName();
         given(userQueryUseCase.existsByUserName(userName)).willReturn(true);
 
         // When
@@ -133,13 +130,30 @@ class GlobalUserQueryAdapterTest {
     void shouldReturnProxyReference_WhenUserIdProvided() {
         // Given
         Long userId = 1L;
-        given(userQueryUseCase.getReferenceById(userId)).willReturn(user);
+        given(userQueryUseCase.getReferenceById(userId)).willReturn(testUser);
 
         // When
         User result = globalUserQueryAdapter.getReferenceById(userId);
 
         // Then
-        assertThat(result).isEqualTo(user);
+        assertThat(result).isEqualTo(testUser);
         verify(userQueryUseCase, times(1)).getReferenceById(userId);
+    }
+
+    @Test
+    @DisplayName("관리자 사용자 조회 - 성공")
+    void shouldReturnAdminUser_WhenAdminUserExists() {
+        // Given
+        Long adminId = 2L;
+        given(userQueryUseCase.findById(adminId)).willReturn(Optional.of(adminUser));
+
+        // When
+        Optional<User> result = globalUserQueryAdapter.findById(adminId);
+
+        // Then
+        assertThat(result).isPresent();
+        assertThat(result.get()).isEqualTo(adminUser);
+        assertThat(result.get().getRole()).isEqualTo(jaeik.bimillog.domain.user.entity.UserRole.ADMIN);
+        verify(userQueryUseCase, times(1)).findById(adminId);
     }
 }

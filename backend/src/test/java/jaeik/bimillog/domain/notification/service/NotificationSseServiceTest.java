@@ -4,13 +4,12 @@ import jaeik.bimillog.domain.notification.application.port.out.NotificationUrlPo
 import jaeik.bimillog.domain.notification.application.port.out.SsePort;
 import jaeik.bimillog.domain.notification.application.service.NotificationSseService;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.notification.entity.SseMessage;
+import jaeik.bimillog.testutil.BaseUnitTest;
+import jaeik.bimillog.testutil.SseTestHelper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,9 +24,8 @@ import static org.mockito.Mockito.verify;
  * @author Jaeik
  * @version 2.0.0
  */
-@ExtendWith(MockitoExtension.class)
 @DisplayName("NotificationSseService 테스트")
-class NotificationSseServiceTest {
+class NotificationSseServiceTest extends BaseUnitTest {
 
     @Mock
     private SsePort ssePort;
@@ -44,8 +42,8 @@ class NotificationSseServiceTest {
         // Given
         Long userId = 1L;
         Long tokenId = 100L;
-        SseEmitter expectedEmitter = new SseEmitter();
-        
+        SseEmitter expectedEmitter = SseTestHelper.createMockEmitter();
+
         given(ssePort.subscribe(userId, tokenId)).willReturn(expectedEmitter);
 
         // When
@@ -76,9 +74,8 @@ class NotificationSseServiceTest {
         Long postUserId = 1L;
         String commenterName = "테스터";
         Long postId = 100L;
-        String expectedMessage = commenterName + "님이 댓글을 남겼습니다!";
         String expectedUrl = "/board/post/100";
-        
+
         given(notificationUrlPort.generatePostUrl(postId)).willReturn(expectedUrl);
 
         // When
@@ -86,7 +83,7 @@ class NotificationSseServiceTest {
 
         // Then
         verify(notificationUrlPort).generatePostUrl(postId);
-        verify(ssePort).send(eq(SseMessage.of(postUserId, NotificationType.COMMENT, expectedMessage, expectedUrl)));
+        verify(ssePort).send(eq(SseTestHelper.commentMessage(postUserId, commenterName, postId)));
     }
 
     @Test
@@ -95,9 +92,8 @@ class NotificationSseServiceTest {
         // Given
         Long farmOwnerId = 1L;
         String userName = "testuser";
-        String expectedMessage = "롤링페이퍼에 메시지가 작성되었어요!";
         String expectedUrl = "/rolling-paper/testuser";
-        
+
         given(notificationUrlPort.generateRollingPaperUrl(userName)).willReturn(expectedUrl);
 
         // When
@@ -105,7 +101,7 @@ class NotificationSseServiceTest {
 
         // Then
         verify(notificationUrlPort).generateRollingPaperUrl(userName);
-        verify(ssePort).send(eq(SseMessage.of(farmOwnerId, NotificationType.PAPER, expectedMessage, expectedUrl)));
+        verify(ssePort).send(eq(SseTestHelper.paperMessage(farmOwnerId, userName)));
     }
 
     @Test
@@ -116,7 +112,7 @@ class NotificationSseServiceTest {
         String message = "축하합니다! 회원님의 글이 인기글에 등극했습니다!";
         Long postId = 100L;
         String expectedUrl = "/board/post/100";
-        
+
         given(notificationUrlPort.generatePostUrl(postId)).willReturn(expectedUrl);
 
         // When
@@ -124,6 +120,11 @@ class NotificationSseServiceTest {
 
         // Then
         verify(notificationUrlPort).generatePostUrl(postId);
-        verify(ssePort).send(eq(SseMessage.of(userId, NotificationType.POST_FEATURED, message, expectedUrl)));
+        verify(ssePort).send(eq(SseTestHelper.sseMessage()
+            .userId(userId)
+            .type(NotificationType.POST_FEATURED)
+            .message(message)
+            .url(expectedUrl)
+            .build()));
     }
 }

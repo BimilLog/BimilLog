@@ -1,5 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.out.sse;
 
+import jaeik.bimillog.testutil.BaseUnitTest;
+import jaeik.bimillog.testutil.SseTestHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,24 +19,24 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @version 2.0.0
  */
 @DisplayName("EmitterRepositoryImpl 테스트")
-class EmitterRepositoryImplTest {
+class EmitterRepositoryImplTest extends BaseUnitTest {
 
     private EmitterRepositoryImpl emitterRepository;
     private SseEmitter emitter1;
     private SseEmitter emitter2;
 
-    @BeforeEach
-    void setUp() {
+    @Override
+    protected void setUpChild() {
         emitterRepository = new EmitterRepositoryImpl();
-        emitter1 = new SseEmitter();
-        emitter2 = new SseEmitter();
+        emitter1 = SseTestHelper.createMockEmitter();
+        emitter2 = SseTestHelper.createMockEmitter();
     }
 
     @Test
     @DisplayName("Emitter 저장 - 성공")
     void shouldSaveEmitter_WhenValidInput() {
         // Given
-        String emitterId = "1_100_1234567890";
+        String emitterId = SseTestHelper.createEmitterId(1L, 100L, 1234567890L);
 
         // When
         SseEmitter savedEmitter = emitterRepository.save(emitterId, emitter1);
@@ -48,8 +50,8 @@ class EmitterRepositoryImplTest {
     void shouldFindAllEmitterByUserId_WhenEmittersExist() {
         // Given
         Long userId = 1L;
-        String emitterId1 = "1_100_1234567890";
-        String emitterId2 = "1_101_1234567891";
+        String emitterId1 = SseTestHelper.createEmitterId(userId, 100L);
+        String emitterId2 = SseTestHelper.createEmitterId(userId, 101L);
         
         emitterRepository.save(emitterId1, emitter1);
         emitterRepository.save(emitterId2, emitter2);
@@ -69,7 +71,7 @@ class EmitterRepositoryImplTest {
         // Given
         Long userId = 1L;
         Long otherUserId = 2L;
-        String emitterId = "2_100_1234567890";
+        String emitterId = SseTestHelper.createEmitterId(otherUserId, 100L);
         
         emitterRepository.save(emitterId, emitter1);
 
@@ -84,14 +86,15 @@ class EmitterRepositoryImplTest {
     @DisplayName("Emitter ID로 삭제 - 성공")
     void shouldDeleteById_WhenEmitterExists() {
         // Given
-        String emitterId = "1_100_1234567890";
+        Long userId = 1L;
+        String emitterId = SseTestHelper.defaultEmitterId(userId);
         emitterRepository.save(emitterId, emitter1);
 
         // When
         emitterRepository.deleteById(emitterId);
 
         // Then
-        Map<String, SseEmitter> emitters = emitterRepository.findAllEmitterByUserId(1L);
+        Map<String, SseEmitter> emitters = emitterRepository.findAllEmitterByUserId(userId);
         assertThat(emitters).isEmpty();
     }
 
@@ -112,22 +115,21 @@ class EmitterRepositoryImplTest {
         // Given
         Long userId = 1L;
         Long otherUserId = 2L;
-        String emitterId1 = "1_100_1234567890";
-        String emitterId2 = "1_101_1234567891";
-        String otherUserEmitterId = "2_100_1234567890";
+        Map<String, SseEmitter> userEmitters = SseTestHelper.createMultiDeviceEmitters(userId, 2);
+        String otherUserEmitterId = SseTestHelper.createEmitterId(otherUserId, 100L);
         
-        emitterRepository.save(emitterId1, emitter1);
-        emitterRepository.save(emitterId2, emitter2);
-        emitterRepository.save(otherUserEmitterId, new SseEmitter());
+        // 사용자 emitter 저장
+        userEmitters.forEach((id, emitter) -> emitterRepository.save(id, emitter));
+        emitterRepository.save(otherUserEmitterId, SseTestHelper.createMockEmitter());
 
         // When
         emitterRepository.deleteAllEmitterByUserId(userId);
 
         // Then
-        Map<String, SseEmitter> userEmitters = emitterRepository.findAllEmitterByUserId(userId);
+        Map<String, SseEmitter> remainingUserEmitters = emitterRepository.findAllEmitterByUserId(userId);
         Map<String, SseEmitter> otherUserEmitters = emitterRepository.findAllEmitterByUserId(otherUserId);
         
-        assertThat(userEmitters).isEmpty();
+        assertThat(remainingUserEmitters).isEmpty();
         assertThat(otherUserEmitters).hasSize(1); // 다른 사용자의 Emitter는 삭제되지 않아야 함
     }
 
@@ -277,15 +279,15 @@ class EmitterRepositoryImplTest {
         Long tokenIdB = 101L; // B 기기
         Long tokenIdC = 102L; // C 기기
         
-        String emitterIdA1 = "1_100_1234567890"; // A 기기 - 연결1
-        String emitterIdA2 = "1_100_1234567891"; // A 기기 - 연결2
-        String emitterIdB = "1_101_1234567892";  // B 기기
-        String emitterIdC = "1_102_1234567893";  // C 기기
+        String emitterIdA1 = SseTestHelper.createEmitterId(userId, tokenIdA, 1234567890L); // A 기기 - 연결1
+        String emitterIdA2 = SseTestHelper.createEmitterId(userId, tokenIdA, 1234567891L); // A 기기 - 연결2
+        String emitterIdB = SseTestHelper.createEmitterId(userId, tokenIdB, 1234567892L);  // B 기기
+        String emitterIdC = SseTestHelper.createEmitterId(userId, tokenIdC, 1234567893L);  // C 기기
         
-        emitterRepository.save(emitterIdA1, new SseEmitter());
-        emitterRepository.save(emitterIdA2, new SseEmitter());
-        emitterRepository.save(emitterIdB, new SseEmitter());
-        emitterRepository.save(emitterIdC, new SseEmitter());
+        emitterRepository.save(emitterIdA1, SseTestHelper.createMockEmitter());
+        emitterRepository.save(emitterIdA2, SseTestHelper.createMockEmitter());
+        emitterRepository.save(emitterIdB, SseTestHelper.createMockEmitter());
+        emitterRepository.save(emitterIdC, SseTestHelper.createMockEmitter());
 
         // When - A 기기(tokenId=100)만 로그아웃
         emitterRepository.deleteEmitterByUserIdAndTokenId(userId, tokenIdA);

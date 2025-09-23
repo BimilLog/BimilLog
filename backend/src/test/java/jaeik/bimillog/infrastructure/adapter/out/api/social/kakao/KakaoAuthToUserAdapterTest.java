@@ -4,15 +4,13 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import jaeik.bimillog.infrastructure.adapter.out.api.dto.KakaoFriendsDTO;
-import org.junit.jupiter.api.BeforeEach;
+import jaeik.bimillog.testutil.BaseAuthUnitTest;
+import jaeik.bimillog.testutil.KakaoTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,11 +27,9 @@ import static org.mockito.Mockito.*;
  * @author Jaeik
  * @version 2.0.0
  */
-@ExtendWith(MockitoExtension.class)
 @DisplayName("KakaoSocialAdapter 단위 테스트")
-class KakaoAuthToUserAdapterTest {
+class KakaoAuthToUserAdapterTest extends BaseAuthUnitTest {
 
-    private static final String TEST_ACCESS_TOKEN = "test-access-TemporaryToken";
     private static final Integer DEFAULT_OFFSET = 0;
     private static final Integer DEFAULT_LIMIT = 10;
 
@@ -42,11 +38,6 @@ class KakaoAuthToUserAdapterTest {
 
     @InjectMocks
     private KakaoSocialAdapter kakaoSocialAdapter;
-
-    @BeforeEach
-    void setUp() {
-        // 필요한 경우 초기화 작업
-    }
 
     @Test
     @DisplayName("getProvider - 카카오 제공자 반환")
@@ -61,17 +52,14 @@ class KakaoAuthToUserAdapterTest {
     @Test
     @DisplayName("getFriendList 성공 - 친구 목록 조회")
     void shouldGetFriendListSuccessfully() {
-        // Given - Mock으로부터 반환될 KakaoFriendsDTO 생성
-        KakaoFriendsDTO mockFriends = mock(KakaoFriendsDTO.class);
-        KakaoFriendsDTO.Friend mockFriend1 = mock(KakaoFriendsDTO.Friend.class);
-        KakaoFriendsDTO.Friend mockFriend2 = mock(KakaoFriendsDTO.Friend.class);
-
-        given(mockFriend1.getProfileNickname()).willReturn("친구1");
-        given(mockFriend2.getProfileNickname()).willReturn("친구2");
-
-        List<KakaoFriendsDTO.Friend> friendList = List.of(mockFriend1, mockFriend2);
-        given(mockFriends.getElements()).willReturn(friendList);
-        given(mockFriends.getTotalCount()).willReturn(2);
+        // Given - KakaoTestDataBuilder를 사용하여 친구 목록 생성
+        KakaoFriendsDTO mockFriends = KakaoTestDataBuilder.createKakaoFriendsResponse(
+            List.of(
+                KakaoTestDataBuilder.createSimpleKakaoFriend(1L, "친구1"),
+                KakaoTestDataBuilder.createSimpleKakaoFriend(2L, "친구2")
+            ),
+            2, null, null, 0
+        );
 
         given(kakaoApiClient.getFriends(anyString(), anyInt(), anyInt()))
             .willReturn(mockFriends);
@@ -115,9 +103,7 @@ class KakaoAuthToUserAdapterTest {
     @DisplayName("getFriendList - null 파라미터 처리")
     void shouldHandleNullParameters() {
         // Given
-        KakaoFriendsDTO mockFriends = mock(KakaoFriendsDTO.class);
-        lenient().when(mockFriends.getElements()).thenReturn(new ArrayList<>());
-        lenient().when(mockFriends.getTotalCount()).thenReturn(0);
+        KakaoFriendsDTO mockFriends = KakaoTestDataBuilder.createEmptyKakaoFriendsResponse();
 
         given(kakaoApiClient.getFriends(anyString(), any(), any()))
             .willReturn(mockFriends);
@@ -139,9 +125,7 @@ class KakaoAuthToUserAdapterTest {
     @DisplayName("getFriendList - 빈 친구 목록 처리")
     void shouldHandleEmptyFriendList() {
         // Given
-        KakaoFriendsDTO mockFriends = mock(KakaoFriendsDTO.class);
-        lenient().when(mockFriends.getElements()).thenReturn(new ArrayList<>());
-        lenient().when(mockFriends.getTotalCount()).thenReturn(0);
+        KakaoFriendsDTO mockFriends = KakaoTestDataBuilder.createEmptyKakaoFriendsResponse();
 
         given(kakaoApiClient.getFriends(anyString(), anyInt(), anyInt()))
             .willReturn(mockFriends);

@@ -79,7 +79,7 @@ class CommentSaveAdapterIntegrationTest {
         entityManager.persistAndFlush(testUser);
 
         // 테스트용 게시글 생성 - CommentTestDataBuilder 활용
-        testPost = CommentTestDataBuilder.createTestPost(testUser);
+        testPost = TestFixtures.createPostWithUser(testUser);
         entityManager.persistAndFlush(testPost);
         
         // 부모 댓글 생성 - CommentTestDataBuilder 활용

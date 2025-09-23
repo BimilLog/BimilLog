@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
+import jaeik.bimillog.testutil.TestFixtures;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -59,11 +60,7 @@ class PostCommandAdapterIntegrationTest {
         // Given: 저장된 게시글 (조회수 0)
         entityManager.persistAndFlush(testUser);
 
-        String title = "조회수 테스트";
-        String content = "조회수 증가 테스트 내용";
-        Integer password = 1234;
-
-        Post post = Post.createPost(testUser, title, content, password);
+        Post post = TestFixtures.createPost(testUser, "조회수 테스트", "조회수 증가 테스트 내용");
         Post savedPost = postCommandAdapter.create(post);
         entityManager.flush();
         entityManager.clear();
@@ -88,11 +85,7 @@ class PostCommandAdapterIntegrationTest {
         // Given: 일반 게시글
         entityManager.persistAndFlush(adminUser);
 
-        String title = "공지사항이 될 게시글";
-        String content = "중요한 공지입니다.";
-        Integer password = 1234;
-
-        Post post = Post.createPost(adminUser, title, content, password);
+        Post post = TestFixtures.createPost(adminUser, "공지사항이 될 게시글", "중요한 공지입니다.");
         Post savedPost = postCommandAdapter.create(post);
 
         // When: 공지사항으로 설정 후 저장
@@ -113,11 +106,7 @@ class PostCommandAdapterIntegrationTest {
         // Given: 일반 게시글
         entityManager.persistAndFlush(testUser);
 
-        String title = "인기 게시글";
-        String content = "많이 본 게시글입니다.";
-        Integer password = 1234;
-
-        Post post = Post.createPost(testUser, title, content, password);
+        Post post = TestFixtures.createPost(testUser, "인기 게시글", "많이 본 게시글입니다.");
         Post savedPost = postCommandAdapter.create(post);
 
         // When: 캐시 플래그 설정 후 저장
@@ -138,11 +127,7 @@ class PostCommandAdapterIntegrationTest {
         // Given: 저장된 게시글
         entityManager.persistAndFlush(testUser);
 
-        String title = "삭제될 게시글";
-        String content = "삭제 테스트 내용";
-        Integer password = 1234;
-
-        Post post = Post.createPost(testUser, title, content, password);
+        Post post = TestFixtures.createPost(testUser, "삭제될 게시글", "삭제 테스트 내용");
         Post savedPost = postCommandAdapter.create(post);
         entityManager.flush();
         entityManager.clear();

@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
+import jaeik.bimillog.testutil.TestFixtures;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -48,13 +49,10 @@ class PostLikeCommandAdapterIntegrationTest {
         User user = TestUsers.USER1;
         entityManager.persistAndFlush(user);
 
-        Post post = Post.createPost(user, "테스트 게시글", "내용", 1234);
+        Post post = TestFixtures.createPost(user, "테스트 게시글", "내용");
         entityManager.persistAndFlush(post);
 
-        PostLike postLike = PostLike.builder()
-                .post(post)
-                .user(user)
-                .build();
+        PostLike postLike = TestFixtures.createPostLike(post, user);
 
         // When
         postLikeCommandAdapter.save(postLike);
@@ -78,13 +76,10 @@ class PostLikeCommandAdapterIntegrationTest {
         User user = TestUsers.USER1;
         entityManager.persistAndFlush(user);
 
-        Post post = Post.createPost(user, "테스트 게시글", "내용", 1234);
+        Post post = TestFixtures.createPost(user, "테스트 게시글", "내용");
         entityManager.persistAndFlush(post);
 
-        PostLike postLike = PostLike.builder()
-                .post(post)
-                .user(user)
-                .build();
+        PostLike postLike = TestFixtures.createPostLike(post, user);
         entityManager.persistAndFlush(postLike);
 
         // When
@@ -106,17 +101,11 @@ class PostLikeCommandAdapterIntegrationTest {
         User user2 = TestUsers.USER2;
         entityManager.persistAndFlush(user2);
 
-        Post post = Post.createPost(user1, "테스트 게시글", "내용", 1234);
+        Post post = TestFixtures.createPost(user1, "테스트 게시글", "내용");
         entityManager.persistAndFlush(post);
 
-        PostLike postLike1 = PostLike.builder()
-                .post(post)
-                .user(user1)
-                .build();
-        PostLike postLike2 = PostLike.builder()
-                .post(post)
-                .user(user2)
-                .build();
+        PostLike postLike1 = TestFixtures.createPostLike(post, user1);
+        PostLike postLike2 = TestFixtures.createPostLike(post, user2);
         
         entityManager.persist(postLike1);
         entityManager.persist(postLike2);

@@ -1,31 +1,21 @@
 package jaeik.bimillog.infrastructure.adapter.in.user;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.auth.jpa.TokenRepository;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
-import jaeik.bimillog.testutil.TestContainersConfiguration;
+import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
 import jaeik.bimillog.testutil.TestUsers;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.context.WebApplicationContext;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -38,35 +28,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author Jaeik
  * @version 2.0.0
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureWebMvc
-@Testcontainers
-@Import({TestContainersConfiguration.class, TestSocialLoginPortConfig.class})
-@Transactional
+@Import(TestSocialLoginPortConfig.class)
 @DisplayName("사용자 조회 컨트롤러 통합 테스트")
-class UserQueryControllerIntegrationTest {
-
-    @Autowired
-    private WebApplicationContext context;
-
-    @Autowired
-    private ObjectMapper objectMapper;
+class UserQueryControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
 
     @Autowired
     private TokenRepository tokenRepository;
-
-    private MockMvc mockMvc;
-
-    @BeforeEach
-    void setUp() {
-        mockMvc = MockMvcBuilders
-                .webAppContextSetup(context)
-                .apply(springSecurity())
-                .build();
-    }
 
     @Test
     @DisplayName("닉네임 중복 확인 통합 테스트 - 사용 가능한 닉네임")
@@ -104,7 +74,7 @@ class UserQueryControllerIntegrationTest {
         User testUser = TestUsers.createUnique();
         userRepository.save(testUser);
         
-        CustomUserDetails userDetails = createCustomUserDetails(testUser);
+        var userDetails = createCustomUserDetails(testUser);
 
         // When & Then
         mockMvc.perform(get("/api/user/setting")
@@ -124,7 +94,7 @@ class UserQueryControllerIntegrationTest {
         User testUser = TestUsers.createUnique();
         userRepository.save(testUser);
         
-        CustomUserDetails userDetails = createCustomUserDetails(testUser);
+        var userDetails = createCustomUserDetails(testUser);
 
         // When & Then
         mockMvc.perform(get("/api/user/posts")
@@ -146,7 +116,7 @@ class UserQueryControllerIntegrationTest {
         User testUser = TestUsers.createUnique();
         userRepository.save(testUser);
         
-        CustomUserDetails userDetails = createCustomUserDetails(testUser);
+        var userDetails = createCustomUserDetails(testUser);
 
         // When & Then
         mockMvc.perform(get("/api/user/likeposts")
@@ -168,7 +138,7 @@ class UserQueryControllerIntegrationTest {
         User testUser = TestUsers.createUnique();
         userRepository.save(testUser);
         
-        CustomUserDetails userDetails = createCustomUserDetails(testUser);
+        var userDetails = createCustomUserDetails(testUser);
 
         // When & Then
         mockMvc.perform(get("/api/user/comments")
@@ -190,7 +160,7 @@ class UserQueryControllerIntegrationTest {
         User testUser = TestUsers.createUnique();
         userRepository.save(testUser);
         
-        CustomUserDetails userDetails = createCustomUserDetails(testUser);
+        var userDetails = createCustomUserDetails(testUser);
 
         // When & Then
         mockMvc.perform(get("/api/user/likecomments")
@@ -312,29 +282,6 @@ class UserQueryControllerIntegrationTest {
                 .andExpect(status().isOk());
     }
 
-
-    /**
-     * 테스트용 User 엔티티 생성
-     */
-
-    /**
-     * 테스트용 CustomUserDetails 생성
-     */
-    private CustomUserDetails createCustomUserDetails(User user) {
-        ExistingUserDetail userDetail = ExistingUserDetail.builder()
-                .userId(user.getId())
-                .settingId(user.getSetting().getId())
-                .socialId(user.getSocialId())
-                .socialNickname(user.getSocialNickname())
-                .thumbnailImage(user.getThumbnailImage())
-                .userName(user.getUserName())
-                .provider(user.getProvider())
-                .role(user.getRole())
-                .tokenId(12345L) // 카카오 친구 목록 API용
-                .build();
-
-        return new CustomUserDetails(userDetail);
-    }
 
     /**
      * 테스트용 CustomUserDetails 생성 (토큰 ID 지정)

@@ -6,15 +6,13 @@ import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
+import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.TestSettings;
 import jaeik.bimillog.testutil.TestUsers;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
@@ -31,9 +29,8 @@ import static org.mockito.Mockito.*;
  * @author Jaeik
  * @version 2.0.0
  */
-@ExtendWith(MockitoExtension.class)
 @DisplayName("UserCommandService 테스트")
-class UserCommandServiceTest {
+class UserCommandServiceTest extends BaseUnitTest {
 
     @Mock
     private UserQueryPort userQueryPort;
@@ -41,26 +38,16 @@ class UserCommandServiceTest {
     @InjectMocks
     private UserCommandService userCommandService;
 
-    // 테스트 전역 사용자
-    private User testUser;
-    private User adminUser;
-
-    @BeforeEach
-    void setUp() {
-        testUser = TestUsers.USER1;
-        adminUser = TestUsers.ADMIN;
-    }
-
     @Test
     @DisplayName("사용자 설정 수정 - 정상 케이스")
     void shouldUpdateUserSettings_WhenUserExists() {
         // Given
         Long userId = 1L;
-        Setting existingSetting = TestSettings.custom(true, true, false);
+        Setting existingSetting = createCustomSetting(true, true, false);
 
-        User user = TestUsers.copyWithId(testUser, userId);
+        User user = createTestUserWithId(userId);
 
-        Setting newSetting = TestSettings.custom(false, false, true);
+        Setting newSetting = createCustomSetting(false, false, true);
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
 
@@ -81,7 +68,7 @@ class UserCommandServiceTest {
     void shouldThrowException_WhenUserNotFoundForSettingUpdate() {
         // Given
         Long userId = 999L;
-        Setting newSetting = TestSettings.DEFAULT;
+        Setting newSetting = defaultSetting;
 
         given(userQueryPort.findById(userId)).willReturn(Optional.empty());
 
@@ -100,7 +87,7 @@ class UserCommandServiceTest {
         Long userId = 1L;
         String newUserName = "newUserName";
 
-        User user = TestUsers.copyWithId(testUser, userId);
+        User user = createTestUserWithId(userId);
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
 
@@ -120,7 +107,7 @@ class UserCommandServiceTest {
         // Given
         Long userId = 1L;
         String existingUserName = "existingUser";
-        User user = TestUsers.copyWithId(testUser, userId);
+        User user = createTestUserWithId(userId);
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
 
@@ -159,7 +146,7 @@ class UserCommandServiceTest {
         Long userId = 1L;
         String validUserName = "a".repeat(20); // 20자 길이 (제한 내)
 
-        User user = TestUsers.copyWithId(testUser, userId);
+        User user = createTestUserWithId(userId);
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
 
@@ -179,7 +166,7 @@ class UserCommandServiceTest {
         Long userId = 1L;
         String validUserName = "user123_"; // 영문, 숫자, 언더스코어만 허용 가정
 
-        User user = TestUsers.copyWithId(testUser, userId);
+        User user = createTestUserWithId(userId);
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
 
@@ -197,12 +184,12 @@ class UserCommandServiceTest {
     void shouldUpdateUserSettings_WhenPartialSetting() {
         // Given
         Long userId = 1L;
-        Setting existingSetting = TestSettings.custom(false, true, false);
+        Setting existingSetting = createCustomSetting(false, true, false);
 
-        User user = TestUsers.copyWithId(testUser, userId);
+        User user = createTestUserWithId(userId);
 
         // 부분적 설정만 포함된 Setting
-        Setting partialSetting = TestSettings.custom(true, false, false);
+        Setting partialSetting = createCustomSetting(true, false, false);
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
 

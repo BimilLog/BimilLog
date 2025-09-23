@@ -2,27 +2,15 @@ package jaeik.bimillog.infrastructure.adapter.in.notification;
 
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
-import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
-import jaeik.bimillog.testutil.TestContainersConfiguration;
-import jaeik.bimillog.testutil.TestFixtures;
+import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
 import jaeik.bimillog.testutil.TestUsers;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.context.WebApplicationContext;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -37,44 +25,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author Jaeik
  * @since 2.0.0
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureWebMvc
-@Testcontainers
-@Import({TestContainersConfiguration.class, TestSocialLoginPortConfig.class})
-@Transactional
+@Import(TestSocialLoginPortConfig.class)
 @DisplayName("알림 SSE 컨트롤러 통합 테스트")
-class NotificationSseControllerIntegrationTest {
+class NotificationSseControllerIntegrationTest extends BaseIntegrationTest {
 
-    @Autowired
-    private WebApplicationContext context;
-    
-    @Autowired
-    private UserRepository userRepository;
-    
-    private MockMvc mockMvc;
-    private User testUser;
-    
-    @BeforeEach
-    void setUp() {
-        mockMvc = MockMvcBuilders
-                .webAppContextSetup(context)
-                .apply(springSecurity())
-                .build();
-        
-        // 테스트용 사용자 생성
-        testUser = TestUsers.createUnique();
-        userRepository.save(testUser);
-    }
+    // BaseIntegrationTest에서 mockMvc, testUser, userRepository 등을 자동으로 제공
     
     @Test
     @DisplayName("로그인된 사용자의 SSE 구독 - 성공")
     void subscribe_AuthenticatedUser_Success() throws Exception {
-        // Given
-        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
-        
-        // When & Then
+        // When & Then - testUserDetails는 BaseIntegrationTest에서 자동 생성
         mockMvc.perform(get("/api/notification/subscribe")
-                .with(user(userDetails)))
+                .with(user(testUserDetails)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.TEXT_EVENT_STREAM_VALUE));
@@ -92,12 +54,9 @@ class NotificationSseControllerIntegrationTest {
     @Test
     @DisplayName("잘못된 HTTP 메서드로 SSE 구독 - 실패 (CSRF 보안으로 403)")
     void subscribe_WrongHttpMethod_Forbidden() throws Exception {
-        // Given
-        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
-        
         // When & Then - POST 메서드로 요청 (Spring Security CSRF가 먼저 차단)
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/notification/subscribe")
-                .with(user(userDetails)))
+                .with(user(testUserDetails)))
                 .andDo(print())
                 .andExpect(status().isForbidden()); // CSRF 보안으로 403 반환
     }
@@ -105,31 +64,26 @@ class NotificationSseControllerIntegrationTest {
     @Test
     @DisplayName("다른 사용자들의 동시 SSE 구독 - 성공")
     void subscribe_MultipleUsers_Success() throws Exception {
-        // Given - 추가 사용자들 생성
-        User user2 = TestUsers.createUniqueWithPrefix("user2");
-        User user3 = TestUsers.createUniqueWithPrefix("user3");
-        userRepository.save(user2);
-        userRepository.save(user3);
-        
-        CustomUserDetails userDetails1 = TestFixtures.createCustomUserDetails(testUser);
-        CustomUserDetails userDetails2 = TestFixtures.createCustomUserDetails(user2);
-        CustomUserDetails userDetails3 = TestFixtures.createCustomUserDetails(user3);
-        
+        // Given - 추가 사용자 생성 (BaseIntegrationTest에서 otherUser, adminUser 이미 제공)
+        User additionalUser = TestUsers.createUniqueWithPrefix("additional");
+        userRepository.save(additionalUser);
+        CustomUserDetails additionalUserDetails = createCustomUserDetails(additionalUser);
+
         // When & Then - 각각 구독 가능해야 함
         mockMvc.perform(get("/api/notification/subscribe")
-                .with(user(userDetails1)))
+                .with(user(testUserDetails)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.TEXT_EVENT_STREAM_VALUE));
-                
+
         mockMvc.perform(get("/api/notification/subscribe")
-                .with(user(userDetails2)))
+                .with(user(otherUserDetails)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.TEXT_EVENT_STREAM_VALUE));
-                
+
         mockMvc.perform(get("/api/notification/subscribe")
-                .with(user(userDetails3)))
+                .with(user(additionalUserDetails)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.TEXT_EVENT_STREAM_VALUE));
@@ -138,13 +92,10 @@ class NotificationSseControllerIntegrationTest {
     @Test
     @DisplayName("Accept 헤더 확인 - text/listener-stream")
     void subscribe_CheckAcceptHeader_Success() throws Exception {
-        // Given
-        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
-        
         // When & Then
         mockMvc.perform(get("/api/notification/subscribe")
                 .header("Accept", "text/listener-stream")
-                .with(user(userDetails)))
+                .with(user(testUserDetails)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.TEXT_EVENT_STREAM_VALUE));

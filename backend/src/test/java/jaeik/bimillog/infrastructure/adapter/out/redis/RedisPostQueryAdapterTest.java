@@ -5,17 +5,17 @@ import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
+import jaeik.bimillog.testutil.BaseUnitTest;
+import jaeik.bimillog.testutil.RedisTestHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.core.ZSetOperations;
 
-import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -33,8 +33,7 @@ import static org.mockito.BDDMockito.verify;
  * @author Jaeik
  * @version 2.0.0
  */
-@ExtendWith(MockitoExtension.class)
-class RedisPostQueryAdapterTest {
+class RedisPostQueryAdapterTest extends BaseUnitTest {
 
     @Mock
     private RedisTemplate<String, Object> redisTemplate;
@@ -45,30 +44,18 @@ class RedisPostQueryAdapterTest {
     @Mock
     private ZSetOperations<String, Object> zSetOperations;
 
+    @InjectMocks
     private RedisPostQueryAdapter redisPostQueryAdapter;
 
     private PostDetail testPostDetail;
 
-    @BeforeEach
-    void setUp() {
-        given(redisTemplate.opsForValue()).willReturn(valueOperations);
-        given(redisTemplate.opsForZSet()).willReturn(zSetOperations);
-        
-        redisPostQueryAdapter = new RedisPostQueryAdapter(redisTemplate);
-
-        testPostDetail = PostDetail.builder()
+    @Override
+    protected void setUpChild() {
+        RedisTestHelper.setupRedisTemplateMocks(redisTemplate, valueOperations, zSetOperations);
+        testPostDetail = RedisTestHelper.postDetail()
             .id(1L)
             .title("캐시된 게시글")
             .content("캐시된 내용")
-            .viewCount(100)
-            .likeCount(50)
-            .postCacheFlag(PostCacheFlag.REALTIME)
-            .createdAt(Instant.now())
-            .userId(1L)
-            .userName("testUser")
-            .commentCount(10)
-            .isNotice(false)
-            .isLiked(false)
             .build();
     }
 
@@ -76,81 +63,87 @@ class RedisPostQueryAdapterTest {
     @DisplayName("정상 케이스 - 캐시된 게시글 상세 조회")
     void shouldReturnPostDetail_WhenCachedPostExists() {
         // Given
-        given(valueOperations.get("cache:post:1"))
+        Long postId = 1L;
+        given(valueOperations.get(RedisTestHelper.RedisKeys.postDetail(postId)))
             .willReturn(testPostDetail);
 
         // When
-        PostDetail result = redisPostQueryAdapter.getCachedPostIfExists(1L);
+        PostDetail result = redisPostQueryAdapter.getCachedPostIfExists(postId);
 
         // Then
         assertThat(result).isNotNull();
-        assertThat(result.id()).isEqualTo(1L);
+        assertThat(result.id()).isEqualTo(postId);
         assertThat(result.title()).isEqualTo("캐시된 게시글");
-        verify(valueOperations).get("cache:post:1");
+        verify(valueOperations).get(RedisTestHelper.RedisKeys.postDetail(postId));
     }
 
     @Test
     @DisplayName("정상 케이스 - 캐시된 게시글 목록 조회")
     void shouldReturnPostList_WhenCachedListExists() {
         // Given
+        PostCacheFlag cacheType = PostCacheFlag.REALTIME;
         Set<Object> postIds = Set.of("1", "2", "3");
-        given(zSetOperations.reverseRange("cache:posts:realtime", 0, -1))
+        
+        given(zSetOperations.reverseRange(RedisTestHelper.RedisKeys.postList(cacheType), 0, -1))
             .willReturn(postIds);
-        given(valueOperations.get("cache:post:1")).willReturn(testPostDetail);
-        given(valueOperations.get("cache:post:2")).willReturn(testPostDetail);
-        given(valueOperations.get("cache:post:3")).willReturn(testPostDetail);
+        given(valueOperations.get(RedisTestHelper.RedisKeys.postDetail(1L))).willReturn(testPostDetail);
+        given(valueOperations.get(RedisTestHelper.RedisKeys.postDetail(2L))).willReturn(testPostDetail);
+        given(valueOperations.get(RedisTestHelper.RedisKeys.postDetail(3L))).willReturn(testPostDetail);
 
         // When
-        List<PostSearchResult> result = redisPostQueryAdapter.getCachedPostList(PostCacheFlag.REALTIME);
+        List<PostSearchResult> result = redisPostQueryAdapter.getCachedPostList(cacheType);
 
         // Then
         assertThat(result).hasSize(3);
-        verify(zSetOperations).reverseRange("cache:posts:realtime", 0, -1);
+        verify(zSetOperations).reverseRange(RedisTestHelper.RedisKeys.postList(cacheType), 0, -1);
     }
 
     @Test
     @DisplayName("정상 케이스 - 캐시 존재 여부 확인")
     void shouldReturnTrue_WhenCacheKeyExists() {
         // Given
-        given(redisTemplate.hasKey("cache:posts:realtime"))
+        PostCacheFlag cacheType = PostCacheFlag.REALTIME;
+        given(redisTemplate.hasKey(RedisTestHelper.RedisKeys.postList(cacheType)))
             .willReturn(true);
 
         // When
-        boolean result = redisPostQueryAdapter.hasPopularPostsCache(PostCacheFlag.REALTIME);
+        boolean result = redisPostQueryAdapter.hasPopularPostsCache(cacheType);
 
         // Then
         assertThat(result).isTrue();
-        verify(redisTemplate).hasKey("cache:posts:realtime");
+        verify(redisTemplate).hasKey(RedisTestHelper.RedisKeys.postList(cacheType));
     }
 
     @Test
     @DisplayName("정상 케이스 - 빈 캐시 목록 조회")
     void shouldReturnEmptyList_WhenNoCachedPostsExist() {
         // Given
-        given(zSetOperations.reverseRange("cache:posts:realtime", 0, -1))
+        PostCacheFlag cacheType = PostCacheFlag.REALTIME;
+        given(zSetOperations.reverseRange(RedisTestHelper.RedisKeys.postList(cacheType), 0, -1))
             .willReturn(Collections.emptySet());
 
         // When
-        List<PostSearchResult> result = redisPostQueryAdapter.getCachedPostList(PostCacheFlag.REALTIME);
+        List<PostSearchResult> result = redisPostQueryAdapter.getCachedPostList(cacheType);
 
         // Then
         assertThat(result).isEmpty();
-        verify(zSetOperations).reverseRange("cache:posts:realtime", 0, -1);
+        verify(zSetOperations).reverseRange(RedisTestHelper.RedisKeys.postList(cacheType), 0, -1);
     }
 
     @Test
     @DisplayName("경계값 - 캐시되지 않은 게시글 조회 시 null 반환")
     void shouldReturnNull_WhenPostNotCached() {
         // Given
-        given(valueOperations.get("cache:post:999"))
+        Long nonExistentPostId = 999L;
+        given(valueOperations.get(RedisTestHelper.RedisKeys.postDetail(nonExistentPostId)))
             .willReturn(null);
 
         // When
-        PostDetail result = redisPostQueryAdapter.getCachedPostIfExists(999L);
+        PostDetail result = redisPostQueryAdapter.getCachedPostIfExists(nonExistentPostId);
 
         // Then
         assertThat(result).isNull();
-        verify(valueOperations).get("cache:post:999");
+        verify(valueOperations).get(RedisTestHelper.RedisKeys.postDetail(nonExistentPostId));
     }
 
     @Test

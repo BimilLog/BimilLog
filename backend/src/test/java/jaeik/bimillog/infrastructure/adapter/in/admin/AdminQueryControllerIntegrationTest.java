@@ -1,28 +1,12 @@
 package jaeik.bimillog.infrastructure.adapter.in.admin;
 
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
-import jaeik.bimillog.testutil.TestContainersConfiguration;
-import org.junit.jupiter.api.BeforeEach;
+import jaeik.bimillog.testutil.BaseIntegrationTest;
+import jaeik.bimillog.testutil.annotation.IntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.context.WebApplicationContext;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -34,61 +18,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author Jaeik
  * @since 2.0.0
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureWebMvc
-@Testcontainers
-@Import(TestContainersConfiguration.class)
-@Transactional
-class AdminQueryControllerIntegrationTest {
-
-    @Autowired
-    private WebApplicationContext context;
-    
-    private MockMvc mockMvc;
-    
-    @BeforeEach
-    void setUp() {
-        mockMvc = MockMvcBuilders
-                .webAppContextSetup(context)
-                .apply(springSecurity())
-                .build();
-    }
-    
-    /**
-     * 테스트용 관리자 CustomUserDetails 생성
-     */
-    private CustomUserDetails createAdminUserDetails() {
-        ExistingUserDetail adminUserDetail = ExistingUserDetail.builder()
-                .userId(1L)
-                .socialId("admin123")
-                .provider(SocialProvider.KAKAO)
-                .settingId(1L)
-                .socialNickname("관리자")
-                .userName("admin")
-                .role(UserRole.ADMIN)
-                .tokenId(1L)
-                .fcmTokenId(1L)
-                .build();
-        return new CustomUserDetails(adminUserDetail);
-    }
-    
-    /**
-     * 테스트용 일반 사용자 CustomUserDetails 생성
-     */
-    private CustomUserDetails createUserUserDetails() {
-        ExistingUserDetail userDetail = ExistingUserDetail.builder()
-                .userId(2L)
-                .socialId("user123")
-                .provider(SocialProvider.KAKAO)
-                .settingId(2L)
-                .socialNickname("일반사용자")
-                .userName("user")
-                .role(UserRole.USER)
-                .tokenId(2L)
-                .fcmTokenId(2L)
-                .build();
-        return new CustomUserDetails(userDetail);
-    }
+@IntegrationTest
+@DisplayName("관리자 Query 컨트롤러 통합 테스트")
+class AdminQueryControllerIntegrationTest extends BaseIntegrationTest {
     
     @Test
     @DisplayName("관리자 권한으로 신고 목록 조회 - 성공")
@@ -96,13 +28,12 @@ class AdminQueryControllerIntegrationTest {
         // Given
         int page = 0;
         int size = 10;
-        CustomUserDetails adminUser = createAdminUserDetails();
         
         // When & Then
-        mockMvc.perform(get("/api/dto/query/reports")
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/dto/query/reports")
                         .param("page", String.valueOf(page))
                         .param("size", String.valueOf(size))
-                        .with(user(adminUser)))
+                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(adminUserDetails)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -119,14 +50,13 @@ class AdminQueryControllerIntegrationTest {
     void getReportList_WithReportTypeFilter_Success() throws Exception {
         // Given
         ReportType reportType = ReportType.POST;
-        CustomUserDetails adminUser = createAdminUserDetails();
         
         // When & Then
-        mockMvc.perform(get("/api/dto/query/reports")
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/dto/query/reports")
                         .param("page", "0")
                         .param("size", "10")
                         .param("reportType", reportType.name())
-                        .with(user(adminUser)))
+                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(adminUserDetails)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -136,12 +66,8 @@ class AdminQueryControllerIntegrationTest {
     @Test
     @DisplayName("관리자 권한으로 기본 페이징 파라미터로 신고 목록 조회 - 성공")
     void getReportList_WithDefaultPagingParams_Success() throws Exception {
-        // Given
-        CustomUserDetails adminUser = createAdminUserDetails();
-        
         // When & Then
-        mockMvc.perform(get("/api/dto/query/reports")
-                        .with(user(adminUser)))
+        performGet("/api/dto/query/reports", adminUserDetails)
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -156,13 +82,12 @@ class AdminQueryControllerIntegrationTest {
         // Given
         int page = 0;
         int size = 100;
-        CustomUserDetails adminUser = createAdminUserDetails();
         
         // When & Then
-        mockMvc.perform(get("/api/dto/query/reports")
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/dto/query/reports")
                         .param("page", String.valueOf(page))
                         .param("size", String.valueOf(size))
-                        .with(user(adminUser)))
+                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(adminUserDetails)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -172,14 +97,8 @@ class AdminQueryControllerIntegrationTest {
     @Test
     @DisplayName("일반 사용자 권한으로 신고 목록 조회 - 실패 (권한 부족)")
     void getReportList_WithUserRole_Forbidden() throws Exception {
-        // Given
-        CustomUserDetails regularUser = createUserUserDetails();
-        
         // When & Then
-        mockMvc.perform(get("/api/dto/query/reports")
-                        .param("page", "0")
-                        .param("size", "10")
-                        .with(user(regularUser)))
+        performGet("/api/dto/query/reports?page=0&size=10", testUserDetails)
                 .andDo(print())
                 .andExpect(status().isForbidden()); // 일반 사용자는 관리자 권한이 없어서 403
     }
@@ -188,9 +107,7 @@ class AdminQueryControllerIntegrationTest {
     @DisplayName("인증되지 않은 사용자의 신고 목록 조회 - 실패")
     void getReportList_Unauthenticated_Forbidden() throws Exception {
         // When & Then
-        mockMvc.perform(get("/api/dto/query/reports")
-                        .param("page", "0")
-                        .param("size", "10"))
+        performGet("/api/dto/query/reports?page=0&size=10")
                 .andDo(print())
                 .andExpect(status().isForbidden()); // 실제로는 403이 반환됨
     }
@@ -201,13 +118,12 @@ class AdminQueryControllerIntegrationTest {
         // Given
         int page = -1;
         int size = 10;
-        CustomUserDetails adminUser = createAdminUserDetails();
         
         // When & Then
-        mockMvc.perform(get("/api/dto/query/reports")
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/dto/query/reports")
                         .param("page", String.valueOf(page))
                         .param("size", String.valueOf(size))
-                        .with(user(adminUser)))
+                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(adminUserDetails)))
                 .andDo(print())
                 .andExpect(status().isInternalServerError());
     }
@@ -215,15 +131,12 @@ class AdminQueryControllerIntegrationTest {
     @Test
     @DisplayName("관리자 권한으로 존재하지 않는 신고 타입으로 조회 - 실패")
     void getReportList_WithInvalidReportType_BadRequest() throws Exception {
-        // Given
-        CustomUserDetails adminUser = createAdminUserDetails();
-        
         // When & Then
-        mockMvc.perform(get("/api/dto/query/reports")
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/dto/query/reports")
                         .param("page", "0")
                         .param("size", "10")
                         .param("reportType", "INVALID_TYPE")
-                        .with(user(adminUser)))
+                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(adminUserDetails)))
                 .andDo(print())
                 .andExpect(status().isInternalServerError());
     }

@@ -8,14 +8,13 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.global.application.port.out.GlobalTokenCommandPort;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
+import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -31,8 +30,7 @@ import static org.mockito.Mockito.verify;
  * @author Jaeik
  * @version 2.0.0
  */
-@ExtendWith(MockitoExtension.class)
-class SaveUserAdapterTest {
+class SaveUserAdapterTest extends BaseUnitTest {
 
     @Mock private GlobalTokenCommandPort globalTokenCommandPort;
     @Mock private UserRepository userRepository;
@@ -51,7 +49,7 @@ class SaveUserAdapterTest {
         Long fcmTokenId = 100L;
         Long tokenId = 1L;
 
-        User existingUser = TestUsers.copyWithId(TestUsers.USER1, 1L);
+        User existingUser = createTestUserWithId(1L);
         existingUser.updateUserInfo("기존닉네임", "https://old-profile.jpg");
 
         Token savedToken = Token.builder()
@@ -96,7 +94,7 @@ class SaveUserAdapterTest {
         Token tokenDTO = Token.createTemporaryToken("access-TemporaryToken", "refresh-TemporaryToken");
         SocialUserProfile userProfile = new SocialUserProfile("123456789", "fcm@example.com", SocialProvider.KAKAO, "FCM없음", "https://example.jpg", tokenDTO);
 
-        User existingUser = TestUsers.copyWithId(TestUsers.USER1, 1L);
+        User existingUser = createTestUserWithId(1L);
 
         Token savedToken = Token.builder()
                 .id(1L)
@@ -129,7 +127,7 @@ class SaveUserAdapterTest {
         Token tokenDTO = Token.createTemporaryToken("access-TemporaryToken", "refresh-TemporaryToken");
         SocialUserProfile userProfile = new SocialUserProfile("987654321", "newuser@example.com", SocialProvider.KAKAO, "신규사용자", "https://new-profile.jpg", tokenDTO);
 
-        User newUser = TestUsers.copyWithId(TestUsers.USER2, 2L);
+        User newUser = TestUsers.copyWithId(otherUser, 2L);
 
         Token newToken = Token.builder()
                 .id(1L)
@@ -177,7 +175,7 @@ class SaveUserAdapterTest {
         Token tokenDTO = Token.createTemporaryToken("access-TemporaryToken", "refresh-TemporaryToken");
         SocialUserProfile userProfile = new SocialUserProfile("111222333", "nofcm@example.com", SocialProvider.KAKAO, "FCM없음", "https://no-fcm.jpg", tokenDTO);
 
-        User newUser = TestUsers.copyWithId(TestUsers.USER3, 3L);
+        User newUser = TestUsers.copyWithId(thirdUser, 3L);
         newUser.updateUserInfo("FCM없음", "https://no-fcm.jpg");
 
         Token newToken = Token.builder()

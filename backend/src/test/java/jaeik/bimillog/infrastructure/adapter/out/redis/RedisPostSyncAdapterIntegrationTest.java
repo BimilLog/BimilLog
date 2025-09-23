@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostLikeRepository;
 import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostRepository;
+import jaeik.bimillog.testutil.RedisTestHelper;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
@@ -72,14 +73,10 @@ class RedisPostSyncAdapterIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        try (RedisConnection connection = redisTemplate.getConnectionFactory().getConnection()) {
-            if (connection != null) {
-                connection.serverCommands().flushAll();
-            }
-        } catch (Exception e) {
-            System.err.println("Redis flush warning: " + e.getMessage());
-        }
+        // Redis 초기화
+        RedisTestHelper.flushRedis(redisTemplate);
         
+        // DB 초기화
         try {
             postLikeRepository.deleteAll();
             postRepository.deleteAll();
@@ -89,6 +86,7 @@ class RedisPostSyncAdapterIntegrationTest {
             System.err.println("데이터베이스 초기화 경고: " + e.getMessage());
         }
 
+        // 테스트 사용자 준비
         testUser = TestUsers.USER1;
         entityManager.persistAndFlush(testUser);
     }

@@ -14,15 +14,14 @@ import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
+import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseCookie;
@@ -39,15 +38,14 @@ import static org.mockito.Mockito.*;
 
 /**
  * <h2>WithdrawService 단위 테스트</h2>
- * <p>회원 탈퇴 서비스의 비즈니스 로직을 검증하는 단위 테스트</p>
+ * <p>회원 탈퇴 서비스의 빔즈니스 로직을 검증하는 단위 테스트</p>
  * <p>모든 외부 의존성을 모킹하여 순수한 비즈니스 로직만 테스트</p>
  *
  * @author Jaeik
  * @version 2.0.0
  */
-@ExtendWith(MockitoExtension.class)
 @DisplayName("WithdrawService 단위 테스트")
-class WithdrawServiceTest {
+class WithdrawServiceTest extends BaseUnitTest {
 
     @Mock
     private UserQueryPort userQueryPort;
@@ -67,15 +65,13 @@ class WithdrawServiceTest {
     @InjectMocks
     private WithdrawService withdrawService;
 
-    // 테스트 전역 사용자
-    private User testUser;
-    private User adminUser;
+    // 테스트용 사용자
+    private User withdrawTestUser;
     private List<ResponseCookie> logoutCookies;
 
     @BeforeEach
-    void setUp() {
-        testUser = TestUsers.copyWithId(TestUsers.USER1, 100L);
-        adminUser = TestUsers.ADMIN;
+    protected void setUpChild() {
+        withdrawTestUser = createTestUserWithId(100L);
 
         logoutCookies = List.of(
                 ResponseCookie.from("access_token", "").maxAge(0).build(),
@@ -88,7 +84,7 @@ class WithdrawServiceTest {
     void shouldWithdraw_WhenValidUserDetails() {
         // Given
         given(userDetails.getUserId()).willReturn(100L);
-        given(userQueryPort.findById(100L)).willReturn(Optional.of(testUser));
+        given(userQueryPort.findById(100L)).willReturn(Optional.of(withdrawTestUser));
         given(globalCookiePort.getLogoutCookies()).willReturn(logoutCookies);
 
         // When
@@ -109,7 +105,7 @@ class WithdrawServiceTest {
         
         UserWithdrawnEvent capturedEvent = eventCaptor.getValue();
         assertThat(capturedEvent.userId()).isEqualTo(100L);
-        assertThat(capturedEvent.socialId()).isEqualTo(testUser.getSocialId());
+        assertThat(capturedEvent.socialId()).isEqualTo(withdrawTestUser.getSocialId());
         assertThat(capturedEvent.provider()).isEqualTo(SocialProvider.KAKAO);
 
         // 로그아웃 쿠키 생성 검증
@@ -148,7 +144,7 @@ class WithdrawServiceTest {
     void shouldThrowException_WhenWithdrawProcessFails() {
         // Given
         given(userDetails.getUserId()).willReturn(100L);
-        given(userQueryPort.findById(100L)).willReturn(Optional.of(testUser));
+        given(userQueryPort.findById(100L)).willReturn(Optional.of(withdrawTestUser));
         doThrow(new RuntimeException("탈퇴 프로세스 실패"))
                 .when(deleteUserPort).performWithdrawProcess(100L);
 
@@ -168,7 +164,7 @@ class WithdrawServiceTest {
     void shouldForceWithdraw_WhenValidUserId() {
         // Given
         Long targetUserId = 200L;
-        User targetUser = TestUsers.copyWithId(TestUsers.USER2, targetUserId);
+        User targetUser = TestUsers.copyWithId(otherUser, targetUserId);
 
         given(userQueryPort.findById(targetUserId)).willReturn(Optional.of(targetUser));
 
@@ -249,7 +245,7 @@ class WithdrawServiceTest {
     void shouldCompleteWithdraw_WhenEventPublishingFails() {
         // Given
         given(userDetails.getUserId()).willReturn(100L);
-        given(userQueryPort.findById(100L)).willReturn(Optional.of(testUser));
+        given(userQueryPort.findById(100L)).willReturn(Optional.of(withdrawTestUser));
         doThrow(new RuntimeException("이벤트 발행 실패"))
                 .when(eventPublisher).publishEvent(any(UserWithdrawnEvent.class));
 
@@ -268,7 +264,7 @@ class WithdrawServiceTest {
     void shouldHandleException_WhenForceWithdrawDataProcessFails() {
         // Given
         Long targetUserId = 200L;
-        User targetUser = TestUsers.copyWithId(TestUsers.USER2, targetUserId);
+        User targetUser = TestUsers.copyWithId(otherUser, targetUserId);
 
         given(userQueryPort.findById(targetUserId)).willReturn(Optional.of(targetUser));
         doThrow(new RuntimeException("데이터 처리 실패"))
@@ -288,7 +284,7 @@ class WithdrawServiceTest {
     void shouldAddToBlacklist_WhenUserExists() {
         // Given
         Long userId = 1L;
-        User user = TestUsers.copyWithId(TestUsers.USER1, userId);
+        User user = createTestUserWithId(userId);
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
 

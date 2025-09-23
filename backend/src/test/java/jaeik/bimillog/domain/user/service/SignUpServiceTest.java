@@ -12,14 +12,13 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.TempUserData;
 import jaeik.bimillog.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.global.application.port.out.GlobalJwtPort;
+import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseCookie;
 
 import java.util.List;
@@ -41,9 +40,8 @@ import static org.mockito.Mockito.verify;
  * @author Jaeik
  * @version 2.0.0
  */
-@ExtendWith(MockitoExtension.class)
 @DisplayName("SignUpService 단위 테스트")
-class SignUpServiceTest {
+class SignUpServiceTest extends BaseUnitTest {
 
     @Mock
     private RedisUserDataPort redisUserDataPort;
@@ -70,7 +68,7 @@ class SignUpServiceTest {
     private String testRefreshToken = "test-refresh-TemporaryToken";
 
     @BeforeEach
-    void setUp() {
+    protected void setUpChild() {
         testUserName = "testUser";
         testUuid = "test-uuid-123";
 
@@ -84,7 +82,7 @@ class SignUpServiceTest {
                 ResponseCookie.from("refresh_token", "refresh-TemporaryToken").build()
         );
 
-        testUserDetail = ExistingUserDetail.of(TestUsers.USER1, 1L, 100L);
+        testUserDetail = ExistingUserDetail.of(testUser, 1L, 100L);
     }
 
     @Test

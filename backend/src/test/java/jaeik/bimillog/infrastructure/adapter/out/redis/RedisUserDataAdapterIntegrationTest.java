@@ -6,6 +6,7 @@ import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.TempUserData;
+import jaeik.bimillog.testutil.RedisTestHelper;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -56,34 +57,17 @@ class RedisUserDataAdapterIntegrationTest {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
-    
     private SocialUserProfile testUserProfile;
-    private Token testToken;
     private String testUuid;
 
     @BeforeEach
     void setUp() {
         // Redis 초기화
-        try (RedisConnection connection = redisTemplate.getConnectionFactory().getConnection()) {
-            if (connection != null) {
-                connection.serverCommands().flushAll();
-            }
-        } catch (Exception e) {
-            System.err.println("Redis flush warning: " + e.getMessage());
-        }
+        RedisTestHelper.flushRedis(redisTemplate);
         
         // 테스트 데이터 준비
         testUuid = "test-uuid-12345";
-        testToken = Token.createTemporaryToken("access-TemporaryToken", "refresh-TemporaryToken");
-        testUserProfile = new SocialUserProfile(
-            "123456789",
-            "test@example.com",
-            SocialProvider.KAKAO,
-            "testUser",
-            "https://example.com/profile.jpg",
-            testToken
-        );
-                
+        testUserProfile = RedisTestHelper.defaultSocialUserProfile();
     }
 
     @Test
@@ -102,7 +86,7 @@ class RedisUserDataAdapterIntegrationTest {
         assertThat(savedData.get().getFcmToken()).isEqualTo("test-fcm-TemporaryToken");
         
         // Redis에서 직접 확인
-        String key = "temp:user:" + testUuid;
+        String key = RedisTestHelper.RedisKeys.tempUserData(testUuid);
         assertThat(redisTemplate.hasKey(key)).isTrue();
     }
 
@@ -112,7 +96,7 @@ class RedisUserDataAdapterIntegrationTest {
         // When: 임시 데이터 저장
         redisTempDataAdapter.saveTempData(testUuid, testUserProfile, "test-fcm-TemporaryToken");
         
-        String key = "temp:user:" + testUuid;
+        String key = RedisTestHelper.RedisKeys.tempUserData(testUuid);
         
         // Then: TTL이 설정되어 있음 (약 5분)
         Long ttl = redisTemplate.getExpire(key, TimeUnit.SECONDS);
@@ -163,7 +147,7 @@ class RedisUserDataAdapterIntegrationTest {
         assertThat(result).isEmpty();
         
         // Redis에서도 삭제됨 확인
-        String key = "temp:user:" + testUuid;
+        String key = RedisTestHelper.RedisKeys.tempUserData(testUuid);
         assertThat(redisTemplate.hasKey(key)).isFalse();
     }
 

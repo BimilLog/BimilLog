@@ -2,37 +2,28 @@ package jaeik.bimillog.infrastructure.adapter.in.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.in.admin.dto.ReportDTO;
 import jaeik.bimillog.infrastructure.adapter.in.auth.dto.SocialLoginRequestDTO;
 import jaeik.bimillog.infrastructure.adapter.in.user.dto.SettingDTO;
 import jaeik.bimillog.infrastructure.adapter.in.user.dto.SignUpRequestDTO;
 import jaeik.bimillog.infrastructure.adapter.in.user.dto.UserNameDTO;
-import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
-import jaeik.bimillog.testutil.TestContainersConfiguration;
+import jaeik.bimillog.testutil.BaseIntegrationTest;
+import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
+import jaeik.bimillog.testutil.TestFixtures;
 import jaeik.bimillog.testutil.TestUsers;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.context.WebApplicationContext;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.Map;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -45,32 +36,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author Jaeik
  * @version 2.0.0
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureWebMvc
-@Testcontainers
-@Import(TestContainersConfiguration.class)
-@Transactional
 @DisplayName("사용자 명령 컨트롤러 통합 테스트")
-class UserCommandControllerIntegrationTest {
-
-    @Autowired
-    private WebApplicationContext context;
-
-    @Autowired
-    private ObjectMapper objectMapper;
+class UserCommandControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
-
-    private MockMvc mockMvc;
-
-    @BeforeEach
-    void setUp() {
-        mockMvc = MockMvcBuilders
-                .webAppContextSetup(context)
-                .apply(springSecurity())
-                .build();
-    }
 
     @Test
     @DisplayName("회원가입 통합 테스트 - 성공")
@@ -114,7 +84,7 @@ class UserCommandControllerIntegrationTest {
         User testUser = TestUsers.createUnique();
         userRepository.save(testUser);
         
-        CustomUserDetails userDetails = createCustomUserDetails(testUser);
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
         
         UserNameDTO userNameDTO = new UserNameDTO();
         userNameDTO.setUserName("새로운닉네임");
@@ -137,7 +107,7 @@ class UserCommandControllerIntegrationTest {
         User testUser = TestUsers.createUnique();
         userRepository.save(testUser);
         
-        CustomUserDetails userDetails = createCustomUserDetails(testUser);
+        var userDetails = createCustomUserDetails(testUser);
         
         UserNameDTO userNameDTO = new UserNameDTO();
         userNameDTO.setUserName("아주긴닉네임이라서8글자초과"); // 8글자 초과
@@ -159,7 +129,7 @@ class UserCommandControllerIntegrationTest {
         User testUser = TestUsers.createUnique();
         userRepository.save(testUser);
         
-        CustomUserDetails userDetails = createCustomUserDetails(testUser);
+        var userDetails = createCustomUserDetails(testUser);
         
         SettingDTO settingDTO = SettingDTO.builder()
                 .messageNotification(Boolean.FALSE)
@@ -220,7 +190,7 @@ class UserCommandControllerIntegrationTest {
         User testUser = TestUsers.createUnique();
         userRepository.save(testUser);
         
-        CustomUserDetails userDetails = createCustomUserDetails(testUser);
+        var userDetails = createCustomUserDetails(testUser);
         
         // null 값이 포함된 SettingDTO
         SettingDTO settingDTO = SettingDTO.builder()
@@ -246,7 +216,7 @@ class UserCommandControllerIntegrationTest {
         User testUser = TestUsers.createUnique();
         userRepository.save(testUser);
         
-        CustomUserDetails userDetails = createCustomUserDetails(testUser);
+        var userDetails = createCustomUserDetails(testUser);
         
         UserNameDTO userNameDTO = new UserNameDTO();
         userNameDTO.setUserName(""); // 빈 문자열
@@ -268,7 +238,7 @@ class UserCommandControllerIntegrationTest {
         User testUser = TestUsers.createUnique();
         userRepository.save(testUser);
         
-        CustomUserDetails userDetails = createCustomUserDetails(testUser);
+        var userDetails = createCustomUserDetails(testUser);
         
         UserNameDTO userNameDTO = new UserNameDTO();
         userNameDTO.setUserName("새로운닉네임");
@@ -289,7 +259,7 @@ class UserCommandControllerIntegrationTest {
         User testUser = TestUsers.createUnique();
         userRepository.save(testUser);
         
-        CustomUserDetails userDetails = createCustomUserDetails(testUser);
+        var userDetails = createCustomUserDetails(testUser);
         
         UserNameDTO userNameDTO = new UserNameDTO();
         userNameDTO.setUserName("새로운닉네임");
@@ -320,7 +290,7 @@ class UserCommandControllerIntegrationTest {
 
         User testUser = TestUsers.createUnique();
         userRepository.save(testUser);
-        CustomUserDetails userDetails = createCustomUserDetails(testUser);
+        var userDetails = createCustomUserDetails(testUser);
 
         // When & Then
         mockMvc.perform(post("/api/user/report")
@@ -339,7 +309,7 @@ class UserCommandControllerIntegrationTest {
         // Given
         User testUser = TestUsers.createUnique();
         userRepository.save(testUser);
-        CustomUserDetails userDetails = createCustomUserDetails(testUser);
+        var userDetails = createCustomUserDetails(testUser);
         
         ReportDTO reportDTO = ReportDTO.builder()
                 .reportType(ReportType.POST)
@@ -357,23 +327,4 @@ class UserCommandControllerIntegrationTest {
     }
 
 
-    /**
-     * 테스트용 CustomUserDetails 생성
-     */
-    private CustomUserDetails createCustomUserDetails(User user) {
-        ExistingUserDetail userDetail = ExistingUserDetail.builder()
-                .userId(user.getId())
-                .settingId(user.getSetting().getId())
-                .socialId(user.getSocialId())
-                .socialNickname(user.getSocialNickname())
-                .thumbnailImage(user.getThumbnailImage())
-                .userName(user.getUserName())
-                .provider(user.getProvider())
-                .role(user.getRole())
-                .tokenId(null)
-                .fcmTokenId(null)
-                .build();
-
-        return new CustomUserDetails(userDetail);
-    }
 }

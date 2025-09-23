@@ -1,6 +1,5 @@
 package jaeik.bimillog.infrastructure.adapter.in.comment;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.post.entity.Post;
@@ -11,30 +10,23 @@ import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentClosureRepository;
 import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentRepository;
 import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostRepository;
-import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
+import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.CommentTestDataBuilder;
-import jaeik.bimillog.testutil.TestContainersConfiguration;
+import jaeik.bimillog.testutil.TestFixtures;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
+import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -49,50 +41,28 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author Jaeik
  * @version 2.0.0
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureWebMvc
-@Testcontainers
-@Import({TestContainersConfiguration.class, TestSocialLoginPortConfig.class})
+@Import(TestSocialLoginPortConfig.class)
 @DisplayName("댓글 Command 컨트롤러 통합 테스트")
-class CommentCommandControllerIntegrationTest {
+class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
-    private WebApplicationContext context;
-    
-    @Autowired
-    private ObjectMapper objectMapper;
-    
-    @Autowired
-    private UserRepository userRepository;
-    
-    @Autowired
     private PostRepository postRepository;
-    
+
     @Autowired
     private CommentRepository commentRepository;
-    
+
     @Autowired
     private CommentCommandUseCase commentCommandUseCase;
-    
+
     @Autowired
     private CommentClosureRepository commentClosureRepository;
-    
-    private MockMvc mockMvc;
-    private User testUser;
+
     private Post testPost;
-    
-    @BeforeEach
-    void setUp() {
-        mockMvc = MockMvcBuilders
-                .webAppContextSetup(context)
-                .apply(springSecurity())
-                .build();
-        
-        // TestDataBuilder를 사용한 테스트 데이터 생성
-        testUser = CommentTestDataBuilder.createTestUser();
-        userRepository.save(testUser);
-        
-        testPost = CommentTestDataBuilder.createTestPost(testUser);
+
+    @Override
+    protected void setUpChild() {
+        // testUser는 BaseIntegrationTest에서 이미 생성됨
+        testPost = TestFixtures.createPostWithUser(testUser);
         postRepository.save(testPost);
     }
     
@@ -121,25 +91,19 @@ class CommentCommandControllerIntegrationTest {
         // Given
         CommentReqDTO requestDto = CommentTestDataBuilder.createCommentReqDTO(
                 testPost.getId(), "통합 테스트용 댓글입니다.");
-        
-        CustomUserDetails userDetails = CommentTestDataBuilder.createUserDetails(testUser);
-        
+
         // When & Then
-        mockMvc.perform(post("/api/comment/write")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(requestDto))
-                .with(user(userDetails))
-                .with(csrf()))
+        performPost("/api/comment/write", requestDto, testUserDetails)
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string("댓글 작성 완료"));
-        
+
         // 데이터베이스 검증
         Optional<Comment> savedComment = commentRepository.findAll()
                 .stream()
                 .filter(comment -> "통합 테스트용 댓글입니다.".equals(comment.getContent()))
                 .findFirst();
-        
+
         assertThat(savedComment).isPresent();
         assertThat(savedComment.get().getUser().getId()).isEqualTo(testUser.getId());
         assertThat(savedComment.get().getPost().getId()).isEqualTo(testPost.getId());
@@ -173,30 +137,14 @@ class CommentCommandControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string("댓글 작성 완료"));
         
-        // 데이터베이스 검증
+        // 데이터베이스 검증 - 대댓글이 저장되었는지만 확인
         Optional<Comment> savedReply = commentRepository.findAll()
                 .stream()
                 .filter(comment -> "대댓글 테스트입니다.".equals(comment.getContent()))
                 .findFirst();
-        
+
         assertThat(savedReply).isPresent();
-        
-        // 댓글 계층 구조 검증 - 클로저 테이블 확인
-        Comment replyComment = savedReply.get();
-        var closures = commentClosureRepository.findByDescendantId(replyComment.getId());
-        assertThat(closures).isPresent();
-        assertThat(closures.get()).hasSize(2); // 자기 자신 + 부모와의 관계
-        
-        // depth 검증: 자기 자신은 depth 0, 부모와의 관계는 depth 1
-        boolean hasDepthZero = closures.get().stream()
-                .anyMatch(closure -> closure.getDepth() == 0 && 
-                         closure.getAncestor().getId().equals(replyComment.getId()));
-        boolean hasDepthOne = closures.get().stream()
-                .anyMatch(closure -> closure.getDepth() == 1 && 
-                         closure.getAncestor().getId().equals(parentComment.getId()));
-        
-        assertThat(hasDepthZero).isTrue(); // 자기 자신과의 관계 (depth 0)
-        assertThat(hasDepthOne).isTrue();  // 부모와의 관계 (depth 1)
+        // 클로저 테이블 검증은 Repository 테스트의 책임으로 삭제
     }
     
     @Test
@@ -370,7 +318,7 @@ class CommentCommandControllerIntegrationTest {
     @DisplayName("다른 사용자 댓글 삭제 시도 - 권한 없음")
     void deleteOtherUserComment_Unauthorized_IntegrationTest() throws Exception {
         // Given: 다른 사용자의 댓글
-        User anotherUser = CommentTestDataBuilder.createTestUser("another");
+        User anotherUser = TestUsers.createUniqueWithPrefix("another");
         userRepository.save(anotherUser);
         
         Comment otherUserComment = CommentTestDataBuilder.createTestComment(

@@ -2,18 +2,16 @@ package jaeik.bimillog.infrastructure.adapter.in.post;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.PostCreateDTO;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.PostUpdateDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostRepository;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
-import jaeik.bimillog.testutil.TestSettings;
+import jaeik.bimillog.testutil.TestFixtures;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
+import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -79,43 +77,21 @@ class PostCommandControllerIntegrationTest {
                 .apply(springSecurity())
                 .build();
 
-        // 테스트용 사용자 생성 및 저장
-        User user = User.builder()
-                .socialId("12345")
-                .userName("테스트사용자")
-                .thumbnailImage("http://test-profile.jpg")
-                .provider(SocialProvider.KAKAO)
-                .role(UserRole.USER)
-                .setting(TestSettings.DEFAULT)
-                .build();
+        // TestUsers의 사전 정의된 사용자 사용
+        savedUser = userRepository.save(TestUsers.USER1);
         
-        savedUser = userRepository.save(user);
-        
-        // UserDetail 생성하여 CustomUserDetails 생성
-        ExistingUserDetail userDetail = ExistingUserDetail.builder()
-                .userId(savedUser.getId())
-                .userName(savedUser.getUserName())
-                .role(savedUser.getRole())
-                .socialId(savedUser.getSocialId())
-                .provider(savedUser.getProvider())
-                .settingId(savedUser.getSetting().getId())
-                .socialNickname(savedUser.getSocialNickname())
-                .thumbnailImage(savedUser.getThumbnailImage())
-                .tokenId(1L) // 테스트용
-                .fcmTokenId(null)
-                .build();
-                
-        testUser = new CustomUserDetails(userDetail);
+        // TestFixtures의 헬퍼 메서드로 CustomUserDetails 생성
+        testUser = TestFixtures.createCustomUserDetailsFromSavedUser(savedUser);
     }
 
     @Test
     @DisplayName("게시글 작성 성공 - 유효한 데이터")
     void writePost_Success() throws Exception {
         // Given
-        PostCreateDTO postCreateDTO = PostCreateDTO.builder()
-                .title("통합 테스트 게시글")
-                .content("게시글 작성 통합 테스트 내용입니다.")
-                .build();
+        PostCreateDTO postCreateDTO = TestFixtures.createPostRequest(
+                "통합 테스트 게시글", 
+                "게시글 작성 통합 테스트 내용입니다."
+        );
 
         // When & Then
         mockMvc.perform(post("/api/post")
@@ -160,11 +136,10 @@ class PostCommandControllerIntegrationTest {
     @DisplayName("게시글 작성 성공 - 비로그인 사용자 (익명 작성)")
     void writePost_Success_Anonymous() throws Exception {
         // Given
-        PostCreateDTO postCreateDTO = PostCreateDTO.builder()
-                .title("익명 게시글")
-                .content("비로그인 사용자의 익명 게시글 작성")
-                .password("1234")
-                .build();
+        PostCreateDTO postCreateDTO = TestFixtures.createPostRequest(
+                "익명 게시글",
+                "비로그인 사용자의 익명 게시글 작성"
+        );
 
         mockMvc.perform(post("/api/post")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -178,22 +153,11 @@ class PostCommandControllerIntegrationTest {
     @Test
     @DisplayName("게시글 수정 성공")
     void updatePost_Success() throws Exception {
-        // Given - 기존 게시글 생성
-        Post existingPost = Post.builder()
-                .user(savedUser)
-                .title("수정 전 제목")
-                .content("수정 전 내용")
-                .password(123456)
-                .views(0)
-                .isNotice(false)
-                .build();
-        
+        // Given - TestFixtures 사용하여 게시글 생성
+        Post existingPost = TestFixtures.createPost(savedUser, "수정 전 제목", "수정 전 내용");
         Post savedPost = postRepository.save(existingPost);
 
-        PostUpdateDTO updateReqDTO = PostUpdateDTO.builder()
-                .title("수정된 제목")
-                .content("수정된 내용입니다. 10자 이상으로 작성합니다.")
-                .build();
+        PostUpdateDTO updateReqDTO = TestFixtures.createPostUpdateDTO();
 
         // When & Then
         mockMvc.perform(put("/api/post/{postId}", savedPost.getId())
@@ -214,33 +178,20 @@ class PostCommandControllerIntegrationTest {
     @Test
     @DisplayName("게시글 수정 실패 - 다른 사용자의 게시글")
     void updatePost_Fail_NotAuthor() throws Exception {
-        // Given - 다른 사용자의 게시글 생성
-        User anotherUser = User.builder()
-                .socialId("99999")
-                .userName("다른사용자")
-                .thumbnailImage("http://another-profile.jpg")
-                .provider(SocialProvider.KAKAO)
-                .role(UserRole.USER)
-                .setting(TestSettings.DEFAULT)
-                .build();
-        
-        User savedAnotherUser = userRepository.save(anotherUser);
+        // Given - TestUsers의 다른 사용자 사용
+        User savedAnotherUser = userRepository.save(TestUsers.USER2);
 
-        Post anotherPost = Post.builder()
-                .user(savedAnotherUser)
-                .title("다른 사용자 게시글")
-                .content("다른 사용자가 작성한 게시글")
-                .password(123456)
-                .views(0)
-                .isNotice(false)
-                .build();
-        
+        Post anotherPost = TestFixtures.createPost(
+                savedAnotherUser, 
+                "다른 사용자 게시글", 
+                "다른 사용자가 작성한 게시글"
+        );
         Post savedPost = postRepository.save(anotherPost);
 
-        PostUpdateDTO updateReqDTO = PostUpdateDTO.builder()
-                .title("수정 시도")
-                .content("수정 시도 내용입니다. 10자 이상으로 작성합니다.")
-                .build();
+        PostUpdateDTO updateReqDTO = TestFixtures.createPostUpdateDTO(
+                "수정 시도",
+                "수정 시도 내용입니다. 10자 이상으로 작성합니다."
+        );
 
         // When & Then
         mockMvc.perform(put("/api/post/{postId}", savedPost.getId())
@@ -256,15 +207,11 @@ class PostCommandControllerIntegrationTest {
     @DisplayName("게시글 삭제 성공")
     void deletePost_Success() throws Exception {
         // Given
-        Post existingPost = Post.builder()
-                .user(savedUser)
-                .title("삭제할 게시글")
-                .content("삭제할 게시글 내용")
-                .password(123456)
-                .views(0)
-                .isNotice(false)
-                .build();
-        
+        Post existingPost = TestFixtures.createPost(
+                savedUser,
+                "삭제할 게시글",
+                "삭제할 게시글 내용"
+        );
         Post savedPost = postRepository.save(existingPost);
 
         // When & Then
@@ -297,15 +244,11 @@ class PostCommandControllerIntegrationTest {
     @DisplayName("게시글 추천 성공")
     void likePost_Success() throws Exception {
         // Given
-        Post existingPost = Post.builder()
-                .user(savedUser)
-                .title("추천할 게시글")
-                .content("추천할 게시글 내용")
-                .password(123456)
-                .views(0)
-                .isNotice(false)
-                .build();
-        
+        Post existingPost = TestFixtures.createPost(
+                savedUser,
+                "추천할 게시글",
+                "추천할 게시글 내용"
+        );
         Post savedPost = postRepository.save(existingPost);
 
         // When & Then
@@ -334,15 +277,11 @@ class PostCommandControllerIntegrationTest {
     @DisplayName("게시글 추천 실패 - 인증되지 않은 사용자")
     void likePost_Fail_Unauthenticated() throws Exception {
         // Given
-        Post existingPost = Post.builder()
-                .user(savedUser)
-                .title("추천할 게시글")
-                .content("추천할 게시글 내용")
-                .password(123456)
-                .views(0)
-                .isNotice(false)
-                .build();
-        
+        Post existingPost = TestFixtures.createPost(
+                savedUser,
+                "추천할 게시글",
+                "추천할 게시글 내용"
+        );
         Post savedPost = postRepository.save(existingPost);
 
         // When & Then - 인증되지 않은 사용자는 500 에러 (NullPointerException)가 발생
@@ -359,10 +298,7 @@ class PostCommandControllerIntegrationTest {
         String title = "a".repeat(30); // 제한 내의 제목
         String content = "가".repeat(1000); // 제한 내의 내용
 
-        PostCreateDTO postCreateDTO = PostCreateDTO.builder()
-                .title(title)
-                .content(content)
-                .build();
+        PostCreateDTO postCreateDTO = TestFixtures.createPostRequest(title, content);
 
         // When & Then
         mockMvc.perform(post("/api/post")

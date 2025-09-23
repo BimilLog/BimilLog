@@ -2,22 +2,19 @@ package jaeik.bimillog.infrastructure.adapter.out.api.fcm;
 
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
-import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.out.notification.jpa.FcmTokenRepository;
-import jaeik.bimillog.testutil.TestUsers;
-import org.junit.jupiter.api.BeforeEach;
+import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
@@ -30,8 +27,7 @@ import static org.mockito.Mockito.verify;
  * @author Jaeik
  * @version 2.0.0
  */
-@ExtendWith(MockitoExtension.class)
-class FcmAdapterTest {
+class FcmAdapterTest extends BaseUnitTest {
 
     @Mock
     private FcmTokenRepository fcmTokenRepository;
@@ -42,17 +38,12 @@ class FcmAdapterTest {
     @InjectMocks
     private FcmAdapter fcmAdapter;
 
-    private User testUser;
     private FcmToken testFcmToken;
 
-    @BeforeEach
-    void setUp() {
-        // Given: 테스트용 사용자 설정
-        testUser = TestUsers.copyWithId(TestUsers.USER1, 1L);
-
+    @Override
+    protected void setUpChild() {
+        // Given: 테스트용 FCM 토큰 설정
         testFcmToken = FcmToken.create(testUser, "test-fcm-TemporaryToken");
-                
-
     }
 
     @Test
@@ -79,9 +70,6 @@ class FcmAdapterTest {
         verify(fcmTokenRepository).save(any(FcmToken.class));
     }
 
-
-
-
     @Test
     @DisplayName("정상 케이스 - 사용자 ID로 FCM 토큰 삭제")
     void shouldDeleteFcmTokensByUserId_WhenUserIdProvided() {
@@ -101,12 +89,15 @@ class FcmAdapterTest {
     void shouldSendMessageTo_WhenValidFcmMessage() throws IOException {
         // Given: FCM 메시지 설정
         FcmMessage fcmMessage = FcmMessage.of("test-fcm-TemporaryToken", "테스트 제목", "테스트 내용");
-        
-        // When & Then: 예외가 발생하지 않아야 함
-        // private 메서드들이 있어서 완전한 모킹은 어려우므로, IOException이 발생하지 않는 것으로 성공을 확인
-        // 실제로는 Firebase 설정 파일이 있어야 하므로, 이 테스트에서는 예외 발생 확인만 함
-        assertThatThrownBy(() -> fcmAdapter.sendMessageTo(fcmMessage))
-                .isInstanceOf(IOException.class); // Firebase 설정 파일이 없으므로 IOException 발생 예상
+
+        // fcmApiClient가 정상적으로 동작하도록 모킹
+        doNothing().when(fcmApiClient).sendMessage(anyString(), anyString(), any());
+
+        // When
+        fcmAdapter.sendMessageTo(fcmMessage);
+
+        // Then: FCM API 클라이언트가 호출되었는지 검증
+        verify(fcmApiClient).sendMessage(anyString(), anyString(), any());
     }
 
     @Test
@@ -119,6 +110,4 @@ class FcmAdapterTest {
         assertThatThrownBy(() -> fcmAdapter.sendMessageTo(fcmMessage))
                 .isInstanceOf(NullPointerException.class);
     }
-
-
 }

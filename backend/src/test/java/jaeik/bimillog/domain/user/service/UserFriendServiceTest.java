@@ -11,14 +11,12 @@ import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import jaeik.bimillog.global.application.port.out.GlobalTokenQueryPort;
+import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.TestUsers;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -40,9 +38,8 @@ import static org.mockito.Mockito.verify;
  * @author Jaeik
  * @version 2.0.0
  */
-@ExtendWith(MockitoExtension.class)
 @DisplayName("UserFriendService 테스트")
-class UserFriendServiceTest {
+class UserFriendServiceTest extends BaseUnitTest {
 
     @Mock
     private KakaoFriendPort kakaoFriendPort;
@@ -56,16 +53,6 @@ class UserFriendServiceTest {
     @InjectMocks
     private UserFriendService userFriendService;
 
-    // 테스트 전역 사용자
-    private User testUser;
-    private User adminUser;
-
-    @BeforeEach
-    void setUp() {
-        testUser = TestUsers.USER1;
-        adminUser = TestUsers.ADMIN;
-    }
-
     @Test
     @DisplayName("카카오 친구 목록 조회 - 정상 케이스 (실제 API 응답 구조)")
     void shouldGetKakaoFriendList_WhenValidRequest() {
@@ -75,7 +62,7 @@ class UserFriendServiceTest {
         Integer offset = 0;
         Integer limit = 3;
         
-        User user = TestUsers.copyWithId(testUser, userId);
+        User user = createTestUserWithId(userId);
         
         Token token = Token.createTemporaryToken("access-TemporaryToken", "refresh-TemporaryToken");
                 
@@ -206,7 +193,7 @@ class UserFriendServiceTest {
         // Given
         Long userId = 1L;
         Long tokenId = 1L;
-        User user = TestUsers.copyWithId(TestUsers.USER1, userId);
+        User user = createTestUserWithId(userId);
         
         Token token = Token.createTemporaryToken("access-TemporaryToken", "refresh-TemporaryToken");
                 
