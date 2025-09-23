@@ -139,6 +139,67 @@ public class TestFixtures {
                 .build();
     }
 
+    /**
+     * 테스트용 PostSearchResult 생성
+     * @param id 게시글 ID
+     * @param title 제목
+     * @return PostSearchResult
+     */
+    public static jaeik.bimillog.domain.post.entity.PostSearchResult createPostSearchResult(Long id, String title) {
+        return jaeik.bimillog.domain.post.entity.PostSearchResult.builder()
+                .id(id)
+                .title(title)
+                .build();
+    }
+
+    /**
+     * 테스트용 PostDetail 생성 (기본값 사용)
+     * @param id 게시글 ID
+     * @param title 제목
+     * @param content 내용
+     * @return PostDetail
+     */
+    public static jaeik.bimillog.domain.post.entity.PostDetail createPostDetail(Long id, String title, String content) {
+        return createPostDetail(id, title, content, 1L, false);
+    }
+
+    /**
+     * 테스트용 PostDetail 생성 (상세 설정)
+     * @param id 게시글 ID
+     * @param title 제목
+     * @param content 내용
+     * @param userId 사용자 ID
+     * @param isLiked 좋아요 여부
+     * @return PostDetail
+     */
+    public static jaeik.bimillog.domain.post.entity.PostDetail createPostDetail(Long id, String title, String content,
+                                                                                  Long userId, boolean isLiked) {
+        return jaeik.bimillog.domain.post.entity.PostDetail.builder()
+                .id(id)
+                .title(title)
+                .content(content)
+                .viewCount(10)
+                .likeCount(5)
+                .postCacheFlag(null)
+                .createdAt(java.time.Instant.now())
+                .userId(userId)
+                .userName("testUser")
+                .commentCount(3)
+                .isNotice(false)
+                .isLiked(isLiked)
+                .build();
+    }
+
+    /**
+     * 테스트용 PostDetail Mock 생성 (JOIN 쿼리 테스트용)
+     * @param postId 게시글 ID
+     * @param userId 사용자 ID
+     * @return PostDetail
+     */
+    public static jaeik.bimillog.domain.post.entity.PostDetail createMockPostDetail(Long postId, Long userId) {
+        return createPostDetail(postId, "Test Title", "Test Content", 1L, userId != null);
+    }
+
     // ==================== DTO Creation ====================
 
     /**

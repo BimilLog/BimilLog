@@ -9,15 +9,14 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
-import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.global.application.port.out.GlobalUserQueryPort;
+import jaeik.bimillog.testutil.BaseUnitTest;
+import jaeik.bimillog.testutil.TestFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -34,9 +33,8 @@ import static org.mockito.Mockito.verify;
  * @author Jaeik
  * @version 2.0.0
  */
-@ExtendWith(MockitoExtension.class)
 @DisplayName("PostInteractionService 테스트")
-class PostInteractionServiceTest {
+class PostInteractionServiceTest extends BaseUnitTest {
 
     @Mock
     private PostCommandPort postCommandPort;
@@ -53,12 +51,6 @@ class PostInteractionServiceTest {
     @Mock
     private GlobalUserQueryPort globalUserQueryPort;
 
-    @Mock
-    private User user;
-
-    @Mock
-    private Post post;
-
     @InjectMocks
     private PostInteractionService postInteractionService;
 
@@ -68,9 +60,10 @@ class PostInteractionServiceTest {
         // Given
         Long userId = 1L;
         Long postId = 123L;
+        Post post = TestFixtures.createPostWithId(postId, testUser, "테스트 게시글", "내용");
 
         given(postLikeQueryPort.existsByPostIdAndUserId(postId, userId)).willReturn(false);
-        given(globalUserQueryPort.getReferenceById(userId)).willReturn(user);
+        given(globalUserQueryPort.getReferenceById(userId)).willReturn(testUser);
         given(postQueryPort.findById(postId)).willReturn(post);
 
         // When
@@ -80,14 +73,14 @@ class PostInteractionServiceTest {
         verify(postLikeQueryPort).existsByPostIdAndUserId(postId, userId);
         verify(globalUserQueryPort).getReferenceById(userId);
         verify(postQueryPort).findById(postId);
-        
+
         // ArgumentCaptor로 PostLike 객체 검증
         ArgumentCaptor<PostLike> postLikeCaptor = ArgumentCaptor.forClass(PostLike.class);
         verify(postLikeCommandPort).save(postLikeCaptor.capture());
         PostLike savedPostLike = postLikeCaptor.getValue();
-        assertThat(savedPostLike.getUser()).isEqualTo(user);
+        assertThat(savedPostLike.getUser()).isEqualTo(testUser);
         assertThat(savedPostLike.getPost()).isEqualTo(post);
-        
+
         verify(postLikeCommandPort, never()).deleteByUserAndPost(any(), any());
     }
 
@@ -97,9 +90,10 @@ class PostInteractionServiceTest {
         // Given
         Long userId = 1L;
         Long postId = 123L;
+        Post post = TestFixtures.createPostWithId(postId, testUser, "테스트 게시글", "내용");
 
         given(postLikeQueryPort.existsByPostIdAndUserId(postId, userId)).willReturn(true);
-        given(globalUserQueryPort.getReferenceById(userId)).willReturn(user);
+        given(globalUserQueryPort.getReferenceById(userId)).willReturn(testUser);
         given(postQueryPort.findById(postId)).willReturn(post);
 
         // When
@@ -109,7 +103,7 @@ class PostInteractionServiceTest {
         verify(postLikeQueryPort).existsByPostIdAndUserId(postId, userId);
         verify(globalUserQueryPort).getReferenceById(userId);
         verify(postQueryPort).findById(postId);
-        verify(postLikeCommandPort).deleteByUserAndPost(user, post);
+        verify(postLikeCommandPort).deleteByUserAndPost(testUser, post);
         verify(postLikeCommandPort, never()).save(any());
     }
 
@@ -121,7 +115,7 @@ class PostInteractionServiceTest {
         Long postId = 999L;
 
         given(postLikeQueryPort.existsByPostIdAndUserId(postId, userId)).willReturn(false);
-        given(globalUserQueryPort.getReferenceById(userId)).willReturn(user);
+        given(globalUserQueryPort.getReferenceById(userId)).willReturn(testUser);
         given(postQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
         // When & Then

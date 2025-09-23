@@ -7,14 +7,13 @@ import jaeik.bimillog.domain.post.application.service.PostCommandService;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
-import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.global.application.port.out.GlobalUserQueryPort;
+import jaeik.bimillog.testutil.BaseUnitTest;
+import jaeik.bimillog.testutil.TestFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -31,9 +30,8 @@ import static org.mockito.Mockito.*;
  * @version 2.0.0
  *
  */
-@ExtendWith(MockitoExtension.class)
 @DisplayName("PostCommandService 테스트")
-class PostCommandServiceTest {
+class PostCommandServiceTest extends BaseUnitTest {
 
     @Mock
     private PostCommandPort postCommandPort;
@@ -46,12 +44,6 @@ class PostCommandServiceTest {
 
     @Mock
     private RedisPostCommandPort redisPostCommandPort;
-
-    @Mock
-    private User user;
-
-    @Mock
-    private Post post;
 
     @InjectMocks
     private PostCommandService postCommandService;
@@ -66,9 +58,10 @@ class PostCommandServiceTest {
         String content = "테스트 내용";
         Integer password = 1234;
 
-        given(globalUserQueryPort.getReferenceById(userId)).willReturn(user);
-        given(postCommandPort.create(any(Post.class))).willReturn(post);
-        given(post.getId()).willReturn(expectedPostId);
+        Post createdPost = TestFixtures.createPostWithId(expectedPostId, testUser, title, content);
+
+        given(globalUserQueryPort.getReferenceById(userId)).willReturn(testUser);
+        given(postCommandPort.create(any(Post.class))).willReturn(createdPost);
 
         // When
         Long result = postCommandService.writePost(userId, title, content, password);
@@ -88,16 +81,18 @@ class PostCommandServiceTest {
         Long userId = 1L;
         Long postId = 123L;
 
-        given(postQueryPort.findById(postId)).willReturn(post);
-        given(post.isAuthor(userId)).willReturn(true);
+        Post existingPost = spy(TestFixtures.createPostWithId(postId, testUser, "기존 제목", "기존 내용"));
+
+        given(postQueryPort.findById(postId)).willReturn(existingPost);
+        given(existingPost.isAuthor(userId)).willReturn(true);
 
         // When
         postCommandService.updatePost(userId, postId, "수정된 제목", "수정된 내용");
 
         // Then
         verify(postQueryPort, times(1)).findById(postId);
-        verify(post, times(1)).isAuthor(userId);
-        verify(post, times(1)).updatePost("수정된 제목", "수정된 내용");
+        verify(existingPost, times(1)).isAuthor(userId);
+        verify(existingPost, times(1)).updatePost("수정된 제목", "수정된 내용");
         verify(redisPostCommandPort, times(1)).deleteCache(null, postId);
         verifyNoMoreInteractions(postQueryPort, postCommandPort, redisPostCommandPort);
     }
@@ -127,8 +122,10 @@ class PostCommandServiceTest {
         Long userId = 1L;
         Long postId = 123L;
 
-        given(postQueryPort.findById(postId)).willReturn(post);
-        given(post.isAuthor(userId)).willReturn(false);
+        Post otherUserPost = spy(TestFixtures.createPostWithId(postId, otherUser, "다른 사용자 게시글", "내용"));
+
+        given(postQueryPort.findById(postId)).willReturn(otherUserPost);
+        given(otherUserPost.isAuthor(userId)).willReturn(false);
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.updatePost(userId, postId, "title", "content"))
@@ -136,8 +133,8 @@ class PostCommandServiceTest {
                 .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.FORBIDDEN);
 
         verify(postQueryPort, times(1)).findById(postId);
-        verify(post, times(1)).isAuthor(userId);
-        verify(post, never()).updatePost(anyString(), anyString());
+        verify(otherUserPost, times(1)).isAuthor(userId);
+        verify(otherUserPost, never()).updatePost(anyString(), anyString());
         verify(redisPostCommandPort, never()).deleteCache(any(), any());
     }
 
@@ -149,17 +146,19 @@ class PostCommandServiceTest {
         Long postId = 123L;
         String postTitle = "삭제될 게시글";
 
-        given(postQueryPort.findById(postId)).willReturn(post);
-        given(post.isAuthor(userId)).willReturn(true);
-        given(post.getTitle()).willReturn(postTitle);
+        Post postToDelete = spy(TestFixtures.createPostWithId(postId, testUser, postTitle, "내용"));
+
+        given(postQueryPort.findById(postId)).willReturn(postToDelete);
+        given(postToDelete.isAuthor(userId)).willReturn(true);
+        given(postToDelete.getTitle()).willReturn(postTitle);
 
         // When
         postCommandService.deletePost(userId, postId);
 
         // Then
         verify(postQueryPort, times(1)).findById(postId);
-        verify(post, times(1)).isAuthor(userId);
-        verify(postCommandPort, times(1)).delete(post);
+        verify(postToDelete, times(1)).isAuthor(userId);
+        verify(postCommandPort, times(1)).delete(postToDelete);
         verify(redisPostCommandPort, times(1)).deleteCache(null, postId);
         verifyNoMoreInteractions(postQueryPort, postCommandPort, redisPostCommandPort);
     }
@@ -190,8 +189,10 @@ class PostCommandServiceTest {
         Long userId = 1L;
         Long postId = 123L;
 
-        given(postQueryPort.findById(postId)).willReturn(post);
-        given(post.isAuthor(userId)).willReturn(false);
+        Post otherUserPost = spy(TestFixtures.createPostWithId(postId, otherUser, "다른 사용자 게시글", "내용"));
+
+        given(postQueryPort.findById(postId)).willReturn(otherUserPost);
+        given(otherUserPost.isAuthor(userId)).willReturn(false);
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.deletePost(userId, postId))
@@ -199,7 +200,7 @@ class PostCommandServiceTest {
                 .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.FORBIDDEN);
 
         verify(postQueryPort, times(1)).findById(postId);
-        verify(post, times(1)).isAuthor(userId);
+        verify(otherUserPost, times(1)).isAuthor(userId);
         verify(postCommandPort, never()).delete(any());
         verify(redisPostCommandPort, never()).deleteCache(any(), any());
     }
@@ -212,8 +213,10 @@ class PostCommandServiceTest {
         Long userId = 1L;
         Long postId = 123L;
 
-        given(postQueryPort.findById(postId)).willReturn(post);
-        given(post.isAuthor(userId)).willReturn(true);
+        Post existingPost = spy(TestFixtures.createPostWithId(postId, testUser, "제목", "내용"));
+
+        given(postQueryPort.findById(postId)).willReturn(existingPost);
+        given(existingPost.isAuthor(userId)).willReturn(true);
         doThrow(new RuntimeException("Cache delete failed")).when(redisPostCommandPort).deleteCache(null, postId);
 
         // When & Then
@@ -222,7 +225,7 @@ class PostCommandServiceTest {
                 .hasMessage("Cache delete failed");
 
         // 게시글 수정은 완료되지만 캐시 삭제에서 실패
-        verify(post, times(1)).updatePost("title", "content");
+        verify(existingPost, times(1)).updatePost("title", "content");
         verify(redisPostCommandPort, times(1)).deleteCache(null, postId);
     }
 }
