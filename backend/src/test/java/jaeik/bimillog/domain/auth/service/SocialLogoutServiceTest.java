@@ -5,6 +5,8 @@ import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPor
 import jaeik.bimillog.domain.auth.application.service.SocialLogoutService;
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
+import jaeik.bimillog.domain.auth.exception.AuthCustomException;
+import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.global.application.port.out.GlobalTokenQueryPort;
@@ -23,8 +25,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.List;
 import java.util.Optional;
 
-import jaeik.bimillog.domain.auth.exception.AuthCustomException;
-import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;

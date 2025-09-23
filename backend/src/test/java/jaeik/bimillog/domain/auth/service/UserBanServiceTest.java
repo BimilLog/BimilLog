@@ -1,14 +1,12 @@
 package jaeik.bimillog.domain.auth.service;
 
-import jaeik.bimillog.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.auth.application.port.out.RedisJwtBlacklistPort;
 import jaeik.bimillog.domain.auth.application.service.UserBanService;
 import jaeik.bimillog.domain.auth.entity.Token;
-import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.TestFixtures;
-import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -1,6 +1,7 @@
 package jaeik.bimillog.testutil;
 
 import jaeik.bimillog.infrastructure.adapter.out.api.dto.KakaoFriendsDTO;
+
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;

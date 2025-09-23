@@ -5,12 +5,9 @@ import jaeik.bimillog.domain.notification.application.port.in.NotificationSseUse
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import jaeik.bimillog.testutil.EventTestDataBuilder;
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-
-import java.time.Duration;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;

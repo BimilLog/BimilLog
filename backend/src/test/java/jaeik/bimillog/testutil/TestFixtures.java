@@ -3,7 +3,6 @@ package jaeik.bimillog.testutil;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.entity.Token;
-import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.paper.entity.Message;
@@ -13,16 +12,13 @@ import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.in.auth.dto.SocialLoginRequestDTO;
-import jaeik.bimillog.infrastructure.adapter.in.comment.dto.CommentReqDTO;
 import jaeik.bimillog.infrastructure.adapter.in.paper.dto.MessageDTO;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.PostCreateDTO;
 import jaeik.bimillog.infrastructure.adapter.in.user.dto.SignUpRequestDTO;
-import jaeik.bimillog.infrastructure.adapter.in.user.dto.UserNameDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import org.springframework.http.ResponseCookie;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 

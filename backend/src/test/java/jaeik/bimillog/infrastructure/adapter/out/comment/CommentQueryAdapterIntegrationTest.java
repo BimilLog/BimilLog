@@ -1,6 +1,5 @@
 package jaeik.bimillog.infrastructure.adapter.out.comment;
 
-import jaeik.bimillog.BimilLogApplication;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentInfo;
 import jaeik.bimillog.domain.comment.entity.CommentLike;
@@ -15,13 +14,9 @@ import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.CommentTestDataBuilder;
 import jaeik.bimillog.testutil.TestFixtures;
 import jaeik.bimillog.testutil.TestUsers;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

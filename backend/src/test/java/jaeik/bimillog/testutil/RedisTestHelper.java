@@ -1,7 +1,5 @@
 package jaeik.bimillog.testutil;
 
-import com.querydsl.core.types.Expression;
-import com.querydsl.core.types.Path;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.querydsl.jpa.impl.JPAUpdateClause;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
@@ -10,7 +8,6 @@ import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.TempUserData;
-import org.mockito.Mock;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -20,10 +17,9 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
-import org.mockito.Mockito;
+import static org.mockito.Mockito.RETURNS_SELF;
+import static org.mockito.Mockito.mock;
 
 /**
  * <h2>Redis 테스트 헬퍼</h2>

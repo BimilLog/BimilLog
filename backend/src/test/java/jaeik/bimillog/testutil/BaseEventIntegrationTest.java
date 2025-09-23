@@ -11,7 +11,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.Duration;
 import java.util.Arrays;
-import java.util.concurrent.Callable;
 
 /**
  * <h2>이벤트 통합 테스트 베이스 클래스</h2>

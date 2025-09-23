@@ -13,7 +13,6 @@ import jaeik.bimillog.domain.user.entity.TempUserData;
 import jaeik.bimillog.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.testutil.BaseUnitTest;
-import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -64,8 +63,8 @@ class SignUpServiceTest extends BaseUnitTest {
     private TempUserData testTempData;
     private List<ResponseCookie> testCookies;
     private ExistingUserDetail testUserDetail;
-    private String testAccessToken = "test-access-TemporaryToken";
-    private String testRefreshToken = "test-refresh-TemporaryToken";
+    private final String testAccessToken = "test-access-TemporaryToken";
+    private final String testRefreshToken = "test-refresh-TemporaryToken";
 
     @BeforeEach
     protected void setUpChild() {

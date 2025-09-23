@@ -1,19 +1,17 @@
 package jaeik.bimillog.infrastructure.adapter.out.user;
 
+import jaeik.bimillog.domain.auth.entity.BlackList;
 import jaeik.bimillog.infrastructure.adapter.out.auth.jpa.BlackListRepository;
 import jaeik.bimillog.infrastructure.adapter.out.auth.jpa.TokenRepository;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
-import jakarta.persistence.EntityManager;
-import jaeik.bimillog.domain.auth.entity.BlackList;
 import jaeik.bimillog.testutil.BaseUnitTest;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 /**

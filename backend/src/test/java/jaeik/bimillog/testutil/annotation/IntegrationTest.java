@@ -1,7 +1,6 @@
 package jaeik.bimillog.testutil.annotation;
 
 import jaeik.bimillog.testutil.TestContainersConfiguration;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
 import org.springframework.boot.test.context.SpringBootTest;
