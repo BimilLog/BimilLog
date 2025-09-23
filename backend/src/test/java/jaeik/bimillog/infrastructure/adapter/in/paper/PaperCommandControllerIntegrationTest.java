@@ -1,37 +1,19 @@
 package jaeik.bimillog.infrastructure.adapter.in.paper;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.entity.Message;
-import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.in.paper.dto.MessageDTO;
-import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.paper.MessageRepository;
-import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
-import jaeik.bimillog.testutil.TestContainersConfiguration;
+import jaeik.bimillog.testutil.BaseIntegrationTest;
+import jaeik.bimillog.testutil.TestFixtures;
+import jaeik.bimillog.testutil.annotation.IntegrationTest;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
-import jaeik.bimillog.testutil.TestUsers;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.context.WebApplicationContext;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -44,91 +26,23 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author Jaeik
  * @since 2.0.0
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureWebMvc
-@Testcontainers
-@Import({TestContainersConfiguration.class, TestSocialLoginPortConfig.class})
-@Transactional
-class PaperCommandControllerIntegrationTest {
+@IntegrationTest
+@Import(TestSocialLoginPortConfig.class)
+class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
-    private WebApplicationContext context;
-    
-    @Autowired
-    private ObjectMapper objectMapper;
-    
-    @Autowired
-    private UserRepository userRepository;
-    
-    @Autowired
     private MessageRepository messageRepository;
-    
-    private MockMvc mockMvc;
-    
-    @BeforeEach
-    void setUp() {
-        mockMvc = MockMvcBuilders
-                .webAppContextSetup(context)
-                .apply(springSecurity())
-                .build();
-    }
-    
-    /**
-     * 테스트용 사용자 CustomUserDetails 생성
-     */
-    private CustomUserDetails createUserDetails() {
-        ExistingUserDetail userDetail = ExistingUserDetail.builder()
-                .userId(1L)
-                .socialId("user123")
-                .provider(SocialProvider.KAKAO)
-                .settingId(1L)
-                .socialNickname("테스트사용자")
-                .userName("testuser")
-                .role(UserRole.USER)
-                .tokenId(null)
-                .fcmTokenId(null)
-                .tokenId(1L)
-                .fcmTokenId(1L)
-                .build();
-        return new CustomUserDetails(userDetail);
-    }
-    
-    /**
-     * 테스트용 사용자 엔티티 생성 및 저장
-     */
-    private User createAndSaveUser(String userName, String socialId) {
-        User baseUser = TestUsers.USER1;
-        User user = User.builder()
-                .userName(userName)
-                .socialId(socialId)
-                .socialNickname("테스트사용자")
-                .provider(baseUser.getProvider())
-                .role(baseUser.getRole())
-                .setting(baseUser.getSetting())
-                .build();
-        return userRepository.save(user);
-    }
     
     @Test
     @DisplayName("익명 사용자 메시지 작성 - 성공")
     void writeMessage_AnonymousUser_Success() throws Exception {
-        // Given - 메시지를 받을 사용자 생성
-        User targetUser = createAndSaveUser("targetUser", "target123");
-        
-        MessageDTO messageDTO = new MessageDTO();
-        messageDTO.setDecoType(DecoType.APPLE);
+        // Given
+        MessageDTO messageDTO = TestFixtures.createPaperMessageRequest(
+                "따뜻한 메시지입니다.", "red", "font1", 1, 1);
         messageDTO.setAnonymity("익명사용자");
-        messageDTO.setContent("따뜻한 메시지입니다.");
-        messageDTO.setX(1);
-        messageDTO.setY(1);
-        
-        String requestBody = objectMapper.writeValueAsString(messageDTO);
-        
+
         // When & Then
-        mockMvc.perform(post("/api/paper/{userName}", targetUser.getUserName())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody)
-                        .with(csrf()))
+        performPost("/api/paper/" + testUser.getUserName(), messageDTO)
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string("메시지가 작성되었습니다."));
@@ -137,27 +51,15 @@ class PaperCommandControllerIntegrationTest {
     @Test
     @DisplayName("인증된 사용자 메시지 작성 - 성공")
     void writeMessage_AuthenticatedUser_Success() throws Exception {
-        // Given - 메시지를 받을 사용자와 작성하는 사용자 생성
-        User targetUser = createAndSaveUser("targetUser", "target123");
-        User writerUser = createAndSaveUser("writerUser", "writer123");
-        
-        MessageDTO messageDTO = new MessageDTO();
-        messageDTO.setUserId(writerUser.getId());
+        // Given
+        MessageDTO messageDTO = TestFixtures.createPaperMessageRequest(
+                "생일 축하해!", "blue", "font2", 2, 2);
         messageDTO.setDecoType(DecoType.STAR);
         messageDTO.setAnonymity("친구1");
-        messageDTO.setContent("생일 축하해!");
-        messageDTO.setX(2);
-        messageDTO.setY(2);
-        
-        String requestBody = objectMapper.writeValueAsString(messageDTO);
-        CustomUserDetails userDetails = createUserDetails();
-        
+        messageDTO.setUserId(otherUser.getId());
+
         // When & Then
-        mockMvc.perform(post("/api/paper/{userName}", targetUser.getUserName())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody)
-                        .with(csrf())
-                        .with(user(userDetails)))
+        performPost("/api/paper/" + testUser.getUserName(), messageDTO, otherUserDetails)
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string("메시지가 작성되었습니다."));
@@ -167,20 +69,11 @@ class PaperCommandControllerIntegrationTest {
     @DisplayName("존재하지 않는 사용자에게 메시지 작성 - 실패")
     void writeMessage_NonExistentUser_NotFound() throws Exception {
         // Given
-        MessageDTO messageDTO = new MessageDTO();
-        messageDTO.setDecoType(DecoType.APPLE);
-        messageDTO.setAnonymity("익명");
-        messageDTO.setContent("메시지");
-        messageDTO.setX(1);
-        messageDTO.setY(1);
-        
-        String requestBody = objectMapper.writeValueAsString(messageDTO);
-        
+        MessageDTO messageDTO = TestFixtures.createPaperMessageRequest(
+                "메시지", "red", "font1", 1, 1);
+
         // When & Then
-        mockMvc.perform(post("/api/paper/{userName}", "nonexistentuser")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody)
-                        .with(csrf()))
+        performPost("/api/paper/nonexistentuser", messageDTO)
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
@@ -188,24 +81,13 @@ class PaperCommandControllerIntegrationTest {
     @Test
     @DisplayName("잘못된 MessageDTO로 메시지 작성 - 실패")
     void writeMessage_InvalidMessageDTO_BadRequest() throws Exception {
-        // Given - 타겟 사용자 생성
-        User targetUser = createAndSaveUser("targetUser", "target123");
-        
-        // 유효성 검증 실패 - 너무 긴 익명 이름
-        MessageDTO messageDTO = new MessageDTO();
-        messageDTO.setDecoType(DecoType.APPLE);
+        // Given
+        MessageDTO messageDTO = TestFixtures.createPaperMessageRequest(
+                "메시지", "red", "font1", 1, 1);
         messageDTO.setAnonymity("매우긴익명사용자이름입니다"); // 8자 초과
-        messageDTO.setContent("메시지");
-        messageDTO.setX(1);
-        messageDTO.setY(1);
-        
-        String requestBody = objectMapper.writeValueAsString(messageDTO);
-        
+
         // When & Then
-        mockMvc.perform(post("/api/paper/{userName}", targetUser.getUserName())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody)
-                        .with(csrf()))
+        performPost("/api/paper/" + testUser.getUserName(), messageDTO)
                 .andDo(print())
                 .andExpect(status().isBadRequest());
     }
@@ -213,58 +95,17 @@ class PaperCommandControllerIntegrationTest {
     @Test
     @DisplayName("내 페이퍼에서 메시지 삭제 - 성공")
     void deleteMessage_MyPaper_Success() throws Exception {
-        // Given - Admin 패턴을 따라 사용자와 메시지 생성
-        User baseUser = TestUsers.USER1;
-        User paperOwner = User.builder()
-                .userName("paperOwner")
-                .socialId("owner123")
-                .socialNickname("페이퍼주인")
-                .provider(baseUser.getProvider())
-                .role(baseUser.getRole())
-                .setting(baseUser.getSetting())
-                .build();
-        User savedUser = userRepository.save(paperOwner);
-        
-        Message message = Message.builder()
-                .user(savedUser)
-                .decoType(DecoType.APPLE)
-                .anonymity("테스트")
-                .content("삭제될 메시지")
-                .x(1)
-                .y(1)
-                .build();
+        // Given
+        Message message = TestFixtures.createRollingPaper(
+                testUser, "삭제될 메시지", "red", "font1", 1, 1);
         Message savedMessage = messageRepository.save(message);
-        
-        MessageDTO messageDTO = new MessageDTO();
+
+        MessageDTO messageDTO = TestFixtures.createPaperMessageRequest(
+                "삭제될 메시지", "red", "font1", 1, 1);
         messageDTO.setId(savedMessage.getId());
-        messageDTO.setDecoType(DecoType.APPLE);
-        messageDTO.setAnonymity("테스트");
-        messageDTO.setContent("삭제될 메시지");
-        messageDTO.setX(1);
-        messageDTO.setY(1);
-        
-        String requestBody = objectMapper.writeValueAsString(messageDTO);
-        
-        // savedUser로 로그인
-        ExistingUserDetail ownerUserDetail = ExistingUserDetail.builder()
-                .userId(savedUser.getId())
-                .socialId(savedUser.getSocialId())
-                .provider(savedUser.getProvider())
-                .settingId(savedUser.getSetting().getId())
-                .socialNickname(savedUser.getSocialNickname())
-                .userName(savedUser.getUserName())
-                .role(savedUser.getRole())
-                .tokenId(1L)
-                .fcmTokenId(1L)
-                .build();
-        CustomUserDetails ownerDetails = new CustomUserDetails(ownerUserDetail);
-        
+
         // When & Then
-        mockMvc.perform(post("/api/paper/delete")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody)
-                        .with(csrf())
-                        .with(user(ownerDetails)))
+        performPost("/api/paper/delete", messageDTO, testUserDetails)
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string("메시지가 삭제되었습니다."));
@@ -274,20 +115,12 @@ class PaperCommandControllerIntegrationTest {
     @DisplayName("인증되지 않은 사용자의 메시지 삭제 - 실패")
     void deleteMessage_Unauthenticated_Unauthorized() throws Exception {
         // Given
-        MessageDTO messageDTO = new MessageDTO();
+        MessageDTO messageDTO = TestFixtures.createPaperMessageRequest(
+                "메시지", "red", "font1", 1, 1);
         messageDTO.setId(1L);
-        messageDTO.setDecoType(DecoType.APPLE);
-        messageDTO.setAnonymity("테스트");
-        messageDTO.setContent("메시지");
-        messageDTO.setX(1);
-        messageDTO.setY(1);
-        
-        String requestBody = objectMapper.writeValueAsString(messageDTO);
-        
-        // When & Then - 인증되지 않은 요청시 403 Forbidden 반환
-        mockMvc.perform(post("/api/paper/delete")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
+
+        // When & Then
+        performDelete("/api/paper/delete")
                 .andDo(print())
                 .andExpect(status().isForbidden());
     }
@@ -296,23 +129,12 @@ class PaperCommandControllerIntegrationTest {
     @DisplayName("존재하지 않는 메시지 삭제 - 실패")
     void deleteMessage_NonExistentMessage_NotFound() throws Exception {
         // Given
-        MessageDTO messageDTO = new MessageDTO();
-        messageDTO.setId(99999L); // 존재하지 않는 메시지 ID
-        messageDTO.setDecoType(DecoType.APPLE);
-        messageDTO.setAnonymity("테스트");
-        messageDTO.setContent("메시지");
-        messageDTO.setX(1);
-        messageDTO.setY(1);
-        
-        String requestBody = objectMapper.writeValueAsString(messageDTO);
-        CustomUserDetails userDetails = createUserDetails();
-        
+        MessageDTO messageDTO = TestFixtures.createPaperMessageRequest(
+                "메시지", "red", "font1", 1, 1);
+        messageDTO.setId(99999L);
+
         // When & Then
-        mockMvc.perform(post("/api/paper/delete")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody)
-                        .with(csrf())
-                        .with(user(userDetails)))
+        performPost("/api/paper/delete", messageDTO, testUserDetails)
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }

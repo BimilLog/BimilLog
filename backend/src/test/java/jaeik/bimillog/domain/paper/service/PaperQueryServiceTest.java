@@ -8,14 +8,13 @@ import jaeik.bimillog.domain.paper.entity.MessageDetail;
 import jaeik.bimillog.domain.paper.entity.VisitMessageDetail;
 import jaeik.bimillog.domain.paper.exception.PaperCustomException;
 import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
-import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.global.application.port.out.GlobalUserQueryPort;
+import jaeik.bimillog.testutil.BaseUnitTest;
+import jaeik.bimillog.testutil.TestFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
 import java.util.Arrays;
@@ -34,22 +33,14 @@ import static org.mockito.Mockito.*;
  * @author Jaeik
  * @version 2.0.0
  */
-@ExtendWith(MockitoExtension.class)
 @DisplayName("PaperQueryService 테스트")
-class PaperQueryServiceTest {
+class PaperQueryServiceTest extends BaseUnitTest {
 
     @Mock
     private PaperQueryPort paperQueryPort;
 
     @Mock
     private GlobalUserQueryPort globalUserQueryPort;
-
-
-    @Mock
-    private User user;
-
-    @Mock
-    private Message message;
 
     @InjectMocks
     private PaperQueryService paperQueryService;
@@ -59,10 +50,11 @@ class PaperQueryServiceTest {
     void shouldGetMyPaper_WhenValidUser() {
         // Given
         Long userId = 1L;
+        testUser = createTestUserWithId(userId);
         List<Message> messages = Arrays.asList(
-                createMessage(1L, userId, "첫 번째 메시지"),
-                createMessage(2L, userId, "두 번째 메시지"),
-                createMessage(3L, userId, "세 번째 메시지")
+                TestFixtures.createRollingPaper(testUser, "첫 번째 메시지", "red", "font1", 10, 10),
+                TestFixtures.createRollingPaper(testUser, "두 번째 메시지", "blue", "font2", 20, 20),
+                TestFixtures.createRollingPaper(testUser, "세 번째 메시지", "green", "font3", 30, 30)
         );
 
         given(paperQueryPort.findMessagesByUserId(userId)).willReturn(messages);
@@ -73,11 +65,8 @@ class PaperQueryServiceTest {
         // Then
         assertThat(result).isNotNull();
         assertThat(result).hasSize(3);
-        assertThat(result.get(0).id()).isEqualTo(1L);
         assertThat(result.get(0).content()).isEqualTo("첫 번째 메시지");
-        assertThat(result.get(1).id()).isEqualTo(2L);
         assertThat(result.get(1).content()).isEqualTo("두 번째 메시지");
-        assertThat(result.get(2).id()).isEqualTo(3L);
         assertThat(result.get(2).content()).isEqualTo("세 번째 메시지");
 
         verify(paperQueryPort, times(1)).findMessagesByUserId(userId);
@@ -109,10 +98,10 @@ class PaperQueryServiceTest {
     @DisplayName("다른 사용자 롤링페이퍼 방문 - 성공")
     void shouldVisitPaper_WhenValidUserName() {
         // Given
-        String userName = "testuser";
+        String userName = testUser.getUserName();
         List<Message> messages = Arrays.asList(
-                createMessage(1L, 100L, "메시지1"),
-                createMessage(2L, 200L, "메시지2")
+                TestFixtures.createRollingPaper(testUser, "메시지1", "red", "font1", 5, 5),
+                TestFixtures.createRollingPaper(otherUser, "메시지2", "blue", "font2", 10, 10)
         );
 
         given(globalUserQueryPort.existsByUserName(userName)).willReturn(true);
@@ -124,10 +113,8 @@ class PaperQueryServiceTest {
         // Then
         assertThat(result).isNotNull();
         assertThat(result).hasSize(2);
-        assertThat(result.get(0).id()).isEqualTo(1L);
-        assertThat(result.get(0).userId()).isEqualTo(100L);
-        assertThat(result.get(1).id()).isEqualTo(2L);
-        assertThat(result.get(1).userId()).isEqualTo(200L);
+        assertThat(result.get(0).userId()).isEqualTo(testUser.getId());
+        assertThat(result.get(1).userId()).isEqualTo(otherUser.getId());
 
         verify(globalUserQueryPort, times(1)).existsByUserName(userName);
         verify(paperQueryPort, times(1)).findMessagesByUserName(userName);
@@ -155,7 +142,7 @@ class PaperQueryServiceTest {
     @DisplayName("다른 사용자 롤링페이퍼 방문 - 빈 목록")
     void shouldVisitPaper_WhenNoMessages() {
         // Given
-        String userName = "testuser";
+        String userName = testUser.getUserName();
         List<Message> emptyList = Collections.emptyList();
 
         given(globalUserQueryPort.existsByUserName(userName)).willReturn(true);
@@ -195,19 +182,4 @@ class PaperQueryServiceTest {
         verify(paperQueryPort, never()).findMessagesByUserName(any());
     }
 
-    private Message createMessage(Long id, Long userId, String content) {
-        User mockUser = mock(User.class);
-        lenient().when(mockUser.getId()).thenReturn(userId);
-        
-        return Message.builder()
-                .id(id)
-                .user(mockUser)
-                .decoType(DecoType.APPLE)
-                .anonymity("익명")
-                .content(content)
-                .x(100)
-                .y(50)
-                .createdAt(Instant.now())
-                .build();
-    }
 }

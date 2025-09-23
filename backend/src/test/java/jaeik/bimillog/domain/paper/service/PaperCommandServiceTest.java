@@ -8,14 +8,12 @@ import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.paper.exception.PaperCustomException;
 import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
-import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.global.application.port.out.GlobalUserQueryPort;
+import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
@@ -32,9 +30,8 @@ import static org.mockito.Mockito.*;
  * @author Jaeik
  * @version 2.0.0
  */
-@ExtendWith(MockitoExtension.class)
 @DisplayName("PaperCommandService 테스트")
-class PaperCommandServiceTest {
+class PaperCommandServiceTest extends BaseUnitTest {
 
     @Mock
     private PaperCommandPort paperCommandPort;
@@ -47,13 +44,6 @@ class PaperCommandServiceTest {
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
-
-
-    @Mock
-    private User user;
-
-    @Mock
-    private Message message;
 
     @InjectMocks
     private PaperCommandService paperCommandService;
@@ -117,16 +107,15 @@ class PaperCommandServiceTest {
     @DisplayName("메시지 작성 - 성공")
     void shouldWriteMessage_WhenValidInput() {
         // Given
-        String userName = "testuser";
-        Long userId = 1L;
+        String userName = testUser.getUserName();
+        Long userId = testUser.getId();
         DecoType decoType = DecoType.APPLE;
         String anonymity = "익명";
         String content = "테스트 메시지";
         int x = 2;
         int y = 2;
-        
-        given(globalUserQueryPort.findByUserName(userName)).willReturn(Optional.of(user));
-        given(user.getId()).willReturn(userId);
+
+        given(globalUserQueryPort.findByUserName(userName)).willReturn(Optional.of(testUser));
 
         // When
         paperCommandService.writeMessage(userName, decoType, anonymity, content, x, y);
@@ -194,32 +183,24 @@ class PaperCommandServiceTest {
     @DisplayName("메시지 작성 - 이벤트 발행 검증")
     void shouldPublishCorrectEvent_WhenWriteMessage() {
         // Given
-        String userName = "testuser";
-        Long userId = 123L;
+        String userName = testUser.getUserName();
+        Long userId = 1L;
+        testUser = createTestUserWithId(userId);
         DecoType decoType = DecoType.APPLE;
         String anonymity = "익명";
         String content = "테스트 메시지";
         int x = 2;
         int y = 2;
-        
-        given(globalUserQueryPort.findByUserName(userName)).willReturn(Optional.of(user));
-        given(user.getId()).willReturn(userId);
+
+        given(globalUserQueryPort.findByUserName(userName)).willReturn(Optional.of(testUser));
 
         // When
         paperCommandService.writeMessage(userName, decoType, anonymity, content, x, y);
 
         // Then
-        verify(eventPublisher, times(1)).publishEvent(argThat((RollingPaperEvent event) -> 
-            event.paperOwnerId().equals(userId) && 
+        verify(eventPublisher, times(1)).publishEvent(argThat((RollingPaperEvent event) ->
+            event.paperOwnerId().equals(userId) &&
             event.userName().equals(userName)
         ));
     }
-
-
-
-
-
-
-
-
 }

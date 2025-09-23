@@ -1,10 +1,10 @@
 package jaeik.bimillog.infrastructure.adapter.out.paper;
 
 import jaeik.bimillog.BimilLogApplication;
-import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
+import jaeik.bimillog.testutil.TestFixtures;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -60,10 +60,16 @@ class PaperQueryAdapterIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        testUser = createAndSaveUser("testuser", "12345", "테스트유저");
-        testMessage1 = createAndSaveMessage(testUser, "첫 번째 메시지", DecoType.APPLE, 100, 50);
-        testMessage2 = createAndSaveMessage(testUser, "두 번째 메시지", DecoType.BANANA, 150, 75);
+        testUser = TestUsers.createUniqueWithPrefix("querytest");
+        testEntityManager.persistAndFlush(testUser);
 
+        testMessage1 = TestFixtures.createRollingPaper(
+                testUser, "첫 번째 메시지", "red", "font1", 100, 50);
+        testMessage2 = TestFixtures.createRollingPaper(
+                testUser, "두 번째 메시지", "blue", "font2", 150, 75);
+
+        testEntityManager.persistAndFlush(testMessage1);
+        testEntityManager.persistAndFlush(testMessage2);
         testEntityManager.flush();
         testEntityManager.clear();
     }
@@ -137,31 +143,4 @@ class PaperQueryAdapterIntegrationTest {
         assertThat(notFoundResult).isEmpty();
     }
 
-    private User createAndSaveUser(String userName, String socialId, String socialNickname) {
-        User baseUser = TestUsers.USER1;
-        User userWithDetails = User.builder()
-                .socialId(socialId)
-                .provider(baseUser.getProvider())
-                .userName(userName)
-                .socialNickname(socialNickname)
-                .thumbnailImage(baseUser.getThumbnailImage())
-                .role(baseUser.getRole())
-                .setting(baseUser.getSetting())
-                .build();
-
-        return testEntityManager.persistAndFlush(userWithDetails);
-    }
-
-    private Message createAndSaveMessage(User user, String content, DecoType decoType, int x, int y) {
-        Message message = Message.builder()
-                .user(user)
-                .content(content)
-                .decoType(decoType)
-                .anonymity("익명123")
-                .x(x)
-                .y(y)
-                .build();
-        
-        return testEntityManager.persistAndFlush(message);
-    }
 }

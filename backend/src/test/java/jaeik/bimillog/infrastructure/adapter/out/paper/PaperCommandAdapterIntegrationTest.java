@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
+import jaeik.bimillog.testutil.TestFixtures;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -60,17 +61,13 @@ class PaperCommandAdapterIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        testUser = TestUsers.USER1;
+        testUser = TestUsers.createUnique();
         entityManager.persistAndFlush(testUser);
 
-        testMessage = Message.builder()
-                .user(testUser)
-                .decoType(DecoType.POTATO)
-                .anonymity("익명친구")
-                .content("안녕하세요! 테스트 메시지입니다.")
-                .x(2)
-                .y(3)
-                .build();
+        testMessage = TestFixtures.createRollingPaper(
+                testUser,
+                "안녕하세요! 테스트 메시지입니다.",
+                "red", "font1", 2, 3);
     }
 
     @Test
@@ -87,7 +84,7 @@ class PaperCommandAdapterIntegrationTest {
         assertThat(foundMessage.getId()).isNotNull();
         assertThat(foundMessage.getUser().getId()).isEqualTo(testUser.getId());
         assertThat(foundMessage.getDecoType()).isEqualTo(DecoType.POTATO);
-        assertThat(foundMessage.getAnonymity()).isEqualTo("익명친구");
+        assertThat(foundMessage.getAnonymity()).isEqualTo("테스트사용자");
         assertThat(foundMessage.getContent()).isEqualTo("안녕하세요! 테스트 메시지입니다.");
         assertThat(foundMessage.getX()).isEqualTo(2);
         assertThat(foundMessage.getY()).isEqualTo(3);
@@ -115,27 +112,14 @@ class PaperCommandAdapterIntegrationTest {
     @DisplayName("UNIQUE 제약조건 - 사용자별 좌표 중복 방지")
     void shouldThrowException_WhenUniqueConstraintViolated() {
         // Given - 첫 번째 메시지 저장
-        Message firstMessage = Message.builder()
-                .user(testUser)
-                .decoType(DecoType.POTATO)
-                .anonymity("첫번째")
-                .content("첫 번째 메시지")
-                .x(5)
-                .y(7)
-                .build();
-        
+        Message firstMessage = TestFixtures.createRollingPaper(
+                testUser, "첫 번째 메시지", "red", "font1", 5, 7);
         paperCommandAdapter.save(firstMessage);
         entityManager.flush();
-        
+
         // When & Then - 같은 사용자의 같은 좌표로 저장 시도
-        Message duplicateMessage = Message.builder()
-                .user(testUser)
-                .decoType(DecoType.TOMATO)
-                .anonymity("두번째")
-                .content("두 번째 메시지")
-                .x(5) // 같은 좌표
-                .y(7) // 같은 좌표
-                .build();
+        Message duplicateMessage = TestFixtures.createRollingPaper(
+                testUser, "두 번째 메시지", "blue", "font2", 5, 7);
 
         assertThatThrownBy(() -> {
             paperCommandAdapter.save(duplicateMessage);
