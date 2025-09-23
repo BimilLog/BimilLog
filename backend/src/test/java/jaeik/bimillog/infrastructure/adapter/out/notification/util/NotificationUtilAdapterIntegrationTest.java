@@ -158,8 +158,8 @@ class NotificationUtilAdapterIntegrationTest {
     @Transactional
     void shouldReturnFcmTokens_WhenUserEligibleForNotification() {
         // Given: FCM 토큰 생성
-        FcmToken fcmToken1 = FcmToken.create(enabledUser, "fcm-token-1");
-        FcmToken fcmToken2 = FcmToken.create(enabledUser, "fcm-token-2");
+        FcmToken fcmToken1 = FcmToken.create(enabledUser, "fcm-TemporaryToken-1");
+        FcmToken fcmToken2 = FcmToken.create(enabledUser, "fcm-TemporaryToken-2");
         
         testEntityManager.persistAndFlush(fcmToken1);
         testEntityManager.persistAndFlush(fcmToken2);
@@ -173,7 +173,7 @@ class NotificationUtilAdapterIntegrationTest {
         assertThat(result).hasSize(2);
         assertThat(result)
                 .extracting(FcmToken::getFcmRegistrationToken)
-                .containsExactlyInAnyOrder("fcm-token-1", "fcm-token-2");
+                .containsExactlyInAnyOrder("fcm-TemporaryToken-1", "fcm-TemporaryToken-2");
     }
 
     @Test
@@ -181,7 +181,7 @@ class NotificationUtilAdapterIntegrationTest {
     @Transactional
     void shouldReturnEmptyList_WhenUserNotEligibleForNotification() {
         // Given: 비활성화된 사용자의 FCM 토큰 생성
-        FcmToken fcmToken = FcmToken.create(disabledUser, "fcm-token-disabled");
+        FcmToken fcmToken = FcmToken.create(disabledUser, "fcm-TemporaryToken-disabled");
         testEntityManager.persistAndFlush(fcmToken);
         testEntityManager.flush();
         testEntityManager.clear();

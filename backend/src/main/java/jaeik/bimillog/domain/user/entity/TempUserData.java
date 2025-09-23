@@ -30,7 +30,7 @@ public class TempUserData {
      * @return Token 객체
      */
     public Token getToken() {
-        return socialUserProfile != null ? socialUserProfile.token() : null;
+        return socialUserProfile != null ? socialUserProfile.TemporaryToken() : null;
     }
 
     /**

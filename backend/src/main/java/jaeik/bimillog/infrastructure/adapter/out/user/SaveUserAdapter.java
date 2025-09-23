@@ -52,19 +52,15 @@ public class SaveUserAdapter implements SaveUserPort {
      */
     @Override
     @Transactional
-    public ExistingUserDetail handleExistingUserLogin(User existingUser, SocialUserProfile userProfile, String fcmToken) {
+    public ExistingUserDetail handleExistingUserData(User existingUser, SocialUserProfile userProfile, String fcmToken) {
         existingUser.updateUserInfo(userProfile.nickname(), userProfile.profileImageUrl());
 
-        Token token = userProfile.token();
-        Token newToken = Token.builder()
-                .accessToken(token.getAccessToken())
-                .refreshToken(token.getRefreshToken())
-                .users(existingUser)
-                .build();
-
+        Token temporaryToken = userProfile.TemporaryToken();
+        Token newToken = Token.createToken(temporaryToken.getAccessToken(), temporaryToken.getRefreshToken(), existingUser);
         Long fcmTokenId = registerFcmTokenIfPresent(existingUser, fcmToken);
+        Long tokenId = globalTokenCommandPort.save(newToken).getId();
 
-        return ExistingUserDetail.of(existingUser, globalTokenCommandPort.save(newToken).getId(), fcmTokenId);
+        return ExistingUserDetail.of(existingUser, tokenId, fcmTokenId);
     }
 
     /**
@@ -85,15 +81,17 @@ public class SaveUserAdapter implements SaveUserPort {
         Setting setting = Setting.createSetting();
         User user = userRepository.save(User.createUser(userProfile.socialId(), userProfile.provider(), userProfile.nickname(), userProfile.profileImageUrl(), userName, setting));
         Long fcmTokenId = registerFcmTokenIfPresent(user, fcmToken);
-        Token token = userProfile.token();
-        return ExistingUserDetail.of(user, globalTokenCommandPort.save(Token.createToken(token.getAccessToken(), token.getRefreshToken(), user)).getId(), fcmTokenId);
-    }
+        Token temporaryToken = userProfile.TemporaryToken();
+        Token newToken = Token.createToken(temporaryToken.getAccessToken(), temporaryToken.getRefreshToken(), user);
+        Long tokenId = globalTokenCommandPort.save(newToken).getId();
 
+        return ExistingUserDetail.of(user, tokenId, fcmTokenId);
+    }
 
     /**
      * <h3>FCM 토큰 등록 처리</h3>
      * <p>FCM 토큰이 존재할 경우에만 알림 서비스에 등록합니다.</p>
-     * <p>{@link #handleExistingUserLogin}, {@link #saveNewUser} 메서드에서 FCM 토큰 등록을 위해 호출됩니다.</p>
+     * <p>{@link #handleExistingUserData}, {@link #saveNewUser} 메서드에서 FCM 토큰 등록을 위해 호출됩니다.</p>
      *
      * @param user 사용자
      * @param fcmToken FCM 토큰 (빈 문자열이나 null인 경우 무시)

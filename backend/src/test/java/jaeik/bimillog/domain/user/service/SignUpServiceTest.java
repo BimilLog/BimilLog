@@ -66,22 +66,22 @@ class SignUpServiceTest {
     private TempUserData testTempData;
     private List<ResponseCookie> testCookies;
     private ExistingUserDetail testUserDetail;
-    private String testAccessToken = "test-access-token";
-    private String testRefreshToken = "test-refresh-token";
+    private String testAccessToken = "test-access-TemporaryToken";
+    private String testRefreshToken = "test-refresh-TemporaryToken";
 
     @BeforeEach
     void setUp() {
         testUserName = "testUser";
         testUuid = "test-uuid-123";
 
-        Token testToken = Token.createTemporaryToken("access-token", "refresh-token");
+        Token testToken = Token.createTemporaryToken("access-TemporaryToken", "refresh-TemporaryToken");
         testSocialProfile = new SocialUserProfile("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg", testToken);
 
-        testTempData = TempUserData.from(testSocialProfile, "fcm-token");
+        testTempData = TempUserData.from(testSocialProfile, "fcm-TemporaryToken");
         
         testCookies = List.of(
-                ResponseCookie.from("access_token", "access-token").build(),
-                ResponseCookie.from("refresh_token", "refresh-token").build()
+                ResponseCookie.from("access_token", "access-TemporaryToken").build(),
+                ResponseCookie.from("refresh_token", "refresh-TemporaryToken").build()
         );
 
         testUserDetail = ExistingUserDetail.of(TestUsers.USER1, 1L, 100L);
@@ -95,7 +95,7 @@ class SignUpServiceTest {
         given(saveUserPort.saveNewUser(
                 eq(testUserName),
                 eq(testSocialProfile),
-                eq("fcm-token")
+                eq("fcm-TemporaryToken")
         )).willReturn(testUserDetail);
         given(globalJwtPort.generateAccessToken(testUserDetail)).willReturn(testAccessToken);
         given(globalJwtPort.generateRefreshToken(testUserDetail)).willReturn(testRefreshToken);
@@ -112,7 +112,7 @@ class SignUpServiceTest {
         verify(saveUserPort).saveNewUser(
                 testUserName,
                 testSocialProfile,
-                "fcm-token"
+                "fcm-TemporaryToken"
         );
         verify(redisUserDataPort).removeTempData(testUuid);
         verify(globalJwtPort).generateAccessToken(testUserDetail);

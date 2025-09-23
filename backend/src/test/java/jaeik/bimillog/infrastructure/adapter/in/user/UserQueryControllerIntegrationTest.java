@@ -244,7 +244,7 @@ class UserQueryControllerIntegrationTest {
         User savedUser = userRepository.save(user);
         
         // 테스트용 토큰 생성 및 저장
-        Token token = Token.createToken("test-access-token", "test-refresh-token", savedUser);
+        Token token = Token.createToken("test-access-TemporaryToken", "test-refresh-TemporaryToken", savedUser);
         Token savedToken = tokenRepository.save(token);
         
         CustomUserDetails userDetails = createCustomUserDetailsWithToken(savedUser, savedToken.getId());
@@ -278,7 +278,7 @@ class UserQueryControllerIntegrationTest {
         User savedUser = userRepository.save(user);
         
         // 테스트용 토큰 생성 및 저장
-        Token token = Token.createToken("test-access-token", "test-refresh-token", savedUser);
+        Token token = Token.createToken("test-access-TemporaryToken", "test-refresh-TemporaryToken", savedUser);
         Token savedToken = tokenRepository.save(token);
         
         CustomUserDetails userDetails = createCustomUserDetailsWithToken(savedUser, savedToken.getId());
@@ -298,7 +298,7 @@ class UserQueryControllerIntegrationTest {
         User savedUser = userRepository.save(user);
         
         // 테스트용 토큰 생성 및 저장
-        Token token = Token.createToken("test-access-token", "test-refresh-token", savedUser);
+        Token token = Token.createToken("test-access-TemporaryToken", "test-refresh-TemporaryToken", savedUser);
         Token savedToken = tokenRepository.save(token);
         
         CustomUserDetails userDetails = createCustomUserDetailsWithToken(savedUser, savedToken.getId());

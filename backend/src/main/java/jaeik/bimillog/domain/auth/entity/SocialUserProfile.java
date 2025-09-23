@@ -13,7 +13,7 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
  * @param provider 소셜 플랫폼 제공자 (KAKAO, GOOGLE 등)
  * @param nickname 소셜 플랫폼에서의 사용자 닉네임
  * @param profileImageUrl 프로필 이미지 URL (선택사항)
- * @param token 소셜 로그인으로 발급받은 토큰 정보
+ * @param TemporaryToken 소셜 로그인으로 발급받은 토큰 정보 (토큰은 유저가 반드시 있어야함 유저 정보없는 임시 토큰임)
  * @author Jaeik
  * @version 2.0.0
  * @since 2.0.0
@@ -24,5 +24,5 @@ public record SocialUserProfile(
         SocialProvider provider,
         String nickname,
         String profileImageUrl,
-        Token token
+        Token TemporaryToken
 ) {}

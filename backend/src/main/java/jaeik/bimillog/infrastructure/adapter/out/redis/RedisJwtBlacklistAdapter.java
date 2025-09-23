@@ -24,7 +24,7 @@ public class RedisJwtBlacklistAdapter implements RedisJwtBlacklistPort {
     private final RedisTemplate<String, Object> redisTemplate;
 
     // Redis 키 접두사
-    private static final String BLACKLIST_KEY_PREFIX = "token:blacklist:";
+    private static final String BLACKLIST_KEY_PREFIX = "TemporaryToken:blacklist:";
 
     /**
      * <h3>토큰 해시 블랙리스트 여부 확인</h3>
@@ -86,7 +86,7 @@ public class RedisJwtBlacklistAdapter implements RedisJwtBlacklistPort {
         } catch (Exception e) {
             log.error("Redis에서 토큰 해시 블랙리스트 등록 실패: count={}, error={}",
                     tokenHashes != null ? tokenHashes.size() : 0, e.getMessage(), e);
-            throw new RuntimeException("Redis token blacklist operation failed", e);
+            throw new RuntimeException("Redis TemporaryToken blacklist operation failed", e);
         }
     }
 

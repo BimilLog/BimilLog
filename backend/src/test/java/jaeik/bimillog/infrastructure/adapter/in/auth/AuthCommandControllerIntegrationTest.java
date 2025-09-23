@@ -71,7 +71,7 @@ class AuthCommandControllerIntegrationTest {
     @DisplayName("소셜 로그인 통합 테스트 - 신규 사용자")
     void socialLogin_NewUser_IntegrationTest() throws Exception {
         // Given
-        SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "new_user_code", "integration-test-fcm-token");
+        SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "new_user_code", "integration-test-fcm-TemporaryToken");
 
         // When & Then
         mockMvc.perform(post("/api/auth/login")

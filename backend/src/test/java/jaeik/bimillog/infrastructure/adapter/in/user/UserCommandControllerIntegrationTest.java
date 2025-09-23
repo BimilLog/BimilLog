@@ -77,7 +77,7 @@ class UserCommandControllerIntegrationTest {
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     void signUp_IntegrationTest_Success() throws Exception {
         // Given - 먼저 소셜 로그인으로 temp 데이터를 생성
-        SocialLoginRequestDTO socialRequest = new SocialLoginRequestDTO("KAKAO", "new_user_code", "integration-test-fcm-token");
+        SocialLoginRequestDTO socialRequest = new SocialLoginRequestDTO("KAKAO", "new_user_code", "integration-test-fcm-TemporaryToken");
 
         // 1. 소셜 로그인으로 임시 데이터 생성
         var loginResult = mockMvc.perform(post("/api/auth/login")

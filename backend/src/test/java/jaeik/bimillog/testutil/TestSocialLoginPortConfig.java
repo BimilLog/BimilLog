@@ -55,7 +55,7 @@ public class TestSocialLoginPortConfig {
                     socialId = "test-social-id";
                 }
 
-                Token token = Token.createTemporaryToken("dummy-access-token", "dummy-refresh-token");
+                Token token = Token.createTemporaryToken("dummy-access-TemporaryToken", "dummy-refresh-TemporaryToken");
 
                 return new SocialUserProfile(
                     socialId,
@@ -128,12 +128,12 @@ public class TestSocialLoginPortConfig {
         return new GlobalJwtPort() {
             @Override
             public String generateAccessToken(ExistingUserDetail userDetail) {
-                return "test-access-token";
+                return "test-access-TemporaryToken";
             }
 
             @Override
             public String generateRefreshToken(ExistingUserDetail userDetail) {
-                return "test-refresh-token";
+                return "test-refresh-TemporaryToken";
             }
 
             @Override
@@ -158,7 +158,7 @@ public class TestSocialLoginPortConfig {
 
             @Override
             public String generateTokenHash(String token) {
-                return "test-token-hash";
+                return "test-TemporaryToken-hash";
             }
         };
     }

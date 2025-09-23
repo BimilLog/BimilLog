@@ -25,9 +25,9 @@ public class TestContainersConfiguration {
                 .withDatabaseName("testdb")
                 .withUsername("test")
                 .withPassword("test")
-                .withCommand("--ngram-token-size=2", 
+                .withCommand("--ngram-TemporaryToken-size=2",
                            "--ft-min-word-len=2",
-                           "--innodb-ft-min-token-size=2",
+                           "--innodb-ft-min-TemporaryToken-size=2",
                            "--default-storage-engine=InnoDB")
                 .withReuse(true);
     }

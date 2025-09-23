@@ -74,7 +74,7 @@ class RedisUserDataAdapterIntegrationTest {
         
         // 테스트 데이터 준비
         testUuid = "test-uuid-12345";
-        testToken = Token.createTemporaryToken("access-token", "refresh-token");
+        testToken = Token.createTemporaryToken("access-TemporaryToken", "refresh-TemporaryToken");
         testUserProfile = new SocialUserProfile(
             "123456789",
             "test@example.com",
@@ -90,7 +90,7 @@ class RedisUserDataAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 임시 데이터 저장 및 조회")
     void shouldSaveAndRetrieveTempData_WhenValidDataProvided() {
         // When: 임시 데이터 저장
-        redisTempDataAdapter.saveTempData(testUuid, testUserProfile, "test-fcm-token");
+        redisTempDataAdapter.saveTempData(testUuid, testUserProfile, "test-fcm-TemporaryToken");
 
         // Then: 저장된 데이터 조회 검증
         Optional<TempUserData> savedData = redisTempDataAdapter.getTempData(testUuid);
@@ -98,8 +98,8 @@ class RedisUserDataAdapterIntegrationTest {
         assertThat(savedData).isPresent();
         assertThat(savedData.get().getSocialUserProfile().socialId()).isEqualTo("123456789");
         assertThat(savedData.get().getSocialUserProfile().email()).isEqualTo("test@example.com");
-        assertThat(savedData.get().getSocialUserProfile().token().getAccessToken()).isEqualTo("access-token");
-        assertThat(savedData.get().getFcmToken()).isEqualTo("test-fcm-token");
+        assertThat(savedData.get().getSocialUserProfile().TemporaryToken().getAccessToken()).isEqualTo("access-TemporaryToken");
+        assertThat(savedData.get().getFcmToken()).isEqualTo("test-fcm-TemporaryToken");
         
         // Redis에서 직접 확인
         String key = "temp:user:" + testUuid;
@@ -110,7 +110,7 @@ class RedisUserDataAdapterIntegrationTest {
     @DisplayName("정상 케이스 - TTL 설정 확인")
     void shouldSetCorrectTTL_WhenDataSaved() {
         // When: 임시 데이터 저장
-        redisTempDataAdapter.saveTempData(testUuid, testUserProfile, "test-fcm-token");
+        redisTempDataAdapter.saveTempData(testUuid, testUserProfile, "test-fcm-TemporaryToken");
         
         String key = "temp:user:" + testUuid;
         
@@ -152,7 +152,7 @@ class RedisUserDataAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 임시 데이터 삭제")
     void shouldRemoveTempData_WhenDataExists() {
         // Given: 저장된 데이터
-        redisTempDataAdapter.saveTempData(testUuid, testUserProfile, "test-fcm-token");
+        redisTempDataAdapter.saveTempData(testUuid, testUserProfile, "test-fcm-TemporaryToken");
         assertThat(redisTempDataAdapter.getTempData(testUuid)).isPresent();
 
         // When: 데이터 삭제

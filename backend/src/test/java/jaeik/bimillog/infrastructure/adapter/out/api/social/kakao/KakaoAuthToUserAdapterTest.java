@@ -33,7 +33,7 @@ import static org.mockito.Mockito.*;
 @DisplayName("KakaoSocialAdapter 단위 테스트")
 class KakaoAuthToUserAdapterTest {
 
-    private static final String TEST_ACCESS_TOKEN = "test-access-token";
+    private static final String TEST_ACCESS_TOKEN = "test-access-TemporaryToken";
     private static final Integer DEFAULT_OFFSET = 0;
     private static final Integer DEFAULT_LIMIT = 10;
 

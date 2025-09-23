@@ -29,7 +29,7 @@ public interface KakaoAuthClient {
      * @author Jaeik
      * @since 2.0.0
      */
-    @PostMapping(value = "/oauth/token", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    @PostMapping(value = "/oauth/TemporaryToken", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     Map<String, Object> getToken(@RequestHeader("Content-Type") String contentType,
                                  @RequestParam Map<String, String> params);
 }

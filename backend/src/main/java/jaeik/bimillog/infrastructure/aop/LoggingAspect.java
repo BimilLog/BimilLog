@@ -39,7 +39,7 @@ public class LoggingAspect {
     private final ObjectMapper objectMapper = new ObjectMapper();
     
     private static final Set<String> SENSITIVE_FIELDS = Set.of(
-        "password", "token", "secret", "key", "credential", 
+        "password", "TemporaryToken", "secret", "key", "credential",
         "authorization", "cookie", "session", "jwt", "code", "fcmToken"
     );
     
@@ -274,7 +274,7 @@ public class LoggingAspect {
     /**
      * <h3>민감정보 마스킹 처리</h3>
      * <p>객체를 JSON 문자열로 변환하며 민감한 필드값을 마스킹합니다.</p>
-     * <p>password, token, secret 등의 민감정보를 [MASKED]로 치환합니다.</p>
+     * <p>password, TemporaryToken, secret 등의 민감정보를 [MASKED]로 치환합니다.</p>
      * <p>{@link #logMethodEntry}, {@link #logMethodExit}에서 파라미터와 결과값 로깅 시 호출됩니다.</p>
      *
      * @param data 마스킹할 객체

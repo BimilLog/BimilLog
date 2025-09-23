@@ -29,7 +29,7 @@ public interface SaveUserPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    UserDetail handleExistingUserLogin(User existingUser, SocialUserProfile userProfile, String fcmToken);
+    UserDetail handleExistingUserData(User existingUser, SocialUserProfile userProfile, String fcmToken);
 
     /**
      * <h3>신규 사용자 정보 저장</h3>

@@ -58,7 +58,7 @@ class NotificationFcmServiceTest {
     void shouldRegisterFcmToken_WhenValidInput() {
         // Given
         User user = TestUsers.USER1;
-        String fcmToken = "valid-fcm-token";
+        String fcmToken = "valid-fcm-TemporaryToken";
         Long expectedTokenId = 100L;
         FcmToken savedToken = mock(FcmToken.class);
 
@@ -79,7 +79,7 @@ class NotificationFcmServiceTest {
     void shouldThrowException_WhenUserIsNull() {
         // Given
         User user = null;
-        String fcmToken = "valid-fcm-token";
+        String fcmToken = "valid-fcm-TemporaryToken";
 
         // When & Then
         assertThatThrownBy(() -> notificationFcmService.registerFcmToken(user, fcmToken))

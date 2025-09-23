@@ -77,7 +77,7 @@ class UserFriendServiceTest {
         
         User user = TestUsers.copyWithId(testUser, userId);
         
-        Token token = Token.createTemporaryToken("access-token", "refresh-token");
+        Token token = Token.createTemporaryToken("access-TemporaryToken", "refresh-TemporaryToken");
                 
         
         // 실제 카카오 API 응답과 동일한 구조의 테스트 데이터
@@ -100,7 +100,7 @@ class UserFriendServiceTest {
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
         given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(token));
-        given(kakaoFriendPort.getFriendList("access-token", offset, limit)).willReturn(kakaoResponseVO);
+        given(kakaoFriendPort.getFriendList("access-TemporaryToken", offset, limit)).willReturn(kakaoResponseVO);
         given(userQueryPort.findUserNamesInOrder(Arrays.asList("1", "2", "3"))).willReturn(userNames);
 
         // When
@@ -120,7 +120,7 @@ class UserFriendServiceTest {
         
         verify(userQueryPort).findById(userId);
         verify(globalTokenQueryPort).findById(tokenId);
-        verify(kakaoFriendPort).getFriendList("access-token", offset, limit);
+        verify(kakaoFriendPort).getFriendList("access-TemporaryToken", offset, limit);
         verify(userQueryPort).findUserNamesInOrder(Arrays.asList("1", "2", "3"));
     }
 
@@ -168,7 +168,7 @@ class UserFriendServiceTest {
         Long tokenId = 1L;
         User user = TestUsers.copyWithId(testUser, userId);
         
-        Token token = Token.createTemporaryToken(null, "refresh-token");
+        Token token = Token.createTemporaryToken(null, "refresh-TemporaryToken");
                 
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
@@ -188,7 +188,7 @@ class UserFriendServiceTest {
         Long tokenId = 1L;
         User user = TestUsers.copyWithId(testUser, userId);
         
-        Token token = Token.createTemporaryToken("", "refresh-token");
+        Token token = Token.createTemporaryToken("", "refresh-TemporaryToken");
                 
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
@@ -208,7 +208,7 @@ class UserFriendServiceTest {
         Long tokenId = 1L;
         User user = TestUsers.copyWithId(TestUsers.USER1, userId);
         
-        Token token = Token.createTemporaryToken("access-token", "refresh-token");
+        Token token = Token.createTemporaryToken("access-TemporaryToken", "refresh-TemporaryToken");
                 
         
         KakaoFriendsResponseVO kakaoResponseVO = KakaoFriendsResponseVO.of(
@@ -217,7 +217,7 @@ class UserFriendServiceTest {
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
         given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(token));
-        given(kakaoFriendPort.getFriendList("access-token", 0, 10)).willReturn(kakaoResponseVO);
+        given(kakaoFriendPort.getFriendList("access-TemporaryToken", 0, 10)).willReturn(kakaoResponseVO);
 
         // When
         KakaoFriendsResponseVO result = userFriendService.getKakaoFriendList(userId, tokenId, null, null);
@@ -225,7 +225,7 @@ class UserFriendServiceTest {
         // Then
         assertThat(result).isEqualTo(kakaoResponseVO);
 
-        verify(kakaoFriendPort).getFriendList("access-token", 0, 10); // 기본값 0, 10 사용
+        verify(kakaoFriendPort).getFriendList("access-TemporaryToken", 0, 10); // 기본값 0, 10 사용
     }
 
     @Test
@@ -236,7 +236,7 @@ class UserFriendServiceTest {
         Long tokenId = 1L;
         User user = TestUsers.copyWithId(TestUsers.USER1, userId);
         
-        Token token = Token.createTemporaryToken("access-token", "refresh-token");
+        Token token = Token.createTemporaryToken("access-TemporaryToken", "refresh-TemporaryToken");
                 
         
         KakaoFriendsResponseVO kakaoResponseVO = KakaoFriendsResponseVO.of(
@@ -245,7 +245,7 @@ class UserFriendServiceTest {
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
         given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(token));
-        given(kakaoFriendPort.getFriendList("access-token", 0, 100)).willReturn(kakaoResponseVO);
+        given(kakaoFriendPort.getFriendList("access-TemporaryToken", 0, 100)).willReturn(kakaoResponseVO);
 
         // When
         KakaoFriendsResponseVO result = userFriendService.getKakaoFriendList(userId, tokenId, 0, 200); // 200을 요청하지만 100으로 제한
@@ -253,7 +253,7 @@ class UserFriendServiceTest {
         // Then
         assertThat(result).isEqualTo(kakaoResponseVO);
 
-        verify(kakaoFriendPort).getFriendList("access-token", 0, 100); // 최대값 100으로 제한
+        verify(kakaoFriendPort).getFriendList("access-TemporaryToken", 0, 100); // 최대값 100으로 제한
     }
 
     @Test
@@ -264,12 +264,12 @@ class UserFriendServiceTest {
         Long tokenId = 1L;
         User user = TestUsers.copyWithId(TestUsers.USER1, userId);
         
-        Token token = Token.createTemporaryToken("access-token", "refresh-token");
+        Token token = Token.createTemporaryToken("access-TemporaryToken", "refresh-TemporaryToken");
                 
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
         given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(token));
-        given(kakaoFriendPort.getFriendList("access-token", 0, 10))
+        given(kakaoFriendPort.getFriendList("access-TemporaryToken", 0, 10))
                 .willThrow(new UserCustomException(UserErrorCode.KAKAO_FRIEND_API_ERROR));
 
         // When & Then
@@ -286,12 +286,12 @@ class UserFriendServiceTest {
         Long tokenId = 1L;
         User user = TestUsers.copyWithId(TestUsers.USER1, userId);
         
-        Token token = Token.createTemporaryToken("access-token", "refresh-token");
+        Token token = Token.createTemporaryToken("access-TemporaryToken", "refresh-TemporaryToken");
                 
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
         given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(token));
-        given(kakaoFriendPort.getFriendList("access-token", 0, 10))
+        given(kakaoFriendPort.getFriendList("access-TemporaryToken", 0, 10))
                 .willThrow(new RuntimeException("일반적인 API 에러"));
 
         // When & Then
@@ -309,7 +309,7 @@ class UserFriendServiceTest {
         
         User user = TestUsers.copyWithId(TestUsers.USER1, userId);
         
-        Token token = Token.createTemporaryToken("access-token", "refresh-token");
+        Token token = Token.createTemporaryToken("access-TemporaryToken", "refresh-TemporaryToken");
                 
         
         KakaoFriendsResponseVO emptyResponseVO = KakaoFriendsResponseVO.of(
@@ -318,7 +318,7 @@ class UserFriendServiceTest {
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
         given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(token));
-        given(kakaoFriendPort.getFriendList("access-token", 0, 10)).willReturn(emptyResponseVO);
+        given(kakaoFriendPort.getFriendList("access-TemporaryToken", 0, 10)).willReturn(emptyResponseVO);
 
         // When
         KakaoFriendsResponseVO result = userFriendService.getKakaoFriendList(userId, tokenId, 0, 10);
@@ -342,7 +342,7 @@ class UserFriendServiceTest {
         
         User user = TestUsers.copyWithId(TestUsers.USER1, userId);
         
-        Token token = Token.createTemporaryToken("access-token", "refresh-token");
+        Token token = Token.createTemporaryToken("access-TemporaryToken", "refresh-TemporaryToken");
                 
         
         List<KakaoFriendsResponseVO.Friend> friends = Arrays.asList(
@@ -359,7 +359,7 @@ class UserFriendServiceTest {
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
         given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(token));
-        given(kakaoFriendPort.getFriendList("access-token", 0, 10)).willReturn(responseVO);
+        given(kakaoFriendPort.getFriendList("access-TemporaryToken", 0, 10)).willReturn(responseVO);
         given(userQueryPort.findUserNamesInOrder(Arrays.asList("1", "2"))).willReturn(userNames);
 
         // When

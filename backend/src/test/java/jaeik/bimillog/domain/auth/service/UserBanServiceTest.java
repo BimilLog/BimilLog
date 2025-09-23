@@ -59,16 +59,16 @@ class UserBanServiceTest {
 
     @BeforeEach
     void setUp() {
-        testToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.token";
+        testToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.TemporaryToken";
         testTokenHash = "hash123abc";
 
         testUser = TestUsers.copyWithId(TestUsers.USER1, 100L);
         adminUser = TestUsers.ADMIN;
 
-        testToken1 = Token.createTemporaryToken("access-token-1", "refresh-token-1");
+        testToken1 = Token.createTemporaryToken("access-TemporaryToken-1", "refresh-TemporaryToken-1");
                 
 
-        testToken2 = Token.createTemporaryToken("access-token-2", "refresh-token-2");
+        testToken2 = Token.createTemporaryToken("access-TemporaryToken-2", "refresh-TemporaryToken-2");
                 
     }
 
@@ -146,16 +146,16 @@ class UserBanServiceTest {
         List<Token> userTokens = List.of(testToken1, testToken2);
         
         given(globalTokenQueryPort.findAllByUserId(userId)).willReturn(userTokens);
-        given(globalJwtPort.generateTokenHash("access-token-1")).willReturn("hash1");
-        given(globalJwtPort.generateTokenHash("access-token-2")).willReturn("hash2");
+        given(globalJwtPort.generateTokenHash("access-TemporaryToken-1")).willReturn("hash1");
+        given(globalJwtPort.generateTokenHash("access-TemporaryToken-2")).willReturn("hash2");
 
         // When
         userBanService.blacklistAllUserTokens(userId, reason);
 
         // Then
         verify(globalTokenQueryPort).findAllByUserId(userId);
-        verify(globalJwtPort).generateTokenHash("access-token-1");
-        verify(globalJwtPort).generateTokenHash("access-token-2");
+        verify(globalJwtPort).generateTokenHash("access-TemporaryToken-1");
+        verify(globalJwtPort).generateTokenHash("access-TemporaryToken-2");
 
         ArgumentCaptor<List<String>> hashesCaptor = ArgumentCaptor.forClass(List.class);
         ArgumentCaptor<Duration> durationCaptor = ArgumentCaptor.forClass(Duration.class);
@@ -197,9 +197,9 @@ class UserBanServiceTest {
         List<Token> userTokens = List.of(testToken1, testToken2);
         
         given(globalTokenQueryPort.findAllByUserId(userId)).willReturn(userTokens);
-        given(globalJwtPort.generateTokenHash("access-token-1")).willReturn("hash1");
+        given(globalJwtPort.generateTokenHash("access-TemporaryToken-1")).willReturn("hash1");
         doThrow(new RuntimeException("Hash generation failed"))
-                .when(globalJwtPort).generateTokenHash("access-token-2");
+                .when(globalJwtPort).generateTokenHash("access-TemporaryToken-2");
 
         // When
         userBanService.blacklistAllUserTokens(userId, reason);
@@ -233,8 +233,8 @@ class UserBanServiceTest {
 
         // Then
         verify(globalTokenQueryPort).findAllByUserId(userId);
-        verify(globalJwtPort).generateTokenHash("access-token-1");
-        verify(globalJwtPort).generateTokenHash("access-token-2");
+        verify(globalJwtPort).generateTokenHash("access-TemporaryToken-1");
+        verify(globalJwtPort).generateTokenHash("access-TemporaryToken-2");
         verify(redisJwtBlacklistPort, never()).blacklistTokenHashes(any(), anyString(), any());
     }
 

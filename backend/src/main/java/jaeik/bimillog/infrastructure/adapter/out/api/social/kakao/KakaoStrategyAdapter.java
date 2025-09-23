@@ -66,10 +66,9 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
     }
 
     /**
-     * <h3>카카오 OAuth 토큰 발급 (private)</h3>
+     * <h3>카카오 OAuth 토큰 발급</h3>
      * <p>카카오 OAuth 2.0 인증 코드를 사용하여 카카오 인증 서버로부터 액세스 토큰과 리프레시 토큰을 발급받습니다.</p>
      * <p>카카오 소셜 로그인 처리 내부에서만 사용되는 private 메서드로, authenticate() 메서드에서 내부적으로 호출합니다.</p>
-     * <p>Authorization Code Grant 플로우를 사용하여 카카오 인증 서버에 token exchange 요청을 전송합니다.</p>
      *
      * @param code 카카오 OAuth 2.0 인증 코드
      * @return Token 도메인 Token 엔티티 (액세스/리프레시 토큰 포함)
@@ -95,7 +94,7 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
                     (String) responseBody.get("refresh_token")
             );
         } catch (Exception e) {
-            throw new RuntimeException("Kakao token request failed: " + e.getMessage(), e);
+            throw new RuntimeException("Kakao TemporaryToken request failed: " + e.getMessage(), e);
         }
     }
 

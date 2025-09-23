@@ -44,10 +44,10 @@ class SaveUserAdapterTest {
     @DisplayName("기존 사용자 로그인 처리 - 정상적인 업데이트 및 FCM 토큰 ID 반환")
     void shouldHandleExistingUserLogin_WhenValidUserDataProvided() {
         // Given: 기존 사용자와 토큰 정보
-        Token tokenDTO = Token.createTemporaryToken("access-token", "refresh-token");
+        Token tokenDTO = Token.createTemporaryToken("access-TemporaryToken", "refresh-TemporaryToken");
         SocialUserProfile userProfile = new SocialUserProfile("123456789", "test@example.com", SocialProvider.KAKAO, "업데이트된닉네임", "https://updated-profile.jpg", tokenDTO);
 
-        String fcmToken = "fcm-token-12345";
+        String fcmToken = "fcm-TemporaryToken-12345";
         Long fcmTokenId = 100L;
         Long tokenId = 1L;
 
@@ -56,8 +56,8 @@ class SaveUserAdapterTest {
 
         Token savedToken = Token.builder()
                 .id(tokenId)
-                .accessToken("access-token")
-                .refreshToken("refresh-token")
+                .accessToken("access-TemporaryToken")
+                .refreshToken("refresh-TemporaryToken")
                 .users(existingUser)
                 .build();
 
@@ -75,8 +75,8 @@ class SaveUserAdapterTest {
         ArgumentCaptor<Token> tokenCaptor = ArgumentCaptor.forClass(Token.class);
         verify(globalTokenCommandPort).save(tokenCaptor.capture());
         Token capturedToken = tokenCaptor.getValue();
-        assertThat(capturedToken.getAccessToken()).isEqualTo("access-token");
-        assertThat(capturedToken.getRefreshToken()).isEqualTo("refresh-token");
+        assertThat(capturedToken.getAccessToken()).isEqualTo("access-TemporaryToken");
+        assertThat(capturedToken.getRefreshToken()).isEqualTo("refresh-TemporaryToken");
         assertThat(capturedToken.getUsers()).isEqualTo(existingUser);
 
         // FCM 토큰 등록 및 ID 반환 검증
@@ -93,15 +93,15 @@ class SaveUserAdapterTest {
     @DisplayName("기존 사용자 로그인 - FCM 토큰 없을 때 등록 미호출")
     void shouldNotPublishFcmEvent_WhenExistingUserHasNoFcmToken() {
         // Given: FCM 토큰이 없는 기존 사용자 로그인
-        Token tokenDTO = Token.createTemporaryToken("access-token", "refresh-token");
+        Token tokenDTO = Token.createTemporaryToken("access-TemporaryToken", "refresh-TemporaryToken");
         SocialUserProfile userProfile = new SocialUserProfile("123456789", "fcm@example.com", SocialProvider.KAKAO, "FCM없음", "https://example.jpg", tokenDTO);
 
         User existingUser = TestUsers.copyWithId(TestUsers.USER1, 1L);
 
         Token savedToken = Token.builder()
                 .id(1L)
-                .accessToken("access-token")
-                .refreshToken("refresh-token")
+                .accessToken("access-TemporaryToken")
+                .refreshToken("refresh-TemporaryToken")
                 .users(existingUser)
                 .build();
 
@@ -123,18 +123,18 @@ class SaveUserAdapterTest {
     void shouldSaveNewUser_WhenValidDataProvided() {
         // Given: 신규 사용자 저장 정보
         String userName = "newUser";
-        String fcmToken = "new-fcm-token";
+        String fcmToken = "new-fcm-TemporaryToken";
         Long fcmTokenId = 200L;
 
-        Token tokenDTO = Token.createTemporaryToken("access-token", "refresh-token");
+        Token tokenDTO = Token.createTemporaryToken("access-TemporaryToken", "refresh-TemporaryToken");
         SocialUserProfile userProfile = new SocialUserProfile("987654321", "newuser@example.com", SocialProvider.KAKAO, "신규사용자", "https://new-profile.jpg", tokenDTO);
 
         User newUser = TestUsers.copyWithId(TestUsers.USER2, 2L);
 
         Token newToken = Token.builder()
                 .id(1L)
-                .accessToken("access-token")
-                .refreshToken("refresh-token")
+                .accessToken("access-TemporaryToken")
+                .refreshToken("refresh-TemporaryToken")
                 .users(newUser)
                 .build();
 
@@ -174,7 +174,7 @@ class SaveUserAdapterTest {
         String userName = "userWithoutFcm";
         String fcmToken = null; // FCM 토큰 없음
 
-        Token tokenDTO = Token.createTemporaryToken("access-token", "refresh-token");
+        Token tokenDTO = Token.createTemporaryToken("access-TemporaryToken", "refresh-TemporaryToken");
         SocialUserProfile userProfile = new SocialUserProfile("111222333", "nofcm@example.com", SocialProvider.KAKAO, "FCM없음", "https://no-fcm.jpg", tokenDTO);
 
         User newUser = TestUsers.copyWithId(TestUsers.USER3, 3L);
@@ -182,8 +182,8 @@ class SaveUserAdapterTest {
 
         Token newToken = Token.builder()
                 .id(1L)
-                .accessToken("access-token")
-                .refreshToken("refresh-token")
+                .accessToken("access-TemporaryToken")
+                .refreshToken("refresh-TemporaryToken")
                 .users(newUser)
                 .build();
 

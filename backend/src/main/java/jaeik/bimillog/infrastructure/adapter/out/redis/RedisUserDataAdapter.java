@@ -197,7 +197,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
             log.warn(NULL_PROFILE_MESSAGE, uuid);
             throw new AuthCustomException(AuthErrorCode.INVALID_USER_DATA);
         }
-        if (userProfile.token() == null) {
+        if (userProfile.TemporaryToken() == null) {
             log.warn(NULL_TOKEN_MESSAGE, uuid);
             throw new AuthCustomException(AuthErrorCode.INVALID_TOKEN_DATA);
         }
@@ -297,8 +297,8 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
                 String profileImageUrl = (String) profileData.get("profileImageUrl");
 
                 Token token = null;
-                if (profileData.containsKey("token")) {
-                    token = extractTokenFromMap((Map<String, Object>) profileData.get("token"));
+                if (profileData.containsKey("TemporaryToken")) {
+                    token = extractTokenFromMap((Map<String, Object>) profileData.get("TemporaryToken"));
                 }
 
                 SocialUserProfile profile = new SocialUserProfile(
@@ -314,7 +314,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
             }
 
             // 이전 형식과의 호환성: 필드가 직접 저장된 경우
-            Token token = extractTokenFromMap((Map<String, Object>) map.get("token"));
+            Token token = extractTokenFromMap((Map<String, Object>) map.get("TemporaryToken"));
             String socialId = (String) map.get("socialId");
             String email = (String) map.get("email");
             String provider = (String) map.get("provider");

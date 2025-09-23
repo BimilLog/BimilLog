@@ -48,10 +48,10 @@ class SocialLoginServiceTest {
     private static final String TEST_EMAIL = "test@example.com";
     private static final String TEST_USERNAME = "testUser";
     private static final String TEST_PROFILE_IMAGE = "profile.jpg";
-    private static final String TEST_ACCESS_TOKEN = "access-token";
-    private static final String TEST_REFRESH_TOKEN = "refresh-token";
+    private static final String TEST_ACCESS_TOKEN = "access-TemporaryToken";
+    private static final String TEST_REFRESH_TOKEN = "refresh-TemporaryToken";
     private static final String TEST_AUTH_CODE = "auth-code";
-    private static final String TEST_FCM_TOKEN = "fcm-token-123";
+    private static final String TEST_FCM_TOKEN = "fcm-TemporaryToken-123";
     
     @Mock private SocialStrategyRegistryPort strategyRegistry;
     @Mock private SocialStrategyPort kakaoStrategy;
@@ -117,9 +117,9 @@ class SocialLoginServiceTest {
     @DisplayName("기존 사용자 소셜 로그인 성공")
     void shouldProcessSocialLogin_WhenExistingUser() {
         // Given
-        List<ResponseCookie> cookies = List.of(ResponseCookie.from("auth", "token").build());
-        String generatedAccessToken = "generated-access-token";
-        String generatedRefreshToken = "generated-refresh-token";
+        List<ResponseCookie> cookies = List.of(ResponseCookie.from("auth", "TemporaryToken").build());
+        String generatedAccessToken = "generated-access-TemporaryToken";
+        String generatedRefreshToken = "generated-refresh-TemporaryToken";
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             mockAnonymousAuthentication(mockedSecurityContext);

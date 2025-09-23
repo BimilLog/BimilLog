@@ -87,7 +87,7 @@ class SocialLogoutServiceTest {
         
         given(mockUser.getProvider()).willReturn(SocialProvider.KAKAO);
         given(mockToken.getUsers()).willReturn(mockUser);
-        given(mockToken.getAccessToken()).willReturn("mock-access-token");
+        given(mockToken.getAccessToken()).willReturn("mock-access-TemporaryToken");
         
         return mockToken;
     }
@@ -122,7 +122,7 @@ class SocialLogoutServiceTest {
             // 포트 호출 검증
             verify(globalTokenQueryPort).findById(200L);
             verify(strategyRegistry).getStrategy(SocialProvider.KAKAO);
-            verify(kakaoStrategy).logout(SocialProvider.KAKAO, "mock-access-token");
+            verify(kakaoStrategy).logout(SocialProvider.KAKAO, "mock-access-TemporaryToken");
             verify(globalCookiePort).getLogoutCookies();
             mockedSecurityContext.verify(SecurityContextHolder::clearContext);
         }

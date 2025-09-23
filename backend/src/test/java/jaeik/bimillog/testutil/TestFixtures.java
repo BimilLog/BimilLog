@@ -304,7 +304,7 @@ public class TestFixtures {
     public static SocialUserProfile createSocialUserProfile(String socialId, String email,
                                                            SocialProvider provider, String nickname,
                                                            String profileImage) {
-        Token token = Token.createTemporaryToken("access-token", "refresh-token");
+        Token token = Token.createTemporaryToken("access-TemporaryToken", "refresh-TemporaryToken");
         return new SocialUserProfile(socialId, email, provider, nickname, profileImage, token);
     }
 

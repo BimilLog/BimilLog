@@ -57,7 +57,7 @@ class UserSaveServiceTest {
 
     @BeforeEach
     void setUp() {
-        testToken = Token.createTemporaryToken("access-token", "refresh-token");
+        testToken = Token.createTemporaryToken("access-TemporaryToken", "refresh-TemporaryToken");
         testSocialProfile = new SocialUserProfile(
             "kakao123",
             "test@example.com",
@@ -67,7 +67,7 @@ class UserSaveServiceTest {
             testToken
         );
         testUser = TestUsers.USER1;
-        testFcmToken = "fcm-token-123";
+        testFcmToken = "fcm-TemporaryToken-123";
     }
 
     @Test

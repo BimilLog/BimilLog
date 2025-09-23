@@ -50,7 +50,7 @@ class FcmAdapterTest {
         // Given: 테스트용 사용자 설정
         testUser = TestUsers.copyWithId(TestUsers.USER1, 1L);
 
-        testFcmToken = FcmToken.create(testUser, "test-fcm-token");
+        testFcmToken = FcmToken.create(testUser, "test-fcm-TemporaryToken");
                 
 
     }
@@ -62,7 +62,7 @@ class FcmAdapterTest {
         FcmToken savedToken = FcmToken.builder()
                 .id(1L)
                 .user(testUser)
-                .fcmRegistrationToken("new-fcm-token")
+                .fcmRegistrationToken("new-fcm-TemporaryToken")
                 .build();
 
         given(fcmTokenRepository.save(any(FcmToken.class))).willReturn(savedToken);
@@ -73,7 +73,7 @@ class FcmAdapterTest {
         // Then: 저장 결과 검증
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(1L);
-        assertThat(result.getFcmRegistrationToken()).isEqualTo("new-fcm-token");
+        assertThat(result.getFcmRegistrationToken()).isEqualTo("new-fcm-TemporaryToken");
         assertThat(result.getUser()).isEqualTo(testUser);
 
         verify(fcmTokenRepository).save(any(FcmToken.class));
@@ -100,7 +100,7 @@ class FcmAdapterTest {
     @DisplayName("정상 케이스 - FCM 메시지 전송 성공")
     void shouldSendMessageTo_WhenValidFcmMessage() throws IOException {
         // Given: FCM 메시지 설정
-        FcmMessage fcmMessage = FcmMessage.of("test-fcm-token", "테스트 제목", "테스트 내용");
+        FcmMessage fcmMessage = FcmMessage.of("test-fcm-TemporaryToken", "테스트 제목", "테스트 내용");
         
         // When & Then: 예외가 발생하지 않아야 함
         // private 메서드들이 있어서 완전한 모킹은 어려우므로, IOException이 발생하지 않는 것으로 성공을 확인

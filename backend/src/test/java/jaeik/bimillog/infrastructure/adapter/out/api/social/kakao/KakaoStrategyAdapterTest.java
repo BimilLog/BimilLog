@@ -36,8 +36,8 @@ class KakaoStrategyAdapterTest {
     private static final String TEST_REDIRECT_URI = "http://test.com/callback";
     private static final String TEST_ADMIN_KEY = "test-admin-key";
     private static final String TEST_AUTH_CODE = "test-auth-code";
-    private static final String TEST_ACCESS_TOKEN = "test-access-token";
-    private static final String TEST_REFRESH_TOKEN = "test-refresh-token";
+    private static final String TEST_ACCESS_TOKEN = "test-access-TemporaryToken";
+    private static final String TEST_REFRESH_TOKEN = "test-refresh-TemporaryToken";
     private static final String TEST_SOCIAL_ID = "12345678";
     private static final String TEST_NICKNAME = "테스트유저";
     private static final String TEST_EMAIL = "test@kakao.com";
@@ -104,7 +104,7 @@ class KakaoStrategyAdapterTest {
         assertThat(result.provider()).isEqualTo(SocialProvider.KAKAO);
         assertThat(result.nickname()).isEqualTo(TEST_NICKNAME);
         assertThat(result.profileImageUrl()).isEqualTo(TEST_PROFILE_IMAGE);
-        assertThat(result.token()).satisfies(token -> {
+        assertThat(result.TemporaryToken()).satisfies(token -> {
             assertThat(token.getAccessToken()).isEqualTo(TEST_ACCESS_TOKEN);
             assertThat(token.getRefreshToken()).isEqualTo(TEST_REFRESH_TOKEN);
         });
@@ -129,7 +129,7 @@ class KakaoStrategyAdapterTest {
         assertThatThrownBy(() ->
             kakaoStrategyAdapter.authenticate(SocialProvider.KAKAO, TEST_AUTH_CODE))
             .isInstanceOf(RuntimeException.class)
-            .hasMessageContaining("Kakao token request failed");
+            .hasMessageContaining("Kakao TemporaryToken request failed");
     }
 
     @Test
