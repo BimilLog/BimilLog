@@ -47,7 +47,7 @@ public class SocialLogoutService implements SocialLogoutUseCase {
      *
      * @param userDetails 현재 인증된 사용자 정보
      * @return ResponseCookie 로그아웃용 쿠키 설정 목록 (토큰 삭제용)
-     * @throws AuthCustomException 로그아웃 처리 중 오류 발생 시
+     * @throws AuthCustomException 토큰을 찾을 수 없는 경우 ({@link AuthErrorCode#NOT_FIND_TOKEN})
      * @author Jaeik
      * @since 2.0.0
      */
@@ -93,6 +93,8 @@ public class SocialLogoutService implements SocialLogoutUseCase {
      * <p>{@link #logout} 메서드에서 로그아웃 플로우에서 가장 먼저 호출됩니다.</p>
      *
      * @param userDetails 현재 인증된 사용자 정보
+     * @return Token 조회된 토큰 엔티티
+     * @throws AuthCustomException 토큰을 찾을 수 없는 경우 ({@link AuthErrorCode#NOT_FIND_TOKEN})
      * @author Jaeik
      * @since 2.0.0
      */

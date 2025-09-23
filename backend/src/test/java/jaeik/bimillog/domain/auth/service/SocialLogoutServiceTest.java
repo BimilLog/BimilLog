@@ -5,6 +5,8 @@ import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPor
 import jaeik.bimillog.domain.auth.application.service.SocialLogoutService;
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
+import jaeik.bimillog.domain.auth.exception.AuthCustomException;
+import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.user.entity.User;
@@ -27,6 +29,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
@@ -99,6 +102,7 @@ class SocialLogoutServiceTest {
         Token mockToken = createMockTokenWithUser();
         given(userDetails.getUserId()).willReturn(100L);
         given(userDetails.getTokenId()).willReturn(200L);
+        given(userDetails.getSocialProvider()).willReturn(SocialProvider.KAKAO);
         given(globalTokenQueryPort.findById(200L)).willReturn(Optional.of(mockToken));
         given(strategyRegistry.getStrategy(SocialProvider.KAKAO)).willReturn(kakaoStrategy);
         given(globalCookiePort.getLogoutCookies()).willReturn(logoutCookies);
@@ -130,52 +134,51 @@ class SocialLogoutServiceTest {
 
 
     @Test
-    @DisplayName("토큰이 존재하지 않는 경우에도 로그아웃 성공")
-    void shouldLogout_WhenTokenNotFound() {
+    @DisplayName("토큰이 존재하지 않는 경우 AuthCustomException 발생")
+    void shouldThrowException_WhenTokenNotFound() {
         // Given
         given(userDetails.getUserId()).willReturn(100L);
         given(userDetails.getTokenId()).willReturn(200L);
         given(globalTokenQueryPort.findById(200L)).willReturn(Optional.empty());
-        given(globalCookiePort.getLogoutCookies()).willReturn(logoutCookies);
 
-        try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
-            // When
-            List<ResponseCookie> result = socialLogoutService.logout(userDetails);
+        // When & Then
+        assertThatThrownBy(() -> socialLogoutService.logout(userDetails))
+            .isInstanceOf(AuthCustomException.class)
+            .hasFieldOrPropertyWithValue("errorCode", AuthErrorCode.NOT_FIND_TOKEN);
 
-            // Then
-            assertThat(result).isEqualTo(logoutCookies);
-            verify(globalTokenQueryPort).findById(200L);
-            // 토큰이 없으면 strategyRegistry와 strategy.logout은 호출되지 않음
-            verify(strategyRegistry, never()).getStrategy(any(SocialProvider.class));
-            verify(kakaoStrategy, never()).logout(any(SocialProvider.class), anyString());
-            verify(eventPublisher).publishEvent(any(UserLoggedOutEvent.class));
-            verify(globalCookiePort).getLogoutCookies();
-            mockedSecurityContext.verify(SecurityContextHolder::clearContext);
-        }
+        // 예외 발생으로 다른 메서드들은 호출되지 않음
+        verify(globalTokenQueryPort).findById(200L);
+        verify(strategyRegistry, never()).getStrategy(any(SocialProvider.class));
+        verify(kakaoStrategy, never()).logout(any(SocialProvider.class), anyString());
+        verify(eventPublisher, never()).publishEvent(any(UserLoggedOutEvent.class));
+        verify(globalCookiePort, never()).getLogoutCookies();
     }
 
     @Test
-    @DisplayName("토큰의 사용자가 null인 경우에도 로그아웃 성공")
-    void shouldLogout_WhenTokenUserIsNull() {
+    @DisplayName("소셜 로그아웃 실패시에도 전체 로그아웃은 성공")
+    void shouldCompleteLogout_WhenSocialLogoutFails() throws Exception {
         // Given
-        Token tokenWithoutUser = mock(Token.class);
-        given(tokenWithoutUser.getUsers()).willReturn(null);
-        
+        Token mockToken = createMockTokenWithUser();
         given(userDetails.getUserId()).willReturn(100L);
         given(userDetails.getTokenId()).willReturn(200L);
-        given(globalTokenQueryPort.findById(200L)).willReturn(Optional.of(tokenWithoutUser));
+        given(userDetails.getSocialProvider()).willReturn(SocialProvider.KAKAO);
+        given(globalTokenQueryPort.findById(200L)).willReturn(Optional.of(mockToken));
+        given(strategyRegistry.getStrategy(SocialProvider.KAKAO)).willReturn(kakaoStrategy);
+        // 소셜 로그아웃 실패
+        doThrow(new RuntimeException("Kakao logout failed"))
+            .when(kakaoStrategy).logout(any(SocialProvider.class), anyString());
         given(globalCookiePort.getLogoutCookies()).willReturn(logoutCookies);
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             // When
             List<ResponseCookie> result = socialLogoutService.logout(userDetails);
 
-            // Then
+            // Then - 소셜 로그아웃 실패해도 전체 로그아웃은 성공
             assertThat(result).isEqualTo(logoutCookies);
             verify(globalTokenQueryPort).findById(200L);
-            // 사용자가 null이면 strategyRegistry와 strategy.logout은 호출되지 않음
-            verify(strategyRegistry, never()).getStrategy(any(SocialProvider.class));
-            verify(kakaoStrategy, never()).logout(any(SocialProvider.class), anyString());
+            verify(strategyRegistry).getStrategy(SocialProvider.KAKAO);
+            verify(kakaoStrategy).logout(SocialProvider.KAKAO, "mock-access-TemporaryToken");
+            // 이벤트는 정상 발행됨
             verify(eventPublisher).publishEvent(any(UserLoggedOutEvent.class));
             verify(globalCookiePort).getLogoutCookies();
             mockedSecurityContext.verify(SecurityContextHolder::clearContext);

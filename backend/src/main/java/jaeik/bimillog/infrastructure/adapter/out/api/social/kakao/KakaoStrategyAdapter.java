@@ -164,10 +164,11 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
      * <h3>카카오 로그아웃 처리</h3>
      * <p>사용자의 카카오 액세스 토큰을 사용하여 카카오 서버에서 로그아웃 처리를 수행합니다.</p>
      * <p>{@link SocialLoginService}에서 사용자 로그아웃 요청 처리 시 호출됩니다.</p>
-     * <p>카카오 서버 오류 시에도 로그아웃 플로우를 방해하지 않도록 예외를 무시합니다.</p>
+     * <p>카카오 API 호출 실패 시 예외를 상위로 전파하여 서비스 레이어에서 처리하도록 합니다.</p>
      *
      * @param provider 로그아웃할 소셜 제공자 (KAKAO)
      * @param accessToken 사용자의 카카오 액세스 토큰
+     * @throws Exception 카카오 API 호출 실패 시 (네트워크 오류, 인증 오류, API 서버 오류 등)
      * @author Jaeik
      * @since 2.0.0
      */

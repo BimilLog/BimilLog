@@ -187,8 +187,8 @@ class KakaoStrategyAdapterTest {
     }
 
     @Test
-    @DisplayName("logout 성공 - 예외가 발생해도 무시한다")
-    void shouldLogoutSuccessfully() {
+    @DisplayName("logout 성공")
+    void shouldLogoutSuccessfully() throws Exception {
         // Given
         doNothing().when(kakaoApiClient).logout(anyString(), anyString());
 
@@ -203,14 +203,18 @@ class KakaoStrategyAdapterTest {
     }
 
     @Test
-    @DisplayName("logout 실패해도 예외를 던지지 않는다")
-    void shouldNotThrowExceptionWhenLogoutFails() {
+    @DisplayName("logout 실패시 예외를 상위로 전파한다")
+    void shouldPropagateExceptionWhenLogoutFails() {
         // Given
-        doThrow(new RuntimeException("Logout failed"))
+        RuntimeException expectedException = new RuntimeException("Logout failed");
+        doThrow(expectedException)
             .when(kakaoApiClient).logout(anyString(), anyString());
 
-        // When & Then - 예외가 발생하지 않아야 함
-        kakaoStrategyAdapter.logout(SocialProvider.KAKAO, TEST_ACCESS_TOKEN);
+        // When & Then
+        assertThatThrownBy(() ->
+            kakaoStrategyAdapter.logout(SocialProvider.KAKAO, TEST_ACCESS_TOKEN))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessage("Logout failed");
 
         verify(kakaoApiClient).logout(anyString(), anyString());
     }

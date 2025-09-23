@@ -60,6 +60,7 @@ public interface SocialStrategyPort {
      *
      * @param provider 로그아웃할 소셜 제공자 (KAKAO 등)
      * @param accessToken 소셜 플랫폼의 액세스 토큰
+     * @throws Exception 소셜 플랫폼 API 호출 실패 시 (네트워크 오류, API 서버 오류 등)
      * @author Jaeik
      * @since 2.0.0
      */
