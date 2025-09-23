@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPor
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
-import jaeik.bimillog.domain.user.application.port.out.DeleteUserPort;
+import jaeik.bimillog.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.infrastructure.adapter.in.auth.web.AuthCommandController;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
@@ -31,9 +31,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class LogoutService implements LogoutUseCase {
 
-    private final DeleteUserPort deleteUserPort;
     private final SocialStrategyRegistryPort strategyRegistry;
     private final GlobalTokenQueryPort globalTokenQueryPort;
+    private final GlobalCookiePort globalCookiePort;
     private final ApplicationEventPublisher eventPublisher;
 
     /**
@@ -56,7 +56,7 @@ public class LogoutService implements LogoutUseCase {
             // 로그아웃 이벤트 발행 - 토큰 삭제는 TokenCleanupListener에서 처리
             eventPublisher.publishEvent(UserLoggedOutEvent.of(userDetails.getUserId(), userDetails.getTokenId()));
             SecurityContextHolder.clearContext();
-            return deleteUserPort.getLogoutCookies();
+            return globalCookiePort.getLogoutCookies();
         } catch (Exception e) {
             throw new AuthCustomException(AuthErrorCode.LOGOUT_FAIL, e);
         }

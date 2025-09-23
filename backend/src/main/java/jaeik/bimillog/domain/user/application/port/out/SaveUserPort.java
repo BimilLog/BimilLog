@@ -5,9 +5,6 @@ import jaeik.bimillog.domain.user.application.service.SignUpService;
 import jaeik.bimillog.domain.user.application.service.UserSaveService;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserDetail;
-import org.springframework.http.ResponseCookie;
-
-import java.util.List;
 
 /**
  * <h2>사용자 정보 저장 포트</h2>
@@ -41,15 +38,12 @@ public interface SaveUserPort {
      * <p>{@link SignUpService}에서 신규 사용자 회원가입 완료 처리 시 호출됩니다.</p>
      *
      * @param userName 사용자가 입력한 닉네임
-     * @param uuid 임시 데이터 식별을 위한 UUID
      * @param userProfile Redis에서 복원된 소셜 사용자 프로필 정보 (OAuth 액세스/리프레시 토큰 포함)
      * @param fcmToken Firebase Cloud Messaging 토큰 (푸시 알림용)
      * @return JWT 토큰이 포함된 인증 쿠키 리스트
      * @author Jaeik
      * @since 2.0.0
      */
-    List<ResponseCookie> saveNewUser(String userName, String uuid, SocialUserProfile userProfile, String fcmToken);
-
-
+    UserDetail saveNewUser(String userName, SocialUserProfile userProfile, String fcmToken);
 
 }

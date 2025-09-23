@@ -12,14 +12,21 @@ import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
+import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
+import jaeik.bimillog.domain.user.entity.NewUserDetail;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jaeik.bimillog.domain.user.entity.UserDetail;
+import jaeik.bimillog.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.infrastructure.adapter.in.auth.web.AuthCommandController;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * <h2>소셜 로그인 서비스</h2>
@@ -37,6 +44,7 @@ public class SocialService implements SocialUseCase {
     private final SocialStrategyRegistryPort strategyRegistryPort;
     private final AuthToUserPort authToUserPort;
     private final BlacklistPort blacklistPort;
+    private final GlobalCookiePort globalCookiePort;
 
     /**
      * <h3>소셜 플랫폼 로그인 처리</h3>
@@ -45,7 +53,7 @@ public class SocialService implements SocialUseCase {
      * <p>{@link AuthCommandController}에서 소셜 로그인 요청 처리 시 호출됩니다.</p>
      *
      * @param provider 소셜 플랫폼 제공자 (DTO에서 이미 검증됨)
-     * @param code OAuth 인가 코드 (DTO에서 이미 검증됨)
+     * @param code     OAuth 인가 코드 (DTO에서 이미 검증됨)
      * @param fcmToken 푸시 알림용 Firebase Cloud Messaging 토큰 (선택사항)
      * @return LoginResult 기존 사용자(쿠키) 또는 신규 사용자(UUID) 정보
      * @throws AuthCustomException 블랙리스트 사용자인 경우
@@ -66,8 +74,15 @@ public class SocialService implements SocialUseCase {
             throw new AuthCustomException(AuthErrorCode.BLACKLIST_USER);
         }
 
-        // 3. 기존 사용자 확인
-        return authToUserPort.delegateUserData(provider, authResult, fcmToken);
+        UserDetail userDetail =  authToUserPort.delegateUserData(provider, authResult, fcmToken);
+
+        if (userDetail instanceof ExistingUserDetail) {
+            List<ResponseCookie> cookies = globalCookiePort.generateJwtCookie((ExistingUserDetail) userDetail);
+            return new LoginResult.ExistingUser(cookies);
+        } else {
+            ResponseCookie tempCookie = globalCookiePort.createTempCookie((NewUserDetail) userDetail);
+            return new LoginResult.NewUser(((NewUserDetail) userDetail).getUuid(), tempCookie);
+        }
     }
 
     /**

@@ -11,6 +11,7 @@ import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
+import jaeik.bimillog.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,8 +38,9 @@ import java.util.Optional;
 @Slf4j
 public class WithdrawService implements WithdrawUseCase {
 
-    private final UserQueryPort userQueryPort;
     private final DeleteUserPort deleteUserPort;
+    private final UserQueryPort userQueryPort;
+    private final GlobalCookiePort globalCookiePort;
     private final ApplicationEventPublisher eventPublisher;
 
     /**
@@ -64,7 +66,7 @@ public class WithdrawService implements WithdrawUseCase {
         performCoreWithdrawal(user);
 
         // 소셜 로그아웃 쿠키를 반환하여 클라이언트 측 로그아웃을 유도합니다.
-        return deleteUserPort.getLogoutCookies();
+        return globalCookiePort.getLogoutCookies();
     }
 
     /**

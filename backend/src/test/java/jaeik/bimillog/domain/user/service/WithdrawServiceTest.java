@@ -5,7 +5,6 @@ import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.application.port.out.DeleteUserPort;
-import jaeik.bimillog.domain.user.application.port.out.UserCommandPort;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.application.service.WithdrawService;
 import jaeik.bimillog.domain.user.entity.SocialProvider;

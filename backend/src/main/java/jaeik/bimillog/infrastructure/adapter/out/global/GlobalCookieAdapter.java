@@ -1,8 +1,9 @@
-package jaeik.bimillog.infrastructure.adapter.out.auth;
+package jaeik.bimillog.infrastructure.adapter.out.global;
 
 import jaeik.bimillog.domain.auth.application.port.out.JwtPort;
 import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.NewUserDetail;
+import jaeik.bimillog.global.application.port.out.GlobalCookiePort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
@@ -11,7 +12,7 @@ import java.util.List;
 
 // 로컬 테스트를 위해 쿠키의 HTTPS해제
 /**
- * <h2>인증 쿠키 관리자</h2>
+ * <h2>공용 쿠키 어댑터</h2>
  *
  * <p>JWT 토큰을 사용하여 인증 관련 쿠키를 생성하고 관리합니다.</p>
  *
@@ -20,7 +21,7 @@ import java.util.List;
  */
 @Component
 @RequiredArgsConstructor
-public class AuthCookieManager {
+public class GlobalCookieAdapter implements GlobalCookiePort {
 
     private final JwtPort jwtPort;
 
@@ -34,11 +35,12 @@ public class AuthCookieManager {
      *
      * <p>신규 회원가입 시 사용자의 임시 UUID를 담는 쿠키를 생성합니다.</p>
      *
-     * @param uuid 임시 사용자 ID
+     * @param newUserDetail 임시 사용자 정보
      * @return 임시 사용자 ID 쿠키
      * @author Jaeik
      * @since 2.0.0
      */
+    @Override
     public ResponseCookie createTempCookie(NewUserDetail newUserDetail) {
         return ResponseCookie.from(TEMP_USER_ID_COOKIE, newUserDetail.getUuid())
                 .path("/")
@@ -59,6 +61,7 @@ public class AuthCookieManager {
      * @author Jaeik
      * @since 2.0.0
      */
+    @Override
     public List<ResponseCookie> generateJwtCookie(ExistingUserDetail userDetail) {
         return List.of(generateJwtAccessCookie(userDetail), generateJwtRefreshCookie(userDetail));
     }
@@ -72,6 +75,7 @@ public class AuthCookieManager {
      * @author Jaeik
      * @since 2.0.0
      */
+    @Override
     public List<ResponseCookie> getLogoutCookies() {
         ResponseCookie accessTokenCookie = ResponseCookie.from(ACCESS_TOKEN_COOKIE, "")
                 .path("/")
@@ -101,6 +105,7 @@ public class AuthCookieManager {
      * @author Jaeik
      * @since 2.0.0
      */
+    @Override
     public ResponseCookie generateJwtAccessCookie(ExistingUserDetail userDetail) {
         String accessToken = jwtPort.generateAccessToken(userDetail);
         return ResponseCookie.from(ACCESS_TOKEN_COOKIE, accessToken)
@@ -121,6 +126,7 @@ public class AuthCookieManager {
      * @author Jaeik
      * @since 2.0.0
      */
+    @Override
     public ResponseCookie generateJwtRefreshCookie(ExistingUserDetail userDetail) {
         String refreshToken = jwtPort.generateRefreshToken(userDetail);
         return ResponseCookie.from(REFRESH_TOKEN_COOKIE, refreshToken)

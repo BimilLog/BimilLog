@@ -9,7 +9,7 @@ import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.global.application.port.out.GlobalTokenCommandPort;
-import jaeik.bimillog.infrastructure.adapter.out.auth.AuthCookieManager;
+import jaeik.bimillog.infrastructure.adapter.out.global.GlobalCookieAdapter;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -40,7 +40,7 @@ import static org.mockito.Mockito.verify;
 class SaveUserAdapterTest {
 
     @Mock private GlobalTokenCommandPort globalTokenCommandPort;
-    @Mock private AuthCookieManager authCookieManager;
+    @Mock private GlobalCookieAdapter globalCookieAdapter;
     @Mock private UserCommandUseCase userCommandUseCase;
     @Mock private RedisUserDataPort redisUserDataPort;
     @Mock private NotificationFcmUseCase notificationFcmUseCase;
@@ -149,7 +149,7 @@ class SaveUserAdapterTest {
         given(userCommandUseCase.saveUser(any(User.class))).willReturn(newUser);
         given(globalTokenCommandPort.save(any(Token.class))).willReturn(newToken);
         given(notificationFcmUseCase.registerFcmToken(newUser, fcmToken)).willReturn(fcmTokenId);
-        given(authCookieManager.generateJwtCookie(any(ExistingUserDetail.class))).willReturn(expectedCookies);
+        given(globalCookieAdapter.generateJwtCookie(any(ExistingUserDetail.class))).willReturn(expectedCookies);
 
         // When: 신규 사용자 저장
         List<ResponseCookie> result = saveDataAdapter.saveNewUser(userName, uuid, userProfile, fcmToken);
@@ -168,7 +168,7 @@ class SaveUserAdapterTest {
 
         // UserDetail에 FCM 토큰 ID 포함 검증
         ArgumentCaptor<ExistingUserDetail> userDetailCaptor = ArgumentCaptor.forClass(ExistingUserDetail.class);
-        verify(authCookieManager).generateJwtCookie(userDetailCaptor.capture());
+        verify(globalCookieAdapter).generateJwtCookie(userDetailCaptor.capture());
         ExistingUserDetail capturedUserDetail = userDetailCaptor.getValue();
         assertThat(capturedUserDetail.getFcmTokenId()).isEqualTo(fcmTokenId);
 
@@ -198,7 +198,7 @@ class SaveUserAdapterTest {
 
         given(userCommandUseCase.saveUser(any(User.class))).willReturn(newUser);
         given(globalTokenCommandPort.save(any(Token.class))).willReturn(newToken);
-        given(authCookieManager.generateJwtCookie(any(ExistingUserDetail.class))).willReturn(List.of());
+        given(globalCookieAdapter.generateJwtCookie(any(ExistingUserDetail.class))).willReturn(List.of());
 
         // When: FCM 토큰 없이 사용자 저장
         saveDataAdapter.saveNewUser(userName, uuid, userProfile, fcmToken);

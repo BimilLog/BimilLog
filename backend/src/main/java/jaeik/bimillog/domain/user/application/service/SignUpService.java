@@ -5,7 +5,9 @@ import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.application.port.in.SignUpUseCase;
 import jaeik.bimillog.domain.user.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.user.application.port.out.SaveUserPort;
+import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.TempUserData;
+import jaeik.bimillog.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.infrastructure.adapter.in.user.web.UserCommandController;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
@@ -28,6 +30,7 @@ public class SignUpService implements SignUpUseCase {
 
     private final RedisUserDataPort redisUserDataPort;
     private final SaveUserPort saveUserPort;
+    private final GlobalCookiePort globalCookiePort;
 
     /**
      * <h3>신규 사용자 회원 가입 처리</h3>
@@ -51,7 +54,8 @@ public class SignUpService implements SignUpUseCase {
         }
 
         TempUserData userData = tempUserData.get();
-        return saveUserPort.saveNewUser(userName.trim(), uuid, userData.getSocialUserProfile(), userData.getFcmToken());
+        ExistingUserDetail userDetail = (ExistingUserDetail) saveUserPort.saveNewUser(userName.trim(), userData.getSocialUserProfile(), userData.getFcmToken());
+        redisUserDataPort.removeTempData(uuid);
+        return globalCookiePort.generateJwtCookie(userDetail);
     }
-
 }

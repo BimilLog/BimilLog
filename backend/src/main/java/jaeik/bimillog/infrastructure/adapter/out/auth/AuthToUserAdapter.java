@@ -2,18 +2,12 @@ package jaeik.bimillog.infrastructure.adapter.out.auth;
 
 import jaeik.bimillog.domain.auth.application.port.out.AuthToUserPort;
 import jaeik.bimillog.domain.auth.application.service.SocialService;
-import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.user.application.port.in.UserSaveUseCase;
-import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
-import jaeik.bimillog.domain.user.entity.NewUserDetail;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.UserDetail;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 /**
  * <h2>인증-사용자 도메인 연결 어댑터</h2>
@@ -39,7 +33,6 @@ import java.util.List;
 public class AuthToUserAdapter implements AuthToUserPort {
 
     private final UserSaveUseCase userSaveUseCase;
-    private final AuthCookieManager authCookieManager;
 
     /**
      * <h3>사용자 데이터 처리 및 로그인 결과 생성</h3>
@@ -54,14 +47,7 @@ public class AuthToUserAdapter implements AuthToUserPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    public LoginResult delegateUserData(SocialProvider provider, SocialUserProfile profile, String fcmToken) {
-        UserDetail userDetail = userSaveUseCase.processUserData(provider, profile, fcmToken);
-        if (userDetail instanceof ExistingUserDetail) {
-            List<ResponseCookie> cookies = authCookieManager.generateJwtCookie((ExistingUserDetail) userDetail);
-            return new LoginResult.ExistingUser(cookies);
-        } else {
-           ResponseCookie tempCookie = authCookieManager.createTempCookie((NewUserDetail) userDetail);
-           return new LoginResult.NewUser(((NewUserDetail) userDetail).getUuid(), tempCookie);
-        }
+    public UserDetail delegateUserData(SocialProvider provider, SocialUserProfile profile, String fcmToken) {
+        return userSaveUseCase.processUserData(provider, profile, fcmToken);
     }
 }

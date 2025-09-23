@@ -1,11 +1,7 @@
 package jaeik.bimillog.domain.user.application.port.out;
 
-import jaeik.bimillog.domain.auth.application.service.LogoutService;
 import jaeik.bimillog.domain.auth.entity.BlackList;
 import jaeik.bimillog.domain.user.application.service.WithdrawService;
-import org.springframework.http.ResponseCookie;
-
-import java.util.List;
 
 /**
  * <h2>사용자 삭제 포트</h2>
@@ -40,17 +36,6 @@ public interface DeleteUserPort {
      * @author Jaeik
      */
     void performWithdrawProcess(Long userId);
-
-    /**
-     * <h3>로그아웃 쿠키 생성</h3>
-     * <p>사용자 로그아웃 시 JWT 토큰을 무효화하는 쿠키를 생성합니다.</p>
-     * <p>{@link WithdrawService}, {@link LogoutService}에서 로그아웃 쿠키 생성 시 호출됩니다.</p>
-     *
-     * @return 로그아웃 쿠키 리스트 (Access Token, Refresh Token 무효화 쿠키)
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    List<ResponseCookie> getLogoutCookies();
 
     /**
      * <h3>블랙리스트 저장</h3>

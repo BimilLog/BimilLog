@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.out.user;
 
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
-import jaeik.bimillog.infrastructure.adapter.out.auth.AuthCookieManager;
+import jaeik.bimillog.infrastructure.adapter.out.global.GlobalCookieAdapter;
 import jaeik.bimillog.infrastructure.adapter.out.auth.jpa.TokenRepository;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jakarta.persistence.EntityManager;
@@ -36,7 +36,7 @@ class DeleteUserAdapterTest {
     @Mock private EntityManager entityManager;
     @Mock private TokenRepository tokenRepository;
     @Mock private ApplicationEventPublisher eventPublisher;
-    @Mock private AuthCookieManager authCookieManager;
+    @Mock private GlobalCookieAdapter globalCookieAdapter;
     @Mock private UserRepository userRepository;
 
     @InjectMocks private DeleteUserAdapter deleteDataAdapter;
@@ -139,7 +139,7 @@ class DeleteUserAdapterTest {
                 .build();
         List<ResponseCookie> expectedCookies = List.of(accessTokenCookie, refreshTokenCookie);
         
-        given(authCookieManager.getLogoutCookies()).willReturn(expectedCookies);
+        given(globalCookieAdapter.getLogoutCookies()).willReturn(expectedCookies);
 
         // When: 로그아웃 쿠키 조회
         List<ResponseCookie> actualCookies = deleteDataAdapter.getLogoutCookies();
@@ -147,7 +147,7 @@ class DeleteUserAdapterTest {
         // Then: 예상된 쿠키 리스트 반환 검증
         assertThat(actualCookies).isEqualTo(expectedCookies);
         assertThat(actualCookies).hasSize(2);
-        verify(authCookieManager).getLogoutCookies();
+        verify(globalCookieAdapter).getLogoutCookies();
     }
 
     @Test
@@ -155,28 +155,28 @@ class DeleteUserAdapterTest {
     void shouldReturnEmptyList_WhenAuthCookieManagerReturnsEmpty() {
         // Given: AuthCookieManager에서 빈 리스트 반환
         List<ResponseCookie> emptyCookies = List.of();
-        given(authCookieManager.getLogoutCookies()).willReturn(emptyCookies);
+        given(globalCookieAdapter.getLogoutCookies()).willReturn(emptyCookies);
 
         // When: 로그아웃 쿠키 조회
         List<ResponseCookie> actualCookies = deleteDataAdapter.getLogoutCookies();
 
         // Then: 빈 리스트 반환 검증
         assertThat(actualCookies).isEmpty();
-        verify(authCookieManager).getLogoutCookies();
+        verify(globalCookieAdapter).getLogoutCookies();
     }
 
     @Test
     @DisplayName("로그아웃 쿠키 생성 - null 반환 처리")
     void shouldHandleNullReturn_WhenAuthCookieManagerReturnsNull() {
         // Given: AuthCookieManager에서 null 반환
-        given(authCookieManager.getLogoutCookies()).willReturn(null);
+        given(globalCookieAdapter.getLogoutCookies()).willReturn(null);
 
         // When: 로그아웃 쿠키 조회
         List<ResponseCookie> actualCookies = deleteDataAdapter.getLogoutCookies();
 
         // Then: null 반환 검증 (실제 null 처리는 호출하는 쪽에서 해야 함)
         assertThat(actualCookies).isNull();
-        verify(authCookieManager).getLogoutCookies();
+        verify(globalCookieAdapter).getLogoutCookies();
     }
 
 

@@ -1,9 +1,7 @@
 package jaeik.bimillog.domain.user.application.port.in;
 
 import jaeik.bimillog.domain.user.entity.Setting;
-import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.in.user.web.UserCommandController;
-import jaeik.bimillog.infrastructure.adapter.out.user.SaveUserAdapter;
 
 /**
  * <h2>사용자 명령 유스케이스</h2>
@@ -38,17 +36,4 @@ public interface UserCommandUseCase {
      * @author Jaeik
      */
     void updateUserName(Long userId, String newUserName);
-
-    /**
-     * <h3>사용자 엔티티 저장</h3>
-     * <p>새로운 사용자를 저장하거나 기존 사용자를 업데이트합니다.</p>
-     * <p>소셜 로그인 신규 회원가입 시 사용자 엔티티를 저장하는데 사용됩니다.</p>
-     * <p>{@link SaveUserAdapter}에서 소셜 로그인 후 신규 사용자 저장 시 호출됩니다.</p>
-     *
-     * @param user 저장할 사용자 엔티티
-     * @return User 저장된 사용자 엔티티
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    User saveUser(User user);
 }

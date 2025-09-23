@@ -8,6 +8,7 @@ import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.NewUserDetail;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.infrastructure.adapter.out.global.GlobalCookieAdapter;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -42,7 +43,7 @@ class AuthToUserAdapterTest {
     private UserSaveUseCase userSaveUseCase;
 
     @Mock
-    private AuthCookieManager authCookieManager;
+    private GlobalCookieAdapter globalCookieAdapter;
 
     @InjectMocks
     private AuthToUserAdapter authToUserAdapter;
@@ -82,7 +83,7 @@ class AuthToUserAdapterTest {
             testFcmToken
         )).willReturn(existingUserDetail);
 
-        given(authCookieManager.generateJwtCookie(existingUserDetail))
+        given(globalCookieAdapter.generateJwtCookie(existingUserDetail))
             .willReturn(expectedCookies);
 
         // When
@@ -102,8 +103,8 @@ class AuthToUserAdapterTest {
             testSocialProfile,
             testFcmToken
         );
-        verify(authCookieManager).generateJwtCookie(existingUserDetail);
-        verifyNoMoreInteractions(authCookieManager);
+        verify(globalCookieAdapter).generateJwtCookie(existingUserDetail);
+        verifyNoMoreInteractions(globalCookieAdapter);
     }
 
     @Test
@@ -120,7 +121,7 @@ class AuthToUserAdapterTest {
             testFcmToken
         )).willReturn(newUserDetail);
 
-        given(authCookieManager.createTempCookie(newUserDetail))
+        given(globalCookieAdapter.createTempCookie(newUserDetail))
             .willReturn(tempCookie);
 
         // When
@@ -141,8 +142,8 @@ class AuthToUserAdapterTest {
             testSocialProfile,
             testFcmToken
         );
-        verify(authCookieManager).createTempCookie(newUserDetail);
-        verifyNoMoreInteractions(authCookieManager);
+        verify(globalCookieAdapter).createTempCookie(newUserDetail);
+        verifyNoMoreInteractions(globalCookieAdapter);
     }
 
     @Test
@@ -161,7 +162,7 @@ class AuthToUserAdapterTest {
             null
         )).willReturn(existingUserDetail);
 
-        given(authCookieManager.generateJwtCookie(existingUserDetail))
+        given(globalCookieAdapter.generateJwtCookie(existingUserDetail))
             .willReturn(expectedCookies);
 
         // When
@@ -208,7 +209,7 @@ class AuthToUserAdapterTest {
             testFcmToken
         )).willReturn(existingUserDetail);
 
-        given(authCookieManager.generateJwtCookie(existingUserDetail))
+        given(globalCookieAdapter.generateJwtCookie(existingUserDetail))
             .willReturn(expectedCookies);
 
         // When
@@ -252,7 +253,7 @@ class AuthToUserAdapterTest {
             testSocialProfile,
             testFcmToken
         );
-        verifyNoMoreInteractions(authCookieManager);
+        verifyNoMoreInteractions(globalCookieAdapter);
     }
 
     @Test
@@ -269,7 +270,7 @@ class AuthToUserAdapterTest {
         )).willReturn(existingUserDetail);
 
         RuntimeException expectedException = new RuntimeException("쿠키 생성 실패");
-        given(authCookieManager.generateJwtCookie(existingUserDetail))
+        given(globalCookieAdapter.generateJwtCookie(existingUserDetail))
             .willThrow(expectedException);
 
         // When & Then
@@ -286,7 +287,7 @@ class AuthToUserAdapterTest {
             testSocialProfile,
             testFcmToken
         );
-        verify(authCookieManager).generateJwtCookie(existingUserDetail);
+        verify(globalCookieAdapter).generateJwtCookie(existingUserDetail);
     }
 
     @Test
@@ -303,7 +304,7 @@ class AuthToUserAdapterTest {
         )).willReturn(newUserDetail);
 
         RuntimeException expectedException = new RuntimeException("임시 쿠키 생성 실패");
-        given(authCookieManager.createTempCookie(newUserDetail))
+        given(globalCookieAdapter.createTempCookie(newUserDetail))
             .willThrow(expectedException);
 
         // When & Then
@@ -320,6 +321,6 @@ class AuthToUserAdapterTest {
             testSocialProfile,
             testFcmToken
         );
-        verify(authCookieManager).createTempCookie(newUserDetail);
+        verify(globalCookieAdapter).createTempCookie(newUserDetail);
     }
 }

@@ -14,9 +14,12 @@ import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * <h2>사용자 명령 컨트롤러</h2>
@@ -50,10 +53,20 @@ public class UserCommandController {
             excludeParams = {"uuid"},
             message = "회원가입 요청")
     public ResponseEntity<AuthResponseDTO> signUp(@Valid @RequestBody SignUpRequestDTO request) {
-        return ResponseEntity.ok()
-                .headers(headers -> signUpUseCase.signUp(request.getUserName(), request.getUuid()).forEach(cookie ->
-                        headers.add("Set-Cookie", cookie.toString())))
-                .body(AuthResponseDTO.success("회원 가입 성공"));
+
+        // 회원가입 로직 실행 후 쿠키 리스트 받기
+        List<ResponseCookie> cookies = signUpUseCase.signUp(request.getUserName(), request.getUuid());
+
+        // ResponseEntity builder 생성
+        ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.ok();
+
+        // 쿠키를 하나씩 헤더에 추가
+        for (ResponseCookie cookie : cookies) {
+            responseBuilder.header("Set-Cookie", cookie.toString());
+        }
+
+        // Body 설정 후 ResponseEntity 반환
+        return responseBuilder.body(AuthResponseDTO.success("회원 가입 성공"));
     }
 
 
