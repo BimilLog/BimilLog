@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.auth.application.service;
 
 import jaeik.bimillog.domain.admin.event.AdminWithdrawEvent;
 import jaeik.bimillog.domain.auth.application.port.in.UserBanUseCase;
-import jaeik.bimillog.domain.auth.application.port.out.JwtPort;
+import jaeik.bimillog.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.auth.application.port.out.RedisJwtBlacklistPort;
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
@@ -33,7 +33,7 @@ UserBanService implements UserBanUseCase {
 
     private static final Duration DEFAULT_TTL = Duration.ofHours(1);
 
-    private final JwtPort jwtPort;
+    private final GlobalJwtPort globalJwtPort;
     private final RedisJwtBlacklistPort redisJwtBlacklistPort;
     private final GlobalTokenQueryPort globalTokenQueryPort;
 
@@ -51,7 +51,7 @@ UserBanService implements UserBanUseCase {
     @Override
     public boolean isBlacklisted(String token) {
         try {
-            String tokenHash = jwtPort.generateTokenHash(token);
+            String tokenHash = globalJwtPort.generateTokenHash(token);
             boolean isBlacklisted = redisJwtBlacklistPort.isBlacklisted(tokenHash);
 
             if (isBlacklisted) {
@@ -89,7 +89,7 @@ UserBanService implements UserBanUseCase {
             List<String> tokenHashes = userTokens.stream()
                     .map(token -> {
                         try {
-                            return jwtPort.generateTokenHash(token.getAccessToken());
+                            return globalJwtPort.generateTokenHash(token.getAccessToken());
                         } catch (Exception e) {
                             log.warn("토큰 ID {}의 해시 생성 실패: {}", token.getId(), e.getMessage());
                             return null;

@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.user.application.service;
 
-import jaeik.bimillog.domain.auth.application.port.out.JwtPort;
+import jaeik.bimillog.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.application.port.in.SignUpUseCase;
@@ -32,7 +32,7 @@ public class SignUpService implements SignUpUseCase {
     private final RedisUserDataPort redisUserDataPort;
     private final SaveUserPort saveUserPort;
     private final GlobalCookiePort globalCookiePort;
-    private final JwtPort jwtPort;
+    private final GlobalJwtPort globalJwtPort;
 
     /**
      * <h3>신규 사용자 회원 가입 처리</h3>
@@ -57,8 +57,8 @@ public class SignUpService implements SignUpUseCase {
 
         TempUserData userData = tempUserData.get();
         ExistingUserDetail userDetail = (ExistingUserDetail) saveUserPort.saveNewUser(userName.trim(), userData.getSocialUserProfile(), userData.getFcmToken());
-        String accessToken = jwtPort.generateAccessToken(userDetail);
-        String refreshToken = jwtPort.generateRefreshToken(userDetail);
+        String accessToken = globalJwtPort.generateAccessToken(userDetail);
+        String refreshToken = globalJwtPort.generateRefreshToken(userDetail);
         redisUserDataPort.removeTempData(uuid);
         return globalCookiePort.generateJwtCookie(accessToken, refreshToken);
     }

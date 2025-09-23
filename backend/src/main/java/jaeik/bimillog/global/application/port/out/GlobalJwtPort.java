@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.auth.application.port.out;
+package jaeik.bimillog.global.application.port.out;
 
 import jaeik.bimillog.domain.auth.application.service.UserBanService;
 import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
@@ -13,7 +13,7 @@ import jaeik.bimillog.infrastructure.filter.JwtFilter;
  * @author Jaeik
  * @version 2.0.0
  */
-public interface JwtPort {
+public interface GlobalJwtPort {
 
     /**
      * <h3>JWT 액세스 토큰 생성</h3>

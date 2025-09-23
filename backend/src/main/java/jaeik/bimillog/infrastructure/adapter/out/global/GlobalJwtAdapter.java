@@ -1,9 +1,9 @@
-package jaeik.bimillog.infrastructure.adapter.out.auth;
+package jaeik.bimillog.infrastructure.adapter.out.global;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import jaeik.bimillog.domain.auth.application.port.out.JwtPort;
+import jaeik.bimillog.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.UserRole;
@@ -27,7 +27,7 @@ import java.util.Date;
  */
 @Component
 @RequiredArgsConstructor
-public class JwtHandler implements JwtPort {
+public class GlobalJwtAdapter implements GlobalJwtPort {
 
     @Value("${jwt.secret}")
     private String secretKey;

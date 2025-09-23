@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.filter;
 
 import jaeik.bimillog.domain.auth.application.port.in.UserBanUseCase;
-import jaeik.bimillog.domain.auth.application.port.out.JwtPort;
+import jaeik.bimillog.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
@@ -41,7 +41,7 @@ import java.util.Objects;
 public class JwtFilter extends OncePerRequestFilter {
     private final GlobalTokenQueryPort globalTokenQueryPort;
     private final UserQueryPort userQueryPort;
-    private final JwtPort jwtPort;
+    private final GlobalJwtPort globalJwtPort;
     private final GlobalCookiePort globalCookiePort;
     private final UserBanUseCase userBanUseCase;
 
@@ -103,13 +103,13 @@ public class JwtFilter extends OncePerRequestFilter {
         String accessToken = extractTokenFromCookie(request, "jwt_access_token");
 
         // Access Token이 유효하고 블랙리스트에 없을 때
-        if (accessToken != null && jwtPort.validateToken(accessToken) && !userBanUseCase.isBlacklisted(accessToken)) {
+        if (accessToken != null && globalJwtPort.validateToken(accessToken) && !userBanUseCase.isBlacklisted(accessToken)) {
             setAuthentication(accessToken);
         } else { // accessToken이 없거나 유효하지 않거나 블랙리스트에 있을 때
             String refreshToken = extractTokenFromCookie(request, "jwt_refresh_token");
             // accessToken은 유효하지 않지만 refreshToken은 유효하고 블랙리스트에 없을 때 accessToken 발급을 위해 refreshToken을 검증
-            if (refreshToken != null && jwtPort.validateToken(refreshToken) && !userBanUseCase.isBlacklisted(refreshToken)) {
-                Long tokenId = jwtPort.getTokenIdFromToken(refreshToken);
+            if (refreshToken != null && globalJwtPort.validateToken(refreshToken) && !userBanUseCase.isBlacklisted(refreshToken)) {
+                Long tokenId = globalJwtPort.getTokenIdFromToken(refreshToken);
                 // fcmTokenId 제거 - 이벤트 기반 방식으로 변경
                 Token token = globalTokenQueryPort.findById(tokenId)
                         .orElseThrow(() -> new CustomException(ErrorCode.REPEAT_LOGIN));
@@ -120,13 +120,13 @@ public class JwtFilter extends OncePerRequestFilter {
                     ExistingUserDetail userDetail = ExistingUserDetail.of(user, tokenId, null); // fcmTokenId는 null로 설정
 
                     // 새로운 accessTokenCookie 발급
-                    String NewAccessToken = jwtPort.generateAccessToken(userDetail);
+                    String NewAccessToken = globalJwtPort.generateAccessToken(userDetail);
                     ResponseCookie accessCookie = globalCookiePort.generateJwtAccessCookie(NewAccessToken);
                     response.addHeader("Set-Cookie", accessCookie.toString());
 
                     // 리프레시 토큰이 15일 이하로 남았으면 새로운 리프레시 토큰도 발급
-                    if (jwtPort.shouldRefreshToken(refreshToken, 15)) {
-                        String NewRefreshToken = jwtPort.generateRefreshToken(userDetail);
+                    if (globalJwtPort.shouldRefreshToken(refreshToken, 15)) {
+                        String NewRefreshToken = globalJwtPort.generateRefreshToken(userDetail);
                         ResponseCookie refreshCookie = globalCookiePort.generateJwtRefreshCookie(NewRefreshToken);
                         response.addHeader("Set-Cookie", refreshCookie.toString());
                     }
@@ -148,7 +148,7 @@ public class JwtFilter extends OncePerRequestFilter {
      * @param jwtAccessToken JWT 엑세스 토큰
      */
     private void setAuthentication(String jwtAccessToken) {
-        ExistingUserDetail userDetail = jwtPort.getUserInfoFromToken(jwtAccessToken);
+        ExistingUserDetail userDetail = globalJwtPort.getUserInfoFromToken(jwtAccessToken);
         CustomUserDetails customUserDetails = new CustomUserDetails(userDetail);
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 customUserDetails,

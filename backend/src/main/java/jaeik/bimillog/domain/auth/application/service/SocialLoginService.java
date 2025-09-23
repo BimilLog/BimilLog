@@ -12,6 +12,7 @@ import jaeik.bimillog.domain.user.entity.NewUserDetail;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.UserDetail;
 import jaeik.bimillog.global.application.port.out.GlobalCookiePort;
+import jaeik.bimillog.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.infrastructure.adapter.in.auth.web.AuthCommandController;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +41,7 @@ public class SocialLoginService implements SocialLoginUseCase {
     private final AuthToUserPort authToUserPort;
     private final BlacklistPort blacklistPort;
     private final GlobalCookiePort globalCookiePort;
-    private final JwtPort jwtPort;
+    private final GlobalJwtPort globalJwtPort;
 
     /**
      * <h3>소셜 플랫폼 로그인 처리</h3>
@@ -73,8 +74,8 @@ public class SocialLoginService implements SocialLoginUseCase {
         UserDetail userDetail =  authToUserPort.delegateUserData(provider, authResult, fcmToken);
 
         if (userDetail instanceof ExistingUserDetail) {
-            String accessToken = jwtPort.generateAccessToken((ExistingUserDetail) userDetail);
-            String refreshToken = jwtPort.generateRefreshToken((ExistingUserDetail) userDetail);
+            String accessToken = globalJwtPort.generateAccessToken((ExistingUserDetail) userDetail);
+            String refreshToken = globalJwtPort.generateRefreshToken((ExistingUserDetail) userDetail);
             List<ResponseCookie> cookies = globalCookiePort.generateJwtCookie(accessToken, refreshToken);
             return new LoginResult.ExistingUser(cookies);
         } else {
