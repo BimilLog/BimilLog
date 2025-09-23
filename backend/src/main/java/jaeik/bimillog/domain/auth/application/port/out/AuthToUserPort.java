@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.auth.application.port.out;
 
-import jaeik.bimillog.domain.auth.application.service.SocialService;
+import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.UserDetail;
@@ -19,7 +19,7 @@ public interface AuthToUserPort {
      * <h3>사용자 데이터 처리</h3>
      * <p>소셜 제공자와 프로필 정보를 기반으로 사용자 데이터를 처리합니다.</p>
      * <p>기존 회원이면 로그인 처리를, 신규 회원이면 임시 데이터 저장을 수행합니다.</p>
-     * <p>{@link SocialService}에서 소셜 로그인 처리 중 사용자 데이터 처리 시 호출됩니다.</p>
+     * <p>{@link SocialLoginService}에서 소셜 로그인 처리 중 사용자 데이터 처리 시 호출됩니다.</p>
      *
      * @param provider 소셜 로그인 제공자 (KAKAO 등)
      * @param profile 소셜 사용자 프로필 정보

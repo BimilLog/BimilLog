@@ -7,6 +7,7 @@ import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.application.port.out.DeleteUserPort;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.application.service.WithdrawService;
+import jaeik.bimillog.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
@@ -52,10 +53,10 @@ class WithdrawServiceTest {
     private UserQueryPort userQueryPort;
 
     @Mock
-    private UserCommandPort userCommandPort;
+    private DeleteUserPort deleteUserPort;
 
     @Mock
-    private DeleteUserPort deleteUserPort;
+    private GlobalCookiePort globalCookiePort;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -88,7 +89,7 @@ class WithdrawServiceTest {
         // Given
         given(userDetails.getUserId()).willReturn(100L);
         given(userQueryPort.findById(100L)).willReturn(Optional.of(testUser));
-        given(deleteUserPort.getLogoutCookies()).willReturn(logoutCookies);
+        given(globalCookiePort.getLogoutCookies()).willReturn(logoutCookies);
 
         // When
         List<ResponseCookie> result = withdrawService.withdraw(userDetails);
@@ -112,7 +113,7 @@ class WithdrawServiceTest {
         assertThat(capturedEvent.provider()).isEqualTo(SocialProvider.KAKAO);
 
         // 로그아웃 쿠키 생성 검증
-        verify(deleteUserPort).getLogoutCookies();
+        verify(globalCookiePort).getLogoutCookies();
     }
 
     @Test
@@ -380,7 +381,6 @@ class WithdrawServiceTest {
                 .hasMessage(UserErrorCode.USER_NOT_FOUND.getMessage());
 
         verify(userQueryPort).findById(userId);
-        verify(userCommandPort, never()).save(any(User.class));
     }
 
     @Test
@@ -395,7 +395,6 @@ class WithdrawServiceTest {
                 .hasMessage(UserErrorCode.USER_NOT_FOUND.getMessage());
 
         verify(userQueryPort).findById(null);
-        verify(userCommandPort, never()).save(any(User.class));
     }
 
     @Test

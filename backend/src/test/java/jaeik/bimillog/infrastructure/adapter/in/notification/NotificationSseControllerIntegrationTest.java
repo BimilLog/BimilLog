@@ -1,10 +1,10 @@
 package jaeik.bimillog.infrastructure.adapter.in.notification;
 
-import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
+import jaeik.bimillog.testutil.TestFixtures;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
@@ -70,7 +70,7 @@ class NotificationSseControllerIntegrationTest {
     @DisplayName("로그인된 사용자의 SSE 구독 - 성공")
     void subscribe_AuthenticatedUser_Success() throws Exception {
         // Given
-        CustomUserDetails userDetails = createUserDetails(testUser);
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
         
         // When & Then
         mockMvc.perform(get("/api/notification/subscribe")
@@ -93,7 +93,7 @@ class NotificationSseControllerIntegrationTest {
     @DisplayName("잘못된 HTTP 메서드로 SSE 구독 - 실패 (CSRF 보안으로 403)")
     void subscribe_WrongHttpMethod_Forbidden() throws Exception {
         // Given
-        CustomUserDetails userDetails = createUserDetails(testUser);
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
         
         // When & Then - POST 메서드로 요청 (Spring Security CSRF가 먼저 차단)
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/notification/subscribe")
@@ -111,9 +111,9 @@ class NotificationSseControllerIntegrationTest {
         userRepository.save(user2);
         userRepository.save(user3);
         
-        CustomUserDetails userDetails1 = createUserDetails(testUser);
-        CustomUserDetails userDetails2 = createUserDetails(user2);
-        CustomUserDetails userDetails3 = createUserDetails(user3);
+        CustomUserDetails userDetails1 = TestFixtures.createCustomUserDetails(testUser);
+        CustomUserDetails userDetails2 = TestFixtures.createCustomUserDetails(user2);
+        CustomUserDetails userDetails3 = TestFixtures.createCustomUserDetails(user3);
         
         // When & Then - 각각 구독 가능해야 함
         mockMvc.perform(get("/api/notification/subscribe")
@@ -139,7 +139,7 @@ class NotificationSseControllerIntegrationTest {
     @DisplayName("Accept 헤더 확인 - text/listener-stream")
     void subscribe_CheckAcceptHeader_Success() throws Exception {
         // Given
-        CustomUserDetails userDetails = createUserDetails(testUser);
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
         
         // When & Then
         mockMvc.perform(get("/api/notification/subscribe")
@@ -149,21 +149,5 @@ class NotificationSseControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.TEXT_EVENT_STREAM_VALUE));
     }
-    
-    /**
-     * 테스트용 CustomUserDetails 생성
-     */
-    private CustomUserDetails createUserDetails(User user) {
-        ExistingUserDetail userDetail = ExistingUserDetail.builder()
-                .userId(user.getId())
-                .socialId(user.getSocialId())
-                .socialNickname(user.getSocialNickname())
-                .thumbnailImage(user.getThumbnailImage())
-                .userName(user.getUserName())
-                .provider(user.getProvider())
-                .role(user.getRole())
-                .build();
-        
-        return new CustomUserDetails(userDetail);
-    }
+
 }

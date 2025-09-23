@@ -6,6 +6,7 @@ import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.out.notification.jpa.NotificationRepository;
+import jaeik.bimillog.testutil.NotificationTestDataBuilder;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestUsers;
 import jakarta.persistence.EntityManager;
@@ -69,8 +70,7 @@ class NotificationCommandAdapterIntegrationTest {
     @BeforeEach
     void setUp() {
         // Given: 테스트용 사용저 설정 및 저장
-        testUser = TestUsers.USER1;
-
+        testUser = TestUsers.copyWithId(TestUsers.USER1, null);
         testUser = testEntityManager.persistAndFlush(testUser);
         testUserId = testUser.getId();
     }
@@ -106,9 +106,13 @@ class NotificationCommandAdapterIntegrationTest {
     @Transactional
     void shouldBatchDeleteNotifications_WhenDeleteIdsProvided() {
         // Given: 테스트용 알림 여러 개 저장
-        Notification notification1 = createAndSaveNotification(NotificationType.COMMENT, "댓글 알림 1", "/post/1");
-        Notification notification2 = createAndSaveNotification(NotificationType.PAPER, "메시지 알림 2", "/paper/2");
-        Notification notification3 = createAndSaveNotification(NotificationType.POST_FEATURED, "인기글 알림 3", "/post/3");
+        Notification notification1 = NotificationTestDataBuilder.aCommentNotification(testUser, 1L).build();
+        Notification notification2 = NotificationTestDataBuilder.aPaperMessageNotification(testUser).build();
+        Notification notification3 = NotificationTestDataBuilder.aLikeNotification(testUser, 3L).build();
+        
+        notification1 = testEntityManager.persistAndFlush(notification1);
+        notification2 = testEntityManager.persistAndFlush(notification2);
+        notification3 = testEntityManager.persistAndFlush(notification3);
 
         testEntityManager.flush();
         testEntityManager.clear();
@@ -134,9 +138,13 @@ class NotificationCommandAdapterIntegrationTest {
     @Transactional
     void shouldBatchMarkAsRead_WhenReadIdsProvided() {
         // Given: 테스트용 알림 여러 개 저장 (모두 읽지 않음 상태)
-        Notification notification1 = createAndSaveNotification(NotificationType.COMMENT, "댓글 알림 1", "/post/1");
-        Notification notification2 = createAndSaveNotification(NotificationType.PAPER, "메시지 알림 2", "/paper/2");
-        Notification notification3 = createAndSaveNotification(NotificationType.POST_FEATURED, "인기글 알림 3", "/post/3");
+        Notification notification1 = NotificationTestDataBuilder.aCommentNotification(testUser, 1L).asUnread().build();
+        Notification notification2 = NotificationTestDataBuilder.aPaperMessageNotification(testUser).asUnread().build();
+        Notification notification3 = NotificationTestDataBuilder.aLikeNotification(testUser, 3L).asUnread().build();
+        
+        notification1 = testEntityManager.persistAndFlush(notification1);
+        notification2 = testEntityManager.persistAndFlush(notification2);
+        notification3 = testEntityManager.persistAndFlush(notification3);
 
         testEntityManager.flush();
         testEntityManager.clear();
@@ -169,10 +177,11 @@ class NotificationCommandAdapterIntegrationTest {
     @Transactional
     void shouldBatchDeleteAndMarkAsRead_WhenBothIdsProvided() {
         // Given: 테스트용 알림 4개 저장
-        Notification notification1 = createAndSaveNotification(NotificationType.COMMENT, "댓글 알림 1", "/post/1");
-        Notification notification2 = createAndSaveNotification(NotificationType.PAPER, "메시지 알림 2", "/paper/2");
-        Notification notification3 = createAndSaveNotification(NotificationType.POST_FEATURED, "인기글 알림 3", "/post/3");
-        Notification notification4 = createAndSaveNotification(NotificationType.ADMIN, "관리자 알림 4", "/admin/4");
+        List<Notification> notifications = NotificationTestDataBuilder.createMixedNotifications(testUser);
+        Notification notification1 = testEntityManager.persistAndFlush(notifications.get(0));
+        Notification notification2 = testEntityManager.persistAndFlush(notifications.get(1));
+        Notification notification3 = testEntityManager.persistAndFlush(notifications.get(2));
+        Notification notification4 = testEntityManager.persistAndFlush(notifications.get(3));
 
         testEntityManager.flush();
         testEntityManager.clear();
@@ -203,7 +212,9 @@ class NotificationCommandAdapterIntegrationTest {
     @Transactional
     void shouldDoNothing_WhenEmptyIdsProvided() {
         // Given: 테스트용 알림 저장
-        createAndSaveNotification(NotificationType.COMMENT, "댓글 알림", "/post/1");
+        testEntityManager.persistAndFlush(
+                NotificationTestDataBuilder.aCommentNotification(testUser, 1L).build()
+        );
 
         testEntityManager.flush();
         long beforeCount = notificationRepository.count();
@@ -229,7 +240,9 @@ class NotificationCommandAdapterIntegrationTest {
     @Transactional
     void shouldDoNothing_WhenNullIdsProvided() {
         // Given: 테스트용 알림 저장
-        createAndSaveNotification(NotificationType.COMMENT, "댓글 알림", "/post/1");
+        testEntityManager.persistAndFlush(
+                NotificationTestDataBuilder.aCommentNotification(testUser, 1L).build()
+        );
 
         testEntityManager.flush();
         long beforeCount = notificationRepository.count();
@@ -255,20 +268,17 @@ class NotificationCommandAdapterIntegrationTest {
     @Transactional
     void shouldNotUpdateOtherUsersNotifications_WhenDifferentUserProvided() {
         // Given: 다른 사용자와 그의 알림 생성
-        User otherUser = TestUsers.USER2;
-
+        User otherUser = TestUsers.copyWithId(TestUsers.USER2, null);
         otherUser = testEntityManager.persistAndFlush(otherUser);
 
         // 현재 사용자와 다른 사용자의 알림 각각 생성
-        Notification myNotification = createAndSaveNotification(NotificationType.COMMENT, "내 댓글 알림", "/post/1");
-
-        Notification otherNotification = Notification.create(
-                otherUser,
-                NotificationType.PAPER,
-                "다른 사용자의 메시지 알림",
-                "/paper/2"
+        Notification myNotification = testEntityManager.persistAndFlush(
+                NotificationTestDataBuilder.aCommentNotification(testUser, 1L).build()
         );
-        otherNotification = testEntityManager.persistAndFlush(otherNotification);
+
+        Notification otherNotification = testEntityManager.persistAndFlush(
+                NotificationTestDataBuilder.aPaperMessageNotification(otherUser).build()
+        );
 
         testEntityManager.flush();
         testEntityManager.clear();
@@ -289,11 +299,5 @@ class NotificationCommandAdapterIntegrationTest {
         assertThat(remainingNotifications.get(0).getUsers().getId()).isEqualTo(otherUser.getId());
     }
 
-    /**
-     * 테스트용 알림 생성 및 저장 헬퍼 메서드
-     */
-    private Notification createAndSaveNotification(NotificationType type, String content, String url) {
-        Notification notification = Notification.create(testUser, type, content, url);
-        return testEntityManager.persistAndFlush(notification);
-    }
+
 }

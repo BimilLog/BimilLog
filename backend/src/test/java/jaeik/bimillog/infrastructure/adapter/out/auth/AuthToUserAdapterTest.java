@@ -1,6 +1,5 @@
 package jaeik.bimillog.infrastructure.adapter.out.auth;
 
-import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.user.application.port.in.UserSaveUseCase;
@@ -8,7 +7,7 @@ import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.NewUserDetail;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.infrastructure.adapter.out.global.GlobalCookieAdapter;
+import jaeik.bimillog.domain.user.entity.UserDetail;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -17,15 +16,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.ResponseCookie;
-
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 /**
  * <h2>AuthToUserAdapter 단위 테스트</h2>
@@ -41,9 +36,6 @@ class AuthToUserAdapterTest {
 
     @Mock
     private UserSaveUseCase userSaveUseCase;
-
-    @Mock
-    private GlobalCookieAdapter globalCookieAdapter;
 
     @InjectMocks
     private AuthToUserAdapter authToUserAdapter;
@@ -67,15 +59,11 @@ class AuthToUserAdapterTest {
     }
 
     @Test
-    @DisplayName("기존 사용자 - ExistingUserDetail을 LoginResult.ExistingUser로 변환")
-    void shouldConvertExistingUserDetailToLoginResult() {
+    @DisplayName("기존 사용자 - ExistingUserDetail 반환")
+    void shouldReturnExistingUserDetail() {
         // Given
         User testUser = TestUsers.USER1;
         ExistingUserDetail existingUserDetail = ExistingUserDetail.of(testUser, 1L, 100L);
-        List<ResponseCookie> expectedCookies = List.of(
-            ResponseCookie.from("access_token", "jwt-access").build(),
-            ResponseCookie.from("refresh_token", "jwt-refresh").build()
-        );
 
         given(userSaveUseCase.processUserData(
             SocialProvider.KAKAO,
@@ -83,37 +71,33 @@ class AuthToUserAdapterTest {
             testFcmToken
         )).willReturn(existingUserDetail);
 
-        given(globalCookieAdapter.generateJwtCookie(existingUserDetail))
-            .willReturn(expectedCookies);
-
         // When
-        LoginResult result = authToUserAdapter.delegateUserData(
+        UserDetail result = authToUserAdapter.delegateUserData(
             SocialProvider.KAKAO,
             testSocialProfile,
             testFcmToken
         );
 
         // Then
-        assertThat(result).isInstanceOf(LoginResult.ExistingUser.class);
-        LoginResult.ExistingUser existingUser = (LoginResult.ExistingUser) result;
-        assertThat(existingUser.cookies()).isEqualTo(expectedCookies);
+        assertThat(result).isInstanceOf(ExistingUserDetail.class);
+        ExistingUserDetail existingUser = (ExistingUserDetail) result;
+        assertThat(existingUser.getUserId()).isEqualTo(testUser.getId());
+        assertThat(existingUser.getTokenId()).isEqualTo(1L);
+        assertThat(existingUser.getFcmTokenId()).isEqualTo(100L);
 
         verify(userSaveUseCase).processUserData(
             SocialProvider.KAKAO,
             testSocialProfile,
             testFcmToken
         );
-        verify(globalCookieAdapter).generateJwtCookie(existingUserDetail);
-        verifyNoMoreInteractions(globalCookieAdapter);
     }
 
     @Test
-    @DisplayName("신규 사용자 - NewUserDetail을 LoginResult.NewUser로 변환")
-    void shouldConvertNewUserDetailToLoginResult() {
+    @DisplayName("신규 사용자 - NewUserDetail 반환")
+    void shouldReturnNewUserDetail() {
         // Given
         String uuid = "test-uuid-12345";
         NewUserDetail newUserDetail = NewUserDetail.of(uuid);
-        ResponseCookie tempCookie = ResponseCookie.from("temp", uuid).build();
 
         given(userSaveUseCase.processUserData(
             SocialProvider.KAKAO,
@@ -121,29 +105,23 @@ class AuthToUserAdapterTest {
             testFcmToken
         )).willReturn(newUserDetail);
 
-        given(globalCookieAdapter.createTempCookie(newUserDetail))
-            .willReturn(tempCookie);
-
         // When
-        LoginResult result = authToUserAdapter.delegateUserData(
+        UserDetail result = authToUserAdapter.delegateUserData(
             SocialProvider.KAKAO,
             testSocialProfile,
             testFcmToken
         );
 
         // Then
-        assertThat(result).isInstanceOf(LoginResult.NewUser.class);
-        LoginResult.NewUser newUser = (LoginResult.NewUser) result;
-        assertThat(newUser.uuid()).isEqualTo(uuid);
-        assertThat(newUser.tempCookie()).isEqualTo(tempCookie);
+        assertThat(result).isInstanceOf(NewUserDetail.class);
+        NewUserDetail newUser = (NewUserDetail) result;
+        assertThat(newUser.getUuid()).isEqualTo(uuid);
 
         verify(userSaveUseCase).processUserData(
             SocialProvider.KAKAO,
             testSocialProfile,
             testFcmToken
         );
-        verify(globalCookieAdapter).createTempCookie(newUserDetail);
-        verifyNoMoreInteractions(globalCookieAdapter);
     }
 
     @Test
@@ -152,9 +130,6 @@ class AuthToUserAdapterTest {
         // Given
         User testUser = TestUsers.USER1;
         ExistingUserDetail existingUserDetail = ExistingUserDetail.of(testUser, 1L, null);
-        List<ResponseCookie> expectedCookies = List.of(
-            ResponseCookie.from("access_token", "jwt-access").build()
-        );
 
         given(userSaveUseCase.processUserData(
             SocialProvider.KAKAO,
@@ -162,20 +137,17 @@ class AuthToUserAdapterTest {
             null
         )).willReturn(existingUserDetail);
 
-        given(globalCookieAdapter.generateJwtCookie(existingUserDetail))
-            .willReturn(expectedCookies);
-
         // When
-        LoginResult result = authToUserAdapter.delegateUserData(
+        UserDetail result = authToUserAdapter.delegateUserData(
             SocialProvider.KAKAO,
             testSocialProfile,
             null
         );
 
         // Then
-        assertThat(result).isInstanceOf(LoginResult.ExistingUser.class);
-        LoginResult.ExistingUser existingUser = (LoginResult.ExistingUser) result;
-        assertThat(existingUser.cookies()).isEqualTo(expectedCookies);
+        assertThat(result).isInstanceOf(ExistingUserDetail.class);
+        ExistingUserDetail existingUser = (ExistingUserDetail) result;
+        assertThat(existingUser.getFcmTokenId()).isNull();
 
         verify(userSaveUseCase).processUserData(
             SocialProvider.KAKAO,
@@ -199,9 +171,6 @@ class AuthToUserAdapterTest {
 
         User googleUser = TestUsers.USER2;
         ExistingUserDetail existingUserDetail = ExistingUserDetail.of(googleUser, 2L, 200L);
-        List<ResponseCookie> expectedCookies = List.of(
-            ResponseCookie.from("access_token", "google-jwt").build()
-        );
 
         given(userSaveUseCase.processUserData(
             SocialProvider.GOOGLE,
@@ -209,18 +178,15 @@ class AuthToUserAdapterTest {
             testFcmToken
         )).willReturn(existingUserDetail);
 
-        given(globalCookieAdapter.generateJwtCookie(existingUserDetail))
-            .willReturn(expectedCookies);
-
         // When
-        LoginResult result = authToUserAdapter.delegateUserData(
+        UserDetail result = authToUserAdapter.delegateUserData(
             SocialProvider.GOOGLE,
             googleProfile,
             testFcmToken
         );
 
         // Then
-        assertThat(result).isInstanceOf(LoginResult.ExistingUser.class);
+        assertThat(result).isInstanceOf(ExistingUserDetail.class);
         verify(userSaveUseCase).processUserData(
             SocialProvider.GOOGLE,
             googleProfile,
@@ -253,74 +219,5 @@ class AuthToUserAdapterTest {
             testSocialProfile,
             testFcmToken
         );
-        verifyNoMoreInteractions(globalCookieAdapter);
-    }
-
-    @Test
-    @DisplayName("쿠키 생성 실패 시 예외 전파 - 기존 사용자")
-    void shouldPropagateException_WhenCookieGenerationFailsForExistingUser() {
-        // Given
-        User testUser = TestUsers.USER1;
-        ExistingUserDetail existingUserDetail = ExistingUserDetail.of(testUser, 1L, 100L);
-
-        given(userSaveUseCase.processUserData(
-            SocialProvider.KAKAO,
-            testSocialProfile,
-            testFcmToken
-        )).willReturn(existingUserDetail);
-
-        RuntimeException expectedException = new RuntimeException("쿠키 생성 실패");
-        given(globalCookieAdapter.generateJwtCookie(existingUserDetail))
-            .willThrow(expectedException);
-
-        // When & Then
-        assertThatThrownBy(() -> authToUserAdapter.delegateUserData(
-            SocialProvider.KAKAO,
-            testSocialProfile,
-            testFcmToken
-        ))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessage("쿠키 생성 실패");
-
-        verify(userSaveUseCase).processUserData(
-            SocialProvider.KAKAO,
-            testSocialProfile,
-            testFcmToken
-        );
-        verify(globalCookieAdapter).generateJwtCookie(existingUserDetail);
-    }
-
-    @Test
-    @DisplayName("쿠키 생성 실패 시 예외 전파 - 신규 사용자")
-    void shouldPropagateException_WhenCookieGenerationFailsForNewUser() {
-        // Given
-        String uuid = "test-uuid-12345";
-        NewUserDetail newUserDetail = NewUserDetail.of(uuid);
-
-        given(userSaveUseCase.processUserData(
-            SocialProvider.KAKAO,
-            testSocialProfile,
-            testFcmToken
-        )).willReturn(newUserDetail);
-
-        RuntimeException expectedException = new RuntimeException("임시 쿠키 생성 실패");
-        given(globalCookieAdapter.createTempCookie(newUserDetail))
-            .willThrow(expectedException);
-
-        // When & Then
-        assertThatThrownBy(() -> authToUserAdapter.delegateUserData(
-            SocialProvider.KAKAO,
-            testSocialProfile,
-            testFcmToken
-        ))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessage("임시 쿠키 생성 실패");
-
-        verify(userSaveUseCase).processUserData(
-            SocialProvider.KAKAO,
-            testSocialProfile,
-            testFcmToken
-        );
-        verify(globalCookieAdapter).createTempCookie(newUserDetail);
     }
 }

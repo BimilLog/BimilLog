@@ -1,15 +1,10 @@
 
 package jaeik.bimillog.domain.auth.application.service;
 
-import jaeik.bimillog.domain.admin.event.AdminWithdrawEvent;
-import jaeik.bimillog.domain.auth.application.port.in.SocialUseCase;
-import jaeik.bimillog.domain.auth.application.port.out.AuthToUserPort;
-import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
-import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
-import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
+import jaeik.bimillog.domain.auth.application.port.in.SocialLoginUseCase;
+import jaeik.bimillog.domain.auth.application.port.out.*;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
-import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
@@ -39,12 +34,13 @@ import java.util.List;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class SocialService implements SocialUseCase {
+public class SocialLoginService implements SocialLoginUseCase {
 
     private final SocialStrategyRegistryPort strategyRegistryPort;
     private final AuthToUserPort authToUserPort;
     private final BlacklistPort blacklistPort;
     private final GlobalCookiePort globalCookiePort;
+    private final JwtPort jwtPort;
 
     /**
      * <h3>소셜 플랫폼 로그인 처리</h3>
@@ -77,7 +73,9 @@ public class SocialService implements SocialUseCase {
         UserDetail userDetail =  authToUserPort.delegateUserData(provider, authResult, fcmToken);
 
         if (userDetail instanceof ExistingUserDetail) {
-            List<ResponseCookie> cookies = globalCookiePort.generateJwtCookie((ExistingUserDetail) userDetail);
+            String accessToken = jwtPort.generateAccessToken((ExistingUserDetail) userDetail);
+            String refreshToken = jwtPort.generateRefreshToken((ExistingUserDetail) userDetail);
+            List<ResponseCookie> cookies = globalCookiePort.generateJwtCookie(accessToken, refreshToken);
             return new LoginResult.ExistingUser(cookies);
         } else {
             ResponseCookie tempCookie = globalCookiePort.createTempCookie((NewUserDetail) userDetail);
@@ -85,26 +83,7 @@ public class SocialService implements SocialUseCase {
         }
     }
 
-    /**
-     * <h3>소셜 계정 연동 해제</h3>
-     * <p>사용자의 소셜 플랫폼 계정 연동을 해제합니다.</p>
-     * <p>소셜 플랫폼 API를 호출하여 앱 연동을 완전히 차단합니다.</p>
-     * <p>{@link UserWithdrawnEvent}, {@link AdminWithdrawEvent} 이벤트 발생 시 소셜 계정 정리를 위해 호출됩니다.</p>
-     *
-     * @param provider 연동 해제할 소셜 플랫폼 제공자
-     * @param socialId 소셜 플랫폼에서의 사용자 고유 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public void unlinkSocialAccount(SocialProvider provider, String socialId) {
-        log.info("소셜 연결 해제 시작 - 제공자: {}, 소셜 ID: {}", provider, socialId);
 
-        SocialStrategyPort strategy = strategyRegistryPort.getStrategy(provider);
-        strategy.unlink(provider, socialId);
-
-        log.info("소셜 연결 해제 완료 - 제공자: {}, 소셜 ID: {}", provider, socialId);
-    }
 
     /**
      * <h3>중복 로그인 방지 검증</h3>

@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.out.auth;
 
 import jaeik.bimillog.domain.auth.application.port.out.AuthToUserPort;
-import jaeik.bimillog.domain.auth.application.service.SocialService;
+import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.user.application.port.in.UserSaveUseCase;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
@@ -38,7 +38,7 @@ public class AuthToUserAdapter implements AuthToUserPort {
      * <h3>사용자 데이터 처리 위임</h3>
      * <p>User 도메인에 사용자 처리를 위임하고 그 결과를 반환합니다.</p>
      * <p>기존 사용자 또는 신규 사용자 정보를 UserDetail 형태로 반환합니다.</p>
-     * <p>{@link SocialService}에서 소셜 로그인 처리 시 호출됩니다.</p>
+     * <p>{@link SocialLoginService}에서 소셜 로그인 처리 시 호출됩니다.</p>
      *
      * @param provider 소셜 로그인 제공자 (KAKAO 등)
      * @param profile 소셜 사용자 프로필 정보

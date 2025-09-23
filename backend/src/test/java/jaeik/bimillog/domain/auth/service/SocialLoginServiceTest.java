@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.auth.application.port.out.AuthToUserPort;
 import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
-import jaeik.bimillog.domain.auth.application.service.SocialService;
+import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.entity.Token;
@@ -33,14 +33,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 /**
- * <h2>SocialService 단위 테스트</h2>
+ * <h2>SocialLoginService 단위 테스트</h2>
  * <p>소셜 로그인 서비스의 핵심 비즈니스 로직 테스트</p>
  *
  * @author Jaeik
  * @version 2.0.0
  */
 @ExtendWith(MockitoExtension.class)
-class SocialServiceTest {
+class SocialLoginServiceTest {
 
     private static final String TEST_SOCIAL_ID = "kakao123";
     private static final String TEST_EMAIL = "test@example.com";
@@ -55,7 +55,7 @@ class SocialServiceTest {
     @Mock private SocialStrategyPort kakaoStrategy;
     @Mock private AuthToUserPort authToUserPort;
     @Mock private BlacklistPort blacklistPort;
-    private SocialService socialService;
+    private SocialLoginService socialLoginService;
 
     private SocialUserProfile testUserProfile;
     private Token testToken;
@@ -65,7 +65,7 @@ class SocialServiceTest {
         testToken = Token.createTemporaryToken(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
         testUserProfile = new SocialUserProfile(TEST_SOCIAL_ID, TEST_EMAIL, SocialProvider.KAKAO, TEST_USERNAME, TEST_PROFILE_IMAGE, testToken);
 
-        socialService = new SocialService(
+        socialLoginService = new SocialLoginService(
             strategyRegistry,
             authToUserPort,
             blacklistPort
@@ -105,7 +105,7 @@ class SocialServiceTest {
             given(authToUserPort.delegateUserData(SocialProvider.KAKAO, testUserProfile, TEST_FCM_TOKEN)).willReturn(existingUserResult);
 
             // When
-            LoginResult result = socialService.processSocialLogin(SocialProvider.KAKAO, TEST_AUTH_CODE, TEST_FCM_TOKEN);
+            LoginResult result = socialLoginService.processSocialLogin(SocialProvider.KAKAO, TEST_AUTH_CODE, TEST_FCM_TOKEN);
 
             // Then
             assertThat(result).isInstanceOf(LoginResult.ExistingUser.class);
@@ -134,7 +134,7 @@ class SocialServiceTest {
             given(authToUserPort.delegateUserData(SocialProvider.KAKAO, testUserProfile, TEST_FCM_TOKEN)).willReturn(newUserResult);
 
             // When
-            LoginResult result = socialService.processSocialLogin(SocialProvider.KAKAO, TEST_AUTH_CODE, TEST_FCM_TOKEN);
+            LoginResult result = socialLoginService.processSocialLogin(SocialProvider.KAKAO, TEST_AUTH_CODE, TEST_FCM_TOKEN);
 
             // Then
             assertThat(result).isInstanceOf(LoginResult.NewUser.class);
@@ -160,7 +160,7 @@ class SocialServiceTest {
             given(blacklistPort.existsByProviderAndSocialId(SocialProvider.KAKAO, TEST_SOCIAL_ID)).willReturn(true);
 
             // When & Then
-            assertThatThrownBy(() -> socialService.processSocialLogin(SocialProvider.KAKAO, TEST_AUTH_CODE, TEST_FCM_TOKEN))
+            assertThatThrownBy(() -> socialLoginService.processSocialLogin(SocialProvider.KAKAO, TEST_AUTH_CODE, TEST_FCM_TOKEN))
                     .isInstanceOf(AuthCustomException.class)
                     .hasFieldOrPropertyWithValue("authErrorCode", AuthErrorCode.BLACKLIST_USER);
 
@@ -178,7 +178,7 @@ class SocialServiceTest {
             mockAuthenticatedUser(mockedSecurityContext);
 
             // When & Then
-            assertThatThrownBy(() -> socialService.processSocialLogin(SocialProvider.KAKAO, TEST_AUTH_CODE, TEST_FCM_TOKEN))
+            assertThatThrownBy(() -> socialLoginService.processSocialLogin(SocialProvider.KAKAO, TEST_AUTH_CODE, TEST_FCM_TOKEN))
                     .isInstanceOf(AuthCustomException.class)
                     .hasFieldOrPropertyWithValue("authErrorCode", AuthErrorCode.ALREADY_LOGIN);
         }

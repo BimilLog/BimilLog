@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.auth.application.service;
 
-import jaeik.bimillog.domain.auth.application.port.in.LogoutUseCase;
+import jaeik.bimillog.domain.auth.application.port.in.SocialLogoutUseCase;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
@@ -29,7 +29,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class LogoutService implements LogoutUseCase {
+public class SocialLogoutService implements SocialLogoutUseCase {
 
     private final SocialStrategyRegistryPort strategyRegistry;
     private final GlobalTokenQueryPort globalTokenQueryPort;

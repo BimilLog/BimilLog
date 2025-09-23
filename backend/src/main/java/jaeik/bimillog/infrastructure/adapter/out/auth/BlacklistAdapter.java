@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.out.auth;
 
 import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
-import jaeik.bimillog.domain.auth.application.service.SocialService;
+import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.out.auth.jpa.BlackListRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +17,7 @@ public class BlacklistAdapter implements BlacklistPort {
      * <h3>소셜 계정 블랙리스트 확인</h3>
      * <p>소셜 로그인 시 해당 소셜 계정이 블랙리스트에 등록되어 있는지 확인합니다.</p>
      * <p>회원 탈퇴나 계정 차단으로 인해 BlackList 테이블에 등록된 소셜 계정의 재가입을 방지합니다.</p>
-     * <p>{@link SocialService}에서 로그인 인증 단곀4에서 차단된 사용자의 접근을 막기 위해 호출됩니다.</p>
+     * <p>{@link SocialLoginService}에서 로그인 인증 단곀4에서 차단된 사용자의 접근을 막기 위해 호출됩니다.</p>
      *
      * @param provider 소셜 로그인 제공자 (KAKAO, NAVER 등)
      * @param socialId 소셜 로그인 사용자 식별자

@@ -7,8 +7,11 @@ import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.user.application.port.out.SaveUserPort;
 import jaeik.bimillog.domain.user.application.service.SignUpService;
+import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.TempUserData;
+import jaeik.bimillog.global.application.port.out.GlobalCookiePort;
+import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -47,6 +50,9 @@ class SignUpServiceTest {
     @Mock
     private SaveUserPort saveUserPort;
 
+    @Mock
+    private GlobalCookiePort globalCookiePort;
+
     @InjectMocks
     private SignUpService signUpService;
 
@@ -55,6 +61,7 @@ class SignUpServiceTest {
     private SocialUserProfile testSocialProfile;
     private TempUserData testTempData;
     private List<ResponseCookie> testCookies;
+    private ExistingUserDetail testUserDetail;
 
     @BeforeEach
     void setUp() {
@@ -70,6 +77,8 @@ class SignUpServiceTest {
                 ResponseCookie.from("access_token", "access-token").build(),
                 ResponseCookie.from("refresh_token", "refresh-token").build()
         );
+
+        testUserDetail = ExistingUserDetail.of(TestUsers.USER1, 1L, 100L);
     }
 
     @Test
@@ -79,10 +88,10 @@ class SignUpServiceTest {
         given(redisUserDataPort.getTempData(testUuid)).willReturn(Optional.of(testTempData));
         given(saveUserPort.saveNewUser(
                 eq(testUserName),
-                eq(testUuid),
                 eq(testSocialProfile),
                 eq("fcm-token")
-        )).willReturn(testCookies);
+        )).willReturn(testUserDetail);
+        given(globalCookiePort.generateJwtCookie(testUserDetail)).willReturn(testCookies);
 
         // When
         List<ResponseCookie> result = signUpService.signUp(testUserName, testUuid);
@@ -94,10 +103,11 @@ class SignUpServiceTest {
         verify(redisUserDataPort).getTempData(testUuid);
         verify(saveUserPort).saveNewUser(
                 testUserName,
-                testUuid,
                 testSocialProfile,
                 "fcm-token"
         );
+        verify(redisUserDataPort).removeTempData(testUuid);
+        verify(globalCookiePort).generateJwtCookie(testUserDetail);
     }
 
     @Test
@@ -115,8 +125,7 @@ class SignUpServiceTest {
         verify(redisUserDataPort).getTempData(nonExistentUuid);
         // saveNewUser should never be called
         verify(saveUserPort, never()).saveNewUser(
-                eq(testUserName),
-                eq(nonExistentUuid),
+                any(),
                 any(),
                 any()
         );
@@ -131,10 +140,10 @@ class SignUpServiceTest {
         given(redisUserDataPort.getTempData(testUuid)).willReturn(Optional.of(tempDataWithoutFcm));
         given(saveUserPort.saveNewUser(
                 eq(testUserName),
-                eq(testUuid),
                 eq(testSocialProfile),
                 eq(null)
-        )).willReturn(testCookies);
+        )).willReturn(testUserDetail);
+        given(globalCookiePort.generateJwtCookie(testUserDetail)).willReturn(testCookies);
 
         // When
         List<ResponseCookie> result = signUpService.signUp(testUserName, testUuid);
@@ -143,7 +152,9 @@ class SignUpServiceTest {
         assertThat(result).isEqualTo(testCookies);
         
         verify(redisUserDataPort).getTempData(testUuid);
-        verify(saveUserPort).saveNewUser(testUserName, testUuid, testSocialProfile, null);
+        verify(saveUserPort).saveNewUser(testUserName, testSocialProfile, null);
+        verify(redisUserDataPort).removeTempData(testUuid);
+        verify(globalCookiePort).generateJwtCookie(testUserDetail);
     }
 
 

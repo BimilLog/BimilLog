@@ -3,12 +3,13 @@ package jaeik.bimillog.infrastructure.adapter.in.notification;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.notification.jpa.NotificationRepository;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
+import jaeik.bimillog.testutil.NotificationTestDataBuilder;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
+import jaeik.bimillog.testutil.TestFixtures;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
@@ -81,7 +82,7 @@ class NotificationQueryControllerIntegrationTest {
     @DisplayName("로그인된 사용자의 알림 목록 조회 - 성공")
     void getNotifications_AuthenticatedUser_Success() throws Exception {
         // Given
-        CustomUserDetails userDetails = createUserDetails(testUser);
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
 
         // When & Then
         mockMvc.perform(get("/api/notification/list")
@@ -105,7 +106,7 @@ class NotificationQueryControllerIntegrationTest {
         User userWithoutNotifications = TestUsers.createUniqueWithPrefix("anotheruser");
         userRepository.save(userWithoutNotifications);
 
-        CustomUserDetails userDetails = createUserDetails(userWithoutNotifications);
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(userWithoutNotifications);
 
         // When & Then
         mockMvc.perform(get("/api/notification/list")
@@ -130,7 +131,7 @@ class NotificationQueryControllerIntegrationTest {
     @DisplayName("다양한 알림 타입 조회 - 성공")
     void getNotifications_VariousNotificationTypes_Success() throws Exception {
         // Given
-        CustomUserDetails userDetails = createUserDetails(testUser);
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
 
         // When & Then
         mockMvc.perform(get("/api/notification/list")
@@ -149,7 +150,7 @@ class NotificationQueryControllerIntegrationTest {
     @DisplayName("읽음/안읽음 상태 확인 - 성공")
     void getNotifications_ReadStatusCheck_Success() throws Exception {
         // Given
-        CustomUserDetails userDetails = createUserDetails(testUser);
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
 
         // When & Then
         mockMvc.perform(get("/api/notification/list")
@@ -166,42 +167,34 @@ class NotificationQueryControllerIntegrationTest {
      * 테스트용 알림들 생성
      */
     private void createTestNotifications() {
-        // 다양한 타입의 알림 생성
-        createNotification("새 메시지가 도착했습니다", NotificationType.PAPER, false, "/paper/1");
-        createNotification("새 댓글이 작성되었습니다", NotificationType.COMMENT, true, "/post/1");
-        createNotification("게시글이 추천되었습니다", NotificationType.POST_FEATURED, false, "/post/2");
-        createNotification("공지사항이 등록되었습니다", NotificationType.ADMIN, true, "/notice/1");
-        createNotification("초기화 알림", NotificationType.INITIATE, false, "/system");
-    }
-
-    /**
-     * 개별 알림 생성
-     */
-    private void createNotification(String content, NotificationType type, boolean isRead, String url) {
-        Notification notification = Notification.builder()
-                .content(content)
-                .notificationType(type)
-                .isRead(isRead)
-                .url(url)
-                .users(testUser)
-                .build();
-        notificationRepository.save(notification);
-    }
-
-    /**
-     * 테스트용 CustomUserDetails 생성
-     */
-    private CustomUserDetails createUserDetails(User user) {
-        ExistingUserDetail userDetail = ExistingUserDetail.builder()
-                .userId(user.getId())
-                .socialId(user.getSocialId())
-                .socialNickname(user.getSocialNickname())
-                .thumbnailImage(user.getThumbnailImage())
-                .userName(user.getUserName())
-                .provider(user.getProvider())
-                .role(user.getRole())
-                .build();
-
-        return new CustomUserDetails(userDetail);
+        // 다양한 타입의 알림 생성 - TestDataBuilder 사용
+        notificationRepository.save(
+                NotificationTestDataBuilder.aPaperMessageNotification(testUser)
+                        .asUnread()
+                        .build()
+        );
+        notificationRepository.save(
+                NotificationTestDataBuilder.aCommentNotification(testUser, 1L)
+                        .asRead()
+                        .build()
+        );
+        notificationRepository.save(
+                NotificationTestDataBuilder.aLikeNotification(testUser, 2L)
+                        .asUnread()
+                        .build()
+        );
+        notificationRepository.save(
+                NotificationTestDataBuilder.anAdminNotification(testUser, "공지사항이 등록되었습니다")
+                        .asRead()
+                        .build()
+        );
+        notificationRepository.save(
+                NotificationTestDataBuilder.aNotification()
+                        .withReceiver(testUser)
+                        .withType(NotificationType.INITIATE)
+                        .withMessage("초기화 알림")
+                        .asUnread()
+                        .build()
+        );
     }
 }

@@ -3,13 +3,14 @@ package jaeik.bimillog.infrastructure.adapter.in.notification;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.in.notification.dto.UpdateNotificationDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.notification.jpa.NotificationRepository;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
+import jaeik.bimillog.testutil.NotificationTestDataBuilder;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
+import jaeik.bimillog.testutil.TestFixtures;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
@@ -88,7 +89,7 @@ class NotificationCommandControllerIntegrationTest {
     @DisplayName("알림 읽음 처리 - 성공")
     void markAsRead_Success() throws Exception {
         // Given
-        CustomUserDetails userDetails = createUserDetails(testUser);
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
         List<Long> readIds = Arrays.asList(testNotifications.get(0).getId(), testNotifications.get(1).getId());
 
         UpdateNotificationDTO updateDTO = new UpdateNotificationDTO();
@@ -111,7 +112,7 @@ class NotificationCommandControllerIntegrationTest {
     @DisplayName("알림 삭제 처리 - 성공")
     void deleteNotifications_Success() throws Exception {
         // Given
-        CustomUserDetails userDetails = createUserDetails(testUser);
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
         List<Long> deletedIds = Arrays.asList(testNotifications.get(2).getId(), testNotifications.get(3).getId());
 
         UpdateNotificationDTO updateDTO = new UpdateNotificationDTO();
@@ -134,7 +135,7 @@ class NotificationCommandControllerIntegrationTest {
     @DisplayName("알림 읽음과 삭제 동시 처리 - 성공")
     void markAsReadAndDelete_Success() throws Exception {
         // Given
-        CustomUserDetails userDetails = createUserDetails(testUser);
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
         List<Long> readIds = Arrays.asList(testNotifications.get(0).getId());
         List<Long> deletedIds = Arrays.asList(testNotifications.get(4).getId());
 
@@ -158,7 +159,7 @@ class NotificationCommandControllerIntegrationTest {
     @DisplayName("빈 리스트로 알림 업데이트 - 성공")
     void updateWithEmptyLists_Success() throws Exception {
         // Given
-        CustomUserDetails userDetails = createUserDetails(testUser);
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
 
         UpdateNotificationDTO updateDTO = new UpdateNotificationDTO();
         updateDTO.setReadIds(Arrays.asList());
@@ -180,7 +181,7 @@ class NotificationCommandControllerIntegrationTest {
     @DisplayName("존재하지 않는 알림 ID로 업데이트 - 성공 (무시됨)")
     void updateWithNonExistentIds_Success() throws Exception {
         // Given
-        CustomUserDetails userDetails = createUserDetails(testUser);
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
         List<Long> nonExistentIds = Arrays.asList(999999L, 999998L);
 
         UpdateNotificationDTO updateDTO = new UpdateNotificationDTO();
@@ -221,7 +222,7 @@ class NotificationCommandControllerIntegrationTest {
     @DisplayName("잘못된 JSON 형식으로 알림 업데이트 - 실패")
     void updateWithInvalidJson_BadRequest() throws Exception {
         // Given
-        CustomUserDetails userDetails = createUserDetails(testUser);
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
         String invalidJson = "{ invalid json }";
 
         // When & Then
@@ -239,43 +240,26 @@ class NotificationCommandControllerIntegrationTest {
      */
     private List<Notification> createTestNotifications() {
         List<Notification> notifications = Arrays.asList(
-                createNotification("새 메시지가 도착했습니다", NotificationType.PAPER, false, "/paper/1"),
-                createNotification("새 댓글이 작성되었습니다", NotificationType.COMMENT, true, "/post/1"),
-                createNotification("게시글이 추천되었습니다", NotificationType.POST_FEATURED, false, "/post/2"),
-                createNotification("공지사항이 등록되었습니다", NotificationType.ADMIN, true, "/notice/1"),
-                createNotification("초기화 알림", NotificationType.INITIATE, false, "/system")
+                NotificationTestDataBuilder.aPaperMessageNotification(testUser)
+                        .asUnread()
+                        .build(),
+                NotificationTestDataBuilder.aCommentNotification(testUser, 1L)
+                        .asRead()
+                        .build(),
+                NotificationTestDataBuilder.aLikeNotification(testUser, 2L)
+                        .asUnread()
+                        .build(),
+                NotificationTestDataBuilder.anAdminNotification(testUser, "공지사항이 등록되었습니다")
+                        .asRead()
+                        .build(),
+                NotificationTestDataBuilder.aNotification()
+                        .withReceiver(testUser)
+                        .withType(NotificationType.INITIATE)
+                        .withMessage("초기화 알림")
+                        .asUnread()
+                        .build()
         );
 
         return notificationRepository.saveAll(notifications);
-    }
-
-    /**
-     * 개별 알림 생성
-     */
-    private Notification createNotification(String content, NotificationType type, boolean isRead, String url) {
-        return Notification.builder()
-                .content(content)
-                .notificationType(type)
-                .isRead(isRead)
-                .url(url)
-                .users(testUser)
-                .build();
-    }
-
-    /**
-     * 테스트용 CustomUserDetails 생성
-     */
-    private CustomUserDetails createUserDetails(User user) {
-        ExistingUserDetail userDetail = ExistingUserDetail.builder()
-                .userId(user.getId())
-                .socialId(user.getSocialId())
-                .socialNickname(user.getSocialNickname())
-                .thumbnailImage(user.getThumbnailImage())
-                .userName(user.getUserName())
-                .provider(user.getProvider())
-                .role(user.getRole())
-                .build();
-
-        return new CustomUserDetails(userDetail);
     }
 }

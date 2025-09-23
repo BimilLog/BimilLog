@@ -2,11 +2,11 @@ package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
-import jaeik.bimillog.domain.auth.application.service.LogoutService;
+import jaeik.bimillog.domain.auth.application.service.SocialLogoutService;
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
-import jaeik.bimillog.domain.user.application.port.out.DeleteUserPort;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jaeik.bimillog.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
@@ -31,7 +31,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 /**
- * <h2>LogoutService 단위 테스트</h2>
+ * <h2>SocialLogoutService 단위 테스트</h2>
  * <p>로그아웃 서비스의 비즈니스 로직을 검증하는 단위 테스트</p>
  * <p>모든 외부 의존성을 모킹하여 순수한 비즈니스 로직만 테스트</p>
  *
@@ -39,11 +39,8 @@ import static org.mockito.Mockito.*;
  * @version 2.0.0
  */
 @ExtendWith(MockitoExtension.class)
-@DisplayName("LogoutService 단위 테스트")
-class LogoutServiceTest {
-
-    @Mock
-    private DeleteUserPort deleteUserPort;
+@DisplayName("SocialLogoutService 단위 테스트")
+class SocialLogoutServiceTest {
 
     @Mock
     private SocialStrategyRegistryPort strategyRegistry;
@@ -55,13 +52,16 @@ class LogoutServiceTest {
     private GlobalTokenQueryPort globalTokenQueryPort;
 
     @Mock
+    private GlobalCookiePort globalCookiePort;
+
+    @Mock
     private ApplicationEventPublisher eventPublisher;
 
     @Mock
     private CustomUserDetails userDetails;
 
     @InjectMocks
-    private LogoutService logoutService;
+    private SocialLogoutService socialLogoutService;
 
     private List<ResponseCookie> logoutCookies;
 
@@ -101,11 +101,11 @@ class LogoutServiceTest {
         given(userDetails.getTokenId()).willReturn(200L);
         given(globalTokenQueryPort.findById(200L)).willReturn(Optional.of(mockToken));
         given(strategyRegistry.getStrategy(SocialProvider.KAKAO)).willReturn(kakaoStrategy);
-        given(deleteUserPort.getLogoutCookies()).willReturn(logoutCookies);
+        given(globalCookiePort.getLogoutCookies()).willReturn(logoutCookies);
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             // When
-            List<ResponseCookie> result = logoutService.logout(userDetails);
+            List<ResponseCookie> result = socialLogoutService.logout(userDetails);
 
             // Then
             assertThat(result).isEqualTo(logoutCookies);
@@ -123,7 +123,7 @@ class LogoutServiceTest {
             verify(globalTokenQueryPort).findById(200L);
             verify(strategyRegistry).getStrategy(SocialProvider.KAKAO);
             verify(kakaoStrategy).logout(SocialProvider.KAKAO, "mock-access-token");
-            verify(deleteUserPort).getLogoutCookies();
+            verify(globalCookiePort).getLogoutCookies();
             mockedSecurityContext.verify(SecurityContextHolder::clearContext);
         }
     }
@@ -136,11 +136,11 @@ class LogoutServiceTest {
         given(userDetails.getUserId()).willReturn(100L);
         given(userDetails.getTokenId()).willReturn(200L);
         given(globalTokenQueryPort.findById(200L)).willReturn(Optional.empty());
-        given(deleteUserPort.getLogoutCookies()).willReturn(logoutCookies);
+        given(globalCookiePort.getLogoutCookies()).willReturn(logoutCookies);
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             // When
-            List<ResponseCookie> result = logoutService.logout(userDetails);
+            List<ResponseCookie> result = socialLogoutService.logout(userDetails);
 
             // Then
             assertThat(result).isEqualTo(logoutCookies);
@@ -149,7 +149,7 @@ class LogoutServiceTest {
             verify(strategyRegistry, never()).getStrategy(any(SocialProvider.class));
             verify(kakaoStrategy, never()).logout(any(SocialProvider.class), anyString());
             verify(eventPublisher).publishEvent(any(UserLoggedOutEvent.class));
-            verify(deleteUserPort).getLogoutCookies();
+            verify(globalCookiePort).getLogoutCookies();
             mockedSecurityContext.verify(SecurityContextHolder::clearContext);
         }
     }
@@ -164,11 +164,11 @@ class LogoutServiceTest {
         given(userDetails.getUserId()).willReturn(100L);
         given(userDetails.getTokenId()).willReturn(200L);
         given(globalTokenQueryPort.findById(200L)).willReturn(Optional.of(tokenWithoutUser));
-        given(deleteUserPort.getLogoutCookies()).willReturn(logoutCookies);
+        given(globalCookiePort.getLogoutCookies()).willReturn(logoutCookies);
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             // When
-            List<ResponseCookie> result = logoutService.logout(userDetails);
+            List<ResponseCookie> result = socialLogoutService.logout(userDetails);
 
             // Then
             assertThat(result).isEqualTo(logoutCookies);
@@ -177,7 +177,7 @@ class LogoutServiceTest {
             verify(strategyRegistry, never()).getStrategy(any(SocialProvider.class));
             verify(kakaoStrategy, never()).logout(any(SocialProvider.class), anyString());
             verify(eventPublisher).publishEvent(any(UserLoggedOutEvent.class));
-            verify(deleteUserPort).getLogoutCookies();
+            verify(globalCookiePort).getLogoutCookies();
             mockedSecurityContext.verify(SecurityContextHolder::clearContext);
         }
     }

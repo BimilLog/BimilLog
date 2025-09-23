@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.auth.event;
 
-import jaeik.bimillog.domain.auth.application.service.LogoutService;
+import jaeik.bimillog.domain.auth.application.service.SocialLogoutService;
 import jaeik.bimillog.infrastructure.adapter.in.notification.listener.FcmTokenRemoveListener;
 
 import java.time.LocalDateTime;
@@ -22,7 +22,7 @@ public record UserLoggedOutEvent(Long userId, Long tokenId, LocalDateTime logged
     /**
      * <h3>로그아웃 이벤트 생성</h3>
      * <p>현재 시간으로 로그아웃 타임스탬프를 설정하여 이벤트를 생성합니다.</p>
-     * <p>{@link LogoutService}에서 사용자 로그아웃 처리 후 후속 작업 트리거를 위해 호출됩니다.</p>
+     * <p>{@link SocialLogoutService}에서 사용자 로그아웃 처리 후 후속 작업 트리거를 위해 호출됩니다.</p>
      *
      * @param userId 로그아웃한 사용자의 고유 식별자
      * @param tokenId 무효화할 토큰의 고유 식별자

@@ -66,14 +66,11 @@ class NotificationUtilAdapterIntegrationTest {
         enabledUserId = enabledUser.getId();
 
         // Given: 알림이 비활성화된 사용자 설정
-        disabledUser = User.builder()
-                .socialId(TestUsers.USER2.getSocialId())
-                .provider(TestUsers.USER2.getProvider())
-                .userName(TestUsers.USER2.getUserName())
-                .socialNickname(TestUsers.USER2.getSocialNickname())
-                .role(TestUsers.USER2.getRole())
-                .setting(TestSettings.copyWithId(TestSettings.ALL_DISABLED, null))
-                .build();
+        disabledUser = TestUsers.copyWithIdAndSetting(
+            TestUsers.USER2,
+            null,
+            TestSettings.copyWithId(TestSettings.ALL_DISABLED, null)
+        );
         disabledUser = testEntityManager.persistAndFlush(disabledUser);
         disabledUserId = disabledUser.getId();
     }

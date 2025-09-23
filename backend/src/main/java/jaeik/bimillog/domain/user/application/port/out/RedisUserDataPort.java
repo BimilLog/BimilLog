@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.user.application.port.out;
 
-import jaeik.bimillog.domain.auth.application.service.SocialService;
+import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.user.application.service.SignUpService;
 import jaeik.bimillog.domain.user.entity.TempUserData;
@@ -22,7 +22,7 @@ public interface RedisUserDataPort {
      * <h3>임시 사용자 데이터 저장</h3>
      * <p>소셜 로그인 성공 후 신규 사용자의 정보를 임시로 Redis에 저장합니다.</p>
      * <p>회원가입 완료 시까지 소셜 프로필과 OAuth 토큰(액세스/리프레시) 정보를 보관하는데 사용됩니다.</p>
-     * <p>{@link SocialService}에서 신규 사용자 소셜 로그인 처리 시 호출됩니다.</p>
+     * <p>{@link SocialLoginService}에서 신규 사용자 소셜 로그인 처리 시 호출됩니다.</p>
      *
      * @param uuid 임시 데이터 식별을 위한 고유 UUID 키
      * @param userProfile 소셜 플랫폼에서 가져온 사용자 프로필 정보 (OAuth 액세스/리프레시 토큰 포함)

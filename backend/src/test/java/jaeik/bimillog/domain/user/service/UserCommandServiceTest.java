@@ -37,9 +37,6 @@ class UserCommandServiceTest {
 
     @Mock
     private UserQueryPort userQueryPort;
-    
-    @Mock
-    private UserCommandPort userCommandPort;
 
     @InjectMocks
     private UserCommandService userCommandService;
@@ -92,9 +89,8 @@ class UserCommandServiceTest {
         assertThatThrownBy(() -> userCommandService.updateUserSettings(userId, newSetting))
                 .isInstanceOf(UserCustomException.class)
                 .hasMessage(UserErrorCode.USER_NOT_FOUND.getMessage());
-        
+
         verify(userQueryPort).findById(userId);
-        verify(userCommandPort, never()).save(any(User.class));
     }
 
     @Test
@@ -150,9 +146,8 @@ class UserCommandServiceTest {
         assertThatThrownBy(() -> userCommandService.updateUserName(userId, newUserName))
                 .isInstanceOf(UserCustomException.class)
                 .hasMessage(UserErrorCode.USER_NOT_FOUND.getMessage());
-        
+
         verify(userQueryPort).findById(userId);
-        verify(userCommandPort, never()).save(any(User.class));
     }
 
 

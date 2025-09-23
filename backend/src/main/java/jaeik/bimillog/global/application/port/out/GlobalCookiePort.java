@@ -1,6 +1,5 @@
 package jaeik.bimillog.global.application.port.out;
 
-import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.NewUserDetail;
 import org.springframework.http.ResponseCookie;
 
@@ -39,7 +38,7 @@ public interface GlobalCookiePort {
      * @author Jaeik
      * @since 2.0.0
      */
-    List<ResponseCookie> generateJwtCookie(ExistingUserDetail userDetail);
+    List<ResponseCookie> generateJwtCookie(String accessToken, String refreshToken);
 
     /**
      * <h3>로그아웃 쿠키 생성</h3>
@@ -61,7 +60,7 @@ public interface GlobalCookiePort {
      * @author Jaeik
      * @since 2.0.0
      */
-    ResponseCookie generateJwtAccessCookie(ExistingUserDetail userDetail);
+    ResponseCookie generateJwtAccessCookie(String accessToken);
 
     /**
      * <h3>JWT 리프레시 토큰 쿠키 생성</h3>
@@ -72,5 +71,5 @@ public interface GlobalCookiePort {
      * @author Jaeik
      * @since 2.0.0
      */
-    ResponseCookie generateJwtRefreshCookie(ExistingUserDetail userDetail);
+    ResponseCookie generateJwtRefreshCookie(String refreshToken);
 }

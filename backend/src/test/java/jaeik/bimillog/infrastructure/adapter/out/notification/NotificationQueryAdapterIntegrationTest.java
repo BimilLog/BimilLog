@@ -186,15 +186,33 @@ class NotificationQueryAdapterIntegrationTest {
     @Transactional
     void shouldReturnNotificationsInDescendingOrder_WhenMultipleNotificationsExist() {
         // Given: 시간차를 둔 알림 생성 (명확한 순서 확인을 위해)
-        Notification oldest = createAndSaveNotification(testUser, NotificationType.COMMENT, "가장 오래된 알림", "/post/1", false);
+        Notification oldest = testEntityManager.persistAndFlush(
+            NotificationTestDataBuilder.aCommentNotification(testUser, 1L)
+                .withContent("가장 오래된 알림")
+                .withUrl("/post/1")
+                .asUnread()
+                .build()
+        );
 
         try { Thread.sleep(10); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
 
-        Notification middle = createAndSaveNotification(testUser, NotificationType.PAPER, "중간 알림", "/paper/2", false);
+        Notification middle = testEntityManager.persistAndFlush(
+            NotificationTestDataBuilder.aPaperMessageNotification(testUser)
+                .withContent("중간 알림")
+                .withUrl("/paper/2")
+                .asUnread()
+                .build()
+        );
 
         try { Thread.sleep(10); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
 
-        Notification newest = createAndSaveNotification(testUser, NotificationType.POST_FEATURED, "가장 최신 알림", "/post/3", false);
+        Notification newest = testEntityManager.persistAndFlush(
+            NotificationTestDataBuilder.aPostFeaturedNotification(testUser, 3L)
+                .withContent("가장 최신 알림")
+                .withUrl("/post/3")
+                .asUnread()
+                .build()
+        );
 
         testEntityManager.flush();
         testEntityManager.clear();
@@ -220,11 +238,35 @@ class NotificationQueryAdapterIntegrationTest {
     @Transactional
     void shouldNotReturnOtherUsersNotifications_WhenQueryingNotifications() {
         // Given: 현재 사용자와 다른 사용자의 알림 각각 생성
-        createAndSaveNotification(testUser, NotificationType.COMMENT, "내 댓글 알림", "/post/1", false);
-        createAndSaveNotification(testUser, NotificationType.PAPER, "내 메시지 알림", "/paper/2", false);
+        testEntityManager.persistAndFlush(
+            NotificationTestDataBuilder.aCommentNotification(testUser, 1L)
+                .withContent("내 댓글 알림")
+                .withUrl("/post/1")
+                .asUnread()
+                .build()
+        );
+        testEntityManager.persistAndFlush(
+            NotificationTestDataBuilder.aPaperMessageNotification(testUser)
+                .withContent("내 메시지 알림")
+                .withUrl("/paper/2")
+                .asUnread()
+                .build()
+        );
 
-        createAndSaveNotification(otherUser, NotificationType.ADMIN, "다른 사용자의 관리자 알림", "/admin/1", false);
-        createAndSaveNotification(otherUser, NotificationType.POST_FEATURED, "다른 사용자의 인기글 알림", "/post/100", true);
+        testEntityManager.persistAndFlush(
+            NotificationTestDataBuilder.anAdminNotification(otherUser)
+                .withContent("다른 사용자의 관리자 알림")
+                .withUrl("/admin/1")
+                .asUnread()
+                .build()
+        );
+        testEntityManager.persistAndFlush(
+            NotificationTestDataBuilder.aPostFeaturedNotification(otherUser, 100L)
+                .withContent("다른 사용자의 인기글 알림")
+                .withUrl("/post/100")
+                .asRead()
+                .build()
+        );
 
         testEntityManager.flush();
         testEntityManager.clear();
@@ -254,7 +296,40 @@ class NotificationQueryAdapterIntegrationTest {
             Thread.sleep(10);
             NotificationType type = NotificationType.values()[i % NotificationType.values().length];
             boolean isRead = i % 3 == 0; // 3의 배수는 읽음 상태
-            createAndSaveNotification(testUser, type, "알림 #" + i, "/url/" + i, isRead);
+
+            NotificationTestDataBuilder builder;
+            switch (type) {
+                case COMMENT:
+                    builder = NotificationTestDataBuilder.aCommentNotification(testUser, (long) i);
+                    break;
+                case PAPER:
+                    builder = NotificationTestDataBuilder.aPaperMessageNotification(testUser);
+                    break;
+                case POST_FEATURED:
+                    builder = NotificationTestDataBuilder.aPostFeaturedNotification(testUser, (long) i);
+                    break;
+                case ADMIN:
+                    builder = NotificationTestDataBuilder.anAdminNotification(testUser);
+                    break;
+                case INITIATE:
+                    builder = NotificationTestDataBuilder.anInitiateNotification(testUser);
+                    break;
+                default:
+                    builder = NotificationTestDataBuilder.aCommentNotification(testUser, (long) i);
+            }
+
+            Notification notification = builder
+                .withContent("알림 #" + i)
+                .withUrl("/url/" + i)
+                .build();
+
+            if (isRead) {
+                notification = builder.asRead().build();
+            } else {
+                notification = builder.asUnread().build();
+            }
+
+            testEntityManager.persistAndFlush(notification);
         }
 
         testEntityManager.flush();
@@ -275,23 +350,4 @@ class NotificationQueryAdapterIntegrationTest {
         assertThat(readCount).isEqualTo(6); // 3의 배수는 6개
     }
 
-    /**
-     * 테스트용 알림 생성 및 저장 헬퍼 메서드
-     */
-    private Notification createAndSaveNotification(User user, NotificationType type, String content, String url, boolean isRead) {
-        Notification notification = Notification.create(user, type, content, url);
-
-        // 읽음 상태 설정을 위한 리플렉션 (테스트 목적)
-        if (isRead) {
-            try {
-                java.lang.reflect.Field readField = Notification.class.getDeclaredField("isRead");
-                readField.setAccessible(true);
-                readField.set(notification, true);
-            } catch (Exception e) {
-                // 리플렉션 실패 시 기본값(false) 유지
-            }
-        }
-
-        return testEntityManager.persistAndFlush(notification);
-    }
 }

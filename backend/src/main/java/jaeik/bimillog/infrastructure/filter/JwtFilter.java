@@ -120,12 +120,14 @@ public class JwtFilter extends OncePerRequestFilter {
                     ExistingUserDetail userDetail = ExistingUserDetail.of(user, tokenId, null); // fcmTokenId는 null로 설정
 
                     // 새로운 accessTokenCookie 발급
-                    ResponseCookie accessCookie = globalCookiePort.generateJwtAccessCookie(userDetail);
+                    String NewAccessToken = jwtPort.generateAccessToken(userDetail);
+                    ResponseCookie accessCookie = globalCookiePort.generateJwtAccessCookie(NewAccessToken);
                     response.addHeader("Set-Cookie", accessCookie.toString());
 
                     // 리프레시 토큰이 15일 이하로 남았으면 새로운 리프레시 토큰도 발급
                     if (jwtPort.shouldRefreshToken(refreshToken, 15)) {
-                        ResponseCookie refreshCookie = globalCookiePort.generateJwtRefreshCookie(userDetail);
+                        String NewRefreshToken = jwtPort.generateRefreshToken(userDetail);
+                        ResponseCookie refreshCookie = globalCookiePort.generateJwtRefreshCookie(NewRefreshToken);
                         response.addHeader("Set-Cookie", refreshCookie.toString());
                     }
 

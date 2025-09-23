@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.in.auth.web;
 
-import jaeik.bimillog.domain.auth.application.port.in.LogoutUseCase;
-import jaeik.bimillog.domain.auth.application.port.in.SocialUseCase;
+import jaeik.bimillog.domain.auth.application.port.in.SocialLogoutUseCase;
+import jaeik.bimillog.domain.auth.application.port.in.SocialLoginUseCase;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.user.application.port.in.SignUpUseCase;
 import jaeik.bimillog.global.annotation.Log;
@@ -33,9 +33,9 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 public class AuthCommandController {
 
-    private final SocialUseCase socialUseCase;
+    private final SocialLoginUseCase socialLoginUseCase;
     private final SignUpUseCase signUpUseCase;
-    private final LogoutUseCase logoutUseCase;
+    private final SocialLogoutUseCase socialLogoutUseCase;
 
     /**
      * <h3>소셜 로그인</h3>
@@ -52,7 +52,7 @@ public class AuthCommandController {
          excludeParams = {"code", "fcmToken"},
          message = "소셜 로그인 요청")
     public ResponseEntity<AuthResponseDTO> socialLogin(@Valid @RequestBody SocialLoginRequestDTO request) {
-        LoginResult loginResult = socialUseCase.processSocialLogin(
+        LoginResult loginResult = socialLoginUseCase.processSocialLogin(
                 request.getSocialProvider(), 
                 request.getCode(), 
                 request.getFcmToken());
@@ -85,7 +85,7 @@ public class AuthCommandController {
          logParams = false)
     public ResponseEntity<AuthResponseDTO> logout(@AuthenticationPrincipal CustomUserDetails userDetails) {
         return ResponseEntity.ok()
-                .headers(headers -> logoutUseCase.logout(userDetails).forEach(cookie ->
+                .headers(headers -> socialLogoutUseCase.logout(userDetails).forEach(cookie ->
                         headers.add("Set-Cookie", cookie.toString())))
                 .body(AuthResponseDTO.success("로그아웃 성공"));
     }

@@ -1,7 +1,5 @@
 package jaeik.bimillog.infrastructure.adapter.out.global;
 
-import jaeik.bimillog.domain.auth.application.port.out.JwtPort;
-import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.NewUserDetail;
 import jaeik.bimillog.global.application.port.out.GlobalCookiePort;
 import lombok.RequiredArgsConstructor;
@@ -22,9 +20,6 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class GlobalCookieAdapter implements GlobalCookiePort {
-
-    private final JwtPort jwtPort;
-
     public static final String ACCESS_TOKEN_COOKIE = "jwt_access_token";
     public static final String REFRESH_TOKEN_COOKIE = "jwt_refresh_token";
     public static final String TEMP_USER_ID_COOKIE = "temp_user_id";
@@ -62,8 +57,8 @@ public class GlobalCookieAdapter implements GlobalCookiePort {
      * @since 2.0.0
      */
     @Override
-    public List<ResponseCookie> generateJwtCookie(ExistingUserDetail userDetail) {
-        return List.of(generateJwtAccessCookie(userDetail), generateJwtRefreshCookie(userDetail));
+    public List<ResponseCookie> generateJwtCookie(String accessToken, String refreshToken) {
+        return List.of(generateJwtAccessCookie(accessToken), generateJwtRefreshCookie(refreshToken));
     }
 
     /**
@@ -106,8 +101,7 @@ public class GlobalCookieAdapter implements GlobalCookiePort {
      * @since 2.0.0
      */
     @Override
-    public ResponseCookie generateJwtAccessCookie(ExistingUserDetail userDetail) {
-        String accessToken = jwtPort.generateAccessToken(userDetail);
+    public ResponseCookie generateJwtAccessCookie(String accessToken) {
         return ResponseCookie.from(ACCESS_TOKEN_COOKIE, accessToken)
                 .path("/")
                 .maxAge(MAX_AGE)
@@ -127,8 +121,7 @@ public class GlobalCookieAdapter implements GlobalCookiePort {
      * @since 2.0.0
      */
     @Override
-    public ResponseCookie generateJwtRefreshCookie(ExistingUserDetail userDetail) {
-        String refreshToken = jwtPort.generateRefreshToken(userDetail);
+    public ResponseCookie generateJwtRefreshCookie(String refreshToken) {
         return ResponseCookie.from(REFRESH_TOKEN_COOKIE, refreshToken)
                 .path("/")
                 .maxAge(MAX_AGE * 720L)

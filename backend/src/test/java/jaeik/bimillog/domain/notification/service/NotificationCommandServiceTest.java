@@ -6,6 +6,8 @@ import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
 import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
 import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
+import jaeik.bimillog.testutil.TestFixtures;
+import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,8 +35,7 @@ class NotificationCommandServiceTest {
     @Mock
     private NotificationCommandPort notificationCommandPort;
 
-    @Mock
-    private CustomUserDetails userDetails;
+
 
     @InjectMocks
     private NotificationCommandService notificationCommandService;
@@ -43,6 +44,7 @@ class NotificationCommandServiceTest {
     @DisplayName("알림 일괄 업데이트 - 성공")
     void shouldBatchUpdate_WhenValidInput() {
         // Given
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(TestUsers.USER1);
         when(userDetails.getUserId()).thenReturn(1L);
         List<Long> readIds = Arrays.asList(1L, 2L, 3L);
         List<Long> deletedIds = Arrays.asList(4L, 5L);
@@ -60,6 +62,7 @@ class NotificationCommandServiceTest {
     @DisplayName("알림 일괄 업데이트 - 읽기 ID만 있는 경우")
     void shouldBatchUpdate_WhenOnlyReadIds() {
         // Given
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(TestUsers.USER1);
         when(userDetails.getUserId()).thenReturn(1L);
         List<Long> readIds = Arrays.asList(1L, 2L);
         NotificationUpdateVO updateCommand = NotificationUpdateVO.of(readIds, null);
@@ -76,7 +79,8 @@ class NotificationCommandServiceTest {
     @DisplayName("알림 일괄 업데이트 - 삭제 ID만 있는 경우")
     void shouldBatchUpdate_WhenOnlyDeletedIds() {
         // Given
-        when(userDetails.getUserId()).thenReturn(1L);
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(TestUsers.USER2);
+        when(userDetails.getUserId()).thenReturn(2L);
         List<Long> deletedIds = Arrays.asList(3L, 4L, 5L);
         NotificationUpdateVO updateCommand = NotificationUpdateVO.of(null, deletedIds);
 
@@ -84,7 +88,7 @@ class NotificationCommandServiceTest {
         notificationCommandService.batchUpdate(userDetails, updateCommand);
 
         // Then
-        verify(notificationCommandPort, times(1)).batchUpdate(eq(1L), any(NotificationUpdateVO.class));
+        verify(notificationCommandPort, times(1)).batchUpdate(eq(2L), any(NotificationUpdateVO.class));
         verifyNoMoreInteractions(notificationCommandPort);
     }
 

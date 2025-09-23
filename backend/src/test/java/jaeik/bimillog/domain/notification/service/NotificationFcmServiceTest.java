@@ -50,9 +50,6 @@ class NotificationFcmServiceTest {
     @Mock
     private NotificationUtilPort notificationUtilPort;
 
-    @Mock
-    private User user;
-
     @InjectMocks
     private NotificationFcmService notificationFcmService;
 
@@ -111,7 +108,7 @@ class NotificationFcmServiceTest {
     @DisplayName("FCM 토큰 등록 - 빈 토큰인 경우")
     void shouldNotRegister_WhenFcmTokenIsEmpty() {
         // Given
-        User user = TestUsers.USER1;
+        User user = TestUsers.USER2;
         String fcmToken = "";
 
         // When
@@ -141,7 +138,7 @@ class NotificationFcmServiceTest {
     void shouldSendCommentNotification_WhenValidTokens() throws IOException {
         // Given
         Long postUserId = 1L;
-        String commenterName = "테스트사용자";
+        String commenterName = TestUsers.USER3.getSocialNickname();
         
         List<FcmToken> fcmTokens = Arrays.asList(
                 createMockFcmToken("token1"),
@@ -163,8 +160,8 @@ class NotificationFcmServiceTest {
     @DisplayName("댓글 알림 FCM 전송 - 토큰 없음")
     void shouldNotSendCommentNotification_WhenNoTokens() throws IOException {
         // Given
-        Long postUserId = 1L;
-        String commenterName = "테스트사용자";
+        Long postUserId = 2L;
+        String commenterName = TestUsers.USER2.getUserName();
         
         given(notificationUtilPort.FcmEligibleFcmTokens(postUserId, NotificationType.COMMENT)).willReturn(Collections.emptyList());
 
@@ -182,7 +179,7 @@ class NotificationFcmServiceTest {
     void shouldLogError_WhenCommentNotificationFails() {
         // Given
         Long postUserId = 1L;
-        String commenterName = "테스트사용자";
+        String commenterName = TestUsers.ADMIN.getUserName();
         
         given(notificationUtilPort.FcmEligibleFcmTokens(postUserId, NotificationType.COMMENT))
                 .willThrow(new RuntimeException("FCM 서비스 오류"));

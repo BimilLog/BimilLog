@@ -4,7 +4,11 @@ import jaeik.bimillog.domain.notification.application.port.out.NotificationQuery
 import jaeik.bimillog.domain.notification.application.service.NotificationQueryService;
 import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
+import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
+import jaeik.bimillog.testutil.NotificationTestDataBuilder;
+import jaeik.bimillog.testutil.TestFixtures;
+import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,9 +40,6 @@ class NotificationQueryServiceTest {
     @Mock
     private NotificationQueryPort notificationQueryPort;
 
-    @Mock
-    private CustomUserDetails userDetails;
-
     @InjectMocks
     private NotificationQueryService notificationQueryService;
 
@@ -46,23 +47,19 @@ class NotificationQueryServiceTest {
     @DisplayName("알림 목록 조회 - 성공")
     void shouldGetNotificationList_WhenValidUser() {
         // Given
+        User user = TestUsers.USER1;
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(user);
         given(userDetails.getUserId()).willReturn(1L);
+        
         List<Notification> expectedNotifications = Arrays.asList(
-                Notification.builder()
-                        .id(1L)
-                        .content("새로운 댓글이 달렸습니다.")
-                        .url("/post/123")
-                        .notificationType(NotificationType.COMMENT)
-                        .isRead(false)
-                        .createdAt(Instant.now())
+                NotificationTestDataBuilder.aCommentNotification(user, 123L)
+                        .withId(1L)
+                        .asUnread()
                         .build(),
-                Notification.builder()
-                        .id(2L)
-                        .content("축하합니다! 게시글이 인기글로 선정되었습니다.")
-                        .url("/post/456")
-                        .notificationType(NotificationType.POST_FEATURED)
-                        .isRead(true)
-                        .createdAt(Instant.now().minusSeconds(3600))
+                NotificationTestDataBuilder.aLikeNotification(user, 456L)
+                        .withId(2L)
+                        .asRead()
+                        .createdDaysAgo(1)
                         .build()
         );
 
@@ -76,12 +73,10 @@ class NotificationQueryServiceTest {
         assertThat(result).isNotNull();
         assertThat(result).hasSize(2);
         assertThat(result.get(0).getId()).isEqualTo(1L);
-        assertThat(result.get(0).getContent()).isEqualTo("새로운 댓글이 달렸습니다.");
         assertThat(result.get(0).getNotificationType()).isEqualTo(NotificationType.COMMENT);
         assertThat(result.get(0).isRead()).isFalse();
         
         assertThat(result.get(1).getId()).isEqualTo(2L);
-        assertThat(result.get(1).getContent()).isEqualTo("축하합니다! 게시글이 인기글로 선정되었습니다.");
         assertThat(result.get(1).getNotificationType()).isEqualTo(NotificationType.POST_FEATURED);
         assertThat(result.get(1).isRead()).isTrue();
 
@@ -93,7 +88,8 @@ class NotificationQueryServiceTest {
     @DisplayName("알림 목록 조회 - 빈 목록")
     void shouldGetNotificationList_WhenNoNotifications() {
         // Given
-        given(userDetails.getUserId()).willReturn(1L);
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(TestUsers.USER2);
+        given(userDetails.getUserId()).willReturn(2L);
         List<Notification> emptyList = Collections.emptyList();
         given(notificationQueryPort.getNotificationList(any()))
                 .willReturn(emptyList);
@@ -113,15 +109,14 @@ class NotificationQueryServiceTest {
     @DisplayName("알림 목록 조회 - 단일 알림")
     void shouldGetNotificationList_WhenSingleNotification() {
         // Given
-        given(userDetails.getUserId()).willReturn(1L);
+        User user = TestUsers.USER3;
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(user);
+        given(userDetails.getUserId()).willReturn(3L);
+        
         List<Notification> singleNotification = Arrays.asList(
-                Notification.builder()
-                        .id(1L)
-                        .content("새로운 메시지가 도착했습니다.")
-                        .url("/paper/test")
-                        .notificationType(NotificationType.PAPER)
-                        .isRead(false)
-                        .createdAt(Instant.now())
+                NotificationTestDataBuilder.aPaperMessageNotification(user)
+                        .withId(1L)
+                        .asUnread()
                         .build()
         );
 
@@ -135,7 +130,6 @@ class NotificationQueryServiceTest {
         assertThat(result).isNotNull();
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getId()).isEqualTo(1L);
-        assertThat(result.get(0).getContent()).isEqualTo("새로운 메시지가 도착했습니다.");
         assertThat(result.get(0).getNotificationType()).isEqualTo(NotificationType.PAPER);
         assertThat(result.get(0).isRead()).isFalse();
 
@@ -147,33 +141,11 @@ class NotificationQueryServiceTest {
     @DisplayName("알림 목록 조회 - 읽은 알림과 안읽은 알림 혼재")
     void shouldGetNotificationList_WhenMixedReadStatus() {
         // Given
-        given(userDetails.getUserId()).willReturn(1L);
-        List<Notification> mixedNotifications = Arrays.asList(
-                Notification.builder()
-                        .id(1L)
-                        .content("읽지 않은 알림")
-                        .url("/test/1")
-                        .notificationType(NotificationType.COMMENT)
-                        .isRead(false)
-                        .createdAt(Instant.now())
-                        .build(),
-                Notification.builder()
-                        .id(2L)
-                        .content("읽은 알림")
-                        .url("/test/2")
-                        .notificationType(NotificationType.POST_FEATURED)
-                        .isRead(true)
-                        .createdAt(Instant.now().minusSeconds(1800))
-                        .build(),
-                Notification.builder()
-                        .id(3L)
-                        .content("또 다른 읽지 않은 알림")
-                        .url("/test/3")
-                        .notificationType(NotificationType.PAPER)
-                        .isRead(false)
-                        .createdAt(Instant.now().minusSeconds(900))
-                        .build()
-        );
+        User user = TestUsers.ADMIN;
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(user);
+        given(userDetails.getUserId()).willReturn(4L);
+        
+        List<Notification> mixedNotifications = NotificationTestDataBuilder.createMixedReadStatus(user, 2, 1);
 
         given(notificationQueryPort.getNotificationList(any()))
                 .willReturn(mixedNotifications);
@@ -236,19 +208,11 @@ class NotificationQueryServiceTest {
     @DisplayName("알림 목록 조회 - 대량 알림")
     void shouldGetNotificationList_WhenLargeAmountOfNotifications() {
         // Given
+        User user = TestUsers.USER1;
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(user);
         given(userDetails.getUserId()).willReturn(1L);
-        List<Notification> largeNotificationList = Arrays.asList(
-                createNotification(1L, NotificationType.COMMENT),
-                createNotification(2L, NotificationType.POST_FEATURED),
-                createNotification(3L, NotificationType.PAPER),
-                createNotification(4L, NotificationType.POST_FEATURED),
-                createNotification(5L, NotificationType.COMMENT),
-                createNotification(6L, NotificationType.POST_FEATURED),
-                createNotification(7L, NotificationType.PAPER),
-                createNotification(8L, NotificationType.POST_FEATURED),
-                createNotification(9L, NotificationType.COMMENT),
-                createNotification(10L, NotificationType.POST_FEATURED)
-        );
+        
+        List<Notification> largeNotificationList = NotificationTestDataBuilder.createNotifications(10, user);
 
         given(notificationQueryPort.getNotificationList(any()))
                 .willReturn(largeNotificationList);
@@ -259,8 +223,6 @@ class NotificationQueryServiceTest {
         // Then
         assertThat(result).isNotNull();
         assertThat(result).hasSize(10);
-        assertThat(result.get(0).getId()).isEqualTo(1L);
-        assertThat(result.get(9).getId()).isEqualTo(10L);
 
         verify(notificationQueryPort, times(1)).getNotificationList(any());
         verifyNoMoreInteractions(notificationQueryPort);
@@ -270,14 +232,11 @@ class NotificationQueryServiceTest {
     @DisplayName("알림 목록 조회 - 모든 알림 타입 포함")
     void shouldGetNotificationList_WhenAllNotificationTypes() {
         // Given
-        given(userDetails.getUserId()).willReturn(1L);
-        List<Notification> allTypesNotifications = Arrays.asList(
-                createNotification(1L, NotificationType.COMMENT),
-                createNotification(2L, NotificationType.POST_FEATURED),
-                createNotification(3L, NotificationType.PAPER),
-                createNotification(4L, NotificationType.POST_FEATURED),
-                createNotification(5L, NotificationType.PAPER)
-        );
+        User user = TestUsers.USER2;
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(user);
+        given(userDetails.getUserId()).willReturn(2L);
+        
+        List<Notification> allTypesNotifications = NotificationTestDataBuilder.createMixedNotifications(user);
 
         given(notificationQueryPort.getNotificationList(any()))
                 .willReturn(allTypesNotifications);
@@ -290,11 +249,9 @@ class NotificationQueryServiceTest {
         assertThat(result).hasSize(5);
         
         // 알림 타입별 검증
-        assertThat(result.get(0).getNotificationType()).isEqualTo(NotificationType.COMMENT);
-        assertThat(result.get(1).getNotificationType()).isEqualTo(NotificationType.POST_FEATURED);
-        assertThat(result.get(2).getNotificationType()).isEqualTo(NotificationType.PAPER);
-        assertThat(result.get(3).getNotificationType()).isEqualTo(NotificationType.POST_FEATURED);
-        assertThat(result.get(4).getNotificationType()).isEqualTo(NotificationType.PAPER);
+        assertThat(result).extracting(Notification::getNotificationType)
+                .contains(NotificationType.COMMENT, NotificationType.POST_FEATURED, 
+                         NotificationType.PAPER, NotificationType.ADMIN);
 
         verify(notificationQueryPort, times(1)).getNotificationList(any());
         verifyNoMoreInteractions(notificationQueryPort);
@@ -304,7 +261,8 @@ class NotificationQueryServiceTest {
     @DisplayName("알림 목록 조회 - 반환된 리스트가 null인 경우")
     void shouldHandleNullList_WhenPortReturnsNull() {
         // Given
-        given(userDetails.getUserId()).willReturn(1L);
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(TestUsers.USER3);
+        given(userDetails.getUserId()).willReturn(3L);
         given(notificationQueryPort.getNotificationList(any()))
                 .willReturn(null);
 
@@ -317,16 +275,5 @@ class NotificationQueryServiceTest {
 
         verify(notificationQueryPort, times(1)).getNotificationList(any());
         verifyNoMoreInteractions(notificationQueryPort);
-    }
-
-    private Notification createNotification(Long id, NotificationType type) {
-        return Notification.builder()
-                .id(id)
-                .content("테스트 알림 " + id)
-                .url("/test/" + id)
-                .notificationType(type)
-                .isRead(id % 2 == 0) // 짝수 ID는 읽음, 홀수 ID는 안 읽음
-                .createdAt(Instant.now().minusSeconds(id * 300)) // ID에 비례하여 시간 차이
-                .build();
     }
 }

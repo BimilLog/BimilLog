@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.out.api.social.kakao;
 
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
-import jaeik.bimillog.domain.auth.application.service.SocialService;
+import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
@@ -50,7 +50,7 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
     /**
      * <h3>카카오 소셜 로그인 전체 처리</h3>
      * <p>카카오 OAuth 2.0 인증 코드를 받아 토큰 발급부터 사용자 정보 조회까지 전체 로그인 플로우를 처리합니다.</p>
-     * <p>{@link SocialService}에서 소셜 로그인 인증 단계 처리 시 호출됩니다.</p>
+     * <p>{@link SocialLoginService}에서 소셜 로그인 인증 단계 처리 시 호출됩니다.</p>
      * <p>내부적으로 getToken()과 getUserInfo() 메서드를 순차적으로 호출하여 처리합니다.</p>
      *
      * @param provider 소셜 로그인 제공자 (KAKAO)
@@ -140,7 +140,7 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
     /**
      * <h3>카카오 계정 연결 해제</h3>
      * <p>카카오 관리자 API를 사용하여 특정 사용자의 카카오 계정 연결을 완전히 해제합니다.</p>
-     * <p>{@link SocialService}에서 회원 탈퇴 또는 계정 차단 시 호출됩니다.</p>
+     * <p>{@link SocialLoginService}에서 회원 탈퇴 또는 계정 차단 시 호출됩니다.</p>
      * <p>카카오 관리자 키(Admin Key)를 사용하여 서버 측에서 강제로 연결을 해제하므로 사용자가 다시 로그인하려면 새로 인증 과정을 거쳐야 합니다.</p>
      *
      * @param provider 연결을 해제할 소셜 제공자 (KAKAO)
@@ -164,7 +164,7 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
     /**
      * <h3>카카오 로그아웃 처리</h3>
      * <p>사용자의 카카오 액세스 토큰을 사용하여 카카오 서버에서 로그아웃 처리를 수행합니다.</p>
-     * <p>{@link SocialService}에서 사용자 로그아웃 요청 처리 시 호출됩니다.</p>
+     * <p>{@link SocialLoginService}에서 사용자 로그아웃 요청 처리 시 호출됩니다.</p>
      * <p>카카오 서버 오류 시에도 로그아웃 플로우를 방해하지 않도록 예외를 무시합니다.</p>
      *
      * @param provider 로그아웃할 소셜 제공자 (KAKAO)

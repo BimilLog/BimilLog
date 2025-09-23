@@ -5,7 +5,6 @@ import jaeik.bimillog.domain.user.application.port.out.DeleteUserPort;
 import jaeik.bimillog.domain.user.application.service.WithdrawService;
 import jaeik.bimillog.infrastructure.adapter.out.auth.jpa.BlackListRepository;
 import jaeik.bimillog.infrastructure.adapter.out.auth.jpa.TokenRepository;
-import jaeik.bimillog.infrastructure.adapter.out.global.GlobalCookieAdapter;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +26,6 @@ public class DeleteUserAdapter implements DeleteUserPort {
 
     private final EntityManager entityManager;
     private final TokenRepository tokenRepository;
-    private final GlobalCookieAdapter globalCookieAdapter;
     private final UserRepository userRepository;
     private final BlackListRepository blackListRepository;
 
@@ -52,7 +50,7 @@ public class DeleteUserAdapter implements DeleteUserPort {
             // tokenId가 null인 경우 (회원탈퇴 등) 모든 토큰 삭제
             tokenRepository.deleteAllByUserId(userId);
         }
-        // 이벤트 발행은 호출하는 측(LogoutService)에서 담당
+        // 이벤트 발행은 호출하는 측(SocialLogoutService)에서 담당
     }
 
     /**

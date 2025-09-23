@@ -1,21 +1,16 @@
 package jaeik.bimillog.infrastructure.adapter.out.user;
 
-import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
-import jaeik.bimillog.infrastructure.adapter.out.global.GlobalCookieAdapter;
+import jaeik.bimillog.infrastructure.adapter.out.auth.jpa.BlackListRepository;
 import jaeik.bimillog.infrastructure.adapter.out.auth.jpa.TokenRepository;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jakarta.persistence.EntityManager;
+import jaeik.bimillog.domain.auth.entity.BlackList;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.http.ResponseCookie;
-
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -35,9 +30,8 @@ class DeleteUserAdapterTest {
 
     @Mock private EntityManager entityManager;
     @Mock private TokenRepository tokenRepository;
-    @Mock private ApplicationEventPublisher eventPublisher;
-    @Mock private GlobalCookieAdapter globalCookieAdapter;
     @Mock private UserRepository userRepository;
+    @Mock private BlackListRepository blackListRepository;
 
     @InjectMocks private DeleteUserAdapter deleteDataAdapter;
 
@@ -51,14 +45,8 @@ class DeleteUserAdapterTest {
         Long tokenId = 123L;
         deleteDataAdapter.logoutUser(validUserId, tokenId);
 
-        // Then: 특정 토큰 삭제 및 이벤트 발행 검증
+        // Then: 특정 토큰 삭제 검증
         verify(tokenRepository).deleteById(tokenId);
-        
-        ArgumentCaptor<UserLoggedOutEvent> eventCaptor = ArgumentCaptor.forClass(UserLoggedOutEvent.class);
-        verify(eventPublisher).publishEvent(eventCaptor.capture());
-        
-        UserLoggedOutEvent capturedEvent = eventCaptor.getValue();
-        assertThat(capturedEvent.userId()).isEqualTo(validUserId);
     }
 
 
@@ -71,9 +59,8 @@ class DeleteUserAdapterTest {
         // When: 존재하지 않는 사용자 ID로 모든 토큰 삭제 (tokenId = null)
         deleteDataAdapter.logoutUser(nonExistentUserId, null);
 
-        // Then: 모든 토큰 삭제 시도 및 이벤트 발행 (실제 존재 여부는 repository에서 처리)
+        // Then: 모든 토큰 삭제 시도 (실제 존재 여부는 repository에서 처리)
         verify(tokenRepository).deleteAllByUserId(nonExistentUserId);
-        verify(eventPublisher).publishEvent(any(UserLoggedOutEvent.class));
     }
 
     @Test
@@ -126,59 +113,17 @@ class DeleteUserAdapterTest {
     }
 
     @Test
-    @DisplayName("로그아웃 쿠키 생성 - 정상적인 쿠키 반환")
-    void shouldReturnLogoutCookies_WhenGetLogoutCookiesCalled() {
-        // Given: AuthCookieManager에서 반환할 쿠키 리스트
-        ResponseCookie accessTokenCookie = ResponseCookie.from("accessToken", "")
-                .maxAge(0)
-                .httpOnly(true)
-                .build();
-        ResponseCookie refreshTokenCookie = ResponseCookie.from("refreshToken", "")
-                .maxAge(0)
-                .httpOnly(true)
-                .build();
-        List<ResponseCookie> expectedCookies = List.of(accessTokenCookie, refreshTokenCookie);
-        
-        given(globalCookieAdapter.getLogoutCookies()).willReturn(expectedCookies);
+    @DisplayName("블랙리스트 저장 - 정상 처리")
+    void shouldSaveBlackList_WhenValidBlackList() {
+        // Given: 유효한 블랙리스트 엔티티
+        BlackList blackList = BlackList.createBlackList("kakao123", jaeik.bimillog.domain.user.entity.SocialProvider.KAKAO);
 
-        // When: 로그아웃 쿠키 조회
-        List<ResponseCookie> actualCookies = deleteDataAdapter.getLogoutCookies();
+        // When: 블랙리스트 저장
+        deleteDataAdapter.saveBlackList(blackList);
 
-        // Then: 예상된 쿠키 리스트 반환 검증
-        assertThat(actualCookies).isEqualTo(expectedCookies);
-        assertThat(actualCookies).hasSize(2);
-        verify(globalCookieAdapter).getLogoutCookies();
+        // Then: 저장 검증
+        verify(blackListRepository).save(blackList);
     }
-
-    @Test
-    @DisplayName("로그아웃 쿠키 생성 - 빈 리스트 반환")
-    void shouldReturnEmptyList_WhenAuthCookieManagerReturnsEmpty() {
-        // Given: AuthCookieManager에서 빈 리스트 반환
-        List<ResponseCookie> emptyCookies = List.of();
-        given(globalCookieAdapter.getLogoutCookies()).willReturn(emptyCookies);
-
-        // When: 로그아웃 쿠키 조회
-        List<ResponseCookie> actualCookies = deleteDataAdapter.getLogoutCookies();
-
-        // Then: 빈 리스트 반환 검증
-        assertThat(actualCookies).isEmpty();
-        verify(globalCookieAdapter).getLogoutCookies();
-    }
-
-    @Test
-    @DisplayName("로그아웃 쿠키 생성 - null 반환 처리")
-    void shouldHandleNullReturn_WhenAuthCookieManagerReturnsNull() {
-        // Given: AuthCookieManager에서 null 반환
-        given(globalCookieAdapter.getLogoutCookies()).willReturn(null);
-
-        // When: 로그아웃 쿠키 조회
-        List<ResponseCookie> actualCookies = deleteDataAdapter.getLogoutCookies();
-
-        // Then: null 반환 검증 (실제 null 처리는 호출하는 쪽에서 해야 함)
-        assertThat(actualCookies).isNull();
-        verify(globalCookieAdapter).getLogoutCookies();
-    }
-
 
     @Test
     @DisplayName("예외 전파 테스트 - TokenRepository 예외 발생")
@@ -192,15 +137,12 @@ class DeleteUserAdapterTest {
         assertThatThrownBy(() -> deleteDataAdapter.logoutUser(userId, null))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Database error");
-
-        // Then: 이벤트 발행이 실행되지 않음 검증
-        verify(eventPublisher, never()).publishEvent(any(UserLoggedOutEvent.class));
     }
 
     @Test
-    @DisplayName("예외 전파 테스트 - UserCommandUseCase 예외 발생")
-    void shouldPropagateException_WhenUserCommandUseCaseThrowsException() {
-        // Given: UserCommandUseCase에서 예외 발생
+    @DisplayName("예외 전파 테스트 - UserRepository 예외 발생")
+    void shouldPropagateException_WhenUserRepositoryThrowsException() {
+        // Given: UserRepository에서 예외 발생
         Long userId = 1L;
         RuntimeException expectedException = new RuntimeException("User deletion failed");
         doThrow(expectedException).when(userRepository).deleteById(userId);
