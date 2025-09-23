@@ -7341,3 +7341,4 @@ replay_pid*
 /backend/AOP_LOGGING_GUIDE.md
 /backend/src/main/resources/dump/
 /LOGBACK_ANALYSIS.md
+/backend/SOCIAL_LOGIN_STRATEGY_PATTERN.md

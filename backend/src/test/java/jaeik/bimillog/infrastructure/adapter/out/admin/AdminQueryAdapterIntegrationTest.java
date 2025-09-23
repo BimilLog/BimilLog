@@ -1,6 +1,5 @@
 package jaeik.bimillog.infrastructure.adapter.out.admin;
 
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.BimilLogApplication;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
@@ -8,27 +7,19 @@ import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
-import jaeik.bimillog.infrastructure.security.EncryptionUtil;
+import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSettings;
 import jaeik.bimillog.testutil.TestUsers;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.TestPropertySource;
-import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,49 +31,8 @@ import static org.assertj.core.api.Assertions.assertThat;
         )
 )
 @Testcontainers
-@EntityScan(basePackages = {
-        "jaeik.bimillog.domain.admin.entity",
-        "jaeik.bimillog.domain.user.entity",
-        "jaeik.bimillog.domain.paper.entity",
-        "jaeik.bimillog.domain.post.entity",
-        "jaeik.bimillog.domain.comment.entity",
-        "jaeik.bimillog.domain.notification.entity",
-        "jaeik.bimillog.domain.global.entity"
-})
-@Import(AdminQueryAdapter.class)
-@TestPropertySource(properties = {
-        "spring.jpa.hibernate.ddl-auto=create"
-})
+@Import({AdminQueryAdapter.class, TestContainersConfiguration.class})
 class AdminQueryAdapterIntegrationTest {
-
-    @Container
-    static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
-            .withDatabaseName("testdb")
-            .withUsername("test")
-            .withPassword("test");
-
-    @DynamicPropertySource
-    static void dynamicProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", mysql::getJdbcUrl);
-        registry.add("spring.datasource.username", mysql::getUsername);
-        registry.add("spring.datasource.password", mysql::getPassword);
-    }
-
-    @TestConfiguration
-    static class TestConfig {
-        @Bean
-        public JPAQueryFactory jpaQueryFactory(EntityManager entityManager) {
-            return new JPAQueryFactory(entityManager);
-        }
-
-        // EncryptionUtil 빈 정의: MessageEncryptConverter의 의존성을 만족시킵니다.
-        @Bean
-        public EncryptionUtil encryptionUtil() {
-            // 테스트를 위해 간단한 더미 인스턴스를 반환합니다.
-            // 실제 EncryptionUtil이 복잡한 의존성을 가진다면 Mockito.mock(EncryptionUtil.class)를 사용할 수 있습니다.
-            return new EncryptionUtil();
-        }
-    }
 
     @Autowired
     private AdminQueryAdapter adminQueryAdapter;
