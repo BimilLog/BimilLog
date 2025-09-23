@@ -9,6 +9,7 @@ import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.out.auth.jpa.BlackListRepository;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.SettingRepository;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
+import jaeik.bimillog.testutil.TestUsers;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -115,15 +116,8 @@ class UserCommandAdapterIntegrationTest {
         Setting setting = Setting.createSetting();
         setting = settingRepository.save(setting);  // 먼저 설정 저장
         
-        User newUser = User.builder()
-                .socialId("kakao123")
-                .provider(SocialProvider.KAKAO)
-                .userName("testUser")
-                .socialNickname("카카오유저")
-                .thumbnailImage("http://example.com/image.jpg")
-                .role(UserRole.USER)
-                .setting(setting)
-                .build();
+        User newUser = TestUsers.createUniqueWithPrefix("testUser");
+        newUser = TestUsers.copyWithId(TestUsers.withSetting(setting), newUser.getId());
 
         // When: 사용자 저장
         User savedUser = userCommandAdapter.save(newUser);
@@ -149,14 +143,8 @@ class UserCommandAdapterIntegrationTest {
         Setting setting = Setting.createSetting();
         setting = settingRepository.save(setting);
         
-        User existingUser = User.builder()
-                .socialId("kakao456")
-                .provider(SocialProvider.KAKAO)
-                .userName("oldUserName")
-                .socialNickname("old nickname")
-                .role(UserRole.USER)
-                .setting(setting)
-                .build();
+        User existingUser = TestUsers.createUniqueWithPrefix("oldUserName");
+        existingUser = TestUsers.copyWithId(TestUsers.withSetting(setting), existingUser.getId());
         existingUser = userRepository.save(existingUser);
 
         // 사용자 정보 수정
@@ -192,13 +180,8 @@ class UserCommandAdapterIntegrationTest {
                 .postFeaturedNotification(true)
                 .build();
 
-        User userWithSetting = User.builder()
-                .socialId("kakaoWithSetting")
-                .provider(SocialProvider.KAKAO)
-                .userName("userWithSetting")
-                .role(UserRole.USER)
-                .setting(setting)
-                .build();
+        User userWithSetting = TestUsers.createUniqueWithPrefix("userWithSetting");
+        userWithSetting = TestUsers.copyWithId(TestUsers.withSetting(setting), userWithSetting.getId());
 
         // When: 사용자 저장 (설정도 cascade로 함께 저장)
         User savedUser = userCommandAdapter.save(userWithSetting);
@@ -223,26 +206,16 @@ class UserCommandAdapterIntegrationTest {
         Setting setting1 = Setting.createSetting();
         setting1 = settingRepository.save(setting1);
         
-        User existingUser = User.builder()
-                .socialId("kakao111")
-                .provider(SocialProvider.KAKAO)
-                .userName("duplicateUser")
-                .role(UserRole.USER)
-                .setting(setting1)
-                .build();
+        User existingUser = TestUsers.createUniqueWithPrefix("duplicateUser");
+        existingUser = TestUsers.copyWithId(TestUsers.withSetting(setting1), existingUser.getId());
         userRepository.save(existingUser);
 
         // 동일한 닉네임을 가진 다른 사용자
         Setting setting2 = Setting.createSetting();
         setting2 = settingRepository.save(setting2);
         
-        User duplicateUser = User.builder()
-                .socialId("kakao222")
-                .provider(SocialProvider.KAKAO)
-                .userName("duplicateUser")  // 중복 닉네임
-                .role(UserRole.USER)
-                .setting(setting2)
-                .build();
+        User tempUser = TestUsers.createUniqueWithPrefix("duplicateUser");
+        final User duplicateUser = TestUsers.copyWithId(TestUsers.withSetting(setting2), tempUser.getId());  // 중복 닉네임
 
         // When & Then: 중복 닉네임으로 저장 시 예외 발생
         org.junit.jupiter.api.Assertions.assertThrows(
@@ -263,15 +236,8 @@ class UserCommandAdapterIntegrationTest {
                 .postFeaturedNotification(false)
                 .build();
 
-        User complexUser = User.builder()
-                .socialId("complexKakaoId")
-                .provider(SocialProvider.KAKAO)
-                .userName("complexUser")
-                .socialNickname("복잡한 카카오 닉네임")
-                .thumbnailImage("https://complex-image-url.com/profile.jpg")
-                .role(UserRole.USER)
-                .setting(complexSetting)
-                .build();
+        User complexUser = TestUsers.createUniqueWithPrefix("complexUser");
+        complexUser = TestUsers.copyWithId(TestUsers.withSetting(complexSetting), complexUser.getId());
 
         // When: 복잡한 사용자 저장
         User savedComplexUser = userCommandAdapter.save(complexUser);

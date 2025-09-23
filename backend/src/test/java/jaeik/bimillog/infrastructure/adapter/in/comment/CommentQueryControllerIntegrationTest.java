@@ -13,6 +13,7 @@ import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostRepository;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSettings;
+import jaeik.bimillog.testutil.TestUsers;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -78,7 +79,7 @@ class CommentQueryControllerIntegrationTest {
                 .build();
         
         // 테스트용 사용자 생성
-        testUser = createTestUser();
+        testUser = TestUsers.createUnique();
         userRepository.save(testUser);
         
         // 테스트용 게시글 생성
@@ -143,24 +144,6 @@ class CommentQueryControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
         // 추천 로직은 별도 CommentLike 엔티티로 관리되므로 실제 추천이 없으면 빈 배열 반환이 정상
-    }
-    
-    
-    
-    
-    /**
-     * 테스트용 사용자 생성
-     */
-    private User createTestUser() {
-        return User.builder()
-                .socialId("12345")
-                .socialNickname("테스트사용자")
-                .thumbnailImage("test-profile.jpg")
-                .userName("testuser")
-                .provider(SocialProvider.KAKAO)
-                .role(UserRole.USER)
-                .setting(TestSettings.DEFAULT)
-                .build();
     }
     
     /**

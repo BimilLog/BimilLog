@@ -63,7 +63,7 @@ class NotificationSseControllerIntegrationTest {
                 .build();
         
         // 테스트용 사용자 생성
-        testUser = createTestUser();
+        testUser = TestUsers.createUnique();
         userRepository.save(testUser);
     }
     
@@ -107,8 +107,8 @@ class NotificationSseControllerIntegrationTest {
     @DisplayName("다른 사용자들의 동시 SSE 구독 - 성공")
     void subscribe_MultipleUsers_Success() throws Exception {
         // Given - 추가 사용자들 생성
-        User user2 = createTestUser("user2", "67890");
-        User user3 = createTestUser("user3", "11111");
+        User user2 = TestUsers.createUniqueWithPrefix("user2");
+        User user3 = TestUsers.createUniqueWithPrefix("user3");
         userRepository.save(user2);
         userRepository.save(user3);
         
@@ -149,28 +149,6 @@ class NotificationSseControllerIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.TEXT_EVENT_STREAM_VALUE));
-    }
-    
-    /**
-     * 테스트용 기본 사용자 생성
-     */
-    private User createTestUser() {
-        return TestUsers.copyWithId(TestUsers.USER1, null);
-    }
-
-    /**
-     * 테스트용 사용자 생성 (파라미터 지정)
-     */
-    private User createTestUser(String userName, String socialId) {
-        return User.builder()
-                .socialId(socialId)
-                .socialNickname(TestUsers.USER1.getSocialNickname())
-                .thumbnailImage(TestUsers.USER1.getThumbnailImage())
-                .userName(userName)
-                .provider(TestUsers.USER1.getProvider())
-                .role(TestUsers.USER1.getRole())
-                .setting(TestSettings.copyWithId(TestSettings.DEFAULT, null))
-                .build();
     }
     
     /**

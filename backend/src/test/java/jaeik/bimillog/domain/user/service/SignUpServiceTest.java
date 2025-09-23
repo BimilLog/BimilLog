@@ -53,7 +53,6 @@ class SignUpServiceTest {
     private String testUserName;
     private String testUuid;
     private SocialUserProfile testSocialProfile;
-    private Token testToken;
     private TempUserData testTempData;
     private List<ResponseCookie> testCookies;
 
@@ -62,7 +61,7 @@ class SignUpServiceTest {
         testUserName = "testUser";
         testUuid = "test-uuid-123";
 
-        testToken = Token.createTemporaryToken("access-token", "refresh-token");
+        Token testToken = Token.createTemporaryToken("access-token", "refresh-token");
         testSocialProfile = new SocialUserProfile("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg", testToken);
 
         testTempData = TempUserData.from(testSocialProfile, "fcm-token");

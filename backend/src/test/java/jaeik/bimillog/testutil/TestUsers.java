@@ -69,22 +69,6 @@ public class TestUsers {
     }
 
     /**
-     * 특정 ID를 가진 사용자 생성
-     */
-    public static User withId(Long id) {
-        return User.builder()
-                .id(id)
-                .socialId(USER1.getSocialId())
-                .provider(USER1.getProvider())
-                .userName(USER1.getUserName())
-                .socialNickname(USER1.getSocialNickname())
-                .thumbnailImage(USER1.getThumbnailImage())
-                .role(USER1.getRole())
-                .setting(USER1.getSetting())
-                .build();
-    }
-
-    /**
      * 기존 사용자를 복사하며 특정 ID 설정
      */
     public static User copyWithId(User user, Long id) {
@@ -127,6 +111,100 @@ public class TestUsers {
                 .thumbnailImage(USER1.getThumbnailImage())
                 .role(USER1.getRole())
                 .setting(USER1.getSetting())
+                .build();
+    }
+
+    /**
+     * 고유한 사용자 생성 (타임스탬프 기반)
+     * 통합 테스트에서 고유한 사용자가 필요한 경우 사용
+     */
+    public static User createUnique() {
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        return User.builder()
+                .socialId("unique_" + timestamp)
+                .provider(SocialProvider.KAKAO)
+                .userName("user_" + timestamp)
+                .socialNickname("테스트유저_" + timestamp)
+                .thumbnailImage(USER1.getThumbnailImage())
+                .role(UserRole.USER)
+                .setting(TestSettings.DEFAULT)
+                .build();
+    }
+
+    /**
+     * 고유한 사용자 생성 (접두사 지정)
+     * @param prefix 사용자 식별 접두사
+     */
+    public static User createUniqueWithPrefix(String prefix) {
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        return User.builder()
+                .socialId(prefix + "_" + timestamp)
+                .provider(SocialProvider.KAKAO)
+                .userName(prefix + "_" + timestamp)
+                .socialNickname(prefix + "_소셜닉네임")
+                .thumbnailImage(USER1.getThumbnailImage())
+                .role(UserRole.USER)
+                .setting(TestSettings.DEFAULT)
+                .build();
+    }
+
+    /**
+     * 특정 role을 가진 사용자 생성
+     */
+    public static User withRole(UserRole role) {
+        return User.builder()
+                .socialId(USER1.getSocialId())
+                .provider(USER1.getProvider())
+                .userName(USER1.getUserName())
+                .socialNickname(USER1.getSocialNickname())
+                .thumbnailImage(USER1.getThumbnailImage())
+                .role(role)
+                .setting(USER1.getSetting())
+                .build();
+    }
+
+    /**
+     * 특정 provider를 가진 사용자 생성
+     */
+    public static User withProvider(SocialProvider provider) {
+        return User.builder()
+                .socialId(USER1.getSocialId())
+                .provider(provider)
+                .userName(USER1.getUserName())
+                .socialNickname(USER1.getSocialNickname())
+                .thumbnailImage(USER1.getThumbnailImage())
+                .role(USER1.getRole())
+                .setting(USER1.getSetting())
+                .build();
+    }
+
+    /**
+     * 빈 이미지를 가진 사용자 생성
+     */
+    public static User withoutImage() {
+        return User.builder()
+                .socialId(USER1.getSocialId())
+                .provider(USER1.getProvider())
+                .userName(USER1.getUserName())
+                .socialNickname(USER1.getSocialNickname())
+                .thumbnailImage("")
+                .role(USER1.getRole())
+                .setting(USER1.getSetting())
+                .build();
+    }
+
+    /**
+     * 커스텀 설정을 가진 사용자 생성
+     */
+    public static User withSetting(Setting setting) {
+        return User.builder()
+                .socialId(USER1.getSocialId())
+                .provider(USER1.getProvider())
+                .userName(USER1.getUserName())
+                .socialNickname(USER1.getSocialNickname())
+                .thumbnailImage(USER1.getThumbnailImage())
+                .role(USER1.getRole())
+                .setting(setting)
                 .build();
     }
 

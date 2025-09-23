@@ -13,6 +13,7 @@ import jaeik.bimillog.infrastructure.adapter.out.notification.jpa.NotificationRe
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSettings;
+import jaeik.bimillog.testutil.TestUsers;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -79,7 +80,7 @@ class NotificationCommandControllerIntegrationTest {
                 .build();
 
         // 테스트용 사용자 생성
-        testUser = createTestUser();
+        testUser = TestUsers.createUnique();
         userRepository.save(testUser);
 
         // 테스트용 알림들 생성
@@ -234,21 +235,6 @@ class NotificationCommandControllerIntegrationTest {
                         .with(csrf()))
                 .andDo(print())
                 .andExpect(status().is5xxServerError());
-    }
-
-    /**
-     * 테스트용 사용자 생성
-     */
-    private User createTestUser() {
-        return User.builder()
-                .socialId("12345")
-                .socialNickname("테스트사용자")
-                .thumbnailImage("test-profile.jpg")
-                .userName("testuser")
-                .provider(SocialProvider.KAKAO)
-                .role(UserRole.USER)
-                .setting(TestSettings.DEFAULT)
-                .build();
     }
 
     /**

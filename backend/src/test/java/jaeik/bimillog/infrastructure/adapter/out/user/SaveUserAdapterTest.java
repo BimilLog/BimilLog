@@ -61,16 +61,8 @@ class SaveUserAdapterTest {
         Long fcmTokenId = 100L;
         Long tokenId = 1L;
 
-        User existingUser = User.builder()
-                .id(1L)
-                .socialId("123456789")
-                .provider(SocialProvider.KAKAO)
-                .userName("existingUser")
-                .socialNickname("기존닉네임")
-                .thumbnailImage("https://old-profile.jpg")
-                .role(TestUsers.USER1.getRole())
-                .setting(TestUsers.USER1.getSetting())
-                .build();
+        User existingUser = TestUsers.copyWithId(TestUsers.USER1, 1L);
+        existingUser.updateUserInfo("기존닉네임", "https://old-profile.jpg");
 
         Token savedToken = Token.builder()
                 .id(tokenId)
@@ -148,16 +140,8 @@ class SaveUserAdapterTest {
         Token tokenDTO = Token.createTemporaryToken("access-token", "refresh-token");
         SocialUserProfile userProfile = new SocialUserProfile("987654321", "newuser@example.com", SocialProvider.KAKAO, "신규사용자", "https://new-profile.jpg", tokenDTO);
 
-        User newUser = User.builder()
-                .id(2L)
-                .userName(userName)
-                .socialNickname(userProfile.nickname())
-                .thumbnailImage(userProfile.profileImageUrl())
-                .provider(userProfile.provider())
-                .socialId(userProfile.socialId())
-                .role(TestUsers.USER2.getRole())
-                .setting(TestUsers.USER2.getSetting())
-                .build();
+        User newUser = TestUsers.copyWithId(TestUsers.USER2, 2L);
+        // userName과 프로필 정보는 빌더를 통해 설정되어 있음
 
         Token newToken = Token.createTemporaryToken("access-token", "refresh-token");
 
@@ -210,16 +194,8 @@ class SaveUserAdapterTest {
         Token tokenDTO = Token.createTemporaryToken("access-token", "refresh-token");
         SocialUserProfile userProfile = new SocialUserProfile("111222333", "nofcm@example.com", SocialProvider.KAKAO, "FCM없음", "https://no-fcm.jpg", tokenDTO);
 
-        User newUser = User.builder()
-                .id(3L)
-                .userName(userName)
-                .socialId("111222333")
-                .provider(SocialProvider.KAKAO)
-                .socialNickname("FCM없음")
-                .thumbnailImage("https://no-fcm.jpg")
-                .role(TestUsers.USER3.getRole())
-                .setting(TestUsers.USER3.getSetting())
-                .build();
+        User newUser = TestUsers.copyWithId(TestUsers.USER3, 3L);
+        newUser.updateUserInfo("FCM없음", "https://no-fcm.jpg");
 
         Token newToken = Token.createTemporaryToken("access-token", "refresh-token");
 

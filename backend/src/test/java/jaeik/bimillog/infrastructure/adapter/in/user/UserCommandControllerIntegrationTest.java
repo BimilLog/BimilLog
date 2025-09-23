@@ -15,6 +15,7 @@ import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSettings;
+import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -113,7 +114,7 @@ class UserCommandControllerIntegrationTest {
     @DisplayName("닉네임 변경 통합 테스트 - 성공")
     void updateUserName_IntegrationTest_Success() throws Exception {
         // Given - 테스트 사용자 생성 및 저장
-        User testUser = createTestUser();
+        User testUser = TestUsers.createUnique();
         userRepository.save(testUser);
         
         CustomUserDetails userDetails = createCustomUserDetails(testUser);
@@ -136,7 +137,7 @@ class UserCommandControllerIntegrationTest {
     @DisplayName("닉네임 변경 통합 테스트 - 유효성 검증 실패 (8글자 초과)")
     void updateUserName_IntegrationTest_ValidationFail() throws Exception {
         // Given - 테스트 사용자 생성 및 저장
-        User testUser = createTestUser();
+        User testUser = TestUsers.createUnique();
         userRepository.save(testUser);
         
         CustomUserDetails userDetails = createCustomUserDetails(testUser);
@@ -158,7 +159,7 @@ class UserCommandControllerIntegrationTest {
     @DisplayName("설정 수정 통합 테스트 - 성공")
     void updateSetting_IntegrationTest_Success() throws Exception {
         // Given - 테스트 사용자 생성 및 저장
-        User testUser = createTestUser();
+        User testUser = TestUsers.createUnique();
         userRepository.save(testUser);
         
         CustomUserDetails userDetails = createCustomUserDetails(testUser);
@@ -219,7 +220,7 @@ class UserCommandControllerIntegrationTest {
     @DisplayName("설정 수정 - null 값 검증 실패 - 400 Bad Request")
     void updateSetting_NullValidation_BadRequest() throws Exception {
         // Given
-        User testUser = createTestUser();
+        User testUser = TestUsers.createUnique();
         userRepository.save(testUser);
         
         CustomUserDetails userDetails = createCustomUserDetails(testUser);
@@ -245,7 +246,7 @@ class UserCommandControllerIntegrationTest {
     @DisplayName("닉네임 변경 - 빈 문자열 검증 실패 - 400 Bad Request")
     void updateUserName_BlankValidation_BadRequest() throws Exception {
         // Given
-        User testUser = createTestUser();
+        User testUser = TestUsers.createUnique();
         userRepository.save(testUser);
         
         CustomUserDetails userDetails = createCustomUserDetails(testUser);
@@ -267,7 +268,7 @@ class UserCommandControllerIntegrationTest {
     @DisplayName("CSRF 토큰 없이 POST 요청 - 403 Forbidden")
     void postWithoutCsrf_Forbidden() throws Exception {
         // Given
-        User testUser = createTestUser();
+        User testUser = TestUsers.createUnique();
         userRepository.save(testUser);
         
         CustomUserDetails userDetails = createCustomUserDetails(testUser);
@@ -288,7 +289,7 @@ class UserCommandControllerIntegrationTest {
     @DisplayName("Content-Type 누락 - 500 Internal Server Error")
     void postWithoutContentType_InternalServerError() throws Exception {
         // Given
-        User testUser = createTestUser();
+        User testUser = TestUsers.createUnique();
         userRepository.save(testUser);
         
         CustomUserDetails userDetails = createCustomUserDetails(testUser);
@@ -320,7 +321,7 @@ class UserCommandControllerIntegrationTest {
                 .content("") // 빈 내용
                 .build();
 
-        User testUser = createTestUser();
+        User testUser = TestUsers.createUnique();
         userRepository.save(testUser);
         CustomUserDetails userDetails = createCustomUserDetails(testUser);
 
@@ -339,7 +340,7 @@ class UserCommandControllerIntegrationTest {
     @DisplayName("신고 제출 - CSRF 토큰 없이 요청 - 403 Forbidden")
     void submitReport_WithoutCsrf_Forbidden() throws Exception {
         // Given
-        User testUser = createTestUser();
+        User testUser = TestUsers.createUnique();
         userRepository.save(testUser);
         CustomUserDetails userDetails = createCustomUserDetails(testUser);
         
@@ -358,20 +359,6 @@ class UserCommandControllerIntegrationTest {
                 .andExpect(status().isForbidden());
     }
 
-    /**
-     * 테스트용 User 엔티티 생성
-     */
-    private User createTestUser() {
-        return User.builder()
-                .socialId("test-social-id-12345")
-                .socialNickname("통합테스트소셜닉네임")
-                .thumbnailImage("http://example.com/integration-test.jpg")
-                .userName("통합테스트사용자")
-                .provider(SocialProvider.KAKAO)
-                .role(UserRole.USER)
-                .setting(TestSettings.DEFAULT)
-                .build();
-    }
 
     /**
      * 테스트용 CustomUserDetails 생성

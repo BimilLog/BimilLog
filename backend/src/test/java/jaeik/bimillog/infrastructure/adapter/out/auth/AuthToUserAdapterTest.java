@@ -21,6 +21,7 @@ import org.springframework.http.ResponseCookie;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -224,5 +225,101 @@ class AuthToUserAdapterTest {
             googleProfile,
             testFcmToken
         );
+    }
+
+    @Test
+    @DisplayName("사용자 데이터 처리 실패 시 예외 전파")
+    void shouldPropagateException_WhenUserDataProcessingFails() {
+        // Given
+        RuntimeException expectedException = new RuntimeException("데이터 처리 실패");
+        given(userSaveUseCase.processUserData(
+            SocialProvider.KAKAO,
+            testSocialProfile,
+            testFcmToken
+        )).willThrow(expectedException);
+
+        // When & Then
+        assertThatThrownBy(() -> authToUserAdapter.delegateUserData(
+            SocialProvider.KAKAO,
+            testSocialProfile,
+            testFcmToken
+        ))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessage("데이터 처리 실패");
+
+        verify(userSaveUseCase).processUserData(
+            SocialProvider.KAKAO,
+            testSocialProfile,
+            testFcmToken
+        );
+        verifyNoMoreInteractions(authCookieManager);
+    }
+
+    @Test
+    @DisplayName("쿠키 생성 실패 시 예외 전파 - 기존 사용자")
+    void shouldPropagateException_WhenCookieGenerationFailsForExistingUser() {
+        // Given
+        User testUser = TestUsers.USER1;
+        ExistingUserDetail existingUserDetail = ExistingUserDetail.of(testUser, 1L, 100L);
+
+        given(userSaveUseCase.processUserData(
+            SocialProvider.KAKAO,
+            testSocialProfile,
+            testFcmToken
+        )).willReturn(existingUserDetail);
+
+        RuntimeException expectedException = new RuntimeException("쿠키 생성 실패");
+        given(authCookieManager.generateJwtCookie(existingUserDetail))
+            .willThrow(expectedException);
+
+        // When & Then
+        assertThatThrownBy(() -> authToUserAdapter.delegateUserData(
+            SocialProvider.KAKAO,
+            testSocialProfile,
+            testFcmToken
+        ))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessage("쿠키 생성 실패");
+
+        verify(userSaveUseCase).processUserData(
+            SocialProvider.KAKAO,
+            testSocialProfile,
+            testFcmToken
+        );
+        verify(authCookieManager).generateJwtCookie(existingUserDetail);
+    }
+
+    @Test
+    @DisplayName("쿠키 생성 실패 시 예외 전파 - 신규 사용자")
+    void shouldPropagateException_WhenCookieGenerationFailsForNewUser() {
+        // Given
+        String uuid = "test-uuid-12345";
+        NewUserDetail newUserDetail = NewUserDetail.of(uuid);
+
+        given(userSaveUseCase.processUserData(
+            SocialProvider.KAKAO,
+            testSocialProfile,
+            testFcmToken
+        )).willReturn(newUserDetail);
+
+        RuntimeException expectedException = new RuntimeException("임시 쿠키 생성 실패");
+        given(authCookieManager.createTempCookie(newUserDetail))
+            .willThrow(expectedException);
+
+        // When & Then
+        assertThatThrownBy(() -> authToUserAdapter.delegateUserData(
+            SocialProvider.KAKAO,
+            testSocialProfile,
+            testFcmToken
+        ))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessage("임시 쿠키 생성 실패");
+
+        verify(userSaveUseCase).processUserData(
+            SocialProvider.KAKAO,
+            testSocialProfile,
+            testFcmToken
+        );
+        verify(authCookieManager).createTempCookie(newUserDetail);
     }
 }

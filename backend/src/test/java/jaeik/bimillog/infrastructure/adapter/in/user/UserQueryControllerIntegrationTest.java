@@ -11,6 +11,7 @@ import jaeik.bimillog.infrastructure.adapter.out.auth.jpa.TokenRepository;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSettings;
+import jaeik.bimillog.testutil.TestUsers;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -88,7 +89,7 @@ class UserQueryControllerIntegrationTest {
     @DisplayName("닉네임 중복 확인 통합 테스트 - 중복된 닉네임")
     void checkUserName_Duplicate_IntegrationTest() throws Exception {
         // Given - 기존 사용자 생성 및 저장
-        User existingUser = createTestUser();
+        User existingUser = TestUsers.createUnique();
         userRepository.save(existingUser);
 
         // When & Then
@@ -103,7 +104,7 @@ class UserQueryControllerIntegrationTest {
     @DisplayName("사용자 설정 조회 통합 테스트 - 성공")
     void getSetting_IntegrationTest_Success() throws Exception {
         // Given - 테스트 사용자 생성 및 저장
-        User testUser = createTestUser();
+        User testUser = TestUsers.createUnique();
         userRepository.save(testUser);
         
         CustomUserDetails userDetails = createCustomUserDetails(testUser);
@@ -123,7 +124,7 @@ class UserQueryControllerIntegrationTest {
     @DisplayName("사용자 작성 게시글 목록 조회 통합 테스트 - 성공")
     void getUserPosts_IntegrationTest_Success() throws Exception {
         // Given - 테스트 사용자 생성 및 저장
-        User testUser = createTestUser();
+        User testUser = TestUsers.createUnique();
         userRepository.save(testUser);
         
         CustomUserDetails userDetails = createCustomUserDetails(testUser);
@@ -145,7 +146,7 @@ class UserQueryControllerIntegrationTest {
     @DisplayName("사용자 추천한 게시글 목록 조회 통합 테스트 - 성공")
     void getUserLikedPosts_IntegrationTest_Success() throws Exception {
         // Given - 테스트 사용자 생성 및 저장
-        User testUser = createTestUser();
+        User testUser = TestUsers.createUnique();
         userRepository.save(testUser);
         
         CustomUserDetails userDetails = createCustomUserDetails(testUser);
@@ -167,7 +168,7 @@ class UserQueryControllerIntegrationTest {
     @DisplayName("사용자 작성 댓글 목록 조회 통합 테스트 - 성공")
     void getUserComments_IntegrationTest_Success() throws Exception {
         // Given - 테스트 사용자 생성 및 저장
-        User testUser = createTestUser();
+        User testUser = TestUsers.createUnique();
         userRepository.save(testUser);
         
         CustomUserDetails userDetails = createCustomUserDetails(testUser);
@@ -189,7 +190,7 @@ class UserQueryControllerIntegrationTest {
     @DisplayName("사용자 추천한 댓글 목록 조회 통합 테스트 - 성공")
     void getUserLikedComments_IntegrationTest_Success() throws Exception {
         // Given - 테스트 사용자 생성 및 저장
-        User testUser = createTestUser();
+        User testUser = TestUsers.createUnique();
         userRepository.save(testUser);
         
         CustomUserDetails userDetails = createCustomUserDetails(testUser);
@@ -242,7 +243,7 @@ class UserQueryControllerIntegrationTest {
     @DisplayName("카카오 친구 목록 조회 - 정상 케이스 (Mock 환경)")
     void getKakaoFriendList_Success() throws Exception {
         // Given - 테스트용 사용자 생성 및 저장
-        User user = createTestUser();
+        User user = TestUsers.createUnique();
         User savedUser = userRepository.save(user);
         
         // 테스트용 토큰 생성 및 저장
@@ -276,7 +277,7 @@ class UserQueryControllerIntegrationTest {
     @DisplayName("카카오 친구 목록 조회 - 기본 파라미터 사용")
     void getKakaoFriendList_WithDefaultParameters() throws Exception {
         // Given
-        User user = createTestUser();
+        User user = TestUsers.createUnique();
         User savedUser = userRepository.save(user);
         
         // 테스트용 토큰 생성 및 저장
@@ -296,7 +297,7 @@ class UserQueryControllerIntegrationTest {
     @DisplayName("카카오 친구 목록 조회 - 비동기 응답 처리")
     void getKakaoFriendList_AsyncResponse() throws Exception {
         // Given
-        User user = createTestUser();
+        User user = TestUsers.createUnique();
         User savedUser = userRepository.save(user);
         
         // 테스트용 토큰 생성 및 저장
@@ -318,17 +319,6 @@ class UserQueryControllerIntegrationTest {
     /**
      * 테스트용 User 엔티티 생성
      */
-    private User createTestUser() {
-        return User.builder()
-                .socialId("test-social-id-12345")
-                .socialNickname("통합테스트소셜닉네임")
-                .thumbnailImage("http://example.com/integration-test.jpg")
-                .userName("통합테스트사용자")
-                .provider(SocialProvider.KAKAO)
-                .role(UserRole.USER)
-                .setting(TestSettings.DEFAULT)
-                .build();
-    }
 
     /**
      * 테스트용 CustomUserDetails 생성

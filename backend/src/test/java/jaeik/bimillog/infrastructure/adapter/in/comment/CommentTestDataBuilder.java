@@ -6,6 +6,7 @@ import jaeik.bimillog.domain.user.entity.*;
 import jaeik.bimillog.infrastructure.adapter.in.comment.dto.CommentReqDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.TestSettings;
+import jaeik.bimillog.testutil.TestUsers;
 
 /**
  * <h2>댓글 테스트 데이터 빌더</h2>
@@ -24,7 +25,7 @@ public class CommentTestDataBuilder {
      * @return User 테스트용 사용자 엔티티
      */
     public static User createTestUser() {
-        return createTestUser("test");
+        return TestUsers.createUnique();
     }
 
     /**
@@ -35,19 +36,7 @@ public class CommentTestDataBuilder {
      * @return User 테스트용 사용자 엔티티
      */
     public static User createTestUser(String prefix) {
-        String timestamp = String.valueOf(System.currentTimeMillis());
-
-        Setting setting = TestSettings.DEFAULT;
-
-        return User.builder()
-                .socialId(prefix + "_" + timestamp)
-                .socialNickname("테스트사용자_" + prefix)
-                .thumbnailImage("test-profile.jpg")
-                .userName(prefix + "user_" + timestamp)
-                .provider(SocialProvider.KAKAO)
-                .role(UserRole.USER)
-                .setting(setting)
-                .build();
+        return TestUsers.createUniqueWithPrefix(prefix);
     }
 
     /**

@@ -11,6 +11,7 @@ import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSettings;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
+import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -91,7 +92,7 @@ class AuthCommandControllerIntegrationTest {
     @DisplayName("소셜 로그인 통합 테스트 - 기존 사용자")
     void socialLogin_ExistingUser_IntegrationTest() throws Exception {
         // Given - 기존 사용자 데이터 준비
-        User existingUser = createTestUser();
+        User existingUser = TestUsers.createUnique();
         userRepository.save(existingUser);
 
         SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "existing_user_code", null);
@@ -113,7 +114,7 @@ class AuthCommandControllerIntegrationTest {
     @DisplayName("로그아웃 통합 테스트 - 성공")
     void logout_IntegrationTest_Success() throws Exception {
         // Given - 인증된 사용자
-        User testUser = createTestUser();
+        User testUser = TestUsers.createUnique();
         userRepository.save(testUser);
         
         CustomUserDetails userDetails = createCustomUserDetails(testUser);
@@ -134,7 +135,7 @@ class AuthCommandControllerIntegrationTest {
     @DisplayName("회원탈퇴 통합 테스트 - 성공")
     void withdraw_IntegrationTest_Success() throws Exception {
         // Given - 인증된 사용자
-        User testUser = createTestUser();
+        User testUser = TestUsers.createUnique();
         userRepository.save(testUser);
         
         CustomUserDetails userDetails = createCustomUserDetails(testUser);
@@ -181,21 +182,6 @@ class AuthCommandControllerIntegrationTest {
                 .andExpect(status().isForbidden());
     }
 
-
-    /**
-     * 테스트용 User 엔티티 생성
-     */
-    private User createTestUser() {
-        return User.builder()
-                .socialId("test-social-id-12345")
-                .socialNickname("통합테스트소셜닉네임")
-                .thumbnailImage("http://example.com/integration-test.jpg")
-                .userName("통합테스트사용자")
-                .provider(SocialProvider.KAKAO)
-                .role(UserRole.USER)
-                .setting(TestSettings.DEFAULT)
-                .build();
-    }
 
     /**
      * 테스트용 CustomUserDetails 생성

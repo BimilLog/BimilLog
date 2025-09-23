@@ -144,8 +144,8 @@ class WithdrawServiceTest {
     }
 
     @Test
-    @DisplayName("탈퇴 프로세스 실패 시 전체 탈퇴 프로세스 롤백")
-    void shouldRollbackWithdraw_WhenWithdrawProcessFails() {
+    @DisplayName("탈퇴 프로세스 실패 시 예외 발생")
+    void shouldThrowException_WhenWithdrawProcessFails() {
         // Given
         given(userDetails.getUserId()).willReturn(100L);
         given(userQueryPort.findById(100L)).willReturn(Optional.of(testUser));
@@ -209,23 +209,6 @@ class WithdrawServiceTest {
         // 사용자가 없으므로 다른 작업들이 수행되지 않아야 함
     }
 
-    @Test
-    @DisplayName("탈퇴 프로세스 실패 시 예외 발생")
-    void shouldThrow_WhenWithdrawProcessFails() {
-        // Given
-        given(userDetails.getUserId()).willReturn(100L);
-        given(userQueryPort.findById(100L)).willReturn(Optional.of(testUser));
-        doThrow(new RuntimeException("탈퇴 프로세스 실패"))
-                .when(deleteUserPort).performWithdrawProcess(100L);
-
-        // When & Then
-        assertThatThrownBy(() -> withdrawService.withdraw(userDetails))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("탈퇴 프로세스 실패");
-
-        verify(userQueryPort).findById(100L);
-        verify(deleteUserPort).performWithdrawProcess(100L);
-    }
 
     @Test
     @DisplayName("특정 토큰 정리 - 정상 케이스")

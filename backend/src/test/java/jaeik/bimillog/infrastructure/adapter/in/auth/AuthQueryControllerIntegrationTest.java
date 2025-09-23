@@ -10,6 +10,7 @@ import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestSettings;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
+import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -69,7 +70,7 @@ class AuthQueryControllerIntegrationTest {
     @DisplayName("현재 사용자 정보 조회 통합 테스트 - 일반 사용자")
     void getCurrentUser_RegularUser_IntegrationTest() throws Exception {
         // Given - 실제 사용자 데이터 저장
-        User testUser = createTestUser("통합테스트사용자", UserRole.USER);
+        User testUser = TestUsers.createUniqueWithPrefix("통합테스트사용자");
         User savedUser = userRepository.save(testUser);
         
         CustomUserDetails userDetails = createCustomUserDetails(savedUser);
@@ -92,7 +93,8 @@ class AuthQueryControllerIntegrationTest {
     @DisplayName("현재 사용자 정보 조회 통합 테스트 - 관리자 사용자")
     void getCurrentUser_AdminUser_IntegrationTest() throws Exception {
         // Given - 관리자 사용자 데이터 저장
-        User adminUser = createTestUser("관리자", UserRole.ADMIN);
+        User adminUser = TestUsers.createUniqueWithPrefix("관리자");
+        adminUser = TestUsers.copyWithId(TestUsers.withRole(UserRole.ADMIN), adminUser.getId());
         User savedAdmin = userRepository.save(adminUser);
         
         CustomUserDetails adminUserDetails = createCustomUserDetails(savedAdmin);
@@ -133,49 +135,6 @@ class AuthQueryControllerIntegrationTest {
 
 
 
-    /**
-     * 테스트용 User 엔티티 생성 (기본 KAKAO 제공자)
-     */
-    private User createTestUser(String userName, UserRole role) {
-        return createTestUserWithProvider(userName, role, SocialProvider.KAKAO);
-    }
-
-    /**
-     * 테스트용 User 엔티티 생성 (소셜 제공자 지정)
-     */
-    private User createTestUserWithProvider(String userName, SocialProvider provider) {
-        return createTestUserWithProvider(userName, UserRole.USER, provider);
-    }
-
-    /**
-     * 테스트용 User 엔티티 생성 (모든 옵션 지정)
-     */
-    private User createTestUserWithProvider(String userName, UserRole role, SocialProvider provider) {
-        return User.builder()
-                .socialId("integration-test-" + userName + "-" + System.currentTimeMillis())
-                .socialNickname(userName + "_소셜닉네임_" + provider.name())
-                .thumbnailImage("http://example.com/" + userName.toLowerCase() + ".jpg")
-                .userName(userName)
-                .provider(provider)
-                .role(role)
-                .setting(TestSettings.DEFAULT)
-                .build();
-    }
-
-    /**
-     * 테스트용 User 엔티티 생성 (프로필 이미지 없음)
-     */
-    private User createTestUserWithoutImage(String userName) {
-        return User.builder()
-                .socialId("no-image-test-" + System.currentTimeMillis())
-                .socialNickname(userName + "_소셜닉네임")
-                .thumbnailImage("") // 빈 이미지
-                .userName(userName)
-                .provider(SocialProvider.KAKAO)
-                .role(UserRole.USER)
-                .setting(TestSettings.DEFAULT)
-                .build();
-    }
 
     /**
      * 테스트용 CustomUserDetails 생성
