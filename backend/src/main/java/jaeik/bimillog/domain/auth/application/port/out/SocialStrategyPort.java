@@ -63,5 +63,5 @@ public interface SocialStrategyPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    void logout(SocialProvider provider, String accessToken);
+    void logout(SocialProvider provider, String accessToken) throws Exception;
 }

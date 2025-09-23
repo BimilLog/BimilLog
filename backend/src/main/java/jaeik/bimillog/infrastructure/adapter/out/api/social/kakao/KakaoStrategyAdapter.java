@@ -172,14 +172,7 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
      * @since 2.0.0
      */
     @Override
-    public void logout(SocialProvider provider, String accessToken) {
-        try {
-            kakaoApiClient.logout("Bearer " + accessToken, "application/x-www-form-urlencoded;charset=utf-8");
-        } catch (Exception e) {
-            // 로그아웃 실패 시에도 플로우를 계속 진행
-        }
+    public void logout(SocialProvider provider, String accessToken) throws Exception {
+        kakaoApiClient.logout("Bearer " + accessToken, "application/x-www-form-urlencoded;charset=utf-8");
     }
-
-
-
 }

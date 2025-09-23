@@ -71,12 +71,15 @@ class GlobalTokenQueryAdapterTest {
     @Test
     @DisplayName("토큰 ID로 조회 - null ID 처리")
     void shouldReturnEmpty_WhenTokenIdIsNull() {
+        // Given
+        given(tokenRepository.findById(null)).willReturn(Optional.empty());
+
         // When
         Optional<Token> result = globalTokenQueryAdapter.findById(null);
 
         // Then
         assertThat(result).isEmpty();
-        verify(tokenRepository, never()).findById(any());
+        verify(tokenRepository, times(1)).findById(null);
     }
 
     @Test

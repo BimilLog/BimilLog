@@ -1,7 +1,9 @@
 package jaeik.bimillog.domain.auth.event;
 
 import jaeik.bimillog.domain.auth.application.service.SocialLogoutService;
+import jaeik.bimillog.infrastructure.adapter.in.auth.listener.TokenCleanupListener;
 import jaeik.bimillog.infrastructure.adapter.in.notification.listener.FcmTokenRemoveListener;
+import jaeik.bimillog.infrastructure.adapter.in.notification.listener.SseEmitterCleanupListener;
 
 import java.time.LocalDateTime;
 
@@ -15,7 +17,10 @@ import java.time.LocalDateTime;
  * @param loggedOutAt 로그아웃 이벤트가 발생한 정확한 시간
  * @author Jaeik
  * @version 2.0.0
- * {@link FcmTokenRemoveListener} FCM 토큰 제거
+ *
+ * <p>{@link FcmTokenRemoveListener} FCM 토큰 제거</p>
+ * <p>{@link SseEmitterCleanupListener} SSE 해제 </p>
+ * <p>{@link TokenCleanupListener} 토큰 제거</p>
  */
 public record UserLoggedOutEvent(Long userId, Long tokenId, LocalDateTime loggedOutAt) {
 

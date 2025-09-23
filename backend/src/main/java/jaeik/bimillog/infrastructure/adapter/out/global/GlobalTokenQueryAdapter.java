@@ -36,9 +36,6 @@ public class GlobalTokenQueryAdapter implements GlobalTokenQueryPort {
      */
     @Override
     public Optional<Token> findById(Long tokenId) {
-        if (tokenId == null) {
-            return Optional.empty();
-        }
         return tokenRepository.findById(tokenId);
     }
 

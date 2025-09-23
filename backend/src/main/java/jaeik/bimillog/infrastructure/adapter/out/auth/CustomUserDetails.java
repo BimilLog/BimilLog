@@ -1,6 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.out.auth;
 
 import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
@@ -107,7 +108,7 @@ public class CustomUserDetails implements UserDetails {
     /**
      * <h3>사용자 설정 ID 조회</h3>
      *
-     * <p>사용자의 설정 ID를 반환한다. JWT 토큰에서 직접 활용하여 효율적인 설정 조회를 가능하게 한다.</p>
+     * <p>사용자의 설정 ID를 반환한다. JWT 토큰에서 직접 설정 조회를 한다.</p>
      *
      * @since 2.0.0
      * @author Jaeik
@@ -115,6 +116,19 @@ public class CustomUserDetails implements UserDetails {
      */
     public Long getSettingId() {
         return existingUserDetail.getSettingId();
+    }
+
+    /**
+     * <h3>사용자 소셜 제공자 조회</h3>
+     *
+     * <p>사용자의 소셜 제공자를 반환한다.</p>
+     *
+     * @since 2.0.0
+     * @author Jaeik
+     * @return 소셜 제공자
+     */
+    public SocialProvider getSocialProvider() {
+        return existingUserDetail.getProvider();
     }
 
     /**
