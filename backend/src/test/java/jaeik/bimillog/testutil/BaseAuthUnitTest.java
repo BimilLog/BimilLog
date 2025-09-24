@@ -1,6 +1,5 @@
 package jaeik.bimillog.testutil;
 
-import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.user.entity.*;
@@ -282,71 +281,4 @@ public abstract class BaseAuthUnitTest extends BaseUnitTest {
     }
     
 
-    
-    /**
-     * 여러 토큰 생성
-     * @param count 생성할 토큰 개수
-     * @return 토큰 리스트
-     */
-    protected List<Token> createMultipleTokens(int count) {
-        return java.util.stream.IntStream.range(0, count)
-            .mapToObj(i -> Token.createTemporaryToken(
-                "access-token-" + i,
-                "refresh-token-" + i
-            ))
-            .collect(java.util.stream.Collectors.toList());
-    }
-
-    // ==================== UserDetail 생성 헬퍼 메서드 ====================
-    
-    /**
-     * 특정 사용자로부터 ExistingUserDetail 생성
-     * @param user 사용자
-     * @return ExistingUserDetail
-     */
-    protected ExistingUserDetail createExistingUserDetailFrom(User user) {
-        return ExistingUserDetail.builder()
-            .userId(user.getId())
-            .tokenId(1L)
-            .fcmTokenId(1L)
-            .socialId(user.getSocialId())
-            .provider(user.getProvider())
-            .settingId(user.getSetting() != null ? user.getSetting().getId() : null)
-            .userName(user.getUserName())
-            .socialNickname(user.getSocialNickname())
-            .thumbnailImage(user.getThumbnailImage())
-            .role(user.getRole())
-            .build();
-    }
-    
-    /**
-     * 특정 사용자로부터 CustomUserDetails 생성
-     * @param user 사용자
-     * @return CustomUserDetails
-     */
-    protected CustomUserDetails createCustomUserDetailsFrom(User user) {
-        ExistingUserDetail userDetail = createExistingUserDetailFrom(user);
-        return new CustomUserDetails(userDetail);
-    }
-
-    // ==================== LoginResult 생성 헬퍼 메서드 ====================
-    
-    /**
-     * 기존 사용자 로그인 결과 생성
-     * @param cookies 쿠키 리스트
-     * @return LoginResult.ExistingUser
-     */
-    protected LoginResult.ExistingUser createExistingUserLoginResult(List<ResponseCookie> cookies) {
-        return new LoginResult.ExistingUser(cookies);
-    }
-    
-    /**
-     * 신규 사용자 로그인 결과 생성
-     * @param uuid UUID
-     * @param tempCookie 임시 쿠키
-     * @return LoginResult.NewUser
-     */
-    protected LoginResult.NewUser createNewUserLoginResult(String uuid, ResponseCookie tempCookie) {
-        return new LoginResult.NewUser(uuid, tempCookie);
-    }
 }

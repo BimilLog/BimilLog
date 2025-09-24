@@ -131,50 +131,6 @@ public abstract class BaseUnitTest {
     }
 
     /**
-     * ID가 포함된 관리자 사용자 생성 헬퍼 메서드
-     * @param adminId 관리자 ID
-     * @return ID가 설정된 관리자 사용자
-     */
-    protected User createAdminUserWithId(Long adminId) {
-        return TestUsers.copyWithId(adminUser, adminId);
-    }
-
-    /**
-     * 특정 사용자명을 가진 사용자 생성 헬퍼 메서드
-     * @param userName 원하는 사용자명
-     * @return 사용자명이 설정된 테스트 사용자
-     */
-    protected User createUserWithUserName(String userName) {
-        User user = TestUsers.copyWithId(testUser, null);
-        // changeUserName은 검증이 포함된 메서드이므로 직접 필드 수정
-        try {
-            java.lang.reflect.Field field = User.class.getDeclaredField("userName");
-            field.setAccessible(true);
-            field.set(user, userName);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to set userName", e);
-        }
-        return user;
-    }
-
-    /**
-     * 고유한 사용자 생성 (타임스탬프 기반)
-     * @return 고유한 ID를 가진 새로운 사용자
-     */
-    protected User createUniqueUser() {
-        return TestUsers.createUnique();
-    }
-
-    /**
-     * 접두사가 지정된 고유 사용자 생성
-     * @param prefix 사용자 식별 접두사
-     * @return 접두사가 적용된 고유 사용자
-     */
-    protected User createUniqueUserWithPrefix(String prefix) {
-        return TestUsers.createUniqueWithPrefix(prefix);
-    }
-
-    /**
      * 커스텀 설정 생성 헬퍼 메서드
      * @param messageNotification 메시지 알림 활성화 여부
      * @param commentNotification 댓글 알림 활성화 여부

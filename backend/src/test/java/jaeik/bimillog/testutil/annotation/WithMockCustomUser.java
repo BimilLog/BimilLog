@@ -86,22 +86,4 @@ public @interface WithMockCustomUser {
      * @return 설정 ID (기본값: 1)
      */
     long settingId() default 1L;
-
-    /**
-     * 메시지 알림 설정
-     * @return 메시지 알림 활성화 여부 (기본값: true)
-     */
-    boolean messageNotification() default true;
-
-    /**
-     * 댓글 알림 설정
-     * @return 댓글 알림 활성화 여부 (기본값: true)
-     */
-    boolean commentNotification() default true;
-
-    /**
-     * 게시글 추천 알림 설정
-     * @return 게시글 추천 알림 활성화 여부 (기본값: true)
-     */
-    boolean postFeaturedNotification() default true;
 }

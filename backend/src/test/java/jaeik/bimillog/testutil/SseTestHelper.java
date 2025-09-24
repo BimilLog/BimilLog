@@ -5,14 +5,14 @@ import jaeik.bimillog.domain.notification.entity.SseMessage;
 import jaeik.bimillog.infrastructure.adapter.out.sse.EmitterRepository;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 /**
  * <h2>SSE 테스트 헬퍼</h2>
@@ -67,23 +67,6 @@ public class SseTestHelper {
         return mock(SseEmitter.class);
     }
 
-    /**
-     * send 동작이 설정된 SseEmitter Mock 생성
-     * 
-     * @param shouldSucceed send 성공 여부
-     * @return 설정된 Mock SseEmitter
-     */
-    public static SseEmitter createConfiguredMockEmitter(boolean shouldSucceed) {
-        SseEmitter emitter = mock(SseEmitter.class);
-        try {
-            if (!shouldSucceed) {
-                doThrow(new IOException("Send failed")).when(emitter).send(any(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.SseEventBuilder.class));
-            }
-        } catch (IOException e) {
-            // Mock 설정 중 예외는 무시
-        }
-        return emitter;
-    }
 
     /**
      * EmitterRepository Mock 설정 헬퍼
@@ -133,19 +116,6 @@ public class SseTestHelper {
     public static void setupEmitterSave(EmitterRepository repository) {
         given(repository.save(anyString(), any(SseEmitter.class)))
             .willAnswer(invocation -> invocation.getArgument(1));
-    }
-
-    /**
-     * 여러 사용자의 Emitter를 가진 EmitterRepository Mock 설정
-     * 
-     * @param repository Mock EmitterRepository
-     * @param userEmitterMap 사용자별 Emitter Map
-     */
-    public static void setupMultipleUsers(EmitterRepository repository,
-                                         Map<Long, Map<String, SseEmitter>> userEmitterMap) {
-        userEmitterMap.forEach((userId, emitters) -> {
-            given(repository.findAllEmitterByUserId(userId)).willReturn(emitters);
-        });
     }
 
     /**
@@ -232,22 +202,6 @@ public class SseTestHelper {
     }
 
     /**
-     * 인기글 등극 알림 SSE 메시지 생성
-     * 
-     * @param userId 사용자 ID
-     * @param postId 게시글 ID
-     * @return SseMessage
-     */
-    public static SseMessage postFeaturedMessage(Long userId, Long postId) {
-        return sseMessage()
-            .userId(userId)
-            .type(NotificationType.POST_FEATURED)
-            .message("축하합니다! 회원님의 글이 인기글에 등극했습니다!")
-            .url("/board/post/" + postId)
-            .build();
-    }
-
-    /**
      * 다중 기기 시나리오를 위한 Emitter Map 생성
      * 
      * @param userId 사용자 ID
@@ -271,55 +225,5 @@ public class SseTestHelper {
      */
     public static void verifyDeleteAllEmitters(EmitterRepository repository, Long userId) {
         verify(repository).deleteAllEmitterByUserId(userId);
-    }
-
-    /**
-     * EmitterRepository에서 특정 Emitter 삭제 검증
-     * 
-     * @param repository Mock EmitterRepository
-     * @param emitterId Emitter ID
-     */
-    public static void verifyDeleteEmitter(EmitterRepository repository, String emitterId) {
-        verify(repository).deleteById(emitterId);
-    }
-
-    /**
-     * EmitterRepository에서 특정 사용자와 토큰의 Emitter 삭제 검증
-     * 
-     * @param repository Mock EmitterRepository
-     * @param userId 사용자 ID
-     * @param tokenId 토큰 ID
-     */
-    public static void verifyDeleteEmitterByUserAndToken(EmitterRepository repository, 
-                                                        Long userId, 
-                                                        Long tokenId) {
-        verify(repository).deleteEmitterByUserIdAndTokenId(userId, tokenId);
-    }
-
-    /**
-     * SseEmitter send 호출 검증 헬퍼
-     * 
-     * @param emitter Mock SseEmitter
-     * @param expectedCallCount 예상 호출 횟수
-     */
-    public static void verifySseEmitterSend(SseEmitter emitter, int expectedCallCount) {
-        try {
-            verify(emitter, times(expectedCallCount)).send(any(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.SseEventBuilder.class));
-        } catch (IOException e) {
-            // 검증 중 예외는 무시
-        }
-    }
-
-    /**
-     * SseEmitter가 send를 호출하지 않았는지 검증
-     * 
-     * @param emitter Mock SseEmitter
-     */
-    public static void verifyNoSend(SseEmitter emitter) {
-        try {
-            verify(emitter, never()).send(any(org.springframework.web.servlet.mvc.method.annotation.SseEmitter.SseEventBuilder.class));
-        } catch (IOException e) {
-            // 검증 중 예외는 무시
-        }
     }
 }

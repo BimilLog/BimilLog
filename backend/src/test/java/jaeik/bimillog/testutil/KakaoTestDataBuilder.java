@@ -2,7 +2,6 @@ package jaeik.bimillog.testutil;
 
 import jaeik.bimillog.infrastructure.adapter.out.api.dto.KakaoFriendsDTO;
 
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -110,47 +109,4 @@ public class KakaoTestDataBuilder {
         tokenResponse.put("refresh_token_expires_in", 5183999);
         return tokenResponse;
     }
-
-    /**
-     * 카카오 사용자 정보 응답 Map 생성
-     * @param socialId 소셜 ID
-     * @param nickname 닉네임
-     * @param email 이메일
-     * @param profileImage 프로필 이미지 URL
-     * @return 사용자 정보 응답 Map
-     */
-    public static Map<String, Object> createUserInfoResponse(String socialId, String nickname,
-                                                            String email, String profileImage) {
-        Map<String, Object> userInfoResponse = new HashMap<>();
-        // socialId가 숫자로만 구성된 경우 Long으로 변환, 아니면 문자열 그대로 사용
-        try {
-            userInfoResponse.put("id", Long.parseLong(socialId));
-        } catch (NumberFormatException e) {
-            // 테스트에서는 일반적으로 숫자 ID를 사용하므로 기본값 설정
-            userInfoResponse.put("id", 123456789L);
-        }
-
-        Map<String, Object> profile = new HashMap<>();
-        profile.put("nickname", nickname);
-        profile.put("thumbnail_image_url", profileImage);
-        profile.put("profile_image_url", profileImage);
-        profile.put("is_default_image", false);
-
-        Map<String, Object> kakaoAccount = new HashMap<>();
-        kakaoAccount.put("email", email);
-        kakaoAccount.put("profile", profile);
-        kakaoAccount.put("has_email", email != null);
-        kakaoAccount.put("email_needs_agreement", false);
-        kakaoAccount.put("is_email_valid", true);
-        kakaoAccount.put("is_email_verified", true);
-
-        userInfoResponse.put("kakao_account", kakaoAccount);
-        userInfoResponse.put("connected_at", "2024-01-01T00:00:00Z");
-
-        return userInfoResponse;
-    }
-
-
-    // Private constructor to prevent instantiation
-    private KakaoTestDataBuilder() {}
 }

@@ -39,8 +39,6 @@ public class CommentTestDataBuilder {
                 .deleted(false)
                 .build();
     }
-
-
     /**
      * <h3>테스트용 댓글 요청 DTO 생성</h3>
      * <p>API 호출에 사용할 댓글 요청 DTO를 생성합니다.</p>
@@ -55,10 +53,6 @@ public class CommentTestDataBuilder {
         requestDto.setContent(content);
         return requestDto;
     }
-
-
-
-
 
     /**
      * <h3>테스트용 댓글 삭제 요청 DTO 생성</h3>
@@ -86,9 +80,6 @@ public class CommentTestDataBuilder {
         requestDto.setPassword(password);
         return requestDto;
     }
-
-
-
 
     /**
      * <h3>ID가 포함된 댓글 생성</h3>

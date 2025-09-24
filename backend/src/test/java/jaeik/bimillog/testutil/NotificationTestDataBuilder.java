@@ -142,12 +142,6 @@ public class NotificationTestDataBuilder {
         this.isRead = false;
         return this;
     }
-
-    public NotificationTestDataBuilder withCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-        return this;
-    }
-
     /**
      * 과거 시간으로 생성 시간 설정
      * @param daysAgo 며칠 전
@@ -225,37 +219,4 @@ public class NotificationTestDataBuilder {
         
         return notifications;
     }
-
-    /**
-     * 읽은/읽지 않은 알림 혼합 생성
-     * @param receiver 수신자
-     * @param unreadCount 읽지 않은 알림 수
-     * @param readCount 읽은 알림 수
-     * @return Notification 리스트
-     */
-    public static List<Notification> createMixedReadStatus(User receiver, int unreadCount, int readCount) {
-        List<Notification> notifications = new ArrayList<>();
-        
-        // 읽지 않은 알림
-        for (int i = 1; i <= unreadCount; i++) {
-            notifications.add(aNotification()
-                    .withReceiver(receiver)
-                    .withMessage("Unread notification " + i)
-                    .asUnread()
-                    .build());
-        }
-        
-        // 읽은 알림
-        for (int i = 1; i <= readCount; i++) {
-            notifications.add(aNotification()
-                    .withReceiver(receiver)
-                    .withMessage("Read notification " + i)
-                    .asRead()
-                    .build());
-        }
-        
-        return notifications;
-    }
-
-
 }

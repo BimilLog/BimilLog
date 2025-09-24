@@ -247,21 +247,6 @@ public abstract class BaseIntegrationTest {
     }
 
     /**
-     * 인증된 PUT 요청 수행 (JSON)
-     * @param url 요청 URL
-     * @param content 요청 본문
-     * @param userDetails 인증 정보
-     * @return ResultActions
-     */
-    protected ResultActions performPut(String url, Object content, CustomUserDetails userDetails) throws Exception {
-        return mockMvc.perform(put(url)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(content))
-                .with(user(userDetails))
-                .with(csrf()));
-    }
-
-    /**
      * 인증된 DELETE 요청 수행
      * @param url 요청 URL
      * @param userDetails 인증 정보
@@ -284,21 +269,6 @@ public abstract class BaseIntegrationTest {
     }
 
     /**
-     * 인증된 PATCH 요청 수행 (JSON)
-     * @param url 요청 URL
-     * @param content 요청 본문
-     * @param userDetails 인증 정보
-     * @return ResultActions
-     */
-    protected ResultActions performPatch(String url, Object content, CustomUserDetails userDetails) throws Exception {
-        return mockMvc.perform(patch(url)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(content))
-                .with(user(userDetails))
-                .with(csrf()));
-    }
-
-    /**
      * 엔티티를 영속화하고 플러시
      * @param entity 저장할 엔티티
      * @return 저장된 엔티티
@@ -310,15 +280,6 @@ public abstract class BaseIntegrationTest {
             return entity;
         }
         throw new UnsupportedOperationException("TestEntityManager is not available");
-    }
-
-    /**
-     * 영속성 컨텍스트 clear
-     */
-    protected void clearEntityManager() {
-        if (entityManager != null) {
-            entityManager.clear();
-        }
     }
 
     /**

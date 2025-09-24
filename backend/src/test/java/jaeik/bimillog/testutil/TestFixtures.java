@@ -1,23 +1,16 @@
 package jaeik.bimillog.testutil;
 
-import jaeik.bimillog.domain.auth.entity.LoginResult;
-import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.entity.Token;
-import jaeik.bimillog.domain.notification.entity.Notification;
-import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.post.entity.Post;
+import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.in.paper.dto.MessageDTO;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.PostCreateDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
-import org.springframework.http.ResponseCookie;
 
-import java.time.Duration;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * <h2>테스트 데이터 Fixtures</h2>
@@ -74,24 +67,6 @@ public class TestFixtures {
         return post;
     }
 
-
-    /**
-     * 테스트용 알림 생성
-     * @param receiver 수신자
-     * @param type 알림 타입
-     * @param relatedId 관련 ID
-     * @param message 알림 메시지
-     * @return Notification 엔티티
-     */
-    public static Notification createNotification(User receiver, NotificationType type, Long relatedId, String message) {
-        return Notification.create(
-                receiver,
-                type,
-                message,
-                relatedId != null ? "/post/" + relatedId : null
-        );
-    }
-
     /**
      * 테스트용 롤링페이퍼 메시지 생성
      * @param receiver 수신자
@@ -139,7 +114,7 @@ public class TestFixtures {
      * @param content 내용
      * @return PostDetail
      */
-    public static jaeik.bimillog.domain.post.entity.PostDetail createPostDetail(Long id, String title, String content) {
+    public static PostDetail createPostDetail(Long id, String title, String content) {
         return createPostDetail(id, title, content, 1L, false);
     }
 
@@ -152,9 +127,8 @@ public class TestFixtures {
      * @param isLiked 좋아요 여부
      * @return PostDetail
      */
-    public static jaeik.bimillog.domain.post.entity.PostDetail createPostDetail(Long id, String title, String content,
-                                                                                  Long userId, boolean isLiked) {
-        return jaeik.bimillog.domain.post.entity.PostDetail.builder()
+    public static PostDetail createPostDetail(Long id, String title, String content, Long userId, boolean isLiked) {
+        return PostDetail.builder()
                 .id(id)
                 .title(title)
                 .content(content)
@@ -176,15 +150,11 @@ public class TestFixtures {
      * @param userId 사용자 ID
      * @return PostDetail
      */
-    public static jaeik.bimillog.domain.post.entity.PostDetail createMockPostDetail(Long postId, Long userId) {
+    public static PostDetail createMockPostDetail(Long postId, Long userId) {
         return createPostDetail(postId, "Test Title", "Test Content", 1L, userId != null);
     }
 
     // ==================== DTO Creation ====================
-
-
-
-
 
     /**
      * 게시글 작성 요청 DTO 생성
@@ -298,26 +268,7 @@ public class TestFixtures {
                 .build();
     }
 
-
     // ==================== Cookie & Token Creation ====================
-
-
-    /**
-     * 임시 UUID 쿠키 생성
-     * @param uuid UUID 값
-     * @return ResponseCookie
-     */
-    public static ResponseCookie createTempCookie(String uuid) {
-        return ResponseCookie.from("temp", uuid)
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(Duration.ofMinutes(10))
-                .sameSite("Lax")
-                .build();
-    }
-    
-
     
     /**
      * 여러 토큰 생성 (Auth 테스트용)
@@ -351,7 +302,4 @@ public class TestFixtures {
             throw new RuntimeException("Failed to set field value", e);
         }
     }
-
-    // Private constructor to prevent instantiation
-    private TestFixtures() {}
 }

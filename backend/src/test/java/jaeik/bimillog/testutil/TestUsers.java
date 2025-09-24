@@ -162,9 +162,4 @@ public class TestUsers {
                 .setting(TestSettings.DEFAULT)
                 .build();
     }
-
-
-
-    // Private constructor to prevent instantiation
-    private TestUsers() {}
 }

@@ -7,14 +7,12 @@ import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.user.entity.TempUserData;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.core.ZSetOperations;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -44,17 +42,6 @@ public class RedisTestHelper {
                                                 ZSetOperations<String, Object> zSetOperations) {
         given(redisTemplate.opsForValue()).willReturn(valueOperations);
         given(redisTemplate.opsForZSet()).willReturn(zSetOperations);
-    }
-
-    /**
-     * 간단한 RedisTemplate Mock 설정 (ValueOperations만)
-     * 
-     * @param redisTemplate Mock RedisTemplate
-     * @param valueOperations Mock ValueOperations
-     */
-    public static void setupRedisTemplateMocks(RedisTemplate<String, Object> redisTemplate,
-                                                ValueOperations<String, Object> valueOperations) {
-        given(redisTemplate.opsForValue()).willReturn(valueOperations);
     }
 
     /**
@@ -119,33 +106,8 @@ public class RedisTestHelper {
             return this;
         }
 
-        public PostDetailBuilder viewCount(Integer viewCount) {
-            this.viewCount = viewCount;
-            return this;
-        }
-
-        public PostDetailBuilder likeCount(Integer likeCount) {
-            this.likeCount = likeCount;
-            return this;
-        }
-
-        public PostDetailBuilder cacheFlag(PostCacheFlag postCacheFlag) {
-            this.postCacheFlag = postCacheFlag;
-            return this;
-        }
-
         public PostDetailBuilder createdAt(Instant createdAt) {
             this.createdAt = createdAt;
-            return this;
-        }
-
-        public PostDetailBuilder createdDaysAgo(int days) {
-            this.createdAt = Instant.now().minus(days, ChronoUnit.DAYS);
-            return this;
-        }
-
-        public PostDetailBuilder createdHoursAgo(int hours) {
-            this.createdAt = Instant.now().minus(hours, ChronoUnit.HOURS);
             return this;
         }
 
@@ -159,18 +121,8 @@ public class RedisTestHelper {
             return this;
         }
 
-        public PostDetailBuilder commentCount(Integer commentCount) {
-            this.commentCount = commentCount;
-            return this;
-        }
-
         public PostDetailBuilder isNotice(Boolean isNotice) {
             this.isNotice = isNotice;
-            return this;
-        }
-
-        public PostDetailBuilder isLiked(Boolean isLiked) {
-            this.isLiked = isLiked;
             return this;
         }
 
@@ -209,57 +161,6 @@ public class RedisTestHelper {
     }
 
     /**
-     * 실시간 인기 게시글용 PostDetail 생성 (1일 이내)
-     * @param id 게시글 ID
-     * @param title 제목
-     * @param likeCount 좋아요 수
-     * @return PostDetail
-     */
-    public static PostDetail realtimePostDetail(Long id, String title, int likeCount) {
-        return postDetail()
-            .id(id)
-            .title(title)
-            .likeCount(likeCount)
-            .createdHoursAgo(10)
-            .cacheFlag(PostCacheFlag.REALTIME)
-            .build();
-    }
-
-    /**
-     * 주간 인기 게시글용 PostDetail 생성 (7일 이내)
-     * @param id 게시글 ID
-     * @param title 제목
-     * @param likeCount 좋아요 수
-     * @return PostDetail
-     */
-    public static PostDetail weeklyPostDetail(Long id, String title, int likeCount) {
-        return postDetail()
-            .id(id)
-            .title(title)
-            .likeCount(likeCount)
-            .createdDaysAgo(3)
-            .cacheFlag(PostCacheFlag.WEEKLY)
-            .build();
-    }
-
-    /**
-     * 전설의 게시글용 PostDetail 생성 (좋아요 20개 이상)
-     * @param id 게시글 ID
-     * @param title 제목
-     * @param likeCount 좋아요 수 (20 이상)
-     * @return PostDetail
-     */
-    public static PostDetail legendaryPostDetail(Long id, String title, int likeCount) {
-        return postDetail()
-            .id(id)
-            .title(title)
-            .likeCount(likeCount)
-            .createdDaysAgo(30)
-            .cacheFlag(PostCacheFlag.LEGEND)
-            .build();
-    }
-
-    /**
      * 테스트용 SocialUserProfile 생성
      * @param socialId 소셜 ID
      * @param email 이메일
@@ -285,27 +186,6 @@ public class RedisTestHelper {
         return createTestSocialUserProfile("123456789", "test@example.com");
     }
 
-    /**
-     * 테스트용 TempUserData 생성
-     * @param uuid UUID
-     * @param socialUserProfile 소셜 사용자 프로필
-     * @param fcmToken FCM 토큰
-     * @return TempUserData
-     */
-    public static TempUserData createTestTempUserData(String uuid, 
-                                                      SocialUserProfile socialUserProfile,
-                                                      String fcmToken) {
-        return new TempUserData(socialUserProfile, fcmToken);
-    }
-
-    /**
-     * 기본 TempUserData 생성
-     * @param uuid UUID
-     * @return 기본값이 설정된 TempUserData
-     */
-    public static TempUserData defaultTempUserData(String uuid) {
-        return createTestTempUserData(uuid, defaultSocialUserProfile(), "test-fcm-token");
-    }
 
     /**
      * Redis 키 생성 헬퍼
@@ -323,8 +203,5 @@ public class RedisTestHelper {
             return "temp:user:" + uuid;
         }
 
-        public static String userSession(Long userId) {
-            return "session:user:" + userId;
-        }
     }
 }
