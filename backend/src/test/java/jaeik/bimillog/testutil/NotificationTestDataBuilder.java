@@ -35,7 +35,7 @@ public class NotificationTestDataBuilder {
     private Long relatedId;
     private String message = "Test notification message";
     private boolean isRead = false;
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private final LocalDateTime createdAt = LocalDateTime.now();
 
     private NotificationTestDataBuilder() {}
 

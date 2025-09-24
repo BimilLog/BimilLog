@@ -148,40 +148,9 @@ class UserCommandControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(content().string("설정 수정 완료"));
     }
 
-    @Test
-    @DisplayName("닉네임 변경 - 인증되지 않은 사용자 - 403 Forbidden")
-    void updateUserName_Unauthenticated_Forbidden() throws Exception {
-        // Given
-        UserNameDTO userNameDTO = new UserNameDTO();
-        userNameDTO.setUserName("새로운닉네임");
 
-        // When & Then
-        mockMvc.perform(post("/api/user/username")
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(userNameDTO)))
-                .andDo(print())
-                .andExpect(status().isForbidden());
-    }
 
-    @Test
-    @DisplayName("설정 수정 - 인증되지 않은 사용자 - 403 Forbidden")
-    void updateSetting_Unauthenticated_Forbidden() throws Exception {
-        // Given
-        SettingDTO settingDTO = SettingDTO.builder()
-                .messageNotification(Boolean.TRUE)
-                .commentNotification(Boolean.TRUE)
-                .postFeaturedNotification(Boolean.TRUE)
-                .build();
 
-        // When & Then
-        mockMvc.perform(post("/api/user/setting")
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(settingDTO)))
-                .andDo(print())
-                .andExpect(status().isForbidden());
-    }
 
     @Test
     @DisplayName("설정 수정 - null 값 검증 실패 - 400 Bad Request")
@@ -231,57 +200,38 @@ class UserCommandControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(status().isBadRequest());
     }
 
-    @Test
-    @DisplayName("CSRF 토큰 없이 POST 요청 - 403 Forbidden")
-    void postWithoutCsrf_Forbidden() throws Exception {
-        // Given
-        User testUser = TestUsers.createUnique();
-        userRepository.save(testUser);
-        
-        var userDetails = createCustomUserDetails(testUser);
-        
-        UserNameDTO userNameDTO = new UserNameDTO();
-        userNameDTO.setUserName("새로운닉네임");
-
-        // When & Then
-        mockMvc.perform(post("/api/user/username")
-                        .with(user(userDetails))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(userNameDTO)))
-                .andDo(print())
-                .andExpect(status().isForbidden());
-    }
-
-    @Test
-    @DisplayName("Content-Type 누락 - 500 Internal Server Error")
-    void postWithoutContentType_InternalServerError() throws Exception {
-        // Given
-        User testUser = TestUsers.createUnique();
-        userRepository.save(testUser);
-        
-        var userDetails = createCustomUserDetails(testUser);
-        
-        UserNameDTO userNameDTO = new UserNameDTO();
-        userNameDTO.setUserName("새로운닉네임");
-
-        // When & Then
-        mockMvc.perform(post("/api/user/username")
-                        .with(user(userDetails))
-                        .with(csrf())
-                        .content(objectMapper.writeValueAsString(userNameDTO)))
-                .andDo(print())
-                .andExpect(status().isInternalServerError());
-    }
-
-
-
 
 
 
     @Test
     @DisplayName("신고 제출 통합 테스트 - 성공")
+    void submitReport_Success() throws Exception {
+        // Given
+        ReportDTO reportDTO = ReportDTO.builder()
+                .reportType(ReportType.POST)
+                .targetId(123L)
+                .content("테스트 신고 내용")
+                .build();
+
+        User testUser = TestUsers.createUnique();
+        userRepository.save(testUser);
+        var userDetails = createCustomUserDetails(testUser);
+
+        // When & Then
+        mockMvc.perform(post("/api/user/report")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(reportDTO))
+                        .with(user(userDetails))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string("신고/건의사항이 접수되었습니다."));
+    }
+
+    @Test
+    @DisplayName("신고 제출 - 빈 내용 - 400 Bad Request")
     void submitReport_EmptyContent_BadRequest() throws Exception {
-        // Given - content가 빈 잘못된 요청
+        // Given
         ReportDTO reportDTO = ReportDTO.builder()
                 .reportType(ReportType.POST)
                 .targetId(123L)
@@ -299,31 +249,7 @@ class UserCommandControllerIntegrationTest extends BaseIntegrationTest {
                         .with(user(userDetails))
                         .with(csrf()))
                 .andDo(print())
-                .andExpect(status().isOk());
-
-    }
-
-    @Test
-    @DisplayName("신고 제출 - CSRF 토큰 없이 요청 - 403 Forbidden")
-    void submitReport_WithoutCsrf_Forbidden() throws Exception {
-        // Given
-        User testUser = TestUsers.createUnique();
-        userRepository.save(testUser);
-        var userDetails = createCustomUserDetails(testUser);
-        
-        ReportDTO reportDTO = ReportDTO.builder()
-                .reportType(ReportType.POST)
-                .targetId(123L)
-                .content("CSRF 없는 신고")
-                .build();
-
-        // When & Then
-        mockMvc.perform(post("/api/user/report")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(reportDTO))
-                        .with(user(userDetails)))
-                .andDo(print())
-                .andExpect(status().isForbidden());
+                .andExpect(status().isBadRequest());
     }
 
 

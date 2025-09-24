@@ -229,6 +229,18 @@ public class TestFixtures {
     }
 
     /**
+     * CustomUserDetails 생성 (토큰 ID 지정 가능)
+     * @param user 사용자 엔티티
+     * @param tokenId 토큰 ID (null 가능)
+     * @param fcmTokenId FCM 토큰 ID (null 가능)
+     * @return CustomUserDetails
+     */
+    public static CustomUserDetails createCustomUserDetails(User user, Long tokenId, Long fcmTokenId) {
+        ExistingUserDetail userDetail = createExistingUserDetail(user, tokenId, fcmTokenId);
+        return new CustomUserDetails(userDetail);
+    }
+
+    /**
      * ExistingUserDetail 생성 (기본 메서드)
      * @param user 사용자 엔티티
      * @return ExistingUserDetail
@@ -280,32 +292,6 @@ public class TestFixtures {
                 "refresh-token-" + i
             ))
             .collect(java.util.stream.Collectors.toList());
-    }
-
-    // ==================== Lazy Initialization Support ====================
-
-    /**
-     * <h2>테스트 데이터 Lazy Holder</h2>
-     * <p>자주 사용되는 테스트 데이터를 lazy 초기화로 제공</p>
-     * <p>실제 사용될 때만 생성하여 테스트 성능 향상</p>
-     */
-    public static class LazyTestData {
-        // User 관련 lazy suppliers
-        private static volatile User testUser;
-
-        /**
-         * 테스트 사용자 lazy 획득 (USER1)
-         */
-        public static User getTestUser() {
-            if (testUser == null) {
-                synchronized (LazyTestData.class) {
-                    if (testUser == null) {
-                        testUser = TestUsers.USER1;
-                    }
-                }
-            }
-            return testUser;
-        }
     }
 
     // ==================== Utility Methods ====================

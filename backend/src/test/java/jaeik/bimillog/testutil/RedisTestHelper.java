@@ -121,7 +121,7 @@ public class RedisTestHelper {
             Integer viewCount = 100;
             Integer likeCount = 50;
             Integer commentCount = 10;
-            Boolean isLiked = false;
+            boolean isLiked = false;
             return PostDetail.builder()
                 .id(id)
                 .title(title)

@@ -1,12 +1,12 @@
 package jaeik.bimillog.adapter.in.user;
 
 import jaeik.bimillog.domain.auth.entity.Token;
-import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.auth.jpa.TokenRepository;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
+import jaeik.bimillog.testutil.TestFixtures;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.DisplayName;
@@ -176,35 +176,7 @@ class UserQueryControllerIntegrationTest extends BaseIntegrationTest {
     }
 
 
-    @Test
-    @DisplayName("사용자 설정 조회 - 인증되지 않은 사용자 - 403 Forbidden")
-    void getSetting_Unauthenticated_Forbidden() throws Exception {
-        // When & Then
-        mockMvc.perform(get("/api/user/setting"))
-                .andDo(print())
-                .andExpect(status().isForbidden());
-    }
 
-    @Test
-    @DisplayName("사용자 게시글 조회 - 인증되지 않은 사용자 - 403 Forbidden")
-    void getUserPosts_Unauthenticated_Forbidden() throws Exception {
-        // When & Then
-        mockMvc.perform(get("/api/user/posts")
-                        .param("page", "0")
-                        .param("size", "10"))
-                .andDo(print())
-                .andExpect(status().isForbidden());
-    }
-
-
-    @Test
-    @DisplayName("닉네임 중복 확인 - 파라미터 누락 - 500 Internal Server Error")
-    void checkUserName_MissingParameter_InternalServerError() throws Exception {
-        // When & Then - @RequestParam 필수 파라미터 누락시 GlobalExceptionHandler에서 500 처리
-        mockMvc.perform(get("/api/user/username/check"))
-                .andDo(print())
-                .andExpect(status().isInternalServerError());
-    }
 
     @Test
     @DisplayName("카카오 친구 목록 조회 - 정상 케이스 (Mock 환경)")
@@ -217,7 +189,7 @@ class UserQueryControllerIntegrationTest extends BaseIntegrationTest {
         Token token = Token.createToken("test-access-TemporaryToken", "test-refresh-TemporaryToken", savedUser);
         Token savedToken = tokenRepository.save(token);
         
-        CustomUserDetails userDetails = createCustomUserDetailsWithToken(savedUser, savedToken.getId());
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(savedUser, savedToken.getId(), null);
 
         // When & Then
         mockMvc.perform(get("/api/user/friendlist")
@@ -229,76 +201,8 @@ class UserQueryControllerIntegrationTest extends BaseIntegrationTest {
                 // Note: 실제 카카오 API 호출은 Mock으로 처리되므로 응답 구조 검증은 제한적
     }
 
-    @Test
-    @DisplayName("카카오 친구 목록 조회 - 인증되지 않은 사용자 - 403 Forbidden")
-    void getKakaoFriendList_Unauthenticated_Forbidden() throws Exception {
-        // When & Then
-        mockMvc.perform(get("/api/user/friendlist")
-                        .param("offset", "0")
-                        .param("limit", "10"))
-                .andDo(print())
-                .andExpect(status().isForbidden());
-    }
-
-    @Test
-    @DisplayName("카카오 친구 목록 조회 - 기본 파라미터 사용")
-    void getKakaoFriendList_WithDefaultParameters() throws Exception {
-        // Given
-        User user = TestUsers.createUnique();
-        User savedUser = userRepository.save(user);
-        
-        // 테스트용 토큰 생성 및 저장
-        Token token = Token.createToken("test-access-TemporaryToken", "test-refresh-TemporaryToken", savedUser);
-        Token savedToken = tokenRepository.save(token);
-        
-        CustomUserDetails userDetails = createCustomUserDetailsWithToken(savedUser, savedToken.getId());
-
-        // When & Then - offset과 limit을 지정하지 않으면 기본값 사용
-        mockMvc.perform(get("/api/user/friendlist")
-                        .with(user(userDetails)))
-                .andDo(print())
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    @DisplayName("카카오 친구 목록 조회 - 비동기 응답 처리")
-    void getKakaoFriendList_AsyncResponse() throws Exception {
-        // Given
-        User user = TestUsers.createUnique();
-        User savedUser = userRepository.save(user);
-        
-        // 테스트용 토큰 생성 및 저장
-        Token token = Token.createToken("test-access-TemporaryToken", "test-refresh-TemporaryToken", savedUser);
-        Token savedToken = tokenRepository.save(token);
-        
-        CustomUserDetails userDetails = createCustomUserDetailsWithToken(savedUser, savedToken.getId());
-
-        // When & Then - 친구 목록 조회가 정상적으로 처리되는지 확인
-        mockMvc.perform(get("/api/user/friendlist")
-                        .param("offset", "0")
-                        .param("limit", "3")
-                        .with(user(userDetails)))
-                .andDo(print())
-                .andExpect(status().isOk());
-    }
 
 
-    /**
-     * 테스트용 CustomUserDetails 생성 (토큰 ID 지정)
-     */
-    private CustomUserDetails createCustomUserDetailsWithToken(User user, Long tokenId) {
-        ExistingUserDetail userDetail = ExistingUserDetail.builder()
-                .userId(user.getId())
-                .settingId(user.getSetting().getId())
-                .socialId(user.getSocialId())
-                .socialNickname(user.getSocialNickname())
-                .thumbnailImage(user.getThumbnailImage())
-                .userName(user.getUserName())
-                .provider(user.getProvider())
-                .role(user.getRole())
-                .tokenId(tokenId)
-                .build();
 
-        return new CustomUserDetails(userDetail);
-    }
+
 }

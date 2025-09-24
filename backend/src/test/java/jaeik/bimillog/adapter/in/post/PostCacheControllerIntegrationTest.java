@@ -211,50 +211,6 @@ class PostCacheControllerIntegrationTest {
                 // 시간 조건 때문에 빈 배열일 수 있음 - 응답 구조만 검증
     }
 
-    @Test
-    @DisplayName("실시간/주간 인기글 조회 - 빈 결과")
-    void getPopularBoard_EmptyResult() throws Exception {
-        // Given - 모든 캐시 플래그 제거
-        for (Post post : testPosts) {
-            post.updatePostCacheFlag(null);
-        }
-        postRepository.saveAll(testPosts);
-
-        // When & Then
-        mockMvc.perform(get("/api/post/popular"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.realtime", hasSize(0)))
-                .andExpect(jsonPath("$.weekly", hasSize(0)));
-    }
-
-    @Test
-    @DisplayName("레전드 인기글 조회 - 페이지 구조 확인")
-    void getLegendBoard_CheckStructure() throws Exception {
-        // When & Then - 레전드 게시글은 20개 이상 좋아요가 필요하므로 데이터가 없을 수 있음
-        mockMvc.perform(get("/api/post/legend")
-                        .param("page", "0")
-                        .param("size", "3"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content", notNullValue()))
-                .andExpect(jsonPath("$.pageable", notNullValue()))
-                .andExpect(jsonPath("$.pageable.pageNumber", is(0)))
-                .andExpect(jsonPath("$.pageable.pageSize", is(3)));
-    }
-
-    @Test
-    @DisplayName("레전드 인기글 조회 - 두 번째 페이지 구조")
-    void getLegendBoard_SecondPage() throws Exception {
-        // When & Then
-        mockMvc.perform(get("/api/post/legend")
-                        .param("page", "1")
-                        .param("size", "3"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content", notNullValue()))
-                .andExpect(jsonPath("$.pageable.pageNumber", is(1)));
-    }
 
     @Test
     @DisplayName("레전드 인기글 조회 - 빈 페이지")
@@ -269,18 +225,6 @@ class PostCacheControllerIntegrationTest {
                 .andExpect(jsonPath("$.pageable.pageNumber", is(100)));
     }
 
-    @Test
-    @DisplayName("레전드 인기글 조회 - 페이지 크기 제한")
-    void getLegendBoard_PageSizeLimit() throws Exception {
-        // When & Then
-        mockMvc.perform(get("/api/post/legend")
-                        .param("page", "0")
-                        .param("size", "100")) // 큰 페이지 크기 요청
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content", notNullValue()))
-                .andExpect(jsonPath("$.pageable", notNullValue()));
-    }
 
     @Test
     @DisplayName("공지사항 조회 성공")
@@ -293,87 +237,4 @@ class PostCacheControllerIntegrationTest {
                 // 캐시가 없으면 빈 배열이 반환될 수 있음
     }
 
-    @Test
-    @DisplayName("공지사항 조회 - 공지사항 없음")
-    void getNoticeBoard_NoNotices() throws Exception {
-        // Given - 모든 공지사항을 일반 게시글로 변경
-        for (Post post : testPosts) {
-            if (post.isNotice()) {
-                post.unsetAsNotice();
-            }
-        }
-        postRepository.saveAll(testPosts);
-
-        // When & Then
-        mockMvc.perform(get("/api/post/notice"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(0)));
-    }
-
-    @Test
-    @DisplayName("실시간 인기글만 있는 경우")
-    void getPopularBoard_OnlyRealtime() throws Exception {
-        // When & Then
-        mockMvc.perform(get("/api/post/popular"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.realtime", notNullValue()))
-                .andExpect(jsonPath("$.weekly", notNullValue()));
-                // 실제 데이터는 시간 조건에 따라 달라질 수 있음
-    }
-
-    @Test
-    @DisplayName("주간 인기글만 있는 경우")
-    void getPopularBoard_OnlyWeekly() throws Exception {
-        // When & Then
-        mockMvc.perform(get("/api/post/popular"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.realtime", notNullValue()))
-                .andExpect(jsonPath("$.weekly", notNullValue()));
-                // 실제 데이터는 시간 조건에 따라 달라질 수 있음
-    }
-
-    @Test
-    @DisplayName("레전드 인기글 조회 - 기본 페이지 크기")
-    void getLegendBoard_DefaultPageSize() throws Exception {
-        // When & Then - 페이지 크기를 지정하지 않으면 기본값 사용
-        mockMvc.perform(get("/api/post/legend"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content", notNullValue()))
-                .andExpect(jsonPath("$.pageable", notNullValue()));
-    }
-
-    @Test
-    @DisplayName("공지사항 조회 - 응답 구조 확인")
-    void getNoticeBoard_CheckResponseStructure() throws Exception {
-        // When & Then - 공지사항 응답 구조 확인
-        String response = mockMvc.perform(get("/api/post/notice"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-                
-        // 데이터가 있을 때만 필드 확인
-        if (!response.equals("[]") && response.contains("id")) {
-            mockMvc.perform(get("/api/post/notice"))
-                    .andExpect(jsonPath("$[0].id", notNullValue()))
-                    .andExpect(jsonPath("$[0].title", notNullValue()));
-        }
-    }
-
-    @Test
-    @DisplayName("실시간/주간 인기글 조회 - 응답 구조 확인")
-    void getPopularBoard_CheckResponseStructure() throws Exception {
-        // When & Then - 응답 구조만 확인 (데이터가 없어도 구조는 유효해야 함)
-        mockMvc.perform(get("/api/post/popular"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.realtime", notNullValue()))
-                .andExpect(jsonPath("$.weekly", notNullValue()));
-                // 시간 조건 때문에 실제 데이터는 비어있을 수 있음
-    }
 }

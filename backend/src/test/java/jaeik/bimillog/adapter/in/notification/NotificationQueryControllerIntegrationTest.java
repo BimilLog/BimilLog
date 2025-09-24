@@ -1,27 +1,15 @@
 package jaeik.bimillog.adapter.in.notification;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.notification.jpa.NotificationRepository;
-import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.testutil.*;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.context.WebApplicationContext;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -35,40 +23,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author Jaeik
  * @since 2.0.0
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@AutoConfigureWebMvc
-@Testcontainers
-@Import({TestContainersConfiguration.class, TestSocialLoginPortConfig.class})
-@Transactional
+@Import(TestSocialLoginPortConfig.class)
 @DisplayName("알림 Query 컨트롤러 통합 테스트")
-class NotificationQueryControllerIntegrationTest {
-
-    @Autowired
-    private WebApplicationContext context;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @Autowired
-    private UserRepository userRepository;
+class NotificationQueryControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private NotificationRepository notificationRepository;
 
-    private MockMvc mockMvc;
-    private User testUser;
-
-    @BeforeEach
-    void setUp() {
-        mockMvc = MockMvcBuilders
-                .webAppContextSetup(context)
-                .apply(springSecurity())
-                .build();
-
-        // 테스트용 사용자 생성
-        testUser = TestUsers.createUnique();
-        userRepository.save(testUser);
-
+    @Override
+    protected void setUpChild() {
         // 테스트용 알림들 생성
         createTestNotifications();
     }
@@ -76,12 +39,9 @@ class NotificationQueryControllerIntegrationTest {
     @Test
     @DisplayName("로그인된 사용자의 알림 목록 조회 - 성공")
     void getNotifications_AuthenticatedUser_Success() throws Exception {
-        // Given
-        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
-
         // When & Then
         mockMvc.perform(get("/api/notification/list")
-                        .with(user(userDetails)))
+                        .with(user(testUserDetails)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
@@ -101,11 +61,9 @@ class NotificationQueryControllerIntegrationTest {
         User userWithoutNotifications = TestUsers.createUniqueWithPrefix("anotheruser");
         userRepository.save(userWithoutNotifications);
 
-        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(userWithoutNotifications);
-
-        // When & Then
+        // When & Then - otherUser를 사용하는 것이 더 적절하지만, 새 사용자가 필요한 경우
         mockMvc.perform(get("/api/notification/list")
-                        .with(user(userDetails)))
+                        .with(user(createCustomUserDetails(userWithoutNotifications))))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
@@ -125,12 +83,9 @@ class NotificationQueryControllerIntegrationTest {
     @Test
     @DisplayName("다양한 알림 타입 조회 - 성공")
     void getNotifications_VariousNotificationTypes_Success() throws Exception {
-        // Given
-        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
-
         // When & Then
         mockMvc.perform(get("/api/notification/list")
-                        .with(user(userDetails)))
+                        .with(user(testUserDetails)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
@@ -144,12 +99,9 @@ class NotificationQueryControllerIntegrationTest {
     @Test
     @DisplayName("읽음/안읽음 상태 확인 - 성공")
     void getNotifications_ReadStatusCheck_Success() throws Exception {
-        // Given
-        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
-
         // When & Then
         mockMvc.perform(get("/api/notification/list")
-                        .with(user(userDetails)))
+                        .with(user(testUserDetails)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())

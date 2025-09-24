@@ -175,7 +175,7 @@ class CommentSaveAdapterIntegrationTest {
         List<CommentClosure> allClosures = commentClosureRepository.findAll();
         assertThat(allClosures).hasSize(1);
 
-        CommentClosure savedClosure = allClosures.get(0);
+        CommentClosure savedClosure = allClosures.getFirst();
         assertThat(savedClosure.getId()).isNotNull();
         assertThat(savedClosure.getAncestor()).isEqualTo(parentComment);
         assertThat(savedClosure.getDescendant()).isEqualTo(childComment);

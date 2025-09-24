@@ -10,7 +10,6 @@ import jaeik.bimillog.infrastructure.adapter.out.notification.jpa.NotificationRe
 import jaeik.bimillog.testutil.NotificationTestDataBuilder;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestUsers;
-import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -62,9 +61,6 @@ class NotificationCommandAdapterIntegrationTest {
     @Autowired
     private TestEntityManager testEntityManager;
 
-    @Autowired
-    private EntityManager entityManager;
-
     private User testUser;
     private Long testUserId;
 
@@ -91,7 +87,7 @@ class NotificationCommandAdapterIntegrationTest {
         List<Notification> savedNotifications = notificationRepository.findAll();
         assertThat(savedNotifications).hasSize(1);
 
-        Notification savedNotification = savedNotifications.get(0);
+        Notification savedNotification = savedNotifications.getFirst();
         assertThat(savedNotification.getUsers()).isEqualTo(testUser);
         assertThat(savedNotification.getNotificationType()).isEqualTo(type);
         assertThat(savedNotification.getContent()).isEqualTo(content);
@@ -130,8 +126,8 @@ class NotificationCommandAdapterIntegrationTest {
         // Then: 지정된 알림들이 삭제되고 나머지는 유지되는지 검증
         List<Notification> remainingNotifications = notificationRepository.findAll();
         assertThat(remainingNotifications).hasSize(1);
-        assertThat(remainingNotifications.get(0).getId()).isEqualTo(notification2.getId());
-        assertThat(remainingNotifications.get(0).getContent()).isEqualTo("메시지 알림 2");
+        assertThat(remainingNotifications.getFirst().getId()).isEqualTo(notification2.getId());
+        assertThat(remainingNotifications.getFirst().getContent()).isEqualTo("메시지 알림 2");
     }
 
     @Test
@@ -209,9 +205,9 @@ class NotificationCommandAdapterIntegrationTest {
     }
 
     @Test
-    @DisplayName("경계 케이스 - 빈 ID 목록으로 일괄 업데이트")
+    @DisplayName("경계 케이스 - 빈/null ID 목록으로 일괄 업데이트")
     @Transactional
-    void shouldDoNothing_WhenEmptyIdsProvided() {
+    void shouldDoNothing_WhenEmptyOrNullIdsProvided() {
         // Given: 테스트용 알림 저장
         testEntityManager.persistAndFlush(
                 NotificationTestDataBuilder.aCommentNotification(testUser, 1L).build()
@@ -219,39 +215,14 @@ class NotificationCommandAdapterIntegrationTest {
 
         testEntityManager.flush();
         long beforeCount = notificationRepository.count();
-
-        NotificationUpdateVO updateCommand = NotificationUpdateVO.of(Collections.emptyList(), Collections.emptyList());
 
         // When: 빈 목록으로 일괄 업데이트 실행
-        notificationCommandAdapter.batchUpdate(testUserId, updateCommand);
-
-        testEntityManager.flush();
-
-        // Then: 아무 변화가 없어야 함
-        long afterCount = notificationRepository.count();
-        assertThat(afterCount).isEqualTo(beforeCount);
-
-        List<Notification> notifications = notificationRepository.findAll();
-        assertThat(notifications).hasSize(1);
-        assertThat(notifications.get(0).isRead()).isFalse(); // 읽음 상태 변경되지 않음
-    }
-
-    @Test
-    @DisplayName("경계 케이스 - null ID 목록으로 일괄 업데이트")
-    @Transactional
-    void shouldDoNothing_WhenNullIdsProvided() {
-        // Given: 테스트용 알림 저장
-        testEntityManager.persistAndFlush(
-                NotificationTestDataBuilder.aCommentNotification(testUser, 1L).build()
-        );
-
-        testEntityManager.flush();
-        long beforeCount = notificationRepository.count();
-
-        NotificationUpdateVO updateCommand = NotificationUpdateVO.of(null, null);
-
+        NotificationUpdateVO emptyCommand = NotificationUpdateVO.of(Collections.emptyList(), Collections.emptyList());
+        notificationCommandAdapter.batchUpdate(testUserId, emptyCommand);
+        
         // When: null 목록으로 일괄 업데이트 실행
-        notificationCommandAdapter.batchUpdate(testUserId, updateCommand);
+        NotificationUpdateVO nullCommand = NotificationUpdateVO.of(null, null);
+        notificationCommandAdapter.batchUpdate(testUserId, nullCommand);
 
         testEntityManager.flush();
 

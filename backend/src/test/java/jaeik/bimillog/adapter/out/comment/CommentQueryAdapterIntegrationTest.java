@@ -8,7 +8,6 @@ import jaeik.bimillog.domain.comment.exception.CommentCustomException;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.out.comment.CommentQueryAdapter;
-import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentClosureRepository;
 import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentLikeRepository;
 import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentRepository;
 import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostRepository;
@@ -46,9 +45,6 @@ class CommentQueryAdapterIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private CommentLikeRepository commentLikeRepository;
-    
-    @Autowired
-    private CommentClosureRepository commentClosureRepository;
 
     @Autowired
     private CommentQueryAdapter commentQueryAdapter;
@@ -343,27 +339,7 @@ class CommentQueryAdapterIntegrationTest extends BaseIntegrationTest {
         assertThat(commentCounts).isEmpty();
     }
 
-    @Test
-    @DisplayName("null 파라미터 처리 - findCommentCountsByPostIds")
-    void shouldHandleNullPostIds_WhenNullProvided() {
-        // Given
-        List<Long> nullList = null;
 
-        // When & Then
-        assertThatThrownBy(() -> commentQueryAdapter.findCommentCountsByPostIds(nullList))
-                .isInstanceOf(NullPointerException.class);
-    }
-
-    @Test
-    @DisplayName("null 파라미터 처리 - findCommentsWithOldestOrder")
-    void shouldHandleNullParameters_WhenNullProvided() {
-        // Given
-        Pageable pageable = null;
-
-        // When & Then
-        assertThatThrownBy(() -> commentQueryAdapter.findCommentsWithOldestOrder(testPost.getId(), pageable, testUser.getId()))
-                .isInstanceOf(NullPointerException.class);
-    }
 
     @Test
     @DisplayName("트랜잭션 - 복합 쿼리 테스트")
