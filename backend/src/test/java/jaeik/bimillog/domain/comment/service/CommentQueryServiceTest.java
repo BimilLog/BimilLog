@@ -64,9 +64,9 @@ class CommentQueryServiceTest {
     @BeforeEach
     void setUp() {
         User testUser = TestUsers.copyWithId(TestUsers.USER1, 100L);
-        Post testPost = TestFixtures.createPostWithId(300L, testUser, "테스트 게시글", "게시글 내용");
+        Post testPost = TestFixtures.withId(300L, TestFixtures.createPost(testUser, "테스트 게시글", "게시글 내용"));
         
-        testComment = CommentTestDataBuilder.createTestComment(testUser, testPost, "테스트 댓글");
+        testComment = CommentTestDataBuilder.createComment(testUser, testPost, "테스트 댓글");
         TestFixtures.setFieldValue(testComment, "id", 200L);
 
         commentInfo = CommentInfo.builder()
@@ -449,7 +449,7 @@ class CommentQueryServiceTest {
     @DisplayName("삭제된 댓글 처리 확인 (deleted=true)")
     void shouldHandleDeletedComments() {
         // Given
-        Comment deletedComment = CommentTestDataBuilder.createTestComment(
+        Comment deletedComment = CommentTestDataBuilder.createComment(
                 TestUsers.USER1, TestFixtures.createPost(TestUsers.USER1, "테스트", "내용"), "삭제된 댓글");
         TestFixtures.setFieldValue(deletedComment, "id", 300L);
         TestFixtures.setFieldValue(deletedComment, "deleted", true);

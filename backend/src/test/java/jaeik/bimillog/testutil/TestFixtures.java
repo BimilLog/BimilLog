@@ -77,33 +77,6 @@ public class TestFixtures {
         return post;
     }
 
-    /**
-     * 특정 사용자로 게시글 생성 (기본 제목/내용)
-     * @param author 작성자
-     * @return Post 엔티티
-     * @deprecated Use createPost(author, "테스트 게시글", "테스트 게시글 내용입니다.") instead
-     */
-    @Deprecated
-    public static Post createPostWithUser(User author) {
-        return createPost(author, "테스트 게시글", "테스트 게시글 내용입니다.");
-    }
-
-    /**
-     * ID가 포함된 게시글 생성
-     * @param id 게시글 ID
-     * @param author 작성자
-     * @param title 제목
-     * @param content 내용
-     * @return Post 엔티티
-     * @deprecated Use withId(id, createPost(...)) instead
-     */
-    @Deprecated
-    public static Post createPostWithId(Long id, User author, String title, String content) {
-        return withId(id, createPost(author, title, content));
-    }
-    
-
-
 
     /**
      * 테스트용 알림 생성

@@ -75,15 +75,15 @@ class CommentSaveAdapterIntegrationTest {
         entityManager.persistAndFlush(testUser);
 
         // 테스트용 게시글 생성 - CommentTestDataBuilder 활용
-        testPost = TestFixtures.createPostWithUser(testUser);
+        testPost = TestFixtures.createPost(testUser, "테스트 게시글", "테스트 게시글 내용입니다.");
         entityManager.persistAndFlush(testPost);
         
         // 부모 댓글 생성 - CommentTestDataBuilder 활용
-        parentComment = CommentTestDataBuilder.createTestComment(testUser, testPost, "부모 댓글");
+        parentComment = CommentTestDataBuilder.createComment(testUser, testPost, "부모 댓글");
         parentComment = commentRepository.save(parentComment);
         
         // 자식 댓글 생성 - CommentTestDataBuilder 활용
-        childComment = CommentTestDataBuilder.createTestComment(testUser, testPost, "자식 댓글");
+        childComment = CommentTestDataBuilder.createComment(testUser, testPost, "자식 댓글");
         childComment = commentRepository.save(childComment);
     }
 

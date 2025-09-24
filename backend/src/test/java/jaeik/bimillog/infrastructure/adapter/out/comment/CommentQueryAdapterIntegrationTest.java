@@ -60,7 +60,7 @@ class CommentQueryAdapterIntegrationTest extends BaseIntegrationTest {
         commentRepository.deleteAll();
 
         // 테스트용 게시글 생성 (testUser는 BaseIntegrationTest에서 이미 생성됨)
-        testPost = TestFixtures.createPostWithUser(testUser);
+        testPost = TestFixtures.createPost(testUser, "테스트 게시글", "테스트 게시글 내용입니다.");
         postRepository.save(testPost);
     }
 
@@ -68,7 +68,7 @@ class CommentQueryAdapterIntegrationTest extends BaseIntegrationTest {
     @DisplayName("정상 케이스 - ID로 댓글 조회")
     void shouldFindCommentById_WhenValidIdProvided() {
         // Given: 저장된 댓글
-        Comment savedComment = CommentTestDataBuilder.createTestComment(testUser, testPost, "테스트 댓글");
+        Comment savedComment = CommentTestDataBuilder.createComment(testUser, testPost, "테스트 댓글");
         savedComment = commentRepository.save(savedComment);
 
         // When: ID로 댓글 조회
@@ -100,9 +100,9 @@ class CommentQueryAdapterIntegrationTest extends BaseIntegrationTest {
     @DisplayName("정상 케이스 - 사용자 작성 댓글 목록 조회")
     void shouldFindCommentsByUserId_WhenValidUserIdProvided() {
         // Given: 특정 사용자의 여러 댓글
-        Comment comment1 = CommentTestDataBuilder.createTestComment(testUser, testPost, "사용자1 댓글1");
-        Comment comment2 = CommentTestDataBuilder.createTestComment(testUser, testPost, "사용자1 댓글2");
-        Comment comment3 = CommentTestDataBuilder.createTestComment(otherUser, testPost, "사용자2 댓글1");
+        Comment comment1 = CommentTestDataBuilder.createComment(testUser, testPost, "사용자1 댓글1");
+        Comment comment2 = CommentTestDataBuilder.createComment(testUser, testPost, "사용자1 댓글2");
+        Comment comment3 = CommentTestDataBuilder.createComment(otherUser, testPost, "사용자2 댓글1");
 
         commentRepository.save(comment1);
         commentRepository.save(comment2);
@@ -125,8 +125,8 @@ class CommentQueryAdapterIntegrationTest extends BaseIntegrationTest {
     @DisplayName("정상 케이스 - 사용자 추천한 댓글 목록 조회")
     void shouldFindLikedCommentsByUserId_WhenValidUserIdProvided() {
         // Given: 사용자가 추천한 댓글들
-        Comment comment1 = CommentTestDataBuilder.createTestComment(testUser, testPost, "댓글1");
-        Comment comment2 = CommentTestDataBuilder.createTestComment(testUser, testPost, "댓글2");
+        Comment comment1 = CommentTestDataBuilder.createComment(testUser, testPost, "댓글1");
+        Comment comment2 = CommentTestDataBuilder.createComment(testUser, testPost, "댓글2");
 
         comment1 = commentRepository.save(comment1);
         comment2 = commentRepository.save(comment2);
@@ -151,7 +151,7 @@ class CommentQueryAdapterIntegrationTest extends BaseIntegrationTest {
     @DisplayName("정상 케이스 - 인기 댓글 목록 조회")
     void shouldFindPopularComments_WhenValidPostIdProvided() {
         // Given: 게시글의 여러 댓글과 추천 (인기 댓글 조건: 5개 이상)
-        Comment comment1 = CommentTestDataBuilder.createTestComment(testUser, testPost, "인기댓글1");
+        Comment comment1 = CommentTestDataBuilder.createComment(testUser, testPost, "인기댓글1");
         comment1 = commentRepository.save(comment1);
 
         // 5개 이상의 추천 생성 (인기 댓글 조건 충족)
@@ -186,7 +186,7 @@ class CommentQueryAdapterIntegrationTest extends BaseIntegrationTest {
     @DisplayName("정상 케이스 - 인기 댓글 조회 시 사용자 추천 여부 검증 (추천하지 않은 경우)")
     void shouldFindPopularComments_WithUserLikeFalse_WhenUserDidNotLike() {
         // Given: 인기 댓글과 추천하지 않은 사용자
-        Comment comment1 = CommentTestDataBuilder.createTestComment(testUser, testPost, "인기댓글1");
+        Comment comment1 = CommentTestDataBuilder.createComment(testUser, testPost, "인기댓글1");
         comment1 = commentRepository.save(comment1);
 
         // 3개 이상의 추천 생성 (다른 사용자들이 추천)
@@ -217,9 +217,9 @@ class CommentQueryAdapterIntegrationTest extends BaseIntegrationTest {
     @DisplayName("정상 케이스 - 과거순 댓글 목록 조회")
     void shouldFindCommentsWithOldestOrder_WhenValidPostIdProvided() {
         // Given: 게시글의 여러 댓글들
-        Comment comment1 = CommentTestDataBuilder.createTestComment(testUser, testPost, "첫번째 댓글");
-        Comment comment2 = CommentTestDataBuilder.createTestComment(testUser, testPost, "두번째 댓글");
-        Comment comment3 = CommentTestDataBuilder.createTestComment(otherUser, testPost, "세번째 댓글");
+        Comment comment1 = CommentTestDataBuilder.createComment(testUser, testPost, "첫번째 댓글");
+        Comment comment2 = CommentTestDataBuilder.createComment(testUser, testPost, "두번째 댓글");
+        Comment comment3 = CommentTestDataBuilder.createComment(otherUser, testPost, "세번째 댓글");
 
         commentRepository.save(comment1);
         try { Thread.sleep(100); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
@@ -258,24 +258,24 @@ class CommentQueryAdapterIntegrationTest extends BaseIntegrationTest {
     @DisplayName("정상 케이스 - 게시글 ID 목록에 대한 댓글 수 조회")
     void shouldFindCommentCountsByPostIds_WhenValidPostIdsProvided() {
         // Given: 여러 게시글과 각각의 댓글들
-        Post post2 = TestFixtures.createPostWithUser(testUser);
+        Post post2 = TestFixtures.createPost(testUser, "테스트 게시글", "테스트 게시글 내용입니다.");
         postRepository.save(post2);
 
-        Post post3 = TestFixtures.createPostWithUser(otherUser);
+        Post post3 = TestFixtures.createPost(otherUser, "테스트 게시글", "테스트 게시글 내용입니다.");
         postRepository.save(post3);
 
         // testPost에 댓글 3개 생성
-        Comment comment1 = CommentTestDataBuilder.createTestComment(testUser, testPost, "첫 번째 게시글 댓글1");
-        Comment comment2 = CommentTestDataBuilder.createTestComment(otherUser, testPost, "첫 번째 게시글 댓글2");
-        Comment comment3 = CommentTestDataBuilder.createTestComment(testUser, testPost, "첫 번째 게시글 댓글3");
+        Comment comment1 = CommentTestDataBuilder.createComment(testUser, testPost, "첫 번째 게시글 댓글1");
+        Comment comment2 = CommentTestDataBuilder.createComment(otherUser, testPost, "첫 번째 게시글 댓글2");
+        Comment comment3 = CommentTestDataBuilder.createComment(testUser, testPost, "첫 번째 게시글 댓글3");
         
         commentRepository.save(comment1);
         commentRepository.save(comment2);
         commentRepository.save(comment3);
 
         // post2에 댓글 2개 생성
-        Comment comment4 = CommentTestDataBuilder.createTestComment(testUser, post2, "두 번째 게시글 댓글1");
-        Comment comment5 = CommentTestDataBuilder.createTestComment(otherUser, post2, "두 번째 게시글 댓글2");
+        Comment comment4 = CommentTestDataBuilder.createComment(testUser, post2, "두 번째 게시글 댓글1");
+        Comment comment5 = CommentTestDataBuilder.createComment(otherUser, post2, "두 번째 게시글 댓글2");
         
         commentRepository.save(comment4);
         commentRepository.save(comment5);
@@ -349,8 +349,8 @@ class CommentQueryAdapterIntegrationTest extends BaseIntegrationTest {
     @DisplayName("트랜잭션 - 복합 쿼리 테스트")
     void shouldHandleComplexQueries_WhenMultipleOperationsPerformed() {
         // Given: 복잡한 테스트 데이터 설정
-        Comment comment1 = CommentTestDataBuilder.createTestComment(testUser, testPost, "복합쿼리 댓글1");
-        Comment comment2 = CommentTestDataBuilder.createTestComment(otherUser, testPost, "복합쿼리 댓글2");
+        Comment comment1 = CommentTestDataBuilder.createComment(testUser, testPost, "복합쿼리 댓글1");
+        Comment comment2 = CommentTestDataBuilder.createComment(otherUser, testPost, "복합쿼리 댓글2");
 
         comment1 = commentRepository.save(comment1);
         comment2 = commentRepository.save(comment2);

@@ -81,7 +81,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
     void shouldBanUser_WhenValidReportDTO() {
         // Given
         User userWithId = createTestUserWithId(200L);
-        Post testPost = TestFixtures.createPostWithId(200L, userWithId, "테스트 제목", "테스트 내용");
+        Post testPost = TestFixtures.withId(200L, TestFixtures.createPost(userWithId, "테스트 제목", "테스트 내용"));
         given(postQueryUseCase.findById(200L)).willReturn(testPost);
 
         // When

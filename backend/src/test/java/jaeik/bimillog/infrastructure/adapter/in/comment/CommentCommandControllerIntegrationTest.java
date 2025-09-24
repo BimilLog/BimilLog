@@ -58,7 +58,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
     @Override
     protected void setUpChild() {
         // testUser는 BaseIntegrationTest에서 이미 생성됨
-        testPost = TestFixtures.createPostWithUser(testUser);
+        testPost = TestFixtures.createPost(testUser, "테스트 게시글", "테스트 게시글 내용입니다.");
         postRepository.save(testPost);
     }
     
@@ -147,7 +147,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("댓글 수정 통합 테스트")
     void updateComment_IntegrationTest() throws Exception {
         // Given
-        Comment existingComment = CommentTestDataBuilder.createTestComment(
+        Comment existingComment = CommentTestDataBuilder.createComment(
                 testUser, testPost, "원본 댓글 내용입니다.");
         commentRepository.save(existingComment);
         
@@ -207,7 +207,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("댓글 추천 통합 테스트")
     void likeComment_IntegrationTest() throws Exception {
         // Given
-        Comment existingComment = CommentTestDataBuilder.createTestComment(
+        Comment existingComment = CommentTestDataBuilder.createComment(
                 testUser, testPost, "추천할 댓글입니다.");
         commentRepository.save(existingComment);
         
@@ -317,7 +317,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
         User anotherUser = TestUsers.createUniqueWithPrefix("another");
         userRepository.save(anotherUser);
         
-        Comment otherUserComment = CommentTestDataBuilder.createTestComment(
+        Comment otherUserComment = CommentTestDataBuilder.createComment(
                 anotherUser, testPost, "다른 사용자의 댓글");
         commentRepository.save(otherUserComment);
         

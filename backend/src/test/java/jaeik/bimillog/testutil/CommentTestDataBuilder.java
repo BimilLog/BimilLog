@@ -39,14 +39,7 @@ public class CommentTestDataBuilder {
                 .deleted(false)
                 .build();
     }
-    
-    /**
-     * @deprecated Use createComment instead
-     */
-    @Deprecated
-    public static Comment createTestComment(User user, Post post, String content) {
-        return createComment(user, post, content);
-    }
+
 
     /**
      * <h3>테스트용 댓글 요청 DTO 생성</h3>
@@ -135,14 +128,7 @@ public class CommentTestDataBuilder {
         TestFixtures.setFieldValue(comment, "id", id);
         return comment;
     }
-    
-    /**
-     * @deprecated Use withId(id, createComment(...)) instead
-     */
-    @Deprecated
-    public static Comment createTestCommentWithId(Long id, User user, Post post, String content) {
-        return withId(id, createComment(user, post, content));
-    }
+
 
 
 

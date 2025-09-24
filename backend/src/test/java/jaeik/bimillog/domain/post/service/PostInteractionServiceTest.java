@@ -60,7 +60,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
         // Given
         Long userId = 1L;
         Long postId = 123L;
-        Post post = TestFixtures.createPostWithId(postId, testUser, "테스트 게시글", "내용");
+        Post post = TestFixtures.withId(postId, TestFixtures.createPost(testUser, "테스트 게시글", "내용"));
 
         given(postLikeQueryPort.existsByPostIdAndUserId(postId, userId)).willReturn(false);
         given(globalUserQueryPort.getReferenceById(userId)).willReturn(testUser);
@@ -90,7 +90,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
         // Given
         Long userId = 1L;
         Long postId = 123L;
-        Post post = TestFixtures.createPostWithId(postId, testUser, "테스트 게시글", "내용");
+        Post post = TestFixtures.withId(postId, TestFixtures.createPost(testUser, "테스트 게시글", "내용"));
 
         given(postLikeQueryPort.existsByPostIdAndUserId(postId, userId)).willReturn(true);
         given(globalUserQueryPort.getReferenceById(userId)).willReturn(testUser);

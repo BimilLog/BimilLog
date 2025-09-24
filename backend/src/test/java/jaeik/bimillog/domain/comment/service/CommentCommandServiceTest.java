@@ -67,8 +67,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
     protected void setUpChild() {
         // testUser는 BaseUnitTest에서 이미 준비됨
         TestFixtures.setFieldValue(testUser, "id", 100L);
-        testPost = TestFixtures.createPostWithId(300L, testUser, "테스트 게시글", "게시글 내용");
-        testComment = CommentTestDataBuilder.createTestCommentWithId(TEST_COMMENT_ID, testUser, testPost, TEST_ORIGINAL_CONTENT);
+        testPost = TestFixtures.withId(300L, TestFixtures.createPost(testUser, "테스트 게시글", "게시글 내용"));
+        testComment = CommentTestDataBuilder.withId(TEST_COMMENT_ID, CommentTestDataBuilder.createComment(testUser, testPost, TEST_ORIGINAL_CONTENT));
     }
 
     @Test
@@ -169,7 +169,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
     @DisplayName("자신의 댓글에 좋아요")
     void shouldAllowSelfLike() {
         // Given
-        Comment ownComment = CommentTestDataBuilder.createTestComment(testUser, testPost, "내가 작성한 댓글");
+        Comment ownComment = CommentTestDataBuilder.createComment(testUser, testPost, "내가 작성한 댓글");
         TestFixtures.setFieldValue(ownComment, "id", 200L);
 
         given(commentQueryPort.findById(TEST_COMMENT_ID)).willReturn(ownComment);
@@ -257,7 +257,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         Long userId = 100L;
         User anotherUser = TestUsers.copyWithId(TestUsers.USER3, 999L);
 
-        Comment anotherUserComment = CommentTestDataBuilder.createTestComment(anotherUser, testPost, "다른 사용자 댓글");
+        Comment anotherUserComment = CommentTestDataBuilder.createComment(anotherUser, testPost, "다른 사용자 댓글");
         TestFixtures.setFieldValue(anotherUserComment, "id", 200L);
 
         given(commentQueryPort.findById(200L)).willReturn(anotherUserComment);
@@ -320,7 +320,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
     void shouldHandleDeletedComment() {
         // Given
         Long userId = 100L;
-        Comment deletedComment = CommentTestDataBuilder.createTestComment(testUser, testPost, "삭제된 댓글");
+        Comment deletedComment = CommentTestDataBuilder.createComment(testUser, testPost, "삭제된 댓글");
         TestFixtures.setFieldValue(deletedComment, "id", 200L);
         TestFixtures.setFieldValue(deletedComment, "deleted", true);
 
@@ -392,7 +392,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
     void shouldSoftDeleteUserComment_WhenHasDescendants() {
         // Given
         Long userId = 100L;
-        Comment parentComment = CommentTestDataBuilder.createTestComment(testUser, testPost, "부모 댓글");
+        Comment parentComment = CommentTestDataBuilder.createComment(testUser, testPost, "부모 댓글");
         TestFixtures.setFieldValue(parentComment, "id", 400L);
 
         given(commentQueryPort.findById(400L)).willReturn(parentComment);
@@ -429,7 +429,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         Long requestUserId = 100L;
         User anotherUser = TestUsers.copyWithId(TestUsers.USER3, 999L);
 
-        Comment anotherUserComment = CommentTestDataBuilder.createTestComment(anotherUser, testPost, "다른 사용자 댓글");
+        Comment anotherUserComment = CommentTestDataBuilder.createComment(anotherUser, testPost, "다른 사용자 댓글");
         TestFixtures.setFieldValue(anotherUserComment, "id", 600L);
 
         given(commentQueryPort.findById(600L)).willReturn(anotherUserComment);
@@ -451,7 +451,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         // Given
         Long postId = 300L;
         String content = "인증 사용자 댓글";
-        Comment savedComment = CommentTestDataBuilder.createTestComment(testUser, testPost, content);
+        Comment savedComment = CommentTestDataBuilder.createComment(testUser, testPost, content);
         TestFixtures.setFieldValue(savedComment, "id", TEST_COMMENT_ID);
 
         given(commentToPostPort.findById(postId)).willReturn(testPost);
@@ -514,10 +514,10 @@ class CommentCommandServiceTest extends BaseUnitTest {
         Long postId = 300L;
         Long parentId = 100L;
         String content = "대댓글";
-        Comment savedComment = CommentTestDataBuilder.createTestComment(testUser, testPost, content);
+        Comment savedComment = CommentTestDataBuilder.createComment(testUser, testPost, content);
         TestFixtures.setFieldValue(savedComment, "id", TEST_COMMENT_ID);
 
-        Comment parentComment = CommentTestDataBuilder.createTestComment(testUser, testPost, "부모 댓글");
+        Comment parentComment = CommentTestDataBuilder.createComment(testUser, testPost, "부모 댓글");
         TestFixtures.setFieldValue(parentComment, "id", parentId);
 
         CommentClosure parentClosure = CommentClosure.createCommentClosure(parentComment, parentComment, 0);
@@ -564,7 +564,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         // Given
         Long postId = 300L;
         Long parentId = 999L;
-        Comment savedComment = CommentTestDataBuilder.createTestComment(testUser, testPost, "대댓글");
+        Comment savedComment = CommentTestDataBuilder.createComment(testUser, testPost, "대댓글");
         TestFixtures.setFieldValue(savedComment, "id", TEST_COMMENT_ID);
 
         given(commentToPostPort.findById(postId)).willReturn(testPost);
@@ -612,13 +612,13 @@ class CommentCommandServiceTest extends BaseUnitTest {
         Long grandParentId = 50L;
         String content = "대댓글의 대댓글";
         
-        Comment savedComment = CommentTestDataBuilder.createTestComment(testUser, testPost, content);
+        Comment savedComment = CommentTestDataBuilder.createComment(testUser, testPost, content);
         TestFixtures.setFieldValue(savedComment, "id", TEST_COMMENT_ID);
 
-        Comment parentComment = CommentTestDataBuilder.createTestComment(testUser, testPost, "부모 댓글");
+        Comment parentComment = CommentTestDataBuilder.createComment(testUser, testPost, "부모 댓글");
         TestFixtures.setFieldValue(parentComment, "id", parentId);
         
-        Comment grandParentComment = CommentTestDataBuilder.createTestComment(testUser, testPost, "조부모 댓글");
+        Comment grandParentComment = CommentTestDataBuilder.createComment(testUser, testPost, "조부모 댓글");
         TestFixtures.setFieldValue(grandParentComment, "id", grandParentId);
 
         // 클로저 테이블 관계: grandParent -> parent -> child

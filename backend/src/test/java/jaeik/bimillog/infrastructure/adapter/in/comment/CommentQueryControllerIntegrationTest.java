@@ -77,7 +77,7 @@ class CommentQueryControllerIntegrationTest {
         userRepository.save(testUser);
         
         // 테스트용 게시글 생성
-        testPost = TestFixtures.createPostWithUser(testUser);
+        testPost = TestFixtures.createPost(testUser, "테스트 게시글", "테스트 게시글 내용입니다.");
         postRepository.save(testPost);
         
         // 테스트용 댓글들 생성
@@ -107,7 +107,7 @@ class CommentQueryControllerIntegrationTest {
     @DisplayName("댓글 조회 통합 테스트 - 빈 페이지")
     void getComments_EmptyPage_IntegrationTest() throws Exception {
         // Given - 댓글이 없는 새로운 게시글
-        Post emptyPost = TestFixtures.createPostWithId(null, testUser, "빈 게시글", "댓글이 없는 게시글입니다.");
+        Post emptyPost = TestFixtures.createPost(testUser, "빈 게시글", "댓글이 없는 게시글입니다.");
         postRepository.save(emptyPost);
         
         CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
@@ -147,7 +147,7 @@ class CommentQueryControllerIntegrationTest {
      */
     private void createTestComments() {
         for (int i = 1; i <= 5; i++) {
-            Comment comment = CommentTestDataBuilder.createTestComment(
+            Comment comment = CommentTestDataBuilder.createComment(
                     testUser, testPost, "테스트 댓글 " + i);
             commentRepository.save(comment);
         }

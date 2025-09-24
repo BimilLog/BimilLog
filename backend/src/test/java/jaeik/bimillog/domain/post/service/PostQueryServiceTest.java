@@ -351,7 +351,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         // Given
         Long postId = 1L;
 
-        Post mockPost = TestFixtures.createPostWithId(postId, testUser, "Test Post", "Content");
+        Post mockPost = TestFixtures.withId(postId, TestFixtures.createPost(testUser, "Test Post", "Content"));
         given(postQueryPort.findById(postId)).willReturn(mockPost);
 
         // When
