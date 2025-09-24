@@ -60,14 +60,15 @@ class SseAdapterTest extends BaseUnitTest {
         tokenId = 100L;
         emitterId = SseTestHelper.defaultEmitterId(userId);
         mockEmitter = SseTestHelper.createMockEmitter();
-        
-        // emitterRepository save 동작 설정
-        SseTestHelper.setupEmitterSave(emitterRepository);
     }
 
     @Test
     @DisplayName("SSE 구독 - 성공")
     void shouldSubscribe_WhenValidInput() {
+        // Given
+        when(emitterRepository.save(any(String.class), any(SseEmitter.class)))
+            .thenAnswer(invocation -> invocation.getArgument(1));
+
         // When
         SseEmitter result = sseAdapter.subscribe(userId, tokenId);
 

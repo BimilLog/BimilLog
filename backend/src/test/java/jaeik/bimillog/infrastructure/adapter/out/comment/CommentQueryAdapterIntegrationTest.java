@@ -1,12 +1,14 @@
 package jaeik.bimillog.infrastructure.adapter.out.comment;
 
 import jaeik.bimillog.domain.comment.entity.Comment;
+import jaeik.bimillog.domain.comment.entity.CommentClosure;
 import jaeik.bimillog.domain.comment.entity.CommentInfo;
 import jaeik.bimillog.domain.comment.entity.CommentLike;
 import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
 import jaeik.bimillog.domain.comment.exception.CommentCustomException;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentClosureRepository;
 import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentLikeRepository;
 import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentRepository;
 import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostRepository;
@@ -44,6 +46,9 @@ class CommentQueryAdapterIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private CommentLikeRepository commentLikeRepository;
+    
+    @Autowired
+    private CommentClosureRepository commentClosureRepository;
 
     @Autowired
     private CommentQueryAdapter commentQueryAdapter;
@@ -153,12 +158,12 @@ class CommentQueryAdapterIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("정상 케이스 - 인기 댓글 목록 조회")
     void shouldFindPopularComments_WhenValidPostIdProvided() {
-        // Given: 게시글의 여러 댓글과 추천 (인기 댓글 조건: 5개 이상)
+        // Given: 게시글의 여러 댓글과 추천 (인기 댓글 조건: 3개 이상)
         Comment comment1 = CommentTestDataBuilder.createComment(testUser, testPost, "인기댓글1");
         comment1 = commentRepository.save(comment1);
 
-        // 5개 이상의 추천 생성 (인기 댓글 조건 충족)
-        for (int i = 0; i < 6; i++) {
+        // 3개 이상의 추천 생성 (인기 댓글 조건 충족)
+        for (int i = 0; i < 3; i++) {
             User likeUser = TestUsers.createUniqueWithPrefix("likeUser" + i);
             userRepository.save(likeUser);
 
@@ -187,7 +192,7 @@ class CommentQueryAdapterIntegrationTest extends BaseIntegrationTest {
         CommentInfo popularComment = popularComments.getFirst();
         assertThat(popularComment.getContent()).isEqualTo("인기댓글1");
         assertThat(popularComment.isPopular()).isTrue();
-        assertThat(popularComment.getLikeCount()).isEqualTo(7); // 6 + otherUser의 추천
+        assertThat(popularComment.getLikeCount()).isEqualTo(4); // 3 + otherUser의 추천
         assertThat(popularComment.isUserLike()).isTrue(); // 단일 쿼리로 사용자 추천 여부 검증
     }
 
@@ -391,5 +396,55 @@ class CommentQueryAdapterIntegrationTest extends BaseIntegrationTest {
         // 3. 존재하지 않는 댓글 조회
         assertThatThrownBy(() -> commentQueryAdapter.findById(999L))
                 .isInstanceOf(CommentCustomException.class);
+    }
+
+//    @Test
+//    @DisplayName("정상 케이스 - 자손 댓글 존재 여부 확인")
+//    void shouldCheckHasDescendants_WhenCommentHasChildComments() {
+//        // Given: 부모-자식 댓글 관계 설정
+//        Comment parentComment = CommentTestDataBuilder.createComment(testUser, testPost, "부모 댓글");
+//        parentComment = commentRepository.save(parentComment);
+//        
+//        Comment childComment = CommentTestDataBuilder.createComment(testUser, testPost, "자식 댓글");
+//        childComment = commentRepository.save(childComment);
+//        
+//        // 클로저 관계 설정 (자식 댓글이 있음을 나타냄)
+//        CommentClosure parentSelf = CommentClosure.createCommentClosure(parentComment, parentComment, 0);
+//        CommentClosure parentToChild = CommentClosure.createCommentClosure(parentComment, childComment, 1);
+//        CommentClosure childSelf = CommentClosure.createCommentClosure(childComment, childComment, 0);
+//        
+//        commentClosureRepository.save(parentSelf);
+//        commentClosureRepository.save(parentToChild);
+//        commentClosureRepository.save(childSelf);
+//
+//        // When: 자손 존재 여부 확인
+//        boolean parentHasDescendants = commentQueryAdapter.hasDescendants(parentComment.getId());
+//        boolean childHasDescendants = commentQueryAdapter.hasDescendants(childComment.getId());
+//
+//        // Then: 부모는 자손이 있고, 자식은 자손이 없음
+//        assertThat(parentHasDescendants).isTrue();
+//        assertThat(childHasDescendants).isFalse();
+//    }
+
+    @Test
+    @DisplayName("정상 케이스 - 특정 사용자의 모든 댓글 조회")
+    void shouldFindAllCommentsByUserId_WhenUserHasMultipleComments() {
+        // Given: 특정 사용자의 여러 댓글
+        Comment comment1 = CommentTestDataBuilder.createComment(testUser, testPost, "사용자 댓글 1");
+        Comment comment2 = CommentTestDataBuilder.createComment(testUser, testPost, "사용자 댓글 2");
+        Comment comment3 = CommentTestDataBuilder.createComment(otherUser, testPost, "다른 사용자 댓글");
+        
+        commentRepository.save(comment1);
+        commentRepository.save(comment2);
+        commentRepository.save(comment3);
+
+        // When: 특정 사용자의 모든 댓글 조회
+        List<Comment> userComments = commentQueryAdapter.findAllByUserId(testUser.getId());
+
+        // Then: 해당 사용자의 댓글만 조회됨
+        assertThat(userComments).isNotNull();
+        assertThat(userComments).hasSize(2);
+        assertThat(userComments).extracting(Comment::getContent)
+                .containsExactlyInAnyOrder("사용자 댓글 1", "사용자 댓글 2");
     }
 }

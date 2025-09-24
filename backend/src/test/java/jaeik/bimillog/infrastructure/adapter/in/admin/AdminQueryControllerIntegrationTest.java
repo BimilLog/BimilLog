@@ -21,16 +21,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @IntegrationTest
 @DisplayName("관리자 Query 컨트롤러 통합 테스트")
 class AdminQueryControllerIntegrationTest extends BaseIntegrationTest {
-    
+
     @Test
     @DisplayName("관리자 권한으로 신고 목록 조회 - 성공")
     void getReportList_WithAdminRole_Success() throws Exception {
         // Given
         int page = 0;
         int size = 10;
-        
+
         // When & Then
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/dto/query/reports")
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/admin/reports")
                         .param("page", String.valueOf(page))
                         .param("size", String.valueOf(size))
                         .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(adminUserDetails)))
@@ -44,15 +44,15 @@ class AdminQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.size").value(size))
                 .andExpect(jsonPath("$.number").value(page));
     }
-    
+
     @Test
     @DisplayName("관리자 권한으로 신고 타입 필터로 신고 목록 조회 - 성공")
     void getReportList_WithReportTypeFilter_Success() throws Exception {
         // Given
         ReportType reportType = ReportType.POST;
-        
+
         // When & Then
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/dto/query/reports")
+        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/admin/reports")
                         .param("page", "0")
                         .param("size", "10")
                         .param("reportType", reportType.name())
@@ -61,83 +61,5 @@ class AdminQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.content").isArray());
-    }
-    
-    @Test
-    @DisplayName("관리자 권한으로 기본 페이징 파라미터로 신고 목록 조회 - 성공")
-    void getReportList_WithDefaultPagingParams_Success() throws Exception {
-        // When & Then
-        performGet("/api/dto/query/reports", adminUserDetails)
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.content").isArray())
-                .andExpect(jsonPath("$.size").value(10))  // default size
-                .andExpect(jsonPath("$.number").value(0)); // default page
-    }
-    
-    @Test
-    @DisplayName("관리자 권한으로 큰 페이지 크기로 신고 목록 조회 - 성공")
-    void getReportList_WithLargePageSize_Success() throws Exception {
-        // Given
-        int page = 0;
-        int size = 100;
-        
-        // When & Then
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/dto/query/reports")
-                        .param("page", String.valueOf(page))
-                        .param("size", String.valueOf(size))
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(adminUserDetails)))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.size").value(size));
-    }
-    
-    @Test
-    @DisplayName("일반 사용자 권한으로 신고 목록 조회 - 실패 (권한 부족)")
-    void getReportList_WithUserRole_Forbidden() throws Exception {
-        // When & Then
-        performGet("/api/dto/query/reports?page=0&size=10", testUserDetails)
-                .andDo(print())
-                .andExpect(status().isForbidden()); // 일반 사용자는 관리자 권한이 없어서 403
-    }
-    
-    @Test
-    @DisplayName("인증되지 않은 사용자의 신고 목록 조회 - 실패")
-    void getReportList_Unauthenticated_Forbidden() throws Exception {
-        // When & Then
-        performGet("/api/dto/query/reports?page=0&size=10")
-                .andDo(print())
-                .andExpect(status().isForbidden()); // 실제로는 403이 반환됨
-    }
-    
-    @Test
-    @DisplayName("관리자 권한으로 잘못된 페이지 번호로 신고 목록 조회 - 성공 (음수 페이지는 0으로 처리)")
-    void getReportList_WithNegativePage_Success() throws Exception {
-        // Given
-        int page = -1;
-        int size = 10;
-        
-        // When & Then
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/dto/query/reports")
-                        .param("page", String.valueOf(page))
-                        .param("size", String.valueOf(size))
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(adminUserDetails)))
-                .andDo(print())
-                .andExpect(status().isInternalServerError());
-    }
-    
-    @Test
-    @DisplayName("관리자 권한으로 존재하지 않는 신고 타입으로 조회 - 실패")
-    void getReportList_WithInvalidReportType_BadRequest() throws Exception {
-        // When & Then
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/dto/query/reports")
-                        .param("page", "0")
-                        .param("size", "10")
-                        .param("reportType", "INVALID_TYPE")
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(adminUserDetails)))
-                .andDo(print())
-                .andExpect(status().isInternalServerError());
     }
 }

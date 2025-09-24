@@ -28,7 +28,7 @@ import static org.mockito.Mockito.verify;
  * @version 2.0.0
  */
 @DisplayName("KakaoSocialAdapter 단위 테스트")
-class KakaoAuthToUserAdapterTest extends BaseAuthUnitTest {
+class KakaoSocialAdapterTest extends BaseAuthUnitTest {
 
     private static final Integer DEFAULT_OFFSET = 0;
     private static final Integer DEFAULT_LIMIT = 10;

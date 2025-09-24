@@ -1,12 +1,12 @@
 package jaeik.bimillog.infrastructure.adapter.in.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
+import jaeik.bimillog.testutil.TestFixtures;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
@@ -70,8 +70,8 @@ class AuthQueryControllerIntegrationTest {
         // Given - 실제 사용자 데이터 저장
         User testUser = TestUsers.createUniqueWithPrefix("통합테스트사용자");
         User savedUser = userRepository.save(testUser);
-        
-        CustomUserDetails userDetails = createCustomUserDetails(savedUser);
+
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(savedUser);
 
         // When & Then
         mockMvc.perform(get("/api/auth/me")
@@ -94,8 +94,8 @@ class AuthQueryControllerIntegrationTest {
         User adminUser = TestUsers.createUniqueWithPrefix("관리자");
         adminUser = TestUsers.copyWithId(TestUsers.withRole(UserRole.ADMIN), adminUser.getId());
         User savedAdmin = userRepository.save(adminUser);
-        
-        CustomUserDetails adminUserDetails = createCustomUserDetails(savedAdmin);
+
+        CustomUserDetails adminUserDetails = TestFixtures.createCustomUserDetails(savedAdmin);
 
         // When & Then
         mockMvc.perform(get("/api/auth/me")
@@ -127,28 +127,5 @@ class AuthQueryControllerIntegrationTest {
         mockMvc.perform(get("/api/auth/me"))
                 .andDo(print())
                 .andExpect(status().isUnauthorized());
-    }
-
-
-
-
-
-
-    /**
-     * 테스트용 CustomUserDetails 생성
-     */
-    private CustomUserDetails createCustomUserDetails(User user) {
-        ExistingUserDetail userDetail = ExistingUserDetail.builder()
-                .userId(user.getId())
-                .settingId(user.getSetting().getId())
-                .socialId(user.getSocialId())
-                .socialNickname(user.getSocialNickname())
-                .thumbnailImage(user.getThumbnailImage())
-                .userName(user.getUserName())
-                .provider(user.getProvider())
-                .role(user.getRole())
-                .build();
-
-        return new CustomUserDetails(userDetail);
     }
 }

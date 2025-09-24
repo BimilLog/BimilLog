@@ -20,12 +20,14 @@ import org.springframework.data.redis.core.ZSetOperations;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.doThrow;
 import static org.mockito.BDDMockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * <h2>RedisPostCommandAdapter 테스트</h2>
@@ -55,7 +57,6 @@ class RedisPostCommandAdapterTest extends BaseUnitTest {
 
     @BeforeEach
     void setUp() {
-        RedisTestHelper.setupRedisTemplateMocks(redisTemplate, valueOperations, zSetOperations);
         testPostDetail = RedisTestHelper.defaultPostDetail();
     }
 
@@ -65,7 +66,9 @@ class RedisPostCommandAdapterTest extends BaseUnitTest {
         // Given
         List<PostDetail> postDetails = List.of(testPostDetail);
         PostCacheFlag cacheType = PostCacheFlag.REALTIME;
-        
+        when(redisTemplate.opsForZSet()).thenReturn(zSetOperations);
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+
         // When
         redisPostCommandAdapter.cachePostsWithDetails(cacheType, postDetails);
 
@@ -98,7 +101,11 @@ class RedisPostCommandAdapterTest extends BaseUnitTest {
     void shouldDeleteCache_WhenValidCacheTypeProvided() {
         // Given
         PostCacheFlag cacheType = PostCacheFlag.REALTIME;
-        
+        when(redisTemplate.opsForZSet()).thenReturn(zSetOperations);
+        when(zSetOperations.range(anyString(), eq(0L), eq(-1L))).thenReturn(Set.of("1", "2"));
+        when(redisTemplate.delete(anyString())).thenReturn(true);
+        when(redisTemplate.delete(anyCollection())).thenReturn(2L);
+
         // When
         redisPostCommandAdapter.deleteCache(cacheType, null);
 
@@ -110,6 +117,8 @@ class RedisPostCommandAdapterTest extends BaseUnitTest {
     @DisplayName("예외 케이스 - Redis 쓰기 오류 시 PostCustomException 발생")
     void shouldThrowCustomException_WhenRedisWriteError() {
         // Given
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(redisTemplate.opsForZSet()).thenReturn(zSetOperations);
         doThrow(new RuntimeException("Redis connection failed"))
             .when(valueOperations).set(anyString(), any(), any(Duration.class));
 

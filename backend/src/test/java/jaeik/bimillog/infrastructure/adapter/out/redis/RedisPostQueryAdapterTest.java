@@ -51,7 +51,6 @@ class RedisPostQueryAdapterTest extends BaseUnitTest {
 
     @BeforeEach
     void setUp() {
-        RedisTestHelper.setupRedisTemplateMocks(redisTemplate, valueOperations, zSetOperations);
         testPostDetail = RedisTestHelper.postDetail()
             .id(1L)
             .title("캐시된 게시글")
@@ -64,6 +63,7 @@ class RedisPostQueryAdapterTest extends BaseUnitTest {
     void shouldReturnPostDetail_WhenCachedPostExists() {
         // Given
         Long postId = 1L;
+        given(redisTemplate.opsForValue()).willReturn(valueOperations);
         given(valueOperations.get(RedisTestHelper.RedisKeys.postDetail(postId)))
             .willReturn(testPostDetail);
 
@@ -83,7 +83,9 @@ class RedisPostQueryAdapterTest extends BaseUnitTest {
         // Given
         PostCacheFlag cacheType = PostCacheFlag.REALTIME;
         Set<Object> postIds = Set.of("1", "2", "3");
-        
+
+        given(redisTemplate.opsForZSet()).willReturn(zSetOperations);
+        given(redisTemplate.opsForValue()).willReturn(valueOperations);
         given(zSetOperations.reverseRange(RedisTestHelper.RedisKeys.postList(cacheType), 0, -1))
             .willReturn(postIds);
         given(valueOperations.get(RedisTestHelper.RedisKeys.postDetail(1L))).willReturn(testPostDetail);
@@ -119,6 +121,7 @@ class RedisPostQueryAdapterTest extends BaseUnitTest {
     void shouldReturnEmptyList_WhenNoCachedPostsExist() {
         // Given
         PostCacheFlag cacheType = PostCacheFlag.REALTIME;
+        given(redisTemplate.opsForZSet()).willReturn(zSetOperations);
         given(zSetOperations.reverseRange(RedisTestHelper.RedisKeys.postList(cacheType), 0, -1))
             .willReturn(Collections.emptySet());
 
@@ -135,6 +138,7 @@ class RedisPostQueryAdapterTest extends BaseUnitTest {
     void shouldReturnNull_WhenPostNotCached() {
         // Given
         Long nonExistentPostId = 999L;
+        given(redisTemplate.opsForValue()).willReturn(valueOperations);
         given(valueOperations.get(RedisTestHelper.RedisKeys.postDetail(nonExistentPostId)))
             .willReturn(null);
 
@@ -150,6 +154,7 @@ class RedisPostQueryAdapterTest extends BaseUnitTest {
     @DisplayName("예외 케이스 - Redis 조회 오류 시 PostCustomException 발생")
     void shouldThrowCustomException_WhenRedisReadError() {
         // Given
+        given(redisTemplate.opsForValue()).willReturn(valueOperations);
         given(valueOperations.get(anyString()))
             .willThrow(new RuntimeException("Redis connection failed"));
 

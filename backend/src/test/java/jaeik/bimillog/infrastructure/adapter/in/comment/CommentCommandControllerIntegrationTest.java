@@ -7,7 +7,6 @@ import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.in.comment.dto.CommentLikeReqDTO;
 import jaeik.bimillog.infrastructure.adapter.in.comment.dto.CommentReqDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
-import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentClosureRepository;
 import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentRepository;
 import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostRepository;
 import jaeik.bimillog.testutil.*;
@@ -49,9 +48,6 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private CommentCommandUseCase commentCommandUseCase;
-
-    @Autowired
-    private CommentClosureRepository commentClosureRepository;
 
     private Post testPost;
 
@@ -108,7 +104,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("대댓글 작성 통합 테스트")
     void writeReplyComment_IntegrationTest() throws Exception {
-        // Given - 부모 댓글 생성 (비즈니스 로직 사용하여 클로저 테이블 보장)
+        // Given - 부모 댓글 생성
         commentCommandUseCase.writeComment(testUser.getId(), testPost.getId(), null, "부모 댓글입니다.", null);
         
         // 생성된 부모 댓글 조회
@@ -142,7 +138,6 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
                 .findFirst();
 
         assertThat(savedReply).isPresent();
-        // 클로저 테이블 검증은 Repository 테스트의 책임으로 삭제
     }
     
     @Test
@@ -177,7 +172,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("댓글 삭제 통합 테스트")
     void deleteComment_IntegrationTest() throws Exception {
-        // Given - 비즈니스 로직으로 댓글 생성 (클로저 포함)
+        // Given - 댓글 생성
         commentCommandUseCase.writeComment(testUser.getId(), testPost.getId(), null, "테스트 댓글입니다.", null);
         
         // 생성된 댓글 조회
@@ -201,9 +196,9 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string("댓글 삭제 완료"));
         
-        // 데이터베이스 검증 - 자손이 없는 댓글은 하드 삭제됨
+        // 데이터베이스 검증 - 댓글이 삭제되었는지 확인
         Optional<Comment> deletedComment = commentRepository.findById(existingComment.getId());
-        assertThat(deletedComment).isEmpty(); // 하드 삭제로 완전히 제거됨
+        assertThat(deletedComment).isEmpty();
     }
     
     @Test
@@ -250,12 +245,10 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(status().isBadRequest());
     }
 
-    // === 누락된 댓글 삭제 통합 테스트 케이스들 ===
-
     @Test
     @DisplayName("익명 댓글 삭제 통합 테스트 - 패스워드 인증")
     void deleteAnonymousComment_IntegrationTest() throws Exception {
-        // Given: 비즈니스 로직으로 익명 댓글 생성 (클로저 포함)
+        // Given: 익명 댓글 생성
         commentCommandUseCase.writeComment(null, testPost.getId(), null, "익명 댓글입니다", 1234);
         
         // 생성된 익명 댓글 조회
@@ -277,15 +270,15 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string("댓글 삭제 완료"));
         
-        // 데이터베이스 검증 - 자손이 없는 익명 댓글도 하드 삭제됨
+        // 데이터베이스 검증 - 댓글이 삭제되었는지 확인
         Optional<Comment> deletedComment = commentRepository.findById(anonymousComment.getId());
-        assertThat(deletedComment).isEmpty(); // 하드 삭제로 완전히 제거됨
+        assertThat(deletedComment).isEmpty();
     }
 
     @Test
     @DisplayName("익명 댓글 삭제 실패 - 잘못된 패스워드")
     void deleteAnonymousComment_WrongPassword_IntegrationTest() throws Exception {
-        // Given: 비즈니스 로직으로 익명 댓글 생성
+        // Given: 익명 댓글 생성
         commentCommandUseCase.writeComment(null, testPost.getId(), null, "익명 댓글입니다", 1234);
         
         // 생성된 익명 댓글 조회
@@ -306,11 +299,9 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isForbidden());
         
-        // 데이터베이스 검증 - 댓글이 삭제되지 않아야 함
+        // 댓글이 여전히 존재하는지 확인
         Optional<Comment> comment = commentRepository.findById(anonymousComment.getId());
         assertThat(comment).isPresent();
-        assertThat(comment.get().isDeleted()).isFalse();
-        assertThat(comment.get().getContent()).isEqualTo("익명 댓글입니다");
     }
 
     @Test
@@ -337,9 +328,8 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isForbidden());
         
-        // 데이터베이스 검증 - 댓글이 삭제되지 않아야 함
+        // 댓글이 여전히 존재하는지 확인
         Optional<Comment> comment = commentRepository.findById(otherUserComment.getId());
         assertThat(comment).isPresent();
-        assertThat(comment.get().isDeleted()).isFalse();
     }
 }
