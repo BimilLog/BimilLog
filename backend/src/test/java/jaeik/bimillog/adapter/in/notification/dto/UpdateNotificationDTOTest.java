@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * <h2>UpdateNotificationDTO 테스트</h2>
  * <p>알림 업데이트 요청 DTO의 검증 및 필터링 로직을 테스트합니다.</p>

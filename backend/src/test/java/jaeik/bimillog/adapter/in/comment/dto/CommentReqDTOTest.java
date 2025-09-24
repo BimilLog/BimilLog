@@ -4,6 +4,8 @@ import jaeik.bimillog.infrastructure.adapter.in.comment.dto.CommentReqDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * <h2>CommentReqDTO 단위 테스트</h2>
  * <p>댓글 요청 DTO의 validation 로직을 검증하는 단위 테스트</p>
