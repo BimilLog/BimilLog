@@ -228,43 +228,40 @@ public class TestFixtures {
     }
 
     /**
-     * DB에 저장된 사용자로부터 CustomUserDetails 생성
-     * @param savedUser DB에 저장된 사용자 엔티티 (ID 필수)
-     * @return CustomUserDetails
-     */
-    public static CustomUserDetails createCustomUserDetailsFromSavedUser(User savedUser) {
-        ExistingUserDetail userDetail = ExistingUserDetail.builder()
-                .userId(savedUser.getId())
-                .settingId(savedUser.getSetting() != null ? savedUser.getSetting().getId() : null)
-                .socialId(savedUser.getSocialId())
-                .socialNickname(savedUser.getSocialNickname())
-                .thumbnailImage(savedUser.getThumbnailImage())
-                .userName(savedUser.getUserName())
-                .provider(savedUser.getProvider())
-                .role(savedUser.getRole())
-                .tokenId(1L) // 테스트용 토큰 ID
-                .fcmTokenId(null)
-                .build();
-        return new CustomUserDetails(userDetail);
-    }
-
-    /**
-     * ExistingUserDetail 생성
+     * ExistingUserDetail 생성 (기본 메서드)
      * @param user 사용자 엔티티
      * @return ExistingUserDetail
      */
     public static ExistingUserDetail createExistingUserDetail(User user) {
+        return createExistingUserDetail(user, null, null);
+    }
+
+    /**
+     * ExistingUserDetail 생성 (토큰 ID 지정 가능)
+     * @param user 사용자 엔티티
+     * @param tokenId 토큰 ID (null 가능)
+     * @param fcmTokenId FCM 토큰 ID (null 가능)
+     * @return ExistingUserDetail
+     */
+    public static ExistingUserDetail createExistingUserDetail(User user, Long tokenId, Long fcmTokenId) {
+        Long settingId = null;
+        if (user.getSetting() != null && user.getSetting().getId() != null) {
+            settingId = user.getSetting().getId();
+        } else {
+            settingId = 1L; // 기본값
+        }
+
         return ExistingUserDetail.builder()
-                .userId(user.getId())
-                .settingId(user.getSetting() != null ? user.getSetting().getId() : null)
+                .userId(user.getId() != null ? user.getId() : 1L)
+                .settingId(settingId)
                 .socialId(user.getSocialId())
                 .socialNickname(user.getSocialNickname())
                 .thumbnailImage(user.getThumbnailImage())
                 .userName(user.getUserName())
                 .provider(user.getProvider())
                 .role(user.getRole())
-                .tokenId(null)
-                .fcmTokenId(null)
+                .tokenId(tokenId)
+                .fcmTokenId(fcmTokenId)
                 .build();
     }
 
@@ -295,11 +292,31 @@ public class TestFixtures {
      */
     public static void setFieldValue(Object target, String fieldName, Object value) {
         try {
-            java.lang.reflect.Field field = target.getClass().getDeclaredField(fieldName);
+            // 먼저 현재 클래스에서 필드를 찾기
+            java.lang.reflect.Field field = findField(target.getClass(), fieldName);
+            if (field == null) {
+                throw new NoSuchFieldException("Field '" + fieldName + "' not found in " + target.getClass());
+            }
             field.setAccessible(true);
             field.set(target, value);
         } catch (Exception e) {
             throw new RuntimeException("Failed to set field value", e);
         }
+    }
+
+    /**
+     * 클래스 계층 구조를 따라 필드를 찾기 (부모 클래스 포함)
+     */
+    private static java.lang.reflect.Field findField(Class<?> clazz, String fieldName) {
+        Class<?> current = clazz;
+        while (current != null) {
+            try {
+                return current.getDeclaredField(fieldName);
+            } catch (NoSuchFieldException e) {
+                // 부모 클래스에서 계속 찾기
+                current = current.getSuperclass();
+            }
+        }
+        return null;
     }
 }

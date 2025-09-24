@@ -81,7 +81,7 @@ class PostCommandControllerIntegrationTest {
         savedUser = userRepository.save(TestUsers.USER1);
         
         // TestFixtures의 헬퍼 메서드로 CustomUserDetails 생성
-        testUser = TestFixtures.createCustomUserDetailsFromSavedUser(savedUser);
+        testUser = TestFixtures.createCustomUserDetails(savedUser);
     }
 
     @Test

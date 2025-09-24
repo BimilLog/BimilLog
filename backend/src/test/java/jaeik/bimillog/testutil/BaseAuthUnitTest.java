@@ -116,25 +116,14 @@ public abstract class BaseAuthUnitTest extends BaseUnitTest {
             testToken
         );
         
-        // 기존 사용자 상세 정보 생성
-        this.existingUserDetail = ExistingUserDetail.builder()
-            .userId(testUser.getId() != null ? testUser.getId() : 1L)
-            .tokenId(1L)
-            .fcmTokenId(1L)
-            .socialId(TEST_SOCIAL_ID)
-            .provider(TEST_PROVIDER)
-            .settingId(defaultSetting.getId() != null ? defaultSetting.getId() : 1L)
-            .userName(TEST_USERNAME)
-            .socialNickname(TEST_SOCIAL_NICKNAME)
-            .thumbnailImage(TEST_PROFILE_IMAGE)
-            .role(UserRole.USER)
-            .build();
-        
+        // 기존 사용자 상세 정보 생성 - TestFixtures 사용
+        this.existingUserDetail = TestFixtures.createExistingUserDetail(testUser, 1L, 1L);
+
         // 신규 사용자 상세 정보 생성
         this.newUserDetail = NewUserDetail.of("test-uuid-" + System.currentTimeMillis());
-        
-        // CustomUserDetails 생성
-        this.testCustomUserDetails = new CustomUserDetails(existingUserDetail);
+
+        // CustomUserDetails 생성 - TestFixtures 사용
+        this.testCustomUserDetails = TestFixtures.createCustomUserDetails(testUser);
         
         // 로그아웃 쿠키 생성
         this.logoutCookies = createLogoutCookies();

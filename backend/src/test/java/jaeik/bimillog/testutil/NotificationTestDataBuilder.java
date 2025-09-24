@@ -178,7 +178,9 @@ public class NotificationTestDataBuilder {
             TestFixtures.setFieldValue(notification, "isRead", isRead);
         }
         if (createdAt != null) {
-            TestFixtures.setFieldValue(notification, "createdAt", createdAt);
+            // LocalDateTime을 Instant로 변환
+            java.time.Instant instantCreatedAt = createdAt.toInstant(java.time.ZoneOffset.UTC);
+            TestFixtures.setFieldValue(notification, "createdAt", instantCreatedAt);
         }
 
         return notification;
@@ -211,12 +213,13 @@ public class NotificationTestDataBuilder {
      */
     public static List<Notification> createMixedNotifications(User receiver) {
         List<Notification> notifications = new ArrayList<>();
-        
+
         notifications.add(aCommentNotification(receiver, 1L).build());
         notifications.add(aLikeNotification(receiver, 3L).build());
         notifications.add(aPaperMessageNotification(receiver).build());
         notifications.add(anAdminNotification(receiver, "시스템 점검 안내").build());
-        
+        notifications.add(aCommentNotification(receiver, 2L).build()); // 5번째 알림 추가
+
         return notifications;
     }
 }

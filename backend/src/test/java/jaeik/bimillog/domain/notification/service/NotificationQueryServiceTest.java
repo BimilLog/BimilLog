@@ -49,7 +49,6 @@ class NotificationQueryServiceTest {
         // Given
         User user = TestUsers.USER1;
         CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(user);
-        given(userDetails.getUserId()).willReturn(1L);
         
         List<Notification> expectedNotifications = Arrays.asList(
                 NotificationTestDataBuilder.aCommentNotification(user, 123L)
@@ -89,7 +88,6 @@ class NotificationQueryServiceTest {
     void shouldGetNotificationList_WhenNoNotifications() {
         // Given
         CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(TestUsers.USER2);
-        given(userDetails.getUserId()).willReturn(2L);
         List<Notification> emptyList = Collections.emptyList();
         given(notificationQueryPort.getNotificationList(any()))
                 .willReturn(emptyList);
@@ -111,7 +109,6 @@ class NotificationQueryServiceTest {
         // Given
         User user = TestUsers.USER3;
         CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(user);
-        given(userDetails.getUserId()).willReturn(3L);
         
         List<Notification> singleNotification = Arrays.asList(
                 NotificationTestDataBuilder.aPaperMessageNotification(user)
@@ -143,7 +140,6 @@ class NotificationQueryServiceTest {
         // Given
         User user = TestUsers.withRole(UserRole.ADMIN);
         CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(user);
-        given(userDetails.getUserId()).willReturn(4L);
         
         List<Notification> mixedNotifications = new java.util.ArrayList<>();
         // 읽지 않은 알림
@@ -226,7 +222,6 @@ class NotificationQueryServiceTest {
         // Given
         User user = TestUsers.USER1;
         CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(user);
-        given(userDetails.getUserId()).willReturn(1L);
         
         List<Notification> largeNotificationList = NotificationTestDataBuilder.createNotifications(10, user);
 
@@ -250,7 +245,6 @@ class NotificationQueryServiceTest {
         // Given
         User user = TestUsers.USER2;
         CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(user);
-        given(userDetails.getUserId()).willReturn(2L);
         
         List<Notification> allTypesNotifications = NotificationTestDataBuilder.createMixedNotifications(user);
 
@@ -278,7 +272,6 @@ class NotificationQueryServiceTest {
     void shouldHandleNullList_WhenPortReturnsNull() {
         // Given
         CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(TestUsers.USER3);
-        given(userDetails.getUserId()).willReturn(3L);
         given(notificationQueryPort.getNotificationList(any()))
                 .willReturn(null);
 
