@@ -2,7 +2,7 @@ package jaeik.bimillog.event.post;
 
 import jaeik.bimillog.domain.post.application.port.in.PostInteractionUseCase;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
-import jaeik.bimillog.testutil.EventTestDataBuilder;
+import jaeik.bimillog.domain.post.event.PostViewedEvent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -28,7 +28,7 @@ public class PostViewedEventIntegrationTest extends BaseEventIntegrationTest {
     @DisplayName("게시글 조회 이벤트 워크플로우 - 조회수 증가까지 완료")
     void postViewedEventWorkflow_ShouldCompleteViewCountIncrement() {
         // Given
-        var event = EventTestDataBuilder.createPostViewEvent(1L);
+        var event = new PostViewedEvent(1L);
 
         // When & Then
         publishAndVerify(event, () -> {
@@ -41,7 +41,11 @@ public class PostViewedEventIntegrationTest extends BaseEventIntegrationTest {
     @DisplayName("여러 다른 게시글 조회 이벤트 동시 처리")
     void multipleDifferentPostViewedEvents_ShouldProcessIndependently() {
         // Given
-        var events = EventTestDataBuilder.createMultipleViewEvents(1L, 2L, 3L);
+        var events = java.util.List.of(
+                new PostViewedEvent(1L),
+                new PostViewedEvent(2L),
+                new PostViewedEvent(3L)
+        );
 
         // When & Then
         publishEvents(events);
@@ -57,7 +61,10 @@ public class PostViewedEventIntegrationTest extends BaseEventIntegrationTest {
     @DisplayName("동일 게시글의 여러 조회 이벤트 처리")
     void multipleViewEventsForSamePost_ShouldProcessAll() {
         // Given
-        var events = EventTestDataBuilder.createRepeatedViewEvents(1L, 3);
+        var events = new java.util.ArrayList<PostViewedEvent>();
+        for (int i = 0; i < 3; i++) {
+            events.add(new PostViewedEvent(1L));
+        }
 
         // When & Then
         publishEvents(events);
@@ -71,7 +78,7 @@ public class PostViewedEventIntegrationTest extends BaseEventIntegrationTest {
     @DisplayName("조회수 증가 실패 시 예외 처리")
     void postViewedEventWithException_ShouldHandleGracefully() {
         // Given
-        var event = EventTestDataBuilder.createPostViewEvent(1L);
+        var event = new PostViewedEvent(1L);
 
         // 조회수 증가 실패 시뮬레이션
         doThrow(new RuntimeException("조회수 증가 실패"))
@@ -88,7 +95,7 @@ public class PostViewedEventIntegrationTest extends BaseEventIntegrationTest {
     @DisplayName("비동기 이벤트 리스너 정상 작동 검증")
     void postViewedEventAsync_ShouldTriggerListenerCorrectly() {
         // Given
-        var event = EventTestDataBuilder.createPostViewEvent(999L);
+        var event = new PostViewedEvent(999L);
 
         // When & Then
         publishAndVerify(event, () -> {

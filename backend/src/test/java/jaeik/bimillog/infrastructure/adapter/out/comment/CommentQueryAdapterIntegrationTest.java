@@ -132,7 +132,10 @@ class CommentQueryAdapterIntegrationTest extends BaseIntegrationTest {
         comment2 = commentRepository.save(comment2);
 
         // otherUser가 추천
-        CommentLike like1 = CommentTestDataBuilder.createCommentLike(comment1, otherUser);
+        CommentLike like1 = CommentLike.builder()
+                .comment(comment1)
+                .user(otherUser)
+                .build();
         commentLikeRepository.save(like1);
 
         Pageable pageable = PageRequest.of(0, 10);
@@ -159,12 +162,18 @@ class CommentQueryAdapterIntegrationTest extends BaseIntegrationTest {
             User likeUser = TestUsers.createUniqueWithPrefix("likeUser" + i);
             userRepository.save(likeUser);
 
-            CommentLike like = CommentTestDataBuilder.createCommentLike(comment1, likeUser);
+            CommentLike like = CommentLike.builder()
+                    .comment(comment1)
+                    .user(likeUser)
+                    .build();
             commentLikeRepository.save(like);
         }
 
         // otherUser가 comment1에 추천 - 사용자 추천 여부 테스트용
-        CommentLike userLike = CommentTestDataBuilder.createCommentLike(comment1, otherUser);
+        CommentLike userLike = CommentLike.builder()
+                .comment(comment1)
+                .user(otherUser)
+                .build();
         commentLikeRepository.save(userLike);
 
         // When: 인기 댓글 조회 (otherUser 관점에서)
@@ -194,7 +203,10 @@ class CommentQueryAdapterIntegrationTest extends BaseIntegrationTest {
             User likeUser = TestUsers.createUniqueWithPrefix("notLikeUser" + i);
             userRepository.save(likeUser);
 
-            CommentLike like = CommentTestDataBuilder.createCommentLike(comment1, likeUser);
+            CommentLike like = CommentLike.builder()
+                    .comment(comment1)
+                    .user(likeUser)
+                    .build();
             commentLikeRepository.save(like);
         }
 
@@ -228,7 +240,10 @@ class CommentQueryAdapterIntegrationTest extends BaseIntegrationTest {
         commentRepository.save(comment3);
 
         // otherUser가 comment2에만 추천 - 사용자 추천 여부 테스트용
-        CommentLike userLike = CommentTestDataBuilder.createCommentLike(comment2, otherUser);
+        CommentLike userLike = CommentLike.builder()
+                .comment(comment2)
+                .user(otherUser)
+                .build();
         commentLikeRepository.save(userLike);
 
         Pageable pageable = PageRequest.of(0, 10);
@@ -356,7 +371,10 @@ class CommentQueryAdapterIntegrationTest extends BaseIntegrationTest {
         comment2 = commentRepository.save(comment2);
 
         // testUser가 comment2에 추천
-        CommentLike like = CommentTestDataBuilder.createCommentLike(comment2, testUser);
+        CommentLike like = CommentLike.builder()
+                .comment(comment2)
+                .user(testUser)
+                .build();
         commentLikeRepository.save(like);
 
         // When & Then: 여러 쿼리 연속 실행

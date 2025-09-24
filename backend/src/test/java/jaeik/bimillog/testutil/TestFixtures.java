@@ -7,14 +7,11 @@ import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.post.entity.PostLike;
 import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.infrastructure.adapter.in.auth.dto.SocialLoginRequestDTO;
 import jaeik.bimillog.infrastructure.adapter.in.paper.dto.MessageDTO;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.PostCreateDTO;
-import jaeik.bimillog.infrastructure.adapter.in.user.dto.SignUpRequestDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import org.springframework.http.ResponseCookie;
 
@@ -120,18 +117,7 @@ public class TestFixtures {
         );
     }
 
-    /**
-     * 테스트용 게시글 좋아요 생성
-     * @param post 게시글
-     * @param user 사용자
-     * @return PostLike 엔티티
-     */
-    public static PostLike createPostLike(Post post, User user) {
-        return PostLike.builder()
-                .post(post)
-                .user(user)
-                .build();
-    }
+
 
     /**
      * 테스트용 PostSearchResult 생성
@@ -196,26 +182,9 @@ public class TestFixtures {
 
     // ==================== DTO Creation ====================
 
-    /**
-     * 회원가입 요청 DTO 생성
-     * @param uuid UUID
-     * @param userName 사용자명
-     * @return SignUpRequestDTO
-     */
-    public static SignUpRequestDTO createSignUpRequest(String uuid, String userName) {
-        return new SignUpRequestDTO(uuid, userName);
-    }
 
-    /**
-     * 소셜 로그인 요청 DTO 생성
-     * @param provider 소셜 제공자
-     * @param code 인증 코드
-     * @param fcmToken FCM 토큰
-     * @return SocialLoginRequestDTO
-     */
-    public static SocialLoginRequestDTO createSocialLoginRequest(String provider, String code, String fcmToken) {
-        return new SocialLoginRequestDTO(provider, code, fcmToken);
-    }
+
+
 
     /**
      * 게시글 작성 요청 DTO 생성
@@ -231,13 +200,7 @@ public class TestFixtures {
                 .build();
     }
 
-    /**
-     * 기본 게시글 작성 요청 DTO 생성
-     * @return PostCreateDTO
-     */
-    public static PostCreateDTO createPostCreateDTO() {
-        return createPostRequest("테스트 게시글 제목", "테스트 게시글 내용입니다.");
-    }
+
 
     /**
      * 게시글 수정 요청 DTO 생성

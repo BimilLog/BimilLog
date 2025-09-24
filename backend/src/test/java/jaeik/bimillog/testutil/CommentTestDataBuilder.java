@@ -56,35 +56,9 @@ public class CommentTestDataBuilder {
         return requestDto;
     }
 
-    /**
-     * <h3>테스트용 대댓글 요청 DTO 생성</h3>
-     * <p>부모 댓글이 있는 대댓글 요청 DTO를 생성합니다.</p>
-     *
-     * @param postId 게시글 ID
-     * @param parentId 부모 댓글 ID
-     * @param content 댓글 내용
-     * @return CommentReqDTO 테스트용 대댓글 요청 DTO
-     */
-    public static CommentReqDTO createReplyCommentReqDTO(Long postId, Long parentId, String content) {
-        CommentReqDTO requestDto = createCommentReqDTO(postId, content);
-        requestDto.setParentId(parentId);
-        return requestDto;
-    }
 
-    /**
-     * <h3>테스트용 댓글 수정 요청 DTO 생성</h3>
-     * <p>댓글 수정에 사용할 요청 DTO를 생성합니다.</p>
-     *
-     * @param commentId 수정할 댓글 ID
-     * @param content 새 댓글 내용
-     * @return CommentReqDTO 테스트용 댓글 수정 요청 DTO
-     */
-    public static CommentReqDTO createUpdateCommentReqDTO(Long commentId, String content) {
-        CommentReqDTO requestDto = new CommentReqDTO();
-        requestDto.setId(commentId);
-        requestDto.setContent(content);
-        return requestDto;
-    }
+
+
 
     /**
      * <h3>테스트용 댓글 삭제 요청 DTO 생성</h3>
@@ -132,54 +106,14 @@ public class CommentTestDataBuilder {
 
 
 
-    /**
-     * <h3>테스트용 대댓글 생성</h3>
-     * <p>부모 댓글이 있는 대댓글을 생성합니다.</p>
-     *
-     * @param user 댓글 작성자
-     * @param post 댓글이 달린 게시글
-     * @param parent 부모 댓글
-     * @param content 댓글 내용
-     * @return Comment 테스트용 대댓글 엔티티
-     */
-    public static Comment createReplyComment(User user, Post post, Comment parent, String content) {
-        Comment reply = createComment(user, post, content);
-        TestFixtures.setFieldValue(reply, "parent", parent);
-        return reply;
-    }
 
 
 
 
-    /**
-     * <h3>테스트용 CommentLike 생성</h3>
-     * <p>댓글 좋아요를 생성합니다.</p>
-     *
-     * @param comment 댓글
-     * @param user 좋아요한 사용자
-     * @return CommentLike 댓글 좋아요 엔티티
-     */
-    public static jaeik.bimillog.domain.comment.entity.CommentLike createCommentLike(Comment comment, User user) {
-        return jaeik.bimillog.domain.comment.entity.CommentLike.builder()
-                .comment(comment)
-                .user(user)
-                .build();
-    }
 
-    /**
-     * <h3>테스트용 CommentClosure 생성</h3>
-     * <p>댓글 계층 구조를 위한 클로저 테이블 엔트리를 생성합니다.</p>
-     *
-     * @param ancestor 조상 댓글
-     * @param descendant 자손 댓글
-     * @param depth 계층 깊이
-     * @return CommentClosure 댓글 클로저 엔티티
-     */
-    public static jaeik.bimillog.domain.comment.entity.CommentClosure createCommentClosure(
-            Comment ancestor, Comment descendant, int depth) {
-        return jaeik.bimillog.domain.comment.entity.CommentClosure.createCommentClosure(
-                ancestor, descendant, depth);
-    }
+
+
+
 
 
 }

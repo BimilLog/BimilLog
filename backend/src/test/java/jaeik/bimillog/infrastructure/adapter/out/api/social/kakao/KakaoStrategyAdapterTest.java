@@ -67,8 +67,25 @@ class KakaoStrategyAdapterTest extends BaseAuthUnitTest {
         Map<String, Object> tokenResponse = KakaoTestDataBuilder.createTokenResponse(
             TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
         
-        Map<String, Object> userInfoResponse = KakaoTestDataBuilder.createUserInfoResponse(
-            TEST_SOCIAL_ID, TEST_SOCIAL_NICKNAME, TEST_EMAIL, TEST_PROFILE_IMAGE);
+        Map<String, Object> userInfoResponse = new java.util.HashMap<>();
+        userInfoResponse.put("id", 123456789L);
+
+        Map<String, Object> profile = new java.util.HashMap<>();
+        profile.put("nickname", TEST_SOCIAL_NICKNAME);
+        profile.put("thumbnail_image_url", TEST_PROFILE_IMAGE);
+        profile.put("profile_image_url", TEST_PROFILE_IMAGE);
+        profile.put("is_default_image", false);
+
+        Map<String, Object> kakaoAccount = new java.util.HashMap<>();
+        kakaoAccount.put("email", TEST_EMAIL);
+        kakaoAccount.put("profile", profile);
+        kakaoAccount.put("has_email", TEST_EMAIL != null);
+        kakaoAccount.put("email_needs_agreement", false);
+        kakaoAccount.put("is_email_valid", true);
+        kakaoAccount.put("is_email_verified", true);
+
+        userInfoResponse.put("kakao_account", kakaoAccount);
+        userInfoResponse.put("connected_at", "2024-01-01T00:00:00Z");
 
         given(kakaoAuthClient.getToken(anyString(), any(Map.class))).willReturn(tokenResponse);
         given(kakaoApiClient.getUserInfo(anyString())).willReturn(userInfoResponse);

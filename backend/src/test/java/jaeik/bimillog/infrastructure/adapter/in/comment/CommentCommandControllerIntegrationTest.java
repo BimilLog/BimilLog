@@ -118,8 +118,10 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
                 .findFirst()
                 .orElseThrow();
         
-        CommentReqDTO requestDto = CommentTestDataBuilder.createReplyCommentReqDTO(
-                testPost.getId(), parentComment.getId(), "대댓글 테스트입니다.");
+        CommentReqDTO requestDto = new CommentReqDTO();
+        requestDto.setPostId(testPost.getId());
+        requestDto.setParentId(parentComment.getId());
+        requestDto.setContent("대댓글 테스트입니다.");
         
         CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
         
@@ -151,8 +153,9 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
                 testUser, testPost, "원본 댓글 내용입니다.");
         commentRepository.save(existingComment);
         
-        CommentReqDTO requestDto = CommentTestDataBuilder.createUpdateCommentReqDTO(
-                existingComment.getId(), "수정된 댓글 내용입니다.");
+        CommentReqDTO requestDto = new CommentReqDTO();
+        requestDto.setId(existingComment.getId());
+        requestDto.setContent("수정된 댓글 내용입니다.");
         
         CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
         

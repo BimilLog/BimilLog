@@ -3,7 +3,7 @@ package jaeik.bimillog.event.comment;
 import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
 import jaeik.bimillog.domain.notification.application.port.in.NotificationSseUseCase;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
-import jaeik.bimillog.testutil.EventTestDataBuilder;
+import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -33,7 +33,7 @@ class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
     @DisplayName("댓글 생성 이벤트 워크플로우 - SSE와 FCM 알림까지 완료")
     void commentCreatedEventWorkflow_ShouldCompleteNotifications() {
         // Given
-        var event = EventTestDataBuilder.createDefaultCommentEvent(100L);
+        var event = new CommentCreatedEvent(1L, "댓글작성자", 100L);
 
         // When & Then
         publishAndVerify(event, () -> {
@@ -48,7 +48,10 @@ class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
     @DisplayName("동일한 게시글의 여러 댓글 생성 이벤트")
     void multipleCommentCreatedEvents_ForSamePost() {
         // Given
-        var events = EventTestDataBuilder.createMultipleCommentsForPost(1L, 100L, 3);
+        var events = new java.util.ArrayList<CommentCreatedEvent>();
+        for (int i = 1; i <= 3; i++) {
+            events.add(new CommentCreatedEvent(1L, "댓글작성자" + i, 100L));
+        }
 
         // When & Then
         publishEvents(events);
@@ -67,7 +70,10 @@ class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
     @DisplayName("여러 게시글의 댓글 생성 이벤트 처리")
     void multipleCommentCreatedEvents_ForDifferentPosts() {
         // Given
-        var events = EventTestDataBuilder.createCommentsForDifferentPosts(3);
+        var events = new java.util.ArrayList<CommentCreatedEvent>();
+        for (int i = 1; i <= 3; i++) {
+            events.add(new CommentCreatedEvent((long) i, "댓글러" + i, 100L + i));
+        }
 
         // When & Then
         publishEvents(events);
@@ -86,7 +92,7 @@ class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
     @DisplayName("예외 상황에서의 이벤트 처리 - SSE 알림 실패")
     void eventProcessingWithException_SseNotificationFailure() {
         // Given
-        var event = EventTestDataBuilder.createCommentEvent(1L, "댓글러", 100L);
+        var event = new CommentCreatedEvent(1L, "댓글러", 100L);
 
         // SSE 알림 실패 시뮬레이션
         doThrow(new RuntimeException("SSE 알림 실패"))
@@ -104,7 +110,7 @@ class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
     @DisplayName("예외 상황에서의 이벤트 처리 - FCM 알림 실패")
     void eventProcessingWithException_FcmNotificationFailure() {
         // Given
-        var event = EventTestDataBuilder.createCommentEvent(1L, "댓글러", 100L);
+        var event = new CommentCreatedEvent(1L, "댓글러", 100L);
 
         // FCM 알림 실패 시뮬레이션
         doThrow(new RuntimeException("FCM 알림 실패"))

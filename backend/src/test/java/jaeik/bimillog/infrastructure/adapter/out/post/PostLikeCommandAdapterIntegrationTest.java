@@ -52,7 +52,10 @@ class PostLikeCommandAdapterIntegrationTest {
         Post post = TestFixtures.createPost(user, "테스트 게시글", "내용");
         entityManager.persistAndFlush(post);
 
-        PostLike postLike = TestFixtures.createPostLike(post, user);
+        PostLike postLike = PostLike.builder()
+                .post(post)
+                .user(user)
+                .build();
 
         // When
         postLikeCommandAdapter.save(postLike);
@@ -79,7 +82,10 @@ class PostLikeCommandAdapterIntegrationTest {
         Post post = TestFixtures.createPost(user, "테스트 게시글", "내용");
         entityManager.persistAndFlush(post);
 
-        PostLike postLike = TestFixtures.createPostLike(post, user);
+        PostLike postLike = PostLike.builder()
+                .post(post)
+                .user(user)
+                .build();
         entityManager.persistAndFlush(postLike);
 
         // When
@@ -104,8 +110,14 @@ class PostLikeCommandAdapterIntegrationTest {
         Post post = TestFixtures.createPost(user1, "테스트 게시글", "내용");
         entityManager.persistAndFlush(post);
 
-        PostLike postLike1 = TestFixtures.createPostLike(post, user1);
-        PostLike postLike2 = TestFixtures.createPostLike(post, user2);
+        PostLike postLike1 = PostLike.builder()
+                .post(post)
+                .user(user1)
+                .build();
+        PostLike postLike2 = PostLike.builder()
+                .post(post)
+                .user(user2)
+                .build();
         
         entityManager.persist(postLike1);
         entityManager.persist(postLike2);

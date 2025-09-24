@@ -3,7 +3,7 @@ package jaeik.bimillog.event.user;
 import jaeik.bimillog.domain.admin.application.port.in.AdminCommandUseCase;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
-import jaeik.bimillog.testutil.EventTestDataBuilder;
+import jaeik.bimillog.domain.user.event.ReportSubmittedEvent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -29,7 +29,7 @@ class ReportSubmittedEventIntegrationTest extends BaseEventIntegrationTest {
     @DisplayName("인증된 사용자 신고 이벤트 워크플로우 - 댓글 신고")
     void reportSubmissionWorkflow_AuthenticatedUser_CommentReport() {
         // Given
-        var event = EventTestDataBuilder.createCommentReportEvent(1L, 123L);
+        var event = ReportSubmittedEvent.of(1L, "testuser", ReportType.COMMENT, 123L, "부적절한 댓글입니다");
 
         // When & Then
         publishAndVerify(event, () -> {
@@ -42,7 +42,7 @@ class ReportSubmittedEventIntegrationTest extends BaseEventIntegrationTest {
     @DisplayName("익명 사용자 신고 이벤트 워크플로우 - 게시글 신고")
     void reportSubmissionWorkflow_AnonymousUser_PostReport() {
         // Given
-        var event = EventTestDataBuilder.createAnonymousPostReportEvent(456L);
+        var event = ReportSubmittedEvent.of(null, "익명", ReportType.POST, 456L, "스팸 게시글입니다");
 
         // When & Then
         publishAndVerify(event, () -> {
@@ -55,7 +55,7 @@ class ReportSubmittedEventIntegrationTest extends BaseEventIntegrationTest {
     @DisplayName("건의사항 이벤트 워크플로우 - targetId 없음")
     void reportSubmissionWorkflow_Improvement_NoTargetId() {
         // Given
-        var event = EventTestDataBuilder.createImprovementEvent(2L, "새로운 기능을 건의합니다");
+        var event = ReportSubmittedEvent.of(2L, "suggester", ReportType.IMPROVEMENT, null, "새로운 기능을 건의합니다");
 
         // When & Then
         publishAndVerify(event, () -> {
@@ -68,7 +68,11 @@ class ReportSubmittedEventIntegrationTest extends BaseEventIntegrationTest {
     @DisplayName("여러 신고 이벤트 동시 처리")
     void reportSubmissionWorkflow_MultipleEvents_ProcessIndependently() {
         // Given
-        var events = EventTestDataBuilder.createMultipleReportEvents();
+        var events = java.util.List.of(
+                ReportSubmittedEvent.of(1L, "testuser", ReportType.COMMENT, 100L, "부적절한 댓글입니다"),
+                ReportSubmittedEvent.of(null, "익명", ReportType.POST, 200L, "스팸 게시글입니다"),
+                ReportSubmittedEvent.of(3L, "suggester", ReportType.IMPROVEMENT, null, "새로운 기능을 건의합니다")
+        );
 
         // When & Then
         publishEventsAndVerify(events.toArray(), () -> {
@@ -83,8 +87,7 @@ class ReportSubmittedEventIntegrationTest extends BaseEventIntegrationTest {
     @DisplayName("비즈니스 예외 발생 시 처리")
     void reportSubmissionWorkflow_BusinessExceptionHandling() {
         // Given
-        var event = EventTestDataBuilder.createReportEvent(
-                1L, "user1", ReportType.COMMENT, 100L, "중복 신고");
+        var event = ReportSubmittedEvent.of(1L, "user1", ReportType.COMMENT, 100L, "중복 신고");
 
         // 비즈니스 예외 발생 시뮬레이션 (예: 중복 신고)
         doThrow(new IllegalStateException("이미 처리된 신고입니다"))
@@ -102,10 +105,8 @@ class ReportSubmittedEventIntegrationTest extends BaseEventIntegrationTest {
     @DisplayName("이벤트 처리 중 예외 발생 시 다른 이벤트에 영향 없음")
     void reportSubmissionWorkflow_ExceptionIsolation() {
         // Given
-        var successEvent = EventTestDataBuilder.createReportEvent(
-                1L, "user1", ReportType.COMMENT, 100L, "정상 신고");
-        var failureEvent = EventTestDataBuilder.createReportEvent(
-                999L, "baduser", ReportType.POST, 200L, "실패할 신고");
+        var successEvent = ReportSubmittedEvent.of(1L, "user1", ReportType.COMMENT, 100L, "정상 신고");
+        var failureEvent = ReportSubmittedEvent.of(999L, "baduser", ReportType.POST, 200L, "실패할 신고");
 
         // failureEvent는 예외 발생하도록 설정
         doThrow(new RuntimeException("Database connection failed"))

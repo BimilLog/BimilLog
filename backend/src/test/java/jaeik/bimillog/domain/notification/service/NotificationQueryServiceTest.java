@@ -144,7 +144,23 @@ class NotificationQueryServiceTest {
         CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(user);
         given(userDetails.getUserId()).willReturn(4L);
         
-        List<Notification> mixedNotifications = NotificationTestDataBuilder.createMixedReadStatus(user, 2, 1);
+        List<Notification> mixedNotifications = new java.util.ArrayList<>();
+        // 읽지 않은 알림
+        for (int i = 1; i <= 2; i++) {
+            mixedNotifications.add(NotificationTestDataBuilder.aNotification()
+                    .withReceiver(user)
+                    .withMessage("Unread notification " + i)
+                    .asUnread()
+                    .build());
+        }
+        // 읽은 알림
+        for (int i = 1; i <= 1; i++) {
+            mixedNotifications.add(NotificationTestDataBuilder.aNotification()
+                    .withReceiver(user)
+                    .withMessage("Read notification " + i)
+                    .asRead()
+                    .build());
+        }
 
         given(notificationQueryPort.getNotificationList(any()))
                 .willReturn(mixedNotifications);
