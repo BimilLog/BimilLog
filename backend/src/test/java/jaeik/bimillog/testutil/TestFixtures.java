@@ -57,14 +57,15 @@ public class TestFixtures {
 
 
     /**
-     * ID가 포함된 게시글 생성 (테스트 전용)
-     * @param id 게시글 ID
-     * @param post 기존 게시글
-     * @return Post 엔티티
+     * ID가 포함된 엔티티 생성 (테스트 전용)
+     * @param <T> 엔티티 타입
+     * @param id 엔티티 ID
+     * @param entity 기존 엔티티
+     * @return ID가 설정된 엔티티
      */
-    public static Post withId(Long id, Post post) {
-        setFieldValue(post, "id", id);
-        return post;
+    public static <T> T withId(Long id, T entity) {
+        setFieldValue(entity, "id", id);
+        return entity;
     }
 
     /**
@@ -279,6 +280,85 @@ public class TestFixtures {
                 "refresh-token-" + i
             ))
             .collect(java.util.stream.Collectors.toList());
+    }
+
+    // ==================== Lazy Initialization Support ====================
+
+    /**
+     * <h2>테스트 데이터 Lazy Holder</h2>
+     * <p>자주 사용되는 테스트 데이터를 lazy 초기화로 제공</p>
+     * <p>실제 사용될 때만 생성하여 테스트 성능 향상</p>
+     */
+    public static class LazyTestData {
+        // User 관련 lazy suppliers
+        private static volatile User testUser;
+        private static volatile User adminUser;
+        private static volatile User otherUser;
+        private static volatile User thirdUser;
+
+        // Setting 관련 lazy suppliers
+        private static volatile jaeik.bimillog.domain.user.entity.Setting defaultSetting;
+        private static volatile jaeik.bimillog.domain.user.entity.Setting allDisabledSetting;
+        private static volatile jaeik.bimillog.domain.user.entity.Setting messageOnlySetting;
+        private static volatile jaeik.bimillog.domain.user.entity.Setting commentOnlySetting;
+        private static volatile jaeik.bimillog.domain.user.entity.Setting postFeaturedOnlySetting;
+
+        /**
+         * 테스트 사용자 lazy 획득 (USER1)
+         */
+        public static User getTestUser() {
+            if (testUser == null) {
+                synchronized (LazyTestData.class) {
+                    if (testUser == null) {
+                        testUser = TestUsers.USER1;
+                    }
+                }
+            }
+            return testUser;
+        }
+
+        /**
+         * 관리자 사용자 lazy 획득
+         */
+        public static User getAdminUser() {
+            if (adminUser == null) {
+                synchronized (LazyTestData.class) {
+                    if (adminUser == null) {
+                        adminUser = TestUsers.withRole(jaeik.bimillog.domain.user.entity.UserRole.ADMIN);
+                    }
+                }
+            }
+            return adminUser;
+        }
+
+        /**
+         * 다른 테스트 사용자 lazy 획득 (USER2)
+         */
+        public static User getOtherUser() {
+            if (otherUser == null) {
+                synchronized (LazyTestData.class) {
+                    if (otherUser == null) {
+                        otherUser = TestUsers.USER2;
+                    }
+                }
+            }
+            return otherUser;
+        }
+
+        /**
+         * 모든 캐시 초기화 (테스트 격리가 필요한 경우)
+         */
+        public static void resetAll() {
+            testUser = null;
+            adminUser = null;
+            otherUser = null;
+            thirdUser = null;
+            defaultSetting = null;
+            allDisabledSetting = null;
+            messageOnlySetting = null;
+            commentOnlySetting = null;
+            postFeaturedOnlySetting = null;
+        }
     }
 
     // ==================== Utility Methods ====================

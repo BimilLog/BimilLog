@@ -60,10 +60,10 @@ class PostInteractionServiceTest extends BaseUnitTest {
         // Given
         Long userId = 1L;
         Long postId = 123L;
-        Post post = TestFixtures.withId(postId, TestFixtures.createPost(testUser, "테스트 게시글", "내용"));
+        Post post = TestFixtures.withId(postId, TestFixtures.createPost(getTestUser(), "테스트 게시글", "내용"));
 
         given(postLikeQueryPort.existsByPostIdAndUserId(postId, userId)).willReturn(false);
-        given(globalUserQueryPort.getReferenceById(userId)).willReturn(testUser);
+        given(globalUserQueryPort.getReferenceById(userId)).willReturn(getTestUser());
         given(postQueryPort.findById(postId)).willReturn(post);
 
         // When
@@ -78,7 +78,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
         ArgumentCaptor<PostLike> postLikeCaptor = ArgumentCaptor.forClass(PostLike.class);
         verify(postLikeCommandPort).save(postLikeCaptor.capture());
         PostLike savedPostLike = postLikeCaptor.getValue();
-        assertThat(savedPostLike.getUser()).isEqualTo(testUser);
+        assertThat(savedPostLike.getUser()).isEqualTo(getTestUser());
         assertThat(savedPostLike.getPost()).isEqualTo(post);
 
         verify(postLikeCommandPort, never()).deleteByUserAndPost(any(), any());
@@ -90,10 +90,10 @@ class PostInteractionServiceTest extends BaseUnitTest {
         // Given
         Long userId = 1L;
         Long postId = 123L;
-        Post post = TestFixtures.withId(postId, TestFixtures.createPost(testUser, "테스트 게시글", "내용"));
+        Post post = TestFixtures.withId(postId, TestFixtures.createPost(getTestUser(), "테스트 게시글", "내용"));
 
         given(postLikeQueryPort.existsByPostIdAndUserId(postId, userId)).willReturn(true);
-        given(globalUserQueryPort.getReferenceById(userId)).willReturn(testUser);
+        given(globalUserQueryPort.getReferenceById(userId)).willReturn(getTestUser());
         given(postQueryPort.findById(postId)).willReturn(post);
 
         // When
@@ -103,7 +103,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
         verify(postLikeQueryPort).existsByPostIdAndUserId(postId, userId);
         verify(globalUserQueryPort).getReferenceById(userId);
         verify(postQueryPort).findById(postId);
-        verify(postLikeCommandPort).deleteByUserAndPost(testUser, post);
+        verify(postLikeCommandPort).deleteByUserAndPost(getTestUser(), post);
         verify(postLikeCommandPort, never()).save(any());
     }
 
@@ -115,7 +115,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
         Long postId = 999L;
 
         given(postLikeQueryPort.existsByPostIdAndUserId(postId, userId)).willReturn(false);
-        given(globalUserQueryPort.getReferenceById(userId)).willReturn(testUser);
+        given(globalUserQueryPort.getReferenceById(userId)).willReturn(getTestUser());
         given(postQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
         // When & Then

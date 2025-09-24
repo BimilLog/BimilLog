@@ -90,7 +90,7 @@ class GlobalTokenCommandAdapterTest extends BaseUnitTest {
     @DisplayName("관리자 사용자 토큰 저장 - 성공")
     void shouldSaveAdminToken_WhenAdminTokenProvided() {
         // Given
-        Token adminToken = Token.createToken("admin-access", "admin-refresh", adminUser);
+        Token adminToken = Token.createToken("admin-access", "admin-refresh", getAdminUser());
         given(tokenRepository.save(adminToken)).willReturn(adminToken);
 
         // When
@@ -98,7 +98,7 @@ class GlobalTokenCommandAdapterTest extends BaseUnitTest {
 
         // Then
         assertThat(result).isEqualTo(adminToken);
-        assertThat(result.getUsers()).isEqualTo(adminUser);
+        assertThat(result.getUsers()).isEqualTo(getAdminUser());
         assertThat(result.getUsers().getRole()).isEqualTo(jaeik.bimillog.domain.user.entity.UserRole.ADMIN);
         verify(tokenRepository, times(1)).save(adminToken);
     }

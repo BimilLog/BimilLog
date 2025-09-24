@@ -67,7 +67,7 @@ class UserCommandServiceTest extends BaseUnitTest {
     void shouldThrowException_WhenUserNotFoundForSettingUpdate() {
         // Given
         Long userId = 999L;
-        Setting newSetting = defaultSetting;
+        Setting newSetting = getDefaultSetting();
 
         given(userQueryPort.findById(userId)).willReturn(Optional.empty());
 
@@ -207,7 +207,7 @@ class UserCommandServiceTest extends BaseUnitTest {
         Long userId = 1L;
         String racedUserName = "racedNickname";
 
-        User user = TestUsers.copyWithId(testUser, userId);
+        User user = TestUsers.copyWithId(getTestUser(), userId);
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
 

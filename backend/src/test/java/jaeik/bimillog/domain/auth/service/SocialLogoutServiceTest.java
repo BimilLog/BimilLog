@@ -59,29 +59,32 @@ class SocialLogoutServiceTest extends BaseAuthUnitTest {
     @InjectMocks
     private SocialLogoutService socialLogoutService;
 
+    @Mock
+    private jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails mockCustomUserDetails;
+
     @BeforeEach
     void setUp() {
         // BaseAuthUnitTest의 logoutCookies를 mock에서 반환하도록 설정
-        given(globalCookiePort.getLogoutCookies()).willReturn(logoutCookies);
+        given(globalCookiePort.getLogoutCookies()).willReturn(getLogoutCookies());
     }
 
     @Test
     @DisplayName("정상적인 로그아웃 처리")
     void shouldLogout_WhenValidUserDetails() {
         // Given
-        Token mockToken = createMockTokenWithUser(testUser);
-        given(testCustomUserDetails.getUserId()).willReturn(100L);
-        given(testCustomUserDetails.getTokenId()).willReturn(200L);
-        given(testCustomUserDetails.getSocialProvider()).willReturn(TEST_PROVIDER);
+        Token mockToken = createMockTokenWithUser(getTestUser());
+        given(mockCustomUserDetails.getUserId()).willReturn(100L);
+        given(mockCustomUserDetails.getTokenId()).willReturn(200L);
+        given(mockCustomUserDetails.getSocialProvider()).willReturn(TEST_PROVIDER);
         given(globalTokenQueryPort.findById(200L)).willReturn(Optional.of(mockToken));
         given(strategyRegistry.getStrategy(TEST_PROVIDER)).willReturn(kakaoStrategy);
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             // When
-            List<ResponseCookie> result = socialLogoutService.logout(testCustomUserDetails);
+            List<ResponseCookie> result = socialLogoutService.logout(mockCustomUserDetails);
 
             // Then
-            assertThat(result).isEqualTo(logoutCookies);
+            assertThat(result).isEqualTo(getLogoutCookies());
             assertThat(result).hasSize(2);
 
             // 이벤트 발행 검증
@@ -109,12 +112,12 @@ class SocialLogoutServiceTest extends BaseAuthUnitTest {
     @DisplayName("토큰이 존재하지 않는 경우 예외 발생")
     void shouldThrowException_WhenTokenNotFound() {
         // Given
-        given(testCustomUserDetails.getUserId()).willReturn(100L);
-        given(testCustomUserDetails.getTokenId()).willReturn(200L);
+        given(getTestCustomUserDetails().getUserId()).willReturn(100L);
+        given(getTestCustomUserDetails().getTokenId()).willReturn(200L);
         given(globalTokenQueryPort.findById(200L)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> socialLogoutService.logout(testCustomUserDetails))
+        assertThatThrownBy(() -> socialLogoutService.logout(mockCustomUserDetails))
                 .isInstanceOf(AuthCustomException.class)
                 .hasFieldOrPropertyWithValue("authErrorCode", AuthErrorCode.NOT_FIND_TOKEN);
 
@@ -132,10 +135,10 @@ class SocialLogoutServiceTest extends BaseAuthUnitTest {
     @DisplayName("소셜 로그아웃 실패 시에도 전체 로그아웃 프로세스는 성공")
     void shouldCompleteLogout_WhenSocialLogoutFails() {
         // Given
-        Token mockToken = createMockTokenWithUser(testUser);
-        given(testCustomUserDetails.getUserId()).willReturn(100L);
-        given(testCustomUserDetails.getTokenId()).willReturn(200L);
-        given(testCustomUserDetails.getSocialProvider()).willReturn(TEST_PROVIDER);
+        Token mockToken = createMockTokenWithUser(getTestUser());
+        given(mockCustomUserDetails.getUserId()).willReturn(100L);
+        given(mockCustomUserDetails.getTokenId()).willReturn(200L);
+        given(mockCustomUserDetails.getSocialProvider()).willReturn(TEST_PROVIDER);
         given(globalTokenQueryPort.findById(200L)).willReturn(Optional.of(mockToken));
         given(strategyRegistry.getStrategy(TEST_PROVIDER)).willReturn(kakaoStrategy);
         
@@ -149,10 +152,10 @@ class SocialLogoutServiceTest extends BaseAuthUnitTest {
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             // When
-            List<ResponseCookie> result = socialLogoutService.logout(testCustomUserDetails);
+            List<ResponseCookie> result = socialLogoutService.logout(mockCustomUserDetails);
 
             // Then
-            assertThat(result).isEqualTo(logoutCookies);
+            assertThat(result).isEqualTo(getLogoutCookies());
             
             // 소셜 로그아웃이 실패해도 다른 프로세스는 정상 실행되어야 함
             verify(eventPublisher).publishEvent(any(UserLoggedOutEvent.class));
@@ -165,20 +168,20 @@ class SocialLogoutServiceTest extends BaseAuthUnitTest {
     @DisplayName("다양한 사용자 정보로 로그아웃 처리")
     void shouldHandleDifferentUserDetails() {
         // Given - 관리자 사용자
-        Token adminToken = createMockTokenWithUser(adminUser);
+        Token adminToken = createMockTokenWithUser(getAdminUser());
         
-        given(testCustomUserDetails.getUserId()).willReturn(999L);
-        given(testCustomUserDetails.getTokenId()).willReturn(888L);
-        given(testCustomUserDetails.getSocialProvider()).willReturn(TEST_PROVIDER);
+        given(getTestCustomUserDetails().getUserId()).willReturn(999L);
+        given(getTestCustomUserDetails().getTokenId()).willReturn(888L);
+        given(getTestCustomUserDetails().getSocialProvider()).willReturn(TEST_PROVIDER);
         given(globalTokenQueryPort.findById(888L)).willReturn(Optional.of(adminToken));
         given(strategyRegistry.getStrategy(TEST_PROVIDER)).willReturn(kakaoStrategy);
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             // When
-            List<ResponseCookie> result = socialLogoutService.logout(testCustomUserDetails);
+            List<ResponseCookie> result = socialLogoutService.logout(mockCustomUserDetails);
 
             // Then
-            assertThat(result).isEqualTo(logoutCookies);
+            assertThat(result).isEqualTo(getLogoutCookies());
             
             ArgumentCaptor<UserLoggedOutEvent> eventCaptor = ArgumentCaptor.forClass(UserLoggedOutEvent.class);
             verify(eventPublisher).publishEvent(eventCaptor.capture());

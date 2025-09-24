@@ -81,7 +81,7 @@ class SignUpServiceTest extends BaseUnitTest {
                 ResponseCookie.from("refresh_token", "refresh-TemporaryToken").build()
         );
 
-        testUserDetail = ExistingUserDetail.of(testUser, 1L, 100L);
+        testUserDetail = ExistingUserDetail.of(getTestUser(), 1L, 100L);
     }
 
     @Test

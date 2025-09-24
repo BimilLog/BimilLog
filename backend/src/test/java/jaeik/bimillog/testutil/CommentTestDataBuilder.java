@@ -81,18 +81,6 @@ public class CommentTestDataBuilder {
         return requestDto;
     }
 
-    /**
-     * <h3>ID가 포함된 댓글 생성</h3>
-     * <p>지정된 ID를 가진 댓글을 생성합니다.</p>
-     *
-     * @param id 댓글 ID
-     * @param comment 기존 댓글
-     * @return Comment ID가 설정된 댓글 엔티티
-     */
-    public static Comment withId(Long id, Comment comment) {
-        TestFixtures.setFieldValue(comment, "id", id);
-        return comment;
-    }
 
 
 

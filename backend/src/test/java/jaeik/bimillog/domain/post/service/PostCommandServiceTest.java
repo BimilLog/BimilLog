@@ -58,9 +58,9 @@ class PostCommandServiceTest extends BaseUnitTest {
         String content = "테스트 내용";
         Integer password = 1234;
 
-        Post createdPost = TestFixtures.withId(expectedPostId, TestFixtures.createPost(testUser, title, content));
+        Post createdPost = TestFixtures.withId(expectedPostId, TestFixtures.createPost(getTestUser(), title, content));
 
-        given(globalUserQueryPort.getReferenceById(userId)).willReturn(testUser);
+        given(globalUserQueryPort.getReferenceById(userId)).willReturn(getTestUser());
         given(postCommandPort.create(any(Post.class))).willReturn(createdPost);
 
         // When
@@ -81,7 +81,7 @@ class PostCommandServiceTest extends BaseUnitTest {
         Long userId = 1L;
         Long postId = 123L;
 
-        Post existingPost = spy(TestFixtures.withId(postId, TestFixtures.createPost(testUser, "기존 제목", "기존 내용")));
+        Post existingPost = spy(TestFixtures.withId(postId, TestFixtures.createPost(getTestUser(), "기존 제목", "기존 내용")));
 
         given(postQueryPort.findById(postId)).willReturn(existingPost);
         given(existingPost.isAuthor(userId)).willReturn(true);
@@ -122,7 +122,7 @@ class PostCommandServiceTest extends BaseUnitTest {
         Long userId = 1L;
         Long postId = 123L;
 
-        Post otherUserPost = spy(TestFixtures.withId(postId, TestFixtures.createPost(otherUser, "다른 사용자 게시글", "내용")));
+        Post otherUserPost = spy(TestFixtures.withId(postId, TestFixtures.createPost(getOtherUser(), "다른 사용자 게시글", "내용")));
 
         given(postQueryPort.findById(postId)).willReturn(otherUserPost);
         given(otherUserPost.isAuthor(userId)).willReturn(false);
@@ -146,7 +146,7 @@ class PostCommandServiceTest extends BaseUnitTest {
         Long postId = 123L;
         String postTitle = "삭제될 게시글";
 
-        Post postToDelete = spy(TestFixtures.withId(postId, TestFixtures.createPost(testUser, postTitle, "내용")));
+        Post postToDelete = spy(TestFixtures.withId(postId, TestFixtures.createPost(getTestUser(), postTitle, "내용")));
 
         given(postQueryPort.findById(postId)).willReturn(postToDelete);
         given(postToDelete.isAuthor(userId)).willReturn(true);
@@ -189,7 +189,7 @@ class PostCommandServiceTest extends BaseUnitTest {
         Long userId = 1L;
         Long postId = 123L;
 
-        Post otherUserPost = spy(TestFixtures.withId(postId, TestFixtures.createPost(otherUser, "다른 사용자 게시글", "내용")));
+        Post otherUserPost = spy(TestFixtures.withId(postId, TestFixtures.createPost(getOtherUser(), "다른 사용자 게시글", "내용")));
 
         given(postQueryPort.findById(postId)).willReturn(otherUserPost);
         given(otherUserPost.isAuthor(userId)).willReturn(false);
@@ -213,7 +213,7 @@ class PostCommandServiceTest extends BaseUnitTest {
         Long userId = 1L;
         Long postId = 123L;
 
-        Post existingPost = spy(TestFixtures.withId(postId, TestFixtures.createPost(testUser, "제목", "내용")));
+        Post existingPost = spy(TestFixtures.withId(postId, TestFixtures.createPost(getTestUser(), "제목", "내용")));
 
         given(postQueryPort.findById(postId)).willReturn(existingPost);
         given(existingPost.isAuthor(userId)).willReturn(true);

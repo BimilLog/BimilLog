@@ -63,84 +63,92 @@ public abstract class BaseAuthUnitTest extends BaseUnitTest {
     protected static final SocialProvider TEST_PROVIDER = SocialProvider.KAKAO;
     
     // ==================== Auth 관련 테스트 데이터 ====================
-    /**
-     * 테스트용 토큰 객체
-     */
-    protected Token testToken;
-    
-    /**
-     * 테스트용 소셜 사용자 프로필
-     */
-    protected SocialUserProfile testUserProfile;
-    
-    /**
-     * 기존 사용자 상세 정보
-     */
-    protected ExistingUserDetail existingUserDetail;
-    
-    /**
-     * 신규 사용자 상세 정보
-     */
-    protected NewUserDetail newUserDetail;
-    
-    /**
-     * 테스트용 CustomUserDetails
-     */
-    protected CustomUserDetails testCustomUserDetails;
-    
-    /**
-     * 로그아웃 쿠키 리스트
-     */
-    protected List<ResponseCookie> logoutCookies;
-    
-    /**
-     * JWT 쿠키 리스트
-     */
-    protected List<ResponseCookie> jwtCookies;
+    // Lazy 초기화를 위한 캐시 필드들
+    private Token cachedTestToken;
+    private SocialUserProfile cachedTestUserProfile;
+    private ExistingUserDetail cachedExistingUserDetail;
+    private NewUserDetail cachedNewUserDetail;
+    private CustomUserDetails cachedTestCustomUserDetails;
+    private List<ResponseCookie> cachedLogoutCookies;
+    private List<ResponseCookie> cachedJwtCookies;
 
     /**
-     * 각 테스트 메서드 실행 전 Auth 관련 데이터 초기화
+     * 테스트용 토큰 객체 획득 (lazy 초기화)
      */
-    @BeforeEach
-    protected void setUpAuthBase() {
-        // 기본 토큰 생성
-        this.testToken = Token.createTemporaryToken(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
-        
-        // 소셜 사용자 프로필 생성
-        this.testUserProfile = new SocialUserProfile(
-            TEST_SOCIAL_ID,
-            TEST_EMAIL,
-            TEST_PROVIDER,
-            TEST_SOCIAL_NICKNAME,
-            TEST_PROFILE_IMAGE,
-            testToken
-        );
-        
-        // 기존 사용자 상세 정보 생성 - TestFixtures 사용
-        this.existingUserDetail = TestFixtures.createExistingUserDetail(testUser, 1L, 1L);
-
-        // 신규 사용자 상세 정보 생성
-        this.newUserDetail = NewUserDetail.of("test-uuid-" + System.currentTimeMillis());
-
-        // CustomUserDetails 생성 - TestFixtures 사용
-        this.testCustomUserDetails = TestFixtures.createCustomUserDetails(testUser);
-        
-        // 로그아웃 쿠키 생성
-        this.logoutCookies = createLogoutCookies();
-        
-        // JWT 쿠키 생성
-        this.jwtCookies = createJwtCookies(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
-        
-        // 하위 클래스의 추가 설정
-        setUpAuthChild();
+    protected Token getTestToken() {
+        if (cachedTestToken == null) {
+            cachedTestToken = Token.createTemporaryToken(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
+        }
+        return cachedTestToken;
     }
-    
+
     /**
-     * 하위 클래스에서 추가 Auth 설정이 필요한 경우 오버라이드
+     * 테스트용 소셜 사용자 프로필 획득 (lazy 초기화)
      */
-    protected void setUpAuthChild() {
-        // 하위 클래스에서 필요시 오버라이드
+    protected SocialUserProfile getTestUserProfile() {
+        if (cachedTestUserProfile == null) {
+            cachedTestUserProfile = new SocialUserProfile(
+                TEST_SOCIAL_ID,
+                TEST_EMAIL,
+                TEST_PROVIDER,
+                TEST_SOCIAL_NICKNAME,
+                TEST_PROFILE_IMAGE,
+                getTestToken()
+            );
+        }
+        return cachedTestUserProfile;
     }
+
+    /**
+     * 기존 사용자 상세 정보 획득 (lazy 초기화)
+     */
+    protected ExistingUserDetail getExistingUserDetail() {
+        if (cachedExistingUserDetail == null) {
+            cachedExistingUserDetail = TestFixtures.createExistingUserDetail(getTestUser(), 1L, 1L);
+        }
+        return cachedExistingUserDetail;
+    }
+
+    /**
+     * 신규 사용자 상세 정보 획득 (lazy 초기화)
+     */
+    protected NewUserDetail getNewUserDetail() {
+        if (cachedNewUserDetail == null) {
+            cachedNewUserDetail = NewUserDetail.of("test-uuid-" + System.currentTimeMillis());
+        }
+        return cachedNewUserDetail;
+    }
+
+    /**
+     * 테스트용 CustomUserDetails 획득 (lazy 초기화)
+     */
+    protected CustomUserDetails getTestCustomUserDetails() {
+        if (cachedTestCustomUserDetails == null) {
+            cachedTestCustomUserDetails = TestFixtures.createCustomUserDetails(getTestUser());
+        }
+        return cachedTestCustomUserDetails;
+    }
+
+    /**
+     * 로그아웃 쿠키 리스트 획득 (lazy 초기화)
+     */
+    protected List<ResponseCookie> getLogoutCookies() {
+        if (cachedLogoutCookies == null) {
+            cachedLogoutCookies = createLogoutCookies();
+        }
+        return cachedLogoutCookies;
+    }
+
+    /**
+     * JWT 쿠키 리스트 획득 (lazy 초기화)
+     */
+    protected List<ResponseCookie> getJwtCookies() {
+        if (cachedJwtCookies == null) {
+            cachedJwtCookies = createJwtCookies(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
+        }
+        return cachedJwtCookies;
+    }
+
 
     // ==================== SecurityContext Mock 헬퍼 메서드 ====================
     
@@ -165,7 +173,7 @@ public abstract class BaseAuthUnitTest extends BaseUnitTest {
      * @param mockedSecurityContext MockedStatic SecurityContextHolder
      */
     protected void mockAuthenticatedUser(MockedStatic<SecurityContextHolder> mockedSecurityContext) {
-        mockAuthenticatedUser(mockedSecurityContext, testCustomUserDetails, UserRole.USER);
+        mockAuthenticatedUser(mockedSecurityContext, getTestCustomUserDetails(), UserRole.USER);
     }
     
     /**

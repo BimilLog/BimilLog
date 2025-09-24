@@ -39,8 +39,8 @@ class GlobalTokenQueryAdapterTest extends BaseUnitTest {
     @Override
     protected void setUpChild() {
         // 실제 Token 객체 생성
-        testToken = Token.createToken("test-access", "test-refresh", testUser);
-        adminToken = Token.createToken("admin-access", "admin-refresh", adminUser);
+        testToken = Token.createToken("test-access", "test-refresh", getTestUser());
+        adminToken = Token.createToken("admin-access", "admin-refresh", getAdminUser());
     }
 
     @Test

@@ -72,11 +72,11 @@ class UserSaveServiceTest extends BaseUnitTest {
         given(userQueryPort.findByProviderAndSocialId(
             SocialProvider.KAKAO,
             "kakao123"
-        )).willReturn(Optional.of(testUser));
+        )).willReturn(Optional.of(getTestUser()));
 
-        ExistingUserDetail expectedDetail = ExistingUserDetail.of(testUser, 1L, 100L);
+        ExistingUserDetail expectedDetail = ExistingUserDetail.of(getTestUser(), 1L, 100L);
         given(saveUserPort.handleExistingUserData(
-            testUser,
+            getTestUser(),
             testSocialProfile,
             testFcmToken
         )).willReturn(expectedDetail);
@@ -91,12 +91,12 @@ class UserSaveServiceTest extends BaseUnitTest {
         // Then
         assertThat(result).isInstanceOf(ExistingUserDetail.class);
         ExistingUserDetail existingUserDetail = (ExistingUserDetail) result;
-        assertThat(existingUserDetail.getUserId()).isEqualTo(testUser.getId());
+        assertThat(existingUserDetail.getUserId()).isEqualTo(getTestUser().getId());
         assertThat(existingUserDetail.getTokenId()).isEqualTo(1L);
         assertThat(existingUserDetail.getFcmTokenId()).isEqualTo(100L);
 
         verify(userQueryPort).findByProviderAndSocialId(SocialProvider.KAKAO, "kakao123");
-        verify(saveUserPort).handleExistingUserData(testUser, testSocialProfile, testFcmToken);
+        verify(saveUserPort).handleExistingUserData(getTestUser(), testSocialProfile, testFcmToken);
         verify(redisUserDataPort, never()).saveTempData(any(), any(), any());
     }
 
@@ -147,11 +147,11 @@ class UserSaveServiceTest extends BaseUnitTest {
         given(userQueryPort.findByProviderAndSocialId(
             SocialProvider.KAKAO,
             "kakao123"
-        )).willReturn(Optional.of(testUser));
+        )).willReturn(Optional.of(getTestUser()));
 
-        ExistingUserDetail expectedDetail = ExistingUserDetail.of(testUser, 1L, null);
+        ExistingUserDetail expectedDetail = ExistingUserDetail.of(getTestUser(), 1L, null);
         given(saveUserPort.handleExistingUserData(
-            testUser,
+            getTestUser(),
             testSocialProfile,
             null
         )).willReturn(expectedDetail);
@@ -168,7 +168,7 @@ class UserSaveServiceTest extends BaseUnitTest {
         ExistingUserDetail existingUserDetail = (ExistingUserDetail) result;
         assertThat(existingUserDetail.getFcmTokenId()).isNull();
 
-        verify(saveUserPort).handleExistingUserData(testUser, testSocialProfile, null);
+        verify(saveUserPort).handleExistingUserData(getTestUser(), testSocialProfile, null);
     }
 
     @Test
@@ -215,7 +215,7 @@ class UserSaveServiceTest extends BaseUnitTest {
             testToken
         );
 
-        User googleUser = otherUser;
+        User googleUser = getOtherUser();
         given(userQueryPort.findByProviderAndSocialId(
             SocialProvider.GOOGLE,
             "google456"

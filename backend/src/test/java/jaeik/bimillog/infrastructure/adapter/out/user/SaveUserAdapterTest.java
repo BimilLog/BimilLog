@@ -175,7 +175,7 @@ class SaveUserAdapterTest extends BaseUnitTest {
         Token tokenDTO = Token.createTemporaryToken("access-TemporaryToken", "refresh-TemporaryToken");
         SocialUserProfile userProfile = new SocialUserProfile("111222333", "nofcm@example.com", SocialProvider.KAKAO, "FCM없음", "https://no-fcm.jpg", tokenDTO);
 
-        User newUser = TestUsers.copyWithId(thirdUser, 3L);
+        User newUser = TestUsers.copyWithId(getThirdUser(), 3L);
         newUser.updateUserInfo("FCM없음", "https://no-fcm.jpg");
 
         Token newToken = Token.builder()

@@ -133,7 +133,7 @@ class UserFriendServiceTest extends BaseUnitTest {
         // Given
         Long userId = 1L;
         Long tokenId = 1L;
-        User user = TestUsers.copyWithId(testUser, userId);
+        User user = TestUsers.copyWithId(getTestUser(), userId);
 
         given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
         given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.empty());
@@ -153,7 +153,7 @@ class UserFriendServiceTest extends BaseUnitTest {
         // Given
         Long userId = 1L;
         Long tokenId = 1L;
-        User user = TestUsers.copyWithId(testUser, userId);
+        User user = TestUsers.copyWithId(getTestUser(), userId);
         
         Token token = Token.createTemporaryToken(null, "refresh-TemporaryToken");
                 
@@ -173,7 +173,7 @@ class UserFriendServiceTest extends BaseUnitTest {
         // Given
         Long userId = 1L;
         Long tokenId = 1L;
-        User user = TestUsers.copyWithId(testUser, userId);
+        User user = TestUsers.copyWithId(getTestUser(), userId);
         
         Token token = Token.createTemporaryToken("", "refresh-TemporaryToken");
                 

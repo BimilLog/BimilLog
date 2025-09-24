@@ -145,14 +145,14 @@ class GlobalUserQueryAdapterTest extends BaseUnitTest {
     void shouldReturnAdminUser_WhenAdminUserExists() {
         // Given
         Long adminId = 2L;
-        given(userQueryUseCase.findById(adminId)).willReturn(Optional.of(adminUser));
+        given(userQueryUseCase.findById(adminId)).willReturn(Optional.of(getAdminUser()));
 
         // When
         Optional<User> result = globalUserQueryAdapter.findById(adminId);
 
         // Then
         assertThat(result).isPresent();
-        assertThat(result.get()).isEqualTo(adminUser);
+        assertThat(result.get()).isEqualTo(getAdminUser());
         assertThat(result.get().getRole()).isEqualTo(jaeik.bimillog.domain.user.entity.UserRole.ADMIN);
         verify(userQueryUseCase, times(1)).findById(adminId);
     }

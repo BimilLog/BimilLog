@@ -46,7 +46,7 @@ class UserQueryServiceTest extends BaseUnitTest {
     void shouldFindUser_WhenValidProviderAndSocialId() {
         // Given
         SocialProvider provider = SocialProvider.KAKAO;
-        String socialId = testUser.getSocialId(); // "kakao123456"
+        String socialId = getTestUser().getSocialId(); // "kakao123456"
 
         User expectedUser = createTestUserWithId(1L);
 
@@ -152,7 +152,7 @@ class UserQueryServiceTest extends BaseUnitTest {
     @DisplayName("닉네임으로 사용자 조회 - 정상 케이스")
     void shouldFindUser_WhenValidUserName() {
         // Given
-        String userName = testUser.getUserName(); // "testUser1"
+        String userName = getTestUser().getUserName(); // "testUser1"
         User expectedUser = createTestUserWithId(1L);
 
         given(userQueryPort.findByUserName(userName)).willReturn(Optional.of(expectedUser));

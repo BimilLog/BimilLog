@@ -164,7 +164,7 @@ class WithdrawServiceTest extends BaseUnitTest {
     void shouldForceWithdraw_WhenValidUserId() {
         // Given
         Long targetUserId = 200L;
-        User targetUser = TestUsers.copyWithId(otherUser, targetUserId);
+        User targetUser = TestUsers.copyWithId(getOtherUser(), targetUserId);
 
         given(userQueryPort.findById(targetUserId)).willReturn(Optional.of(targetUser));
 
@@ -264,7 +264,7 @@ class WithdrawServiceTest extends BaseUnitTest {
     void shouldHandleException_WhenForceWithdrawDataProcessFails() {
         // Given
         Long targetUserId = 200L;
-        User targetUser = TestUsers.copyWithId(otherUser, targetUserId);
+        User targetUser = TestUsers.copyWithId(getOtherUser(), targetUserId);
 
         given(userQueryPort.findById(targetUserId)).willReturn(Optional.of(targetUser));
         doThrow(new RuntimeException("데이터 처리 실패"))

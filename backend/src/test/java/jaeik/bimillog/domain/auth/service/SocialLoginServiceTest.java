@@ -64,14 +64,14 @@ class SocialLoginServiceTest extends BaseAuthUnitTest {
             mockAnonymousAuthentication(mockedSecurityContext);
 
             given(strategyRegistry.getStrategy(TEST_PROVIDER)).willReturn(kakaoStrategy);
-            given(kakaoStrategy.authenticate(TEST_PROVIDER, TEST_AUTH_CODE)).willReturn(testUserProfile);
+            given(kakaoStrategy.authenticate(TEST_PROVIDER, TEST_AUTH_CODE)).willReturn(getTestUserProfile());
             given(blacklistPort.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
-            given(authToUserPort.delegateUserData(TEST_PROVIDER, testUserProfile, TEST_FCM_TOKEN))
-                .willReturn(existingUserDetail);
-            given(globalJwtPort.generateAccessToken(existingUserDetail)).willReturn(generatedAccessToken);
-            given(globalJwtPort.generateRefreshToken(existingUserDetail)).willReturn(generatedRefreshToken);
+            given(authToUserPort.delegateUserData(TEST_PROVIDER, getTestUserProfile(), TEST_FCM_TOKEN))
+                .willReturn(getExistingUserDetail());
+            given(globalJwtPort.generateAccessToken(getExistingUserDetail())).willReturn(generatedAccessToken);
+            given(globalJwtPort.generateRefreshToken(getExistingUserDetail())).willReturn(generatedRefreshToken);
             given(globalCookiePort.generateJwtCookie(generatedAccessToken, generatedRefreshToken))
-                .willReturn(jwtCookies);
+                .willReturn(getJwtCookies());
 
             // When
             LoginResult result = socialLoginService.processSocialLogin(TEST_PROVIDER, TEST_AUTH_CODE, TEST_FCM_TOKEN);
@@ -79,13 +79,13 @@ class SocialLoginServiceTest extends BaseAuthUnitTest {
             // Then
             assertThat(result).isInstanceOf(LoginResult.ExistingUser.class);
             LoginResult.ExistingUser existingUserResponse = (LoginResult.ExistingUser) result;
-            assertThat(existingUserResponse.cookies()).isEqualTo(jwtCookies);
+            assertThat(existingUserResponse.cookies()).isEqualTo(getJwtCookies());
 
             verify(strategyRegistry).getStrategy(TEST_PROVIDER);
             verify(kakaoStrategy).authenticate(TEST_PROVIDER, TEST_AUTH_CODE);
-            verify(authToUserPort).delegateUserData(TEST_PROVIDER, testUserProfile, TEST_FCM_TOKEN);
-            verify(globalJwtPort).generateAccessToken(existingUserDetail);
-            verify(globalJwtPort).generateRefreshToken(existingUserDetail);
+            verify(authToUserPort).delegateUserData(TEST_PROVIDER, getTestUserProfile(), TEST_FCM_TOKEN);
+            verify(globalJwtPort).generateAccessToken(getExistingUserDetail());
+            verify(globalJwtPort).generateRefreshToken(getExistingUserDetail());
             verify(globalCookiePort).generateJwtCookie(generatedAccessToken, generatedRefreshToken);
         }
     }
@@ -98,11 +98,11 @@ class SocialLoginServiceTest extends BaseAuthUnitTest {
             mockAnonymousAuthentication(mockedSecurityContext);
 
             given(strategyRegistry.getStrategy(TEST_PROVIDER)).willReturn(kakaoStrategy);
-            given(kakaoStrategy.authenticate(TEST_PROVIDER, TEST_AUTH_CODE)).willReturn(testUserProfile);
+            given(kakaoStrategy.authenticate(TEST_PROVIDER, TEST_AUTH_CODE)).willReturn(getTestUserProfile());
             given(blacklistPort.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
-            given(authToUserPort.delegateUserData(TEST_PROVIDER, testUserProfile, TEST_FCM_TOKEN))
-                .willReturn(newUserDetail);
-            given(globalCookiePort.createTempCookie(newUserDetail)).willReturn(createTempCookie(newUserDetail.getUuid()));
+            given(authToUserPort.delegateUserData(TEST_PROVIDER, getTestUserProfile(), TEST_FCM_TOKEN))
+                .willReturn(getNewUserDetail());
+            given(globalCookiePort.createTempCookie(getNewUserDetail())).willReturn(createTempCookie(getNewUserDetail().getUuid()));
 
             // When
             LoginResult result = socialLoginService.processSocialLogin(TEST_PROVIDER, TEST_AUTH_CODE, TEST_FCM_TOKEN);
@@ -110,13 +110,13 @@ class SocialLoginServiceTest extends BaseAuthUnitTest {
             // Then
             assertThat(result).isInstanceOf(LoginResult.NewUser.class);
             LoginResult.NewUser newUserResponse = (LoginResult.NewUser) result;
-            assertThat(newUserResponse.uuid()).isEqualTo(newUserDetail.getUuid());
+            assertThat(newUserResponse.uuid()).isEqualTo(getNewUserDetail().getUuid());
             assertThat(newUserResponse.tempCookie()).isNotNull();
 
             verify(strategyRegistry).getStrategy(TEST_PROVIDER);
             verify(kakaoStrategy).authenticate(TEST_PROVIDER, TEST_AUTH_CODE);
-            verify(authToUserPort).delegateUserData(TEST_PROVIDER, testUserProfile, TEST_FCM_TOKEN);
-            verify(globalCookiePort).createTempCookie(newUserDetail);
+            verify(authToUserPort).delegateUserData(TEST_PROVIDER, getTestUserProfile(), TEST_FCM_TOKEN);
+            verify(globalCookiePort).createTempCookie(getNewUserDetail());
         }
     }
 
@@ -128,7 +128,7 @@ class SocialLoginServiceTest extends BaseAuthUnitTest {
             mockAnonymousAuthentication(mockedSecurityContext);
 
             given(strategyRegistry.getStrategy(TEST_PROVIDER)).willReturn(kakaoStrategy);
-            given(kakaoStrategy.authenticate(TEST_PROVIDER, TEST_AUTH_CODE)).willReturn(testUserProfile);
+            given(kakaoStrategy.authenticate(TEST_PROVIDER, TEST_AUTH_CODE)).willReturn(getTestUserProfile());
             given(blacklistPort.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(true);
 
             // When & Then

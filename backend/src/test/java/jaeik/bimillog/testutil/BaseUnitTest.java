@@ -3,33 +3,32 @@ package jaeik.bimillog.testutil;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
  * <h2>단위 테스트 베이스 클래스</h2>
  * <p>모든 단위 테스트가 상속받아 사용하는 기본 클래스</p>
- * <p>Mockito 설정과 공통 테스트 데이터를 자동으로 제공</p>
- * 
+ * <p>Mockito 설정과 공통 테스트 데이터를 lazy 초기화로 제공</p>
+ *
  * <h3>제공되는 기능:</h3>
  * <ul>
  *   <li>MockitoExtension 자동 적용</li>
- *   <li>공통 테스트 사용자 (testUser, adminUser, otherUser)</li>
- *   <li>공통 테스트 설정 (defaultSetting, customSetting)</li>
- *   <li>각 테스트 메서드 실행 전 자동 초기화</li>
+ *   <li>공통 테스트 사용자 (testUser, adminUser, otherUser) - lazy 초기화</li>
+ *   <li>공통 테스트 설정 (defaultSetting, customSetting) - lazy 초기화</li>
+ *   <li>필요한 데이터만 생성하여 테스트 성능 향상</li>
  * </ul>
- * 
+ *
  * <h3>사용 예시:</h3>
  * <pre>
  * class UserServiceTest extends BaseUnitTest {
  *     {@literal @}Mock UserRepository repository;
  *     {@literal @}InjectMocks UserService service;
- *     
+ *
  *     {@literal @}Test
  *     void test() {
- *         // testUser, adminUser 등이 이미 준비되어 있음
- *         given(repository.findById(1L)).willReturn(Optional.of(testUser));
+ *         // getTestUser()를 처음 호출할 때 생성됨
+ *         given(repository.findById(1L)).willReturn(Optional.of(getTestUser()));
  *     }
  * }
  * </pre>
@@ -40,85 +39,116 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 public abstract class BaseUnitTest {
 
-    /**
-     * 기본 테스트 사용자 (일반 권한)
-     * TestUsers.USER1의 복사본으로 매 테스트마다 새로 생성
-     */
-    protected User testUser;
+    // Lazy 초기화를 위한 필드들 (실제 사용 시점에 초기화)
+    private User cachedTestUser;
+    private User cachedAdminUser;
+    private User cachedOtherUser;
+    private User cachedThirdUser;
+    private Setting cachedDefaultSetting;
+    private Setting cachedCustomSetting;
+    private Setting cachedMessageOnlySetting;
+    private Setting cachedCommentOnlySetting;
+    private Setting cachedPostFeaturedOnlySetting;
 
     /**
-     * 관리자 권한 테스트 사용자
-     * TestUsers.withRole(UserRole.ADMIN)으로 매 테스트마다 새로 생성
+     * 기본 테스트 사용자 획득 (일반 권한)
+     * 첫 호출 시 생성, 이후 캐시된 인스턴스 반환
      */
-    protected User adminUser;
-
-    /**
-     * 추가 테스트 사용자 (다른 사용자 시나리오용)
-     * TestUsers.USER2의 복사본으로 매 테스트마다 새로 생성
-     */
-    protected User otherUser;
-
-    /**
-     * 세 번째 테스트 사용자 (복잡한 시나리오용)
-     * TestUsers.USER3의 복사본으로 매 테스트마다 새로 생성
-     */
-    protected User thirdUser;
-
-    /**
-     * 기본 설정 객체 (모든 알림 활성화)
-     */
-    protected Setting defaultSetting;
-
-    /**
-     * 커스텀 설정 객체 (테스트 시나리오별 변경 가능, 모든 알림 비활성화)
-     */
-    protected Setting customSetting;
-
-    /**
-     * 메시지 알림만 활성화된 설정
-     */
-    protected Setting messageOnlySetting;
-
-    /**
-     * 댓글 알림만 활성화된 설정
-     */
-    protected Setting commentOnlySetting;
-
-    /**
-     * 게시글 추천 알림만 활성화된 설정
-     */
-    protected Setting postFeaturedOnlySetting;
-
-    /**
-     * 각 테스트 메서드 실행 전 공통 데이터 초기화
-     * 매 테스트마다 새로운 객체를 생성하여 테스트 간 격리 보장
-     */
-    @BeforeEach
-    protected void setUpBase() {
-        // 사용자 초기화 (매번 새로운 인스턴스 생성)
-        this.testUser = TestUsers.USER1;
-        this.adminUser = TestUsers.withRole(UserRole.ADMIN);
-        this.otherUser = TestUsers.USER2;
-        this.thirdUser = TestUsers.USER3;
-        
-        // 설정 초기화 (매번 새로운 인스턴스 생성)
-        this.defaultSetting = TestUsers.createSetting(true, true, true);
-        this.customSetting = TestUsers.createAllDisabledSetting();
-        this.messageOnlySetting = TestUsers.createMessageOnlySetting();
-        this.commentOnlySetting = TestUsers.createCommentOnlySetting();
-        this.postFeaturedOnlySetting = TestUsers.createPostFeaturedOnlySetting();
-        
-        // 하위 클래스의 추가 설정을 위한 hook
-        setUpChild();
+    protected User getTestUser() {
+        if (cachedTestUser == null) {
+            cachedTestUser = TestUsers.USER1;
+        }
+        return cachedTestUser;
     }
 
     /**
-     * 하위 클래스에서 추가 설정이 필요한 경우 오버라이드
-     * 기본 구현은 비어있음
+     * 관리자 권한 테스트 사용자 획득
+     * 첫 호출 시 생성, 이후 캐시된 인스턴스 반환
      */
-    protected void setUpChild() {
-        // 하위 클래스에서 필요시 오버라이드
+    protected User getAdminUser() {
+        if (cachedAdminUser == null) {
+            cachedAdminUser = TestUsers.withRole(UserRole.ADMIN);
+        }
+        return cachedAdminUser;
     }
+
+    /**
+     * 추가 테스트 사용자 획득 (다른 사용자 시나리오용)
+     * 첫 호출 시 생성, 이후 캐시된 인스턴스 반환
+     */
+    protected User getOtherUser() {
+        if (cachedOtherUser == null) {
+            cachedOtherUser = TestUsers.USER2;
+        }
+        return cachedOtherUser;
+    }
+
+    /**
+     * 세 번째 테스트 사용자 획득 (복잡한 시나리오용)
+     * 첫 호출 시 생성, 이후 캐시된 인스턴스 반환
+     */
+    protected User getThirdUser() {
+        if (cachedThirdUser == null) {
+            cachedThirdUser = TestUsers.USER3;
+        }
+        return cachedThirdUser;
+    }
+
+    /**
+     * 기본 설정 객체 획득 (모든 알림 활성화)
+     * 첫 호출 시 생성, 이후 캐시된 인스턴스 반환
+     */
+    protected Setting getDefaultSetting() {
+        if (cachedDefaultSetting == null) {
+            cachedDefaultSetting = TestUsers.createSetting(true, true, true);
+        }
+        return cachedDefaultSetting;
+    }
+
+    /**
+     * 커스텀 설정 객체 획득 (모든 알림 비활성화)
+     * 첫 호출 시 생성, 이후 캐시된 인스턴스 반환
+     */
+    protected Setting getCustomSetting() {
+        if (cachedCustomSetting == null) {
+            cachedCustomSetting = TestUsers.createAllDisabledSetting();
+        }
+        return cachedCustomSetting;
+    }
+
+    /**
+     * 메시지 알림만 활성화된 설정 획득
+     * 첫 호출 시 생성, 이후 캐시된 인스턴스 반환
+     */
+    protected Setting getMessageOnlySetting() {
+        if (cachedMessageOnlySetting == null) {
+            cachedMessageOnlySetting = TestUsers.createMessageOnlySetting();
+        }
+        return cachedMessageOnlySetting;
+    }
+
+    /**
+     * 댓글 알림만 활성화된 설정 획득
+     * 첫 호출 시 생성, 이후 캐시된 인스턴스 반환
+     */
+    protected Setting getCommentOnlySetting() {
+        if (cachedCommentOnlySetting == null) {
+            cachedCommentOnlySetting = TestUsers.createCommentOnlySetting();
+        }
+        return cachedCommentOnlySetting;
+    }
+
+    /**
+     * 게시글 추천 알림만 활성화된 설정 획득
+     * 첫 호출 시 생성, 이후 캐시된 인스턴스 반환
+     */
+    protected Setting getPostFeaturedOnlySetting() {
+        if (cachedPostFeaturedOnlySetting == null) {
+            cachedPostFeaturedOnlySetting = TestUsers.createPostFeaturedOnlySetting();
+        }
+        return cachedPostFeaturedOnlySetting;
+    }
+
 
     /**
      * ID가 포함된 테스트 사용자 생성 헬퍼 메서드
@@ -126,7 +156,7 @@ public abstract class BaseUnitTest {
      * @return ID가 설정된 테스트 사용자
      */
     protected User createTestUserWithId(Long userId) {
-        return TestUsers.copyWithId(testUser, userId);
+        return TestUsers.copyWithId(getTestUser(), userId);
     }
 
     /**
