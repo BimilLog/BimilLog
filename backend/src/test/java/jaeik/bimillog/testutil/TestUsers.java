@@ -105,23 +105,6 @@ public class TestUsers {
     }
 
     /**
-     * 특정 알림 설정을 가진 사용자 생성
-     */
-    public static User withNotificationSettings(boolean messageNotification,
-                                                boolean commentNotification,
-                                                boolean postFeaturedNotification) {
-        return User.builder()
-                .socialId(USER1.getSocialId())
-                .provider(USER1.getProvider())
-                .userName(USER1.getUserName())
-                .socialNickname(USER1.getSocialNickname())
-                .thumbnailImage(USER1.getThumbnailImage())
-                .role(USER1.getRole())
-                .setting(createSetting(messageNotification, commentNotification, postFeaturedNotification))
-                .build();
-    }
-
-    /**
      * 고유한 사용자 생성 (타임스탬프 기반)
      * 통합 테스트에서 고유한 사용자가 필요한 경우 사용
      */

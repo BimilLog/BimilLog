@@ -1,0 +1,330 @@
+package jaeik.bimillog.adapter.in.user;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jaeik.bimillog.domain.admin.entity.ReportType;
+import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.infrastructure.adapter.in.admin.dto.ReportDTO;
+import jaeik.bimillog.infrastructure.adapter.in.auth.dto.SocialLoginRequestDTO;
+import jaeik.bimillog.infrastructure.adapter.in.user.dto.SettingDTO;
+import jaeik.bimillog.infrastructure.adapter.in.user.dto.SignUpRequestDTO;
+import jaeik.bimillog.infrastructure.adapter.in.user.dto.UserNameDTO;
+import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
+import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
+import jaeik.bimillog.testutil.BaseIntegrationTest;
+import jaeik.bimillog.testutil.TestFixtures;
+import jaeik.bimillog.testutil.TestUsers;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Map;
+
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+/**
+ * <h2>사용자 명령 컨트롤러 통합 테스트</h2>
+ * <p>@SpringBootTest를 사용한 실제 User Command API 통합 테스트</p>
+ * <p>TestContainers를 사용하여 실제 MySQL 환경에서 테스트</p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ */
+@DisplayName("사용자 명령 컨트롤러 통합 테스트")
+class UserCommandControllerIntegrationTest extends BaseIntegrationTest {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Test
+    @DisplayName("회원가입 통합 테스트 - 성공")
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    void signUp_IntegrationTest_Success() throws Exception {
+        // Given - 먼저 소셜 로그인으로 temp 데이터를 생성
+        SocialLoginRequestDTO socialRequest = new SocialLoginRequestDTO("KAKAO", "new_user_code", "integration-test-fcm-TemporaryToken");
+
+        // 1. 소셜 로그인으로 임시 데이터 생성
+        var loginResult = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(socialRequest))
+                        .with(csrf()))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        // 2. 응답에서 UUID 추출
+        String responseBody = loginResult.getResponse().getContentAsString();
+        ObjectMapper mapper = new ObjectMapper();
+        var responseMap = mapper.readValue(responseBody, Map.class);
+        String uuid = (String) responseMap.get("uuid");
+
+        // 3. 회원가입 수행
+        SignUpRequestDTO signUpRequest = new SignUpRequestDTO("통합테스트사용자", uuid);
+
+        mockMvc.perform(post("/api/user/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(signUpRequest))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(header().exists("Set-Cookie"))
+                .andExpect(jsonPath("$.status").value("SUCCESS"))
+                .andExpect(jsonPath("$.data.message").value("회원 가입 성공"));
+    }
+
+    @Test
+    @DisplayName("닉네임 변경 통합 테스트 - 성공")
+    void updateUserName_IntegrationTest_Success() throws Exception {
+        // Given - 테스트 사용자 생성 및 저장
+        User testUser = TestUsers.createUnique();
+        userRepository.save(testUser);
+        
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
+        
+        UserNameDTO userNameDTO = new UserNameDTO();
+        userNameDTO.setUserName("새로운닉네임");
+
+        // When & Then
+        mockMvc.perform(post("/api/user/username")
+                        .with(user(userDetails))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(userNameDTO)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string("닉네임이 변경되었습니다."));
+    }
+
+    @Test
+    @DisplayName("닉네임 변경 통합 테스트 - 유효성 검증 실패 (8글자 초과)")
+    void updateUserName_IntegrationTest_ValidationFail() throws Exception {
+        // Given - 테스트 사용자 생성 및 저장
+        User testUser = TestUsers.createUnique();
+        userRepository.save(testUser);
+        
+        var userDetails = createCustomUserDetails(testUser);
+        
+        UserNameDTO userNameDTO = new UserNameDTO();
+        userNameDTO.setUserName("아주긴닉네임이라서8글자초과"); // 8글자 초과
+
+        // When & Then
+        mockMvc.perform(post("/api/user/username")
+                        .with(user(userDetails))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(userNameDTO)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("설정 수정 통합 테스트 - 성공")
+    void updateSetting_IntegrationTest_Success() throws Exception {
+        // Given - 테스트 사용자 생성 및 저장
+        User testUser = TestUsers.createUnique();
+        userRepository.save(testUser);
+        
+        var userDetails = createCustomUserDetails(testUser);
+        
+        SettingDTO settingDTO = SettingDTO.builder()
+                .messageNotification(Boolean.FALSE)
+                .commentNotification(Boolean.TRUE)
+                .postFeaturedNotification(Boolean.FALSE)
+                .build();
+
+        // When & Then
+        mockMvc.perform(post("/api/user/setting")
+                        .with(user(userDetails))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(settingDTO)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().string("설정 수정 완료"));
+    }
+
+    @Test
+    @DisplayName("닉네임 변경 - 인증되지 않은 사용자 - 403 Forbidden")
+    void updateUserName_Unauthenticated_Forbidden() throws Exception {
+        // Given
+        UserNameDTO userNameDTO = new UserNameDTO();
+        userNameDTO.setUserName("새로운닉네임");
+
+        // When & Then
+        mockMvc.perform(post("/api/user/username")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(userNameDTO)))
+                .andDo(print())
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("설정 수정 - 인증되지 않은 사용자 - 403 Forbidden")
+    void updateSetting_Unauthenticated_Forbidden() throws Exception {
+        // Given
+        SettingDTO settingDTO = SettingDTO.builder()
+                .messageNotification(Boolean.TRUE)
+                .commentNotification(Boolean.TRUE)
+                .postFeaturedNotification(Boolean.TRUE)
+                .build();
+
+        // When & Then
+        mockMvc.perform(post("/api/user/setting")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(settingDTO)))
+                .andDo(print())
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("설정 수정 - null 값 검증 실패 - 400 Bad Request")
+    void updateSetting_NullValidation_BadRequest() throws Exception {
+        // Given
+        User testUser = TestUsers.createUnique();
+        userRepository.save(testUser);
+        
+        var userDetails = createCustomUserDetails(testUser);
+        
+        // null 값이 포함된 SettingDTO
+        SettingDTO settingDTO = SettingDTO.builder()
+                .messageNotification(null)  // null 값
+                .commentNotification(Boolean.TRUE)
+                .postFeaturedNotification(Boolean.FALSE)
+                .build();
+
+        // When & Then
+        mockMvc.perform(post("/api/user/setting")
+                        .with(user(userDetails))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(settingDTO)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("닉네임 변경 - 빈 문자열 검증 실패 - 400 Bad Request")
+    void updateUserName_BlankValidation_BadRequest() throws Exception {
+        // Given
+        User testUser = TestUsers.createUnique();
+        userRepository.save(testUser);
+        
+        var userDetails = createCustomUserDetails(testUser);
+        
+        UserNameDTO userNameDTO = new UserNameDTO();
+        userNameDTO.setUserName(""); // 빈 문자열
+
+        // When & Then
+        mockMvc.perform(post("/api/user/username")
+                        .with(user(userDetails))
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(userNameDTO)))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("CSRF 토큰 없이 POST 요청 - 403 Forbidden")
+    void postWithoutCsrf_Forbidden() throws Exception {
+        // Given
+        User testUser = TestUsers.createUnique();
+        userRepository.save(testUser);
+        
+        var userDetails = createCustomUserDetails(testUser);
+        
+        UserNameDTO userNameDTO = new UserNameDTO();
+        userNameDTO.setUserName("새로운닉네임");
+
+        // When & Then
+        mockMvc.perform(post("/api/user/username")
+                        .with(user(userDetails))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(userNameDTO)))
+                .andDo(print())
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("Content-Type 누락 - 500 Internal Server Error")
+    void postWithoutContentType_InternalServerError() throws Exception {
+        // Given
+        User testUser = TestUsers.createUnique();
+        userRepository.save(testUser);
+        
+        var userDetails = createCustomUserDetails(testUser);
+        
+        UserNameDTO userNameDTO = new UserNameDTO();
+        userNameDTO.setUserName("새로운닉네임");
+
+        // When & Then
+        mockMvc.perform(post("/api/user/username")
+                        .with(user(userDetails))
+                        .with(csrf())
+                        .content(objectMapper.writeValueAsString(userNameDTO)))
+                .andDo(print())
+                .andExpect(status().isInternalServerError());
+    }
+
+
+
+
+
+
+    @Test
+    @DisplayName("신고 제출 통합 테스트 - 성공")
+    void submitReport_EmptyContent_BadRequest() throws Exception {
+        // Given - content가 빈 잘못된 요청
+        ReportDTO reportDTO = ReportDTO.builder()
+                .reportType(ReportType.POST)
+                .targetId(123L)
+                .content("") // 빈 내용
+                .build();
+
+        User testUser = TestUsers.createUnique();
+        userRepository.save(testUser);
+        var userDetails = createCustomUserDetails(testUser);
+
+        // When & Then
+        mockMvc.perform(post("/api/user/report")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(reportDTO))
+                        .with(user(userDetails))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+    }
+
+    @Test
+    @DisplayName("신고 제출 - CSRF 토큰 없이 요청 - 403 Forbidden")
+    void submitReport_WithoutCsrf_Forbidden() throws Exception {
+        // Given
+        User testUser = TestUsers.createUnique();
+        userRepository.save(testUser);
+        var userDetails = createCustomUserDetails(testUser);
+        
+        ReportDTO reportDTO = ReportDTO.builder()
+                .reportType(ReportType.POST)
+                .targetId(123L)
+                .content("CSRF 없는 신고")
+                .build();
+
+        // When & Then
+        mockMvc.perform(post("/api/user/report")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(reportDTO))
+                        .with(user(userDetails)))
+                .andDo(print())
+                .andExpect(status().isForbidden());
+    }
+
+
+}

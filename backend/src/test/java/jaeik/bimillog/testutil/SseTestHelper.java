@@ -8,8 +8,6 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -35,17 +33,6 @@ public class SseTestHelper {
      */
     public static String createEmitterId(Long userId, Long tokenId, long timestamp) {
         return String.format("%d_%d_%d", userId, tokenId, timestamp);
-    }
-
-    /**
-     * 기본 EmitterId 생성 (현재 시간 사용)
-     * 
-     * @param userId 사용자 ID
-     * @param tokenId 토큰 ID
-     * @return 생성된 EmitterId
-     */
-    public static String createEmitterId(Long userId, Long tokenId) {
-        return createEmitterId(userId, tokenId, System.currentTimeMillis());
     }
 
     /**
@@ -106,16 +93,6 @@ public class SseTestHelper {
      */
     public static void setupEmptyRepository(EmitterRepository repository, Long userId) {
         given(repository.findAllEmitterByUserId(userId)).willReturn(new HashMap<>());
-    }
-
-    /**
-     * EmitterRepository save 동작 설정
-     * 
-     * @param repository Mock EmitterRepository
-     */
-    public static void setupEmitterSave(EmitterRepository repository) {
-        given(repository.save(anyString(), any(SseEmitter.class)))
-            .willAnswer(invocation -> invocation.getArgument(1));
     }
 
     /**
@@ -182,22 +159,6 @@ public class SseTestHelper {
             .type(NotificationType.COMMENT)
             .message(commenterName + "님이 댓글을 남겼습니다!")
             .url("/board/post/" + postId)
-            .build();
-    }
-
-    /**
-     * 롤링페이퍼 알림 SSE 메시지 생성
-     * 
-     * @param userId 사용자 ID
-     * @param userName 사용자명
-     * @return SseMessage
-     */
-    public static SseMessage paperMessage(Long userId, String userName) {
-        return sseMessage()
-            .userId(userId)
-            .type(NotificationType.PAPER)
-            .message("롤링페이퍼에 메시지가 작성되었어요!")
-            .url("/rolling-paper/" + userName)
             .build();
     }
 

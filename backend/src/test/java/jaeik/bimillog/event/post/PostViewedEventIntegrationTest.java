@@ -1,8 +1,8 @@
 package jaeik.bimillog.event.post;
 
 import jaeik.bimillog.domain.post.application.port.in.PostInteractionUseCase;
-import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import jaeik.bimillog.domain.post.event.PostViewedEvent;
+import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;

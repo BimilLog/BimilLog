@@ -45,10 +45,6 @@ public abstract class BaseUnitTest {
     private User cachedOtherUser;
     private User cachedThirdUser;
     private Setting cachedDefaultSetting;
-    private Setting cachedCustomSetting;
-    private Setting cachedMessageOnlySetting;
-    private Setting cachedCommentOnlySetting;
-    private Setting cachedPostFeaturedOnlySetting;
 
     /**
      * 기본 테스트 사용자 획득 (일반 권한)
@@ -104,51 +100,6 @@ public abstract class BaseUnitTest {
         }
         return cachedDefaultSetting;
     }
-
-    /**
-     * 커스텀 설정 객체 획득 (모든 알림 비활성화)
-     * 첫 호출 시 생성, 이후 캐시된 인스턴스 반환
-     */
-    protected Setting getCustomSetting() {
-        if (cachedCustomSetting == null) {
-            cachedCustomSetting = TestUsers.createAllDisabledSetting();
-        }
-        return cachedCustomSetting;
-    }
-
-    /**
-     * 메시지 알림만 활성화된 설정 획득
-     * 첫 호출 시 생성, 이후 캐시된 인스턴스 반환
-     */
-    protected Setting getMessageOnlySetting() {
-        if (cachedMessageOnlySetting == null) {
-            cachedMessageOnlySetting = TestUsers.createMessageOnlySetting();
-        }
-        return cachedMessageOnlySetting;
-    }
-
-    /**
-     * 댓글 알림만 활성화된 설정 획득
-     * 첫 호출 시 생성, 이후 캐시된 인스턴스 반환
-     */
-    protected Setting getCommentOnlySetting() {
-        if (cachedCommentOnlySetting == null) {
-            cachedCommentOnlySetting = TestUsers.createCommentOnlySetting();
-        }
-        return cachedCommentOnlySetting;
-    }
-
-    /**
-     * 게시글 추천 알림만 활성화된 설정 획득
-     * 첫 호출 시 생성, 이후 캐시된 인스턴스 반환
-     */
-    protected Setting getPostFeaturedOnlySetting() {
-        if (cachedPostFeaturedOnlySetting == null) {
-            cachedPostFeaturedOnlySetting = TestUsers.createPostFeaturedOnlySetting();
-        }
-        return cachedPostFeaturedOnlySetting;
-    }
-
 
     /**
      * ID가 포함된 테스트 사용자 생성 헬퍼 메서드

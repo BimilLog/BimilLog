@@ -81,15 +81,11 @@ public class RedisTestHelper {
         private Long id = 1L;
         private String title = "테스트 게시글";
         private String content = "테스트 내용";
-        private Integer viewCount = 100;
-        private Integer likeCount = 50;
-        private PostCacheFlag postCacheFlag = PostCacheFlag.REALTIME;
-        private Instant createdAt = Instant.now();
+        private final PostCacheFlag postCacheFlag = PostCacheFlag.REALTIME;
+        private final Instant createdAt = Instant.now();
         private Long userId = 1L;
         private String userName = "testUser";
-        private Integer commentCount = 10;
         private Boolean isNotice = false;
-        private Boolean isLiked = false;
 
         public PostDetailBuilder id(Long id) {
             this.id = id;
@@ -103,11 +99,6 @@ public class RedisTestHelper {
 
         public PostDetailBuilder content(String content) {
             this.content = content;
-            return this;
-        }
-
-        public PostDetailBuilder createdAt(Instant createdAt) {
-            this.createdAt = createdAt;
             return this;
         }
 
@@ -127,6 +118,10 @@ public class RedisTestHelper {
         }
 
         public PostDetail build() {
+            Integer viewCount = 100;
+            Integer likeCount = 50;
+            Integer commentCount = 10;
+            Boolean isLiked = false;
             return PostDetail.builder()
                 .id(id)
                 .title(title)

@@ -4,7 +4,6 @@ import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.user.entity.*;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
-import org.junit.jupiter.api.BeforeEach;
 import org.mockito.MockedStatic;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;

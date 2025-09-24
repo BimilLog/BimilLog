@@ -100,11 +100,6 @@ public class NotificationTestDataBuilder {
                 .withMessage(message);
     }
 
-    public NotificationTestDataBuilder withId(Long id) {
-        this.id = id;
-        return this;
-    }
-
     public NotificationTestDataBuilder withReceiver(User receiver) {
         this.receiver = receiver;
         return this;
@@ -142,15 +137,6 @@ public class NotificationTestDataBuilder {
         this.isRead = false;
         return this;
     }
-    /**
-     * 과거 시간으로 생성 시간 설정
-     * @param daysAgo 며칠 전
-     * @return NotificationTestDataBuilder 인스턴스
-     */
-    public NotificationTestDataBuilder createdDaysAgo(int daysAgo) {
-        this.createdAt = LocalDateTime.now().minusDays(daysAgo);
-        return this;
-    }
 
     /**
      * Notification 엔티티 생성
@@ -184,26 +170,6 @@ public class NotificationTestDataBuilder {
         }
 
         return notification;
-    }
-
-    /**
-     * 여러 개의 테스트 알림 생성
-     * @param count 생성할 알림 수
-     * @param receiver 수신자
-     * @return Notification 리스트
-     */
-    public static List<Notification> createNotifications(int count, User receiver) {
-        List<Notification> notifications = new ArrayList<>();
-        for (int i = 1; i <= count; i++) {
-            notifications.add(aNotification()
-                    .withReceiver(receiver)
-                    .withType(NotificationType.COMMENT)
-                    .withMessage("Test notification " + i)
-                    .withRelatedId((long) i)
-                    .createdDaysAgo(count - i) // 최신 것부터 오래된 순
-                    .build());
-        }
-        return notifications;
     }
 
     /**

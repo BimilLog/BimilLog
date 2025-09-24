@@ -247,18 +247,6 @@ public abstract class BaseIntegrationTest {
     }
 
     /**
-     * 인증된 DELETE 요청 수행
-     * @param url 요청 URL
-     * @param userDetails 인증 정보
-     * @return ResultActions
-     */
-    protected ResultActions performDelete(String url, CustomUserDetails userDetails) throws Exception {
-        return mockMvc.perform(delete(url)
-                .with(user(userDetails))
-                .with(csrf()));
-    }
-
-    /**
      * 인증 없는 DELETE 요청 수행
      * @param url 요청 URL
      * @return ResultActions

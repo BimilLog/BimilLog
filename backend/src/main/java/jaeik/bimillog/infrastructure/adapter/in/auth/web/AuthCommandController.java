@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.in.auth.web;
 
-import jaeik.bimillog.domain.auth.application.port.in.SocialLogoutUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.SocialLoginUseCase;
+import jaeik.bimillog.domain.auth.application.port.in.SocialLogoutUseCase;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.user.application.port.in.SignUpUseCase;
 import jaeik.bimillog.global.annotation.Log;

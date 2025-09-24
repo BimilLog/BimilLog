@@ -292,16 +292,6 @@ public class TestFixtures {
     public static class LazyTestData {
         // User 관련 lazy suppliers
         private static volatile User testUser;
-        private static volatile User adminUser;
-        private static volatile User otherUser;
-        private static volatile User thirdUser;
-
-        // Setting 관련 lazy suppliers
-        private static volatile jaeik.bimillog.domain.user.entity.Setting defaultSetting;
-        private static volatile jaeik.bimillog.domain.user.entity.Setting allDisabledSetting;
-        private static volatile jaeik.bimillog.domain.user.entity.Setting messageOnlySetting;
-        private static volatile jaeik.bimillog.domain.user.entity.Setting commentOnlySetting;
-        private static volatile jaeik.bimillog.domain.user.entity.Setting postFeaturedOnlySetting;
 
         /**
          * 테스트 사용자 lazy 획득 (USER1)
@@ -315,49 +305,6 @@ public class TestFixtures {
                 }
             }
             return testUser;
-        }
-
-        /**
-         * 관리자 사용자 lazy 획득
-         */
-        public static User getAdminUser() {
-            if (adminUser == null) {
-                synchronized (LazyTestData.class) {
-                    if (adminUser == null) {
-                        adminUser = TestUsers.withRole(jaeik.bimillog.domain.user.entity.UserRole.ADMIN);
-                    }
-                }
-            }
-            return adminUser;
-        }
-
-        /**
-         * 다른 테스트 사용자 lazy 획득 (USER2)
-         */
-        public static User getOtherUser() {
-            if (otherUser == null) {
-                synchronized (LazyTestData.class) {
-                    if (otherUser == null) {
-                        otherUser = TestUsers.USER2;
-                    }
-                }
-            }
-            return otherUser;
-        }
-
-        /**
-         * 모든 캐시 초기화 (테스트 격리가 필요한 경우)
-         */
-        public static void resetAll() {
-            testUser = null;
-            adminUser = null;
-            otherUser = null;
-            thirdUser = null;
-            defaultSetting = null;
-            allDisabledSetting = null;
-            messageOnlySetting = null;
-            commentOnlySetting = null;
-            postFeaturedOnlySetting = null;
         }
     }
 

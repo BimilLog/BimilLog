@@ -2,8 +2,8 @@ package jaeik.bimillog.event.user;
 
 import jaeik.bimillog.domain.admin.application.port.in.AdminCommandUseCase;
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import jaeik.bimillog.domain.user.event.ReportSubmittedEvent;
+import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
