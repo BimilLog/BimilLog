@@ -2,6 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.out.sse;
 
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.SseTestHelper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -24,8 +25,8 @@ class EmitterRepositoryImplTest extends BaseUnitTest {
     private SseEmitter emitter1;
     private SseEmitter emitter2;
 
-    @Override
-    protected void setUpChild() {
+    @BeforeEach
+    void setUp() {
         emitterRepository = new EmitterRepositoryImpl();
         emitter1 = SseTestHelper.createMockEmitter();
         emitter2 = SseTestHelper.createMockEmitter();

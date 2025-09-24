@@ -7,6 +7,7 @@ import jaeik.bimillog.domain.paper.entity.MessageDetail;
 import jaeik.bimillog.domain.paper.entity.VisitMessageDetail;
 import jaeik.bimillog.domain.paper.exception.PaperCustomException;
 import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
+import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.global.application.port.out.GlobalUserQueryPort;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.TestFixtures;
@@ -48,11 +49,11 @@ class PaperQueryServiceTest extends BaseUnitTest {
     void shouldGetMyPaper_WhenValidUser() {
         // Given
         Long userId = 1L;
-        testUser = createTestUserWithId(userId);
+        User userWithId = createTestUserWithId(userId);
         List<Message> messages = Arrays.asList(
-                TestFixtures.createRollingPaper(testUser, "첫 번째 메시지", "red", "font1", 10, 10),
-                TestFixtures.createRollingPaper(testUser, "두 번째 메시지", "blue", "font2", 20, 20),
-                TestFixtures.createRollingPaper(testUser, "세 번째 메시지", "green", "font3", 30, 30)
+                TestFixtures.createRollingPaper(userWithId, "첫 번째 메시지", "red", "font1", 10, 10),
+                TestFixtures.createRollingPaper(userWithId, "두 번째 메시지", "blue", "font2", 20, 20),
+                TestFixtures.createRollingPaper(userWithId, "세 번째 메시지", "green", "font3", 30, 30)
         );
 
         given(paperQueryPort.findMessagesByUserId(userId)).willReturn(messages);
@@ -96,10 +97,10 @@ class PaperQueryServiceTest extends BaseUnitTest {
     @DisplayName("다른 사용자 롤링페이퍼 방문 - 성공")
     void shouldVisitPaper_WhenValidUserName() {
         // Given
-        String userName = testUser.getUserName();
+        String userName = getTestUser().getUserName();
         List<Message> messages = Arrays.asList(
-                TestFixtures.createRollingPaper(testUser, "메시지1", "red", "font1", 5, 5),
-                TestFixtures.createRollingPaper(otherUser, "메시지2", "blue", "font2", 10, 10)
+                TestFixtures.createRollingPaper(getTestUser(), "메시지1", "red", "font1", 5, 5),
+                TestFixtures.createRollingPaper(getOtherUser(), "메시지2", "blue", "font2", 10, 10)
         );
 
         given(globalUserQueryPort.existsByUserName(userName)).willReturn(true);
@@ -111,8 +112,8 @@ class PaperQueryServiceTest extends BaseUnitTest {
         // Then
         assertThat(result).isNotNull();
         assertThat(result).hasSize(2);
-        assertThat(result.get(0).userId()).isEqualTo(testUser.getId());
-        assertThat(result.get(1).userId()).isEqualTo(otherUser.getId());
+        assertThat(result.get(0).userId()).isEqualTo(getTestUser().getId());
+        assertThat(result.get(1).userId()).isEqualTo(getOtherUser().getId());
 
         verify(globalUserQueryPort, times(1)).existsByUserName(userName);
         verify(paperQueryPort, times(1)).findMessagesByUserName(userName);
@@ -140,7 +141,7 @@ class PaperQueryServiceTest extends BaseUnitTest {
     @DisplayName("다른 사용자 롤링페이퍼 방문 - 빈 목록")
     void shouldVisitPaper_WhenNoMessages() {
         // Given
-        String userName = testUser.getUserName();
+        String userName = getTestUser().getUserName();
         List<Message> emptyList = Collections.emptyList();
 
         given(globalUserQueryPort.existsByUserName(userName)).willReturn(true);

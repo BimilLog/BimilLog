@@ -36,14 +36,14 @@ class GlobalUserQueryAdapterTest extends BaseUnitTest {
     void shouldReturnUser_WhenUserExists() {
         // Given
         Long userId = 1L;
-        given(userQueryUseCase.findById(userId)).willReturn(Optional.of(testUser));
+        given(userQueryUseCase.findById(userId)).willReturn(Optional.of(getTestUser()));
 
         // When
         Optional<User> result = globalUserQueryAdapter.findById(userId);
 
         // Then
         assertThat(result).isPresent();
-        assertThat(result.get()).isEqualTo(testUser);
+        assertThat(result.get()).isEqualTo(getTestUser());
         assertThat(result.get().getUserName()).isEqualTo("testUser1");
         assertThat(result.get().getSocialNickname()).isEqualTo("테스트유저1");
         verify(userQueryUseCase, times(1)).findById(userId);
@@ -69,14 +69,14 @@ class GlobalUserQueryAdapterTest extends BaseUnitTest {
     void shouldReturnUser_WhenUserNameExists() {
         // Given
         String userName = "testUser1";
-        given(userQueryUseCase.findByUserName(userName)).willReturn(Optional.of(testUser));
+        given(userQueryUseCase.findByUserName(userName)).willReturn(Optional.of(getTestUser()));
 
         // When
         Optional<User> result = globalUserQueryAdapter.findByUserName(userName);
 
         // Then
         assertThat(result).isPresent();
-        assertThat(result.get()).isEqualTo(testUser);
+        assertThat(result.get()).isEqualTo(getTestUser());
         verify(userQueryUseCase, times(1)).findByUserName(userName);
     }
 
@@ -99,7 +99,7 @@ class GlobalUserQueryAdapterTest extends BaseUnitTest {
     @DisplayName("사용자명 존재 여부 확인 - 존재함")
     void shouldReturnTrue_WhenUserNameExists() {
         // Given
-        String userName = testUser.getUserName();
+        String userName = getTestUser().getUserName();
         given(userQueryUseCase.existsByUserName(userName)).willReturn(true);
 
         // When
@@ -130,13 +130,13 @@ class GlobalUserQueryAdapterTest extends BaseUnitTest {
     void shouldReturnProxyReference_WhenUserIdProvided() {
         // Given
         Long userId = 1L;
-        given(userQueryUseCase.getReferenceById(userId)).willReturn(testUser);
+        given(userQueryUseCase.getReferenceById(userId)).willReturn(getTestUser());
 
         // When
         User result = globalUserQueryAdapter.getReferenceById(userId);
 
         // Then
-        assertThat(result).isEqualTo(testUser);
+        assertThat(result).isEqualTo(getTestUser());
         verify(userQueryUseCase, times(1)).getReferenceById(userId);
     }
 

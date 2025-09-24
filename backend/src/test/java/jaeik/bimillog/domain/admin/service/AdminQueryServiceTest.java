@@ -6,6 +6,7 @@ import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.testutil.BaseUnitTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -42,8 +43,8 @@ class AdminQueryServiceTest extends BaseUnitTest {
 
     private List<Report> testReports;
 
-    @Override
-    protected void setUpChild() {
+    @BeforeEach
+    void setUp() {
         User reporter1 = createTestUserWithId(100L);
         User reporter2 = createTestUserWithId(101L);
         User reporter3 = createTestUserWithId(102L);

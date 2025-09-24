@@ -17,6 +17,7 @@ import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.CommentTestDataBuilder;
 import jaeik.bimillog.testutil.TestFixtures;
 import jaeik.bimillog.testutil.TestUsers;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -63,8 +64,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
     private Comment testComment;
     private Post testPost;
 
-    @Override
-    protected void setUpChild() {
+    @BeforeEach
+    void setUp() {
         // getTestUser()를 사용하여 테스트 사용자 획득
         User user = getTestUser();
         TestFixtures.setFieldValue(user, "id", 100L);

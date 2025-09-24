@@ -8,6 +8,7 @@ import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.paper.exception.PaperCustomException;
 import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
+import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.global.application.port.out.GlobalUserQueryPort;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.DisplayName;
@@ -185,14 +186,14 @@ class PaperCommandServiceTest extends BaseUnitTest {
         // Given
         String userName = getTestUser().getUserName();
         Long userId = 1L;
-        testUser = createTestUserWithId(userId);
+        User userWithId = createTestUserWithId(userId);
         DecoType decoType = DecoType.APPLE;
         String anonymity = "익명";
         String content = "테스트 메시지";
         int x = 2;
         int y = 2;
 
-        given(globalUserQueryPort.findByUserName(userName)).willReturn(Optional.of(testUser));
+        given(globalUserQueryPort.findByUserName(userName)).willReturn(Optional.of(userWithId));
 
         // When
         paperCommandService.writeMessage(userName, decoType, anonymity, content, x, y);

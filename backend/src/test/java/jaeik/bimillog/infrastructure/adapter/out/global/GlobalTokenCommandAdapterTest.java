@@ -3,6 +3,7 @@ package jaeik.bimillog.infrastructure.adapter.out.global;
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.infrastructure.adapter.out.auth.jpa.TokenRepository;
 import jaeik.bimillog.testutil.BaseUnitTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -32,10 +33,10 @@ class GlobalTokenCommandAdapterTest extends BaseUnitTest {
     private Token testToken;
     private Token temporaryToken;
 
-    @Override
-    protected void setUpChild() {
+    @BeforeEach
+    void setUp() {
         // 실제 Token 객체 생성
-        testToken = Token.createToken("test-access-token", "test-refresh-token", testUser);
+        testToken = Token.createToken("test-access-token", "test-refresh-token", getTestUser());
         temporaryToken = Token.createTemporaryToken("temp-access-token", "temp-refresh-token");
     }
 
@@ -52,7 +53,7 @@ class GlobalTokenCommandAdapterTest extends BaseUnitTest {
         assertThat(result).isEqualTo(testToken);
         assertThat(result.getAccessToken()).isEqualTo("test-access-token");
         assertThat(result.getRefreshToken()).isEqualTo("test-refresh-token");
-        assertThat(result.getUsers()).isEqualTo(testUser);
+        assertThat(result.getUsers()).isEqualTo(getTestUser());
         verify(tokenRepository, times(1)).save(testToken);
     }
 
@@ -77,7 +78,7 @@ class GlobalTokenCommandAdapterTest extends BaseUnitTest {
     @DisplayName("사용자 ID로 모든 토큰 삭제 - 성공")
     void shouldDeleteAllTokensByUserId_WhenUserIdProvided() {
         // Given
-        Long userId = testUser.getId();
+        Long userId = getTestUser().getId();
 
         // When
         globalTokenCommandAdapter.deleteAllByUserId(userId);

@@ -3,6 +3,7 @@ package jaeik.bimillog.infrastructure.adapter.out.global;
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.infrastructure.adapter.out.auth.jpa.TokenRepository;
 import jaeik.bimillog.testutil.BaseUnitTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -36,8 +37,8 @@ class GlobalTokenQueryAdapterTest extends BaseUnitTest {
     private Token testToken;
     private Token adminToken;
 
-    @Override
-    protected void setUpChild() {
+    @BeforeEach
+    void setUp() {
         // 실제 Token 객체 생성
         testToken = Token.createToken("test-access", "test-refresh", getTestUser());
         adminToken = Token.createToken("admin-access", "admin-refresh", getAdminUser());

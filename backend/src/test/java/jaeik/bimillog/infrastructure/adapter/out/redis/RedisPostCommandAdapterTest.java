@@ -9,6 +9,7 @@ import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.RedisTestHelper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -52,8 +53,8 @@ class RedisPostCommandAdapterTest extends BaseUnitTest {
 
     private PostDetail testPostDetail;
 
-    @Override
-    protected void setUpChild() {
+    @BeforeEach
+    void setUp() {
         RedisTestHelper.setupRedisTemplateMocks(redisTemplate, valueOperations, zSetOperations);
         testPostDetail = RedisTestHelper.defaultPostDetail();
     }

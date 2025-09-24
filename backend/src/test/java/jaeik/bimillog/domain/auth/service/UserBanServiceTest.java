@@ -127,7 +127,7 @@ class UserBanServiceTest extends BaseUnitTest {
     @DisplayName("사용자의 모든 토큰을 블랙리스트에 등록 성공")
     void shouldBlacklistAllUserTokens_WhenUserHasTokens() {
         // Given
-        Long userId = testUser.getId() != null ? testUser.getId() : 100L;
+        Long userId = getTestUser().getId() != null ? getTestUser().getId() : 100L;
         String reason = "Security violation";
         
         given(globalTokenQueryPort.findAllByUserId(userId)).willReturn(testTokenList);

@@ -9,6 +9,7 @@ import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.SseTestHelper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -53,8 +54,8 @@ class SseAdapterTest extends BaseUnitTest {
     private String emitterId;
     private SseEmitter mockEmitter;
 
-    @Override
-    protected void setUpChild() {
+    @BeforeEach
+    void setUp() {
         userId = 1L;
         tokenId = 100L;
         emitterId = SseTestHelper.defaultEmitterId(userId);
@@ -81,7 +82,7 @@ class SseAdapterTest extends BaseUnitTest {
     void shouldSend_WhenValidInput() {
         // Given
         given(notificationUtilPort.SseEligibleForNotification(userId, NotificationType.COMMENT)).willReturn(true);
-        given(userQueryUseCase.findById(userId)).willReturn(Optional.of(testUser));
+        given(userQueryUseCase.findById(userId)).willReturn(Optional.of(getTestUser()));
         SseTestHelper.setupSingleEmitter(emitterRepository, userId, emitterId, mockEmitter);
 
         // When
@@ -91,7 +92,7 @@ class SseAdapterTest extends BaseUnitTest {
         // Then
         verify(notificationUtilPort).SseEligibleForNotification(userId, NotificationType.COMMENT);
         verify(userQueryUseCase).findById(userId);
-        verify(notificationCommandPort).save(eq(testUser), eq(NotificationType.COMMENT), anyString(), anyString());
+        verify(notificationCommandPort).save(eq(getTestUser()), eq(NotificationType.COMMENT), anyString(), anyString());
         verify(emitterRepository).findAllEmitterByUserId(userId);
     }
 
@@ -119,7 +120,7 @@ class SseAdapterTest extends BaseUnitTest {
     void shouldThrowException_WhenNotificationSaveFails() {
         // Given
         given(notificationUtilPort.SseEligibleForNotification(userId, NotificationType.COMMENT)).willReturn(true);
-        given(userQueryUseCase.findById(userId)).willReturn(Optional.of(testUser));
+        given(userQueryUseCase.findById(userId)).willReturn(Optional.of(getTestUser()));
         doThrow(new RuntimeException("DB 저장 실패"))
                 .when(notificationCommandPort).save(any(), any(), any(), any());
 
@@ -131,7 +132,7 @@ class SseAdapterTest extends BaseUnitTest {
 
         verify(notificationUtilPort).SseEligibleForNotification(userId, NotificationType.COMMENT);
         verify(userQueryUseCase).findById(userId);
-        verify(notificationCommandPort).save(eq(testUser), eq(NotificationType.COMMENT), anyString(), anyString());
+        verify(notificationCommandPort).save(eq(getTestUser()), eq(NotificationType.COMMENT), anyString(), anyString());
         verify(emitterRepository, never()).findAllEmitterByUserId(any());
     }
 
@@ -140,7 +141,7 @@ class SseAdapterTest extends BaseUnitTest {
     void shouldHandleEmptyEmitters_WhenNoEmittersExist() {
         // Given
         given(notificationUtilPort.SseEligibleForNotification(userId, NotificationType.COMMENT)).willReturn(true);
-        given(userQueryUseCase.findById(userId)).willReturn(Optional.of(testUser));
+        given(userQueryUseCase.findById(userId)).willReturn(Optional.of(getTestUser()));
         SseTestHelper.setupEmptyRepository(emitterRepository, userId);
 
         // When
@@ -150,7 +151,7 @@ class SseAdapterTest extends BaseUnitTest {
         // Then
         verify(notificationUtilPort).SseEligibleForNotification(userId, NotificationType.COMMENT);
         verify(userQueryUseCase).findById(userId);
-        verify(notificationCommandPort).save(eq(testUser), eq(NotificationType.COMMENT), anyString(), anyString());
+        verify(notificationCommandPort).save(eq(getTestUser()), eq(NotificationType.COMMENT), anyString(), anyString());
         verify(emitterRepository).findAllEmitterByUserId(userId);
         // Emitter가 없어도 예외가 발생하지 않아야 함
     }
@@ -170,7 +171,7 @@ class SseAdapterTest extends BaseUnitTest {
     void shouldSendToMultipleEmitters() {
         // Given
         given(notificationUtilPort.SseEligibleForNotification(userId, NotificationType.COMMENT)).willReturn(true);
-        given(userQueryUseCase.findById(userId)).willReturn(Optional.of(testUser));
+        given(userQueryUseCase.findById(userId)).willReturn(Optional.of(getTestUser()));
         
         Map<String, SseEmitter> emitters = SseTestHelper.createMultiDeviceEmitters(userId, 2);
         SseTestHelper.setupEmitterRepository(emitterRepository, userId, emitters);
@@ -182,7 +183,7 @@ class SseAdapterTest extends BaseUnitTest {
         // Then
         verify(notificationUtilPort).SseEligibleForNotification(userId, NotificationType.COMMENT);
         verify(userQueryUseCase).findById(userId);
-        verify(notificationCommandPort).save(eq(testUser), eq(NotificationType.COMMENT), anyString(), anyString());
+        verify(notificationCommandPort).save(eq(getTestUser()), eq(NotificationType.COMMENT), anyString(), anyString());
         verify(emitterRepository).findAllEmitterByUserId(userId);
     }
 

@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.notification.entity.FcmMessage;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.infrastructure.adapter.out.notification.jpa.FcmTokenRepository;
 import jaeik.bimillog.testutil.BaseUnitTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -40,10 +41,10 @@ class FcmAdapterTest extends BaseUnitTest {
 
     private FcmToken testFcmToken;
 
-    @Override
-    protected void setUpChild() {
+    @BeforeEach
+    void setUp() {
         // Given: 테스트용 FCM 토큰 설정
-        testFcmToken = FcmToken.create(testUser, "test-fcm-TemporaryToken");
+        testFcmToken = FcmToken.create(getTestUser(), "test-fcm-TemporaryToken");
     }
 
     @Test
@@ -52,7 +53,7 @@ class FcmAdapterTest extends BaseUnitTest {
         // Given: 저장할 FCM 토큰과 예상 결과
         FcmToken savedToken = FcmToken.builder()
                 .id(1L)
-                .user(testUser)
+                .user(getTestUser())
                 .fcmRegistrationToken("new-fcm-TemporaryToken")
                 .build();
 
@@ -65,7 +66,7 @@ class FcmAdapterTest extends BaseUnitTest {
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(1L);
         assertThat(result.getFcmRegistrationToken()).isEqualTo("new-fcm-TemporaryToken");
-        assertThat(result.getUser()).isEqualTo(testUser);
+        assertThat(result.getUser()).isEqualTo(getTestUser());
 
         verify(fcmTokenRepository).save(any(FcmToken.class));
     }

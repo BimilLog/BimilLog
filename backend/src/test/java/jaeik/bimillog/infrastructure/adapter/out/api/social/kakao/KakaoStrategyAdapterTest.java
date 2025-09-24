@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.global.vo.KakaoKeyVO;
 import jaeik.bimillog.testutil.BaseAuthUnitTest;
 import jaeik.bimillog.testutil.KakaoTestDataBuilder;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -39,8 +40,8 @@ class KakaoStrategyAdapterTest extends BaseAuthUnitTest {
 
     private KakaoStrategyAdapter kakaoStrategyAdapter;
 
-    @Override
-    protected void setUpAuthChild() {
+    @BeforeEach
+    void setUp() {
         // KakaoKeyVO Mock 설정
         lenient().when(kakaoKeyVO.getCLIENT_ID()).thenReturn(KAKAO_CLIENT_ID);
         lenient().when(kakaoKeyVO.getCLIENT_SECRET()).thenReturn(KAKAO_CLIENT_SECRET);

@@ -18,6 +18,7 @@ import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.TestFixtures;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -65,8 +66,8 @@ class AdminCommandServiceTest extends BaseUnitTest {
     private Long testTargetId = 200L;
     private String testContent = "불쾌한 내용";
 
-    @Override
-    protected void setUpChild() {
+    @BeforeEach
+    void setUp() {
         adminCommandService = new AdminCommandService(
                 eventPublisher,
                 adminCommandPort,
