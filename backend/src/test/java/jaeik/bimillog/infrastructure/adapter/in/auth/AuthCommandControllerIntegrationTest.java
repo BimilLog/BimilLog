@@ -7,6 +7,7 @@ import jaeik.bimillog.infrastructure.adapter.in.auth.dto.SocialLoginRequestDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
+import jaeik.bimillog.testutil.TestFixtures;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
@@ -114,7 +115,7 @@ class AuthCommandControllerIntegrationTest {
         User testUser = TestUsers.createUnique();
         userRepository.save(testUser);
         
-        CustomUserDetails userDetails = createCustomUserDetails(testUser);
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
 
         // When & Then
         mockMvc.perform(post("/api/auth/logout")
@@ -135,7 +136,7 @@ class AuthCommandControllerIntegrationTest {
         User testUser = TestUsers.createUnique();
         userRepository.save(testUser);
         
-        CustomUserDetails userDetails = createCustomUserDetails(testUser);
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
 
         // When & Then
         mockMvc.perform(delete("/api/user/withdraw")
@@ -180,23 +181,5 @@ class AuthCommandControllerIntegrationTest {
     }
 
 
-    /**
-     * 테스트용 CustomUserDetails 생성
-     */
-    private CustomUserDetails createCustomUserDetails(User user) {
-        ExistingUserDetail userDetail = ExistingUserDetail.builder()
-                .userId(user.getId())
-                .settingId(user.getSetting().getId())
-                .socialId(user.getSocialId())
-                .socialNickname(user.getSocialNickname())
-                .thumbnailImage(user.getThumbnailImage())
-                .userName(user.getUserName())
-                .provider(user.getProvider())
-                .role(user.getRole())
-                .tokenId(null)
-                .fcmTokenId(null)
-                .build();
 
-        return new CustomUserDetails(userDetail);
-    }
 }

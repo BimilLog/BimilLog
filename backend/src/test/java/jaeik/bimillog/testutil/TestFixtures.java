@@ -43,7 +43,7 @@ public class TestFixtures {
     // ==================== Entity Creation ====================
 
     /**
-     * 테스트용 게시글 생성
+     * 테스트용 게시글 생성 (기본 메서드)
      * @param author 작성자
      * @param title 제목
      * @param content 내용
@@ -54,32 +54,38 @@ public class TestFixtures {
     }
 
     /**
-     * 기본 테스트 게시글 생성 (TestUsers.USER1 사용)
-     * @return Post 엔티티
-     */
-    public static Post createDefaultPost() {
-        return createPost(TestUsers.USER1, "테스트 게시글", "테스트 게시글 내용입니다.");
-    }
-
-    /**
-     * 특정 사용자로 기본 게시글 생성
-     * @param author 작성자
-     * @return Post 엔티티
-     */
-    public static Post createPostWithUser(User author) {
-        return createPost(author, "테스트 게시글", "테스트 게시글 내용입니다.");
-    }
-
-    /**
-     * 세부 정보를 지정한 게시글 생성
-     * @param author 작성자
+     * 테스트용 게시글 생성 (모든 매개변수 지정)
+     * @param author 작성자  
      * @param title 제목
      * @param content 내용
      * @param password 비밀번호
      * @return Post 엔티티
      */
-    public static Post createPostWithDetails(User author, String title, String content, int password) {
+    public static Post createPost(User author, String title, String content, int password) {
         return Post.createPost(author, title, content, password);
+    }
+
+
+    /**
+     * ID가 포함된 게시글 생성 (테스트 전용)
+     * @param id 게시글 ID
+     * @param post 기존 게시글
+     * @return Post 엔티티
+     */
+    public static Post withId(Long id, Post post) {
+        setFieldValue(post, "id", id);
+        return post;
+    }
+
+    /**
+     * 특정 사용자로 게시글 생성 (기본 제목/내용)
+     * @param author 작성자
+     * @return Post 엔티티
+     * @deprecated Use createPost(author, "테스트 게시글", "테스트 게시글 내용입니다.") instead
+     */
+    @Deprecated
+    public static Post createPostWithUser(User author) {
+        return createPost(author, "테스트 게시글", "테스트 게시글 내용입니다.");
     }
 
     /**
@@ -89,13 +95,13 @@ public class TestFixtures {
      * @param title 제목
      * @param content 내용
      * @return Post 엔티티
+     * @deprecated Use withId(id, createPost(...)) instead
      */
+    @Deprecated
     public static Post createPostWithId(Long id, User author, String title, String content) {
-        Post post = createPost(author, title, content);
-        // 리플렉션을 통한 ID 설정 (테스트 전용)
-        setFieldValue(post, "id", id);
-        return post;
+        return withId(id, createPost(author, title, content));
     }
+    
 
 
 
@@ -356,39 +362,9 @@ public class TestFixtures {
                 .build();
     }
 
-    /**
-     * SocialUserProfile 생성
-     * @param socialId 소셜 ID
-     * @param email 이메일
-     * @param provider 소셜 제공자
-     * @param nickname 닉네임
-     * @param profileImage 프로필 이미지
-     * @return SocialUserProfile
-     */
-    public static SocialUserProfile createSocialUserProfile(String socialId, String email,
-                                                           SocialProvider provider, String nickname,
-                                                           String profileImage) {
-        Token token = Token.createTemporaryToken("access-TemporaryToken", "refresh-TemporaryToken");
-        return new SocialUserProfile(socialId, email, provider, nickname, profileImage, token);
-    }
 
     // ==================== Cookie & Token Creation ====================
 
-    /**
-     * 인증 쿠키 생성
-     * @param name 쿠키 이름
-     * @param value 쿠키 값
-     * @return ResponseCookie
-     */
-    public static ResponseCookie createAuthCookie(String name, String value) {
-        return ResponseCookie.from(name, value)
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(Duration.ofDays(7))
-                .sameSite("Lax")
-                .build();
-    }
 
     /**
      * 임시 UUID 쿠키 생성
@@ -403,73 +379,6 @@ public class TestFixtures {
                 .maxAge(Duration.ofMinutes(10))
                 .sameSite("Lax")
                 .build();
-    }
-    
-    /**
-     * 로그아웃 쿠키 생성 (Auth 테스트용)
-     * @return 로그아웃용 쿠키 리스트 (값이 비어있고 만료시간 0)
-     */
-    public static List<ResponseCookie> createLogoutCookies() {
-        return List.of(
-            ResponseCookie.from("jwt_access_token", "")
-                .path("/")
-                .maxAge(0)
-                .httpOnly(true)
-                .secure(true)
-                .sameSite("Lax")
-                .build(),
-            ResponseCookie.from("jwt_refresh_token", "")
-                .path("/")
-                .maxAge(0)
-                .httpOnly(true)
-                .secure(true)
-                .sameSite("Lax")
-                .build()
-        );
-    }
-    
-    /**
-     * JWT 인증 쿠키 생성 (Auth 테스트용)
-     * @param accessToken 액세스 토큰
-     * @param refreshToken 리프레시 토큰
-     * @return JWT 쿠키 리스트
-     */
-    public static List<ResponseCookie> createJwtCookies(String accessToken, String refreshToken) {
-        return List.of(
-            ResponseCookie.from("jwt_access_token", accessToken)
-                .path("/")
-                .maxAge(60 * 60) // 1시간
-                .httpOnly(true)
-                .secure(true)
-                .sameSite("Lax")
-                .build(),
-            ResponseCookie.from("jwt_refresh_token", refreshToken)
-                .path("/")
-                .maxAge(60 * 60 * 24 * 7) // 7일
-                .httpOnly(true)
-                .secure(true)
-                .sameSite("Lax")
-                .build()
-        );
-    }
-
-    /**
-     * LoginResult.ExistingUser 생성
-     * @param cookies 인증 쿠키들
-     * @return LoginResult.ExistingUser
-     */
-    public static LoginResult.ExistingUser createExistingUserLoginResult(List<ResponseCookie> cookies) {
-        return new LoginResult.ExistingUser(cookies);
-    }
-
-    /**
-     * LoginResult.NewUser 생성
-     * @param uuid UUID
-     * @param tempCookie 임시 쿠키
-     * @return LoginResult.NewUser
-     */
-    public static LoginResult.NewUser createNewUserLoginResult(String uuid, ResponseCookie tempCookie) {
-        return new LoginResult.NewUser(uuid, tempCookie);
     }
     
 
@@ -490,22 +399,6 @@ public class TestFixtures {
 
     // ==================== Utility Methods ====================
 
-    /**
-     * 랜덤 UUID 생성
-     * @return UUID 문자열
-     */
-    public static String generateUUID() {
-        return UUID.randomUUID().toString();
-    }
-
-    /**
-     * 타임스탬프 기반 고유 ID 생성
-     * @param prefix 접두사
-     * @return 고유 ID
-     */
-    public static String generateUniqueId(String prefix) {
-        return prefix + "_" + System.currentTimeMillis();
-    }
 
     /**
      * 리플렉션을 통한 private 필드 값 설정 (테스트 전용)

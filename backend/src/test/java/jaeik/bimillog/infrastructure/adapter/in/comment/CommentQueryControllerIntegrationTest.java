@@ -88,7 +88,7 @@ class CommentQueryControllerIntegrationTest {
     @DisplayName("댓글 조회 통합 테스트 - 첫 번째 페이지")
     void getComments_FirstPage_IntegrationTest() throws Exception {
         // Given
-        CustomUserDetails userDetails = CommentTestDataBuilder.createUserDetails(testUser);
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
         
         // When & Then
         mockMvc.perform(get("/api/comment/{postId}", testPost.getId())
@@ -110,7 +110,7 @@ class CommentQueryControllerIntegrationTest {
         Post emptyPost = TestFixtures.createPostWithId(null, testUser, "빈 게시글", "댓글이 없는 게시글입니다.");
         postRepository.save(emptyPost);
         
-        CustomUserDetails userDetails = CommentTestDataBuilder.createUserDetails(testUser);
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
         
         // When & Then
         mockMvc.perform(get("/api/comment/{postId}", emptyPost.getId())
@@ -129,7 +129,7 @@ class CommentQueryControllerIntegrationTest {
     @DisplayName("인기댓글 조회 통합 테스트")
     void getPopularComments_IntegrationTest() throws Exception {
         // Given
-        CustomUserDetails userDetails = CommentTestDataBuilder.createUserDetails(testUser);
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
         
         // When & Then
         mockMvc.perform(get("/api/comment/{postId}/popular", testPost.getId())

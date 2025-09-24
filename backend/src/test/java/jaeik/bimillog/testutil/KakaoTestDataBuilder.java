@@ -38,11 +38,11 @@ public class KakaoTestDataBuilder {
                                                           Boolean favorite) {
         try {
             KakaoFriendsDTO.Friend friend = new KakaoFriendsDTO.Friend();
-            setField(friend, "id", id);
-            setField(friend, "uuid", uuid);
-            setField(friend, "profileNickname", nickname);
-            setField(friend, "profileThumbnailImage", image);
-            setField(friend, "favorite", favorite);
+            TestFixtures.setFieldValue(friend, "id", id);
+            TestFixtures.setFieldValue(friend, "uuid", uuid);
+            TestFixtures.setFieldValue(friend, "profileNickname", nickname);
+            TestFixtures.setFieldValue(friend, "profileThumbnailImage", image);
+            TestFixtures.setFieldValue(friend, "favorite", favorite);
             return friend;
         } catch (Exception e) {
             throw new RuntimeException("Failed to create KakaoFriend", e);
@@ -76,11 +76,11 @@ public class KakaoTestDataBuilder {
                                                             Integer favoriteCount) {
         try {
             KakaoFriendsDTO response = new KakaoFriendsDTO();
-            setField(response, "elements", elements);
-            setField(response, "totalCount", totalCount);
-            setField(response, "beforeUrl", beforeUrl);
-            setField(response, "afterUrl", afterUrl);
-            setField(response, "favoriteCount", favoriteCount);
+            TestFixtures.setFieldValue(response, "elements", elements);
+            TestFixtures.setFieldValue(response, "totalCount", totalCount);
+            TestFixtures.setFieldValue(response, "beforeUrl", beforeUrl);
+            TestFixtures.setFieldValue(response, "afterUrl", afterUrl);
+            TestFixtures.setFieldValue(response, "favoriteCount", favoriteCount);
             return response;
         } catch (Exception e) {
             throw new RuntimeException("Failed to create KakaoFriendsResponse", e);
@@ -150,77 +150,6 @@ public class KakaoTestDataBuilder {
         return userInfoResponse;
     }
 
-    /**
-     * 간단한 카카오 사용자 정보 응답 생성 (이메일 없음)
-     * @param socialId 소셜 ID
-     * @param nickname 닉네임
-     * @param profileImage 프로필 이미지 URL
-     * @return 사용자 정보 응답 Map
-     */
-    public static Map<String, Object> createSimpleUserInfoResponse(String socialId, 
-                                                                  String nickname,
-                                                                  String profileImage) {
-        return createUserInfoResponse(socialId, nickname, null, profileImage);
-    }
-
-    /**
-     * 카카오 인증 코드 요청 파라미터 생성
-     * @param clientId 클라이언트 ID
-     * @param code 인증 코드
-     * @param redirectUri 리다이렉트 URI
-     * @param clientSecret 클라이언트 시크릿
-     * @return 인증 파라미터 Map
-     */
-    public static Map<String, String> createAuthParams(String clientId, String code,
-                                                      String redirectUri, String clientSecret) {
-        Map<String, String> params = new HashMap<>();
-        params.put("grant_type", "authorization_code");
-        params.put("client_id", clientId);
-        params.put("code", code);
-        params.put("redirect_uri", redirectUri);
-        if (clientSecret != null) {
-            params.put("client_secret", clientSecret);
-        }
-        return params;
-    }
-
-    /**
-     * 카카오 언링크 파라미터 생성
-     * @param targetId 대상 ID
-     * @return 언링크 파라미터 Map
-     */
-    public static Map<String, String> createUnlinkParams(String targetId) {
-        Map<String, String> params = new HashMap<>();
-        params.put("target_id_type", "user_id");
-        params.put("target_id", targetId);
-        return params;
-    }
-
-    /**
-     * Mock KakaoFriendsDTO 생성 (Mockito 사용)
-     * @param friendCount 친구 수
-     * @return Mock KakaoFriendsDTO
-     */
-    public static KakaoFriendsDTO createMockKakaoFriends(int friendCount) {
-        List<KakaoFriendsDTO.Friend> friends = java.util.stream.IntStream
-            .rangeClosed(1, friendCount)
-            .mapToObj(i -> createSimpleKakaoFriend((long) i, "친구" + i))
-            .collect(java.util.stream.Collectors.toList());
-
-        return createKakaoFriendsResponse(friends, friendCount, null, null, 0);
-    }
-
-    /**
-     * Reflection을 사용한 private 필드 값 설정
-     * @param target 대상 객체
-     * @param fieldName 필드명
-     * @param value 설정할 값
-     */
-    private static void setField(Object target, String fieldName, Object value) throws Exception {
-        Field field = target.getClass().getDeclaredField(fieldName);
-        field.setAccessible(true);
-        field.set(target, value);
-    }
 
     // Private constructor to prevent instantiation
     private KakaoTestDataBuilder() {}

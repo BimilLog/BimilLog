@@ -62,20 +62,6 @@ public class NotificationTestDataBuilder {
     }
 
     /**
-     * 대댓글 알림 빌더
-     * @param receiver 수신자
-     * @param commentId 관련 댓글 ID
-     * @return NotificationTestDataBuilder 인스턴스
-     */
-    public static NotificationTestDataBuilder aReplyNotification(User receiver, Long commentId) {
-        return new NotificationTestDataBuilder()
-                .withReceiver(receiver)
-                .withType(NotificationType.COMMENT) // REPLY 타입이 없으므로 COMMENT 사용
-                .withRelatedId(commentId)
-                .withMessage("댓글에 답글이 달렸습니다.");
-    }
-
-    /**
      * 좋아요 알림 빌더
      * @param receiver 수신자
      * @param postId 관련 게시글 ID
@@ -192,13 +178,13 @@ public class NotificationTestDataBuilder {
 
         // Set additional fields via reflection for testing
         if (id != null) {
-            setFieldValue(notification, "id", id);
+            TestFixtures.setFieldValue(notification, "id", id);
         }
         if (isRead) {
-            setFieldValue(notification, "isRead", isRead);
+            TestFixtures.setFieldValue(notification, "isRead", isRead);
         }
         if (createdAt != null) {
-            setFieldValue(notification, "createdAt", createdAt);
+            TestFixtures.setFieldValue(notification, "createdAt", createdAt);
         }
 
         return notification;
@@ -233,7 +219,6 @@ public class NotificationTestDataBuilder {
         List<Notification> notifications = new ArrayList<>();
         
         notifications.add(aCommentNotification(receiver, 1L).build());
-        notifications.add(aReplyNotification(receiver, 2L).build());
         notifications.add(aLikeNotification(receiver, 3L).build());
         notifications.add(aPaperMessageNotification(receiver).build());
         notifications.add(anAdminNotification(receiver, "시스템 점검 안내").build());
@@ -272,16 +257,5 @@ public class NotificationTestDataBuilder {
         return notifications;
     }
 
-    /**
-     * 리플렉션을 통한 private 필드 값 설정
-     */
-    private void setFieldValue(Object target, String fieldName, Object value) {
-        try {
-            java.lang.reflect.Field field = target.getClass().getDeclaredField(fieldName);
-            field.setAccessible(true);
-            field.set(target, value);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to set field value", e);
-        }
-    }
+
 }

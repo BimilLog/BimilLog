@@ -198,20 +198,6 @@ public class EventTestDataBuilder {
         return new PostFeaturedEvent(userId, sseMessage, postId, fcmTitle, fcmBody);
     }
 
-    /**
-     * 기본 게시글 인기글 등극 이벤트
-     * @param userId 사용자 ID
-     * @param postId 게시글 ID
-     * @return PostFeaturedEvent
-     */
-    public static PostFeaturedEvent createDefaultFeaturedEvent(Long userId, Long postId) {
-        return createPostFeaturedEvent(userId,
-            "축하합니다! 회원님의 게시글이 주간 인기글에 선정되었습니다!",
-            postId,
-            "🎉 인기글 선정!",
-            "축하합니다! 회원님의 게시글이 인기글에 선정되었어요!");
-    }
-
     // ==================== Auth Events ====================
 
     /**
@@ -267,29 +253,6 @@ public class EventTestDataBuilder {
         return new RollingPaperEvent(receiverId, senderName);
     }
 
-    /**
-     * 기본 롤링페이퍼 이벤트
-     * @param receiverId 수신자 ID
-     * @return RollingPaperEvent
-     */
-    public static RollingPaperEvent createDefaultPaperEvent(Long receiverId) {
-        return createPaperEvent(receiverId, "익명의 누군가");
-    }
-
-    /**
-     * 여러 롤링페이퍼 이벤트 생성
-     * @param receiverId 수신자 ID
-     * @param count 메시지 수
-     * @return List of RollingPaperEvent
-     */
-    public static List<RollingPaperEvent> createMultiplePaperEvents(Long receiverId, int count) {
-        List<RollingPaperEvent> events = new ArrayList<>();
-        for (int i = 1; i <= count; i++) {
-            events.add(createPaperEvent(receiverId, "발신자" + i));
-        }
-        return events;
-    }
-
     // ==================== Admin Events ====================
 
     /**
@@ -304,15 +267,6 @@ public class EventTestDataBuilder {
     }
 
     /**
-     * 기본 사용자 차단 이벤트 (카카오)
-     * @param userId 차단된 사용자 ID
-     * @return UserBannedEvent
-     */
-    public static UserBannedEvent createDefaultBannedEvent(Long userId) {
-        return createUserBannedEvent(userId, "testKakaoId" + userId, SocialProvider.KAKAO);
-    }
-
-    /**
      * 관리자 강제 탈퇴 이벤트 생성
      * @param userId 사용자 ID
      * @param reason 탈퇴 사유
@@ -320,15 +274,6 @@ public class EventTestDataBuilder {
      */
     public static AdminWithdrawEvent createAdminWithdrawEvent(Long userId, String reason) {
         return new AdminWithdrawEvent(userId, reason);
-    }
-
-    /**
-     * 기본 관리자 강제 탈퇴 이벤트
-     * @param userId 사용자 ID
-     * @return AdminWithdrawEvent
-     */
-    public static AdminWithdrawEvent createDefaultAdminWithdrawEvent(Long userId) {
-        return createAdminWithdrawEvent(userId, "관리자 강제 탈퇴");
     }
 
     // ==================== Mixed Event Scenarios ====================
