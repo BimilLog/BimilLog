@@ -4,6 +4,7 @@ import jaeik.bimillog.BimilLogApplication;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestFixtures;
 import jaeik.bimillog.testutil.TestUsers;
@@ -51,7 +52,7 @@ class PostCommandAdapterIntegrationTest {
     @BeforeEach
     void setUp() {
         testUser = TestUsers.USER1;
-        adminUser = TestUsers.ADMIN;
+        adminUser = TestUsers.withRole(UserRole.ADMIN);
     }
 
     @Test

@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.notification.application.service.NotificationQueryS
 import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.NotificationTestDataBuilder;
 import jaeik.bimillog.testutil.TestFixtures;
@@ -140,7 +141,7 @@ class NotificationQueryServiceTest {
     @DisplayName("알림 목록 조회 - 읽은 알림과 안읽은 알림 혼재")
     void shouldGetNotificationList_WhenMixedReadStatus() {
         // Given
-        User user = TestUsers.ADMIN;
+        User user = TestUsers.withRole(UserRole.ADMIN);
         CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(user);
         given(userDetails.getUserId()).willReturn(4L);
         

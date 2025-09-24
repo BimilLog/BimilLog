@@ -9,7 +9,8 @@ import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostRepository;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
-import jaeik.bimillog.testutil.TestSettings;
+
+import jaeik.bimillog.testutil.TestUsers;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -81,7 +82,7 @@ class PostQueryControllerIntegrationTest {
                 .thumbnailImage("http://test-profile.jpg")
                 .provider(SocialProvider.KAKAO)
                 .role(UserRole.USER)
-                .setting(TestSettings.DEFAULT)
+                .setting(TestUsers.createSetting(true, true, true))
                 .build();
         
         savedUser = userRepository.save(user);

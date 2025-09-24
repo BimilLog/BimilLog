@@ -7,7 +7,6 @@ import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentRepository;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
-import jaeik.bimillog.testutil.TestSettings;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -62,7 +61,7 @@ class CommentDeleteAdapterIntegrationTest {
         commentRepository.deleteAll();
         
         // 테스트용 사용자 생성 (각 테스트마다 고유한 ID 사용)
-        Setting setting = TestSettings.copyWithId(TestSettings.DEFAULT, null);
+        Setting setting = TestUsers.createSetting(true, true, true);
         entityManager.persistAndFlush(setting);
 
         testUser = User.builder()

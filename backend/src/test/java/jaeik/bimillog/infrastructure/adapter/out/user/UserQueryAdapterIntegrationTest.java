@@ -8,7 +8,7 @@ import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.SettingRepository;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
-import jaeik.bimillog.testutil.TestSettings;
+import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -70,11 +70,11 @@ class UserQueryAdapterIntegrationTest {
         settingRepository.deleteAll();
 
         // 설정 생성
-        testSetting = TestSettings.custom(true, false, true);
+        testSetting = TestUsers.createSetting(true, false, true);
         testSetting = settingRepository.save(testSetting);
 
         // 두 번째 사용자용 설정 생성
-        Setting testSetting2 = TestSettings.custom(false, true, false);
+        Setting testSetting2 = TestUsers.createSetting(false, true, false);
         testSetting2 = settingRepository.save(testSetting2);
 
         // 사용자 생성
@@ -195,7 +195,7 @@ class UserQueryAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 순서대로 사용자 이름 조회")
     void shouldFindUserNamesInOrder_WhenSocialIdsProvided() {
         // Given: 추가 사용자 생성
-        Setting testSetting3 = TestSettings.DEFAULT;
+        Setting testSetting3 = TestUsers.createSetting(true, true, true);
         testSetting3 = settingRepository.save(testSetting3);
 
         User testUser3 = User.builder()

@@ -9,7 +9,6 @@ import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentLikeRepository;
 import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentRepository;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
-import jaeik.bimillog.testutil.TestSettings;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -70,7 +69,7 @@ class CommentLikeAdapterIntegrationTest {
         commentRepository.deleteAll();
         
         // 테스트용 사용자들 생성
-        Setting setting1 = TestSettings.copyWithId(TestSettings.DEFAULT, null);
+        Setting setting1 = TestUsers.createSetting(true, true, true);
         entityManager.persistAndFlush(setting1);
 
         testUser1 = User.builder()
@@ -83,7 +82,7 @@ class CommentLikeAdapterIntegrationTest {
                 .build();
         entityManager.persistAndFlush(testUser1);
 
-        Setting setting2 = TestSettings.copyWithId(TestSettings.DEFAULT, null);
+        Setting setting2 = TestUsers.createSetting(true, true, true);
         entityManager.persistAndFlush(setting2);
 
         testUser2 = User.builder()
@@ -96,7 +95,7 @@ class CommentLikeAdapterIntegrationTest {
                 .build();
         entityManager.persistAndFlush(testUser2);
 
-        Setting setting3 = TestSettings.copyWithId(TestSettings.DEFAULT, null);
+        Setting setting3 = TestUsers.createSetting(true, true, true);
         entityManager.persistAndFlush(setting3);
 
         testUser3 = User.builder()

@@ -135,8 +135,8 @@ public abstract class BaseIntegrationTest {
                 .build();
 
         // 설정 초기화
-        this.defaultSetting = TestSettings.DEFAULT;
-        this.customSetting = TestSettings.ALL_DISABLED;
+        this.defaultSetting = TestUsers.createSetting(true, true, true);
+        this.customSetting = TestUsers.createAllDisabledSetting();
 
         // 사용자 생성 및 저장
         setupTestUsers();
@@ -162,7 +162,7 @@ public abstract class BaseIntegrationTest {
         } else {
             // UserRepository가 없는 경우 기본 사용자 사용
             this.testUser = TestUsers.USER1;
-            this.adminUser = TestUsers.ADMIN;
+            this.adminUser = TestUsers.withRole(jaeik.bimillog.domain.user.entity.UserRole.ADMIN);
             this.otherUser = TestUsers.USER2;
         }
     }

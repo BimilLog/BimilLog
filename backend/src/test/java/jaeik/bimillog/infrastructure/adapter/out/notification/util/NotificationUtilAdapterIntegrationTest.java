@@ -6,7 +6,7 @@ import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
-import jaeik.bimillog.testutil.TestSettings;
+
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -67,7 +67,7 @@ class NotificationUtilAdapterIntegrationTest {
         enabledUserId = enabledUser.getId();
 
         // Given: 알림이 비활성화된 사용자 설정
-        Setting disabledSetting = TestSettings.copyWithId(TestSettings.ALL_DISABLED, null);
+        Setting disabledSetting = TestUsers.createAllDisabledSetting();
         disabledSetting = testEntityManager.persistAndFlush(disabledSetting);
 
         User sourceUser = TestUsers.USER2;

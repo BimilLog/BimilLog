@@ -9,6 +9,7 @@ import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
 import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.global.application.port.out.GlobalUserQueryPort;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.DisplayName;
@@ -179,7 +180,7 @@ class NotificationFcmServiceTest {
     void shouldLogError_WhenCommentNotificationFails() {
         // Given
         Long postUserId = 1L;
-        String commenterName = TestUsers.ADMIN.getUserName();
+        String commenterName = TestUsers.withRole(UserRole.ADMIN).getUserName();
         
         given(notificationUtilPort.FcmEligibleFcmTokens(postUserId, NotificationType.COMMENT))
                 .willThrow(new RuntimeException("FCM 서비스 오류"));

@@ -2,6 +2,7 @@ package jaeik.bimillog.testutil;
 
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.entity.UserRole;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -47,7 +48,7 @@ public abstract class BaseUnitTest {
 
     /**
      * 관리자 권한 테스트 사용자
-     * TestUsers.ADMIN의 복사본으로 매 테스트마다 새로 생성
+     * TestUsers.withRole(UserRole.ADMIN)으로 매 테스트마다 새로 생성
      */
     protected User adminUser;
 
@@ -65,13 +66,11 @@ public abstract class BaseUnitTest {
 
     /**
      * 기본 설정 객체 (모든 알림 활성화)
-     * TestSettings.DEFAULT의 복사본
      */
     protected Setting defaultSetting;
 
     /**
-     * 커스텀 설정 객체 (테스트 시나리오별 변경 가능)
-     * TestSettings.ALL_DISABLED의 복사본
+     * 커스텀 설정 객체 (테스트 시나리오별 변경 가능, 모든 알림 비활성화)
      */
     protected Setting customSetting;
 
@@ -98,16 +97,16 @@ public abstract class BaseUnitTest {
     protected void setUpBase() {
         // 사용자 초기화 (매번 새로운 인스턴스 생성)
         this.testUser = TestUsers.USER1;
-        this.adminUser = TestUsers.ADMIN;
+        this.adminUser = TestUsers.withRole(UserRole.ADMIN);
         this.otherUser = TestUsers.USER2;
         this.thirdUser = TestUsers.USER3;
         
         // 설정 초기화 (매번 새로운 인스턴스 생성)
-        this.defaultSetting = TestSettings.DEFAULT;
-        this.customSetting = TestSettings.ALL_DISABLED;
-        this.messageOnlySetting = TestSettings.MESSAGE_ONLY;
-        this.commentOnlySetting = TestSettings.COMMENT_ONLY;
-        this.postFeaturedOnlySetting = TestSettings.POST_FEATURED_ONLY;
+        this.defaultSetting = TestUsers.createSetting(true, true, true);
+        this.customSetting = TestUsers.createAllDisabledSetting();
+        this.messageOnlySetting = TestUsers.createMessageOnlySetting();
+        this.commentOnlySetting = TestUsers.createCommentOnlySetting();
+        this.postFeaturedOnlySetting = TestUsers.createPostFeaturedOnlySetting();
         
         // 하위 클래스의 추가 설정을 위한 hook
         setUpChild();
@@ -140,7 +139,7 @@ public abstract class BaseUnitTest {
     protected Setting createCustomSetting(boolean messageNotification,
                                          boolean commentNotification,
                                          boolean postFeaturedNotification) {
-        return TestSettings.custom(messageNotification, commentNotification, postFeaturedNotification);
+        return TestUsers.createSetting(messageNotification, commentNotification, postFeaturedNotification);
     }
 
     /**
@@ -150,6 +149,12 @@ public abstract class BaseUnitTest {
      * @return ID가 설정된 설정 객체
      */
     protected Setting createSettingWithId(Setting setting, Long settingId) {
-        return TestSettings.copyWithId(setting, settingId);
+        Setting copiedSetting = Setting.builder()
+                .id(settingId)
+                .messageNotification(setting.isMessageNotification())
+                .commentNotification(setting.isCommentNotification())
+                .postFeaturedNotification(setting.isPostFeaturedNotification())
+                .build();
+        return copiedSetting;
     }
 }
