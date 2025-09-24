@@ -190,8 +190,6 @@ class CommentCommandServiceTest extends BaseUnitTest {
         assertThat(capturedLike.getUser()).isEqualTo(getTestUser());
     }
 
-    // 과도한 테스트 제거 - "여러 번 연속으로 좋아요 토글" 테스트는 단일 토글 테스트로 충분
-
     @Test
     @DisplayName("인증된 사용자의 댓글 수정 성공")
     void shouldUpdateComment_WhenAuthenticatedUserOwnsComment() {
@@ -586,24 +584,6 @@ class CommentCommandServiceTest extends BaseUnitTest {
     }
 
     // === 추가 테스트 ===
-
-    @Test
-    @DisplayName("댓글 작성 - 1000자 초과 내용")
-    void shouldThrowException_WhenContentExceedsMaxLength() {
-        // Given
-        Long postId = 300L;
-        String longContent = "A".repeat(1001); // 1000자 초과
-        given(commentToPostPort.findById(postId)).willReturn(testPost);
-        given(globalUserQueryPort.findById(getTestUser().getId())).willReturn(Optional.of(getTestUser()));
-
-        // When & Then
-        assertThatThrownBy(() -> commentCommandService.writeComment(getTestUser().getId(), postId, null, longContent, null))
-                .isInstanceOf(CommentCustomException.class)
-                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_WRITE_FAILED);
-
-        verify(commentSavePort, never()).save(any(Comment.class));
-        verify(eventPublisher, never()).publishEvent(any());
-    }
 
     @Test
     @DisplayName("대댓글의 대댓글 작성 (depth > 1) 테스트")

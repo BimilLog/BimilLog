@@ -3,8 +3,6 @@ package jaeik.bimillog.domain.user.service;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.application.service.UserQueryService;
 import jaeik.bimillog.domain.user.entity.Setting;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import jaeik.bimillog.global.application.port.out.GlobalTokenQueryPort;
@@ -23,8 +21,9 @@ import static org.mockito.Mockito.verify;
 
 /**
  * <h2>UserQueryService 테스트</h2>
- * <p>사용자 조회 서비스의 비즈니스 로직을 검증하는 단위 테스트</p>
- * <p>헥사고날 아키텍처 원칙에 따라 모든 외부 의존성을 Mock으로 격리하여 순수한 비즈니스 로직만 테스트</p>
+ * <p>사용자 조회 서비스의 핵심 비즈니스 로직을 검증하는 단위 테스트</p>
+ * <p>CLAUDE.md 테스트 철학에 따라 예외 처리 로직이 있는 findBySettingId만 테스트</p>
+ * <p>단순 위임 메서드들은 테스트에서 제외 (테스트 불필요 카테고리)</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -34,172 +33,12 @@ class UserQueryServiceTest extends BaseUnitTest {
 
     @Mock
     private UserQueryPort userQueryPort;
-    
+
     @Mock
     private GlobalTokenQueryPort globalTokenQueryPort;
 
     @InjectMocks
     private UserQueryService userQueryService;
-
-    @Test
-    @DisplayName("소셜 정보로 사용자 조회 - 정상 케이스")
-    void shouldFindUser_WhenValidProviderAndSocialId() {
-        // Given
-        SocialProvider provider = SocialProvider.KAKAO;
-        String socialId = getTestUser().getSocialId(); // "kakao123456"
-
-        User expectedUser = createTestUserWithId(1L);
-
-        given(userQueryPort.findByProviderAndSocialId(provider, socialId))
-                .willReturn(Optional.of(expectedUser));
-
-        // When
-        Optional<User> result = userQueryService.findByProviderAndSocialId(provider, socialId);
-
-        // Then
-        verify(userQueryPort).findByProviderAndSocialId(provider, socialId);
-        assertThat(result).isPresent();
-        assertThat(result.get()).isEqualTo(expectedUser);
-        assertThat(result.get().getProvider()).isEqualTo(provider);
-        assertThat(result.get().getSocialId()).isEqualTo(socialId);
-    }
-
-    @Test
-    @DisplayName("소셜 정보로 사용자 조회 - 사용자가 존재하지 않는 경우")
-    void shouldReturnEmpty_WhenUserNotFoundByProviderAndSocialId() {
-        // Given
-        SocialProvider provider = SocialProvider.GOOGLE;
-        String socialId = "nonexistent";
-
-        given(userQueryPort.findByProviderAndSocialId(provider, socialId))
-                .willReturn(Optional.empty());
-
-        // When
-        Optional<User> result = userQueryService.findByProviderAndSocialId(provider, socialId);
-
-        // Then
-        verify(userQueryPort).findByProviderAndSocialId(provider, socialId);
-        assertThat(result).isEmpty();
-    }
-
-    @Test
-    @DisplayName("ID로 사용자 조회 - 정상 케이스")
-    void shouldFindUser_WhenValidId() {
-        // Given
-        Long userId = 1L;
-        User expectedUser = createTestUserWithId(userId);
-
-        given(userQueryPort.findById(userId)).willReturn(Optional.of(expectedUser));
-
-        // When
-        Optional<User> result = userQueryService.findById(userId);
-
-        // Then
-        verify(userQueryPort).findById(userId);
-        assertThat(result).isPresent();
-        assertThat(result.get().getId()).isEqualTo(userId);
-    }
-
-    @Test
-    @DisplayName("ID로 사용자 조회 - 사용자가 존재하지 않는 경우")
-    void shouldReturnEmpty_WhenUserNotFoundById() {
-        // Given
-        Long nonexistentId = 999L;
-
-        given(userQueryPort.findById(nonexistentId)).willReturn(Optional.empty());
-
-        // When
-        Optional<User> result = userQueryService.findById(nonexistentId);
-
-        // Then
-        verify(userQueryPort).findById(nonexistentId);
-        assertThat(result).isEmpty();
-    }
-
-    @Test
-    @DisplayName("닉네임 중복 확인 - 존재하는 닉네임")
-    void shouldReturnTrue_WhenUserNameExists() {
-        // Given
-        String existingUserName = "existingUser";
-
-        given(userQueryPort.existsByUserName(existingUserName)).willReturn(true);
-
-        // When
-        boolean result = userQueryService.existsByUserName(existingUserName);
-
-        // Then
-        verify(userQueryPort).existsByUserName(existingUserName);
-        assertThat(result).isTrue();
-    }
-
-    @Test
-    @DisplayName("닉네임 중복 확인 - 존재하지 않는 닉네임")
-    void shouldReturnFalse_WhenUserNameNotExists() {
-        // Given
-        String nonexistentUserName = "nonexistentUser";
-
-        given(userQueryPort.existsByUserName(nonexistentUserName)).willReturn(false);
-
-        // When
-        boolean result = userQueryService.existsByUserName(nonexistentUserName);
-
-        // Then
-        verify(userQueryPort).existsByUserName(nonexistentUserName);
-        assertThat(result).isFalse();
-    }
-
-    @Test
-    @DisplayName("닉네임으로 사용자 조회 - 정상 케이스")
-    void shouldFindUser_WhenValidUserName() {
-        // Given
-        String userName = getTestUser().getUserName(); // "testUser1"
-        User expectedUser = createTestUserWithId(1L);
-
-        given(userQueryPort.findByUserName(userName)).willReturn(Optional.of(expectedUser));
-
-        // When
-        Optional<User> result = userQueryService.findByUserName(userName);
-
-        // Then
-        verify(userQueryPort).findByUserName(userName);
-        assertThat(result).isPresent();
-        assertThat(result.get().getUserName()).isEqualTo(userName);
-    }
-
-    @Test
-    @DisplayName("닉네임으로 사용자 조회 - 사용자가 존재하지 않는 경우")
-    void shouldReturnEmpty_WhenUserNotFoundByUserName() {
-        // Given
-        String nonexistentUserName = "nonexistentUser";
-
-        given(userQueryPort.findByUserName(nonexistentUserName)).willReturn(Optional.empty());
-
-        // When
-        Optional<User> result = userQueryService.findByUserName(nonexistentUserName);
-
-        // Then
-        verify(userQueryPort).findByUserName(nonexistentUserName);
-        assertThat(result).isEmpty();
-    }
-
-
-    @Test
-    @DisplayName("ID로 사용자 프록시 조회 - 정상 케이스")
-    void shouldGetReferenceById_WhenValidUserId() {
-        // Given
-        Long userId = 1L;
-        User proxyUser = createTestUserWithId(userId);
-
-        given(userQueryPort.getReferenceById(userId)).willReturn(proxyUser);
-
-        // When
-        User result = userQueryService.getReferenceById(userId);
-
-        // Then
-        verify(userQueryPort).getReferenceById(userId);
-        assertThat(result).isEqualTo(proxyUser);
-        assertThat(result.getId()).isEqualTo(userId);
-    }
 
     @Test
     @DisplayName("설정 ID로 설정 조회 - 정상 케이스")
@@ -234,8 +73,19 @@ class UserQueryServiceTest extends BaseUnitTest {
         assertThatThrownBy(() -> userQueryService.findBySettingId(settingId))
                 .isInstanceOf(UserCustomException.class)
                 .hasMessage(UserErrorCode.SETTINGS_NOT_FOUND.getMessage());
-        
+
         verify(userQueryPort).findSettingById(settingId);
     }
 
+    /*
+     * 단순 위임 메서드들은 CLAUDE.md 테스트 철학에 따라 제외:
+     * - findByProviderAndSocialId(): 단순 포트 호출 후 반환
+     * - findById(): 단순 포트 호출 후 반환
+     * - existsByUserName(): 단순 포트 호출 후 반환
+     * - findByUserName(): 단순 포트 호출 후 반환
+     * - getReferenceById(): 단순 포트 호출 후 반환
+     *
+     * 이러한 메서드들은 프레임워크가 검증하는 기본 기능이며,
+     * 오류 발생 시 메인 로직만으로 쉽게 해결 가능합니다.
+     */
 }

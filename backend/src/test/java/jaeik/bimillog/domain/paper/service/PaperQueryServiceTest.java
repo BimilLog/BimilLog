@@ -7,7 +7,6 @@ import jaeik.bimillog.domain.paper.entity.MessageDetail;
 import jaeik.bimillog.domain.paper.entity.VisitMessageDetail;
 import jaeik.bimillog.domain.paper.exception.PaperCustomException;
 import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
-import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.global.application.port.out.GlobalUserQueryPort;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.TestFixtures;
@@ -17,7 +16,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,54 +41,6 @@ class PaperQueryServiceTest extends BaseUnitTest {
 
     @InjectMocks
     private PaperQueryService paperQueryService;
-
-    @Test
-    @DisplayName("내 롤링페이퍼 조회 - 성공")
-    void shouldGetMyPaper_WhenValidUser() {
-        // Given
-        Long userId = 1L;
-        User userWithId = createTestUserWithId(userId);
-        List<Message> messages = Arrays.asList(
-                TestFixtures.createRollingPaper(userWithId, "첫 번째 메시지", "red", "font1", 10, 10),
-                TestFixtures.createRollingPaper(userWithId, "두 번째 메시지", "blue", "font2", 20, 20),
-                TestFixtures.createRollingPaper(userWithId, "세 번째 메시지", "green", "font3", 30, 30)
-        );
-
-        given(paperQueryPort.findMessagesByUserId(userId)).willReturn(messages);
-
-        // When
-        List<MessageDetail> result = paperQueryService.getMyPaper(userId);
-
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result).hasSize(3);
-        assertThat(result.get(0).content()).isEqualTo("첫 번째 메시지");
-        assertThat(result.get(1).content()).isEqualTo("두 번째 메시지");
-        assertThat(result.get(2).content()).isEqualTo("세 번째 메시지");
-
-        verify(paperQueryPort, times(1)).findMessagesByUserId(userId);
-        verifyNoMoreInteractions(paperQueryPort);
-    }
-
-    @Test
-    @DisplayName("내 롤링페이퍼 조회 - 빈 목록")
-    void shouldGetMyPaper_WhenNoMessages() {
-        // Given
-        Long userId = 1L;
-        List<Message> emptyList = Collections.emptyList();
-
-        given(paperQueryPort.findMessagesByUserId(userId)).willReturn(emptyList);
-
-        // When
-        List<MessageDetail> result = paperQueryService.getMyPaper(userId);
-
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result).isEmpty();
-
-        verify(paperQueryPort, times(1)).findMessagesByUserId(userId);
-        verifyNoMoreInteractions(paperQueryPort);
-    }
 
 
     @Test
@@ -137,26 +87,7 @@ class PaperQueryServiceTest extends BaseUnitTest {
         verify(paperQueryPort, never()).findMessagesByUserName(any());
     }
 
-    @Test
-    @DisplayName("다른 사용자 롤링페이퍼 방문 - 빈 목록")
-    void shouldVisitPaper_WhenNoMessages() {
-        // Given
-        String userName = getTestUser().getUserName();
-        List<Message> emptyList = Collections.emptyList();
 
-        given(globalUserQueryPort.existsByUserName(userName)).willReturn(true);
-        given(paperQueryPort.findMessagesByUserName(userName)).willReturn(emptyList);
-
-        // When
-        List<VisitMessageDetail> result = paperQueryService.visitPaper(userName);
-
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result).isEmpty();
-
-        verify(globalUserQueryPort, times(1)).existsByUserName(userName);
-        verify(paperQueryPort, times(1)).findMessagesByUserName(userName);
-    }
 
     @Test
     @DisplayName("다른 사용자 롤링페이퍼 방문 - null 또는 빈 사용자명 예외")

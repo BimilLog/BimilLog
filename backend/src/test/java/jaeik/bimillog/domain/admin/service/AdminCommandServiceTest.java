@@ -183,44 +183,27 @@ class AdminCommandServiceTest extends BaseUnitTest {
     }
 
     @Test
-    @DisplayName("ERROR 타입 신고로 강제 탈퇴 시도 시 예외 발생")
-    void shouldThrowException_WhenErrorTypeReport() {
+    @DisplayName("ERROR/IMPROVEMENT 타입 신고로 제재 시도 시 예외 발생")
+    void shouldThrowException_WhenInvalidReportType() {
         // Given
         ReportType errorReportType = ReportType.ERROR;
-        Long targetId = null;
-
-        // When & Then
-        assertThatThrownBy(() -> adminCommandService.forceWithdrawUser(errorReportType, targetId))
-                .isInstanceOf(AdminCustomException.class)
-                .hasFieldOrPropertyWithValue("adminErrorCode", AdminErrorCode.INVALID_REPORT_TARGET);
-        
-        verify(eventPublisher, never()).publishEvent(any());
-    }
-
-    @Test
-    @DisplayName("ERROR 타입 신고시 null 반환 및 정상 처리")
-    void shouldReturnNull_WhenErrorReportType() {
-        // Given
-        ReportType errorReportType = ReportType.ERROR;
-        Long targetId = null;
-
-        // When & Then
-        assertThatThrownBy(() -> adminCommandService.banUser(errorReportType, targetId))
-                .isInstanceOf(AdminCustomException.class)
-                .hasFieldOrPropertyWithValue("adminErrorCode", AdminErrorCode.INVALID_REPORT_TARGET);
-
-        verify(eventPublisher, never()).publishEvent(any());
-    }
-
-    @Test
-    @DisplayName("IMPROVEMENT 타입 신고시 null 반환 및 정상 처리")
-    void shouldReturnNull_WhenImprovementReportType() {
-        // Given
         ReportType improvementReportType = ReportType.IMPROVEMENT;
-        Long targetId = null;
 
-        // When & Then
-        assertThatThrownBy(() -> adminCommandService.banUser(improvementReportType, targetId))
+        // When & Then - banUser 테스트
+        assertThatThrownBy(() -> adminCommandService.banUser(errorReportType, null))
+                .isInstanceOf(AdminCustomException.class)
+                .hasFieldOrPropertyWithValue("adminErrorCode", AdminErrorCode.INVALID_REPORT_TARGET);
+
+        assertThatThrownBy(() -> adminCommandService.banUser(improvementReportType, null))
+                .isInstanceOf(AdminCustomException.class)
+                .hasFieldOrPropertyWithValue("adminErrorCode", AdminErrorCode.INVALID_REPORT_TARGET);
+
+        // When & Then - forceWithdrawUser 테스트
+        assertThatThrownBy(() -> adminCommandService.forceWithdrawUser(errorReportType, null))
+                .isInstanceOf(AdminCustomException.class)
+                .hasFieldOrPropertyWithValue("adminErrorCode", AdminErrorCode.INVALID_REPORT_TARGET);
+
+        assertThatThrownBy(() -> adminCommandService.forceWithdrawUser(improvementReportType, null))
                 .isInstanceOf(AdminCustomException.class)
                 .hasFieldOrPropertyWithValue("adminErrorCode", AdminErrorCode.INVALID_REPORT_TARGET);
 

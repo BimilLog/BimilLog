@@ -23,7 +23,8 @@ import static org.mockito.Mockito.*;
 
 /**
  * <h2>NotificationCommandService 테스트</h2>
- * <p>알림 명령 서비스의 비즈니스 로직을 검증하는 단위 테스트</p>
+ * <p>알림 명령 서비스의 핵심 비즈니스 규칙을 검증하는 단위 테스트</p>
+ * <p>CLAUDE.md 가이드라인: 단순 위임이 아닌 핵심 비즈니스 검증만 테스트</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -35,65 +36,11 @@ class NotificationCommandServiceTest {
     @Mock
     private NotificationCommandPort notificationCommandPort;
 
-
-
     @InjectMocks
     private NotificationCommandService notificationCommandService;
 
     @Test
-    @DisplayName("알림 일괄 업데이트 - 성공")
-    void shouldBatchUpdate_WhenValidInput() {
-        // Given
-        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(TestUsers.USER1);
-        when(userDetails.getUserId()).thenReturn(1L);
-        List<Long> readIds = Arrays.asList(1L, 2L, 3L);
-        List<Long> deletedIds = Arrays.asList(4L, 5L);
-        NotificationUpdateVO updateCommand = NotificationUpdateVO.of(readIds, deletedIds);
-
-        // When
-        notificationCommandService.batchUpdate(userDetails, updateCommand);
-
-        // Then
-        verify(notificationCommandPort, times(1)).batchUpdate(eq(1L), any(NotificationUpdateVO.class));
-        verifyNoMoreInteractions(notificationCommandPort);
-    }
-
-    @Test
-    @DisplayName("알림 일괄 업데이트 - 읽기 ID만 있는 경우")
-    void shouldBatchUpdate_WhenOnlyReadIds() {
-        // Given
-        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(TestUsers.USER1);
-        when(userDetails.getUserId()).thenReturn(1L);
-        List<Long> readIds = Arrays.asList(1L, 2L);
-        NotificationUpdateVO updateCommand = NotificationUpdateVO.of(readIds, null);
-
-        // When
-        notificationCommandService.batchUpdate(userDetails, updateCommand);
-
-        // Then
-        verify(notificationCommandPort, times(1)).batchUpdate(eq(1L), any(NotificationUpdateVO.class));
-        verifyNoMoreInteractions(notificationCommandPort);
-    }
-
-    @Test
-    @DisplayName("알림 일괄 업데이트 - 삭제 ID만 있는 경우")
-    void shouldBatchUpdate_WhenOnlyDeletedIds() {
-        // Given
-        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(TestUsers.USER2);
-        when(userDetails.getUserId()).thenReturn(2L);
-        List<Long> deletedIds = Arrays.asList(3L, 4L, 5L);
-        NotificationUpdateVO updateCommand = NotificationUpdateVO.of(null, deletedIds);
-
-        // When
-        notificationCommandService.batchUpdate(userDetails, updateCommand);
-
-        // Then
-        verify(notificationCommandPort, times(1)).batchUpdate(eq(2L), any(NotificationUpdateVO.class));
-        verifyNoMoreInteractions(notificationCommandPort);
-    }
-
-    @Test
-    @DisplayName("알림 일괄 업데이트 - null 사용자")
+    @DisplayName("알림 일괄 업데이트 - null 사용자 예외 검증")
     void shouldThrowException_WhenNullUser() {
         // Given
         CustomUserDetails nullUserDetails = null;

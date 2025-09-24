@@ -108,15 +108,16 @@ class PaperCommandServiceTest extends BaseUnitTest {
     @DisplayName("메시지 작성 - 성공")
     void shouldWriteMessage_WhenValidInput() {
         // Given
-        String userName = getTestUser().getUserName();
-        Long userId = getTestUser().getId();
+        Long userId = 1L;
+        User userWithId = createTestUserWithId(userId);
+        String userName = userWithId.getUserName();
         DecoType decoType = DecoType.APPLE;
         String anonymity = "익명";
         String content = "테스트 메시지";
         int x = 2;
         int y = 2;
 
-        given(globalUserQueryPort.findByUserName(userName)).willReturn(Optional.of(getTestUser()));
+        given(globalUserQueryPort.findByUserName(userName)).willReturn(Optional.of(userWithId));
 
         // When
         paperCommandService.writeMessage(userName, decoType, anonymity, content, x, y);
@@ -184,9 +185,9 @@ class PaperCommandServiceTest extends BaseUnitTest {
     @DisplayName("메시지 작성 - 이벤트 발행 검증")
     void shouldPublishCorrectEvent_WhenWriteMessage() {
         // Given
-        String userName = getTestUser().getUserName();
         Long userId = 1L;
         User userWithId = createTestUserWithId(userId);
+        String userName = userWithId.getUserName();
         DecoType decoType = DecoType.APPLE;
         String anonymity = "익명";
         String content = "테스트 메시지";
