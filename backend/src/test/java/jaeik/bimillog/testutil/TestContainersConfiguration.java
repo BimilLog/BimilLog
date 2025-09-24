@@ -24,12 +24,7 @@ public class TestContainersConfiguration {
         return new MySQLContainer<>("mysql:8.0")
                 .withDatabaseName("testdb")
                 .withUsername("test")
-                .withPassword("test")
-                .withCommand("--ngram-TemporaryToken-size=2",
-                        "--ft-min-word-len=2",
-                        "--innodb-ft-min-TemporaryToken-size=2",
-                        "--default-storage-engine=InnoDB")
-                .withReuse(true);
+                .withPassword("test");
     }
 
     static GenericContainer<?> redis = new GenericContainer<>("redis:latest")

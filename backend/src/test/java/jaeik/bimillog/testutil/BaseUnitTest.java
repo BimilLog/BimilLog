@@ -20,7 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * </ul>
  *
  * <h3>중요: 필드 접근은 더 이상 지원되지 않습니다</h3>
- * <p>2025년 1월부터 모든 테스트 데이터는 getter 메서드를 통해서만 접근 가능합니다.</p>
+ * <p>모든 테스트 데이터는 getter 메서드를 통해서만 접근 가능합니다.</p>
  * <p>필드 직접 접근 (testUser, adminUser 등)은 제거되었으며, </p>
  * <p>getTestUser(), getAdminUser() 등의 getter 메서드를 사용해야 합니다.</p>
  *

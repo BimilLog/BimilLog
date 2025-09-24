@@ -1,5 +1,6 @@
 package jaeik.bimillog.event.auth;
 
+import jaeik.bimillog.domain.auth.application.port.in.SocialWithdrawUseCase;
 import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
@@ -31,8 +32,11 @@ class UserWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
     @MockitoBean
     private NotificationFcmUseCase notificationFcmUseCase;
 
+    @MockitoBean
+    private SocialWithdrawUseCase socialWithdrawUseCase;
+
     @Test
-    @DisplayName("사용자 탈퇴 이벤트 워크플로우 - 댓글 처리 및 FCM 토큰 삭제 완료")
+    @DisplayName("사용자 탈퇴 이벤트 워크플로우 - 댓글 처리, FCM 토큰 삭제, 소셜 연결 해제 완료")
     void userWithdrawnEventWorkflow_ShouldCompleteAllCleanupTasks() {
         // Given
         Long userId = 1L;
@@ -42,6 +46,7 @@ class UserWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
         publishAndVerify(event, () -> {
             verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId));
             verify(notificationFcmUseCase).deleteFcmTokens(eq(userId));
+            verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("testSocialId"));
         });
     }
 
@@ -61,6 +66,9 @@ class UserWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
             verify(notificationFcmUseCase).deleteFcmTokens(eq(1L));
             verify(notificationFcmUseCase).deleteFcmTokens(eq(2L));
             verify(notificationFcmUseCase).deleteFcmTokens(eq(3L));
+            verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("testSocialId1"));
+            verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("testSocialId2"));
+            verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("testSocialId3"));
         });
     }
 
@@ -76,8 +84,10 @@ class UserWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
         // When & Then - 예외가 발생해도 리스너들이 독립적으로 처리되어야 함
         publishAndExpectException(event, () -> {
             verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(1L));
-            // FCM 토큰 삭제는 별도 리스너이므로 댓글 처리 실패와 관계없이 처리되어야 함
+            // FCM 토큰 삭제와 소셜 연결 해제는 별도 리스너이므로 댓글 처리 실패와 관계없이 처리되어야 함
             verify(notificationFcmUseCase).deleteFcmTokens(eq(1L));
+            // SocialUnlinkListener는 createDefaultWithdrawEvent의 기본값 사용
+            verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("defaultSocialId"));
         });
     }
 }

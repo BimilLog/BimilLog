@@ -138,8 +138,6 @@ public class TestUsers {
                 .build();
     }
 
-    // ==================== Setting 관련 메서드 ====================
-
     /**
      * 기본 설정 생성 (모든 알림 활성화)
      */
@@ -162,27 +160,6 @@ public class TestUsers {
                 .commentNotification(commentNotification)
                 .postFeaturedNotification(postFeaturedNotification)
                 .build();
-    }
-
-    /**
-     * 메시지 알림만 활성화된 설정
-     */
-    public static Setting createMessageOnlySetting() {
-        return createSetting(true, false, false);
-    }
-
-    /**
-     * 댓글 알림만 활성화된 설정
-     */
-    public static Setting createCommentOnlySetting() {
-        return createSetting(false, true, false);
-    }
-
-    /**
-     * 게시글 추천 알림만 활성화된 설정
-     */
-    public static Setting createPostFeaturedOnlySetting() {
-        return createSetting(false, false, true);
     }
 
     /**

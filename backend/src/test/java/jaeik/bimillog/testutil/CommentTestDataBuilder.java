@@ -15,13 +15,6 @@ import jaeik.bimillog.infrastructure.adapter.in.comment.dto.CommentReqDTO;
  */
 public class CommentTestDataBuilder {
 
-    // TestUsers 클래스의 메서드를 사용하세요:
-    // - TestUsers.createUnique() : 고유한 사용자 생성
-    // - TestUsers.createUniqueWithPrefix(prefix) : 접두사로 고유한 사용자 생성
-    // TestFixtures 클래스의 메서드를 사용하세요:
-    // - TestFixtures.createPostWithUser(user) : 기본 게시글 생성
-    // - TestFixtures.createPostWithId(id, user, title, content) : ID 포함 게시글 생성
-
     /**
      * <h3>테스트용 댓글 생성 (기본)</h3>
      * <p>지정된 사용자와 게시글로 테스트용 댓글을 생성합니다.</p>

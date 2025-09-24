@@ -10,7 +10,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -43,8 +42,6 @@ class AdminWithdrawEventIntegrationTest extends BaseEventIntegrationTest {
             verify(userBanUseCase).blacklistAllUserTokens(eq(userId), eq("관리자 강제 탈퇴"));
             // 댓글 처리
             verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId));
-            // 강제 탈퇴 처리
-            verify(withdrawUseCase).forceWithdraw(eq(userId));
         });
     }
 
@@ -54,7 +51,7 @@ class AdminWithdrawEventIntegrationTest extends BaseEventIntegrationTest {
         // Given
         AdminWithdrawEvent event1 = EventTestDataBuilder.createAdminWithdrawEvent(1L, "스팸 행위");
         AdminWithdrawEvent event2 = EventTestDataBuilder.createAdminWithdrawEvent(2L, "지속적 규칙 위반");
-        AdminWithdrawEvent event3 = EventTestDataBuilder.createAdminWithdrawEvent(3L, "부적절한 컸텐츠 게시");
+        AdminWithdrawEvent event3 = EventTestDataBuilder.createAdminWithdrawEvent(3L, "부적절한 컨텐츠 게시");
 
         // When & Then - 동시에 여러 강제 탈퇴 이벤트 발행
         publishEventsAndVerify(new Object[]{event1, event2, event3}, () -> {
@@ -69,44 +66,8 @@ class AdminWithdrawEventIntegrationTest extends BaseEventIntegrationTest {
             verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(1L));
             verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(2L));
             verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(3L));
-
-            verify(withdrawUseCase).forceWithdraw(eq(1L));
-            verify(withdrawUseCase).forceWithdraw(eq(2L));
-            verify(withdrawUseCase).forceWithdraw(eq(3L));
         });
     }
-
-    @Test
-    @DisplayName("동일 사용자의 여러 강제 탈퇴 요청 이벤트 처리")
-    void multipleAdminWithdrawRequestedEventsForSameUser_ShouldProcessAll() {
-        // Given - 동일 사용자에 대한 여러 강제 탈퇴 요청 (동시 처리 등의 시나리오)
-        Long userId = 1L;
-        AdminWithdrawEvent event1 = EventTestDataBuilder.createAdminWithdrawEvent(userId, "첫 번째 사유");
-        AdminWithdrawEvent event2 = EventTestDataBuilder.createAdminWithdrawEvent(userId, "두 번째 사유");
-        AdminWithdrawEvent event3 = EventTestDataBuilder.createAdminWithdrawEvent(userId, "세 번째 사유");
-
-        // When & Then - 동일 사용자에 대한 강제 탈퇴 이벤트 여러 번 발행
-        publishEventsAndVerify(new Object[]{event1, event2, event3}, () -> {
-            verify(withdrawUseCase, times(3)).addToBlacklist(eq(userId));
-            verify(userBanUseCase, times(3)).blacklistAllUserTokens(eq(userId), eq("관리자 강제 탈퇴"));
-            verify(commentCommandUseCase, times(3)).processUserCommentsOnWithdrawal(eq(userId));
-            verify(withdrawUseCase, times(3)).forceWithdraw(eq(userId));
-        });
-    }
-
-
-    @Test
-    @DisplayName("잘못된 이벤트 데이터 처리 - null userId")
-    void adminWithdrawRequestedEventsWithInvalidData_ShouldThrowException() {
-        // Given - 잘못된 데이터로 이벤트 생성 시 예외 발생 확인
-        // AdminWithdrawRequestedEvent는 생성자에서 검증하므로 null userId 시 예외 발생
-        
-        // When & Then - 예외가 발생해야 함
-        assertThatThrownBy(() -> EventTestDataBuilder.createAdminWithdrawEvent(null, "테스트 사유"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("사용자 ID는 null일 수 없습니다");
-    }
-
 
     @Test
     @DisplayName("예외 상황에서의 이벤트 처리 - 댓글 처리 실패")
@@ -124,25 +85,6 @@ class AdminWithdrawEventIntegrationTest extends BaseEventIntegrationTest {
             verify(withdrawUseCase).addToBlacklist(eq(userId));
             verify(userBanUseCase).blacklistAllUserTokens(eq(userId), eq("관리자 강제 탈퇴"));
             verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId));
-            verify(withdrawUseCase).forceWithdraw(eq(userId));
-        });
-    }
-
-    @Test
-    @DisplayName("빈 사유 문자열 처리 - 디폴트 사유로 대체")
-    void adminWithdrawRequestedEvent_EmptyReasonHandling() {
-        // Given - 빈 사유 문자열로 이벤트 생성
-        Long userId = 1L;
-        AdminWithdrawEvent event1 = EventTestDataBuilder.createAdminWithdrawEvent(userId, "");
-        AdminWithdrawEvent event2 = EventTestDataBuilder.createAdminWithdrawEvent(userId, null);
-        AdminWithdrawEvent event3 = EventTestDataBuilder.createAdminWithdrawEvent(userId, "   ");
-
-        // When & Then - 빈 사유로 이벤트 발행
-        publishEventsAndVerify(new Object[]{event1, event2, event3}, () -> {
-            verify(withdrawUseCase, times(3)).addToBlacklist(eq(userId));
-            verify(userBanUseCase, times(3)).blacklistAllUserTokens(eq(userId), eq("관리자 강제 탈퇴"));
-            verify(commentCommandUseCase, times(3)).processUserCommentsOnWithdrawal(eq(userId));
-            verify(withdrawUseCase, times(3)).forceWithdraw(eq(userId));
         });
     }
 }

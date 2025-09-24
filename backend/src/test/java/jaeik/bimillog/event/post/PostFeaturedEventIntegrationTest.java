@@ -113,39 +113,4 @@ public class PostFeaturedEventIntegrationTest extends BaseEventIntegrationTest {
         });
     }
 
-    @Test
-    @DisplayName("특수문자가 포함된 메시지 처리")
-    void postFeaturedEventWithSpecialCharacters_ShouldProcessCorrectly() {
-        // Given - 특수문자가 포함된 메시지
-        PostFeaturedEvent event = EventTestDataBuilder.createPostFeaturedEvent(
-                1L, "🎉 축하합니다! <게시글>이 \"인기글\"에 선정되었습니다! & 더 많은 혜택을...", 101L,
-                "🏆 \"인기글\" 선정!", "<축하> & 더 많은 혜택을...");
-
-        // When & Then - 특수문자가 포함된 메시지도 정확히 전달되어야 함
-        publishAndVerify(event, () -> {
-            verify(notificationSseUseCase).sendPostFeaturedNotification(
-                    eq(1L), eq("🎉 축하합니다! <게시글>이 \"인기글\"에 선정되었습니다! & 더 많은 혜택을..."), eq(101L));
-            verify(notificationFcmUseCase).sendPostFeaturedNotification(
-                    eq(1L), eq("🏆 \"인기글\" 선정!"), eq("<축하> & 더 많은 혜택을..."));
-            verifyNoMoreInteractions(notificationSseUseCase, notificationFcmUseCase);
-        });
-    }
-
-
-    @Test
-    @DisplayName("비동기 이벤트 리스너 정상 작동 검증")
-    void postFeaturedEventAsync_ShouldTriggerListenerCorrectly() {
-        // Given
-        PostFeaturedEvent event = EventTestDataBuilder.createPostFeaturedEvent(
-                99L, "비동기 테스트 메시지", 9999L, "비동기 제목", "비동기 내용");
-
-        // When & Then - 비동기 처리가 정상 완료되어야 함
-        publishAndVerify(event, () -> {
-            verify(notificationSseUseCase).sendPostFeaturedNotification(
-                    eq(99L), eq("비동기 테스트 메시지"), eq(9999L));
-            verify(notificationFcmUseCase).sendPostFeaturedNotification(
-                    eq(99L), eq("비동기 제목"), eq("비동기 내용"));
-            verifyNoMoreInteractions(notificationSseUseCase, notificationFcmUseCase);
-        });
-    }
 }

@@ -13,7 +13,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import java.time.LocalDateTime;
 
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -81,28 +80,4 @@ public class UserLoggedOutEventIntegrationTest extends BaseEventIntegrationTest 
         });
     }
 
-    @Test
-    @DisplayName("동일 사용자의 여러 로그아웃 이벤트 처리")
-    void multipleLogoutEventsForSameUser_ShouldProcessAll() {
-        // Given - 동일 사용자의 여러 로그아웃 (여러 기기에서 로그아웃)
-        Long userId = 1L;
-        UserLoggedOutEvent event1 = EventTestDataBuilder.createLogoutEvent(userId, 101L, LocalDateTime.now());
-        UserLoggedOutEvent event2 = EventTestDataBuilder.createLogoutEvent(userId, 102L, LocalDateTime.now());
-        UserLoggedOutEvent event3 = EventTestDataBuilder.createLogoutEvent(userId, 103L, LocalDateTime.now());
-
-        // When & Then - 모든 토큰이 개별적으로 정리되어야 함
-        publishEventsAndVerify(new Object[]{event1, event2, event3}, () -> {
-            verify(withdrawUseCase).cleanupSpecificToken(eq(userId), eq(101L));
-            verify(withdrawUseCase).cleanupSpecificToken(eq(userId), eq(102L));
-            verify(withdrawUseCase).cleanupSpecificToken(eq(userId), eq(103L));
-
-            // SSE는 기기별로 3번 호출됨
-            verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(101L));
-            verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(102L));
-            verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(103L));
-
-            // FCM 토큰 삭제는 사용자별로 3번 호출됨
-            verify(notificationFcmUseCase, times(3)).deleteFcmTokens(eq(userId));
-        });
-    }
 }

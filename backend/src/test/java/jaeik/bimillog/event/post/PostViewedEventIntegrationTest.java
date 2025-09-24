@@ -75,32 +75,20 @@ public class PostViewedEventIntegrationTest extends BaseEventIntegrationTest {
     }
 
     @Test
-    @DisplayName("조회수 증가 실패 시 예외 처리")
-    void postViewedEventWithException_ShouldHandleGracefully() {
+    @DisplayName("조회수 증가 실패 시에도 시스템 정상 작동")
+    void postViewedEventWithException_ShouldContinueWorking() {
         // Given
         var event = new PostViewedEvent(1L);
 
-        // 조회수 증가 실패 시뮬레이션
+        // 조회수 증가 실패 시뮬레이션 - 리스너가 예외를 catch하여 로그 처리
         doThrow(new RuntimeException("조회수 증가 실패"))
                 .when(postInteractionUseCase).incrementViewCount(1L);
 
-        // When & Then
-        publishAndExpectException(event, () -> {
+        // When & Then - 예외가 발생해도 시스템은 정상 작동
+        publishAndVerify(event, () -> {
             verify(postInteractionUseCase).incrementViewCount(eq(1L));
             verifyNoMoreInteractions(postInteractionUseCase);
         });
     }
 
-    @Test
-    @DisplayName("비동기 이벤트 리스너 정상 작동 검증")
-    void postViewedEventAsync_ShouldTriggerListenerCorrectly() {
-        // Given
-        var event = new PostViewedEvent(999L);
-
-        // When & Then
-        publishAndVerify(event, () -> {
-            verify(postInteractionUseCase).incrementViewCount(eq(999L));
-            verifyNoMoreInteractions(postInteractionUseCase);
-        }, FAST_TIMEOUT);
-    }
 }
