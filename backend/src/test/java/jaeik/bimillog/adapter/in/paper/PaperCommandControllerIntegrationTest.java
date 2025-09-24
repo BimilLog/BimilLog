@@ -37,7 +37,7 @@ class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
     void writeMessage_AnonymousUser_Success() throws Exception {
         // Given
         MessageDTO messageDTO = TestFixtures.createPaperMessageRequest(
-                "따뜻한 메시지입니다.", "red", "font1", 1, 1);
+                "따뜻한 메시지입니다.", 1, 1);
         messageDTO.setAnonymity("익명사용자");
 
         // When & Then
@@ -52,7 +52,7 @@ class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
     void writeMessage_AuthenticatedUser_Success() throws Exception {
         // Given
         MessageDTO messageDTO = TestFixtures.createPaperMessageRequest(
-                "생일 축하해!", "blue", "font2", 2, 2);
+                "생일 축하해!", 2, 2);
         messageDTO.setDecoType(DecoType.STAR);
         messageDTO.setAnonymity("친구1");
         messageDTO.setUserId(otherUser.getId());
@@ -69,7 +69,7 @@ class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
     void writeMessage_NonExistentUser_NotFound() throws Exception {
         // Given
         MessageDTO messageDTO = TestFixtures.createPaperMessageRequest(
-                "메시지", "red", "font1", 1, 1);
+                "메시지", 1, 1);
 
         // When & Then
         performPost("/api/paper/nonexistentuser", messageDTO)
@@ -82,7 +82,7 @@ class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
     void writeMessage_InvalidMessageDTO_BadRequest() throws Exception {
         // Given
         MessageDTO messageDTO = TestFixtures.createPaperMessageRequest(
-                "메시지", "red", "font1", 1, 1);
+                "메시지", 1, 1);
         messageDTO.setAnonymity("매우긴익명사용자이름입니다"); // 8자 초과
 
         // When & Then
@@ -96,11 +96,11 @@ class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
     void deleteMessage_MyPaper_Success() throws Exception {
         // Given
         Message message = TestFixtures.createRollingPaper(
-                testUser, "삭제될 메시지", "red", "font1", 1, 1);
+                testUser, "삭제될 메시지", 1, 1);
         Message savedMessage = messageRepository.save(message);
 
         MessageDTO messageDTO = TestFixtures.createPaperMessageRequest(
-                "삭제될 메시지", "red", "font1", 1, 1);
+                "삭제될 메시지", 1, 1);
         messageDTO.setId(savedMessage.getId());
 
         // When & Then
@@ -115,7 +115,7 @@ class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
     void deleteMessage_Unauthenticated_Unauthorized() throws Exception {
         // Given
         MessageDTO messageDTO = TestFixtures.createPaperMessageRequest(
-                "메시지", "red", "font1", 1, 1);
+                "메시지", 1, 1);
         messageDTO.setId(1L);
 
         // When & Then
@@ -129,7 +129,7 @@ class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
     void deleteMessage_NonExistentMessage_NotFound() throws Exception {
         // Given
         MessageDTO messageDTO = TestFixtures.createPaperMessageRequest(
-                "메시지", "red", "font1", 1, 1);
+                "메시지", 1, 1);
         messageDTO.setId(99999L);
 
         // When & Then

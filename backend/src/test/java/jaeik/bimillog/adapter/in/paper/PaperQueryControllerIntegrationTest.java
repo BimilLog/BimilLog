@@ -36,11 +36,11 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
     void myPaper_WithMessages_Success() throws Exception {
         // Given
         messageRepository.save(TestFixtures.createRollingPaper(
-                testUser, "생일 축하해!", "red", "font1", 1, 1));
+                testUser, "생일 축하해!", 1, 1));
         messageRepository.save(TestFixtures.createRollingPaper(
-                testUser, "항상 행복하세요", "blue", "font2", 2, 1));
+                testUser, "항상 행복하세요", 2, 1));
         messageRepository.save(TestFixtures.createRollingPaper(
-                testUser, "응원합니다", "green", "font3", 3, 1));
+                testUser, "응원합니다", 3, 1));
 
         // When & Then
         performGet("/api/paper", testUserDetails)
@@ -84,9 +84,9 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
     void visitPaper_WithMessages_Success() throws Exception {
         // Given
         messageRepository.save(TestFixtures.createRollingPaper(
-                otherUser, "좋은 메시지", "red", "font1", 1, 1));
+                otherUser, "좋은 메시지", 1, 1));
         messageRepository.save(TestFixtures.createRollingPaper(
-                otherUser, "또 다른 메시지", "blue", "font2", 2, 2));
+                otherUser, "또 다른 메시지", 2, 2));
 
         // When & Then
         performGet("/api/paper/" + otherUser.getUserName())
@@ -131,7 +131,7 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
     void visitPaper_AuthenticatedUser_Success() throws Exception {
         // Given
         messageRepository.save(TestFixtures.createRollingPaper(
-                otherUser, "방문용 메시지", "red", "font1", 1, 2));
+                otherUser, "방문용 메시지", 1, 2));
 
         // When & Then
         performGet("/api/paper/" + otherUser.getUserName(), testUserDetails)
@@ -150,7 +150,7 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
     void visitPaper_OwnPaper_Success() throws Exception {
         // Given
         Message message = TestFixtures.createRollingPaper(
-                testUser, "자기 메시지", "red", "font1", 3, 1);
+                testUser, "자기 메시지", 3, 1);
         messageRepository.save(message);
 
         // When & Then

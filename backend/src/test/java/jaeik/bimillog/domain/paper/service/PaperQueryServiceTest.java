@@ -48,8 +48,8 @@ class PaperQueryServiceTest extends BaseUnitTest {
         // Given
         String userName = getTestUser().getUserName();
         List<Message> messages = Arrays.asList(
-                TestFixtures.createRollingPaper(getTestUser(), "메시지1", "red", "font1", 5, 5),
-                TestFixtures.createRollingPaper(getOtherUser(), "메시지2", "blue", "font2", 10, 10)
+                TestFixtures.createRollingPaper(getTestUser(), "메시지1", 5, 5),
+                TestFixtures.createRollingPaper(getOtherUser(), "메시지2", 10, 10)
         );
 
         given(globalUserQueryPort.existsByUserName(userName)).willReturn(true);

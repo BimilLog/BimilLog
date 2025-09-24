@@ -72,17 +72,12 @@ public class TestFixtures {
      * 테스트용 롤링페이퍼 메시지 생성
      * @param receiver 수신자
      * @param content 메시지 내용
-     * @param color 색상
-     * @param font 폰트
      * @param positionX X 위치
      * @param positionY Y 위치
      * @return Message 엔티티
      */
     public static Message createRollingPaper(User receiver, String content,
-                                                 String color, String font,
                                                  int positionX, int positionY) {
-        // Message uses DecoType enum instead of color/font strings
-        // Using POTATO as default for testing
         return Message.createMessage(
                 receiver,
                 jaeik.bimillog.domain.paper.entity.DecoType.POTATO,
@@ -197,14 +192,11 @@ public class TestFixtures {
     /**
      * 롤링페이퍼 메시지 요청 DTO 생성
      * @param content 메시지 내용
-     * @param color 색상
-     * @param font 폰트
      * @param positionX X 위치
      * @param positionY Y 위치
      * @return MessageDTO
      */
-    public static MessageDTO createPaperMessageRequest(String content, String color,
-                                                                  String font, int positionX, int positionY) {
+    public static MessageDTO createPaperMessageRequest(String content, int positionX, int positionY) {
         MessageDTO dto = new MessageDTO();
         dto.setDecoType(jaeik.bimillog.domain.paper.entity.DecoType.POTATO);
         dto.setContent(content);
