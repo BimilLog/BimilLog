@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -160,6 +161,8 @@ public abstract class BaseIntegrationTest {
             // 고유한 사용자 생성하여 충돌 방지
             this.testUser = userRepository.save(TestUsers.createUniqueWithPrefix("test"));
             this.adminUser = userRepository.save(TestUsers.createUniqueWithPrefix("admin"));
+            this.adminUser.updateRole(UserRole.ADMIN);
+            this.adminUser = userRepository.save(adminUser);
             this.otherUser = userRepository.save(TestUsers.createUniqueWithPrefix("other"));
         } else {
             // UserRepository가 없는 경우 기본 사용자 사용

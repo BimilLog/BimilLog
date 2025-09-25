@@ -3,6 +3,7 @@ package jaeik.bimillog.adapter.in.admin;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.in.admin.dto.ReportDTO;
 import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostRepository;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
@@ -31,6 +32,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import(H2TestConfiguration.class)
 @DisplayName("관리자 Command 컨트롤러 통합 테스트 (H2)")
 class AdminCommandControllerIntegrationTest extends BaseIntegrationTest {
+
+    @Override
+    protected void setUpChild() {
+        if (adminUser != null) {
+            adminUser.updateRole(UserRole.ADMIN);
+            userRepository.save(adminUser);
+            adminUserDetails = createCustomUserDetails(adminUser);
+        }
+    }
 
     @Autowired
     private PostRepository postRepository;

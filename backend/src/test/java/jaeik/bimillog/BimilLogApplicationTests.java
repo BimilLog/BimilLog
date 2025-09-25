@@ -2,6 +2,7 @@ package jaeik.bimillog;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 /**
  * <h2>BimilLogApplicationTests</h2>
@@ -11,6 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
  * @version 2.0.0
  * @author Jaeik
  */
+@ActiveProfiles("h2test")
 @SpringBootTest
 class BimilLogApplicationTests {
 

@@ -6,7 +6,7 @@ import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.out.notification.util.NotificationUtilAdapter;
-import jaeik.bimillog.testutil.H2TestConfiguration;
+import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -14,11 +14,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.List;
 
@@ -38,8 +40,10 @@ import static org.assertj.core.api.Assertions.assertThat;
                 classes = BimilLogApplication.class
         )
 )
-@ActiveProfiles("h2test")
-@Import({NotificationUtilAdapter.class, H2TestConfiguration.class})
+@Testcontainers
+@ActiveProfiles("tc")
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Import({NotificationUtilAdapter.class, TestContainersConfiguration.class})
 class NotificationUtilAdapterIntegrationTest {
 
     @Autowired

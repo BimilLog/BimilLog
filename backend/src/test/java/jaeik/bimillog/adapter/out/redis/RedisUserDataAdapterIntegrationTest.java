@@ -1,6 +1,5 @@
 package jaeik.bimillog.adapter.out.redis;
 
-import jaeik.bimillog.BimilLogApplication;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.user.entity.TempUserData;
@@ -12,11 +11,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.FilterType;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -34,19 +32,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * @author Jaeik
  * @version 2.0.0
  */
-@DataJpaTest(
-        excludeFilters = @ComponentScan.Filter(
-                type = FilterType.ASSIGNABLE_TYPE,
-                classes = BimilLogApplication.class
-        )
-)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@ActiveProfiles("tc")
 @Testcontainers
-@Import({RedisUserDataAdapter.class, TestContainersConfiguration.class})
+@Import(TestContainersConfiguration.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@TestPropertySource(properties = {
-        "spring.jpa.hibernate.ddl-auto=create",
-        "logging.level.jaeik.bimillog.infrastructure.adapter.auth.out.cache=DEBUG"
-})
 class RedisUserDataAdapterIntegrationTest {
 
     @Autowired
@@ -80,7 +70,7 @@ class RedisUserDataAdapterIntegrationTest {
         assertThat(savedData).isPresent();
         assertThat(savedData.get().getSocialUserProfile().socialId()).isEqualTo("123456789");
         assertThat(savedData.get().getSocialUserProfile().email()).isEqualTo("test@example.com");
-        assertThat(savedData.get().getSocialUserProfile().TemporaryToken().getAccessToken()).isEqualTo("access-TemporaryToken");
+        assertThat(savedData.get().getSocialUserProfile().TemporaryToken().getAccessToken()).isEqualTo("access-token");
         assertThat(savedData.get().getFcmToken()).isEqualTo("test-fcm-TemporaryToken");
         
         // Redis에서 직접 확인

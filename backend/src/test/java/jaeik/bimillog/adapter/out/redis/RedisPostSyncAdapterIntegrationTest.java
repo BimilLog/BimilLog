@@ -1,6 +1,5 @@
 package jaeik.bimillog.adapter.out.redis;
 
-import jaeik.bimillog.BimilLogApplication;
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostLikeRepository;
@@ -14,14 +13,16 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.FilterType;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.springframework.transaction.annotation.Transactional;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -38,27 +39,19 @@ import static org.junit.jupiter.api.Assertions.assertNull;
  * @author Jaeik
  * @version 2.0.0
  */
-@DataJpaTest(
-        excludeFilters = @ComponentScan.Filter(
-                type = FilterType.ASSIGNABLE_TYPE,
-                classes = BimilLogApplication.class
-        )
-)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@ActiveProfiles("tc")
 @Testcontainers
-@Import({RedisPostSyncAdapter.class, TestContainersConfiguration.class})
+@Import(TestContainersConfiguration.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@TestPropertySource(properties = {
-        "spring.jpa.hibernate.ddl-auto=create",
-        "logging.level.org.springframework.orm.jpa=DEBUG",
-        "logging.level.org.springframework.transaction=DEBUG"
-})
+@Transactional
 class RedisPostSyncAdapterIntegrationTest {
 
     @Autowired
     private RedisPostSyncAdapter redisPostSyncAdapter;
 
-    @Autowired
-    private TestEntityManager entityManager;
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Autowired
     private PostRepository postRepository;
@@ -70,6 +63,11 @@ class RedisPostSyncAdapterIntegrationTest {
     private RedisTemplate<String, Object> redisTemplate;
 
     private User testUser;
+
+    private void persistAndFlush(Object entity) {
+        entityManager.persist(entity);
+        entityManager.flush();
+    }
 
     @BeforeEach
     void setUp() {
@@ -87,8 +85,8 @@ class RedisPostSyncAdapterIntegrationTest {
         }
 
         // 테스트 사용자 준비
-        testUser = TestUsers.USER1;
-        entityManager.persistAndFlush(testUser);
+        testUser = TestUsers.createUniqueWithPrefix("redis");
+        persistAndFlush(testUser);
     }
 
     private Post createAndSavePost(String title, String content, int views, PostCacheFlag flag, Instant createdAt) {
@@ -110,7 +108,7 @@ class RedisPostSyncAdapterIntegrationTest {
             java.lang.reflect.Field createdAtField = savedPost.getClass().getSuperclass().getDeclaredField("createdAt");
             createdAtField.setAccessible(true);
             createdAtField.set(savedPost, createdAt);
-            entityManager.persistAndFlush(savedPost);
+            entityManager.flush();
         } catch (Exception e) {
             System.err.println("createdAt 설정 실패: " + e.getMessage());
         }
@@ -121,7 +119,7 @@ class RedisPostSyncAdapterIntegrationTest {
     private void addLikesToPost(Post post, int count) {
         for (int i = 0; i < count; i++) {
             User liker = TestUsers.withSocialId("social_" + post.getId() + "_" + i + "_" + System.currentTimeMillis());
-            entityManager.persistAndFlush(liker);
+            persistAndFlush(liker);
 
             PostLike postLike = PostLike.builder()
                     .post(post)

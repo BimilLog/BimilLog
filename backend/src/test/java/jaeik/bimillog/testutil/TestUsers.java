@@ -66,7 +66,7 @@ public class TestUsers {
                 .socialNickname(user.getSocialNickname())
                 .thumbnailImage(user.getThumbnailImage())
                 .role(user.getRole())
-                .setting(user.getSetting())
+                .setting(cloneSetting(user.getSetting()))
                 .build();
     }
 
@@ -74,14 +74,15 @@ public class TestUsers {
      * 특정 소셜 ID를 가진 사용자 생성
      */
     public static User withSocialId(String socialId) {
+        String generatedUserName = USER1.getUserName() + "_" + socialId;
         return User.builder()
                 .socialId(socialId)
                 .provider(SocialProvider.KAKAO)
-                .userName(USER1.getUserName())
+                .userName(generatedUserName)
                 .socialNickname(USER1.getSocialNickname())
                 .thumbnailImage(USER1.getThumbnailImage())
                 .role(USER1.getRole())
-                .setting(USER1.getSetting())
+                .setting(cloneSetting(USER1.getSetting()))
                 .build();
     }
 
@@ -167,5 +168,16 @@ public class TestUsers {
      */
     public static Setting createAllDisabledSetting() {
         return createSetting(false, false, false);
+    }
+
+    private static Setting cloneSetting(Setting original) {
+        if (original == null) {
+            return null;
+        }
+        return Setting.builder()
+                .messageNotification(original.isMessageNotification())
+                .commentNotification(original.isCommentNotification())
+                .postFeaturedNotification(original.isPostFeaturedNotification())
+                .build();
     }
 }

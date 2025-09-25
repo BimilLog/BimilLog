@@ -7,12 +7,13 @@ import jaeik.bimillog.domain.post.entity.PostLike;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostQueryAdapter;
-import jaeik.bimillog.testutil.H2TestConfiguration;
+import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.ComponentScan;
@@ -23,6 +24,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.HashMap;
 import java.util.List;
@@ -46,8 +48,10 @@ import static org.mockito.BDDMockito.given;
                 classes = {PostQueryAdapter.class}
         )
 )
-@ActiveProfiles("h2test")
-@Import({PostQueryAdapter.class, H2TestConfiguration.class})
+@Testcontainers
+@ActiveProfiles("tc")
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Import({PostQueryAdapter.class, TestContainersConfiguration.class})
 class PostQueryAdapterIntegrationTest {
 
     @Autowired
@@ -68,7 +72,7 @@ class PostQueryAdapterIntegrationTest {
     @BeforeEach
     void setUp() {
         // 테스트용 사용자 생성
-        testUser = TestUsers.USER1;
+        testUser = TestUsers.copyWithId(TestUsers.USER1, null);
         entityManager.persistAndFlush(testUser);
 
         // 테스트용 게시글들 생성
@@ -164,7 +168,7 @@ class PostQueryAdapterIntegrationTest {
                 .map(PostSearchResult::getUserName)
                 .distinct()
                 .toList();
-        assertThat(userNames).containsExactly("testUser");
+        assertThat(userNames).containsExactly(testUser.getUserName());
     }
 
 
@@ -172,7 +176,7 @@ class PostQueryAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 사용자 추천 게시글 조회")
     void shouldFindLikedPostsByUserId_WhenUserHasLikedPosts() {
         // Given: 사용자가 게시글에 추천을 누름
-        User likeUser = TestUsers.USER2;
+        User likeUser = TestUsers.copyWithId(TestUsers.USER2, null);
         entityManager.persistAndFlush(likeUser);
 
         // 게시글에 좋아요 추가
