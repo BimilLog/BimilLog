@@ -117,7 +117,7 @@ class AuthQueryControllerIntegrationTest {
     @DisplayName("서버 헬스체크 통합 테스트")
     void healthCheck_IntegrationTest() throws Exception {
         // When & Then
-        mockMvc.perform(get("/api/auth/health"))
+        mockMvc.perform(get("/api/global/health"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string("OK"))

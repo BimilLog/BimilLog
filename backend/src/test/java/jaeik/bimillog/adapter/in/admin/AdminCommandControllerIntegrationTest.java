@@ -36,8 +36,6 @@ class AdminCommandControllerIntegrationTest extends BaseIntegrationTest {
     @Override
     protected void setUpChild() {
         if (adminUser != null) {
-            adminUser.updateRole(UserRole.ADMIN);
-            userRepository.save(adminUser);
             adminUserDetails = createCustomUserDetails(adminUser);
         }
     }

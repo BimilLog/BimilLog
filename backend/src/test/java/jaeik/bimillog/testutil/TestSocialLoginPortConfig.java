@@ -29,7 +29,7 @@ public class TestSocialLoginPortConfig {
 
     @Bean
     @Primary
-    public SocialStrategyPort testSocialLoginStrategyPort() {
+    public SocialStrategyPort testSocialStrategyPort() {
         return new SocialStrategyPort() {
             @Override
             public SocialProvider getSupportedProvider() {

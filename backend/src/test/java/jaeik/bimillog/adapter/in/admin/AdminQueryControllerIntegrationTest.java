@@ -6,6 +6,7 @@ import jaeik.bimillog.testutil.annotation.IntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -30,7 +31,7 @@ class AdminQueryControllerIntegrationTest extends BaseIntegrationTest {
         int size = 10;
 
         // When & Then
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/admin/reports")
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/admin/reports")
                         .param("page", String.valueOf(page))
                         .param("size", String.valueOf(size))
                         .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(adminUserDetails)))
@@ -52,7 +53,7 @@ class AdminQueryControllerIntegrationTest extends BaseIntegrationTest {
         ReportType reportType = ReportType.POST;
 
         // When & Then
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/admin/reports")
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/admin/reports")
                         .param("page", "0")
                         .param("size", "10")
                         .param("reportType", reportType.name())
