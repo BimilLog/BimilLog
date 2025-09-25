@@ -1,13 +1,9 @@
 package jaeik.bimillog.testutil;
 
-import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.in.paper.dto.MessageDTO;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.PostCreateDTO;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.PostUpdateDTO;
-import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
-import org.springframework.http.ResponseCookie;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -29,16 +25,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 public class TestFixtures {
 
     // ==================== Auth Test Constants ====================
-    public static final String TEST_SOCIAL_ID = "kakao123456";
-    public static final String TEST_EMAIL = "test@example.com";
-    public static final String TEST_USERNAME = "testUser";
-    public static final String TEST_SOCIAL_NICKNAME = "테스트유저";
-    public static final String TEST_PROFILE_IMAGE = "http://example.com/profile.jpg";
-    public static final String TEST_ACCESS_TOKEN = "access-test-token";
-    public static final String TEST_REFRESH_TOKEN = "refresh-test-token";
-    public static final String TEST_AUTH_CODE = "auth-code-123";
-    public static final String TEST_FCM_TOKEN = "fcm-token-123";
-    public static final SocialProvider TEST_PROVIDER = SocialProvider.KAKAO;
 
     // ==================== Entity Creation ====================
 
@@ -101,86 +87,6 @@ public class TestFixtures {
     }
 
 
-
-    // ==================== Authentication Objects ====================
-
-    /**
-     * CustomUserDetails 생성
-     * @param user 사용자 엔티티
-     * @return CustomUserDetails
-     */
-    public static CustomUserDetails createCustomUserDetails(User user) {
-        ExistingUserDetail userDetail = createExistingUserDetail(user);
-        return new CustomUserDetails(userDetail);
-    }
-
-    /**
-     * CustomUserDetails 생성 (토큰 ID 지정 가능)
-     * @param user 사용자 엔티티
-     * @param tokenId 토큰 ID (null 가능)
-     * @param fcmTokenId FCM 토큰 ID (null 가능)
-     * @return CustomUserDetails
-     */
-    public static CustomUserDetails createCustomUserDetails(User user, Long tokenId, Long fcmTokenId) {
-        ExistingUserDetail userDetail = createExistingUserDetail(user, tokenId, fcmTokenId);
-        return new CustomUserDetails(userDetail);
-    }
-
-    /**
-     * ExistingUserDetail 생성 (기본 메서드)
-     * @param user 사용자 엔티티
-     * @return ExistingUserDetail
-     */
-    public static ExistingUserDetail createExistingUserDetail(User user) {
-        return createExistingUserDetail(user, null, null);
-    }
-
-    /**
-     * ExistingUserDetail 생성 (토큰 ID 지정 가능)
-     * @param user 사용자 엔티티
-     * @param tokenId 토큰 ID (null 가능)
-     * @param fcmTokenId FCM 토큰 ID (null 가능)
-     * @return ExistingUserDetail
-     */
-    public static ExistingUserDetail createExistingUserDetail(User user, Long tokenId, Long fcmTokenId) {
-        Long settingId = null;
-        if (user.getSetting() != null && user.getSetting().getId() != null) {
-            settingId = user.getSetting().getId();
-        } else {
-            settingId = 1L; // 기본값
-        }
-
-        return ExistingUserDetail.builder()
-                .userId(user.getId() != null ? user.getId() : 1L)
-                .settingId(settingId)
-                .socialId(user.getSocialId())
-                .socialNickname(user.getSocialNickname())
-                .thumbnailImage(user.getThumbnailImage())
-                .userName(user.getUserName())
-                .provider(user.getProvider())
-                .role(user.getRole())
-                .tokenId(tokenId)
-                .fcmTokenId(fcmTokenId)
-                .build();
-    }
-
-
-    // ==================== Cookie & Token Creation ====================
-
-    /**
-     * 임시 UUID 쿠키 생성
-     * @param uuid UUID 값
-     * @return 임시 쿠키
-     */
-    public static ResponseCookie createTempCookie(String uuid) {
-        return ResponseCookie.from("temp", uuid)
-            .path("/")
-            .maxAge(60 * 10) // 10분
-            .httpOnly(true)
-            .secure(true)
-            .sameSite("Lax")
-            .build();
-    }
 
     // ==================== Utility Methods ====================
 

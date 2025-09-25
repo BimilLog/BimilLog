@@ -10,6 +10,7 @@ import jaeik.bimillog.infrastructure.adapter.in.user.dto.SignUpRequestDTO;
 import jaeik.bimillog.infrastructure.adapter.in.user.dto.UserNameDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
+import jaeik.bimillog.testutil.AuthTestFixtures;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.TestFixtures;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
@@ -89,7 +90,7 @@ class UserCommandControllerIntegrationTest extends BaseIntegrationTest {
         User testUser = TestUsers.createUnique();
         userRepository.save(testUser);
         
-        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
+        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testUser);
         
         UserNameDTO userNameDTO = new UserNameDTO();
         userNameDTO.setUserName("새로운닉네임");

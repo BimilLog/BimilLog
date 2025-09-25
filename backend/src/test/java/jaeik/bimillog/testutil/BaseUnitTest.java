@@ -162,7 +162,7 @@ public abstract class BaseUnitTest {
      * @param mockedSecurityContext MockedStatic SecurityContextHolder
      */
     protected void mockAuthenticatedUser(MockedStatic<SecurityContextHolder> mockedSecurityContext) {
-        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(getTestUser());
+        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(getTestUser());
         mockAuthenticatedUser(mockedSecurityContext, userDetails, UserRole.USER);
     }
 

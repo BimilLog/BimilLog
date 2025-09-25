@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
+import jaeik.bimillog.testutil.AuthTestFixtures;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -185,7 +186,7 @@ public abstract class BaseIntegrationTest {
      * @return CustomUserDetails 인스턴스
      */
     protected CustomUserDetails createCustomUserDetails(User user) {
-        return TestFixtures.createCustomUserDetails(user);
+        return AuthTestFixtures.createCustomUserDetails(user);
     }
 
     /**

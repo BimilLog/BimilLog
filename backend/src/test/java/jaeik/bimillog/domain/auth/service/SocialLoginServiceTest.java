@@ -24,7 +24,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 
-import static jaeik.bimillog.testutil.TestFixtures.createTempCookie;
+import static jaeik.bimillog.testutil.AuthTestFixtures.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
@@ -106,7 +106,7 @@ class SocialLoginServiceTest extends BaseAuthUnitTest {
         // Given
         SocialUserProfile testUserProfile = getTestUserProfile();
         NewUserDetail newUserDetail = getNewUserDetail();
-        ResponseCookie tempCookie = createTempCookie(newUserDetail.getUuid());
+        ResponseCookie tempCookie = createTempCookie(newUserDetail.getUuid() != null ? newUserDetail.getUuid() : "test-uuid");
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             mockAnonymousAuthentication(mockedSecurityContext);

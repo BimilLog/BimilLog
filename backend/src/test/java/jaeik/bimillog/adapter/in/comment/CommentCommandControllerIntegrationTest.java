@@ -9,7 +9,14 @@ import jaeik.bimillog.infrastructure.adapter.in.comment.dto.CommentReqDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentRepository;
 import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostRepository;
-import jaeik.bimillog.testutil.*;
+import jaeik.bimillog.testutil.AuthTestFixtures;
+import jaeik.bimillog.testutil.BaseIntegrationTest;
+import jaeik.bimillog.testutil.CommentTestDataBuilder;
+import jaeik.bimillog.testutil.H2TestConfiguration;
+import jaeik.bimillog.testutil.PostTestDataBuilder;
+import jaeik.bimillog.testutil.TestFixtures;
+import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
+import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -121,7 +128,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
         requestDto.setParentId(parentComment.getId());
         requestDto.setContent("대댓글 테스트입니다.");
         
-        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
+        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testUser);
         
         // When & Then
         mockMvc.perform(post("/api/comment/write")
@@ -154,7 +161,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
         requestDto.setId(existingComment.getId());
         requestDto.setContent("수정된 댓글 내용입니다.");
         
-        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
+        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testUser);
         
         // When & Then
         mockMvc.perform(post("/api/comment/update")
@@ -186,7 +193,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
         
         CommentReqDTO requestDto = CommentTestDataBuilder.createDeleteCommentReqDTO(existingComment.getId());
         
-        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
+        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testUser);
         
         // When & Then
         mockMvc.perform(post("/api/comment/delete")
@@ -215,7 +222,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
         CommentLikeReqDTO requestDto = new CommentLikeReqDTO();
         requestDto.setCommentId(existingComment.getId());
         
-        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
+        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testUser);
         
         // When & Then
         mockMvc.perform(post("/api/comment/like")
@@ -235,7 +242,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
         CommentReqDTO requestDto = CommentTestDataBuilder.createCommentReqDTO(
                 testPost.getId(), "A".repeat(1001)); // 1000자 초과
         
-        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
+        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testUser);
         
         // When & Then
         mockMvc.perform(post("/api/comment/write")
@@ -319,7 +326,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
         
         CommentReqDTO requestDto = CommentTestDataBuilder.createDeleteCommentReqDTO(otherUserComment.getId());
         
-        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser); // 현재 사용자
+        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testUser); // 현재 사용자
         
         // When & Then
         mockMvc.perform(post("/api/comment/delete")

@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostRepository;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
+import jaeik.bimillog.testutil.AuthTestFixtures;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.TestFixtures;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
@@ -56,7 +57,7 @@ class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
             builder.thumbnailImage("http://test-profile.jpg");
         });
         var savedUser = userRepository.save(user);
-        queryUserDetails = TestFixtures.createCustomUserDetails(savedUser);
+        queryUserDetails = AuthTestFixtures.createCustomUserDetails(savedUser);
         createTestPosts(savedUser);
     }
 

@@ -5,7 +5,12 @@ import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.auth.jpa.TokenRepository;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
-import jaeik.bimillog.testutil.*;
+import jaeik.bimillog.testutil.AuthTestFixtures;
+import jaeik.bimillog.testutil.BaseIntegrationTest;
+import jaeik.bimillog.testutil.H2TestConfiguration;
+import jaeik.bimillog.testutil.TestFixtures;
+import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
+import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -187,7 +192,7 @@ class UserQueryControllerIntegrationTest extends BaseIntegrationTest {
         Token token = Token.createToken("test-access-TemporaryToken", "test-refresh-TemporaryToken", savedUser);
         Token savedToken = tokenRepository.save(token);
         
-        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(savedUser, savedToken.getId(), null);
+        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(savedUser, savedToken.getId(), null);
 
         // When & Then
         mockMvc.perform(get("/api/user/friendlist")

@@ -4,9 +4,9 @@ import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.NewUserDetail;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import org.springframework.http.ResponseCookie;
+import jaeik.bimillog.testutil.AuthTestFixtures;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,15 +29,14 @@ import java.util.List;
 public abstract class BaseAuthUnitTest extends BaseUnitTest {
     
     // 테스트 상수들
-    protected static final String TEST_SOCIAL_ID = "kakao123456";
-    protected static final String TEST_ACCESS_TOKEN = "access-test-token";
-    protected static final String TEST_REFRESH_TOKEN = "refresh-test-token";
-    protected static final String TEST_AUTH_CODE = "auth-code-123";
-    protected static final String TEST_FCM_TOKEN = "fcm-token-123";
-    protected static final SocialProvider TEST_PROVIDER = SocialProvider.KAKAO;
-    protected static final String TEST_EMAIL = "test@example.com";
-    protected static final String TEST_SOCIAL_NICKNAME = "테스트유저";
-    protected static final String TEST_PROFILE_IMAGE = "http://example.com/profile.jpg";
+    protected static final String TEST_SOCIAL_ID = AuthTestFixtures.TEST_SOCIAL_ID;
+    protected static final String TEST_ACCESS_TOKEN = AuthTestFixtures.TEST_ACCESS_TOKEN;
+    protected static final String TEST_REFRESH_TOKEN = AuthTestFixtures.TEST_REFRESH_TOKEN;
+    protected static final String TEST_AUTH_CODE = AuthTestFixtures.TEST_AUTH_CODE;
+    protected static final String TEST_FCM_TOKEN = AuthTestFixtures.TEST_FCM_TOKEN;
+    protected static final String TEST_EMAIL = AuthTestFixtures.TEST_EMAIL;
+    protected static final String TEST_SOCIAL_NICKNAME = AuthTestFixtures.TEST_SOCIAL_NICKNAME;
+    protected static final String TEST_PROFILE_IMAGE = AuthTestFixtures.TEST_PROFILE_IMAGE;
     
     // Lazy 초기화를 위한 필드들
     private Token cachedTestToken;
@@ -66,7 +65,7 @@ public abstract class BaseAuthUnitTest extends BaseUnitTest {
             cachedTestUserProfile = new SocialUserProfile(
                     TEST_SOCIAL_ID,
                     TEST_EMAIL,
-                    TEST_PROVIDER,
+                    AuthTestFixtures.TEST_PROVIDER,
                     TEST_SOCIAL_NICKNAME,
                     TEST_PROFILE_IMAGE,
                     getTestToken()
@@ -84,18 +83,7 @@ public abstract class BaseAuthUnitTest extends BaseUnitTest {
             if (getTestUser().getSetting() != null && getTestUser().getSetting().getId() != null) {
                 settingId = getTestUser().getSetting().getId();
             }
-            cachedExistingUserDetail = ExistingUserDetail.builder()
-                    .userId(getTestUser().getId())
-                    .socialId(TEST_SOCIAL_ID)
-                    .provider(getTestUser().getProvider())
-                    .settingId(settingId)
-                    .socialNickname(TEST_SOCIAL_NICKNAME)
-                    .thumbnailImage(TEST_PROFILE_IMAGE)
-                    .userName(getTestUser().getUserName())
-                    .role(getTestUser().getRole())
-                    .tokenId(null)
-                    .fcmTokenId(null)
-                    .build();
+            cachedExistingUserDetail = AuthTestFixtures.createExistingUserDetail(getTestUser());
         }
         return cachedExistingUserDetail;
     }
@@ -117,7 +105,7 @@ public abstract class BaseAuthUnitTest extends BaseUnitTest {
      */
     protected CustomUserDetails getTestCustomUserDetails() {
         if (cachedTestCustomUserDetails == null) {
-            cachedTestCustomUserDetails = TestFixtures.createCustomUserDetails(getTestUser());
+            cachedTestCustomUserDetails = AuthTestFixtures.createCustomUserDetails(getTestUser());
         }
         return cachedTestCustomUserDetails;
     }

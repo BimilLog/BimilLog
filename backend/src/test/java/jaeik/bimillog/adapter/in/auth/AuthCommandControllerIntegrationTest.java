@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.in.auth.dto.SocialLoginRequestDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.auth.jpa.TokenRepository;
+import jaeik.bimillog.testutil.AuthTestFixtures;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.TestFixtures;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
@@ -92,7 +93,7 @@ class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
         Token token = Token.createToken("access-token", "refresh-token", testUser);
         token = tokenRepository.save(token);
 
-        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser, token.getId(), null);
+        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testUser, token.getId(), null);
 
         mockMvc.perform(post("/api/auth/logout")
                         .with(user(userDetails))
@@ -111,7 +112,7 @@ class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
         User testUser = TestUsers.createUnique();
         userRepository.save(testUser);
 
-        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
+        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testUser);
 
         mockMvc.perform(delete("/api/user/withdraw")
                         .with(user(userDetails))

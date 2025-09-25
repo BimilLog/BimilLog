@@ -15,7 +15,7 @@ import org.mockito.Mock;
 
 import java.util.List;
 
-import static jaeik.bimillog.testutil.TestFixtures.TEST_ACCESS_TOKEN;
+import static jaeik.bimillog.testutil.AuthTestFixtures.TEST_ACCESS_TOKEN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;

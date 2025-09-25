@@ -3,7 +3,12 @@ package jaeik.bimillog.adapter.in.auth;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
-import jaeik.bimillog.testutil.*;
+import jaeik.bimillog.testutil.AuthTestFixtures;
+import jaeik.bimillog.testutil.BaseIntegrationTest;
+import jaeik.bimillog.testutil.H2TestConfiguration;
+import jaeik.bimillog.testutil.TestFixtures;
+import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
+import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Import;
@@ -33,7 +38,7 @@ class AuthQueryControllerIntegrationTest extends BaseIntegrationTest {
         User testUser = TestUsers.createUniqueWithPrefix("통합테스트사용자");
         User savedUser = userRepository.save(testUser);
 
-        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(savedUser);
+        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(savedUser);
 
         mockMvc.perform(get("/api/auth/me")
                         .with(user(userDetails)))
@@ -59,7 +64,7 @@ class AuthQueryControllerIntegrationTest extends BaseIntegrationTest {
         });
         User savedAdmin = userRepository.save(adminUser);
 
-        CustomUserDetails adminUserDetails = TestFixtures.createCustomUserDetails(savedAdmin);
+        CustomUserDetails adminUserDetails = AuthTestFixtures.createCustomUserDetails(savedAdmin);
 
         mockMvc.perform(get("/api/auth/me")
                         .with(user(adminUserDetails)))
