@@ -6,7 +6,7 @@ import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import jaeik.bimillog.infrastructure.adapter.out.api.dto.KakaoFriendsDTO;
 import jaeik.bimillog.infrastructure.adapter.out.api.social.kakao.KakaoApiClient;
 import jaeik.bimillog.infrastructure.adapter.out.api.social.kakao.KakaoSocialAdapter;
-import jaeik.bimillog.testutil.BaseAuthUnitTest;
+import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.KakaoTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,6 +15,7 @@ import org.mockito.Mock;
 
 import java.util.List;
 
+import static jaeik.bimillog.testutil.TestFixtures.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
@@ -30,7 +31,7 @@ import static org.mockito.Mockito.verify;
  * @version 2.0.0
  */
 @DisplayName("KakaoSocialAdapter 단위 테스트")
-class KakaoSocialAdapterTest extends BaseAuthUnitTest {
+class KakaoSocialAdapterTest extends BaseUnitTest {
 
     private static final Integer DEFAULT_OFFSET = 0;
     private static final Integer DEFAULT_LIMIT = 10;

@@ -6,18 +6,25 @@ import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
+import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
+import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
+import jaeik.bimillog.domain.user.entity.NewUserDetail;
 import jaeik.bimillog.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.global.application.port.out.GlobalJwtPort;
-import jaeik.bimillog.testutil.BaseAuthUnitTest;
+import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.util.List;
+
+import static jaeik.bimillog.testutil.TestFixtures.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
@@ -31,15 +38,15 @@ import static org.mockito.Mockito.*;
  * @version 2.0.0
  */
 @DisplayName("SocialLoginService 단위 테스트")
-class SocialLoginServiceTest extends BaseAuthUnitTest {
-    
+class SocialLoginServiceTest extends BaseUnitTest {
+
     @Mock private SocialStrategyRegistryPort strategyRegistry;
     @Mock private SocialStrategyPort kakaoStrategy;
     @Mock private AuthToUserPort authToUserPort;
     @Mock private BlacklistPort blacklistPort;
     @Mock private GlobalCookiePort globalCookiePort;
     @Mock private GlobalJwtPort globalJwtPort;
-    
+
     private SocialLoginService socialLoginService;
 
     @BeforeEach
@@ -59,19 +66,22 @@ class SocialLoginServiceTest extends BaseAuthUnitTest {
         // Given
         String generatedAccessToken = "generated-access-token";
         String generatedRefreshToken = "generated-refresh-token";
+        SocialUserProfile testUserProfile = createTestUserProfile();
+        ExistingUserDetail existingUserDetail = createExistingUserDetail(getTestUser(), 1L, 1L);
+        List<ResponseCookie> jwtCookies = createJwtCookies(generatedAccessToken, generatedRefreshToken);
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             mockAnonymousAuthentication(mockedSecurityContext);
 
             given(strategyRegistry.getStrategy(TEST_PROVIDER)).willReturn(kakaoStrategy);
-            given(kakaoStrategy.authenticate(TEST_PROVIDER, TEST_AUTH_CODE)).willReturn(getTestUserProfile());
+            given(kakaoStrategy.authenticate(TEST_PROVIDER, TEST_AUTH_CODE)).willReturn(testUserProfile);
             given(blacklistPort.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
-            given(authToUserPort.delegateUserData(TEST_PROVIDER, getTestUserProfile(), TEST_FCM_TOKEN))
-                .willReturn(getExistingUserDetail());
-            given(globalJwtPort.generateAccessToken(getExistingUserDetail())).willReturn(generatedAccessToken);
-            given(globalJwtPort.generateRefreshToken(getExistingUserDetail())).willReturn(generatedRefreshToken);
+            given(authToUserPort.delegateUserData(TEST_PROVIDER, testUserProfile, TEST_FCM_TOKEN))
+                .willReturn(existingUserDetail);
+            given(globalJwtPort.generateAccessToken(existingUserDetail)).willReturn(generatedAccessToken);
+            given(globalJwtPort.generateRefreshToken(existingUserDetail)).willReturn(generatedRefreshToken);
             given(globalCookiePort.generateJwtCookie(generatedAccessToken, generatedRefreshToken))
-                .willReturn(getJwtCookies());
+                .willReturn(jwtCookies);
 
             // When
             LoginResult result = socialLoginService.processSocialLogin(TEST_PROVIDER, TEST_AUTH_CODE, TEST_FCM_TOKEN);
@@ -79,13 +89,13 @@ class SocialLoginServiceTest extends BaseAuthUnitTest {
             // Then
             assertThat(result).isInstanceOf(LoginResult.ExistingUser.class);
             LoginResult.ExistingUser existingUserResponse = (LoginResult.ExistingUser) result;
-            assertThat(existingUserResponse.cookies()).isEqualTo(getJwtCookies());
+            assertThat(existingUserResponse.cookies()).isEqualTo(jwtCookies);
 
             verify(strategyRegistry).getStrategy(TEST_PROVIDER);
             verify(kakaoStrategy).authenticate(TEST_PROVIDER, TEST_AUTH_CODE);
-            verify(authToUserPort).delegateUserData(TEST_PROVIDER, getTestUserProfile(), TEST_FCM_TOKEN);
-            verify(globalJwtPort).generateAccessToken(getExistingUserDetail());
-            verify(globalJwtPort).generateRefreshToken(getExistingUserDetail());
+            verify(authToUserPort).delegateUserData(TEST_PROVIDER, testUserProfile, TEST_FCM_TOKEN);
+            verify(globalJwtPort).generateAccessToken(existingUserDetail);
+            verify(globalJwtPort).generateRefreshToken(existingUserDetail);
             verify(globalCookiePort).generateJwtCookie(generatedAccessToken, generatedRefreshToken);
         }
     }
@@ -94,15 +104,19 @@ class SocialLoginServiceTest extends BaseAuthUnitTest {
     @DisplayName("신규 사용자 소셜 로그인 성공")
     void shouldProcessSocialLogin_WhenNewUser() {
         // Given
+        SocialUserProfile testUserProfile = createTestUserProfile();
+        NewUserDetail newUserDetail = createNewUserDetail();
+        ResponseCookie tempCookie = createTempCookie(newUserDetail.getUuid());
+
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             mockAnonymousAuthentication(mockedSecurityContext);
 
             given(strategyRegistry.getStrategy(TEST_PROVIDER)).willReturn(kakaoStrategy);
-            given(kakaoStrategy.authenticate(TEST_PROVIDER, TEST_AUTH_CODE)).willReturn(getTestUserProfile());
+            given(kakaoStrategy.authenticate(TEST_PROVIDER, TEST_AUTH_CODE)).willReturn(testUserProfile);
             given(blacklistPort.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
-            given(authToUserPort.delegateUserData(TEST_PROVIDER, getTestUserProfile(), TEST_FCM_TOKEN))
-                .willReturn(getNewUserDetail());
-            given(globalCookiePort.createTempCookie(getNewUserDetail())).willReturn(createTempCookie(getNewUserDetail().getUuid()));
+            given(authToUserPort.delegateUserData(TEST_PROVIDER, testUserProfile, TEST_FCM_TOKEN))
+                .willReturn(newUserDetail);
+            given(globalCookiePort.createTempCookie(newUserDetail)).willReturn(tempCookie);
 
             // When
             LoginResult result = socialLoginService.processSocialLogin(TEST_PROVIDER, TEST_AUTH_CODE, TEST_FCM_TOKEN);
@@ -110,13 +124,13 @@ class SocialLoginServiceTest extends BaseAuthUnitTest {
             // Then
             assertThat(result).isInstanceOf(LoginResult.NewUser.class);
             LoginResult.NewUser newUserResponse = (LoginResult.NewUser) result;
-            assertThat(newUserResponse.uuid()).isEqualTo(getNewUserDetail().getUuid());
+            assertThat(newUserResponse.uuid()).isEqualTo(newUserDetail.getUuid());
             assertThat(newUserResponse.tempCookie()).isNotNull();
 
             verify(strategyRegistry).getStrategy(TEST_PROVIDER);
             verify(kakaoStrategy).authenticate(TEST_PROVIDER, TEST_AUTH_CODE);
-            verify(authToUserPort).delegateUserData(TEST_PROVIDER, getTestUserProfile(), TEST_FCM_TOKEN);
-            verify(globalCookiePort).createTempCookie(getNewUserDetail());
+            verify(authToUserPort).delegateUserData(TEST_PROVIDER, testUserProfile, TEST_FCM_TOKEN);
+            verify(globalCookiePort).createTempCookie(newUserDetail);
         }
     }
 
@@ -124,11 +138,13 @@ class SocialLoginServiceTest extends BaseAuthUnitTest {
     @DisplayName("블랙리스트 사용자 로그인 시 예외 발생")
     void shouldThrowException_WhenBlacklistedUser() {
         // Given
+        SocialUserProfile testUserProfile = createTestUserProfile();
+
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             mockAnonymousAuthentication(mockedSecurityContext);
 
             given(strategyRegistry.getStrategy(TEST_PROVIDER)).willReturn(kakaoStrategy);
-            given(kakaoStrategy.authenticate(TEST_PROVIDER, TEST_AUTH_CODE)).willReturn(getTestUserProfile());
+            given(kakaoStrategy.authenticate(TEST_PROVIDER, TEST_AUTH_CODE)).willReturn(testUserProfile);
             given(blacklistPort.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(true);
 
             // When & Then
@@ -155,13 +171,13 @@ class SocialLoginServiceTest extends BaseAuthUnitTest {
                     .hasFieldOrPropertyWithValue("authErrorCode", AuthErrorCode.ALREADY_LOGIN);
         }
     }
-    
+
     @Test
     @DisplayName("소셜 인증 실패 시 예외 전파")
     void shouldPropagateException_WhenAuthenticationFails() {
         // Given
         RuntimeException authException = new RuntimeException("Authentication failed");
-        
+
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             mockAnonymousAuthentication(mockedSecurityContext);
 

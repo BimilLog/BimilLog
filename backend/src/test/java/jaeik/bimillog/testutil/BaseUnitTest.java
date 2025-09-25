@@ -3,8 +3,21 @@ package jaeik.bimillog.testutil;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
+import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.util.List;
+
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 
 /**
  * <h2>단위 테스트 베이스 클래스</h2>
@@ -145,5 +158,76 @@ public abstract class BaseUnitTest {
                 .commentNotification(setting.isCommentNotification())
                 .postFeaturedNotification(setting.isPostFeaturedNotification())
                 .build();
+    }
+
+    // ==================== SecurityContext Mock 헬퍼 메서드 ====================
+
+    /**
+     * 익명 사용자로 SecurityContext를 Mock 설정
+     * <p>인증되지 않은 사용자 테스트 시 사용</p>
+     * @param mockedSecurityContext MockedStatic SecurityContextHolder
+     */
+    protected void mockAnonymousAuthentication(MockedStatic<SecurityContextHolder> mockedSecurityContext) {
+        SecurityContext securityContext = mock(SecurityContext.class);
+        Authentication authentication = new AnonymousAuthenticationToken(
+            "anonymous",
+            "anonymous",
+            List.of(new SimpleGrantedAuthority("ROLE_ANONYMOUS"))
+        );
+
+        mockedSecurityContext.when(SecurityContextHolder::getContext).thenReturn(securityContext);
+        given(securityContext.getAuthentication()).willReturn(authentication);
+    }
+
+    /**
+     * 인증된 사용자로 SecurityContext를 Mock 설정 (기본 테스트 사용자)
+     * <p>기본 테스트 사용자와 USER 권한으로 설정</p>
+     * @param mockedSecurityContext MockedStatic SecurityContextHolder
+     */
+    protected void mockAuthenticatedUser(MockedStatic<SecurityContextHolder> mockedSecurityContext) {
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(getTestUser());
+        mockAuthenticatedUser(mockedSecurityContext, userDetails, UserRole.USER);
+    }
+
+    /**
+     * 특정 사용자로 SecurityContext를 Mock 설정
+     * <p>지정된 사용자와 USER 권한으로 설정</p>
+     * @param mockedSecurityContext MockedStatic SecurityContextHolder
+     * @param user 사용자 엔티티
+     */
+    protected void mockAuthenticatedUser(MockedStatic<SecurityContextHolder> mockedSecurityContext, User user) {
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(user);
+        mockAuthenticatedUser(mockedSecurityContext, userDetails, user.getRole());
+    }
+
+    /**
+     * 특정 사용자와 권한으로 SecurityContext를 Mock 설정
+     * <p>가장 유연한 SecurityContext Mock 메서드</p>
+     * @param mockedSecurityContext MockedStatic SecurityContextHolder
+     * @param userDetails CustomUserDetails
+     * @param role 사용자 권한
+     */
+    protected void mockAuthenticatedUser(MockedStatic<SecurityContextHolder> mockedSecurityContext,
+                                        CustomUserDetails userDetails,
+                                        UserRole role) {
+        SecurityContext securityContext = mock(SecurityContext.class);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+            userDetails,
+            null,
+            List.of(new SimpleGrantedAuthority("ROLE_" + role.name()))
+        );
+
+        mockedSecurityContext.when(SecurityContextHolder::getContext).thenReturn(securityContext);
+        given(securityContext.getAuthentication()).willReturn(authentication);
+    }
+
+    /**
+     * 관리자 권한으로 SecurityContext를 Mock 설정
+     * <p>관리자 권한이 필요한 테스트에서 사용</p>
+     * @param mockedSecurityContext MockedStatic SecurityContextHolder
+     */
+    protected void mockAdminAuthentication(MockedStatic<SecurityContextHolder> mockedSecurityContext) {
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(getAdminUser());
+        mockAuthenticatedUser(mockedSecurityContext, userDetails, UserRole.ADMIN);
     }
 }

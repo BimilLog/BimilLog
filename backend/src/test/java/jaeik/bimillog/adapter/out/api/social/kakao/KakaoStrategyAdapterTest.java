@@ -6,7 +6,7 @@ import jaeik.bimillog.global.vo.KakaoKeyVO;
 import jaeik.bimillog.infrastructure.adapter.out.api.social.kakao.KakaoApiClient;
 import jaeik.bimillog.infrastructure.adapter.out.api.social.kakao.KakaoAuthClient;
 import jaeik.bimillog.infrastructure.adapter.out.api.social.kakao.KakaoStrategyAdapter;
-import jaeik.bimillog.testutil.BaseAuthUnitTest;
+import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.KakaoTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -15,6 +15,7 @@ import org.mockito.Mock;
 
 import java.util.Map;
 
+import static jaeik.bimillog.testutil.TestFixtures.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
@@ -30,7 +31,7 @@ import static org.mockito.Mockito.*;
  * @version 2.0.0
  */
 @DisplayName("KakaoStrategyAdapter 단위 테스트")
-class KakaoStrategyAdapterTest extends BaseAuthUnitTest {
+class KakaoStrategyAdapterTest extends BaseUnitTest {
 
     private static final String KAKAO_CLIENT_ID = "test-client-id";
     private static final String KAKAO_CLIENT_SECRET = "test-client-secret";

@@ -6,8 +6,6 @@ import jakarta.persistence.EntityManager;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.redis.core.RedisTemplate;
 
 /**
  * <h2>H2 테스트 설정 클래스</h2>
@@ -19,9 +17,6 @@ import org.springframework.data.redis.core.RedisTemplate;
  */
 @TestConfiguration(proxyBeanMethods = false)
 public class H2TestConfiguration {
-
-    @MockBean
-    private RedisTemplate<String, Object> redisTemplate;
 
     @Bean(name = "testJpaQueryFactory")
     @Primary

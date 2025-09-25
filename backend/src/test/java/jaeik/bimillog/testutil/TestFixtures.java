@@ -1,14 +1,18 @@
 package jaeik.bimillog.testutil;
 
+import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
+import jaeik.bimillog.domain.user.entity.NewUserDetail;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.in.paper.dto.MessageDTO;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.PostCreateDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
+import org.springframework.http.ResponseCookie;
 
 import java.util.List;
 
@@ -16,7 +20,7 @@ import java.util.List;
  * <h2>테스트 데이터 Fixtures</h2>
  * <p>테스트에서 자주 사용되는 데이터 생성 유틸리티</p>
  * <p>엔티티, DTO, 인증 객체 등 다양한 테스트 데이터 생성 메서드 제공</p>
- * 
+ *
  * <h3>제공되는 기능:</h3>
  * <ul>
  *   <li>엔티티 생성 (Post, Comment, Notification, RollingPaper 등)</li>
@@ -29,6 +33,18 @@ import java.util.List;
  * @version 2.0.0
  */
 public class TestFixtures {
+
+    // ==================== Auth Test Constants ====================
+    public static final String TEST_SOCIAL_ID = "kakao123456";
+    public static final String TEST_EMAIL = "test@example.com";
+    public static final String TEST_USERNAME = "testUser";
+    public static final String TEST_SOCIAL_NICKNAME = "테스트유저";
+    public static final String TEST_PROFILE_IMAGE = "http://example.com/profile.jpg";
+    public static final String TEST_ACCESS_TOKEN = "access-test-token";
+    public static final String TEST_REFRESH_TOKEN = "refresh-test-token";
+    public static final String TEST_AUTH_CODE = "auth-code-123";
+    public static final String TEST_FCM_TOKEN = "fcm-token-123";
+    public static final SocialProvider TEST_PROVIDER = SocialProvider.KAKAO;
 
     // ==================== Entity Creation ====================
 
@@ -270,6 +286,62 @@ public class TestFixtures {
                 .build();
     }
 
+    /**
+     * 테스트용 임시 토큰 생성
+     * @return Token 객체
+     */
+    public static Token createTestToken() {
+        return Token.createTemporaryToken(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
+    }
+
+    /**
+     * 테스트용 소셜 사용자 프로필 생성
+     * @return SocialUserProfile 객체
+     */
+    public static SocialUserProfile createTestUserProfile() {
+        return new SocialUserProfile(
+            TEST_SOCIAL_ID,
+            TEST_EMAIL,
+            TEST_PROVIDER,
+            TEST_SOCIAL_NICKNAME,
+            TEST_PROFILE_IMAGE,
+            createTestToken()
+        );
+    }
+
+    /**
+     * 소셜 사용자 프로필 생성 (커스텀 값)
+     * @param socialId 소셜 ID
+     * @param email 이메일
+     * @param provider 소셜 프로바이더
+     * @param nickname 닉네임
+     * @param profileImage 프로필 이미지
+     * @param token 토큰
+     * @return SocialUserProfile 객체
+     */
+    public static SocialUserProfile createSocialUserProfile(String socialId, String email,
+                                                           SocialProvider provider, String nickname,
+                                                           String profileImage, Token token) {
+        return new SocialUserProfile(socialId, email, provider, nickname, profileImage, token);
+    }
+
+    /**
+     * 신규 사용자 상세 정보 생성
+     * @param uuid UUID
+     * @return NewUserDetail 객체
+     */
+    public static NewUserDetail createNewUserDetail(String uuid) {
+        return NewUserDetail.of(uuid);
+    }
+
+    /**
+     * 신규 사용자 상세 정보 생성 (기본 UUID)
+     * @return NewUserDetail 객체
+     */
+    public static NewUserDetail createNewUserDetail() {
+        return NewUserDetail.of("test-uuid-" + System.currentTimeMillis());
+    }
+
     // ==================== Cookie & Token Creation ====================
     
     /**
@@ -284,6 +356,77 @@ public class TestFixtures {
                 "refresh-token-" + i
             ))
             .collect(java.util.stream.Collectors.toList());
+    }
+
+    /**
+     * 로그아웃 쿠키 생성
+     * @return 로그아웃용 쿠키 리스트 (값이 비어있고 만료시간 0)
+     */
+    public static List<ResponseCookie> createLogoutCookies() {
+        return List.of(
+            ResponseCookie.from("jwt_access_token", "")
+                .path("/")
+                .maxAge(0)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .build(),
+            ResponseCookie.from("jwt_refresh_token", "")
+                .path("/")
+                .maxAge(0)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .build()
+        );
+    }
+
+    /**
+     * JWT 인증 쿠키 생성
+     * @param accessToken 액세스 토큰
+     * @param refreshToken 리프레시 토큰
+     * @return JWT 쿠키 리스트
+     */
+    public static List<ResponseCookie> createJwtCookies(String accessToken, String refreshToken) {
+        return List.of(
+            ResponseCookie.from("jwt_access_token", accessToken)
+                .path("/")
+                .maxAge(60 * 60) // 1시간
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .build(),
+            ResponseCookie.from("jwt_refresh_token", refreshToken)
+                .path("/")
+                .maxAge(60 * 60 * 24 * 7) // 7일
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .build()
+        );
+    }
+
+    /**
+     * JWT 인증 쿠키 생성 (기본 토큰 값 사용)
+     * @return JWT 쿠키 리스트
+     */
+    public static List<ResponseCookie> createJwtCookies() {
+        return createJwtCookies(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
+    }
+
+    /**
+     * 임시 UUID 쿠키 생성
+     * @param uuid UUID 값
+     * @return 임시 쿠키
+     */
+    public static ResponseCookie createTempCookie(String uuid) {
+        return ResponseCookie.from("temp", uuid)
+            .path("/")
+            .maxAge(60 * 10) // 10분
+            .httpOnly(true)
+            .secure(true)
+            .sameSite("Lax")
+            .build();
     }
 
     // ==================== Utility Methods ====================

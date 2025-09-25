@@ -10,7 +10,8 @@ import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.global.application.port.out.GlobalTokenQueryPort;
-import jaeik.bimillog.testutil.BaseAuthUnitTest;
+import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
+import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,6 +28,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.List;
 import java.util.Optional;
 
+import static jaeik.bimillog.testutil.TestFixtures.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
@@ -39,7 +43,8 @@ import static org.mockito.Mockito.*;
  * @version 2.0.0
  */
 @DisplayName("SocialLogoutService 단위 테스트")
-class SocialLogoutServiceTest extends BaseAuthUnitTest {
+@MockitoSettings(strictness = Strictness.LENIENT)
+class SocialLogoutServiceTest extends BaseUnitTest {
 
     @Mock
     private SocialStrategyRegistryPort strategyRegistry;
@@ -60,12 +65,14 @@ class SocialLogoutServiceTest extends BaseAuthUnitTest {
     private SocialLogoutService socialLogoutService;
 
     @Mock
-    private jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails mockCustomUserDetails;
+    private CustomUserDetails mockCustomUserDetails;
+
+    private List<ResponseCookie> logoutCookies;
 
     @BeforeEach
     void setUp() {
-        // BaseAuthUnitTest의 logoutCookies를 mock에서 반환하도록 설정
-        given(globalCookiePort.getLogoutCookies()).willReturn(getLogoutCookies());
+        logoutCookies = createLogoutCookies();
+        lenient().when(globalCookiePort.getLogoutCookies()).thenReturn(logoutCookies);
     }
 
     @Test
@@ -84,13 +91,13 @@ class SocialLogoutServiceTest extends BaseAuthUnitTest {
             List<ResponseCookie> result = socialLogoutService.logout(mockCustomUserDetails);
 
             // Then
-            assertThat(result).isEqualTo(getLogoutCookies());
+            assertThat(result).isEqualTo(logoutCookies);
             assertThat(result).hasSize(2);
 
             // 이벤트 발행 검증
             ArgumentCaptor<UserLoggedOutEvent> eventCaptor = ArgumentCaptor.forClass(UserLoggedOutEvent.class);
             verify(eventPublisher).publishEvent(eventCaptor.capture());
-            
+
             UserLoggedOutEvent capturedEvent = eventCaptor.getValue();
             assertThat(capturedEvent.userId()).isEqualTo(100L);
             assertThat(capturedEvent.tokenId()).isEqualTo(200L);
@@ -112,8 +119,8 @@ class SocialLogoutServiceTest extends BaseAuthUnitTest {
     @DisplayName("토큰이 존재하지 않는 경우 예외 발생")
     void shouldThrowException_WhenTokenNotFound() {
         // Given
-        given(getTestCustomUserDetails().getUserId()).willReturn(100L);
-        given(getTestCustomUserDetails().getTokenId()).willReturn(200L);
+        given(mockCustomUserDetails.getUserId()).willReturn(100L);
+        given(mockCustomUserDetails.getTokenId()).willReturn(200L);
         given(globalTokenQueryPort.findById(200L)).willReturn(Optional.empty());
 
         // When & Then
@@ -141,7 +148,7 @@ class SocialLogoutServiceTest extends BaseAuthUnitTest {
         given(mockCustomUserDetails.getSocialProvider()).willReturn(TEST_PROVIDER);
         given(globalTokenQueryPort.findById(200L)).willReturn(Optional.of(mockToken));
         given(strategyRegistry.getStrategy(TEST_PROVIDER)).willReturn(kakaoStrategy);
-        
+
         // 소셜 로그아웃이 실패하도록 설정
         try {
             doThrow(new RuntimeException("Social logout failed"))
@@ -155,8 +162,8 @@ class SocialLogoutServiceTest extends BaseAuthUnitTest {
             List<ResponseCookie> result = socialLogoutService.logout(mockCustomUserDetails);
 
             // Then
-            assertThat(result).isEqualTo(getLogoutCookies());
-            
+            assertThat(result).isEqualTo(logoutCookies);
+
             // 소셜 로그아웃이 실패해도 다른 프로세스는 정상 실행되어야 함
             verify(eventPublisher).publishEvent(any(UserLoggedOutEvent.class));
             verify(globalCookiePort).getLogoutCookies();
@@ -169,10 +176,10 @@ class SocialLogoutServiceTest extends BaseAuthUnitTest {
     void shouldHandleDifferentUserDetails() {
         // Given - 관리자 사용자
         Token adminToken = createMockTokenWithUser(getAdminUser());
-        
-        given(getTestCustomUserDetails().getUserId()).willReturn(999L);
-        given(getTestCustomUserDetails().getTokenId()).willReturn(888L);
-        given(getTestCustomUserDetails().getSocialProvider()).willReturn(TEST_PROVIDER);
+
+        given(mockCustomUserDetails.getUserId()).willReturn(999L);
+        given(mockCustomUserDetails.getTokenId()).willReturn(888L);
+        given(mockCustomUserDetails.getSocialProvider()).willReturn(TEST_PROVIDER);
         given(globalTokenQueryPort.findById(888L)).willReturn(Optional.of(adminToken));
         given(strategyRegistry.getStrategy(TEST_PROVIDER)).willReturn(kakaoStrategy);
 
@@ -181,15 +188,29 @@ class SocialLogoutServiceTest extends BaseAuthUnitTest {
             List<ResponseCookie> result = socialLogoutService.logout(mockCustomUserDetails);
 
             // Then
-            assertThat(result).isEqualTo(getLogoutCookies());
-            
+            assertThat(result).isEqualTo(logoutCookies);
+
             ArgumentCaptor<UserLoggedOutEvent> eventCaptor = ArgumentCaptor.forClass(UserLoggedOutEvent.class);
             verify(eventPublisher).publishEvent(eventCaptor.capture());
-            
+
             UserLoggedOutEvent capturedEvent = eventCaptor.getValue();
             assertThat(capturedEvent.userId()).isEqualTo(999L);
             assertThat(capturedEvent.tokenId()).isEqualTo(888L);
         }
+    }
+
+    /**
+     * 특정 사용자를 포함한 Mock Token 생성
+     * @param user 사용자
+     * @return Mock Token with User
+     */
+    private Token createMockTokenWithUser(jaeik.bimillog.domain.user.entity.User user) {
+        Token mockToken = mock(Token.class);
+        given(mockToken.getUsers()).willReturn(user);
+        given(mockToken.getAccessToken()).willReturn(TEST_ACCESS_TOKEN);
+        given(mockToken.getRefreshToken()).willReturn(TEST_REFRESH_TOKEN);
+        given(mockToken.getId()).willReturn(1L);
+        return mockToken;
     }
 
 
