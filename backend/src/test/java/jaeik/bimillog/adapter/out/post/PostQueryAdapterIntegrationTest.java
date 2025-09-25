@@ -7,7 +7,7 @@ import jaeik.bimillog.domain.post.entity.PostLike;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostQueryAdapter;
-import jaeik.bimillog.testutil.TestContainersConfiguration;
+import jaeik.bimillog.testutil.H2TestConfiguration;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -21,8 +21,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.HashMap;
 import java.util.List;
@@ -44,11 +44,10 @@ import static org.mockito.BDDMockito.given;
         includeFilters = @ComponentScan.Filter(
                 type = FilterType.ASSIGNABLE_TYPE,
                 classes = {PostQueryAdapter.class}
-        ),
-        properties = "spring.profiles.active=test"  // test 프로파일 활성화
+        )
 )
-@Testcontainers
-@Import({PostQueryAdapter.class, TestContainersConfiguration.class})
+@ActiveProfiles("h2test")
+@Import({PostQueryAdapter.class, H2TestConfiguration.class})
 class PostQueryAdapterIntegrationTest {
 
     @Autowired

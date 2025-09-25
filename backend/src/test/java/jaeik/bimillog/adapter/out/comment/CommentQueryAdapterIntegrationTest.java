@@ -11,17 +11,22 @@ import jaeik.bimillog.infrastructure.adapter.out.comment.CommentQueryAdapter;
 import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentLikeRepository;
 import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentRepository;
 import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostRepository;
-import jaeik.bimillog.testutil.BaseIntegrationTest;
+import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.testutil.CommentTestDataBuilder;
+import jaeik.bimillog.testutil.H2TestConfiguration;
 import jaeik.bimillog.testutil.TestFixtures;
 import jaeik.bimillog.testutil.TestUsers;
+import jakarta.persistence.EntityManager;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 import java.util.Map;
@@ -31,14 +36,16 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * <h2>CommentQueryAdapter 통합 테스트</h2>
- * <p>실제 MySQL 데이터베이스를 사용한 CommentQueryAdapter의 통합 테스트</p>
- * <p>TestContainers를 사용하여 실제 MySQL 환경에서 댓글 조회 동작 검증</p>
+ * <p>H2 데이터베이스를 사용한 CommentQueryAdapter의 통합 테스트</p>
+ * <p>H2 인메모리 데이터베이스에서 댓글 조회 동작 검증</p>
  *
  * @author Jaeik
  * @version 2.0.0
  */
-@Import(CommentQueryAdapter.class)
-class CommentQueryAdapterIntegrationTest extends BaseIntegrationTest {
+@DataJpaTest
+@ActiveProfiles("h2test")
+@Import({CommentQueryAdapter.class, H2TestConfiguration.class})
+class CommentQueryAdapterIntegrationTest {
 
     @Autowired
     private CommentRepository commentRepository;
@@ -52,17 +59,37 @@ class CommentQueryAdapterIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private PostRepository postRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private EntityManager entityManager;
+
+    private User testUser;
+    private User otherUser;
     private Post testPost;
 
-    @Override
-    protected void setUpChild() {
+    @BeforeEach
+    void setUp() {
         // 테스트 데이터 초기화
         commentLikeRepository.deleteAll();
         commentRepository.deleteAll();
+        postRepository.deleteAll();
+        userRepository.deleteAll();
 
-        // 테스트용 게시글 생성 (testUser는 BaseIntegrationTest에서 이미 생성됨)
+        // 테스트용 사용자 생성
+        testUser = TestUsers.createUniqueWithPrefix("test");
+        testUser = userRepository.save(testUser);
+
+        otherUser = TestUsers.createUniqueWithPrefix("other");
+        otherUser = userRepository.save(otherUser);
+
+        // 테스트용 게시글 생성
         testPost = TestFixtures.createPost(testUser, "테스트 게시글", "테스트 게시글 내용입니다.");
-        postRepository.save(testPost);
+        testPost = postRepository.save(testPost);
+
+        entityManager.flush();
+        entityManager.clear();
     }
 
     @Test

@@ -7,22 +7,20 @@ import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.out.notification.NotificationCommandAdapter;
 import jaeik.bimillog.infrastructure.adapter.out.notification.jpa.NotificationRepository;
+import jaeik.bimillog.testutil.H2TestConfiguration;
 import jaeik.bimillog.testutil.NotificationTestDataBuilder;
-import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -32,8 +30,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * <h2>NotificationCommandAdapter 통합 테스트</h2>
- * <p>알림 명령 어댑터의 실제 데이터베이스 연동 동작 검증</p>
- * <p>TestContainers를 통한 실제 MySQL 환경에서 알림 CRUD 작업 테스트</p>
+ * <p>알림 명령 어댑터의 데이터베이스 연동 동작 검증</p>
+ * <p>H2 데이터베이스를 사용하여 알림 CRUD 작업 테스트</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -44,12 +42,8 @@ import static org.assertj.core.api.Assertions.assertThat;
                 classes = BimilLogApplication.class
         )
 )
-@Testcontainers
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({NotificationCommandAdapter.class, TestContainersConfiguration.class})
-@TestPropertySource(properties = {
-        "spring.jpa.hibernate.ddl-auto=create"
-})
+@ActiveProfiles("h2test")
+@Import({NotificationCommandAdapter.class, H2TestConfiguration.class})
 class NotificationCommandAdapterIntegrationTest {
 
     @Autowired

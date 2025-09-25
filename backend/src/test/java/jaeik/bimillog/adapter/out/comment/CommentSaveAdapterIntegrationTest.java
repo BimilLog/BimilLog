@@ -9,7 +9,7 @@ import jaeik.bimillog.infrastructure.adapter.out.comment.CommentSaveAdapter;
 import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentClosureRepository;
 import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentRepository;
 import jaeik.bimillog.testutil.CommentTestDataBuilder;
-import jaeik.bimillog.testutil.TestContainersConfiguration;
+import jaeik.bimillog.testutil.H2TestConfiguration;
 import jaeik.bimillog.testutil.TestFixtures;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,7 +21,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
-import org.testcontainers.junit.jupiter.Testcontainers;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 import java.util.Optional;
@@ -31,7 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * <h2>댓글 저장 어댑터 통합 테스트</h2>
  * <p>CommentSaveAdapter의 댓글 저장 동작을 검증하는 통합 테스트</p>
- * <p>TestContainers를 사용하여 실제 MySQL 환경에서 클로저 테이블 관련 기능 포함하여 검증</p>
+ * <p>H2 데이터베이스를 사용하여 클로저 테이블 관련 기능 포함하여 검증</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -42,8 +42,8 @@ import static org.assertj.core.api.Assertions.assertThat;
                 classes = BimilLogApplication.class
         )
 )
-@Testcontainers
-@Import({CommentSaveAdapter.class, TestContainersConfiguration.class})
+@ActiveProfiles("h2test")
+@Import({CommentSaveAdapter.class, H2TestConfiguration.class})
 @DisplayName("댓글 저장 어댑터 통합 테스트")
 class CommentSaveAdapterIntegrationTest {
 

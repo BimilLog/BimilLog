@@ -2,12 +2,20 @@ package jaeik.bimillog.adapter.out.comment;
 
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.post.entity.Post;
+import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.out.comment.CommentDeleteAdapter;
 import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentRepository;
-import jaeik.bimillog.testutil.BaseH2IntegrationTest;
+import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostRepository;
+import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
+import jaeik.bimillog.testutil.H2TestConfiguration;
+import jaeik.bimillog.testutil.TestUsers;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import jakarta.persistence.EntityManager;
 
 import java.util.List;
@@ -23,7 +31,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author Jaeik
  * @version 2.0.0
  */
-class CommentDeleteAdapterIntegrationTest extends BaseH2IntegrationTest {
+@DataJpaTest
+@ActiveProfiles("h2test")
+@Import({CommentDeleteAdapter.class, H2TestConfiguration.class})
+class CommentDeleteAdapterIntegrationTest {
 
     @Autowired
     private EntityManager entityManager;
@@ -34,14 +45,27 @@ class CommentDeleteAdapterIntegrationTest extends BaseH2IntegrationTest {
     @Autowired
     private CommentDeleteAdapter commentDeleteAdapter;
 
+    @Autowired
+    private PostRepository postRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    private User testUser;
     private Post testPost;
 
-    @Override
-    protected void setUpChild() {
+    @BeforeEach
+    void setUp() {
         // 테스트 데이터 초기화
         commentRepository.deleteAll();
+        postRepository.deleteAll();
+        userRepository.deleteAll();
 
-        // 테스트용 게시글 생성 - BaseH2IntegrationTest의 testUser 활용
+        // 테스트용 사용자 생성
+        testUser = TestUsers.createUniqueWithPrefix("test");
+        testUser = userRepository.save(testUser);
+
+        // 테스트용 게시글 생성
         testPost = Post.builder()
                 .user(testUser)
                 .title("테스트 게시글")
@@ -49,7 +73,10 @@ class CommentDeleteAdapterIntegrationTest extends BaseH2IntegrationTest {
                 .isNotice(false)
                 .views(0)
                 .build();
-        testPost = saveAndFlush(testPost);
+        testPost = postRepository.save(testPost);
+
+        entityManager.flush();
+        entityManager.clear();
     }
 
     @Test
