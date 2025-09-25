@@ -118,7 +118,7 @@ public abstract class BaseUnitTest {
      */
     protected Setting getDefaultSetting() {
         if (cachedDefaultSetting == null) {
-            cachedDefaultSetting = TestUsers.createSetting(true, true, true);
+            cachedDefaultSetting = TestUsers.createAllEnabledSetting();
         }
         return cachedDefaultSetting;
     }

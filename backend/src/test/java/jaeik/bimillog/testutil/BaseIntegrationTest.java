@@ -137,7 +137,7 @@ public abstract class BaseIntegrationTest {
                 .build();
 
         // 설정 초기화
-        this.defaultSetting = TestUsers.createSetting(true, true, true);
+        this.defaultSetting = TestUsers.createAllEnabledSetting();
         this.customSetting = TestUsers.createAllDisabledSetting();
 
         // 사용자 생성 및 저장
@@ -159,9 +159,10 @@ public abstract class BaseIntegrationTest {
         if (userRepository != null) {
             // 고유한 사용자 생성하여 충돌 방지
             this.testUser = userRepository.save(TestUsers.createUniqueWithPrefix("test"));
-            this.adminUser = userRepository.save(TestUsers.createUniqueWithPrefix("admin"));
-            this.adminUser.updateRole(UserRole.ADMIN);
-            this.adminUser = userRepository.save(adminUser);
+            this.adminUser = userRepository.save(TestUsers.createUniqueWithPrefix("admin", builder -> {
+                builder.role(UserRole.ADMIN);
+                builder.setting(TestUsers.createAllDisabledSetting());
+            }));
             this.otherUser = userRepository.save(TestUsers.createUniqueWithPrefix("other"));
         } else {
             // UserRepository가 없는 경우 기본 사용자 사용

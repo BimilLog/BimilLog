@@ -91,8 +91,12 @@ class AuthQueryControllerIntegrationTest {
     @DisplayName("현재 사용자 정보 조회 통합 테스트 - 관리자 사용자")
     void getCurrentUser_AdminUser_IntegrationTest() throws Exception {
         // Given - 관리자 사용자 데이터 저장
-        User adminUser = TestUsers.createUniqueWithPrefix("관리자");
-        adminUser = TestUsers.copyWithId(TestUsers.withRole(UserRole.ADMIN), adminUser.getId());
+        User adminUser = TestUsers.createUniqueWithPrefix("관리자", builder -> {
+            builder.userName("관리자");
+            builder.socialNickname("관리자");
+            builder.role(UserRole.ADMIN);
+            builder.setting(TestUsers.createAllDisabledSetting());
+        });
         User savedAdmin = userRepository.save(adminUser);
 
         CustomUserDetails adminUserDetails = TestFixtures.createCustomUserDetails(savedAdmin);

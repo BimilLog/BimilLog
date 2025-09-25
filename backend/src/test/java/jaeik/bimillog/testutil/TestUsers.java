@@ -5,6 +5,8 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 
+import java.util.function.Consumer;
+
 /**
  * <h2>미리 정의된 테스트 사용자 인스턴스</h2>
  * <p>테스트에서 바로 사용할 수 있는 사전 정의된 사용자 객체들</p>
@@ -12,7 +14,7 @@ import jaeik.bimillog.domain.user.entity.UserRole;
  * <p>모든 사용자는 기본 Setting을 포함하여 생성됨</p>
  *
  * @author Jaeik
- * @version 3.0.0
+ * @version 3.1.0
  */
 public class TestUsers {
 
@@ -22,17 +24,58 @@ public class TestUsers {
     public static final User USER3;
 
     static {
-        // 사용자들 (테스트용) - 기본 Setting 포함
-        USER1 = createUser("kakao123456", "testUser1", "테스트유저1", "http://example.com/profile1.jpg", UserRole.USER, createDefaultSetting());
-        USER2 = createUser("kakao789012", "testUser2", "테스트유저2", "http://example.com/profile2.jpg", UserRole.USER, createDefaultSetting());
-        USER3 = createUser("kakao345678", "testUser3", "테스트유저3", "http://example.com/profile3.jpg", UserRole.USER, createDefaultSetting());
+        USER1 = createUser(builder -> {
+            builder.socialId("kakao123456");
+            builder.userName("testUser1");
+            builder.socialNickname("테스트유저1");
+            builder.thumbnailImage("http://example.com/profile1.jpg");
+        });
+
+        USER2 = createUser(builder -> {
+            builder.socialId("kakao789012");
+            builder.userName("testUser2");
+            builder.socialNickname("테스트유저2");
+            builder.thumbnailImage("http://example.com/profile2.jpg");
+        });
+
+        USER3 = createUser(builder -> {
+            builder.socialId("kakao345678");
+            builder.userName("testUser3");
+            builder.socialNickname("테스트유저3");
+            builder.thumbnailImage("http://example.com/profile3.jpg");
+        });
+    }
+
+    /**
+     * 기본 템플릿을 기반으로 한 사용자 빌더 제공
+     */
+    public static User.UserBuilder builder() {
+        return User.builder()
+                .socialId("kakao-template")
+                .provider(SocialProvider.KAKAO)
+                .userName("testUser")
+                .socialNickname("테스트유저")
+                .thumbnailImage("http://example.com/profile.jpg")
+                .role(UserRole.USER)
+                .setting(createAllEnabledSetting());
+    }
+
+    /**
+     * 템플릿 기반 사용자 생성 (커스터마이징 람다 적용)
+     */
+    public static User createUser(Consumer<User.UserBuilder> customizer) {
+        User.UserBuilder builder = builder();
+        if (customizer != null) {
+            customizer.accept(builder);
+        }
+        return builder.build();
     }
 
     /**
      * 기존 사용자를 복사하며 특정 ID 설정
      */
     public static User copyWithId(User user, Long id) {
-        return User.builder()
+        return builder()
                 .id(id)
                 .socialId(user.getSocialId())
                 .provider(user.getProvider())
@@ -49,32 +92,30 @@ public class TestUsers {
      */
     public static User withSocialId(String socialId) {
         String generatedUserName = USER1.getUserName() + "_" + socialId;
-        return createUser(
-                socialId,
-                generatedUserName,
-                USER1.getSocialNickname(),
-                USER1.getThumbnailImage(),
-                USER1.getRole(),
-                cloneSetting(USER1.getSetting())
-        );
+        return createUser(builder -> {
+            builder.socialId(socialId);
+            builder.userName(generatedUserName);
+            builder.socialNickname(USER1.getSocialNickname());
+            builder.thumbnailImage(USER1.getThumbnailImage());
+        });
     }
 
     /**
      * 특정 role을 가진 사용자 생성 (ADMIN 생성 시 사용)
      */
     public static User withRole(UserRole role) {
-        Setting setting = role == UserRole.ADMIN
-                ? createSetting(false, false, false) // 관리자는 기본적으로 알림 비활성화
-                : createDefaultSetting();
-
-        return createUser(
-                role == UserRole.ADMIN ? "kakao999999" : USER1.getSocialId(),
-                role == UserRole.ADMIN ? "adminUser" : USER1.getUserName(),
-                role == UserRole.ADMIN ? "관리자" : USER1.getSocialNickname(),
-                role == UserRole.ADMIN ? "http://example.com/admin.jpg" : USER1.getThumbnailImage(),
-                role,
-                setting
-        );
+        return createUser(builder -> {
+            builder.role(role);
+            if (role == UserRole.ADMIN) {
+                builder.socialId("kakao999999");
+                builder.userName("adminUser");
+                builder.socialNickname("관리자");
+                builder.thumbnailImage("http://example.com/admin.jpg");
+                builder.setting(createAllDisabledSetting());
+            } else {
+                builder.setting(createAllEnabledSetting());
+            }
+        });
     }
 
     /**
@@ -82,7 +123,12 @@ public class TestUsers {
      * 통합 테스트에서 고유한 사용자가 필요한 경우 사용
      */
     public static User createUnique() {
-        return createUniqueInternal("user", "테스트유저", true);
+        String timestamp = String.valueOf(System.currentTimeMillis());
+        return createUser(builder -> {
+            builder.socialId("user_" + timestamp);
+            builder.userName("user_" + timestamp);
+            builder.socialNickname("테스트유저_" + timestamp);
+        });
     }
 
     /**
@@ -90,33 +136,31 @@ public class TestUsers {
      * @param prefix 사용자 식별 접두사
      */
     public static User createUniqueWithPrefix(String prefix) {
-        return createUniqueInternal(prefix, prefix + "_소셜닉네임", false);
+        return createUniqueWithPrefix(prefix, null);
     }
 
-    private static User createUniqueInternal(String prefix,
-                                             String nicknamePrefix,
-                                             boolean appendTimestampToNickname) {
+    /**
+     * 고유한 사용자 생성 (접두사 및 커스터마이징 지원)
+     * @param prefix 사용자 식별 접두사
+     * @param customizer 사용자 정의 빌더 커스터마이저
+     */
+    public static User createUniqueWithPrefix(String prefix, Consumer<User.UserBuilder> customizer) {
         String timestamp = String.valueOf(System.currentTimeMillis());
-        String nickname = appendTimestampToNickname ? nicknamePrefix + '_' + timestamp : nicknamePrefix;
-        return createUser(
-                prefix + "_" + timestamp,
-                prefix + "_" + timestamp,
-                nickname,
-                USER1.getThumbnailImage(),
-                UserRole.USER,
-                createDefaultSetting()
-        );
+        return createUser(builder -> {
+            builder.socialId(prefix + "_" + timestamp);
+            builder.userName(prefix + "_" + timestamp);
+            builder.socialNickname(prefix + "_소셜닉네임");
+            if (customizer != null) {
+                customizer.accept(builder);
+            }
+        });
     }
 
     /**
      * 기본 설정 생성 (모든 알림 활성화)
      */
-    private static Setting createDefaultSetting() {
-        return Setting.builder()
-                .messageNotification(true)
-                .commentNotification(true)
-                .postFeaturedNotification(true)
-                .build();
+    public static Setting createAllEnabledSetting() {
+        return createSetting(true, true, true);
     }
 
     /**
@@ -147,23 +191,6 @@ public class TestUsers {
                 .messageNotification(original.isMessageNotification())
                 .commentNotification(original.isCommentNotification())
                 .postFeaturedNotification(original.isPostFeaturedNotification())
-                .build();
-    }
-
-    private static User createUser(String socialId,
-                                   String userName,
-                                   String socialNickname,
-                                   String thumbnail,
-                                   UserRole role,
-                                   Setting setting) {
-        return User.builder()
-                .socialId(socialId)
-                .provider(SocialProvider.KAKAO)
-                .userName(userName)
-                .socialNickname(socialNickname)
-                .thumbnailImage(thumbnail)
-                .role(role)
-                .setting(setting)
                 .build();
     }
 }

@@ -1,14 +1,12 @@
 package jaeik.bimillog.adapter.in.post;
 
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostRepository;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
+import jaeik.bimillog.testutil.TestFixtures;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
@@ -75,32 +73,16 @@ class PostQueryControllerIntegrationTest {
                 .build();
 
         // 테스트용 사용자 생성 및 저장
-        User user = User.builder()
-                .socialId("12345")
-                .userName("테스트사용자")
-                .thumbnailImage("http://test-profile.jpg")
-                .provider(SocialProvider.KAKAO)
-                .role(UserRole.USER)
-                .setting(TestUsers.createSetting(true, true, true))
-                .build();
-        
+        User user = TestUsers.createUser(builder -> {
+            builder.socialId("12345");
+            builder.userName("테스트사용자");
+            builder.socialNickname("테스트사용자");
+            builder.thumbnailImage("http://test-profile.jpg");
+        });
+
         savedUser = userRepository.save(user);
-        
-        // UserDetail 생성하여 CustomUserDetails 생성
-        ExistingUserDetail userDetail = ExistingUserDetail.builder()
-                .userId(savedUser.getId())
-                .userName(savedUser.getUserName())
-                .role(savedUser.getRole())
-                .socialId(savedUser.getSocialId())
-                .provider(savedUser.getProvider())
-                .settingId(savedUser.getSetting().getId())
-                .socialNickname(savedUser.getSocialNickname())
-                .thumbnailImage(savedUser.getThumbnailImage())
-                .tokenId(1L) // 테스트용
-                .fcmTokenId(null)
-                .build();
-                
-        testUser = new CustomUserDetails(userDetail);
+
+        testUser = TestFixtures.createCustomUserDetails(savedUser);
 
         // 테스트용 게시글들 생성
         createTestPosts();
