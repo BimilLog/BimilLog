@@ -10,6 +10,7 @@ import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentRepository;
 import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostRepository;
 import jaeik.bimillog.testutil.*;
+import jaeik.bimillog.testutil.BaseH2IntegrationTest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,15 +31,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * <h2>댓글 Command 컨트롤러 통합 테스트</h2>
  * <p>@SpringBootTest를 사용한 실제 Comment Command API 통합 테스트</p>
- * <p>TestContainers를 사용하여 실제 MySQL 환경에서 테스트</p>
+ * <p>H2 인메모리 데이터베이스를 사용하여 빠른 테스트 실행</p>
  * <p>댓글 작성, 수정, 삭제, 추천 API 동작을 검증</p>
  *
  * @author Jaeik
  * @version 2.0.0
  */
 @Import(TestSocialLoginPortConfig.class)
-@DisplayName("댓글 Command 컨트롤러 통합 테스트")
-class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
+@DisplayName("댓글 Command 컨트롤러 통합 테스트 (H2)")
+class CommentCommandControllerIntegrationTest extends BaseH2IntegrationTest {
 
     @Autowired
     private PostRepository postRepository;

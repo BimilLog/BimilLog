@@ -5,10 +5,9 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.in.admin.dto.ReportDTO;
 import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostRepository;
-import jaeik.bimillog.testutil.BaseIntegrationTest;
+import jaeik.bimillog.testutil.BaseH2IntegrationTest;
 import jaeik.bimillog.testutil.TestFixtures;
 import jaeik.bimillog.testutil.TestUsers;
-import jaeik.bimillog.testutil.annotation.IntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,14 +19,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * <h2>관리자 Command 컨트롤러 통합 테스트</h2>
  * <p>@SpringBootTest를 사용한 실제 관리자 Command API 통합 테스트</p>
- * <p>TestContainers를 사용하여 실제 MySQL 환경에서 테스트</p>
+ * <p>H2 인메모리 데이터베이스를 사용하여 빠른 테스트 실행</p>
  *
  * @author Jaeik
  * @since 2.0.0
  */
-@IntegrationTest
-@DisplayName("관리자 Command 컨트롤러 통합 테스트")
-class AdminCommandControllerIntegrationTest extends BaseIntegrationTest {
+@DisplayName("관리자 Command 컨트롤러 통합 테스트 (H2)")
+class AdminCommandControllerIntegrationTest extends BaseH2IntegrationTest {
 
     @Autowired
     private PostRepository postRepository;

@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Tag;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -23,6 +24,7 @@ import java.lang.annotation.*;
  *   <li>@Import(TestContainersConfiguration.class) - MySQL, Redis 컨테이너 설정</li>
  *   <li>@Transactional - 테스트 후 자동 롤백</li>
  *   <li>@Tag("integration") - 통합 테스트 태그</li>
+ *   <li>@ActiveProfiles("tc") - TestContainers 프로파일 활성화</li>
  * </ul>
  * 
  * <h3>사용 예시:</h3>
@@ -61,6 +63,7 @@ import java.lang.annotation.*;
 @Import(TestContainersConfiguration.class)
 @Transactional
 @Tag("integration")
+@ActiveProfiles("tc")
 public @interface IntegrationTest {
     /**
      * 테스트 설명 (선택적)

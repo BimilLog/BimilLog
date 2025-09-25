@@ -73,6 +73,9 @@ dependencies {
     testImplementation 'org.testcontainers:junit-jupiter:1.19.3' // TestContainers JUnit 지원
     testImplementation 'org.testcontainers:mysql:1.19.3' // MySQL TestContainer
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+
+    // ==== H2 인메모리 데이터베이스 (빠른 테스트용) ====
+    testImplementation 'com.h2database:h2' // H2 Database
     
     // ==== E2E 테스트 (Playwright) ====
     testImplementation 'com.microsoft.playwright:playwright:1.49.0' // Playwright 브라우저 자동화

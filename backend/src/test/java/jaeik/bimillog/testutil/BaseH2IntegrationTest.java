@@ -8,17 +8,18 @@ import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -26,46 +27,44 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 /**
- * <h2>통합 테스트 베이스 클래스</h2>
- * <p>모든 통합 테스트가 상속받아 사용하는 기본 클래스</p>
- * <p>TestContainers, MockMvc, Spring Security 설정을 자동으로 제공</p>
- * 
+ * <h2>H2 기반 통합 테스트 베이스 클래스</h2>
+ * <p>TestContainers 대신 H2 인메모리 데이터베이스를 사용하는 통합 테스트 베이스 클래스</p>
+ * <p>풀텍스트 검색이나 Redis를 직접 사용하지 않는 테스트에서 사용</p>
+ *
  * <h3>제공되는 기능:</h3>
  * <ul>
- *   <li>TestContainers를 통한 실제 MySQL, Redis 환경</li>
+ *   <li>H2 인메모리 데이터베이스 (MySQL 호환 모드)</li>
  *   <li>MockMvc 자동 설정 및 헬퍼 메서드</li>
  *   <li>Spring Security 통합</li>
  *   <li>트랜잭션 롤백</li>
  *   <li>공통 테스트 사용자 및 설정</li>
  *   <li>CustomUserDetails 생성 유틸리티</li>
  * </ul>
- * 
- * <h3>사용 예시:</h3>
- * <pre>
- * {@literal @}IntegrationTest
- * class UserControllerIntegrationTest extends BaseIntegrationTest {
- *     
- *     {@literal @}Test
- *     void test() throws Exception {
- *         // testUser가 이미 DB에 저장되어 있음
- *         // mockMvc가 이미 설정되어 있음
- *         
- *         performGet("/api/user/me", testUserDetails)
- *             .andExpect(status().isOk());
- *     }
- * }
- * </pre>
+ *
+ * <h3>사용 대상:</h3>
+ * <ul>
+ *   <li>단순 CRUD 테스트</li>
+ *   <li>비즈니스 로직 검증</li>
+ *   <li>API 엔드포인트 테스트</li>
+ * </ul>
+ *
+ * <h3>사용 제외 대상:</h3>
+ * <ul>
+ *   <li>풀텍스트 검색 기능 테스트</li>
+ *   <li>Redis 캐시 관련 테스트</li>
+ *   <li>MySQL 특화 기능 테스트</li>
+ * </ul>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 1.0.0
+ * @since 2025
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebMvc
-@Testcontainers
-@Import(TestContainersConfiguration.class)
+@ActiveProfiles("h2test")
+@Import(H2TestConfiguration.class)
 @Transactional
-@org.springframework.test.context.ActiveProfiles("tc")
-public abstract class BaseIntegrationTest {
+public abstract class BaseH2IntegrationTest {
 
     @Autowired
     protected WebApplicationContext context;
@@ -76,8 +75,8 @@ public abstract class BaseIntegrationTest {
     @Autowired(required = false)
     protected UserRepository userRepository;
 
-    @Autowired(required = false)
-    protected TestEntityManager entityManager;
+    @PersistenceContext
+    protected EntityManager entityManager;
 
     /**
      * MockMvc 인스턴스 (자동 설정됨)
@@ -262,13 +261,14 @@ public abstract class BaseIntegrationTest {
      * @param entity 저장할 엔티티
      * @return 저장된 엔티티
      */
+    @Transactional
     protected <T> T saveAndFlush(T entity) {
         if (entityManager != null) {
             entityManager.persist(entity);
             entityManager.flush();
             return entity;
         }
-        throw new UnsupportedOperationException("TestEntityManager is not available");
+        throw new UnsupportedOperationException("EntityManager is not available");
     }
 
     /**
