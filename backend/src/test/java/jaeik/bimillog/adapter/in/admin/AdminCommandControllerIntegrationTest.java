@@ -5,12 +5,15 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.in.admin.dto.ReportDTO;
 import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostRepository;
-import jaeik.bimillog.testutil.BaseH2IntegrationTest;
+import jaeik.bimillog.testutil.BaseIntegrationTest;
+import jaeik.bimillog.testutil.H2TestConfiguration;
 import jaeik.bimillog.testutil.TestFixtures;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -24,8 +27,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @author Jaeik
  * @since 2.0.0
  */
+@ActiveProfiles("h2test")
+@Import(H2TestConfiguration.class)
 @DisplayName("관리자 Command 컨트롤러 통합 테스트 (H2)")
-class AdminCommandControllerIntegrationTest extends BaseH2IntegrationTest {
+class AdminCommandControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private PostRepository postRepository;

@@ -11,15 +11,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -28,17 +25,23 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 /**
  * <h2>통합 테스트 베이스 클래스</h2>
- * <p>모든 통합 테스트가 상속받아 사용하는 기본 클래스</p>
- * <p>TestContainers, MockMvc, Spring Security 설정을 자동으로 제공</p>
+ * <p>모든 SpringBootTest가 상속받아 사용하는 기본 클래스</p>
+ * <p>MockMvc, Spring Security 설정을 자동으로 제공</p>
  * 
  * <h3>제공되는 기능:</h3>
  * <ul>
- *   <li>TestContainers를 통한 실제 MySQL, Redis 환경</li>
  *   <li>MockMvc 자동 설정 및 헬퍼 메서드</li>
  *   <li>Spring Security 통합</li>
  *   <li>트랜잭션 롤백</li>
  *   <li>공통 테스트 사용자 및 설정</li>
  *   <li>CustomUserDetails 생성 유틸리티</li>
+ * </ul>
+ * 
+ * <h3>DB 환경 선택:</h3>
+ * <p>테스트 클래스에서 필요에 따라 DB 환경을 선택:</p>
+ * <ul>
+ *   <li>TestContainers: @IntegrationTest 메타 어노테이션 사용</li>
+ *   <li>H2 Database: @ActiveProfiles("h2test") @Import(H2TestConfiguration.class) 사용</li>
  * </ul>
  * 
  * <h3>사용 예시:</h3>
@@ -62,10 +65,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebMvc
-@Testcontainers
-@Import(TestContainersConfiguration.class)
 @Transactional
-@ActiveProfiles("tc")
 public abstract class BaseIntegrationTest {
 
     @Autowired
