@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.post.entity.Post;
+import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.NewUserDetail;
@@ -13,7 +14,9 @@ import jaeik.bimillog.infrastructure.adapter.in.paper.dto.MessageDTO;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.PostCreateDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import org.springframework.http.ResponseCookie;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -80,7 +83,7 @@ public class TestFixtures {
      * @return ID가 설정된 엔티티
      */
     public static <T> T withId(Long id, T entity) {
-        setFieldValue(entity, "id", id);
+        ReflectionTestUtils.setField(entity, "id", id);
         return entity;
     }
 
@@ -127,7 +130,11 @@ public class TestFixtures {
      * @return PostDetail
      */
     public static PostDetail createPostDetail(Long id, String title, String content) {
-        return createPostDetail(id, title, content, 1L, false);
+        return postDetailBuilder()
+                .id(id)
+                .title(title)
+                .content(content)
+                .build();
     }
 
     /**
@@ -140,18 +147,11 @@ public class TestFixtures {
      * @return PostDetail
      */
     public static PostDetail createPostDetail(Long id, String title, String content, Long userId, boolean isLiked) {
-        return PostDetail.builder()
+        return postDetailBuilder()
                 .id(id)
                 .title(title)
                 .content(content)
-                .viewCount(10)
-                .likeCount(5)
-                .postCacheFlag(null)
-                .createdAt(java.time.Instant.now())
                 .userId(userId)
-                .userName("testUser")
-                .commentCount(3)
-                .isNotice(false)
                 .isLiked(isLiked)
                 .build();
     }
@@ -163,7 +163,13 @@ public class TestFixtures {
      * @return PostDetail
      */
     public static PostDetail createMockPostDetail(Long postId, Long userId) {
-        return createPostDetail(postId, "Test Title", "Test Content", 1L, userId != null);
+        return postDetailBuilder()
+                .id(postId)
+                .title("Test Title")
+                .content("Test Content")
+                .userId(userId != null ? userId : 1L)
+                .isLiked(userId != null)
+                .build();
     }
 
     // ==================== DTO Creation ====================
@@ -439,32 +445,109 @@ public class TestFixtures {
      * @param value 설정할 값
      */
     public static void setFieldValue(Object target, String fieldName, Object value) {
-        try {
-            // 먼저 현재 클래스에서 필드를 찾기
-            java.lang.reflect.Field field = findField(target.getClass(), fieldName);
-            if (field == null) {
-                throw new NoSuchFieldException("Field '" + fieldName + "' not found in " + target.getClass());
-            }
-            field.setAccessible(true);
-            field.set(target, value);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to set field value", e);
-        }
+        ReflectionTestUtils.setField(target, fieldName, value);
     }
 
     /**
-     * 클래스 계층 구조를 따라 필드를 찾기 (부모 클래스 포함)
+     * PostDetail 전용 빌더
      */
-    private static java.lang.reflect.Field findField(Class<?> clazz, String fieldName) {
-        Class<?> current = clazz;
-        while (current != null) {
-            try {
-                return current.getDeclaredField(fieldName);
-            } catch (NoSuchFieldException e) {
-                // 부모 클래스에서 계속 찾기
-                current = current.getSuperclass();
-            }
+    public static class PostDetailBuilder {
+        private Long id = 1L;
+        private String title = "테스트 게시글";
+        private String content = "테스트 내용";
+        private Integer viewCount = 10;
+        private Integer likeCount = 5;
+        private PostCacheFlag postCacheFlag = PostCacheFlag.REALTIME;
+        private Instant createdAt = Instant.now();
+        private Long userId = 1L;
+        private String userName = "testUser";
+        private Integer commentCount = 3;
+        private boolean isNotice = false;
+        private boolean isLiked = false;
+
+        public PostDetailBuilder id(Long id) {
+            this.id = id;
+            return this;
         }
-        return null;
+
+        public PostDetailBuilder title(String title) {
+            this.title = title;
+            return this;
+        }
+
+        public PostDetailBuilder content(String content) {
+            this.content = content;
+            return this;
+        }
+
+        public PostDetailBuilder viewCount(Integer viewCount) {
+            this.viewCount = viewCount;
+            return this;
+        }
+
+        public PostDetailBuilder likeCount(Integer likeCount) {
+            this.likeCount = likeCount;
+            return this;
+        }
+
+        public PostDetailBuilder postCacheFlag(PostCacheFlag postCacheFlag) {
+            this.postCacheFlag = postCacheFlag;
+            return this;
+        }
+
+        public PostDetailBuilder createdAt(Instant createdAt) {
+            this.createdAt = createdAt;
+            return this;
+        }
+
+        public PostDetailBuilder userId(Long userId) {
+            this.userId = userId;
+            return this;
+        }
+
+        public PostDetailBuilder userName(String userName) {
+            this.userName = userName;
+            return this;
+        }
+
+        public PostDetailBuilder commentCount(Integer commentCount) {
+            this.commentCount = commentCount;
+            return this;
+        }
+
+        public PostDetailBuilder isNotice(boolean isNotice) {
+            this.isNotice = isNotice;
+            return this;
+        }
+
+        public PostDetailBuilder isLiked(boolean isLiked) {
+            this.isLiked = isLiked;
+            return this;
+        }
+
+        public PostDetail build() {
+            return PostDetail.builder()
+                    .id(id)
+                    .title(title)
+                    .content(content)
+                    .viewCount(viewCount)
+                    .likeCount(likeCount)
+                    .postCacheFlag(postCacheFlag)
+                    .createdAt(createdAt)
+                    .userId(userId)
+                    .userName(userName)
+                    .commentCount(commentCount)
+                    .isNotice(isNotice)
+                    .isLiked(isLiked)
+                    .build();
+        }
+    }
+
+    public static PostDetailBuilder postDetailBuilder() {
+        return new PostDetailBuilder();
+    }
+
+    public static PostDetail defaultPostDetail() {
+        return postDetailBuilder().build();
     }
 }

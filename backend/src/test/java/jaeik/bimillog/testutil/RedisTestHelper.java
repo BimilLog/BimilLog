@@ -12,8 +12,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.core.ZSetOperations;
 
-import java.time.Instant;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.RETURNS_SELF;
@@ -75,76 +73,15 @@ public class RedisTestHelper {
     }
 
     /**
-     * 테스트용 PostDetail 생성 빌더
-     */
-    public static class PostDetailBuilder {
-        private Long id = 1L;
-        private String title = "테스트 게시글";
-        private String content = "테스트 내용";
-        private final PostCacheFlag postCacheFlag = PostCacheFlag.REALTIME;
-        private final Instant createdAt = Instant.now();
-        private Long userId = 1L;
-        private String userName = "testUser";
-        private Boolean isNotice = false;
-
-        public PostDetailBuilder id(Long id) {
-            this.id = id;
-            return this;
-        }
-
-        public PostDetailBuilder title(String title) {
-            this.title = title;
-            return this;
-        }
-
-        public PostDetailBuilder content(String content) {
-            this.content = content;
-            return this;
-        }
-
-        public PostDetailBuilder userId(Long userId) {
-            this.userId = userId;
-            return this;
-        }
-
-        public PostDetailBuilder userName(String userName) {
-            this.userName = userName;
-            return this;
-        }
-
-        public PostDetailBuilder isNotice(Boolean isNotice) {
-            this.isNotice = isNotice;
-            return this;
-        }
-
-        public PostDetail build() {
-            Integer viewCount = 100;
-            Integer likeCount = 50;
-            Integer commentCount = 10;
-            boolean isLiked = false;
-            return PostDetail.builder()
-                .id(id)
-                .title(title)
-                .content(content)
-                .viewCount(viewCount)
-                .likeCount(likeCount)
-                .postCacheFlag(postCacheFlag)
-                .createdAt(createdAt)
-                .userId(userId)
-                .userName(userName)
-                .commentCount(commentCount)
-                .isNotice(isNotice)
-                .isLiked(isLiked)
-                .build();
-        }
-    }
-
-    /**
      * PostDetail 빌더 시작
-     * @return PostDetailBuilder
+     * @return 통일된 기본값이 적용된 PostDetailBuilder
      */
-    public static PostDetailBuilder postDetail() {
-        return new PostDetailBuilder();
+    public static TestFixtures.PostDetailBuilder postDetail() {
+        return TestFixtures.postDetailBuilder()
+                .viewCount(100)
+                .likeCount(50)
+                .commentCount(10)
+                .isLiked(false);
     }
 
     /**

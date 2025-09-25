@@ -1,7 +1,6 @@
 package jaeik.bimillog.testutil;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
@@ -185,20 +184,7 @@ public abstract class BaseIntegrationTest {
      * @return CustomUserDetails 인스턴스
      */
     protected CustomUserDetails createCustomUserDetails(User user) {
-        ExistingUserDetail userDetail = ExistingUserDetail.builder()
-                .userId(user.getId())
-                .settingId(user.getSetting() != null ? user.getSetting().getId() : null)
-                .socialId(user.getSocialId())
-                .socialNickname(user.getSocialNickname())
-                .thumbnailImage(user.getThumbnailImage())
-                .userName(user.getUserName())
-                .provider(user.getProvider())
-                .role(user.getRole())
-                .tokenId(null)
-                .fcmTokenId(null)
-                .build();
-
-        return new CustomUserDetails(userDetail);
+        return TestFixtures.createCustomUserDetails(user);
     }
 
     /**

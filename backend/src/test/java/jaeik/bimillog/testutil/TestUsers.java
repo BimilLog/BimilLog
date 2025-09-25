@@ -23,35 +23,9 @@ public class TestUsers {
 
     static {
         // 사용자들 (테스트용) - 기본 Setting 포함
-        USER1 = User.builder()
-                .socialId("kakao123456")
-                .provider(SocialProvider.KAKAO)
-                .userName("testUser1")
-                .socialNickname("테스트유저1")
-                .thumbnailImage("http://example.com/profile1.jpg")
-                .role(UserRole.USER)
-                .setting(createDefaultSetting())
-                .build();
-
-        USER2 = User.builder()
-                .socialId("kakao789012")
-                .provider(SocialProvider.KAKAO)
-                .userName("testUser2")
-                .socialNickname("테스트유저2")
-                .thumbnailImage("http://example.com/profile2.jpg")
-                .role(UserRole.USER)
-                .setting(createDefaultSetting())
-                .build();
-
-        USER3 = User.builder()
-                .socialId("kakao345678")
-                .provider(SocialProvider.KAKAO)
-                .userName("testUser3")
-                .socialNickname("테스트유저3")
-                .thumbnailImage("http://example.com/profile3.jpg")
-                .role(UserRole.USER)
-                .setting(createDefaultSetting())
-                .build();
+        USER1 = createUser("kakao123456", "testUser1", "테스트유저1", "http://example.com/profile1.jpg", UserRole.USER, createDefaultSetting());
+        USER2 = createUser("kakao789012", "testUser2", "테스트유저2", "http://example.com/profile2.jpg", UserRole.USER, createDefaultSetting());
+        USER3 = createUser("kakao345678", "testUser3", "테스트유저3", "http://example.com/profile3.jpg", UserRole.USER, createDefaultSetting());
     }
 
     /**
@@ -75,15 +49,14 @@ public class TestUsers {
      */
     public static User withSocialId(String socialId) {
         String generatedUserName = USER1.getUserName() + "_" + socialId;
-        return User.builder()
-                .socialId(socialId)
-                .provider(SocialProvider.KAKAO)
-                .userName(generatedUserName)
-                .socialNickname(USER1.getSocialNickname())
-                .thumbnailImage(USER1.getThumbnailImage())
-                .role(USER1.getRole())
-                .setting(cloneSetting(USER1.getSetting()))
-                .build();
+        return createUser(
+                socialId,
+                generatedUserName,
+                USER1.getSocialNickname(),
+                USER1.getThumbnailImage(),
+                USER1.getRole(),
+                cloneSetting(USER1.getSetting())
+        );
     }
 
     /**
@@ -94,15 +67,14 @@ public class TestUsers {
                 ? createSetting(false, false, false) // 관리자는 기본적으로 알림 비활성화
                 : createDefaultSetting();
 
-        return User.builder()
-                .socialId(role == UserRole.ADMIN ? "kakao999999" : USER1.getSocialId())
-                .provider(USER1.getProvider())
-                .userName(role == UserRole.ADMIN ? "adminUser" : USER1.getUserName())
-                .socialNickname(role == UserRole.ADMIN ? "관리자" : USER1.getSocialNickname())
-                .thumbnailImage(role == UserRole.ADMIN ? "http://example.com/admin.jpg" : USER1.getThumbnailImage())
-                .role(role)
-                .setting(setting)
-                .build();
+        return createUser(
+                role == UserRole.ADMIN ? "kakao999999" : USER1.getSocialId(),
+                role == UserRole.ADMIN ? "adminUser" : USER1.getUserName(),
+                role == UserRole.ADMIN ? "관리자" : USER1.getSocialNickname(),
+                role == UserRole.ADMIN ? "http://example.com/admin.jpg" : USER1.getThumbnailImage(),
+                role,
+                setting
+        );
     }
 
     /**
@@ -110,16 +82,7 @@ public class TestUsers {
      * 통합 테스트에서 고유한 사용자가 필요한 경우 사용
      */
     public static User createUnique() {
-        String timestamp = String.valueOf(System.currentTimeMillis());
-        return User.builder()
-                .socialId("unique_" + timestamp)
-                .provider(SocialProvider.KAKAO)
-                .userName("user_" + timestamp)
-                .socialNickname("테스트유저_" + timestamp)
-                .thumbnailImage(USER1.getThumbnailImage())
-                .role(UserRole.USER)
-                .setting(createDefaultSetting())
-                .build();
+        return createUniqueInternal("user", "테스트유저", true);
     }
 
     /**
@@ -127,16 +90,22 @@ public class TestUsers {
      * @param prefix 사용자 식별 접두사
      */
     public static User createUniqueWithPrefix(String prefix) {
+        return createUniqueInternal(prefix, prefix + "_소셜닉네임", false);
+    }
+
+    private static User createUniqueInternal(String prefix,
+                                             String nicknamePrefix,
+                                             boolean appendTimestampToNickname) {
         String timestamp = String.valueOf(System.currentTimeMillis());
-        return User.builder()
-                .socialId(prefix + "_" + timestamp)
-                .provider(SocialProvider.KAKAO)
-                .userName(prefix + "_" + timestamp)
-                .socialNickname(prefix + "_소셜닉네임")
-                .thumbnailImage(USER1.getThumbnailImage())
-                .role(UserRole.USER)
-                .setting(createDefaultSetting())
-                .build();
+        String nickname = appendTimestampToNickname ? nicknamePrefix + '_' + timestamp : nicknamePrefix;
+        return createUser(
+                prefix + "_" + timestamp,
+                prefix + "_" + timestamp,
+                nickname,
+                USER1.getThumbnailImage(),
+                UserRole.USER,
+                createDefaultSetting()
+        );
     }
 
     /**
@@ -178,6 +147,23 @@ public class TestUsers {
                 .messageNotification(original.isMessageNotification())
                 .commentNotification(original.isCommentNotification())
                 .postFeaturedNotification(original.isPostFeaturedNotification())
+                .build();
+    }
+
+    private static User createUser(String socialId,
+                                   String userName,
+                                   String socialNickname,
+                                   String thumbnail,
+                                   UserRole role,
+                                   Setting setting) {
+        return User.builder()
+                .socialId(socialId)
+                .provider(SocialProvider.KAKAO)
+                .userName(userName)
+                .socialNickname(socialNickname)
+                .thumbnailImage(thumbnail)
+                .role(role)
+                .setting(setting)
                 .build();
     }
 }
