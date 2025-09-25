@@ -70,17 +70,11 @@ public class PostTestDataBuilder {
      * Mock PostDetail 생성 (테스트용 기본값)
      */
     public static PostDetail createMockPostDetail(Long postId, Long userId) {
-        Long resolvedUserId = userId != null ? userId : 1L;
         return postDetailBuilder()
                 .id(postId)
-                .title("Mock Post " + postId)
-                .content("Mock Content " + postId)
-                .viewCount(100)
-                .likeCount(10)
-                .createdAt(Instant.now().minusSeconds(86400))
-                .userId(resolvedUserId)
-                .userName("유저" + resolvedUserId)
-                .commentCount(5)
+                .title("Test Title")
+                .content("Test Content")
+                .userId(userId != null ? userId : 1L)
                 .isLiked(userId != null)
                 .build();
     }

@@ -1,16 +1,14 @@
 package jaeik.bimillog.testutil;
 
 import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
-import jaeik.bimillog.domain.user.entity.NewUserDetail;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.in.paper.dto.MessageDTO;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.PostCreateDTO;
+import jaeik.bimillog.infrastructure.adapter.in.post.dto.PostUpdateDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import org.springframework.http.ResponseCookie;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import java.util.List;
 
 /**
  * <h2>테스트 데이터 Fixtures</h2>
@@ -70,8 +68,8 @@ public class TestFixtures {
      * @param content 내용
      * @return PostUpdateDTO
      */
-    public static jaeik.bimillog.infrastructure.adapter.in.post.dto.PostUpdateDTO createPostUpdateDTO(String title, String content) {
-        return jaeik.bimillog.infrastructure.adapter.in.post.dto.PostUpdateDTO.builder()
+    public static PostUpdateDTO createPostUpdateDTO(String title, String content) {
+        return PostUpdateDTO.builder()
                 .title(title)
                 .content(content)
                 .build();
@@ -81,7 +79,7 @@ public class TestFixtures {
      * 기본 게시글 수정 요청 DTO 생성
      * @return PostUpdateDTO
      */
-    public static jaeik.bimillog.infrastructure.adapter.in.post.dto.PostUpdateDTO createPostUpdateDTO() {
+    public static PostUpdateDTO createPostUpdateDTO() {
         return createPostUpdateDTO("수정된 제목", "수정된 내용입니다. 10자 이상으로 작성합니다.");
     }
 

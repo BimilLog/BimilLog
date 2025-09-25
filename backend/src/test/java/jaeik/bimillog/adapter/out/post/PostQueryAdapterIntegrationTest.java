@@ -143,8 +143,8 @@ class PostQueryAdapterIntegrationTest {
         assertThat(titles).doesNotContain("공지사항 제목");
         
         // 댓글 수와 추천 수가 설정되어 있는지 확인
-        assertThat(result.getContent().get(0).getCommentCount()).isNotNull();
-        assertThat(result.getContent().get(0).getLikeCount()).isNotNull();
+        assertThat(result.getContent().getFirst().getCommentCount()).isNotNull();
+        assertThat(result.getContent().getFirst().getLikeCount()).isNotNull();
     }
 
 
@@ -231,7 +231,7 @@ class PostQueryAdapterIntegrationTest {
         // Then: 해당 제목이 포함된 게시글 조회됨
         assertThat(result).isNotNull();
         assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getTitle()).contains("첫");
+        assertThat(result.getContent().getFirst().getTitle()).contains("첫");
     }
 
     @Test

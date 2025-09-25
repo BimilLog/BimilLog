@@ -1,8 +1,8 @@
 package jaeik.bimillog.testutil;
 
-import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.entity.DecoType;
+import jaeik.bimillog.domain.paper.entity.Message;
+import jaeik.bimillog.domain.user.entity.User;
 
 /**
  * Paper 도메인 테스트 데이터 빌더

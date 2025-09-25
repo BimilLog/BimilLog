@@ -43,7 +43,6 @@ class PostCacheControllerIntegrationTest extends BaseIntegrationTest {
     private PostLikeRepository postLikeRepository;
 
     private User savedUser;
-    private List<Post> testPosts;
     private List<User> likeUsers;
 
     @Override
@@ -62,7 +61,7 @@ class PostCacheControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     private void createTestPosts() {
-        testPosts = new ArrayList<>();
+        List<Post> testPosts = new ArrayList<>();
 
         for (int i = 1; i <= 3; i++) {
             Post realtimePost = Post.builder()

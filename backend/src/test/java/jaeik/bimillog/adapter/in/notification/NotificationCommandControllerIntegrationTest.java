@@ -4,7 +4,10 @@ import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.infrastructure.adapter.in.notification.dto.UpdateNotificationDTO;
 import jaeik.bimillog.infrastructure.adapter.out.notification.jpa.NotificationRepository;
-import jaeik.bimillog.testutil.*;
+import jaeik.bimillog.testutil.BaseIntegrationTest;
+import jaeik.bimillog.testutil.H2TestConfiguration;
+import jaeik.bimillog.testutil.NotificationTestDataBuilder;
+import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -53,7 +57,7 @@ class NotificationCommandControllerIntegrationTest extends BaseIntegrationTest {
 
         UpdateNotificationDTO updateDTO = new UpdateNotificationDTO();
         updateDTO.setReadIds(readIds);
-        updateDTO.setDeletedIds(Arrays.asList());
+        updateDTO.setDeletedIds(List.of());
 
         String requestBody = objectMapper.writeValueAsString(updateDTO);
 
@@ -74,7 +78,7 @@ class NotificationCommandControllerIntegrationTest extends BaseIntegrationTest {
         List<Long> deletedIds = Arrays.asList(testNotifications.get(2).getId(), testNotifications.get(3).getId());
 
         UpdateNotificationDTO updateDTO = new UpdateNotificationDTO();
-        updateDTO.setReadIds(Arrays.asList());
+        updateDTO.setReadIds(List.of());
         updateDTO.setDeletedIds(deletedIds);
 
         String requestBody = objectMapper.writeValueAsString(updateDTO);
@@ -93,8 +97,8 @@ class NotificationCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("알림 읽음과 삭제 동시 처리 - 성공")
     void markAsReadAndDelete_Success() throws Exception {
         // Given
-        List<Long> readIds = Arrays.asList(testNotifications.get(0).getId());
-        List<Long> deletedIds = Arrays.asList(testNotifications.get(4).getId());
+        List<Long> readIds = Collections.singletonList(testNotifications.get(0).getId());
+        List<Long> deletedIds = Collections.singletonList(testNotifications.get(4).getId());
 
         UpdateNotificationDTO updateDTO = new UpdateNotificationDTO();
         updateDTO.setReadIds(readIds);
@@ -117,8 +121,8 @@ class NotificationCommandControllerIntegrationTest extends BaseIntegrationTest {
     void updateWithEmptyLists_Success() throws Exception {
         // Given
         UpdateNotificationDTO updateDTO = new UpdateNotificationDTO();
-        updateDTO.setReadIds(Arrays.asList());
-        updateDTO.setDeletedIds(Arrays.asList());
+        updateDTO.setReadIds(List.of());
+        updateDTO.setDeletedIds(List.of());
 
         String requestBody = objectMapper.writeValueAsString(updateDTO);
 
@@ -140,7 +144,7 @@ class NotificationCommandControllerIntegrationTest extends BaseIntegrationTest {
 
         UpdateNotificationDTO updateDTO = new UpdateNotificationDTO();
         updateDTO.setReadIds(nonExistentIds);
-        updateDTO.setDeletedIds(Arrays.asList());
+        updateDTO.setDeletedIds(List.of());
 
         String requestBody = objectMapper.writeValueAsString(updateDTO);
 
@@ -159,8 +163,8 @@ class NotificationCommandControllerIntegrationTest extends BaseIntegrationTest {
     void updateNotifications_Unauthenticated_Forbidden() throws Exception {
         // Given
         UpdateNotificationDTO updateDTO = new UpdateNotificationDTO();
-        updateDTO.setReadIds(Arrays.asList(1L));
-        updateDTO.setDeletedIds(Arrays.asList());
+        updateDTO.setReadIds(List.of(1L));
+        updateDTO.setDeletedIds(List.of());
 
         String requestBody = objectMapper.writeValueAsString(updateDTO);
 

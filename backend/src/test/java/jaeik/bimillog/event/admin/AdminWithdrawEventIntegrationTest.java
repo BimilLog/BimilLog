@@ -11,7 +11,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 
 
 @DisplayName("관리자 강제 탈퇴 요청 이벤트 워크플로우 통합 테스트")

@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -30,8 +31,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("알림 SSE 컨트롤러 통합 테스트")
 class NotificationSseControllerIntegrationTest extends BaseIntegrationTest {
 
-    // BaseIntegrationTest에서 mockMvc, testUser, userRepository 등을 자동으로 제공
-    
     @Test
     @DisplayName("로그인된 사용자의 SSE 구독 - 성공")
     void subscribe_AuthenticatedUser_Success() throws Exception {
@@ -56,7 +55,7 @@ class NotificationSseControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("잘못된 HTTP 메서드로 SSE 구독 - 실패 (CSRF 보안으로 403)")
     void subscribe_WrongHttpMethod_Forbidden() throws Exception {
         // When & Then - POST 메서드로 요청 (Spring Security CSRF가 먼저 차단)
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/notification/subscribe")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/notification/subscribe")
                 .with(user(testUserDetails)))
                 .andDo(print())
                 .andExpect(status().isForbidden()); // CSRF 보안으로 403 반환

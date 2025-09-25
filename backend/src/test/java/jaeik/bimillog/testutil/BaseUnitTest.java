@@ -32,31 +32,8 @@ import static org.mockito.Mockito.mock;
  *   <li>필요한 데이터만 생성하여 테스트 성능 향상</li>
  * </ul>
  *
- * <h3>중요: 필드 접근은 더 이상 지원되지 않습니다</h3>
- * <p>모든 테스트 데이터는 getter 메서드를 통해서만 접근 가능합니다.</p>
- * <p>필드 직접 접근 (testUser, adminUser 등)은 제거되었으며, </p>
- * <p>getTestUser(), getAdminUser() 등의 getter 메서드를 사용해야 합니다.</p>
- *
- * <h3>사용 예시:</h3>
- * <pre>
- * class UserServiceTest extends BaseUnitTest {
- *     {@literal @}Mock UserRepository repository;
- *     {@literal @}InjectMocks UserService service;
- *
- *     {@literal @}Test
- *     void test() {
- *         // ✅ 올바른 사용 - getter 메서드
- *         given(repository.findById(1L)).willReturn(Optional.of(getTestUser()));
- *         
- *         // ❌ 잘못된 사용 - 필드 직접 접근 (더 이상 지원 안함)
- *         // given(repository.findById(1L)).willReturn(Optional.of(testUser));
- *     }
- * }
- * </pre>
- *
  * @author Jaeik
  * @version 2.0.0
- * @since 2025-01 Lazy getter 메서드만 지원, 필드 직접 접근 제거
  */
 @ExtendWith(MockitoExtension.class)
 public abstract class BaseUnitTest {
@@ -187,17 +164,6 @@ public abstract class BaseUnitTest {
     protected void mockAuthenticatedUser(MockedStatic<SecurityContextHolder> mockedSecurityContext) {
         CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(getTestUser());
         mockAuthenticatedUser(mockedSecurityContext, userDetails, UserRole.USER);
-    }
-
-    /**
-     * 특정 사용자로 SecurityContext를 Mock 설정
-     * <p>지정된 사용자와 USER 권한으로 설정</p>
-     * @param mockedSecurityContext MockedStatic SecurityContextHolder
-     * @param user 사용자 엔티티
-     */
-    protected void mockAuthenticatedUser(MockedStatic<SecurityContextHolder> mockedSecurityContext, User user) {
-        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(user);
-        mockAuthenticatedUser(mockedSecurityContext, userDetails, user.getRole());
     }
 
     /**

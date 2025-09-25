@@ -43,7 +43,7 @@ import java.util.Arrays;
  * </pre>
  *
  * @author Jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 @SpringBootTest
 @Testcontainers
@@ -149,8 +149,6 @@ public abstract class BaseEventIntegrationTest extends BaseIntegrationTest {
     protected void verifyAsyncSlow(Runnable verification) {
         verifyAsync(verification, SLOW_TIMEOUT);
     }
-
-
 
     /**
      * 이벤트 발행 후 즉시 비동기 검증

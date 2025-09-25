@@ -42,8 +42,6 @@ class PostCacheSyncServiceTest {
     @Mock
     private RedisPostSyncPort redisPostSyncPort;
 
-
-
     @Mock
     private ApplicationEventPublisher eventPublisher;
 

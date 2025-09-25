@@ -231,7 +231,7 @@ class NotificationCommandAdapterIntegrationTest {
 
         List<Notification> notifications = notificationRepository.findAll();
         assertThat(notifications).hasSize(1);
-        assertThat(notifications.get(0).isRead()).isFalse(); // 읽음 상태 변경되지 않음
+        assertThat(notifications.getFirst().isRead()).isFalse(); // 읽음 상태 변경되지 않음
     }
 
     @Test
@@ -266,8 +266,8 @@ class NotificationCommandAdapterIntegrationTest {
         // Then: 현재 사용자의 알림만 삭제되고, 다른 사용자의 알림은 보존되어야 함
         List<Notification> remainingNotifications = notificationRepository.findAll();
         assertThat(remainingNotifications).hasSize(1);
-        assertThat(remainingNotifications.get(0).getId()).isEqualTo(otherNotification.getId());
-        assertThat(remainingNotifications.get(0).getUsers().getId()).isEqualTo(otherUser.getId());
+        assertThat(remainingNotifications.getFirst().getId()).isEqualTo(otherNotification.getId());
+        assertThat(remainingNotifications.getFirst().getUsers().getId()).isEqualTo(otherUser.getId());
     }
 
 

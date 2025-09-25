@@ -64,7 +64,7 @@ class KakaoFriendAdapterTest extends BaseUnitTest {
         assertThat(result.favoriteCount()).isEqualTo(1);
         
         // 첫 번째 친구 검증
-        KakaoFriendsResponseVO.Friend friend1 = result.elements().get(0);
+        KakaoFriendsResponseVO.Friend friend1 = result.elements().getFirst();
         assertThat(friend1.id()).isEqualTo(1L);
         assertThat(friend1.profileNickname()).isEqualTo("친구1");
         assertThat(friend1.favorite()).isFalse();

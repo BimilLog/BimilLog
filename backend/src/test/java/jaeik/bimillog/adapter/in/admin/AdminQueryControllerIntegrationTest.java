@@ -7,6 +7,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
@@ -36,7 +37,7 @@ class AdminQueryControllerIntegrationTest extends BaseIntegrationTest {
         mockMvc.perform(MockMvcRequestBuilders.get("/api/admin/reports")
                         .param("page", String.valueOf(page))
                         .param("size", String.valueOf(size))
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(adminUserDetails)))
+                        .with(SecurityMockMvcRequestPostProcessors.user(adminUserDetails)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -59,7 +60,7 @@ class AdminQueryControllerIntegrationTest extends BaseIntegrationTest {
                         .param("page", "0")
                         .param("size", "10")
                         .param("reportType", reportType.name())
-                        .with(org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user(adminUserDetails)))
+                        .with(SecurityMockMvcRequestPostProcessors.user(adminUserDetails)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))

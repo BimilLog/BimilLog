@@ -100,7 +100,6 @@ class ReportSubmittedEventIntegrationTest extends BaseEventIntegrationTest {
         });
     }
 
-
     @Test
     @DisplayName("이벤트 처리 중 예외 발생 시 다른 이벤트에 영향 없음")
     void reportSubmissionWorkflow_ExceptionIsolation() {
@@ -120,7 +119,4 @@ class ReportSubmittedEventIntegrationTest extends BaseEventIntegrationTest {
             verifyNoMoreInteractions(adminCommandUseCase);
         });
     }
-
-
-
 }

@@ -1,9 +1,9 @@
 package jaeik.bimillog.testutil;
 
-import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
-import jaeik.bimillog.domain.user.entity.NewUserDetail;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.entity.Token;
+import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
+import jaeik.bimillog.domain.user.entity.NewUserDetail;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import org.springframework.http.ResponseCookie;
@@ -47,7 +47,6 @@ public abstract class BaseAuthUnitTest extends BaseUnitTest {
     private CustomUserDetails cachedTestCustomUserDetails;
     private List<ResponseCookie> cachedLogoutCookies;
     private List<ResponseCookie> cachedJwtCookies;
-    private List<Token> cachedMultipleTokens;
     
     /**
      * 테스트용 토큰 획득
@@ -81,11 +80,15 @@ public abstract class BaseAuthUnitTest extends BaseUnitTest {
      */
     protected ExistingUserDetail getExistingUserDetail() {
         if (cachedExistingUserDetail == null) {
+            Long settingId = 1L;
+            if (getTestUser().getSetting() != null && getTestUser().getSetting().getId() != null) {
+                settingId = getTestUser().getSetting().getId();
+            }
             cachedExistingUserDetail = ExistingUserDetail.builder()
                     .userId(getTestUser().getId())
                     .socialId(TEST_SOCIAL_ID)
                     .provider(getTestUser().getProvider())
-                    .settingId(getDefaultSetting().getId())
+                    .settingId(settingId)
                     .socialNickname(TEST_SOCIAL_NICKNAME)
                     .thumbnailImage(TEST_PROFILE_IMAGE)
                     .userName(getTestUser().getUserName())
@@ -174,17 +177,16 @@ public abstract class BaseAuthUnitTest extends BaseUnitTest {
 
     /**
      * 복수의 임시 토큰 생성
+     * 매 호출마다 새로운 리스트를 생성하여 반환
      */
     protected List<Token> createMultipleTokens(int count) {
-        if (cachedMultipleTokens == null || cachedMultipleTokens.size() != count) {
-            cachedMultipleTokens = new ArrayList<>();
-            for (int i = 0; i < count; i++) {
-                cachedMultipleTokens.add(Token.createTemporaryToken(
-                        "access-token-" + i,
-                        "refresh-token-" + i
-                ));
-            }
+        List<Token> tokens = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            tokens.add(Token.createTemporaryToken(
+                    "access-token-" + i,
+                    "refresh-token-" + i
+            ));
         }
-        return cachedMultipleTokens;
+        return tokens;
     }
 }
