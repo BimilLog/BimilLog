@@ -74,7 +74,7 @@ public abstract class BaseUnitTest {
      */
     protected User getTestUser() {
         if (cachedTestUser == null) {
-            cachedTestUser = TestUsers.USER1;
+            cachedTestUser = TestUsers.copyWithId(TestUsers.USER1, 1L);
         }
         return cachedTestUser;
     }
@@ -85,7 +85,7 @@ public abstract class BaseUnitTest {
      */
     protected User getAdminUser() {
         if (cachedAdminUser == null) {
-            cachedAdminUser = TestUsers.withRole(UserRole.ADMIN);
+            cachedAdminUser = TestUsers.copyWithId(TestUsers.withRole(UserRole.ADMIN), 999L);
         }
         return cachedAdminUser;
     }
@@ -96,7 +96,7 @@ public abstract class BaseUnitTest {
      */
     protected User getOtherUser() {
         if (cachedOtherUser == null) {
-            cachedOtherUser = TestUsers.USER2;
+            cachedOtherUser = TestUsers.copyWithId(TestUsers.USER2, 2L);
         }
         return cachedOtherUser;
     }
@@ -107,7 +107,7 @@ public abstract class BaseUnitTest {
      */
     protected User getThirdUser() {
         if (cachedThirdUser == null) {
-            cachedThirdUser = TestUsers.USER3;
+            cachedThirdUser = TestUsers.copyWithId(TestUsers.USER3, 3L);
         }
         return cachedThirdUser;
     }

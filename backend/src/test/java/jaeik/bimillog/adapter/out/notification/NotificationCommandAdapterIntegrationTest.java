@@ -168,7 +168,12 @@ class NotificationCommandAdapterIntegrationTest {
     @Transactional
     void shouldBatchDeleteAndMarkAsRead_WhenBothIdsProvided() {
         // Given: 테스트용 알림 4개 저장
-        List<Notification> notifications = NotificationTestDataBuilder.createMixedNotifications(testUser);
+        List<Notification> notifications = List.of(
+                NotificationTestDataBuilder.aCommentNotification(testUser, 1L).build(),
+                NotificationTestDataBuilder.aLikeNotification(testUser, 3L).build(),
+                NotificationTestDataBuilder.aPaperMessageNotification(testUser).build(),
+                NotificationTestDataBuilder.anAdminNotification(testUser, "시스템 점검 안내").build()
+        );
         Notification notification1 = testEntityManager.persistAndFlush(notifications.get(0));
         Notification notification2 = testEntityManager.persistAndFlush(notifications.get(1));
         Notification notification3 = testEntityManager.persistAndFlush(notifications.get(2));

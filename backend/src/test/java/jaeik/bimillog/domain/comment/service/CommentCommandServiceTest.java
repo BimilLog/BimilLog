@@ -16,6 +16,7 @@ import jaeik.bimillog.global.application.port.out.GlobalUserQueryPort;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.CommentTestDataBuilder;
 import jaeik.bimillog.testutil.TestFixtures;
+import jaeik.bimillog.testutil.PostTestDataBuilder;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -69,8 +70,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
         // getTestUser()를 사용하여 테스트 사용자 획득
         User user = getTestUser();
         TestFixtures.setFieldValue(user, "id", 100L);
-        testPost = TestFixtures.withId(300L, TestFixtures.createPost(user, "테스트 게시글", "게시글 내용"));
-        testComment = TestFixtures.withId(TEST_COMMENT_ID, CommentTestDataBuilder.createComment(user, testPost, TEST_ORIGINAL_CONTENT));
+        testPost = PostTestDataBuilder.withId(300L, PostTestDataBuilder.createPost(user, "테스트 게시글", "게시글 내용"));
+        testComment = CommentTestDataBuilder.withId(TEST_COMMENT_ID, CommentTestDataBuilder.createComment(user, testPost, TEST_ORIGINAL_CONTENT));
     }
 
     @Test

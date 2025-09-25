@@ -5,9 +5,6 @@ import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.user.entity.User;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * <h2>Notification 도메인 테스트 데이터 빌더</h2>
  * <p>알림 관련 테스트 데이터를 쉽게 생성하기 위한 빌더 클래스</p>
@@ -170,22 +167,5 @@ public class NotificationTestDataBuilder {
         }
 
         return notification;
-    }
-
-    /**
-     * 다양한 타입의 알림 생성
-     * @param receiver 수신자
-     * @return 다양한 타입의 Notification 리스트
-     */
-    public static List<Notification> createMixedNotifications(User receiver) {
-        List<Notification> notifications = new ArrayList<>();
-
-        notifications.add(aCommentNotification(receiver, 1L).build());
-        notifications.add(aLikeNotification(receiver, 3L).build());
-        notifications.add(aPaperMessageNotification(receiver).build());
-        notifications.add(anAdminNotification(receiver, "시스템 점검 안내").build());
-        notifications.add(aCommentNotification(receiver, 2L).build()); // 5번째 알림 추가
-
-        return notifications;
     }
 }

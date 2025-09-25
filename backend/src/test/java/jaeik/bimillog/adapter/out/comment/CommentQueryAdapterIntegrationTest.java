@@ -14,7 +14,7 @@ import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostRepository;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.testutil.CommentTestDataBuilder;
 import jaeik.bimillog.testutil.H2TestConfiguration;
-import jaeik.bimillog.testutil.TestFixtures;
+import jaeik.bimillog.testutil.PostTestDataBuilder;
 import jaeik.bimillog.testutil.TestUsers;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -85,7 +85,7 @@ class CommentQueryAdapterIntegrationTest {
         otherUser = userRepository.save(otherUser);
 
         // 테스트용 게시글 생성
-        testPost = TestFixtures.createPost(testUser, "테스트 게시글", "테스트 게시글 내용입니다.");
+        testPost = PostTestDataBuilder.createPost(testUser, "테스트 게시글", "테스트 게시글 내용입니다.");
         testPost = postRepository.save(testPost);
 
         entityManager.flush();
@@ -301,10 +301,10 @@ class CommentQueryAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 게시글 ID 목록에 대한 댓글 수 조회")
     void shouldFindCommentCountsByPostIds_WhenValidPostIdsProvided() {
         // Given: 여러 게시글과 각각의 댓글들
-        Post post2 = TestFixtures.createPost(testUser, "테스트 게시글", "테스트 게시글 내용입니다.");
+        Post post2 = PostTestDataBuilder.createPost(testUser, "테스트 게시글", "테스트 게시글 내용입니다.");
         postRepository.save(post2);
 
-        Post post3 = TestFixtures.createPost(otherUser, "테스트 게시글", "테스트 게시글 내용입니다.");
+        Post post3 = PostTestDataBuilder.createPost(otherUser, "테스트 게시글", "테스트 게시글 내용입니다.");
         postRepository.save(post3);
 
         // testPost에 댓글 3개 생성

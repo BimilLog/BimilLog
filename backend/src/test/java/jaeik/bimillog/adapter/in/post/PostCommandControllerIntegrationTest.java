@@ -7,6 +7,7 @@ import jaeik.bimillog.infrastructure.adapter.in.post.dto.PostUpdateDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostRepository;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
+import jaeik.bimillog.testutil.PostTestDataBuilder;
 import jaeik.bimillog.testutil.TestFixtures;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
 import jaeik.bimillog.testutil.TestUsers;
@@ -114,7 +115,7 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("게시글 수정 성공")
     void updatePost_Success() throws Exception {
-        Post existingPost = TestFixtures.createPost(savedUser, "수정 전 제목", "수정 전 내용");
+        Post existingPost = PostTestDataBuilder.createPost(savedUser, "수정 전 제목", "수정 전 내용");
         Post savedPost = postRepository.save(existingPost);
 
         PostUpdateDTO updateReqDTO = TestFixtures.createPostUpdateDTO();
@@ -138,7 +139,7 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
     void updatePost_Fail_NotAuthor() throws Exception {
         User anotherUser = userRepository.save(TestUsers.createUniqueWithPrefix("another"));
 
-        Post anotherPost = TestFixtures.createPost(
+        Post anotherPost = PostTestDataBuilder.createPost(
                 anotherUser,
                 "다른 사용자 게시글",
                 "다른 사용자가 작성한 게시글"
@@ -162,7 +163,7 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("게시글 삭제 성공")
     void deletePost_Success() throws Exception {
-        Post existingPost = TestFixtures.createPost(
+        Post existingPost = PostTestDataBuilder.createPost(
                 savedUser,
                 "삭제할 게시글",
                 "삭제할 게시글 내용"
@@ -192,7 +193,7 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("게시글 추천 성공")
     void likePost_Success() throws Exception {
-        Post existingPost = TestFixtures.createPost(
+        Post existingPost = PostTestDataBuilder.createPost(
                 savedUser,
                 "추천할 게시글",
                 "추천할 게시글 내용"
@@ -219,7 +220,7 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("게시글 추천 실패 - 인증되지 않은 사용자")
     void likePost_Fail_Unauthenticated() throws Exception {
-        Post existingPost = TestFixtures.createPost(
+        Post existingPost = PostTestDataBuilder.createPost(
                 savedUser,
                 "추천할 게시글",
                 "추천할 게시글 내용"

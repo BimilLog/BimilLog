@@ -11,7 +11,7 @@ import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import jaeik.bimillog.global.application.port.out.GlobalUserQueryPort;
 import jaeik.bimillog.testutil.BaseUnitTest;
-import jaeik.bimillog.testutil.TestFixtures;
+import jaeik.bimillog.testutil.PostTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -60,7 +60,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
         // Given
         Long userId = 1L;
         Long postId = 123L;
-        Post post = TestFixtures.withId(postId, TestFixtures.createPost(getTestUser(), "테스트 게시글", "내용"));
+        Post post = PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestUser(), "테스트 게시글", "내용"));
 
         given(postLikeQueryPort.existsByPostIdAndUserId(postId, userId)).willReturn(false);
         given(globalUserQueryPort.getReferenceById(userId)).willReturn(getTestUser());
@@ -90,7 +90,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
         // Given
         Long userId = 1L;
         Long postId = 123L;
-        Post post = TestFixtures.withId(postId, TestFixtures.createPost(getTestUser(), "테스트 게시글", "내용"));
+        Post post = PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestUser(), "테스트 게시글", "내용"));
 
         given(postLikeQueryPort.existsByPostIdAndUserId(postId, userId)).willReturn(true);
         given(globalUserQueryPort.getReferenceById(userId)).willReturn(getTestUser());

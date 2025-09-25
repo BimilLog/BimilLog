@@ -12,6 +12,7 @@ import jaeik.bimillog.domain.post.entity.PostSearchResult;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import jaeik.bimillog.testutil.BaseUnitTest;
+import jaeik.bimillog.testutil.PostTestDataBuilder;
 import jaeik.bimillog.testutil.TestFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -63,7 +64,7 @@ class PostQueryServiceTest extends BaseUnitTest {
     void shouldGetBoard_Successfully() {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
-        PostSearchResult postResult = TestFixtures.createPostSearchResult(1L, "제목1");
+        PostSearchResult postResult = PostTestDataBuilder.createPostSearchResult(1L, "제목1");
         Page<PostSearchResult> expectedPage = new PageImpl<>(List.of(postResult), pageable, 1);
 
         given(postQueryPort.findByPage(pageable)).willReturn(expectedPage);
@@ -91,7 +92,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         given(redisPostQueryPort.getCachedPostIfExists(postId)).willReturn(null);
 
         // 최적화된 JOIN 쿼리 결과
-        PostDetail mockPostDetail = TestFixtures.createMockPostDetail(postId, userId);
+        PostDetail mockPostDetail = PostTestDataBuilder.createMockPostDetail(postId, userId);
         given(postQueryPort.findPostDetailWithCounts(postId, userId))
                 .willReturn(Optional.of(mockPostDetail));
 
@@ -113,7 +114,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         Long postId = 1L;
         Long userId = 2L;
 
-        PostDetail cachedFullPost = TestFixtures.createPostDetail(postId, "캐시된 인기글", "캐시된 내용");
+        PostDetail cachedFullPost = PostTestDataBuilder.createPostDetail(postId, "캐시된 인기글", "캐시된 내용");
 
         // 최적화: 한번의 호출로 캐시 존재 여부와 데이터를 함께 확인
         given(redisPostQueryPort.getCachedPostIfExists(postId)).willReturn(cachedFullPost);
@@ -145,7 +146,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         given(redisPostQueryPort.getCachedPostIfExists(postId)).willReturn(null);
 
         // 최적화된 JOIN 쿼리로 DB에서 조회
-        PostDetail mockPostDetail = TestFixtures.createMockPostDetail(postId, userId);
+        PostDetail mockPostDetail = PostTestDataBuilder.createMockPostDetail(postId, userId);
         given(postQueryPort.findPostDetailWithCounts(postId, userId))
                 .willReturn(Optional.of(mockPostDetail));
 
@@ -173,7 +174,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         given(redisPostQueryPort.getCachedPostIfExists(postId)).willReturn(null);
 
         // 최적화된 JOIN 쿼리로 DB에서 조회 (익명 사용자이므로 isLiked는 false)
-        PostDetail mockPostDetail = TestFixtures.createMockPostDetail(postId, userId);
+        PostDetail mockPostDetail = PostTestDataBuilder.createMockPostDetail(postId, userId);
         given(postQueryPort.findPostDetailWithCounts(postId, userId))
                 .willReturn(Optional.of(mockPostDetail));
 
@@ -222,7 +223,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         String query = "검색어";
         Pageable pageable = PageRequest.of(0, 10);
 
-        PostSearchResult searchResult = TestFixtures.createPostSearchResult(1L, "검색 결과");
+        PostSearchResult searchResult = PostTestDataBuilder.createPostSearchResult(1L, "검색 결과");
         Page<PostSearchResult> expectedPage = new PageImpl<>(List.of(searchResult), pageable, 1);
 
         given(postQueryPort.findBySearch(type, query, pageable)).willReturn(expectedPage);
@@ -245,8 +246,8 @@ class PostQueryServiceTest extends BaseUnitTest {
         PostCacheFlag type = PostCacheFlag.LEGEND;
         Pageable pageable = PageRequest.of(0, 10);
 
-        PostSearchResult legendPost1 = TestFixtures.createPostSearchResult(1L, "레전드 게시글 1");
-        PostSearchResult legendPost2 = TestFixtures.createPostSearchResult(2L, "레전드 게시글 2");
+        PostSearchResult legendPost1 = PostTestDataBuilder.createPostSearchResult(1L, "레전드 게시글 1");
+        PostSearchResult legendPost2 = PostTestDataBuilder.createPostSearchResult(2L, "레전드 게시글 2");
         Page<PostSearchResult> expectedPage = new PageImpl<>(List.of(legendPost1, legendPost2), pageable, 2);
 
         given(redisPostQueryPort.hasPopularPostsCache(type)).willReturn(true);
@@ -273,7 +274,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         PostCacheFlag type = PostCacheFlag.LEGEND;
         Pageable pageable = PageRequest.of(0, 5);
 
-        PostSearchResult legendPost = TestFixtures.createPostSearchResult(1L, "업데이트된 레전드 게시글");
+        PostSearchResult legendPost = PostTestDataBuilder.createPostSearchResult(1L, "업데이트된 레전드 게시글");
         Page<PostSearchResult> updatedPage = new PageImpl<>(List.of(legendPost), pageable, 1);
 
         given(redisPostQueryPort.hasPopularPostsCache(type)).willReturn(false);
@@ -330,7 +331,7 @@ class PostQueryServiceTest extends BaseUnitTest {
     @DisplayName("공지사항 조회 - 성공")
     void shouldGetNoticePosts_Successfully() {
         // Given
-        PostSearchResult noticePost = TestFixtures.createPostSearchResult(1L, "공지사항");
+        PostSearchResult noticePost = PostTestDataBuilder.createPostSearchResult(1L, "공지사항");
         List<PostSearchResult> noticePosts = List.of(noticePost);
 
         given(redisPostQueryPort.getCachedPostList(PostCacheFlag.NOTICE)).willReturn(noticePosts);
@@ -351,7 +352,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         // Given
         Long postId = 1L;
 
-        Post mockPost = TestFixtures.withId(postId, TestFixtures.createPost(getTestUser(), "Test Post", "Content"));
+        Post mockPost = PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestUser(), "Test Post", "Content"));
         given(postQueryPort.findById(postId)).willReturn(mockPost);
 
         // When
@@ -386,7 +387,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         // Given
         Long userId = 1L;
         Pageable pageable = PageRequest.of(0, 10);
-        PostSearchResult userPost = TestFixtures.createPostSearchResult(1L, "사용자 게시글");
+        PostSearchResult userPost = PostTestDataBuilder.createPostSearchResult(1L, "사용자 게시글");
         Page<PostSearchResult> expectedPage = new PageImpl<>(List.of(userPost), pageable, 1);
 
         given(postQueryPort.findPostsByUserId(userId, pageable)).willReturn(expectedPage);
@@ -407,7 +408,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         // Given
         Long userId = 1L;
         Pageable pageable = PageRequest.of(0, 10);
-        PostSearchResult likedPost = TestFixtures.createPostSearchResult(1L, "추천한 게시글");
+        PostSearchResult likedPost = PostTestDataBuilder.createPostSearchResult(1L, "추천한 게시글");
         Page<PostSearchResult> expectedPage = new PageImpl<>(List.of(likedPost), pageable, 1);
 
         given(postQueryPort.findLikedPostsByUserId(userId, pageable)).willReturn(expectedPage);
@@ -427,12 +428,12 @@ class PostQueryServiceTest extends BaseUnitTest {
     void shouldGetRealtimeAndWeeklyPosts_WhenBothCachesExist() {
         // Given
         List<PostSearchResult> realtimePosts = List.of(
-            TestFixtures.createPostSearchResult(1L, "실시간 인기글 1"),
-            TestFixtures.createPostSearchResult(2L, "실시간 인기글 2")
+            PostTestDataBuilder.createPostSearchResult(1L, "실시간 인기글 1"),
+            PostTestDataBuilder.createPostSearchResult(2L, "실시간 인기글 2")
         );
         List<PostSearchResult> weeklyPosts = List.of(
-            TestFixtures.createPostSearchResult(3L, "주간 인기글 1"),
-            TestFixtures.createPostSearchResult(4L, "주간 인기글 2")
+            PostTestDataBuilder.createPostSearchResult(3L, "주간 인기글 1"),
+            PostTestDataBuilder.createPostSearchResult(4L, "주간 인기글 2")
         );
 
         given(redisPostQueryPort.hasPopularPostsCache(PostCacheFlag.REALTIME)).willReturn(true);
@@ -463,8 +464,8 @@ class PostQueryServiceTest extends BaseUnitTest {
     @DisplayName("실시간/주간 인기글 일괄 조회 - 실시간 캐시 없음")
     void shouldGetRealtimeAndWeeklyPosts_WhenRealtimeCacheMissing() {
         // Given
-        List<PostSearchResult> realtimePosts = List.of(TestFixtures.createPostSearchResult(1L, "업데이트된 실시간"));
-        List<PostSearchResult> weeklyPosts = List.of(TestFixtures.createPostSearchResult(2L, "기존 주간"));
+        List<PostSearchResult> realtimePosts = List.of(PostTestDataBuilder.createPostSearchResult(1L, "업데이트된 실시간"));
+        List<PostSearchResult> weeklyPosts = List.of(PostTestDataBuilder.createPostSearchResult(2L, "기존 주간"));
 
         given(redisPostQueryPort.hasPopularPostsCache(PostCacheFlag.REALTIME)).willReturn(false);
         given(redisPostQueryPort.hasPopularPostsCache(PostCacheFlag.WEEKLY)).willReturn(true);
@@ -491,8 +492,8 @@ class PostQueryServiceTest extends BaseUnitTest {
     @DisplayName("실시간/주간 인기글 일괄 조회 - 주간 캐시 없음")
     void shouldGetRealtimeAndWeeklyPosts_WhenWeeklyCacheMissing() {
         // Given
-        List<PostSearchResult> realtimePosts = List.of(TestFixtures.createPostSearchResult(1L, "기존 실시간"));
-        List<PostSearchResult> weeklyPosts = List.of(TestFixtures.createPostSearchResult(2L, "업데이트된 주간"));
+        List<PostSearchResult> realtimePosts = List.of(PostTestDataBuilder.createPostSearchResult(1L, "기존 실시간"));
+        List<PostSearchResult> weeklyPosts = List.of(PostTestDataBuilder.createPostSearchResult(2L, "업데이트된 주간"));
 
         given(redisPostQueryPort.hasPopularPostsCache(PostCacheFlag.REALTIME)).willReturn(true);
         given(redisPostQueryPort.hasPopularPostsCache(PostCacheFlag.WEEKLY)).willReturn(false);
@@ -519,8 +520,8 @@ class PostQueryServiceTest extends BaseUnitTest {
     @DisplayName("실시간/주간 인기글 일괄 조회 - 두 캐시 모두 없음")
     void shouldGetRealtimeAndWeeklyPosts_WhenBothCachesMissing() {
         // Given
-        List<PostSearchResult> realtimePosts = List.of(TestFixtures.createPostSearchResult(1L, "새로운 실시간"));
-        List<PostSearchResult> weeklyPosts = List.of(TestFixtures.createPostSearchResult(2L, "새로운 주간"));
+        List<PostSearchResult> realtimePosts = List.of(PostTestDataBuilder.createPostSearchResult(1L, "새로운 실시간"));
+        List<PostSearchResult> weeklyPosts = List.of(PostTestDataBuilder.createPostSearchResult(2L, "새로운 주간"));
 
         given(redisPostQueryPort.hasPopularPostsCache(PostCacheFlag.REALTIME)).willReturn(false);
         given(redisPostQueryPort.hasPopularPostsCache(PostCacheFlag.WEEKLY)).willReturn(false);

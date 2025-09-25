@@ -32,6 +32,14 @@ public class CommentTestDataBuilder {
                 .deleted(false)
                 .build();
     }
+    
+    /**
+     * ID가 설정된 Comment 엔티티 생성
+     */
+    public static Comment withId(Long id, Comment comment) {
+        TestFixtures.setFieldValue(comment, "id", id);
+        return comment;
+    }
     /**
      * <h3>테스트용 댓글 요청 DTO 생성</h3>
      * <p>API 호출에 사용할 댓글 요청 DTO를 생성합니다.</p>

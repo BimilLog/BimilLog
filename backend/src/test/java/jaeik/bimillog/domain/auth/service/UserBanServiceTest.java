@@ -5,8 +5,7 @@ import jaeik.bimillog.domain.auth.application.service.UserBanService;
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.global.application.port.out.GlobalTokenQueryPort;
-import jaeik.bimillog.testutil.BaseUnitTest;
-import jaeik.bimillog.testutil.TestFixtures;
+import jaeik.bimillog.testutil.BaseAuthUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,7 +30,7 @@ import static org.mockito.Mockito.*;
  * @version 2.0.0
  */
 @DisplayName("UserBanService 단위 테스트")
-class UserBanServiceTest extends BaseUnitTest {
+class UserBanServiceTest extends BaseAuthUnitTest {
 
     @Mock
     private GlobalJwtPort globalJwtPort;
@@ -54,8 +53,8 @@ class UserBanServiceTest extends BaseUnitTest {
         testTokenString = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.test.TemporaryToken";
         testTokenHash = "hash123abc";
         
-        // TestFixtures를 활용한 토큰 생성
-        testTokenList = TestFixtures.createMultipleTokens(2);
+        // 테스트용 토큰 생성
+        testTokenList = createMultipleTokens(2);
     }
 
     @Test
@@ -247,7 +246,7 @@ class UserBanServiceTest extends BaseUnitTest {
         // Given
         Long userId = 100L;
         String reason = "Many tokens test";
-        List<Token> manyTokens = TestFixtures.createMultipleTokens(10);
+        List<Token> manyTokens = createMultipleTokens(10);
         
         given(globalTokenQueryPort.findAllByUserId(userId)).willReturn(manyTokens);
         for (int i = 0; i < 10; i++) {

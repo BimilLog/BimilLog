@@ -9,8 +9,6 @@ import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
-import org.springframework.data.redis.core.ZSetOperations;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -28,23 +26,8 @@ import static org.mockito.Mockito.mock;
 public class RedisTestHelper {
 
     /**
-     * RedisTemplate Mock 설정 헬퍼
-     * ValueOperations와 ZSetOperations Mock을 함께 설정
-     * 
-     * @param redisTemplate Mock RedisTemplate
-     * @param valueOperations Mock ValueOperations
-     * @param zSetOperations Mock ZSetOperations
-     */
-    public static void setupRedisTemplateMocks(RedisTemplate<String, Object> redisTemplate,
-                                                ValueOperations<String, Object> valueOperations,
-                                                ZSetOperations<String, Object> zSetOperations) {
-        given(redisTemplate.opsForValue()).willReturn(valueOperations);
-        given(redisTemplate.opsForZSet()).willReturn(zSetOperations);
-    }
-
-    /**
      * Redis 데이터 초기화 (TestContainers 통합 테스트용)
-     * 
+     *
      * @param redisTemplate 실제 RedisTemplate
      */
     public static void flushRedis(RedisTemplate<String, Object> redisTemplate) {
@@ -76,8 +59,8 @@ public class RedisTestHelper {
      * PostDetail 빌더 시작
      * @return 통일된 기본값이 적용된 PostDetailBuilder
      */
-    public static TestFixtures.PostDetailBuilder postDetail() {
-        return TestFixtures.postDetailBuilder()
+    public static PostTestDataBuilder.PostDetailBuilder postDetail() {
+        return PostTestDataBuilder.postDetailBuilder()
                 .viewCount(100)
                 .likeCount(50)
                 .commentCount(10)
@@ -101,12 +84,12 @@ public class RedisTestHelper {
     public static SocialUserProfile createTestSocialUserProfile(String socialId, String email) {
         Token token = Token.createTemporaryToken("access-token", "refresh-token");
         return new SocialUserProfile(
-            socialId,
-            email,
-            SocialProvider.KAKAO,
-            "testUser",
-            "https://example.com/profile.jpg",
-            token
+                socialId,
+                email,
+                SocialProvider.KAKAO,
+                "testUser",
+                "https://example.com/profile.jpg",
+                token
         );
     }
 
@@ -117,7 +100,6 @@ public class RedisTestHelper {
     public static SocialUserProfile defaultSocialUserProfile() {
         return createTestSocialUserProfile("123456789", "test@example.com");
     }
-
 
     /**
      * Redis 키 생성 헬퍼

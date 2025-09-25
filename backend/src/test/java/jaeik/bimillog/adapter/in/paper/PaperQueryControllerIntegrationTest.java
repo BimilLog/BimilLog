@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.out.paper.MessageRepository;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.H2TestConfiguration;
-import jaeik.bimillog.testutil.TestFixtures;
+import jaeik.bimillog.testutil.PaperTestDataBuilder;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.DisplayName;
@@ -35,11 +35,11 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("내 롤링페이퍼 조회 - 성공 (메시지 있음)")
     void myPaper_WithMessages_Success() throws Exception {
         // Given
-        messageRepository.save(TestFixtures.createRollingPaper(
+        messageRepository.save(PaperTestDataBuilder.createRollingPaper(
                 testUser, "생일 축하해!", 1, 1));
-        messageRepository.save(TestFixtures.createRollingPaper(
+        messageRepository.save(PaperTestDataBuilder.createRollingPaper(
                 testUser, "항상 행복하세요", 2, 1));
-        messageRepository.save(TestFixtures.createRollingPaper(
+        messageRepository.save(PaperTestDataBuilder.createRollingPaper(
                 testUser, "응원합니다", 3, 1));
 
         // When & Then
@@ -83,9 +83,9 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("다른 사용자 롤링페이퍼 방문 - 성공 (메시지 있음)")
     void visitPaper_WithMessages_Success() throws Exception {
         // Given
-        messageRepository.save(TestFixtures.createRollingPaper(
+        messageRepository.save(PaperTestDataBuilder.createRollingPaper(
                 otherUser, "좋은 메시지", 1, 1));
-        messageRepository.save(TestFixtures.createRollingPaper(
+        messageRepository.save(PaperTestDataBuilder.createRollingPaper(
                 otherUser, "또 다른 메시지", 2, 2));
 
         // When & Then
@@ -130,7 +130,7 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("인증된 사용자도 다른 사용자 롤링페이퍼 방문 - 성공")
     void visitPaper_AuthenticatedUser_Success() throws Exception {
         // Given
-        messageRepository.save(TestFixtures.createRollingPaper(
+        messageRepository.save(PaperTestDataBuilder.createRollingPaper(
                 otherUser, "방문용 메시지", 1, 2));
 
         // When & Then
@@ -149,7 +149,7 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("자신의 롤링페이퍼를 userName으로 방문 - 성공")
     void visitPaper_OwnPaper_Success() throws Exception {
         // Given
-        Message message = TestFixtures.createRollingPaper(
+        Message message = PaperTestDataBuilder.createRollingPaper(
                 testUser, "자기 메시지", 3, 1);
         messageRepository.save(message);
 

@@ -9,6 +9,7 @@ import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
 import jaeik.bimillog.global.application.port.out.GlobalUserQueryPort;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.TestFixtures;
+import jaeik.bimillog.testutil.PaperTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -48,8 +49,8 @@ class PaperQueryServiceTest extends BaseUnitTest {
         // Given
         String userName = getTestUser().getUserName();
         List<Message> messages = Arrays.asList(
-                TestFixtures.createRollingPaper(getTestUser(), "메시지1", 5, 5),
-                TestFixtures.createRollingPaper(getOtherUser(), "메시지2", 10, 10)
+                PaperTestDataBuilder.createRollingPaper(getTestUser(), "메시지1", 5, 5),
+                PaperTestDataBuilder.createRollingPaper(getOtherUser(), "메시지2", 10, 10)
         );
 
         given(globalUserQueryPort.existsByUserName(userName)).willReturn(true);

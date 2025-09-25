@@ -11,7 +11,7 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
-import jaeik.bimillog.testutil.BaseUnitTest;
+import jaeik.bimillog.testutil.BaseAuthUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,7 +28,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.List;
 import java.util.Optional;
 
-import static jaeik.bimillog.testutil.TestFixtures.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
@@ -44,7 +44,7 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("SocialLogoutService 단위 테스트")
 @MockitoSettings(strictness = Strictness.LENIENT)
-class SocialLogoutServiceTest extends BaseUnitTest {
+class SocialLogoutServiceTest extends BaseAuthUnitTest {
 
     @Mock
     private SocialStrategyRegistryPort strategyRegistry;
@@ -71,7 +71,7 @@ class SocialLogoutServiceTest extends BaseUnitTest {
 
     @BeforeEach
     void setUp() {
-        logoutCookies = createLogoutCookies();
+        logoutCookies = getLogoutCookies();
         lenient().when(globalCookiePort.getLogoutCookies()).thenReturn(logoutCookies);
     }
 

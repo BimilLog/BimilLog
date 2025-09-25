@@ -18,6 +18,7 @@ import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.TestFixtures;
+import jaeik.bimillog.testutil.PostTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -82,7 +83,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
     void shouldBanUser_WhenValidReportDTO() {
         // Given
         User userWithId = createTestUserWithId(200L);
-        Post testPost = TestFixtures.withId(200L, TestFixtures.createPost(userWithId, "테스트 제목", "테스트 내용"));
+        Post testPost = PostTestDataBuilder.withId(200L, PostTestDataBuilder.createPost(userWithId, "테스트 제목", "테스트 내용"));
         given(postQueryUseCase.findById(200L)).willReturn(testPost);
 
         // When

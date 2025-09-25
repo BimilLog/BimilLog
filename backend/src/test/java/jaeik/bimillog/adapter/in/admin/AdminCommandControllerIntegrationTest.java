@@ -8,7 +8,7 @@ import jaeik.bimillog.infrastructure.adapter.in.admin.dto.ReportDTO;
 import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostRepository;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.H2TestConfiguration;
-import jaeik.bimillog.testutil.TestFixtures;
+import jaeik.bimillog.testutil.PostTestDataBuilder;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -49,7 +49,7 @@ class AdminCommandControllerIntegrationTest extends BaseIntegrationTest {
         // Given - 테스트용 사용자와 게시글 생성
         User testTargetUser = userRepository.save(TestUsers.createUniqueWithPrefix("target"));
 
-        Post testPost = TestFixtures.createPost(testTargetUser, "테스트 게시글", "테스트 내용");
+        Post testPost = PostTestDataBuilder.createPost(testTargetUser, "테스트 게시글", "테스트 내용");
         Post savedPost = postRepository.save(testPost);
 
         ReportDTO reportDTO = ReportDTO.builder()
@@ -71,7 +71,7 @@ class AdminCommandControllerIntegrationTest extends BaseIntegrationTest {
         // Given
         User targetUser = userRepository.save(TestUsers.createUniqueWithPrefix("withdraw"));
 
-        Post testPost = TestFixtures.createPost(targetUser, "테스트 게시글", "테스트 내용");
+        Post testPost = PostTestDataBuilder.createPost(targetUser, "테스트 게시글", "테스트 내용");
         Post savedPost = postRepository.save(testPost);
 
         ReportDTO reportDTO = ReportDTO.builder()

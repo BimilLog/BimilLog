@@ -13,7 +13,7 @@ import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.NewUserDetail;
 import jaeik.bimillog.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.global.application.port.out.GlobalJwtPort;
-import jaeik.bimillog.testutil.BaseUnitTest;
+import jaeik.bimillog.testutil.BaseAuthUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,7 +24,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 
-import static jaeik.bimillog.testutil.TestFixtures.*;
+import static jaeik.bimillog.testutil.TestFixtures.createTempCookie;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
@@ -38,7 +38,7 @@ import static org.mockito.Mockito.*;
  * @version 2.0.0
  */
 @DisplayName("SocialLoginService 단위 테스트")
-class SocialLoginServiceTest extends BaseUnitTest {
+class SocialLoginServiceTest extends BaseAuthUnitTest {
 
     @Mock private SocialStrategyRegistryPort strategyRegistry;
     @Mock private SocialStrategyPort kakaoStrategy;
@@ -66,9 +66,9 @@ class SocialLoginServiceTest extends BaseUnitTest {
         // Given
         String generatedAccessToken = "generated-access-token";
         String generatedRefreshToken = "generated-refresh-token";
-        SocialUserProfile testUserProfile = createTestUserProfile();
-        ExistingUserDetail existingUserDetail = createExistingUserDetail(getTestUser(), 1L, 1L);
-        List<ResponseCookie> jwtCookies = createJwtCookies(generatedAccessToken, generatedRefreshToken);
+        SocialUserProfile testUserProfile = getTestUserProfile();
+        ExistingUserDetail existingUserDetail = getExistingUserDetail();
+        List<ResponseCookie> jwtCookies = getJwtCookies();
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             mockAnonymousAuthentication(mockedSecurityContext);
@@ -104,8 +104,8 @@ class SocialLoginServiceTest extends BaseUnitTest {
     @DisplayName("신규 사용자 소셜 로그인 성공")
     void shouldProcessSocialLogin_WhenNewUser() {
         // Given
-        SocialUserProfile testUserProfile = createTestUserProfile();
-        NewUserDetail newUserDetail = createNewUserDetail();
+        SocialUserProfile testUserProfile = getTestUserProfile();
+        NewUserDetail newUserDetail = getNewUserDetail();
         ResponseCookie tempCookie = createTempCookie(newUserDetail.getUuid());
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
@@ -138,7 +138,7 @@ class SocialLoginServiceTest extends BaseUnitTest {
     @DisplayName("블랙리스트 사용자 로그인 시 예외 발생")
     void shouldThrowException_WhenBlacklistedUser() {
         // Given
-        SocialUserProfile testUserProfile = createTestUserProfile();
+        SocialUserProfile testUserProfile = getTestUserProfile();
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             mockAnonymousAuthentication(mockedSecurityContext);

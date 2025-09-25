@@ -6,6 +6,7 @@ import jaeik.bimillog.infrastructure.adapter.in.paper.dto.MessageDTO;
 import jaeik.bimillog.infrastructure.adapter.out.paper.MessageRepository;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.H2TestConfiguration;
+import jaeik.bimillog.testutil.PaperTestDataBuilder;
 import jaeik.bimillog.testutil.TestFixtures;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
 import org.junit.jupiter.api.DisplayName;
@@ -95,7 +96,7 @@ class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("내 페이퍼에서 메시지 삭제 - 성공")
     void deleteMessage_MyPaper_Success() throws Exception {
         // Given
-        Message message = TestFixtures.createRollingPaper(
+        Message message = PaperTestDataBuilder.createRollingPaper(
                 testUser, "삭제될 메시지", 1, 1);
         Message savedMessage = messageRepository.save(message);
 

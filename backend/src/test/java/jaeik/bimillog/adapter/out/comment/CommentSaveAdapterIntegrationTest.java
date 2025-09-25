@@ -10,7 +10,7 @@ import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentClosureRepos
 import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentRepository;
 import jaeik.bimillog.testutil.CommentTestDataBuilder;
 import jaeik.bimillog.testutil.H2TestConfiguration;
-import jaeik.bimillog.testutil.TestFixtures;
+import jaeik.bimillog.testutil.PostTestDataBuilder;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -76,7 +76,7 @@ class CommentSaveAdapterIntegrationTest {
         entityManager.persistAndFlush(testUser);
 
         // 테스트용 게시글 생성 - CommentTestDataBuilder 활용
-        testPost = TestFixtures.createPost(testUser, "테스트 게시글", "테스트 게시글 내용입니다.");
+        testPost = PostTestDataBuilder.createPost(testUser, "테스트 게시글", "테스트 게시글 내용입니다.");
         entityManager.persistAndFlush(testPost);
         
         // 부모 댓글 생성 - CommentTestDataBuilder 활용

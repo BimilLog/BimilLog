@@ -7,7 +7,7 @@ import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostRepository;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.CommentTestDataBuilder;
 import jaeik.bimillog.testutil.H2TestConfiguration;
-import jaeik.bimillog.testutil.TestFixtures;
+import jaeik.bimillog.testutil.PostTestDataBuilder;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -46,7 +46,7 @@ class CommentQueryControllerIntegrationTest extends BaseIntegrationTest {
     @Override
     protected void setUpChild() {
         // testUser는 BaseIntegrationTest에서 이미 생성됨
-        testPost = TestFixtures.createPost(testUser, "테스트 게시글", "테스트 게시글 내용입니다.");
+        testPost = PostTestDataBuilder.createPost(testUser, "테스트 게시글", "테스트 게시글 내용입니다.");
         postRepository.save(testPost);
         
         // 테스트용 댓글들 생성
@@ -79,7 +79,7 @@ class CommentQueryControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("댓글 조회 통합 테스트 - 빈 페이지")
     void getComments_EmptyPage_IntegrationTest() throws Exception {
         // Given - 댓글이 없는 새로운 게시글
-        Post emptyPost = TestFixtures.createPost(testUser, "빈 게시글", "댓글이 없는 게시글입니다.");
+        Post emptyPost = PostTestDataBuilder.createPost(testUser, "빈 게시글", "댓글이 없는 게시글입니다.");
         postRepository.save(emptyPost);
         
 

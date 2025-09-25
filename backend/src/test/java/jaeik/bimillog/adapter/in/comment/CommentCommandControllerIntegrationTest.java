@@ -56,7 +56,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
     @Override
     protected void setUpChild() {
         // testUser는 BaseIntegrationTest에서 이미 생성됨
-        testPost = TestFixtures.createPost(testUser, "테스트 게시글", "테스트 게시글 내용입니다.");
+        testPost = PostTestDataBuilder.createPost(testUser, "테스트 게시글", "테스트 게시글 내용입니다.");
         postRepository.save(testPost);
     }
     
