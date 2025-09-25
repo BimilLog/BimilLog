@@ -2,10 +2,12 @@ package jaeik.bimillog.adapter.in.admin;
 
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
-import jaeik.bimillog.testutil.annotation.IntegrationTest;
+import jaeik.bimillog.testutil.H2TestConfiguration;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -13,13 +15,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * <h2>관리자 Query 컨트롤러 통합 테스트</h2>
- * <p>@SpringBootTest를 사용한 실제 관리자 Query API 통합 테스트</p>
- * <p>TestContainers를 사용하여 실제 MySQL 환경에서 테스트</p>
+ * <p>@SpringBootTest + H2 인메모리 데이터베이스 환경에서 관리자 조회 API를 검증합니다.</p>
  *
  * @author Jaeik
  * @since 2.0.0
  */
-@IntegrationTest
+@ActiveProfiles("h2test")
+@Import(H2TestConfiguration.class)
 @DisplayName("관리자 Query 컨트롤러 통합 테스트")
 class AdminQueryControllerIntegrationTest extends BaseIntegrationTest {
 

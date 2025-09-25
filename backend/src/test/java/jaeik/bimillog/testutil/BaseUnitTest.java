@@ -220,14 +220,4 @@ public abstract class BaseUnitTest {
         mockedSecurityContext.when(SecurityContextHolder::getContext).thenReturn(securityContext);
         given(securityContext.getAuthentication()).willReturn(authentication);
     }
-
-    /**
-     * 관리자 권한으로 SecurityContext를 Mock 설정
-     * <p>관리자 권한이 필요한 테스트에서 사용</p>
-     * @param mockedSecurityContext MockedStatic SecurityContextHolder
-     */
-    protected void mockAdminAuthentication(MockedStatic<SecurityContextHolder> mockedSecurityContext) {
-        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(getAdminUser());
-        mockAuthenticatedUser(mockedSecurityContext, userDetails, UserRole.ADMIN);
-    }
 }

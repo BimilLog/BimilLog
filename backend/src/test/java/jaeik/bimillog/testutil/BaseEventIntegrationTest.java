@@ -163,17 +163,6 @@ public abstract class BaseEventIntegrationTest extends BaseIntegrationTest {
     }
 
     /**
-     * 이벤트 발행 후 즉시 비동기 검증 (사용자 정의 타임아웃)
-     * @param event 발행할 이벤트
-     * @param verification 검증 로직
-     * @param timeout 타임아웃 설정
-     */
-    protected void publishAndVerify(Object event, Runnable verification, Duration timeout) {
-        publishEvent(event);
-        verifyAsync(verification, timeout);
-    }
-
-    /**
      * 다중 이벤트 발행 후 비동기 검증
      * @param events 발행할 이벤트 배열
      * @param verification 검증 로직

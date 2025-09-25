@@ -167,7 +167,7 @@ public abstract class BaseIntegrationTest {
         } else {
             // UserRepository가 없는 경우 기본 사용자 사용
             this.testUser = TestUsers.USER1;
-            this.adminUser = TestUsers.withRole(jaeik.bimillog.domain.user.entity.UserRole.ADMIN);
+            this.adminUser = TestUsers.withRole(UserRole.ADMIN);
             this.otherUser = TestUsers.USER2;
         }
     }
@@ -260,20 +260,5 @@ public abstract class BaseIntegrationTest {
             return entity;
         }
         throw new UnsupportedOperationException("TestEntityManager is not available");
-    }
-
-    /**
-     * 엔티티 새로고침 (DB에서 다시 조회)
-     * @param entity 새로고침할 엔티티
-     * @param id 엔티티 ID
-     * @param entityClass 엔티티 클래스
-     * @return 새로고침된 엔티티
-     */
-    protected <T> T refresh(T entity, Object id, Class<T> entityClass) {
-        if (entityManager != null) {
-            entityManager.clear();
-            return entityManager.find(entityClass, id);
-        }
-        return entity;
     }
 }

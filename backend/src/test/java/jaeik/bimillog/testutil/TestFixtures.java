@@ -138,25 +138,6 @@ public class TestFixtures {
     }
 
     /**
-     * 테스트용 PostDetail 생성 (상세 설정)
-     * @param id 게시글 ID
-     * @param title 제목
-     * @param content 내용
-     * @param userId 사용자 ID
-     * @param isLiked 좋아요 여부
-     * @return PostDetail
-     */
-    public static PostDetail createPostDetail(Long id, String title, String content, Long userId, boolean isLiked) {
-        return postDetailBuilder()
-                .id(id)
-                .title(title)
-                .content(content)
-                .userId(userId)
-                .isLiked(isLiked)
-                .build();
-    }
-
-    /**
      * 테스트용 PostDetail Mock 생성 (JOIN 쿼리 테스트용)
      * @param postId 게시글 ID
      * @param userId 사용자 ID

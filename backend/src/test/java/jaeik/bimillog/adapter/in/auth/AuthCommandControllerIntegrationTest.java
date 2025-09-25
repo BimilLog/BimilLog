@@ -1,7 +1,9 @@
 package jaeik.bimillog.adapter.in.auth;
 
+import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.in.auth.dto.SocialLoginRequestDTO;
+import jaeik.bimillog.infrastructure.adapter.out.auth.jpa.TokenRepository;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.TestFixtures;
@@ -10,6 +12,7 @@ import jaeik.bimillog.testutil.TestUsers;
 import jaeik.bimillog.testutil.annotation.IntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 
@@ -34,6 +37,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("인증 명령 컨트롤러 통합 테스트")
 class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
 
+    @Autowired
+    private TokenRepository tokenRepository;
+
     @Test
     @DisplayName("소셜 로그인 통합 테스트 - 신규 사용자")
     void socialLogin_NewUser_IntegrationTest() throws Exception {
@@ -57,7 +63,11 @@ class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("소셜 로그인 통합 테스트 - 기존 사용자")
     void socialLogin_ExistingUser_IntegrationTest() throws Exception {
-        User existingUser = TestUsers.createUnique();
+        User existingUser = TestUsers.createUser(builder -> {
+            builder.socialId("test-social-id-12345");
+            builder.userName("existing-user");
+            builder.socialNickname("existing-user");
+        });
         userRepository.save(existingUser);
 
         SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "existing_user_code", null);
@@ -77,9 +87,12 @@ class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("로그아웃 통합 테스트 - 성공")
     void logout_IntegrationTest_Success() throws Exception {
         User testUser = TestUsers.createUnique();
-        userRepository.save(testUser);
+        testUser = userRepository.save(testUser);
 
-        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser);
+        Token token = Token.createToken("access-token", "refresh-token", testUser);
+        token = tokenRepository.save(token);
+
+        CustomUserDetails userDetails = TestFixtures.createCustomUserDetails(testUser, token.getId(), null);
 
         mockMvc.perform(post("/api/auth/logout")
                         .with(user(userDetails))
@@ -113,11 +126,12 @@ class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("소셜 로그인 - 잘못된 provider 통합 테스트")
     void socialLogin_InvalidProvider_IntegrationTest() throws Exception {
+        String invalidPayload = "{\"provider\":\"INVALID_PROVIDER\",\"code\":\"test-code\"}";
+
         mockMvc.perform(post("/api/auth/login")
-                        .param("provider", "INVALID_PROVIDER")
-                        .param("code", "test-code")
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(invalidPayload)
+                        .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
     }

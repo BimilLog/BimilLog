@@ -12,6 +12,8 @@ import jaeik.bimillog.global.application.port.out.GlobalJwtPort;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.ResponseCookie;
 
 import java.util.Collections;
@@ -29,50 +31,56 @@ public class TestSocialLoginPortConfig {
 
     @Bean
     @Primary
+    @Order(Ordered.HIGHEST_PRECEDENCE)
     public SocialStrategyPort testSocialStrategyPort() {
-        return new SocialStrategyPort() {
-            @Override
-            public SocialProvider getSupportedProvider() {
-                return SocialProvider.KAKAO; // 테스트용으로 KAKAO 제공자 지원
+        return new TestSocialStrategyPort();
+    }
+
+    private static final class TestSocialStrategyPort implements SocialStrategyPort, Ordered {
+
+        @Override
+        public SocialProvider getSupportedProvider() {
+            return SocialProvider.KAKAO; // 테스트용으로 KAKAO 제공자 지원
+        }
+
+        @Override
+        public SocialUserProfile authenticate(SocialProvider provider, String code) {
+            String socialId;
+
+            if ("new_user_code".equals(code)) {
+                socialId = "new-user-social-id";
+            } else if ("existing_user_code".equals(code)) {
+                socialId = "test-social-id-12345"; // 통합 테스트에서 생성한 기존 사용자 ID와 일치
+            } else {
+                socialId = "test-social-id";
             }
 
-            @Override
-            public SocialUserProfile authenticate(SocialProvider provider, String code) {
-                // 테스트용 더미 구현
-                String socialId;
+            Token token = Token.createTemporaryToken("dummy-access-TemporaryToken", "dummy-refresh-TemporaryToken");
 
-                // code 값에 따라 신규 사용자/기존 사용자 구분
-                if ("new_user_code".equals(code)) {
-                    socialId = "new-user-social-id";
-                } else if ("existing_user_code".equals(code)) {
-                    socialId = "test-social-id-12345"; // 통합 테스트에서 생성한 기존 사용자 ID와 일치
-                } else {
-                    // 기본값은 기존 사용자로 처리
-                    socialId = "test-social-id";
-                }
+            return new SocialUserProfile(
+                socialId,
+                "test@example.com",
+                provider,
+                "Test User",
+                "https://example.com/profile.jpg",
+                token
+            );
+        }
 
-                Token token = Token.createTemporaryToken("dummy-access-TemporaryToken", "dummy-refresh-TemporaryToken");
+        @Override
+        public void logout(SocialProvider provider, String accessToken) {
+            // 테스트용 더미 구현 - 아무 작업도 하지 않음
+        }
 
-                return new SocialUserProfile(
-                    socialId,
-                    "test@example.com",
-                    provider,
-                    "Test User",
-                    "https://example.com/profile.jpg",
-                    token
-                );
-            }
+        @Override
+        public void unlink(SocialProvider provider, String socialId) {
+            // 테스트용 더미 구현 - 아무 작업도 하지 않음
+        }
 
-            @Override
-            public void logout(SocialProvider provider, String accessToken) {
-                // 테스트용 더미 구현 - 아무 작업도 하지 않음
-            }
-
-            @Override
-            public void unlink(SocialProvider provider, String socialId) {
-                // 테스트용 더미 구현 - 아무 작업도 하지 않음
-            }
-        };
+        @Override
+        public int getOrder() {
+            return Ordered.HIGHEST_PRECEDENCE;
+        }
     }
 
     @Bean
@@ -81,7 +89,15 @@ public class TestSocialLoginPortConfig {
         return new AuthToUserPort() {
             @Override
             public UserDetail delegateUserData(SocialProvider provider, SocialUserProfile profile, String fcmToken) {
-                // 테스트용 더미 구현 - 항상 신규 사용자로 처리
+                if ("test-social-id-12345".equals(profile.socialId())) {
+                    User existingUser = TestUsers.createUser(builder -> {
+                        builder.socialId(profile.socialId());
+                        builder.userName("existing-user");
+                        builder.socialNickname("existing-user");
+                    });
+                    User userWithId = TestUsers.copyWithId(existingUser, 1L);
+                    return ExistingUserDetail.of(userWithId, 1L, null);
+                }
                 return NewUserDetail.of("test-uuid");
             }
         };

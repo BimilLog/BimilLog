@@ -73,19 +73,4 @@ public class CommentTestDataBuilder {
         requestDto.setPassword(password);
         return requestDto;
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }

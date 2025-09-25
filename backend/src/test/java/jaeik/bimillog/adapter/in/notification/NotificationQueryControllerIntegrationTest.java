@@ -8,6 +8,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -16,14 +17,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * <h2>알림 Query 컨트롤러 통합 테스트</h2>
- * <p>@SpringBootTest를 사용한 실제 Notification Query API 통합 테스트</p>
- * <p>TestContainers를 사용하여 실제 MySQL 환경에서 테스트</p>
- * <p>알림 조회 API 동작을 검증</p>
+ * <p>@SpringBootTest + H2 인메모리 데이터베이스 환경에서 알림 조회 API를 검증합니다.</p>
  *
  * @author Jaeik
  * @since 2.0.0
  */
-@Import(TestSocialLoginPortConfig.class)
+@ActiveProfiles("h2test")
+@Import({H2TestConfiguration.class, TestSocialLoginPortConfig.class})
 @DisplayName("알림 Query 컨트롤러 통합 테스트")
 class NotificationQueryControllerIntegrationTest extends BaseIntegrationTest {
 

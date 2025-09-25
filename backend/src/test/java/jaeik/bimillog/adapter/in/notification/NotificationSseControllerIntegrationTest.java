@@ -3,12 +3,14 @@ package jaeik.bimillog.adapter.in.notification;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
+import jaeik.bimillog.testutil.H2TestConfiguration;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -18,14 +20,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * <h2>알림 SSE 컨트롤러 통합 테스트</h2>
- * <p>@SpringBootTest를 사용한 실제 Notification SSE API 통합 테스트</p>
- * <p>TestContainers를 사용하여 실제 MySQL 환경에서 테스트</p>
- * <p>SSE 구독 API 동작을 검증</p>
+ * <p>@SpringBootTest + H2 인메모리 데이터베이스 환경에서 SSE 구독 API를 검증합니다.</p>
  *
  * @author Jaeik
  * @since 2.0.0
  */
-@Import(TestSocialLoginPortConfig.class)
+@ActiveProfiles("h2test")
+@Import({H2TestConfiguration.class, TestSocialLoginPortConfig.class})
 @DisplayName("알림 SSE 컨트롤러 통합 테스트")
 class NotificationSseControllerIntegrationTest extends BaseIntegrationTest {
 

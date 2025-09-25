@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Arrays;
 import java.util.List;
@@ -22,14 +23,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * <h2>알림 Command 컨트롤러 통합 테스트</h2>
- * <p>@SpringBootTest를 사용한 실제 Notification Command API 통합 테스트</p>
- * <p>TestContainers를 사용하여 실제 MySQL 환경에서 테스트</p>
- * <p>알림 업데이트(읽음/삭제) API 동작을 검증</p>
+ * <p>@SpringBootTest + H2 인메모리 데이터베이스 환경에서 알림 명령 API를 검증합니다.</p>
+ * <p>알림 업데이트(읽음/삭제) 시나리오를 집중적으로 테스트합니다.</p>
  *
  * @author Jaeik
  * @since 2.0.0
  */
-@Import(TestSocialLoginPortConfig.class)
+@ActiveProfiles("h2test")
+@Import({H2TestConfiguration.class, TestSocialLoginPortConfig.class})
 @DisplayName("알림 Command 컨트롤러 통합 테스트")
 class NotificationCommandControllerIntegrationTest extends BaseIntegrationTest {
 
