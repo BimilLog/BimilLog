@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   Bell,
   BellOff,
@@ -12,7 +13,6 @@ import {
   MessageSquare,
   Star,
   Shield,
-  X,
 } from "lucide-react";
 import { Button } from "@/components";
 import { Card } from "@/components";
@@ -20,6 +20,7 @@ import { TimeBadge } from "@/components";
 import {
   useNotifications,
   useNotificationList,
+  useNotificationSync,
   useMarkNotificationAsRead,
   useDeleteNotification,
   useMarkAllNotificationsAsRead,
@@ -31,6 +32,7 @@ import { Spinner as FlowbiteSpinner, Badge, Drawer } from "flowbite-react";
 export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
   const { isAuthenticated } = useAuth();
 
   const { data: notificationResponse, isLoading, refetch } = useNotificationList();
@@ -38,10 +40,10 @@ export function NotificationBell() {
   const deleteNotificationMutation = useDeleteNotification();
   const markAllAsReadMutation = useMarkAllNotificationsAsRead();
   const deleteAllNotificationsMutation = useDeleteAllNotifications();
+  const { syncNow } = useNotificationSync();
 
   const {
     isSSEConnected,
-    connectionState,
     canConnectSSE,
     requestNotificationPermission,
   } = useNotifications();
@@ -55,6 +57,10 @@ export function NotificationBell() {
     checkIsMobile();
     window.addEventListener('resize', checkIsMobile);
     return () => window.removeEventListener('resize', checkIsMobile);
+  }, []);
+
+  useEffect(() => {
+    setPortalContainer(document.body);
   }, []);
 
   useEffect(() => {
@@ -89,8 +95,13 @@ export function NotificationBell() {
       e.preventDefault();
       e.stopPropagation();
     }
-    if (unreadCount === 0) return;
-    markAllAsReadMutation.mutate();
+    const unreadIds = notifications
+      .filter((notification) => !notification.read)
+      .map((notification) => notification.id);
+
+    if (unreadIds.length === 0) return;
+
+    markAllAsReadMutation.mutate(unreadIds);
   };
 
   const handleDeleteAllNotifications = (e?: React.MouseEvent) => {
@@ -98,8 +109,11 @@ export function NotificationBell() {
       e.preventDefault();
       e.stopPropagation();
     }
-    if (notifications.length === 0) return;
-    deleteAllNotificationsMutation.mutate();
+
+    const deleteIds = notifications.map((notification) => notification.id);
+    if (deleteIds.length === 0) return;
+
+    deleteAllNotificationsMutation.mutate(deleteIds);
   };
 
   const handleFetchNotifications = () => {
@@ -111,12 +125,14 @@ export function NotificationBell() {
   const handleOpen = (open: boolean) => {
     setIsOpen(open);
     if (open && canConnectSSE()) {
+      syncNow();
       handleFetchNotifications();
     }
   };
 
   const handleRefresh = () => {
     if (canConnectSSE()) {
+      syncNow();
       handleFetchNotifications();
     }
   };
@@ -315,18 +331,20 @@ export function NotificationBell() {
               </Badge>
             )}
           </Button>
-          {isOpen && (
-            <Drawer
-              open={true}
-              onClose={() => handleOpen(false)}
-              position="bottom"
-              className="rounded-t-xl !z-[60]"
-            >
-              <div className="h-[80vh] max-h-[80vh] flex flex-col bg-white rounded-t-xl overflow-hidden">
-                <NotificationContent />
-              </div>
-            </Drawer>
-          )}
+          {isOpen && portalContainer &&
+            createPortal(
+              <Drawer
+                open={true}
+                onClose={() => handleOpen(false)}
+                position="bottom"
+                className="rounded-t-xl !z-[60]"
+              >
+                <div className="h-[80vh] max-h-[80vh] flex flex-col bg-white rounded-t-xl overflow-hidden">
+                  <NotificationContent />
+                </div>
+              </Drawer>,
+              portalContainer
+            )}
         </>
       ) : (
         <>

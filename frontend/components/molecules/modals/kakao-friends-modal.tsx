@@ -89,7 +89,12 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
           response?.error || "친구 목록을 가져올 수 없습니다.";
 
         // 카카오 친구 목록 접근 동의가 필요한 경우 감지
-        if (errorMessage.includes("카카오 친구 추가 동의를 해야 합니다")) {
+        const normalizedMessage = errorMessage.replace(/\s/g, "");
+        const consentKeywords = [
+          "카카오친구추가동의를해야합니다",
+        ];
+
+        if (consentKeywords.some((keyword) => normalizedMessage.includes(keyword))) {
           setNeedsConsent(true);
           setError("카카오 친구 목록 접근을 위해 추가 동의가 필요합니다.");
         } else {

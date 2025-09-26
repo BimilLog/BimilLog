@@ -30,7 +30,7 @@ public enum UserErrorCode {
     /**
      * <h3>카카오 친구 API 관련 에러 코드</h3>
      */
-    KAKAO_FRIEND_CONSENT_FAIL(HttpStatus.UNAUTHORIZED, "카카오 친구 추가 동의을 해야 합니다.", ErrorCode.LogLevel.INFO),
+    KAKAO_FRIEND_CONSENT_FAIL(HttpStatus.UNAUTHORIZED, "카카오 친구 추가 동의를 해야 합니다.", ErrorCode.LogLevel.INFO),
     KAKAO_FRIEND_API_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "카카오 친구 API 호출 실패", ErrorCode.LogLevel.ERROR);
 
     private final HttpStatus status;

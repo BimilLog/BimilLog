@@ -10,15 +10,29 @@ export async function getFCMToken(): Promise<string | null> {
     return null
   }
 
-  try {
-    // Firebase 관련 모듈 동적 import (SSR 안전)
-    const { getMessaging, getToken } = await import('firebase/messaging')
-    const { initializeApp, getApps } = await import('firebase/app')
+  if (!('serviceWorker' in navigator)) {
+    logger.log('서비스워커 미지원 환경 - FCM 토큰 생략');
+    return null;
+  }
 
-    // Firebase 중복 초기화 방지 - 이미 초기화된 앱이 있는지 확인
-    let app
+  if (Notification.permission === 'denied') {
+    logger.log('알림 권한 거부 - FCM 토큰 생략');
+    return null;
+  }
+
+  try {
+    const { getMessaging, getToken, isSupported } = await import('firebase/messaging');
+    const messagingSupported = await isSupported();
+
+    if (!messagingSupported) {
+      logger.log('브라우저가 FCM을 지원하지 않습니다.');
+      return null;
+    }
+
+    const { initializeApp, getApps } = await import('firebase/app');
+
+    let app;
     if (getApps().length === 0) {
-      // Firebase 설정 - 첫 번째 초기화 시에만 설정 적용
       const firebaseConfig = {
         apiKey: "AIzaSyDQHWI_zhIjqp_SJz0Fdv7xtG6mIZfwBhU",
         authDomain: "growfarm-6cd79.firebaseapp.com",
@@ -27,33 +41,30 @@ export async function getFCMToken(): Promise<string | null> {
         messagingSenderId: "763805350293",
         appId: "1:763805350293:web:68b1b3ca3a294b749b1e9c",
         measurementId: "G-G9C4KYCEEJ"
-      }
-      app = initializeApp(firebaseConfig)
+      };
+      app = initializeApp(firebaseConfig);
     } else {
-      // 이미 초기화된 앱이 있다면 첫 번째 앱 인스턴스를 재사용 (싱글톤 패턴)
-      app = getApps()[0]
+      app = getApps()[0];
     }
 
-    const messaging = getMessaging(app)
+    const messaging = getMessaging(app);
 
-    // 서비스워커 등록
-    const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js')
+    const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
 
-    // FCM 토큰 가져오기 (서버->클라이언트 일방향이므로 VAPID 키 불필요)
     const token = await getToken(messaging, {
       serviceWorkerRegistration: registration
-    })
+    });
 
     if (token) {
       logger.log('FCM 토큰 획득 성공:', token.substring(0, 20) + '...');
-      return token
-    } else {
-      logger.log('FCM 토큰 획득 실패 - 브라우저 알림 권한을 확인해주세요.');
-      return null
+      return token;
     }
+
+    logger.log('FCM 토큰 획득 실패 - 브라우저 알림 권한을 확인해주세요.');
+    return null;
   } catch (error) {
-    logger.error('FCM 토큰 가져오기 실패:', error)
-    return null
+    logger.error('FCM 토큰 가져오기 실패:', error);
+    return null;
   }
 }
 

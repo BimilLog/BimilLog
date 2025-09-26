@@ -103,33 +103,28 @@ export const useMarkAllNotificationsAsRead = () => {
   const { showToast } = useToastStore();
 
   return useMutation({
-    mutationKey: ['notification', 'markAllAsRead'],
-    mutationFn: async () => {
-      // 현재 알림 목록에서 읽지 않은 알림만 추출
-      const currentData = queryClient.getQueryData(queryKeys.notification.list()) as any;
-      const notifications = currentData?.data || [];
-      const unreadIds = notifications
-        .filter((n: any) => !n.read)
-        .map((n: any) => n.id);
+    mutationKey: mutationKeys.notification.markAllAsRead,
+    mutationFn: async (unreadIds?: number[]) => {
+      const ids = unreadIds ?? [];
 
-      if (unreadIds.length === 0) {
+      if (ids.length === 0) {
+        logger.log('📭 읽음 처리할 알림이 없어 API 호출을 생략합니다.');
         return { success: true };
       }
 
-      // 일괄 읽음 처리 API 호출
-      return await notificationCommand.batchUpdate({
-        readIds: unreadIds,
+      logger.log(`📤 모든 알림 읽음 처리 API 호출 - ${ids.length}개 알림`);
+      const result = await notificationCommand.batchUpdate({
+        readIds: ids,
         deletedIds: [],
       });
+      logger.log('📥 모든 알림 읽음 처리 API 응답:', result);
+      return result;
     },
-    onMutate: async () => {
-      // 쿼리 취소
+    onMutate: async (unreadIds) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.notification.list() });
 
-      // 이전 데이터 백업
       const previousNotifications = queryClient.getQueryData(queryKeys.notification.list());
 
-      // 낙관적 업데이트: 모든 알림을 읽음 처리
       queryClient.setQueryData(queryKeys.notification.list(), (old: any) => {
         if (!old?.success || !old?.data) return old;
 
@@ -144,26 +139,37 @@ export const useMarkAllNotificationsAsRead = () => {
 
       logger.log('모든 알림 읽음 처리 - 낙관적 업데이트');
 
-      return { previousNotifications };
+      return { previousNotifications, unreadIds };
     },
-    onSuccess: () => {
+    onSuccess: (response, unreadIds) => {
+      const ids = unreadIds ?? [];
+
+      if (!response?.success) {
+        showToast({
+          type: 'error',
+          message: '알림 읽음 처리에 실패했습니다.',
+        });
+        logger.error('❌ 모든 알림 읽음 처리 응답 실패:', response);
+        return;
+      }
+
       showToast({
         type: 'success',
         message: '모든 알림을 읽음 처리했습니다.',
       });
-      logger.log('모든 알림 읽음 처리 완료');
+      logger.log(`모든 알림 읽음 처리 완료 (${ids.length}개)`);
     },
-    onError: (err, variables, context) => {
-      // 오류 시 롤백
+    onError: (err, unreadIds, context) => {
       queryClient.setQueryData(queryKeys.notification.list(), context?.previousNotifications);
       showToast({
         type: 'error',
         message: '알림 읽음 처리에 실패했습니다.',
       });
-      logger.error('모든 알림 읽음 처리 실패:', err);
+      logger.error('❌ 모든 알림 읽음 처리 실패:', err);
+      logger.error('❌ 요청 변수:', unreadIds);
+      logger.error('❌ 오류 상세:', (err as any)?.response || (err as any)?.message || err);
     },
     onSettled: () => {
-      // 서버와 동기화
       queryClient.invalidateQueries({ queryKey: queryKeys.notification.list() });
     },
   });
@@ -177,33 +183,29 @@ export const useDeleteAllNotifications = () => {
   const { showToast } = useToastStore();
 
   return useMutation({
-    mutationKey: ['notification', 'deleteAll'],
-    mutationFn: async () => {
-      // 현재 알림 목록 가져오기
-      const currentData = queryClient.getQueryData(queryKeys.notification.list()) as any;
-      const notifications = currentData?.data || [];
+    mutationKey: mutationKeys.notification.deleteAll,
+    mutationFn: async (deleteIds?: number[]) => {
+      const ids = deleteIds ?? [];
 
-      if (notifications.length === 0) {
-        return [];
+      if (ids.length === 0) {
+        logger.log('📭 삭제할 알림이 없어 API 호출을 생략합니다.');
+        return { success: true };
       }
 
-      // 일괄 삭제 API 호출
-      const deleteIds = notifications.map((n: any) => n.id);
-      await notificationCommand.batchUpdate({
+      logger.log(`📤 모든 알림 삭제 API 호출 - ${ids.length}개 알림`);
+      const result = await notificationCommand.batchUpdate({
         readIds: [],
-        deletedIds: deleteIds,
+        deletedIds: ids,
       });
+      logger.log('📥 모든 알림 삭제 API 응답:', result);
 
-      return notifications;
+      return result;
     },
-    onMutate: async () => {
-      // 쿼리 취소
+    onMutate: async (deleteIds) => {
       await queryClient.cancelQueries({ queryKey: queryKeys.notification.list() });
 
-      // 이전 데이터 백업
       const previousNotifications = queryClient.getQueryData(queryKeys.notification.list());
 
-      // 낙관적 업데이트: 모든 알림 삭제
       queryClient.setQueryData(queryKeys.notification.list(), (old: any) => {
         if (!old?.success) return old;
 
@@ -215,26 +217,37 @@ export const useDeleteAllNotifications = () => {
 
       logger.log('모든 알림 삭제 - 낙관적 업데이트');
 
-      return { previousNotifications };
+      return { previousNotifications, deleteIds };
     },
-    onSuccess: (deletedNotifications) => {
+    onSuccess: (response, deleteIds) => {
+      const ids = deleteIds ?? [];
+
+      if (!response?.success) {
+        showToast({
+          type: 'error',
+          message: '알림 삭제에 실패했습니다.',
+        });
+        logger.error('❌ 모든 알림 삭제 응답 실패:', response);
+        return;
+      }
+
       showToast({
         type: 'success',
-        message: `${deletedNotifications.length}개의 알림을 삭제했습니다.`,
+        message: `${ids.length}개의 알림을 삭제했습니다.`,
       });
-      logger.log(`모든 알림 삭제 완료 (${deletedNotifications.length}개)`);
+      logger.log(`모든 알림 삭제 완료 (${ids.length}개)`);
     },
-    onError: (err, variables, context) => {
-      // 오류 시 롤백
+    onError: (err, deleteIds, context) => {
       queryClient.setQueryData(queryKeys.notification.list(), context?.previousNotifications);
       showToast({
         type: 'error',
         message: '알림 삭제에 실패했습니다.',
       });
-      logger.error('모든 알림 삭제 실패:', err);
+      logger.error('❌ 모든 알림 삭제 실패:', err);
+      logger.error('❌ 요청 변수:', deleteIds);
+      logger.error('❌ 오류 상세:', (err as any)?.response || (err as any)?.message || err);
     },
     onSettled: () => {
-      // 서버와 동기화
       queryClient.invalidateQueries({ queryKey: queryKeys.notification.list() });
     },
   });

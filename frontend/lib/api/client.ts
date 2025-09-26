@@ -69,6 +69,7 @@ export class ApiClient {
       
       const requiredAuthEndpoints = [
         '/user',
+        '/api/user',
         '/paper',
         '/api/admin',
         '/post/manage/like',
