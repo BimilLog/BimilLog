@@ -4,6 +4,7 @@ import jaeik.bimillog.infrastructure.adapter.in.post.web.util.PostViewCookieUtil
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PostViewCookieUtil 테스트")
+@Tag("fast")
 class PostViewCookieUtilTest {
 
     @InjectMocks

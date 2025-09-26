@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.post.application.port.in.PostInteractionUseCase;
 import jaeik.bimillog.domain.post.event.PostViewedEvent;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
@@ -19,6 +20,7 @@ import static org.mockito.Mockito.*;
  * @version 2.0.0
  */
 @DisplayName("게시글 조회 이벤트 워크플로우 통합 테스트")
+@Tag("fast-integration")
 public class PostViewedEventIntegrationTest extends BaseEventIntegrationTest {
 
     @MockitoBean

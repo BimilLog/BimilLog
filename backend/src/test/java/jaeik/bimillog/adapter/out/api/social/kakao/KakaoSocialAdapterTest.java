@@ -9,6 +9,7 @@ import jaeik.bimillog.infrastructure.adapter.out.api.social.kakao.KakaoSocialAda
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.KakaoTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -31,6 +32,7 @@ import static org.mockito.Mockito.verify;
  * @version 2.0.0
  */
 @DisplayName("KakaoSocialAdapter 단위 테스트")
+@Tag("fast")
 class KakaoSocialAdapterTest extends BaseUnitTest {
 
     private static final Integer DEFAULT_OFFSET = 0;

@@ -3,6 +3,7 @@ package jaeik.bimillog.adapter.in.notification.dto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jaeik.bimillog.infrastructure.adapter.in.notification.dto.UpdateNotificationDTO;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -19,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @version 2.0.0
  */
 @DisplayName("UpdateNotificationDTO 테스트")
+@Tag("fast")
 class UpdateNotificationDTOTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();

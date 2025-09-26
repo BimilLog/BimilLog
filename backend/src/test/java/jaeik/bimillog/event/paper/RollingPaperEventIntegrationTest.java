@@ -6,6 +6,7 @@ import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import jaeik.bimillog.testutil.EventTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
@@ -22,6 +23,7 @@ import static org.mockito.Mockito.verify;
  * @version 2.0.0
  */
 @DisplayName("롤링페이퍼 메시지 이벤트 워크플로우 통합 테스트")
+@Tag("fast-integration")
 public class RollingPaperEventIntegrationTest extends BaseEventIntegrationTest {
 
     @MockitoBean

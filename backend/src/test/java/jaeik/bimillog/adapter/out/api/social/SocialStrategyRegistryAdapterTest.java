@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.out.api.social.SocialStrategyRegistryAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
@@ -25,6 +26,7 @@ import static org.mockito.BDDMockito.given;
  * @version 2.0.0
  */
 @DisplayName("SocialStrategyRegistryAdapter 단위 테스트")
+@Tag("fast")
 class SocialStrategyRegistryAdapterTest extends BaseUnitTest {
 
     @Mock

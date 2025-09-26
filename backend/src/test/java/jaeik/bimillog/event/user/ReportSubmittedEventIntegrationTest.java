@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.user.event.ReportSubmittedEvent;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
@@ -20,6 +21,7 @@ import static org.mockito.Mockito.*;
  * @version 2.0.0
  */
 @DisplayName("신고 제출 이벤트 워크플로우 통합 테스트")
+@Tag("fast-integration")
 class ReportSubmittedEventIntegrationTest extends BaseEventIntegrationTest {
 
     @MockitoBean

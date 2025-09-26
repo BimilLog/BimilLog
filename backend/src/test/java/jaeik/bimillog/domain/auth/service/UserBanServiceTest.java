@@ -8,6 +8,7 @@ import jaeik.bimillog.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.testutil.BaseAuthUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
@@ -30,6 +31,7 @@ import static org.mockito.Mockito.*;
  * @version 2.0.0
  */
 @DisplayName("UserBanService 단위 테스트")
+@Tag("fast")
 class UserBanServiceTest extends BaseAuthUnitTest {
 
     @Mock

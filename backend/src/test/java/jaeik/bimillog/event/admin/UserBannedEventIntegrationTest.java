@@ -1,12 +1,14 @@
 package jaeik.bimillog.event.admin;
 
 import jaeik.bimillog.domain.admin.event.UserBannedEvent;
+import jaeik.bimillog.domain.auth.application.port.in.SocialWithdrawUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.UserBanUseCase;
 import jaeik.bimillog.domain.user.application.port.in.WithdrawUseCase;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import jaeik.bimillog.testutil.EventTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
@@ -22,6 +24,7 @@ import static org.mockito.Mockito.verify;
  * @version 2.0.0
  */
 @DisplayName("사용자 차단 이벤트 워크플로우 통합 테스트")
+@Tag("fast-integration")
 public class UserBannedEventIntegrationTest extends BaseEventIntegrationTest {
 
     @MockitoBean
@@ -29,6 +32,9 @@ public class UserBannedEventIntegrationTest extends BaseEventIntegrationTest {
 
     @MockitoBean
     private UserBanUseCase userBanUseCase;
+
+    @MockitoBean
+    private SocialWithdrawUseCase socialWithdrawUseCase;
 
     @Test
     @DisplayName("사용자 차단 이벤트 워크플로우 - BAN 상태 변경과 블랙리스트 등록까지 완료")
@@ -47,6 +53,8 @@ public class UserBannedEventIntegrationTest extends BaseEventIntegrationTest {
             verify(withdrawUseCase).addToBlacklist(eq(userId));
             // JWT 토큰 무효화
             verify(userBanUseCase).blacklistAllUserTokens(eq(userId), eq("사용자 제재"));
+            // 소셜 연결 해제
+            verify(socialWithdrawUseCase).unlinkSocialAccount(eq(provider), eq(socialId));
         });
     }
 
@@ -71,6 +79,10 @@ public class UserBannedEventIntegrationTest extends BaseEventIntegrationTest {
             verify(userBanUseCase).blacklistAllUserTokens(eq(1L), eq("사용자 제재"));
             verify(userBanUseCase).blacklistAllUserTokens(eq(2L), eq("사용자 제재"));
             verify(userBanUseCase).blacklistAllUserTokens(eq(3L), eq("사용자 제재"));
+
+            verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("kakao123"));
+            verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("kakao456"));
+            verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("kakao789"));
         });
     }
 
@@ -86,6 +98,7 @@ public class UserBannedEventIntegrationTest extends BaseEventIntegrationTest {
             verify(withdrawUseCase).banUser(eq(1L));
             verify(withdrawUseCase).addToBlacklist(eq(1L));
             verify(userBanUseCase).blacklistAllUserTokens(eq(1L), eq("사용자 제재"));
+            verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("kakaoUser"));
         });
     }
 }

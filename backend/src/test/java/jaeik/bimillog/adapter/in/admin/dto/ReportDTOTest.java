@@ -9,6 +9,7 @@ import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
@@ -26,6 +27,7 @@ import static org.mockito.Mockito.mock;
  * @version 2.0.0
  */
 @DisplayName("ReportDTO 검증 테스트")
+@Tag("fast")
 class ReportDTOTest {
 
     private Validator validator;

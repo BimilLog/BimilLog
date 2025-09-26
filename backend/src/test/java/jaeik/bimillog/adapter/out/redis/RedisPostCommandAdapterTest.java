@@ -12,6 +12,7 @@ import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.RedisTestHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -37,6 +38,7 @@ import static org.mockito.Mockito.when;
  * @author Jaeik
  * @version 2.0.0
  */
+@Tag("fast")
 class RedisPostCommandAdapterTest extends BaseUnitTest {
 
     @Mock

@@ -12,6 +12,7 @@ import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
@@ -31,6 +32,7 @@ import static org.mockito.Mockito.verify;
  * @author Jaeik
  * @version 2.0.0
  */
+@Tag("fast")
 class SaveUserAdapterTest extends BaseUnitTest {
 
     @Mock private GlobalTokenCommandPort globalTokenCommandPort;

@@ -146,6 +146,24 @@ tasks.register('fastTest', Test) {
     shouldRunAfter tasks.named('test')
 }
 
+tasks.register('fastIntegrationTest', Test) {
+    group = 'verification'
+    description = 'H2 기반 통합 테스트를 빠르게 선별 실행합니다.'
+
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+
+    useJUnitPlatform {
+        includeTags 'fast-integration'
+
+    }
+
+    maxParallelForks = 1
+    systemProperty "junit.jupiter.execution.parallel.enabled", "false"
+
+    shouldRunAfter tasks.named('fastTest')
+}
+
 ext {
     set('springCloudVersion', "2024.0.0") // openfeign 호환
 }

@@ -13,6 +13,7 @@ import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.SseTestHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -34,6 +35,7 @@ import static org.mockito.Mockito.*;
  * @version 2.0.0
  */
 @DisplayName("SseAdapter 테스트")
+@Tag("fast")
 class SseAdapterTest extends BaseUnitTest {
 
     @Mock

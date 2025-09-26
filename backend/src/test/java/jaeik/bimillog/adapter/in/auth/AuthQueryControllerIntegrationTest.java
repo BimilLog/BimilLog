@@ -10,6 +10,7 @@ import jaeik.bimillog.testutil.TestFixtures;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
@@ -30,6 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("h2test")
 @Import({H2TestConfiguration.class, TestSocialLoginPortConfig.class})
 @DisplayName("인증 조회 컨트롤러 통합 테스트")
+@Tag("fast-integration")
 class AuthQueryControllerIntegrationTest extends BaseIntegrationTest {
 
     @Test

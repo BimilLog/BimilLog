@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -17,6 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @version 2.0.0
  */
 @DisplayName("Comment 엔티티 단위 테스트")
+@Tag("fast")
 class CommentTest {
 
     private User createTestUser(Long id) {

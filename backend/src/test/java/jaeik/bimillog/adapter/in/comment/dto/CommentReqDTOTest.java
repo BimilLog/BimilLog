@@ -2,6 +2,7 @@ package jaeik.bimillog.adapter.in.comment.dto;
 
 import jaeik.bimillog.infrastructure.adapter.in.comment.dto.CommentReqDTO;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -15,6 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @version 2.0.0
  */
 @DisplayName("CommentReqDTO 단위 테스트")
+@Tag("fast")
 class CommentReqDTOTest {
 
     @Test

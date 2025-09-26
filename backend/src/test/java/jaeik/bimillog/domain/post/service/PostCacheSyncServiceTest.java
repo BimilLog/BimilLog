@@ -8,6 +8,7 @@ import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -34,6 +35,7 @@ import static org.mockito.Mockito.*;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PostCacheSyncService 테스트")
+@Tag("fast")
 class PostCacheSyncServiceTest {
 
     @Mock

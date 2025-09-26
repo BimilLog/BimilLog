@@ -8,6 +8,7 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import jaeik.bimillog.testutil.EventTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
@@ -24,6 +25,7 @@ import static org.mockito.Mockito.verify;
  * @version 2.0.0
  */
 @DisplayName("사용자 탈퇴 이벤트 워크플로우 통합 테스트")
+@Tag("fast-integration")
 class UserWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
 
     @MockitoBean
@@ -87,7 +89,7 @@ class UserWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
             // FCM 토큰 삭제와 소셜 연결 해제는 별도 리스너이므로 댓글 처리 실패와 관계없이 처리되어야 함
             verify(notificationFcmUseCase).deleteFcmTokens(eq(1L));
             // SocialUnlinkListener는 createDefaultWithdrawEvent의 기본값 사용
-            verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("defaultSocialId"));
+            verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("testSocialId1"));
         });
     }
 }

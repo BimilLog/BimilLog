@@ -11,6 +11,7 @@ import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import jaeik.bimillog.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -33,6 +34,7 @@ import static org.mockito.Mockito.verify;
  * <p>카카오 친구 조회 흐름과 예외 매핑을 검증합니다.</p>
  */
 @DisplayName("UserFriendService 테스트")
+@Tag("fast")
 class UserFriendServiceTest extends BaseUnitTest {
 
     @Mock

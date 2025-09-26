@@ -8,6 +8,7 @@ import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
@@ -23,6 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @version 2.0.0
  */
 @DisplayName("SignUpRequestDTO 검증 테스트")
+@Tag("fast")
 class SignUpRequestDTOTest {
 
     private Validator validator;

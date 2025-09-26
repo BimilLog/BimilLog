@@ -14,6 +14,7 @@ import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.BaseAuthUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
@@ -46,6 +47,7 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("SocialLogoutService 단위 테스트")
 @MockitoSettings(strictness = Strictness.LENIENT)
+@Tag("fast")
 class SocialLogoutServiceTest extends BaseAuthUnitTest {
 
     @Mock

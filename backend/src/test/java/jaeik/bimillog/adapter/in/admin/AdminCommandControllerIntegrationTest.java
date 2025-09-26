@@ -10,6 +10,7 @@ import jaeik.bimillog.testutil.H2TestConfiguration;
 import jaeik.bimillog.testutil.PostTestDataBuilder;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
@@ -30,6 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("h2test")
 @Import(H2TestConfiguration.class)
 @DisplayName("관리자 Command 컨트롤러 통합 테스트 (H2)")
+@Tag("fast-integration")
 class AdminCommandControllerIntegrationTest extends BaseIntegrationTest {
 
     @Override

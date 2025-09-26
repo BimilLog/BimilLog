@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.H2TestConfiguration;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
@@ -24,6 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("h2test")
 @Import(H2TestConfiguration.class)
 @DisplayName("관리자 Query 컨트롤러 통합 테스트")
+@Tag("fast-integration")
 class AdminQueryControllerIntegrationTest extends BaseIntegrationTest {
 
     @Test

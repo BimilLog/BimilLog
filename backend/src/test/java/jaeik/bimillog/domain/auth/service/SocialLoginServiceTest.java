@@ -16,6 +16,7 @@ import jaeik.bimillog.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.testutil.BaseAuthUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -38,6 +39,7 @@ import static org.mockito.Mockito.*;
  * @version 2.0.0
  */
 @DisplayName("SocialLoginService 단위 테스트")
+@Tag("fast")
 class SocialLoginServiceTest extends BaseAuthUnitTest {
 
     @Mock private SocialStrategyRegistryPort strategyRegistry;

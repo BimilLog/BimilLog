@@ -7,6 +7,7 @@ import jaeik.bimillog.domain.user.application.port.in.WithdrawUseCase;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import jaeik.bimillog.testutil.EventTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
@@ -16,6 +17,7 @@ import static org.mockito.Mockito.verify;
 
 
 @DisplayName("관리자 강제 탈퇴 요청 이벤트 워크플로우 통합 테스트")
+@Tag("fast-integration")
 class AdminWithdrawEventIntegrationTest extends BaseEventIntegrationTest {
 
     @MockitoBean

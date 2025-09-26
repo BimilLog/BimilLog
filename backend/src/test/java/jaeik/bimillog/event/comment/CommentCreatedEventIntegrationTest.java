@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUse
 import jaeik.bimillog.domain.notification.application.port.in.NotificationSseUseCase;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
@@ -20,6 +21,7 @@ import static org.mockito.Mockito.verify;
  * @version 2.1.0
  */
 @DisplayName("댓글 생성 이벤트 워크플로우 통합 테스트")
+@Tag("fast-integration")
 class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
 
     @MockitoBean
