@@ -6,11 +6,7 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import java.util.Set;
 
@@ -26,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * @version 2.0.0
  */
 @DisplayName("SocialLoginRequestDTO 검증 테스트")
-@Tag("fast")
+@Tag("test")
 class SocialLoginRequestDTOTest {
 
     private Validator validator;

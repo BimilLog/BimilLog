@@ -41,7 +41,7 @@ import static org.mockito.Mockito.verify;
  * @version 2.0.0
  */
 @DisplayName("SignUpService 단위 테스트")
-@Tag("fast")
+@Tag("test")
 class SignUpServiceTest extends BaseUnitTest {
 
     @Mock

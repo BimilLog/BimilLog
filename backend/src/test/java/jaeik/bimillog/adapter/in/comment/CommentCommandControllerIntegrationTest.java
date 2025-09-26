@@ -9,16 +9,10 @@ import jaeik.bimillog.infrastructure.adapter.in.comment.dto.CommentReqDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentRepository;
 import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostRepository;
-import jaeik.bimillog.testutil.AuthTestFixtures;
-import jaeik.bimillog.testutil.BaseIntegrationTest;
-import jaeik.bimillog.testutil.CommentTestDataBuilder;
-import jaeik.bimillog.testutil.H2TestConfiguration;
-import jaeik.bimillog.testutil.PostTestDataBuilder;
-import jaeik.bimillog.testutil.TestFixtures;
-import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
-import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
@@ -47,6 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("h2test")
 @Import({H2TestConfiguration.class, TestSocialLoginPortConfig.class})
 @DisplayName("댓글 Command 컨트롤러 통합 테스트 (H2)")
+@Tag("integration")
 class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired

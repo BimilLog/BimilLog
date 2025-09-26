@@ -28,7 +28,7 @@ import static org.mockito.Mockito.verify;
  * @author Jaeik
  * @version 2.0.0
  */
-@Tag("fast")
+@Tag("test")
 class KakaoFriendAdapterTest extends BaseUnitTest {
 
     @Mock

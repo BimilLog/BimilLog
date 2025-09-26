@@ -15,7 +15,7 @@ import org.springframework.test.context.ActiveProfiles;
  */
 @ActiveProfiles("h2test")
 @SpringBootTest
-@Tag("fast-integration")
+@Tag("integration")
 class BimilLogApplicationTests {
 
     @Test

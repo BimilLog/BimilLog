@@ -35,7 +35,7 @@ import static org.mockito.Mockito.verify;
  * @version 2.0.0
  */
 @DisplayName("PostInteractionService 테스트")
-@Tag("fast")
+@Tag("test")
 class PostInteractionServiceTest extends BaseUnitTest {
 
     @Mock

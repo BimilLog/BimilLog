@@ -33,7 +33,7 @@ import static org.mockito.Mockito.*;
  * @version 2.0.0
  */
 @DisplayName("PaperCommandService 테스트")
-@Tag("fast")
+@Tag("test")
 class PaperCommandServiceTest extends BaseUnitTest {
 
     @Mock

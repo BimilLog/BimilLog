@@ -1,5 +1,7 @@
 package jaeik.bimillog.adapter.out.api.fcm;
 
+import com.google.auth.oauth2.AccessToken;
+import com.google.auth.oauth2.GoogleCredentials;
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.infrastructure.adapter.out.api.fcm.FcmAdapter;
@@ -10,15 +12,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.*;
+import org.springframework.http.MediaType;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
@@ -31,7 +34,7 @@ import static org.mockito.Mockito.verify;
  * @author Jaeik
  * @version 2.0.0
  */
-@Tag("fast")
+@Tag("test")
 class FcmAdapterTest extends BaseUnitTest {
 
     @Mock
@@ -98,11 +101,23 @@ class FcmAdapterTest extends BaseUnitTest {
         // fcmApiClient가 정상적으로 동작하도록 모킹
         doNothing().when(fcmApiClient).sendMessage(anyString(), anyString(), any());
 
-        // When
-        fcmAdapter.sendMessageTo(fcmMessage);
+        try (MockedStatic<GoogleCredentials> mockedCredentials = Mockito.mockStatic(GoogleCredentials.class)) {
+            GoogleCredentials credentials = Mockito.mock(GoogleCredentials.class);
+            AccessToken accessToken = new AccessToken("mock-access-token", new Date(System.currentTimeMillis() + 60_000));
 
-        // Then: FCM API 클라이언트가 호출되었는지 검증
-        verify(fcmApiClient).sendMessage(anyString(), anyString(), any());
+            mockedCredentials.when(() -> GoogleCredentials.fromStream(any(InputStream.class))).thenReturn(credentials);
+            given(credentials.createScoped(anyList())).willReturn(credentials);
+            doNothing().when(credentials).refreshIfExpired();
+            given(credentials.getAccessToken()).willReturn(accessToken);
+
+            // When
+            fcmAdapter.sendMessageTo(fcmMessage);
+
+            // Then: FCM API 클라이언트가 호출되었는지 검증
+            ArgumentCaptor<String> authHeaderCaptor = ArgumentCaptor.forClass(String.class);
+            verify(fcmApiClient).sendMessage(authHeaderCaptor.capture(), eq(MediaType.APPLICATION_JSON_VALUE), any());
+            assertThat(authHeaderCaptor.getValue()).isEqualTo("Bearer mock-access-token");
+        }
     }
 
     @Test

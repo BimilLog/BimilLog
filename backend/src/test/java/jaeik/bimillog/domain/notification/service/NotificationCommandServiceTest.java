@@ -19,9 +19,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.*;
 
 /**
  * <h2>NotificationCommandService 테스트</h2>
@@ -33,7 +31,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("NotificationCommandService 테스트")
-@Tag("fast")
+@Tag("test")
 class NotificationCommandServiceTest {
 
     @Mock

@@ -6,6 +6,7 @@ import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentRepository;
 import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostRepository;
 import jaeik.bimillog.testutil.*;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
@@ -29,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("h2test")
 @Import({H2TestConfiguration.class, TestSocialLoginPortConfig.class})
 @DisplayName("댓글 Query 컨트롤러 통합 테스트")
+@Tag("integration")
 class CommentQueryControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired

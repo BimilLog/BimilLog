@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("h2test")
 @Import(H2TestConfiguration.class)
 @DisplayName("관리자 Command 컨트롤러 통합 테스트 (H2)")
-@Tag("fast-integration")
+@Tag("integration")
 class AdminCommandControllerIntegrationTest extends BaseIntegrationTest {
 
     @Override

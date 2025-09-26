@@ -5,7 +5,6 @@ import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.NewUserDetail;
 import org.springframework.http.ResponseCookie;
-import jaeik.bimillog.testutil.AuthTestFixtures;
 
 import java.util.ArrayList;
 import java.util.Arrays;

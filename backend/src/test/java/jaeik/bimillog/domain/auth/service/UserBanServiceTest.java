@@ -31,7 +31,7 @@ import static org.mockito.Mockito.*;
  * @version 2.0.0
  */
 @DisplayName("UserBanService 단위 테스트")
-@Tag("fast")
+@Tag("test")
 class UserBanServiceTest extends BaseAuthUnitTest {
 
     @Mock

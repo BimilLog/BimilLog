@@ -41,7 +41,7 @@ import static org.mockito.Mockito.*;
  * @version 2.0.0
  */
 @DisplayName("CommentCommandService 단위 테스트")
-@Tag("fast")
+@Tag("test")
 class CommentCommandServiceTest extends BaseUnitTest {
 
     private static final Long TEST_COMMENT_ID = 200L;

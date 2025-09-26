@@ -17,7 +17,7 @@ import static org.mockito.Mockito.verify;
 
 
 @DisplayName("관리자 강제 탈퇴 요청 이벤트 워크플로우 통합 테스트")
-@Tag("fast-integration")
+@Tag("integration")
 class AdminWithdrawEventIntegrationTest extends BaseEventIntegrationTest {
 
     @MockitoBean

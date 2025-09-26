@@ -21,9 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
@@ -34,7 +32,7 @@ import static org.mockito.Mockito.verify;
  * <p>카카오 친구 조회 흐름과 예외 매핑을 검증합니다.</p>
  */
 @DisplayName("UserFriendService 테스트")
-@Tag("fast")
+@Tag("test")
 class UserFriendServiceTest extends BaseUnitTest {
 
     @Mock

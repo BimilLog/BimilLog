@@ -1,6 +1,5 @@
 package jaeik.bimillog.testutil;
 
-import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.in.paper.dto.MessageDTO;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.PostCreateDTO;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.PostUpdateDTO;

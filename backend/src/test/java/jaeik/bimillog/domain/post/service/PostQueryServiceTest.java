@@ -42,7 +42,7 @@ import static org.mockito.Mockito.*;
  * @version 2.0.0
  */
 @DisplayName("PostQueryService 테스트")
-@Tag("fast")
+@Tag("test")
 class PostQueryServiceTest extends BaseUnitTest {
 
     @Mock

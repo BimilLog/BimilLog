@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("h2test")
 @Import(H2TestConfiguration.class)
 @DisplayName("관리자 Query 컨트롤러 통합 테스트")
-@Tag("fast-integration")
+@Tag("integration")
 class AdminQueryControllerIntegrationTest extends BaseIntegrationTest {
 
     @Test

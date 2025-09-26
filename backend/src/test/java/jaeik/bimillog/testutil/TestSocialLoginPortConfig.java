@@ -1,23 +1,23 @@
 package jaeik.bimillog.testutil;
 
-import jaeik.bimillog.domain.auth.application.port.out.AuthToUserPort;
 import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.user.application.port.out.KakaoFriendPort;
-import jaeik.bimillog.domain.user.entity.*;
+import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
+import jaeik.bimillog.domain.user.entity.KakaoFriendsResponseVO;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.global.application.port.out.GlobalJwtPort;
+import jaeik.bimillog.infrastructure.adapter.out.global.GlobalCookieAdapter;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.ResponseCookie;
 
 import java.util.Collections;
-import java.util.List;
 
 /**
  * <h2>테스트용 소셜 로그인 포트 설정</h2>
@@ -81,26 +81,6 @@ public class TestSocialLoginPortConfig {
         public int getOrder() {
             return Ordered.HIGHEST_PRECEDENCE;
         }
-    }
-
-    @Bean
-    @Primary
-    public AuthToUserPort testSocialPort() {
-        return new AuthToUserPort() {
-            @Override
-            public UserDetail delegateUserData(SocialProvider provider, SocialUserProfile profile, String fcmToken) {
-                if ("test-social-id-12345".equals(profile.socialId())) {
-                    User existingUser = TestUsers.createUser(builder -> {
-                        builder.socialId(profile.socialId());
-                        builder.userName("existing-user");
-                        builder.socialNickname("existing-user");
-                    });
-                    User userWithId = TestUsers.copyWithId(existingUser, 1L);
-                    return ExistingUserDetail.of(userWithId, 1L, null);
-                }
-                return NewUserDetail.of("test-uuid");
-            }
-        };
     }
 
     @Bean
@@ -178,37 +158,6 @@ public class TestSocialLoginPortConfig {
     @Bean
     @Primary
     public GlobalCookiePort testGlobalCookiePort() {
-        return new GlobalCookiePort() {
-            @Override
-            public ResponseCookie createTempCookie(NewUserDetail newUserDetail) {
-                return ResponseCookie.from("temp_user_id", newUserDetail.getUuid()).build();
-            }
-
-            @Override
-            public List<ResponseCookie> generateJwtCookie(String accessToken, String refreshToken) {
-                return List.of(
-                    ResponseCookie.from("jwt_access_token", accessToken).build(),
-                    ResponseCookie.from("jwt_refresh_token", refreshToken).build()
-                );
-            }
-
-            @Override
-            public List<ResponseCookie> getLogoutCookies() {
-                return List.of(
-                    ResponseCookie.from("jwt_access_token", "").maxAge(0).build(),
-                    ResponseCookie.from("jwt_refresh_token", "").maxAge(0).build()
-                );
-            }
-
-            @Override
-            public ResponseCookie generateJwtAccessCookie(String accessToken) {
-                return ResponseCookie.from("jwt_access_token", accessToken).build();
-            }
-
-            @Override
-            public ResponseCookie generateJwtRefreshCookie(String refreshToken) {
-                return ResponseCookie.from("jwt_refresh_token", refreshToken).build();
-            }
-        };
+        return new GlobalCookieAdapter();
     }
 }

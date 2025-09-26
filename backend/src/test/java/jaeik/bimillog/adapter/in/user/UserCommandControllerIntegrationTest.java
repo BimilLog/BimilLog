@@ -12,7 +12,6 @@ import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.testutil.AuthTestFixtures;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
-import jaeik.bimillog.testutil.TestFixtures;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
 import jaeik.bimillog.testutil.TestUsers;
 import jaeik.bimillog.testutil.annotation.IntegrationTest;
@@ -26,8 +25,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -216,7 +217,7 @@ class UserCommandControllerIntegrationTest extends BaseIntegrationTest {
         ReportDTO reportDTO = ReportDTO.builder()
                 .reportType(ReportType.POST)
                 .targetId(123L)
-                .content("테스트 신고 내용")
+                .content("테스트 신고 내용입니다.")
                 .build();
 
         User testUser = TestUsers.createUnique();
@@ -258,5 +259,25 @@ class UserCommandControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(status().isBadRequest());
     }
 
+
+
+    @Test
+    @DisplayName("회원 탈퇴 통합 테스트 - 성공")
+    void withdraw_Success() throws Exception {
+        var result = mockMvc.perform(delete("/api/user/withdraw")
+                        .with(user(testUserDetails))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SUCCESS"))
+                .andExpect(jsonPath("$.data.message").value("회원탈퇴 성공"))
+                .andReturn();
+
+        var cookies = result.getResponse().getHeaders("Set-Cookie");
+
+        assertThat(cookies).anySatisfy(cookie -> assertThat(cookie).startsWith("jwt_access_token="));
+        assertThat(cookies).anySatisfy(cookie -> assertThat(cookie).startsWith("jwt_refresh_token="));
+        assertThat(userRepository.findById(testUser.getId())).isEmpty();
+    }
 
 }

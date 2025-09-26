@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.out.notification.jpa.NotificationRepository;
 import jaeik.bimillog.testutil.*;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
@@ -25,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("h2test")
 @Import({H2TestConfiguration.class, TestSocialLoginPortConfig.class})
 @DisplayName("알림 Query 컨트롤러 통합 테스트")
+@Tag("integration")
 class NotificationQueryControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired

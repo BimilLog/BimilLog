@@ -25,7 +25,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 
-import static jaeik.bimillog.testutil.AuthTestFixtures.*;
+import static jaeik.bimillog.testutil.AuthTestFixtures.TEST_PROVIDER;
+import static jaeik.bimillog.testutil.AuthTestFixtures.createTempCookie;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
@@ -39,7 +40,7 @@ import static org.mockito.Mockito.*;
  * @version 2.0.0
  */
 @DisplayName("SocialLoginService 단위 테스트")
-@Tag("fast")
+@Tag("test")
 class SocialLoginServiceTest extends BaseAuthUnitTest {
 
     @Mock private SocialStrategyRegistryPort strategyRegistry;

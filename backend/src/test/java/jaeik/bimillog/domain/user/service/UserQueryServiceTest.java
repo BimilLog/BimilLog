@@ -29,7 +29,7 @@ import static org.mockito.Mockito.verify;
  * @version 2.0.0
  */
 @DisplayName("UserQueryService 테스트")
-@Tag("fast")
+@Tag("test")
 class UserQueryServiceTest extends BaseUnitTest {
 
     @Mock

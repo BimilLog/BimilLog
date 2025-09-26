@@ -119,20 +119,9 @@ clean.doLast {
 }
 
 tasks.named('test') {
-    useJUnitPlatform()
-
-    maxParallelForks = 1
-}
-
-tasks.register('fastTest', Test) {
-    group = 'verification'
-    description = '단위/빠른 테스트를 병렬로 실행합니다. 통합 테스트는 제외됩니다.'
-
-    testClassesDirs = sourceSets.test.output.classesDirs
-    classpath = sourceSets.test.runtimeClasspath
-
     useJUnitPlatform {
-        includeTags 'fast'
+        includeTags 'test'
+        excludeTags 'integration', 'tc'
     }
 
     def cpuCount = Runtime.runtime.availableProcessors()
@@ -142,26 +131,42 @@ tasks.register('fastTest', Test) {
     systemProperty "junit.jupiter.execution.parallel.mode.default", "concurrent"
     systemProperty "junit.jupiter.execution.parallel.mode.classes.default", "concurrent"
     systemProperty "junit.jupiter.execution.parallel.config.strategy", "dynamic"
-
-    shouldRunAfter tasks.named('test')
 }
 
-tasks.register('fastIntegrationTest', Test) {
+tasks.register('integrationTest', Test) {
     group = 'verification'
-    description = 'H2 기반 통합 테스트를 빠르게 선별 실행합니다.'
+    description = 'H2 기반 통합 테스트를 실행합니다.'
 
     testClassesDirs = sourceSets.test.output.classesDirs
     classpath = sourceSets.test.runtimeClasspath
 
     useJUnitPlatform {
-        includeTags 'fast-integration'
-
+        includeTags 'integration'
+        excludeTags 'tc'
     }
 
     maxParallelForks = 1
-    systemProperty "junit.jupiter.execution.parallel.enabled", "false"
+    shouldRunAfter tasks.named('test')
+}
 
-    shouldRunAfter tasks.named('fastTest')
+tasks.register('tcTest', Test) {
+    group = 'verification'
+    description = 'Testcontainers 기반 통합 테스트를 실행합니다.'
+
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+
+    useJUnitPlatform {
+        includeTags 'tc'
+    }
+
+    maxParallelForks = 1
+    shouldRunAfter tasks.named('integrationTest')
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('integrationTest')
+    dependsOn tasks.named('tcTest')
 }
 
 ext {

@@ -5,13 +5,9 @@ import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.auth.jpa.TokenRepository;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
-import jaeik.bimillog.testutil.AuthTestFixtures;
-import jaeik.bimillog.testutil.BaseIntegrationTest;
-import jaeik.bimillog.testutil.H2TestConfiguration;
-import jaeik.bimillog.testutil.TestFixtures;
-import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
-import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.*;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
@@ -33,6 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("h2test")
 @Import({H2TestConfiguration.class, TestSocialLoginPortConfig.class})
 @DisplayName("사용자 조회 컨트롤러 통합 테스트")
+@Tag("integration")
 class UserQueryControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired

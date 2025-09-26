@@ -43,7 +43,7 @@ import static org.mockito.Mockito.*;
  * @version 2.0.0
  */
 @DisplayName("AdminCommandService 단위 테스트")
-@Tag("fast")
+@Tag("test")
 class AdminCommandServiceTest extends BaseUnitTest {
 
     @Mock

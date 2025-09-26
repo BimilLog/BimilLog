@@ -29,9 +29,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.List;
 import java.util.Optional;
 
-import static jaeik.bimillog.testutil.AuthTestFixtures.TEST_ACCESS_TOKEN;
 import static jaeik.bimillog.testutil.AuthTestFixtures.TEST_PROVIDER;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
@@ -47,7 +45,7 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("SocialLogoutService 단위 테스트")
 @MockitoSettings(strictness = Strictness.LENIENT)
-@Tag("fast")
+@Tag("test")
 class SocialLogoutServiceTest extends BaseAuthUnitTest {
 
     @Mock

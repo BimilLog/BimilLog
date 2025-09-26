@@ -14,6 +14,7 @@ import jaeik.bimillog.testutil.PostTestDataBuilder;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -45,6 +46,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ActiveProfiles("h2test")
 @Import({CommentSaveAdapter.class, H2TestConfiguration.class})
 @DisplayName("댓글 저장 어댑터 통합 테스트")
+@Tag("integration")
 class CommentSaveAdapterIntegrationTest {
 
     @Autowired

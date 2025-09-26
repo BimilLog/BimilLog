@@ -41,7 +41,7 @@ import static org.mockito.Mockito.*;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("NotificationFcmService 테스트")
-@Tag("fast")
+@Tag("test")
 class NotificationFcmServiceTest {
 
     @Mock

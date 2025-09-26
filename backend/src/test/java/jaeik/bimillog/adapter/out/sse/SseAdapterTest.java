@@ -35,7 +35,7 @@ import static org.mockito.Mockito.*;
  * @version 2.0.0
  */
 @DisplayName("SseAdapter 테스트")
-@Tag("fast")
+@Tag("test")
 class SseAdapterTest extends BaseUnitTest {
 
     @Mock

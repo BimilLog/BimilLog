@@ -27,6 +27,7 @@ import java.util.Arrays;
  *
  * <h3>사용 예시:</h3>
  * <pre>
+@Tag("integration")
  * class CommentEventTest extends BaseEventIntegrationTest {
  *
  *     {@literal @}Test

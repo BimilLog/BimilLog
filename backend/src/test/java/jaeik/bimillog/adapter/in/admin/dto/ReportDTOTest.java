@@ -27,7 +27,7 @@ import static org.mockito.Mockito.mock;
  * @version 2.0.0
  */
 @DisplayName("ReportDTO 검증 테스트")
-@Tag("fast")
+@Tag("test")
 class ReportDTOTest {
 
     private Validator validator;

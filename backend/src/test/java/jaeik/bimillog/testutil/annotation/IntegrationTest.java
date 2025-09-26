@@ -23,7 +23,7 @@ import java.lang.annotation.*;
  *   <li>@Testcontainers - TestContainers 활성화</li>
  *   <li>@Import(TestContainersConfiguration.class) - MySQL, Redis 컨테이너 설정</li>
  *   <li>@Transactional - 테스트 후 자동 롤백</li>
- *   <li>@Tag("integration") - 통합 테스트 태그</li>
+ *   <li>@Tag("tc") - Testcontainers 통합 테스트 태그</li>
  *   <li>@ActiveProfiles("tc") - TestContainers 프로파일 활성화</li>
  * </ul>
  * 
@@ -62,7 +62,7 @@ import java.lang.annotation.*;
 @Testcontainers
 @Import(TestContainersConfiguration.class)
 @Transactional
-@Tag("integration")
+@Tag("tc")
 @ActiveProfiles("tc")
 public @interface IntegrationTest {
     /**

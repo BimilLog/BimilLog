@@ -21,7 +21,7 @@ import static org.mockito.Mockito.verify;
  * @version 2.1.0
  */
 @DisplayName("댓글 생성 이벤트 워크플로우 통합 테스트")
-@Tag("fast-integration")
+@Tag("integration")
 class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
 
     @MockitoBean

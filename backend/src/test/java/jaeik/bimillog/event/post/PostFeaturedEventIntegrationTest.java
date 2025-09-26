@@ -23,7 +23,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
  * @version 2.0.0
  */
 @DisplayName("게시글 인기글 등극 이벤트 워크플로우 통합 테스트")
-@Tag("fast-integration")
+@Tag("integration")
 public class PostFeaturedEventIntegrationTest extends BaseEventIntegrationTest {
 
     @MockitoBean
