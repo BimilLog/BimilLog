@@ -29,6 +29,10 @@ jobs:
         run: |
           echo "${{ secrets.FRONTEND_ENV }}" | base64 -d > frontend/.env
 
+      - name: Restore Firebase messaging service worker
+        run: |
+          echo "${{ secrets.FIREBASE_MESSAGING_SW_B64 }}" | base64 -d > frontend/public/firebase-messaging-sw.js
+
       - name: Log in to Docker Hub
         run: echo "${DOCKERHUB_PASSWORD}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
 
@@ -93,6 +97,10 @@ jobs:
           docker build -t bimillog-frontend .
           docker tag bimillog-frontend:latest $IMAGE_REPO:frontend
           docker push $IMAGE_REPO:frontend
+
+      - name: Clean up Firebase messaging service worker
+        if: always()
+        run: rm -f frontend/public/firebase-messaging-sw.js
 
       - name: Deploy Frontend via Bastion Host
         uses: appleboy/ssh-action@v1.0.3
