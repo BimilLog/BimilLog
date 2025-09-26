@@ -18,6 +18,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 /**
@@ -50,7 +53,22 @@ class NotificationCommandServiceTest {
         assertThatThrownBy(() -> notificationCommandService.batchUpdate(nullUserDetails, updateCommand))
                 .isInstanceOf(NotificationCustomException.class)
                 .hasFieldOrPropertyWithValue("notificationErrorCode", NotificationErrorCode.INVALID_USER_CONTEXT);
-        
+
         verifyNoInteractions(notificationCommandPort);
+    }
+
+    @Test
+    @DisplayName("알림 일괄 업데이트 - 정상 플로우")
+    void shouldDelegateToPort_WhenUserPresent() {
+        // Given
+        CustomUserDetails userDetails = mock(CustomUserDetails.class);
+        NotificationUpdateVO updateCommand = NotificationUpdateVO.of(List.of(10L), List.of(20L));
+        given(userDetails.getUserId()).willReturn(42L);
+
+        // When
+        notificationCommandService.batchUpdate(userDetails, updateCommand);
+
+        // Then
+        verify(notificationCommandPort).batchUpdate(42L, updateCommand);
     }
 }
