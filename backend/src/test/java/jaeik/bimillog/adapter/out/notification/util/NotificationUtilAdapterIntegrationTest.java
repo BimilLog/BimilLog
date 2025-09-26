@@ -13,6 +13,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.ComponentScan;
@@ -41,6 +42,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 )
 @ActiveProfiles("h2test")
 @Import({NotificationUtilAdapter.class, H2TestConfiguration.class})
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Tag("integration")
 class NotificationUtilAdapterIntegrationTest {
 

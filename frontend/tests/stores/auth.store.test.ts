@@ -1,40 +1,32 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const mockGetCurrentUser = vi.fn();
-const mockLogout = vi.fn();
-const mockSignUp = vi.fn();
-const mockUpdateUserName = vi.fn();
-const mockSseConnect = vi.fn();
-const mockSseDisconnect = vi.fn();
-
 vi.mock("@/lib/api", () => ({
   authQuery: {
-    getCurrentUser: mockGetCurrentUser,
+    getCurrentUser: vi.fn(),
   },
   authCommand: {
-    logout: mockLogout,
-    signUp: mockSignUp,
+    logout: vi.fn(),
+    signUp: vi.fn(),
   },
   userCommand: {
-    updateUserName: mockUpdateUserName,
+    updateUserName: vi.fn(),
   },
   sseManager: {
-    connect: mockSseConnect,
-    disconnect: mockSseDisconnect,
+    connect: vi.fn(),
+    disconnect: vi.fn(),
   },
 }));
 
-const mockLogger = {
-  log: vi.fn(),
-  error: vi.fn(),
-  warn: vi.fn(),
-};
-
 vi.mock("@/lib/utils", () => ({
-  logger: mockLogger,
+  logger: {
+    log: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+  },
 }));
 
 import { useAuthStore } from "@/stores/auth.store";
+import { authQuery, authCommand, sseManager } from "@/lib/api";
 
 const resetStoreState = () => {
   (useAuthStore as unknown as { persist?: { clearStorage?: () => void } }).persist?.clearStorage?.();
@@ -59,7 +51,7 @@ describe("useAuthStore", () => {
   });
 
   it("refreshUser 성공 시 사용자 정보를 저장하고 SSE를 연결한다", async () => {
-    mockGetCurrentUser.mockResolvedValue({
+    vi.mocked(authQuery.getCurrentUser).mockResolvedValue({
       success: true,
       data: {
         userId: 1,
@@ -77,12 +69,12 @@ describe("useAuthStore", () => {
     expect(state.user?.userName).toBe("홍길동");
     expect(state.isAuthenticated).toBe(true);
     expect(state.isLoading).toBe(false);
-    expect(mockSseConnect).toHaveBeenCalledTimes(1);
-    expect(mockSseDisconnect).not.toHaveBeenCalled();
+    expect(vi.mocked(sseManager.connect)).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(sseManager.disconnect)).not.toHaveBeenCalled();
   });
 
   it("refreshUser 실패 시 인증 상태를 초기화하고 SSE 연결을 해제한다", async () => {
-    mockGetCurrentUser.mockResolvedValue({
+    vi.mocked(authQuery.getCurrentUser).mockResolvedValue({
       success: false,
       error: "Unauthorized",
     });
@@ -93,7 +85,7 @@ describe("useAuthStore", () => {
     expect(state.user).toBeNull();
     expect(state.isAuthenticated).toBe(false);
     expect(state.isLoading).toBe(false);
-    expect(mockSseDisconnect).toHaveBeenCalledTimes(1);
-    expect(mockSseConnect).not.toHaveBeenCalled();
+    expect(vi.mocked(sseManager.disconnect)).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(sseManager.connect)).not.toHaveBeenCalled();
   });
 });

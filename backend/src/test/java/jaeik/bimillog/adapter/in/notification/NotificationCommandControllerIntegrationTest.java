@@ -119,8 +119,8 @@ class NotificationCommandControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("빈 리스트로 알림 업데이트 - 성공")
-    void updateWithEmptyLists_Success() throws Exception {
+    @DisplayName("빈 리스트로 알림 업데이트 - 실패 (최소 1개 작업 필요)")
+    void updateWithEmptyLists_FailOnValidation() throws Exception {
         // Given
         UpdateNotificationDTO updateDTO = new UpdateNotificationDTO();
         updateDTO.setReadIds(List.of());
@@ -135,7 +135,7 @@ class NotificationCommandControllerIntegrationTest extends BaseIntegrationTest {
                         .with(user(testUserDetails))
                         .with(csrf()))
                 .andDo(print())
-                .andExpect(status().isOk());
+                .andExpect(status().isBadRequest());
     }
 
     @Test

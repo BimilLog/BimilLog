@@ -200,6 +200,8 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string("댓글 삭제 완료"));
         
+        flushAndClearPersistenceContext();
+        
         // 데이터베이스 검증 - 댓글이 삭제되었는지 확인
         Optional<Comment> deletedComment = commentRepository.findById(existingComment.getId());
         assertThat(deletedComment).isEmpty();
@@ -274,10 +276,13 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string("댓글 삭제 완료"));
         
+        flushAndClearPersistenceContext();
+        
         // 데이터베이스 검증 - 댓글이 삭제되었는지 확인
         Optional<Comment> deletedComment = commentRepository.findById(anonymousComment.getId());
         assertThat(deletedComment).isEmpty();
     }
+
 
     @Test
     @DisplayName("익명 댓글 삭제 실패 - 잘못된 패스워드")
@@ -335,5 +340,15 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
         // 댓글이 여전히 존재하는지 확인
         Optional<Comment> comment = commentRepository.findById(otherUserComment.getId());
         assertThat(comment).isPresent();
+    }
+
+    private void flushAndClearPersistenceContext() {
+        if (entityManager != null) {
+            entityManager.flush();
+            entityManager.clear();
+        } else if (entityManagerDelegate != null) {
+            entityManagerDelegate.flush();
+            entityManagerDelegate.clear();
+        }
     }
 }

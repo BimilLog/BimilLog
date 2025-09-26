@@ -6,6 +6,8 @@ import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,6 +67,9 @@ public abstract class BaseIntegrationTest {
 
     @Autowired(required = false)
     protected TestEntityManager entityManager;
+
+    @PersistenceContext
+    protected EntityManager entityManagerDelegate;
 
     /**
      * MockMvc 인스턴스 (자동 설정됨)

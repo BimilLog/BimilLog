@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { Card, CardContent, CardHeader, CardTitle, Input, Label, SafeHTML } from "@/components";
 import { Save, Lightbulb } from "lucide-react";
 import { LazyEditor } from "@/lib/utils/lazy-components";

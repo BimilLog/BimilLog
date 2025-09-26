@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useForm } from "react-hook-form";
 import { Button, Card, CardContent, CardHeader, CardTitle, Input, Textarea } from "@/components";
 import { Send } from "lucide-react";

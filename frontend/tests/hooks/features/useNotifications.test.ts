@@ -1,0 +1,323 @@
+import { renderHook, waitFor } from "@testing-library/react";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { useNotifications } from "@/hooks/features/useNotifications";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import React from "react";
+
+// Mock modules first
+vi.mock("@/lib/api", () => ({
+  sseManager: {
+    isConnected: vi.fn(() => false),
+    connect: vi.fn(),
+    disconnect: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    getConnectionState: vi.fn(() => "DISCONNECTED"),
+  },
+}));
+
+vi.mock("@/hooks", () => ({
+  useAuth: vi.fn(() => ({
+    isAuthenticated: false,
+    user: null,
+  })),
+}));
+
+vi.mock("@/lib/utils", () => ({
+  logger: {
+    log: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+  },
+}));
+
+// Import mocked modules for use in tests
+import { sseManager } from "@/lib/api";
+import { useAuth } from "@/hooks";
+
+// Notification API 모킹
+const mockNotification = vi.fn();
+global.Notification = mockNotification as any;
+global.Notification.permission = "default";
+global.Notification.requestPermission = vi.fn(() => Promise.resolve("granted"));
+
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+
+  return ({ children }: { children: React.ReactNode }) => {
+    const { createElement } = React;
+    return createElement(QueryClientProvider, { client: queryClient }, children);
+  };
+};
+
+describe("useNotifications", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("인증되지 않은 사용자는 SSE에 연결하지 않는다", () => {
+    vi.mocked(useAuth).mockReturnValue({
+      isAuthenticated: false,
+      user: null,
+    });
+
+    const { result } = renderHook(() => useNotifications(), {
+      wrapper: createWrapper(),
+    });
+
+    expect(result.current.isSSEConnected).toBe(false);
+    expect(result.current.connectionState).toBe("DISCONNECTED");
+    expect(vi.mocked(sseManager.addEventListener)).not.toHaveBeenCalled();
+  });
+
+  it("닉네임이 없는 사용자는 SSE에 연결하지 않는다", () => {
+    vi.mocked(useAuth).mockReturnValue({
+      isAuthenticated: true,
+      user: {
+        userId: 1,
+        userName: "",
+        role: "USER",
+      },
+    });
+
+    const { result } = renderHook(() => useNotifications(), {
+      wrapper: createWrapper(),
+    });
+
+    expect(result.current.isSSEConnected).toBe(false);
+    expect(result.current.connectionState).toBe("DISCONNECTED");
+    expect(vi.mocked(sseManager.addEventListener)).not.toHaveBeenCalled();
+  });
+
+  it("인증된 사용자는 SSE에 연결하고 이벤트 리스너를 등록한다", async () => {
+    vi.mocked(useAuth).mockReturnValue({
+      isAuthenticated: true,
+      user: {
+        userId: 1,
+        userName: "테스트사용자",
+        role: "USER",
+      },
+    });
+
+    vi.mocked(sseManager).isConnected.mockReturnValue(true);
+    vi.mocked(sseManager).getConnectionState.mockReturnValue("CONNECTED");
+
+    const { result } = renderHook(() => useNotifications(), {
+      wrapper: createWrapper(),
+    });
+
+    // removeEventListener가 먼저 호출되어 기존 리스너 제거
+    expect(vi.mocked(sseManager).removeEventListener).toHaveBeenCalledWith("notification");
+
+    // addEventListener가 호출되어 새 리스너 등록
+    expect(vi.mocked(sseManager).addEventListener).toHaveBeenCalledWith(
+      "notification",
+      expect.any(Function)
+    );
+
+    // 1초 후 연결 상태 업데이트
+    vi.advanceTimersByTime(1000);
+
+    await waitFor(() => {
+      expect(result.current.isSSEConnected).toBe(true);
+      expect(result.current.connectionState).toBe("CONNECTED");
+    });
+  });
+
+  it("알림을 수신하면 브라우저 알림을 표시한다", async () => {
+    global.Notification.permission = "granted";
+
+    vi.mocked(useAuth).mockReturnValue({
+      isAuthenticated: true,
+      user: {
+        userId: 1,
+        userName: "테스트사용자",
+        role: "USER",
+      },
+    });
+
+    renderHook(() => useNotifications(), {
+      wrapper: createWrapper(),
+    });
+
+    // addEventListener 호출 확인
+    expect(vi.mocked(sseManager).addEventListener).toHaveBeenCalled();
+
+    // 등록된 이벤트 핸들러 가져오기
+    const eventHandler = vi.mocked(sseManager).addEventListener.mock.calls[0][1];
+
+    // 알림 데이터로 이벤트 핸들러 실행
+    const notificationData = {
+      content: "새로운 댓글이 달렸습니다",
+      url: "/post/123",
+    };
+
+    eventHandler(notificationData);
+
+    // Notification 생성자 호출 확인
+    expect(mockNotification).toHaveBeenCalledWith("새로운 댓글이 달렸습니다", {
+      body: "/post/123",
+      icon: "/favicon.ico",
+    });
+  });
+
+  it("30초마다 연결 상태를 확인한다", async () => {
+    vi.mocked(useAuth).mockReturnValue({
+      isAuthenticated: true,
+      user: {
+        userId: 1,
+        userName: "테스트사용자",
+        role: "USER",
+      },
+    });
+
+    // 초기 상태: DISCONNECTED
+    vi.mocked(sseManager).isConnected.mockReturnValue(false);
+    vi.mocked(sseManager).getConnectionState.mockReturnValue("DISCONNECTED");
+
+    const { result } = renderHook(() => useNotifications(), {
+      wrapper: createWrapper(),
+    });
+
+    // 1초 후 첫 상태 확인
+    vi.advanceTimersByTime(1000);
+    await waitFor(() => {
+      expect(result.current.connectionState).toBe("DISCONNECTED");
+    });
+
+    // 연결 상태 변경 시뮬레이션
+    vi.mocked(sseManager).isConnected.mockReturnValue(true);
+    vi.mocked(sseManager).getConnectionState.mockReturnValue("CONNECTED");
+
+    // 30초 후 상태 재확인
+    vi.advanceTimersByTime(30000);
+    await waitFor(() => {
+      expect(result.current.isSSEConnected).toBe(true);
+      expect(result.current.connectionState).toBe("CONNECTED");
+    });
+  });
+
+  it("컴포넌트 언마운트 시 리스너와 인터벌을 정리한다", () => {
+    vi.mocked(useAuth).mockReturnValue({
+      isAuthenticated: true,
+      user: {
+        userId: 1,
+        userName: "테스트사용자",
+        role: "USER",
+      },
+    });
+
+    const { unmount } = renderHook(() => useNotifications(), {
+      wrapper: createWrapper(),
+    });
+
+    // 초기 리스너 등록 확인
+    expect(vi.mocked(sseManager).addEventListener).toHaveBeenCalled();
+
+    // 언마운트
+    unmount();
+
+    // 리스너 제거 확인 (초기 제거 + 언마운트 시 제거)
+    expect(vi.mocked(sseManager).removeEventListener).toHaveBeenCalledWith("notification");
+    expect(vi.mocked(sseManager).removeEventListener).toHaveBeenCalledTimes(2);
+  });
+
+  it("사용자가 로그아웃하면 SSE 연결을 해제한다", async () => {
+    const { result, rerender } = renderHook(() => useNotifications(), {
+      wrapper: createWrapper(),
+    });
+
+    // 초기 상태: 로그인
+    vi.mocked(useAuth).mockReturnValue({
+      isAuthenticated: true,
+      user: {
+        userId: 1,
+        userName: "테스트사용자",
+        role: "USER",
+      },
+    });
+    vi.mocked(sseManager).isConnected.mockReturnValue(true);
+    vi.mocked(sseManager).getConnectionState.mockReturnValue("CONNECTED");
+
+    rerender();
+    vi.advanceTimersByTime(1000);
+
+    await waitFor(() => {
+      expect(result.current.isSSEConnected).toBe(true);
+    });
+
+    // 로그아웃 시뮬레이션
+    vi.mocked(useAuth).mockReturnValue({
+      isAuthenticated: false,
+      user: null,
+    });
+
+    rerender();
+
+    await waitFor(() => {
+      expect(result.current.isSSEConnected).toBe(false);
+      expect(result.current.connectionState).toBe("DISCONNECTED");
+      expect(vi.mocked(sseManager).removeEventListener).toHaveBeenCalledWith("notification");
+    });
+  });
+
+  it("브라우저 알림 권한을 요청한다", async () => {
+    vi.mocked(useAuth).mockReturnValue({
+      isAuthenticated: true,
+      user: {
+        userId: 1,
+        userName: "테스트사용자",
+        role: "USER",
+      },
+    });
+
+    const { result } = renderHook(() => useNotifications(), {
+      wrapper: createWrapper(),
+    });
+
+    // requestNotificationPermission 호출
+    const permission = await result.current.requestNotificationPermission();
+
+    expect(global.Notification.requestPermission).toHaveBeenCalled();
+    expect(permission).toBe("granted");
+  });
+
+  it("알림 권한이 거부된 경우 브라우저 알림을 표시하지 않는다", () => {
+    global.Notification.permission = "denied";
+
+    vi.mocked(useAuth).mockReturnValue({
+      isAuthenticated: true,
+      user: {
+        userId: 1,
+        userName: "테스트사용자",
+        role: "USER",
+      },
+    });
+
+    renderHook(() => useNotifications(), {
+      wrapper: createWrapper(),
+    });
+
+    const eventHandler = vi.mocked(sseManager).addEventListener.mock.calls[0][1];
+    const notificationData = {
+      content: "새로운 댓글이 달렸습니다",
+      url: "/post/123",
+    };
+
+    // 이벤트 핸들러 실행
+    eventHandler(notificationData);
+
+    // Notification이 생성되지 않음
+    expect(mockNotification).not.toHaveBeenCalled();
+  });
+});

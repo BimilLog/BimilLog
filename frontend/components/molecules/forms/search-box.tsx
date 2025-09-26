@@ -64,6 +64,7 @@ export const SearchBox = React.forwardRef<HTMLDivElement, SearchBoxProps>(
               onClick={handleClear}
               disabled={disabled}
               className="h-6 w-6 p-0 hover:bg-gray-100"
+              aria-label="검색어 초기화"
             >
               <Icon icon={X} size="xs" />
             </Button>
@@ -76,6 +77,7 @@ export const SearchBox = React.forwardRef<HTMLDivElement, SearchBoxProps>(
             onClick={onSearch}
             disabled={disabled}
             className="h-6 w-6 p-0 hover:bg-gray-100"
+            aria-label="검색 실행"
           >
             <Icon icon={Search} size="xs" />
           </Button>

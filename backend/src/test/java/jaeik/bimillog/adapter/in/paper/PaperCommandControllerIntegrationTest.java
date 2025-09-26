@@ -118,7 +118,7 @@ class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
         messageDTO.setId(1L);
 
         // When & Then
-        performDelete("/api/paper/delete")
+        performPost("/api/paper/delete", messageDTO)
                 .andDo(print())
                 .andExpect(status().isForbidden());
     }

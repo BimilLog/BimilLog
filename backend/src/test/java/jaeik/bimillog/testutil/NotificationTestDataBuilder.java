@@ -145,7 +145,7 @@ public class NotificationTestDataBuilder {
         }
 
         // Create notification using the static factory method
-        String url = relatedId != null ? "/post/" + relatedId : null;
+        String url = relatedId != null ? "/post/" + relatedId : "/notifications";
         Notification notification = Notification.create(
                 receiver,
                 type,

@@ -1,10 +1,10 @@
-import { useState, type ComponentProps } from "react";
+import React, { useState, type ComponentProps } from "react";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { SearchBox } from "@/components/molecules/forms/search-box";
 
-function ControlledSearchBox(props: Partial<ComponentProps<typeof SearchBox>>) {
+function ControlledSearchBox({ onChange, ...rest }: Partial<ComponentProps<typeof SearchBox>>) {
   const [value, setValue] = useState("");
 
   return (
@@ -12,9 +12,9 @@ function ControlledSearchBox(props: Partial<ComponentProps<typeof SearchBox>>) {
       value={value}
       onChange={(nextValue) => {
         setValue(nextValue);
-        props.onChange?.(nextValue);
+        onChange?.(nextValue);
       }}
-      {...props}
+      {...rest}
     />
   );
 }
@@ -52,9 +52,10 @@ describe("SearchBox", () => {
 
     const input = screen.getByPlaceholderText("검색");
     await user.type(input, "hello");
+    expect(input).toHaveValue("hello");
 
-    const buttons = screen.getAllByRole("button");
-    await user.click(buttons[0]);
+    const clearButton = screen.getByRole("button", { name: "검색어 초기화" });
+    await user.click(clearButton);
 
     expect(handleChange).toHaveBeenLastCalledWith("");
     expect(handleClear).toHaveBeenCalledTimes(1);
