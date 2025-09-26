@@ -5,9 +5,9 @@ import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
-import jaeik.bimillog.testutil.AuthTestFixtures;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
@@ -44,22 +44,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
  *   <li>TestContainers: @IntegrationTest 메타 어노테이션 사용</li>
  *   <li>H2 Database: @ActiveProfiles("h2test") @Import(H2TestConfiguration.class) 사용</li>
  * </ul>
- * 
- * <h3>사용 예시:</h3>
- * <pre>
- * {@literal @}IntegrationTest
- * class UserControllerIntegrationTest extends BaseIntegrationTest {
- *     
- *     {@literal @}Test
- *     void test() throws Exception {
- *         // testUser가 이미 DB에 저장되어 있음
- *         // mockMvc가 이미 설정되어 있음
- *         
- *         performGet("/api/user/me", testUserDetails)
- *             .andExpect(status().isOk());
- *     }
- * }
- * </pre>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -67,6 +51,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebMvc
 @Transactional
+@Tag("integration")
 public abstract class BaseIntegrationTest {
 
     @Autowired

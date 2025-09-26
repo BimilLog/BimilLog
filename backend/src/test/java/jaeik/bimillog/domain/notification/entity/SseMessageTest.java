@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.notification.entity;
 
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -13,6 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @version 2.0.0
  */
 @DisplayName("SseMessage 도메인 값 객체 테스트")
+@Tag("fast")
 class SseMessageTest {
 
     @Test

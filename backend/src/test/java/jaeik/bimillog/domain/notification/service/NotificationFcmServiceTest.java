@@ -13,6 +13,7 @@ import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.global.application.port.out.GlobalUserQueryPort;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -40,6 +41,7 @@ import static org.mockito.Mockito.*;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("NotificationFcmService 테스트")
+@Tag("fast")
 class NotificationFcmServiceTest {
 
     @Mock

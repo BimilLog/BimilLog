@@ -120,6 +120,30 @@ clean.doLast {
 
 tasks.named('test') {
     useJUnitPlatform()
+
+    maxParallelForks = 1
+}
+
+tasks.register('fastTest', Test) {
+    group = 'verification'
+    description = '단위/빠른 테스트를 병렬로 실행합니다. 통합 테스트는 제외됩니다.'
+
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+
+    useJUnitPlatform {
+        includeTags 'fast'
+    }
+
+    def cpuCount = Runtime.runtime.availableProcessors()
+    maxParallelForks = Math.max(1, cpuCount.intdiv(2))
+
+    systemProperty "junit.jupiter.execution.parallel.enabled", "true"
+    systemProperty "junit.jupiter.execution.parallel.mode.default", "concurrent"
+    systemProperty "junit.jupiter.execution.parallel.mode.classes.default", "concurrent"
+    systemProperty "junit.jupiter.execution.parallel.config.strategy", "dynamic"
+
+    shouldRunAfter tasks.named('test')
 }
 
 ext {

@@ -7,6 +7,7 @@ import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
 import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -29,6 +30,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("NotificationCommandService 테스트")
+@Tag("fast")
 class NotificationCommandServiceTest {
 
     @Mock

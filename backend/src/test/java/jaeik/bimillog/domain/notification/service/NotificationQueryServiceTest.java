@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.notification.application.service.NotificationQueryS
 import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -27,6 +28,7 @@ import static org.mockito.Mockito.*;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("NotificationQueryService 테스트")
+@Tag("fast")
 class NotificationQueryServiceTest {
 
     @Mock

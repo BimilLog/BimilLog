@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.paper.entity;
 
 import jaeik.bimillog.domain.user.entity.User;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -20,6 +21,7 @@ import static org.mockito.BDDMockito.given;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Message 엔티티 테스트")
+@Tag("fast")
 class MessageTest {
 
     @Mock

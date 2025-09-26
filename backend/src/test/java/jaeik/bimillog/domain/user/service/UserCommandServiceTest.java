@@ -9,6 +9,7 @@ import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -29,6 +30,7 @@ import static org.mockito.Mockito.verify;
  * @version 2.0.0
  */
 @DisplayName("UserCommandService 테스트")
+@Tag("fast")
 class UserCommandServiceTest extends BaseUnitTest {
 
     @Mock

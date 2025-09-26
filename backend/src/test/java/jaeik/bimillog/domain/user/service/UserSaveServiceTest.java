@@ -10,6 +10,7 @@ import jaeik.bimillog.domain.user.entity.*;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
@@ -33,6 +34,7 @@ import static org.mockito.Mockito.verify;
  * @version 2.0.0
  */
 @DisplayName("UserSaveService 단위 테스트")
+@Tag("fast")
 class UserSaveServiceTest extends BaseUnitTest {
 
     @Mock

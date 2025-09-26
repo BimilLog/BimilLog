@@ -15,6 +15,7 @@ import jaeik.bimillog.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -40,6 +41,7 @@ import static org.mockito.Mockito.verify;
  * @version 2.0.0
  */
 @DisplayName("SignUpService 단위 테스트")
+@Tag("fast")
 class SignUpServiceTest extends BaseUnitTest {
 
     @Mock
