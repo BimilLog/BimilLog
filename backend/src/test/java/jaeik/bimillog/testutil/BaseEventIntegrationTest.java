@@ -6,8 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -46,8 +46,8 @@ import java.util.Arrays;
  * @version 2.0.0
  */
 @SpringBootTest
-@Testcontainers
-@Import(TestContainersConfiguration.class)
+@ActiveProfiles("h2test")
+@Import(H2TestConfiguration.class)
 @Transactional
 public abstract class BaseEventIntegrationTest extends BaseIntegrationTest {
 

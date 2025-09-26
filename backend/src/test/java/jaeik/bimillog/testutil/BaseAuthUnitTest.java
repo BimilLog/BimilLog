@@ -4,7 +4,6 @@ import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.NewUserDetail;
-import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import org.springframework.http.ResponseCookie;
 import jaeik.bimillog.testutil.AuthTestFixtures;
 
@@ -22,7 +21,6 @@ import java.util.List;
  *   <li>테스트용 토큰 데이터</li>
  *   <li>소셜 로그인 사용자 프로필</li>
  *   <li>기존/신규 사용자 상세 정보</li>
- *   <li>CustomUserDetails (Spring Security)</li>
  *   <li>JWT 및 로그아웃 쿠키</li>
  * </ul>
  */
@@ -43,7 +41,6 @@ public abstract class BaseAuthUnitTest extends BaseUnitTest {
     private SocialUserProfile cachedTestUserProfile;
     private ExistingUserDetail cachedExistingUserDetail;
     private NewUserDetail cachedNewUserDetail;
-    private CustomUserDetails cachedTestCustomUserDetails;
     private List<ResponseCookie> cachedLogoutCookies;
     private List<ResponseCookie> cachedJwtCookies;
     
@@ -98,16 +95,6 @@ public abstract class BaseAuthUnitTest extends BaseUnitTest {
                     .build();
         }
         return cachedNewUserDetail;
-    }
-    
-    /**
-     * CustomUserDetails 획득
-     */
-    protected CustomUserDetails getTestCustomUserDetails() {
-        if (cachedTestCustomUserDetails == null) {
-            cachedTestCustomUserDetails = AuthTestFixtures.createCustomUserDetails(getTestUser());
-        }
-        return cachedTestCustomUserDetails;
     }
     
     /**

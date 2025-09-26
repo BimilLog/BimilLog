@@ -17,7 +17,6 @@ public final class AuthTestFixtures {
 
     public static final String TEST_SOCIAL_ID = "kakao123456";
     public static final String TEST_EMAIL = "test@example.com";
-    public static final String TEST_USERNAME = "testUser";
     public static final String TEST_SOCIAL_NICKNAME = "테스트유저";
     public static final String TEST_PROFILE_IMAGE = "http://example.com/profile.jpg";
     public static final String TEST_ACCESS_TOKEN = "access-test-token";
