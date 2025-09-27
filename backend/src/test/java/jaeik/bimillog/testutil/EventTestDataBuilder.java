@@ -3,7 +3,7 @@ package jaeik.bimillog.testutil;
 import jaeik.bimillog.domain.admin.event.UserForcedWithdrawalEvent;
 import jaeik.bimillog.domain.admin.event.UserBannedEvent;
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
-import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
+import jaeik.bimillog.domain.user.event.UserWithdrawnEvent;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
 import jaeik.bimillog.domain.user.entity.SocialProvider;

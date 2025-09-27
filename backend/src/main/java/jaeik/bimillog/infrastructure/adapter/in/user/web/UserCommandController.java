@@ -2,9 +2,10 @@ package jaeik.bimillog.infrastructure.adapter.in.user.web;
 
 import jaeik.bimillog.domain.user.application.port.in.SignUpUseCase;
 import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
-import jaeik.bimillog.domain.user.application.port.in.WithdrawUseCase;
 import jaeik.bimillog.domain.user.event.ReportSubmittedEvent;
+import jaeik.bimillog.domain.user.event.UserWithdrawnEvent;
 import jaeik.bimillog.global.annotation.Log;
+import jaeik.bimillog.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.infrastructure.adapter.in.admin.dto.ReportDTO;
 import jaeik.bimillog.infrastructure.adapter.in.auth.dto.AuthResponseDTO;
 import jaeik.bimillog.infrastructure.adapter.in.user.dto.SettingDTO;
@@ -36,7 +37,7 @@ public class UserCommandController {
     private final UserCommandUseCase userCommandUseCase;
     private final SignUpUseCase signUpUseCase;
     private final ApplicationEventPublisher eventPublisher;
-    private final WithdrawUseCase withdrawUseCase;
+    private final GlobalCookiePort globalCookiePort;
 
     /**
      * <h3>회원가입</h3>
@@ -78,8 +79,8 @@ public class UserCommandController {
      * @param userDetails 사용자 인증 정보
      * @param userNameDTO 닉네임 DTO
      * @return 닉네임 변경 완료 메시지
-     * @since 2.0.0
      * @author Jaeik
+     * @since 2.0.0
      */
     @PostMapping("/username")
     public ResponseEntity<String> updateUserName(@AuthenticationPrincipal CustomUserDetails userDetails,
@@ -93,15 +94,15 @@ public class UserCommandController {
      * <p>사용자의 설정을 수정하는 요청을 처리</p>
      * <p>클라이언트에서 POST /api/user/setting 요청 시 호출됩니다.</p>
      *
-     * @param settingDTO 설정 DTO
+     * @param settingDTO  설정 DTO
      * @param userDetails 사용자 인증 정보
      * @return 설정 수정 완료 메시지
-     * @since 2.0.0
      * @author Jaeik
+     * @since 2.0.0
      */
     @PostMapping("/setting")
     public ResponseEntity<String> updateSetting(@RequestBody @Valid SettingDTO settingDTO,
-                                                 @AuthenticationPrincipal CustomUserDetails userDetails) {
+                                                @AuthenticationPrincipal CustomUserDetails userDetails) {
         userCommandUseCase.updateUserSettings(userDetails.getUserId(), settingDTO.toSettingEntity());
         return ResponseEntity.ok("설정 수정 완료");
     }
@@ -118,10 +119,10 @@ public class UserCommandController {
      *   <li>익명 신고: 인증되지 않은 사용자도 신고 가능</li>
      * </ul>
      *
-     * @param reportDTO   신고 정보 DTO
+     * @param reportDTO 신고 정보 DTO
      * @return 신고 제출 완료 메시지
-     * @since 2.0.0
      * @author Jaeik
+     * @since 2.0.0
      */
     @PostMapping("/report")
     public ResponseEntity<String> submitReport(@RequestBody @Valid ReportDTO reportDTO) {
@@ -148,8 +149,9 @@ public class UserCommandController {
      */
     @DeleteMapping("/withdraw")
     public ResponseEntity<AuthResponseDTO> withdraw(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        eventPublisher.publishEvent(new UserWithdrawnEvent(userDetails));
         return ResponseEntity.ok()
-                .headers(headers -> withdrawUseCase.withdraw(userDetails).forEach(cookie ->
+                .headers(headers -> globalCookiePort.getLogoutCookies().forEach(cookie ->
                         headers.add("Set-Cookie", cookie.toString())))
                 .body(AuthResponseDTO.success("회원탈퇴 성공"));
     }

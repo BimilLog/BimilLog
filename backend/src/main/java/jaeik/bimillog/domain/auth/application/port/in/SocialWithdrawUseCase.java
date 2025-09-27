@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.auth.application.port.in;
 
 import jaeik.bimillog.domain.admin.event.UserForcedWithdrawalEvent;
-import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jaeik.bimillog.domain.user.event.UserWithdrawnEvent;
 import jaeik.bimillog.infrastructure.adapter.in.auth.listener.SocialUnlinkListener;
 
 /**

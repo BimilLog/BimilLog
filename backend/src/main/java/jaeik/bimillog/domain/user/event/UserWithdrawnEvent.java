@@ -1,8 +1,7 @@
-package jaeik.bimillog.domain.auth.event;
+package jaeik.bimillog.domain.user.event;
 
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.in.comment.listener.CommentRemoveListener;
-import jaeik.bimillog.infrastructure.adapter.in.notification.listener.FcmTokenRemoveListener;
 
 /**
  * <h2>사용자 회원탈퇴 이벤트</h2>

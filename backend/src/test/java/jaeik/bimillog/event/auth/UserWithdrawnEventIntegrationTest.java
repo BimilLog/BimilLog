@@ -1,7 +1,7 @@
 package jaeik.bimillog.event.auth;
 
 import jaeik.bimillog.domain.auth.application.port.in.SocialWithdrawUseCase;
-import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
+import jaeik.bimillog.domain.user.event.UserWithdrawnEvent;
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
 import jaeik.bimillog.domain.user.entity.SocialProvider;

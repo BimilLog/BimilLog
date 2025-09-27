@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.auth.application.port.in;
 
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.in.admin.web.AdminCommandController;
-import jaeik.bimillog.infrastructure.adapter.in.auth.listener.JwtBlacklistListener;
 import jaeik.bimillog.infrastructure.filter.JwtFilter;
 
 /**

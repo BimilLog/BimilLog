@@ -1,8 +1,6 @@
 package jaeik.bimillog.domain.auth.event;
 
 import jaeik.bimillog.domain.auth.application.service.SocialLogoutService;
-import jaeik.bimillog.infrastructure.adapter.in.auth.listener.TokenCleanupListener;
-import jaeik.bimillog.infrastructure.adapter.in.notification.listener.FcmTokenRemoveListener;
 import jaeik.bimillog.infrastructure.adapter.in.notification.listener.SseEmitterCleanupListener;
 
 import java.time.LocalDateTime;

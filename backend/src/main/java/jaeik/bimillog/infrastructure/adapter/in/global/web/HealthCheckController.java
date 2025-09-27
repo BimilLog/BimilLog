@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.in.global;
+package jaeik.bimillog.infrastructure.adapter.in.global.web;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
