@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.comment.application.port.in;
 
-import jaeik.bimillog.infrastructure.adapter.in.comment.listener.CommentRemoveListener;
 import jaeik.bimillog.infrastructure.adapter.in.comment.web.CommentCommandController;
 
 /**
@@ -64,7 +63,6 @@ public interface CommentCommandUseCase {
      * <p>사용자 탈퇴 시 해당 사용자의 모든 댓글을 비즈니스 규칙에 따라 처리합니다.</p>
      * <p>자손이 있는 댓글: 소프트 삭제 + 익명화</p>
      * <p>자손이 없는 댓글: 하드 삭제</p>
-     * <p>{@link CommentRemoveListener}에서 사용자 탈퇴 이벤트 발생 시 호출합니다.</p>
      *
      * @param userId 탈퇴하는 사용자 ID
      * @author Jaeik

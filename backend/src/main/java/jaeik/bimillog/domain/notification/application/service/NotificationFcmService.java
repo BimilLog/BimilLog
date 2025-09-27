@@ -9,7 +9,6 @@ import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
 import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.global.application.port.out.GlobalUserQueryPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,7 +29,6 @@ import java.util.List;
 public class NotificationFcmService implements NotificationFcmUseCase {
 
     private final FcmPort fcmPort;
-    private final GlobalUserQueryPort globalUserQueryPort;
     private final NotificationUtilPort notificationUtilPort;
 
     /**

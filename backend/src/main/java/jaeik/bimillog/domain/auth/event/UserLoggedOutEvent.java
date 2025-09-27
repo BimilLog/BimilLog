@@ -1,9 +1,6 @@
 package jaeik.bimillog.domain.auth.event;
 
-import jaeik.bimillog.domain.auth.application.service.SocialLogoutService;
-import jaeik.bimillog.infrastructure.adapter.in.notification.listener.SseEmitterCleanupListener;
-
-import java.time.LocalDateTime;
+import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 
 /**
  * <h2>사용자 로그아웃 이벤트</h2>
@@ -16,24 +13,7 @@ import java.time.LocalDateTime;
  * @author Jaeik
  * @version 2.0.0
  *
- * <p>{@link FcmTokenRemoveListener} FCM 토큰 제거</p>
- * <p>{@link SseEmitterCleanupListener} SSE 해제 </p>
- * <p>{@link TokenCleanupListener} 토큰 제거</p>
  */
-public record UserLoggedOutEvent(Long userId, Long tokenId, LocalDateTime loggedOutAt) {
+public record UserLoggedOutEvent(CustomUserDetails userDetails){
 
-    /**
-     * <h3>로그아웃 이벤트 생성</h3>
-     * <p>현재 시간으로 로그아웃 타임스탬프를 설정하여 이벤트를 생성합니다.</p>
-     * <p>{@link SocialLogoutService}에서 사용자 로그아웃 처리 후 후속 작업 트리거를 위해 호출됩니다.</p>
-     *
-     * @param userId 로그아웃한 사용자의 고유 식별자
-     * @param tokenId 무효화할 토큰의 고유 식별자
-     * @return 현재 시간으로 생성된 UserLoggedOutEvent 인스턴스
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public static UserLoggedOutEvent of(Long userId, Long tokenId) {
-        return new UserLoggedOutEvent(userId, tokenId, LocalDateTime.now());
-    }
 }

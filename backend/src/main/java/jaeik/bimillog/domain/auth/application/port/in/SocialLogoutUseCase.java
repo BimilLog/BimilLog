@@ -3,9 +3,6 @@ package jaeik.bimillog.domain.auth.application.port.in;
 
 import jaeik.bimillog.infrastructure.adapter.in.auth.web.AuthCommandController;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
-import org.springframework.http.ResponseCookie;
-
-import java.util.List;
 
 /**
  * <h2>소셜 로그아웃 유스케이스</h2>
@@ -28,5 +25,5 @@ public interface SocialLogoutUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    List<ResponseCookie> logout(CustomUserDetails userDetails);
+    void logout(CustomUserDetails userDetails);
 }

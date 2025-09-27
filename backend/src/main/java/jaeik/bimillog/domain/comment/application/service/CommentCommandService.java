@@ -13,7 +13,6 @@ import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import jaeik.bimillog.global.application.port.out.GlobalUserQueryPort;
-import jaeik.bimillog.infrastructure.adapter.in.comment.listener.CommentRemoveListener;
 import jaeik.bimillog.infrastructure.adapter.in.comment.web.CommentCommandController;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import lombok.RequiredArgsConstructor;
@@ -168,7 +167,6 @@ public class CommentCommandService implements CommentCommandUseCase {
      * <p>사용자 탈퇴 시 해당 사용자의 모든 댓글을 비즈니스 규칙에 따라 처리합니다.</p>
      * <p>자손이 있는 댓글: 엔티티 메서드로 익명화 (더티 체킹)</p>
      * <p>자손이 없는 댓글: Port를 통한 하드 삭제</p>
-     * <p>{@link CommentRemoveListener}에서 사용자 탈퇴 이벤트 발생 시 호출됩니다.</p>
      *
      * @param userId 탈퇴하는 사용자 ID
      * @author Jaeik

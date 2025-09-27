@@ -3,22 +3,16 @@ package jaeik.bimillog.domain.auth.application.service;
 import jaeik.bimillog.domain.auth.application.port.in.SocialLogoutUseCase;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
 import jaeik.bimillog.domain.auth.entity.Token;
-import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.infrastructure.adapter.in.auth.web.AuthCommandController;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 /**
  * <h2>로그아웃 서비스</h2>
@@ -35,8 +29,6 @@ public class SocialLogoutService implements SocialLogoutUseCase {
 
     private final SocialStrategyRegistryPort strategyRegistry;
     private final GlobalTokenQueryPort globalTokenQueryPort;
-    private final GlobalCookiePort globalCookiePort;
-    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * <h3>사용자 로그아웃 처리</h3>
@@ -46,18 +38,15 @@ public class SocialLogoutService implements SocialLogoutUseCase {
      * <p>{@link AuthCommandController}에서 POST /api/auth/logout 요청 처리 시 호출됩니다.</p>
      *
      * @param userDetails 현재 인증된 사용자 정보
-     * @return ResponseCookie 로그아웃용 쿠키 설정 목록 (토큰 삭제용)
      * @throws AuthCustomException 토큰을 찾을 수 없는 경우 ({@link AuthErrorCode#NOT_FIND_TOKEN})
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public List<ResponseCookie> logout(CustomUserDetails userDetails) {
+    public void logout(CustomUserDetails userDetails) {
         Token token = getToken(userDetails);
         performSocialLogout(userDetails, token);
-        eventPublisher.publishEvent(UserLoggedOutEvent.of(userDetails.getUserId(), userDetails.getTokenId()));
         SecurityContextHolder.clearContext();
-        return globalCookiePort.getLogoutCookies();
     }
 
     /**

@@ -1,16 +1,17 @@
 package jaeik.bimillog.infrastructure.adapter.in.auth.web;
 
 import jaeik.bimillog.domain.auth.application.port.in.SocialLoginUseCase;
-import jaeik.bimillog.domain.auth.application.port.in.SocialLogoutUseCase;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
-import jaeik.bimillog.domain.user.application.port.in.SignUpUseCase;
+import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
 import jaeik.bimillog.global.annotation.Log;
 import jaeik.bimillog.global.annotation.Log.LogLevel;
+import jaeik.bimillog.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.infrastructure.adapter.in.auth.dto.AuthResponseDTO;
 import jaeik.bimillog.infrastructure.adapter.in.auth.dto.SocialLoginRequestDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
@@ -34,8 +35,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthCommandController {
 
     private final SocialLoginUseCase socialLoginUseCase;
-    private final SignUpUseCase signUpUseCase;
-    private final SocialLogoutUseCase socialLogoutUseCase;
+    private final GlobalCookiePort globalCookiePort;
+    private final ApplicationEventPublisher eventPublisher;
+
 
     /**
      * <h3>소셜 로그인</h3>
@@ -84,8 +86,9 @@ public class AuthCommandController {
          message = "로그아웃 요청",
          logParams = false)
     public ResponseEntity<AuthResponseDTO> logout(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        eventPublisher.publishEvent(new UserLoggedOutEvent(userDetails));
         return ResponseEntity.ok()
-                .headers(headers -> socialLogoutUseCase.logout(userDetails).forEach(cookie ->
+                .headers(headers -> globalCookiePort.getLogoutCookies().forEach(cookie ->
                         headers.add("Set-Cookie", cookie.toString())))
                 .body(AuthResponseDTO.success("로그아웃 성공"));
     }

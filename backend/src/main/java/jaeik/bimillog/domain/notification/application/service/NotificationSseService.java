@@ -6,7 +6,6 @@ import jaeik.bimillog.domain.notification.application.port.out.SsePort;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.SseMessage;
 import jaeik.bimillog.infrastructure.adapter.in.notification.listener.NotificationGenerateListener;
-import jaeik.bimillog.infrastructure.adapter.in.notification.listener.SseEmitterCleanupListener;
 import jaeik.bimillog.infrastructure.adapter.in.notification.web.NotificationSseController;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -63,7 +62,6 @@ public class NotificationSseService implements NotificationSseUseCase {
      * <h3>특정 기기 SSE 연결 정리</h3>
      * <p>다중 기기 로그인 환경에서 개별 기기 로그아웃 시 해당 기기의 SSE 연결만을 선택적으로 정리합니다.</p>
      * <p>다른 기기의 연결은 유지하면서 해당 기기만 연결 해제하는 선택적 연결 관리를 지원합니다.</p>
-     * <p>{@link SseEmitterCleanupListener}에서 특정 기기 로그아웃 이벤트 발생 시 호출됩니다.</p>
      *
      * @param userId 사용자 ID
      * @param tokenId 정리할 토큰 ID
