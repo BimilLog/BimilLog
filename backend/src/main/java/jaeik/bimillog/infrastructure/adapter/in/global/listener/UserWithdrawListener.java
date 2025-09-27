@@ -2,6 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.in.global.listener;
 
 import jaeik.bimillog.domain.auth.application.port.in.SocialWithdrawUseCase;
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
+import jaeik.bimillog.domain.notification.application.port.in.NotificationCommandUseCase;
 import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
 import jaeik.bimillog.domain.notification.application.port.in.NotificationSseUseCase;
 import jaeik.bimillog.domain.post.application.port.in.PostCommandUseCase;
@@ -20,6 +21,7 @@ public class UserWithdrawListener {
     private final SocialWithdrawUseCase socialWithdrawUseCase;
     private final NotificationSseUseCase notificationSseUseCase;
     private final NotificationFcmUseCase notificationFcmUseCase;
+    private final NotificationCommandUseCase notificationCommandUseCase;
     private final CommentCommandUseCase commentCommandUseCase;
     private final PostCommandUseCase postCommandUseCase;
 
@@ -39,7 +41,7 @@ public class UserWithdrawListener {
         // postCommandUseCase. 특정 유저의 전체 글, 전체 댓글 제거 메서드 필요
         // 특정 사용자의 모든 토큰을 정리하는 Auth도메인의 유스케이스 필요
         notificationFcmUseCase.deleteFcmTokens(userId);
-        // 특정 사용자의 모든 알림을 삭제하는 Notification 도메인의 유스케이스 필요
+        notificationCommandUseCase.deleteAllNotification(userDetails); // 구현 필요 현재 구현체가 없음
         // 특정 사용자의 모든 메시지를 삭제하는 Message 도메인의 유스케이스 필요
         // 특정 사용자의 모든 Report를 삭제하는 Admin 도메인의 유스케이스 필요
         // 특정 사용자를 삭제하는 User 도메인의 유스케이스 필요

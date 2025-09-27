@@ -27,4 +27,13 @@ public interface NotificationCommandUseCase {
      * @since 2.0.0
      */
     void batchUpdate(CustomUserDetails userDetails, NotificationUpdateVO updateCommand);
+
+
+    /**
+     * <h3>특정 사용자의 알림 전체 삭제</h3>
+     * <p>구현 필요</p>
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    void deleteAllNotification(CustomUserDetails userDetails);
 }
