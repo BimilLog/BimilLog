@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.in.admin.dto;
 
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
+import jaeik.bimillog.domain.user.entity.User;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -28,7 +28,7 @@ public class ReportDTO {
     private Long id;
     private Long reporterId;
     private String reporterName;
-    
+
     @NotNull(message = "신고 유형은 필수입니다")
     private ReportType reportType;
     
@@ -49,7 +49,7 @@ public class ReportDTO {
      * @author Jaeik
      * @since 2.0.0
      */
-    @AssertTrue(message = "POST/COMMENT 신고는 targetId가 필수입니다")
+    @AssertTrue(message = "글, 댓글 신고는 신고대상이 필수입니다")
     public boolean isTargetIdRequiredForContentReport() {
         if (reportType == ReportType.POST || reportType == ReportType.COMMENT) {
             return targetId != null;
@@ -66,40 +66,12 @@ public class ReportDTO {
      * @author Jaeik
      * @since 2.0.0
      */
-    @AssertTrue(message = "ERROR/IMPROVEMENT 신고는 targetId가 없어야 합니다")
+    @AssertTrue(message = "에러, 개선 신고는 신고대상이 없어야 합니다")
     public boolean isTargetIdNotAllowedForSystemReport() {
         if (reportType == ReportType.ERROR || reportType == ReportType.IMPROVEMENT) {
             return targetId == null;
         }
         return true;
-    }
-
-    /**
-     * <h3>사용자 제재 가능 타입 검증</h3>
-     * <p>사용자 제재는 POST와 COMMENT 타입만 가능합니다.</p>
-     * <p>ERROR와 IMPROVEMENT는 시스템 개선용이므로 사용자 제재 대상이 아닙니다.</p>
-     *
-     * @return boolean POST/COMMENT 타입이면 true, ERROR/IMPROVEMENT는 false
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public boolean isBannableReportType() {
-        return reportType == ReportType.POST || reportType == ReportType.COMMENT;
-    }
-
-    /**
-     * <h3>익명 사용자 정보 설정</h3>
-     * <p>인증된 사용자와 익명 사용자를 구분하여 신고자 정보를 설정합니다.</p>
-     * <p>인증된 사용자: userId와 실제 사용자명 사용</p>
-     * <p>익명 사용자: userId는 null, 사용자명은 "익명"으로 설정</p>
-     *
-     * @param userDetails 인증된 사용자 정보 (익명일 경우 null)
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public void enrichReporterInfo(CustomUserDetails userDetails) {
-        this.reporterId = (userDetails != null) ? userDetails.getUserId() : null;
-        this.reporterName = (userDetails != null) ? userDetails.getUsername() : "익명";
     }
 
     /**
@@ -112,10 +84,11 @@ public class ReportDTO {
      * @since 2.0.0
      */
     public static ReportDTO from(Report report) {
+        User reporter = report.getReporter();
         return ReportDTO.builder()
                 .id(report.getId())
-                .reporterId(report.getReporter().getId())
-                .reporterName(report.getReporter().getUserName())
+                .reporterId(reporter != null ? reporter.getId() : null)
+                .reporterName(reporter != null ? reporter.getUserName() : "익명")
                 .reportType(report.getReportType())
                 .targetId(report.getTargetId())
                 .content(report.getContent())

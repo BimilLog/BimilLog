@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -42,6 +43,7 @@ public class AdminQueryAdapter implements AdminQueryPort {
      * @since 2.0.0
      */
     @Override
+    @Transactional(readOnly = true)
     public Page<Report> findReportsWithPaging(ReportType reportType, Pageable pageable) {
         QReport report = QReport.report;
         QUser user = QUser.user;

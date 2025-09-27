@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.admin.application.port.in;
 
 import jaeik.bimillog.domain.admin.entity.ReportType;
+import jaeik.bimillog.infrastructure.adapter.in.admin.listener.ReportSaveListener;
 import jaeik.bimillog.infrastructure.adapter.in.admin.web.AdminCommandController;
 
 /**
@@ -17,7 +18,7 @@ public interface AdminCommandUseCase {
      * <h3>신고 및 건의사항 접수</h3>
      * <p>사용자나 관리자로부터 접수된 신고 및 건의사항을 시스템에 등록합니다.</p>
      * <p>POST/COMMENT 신고 시 대상 유효성 검증, ERROR/IMPROVEMENT 신고는 일반적인 건의사항 처리</p>
-     * <p>{@link AdminCommandController}에서 HTTP 요청을 받아 이 메서드를 호출합니다.</p>
+     * <p>{@link ReportSaveListener}에서 호출합니다.</p>
      *
      * @param userId 신고자 사용자 ID (익명 신고인 경우 null)
      * @param reportType 신고 유형 (POST, COMMENT, ERROR, IMPROVEMENT)

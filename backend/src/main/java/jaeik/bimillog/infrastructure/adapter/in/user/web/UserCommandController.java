@@ -119,18 +119,12 @@ public class UserCommandController {
      * </ul>
      *
      * @param reportDTO   신고 정보 DTO
-     * @param userDetails 사용자 인증 정보 (익명일 경우 null)
      * @return 신고 제출 완료 메시지
      * @since 2.0.0
      * @author Jaeik
      */
     @PostMapping("/report")
-    public ResponseEntity<String> submitReport(@RequestBody @Valid ReportDTO reportDTO,
-                                               @AuthenticationPrincipal CustomUserDetails userDetails) {
-        // 신고자 정보 설정 (인증된 사용자 또는 익명 사용자)
-        reportDTO.enrichReporterInfo(userDetails);
-        
-        // 신고 이벤트 발행
+    public ResponseEntity<String> submitReport(@RequestBody @Valid ReportDTO reportDTO) {
         ReportSubmittedEvent event = ReportSubmittedEvent.of(
                 reportDTO.getReporterId(),
                 reportDTO.getReporterName(),
@@ -138,9 +132,7 @@ public class UserCommandController {
                 reportDTO.getTargetId(),
                 reportDTO.getContent()
         );
-        
         eventPublisher.publishEvent(event);
-        
         return ResponseEntity.ok("신고/건의사항이 접수되었습니다.");
     }
 

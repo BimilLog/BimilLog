@@ -29,10 +29,7 @@ public class ReportSaveListener {
      * <h3>신고 제출 이벤트 비동기 처리</h3>
      * <p>User 도메인에서 발행된 ReportSubmittedEvent를 구독하여 Admin 도메인의 신고 접수 로직을 실행합니다.</p>
      * <p>사용자가 프론트엔드에서 신고 폼을 제출할 때 User 도메인의 서비스에서 이벤트를 발행하면 이 메서드가 호출됩니다.</p>
-     * <p>@Async 어노테이션을 통해 별도 스레드에서 비동기적으로 실행되어 사용자의 요청 응답 시간을 단축합니다.</p>
      * <p>AdminCommandUseCase를 호출하여 실제 신고 데이터를 생성하고 저장하는 비즈니스 로직을 수행합니다.</p>
-     * <p>비즈니스 검증 실패(CustomException)와 시스템 오류를 구분하여 적절한 로그 레벨로 기록합니다.</p>
-     * <p>이벤트 기반 설계를 통해 User 도메인과 Admin 도메인 간의 직접적인 의존성을 제거합니다.</p>
      *
      * @param event 사용자 신고 제출 이벤트 (신고자 정보, 신고 유형, 대상 ID, 신고 내용 포함)
      * @author Jaeik
@@ -41,9 +38,6 @@ public class ReportSaveListener {
     @Async
     @EventListener
     public void handleReportSubmitted(ReportSubmittedEvent event) {
-        log.info("신고/건의사항 접수 시작 - 신고자: {}, 유형: {}, targetId: {}", 
-                event.reporterName(), event.reportType(), event.targetId());
-        
         try {
             adminCommandUseCase.createReport(event.reporterId(), event.reportType(), event.targetId(), event.content());
             log.info("신고/건의사항 처리 완료 - 신고자: {}, 유형: {}, targetId: {}", 

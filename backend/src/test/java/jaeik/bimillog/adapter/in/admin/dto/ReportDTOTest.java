@@ -183,22 +183,6 @@ class ReportDTOTest {
     }
 
     @Test
-    @DisplayName("사용자 제재 가능 타입 확인 - POST, COMMENT만 가능")
-    void isBannableReportType_OnlyPostAndComment() {
-        // Given
-        ReportDTO postReport = ReportDTO.builder().reportType(ReportType.POST).build();
-        ReportDTO commentReport = ReportDTO.builder().reportType(ReportType.COMMENT).build();
-        ReportDTO errorReport = ReportDTO.builder().reportType(ReportType.ERROR).build();
-        ReportDTO improvementReport = ReportDTO.builder().reportType(ReportType.IMPROVEMENT).build();
-
-        // When & Then
-        assertThat(postReport.isBannableReportType()).isTrue();
-        assertThat(commentReport.isBannableReportType()).isTrue();
-        assertThat(errorReport.isBannableReportType()).isFalse();
-        assertThat(improvementReport.isBannableReportType()).isFalse();
-    }
-
-    @Test
     @DisplayName("인증된 사용자 정보 설정 - 성공")
     void enrichReporterInfo_AuthenticatedUser_Success() {
         // Given
