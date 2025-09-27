@@ -28,13 +28,10 @@ public interface UserBanUseCase {
     boolean isBlacklisted(String token);
 
     /**
-     * <h3>사용자의 모든 토큰을 블랙리스트에 등록</h3>
-     * <p>특정 사용자의 모든 활성 토큰을 블랙리스트에 등록하여 즉시 로그아웃 처리합니다.</p>
-     * <p>사용자가 모든 기기에서 강제 로그아웃되어 재로그인이 필요하게 됩니다.</p>
-     * <p>{@link JwtBlacklistListener}에서 사용자 제재 이벤트 발생 시 호출됩니다.</p>
+     * <h3>사용자의 모든 JWT를 블랙리스트에 등록</h3>
+     * <p>특정 사용자의 모든 JWT를 블랙리스트에 등록하여 즉시 로그아웃 처리합니다.</p>
      *
      * @param userId 강제 로그아웃할 사용자 ID
-     * @param reason 블랙리스트 등록 사유 (예: "사용자 차단", "회원 탈퇴")
      * @author Jaeik
      * @since 2.0.0
      */
