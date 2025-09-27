@@ -2,6 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.in.user.listener;
 
 import jaeik.bimillog.domain.admin.event.UserForcedWithdrawalEvent;
 import jaeik.bimillog.domain.admin.event.UserBannedEvent;
+import jaeik.bimillog.domain.auth.application.port.in.UserBanUseCase;
 import jaeik.bimillog.domain.user.application.port.in.WithdrawUseCase;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class BlacklistAddListener {
 
     private final WithdrawUseCase withdrawUseCase;
+    private final UserBanUseCase userBanUseCase;
 
     /**
      * <h3>사용자 블랙리스트 이벤트 처리</h3>
@@ -67,11 +69,11 @@ public class BlacklistAddListener {
             if (event instanceof UserBannedEvent) {
                 // 사용자 차단: BAN 상태로 변경 + 블랙리스트 등록
                 withdrawUseCase.banUser(((UserBannedEvent) event).userId());
-                withdrawUseCase.addToBlacklist(((UserBannedEvent) event).userId(), ((UserBannedEvent) event).socialId(), ((UserBannedEvent) event).provider());
+                userBanUseCase.addToBlacklist(((UserBannedEvent) event).userId(), ((UserBannedEvent) event).socialId(), ((UserBannedEvent) event).provider());
                 log.info("{} 처리 완료 - userId: {} (BAN 상태 변경 + 블랙리스트 등록)", reason, userId);
             } else {
                 // 관리자 강제 탈퇴: 블랙리스트만 등록 (탈퇴는 다른 리스너에서 처리)
-                withdrawUseCase.addToBlacklist(userId, socialId, provider);
+                userBanUseCase.addToBlacklist(userId, socialId, provider);
                 log.info("{} 블랙리스트 등록 완료 - userId: {}", reason, userId);
             }
         } catch (Exception e) {

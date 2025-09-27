@@ -1,13 +1,11 @@
 package jaeik.bimillog.domain.user.application.service;
 
-import jaeik.bimillog.domain.auth.entity.BlackList;
 import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.application.port.in.WithdrawUseCase;
 import jaeik.bimillog.domain.user.application.port.out.DeleteUserPort;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
@@ -17,7 +15,6 @@ import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -86,28 +83,6 @@ public class WithdrawService implements WithdrawUseCase {
 
         // 핵심 탈퇴 로직을 수행합니다.
         performCoreWithdrawal(user);
-    }
-
-    /**
-     * <h3>사용자 블랙리스트 추가</h3>
-     * <p>사용자 ID를 기반으로 사용자를 조회하고 해당 사용자의 소셜 정보로 블랙리스트에 추가합니다.</p>
-     *
-     * @param userId 블랙리스트에 추가할 사용자 ID
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    @Override
-    @Transactional
-    public void addToBlacklist(Long userId, String socialId, SocialProvider provider) {
-        BlackList blackList = BlackList.createBlackList(socialId, provider);
-        try {
-            deleteUserPort.saveBlackList(blackList);
-            log.info("사용자 블랙리스트 추가 완료 - userId: {}, socialId: {}, provider: {}",
-                    userId, socialId, provider);
-        } catch (DataIntegrityViolationException e) {
-            log.warn("이미 블랙리스트에 등록된 사용자 - userId: {}, socialId: {}",
-                    userId, socialId);
-        }
     }
 
     /**

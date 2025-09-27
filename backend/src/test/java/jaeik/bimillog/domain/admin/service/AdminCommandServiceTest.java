@@ -98,6 +98,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
         assertThat(capturedEvent.userId()).isEqualTo(200L);
         assertThat(capturedEvent.socialId()).isEqualTo(userWithId.getSocialId());
         assertThat(capturedEvent.provider()).isEqualTo(userWithId.getProvider());
+        assertThat(capturedEvent.reason()).isEqualTo("사용자 제재");
     }
 
     @Test
@@ -153,6 +154,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
         assertThat(capturedEvent.userId()).isEqualTo(200L);
         assertThat(capturedEvent.socialId()).isEqualTo(userWithId.getSocialId());
         assertThat(capturedEvent.provider()).isEqualTo(userWithId.getProvider());
+        assertThat(capturedEvent.reason()).isEqualTo("사용자 제재");
     }
 
     @Test
@@ -181,7 +183,9 @@ class AdminCommandServiceTest extends BaseUnitTest {
         
         UserForcedWithdrawalEvent capturedEvent = eventCaptor.getValue();
         assertThat(capturedEvent.userId()).isEqualTo(userId);
-        assertThat(capturedEvent.reason()).isEqualTo("관리자 강제 탈퇴");
+        assertThat(capturedEvent.socialId()).isEqualTo(mockUser.getSocialId());
+        assertThat(capturedEvent.provider()).isEqualTo(mockUser.getProvider());
+        assertThat(capturedEvent.reason()).isEqualTo("사용자 강제탈퇴");
     }
 
     @Test

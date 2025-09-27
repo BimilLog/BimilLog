@@ -2,15 +2,20 @@ package jaeik.bimillog.domain.auth.application.service;
 
 import jaeik.bimillog.domain.admin.event.UserForcedWithdrawalEvent;
 import jaeik.bimillog.domain.auth.application.port.in.UserBanUseCase;
+import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.RedisJwtBlacklistPort;
+import jaeik.bimillog.domain.auth.entity.BlackList;
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.infrastructure.filter.JwtFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.util.List;
@@ -35,6 +40,7 @@ public class UserBanService implements UserBanUseCase {
     private final GlobalJwtPort globalJwtPort;
     private final RedisJwtBlacklistPort redisJwtBlacklistPort;
     private final GlobalTokenQueryPort globalTokenQueryPort;
+    private final BlacklistPort blacklistPort;
 
     /**
      * <h3>JWT 토큰 블랙리스트 검증</h3>
@@ -105,6 +111,28 @@ public class UserBanService implements UserBanUseCase {
 
         } catch (Exception e) {
             log.error("사용자 {}의 모든 토큰 블랙리스트 등록 실패, 오류={}", userId, e.getMessage(), e);
+        }
+    }
+
+    /**
+     * <h3>사용자 블랙리스트 추가</h3>
+     * <p>사용자 ID를 기반으로 사용자를 조회하고 해당 사용자의 소셜 정보로 블랙리스트에 추가합니다.</p>
+     *
+     * @param userId 블랙리스트에 추가할 사용자 ID
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    @Override
+    @Transactional
+    public void addToBlacklist(Long userId, String socialId, SocialProvider provider) {
+        BlackList blackList = BlackList.createBlackList(socialId, provider);
+        try {
+            blacklistPort.saveBlackList(blackList);
+            log.info("사용자 블랙리스트 추가 완료 - userId: {}, socialId: {}, provider: {}",
+                    userId, socialId, provider);
+        } catch (DataIntegrityViolationException e) {
+            log.warn("이미 블랙리스트에 등록된 사용자 - userId: {}, socialId: {}",
+                    userId, socialId);
         }
     }
 }

@@ -287,46 +287,44 @@ class WithdrawServiceTest extends BaseUnitTest {
         // Given
         Long userId = 1L;
         User user = createTestUserWithId(userId);
-
-        given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
+        String socialId = user.getSocialId();
+        SocialProvider provider = user.getProvider();
 
         // When
-        withdrawService.addToBlacklist(userId);
+        withdrawService.addToBlacklist(userId, socialId, provider);
 
         // Then
-        verify(userQueryPort).findById(userId);
         verify(deleteUserPort).saveBlackList(any(BlackList.class));
     }
 
     @Test
-    @DisplayName("블랙리스트 추가 - 사용자가 존재하지 않는 경우")
-    void shouldThrowException_WhenUserNotFoundForBlacklist() {
+    @DisplayName("블랙리스트 추가 - 파라미터 누락 시 처리")
+    void shouldAddToBlacklist_WithProvidedParameters() {
         // Given
         Long userId = 999L;
-        given(userQueryPort.findById(userId)).willReturn(Optional.empty());
+        String socialId = "kakao12345";
+        SocialProvider provider = SocialProvider.KAKAO;
 
-        // When & Then
-        assertThatThrownBy(() -> withdrawService.addToBlacklist(userId))
-                .isInstanceOf(UserCustomException.class)
-                .hasMessage(UserErrorCode.USER_NOT_FOUND.getMessage());
+        // When
+        withdrawService.addToBlacklist(userId, socialId, provider);
 
-        verify(userQueryPort).findById(userId);
-        verify(deleteUserPort, never()).saveBlackList(any(BlackList.class));
+        // Then
+        verify(deleteUserPort).saveBlackList(any(BlackList.class));
     }
 
     @Test
-    @DisplayName("블랙리스트 추가 - null userId")
-    void shouldThrowException_WhenNullUserIdForBlacklist() {
+    @DisplayName("블랙리스트 추가 - null 파라미터")
+    void shouldHandleNullParameters_ForBlacklist() {
         // Given
         Long userId = null;
+        String socialId = null;
+        SocialProvider provider = null;
 
-        // When & Then
-        assertThatThrownBy(() -> withdrawService.addToBlacklist(userId))
-                .isInstanceOf(UserCustomException.class)
-                .hasMessage(UserErrorCode.USER_NOT_FOUND.getMessage());
+        // When - null 파라미터로도 처리 (실제 구현이 null 허용)
+        withdrawService.addToBlacklist(userId, socialId, provider);
 
-        verify(userQueryPort).findById(null);
-        verify(deleteUserPort, never()).saveBlackList(any(BlackList.class));
+        // Then
+        verify(deleteUserPort).saveBlackList(any(BlackList.class));
     }
 
     @Test
@@ -335,15 +333,15 @@ class WithdrawServiceTest extends BaseUnitTest {
         // Given
         Long userId = 1L;
         User user = TestUsers.copyWithId(TestUsers.USER1, userId);
+        String socialId = user.getSocialId();
+        SocialProvider provider = user.getProvider();
 
-        given(userQueryPort.findById(userId)).willReturn(Optional.of(user));
         willThrow(new DataIntegrityViolationException("Duplicate entry")).given(deleteUserPort).saveBlackList(any(BlackList.class));
 
         // When (예외가 발생하지 않아야 함)
-        withdrawService.addToBlacklist(userId);
+        withdrawService.addToBlacklist(userId, socialId, provider);
 
         // Then
-        verify(userQueryPort).findById(userId);
         verify(deleteUserPort).saveBlackList(any(BlackList.class));
     }
 

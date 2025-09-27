@@ -136,7 +136,7 @@ class UserBanServiceTest extends BaseAuthUnitTest {
         given(globalJwtPort.generateTokenHash("access-token-1")).willReturn("hash1");
 
         // When
-        userBanService.blacklistAllUserTokens(userId, reason);
+        userBanService.blacklistAllUserTokens(userId);
 
         // Then
         verify(globalTokenQueryPort).findAllByUserId(userId);
@@ -148,7 +148,6 @@ class UserBanServiceTest extends BaseAuthUnitTest {
 
         verify(redisJwtBlacklistPort).blacklistTokenHashes(
                 hashesCaptor.capture(),
-                eq(reason),
                 durationCaptor.capture()
         );
         
@@ -166,12 +165,12 @@ class UserBanServiceTest extends BaseAuthUnitTest {
         given(globalTokenQueryPort.findAllByUserId(userId)).willReturn(List.of());
 
         // When
-        userBanService.blacklistAllUserTokens(userId, reason);
+        userBanService.blacklistAllUserTokens(userId);
 
         // Then
         verify(globalTokenQueryPort).findAllByUserId(userId);
         verify(globalJwtPort, never()).generateTokenHash(anyString());
-        verify(redisJwtBlacklistPort, never()).blacklistTokenHashes(any(), anyString(), any());
+        verify(redisJwtBlacklistPort, never()).blacklistTokenHashes(any(), any());
     }
 
     @Test
@@ -187,13 +186,12 @@ class UserBanServiceTest extends BaseAuthUnitTest {
                 .when(globalJwtPort).generateTokenHash("access-token-1");
 
         // When
-        userBanService.blacklistAllUserTokens(userId, reason);
+        userBanService.blacklistAllUserTokens(userId);
 
         // Then
         ArgumentCaptor<List<String>> hashesCaptor = ArgumentCaptor.forClass(List.class);
         verify(redisJwtBlacklistPort).blacklistTokenHashes(
                 hashesCaptor.capture(),
-                eq(reason),
                 any(Duration.class)
         );
         
@@ -213,13 +211,13 @@ class UserBanServiceTest extends BaseAuthUnitTest {
                 .when(globalJwtPort).generateTokenHash(anyString());
 
         // When
-        userBanService.blacklistAllUserTokens(userId, reason);
+        userBanService.blacklistAllUserTokens(userId);
 
         // Then
         verify(globalTokenQueryPort).findAllByUserId(userId);
         verify(globalJwtPort).generateTokenHash("access-token-0");
         verify(globalJwtPort).generateTokenHash("access-token-1");
-        verify(redisJwtBlacklistPort, never()).blacklistTokenHashes(any(), anyString(), any());
+        verify(redisJwtBlacklistPort, never()).blacklistTokenHashes(any(), any());
     }
 
     @Test
@@ -232,12 +230,12 @@ class UserBanServiceTest extends BaseAuthUnitTest {
                 .when(globalTokenQueryPort).findAllByUserId(userId);
 
         // When
-        userBanService.blacklistAllUserTokens(userId, reason);
+        userBanService.blacklistAllUserTokens(userId);
 
         // Then
         verify(globalTokenQueryPort).findAllByUserId(userId);
         verify(globalJwtPort, never()).generateTokenHash(anyString());
-        verify(redisJwtBlacklistPort, never()).blacklistTokenHashes(any(), anyString(), any());
+        verify(redisJwtBlacklistPort, never()).blacklistTokenHashes(any(), any());
     }
 
 
@@ -256,7 +254,7 @@ class UserBanServiceTest extends BaseAuthUnitTest {
         }
 
         // When
-        userBanService.blacklistAllUserTokens(userId, reason);
+        userBanService.blacklistAllUserTokens(userId);
 
         // Then
         verify(globalTokenQueryPort).findAllByUserId(userId);
@@ -267,7 +265,6 @@ class UserBanServiceTest extends BaseAuthUnitTest {
         ArgumentCaptor<List<String>> hashesCaptor = ArgumentCaptor.forClass(List.class);
         verify(redisJwtBlacklistPort).blacklistTokenHashes(
                 hashesCaptor.capture(),
-                eq(reason),
                 any(Duration.class)
         );
         

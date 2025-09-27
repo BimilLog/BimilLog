@@ -2,6 +2,8 @@ package jaeik.bimillog.infrastructure.adapter.out.auth;
 
 import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
+import jaeik.bimillog.domain.auth.entity.BlackList;
+import jaeik.bimillog.domain.user.application.service.WithdrawService;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.out.auth.jpa.BlackListRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,5 +30,19 @@ public class BlacklistAdapter implements BlacklistPort {
     @Override
     public boolean existsByProviderAndSocialId(SocialProvider provider, String socialId) {
         return blackListRepository.existsByProviderAndSocialId(provider, socialId);
+    }
+
+    /**
+     * <h3>블랙리스트 저장</h3>
+     * <p>블랙리스트에 사용자 정보를 저장합니다.</p>
+     * <p>{@link WithdrawService}에서 회원 탈퇴 시 블랙리스트 등록을 위해 호출됩니다.</p>
+     *
+     * @param blackList 저장할 블랙리스트 엔티티
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public void saveBlackList(BlackList blackList) {
+        blackListRepository.save(blackList);
     }
 }

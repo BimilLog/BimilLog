@@ -1,9 +1,11 @@
 package jaeik.bimillog.event.admin;
 
 import jaeik.bimillog.domain.admin.event.UserForcedWithdrawalEvent;
+import jaeik.bimillog.domain.auth.application.port.in.SocialWithdrawUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.UserBanUseCase;
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.bimillog.domain.user.application.port.in.WithdrawUseCase;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import jaeik.bimillog.testutil.EventTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
@@ -29,6 +31,9 @@ class UserForcedWithdrawalEventIntegrationTest extends BaseEventIntegrationTest 
     @MockitoBean
     private CommentCommandUseCase commentCommandUseCase;
 
+    @MockitoBean
+    private SocialWithdrawUseCase socialWithdrawUseCase;
+
     @Test
     @DisplayName("관리자 강제 탈퇴 요청 이벤트 워크플로우 - 모든 후속 처리 완료")
     void adminWithdrawRequestedEventWorkflow_ShouldCompleteAllProcessing() {
@@ -40,11 +45,13 @@ class UserForcedWithdrawalEventIntegrationTest extends BaseEventIntegrationTest 
         // When & Then
         publishAndVerify(event, () -> {
             // 사용자 블랙리스트 등록
-            verify(withdrawUseCase).addToBlacklist(eq(userId));
+            verify(withdrawUseCase).addToBlacklist(eq(userId), eq("testSocialId1"), eq(SocialProvider.KAKAO));
             // JWT 토큰 무효화
-            verify(userBanUseCase).blacklistAllUserTokens(eq(userId), eq("관리자 강제 탈퇴"));
+            verify(userBanUseCase).blacklistAllUserTokens(eq(userId));
             // 댓글 처리
             verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId));
+            // 소셜 연결 해제
+            verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("testSocialId1"));
         });
     }
 
@@ -58,13 +65,17 @@ class UserForcedWithdrawalEventIntegrationTest extends BaseEventIntegrationTest 
 
         // When & Then - 동시에 여러 강제 탈퇴 이벤트 발행
         publishEventsAndVerify(new Object[]{event1, event2, event3}, () -> {
-            verify(withdrawUseCase).addToBlacklist(eq(1L));
-            verify(withdrawUseCase).addToBlacklist(eq(2L));
-            verify(withdrawUseCase).addToBlacklist(eq(3L));
+            verify(withdrawUseCase).addToBlacklist(eq(1L), eq("testSocialId1"), eq(SocialProvider.KAKAO));
+            verify(withdrawUseCase).addToBlacklist(eq(2L), eq("testSocialId2"), eq(SocialProvider.KAKAO));
+            verify(withdrawUseCase).addToBlacklist(eq(3L), eq("testSocialId3"), eq(SocialProvider.KAKAO));
 
-            verify(userBanUseCase).blacklistAllUserTokens(eq(1L), eq("관리자 강제 탈퇴"));
-            verify(userBanUseCase).blacklistAllUserTokens(eq(2L), eq("관리자 강제 탈퇴"));
-            verify(userBanUseCase).blacklistAllUserTokens(eq(3L), eq("관리자 강제 탈퇴"));
+            verify(userBanUseCase).blacklistAllUserTokens(eq(1L));
+            verify(userBanUseCase).blacklistAllUserTokens(eq(2L));
+            verify(userBanUseCase).blacklistAllUserTokens(eq(3L));
+
+            verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("testSocialId1"));
+            verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("testSocialId2"));
+            verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("testSocialId3"));
 
             verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(1L));
             verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(2L));
@@ -85,8 +96,9 @@ class UserForcedWithdrawalEventIntegrationTest extends BaseEventIntegrationTest 
 
         // When & Then - 예외가 발생해도 다른 리스너들은 호출되어야 함
         publishAndExpectException(event, () -> {
-            verify(withdrawUseCase).addToBlacklist(eq(userId));
-            verify(userBanUseCase).blacklistAllUserTokens(eq(userId), eq("관리자 강제 탈퇴"));
+            verify(withdrawUseCase).addToBlacklist(eq(userId), eq("testSocialId1"), eq(SocialProvider.KAKAO));
+            verify(userBanUseCase).blacklistAllUserTokens(eq(userId));
+            verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("testSocialId1"));
             verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId));
         });
     }

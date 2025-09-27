@@ -52,7 +52,7 @@ public class AdminCommandController {
      * <p>관리자 대시보드에서 심각한 위반으로 판단하여 사용자를 영구적으로 시스템에서 제거하는 REST API입니다.</p>
      * <p>프론트엔드의 관리자 패널에서 강제 탈퇴 버튼을 클릭하면 POST /api/admin/withdraw 엔드포인트로 요청됩니다.</p>
      * <p>ADMIN 권한이 있는 관리자만 접근할 수 있으며, 단순 제재보다 강력한 최종 조치입니다.</p>
-     * <p>AdminCommandUseCase.forceWithdrawUser를 호출하여 AdminWithdrawEvent를 발행하고 Auth 도메인에 탈퇴 처리를 위임합니다.</p>
+     * <p>AdminCommandUseCase.forceWithdrawUser를 호출하여 UserForcedWithdrawalEvent를 발행하고 Auth 도메인에 탈퇴 처리를 위임합니다.</p>
      * <p>사용자의 모든 데이터 정리와 재가입 차단 등 종합적인 탈퇴 처리가 이벤트 기반으로 실행됩니다.</p>
      *
      * @param reportDTO 신고 정보 DTO (신고 유형, 대상 ID 포함)

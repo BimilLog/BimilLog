@@ -24,7 +24,7 @@ import java.time.LocalDateTime;
  * </ul>
  *
  * @author Jaeik
- * @version 1.0.0
+ * @version 2.0.0
  */
 public class EventTestDataBuilder {
 
@@ -116,7 +116,7 @@ public class EventTestDataBuilder {
      * @return UserBannedEvent
      */
     public static UserBannedEvent createUserBannedEvent(Long userId, String socialId, SocialProvider provider) {
-        return new UserBannedEvent(userId, socialId, provider);
+        return new UserBannedEvent(userId, socialId, provider, "사용자 제재");
     }
 
     /**
@@ -126,7 +126,18 @@ public class EventTestDataBuilder {
      * @param reason 탈퇴 사유
      * @return UserForcedWithdrawalEvent
      */
+    public static UserForcedWithdrawalEvent createUserForcedWithdrawalEvent(Long userId, String socialId, SocialProvider provider, String reason) {
+        return new UserForcedWithdrawalEvent(userId, socialId, provider, reason);
+    }
+
+    /**
+     * 관리자 강제 탈퇴 이벤트 생성 (기본값 사용)
+     *
+     * @param userId 사용자 ID
+     * @param reason 탈퇴 사유
+     * @return UserForcedWithdrawalEvent
+     */
     public static UserForcedWithdrawalEvent createAdminWithdrawEvent(Long userId, String reason) {
-        return new UserForcedWithdrawalEvent(userId, reason);
+        return new UserForcedWithdrawalEvent(userId, "testSocialId" + userId, SocialProvider.KAKAO, reason);
     }
 }
