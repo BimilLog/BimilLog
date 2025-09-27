@@ -7,6 +7,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.util.List;
 
 /**
  * <h2>토큰 블랙리스트 Redis 어댑터</h2>
@@ -59,20 +60,19 @@ public class RedisJwtBlacklistAdapter implements RedisJwtBlacklistPort {
      * <p>계정 정지나 보안 사고로 인한 강제 로그아웃 시 사용자 보안 강화를 위해 관리자 기능에서 호출합니다.</p>
      *
      * @param tokenHashes 블랙리스트에 등록할 JWT 토큰 해시 목록
-     * @param reason 블랙리스트 등록 사유 (로그용)
      * @param ttl Redis 에서의 만료 시간 (TTL)
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void blacklistTokenHashes(java.util.List<String> tokenHashes, String reason, Duration ttl) {
+    public void blacklistTokenHashes(List<String> tokenHashes, Duration ttl) {
         try {
             if (tokenHashes == null || tokenHashes.isEmpty()) {
                 log.warn("블랙리스트에 등록할 토큰 해시가 제공되지 않음");
                 return;
             }
 
-            TokenBlacklistInfo info = new TokenBlacklistInfo(reason, System.currentTimeMillis());
+            TokenBlacklistInfo info = new TokenBlacklistInfo(System.currentTimeMillis());
 
             // 개별 토큰 해시들을 모두 블랙리스트에 등록
             for (String tokenHash : tokenHashes) {
@@ -80,8 +80,8 @@ public class RedisJwtBlacklistAdapter implements RedisJwtBlacklistPort {
                 redisTemplate.opsForValue().set(key, info, ttl);
             }
 
-            log.info("Redis에 {} 개의 토큰 해시가 블랙리스트에 추가됨: reason={}, ttl={}s",
-                    tokenHashes.size(), reason, ttl.getSeconds());
+            log.info("Redis에 {} 개의 토큰 해시가 블랙리스트에 추가됨, ttl={}s",
+                    tokenHashes.size(), ttl.getSeconds());
 
         } catch (Exception e) {
             log.error("Redis에서 토큰 해시 블랙리스트 등록 실패: count={}, error={}",
@@ -93,6 +93,6 @@ public class RedisJwtBlacklistAdapter implements RedisJwtBlacklistPort {
     /**
      * <h3>토큰 블랙리스트 정보 저장용 내부 클래스</h3>
      */
-    private record TokenBlacklistInfo(String reason, long timestamp) {
+    private record TokenBlacklistInfo(long timestamp) {
     }
 }

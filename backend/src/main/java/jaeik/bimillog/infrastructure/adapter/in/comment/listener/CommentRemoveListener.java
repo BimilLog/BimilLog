@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.in.comment.listener;
 
-import jaeik.bimillog.domain.admin.event.AdminWithdrawEvent;
+import jaeik.bimillog.domain.admin.event.UserForcedWithdrawalEvent;
 import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +31,7 @@ public class CommentRemoveListener {
      * <p>사용자 탈퇴 및 강제 탈퇴 이벤트 발생 시 해당 사용자의 댓글을 처리합니다.</p>
      * <p>자손이 있는 댓글: 소프트 삭제 + 익명화</p>
      * <p>자손이 없는 댓글: 하드 삭제</p>
-     * <p>{@link UserWithdrawnEvent}, {@link AdminWithdrawEvent} 이벤트 발생 시 스프링 이벤트 시스템에 의해 호출됩니다.</p>
+     * <p>{@link UserWithdrawnEvent}, {@link UserForcedWithdrawalEvent} 이벤트 발생 시 스프링 이벤트 시스템에 의해 호출됩니다.</p>
      *
      * @param event 사용자 탈퇴 또는 강제 탈퇴 이벤트
      * @author Jaeik
@@ -39,7 +39,7 @@ public class CommentRemoveListener {
      */
     @Async
     @Transactional
-    @EventListener({UserWithdrawnEvent.class, AdminWithdrawEvent.class})
+    @EventListener({UserWithdrawnEvent.class, UserForcedWithdrawalEvent.class})
     public void handleCommentProcessingEvents(Object event) {
         Long userId;
         String eventType;
@@ -47,7 +47,7 @@ public class CommentRemoveListener {
         if (event instanceof UserWithdrawnEvent withdrawnEvent) {
             userId = withdrawnEvent.userId();
             eventType = "사용자 탈퇴";
-        } else if (event instanceof AdminWithdrawEvent adminEvent) {
+        } else if (event instanceof UserForcedWithdrawalEvent adminEvent) {
             userId = adminEvent.userId();
             eventType = "관리자 강제 탈퇴";
         } else {

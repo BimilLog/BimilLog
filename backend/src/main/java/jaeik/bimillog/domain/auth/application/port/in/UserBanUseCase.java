@@ -37,5 +37,5 @@ public interface UserBanUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    void blacklistAllUserTokens(Long userId, String reason);
+    void blacklistAllUserTokens(Long userId);
 }

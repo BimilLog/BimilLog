@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.auth.application.service;
 
-import jaeik.bimillog.domain.admin.event.AdminWithdrawEvent;
+import jaeik.bimillog.domain.admin.event.UserForcedWithdrawalEvent;
 import jaeik.bimillog.domain.auth.application.port.in.UserBanUseCase;
 import jaeik.bimillog.domain.auth.application.port.out.RedisJwtBlacklistPort;
 import jaeik.bimillog.domain.auth.entity.Token;
@@ -28,8 +28,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class
-UserBanService implements UserBanUseCase {
+public class UserBanService implements UserBanUseCase {
 
     private static final Duration DEFAULT_TTL = Duration.ofHours(1);
 
@@ -69,15 +68,14 @@ UserBanService implements UserBanUseCase {
      * <h3>사용자 전체 토큰 블랙리스트 등록</h3>
      * <p>특정 사용자가 보유한 모든 활성 JWT 토큰을 블랙리스트에 등록합니다.</p>
      * <p>사용자 계정 정지, 보안 위반, 강제 로그아웃 처리 시 모든 세션을 무효화합니다.</p>
-     * <p>{@link UserWithdrawnEvent}, {@link AdminWithdrawEvent} 이벤트 발생 시 토큰 무효화를 위해 호출됩니다.</p>
+     * <p>{@link UserWithdrawnEvent}, {@link UserForcedWithdrawalEvent} 이벤트 발생 시 토큰 무효화를 위해 호출됩니다.</p>
      *
      * @param userId 토큰을 차단할 사용자 ID
-     * @param reason 블랙리스트 등록 사유 (로깅용)
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void blacklistAllUserTokens(Long userId, String reason) {
+    public void blacklistAllUserTokens(Long userId) {
         try {
             List<Token> userTokens = globalTokenQueryPort.findAllByUserId(userId);
 
@@ -99,14 +97,14 @@ UserBanService implements UserBanUseCase {
                     .collect(Collectors.toList());
 
             if (!tokenHashes.isEmpty()) {
-                redisJwtBlacklistPort.blacklistTokenHashes(tokenHashes, reason, DEFAULT_TTL);
-                log.info("사용자 {}의 토큰 {}개가 블랙리스트에 추가됨: 사유={}", userId, tokenHashes.size(), reason);
+                redisJwtBlacklistPort.blacklistTokenHashes(tokenHashes, DEFAULT_TTL);
+                log.info("사용자 {}의 토큰 {}개가 블랙리스트에 추가됨", userId, tokenHashes.size());
             } else {
                 log.warn("사용자 {}에 대해 블랙리스트에 추가할 유효한 토큰 해시가 없음", userId);
             }
 
         } catch (Exception e) {
-            log.error("사용자 {}의 모든 토큰 블랙리스트 등록 실패: 사유={}, 오류={}", userId, reason, e.getMessage(), e);
+            log.error("사용자 {}의 모든 토큰 블랙리스트 등록 실패, 오류={}", userId, e.getMessage(), e);
         }
     }
 }

@@ -1,8 +1,9 @@
 package jaeik.bimillog.adapter.in.admin.dto;
 
+import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
+import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.in.admin.dto.ReportDTO;
-import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -71,7 +73,7 @@ class ReportDTOTest {
         // Then
         assertThat(violations).hasSize(1);
         ConstraintViolation<ReportDTO> violation = violations.iterator().next();
-        assertThat(violation.getMessage()).isEqualTo("POST/COMMENT 신고는 targetId가 필수입니다");
+        assertThat(violation.getMessage()).isEqualTo("글, 댓글 신고는 신고대상이 필수입니다");
     }
 
     @Test
@@ -107,7 +109,7 @@ class ReportDTOTest {
         // Then
         assertThat(violations).hasSize(1);
         ConstraintViolation<ReportDTO> violation = violations.iterator().next();
-        assertThat(violation.getMessage()).isEqualTo("POST/COMMENT 신고는 targetId가 필수입니다");
+        assertThat(violation.getMessage()).isEqualTo("글, 댓글 신고는 신고대상이 필수입니다");
     }
 
     @Test
@@ -143,7 +145,7 @@ class ReportDTOTest {
         // Then
         assertThat(violations).hasSize(1);
         ConstraintViolation<ReportDTO> violation = violations.iterator().next();
-        assertThat(violation.getMessage()).isEqualTo("ERROR/IMPROVEMENT 신고는 targetId가 없어야 합니다");
+        assertThat(violation.getMessage()).isEqualTo("에러, 개선 신고는 신고대상이 없어야 합니다");
     }
 
     @Test
@@ -179,39 +181,9 @@ class ReportDTOTest {
         // Then
         assertThat(violations).hasSize(1);
         ConstraintViolation<ReportDTO> violation = violations.iterator().next();
-        assertThat(violation.getMessage()).isEqualTo("ERROR/IMPROVEMENT 신고는 targetId가 없어야 합니다");
+        assertThat(violation.getMessage()).isEqualTo("에러, 개선 신고는 신고대상이 없어야 합니다");
     }
 
-    @Test
-    @DisplayName("인증된 사용자 정보 설정 - 성공")
-    void enrichReporterInfo_AuthenticatedUser_Success() {
-        // Given
-        ReportDTO reportDTO = ReportDTO.builder().build();
-        CustomUserDetails userDetails = mock(CustomUserDetails.class);
-        given(userDetails.getUserId()).willReturn(100L);
-        given(userDetails.getUsername()).willReturn("testuser");
-
-        // When
-        reportDTO.enrichReporterInfo(userDetails);
-
-        // Then
-        assertThat(reportDTO.getReporterId()).isEqualTo(100L);
-        assertThat(reportDTO.getReporterName()).isEqualTo("testuser");
-    }
-
-    @Test
-    @DisplayName("익명 사용자 정보 설정 - 성공")
-    void enrichReporterInfo_AnonymousUser_Success() {
-        // Given
-        ReportDTO reportDTO = ReportDTO.builder().build();
-
-        // When
-        reportDTO.enrichReporterInfo(null);
-
-        // Then
-        assertThat(reportDTO.getReporterId()).isNull();
-        assertThat(reportDTO.getReporterName()).isEqualTo("익명");
-    }
 
     @Test
     @DisplayName("신고 내용 검증 - 빈 값 실패")
@@ -287,5 +259,59 @@ class ReportDTOTest {
         // Then
         assertThat(violations).hasSizeGreaterThanOrEqualTo(1);
         assertThat(violations).anyMatch(v -> v.getMessage().equals("신고 유형은 필수입니다"));
+    }
+
+    @Test
+    @DisplayName("인증된 사용자 신고 엔티티 변환 - 성공")
+    void from_AuthenticatedReport_Success() {
+        // Given
+        User mockUser = mock(User.class);
+        given(mockUser.getId()).willReturn(100L);
+        given(mockUser.getUserName()).willReturn("testuser");
+
+        Report mockReport = mock(Report.class);
+        given(mockReport.getId()).willReturn(1L);
+        given(mockReport.getReporter()).willReturn(mockUser);
+        given(mockReport.getReportType()).willReturn(ReportType.POST);
+        given(mockReport.getTargetId()).willReturn(123L);
+        given(mockReport.getContent()).willReturn("부적절한 게시글입니다");
+        given(mockReport.getCreatedAt()).willReturn(Instant.now());
+
+        // When
+        ReportDTO result = ReportDTO.from(mockReport);
+
+        // Then
+        assertThat(result.getId()).isEqualTo(1L);
+        assertThat(result.getReporterId()).isEqualTo(100L);
+        assertThat(result.getReporterName()).isEqualTo("testuser");
+        assertThat(result.getReportType()).isEqualTo(ReportType.POST);
+        assertThat(result.getTargetId()).isEqualTo(123L);
+        assertThat(result.getContent()).isEqualTo("부적절한 게시글입니다");
+        assertThat(result.getCreatedAt()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("익명 사용자 신고 엔티티 변환 - 성공 (null-safe 검증)")
+    void from_AnonymousReport_Success() {
+        // Given
+        Report mockReport = mock(Report.class);
+        given(mockReport.getId()).willReturn(2L);
+        given(mockReport.getReporter()).willReturn(null); // 익명 사용자
+        given(mockReport.getReportType()).willReturn(ReportType.COMMENT);
+        given(mockReport.getTargetId()).willReturn(456L);
+        given(mockReport.getContent()).willReturn("부적절한 댓글입니다");
+        given(mockReport.getCreatedAt()).willReturn(Instant.now());
+
+        // When
+        ReportDTO result = ReportDTO.from(mockReport);
+
+        // Then
+        assertThat(result.getId()).isEqualTo(2L);
+        assertThat(result.getReporterId()).isNull();
+        assertThat(result.getReporterName()).isEqualTo("익명");
+        assertThat(result.getReportType()).isEqualTo(ReportType.COMMENT);
+        assertThat(result.getTargetId()).isEqualTo(456L);
+        assertThat(result.getContent()).isEqualTo("부적절한 댓글입니다");
+        assertThat(result.getCreatedAt()).isNotNull();
     }
 }

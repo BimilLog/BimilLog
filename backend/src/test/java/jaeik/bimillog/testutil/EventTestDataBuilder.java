@@ -1,6 +1,6 @@
 package jaeik.bimillog.testutil;
 
-import jaeik.bimillog.domain.admin.event.AdminWithdrawEvent;
+import jaeik.bimillog.domain.admin.event.UserForcedWithdrawalEvent;
 import jaeik.bimillog.domain.admin.event.UserBannedEvent;
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
 import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
@@ -124,9 +124,9 @@ public class EventTestDataBuilder {
      *
      * @param userId 사용자 ID
      * @param reason 탈퇴 사유
-     * @return AdminWithdrawEvent
+     * @return UserForcedWithdrawalEvent
      */
-    public static AdminWithdrawEvent createAdminWithdrawEvent(Long userId, String reason) {
-        return new AdminWithdrawEvent(userId, reason);
+    public static UserForcedWithdrawalEvent createAdminWithdrawEvent(Long userId, String reason) {
+        return new UserForcedWithdrawalEvent(userId, reason);
     }
 }

@@ -22,17 +22,6 @@ import jaeik.bimillog.infrastructure.adapter.in.user.listener.BlacklistAddListen
 public record UserBannedEvent(
         Long userId,
         String socialId,
-        SocialProvider provider
-) {
-    public UserBannedEvent {
-        if (userId == null) {
-            throw new IllegalArgumentException("사용자 ID는 null일 수 없습니다.");
-        }
-        if (socialId == null || socialId.isBlank()) {
-            throw new IllegalArgumentException("소셜 ID는 null이거나 비어있을 수 없습니다.");
-        }
-        if (provider == null) {
-            throw new IllegalArgumentException("소셜 제공자는 null일 수 없습니다.");
-        }
-    }
-}
+        SocialProvider provider,
+        String reason
+) {}

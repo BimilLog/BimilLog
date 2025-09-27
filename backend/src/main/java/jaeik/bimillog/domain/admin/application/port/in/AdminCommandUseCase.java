@@ -14,6 +14,7 @@ import jaeik.bimillog.infrastructure.adapter.in.admin.web.AdminCommandController
  * @version 2.0.0
  */
 public interface AdminCommandUseCase {
+
     /**
      * <h3>신고 및 건의사항 접수</h3>
      * <p>사용자나 관리자로부터 접수된 신고 및 건의사항을 시스템에 등록합니다.</p>
@@ -45,7 +46,7 @@ public interface AdminCommandUseCase {
     /**
      * <h3>사용자 강제 탈퇴 처리</h3>
      * <p>관리자의 최종 판단에 따라 사용자를 시스템에서 영구적으로 제거합니다.</p>
-     * <p>POST/COMMENT 작성자 조회 후 AdminWithdrawEvent 발행으로 탈퇴 및 데이터 정리 수행</p>
+     * <p>POST/COMMENT 작성자 조회 후 UserForcedWithdrawalEvent 발행으로 탈퇴 및 데이터 정리 수행</p>
      * <p>{@link AdminCommandController}에서 관리자 강제 탈퇴 결정 시 호출합니다.</p>
      *
      * @param reportType 신고 유형 (POST 또는 COMMENT, 기타 유형은 불가)

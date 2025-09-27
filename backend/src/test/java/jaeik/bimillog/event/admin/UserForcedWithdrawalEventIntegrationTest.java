@@ -1,6 +1,6 @@
 package jaeik.bimillog.event.admin;
 
-import jaeik.bimillog.domain.admin.event.AdminWithdrawEvent;
+import jaeik.bimillog.domain.admin.event.UserForcedWithdrawalEvent;
 import jaeik.bimillog.domain.auth.application.port.in.UserBanUseCase;
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.bimillog.domain.user.application.port.in.WithdrawUseCase;
@@ -18,7 +18,7 @@ import static org.mockito.Mockito.verify;
 
 @DisplayName("관리자 강제 탈퇴 요청 이벤트 워크플로우 통합 테스트")
 @Tag("integration")
-class AdminWithdrawEventIntegrationTest extends BaseEventIntegrationTest {
+class UserForcedWithdrawalEventIntegrationTest extends BaseEventIntegrationTest {
 
     @MockitoBean
     private WithdrawUseCase withdrawUseCase;
@@ -35,7 +35,7 @@ class AdminWithdrawEventIntegrationTest extends BaseEventIntegrationTest {
         // Given
         Long userId = 1L;
         String reason = "관리자 강제 탈퇴";
-        AdminWithdrawEvent event = EventTestDataBuilder.createAdminWithdrawEvent(userId, reason);
+        UserForcedWithdrawalEvent event = EventTestDataBuilder.createAdminWithdrawEvent(userId, reason);
 
         // When & Then
         publishAndVerify(event, () -> {
@@ -52,9 +52,9 @@ class AdminWithdrawEventIntegrationTest extends BaseEventIntegrationTest {
     @DisplayName("다중 관리자 강제 탈퇴 요청 이벤트 동시 처리")
     void multipleAdminWithdrawRequestedEvents_ShouldProcessConcurrently() {
         // Given
-        AdminWithdrawEvent event1 = EventTestDataBuilder.createAdminWithdrawEvent(1L, "스팸 행위");
-        AdminWithdrawEvent event2 = EventTestDataBuilder.createAdminWithdrawEvent(2L, "지속적 규칙 위반");
-        AdminWithdrawEvent event3 = EventTestDataBuilder.createAdminWithdrawEvent(3L, "부적절한 컨텐츠 게시");
+        UserForcedWithdrawalEvent event1 = EventTestDataBuilder.createAdminWithdrawEvent(1L, "스팸 행위");
+        UserForcedWithdrawalEvent event2 = EventTestDataBuilder.createAdminWithdrawEvent(2L, "지속적 규칙 위반");
+        UserForcedWithdrawalEvent event3 = EventTestDataBuilder.createAdminWithdrawEvent(3L, "부적절한 컨텐츠 게시");
 
         // When & Then - 동시에 여러 강제 탈퇴 이벤트 발행
         publishEventsAndVerify(new Object[]{event1, event2, event3}, () -> {
@@ -77,7 +77,7 @@ class AdminWithdrawEventIntegrationTest extends BaseEventIntegrationTest {
     void eventProcessingWithException_CommentProcessingFailure() {
         // Given
         Long userId = 1L;
-        AdminWithdrawEvent event = EventTestDataBuilder.createAdminWithdrawEvent(userId, "예외 테스트");
+        UserForcedWithdrawalEvent event = EventTestDataBuilder.createAdminWithdrawEvent(userId, "예외 테스트");
 
         // 댓글 처리 실패 시뮬레이션
         doThrow(new RuntimeException("댓글 처리 실패"))

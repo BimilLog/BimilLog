@@ -1,6 +1,7 @@
 
 package jaeik.bimillog.domain.user.application.port.in;
 
+import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.in.admin.web.AdminCommandController;
 import jaeik.bimillog.infrastructure.adapter.in.user.web.UserCommandController;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
@@ -51,7 +52,7 @@ public interface WithdrawUseCase {
      * @since 2.0.0
      * @author Jaeik
      */
-    void addToBlacklist(Long userId);
+    void addToBlacklist(Long userId, String socialId, SocialProvider provider);
 
     /**
      * <h3>사용자 역할을 BAN으로 변경</h3>

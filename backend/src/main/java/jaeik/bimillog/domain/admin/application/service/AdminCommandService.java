@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.admin.application.port.in.AdminCommandUseCase;
 import jaeik.bimillog.domain.admin.application.port.out.AdminCommandPort;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.domain.admin.event.AdminWithdrawEvent;
+import jaeik.bimillog.domain.admin.event.UserForcedWithdrawalEvent;
 import jaeik.bimillog.domain.admin.event.UserBannedEvent;
 import jaeik.bimillog.domain.admin.exception.AdminCustomException;
 import jaeik.bimillog.domain.admin.exception.AdminErrorCode;
@@ -24,7 +24,7 @@ import java.util.Optional;
  * <h2>관리자 명령 서비스</h2>
  * <p>관리자 도메인의 명령 작업을 담당하는 서비스입니다.</p>
  * <p>신고 접수, 사용자 제재, 강제 탈퇴</p>
- * <p>이벤트 기반 도메인 간 통신으로 UserBannedEvent, AdminWithdrawEvent 발행</p>
+ * <p>이벤트 기반 도메인 간 통신으로 UserBannedEvent, UserForcedWithdrawalEvent 발행</p>
  * <p>Post/Comment 도메인과 협력하여 신고 대상 유효성 검증</p>
  *
  * @author Jaeik
@@ -78,15 +78,16 @@ public class AdminCommandService implements AdminCommandUseCase {
      * @since 2.0.0
      */
     @Override
+    @Transactional
     public void banUser(ReportType reportType, Long targetId) {
         User user = resolveUser(reportType, targetId);
-        eventPublisher.publishEvent(new UserBannedEvent(user.getId(), user.getSocialId(), user.getProvider()));
+        eventPublisher.publishEvent(new UserBannedEvent(user.getId(), user.getSocialId(), user.getProvider(), "사용자 제재"));
     }
 
     /**
      * <h3>사용자 강제 탈퇴 처리</h3>
      * <p>관리자의 최종 제재 결정을 실행합니다.</p>
-     * <p>POST/COMMENT 작성자 조회 후 AdminWithdrawEvent 발행으로 탈퇴 및 데이터 정리 처리</p>
+     * <p>POST/COMMENT 작성자 조회 후 UserForcedWithdrawalEvent 발행으로 탈퇴 및 데이터 정리 처리</p>
      * <p>{@link AdminCommandController}에서 관리자 강제 탈퇴 결정 시 호출됩니다.</p>
      *
      * @param reportType 신고 유형 (POST, COMMENT만 허용, ERROR/IMPROVEMENT는 예외 발생)
@@ -98,7 +99,7 @@ public class AdminCommandService implements AdminCommandUseCase {
     @Override
     public void forceWithdrawUser(ReportType reportType, Long targetId) {
         User user = resolveUser(reportType, targetId);
-        eventPublisher.publishEvent(new AdminWithdrawEvent(user.getId(), "관리자 강제 탈퇴"));
+        eventPublisher.publishEvent(new UserForcedWithdrawalEvent(user.getId(), user.getSocialId(), user.getProvider(), "사용자 강제탈퇴"));
     }
 
 

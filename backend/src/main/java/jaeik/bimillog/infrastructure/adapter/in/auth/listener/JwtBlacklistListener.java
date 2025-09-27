@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.in.auth.listener;
 
-import jaeik.bimillog.domain.admin.event.AdminWithdrawEvent;
+import jaeik.bimillog.domain.admin.event.UserForcedWithdrawalEvent;
 import jaeik.bimillog.domain.admin.event.UserBannedEvent;
 import jaeik.bimillog.domain.auth.application.port.in.UserBanUseCase;
 import lombok.RequiredArgsConstructor;
@@ -27,14 +27,14 @@ public class JwtBlacklistListener {
     /**
      * <h3>JWT 블랙리스트 이벤트 처리</h3>
      * <p>사용자 차단 또는 강제 탈퇴 이벤트를 수신하여 해당 사용자의 모든 JWT 토큰을 무효화합니다.</p>
-     * <p>UserBannedEvent: 사용자 제재, AdminWithdrawEvent: 관리자 강제 탈퇴</p>
+     * <p>UserBannedEvent: 사용자 제재, UserForcedWithdrawalEvent: 관리자 강제 탈퇴</p>
      *
      * @param event 사용자 차단 또는 강제 탈퇴 이벤트
      * @author Jaeik
      * @since 2.0.0
      */
     @Async
-    @EventListener({UserBannedEvent.class, AdminWithdrawEvent.class})
+    @EventListener({UserBannedEvent.class, UserForcedWithdrawalEvent.class})
     @Transactional
     public void handleJwtBlacklistEvents(Object event) {
         Long userId;
@@ -43,7 +43,7 @@ public class JwtBlacklistListener {
         if (event instanceof UserBannedEvent bannedEvent) {
             userId = bannedEvent.userId();
             reason = "사용자 제재";
-        } else if (event instanceof AdminWithdrawEvent withdrawEvent) {
+        } else if (event instanceof UserForcedWithdrawalEvent withdrawEvent) {
             userId = withdrawEvent.userId();
             reason = "관리자 강제 탈퇴";
         } else {
@@ -54,7 +54,7 @@ public class JwtBlacklistListener {
         log.info("{} 이벤트 수신 - JWT 토큰 무효화 시작: userId={}", reason, userId);
         
         try {
-            userBanUseCase.blacklistAllUserTokens(userId, reason);
+            userBanUseCase.blacklistAllUserTokens(userId);
             log.info("{} JWT 토큰 무효화 완료 - userId: {}", reason, userId);
         } catch (Exception e) {
             log.error("{} JWT 토큰 무효화 실패 - userId: {}, error: {}", 

@@ -7,6 +7,7 @@ import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.application.port.in.WithdrawUseCase;
 import jaeik.bimillog.domain.user.application.port.out.DeleteUserPort;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
@@ -97,19 +98,15 @@ public class WithdrawService implements WithdrawUseCase {
      */
     @Override
     @Transactional
-    public void addToBlacklist(Long userId) {
-        User user = userQueryPort.findById(userId)
-                .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
-
-        BlackList blackList = BlackList.createBlackList(user.getSocialId(), user.getProvider());
-
+    public void addToBlacklist(Long userId, String socialId, SocialProvider provider) {
+        BlackList blackList = BlackList.createBlackList(socialId, provider);
         try {
             deleteUserPort.saveBlackList(blackList);
             log.info("사용자 블랙리스트 추가 완료 - userId: {}, socialId: {}, provider: {}",
-                    userId, user.getSocialId(), user.getProvider());
+                    userId, socialId, provider);
         } catch (DataIntegrityViolationException e) {
             log.warn("이미 블랙리스트에 등록된 사용자 - userId: {}, socialId: {}",
-                    userId, user.getSocialId());
+                    userId, socialId);
         }
     }
 

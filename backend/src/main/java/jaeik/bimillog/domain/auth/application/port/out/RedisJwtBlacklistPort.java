@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.auth.application.service.UserBanService;
 import jaeik.bimillog.infrastructure.filter.JwtFilter;
 
 import java.time.Duration;
+import java.util.List;
 
 /**
  * <h2>토큰 블랙리스트 관리 포트</h2>
@@ -41,5 +42,5 @@ public interface RedisJwtBlacklistPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    void blacklistTokenHashes(java.util.List<String> tokenHashes, String reason, Duration ttl);
+    void blacklistTokenHashes(List<String> tokenHashes, Duration ttl);
 }
