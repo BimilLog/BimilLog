@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.user.entity;
 
-import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
@@ -8,9 +7,6 @@ import jaeik.bimillog.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * <h2>사용자 엔티티</h2>
@@ -42,7 +38,7 @@ public class User extends BaseEntity {
     private Long id;
 
     @NotNull
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "setting_id")
     private Setting setting;
 
@@ -69,17 +65,6 @@ public class User extends BaseEntity {
 
     @Column(name = "thumbnail_image") // 카카오 프로필 이미지
     private String thumbnailImage;
-
-    /**
-     * <h3>사용자 토큰 목록</h3>
-     * <p>다중 로그인 지원을 위한 토큰 목록. 사용자 삭제 시 모든 토큰이 자동 삭제됩니다.</p>
-     *
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    @OneToMany(mappedBy = "users", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<Token> tokens = new ArrayList<>();
 
     /**
      * <h3>사용자 정보 업데이트</h3>
@@ -112,7 +97,6 @@ public class User extends BaseEntity {
      * @since 2.0.0
      */
     public void changeUserName(String newUserName, UserQueryPort userQueryPort) {
-        // 1차 중복 확인 (성능 최적화를 위한 사전 검사)
         if (userQueryPort.existsByUserName(newUserName)) {
             throw new UserCustomException(UserErrorCode.EXISTED_NICKNAME);
         }

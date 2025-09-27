@@ -36,7 +36,6 @@ public class Comment extends BaseEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "post_id")
     private Post post;
 

@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.admin.event;
 
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.in.auth.listener.JwtBlacklistListener;
-import jaeik.bimillog.infrastructure.adapter.in.user.listener.BlacklistAddListener;
+import jaeik.bimillog.infrastructure.adapter.in.auth.listener.BlacklistAddListener;
 
 /**
  * <h2>UserBannedEvent</h2>

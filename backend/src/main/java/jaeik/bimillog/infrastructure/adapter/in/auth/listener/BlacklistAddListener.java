@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.in.user.listener;
+package jaeik.bimillog.infrastructure.adapter.in.auth.listener;
 
 import jaeik.bimillog.domain.admin.event.UserForcedWithdrawalEvent;
 import jaeik.bimillog.domain.admin.event.UserBannedEvent;
@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * <h2>사용자 블랙리스트 이벤트 리스너</h2>
  * <p>사용자 차단 및 강제 탈퇴 시 소셜 정보를 블랙리스트에 등록하여 재가입을 방지하는 리스너입니다.</p>
- * <p>User 도메인의 블랙리스트 관리 책임을 담당합니다.</p>
+ * <p>Auth 도메인의 블랙리스트 관리 책임을 담당합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0

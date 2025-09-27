@@ -1,13 +1,11 @@
 package jaeik.bimillog.domain.user.service;
 
-import jaeik.bimillog.domain.auth.entity.BlackList;
 import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.application.port.out.DeleteUserPort;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.application.service.WithdrawService;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
@@ -24,7 +22,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseCookie;
 
 import java.util.List;
@@ -281,69 +278,6 @@ class WithdrawServiceTest extends BaseUnitTest {
         verify(deleteUserPort).performWithdrawProcess(targetUserId);
     }
 
-    @Test
-    @DisplayName("블랙리스트 추가 - 정상 케이스")
-    void shouldAddToBlacklist_WhenUserExists() {
-        // Given
-        Long userId = 1L;
-        User user = createTestUserWithId(userId);
-        String socialId = user.getSocialId();
-        SocialProvider provider = user.getProvider();
-
-        // When
-        withdrawService.addToBlacklist(userId, socialId, provider);
-
-        // Then
-        verify(deleteUserPort).saveBlackList(any(BlackList.class));
-    }
-
-    @Test
-    @DisplayName("블랙리스트 추가 - 파라미터 누락 시 처리")
-    void shouldAddToBlacklist_WithProvidedParameters() {
-        // Given
-        Long userId = 999L;
-        String socialId = "kakao12345";
-        SocialProvider provider = SocialProvider.KAKAO;
-
-        // When
-        withdrawService.addToBlacklist(userId, socialId, provider);
-
-        // Then
-        verify(deleteUserPort).saveBlackList(any(BlackList.class));
-    }
-
-    @Test
-    @DisplayName("블랙리스트 추가 - null 파라미터")
-    void shouldHandleNullParameters_ForBlacklist() {
-        // Given
-        Long userId = null;
-        String socialId = null;
-        SocialProvider provider = null;
-
-        // When - null 파라미터로도 처리 (실제 구현이 null 허용)
-        withdrawService.addToBlacklist(userId, socialId, provider);
-
-        // Then
-        verify(deleteUserPort).saveBlackList(any(BlackList.class));
-    }
-
-    @Test
-    @DisplayName("블랙리스트 추가 - 중복 등록 시 예외 무시")
-    void shouldIgnoreException_WhenDuplicateBlacklistEntry() {
-        // Given
-        Long userId = 1L;
-        User user = TestUsers.copyWithId(TestUsers.USER1, userId);
-        String socialId = user.getSocialId();
-        SocialProvider provider = user.getProvider();
-
-        willThrow(new DataIntegrityViolationException("Duplicate entry")).given(deleteUserPort).saveBlackList(any(BlackList.class));
-
-        // When (예외가 발생하지 않아야 함)
-        withdrawService.addToBlacklist(userId, socialId, provider);
-
-        // Then
-        verify(deleteUserPort).saveBlackList(any(BlackList.class));
-    }
 
     @Test
     @DisplayName("사용자 제재 - 정상 케이스")

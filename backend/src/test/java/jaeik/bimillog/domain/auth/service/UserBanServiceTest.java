@@ -1,8 +1,11 @@
 package jaeik.bimillog.domain.auth.service;
 
+import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.RedisJwtBlacklistPort;
 import jaeik.bimillog.domain.auth.application.service.UserBanService;
+import jaeik.bimillog.domain.auth.entity.BlackList;
 import jaeik.bimillog.domain.auth.entity.Token;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.testutil.BaseAuthUnitTest;
@@ -13,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.time.Duration;
 import java.util.List;
@@ -42,6 +46,9 @@ class UserBanServiceTest extends BaseAuthUnitTest {
 
     @Mock
     private GlobalTokenQueryPort globalTokenQueryPort;
+
+    @Mock
+    private BlacklistPort blacklistPort;
 
     @InjectMocks
     private UserBanService userBanService;
@@ -270,6 +277,85 @@ class UserBanServiceTest extends BaseAuthUnitTest {
         
         List<String> capturedHashes = hashesCaptor.getValue();
         assertThat(capturedHashes).hasSize(10);
+    }
+
+    @Test
+    @DisplayName("블랙리스트 추가 - 정상 케이스")
+    void shouldAddToBlacklist_WhenValidParameters() {
+        // Given
+        Long userId = 1L;
+        String socialId = "kakao12345";
+        SocialProvider provider = SocialProvider.KAKAO;
+
+        // When
+        userBanService.addToBlacklist(userId, socialId, provider);
+
+        // Then
+        ArgumentCaptor<BlackList> blackListCaptor = ArgumentCaptor.forClass(BlackList.class);
+        verify(blacklistPort).saveBlackList(blackListCaptor.capture());
+
+        BlackList capturedBlackList = blackListCaptor.getValue();
+        assertThat(capturedBlackList).isNotNull();
+        assertThat(capturedBlackList.getSocialId()).isEqualTo(socialId);
+        assertThat(capturedBlackList.getProvider()).isEqualTo(provider);
+    }
+
+    @Test
+    @DisplayName("블랙리스트 추가 - 중복 등록 시 예외 처리")
+    void shouldHandleException_WhenDuplicateEntry() {
+        // Given
+        Long userId = 1L;
+        String socialId = "kakao12345";
+        SocialProvider provider = SocialProvider.KAKAO;
+
+        doThrow(new DataIntegrityViolationException("Duplicate entry"))
+                .when(blacklistPort).saveBlackList(any(BlackList.class));
+
+        // When - 예외가 발생해도 메서드가 정상 종료되어야 함 (로그만 출력)
+        userBanService.addToBlacklist(userId, socialId, provider);
+
+        // Then
+        verify(blacklistPort).saveBlackList(any(BlackList.class));
+    }
+
+    @Test
+    @DisplayName("블랙리스트 추가 - null 파라미터 처리")
+    void shouldCreateBlacklist_WithNullParameters() {
+        // Given
+        Long userId = null;
+        String socialId = null;
+        SocialProvider provider = null;
+
+        // When
+        userBanService.addToBlacklist(userId, socialId, provider);
+
+        // Then
+        ArgumentCaptor<BlackList> blackListCaptor = ArgumentCaptor.forClass(BlackList.class);
+        verify(blacklistPort).saveBlackList(blackListCaptor.capture());
+
+        BlackList capturedBlackList = blackListCaptor.getValue();
+        assertThat(capturedBlackList).isNotNull();
+        assertThat(capturedBlackList.getSocialId()).isNull();
+        assertThat(capturedBlackList.getProvider()).isNull();
+    }
+
+    @Test
+    @DisplayName("블랙리스트 추가 - 다양한 소셜 제공자")
+    void shouldAddToBlacklist_WithVariousProviders() {
+        // Given
+        Long userId = 1L;
+        String socialId = "socialUser123";
+        SocialProvider provider = SocialProvider.KAKAO;
+
+        // When
+        userBanService.addToBlacklist(userId, socialId, provider);
+
+        // Then
+        ArgumentCaptor<BlackList> blackListCaptor = ArgumentCaptor.forClass(BlackList.class);
+        verify(blacklistPort).saveBlackList(blackListCaptor.capture());
+
+        BlackList capturedBlackList = blackListCaptor.getValue();
+        assertThat(capturedBlackList.getProvider()).isEqualTo(SocialProvider.KAKAO);
     }
 
 

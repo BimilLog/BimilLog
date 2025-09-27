@@ -38,7 +38,6 @@ public class Message extends BaseEntity {
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
-    @OnDelete(action = OnDeleteAction.CASCADE)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 

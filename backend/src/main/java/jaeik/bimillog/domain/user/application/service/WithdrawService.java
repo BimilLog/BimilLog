@@ -1,8 +1,6 @@
 package jaeik.bimillog.domain.user.application.service;
 
 import jaeik.bimillog.domain.auth.event.UserWithdrawnEvent;
-import jaeik.bimillog.domain.auth.exception.AuthCustomException;
-import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.application.port.in.WithdrawUseCase;
 import jaeik.bimillog.domain.user.application.port.out.DeleteUserPort;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
@@ -20,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * <h2>회원 탈퇴 서비스</h2>
@@ -53,13 +50,7 @@ public class WithdrawService implements WithdrawUseCase {
     @Override
     @Transactional
     public List<ResponseCookie> withdraw(CustomUserDetails userDetails) {
-        // 사용자 ID가 유효한지 확인하고 사용자 정보를 가져옵니다.
-        Long userId = Optional.ofNullable(userDetails)
-                .map(CustomUserDetails::getUserId)
-                .orElseThrow(() -> new AuthCustomException(AuthErrorCode.NULL_SECURITY_CONTEXT));
-
-        User user = userQueryPort.findById(userId).orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
-
+        User user = userQueryPort.findById(userDetails.getUserId()).orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
         // 핵심 탈퇴 로직을 수행합니다.
         performCoreWithdrawal(user);
 
@@ -79,7 +70,6 @@ public class WithdrawService implements WithdrawUseCase {
     @Transactional
     public void forceWithdraw(Long userId) {
         User user = userQueryPort.findById(userId).orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
-
 
         // 핵심 탈퇴 로직을 수행합니다.
         performCoreWithdrawal(user);

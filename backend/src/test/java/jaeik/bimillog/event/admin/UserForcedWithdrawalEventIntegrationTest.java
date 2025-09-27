@@ -45,7 +45,7 @@ class UserForcedWithdrawalEventIntegrationTest extends BaseEventIntegrationTest 
         // When & Then
         publishAndVerify(event, () -> {
             // 사용자 블랙리스트 등록
-            verify(withdrawUseCase).addToBlacklist(eq(userId), eq("testSocialId1"), eq(SocialProvider.KAKAO));
+            verify(userBanUseCase).addToBlacklist(eq(userId), eq("testSocialId1"), eq(SocialProvider.KAKAO));
             // JWT 토큰 무효화
             verify(userBanUseCase).blacklistAllUserTokens(eq(userId));
             // 댓글 처리
@@ -65,9 +65,9 @@ class UserForcedWithdrawalEventIntegrationTest extends BaseEventIntegrationTest 
 
         // When & Then - 동시에 여러 강제 탈퇴 이벤트 발행
         publishEventsAndVerify(new Object[]{event1, event2, event3}, () -> {
-            verify(withdrawUseCase).addToBlacklist(eq(1L), eq("testSocialId1"), eq(SocialProvider.KAKAO));
-            verify(withdrawUseCase).addToBlacklist(eq(2L), eq("testSocialId2"), eq(SocialProvider.KAKAO));
-            verify(withdrawUseCase).addToBlacklist(eq(3L), eq("testSocialId3"), eq(SocialProvider.KAKAO));
+            verify(userBanUseCase).addToBlacklist(eq(1L), eq("testSocialId1"), eq(SocialProvider.KAKAO));
+            verify(userBanUseCase).addToBlacklist(eq(2L), eq("testSocialId2"), eq(SocialProvider.KAKAO));
+            verify(userBanUseCase).addToBlacklist(eq(3L), eq("testSocialId3"), eq(SocialProvider.KAKAO));
 
             verify(userBanUseCase).blacklistAllUserTokens(eq(1L));
             verify(userBanUseCase).blacklistAllUserTokens(eq(2L));
@@ -96,7 +96,7 @@ class UserForcedWithdrawalEventIntegrationTest extends BaseEventIntegrationTest 
 
         // When & Then - 예외가 발생해도 다른 리스너들은 호출되어야 함
         publishAndExpectException(event, () -> {
-            verify(withdrawUseCase).addToBlacklist(eq(userId), eq("testSocialId1"), eq(SocialProvider.KAKAO));
+            verify(userBanUseCase).addToBlacklist(eq(userId), eq("testSocialId1"), eq(SocialProvider.KAKAO));
             verify(userBanUseCase).blacklistAllUserTokens(eq(userId));
             verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("testSocialId1"));
             verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId));

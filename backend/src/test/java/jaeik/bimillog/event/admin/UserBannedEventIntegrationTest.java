@@ -50,7 +50,7 @@ public class UserBannedEventIntegrationTest extends BaseEventIntegrationTest {
             // 사용자 BAN 상태로 변경
             verify(withdrawUseCase).banUser(eq(userId));
             // 사용자 블랙리스트 등록
-            verify(withdrawUseCase).addToBlacklist(eq(userId), eq(socialId), eq(provider));
+            verify(userBanUseCase).addToBlacklist(eq(userId), eq(socialId), eq(provider));
             // JWT 토큰 무효화
             verify(userBanUseCase).blacklistAllUserTokens(eq(userId));
             // 소셜 연결 해제
@@ -72,9 +72,9 @@ public class UserBannedEventIntegrationTest extends BaseEventIntegrationTest {
             verify(withdrawUseCase).banUser(eq(2L));
             verify(withdrawUseCase).banUser(eq(3L));
 
-            verify(withdrawUseCase).addToBlacklist(eq(1L), eq("kakao123"), eq(SocialProvider.KAKAO));
-            verify(withdrawUseCase).addToBlacklist(eq(2L), eq("kakao456"), eq(SocialProvider.KAKAO));
-            verify(withdrawUseCase).addToBlacklist(eq(3L), eq("kakao789"), eq(SocialProvider.KAKAO));
+            verify(userBanUseCase).addToBlacklist(eq(1L), eq("kakao123"), eq(SocialProvider.KAKAO));
+            verify(userBanUseCase).addToBlacklist(eq(2L), eq("kakao456"), eq(SocialProvider.KAKAO));
+            verify(userBanUseCase).addToBlacklist(eq(3L), eq("kakao789"), eq(SocialProvider.KAKAO));
 
             verify(userBanUseCase).blacklistAllUserTokens(eq(1L));
             verify(userBanUseCase).blacklistAllUserTokens(eq(2L));
@@ -96,7 +96,7 @@ public class UserBannedEventIntegrationTest extends BaseEventIntegrationTest {
         // When & Then - 모든 제공자별로 적절히 처리되어야 함
         publishAndVerify(kakaoEvent, () -> {
             verify(withdrawUseCase).banUser(eq(1L));
-            verify(withdrawUseCase).addToBlacklist(eq(1L), eq("kakaoUser"), eq(SocialProvider.KAKAO));
+            verify(userBanUseCase).addToBlacklist(eq(1L), eq("kakaoUser"), eq(SocialProvider.KAKAO));
             verify(userBanUseCase).blacklistAllUserTokens(eq(1L));
             verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("kakaoUser"));
         });

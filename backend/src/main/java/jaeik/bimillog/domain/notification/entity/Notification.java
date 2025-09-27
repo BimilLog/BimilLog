@@ -32,7 +32,6 @@ public class Notification extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    @OnDelete(action = OnDeleteAction.CASCADE)
     private User users;
 
     @Enumerated(EnumType.STRING)

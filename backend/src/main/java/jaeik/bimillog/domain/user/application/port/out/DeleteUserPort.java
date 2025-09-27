@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.user.application.service.WithdrawService;
 /**
  * <h2>사용자 삭제 포트</h2>
  * <p>사용자 로그아웃, 탈퇴, 제재 처리를 위한 포트입니다.</p>
- * <p>로그아웃 처리, 회원 탈퇴 처리, 블랙리스트 저장</p>
+ * <p>로그아웃 처리, 회원 탈퇴 처리</p>
  * <p>로그아웃 쿠키 생성, 다중 로그인 지원</p>
  *
  * @author Jaeik
