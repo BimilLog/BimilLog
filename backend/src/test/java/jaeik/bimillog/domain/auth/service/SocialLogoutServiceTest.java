@@ -11,8 +11,8 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
-import jaeik.bimillog.testutil.BaseAuthUnitTest;
-import java.util.Arrays;
+import jaeik.bimillog.testutil.AuthTestFixtures;
+import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -27,9 +27,11 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import static jaeik.bimillog.testutil.AuthTestFixtures.TEST_ACCESS_TOKEN;
 import static jaeik.bimillog.testutil.AuthTestFixtures.TEST_PROVIDER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -47,7 +49,7 @@ import static org.mockito.Mockito.*;
 @DisplayName("SocialLogoutService 단위 테스트")
 @MockitoSettings(strictness = Strictness.LENIENT)
 @Tag("test")
-class SocialLogoutServiceTest extends BaseAuthUnitTest {
+class SocialLogoutServiceTest extends BaseUnitTest {
 
     @Mock
     private SocialStrategyRegistryPort strategyRegistry;
@@ -210,8 +212,8 @@ class SocialLogoutServiceTest extends BaseAuthUnitTest {
     private Token createMockTokenWithUser(jaeik.bimillog.domain.user.entity.User user) {
         Token mockToken = mock(Token.class);
         given(mockToken.getUsers()).willReturn(user);
-        given(mockToken.getAccessToken()).willReturn(TEST_ACCESS_TOKEN);
-        given(mockToken.getRefreshToken()).willReturn(TEST_REFRESH_TOKEN);
+        given(mockToken.getAccessToken()).willReturn(AuthTestFixtures.TEST_ACCESS_TOKEN);
+        given(mockToken.getRefreshToken()).willReturn(AuthTestFixtures.TEST_REFRESH_TOKEN);
         given(mockToken.getId()).willReturn(1L);
         return mockToken;
     }

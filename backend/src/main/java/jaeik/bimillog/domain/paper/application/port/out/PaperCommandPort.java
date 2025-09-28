@@ -13,17 +13,20 @@ import jaeik.bimillog.domain.paper.entity.Message;
  */
 public interface PaperCommandPort {
     /**
-     * <h3>메시지 ID로 메시지 삭제</h3>
-     * <p>특정 ID에 해당하는 롤링페이퍼 메시지를 삭제합니다.</p>
-     * <p>롤링페이퍼 소유자가 자신의 메시지를 삭제할 때 사용됩니다.</p>
-     * <p>{@link PaperCommandService#deleteMessageInMyPaper}에서 소유권 검증 후 호출됩니다.</p>
+     * <h3>롤링페이퍼 메시지 삭제</h3>
+     * <p>사용자의 롤링페이퍼 메시지를 삭제합니다.</p>
+     * <p>messageId가 null인 경우: 해당 사용자의 모든 메시지를 삭제 (회원탈퇴 시)</p>
+     * <p>messageId가 있는 경우: 특정 메시지를 삭제 (단건 삭제)</p>
+     * <p>{@link PaperCommandService#deleteMessageInMyPaper}에서 호출됩니다.</p>
+     * <p>- 단건 삭제 시: 소유권 검증 완료 후 호출</p>
+     * <p>- 전체 삭제 시: 회원탈퇴 처리 중 호출</p>
      *
-     * @param messageId 삭제할 메시지의 ID
+     * @param userId 사용자 ID
+     * @param messageId 삭제할 메시지 ID (null인 경우 모든 메시지 삭제)
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteById(Long messageId);
-
+    void deleteMessage(Long userId, Long messageId);
     /**
      * <h3>메시지 저장</h3>
      * <p>새로운 롤링페이퍼 메시지를 저장합니다.</p>

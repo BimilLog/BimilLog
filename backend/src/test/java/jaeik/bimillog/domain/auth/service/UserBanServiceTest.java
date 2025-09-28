@@ -8,7 +8,7 @@ import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.testutil.BaseAuthUnitTest;
+import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -19,6 +19,7 @@ import org.mockito.Mock;
 import org.springframework.dao.DataIntegrityViolationException;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,7 +38,7 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("BlacklistService 단위 테스트")
 @Tag("test")
-class UserBanServiceTest extends BaseAuthUnitTest {
+class UserBanServiceTest extends BaseUnitTest {
 
     @Mock
     private GlobalJwtPort globalJwtPort;
@@ -359,5 +360,18 @@ class UserBanServiceTest extends BaseAuthUnitTest {
         assertThat(capturedBlackList.getProvider()).isEqualTo(SocialProvider.KAKAO);
     }
 
-
+    /**
+     * 복수의 임시 토큰 생성 - UserBanServiceTest 전용
+     * 매 호출마다 새로운 리스트를 생성하여 반환
+     */
+    private List<Token> createMultipleTokens(int count) {
+        List<Token> tokens = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            tokens.add(Token.createTemporaryToken(
+                    "access-token-" + i,
+                    "refresh-token-" + i
+            ));
+        }
+        return tokens;
+    }
 }

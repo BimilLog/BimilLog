@@ -7,6 +7,7 @@ import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPor
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
@@ -14,7 +15,7 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.NewUserDetail;
 import jaeik.bimillog.testutil.AuthTestFixtures;
-import jaeik.bimillog.testutil.BaseAuthUnitTest;
+import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -27,8 +28,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.Arrays;
 import java.util.List;
 
-import static jaeik.bimillog.testutil.AuthTestFixtures.TEST_PROVIDER;
-import static jaeik.bimillog.testutil.AuthTestFixtures.createTempCookie;
+import static jaeik.bimillog.testutil.AuthTestFixtures.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
@@ -43,7 +43,7 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("SocialLoginService 단위 테스트")
 @Tag("test")
-class SocialLoginServiceTest extends BaseAuthUnitTest {
+class SocialLoginServiceTest extends BaseUnitTest {
 
     @Mock private SocialStrategyRegistryPort strategyRegistry;
     @Mock private SocialStrategyPort kakaoStrategy;
@@ -111,7 +111,14 @@ class SocialLoginServiceTest extends BaseAuthUnitTest {
         // Given
         SocialUserProfile testUserProfile = getTestUserProfile();
         NewUserDetail newUserDetail = getNewUserDetail();
-        ResponseCookie tempCookie = createTempCookie(newUserDetail.getUuid() != null ? newUserDetail.getUuid() : "test-uuid");
+        String uuid = newUserDetail.getUuid() != null ? newUserDetail.getUuid() : "test-uuid";
+        ResponseCookie tempCookie = ResponseCookie.from("temp", uuid)
+                .path("/")
+                .maxAge(60 * 10) // 10분
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Lax")
+                .build();
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             mockAnonymousAuthentication(mockedSecurityContext);
@@ -242,6 +249,27 @@ class SocialLoginServiceTest extends BaseAuthUnitTest {
                         .httpOnly(true)
                         .sameSite("Strict")
                         .build()
+        );
+    }
+
+    /**
+     * 테스트용 토큰 획듍 - SocialLoginServiceTest 전용
+     */
+    private Token getTestToken() {
+        return Token.createTemporaryToken(AuthTestFixtures.TEST_ACCESS_TOKEN, AuthTestFixtures.TEST_REFRESH_TOKEN);
+    }
+
+    /**
+     * 소셜 로그인 사용자 프로필 획듍 - SocialLoginServiceTest 전용
+     */
+    private SocialUserProfile getTestUserProfile() {
+        return new SocialUserProfile(
+                AuthTestFixtures.TEST_SOCIAL_ID,
+                AuthTestFixtures.TEST_EMAIL,
+                AuthTestFixtures.TEST_PROVIDER,
+                AuthTestFixtures.TEST_SOCIAL_NICKNAME,
+                AuthTestFixtures.TEST_PROFILE_IMAGE,
+                getTestToken()
         );
     }
 }

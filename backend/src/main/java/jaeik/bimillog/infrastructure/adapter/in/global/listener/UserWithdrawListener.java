@@ -59,7 +59,7 @@ public class UserWithdrawListener {
         tokenUseCase.deleteTokens(userId, null);
         fcmUseCase.deleteFcmTokens(userId, null);
         notificationCommandUseCase.deleteAllNotification(userId);
-        paperCommandUseCase.deleteAllMessagesByUserId(userId); // 구현 필요
+        paperCommandUseCase.deleteMessageInMyPaper(userId, null);
         adminCommandUseCase.deleteAllReportsByUserId(userId); // 구현 필요
         userCommandUseCase.removeUserAccount(userId); // 구현 필요
         SecurityContextHolder.clearContext();

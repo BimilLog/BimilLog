@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.paper.application.port.in;
 
 import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.exception.PaperCustomException;
+import jaeik.bimillog.infrastructure.adapter.in.global.listener.UserWithdrawListener;
 import jaeik.bimillog.infrastructure.adapter.in.paper.web.PaperCommandController;
 
 /**
@@ -16,13 +17,15 @@ public interface PaperCommandUseCase {
 
     /**
      * <h3>내 롤링페이퍼 메시지 삭제</h3>
-     * <p>사용자가 자신의 롤링페이퍼에서 메시지를 삭제합니다.</p>
-     * <p>메시지 소유권을 검증한 후 삭제를 수행합니다.</p>
-     * <p>{@link PaperCommandController}에서 메시지 삭제 요청 시 호출됩니다.</p>
+     * <p>사용자의 롤링페이퍼 메시지를 삭제합니다.</p>
+     * <p>messageId가 null인 경우: 해당 사용자의 모든 메시지 삭제 (회원탈퇴 시)</p>
+     * <p>messageId가 있는 경우: 특정 메시지 삭제 (소유권 검증 필요)</p>
+     * <p>{@link PaperCommandController}에서 메시지 삭제 요청 시 호출되거나,</p>
+     * <p>{@link UserWithdrawListener}에서 회원탈퇴 시 호출됩니다.</p>
      *
      * @param userId 현재 로그인한 사용자 ID
-     * @param messageId 삭제할 메시지 ID
-     * @throws PaperCustomException 삭제 권한이 없는 경우 (MESSAGE_DELETE_FORBIDDEN)
+     * @param messageId 삭제할 메시지 ID (null인 경우 모든 메시지 삭제)
+     * @throws PaperCustomException 특정 메시지 삭제 시 권한이 없는 경우 (MESSAGE_DELETE_FORBIDDEN)
      * @author Jaeik
      * @since 2.0.0
      */
@@ -47,15 +50,4 @@ public interface PaperCommandUseCase {
     void writeMessage(String userName, DecoType decoType, String anonymity,
                      String content, int x, int y);
 
-    /**
-     * <h3>특정 사용자의 모든 롤링페이퍼 메시지 삭제</h3>
-     * <p>회원 탈퇴 시 해당 사용자의 롤링페이퍼에 작성된 모든 메시지를 삭제합니다.</p>
-     * <p>사용자가 소유한 롤링페이퍼의 모든 메시지가 일괄 삭제됩니다.</p>
-     * <p>UserWithdrawnEvent 이벤트 발생시 회원 탈퇴 처리 흐름에서 호출됩니다.</p>
-     *
-     * @param userId 메시지를 삭제할 롤링페이퍼 소유자 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    void deleteAllMessagesByUserId(Long userId);
 }

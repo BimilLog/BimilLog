@@ -20,6 +20,8 @@ public class PaperCommandAdapter implements PaperCommandPort {
 
     private final MessageRepository messageRepository;
 
+
+
     /**
      * <h3>롤링페이퍼 메시지 저장</h3>
      * <p>새로운 메시지 엔티티를 데이터베이스에 저장합니다.</p>
@@ -38,16 +40,22 @@ public class PaperCommandAdapter implements PaperCommandPort {
 
     /**
      * <h3>롤링페이퍼 메시지 삭제</h3>
-     * <p>지정된 ID의 메시지를 데이터베이스에서 삭제합니다.</p>
-     * <p>메시지 소유권 검증이 완료된 후 호출됩니다.</p>
+     * <p>사용자의 롤링페이퍼 메시지를 데이터베이스에서 삭제합니다.</p>
+     * <p>messageId가 null인 경우: 해당 사용자의 모든 메시지를 일괄 삭제 (회원탈퇴 시)</p>
+     * <p>messageId가 있는 경우: 특정 메시지를 삭제 (단건 삭제)</p>
      * <p>{@link PaperCommandService#deleteMessageInMyPaper}에서 호출됩니다.</p>
      *
-     * @param messageId 삭제할 메시지의 ID
+     * @param userId 사용자 ID (전체 삭제 시 사용)
+     * @param messageId 삭제할 메시지 ID (null인 경우 userId로 전체 삭제)
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void deleteById(Long messageId) {
-        messageRepository.deleteById(messageId);
+    public void deleteMessage(Long userId, Long messageId) {
+        if (messageId != null) {
+            messageRepository.deleteById(messageId);
+        } else {
+            messageRepository.deleteAllByUserId(userId);
+        }
     }
 }

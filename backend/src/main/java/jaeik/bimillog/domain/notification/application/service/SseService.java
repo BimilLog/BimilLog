@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.notification.application.service;
 
 import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
-import jaeik.bimillog.domain.notification.application.port.out.UrlGeneratorPort;
 import jaeik.bimillog.domain.notification.application.port.out.SsePort;
+import jaeik.bimillog.domain.notification.application.port.out.UrlGeneratorPort;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.SseMessage;
 import jaeik.bimillog.infrastructure.adapter.in.notification.listener.NotificationGenerateListener;
