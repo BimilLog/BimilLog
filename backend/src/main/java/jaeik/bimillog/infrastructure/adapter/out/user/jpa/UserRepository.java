@@ -2,8 +2,10 @@ package jaeik.bimillog.infrastructure.adapter.out.user.jpa;
 
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.infrastructure.adapter.out.user.UserCustomRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -18,7 +20,7 @@ import java.util.Optional;
  * @version 2.0.0
  */
 @Repository
-public interface UserRepository extends JpaRepository<User, Long>, UserCustomRepository {
+public interface UserRepository extends JpaRepository<User, Long> {
 
     /**
      * <h3>소셜 제공자와 소셜 ID로 사용자 조회</h3>
@@ -53,4 +55,20 @@ public interface UserRepository extends JpaRepository<User, Long>, UserCustomRep
      * @since 2.0.0
      */
     boolean existsByUserName(String userName);
+
+    /**
+     * <h3>사용자와 설정 동시 삭제</h3>
+     * <p>사용자 ID를 기준으로 User와 Setting을 동시에 삭제합니다.</p>
+     * <p>Native Query를 사용하여 JOIN으로 연관된 데이터를 한번에 삭제합니다.</p>
+     * <p>회원 탈퇴 처리 시 UserCommandAdapter에서 호출됩니다.</p>
+     *
+     * @param userId 삭제할 사용자 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Modifying
+    @Query(value = "DELETE s, u FROM setting s " +
+                   "INNER JOIN user u ON s.setting_id = u.setting_id " +
+                   "WHERE u.user_id = :userId", nativeQuery = true)
+    void deleteUserAndSettingByUserId(@Param("userId") Long userId);
 }

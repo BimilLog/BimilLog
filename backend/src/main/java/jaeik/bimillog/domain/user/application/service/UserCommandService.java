@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.user.application.service;
 
 import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
+import jaeik.bimillog.domain.user.application.port.out.UserCommandPort;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
@@ -28,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserCommandService implements UserCommandUseCase {
 
     private final UserQueryPort userQueryPort;
+    private final UserCommandPort userCommandPort;
 
     /**
      * <h3>사용자 설정 수정</h3>
@@ -82,8 +84,21 @@ public class UserCommandService implements UserCommandUseCase {
         }
     }
 
+    /**
+     * <h3>사용자 계정 삭제</h3>
+     * <p>회원 탈퇴 시 사용자 계정과 설정을 데이터베이스에서 완전히 삭제합니다.</p>
+     * <p>Native Query를 통해 User와 Setting을 원자적으로 삭제합니다.</p>
+     * <p>UserWithdrawListener에서 회원 탈퇴 이벤트 처리 흐름 중 호출됩니다.</p>
+     *
+     * @param userId 삭제할 사용자 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
+    @Transactional
     public void removeUserAccount(Long userId) {
-
+        log.info("사용자 계정 삭제 시작 - userId: {}", userId);
+        userCommandPort.deleteUserAndSetting(userId);
+        log.info("사용자 계정 및 설정 삭제 완료 - userId: {}", userId);
     }
 }

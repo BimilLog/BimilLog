@@ -1,7 +1,10 @@
 package jaeik.bimillog.infrastructure.adapter.out.user;
 
+import com.querydsl.core.Tuple;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.application.service.UserQueryService;
+import jaeik.bimillog.domain.user.entity.QUser;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
@@ -11,8 +14,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * <h2>사용자 조회 어댑터</h2>
@@ -29,6 +35,8 @@ public class UserQueryAdapter implements UserQueryPort {
 
     private final UserRepository userRepository;
     private final SettingRepository settingRepository;
+    private final JPAQueryFactory jpaQueryFactory;
+    private final QUser user = QUser.user;
 
     /**
      * <h3>ID로 사용자 조회</h3>
@@ -59,7 +67,12 @@ public class UserQueryAdapter implements UserQueryPort {
     @Override
     @Transactional(readOnly = true)
     public Optional<User> findByIdWithSetting(Long id) {
-        return userRepository.findByIdWithSetting(id);
+        User result = jpaQueryFactory
+                .selectFrom(user)
+                .leftJoin(user.setting).fetchJoin()
+                .where(user.id.eq(id))
+                .fetchOne();
+        return Optional.ofNullable(result);
     }
 
     /**
@@ -111,7 +124,6 @@ public class UserQueryAdapter implements UserQueryPort {
         return userRepository.findByUserName(userName);
     }
 
-
     /**
      * <h3>ID로 설정 조회</h3>
      * <p>주어진 ID로 설정 정보를 조회합니다.</p>
@@ -141,8 +153,27 @@ public class UserQueryAdapter implements UserQueryPort {
      */
     @Override
     @Transactional(readOnly = true)
-    public List<String> findUserNamesInOrder (List<String> socialIds) {
-        return userRepository.findUserNamesInOrder(socialIds);
+    public List<String> findUserNamesInOrder(List<String> socialIds) {
+        if (socialIds == null || socialIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<Tuple> results = jpaQueryFactory
+                .select(user.socialId, user.userName)
+                .from(user)
+                .where(user.socialId.in(socialIds))
+                .fetch();
+
+        Map<String, String> socialIdToUserName = results.stream()
+                .collect(Collectors.toMap(
+                        tuple -> tuple.get(user.socialId),
+                        tuple -> Optional.ofNullable(tuple.get(user.userName)).orElse(""),
+                        (existing, replacement) -> existing // Handle duplicate keys if any
+                ));
+
+        return socialIds.stream()
+                .map(id -> socialIdToUserName.getOrDefault(id, ""))
+                .collect(Collectors.toList());
     }
 
     /**
