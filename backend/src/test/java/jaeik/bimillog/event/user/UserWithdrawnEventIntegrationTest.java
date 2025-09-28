@@ -1,4 +1,4 @@
-package jaeik.bimillog.event.auth;
+package jaeik.bimillog.event.user;
 
 import jaeik.bimillog.domain.auth.application.port.in.SocialWithdrawUseCase;
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
