@@ -114,7 +114,10 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
         Post existingPost = PostTestDataBuilder.createPost(savedUser, "수정 전 제목", "수정 전 내용");
         Post savedPost = postRepository.save(existingPost);
 
-        PostUpdateDTO updateReqDTO = TestFixtures.createPostUpdateDTO();
+        PostUpdateDTO updateReqDTO = PostUpdateDTO.builder()
+                .title("수정된 제목")
+                .content("수정된 내용입니다. 10자 이상으로 작성합니다.")
+                .build();;
 
         mockMvc.perform(put("/api/post/{postId}", savedPost.getId())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -142,10 +145,10 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
         );
         Post savedPost = postRepository.save(anotherPost);
 
-        PostUpdateDTO updateReqDTO = TestFixtures.createPostUpdateDTO(
-                "수정 시도",
-                "수정 시도 내용입니다. 10자 이상으로 작성합니다."
-        );
+        PostUpdateDTO updateReqDTO = PostUpdateDTO.builder()
+                .title("수정 시도")
+                .content("수정 시도 내용입니다. 10자 이상으로 작성합니다.")
+                .build();;
 
         mockMvc.perform(put("/api/post/{postId}", savedPost.getId())
                         .contentType(MediaType.APPLICATION_JSON)

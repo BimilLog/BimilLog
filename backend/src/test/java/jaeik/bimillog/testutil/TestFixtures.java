@@ -2,7 +2,6 @@ package jaeik.bimillog.testutil;
 
 import jaeik.bimillog.infrastructure.adapter.in.paper.dto.MessageDTO;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.PostCreateDTO;
-import jaeik.bimillog.infrastructure.adapter.in.post.dto.PostUpdateDTO;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -23,14 +22,6 @@ import org.springframework.test.util.ReflectionTestUtils;
  */
 public class TestFixtures {
 
-    // ==================== Auth Test Constants ====================
-
-    // ==================== Entity Creation ====================
-
-
-
-    // ==================== DTO Creation ====================
-
     /**
      * 게시글 작성 요청 DTO 생성
      * @param title 제목
@@ -43,29 +34,6 @@ public class TestFixtures {
                 .content(content)
                 .password("1234")
                 .build();
-    }
-
-
-
-    /**
-     * 게시글 수정 요청 DTO 생성
-     * @param title 제목
-     * @param content 내용
-     * @return PostUpdateDTO
-     */
-    public static PostUpdateDTO createPostUpdateDTO(String title, String content) {
-        return PostUpdateDTO.builder()
-                .title(title)
-                .content(content)
-                .build();
-    }
-
-    /**
-     * 기본 게시글 수정 요청 DTO 생성
-     * @return PostUpdateDTO
-     */
-    public static PostUpdateDTO createPostUpdateDTO() {
-        return createPostUpdateDTO("수정된 제목", "수정된 내용입니다. 10자 이상으로 작성합니다.");
     }
 
     /**
@@ -84,10 +52,6 @@ public class TestFixtures {
         dto.setY(positionY);
         return dto;
     }
-
-
-
-    // ==================== Utility Methods ====================
 
 
     /**

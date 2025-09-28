@@ -24,12 +24,4 @@ public class PaperTestDataBuilder {
                 positionY
         );
     }
-    
-    /**
-     * ID가 설정된 Message 생성
-     */
-    public static Message withId(Long id, Message message) {
-        TestFixtures.setFieldValue(message, "id", id);
-        return message;
-    }
 }
