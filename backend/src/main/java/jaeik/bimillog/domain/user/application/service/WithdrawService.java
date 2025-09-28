@@ -52,27 +52,10 @@ public class WithdrawService implements WithdrawUseCase {
     public List<ResponseCookie> withdraw(CustomUserDetails userDetails) {
         User user = userQueryPort.findById(userDetails.getUserId()).orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
         // 핵심 탈퇴 로직을 수행합니다.
-        performCoreWithdrawal(user);
+        performCoreWithdrawal(userDetails);
 
         // 소셜 로그아웃 쿠키를 반환하여 클라이언트 측 로그아웃을 유도합니다.
         return globalCookiePort.getLogoutCookies();
-    }
-
-    /**
-     * <h3>관리자 강제 탈퇴 처리</h3>
-     * <p>관리자 권한으로 지정된 사용자를 강제 탈퇴 처리합니다.</p>
-     *
-     * @param userId 탈퇴시킬 사용자 ID
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    @Override
-    @Transactional
-    public void forceWithdraw(Long userId) {
-        User user = userQueryPort.findById(userId).orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
-
-        // 핵심 탈퇴 로직을 수행합니다.
-        performCoreWithdrawal(user);
     }
 
     /**
@@ -101,17 +84,16 @@ public class WithdrawService implements WithdrawUseCase {
      * <h3>공통 탈퇴 로직</h3>
      * <p>소셜 계정 연결 해제, DB에서 사용자 삭제, 그리고 탈퇴 이벤트 발행 등 핵심적인 탈퇴 절차를 수행합니다.</p>
      *
-     * @param user 탈퇴 대상 사용자 엔티티
      * @author Jaeik
      * @since 2.0.0
      */
-    private void performCoreWithdrawal(User user) {
+    private void performCoreWithdrawal(CustomUserDetails userDetails) {
 
         // DB에서 사용자 정보 삭제
-        deleteUserPort.performWithdrawProcess(user.getId());
+        deleteUserPort.performWithdrawProcess(userDetails.getUserId());
 
         // 탈퇴 이벤트 발행 (JWT 토큰 무효화, 데이터 정리 등은 이벤트 리스너가 처리)
-        eventPublisher.publishEvent(new UserWithdrawnEvent(user.getId(), user.getSocialId(), user.getProvider()));
+        eventPublisher.publishEvent(new UserWithdrawnEvent(userDetails));
     }
 
     /**

@@ -32,18 +32,6 @@ public interface WithdrawUseCase {
     List<ResponseCookie> withdraw(CustomUserDetails userDetails);
 
     /**
-     * <h3>관리자 강제 탈퇴 처리</h3>
-     * <p>관리자 권한으로 지정된 사용자를 강제 탈퇴 처리합니다.</p>
-     * <p>{@link AdminCommandController}에서 관리자 강제 탈퇴 API 요청 시 호출됩니다.</p>
-     *
-     * @param userId 탈퇴시킬 사용자 ID
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    void forceWithdraw(Long userId);
-
-
-    /**
      * <h3>사용자 역할을 BAN으로 변경</h3>
      * <p>사용자 제재 시 해당 사용자의 역할을 BAN으로 변경하여 서비스 이용을 제한합니다.</p>
      * <p>{@link AdminCommandController}에서 사용자 제재 API 요청 시 호출됩니다.</p>
