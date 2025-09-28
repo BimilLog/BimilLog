@@ -51,8 +51,8 @@ public class UserLoggedOutEventIntegrationTest extends BaseEventIntegrationTest 
             verify(withdrawUseCase).cleanupSpecificToken(eq(userId), eq(tokenId));
             // 특정 기기의 SSE 연결 정리
             verify(sseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
-            // FCM 토큰 삭제
-            verify(fcmUseCase).deleteFcmTokens(eq(userId));
+            // FCM 토큰 삭제 - 로그아웃 시에는 특정 토큰 ID를 삭제하지만 테스트에서는 null로 설정
+            verify(fcmUseCase).deleteFcmTokens(eq(userId), any());
         });
     }
 
@@ -75,9 +75,9 @@ public class UserLoggedOutEventIntegrationTest extends BaseEventIntegrationTest 
             verify(sseUseCase).deleteEmitterByUserIdAndTokenId(eq(2L), eq(102L));
             verify(sseUseCase).deleteEmitterByUserIdAndTokenId(eq(3L), eq(103L));
 
-            verify(fcmUseCase).deleteFcmTokens(eq(1L));
-            verify(fcmUseCase).deleteFcmTokens(eq(2L));
-            verify(fcmUseCase).deleteFcmTokens(eq(3L));
+            verify(fcmUseCase).deleteFcmTokens(eq(1L), any());
+            verify(fcmUseCase).deleteFcmTokens(eq(2L), any());
+            verify(fcmUseCase).deleteFcmTokens(eq(3L), any());
         });
     }
 
