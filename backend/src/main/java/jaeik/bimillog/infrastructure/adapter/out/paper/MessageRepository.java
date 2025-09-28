@@ -33,6 +33,6 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteAllByUserId(Long userId);
+    void deleteAllByUser_Id(Long userId);
 
 }

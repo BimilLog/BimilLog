@@ -29,7 +29,7 @@ import lombok.NoArgsConstructor;
 public class CommentClosure {
 
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
