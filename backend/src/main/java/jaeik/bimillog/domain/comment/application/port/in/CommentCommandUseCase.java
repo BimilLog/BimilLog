@@ -85,7 +85,10 @@ public interface CommentCommandUseCase {
 
     /**
      * <h3>특정 글의 모든 댓글 삭제</h3>
+     * <p>게시글 삭제 시 해당 글에 달린 모든 댓글을 일괄 삭제합니다.</p>
+     * <p>PostCommandService의 deletePost 메서드에서 게시글 삭제 전 호출됩니다.</p>
      *
+     * @param postId 댓글을 삭제할 게시글 ID
      * @author Jaeik
      * @since 2.0.0
      */

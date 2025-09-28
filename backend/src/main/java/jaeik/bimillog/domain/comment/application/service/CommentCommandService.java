@@ -14,6 +14,7 @@ import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import jaeik.bimillog.infrastructure.adapter.in.comment.web.CommentCommandController;
+import jaeik.bimillog.infrastructure.adapter.out.post.PostToCommentAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -188,7 +189,11 @@ public class CommentCommandService implements CommentCommandUseCase {
 
     /**
      * <h3>특정 글의 모든 댓글 삭제</h3>
+     * <p>게시글 삭제 시 해당 글의 모든 댓글을 데이터베이스에서 완전히 삭제합니다.</p>
+     * <p>트랜잭션 내에서 실행되어 삭제 중 오류 발생 시 롤백됩니다.</p>
+     * <p>{@link PostToCommentAdapter}를 통해 Post 도메인에서 호출됩니다.</p>
      *
+     * @param postId 댓글을 삭제할 게시글 ID
      * @author Jaeik
      * @since 2.0.0
      */

@@ -117,7 +117,12 @@ public interface CommentQueryPort {
 
     /**
      * <h3>특정 글의 모든 댓글 조회</h3>
+     * <p>게시글에 달린 모든 댓글을 계층 구조와 무관하게 플랫하게 조회합니다.</p>
+     * <p>삭제된 댓글(isDeleted=true)도 포함하여 모든 댓글을 반환합니다.</p>
+     * <p>{@link CommentCommandService#deleteCommentsByPost}에서 게시글 삭제 시 댓글 일괄 삭제용으로 호출됩니다.</p>
      *
+     * @param postId 댓글을 조회할 게시글 ID
+     * @return List<Comment> 해당 게시글의 모든 댓글 리스트
      * @author Jaeik
      * @since 2.0.0
      */

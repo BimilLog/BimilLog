@@ -90,7 +90,7 @@ public class PostCacheService implements PostCacheUseCase {
     private void removeNoticeFromCache(Long postId) {
         log.info("공지사항 캐시 제거 시작: postId={}", postId);
 
-        // 공지 캐시에서만 삭제 (성능 최적화)
+        // 공지 캐시에서만 삭제
         redisPostCommandPort.deleteCache(null, postId, PostCacheFlag.NOTICE);
 
         log.info("공지사항 캐시 제거 완료: postId={}", postId);

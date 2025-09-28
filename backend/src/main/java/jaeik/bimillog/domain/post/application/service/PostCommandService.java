@@ -113,7 +113,6 @@ public class PostCommandService implements PostCommandUseCase {
 
         String postTitle = post.getTitle();
 
-        // Cascade 제거로 댓글을 명시적으로 삭제해야함
         postToCommentPort.deleteCommentInPost(postId);
         postLikeCommandPort.deletePostLikeByPostId(postId);
         postCommandPort.delete(post);

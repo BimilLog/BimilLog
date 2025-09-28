@@ -79,7 +79,7 @@ public class PostQueryService implements PostQueryUseCase {
             return cachedPost;
         }
 
-        // 2. 캐시 미스 또는 일반 게시글: 최적화된 JOIN 쿼리로 한방에 조회
+        // 2. 캐시 미스 또는 일반 게시글: JOIN 쿼리로 조회
         return getPostFromDatabaseOptimized(postId, userId);
     }
 

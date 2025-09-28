@@ -249,7 +249,12 @@ public class CommentQueryAdapter implements CommentQueryPort {
 
     /**
      * <h3>특정 글의 모든 댓글 조회</h3>
+     * <p>QueryDSL을 사용하여 특정 게시글의 모든 댓글을 조회합니다.</p>
+     * <p>계층 구조와 무관하게 플랫한 리스트로 반환하며, 삭제 표시된 댓글도 포함합니다.</p>
+     * <p>{@link CommentCommandService#deleteCommentsByPost}에서 게시글 삭제 시 호출됩니다.</p>
      *
+     * @param postId 댓글을 조회할 게시글 ID
+     * @return List<Comment> 해당 게시글의 모든 댓글 리스트
      * @author Jaeik
      * @since 2.0.0
      */
