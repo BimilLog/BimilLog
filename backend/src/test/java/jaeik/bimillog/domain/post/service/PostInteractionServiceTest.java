@@ -78,12 +78,12 @@ class PostInteractionServiceTest extends BaseUnitTest {
 
         // ArgumentCaptor로 PostLike 객체 검증
         ArgumentCaptor<PostLike> postLikeCaptor = ArgumentCaptor.forClass(PostLike.class);
-        verify(postLikeCommandPort).save(postLikeCaptor.capture());
+        verify(postLikeCommandPort).savePostLike(postLikeCaptor.capture());
         PostLike savedPostLike = postLikeCaptor.getValue();
         assertThat(savedPostLike.getUser()).isEqualTo(getTestUser());
         assertThat(savedPostLike.getPost()).isEqualTo(post);
 
-        verify(postLikeCommandPort, never()).deleteByUserAndPost(any(), any());
+        verify(postLikeCommandPort, never()).deletePostLike(any(), any());
     }
 
     @Test
@@ -105,8 +105,8 @@ class PostInteractionServiceTest extends BaseUnitTest {
         verify(postLikeQueryPort).existsByPostIdAndUserId(postId, userId);
         verify(globalUserQueryPort).getReferenceById(userId);
         verify(postQueryPort).findById(postId);
-        verify(postLikeCommandPort).deleteByUserAndPost(getTestUser(), post);
-        verify(postLikeCommandPort, never()).save(any());
+        verify(postLikeCommandPort).deletePostLike(getTestUser(), post);
+        verify(postLikeCommandPort, never()).savePostLike(any());
     }
 
     @Test
@@ -128,8 +128,8 @@ class PostInteractionServiceTest extends BaseUnitTest {
         verify(postLikeQueryPort).existsByPostIdAndUserId(postId, userId);
         verify(globalUserQueryPort).getReferenceById(userId);
         verify(postQueryPort).findById(postId);
-        verify(postLikeCommandPort, never()).save(any());
-        verify(postLikeCommandPort, never()).deleteByUserAndPost(any(), any());
+        verify(postLikeCommandPort, never()).savePostLike(any());
+        verify(postLikeCommandPort, never()).deletePostLike(any(), any());
     }
 
     @Test

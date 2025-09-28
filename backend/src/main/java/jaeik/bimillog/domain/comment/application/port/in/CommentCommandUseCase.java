@@ -83,4 +83,11 @@ public interface CommentCommandUseCase {
      */
     void likeComment(Long userId, Long commentId);
 
+    /**
+     * <h3>특정 글의 모든 댓글 삭제</h3>
+     *
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    void deleteCommentsByPost(Long postId);
 }

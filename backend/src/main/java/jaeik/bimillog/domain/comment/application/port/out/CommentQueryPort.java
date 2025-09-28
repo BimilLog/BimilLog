@@ -116,6 +116,14 @@ public interface CommentQueryPort {
     List<Comment> findAllByUserId(Long userId);
 
     /**
+     * <h3>특정 글의 모든 댓글 조회</h3>
+     *
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    List<Comment> findAllByPostId(Long postId);
+
+    /**
      * <h3>자손 댓글 존재 여부 확인</h3>
      * <p>특정 댓글이 자손 댓글을 가지고 있는지 확인합니다.</p>
      * <p>{@link CommentCommandService}에서 댓글 삭제 시 하드/소프트 삭제 결정을 위해 호출됩니다.</p>

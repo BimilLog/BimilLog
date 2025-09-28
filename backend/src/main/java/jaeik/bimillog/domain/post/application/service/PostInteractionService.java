@@ -66,11 +66,11 @@ public class PostInteractionService implements PostInteractionUseCase {
         Post post = postQueryPort.findById(postId);
 
         if (isAlreadyLiked) {
-            postLikeCommandPort.deleteByUserAndPost(user, post);
+            postLikeCommandPort.deletePostLike(user, post);
             log.debug("게시글 추천 취소됨: userId={}, postId={}", userId, postId);
         } else {
             PostLike postLike = PostLike.builder().user(user).post(post).build();
-            postLikeCommandPort.save(postLike);
+            postLikeCommandPort.savePostLike(postLike);
             log.debug("게시글 추천됨: userId={}, postId={}", userId, postId);
         }
     }

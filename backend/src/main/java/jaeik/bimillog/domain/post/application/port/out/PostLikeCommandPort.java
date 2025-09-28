@@ -17,19 +17,19 @@ import jaeik.bimillog.domain.user.entity.User;
 public interface PostLikeCommandPort {
 
     /**
-     * <h3>게시글 추천 저장</h3>
-     * <p>사용자의 게시글 추천 정보를 데이터베이스에 저장합니다.</p>
+     * <h3>글 추천 저장</h3>
+     * <p>사용자의 게시글 추천을 데이터베이스에 저장합니다.</p>
      * <p>PostInteractionService의 addLike 메서드에서 새로운 추천 생성 시 호출됩니다.</p>
      *
      * @param postLike 저장할 게시글 추천 엔티티
      * @author Jaeik
      * @since 2.0.0
      */
-    void save(PostLike postLike);
+    void savePostLike(PostLike postLike);
 
     /**
-     * <h3>사용자별 게시글 추천 삭제</h3>
-     * <p>특정 사용자가 특정 게시글에 대해 누른 추천을 삭제합니다.</p>
+     * <h3>글 추천 삭제</h3>
+     * <p>사용자가 특정 게시글에 대해 누른 추천을 삭제합니다.</p>
      * <p>PostInteractionService의 removeLike 메서드에서 추천 취소 시 호출됩니다.</p>
      *
      * @param user 추천을 취소할 사용자
@@ -37,16 +37,15 @@ public interface PostLikeCommandPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteByUserAndPost(User user, Post post);
+    void deletePostLike(User user, Post post);
 
     /**
-     * <h3>게시글별 모든 추천 일괄 삭제</h3>
-     * <p>특정 게시글에 대한 모든 사용자의 추천 데이터를 일괄 삭제합니다.</p>
-     * <p>PostCommandService의 deletePost 메서드에서 게시글 삭제 전 관련 데이터 정리 시 호출됩니다.</p>
+     * <h3>게시글의 모든 추천 일괄 삭제</h3>
+     * <p>특정 게시글에 대한 추천 데이터를 일괄 삭제합니다.</p>
      *
      * @param postId 모든 추천을 삭제할 게시글 ID
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteAllByPostId(Long postId);
+    void deletePostLikeByPostId(Long postId);
 }

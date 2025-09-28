@@ -27,4 +27,12 @@ public interface PostToCommentPort {
      * @since 2.0.0
      */
     Map<Long, Integer> findCommentCountsByPostIds(List<Long> postIds);
+
+    /**
+     * <h3>특정 글의 모든 댓글 삭제</h3>
+     *
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    void deleteCommentInPost(Long postId);
 }

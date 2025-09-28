@@ -410,19 +410,19 @@ class CommentQueryAdapterIntegrationTest {
 //    void shouldCheckHasDescendants_WhenCommentHasChildComments() {
 //        // Given: 부모-자식 댓글 관계 설정
 //        Comment parentComment = CommentTestDataBuilder.createComment(testUser, testPost, "부모 댓글");
-//        parentComment = commentRepository.save(parentComment);
+//        parentComment = commentRepository.savePostLike(parentComment);
 //        
 //        Comment childComment = CommentTestDataBuilder.createComment(testUser, testPost, "자식 댓글");
-//        childComment = commentRepository.save(childComment);
+//        childComment = commentRepository.savePostLike(childComment);
 //        
 //        // 클로저 관계 설정 (자식 댓글이 있음을 나타냄)
 //        CommentClosure parentSelf = CommentClosure.createCommentClosure(parentComment, parentComment, 0);
 //        CommentClosure parentToChild = CommentClosure.createCommentClosure(parentComment, childComment, 1);
 //        CommentClosure childSelf = CommentClosure.createCommentClosure(childComment, childComment, 0);
 //        
-//        commentClosureRepository.save(parentSelf);
-//        commentClosureRepository.save(parentToChild);
-//        commentClosureRepository.save(childSelf);
+//        commentClosureRepository.savePostLike(parentSelf);
+//        commentClosureRepository.savePostLike(parentToChild);
+//        commentClosureRepository.savePostLike(childSelf);
 //
 //        // When: 자손 존재 여부 확인
 //        boolean parentHasDescendants = commentQueryAdapter.hasDescendants(parentComment.getId());

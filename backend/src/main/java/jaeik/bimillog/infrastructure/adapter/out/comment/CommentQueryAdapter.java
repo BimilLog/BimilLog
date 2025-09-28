@@ -248,6 +248,20 @@ public class CommentQueryAdapter implements CommentQueryPort {
     }
 
     /**
+     * <h3>특정 글의 모든 댓글 조회</h3>
+     *
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public List<Comment> findAllByPostId(Long postId) {
+        return jpaQueryFactory
+                .selectFrom(comment)
+                .where(comment.post.id.eq(postId))
+                .fetch();
+    }
+
+    /**
      * <h3>자손 댓글 존재 여부 확인</h3>
      * <p>특정 댓글이 자손 댓글을 가지고 있는지 확인합니다.</p>
      * <p>클로저 테이블에서 depth > 0이고 ancestor가 해당 댓글인 경우가 있는지 확인합니다.</p>

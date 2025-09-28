@@ -32,7 +32,7 @@ public class PostLikeCommandAdapter implements PostLikeCommandPort {
      * @since 2.0.0
      */
     @Override
-    public void save(PostLike postLike) {
+    public void savePostLike(PostLike postLike) {
         postLikeRepository.save(postLike);
     }
 
@@ -47,7 +47,7 @@ public class PostLikeCommandAdapter implements PostLikeCommandPort {
      * @since 2.0.0
      */
     @Override
-    public void deleteByUserAndPost(User user, Post post) {
+    public void deletePostLike(User user, Post post) {
         postLikeRepository.deleteByUserAndPost(user, post);
     }
 
@@ -61,7 +61,7 @@ public class PostLikeCommandAdapter implements PostLikeCommandPort {
      * @since 2.0.0
      */
     @Override
-    public void deleteAllByPostId(Long postId) {
+    public void deletePostLikeByPostId(Long postId) {
         postLikeRepository.deleteAllByPostId(postId);
     }
 }

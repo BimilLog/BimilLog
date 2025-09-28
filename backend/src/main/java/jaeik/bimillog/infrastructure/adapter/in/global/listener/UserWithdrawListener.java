@@ -61,7 +61,7 @@ public class UserWithdrawListener {
         notificationCommandUseCase.deleteAllNotification(userId);
         paperCommandUseCase.deleteMessageInMyPaper(userId, null);
         adminCommandUseCase.deleteAllReportsByUserId(userId);
-        userCommandUseCase.removeUserAccount(userId); // 구현 필요
+        userCommandUseCase.removeUserAccount(userId);
         SecurityContextHolder.clearContext();
     }
 }

@@ -56,10 +56,10 @@ public class CommentCommandService implements CommentCommandUseCase {
      * <p>댓글 작성 완료 후 CommentCreatedEvent 발행으로 알림 시스템 연동</p>
      * <p>{@link CommentCommandController}에서 댓글 작성 API 처리 시 호출됩니다.</p>
      *
-     * @param userId 로그인한 사용자 ID (null이면 익명 댓글로 처리)
-     * @param postId 게시글 ID
+     * @param userId   로그인한 사용자 ID (null이면 익명 댓글로 처리)
+     * @param postId   게시글 ID
      * @param parentId 부모 댓글 ID (대댓글인 경우)
-     * @param content 댓글 내용
+     * @param content  댓글 내용
      * @param password 댓글 비밀번호 (익명 댓글인 경우)
      * @author Jaeik
      * @since 2.0.0
@@ -96,9 +96,9 @@ public class CommentCommandService implements CommentCommandUseCase {
      * <p>{@link CommentCommandController}에서 댓글 수정 API 처리 시 호출됩니다.</p>
      *
      * @param commentId 수정할 댓글 ID
-     * @param userId 로그인한 사용자 ID (null이면 익명 댓글 권한으로 검증)
-     * @param content 새로운 댓글 내용
-     * @param password 댓글 비밀번호 (익명 댓글인 경우)
+     * @param userId    로그인한 사용자 ID (null이면 익명 댓글 권한으로 검증)
+     * @param content   새로운 댓글 내용
+     * @param password  댓글 비밀번호 (익명 댓글인 경우)
      * @author Jaeik
      * @since 2.0.0
      */
@@ -116,8 +116,8 @@ public class CommentCommandService implements CommentCommandUseCase {
      * <p>{@link CommentCommandController}에서 댓글 삭제 API 처리 시 호출됩니다.</p>
      *
      * @param commentId 삭제할 댓글 ID
-     * @param userId 사용자 ID (로그인한 경우), null인 경우 익명 댓글
-     * @param password 댓글 비밀번호 (익명 댓글인 경우)
+     * @param userId    사용자 ID (로그인한 경우), null인 경우 익명 댓글
+     * @param password  댓글 비밀번호 (익명 댓글인 경우)
      * @author Jaeik
      * @since 2.0.0
      */
@@ -125,7 +125,7 @@ public class CommentCommandService implements CommentCommandUseCase {
     @Transactional
     public void deleteComment(Long commentId, Long userId, Integer password) {
         Comment comment = validateComment(commentId, userId, password);
-        
+
         if (commentQueryPort.hasDescendants(commentId)) {
             comment.softDelete(); // 더티 체킹으로 자동 업데이트
         } else {
@@ -176,7 +176,7 @@ public class CommentCommandService implements CommentCommandUseCase {
     @Transactional
     public void processUserCommentsOnWithdrawal(Long userId) {
         List<Comment> userComments = commentQueryPort.findAllByUserId(userId);
-        
+
         for (Comment comment : userComments) {
             if (commentQueryPort.hasDescendants(comment.getId())) {
                 comment.anonymize(); // 더티 체킹으로 자동 업데이트
@@ -187,14 +187,30 @@ public class CommentCommandService implements CommentCommandUseCase {
     }
 
     /**
+     * <h3>특정 글의 모든 댓글 삭제</h3>
+     *
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Transactional
+    @Override
+    public void deleteCommentsByPost(Long postId) {
+        List<Comment> userComments = commentQueryPort.findAllByPostId(postId);
+
+        for (Comment comment : userComments) {
+            commentDeletePort.deleteComment(comment.getId());
+        }
+    }
+
+    /**
      * <h3>댓글 권한 검증</h3>
      * <p>댓글 ID와 사용자 정보로 권한을 검증하고 댓글 엔티티를 반환합니다.</p>
      * <p>Comment 엔티티의 canModify 메서드를 활용한 권한 검증</p>
      * <p>updateComment, deleteComment 메서드에서 공통 권한 검증용으로 사용됩니다.</p>
      *
      * @param commentId 댓글 ID
-     * @param userId 사용자 ID (로그인한 경우), null인 경우 익명 댓글
-     * @param password 댓글 비밀번호 (익명 댓글인 경우)
+     * @param userId    사용자 ID (로그인한 경우), null인 경우 익명 댓글
+     * @param password  댓글 비밀번호 (익명 댓글인 경우)
      * @return Comment 유효성 검사를 통과한 댓글 엔티티
      * @author Jaeik
      * @since 2.0.0
@@ -205,7 +221,7 @@ public class CommentCommandService implements CommentCommandUseCase {
         if (!comment.canModify(userId, password)) {
             throw new CommentCustomException(CommentErrorCode.COMMENT_UNAUTHORIZED);
         }
-        
+
         return comment;
     }
 

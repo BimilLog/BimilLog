@@ -1,5 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.out.post;
 
+import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.bimillog.domain.comment.application.port.in.CommentQueryUseCase;
 import jaeik.bimillog.domain.post.application.port.out.PostToCommentPort;
 import lombok.RequiredArgsConstructor;
@@ -22,15 +23,12 @@ import java.util.Map;
 public class PostToCommentAdapter implements PostToCommentPort {
 
     private final CommentQueryUseCase commentQueryUseCase;
+    private final CommentCommandUseCase commentCommandUseCase;
 
 
     /**
      * <h3>여러 게시글의 댓글 수 배치 조회</h3>
-     * <p>사용자가 게시판 목록 페이지를 로드할 때 각 게시글 옆에 댓글 수를 표시하기 위해 호출됩니다.</p>
-     * <p>예를 들어 "게시글 제목 [5]" 형태로 표시되어 사용자가 토론이 활발한 게시글을 빠르게 식별할 수 있도록 합니다.</p>
-     * <p>단일 쿼리로 모든 게시글의 댓글 수를 조회하여 N+1 문제를 방지하고 게시판 로딩 성능을 보장합니다.</p>
-     * <p>계층형 댓글 구조에서 삭제되지 않은 댓글만 카운팅하여 정확한 통계를 제공합니다.</p>
-     * 
+     *
      * @param postIds 게시글 ID 목록
      * @return Map<Long, Integer> 게시글 ID를 키로, 댓글 수를 값으로 하는 맵
      * @author Jaeik
@@ -39,5 +37,16 @@ public class PostToCommentAdapter implements PostToCommentPort {
     @Override
     public Map<Long, Integer> findCommentCountsByPostIds(List<Long> postIds) {
         return commentQueryUseCase.findCommentCountsByPostIds(postIds);
+    }
+
+    /**
+     * <h3>특정 글의 모든 댓글 삭제</h3>
+     *
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public void deleteCommentInPost(Long postId) {
+        commentCommandUseCase.deleteCommentsByPost(postId);
     }
 }

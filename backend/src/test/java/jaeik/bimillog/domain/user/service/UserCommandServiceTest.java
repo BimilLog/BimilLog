@@ -97,7 +97,7 @@ class UserCommandServiceTest extends BaseUnitTest {
 
         // Then
         verify(userQueryPort).findById(userId);
-        // JPA 변경 감지를 사용하므로 명시적 save() 호출 없음
+        // JPA 변경 감지를 사용하므로 명시적 savePostLike() 호출 없음
         
         assertThat(user.getUserName()).isEqualTo(newUserName);
     }
