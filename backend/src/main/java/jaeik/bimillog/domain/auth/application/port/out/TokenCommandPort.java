@@ -1,12 +1,11 @@
 package jaeik.bimillog.domain.auth.application.port.out;
 
 import jaeik.bimillog.domain.auth.entity.Token;
+import jaeik.bimillog.domain.user.application.service.WithdrawService;
 
 /**
- * <h2>토큰 명령 공용 포트</h2>
- * <p>여러 도메인에서 공통으로 사용하는 토큰 쓰기 기능을 제공하는 포트입니다.</p>
+ * <h2>토큰 명령 포트</h2>
  * <p>토큰 저장, 토큰 삭제</p>
- * <p>Auth 도메인과 User 도메인에서 중복 사용되는 토큰 쓰기 기능을 통합합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -26,13 +25,16 @@ public interface TokenCommandPort {
     Token save(Token token);
 
     /**
-     * <h3>사용자 ID로 모든 토큰 삭제</h3>
-     * <p>특정 사용자가 소유한 모든 토큰을 삭제합니다.</p>
-     * <p>회원 탈퇴 시 해당 사용자의 모든 토큰을 완전히 제거할 때 사용됩니다.</p>
+     * <h3>토큰 삭제</h3>
+     * <p>로그아웃시 특정 토큰만 삭제</p>
+     * <p>회원탈퇴시 모든 토큰 삭제</p>
+     * <p>{@link WithdrawService}에서 특정 토큰 정리 시 호출됩니다.</p>
      *
-     * @param userId 토큰을 삭제할 사용자 ID
-     * @author Jaeik
+     * @param userId 사용자 ID
+     * @param tokenId 삭제할 토큰 ID (null인 경우 모든 토큰 삭제 - 회원탈퇴용)
      * @since 2.0.0
+     * @author Jaeik
      */
-    void deleteAllByUserId(Long userId);
+    void deleteTokens(Long userId, Long tokenId);
+
 }

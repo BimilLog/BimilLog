@@ -1,9 +1,7 @@
 package jaeik.bimillog.domain.auth.application.port.in;
 
 import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.user.event.UserWithdrawnEvent;
 import jaeik.bimillog.infrastructure.adapter.in.admin.web.AdminCommandController;
-import jaeik.bimillog.infrastructure.adapter.in.global.listener.UserWithdrawListener;
 import jaeik.bimillog.infrastructure.filter.JwtFilter;
 
 /**
@@ -45,20 +43,9 @@ public interface UserBanUseCase {
      * <p>{@link AdminCommandController}에서 사용자 블랙리스트 API 요청 시 호출됩니다.</p>
      *
      * @param userId 블랙리스트에 추가할 사용자 ID
-     * @since 2.0.0
      * @author Jaeik
+     * @since 2.0.0
      */
     void addToBlacklist(Long userId, String socialId, SocialProvider provider);
 
-    /**
-     * <h3>특정 사용자의 모든 인증 토큰 삭제</h3>
-     * <p>회원 탈퇴 시 해당 사용자의 모든 인증 토큰을 삭제합니다.</p>
-     * <p>다중 기기에서 로그인된 모든 세션을 종료하고 토큰을 무효화합니다.</p>
-     * <p>{@link UserWithdrawnEvent} 이벤트 발생시 {@link UserWithdrawListener}에서 호출됩니다.</p>
-     *
-     * @param userId 토큰을 삭제할 사용자 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    void deleteAllTokensByUserId(Long userId);
 }

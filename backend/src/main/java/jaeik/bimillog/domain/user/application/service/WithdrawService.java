@@ -96,24 +96,5 @@ public class WithdrawService implements WithdrawUseCase {
         eventPublisher.publishEvent(new UserWithdrawnEvent(userDetails));
     }
 
-    /**
-     * <h3>특정 토큰 정리</h3>
-     * <p>사용자 로그아웃 시 특정 토큰만 정리합니다.</p>
-     * <p>다중 기기 로그인 지원을 위해 특정 토큰만 삭제하고 다른 기기의 로그인 상태는 유지합니다.</p>
-     *
-     * @param userId  사용자 ID
-     * @param tokenId 정리할 토큰 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    @Transactional
-    public void cleanupSpecificToken(Long userId, Long tokenId) {
-        log.info("특정 토큰 정리 시작 - 사용자 ID: {}, 토큰 ID: {}", userId, tokenId);
-        
-        // 다중 로그인 지원: 특정 토큰만 삭제 (다른 기기의 로그인 상태 유지)
-        deleteUserPort.logoutUser(userId, tokenId);
-        
-        log.info("특정 토큰 정리 완료 - 사용자 ID: {}, 토큰 ID: {}", userId, tokenId);
-    }
+
 }

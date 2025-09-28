@@ -24,29 +24,7 @@ public class DeleteUserAdapter implements DeleteUserPort {
     private final TokenRepository tokenRepository;
     private final UserRepository userRepository;
 
-    /**
-     * <h3>로그아웃 처리</h3>
-     * <p>다중 로그인 환경에서 특정 토큰만 삭제하여 해당 기기만 로그아웃 처리합니다.</p>
-     * <p>이벤트는 호출하는 측에서 발행하므로 여기서는 토큰 삭제만 담당</p>
-     * <p>{@link WithdrawService}에서 특정 토큰 정리 시 호출됩니다.</p>
-     *
-     * @param userId 사용자 ID
-     * @param tokenId 삭제할 토큰 ID (null인 경우 모든 토큰 삭제)
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    @Override
-    @Transactional
-    public void logoutUser(Long userId, Long tokenId) {
-        if (tokenId != null) {
-            // 특정 토큰만 삭제 (다중 로그인 유지)
-            tokenRepository.deleteById(tokenId);
-        } else {
-            // tokenId가 null인 경우 (회원탈퇴 등) 모든 토큰 삭제
-            tokenRepository.deleteAllByUserId(userId);
-        }
-        // 이벤트 발행은 호출하는 측(SocialLogoutService)에서 담당
-    }
+
 
     /**
      * <h3>회원 탈퇴 처리</h3>

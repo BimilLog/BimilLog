@@ -42,15 +42,5 @@ public interface WithdrawUseCase {
      */
     void banUser(Long userId);
 
-    /**
-     * <h3>특정 토큰 정리</h3>
-     * <p>사용자 로그아웃 시 특정 토큰만 정리합니다.</p>
-     * <p>다중 기기 로그인 환경에서 다른 기기의 로그인 상태는 유지됩니다.</p>
-     *
-     * @param userId  사용자 ID
-     * @param tokenId 정리할 토큰 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    void cleanupSpecificToken(Long userId, Long tokenId);
+
 }

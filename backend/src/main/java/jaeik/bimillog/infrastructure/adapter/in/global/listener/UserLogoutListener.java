@@ -1,6 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.in.global.listener;
 
 import jaeik.bimillog.domain.auth.application.port.in.SocialLogoutUseCase;
+import jaeik.bimillog.domain.auth.application.port.in.TokenUseCase;
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
 import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
 import jaeik.bimillog.domain.notification.application.port.in.NotificationSseUseCase;
@@ -8,6 +9,7 @@ import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +20,7 @@ public class UserLogoutListener {
     private final SocialLogoutUseCase socialLogoutUseCase;
     private final NotificationSseUseCase notificationSseUseCase;
     private final NotificationFcmUseCase notificationFcmUseCase;
+    private final TokenUseCase tokenUseCase;
 
     @Async
     @EventListener
@@ -29,6 +32,9 @@ public class UserLogoutListener {
 
         notificationSseUseCase.deleteEmitterByUserIdAndTokenId(userId, tokenId);
         socialLogoutUseCase.logout(userDetails);
-        notificationFcmUseCase.deleteFcmTokenByTokenId(userId, tokenId);
+        notificationFcmUseCase.deleteFcmTokenByTokenId(userId, tokenId); // 구현 필요
+        tokenUseCase.deleteTokens(userId, tokenId);
+        SecurityContextHolder.clearContext();
+
     }
 }

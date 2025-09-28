@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.in.global.listener;
 
 import jaeik.bimillog.domain.admin.application.port.in.AdminCommandUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.SocialWithdrawUseCase;
-import jaeik.bimillog.domain.auth.application.port.in.UserBanUseCase;
+import jaeik.bimillog.domain.auth.application.port.in.TokenUseCase;
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.bimillog.domain.notification.application.port.in.NotificationCommandUseCase;
 import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
@@ -16,6 +16,7 @@ import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,7 +29,7 @@ public class UserWithdrawListener {
     private final NotificationCommandUseCase notificationCommandUseCase;
     private final CommentCommandUseCase commentCommandUseCase;
     private final PostCommandUseCase postCommandUseCase;
-    private final UserBanUseCase userBanUseCase;
+    private final TokenUseCase tokenUseCase;
     private final PaperCommandUseCase paperCommandUseCase;
     private final AdminCommandUseCase adminCommandUseCase;
     private final UserCommandUseCase userCommandUseCase;
@@ -39,19 +40,19 @@ public class UserWithdrawListener {
     public void userWithdraw(UserWithdrawnEvent userWithdrawnEvent) {
         CustomUserDetails userDetails = userWithdrawnEvent.userDetails();
         Long userId = userWithdrawnEvent.userDetails().getUserId();
-        Long tokenId = userWithdrawnEvent.userDetails().getTokenId();
         SocialProvider provider = userWithdrawnEvent.userDetails().getSocialProvider();
         String socialId = userWithdrawnEvent.userDetails().getSocialId();
 
-        notificationSseUseCase.deleteEmitterByUserIdAndTokenId(userId, tokenId); // 전체 기기 Emitter 제거 메서드 필요
+        notificationSseUseCase.deleteAllEmitterByUserId(userId);
         socialWithdrawUseCase.unlinkSocialAccount(provider, socialId);
         commentCommandUseCase.processUserCommentsOnWithdrawal(userId);
         postCommandUseCase.deleteAllPostsByUserId(userId); // 구현 필요
-        userBanUseCase.deleteAllTokensByUserId(userId);
+        tokenUseCase.deleteTokens(userId, null);
         notificationFcmUseCase.deleteFcmTokens(userId);
         notificationCommandUseCase.deleteAllNotification(userDetails); // 구현 필요
         paperCommandUseCase.deleteAllMessagesByUserId(userId); // 구현 필요
         adminCommandUseCase.deleteAllReportsByUserId(userId); // 구현 필요
         userCommandUseCase.deleteUser(userId); // 구현 필요
+        SecurityContextHolder.clearContext();
     }
 }

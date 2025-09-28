@@ -2,9 +2,11 @@ package jaeik.bimillog.infrastructure.adapter.out.auth;
 
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.auth.application.port.out.TokenCommandPort;
+import jaeik.bimillog.domain.user.application.service.WithdrawService;
 import jaeik.bimillog.infrastructure.adapter.out.auth.jpa.TokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <h2>토큰 명령 공용 어댑터</h2>
@@ -37,16 +39,23 @@ public class TokenCommandAdapter implements TokenCommandPort {
     }
 
     /**
-     * <h3>사용자 ID로 모든 토큰 삭제</h3>
-     * <p>특정 사용자가 소유한 모든 토큰을 삭제합니다.</p>
-     * <p>TokenRepository를 통해 해당 사용자의 모든 토큰을 제거합니다.</p>
+     * <h3>토큰 삭제</h3>
+     * <p>로그아웃시 특정 토큰만 삭제</p>
+     * <p>회원탈퇴시 모든 토큰 삭제</p>
+     * <p>{@link WithdrawService}에서 특정 토큰 정리 시 호출됩니다.</p>
      *
-     * @param userId 토큰을 삭제할 사용자 ID
-     * @author Jaeik
+     * @param userId 사용자 ID
+     * @param tokenId 삭제할 토큰 ID (null인 경우 모든 토큰 삭제 - 회원탈퇴용)
      * @since 2.0.0
+     * @author Jaeik
      */
     @Override
-    public void deleteAllByUserId(Long userId) {
-        tokenRepository.deleteAllByUserId(userId);
+    @Transactional
+    public void deleteTokens(Long userId, Long tokenId) {
+        if (tokenId != null) {
+            tokenRepository.deleteById(tokenId);
+        } else {
+            tokenRepository.deleteAllByUserId(userId);
+        }
     }
 }

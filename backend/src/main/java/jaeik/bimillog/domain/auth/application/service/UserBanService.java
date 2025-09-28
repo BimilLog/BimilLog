@@ -7,11 +7,10 @@ import jaeik.bimillog.domain.auth.application.port.out.RedisJwtBlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.TokenCommandPort;
 import jaeik.bimillog.domain.auth.entity.BlackList;
 import jaeik.bimillog.domain.auth.entity.Token;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.user.event.UserWithdrawnEvent;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalTokenQueryPort;
-import jaeik.bimillog.infrastructure.adapter.in.global.listener.UserWithdrawListener;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jaeik.bimillog.domain.user.event.UserWithdrawnEvent;
 import jaeik.bimillog.infrastructure.filter.JwtFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +42,6 @@ public class UserBanService implements UserBanUseCase {
     private final RedisJwtBlacklistPort redisJwtBlacklistPort;
     private final GlobalTokenQueryPort globalTokenQueryPort;
     private final BlacklistPort blacklistPort;
-    private final TokenCommandPort tokenCommandPort;
 
     /**
      * <h3>JWT 토큰 블랙리스트 검증</h3>
@@ -139,20 +137,7 @@ public class UserBanService implements UserBanUseCase {
         }
     }
 
-    /**
-     * <h3>특정 사용자의 모든 인증 토큰 삭제</h3>
-     * <p>회원 탈퇴 시 해당 사용자의 모든 인증 토큰을 삭제합니다.</p>
-     * <p>다중 기기에서 로그인된 모든 세션을 종료하고 토큰을 무효화합니다.</p>
-     * <p>{@link UserWithdrawnEvent} 이벤트 발생시 {@link UserWithdrawListener}에서 호출됩니다.</p>
-     *
-     * @param userId 토큰을 삭제할 사용자 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public void deleteAllTokensByUserId(Long userId) {
-        tokenCommandPort.deleteAllByUserId(userId);
-    }
+
 
 
 }

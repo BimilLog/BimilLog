@@ -13,17 +13,6 @@ import jaeik.bimillog.domain.user.application.service.WithdrawService;
  */
 public interface DeleteUserPort {
 
-    /**
-     * <h3>로그아웃 처리</h3>
-     * <p>다중 로그인 환경에서 특정 토큰만 삭제하여 해당 기기만 로그아웃 처리합니다.</p>
-     * <p>{@link WithdrawService}에서 특정 토큰 정리 시 호출됩니다.</p>
-     *
-     * @param userId 사용자 ID
-     * @param tokenId 삭제할 토큰 ID (null인 경우 모든 토큰 삭제 - 회원탈퇴용)
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    void logoutUser(Long userId, Long tokenId);
 
     /**
      * <h3>회원 탈퇴 처리</h3>
