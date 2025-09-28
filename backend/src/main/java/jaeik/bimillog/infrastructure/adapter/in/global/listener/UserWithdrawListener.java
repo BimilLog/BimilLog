@@ -52,7 +52,7 @@ public class UserWithdrawListener {
         String socialId = userWithdrawnEvent.socialId();
         SocialProvider provider = userWithdrawnEvent.provider();
 
-        sseUseCase.deleteAllEmitterByUserId(userId);
+        sseUseCase.deleteEmitters(userId, null);
         socialWithdrawUseCase.unlinkSocialAccount(provider, socialId);
         commentCommandUseCase.processUserCommentsOnWithdrawal(userId);
         postCommandUseCase.deleteAllPostsByUserId(userId); // 구현 필요

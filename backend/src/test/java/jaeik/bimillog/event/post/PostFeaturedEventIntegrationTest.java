@@ -4,7 +4,6 @@ import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
 import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
-import jaeik.bimillog.testutil.EventTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -42,7 +41,7 @@ public class PostFeaturedEventIntegrationTest extends BaseEventIntegrationTest {
         String fcmTitle = "🎉 인기글 선정!";
         String fcmBody = "축하합니다! 회원님의 게시글이 인기글에 선정되었어요!";
         
-        PostFeaturedEvent event = EventTestDataBuilder.createPostFeaturedEvent(userId, sseMessage, postId, fcmTitle, fcmBody);
+        PostFeaturedEvent event = new PostFeaturedEvent(userId, sseMessage, postId, fcmTitle, fcmBody);
 
         // When & Then
         publishAndVerify(event, () -> {
@@ -58,11 +57,11 @@ public class PostFeaturedEventIntegrationTest extends BaseEventIntegrationTest {
     @DisplayName("여러 다른 사용자의 인기글 이벤트 동시 처리")
     void multipleDifferentUserPostFeaturedEvents_ShouldProcessIndependently() {
         // Given
-        PostFeaturedEvent event1 = EventTestDataBuilder.createPostFeaturedEvent(
+        PostFeaturedEvent event1 = new PostFeaturedEvent(
                 1L, "게시글 1이 인기글에 선정되었습니다!", 101L, "인기글 선정", "축하합니다!");
-        PostFeaturedEvent event2 = EventTestDataBuilder.createPostFeaturedEvent(
+        PostFeaturedEvent event2 = new PostFeaturedEvent(
                 2L, "게시글 2가 명예의 전당에 등록되었습니다!", 102L, "명예의 전당", "대단합니다!");
-        PostFeaturedEvent event3 = EventTestDataBuilder.createPostFeaturedEvent(
+        PostFeaturedEvent event3 = new PostFeaturedEvent(
                 3L, "게시글 3이 주간 베스트에 선정되었습니다!", 103L, "주간 베스트", "훌륭합니다!");
 
         // When & Then - 모든 이벤트가 독립적으로 처리되어야 함
@@ -89,11 +88,11 @@ public class PostFeaturedEventIntegrationTest extends BaseEventIntegrationTest {
     void multiplePostFeaturedEventsForSameUser_ShouldProcessAll() {
         // Given - 동일 사용자의 여러 게시글이 인기글로 선정
         Long userId = 1L;
-        PostFeaturedEvent event1 = EventTestDataBuilder.createPostFeaturedEvent(
+        PostFeaturedEvent event1 = new PostFeaturedEvent(
                 userId, "첫 번째 게시글이 인기글에 선정!", 101L, "인기글 1", "축하해요!");
-        PostFeaturedEvent event2 = EventTestDataBuilder.createPostFeaturedEvent(
+        PostFeaturedEvent event2 = new PostFeaturedEvent(
                 userId, "두 번째 게시글도 인기글에 선정!", 102L, "인기글 2", "대단해요!");
-        PostFeaturedEvent event3 = EventTestDataBuilder.createPostFeaturedEvent(
+        PostFeaturedEvent event3 = new PostFeaturedEvent(
                 userId, "세 번째 게시글까지 인기글 선정!", 103L, "인기글 3", "놀라워요!");
 
         // When & Then - 동일 사용자라도 각 게시글에 대해 개별 알림이 발송되어야 함

@@ -165,10 +165,20 @@ class SseAdapterTest extends BaseUnitTest {
     @DisplayName("사용자 SSE 연결 정리 - 성공")
     void shouldDeleteAllEmitterByUserId_WhenValidUserId() {
         // When
-        sseAdapter.deleteAllEmitterByUserId(userId);
+        sseAdapter.deleteEmitters(userId, null);
 
         // Then
         SseTestHelper.verifyDeleteAllEmitters(emitterRepository, userId);
+    }
+
+    @Test
+    @DisplayName("특정 기기 SSE 연결 정리 - 성공")
+    void shouldDeleteEmitterByUserIdAndTokenId_WhenValidIds() {
+        // When
+        sseAdapter.deleteEmitters(userId, tokenId);
+
+        // Then
+        verify(emitterRepository).deleteEmitterByUserIdAndTokenId(userId, tokenId);
     }
 
     @Test

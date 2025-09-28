@@ -4,7 +4,6 @@ import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
 import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
-import jaeik.bimillog.testutil.EventTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -38,7 +37,7 @@ public class RollingPaperEventIntegrationTest extends BaseEventIntegrationTest {
         // Given
         Long paperOwnerId = 1L;
         String userName = "테스트사용자";
-        RollingPaperEvent event = EventTestDataBuilder.createPaperEvent(paperOwnerId, userName);
+        RollingPaperEvent event = new RollingPaperEvent(paperOwnerId, userName);
 
         // When & Then
         publishAndVerify(event, () -> {
@@ -53,7 +52,7 @@ public class RollingPaperEventIntegrationTest extends BaseEventIntegrationTest {
         // Given
         Long paperOwnerId = 1L;
         String userName = "테스트사용자";
-        RollingPaperEvent event = EventTestDataBuilder.createPaperEvent(paperOwnerId, userName);
+        RollingPaperEvent event = new RollingPaperEvent(paperOwnerId, userName);
 
         // SSE 알림 실패 시뮬레이션
         doThrow(new RuntimeException("SSE 알림 실패")).when(sseUseCase).sendPaperPlantNotification(paperOwnerId, userName);
@@ -68,7 +67,7 @@ public class RollingPaperEventIntegrationTest extends BaseEventIntegrationTest {
         // Given
         Long paperOwnerId = 1L;
         String userName = "테스트사용자";
-        RollingPaperEvent event = EventTestDataBuilder.createPaperEvent(paperOwnerId, userName);
+        RollingPaperEvent event = new RollingPaperEvent(paperOwnerId, userName);
 
         // FCM 알림 실패 시뮬레이션
         doThrow(new RuntimeException("FCM 알림 실패")).when(fcmUseCase).sendPaperPlantNotification(paperOwnerId);

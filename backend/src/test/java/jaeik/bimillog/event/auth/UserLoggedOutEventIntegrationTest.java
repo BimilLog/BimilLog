@@ -3,15 +3,15 @@ package jaeik.bimillog.event.auth;
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
 import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
 import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
-import jaeik.bimillog.testutil.EventTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import java.time.LocalDateTime;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
@@ -28,7 +28,10 @@ import static org.mockito.Mockito.verify;
 public class UserLoggedOutEventIntegrationTest extends BaseEventIntegrationTest {
 
     @MockitoBean
-    private WithdrawUseCase withdrawUseCase;
+    private jaeik.bimillog.domain.auth.application.port.in.SocialLogoutUseCase socialLogoutUseCase;
+
+    @MockitoBean
+    private jaeik.bimillog.domain.auth.application.port.in.TokenUseCase tokenUseCase;
 
     @MockitoBean
     private SseUseCase sseUseCase;
@@ -42,17 +45,19 @@ public class UserLoggedOutEventIntegrationTest extends BaseEventIntegrationTest 
         // Given
         Long userId = 1L;
         Long tokenId = 100L;
-        LocalDateTime loggedOutAt = LocalDateTime.now();
-        UserLoggedOutEvent event = EventTestDataBuilder.createLogoutEvent(userId, tokenId, loggedOutAt);
+        Long fcmTokenId = 200L;
+        UserLoggedOutEvent event = new UserLoggedOutEvent(userId, tokenId, fcmTokenId, SocialProvider.KAKAO);
 
         // When & Then
         publishAndVerify(event, () -> {
-            // 특정 토큰 정리
-            verify(withdrawUseCase).cleanupSpecificToken(eq(userId), eq(tokenId));
-            // 특정 기기의 SSE 연결 정리
-            verify(sseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
-            // FCM 토큰 삭제 - 로그아웃 시에는 특정 토큰 ID를 삭제하지만 테스트에서는 null로 설정
-            verify(fcmUseCase).deleteFcmTokens(eq(userId), any());
+            // SSE 연결 정리
+            verify(sseUseCase).deleteEmitters(eq(userId), eq(tokenId));
+            // 소셜 플랫폼 로그아웃
+            verify(socialLogoutUseCase).logout(eq(userId), eq(SocialProvider.KAKAO), eq(tokenId));
+            // FCM 토큰 삭제
+            verify(fcmUseCase).deleteFcmTokens(eq(userId), eq(fcmTokenId));
+            // JWT 토큰 무효화
+            verify(tokenUseCase).deleteTokens(eq(userId), eq(tokenId));
         });
     }
 
@@ -61,23 +66,31 @@ public class UserLoggedOutEventIntegrationTest extends BaseEventIntegrationTest 
     @DisplayName("여러 사용자 로그아웃 이벤트 동시 처리")
     void multipleUserLoggedOutEvents_ShouldProcessConcurrently() {
         // Given
-        UserLoggedOutEvent event1 = EventTestDataBuilder.createDefaultLogoutEvent(1L);
-        UserLoggedOutEvent event2 = EventTestDataBuilder.createDefaultLogoutEvent(2L);
-        UserLoggedOutEvent event3 = EventTestDataBuilder.createDefaultLogoutEvent(3L);
+        UserLoggedOutEvent event1 = new UserLoggedOutEvent(1L, 101L, 201L, SocialProvider.KAKAO);
+        UserLoggedOutEvent event2 = new UserLoggedOutEvent(2L, 102L, 202L, SocialProvider.KAKAO);
+        UserLoggedOutEvent event3 = new UserLoggedOutEvent(3L, 103L, 203L, SocialProvider.KAKAO);
 
         // When & Then - 동시에 여러 로그아웃 이벤트 발행
         publishEventsAndVerify(new Object[]{event1, event2, event3}, () -> {
-            verify(withdrawUseCase).cleanupSpecificToken(eq(1L), eq(101L));
-            verify(withdrawUseCase).cleanupSpecificToken(eq(2L), eq(102L));
-            verify(withdrawUseCase).cleanupSpecificToken(eq(3L), eq(103L));
+            // SSE 연결 정리
+            verify(sseUseCase).deleteEmitters(eq(1L), eq(101L));
+            verify(sseUseCase).deleteEmitters(eq(2L), eq(102L));
+            verify(sseUseCase).deleteEmitters(eq(3L), eq(103L));
 
-            verify(sseUseCase).deleteEmitterByUserIdAndTokenId(eq(1L), eq(101L));
-            verify(sseUseCase).deleteEmitterByUserIdAndTokenId(eq(2L), eq(102L));
-            verify(sseUseCase).deleteEmitterByUserIdAndTokenId(eq(3L), eq(103L));
+            // 소셜 플랫폼 로그아웃
+            verify(socialLogoutUseCase).logout(eq(1L), eq(SocialProvider.KAKAO), eq(101L));
+            verify(socialLogoutUseCase).logout(eq(2L), eq(SocialProvider.KAKAO), eq(102L));
+            verify(socialLogoutUseCase).logout(eq(3L), eq(SocialProvider.KAKAO), eq(103L));
 
-            verify(fcmUseCase).deleteFcmTokens(eq(1L), any());
-            verify(fcmUseCase).deleteFcmTokens(eq(2L), any());
-            verify(fcmUseCase).deleteFcmTokens(eq(3L), any());
+            // FCM 토큰 삭제
+            verify(fcmUseCase).deleteFcmTokens(eq(1L), eq(201L));
+            verify(fcmUseCase).deleteFcmTokens(eq(2L), eq(202L));
+            verify(fcmUseCase).deleteFcmTokens(eq(3L), eq(203L));
+
+            // JWT 토큰 무효화
+            verify(tokenUseCase).deleteTokens(eq(1L), eq(101L));
+            verify(tokenUseCase).deleteTokens(eq(2L), eq(102L));
+            verify(tokenUseCase).deleteTokens(eq(3L), eq(103L));
         });
     }
 

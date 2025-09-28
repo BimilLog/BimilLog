@@ -61,10 +61,10 @@ class NotificationSseServiceTest {
         Long userId = 10L;
 
         // When
-        notificationSseService.deleteAllEmitterByUserId(userId);
+        notificationSseService.deleteEmitters(userId, null);
 
         // Then
-        verify(ssePort).deleteAllEmitterByUserId(userId);
+        verify(ssePort).deleteEmitters(userId, null);
     }
 
     @Test
@@ -75,10 +75,10 @@ class NotificationSseServiceTest {
         Long tokenId = 99L;
 
         // When
-        notificationSseService.deleteEmitterByUserIdAndTokenId(userId, tokenId);
+        notificationSseService.deleteEmitters(userId, tokenId);
 
         // Then
-        verify(ssePort).deleteEmitterByUserIdAndTokenId(userId, tokenId);
+        verify(ssePort).deleteEmitters(userId, tokenId);
     }
 
     @Test

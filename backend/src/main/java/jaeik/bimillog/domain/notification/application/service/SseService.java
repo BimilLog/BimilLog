@@ -44,33 +44,19 @@ public class SseService implements SseUseCase {
     }
 
     /**
-     * <h3>사용자 SSE 연결 정리</h3>
-     * <p>사용자 탈퇴 시 개인정보 보호를 위해 해당 사용자와 관련된 모든 SSE 연결을 정리합니다.</p>
-     * <p>다중 기기에서 연결된 모든 SSE Emitter를 일괄적으로 해제하여 메모리 누수를 방지합니다.</p>
-     * <p>사용자 탈퇴 이벤트 발생시 개인정보 정리를 위해 호출됩니다.</p>
+     * <h3>SSE 연결 정리</h3>
+     * <p>tokenId가 null인 경우 모든 SSE 연결을 정리하고, 값이 있는 경우 특정 기기만 정리합니다.</p>
+     * <p>사용자 탈퇴 시에는 tokenId를 null로 전달하여 모든 연결을 정리하고,</p>
+     * <p>개별 기기 로그아웃 시에는 tokenId를 전달하여 해당 기기만 연결 해제합니다.</p>
      *
      * @param userId 사용자 ID
+     * @param tokenId 토큰 ID (null인 경우 모든 연결 정리)
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void deleteAllEmitterByUserId(Long userId) {
-        ssePort.deleteAllEmitterByUserId(userId);
-    }
-
-    /**
-     * <h3>특정 기기 SSE 연결 정리</h3>
-     * <p>다중 기기 로그인 환경에서 개별 기기 로그아웃 시 해당 기기의 SSE 연결만을 선택적으로 정리합니다.</p>
-     * <p>다른 기기의 연결은 유지하면서 해당 기기만 연결 해제하는 선택적 연결 관리를 지원합니다.</p>
-     *
-     * @param userId 사용자 ID
-     * @param tokenId 정리할 토큰 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public void deleteEmitterByUserIdAndTokenId(Long userId, Long tokenId) {
-        ssePort.deleteEmitterByUserIdAndTokenId(userId, tokenId);
+    public void deleteEmitters(Long userId, Long tokenId) {
+        ssePort.deleteEmitters(userId, tokenId);
     }
 
     /**

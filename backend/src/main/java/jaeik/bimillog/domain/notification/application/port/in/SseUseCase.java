@@ -33,29 +33,18 @@ public interface SseUseCase {
     SseEmitter subscribe(Long userId, Long tokenId);
 
     /**
-     * <h3>사용자 SSE 연결 정리</h3>
-     * <p>사용자의 모든 SSE Emitter 연결을 정리하고 메모리에서 제거합니다.</p>
-     * <p>다중 기기에서 연결된 모든 SSE 연결을 한 번에 해제합니다.</p>
-     * <p>{@link UserWithdrawnEvent} 이벤트 발생시 회원 탈퇴 처리 흐름에서 호출됩니다.</p>
+     * <h3>SSE 연결 정리</h3>
+     * <p>사용자의 SSE Emitter 연결을 정리하고 메모리에서 제거합니다.</p>
+     * <p>tokenId가 null인 경우 모든 SSE 연결을 해제하고, 값이 있는 경우 특정 기기만 해제합니다.</p>
+     * <p>{@link UserWithdrawnEvent} 이벤트 발생시 모든 연결 정리(tokenId=null),</p>
+     * <p>{@link UserLoggedOutEvent} 이벤트 발생시 특정 기기 연결 정리(tokenId 값 있음)에서 호출됩니다.</p>
      *
      * @param userId 사용자 ID
+     * @param tokenId 토큰 ID (null인 경우 모든 연결 정리)
      * @since 2.0.0
      * @author Jaeik
      */
-    void deleteAllEmitterByUserId(Long userId);
-
-    /**
-     * <h3>특정 기기 SSE 연결 정리</h3>
-     * <p>사용자의 특정 기기(토큰) SSE Emitter 연결만 선택적으로 정리합니다.</p>
-     * <p>다중 기기 로그인 환경에서 개별 기기 로그아웃 시 해당 기기만 연결 해제합니다.</p>
-     * <p>{@link UserLoggedOutEvent} 이벤트 발생시 특정 기기 로그아웃 처리 흐름에서 호출됩니다.</p>
-     *
-     * @param userId 사용자 ID
-     * @param tokenId 토큰 ID
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    void deleteEmitterByUserIdAndTokenId(Long userId, Long tokenId);
+    void deleteEmitters(Long userId, Long tokenId);
 
     /**
      * <h3>댓글 알림 SSE 전송</h3>

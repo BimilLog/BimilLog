@@ -40,7 +40,7 @@ public class UserLogoutListener {
         Long fcmTokenId = userLoggedOutEvent.fcmTokenId();
         SocialProvider provider = userLoggedOutEvent.provider();
 
-        sseUseCase.deleteEmitterByUserIdAndTokenId(userId, tokenId);
+        sseUseCase.deleteEmitters(userId, tokenId);
         socialLogoutUseCase.logout(userId, provider, tokenId);
         fcmUseCase.deleteFcmTokens(userId, fcmTokenId);
         tokenUseCase.deleteTokens(userId, tokenId);

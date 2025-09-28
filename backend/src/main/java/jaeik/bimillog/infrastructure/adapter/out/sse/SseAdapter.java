@@ -113,31 +113,22 @@ public class SseAdapter implements SsePort {
 
 
     /**
-     * <h3>사용자 SSE 연결 정리</h3>
-     * <p>사용자와 관련된 모든 SSE Emitter 연결을 정리합니다.</p>
+     * <h3>SSE 연결 정리</h3>
+     * <p>tokenId가 null인 경우 사용자의 모든 SSE Emitter 연결을 정리하고,</p>
+     * <p>tokenId가 있는 경우 해당 기기의 SSE Emitter 연결만 선택적으로 정리합니다.</p>
      *
      * @param userId 사용자 ID
+     * @param tokenId 토큰 ID (null인 경우 모든 연결 정리)
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void deleteAllEmitterByUserId(Long userId) {
-        emitterRepository.deleteAllEmitterByUserId(userId);
-    }
-
-    /**
-     * <h3>특정 기기 SSE 연결 정리</h3>
-     * <p>사용자의 특정 기기(토큰)에 해당하는 SSE Emitter 연결을 정리합니다.</p>
-     * <p>다중 기기 로그인 환경에서 특정 기기만 로그아웃 처리할 때 사용합니다.</p>
-     *
-     * @param userId 사용자 ID
-     * @param tokenId 토큰 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public void deleteEmitterByUserIdAndTokenId(Long userId, Long tokenId) {
-        emitterRepository.deleteEmitterByUserIdAndTokenId(userId, tokenId);
+    public void deleteEmitters(Long userId, Long tokenId) {
+        if (tokenId != null) {
+            emitterRepository.deleteEmitterByUserIdAndTokenId(userId, tokenId);
+        } else {
+            emitterRepository.deleteAllEmitterByUserId(userId);
+        }
     }
 
     /**
