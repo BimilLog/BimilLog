@@ -228,28 +228,4 @@ public abstract class BaseIntegrationTest {
                 .content(objectMapper.writeValueAsString(content))
                 .with(csrf()));
     }
-
-    /**
-     * 인증 없는 DELETE 요청 수행
-     * @param url 요청 URL
-     * @return ResultActions
-     */
-    protected ResultActions performDelete(String url) throws Exception {
-        return mockMvc.perform(delete(url)
-                .with(csrf()));
-    }
-
-    /**
-     * 엔티티를 영속화하고 플러시
-     * @param entity 저장할 엔티티
-     * @return 저장된 엔티티
-     */
-    protected <T> T saveAndFlush(T entity) {
-        if (entityManager != null) {
-            entityManager.persist(entity);
-            entityManager.flush();
-            return entity;
-        }
-        throw new UnsupportedOperationException("TestEntityManager is not available");
-    }
 }

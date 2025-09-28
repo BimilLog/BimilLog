@@ -65,7 +65,7 @@ class PaperCommandServiceTest extends BaseUnitTest {
 
         // Then
         verify(paperQueryPort, times(1)).findOwnerIdByMessageId(messageId);
-        verify(paperCommandPort, times(1)).deleteMessage(messageId);
+        verify(paperCommandPort, times(1)).deleteMessage(userId, messageId);
         verifyNoMoreInteractions(paperQueryPort, paperCommandPort);
     }
 
@@ -84,7 +84,7 @@ class PaperCommandServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.MESSAGE_NOT_FOUND);
 
         verify(paperQueryPort, times(1)).findOwnerIdByMessageId(messageId);
-        verify(paperCommandPort, never()).deleteMessage(any());
+        verify(paperCommandPort, never()).deleteMessage(any(), any());
     }
 
     @Test
@@ -103,7 +103,7 @@ class PaperCommandServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.MESSAGE_DELETE_FORBIDDEN);
 
         verify(paperQueryPort, times(1)).findOwnerIdByMessageId(messageId);
-        verify(paperCommandPort, never()).deleteMessage(any());
+        verify(paperCommandPort, never()).deleteMessage(any(), any());
     }
 
     @Test

@@ -92,6 +92,11 @@ public class TestSocialLoginPortConfig {
                 // 테스트용 더미 구현 - 항상 false 반환 (블랙리스트에 없음)
                 return false;
             }
+
+            @Override
+            public void saveBlackList(jaeik.bimillog.domain.auth.entity.BlackList blackList) {
+                // 테스트용 더미 구현 - 아무 작업도 하지 않음
+            }
         };
     }
 

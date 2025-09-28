@@ -3,6 +3,7 @@ package jaeik.bimillog.infrastructure.adapter.out.post;
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.bimillog.domain.comment.application.port.in.CommentQueryUseCase;
 import jaeik.bimillog.domain.post.application.port.out.PostToCommentPort;
+import jaeik.bimillog.domain.post.application.service.PostCommandService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -41,7 +42,10 @@ public class PostToCommentAdapter implements PostToCommentPort {
 
     /**
      * <h3>특정 글의 모든 댓글 삭제</h3>
+     * <p>Post 도메인에서 Comment 도메인으로 댓글 삭제를 위임하는 어댑터 메서드입니다.</p>
+     * <p>{@link PostCommandService#deletePost}에서 게시글 삭제 시 호출됩니다.</p>
      *
+     * @param postId 댓글을 삭제할 게시글 ID
      * @author Jaeik
      * @since 2.0.0
      */

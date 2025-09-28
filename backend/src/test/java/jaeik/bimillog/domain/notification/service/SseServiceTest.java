@@ -26,7 +26,7 @@ import static org.mockito.Mockito.verify;
 @ExtendWith(MockitoExtension.class)
 @DisplayName("SseService 테스트")
 @Tag("test")
-class NotificationSseServiceTest {
+class SseServiceTest {
 
     @Mock
     private SsePort ssePort;

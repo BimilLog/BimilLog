@@ -42,7 +42,7 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 @DisplayName("FcmService 테스트")
 @Tag("test")
-class NotificationFcmServiceTest {
+class FcmServiceTest {
 
     @Mock
     private FcmPort fcmPort;

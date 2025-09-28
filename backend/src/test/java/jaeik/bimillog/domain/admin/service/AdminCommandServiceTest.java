@@ -5,17 +5,19 @@ import jaeik.bimillog.domain.admin.application.service.AdminCommandService;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.admin.event.UserBannedEvent;
-import jaeik.bimillog.domain.admin.event.UserForcedWithdrawalEvent;
 import jaeik.bimillog.domain.admin.exception.AdminCustomException;
 import jaeik.bimillog.domain.admin.exception.AdminErrorCode;
+import jaeik.bimillog.domain.auth.application.port.in.BlacklistUseCase;
 import jaeik.bimillog.domain.comment.application.port.in.CommentQueryUseCase;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.post.application.port.in.PostQueryUseCase;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
+import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.event.UserWithdrawnEvent;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.PostTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,6 +63,12 @@ class AdminCommandServiceTest extends BaseUnitTest {
     @Mock
     private CommentQueryUseCase commentQueryUseCase;
 
+    @Mock
+    private UserCommandUseCase userCommandUseCase;
+
+    @Mock
+    private BlacklistUseCase blacklistUseCase;
+
     @InjectMocks
     private AdminCommandService adminCommandService;
 
@@ -75,7 +83,9 @@ class AdminCommandServiceTest extends BaseUnitTest {
                 adminCommandPort,
                 userQueryPort,
                 postQueryUseCase,
-                commentQueryUseCase
+                commentQueryUseCase,
+                userCommandUseCase,
+                blacklistUseCase
         );
     }
 
@@ -98,7 +108,6 @@ class AdminCommandServiceTest extends BaseUnitTest {
         assertThat(capturedEvent.userId()).isEqualTo(200L);
         assertThat(capturedEvent.socialId()).isEqualTo(userWithId.getSocialId());
         assertThat(capturedEvent.provider()).isEqualTo(userWithId.getProvider());
-        assertThat(capturedEvent.reason()).isEqualTo("사용자 제재");
     }
 
     @Test
@@ -154,7 +163,6 @@ class AdminCommandServiceTest extends BaseUnitTest {
         assertThat(capturedEvent.userId()).isEqualTo(200L);
         assertThat(capturedEvent.socialId()).isEqualTo(userWithId.getSocialId());
         assertThat(capturedEvent.provider()).isEqualTo(userWithId.getProvider());
-        assertThat(capturedEvent.reason()).isEqualTo("사용자 제재");
     }
 
     @Test
@@ -177,15 +185,14 @@ class AdminCommandServiceTest extends BaseUnitTest {
         adminCommandService.forceWithdrawUser(reportType, commentId);
 
         // Then
-        ArgumentCaptor<UserForcedWithdrawalEvent> eventCaptor =
-                ArgumentCaptor.forClass(UserForcedWithdrawalEvent.class);
+        ArgumentCaptor<UserWithdrawnEvent> eventCaptor =
+                ArgumentCaptor.forClass(UserWithdrawnEvent.class);
         verify(eventPublisher).publishEvent(eventCaptor.capture());
-        
-        UserForcedWithdrawalEvent capturedEvent = eventCaptor.getValue();
+
+        UserWithdrawnEvent capturedEvent = eventCaptor.getValue();
         assertThat(capturedEvent.userId()).isEqualTo(userId);
         assertThat(capturedEvent.socialId()).isEqualTo(mockUser.getSocialId());
         assertThat(capturedEvent.provider()).isEqualTo(mockUser.getProvider());
-        assertThat(capturedEvent.reason()).isEqualTo("사용자 강제탈퇴");
     }
 
     @Test

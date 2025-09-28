@@ -38,7 +38,7 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("BlacklistService 단위 테스트")
 @Tag("test")
-class UserBanServiceTest extends BaseUnitTest {
+class BlacklistServiceTest extends BaseUnitTest {
 
     @Mock
     private GlobalJwtPort globalJwtPort;
@@ -53,7 +53,7 @@ class UserBanServiceTest extends BaseUnitTest {
     private BlacklistPort blacklistPort;
 
     @InjectMocks
-    private BlacklistService userBanService;
+    private BlacklistService blacklistService;
 
     private String testTokenString;
     private String testTokenHash;
@@ -76,7 +76,7 @@ class UserBanServiceTest extends BaseUnitTest {
         given(redisJwtBlacklistPort.isBlacklisted(testTokenHash)).willReturn(true);
 
         // When
-        boolean result = userBanService.isBlacklisted(testTokenString);
+        boolean result = blacklistService.isBlacklisted(testTokenString);
 
         // Then
         assertThat(result).isTrue();
@@ -92,7 +92,7 @@ class UserBanServiceTest extends BaseUnitTest {
         given(redisJwtBlacklistPort.isBlacklisted(testTokenHash)).willReturn(false);
 
         // When
-        boolean result = userBanService.isBlacklisted(testTokenString);
+        boolean result = blacklistService.isBlacklisted(testTokenString);
 
         // Then
         assertThat(result).isFalse();
@@ -108,7 +108,7 @@ class UserBanServiceTest extends BaseUnitTest {
                 .when(globalJwtPort).generateTokenHash(testTokenString);
 
         // When
-        boolean result = userBanService.isBlacklisted(testTokenString);
+        boolean result = blacklistService.isBlacklisted(testTokenString);
 
         // Then
         assertThat(result).isFalse();
@@ -125,7 +125,7 @@ class UserBanServiceTest extends BaseUnitTest {
                 .when(redisJwtBlacklistPort).isBlacklisted(testTokenHash);
 
         // When
-        boolean result = userBanService.isBlacklisted(testTokenString);
+        boolean result = blacklistService.isBlacklisted(testTokenString);
 
         // Then
         assertThat(result).isFalse();
@@ -145,7 +145,7 @@ class UserBanServiceTest extends BaseUnitTest {
         given(globalJwtPort.generateTokenHash("access-token-1")).willReturn("hash1");
 
         // When
-        userBanService.blacklistAllUserTokens(userId);
+        blacklistService.blacklistAllUserTokens(userId);
 
         // Then
         verify(globalTokenQueryPort).findAllByUserId(userId);
@@ -174,7 +174,7 @@ class UserBanServiceTest extends BaseUnitTest {
         given(globalTokenQueryPort.findAllByUserId(userId)).willReturn(List.of());
 
         // When
-        userBanService.blacklistAllUserTokens(userId);
+        blacklistService.blacklistAllUserTokens(userId);
 
         // Then
         verify(globalTokenQueryPort).findAllByUserId(userId);
@@ -195,7 +195,7 @@ class UserBanServiceTest extends BaseUnitTest {
                 .when(globalJwtPort).generateTokenHash("access-token-1");
 
         // When
-        userBanService.blacklistAllUserTokens(userId);
+        blacklistService.blacklistAllUserTokens(userId);
 
         // Then
         ArgumentCaptor<List<String>> hashesCaptor = ArgumentCaptor.forClass(List.class);
@@ -220,7 +220,7 @@ class UserBanServiceTest extends BaseUnitTest {
                 .when(globalJwtPort).generateTokenHash(anyString());
 
         // When
-        userBanService.blacklistAllUserTokens(userId);
+        blacklistService.blacklistAllUserTokens(userId);
 
         // Then
         verify(globalTokenQueryPort).findAllByUserId(userId);
@@ -239,7 +239,7 @@ class UserBanServiceTest extends BaseUnitTest {
                 .when(globalTokenQueryPort).findAllByUserId(userId);
 
         // When
-        userBanService.blacklistAllUserTokens(userId);
+        blacklistService.blacklistAllUserTokens(userId);
 
         // Then
         verify(globalTokenQueryPort).findAllByUserId(userId);
@@ -263,7 +263,7 @@ class UserBanServiceTest extends BaseUnitTest {
         }
 
         // When
-        userBanService.blacklistAllUserTokens(userId);
+        blacklistService.blacklistAllUserTokens(userId);
 
         // Then
         verify(globalTokenQueryPort).findAllByUserId(userId);
@@ -290,7 +290,7 @@ class UserBanServiceTest extends BaseUnitTest {
         SocialProvider provider = SocialProvider.KAKAO;
 
         // When
-        userBanService.addToBlacklist(userId, socialId, provider);
+        blacklistService.addToBlacklist(userId, socialId, provider);
 
         // Then
         ArgumentCaptor<BlackList> blackListCaptor = ArgumentCaptor.forClass(BlackList.class);
@@ -314,7 +314,7 @@ class UserBanServiceTest extends BaseUnitTest {
                 .when(blacklistPort).saveBlackList(any(BlackList.class));
 
         // When - 예외가 발생해도 메서드가 정상 종료되어야 함 (로그만 출력)
-        userBanService.addToBlacklist(userId, socialId, provider);
+        blacklistService.addToBlacklist(userId, socialId, provider);
 
         // Then
         verify(blacklistPort).saveBlackList(any(BlackList.class));
@@ -329,7 +329,7 @@ class UserBanServiceTest extends BaseUnitTest {
         SocialProvider provider = null;
 
         // When
-        userBanService.addToBlacklist(userId, socialId, provider);
+        blacklistService.addToBlacklist(userId, socialId, provider);
 
         // Then
         ArgumentCaptor<BlackList> blackListCaptor = ArgumentCaptor.forClass(BlackList.class);
@@ -350,7 +350,7 @@ class UserBanServiceTest extends BaseUnitTest {
         SocialProvider provider = SocialProvider.KAKAO;
 
         // When
-        userBanService.addToBlacklist(userId, socialId, provider);
+        blacklistService.addToBlacklist(userId, socialId, provider);
 
         // Then
         ArgumentCaptor<BlackList> blackListCaptor = ArgumentCaptor.forClass(BlackList.class);
@@ -361,7 +361,7 @@ class UserBanServiceTest extends BaseUnitTest {
     }
 
     /**
-     * 복수의 임시 토큰 생성 - UserBanServiceTest 전용
+     * 복수의 임시 토큰 생성 - BlacklistServiceTest 전용
      * 매 호출마다 새로운 리스트를 생성하여 반환
      */
     private List<Token> createMultipleTokens(int count) {

@@ -3,9 +3,6 @@ package jaeik.bimillog.domain.notification.service;
 import jaeik.bimillog.domain.notification.application.port.out.NotificationCommandPort;
 import jaeik.bimillog.domain.notification.application.service.NotificationCommandService;
 import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
-import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
-import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
-import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -17,8 +14,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 /**
@@ -41,32 +36,30 @@ class NotificationCommandServiceTest {
     private NotificationCommandService notificationCommandService;
 
     @Test
-    @DisplayName("알림 일괄 업데이트 - null 사용자 예외 검증")
-    void shouldThrowException_WhenNullUser() {
+    @DisplayName("알림 일괄 업데이트 - null 사용자 처리")
+    void shouldDelegateToPort_WhenNullUser() {
         // Given
-        CustomUserDetails nullUserDetails = null;
+        Long nullUserId = null;
         NotificationUpdateVO updateCommand = NotificationUpdateVO.of(Arrays.asList(1L, 2L), List.of(3L));
 
-        // When & Then
-        assertThatThrownBy(() -> notificationCommandService.batchUpdate(nullUserDetails, updateCommand))
-                .isInstanceOf(NotificationCustomException.class)
-                .hasFieldOrPropertyWithValue("notificationErrorCode", NotificationErrorCode.INVALID_USER_CONTEXT);
+        // When
+        notificationCommandService.batchUpdate(nullUserId, updateCommand);
 
-        verifyNoInteractions(notificationCommandPort);
+        // Then
+        verify(notificationCommandPort).batchUpdate(nullUserId, updateCommand);
     }
 
     @Test
     @DisplayName("알림 일괄 업데이트 - 정상 플로우")
     void shouldDelegateToPort_WhenUserPresent() {
         // Given
-        CustomUserDetails userDetails = mock(CustomUserDetails.class);
+        Long userId = 42L;
         NotificationUpdateVO updateCommand = NotificationUpdateVO.of(List.of(10L), List.of(20L));
-        given(userDetails.getUserId()).willReturn(42L);
 
         // When
-        notificationCommandService.batchUpdate(userDetails, updateCommand);
+        notificationCommandService.batchUpdate(userId, updateCommand);
 
         // Then
-        verify(notificationCommandPort).batchUpdate(42L, updateCommand);
+        verify(notificationCommandPort).batchUpdate(userId, updateCommand);
     }
 }

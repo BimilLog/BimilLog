@@ -2,7 +2,9 @@ package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.global.application.port.out.GlobalUserQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostCommandPort;
+import jaeik.bimillog.domain.post.application.port.out.PostLikeCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
+import jaeik.bimillog.domain.post.application.port.out.PostToCommentPort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
 import jaeik.bimillog.domain.post.application.service.PostCommandService;
 import jaeik.bimillog.domain.post.entity.Post;
@@ -46,6 +48,12 @@ class PostCommandServiceTest extends BaseUnitTest {
 
     @Mock
     private RedisPostCommandPort redisPostCommandPort;
+
+    @Mock
+    private PostLikeCommandPort postLikeCommandPort;
+
+    @Mock
+    private PostToCommentPort postToCommentPort;
 
     @InjectMocks
     private PostCommandService postCommandService;
@@ -160,6 +168,8 @@ class PostCommandServiceTest extends BaseUnitTest {
         // Then
         verify(postQueryPort, times(1)).findById(postId);
         verify(postToDelete, times(1)).isAuthor(userId);
+        verify(postToCommentPort, times(1)).deleteCommentInPost(postId);
+        verify(postLikeCommandPort, times(1)).deletePostLikeByPostId(postId);
         verify(postCommandPort, times(1)).delete(postToDelete);
         verify(redisPostCommandPort, times(1)).deleteCache(null, postId);
         verifyNoMoreInteractions(postQueryPort, postCommandPort, redisPostCommandPort);

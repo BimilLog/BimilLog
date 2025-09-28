@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.post.service;
 
+import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostSyncPort;
 import jaeik.bimillog.domain.post.application.service.PostCacheSyncService;
@@ -45,6 +46,9 @@ class PostCacheSyncServiceTest {
     private RedisPostSyncPort redisPostSyncPort;
 
     @Mock
+    private PostQueryPort postQueryPort;
+
+    @Mock
     private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
@@ -62,8 +66,8 @@ class PostCacheSyncServiceTest {
         PostDetail fullPost2 = createPostDetail(2L, "제목2", "내용2");
 
         given(redisPostSyncPort.findRealtimePopularPosts()).willReturn(posts);
-        given(redisPostSyncPort.findPostDetail(1L)).willReturn(fullPost1);
-        given(redisPostSyncPort.findPostDetail(2L)).willReturn(fullPost2);
+        given(postQueryPort.findPostDetail(1L)).willReturn(fullPost1);
+        given(postQueryPort.findPostDetail(2L)).willReturn(fullPost2);
 
         // When
         postCacheSyncService.updateRealtimePopularPosts();
@@ -107,8 +111,8 @@ class PostCacheSyncServiceTest {
         PostDetail fullPost2 = createPostDetail(2L, "주간인기글2", "내용2");
 
         given(redisPostSyncPort.findWeeklyPopularPosts()).willReturn(posts);
-        given(redisPostSyncPort.findPostDetail(1L)).willReturn(fullPost1);
-        given(redisPostSyncPort.findPostDetail(2L)).willReturn(fullPost2);
+        given(postQueryPort.findPostDetail(1L)).willReturn(fullPost1);
+        given(postQueryPort.findPostDetail(2L)).willReturn(fullPost2);
 
         // When
         postCacheSyncService.updateWeeklyPopularPosts();
@@ -142,8 +146,8 @@ class PostCacheSyncServiceTest {
         PostDetail fullPost2 = createPostDetail(2L, "회원글", "내용2");
 
         given(redisPostSyncPort.findWeeklyPopularPosts()).willReturn(posts);
-        given(redisPostSyncPort.findPostDetail(1L)).willReturn(fullPost1);
-        given(redisPostSyncPort.findPostDetail(2L)).willReturn(fullPost2);
+        given(postQueryPort.findPostDetail(1L)).willReturn(fullPost1);
+        given(postQueryPort.findPostDetail(2L)).willReturn(fullPost2);
 
         // When
         postCacheSyncService.updateWeeklyPopularPosts();
@@ -172,7 +176,7 @@ class PostCacheSyncServiceTest {
         PostDetail fullPost = createPostDetail(1L, "전설의글", "전설적인 내용");
 
         given(redisPostSyncPort.findLegendaryPosts()).willReturn(posts);
-        given(redisPostSyncPort.findPostDetail(1L)).willReturn(fullPost);
+        given(postQueryPort.findPostDetail(1L)).willReturn(fullPost);
 
         // When
         postCacheSyncService.updateLegendaryPosts();
@@ -201,7 +205,7 @@ class PostCacheSyncServiceTest {
         List<PostSearchResult> posts = List.of(legendPost);
 
         given(redisPostSyncPort.findLegendaryPosts()).willReturn(posts);
-        given(redisPostSyncPort.findPostDetail(1L)).willReturn(null);
+        given(postQueryPort.findPostDetail(1L)).willReturn(null);
 
         // When
         postCacheSyncService.updateLegendaryPosts();
@@ -247,7 +251,7 @@ class PostCacheSyncServiceTest {
 
         given(redisPostSyncPort.findWeeklyPopularPosts()).willReturn(largePosts);
         // 모든 상세 정보는 null로 설정하여 상세 캐싱 건너뛰기
-        largePosts.forEach(post -> given(redisPostSyncPort.findPostDetail(post.getId())).willReturn(null));
+        largePosts.forEach(post -> given(postQueryPort.findPostDetail(post.getId())).willReturn(null));
 
         // When
         postCacheSyncService.updateWeeklyPopularPosts();

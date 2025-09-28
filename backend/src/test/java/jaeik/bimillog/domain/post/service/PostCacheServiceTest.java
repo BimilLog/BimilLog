@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.post.service;
 
+import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
-import jaeik.bimillog.domain.post.application.port.out.RedisPostSyncPort;
 import jaeik.bimillog.domain.post.application.service.PostCacheService;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
@@ -33,7 +33,7 @@ class PostCacheServiceTest {
     private RedisPostCommandPort redisPostCommandPort;
 
     @Mock
-    private RedisPostSyncPort redisPostSyncPort;
+    private PostQueryPort postQueryPort;
 
     @InjectMocks
     private PostCacheService postCacheService;
@@ -57,7 +57,7 @@ class PostCacheServiceTest {
                 .isNotice(true)
                 .isLiked(false)
                 .build();
-        given(redisPostSyncPort.findPostDetail(postId)).willReturn(detail);
+        given(postQueryPort.findPostDetail(postId)).willReturn(detail);
 
         // When
         postCacheService.syncNoticeCache(postId, true);
@@ -73,13 +73,13 @@ class PostCacheServiceTest {
     void shouldSkipCacheWhenDetailMissing() {
         // Given
         Long postId = 1L;
-        given(redisPostSyncPort.findPostDetail(postId)).willReturn(null);
+        given(postQueryPort.findPostDetail(postId)).willReturn(null);
 
         // When
         postCacheService.syncNoticeCache(postId, true);
 
         // Then
-        verify(redisPostSyncPort).findPostDetail(postId);
+        verify(postQueryPort).findPostDetail(postId);
         verify(redisPostCommandPort, never()).cachePostsWithDetails(any(), any());
     }
 
@@ -94,6 +94,6 @@ class PostCacheServiceTest {
 
         // Then
         verify(redisPostCommandPort).deleteCache(null, postId, PostCacheFlag.NOTICE);
-        verify(redisPostSyncPort, never()).findPostDetail(any());
+        verify(postQueryPort, never()).findPostDetail(any());
     }
 }
