@@ -9,14 +9,13 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
  *
  * @param userId 로그아웃을 수행한 사용자의 고유 ID
  * @param tokenId 무효화할 JWT 토큰의 고유 ID
- * @param loggedOutAt 로그아웃 이벤트가 발생한 정확한 시간
  * @author Jaeik
  * @version 2.0.0
  *
  */
 public record UserLoggedOutEvent(Long userId,
-                                 String socialId,
                                  Long tokenId,
+                                 Long fcmTokenId,
                                  SocialProvider provider){
 
 }

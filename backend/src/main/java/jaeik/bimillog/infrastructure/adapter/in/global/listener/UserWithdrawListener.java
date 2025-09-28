@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class UserWithdrawListener {
+
     private final SocialWithdrawUseCase socialWithdrawUseCase;
     private final SseUseCase sseUseCase;
     private final FcmUseCase fcmUseCase;

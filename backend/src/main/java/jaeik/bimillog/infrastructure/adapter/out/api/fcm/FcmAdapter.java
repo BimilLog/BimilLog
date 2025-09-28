@@ -70,9 +70,6 @@ public class FcmAdapter implements FcmPort {
         return fcmTokenRepository.save(fcmToken);
     }
 
-
-    /* ===================== FCM Token Management Methods ===================== */
-
     /**
      * <h3>사용자 ID로 FCM 토큰 삭제</h3>
      * <p>사용자 탈퇴나 로그아웃 시 해당 사용자의 모든 FCM 토큰을 삭제합니다.</p>

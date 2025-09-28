@@ -148,7 +148,7 @@ public class FcmService implements FcmUseCase {
     }
 
     @Override
-    public void deleteFcmTokenByTokenId(Long userId, Long tokenId) {
+    public void deleteFcmTokenByTokenId(Long userId, Long fcmTokenId) {
 
     }
 

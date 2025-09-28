@@ -28,11 +28,12 @@ public class UserLogoutListener {
     public void userLogout(UserLoggedOutEvent userLoggedOutEvent) {
         Long userId = userLoggedOutEvent.userId();
         Long tokenId = userLoggedOutEvent.tokenId();
+        Long fcmTokenId = userLoggedOutEvent.fcmTokenId();
         SocialProvider provider = userLoggedOutEvent.provider();
 
         sseUseCase.deleteEmitterByUserIdAndTokenId(userId, tokenId);
         socialLogoutUseCase.logout(userId, provider, tokenId);
-        fcmUseCase.deleteFcmTokenByTokenId(userId, tokenId); // 구현 필요
+        fcmUseCase.deleteFcmTokenByTokenId(userId, fcmTokenId); // 구현 필요
         tokenUseCase.deleteTokens(userId, tokenId);
         SecurityContextHolder.clearContext();
 

@@ -90,9 +90,9 @@ public interface FcmUseCase {
      * <p>{@link UserLoggedOutEvent} 이벤트 발생시 특정 기기 로그아웃 처리 흐름에서 호출됩니다.</p>
      *
      * @param userId  사용자 ID
-     * @param tokenId 삭제할 토큰 ID
+     * @param fcmTokenId 삭제할 토큰 ID
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteFcmTokenByTokenId(Long userId, Long tokenId);
+    void deleteFcmTokenByTokenId(Long userId, Long fcmTokenId);
 }

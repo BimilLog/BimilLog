@@ -4,7 +4,6 @@ import jaeik.bimillog.domain.admin.event.UserBannedEvent;
 import jaeik.bimillog.domain.auth.application.port.in.SocialLogoutUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.TokenUseCase;
 import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
-import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
@@ -18,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserBannedListener {
 
     private final SocialLogoutUseCase socialLogoutUseCase;
-    private final SseUseCase sseUseCase;
     private final FcmUseCase fcmUseCase;
     private final TokenUseCase tokenUseCase;
 
