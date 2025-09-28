@@ -16,7 +16,7 @@ import jaeik.bimillog.infrastructure.adapter.in.notification.web.NotificationSse
  * @author Jaeik
  * @version 2.0.0
  */
-public interface NotificationFcmUseCase {
+public interface FcmUseCase {
 
     /**
      * <h3>FCM 토큰 등록</h3>

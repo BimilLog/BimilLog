@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.notification.application.service;
 
-import jaeik.bimillog.domain.notification.application.port.in.NotificationSseUseCase;
-import jaeik.bimillog.domain.notification.application.port.out.NotificationUrlPort;
+import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
+import jaeik.bimillog.domain.notification.application.port.out.UrlGeneratorPort;
 import jaeik.bimillog.domain.notification.application.port.out.SsePort;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.SseMessage;
@@ -21,10 +21,10 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
  */
 @Service
 @RequiredArgsConstructor
-public class NotificationSseService implements NotificationSseUseCase {
+public class SseService implements SseUseCase {
 
     private final SsePort ssePort;
-    private final NotificationUrlPort notificationUrlPort;
+    private final UrlGeneratorPort urlGeneratorPort;
 
     /**
      * <h3>SSE 구독</h3>
@@ -88,7 +88,7 @@ public class NotificationSseService implements NotificationSseUseCase {
     @Override
     public void sendCommentNotification(Long postUserId, String commenterName, Long postId) {
         String message = commenterName + "님이 댓글을 남겼습니다!";
-        String url = notificationUrlPort.generatePostUrl(postId);
+        String url = urlGeneratorPort.generatePostUrl(postId);
         SseMessage sseMessage = SseMessage.of(postUserId, NotificationType.COMMENT, message, url);
         ssePort.send(sseMessage);
     }
@@ -107,7 +107,7 @@ public class NotificationSseService implements NotificationSseUseCase {
     @Override
     public void sendPaperPlantNotification(Long farmOwnerId, String userName) {
         String message = "롤링페이퍼에 메시지가 작성되었어요!";
-        String url = notificationUrlPort.generateRollingPaperUrl(userName);
+        String url = urlGeneratorPort.generateRollingPaperUrl(userName);
         SseMessage sseMessage = SseMessage.of(farmOwnerId, NotificationType.PAPER, message, url);
         ssePort.send(sseMessage);
     }
@@ -126,7 +126,7 @@ public class NotificationSseService implements NotificationSseUseCase {
      */
     @Override
     public void sendPostFeaturedNotification(Long userId, String message, Long postId) {
-        String url = notificationUrlPort.generatePostUrl(postId);
+        String url = urlGeneratorPort.generatePostUrl(postId);
         SseMessage sseMessage = SseMessage.of(userId, NotificationType.POST_FEATURED, message, url);
         ssePort.send(sseMessage);
     }

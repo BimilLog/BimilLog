@@ -3,7 +3,7 @@ package jaeik.bimillog.adapter.out.user;
 import jaeik.bimillog.domain.auth.application.port.out.TokenCommandPort;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.entity.Token;
-import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
+import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
 import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
@@ -37,7 +37,7 @@ class SaveUserAdapterTest extends BaseUnitTest {
 
     @Mock private TokenCommandPort tokenCommandPort;
     @Mock private UserRepository userRepository;
-    @Mock private NotificationFcmUseCase notificationFcmUseCase;
+    @Mock private FcmUseCase fcmUseCase;
 
     @InjectMocks private SaveUserAdapter saveUserAdapter;
 
@@ -63,7 +63,7 @@ class SaveUserAdapterTest extends BaseUnitTest {
                 .build();
 
         given(tokenCommandPort.save(any(Token.class))).willReturn(savedToken);
-        given(notificationFcmUseCase.registerFcmToken(existingUser, fcmToken)).willReturn(fcmTokenId);
+        given(fcmUseCase.registerFcmToken(existingUser, fcmToken)).willReturn(fcmTokenId);
 
         // When: 기존 사용자 로그인 처리
         ExistingUserDetail result = saveUserAdapter.handleExistingUserData(existingUser, userProfile, fcmToken);
@@ -81,7 +81,7 @@ class SaveUserAdapterTest extends BaseUnitTest {
         assertThat(capturedToken.getUsers()).isEqualTo(existingUser);
 
         // FCM 토큰 등록 및 ID 반환 검증
-        verify(notificationFcmUseCase).registerFcmToken(existingUser, fcmToken);
+        verify(fcmUseCase).registerFcmToken(existingUser, fcmToken);
 
         // 반환된 ExistingUserDetail 검증
         assertThat(result).isNotNull();
@@ -112,7 +112,7 @@ class SaveUserAdapterTest extends BaseUnitTest {
         ExistingUserDetail result = saveUserAdapter.handleExistingUserData(existingUser, userProfile, null);
 
         // Then: FCM 토큰 등록이 호출되지 않았는지 검증
-        verify(notificationFcmUseCase, never()).registerFcmToken(any(), any());
+        verify(fcmUseCase, never()).registerFcmToken(any(), any());
         verify(tokenCommandPort).save(any(Token.class));
 
         // FCM 토큰 ID가 null인지 검증
@@ -141,7 +141,7 @@ class SaveUserAdapterTest extends BaseUnitTest {
 
         given(userRepository.save(any(User.class))).willReturn(newUser);
         given(tokenCommandPort.save(any(Token.class))).willReturn(newToken);
-        given(notificationFcmUseCase.registerFcmToken(newUser, fcmToken)).willReturn(fcmTokenId);
+        given(fcmUseCase.registerFcmToken(newUser, fcmToken)).willReturn(fcmTokenId);
 
         // When: 신규 사용자 저장
         ExistingUserDetail result = saveUserAdapter.saveNewUser(userName, userProfile, fcmToken);
@@ -156,7 +156,7 @@ class SaveUserAdapterTest extends BaseUnitTest {
         assertThat(capturedUser.getSocialId()).isEqualTo("987654321");
 
         // FCM 토큰 등록 및 ID 반환 검증
-        verify(notificationFcmUseCase).registerFcmToken(newUser, fcmToken);
+        verify(fcmUseCase).registerFcmToken(newUser, fcmToken);
 
         // 토큰 저장 검증
         verify(tokenCommandPort).save(any(Token.class));
@@ -195,7 +195,7 @@ class SaveUserAdapterTest extends BaseUnitTest {
         ExistingUserDetail result = saveUserAdapter.saveNewUser(userName, userProfile, fcmToken);
 
         // Then: FCM 토큰이 null이므로 FCM 등록 호출되지 않음
-        verify(notificationFcmUseCase, never()).registerFcmToken(any(), any());
+        verify(fcmUseCase, never()).registerFcmToken(any(), any());
 
         // 반환된 ExistingUserDetail의 FCM 토큰 ID가 null인지 검증
         assertThat(result.getFcmTokenId()).isNull();

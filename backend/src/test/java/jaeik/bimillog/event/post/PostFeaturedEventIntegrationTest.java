@@ -1,7 +1,7 @@
 package jaeik.bimillog.event.post;
 
-import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
-import jaeik.bimillog.domain.notification.application.port.in.NotificationSseUseCase;
+import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
+import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import jaeik.bimillog.testutil.EventTestDataBuilder;
@@ -27,10 +27,10 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 public class PostFeaturedEventIntegrationTest extends BaseEventIntegrationTest {
 
     @MockitoBean
-    private NotificationSseUseCase notificationSseUseCase;
+    private SseUseCase sseUseCase;
 
     @MockitoBean
-    private NotificationFcmUseCase notificationFcmUseCase;
+    private FcmUseCase fcmUseCase;
 
     @Test
     @DisplayName("인기글 등극 이벤트 워크플로우 - SSE와 FCM 알림까지 완료")
@@ -46,11 +46,11 @@ public class PostFeaturedEventIntegrationTest extends BaseEventIntegrationTest {
 
         // When & Then
         publishAndVerify(event, () -> {
-            verify(notificationSseUseCase).sendPostFeaturedNotification(
+            verify(sseUseCase).sendPostFeaturedNotification(
                     eq(userId), eq(sseMessage), eq(postId));
-            verify(notificationFcmUseCase).sendPostFeaturedNotification(
+            verify(fcmUseCase).sendPostFeaturedNotification(
                     eq(userId), eq(fcmTitle), eq(fcmBody));
-            verifyNoMoreInteractions(notificationSseUseCase, notificationFcmUseCase);
+            verifyNoMoreInteractions(sseUseCase, fcmUseCase);
         });
     }
 
@@ -67,20 +67,20 @@ public class PostFeaturedEventIntegrationTest extends BaseEventIntegrationTest {
 
         // When & Then - 모든 이벤트가 독립적으로 처리되어야 함
         publishEventsAndVerify(new Object[]{event1, event2, event3}, () -> {
-            verify(notificationSseUseCase).sendPostFeaturedNotification(
+            verify(sseUseCase).sendPostFeaturedNotification(
                     eq(1L), eq("게시글 1이 인기글에 선정되었습니다!"), eq(101L));
-            verify(notificationSseUseCase).sendPostFeaturedNotification(
+            verify(sseUseCase).sendPostFeaturedNotification(
                     eq(2L), eq("게시글 2가 명예의 전당에 등록되었습니다!"), eq(102L));
-            verify(notificationSseUseCase).sendPostFeaturedNotification(
+            verify(sseUseCase).sendPostFeaturedNotification(
                     eq(3L), eq("게시글 3이 주간 베스트에 선정되었습니다!"), eq(103L));
 
-            verify(notificationFcmUseCase).sendPostFeaturedNotification(
+            verify(fcmUseCase).sendPostFeaturedNotification(
                     eq(1L), eq("인기글 선정"), eq("축하합니다!"));
-            verify(notificationFcmUseCase).sendPostFeaturedNotification(
+            verify(fcmUseCase).sendPostFeaturedNotification(
                     eq(2L), eq("명예의 전당"), eq("대단합니다!"));
-            verify(notificationFcmUseCase).sendPostFeaturedNotification(
+            verify(fcmUseCase).sendPostFeaturedNotification(
                     eq(3L), eq("주간 베스트"), eq("훌륭합니다!"));
-            verifyNoMoreInteractions(notificationSseUseCase, notificationFcmUseCase);
+            verifyNoMoreInteractions(sseUseCase, fcmUseCase);
         });
     }
 
@@ -98,20 +98,20 @@ public class PostFeaturedEventIntegrationTest extends BaseEventIntegrationTest {
 
         // When & Then - 동일 사용자라도 각 게시글에 대해 개별 알림이 발송되어야 함
         publishEventsAndVerify(new Object[]{event1, event2, event3}, () -> {
-            verify(notificationSseUseCase).sendPostFeaturedNotification(
+            verify(sseUseCase).sendPostFeaturedNotification(
                     eq(userId), eq("첫 번째 게시글이 인기글에 선정!"), eq(101L));
-            verify(notificationSseUseCase).sendPostFeaturedNotification(
+            verify(sseUseCase).sendPostFeaturedNotification(
                     eq(userId), eq("두 번째 게시글도 인기글에 선정!"), eq(102L));
-            verify(notificationSseUseCase).sendPostFeaturedNotification(
+            verify(sseUseCase).sendPostFeaturedNotification(
                     eq(userId), eq("세 번째 게시글까지 인기글 선정!"), eq(103L));
 
-            verify(notificationFcmUseCase).sendPostFeaturedNotification(
+            verify(fcmUseCase).sendPostFeaturedNotification(
                     eq(userId), eq("인기글 1"), eq("축하해요!"));
-            verify(notificationFcmUseCase).sendPostFeaturedNotification(
+            verify(fcmUseCase).sendPostFeaturedNotification(
                     eq(userId), eq("인기글 2"), eq("대단해요!"));
-            verify(notificationFcmUseCase).sendPostFeaturedNotification(
+            verify(fcmUseCase).sendPostFeaturedNotification(
                     eq(userId), eq("인기글 3"), eq("놀라워요!"));
-            verifyNoMoreInteractions(notificationSseUseCase, notificationFcmUseCase);
+            verifyNoMoreInteractions(sseUseCase, fcmUseCase);
         });
     }
 

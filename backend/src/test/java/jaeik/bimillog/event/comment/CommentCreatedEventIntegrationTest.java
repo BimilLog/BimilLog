@@ -1,8 +1,8 @@
 package jaeik.bimillog.event.comment;
 
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
-import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
-import jaeik.bimillog.domain.notification.application.port.in.NotificationSseUseCase;
+import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
+import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -25,10 +25,10 @@ import static org.mockito.Mockito.verify;
 class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
 
     @MockitoBean
-    private NotificationSseUseCase notificationSseUseCase;
+    private SseUseCase sseUseCase;
 
     @MockitoBean
-    private NotificationFcmUseCase notificationFcmUseCase;
+    private FcmUseCase fcmUseCase;
 
     @Test
     @DisplayName("댓글 생성 이벤트 발생 시 SSE와 FCM 알림 유스케이스 호출 검증")
@@ -38,9 +38,9 @@ class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
 
         // When & Then
         publishAndVerify(event, () -> {
-            verify(notificationSseUseCase).sendCommentNotification(
+            verify(sseUseCase).sendCommentNotification(
                     eq(1L), eq("댓글작성자"), eq(100L));
-            verify(notificationFcmUseCase).sendCommentNotification(
+            verify(fcmUseCase).sendCommentNotification(
                     eq(1L), eq("댓글작성자"));
         });
     }
@@ -58,21 +58,21 @@ class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
         publishEvents(events);
         verifyAsyncSlow(() -> {
             // 첫 번째 이벤트
-            verify(notificationSseUseCase).sendCommentNotification(
+            verify(sseUseCase).sendCommentNotification(
                     eq(1L), eq("댓글작성자1"), eq(100L));
-            verify(notificationFcmUseCase).sendCommentNotification(
+            verify(fcmUseCase).sendCommentNotification(
                     eq(1L), eq("댓글작성자1"));
             
             // 두 번째 이벤트
-            verify(notificationSseUseCase).sendCommentNotification(
+            verify(sseUseCase).sendCommentNotification(
                     eq(1L), eq("댓글작성자2"), eq(100L));
-            verify(notificationFcmUseCase).sendCommentNotification(
+            verify(fcmUseCase).sendCommentNotification(
                     eq(1L), eq("댓글작성자2"));
             
             // 세 번째 이벤트
-            verify(notificationSseUseCase).sendCommentNotification(
+            verify(sseUseCase).sendCommentNotification(
                     eq(2L), eq("댓글작성자3"), eq(101L));
-            verify(notificationFcmUseCase).sendCommentNotification(
+            verify(fcmUseCase).sendCommentNotification(
                     eq(2L), eq("댓글작성자3"));
         });
     }

@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.notification.service;
 import jaeik.bimillog.domain.global.application.port.out.GlobalUserQueryPort;
 import jaeik.bimillog.domain.notification.application.port.out.FcmPort;
 import jaeik.bimillog.domain.notification.application.port.out.NotificationUtilPort;
-import jaeik.bimillog.domain.notification.application.service.NotificationFcmService;
+import jaeik.bimillog.domain.notification.application.service.FcmService;
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
@@ -32,7 +32,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 /**
- * <h2>NotificationFcmService 테스트</h2>
+ * <h2>FcmService 테스트</h2>
  * <p>FCM 알림 서비스의 비즈니스 로직을 검증하는 단위 테스트</p>
  *
  * @author Jaeik
@@ -40,7 +40,7 @@ import static org.mockito.Mockito.*;
  *
  */
 @ExtendWith(MockitoExtension.class)
-@DisplayName("NotificationFcmService 테스트")
+@DisplayName("FcmService 테스트")
 @Tag("test")
 class NotificationFcmServiceTest {
 
@@ -54,7 +54,7 @@ class NotificationFcmServiceTest {
     private NotificationUtilPort notificationUtilPort;
 
     @InjectMocks
-    private NotificationFcmService notificationFcmService;
+    private FcmService notificationFcmService;
 
     @Test
     @DisplayName("FCM 토큰 등록 - 성공")

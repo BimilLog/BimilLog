@@ -16,7 +16,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
  * @author Jaeik
  * @version 2.0.0
  */
-public interface NotificationSseUseCase {
+public interface SseUseCase {
 
     /**
      * <h3>SSE 구독</h3>

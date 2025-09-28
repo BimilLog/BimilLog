@@ -10,7 +10,7 @@ import jaeik.bimillog.domain.notification.application.service.NotificationComman
  * @author Jaeik
  * @version 2.0.0
  */
-public interface NotificationUrlPort {
+public interface UrlGeneratorPort {
 
     /**
      * <h3>게시물 URL 생성</h3>

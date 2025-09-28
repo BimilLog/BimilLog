@@ -1,7 +1,7 @@
 
 package jaeik.bimillog.infrastructure.adapter.out.notification.url;
 
-import jaeik.bimillog.domain.notification.application.port.out.NotificationUrlPort;
+import jaeik.bimillog.domain.notification.application.port.out.UrlGeneratorPort;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
  * @version 2.0.0
  */
 @Component
-public class NotificationUrlAdapter implements NotificationUrlPort {
+public class UrlGeneratorAdapter implements UrlGeneratorPort {
 
     private final String baseUrl;
 
@@ -26,7 +26,7 @@ public class NotificationUrlAdapter implements NotificationUrlPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    public NotificationUrlAdapter(@Value("${url}") String baseUrl) {
+    public UrlGeneratorAdapter(@Value("${url}") String baseUrl) {
         this.baseUrl = baseUrl;
     }
 

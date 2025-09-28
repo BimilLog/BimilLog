@@ -1,8 +1,8 @@
 package jaeik.bimillog.event.auth;
 
 import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
-import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
-import jaeik.bimillog.domain.notification.application.port.in.NotificationSseUseCase;
+import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
+import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import jaeik.bimillog.testutil.EventTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
@@ -31,10 +31,10 @@ public class UserLoggedOutEventIntegrationTest extends BaseEventIntegrationTest 
     private WithdrawUseCase withdrawUseCase;
 
     @MockitoBean
-    private NotificationSseUseCase notificationSseUseCase;
+    private SseUseCase sseUseCase;
 
     @MockitoBean
-    private NotificationFcmUseCase notificationFcmUseCase;
+    private FcmUseCase fcmUseCase;
 
     @Test
     @DisplayName("사용자 로그아웃 이벤트 워크플로우 - 토큰 정리와 SSE 정리까지 완료")
@@ -50,9 +50,9 @@ public class UserLoggedOutEventIntegrationTest extends BaseEventIntegrationTest 
             // 특정 토큰 정리
             verify(withdrawUseCase).cleanupSpecificToken(eq(userId), eq(tokenId));
             // 특정 기기의 SSE 연결 정리
-            verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
+            verify(sseUseCase).deleteEmitterByUserIdAndTokenId(eq(userId), eq(tokenId));
             // FCM 토큰 삭제
-            verify(notificationFcmUseCase).deleteFcmTokens(eq(userId));
+            verify(fcmUseCase).deleteFcmTokens(eq(userId));
         });
     }
 
@@ -71,13 +71,13 @@ public class UserLoggedOutEventIntegrationTest extends BaseEventIntegrationTest 
             verify(withdrawUseCase).cleanupSpecificToken(eq(2L), eq(102L));
             verify(withdrawUseCase).cleanupSpecificToken(eq(3L), eq(103L));
 
-            verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(1L), eq(101L));
-            verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(2L), eq(102L));
-            verify(notificationSseUseCase).deleteEmitterByUserIdAndTokenId(eq(3L), eq(103L));
+            verify(sseUseCase).deleteEmitterByUserIdAndTokenId(eq(1L), eq(101L));
+            verify(sseUseCase).deleteEmitterByUserIdAndTokenId(eq(2L), eq(102L));
+            verify(sseUseCase).deleteEmitterByUserIdAndTokenId(eq(3L), eq(103L));
 
-            verify(notificationFcmUseCase).deleteFcmTokens(eq(1L));
-            verify(notificationFcmUseCase).deleteFcmTokens(eq(2L));
-            verify(notificationFcmUseCase).deleteFcmTokens(eq(3L));
+            verify(fcmUseCase).deleteFcmTokens(eq(1L));
+            verify(fcmUseCase).deleteFcmTokens(eq(2L));
+            verify(fcmUseCase).deleteFcmTokens(eq(3L));
         });
     }
 

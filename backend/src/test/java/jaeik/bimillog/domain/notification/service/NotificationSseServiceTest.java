@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.notification.service;
 
-import jaeik.bimillog.domain.notification.application.port.out.NotificationUrlPort;
+import jaeik.bimillog.domain.notification.application.port.out.UrlGeneratorPort;
 import jaeik.bimillog.domain.notification.application.port.out.SsePort;
-import jaeik.bimillog.domain.notification.application.service.NotificationSseService;
+import jaeik.bimillog.domain.notification.application.service.SseService;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.SseMessage;
 import org.junit.jupiter.api.DisplayName;
@@ -20,11 +20,11 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 /**
- * <h2>NotificationSseService 테스트</h2>
+ * <h2>SseService 테스트</h2>
  * <p>SSE 알림 서비스의 메시지 구성 및 포트 위임을 검증합니다.</p>
  */
 @ExtendWith(MockitoExtension.class)
-@DisplayName("NotificationSseService 테스트")
+@DisplayName("SseService 테스트")
 @Tag("test")
 class NotificationSseServiceTest {
 
@@ -32,10 +32,10 @@ class NotificationSseServiceTest {
     private SsePort ssePort;
 
     @Mock
-    private NotificationUrlPort notificationUrlPort;
+    private UrlGeneratorPort urlGeneratorPort;
 
     @InjectMocks
-    private NotificationSseService notificationSseService;
+    private SseService notificationSseService;
 
     @Test
     @DisplayName("SSE 구독은 포트에서 생성한 Emitter를 그대로 반환한다")
@@ -89,13 +89,13 @@ class NotificationSseServiceTest {
         Long postId = 77L;
         String commenterName = "댓글러";
         String expectedUrl = "/posts/" + postId;
-        given(notificationUrlPort.generatePostUrl(postId)).willReturn(expectedUrl);
+        given(urlGeneratorPort.generatePostUrl(postId)).willReturn(expectedUrl);
 
         // When
         notificationSseService.sendCommentNotification(postUserId, commenterName, postId);
 
         // Then
-        verify(notificationUrlPort).generatePostUrl(postId);
+        verify(urlGeneratorPort).generatePostUrl(postId);
         verify(ssePort).send(argThat(message ->
                 matchesMessage(message, postUserId, NotificationType.COMMENT,
                         commenterName + "님이 댓글을 남겼습니다!", expectedUrl)
@@ -109,13 +109,13 @@ class NotificationSseServiceTest {
         Long farmOwnerId = 99L;
         String userName = "롤링페이퍼";
         String expectedUrl = "/paper/" + userName;
-        given(notificationUrlPort.generateRollingPaperUrl(userName)).willReturn(expectedUrl);
+        given(urlGeneratorPort.generateRollingPaperUrl(userName)).willReturn(expectedUrl);
 
         // When
         notificationSseService.sendPaperPlantNotification(farmOwnerId, userName);
 
         // Then
-        verify(notificationUrlPort).generateRollingPaperUrl(userName);
+        verify(urlGeneratorPort).generateRollingPaperUrl(userName);
         verify(ssePort).send(argThat(message ->
                 matchesMessage(message, farmOwnerId, NotificationType.PAPER,
                         "롤링페이퍼에 메시지가 작성되었어요!", expectedUrl)
@@ -130,13 +130,13 @@ class NotificationSseServiceTest {
         Long postId = 31L;
         String message = "인기글 축하";
         String expectedUrl = "/posts/" + postId;
-        given(notificationUrlPort.generatePostUrl(postId)).willReturn(expectedUrl);
+        given(urlGeneratorPort.generatePostUrl(postId)).willReturn(expectedUrl);
 
         // When
         notificationSseService.sendPostFeaturedNotification(userId, message, postId);
 
         // Then
-        verify(notificationUrlPort).generatePostUrl(postId);
+        verify(urlGeneratorPort).generatePostUrl(postId);
         verify(ssePort).send(argThat(sseMessage ->
                 matchesMessage(sseMessage, userId, NotificationType.POST_FEATURED, message, expectedUrl)
         ));

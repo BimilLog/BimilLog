@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.notification.application.service;
 
-import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
+import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
 import jaeik.bimillog.domain.notification.application.port.out.FcmPort;
 import jaeik.bimillog.domain.notification.application.port.out.NotificationUtilPort;
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
@@ -26,7 +26,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class NotificationFcmService implements NotificationFcmUseCase {
+public class FcmService implements FcmUseCase {
 
     private final FcmPort fcmPort;
     private final NotificationUtilPort notificationUtilPort;

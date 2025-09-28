@@ -5,8 +5,8 @@ import jaeik.bimillog.domain.auth.application.port.in.SocialWithdrawUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.TokenUseCase;
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.bimillog.domain.notification.application.port.in.NotificationCommandUseCase;
-import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
-import jaeik.bimillog.domain.notification.application.port.in.NotificationSseUseCase;
+import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
+import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
 import jaeik.bimillog.domain.paper.application.port.in.PaperCommandUseCase;
 import jaeik.bimillog.domain.post.application.port.in.PostCommandUseCase;
 import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
@@ -24,8 +24,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserWithdrawListener {
     private final SocialWithdrawUseCase socialWithdrawUseCase;
-    private final NotificationSseUseCase notificationSseUseCase;
-    private final NotificationFcmUseCase notificationFcmUseCase;
+    private final SseUseCase sseUseCase;
+    private final FcmUseCase fcmUseCase;
     private final NotificationCommandUseCase notificationCommandUseCase;
     private final CommentCommandUseCase commentCommandUseCase;
     private final PostCommandUseCase postCommandUseCase;
@@ -43,12 +43,12 @@ public class UserWithdrawListener {
         SocialProvider provider = userWithdrawnEvent.userDetails().getSocialProvider();
         String socialId = userWithdrawnEvent.userDetails().getSocialId();
 
-        notificationSseUseCase.deleteAllEmitterByUserId(userId);
+        sseUseCase.deleteAllEmitterByUserId(userId);
         socialWithdrawUseCase.unlinkSocialAccount(provider, socialId);
         commentCommandUseCase.processUserCommentsOnWithdrawal(userId);
         postCommandUseCase.deleteAllPostsByUserId(userId); // 구현 필요
         tokenUseCase.deleteTokens(userId, null);
-        notificationFcmUseCase.deleteFcmTokens(userId);
+        fcmUseCase.deleteFcmTokens(userId);
         notificationCommandUseCase.deleteAllNotification(userDetails); // 구현 필요
         paperCommandUseCase.deleteAllMessagesByUserId(userId); // 구현 필요
         adminCommandUseCase.deleteAllReportsByUserId(userId); // 구현 필요

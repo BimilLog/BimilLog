@@ -1,8 +1,8 @@
 package jaeik.bimillog.infrastructure.adapter.in.notification.listener;
 
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
-import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
-import jaeik.bimillog.domain.notification.application.port.in.NotificationSseUseCase;
+import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
+import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
 import lombok.RequiredArgsConstructor;
@@ -25,8 +25,8 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class NotificationGenerateListener {
 
-    private final NotificationSseUseCase notificationSseUseCase;
-    private final NotificationFcmUseCase notificationFcmUseCase;
+    private final SseUseCase sseUseCase;
+    private final FcmUseCase fcmUseCase;
 
     /**
      * <h3>댓글 작성 알림 전송</h3>
@@ -41,13 +41,13 @@ public class NotificationGenerateListener {
     @Async("sseNotificationExecutor")
     public void handleCommentCreatedEvent(CommentCreatedEvent event) {
         // SSE 알림 전송
-        notificationSseUseCase.sendCommentNotification(
+        sseUseCase.sendCommentNotification(
                 event.postUserId(),
                 event.commenterName(),
                 event.postId());
         
         // FCM 알림 전송
-        notificationFcmUseCase.sendCommentNotification(
+        fcmUseCase.sendCommentNotification(
                 event.postUserId(),
                 event.commenterName());
     }
@@ -65,12 +65,12 @@ public class NotificationGenerateListener {
     @Async("sseNotificationExecutor")
     public void handleRollingPaperEvent(RollingPaperEvent event) {
         // SSE 알림 전송
-        notificationSseUseCase.sendPaperPlantNotification(
+        sseUseCase.sendPaperPlantNotification(
                 event.paperOwnerId(),
                 event.userName());
         
         // FCM 알림 전송
-        notificationFcmUseCase.sendPaperPlantNotification(
+        fcmUseCase.sendPaperPlantNotification(
                 event.paperOwnerId());
     }
 
@@ -87,13 +87,13 @@ public class NotificationGenerateListener {
     @Async("sseNotificationExecutor")
     public void handlePostFeaturedEvent(PostFeaturedEvent event) {
         // SSE 알림 전송
-        notificationSseUseCase.sendPostFeaturedNotification(
+        sseUseCase.sendPostFeaturedNotification(
                 event.userId(),
                 event.sseMessage(),
                 event.postId());
         
         // FCM 알림 전송
-        notificationFcmUseCase.sendPostFeaturedNotification(
+        fcmUseCase.sendPostFeaturedNotification(
                 event.userId(),
                 event.fcmTitle(),
                 event.fcmBody());

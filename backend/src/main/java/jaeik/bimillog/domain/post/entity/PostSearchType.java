@@ -22,13 +22,4 @@ public enum PostSearchType {
     PostSearchType(String value) {
         this.value = value;
     }
-
-    public static PostSearchType fromValue(String value) {
-        for (PostSearchType type : PostSearchType.values()) {
-            if (type.value.equals(value)) {
-                return type;
-            }
-        }
-        return null;
-    }
 }

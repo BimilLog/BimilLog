@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.in.notification.web;
 
-import jaeik.bimillog.domain.notification.application.port.in.NotificationSseUseCase;
+import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +25,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @RequestMapping("/api/notification")
 public class NotificationSseController {
 
-    private final NotificationSseUseCase notificationSSEUseCase;
+    private final SseUseCase SSEUseCase;
 
     /**
      * <h3>사용자 웹사이트 접속 시 실시간 알림 수신을 위한 SSE 구독 연결</h3>
@@ -44,6 +44,6 @@ public class NotificationSseController {
      */
     @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter subscribe(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        return notificationSSEUseCase.subscribe(userDetails.getUserId(), userDetails.getTokenId());
+        return SSEUseCase.subscribe(userDetails.getUserId(), userDetails.getTokenId());
     }
 }

@@ -3,7 +3,7 @@ package jaeik.bimillog.infrastructure.adapter.out.user;
 import jaeik.bimillog.domain.auth.application.port.out.TokenCommandPort;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.entity.Token;
-import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUseCase;
+import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
 import jaeik.bimillog.domain.user.application.port.out.SaveUserPort;
 import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.Setting;
@@ -37,7 +37,7 @@ public class SaveUserAdapter implements SaveUserPort {
 
     private final TokenCommandPort tokenCommandPort;
     private final UserRepository userRepository;
-    private final NotificationFcmUseCase notificationFcmUseCase;
+    private final FcmUseCase fcmUseCase;
 
     /**
      * <h3>기존 사용자 로그인 처리</h3>
@@ -101,7 +101,7 @@ public class SaveUserAdapter implements SaveUserPort {
      */
     private Long registerFcmTokenIfPresent(User user, String fcmToken) {
         if (fcmToken != null && !fcmToken.isEmpty()) {
-            return notificationFcmUseCase.registerFcmToken(user, fcmToken);
+            return fcmUseCase.registerFcmToken(user, fcmToken);
         }
         return null;
     }
