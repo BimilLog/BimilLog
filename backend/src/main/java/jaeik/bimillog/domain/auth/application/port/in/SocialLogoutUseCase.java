@@ -1,8 +1,8 @@
 
 package jaeik.bimillog.domain.auth.application.port.in;
 
+import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.in.auth.web.AuthCommandController;
-import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 
 /**
  * <h2>소셜 로그아웃 유스케이스</h2>
@@ -21,9 +21,16 @@ public interface SocialLogoutUseCase {
      * <p>{@link AuthCommandController}에서 POST /api/auth/logout 요청 처리 시 호출됩니다.</p>
      *
      * @param userDetails 인증된 사용자의 세부 정보
-     * @return 로그아웃 처리를 위한 쿠키 제거 지시가 담긴 ResponseCookie 리스트
      * @author Jaeik
      * @since 2.0.0
      */
-    void logout(CustomUserDetails userDetails);
+    void logout(Long userId, SocialProvider provider, Long tokenId);
+
+    /**
+     * <h3>강제 로그아웃 처리</h3>
+
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    void forceLogout(Long userId, SocialProvider provider, String socialId);
 }

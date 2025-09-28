@@ -149,7 +149,7 @@ public class UserCommandController {
      */
     @DeleteMapping("/withdraw")
     public ResponseEntity<AuthResponseDTO> withdraw(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        eventPublisher.publishEvent(new UserWithdrawnEvent(userDetails));
+        eventPublisher.publishEvent(new UserWithdrawnEvent(userDetails.getUserId(), userDetails.getSocialId(), userDetails.getSocialProvider()));
         return ResponseEntity.ok()
                 .headers(headers -> globalCookiePort.getLogoutCookies().forEach(cookie ->
                         headers.add("Set-Cookie", cookie.toString())))

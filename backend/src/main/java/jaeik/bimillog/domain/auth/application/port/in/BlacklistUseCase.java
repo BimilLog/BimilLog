@@ -43,6 +43,8 @@ public interface BlacklistUseCase {
      * <p>{@link AdminCommandController}에서 사용자 블랙리스트 API 요청 시 호출됩니다.</p>
      *
      * @param userId 블랙리스트에 추가할 사용자 ID
+     * @param socialId 소셜 ID
+     * @param provider 소셜 프로바이더 타입
      * @author Jaeik
      * @since 2.0.0
      */

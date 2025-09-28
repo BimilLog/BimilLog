@@ -45,7 +45,6 @@ public class PostExceptionHandler {
             case INFO -> log.info(logMessage, e.getPostErrorCode().name(), e.getMessage());
             case WARN -> log.warn(logMessage, e.getPostErrorCode().name(), e.getMessage());
             case ERROR -> log.error(logMessage, e.getPostErrorCode().name(), e.getMessage());
-            case FATAL -> log.error("FATAL - " + logMessage, e.getPostErrorCode().name(), e.getMessage());
         }
 
         return new ResponseEntity<>(response, e.getPostErrorCode().getStatus());

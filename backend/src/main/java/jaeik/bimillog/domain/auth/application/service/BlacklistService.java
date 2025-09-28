@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.auth.application.service;
 
-import jaeik.bimillog.domain.admin.event.UserForcedWithdrawalEvent;
 import jaeik.bimillog.domain.auth.application.port.in.BlacklistUseCase;
 import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.RedisJwtBlacklistPort;

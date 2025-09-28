@@ -8,10 +8,8 @@ import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.in.auth.web.AuthCommandController;
-import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 /**
@@ -43,11 +41,16 @@ public class SocialLogoutService implements SocialLogoutUseCase {
      * @since 2.0.0
      */
     @Override
-    public void logout(CustomUserDetails userDetails) {
-        Token token = getToken(userDetails);
-        performSocialLogout(userDetails, token);
-        SecurityContextHolder.clearContext();
+    public void logout(Long userId, SocialProvider provider, Long tokenId) {
+        Token token = getToken(tokenId);
+        performSocialLogout(userId, provider, token);
     }
+
+    @Override
+    public void forceLogout(Long userId, SocialProvider provider, String socialId) {
+
+    }
+
 
     /**
      * <h3>소셜 플랫폼 로그아웃 처리</h3>
@@ -57,19 +60,19 @@ public class SocialLogoutService implements SocialLogoutUseCase {
      * <p>{@link #logout} 메서드에서 메인 로그아웃 플로우의 일부로 호출됩니다.</p>
      *
      * @param userDetails 현재 인증된 사용자 정보
+     * @param token 사용자의 소셜 토큰 정보
      * @author Jaeik
      * @since 2.0.0
      */
-    private void performSocialLogout(CustomUserDetails userDetails, Token token) {
+    private void performSocialLogout(Long userId, SocialProvider provider, Token token) {
         try {
-            SocialProvider socialProvider = userDetails.getSocialProvider();
-            strategyRegistry.getStrategy(socialProvider).logout(socialProvider, token.getAccessToken());
-            log.debug("소셜 로그아웃 성공 - 사용자 ID: {}, 제공자: {}", userDetails.getUserId(), socialProvider);
+            strategyRegistry.getStrategy(provider).logout(provider, token.getAccessToken());
+            log.debug("소셜 로그아웃 성공 - 사용자 ID: {}, 제공자: {}", userId, provider);
         } catch (Exception e) {
             // 소셜 로그아웃 실패시에도 데이터 처리 계속 진행 로그만 남김
             log.error("소셜 로그아웃 실패 - 사용자 ID: {}, 제공자: {}, 오류: {}",
-                    userDetails.getUserId(),
-                    userDetails.getSocialProvider(),
+                    userId,
+                    provider,
                     e.getMessage());
         }
     }
@@ -87,12 +90,12 @@ public class SocialLogoutService implements SocialLogoutUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    private Token getToken(CustomUserDetails userDetails) {
+    private Token getToken(Long tokenId) {
         // 토큰 조회 실패시 로그아웃 예외 재로그인 필요
-        return globalTokenQueryPort.findById(userDetails.getTokenId())
+        return globalTokenQueryPort.findById(tokenId)
                 .orElseThrow(() -> {
-                    log.warn("로그아웃 토큰 조회 실패 - 사용자 ID: {}, 토큰 ID: {}",
-                            userDetails.getUserId(), userDetails.getTokenId());
+                    log.warn("로그아웃 토큰 조회 실패 - , 토큰 ID: {}",
+                            tokenId);
                     return new AuthCustomException(AuthErrorCode.NOT_FIND_TOKEN);
                 });
     }

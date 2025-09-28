@@ -1,8 +1,8 @@
 package jaeik.bimillog.infrastructure.adapter.in.global.listener;
 
+import jaeik.bimillog.domain.admin.event.UserBannedEvent;
 import jaeik.bimillog.domain.auth.application.port.in.SocialLogoutUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.TokenUseCase;
-import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
 import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
 import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class UserLogoutListener {
+public class UserBannedListener {
 
     private final SocialLogoutUseCase socialLogoutUseCase;
     private final SseUseCase sseUseCase;
@@ -25,16 +25,15 @@ public class UserLogoutListener {
     @Async
     @EventListener
     @Transactional
-    public void userLogout(UserLoggedOutEvent userLoggedOutEvent) {
-        Long userId = userLoggedOutEvent.userId();
-        Long tokenId = userLoggedOutEvent.tokenId();
-        SocialProvider provider = userLoggedOutEvent.provider();
+    public void userBanned(UserBannedEvent userBannedEvent) {
+        Long userId = userBannedEvent.userId();
+        String socialId = userBannedEvent.socialId();
+        SocialProvider provider = userBannedEvent.provider();
 
-        sseUseCase.deleteEmitterByUserIdAndTokenId(userId, tokenId);
-        socialLogoutUseCase.logout(userId, provider, tokenId);
-        fcmUseCase.deleteFcmTokenByTokenId(userId, tokenId); // 구현 필요
-        tokenUseCase.deleteTokens(userId, tokenId);
+        fcmUseCase.deleteFcmTokens(userId);
+        socialLogoutUseCase.forceLogout(userId, provider, socialId); // 구현 필요
+        fcmUseCase.deleteFcmTokens(userId);
+        tokenUseCase.deleteTokens(userId, null);
         SecurityContextHolder.clearContext();
-
     }
 }

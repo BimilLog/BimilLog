@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.user.event;
 
-import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
 
 /**
  * <h2>사용자 회원탈퇴 이벤트</h2>
@@ -10,5 +10,7 @@ import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
  * @author Jaeik
  * @version 2.0.0
  */
-public record UserWithdrawnEvent(CustomUserDetails userDetails) {
+public record UserWithdrawnEvent(Long userId,
+                                 String socialId,
+                                 SocialProvider provider) {
 }

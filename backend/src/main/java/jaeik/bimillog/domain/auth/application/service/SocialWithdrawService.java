@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.auth.application.service;
 
-import jaeik.bimillog.domain.admin.event.UserForcedWithdrawalEvent;
 import jaeik.bimillog.domain.auth.application.port.in.SocialWithdrawUseCase;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;

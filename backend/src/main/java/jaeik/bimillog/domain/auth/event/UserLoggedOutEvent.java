@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.auth.event;
 
-import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
+import jaeik.bimillog.domain.user.entity.SocialProvider;
 
 /**
  * <h2>사용자 로그아웃 이벤트</h2>
@@ -14,6 +14,9 @@ import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
  * @version 2.0.0
  *
  */
-public record UserLoggedOutEvent(CustomUserDetails userDetails){
+public record UserLoggedOutEvent(Long userId,
+                                 String socialId,
+                                 Long tokenId,
+                                 SocialProvider provider){
 
 }

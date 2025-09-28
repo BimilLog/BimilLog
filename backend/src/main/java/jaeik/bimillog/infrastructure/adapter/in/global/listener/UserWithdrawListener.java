@@ -4,15 +4,14 @@ import jaeik.bimillog.domain.admin.application.port.in.AdminCommandUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.SocialWithdrawUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.TokenUseCase;
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
-import jaeik.bimillog.domain.notification.application.port.in.NotificationCommandUseCase;
 import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
+import jaeik.bimillog.domain.notification.application.port.in.NotificationCommandUseCase;
 import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
 import jaeik.bimillog.domain.paper.application.port.in.PaperCommandUseCase;
 import jaeik.bimillog.domain.post.application.port.in.PostCommandUseCase;
 import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.event.UserWithdrawnEvent;
-import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
@@ -38,10 +37,9 @@ public class UserWithdrawListener {
     @EventListener
     @Transactional
     public void userWithdraw(UserWithdrawnEvent userWithdrawnEvent) {
-        CustomUserDetails userDetails = userWithdrawnEvent.userDetails();
-        Long userId = userWithdrawnEvent.userDetails().getUserId();
-        SocialProvider provider = userWithdrawnEvent.userDetails().getSocialProvider();
-        String socialId = userWithdrawnEvent.userDetails().getSocialId();
+        Long userId = userWithdrawnEvent.userId();
+        String socialId = userWithdrawnEvent.socialId();
+        SocialProvider provider = userWithdrawnEvent.provider();
 
         sseUseCase.deleteAllEmitterByUserId(userId);
         socialWithdrawUseCase.unlinkSocialAccount(provider, socialId);
@@ -49,7 +47,7 @@ public class UserWithdrawListener {
         postCommandUseCase.deleteAllPostsByUserId(userId); // 구현 필요
         tokenUseCase.deleteTokens(userId, null);
         fcmUseCase.deleteFcmTokens(userId);
-        notificationCommandUseCase.deleteAllNotification(userDetails); // 구현 필요
+        notificationCommandUseCase.deleteAllNotification(userId); // 구현 필요
         paperCommandUseCase.deleteAllMessagesByUserId(userId); // 구현 필요
         adminCommandUseCase.deleteAllReportsByUserId(userId); // 구현 필요
         userCommandUseCase.removeUserAccount(userId); // 구현 필요

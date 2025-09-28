@@ -13,9 +13,7 @@ import jaeik.bimillog.domain.user.entity.SocialProvider;
  * @author Jaeik
  * @version 2.0.0
  */
-public record UserBannedEvent(
-        Long userId,
-        String socialId,
-        SocialProvider provider,
-        String reason
+public record UserBannedEvent(Long userId,
+                              String socialId,
+                              SocialProvider provider
 ) {}

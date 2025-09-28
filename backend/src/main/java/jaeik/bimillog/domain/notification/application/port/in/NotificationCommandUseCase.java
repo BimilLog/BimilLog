@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.notification.application.port.in;
 
 import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
 import jaeik.bimillog.infrastructure.adapter.in.notification.web.NotificationCommandController;
-import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 
 /**
  * <h2>알림 명령 유스케이스</h2>
@@ -26,13 +25,14 @@ public interface NotificationCommandUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    void batchUpdate(CustomUserDetails userDetails, NotificationUpdateVO updateCommand);
+    void batchUpdate(Long userId, NotificationUpdateVO updateCommand);
 
     /**
      * <h3>특정 사용자의 알림 전체 삭제</h3>
      * <p>구현 필요</p>
+     * @param userDetails 현재 로그인한 사용자 정보
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteAllNotification(CustomUserDetails userDetails);
+    void deleteAllNotification(Long userId);
 }

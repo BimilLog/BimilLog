@@ -45,7 +45,7 @@ public class NotificationCommandController {
     public ResponseEntity<Void> markAsRead(@AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody UpdateNotificationDTO updateNotificationDTO) {
         NotificationUpdateVO updateCommand = toCommand(updateNotificationDTO);
-        notificationCommandUseCase.batchUpdate(userDetails, updateCommand);
+        notificationCommandUseCase.batchUpdate(userDetails.getUserId(), updateCommand);
         return ResponseEntity.ok().build();
     }
 

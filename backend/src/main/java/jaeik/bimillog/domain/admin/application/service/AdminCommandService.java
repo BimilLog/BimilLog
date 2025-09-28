@@ -5,7 +5,6 @@ import jaeik.bimillog.domain.admin.application.port.out.AdminCommandPort;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.admin.event.UserBannedEvent;
-import jaeik.bimillog.domain.admin.event.UserForcedWithdrawalEvent;
 import jaeik.bimillog.domain.admin.exception.AdminCustomException;
 import jaeik.bimillog.domain.admin.exception.AdminErrorCode;
 import jaeik.bimillog.domain.auth.application.port.in.BlacklistUseCase;
@@ -14,6 +13,7 @@ import jaeik.bimillog.domain.post.application.port.in.PostQueryUseCase;
 import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.event.UserWithdrawnEvent;
 import jaeik.bimillog.infrastructure.adapter.in.admin.web.AdminCommandController;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -87,7 +87,7 @@ public class AdminCommandService implements AdminCommandUseCase {
         User user = resolveUser(reportType, targetId);
         blacklistUseCase.addToBlacklist(user.getId(), user.getSocialId(), user.getProvider());
         blacklistUseCase.blacklistAllUserTokens(user.getId());
-        eventPublisher.publishEvent(new UserBannedEvent(user.getId(), user.getSocialId(), user.getProvider(), "사용자 제재"));
+        eventPublisher.publishEvent(new UserBannedEvent(user.getId(), user.getSocialId(), user.getProvider()));
     }
 
     /**
@@ -107,7 +107,7 @@ public class AdminCommandService implements AdminCommandUseCase {
         User user = resolveUser(reportType, targetId);
         blacklistUseCase.addToBlacklist(user.getId(), user.getSocialId(), user.getProvider());
         blacklistUseCase.blacklistAllUserTokens(user.getId());
-        eventPublisher.publishEvent(new UserForcedWithdrawalEvent(user.getId(), user.getSocialId(), user.getProvider(), "사용자 강제탈퇴"));
+        eventPublisher.publishEvent(new UserWithdrawnEvent(user.getId(), user.getSocialId(), user.getProvider()));
     }
 
     @Override

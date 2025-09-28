@@ -86,7 +86,7 @@ public class AuthCommandController {
          message = "로그아웃 요청",
          logParams = false)
     public ResponseEntity<AuthResponseDTO> logout(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        eventPublisher.publishEvent(new UserLoggedOutEvent(userDetails));
+        eventPublisher.publishEvent(new UserLoggedOutEvent(userDetails.getUserId(), userDetails.getSocialId(), userDetails.getTokenId(), userDetails.getSocialProvider()));
         return ResponseEntity.ok()
                 .headers(headers -> globalCookiePort.getLogoutCookies().forEach(cookie ->
                         headers.add("Set-Cookie", cookie.toString())))

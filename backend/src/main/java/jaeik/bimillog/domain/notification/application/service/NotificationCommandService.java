@@ -4,9 +4,7 @@ import jaeik.bimillog.domain.notification.application.port.in.NotificationComman
 import jaeik.bimillog.domain.notification.application.port.out.NotificationCommandPort;
 import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
 import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
-import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import jaeik.bimillog.infrastructure.adapter.in.notification.web.NotificationCommandController;
-import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -42,12 +40,7 @@ public class NotificationCommandService implements NotificationCommandUseCase {
      */
     @Override
     @Transactional
-    public void batchUpdate(CustomUserDetails userDetails, NotificationUpdateVO updateCommand) {
-        if (userDetails == null || userDetails.getUserId() == null) {
-            throw new NotificationCustomException(NotificationErrorCode.INVALID_USER_CONTEXT);
-        }
-
-        Long userId = userDetails.getUserId();
+    public void batchUpdate(Long userId, NotificationUpdateVO updateCommand) {
         
         notificationCommandPort.batchUpdate(userId, updateCommand);
 
@@ -58,7 +51,8 @@ public class NotificationCommandService implements NotificationCommandUseCase {
     }
 
     @Override
-    public void deleteAllNotification(CustomUserDetails userDetails) {
+    public void deleteAllNotification(Long userId) {
 
     }
+
 }
