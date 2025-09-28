@@ -1,7 +1,5 @@
 package jaeik.bimillog.domain.user.application.port.out;
 
-import jaeik.bimillog.domain.user.application.service.WithdrawService;
-
 /**
  * <h2>사용자 삭제 포트</h2>
  * <p>사용자 로그아웃, 탈퇴, 제재 처리를 위한 포트입니다.</p>

@@ -4,7 +4,6 @@ import jaeik.bimillog.domain.admin.event.UserForcedWithdrawalEvent;
 import jaeik.bimillog.domain.auth.application.port.in.UserBanUseCase;
 import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.RedisJwtBlacklistPort;
-import jaeik.bimillog.domain.auth.application.port.out.TokenCommandPort;
 import jaeik.bimillog.domain.auth.entity.BlackList;
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;

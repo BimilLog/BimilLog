@@ -1,11 +1,11 @@
 package jaeik.bimillog.infrastructure.adapter.in.post.web;
 
+import jaeik.bimillog.domain.global.annotation.Log;
+import jaeik.bimillog.domain.global.annotation.Log.LogLevel;
 import jaeik.bimillog.domain.post.application.port.in.PostCommandUseCase;
 import jaeik.bimillog.domain.post.application.port.in.PostInteractionUseCase;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
-import jaeik.bimillog.domain.global.annotation.Log;
-import jaeik.bimillog.domain.global.annotation.Log.LogLevel;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.PostCreateDTO;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.PostUpdateDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;

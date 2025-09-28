@@ -1,7 +1,5 @@
 package jaeik.bimillog.domain.auth.application.port.in;
 
-import jaeik.bimillog.domain.user.application.service.WithdrawService;
-
 public interface TokenUseCase {
 
     /**

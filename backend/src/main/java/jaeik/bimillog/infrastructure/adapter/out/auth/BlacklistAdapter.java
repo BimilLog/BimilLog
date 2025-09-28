@@ -3,7 +3,6 @@ package jaeik.bimillog.infrastructure.adapter.out.auth;
 import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
 import jaeik.bimillog.domain.auth.entity.BlackList;
-import jaeik.bimillog.domain.user.application.service.WithdrawService;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.out.auth.jpa.BlackListRepository;
 import lombok.RequiredArgsConstructor;

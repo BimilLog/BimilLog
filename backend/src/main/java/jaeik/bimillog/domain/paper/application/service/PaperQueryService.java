@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.paper.application.service;
 
+import jaeik.bimillog.domain.global.application.port.out.GlobalUserQueryPort;
 import jaeik.bimillog.domain.paper.application.port.in.PaperQueryUseCase;
 import jaeik.bimillog.domain.paper.application.port.out.PaperQueryPort;
 import jaeik.bimillog.domain.paper.entity.Message;
@@ -7,7 +8,6 @@ import jaeik.bimillog.domain.paper.entity.MessageDetail;
 import jaeik.bimillog.domain.paper.entity.VisitMessageDetail;
 import jaeik.bimillog.domain.paper.exception.PaperCustomException;
 import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
-import jaeik.bimillog.domain.global.application.port.out.GlobalUserQueryPort;
 import jaeik.bimillog.infrastructure.adapter.in.paper.web.PaperQueryController;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

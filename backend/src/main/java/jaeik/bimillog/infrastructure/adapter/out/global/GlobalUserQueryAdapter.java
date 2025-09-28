@@ -1,8 +1,8 @@
 package jaeik.bimillog.infrastructure.adapter.out.global;
 
+import jaeik.bimillog.domain.global.application.port.out.GlobalUserQueryPort;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.domain.global.application.port.out.GlobalUserQueryPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

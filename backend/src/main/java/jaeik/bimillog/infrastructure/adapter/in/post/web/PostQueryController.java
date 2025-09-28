@@ -1,11 +1,11 @@
 package jaeik.bimillog.infrastructure.adapter.in.post.web;
 
+import jaeik.bimillog.domain.global.annotation.Log;
+import jaeik.bimillog.domain.global.annotation.Log.LogLevel;
 import jaeik.bimillog.domain.post.application.port.in.PostQueryUseCase;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
 import jaeik.bimillog.domain.post.event.PostViewedEvent;
-import jaeik.bimillog.domain.global.annotation.Log;
-import jaeik.bimillog.domain.global.annotation.Log.LogLevel;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.FullPostDTO;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.PostSearchDTO;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.SimplePostDTO;

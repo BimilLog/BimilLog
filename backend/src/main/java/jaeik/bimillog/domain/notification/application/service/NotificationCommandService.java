@@ -56,4 +56,9 @@ public class NotificationCommandService implements NotificationCommandUseCase {
                 updateCommand.readIds().size(),
                 updateCommand.deletedIds().size());
     }
+
+    @Override
+    public void deleteAllNotification(CustomUserDetails userDetails) {
+
+    }
 }

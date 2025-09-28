@@ -1,7 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.out.user;
 
 import jaeik.bimillog.domain.user.application.port.out.DeleteUserPort;
-import jaeik.bimillog.domain.user.application.service.WithdrawService;
 import jaeik.bimillog.infrastructure.adapter.out.auth.jpa.TokenRepository;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import lombok.RequiredArgsConstructor;

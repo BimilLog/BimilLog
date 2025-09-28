@@ -147,6 +147,11 @@ public class NotificationFcmService implements NotificationFcmUseCase {
         }
     }
 
+    @Override
+    public void deleteFcmTokenByTokenId(Long userId, Long tokenId) {
+
+    }
+
     /**
      * <h3>FCM 알림 전송 도우미 메서드</h3>
      * <p>FCM 토큰 목록을 순회하며 개별 푸시 메시지를 전솨하는 내부 유틸리티 메서드입니다.</p>

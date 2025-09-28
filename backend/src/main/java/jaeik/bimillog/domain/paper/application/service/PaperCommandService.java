@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.paper.application.service;
 
+import jaeik.bimillog.domain.global.application.port.out.GlobalUserQueryPort;
 import jaeik.bimillog.domain.paper.application.port.in.PaperCommandUseCase;
 import jaeik.bimillog.domain.paper.application.port.out.PaperCommandPort;
 import jaeik.bimillog.domain.paper.application.port.out.PaperQueryPort;
@@ -9,7 +10,6 @@ import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.paper.exception.PaperCustomException;
 import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.domain.global.application.port.out.GlobalUserQueryPort;
 import jaeik.bimillog.infrastructure.adapter.in.paper.web.PaperCommandController;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -92,5 +92,10 @@ public class PaperCommandService implements PaperCommandUseCase {
                 user.getId(),
                 userName
         ));
+    }
+
+    @Override
+    public void deleteAllMessagesByUserId(Long userId) {
+
     }
 }

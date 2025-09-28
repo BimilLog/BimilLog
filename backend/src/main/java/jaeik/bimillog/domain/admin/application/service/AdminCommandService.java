@@ -8,8 +8,10 @@ import jaeik.bimillog.domain.admin.event.UserBannedEvent;
 import jaeik.bimillog.domain.admin.event.UserForcedWithdrawalEvent;
 import jaeik.bimillog.domain.admin.exception.AdminCustomException;
 import jaeik.bimillog.domain.admin.exception.AdminErrorCode;
+import jaeik.bimillog.domain.auth.application.port.in.UserBanUseCase;
 import jaeik.bimillog.domain.comment.application.port.in.CommentQueryUseCase;
 import jaeik.bimillog.domain.post.application.port.in.PostQueryUseCase;
+import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.in.admin.web.AdminCommandController;
@@ -37,8 +39,10 @@ public class AdminCommandService implements AdminCommandUseCase {
     private final ApplicationEventPublisher eventPublisher;
     private final AdminCommandPort adminCommandPort;
     private final UserQueryPort userQueryPort;
-    private final PostQueryUseCase postQueryUseCase;
-    private final CommentQueryUseCase commentQueryUseCase;
+    private final PostQueryUseCase postQueryUseCase; // 어댑터에서 의존으로 해야함
+    private final CommentQueryUseCase commentQueryUseCase; // 어댑터에서 의존으로 해야함
+    private final UserCommandUseCase userCommandUseCase; // 어댑터에서 의존으로 해야함
+    private final UserBanUseCase userBanUseCase; // 어댑터에서 의존으로 해야함
 
     /**
      * <h3>신고 및 건의사항 접수 처리</h3>
@@ -81,6 +85,9 @@ public class AdminCommandService implements AdminCommandUseCase {
     @Transactional
     public void banUser(ReportType reportType, Long targetId) {
         User user = resolveUser(reportType, targetId);
+        userCommandUseCase.banUser(user.getId());
+        userBanUseCase.addToBlacklist(user.getId(), user.getSocialId(), user.getProvider());
+        userBanUseCase.blacklistAllUserTokens(user.getId());
         eventPublisher.publishEvent(new UserBannedEvent(user.getId(), user.getSocialId(), user.getProvider(), "사용자 제재"));
     }
 
@@ -99,9 +106,15 @@ public class AdminCommandService implements AdminCommandUseCase {
     @Override
     public void forceWithdrawUser(ReportType reportType, Long targetId) {
         User user = resolveUser(reportType, targetId);
+        userBanUseCase.addToBlacklist(user.getId(), user.getSocialId(), user.getProvider());
+        userBanUseCase.blacklistAllUserTokens(user.getId());
         eventPublisher.publishEvent(new UserForcedWithdrawalEvent(user.getId(), user.getSocialId(), user.getProvider(), "사용자 강제탈퇴"));
     }
 
+    @Override
+    public void deleteAllReportsByUserId(Long userId) {
+
+    }
 
     /**
      * <h3>신고 대상 사용자 조회</h3>

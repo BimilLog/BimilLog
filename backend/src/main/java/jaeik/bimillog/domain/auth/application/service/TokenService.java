@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.auth.application.service;
 
 import jaeik.bimillog.domain.auth.application.port.in.TokenUseCase;
 import jaeik.bimillog.domain.auth.application.port.out.TokenCommandPort;
-import jaeik.bimillog.domain.user.application.service.WithdrawService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

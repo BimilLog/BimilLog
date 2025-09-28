@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.comment.entity;
 
+import jaeik.bimillog.domain.global.entity.BaseEntity;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.domain.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;

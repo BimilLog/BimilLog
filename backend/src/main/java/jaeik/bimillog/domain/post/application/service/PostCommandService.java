@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.post.application.service;
 
+import jaeik.bimillog.domain.global.application.port.out.GlobalUserQueryPort;
 import jaeik.bimillog.domain.post.application.port.in.PostCommandUseCase;
 import jaeik.bimillog.domain.post.application.port.out.PostCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
@@ -8,7 +9,6 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.domain.global.application.port.out.GlobalUserQueryPort;
 import jaeik.bimillog.infrastructure.adapter.in.post.web.PostCommandController;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -118,6 +118,11 @@ public class PostCommandService implements PostCommandUseCase {
         redisPostCommandPort.deleteCache(null, postId);
         
         log.info("게시글 삭제 완료: postId={}, userId={}, title={}", postId, userId, postTitle);
+    }
+
+    @Override
+    public void deleteAllPostsByUserId(Long userId) {
+
     }
 
 }

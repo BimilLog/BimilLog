@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.auth.application.port.out;
 
 import jaeik.bimillog.domain.auth.entity.Token;
-import jaeik.bimillog.domain.user.application.service.WithdrawService;
 
 /**
  * <h2>토큰 명령 포트</h2>

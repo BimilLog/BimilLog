@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import jaeik.bimillog.infrastructure.adapter.in.user.web.UserCommandController;
@@ -80,5 +81,31 @@ public class UserCommandService implements UserCommandUseCase {
             log.warn("닉네임 경쟁 상태 감지됨 - 사용자 ID: {}, 새 닉네임: {}", userId, newUserName, e);
             throw new UserCustomException(UserErrorCode.EXISTED_NICKNAME);
         }
+    }
+
+    @Override
+    public void deleteUser(Long userId) {
+
+    }
+
+    /**
+     * <h3>사용자 역할을 BAN으로 변경</h3>
+     * <p>사용자의 역할을 BAN으로 변경하여 일정 기간 서비스 이용을 제한합니다.</p>
+     * <p>JWT 토큰 무효화는 JwtBlacklistEventListener가 이벤트를 통해 처리합니다.</p>
+     *
+     * @param userId 제재할 사용자 ID
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    @Override
+    @Transactional
+    public void banUser(Long userId) {
+        User user = userQueryPort.findById(userId)
+                .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
+
+        user.updateRole(UserRole.BAN);
+
+        log.info("사용자 제재 완료 - userId: {}, userName: {}, 역할 변경: BAN",
+                userId, user.getUserName());
     }
 }
