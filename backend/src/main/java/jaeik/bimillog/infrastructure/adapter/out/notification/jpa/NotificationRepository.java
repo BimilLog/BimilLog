@@ -40,4 +40,15 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
      * @since 2.0.0
      */
     void deleteAllByIdInAndUsersId(List<Long> ids, Long userId);
+
+    /**
+     * <h3>사용자 ID로 모든 알림 삭제</h3>
+     * <p>특정 사용자의 모든 알림을 삭제합니다.</p>
+     * <p>주로 사용자 탈퇴 시 해당 사용자의 모든 알림을 정리하는데 사용됩니다.</p>
+     *
+     * @param userId 삭제할 알림들의 사용자 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    void deleteAllByUsersId(Long userId);
 }

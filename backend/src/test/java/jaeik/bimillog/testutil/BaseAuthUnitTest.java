@@ -2,12 +2,7 @@ package jaeik.bimillog.testutil;
 
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.entity.Token;
-import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
-import jaeik.bimillog.domain.user.entity.NewUserDetail;
-import org.springframework.http.ResponseCookie;
-
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -38,10 +33,6 @@ public abstract class BaseAuthUnitTest extends BaseUnitTest {
     // Lazy 초기화를 위한 필드들
     private Token cachedTestToken;
     private SocialUserProfile cachedTestUserProfile;
-    private ExistingUserDetail cachedExistingUserDetail;
-    private NewUserDetail cachedNewUserDetail;
-    private List<ResponseCookie> cachedLogoutCookies;
-    private List<ResponseCookie> cachedJwtCookies;
     
     /**
      * 테스트용 토큰 획득
@@ -68,85 +59,6 @@ public abstract class BaseAuthUnitTest extends BaseUnitTest {
             );
         }
         return cachedTestUserProfile;
-    }
-    
-    /**
-     * 기존 사용자 상세 정보 획득
-     */
-    protected ExistingUserDetail getExistingUserDetail() {
-        if (cachedExistingUserDetail == null) {
-            Long settingId = 1L;
-            if (getTestUser().getSetting() != null && getTestUser().getSetting().getId() != null) {
-                settingId = getTestUser().getSetting().getId();
-            }
-            cachedExistingUserDetail = AuthTestFixtures.createExistingUserDetail(getTestUser());
-        }
-        return cachedExistingUserDetail;
-    }
-    
-    /**
-     * 신규 사용자 상세 정보 획득
-     */
-    protected NewUserDetail getNewUserDetail() {
-        if (cachedNewUserDetail == null) {
-            cachedNewUserDetail = NewUserDetail.builder()
-                    .uuid("test-uuid-123")
-                    .build();
-        }
-        return cachedNewUserDetail;
-    }
-    
-    /**
-     * 로그아웃 쿠키 획득
-     */
-    protected List<ResponseCookie> getLogoutCookies() {
-        if (cachedLogoutCookies == null) {
-            cachedLogoutCookies = Arrays.asList(
-                    ResponseCookie.from("accessToken", "")
-                            .maxAge(0)
-                            .path("/")
-                            .secure(true)
-                            .httpOnly(true)
-                            .sameSite("Strict")
-                            .build(),
-                    ResponseCookie.from("refreshToken", "")
-                            .maxAge(0)
-                            .path("/")
-                            .secure(true)
-                            .httpOnly(true)
-                            .sameSite("Strict")
-                            .build()
-            );
-        }
-        return cachedLogoutCookies;
-    }
-    
-    /**
-     * JWT 쿠키 획득
-     */
-    protected List<ResponseCookie> getJwtCookies() {
-        if (cachedJwtCookies == null) {
-            String accessToken = "test-access-token";
-            String refreshToken = "test-refresh-token";
-            
-            cachedJwtCookies = Arrays.asList(
-                    ResponseCookie.from("accessToken", accessToken)
-                            .maxAge(3600) // 1 hour
-                            .path("/")
-                            .secure(true)
-                            .httpOnly(true)
-                            .sameSite("Strict")
-                            .build(),
-                    ResponseCookie.from("refreshToken", refreshToken)
-                            .maxAge(86400) // 24 hours
-                            .path("/")
-                            .secure(true)
-                            .httpOnly(true)
-                            .sameSite("Strict")
-                            .build()
-            );
-        }
-        return cachedJwtCookies;
     }
 
     /**

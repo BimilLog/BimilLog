@@ -41,4 +41,16 @@ public interface NotificationCommandPort {
      * @since 2.0.0
      */
     void batchUpdate(Long userId, NotificationUpdateVO updateCommand);
+
+    /**
+     * <h3>사용자의 모든 알림 삭제</h3>
+     * <p>특정 사용자의 모든 알림을 데이터베이스에서 완전히 삭제합니다.</p>
+     * <p>주로 사용자 탈퇴 시 호출되어 해당 사용자의 모든 알림 데이터를 정리합니다.</p>
+     * <p>{@link NotificationCommandService}에서 회원 탈퇴 이벤트 처리 시 호출됩니다.</p>
+     *
+     * @param userId 알림을 삭제할 대상 사용자 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    void deleteAllByUserId(Long userId);
 }

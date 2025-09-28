@@ -13,6 +13,7 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.NewUserDetail;
+import jaeik.bimillog.testutil.AuthTestFixtures;
 import jaeik.bimillog.testutil.BaseAuthUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -23,6 +24,7 @@ import org.mockito.MockedStatic;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static jaeik.bimillog.testutil.AuthTestFixtures.TEST_PROVIDER;
@@ -198,5 +200,48 @@ class SocialLoginServiceTest extends BaseAuthUnitTest {
         }
     }
 
+    /**
+     * 기존 사용자 상세 정보 획득 - SocialLoginServiceTest 전용
+     */
+    private ExistingUserDetail getExistingUserDetail() {
+        Long settingId = 1L;
+        if (getTestUser().getSetting() != null && getTestUser().getSetting().getId() != null) {
+            settingId = getTestUser().getSetting().getId();
+        }
+        return AuthTestFixtures.createExistingUserDetail(getTestUser());
+    }
 
+    /**
+     * 신규 사용자 상세 정보 획득 - SocialLoginServiceTest 전용
+     */
+    private NewUserDetail getNewUserDetail() {
+        return NewUserDetail.builder()
+                .uuid("test-uuid-123")
+                .build();
+    }
+
+    /**
+     * JWT 쿠키 획득 - SocialLoginServiceTest 전용
+     */
+    private List<ResponseCookie> getJwtCookies() {
+        String accessToken = "test-access-token";
+        String refreshToken = "test-refresh-token";
+
+        return Arrays.asList(
+                ResponseCookie.from("accessToken", accessToken)
+                        .maxAge(3600) // 1 hour
+                        .path("/")
+                        .secure(true)
+                        .httpOnly(true)
+                        .sameSite("Strict")
+                        .build(),
+                ResponseCookie.from("refreshToken", refreshToken)
+                        .maxAge(86400) // 24 hours
+                        .path("/")
+                        .secure(true)
+                        .httpOnly(true)
+                        .sameSite("Strict")
+                        .build()
+        );
+    }
 }

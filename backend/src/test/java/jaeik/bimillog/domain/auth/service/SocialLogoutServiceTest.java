@@ -12,6 +12,7 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.BaseAuthUnitTest;
+import java.util.Arrays;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -215,5 +216,25 @@ class SocialLogoutServiceTest extends BaseAuthUnitTest {
         return mockToken;
     }
 
-
+    /**
+     * 로그아웃 쿠키 획듍 - SocialLogoutServiceTest 전용
+     */
+    private List<ResponseCookie> getLogoutCookies() {
+        return Arrays.asList(
+                ResponseCookie.from("accessToken", "")
+                        .maxAge(0)
+                        .path("/")
+                        .secure(true)
+                        .httpOnly(true)
+                        .sameSite("Strict")
+                        .build(),
+                ResponseCookie.from("refreshToken", "")
+                        .maxAge(0)
+                        .path("/")
+                        .secure(true)
+                        .httpOnly(true)
+                        .sameSite("Strict")
+                        .build()
+        );
+    }
 }
