@@ -4,7 +4,6 @@ import jaeik.bimillog.domain.user.application.port.out.DeleteUserPort;
 import jaeik.bimillog.domain.user.application.service.WithdrawService;
 import jaeik.bimillog.infrastructure.adapter.out.auth.jpa.TokenRepository;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
-import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DeleteUserAdapter implements DeleteUserPort {
 
-    private final EntityManager entityManager;
     private final TokenRepository tokenRepository;
     private final UserRepository userRepository;
 
