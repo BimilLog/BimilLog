@@ -110,9 +110,20 @@ public class AdminCommandService implements AdminCommandUseCase {
         eventPublisher.publishEvent(new UserWithdrawnEvent(user.getId(), user.getSocialId(), user.getProvider()));
     }
 
+    /**
+     * <h3>특정 사용자의 모든 신고 삭제</h3>
+     * <p>회원 탈퇴 시 해당 사용자가 작성한 모든 신고 내역을 삭제합니다.</p>
+     * <p>익명 신고는 영향받지 않으며, 로그인 사용자가 작성한 신고만 삭제됩니다.</p>
+     * <p>UserWithdrawListener에서 회원 탈퇴 처리 시 호출됩니다.</p>
+     *
+     * @param userId 신고 내역을 삭제할 사용자 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
+    @Transactional
     public void deleteAllReportsByUserId(Long userId) {
-
+        adminCommandPort.deleteAllReportsByUserId(userId);
     }
 
     /**

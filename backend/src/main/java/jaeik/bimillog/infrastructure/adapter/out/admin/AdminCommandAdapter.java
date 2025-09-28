@@ -37,4 +37,19 @@ public class AdminCommandAdapter implements AdminCommandPort {
     public Report save(Report report) {
         return reportRepository.save(report);
     }
+
+    /**
+     * <h3>특정 사용자의 모든 신고 삭제</h3>
+     * <p>사용자 ID를 기준으로 해당 사용자가 작성한 모든 신고를 데이터베이스에서 삭제합니다.</p>
+     * <p>익명 신고는 reporter가 null이므로 영향받지 않습니다.</p>
+     * <p>{@link AdminCommandService}에서 회원 탈퇴 처리 시 호출됩니다.</p>
+     *
+     * @param userId 신고를 삭제할 대상 사용자 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public void deleteAllReportsByUserId(Long userId) {
+        reportRepository.deleteAllByReporterId(userId);
+    }
 }
