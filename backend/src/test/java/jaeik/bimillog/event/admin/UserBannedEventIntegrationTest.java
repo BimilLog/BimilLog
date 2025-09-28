@@ -27,16 +27,13 @@ import static org.mockito.Mockito.verify;
 public class UserBannedEventIntegrationTest extends BaseEventIntegrationTest {
 
     @MockitoBean
-    private WithdrawUseCase withdrawUseCase;
-
-    @MockitoBean
     private BlacklistUseCase blacklistUseCase;
 
     @MockitoBean
     private SocialWithdrawUseCase socialWithdrawUseCase;
 
     @Test
-    @DisplayName("사용자 차단 이벤트 워크플로우 - BAN 상태 변경과 블랙리스트 등록까지 완료")
+    @DisplayName("사용자 차단 이벤트 워크플로우 -  블랙리스트 등록까지 완료")
     void userBannedEventWorkflow_ShouldCompleteBanAndBlacklist() {
         // Given
         Long userId = 1L;
@@ -46,8 +43,6 @@ public class UserBannedEventIntegrationTest extends BaseEventIntegrationTest {
 
         // When & Then
         publishAndVerify(event, () -> {
-            // 사용자 BAN 상태로 변경
-            verify(withdrawUseCase).banUser(eq(userId));
             // 사용자 블랙리스트 등록
             verify(blacklistUseCase).addToBlacklist(eq(userId), eq(socialId), eq(provider));
             // JWT 토큰 무효화
@@ -67,10 +62,6 @@ public class UserBannedEventIntegrationTest extends BaseEventIntegrationTest {
 
         // When & Then - 동시에 여러 사용자 차단 이벤트 발행
         publishEventsAndVerify(new Object[]{event1, event2, event3}, () -> {
-            verify(withdrawUseCase).banUser(eq(1L));
-            verify(withdrawUseCase).banUser(eq(2L));
-            verify(withdrawUseCase).banUser(eq(3L));
-
             verify(blacklistUseCase).addToBlacklist(eq(1L), eq("kakao123"), eq(SocialProvider.KAKAO));
             verify(blacklistUseCase).addToBlacklist(eq(2L), eq("kakao456"), eq(SocialProvider.KAKAO));
             verify(blacklistUseCase).addToBlacklist(eq(3L), eq("kakao789"), eq(SocialProvider.KAKAO));
@@ -94,7 +85,6 @@ public class UserBannedEventIntegrationTest extends BaseEventIntegrationTest {
 
         // When & Then - 모든 제공자별로 적절히 처리되어야 함
         publishAndVerify(kakaoEvent, () -> {
-            verify(withdrawUseCase).banUser(eq(1L));
             verify(blacklistUseCase).addToBlacklist(eq(1L), eq("kakaoUser"), eq(SocialProvider.KAKAO));
             verify(blacklistUseCase).blacklistAllUserTokens(eq(1L));
             verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("kakaoUser"));

@@ -42,7 +42,7 @@ public class UserLogoutListener {
 
         sseUseCase.deleteEmitterByUserIdAndTokenId(userId, tokenId);
         socialLogoutUseCase.logout(userId, provider, tokenId);
-        fcmUseCase.deleteFcmTokenByTokenId(userId, fcmTokenId);
+        fcmUseCase.deleteFcmTokens(userId, fcmTokenId);
         tokenUseCase.deleteTokens(userId, tokenId);
         SecurityContextHolder.clearContext();
 

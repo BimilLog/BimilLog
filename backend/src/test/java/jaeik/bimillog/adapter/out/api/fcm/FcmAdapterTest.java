@@ -86,7 +86,7 @@ class FcmAdapterTest extends BaseUnitTest {
         doNothing().when(fcmTokenRepository).deleteByUser_Id(userId);
 
         // When: 사용자 ID로 FCM 토큰 삭제
-        fcmAdapter.deleteByUserId(userId);
+        fcmAdapter.deleteFcmTokens(userId, null);
 
         // Then: 삭제 동작 검증
         verify(fcmTokenRepository).deleteByUser_Id(userId);

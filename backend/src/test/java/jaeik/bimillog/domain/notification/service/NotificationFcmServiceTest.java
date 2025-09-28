@@ -129,10 +129,10 @@ class NotificationFcmServiceTest {
         Long userId = 1L;
 
         // When
-        notificationFcmService.deleteFcmTokens(userId);
+        notificationFcmService.deleteFcmTokens(userId, null);
 
         // Then
-        verify(fcmPort, times(1)).deleteByUserId(userId);
+        verify(fcmPort, times(1)).deleteFcmTokens(userId, null);
         verifyNoMoreInteractions(fcmPort);
     }
 

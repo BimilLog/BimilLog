@@ -71,33 +71,24 @@ public class FcmAdapter implements FcmPort {
     }
 
     /**
-     * <h3>사용자 ID로 FCM 토큰 삭제</h3>
-     * <p>사용자 탈퇴나 로그아웃 시 해당 사용자의 모든 FCM 토큰을 삭제합니다.</p>
-     * <p>FcmTokenRemoveListener에서 Auth 도메인 이벤트 처리 시 호출되어 개인정보를 보호합니다.</p>
-     *
-     * @param userId 삭제할 사용자 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public void deleteByUserId(Long userId) {
-        fcmTokenRepository.deleteByUser_Id(userId);
-    }
-
-    /**
-     * <h3>특정 FCM 토큰 삭제</h3>
-     * <p>특정 기기에서 로그아웃 시 해당 기기의 FCM 토큰만 삭제합니다.</p>
-     * <p>UserLogoutListener에서 호출되어 다중 기기 환경에서 선택적 토큰 제거를 수행합니다.</p>
+     * <h3>FCM 토큰 삭제</h3>
+     * <p>로그아웃시 특정 토큰만 삭제하거나 회원탈퇴시 모든 토큰을 삭제합니다.</p>
+     * <p>fcmTokenId가 null인 경우 모든 토큰 삭제, 값이 있늘 경우 특정 토큰만 삭제합니다.</p>
      *
      * @param userId 사용자 ID
-     * @param fcmTokenId 삭제할 FCM 토큰 ID
+     * @param fcmTokenId 삭제할 토큰 ID (null인 경우 모든 토큰 삭제)
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void deleteByUserIdAndTokenId(Long userId, Long fcmTokenId) {
-        fcmTokenRepository.deleteByUser_IdAndId(userId, fcmTokenId);
+    public void deleteFcmTokens(Long userId, Long fcmTokenId) {
+        if (fcmTokenId != null) {
+            fcmTokenRepository.deleteByUser_IdAndId(userId, fcmTokenId);
+        } else {
+            fcmTokenRepository.deleteByUser_Id(userId);
+        }
     }
+
 
     /**
      * <h3>액세스 토큰 획득</h3>

@@ -57,7 +57,7 @@ public class UserWithdrawListener {
         commentCommandUseCase.processUserCommentsOnWithdrawal(userId);
         postCommandUseCase.deleteAllPostsByUserId(userId); // 구현 필요
         tokenUseCase.deleteTokens(userId, null);
-        fcmUseCase.deleteFcmTokens(userId);
+        fcmUseCase.deleteFcmTokens(userId, null);
         notificationCommandUseCase.deleteAllNotification(userId); // 구현 필요
         paperCommandUseCase.deleteAllMessagesByUserId(userId); // 구현 필요
         adminCommandUseCase.deleteAllReportsByUserId(userId); // 구현 필요

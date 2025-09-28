@@ -66,7 +66,7 @@ public class EventTestDataBuilder {
      * @return UserLoggedOutEvent
      */
     public static UserLoggedOutEvent createDefaultLogoutEvent(Long userId) {
-        return UserLoggedOutEvent.of(userId, 100L + userId);
+        return new UserLoggedOutEvent(userId, 100L + userId);
     }
 
     /**
@@ -116,28 +116,6 @@ public class EventTestDataBuilder {
      * @return UserBannedEvent
      */
     public static UserBannedEvent createUserBannedEvent(Long userId, String socialId, SocialProvider provider) {
-        return new UserBannedEvent(userId, socialId, provider, "사용자 제재");
-    }
-
-    /**
-     * 관리자 강제 탈퇴 이벤트 생성
-     *
-     * @param userId 사용자 ID
-     * @param reason 탈퇴 사유
-     * @return UserForcedWithdrawalEvent
-     */
-    public static UserForcedWithdrawalEvent createUserForcedWithdrawalEvent(Long userId, String socialId, SocialProvider provider, String reason) {
-        return new UserForcedWithdrawalEvent(userId, socialId, provider, reason);
-    }
-
-    /**
-     * 관리자 강제 탈퇴 이벤트 생성 (기본값 사용)
-     *
-     * @param userId 사용자 ID
-     * @param reason 탈퇴 사유
-     * @return UserForcedWithdrawalEvent
-     */
-    public static UserForcedWithdrawalEvent createAdminWithdrawEvent(Long userId, String reason) {
-        return new UserForcedWithdrawalEvent(userId, "testSocialId" + userId, SocialProvider.KAKAO, reason);
+        return new UserBannedEvent(userId, socialId, provider);
     }
 }

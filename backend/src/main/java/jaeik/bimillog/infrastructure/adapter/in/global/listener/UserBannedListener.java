@@ -37,9 +37,8 @@ public class UserBannedListener {
         String socialId = userBannedEvent.socialId();
         SocialProvider provider = userBannedEvent.provider();
 
-        fcmUseCase.deleteFcmTokens(userId);
         socialLogoutUseCase.forceLogout(userId, provider, socialId); // 구현 필요
-        fcmUseCase.deleteFcmTokens(userId);
+        fcmUseCase.deleteFcmTokens(userId, null);
         tokenUseCase.deleteTokens(userId, null);
         SecurityContextHolder.clearContext();
     }

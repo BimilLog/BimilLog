@@ -47,7 +47,7 @@ class UserWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
         // When & Then
         publishAndVerify(event, () -> {
             verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId));
-            verify(fcmUseCase).deleteFcmTokens(eq(userId));
+            verify(fcmUseCase).deleteFcmTokens(eq(userId), eq(null));
             verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("testSocialId"));
         });
     }
@@ -65,9 +65,9 @@ class UserWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
             verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(1L));
             verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(2L));
             verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(3L));
-            verify(fcmUseCase).deleteFcmTokens(eq(1L));
-            verify(fcmUseCase).deleteFcmTokens(eq(2L));
-            verify(fcmUseCase).deleteFcmTokens(eq(3L));
+            verify(fcmUseCase).deleteFcmTokens(eq(1L), eq(null));
+            verify(fcmUseCase).deleteFcmTokens(eq(2L), eq(null));
+            verify(fcmUseCase).deleteFcmTokens(eq(3L), eq(null));
             verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("testSocialId1"));
             verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("testSocialId2"));
             verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("testSocialId3"));
@@ -87,7 +87,7 @@ class UserWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
         publishAndExpectException(event, () -> {
             verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(1L));
             // FCM 토큰 삭제와 소셜 연결 해제는 별도 리스너이므로 댓글 처리 실패와 관계없이 처리되어야 함
-            verify(fcmUseCase).deleteFcmTokens(eq(1L));
+            verify(fcmUseCase).deleteFcmTokens(eq(1L), eq(null));
             // SocialUnlinkListener는 createDefaultWithdrawEvent의 기본값 사용
             verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("testSocialId1"));
         });
