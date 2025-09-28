@@ -12,7 +12,7 @@ import jaeik.bimillog.infrastructure.filter.JwtFilter;
  * @author Jaeik
  * @version 2.0.0
  */
-public interface UserBanUseCase {
+public interface BlacklistUseCase {
 
     /**
      * <h3>토큰 블랙리스트 여부 확인</h3>

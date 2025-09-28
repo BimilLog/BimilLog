@@ -8,7 +8,7 @@ import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
 import jaeik.bimillog.infrastructure.adapter.in.comment.web.CommentQueryController;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostToCommentAdapter;
-import jaeik.bimillog.infrastructure.adapter.out.user.UserToPostAndCommentAdapter;
+import jaeik.bimillog.infrastructure.adapter.out.user.UserActivityAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -92,7 +92,7 @@ public class CommentQueryService implements CommentQueryUseCase {
      * <h3>사용자 작성 댓글 목록 조회</h3>
      * <p>특정 사용자가 작성한 댓글 목록을 페이지네이션으로 조회합니다.</p>
      * <p>최신 작성 댓글부터 과거 순서로 정렬하여 반환합니다.</p>
-     * <p>{@link UserToPostAndCommentAdapter}에서 사용자 활동 조회 시 호출됩니다.</p>
+     * <p>{@link UserActivityAdapter}에서 사용자 활동 조회 시 호출됩니다.</p>
      *
      * @param userId   사용자 ID
      * @param pageable 페이지 정보
@@ -109,7 +109,7 @@ public class CommentQueryService implements CommentQueryUseCase {
      * <h3>사용자 추천한 댓글 목록 조회</h3>
      * <p>특정 사용자가 추천한 댓글 목록을 페이지네이션으로 조회합니다.</p>
      * <p>최신 추천 댓글부터 과거 순서로 정렬하여 반환합니다.</p>
-     * <p>{@link UserToPostAndCommentAdapter}에서 사용자 추천 댓글 조회 시 호출됩니다.</p>
+     * <p>{@link UserActivityAdapter}에서 사용자 추천 댓글 조회 시 호출됩니다.</p>
      *
      * @param userId   사용자 ID
      * @param pageable 페이지 정보

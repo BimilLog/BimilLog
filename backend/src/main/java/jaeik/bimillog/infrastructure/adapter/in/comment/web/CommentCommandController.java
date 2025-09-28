@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * <h2>댓글 Command 컨트롤러</h2>
  * <p>
- * 헥사고날 아키텍처에서 댓글 도메인의 쓰기 작업을 처리하는 REST API 어댑터입니다.
+ * 댓글 도메인의 쓰기 작업을 처리하는 REST API 어댑터입니다.
  * </p>
  * <p>
  * 클라이언트로부터 댓글 상태 변경 요청을 받아 도메인 계층의 CommentCommandUseCase로 전달하며,

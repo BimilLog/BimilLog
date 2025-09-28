@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.auth.application.service;
 
 import jaeik.bimillog.domain.admin.event.UserForcedWithdrawalEvent;
-import jaeik.bimillog.domain.auth.application.port.in.UserBanUseCase;
+import jaeik.bimillog.domain.auth.application.port.in.BlacklistUseCase;
 import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.RedisJwtBlacklistPort;
 import jaeik.bimillog.domain.auth.entity.BlackList;
@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class UserBanService implements UserBanUseCase {
+public class BlacklistService implements BlacklistUseCase {
 
     private static final Duration DEFAULT_TTL = Duration.ofHours(1);
 

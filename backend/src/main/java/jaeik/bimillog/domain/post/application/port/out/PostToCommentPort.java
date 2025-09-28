@@ -14,7 +14,7 @@ import java.util.Map;
  * @author Jaeik
  * @version 2.0.0
  */
-public interface PostCommentToPort {
+public interface PostToCommentPort {
 
     /**
      * <h3>게시글 ID 목록별 댓글 수 배치 조회</h3>

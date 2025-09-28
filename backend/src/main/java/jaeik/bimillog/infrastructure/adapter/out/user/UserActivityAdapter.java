@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.comment.application.port.in.CommentQueryUseCase;
 import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
 import jaeik.bimillog.domain.post.application.port.in.PostQueryUseCase;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
-import jaeik.bimillog.domain.user.application.port.out.UserToPostAndCommentPort;
+import jaeik.bimillog.domain.user.application.port.out.UserActivityPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,14 +13,13 @@ import org.springframework.stereotype.Component;
 /**
  * <h2>댓글 조회 어댑터</h2>
  * <p>사용자 도메인에서 댓글 도메인으로의 출력 어댑터입니다.</p>
- * <p>헥사고날 아키텍처 원칙에 따라 도메인 간 의존성을 올바르게 관리합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
  */
 @Component
 @RequiredArgsConstructor
-public class UserToPostAndCommentAdapter implements UserToPostAndCommentPort {
+public class UserActivityAdapter implements UserActivityPort {
 
     private final PostQueryUseCase postQueryUseCase;
     private final CommentQueryUseCase commentQueryUseCase;

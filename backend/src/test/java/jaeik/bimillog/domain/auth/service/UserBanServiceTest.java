@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.RedisJwtBlacklistPort;
-import jaeik.bimillog.domain.auth.application.service.UserBanService;
+import jaeik.bimillog.domain.auth.application.service.BlacklistService;
 import jaeik.bimillog.domain.auth.entity.BlackList;
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
@@ -28,14 +28,14 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 /**
- * <h2>UserBanService 단위 테스트</h2>
+ * <h2>BlacklistService 단위 테스트</h2>
  * <p>토큰 블랙리스트 서비스의 비즈니스 로직을 검증하는 단위 테스트</p>
  * <p>모든 외부 의존성을 모킹하여 순수한 비즈니스 로직만 테스트</p>
  *
  * @author Jaeik
  * @version 2.0.0
  */
-@DisplayName("UserBanService 단위 테스트")
+@DisplayName("BlacklistService 단위 테스트")
 @Tag("test")
 class UserBanServiceTest extends BaseAuthUnitTest {
 
@@ -52,7 +52,7 @@ class UserBanServiceTest extends BaseAuthUnitTest {
     private BlacklistPort blacklistPort;
 
     @InjectMocks
-    private UserBanService userBanService;
+    private BlacklistService userBanService;
 
     private String testTokenString;
     private String testTokenHash;

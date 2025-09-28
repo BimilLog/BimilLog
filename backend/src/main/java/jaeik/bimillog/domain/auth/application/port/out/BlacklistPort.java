@@ -23,7 +23,7 @@ public interface BlacklistPort {
     /**
      * <h3>블랙리스트 저장</h3>
      * <p>블랙리스트에 사용자 정보를 저장합니다.</p>
-     * <p>{@link WithdrawService}에서 회원 탈퇴 시 블랙리스트 등록을 위해 호출됩니다.</p>
+     * <p>{@link }에서 회원 탈퇴 시 블랙리스트 등록을 위해 호출됩니다.</p>
      *
      * @param blackList 저장할 블랙리스트 엔티티
      * @author Jaeik

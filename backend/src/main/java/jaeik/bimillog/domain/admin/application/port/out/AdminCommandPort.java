@@ -16,7 +16,6 @@ public interface AdminCommandPort {
     /**
      * <h3>신고 엔티티 저장</h3>
      * <p>신고 엔티티를 데이터베이스에 저장합니다.</p>
-     * <p>JPA ID 자동 생성, @CreatedDate 자동 설정</p>
      * <p>{@link AdminCommandService}에서 신고 데이터 저장 시 호출합니다.</p>
      *
      * @param report 저장할 신고 엔티티 (ID는 null, 기본 정보만 설정된 상태)

@@ -7,17 +7,8 @@ import org.springframework.data.jpa.repository.Query;
 
 /**
  * <h2>PostRepository</h2>
- * <p>
- * Post 엔티티에 대한 기본적인 CRUD 연산을 제공하는 Spring Data JPA Repository 인터페이스입니다.
- * </p>
- * <p>
- * 헥사고날 아키텍처에서 영속성 기술과 도메인을 분리하는 역할을 하며,
- * PostCommandAdapter에서 게시글 저장, 삭제, 조회수 증가 작업 시 호출됩니다.
- * </p>
- * <p>
- * JPA의 기본 메서드 외에 조회수 직접 증가를 위한 최적화된 UPDATE 쿼리를 제공하여
- * 불필요한 SELECT 쿼리 없이 효율적인 조회수 관리가 가능합니다.
- * </p>
+ * <p>Post 엔티티 JPA Repository 인터페이스입니다.</p>
+ * <p>PostCommandAdapter에서 게시글 저장, 삭제, 조회수 증가 작업 시 호출됩니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0

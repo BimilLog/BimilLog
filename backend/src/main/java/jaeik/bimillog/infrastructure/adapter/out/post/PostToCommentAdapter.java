@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.out.post;
 
 import jaeik.bimillog.domain.comment.application.port.in.CommentQueryUseCase;
-import jaeik.bimillog.domain.post.application.port.out.PostCommentToPort;
+import jaeik.bimillog.domain.post.application.port.out.PostToCommentPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -13,22 +13,13 @@ import java.util.Map;
  * <p>
  * Post 도메인에서 Comment 도메인으로의 크로스 도메인 어댑터입니다.
  * </p>
- * <p>
- * 헥사고날 아키텍처에서 도메인 간 의존성을 관리하고 도메인의 독립성을 보장하며,
- * PostCommentToPort 인터페이스를 통해 Post 도메인이 필요로 하는 Comment 통계 정보를 제공합니다.
- * </p>
- * <p>
- * 사용자가 게시판을 탐색하는 상황에서 게시글 제목 옆에 댓글 수 (예: "[12]")를 표시하기 위해 호출됩니다.
- * 이를 통해 사용자는 어떤 게시글이 활발한 토론이 이루어지고 있는지 한눈에 파악할 수 있습니다.
- * 배치 조회로 N+1 문제를 방지하여 게시판 로딩 속도를 최적화합니다.
- * </p>
  *
  * @author Jaeik
  * @version 2.0.0
  */
 @Component
 @RequiredArgsConstructor
-public class PostToCommentAdapter implements PostCommentToPort {
+public class PostToCommentAdapter implements PostToCommentPort {
 
     private final CommentQueryUseCase commentQueryUseCase;
 

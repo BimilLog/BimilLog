@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.post.application.service;
 
 import jaeik.bimillog.domain.post.application.port.in.PostCacheUseCase;
+import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
-import jaeik.bimillog.domain.post.application.port.out.RedisPostSyncPort;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import lombok.RequiredArgsConstructor;
@@ -14,17 +14,8 @@ import java.util.List;
 
 /**
  * <h2>PostCacheService</h2>
- * <p>
- * 게시글 캐시 관리 관련 UseCase 인터페이스의 구체적 구현체로서 캐시 동기화 비즈니스 로직을 오케스트레이션합니다.
- * </p>
- * <p>
- * 헥사고날 아키텍처에서 게시글 도메인의 캐시 일관성 관리를 담당하며, 공지사항 상태 변경에 따른
- * Redis 캐시 동기화와 데이터 무결성 보장을 위한 비즈니스 규칙을 관리합니다.
- * </p>
- * <p>
- * 트랜잭션 경계를 설정하여 캐시 작업의 원자성을 보장하고, DB와 캐시 간의 일관성을 유지하여
- * 사용자에게 정확한 공지사항 목록을 제공합니다.
- * </p>
+ * <p>게시글 캐시 관리 관련 UseCase 인터페이스의 구현체로서 캐시 동기화 비즈니스 로직을 오케스트레이션합니다.</p>
+ * <p>공지사항 상태 변경에 따른 Redis 캐시 동기화와 데이터 무결성 보장을 위한 비즈니스 규칙을 관리합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -35,7 +26,7 @@ import java.util.List;
 public class PostCacheService implements PostCacheUseCase {
 
     private final RedisPostCommandPort redisPostCommandPort;
-    private final RedisPostSyncPort redisPostSyncPort;
+    private final PostQueryPort postQueryPort;
 
 
     /**
@@ -76,7 +67,7 @@ public class PostCacheService implements PostCacheUseCase {
         log.info("공지사항 캐시 추가 시작: postId={}", postId);
 
         // 게시글 상세 정보를 DB에서 조회
-        PostDetail postDetail = redisPostSyncPort.findPostDetail(postId);
+        PostDetail postDetail = postQueryPort.findPostDetail(postId);
         if (postDetail != null) {
             // 단건을 리스트로 감싸서 캐시에 추가
             redisPostCommandPort.cachePostsWithDetails(PostCacheFlag.NOTICE, List.of(postDetail));

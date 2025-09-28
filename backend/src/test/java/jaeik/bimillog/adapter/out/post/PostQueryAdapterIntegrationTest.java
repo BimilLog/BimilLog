@@ -1,6 +1,6 @@
 package jaeik.bimillog.adapter.out.post;
 
-import jaeik.bimillog.domain.post.application.port.out.PostCommentToPort;
+import jaeik.bimillog.domain.post.application.port.out.PostToCommentPort;
 import jaeik.bimillog.domain.post.application.port.out.PostLikeQueryPort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
@@ -63,7 +63,7 @@ class PostQueryAdapterIntegrationTest {
     private TestEntityManager entityManager;
 
     @MockitoBean
-    private PostCommentToPort postCommentToPort;
+    private PostToCommentPort postToCommentPort;
 
     @MockitoBean
     private PostLikeQueryPort postLikeQueryPort;
@@ -94,7 +94,7 @@ class PostQueryAdapterIntegrationTest {
         likeCounts.put(testPost3.getId(), 1);
         likeCounts.put(noticePost.getId(), 8);
         
-        given(postCommentToPort.findCommentCountsByPostIds(any(List.class)))
+        given(postToCommentPort.findCommentCountsByPostIds(any(List.class)))
                 .willReturn(commentCounts);
         given(postLikeQueryPort.findLikeCountsByPostIds(any(List.class)))
                 .willReturn(likeCounts);

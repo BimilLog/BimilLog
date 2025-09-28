@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.user.application.service;
 import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
 import jaeik.bimillog.domain.user.application.port.in.UserActivityUseCase;
-import jaeik.bimillog.domain.user.application.port.out.UserToPostAndCommentPort;
+import jaeik.bimillog.domain.user.application.port.out.UserActivityPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UserActivityService implements UserActivityUseCase {
 
-    private final UserToPostAndCommentPort userToPostAndCommentPort;
+    private final UserActivityPort userActivityPort;
 
     /**
      * <h3>사용자 작성 게시글 목록 조회</h3>
@@ -37,7 +37,7 @@ public class UserActivityService implements UserActivityUseCase {
     @Override
     @Transactional(readOnly = true)
     public Page<PostSearchResult> getUserPosts(Long userId, Pageable pageable) {
-        return userToPostAndCommentPort.findPostsByUserId(userId, pageable);
+        return userActivityPort.findPostsByUserId(userId, pageable);
     }
 
     /**
@@ -53,13 +53,13 @@ public class UserActivityService implements UserActivityUseCase {
     @Override
     @Transactional(readOnly = true)
     public Page<PostSearchResult> getUserLikedPosts(Long userId, Pageable pageable) {
-        return userToPostAndCommentPort.findLikedPostsByUserId(userId, pageable);
+        return userActivityPort.findLikedPostsByUserId(userId, pageable);
     }
 
     /**
      * <h3>사용자 작성 댓글 목록 조회</h3>
      * <p>해당 사용자가 작성한 댓글 목록을 페이지네이션으로 조회합니다.</p>
-     * <p>헥사고날 아키텍처 원칙에 따라 댓글조회포트(출력포트) -> 댓글조회어댑터(출력어댑터) -> 댓글조회유스케이스(댓글의 입력포트) 순서로 접근합니다.</p>
+     * <p>댓글조회포트(출력포트) -> 댓글조회어댑터(출력어댑터) -> 댓글조회유스케이스(댓글의 입력포트) 순서로 접근합니다.</p>
      *
      * @param userId   사용자 ID
      * @param pageable 페이지 정보
@@ -70,14 +70,13 @@ public class UserActivityService implements UserActivityUseCase {
     @Override
     @Transactional(readOnly = true)
     public Page<SimpleCommentInfo> getUserComments(Long userId, Pageable pageable) {
-        return userToPostAndCommentPort.findCommentsByUserId(userId, pageable);
+        return userActivityPort.findCommentsByUserId(userId, pageable);
     }
 
     /**
      * <h3>사용자 추천한 댓글 목록 조회</h3>
      * <p>해당 사용자가 추천한 댓글 목록을 페이지네이션으로 조회합니다.</p>
-     * <p>헥사고날 아키텍처 원칙에 따라 댓글조회포트(출력포트) -> 댓글조회어댑터(출력어댑터) -> 댓글조회유스케이스(댓글의 입력포트) 순서로 접근합니다.</p>
-     *
+     * *
      * @param userId   사용자 ID
      * @param pageable 페이지 정보
      * @return 추천한 댓글 목록 페이지
@@ -87,6 +86,6 @@ public class UserActivityService implements UserActivityUseCase {
     @Override
     @Transactional(readOnly = true)
     public Page<SimpleCommentInfo> getUserLikedComments(Long userId, Pageable pageable) {
-        return userToPostAndCommentPort.findLikedCommentsByUserId(userId, pageable);
+        return userActivityPort.findLikedCommentsByUserId(userId, pageable);
     }
 }

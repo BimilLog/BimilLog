@@ -1,11 +1,9 @@
 
 package jaeik.bimillog.domain.user.application.service;
 
-import jaeik.bimillog.domain.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.Setting;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
@@ -30,24 +28,6 @@ import java.util.Optional;
 public class UserQueryService implements UserQueryUseCase {
 
     private final UserQueryPort userQueryPort;
-    private final GlobalTokenQueryPort globalTokenQueryPort;
-
-    /**
-     * <h3>소셜 정보로 사용자 조회</h3>
-     * <p>제공자(Provider)와 소셜 ID를 사용하여 사용자를 조회합니다.</p>
-     * <p>{@link UserQueryUseCase}에서 소셜 로그인 사용자 조회 시 호출됩니다.</p>
-     *
-     * @param provider 소셜 로그인 제공자
-     * @param socialId 사용자의 소셜 ID
-     * @return Optional<User> 조회된 사용자 객체. 존재하지 않으면 Optional.empty()
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public Optional<User> findByProviderAndSocialId(SocialProvider provider, String socialId) {
-        return userQueryPort.findByProviderAndSocialId(provider, socialId);
-    }
 
     /**
      * <h3>ID로 사용자 조회</h3>

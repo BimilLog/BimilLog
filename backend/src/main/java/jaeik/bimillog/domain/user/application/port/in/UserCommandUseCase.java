@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.user.application.port.in;
 
 import jaeik.bimillog.domain.user.entity.Setting;
-import jaeik.bimillog.infrastructure.adapter.in.admin.web.AdminCommandController;
 import jaeik.bimillog.infrastructure.adapter.in.user.web.UserCommandController;
 
 /**
@@ -48,16 +47,5 @@ public interface UserCommandUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteUser(Long userId);
-
-    /**
-     * <h3>사용자 역할을 BAN으로 변경</h3>
-     * <p>사용자 제재 시 해당 사용자의 역할을 BAN으로 변경하여 서비스 이용을 제한합니다.</p>
-     * <p>{@link AdminCommandController}에서 사용자 제재 API 요청 시 호출됩니다.</p>
-     *
-     * @param userId 제재할 사용자 ID
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    void banUser(Long userId);
+    void removeUserAccount(Long userId);
 }

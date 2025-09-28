@@ -52,7 +52,7 @@ public class UserWithdrawListener {
         notificationCommandUseCase.deleteAllNotification(userDetails); // 구현 필요
         paperCommandUseCase.deleteAllMessagesByUserId(userId); // 구현 필요
         adminCommandUseCase.deleteAllReportsByUserId(userId); // 구현 필요
-        userCommandUseCase.deleteUser(userId); // 구현 필요
+        userCommandUseCase.removeUserAccount(userId); // 구현 필요
         SecurityContextHolder.clearContext();
     }
 }

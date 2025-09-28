@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.global.application.port.out;
 
-import jaeik.bimillog.domain.auth.application.service.UserBanService;
+import jaeik.bimillog.domain.auth.application.service.BlacklistService;
 import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.infrastructure.adapter.out.global.GlobalCookieAdapter;
 import jaeik.bimillog.infrastructure.filter.JwtFilter;
@@ -93,7 +93,7 @@ public interface GlobalJwtPort {
      * <h3>JWT 토큰 해시값 생성</h3>
      * <p>주어진 JWT 토큰 문자열로부터 해시값을 생성합니다.</p>
      * <p>토큰 원본을 직접 저장하지 않고 해시값으로 변환하여 보안을 강화합니다.</p>
-     * <p>{@link UserBanService}에서 토큰 블랙리스트 등록이나 검증 시 호출됩니다.</p>
+     * <p>{@link BlacklistService}에서 토큰 블랙리스트 등록이나 검증 시 호출됩니다.</p>
      *
      * @param token 해시값으로 변환할 JWT 토큰 문자열
      * @return 생성된 토큰 해시값 (SHA-256)

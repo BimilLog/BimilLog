@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.post.application.service;
 
+import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostSyncPort;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
@@ -20,17 +21,8 @@ import java.util.stream.Collectors;
 
 /**
  * <h2>PostCacheSyncService</h2>
- * <p>
- * 게시글 인기도 기반 캐시 동기화를 담당하는 스케줄링 서비스로서 시간 기반 캐시 갱신 비즈니스 로직을 오케스트레이션합니다.
- * </p>
- * <p>
- * 헥사고날 아키텍처에서 게시글 도메인의 인기도 측정과 캐시 생명주기 관리를 담당하며, 실시간/주간/전설 인기 게시글의
- * 주기적 갱신과 사용자 알림 이벤트 발행을 통한 복잡한 비즈니스 규칙을 관리합니다.
- * </p>
- * <p>
- * 스프링 스케줄러를 통한 주기적 실행과 이벤트 발행을 통해 도메인 간 통신을 수행하며, 
- * 인기 게시글 선정 시 작성자에게 자동 알림을 제공하여 사용자 참여를 증진시킵니다.
- * </p>
+ * <p>게시글 인기도 기반 캐시 동기화를 담당하는 스케줄링 서비스로서 시간 기반 캐시 갱신 비즈니스 로직을 오케스트레이션합니다.</p>
+ * <p>스프링 스케줄러를 통한 주기적 실행과 이벤트 발행을 통해 도메인 간 통신을 수행</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -43,12 +35,11 @@ public class PostCacheSyncService {
     private final RedisPostCommandPort redisPostCommandPort;
     private final RedisPostSyncPort redisPostSyncPort;
     private final ApplicationEventPublisher eventPublisher;
+    private final PostQueryPort postQueryPort;
 
     /**
      * <h3>실시간 인기 게시글 스케줄링 갱신</h3>
      * <p>스프링 스케줄러를 통해 30분마다 실시간 인기 게시글을 갱신하고 Redis 캐시에 저장합니다.</p>
-     * <p>최근 조회수와 좋아요 기반의 실시간 인기도 계산 결과를 캐시하여 빠른 조회 성능을 제공합니다.</p>
-     * <p>사용자의 현재 관심사를 반영한 트렌딩 게시글 목록을 실시간으로 업데이트합니다.</p>
      * <p>PostQueryService에서 실시간 인기 게시글 조회 시 이 캐시를 활용합니다.</p>
      *
      * @author Jaeik
@@ -121,7 +112,7 @@ public class PostCacheSyncService {
         redisPostCommandPort.applyPopularFlag(postIds, flag);
 
         List<PostDetail> fullPosts = posts.stream()
-                .map(post -> redisPostSyncPort.findPostDetail(post.getId()))
+                .map(post -> postQueryPort.findPostDetail(post.getId()))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 

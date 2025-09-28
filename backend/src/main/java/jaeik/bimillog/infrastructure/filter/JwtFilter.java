@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.filter;
 
-import jaeik.bimillog.domain.auth.application.port.in.UserBanUseCase;
+import jaeik.bimillog.domain.auth.application.port.in.BlacklistUseCase;
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
@@ -43,7 +43,7 @@ public class JwtFilter extends OncePerRequestFilter {
     private final UserQueryPort userQueryPort;
     private final GlobalJwtPort globalJwtPort;
     private final GlobalCookiePort globalCookiePort;
-    private final UserBanUseCase userBanUseCase;
+    private final BlacklistUseCase blacklistUseCase;
 
     /**
      * <h3>필터 제외 경로 설정</h3>
@@ -103,12 +103,12 @@ public class JwtFilter extends OncePerRequestFilter {
         String accessToken = extractTokenFromCookie(request, "jwt_access_token");
 
         // Access Token이 유효하고 블랙리스트에 없을 때
-        if (accessToken != null && globalJwtPort.validateToken(accessToken) && !userBanUseCase.isBlacklisted(accessToken)) {
+        if (accessToken != null && globalJwtPort.validateToken(accessToken) && !blacklistUseCase.isBlacklisted(accessToken)) {
             setAuthentication(accessToken);
         } else { // accessToken이 없거나 유효하지 않거나 블랙리스트에 있을 때
             String refreshToken = extractTokenFromCookie(request, "jwt_refresh_token");
             // accessToken은 유효하지 않지만 refreshToken은 유효하고 블랙리스트에 없을 때 accessToken 발급을 위해 refreshToken을 검증
-            if (refreshToken != null && globalJwtPort.validateToken(refreshToken) && !userBanUseCase.isBlacklisted(refreshToken)) {
+            if (refreshToken != null && globalJwtPort.validateToken(refreshToken) && !blacklistUseCase.isBlacklisted(refreshToken)) {
                 Long tokenId = globalJwtPort.getTokenIdFromToken(refreshToken);
                 // fcmTokenId 제거 - 이벤트 기반 방식으로 변경
                 Token token = globalTokenQueryPort.findById(tokenId)

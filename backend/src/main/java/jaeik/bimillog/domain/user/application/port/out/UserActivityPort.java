@@ -12,7 +12,7 @@ import org.springframework.data.domain.Pageable;
  * @author Jaeik
  * @version 2.0.0
  */
-public interface UserToPostAndCommentPort {
+public interface UserActivityPort {
 
     /**
      * <h3>사용자 작성 게시글 목록 조회</h3>

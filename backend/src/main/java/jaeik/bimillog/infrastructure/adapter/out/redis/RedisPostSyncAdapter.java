@@ -138,55 +138,6 @@ public class RedisPostSyncAdapter implements RedisPostSyncPort {
     }
 
 
-    /**
-     * <h3>게시글 상세 조회</h3>
-     * <p>게시글 ID를 기준으로 게시글 상세 정보를 조회합니다.</p>
-     * <p>🔧 수정 이력: null 안전성 개선 - null postId 예외 처리 추가</p>
-     *
-     * @param postId 게시글 ID
-     * @return 게시글 상세 정보 DTO
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public PostDetail findPostDetail(Long postId) {
-        if (postId == null) {
-            return null;
-        }
-        
-        QPost post = QPost.post;
-        QUser user = QUser.user;
-        QPostLike postLike = QPostLike.postLike;
 
-        Post entity = jpaQueryFactory
-                .selectFrom(post)
-                .leftJoin(post.user, user).fetchJoin()
-                .where(post.id.eq(postId))
-                .fetchOne();
-
-        if (entity == null) {
-            return null;
-        }
-
-        // 좋아요 수 조회 (중복 쿼리 제거)
-        Long likeCountResult = jpaQueryFactory
-                .select(postLike.count())
-                .from(postLike)
-                .where(postLike.post.id.eq(postId))
-                .fetchOne();
-        long likeCount = likeCountResult != null ? likeCountResult : 0L;
-
-        // 댓글 수 조회 (중복 쿼리 제거)
-        QComment comment = QComment.comment;
-        Long commentCountResult = jpaQueryFactory
-                .select(comment.count())
-                .from(comment)
-                .where(comment.post.id.eq(postId))
-                .fetchOne();
-        long commentCount = commentCountResult != null ? commentCountResult : 0L;
-
-        // PostDetail 직접 생성
-        return PostDetail.of(entity, Math.toIntExact(likeCount), Math.toIntExact(commentCount), false);
-    }
 
 }

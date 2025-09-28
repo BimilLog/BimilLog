@@ -2,7 +2,7 @@ package jaeik.bimillog.event.admin;
 
 import jaeik.bimillog.domain.admin.event.UserForcedWithdrawalEvent;
 import jaeik.bimillog.domain.auth.application.port.in.SocialWithdrawUseCase;
-import jaeik.bimillog.domain.auth.application.port.in.UserBanUseCase;
+import jaeik.bimillog.domain.auth.application.port.in.BlacklistUseCase;
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
@@ -25,7 +25,7 @@ class UserForcedWithdrawalEventIntegrationTest extends BaseEventIntegrationTest 
     private WithdrawUseCase withdrawUseCase;
 
     @MockitoBean
-    private UserBanUseCase userBanUseCase;
+    private BlacklistUseCase blacklistUseCase;
 
     @MockitoBean
     private CommentCommandUseCase commentCommandUseCase;
@@ -44,9 +44,9 @@ class UserForcedWithdrawalEventIntegrationTest extends BaseEventIntegrationTest 
         // When & Then
         publishAndVerify(event, () -> {
             // 사용자 블랙리스트 등록
-            verify(userBanUseCase).addToBlacklist(eq(userId), eq("testSocialId1"), eq(SocialProvider.KAKAO));
+            verify(blacklistUseCase).addToBlacklist(eq(userId), eq("testSocialId1"), eq(SocialProvider.KAKAO));
             // JWT 토큰 무효화
-            verify(userBanUseCase).blacklistAllUserTokens(eq(userId));
+            verify(blacklistUseCase).blacklistAllUserTokens(eq(userId));
             // 댓글 처리
             verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId));
             // 소셜 연결 해제
@@ -64,13 +64,13 @@ class UserForcedWithdrawalEventIntegrationTest extends BaseEventIntegrationTest 
 
         // When & Then - 동시에 여러 강제 탈퇴 이벤트 발행
         publishEventsAndVerify(new Object[]{event1, event2, event3}, () -> {
-            verify(userBanUseCase).addToBlacklist(eq(1L), eq("testSocialId1"), eq(SocialProvider.KAKAO));
-            verify(userBanUseCase).addToBlacklist(eq(2L), eq("testSocialId2"), eq(SocialProvider.KAKAO));
-            verify(userBanUseCase).addToBlacklist(eq(3L), eq("testSocialId3"), eq(SocialProvider.KAKAO));
+            verify(blacklistUseCase).addToBlacklist(eq(1L), eq("testSocialId1"), eq(SocialProvider.KAKAO));
+            verify(blacklistUseCase).addToBlacklist(eq(2L), eq("testSocialId2"), eq(SocialProvider.KAKAO));
+            verify(blacklistUseCase).addToBlacklist(eq(3L), eq("testSocialId3"), eq(SocialProvider.KAKAO));
 
-            verify(userBanUseCase).blacklistAllUserTokens(eq(1L));
-            verify(userBanUseCase).blacklistAllUserTokens(eq(2L));
-            verify(userBanUseCase).blacklistAllUserTokens(eq(3L));
+            verify(blacklistUseCase).blacklistAllUserTokens(eq(1L));
+            verify(blacklistUseCase).blacklistAllUserTokens(eq(2L));
+            verify(blacklistUseCase).blacklistAllUserTokens(eq(3L));
 
             verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("testSocialId1"));
             verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("testSocialId2"));
@@ -95,8 +95,8 @@ class UserForcedWithdrawalEventIntegrationTest extends BaseEventIntegrationTest 
 
         // When & Then - 예외가 발생해도 다른 리스너들은 호출되어야 함
         publishAndExpectException(event, () -> {
-            verify(userBanUseCase).addToBlacklist(eq(userId), eq("testSocialId1"), eq(SocialProvider.KAKAO));
-            verify(userBanUseCase).blacklistAllUserTokens(eq(userId));
+            verify(blacklistUseCase).addToBlacklist(eq(userId), eq("testSocialId1"), eq(SocialProvider.KAKAO));
+            verify(blacklistUseCase).blacklistAllUserTokens(eq(userId));
             verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("testSocialId1"));
             verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(userId));
         });

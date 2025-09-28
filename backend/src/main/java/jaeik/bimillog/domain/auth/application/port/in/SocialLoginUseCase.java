@@ -3,7 +3,6 @@ package jaeik.bimillog.domain.auth.application.port.in;
 
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.infrastructure.adapter.in.auth.web.AuthCommandController;
 
 /**
  * <h2>소셜 로그인 유스케이스</h2>
@@ -19,7 +18,6 @@ public interface SocialLoginUseCase {
      * <h3>소셜 로그인 처리</h3>
      * <p>소셜 플랫폼의 인가 코드를 사용하여 로그인 처리를 수행합니다.</p>
      * <p>기존 회원은 즉시 로그인 처리하고, 신규 회원은 임시 데이터를 생성하여 회원가입 단계로 안내합니다.</p>
-     * <p>{@link AuthCommandController}에서 POST /api/auth/login 요청 처리 시 호출됩니다.</p>
      *
      * @param provider 소셜 로그인 제공자 (KAKAO 등)
      * @param code 소셜 플랫폼에서 발급한 인가 코드
@@ -29,8 +27,4 @@ public interface SocialLoginUseCase {
      * @since 2.0.0
      */
     LoginResult processSocialLogin(SocialProvider provider, String code, String fcmToken);
-
-
-
-
 }

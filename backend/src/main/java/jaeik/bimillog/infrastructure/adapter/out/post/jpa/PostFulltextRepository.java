@@ -11,18 +11,9 @@ import java.util.List;
 
 /**
  * <h2>PostFulltextRepository</h2>
- * <p>
- * MySQL FULLTEXT 인덱스를 활용한 전문 검색 쿼리를 제공하는 Repository 인터페이스입니다.
- * </p>
- * <p>
- * 헥사고날 아키텍처에서 고성능 검색 기술과 도메인을 분리하는 역할을 하며,
- * PostQueryAdapter에서 게시글 검색 시 한국어 ngram 파서를 통한 전문 검색 기능을 호출됩니다.
- * </p>
- * <p>
- * MySQL의 MATCH AGAINST 구문과 BOOLEAN MODE를 활용하여 LIKE 검색보다 빠른 성능을 제공하고,
- * 제목 단독 검색과 제목+내용 통합 검색을 지원하여 사용자의 다양한 검색 요구사항을 충족합니다.
- * </p>
- *
+ * <p>MySQL FULLTEXT 인덱스를 활용한 전문 검색 쿼리를 제공하는 Repository 인터페이스입니다.</p>
+ * <p>PostQueryAdapter에서 게시글 검색 시 한국어 ngram 파서를 통한 전문 검색 기능을 호출됩니다.</p>
+ * <p>MySQL의 MATCH AGAINST 구문과 BOOLEAN MODE를 활용</p>
  * @author Jaeik
  * @version 2.0.0
  */

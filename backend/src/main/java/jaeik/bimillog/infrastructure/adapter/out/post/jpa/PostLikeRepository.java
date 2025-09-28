@@ -11,17 +11,8 @@ import org.springframework.data.repository.query.Param;
 
 /**
  * <h2>PostLikeRepository</h2>
- * <p>
- * PostLike 엔티티에 대한 CRUD 및 복합 쿼리를 제공하는 Spring Data JPA Repository 인터페이스입니다.
- * </p>
- * <p>
- * 헥사고날 아키텍처에서 영속성 기술과 도메인을 분리하는 역할을 하며,
- * PostLikeCommandAdapter와 PostLikeQueryAdapter에서 좋아요 관련 작업 시 호출됩니다.
- * </p>
- * <p>
- * JPA의 기본 메서드 외에 사용자와 게시글 기반의 좋아요 조회/삭제와
- * 게시글 삭제 시 관련 좋아요 데이터 일괄 정리를 위한 최적화된 쿼리를 제공합니다.
- * </p>
+ * <p>PostLike 엔티티 JPA Repository 인터페이스입니다.</p>
+ * <p>PostLikeCommandAdapter와 PostLikeQueryAdapter에서 좋아요 관련 작업 시 호출됩니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
