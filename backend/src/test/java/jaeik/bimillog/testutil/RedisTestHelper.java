@@ -5,7 +5,6 @@ import com.querydsl.jpa.impl.JPAUpdateClause;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
-import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -53,26 +52,6 @@ public class RedisTestHelper {
         given(updateClause.where(any())).willReturn(updateClause);
         given(updateClause.execute()).willReturn(expectedUpdateCount);
         return updateClause;
-    }
-
-    /**
-     * PostDetail 빌더 시작
-     * @return 통일된 기본값이 적용된 PostDetailBuilder
-     */
-    public static PostTestDataBuilder.PostDetailBuilder postDetail() {
-        return PostTestDataBuilder.postDetailBuilder()
-                .viewCount(100)
-                .likeCount(50)
-                .commentCount(10)
-                .isLiked(false);
-    }
-
-    /**
-     * 기본 PostDetail 생성
-     * @return 기본값이 설정된 PostDetail
-     */
-    public static PostDetail defaultPostDetail() {
-        return postDetail().build();
     }
 
     /**

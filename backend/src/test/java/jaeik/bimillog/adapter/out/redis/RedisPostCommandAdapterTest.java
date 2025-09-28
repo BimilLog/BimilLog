@@ -60,7 +60,20 @@ class RedisPostCommandAdapterTest extends BaseUnitTest {
 
     @BeforeEach
     void setUp() {
-        testPostDetail = RedisTestHelper.defaultPostDetail();
+        testPostDetail = PostDetail.builder()
+                .id(1L)
+                .title("테스트 게시글")
+                .content("테스트 내용")
+                .viewCount(100)
+                .likeCount(50)
+                .commentCount(10)
+                .isLiked(false)
+                .postCacheFlag(PostCacheFlag.REALTIME)
+                .createdAt(java.time.Instant.now())
+                .userId(1L)
+                .userName("testUser")
+                .isNotice(false)
+                .build();
     }
 
     @Test

@@ -54,10 +54,19 @@ class RedisPostQueryAdapterTest extends BaseUnitTest {
 
     @BeforeEach
     void setUp() {
-        testPostDetail = RedisTestHelper.postDetail()
+        testPostDetail = PostDetail.builder()
             .id(1L)
             .title("캐시된 게시글")
             .content("캐시된 내용")
+            .viewCount(100)
+            .likeCount(50)
+            .commentCount(10)
+            .isLiked(false)
+            .postCacheFlag(PostCacheFlag.REALTIME)
+            .createdAt(java.time.Instant.now())
+            .userId(1L)
+            .userName("testUser")
+            .isNotice(false)
             .build();
     }
 

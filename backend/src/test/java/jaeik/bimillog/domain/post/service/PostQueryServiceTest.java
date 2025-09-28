@@ -20,6 +20,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -90,7 +91,20 @@ class PostQueryServiceTest extends BaseUnitTest {
         given(redisPostQueryPort.getCachedPostIfExists(postId)).willReturn(null);
 
         // 최적화된 JOIN 쿼리 결과
-        PostDetail mockPostDetail = PostTestDataBuilder.createMockPostDetail(postId, userId);
+        PostDetail mockPostDetail = PostDetail.builder()
+                .id(postId)
+                .title("Test Title")
+                .content("Test Content")
+                .userId(userId != null ? userId : 1L)
+                .isLiked(userId != null)
+                .viewCount(10)
+                .likeCount(5)
+                .postCacheFlag(PostCacheFlag.REALTIME)
+                .createdAt(Instant.now())
+                .userName("testUser")
+                .commentCount(3)
+                .isNotice(false)
+                .build();
         given(postQueryPort.findPostDetailWithCounts(postId, userId))
                 .willReturn(Optional.of(mockPostDetail));
 
@@ -112,7 +126,20 @@ class PostQueryServiceTest extends BaseUnitTest {
         Long postId = 1L;
         Long userId = 2L;
 
-        PostDetail cachedFullPost = PostTestDataBuilder.createPostDetail(postId, "캐시된 인기글", "캐시된 내용");
+        PostDetail cachedFullPost = PostDetail.builder()
+                .id(postId)
+                .title("캐시된 인기글")
+                .content("캐시된 내용")
+                .viewCount(10)
+                .likeCount(5)
+                .postCacheFlag(PostCacheFlag.REALTIME)
+                .createdAt(Instant.now())
+                .userId(1L)
+                .userName("testUser")
+                .commentCount(3)
+                .isNotice(false)
+                .isLiked(false)
+                .build();
 
         // 최적화: 한번의 호출로 캐시 존재 여부와 데이터를 함께 확인
         given(redisPostQueryPort.getCachedPostIfExists(postId)).willReturn(cachedFullPost);
@@ -144,7 +171,20 @@ class PostQueryServiceTest extends BaseUnitTest {
         given(redisPostQueryPort.getCachedPostIfExists(postId)).willReturn(null);
 
         // 최적화된 JOIN 쿼리로 DB에서 조회
-        PostDetail mockPostDetail = PostTestDataBuilder.createMockPostDetail(postId, userId);
+        PostDetail mockPostDetail = PostDetail.builder()
+                .id(postId)
+                .title("Test Title")
+                .content("Test Content")
+                .userId(userId != null ? userId : 1L)
+                .isLiked(userId != null)
+                .viewCount(10)
+                .likeCount(5)
+                .postCacheFlag(PostCacheFlag.REALTIME)
+                .createdAt(Instant.now())
+                .userName("testUser")
+                .commentCount(3)
+                .isNotice(false)
+                .build();
         given(postQueryPort.findPostDetailWithCounts(postId, userId))
                 .willReturn(Optional.of(mockPostDetail));
 
@@ -172,7 +212,20 @@ class PostQueryServiceTest extends BaseUnitTest {
         given(redisPostQueryPort.getCachedPostIfExists(postId)).willReturn(null);
 
         // 최적화된 JOIN 쿼리로 DB에서 조회 (익명 사용자이므로 isLiked는 false)
-        PostDetail mockPostDetail = PostTestDataBuilder.createMockPostDetail(postId, userId);
+        PostDetail mockPostDetail = PostDetail.builder()
+                .id(postId)
+                .title("Test Title")
+                .content("Test Content")
+                .userId(userId != null ? userId : 1L)
+                .isLiked(userId != null)
+                .viewCount(10)
+                .likeCount(5)
+                .postCacheFlag(PostCacheFlag.REALTIME)
+                .createdAt(Instant.now())
+                .userName("testUser")
+                .commentCount(3)
+                .isNotice(false)
+                .build();
         given(postQueryPort.findPostDetailWithCounts(postId, userId))
                 .willReturn(Optional.of(mockPostDetail));
 
