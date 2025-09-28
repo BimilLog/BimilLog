@@ -20,6 +20,15 @@ public class UserBannedListener {
     private final FcmUseCase fcmUseCase;
     private final TokenUseCase tokenUseCase;
 
+    /**
+     * <h3>사용자 차단 이벤트 처리</h3>
+     * <p>관리자가 사용자를 차단할 때 발생하는 이벤트를 처리합니다.</p>
+     * <p>FCM 토큰 삭제, 소셜 플랫폼 강제 로그아웃, JWT 토큰 무효화를 수행합니다.</p>
+     *
+     * @param userBannedEvent 사용자 차단 이벤트 (userId, socialId, provider 포함)
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Async
     @EventListener
     @Transactional

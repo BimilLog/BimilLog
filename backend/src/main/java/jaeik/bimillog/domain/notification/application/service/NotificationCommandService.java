@@ -32,7 +32,7 @@ public class NotificationCommandService implements NotificationCommandUseCase {
      * <p>삭제: 알림을 완전 제거</p>
      * <p>{@link NotificationCommandController}에서 사용자의 알림 관리 API 요청 시 호출됩니다.</p>
      *
-     * @param userDetails 현재 로그인한 사용자 정보
+     * @param userId 현재 로그인한 사용자 ID
      * @param updateCommand 알림 업데이트 명령 객체
      * @throws NotificationCustomException 사용자 정보가 유효하지 않은 경우
      * @author Jaeik

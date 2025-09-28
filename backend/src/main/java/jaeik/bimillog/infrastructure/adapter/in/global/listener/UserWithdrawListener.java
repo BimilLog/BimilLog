@@ -34,6 +34,16 @@ public class UserWithdrawListener {
     private final AdminCommandUseCase adminCommandUseCase;
     private final UserCommandUseCase userCommandUseCase;
 
+    /**
+     * <h3>사용자 탈퇴 이벤트 처리</h3>
+     * <p>사용자가 회원 탈퇴하거나 관리자에 의해 강제 탈퇴될 때 발생하는 이벤트를 처리합니다.</p>
+     * <p>모든 관련 데이터를 순차적으로 정리합니다: SSE 연결, 소셜 계정 연동 해제, 댓글 처리, 게시글 삭제,
+     * 토큰 무효화, FCM 토큰 삭제, 알림 삭제, 롤링페이퍼 메시지 삭제, 신고 기록 삭제, 계정 정보 삭제</p>
+     *
+     * @param userWithdrawnEvent 회원 탈퇴 이벤트 (userId, socialId, provider 포함)
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Async
     @EventListener
     @Transactional

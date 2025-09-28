@@ -35,7 +35,9 @@ public class SocialLogoutService implements SocialLogoutUseCase {
      * <p>소셜 플랫폼 로그아웃, 이벤트 발행, 보안 컨텍스트 정리를 순차적으로 실행합니다.</p>
      * <p>{@link AuthCommandController}에서 POST /api/auth/logout 요청 처리 시 호출됩니다.</p>
      *
-     * @param userDetails 현재 인증된 사용자 정보
+     * @param userId 사용자 ID
+     * @param provider 소셜 로그인 제공자
+     * @param tokenId 토큰 ID
      * @throws AuthCustomException 토큰을 찾을 수 없는 경우 ({@link AuthErrorCode#NOT_FIND_TOKEN})
      * @author Jaeik
      * @since 2.0.0
@@ -59,7 +61,8 @@ public class SocialLogoutService implements SocialLogoutUseCase {
      * <p>소셜 로그아웃 실패 시에도 전체 로그아웃 프로세스를 중단하지 않고 로그만 기록합니다.</p>
      * <p>{@link #logout} 메서드에서 메인 로그아웃 플로우의 일부로 호출됩니다.</p>
      *
-     * @param userDetails 현재 인증된 사용자 정보
+     * @param userId 사용자 ID
+     * @param provider 소셜 로그인 제공자
      * @param token 사용자의 소셜 토큰 정보
      * @author Jaeik
      * @since 2.0.0
@@ -84,7 +87,7 @@ public class SocialLogoutService implements SocialLogoutUseCase {
      * <p>해당 예외 발생시 재로그인이 필요합니다.</p>
      * <p>{@link #logout} 메서드에서 로그아웃 플로우에서 가장 먼저 호출됩니다.</p>
      *
-     * @param userDetails 현재 인증된 사용자 정보
+     * @param tokenId 토큰 ID
      * @return Token 조회된 토큰 엔티티
      * @throws AuthCustomException 토큰을 찾을 수 없는 경우 ({@link AuthErrorCode#NOT_FIND_TOKEN})
      * @author Jaeik
