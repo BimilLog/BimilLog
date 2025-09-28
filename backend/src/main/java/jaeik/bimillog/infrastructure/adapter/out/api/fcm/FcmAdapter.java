@@ -85,6 +85,21 @@ public class FcmAdapter implements FcmPort {
     }
 
     /**
+     * <h3>특정 FCM 토큰 삭제</h3>
+     * <p>특정 기기에서 로그아웃 시 해당 기기의 FCM 토큰만 삭제합니다.</p>
+     * <p>UserLogoutListener에서 호출되어 다중 기기 환경에서 선택적 토큰 제거를 수행합니다.</p>
+     *
+     * @param userId 사용자 ID
+     * @param fcmTokenId 삭제할 FCM 토큰 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public void deleteByUserIdAndTokenId(Long userId, Long fcmTokenId) {
+        fcmTokenRepository.deleteByUser_IdAndId(userId, fcmTokenId);
+    }
+
+    /**
      * <h3>액세스 토큰 획득</h3>
      * <p>Firebase 서비스 계정 자격 증명을 사용하여 FCM API 호출에 필요한 액세스 토큰을 획득합니다.</p>
      *

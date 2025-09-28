@@ -147,9 +147,27 @@ public class FcmService implements FcmUseCase {
         }
     }
 
+    /**
+     * <h3>특정 기기 FCM 토큰 삭제 처리</h3>
+     * <p>로그아웃 시 특정 기기의 FCM 토큰만 선택적으로 삭제합니다.</p>
+     * <p>다중 기기 로그인 환경에서 다른 기기의 푸시 알림은 유지하면서 현재 기기만 비활성화합니다.</p>
+     * <p>UserLogoutListener에서 로그아웃 이벤트 발생 시 호출됩니다.</p>
+     *
+     * @param userId 사용자 ID
+     * @param fcmTokenId 삭제할 FCM 토큰 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public void deleteFcmTokenByTokenId(Long userId, Long fcmTokenId) {
+        if (fcmTokenId == null) {
+            log.debug("FCM 토큰 ID가 null입니다. 삭제를 건너뜁니다. 사용자 ID={}", userId);
+            return;
+        }
 
+        log.info("특정 FCM 토큰 삭제 처리 시작: 사용자 ID={}, 토큰 ID={}", userId, fcmTokenId);
+        fcmPort.deleteByUserIdAndTokenId(userId, fcmTokenId);
+        log.info("특정 FCM 토큰 삭제 완료: 사용자 ID={}, 토큰 ID={}", userId, fcmTokenId);
     }
 
     /**

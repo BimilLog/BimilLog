@@ -50,5 +50,16 @@ public interface FcmPort {
      */
     void sendMessageTo(FcmMessage fcmMessage) throws IOException;
 
+    /**
+     * <h3>사용자 ID와 토큰 ID로 특정 FCM 토큰 삭제</h3>
+     * <p>로그아웃 시 해당 기기의 FCM 토큰만 선택적으로 삭제합니다.</p>
+     * <p>다중 기기 환경에서 다른 기기의 푸시 알림은 유지하면서 특정 기기만 비활성화</p>
+     *
+     * @param userId 사용자 ID
+     * @param fcmTokenId 삭제할 FCM 토큰 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    void deleteByUserIdAndTokenId(Long userId, Long fcmTokenId);
 
 }
