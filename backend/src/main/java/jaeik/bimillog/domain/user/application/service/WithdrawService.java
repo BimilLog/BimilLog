@@ -8,7 +8,7 @@ import jaeik.bimillog.domain.user.entity.UserRole;
 import jaeik.bimillog.domain.user.event.UserWithdrawnEvent;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
-import jaeik.bimillog.global.application.port.out.GlobalCookiePort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

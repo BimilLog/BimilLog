@@ -7,7 +7,7 @@ import jaeik.bimillog.domain.user.application.port.out.SaveUserPort;
 import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.global.application.port.out.GlobalTokenCommandPort;
+import jaeik.bimillog.domain.auth.application.port.out.TokenCommandPort;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -35,7 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class SaveUserAdapter implements SaveUserPort {
 
-    private final GlobalTokenCommandPort globalTokenCommandPort;
+    private final TokenCommandPort tokenCommandPort;
     private final UserRepository userRepository;
     private final NotificationFcmUseCase notificationFcmUseCase;
 
@@ -58,7 +58,7 @@ public class SaveUserAdapter implements SaveUserPort {
         Token temporaryToken = userProfile.TemporaryToken();
         Token newToken = Token.createToken(temporaryToken.getAccessToken(), temporaryToken.getRefreshToken(), existingUser);
         Long fcmTokenId = registerFcmTokenIfPresent(existingUser, fcmToken);
-        Long tokenId = globalTokenCommandPort.save(newToken).getId();
+        Long tokenId = tokenCommandPort.save(newToken).getId();
 
         return ExistingUserDetail.of(existingUser, tokenId, fcmTokenId);
     }
@@ -83,7 +83,7 @@ public class SaveUserAdapter implements SaveUserPort {
         Long fcmTokenId = registerFcmTokenIfPresent(user, fcmToken);
         Token temporaryToken = userProfile.TemporaryToken();
         Token newToken = Token.createToken(temporaryToken.getAccessToken(), temporaryToken.getRefreshToken(), user);
-        Long tokenId = globalTokenCommandPort.save(newToken).getId();
+        Long tokenId = tokenCommandPort.save(newToken).getId();
 
         return ExistingUserDetail.of(user, tokenId, fcmTokenId);
     }

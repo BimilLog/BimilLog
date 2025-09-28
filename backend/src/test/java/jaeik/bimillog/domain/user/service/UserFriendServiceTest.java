@@ -8,7 +8,7 @@ import jaeik.bimillog.domain.user.application.service.UserFriendService;
 import jaeik.bimillog.domain.user.entity.KakaoFriendsResponseVO;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
-import jaeik.bimillog.global.application.port.out.GlobalTokenQueryPort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;

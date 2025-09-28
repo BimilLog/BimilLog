@@ -1,4 +1,4 @@
-package jaeik.bimillog.global.vo;
+package jaeik.bimillog.domain.global.vo;
 
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;

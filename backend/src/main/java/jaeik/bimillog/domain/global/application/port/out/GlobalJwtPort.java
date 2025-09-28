@@ -1,4 +1,4 @@
-package jaeik.bimillog.global.application.port.out;
+package jaeik.bimillog.domain.global.application.port.out;
 
 import jaeik.bimillog.domain.auth.application.service.UserBanService;
 import jaeik.bimillog.domain.user.entity.ExistingUserDetail;

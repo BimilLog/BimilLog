@@ -82,4 +82,17 @@ public interface NotificationFcmUseCase {
      * @since 2.0.0
      */
     void sendPostFeaturedNotification(Long userId, String title, String body);
+
+    /**
+     * <h3>특정 기기 FCM 토큰 삭제</h3>
+     * <p>로그아웃 시 특정 기기의 FCM 토큰만 삭제합니다.</p>
+     * <p>다중 기기 로그인 환경에서 다른 기기의 푸시 알림은 유지하면서 특정 기기만 선택적으로 제거합니다.</p>
+     * <p>{@link UserLoggedOutEvent} 이벤트 발생시 특정 기기 로그아웃 처리 흐름에서 호출됩니다.</p>
+     *
+     * @param userId  사용자 ID
+     * @param tokenId 삭제할 토큰 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    void deleteFcmTokenByTokenId(Long userId, Long tokenId);
 }

@@ -1,4 +1,4 @@
-package jaeik.bimillog.global.application.port.out;
+package jaeik.bimillog.domain.auth.application.port.out;
 
 import jaeik.bimillog.domain.auth.entity.Token;
 
@@ -11,7 +11,7 @@ import jaeik.bimillog.domain.auth.entity.Token;
  * @author Jaeik
  * @version 2.0.0
  */
-public interface GlobalTokenCommandPort {
+public interface TokenCommandPort {
 
     /**
      * <h3>토큰 저장</h3>

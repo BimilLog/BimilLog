@@ -12,7 +12,7 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
-import jaeik.bimillog.global.application.port.out.GlobalUserQueryPort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalUserQueryPort;
 import jaeik.bimillog.infrastructure.adapter.in.comment.web.CommentCommandController;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import lombok.RequiredArgsConstructor;

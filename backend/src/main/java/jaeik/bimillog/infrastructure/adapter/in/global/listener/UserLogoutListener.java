@@ -29,6 +29,6 @@ public class UserLogoutListener {
 
         notificationSseUseCase.deleteEmitterByUserIdAndTokenId(userId, tokenId);
         socialLogoutUseCase.logout(userDetails);
-        notificationFcmUseCase.deleteFcmTokens(userId); // 특정 기기의 fcm토큰만 제거하는 메서드 필요
+        notificationFcmUseCase.deleteFcmTokenByTokenId(userId, tokenId);
     }
 }

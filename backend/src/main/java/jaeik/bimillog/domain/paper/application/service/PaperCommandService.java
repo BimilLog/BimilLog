@@ -9,7 +9,7 @@ import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.paper.exception.PaperCustomException;
 import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.global.application.port.out.GlobalUserQueryPort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalUserQueryPort;
 import jaeik.bimillog.infrastructure.adapter.in.paper.web.PaperCommandController;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;

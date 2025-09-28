@@ -132,6 +132,17 @@ public class CustomUserDetails implements UserDetails {
     }
 
     /**
+     * <h3>사용자 소셜 ID 조회</h3>
+     *
+     * <p>사용자의 소셜 ID를 반환한다.</p>
+     *
+     * @since 2.0.0
+     * @author Jaeik
+     * @return 소셜 ID
+     */
+    public String getSocialId() {return  existingUserDetail.getSocialId();}
+
+    /**
      * <h3>닉네임 조회</h3>
      *
      * <p>사용자의 닉네임을 반환한다.</p>

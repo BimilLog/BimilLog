@@ -1,4 +1,4 @@
-package jaeik.bimillog.global.annotation;
+package jaeik.bimillog.domain.global.annotation;
 
 import java.lang.annotation.*;
 

@@ -6,7 +6,7 @@ import jaeik.bimillog.domain.notification.application.port.in.NotificationFcmUse
 import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.global.application.port.out.GlobalTokenCommandPort;
+import jaeik.bimillog.domain.auth.application.port.out.TokenCommandPort;
 import jaeik.bimillog.infrastructure.adapter.out.user.SaveUserAdapter;
 import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import jaeik.bimillog.testutil.BaseUnitTest;
@@ -35,7 +35,7 @@ import static org.mockito.Mockito.verify;
 @Tag("test")
 class SaveUserAdapterTest extends BaseUnitTest {
 
-    @Mock private GlobalTokenCommandPort globalTokenCommandPort;
+    @Mock private TokenCommandPort tokenCommandPort;
     @Mock private UserRepository userRepository;
     @Mock private NotificationFcmUseCase notificationFcmUseCase;
 
@@ -62,7 +62,7 @@ class SaveUserAdapterTest extends BaseUnitTest {
                 .users(existingUser)
                 .build();
 
-        given(globalTokenCommandPort.save(any(Token.class))).willReturn(savedToken);
+        given(tokenCommandPort.save(any(Token.class))).willReturn(savedToken);
         given(notificationFcmUseCase.registerFcmToken(existingUser, fcmToken)).willReturn(fcmTokenId);
 
         // When: 기존 사용자 로그인 처리
@@ -74,7 +74,7 @@ class SaveUserAdapterTest extends BaseUnitTest {
 
         // 토큰이 저장되는지 검증
         ArgumentCaptor<Token> tokenCaptor = ArgumentCaptor.forClass(Token.class);
-        verify(globalTokenCommandPort).save(tokenCaptor.capture());
+        verify(tokenCommandPort).save(tokenCaptor.capture());
         Token capturedToken = tokenCaptor.getValue();
         assertThat(capturedToken.getAccessToken()).isEqualTo("access-TemporaryToken");
         assertThat(capturedToken.getRefreshToken()).isEqualTo("refresh-TemporaryToken");
@@ -106,14 +106,14 @@ class SaveUserAdapterTest extends BaseUnitTest {
                 .users(existingUser)
                 .build();
 
-        given(globalTokenCommandPort.save(any(Token.class))).willReturn(savedToken);
+        given(tokenCommandPort.save(any(Token.class))).willReturn(savedToken);
 
         // When: FCM 토큰 없이 기존 사용자 로그인 처리
         ExistingUserDetail result = saveUserAdapter.handleExistingUserData(existingUser, userProfile, null);
 
         // Then: FCM 토큰 등록이 호출되지 않았는지 검증
         verify(notificationFcmUseCase, never()).registerFcmToken(any(), any());
-        verify(globalTokenCommandPort).save(any(Token.class));
+        verify(tokenCommandPort).save(any(Token.class));
 
         // FCM 토큰 ID가 null인지 검증
         assertThat(result.getFcmTokenId()).isNull();
@@ -140,7 +140,7 @@ class SaveUserAdapterTest extends BaseUnitTest {
                 .build();
 
         given(userRepository.save(any(User.class))).willReturn(newUser);
-        given(globalTokenCommandPort.save(any(Token.class))).willReturn(newToken);
+        given(tokenCommandPort.save(any(Token.class))).willReturn(newToken);
         given(notificationFcmUseCase.registerFcmToken(newUser, fcmToken)).willReturn(fcmTokenId);
 
         // When: 신규 사용자 저장
@@ -159,7 +159,7 @@ class SaveUserAdapterTest extends BaseUnitTest {
         verify(notificationFcmUseCase).registerFcmToken(newUser, fcmToken);
 
         // 토큰 저장 검증
-        verify(globalTokenCommandPort).save(any(Token.class));
+        verify(tokenCommandPort).save(any(Token.class));
 
         // 반환된 ExistingUserDetail 검증
         assertThat(result).isNotNull();
@@ -189,7 +189,7 @@ class SaveUserAdapterTest extends BaseUnitTest {
                 .build();
 
         given(userRepository.save(any(User.class))).willReturn(newUser);
-        given(globalTokenCommandPort.save(any(Token.class))).willReturn(newToken);
+        given(tokenCommandPort.save(any(Token.class))).willReturn(newToken);
 
         // When: FCM 토큰 없이 사용자 저장
         ExistingUserDetail result = saveUserAdapter.saveNewUser(userName, userProfile, fcmToken);

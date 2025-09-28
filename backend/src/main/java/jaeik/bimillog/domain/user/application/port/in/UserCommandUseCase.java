@@ -36,4 +36,16 @@ public interface UserCommandUseCase {
      * @author Jaeik
      */
     void updateUserName(Long userId, String newUserName);
+
+    /**
+     * <h3>사용자 엔티티 삭제</h3>
+     * <p>회원 탈퇴 시 사용자 엔티티를 데이터베이스에서 완전히 삭제합니다.</p>
+     * <p>사용자 삭제 이후 설정도 삭제 합니다</p>
+     * <p>UserWithdrawnEvent 이벤트 발생시 회원 탈퇴 처리 흐름에서 호출됩니다.</p>
+     *
+     * @param userId 삭제할 사용자 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    void deleteUser(Long userId);
 }

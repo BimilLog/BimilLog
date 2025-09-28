@@ -44,6 +44,18 @@ public interface PaperCommandUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    void writeMessage(String userName, DecoType decoType, String anonymity, 
+    void writeMessage(String userName, DecoType decoType, String anonymity,
                      String content, int x, int y);
+
+    /**
+     * <h3>특정 사용자의 모든 롤링페이퍼 메시지 삭제</h3>
+     * <p>회원 탈퇴 시 해당 사용자의 롤링페이퍼에 작성된 모든 메시지를 삭제합니다.</p>
+     * <p>사용자가 소유한 롤링페이퍼의 모든 메시지가 일괄 삭제됩니다.</p>
+     * <p>UserWithdrawnEvent 이벤트 발생시 회원 탈퇴 처리 흐름에서 호출됩니다.</p>
+     *
+     * @param userId 메시지를 삭제할 롤링페이퍼 소유자 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    void deleteAllMessagesByUserId(Long userId);
 }

@@ -1,7 +1,7 @@
-package jaeik.bimillog.infrastructure.adapter.out.global;
+package jaeik.bimillog.infrastructure.adapter.out.auth;
 
 import jaeik.bimillog.domain.auth.entity.Token;
-import jaeik.bimillog.global.application.port.out.GlobalTokenCommandPort;
+import jaeik.bimillog.domain.auth.application.port.out.TokenCommandPort;
 import jaeik.bimillog.infrastructure.adapter.out.auth.jpa.TokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class GlobalTokenCommandAdapter implements GlobalTokenCommandPort {
+public class TokenCommandAdapter implements TokenCommandPort {
 
     private final TokenRepository tokenRepository;
 

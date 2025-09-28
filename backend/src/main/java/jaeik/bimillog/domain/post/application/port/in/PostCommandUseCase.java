@@ -57,4 +57,16 @@ public interface PostCommandUseCase {
      * @since 2.0.0
      */
     void deletePost(Long userId, Long postId);
+
+    /**
+     * <h3>특정 사용자의 모든 게시글 삭제</h3>
+     * <p>회원 탈퇴 시 해당 사용자가 작성한 모든 게시글을 삭제합니다.</p>
+     * <p>글, 글 추천도 함께 삭제됩니다.</p>
+     * <p>UserWithdrawnEvent 이벤트 발생시 회원 탈퇴 처리 흐름에서 호출됩니다.</p>
+     *
+     * @param userId 게시글을 삭제할 사용자 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    void deleteAllPostsByUserId(Long userId);
 }
