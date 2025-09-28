@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.post.application.service.PostQueryService;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
+import jaeik.bimillog.domain.post.entity.PostSearchType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -53,14 +54,14 @@ public interface PostQueryPort {
      * <p>MySQL ngram parser를 활용한 전문 검색으로 한국어 검색 지원</p>
      * <p>{@link PostQueryService}에서 게시글 전문 검색 처리 시 호출됩니다.</p>
      *
-     * @param type 검색 타입 (title, content, author 등)
+     * @param type 검색 타입 (TITLE, WRITER, TITLE_CONTENT)
      * @param query 검색어 (한국어 키워드)
      * @param pageable 페이지 정보
      * @return Page<PostSearchResult> 검색 조건에 맞는 게시글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<PostSearchResult> findBySearch(String type, String query, Pageable pageable);
+    Page<PostSearchResult> findBySearch(PostSearchType type, String query, Pageable pageable);
 
     /**
      * <h3>사용자 작성 게시글 목록 조회</h3>

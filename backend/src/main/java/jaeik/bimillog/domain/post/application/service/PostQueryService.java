@@ -9,6 +9,7 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
+import jaeik.bimillog.domain.post.entity.PostSearchType;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import jaeik.bimillog.infrastructure.adapter.in.post.web.PostQueryController;
@@ -118,7 +119,7 @@ public class PostQueryService implements PostQueryUseCase {
      * @since 2.0.0
      */
     @Override
-    public Page<PostSearchResult> searchPost(String type, String query, Pageable pageable) {
+    public Page<PostSearchResult> searchPost(PostSearchType type, String query, Pageable pageable) {
         return postQueryPort.findBySearch(type, query, pageable);
     }
 

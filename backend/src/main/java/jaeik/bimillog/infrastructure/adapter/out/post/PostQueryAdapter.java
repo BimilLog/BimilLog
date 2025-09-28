@@ -19,6 +19,7 @@ import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostFulltextRepository
 import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -100,7 +101,7 @@ public class PostQueryAdapter implements PostQueryPort {
      * @since 2.0.0
      */
     @Override
-    public Page<PostSearchResult> findBySearch(String type, String query, Pageable pageable) {
+    public Page<PostSearchResult> findBySearch(PostSearchType type, String query, Pageable pageable) {
         BooleanExpression condition = createSearchCondition(type, query, pageable);
         return findPostsWithCondition(condition, pageable, type, query);
     }
@@ -181,10 +182,10 @@ public class PostQueryAdapter implements PostQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    private BooleanExpression createSearchCondition(String type, String query, Pageable pageable) {
-        // 3글자 이상이고 writer가 아니면 FULLTEXT 검색 시도
-        boolean shouldTryFullText = query.length() >= 3 && !"writer".equals(type);
-        
+    private BooleanExpression createSearchCondition(PostSearchType type, String query, Pageable pageable) {
+        // 3글자 이상이고 WRITER가 아니면 FULLTEXT 검색 시도
+        boolean shouldTryFullText = query.length() >= 3 && type != PostSearchType.WRITER;
+
         if (shouldTryFullText) {
             List<Long> postIds = getPostIdsByFullTextSearch(type, query, pageable);
             if (!postIds.isEmpty()) {
@@ -192,18 +193,17 @@ public class PostQueryAdapter implements PostQueryPort {
             }
             // FULLTEXT 결과가 없으면 LIKE로 fallback
         }
-        
+
         // LIKE 검색
         BooleanExpression likeCondition = switch (type) {
-            case "title" -> post.title.contains(query);
-            case "writer" -> query.length() >= 4 
+            case TITLE -> post.title.contains(query);
+            case WRITER -> query.length() >= 4
                 ? user.userName.startsWith(query)  // 4글자 이상: LIKE% 검색 (인덱스 효율성)
                 : user.userName.contains(query);   // 1-3글자: %LIKE% 검색 (완전 일치)
-            case "title_content" -> post.title.contains(query)
+            case TITLE_CONTENT -> post.title.contains(query)
                                    .or(post.content.contains(query));
-            default -> post.title.contains(query); // DTO 검증으로 인해 도달할 수 없는 분기
         };
-        
+
         return likeCondition.and(post.isNotice.isFalse());
     }
 
@@ -219,26 +219,26 @@ public class PostQueryAdapter implements PostQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    private List<Long> getPostIdsByFullTextSearch(String type, String query, Pageable pageable) {
+    private List<Long> getPostIdsByFullTextSearch(PostSearchType type, String query, Pageable pageable) {
         try {
             String searchTerm = query + "*";
-            
+
             // 페이징 정보를 활용하여 필요한 만큼만 조회
             // 최대 1000개로 제한하여 메모리 사용량 제한
             int limit = Math.min(pageable.getPageSize() * 10, 1000);
             Pageable searchPageable = Pageable.ofSize(limit);
-            
+
             List<Object[]> results = switch (type) {
-                case "title" -> postFullTextRepository.findByTitleFullText(searchTerm, searchPageable);
-                case "title_content" -> postFullTextRepository.findByTitleContentFullText(searchTerm, searchPageable);
-                default -> List.of();
+                case TITLE -> postFullTextRepository.findByTitleFullText(searchTerm, searchPageable);
+                case TITLE_CONTENT -> postFullTextRepository.findByTitleContentFullText(searchTerm, searchPageable);
+                case WRITER -> List.of();  // WRITER는 FULLTEXT 검색 미지원
             };
-            
+
             return results.stream()
                     .map(row -> ((Number) row[0]).longValue())
                     .toList();
-                    
-        } catch (org.springframework.dao.DataAccessException e) {
+
+        } catch (DataAccessException e) {
             // 데이터베이스 관련 예외만 처리
             log.warn("FULLTEXT 검색 중 데이터베이스 오류 - type: {}, query: {}, error: {}", 
                     type, query, e.getMessage());
@@ -265,7 +265,7 @@ public class PostQueryAdapter implements PostQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    private Page<PostSearchResult> findPostsWithCondition(BooleanExpression condition, Pageable pageable, String searchType, String searchQuery) {
+    private Page<PostSearchResult> findPostsWithCondition(BooleanExpression condition, Pageable pageable, PostSearchType searchType, String searchQuery) {
         // 1. 게시글 기본 정보 조회 (댓글, 추천 JOIN 제외)
         List<PostSearchResult> content = buildBasePostQueryWithoutJoins()
                 .where(condition)
@@ -307,18 +307,18 @@ public class PostQueryAdapter implements PostQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    private Long calculateTotalCount(BooleanExpression condition, String searchType, String searchQuery) {
+    private Long calculateTotalCount(BooleanExpression condition, PostSearchType searchType, String searchQuery) {
         // 전문검색 여부 판별
         boolean isFullTextSearch = searchType != null && searchQuery != null
-                && searchQuery.length() >= 3 && !"writer".equals(searchType);
+                && searchQuery.length() >= 3 && searchType != PostSearchType.WRITER;
 
         if (isFullTextSearch) {
             // 전문검색인 경우 전용 count 메서드 사용
             String searchTerm = searchQuery + "*";
             return switch(searchType) {
-                case "title" -> postFullTextRepository.countByTitleFullText(searchTerm);
-                case "title_content" -> postFullTextRepository.countByTitleContentFullText(searchTerm);
-                default -> 0L;
+                case TITLE -> postFullTextRepository.countByTitleFullText(searchTerm);
+                case TITLE_CONTENT -> postFullTextRepository.countByTitleContentFullText(searchTerm);
+                case WRITER -> 0L;  // WRITER는 전문검색 미지원
             };
         } else {
             // 일반 검색인 경우 QueryDSL 사용

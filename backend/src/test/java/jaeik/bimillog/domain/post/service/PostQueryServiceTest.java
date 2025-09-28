@@ -9,6 +9,7 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
+import jaeik.bimillog.domain.post.entity.PostSearchType;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import jaeik.bimillog.testutil.BaseUnitTest;
@@ -220,7 +221,7 @@ class PostQueryServiceTest extends BaseUnitTest {
     @DisplayName("게시글 검색 - 성공")
     void shouldSearchPost_Successfully() {
         // Given
-        String type = "title";
+        PostSearchType type = PostSearchType.TITLE;
         String query = "검색어";
         Pageable pageable = PageRequest.of(0, 10);
 

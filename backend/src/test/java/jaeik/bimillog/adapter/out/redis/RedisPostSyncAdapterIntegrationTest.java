@@ -1,5 +1,6 @@
 package jaeik.bimillog.adapter.out.redis;
 
+import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostLikeRepository;
@@ -49,6 +50,9 @@ class RedisPostSyncAdapterIntegrationTest {
 
     @Autowired
     private RedisPostSyncAdapter redisPostSyncAdapter;
+
+    @Autowired
+    private PostQueryPort postQueryPort;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -211,7 +215,7 @@ class RedisPostSyncAdapterIntegrationTest {
         entityManager.clear();
 
         // When
-        PostDetail postDetail = redisPostSyncAdapter.findPostDetail(post.getId());
+        PostDetail postDetail = postQueryPort.findPostDetail(post.getId());
 
         // Then
         assertThat(postDetail).isNotNull();
@@ -228,7 +232,7 @@ class RedisPostSyncAdapterIntegrationTest {
         Long nonExistentPostId = 999L;
 
         // When
-        PostDetail postDetail = redisPostSyncAdapter.findPostDetail(nonExistentPostId);
+        PostDetail postDetail = postQueryPort.findPostDetail(nonExistentPostId);
 
         // Then
         assertNull(postDetail);

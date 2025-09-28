@@ -61,8 +61,6 @@ public class Setting {
         this.postFeaturedNotification = postFeaturedNotification;
     }
 
-
-
     /**
      * <h3>기본 설정 생성</h3>
      * <p>기본값(모두 true)으로 새로운 설정 엔티티를 생성합니다.</p>

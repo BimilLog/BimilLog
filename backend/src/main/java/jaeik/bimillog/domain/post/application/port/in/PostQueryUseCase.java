@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
+import jaeik.bimillog.domain.post.entity.PostSearchType;
 import jaeik.bimillog.infrastructure.adapter.in.post.web.PostQueryController;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -55,14 +56,14 @@ public interface PostQueryUseCase {
      * <p>MySQL ngram parser를 활용하여 한국어 검색을 지원합니다.</p>
      * <p>{@link PostQueryController}에서 GET /api/post/search 요청 처리 시 호출됩니다.</p>
      *
-     * @param type 검색 대상 유형 (title: 제목, content: 내용, author: 작성자)
+     * @param type 검색 대상 유형 (TITLE: 제목, WRITER: 작성자, TITLE_CONTENT: 제목+내용)
      * @param query 검색할 키워드 (한국어 단어 지원)
      * @param pageable 페이지 정보 (결과 개수 제한 및 정렬)
      * @return Page<PostSearchResult> 검색 조건에 맞는 게시글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<PostSearchResult> searchPost(String type, String query, Pageable pageable);
+    Page<PostSearchResult> searchPost(PostSearchType type, String query, Pageable pageable);
 
     /**
      * <h3>실시간 및 주간 인기글 동시 조회</h3>

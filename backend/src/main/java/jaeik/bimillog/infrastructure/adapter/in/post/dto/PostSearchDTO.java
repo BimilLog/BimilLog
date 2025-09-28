@@ -1,8 +1,8 @@
 package jaeik.bimillog.infrastructure.adapter.in.post.dto;
 
+import jaeik.bimillog.domain.post.entity.PostSearchType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import lombok.*;
 
 /**
@@ -22,8 +22,7 @@ import lombok.*;
 public class PostSearchDTO {
 
     @NotNull(message = "검색 타입은 필수입니다")
-    @Pattern(regexp = "^(title|writer|title_content)$", message = "검색 타입은 title, writer, title_content 중 하나여야 합니다")
-    private String type;
+    private PostSearchType type;
 
     @NotBlank(message = "검색어는 필수입니다")
     private String query;

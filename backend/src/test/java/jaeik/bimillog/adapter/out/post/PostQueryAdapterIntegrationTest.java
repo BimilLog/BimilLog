@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.post.application.port.out.PostLikeQueryPort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
+import jaeik.bimillog.domain.post.entity.PostSearchType;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostQueryAdapter;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
@@ -223,7 +224,7 @@ class PostQueryAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 제목 검색 (LIKE 검색 폴백)")
     void shouldFindPostsByTitleSearch_WhenValidSearchQueryProvided() {
         // Given: 짧은 검색어로 LIKE 검색 유도 (3글자 미만)
-        String searchType = "title";
+        PostSearchType searchType = PostSearchType.TITLE;
         String query = "첫";  // 1글자로 LIKE 검색 강제
         Pageable pageable = PageRequest.of(0, 10);
 
@@ -240,7 +241,7 @@ class PostQueryAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 작성자 검색")
     void shouldFindPostsByWriterSearch_WhenValidWriterQueryProvided() {
         // Given: 작성자 검색어
-        String searchType = "writer";
+        PostSearchType searchType = PostSearchType.WRITER;
         String query = "test";
         Pageable pageable = PageRequest.of(0, 10);
 
@@ -250,7 +251,7 @@ class PostQueryAdapterIntegrationTest {
         // Then: 해당 작성자의 게시글들이 조회됨
         assertThat(result).isNotNull();
         assertThat(result.getContent()).hasSizeGreaterThan(0);
-        assertThat(result.getContent()).allMatch(post -> 
+        assertThat(result.getContent()).allMatch(post ->
                 post.getUserName().toLowerCase().contains(query.toLowerCase()));
     }
 
