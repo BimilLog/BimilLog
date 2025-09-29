@@ -2,7 +2,7 @@ package jaeik.bimillog.adapter.out.post;
 
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
-import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.entity.user.User;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostLikeQueryAdapter;
 import jaeik.bimillog.testutil.H2TestConfiguration;
 import jaeik.bimillog.testutil.TestUsers;

@@ -4,8 +4,8 @@ import jaeik.bimillog.domain.auth.application.port.out.AuthToUserPort;
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.user.application.port.in.UserSaveUseCase;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.user.entity.UserDetail;
+import jaeik.bimillog.domain.user.entity.user.SocialProvider;
+import jaeik.bimillog.domain.user.entity.userdetail.UserDetail;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

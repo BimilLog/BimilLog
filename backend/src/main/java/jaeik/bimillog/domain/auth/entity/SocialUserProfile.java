@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.auth.entity;
 
-import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jaeik.bimillog.domain.user.entity.user.SocialProvider;
 
 /**
  * <h2>소셜 사용자 프로필</h2>

@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.user.application.port.in;
 
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.user.entity.UserDetail;
+import jaeik.bimillog.domain.user.entity.user.SocialProvider;
+import jaeik.bimillog.domain.user.entity.userdetail.UserDetail;
 import jaeik.bimillog.infrastructure.adapter.out.auth.AuthToUserAdapter;
 
 public interface UserSaveUseCase {

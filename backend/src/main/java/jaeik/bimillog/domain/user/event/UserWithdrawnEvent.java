@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.user.event;
 
-import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jaeik.bimillog.domain.user.entity.user.SocialProvider;
 
 /**
  * <h2>사용자 회원탈퇴 이벤트</h2>

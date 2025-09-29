@@ -3,7 +3,7 @@ package jaeik.bimillog.event.user;
 import jaeik.bimillog.domain.auth.application.port.in.SocialWithdrawUseCase;
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jaeik.bimillog.domain.user.entity.user.SocialProvider;
 import jaeik.bimillog.domain.user.event.UserWithdrawnEvent;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import org.junit.jupiter.api.DisplayName;

@@ -6,7 +6,7 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
 import jaeik.bimillog.domain.post.entity.PostSearchType;
-import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.entity.user.User;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostQueryAdapter;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestUsers;

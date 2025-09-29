@@ -10,7 +10,7 @@ import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
 import jaeik.bimillog.domain.paper.application.port.in.PaperCommandUseCase;
 import jaeik.bimillog.domain.post.application.port.in.PostCommandUseCase;
 import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jaeik.bimillog.domain.user.entity.user.SocialProvider;
 import jaeik.bimillog.domain.user.event.UserWithdrawnEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;

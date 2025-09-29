@@ -8,7 +8,7 @@ import jaeik.bimillog.domain.notification.entity.SseMessage;
 import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
 import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
-import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.entity.user.User;
 import jaeik.bimillog.infrastructure.adapter.in.notification.listener.NotificationGenerateListener;
 import jaeik.bimillog.infrastructure.adapter.in.notification.web.NotificationSseController;
 import lombok.RequiredArgsConstructor;

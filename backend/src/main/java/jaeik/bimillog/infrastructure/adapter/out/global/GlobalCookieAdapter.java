@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.out.global;
 
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
-import jaeik.bimillog.domain.user.entity.NewUserDetail;
+import jaeik.bimillog.domain.user.entity.userdetail.NewUserDetail;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;

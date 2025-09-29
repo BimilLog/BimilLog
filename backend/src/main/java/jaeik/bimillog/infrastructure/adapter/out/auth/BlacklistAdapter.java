@@ -3,7 +3,7 @@ package jaeik.bimillog.infrastructure.adapter.out.auth;
 import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
 import jaeik.bimillog.domain.auth.entity.BlackList;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jaeik.bimillog.domain.user.entity.user.SocialProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

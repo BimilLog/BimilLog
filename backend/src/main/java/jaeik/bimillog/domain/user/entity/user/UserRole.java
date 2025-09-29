@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.user.entity;
+package jaeik.bimillog.domain.user.entity.user;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

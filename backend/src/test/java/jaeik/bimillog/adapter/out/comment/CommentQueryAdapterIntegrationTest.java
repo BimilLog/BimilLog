@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.comment.entity.CommentInfo;
 import jaeik.bimillog.domain.comment.entity.CommentLike;
 import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.entity.user.User;
 import jaeik.bimillog.infrastructure.adapter.out.comment.CommentLikeRepository;
 import jaeik.bimillog.infrastructure.adapter.out.comment.CommentQueryAdapter;
 import jaeik.bimillog.infrastructure.adapter.out.comment.CommentRepository;

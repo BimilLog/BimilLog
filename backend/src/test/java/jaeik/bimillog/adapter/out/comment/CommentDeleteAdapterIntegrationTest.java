@@ -2,7 +2,7 @@ package jaeik.bimillog.adapter.out.comment;
 
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.entity.user.User;
 import jaeik.bimillog.infrastructure.adapter.out.comment.CommentDeleteAdapter;
 import jaeik.bimillog.infrastructure.adapter.out.comment.CommentRepository;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostRepository;

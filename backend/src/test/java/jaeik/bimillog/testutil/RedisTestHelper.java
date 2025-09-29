@@ -5,7 +5,7 @@ import com.querydsl.jpa.impl.JPAUpdateClause;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jaeik.bimillog.domain.user.entity.user.SocialProvider;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisTemplate;
 

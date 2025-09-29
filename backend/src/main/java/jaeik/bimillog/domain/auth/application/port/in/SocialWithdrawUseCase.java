@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.auth.application.port.in;
 
-import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jaeik.bimillog.domain.user.entity.user.SocialProvider;
 import jaeik.bimillog.domain.user.event.UserWithdrawnEvent;
 import jaeik.bimillog.infrastructure.adapter.in.global.listener.UserWithdrawListener;
 

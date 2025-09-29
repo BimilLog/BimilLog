@@ -1,7 +1,7 @@
 
 package jaeik.bimillog.domain.auth.application.port.in;
 
-import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jaeik.bimillog.domain.user.entity.user.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.in.auth.web.AuthCommandController;
 
 /**

@@ -3,8 +3,8 @@ package jaeik.bimillog.domain.user.application.port.out;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.user.application.service.SignUpService;
 import jaeik.bimillog.domain.user.application.service.UserSaveService;
-import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.domain.user.entity.UserDetail;
+import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.user.entity.userdetail.UserDetail;
 
 /**
  * <h2>사용자 정보 저장 포트</h2>

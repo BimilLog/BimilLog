@@ -2,8 +2,8 @@ package jaeik.bimillog.domain.auth.application.port.out;
 
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.user.entity.UserDetail;
+import jaeik.bimillog.domain.user.entity.user.SocialProvider;
+import jaeik.bimillog.domain.user.entity.userdetail.UserDetail;
 
 /**
  * <h2>인증 TO 유저 포트</h2>

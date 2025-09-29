@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.global.application.port.out;
 
-import jaeik.bimillog.domain.user.entity.NewUserDetail;
+import jaeik.bimillog.domain.user.entity.userdetail.NewUserDetail;
 import org.springframework.http.ResponseCookie;
 
 import java.util.List;

@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.paper.application.service.PaperQueryService;
 import jaeik.bimillog.domain.post.application.service.PostCommandService;
 import jaeik.bimillog.domain.post.application.service.PostInteractionService;
 import jaeik.bimillog.domain.user.entity.Setting;
-import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.entity.user.User;
 import jaeik.bimillog.infrastructure.adapter.in.user.web.UserQueryController;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 

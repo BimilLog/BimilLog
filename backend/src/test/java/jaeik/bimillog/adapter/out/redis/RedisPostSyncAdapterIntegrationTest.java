@@ -2,7 +2,7 @@ package jaeik.bimillog.adapter.out.redis;
 
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.entity.*;
-import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.entity.user.User;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostLikeRepository;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostRepository;
 import jaeik.bimillog.infrastructure.adapter.out.redis.RedisPostSyncAdapter;

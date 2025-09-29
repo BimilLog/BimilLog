@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.post.entity;
 
-import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.entity.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

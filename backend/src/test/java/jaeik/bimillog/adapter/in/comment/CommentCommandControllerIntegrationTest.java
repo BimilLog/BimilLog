@@ -3,7 +3,7 @@ package jaeik.bimillog.adapter.in.comment;
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.entity.user.User;
 import jaeik.bimillog.infrastructure.adapter.in.comment.dto.CommentLikeReqDTO;
 import jaeik.bimillog.infrastructure.adapter.in.comment.dto.CommentReqDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;

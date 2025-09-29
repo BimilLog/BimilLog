@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.global.vo.KakaoKeyVO;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jaeik.bimillog.domain.user.entity.user.SocialProvider;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;

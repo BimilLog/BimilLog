@@ -3,7 +3,7 @@ package jaeik.bimillog.infrastructure.adapter.out.post;
 import jaeik.bimillog.domain.post.application.port.out.PostLikeCommandPort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
-import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.entity.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 

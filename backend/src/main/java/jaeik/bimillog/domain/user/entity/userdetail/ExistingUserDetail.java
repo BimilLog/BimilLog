@@ -1,5 +1,8 @@
-package jaeik.bimillog.domain.user.entity;
+package jaeik.bimillog.domain.user.entity.userdetail;
 
+import jaeik.bimillog.domain.user.entity.user.SocialProvider;
+import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.user.entity.user.UserRole;
 import jaeik.bimillog.infrastructure.adapter.in.auth.dto.UserInfoResponseDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

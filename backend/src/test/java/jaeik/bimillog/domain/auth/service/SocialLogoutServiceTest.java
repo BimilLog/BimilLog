@@ -7,7 +7,8 @@ import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.global.application.port.out.GlobalTokenQueryPort;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jaeik.bimillog.domain.user.entity.user.SocialProvider;
+import jaeik.bimillog.domain.user.entity.user.User;
 import jaeik.bimillog.testutil.AuthTestFixtures;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.DisplayName;
@@ -163,7 +164,7 @@ class SocialLogoutServiceTest extends BaseUnitTest {
      * @param user 사용자
      * @return Mock Token with User
      */
-    private Token createMockTokenWithUser(jaeik.bimillog.domain.user.entity.User user) {
+    private Token createMockTokenWithUser(User user) {
         Token mockToken = mock(Token.class);
         given(mockToken.getUsers()).willReturn(user);
         given(mockToken.getAccessToken()).willReturn(AuthTestFixtures.TEST_ACCESS_TOKEN);

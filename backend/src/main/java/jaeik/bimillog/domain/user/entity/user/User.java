@@ -1,7 +1,8 @@
-package jaeik.bimillog.domain.user.entity;
+package jaeik.bimillog.domain.user.entity.user;
 
 import jaeik.bimillog.domain.global.entity.BaseEntity;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
+import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import jakarta.persistence.*;

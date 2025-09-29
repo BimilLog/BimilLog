@@ -7,7 +7,7 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.user.application.port.in.SignUpUseCase;
 import jaeik.bimillog.domain.user.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.user.application.port.out.SaveUserPort;
-import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
+import jaeik.bimillog.domain.user.entity.userdetail.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.TempUserData;
 import jaeik.bimillog.infrastructure.adapter.in.user.web.UserCommandController;
 import lombok.RequiredArgsConstructor;

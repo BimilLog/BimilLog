@@ -1,7 +1,7 @@
 package jaeik.bimillog.adapter.in.notification;
 
 import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.entity.user.User;
 import jaeik.bimillog.infrastructure.adapter.out.notification.NotificationRepository;
 import jaeik.bimillog.testutil.*;
 import org.junit.jupiter.api.DisplayName;

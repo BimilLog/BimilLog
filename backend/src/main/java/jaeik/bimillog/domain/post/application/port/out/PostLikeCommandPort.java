@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.post.application.port.out;
 
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
-import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.entity.user.User;
 
 /**
  * <h2>게시글 추천 명령 포트</h2>

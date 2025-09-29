@@ -15,7 +15,7 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
-import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.entity.user.User;
 import jaeik.bimillog.domain.user.event.UserWithdrawnEvent;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.PostTestDataBuilder;

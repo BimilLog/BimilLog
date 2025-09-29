@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.global.application.port.out;
 
 import jaeik.bimillog.domain.auth.application.service.BlacklistService;
-import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
+import jaeik.bimillog.domain.user.entity.userdetail.ExistingUserDetail;
 import jaeik.bimillog.infrastructure.adapter.out.global.GlobalCookieAdapter;
 import jaeik.bimillog.infrastructure.filter.JwtFilter;
 

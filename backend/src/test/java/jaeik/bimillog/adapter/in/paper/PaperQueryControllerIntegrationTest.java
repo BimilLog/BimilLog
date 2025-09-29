@@ -1,7 +1,7 @@
 package jaeik.bimillog.adapter.in.paper;
 
 import jaeik.bimillog.domain.paper.entity.Message;
-import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.entity.user.User;
 import jaeik.bimillog.infrastructure.adapter.out.paper.MessageRepository;
 import jaeik.bimillog.testutil.*;
 import org.junit.jupiter.api.DisplayName;

@@ -2,9 +2,9 @@ package jaeik.bimillog.adapter.out.global;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import jaeik.bimillog.domain.user.entity.ExistingUserDetail;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.user.entity.UserRole;
+import jaeik.bimillog.domain.user.entity.userdetail.ExistingUserDetail;
+import jaeik.bimillog.domain.user.entity.user.SocialProvider;
+import jaeik.bimillog.domain.user.entity.user.UserRole;
 import jaeik.bimillog.infrastructure.adapter.out.global.GlobalJwtAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

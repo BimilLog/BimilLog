@@ -2,7 +2,7 @@ package jaeik.bimillog.adapter.in.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.entity.user.User;
 import jaeik.bimillog.infrastructure.adapter.in.admin.dto.ReportDTO;
 import jaeik.bimillog.infrastructure.adapter.in.auth.dto.SocialLoginRequestDTO;
 import jaeik.bimillog.infrastructure.adapter.in.user.dto.SettingDTO;

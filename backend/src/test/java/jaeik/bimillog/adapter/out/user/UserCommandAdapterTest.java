@@ -1,8 +1,8 @@
 package jaeik.bimillog.adapter.out.user;
 
 import jaeik.bimillog.domain.user.entity.Setting;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.entity.user.SocialProvider;
+import jaeik.bimillog.domain.user.entity.user.User;
 import jaeik.bimillog.infrastructure.adapter.out.user.UserCommandAdapter;
 import jaeik.bimillog.testutil.H2TestConfiguration;
 import org.junit.jupiter.api.BeforeEach;

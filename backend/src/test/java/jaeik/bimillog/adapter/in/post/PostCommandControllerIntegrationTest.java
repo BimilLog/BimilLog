@@ -1,7 +1,7 @@
 package jaeik.bimillog.adapter.in.post;
 
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.entity.user.User;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.PostCreateDTO;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.PostUpdateDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;

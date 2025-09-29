@@ -1,9 +1,9 @@
 package jaeik.bimillog.testutil;
 
 import jaeik.bimillog.domain.user.entity.Setting;
-import jaeik.bimillog.domain.user.entity.SocialProvider;
-import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.domain.user.entity.UserRole;
+import jaeik.bimillog.domain.user.entity.user.SocialProvider;
+import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.user.entity.user.UserRole;
 
 import java.util.function.Consumer;
 

@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.out.api.social.kakao;
 
-import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jaeik.bimillog.domain.user.entity.user.SocialProvider;
 import jaeik.bimillog.domain.user.exception.UserCustomException;
 import jaeik.bimillog.domain.user.exception.UserErrorCode;
 import jaeik.bimillog.infrastructure.adapter.out.api.dto.KakaoFriendsDTO;

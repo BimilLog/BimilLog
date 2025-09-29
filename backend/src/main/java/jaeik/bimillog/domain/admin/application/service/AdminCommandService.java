@@ -11,7 +11,7 @@ import jaeik.bimillog.domain.auth.application.port.in.BlacklistUseCase;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCommentQueryPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
-import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.entity.user.User;
 import jaeik.bimillog.domain.user.event.UserWithdrawnEvent;
 import jaeik.bimillog.infrastructure.adapter.in.admin.web.AdminCommandController;
 import lombok.RequiredArgsConstructor;

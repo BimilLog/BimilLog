@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.in.auth.dto;
 
-import jaeik.bimillog.domain.user.entity.SocialProvider;
+import jaeik.bimillog.domain.user.entity.user.SocialProvider;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;

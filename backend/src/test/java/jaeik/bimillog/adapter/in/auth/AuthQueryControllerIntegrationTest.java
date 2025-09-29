@@ -1,7 +1,7 @@
 package jaeik.bimillog.adapter.in.auth;
 
-import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.domain.user.entity.UserRole;
+import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.user.entity.user.UserRole;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.*;
 import org.junit.jupiter.api.DisplayName;

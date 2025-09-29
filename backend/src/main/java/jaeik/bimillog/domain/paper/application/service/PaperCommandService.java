@@ -9,7 +9,7 @@ import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.paper.exception.PaperCustomException;
 import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
-import jaeik.bimillog.domain.user.entity.User;
+import jaeik.bimillog.domain.user.entity.user.User;
 import jaeik.bimillog.infrastructure.adapter.in.global.listener.UserWithdrawListener;
 import jaeik.bimillog.infrastructure.adapter.in.paper.web.PaperCommandController;
 import lombok.RequiredArgsConstructor;

@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.user.entity;
+package jaeik.bimillog.domain.user.entity.userdetail;
 
 /**
  * <h2>사용자 상세 정보 인터페이스</h2>
