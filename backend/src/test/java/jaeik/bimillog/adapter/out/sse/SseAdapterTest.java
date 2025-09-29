@@ -17,7 +17,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.util.HashMap;
+import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.Optional;
 
@@ -27,18 +28,17 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 /**
- * <h2>SseAdapter 테스트</h2>
- * <p>SSE Emitter 어댑터의 인프라 구현을 검증하는 단위 테스트</p>
+ * <h2>SseAdapter 단위 테스트</h2>
+ * <p>SSE(Server-Sent Events) 연결 관리 및 알림 전송 기능을 검증합니다.</p>
+ * <p>ConcurrentHashMap 기반 Emitter 관리와 동시성 처리를 테스트합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
+ * @see SseAdapter
  */
-@DisplayName("SseAdapter 테스트")
 @Tag("test")
+@DisplayName("SseAdapter 단위 테스트")
 class SseAdapterTest extends BaseUnitTest {
-
-    @Mock
-    private EmitterRepository emitterRepository;
 
     @Mock
     private NotificationUtilPort notificationUtilPort;
@@ -61,34 +61,51 @@ class SseAdapterTest extends BaseUnitTest {
         tokenId = 100L;
     }
 
-    @Test
-    @DisplayName("SSE 구독 - 성공")
-    void shouldSubscribe_WhenValidInput() {
-        // Given
-        when(emitterRepository.save(any(String.class), any(SseEmitter.class)))
-            .thenAnswer(invocation -> invocation.getArgument(1));
+    /**
+     * Private 필드에 접근하기 위한 Reflection 유틸리티 메서드
+     */
+    @SuppressWarnings("unchecked")
+    private Map<String, SseEmitter> getEmittersMap() throws Exception {
+        Field field = SseAdapter.class.getDeclaredField("emitters");
+        field.setAccessible(true);
+        return (Map<String, SseEmitter>) field.get(sseAdapter);
+    }
 
+
+    @Test
+    @DisplayName("SSE 구독 - Emitter 생성 및 저장 확인")
+    void shouldSubscribe_WhenValidInput() throws Exception {
         // When
         SseEmitter result = sseAdapter.subscribe(userId, tokenId);
 
         // Then
         assertThat(result).isNotNull();
-        verify(emitterRepository).save(any(String.class), any(SseEmitter.class));
         assertThat(result).isInstanceOf(SseEmitter.class);
+
+        // Reflection으로 내부 Map 확인
+        Map<String, SseEmitter> emitters = getEmittersMap();
+        assertThat(emitters).isNotEmpty();
+
+        // EmitterId 형식 검증 (userId_tokenId_timestamp)
+        String emitterIdPattern = userId + "_" + tokenId + "_";
+        boolean hasMatchingEmitter = emitters.keySet().stream()
+                .anyMatch(key -> key.startsWith(emitterIdPattern));
+        assertThat(hasMatchingEmitter).isTrue();
     }
 
     @Test
-    @DisplayName("SSE 알림 전송 - 성공")
-    void shouldSend_WhenValidInput() {
+    @DisplayName("SSE 알림 전송 - 정상 전송 확인")
+    void shouldSend_WhenValidInput() throws Exception {
         // Given
         String emitterId = userId + "_100_1234567890";
         SseEmitter mockEmitter = mock(SseEmitter.class);
-        Map<String, SseEmitter> emitters = new HashMap<>();
+
+        // Reflection으로 emitters Map에 테스트 데이터 주입
+        Map<String, SseEmitter> emitters = getEmittersMap();
         emitters.put(emitterId, mockEmitter);
 
         given(notificationUtilPort.SseEligibleForNotification(userId, NotificationType.COMMENT)).willReturn(true);
         given(userQueryUseCase.findById(userId)).willReturn(Optional.of(getTestUser()));
-        given(emitterRepository.findAllEmitterByUserId(userId)).willReturn(emitters);
 
         // When
         SseMessage sseMessage = SseMessage.of(userId, NotificationType.COMMENT,
@@ -99,7 +116,9 @@ class SseAdapterTest extends BaseUnitTest {
         verify(notificationUtilPort).SseEligibleForNotification(userId, NotificationType.COMMENT);
         verify(userQueryUseCase).findById(userId);
         verify(notificationCommandPort).save(eq(getTestUser()), eq(NotificationType.COMMENT), anyString(), anyString());
-        verify(emitterRepository).findAllEmitterByUserId(userId);
+
+        // SseEmitter로 실제 전송 시도 확인
+        verify(mockEmitter, times(1)).send(any(SseEmitter.SseEventBuilder.class));
     }
 
     @Test
@@ -118,7 +137,6 @@ class SseAdapterTest extends BaseUnitTest {
         verify(notificationUtilPort).SseEligibleForNotification(userId, NotificationType.COMMENT);
         verify(userQueryUseCase).findById(userId);
         verify(notificationCommandPort, never()).save(any(), any(), any(), any());
-        verify(emitterRepository, never()).findAllEmitterByUserId(any());
     }
 
     @Test
@@ -139,16 +157,18 @@ class SseAdapterTest extends BaseUnitTest {
         verify(notificationUtilPort).SseEligibleForNotification(userId, NotificationType.COMMENT);
         verify(userQueryUseCase).findById(userId);
         verify(notificationCommandPort).save(eq(getTestUser()), eq(NotificationType.COMMENT), anyString(), anyString());
-        verify(emitterRepository, never()).findAllEmitterByUserId(any());
     }
 
     @Test
-    @DisplayName("SSE 알림 전송 - Emitter가 없는 경우")
-    void shouldHandleEmptyEmitters_WhenNoEmittersExist() {
+    @DisplayName("SSE 알림 전송 - Emitter가 없는 경우 정상 처리")
+    void shouldHandleEmptyEmitters_WhenNoEmittersExist() throws Exception {
         // Given
         given(notificationUtilPort.SseEligibleForNotification(userId, NotificationType.COMMENT)).willReturn(true);
         given(userQueryUseCase.findById(userId)).willReturn(Optional.of(getTestUser()));
-        given(emitterRepository.findAllEmitterByUserId(userId)).willReturn(new HashMap<>());
+
+        // emitters Map이 비어있는 상태 확인
+        Map<String, SseEmitter> emitters = getEmittersMap();
+        emitters.clear();
 
         // When
         SseMessage sseMessage = SseMessage.of(userId, NotificationType.COMMENT, "테스트 메시지", "/test/url");
@@ -158,43 +178,58 @@ class SseAdapterTest extends BaseUnitTest {
         verify(notificationUtilPort).SseEligibleForNotification(userId, NotificationType.COMMENT);
         verify(userQueryUseCase).findById(userId);
         verify(notificationCommandPort).save(eq(getTestUser()), eq(NotificationType.COMMENT), anyString(), anyString());
-        verify(emitterRepository).findAllEmitterByUserId(userId);
         // Emitter가 없어도 예외가 발생하지 않아야 함
     }
 
     @Test
-    @DisplayName("사용자 SSE 연결 정리 - 성공")
-    void shouldDeleteAllEmitterByUserId_WhenValidUserId() {
+    @DisplayName("사용자의 모든 SSE 연결 정리")
+    void shouldDeleteAllEmitterByUserId_WhenTokenIdIsNull() throws Exception {
+        // Given
+        Map<String, SseEmitter> emitters = getEmittersMap();
+        emitters.put(userId + "_100_1234567890", mock(SseEmitter.class));
+        emitters.put(userId + "_101_1234567891", mock(SseEmitter.class));
+        emitters.put("999_102_1234567892", mock(SseEmitter.class)); // 다른 사용자
+
         // When
         sseAdapter.deleteEmitters(userId, null);
 
         // Then
-        verify(emitterRepository).deleteAllEmitterByUserId(userId);
+        Map<String, SseEmitter> remainingEmitters = getEmittersMap();
+        assertThat(remainingEmitters).hasSize(1);
+        assertThat(remainingEmitters.containsKey("999_102_1234567892")).isTrue();
     }
 
     @Test
-    @DisplayName("특정 기기 SSE 연결 정리 - 성공")
-    void shouldDeleteEmitterByUserIdAndTokenId_WhenValidIds() {
+    @DisplayName("특정 기기 SSE 연결 정리")
+    void shouldDeleteEmitterByUserIdAndTokenId_WhenTokenIdProvided() throws Exception {
+        // Given
+        Map<String, SseEmitter> emitters = getEmittersMap();
+        emitters.put(userId + "_100_1234567890", mock(SseEmitter.class));
+        emitters.put(userId + "_100_1234567891", mock(SseEmitter.class)); // 같은 토큰
+        emitters.put(userId + "_101_1234567892", mock(SseEmitter.class)); // 다른 토큰
+
         // When
-        sseAdapter.deleteEmitters(userId, tokenId);
+        sseAdapter.deleteEmitters(userId, 100L);
 
         // Then
-        verify(emitterRepository).deleteEmitterByUserIdAndTokenId(userId, tokenId);
+        Map<String, SseEmitter> remainingEmitters = getEmittersMap();
+        assertThat(remainingEmitters).hasSize(1);
+        assertThat(remainingEmitters.containsKey(userId + "_101_1234567892")).isTrue();
     }
 
     @Test
-    @DisplayName("여러 Emitter에 동시 전송 테스트")
-    void shouldSendToMultipleEmitters() {
+    @DisplayName("여러 Emitter에 동시 전송")
+    void shouldSendToMultipleEmitters() throws Exception {
         // Given
-        Map<String, SseEmitter> emitters = new HashMap<>();
-        for (int i = 0; i < 2; i++) {
-            String emitterId = userId + "_" + (100L + i) + "_" + (1234567890L + i);
-            emitters.put(emitterId, mock(SseEmitter.class));
-        }
+        Map<String, SseEmitter> emitters = getEmittersMap();
+        SseEmitter mockEmitter1 = mock(SseEmitter.class);
+        SseEmitter mockEmitter2 = mock(SseEmitter.class);
+
+        emitters.put(userId + "_100_1234567890", mockEmitter1);
+        emitters.put(userId + "_101_1234567891", mockEmitter2);
 
         given(notificationUtilPort.SseEligibleForNotification(userId, NotificationType.COMMENT)).willReturn(true);
         given(userQueryUseCase.findById(userId)).willReturn(Optional.of(getTestUser()));
-        given(emitterRepository.findAllEmitterByUserId(userId)).willReturn(emitters);
 
         // When
         SseMessage sseMessage = SseMessage.of(userId, NotificationType.COMMENT, "테스트 메시지", "/test/url");
@@ -204,11 +239,14 @@ class SseAdapterTest extends BaseUnitTest {
         verify(notificationUtilPort).SseEligibleForNotification(userId, NotificationType.COMMENT);
         verify(userQueryUseCase).findById(userId);
         verify(notificationCommandPort).save(eq(getTestUser()), eq(NotificationType.COMMENT), anyString(), anyString());
-        verify(emitterRepository).findAllEmitterByUserId(userId);
+
+        // 두 Emitter 모두에게 전송 확인
+        verify(mockEmitter1, times(1)).send(any(SseEmitter.SseEventBuilder.class));
+        verify(mockEmitter2, times(1)).send(any(SseEmitter.SseEventBuilder.class));
     }
 
     @Test
-    @DisplayName("SSE 알림 전송 - 알림 설정 비활성화된 경우 조기 리턴")
+    @DisplayName("SSE 알림 전송 - 알림 설정 비활성화 시 조기 리턴")
     void shouldNotSend_WhenNotificationDisabled() {
         // Given
         given(notificationUtilPort.SseEligibleForNotification(userId, NotificationType.COMMENT)).willReturn(false);
@@ -221,6 +259,34 @@ class SseAdapterTest extends BaseUnitTest {
         verify(notificationUtilPort).SseEligibleForNotification(userId, NotificationType.COMMENT);
         verify(userQueryUseCase, never()).findById(any());
         verify(notificationCommandPort, never()).save(any(), any(), any(), any());
-        verify(emitterRepository, never()).findAllEmitterByUserId(any());
+    }
+
+    @Test
+    @DisplayName("IOException 발생 시 Emitter 자동 정리")
+    void shouldRemoveEmitterOnIOException() throws Exception {
+        // Given
+        String emitterId = userId + "_100_1234567890";
+        SseEmitter mockEmitter = mock(SseEmitter.class);
+
+        Map<String, SseEmitter> emitters = getEmittersMap();
+        emitters.put(emitterId, mockEmitter);
+
+        // IOException 발생하도록 설정
+        doThrow(new IOException("Connection lost"))
+                .when(mockEmitter).send(any(SseEmitter.SseEventBuilder.class));
+
+        given(notificationUtilPort.SseEligibleForNotification(userId, NotificationType.COMMENT)).willReturn(true);
+        given(userQueryUseCase.findById(userId)).willReturn(Optional.of(getTestUser()));
+
+        // When
+        SseMessage sseMessage = SseMessage.of(userId, NotificationType.COMMENT, "테스트 메시지", "/test/url");
+        sseAdapter.send(sseMessage);
+
+        // Then: IOException이 발생해도 전체 프로세스는 정상 완료
+        verify(notificationCommandPort).save(eq(getTestUser()), eq(NotificationType.COMMENT), anyString(), anyString());
+
+        // Emitter가 Map에서 제거되었는지 확인
+        Map<String, SseEmitter> remainingEmitters = getEmittersMap();
+        assertThat(remainingEmitters).doesNotContainKey(emitterId);
     }
 }

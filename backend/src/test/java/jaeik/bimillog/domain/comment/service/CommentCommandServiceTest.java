@@ -1,6 +1,9 @@
 package jaeik.bimillog.domain.comment.service;
 
-import jaeik.bimillog.domain.comment.application.port.out.*;
+import jaeik.bimillog.domain.comment.application.port.out.CommentDeletePort;
+import jaeik.bimillog.domain.comment.application.port.out.CommentLikePort;
+import jaeik.bimillog.domain.comment.application.port.out.CommentQueryPort;
+import jaeik.bimillog.domain.comment.application.port.out.CommentSavePort;
 import jaeik.bimillog.domain.comment.application.service.CommentCommandService;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentClosure;

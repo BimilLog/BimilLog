@@ -52,19 +52,4 @@ public interface SsePort {
      * @since 2.0.0
      */
     void send(SseMessage sseMessage);
-
-    /**
-     * <h3>고유 Emitter ID 생성</h3>
-     * <p>사용자 ID, 토큰 ID, 타임스탬프를 조합하여 고유한 SSE 연결 식별자를 생성합니다.</p>
-     * <p>동시 접속 또는 연결 재시도 시에도 고유성을 보장하기 위해 밀리초 단위의 타임스탬프를 포함합니다.</p>
-     * <p>SSE 연결 저장소에서 연결 관리를 위해 사용되는 내부 유틸리티 메서드입니다.</p>
-     *
-     * @param userId  사용자 ID
-     * @param tokenId 토큰 ID
-     * @return 고유한 Emitter ID (userId_tokenId_timestamp 형식)
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    String makeTimeIncludeId(Long userId, Long tokenId);
-
 }

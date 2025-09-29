@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.admin.event.UserBannedEvent;
 import jaeik.bimillog.domain.auth.application.port.in.SocialLogoutUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.TokenUseCase;
 import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
+import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
@@ -19,6 +20,7 @@ public class UserBannedListener {
     private final SocialLogoutUseCase socialLogoutUseCase;
     private final FcmUseCase fcmUseCase;
     private final TokenUseCase tokenUseCase;
+    private final SseUseCase sseUseCase;
 
     /**
      * <h3>사용자 차단 이벤트 처리</h3>
@@ -37,6 +39,7 @@ public class UserBannedListener {
         String socialId = userBannedEvent.socialId();
         SocialProvider provider = userBannedEvent.provider();
 
+        sseUseCase.deleteEmitters(userId, null);
         socialLogoutUseCase.forceLogout(userId, provider, socialId); // 구현 필요
         fcmUseCase.deleteFcmTokens(userId, null);
         tokenUseCase.deleteTokens(userId, null);

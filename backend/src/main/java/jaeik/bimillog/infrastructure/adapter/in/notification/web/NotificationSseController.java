@@ -25,16 +25,13 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @RequestMapping("/api/notification")
 public class NotificationSseController {
 
-    private final SseUseCase SSEUseCase;
+    private final SseUseCase sseUseCase;
 
     /**
-     * <h3>사용자 웹사이트 접속 시 실시간 알림 수신을 위한 SSE 구독 연결</h3>
-     * <p>사용자가 웹 브라우저로 비밀로그에 접속한 상황에서 프론트엔드의 알림 헤더 컴포넌트나 
-     * 알림 벨 아이콘이 렌더링될 때 EventSource API를 통해 이 엔드포인트로 연결하여 
-     * 실시간 알림 스트림을 구독합니다.</p>
-     * <p>댓글 작성, 롤링페이퍼 메시지 도착, 인기글 선정 등의 이벤트가 발생할 때마다 
-     * NotificationGenerateListener가 이벤트를 처리하여 NotificationSseUseCase를 통해 
-     * 이 SSE 연결로 실시간 알림 메시지를 전송하여 사용자가 즉시 확인할 수 있도록 합니다.</p>
+     * <h3>SSE 구독</h3>
+     * <p>사용자가 로그인 시 실시간 알림 스트림을 구독합니다.</p>
+     * <p>댓글 작성, 롤링페이퍼 메시지 도착, 인기글 선정 등의 이벤트가 발생할 때마다
+     * NotificationGenerateListener로부터 이벤트를 처리하여 SSE메시지를 전송합니다</p>
      * <p>사용자별/토큰별로 구분된 SSE Emitter를 생성하여 멀티 디바이스 환경에서의 동시 접속을 지원합니다.</p>
      *
      * @param userDetails 현재 로그인한 사용자의 인증 정보 (사용자 ID, 토큰 ID 포함)
@@ -44,6 +41,6 @@ public class NotificationSseController {
      */
     @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter subscribe(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        return SSEUseCase.subscribe(userDetails.getUserId(), userDetails.getTokenId());
+        return sseUseCase.subscribe(userDetails.getUserId(), userDetails.getTokenId());
     }
 }
