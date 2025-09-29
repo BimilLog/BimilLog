@@ -1,11 +1,11 @@
 package jaeik.bimillog.domain.post.application.service;
 
+import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalUserQueryPort;
 import jaeik.bimillog.domain.post.application.port.in.PostInteractionUseCase;
 import jaeik.bimillog.domain.post.application.port.out.PostCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.PostLikeCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.PostLikeQueryPort;
-import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
@@ -37,7 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PostInteractionService implements PostInteractionUseCase {
 
     private final PostCommandPort postCommandPort;
-    private final PostQueryPort postQueryPort;
+    private final GlobalPostQueryPort globalPostQueryPort;
     private final PostLikeCommandPort postLikeCommandPort;
     private final PostLikeQueryPort postLikeQueryPort;
     private final GlobalUserQueryPort globalUserQueryPort;
@@ -63,7 +63,7 @@ public class PostInteractionService implements PostInteractionUseCase {
         
         // 2. 좋아요 토글을 위해 필요한 엔티티만 로딩
         User user = globalUserQueryPort.getReferenceById(userId);
-        Post post = postQueryPort.findById(postId);
+        Post post = globalPostQueryPort.findById(postId);
 
         if (isAlreadyLiked) {
             postLikeCommandPort.deletePostLike(user, post);

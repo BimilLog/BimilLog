@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.post.application.service;
 
 
+import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.post.application.port.in.PostQueryUseCase;
 import jaeik.bimillog.domain.post.application.port.out.PostLikeQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
@@ -32,6 +33,7 @@ import java.util.Map;
 public class PostQueryService implements PostQueryUseCase {
 
     private final PostQueryPort postQueryPort;
+    private final GlobalPostQueryPort globalPostQueryPort;
     private final PostLikeQueryPort postLikeQueryPort;
     private final PostCacheSyncService postCacheSyncService;
     private final RedisPostQueryPort redisPostQueryPort;
@@ -172,7 +174,7 @@ public class PostQueryService implements PostQueryUseCase {
      */
     @Override
     public Post findById(Long postId) {
-        return postQueryPort.findById(postId);
+        return globalPostQueryPort.findById(postId);
     }
 
     /**

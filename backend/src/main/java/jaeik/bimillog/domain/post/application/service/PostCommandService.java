@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.post.application.service;
 
+import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalUserQueryPort;
 import jaeik.bimillog.domain.post.application.port.in.PostCommandUseCase;
 import jaeik.bimillog.domain.post.application.port.out.*;
@@ -30,7 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PostCommandService implements PostCommandUseCase {
 
     private final PostCommandPort postCommandPort;
-    private final PostQueryPort postQueryPort;
+    private final GlobalPostQueryPort globalPostQueryPort;
     private final GlobalUserQueryPort globalUserQueryPort;
     private final RedisPostCommandPort redisPostCommandPort;
     private final PostLikeCommandPort postLikeCommandPort;
@@ -78,7 +79,7 @@ public class PostCommandService implements PostCommandUseCase {
     @Override
     @Transactional
     public void updatePost(Long userId, Long postId, String title, String content) {
-        Post post = postQueryPort.findById(postId);
+        Post post = globalPostQueryPort.findById(postId);
 
         if (!post.isAuthor(userId)) {
             throw new PostCustomException(PostErrorCode.FORBIDDEN);
@@ -105,7 +106,7 @@ public class PostCommandService implements PostCommandUseCase {
     @Override
     @Transactional
     public void deletePost(Long userId, Long postId) {
-        Post post = postQueryPort.findById(postId);
+        Post post = globalPostQueryPort.findById(postId);
 
         if (!post.isAuthor(userId)) {
             throw new PostCustomException(PostErrorCode.FORBIDDEN);

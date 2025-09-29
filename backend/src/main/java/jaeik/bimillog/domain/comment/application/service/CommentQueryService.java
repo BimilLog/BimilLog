@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.comment.application.port.out.CommentQueryPort;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentInfo;
 import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
+import jaeik.bimillog.domain.global.application.port.out.GlobalCommentQueryPort;
 import jaeik.bimillog.infrastructure.adapter.in.comment.web.CommentQueryController;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostToCommentAdapter;
@@ -34,6 +35,7 @@ import java.util.Map;
 public class CommentQueryService implements CommentQueryUseCase {
 
     private final CommentQueryPort commentQueryPort;
+    private final GlobalCommentQueryPort globalCommentQueryPort;
 
     /**
      * <h3>인기 댓글 조회</h3>
@@ -85,7 +87,7 @@ public class CommentQueryService implements CommentQueryUseCase {
      */
     @Override
     public Comment findById(Long commentId) {
-        return commentQueryPort.findById(commentId);
+        return globalCommentQueryPort.findById(commentId);
     }
 
     /**

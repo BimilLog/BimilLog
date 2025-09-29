@@ -8,9 +8,8 @@ import jaeik.bimillog.domain.admin.event.UserBannedEvent;
 import jaeik.bimillog.domain.admin.exception.AdminCustomException;
 import jaeik.bimillog.domain.admin.exception.AdminErrorCode;
 import jaeik.bimillog.domain.auth.application.port.in.BlacklistUseCase;
-import jaeik.bimillog.domain.comment.application.port.in.CommentQueryUseCase;
-import jaeik.bimillog.domain.post.application.port.in.PostQueryUseCase;
-import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
+import jaeik.bimillog.domain.global.application.port.out.GlobalCommentQueryPort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.event.UserWithdrawnEvent;
@@ -39,9 +38,8 @@ public class AdminCommandService implements AdminCommandUseCase {
     private final ApplicationEventPublisher eventPublisher;
     private final AdminCommandPort adminCommandPort;
     private final UserQueryPort userQueryPort;
-    private final PostQueryUseCase postQueryUseCase; // 어댑터에서 의존으로 해야함
-    private final CommentQueryUseCase commentQueryUseCase; // 어댑터에서 의존으로 해야함
-    private final UserCommandUseCase userCommandUseCase; // 어댑터에서 의존으로 해야함
+    private final GlobalPostQueryPort globalPostQueryPort;
+    private final GlobalCommentQueryPort globalCommentQueryPort;
     private final BlacklistUseCase blacklistUseCase; // 어댑터에서 의존으로 해야함
 
     /**
@@ -141,8 +139,8 @@ public class AdminCommandService implements AdminCommandUseCase {
      */
     private User resolveUser(ReportType reportType, Long targetId) {
         User user = switch (reportType) {
-            case POST -> postQueryUseCase.findById(targetId).getUser();
-            case COMMENT -> commentQueryUseCase.findById(targetId).getUser();
+            case POST -> globalPostQueryPort.findById(targetId).getUser();
+            case COMMENT -> globalCommentQueryPort.findById(targetId).getUser();
             default -> throw new AdminCustomException(AdminErrorCode.INVALID_REPORT_TARGET);
         };
 

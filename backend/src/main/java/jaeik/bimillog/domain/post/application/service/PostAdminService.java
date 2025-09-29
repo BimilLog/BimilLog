@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.post.application.service;
 
+import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.post.application.port.in.PostAdminUseCase;
-import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.infrastructure.adapter.in.post.web.PostAdminController;
@@ -24,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class PostAdminService implements PostAdminUseCase {
 
-    private final PostQueryPort postQueryPort;
+    private final GlobalPostQueryPort globalPostQueryPort;
 
     /**
      * <h3>게시글 공지사항 상태 토글</h3>
@@ -40,7 +40,7 @@ public class PostAdminService implements PostAdminUseCase {
     @Override
     @Transactional
     public void togglePostNotice(Long postId) {
-        Post post = postQueryPort.findById(postId);
+        Post post = globalPostQueryPort.findById(postId);
         
         if (post.isNotice()) {
             post.unsetAsNotice();
@@ -68,7 +68,7 @@ public class PostAdminService implements PostAdminUseCase {
     @Override
     @Transactional(readOnly = true)
     public boolean isPostNotice(Long postId) {
-        Post post = postQueryPort.findById(postId);
+        Post post = globalPostQueryPort.findById(postId);
         
         boolean isNotice = post.isNotice();
         log.debug("게시글 공지 상태 조회: postId={}, isNotice={}", postId, isNotice);

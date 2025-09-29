@@ -12,8 +12,6 @@ import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostToCommentPort;
 import jaeik.bimillog.domain.post.application.service.PostQueryService;
 import jaeik.bimillog.domain.post.entity.*;
-import jaeik.bimillog.domain.post.exception.PostCustomException;
-import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import jaeik.bimillog.domain.user.entity.QUser;
 import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostFulltextRepository;
 import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostRepository;
@@ -44,7 +42,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class PostQueryAdapter implements PostQueryPort {
     private final JPAQueryFactory jpaQueryFactory;
-    private final PostRepository postRepository;
     private final PostFulltextRepository postFullTextRepository;
     private final PostToCommentPort postToCommentPort;
     private final PostLikeQueryPort postLikeQueryPort;
@@ -54,21 +51,7 @@ public class PostQueryAdapter implements PostQueryPort {
     private static final QPostLike postLike = QPostLike.postLike;
     private static final QComment comment = QComment.comment;
 
-    /**
-     * <h3>ID로 게시글 조회</h3>
-     * <p>주어진 ID를 사용하여 게시글을 조회합니다.</p>
-     * <p>{@link PostQueryService}에서 게시글 존재성 검증 및 권한 확인 시 호출됩니다.</p>
-     *
-     * @param id 조회할 게시글 ID
-     * @return 조회된 게시글 엔티티
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public Post findById(Long id) {
-        return postRepository.findById(id)
-                .orElseThrow(() -> new PostCustomException(PostErrorCode.POST_NOT_FOUND));
-    }
+
 
     /**
      * <h3>페이지별 게시글 조회</h3>

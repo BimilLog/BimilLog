@@ -8,6 +8,8 @@ import jaeik.bimillog.domain.comment.entity.CommentLike;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.exception.CommentCustomException;
 import jaeik.bimillog.domain.comment.exception.CommentErrorCode;
+import jaeik.bimillog.domain.global.application.port.out.GlobalCommentQueryPort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalUserQueryPort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.user.entity.User;
@@ -42,8 +44,9 @@ import java.util.List;
 public class CommentCommandService implements CommentCommandUseCase {
 
     private final ApplicationEventPublisher eventPublisher;
-    private final CommentToPostPort commentToPostPort;
+    private final GlobalPostQueryPort globalPostQueryPort;
     private final GlobalUserQueryPort globalUserQueryPort;
+    private final GlobalCommentQueryPort globalCommentQueryPort;
     private final CommentSavePort commentSavePort;
     private final CommentDeletePort commentDeletePort;
     private final CommentQueryPort commentQueryPort;
@@ -69,7 +72,7 @@ public class CommentCommandService implements CommentCommandUseCase {
     @Transactional
     public void writeComment(Long userId, Long postId, Long parentId, String content, Integer password) {
         try {
-            Post post = commentToPostPort.findById(postId);
+            Post post = globalPostQueryPort.findById(postId);
 
             User user = userId != null ? globalUserQueryPort.findById(userId).orElse(null) : null;
             String userName = user != null ? user.getUserName() : "익명";
@@ -148,7 +151,7 @@ public class CommentCommandService implements CommentCommandUseCase {
     @Override
     @Transactional
     public void likeComment(Long userId, Long commentId) {
-        Comment comment = commentQueryPort.findById(commentId);
+        Comment comment = globalCommentQueryPort.findById(commentId);
         User user = globalUserQueryPort.findById(userId)
                 .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
 
@@ -221,7 +224,7 @@ public class CommentCommandService implements CommentCommandUseCase {
      * @since 2.0.0
      */
     private Comment validateComment(Long commentId, Long userId, Integer password) {
-        Comment comment = commentQueryPort.findById(commentId);
+        Comment comment = globalCommentQueryPort.findById(commentId);
 
         if (!comment.canModify(userId, password)) {
             throw new CommentCustomException(CommentErrorCode.COMMENT_UNAUTHORIZED);
