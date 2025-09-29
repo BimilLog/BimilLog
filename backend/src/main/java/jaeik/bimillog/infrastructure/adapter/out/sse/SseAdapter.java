@@ -15,6 +15,8 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * <h2>SSE 어댑터</h2>
@@ -28,7 +30,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class SseAdapter implements SsePort {
 
-    private final EmitterRepository emitterRepository;
+    private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
+
     private final NotificationUtilPort notificationUtilPort;
     private final UserQueryUseCase userQueryUseCase;
     private final NotificationCommandPort notificationCommandPort;
@@ -46,10 +49,10 @@ public class SseAdapter implements SsePort {
     @Override
     public SseEmitter subscribe(Long userId, Long tokenId) {
         String emitterId = makeTimeIncludeId(userId, tokenId);
-        SseEmitter emitter = emitterRepository.save(emitterId, new SseEmitter(Long.MAX_VALUE));
+        SseEmitter emitter = save(emitterId, new SseEmitter(Long.MAX_VALUE));
 
-        emitter.onCompletion(() -> emitterRepository.deleteById(emitterId));
-        emitter.onTimeout(() -> emitterRepository.deleteById(emitterId));
+        emitter.onCompletion(() -> deleteById(emitterId));
+        emitter.onTimeout(() -> deleteById(emitterId));
 
         SseMessage initMessage = SseMessage.of(userId, NotificationType.INITIATE,
                 "이벤트 스트림이 생성되었습니다. [emitterId=%s]".formatted(emitterId), "");
@@ -77,7 +80,7 @@ public class SseAdapter implements SsePort {
             User user = userQueryUseCase.findById(sseMessage.userId())
                     .orElseThrow(() -> new NotificationCustomException(NotificationErrorCode.INVALID_USER_CONTEXT));
             notificationCommandPort.save(user, sseMessage.type(), sseMessage.message(), sseMessage.url());
-            Map<String, SseEmitter> emitters = emitterRepository.findAllEmitterByUserId(sseMessage.userId());
+            Map<String, SseEmitter> emitters = findAllEmitterByUserId(sseMessage.userId());
 
             emitters.forEach(
                     (emitterId, emitter) -> {
@@ -106,7 +109,7 @@ public class SseAdapter implements SsePort {
                     .name(sseMessage.type().toString())
                     .data(sseMessage.toJsonData()));
         } catch (IOException e) {
-            emitterRepository.deleteById(emitterId);
+            deleteById(emitterId);
         }
     }
 
@@ -125,9 +128,9 @@ public class SseAdapter implements SsePort {
     @Override
     public void deleteEmitters(Long userId, Long tokenId) {
         if (tokenId != null) {
-            emitterRepository.deleteEmitterByUserIdAndTokenId(userId, tokenId);
+            deleteEmitterByUserIdAndTokenId(userId, tokenId);
         } else {
-            emitterRepository.deleteAllEmitterByUserId(userId);
+            deleteAllEmitterByUserId(userId);
         }
     }
 
@@ -144,5 +147,88 @@ public class SseAdapter implements SsePort {
     @Override
     public String makeTimeIncludeId(Long userId, Long tokenId) {
         return userId + "_" + tokenId + "_" + System.currentTimeMillis();
+    }
+
+    /**
+     * <h3>Emitter 저장</h3>
+     *
+     * <p>고유한 Emitter ID로 SseEmitter 객체를 저장합니다.</p>
+     * <p>사용자 ID와 토큰 ID와 생성 시간을 조합하여 고유한 Emitter ID를 생성합니다.</p>
+     *
+     * @param emitterId  Emitter ID
+     * @param sseEmitter SseEmitter 객체
+     * @return 저장된 SseEmitter 객체
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private SseEmitter save(String emitterId, SseEmitter sseEmitter) {
+        emitters.put(emitterId, sseEmitter);
+        return sseEmitter;
+    }
+
+    /**
+     * <h3>사용자의 모든 Emitter 조회</h3>
+     *
+     * <p>사용자 ID에 해당하는 모든 Emitter를 조회합니다.</p>
+     * <p>해당 사용자에 연결된 모든 기기로 알림을 보내는 용도입니다.</p>
+     * <p>EmitterId 형식: "userId_tokenId_timestamp"</p>
+     *
+     * @param userId 유저 ID
+     * @return 사용자 ID에 해당하는 모든 Emitter Map
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private Map<String, SseEmitter> findAllEmitterByUserId(Long userId) {
+        String userIdPrefix = userId + "_";
+        return emitters.entrySet().stream()
+                .filter(entry -> entry.getKey().startsWith(userIdPrefix))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    /**
+     * <h3>사용자의 특정 Emitter 삭제</h3>
+     *
+     * <p>EmitterID로 특정한 SseEmitter 객체를 삭제합니다.</p>
+     * <p>일시적 오류에서 사용합니다.</p>
+     *
+     * @param emitterId emitter ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private void deleteById(String emitterId) {
+        emitters.remove(emitterId);
+    }
+
+    /**
+     * <h3>사용자의 모든 Emitter 삭제</h3>
+     *
+     * <p>사용자 ID에 해당하는 모든 Emitter를 삭제합니다.</p>
+     * <p>로그아웃, 회원탈퇴에서 사용합니다.</p>
+     * <p>EmitterId 형식: "userId_tokenId_timestamp"</p>
+     *
+     * @param userId 유저 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private void deleteAllEmitterByUserId(Long userId) {
+        String userIdPrefix = userId + "_";
+        emitters.entrySet().removeIf(entry -> entry.getKey().startsWith(userIdPrefix));
+    }
+
+    /**
+     * <h3>사용자의 특정 토큰 Emitter 삭제</h3>
+     *
+     * <p>사용자 ID와 토큰 ID에 해당하는 특정 기기의 Emitter를 삭제합니다.</p>
+     * <p>다중 기기 로그인 환경에서 특정 기기만 로그아웃 처리할 때 사용합니다.</p>
+     * <p>EmitterId 형식: "userId_tokenId_timestamp"</p>
+     *
+     * @param userId 유저 ID
+     * @param tokenId 토큰 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private void deleteEmitterByUserIdAndTokenId(Long userId, Long tokenId) {
+        String userTokenPrefix = userId + "_" + tokenId + "_";
+        emitters.entrySet().removeIf(entry -> entry.getKey().startsWith(userTokenPrefix));
     }
 }
