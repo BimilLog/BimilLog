@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.out.comment.jpa;
+package jaeik.bimillog.infrastructure.adapter.out.comment;
 
 import jaeik.bimillog.domain.comment.entity.CommentClosure;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -8,13 +8,12 @@ import jaeik.bimillog.domain.admin.event.UserBannedEvent;
 import jaeik.bimillog.domain.admin.exception.AdminCustomException;
 import jaeik.bimillog.domain.admin.exception.AdminErrorCode;
 import jaeik.bimillog.domain.auth.application.port.in.BlacklistUseCase;
-import jaeik.bimillog.domain.comment.application.port.in.CommentQueryUseCase;
 import jaeik.bimillog.domain.comment.entity.Comment;
-import jaeik.bimillog.domain.post.application.port.in.PostQueryUseCase;
+import jaeik.bimillog.domain.global.application.port.out.GlobalCommentQueryPort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
-import jaeik.bimillog.domain.user.application.port.in.UserCommandUseCase;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.domain.user.event.UserWithdrawnEvent;
@@ -58,13 +57,10 @@ class AdminCommandServiceTest extends BaseUnitTest {
     private UserQueryPort userQueryPort;
 
     @Mock
-    private PostQueryUseCase postQueryUseCase;
+    private GlobalPostQueryPort globalPostQueryPort;
 
     @Mock
-    private CommentQueryUseCase commentQueryUseCase;
-
-    @Mock
-    private UserCommandUseCase userCommandUseCase;
+    private GlobalCommentQueryPort globalCommentQueryPort;
 
     @Mock
     private BlacklistUseCase blacklistUseCase;
@@ -82,9 +78,8 @@ class AdminCommandServiceTest extends BaseUnitTest {
                 eventPublisher,
                 adminCommandPort,
                 userQueryPort,
-                postQueryUseCase,
-                commentQueryUseCase,
-                userCommandUseCase,
+                globalPostQueryPort,
+                globalCommentQueryPort,
                 blacklistUseCase
         );
     }
@@ -95,7 +90,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
         // Given
         User userWithId = createTestUserWithId(200L);
         Post testPost = PostTestDataBuilder.withId(200L, PostTestDataBuilder.createPost(userWithId, "테스트 제목", "테스트 내용"));
-        given(postQueryUseCase.findById(200L)).willReturn(testPost);
+        given(globalPostQueryPort.findById(200L)).willReturn(testPost);
 
         // When
         adminCommandService.banUser(testReportType, testTargetId);
@@ -128,7 +123,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
     @DisplayName("게시글이 존재하지 않는 경우 POST_NOT_FOUND 예외 발생")
     void shouldThrowException_WhenPostNotFound() {
         // Given
-        given(postQueryUseCase.findById(200L)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
+        given(globalPostQueryPort.findById(200L)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> adminCommandService.banUser(testReportType, testTargetId))
@@ -150,7 +145,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
                 .id(300L)
                 .user(userWithId)
                 .build();
-        given(commentQueryUseCase.findById(300L)).willReturn(testComment);
+        given(globalCommentQueryPort.findById(300L)).willReturn(testComment);
 
         // When
         adminCommandService.banUser(commentReportType, commentTargetId);
@@ -179,7 +174,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
                 .user(mockUser)
                 .build();
         
-        given(commentQueryUseCase.findById(commentId)).willReturn(mockComment);
+        given(globalCommentQueryPort.findById(commentId)).willReturn(mockComment);
 
         // When
         adminCommandService.forceWithdrawUser(reportType, commentId);

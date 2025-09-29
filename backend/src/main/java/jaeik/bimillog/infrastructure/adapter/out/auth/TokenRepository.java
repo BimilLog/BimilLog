@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.out.auth.jpa;
+package jaeik.bimillog.infrastructure.adapter.out.auth;
 
 import jaeik.bimillog.domain.auth.entity.Token;
 import org.springframework.data.jpa.repository.JpaRepository;

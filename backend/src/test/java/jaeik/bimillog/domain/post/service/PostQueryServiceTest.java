@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.post.service;
 
+import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostLikeQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostQueryPort;
@@ -45,6 +46,9 @@ class PostQueryServiceTest extends BaseUnitTest {
 
     @Mock
     private PostQueryPort postQueryPort;
+
+    @Mock
+    private GlobalPostQueryPort globalPostQueryPort;
 
     @Mock
     private PostLikeQueryPort postLikeQueryPort;
@@ -115,7 +119,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result).isNotNull();
         verify(redisPostQueryPort).getCachedPostIfExists(postId); // 1회 Redis 호출
         verify(postQueryPort).findPostDetailWithCounts(postId, userId); // 1회 DB 쿼리
-        verify(postQueryPort, never()).findById(any()); // 기존 개별 쿼리 호출 안함
+        verify(globalPostQueryPort, never()).findById(any()); // 기존 개별 쿼리 호출 안함
         verify(postLikeQueryPort, never()).existsByPostIdAndUserId(any(), any());
     }
 
@@ -156,7 +160,7 @@ class PostQueryServiceTest extends BaseUnitTest {
 
         verify(redisPostQueryPort).getCachedPostIfExists(postId); // 1회 Redis 호출 (최적화)
         verify(postLikeQueryPort).existsByPostIdAndUserId(postId, userId);
-        verify(postQueryPort, never()).findById(any()); // 캐시 히트 시 DB 조회 안함
+        verify(globalPostQueryPort, never()).findById(any()); // 캐시 히트 시 DB 조회 안함
         verify(postQueryPort, never()).findPostDetailWithCounts(any(), any()); // JOIN 쿼리도 호출 안함
     }
 
@@ -197,7 +201,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         verify(postQueryPort).findPostDetailWithCounts(postId, userId); // 1회 DB JOIN 쿼리 (최적화)
 
         // 기존 개별 쿼리들은 호출되지 않음을 검증
-        verify(postQueryPort, never()).findById(any());
+        verify(globalPostQueryPort, never()).findById(any());
         verify(postLikeQueryPort, never()).existsByPostIdAndUserId(any(), any());
     }
 
@@ -240,7 +244,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         verify(postQueryPort).findPostDetailWithCounts(postId, userId); // 1회 JOIN 쿼리
 
         // 기존 개별 쿼리들은 호출되지 않음
-        verify(postQueryPort, never()).findById(any());
+        verify(globalPostQueryPort, never()).findById(any());
         verify(postLikeQueryPort, never()).existsByPostIdAndUserId(any(), any());
     }
 
@@ -263,7 +267,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         verify(redisPostQueryPort).getCachedPostIfExists(postId);
         verify(postQueryPort).findPostDetailWithCounts(postId, userId);
         // 기존 개별 쿼리는 호출되지 않음
-        verify(postQueryPort, never()).findById(any());
+        verify(globalPostQueryPort, never()).findById(any());
     }
 
     @Test
@@ -404,7 +408,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         Long postId = 1L;
 
         Post mockPost = PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestUser(), "Test Post", "Content"));
-        given(postQueryPort.findById(postId)).willReturn(mockPost);
+        given(globalPostQueryPort.findById(postId)).willReturn(mockPost);
 
         // When
         Post result = postQueryService.findById(postId);
@@ -413,7 +417,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(postId);
 
-        verify(postQueryPort).findById(postId);
+        verify(globalPostQueryPort).findById(postId);
     }
 
     @Test
@@ -422,14 +426,14 @@ class PostQueryServiceTest extends BaseUnitTest {
         // Given
         Long postId = 999L;
 
-        given(postQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
+        given(globalPostQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> postQueryService.findById(postId))
                 .isInstanceOf(PostCustomException.class)
                 .hasMessage(PostErrorCode.POST_NOT_FOUND.getMessage());
 
-        verify(postQueryPort).findById(postId);
+        verify(globalPostQueryPort).findById(postId);
     }
 
     @Test

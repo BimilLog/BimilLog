@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.out.post.jpa;
+package jaeik.bimillog.infrastructure.adapter.out.post;
 
 import jaeik.bimillog.domain.post.entity.Post;
 import org.springframework.data.domain.Pageable;

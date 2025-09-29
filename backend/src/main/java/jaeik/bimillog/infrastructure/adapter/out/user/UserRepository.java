@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.out.user.jpa;
+package jaeik.bimillog.infrastructure.adapter.out.user;
 
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;

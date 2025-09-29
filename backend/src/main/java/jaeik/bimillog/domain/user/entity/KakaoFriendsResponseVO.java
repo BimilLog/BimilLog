@@ -1,7 +1,5 @@
 package jaeik.bimillog.domain.user.entity;
 
-import lombok.Builder;
-
 import java.util.List;
 
 /**
@@ -25,11 +23,6 @@ public record KakaoFriendsResponseVO(
         String afterUrl,
         Integer favoriteCount
 ) {
-
-    @Builder
-    public KakaoFriendsResponseVO {
-    }
-
     /**
      * <h3>카카오 친구 목록 응답 값 객체 생성</h3>
      * <p>카카오 친구 목록과 메타데이터로 KakaoFriendsResponseVO를 생성합니다.</p>
@@ -68,11 +61,6 @@ public record KakaoFriendsResponseVO(
             Boolean favorite,
             String userName
     ) {
-
-        @Builder
-        public Friend {
-        }
-
         /**
          * <h3>카카오 친구 값 객체 생성</h3>
          * <p>친구 정보로 Friend를 생성합니다.</p>

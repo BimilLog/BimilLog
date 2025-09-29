@@ -1,5 +1,5 @@
 
-package jaeik.bimillog.infrastructure.adapter.out.notification.url;
+package jaeik.bimillog.infrastructure.adapter.out.notification;
 
 import jaeik.bimillog.domain.notification.application.port.out.UrlGeneratorPort;
 import org.springframework.beans.factory.annotation.Value;

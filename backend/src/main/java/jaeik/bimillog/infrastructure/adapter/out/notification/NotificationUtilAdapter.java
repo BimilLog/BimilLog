@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.out.notification.util;
+package jaeik.bimillog.infrastructure.adapter.out.notification;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;

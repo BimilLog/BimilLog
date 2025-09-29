@@ -9,7 +9,7 @@ import jaeik.bimillog.infrastructure.adapter.in.user.dto.SettingDTO;
 import jaeik.bimillog.infrastructure.adapter.in.user.dto.SignUpRequestDTO;
 import jaeik.bimillog.infrastructure.adapter.in.user.dto.UserNameDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
-import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
+import jaeik.bimillog.infrastructure.adapter.out.user.UserRepository;
 import jaeik.bimillog.testutil.AuthTestFixtures;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;

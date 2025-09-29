@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.post.service;
 
-import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.post.application.service.PostAdminService;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
@@ -30,7 +30,7 @@ import static org.mockito.Mockito.*;
 class PostAdminServiceTest extends BaseUnitTest {
 
     @Mock
-    private PostQueryPort postQueryPort;
+    private GlobalPostQueryPort globalPostQueryPort;
 
     @Mock
     private Post post;
@@ -45,7 +45,7 @@ class PostAdminServiceTest extends BaseUnitTest {
         Long postId = 123L;
         String postTitle = "중요한 공지사항";
 
-        given(postQueryPort.findById(postId)).willReturn(post);
+        given(globalPostQueryPort.findById(postId)).willReturn(post);
         given(post.getTitle()).willReturn(postTitle);
         given(post.isNotice()).willReturn(false); // 현재 공지 아님
 
@@ -53,7 +53,7 @@ class PostAdminServiceTest extends BaseUnitTest {
         postAdminService.togglePostNotice(postId);
 
         // Then
-        verify(postQueryPort).findById(postId);
+        verify(globalPostQueryPort).findById(postId);
         verify(post, times(2)).isNotice(); // 상태 확인 (if문 + 로그)
         verify(post).setAsNotice();
     }
@@ -64,14 +64,14 @@ class PostAdminServiceTest extends BaseUnitTest {
         // Given
         Long postId = 999L;
 
-        given(postQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
+        given(globalPostQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> postAdminService.togglePostNotice(postId))
                 .isInstanceOf(PostCustomException.class)
                 .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.POST_NOT_FOUND);
 
-        verify(postQueryPort).findById(postId);
+        verify(globalPostQueryPort).findById(postId);
         verify(post, never()).isNotice();
         verify(post, never()).setAsNotice();
         verify(post, never()).unsetAsNotice();
@@ -87,7 +87,7 @@ class PostAdminServiceTest extends BaseUnitTest {
         assertThatThrownBy(() -> postAdminService.togglePostNotice(postId))
                 .isInstanceOf(Exception.class);
 
-        verify(postQueryPort).findById(postId);
+        verify(globalPostQueryPort).findById(postId);
         verify(post, never()).isNotice();
         verify(post, never()).setAsNotice();
         verify(post, never()).unsetAsNotice();
@@ -100,7 +100,7 @@ class PostAdminServiceTest extends BaseUnitTest {
         Long postId = 123L;
         String postTitle = "공지 해제될 게시글";
 
-        given(postQueryPort.findById(postId)).willReturn(post);
+        given(globalPostQueryPort.findById(postId)).willReturn(post);
         given(post.getTitle()).willReturn(postTitle);
         given(post.isNotice()).willReturn(true); // 현재 공지임
 
@@ -108,7 +108,7 @@ class PostAdminServiceTest extends BaseUnitTest {
         postAdminService.togglePostNotice(postId);
 
         // Then
-        verify(postQueryPort).findById(postId);
+        verify(globalPostQueryPort).findById(postId);
         verify(post, times(2)).isNotice(); // 상태 확인 (if문 + 로그)
         verify(post).unsetAsNotice();
     }
@@ -120,7 +120,7 @@ class PostAdminServiceTest extends BaseUnitTest {
         // Given
         Long postId = 123L;
         
-        given(postQueryPort.findById(postId)).willReturn(post);
+        given(globalPostQueryPort.findById(postId)).willReturn(post);
         given(post.isNotice()).willReturn(true);
 
         // When
@@ -128,7 +128,7 @@ class PostAdminServiceTest extends BaseUnitTest {
 
         // Then
         assertThat(result).isTrue();
-        verify(postQueryPort).findById(postId);
+        verify(globalPostQueryPort).findById(postId);
         verify(post).isNotice();
     }
 
@@ -138,7 +138,7 @@ class PostAdminServiceTest extends BaseUnitTest {
         // Given
         Long postId = 123L;
         
-        given(postQueryPort.findById(postId)).willReturn(post);
+        given(globalPostQueryPort.findById(postId)).willReturn(post);
         given(post.isNotice()).willReturn(false);
 
         // When
@@ -146,7 +146,7 @@ class PostAdminServiceTest extends BaseUnitTest {
 
         // Then
         assertThat(result).isFalse();
-        verify(postQueryPort).findById(postId);
+        verify(globalPostQueryPort).findById(postId);
         verify(post).isNotice();
     }
 
@@ -156,14 +156,14 @@ class PostAdminServiceTest extends BaseUnitTest {
         // Given
         Long postId = 999L;
 
-        given(postQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
+        given(globalPostQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> postAdminService.isPostNotice(postId))
                 .isInstanceOf(PostCustomException.class)
                 .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.POST_NOT_FOUND);
 
-        verify(postQueryPort).findById(postId);
+        verify(globalPostQueryPort).findById(postId);
         verify(post, never()).isNotice();
     }
 

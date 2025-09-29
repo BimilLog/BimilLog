@@ -8,10 +8,10 @@ import jaeik.bimillog.domain.comment.exception.CommentCustomException;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.user.entity.User;
 import jaeik.bimillog.infrastructure.adapter.out.comment.CommentQueryAdapter;
-import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentLikeRepository;
-import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentRepository;
-import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostRepository;
-import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
+import jaeik.bimillog.infrastructure.adapter.out.comment.CommentLikeRepository;
+import jaeik.bimillog.infrastructure.adapter.out.comment.CommentRepository;
+import jaeik.bimillog.infrastructure.adapter.out.post.PostRepository;
+import jaeik.bimillog.infrastructure.adapter.out.user.UserRepository;
 import jaeik.bimillog.testutil.CommentTestDataBuilder;
 import jaeik.bimillog.testutil.H2TestConfiguration;
 import jaeik.bimillog.testutil.PostTestDataBuilder;
@@ -95,38 +95,6 @@ class CommentQueryAdapterIntegrationTest {
         entityManager.flush();
         entityManager.clear();
     }
-
-    @Test
-    @DisplayName("정상 케이스 - ID로 댓글 조회")
-    void shouldFindCommentById_WhenValidIdProvided() {
-        // Given: 저장된 댓글
-        Comment savedComment = CommentTestDataBuilder.createComment(testUser, testPost, "테스트 댓글");
-        savedComment = commentRepository.save(savedComment);
-
-        // When: ID로 댓글 조회
-        Comment foundComment = commentQueryAdapter.findById(savedComment.getId());
-
-        // Then: 올바른 댓글이 조회되는지 검증
-        assertThat(foundComment).isNotNull();
-        assertThat(foundComment.getId()).isEqualTo(savedComment.getId());
-        assertThat(foundComment.getContent()).isEqualTo("테스트 댓글");
-        assertThat(foundComment.getUser()).isEqualTo(testUser);
-        assertThat(foundComment.getPost()).isEqualTo(testPost);
-    }
-
-    @Test
-    @DisplayName("경계값 - 존재하지 않는 ID로 댓글 조회")
-    void shouldThrowException_WhenNonExistentIdProvided() {
-        // Given: 존재하지 않는 댓글 ID
-        Long nonExistentId = 999L;
-
-        // When & Then: 존재하지 않는 ID로 댓글 조회 시 예외 발생
-        assertThatThrownBy(() -> commentQueryAdapter.findById(nonExistentId))
-                .isInstanceOf(CommentCustomException.class);
-    }
-
-
-
 
     @Test
     @DisplayName("정상 케이스 - 사용자 작성 댓글 목록 조회")
@@ -390,19 +358,20 @@ class CommentQueryAdapterIntegrationTest {
         commentLikeRepository.save(like);
 
         // When & Then: 여러 쿼리 연속 실행
-        
-        // 1. ID로 댓글 조회
-        Comment foundComment1 = commentQueryAdapter.findById(comment1.getId());
-        assertThat(foundComment1).isNotNull();
-        assertThat(foundComment1.getContent()).isEqualTo("복합쿼리 댓글1");
 
-        // 2. 댓글 수 조회
+        // 1. 댓글 수 조회
         Map<Long, Integer> commentCounts = commentQueryAdapter.findCommentCountsByPostIds(List.of(testPost.getId()));
         assertThat(commentCounts.get(testPost.getId())).isEqualTo(2);
 
-        // 3. 존재하지 않는 댓글 조회
-        assertThatThrownBy(() -> commentQueryAdapter.findById(999L))
-                .isInstanceOf(CommentCustomException.class);
+        // 2. 사용자별 댓글 조회
+        Page<SimpleCommentInfo> userComments = commentQueryAdapter.findCommentsByUserId(testUser.getId(), PageRequest.of(0, 10));
+        assertThat(userComments.getTotalElements()).isEqualTo(1);
+        assertThat(userComments.getContent().get(0).getContent()).isEqualTo("복합쿼리 댓글1");
+
+        // 3. 사용자가 추천한 댓글 조회
+        Page<SimpleCommentInfo> likedComments = commentQueryAdapter.findLikedCommentsByUserId(testUser.getId(), PageRequest.of(0, 10));
+        assertThat(likedComments.getTotalElements()).isEqualTo(1);
+        assertThat(likedComments.getContent().get(0).getId()).isEqualTo(comment2.getId());
     }
 
 //    @Test

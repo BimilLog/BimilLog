@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.out.notification.jpa;
+package jaeik.bimillog.infrastructure.adapter.out.notification;
 
 import jaeik.bimillog.domain.notification.entity.Notification;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -13,8 +13,6 @@ import jaeik.bimillog.domain.post.application.port.out.PostToCommentPort;
 import jaeik.bimillog.domain.post.application.service.PostQueryService;
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.user.entity.QUser;
-import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostFulltextRepository;
-import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;

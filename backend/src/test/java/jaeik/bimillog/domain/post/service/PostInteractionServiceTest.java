@@ -1,10 +1,10 @@
 package jaeik.bimillog.domain.post.service;
 
+import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalUserQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.PostLikeCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.PostLikeQueryPort;
-import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.application.service.PostInteractionService;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
@@ -42,7 +42,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
     private PostCommandPort postCommandPort;
 
     @Mock
-    private PostQueryPort postQueryPort;
+    private GlobalPostQueryPort globalPostQueryPort;
 
     @Mock
     private PostLikeCommandPort postLikeCommandPort;
@@ -66,7 +66,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
 
         given(postLikeQueryPort.existsByPostIdAndUserId(postId, userId)).willReturn(false);
         given(globalUserQueryPort.getReferenceById(userId)).willReturn(getTestUser());
-        given(postQueryPort.findById(postId)).willReturn(post);
+        given(globalPostQueryPort.findById(postId)).willReturn(post);
 
         // When
         postInteractionService.likePost(userId, postId);
@@ -74,7 +74,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
         // Then
         verify(postLikeQueryPort).existsByPostIdAndUserId(postId, userId);
         verify(globalUserQueryPort).getReferenceById(userId);
-        verify(postQueryPort).findById(postId);
+        verify(globalPostQueryPort).findById(postId);
 
         // ArgumentCaptor로 PostLike 객체 검증
         ArgumentCaptor<PostLike> postLikeCaptor = ArgumentCaptor.forClass(PostLike.class);
@@ -96,7 +96,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
 
         given(postLikeQueryPort.existsByPostIdAndUserId(postId, userId)).willReturn(true);
         given(globalUserQueryPort.getReferenceById(userId)).willReturn(getTestUser());
-        given(postQueryPort.findById(postId)).willReturn(post);
+        given(globalPostQueryPort.findById(postId)).willReturn(post);
 
         // When
         postInteractionService.likePost(userId, postId);
@@ -104,7 +104,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
         // Then
         verify(postLikeQueryPort).existsByPostIdAndUserId(postId, userId);
         verify(globalUserQueryPort).getReferenceById(userId);
-        verify(postQueryPort).findById(postId);
+        verify(globalPostQueryPort).findById(postId);
         verify(postLikeCommandPort).deletePostLike(getTestUser(), post);
         verify(postLikeCommandPort, never()).savePostLike(any());
     }
@@ -118,7 +118,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
 
         given(postLikeQueryPort.existsByPostIdAndUserId(postId, userId)).willReturn(false);
         given(globalUserQueryPort.getReferenceById(userId)).willReturn(getTestUser());
-        given(postQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
+        given(globalPostQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> postInteractionService.likePost(userId, postId))
@@ -127,7 +127,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
 
         verify(postLikeQueryPort).existsByPostIdAndUserId(postId, userId);
         verify(globalUserQueryPort).getReferenceById(userId);
-        verify(postQueryPort).findById(postId);
+        verify(globalPostQueryPort).findById(postId);
         verify(postLikeCommandPort, never()).savePostLike(any());
         verify(postLikeCommandPort, never()).deletePostLike(any(), any());
     }

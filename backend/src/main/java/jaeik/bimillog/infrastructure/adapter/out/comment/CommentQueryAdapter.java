@@ -7,7 +7,6 @@ import jaeik.bimillog.domain.comment.application.service.CommentCommandService;
 import jaeik.bimillog.domain.comment.application.service.CommentQueryService;
 import jaeik.bimillog.domain.comment.entity.*;
 import jaeik.bimillog.domain.user.entity.QUser;
-import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -19,8 +18,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import static jaeik.bimillog.infrastructure.adapter.out.comment.util.CommentProjection.getCommentInfoProjectionWithUserLike;
-import static jaeik.bimillog.infrastructure.adapter.out.comment.util.CommentProjection.getSimpleCommentInfoProjection;
+import static jaeik.bimillog.infrastructure.adapter.out.comment.CommentProjection.getCommentInfoProjectionWithUserLike;
+import static jaeik.bimillog.infrastructure.adapter.out.comment.CommentProjection.getSimpleCommentInfoProjection;
 
 /**
  * <h2>댓글 쿼리 어댑터</h2>

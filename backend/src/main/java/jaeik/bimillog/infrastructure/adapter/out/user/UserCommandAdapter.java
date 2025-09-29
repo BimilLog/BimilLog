@@ -2,7 +2,6 @@ package jaeik.bimillog.infrastructure.adapter.out.user;
 
 import jaeik.bimillog.domain.user.application.port.out.UserCommandPort;
 import jaeik.bimillog.domain.user.application.service.UserCommandService;
-import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

@@ -1,9 +1,9 @@
 package jaeik.bimillog.domain.post.service;
 
+import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalUserQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.PostLikeCommandPort;
-import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostToCommentPort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
 import jaeik.bimillog.domain.post.application.service.PostCommandService;
@@ -41,7 +41,7 @@ class PostCommandServiceTest extends BaseUnitTest {
     private PostCommandPort postCommandPort;
 
     @Mock
-    private PostQueryPort postQueryPort;
+    private GlobalPostQueryPort globalPostQueryPort;
 
     @Mock
     private GlobalUserQueryPort globalUserQueryPort;
@@ -93,18 +93,18 @@ class PostCommandServiceTest extends BaseUnitTest {
 
         Post existingPost = spy(PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestUser(), "기존 제목", "기존 내용")));
 
-        given(postQueryPort.findById(postId)).willReturn(existingPost);
+        given(globalPostQueryPort.findById(postId)).willReturn(existingPost);
         given(existingPost.isAuthor(userId)).willReturn(true);
 
         // When
         postCommandService.updatePost(userId, postId, "수정된 제목", "수정된 내용");
 
         // Then
-        verify(postQueryPort, times(1)).findById(postId);
+        verify(globalPostQueryPort, times(1)).findById(postId);
         verify(existingPost, times(1)).isAuthor(userId);
         verify(existingPost, times(1)).updatePost("수정된 제목", "수정된 내용");
         verify(redisPostCommandPort, times(1)).deleteCache(null, postId);
-        verifyNoMoreInteractions(postQueryPort, postCommandPort, redisPostCommandPort);
+        verifyNoMoreInteractions(globalPostQueryPort, postCommandPort, redisPostCommandPort);
     }
 
     @Test
@@ -114,14 +114,14 @@ class PostCommandServiceTest extends BaseUnitTest {
         Long userId = 1L;
         Long postId = 999L;
 
-        given(postQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
+        given(globalPostQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.updatePost(userId, postId, "title", "content"))
                 .isInstanceOf(PostCustomException.class)
                 .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.POST_NOT_FOUND);
 
-        verify(postQueryPort, times(1)).findById(postId);
+        verify(globalPostQueryPort, times(1)).findById(postId);
         verify(redisPostCommandPort, never()).deleteCache(any(), any());
     }
 
@@ -134,7 +134,7 @@ class PostCommandServiceTest extends BaseUnitTest {
 
         Post otherUserPost = spy(PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getOtherUser(), "다른 사용자 게시글", "내용")));
 
-        given(postQueryPort.findById(postId)).willReturn(otherUserPost);
+        given(globalPostQueryPort.findById(postId)).willReturn(otherUserPost);
         given(otherUserPost.isAuthor(userId)).willReturn(false);
 
         // When & Then
@@ -142,7 +142,7 @@ class PostCommandServiceTest extends BaseUnitTest {
                 .isInstanceOf(PostCustomException.class)
                 .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.FORBIDDEN);
 
-        verify(postQueryPort, times(1)).findById(postId);
+        verify(globalPostQueryPort, times(1)).findById(postId);
         verify(otherUserPost, times(1)).isAuthor(userId);
         verify(otherUserPost, never()).updatePost(anyString(), anyString());
         verify(redisPostCommandPort, never()).deleteCache(any(), any());
@@ -158,7 +158,7 @@ class PostCommandServiceTest extends BaseUnitTest {
 
         Post postToDelete = spy(PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestUser(), postTitle, "내용")));
 
-        given(postQueryPort.findById(postId)).willReturn(postToDelete);
+        given(globalPostQueryPort.findById(postId)).willReturn(postToDelete);
         given(postToDelete.isAuthor(userId)).willReturn(true);
         given(postToDelete.getTitle()).willReturn(postTitle);
 
@@ -166,13 +166,13 @@ class PostCommandServiceTest extends BaseUnitTest {
         postCommandService.deletePost(userId, postId);
 
         // Then
-        verify(postQueryPort, times(1)).findById(postId);
+        verify(globalPostQueryPort, times(1)).findById(postId);
         verify(postToDelete, times(1)).isAuthor(userId);
         verify(postToCommentPort, times(1)).deleteCommentInPost(postId);
         verify(postLikeCommandPort, times(1)).deletePostLikeByPostId(postId);
         verify(postCommandPort, times(1)).delete(postToDelete);
         verify(redisPostCommandPort, times(1)).deleteCache(null, postId);
-        verifyNoMoreInteractions(postQueryPort, postCommandPort, redisPostCommandPort);
+        verifyNoMoreInteractions(globalPostQueryPort, postCommandPort, redisPostCommandPort);
     }
 
     @Test
@@ -182,14 +182,14 @@ class PostCommandServiceTest extends BaseUnitTest {
         Long userId = 1L;
         Long postId = 999L;
 
-        given(postQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
+        given(globalPostQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.deletePost(userId, postId))
                 .isInstanceOf(PostCustomException.class)
                 .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.POST_NOT_FOUND);
 
-        verify(postQueryPort, times(1)).findById(postId);
+        verify(globalPostQueryPort, times(1)).findById(postId);
         verify(postCommandPort, never()).delete(any());
         verify(redisPostCommandPort, never()).deleteCache(any(), any());
     }
@@ -203,7 +203,7 @@ class PostCommandServiceTest extends BaseUnitTest {
 
         Post otherUserPost = spy(PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getOtherUser(), "다른 사용자 게시글", "내용")));
 
-        given(postQueryPort.findById(postId)).willReturn(otherUserPost);
+        given(globalPostQueryPort.findById(postId)).willReturn(otherUserPost);
         given(otherUserPost.isAuthor(userId)).willReturn(false);
 
         // When & Then
@@ -211,7 +211,7 @@ class PostCommandServiceTest extends BaseUnitTest {
                 .isInstanceOf(PostCustomException.class)
                 .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.FORBIDDEN);
 
-        verify(postQueryPort, times(1)).findById(postId);
+        verify(globalPostQueryPort, times(1)).findById(postId);
         verify(otherUserPost, times(1)).isAuthor(userId);
         verify(postCommandPort, never()).delete(any());
         verify(redisPostCommandPort, never()).deleteCache(any(), any());
@@ -227,7 +227,7 @@ class PostCommandServiceTest extends BaseUnitTest {
 
         Post existingPost = spy(PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestUser(), "제목", "내용")));
 
-        given(postQueryPort.findById(postId)).willReturn(existingPost);
+        given(globalPostQueryPort.findById(postId)).willReturn(existingPost);
         given(existingPost.isAuthor(userId)).willReturn(true);
         doThrow(new RuntimeException("Cache delete failed")).when(redisPostCommandPort).deleteCache(null, postId);
 

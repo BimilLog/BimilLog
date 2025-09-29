@@ -2,8 +2,8 @@ package jaeik.bimillog.adapter.in.comment;
 
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.infrastructure.adapter.out.comment.jpa.CommentRepository;
-import jaeik.bimillog.infrastructure.adapter.out.post.jpa.PostRepository;
+import jaeik.bimillog.infrastructure.adapter.out.comment.CommentRepository;
+import jaeik.bimillog.infrastructure.adapter.out.post.PostRepository;
 import jaeik.bimillog.testutil.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;

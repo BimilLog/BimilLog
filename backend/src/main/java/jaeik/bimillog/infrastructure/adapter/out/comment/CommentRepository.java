@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.out.comment.jpa;
+package jaeik.bimillog.infrastructure.adapter.out.comment;
 
 import jaeik.bimillog.domain.comment.entity.Comment;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,7 +19,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
-
     /**
      * <h3>게시글 ID로 모든 댓글 삭제</h3>
      * <p>주어진 게시글 ID에 해당하는 모든 댓글을 삭제합니다.</p>
@@ -31,7 +30,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Modifying
     @Query("DELETE FROM Comment c WHERE c.post.id = :postId")
     void deleteAllByPostId(@Param("postId") Long postId);
-
 
     /**
      * <h3>클로저 테이블에서 자손 관계 삭제</h3>

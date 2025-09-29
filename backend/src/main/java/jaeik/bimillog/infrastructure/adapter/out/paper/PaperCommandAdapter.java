@@ -20,8 +20,6 @@ public class PaperCommandAdapter implements PaperCommandPort {
 
     private final MessageRepository messageRepository;
 
-
-
     /**
      * <h3>롤링페이퍼 메시지 저장</h3>
      * <p>새로운 메시지 엔티티를 데이터베이스에 저장합니다.</p>

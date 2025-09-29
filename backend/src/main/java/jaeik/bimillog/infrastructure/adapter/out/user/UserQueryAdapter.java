@@ -8,8 +8,6 @@ import jaeik.bimillog.domain.user.entity.QUser;
 import jaeik.bimillog.domain.user.entity.Setting;
 import jaeik.bimillog.domain.user.entity.SocialProvider;
 import jaeik.bimillog.domain.user.entity.User;
-import jaeik.bimillog.infrastructure.adapter.out.user.jpa.SettingRepository;
-import jaeik.bimillog.infrastructure.adapter.out.user.jpa.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;

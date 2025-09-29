@@ -6,7 +6,7 @@ import jaeik.bimillog.domain.notification.entity.FcmMessage;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.infrastructure.adapter.out.api.fcm.FcmAdapter;
 import jaeik.bimillog.infrastructure.adapter.out.api.fcm.FcmApiClient;
-import jaeik.bimillog.infrastructure.adapter.out.notification.jpa.FcmTokenRepository;
+import jaeik.bimillog.infrastructure.adapter.out.notification.FcmTokenRepository;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
