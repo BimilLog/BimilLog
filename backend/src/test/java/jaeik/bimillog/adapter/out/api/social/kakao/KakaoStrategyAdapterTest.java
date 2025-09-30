@@ -109,10 +109,8 @@ class KakaoStrategyAdapterTest extends BaseUnitTest {
         assertThat(result.provider()).isEqualTo(SocialProvider.KAKAO);
         assertThat(result.nickname()).isEqualTo(TEST_SOCIAL_NICKNAME);
         assertThat(result.profileImageUrl()).isEqualTo(TEST_PROFILE_IMAGE);
-        assertThat(result.TemporaryToken()).satisfies(token -> {
-            assertThat(token.getAccessToken()).isEqualTo(TEST_ACCESS_TOKEN);
-            assertThat(token.getRefreshToken()).isEqualTo(TEST_REFRESH_TOKEN);
-        });
+        assertThat(result.kakaoAccessToken()).isEqualTo(TEST_ACCESS_TOKEN);
+        assertThat(result.kakaoRefreshToken()).isEqualTo(TEST_REFRESH_TOKEN);
 
         verify(kakaoAuthClient).getToken(anyString(), argThat(params -> {
             Map<String, String> expectedParams = (Map<String, String>) params;

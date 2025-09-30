@@ -73,8 +73,7 @@ class SignUpServiceTest extends BaseUnitTest {
         testUserName = "testUser";
         testUuid = "test-uuid-123";
 
-        Token testToken = Token.createTemporaryToken("access-TemporaryToken", "refresh-TemporaryToken");
-        testSocialProfile = new SocialUserProfile("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg", testToken);
+        testSocialProfile = new SocialUserProfile("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg", "access-TemporaryToken", "refresh-TemporaryToken");
 
         testTempData = TempUserData.from(testSocialProfile, "fcm-TemporaryToken");
         

@@ -8,7 +8,7 @@ import jaeik.bimillog.domain.post.application.port.out.RedisPostSyncPort;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
 import jaeik.bimillog.domain.post.entity.QPost;
 import jaeik.bimillog.domain.post.entity.QPostLike;
-import jaeik.bimillog.domain.user.entity.QUser;
+import jaeik.bimillog.domain.user.entity.user.QUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;

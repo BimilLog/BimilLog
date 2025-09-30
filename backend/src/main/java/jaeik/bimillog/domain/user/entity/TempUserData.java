@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.user.entity;
 
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
-import jaeik.bimillog.domain.auth.entity.Token;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,21 +23,11 @@ public class TempUserData {
     private String fcmToken;
 
     /**
-     * <h3>토큰 정보 반환</h3>
-     * <p>SocialUserProfile에 포함된 Token 객체를 반환합니다.</p>
-     *
-     * @return Token 객체
-     */
-    public Token getToken() {
-        return socialUserProfile != null ? socialUserProfile.TemporaryToken() : null;
-    }
-
-    /**
      * <h3>팩토리 메서드: SocialUserProfile과 함께 생성</h3>
      * <p>SocialUserProfile과 fcmToken을 받아 TempUserData를 생성합니다.</p>
-     * <p>SocialUserProfile에 이미 Token이 포함되어 있어 별도로 전달하지 않습니다.</p>
+     * <p>SocialUserProfile에 카카오 액세스/리프레시 토큰이 포함되어 있습니다.</p>
      *
-     * @param profile 소셜 사용자 프로필 (토큰 포함)
+     * @param profile 소셜 사용자 프로필 (카카오 토큰 포함)
      * @param fcmToken FCM 토큰
      * @return TempUserData 객체
      */

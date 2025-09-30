@@ -61,14 +61,14 @@ public class RedisTestHelper {
      * @return SocialUserProfile
      */
     public static SocialUserProfile createTestSocialUserProfile(String socialId, String email) {
-        Token token = Token.createTemporaryToken("access-token", "refresh-token");
         return new SocialUserProfile(
                 socialId,
                 email,
                 SocialProvider.KAKAO,
                 "testUser",
                 "https://example.com/profile.jpg",
-                token
+                "access-token",
+                "refresh-token"
         );
     }
 

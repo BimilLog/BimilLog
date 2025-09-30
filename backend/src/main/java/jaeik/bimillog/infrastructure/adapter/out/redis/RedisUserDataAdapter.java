@@ -197,7 +197,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
             log.warn(NULL_PROFILE_MESSAGE, uuid);
             throw new AuthCustomException(AuthErrorCode.INVALID_USER_DATA);
         }
-        if (userProfile.TemporaryToken() == null) {
+        if (userProfile.kakaoAccessToken() == null || userProfile.kakaoRefreshToken() == null) {
             log.warn(NULL_TOKEN_MESSAGE, uuid);
             throw new AuthCustomException(AuthErrorCode.INVALID_TOKEN_DATA);
         }
@@ -295,11 +295,8 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
                 String provider = (String) profileData.get("provider");
                 String nickname = (String) profileData.get("nickname");
                 String profileImageUrl = (String) profileData.get("profileImageUrl");
-
-                Token token = null;
-                if (profileData.containsKey("TemporaryToken")) {
-                    token = extractTokenFromMap((Map<String, Object>) profileData.get("TemporaryToken"));
-                }
+                String kakaoAccessToken = (String) profileData.get("kakaoAccessToken");
+                String kakaoRefreshToken = (String) profileData.get("kakaoRefreshToken");
 
                 SocialUserProfile profile = new SocialUserProfile(
                     socialId,
@@ -307,14 +304,18 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
                     SocialProvider.valueOf(provider),
                     nickname,
                     profileImageUrl,
-                    token
+                    kakaoAccessToken,
+                    kakaoRefreshToken
                 );
 
                 return new TempUserData(profile, fcmToken);
             }
 
-            // 이전 형식과의 호환성: 필드가 직접 저장된 경우
-            Token token = extractTokenFromMap((Map<String, Object>) map.get("TemporaryToken"));
+            // 이전 형식과의 호환성: 필드가 직접 저장된 경우 (Token 형식)
+            Map<String, Object> tokenMap = (Map<String, Object>) map.get("TemporaryToken");
+            String accessToken = tokenMap != null ? (String) tokenMap.get("accessToken") : null;
+            String refreshToken = tokenMap != null ? (String) tokenMap.get("refreshToken") : null;
+
             String socialId = (String) map.get("socialId");
             String email = (String) map.get("email");
             String provider = (String) map.get("provider");
@@ -327,7 +328,8 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
                 SocialProvider.valueOf(provider),
                 nickname,
                 profileImageUrl,
-                token
+                accessToken,
+                refreshToken
             );
 
             return new TempUserData(profile, fcmToken);

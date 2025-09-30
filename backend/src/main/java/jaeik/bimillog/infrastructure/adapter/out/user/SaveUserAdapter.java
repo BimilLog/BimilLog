@@ -54,8 +54,7 @@ public class SaveUserAdapter implements SaveUserPort {
     public ExistingUserDetail handleExistingUserData(User existingUser, SocialUserProfile userProfile, String fcmToken) {
         existingUser.updateUserInfo(userProfile.nickname(), userProfile.profileImageUrl());
 
-        Token temporaryToken = userProfile.TemporaryToken();
-        Token newToken = Token.createToken(temporaryToken.getAccessToken(), temporaryToken.getRefreshToken(), existingUser);
+        Token newToken = Token.createToken(userProfile.kakaoAccessToken(), userProfile.kakaoRefreshToken(), existingUser);
         Long fcmTokenId = registerFcmTokenIfPresent(existingUser, fcmToken);
         Long tokenId = tokenCommandPort.save(newToken).getId();
 
@@ -80,8 +79,7 @@ public class SaveUserAdapter implements SaveUserPort {
         Setting setting = Setting.createSetting();
         User user = userRepository.save(User.createUser(userProfile.socialId(), userProfile.provider(), userProfile.nickname(), userProfile.profileImageUrl(), userName, setting));
         Long fcmTokenId = registerFcmTokenIfPresent(user, fcmToken);
-        Token temporaryToken = userProfile.TemporaryToken();
-        Token newToken = Token.createToken(temporaryToken.getAccessToken(), temporaryToken.getRefreshToken(), user);
+        Token newToken = Token.createToken(userProfile.kakaoAccessToken(), userProfile.kakaoRefreshToken(), user);
         Long tokenId = tokenCommandPort.save(newToken).getId();
 
         return ExistingUserDetail.of(user, tokenId, fcmTokenId);

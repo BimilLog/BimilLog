@@ -269,7 +269,8 @@ class SocialLoginServiceTest extends BaseUnitTest {
                 AuthTestFixtures.TEST_PROVIDER,
                 AuthTestFixtures.TEST_SOCIAL_NICKNAME,
                 AuthTestFixtures.TEST_PROFILE_IMAGE,
-                getTestToken()
+                AuthTestFixtures.TEST_ACCESS_TOKEN,
+                AuthTestFixtures.TEST_REFRESH_TOKEN
         );
     }
 }

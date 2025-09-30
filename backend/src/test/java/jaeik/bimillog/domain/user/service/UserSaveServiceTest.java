@@ -54,19 +54,18 @@ class UserSaveServiceTest extends BaseUnitTest {
     private UserSaveService userSaveService;
 
     private SocialUserProfile testSocialProfile;
-    private Token testToken;
     private String testFcmToken;
 
     @BeforeEach
     protected void setUpChild() {
-        testToken = Token.createTemporaryToken("access-TemporaryToken", "refresh-TemporaryToken");
         testSocialProfile = new SocialUserProfile(
             "kakao123",
             "test@example.com",
             SocialProvider.KAKAO,
             "testNickname",
             "profile.jpg",
-            testToken
+            "access-TemporaryToken",
+            "refresh-TemporaryToken"
         );
         testFcmToken = "fcm-TemporaryToken-123";
     }
@@ -218,7 +217,8 @@ class UserSaveServiceTest extends BaseUnitTest {
             SocialProvider.GOOGLE,
             "googleUser",
             "google-profile.jpg",
-            testToken
+            "access-token",
+            "refresh-token"
         );
 
         User googleUser = getOtherUser();

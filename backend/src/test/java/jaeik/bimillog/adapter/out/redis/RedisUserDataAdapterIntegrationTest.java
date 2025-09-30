@@ -71,7 +71,7 @@ class RedisUserDataAdapterIntegrationTest {
         assertThat(savedData).isPresent();
         assertThat(savedData.get().getSocialUserProfile().socialId()).isEqualTo("123456789");
         assertThat(savedData.get().getSocialUserProfile().email()).isEqualTo("test@example.com");
-        assertThat(savedData.get().getSocialUserProfile().TemporaryToken().getAccessToken()).isEqualTo("access-token");
+        assertThat(savedData.get().getSocialUserProfile().kakaoAccessToken()).isEqualTo("access-token");
         assertThat(savedData.get().getFcmToken()).isEqualTo("test-fcm-TemporaryToken");
         
         // Redis에서 직접 확인

@@ -55,15 +55,14 @@ public class TestSocialLoginPortConfig {
                 socialId = "test-social-id";
             }
 
-            Token token = Token.createTemporaryToken("dummy-access-TemporaryToken", "dummy-refresh-TemporaryToken");
-
             return new SocialUserProfile(
                 socialId,
                 "test@example.com",
                 provider,
                 "Test User",
                 "https://example.com/profile.jpg",
-                token
+                "dummy-access-TemporaryToken",
+                "dummy-refresh-TemporaryToken"
             );
         }
 
