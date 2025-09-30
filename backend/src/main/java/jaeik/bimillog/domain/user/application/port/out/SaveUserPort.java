@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.user.application.port.out;
 
-import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
 import jaeik.bimillog.domain.user.application.service.SignUpService;
 import jaeik.bimillog.domain.user.application.service.UserSaveService;
 import jaeik.bimillog.domain.user.entity.user.User;
@@ -29,7 +29,7 @@ public interface SaveUserPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    UserDetail handleExistingUserData(User existingUser, SocialUserProfile userProfile, String fcmToken);
+    UserDetail handleExistingUserData(User existingUser, SocialUserProfileDTO userProfile, String fcmToken);
 
     /**
      * <h3>신규 사용자 정보 저장</h3>
@@ -44,6 +44,6 @@ public interface SaveUserPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    UserDetail saveNewUser(String userName, SocialUserProfile userProfile, String fcmToken);
+    UserDetail saveNewUser(String userName, SocialUserProfileDTO userProfile, String fcmToken);
 
 }

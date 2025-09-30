@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.out.redis;
 
-import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
@@ -61,7 +61,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
      * @since 2.0.0
      */
     @Override
-    public void saveTempData(String uuid, SocialUserProfile userProfile, String fcmToken) {
+    public void saveTempData(String uuid, SocialUserProfileDTO userProfile, String fcmToken) {
         validateTempDataInputs(uuid, userProfile);
 
         executeRedisOperation(() -> {
@@ -188,7 +188,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    private void validateTempDataInputs(String uuid, SocialUserProfile userProfile) {
+    private void validateTempDataInputs(String uuid, SocialUserProfileDTO userProfile) {
         if (isInvalidUuid(uuid)) {
             log.warn(NULL_UUID_MESSAGE, uuid);
             throw new AuthCustomException(AuthErrorCode.INVALID_TEMP_UUID);
@@ -298,7 +298,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
                 String kakaoAccessToken = (String) profileData.get("kakaoAccessToken");
                 String kakaoRefreshToken = (String) profileData.get("kakaoRefreshToken");
 
-                SocialUserProfile profile = new SocialUserProfile(
+                SocialUserProfileDTO profile = new SocialUserProfileDTO(
                     socialId,
                     email,
                     SocialProvider.valueOf(provider),
@@ -322,7 +322,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
             String nickname = (String) map.get("nickname");
             String profileImageUrl = (String) map.get("profileImageUrl");
 
-            SocialUserProfile profile = new SocialUserProfile(
+            SocialUserProfileDTO profile = new SocialUserProfileDTO(
                 socialId,
                 email,
                 SocialProvider.valueOf(provider),

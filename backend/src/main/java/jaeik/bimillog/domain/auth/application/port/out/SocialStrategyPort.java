@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.auth.application.port.out;
 
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
-import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
 import jaeik.bimillog.domain.user.entity.user.SocialProvider;
 
 /**
@@ -33,11 +33,11 @@ public interface SocialStrategyPort {
      *
      * @param provider 소셜 로그인 제공자 (KAKAO 등)
      * @param code 소셜 플랫폼에서 발급한 OAuth 2.0 인증 코드
-     * @return 사용자 프로필과 OAuth 토큰 정보를 포함한 SocialUserProfile 객체
+     * @return 사용자 프로필과 OAuth 토큰 정보를 포함한 SocialUserProfileDTO 객체
      * @author Jaeik
      * @since 2.0.0
      */
-    SocialUserProfile authenticate(SocialProvider provider, String code);
+    SocialUserProfileDTO authenticate(SocialProvider provider, String code);
 
     /**
      * <h3>소셜 계정 연결 해제</h3>

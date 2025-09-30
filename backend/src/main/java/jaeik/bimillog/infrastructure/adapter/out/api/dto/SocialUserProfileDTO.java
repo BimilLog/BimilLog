@@ -1,6 +1,7 @@
-package jaeik.bimillog.domain.auth.entity;
+package jaeik.bimillog.infrastructure.adapter.out.api.dto;
 
 import jaeik.bimillog.domain.user.entity.user.SocialProvider;
+import lombok.*;
 
 /**
  * <h2>소셜 사용자 프로필</h2>
@@ -19,12 +20,19 @@ import jaeik.bimillog.domain.user.entity.user.SocialProvider;
  * @version 2.0.0
  * @since 2.0.0
  */
-public record SocialUserProfile(
-        String socialId,
-        String email,
-        SocialProvider provider,
-        String nickname,
-        String profileImageUrl,
-        String kakaoAccessToken,
-        String kakaoRefreshToken
-) {}
+@Getter
+@Setter
+@AllArgsConstructor
+public class SocialUserProfileDTO {
+    String socialId;
+    String email;
+    SocialProvider provider;
+    String nickname;
+    String profileImageUrl;
+    String kakaoAccessToken;
+    String kakaoRefreshToke;
+
+    public static SocialUserProfileDTO of(String socialId, String email, SocialProvider provider, String nickname, String profileImageUrl, String kakaoAccessToken, String kakaoRefreshToken) {
+        return new SocialUserProfileDTO(socialId, email, provider, nickname, profileImageUrl, kakaoAccessToken, kakaoRefreshToken);
+    }
+}

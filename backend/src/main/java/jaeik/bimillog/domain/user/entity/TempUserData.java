@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.user.entity;
 
-import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TempUserData {
 
-    private SocialUserProfile socialUserProfile;
+    private SocialUserProfileDTO socialUserProfileDTO;
     private String fcmToken;
 
     /**
@@ -31,7 +31,7 @@ public class TempUserData {
      * @param fcmToken FCM 토큰
      * @return TempUserData 객체
      */
-    public static TempUserData from(SocialUserProfile profile, String fcmToken) {
+    public static TempUserData from(SocialUserProfileDTO profile, String fcmToken) {
         return new TempUserData(profile, fcmToken);
     }
 }

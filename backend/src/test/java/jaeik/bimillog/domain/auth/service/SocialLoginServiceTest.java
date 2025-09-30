@@ -6,7 +6,7 @@ import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
-import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
@@ -71,7 +71,7 @@ class SocialLoginServiceTest extends BaseUnitTest {
         // Given
         String generatedAccessToken = "generated-access-token";
         String generatedRefreshToken = "generated-refresh-token";
-        SocialUserProfile testUserProfile = getTestUserProfile();
+        SocialUserProfileDTO testUserProfile = getTestUserProfile();
         ExistingUserDetail existingUserDetail = getExistingUserDetail();
         List<ResponseCookie> jwtCookies = getJwtCookies();
 
@@ -109,7 +109,7 @@ class SocialLoginServiceTest extends BaseUnitTest {
     @DisplayName("신규 사용자 소셜 로그인 성공")
     void shouldProcessSocialLogin_WhenNewUser() {
         // Given
-        SocialUserProfile testUserProfile = getTestUserProfile();
+        SocialUserProfileDTO testUserProfile = getTestUserProfile();
         NewUserDetail newUserDetail = getNewUserDetail();
         String uuid = newUserDetail.getUuid() != null ? newUserDetail.getUuid() : "test-uuid";
         ResponseCookie tempCookie = ResponseCookie.from("temp", uuid)
@@ -150,7 +150,7 @@ class SocialLoginServiceTest extends BaseUnitTest {
     @DisplayName("블랙리스트 사용자 로그인 시 예외 발생")
     void shouldThrowException_WhenBlacklistedUser() {
         // Given
-        SocialUserProfile testUserProfile = getTestUserProfile();
+        SocialUserProfileDTO testUserProfile = getTestUserProfile();
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             mockAnonymousAuthentication(mockedSecurityContext);
@@ -262,8 +262,8 @@ class SocialLoginServiceTest extends BaseUnitTest {
     /**
      * 소셜 로그인 사용자 프로필 획듍 - SocialLoginServiceTest 전용
      */
-    private SocialUserProfile getTestUserProfile() {
-        return new SocialUserProfile(
+    private SocialUserProfileDTO getTestUserProfile() {
+        return new SocialUserProfileDTO(
                 AuthTestFixtures.TEST_SOCIAL_ID,
                 AuthTestFixtures.TEST_EMAIL,
                 AuthTestFixtures.TEST_PROVIDER,

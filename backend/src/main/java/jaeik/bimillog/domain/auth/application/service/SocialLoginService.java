@@ -7,7 +7,7 @@ import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
-import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
@@ -67,7 +67,7 @@ public class SocialLoginService implements SocialLoginUseCase {
 
         // 1. 전략 포트를 통해 OAuth 인증 수행
         SocialStrategyPort strategy = strategyRegistryPort.getStrategy(provider);
-        SocialUserProfile authResult = strategy.authenticate(provider, code);
+        SocialUserProfileDTO authResult = strategy.authenticate(provider, code);
 
         // 2. 블랙리스트 사용자 확인
         if (blacklistPort.existsByProviderAndSocialId(provider, authResult.socialId())) {

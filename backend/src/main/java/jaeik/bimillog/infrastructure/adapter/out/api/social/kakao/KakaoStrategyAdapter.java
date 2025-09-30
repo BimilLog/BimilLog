@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.out.api.social.kakao;
 
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
-import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
 import jaeik.bimillog.domain.global.vo.KakaoKeyVO;
 import jaeik.bimillog.domain.user.entity.user.SocialProvider;
 import org.springframework.stereotype.Component;
@@ -54,12 +54,12 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
      *
      * @param provider 소셜 로그인 제공자 (KAKAO)
      * @param code 카카오 OAuth 2.0 인증 코드
-     * @return SocialUserProfile 사용자 프로필과 OAuth 토큰(액세스/리프레시) 정보
+     * @return SocialUserProfileDTO 사용자 프로필과 OAuth 토큰(액세스/리프레시) 정보
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public SocialUserProfile authenticate(SocialProvider provider, String code) {
+    public SocialUserProfileDTO authenticate(SocialProvider provider, String code) {
         Map<String, String> tokens = getToken(code);
         return getUserInfo(tokens.get("accessToken"), tokens.get("refreshToken"));
     }
@@ -101,16 +101,16 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
      * <h3>카카오 사용자 정보 조회 (private)</h3>
      * <p>내부적으로 발급받은 액세스 토큰으로 카카오 사용자 정보 API에서 프로필 데이터를 조회합니다.</p>
      * <p>카카오 소셜 로그인 처리 내부에서만 사용되는 private 메서드로, authenticate() 메서드에서 내부적으로 호출합니다.</p>
-     * <p>카카오 API 응답에서 필요한 사용자 정보를 추출하여 도메인 SocialUserProfile 로 변환합니다.</p>
+     * <p>카카오 API 응답에서 필요한 사용자 정보를 추출하여 도메인 SocialUserProfileDTO 로 변환합니다.</p>
      *
      * @param accessToken 카카오 액세스 토큰
      * @param refreshToken 카카오 리프레시 토큰
-     * @return SocialUserProfile 도메인 소셜 사용자 프로필 (카카오 토큰 포함, 이메일은 null)
+     * @return SocialUserProfileDTO 도메인 소셜 사용자 프로필 (카카오 토큰 포함, 이메일은 null)
      * @author Jaeik
      * @since 2.0.0
      */
     @SuppressWarnings("unchecked")
-    private SocialUserProfile getUserInfo(String accessToken, String refreshToken) {
+    private SocialUserProfileDTO getUserInfo(String accessToken, String refreshToken) {
         try {
             Map<String, Object> responseBody = kakaoApiClient.getUserInfo("Bearer " + accessToken);
 
@@ -121,7 +121,7 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
             String nickname = (String) profile.get("nickname");
             String thumbnailImage = (String) profile.get("thumbnail_image_url");
 
-            return new SocialUserProfile(
+            return SocialUserProfileDTO.of(
                     socialId,
                     null, // 카카오는 보안정책상 이메일을 제공하지 않음
                     SocialProvider.KAKAO,

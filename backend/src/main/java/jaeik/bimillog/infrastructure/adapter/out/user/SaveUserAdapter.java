@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.out.user;
 
 import jaeik.bimillog.domain.auth.application.port.out.TokenCommandPort;
-import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
 import jaeik.bimillog.domain.user.application.port.out.SaveUserPort;
@@ -51,7 +51,7 @@ public class SaveUserAdapter implements SaveUserPort {
      */
     @Override
     @Transactional
-    public ExistingUserDetail handleExistingUserData(User existingUser, SocialUserProfile userProfile, String fcmToken) {
+    public ExistingUserDetail handleExistingUserData(User existingUser, SocialUserProfileDTO userProfile, String fcmToken) {
         existingUser.updateUserInfo(userProfile.nickname(), userProfile.profileImageUrl());
 
         Token newToken = Token.createToken(userProfile.kakaoAccessToken(), userProfile.kakaoRefreshToken(), existingUser);
@@ -75,7 +75,7 @@ public class SaveUserAdapter implements SaveUserPort {
      */
     @Override
     @Transactional
-    public ExistingUserDetail saveNewUser(String userName, SocialUserProfile userProfile, String fcmToken) {
+    public ExistingUserDetail saveNewUser(String userName, SocialUserProfileDTO userProfile, String fcmToken) {
         Setting setting = Setting.createSetting();
         User user = userRepository.save(User.createUser(userProfile.socialId(), userProfile.provider(), userProfile.nickname(), userProfile.profileImageUrl(), userName, setting));
         Long fcmTokenId = registerFcmTokenIfPresent(user, fcmToken);

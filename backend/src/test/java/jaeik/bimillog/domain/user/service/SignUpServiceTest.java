@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.user.service;
 
-import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
-import jaeik.bimillog.domain.auth.entity.Token;
+import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
@@ -61,7 +60,7 @@ class SignUpServiceTest extends BaseUnitTest {
 
     private String testUserName;
     private String testUuid;
-    private SocialUserProfile testSocialProfile;
+    private SocialUserProfileDTO testSocialProfile;
     private TempUserData testTempData;
     private List<ResponseCookie> testCookies;
     private ExistingUserDetail testUserDetail;
@@ -73,7 +72,7 @@ class SignUpServiceTest extends BaseUnitTest {
         testUserName = "testUser";
         testUuid = "test-uuid-123";
 
-        testSocialProfile = new SocialUserProfile("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg", "access-TemporaryToken", "refresh-TemporaryToken");
+        testSocialProfile = new SocialUserProfileDTO("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg", "access-TemporaryToken", "refresh-TemporaryToken");
 
         testTempData = TempUserData.from(testSocialProfile, "fcm-TemporaryToken");
         

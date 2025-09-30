@@ -1,6 +1,6 @@
 package jaeik.bimillog.adapter.out.redis;
 
-import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.user.entity.TempUserData;
 import jaeik.bimillog.infrastructure.adapter.out.redis.RedisUserDataAdapter;
@@ -46,7 +46,7 @@ class RedisUserDataAdapterIntegrationTest {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
-    private SocialUserProfile testUserProfile;
+    private SocialUserProfileDTO testUserProfile;
     private String testUuid;
 
     @BeforeEach
@@ -69,9 +69,9 @@ class RedisUserDataAdapterIntegrationTest {
         Optional<TempUserData> savedData = redisTempDataAdapter.getTempData(testUuid);
         
         assertThat(savedData).isPresent();
-        assertThat(savedData.get().getSocialUserProfile().socialId()).isEqualTo("123456789");
-        assertThat(savedData.get().getSocialUserProfile().email()).isEqualTo("test@example.com");
-        assertThat(savedData.get().getSocialUserProfile().kakaoAccessToken()).isEqualTo("access-token");
+        assertThat(savedData.get().getSocialUserProfileDTO().socialId()).isEqualTo("123456789");
+        assertThat(savedData.get().getSocialUserProfileDTO().email()).isEqualTo("test@example.com");
+        assertThat(savedData.get().getSocialUserProfileDTO().kakaoAccessToken()).isEqualTo("access-token");
         assertThat(savedData.get().getFcmToken()).isEqualTo("test-fcm-TemporaryToken");
         
         // Redis에서 직접 확인
@@ -169,6 +169,6 @@ class RedisUserDataAdapterIntegrationTest {
         Optional<TempUserData> result = redisTempDataAdapter.getTempData(testUuid);
         assertThat(result).isPresent();
         assertThat(result.get().getFcmToken()).isNull();
-        assertThat(result.get().getSocialUserProfile().nickname()).isEqualTo("testUser");
+        assertThat(result.get().getSocialUserProfileDTO().nickname()).isEqualTo("testUser");
     }
 }

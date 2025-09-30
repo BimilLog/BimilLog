@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.auth.application.port.out;
 
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
-import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
 import jaeik.bimillog.domain.user.entity.user.SocialProvider;
 import jaeik.bimillog.domain.user.entity.userdetail.UserDetail;
 
@@ -28,6 +28,6 @@ public interface AuthToUserPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    UserDetail delegateUserData(SocialProvider provider, SocialUserProfile profile, String fcmToken);
+    UserDetail delegateUserData(SocialProvider provider, SocialUserProfileDTO profile, String fcmToken);
 
 }

@@ -56,7 +56,7 @@ public class SignUpService implements SignUpUseCase {
         }
 
         TempUserData userData = tempUserData.get();
-        ExistingUserDetail userDetail = (ExistingUserDetail) saveUserPort.saveNewUser(userName.trim(), userData.getSocialUserProfile(), userData.getFcmToken());
+        ExistingUserDetail userDetail = (ExistingUserDetail) saveUserPort.saveNewUser(userName.trim(), userData.getSocialUserProfileDTO(), userData.getFcmToken());
         String accessToken = globalJwtPort.generateAccessToken(userDetail);
         String refreshToken = globalJwtPort.generateRefreshToken(userDetail);
         redisUserDataPort.removeTempData(uuid);

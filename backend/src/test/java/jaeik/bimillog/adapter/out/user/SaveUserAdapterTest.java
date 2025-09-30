@@ -1,7 +1,7 @@
 package jaeik.bimillog.adapter.out.user;
 
 import jaeik.bimillog.domain.auth.application.port.out.TokenCommandPort;
-import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
 import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
 import jaeik.bimillog.domain.user.entity.userdetail.ExistingUserDetail;
@@ -45,7 +45,7 @@ class SaveUserAdapterTest extends BaseUnitTest {
     @DisplayName("기존 사용자 로그인 처리 - 정상적인 업데이트 및 FCM 토큰 ID 반환")
     void shouldHandleExistingUserLogin_WhenValidUserDataProvided() {
         // Given: 기존 사용자와 토큰 정보
-        SocialUserProfile userProfile = new SocialUserProfile("123456789", "test@example.com", SocialProvider.KAKAO, "업데이트된닉네임", "https://updated-profile.jpg", "access-TemporaryToken", "refresh-TemporaryToken");
+        SocialUserProfileDTO userProfile = new SocialUserProfileDTO("123456789", "test@example.com", SocialProvider.KAKAO, "업데이트된닉네임", "https://updated-profile.jpg", "access-TemporaryToken", "refresh-TemporaryToken");
 
         String fcmToken = "fcm-TemporaryToken-12345";
         Long fcmTokenId = 100L;
@@ -93,7 +93,7 @@ class SaveUserAdapterTest extends BaseUnitTest {
     @DisplayName("기존 사용자 로그인 - FCM 토큰 없을 때 등록 미호출")
     void shouldNotPublishFcmEvent_WhenExistingUserHasNoFcmToken() {
         // Given: FCM 토큰이 없는 기존 사용자 로그인
-        SocialUserProfile userProfile = new SocialUserProfile("123456789", "fcm@example.com", SocialProvider.KAKAO, "FCM없음", "https://example.jpg", "access-TemporaryToken", "refresh-TemporaryToken");
+        SocialUserProfileDTO userProfile = new SocialUserProfileDTO("123456789", "fcm@example.com", SocialProvider.KAKAO, "FCM없음", "https://example.jpg", "access-TemporaryToken", "refresh-TemporaryToken");
 
         User existingUser = createTestUserWithId(1L);
 
@@ -125,7 +125,7 @@ class SaveUserAdapterTest extends BaseUnitTest {
         String fcmToken = "new-fcm-TemporaryToken";
         Long fcmTokenId = 200L;
 
-        SocialUserProfile userProfile = new SocialUserProfile("987654321", "newuser@example.com", SocialProvider.KAKAO, "신규사용자", "https://new-profile.jpg", "access-TemporaryToken", "refresh-TemporaryToken");
+        SocialUserProfileDTO userProfile = new SocialUserProfileDTO("987654321", "newuser@example.com", SocialProvider.KAKAO, "신규사용자", "https://new-profile.jpg", "access-TemporaryToken", "refresh-TemporaryToken");
 
         User newUser = TestUsers.copyWithId(getOtherUser(), 2L);
 
@@ -172,7 +172,7 @@ class SaveUserAdapterTest extends BaseUnitTest {
         String userName = "userWithoutFcm";
         String fcmToken = null; // FCM 토큰 없음
 
-        SocialUserProfile userProfile = new SocialUserProfile("111222333", "nofcm@example.com", SocialProvider.KAKAO, "FCM없음", "https://no-fcm.jpg", "access-TemporaryToken", "refresh-TemporaryToken");
+        SocialUserProfileDTO userProfile = new SocialUserProfileDTO("111222333", "nofcm@example.com", SocialProvider.KAKAO, "FCM없음", "https://no-fcm.jpg", "access-TemporaryToken", "refresh-TemporaryToken");
 
         User newUser = TestUsers.copyWithId(getThirdUser(), 3L);
         newUser.updateUserInfo("FCM없음", "https://no-fcm.jpg");
