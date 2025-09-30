@@ -69,9 +69,9 @@ class RedisUserDataAdapterIntegrationTest {
         Optional<TempUserData> savedData = redisTempDataAdapter.getTempData(testUuid);
         
         assertThat(savedData).isPresent();
-        assertThat(savedData.get().getSocialUserProfileDTO().socialId()).isEqualTo("123456789");
-        assertThat(savedData.get().getSocialUserProfileDTO().email()).isEqualTo("test@example.com");
-        assertThat(savedData.get().getSocialUserProfileDTO().kakaoAccessToken()).isEqualTo("access-token");
+        assertThat(savedData.get().getSocialUserProfileDTO().getSocialId()).isEqualTo("123456789");
+        assertThat(savedData.get().getSocialUserProfileDTO().getEmail()).isEqualTo("test@example.com");
+        assertThat(savedData.get().getSocialUserProfileDTO().getKakaoAccessToken()).isEqualTo("access-token");
         assertThat(savedData.get().getFcmToken()).isEqualTo("test-fcm-TemporaryToken");
         
         // Redis에서 직접 확인
@@ -169,6 +169,6 @@ class RedisUserDataAdapterIntegrationTest {
         Optional<TempUserData> result = redisTempDataAdapter.getTempData(testUuid);
         assertThat(result).isPresent();
         assertThat(result.get().getFcmToken()).isNull();
-        assertThat(result.get().getSocialUserProfileDTO().nickname()).isEqualTo("testUser");
+        assertThat(result.get().getSocialUserProfileDTO().getNickname()).isEqualTo("testUser");
     }
 }

@@ -2,6 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.out.api.social.kakao;
 
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
+import jaeik.bimillog.infrastructure.adapter.out.api.dto.KakaoTokenDTO;
 import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
 import jaeik.bimillog.domain.global.vo.KakaoKeyVO;
 import jaeik.bimillog.domain.user.entity.user.SocialProvider;
@@ -49,15 +50,15 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
     /**
      * <h3>카카오 OAuth 토큰 발급</h3>
      * <p>카카오 OAuth 2.0 인증 코드를 사용하여 카카오 인증 서버로부터 액세스 토큰과 리프레시 토큰을 발급받습니다.</p>
-     * <p>카카오 소셜 로그인 처리 내부에서만 사용되는 private 메서드로, authenticate() 메서드에서 내부적으로 호출합니다.</p>
+     * <p>카카오 소셜 로그인 처리 내부에서 사용되며, authenticate() 프로세스의 일부로 호출됩니다.</p>
      *
      * @param code 카카오 OAuth 2.0 인증 코드
-     * @return Map 카카오 액세스/리프레시 토큰을 담은 Map (key: "accessToken", "refreshToken")
+     * @return KakaoTokenDTO 카카오 액세스/리프레시 토큰을 담은 DTO
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public Map<String, String> getToken(String code) {
+    public KakaoTokenDTO getToken(String code) {
         Map<String, String> params = new HashMap<>();
         params.put("grant_type", "authorization_code");
         params.put("client_id", kakaoKeyVO.getCLIENT_ID());
@@ -71,17 +72,16 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
                     params
             );
 
-            Map<String, String> tokens = new HashMap<>();
-            tokens.put("accessToken", (String) responseBody.get("access_token"));
-            tokens.put("refreshToken", (String) responseBody.get("refresh_token"));
-            return tokens;
+            String accessToken = (String) responseBody.get("access_token");
+            String refreshToken = (String) responseBody.get("refresh_token");
+            return KakaoTokenDTO.of(accessToken, refreshToken);
         } catch (Exception e) {
             throw new RuntimeException("Kakao token request failed: " + e.getMessage(), e);
         }
     }
 
     /**
-     * <h3>카카오 사용자 정보)</h3>
+     * <h3>카카오 사용자 정보</h3>
      * <p>내부적으로 발급받은 액세스 토큰으로 카카오 사용자 정보 API에서 프로필 데이터를 조회합니다.</p>
      * <p>카카오 API 응답에서 필요한 사용자 정보를 추출하여 도메인 SocialUserProfileDTO 로 변환합니다.</p>
      *

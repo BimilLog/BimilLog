@@ -68,12 +68,12 @@ class KakaoStrategyAdapterTest extends BaseUnitTest {
     }
 
     @Test
-    @DisplayName("authenticate 성공 - 토큰 발급과 사용자 정보 조회")
-    void shouldAuthenticateSuccessfully() {
+    @DisplayName("getToken과 getUserInfo 성공 - 토큰 발급과 사용자 정보 조회")
+    void shouldGetTokenAndUserInfoSuccessfully() {
         // Given - KakaoTestDataBuilder를 사용한 응답 데이터 생성
         Map<String, Object> tokenResponse = KakaoTestDataBuilder.createTokenResponse(
             TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
-        
+
         Map<String, Object> userInfoResponse = new java.util.HashMap<>();
         userInfoResponse.put("id", 123456789L);
 
@@ -97,20 +97,13 @@ class KakaoStrategyAdapterTest extends BaseUnitTest {
         given(kakaoAuthClient.getToken(anyString(), any(Map.class))).willReturn(tokenResponse);
         given(kakaoApiClient.getUserInfo(anyString())).willReturn(userInfoResponse);
 
-        // When
-        SocialUserProfileDTO result = kakaoStrategyAdapter.authenticate(
-            SocialProvider.KAKAO, TEST_AUTH_CODE);
+        // When - getToken 호출
+        jaeik.bimillog.infrastructure.adapter.out.api.dto.KakaoTokenDTO tokenDTO = kakaoStrategyAdapter.getToken(TEST_AUTH_CODE);
 
-        // Then
-        assertThat(result).isNotNull();
-        // KakaoTestDataBuilder가 숫자로 변환할 수 없는 TEST_SOCIAL_ID를 기본값으로 처리
-        assertThat(result.socialId()).isEqualTo("123456789");
-        assertThat(result.email()).isNull(); // 카카오는 이메일을 제공하지 않음
-        assertThat(result.provider()).isEqualTo(SocialProvider.KAKAO);
-        assertThat(result.nickname()).isEqualTo(TEST_SOCIAL_NICKNAME);
-        assertThat(result.profileImageUrl()).isEqualTo(TEST_PROFILE_IMAGE);
-        assertThat(result.kakaoAccessToken()).isEqualTo(TEST_ACCESS_TOKEN);
-        assertThat(result.kakaoRefreshToken()).isEqualTo(TEST_REFRESH_TOKEN);
+        // Then - 토큰 검증
+        assertThat(tokenDTO).isNotNull();
+        assertThat(tokenDTO.accessToken()).isEqualTo(TEST_ACCESS_TOKEN);
+        assertThat(tokenDTO.refreshToken()).isEqualTo(TEST_REFRESH_TOKEN);
 
         verify(kakaoAuthClient).getToken(anyString(), argThat(params -> {
             Map<String, String> expectedParams = (Map<String, String>) params;
@@ -118,11 +111,25 @@ class KakaoStrategyAdapterTest extends BaseUnitTest {
                    expectedParams.get("client_id").equals(KAKAO_CLIENT_ID) &&
                    expectedParams.get("code").equals(TEST_AUTH_CODE);
         }));
+
+        // When - getUserInfo 호출
+        SocialUserProfileDTO result = kakaoStrategyAdapter.getUserInfo(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
+
+        // Then - 사용자 정보 검증
+        assertThat(result).isNotNull();
+        assertThat(result.getSocialId()).isEqualTo("123456789");
+        assertThat(result.getEmail()).isNull(); // 카카오는 이메일을 제공하지 않음
+        assertThat(result.getProvider()).isEqualTo(SocialProvider.KAKAO);
+        assertThat(result.getNickname()).isEqualTo(TEST_SOCIAL_NICKNAME);
+        assertThat(result.getProfileImageUrl()).isEqualTo(TEST_PROFILE_IMAGE);
+        assertThat(result.getKakaoAccessToken()).isEqualTo(TEST_ACCESS_TOKEN);
+        assertThat(result.getKakaoRefreshToken()).isEqualTo(TEST_REFRESH_TOKEN);
+
         verify(kakaoApiClient).getUserInfo(eq("Bearer " + TEST_ACCESS_TOKEN));
     }
 
     @Test
-    @DisplayName("authenticate 실패 - 토큰 발급 실패 시 예외 발생")
+    @DisplayName("getToken 실패 - 토큰 발급 실패 시 예외 발생")
     void shouldThrowExceptionWhenTokenRequestFails() {
         // Given
         given(kakaoAuthClient.getToken(anyString(), any(Map.class)))
@@ -130,25 +137,21 @@ class KakaoStrategyAdapterTest extends BaseUnitTest {
 
         // When & Then
         assertThatThrownBy(() ->
-            kakaoStrategyAdapter.authenticate(SocialProvider.KAKAO, TEST_AUTH_CODE))
+            kakaoStrategyAdapter.getToken(TEST_AUTH_CODE))
             .isInstanceOf(RuntimeException.class)
-            .hasMessageContaining("Kakao TemporaryToken request failed");
+            .hasMessageContaining("Kakao token request failed");
     }
 
     @Test
-    @DisplayName("authenticate 실패 - 사용자 정보 조회 실패 시 예외 발생")
+    @DisplayName("getUserInfo 실패 - 사용자 정보 조회 실패 시 예외 발생")
     void shouldThrowExceptionWhenUserInfoRequestFails() {
         // Given
-        Map<String, Object> tokenResponse = KakaoTestDataBuilder.createTokenResponse(
-            TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
-
-        given(kakaoAuthClient.getToken(anyString(), any(Map.class))).willReturn(tokenResponse);
         given(kakaoApiClient.getUserInfo(anyString()))
             .willThrow(new RuntimeException("User info request failed"));
 
         // When & Then
         assertThatThrownBy(() ->
-            kakaoStrategyAdapter.authenticate(SocialProvider.KAKAO, TEST_AUTH_CODE))
+            kakaoStrategyAdapter.getUserInfo(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN))
             .isInstanceOf(RuntimeException.class)
             .hasMessageContaining("Kakao user info request failed");
     }

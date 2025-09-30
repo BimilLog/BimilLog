@@ -6,8 +6,8 @@ import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
+import jaeik.bimillog.infrastructure.adapter.out.api.dto.KakaoTokenDTO;
 import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
-import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
@@ -79,7 +79,8 @@ class SocialLoginServiceTest extends BaseUnitTest {
             mockAnonymousAuthentication(mockedSecurityContext);
 
             given(strategyRegistry.getStrategy(TEST_PROVIDER)).willReturn(kakaoStrategy);
-            given(kakaoStrategy.authenticate(TEST_PROVIDER, TEST_AUTH_CODE)).willReturn(testUserProfile);
+            given(kakaoStrategy.getToken(TEST_AUTH_CODE)).willReturn(getTestToken());
+            given(kakaoStrategy.getUserInfo(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN)).willReturn(testUserProfile);
             given(blacklistPort.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
             given(authToUserPort.delegateUserData(TEST_PROVIDER, testUserProfile, TEST_FCM_TOKEN))
                 .willReturn(existingUserDetail);
@@ -97,7 +98,8 @@ class SocialLoginServiceTest extends BaseUnitTest {
             assertThat(existingUserResponse.cookies()).isEqualTo(jwtCookies);
 
             verify(strategyRegistry).getStrategy(TEST_PROVIDER);
-            verify(kakaoStrategy).authenticate(TEST_PROVIDER, TEST_AUTH_CODE);
+            verify(kakaoStrategy).getToken(TEST_AUTH_CODE);
+            verify(kakaoStrategy).getUserInfo(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
             verify(authToUserPort).delegateUserData(TEST_PROVIDER, testUserProfile, TEST_FCM_TOKEN);
             verify(globalJwtPort).generateAccessToken(existingUserDetail);
             verify(globalJwtPort).generateRefreshToken(existingUserDetail);
@@ -124,7 +126,8 @@ class SocialLoginServiceTest extends BaseUnitTest {
             mockAnonymousAuthentication(mockedSecurityContext);
 
             given(strategyRegistry.getStrategy(TEST_PROVIDER)).willReturn(kakaoStrategy);
-            given(kakaoStrategy.authenticate(TEST_PROVIDER, TEST_AUTH_CODE)).willReturn(testUserProfile);
+            given(kakaoStrategy.getToken(TEST_AUTH_CODE)).willReturn(getTestToken());
+            given(kakaoStrategy.getUserInfo(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN)).willReturn(testUserProfile);
             given(blacklistPort.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
             given(authToUserPort.delegateUserData(TEST_PROVIDER, testUserProfile, TEST_FCM_TOKEN))
                 .willReturn(newUserDetail);
@@ -140,7 +143,8 @@ class SocialLoginServiceTest extends BaseUnitTest {
             assertThat(newUserResponse.tempCookie()).isNotNull();
 
             verify(strategyRegistry).getStrategy(TEST_PROVIDER);
-            verify(kakaoStrategy).authenticate(TEST_PROVIDER, TEST_AUTH_CODE);
+            verify(kakaoStrategy).getToken(TEST_AUTH_CODE);
+            verify(kakaoStrategy).getUserInfo(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
             verify(authToUserPort).delegateUserData(TEST_PROVIDER, testUserProfile, TEST_FCM_TOKEN);
             verify(globalCookiePort).createTempCookie(newUserDetail);
         }
@@ -156,7 +160,8 @@ class SocialLoginServiceTest extends BaseUnitTest {
             mockAnonymousAuthentication(mockedSecurityContext);
 
             given(strategyRegistry.getStrategy(TEST_PROVIDER)).willReturn(kakaoStrategy);
-            given(kakaoStrategy.authenticate(TEST_PROVIDER, TEST_AUTH_CODE)).willReturn(testUserProfile);
+            given(kakaoStrategy.getToken(TEST_AUTH_CODE)).willReturn(getTestToken());
+            given(kakaoStrategy.getUserInfo(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN)).willReturn(testUserProfile);
             given(blacklistPort.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(true);
 
             // When & Then
@@ -165,7 +170,8 @@ class SocialLoginServiceTest extends BaseUnitTest {
                     .hasFieldOrPropertyWithValue("authErrorCode", AuthErrorCode.BLACKLIST_USER);
 
             verify(strategyRegistry).getStrategy(TEST_PROVIDER);
-            verify(kakaoStrategy).authenticate(TEST_PROVIDER, TEST_AUTH_CODE);
+            verify(kakaoStrategy).getToken(TEST_AUTH_CODE);
+            verify(kakaoStrategy).getUserInfo(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
             verify(blacklistPort).existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID);
         }
     }
@@ -194,7 +200,7 @@ class SocialLoginServiceTest extends BaseUnitTest {
             mockAnonymousAuthentication(mockedSecurityContext);
 
             given(strategyRegistry.getStrategy(TEST_PROVIDER)).willReturn(kakaoStrategy);
-            given(kakaoStrategy.authenticate(TEST_PROVIDER, TEST_AUTH_CODE)).willThrow(authException);
+            given(kakaoStrategy.getToken(TEST_AUTH_CODE)).willThrow(authException);
 
             // When & Then
             assertThatThrownBy(() -> socialLoginService.processSocialLogin(TEST_PROVIDER, TEST_AUTH_CODE, TEST_FCM_TOKEN))
@@ -202,7 +208,7 @@ class SocialLoginServiceTest extends BaseUnitTest {
                     .hasMessage("Authentication failed");
 
             verify(strategyRegistry).getStrategy(TEST_PROVIDER);
-            verify(kakaoStrategy).authenticate(TEST_PROVIDER, TEST_AUTH_CODE);
+            verify(kakaoStrategy).getToken(TEST_AUTH_CODE);
             verify(blacklistPort, never()).existsByProviderAndSocialId(any(), any());
         }
     }
@@ -253,10 +259,10 @@ class SocialLoginServiceTest extends BaseUnitTest {
     }
 
     /**
-     * 테스트용 토큰 획듍 - SocialLoginServiceTest 전용
+     * 테스트용 토큰 획득 - SocialLoginServiceTest 전용
      */
-    private Token getTestToken() {
-        return Token.createTemporaryToken(AuthTestFixtures.TEST_ACCESS_TOKEN, AuthTestFixtures.TEST_REFRESH_TOKEN);
+    private KakaoTokenDTO getTestToken() {
+        return KakaoTokenDTO.of(AuthTestFixtures.TEST_ACCESS_TOKEN, AuthTestFixtures.TEST_REFRESH_TOKEN);
     }
 
     /**

@@ -2,6 +2,7 @@ package jaeik.bimillog.testutil;
 
 import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
+import jaeik.bimillog.infrastructure.adapter.out.api.dto.KakaoTokenDTO;
 import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
@@ -43,12 +44,18 @@ public class TestSocialLoginPortConfig {
         }
 
         @Override
-        public SocialUserProfileDTO authenticate(SocialProvider provider, String code) {
+        public KakaoTokenDTO getToken(String code) {
+            return KakaoTokenDTO.of("dummy-access-token", "dummy-refresh-token");
+        }
+
+        @Override
+        public SocialUserProfileDTO getUserInfo(String accessToken, String refreshToken) {
             String socialId;
 
-            if ("new_user_code".equals(code)) {
+            // accessToken에 따라 다른 사용자 ID 반환 (테스트 목적)
+            if ("new-user-token".equals(accessToken)) {
                 socialId = "new-user-social-id";
-            } else if ("existing_user_code".equals(code)) {
+            } else if ("existing-user-token".equals(accessToken)) {
                 socialId = "test-social-id-12345"; // 통합 테스트에서 생성한 기존 사용자 ID와 일치
             } else {
                 socialId = "test-social-id";
@@ -57,11 +64,11 @@ public class TestSocialLoginPortConfig {
             return new SocialUserProfileDTO(
                 socialId,
                 "test@example.com",
-                provider,
+                SocialProvider.KAKAO,
                 "Test User",
                 "https://example.com/profile.jpg",
-                "dummy-access-TemporaryToken",
-                "dummy-refresh-TemporaryToken"
+                accessToken,
+                refreshToken
             );
         }
 
