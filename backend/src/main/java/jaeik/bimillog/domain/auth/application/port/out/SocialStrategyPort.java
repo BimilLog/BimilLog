@@ -2,8 +2,8 @@ package jaeik.bimillog.domain.auth.application.port.out;
 
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
-import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
 import jaeik.bimillog.domain.user.entity.user.SocialProvider;
+import jaeik.bimillog.infrastructure.adapter.out.api.dto.KakaoUserInfoDTO;
 
 /**
  * <h2>소셜 로그인 전략 포트</h2>
@@ -38,7 +38,18 @@ public interface SocialStrategyPort {
      */
     KakaoToken getToken(String code);
 
-    SocialUserProfileDTO getUserInfo(String accessToken, String refreshToken);
+    /**
+     * <h3>소셜 플랫폼 사용자 정보 조회</h3>
+     * <p>발급받은 액세스 토큰을 사용하여 소셜 플랫폼의 사용자 정보 API에서 프로필 데이터를 조회합니다.</p>
+     * <p>각 플랫폼의 API 응답을 DTO로 변환하여 반환합니다.</p>
+     *
+     * @param accessToken 소셜 플랫폼 액세스 토큰
+     * @param refreshToken 소셜 플랫폼 리프레시 토큰
+     * @return KakaoUserInfoDTO 소셜 사용자 정보 DTO
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    KakaoUserInfoDTO getUserInfo(String accessToken, String refreshToken);
 
     /**
      * <h3>소셜 계정 연결 해제</h3>

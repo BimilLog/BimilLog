@@ -1,9 +1,9 @@
 package jaeik.bimillog.adapter.out.api.social.kakao;
 
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
-import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
 import jaeik.bimillog.domain.global.vo.KakaoKeyVO;
 import jaeik.bimillog.domain.user.entity.user.SocialProvider;
+import jaeik.bimillog.infrastructure.adapter.out.api.dto.KakaoUserInfoDTO;
 import jaeik.bimillog.infrastructure.adapter.out.api.social.kakao.KakaoApiClient;
 import jaeik.bimillog.infrastructure.adapter.out.api.social.kakao.KakaoAuthClient;
 import jaeik.bimillog.infrastructure.adapter.out.api.social.kakao.KakaoStrategyAdapter;
@@ -114,7 +114,7 @@ class KakaoStrategyAdapterTest extends BaseUnitTest {
         }));
 
         // When - getUserInfo 호출
-        SocialUserProfileDTO result = kakaoStrategyAdapter.getUserInfo(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
+        KakaoUserInfoDTO result = kakaoStrategyAdapter.getUserInfo(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
 
         // Then - 사용자 정보 검증
         assertThat(result).isNotNull();
@@ -123,8 +123,6 @@ class KakaoStrategyAdapterTest extends BaseUnitTest {
         assertThat(result.getProvider()).isEqualTo(SocialProvider.KAKAO);
         assertThat(result.getNickname()).isEqualTo(TEST_SOCIAL_NICKNAME);
         assertThat(result.getProfileImageUrl()).isEqualTo(TEST_PROFILE_IMAGE);
-        assertThat(result.getKakaoAccessToken()).isEqualTo(TEST_ACCESS_TOKEN);
-        assertThat(result.getKakaoRefreshToken()).isEqualTo(TEST_REFRESH_TOKEN);
 
         verify(kakaoApiClient).getUserInfo(eq("Bearer " + TEST_ACCESS_TOKEN));
     }

@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.user.service;
 
-import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
+import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.user.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.user.application.port.out.SaveUserPort;
 import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
@@ -52,12 +52,12 @@ class UserSaveServiceTest extends BaseUnitTest {
     @InjectMocks
     private UserSaveService userSaveService;
 
-    private SocialUserProfileDTO testSocialProfile;
+    private SocialUserProfile testSocialProfile;
     private String testFcmToken;
 
     @BeforeEach
     protected void setUpChild() {
-        testSocialProfile = new SocialUserProfileDTO(
+        testSocialProfile = new SocialUserProfile(
             "kakao123",
             "test@example.com",
             SocialProvider.KAKAO,
@@ -128,7 +128,7 @@ class UserSaveServiceTest extends BaseUnitTest {
 
         // Redis에 임시 데이터 저장 검증
         ArgumentCaptor<String> uuidCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<SocialUserProfileDTO> profileCaptor = ArgumentCaptor.forClass(SocialUserProfileDTO.class);
+        ArgumentCaptor<SocialUserProfile> profileCaptor = ArgumentCaptor.forClass(SocialUserProfile.class);
         ArgumentCaptor<String> fcmCaptor = ArgumentCaptor.forClass(String.class);
 
         verify(redisUserDataPort).saveTempData(
@@ -210,7 +210,7 @@ class UserSaveServiceTest extends BaseUnitTest {
     @DisplayName("다른 소셜 프로바이더로 기존 사용자 조회")
     void shouldFindExistingUser_WithDifferentProvider() {
         // Given
-        SocialUserProfileDTO googleProfile = new SocialUserProfileDTO(
+        SocialUserProfile googleProfile = new SocialUserProfile(
             "google456",
             "google@example.com",
             SocialProvider.GOOGLE,

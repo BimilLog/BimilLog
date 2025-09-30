@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.user.application.port.in;
 
-import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
+import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.user.entity.user.SocialProvider;
 import jaeik.bimillog.domain.user.entity.userdetail.UserDetail;
 import jaeik.bimillog.infrastructure.adapter.out.auth.AuthToUserAdapter;
@@ -20,5 +20,5 @@ public interface UserSaveUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    UserDetail processUserData(SocialProvider provider, SocialUserProfileDTO profile, String fcmToken);
+    UserDetail processUserData(SocialProvider provider, SocialUserProfile profile, String fcmToken);
 }

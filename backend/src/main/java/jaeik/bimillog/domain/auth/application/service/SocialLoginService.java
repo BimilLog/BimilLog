@@ -8,6 +8,7 @@ import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
+import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
@@ -17,7 +18,7 @@ import jaeik.bimillog.domain.user.entity.userdetail.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.userdetail.NewUserDetail;
 import jaeik.bimillog.domain.user.entity.userdetail.UserDetail;
 import jaeik.bimillog.infrastructure.adapter.in.auth.web.AuthCommandController;
-import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
+import jaeik.bimillog.infrastructure.adapter.out.api.dto.KakaoUserInfoDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseCookie;
@@ -68,20 +69,29 @@ public class SocialLoginService implements SocialLoginUseCase {
 
         // 1. 전략 포트를 통해 OAuth 인증 수행
         SocialStrategyPort strategy = strategyRegistryPort.getStrategy(provider);
-        KakaoToken tokenDTO = strategy.getToken(code);
-        String kakaoAccessToken = tokenDTO.accessToken();
-        String kakaoRefreshToken = tokenDTO.refreshToken();
-        SocialUserProfileDTO socialUserProfileDTO = strategy.getUserInfo(kakaoAccessToken, kakaoRefreshToken);
+        KakaoToken kakaoToken = strategy.getToken(code);
+        KakaoUserInfoDTO kakaoUserInfo = strategy.getUserInfo(kakaoToken.accessToken(), kakaoToken.refreshToken());
 
-        // 2. 블랙리스트 사용자 확인
-        if (blacklistPort.existsByProviderAndSocialId(provider, socialUserProfileDTO.getSocialId())) {
+        // 2. KakaoToken과 KakaoUserInfoDTO를 조합하여 SocialUserProfile 생성
+        SocialUserProfile socialUserProfile = SocialUserProfile.of(
+                kakaoUserInfo.getSocialId(),
+                kakaoUserInfo.getEmail(),
+                kakaoUserInfo.getProvider(),
+                kakaoUserInfo.getNickname(),
+                kakaoUserInfo.getProfileImageUrl(),
+                kakaoToken.accessToken(),
+                kakaoToken.refreshToken()
+        );
+
+        // 3. 블랙리스트 사용자 확인
+        if (blacklistPort.existsByProviderAndSocialId(provider, socialUserProfile.getSocialId())) {
             throw new AuthCustomException(AuthErrorCode.BLACKLIST_USER);
         }
 
-        // 3. 로그인 이후 유저 데이터 작업 유저 도메인으로 책임 위임 결과 값으로 유저 정보 획득
-        UserDetail userDetail = authToUserPort.delegateUserData(provider, socialUserProfileDTO, fcmToken);
+        // 4. 로그인 이후 유저 데이터 작업 유저 도메인으로 책임 위임 결과 값으로 유저 정보 획득
+        UserDetail userDetail = authToUserPort.delegateUserData(provider, socialUserProfile, fcmToken);
 
-        // 4. 기존 유저, 신규 유저에 따라 다른 반환값을 LoginResult에 작성
+        // 5. 기존 유저, 신규 유저에 따라 다른 반환값을 LoginResult에 작성
         if (userDetail instanceof ExistingUserDetail) {
             String accessToken = globalJwtPort.generateAccessToken((ExistingUserDetail) userDetail);
             String refreshToken = globalJwtPort.generateRefreshToken((ExistingUserDetail) userDetail);

@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.user.application.port.out;
 
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
-import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
+import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.user.application.service.SignUpService;
 import jaeik.bimillog.domain.user.entity.TempUserData;
 
@@ -30,7 +30,7 @@ public interface RedisUserDataPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    void saveTempData(String uuid, SocialUserProfileDTO userProfile, String fcmToken);
+    void saveTempData(String uuid, SocialUserProfile userProfile, String fcmToken);
 
     /**
      * <h3>임시 사용자 데이터 조회</h3>

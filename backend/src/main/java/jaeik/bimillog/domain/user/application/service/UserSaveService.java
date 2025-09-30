@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.user.application.service;
 
-import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
+import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.user.application.port.in.UserSaveUseCase;
 import jaeik.bimillog.domain.user.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.user.application.port.out.SaveUserPort;
@@ -58,7 +58,7 @@ public class UserSaveService implements UserSaveUseCase {
      * @since 2.0.0
      */
     @Override
-    public UserDetail processUserData(SocialProvider provider, SocialUserProfileDTO authResult, String fcmToken) {
+    public UserDetail processUserData(SocialProvider provider, SocialUserProfile authResult, String fcmToken) {
         Optional<User> existingUser = userQueryPort.findByProviderAndSocialId(provider, authResult.getSocialId());
         if (existingUser.isPresent()) {
             User user = existingUser.get();
@@ -72,7 +72,7 @@ public class UserSaveService implements UserSaveUseCase {
      * <h3>신규 사용자 임시 데이터 저장</h3>
      * <p>최초 소셜 로그인하는 사용자의 임시 정보를 저장합니다.</p>
      * <p>회원가입 페이지에서 사용할 UUID 키와 임시 쿠키를 생성합니다.</p>
-     * <p>{@link #processUserData(SocialProvider, SocialUserProfileDTO, String)}에서 신규 사용자 판별 후 호출됩니다.</p>
+     * <p>{@link #processUserData(SocialProvider, SocialUserProfile, String)}에서 신규 사용자 판별 후 호출됩니다.</p>
      *
      * @param authResult 소셜 로그인 인증 결과
      * @param fcmToken 푸시 알림용 FCM 토큰 (선택사항)
@@ -80,7 +80,7 @@ public class UserSaveService implements UserSaveUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    private NewUserDetail handleNewUser(SocialUserProfileDTO authResult, String fcmToken) {
+    private NewUserDetail handleNewUser(SocialUserProfile authResult, String fcmToken) {
         String uuid = UUID.randomUUID().toString();
         redisUserDataPort.saveTempData(uuid, authResult, fcmToken);
         return NewUserDetail.of(uuid);

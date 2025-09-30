@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.user.service;
 
-import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
+import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
@@ -60,7 +60,7 @@ class SignUpServiceTest extends BaseUnitTest {
 
     private String testUserName;
     private String testUuid;
-    private SocialUserProfileDTO testSocialProfile;
+    private SocialUserProfile testSocialProfile;
     private TempUserData testTempData;
     private List<ResponseCookie> testCookies;
     private ExistingUserDetail testUserDetail;
@@ -72,7 +72,7 @@ class SignUpServiceTest extends BaseUnitTest {
         testUserName = "testUser";
         testUuid = "test-uuid-123";
 
-        testSocialProfile = new SocialUserProfileDTO("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg", "access-TemporaryToken", "refresh-TemporaryToken");
+        testSocialProfile = new SocialUserProfile("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg", "access-TemporaryToken", "refresh-TemporaryToken");
 
         testTempData = TempUserData.from(testSocialProfile, "fcm-TemporaryToken");
         
@@ -91,7 +91,7 @@ class SignUpServiceTest extends BaseUnitTest {
         given(redisUserDataPort.getTempData(testUuid)).willReturn(Optional.of(testTempData));
         given(saveUserPort.saveNewUser(
                 eq(testUserName),
-                any(SocialUserProfileDTO.class),
+                any(SocialUserProfile.class),
                 eq("fcm-TemporaryToken")
         )).willReturn(testUserDetail);
         given(globalJwtPort.generateAccessToken(testUserDetail)).willReturn(testAccessToken);
@@ -108,7 +108,7 @@ class SignUpServiceTest extends BaseUnitTest {
         verify(redisUserDataPort).getTempData(testUuid);
         verify(saveUserPort).saveNewUser(
                 eq(testUserName),
-                any(SocialUserProfileDTO.class),
+                any(SocialUserProfile.class),
                 eq("fcm-TemporaryToken")
         );
         verify(redisUserDataPort).removeTempData(testUuid);
@@ -147,7 +147,7 @@ class SignUpServiceTest extends BaseUnitTest {
         given(redisUserDataPort.getTempData(testUuid)).willReturn(Optional.of(tempDataWithoutFcm));
         given(saveUserPort.saveNewUser(
                 eq(testUserName),
-                any(SocialUserProfileDTO.class),
+                any(SocialUserProfile.class),
                 eq(null)
         )).willReturn(testUserDetail);
         given(globalJwtPort.generateAccessToken(testUserDetail)).willReturn(testAccessToken);
@@ -161,7 +161,7 @@ class SignUpServiceTest extends BaseUnitTest {
         assertThat(result).isEqualTo(testCookies);
 
         verify(redisUserDataPort).getTempData(testUuid);
-        verify(saveUserPort).saveNewUser(eq(testUserName), any(SocialUserProfileDTO.class), eq(null));
+        verify(saveUserPort).saveNewUser(eq(testUserName), any(SocialUserProfile.class), eq(null));
         verify(redisUserDataPort).removeTempData(testUuid);
         verify(globalJwtPort).generateAccessToken(testUserDetail);
         verify(globalJwtPort).generateRefreshToken(testUserDetail);

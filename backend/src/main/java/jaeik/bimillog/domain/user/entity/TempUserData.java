@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.user.entity;
 
+import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.user.entity.user.SocialProvider;
-import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -38,7 +38,7 @@ public class TempUserData {
      * @param fcmToken FCM 토큰
      * @return TempUserData 객체
      */
-    public static TempUserData from(SocialUserProfileDTO profile, String fcmToken) {
+    public static TempUserData from(SocialUserProfile profile, String fcmToken) {
         return new TempUserData(
                 profile.getSocialId(),
                 profile.getEmail(),
@@ -56,10 +56,10 @@ public class TempUserData {
      * <p>개별 필드를 SocialUserProfileDTO로 재조립합니다.</p>
      * <p>SaveUserPort 등에서 DTO가 필요한 경우 사용됩니다.</p>
      *
-     * @return SocialUserProfileDTO 객체
+     * @return SocialUserProfile 객체
      */
-    public SocialUserProfileDTO toSocialUserProfileDTO() {
-        return SocialUserProfileDTO.of(
+    public SocialUserProfile toSocialUserProfileDTO() {
+        return SocialUserProfile.of(
                 socialId,
                 email,
                 provider,

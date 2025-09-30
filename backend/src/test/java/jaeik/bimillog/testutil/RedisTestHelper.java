@@ -2,7 +2,7 @@ package jaeik.bimillog.testutil;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.querydsl.jpa.impl.JPAUpdateClause;
-import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
+import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.user.entity.user.SocialProvider;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -54,13 +54,13 @@ public class RedisTestHelper {
     }
 
     /**
-     * 테스트용 SocialUserProfileDTO 생성
+     * 테스트용 SocialUserProfile 생성
      * @param socialId 소셜 ID
      * @param email 이메일
-     * @return SocialUserProfileDTO
+     * @return SocialUserProfile
      */
-    public static SocialUserProfileDTO createTestSocialUserProfile(String socialId, String email) {
-        return new SocialUserProfileDTO(
+    public static SocialUserProfile createTestSocialUserProfile(String socialId, String email) {
+        return new SocialUserProfile(
                 socialId,
                 email,
                 SocialProvider.KAKAO,
@@ -72,10 +72,10 @@ public class RedisTestHelper {
     }
 
     /**
-     * 기본 SocialUserProfileDTO 생성
-     * @return 기본값이 설정된 SocialUserProfileDTO
+     * 기본 SocialUserProfile 생성
+     * @return 기본값이 설정된 SocialUserProfile
      */
-    public static SocialUserProfileDTO defaultSocialUserProfile() {
+    public static SocialUserProfile defaultSocialUserProfile() {
         return createTestSocialUserProfile("123456789", "test@example.com");
     }
 

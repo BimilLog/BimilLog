@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.out.auth;
 
 import jaeik.bimillog.domain.auth.application.port.out.AuthToUserPort;
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
-import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
+import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.user.application.port.in.UserSaveUseCase;
 import jaeik.bimillog.domain.user.entity.user.SocialProvider;
 import jaeik.bimillog.domain.user.entity.userdetail.UserDetail;
@@ -47,7 +47,7 @@ public class AuthToUserAdapter implements AuthToUserPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    public UserDetail delegateUserData(SocialProvider provider, SocialUserProfileDTO profile, String fcmToken) {
+    public UserDetail delegateUserData(SocialProvider provider, SocialUserProfile profile, String fcmToken) {
         return userSaveUseCase.processUserData(provider, profile, fcmToken);
     }
 }

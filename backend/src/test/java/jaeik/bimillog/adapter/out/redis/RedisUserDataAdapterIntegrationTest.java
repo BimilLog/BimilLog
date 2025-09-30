@@ -1,6 +1,6 @@
 package jaeik.bimillog.adapter.out.redis;
 
-import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
+import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.user.entity.TempUserData;
 import jaeik.bimillog.infrastructure.adapter.out.redis.RedisUserDataAdapter;
@@ -46,7 +46,7 @@ class RedisUserDataAdapterIntegrationTest {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
-    private SocialUserProfileDTO testUserProfile;
+    private SocialUserProfile testUserProfile;
     private String testUuid;
 
     @BeforeEach

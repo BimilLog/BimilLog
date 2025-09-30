@@ -3,7 +3,7 @@ package jaeik.bimillog.testutil;
 import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
-import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
+import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.user.application.port.out.KakaoFriendPort;
@@ -49,7 +49,7 @@ public class TestSocialLoginPortConfig {
         }
 
         @Override
-        public SocialUserProfileDTO getUserInfo(String accessToken, String refreshToken) {
+        public SocialUserProfile getUserInfo(String accessToken, String refreshToken) {
             String socialId;
 
             // accessToken에 따라 다른 사용자 ID 반환 (테스트 목적)
@@ -61,7 +61,7 @@ public class TestSocialLoginPortConfig {
                 socialId = "test-social-id";
             }
 
-            return new SocialUserProfileDTO(
+            return new SocialUserProfile(
                 socialId,
                 "test@example.com",
                 SocialProvider.KAKAO,
