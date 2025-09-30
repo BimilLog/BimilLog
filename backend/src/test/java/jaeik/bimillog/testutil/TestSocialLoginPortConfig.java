@@ -3,13 +3,13 @@ package jaeik.bimillog.testutil;
 import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
+import jaeik.bimillog.domain.auth.entity.KakaoUserInfo;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.user.application.port.out.KakaoFriendPort;
 import jaeik.bimillog.domain.user.entity.KakaoFriendsResponseVO;
 import jaeik.bimillog.domain.user.entity.user.SocialProvider;
 import jaeik.bimillog.domain.user.entity.userdetail.ExistingUserDetail;
-import jaeik.bimillog.infrastructure.adapter.out.api.dto.KakaoUserInfoDTO;
 import jaeik.bimillog.infrastructure.adapter.out.global.GlobalCookieAdapter;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -49,7 +49,7 @@ public class TestSocialLoginPortConfig {
         }
 
         @Override
-        public KakaoUserInfoDTO getUserInfo(String accessToken, String refreshToken) {
+        public KakaoUserInfo getUserInfo(String accessToken, String refreshToken) {
             String socialId;
 
             // accessToken에 따라 다른 사용자 ID 반환 (테스트 목적)
@@ -61,7 +61,7 @@ public class TestSocialLoginPortConfig {
                 socialId = "test-social-id";
             }
 
-            return KakaoUserInfoDTO.of(
+            return KakaoUserInfo.of(
                 socialId,
                 null, // 카카오는 이메일을 제공하지 않음
                 SocialProvider.KAKAO,

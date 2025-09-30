@@ -3,7 +3,7 @@ package jaeik.bimillog.adapter.out.api.social.kakao;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.global.vo.KakaoKeyVO;
 import jaeik.bimillog.domain.user.entity.user.SocialProvider;
-import jaeik.bimillog.infrastructure.adapter.out.api.dto.KakaoUserInfoDTO;
+import jaeik.bimillog.domain.auth.entity.KakaoUserInfo;
 import jaeik.bimillog.infrastructure.adapter.out.api.social.kakao.KakaoApiClient;
 import jaeik.bimillog.infrastructure.adapter.out.api.social.kakao.KakaoAuthClient;
 import jaeik.bimillog.infrastructure.adapter.out.api.social.kakao.KakaoStrategyAdapter;
@@ -114,7 +114,7 @@ class KakaoStrategyAdapterTest extends BaseUnitTest {
         }));
 
         // When - getUserInfo 호출
-        KakaoUserInfoDTO result = kakaoStrategyAdapter.getUserInfo(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
+        KakaoUserInfo result = kakaoStrategyAdapter.getUserInfo(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
 
         // Then - 사용자 정보 검증
         assertThat(result).isNotNull();

@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.out.api.dto;
+package jaeik.bimillog.domain.auth.entity;
 
 import jaeik.bimillog.domain.user.entity.user.SocialProvider;
 import lombok.AccessLevel;
@@ -7,20 +7,20 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class KakaoUserInfoDTO {
+public class KakaoUserInfo {
     private final String socialId;
     private final String email;
     private final SocialProvider provider;
     private final String nickname;
     private final String profileImageUrl;
 
-    public static KakaoUserInfoDTO of(
+    public static KakaoUserInfo of(
             String socialId,
             String email,
             SocialProvider provider,
             String nickname,
             String profileImageUrl
     ) {
-        return new KakaoUserInfoDTO(socialId, email, provider, nickname, profileImageUrl);
+        return new KakaoUserInfo(socialId, email, provider, nickname, profileImageUrl);
     }
 }

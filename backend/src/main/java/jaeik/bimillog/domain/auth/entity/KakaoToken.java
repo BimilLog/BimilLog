@@ -7,7 +7,6 @@ package jaeik.bimillog.domain.auth.entity;
  * @param refreshToken 카카오 OAuth 리프레시 토큰
  * @author Jaeik
  * @version 2.0.0
- * @since 2.0.0
  */
 public record KakaoToken(String accessToken, String refreshToken) {
     /**

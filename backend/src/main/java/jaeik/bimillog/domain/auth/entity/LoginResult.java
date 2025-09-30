@@ -33,15 +33,4 @@ public sealed interface LoginResult
      * @param cookies JWT 액세스 토큰과 리프레시 토큰이 포함된 쿠키 목록
      */
     record ExistingUser(List<ResponseCookie> cookies) implements LoginResult {}
-
-    /**
-     * <h3>기존 사용자 여부 판별</h3>
-     * <p>현재 로그인 결과가 기존 사용자의 것인지 타입을 확인합니다.</p>
-     * <p>패턴 매칭을 위한 편의 메서드로 비즈니스 로직에서 분기 처리 시 사용됩니다.</p>
-     *
-     * @return 기존 사용자 로그인 결과인 경우 true, 신규 사용자인 경우 false
-     */
-    default boolean isExistingUser() {
-        return this instanceof ExistingUser;
-    }
 }

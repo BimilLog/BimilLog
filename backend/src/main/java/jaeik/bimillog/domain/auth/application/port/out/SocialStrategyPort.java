@@ -2,8 +2,8 @@ package jaeik.bimillog.domain.auth.application.port.out;
 
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
+import jaeik.bimillog.domain.auth.entity.KakaoUserInfo;
 import jaeik.bimillog.domain.user.entity.user.SocialProvider;
-import jaeik.bimillog.infrastructure.adapter.out.api.dto.KakaoUserInfoDTO;
 
 /**
  * <h2>소셜 로그인 전략 포트</h2>
@@ -45,11 +45,11 @@ public interface SocialStrategyPort {
      *
      * @param accessToken 소셜 플랫폼 액세스 토큰
      * @param refreshToken 소셜 플랫폼 리프레시 토큰
-     * @return KakaoUserInfoDTO 소셜 사용자 정보 DTO
+     * @return KakaoUserInfo 소셜 사용자 정보 DTO
      * @author Jaeik
      * @since 2.0.0
      */
-    KakaoUserInfoDTO getUserInfo(String accessToken, String refreshToken);
+    KakaoUserInfo getUserInfo(String accessToken);
 
     /**
      * <h3>소셜 계정 연결 해제</h3>

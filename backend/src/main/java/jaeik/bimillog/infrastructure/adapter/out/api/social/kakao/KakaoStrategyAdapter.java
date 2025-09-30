@@ -3,9 +3,9 @@ package jaeik.bimillog.infrastructure.adapter.out.api.social.kakao;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
+import jaeik.bimillog.domain.auth.entity.KakaoUserInfo;
 import jaeik.bimillog.domain.global.vo.KakaoKeyVO;
 import jaeik.bimillog.domain.user.entity.user.SocialProvider;
-import jaeik.bimillog.infrastructure.adapter.out.api.dto.KakaoUserInfoDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -83,12 +83,12 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
      *
      * @param accessToken 카카오 액세스 토큰
      * @param refreshToken 카카오 리프레시 토큰
-     * @return KakaoUserInfoDTO 카카오 사용자 정보 DTO (이메일은 null)
+     * @return KakaoUserInfo 카카오 사용자 정보 DTO (이메일은 null)
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public KakaoUserInfoDTO getUserInfo(String accessToken, String refreshToken) {
+    public KakaoUserInfo getUserInfo(String accessToken) {
         try {
             Map<String, Object> responseBody = kakaoApiClient.getUserInfo("Bearer " + accessToken);
 
@@ -99,7 +99,7 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
             String nickname = (String) profile.get("nickname");
             String thumbnailImage = (String) profile.get("thumbnail_image_url");
 
-            return KakaoUserInfoDTO.of(
+            return KakaoUserInfo.of(
                     socialId,
                     null, // 카카오는 보안정책상 이메일을 제공하지 않음
                     SocialProvider.KAKAO,

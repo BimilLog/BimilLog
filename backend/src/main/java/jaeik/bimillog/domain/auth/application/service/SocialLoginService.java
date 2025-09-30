@@ -18,7 +18,7 @@ import jaeik.bimillog.domain.user.entity.userdetail.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.userdetail.NewUserDetail;
 import jaeik.bimillog.domain.user.entity.userdetail.UserDetail;
 import jaeik.bimillog.infrastructure.adapter.in.auth.web.AuthCommandController;
-import jaeik.bimillog.infrastructure.adapter.out.api.dto.KakaoUserInfoDTO;
+import jaeik.bimillog.domain.auth.entity.KakaoUserInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseCookie;
@@ -70,9 +70,9 @@ public class SocialLoginService implements SocialLoginUseCase {
         // 1. 전략 포트를 통해 OAuth 인증 수행
         SocialStrategyPort strategy = strategyRegistryPort.getStrategy(provider);
         KakaoToken kakaoToken = strategy.getToken(code);
-        KakaoUserInfoDTO kakaoUserInfo = strategy.getUserInfo(kakaoToken.accessToken(), kakaoToken.refreshToken());
+        KakaoUserInfo kakaoUserInfo = strategy.getUserInfo(kakaoToken.accessToken());
 
-        // 2. KakaoToken, KakaoUserInfoDTO, fcmToken을 조합하여 SocialUserProfile 생성
+        // 2. KakaoToken, KakaoUserInfo, fcmToken을 조합하여 SocialUserProfile 생성
         SocialUserProfile socialUserProfile = SocialUserProfile.of(
                 kakaoUserInfo.getSocialId(),
                 kakaoUserInfo.getEmail(),

@@ -51,19 +51,19 @@ public class UserSaveService implements UserSaveUseCase {
      * <p>신규 사용자: 임시 데이터 저장 후 회원가입 페이지로 안내</p>
      *
      * @param provider 소셜 로그인 제공자 (KAKAO 등)
-     * @param authResult 소셜 사용자 프로필 정보 (FCM 토큰 포함)
+     * @param userProfile 소셜 사용자 프로필 정보 (FCM 토큰 포함)
      * @return UserDetail 기존 사용자(ExistingUserDetail) 또는 신규 사용자(NewUserDetail) 정보
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public UserDetail processUserData(SocialProvider provider, SocialUserProfile authResult) {
-        Optional<User> existingUser = userQueryPort.findByProviderAndSocialId(provider, authResult.getSocialId());
+    public UserDetail processUserData(SocialProvider provider, SocialUserProfile userProfile) {
+        Optional<User> existingUser = userQueryPort.findByProviderAndSocialId(provider, userProfile.getSocialId());
         if (existingUser.isPresent()) {
             User user = existingUser.get();
-            return saveUserPort.handleExistingUserData(user, authResult);
+            return saveUserPort.handleExistingUserData(user, userProfile);
         } else {
-            return handleNewUser(authResult);
+            return handleNewUser(userProfile);
         }
     }
 
