@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.user.service;
 
-import jaeik.bimillog.domain.auth.entity.Token;
+import jaeik.bimillog.domain.auth.entity.JwtToken;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.domain.user.application.port.out.KakaoFriendPort;
@@ -52,7 +52,7 @@ class UserFriendServiceTest extends BaseUnitTest {
     void shouldGetKakaoFriendList_WhenValidRequest() {
         // Given
         Long tokenId = 1L;
-        Token token = Token.builder()
+        JwtToken jwtToken = JwtToken.builder()
                 .accessToken("access-TemporaryToken")
                 .refreshToken("refresh-TemporaryToken")
                 .build();
@@ -70,7 +70,7 @@ class UserFriendServiceTest extends BaseUnitTest {
         );
         List<String> userNames = Arrays.asList("", "bimillogUser", "");
 
-        given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(token));
+        given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(jwtToken));
         given(kakaoFriendPort.getFriendList("access-TemporaryToken", 0, 3)).willReturn(kakaoResponse);
         given(userQueryPort.findUserNamesInOrder(Arrays.asList("1", "2", "3"))).willReturn(userNames);
 
@@ -108,11 +108,11 @@ class UserFriendServiceTest extends BaseUnitTest {
     @DisplayName("카카오 친구 목록 조회 - 액세스 토큰이 null이면 예외")
     void shouldThrowException_WhenAccessTokenIsNull() {
         // Given
-        Token token = Token.builder()
+        JwtToken jwtToken = JwtToken.builder()
                 .accessToken(null)
                 .refreshToken("refresh-TemporaryToken")
                 .build();
-        given(globalTokenQueryPort.findById(1L)).willReturn(Optional.of(token));
+        given(globalTokenQueryPort.findById(1L)).willReturn(Optional.of(jwtToken));
 
         // When
         Throwable thrown = catchThrowable(() -> userFriendService.getKakaoFriendList(1L, 1L, 0, 10));
@@ -129,11 +129,11 @@ class UserFriendServiceTest extends BaseUnitTest {
     @DisplayName("카카오 친구 목록 조회 - 액세스 토큰이 빈 문자열이면 예외")
     void shouldThrowException_WhenAccessTokenIsEmpty() {
         // Given
-        Token token = Token.builder()
+        JwtToken jwtToken = JwtToken.builder()
                 .accessToken("")
                 .refreshToken("refresh-TemporaryToken")
                 .build();
-        given(globalTokenQueryPort.findById(1L)).willReturn(Optional.of(token));
+        given(globalTokenQueryPort.findById(1L)).willReturn(Optional.of(jwtToken));
 
         // When
         Throwable thrown = catchThrowable(() -> userFriendService.getKakaoFriendList(1L, 1L, 0, 10));
@@ -150,7 +150,7 @@ class UserFriendServiceTest extends BaseUnitTest {
     @DisplayName("카카오 친구 목록 조회 - null offset과 limit는 기본값으로 처리")
     void shouldUseDefaultValues_WhenOffsetAndLimitAreNull() {
         // Given
-        Token token = Token.builder()
+        JwtToken jwtToken = JwtToken.builder()
                 .accessToken("access-TemporaryToken")
                 .refreshToken("refresh-TemporaryToken")
                 .build();
@@ -158,7 +158,7 @@ class UserFriendServiceTest extends BaseUnitTest {
                 Collections.emptyList(), 0, null, null, 0
         );
 
-        given(globalTokenQueryPort.findById(1L)).willReturn(Optional.of(token));
+        given(globalTokenQueryPort.findById(1L)).willReturn(Optional.of(jwtToken));
         given(kakaoFriendPort.getFriendList("access-TemporaryToken", 0, 10)).willReturn(kakaoResponse);
 
         // When
@@ -173,7 +173,7 @@ class UserFriendServiceTest extends BaseUnitTest {
     @DisplayName("카카오 친구 목록 조회 - limit는 최대 100으로 제한")
     void shouldLimitMaximumLimit_WhenLimitExceedsMaximum() {
         // Given
-        Token token = Token.builder()
+        JwtToken jwtToken = JwtToken.builder()
                 .accessToken("access-TemporaryToken")
                 .refreshToken("refresh-TemporaryToken")
                 .build();
@@ -181,7 +181,7 @@ class UserFriendServiceTest extends BaseUnitTest {
                 Collections.emptyList(), 0, null, null, 0
         );
 
-        given(globalTokenQueryPort.findById(1L)).willReturn(Optional.of(token));
+        given(globalTokenQueryPort.findById(1L)).willReturn(Optional.of(jwtToken));
         given(kakaoFriendPort.getFriendList("access-TemporaryToken", 0, 100)).willReturn(kakaoResponse);
 
         // When
@@ -196,11 +196,11 @@ class UserFriendServiceTest extends BaseUnitTest {
     @DisplayName("카카오 친구 동의 필요 예외는 커스텀 메시지로 변환")
     void shouldThrowKakaoFriendConsentError_WhenConsentRequired() {
         // Given
-        Token token = Token.builder()
+        JwtToken jwtToken = JwtToken.builder()
                 .accessToken("access-TemporaryToken")
                 .refreshToken("refresh-TemporaryToken")
                 .build();
-        given(globalTokenQueryPort.findById(1L)).willReturn(Optional.of(token));
+        given(globalTokenQueryPort.findById(1L)).willReturn(Optional.of(jwtToken));
         given(kakaoFriendPort.getFriendList("access-TemporaryToken", 0, 10))
                 .willThrow(new UserCustomException(UserErrorCode.KAKAO_FRIEND_API_ERROR));
 
@@ -214,11 +214,11 @@ class UserFriendServiceTest extends BaseUnitTest {
     @DisplayName("카카오 API 일반 에러는 그대로 래핑")
     void shouldThrowKakaoApiError_WhenGeneralApiError() {
         // Given
-        Token token = Token.builder()
+        JwtToken jwtToken = JwtToken.builder()
                 .accessToken("access-TemporaryToken")
                 .refreshToken("refresh-TemporaryToken")
                 .build();
-        given(globalTokenQueryPort.findById(1L)).willReturn(Optional.of(token));
+        given(globalTokenQueryPort.findById(1L)).willReturn(Optional.of(jwtToken));
         given(kakaoFriendPort.getFriendList("access-TemporaryToken", 0, 10))
                 .willThrow(new RuntimeException("일반적인 API 에러"));
 
@@ -232,7 +232,7 @@ class UserFriendServiceTest extends BaseUnitTest {
     @DisplayName("친구 목록이 비어 있으면 추가 조회를 수행하지 않는다")
     void shouldHandleEmptyFriendList_WhenNoFriends() {
         // Given
-        Token token = Token.builder()
+        JwtToken jwtToken = JwtToken.builder()
                 .accessToken("access-TemporaryToken")
                 .refreshToken("refresh-TemporaryToken")
                 .build();
@@ -240,7 +240,7 @@ class UserFriendServiceTest extends BaseUnitTest {
                 Collections.emptyList(), 0, null, null, 0
         );
 
-        given(globalTokenQueryPort.findById(1L)).willReturn(Optional.of(token));
+        given(globalTokenQueryPort.findById(1L)).willReturn(Optional.of(jwtToken));
         given(kakaoFriendPort.getFriendList("access-TemporaryToken", 0, 10)).willReturn(kakaoResponse);
 
         // When
@@ -255,7 +255,7 @@ class UserFriendServiceTest extends BaseUnitTest {
     @DisplayName("모든 친구가 가입한 경우 사용자 이름을 매핑한다")
     void shouldMapAllUserNames_WhenAllFriendsAreRegistered() {
         // Given
-        Token token = Token.builder()
+        JwtToken jwtToken = JwtToken.builder()
                 .accessToken("access-TemporaryToken")
                 .refreshToken("refresh-TemporaryToken")
                 .build();
@@ -268,7 +268,7 @@ class UserFriendServiceTest extends BaseUnitTest {
         );
         List<String> userNames = Arrays.asList("user1", "user2");
 
-        given(globalTokenQueryPort.findById(1L)).willReturn(Optional.of(token));
+        given(globalTokenQueryPort.findById(1L)).willReturn(Optional.of(jwtToken));
         given(kakaoFriendPort.getFriendList("access-TemporaryToken", 0, 10)).willReturn(kakaoResponse);
         given(userQueryPort.findUserNamesInOrder(Arrays.asList("1", "2"))).willReturn(userNames);
 

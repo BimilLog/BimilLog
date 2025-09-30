@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.auth.application.port.in.BlacklistUseCase;
 import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.RedisJwtBlacklistPort;
 import jaeik.bimillog.domain.auth.entity.BlackList;
-import jaeik.bimillog.domain.auth.entity.Token;
+import jaeik.bimillog.domain.auth.entity.JwtToken;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.domain.user.entity.user.SocialProvider;
@@ -83,17 +83,19 @@ public class BlacklistService implements BlacklistUseCase {
     @Override
     public void blacklistAllUserTokens(Long userId) {
         try {
-            List<Token> userTokens = globalTokenQueryPort.findAllByUserId(userId);
+            List<JwtToken> userJwtTokens = globalTokenQueryPort.findAllByUserId(userId);
 
-            if (userTokens.isEmpty()) {
+            if (userJwtTokens.isEmpty()) {
                 log.info("사용자 {}의 활성 토큰을 찾을 수 없음", userId);
                 return;
             }
 
-            List<String> tokenHashes = userTokens.stream()
+            // JWT 리프레시 토큰을 블랙리스트에 추가 (액세스 토큰은 짧은 TTL로 자동 만료)
+            List<String> tokenHashes = userJwtTokens.stream()
+                    .filter(token -> token.getJwtRefreshToken() != null && !token.getJwtRefreshToken().isEmpty())
                     .map(token -> {
                         try {
-                            return globalJwtPort.generateTokenHash(token.getAccessToken());
+                            return globalJwtPort.generateTokenHash(token.getJwtRefreshToken());
                         } catch (Exception e) {
                             log.warn("토큰 ID {}의 해시 생성 실패: {}", token.getId(), e.getMessage());
                             return null;

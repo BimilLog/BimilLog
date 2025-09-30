@@ -1,8 +1,10 @@
 package jaeik.bimillog.infrastructure.adapter.out.user;
 
+import jaeik.bimillog.domain.auth.application.port.out.KakaoTokenCommandPort;
 import jaeik.bimillog.domain.auth.application.port.out.TokenCommandPort;
+import jaeik.bimillog.domain.auth.entity.JwtToken;
+import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
-import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
 import jaeik.bimillog.domain.user.application.port.out.SaveUserPort;
 import jaeik.bimillog.domain.user.entity.Setting;
@@ -19,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * <h3>주요 책임:</h3>
  * <ul>
- *   <li>기존 사용자: 프로필 업데이트, Token 엔티티 생성, FCM 토큰 등록</li>
+ *   <li>기존 사용자: 프로필 업데이트, JwtToken 엔티티 생성, FCM 토큰 등록</li>
  *   <li>신규 사용자: User/Setting 엔티티 생성, 임시 데이터 삭제, JWT 쿠키 발급</li>
  *   <li>FCM 토큰 관리 및 NotificationFcmUseCase와 통합</li>
  * </ul>
@@ -35,13 +37,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class SaveUserAdapter implements SaveUserPort {
 
     private final TokenCommandPort tokenCommandPort;
+    private final KakaoTokenCommandPort kakaoTokenCommandPort;
     private final UserRepository userRepository;
     private final FcmUseCase fcmUseCase;
 
     /**
      * <h3>기존 사용자 로그인 처리</h3>
      * <p>기존 회원의 소셜 로그인 시 사용자 정보 업데이트와 JWT 쿠키 발급을 처리합니다.</p>
-     * <p>프로필 정보 동기화, 새로운 Token 엔티티 생성/저장, FCM 토큰 등록, JWT 쿠키 발급을 수행합니다.</p>
+     * <p>프로필 정보 동기화, 새로운 JwtToken 엔티티 생성/저장, FCM 토큰 등록, JWT 쿠키 발급을 수행합니다.</p>
      *
      * @param userProfile 소셜 사용자 프로필 (OAuth 액세스/리프레시 토큰, FCM 토큰 포함)
      * @return JWT 인증 쿠키 목록
@@ -53,9 +56,18 @@ public class SaveUserAdapter implements SaveUserPort {
     public ExistingUserDetail handleExistingUserData(User existingUser, SocialUserProfile userProfile) {
         existingUser.updateUserInfo(userProfile.getNickname(), userProfile.getProfileImageUrl());
 
-        Token newToken = Token.createToken(userProfile.getKakaoAccessToken(), userProfile.getKakaoRefreshToken(), existingUser);
         Long fcmTokenId = registerFcmTokenIfPresent(existingUser, userProfile.getFcmToken());
-        Long tokenId = tokenCommandPort.save(newToken).getId();
+
+        // 카카오 토큰 업데이트 (로그인 시 갱신된 토큰 반영)
+        kakaoTokenCommandPort.updateTokens(
+            existingUser.getId(),
+            userProfile.getKakaoAccessToken(),
+            userProfile.getKakaoRefreshToken()
+        );
+
+        // JwtToken 엔티티 생성 (JWT 리프레시 토큰은 빈 문자열, SocialLoginService에서 업데이트)
+        JwtToken newJwtToken = JwtToken.createToken("", existingUser);
+        Long tokenId = tokenCommandPort.save(newJwtToken).getId();
 
         return ExistingUserDetail.of(existingUser, tokenId, fcmTokenId);
     }
@@ -63,7 +75,7 @@ public class SaveUserAdapter implements SaveUserPort {
     /**
      * <h3>신규 사용자 등록</h3>
      * <p>소셜 로그인 회원가입에서 입력받은 닉네임과 임시 데이터를 사용하여 신규 회원을 등록합니다.</p>
-     * <p>User 엔티티와 Setting 생성, Token 엔티티 생성/저장, FCM 토큰 등록을 수행합니다.</p>
+     * <p>User 엔티티와 Setting 생성, JwtToken 엔티티 생성/저장, FCM 토큰 등록을 수행합니다.</p>
      *
      * @param userName 사용자가 입력한 닉네임
      * @param userProfile 소셜 사용자 프로필 (OAuth 액세스/리프레시 토큰, FCM 토큰 포함)
@@ -75,10 +87,33 @@ public class SaveUserAdapter implements SaveUserPort {
     @Transactional
     public ExistingUserDetail saveNewUser(String userName, SocialUserProfile userProfile) {
         Setting setting = Setting.createSetting();
-        User user = userRepository.save(User.createUser(userProfile.getSocialId(), userProfile.getProvider(), userProfile.getNickname(), userProfile.getProfileImageUrl(), userName, setting));
+
+        // 1. KakaoToken 생성 및 저장
+        KakaoToken kakaoToken = kakaoTokenCommandPort.save(
+            KakaoToken.createKakaoToken(
+                userProfile.getKakaoAccessToken(),
+                userProfile.getKakaoRefreshToken()
+            )
+        );
+
+        // 2. User 생성 (KakaoToken 포함)
+        User user = userRepository.save(
+            User.createUser(
+                userProfile.getSocialId(),
+                userProfile.getProvider(),
+                userProfile.getNickname(),
+                userProfile.getProfileImageUrl(),
+                userName,
+                setting,
+                kakaoToken
+            )
+        );
+
         Long fcmTokenId = registerFcmTokenIfPresent(user, userProfile.getFcmToken());
-        Token newToken = Token.createToken(userProfile.getKakaoAccessToken(), userProfile.getKakaoRefreshToken(), user);
-        Long tokenId = tokenCommandPort.save(newToken).getId();
+
+        // 3. JwtToken 엔티티 생성 (JWT 리프레시 토큰은 빈 문자열, SocialLoginService에서 업데이트)
+        JwtToken newJwtToken = JwtToken.createToken("", user);
+        Long tokenId = tokenCommandPort.save(newJwtToken).getId();
 
         return ExistingUserDetail.of(user, tokenId, fcmTokenId);
     }

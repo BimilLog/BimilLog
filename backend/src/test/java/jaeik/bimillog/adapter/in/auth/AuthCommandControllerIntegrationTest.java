@@ -1,6 +1,6 @@
 package jaeik.bimillog.adapter.in.auth;
 
-import jaeik.bimillog.domain.auth.entity.Token;
+import jaeik.bimillog.domain.auth.entity.JwtToken;
 import jaeik.bimillog.domain.user.entity.user.User;
 import jaeik.bimillog.infrastructure.adapter.in.auth.dto.SocialLoginRequestDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
@@ -89,10 +89,10 @@ class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
         User testUser = TestUsers.createUnique();
         testUser = userRepository.save(testUser);
 
-        Token token = Token.createToken("access-token", "refresh-token", testUser);
-        token = tokenRepository.save(token);
+        JwtToken jwtToken = JwtToken.createToken("access-jwtToken", "refresh-jwtToken", testUser);
+        jwtToken = tokenRepository.save(jwtToken);
 
-        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testUser, token.getId(), null);
+        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testUser, jwtToken.getId(), null);
 
         mockMvc.perform(post("/api/auth/logout")
                         .with(user(userDetails))

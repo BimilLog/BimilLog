@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.auth.service;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
 import jaeik.bimillog.domain.auth.application.service.SocialLogoutService;
-import jaeik.bimillog.domain.auth.entity.Token;
+import jaeik.bimillog.domain.auth.entity.JwtToken;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.global.application.port.out.GlobalTokenQueryPort;
@@ -60,8 +60,8 @@ class SocialLogoutServiceTest extends BaseUnitTest {
         Long tokenId = 200L;
         SocialProvider provider = TEST_PROVIDER;
 
-        Token mockToken = createMockTokenWithUser(getTestUser());
-        given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(mockToken));
+        JwtToken mockJwtToken = createMockTokenWithUser(getTestUser());
+        given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(mockJwtToken));
         given(strategyRegistry.getStrategy(provider)).willReturn(kakaoStrategy);
 
         // When
@@ -108,8 +108,8 @@ class SocialLogoutServiceTest extends BaseUnitTest {
         Long tokenId = 200L;
         SocialProvider provider = TEST_PROVIDER;
 
-        Token mockToken = createMockTokenWithUser(getTestUser());
-        given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(mockToken));
+        JwtToken mockJwtToken = createMockTokenWithUser(getTestUser());
+        given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(mockJwtToken));
         given(strategyRegistry.getStrategy(provider)).willReturn(kakaoStrategy);
 
         // 소셜 로그아웃이 실패하도록 설정
@@ -142,8 +142,8 @@ class SocialLogoutServiceTest extends BaseUnitTest {
         Long adminTokenId = 888L;
         SocialProvider provider = TEST_PROVIDER;
 
-        Token adminToken = createMockTokenWithUser(getAdminUser());
-        given(globalTokenQueryPort.findById(adminTokenId)).willReturn(Optional.of(adminToken));
+        JwtToken adminJwtToken = createMockTokenWithUser(getAdminUser());
+        given(globalTokenQueryPort.findById(adminTokenId)).willReturn(Optional.of(adminJwtToken));
         given(strategyRegistry.getStrategy(provider)).willReturn(kakaoStrategy);
 
         // When
@@ -160,16 +160,16 @@ class SocialLogoutServiceTest extends BaseUnitTest {
     }
 
     /**
-     * 특정 사용자를 포함한 Mock Token 생성
+     * 특정 사용자를 포함한 Mock JwtToken 생성
      * @param user 사용자
-     * @return Mock Token with User
+     * @return Mock JwtToken with User
      */
-    private Token createMockTokenWithUser(User user) {
-        Token mockToken = mock(Token.class);
-        given(mockToken.getUsers()).willReturn(user);
-        given(mockToken.getAccessToken()).willReturn(AuthTestFixtures.TEST_ACCESS_TOKEN);
-        given(mockToken.getRefreshToken()).willReturn(AuthTestFixtures.TEST_REFRESH_TOKEN);
-        given(mockToken.getId()).willReturn(1L);
-        return mockToken;
+    private JwtToken createMockTokenWithUser(User user) {
+        JwtToken mockJwtToken = mock(JwtToken.class);
+        given(mockJwtToken.getUsers()).willReturn(user);
+        given(mockJwtToken.getAccessToken()).willReturn(AuthTestFixtures.TEST_ACCESS_TOKEN);
+        given(mockJwtToken.getRefreshToken()).willReturn(AuthTestFixtures.TEST_REFRESH_TOKEN);
+        given(mockJwtToken.getId()).willReturn(1L);
+        return mockJwtToken;
     }
 }

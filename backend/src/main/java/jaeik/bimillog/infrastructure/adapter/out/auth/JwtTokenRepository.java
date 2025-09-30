@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.out.auth;
 
-import jaeik.bimillog.domain.auth.entity.Token;
+import jaeik.bimillog.domain.auth.entity.JwtToken;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -10,15 +10,15 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 /**
- * <h2>토큰 Jpa Repository</h2>
+ * <h2>JWT 토큰 Jpa Repository</h2>
  * <p>JpaRepository를 상속받은 인터페이스입니다.</p>
- * <p>토큰 관련 데이터베이스 작업을 수행합니다.</p>
+ * <p>JWT 토큰 관련 데이터베이스 작업을 수행합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
  */
 @Repository
-public interface TokenRepository extends JpaRepository<Token, Long> {
+public interface JwtTokenRepository extends JpaRepository<JwtToken, Long> {
 
     /**
      * <h3>사용자 ID로 모든 토큰 조회</h3>
@@ -30,7 +30,7 @@ public interface TokenRepository extends JpaRepository<Token, Long> {
      * @author Jaeik
      * @since 2.0.0
      */
-    List<Token> findByUsersId(Long userId);
+    List<JwtToken> findByUsersId(Long userId);
 
     /**
      * <h3>사용자 ID로 모든 토큰 삭제</h3>
@@ -41,6 +41,6 @@ public interface TokenRepository extends JpaRepository<Token, Long> {
      * @since 2.0.0
      */
     @Modifying
-    @Query("DELETE FROM Token t WHERE t.users.id = :userId")
+    @Query("DELETE FROM JwtToken t WHERE t.users.id = :userId")
     void deleteAllByUserId(@Param("userId") Long userId);
 }

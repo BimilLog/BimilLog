@@ -1,7 +1,8 @@
 package jaeik.bimillog.infrastructure.filter;
 
 import jaeik.bimillog.domain.auth.application.port.in.BlacklistUseCase;
-import jaeik.bimillog.domain.auth.entity.Token;
+import jaeik.bimillog.domain.auth.application.port.out.TokenCommandPort;
+import jaeik.bimillog.domain.auth.entity.JwtToken;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalTokenQueryPort;
@@ -25,7 +26,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Objects;
 
 /**
  * <h2>JWT 필터</h2>
@@ -44,6 +44,7 @@ public class JwtFilter extends OncePerRequestFilter {
     private final GlobalJwtPort globalJwtPort;
     private final GlobalCookiePort globalCookiePort;
     private final BlacklistUseCase blacklistUseCase;
+    private final TokenCommandPort tokenCommandPort;
 
     /**
      * <h3>필터 제외 경로 설정</h3>
@@ -102,37 +103,80 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String accessToken = extractTokenFromCookie(request, "jwt_access_token");
 
-        // Access Token이 유효하고 블랙리스트에 없을 때
+        // 1. Access Token이 유효하고 블랙리스트에 없을 때
         if (accessToken != null && globalJwtPort.validateToken(accessToken) && !blacklistUseCase.isBlacklisted(accessToken)) {
             setAuthentication(accessToken);
-        } else { // accessToken이 없거나 유효하지 않거나 블랙리스트에 있을 때
+        } else {
+            // 2. Access Token이 만료되었을 때 리프레시 플로우
             String refreshToken = extractTokenFromCookie(request, "jwt_refresh_token");
-            // accessToken은 유효하지 않지만 refreshToken은 유효하고 블랙리스트에 없을 때 accessToken 발급을 위해 refreshToken을 검증
-            if (refreshToken != null && globalJwtPort.validateToken(refreshToken) && !blacklistUseCase.isBlacklisted(refreshToken)) {
+
+            // 2-1. 리프레시 토큰 존재 여부 및 JWT 유효성 검증
+            if (refreshToken == null || !globalJwtPort.validateToken(refreshToken)) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            // 2-2. 블랙리스트 확인
+            if (blacklistUseCase.isBlacklisted(refreshToken)) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            try {
+                // 2-3. 리프레시 토큰에서 tokenId 추출
                 Long tokenId = globalJwtPort.getTokenIdFromToken(refreshToken);
-                Token token = globalTokenQueryPort.findById(tokenId)
-                        .orElseThrow(() -> new CustomException(ErrorCode.REPEAT_LOGIN));
-                if (Objects.equals(token.getId(), tokenId)) {
 
-                    // 유저 정보 조회 (Setting 포함)
-                    User user = userQueryPort.findByIdWithSetting(token.getUsers().getId()).orElseThrow();
-                    ExistingUserDetail userDetail = ExistingUserDetail.of(user, tokenId, null); // fcmTokenId는 null로 설정
+                // 2-4. DB에서 JwtToken 엔티티 조회
+                JwtToken jwtToken = globalTokenQueryPort.findById(tokenId)
+                        .orElseThrow(() -> new CustomException(ErrorCode.TOKEN_NOT_FOUND));
 
-                    // 새로운 accessTokenCookie 발급
-                    String NewAccessToken = globalJwtPort.generateAccessToken(userDetail);
-                    ResponseCookie accessCookie = globalCookiePort.generateJwtAccessCookie(NewAccessToken);
-                    response.addHeader("Set-Cookie", accessCookie.toString());
-
-                    // 리프레시 토큰이 15일 이하로 남았으면 새로운 리프레시 토큰도 발급
-                    if (globalJwtPort.shouldRefreshToken(refreshToken, 15)) {
-                        String NewRefreshToken = globalJwtPort.generateRefreshToken(userDetail);
-                        ResponseCookie refreshCookie = globalCookiePort.generateJwtRefreshCookie(NewRefreshToken);
-                        response.addHeader("Set-Cookie", refreshCookie.toString());
-                    }
-
-                    // 사용자 인증 정보 설정
-                    setAuthentication(accessCookie.getValue());
+                // 2-5. 탈취 감지: 이미 사용된 리프레시 토큰 재사용 시도
+                if (jwtToken.getUseCount() != null && jwtToken.getUseCount() > 0) {
+                    // 모든 토큰 무효화 (보안 조치)
+                    tokenCommandPort.deleteAllByUserId(jwtToken.getUsers().getId());
+                    throw new CustomException(ErrorCode.SUSPICIOUS_ACTIVITY);
                 }
+
+                // 2-6. DB 저장 토큰과 클라이언트 토큰 비교 검증
+                if (!refreshToken.equals(jwtToken.getJwtRefreshToken())) {
+                    // 토큰 불일치 → 탈취 의심
+                    tokenCommandPort.deleteAllByUserId(jwtToken.getUsers().getId());
+                    throw new CustomException(ErrorCode.TOKEN_MISMATCH);
+                }
+
+                // 2-7. 사용 표시
+                jwtToken.markAsUsed();
+
+                // 2-8. 유저 정보 조회
+                User user = userQueryPort.findByIdWithSetting(jwtToken.getUsers().getId())
+                        .orElseThrow(() -> new CustomException(ErrorCode.TOKEN_NOT_FOUND));
+                ExistingUserDetail userDetail = ExistingUserDetail.of(user, tokenId, null);
+
+                // 2-9. 새 액세스 토큰 발급
+                String newAccessToken = globalJwtPort.generateAccessToken(userDetail);
+                ResponseCookie accessCookie = globalCookiePort.generateJwtAccessCookie(newAccessToken);
+                response.addHeader("Set-Cookie", accessCookie.toString());
+
+                // 2-10. Refresh JwtToken Rotation (15일 이하 남았을 때)
+                if (globalJwtPort.shouldRefreshToken(refreshToken, 15)) {
+                    String newRefreshToken = globalJwtPort.generateRefreshToken(userDetail);
+
+                    // DB 업데이트
+                    tokenCommandPort.updateJwtRefreshToken(tokenId, newRefreshToken);
+
+                    // 새 리프레시 토큰 쿠키 발급
+                    ResponseCookie refreshCookie = globalCookiePort.generateJwtRefreshCookie(newRefreshToken);
+                    response.addHeader("Set-Cookie", refreshCookie.toString());
+                }
+
+                // 2-11. 인증 정보 설정
+                setAuthentication(newAccessToken);
+
+            } catch (CustomException e) {
+                // 보안 예외 발생 시 필터 체인 중단
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                filterChain.doFilter(request, response);
+                return;
             }
         }
         filterChain.doFilter(request, response);

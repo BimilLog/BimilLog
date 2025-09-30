@@ -1,8 +1,10 @@
 package jaeik.bimillog.domain.user.application.service;
 
-import jaeik.bimillog.domain.auth.entity.Token;
+import jaeik.bimillog.domain.auth.entity.JwtToken;
+import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
+import jaeik.bimillog.domain.global.application.port.out.GlobalKakaoTokenQueryPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.domain.user.application.port.in.UserFriendUseCase;
 import jaeik.bimillog.domain.user.application.port.out.KakaoFriendPort;
@@ -34,6 +36,7 @@ public class UserFriendService implements UserFriendUseCase {
     private final KakaoFriendPort kakaoFriendPort;
     private final UserQueryPort userQueryPort;
     private final GlobalTokenQueryPort globalTokenQueryPort;
+    private final GlobalKakaoTokenQueryPort globalKakaoTokenQueryPort;
 
     /**
      * <h3>카카오 친구 목록 조회</h3>
@@ -57,20 +60,24 @@ public class UserFriendService implements UserFriendUseCase {
         int actualLimit = limit != null ? Math.min(limit, 100) : 10;
 
         try {
-            // 1. 현재 요청 기기의 토큰 조회 (다중 로그인 환경에서 정확한 토큰)
-            Token token = globalTokenQueryPort.findById(tokenId)
+            // 1. 현재 요청 기기의 JwtToken 조회 (userId 추출용)
+            JwtToken jwtToken = globalTokenQueryPort.findById(tokenId)
+                    .orElseThrow(() -> new AuthCustomException(AuthErrorCode.NOT_FIND_TOKEN));
+
+            // 2. KakaoToken 조회
+            KakaoToken kakaoToken = globalKakaoTokenQueryPort.findByUserId(jwtToken.getUsers().getId())
                     .orElseThrow(() -> new AuthCustomException(AuthErrorCode.NOT_FIND_TOKEN));
 
             // 카카오 액세스 토큰 확인
-            if (token.getAccessToken() == null || token.getAccessToken().isEmpty()) {
+            if (kakaoToken.getKakaoAccessToken() == null || kakaoToken.getKakaoAccessToken().isEmpty()) {
                 throw new AuthCustomException(AuthErrorCode.NOT_FIND_TOKEN);
             }
 
-            // 2. 카카오 친구 목록 조회
+            // 3. 카카오 친구 목록 조회
             KakaoFriendsResponseVO response = kakaoFriendPort.getFriendList(
-                    token.getAccessToken(), actualOffset, actualLimit);
+                    kakaoToken.getKakaoAccessToken(), actualOffset, actualLimit);
             
-            // 3. 친구 목록 처리 (비밀로그 가입 여부 체크)
+            // 4. 친구 목록 처리 (비밀로그 가입 여부 체크)
             return processFriendList(response);
             
         } catch (UserCustomException e) {

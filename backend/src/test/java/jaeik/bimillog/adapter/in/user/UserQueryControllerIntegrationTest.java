@@ -1,6 +1,6 @@
 package jaeik.bimillog.adapter.in.user;
 
-import jaeik.bimillog.domain.auth.entity.Token;
+import jaeik.bimillog.domain.auth.entity.JwtToken;
 import jaeik.bimillog.domain.user.entity.user.User;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.auth.TokenRepository;
@@ -186,10 +186,10 @@ class UserQueryControllerIntegrationTest extends BaseIntegrationTest {
         User savedUser = userRepository.save(user);
         
         // 테스트용 토큰 생성 및 저장
-        Token token = Token.createToken("test-access-TemporaryToken", "test-refresh-TemporaryToken", savedUser);
-        Token savedToken = tokenRepository.save(token);
+        JwtToken jwtToken = JwtToken.createToken("test-access-TemporaryToken", "test-refresh-TemporaryToken", savedUser);
+        JwtToken savedJwtToken = tokenRepository.save(jwtToken);
         
-        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(savedUser, savedToken.getId(), null);
+        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(savedUser, savedJwtToken.getId(), null);
 
         // When & Then
         mockMvc.perform(get("/api/user/friendlist")

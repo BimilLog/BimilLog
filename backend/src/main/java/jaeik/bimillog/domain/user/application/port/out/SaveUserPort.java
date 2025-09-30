@@ -9,7 +9,7 @@ import jaeik.bimillog.domain.user.entity.userdetail.UserDetail;
 /**
  * <h2>사용자 정보 저장 포트</h2>
  * <p>소셜 로그인과 회원가입 과정에서 사용자 데이터를 저장하는 포트입니다.</p>
- * <p>기존 사용자 로그인 처리, 신규 사용자 계정 생성, Token 엔티티 저장, JWT 쿠키 발급</p>
+ * <p>기존 사용자 로그인 처리, 신규 사용자 계정 생성, JwtToken 엔티티 저장, JWT 쿠키 발급</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -19,7 +19,7 @@ public interface SaveUserPort {
     /**
      * <h3>기존 사용자 로그인 처리</h3>
      * <p>기존 회원의 소셜 로그인 시 사용자 정보를 업데이트하고 상세 정보를 반환합니다.</p>
-     * <p>최신 소셜 프로필 정보 동기화, Token 엔티티 생성/저장, FCM 토큰 등록을 처리합니다.</p>
+     * <p>최신 소셜 프로필 정보 동기화, JwtToken 엔티티 생성/저장, FCM 토큰 등록을 처리합니다.</p>
      * <p>{@link UserSaveService}에서 기존 회원 소셜 로그인 완료 처리 시 호출됩니다.</p>
      *
      * @param existingUser 기존 사용자 엔티티
@@ -33,7 +33,7 @@ public interface SaveUserPort {
     /**
      * <h3>신규 사용자 정보 저장</h3>
      * <p>회원가입을 완료하는 신규 사용자의 정보를 데이터베이스에 저장합니다.</p>
-     * <p>사용자 엔티티와 기본 설정 생성, Token 엔티티 저장, FCM 토큰 등록을 처리합니다.</p>
+     * <p>사용자 엔티티와 기본 설정 생성, JwtToken 엔티티 저장, FCM 토큰 등록을 처리합니다.</p>
      * <p>{@link SignUpService}에서 신규 사용자 회원가입 완료 처리 시 호출됩니다.</p>
      *
      * @param userName 사용자가 입력한 닉네임

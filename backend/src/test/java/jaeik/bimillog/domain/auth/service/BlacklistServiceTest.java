@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.RedisJwtBlacklistPort;
 import jaeik.bimillog.domain.auth.application.service.BlacklistService;
 import jaeik.bimillog.domain.auth.entity.BlackList;
-import jaeik.bimillog.domain.auth.entity.Token;
+import jaeik.bimillog.domain.auth.entity.JwtToken;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.domain.user.entity.user.SocialProvider;
@@ -57,7 +57,7 @@ class BlacklistServiceTest extends BaseUnitTest {
 
     private String testTokenString;
     private String testTokenHash;
-    private List<Token> testTokenList;
+    private List<JwtToken> testJwtTokenList;
 
     @BeforeEach
     void setUp() {
@@ -65,7 +65,7 @@ class BlacklistServiceTest extends BaseUnitTest {
         testTokenHash = "hash123abc";
         
         // 테스트용 토큰 생성
-        testTokenList = createMultipleTokens(2);
+        testJwtTokenList = createMultipleTokens(2);
     }
 
     @Test
@@ -140,7 +140,7 @@ class BlacklistServiceTest extends BaseUnitTest {
         Long userId = getTestUser().getId() != null ? getTestUser().getId() : 100L;
         String reason = "Security violation";
         
-        given(globalTokenQueryPort.findAllByUserId(userId)).willReturn(testTokenList);
+        given(globalTokenQueryPort.findAllByUserId(userId)).willReturn(testJwtTokenList);
         given(globalJwtPort.generateTokenHash("access-token-0")).willReturn("hash0");
         given(globalJwtPort.generateTokenHash("access-token-1")).willReturn("hash1");
 
@@ -189,7 +189,7 @@ class BlacklistServiceTest extends BaseUnitTest {
         Long userId = 100L;
         String reason = "Partial failure test";
         
-        given(globalTokenQueryPort.findAllByUserId(userId)).willReturn(testTokenList);
+        given(globalTokenQueryPort.findAllByUserId(userId)).willReturn(testJwtTokenList);
         given(globalJwtPort.generateTokenHash("access-token-0")).willReturn("hash0");
         doThrow(new RuntimeException("Hash generation failed"))
                 .when(globalJwtPort).generateTokenHash("access-token-1");
@@ -215,7 +215,7 @@ class BlacklistServiceTest extends BaseUnitTest {
         Long userId = 100L;
         String reason = "Complete failure test";
         
-        given(globalTokenQueryPort.findAllByUserId(userId)).willReturn(testTokenList);
+        given(globalTokenQueryPort.findAllByUserId(userId)).willReturn(testJwtTokenList);
         doThrow(new RuntimeException("Hash generation failed"))
                 .when(globalJwtPort).generateTokenHash(anyString());
 
@@ -235,7 +235,7 @@ class BlacklistServiceTest extends BaseUnitTest {
         // Given
         Long userId = 100L;
         String reason = "Load failure test";
-        doThrow(new RuntimeException("Token loading failed"))
+        doThrow(new RuntimeException("JwtToken loading failed"))
                 .when(globalTokenQueryPort).findAllByUserId(userId);
 
         // When
@@ -255,9 +255,9 @@ class BlacklistServiceTest extends BaseUnitTest {
         // Given
         Long userId = 100L;
         String reason = "Many tokens test";
-        List<Token> manyTokens = createMultipleTokens(10);
+        List<JwtToken> manyJwtTokens = createMultipleTokens(10);
         
-        given(globalTokenQueryPort.findAllByUserId(userId)).willReturn(manyTokens);
+        given(globalTokenQueryPort.findAllByUserId(userId)).willReturn(manyJwtTokens);
         for (int i = 0; i < 10; i++) {
             given(globalJwtPort.generateTokenHash("access-token-" + i)).willReturn("hash" + i);
         }
@@ -364,14 +364,14 @@ class BlacklistServiceTest extends BaseUnitTest {
      * 복수의 임시 토큰 생성 - BlacklistServiceTest 전용
      * 매 호출마다 새로운 리스트를 생성하여 반환
      */
-    private List<Token> createMultipleTokens(int count) {
-        List<Token> tokens = new ArrayList<>();
+    private List<JwtToken> createMultipleTokens(int count) {
+        List<JwtToken> jwtTokens = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            tokens.add(Token.builder()
+            jwtTokens.add(JwtToken.builder()
                     .accessToken("access-token-" + i)
                     .refreshToken("refresh-token-" + i)
                     .build());
         }
-        return tokens;
+        return jwtTokens;
     }
 }

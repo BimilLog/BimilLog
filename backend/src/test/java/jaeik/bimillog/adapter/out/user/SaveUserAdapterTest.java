@@ -1,8 +1,8 @@
 package jaeik.bimillog.adapter.out.user;
 
 import jaeik.bimillog.domain.auth.application.port.out.TokenCommandPort;
+import jaeik.bimillog.domain.auth.entity.JwtToken;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
-import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
 import jaeik.bimillog.domain.user.entity.user.SocialProvider;
 import jaeik.bimillog.domain.user.entity.user.User;
@@ -54,14 +54,14 @@ class SaveUserAdapterTest extends BaseUnitTest {
         User existingUser = createTestUserWithId(1L);
         existingUser.updateUserInfo("기존닉네임", "https://old-profile.jpg");
 
-        Token savedToken = Token.builder()
+        JwtToken savedJwtToken = JwtToken.builder()
                 .id(tokenId)
                 .accessToken("access-TemporaryToken")
                 .refreshToken("refresh-TemporaryToken")
                 .users(existingUser)
                 .build();
 
-        given(tokenCommandPort.save(any(Token.class))).willReturn(savedToken);
+        given(tokenCommandPort.save(any(JwtToken.class))).willReturn(savedJwtToken);
         given(fcmUseCase.registerFcmToken(existingUser, fcmToken)).willReturn(fcmTokenId);
 
         // When: 기존 사용자 로그인 처리
@@ -72,12 +72,12 @@ class SaveUserAdapterTest extends BaseUnitTest {
         assertThat(existingUser.getThumbnailImage()).isEqualTo("https://updated-profile.jpg");
 
         // 토큰이 저장되는지 검증
-        ArgumentCaptor<Token> tokenCaptor = ArgumentCaptor.forClass(Token.class);
+        ArgumentCaptor<JwtToken> tokenCaptor = ArgumentCaptor.forClass(JwtToken.class);
         verify(tokenCommandPort).save(tokenCaptor.capture());
-        Token capturedToken = tokenCaptor.getValue();
-        assertThat(capturedToken.getAccessToken()).isEqualTo("access-TemporaryToken");
-        assertThat(capturedToken.getRefreshToken()).isEqualTo("refresh-TemporaryToken");
-        assertThat(capturedToken.getUsers()).isEqualTo(existingUser);
+        JwtToken capturedJwtToken = tokenCaptor.getValue();
+        assertThat(capturedJwtToken.getAccessToken()).isEqualTo("access-TemporaryToken");
+        assertThat(capturedJwtToken.getRefreshToken()).isEqualTo("refresh-TemporaryToken");
+        assertThat(capturedJwtToken.getUsers()).isEqualTo(existingUser);
 
         // FCM 토큰 등록 및 ID 반환 검증
         verify(fcmUseCase).registerFcmToken(existingUser, fcmToken);
@@ -97,21 +97,21 @@ class SaveUserAdapterTest extends BaseUnitTest {
 
         User existingUser = createTestUserWithId(1L);
 
-        Token savedToken = Token.builder()
+        JwtToken savedJwtToken = JwtToken.builder()
                 .id(1L)
                 .accessToken("access-TemporaryToken")
                 .refreshToken("refresh-TemporaryToken")
                 .users(existingUser)
                 .build();
 
-        given(tokenCommandPort.save(any(Token.class))).willReturn(savedToken);
+        given(tokenCommandPort.save(any(JwtToken.class))).willReturn(savedJwtToken);
 
         // When: FCM 토큰 없이 기존 사용자 로그인 처리
         ExistingUserDetail result = saveUserAdapter.handleExistingUserData(existingUser, userProfile);
 
         // Then: FCM 토큰 등록이 호출되지 않았는지 검증
         verify(fcmUseCase, never()).registerFcmToken(any(), any());
-        verify(tokenCommandPort).save(any(Token.class));
+        verify(tokenCommandPort).save(any(JwtToken.class));
 
         // FCM 토큰 ID가 null인지 검증
         assertThat(result.getFcmTokenId()).isNull();
@@ -129,7 +129,7 @@ class SaveUserAdapterTest extends BaseUnitTest {
 
         User newUser = TestUsers.copyWithId(getOtherUser(), 2L);
 
-        Token newToken = Token.builder()
+        JwtToken newJwtToken = JwtToken.builder()
                 .id(1L)
                 .accessToken("access-TemporaryToken")
                 .refreshToken("refresh-TemporaryToken")
@@ -137,7 +137,7 @@ class SaveUserAdapterTest extends BaseUnitTest {
                 .build();
 
         given(userRepository.save(any(User.class))).willReturn(newUser);
-        given(tokenCommandPort.save(any(Token.class))).willReturn(newToken);
+        given(tokenCommandPort.save(any(JwtToken.class))).willReturn(newJwtToken);
         given(fcmUseCase.registerFcmToken(newUser, fcmToken)).willReturn(fcmTokenId);
 
         // When: 신규 사용자 저장
@@ -156,7 +156,7 @@ class SaveUserAdapterTest extends BaseUnitTest {
         verify(fcmUseCase).registerFcmToken(newUser, fcmToken);
 
         // 토큰 저장 검증
-        verify(tokenCommandPort).save(any(Token.class));
+        verify(tokenCommandPort).save(any(JwtToken.class));
 
         // 반환된 ExistingUserDetail 검증
         assertThat(result).isNotNull();
@@ -176,7 +176,7 @@ class SaveUserAdapterTest extends BaseUnitTest {
         User newUser = TestUsers.copyWithId(getThirdUser(), 3L);
         newUser.updateUserInfo("FCM없음", "https://no-fcm.jpg");
 
-        Token newToken = Token.builder()
+        JwtToken newJwtToken = JwtToken.builder()
                 .id(1L)
                 .accessToken("access-TemporaryToken")
                 .refreshToken("refresh-TemporaryToken")
@@ -184,7 +184,7 @@ class SaveUserAdapterTest extends BaseUnitTest {
                 .build();
 
         given(userRepository.save(any(User.class))).willReturn(newUser);
-        given(tokenCommandPort.save(any(Token.class))).willReturn(newToken);
+        given(tokenCommandPort.save(any(JwtToken.class))).willReturn(newJwtToken);
 
         // When: FCM 토큰 없이 사용자 저장
         ExistingUserDetail result = saveUserAdapter.saveNewUser(userName, userProfile);

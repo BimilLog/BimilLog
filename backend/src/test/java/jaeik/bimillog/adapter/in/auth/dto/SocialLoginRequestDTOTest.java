@@ -204,7 +204,7 @@ class SocialLoginRequestDTOTest {
 
     @Nested
     @DisplayName("FCM 토큰 검증 테스트")
-    class FcmTokenValidationTests {
+    class FcmJwtTokenValidationTests {
 
         @Test
         @DisplayName("유효한 FCM 토큰 형식 - 검증 통과")

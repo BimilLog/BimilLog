@@ -18,7 +18,10 @@ public enum ErrorCode {
     /**
      * <h3>인증 관련 에러 코드</h3>
      */
-    REPEAT_LOGIN(HttpStatus.FORBIDDEN, "다른기기에서 로그아웃 하셨습니다 다시 로그인 해주세요", LogLevel.INFO);
+    REPEAT_LOGIN(HttpStatus.FORBIDDEN, "다른기기에서 로그아웃 하셨습니다 다시 로그인 해주세요", LogLevel.INFO),
+    TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "토큰을 찾을 수 없습니다", LogLevel.WARN),
+    TOKEN_MISMATCH(HttpStatus.UNAUTHORIZED, "토큰 불일치 - 보안 위협 감지", LogLevel.ERROR),
+    SUSPICIOUS_ACTIVITY(HttpStatus.UNAUTHORIZED, "의심스러운 활동 감지 - 모든 세션이 무효화되었습니다", LogLevel.ERROR);
 
     private final HttpStatus status;
     private final String message;

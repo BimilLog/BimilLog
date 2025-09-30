@@ -132,7 +132,7 @@ class KakaoStrategyAdapterTest extends BaseUnitTest {
     void shouldThrowExceptionWhenTokenRequestFails() {
         // Given
         given(kakaoAuthClient.getToken(anyString(), any(Map.class)))
-            .willThrow(new RuntimeException("Token request failed"));
+            .willThrow(new RuntimeException("JwtToken request failed"));
 
         // When & Then
         assertThatThrownBy(() ->

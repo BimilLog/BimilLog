@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.global.application.port.out;
 
-import jaeik.bimillog.domain.auth.entity.Token;
+import jaeik.bimillog.domain.auth.entity.JwtToken;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,11 +22,11 @@ public interface GlobalTokenQueryPort {
      * <p>토큰 유효성 검증이나 토큰 관련 비즈니스 로직 실행에 사용됩니다.</p>
      *
      * @param tokenId 조회할 토큰 ID
-     * @return Optional&lt;Token&gt; 조회된 토큰 객체 (존재하지 않으면 Optional.empty())
+     * @return Optional&lt;JwtToken&gt; 조회된 토큰 객체 (존재하지 않으면 Optional.empty())
      * @author Jaeik
      * @since 2.0.0
      */
-    Optional<Token> findById(Long tokenId);
+    Optional<JwtToken> findById(Long tokenId);
 
     /**
      * <h3>사용자의 모든 토큰 조회</h3>
@@ -34,9 +34,9 @@ public interface GlobalTokenQueryPort {
      * <p>사용자 차단, 회원 탈퇴 시 모든 토큰을 블랙리스트에 등록하거나 삭제할 때 사용됩니다.</p>
      *
      * @param userId 토큰을 조회할 사용자 ID
-     * @return List&lt;Token&gt; 해당 사용자의 모든 토큰 목록
+     * @return List&lt;JwtToken&gt; 해당 사용자의 모든 토큰 목록
      * @author Jaeik
      * @since 2.0.0
      */
-    List<Token> findAllByUserId(Long userId);
+    List<JwtToken> findAllByUserId(Long userId);
 }

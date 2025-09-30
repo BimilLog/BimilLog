@@ -2,9 +2,11 @@ package jaeik.bimillog.domain.auth.application.service;
 
 import jaeik.bimillog.domain.auth.application.port.in.SocialLogoutUseCase;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
-import jaeik.bimillog.domain.auth.entity.Token;
+import jaeik.bimillog.domain.auth.entity.JwtToken;
+import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
+import jaeik.bimillog.domain.global.application.port.out.GlobalKakaoTokenQueryPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.domain.user.entity.user.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.in.auth.web.AuthCommandController;
@@ -27,6 +29,7 @@ public class SocialLogoutService implements SocialLogoutUseCase {
 
     private final SocialStrategyRegistryPort strategyRegistry;
     private final GlobalTokenQueryPort globalTokenQueryPort;
+    private final GlobalKakaoTokenQueryPort globalKakaoTokenQueryPort;
 
     /**
      * <h3>사용자 로그아웃 처리</h3>
@@ -44,8 +47,10 @@ public class SocialLogoutService implements SocialLogoutUseCase {
      */
     @Override
     public void logout(Long userId, SocialProvider provider, Long tokenId) {
-        Token token = getToken(tokenId);
-        performSocialLogout(userId, provider, token);
+        JwtToken jwtToken = getToken(tokenId);
+        KakaoToken kakaoToken = globalKakaoTokenQueryPort.findByUserId(userId)
+                .orElseThrow(() -> new AuthCustomException(AuthErrorCode.NOT_FIND_TOKEN));
+        performSocialLogout(userId, provider, kakaoToken);
     }
 
     @Override
@@ -63,13 +68,13 @@ public class SocialLogoutService implements SocialLogoutUseCase {
      *
      * @param userId 사용자 ID
      * @param provider 소셜 로그인 제공자
-     * @param token 사용자의 소셜 토큰 정보
+     * @param kakaoToken 사용자의 카카오 토큰 정보
      * @author Jaeik
      * @since 2.0.0
      */
-    private void performSocialLogout(Long userId, SocialProvider provider, Token token) {
+    private void performSocialLogout(Long userId, SocialProvider provider, KakaoToken kakaoToken) {
         try {
-            strategyRegistry.getStrategy(provider).logout(provider, token.getAccessToken());
+            strategyRegistry.getStrategy(provider).logout(provider, kakaoToken.getKakaoAccessToken());
             log.debug("소셜 로그아웃 성공 - 사용자 ID: {}, 제공자: {}", userId, provider);
         } catch (Exception e) {
             // 소셜 로그아웃 실패시에도 데이터 처리 계속 진행 로그만 남김
@@ -88,12 +93,12 @@ public class SocialLogoutService implements SocialLogoutUseCase {
      * <p>{@link #logout} 메서드에서 로그아웃 플로우에서 가장 먼저 호출됩니다.</p>
      *
      * @param tokenId 토큰 ID
-     * @return Token 조회된 토큰 엔티티
+     * @return JwtToken 조회된 토큰 엔티티
      * @throws AuthCustomException 토큰을 찾을 수 없는 경우 ({@link AuthErrorCode#NOT_FIND_TOKEN})
      * @author Jaeik
      * @since 2.0.0
      */
-    private Token getToken(Long tokenId) {
+    private JwtToken getToken(Long tokenId) {
         // 토큰 조회 실패시 로그아웃 예외 재로그인 필요
         return globalTokenQueryPort.findById(tokenId)
                 .orElseThrow(() -> {

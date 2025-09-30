@@ -6,6 +6,7 @@ import jaeik.bimillog.domain.auth.application.port.out.AuthToUserPort;
 import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
+import jaeik.bimillog.domain.auth.application.port.out.TokenCommandPort;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
@@ -47,6 +48,7 @@ public class SocialLoginService implements SocialLoginUseCase {
     private final BlacklistPort blacklistPort;
     private final GlobalCookiePort globalCookiePort;
     private final GlobalJwtPort globalJwtPort;
+    private final TokenCommandPort tokenCommandPort;
 
     /**
      * <h3>소셜 플랫폼 로그인 처리</h3>
@@ -70,7 +72,7 @@ public class SocialLoginService implements SocialLoginUseCase {
         // 1. 전략 포트를 통해 OAuth 인증 수행
         SocialStrategyPort strategy = strategyRegistryPort.getStrategy(provider);
         KakaoToken kakaoToken = strategy.getToken(code);
-        KakaoUserInfo kakaoUserInfo = strategy.getUserInfo(kakaoToken.accessToken());
+        KakaoUserInfo kakaoUserInfo = strategy.getUserInfo(kakaoToken.getKakaoAccessToken());
 
         // 2. KakaoToken, KakaoUserInfo, fcmToken을 조합하여 SocialUserProfile 생성
         SocialUserProfile socialUserProfile = SocialUserProfile.of(
@@ -79,8 +81,8 @@ public class SocialLoginService implements SocialLoginUseCase {
                 kakaoUserInfo.getProvider(),
                 kakaoUserInfo.getNickname(),
                 kakaoUserInfo.getProfileImageUrl(),
-                kakaoToken.accessToken(),
-                kakaoToken.refreshToken(),
+                kakaoToken.getKakaoAccessToken(),
+                kakaoToken.getKakaoRefreshToken(),
                 fcmToken
         );
 
@@ -94,8 +96,16 @@ public class SocialLoginService implements SocialLoginUseCase {
 
         // 5. 기존 유저, 신규 유저에 따라 다른 반환값을 LoginResult에 작성
         if (userDetail instanceof ExistingUserDetail) {
-            String accessToken = globalJwtPort.generateAccessToken((ExistingUserDetail) userDetail);
-            String refreshToken = globalJwtPort.generateRefreshToken((ExistingUserDetail) userDetail);
+            ExistingUserDetail existingDetail = (ExistingUserDetail) userDetail;
+
+            // 5-1. JWT 액세스 토큰 및 리프레시 토큰 생성
+            String accessToken = globalJwtPort.generateAccessToken(existingDetail);
+            String refreshToken = globalJwtPort.generateRefreshToken(existingDetail);
+
+            // 5-2. DB에 JWT 리프레시 토큰 저장 (보안 강화)
+            tokenCommandPort.updateJwtRefreshToken(existingDetail.getTokenId(), refreshToken);
+
+            // 5-3. JWT 쿠키 생성 및 반환
             List<ResponseCookie> cookies = globalCookiePort.generateJwtCookie(accessToken, refreshToken);
             return new LoginResult.ExistingUser(cookies);
         } else {

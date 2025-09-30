@@ -70,7 +70,7 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
 
             String accessToken = (String) responseBody.get("access_token");
             String refreshToken = (String) responseBody.get("refresh_token");
-            return KakaoToken.of(accessToken, refreshToken);
+            return KakaoToken.createKakaoToken(accessToken, refreshToken);
         } catch (Exception e) {
             throw new RuntimeException("Kakao token request failed: " + e.getMessage(), e);
         }
