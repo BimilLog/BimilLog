@@ -30,7 +30,7 @@ public class SocialUserProfileDTO {
     String nickname;
     String profileImageUrl;
     String kakaoAccessToken;
-    String kakaoRefreshToke;
+    String kakaoRefreshToken;
 
     public static SocialUserProfileDTO of(String socialId, String email, SocialProvider provider, String nickname, String profileImageUrl, String kakaoAccessToken, String kakaoRefreshToken) {
         return new SocialUserProfileDTO(socialId, email, provider, nickname, profileImageUrl, kakaoAccessToken, kakaoRefreshToken);

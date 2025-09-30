@@ -52,9 +52,9 @@ public class SaveUserAdapter implements SaveUserPort {
     @Override
     @Transactional
     public ExistingUserDetail handleExistingUserData(User existingUser, SocialUserProfileDTO userProfile, String fcmToken) {
-        existingUser.updateUserInfo(userProfile.nickname(), userProfile.profileImageUrl());
+        existingUser.updateUserInfo(userProfile.getNickname(), userProfile.getProfileImageUrl());
 
-        Token newToken = Token.createToken(userProfile.kakaoAccessToken(), userProfile.kakaoRefreshToken(), existingUser);
+        Token newToken = Token.createToken(userProfile.getKakaoAccessToken(), userProfile.getKakaoRefreshToken(), existingUser);
         Long fcmTokenId = registerFcmTokenIfPresent(existingUser, fcmToken);
         Long tokenId = tokenCommandPort.save(newToken).getId();
 
@@ -77,9 +77,9 @@ public class SaveUserAdapter implements SaveUserPort {
     @Transactional
     public ExistingUserDetail saveNewUser(String userName, SocialUserProfileDTO userProfile, String fcmToken) {
         Setting setting = Setting.createSetting();
-        User user = userRepository.save(User.createUser(userProfile.socialId(), userProfile.provider(), userProfile.nickname(), userProfile.profileImageUrl(), userName, setting));
+        User user = userRepository.save(User.createUser(userProfile.getSocialId(), userProfile.getProvider(), userProfile.getNickname(), userProfile.getProfileImageUrl(), userName, setting));
         Long fcmTokenId = registerFcmTokenIfPresent(user, fcmToken);
-        Token newToken = Token.createToken(userProfile.kakaoAccessToken(), userProfile.kakaoRefreshToken(), user);
+        Token newToken = Token.createToken(userProfile.getKakaoAccessToken(), userProfile.getKakaoRefreshToken(), user);
         Long tokenId = tokenCommandPort.save(newToken).getId();
 
         return ExistingUserDetail.of(user, tokenId, fcmTokenId);

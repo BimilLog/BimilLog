@@ -197,7 +197,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
             log.warn(NULL_PROFILE_MESSAGE, uuid);
             throw new AuthCustomException(AuthErrorCode.INVALID_USER_DATA);
         }
-        if (userProfile.kakaoAccessToken() == null || userProfile.kakaoRefreshToken() == null) {
+        if (userProfile.getKakaoAccessToken() == null || userProfile.getKakaoRefreshToken() == null) {
             log.warn(NULL_TOKEN_MESSAGE, uuid);
             throw new AuthCustomException(AuthErrorCode.INVALID_TOKEN_DATA);
         }

@@ -59,7 +59,7 @@ public class UserSaveService implements UserSaveUseCase {
      */
     @Override
     public UserDetail processUserData(SocialProvider provider, SocialUserProfileDTO authResult, String fcmToken) {
-        Optional<User> existingUser = userQueryPort.findByProviderAndSocialId(provider, authResult.socialId());
+        Optional<User> existingUser = userQueryPort.findByProviderAndSocialId(provider, authResult.getSocialId());
         if (existingUser.isPresent()) {
             User user = existingUser.get();
             return saveUserPort.handleExistingUserData(user, authResult, fcmToken);

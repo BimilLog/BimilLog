@@ -4,6 +4,8 @@ import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
 import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
 import jaeik.bimillog.domain.user.entity.user.SocialProvider;
 
+import java.util.Map;
+
 /**
  * <h2>소셜 로그인 전략 포트</h2>
  * <p>소셜 플랫폼별 OAuth 2.0 인증 전략을 도메인 레벨에서 관리하는 포트입니다.</p>
@@ -25,19 +27,10 @@ public interface SocialStrategyPort {
      */
     SocialProvider getSupportedProvider();
 
-    /**
-     * <h3>소셜 플랫폼 OAuth 인증</h3>
-     * <p>제공자별 전략을 사용하여 OAuth 2.0 인증 플로우를 처리합니다.</p>
-     * <p>인증 코드를 받아 OAuth 토큰(액세스/리프레시)을 교환하고 사용자 프로필을 조회합니다.</p>
-     * <p>{@link SocialLoginService}에서 소셜 로그인 인증 단계 처리 시 호출됩니다.</p>
-     *
-     * @param provider 소셜 로그인 제공자 (KAKAO 등)
-     * @param code 소셜 플랫폼에서 발급한 OAuth 2.0 인증 코드
-     * @return 사용자 프로필과 OAuth 토큰 정보를 포함한 SocialUserProfileDTO 객체
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    SocialUserProfileDTO authenticate(SocialProvider provider, String code);
+
+    Map<String, String> getToken(String code);
+
+    SocialUserProfileDTO getUserInfo(String accessToken, String refreshToken);
 
     /**
      * <h3>소셜 계정 연결 해제</h3>
