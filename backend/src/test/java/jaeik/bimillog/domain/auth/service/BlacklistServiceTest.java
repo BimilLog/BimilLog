@@ -367,10 +367,10 @@ class BlacklistServiceTest extends BaseUnitTest {
     private List<Token> createMultipleTokens(int count) {
         List<Token> tokens = new ArrayList<>();
         for (int i = 0; i < count; i++) {
-            tokens.add(Token.createTemporaryToken(
-                    "access-token-" + i,
-                    "refresh-token-" + i
-            ));
+            tokens.add(Token.builder()
+                    .accessToken("access-token-" + i)
+                    .refreshToken("refresh-token-" + i)
+                    .build());
         }
         return tokens;
     }

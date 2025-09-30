@@ -52,7 +52,10 @@ class UserFriendServiceTest extends BaseUnitTest {
     void shouldGetKakaoFriendList_WhenValidRequest() {
         // Given
         Long tokenId = 1L;
-        Token token = Token.createTemporaryToken("access-TemporaryToken", "refresh-TemporaryToken");
+        Token token = Token.builder()
+                .accessToken("access-TemporaryToken")
+                .refreshToken("refresh-TemporaryToken")
+                .build();
         List<KakaoFriendsResponseVO.Friend> friends = Arrays.asList(
                 KakaoFriendsResponseVO.Friend.of(1L, "uuid-1", "이수민", "https://a.jpg", true, null),
                 KakaoFriendsResponseVO.Friend.of(2L, "uuid-2", "홍길동", "https://b.jpg", false, null),
@@ -105,7 +108,10 @@ class UserFriendServiceTest extends BaseUnitTest {
     @DisplayName("카카오 친구 목록 조회 - 액세스 토큰이 null이면 예외")
     void shouldThrowException_WhenAccessTokenIsNull() {
         // Given
-        Token token = Token.createTemporaryToken(null, "refresh-TemporaryToken");
+        Token token = Token.builder()
+                .accessToken(null)
+                .refreshToken("refresh-TemporaryToken")
+                .build();
         given(globalTokenQueryPort.findById(1L)).willReturn(Optional.of(token));
 
         // When
@@ -123,7 +129,10 @@ class UserFriendServiceTest extends BaseUnitTest {
     @DisplayName("카카오 친구 목록 조회 - 액세스 토큰이 빈 문자열이면 예외")
     void shouldThrowException_WhenAccessTokenIsEmpty() {
         // Given
-        Token token = Token.createTemporaryToken("", "refresh-TemporaryToken");
+        Token token = Token.builder()
+                .accessToken("")
+                .refreshToken("refresh-TemporaryToken")
+                .build();
         given(globalTokenQueryPort.findById(1L)).willReturn(Optional.of(token));
 
         // When
@@ -141,7 +150,10 @@ class UserFriendServiceTest extends BaseUnitTest {
     @DisplayName("카카오 친구 목록 조회 - null offset과 limit는 기본값으로 처리")
     void shouldUseDefaultValues_WhenOffsetAndLimitAreNull() {
         // Given
-        Token token = Token.createTemporaryToken("access-TemporaryToken", "refresh-TemporaryToken");
+        Token token = Token.builder()
+                .accessToken("access-TemporaryToken")
+                .refreshToken("refresh-TemporaryToken")
+                .build();
         KakaoFriendsResponseVO kakaoResponse = KakaoFriendsResponseVO.of(
                 Collections.emptyList(), 0, null, null, 0
         );
@@ -161,7 +173,10 @@ class UserFriendServiceTest extends BaseUnitTest {
     @DisplayName("카카오 친구 목록 조회 - limit는 최대 100으로 제한")
     void shouldLimitMaximumLimit_WhenLimitExceedsMaximum() {
         // Given
-        Token token = Token.createTemporaryToken("access-TemporaryToken", "refresh-TemporaryToken");
+        Token token = Token.builder()
+                .accessToken("access-TemporaryToken")
+                .refreshToken("refresh-TemporaryToken")
+                .build();
         KakaoFriendsResponseVO kakaoResponse = KakaoFriendsResponseVO.of(
                 Collections.emptyList(), 0, null, null, 0
         );
@@ -181,7 +196,10 @@ class UserFriendServiceTest extends BaseUnitTest {
     @DisplayName("카카오 친구 동의 필요 예외는 커스텀 메시지로 변환")
     void shouldThrowKakaoFriendConsentError_WhenConsentRequired() {
         // Given
-        Token token = Token.createTemporaryToken("access-TemporaryToken", "refresh-TemporaryToken");
+        Token token = Token.builder()
+                .accessToken("access-TemporaryToken")
+                .refreshToken("refresh-TemporaryToken")
+                .build();
         given(globalTokenQueryPort.findById(1L)).willReturn(Optional.of(token));
         given(kakaoFriendPort.getFriendList("access-TemporaryToken", 0, 10))
                 .willThrow(new UserCustomException(UserErrorCode.KAKAO_FRIEND_API_ERROR));
@@ -196,7 +214,10 @@ class UserFriendServiceTest extends BaseUnitTest {
     @DisplayName("카카오 API 일반 에러는 그대로 래핑")
     void shouldThrowKakaoApiError_WhenGeneralApiError() {
         // Given
-        Token token = Token.createTemporaryToken("access-TemporaryToken", "refresh-TemporaryToken");
+        Token token = Token.builder()
+                .accessToken("access-TemporaryToken")
+                .refreshToken("refresh-TemporaryToken")
+                .build();
         given(globalTokenQueryPort.findById(1L)).willReturn(Optional.of(token));
         given(kakaoFriendPort.getFriendList("access-TemporaryToken", 0, 10))
                 .willThrow(new RuntimeException("일반적인 API 에러"));
@@ -211,7 +232,10 @@ class UserFriendServiceTest extends BaseUnitTest {
     @DisplayName("친구 목록이 비어 있으면 추가 조회를 수행하지 않는다")
     void shouldHandleEmptyFriendList_WhenNoFriends() {
         // Given
-        Token token = Token.createTemporaryToken("access-TemporaryToken", "refresh-TemporaryToken");
+        Token token = Token.builder()
+                .accessToken("access-TemporaryToken")
+                .refreshToken("refresh-TemporaryToken")
+                .build();
         KakaoFriendsResponseVO kakaoResponse = KakaoFriendsResponseVO.of(
                 Collections.emptyList(), 0, null, null, 0
         );
@@ -231,7 +255,10 @@ class UserFriendServiceTest extends BaseUnitTest {
     @DisplayName("모든 친구가 가입한 경우 사용자 이름을 매핑한다")
     void shouldMapAllUserNames_WhenAllFriendsAreRegistered() {
         // Given
-        Token token = Token.createTemporaryToken("access-TemporaryToken", "refresh-TemporaryToken");
+        Token token = Token.builder()
+                .accessToken("access-TemporaryToken")
+                .refreshToken("refresh-TemporaryToken")
+                .build();
         List<KakaoFriendsResponseVO.Friend> friends = Arrays.asList(
                 KakaoFriendsResponseVO.Friend.of(1L, "uuid-1", "친구1", "https://img1.jpg", false, null),
                 KakaoFriendsResponseVO.Friend.of(2L, "uuid-2", "친구2", "https://img2.jpg", true, null)

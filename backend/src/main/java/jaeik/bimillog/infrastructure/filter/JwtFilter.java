@@ -110,7 +110,6 @@ public class JwtFilter extends OncePerRequestFilter {
             // accessToken은 유효하지 않지만 refreshToken은 유효하고 블랙리스트에 없을 때 accessToken 발급을 위해 refreshToken을 검증
             if (refreshToken != null && globalJwtPort.validateToken(refreshToken) && !blacklistUseCase.isBlacklisted(refreshToken)) {
                 Long tokenId = globalJwtPort.getTokenIdFromToken(refreshToken);
-                // fcmTokenId 제거 - 이벤트 기반 방식으로 변경
                 Token token = globalTokenQueryPort.findById(tokenId)
                         .orElseThrow(() -> new CustomException(ErrorCode.REPEAT_LOGIN));
                 if (Objects.equals(token.getId(), tokenId)) {
