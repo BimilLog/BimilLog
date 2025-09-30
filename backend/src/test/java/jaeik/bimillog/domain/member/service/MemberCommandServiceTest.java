@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.member.service;
 
-import jaeik.bimillog.domain.member.application.port.out.UserQueryPort;
-import jaeik.bimillog.domain.member.application.service.UserCommandService;
+import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
+import jaeik.bimillog.domain.member.application.service.MemberCommandService;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.domain.member.exception.UserCustomException;
@@ -22,22 +22,22 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 
 /**
- * <h2>UserCommandService 테스트</h2>
+ * <h2>MemberCommandService 테스트</h2>
  * <p>사용자 명령 서비스의 비즈니스 로직을 검증하는 단위 테스트</p>
  * <p>헥사고날 아키텍처 원칙에 따라 모든 외부 의존성을 Mock으로 격리하여 순수한 비즈니스 로직만 테스트</p>
  *
  * @author Jaeik
  * @version 2.0.0
  */
-@DisplayName("UserCommandService 테스트")
+@DisplayName("MemberCommandService 테스트")
 @Tag("test")
 class MemberCommandServiceTest extends BaseUnitTest {
 
     @Mock
-    private UserQueryPort userQueryPort;
+    private MemberQueryPort memberQueryPort;
 
     @InjectMocks
-    private UserCommandService userCommandService;
+    private MemberCommandService userCommandService;
 
     @Test
     @DisplayName("사용자 설정 수정 - 정상 케이스")
@@ -50,13 +50,13 @@ class MemberCommandServiceTest extends BaseUnitTest {
 
         Setting newSetting = createCustomSetting(false, false, true);
 
-        given(userQueryPort.findById(userId)).willReturn(Optional.of(member));
+        given(memberQueryPort.findById(userId)).willReturn(Optional.of(member));
 
         // When
         userCommandService.updateUserSettings(userId, newSetting);
 
         // Then
-        verify(userQueryPort).findById(userId);
+        verify(memberQueryPort).findById(userId);
         
         // Setting이 업데이트되었는지 확인
         assertThat(member.getSetting().isMessageNotification()).isFalse();
@@ -71,14 +71,14 @@ class MemberCommandServiceTest extends BaseUnitTest {
         Long userId = 999L;
         Setting newSetting = getDefaultSetting();
 
-        given(userQueryPort.findById(userId)).willReturn(Optional.empty());
+        given(memberQueryPort.findById(userId)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> userCommandService.updateUserSettings(userId, newSetting))
                 .isInstanceOf(UserCustomException.class)
                 .hasMessage(UserErrorCode.USER_NOT_FOUND.getMessage());
 
-        verify(userQueryPort).findById(userId);
+        verify(memberQueryPort).findById(userId);
     }
 
     @Test
@@ -90,13 +90,13 @@ class MemberCommandServiceTest extends BaseUnitTest {
 
         Member member = createTestUserWithId(userId);
 
-        given(userQueryPort.findById(userId)).willReturn(Optional.of(member));
+        given(memberQueryPort.findById(userId)).willReturn(Optional.of(member));
 
         // When
         userCommandService.updateUserName(userId, newUserName);
 
         // Then
-        verify(userQueryPort).findById(userId);
+        verify(memberQueryPort).findById(userId);
         // JPA 변경 감지를 사용하므로 명시적 savePostLike() 호출 없음
         
         assertThat(member.getUserName()).isEqualTo(newUserName);
@@ -110,14 +110,14 @@ class MemberCommandServiceTest extends BaseUnitTest {
         String existingUserName = "existingUser";
         Member member = createTestUserWithId(userId);
 
-        given(userQueryPort.findById(userId)).willReturn(Optional.of(member));
+        given(memberQueryPort.findById(userId)).willReturn(Optional.of(member));
 
         // When & Then
         // 실제 구현에서는 member.changeUserName()에서 중복 검사 후 변경
         // 단위 테스트에서는 정상 케이스만 테스트하고 중복 검사는 통합 테스트에서
         userCommandService.updateUserName(userId, existingUserName);
         
-        verify(userQueryPort).findById(userId);
+        verify(memberQueryPort).findById(userId);
         assertThat(member.getUserName()).isEqualTo(existingUserName);
     }
 
@@ -128,14 +128,14 @@ class MemberCommandServiceTest extends BaseUnitTest {
         Long userId = 999L;
         String newUserName = "newUserName";
 
-        given(userQueryPort.findById(userId)).willReturn(Optional.empty());
+        given(memberQueryPort.findById(userId)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> userCommandService.updateUserName(userId, newUserName))
                 .isInstanceOf(UserCustomException.class)
                 .hasMessage(UserErrorCode.USER_NOT_FOUND.getMessage());
 
-        verify(userQueryPort).findById(userId);
+        verify(memberQueryPort).findById(userId);
     }
 
 
@@ -149,13 +149,13 @@ class MemberCommandServiceTest extends BaseUnitTest {
 
         Member member = createTestUserWithId(userId);
 
-        given(userQueryPort.findById(userId)).willReturn(Optional.of(member));
+        given(memberQueryPort.findById(userId)).willReturn(Optional.of(member));
 
         // When
         userCommandService.updateUserName(userId, validUserName);
 
         // Then
-        verify(userQueryPort).findById(userId);
+        verify(memberQueryPort).findById(userId);
         assertThat(member.getUserName()).isEqualTo(validUserName);
     }
 
@@ -169,13 +169,13 @@ class MemberCommandServiceTest extends BaseUnitTest {
 
         Member member = createTestUserWithId(userId);
 
-        given(userQueryPort.findById(userId)).willReturn(Optional.of(member));
+        given(memberQueryPort.findById(userId)).willReturn(Optional.of(member));
 
         // When
         userCommandService.updateUserName(userId, validUserName);
 
         // Then
-        verify(userQueryPort).findById(userId);
+        verify(memberQueryPort).findById(userId);
         assertThat(member.getUserName()).isEqualTo(validUserName);
     }
 
@@ -192,13 +192,13 @@ class MemberCommandServiceTest extends BaseUnitTest {
         // 부분적 설정만 포함된 Setting
         Setting partialSetting = createCustomSetting(true, false, false);
 
-        given(userQueryPort.findById(userId)).willReturn(Optional.of(member));
+        given(memberQueryPort.findById(userId)).willReturn(Optional.of(member));
 
         // When
         userCommandService.updateUserSettings(userId, partialSetting);
 
         // Then
-        verify(userQueryPort).findById(userId);
+        verify(memberQueryPort).findById(userId);
         // 부분적 업데이트 동작은 JPA 변경 감지에 의존
     }
 
@@ -211,13 +211,13 @@ class MemberCommandServiceTest extends BaseUnitTest {
 
         Member member = TestUsers.copyWithId(getTestUser(), userId);
 
-        given(userQueryPort.findById(userId)).willReturn(Optional.of(member));
+        given(memberQueryPort.findById(userId)).willReturn(Optional.of(member));
 
         // When & Then: 정상 케이스로 단순화
         // DataIntegrityViolationException 처리는 통합 테스트에서 확인
         userCommandService.updateUserName(userId, racedUserName);
         
-        verify(userQueryPort).findById(userId);
+        verify(memberQueryPort).findById(userId);
         assertThat(member.getUserName()).isEqualTo(racedUserName);
     }
 

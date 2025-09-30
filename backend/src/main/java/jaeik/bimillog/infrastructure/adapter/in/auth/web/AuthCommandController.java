@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.in.auth.web;
 
 import jaeik.bimillog.domain.auth.application.port.in.SocialLoginUseCase;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
-import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
+import jaeik.bimillog.domain.auth.event.MemberLoggedOutEvent;
 import jaeik.bimillog.domain.global.annotation.Log;
 import jaeik.bimillog.domain.global.annotation.Log.LogLevel;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
@@ -86,7 +86,7 @@ public class AuthCommandController {
          message = "로그아웃 요청",
          logParams = false)
     public ResponseEntity<AuthResponseDTO> logout(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        eventPublisher.publishEvent(new UserLoggedOutEvent(userDetails.getUserId(), userDetails.getTokenId(), userDetails.getFcmTokenId(), userDetails.getSocialProvider()));
+        eventPublisher.publishEvent(new MemberLoggedOutEvent(userDetails.getUserId(), userDetails.getTokenId(), userDetails.getFcmTokenId(), userDetails.getSocialProvider()));
         return ResponseEntity.ok()
                 .headers(headers -> globalCookiePort.getLogoutCookies().forEach(cookie ->
                         headers.add("Set-Cookie", cookie.toString())))

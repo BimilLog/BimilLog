@@ -65,7 +65,7 @@ public class FcmService implements FcmUseCase {
      * <h3>FCM 토큰 삭제</h3>
      * <p>로그아웃시 특정 토큰만 삭제하거나 회원탈퇴시 모든 토큰을 삭제합니다.</p>
      * <p>fcmTokenId가 null인 경우 모든 토큰 삭제, 값이 있는 경우 특정 토큰만 삭제합니다.</p>
-     * <p>UserLogoutListener, UserWithdrawListener, UserBannedListener에서 호출됩니다.</p>
+     * <p>MemberLogoutListener, MemberWithdrawListener, UserBannedListener에서 호출됩니다.</p>
      *
      * @param userId 사용자 ID
      * @param fcmTokenId 삭제할 토큰 ID (null인 경우 모든 토큰 삭제)

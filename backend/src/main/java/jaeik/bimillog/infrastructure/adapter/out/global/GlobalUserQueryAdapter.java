@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.out.global;
 
 import jaeik.bimillog.domain.global.application.port.out.GlobalUserQueryPort;
-import jaeik.bimillog.domain.member.application.port.in.UserQueryUseCase;
+import jaeik.bimillog.domain.member.application.port.in.MemberQueryUseCase;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -21,7 +21,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class GlobalUserQueryAdapter implements GlobalUserQueryPort {
 
-    private final UserQueryUseCase userQueryUseCase;
+    private final MemberQueryUseCase memberQueryUseCase;
 
     /**
      * <h3>사용자 ID로 사용자 조회</h3>
@@ -35,7 +35,7 @@ public class GlobalUserQueryAdapter implements GlobalUserQueryPort {
      */
     @Override
     public Optional<Member> findById(Long userId) {
-        return userQueryUseCase.findById(userId);
+        return memberQueryUseCase.findById(userId);
     }
 
     /**
@@ -50,7 +50,7 @@ public class GlobalUserQueryAdapter implements GlobalUserQueryPort {
      */
     @Override
     public Optional<Member> findByUserName(String userName) {
-        return userQueryUseCase.findByUserName(userName);
+        return memberQueryUseCase.findByUserName(userName);
     }
 
     /**
@@ -65,7 +65,7 @@ public class GlobalUserQueryAdapter implements GlobalUserQueryPort {
      */
     @Override
     public boolean existsByUserName(String userName) {
-        return userQueryUseCase.existsByUserName(userName);
+        return memberQueryUseCase.existsByUserName(userName);
     }
 
     /**
@@ -80,6 +80,6 @@ public class GlobalUserQueryAdapter implements GlobalUserQueryPort {
      */
     @Override
     public Member getReferenceById(Long userId) {
-        return userQueryUseCase.getReferenceById(userId);
+        return memberQueryUseCase.getReferenceById(userId);
     }
 }

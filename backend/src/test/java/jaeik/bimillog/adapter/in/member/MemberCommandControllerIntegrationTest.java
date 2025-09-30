@@ -7,7 +7,7 @@ import jaeik.bimillog.infrastructure.adapter.in.admin.dto.ReportDTO;
 import jaeik.bimillog.infrastructure.adapter.in.auth.dto.SocialLoginRequestDTO;
 import jaeik.bimillog.infrastructure.adapter.in.member.dto.SettingDTO;
 import jaeik.bimillog.infrastructure.adapter.in.member.dto.SignUpRequestDTO;
-import jaeik.bimillog.infrastructure.adapter.in.member.dto.UserNameDTO;
+import jaeik.bimillog.infrastructure.adapter.in.member.dto.MemberNameDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.member.UserRepository;
 import jaeik.bimillog.testutil.AuthTestFixtures;
@@ -93,15 +93,15 @@ class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
         
         CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testMember);
         
-        UserNameDTO userNameDTO = new UserNameDTO();
-        userNameDTO.setUserName("새로운닉네임");
+        MemberNameDTO memberNameDTO = new MemberNameDTO();
+        memberNameDTO.setUserName("새로운닉네임");
 
         // When & Then
         mockMvc.perform(post("/api/member/username")
                         .with(user(userDetails))
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(userNameDTO)))
+                        .content(objectMapper.writeValueAsString(memberNameDTO)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string("닉네임이 변경되었습니다."));
@@ -116,15 +116,15 @@ class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
         
         var userDetails = createCustomUserDetails(testMember);
         
-        UserNameDTO userNameDTO = new UserNameDTO();
-        userNameDTO.setUserName("아주긴닉네임이라서8글자초과"); // 8글자 초과
+        MemberNameDTO memberNameDTO = new MemberNameDTO();
+        memberNameDTO.setUserName("아주긴닉네임이라서8글자초과"); // 8글자 초과
 
         // When & Then
         mockMvc.perform(post("/api/member/username")
                         .with(user(userDetails))
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(userNameDTO)))
+                        .content(objectMapper.writeValueAsString(memberNameDTO)))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
     }
@@ -194,15 +194,15 @@ class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
         
         var userDetails = createCustomUserDetails(testMember);
         
-        UserNameDTO userNameDTO = new UserNameDTO();
-        userNameDTO.setUserName(""); // 빈 문자열
+        MemberNameDTO memberNameDTO = new MemberNameDTO();
+        memberNameDTO.setUserName(""); // 빈 문자열
 
         // When & Then
         mockMvc.perform(post("/api/member/username")
                         .with(user(userDetails))
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(userNameDTO)))
+                        .content(objectMapper.writeValueAsString(memberNameDTO)))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
     }

@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.in.auth.web;
 
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
-import jaeik.bimillog.infrastructure.adapter.in.auth.dto.UserInfoResponseDTO;
+import jaeik.bimillog.infrastructure.adapter.in.auth.dto.MemberInfoResponseDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -34,12 +34,12 @@ public class AuthQueryController {
      * @since 2.0.0
      */
     @GetMapping("/me")
-    public ResponseEntity<UserInfoResponseDTO> getCurrentUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<MemberInfoResponseDTO> getCurrentUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
         if (userDetails == null) {
             throw new AuthCustomException(AuthErrorCode.NULL_SECURITY_CONTEXT);
         }
 
-        UserInfoResponseDTO response = UserInfoResponseDTO.from(userDetails.getExistingMemberDetail());
+        MemberInfoResponseDTO response = MemberInfoResponseDTO.from(userDetails.getExistingMemberDetail());
         return ResponseEntity.ok(response);
     }
 }

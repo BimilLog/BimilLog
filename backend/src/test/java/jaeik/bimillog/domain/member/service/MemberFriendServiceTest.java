@@ -4,8 +4,8 @@ import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.domain.member.application.port.out.KakaoFriendPort;
-import jaeik.bimillog.domain.member.application.port.out.UserQueryPort;
-import jaeik.bimillog.domain.member.application.service.UserFriendService;
+import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
+import jaeik.bimillog.domain.member.application.service.MemberFriendService;
 import jaeik.bimillog.domain.member.entity.KakaoFriendsResponseVO;
 import jaeik.bimillog.domain.member.exception.UserCustomException;
 import jaeik.bimillog.domain.member.exception.UserErrorCode;
@@ -28,10 +28,10 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 /**
- * <h2>UserFriendService 테스트</h2>
+ * <h2>MemberFriendService 테스트</h2>
  * <p>카카오 친구 조회 흐름과 예외 매핑을 검증합니다.</p>
  */
-@DisplayName("UserFriendService 테스트")
+@DisplayName("MemberFriendService 테스트")
 @Tag("test")
 class MemberFriendServiceTest extends BaseUnitTest {
 
@@ -39,13 +39,13 @@ class MemberFriendServiceTest extends BaseUnitTest {
     private KakaoFriendPort kakaoFriendPort;
 
     @Mock
-    private UserQueryPort userQueryPort;
+    private MemberQueryPort memberQueryPort;
 
     @Mock
     private GlobalTokenQueryPort globalTokenQueryPort;
 
     @InjectMocks
-    private UserFriendService userFriendService;
+    private MemberFriendService userFriendService;
 
     @Test
     @DisplayName("카카오 친구 목록 조회 - 정상 플로우")
@@ -72,7 +72,7 @@ class MemberFriendServiceTest extends BaseUnitTest {
 
         given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(authToken));
         given(kakaoFriendPort.getFriendList("access-TemporaryToken", 0, 3)).willReturn(kakaoResponse);
-        given(userQueryPort.findUserNamesInOrder(Arrays.asList("1", "2", "3"))).willReturn(userNames);
+        given(memberQueryPort.findUserNamesInOrder(Arrays.asList("1", "2", "3"))).willReturn(userNames);
 
         // When
         KakaoFriendsResponseVO result = userFriendService.getKakaoFriendList(1L, tokenId, 0, 3);
@@ -84,7 +84,7 @@ class MemberFriendServiceTest extends BaseUnitTest {
         assertThat(result.elements()).extracting(KakaoFriendsResponseVO.Friend::userName)
                 .containsExactly(null, "bimillogUser", null);
 
-        verify(userQueryPort).findUserNamesInOrder(Arrays.asList("1", "2", "3"));
+        verify(memberQueryPort).findUserNamesInOrder(Arrays.asList("1", "2", "3"));
     }
 
     @Test
@@ -248,7 +248,7 @@ class MemberFriendServiceTest extends BaseUnitTest {
 
         // Then
         assertThat(result.elements()).isEmpty();
-        verify(userQueryPort, never()).findUserNamesInOrder(anyList());
+        verify(memberQueryPort, never()).findUserNamesInOrder(anyList());
     }
 
     @Test
@@ -270,7 +270,7 @@ class MemberFriendServiceTest extends BaseUnitTest {
 
         given(globalTokenQueryPort.findById(1L)).willReturn(Optional.of(authToken));
         given(kakaoFriendPort.getFriendList("access-TemporaryToken", 0, 10)).willReturn(kakaoResponse);
-        given(userQueryPort.findUserNamesInOrder(Arrays.asList("1", "2"))).willReturn(userNames);
+        given(memberQueryPort.findUserNamesInOrder(Arrays.asList("1", "2"))).willReturn(userNames);
 
         // When
         KakaoFriendsResponseVO result = userFriendService.getKakaoFriendList(1L, 1L, 0, 10);
@@ -278,6 +278,6 @@ class MemberFriendServiceTest extends BaseUnitTest {
         // Then
         assertThat(result.elements()).extracting(KakaoFriendsResponseVO.Friend::userName)
                 .containsExactly("user1", "user2");
-        verify(userQueryPort).findUserNamesInOrder(Arrays.asList("1", "2"));
+        verify(memberQueryPort).findUserNamesInOrder(Arrays.asList("1", "2"));
     }
 }

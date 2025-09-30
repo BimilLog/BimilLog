@@ -2,7 +2,7 @@ package jaeik.bimillog.adapter.out.redis;
 
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
-import jaeik.bimillog.infrastructure.adapter.out.redis.RedisUserDataAdapter;
+import jaeik.bimillog.infrastructure.adapter.out.redis.RedisMemberDataAdapter;
 import jaeik.bimillog.testutil.RedisTestHelper;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,7 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
- * <h2>RedisUserDataAdapter 통합 테스트</h2>
+ * <h2>RedisMemberDataAdapter 통합 테스트</h2>
  * <p>Redis TestContainers를 사용한 실제 Redis 환경에서의 테스트</p>
  * <p>RedisPostSyncAdapterTest 패턴을 참고하여 작성</p>
  *
@@ -40,7 +40,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class RedisMemberDataAdapterIntegrationTest {
 
     @Autowired
-    private RedisUserDataAdapter redisTempDataAdapter;
+    private RedisMemberDataAdapter redisTempDataAdapter;
     
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;

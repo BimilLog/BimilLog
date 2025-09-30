@@ -1,13 +1,13 @@
 package jaeik.bimillog.adapter.out.member;
 
-import jaeik.bimillog.domain.auth.application.port.out.AuthTokenCommandPort;
+import jaeik.bimillog.domain.auth.application.port.out.AuthTokenPort;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import jaeik.bimillog.domain.member.entity.memberdetail.ExistingMemberDetail;
-import jaeik.bimillog.infrastructure.adapter.out.member.SaveUserAdapter;
+import jaeik.bimillog.infrastructure.adapter.out.member.SaveMemberAdapter;
 import jaeik.bimillog.infrastructure.adapter.out.member.UserRepository;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.TestUsers;
@@ -25,7 +25,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 /**
- * <h2>SaveUserAdapter 단위 테스트</h2>
+ * <h2>SaveMemberAdapter 단위 테스트</h2>
  * <p>비즈니스 로직과 외부 의존성 간 상호작용을 Mock으로 검증</p>
  * <p>트랜잭션 처리, 이벤트 발행, 예외 처리 로직을 중점 검증</p>
  *
@@ -35,11 +35,11 @@ import static org.mockito.Mockito.verify;
 @Tag("test")
 class SaveMemberAdapterTest extends BaseUnitTest {
 
-    @Mock private AuthTokenCommandPort authTokenCommandPort;
+    @Mock private AuthTokenPort authTokenPort;
     @Mock private UserRepository userRepository;
     @Mock private FcmUseCase fcmUseCase;
 
-    @InjectMocks private SaveUserAdapter saveUserAdapter;
+    @InjectMocks private SaveMemberAdapter saveUserAdapter;
 
     @Test
     @DisplayName("기존 사용자 로그인 처리 - 정상적인 업데이트 및 FCM 토큰 ID 반환")
@@ -61,7 +61,7 @@ class SaveMemberAdapterTest extends BaseUnitTest {
                 .users(existingMember)
                 .build();
 
-        given(authTokenCommandPort.save(any(AuthToken.class))).willReturn(savedAuthToken);
+        given(authTokenPort.save(any(AuthToken.class))).willReturn(savedAuthToken);
         given(fcmUseCase.registerFcmToken(existingMember, fcmToken)).willReturn(fcmTokenId);
 
         // When: 기존 사용자 로그인 처리
@@ -73,7 +73,7 @@ class SaveMemberAdapterTest extends BaseUnitTest {
 
         // 토큰이 저장되는지 검증
         ArgumentCaptor<AuthToken> tokenCaptor = ArgumentCaptor.forClass(AuthToken.class);
-        verify(authTokenCommandPort).save(tokenCaptor.capture());
+        verify(authTokenPort).save(tokenCaptor.capture());
         AuthToken capturedAuthToken = tokenCaptor.getValue();
         assertThat(capturedAuthToken.getAccessToken()).isEqualTo("access-TemporaryToken");
         assertThat(capturedAuthToken.getRefreshToken()).isEqualTo("refresh-TemporaryToken");
@@ -104,14 +104,14 @@ class SaveMemberAdapterTest extends BaseUnitTest {
                 .users(existingMember)
                 .build();
 
-        given(authTokenCommandPort.save(any(AuthToken.class))).willReturn(savedAuthToken);
+        given(authTokenPort.save(any(AuthToken.class))).willReturn(savedAuthToken);
 
         // When: FCM 토큰 없이 기존 사용자 로그인 처리
         ExistingMemberDetail result = saveUserAdapter.handleExistingUserData(existingMember, userProfile);
 
         // Then: FCM 토큰 등록이 호출되지 않았는지 검증
         verify(fcmUseCase, never()).registerFcmToken(any(), any());
-        verify(authTokenCommandPort).save(any(AuthToken.class));
+        verify(authTokenPort).save(any(AuthToken.class));
 
         // FCM 토큰 ID가 null인지 검증
         assertThat(result.getFcmTokenId()).isNull();
@@ -137,7 +137,7 @@ class SaveMemberAdapterTest extends BaseUnitTest {
                 .build();
 
         given(userRepository.save(any(Member.class))).willReturn(newMember);
-        given(authTokenCommandPort.save(any(AuthToken.class))).willReturn(newAuthToken);
+        given(authTokenPort.save(any(AuthToken.class))).willReturn(newAuthToken);
         given(fcmUseCase.registerFcmToken(newMember, fcmToken)).willReturn(fcmTokenId);
 
         // When: 신규 사용자 저장
@@ -156,7 +156,7 @@ class SaveMemberAdapterTest extends BaseUnitTest {
         verify(fcmUseCase).registerFcmToken(newMember, fcmToken);
 
         // 토큰 저장 검증
-        verify(authTokenCommandPort).save(any(AuthToken.class));
+        verify(authTokenPort).save(any(AuthToken.class));
 
         // 반환된 ExistingMemberDetail 검증
         assertThat(result).isNotNull();
@@ -184,7 +184,7 @@ class SaveMemberAdapterTest extends BaseUnitTest {
                 .build();
 
         given(userRepository.save(any(Member.class))).willReturn(newMember);
-        given(authTokenCommandPort.save(any(AuthToken.class))).willReturn(newAuthToken);
+        given(authTokenPort.save(any(AuthToken.class))).willReturn(newAuthToken);
 
         // When: FCM 토큰 없이 사용자 저장
         ExistingMemberDetail result = saveUserAdapter.saveNewUser(userName, userProfile);

@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.notification.application.port.in.NotificationComman
 import jaeik.bimillog.domain.notification.application.port.out.NotificationCommandPort;
 import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
 import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
-import jaeik.bimillog.infrastructure.adapter.in.global.listener.UserWithdrawListener;
+import jaeik.bimillog.infrastructure.adapter.in.global.listener.MemberWithdrawListener;
 import jaeik.bimillog.infrastructure.adapter.in.notification.web.NotificationCommandController;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,7 +55,7 @@ public class NotificationCommandService implements NotificationCommandUseCase {
      * <h3>사용자의 모든 알림 삭제</h3>
      * <p>특정 사용자의 모든 알림을 삭제합니다.</p>
      * <p>주로 사용자 탈퇴 시 호출되어 해당 사용자의 모든 알림 데이터를 정리합니다.</p>
-     * <p>{@link UserWithdrawListener}에서 회원 탈퇴 이벤트 처리 시 호출됩니다.</p>
+     * <p>{@link MemberWithdrawListener}에서 회원 탈퇴 이벤트 처리 시 호출됩니다.</p>
      *
      * @param userId 알림을 삭제할 사용자 ID
      * @author Jaeik

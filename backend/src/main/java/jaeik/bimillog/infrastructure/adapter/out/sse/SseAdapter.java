@@ -7,7 +7,7 @@ import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.SseMessage;
 import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
 import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
-import jaeik.bimillog.domain.member.application.port.in.UserQueryUseCase;
+import jaeik.bimillog.domain.member.application.port.in.MemberQueryUseCase;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.in.notification.listener.NotificationGenerateListener;
 import jaeik.bimillog.infrastructure.adapter.in.notification.web.NotificationSseController;
@@ -53,7 +53,7 @@ public class SseAdapter implements SsePort {
     private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
 
     private final NotificationUtilPort notificationUtilPort;
-    private final UserQueryUseCase userQueryUseCase;
+    private final MemberQueryUseCase memberQueryUseCase;
     private final NotificationCommandPort notificationCommandPort;
 
     /**
@@ -112,7 +112,7 @@ public class SseAdapter implements SsePort {
                 return; // 알림 수신이 비활성화된 경우 전송하지 않음
             }
             
-            Member member = userQueryUseCase.findById(sseMessage.userId())
+            Member member = memberQueryUseCase.findById(sseMessage.userId())
                     .orElseThrow(() -> new NotificationCustomException(NotificationErrorCode.INVALID_USER_CONTEXT));
             notificationCommandPort.save(member, sseMessage.type(), sseMessage.message(), sseMessage.url());
             Map<String, SseEmitter> emitters = findAllEmitterByUserId(sseMessage.userId());

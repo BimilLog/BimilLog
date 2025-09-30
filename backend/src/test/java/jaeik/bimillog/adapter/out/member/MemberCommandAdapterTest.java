@@ -3,7 +3,7 @@ package jaeik.bimillog.adapter.out.member;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
-import jaeik.bimillog.infrastructure.adapter.out.member.UserCommandAdapter;
+import jaeik.bimillog.infrastructure.adapter.out.member.MemberCommandAdapter;
 import jaeik.bimillog.testutil.H2TestConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 /**
- * <h2>UserCommandAdapter 통합 테스트</h2>
+ * <h2>MemberCommandAdapter 통합 테스트</h2>
  * <p>사용자 명령 어댑터의 핵심 비즈니스 로직을 테스트합니다.</p>
  * <p>Native Query를 사용한 사용자와 설정 동시 삭제 검증</p>
  *
@@ -36,13 +36,13 @@ import static org.assertj.core.api.Assertions.assertThatCode;
         )
 )
 @ActiveProfiles("h2test")
-@Import({UserCommandAdapter.class, H2TestConfiguration.class})
+@Import({MemberCommandAdapter.class, H2TestConfiguration.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Tag("integration")
 class MemberCommandAdapterTest {
 
     @Autowired
-    private UserCommandAdapter userCommandAdapter;
+    private MemberCommandAdapter userCommandAdapter;
 
     @Autowired
     private TestEntityManager testEntityManager;

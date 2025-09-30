@@ -4,17 +4,17 @@ import jaeik.bimillog.domain.admin.application.port.out.AdminCommandPort;
 import jaeik.bimillog.domain.admin.application.service.AdminCommandService;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.domain.admin.event.UserBannedEvent;
+import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
 import jaeik.bimillog.domain.admin.exception.AdminCustomException;
 import jaeik.bimillog.domain.admin.exception.AdminErrorCode;
 import jaeik.bimillog.domain.auth.application.port.in.BlacklistUseCase;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCommentQueryPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
+import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
-import jaeik.bimillog.domain.member.application.port.out.UserQueryPort;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.domain.member.event.UserWithdrawnEvent;
 import jaeik.bimillog.testutil.BaseUnitTest;
@@ -54,7 +54,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
     private AdminCommandPort adminCommandPort;
 
     @Mock
-    private UserQueryPort userQueryPort;
+    private MemberQueryPort memberQueryPort;
 
     @Mock
     private GlobalPostQueryPort globalPostQueryPort;
@@ -77,7 +77,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
         adminCommandService = new AdminCommandService(
                 eventPublisher,
                 adminCommandPort,
-                userQueryPort,
+                memberQueryPort,
                 globalPostQueryPort,
                 globalCommentQueryPort,
                 blacklistUseCase
@@ -96,10 +96,10 @@ class AdminCommandServiceTest extends BaseUnitTest {
         adminCommandService.banUser(testReportType, testTargetId);
 
         // Then
-        ArgumentCaptor<UserBannedEvent> eventCaptor = ArgumentCaptor.forClass(UserBannedEvent.class);
+        ArgumentCaptor<MemberBannedEvent> eventCaptor = ArgumentCaptor.forClass(MemberBannedEvent.class);
         verify(eventPublisher).publishEvent(eventCaptor.capture());
 
-        UserBannedEvent capturedEvent = eventCaptor.getValue();
+        MemberBannedEvent capturedEvent = eventCaptor.getValue();
         assertThat(capturedEvent.userId()).isEqualTo(200L);
         assertThat(capturedEvent.socialId()).isEqualTo(memberWithId.getSocialId());
         assertThat(capturedEvent.provider()).isEqualTo(memberWithId.getProvider());
@@ -151,10 +151,10 @@ class AdminCommandServiceTest extends BaseUnitTest {
         adminCommandService.banUser(commentReportType, commentTargetId);
 
         // Then
-        ArgumentCaptor<UserBannedEvent> eventCaptor = ArgumentCaptor.forClass(UserBannedEvent.class);
+        ArgumentCaptor<MemberBannedEvent> eventCaptor = ArgumentCaptor.forClass(MemberBannedEvent.class);
         verify(eventPublisher).publishEvent(eventCaptor.capture());
 
-        UserBannedEvent capturedEvent = eventCaptor.getValue();
+        MemberBannedEvent capturedEvent = eventCaptor.getValue();
         assertThat(capturedEvent.userId()).isEqualTo(200L);
         assertThat(capturedEvent.socialId()).isEqualTo(memberWithId.getSocialId());
         assertThat(capturedEvent.provider()).isEqualTo(memberWithId.getProvider());
@@ -233,14 +233,14 @@ class AdminCommandServiceTest extends BaseUnitTest {
 
         Report expectedReport = Report.createReport(reportType, targetId, content, reporter);
 
-        given(userQueryPort.findById(userId)).willReturn(Optional.of(reporter));
+        given(memberQueryPort.findById(userId)).willReturn(Optional.of(reporter));
         given(adminCommandPort.save(any(Report.class))).willReturn(expectedReport);
 
         // When
         adminCommandService.createReport(userId, reportType, targetId, content);
 
         // Then
-        verify(userQueryPort, times(1)).findById(userId);
+        verify(memberQueryPort, times(1)).findById(userId);
         verify(adminCommandPort, times(1)).save(any(Report.class));
     }
 
@@ -260,7 +260,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
         adminCommandService.createReport(userId, reportType, targetId, content);
 
         // Then
-        verify(userQueryPort, never()).findById(any()); // 익명 사용자는 조회하지 않음
+        verify(memberQueryPort, never()).findById(any()); // 익명 사용자는 조회하지 않음
         verify(adminCommandPort, times(1)).save(any(Report.class));
     }
 
@@ -277,14 +277,14 @@ class AdminCommandServiceTest extends BaseUnitTest {
 
         Report expectedReport = Report.createReport(reportType, targetId, content, reporter);
 
-        given(userQueryPort.findById(userId)).willReturn(Optional.of(reporter));
+        given(memberQueryPort.findById(userId)).willReturn(Optional.of(reporter));
         given(adminCommandPort.save(any(Report.class))).willReturn(expectedReport);
 
         // When
         adminCommandService.createReport(userId, reportType, targetId, content);
 
         // Then
-        verify(userQueryPort, times(1)).findById(userId);
+        verify(memberQueryPort, times(1)).findById(userId);
         verify(adminCommandPort, times(1)).save(any(Report.class));
     }
 
@@ -298,13 +298,13 @@ class AdminCommandServiceTest extends BaseUnitTest {
         Long targetId = 123L;
         String content = "부적절한 댓글입니다";
         
-        given(userQueryPort.findById(userId)).willReturn(Optional.empty());
+        given(memberQueryPort.findById(userId)).willReturn(Optional.empty());
 
         // When & Then - 예외가 발생하지 않고 정상적으로 처리되어야 함
         assertThatCode(() -> adminCommandService.createReport(userId, reportType, targetId, content))
                 .doesNotThrowAnyException();
 
-        verify(userQueryPort, times(1)).findById(userId);
+        verify(memberQueryPort, times(1)).findById(userId);
         verify(adminCommandPort, times(1)).save(any(Report.class));
     }
 

@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.auth.service;
 
-import jaeik.bimillog.domain.auth.application.port.out.AuthToUserPort;
+import jaeik.bimillog.domain.auth.application.port.out.AuthToMemberPort;
 import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
@@ -48,7 +48,7 @@ class SocialLoginServiceTest extends BaseUnitTest {
 
     @Mock private SocialStrategyRegistryPort strategyRegistry;
     @Mock private SocialStrategyPort kakaoStrategy;
-    @Mock private AuthToUserPort authToUserPort;
+    @Mock private AuthToMemberPort authToMemberPort;
     @Mock private BlacklistPort blacklistPort;
     @Mock private GlobalCookiePort globalCookiePort;
     @Mock private GlobalJwtPort globalJwtPort;
@@ -59,7 +59,7 @@ class SocialLoginServiceTest extends BaseUnitTest {
     void setUp() {
         socialLoginService = new SocialLoginService(
             strategyRegistry,
-            authToUserPort,
+                authToMemberPort,
             blacklistPort,
             globalCookiePort,
             globalJwtPort
@@ -84,7 +84,7 @@ class SocialLoginServiceTest extends BaseUnitTest {
             given(kakaoStrategy.getToken(TEST_AUTH_CODE)).willReturn(getTestToken());
             given(kakaoStrategy.getUserInfo(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN)).willReturn(kakaoUserInfo);
             given(blacklistPort.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
-            given(authToUserPort.delegateUserData(TEST_PROVIDER, testUserProfile))
+            given(authToMemberPort.delegateUserData(TEST_PROVIDER, testUserProfile))
                 .willReturn(existingMemberDetail);
             given(globalJwtPort.generateAccessToken(existingMemberDetail)).willReturn(generatedAccessToken);
             given(globalJwtPort.generateRefreshToken(existingMemberDetail)).willReturn(generatedRefreshToken);
@@ -102,7 +102,7 @@ class SocialLoginServiceTest extends BaseUnitTest {
             verify(strategyRegistry).getStrategy(TEST_PROVIDER);
             verify(kakaoStrategy).getToken(TEST_AUTH_CODE);
             verify(kakaoStrategy).getUserInfo(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
-            verify(authToUserPort).delegateUserData(TEST_PROVIDER, testUserProfile);
+            verify(authToMemberPort).delegateUserData(TEST_PROVIDER, testUserProfile);
             verify(globalJwtPort).generateAccessToken(existingMemberDetail);
             verify(globalJwtPort).generateRefreshToken(existingMemberDetail);
             verify(globalCookiePort).generateJwtCookie(generatedAccessToken, generatedRefreshToken);
@@ -132,7 +132,7 @@ class SocialLoginServiceTest extends BaseUnitTest {
             given(kakaoStrategy.getToken(TEST_AUTH_CODE)).willReturn(getTestToken());
             given(kakaoStrategy.getUserInfo(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN)).willReturn(kakaoUserInfo);
             given(blacklistPort.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
-            given(authToUserPort.delegateUserData(TEST_PROVIDER, testUserProfile))
+            given(authToMemberPort.delegateUserData(TEST_PROVIDER, testUserProfile))
                 .willReturn(newMemberDetail);
             given(globalCookiePort.createTempCookie(newMemberDetail)).willReturn(tempCookie);
 
@@ -148,7 +148,7 @@ class SocialLoginServiceTest extends BaseUnitTest {
             verify(strategyRegistry).getStrategy(TEST_PROVIDER);
             verify(kakaoStrategy).getToken(TEST_AUTH_CODE);
             verify(kakaoStrategy).getUserInfo(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
-            verify(authToUserPort).delegateUserData(TEST_PROVIDER, testUserProfile);
+            verify(authToMemberPort).delegateUserData(TEST_PROVIDER, testUserProfile);
             verify(globalCookiePort).createTempCookie(newMemberDetail);
         }
     }

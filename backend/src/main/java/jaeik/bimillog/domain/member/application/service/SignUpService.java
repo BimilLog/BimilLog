@@ -1,16 +1,16 @@
 package jaeik.bimillog.domain.member.application.service;
 
-import jaeik.bimillog.domain.auth.application.port.out.AuthTokenCommandPort;
+import jaeik.bimillog.domain.auth.application.port.out.AuthTokenPort;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.member.application.port.in.SignUpUseCase;
-import jaeik.bimillog.domain.member.application.port.out.RedisUserDataPort;
-import jaeik.bimillog.domain.member.application.port.out.SaveUserPort;
+import jaeik.bimillog.domain.member.application.port.out.RedisMemberDataPort;
+import jaeik.bimillog.domain.member.application.port.out.SaveMemberPort;
 import jaeik.bimillog.domain.member.entity.memberdetail.ExistingMemberDetail;
-import jaeik.bimillog.infrastructure.adapter.in.member.web.UserCommandController;
+import jaeik.bimillog.infrastructure.adapter.in.member.web.MemberCommandController;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
@@ -30,17 +30,17 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class SignUpService implements SignUpUseCase {
 
-    private final RedisUserDataPort redisUserDataPort;
-    private final SaveUserPort saveUserPort;
+    private final RedisMemberDataPort redisMemberDataPort;
+    private final SaveMemberPort saveMemberPort;
     private final GlobalCookiePort globalCookiePort;
     private final GlobalJwtPort globalJwtPort;
-    private final AuthTokenCommandPort authTokenCommandPort;
+    private final AuthTokenPort authTokenPort;
 
     /**
      * <h3>신규 사용자 회원 가입 처리</h3>
      * <p>소셜 로그인 후 최초 회원 가입하는 사용자를 시스템에 등록합니다.</p>
      * <p>임시 UUID로 저장된 소셜 인증 정보를 조회하여 실제 사용자 계정을 생성합니다.</p>
-     * <p>{@link UserCommandController}에서 POST /api/member/signup 요청 처리 시 호출됩니다.</p>
+     * <p>{@link MemberCommandController}에서 POST /api/member/signup 요청 처리 시 호출됩니다.</p>
      *
      * @param userName 사용자가 입력한 표시 이름 (DTO에서 이미 검증됨)
      * @param uuid 임시 소셜 인증 데이터 저장용 UUID 키 (DTO에서 이미 검증됨)
@@ -51,21 +51,21 @@ public class SignUpService implements SignUpUseCase {
      */
     @Override
     public List<ResponseCookie> signUp(String userName, String uuid) {
-        Optional<SocialUserProfile> socialUserProfile = redisUserDataPort.getTempData(uuid);
+        Optional<SocialUserProfile> socialUserProfile = redisMemberDataPort.getTempData(uuid);
 
         if (socialUserProfile.isEmpty()) {
             throw new AuthCustomException(AuthErrorCode.INVALID_TEMP_DATA);
         }
 
         SocialUserProfile userProfile = socialUserProfile.get();
-        ExistingMemberDetail userDetail = (ExistingMemberDetail) saveUserPort.saveNewUser(userName.trim(), userProfile);
+        ExistingMemberDetail userDetail = (ExistingMemberDetail) saveMemberPort.saveNewUser(userName.trim(), userProfile);
         String accessToken = globalJwtPort.generateAccessToken(userDetail);
         String refreshToken = globalJwtPort.generateRefreshToken(userDetail);
 
         // DB에 JWT 리프레시 토큰 저장 (보안 강화 - SocialLoginService와 동일)
-        authTokenCommandPort.updateJwtRefreshToken(userDetail.getTokenId(), refreshToken);
+        authTokenPort.updateJwtRefreshToken(userDetail.getTokenId(), refreshToken);
 
-        redisUserDataPort.removeTempData(uuid);
+        redisMemberDataPort.removeTempData(uuid);
         return globalCookiePort.generateJwtCookie(accessToken, refreshToken);
     }
 }

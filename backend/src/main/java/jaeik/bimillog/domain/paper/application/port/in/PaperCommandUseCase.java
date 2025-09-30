@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.paper.application.port.in;
 
 import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.exception.PaperCustomException;
-import jaeik.bimillog.infrastructure.adapter.in.global.listener.UserWithdrawListener;
+import jaeik.bimillog.infrastructure.adapter.in.global.listener.MemberWithdrawListener;
 import jaeik.bimillog.infrastructure.adapter.in.paper.web.PaperCommandController;
 
 /**
@@ -21,7 +21,7 @@ public interface PaperCommandUseCase {
      * <p>messageId가 null인 경우: 해당 사용자의 모든 메시지 삭제 (회원탈퇴 시)</p>
      * <p>messageId가 있는 경우: 특정 메시지 삭제 (소유권 검증 필요)</p>
      * <p>{@link PaperCommandController}에서 메시지 삭제 요청 시 호출되거나,</p>
-     * <p>{@link UserWithdrawListener}에서 회원탈퇴 시 호출됩니다.</p>
+     * <p>{@link MemberWithdrawListener}에서 회원탈퇴 시 호출됩니다.</p>
      *
      * @param userId 현재 로그인한 사용자 ID
      * @param messageId 삭제할 메시지 ID (null인 경우 모든 메시지 삭제)

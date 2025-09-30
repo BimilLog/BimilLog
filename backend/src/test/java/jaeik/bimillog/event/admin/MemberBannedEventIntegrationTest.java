@@ -1,6 +1,6 @@
 package jaeik.bimillog.event.admin;
 
-import jaeik.bimillog.domain.admin.event.UserBannedEvent;
+import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
 import jaeik.bimillog.domain.auth.application.port.in.BlacklistUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.SocialWithdrawUseCase;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
@@ -38,7 +38,7 @@ public class MemberBannedEventIntegrationTest extends BaseEventIntegrationTest {
         Long userId = 1L;
         String socialId = "testKakaoId123";
         SocialProvider provider = SocialProvider.KAKAO;
-        UserBannedEvent event = new UserBannedEvent(userId, socialId, provider);
+        MemberBannedEvent event = new MemberBannedEvent(userId, socialId, provider);
 
         // When & Then
         publishAndVerify(event, () -> {
@@ -55,9 +55,9 @@ public class MemberBannedEventIntegrationTest extends BaseEventIntegrationTest {
     @DisplayName("여러 사용자 차단 이벤트 동시 처리")
     void multipleUserBannedEvents_ShouldProcessConcurrently() {
         // Given
-        UserBannedEvent event1 = new UserBannedEvent(1L, "kakao123", SocialProvider.KAKAO);
-        UserBannedEvent event2 = new UserBannedEvent(2L, "kakao456", SocialProvider.KAKAO);
-        UserBannedEvent event3 = new UserBannedEvent(3L, "kakao789", SocialProvider.KAKAO);
+        MemberBannedEvent event1 = new MemberBannedEvent(1L, "kakao123", SocialProvider.KAKAO);
+        MemberBannedEvent event2 = new MemberBannedEvent(2L, "kakao456", SocialProvider.KAKAO);
+        MemberBannedEvent event3 = new MemberBannedEvent(3L, "kakao789", SocialProvider.KAKAO);
 
         // When & Then - 동시에 여러 사용자 차단 이벤트 발행
         publishEventsAndVerify(new Object[]{event1, event2, event3}, () -> {
@@ -79,7 +79,7 @@ public class MemberBannedEventIntegrationTest extends BaseEventIntegrationTest {
     @DisplayName("다양한 소셜 제공자의 차단 이벤트 처리")
     void userBannedEventsWithVariousProviders_ShouldProcessCorrectly() {
         // Given - 다양한 소셜 제공자
-        UserBannedEvent kakaoEvent = new UserBannedEvent(1L, "kakaoUser", SocialProvider.KAKAO);
+        MemberBannedEvent kakaoEvent = new MemberBannedEvent(1L, "kakaoUser", SocialProvider.KAKAO);
         // 향후 다른 소셜 제공자 추가 시 테스트 확장 가능
 
         // When & Then - 모든 제공자별로 적절히 처리되어야 함

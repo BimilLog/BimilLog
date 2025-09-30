@@ -33,7 +33,7 @@ public interface AdminCommandUseCase {
     /**
      * <h3>사용자 제재 처리</h3>
      * <p>관리자의 제재 결정에 따라 특정 사용자에게 제재를 가합니다.</p>
-     * <p>POST/COMMENT 작성자 조회 후 UserBannedEvent 발행으로 실제 제재 수행</p>
+     * <p>POST/COMMENT 작성자 조회 후 MemberBannedEvent 발행으로 실제 제재 수행</p>
      * <p>{@link AdminCommandController}에서 관리자 제재 결정 시 호출합니다.</p>
      *
      * @param reportType 신고 유형 (POST 또는 COMMENT, 기타 유형은 불가)

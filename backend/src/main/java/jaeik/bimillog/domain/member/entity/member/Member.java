@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.member.entity.member;
 
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.global.entity.BaseEntity;
-import jaeik.bimillog.domain.member.application.port.out.UserQueryPort;
+import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.exception.UserCustomException;
 import jaeik.bimillog.domain.member.exception.UserErrorCode;
@@ -98,13 +98,13 @@ public class Member extends BaseEntity {
      * </p>
      *
      * @param newUserName 새로운 닉네임
-     * @param userQueryPort 중복 확인을 위한 쿼리 포트
+     * @param memberQueryPort 중복 확인을 위한 쿼리 포트
      * @throws UserCustomException 중복된 닉네임인 경우
      * @author Jaeik
      * @since 2.0.0
      */
-    public void changeUserName(String newUserName, UserQueryPort userQueryPort) {
-        if (userQueryPort.existsByUserName(newUserName)) {
+    public void changeUserName(String newUserName, MemberQueryPort memberQueryPort) {
+        if (memberQueryPort.existsByUserName(newUserName)) {
             throw new UserCustomException(UserErrorCode.EXISTED_NICKNAME);
         }
         

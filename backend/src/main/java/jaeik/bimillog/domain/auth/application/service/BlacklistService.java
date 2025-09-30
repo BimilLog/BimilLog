@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.auth.application.service;
 
-import jaeik.bimillog.domain.admin.event.UserBannedEvent;
+import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
 import jaeik.bimillog.domain.auth.application.port.in.BlacklistUseCase;
 import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.RedisJwtBlacklistPort;
@@ -74,7 +74,7 @@ public class BlacklistService implements BlacklistUseCase {
      * <h3>사용자 전체 토큰 블랙리스트 등록</h3>
      * <p>특정 사용자가 보유한 모든 활성 JWT 토큰을 블랙리스트에 등록합니다.</p>
      * <p>사용자 계정 정지, 보안 위반, 강제 로그아웃 처리 시 모든 세션을 무효화합니다.</p>
-     * <p>{@link UserWithdrawnEvent}, {@link UserBannedEvent} 이벤트 발생 시 토큰 무효화를 위해 호출됩니다.</p>
+     * <p>{@link UserWithdrawnEvent}, {@link MemberBannedEvent} 이벤트 발생 시 토큰 무효화를 위해 호출됩니다.</p>
      *
      * @param userId 토큰을 차단할 사용자 ID
      * @author Jaeik

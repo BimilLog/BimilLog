@@ -10,7 +10,7 @@ import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.paper.exception.PaperCustomException;
 import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
 import jaeik.bimillog.domain.member.entity.member.Member;
-import jaeik.bimillog.infrastructure.adapter.in.global.listener.UserWithdrawListener;
+import jaeik.bimillog.infrastructure.adapter.in.global.listener.MemberWithdrawListener;
 import jaeik.bimillog.infrastructure.adapter.in.paper.web.PaperCommandController;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -42,7 +42,7 @@ public class PaperCommandService implements PaperCommandUseCase {
      * <p>messageId가 있는 경우: 특정 메시지를 삭제합니다 (단건 삭제).</p>
      * <p>- 다른 사용자의 messageId를 전송할 수 있으므로 소유권 검증 필요</p>
      * <p>{@link PaperCommandController}에서 메시지 삭제 요청 시 호출되거나,</p>
-     * <p>{@link UserWithdrawListener}에서 회원탈퇴 시 호출됩니다.</p>
+     * <p>{@link MemberWithdrawListener}에서 회원탈퇴 시 호출됩니다.</p>
      *
      * @param userId    현재 로그인한 사용자 ID
      * @param messageId 삭제할 메시지 ID (null인 경우 모든 메시지 삭제)

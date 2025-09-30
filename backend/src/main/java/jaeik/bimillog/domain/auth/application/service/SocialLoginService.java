@@ -2,11 +2,11 @@
 package jaeik.bimillog.domain.auth.application.service;
 
 import jaeik.bimillog.domain.auth.application.port.in.SocialLoginUseCase;
-import jaeik.bimillog.domain.auth.application.port.out.AuthToUserPort;
+import jaeik.bimillog.domain.auth.application.port.out.AuthToMemberPort;
 import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
-import jaeik.bimillog.domain.auth.application.port.out.AuthTokenCommandPort;
+import jaeik.bimillog.domain.auth.application.port.out.AuthTokenPort;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
@@ -44,11 +44,11 @@ import java.util.List;
 public class SocialLoginService implements SocialLoginUseCase {
 
     private final SocialStrategyRegistryPort strategyRegistryPort;
-    private final AuthToUserPort authToUserPort;
+    private final AuthToMemberPort authToMemberPort;
     private final BlacklistPort blacklistPort;
     private final GlobalCookiePort globalCookiePort;
     private final GlobalJwtPort globalJwtPort;
-    private final AuthTokenCommandPort authTokenCommandPort;
+    private final AuthTokenPort authTokenPort;
 
     /**
      * <h3>소셜 플랫폼 로그인 처리</h3>
@@ -92,7 +92,7 @@ public class SocialLoginService implements SocialLoginUseCase {
         }
 
         // 4. 로그인 이후 유저 데이터 작업 유저 도메인으로 책임 위임 결과 값으로 유저 정보 획득
-        MemberDetail memberDetail = authToUserPort.delegateUserData(provider, socialUserProfile);
+        MemberDetail memberDetail = authToMemberPort.delegateUserData(provider, socialUserProfile);
 
         // 5. 기존 유저, 신규 유저에 따라 다른 반환값을 LoginResult에 작성
         if (memberDetail instanceof ExistingMemberDetail existingDetail) {
@@ -102,7 +102,7 @@ public class SocialLoginService implements SocialLoginUseCase {
             String refreshToken = globalJwtPort.generateRefreshToken(existingDetail);
 
             // 5-2. DB에 JWT 리프레시 토큰 저장 (보안 강화)
-            authTokenCommandPort.updateJwtRefreshToken(existingDetail.getTokenId(), refreshToken);
+            authTokenPort.updateJwtRefreshToken(existingDetail.getTokenId(), refreshToken);
 
             // 5-3. JWT 쿠키 생성 및 반환
             List<ResponseCookie> cookies = globalCookiePort.generateJwtCookie(accessToken, refreshToken);

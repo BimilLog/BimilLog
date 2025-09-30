@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.notification.application.port.in;
 
-import jaeik.bimillog.domain.auth.event.UserLoggedOutEvent;
+import jaeik.bimillog.domain.auth.event.MemberLoggedOutEvent;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
@@ -37,7 +37,7 @@ public interface SseUseCase {
      * <p>사용자의 SSE Emitter 연결을 정리하고 메모리에서 제거합니다.</p>
      * <p>tokenId가 null인 경우 모든 SSE 연결을 해제하고, 값이 있는 경우 특정 기기만 해제합니다.</p>
      * <p>{@link UserWithdrawnEvent} 이벤트 발생시 모든 연결 정리(tokenId=null),</p>
-     * <p>{@link UserLoggedOutEvent} 이벤트 발생시 특정 기기 연결 정리(tokenId 값 있음)에서 호출됩니다.</p>
+     * <p>{@link MemberLoggedOutEvent} 이벤트 발생시 특정 기기 연결 정리(tokenId 값 있음)에서 호출됩니다.</p>
      *
      * @param userId 사용자 ID
      * @param tokenId 토큰 ID (null인 경우 모든 연결 정리)

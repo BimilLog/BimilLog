@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.member.entity.memberdetail;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.domain.member.entity.member.MemberRole;
-import jaeik.bimillog.infrastructure.adapter.in.auth.dto.UserInfoResponseDTO;
+import jaeik.bimillog.infrastructure.adapter.in.auth.dto.MemberInfoResponseDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,7 +14,7 @@ import org.springframework.lang.Nullable;
  * <h2>기존 사용자 상세 정보</h2>
  * <p>소셜 로그인 시 기존 회원의 상세 정보를 담는 엔티티입니다.</p>
  * <p>사용자의 모든 정보(ID, 프로필, 토큰, 권한)를 포함하며 JWT 쿠키 생성에 사용됩니다.</p>
- * <p>클라이언트 응답용으로는 {@link UserInfoResponseDTO}를 사용해야 합니다.</p>
+ * <p>클라이언트 응답용으로는 {@link MemberInfoResponseDTO}를 사용해야 합니다.</p>
  *
  * <h3>사용 시나리오:</h3>
  * <ul>
@@ -27,7 +27,7 @@ import org.springframework.lang.Nullable;
  * @version 2.0.0
  * @see MemberDetail
  * @see NewMemberDetail
- * @see UserInfoResponseDTO 클라이언트 응답용 DTO
+ * @see MemberInfoResponseDTO 클라이언트 응답용 DTO
  */
 @Getter
 @Builder

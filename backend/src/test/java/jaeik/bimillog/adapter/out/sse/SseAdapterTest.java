@@ -6,7 +6,7 @@ import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.SseMessage;
 import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
 import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
-import jaeik.bimillog.domain.member.application.port.in.UserQueryUseCase;
+import jaeik.bimillog.domain.member.application.port.in.MemberQueryUseCase;
 import jaeik.bimillog.infrastructure.adapter.out.sse.SseAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,7 +44,7 @@ class SseAdapterTest extends BaseUnitTest {
     private NotificationUtilPort notificationUtilPort;
 
     @Mock
-    private UserQueryUseCase userQueryUseCase;
+    private MemberQueryUseCase memberQueryUseCase;
 
     @Mock
     private NotificationCommandPort notificationCommandPort;
@@ -105,7 +105,7 @@ class SseAdapterTest extends BaseUnitTest {
         emitters.put(emitterId, mockEmitter);
 
         given(notificationUtilPort.SseEligibleForNotification(userId, NotificationType.COMMENT)).willReturn(true);
-        given(userQueryUseCase.findById(userId)).willReturn(Optional.of(getTestUser()));
+        given(memberQueryUseCase.findById(userId)).willReturn(Optional.of(getTestUser()));
 
         // When
         SseMessage sseMessage = SseMessage.of(userId, NotificationType.COMMENT,
@@ -114,7 +114,7 @@ class SseAdapterTest extends BaseUnitTest {
 
         // Then
         verify(notificationUtilPort).SseEligibleForNotification(userId, NotificationType.COMMENT);
-        verify(userQueryUseCase).findById(userId);
+        verify(memberQueryUseCase).findById(userId);
         verify(notificationCommandPort).save(eq(getTestUser()), eq(NotificationType.COMMENT), anyString(), anyString());
 
         // SseEmitter로 실제 전송 시도 확인
@@ -126,7 +126,7 @@ class SseAdapterTest extends BaseUnitTest {
     void shouldThrowException_WhenUserNotFound() {
         // Given
         given(notificationUtilPort.SseEligibleForNotification(userId, NotificationType.COMMENT)).willReturn(true);
-        given(userQueryUseCase.findById(userId)).willReturn(Optional.empty());
+        given(memberQueryUseCase.findById(userId)).willReturn(Optional.empty());
 
         // When & Then
         SseMessage sseMessage = SseMessage.of(userId, NotificationType.COMMENT, "테스트 메시지", "/test/url");
@@ -135,7 +135,7 @@ class SseAdapterTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("notificationErrorCode", NotificationErrorCode.INVALID_USER_CONTEXT);
 
         verify(notificationUtilPort).SseEligibleForNotification(userId, NotificationType.COMMENT);
-        verify(userQueryUseCase).findById(userId);
+        verify(memberQueryUseCase).findById(userId);
         verify(notificationCommandPort, never()).save(any(), any(), any(), any());
     }
 
@@ -144,7 +144,7 @@ class SseAdapterTest extends BaseUnitTest {
     void shouldThrowException_WhenNotificationSaveFails() {
         // Given
         given(notificationUtilPort.SseEligibleForNotification(userId, NotificationType.COMMENT)).willReturn(true);
-        given(userQueryUseCase.findById(userId)).willReturn(Optional.of(getTestUser()));
+        given(memberQueryUseCase.findById(userId)).willReturn(Optional.of(getTestUser()));
         doThrow(new RuntimeException("DB 저장 실패"))
                 .when(notificationCommandPort).save(any(), any(), any(), any());
 
@@ -155,7 +155,7 @@ class SseAdapterTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("notificationErrorCode", NotificationErrorCode.NOTIFICATION_SEND_ERROR);
 
         verify(notificationUtilPort).SseEligibleForNotification(userId, NotificationType.COMMENT);
-        verify(userQueryUseCase).findById(userId);
+        verify(memberQueryUseCase).findById(userId);
         verify(notificationCommandPort).save(eq(getTestUser()), eq(NotificationType.COMMENT), anyString(), anyString());
     }
 
@@ -164,7 +164,7 @@ class SseAdapterTest extends BaseUnitTest {
     void shouldHandleEmptyEmitters_WhenNoEmittersExist() throws Exception {
         // Given
         given(notificationUtilPort.SseEligibleForNotification(userId, NotificationType.COMMENT)).willReturn(true);
-        given(userQueryUseCase.findById(userId)).willReturn(Optional.of(getTestUser()));
+        given(memberQueryUseCase.findById(userId)).willReturn(Optional.of(getTestUser()));
 
         // emitters Map이 비어있는 상태 확인
         Map<String, SseEmitter> emitters = getEmittersMap();
@@ -176,7 +176,7 @@ class SseAdapterTest extends BaseUnitTest {
 
         // Then
         verify(notificationUtilPort).SseEligibleForNotification(userId, NotificationType.COMMENT);
-        verify(userQueryUseCase).findById(userId);
+        verify(memberQueryUseCase).findById(userId);
         verify(notificationCommandPort).save(eq(getTestUser()), eq(NotificationType.COMMENT), anyString(), anyString());
         // Emitter가 없어도 예외가 발생하지 않아야 함
     }
@@ -229,7 +229,7 @@ class SseAdapterTest extends BaseUnitTest {
         emitters.put(userId + "_101_1234567891", mockEmitter2);
 
         given(notificationUtilPort.SseEligibleForNotification(userId, NotificationType.COMMENT)).willReturn(true);
-        given(userQueryUseCase.findById(userId)).willReturn(Optional.of(getTestUser()));
+        given(memberQueryUseCase.findById(userId)).willReturn(Optional.of(getTestUser()));
 
         // When
         SseMessage sseMessage = SseMessage.of(userId, NotificationType.COMMENT, "테스트 메시지", "/test/url");
@@ -237,7 +237,7 @@ class SseAdapterTest extends BaseUnitTest {
 
         // Then
         verify(notificationUtilPort).SseEligibleForNotification(userId, NotificationType.COMMENT);
-        verify(userQueryUseCase).findById(userId);
+        verify(memberQueryUseCase).findById(userId);
         verify(notificationCommandPort).save(eq(getTestUser()), eq(NotificationType.COMMENT), anyString(), anyString());
 
         // 두 Emitter 모두에게 전송 확인
@@ -257,7 +257,7 @@ class SseAdapterTest extends BaseUnitTest {
 
         // Then: 알림 설정 확인만 하고 나머지는 호출되지 않아야 함
         verify(notificationUtilPort).SseEligibleForNotification(userId, NotificationType.COMMENT);
-        verify(userQueryUseCase, never()).findById(any());
+        verify(memberQueryUseCase, never()).findById(any());
         verify(notificationCommandPort, never()).save(any(), any(), any(), any());
     }
 
@@ -276,7 +276,7 @@ class SseAdapterTest extends BaseUnitTest {
                 .when(mockEmitter).send(any(SseEmitter.SseEventBuilder.class));
 
         given(notificationUtilPort.SseEligibleForNotification(userId, NotificationType.COMMENT)).willReturn(true);
-        given(userQueryUseCase.findById(userId)).willReturn(Optional.of(getTestUser()));
+        given(memberQueryUseCase.findById(userId)).willReturn(Optional.of(getTestUser()));
 
         // When
         SseMessage sseMessage = SseMessage.of(userId, NotificationType.COMMENT, "테스트 메시지", "/test/url");

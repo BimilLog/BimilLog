@@ -1,12 +1,12 @@
 package jaeik.bimillog.infrastructure.filter;
 
 import jaeik.bimillog.domain.auth.application.port.in.BlacklistUseCase;
-import jaeik.bimillog.domain.auth.application.port.out.AuthTokenCommandPort;
+import jaeik.bimillog.domain.auth.application.port.out.AuthTokenPort;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalTokenQueryPort;
-import jaeik.bimillog.domain.member.application.port.out.UserQueryPort;
+import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.domain.member.entity.memberdetail.ExistingMemberDetail;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
@@ -40,11 +40,11 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
     private final GlobalTokenQueryPort globalTokenQueryPort;
-    private final UserQueryPort userQueryPort;
+    private final MemberQueryPort memberQueryPort;
     private final GlobalJwtPort globalJwtPort;
     private final GlobalCookiePort globalCookiePort;
     private final BlacklistUseCase blacklistUseCase;
-    private final AuthTokenCommandPort authTokenCommandPort;
+    private final AuthTokenPort authTokenPort;
 
     /**
      * <h3>필터 제외 경로 설정</h3>
@@ -133,22 +133,22 @@ public class JwtFilter extends OncePerRequestFilter {
                 // 2-5. 탈취 감지: 이미 사용된 리프레시 토큰 재사용 시도
                 if (authToken.getUseCount() != null && authToken.getUseCount() > 0) {
                     // 모든 토큰 무효화 (보안 조치)
-                    authTokenCommandPort.deleteAllByUserId(authToken.getUsers().getId());
+                    authTokenPort.deleteAllByUserId(authToken.getUsers().getId());
                     throw new CustomException(ErrorCode.SUSPICIOUS_ACTIVITY);
                 }
 
                 // 2-6. DB 저장 토큰과 클라이언트 토큰 비교 검증
                 if (!refreshToken.equals(authToken.getRefreshToken())) {
                     // 토큰 불일치 → 탈취 의심
-                    authTokenCommandPort.deleteAllByUserId(authToken.getUsers().getId());
+                    authTokenPort.deleteAllByUserId(authToken.getUsers().getId());
                     throw new CustomException(ErrorCode.TOKEN_MISMATCH);
                 }
 
                 // 2-7. 사용 표시 (트랜잭션 내에서 DB 저장)
-                authTokenCommandPort.markTokenAsUsed(tokenId);
+                authTokenPort.markTokenAsUsed(tokenId);
 
                 // 2-8. 유저 정보 조회
-                Member member = userQueryPort.findByIdWithSetting(authToken.getUsers().getId())
+                Member member = memberQueryPort.findByIdWithSetting(authToken.getUsers().getId())
                         .orElseThrow(() -> new CustomException(ErrorCode.TOKEN_NOT_FOUND));
                 ExistingMemberDetail userDetail = ExistingMemberDetail.of(member, tokenId, null);
 
@@ -162,7 +162,7 @@ public class JwtFilter extends OncePerRequestFilter {
                     String newRefreshToken = globalJwtPort.generateRefreshToken(userDetail);
 
                     // DB 업데이트
-                    authTokenCommandPort.updateJwtRefreshToken(tokenId, newRefreshToken);
+                    authTokenPort.updateJwtRefreshToken(tokenId, newRefreshToken);
 
                     // 새 리프레시 토큰 쿠키 발급
                     ResponseCookie refreshCookie = globalCookiePort.generateJwtRefreshCookie(newRefreshToken);
