@@ -8,9 +8,8 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.user.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.user.application.port.out.SaveUserPort;
 import jaeik.bimillog.domain.user.application.service.SignUpService;
-import jaeik.bimillog.domain.user.entity.userdetail.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.user.SocialProvider;
-import jaeik.bimillog.domain.user.entity.TempUserData;
+import jaeik.bimillog.domain.user.entity.userdetail.ExistingUserDetail;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -61,7 +60,6 @@ class SignUpServiceTest extends BaseUnitTest {
     private String testUserName;
     private String testUuid;
     private SocialUserProfile testSocialProfile;
-    private TempUserData testTempData;
     private List<ResponseCookie> testCookies;
     private ExistingUserDetail testUserDetail;
     private final String testAccessToken = "test-access-TemporaryToken";
@@ -73,8 +71,6 @@ class SignUpServiceTest extends BaseUnitTest {
         testUuid = "test-uuid-123";
 
         testSocialProfile = new SocialUserProfile("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg", "access-TemporaryToken", "refresh-TemporaryToken", "fcm-TemporaryToken");
-
-        testTempData = TempUserData.from(testSocialProfile);
 
         testCookies = List.of(
                 ResponseCookie.from("access_token", "access-TemporaryToken").build(),
@@ -88,7 +84,7 @@ class SignUpServiceTest extends BaseUnitTest {
     @DisplayName("유효한 임시 데이터로 회원 가입 성공")
     void shouldSignUp_WhenValidTemporaryData() {
         // Given
-        given(redisUserDataPort.getTempData(testUuid)).willReturn(Optional.of(testTempData));
+        given(redisUserDataPort.getTempData(testUuid)).willReturn(Optional.of(testSocialProfile));
         given(saveUserPort.saveNewUser(
                 eq(testUserName),
                 any(SocialUserProfile.class)
@@ -137,9 +133,8 @@ class SignUpServiceTest extends BaseUnitTest {
     void shouldSignUp_WhenTemporaryDataWithoutFcmToken() {
         // Given
         SocialUserProfile profileWithoutFcm = new SocialUserProfile("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg", "access-TemporaryToken", "refresh-TemporaryToken", null);
-        TempUserData tempDataWithoutFcm = TempUserData.from(profileWithoutFcm);
 
-        given(redisUserDataPort.getTempData(testUuid)).willReturn(Optional.of(tempDataWithoutFcm));
+        given(redisUserDataPort.getTempData(testUuid)).willReturn(Optional.of(profileWithoutFcm));
         given(saveUserPort.saveNewUser(
                 eq(testUserName),
                 any(SocialUserProfile.class)

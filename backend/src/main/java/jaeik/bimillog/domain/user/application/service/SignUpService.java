@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.user.application.service;
 
+import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
@@ -8,7 +9,6 @@ import jaeik.bimillog.domain.user.application.port.in.SignUpUseCase;
 import jaeik.bimillog.domain.user.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.user.application.port.out.SaveUserPort;
 import jaeik.bimillog.domain.user.entity.userdetail.ExistingUserDetail;
-import jaeik.bimillog.domain.user.entity.TempUserData;
 import jaeik.bimillog.infrastructure.adapter.in.user.web.UserCommandController;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
@@ -49,14 +49,14 @@ public class SignUpService implements SignUpUseCase {
      */
     @Override
     public List<ResponseCookie> signUp(String userName, String uuid) {
-        Optional<TempUserData> tempUserData = redisUserDataPort.getTempData(uuid);
+        Optional<SocialUserProfile> socialUserProfile = redisUserDataPort.getTempData(uuid);
 
-        if (tempUserData.isEmpty()) {
+        if (socialUserProfile.isEmpty()) {
             throw new AuthCustomException(AuthErrorCode.INVALID_TEMP_DATA);
         }
 
-        TempUserData userData = tempUserData.get();
-        ExistingUserDetail userDetail = (ExistingUserDetail) saveUserPort.saveNewUser(userName.trim(), userData.toSocialUserProfile());
+        SocialUserProfile userProfile = socialUserProfile.get();
+        ExistingUserDetail userDetail = (ExistingUserDetail) saveUserPort.saveNewUser(userName.trim(), userProfile);
         String accessToken = globalJwtPort.generateAccessToken(userDetail);
         String refreshToken = globalJwtPort.generateRefreshToken(userDetail);
         redisUserDataPort.removeTempData(uuid);

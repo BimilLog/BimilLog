@@ -2,7 +2,6 @@ package jaeik.bimillog.adapter.out.redis;
 
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
-import jaeik.bimillog.domain.user.entity.TempUserData;
 import jaeik.bimillog.infrastructure.adapter.out.redis.RedisUserDataAdapter;
 import jaeik.bimillog.testutil.RedisTestHelper;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
@@ -69,7 +68,7 @@ class RedisUserDataAdapterIntegrationTest {
         redisTempDataAdapter.saveTempData(testUuid, profileWithFcm);
 
         // Then: 저장된 데이터 조회 검증
-        Optional<TempUserData> savedData = redisTempDataAdapter.getTempData(testUuid);
+        Optional<SocialUserProfile> savedData = redisTempDataAdapter.getTempData(testUuid);
 
         assertThat(savedData).isPresent();
         assertThat(savedData.get().getSocialId()).isEqualTo("123456789");
@@ -95,7 +94,7 @@ class RedisUserDataAdapterIntegrationTest {
         assertThat(ttl).isBetween(290L, 300L); // 5분 = 300초, 약간의 오차 허용
 
         // 즉시 조회 시에는 데이터 존재
-        Optional<TempUserData> immediateResult = redisTempDataAdapter.getTempData(testUuid);
+        Optional<SocialUserProfile> immediateResult = redisTempDataAdapter.getTempData(testUuid);
         assertThat(immediateResult).isPresent();
     }
 
@@ -118,7 +117,7 @@ class RedisUserDataAdapterIntegrationTest {
         String nonExistentUuid = "non-existent-uuid";
 
         // When: 존재하지 않는 UUID로 조회
-        Optional<TempUserData> result = redisTempDataAdapter.getTempData(nonExistentUuid);
+        Optional<SocialUserProfile> result = redisTempDataAdapter.getTempData(nonExistentUuid);
 
         // Then: 빈 Optional 반환
         assertThat(result).isEmpty();
@@ -135,7 +134,7 @@ class RedisUserDataAdapterIntegrationTest {
         redisTempDataAdapter.removeTempData(testUuid);
 
         // Then: 데이터가 삭제되어 조회되지 않음
-        Optional<TempUserData> result = redisTempDataAdapter.getTempData(testUuid);
+        Optional<SocialUserProfile> result = redisTempDataAdapter.getTempData(testUuid);
         assertThat(result).isEmpty();
 
         // Redis에서도 삭제됨 확인
@@ -181,7 +180,7 @@ class RedisUserDataAdapterIntegrationTest {
         redisTempDataAdapter.saveTempData(testUuid, profileWithFcm);
 
         // Then: FCM 토큰이 저장됨
-        Optional<TempUserData> result = redisTempDataAdapter.getTempData(testUuid);
+        Optional<SocialUserProfile> result = redisTempDataAdapter.getTempData(testUuid);
         assertThat(result).isPresent();
         assertThat(result.get().getFcmToken()).isEqualTo("test-fcm-token-12345");
         assertThat(result.get().getNickname()).isEqualTo("testUser");

@@ -1,8 +1,8 @@
 package jaeik.bimillog.testutil;
 
-import jaeik.bimillog.domain.user.entity.userdetail.ExistingUserDetail;
 import jaeik.bimillog.domain.user.entity.user.SocialProvider;
 import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.user.entity.userdetail.ExistingUserDetail;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 
 /**

@@ -1,7 +1,9 @@
 package jaeik.bimillog.domain.auth.entity;
 
 import jaeik.bimillog.domain.user.entity.user.SocialProvider;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * <h2>소셜 사용자 프로필</h2>

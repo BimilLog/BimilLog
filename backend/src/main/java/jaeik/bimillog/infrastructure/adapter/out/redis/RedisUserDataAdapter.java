@@ -5,7 +5,6 @@ import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.application.port.out.RedisUserDataPort;
 import jaeik.bimillog.domain.user.entity.user.SocialProvider;
-import jaeik.bimillog.domain.user.entity.TempUserData;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -63,8 +62,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
 
         executeRedisOperation(() -> {
             String key = buildTempKey(uuid);
-            TempUserData tempData = TempUserData.from(userProfile);
-            redisTemplate.opsForValue().set(key, tempData, TTL);
+            redisTemplate.opsForValue().set(key, userProfile, TTL);
             log.debug("UUID {}에 대한 임시 데이터가 Redis에 성공적으로 저장됨", uuid);
         }, uuid);
     }
@@ -75,12 +73,12 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
      * <p>소셜 로그인 두 번째 단계(회원가입 페이지)에서 사용자가 입력한 닉네임과 함께 저장된 소셜 사용자 정보를 조회하기 위해 회원가입 플로우에서 호출합니다.</p>
      *
      * @param uuid 임시 사용자 식별 UUID 키
-     * @return Optional<TempUserData> Optional로 감싼 임시 사용자 데이터
+     * @return Optional<SocialUserProfile> Optional로 감싼 소셜 사용자 프로필
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public Optional<TempUserData> getTempData(String uuid) {
+    public Optional<SocialUserProfile> getTempData(String uuid) {
         if (uuid == null) {
             log.debug("임시 데이터 조회에 null UUID 제공됨, 빈 결과 반환");
             return Optional.empty();
@@ -216,7 +214,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
 
     /**
      * <h3>Redis 데이터를 도메인 모델로 변환</h3>
-     * <p>Redis에서 조회한 Object 데이터를 도메인 모델인 TempUserData로 변환합니다.</p>
+     * <p>Redis에서 조회한 Object 데이터를 도메인 모델인 SocialUserProfile로 변환합니다.</p>
      * <p>getTempData 메서드에서 Redis 조회 결과를 도메인 계층으로 전달하기 위해 호출됩니다.</p>
      *
      * @param uuid 작업 대상 UUID (로깅용)
@@ -226,15 +224,15 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    private Optional<TempUserData> convertRedisDataToDomain(String uuid, Object data) {
+    private Optional<SocialUserProfile> convertRedisDataToDomain(String uuid, Object data) {
         if (data == null) {
             log.debug("UUID {}에 대한 임시 데이터가 Redis에서 발견되지 않음", uuid);
             return Optional.empty();
         }
 
         try {
-            TempUserData tempUserData = convertToTempUserData(uuid, data);
-            return Optional.of(tempUserData);
+            SocialUserProfile socialUserProfile = convertToSocialUserProfile(uuid, data);
+            return Optional.of(socialUserProfile);
         } catch (Exception e) {
             log.error("UUID {}에 대한 임시 데이터 변환 실패: {}", uuid, e.getMessage(), e);
             throw new AuthCustomException(AuthErrorCode.INVALID_TEMP_DATA);
@@ -242,23 +240,23 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
     }
 
     /**
-     * <h3>Object를 TempUserData로 변환</h3>
-     * <p>Redis에서 조회한 Object를 예상되는 타입별로 처리하여 TempUserData로 변환합니다.</p>
+     * <h3>Object를 SocialUserProfile로 변환</h3>
+     * <p>Redis에서 조회한 Object를 예상되는 타입별로 처리하여 SocialUserProfile로 변환합니다.</p>
      * <p>convertRedisDataToDomain 메서드에서 타입 안전 변환을 위해 호출됩니다.</p>
      *
      * @param uuid 작업 대상 UUID (로깅용)
-     * @param data Redis에서 조회한 원시 데이터 (TempUserData 또는 LinkedHashMap)
-     * @return 변환된 TempUserData 객체
+     * @param data Redis에서 조회한 원시 데이터 (SocialUserProfile 또는 LinkedHashMap)
+     * @return 변환된 SocialUserProfile 객체
      * @throws AuthCustomException 예상되지 않은 타입이거나 변환 실패 시
      * @author Jaeik
      * @since 2.0.0
      */
-    private TempUserData convertToTempUserData(String uuid, Object data) {
+    private SocialUserProfile convertToSocialUserProfile(String uuid, Object data) {
         return switch (data) {
-            case TempUserData tempData -> tempData;
+            case SocialUserProfile profile -> profile;
             case Map<?, ?> map -> {
-                log.debug("UUID {}에 대해 LinkedHashMap 타입 데이터를 TempUserData로 변환 시도", uuid);
-                yield convertMapToTempUserData(map);
+                log.debug("UUID {}에 대해 LinkedHashMap 타입 데이터를 SocialUserProfile로 변환 시도", uuid);
+                yield convertMapToSocialUserProfile(map);
             }
             default -> {
                 log.warn("UUID {}에 대해 조회된 데이터가 예상 타입이 아님, 실제: {}", uuid, data.getClass().getSimpleName());
@@ -268,18 +266,18 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
     }
 
     /**
-     * <h3>Map을 TempUserData로 변환</h3>
-     * <p>Redis에서 LinkedHashMap 형태로 역직렬화된 데이터를 TempUserData로 변환합니다.</p>
-     * <p>convertToTempUserData 메서드에서 Map 타입 데이터에 대한 변환 처리를 위해 호출됩니다.</p>
+     * <h3>Map을 SocialUserProfile로 변환</h3>
+     * <p>Redis에서 LinkedHashMap 형태로 역직렬화된 데이터를 SocialUserProfile로 변환합니다.</p>
+     * <p>convertToSocialUserProfile 메서드에서 Map 타입 데이터에 대한 변환 처리를 위해 호출됩니다.</p>
      *
      * @param map LinkedHashMap 형태의 Redis 데이터
-     * @return 변환된 TempUserData 객체
+     * @return 변환된 SocialUserProfile 객체
      * @throws AuthCustomException Map 구조 파싱이나 변환 실패 시
      * @author Jaeik
      * @since 2.0.0
      */
     @SuppressWarnings("unchecked")
-    private TempUserData convertMapToTempUserData(Map<?, ?> map) {
+    private SocialUserProfile convertMapToSocialUserProfile(Map<?, ?> map) {
         try {
             String socialId = (String) map.get("socialId");
             String email = (String) map.get("email");
@@ -290,7 +288,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
             String kakaoRefreshToken = (String) map.get("kakaoRefreshToken");
             String fcmToken = (String) map.get("fcmToken");
 
-            return new TempUserData(
+            return new SocialUserProfile(
                     socialId,
                     email,
                     SocialProvider.valueOf(provider),
@@ -301,7 +299,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
                     fcmToken
             );
         } catch (Exception e) {
-            log.error("LinkedHashMap -> TempUserData 변환 실패: {}", e.getMessage(), e);
+            log.error("LinkedHashMap -> SocialUserProfile 변환 실패: {}", e.getMessage(), e);
             throw new AuthCustomException(AuthErrorCode.INVALID_TEMP_DATA);
         }
     }
