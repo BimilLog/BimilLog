@@ -2,7 +2,7 @@ package jaeik.bimillog.testutil;
 
 import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
-import jaeik.bimillog.infrastructure.adapter.out.api.dto.KakaoTokenDTO;
+import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
@@ -44,8 +44,8 @@ public class TestSocialLoginPortConfig {
         }
 
         @Override
-        public KakaoTokenDTO getToken(String code) {
-            return KakaoTokenDTO.of("dummy-access-token", "dummy-refresh-token");
+        public KakaoToken getToken(String code) {
+            return KakaoToken.of("dummy-access-token", "dummy-refresh-token");
         }
 
         @Override

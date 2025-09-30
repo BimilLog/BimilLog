@@ -1,5 +1,6 @@
 package jaeik.bimillog.adapter.out.api.social.kakao;
 
+import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
 import jaeik.bimillog.domain.global.vo.KakaoKeyVO;
 import jaeik.bimillog.domain.user.entity.user.SocialProvider;
@@ -98,7 +99,7 @@ class KakaoStrategyAdapterTest extends BaseUnitTest {
         given(kakaoApiClient.getUserInfo(anyString())).willReturn(userInfoResponse);
 
         // When - getToken 호출
-        jaeik.bimillog.infrastructure.adapter.out.api.dto.KakaoTokenDTO tokenDTO = kakaoStrategyAdapter.getToken(TEST_AUTH_CODE);
+        KakaoToken tokenDTO = kakaoStrategyAdapter.getToken(TEST_AUTH_CODE);
 
         // Then - 토큰 검증
         assertThat(tokenDTO).isNotNull();

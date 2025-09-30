@@ -5,8 +5,8 @@ import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
+import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
-import jaeik.bimillog.infrastructure.adapter.out.api.dto.KakaoTokenDTO;
 import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
@@ -261,8 +261,8 @@ class SocialLoginServiceTest extends BaseUnitTest {
     /**
      * 테스트용 토큰 획득 - SocialLoginServiceTest 전용
      */
-    private KakaoTokenDTO getTestToken() {
-        return KakaoTokenDTO.of(AuthTestFixtures.TEST_ACCESS_TOKEN, AuthTestFixtures.TEST_REFRESH_TOKEN);
+    private KakaoToken getTestToken() {
+        return KakaoToken.of(AuthTestFixtures.TEST_ACCESS_TOKEN, AuthTestFixtures.TEST_REFRESH_TOKEN);
     }
 
     /**

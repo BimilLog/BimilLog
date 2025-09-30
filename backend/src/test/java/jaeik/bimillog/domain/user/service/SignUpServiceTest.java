@@ -91,7 +91,7 @@ class SignUpServiceTest extends BaseUnitTest {
         given(redisUserDataPort.getTempData(testUuid)).willReturn(Optional.of(testTempData));
         given(saveUserPort.saveNewUser(
                 eq(testUserName),
-                eq(testSocialProfile),
+                any(SocialUserProfileDTO.class),
                 eq("fcm-TemporaryToken")
         )).willReturn(testUserDetail);
         given(globalJwtPort.generateAccessToken(testUserDetail)).willReturn(testAccessToken);
@@ -107,9 +107,9 @@ class SignUpServiceTest extends BaseUnitTest {
 
         verify(redisUserDataPort).getTempData(testUuid);
         verify(saveUserPort).saveNewUser(
-                testUserName,
-                testSocialProfile,
-                "fcm-TemporaryToken"
+                eq(testUserName),
+                any(SocialUserProfileDTO.class),
+                eq("fcm-TemporaryToken")
         );
         verify(redisUserDataPort).removeTempData(testUuid);
         verify(globalJwtPort).generateAccessToken(testUserDetail);
@@ -147,7 +147,7 @@ class SignUpServiceTest extends BaseUnitTest {
         given(redisUserDataPort.getTempData(testUuid)).willReturn(Optional.of(tempDataWithoutFcm));
         given(saveUserPort.saveNewUser(
                 eq(testUserName),
-                eq(testSocialProfile),
+                any(SocialUserProfileDTO.class),
                 eq(null)
         )).willReturn(testUserDetail);
         given(globalJwtPort.generateAccessToken(testUserDetail)).willReturn(testAccessToken);
@@ -161,7 +161,7 @@ class SignUpServiceTest extends BaseUnitTest {
         assertThat(result).isEqualTo(testCookies);
 
         verify(redisUserDataPort).getTempData(testUuid);
-        verify(saveUserPort).saveNewUser(testUserName, testSocialProfile, null);
+        verify(saveUserPort).saveNewUser(eq(testUserName), any(SocialUserProfileDTO.class), eq(null));
         verify(redisUserDataPort).removeTempData(testUuid);
         verify(globalJwtPort).generateAccessToken(testUserDetail);
         verify(globalJwtPort).generateRefreshToken(testUserDetail);

@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.auth.application.port.out;
 
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
-import jaeik.bimillog.infrastructure.adapter.out.api.dto.KakaoTokenDTO;
+import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
 import jaeik.bimillog.domain.user.entity.user.SocialProvider;
 
@@ -32,11 +32,11 @@ public interface SocialStrategyPort {
      * <p>각 플랫폼의 토큰 엔드포인트에 인증 코드를 전송하고 토큰을 받아옵니다.</p>
      *
      * @param code OAuth 2.0 인증 코드
-     * @return KakaoTokenDTO 액세스 토큰과 리프레시 토큰을 담은 DTO
+     * @return KakaoToken 액세스 토큰과 리프레시 토큰을 담은 DTO
      * @author Jaeik
      * @since 2.0.0
      */
-    KakaoTokenDTO getToken(String code);
+    KakaoToken getToken(String code);
 
     SocialUserProfileDTO getUserInfo(String accessToken, String refreshToken);
 

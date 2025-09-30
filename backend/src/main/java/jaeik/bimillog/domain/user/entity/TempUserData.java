@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.user.entity;
 
+import jaeik.bimillog.domain.user.entity.user.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,7 +20,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TempUserData {
 
-    private SocialUserProfileDTO socialUserProfileDTO;
+    private String socialId;
+    private String email;
+    private SocialProvider provider;
+    private String nickname;
+    private String profileImageUrl;
+    private String kakaoAccessToken;
+    private String kakaoRefreshToken;
     private String fcmToken;
 
     /**
@@ -32,6 +39,34 @@ public class TempUserData {
      * @return TempUserData 객체
      */
     public static TempUserData from(SocialUserProfileDTO profile, String fcmToken) {
-        return new TempUserData(profile, fcmToken);
+        return new TempUserData(
+                profile.getSocialId(),
+                profile.getEmail(),
+                profile.getProvider(),
+                profile.getNickname(),
+                profile.getProfileImageUrl(),
+                profile.getKakaoAccessToken(),
+                profile.getKakaoRefreshToken(),
+                fcmToken
+        );
+    }
+
+    /**
+     * <h3>SocialUserProfileDTO로 변환</h3>
+     * <p>개별 필드를 SocialUserProfileDTO로 재조립합니다.</p>
+     * <p>SaveUserPort 등에서 DTO가 필요한 경우 사용됩니다.</p>
+     *
+     * @return SocialUserProfileDTO 객체
+     */
+    public SocialUserProfileDTO toSocialUserProfileDTO() {
+        return SocialUserProfileDTO.of(
+                socialId,
+                email,
+                provider,
+                nickname,
+                profileImageUrl,
+                kakaoAccessToken,
+                kakaoRefreshToken
+        );
     }
 }

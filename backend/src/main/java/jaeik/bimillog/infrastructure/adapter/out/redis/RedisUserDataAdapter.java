@@ -1,7 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.out.redis;
 
 import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
-import jaeik.bimillog.domain.auth.entity.Token;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.user.application.port.out.RedisUserDataPort;
@@ -284,76 +283,29 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
     @SuppressWarnings("unchecked")
     private TempUserData convertMapToTempUserData(Map<?, ?> map) {
         try {
+            String socialId = (String) map.get("socialId");
+            String email = (String) map.get("email");
+            String provider = (String) map.get("provider");
+            String nickname = (String) map.get("nickname");
+            String profileImageUrl = (String) map.get("profileImageUrl");
+            String kakaoAccessToken = (String) map.get("kakaoAccessToken");
+            String kakaoRefreshToken = (String) map.get("kakaoRefreshToken");
             String fcmToken = (String) map.get("fcmToken");
 
-            // 새로운 형식: socialUserProfile 객체가 직접 저장된 경우
-            if (map.containsKey("socialUserProfile")) {
-                Map<String, Object> profileData = (Map<String, Object>) map.get("socialUserProfile");
-
-                String socialId = (String) profileData.get("socialId");
-                String email = (String) profileData.get("email");
-                String provider = (String) profileData.get("provider");
-                String nickname = (String) profileData.get("nickname");
-                String profileImageUrl = (String) profileData.get("profileImageUrl");
-                String kakaoAccessToken = (String) profileData.get("kakaoAccessToken");
-                String kakaoRefreshToken = (String) profileData.get("kakaoRefreshToken");
-
-                SocialUserProfileDTO profile = new SocialUserProfileDTO(
+            return new TempUserData(
                     socialId,
                     email,
                     SocialProvider.valueOf(provider),
                     nickname,
                     profileImageUrl,
                     kakaoAccessToken,
-                    kakaoRefreshToken
-                );
-
-                return new TempUserData(profile, fcmToken);
-            }
-
-            // 이전 형식과의 호환성: 필드가 직접 저장된 경우 (Token 형식)
-            Map<String, Object> tokenMap = (Map<String, Object>) map.get("TemporaryToken");
-            String accessToken = tokenMap != null ? (String) tokenMap.get("accessToken") : null;
-            String refreshToken = tokenMap != null ? (String) tokenMap.get("refreshToken") : null;
-
-            String socialId = (String) map.get("socialId");
-            String email = (String) map.get("email");
-            String provider = (String) map.get("provider");
-            String nickname = (String) map.get("nickname");
-            String profileImageUrl = (String) map.get("profileImageUrl");
-
-            SocialUserProfileDTO profile = new SocialUserProfileDTO(
-                socialId,
-                email,
-                SocialProvider.valueOf(provider),
-                nickname,
-                profileImageUrl,
-                accessToken,
-                refreshToken
+                    kakaoRefreshToken,
+                    fcmToken
             );
-
-            return new TempUserData(profile, fcmToken);
         } catch (Exception e) {
             log.error("LinkedHashMap -> TempUserData 변환 실패: {}", e.getMessage(), e);
             throw new AuthCustomException(AuthErrorCode.INVALID_TEMP_DATA);
         }
-    }
-
-    /**
-     * <h3>Map에서 Token 추출</h3>
-     * <p>LinkedHashMap 형태의 토큰 데이터에서 Token 도메인 객체를 생성합니다.</p>
-     * <p>convertMapToDTO 메서드에서 중첩된 토큰 데이터 추출을 위해 호출됩니다.</p>
-     *
-     * @param tokenMap 토큰 정보가 담긴 Map
-     * @return 추출된 Token 도메인 객체
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private Token extractTokenFromMap(Map<String, Object> tokenMap) {
-        return Token.createTemporaryToken(
-                (String) tokenMap.get("accessToken"),
-                (String) tokenMap.get("refreshToken")
-        );
     }
 
 }

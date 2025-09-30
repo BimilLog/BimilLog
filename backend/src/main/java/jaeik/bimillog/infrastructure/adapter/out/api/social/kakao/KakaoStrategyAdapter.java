@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.out.api.social.kakao;
 
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
-import jaeik.bimillog.infrastructure.adapter.out.api.dto.KakaoTokenDTO;
+import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.infrastructure.adapter.out.api.dto.SocialUserProfileDTO;
 import jaeik.bimillog.domain.global.vo.KakaoKeyVO;
 import jaeik.bimillog.domain.user.entity.user.SocialProvider;
@@ -53,12 +53,12 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
      * <p>카카오 소셜 로그인 처리 내부에서 사용되며, authenticate() 프로세스의 일부로 호출됩니다.</p>
      *
      * @param code 카카오 OAuth 2.0 인증 코드
-     * @return KakaoTokenDTO 카카오 액세스/리프레시 토큰을 담은 DTO
+     * @return KakaoToken 카카오 액세스/리프레시 토큰을 담은 DTO
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public KakaoTokenDTO getToken(String code) {
+    public KakaoToken getToken(String code) {
         Map<String, String> params = new HashMap<>();
         params.put("grant_type", "authorization_code");
         params.put("client_id", kakaoKeyVO.getCLIENT_ID());
@@ -74,7 +74,7 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
 
             String accessToken = (String) responseBody.get("access_token");
             String refreshToken = (String) responseBody.get("refresh_token");
-            return KakaoTokenDTO.of(accessToken, refreshToken);
+            return KakaoToken.of(accessToken, refreshToken);
         } catch (Exception e) {
             throw new RuntimeException("Kakao token request failed: " + e.getMessage(), e);
         }
