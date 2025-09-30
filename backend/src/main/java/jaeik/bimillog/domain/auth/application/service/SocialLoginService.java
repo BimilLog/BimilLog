@@ -95,8 +95,7 @@ public class SocialLoginService implements SocialLoginUseCase {
         UserDetail userDetail = authToUserPort.delegateUserData(provider, socialUserProfile);
 
         // 5. 기존 유저, 신규 유저에 따라 다른 반환값을 LoginResult에 작성
-        if (userDetail instanceof ExistingUserDetail) {
-            ExistingUserDetail existingDetail = (ExistingUserDetail) userDetail;
+        if (userDetail instanceof ExistingUserDetail existingDetail) {
 
             // 5-1. JWT 액세스 토큰 및 리프레시 토큰 생성
             String accessToken = globalJwtPort.generateAccessToken(existingDetail);

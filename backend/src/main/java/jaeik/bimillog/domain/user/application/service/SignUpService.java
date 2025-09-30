@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.user.application.service;
 
+import jaeik.bimillog.domain.auth.application.port.out.TokenCommandPort;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
@@ -33,6 +34,7 @@ public class SignUpService implements SignUpUseCase {
     private final SaveUserPort saveUserPort;
     private final GlobalCookiePort globalCookiePort;
     private final GlobalJwtPort globalJwtPort;
+    private final TokenCommandPort tokenCommandPort;
 
     /**
      * <h3>신규 사용자 회원 가입 처리</h3>
@@ -59,6 +61,10 @@ public class SignUpService implements SignUpUseCase {
         ExistingUserDetail userDetail = (ExistingUserDetail) saveUserPort.saveNewUser(userName.trim(), userProfile);
         String accessToken = globalJwtPort.generateAccessToken(userDetail);
         String refreshToken = globalJwtPort.generateRefreshToken(userDetail);
+
+        // DB에 JWT 리프레시 토큰 저장 (보안 강화 - SocialLoginService와 동일)
+        tokenCommandPort.updateJwtRefreshToken(userDetail.getTokenId(), refreshToken);
+
         redisUserDataPort.removeTempData(uuid);
         return globalCookiePort.generateJwtCookie(accessToken, refreshToken);
     }
