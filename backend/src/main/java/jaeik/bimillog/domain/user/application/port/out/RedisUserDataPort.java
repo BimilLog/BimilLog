@@ -25,12 +25,11 @@ public interface RedisUserDataPort {
      * <p>{@link SocialLoginService}에서 신규 사용자 소셜 로그인 처리 시 호출됩니다.</p>
      *
      * @param uuid 임시 데이터 식별을 위한 고유 UUID 키
-     * @param userProfile 소셜 플랫폼에서 가져온 사용자 프로필 정보 (OAuth 액세스/리프레시 토큰 포함)
-     * @param fcmToken Firebase Cloud Messaging 토큰 (푸시 알림용, 선택적)
+     * @param userProfile 소셜 플랫폼에서 가져온 사용자 프로필 정보 (OAuth 액세스/리프레시 토큰, FCM 토큰 포함)
      * @author Jaeik
      * @since 2.0.0
      */
-    void saveTempData(String uuid, SocialUserProfile userProfile, String fcmToken);
+    void saveTempData(String uuid, SocialUserProfile userProfile);
 
     /**
      * <h3>임시 사용자 데이터 조회</h3>

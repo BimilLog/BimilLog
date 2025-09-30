@@ -43,19 +43,18 @@ public class SaveUserAdapter implements SaveUserPort {
      * <p>기존 회원의 소셜 로그인 시 사용자 정보 업데이트와 JWT 쿠키 발급을 처리합니다.</p>
      * <p>프로필 정보 동기화, 새로운 Token 엔티티 생성/저장, FCM 토큰 등록, JWT 쿠키 발급을 수행합니다.</p>
      *
-     * @param userProfile 소셜 사용자 프로필 (OAuth 액세스/리프레시 토큰 포함)
-     * @param fcmToken FCM 토큰 (선택적)
+     * @param userProfile 소셜 사용자 프로필 (OAuth 액세스/리프레시 토큰, FCM 토큰 포함)
      * @return JWT 인증 쿠키 목록
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     @Transactional
-    public ExistingUserDetail handleExistingUserData(User existingUser, SocialUserProfile userProfile, String fcmToken) {
+    public ExistingUserDetail handleExistingUserData(User existingUser, SocialUserProfile userProfile) {
         existingUser.updateUserInfo(userProfile.getNickname(), userProfile.getProfileImageUrl());
 
         Token newToken = Token.createToken(userProfile.getKakaoAccessToken(), userProfile.getKakaoRefreshToken(), existingUser);
-        Long fcmTokenId = registerFcmTokenIfPresent(existingUser, fcmToken);
+        Long fcmTokenId = registerFcmTokenIfPresent(existingUser, userProfile.getFcmToken());
         Long tokenId = tokenCommandPort.save(newToken).getId();
 
         return ExistingUserDetail.of(existingUser, tokenId, fcmTokenId);
@@ -67,18 +66,17 @@ public class SaveUserAdapter implements SaveUserPort {
      * <p>User 엔티티와 Setting 생성, Token 엔티티 생성/저장, FCM 토큰 등록을 수행합니다.</p>
      *
      * @param userName 사용자가 입력한 닉네임
-     * @param userProfile 소셜 사용자 프로필 (OAuth 액세스/리프레시 토큰 포함)
-     * @param fcmToken FCM 토큰 (선택적)
+     * @param userProfile 소셜 사용자 프로필 (OAuth 액세스/리프레시 토큰, FCM 토큰 포함)
      * @return ExistingUserDetail 생성된 사용자 정보를 담은 객체
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     @Transactional
-    public ExistingUserDetail saveNewUser(String userName, SocialUserProfile userProfile, String fcmToken) {
+    public ExistingUserDetail saveNewUser(String userName, SocialUserProfile userProfile) {
         Setting setting = Setting.createSetting();
         User user = userRepository.save(User.createUser(userProfile.getSocialId(), userProfile.getProvider(), userProfile.getNickname(), userProfile.getProfileImageUrl(), userName, setting));
-        Long fcmTokenId = registerFcmTokenIfPresent(user, fcmToken);
+        Long fcmTokenId = registerFcmTokenIfPresent(user, userProfile.getFcmToken());
         Token newToken = Token.createToken(userProfile.getKakaoAccessToken(), userProfile.getKakaoRefreshToken(), user);
         Long tokenId = tokenCommandPort.save(newToken).getId();
 

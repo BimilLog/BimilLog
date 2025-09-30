@@ -72,7 +72,7 @@ public class SocialLoginService implements SocialLoginUseCase {
         KakaoToken kakaoToken = strategy.getToken(code);
         KakaoUserInfoDTO kakaoUserInfo = strategy.getUserInfo(kakaoToken.accessToken(), kakaoToken.refreshToken());
 
-        // 2. KakaoToken과 KakaoUserInfoDTO를 조합하여 SocialUserProfile 생성
+        // 2. KakaoToken, KakaoUserInfoDTO, fcmToken을 조합하여 SocialUserProfile 생성
         SocialUserProfile socialUserProfile = SocialUserProfile.of(
                 kakaoUserInfo.getSocialId(),
                 kakaoUserInfo.getEmail(),
@@ -80,7 +80,8 @@ public class SocialLoginService implements SocialLoginUseCase {
                 kakaoUserInfo.getNickname(),
                 kakaoUserInfo.getProfileImageUrl(),
                 kakaoToken.accessToken(),
-                kakaoToken.refreshToken()
+                kakaoToken.refreshToken(),
+                fcmToken
         );
 
         // 3. 블랙리스트 사용자 확인
@@ -89,7 +90,7 @@ public class SocialLoginService implements SocialLoginUseCase {
         }
 
         // 4. 로그인 이후 유저 데이터 작업 유저 도메인으로 책임 위임 결과 값으로 유저 정보 획득
-        UserDetail userDetail = authToUserPort.delegateUserData(provider, socialUserProfile, fcmToken);
+        UserDetail userDetail = authToUserPort.delegateUserData(provider, socialUserProfile);
 
         // 5. 기존 유저, 신규 유저에 따라 다른 반환값을 LoginResult에 작성
         if (userDetail instanceof ExistingUserDetail) {

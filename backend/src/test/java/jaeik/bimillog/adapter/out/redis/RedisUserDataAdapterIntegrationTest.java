@@ -62,8 +62,11 @@ class RedisUserDataAdapterIntegrationTest {
     @Test
     @DisplayName("정상 케이스 - 임시 데이터 저장 및 조회")
     void shouldSaveAndRetrieveTempData_WhenValidDataProvided() {
+        // Given: FCM 토큰을 포함한 프로필
+        SocialUserProfile profileWithFcm = RedisTestHelper.createTestSocialUserProfile("123456789", "test@example.com");
+
         // When: 임시 데이터 저장
-        redisTempDataAdapter.saveTempData(testUuid, testUserProfile, "test-fcm-TemporaryToken");
+        redisTempDataAdapter.saveTempData(testUuid, profileWithFcm);
 
         // Then: 저장된 데이터 조회 검증
         Optional<TempUserData> savedData = redisTempDataAdapter.getTempData(testUuid);
@@ -72,8 +75,8 @@ class RedisUserDataAdapterIntegrationTest {
         assertThat(savedData.get().getSocialId()).isEqualTo("123456789");
         assertThat(savedData.get().getEmail()).isEqualTo("test@example.com");
         assertThat(savedData.get().getKakaoAccessToken()).isEqualTo("access-token");
-        assertThat(savedData.get().getFcmToken()).isEqualTo("test-fcm-TemporaryToken");
-        
+        assertThat(savedData.get().getFcmToken()).isNull(); // RedisTestHelper는 기본적으로 null FCM 토큰 생성
+
         // Redis에서 직접 확인
         String key = RedisTestHelper.RedisKeys.tempUserData(testUuid);
         assertThat(redisTemplate.hasKey(key)).isTrue();
@@ -83,14 +86,14 @@ class RedisUserDataAdapterIntegrationTest {
     @DisplayName("정상 케이스 - TTL 설정 확인")
     void shouldSetCorrectTTL_WhenDataSaved() {
         // When: 임시 데이터 저장
-        redisTempDataAdapter.saveTempData(testUuid, testUserProfile, "test-fcm-TemporaryToken");
-        
+        redisTempDataAdapter.saveTempData(testUuid, testUserProfile);
+
         String key = RedisTestHelper.RedisKeys.tempUserData(testUuid);
-        
+
         // Then: TTL이 설정되어 있음 (약 5분)
         Long ttl = redisTemplate.getExpire(key, TimeUnit.SECONDS);
         assertThat(ttl).isBetween(290L, 300L); // 5분 = 300초, 약간의 오차 허용
-        
+
         // 즉시 조회 시에는 데이터 존재
         Optional<TempUserData> immediateResult = redisTempDataAdapter.getTempData(testUuid);
         assertThat(immediateResult).isPresent();
@@ -100,11 +103,11 @@ class RedisUserDataAdapterIntegrationTest {
     @DisplayName("예외 케이스 - null 값들로 저장 시 예외 발생")
     void shouldThrowException_WhenInvalidDataProvided() {
         // When & Then: null UUID로 저장 시도 시 예외 발생
-        assertThatThrownBy(() -> redisTempDataAdapter.saveTempData(null, testUserProfile, null))
+        assertThatThrownBy(() -> redisTempDataAdapter.saveTempData(null, testUserProfile))
                 .isInstanceOf(AuthCustomException.class);
 
         // null userProfile로 저장 시도 시 예외 발생
-        assertThatThrownBy(() -> redisTempDataAdapter.saveTempData(testUuid, null, null))
+        assertThatThrownBy(() -> redisTempDataAdapter.saveTempData(testUuid, null))
                 .isInstanceOf(AuthCustomException.class);
     }
 
@@ -125,7 +128,7 @@ class RedisUserDataAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 임시 데이터 삭제")
     void shouldRemoveTempData_WhenDataExists() {
         // Given: 저장된 데이터
-        redisTempDataAdapter.saveTempData(testUuid, testUserProfile, "test-fcm-TemporaryToken");
+        redisTempDataAdapter.saveTempData(testUuid, testUserProfile);
         assertThat(redisTempDataAdapter.getTempData(testUuid)).isPresent();
 
         // When: 데이터 삭제
@@ -134,7 +137,7 @@ class RedisUserDataAdapterIntegrationTest {
         // Then: 데이터가 삭제되어 조회되지 않음
         Optional<TempUserData> result = redisTempDataAdapter.getTempData(testUuid);
         assertThat(result).isEmpty();
-        
+
         // Redis에서도 삭제됨 확인
         String key = RedisTestHelper.RedisKeys.tempUserData(testUuid);
         assertThat(redisTemplate.hasKey(key)).isFalse();
@@ -160,15 +163,27 @@ class RedisUserDataAdapterIntegrationTest {
 
 
     @Test
-    @DisplayName("FCM 토큰 - null FCM 토큰으로 저장 및 조회")
-    void shouldHandleNullFcmToken_WhenFcmTokenIsNull() {
-        // When: FCM 토큰 없이 저장
-        redisTempDataAdapter.saveTempData(testUuid, testUserProfile, null);
+    @DisplayName("FCM 토큰 - FCM 토큰 포함하여 저장 및 조회")
+    void shouldHandleFcmToken_WhenFcmTokenIsProvided() {
+        // Given: FCM 토큰을 포함한 프로필
+        SocialUserProfile profileWithFcm = new SocialUserProfile(
+            "123456789",
+            "test@example.com",
+            testUserProfile.getProvider(),
+            "testUser",
+            "https://example.com/profile.jpg",
+            "access-token",
+            "refresh-token",
+            "test-fcm-token-12345"
+        );
 
-        // Then: FCM 토큰이 null로 저장됨
+        // When: FCM 토큰과 함께 저장
+        redisTempDataAdapter.saveTempData(testUuid, profileWithFcm);
+
+        // Then: FCM 토큰이 저장됨
         Optional<TempUserData> result = redisTempDataAdapter.getTempData(testUuid);
         assertThat(result).isPresent();
-        assertThat(result.get().getFcmToken()).isNull();
+        assertThat(result.get().getFcmToken()).isEqualTo("test-fcm-token-12345");
         assertThat(result.get().getNickname()).isEqualTo("testUser");
     }
 }

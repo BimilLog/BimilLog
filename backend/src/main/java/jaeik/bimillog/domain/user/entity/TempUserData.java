@@ -30,15 +30,14 @@ public class TempUserData {
     private String fcmToken;
 
     /**
-     * <h3>팩토리 메서드: SocialUserProfile과 함께 생성</h3>
-     * <p>SocialUserProfile과 fcmToken을 받아 TempUserData를 생성합니다.</p>
-     * <p>SocialUserProfile에 카카오 액세스/리프레시 토큰이 포함되어 있습니다.</p>
+     * <h3>팩토리 메서드: SocialUserProfile로부터 생성</h3>
+     * <p>SocialUserProfile을 받아 TempUserData를 생성합니다.</p>
+     * <p>SocialUserProfile에 카카오 액세스/리프레시 토큰과 FCM 토큰이 포함되어 있습니다.</p>
      *
-     * @param profile 소셜 사용자 프로필 (카카오 토큰 포함)
-     * @param fcmToken FCM 토큰
+     * @param profile 소셜 사용자 프로필 (카카오 토큰, FCM 토큰 포함)
      * @return TempUserData 객체
      */
-    public static TempUserData from(SocialUserProfile profile, String fcmToken) {
+    public static TempUserData from(SocialUserProfile profile) {
         return new TempUserData(
                 profile.getSocialId(),
                 profile.getEmail(),
@@ -47,18 +46,17 @@ public class TempUserData {
                 profile.getProfileImageUrl(),
                 profile.getKakaoAccessToken(),
                 profile.getKakaoRefreshToken(),
-                fcmToken
+                profile.getFcmToken()
         );
     }
 
     /**
-     * <h3>SocialUserProfileDTO로 변환</h3>
-     * <p>개별 필드를 SocialUserProfileDTO로 재조립합니다.</p>
-     * <p>SaveUserPort 등에서 DTO가 필요한 경우 사용됩니다.</p>
+     * <h3>SocialUserProfile로 변환</h3>
+     * <p>개별 필드를 SocialUserProfile로 재조립합니다.</p>
      *
      * @return SocialUserProfile 객체
      */
-    public SocialUserProfile toSocialUserProfileDTO() {
+    public SocialUserProfile toSocialUserProfile() {
         return SocialUserProfile.of(
                 socialId,
                 email,
@@ -66,7 +64,8 @@ public class TempUserData {
                 nickname,
                 profileImageUrl,
                 kakaoAccessToken,
-                kakaoRefreshToken
+                kakaoRefreshToken,
+                fcmToken
         );
     }
 }

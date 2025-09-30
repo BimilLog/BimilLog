@@ -51,20 +51,19 @@ public class UserSaveService implements UserSaveUseCase {
      * <p>신규 사용자: 임시 데이터 저장 후 회원가입 페이지로 안내</p>
      *
      * @param provider 소셜 로그인 제공자 (KAKAO 등)
-     * @param authResult 소셜 사용자 프로필 정보
-     * @param fcmToken FCM 토큰 (선택사항)
+     * @param authResult 소셜 사용자 프로필 정보 (FCM 토큰 포함)
      * @return UserDetail 기존 사용자(ExistingUserDetail) 또는 신규 사용자(NewUserDetail) 정보
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public UserDetail processUserData(SocialProvider provider, SocialUserProfile authResult, String fcmToken) {
+    public UserDetail processUserData(SocialProvider provider, SocialUserProfile authResult) {
         Optional<User> existingUser = userQueryPort.findByProviderAndSocialId(provider, authResult.getSocialId());
         if (existingUser.isPresent()) {
             User user = existingUser.get();
-            return saveUserPort.handleExistingUserData(user, authResult, fcmToken);
+            return saveUserPort.handleExistingUserData(user, authResult);
         } else {
-            return handleNewUser(authResult, fcmToken);
+            return handleNewUser(authResult);
         }
     }
 
@@ -72,17 +71,16 @@ public class UserSaveService implements UserSaveUseCase {
      * <h3>신규 사용자 임시 데이터 저장</h3>
      * <p>최초 소셜 로그인하는 사용자의 임시 정보를 저장합니다.</p>
      * <p>회원가입 페이지에서 사용할 UUID 키와 임시 쿠키를 생성합니다.</p>
-     * <p>{@link #processUserData(SocialProvider, SocialUserProfile, String)}에서 신규 사용자 판별 후 호출됩니다.</p>
+     * <p>{@link #processUserData(SocialProvider, SocialUserProfile)}에서 신규 사용자 판별 후 호출됩니다.</p>
      *
-     * @param authResult 소셜 로그인 인증 결과
-     * @param fcmToken 푸시 알림용 FCM 토큰 (선택사항)
+     * @param authResult 소셜 로그인 인증 결과 (FCM 토큰 포함)
      * @return NewUser 회원가입용 UUID와 임시 쿠키 정보
      * @author Jaeik
      * @since 2.0.0
      */
-    private NewUserDetail handleNewUser(SocialUserProfile authResult, String fcmToken) {
+    private NewUserDetail handleNewUser(SocialUserProfile authResult) {
         String uuid = UUID.randomUUID().toString();
-        redisUserDataPort.saveTempData(uuid, authResult, fcmToken);
+        redisUserDataPort.saveTempData(uuid, authResult);
         return NewUserDetail.of(uuid);
     }
 }

@@ -41,13 +41,12 @@ public class AuthToUserAdapter implements AuthToUserPort {
      * <p>{@link SocialLoginService}에서 소셜 로그인 처리 시 호출됩니다.</p>
      *
      * @param provider 소셜 로그인 제공자 (KAKAO 등)
-     * @param profile 소셜 사용자 프로필 정보
-     * @param fcmToken FCM 토큰 (선택사항)
+     * @param profile 소셜 사용자 프로필 정보 (FCM 토큰 포함)
      * @return UserDetail 기존 사용자 또는 신규 사용자 정보
      * @author Jaeik
      * @since 2.0.0
      */
-    public UserDetail delegateUserData(SocialProvider provider, SocialUserProfile profile, String fcmToken) {
-        return userSaveUseCase.processUserData(provider, profile, fcmToken);
+    public UserDetail delegateUserData(SocialProvider provider, SocialUserProfile profile) {
+        return userSaveUseCase.processUserData(provider, profile);
     }
 }

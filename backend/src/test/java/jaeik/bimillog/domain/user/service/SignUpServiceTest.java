@@ -72,10 +72,10 @@ class SignUpServiceTest extends BaseUnitTest {
         testUserName = "testUser";
         testUuid = "test-uuid-123";
 
-        testSocialProfile = new SocialUserProfile("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg", "access-TemporaryToken", "refresh-TemporaryToken");
+        testSocialProfile = new SocialUserProfile("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg", "access-TemporaryToken", "refresh-TemporaryToken", "fcm-TemporaryToken");
 
-        testTempData = TempUserData.from(testSocialProfile, "fcm-TemporaryToken");
-        
+        testTempData = TempUserData.from(testSocialProfile);
+
         testCookies = List.of(
                 ResponseCookie.from("access_token", "access-TemporaryToken").build(),
                 ResponseCookie.from("refresh_token", "refresh-TemporaryToken").build()
@@ -91,8 +91,7 @@ class SignUpServiceTest extends BaseUnitTest {
         given(redisUserDataPort.getTempData(testUuid)).willReturn(Optional.of(testTempData));
         given(saveUserPort.saveNewUser(
                 eq(testUserName),
-                any(SocialUserProfile.class),
-                eq("fcm-TemporaryToken")
+                any(SocialUserProfile.class)
         )).willReturn(testUserDetail);
         given(globalJwtPort.generateAccessToken(testUserDetail)).willReturn(testAccessToken);
         given(globalJwtPort.generateRefreshToken(testUserDetail)).willReturn(testRefreshToken);
@@ -108,8 +107,7 @@ class SignUpServiceTest extends BaseUnitTest {
         verify(redisUserDataPort).getTempData(testUuid);
         verify(saveUserPort).saveNewUser(
                 eq(testUserName),
-                any(SocialUserProfile.class),
-                eq("fcm-TemporaryToken")
+                any(SocialUserProfile.class)
         );
         verify(redisUserDataPort).removeTempData(testUuid);
         verify(globalJwtPort).generateAccessToken(testUserDetail);
@@ -131,24 +129,20 @@ class SignUpServiceTest extends BaseUnitTest {
 
         verify(redisUserDataPort).getTempData(nonExistentUuid);
         // saveNewUser should never be called
-        verify(saveUserPort, never()).saveNewUser(
-                any(),
-                any(),
-                any()
-        );
+        verify(saveUserPort, never()).saveNewUser(any(), any());
     }
 
     @Test
     @DisplayName("FCM 토큰이 없는 임시 데이터로 회원 가입")
     void shouldSignUp_WhenTemporaryDataWithoutFcmToken() {
         // Given
-        TempUserData tempDataWithoutFcm = TempUserData.from(testSocialProfile, null);
+        SocialUserProfile profileWithoutFcm = new SocialUserProfile("kakao123", "test@example.com", SocialProvider.KAKAO, "testUser", "profile.jpg", "access-TemporaryToken", "refresh-TemporaryToken", null);
+        TempUserData tempDataWithoutFcm = TempUserData.from(profileWithoutFcm);
 
         given(redisUserDataPort.getTempData(testUuid)).willReturn(Optional.of(tempDataWithoutFcm));
         given(saveUserPort.saveNewUser(
                 eq(testUserName),
-                any(SocialUserProfile.class),
-                eq(null)
+                any(SocialUserProfile.class)
         )).willReturn(testUserDetail);
         given(globalJwtPort.generateAccessToken(testUserDetail)).willReturn(testAccessToken);
         given(globalJwtPort.generateRefreshToken(testUserDetail)).willReturn(testRefreshToken);
@@ -161,7 +155,7 @@ class SignUpServiceTest extends BaseUnitTest {
         assertThat(result).isEqualTo(testCookies);
 
         verify(redisUserDataPort).getTempData(testUuid);
-        verify(saveUserPort).saveNewUser(eq(testUserName), any(SocialUserProfile.class), eq(null));
+        verify(saveUserPort).saveNewUser(eq(testUserName), any(SocialUserProfile.class));
         verify(redisUserDataPort).removeTempData(testUuid);
         verify(globalJwtPort).generateAccessToken(testUserDetail);
         verify(globalJwtPort).generateRefreshToken(testUserDetail);

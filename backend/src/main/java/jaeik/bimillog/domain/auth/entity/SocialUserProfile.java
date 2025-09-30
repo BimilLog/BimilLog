@@ -16,6 +16,7 @@ import lombok.*;
  * @param profileImageUrl 프로필 이미지 URL (선택사항)
  * @param kakaoAccessToken 카카오 OAuth 액세스 토큰
  * @param kakaoRefreshToken 카카오 OAuth 리프레시 토큰
+ * @param fcmToken Firebase Cloud Messaging 토큰 (선택사항)
  * @author Jaeik
  * @version 2.0.0
  * @since 2.0.0
@@ -31,8 +32,9 @@ public class SocialUserProfile {
     String profileImageUrl;
     String kakaoAccessToken;
     String kakaoRefreshToken;
+    String fcmToken;
 
-    public static SocialUserProfile of(String socialId, String email, SocialProvider provider, String nickname, String profileImageUrl, String kakaoAccessToken, String kakaoRefreshToken) {
-        return new SocialUserProfile(socialId, email, provider, nickname, profileImageUrl, kakaoAccessToken, kakaoRefreshToken);
+    public static SocialUserProfile of(String socialId, String email, SocialProvider provider, String nickname, String profileImageUrl, String kakaoAccessToken, String kakaoRefreshToken, String fcmToken) {
+        return new SocialUserProfile(socialId, email, provider, nickname, profileImageUrl, kakaoAccessToken, kakaoRefreshToken, fcmToken);
     }
 }

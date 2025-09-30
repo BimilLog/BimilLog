@@ -46,26 +46,24 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
      * <p>비즈니스 규칙:</p>
      * <ul>
      *   <li>UUID는 필수 (null, 빈 문자열 불허)</li>
-     *   <li>userProfile는 필수 (null 불허, OAuth 토큰 포함)</li>
-     *   <li>fcmToken은 선택적 (null 허용)</li>
+     *   <li>userProfile는 필수 (null 불허, OAuth 토큰 및 FCM 토큰 포함)</li>
      *   <li>동일 UUID 재저장 시 덮어쓰기</li>
      *   <li>Redis TTL로 자동 만료 (5분)</li>
      * </ul>
      *
      * @param uuid 임시 사용자 식별 UUID 키
-     * @param userProfile 소셜 사용자 프로필 (OAuth 액세스/리프레시 토큰 포함)
-     * @param fcmToken FCM 토큰 (선택적)
+     * @param userProfile 소셜 사용자 프로필 (OAuth 액세스/리프레시 토큰, FCM 토큰 포함)
      * @throws CustomException UUID, userProfile이 유효하지 않은 경우
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void saveTempData(String uuid, SocialUserProfile userProfile, String fcmToken) {
+    public void saveTempData(String uuid, SocialUserProfile userProfile) {
         validateTempDataInputs(uuid, userProfile);
 
         executeRedisOperation(() -> {
             String key = buildTempKey(uuid);
-            TempUserData tempData = TempUserData.from(userProfile, fcmToken);
+            TempUserData tempData = TempUserData.from(userProfile);
             redisTemplate.opsForValue().set(key, tempData, TTL);
             log.debug("UUID {}에 대한 임시 데이터가 Redis에 성공적으로 저장됨", uuid);
         }, uuid);

@@ -45,9 +45,9 @@ class SaveUserAdapterTest extends BaseUnitTest {
     @DisplayName("기존 사용자 로그인 처리 - 정상적인 업데이트 및 FCM 토큰 ID 반환")
     void shouldHandleExistingUserLogin_WhenValidUserDataProvided() {
         // Given: 기존 사용자와 토큰 정보
-        SocialUserProfile userProfile = new SocialUserProfile("123456789", "test@example.com", SocialProvider.KAKAO, "업데이트된닉네임", "https://updated-profile.jpg", "access-TemporaryToken", "refresh-TemporaryToken");
-
         String fcmToken = "fcm-TemporaryToken-12345";
+        SocialUserProfile userProfile = new SocialUserProfile("123456789", "test@example.com", SocialProvider.KAKAO, "업데이트된닉네임", "https://updated-profile.jpg", "access-TemporaryToken", "refresh-TemporaryToken", fcmToken);
+
         Long fcmTokenId = 100L;
         Long tokenId = 1L;
 
@@ -65,7 +65,7 @@ class SaveUserAdapterTest extends BaseUnitTest {
         given(fcmUseCase.registerFcmToken(existingUser, fcmToken)).willReturn(fcmTokenId);
 
         // When: 기존 사용자 로그인 처리
-        ExistingUserDetail result = saveUserAdapter.handleExistingUserData(existingUser, userProfile, fcmToken);
+        ExistingUserDetail result = saveUserAdapter.handleExistingUserData(existingUser, userProfile);
 
         // Then: 사용자 정보 업데이트 검증
         assertThat(existingUser.getSocialNickname()).isEqualTo("업데이트된닉네임");
@@ -93,7 +93,7 @@ class SaveUserAdapterTest extends BaseUnitTest {
     @DisplayName("기존 사용자 로그인 - FCM 토큰 없을 때 등록 미호출")
     void shouldNotPublishFcmEvent_WhenExistingUserHasNoFcmToken() {
         // Given: FCM 토큰이 없는 기존 사용자 로그인
-        SocialUserProfile userProfile = new SocialUserProfile("123456789", "fcm@example.com", SocialProvider.KAKAO, "FCM없음", "https://example.jpg", "access-TemporaryToken", "refresh-TemporaryToken");
+        SocialUserProfile userProfile = new SocialUserProfile("123456789", "fcm@example.com", SocialProvider.KAKAO, "FCM없음", "https://example.jpg", "access-TemporaryToken", "refresh-TemporaryToken", null);
 
         User existingUser = createTestUserWithId(1L);
 
@@ -107,7 +107,7 @@ class SaveUserAdapterTest extends BaseUnitTest {
         given(tokenCommandPort.save(any(Token.class))).willReturn(savedToken);
 
         // When: FCM 토큰 없이 기존 사용자 로그인 처리
-        ExistingUserDetail result = saveUserAdapter.handleExistingUserData(existingUser, userProfile, null);
+        ExistingUserDetail result = saveUserAdapter.handleExistingUserData(existingUser, userProfile);
 
         // Then: FCM 토큰 등록이 호출되지 않았는지 검증
         verify(fcmUseCase, never()).registerFcmToken(any(), any());
@@ -125,7 +125,7 @@ class SaveUserAdapterTest extends BaseUnitTest {
         String fcmToken = "new-fcm-TemporaryToken";
         Long fcmTokenId = 200L;
 
-        SocialUserProfile userProfile = new SocialUserProfile("987654321", "newuser@example.com", SocialProvider.KAKAO, "신규사용자", "https://new-profile.jpg", "access-TemporaryToken", "refresh-TemporaryToken");
+        SocialUserProfile userProfile = new SocialUserProfile("987654321", "newuser@example.com", SocialProvider.KAKAO, "신규사용자", "https://new-profile.jpg", "access-TemporaryToken", "refresh-TemporaryToken", fcmToken);
 
         User newUser = TestUsers.copyWithId(getOtherUser(), 2L);
 
@@ -141,7 +141,7 @@ class SaveUserAdapterTest extends BaseUnitTest {
         given(fcmUseCase.registerFcmToken(newUser, fcmToken)).willReturn(fcmTokenId);
 
         // When: 신규 사용자 저장
-        ExistingUserDetail result = saveUserAdapter.saveNewUser(userName, userProfile, fcmToken);
+        ExistingUserDetail result = saveUserAdapter.saveNewUser(userName, userProfile);
 
         // Then: 사용자 저장 검증
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
@@ -170,9 +170,8 @@ class SaveUserAdapterTest extends BaseUnitTest {
     void shouldNotPublishFcmEvent_WhenFcmTokenIsEmpty() {
         // Given: FCM 토큰이 없는 신규 사용자
         String userName = "userWithoutFcm";
-        String fcmToken = null; // FCM 토큰 없음
 
-        SocialUserProfile userProfile = new SocialUserProfile("111222333", "nofcm@example.com", SocialProvider.KAKAO, "FCM없음", "https://no-fcm.jpg", "access-TemporaryToken", "refresh-TemporaryToken");
+        SocialUserProfile userProfile = new SocialUserProfile("111222333", "nofcm@example.com", SocialProvider.KAKAO, "FCM없음", "https://no-fcm.jpg", "access-TemporaryToken", "refresh-TemporaryToken", null);
 
         User newUser = TestUsers.copyWithId(getThirdUser(), 3L);
         newUser.updateUserInfo("FCM없음", "https://no-fcm.jpg");
@@ -188,7 +187,7 @@ class SaveUserAdapterTest extends BaseUnitTest {
         given(tokenCommandPort.save(any(Token.class))).willReturn(newToken);
 
         // When: FCM 토큰 없이 사용자 저장
-        ExistingUserDetail result = saveUserAdapter.saveNewUser(userName, userProfile, fcmToken);
+        ExistingUserDetail result = saveUserAdapter.saveNewUser(userName, userProfile);
 
         // Then: FCM 토큰이 null이므로 FCM 등록 호출되지 않음
         verify(fcmUseCase, never()).registerFcmToken(any(), any());

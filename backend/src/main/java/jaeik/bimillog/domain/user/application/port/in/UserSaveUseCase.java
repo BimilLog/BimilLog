@@ -14,11 +14,10 @@ public interface UserSaveUseCase {
      * <p>{@link AuthToUserAdapter}에서 Auth 도메인의 요청을 받아 호출됩니다.</p>
      *
      * @param provider 소셜 로그인 제공자 (KAKAO 등)
-     * @param profile 소셜 사용자 프로필 정보
-     * @param fcmToken FCM 토큰 (선택사항)
+     * @param profile 소셜 사용자 프로필 정보 (FCM 토큰 포함)
      * @return UserDetail 기존 사용자(ExistingUserDetail) 또는 신규 사용자(NewUserDetail) 정보
      * @author Jaeik
      * @since 2.0.0
      */
-    UserDetail processUserData(SocialProvider provider, SocialUserProfile profile, String fcmToken);
+    UserDetail processUserData(SocialProvider provider, SocialUserProfile profile);
 }

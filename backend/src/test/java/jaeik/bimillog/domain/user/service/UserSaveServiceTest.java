@@ -57,6 +57,7 @@ class UserSaveServiceTest extends BaseUnitTest {
 
     @BeforeEach
     protected void setUpChild() {
+        testFcmToken = "fcm-TemporaryToken-123";
         testSocialProfile = new SocialUserProfile(
             "kakao123",
             "test@example.com",
@@ -64,9 +65,9 @@ class UserSaveServiceTest extends BaseUnitTest {
             "testNickname",
             "profile.jpg",
             "access-TemporaryToken",
-            "refresh-TemporaryToken"
+            "refresh-TemporaryToken",
+            testFcmToken
         );
-        testFcmToken = "fcm-TemporaryToken-123";
     }
 
     @Test
@@ -81,15 +82,13 @@ class UserSaveServiceTest extends BaseUnitTest {
         ExistingUserDetail expectedDetail = ExistingUserDetail.of(getTestUser(), 1L, 100L);
         given(saveUserPort.handleExistingUserData(
             getTestUser(),
-            testSocialProfile,
-            testFcmToken
+            testSocialProfile
         )).willReturn(expectedDetail);
 
         // When
         UserDetail result = userSaveService.processUserData(
             SocialProvider.KAKAO,
-            testSocialProfile,
-            testFcmToken
+            testSocialProfile
         );
 
         // Then
@@ -100,8 +99,8 @@ class UserSaveServiceTest extends BaseUnitTest {
         assertThat(existingUserDetail.getFcmTokenId()).isEqualTo(100L);
 
         verify(userQueryPort).findByProviderAndSocialId(SocialProvider.KAKAO, "kakao123");
-        verify(saveUserPort).handleExistingUserData(getTestUser(), testSocialProfile, testFcmToken);
-        verify(redisUserDataPort, never()).saveTempData(any(), any(), any());
+        verify(saveUserPort).handleExistingUserData(getTestUser(), testSocialProfile);
+        verify(redisUserDataPort, never()).saveTempData(any(), any());
     }
 
     @Test
@@ -116,8 +115,7 @@ class UserSaveServiceTest extends BaseUnitTest {
         // When
         UserDetail result = userSaveService.processUserData(
             SocialProvider.KAKAO,
-            testSocialProfile,
-            testFcmToken
+            testSocialProfile
         );
 
         // Then
@@ -129,25 +127,33 @@ class UserSaveServiceTest extends BaseUnitTest {
         // Redis에 임시 데이터 저장 검증
         ArgumentCaptor<String> uuidCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<SocialUserProfile> profileCaptor = ArgumentCaptor.forClass(SocialUserProfile.class);
-        ArgumentCaptor<String> fcmCaptor = ArgumentCaptor.forClass(String.class);
 
         verify(redisUserDataPort).saveTempData(
             uuidCaptor.capture(),
-            profileCaptor.capture(),
-            fcmCaptor.capture()
+            profileCaptor.capture()
         );
 
         assertThat(uuidCaptor.getValue()).isEqualTo(newUserDetail.getUuid());
         assertThat(profileCaptor.getValue()).isEqualTo(testSocialProfile);
-        assertThat(fcmCaptor.getValue()).isEqualTo(testFcmToken);
 
-        verify(saveUserPort, never()).handleExistingUserData(any(), any(), any());
+        verify(saveUserPort, never()).handleExistingUserData(any(), any());
     }
 
     @Test
     @DisplayName("FCM 토큰이 null인 경우 처리")
     void shouldProcessUserData_WhenFcmTokenIsNull() {
         // Given
+        SocialUserProfile profileWithoutFcm = new SocialUserProfile(
+            "kakao123",
+            "test@example.com",
+            SocialProvider.KAKAO,
+            "testNickname",
+            "profile.jpg",
+            "access-TemporaryToken",
+            "refresh-TemporaryToken",
+            null
+        );
+
         given(userQueryPort.findByProviderAndSocialId(
             SocialProvider.KAKAO,
             "kakao123"
@@ -156,15 +162,13 @@ class UserSaveServiceTest extends BaseUnitTest {
         ExistingUserDetail expectedDetail = ExistingUserDetail.of(getTestUser(), 1L, null);
         given(saveUserPort.handleExistingUserData(
             getTestUser(),
-            testSocialProfile,
-            null
+            profileWithoutFcm
         )).willReturn(expectedDetail);
 
         // When
         UserDetail result = userSaveService.processUserData(
             SocialProvider.KAKAO,
-            testSocialProfile,
-            null
+            profileWithoutFcm
         );
 
         // Then
@@ -172,13 +176,24 @@ class UserSaveServiceTest extends BaseUnitTest {
         ExistingUserDetail existingUserDetail = (ExistingUserDetail) result;
         assertThat(existingUserDetail.getFcmTokenId()).isNull();
 
-        verify(saveUserPort).handleExistingUserData(getTestUser(), testSocialProfile, null);
+        verify(saveUserPort).handleExistingUserData(getTestUser(), profileWithoutFcm);
     }
 
     @Test
     @DisplayName("신규 사용자 - FCM 토큰 없이 처리")
     void shouldHandleNewUser_WithoutFcmToken() {
         // Given
+        SocialUserProfile profileWithoutFcm = new SocialUserProfile(
+            "kakao123",
+            "test@example.com",
+            SocialProvider.KAKAO,
+            "testNickname",
+            "profile.jpg",
+            "access-TemporaryToken",
+            "refresh-TemporaryToken",
+            null
+        );
+
         given(userQueryPort.findByProviderAndSocialId(
             SocialProvider.KAKAO,
             "kakao123"
@@ -187,8 +202,7 @@ class UserSaveServiceTest extends BaseUnitTest {
         // When
         UserDetail result = userSaveService.processUserData(
             SocialProvider.KAKAO,
-            testSocialProfile,
-            null
+            profileWithoutFcm
         );
 
         // Then
@@ -196,14 +210,10 @@ class UserSaveServiceTest extends BaseUnitTest {
         NewUserDetail newUserDetail = (NewUserDetail) result;
 
         // Redis에 FCM 토큰 없이 저장되는지 검증
-        ArgumentCaptor<String> fcmCaptor = ArgumentCaptor.forClass(String.class);
         verify(redisUserDataPort).saveTempData(
             eq(newUserDetail.getUuid()),
-            eq(testSocialProfile),
-            fcmCaptor.capture()
+            eq(profileWithoutFcm)
         );
-
-        assertThat(fcmCaptor.getValue()).isNull();
     }
 
     @Test
@@ -217,7 +227,8 @@ class UserSaveServiceTest extends BaseUnitTest {
             "googleUser",
             "google-profile.jpg",
             "access-token",
-            "refresh-token"
+            "refresh-token",
+            testFcmToken
         );
 
         User googleUser = getOtherUser();
@@ -229,20 +240,18 @@ class UserSaveServiceTest extends BaseUnitTest {
         ExistingUserDetail expectedDetail = ExistingUserDetail.of(googleUser, 2L, 200L);
         given(saveUserPort.handleExistingUserData(
             googleUser,
-            googleProfile,
-            testFcmToken
+            googleProfile
         )).willReturn(expectedDetail);
 
         // When
         UserDetail result = userSaveService.processUserData(
             SocialProvider.GOOGLE,
-            googleProfile,
-            testFcmToken
+            googleProfile
         );
 
         // Then
         assertThat(result).isInstanceOf(ExistingUserDetail.class);
         verify(userQueryPort).findByProviderAndSocialId(SocialProvider.GOOGLE, "google456");
-        verify(saveUserPort).handleExistingUserData(googleUser, googleProfile, testFcmToken);
+        verify(saveUserPort).handleExistingUserData(googleUser, googleProfile);
     }
 }

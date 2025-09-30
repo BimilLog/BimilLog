@@ -67,7 +67,8 @@ public class RedisTestHelper {
                 "testUser",
                 "https://example.com/profile.jpg",
                 "access-token",
-                "refresh-token"
+                "refresh-token",
+                null
         );
     }
 
