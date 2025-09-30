@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.in.auth.dto;
 
-import jaeik.bimillog.domain.user.entity.user.UserRole;
-import jaeik.bimillog.domain.user.entity.userdetail.ExistingUserDetail;
+import jaeik.bimillog.domain.member.entity.member.MemberRole;
+import jaeik.bimillog.domain.member.entity.memberdetail.ExistingMemberDetail;
 import lombok.Builder;
 
 /**
@@ -14,7 +14,7 @@ import lombok.Builder;
  */
 @Builder
 public record UserInfoResponseDTO(Long userId, Long settingId, String socialNickname, String thumbnailImage,
-                                  String userName, UserRole role) {
+                                  String userName, MemberRole role) {
 
     /**
      * <h3>ClientDTO에서 UserInfoResponseDTO로 변환</h3>
@@ -25,7 +25,7 @@ public record UserInfoResponseDTO(Long userId, Long settingId, String socialNick
      * @since 2.0.0
      * @author Jaeik
      */
-    public static UserInfoResponseDTO from(ExistingUserDetail userDetail) {
+    public static UserInfoResponseDTO from(ExistingMemberDetail userDetail) {
         return UserInfoResponseDTO.builder()
                 .userId(userDetail.getUserId())
                 .settingId(userDetail.getSettingId())

@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.comment.entity;
 
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -37,7 +37,7 @@ public class CommentLike {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    private User user;
+    private Member member;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "comment_id")

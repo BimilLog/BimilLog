@@ -6,7 +6,7 @@ import jaeik.bimillog.domain.auth.application.port.out.AuthToUserPort;
 import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
-import jaeik.bimillog.domain.auth.application.port.out.TokenCommandPort;
+import jaeik.bimillog.domain.auth.application.port.out.AuthTokenCommandPort;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
@@ -14,10 +14,10 @@ import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
-import jaeik.bimillog.domain.user.entity.user.SocialProvider;
-import jaeik.bimillog.domain.user.entity.userdetail.ExistingUserDetail;
-import jaeik.bimillog.domain.user.entity.userdetail.NewUserDetail;
-import jaeik.bimillog.domain.user.entity.userdetail.UserDetail;
+import jaeik.bimillog.domain.member.entity.member.SocialProvider;
+import jaeik.bimillog.domain.member.entity.memberdetail.ExistingMemberDetail;
+import jaeik.bimillog.domain.member.entity.memberdetail.NewMemberDetail;
+import jaeik.bimillog.domain.member.entity.memberdetail.MemberDetail;
 import jaeik.bimillog.infrastructure.adapter.in.auth.web.AuthCommandController;
 import jaeik.bimillog.domain.auth.entity.KakaoUserInfo;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +48,7 @@ public class SocialLoginService implements SocialLoginUseCase {
     private final BlacklistPort blacklistPort;
     private final GlobalCookiePort globalCookiePort;
     private final GlobalJwtPort globalJwtPort;
-    private final TokenCommandPort tokenCommandPort;
+    private final AuthTokenCommandPort authTokenCommandPort;
 
     /**
      * <h3>소셜 플랫폼 로그인 처리</h3>
@@ -92,24 +92,24 @@ public class SocialLoginService implements SocialLoginUseCase {
         }
 
         // 4. 로그인 이후 유저 데이터 작업 유저 도메인으로 책임 위임 결과 값으로 유저 정보 획득
-        UserDetail userDetail = authToUserPort.delegateUserData(provider, socialUserProfile);
+        MemberDetail memberDetail = authToUserPort.delegateUserData(provider, socialUserProfile);
 
         // 5. 기존 유저, 신규 유저에 따라 다른 반환값을 LoginResult에 작성
-        if (userDetail instanceof ExistingUserDetail existingDetail) {
+        if (memberDetail instanceof ExistingMemberDetail existingDetail) {
 
             // 5-1. JWT 액세스 토큰 및 리프레시 토큰 생성
             String accessToken = globalJwtPort.generateAccessToken(existingDetail);
             String refreshToken = globalJwtPort.generateRefreshToken(existingDetail);
 
             // 5-2. DB에 JWT 리프레시 토큰 저장 (보안 강화)
-            tokenCommandPort.updateJwtRefreshToken(existingDetail.getTokenId(), refreshToken);
+            authTokenCommandPort.updateJwtRefreshToken(existingDetail.getTokenId(), refreshToken);
 
             // 5-3. JWT 쿠키 생성 및 반환
             List<ResponseCookie> cookies = globalCookiePort.generateJwtCookie(accessToken, refreshToken);
             return new LoginResult.ExistingUser(cookies);
         } else {
-            ResponseCookie tempCookie = globalCookiePort.createTempCookie((NewUserDetail) userDetail);
-            return new LoginResult.NewUser(((NewUserDetail) userDetail).getUuid(), tempCookie);
+            ResponseCookie tempCookie = globalCookiePort.createTempCookie((NewMemberDetail) memberDetail);
+            return new LoginResult.NewUser(((NewMemberDetail) memberDetail).getUuid(), tempCookie);
         }
     }
 

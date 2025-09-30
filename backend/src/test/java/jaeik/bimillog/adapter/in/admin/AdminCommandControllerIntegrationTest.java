@@ -2,7 +2,7 @@ package jaeik.bimillog.adapter.in.admin;
 
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.in.admin.dto.ReportDTO;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostRepository;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
@@ -36,8 +36,8 @@ class AdminCommandControllerIntegrationTest extends BaseIntegrationTest {
 
     @Override
     protected void setUpChild() {
-        if (adminUser != null) {
-            adminUserDetails = createCustomUserDetails(adminUser);
+        if (adminMember != null) {
+            adminUserDetails = createCustomUserDetails(adminMember);
         }
     }
 
@@ -48,9 +48,9 @@ class AdminCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("관리자 권한으로 사용자 차단 - 성공")
     void banUser_WithAdminRole_Success() throws Exception {
         // Given - 테스트용 사용자와 게시글 생성
-        User testTargetUser = userRepository.save(TestUsers.createUniqueWithPrefix("target"));
+        Member testTargetMember = userRepository.save(TestUsers.createUniqueWithPrefix("target"));
 
-        Post testPost = PostTestDataBuilder.createPost(testTargetUser, "테스트 게시글", "테스트 내용");
+        Post testPost = PostTestDataBuilder.createPost(testTargetMember, "테스트 게시글", "테스트 내용");
         Post savedPost = postRepository.save(testPost);
 
         ReportDTO reportDTO = ReportDTO.builder()
@@ -70,9 +70,9 @@ class AdminCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("관리자 권한으로 사용자 강제 탈퇴 - 성공")
     void forceWithdrawUser_WithAdminRole_Success() throws Exception {
         // Given
-        User targetUser = userRepository.save(TestUsers.createUniqueWithPrefix("withdraw"));
+        Member targetMember = userRepository.save(TestUsers.createUniqueWithPrefix("withdraw"));
 
-        Post testPost = PostTestDataBuilder.createPost(targetUser, "테스트 게시글", "테스트 내용");
+        Post testPost = PostTestDataBuilder.createPost(targetMember, "테스트 게시글", "테스트 내용");
         Post savedPost = postRepository.save(testPost);
 
         ReportDTO reportDTO = ReportDTO.builder()

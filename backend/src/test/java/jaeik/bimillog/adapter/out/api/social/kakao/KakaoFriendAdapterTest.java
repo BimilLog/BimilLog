@@ -1,6 +1,6 @@
 package jaeik.bimillog.adapter.out.api.social.kakao;
 
-import jaeik.bimillog.domain.user.entity.KakaoFriendsResponseVO;
+import jaeik.bimillog.domain.member.entity.KakaoFriendsResponseVO;
 import jaeik.bimillog.infrastructure.adapter.out.api.dto.KakaoFriendsDTO;
 import jaeik.bimillog.infrastructure.adapter.out.api.social.kakao.KakaoFriendAdapter;
 import jaeik.bimillog.infrastructure.adapter.out.api.social.kakao.KakaoSocialAdapter;

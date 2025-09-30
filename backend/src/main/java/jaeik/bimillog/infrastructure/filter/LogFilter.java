@@ -36,8 +36,8 @@ public class LogFilter extends OncePerRequestFilter {
             "/api/paper", "/api/post/query", "api/post/query/{postId}", "/api/post/search", "api/post/manage/write",
             "/api/post/manage/update", "/api/post/manage/delete",
             "/api/post/cache/realtime", "/api/post/cache/weekly", "/api/post/cache/legend", "/api/post/cache/notice",
-            "/api/user/posts", "/api/user/comments", "/api/user/likeposts", "/api/user/likecomments",
-            "/api/user/username/check");
+            "/api/member/posts", "/api/member/comments", "/api/member/likeposts", "/api/member/likecomments",
+            "/api/member/username/check");
 
     /**
      * <h3>필터 내부 처리</h3>
@@ -69,10 +69,10 @@ public class LogFilter extends OncePerRequestFilter {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null) {
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-            Long userId = userDetails.getExistingUserDetail().getUserId();
-            String socialId = userDetails.getExistingUserDetail().getSocialId();
-            String socialNickname = userDetails.getExistingUserDetail().getSocialNickname();
-            String provider = userDetails.getExistingUserDetail().getProvider().name();
+            Long userId = userDetails.getExistingMemberDetail().getUserId();
+            String socialId = userDetails.getExistingMemberDetail().getSocialId();
+            String socialNickname = userDetails.getExistingMemberDetail().getSocialNickname();
+            String provider = userDetails.getExistingMemberDetail().getProvider().name();
 
             if (uri.startsWith("/dto")) {
                 log.error(

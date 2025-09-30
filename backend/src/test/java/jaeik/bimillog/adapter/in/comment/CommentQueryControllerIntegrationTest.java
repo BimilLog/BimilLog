@@ -44,13 +44,13 @@ class CommentQueryControllerIntegrationTest extends BaseIntegrationTest {
     @Override
     protected void setUpChild() {
         // testUser는 BaseIntegrationTest에서 이미 생성됨
-        testPost = PostTestDataBuilder.createPost(testUser, "테스트 게시글", "테스트 게시글 내용입니다.");
+        testPost = PostTestDataBuilder.createPost(testMember, "테스트 게시글", "테스트 게시글 내용입니다.");
         postRepository.save(testPost);
         
         // 테스트용 댓글들 생성
         for (int i = 1; i <= 5; i++) {
             Comment comment = CommentTestDataBuilder.createComment(
-                    testUser, testPost, "테스트 댓글 " + i);
+                    testMember, testPost, "테스트 댓글 " + i);
             commentRepository.save(comment);
         }
     }
@@ -77,7 +77,7 @@ class CommentQueryControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("댓글 조회 통합 테스트 - 빈 페이지")
     void getComments_EmptyPage_IntegrationTest() throws Exception {
         // Given - 댓글이 없는 새로운 게시글
-        Post emptyPost = PostTestDataBuilder.createPost(testUser, "빈 게시글", "댓글이 없는 게시글입니다.");
+        Post emptyPost = PostTestDataBuilder.createPost(testMember, "빈 게시글", "댓글이 없는 게시글입니다.");
         postRepository.save(emptyPost);
         
 

@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.out.post;
 
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -22,12 +22,12 @@ public interface PostLikeRepository extends JpaRepository<PostLike, Long> {
      * <h3>사용자와 게시글로 추천 삭제</h3>
      * <p>특정 사용자의 특정 게시글에 대한 추천를 삭제합니다.</p>
      *
-     * @param user 사용자 엔티티
+     * @param member 사용자 엔티티
      * @param post 게시글 엔티티
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteByUserAndPost(User user, Post post);
+    void deleteByUserAndPost(Member member, Post post);
 
     /**
      * <h3>게시글 ID로 모든 추천 삭제</h3>

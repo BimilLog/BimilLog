@@ -33,7 +33,7 @@ public interface PostFulltextRepository extends JpaRepository<Post, Long> {
     @Query(value = """
             SELECT p.post_id, p.title, p.views, p.is_notice, p.post_cache_flag, p.created_at, p.user_id, u.user_name
             FROM post p
-            LEFT JOIN users u ON p.user_id = u.user_id
+            LEFT JOIN members u ON p.user_id = u.user_id
             WHERE p.is_notice = false
             AND MATCH(p.title) AGAINST(:keyword IN BOOLEAN MODE)
             ORDER BY p.created_at DESC
@@ -54,7 +54,7 @@ public interface PostFulltextRepository extends JpaRepository<Post, Long> {
     @Query(value = """
             SELECT p.post_id, p.title, p.views, p.is_notice, p.post_cache_flag, p.created_at, p.user_id, u.user_name
             FROM post p
-            LEFT JOIN users u ON p.user_id = u.user_id
+            LEFT JOIN members u ON p.user_id = u.user_id
             WHERE p.is_notice = false
             AND MATCH(p.title, p.content) AGAINST(:keyword IN BOOLEAN MODE)
             ORDER BY p.created_at DESC

@@ -84,7 +84,7 @@ public class Datainit {
             // 간단한 데이터 개수 확인 쿼리들
             String checkQuery = """
                 SELECT
-                    (SELECT COUNT(*) FROM user) as user_count,
+                    (SELECT COUNT(*) FROM member) as user_count,
                     (SELECT COUNT(*) FROM post) as post_count,
                     (SELECT COUNT(*) FROM comment) as comment_count,
                     (SELECT COUNT(*) FROM message) as message_count,

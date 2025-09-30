@@ -2,7 +2,7 @@ package jaeik.bimillog.adapter.out.notification;
 
 import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.out.notification.NotificationQueryAdapter;
 import jaeik.bimillog.testutil.H2TestConfiguration;
 import jaeik.bimillog.testutil.NotificationTestDataBuilder;
@@ -48,24 +48,24 @@ class NotificationQueryAdapterIntegrationTest {
     @Autowired
     private TestEntityManager testEntityManager;
 
-    private User targetUser;
-    private User otherUser;
+    private Member targetMember;
+    private Member otherMember;
 
     @BeforeEach
     void setUp() {
-        targetUser = TestUsers.copyWithId(TestUsers.USER1, null);
-        otherUser = TestUsers.copyWithId(TestUsers.USER2, null);
+        targetMember = TestUsers.copyWithId(TestUsers.MEMBER_1, null);
+        otherMember = TestUsers.copyWithId(TestUsers.MEMBER_2, null);
 
-        targetUser = testEntityManager.persistAndFlush(targetUser);
-        otherUser = testEntityManager.persistAndFlush(otherUser);
+        targetMember = testEntityManager.persistAndFlush(targetMember);
+        otherMember = testEntityManager.persistAndFlush(otherMember);
     }
 
     @Test
     @DisplayName("사용자 알림이 생성일 역순으로 조회된다")
     void shouldReturnNotificationsOrderedByCreatedAtDesc() {
-        Notification older = NotificationTestDataBuilder.aCommentNotification(targetUser, 1L).build();
-        Notification newest = NotificationTestDataBuilder.aPaperMessageNotification(targetUser).build();
-        Notification middle = NotificationTestDataBuilder.aLikeNotification(targetUser, 3L).build();
+        Notification older = NotificationTestDataBuilder.aCommentNotification(targetMember, 1L).build();
+        Notification newest = NotificationTestDataBuilder.aPaperMessageNotification(targetMember).build();
+        Notification middle = NotificationTestDataBuilder.aLikeNotification(targetMember, 3L).build();
 
         older = testEntityManager.persist(older);
         middle = testEntityManager.persist(middle);
@@ -77,14 +77,14 @@ class NotificationQueryAdapterIntegrationTest {
         TestFixtures.setFieldValue(newest, "createdAt", now);
 
         // 다른 사용자의 알림은 조회되지 않아야 한다
-        Notification otherNotification = NotificationTestDataBuilder.anAdminNotification(otherUser, "관리자 메시지").build();
+        Notification otherNotification = NotificationTestDataBuilder.anAdminNotification(otherMember, "관리자 메시지").build();
         otherNotification = testEntityManager.persist(otherNotification);
         TestFixtures.setFieldValue(otherNotification, "createdAt", now.minusSeconds(30));
 
         testEntityManager.flush();
         testEntityManager.clear();
 
-        List<Notification> notifications = notificationQueryAdapter.getNotificationList(targetUser.getId());
+        List<Notification> notifications = notificationQueryAdapter.getNotificationList(targetMember.getId());
 
         assertThat(notifications)
                 .extracting(Notification::getNotificationType)
@@ -101,7 +101,7 @@ class NotificationQueryAdapterIntegrationTest {
         testEntityManager.flush();
         testEntityManager.clear();
 
-        List<Notification> notifications = notificationQueryAdapter.getNotificationList(otherUser.getId());
+        List<Notification> notifications = notificationQueryAdapter.getNotificationList(otherMember.getId());
 
         assertThat(notifications).isEmpty();
     }

@@ -3,8 +3,8 @@ package jaeik.bimillog.adapter.out.notification;
 import jaeik.bimillog.BimilLogApplication;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.user.entity.Setting;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.Setting;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.out.notification.NotificationUtilAdapter;
 import jaeik.bimillog.testutil.H2TestConfiguration;
 import jaeik.bimillog.testutil.TestUsers;
@@ -52,33 +52,33 @@ class NotificationUtilAdapterIntegrationTest {
     @Autowired
     private TestEntityManager testEntityManager;
 
-    private User enabledUser;
-    private User disabledUser;
+    private Member enabledMember;
+    private Member disabledMember;
     private Long enabledUserId;
     private Long disabledUserId;
 
     @BeforeEach
     void setUp() {
         // Given: 알림이 활성화된 사용자 설정
-        enabledUser = TestUsers.copyWithId(TestUsers.USER1, null);
-        enabledUser = testEntityManager.persistAndFlush(enabledUser);
-        enabledUserId = enabledUser.getId();
+        enabledMember = TestUsers.copyWithId(TestUsers.MEMBER_1, null);
+        enabledMember = testEntityManager.persistAndFlush(enabledMember);
+        enabledUserId = enabledMember.getId();
 
         // Given: 알림이 비활성화된 사용자 설정
         Setting disabledSetting = TestUsers.createAllDisabledSetting();
         disabledSetting = testEntityManager.persistAndFlush(disabledSetting);
 
-        User sourceUser = TestUsers.USER2;
-        disabledUser = User.createUser(
-            sourceUser.getSocialId(),
-            sourceUser.getProvider(),
-            sourceUser.getSocialNickname(),
-            sourceUser.getThumbnailImage(),
-            sourceUser.getUserName(),
+        Member sourceMember = TestUsers.MEMBER_2;
+        disabledMember = Member.createUser(
+            sourceMember.getSocialId(),
+            sourceMember.getProvider(),
+            sourceMember.getSocialNickname(),
+            sourceMember.getThumbnailImage(),
+            sourceMember.getUserName(),
             disabledSetting
         );
-        disabledUser = testEntityManager.persistAndFlush(disabledUser);
-        disabledUserId = disabledUser.getId();
+        disabledMember = testEntityManager.persistAndFlush(disabledMember);
+        disabledUserId = disabledMember.getId();
     }
 
     @Test
@@ -156,8 +156,8 @@ class NotificationUtilAdapterIntegrationTest {
     @Transactional
     void shouldReturnFcmTokens_WhenUserEligibleForNotification() {
         // Given: FCM 토큰 생성
-        FcmToken fcmToken1 = FcmToken.create(enabledUser, "fcm-TemporaryToken-1");
-        FcmToken fcmToken2 = FcmToken.create(enabledUser, "fcm-TemporaryToken-2");
+        FcmToken fcmToken1 = FcmToken.create(enabledMember, "fcm-TemporaryToken-1");
+        FcmToken fcmToken2 = FcmToken.create(enabledMember, "fcm-TemporaryToken-2");
         
         testEntityManager.persistAndFlush(fcmToken1);
         testEntityManager.persistAndFlush(fcmToken2);
@@ -179,7 +179,7 @@ class NotificationUtilAdapterIntegrationTest {
     @Transactional
     void shouldReturnEmptyList_WhenUserNotEligibleForNotification() {
         // Given: 비활성화된 사용자의 FCM 토큰 생성
-        FcmToken fcmToken = FcmToken.create(disabledUser, "fcm-TemporaryToken-disabled");
+        FcmToken fcmToken = FcmToken.create(disabledMember, "fcm-TemporaryToken-disabled");
         testEntityManager.persistAndFlush(fcmToken);
         testEntityManager.flush();
         testEntityManager.clear();

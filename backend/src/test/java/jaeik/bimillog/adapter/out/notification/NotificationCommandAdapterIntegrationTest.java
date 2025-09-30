@@ -4,7 +4,7 @@ import jaeik.bimillog.BimilLogApplication;
 import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.out.notification.NotificationCommandAdapter;
 import jaeik.bimillog.infrastructure.adapter.out.notification.NotificationRepository;
 import jaeik.bimillog.testutil.H2TestConfiguration;
@@ -59,15 +59,15 @@ class NotificationCommandAdapterIntegrationTest {
     @Autowired
     private TestEntityManager testEntityManager;
 
-    private User testUser;
+    private Member testMember;
     private Long testUserId;
 
     @BeforeEach
     void setUp() {
         // Given: 테스트용 사용저 설정 및 저장
-        testUser = TestUsers.copyWithId(TestUsers.USER1, null);
-        testUser = testEntityManager.persistAndFlush(testUser);
-        testUserId = testUser.getId();
+        testMember = TestUsers.copyWithId(TestUsers.MEMBER_1, null);
+        testMember = testEntityManager.persistAndFlush(testMember);
+        testUserId = testMember.getId();
     }
 
     @Test
@@ -79,14 +79,14 @@ class NotificationCommandAdapterIntegrationTest {
         String url = "/post/123";
 
         // When: 알림 저장
-        notificationCommandAdapter.save(testUser, type, content, url);
+        notificationCommandAdapter.save(testMember, type, content, url);
 
         // Then: 알림이 정상적으로 저장되었는지 검증
         List<Notification> savedNotifications = notificationRepository.findAll();
         assertThat(savedNotifications).hasSize(1);
 
         Notification savedNotification = savedNotifications.getFirst();
-        assertThat(savedNotification.getUsers()).isEqualTo(testUser);
+        assertThat(savedNotification.getUsers()).isEqualTo(testMember);
         assertThat(savedNotification.getNotificationType()).isEqualTo(type);
         assertThat(savedNotification.getContent()).isEqualTo(content);
         assertThat(savedNotification.getUrl()).isEqualTo(url);
@@ -101,9 +101,9 @@ class NotificationCommandAdapterIntegrationTest {
     @Transactional
     void shouldBatchDeleteNotifications_WhenDeleteIdsProvided() {
         // Given: 테스트용 알림 여러 개 저장
-        Notification notification1 = NotificationTestDataBuilder.aCommentNotification(testUser, 1L).build();
-        Notification notification2 = NotificationTestDataBuilder.aPaperMessageNotification(testUser).build();
-        Notification notification3 = NotificationTestDataBuilder.aLikeNotification(testUser, 3L).build();
+        Notification notification1 = NotificationTestDataBuilder.aCommentNotification(testMember, 1L).build();
+        Notification notification2 = NotificationTestDataBuilder.aPaperMessageNotification(testMember).build();
+        Notification notification3 = NotificationTestDataBuilder.aLikeNotification(testMember, 3L).build();
         
         notification1 = testEntityManager.persistAndFlush(notification1);
         notification2 = testEntityManager.persistAndFlush(notification2);
@@ -133,9 +133,9 @@ class NotificationCommandAdapterIntegrationTest {
     @Transactional
     void shouldBatchMarkAsRead_WhenReadIdsProvided() {
         // Given: 테스트용 알림 여러 개 저장 (모두 읽지 않음 상태)
-        Notification notification1 = NotificationTestDataBuilder.aCommentNotification(testUser, 1L).asUnread().build();
-        Notification notification2 = NotificationTestDataBuilder.aPaperMessageNotification(testUser).asUnread().build();
-        Notification notification3 = NotificationTestDataBuilder.aLikeNotification(testUser, 3L).asUnread().build();
+        Notification notification1 = NotificationTestDataBuilder.aCommentNotification(testMember, 1L).asUnread().build();
+        Notification notification2 = NotificationTestDataBuilder.aPaperMessageNotification(testMember).asUnread().build();
+        Notification notification3 = NotificationTestDataBuilder.aLikeNotification(testMember, 3L).asUnread().build();
         
         notification1 = testEntityManager.persistAndFlush(notification1);
         notification2 = testEntityManager.persistAndFlush(notification2);
@@ -173,10 +173,10 @@ class NotificationCommandAdapterIntegrationTest {
     void shouldBatchDeleteAndMarkAsRead_WhenBothIdsProvided() {
         // Given: 테스트용 알림 4개 저장
         List<Notification> notifications = List.of(
-                NotificationTestDataBuilder.aCommentNotification(testUser, 1L).build(),
-                NotificationTestDataBuilder.aLikeNotification(testUser, 3L).build(),
-                NotificationTestDataBuilder.aPaperMessageNotification(testUser).build(),
-                NotificationTestDataBuilder.anAdminNotification(testUser, "시스템 점검 안내").build()
+                NotificationTestDataBuilder.aCommentNotification(testMember, 1L).build(),
+                NotificationTestDataBuilder.aLikeNotification(testMember, 3L).build(),
+                NotificationTestDataBuilder.aPaperMessageNotification(testMember).build(),
+                NotificationTestDataBuilder.anAdminNotification(testMember, "시스템 점검 안내").build()
         );
         Notification notification1 = testEntityManager.persistAndFlush(notifications.get(0));
         Notification notification2 = testEntityManager.persistAndFlush(notifications.get(1));
@@ -213,7 +213,7 @@ class NotificationCommandAdapterIntegrationTest {
     void shouldDoNothing_WhenEmptyOrNullIdsProvided() {
         // Given: 테스트용 알림 저장
         testEntityManager.persistAndFlush(
-                NotificationTestDataBuilder.aCommentNotification(testUser, 1L).build()
+                NotificationTestDataBuilder.aCommentNotification(testMember, 1L).build()
         );
 
         testEntityManager.flush();
@@ -243,16 +243,16 @@ class NotificationCommandAdapterIntegrationTest {
     @Transactional
     void shouldNotUpdateOtherUsersNotifications_WhenDifferentUserProvided() {
         // Given: 다른 사용자와 그의 알림 생성
-        User otherUser = TestUsers.copyWithId(TestUsers.USER2, null);
-        otherUser = testEntityManager.persistAndFlush(otherUser);
+        Member otherMember = TestUsers.copyWithId(TestUsers.MEMBER_2, null);
+        otherMember = testEntityManager.persistAndFlush(otherMember);
 
         // 현재 사용자와 다른 사용자의 알림 각각 생성
         Notification myNotification = testEntityManager.persistAndFlush(
-                NotificationTestDataBuilder.aCommentNotification(testUser, 1L).build()
+                NotificationTestDataBuilder.aCommentNotification(testMember, 1L).build()
         );
 
         Notification otherNotification = testEntityManager.persistAndFlush(
-                NotificationTestDataBuilder.aPaperMessageNotification(otherUser).build()
+                NotificationTestDataBuilder.aPaperMessageNotification(otherMember).build()
         );
 
         testEntityManager.flush();
@@ -271,7 +271,7 @@ class NotificationCommandAdapterIntegrationTest {
         List<Notification> remainingNotifications = notificationRepository.findAll();
         assertThat(remainingNotifications).hasSize(1);
         assertThat(remainingNotifications.getFirst().getId()).isEqualTo(otherNotification.getId());
-        assertThat(remainingNotifications.getFirst().getUsers().getId()).isEqualTo(otherUser.getId());
+        assertThat(remainingNotifications.getFirst().getUsers().getId()).isEqualTo(otherMember.getId());
     }
 
 

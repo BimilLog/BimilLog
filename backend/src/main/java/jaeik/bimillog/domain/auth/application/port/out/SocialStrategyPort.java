@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.auth.application.port.out;
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.KakaoUserInfo;
-import jaeik.bimillog.domain.user.entity.user.SocialProvider;
+import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 
 /**
  * <h2>소셜 로그인 전략 포트</h2>

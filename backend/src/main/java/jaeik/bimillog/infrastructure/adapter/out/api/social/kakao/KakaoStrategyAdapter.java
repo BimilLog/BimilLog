@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.KakaoUserInfo;
 import jaeik.bimillog.domain.global.vo.KakaoKeyVO;
-import jaeik.bimillog.domain.user.entity.user.SocialProvider;
+import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -107,7 +107,7 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
                     thumbnailImage
             );
         } catch (Exception e) {
-            throw new RuntimeException("Kakao user info request failed: " + e.getMessage(), e);
+            throw new RuntimeException("Kakao member info request failed: " + e.getMessage(), e);
         }
     }
 

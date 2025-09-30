@@ -8,7 +8,7 @@ import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
 import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -37,27 +37,27 @@ public class FcmService implements FcmUseCase {
      * <p>중복 토큰 검사, 사용자 존재성 확인, 다중 기기 지원을 통해 안정적인 토큰 관리를 수행합니다.</p>
      * <p>NotificationFcmController에서 클라이언트의 토큰 등록 API 요청을 처리하기 위해 호출됩니다.</p>
      *
-     * @param user   사용자
+     * @param member   사용자
      * @param fcmToken FCM 토큰 문자열 (Firebase SDK에서 생성)
      * @return 저장된 FCM 토큰 엔티티의 ID (토큰이 없거나 빈 값인 경우 null)
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public Long registerFcmToken(User user, String fcmToken) {
-        if (user == null) {
+    public Long registerFcmToken(Member member, String fcmToken) {
+        if (member == null) {
             throw new NotificationCustomException(NotificationErrorCode.NOTIFICATION_USER_NOT_FOUND);
         }
 
-        log.info("FCM 토큰 등록 처리 시작: 사용자 ID={}", user.getId());
+        log.info("FCM 토큰 등록 처리 시작: 사용자 ID={}", member.getId());
 
         if (fcmToken == null || fcmToken.isEmpty()) {
-            log.warn("FCM 토큰이 비어있습니다. 사용자 ID={}", user.getId());
+            log.warn("FCM 토큰이 비어있습니다. 사용자 ID={}", member.getId());
             return null;
         }
 
-        FcmToken savedToken = fcmPort.save(FcmToken.create(user, fcmToken));
-        log.info("FCM 토큰 등록 완료: 사용자 ID={}, 토큰 ID={}", user.getId(), savedToken.getId());
+        FcmToken savedToken = fcmPort.save(FcmToken.create(member, fcmToken));
+        log.info("FCM 토큰 등록 완료: 사용자 ID={}, 토큰 ID={}", member.getId(), savedToken.getId());
         return savedToken.getId();
     }
 

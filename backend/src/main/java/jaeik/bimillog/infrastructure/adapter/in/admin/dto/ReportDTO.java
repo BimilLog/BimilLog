@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.in.admin.dto;
 
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -84,7 +84,7 @@ public class ReportDTO {
      * @since 2.0.0
      */
     public static ReportDTO from(Report report) {
-        User reporter = report.getReporter();
+        Member reporter = report.getReporter();
         return ReportDTO.builder()
                 .id(report.getId())
                 .reporterId(reporter != null ? reporter.getId() : null)

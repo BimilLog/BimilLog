@@ -1,10 +1,10 @@
 package jaeik.bimillog.adapter.in.post;
 
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostRepository;
-import jaeik.bimillog.infrastructure.adapter.out.user.UserRepository;
+import jaeik.bimillog.infrastructure.adapter.out.member.UserRepository;
 import jaeik.bimillog.testutil.AuthTestFixtures;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
@@ -60,9 +60,9 @@ class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
         createTestPosts(savedUser);
     }
 
-    private void createTestPosts(User savedUser) {
+    private void createTestPosts(Member savedMember) {
         testPost1 = Post.builder()
-                .user(savedUser)
+                .member(savedMember)
                 .title("첫 번째 테스트 게시글")
                 .content("첫 번째 게시글의 내용입니다.")
                 .password(123456)
@@ -71,7 +71,7 @@ class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .build();
 
         testPost2 = Post.builder()
-                .user(savedUser)
+                .member(savedMember)
                 .title("두 번째 검색 게시글")
                 .content("검색용 키워드가 포함된 내용입니다.")
                 .password(123456)
@@ -80,7 +80,7 @@ class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .build();
 
         testPost3 = Post.builder()
-                .user(savedUser)
+                .member(savedMember)
                 .title("최신 게시글")
                 .content("가장 최근에 작성된 게시글입니다.")
                 .password(123456)

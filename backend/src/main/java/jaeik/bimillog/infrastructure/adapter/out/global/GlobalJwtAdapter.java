@@ -4,9 +4,9 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
-import jaeik.bimillog.domain.user.entity.user.SocialProvider;
-import jaeik.bimillog.domain.user.entity.user.UserRole;
-import jaeik.bimillog.domain.user.entity.userdetail.ExistingUserDetail;
+import jaeik.bimillog.domain.member.entity.member.SocialProvider;
+import jaeik.bimillog.domain.member.entity.member.MemberRole;
+import jaeik.bimillog.domain.member.entity.memberdetail.ExistingMemberDetail;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -56,7 +56,7 @@ public class GlobalJwtAdapter implements GlobalJwtPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    public String generateAccessToken(ExistingUserDetail userDetail) {
+    public String generateAccessToken(ExistingMemberDetail userDetail) {
         long now = (new Date()).getTime();
         Date validity = new Date(now + 3600000);
 
@@ -86,7 +86,7 @@ public class GlobalJwtAdapter implements GlobalJwtPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    public String generateRefreshToken(ExistingUserDetail userDetail) {
+    public String generateRefreshToken(ExistingMemberDetail userDetail) {
         long now = (new Date()).getTime();
         Date validity = new Date(now + (3600000L * 720));
 
@@ -131,17 +131,17 @@ public class GlobalJwtAdapter implements GlobalJwtPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    public ExistingUserDetail getUserInfoFromToken(String jwtAccessToken) {
+    public ExistingMemberDetail getUserInfoFromToken(String jwtAccessToken) {
         Claims claims = getClaims(jwtAccessToken);
 
-        return ExistingUserDetail.builder()
+        return ExistingMemberDetail.builder()
                 .userId(Long.parseLong(claims.getSubject()))
                 .socialId(claims.get("socialId", String.class))
                 .provider(SocialProvider.valueOf(claims.get("provider", String.class)))
                 .socialNickname(claims.get("socialNickname", String.class))
                 .thumbnailImage(claims.get("thumbnailImage", String.class))
                 .userName(claims.get("userName", String.class))
-                .role(UserRole.valueOf(claims.get("role", String.class)))
+                .role(MemberRole.valueOf(claims.get("role", String.class)))
                 .tokenId(claims.get("tokenId", Long.class))
                 .fcmTokenId(claims.get("fcmTokenId", Long.class))
                 .settingId(claims.get("settingId", Long.class))

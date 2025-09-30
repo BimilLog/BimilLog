@@ -1,7 +1,7 @@
 package jaeik.bimillog.adapter.in.auth;
 
-import jaeik.bimillog.domain.user.entity.user.User;
-import jaeik.bimillog.domain.user.entity.user.UserRole;
+import jaeik.bimillog.domain.member.entity.member.Member;
+import jaeik.bimillog.domain.member.entity.member.MemberRole;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.*;
 import org.junit.jupiter.api.DisplayName;
@@ -32,34 +32,34 @@ class AuthQueryControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("현재 사용자 정보 조회 통합 테스트 - 일반 사용자")
     void getCurrentUser_RegularUser_IntegrationTest() throws Exception {
-        User testUser = TestUsers.createUniqueWithPrefix("통합테스트사용자");
-        User savedUser = userRepository.save(testUser);
+        Member testMember = TestUsers.createUniqueWithPrefix("통합테스트사용자");
+        Member savedMember = userRepository.save(testMember);
 
-        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(savedUser);
+        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(savedMember);
 
         mockMvc.perform(get("/api/auth/me")
                         .with(user(userDetails)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.userId").value(savedUser.getId()))
-                .andExpect(jsonPath("$.settingId").value(savedUser.getSetting().getId()))
-                .andExpect(jsonPath("$.socialNickname").value(savedUser.getSocialNickname()))
-                .andExpect(jsonPath("$.thumbnailImage").value(savedUser.getThumbnailImage()))
-                .andExpect(jsonPath("$.userName").value(savedUser.getUserName()))
+                .andExpect(jsonPath("$.userId").value(savedMember.getId()))
+                .andExpect(jsonPath("$.settingId").value(savedMember.getSetting().getId()))
+                .andExpect(jsonPath("$.socialNickname").value(savedMember.getSocialNickname()))
+                .andExpect(jsonPath("$.thumbnailImage").value(savedMember.getThumbnailImage()))
+                .andExpect(jsonPath("$.userName").value(savedMember.getUserName()))
                 .andExpect(jsonPath("$.role").value("USER"));
     }
 
     @Test
     @DisplayName("현재 사용자 정보 조회 통합 테스트 - 관리자 사용자")
     void getCurrentUser_AdminUser_IntegrationTest() throws Exception {
-        User adminUser = TestUsers.createUniqueWithPrefix("관리자", builder -> {
+        Member adminMember = TestUsers.createUniqueWithPrefix("관리자", builder -> {
             builder.userName("관리자");
             builder.socialNickname("관리자");
-            builder.role(UserRole.ADMIN);
+            builder.role(MemberRole.ADMIN);
             builder.setting(TestUsers.createAllDisabledSetting());
         });
-        User savedAdmin = userRepository.save(adminUser);
+        Member savedAdmin = userRepository.save(adminMember);
 
         CustomUserDetails adminUserDetails = AuthTestFixtures.createCustomUserDetails(savedAdmin);
 

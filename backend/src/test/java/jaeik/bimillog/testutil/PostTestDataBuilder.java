@@ -2,7 +2,7 @@ package jaeik.bimillog.testutil;
 
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 
 import java.time.Instant;
 
@@ -16,14 +16,14 @@ public class PostTestDataBuilder {
     /**
      * Post 엔티티 생성
      */
-    public static Post createPost(User author, String title, String content) {
+    public static Post createPost(Member author, String title, String content) {
         return Post.createPost(author, title, content, 1234);
     }
 
     /**
      * 익명 비밀번호가 있는 Post 엔티티 생성
      */
-    public static Post createPost(User author, String title, String content, int password) {
+    public static Post createPost(Member author, String title, String content, int password) {
         return Post.createPost(author, title, content, password);
     }
 

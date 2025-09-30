@@ -6,7 +6,7 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
 import jaeik.bimillog.domain.post.entity.PostSearchType;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostQueryAdapter;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestUsers;
@@ -69,14 +69,14 @@ class PostQueryAdapterIntegrationTest {
     @MockitoBean
     private PostLikeQueryPort postLikeQueryPort;
 
-    private User testUser;
+    private Member testMember;
     private Post testPost1, testPost2, testPost3, noticePost;
 
     @BeforeEach
     void setUp() {
         // 테스트용 사용자 생성
-        testUser = TestUsers.copyWithId(TestUsers.USER1, null);
-        entityManager.persistAndFlush(testUser);
+        testMember = TestUsers.copyWithId(TestUsers.MEMBER_1, null);
+        entityManager.persistAndFlush(testMember);
 
         // 테스트용 게시글들 생성
         createTestPosts();
@@ -103,19 +103,19 @@ class PostQueryAdapterIntegrationTest {
 
     private void createTestPosts() {
         // 일반 게시글 1
-        testPost1 = Post.createPost(testUser, "첫 번째 게시글", "첫 번째 게시글 내용", 1234);
+        testPost1 = Post.createPost(testMember, "첫 번째 게시글", "첫 번째 게시글 내용", 1234);
         entityManager.persistAndFlush(testPost1);
 
         // 일반 게시글 2
-        testPost2 = Post.createPost(testUser, "두 번째 게시글", "두 번째 게시글 내용", 1234);
+        testPost2 = Post.createPost(testMember, "두 번째 게시글", "두 번째 게시글 내용", 1234);
         entityManager.persistAndFlush(testPost2);
 
         // 일반 게시글 3
-        testPost3 = Post.createPost(testUser, "세 번째 게시글", "세 번째 게시글 내용", 1234);
+        testPost3 = Post.createPost(testMember, "세 번째 게시글", "세 번째 게시글 내용", 1234);
         entityManager.persistAndFlush(testPost3);
 
         // 공지사항 게시글
-        noticePost = Post.createPost(testUser, "공지사항 제목", "중요한 공지사항입니다.", 1234);
+        noticePost = Post.createPost(testMember, "공지사항 제목", "중요한 공지사항입니다.", 1234);
         noticePost.setAsNotice(); // 공지사항으로 설정
         entityManager.persistAndFlush(noticePost);
 
@@ -155,7 +155,7 @@ class PostQueryAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 사용자별 작성 게시글 조회")
     void shouldFindPostsByUserId_WhenValidUserIdProvided() {
         // Given: 사용자 ID와 페이지 요청
-        Long userId = testUser.getId();
+        Long userId = testMember.getId();
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 사용자별 게시글 조회
@@ -171,7 +171,7 @@ class PostQueryAdapterIntegrationTest {
                 .map(PostSearchResult::getUserName)
                 .distinct()
                 .toList();
-        assertThat(userNames).containsExactly(testUser.getUserName());
+        assertThat(userNames).containsExactly(testMember.getUserName());
     }
 
 
@@ -179,17 +179,17 @@ class PostQueryAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 사용자 추천 게시글 조회")
     void shouldFindLikedPostsByUserId_WhenUserHasLikedPosts() {
         // Given: 사용자가 게시글에 추천을 누름
-        User likeUser = TestUsers.copyWithId(TestUsers.USER2, null);
-        entityManager.persistAndFlush(likeUser);
+        Member likeMember = TestUsers.copyWithId(TestUsers.MEMBER_2, null);
+        entityManager.persistAndFlush(likeMember);
 
         // 게시글에 좋아요 추가
         PostLike postLike1 = PostLike.builder()
                 .post(testPost1)
-                .user(likeUser)
+                .member(likeMember)
                 .build();
         PostLike postLike2 = PostLike.builder()
                 .post(testPost2)
-                .user(likeUser)
+                .member(likeMember)
                 .build();
 
         entityManager.persist(postLike1);
@@ -199,7 +199,7 @@ class PostQueryAdapterIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 사용자 추천 게시글 조회
-        Page<PostSearchResult> result = postQueryAdapter.findLikedPostsByUserId(likeUser.getId(), pageable);
+        Page<PostSearchResult> result = postQueryAdapter.findLikedPostsByUserId(likeMember.getId(), pageable);
 
         // Then: 추천한 게시글들이 조회됨
         assertThat(result).isNotNull();

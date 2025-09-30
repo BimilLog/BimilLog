@@ -50,7 +50,7 @@ public class SimpleCommentInfo {
         return SimpleCommentInfo.builder()
                 .id(comment.getId())
                 .postId(comment.getPost().getId())
-                .userName(comment.getUser() != null ? comment.getUser().getUserName() : "익명")
+                .userName(comment.getMember() != null ? comment.getMember().getUserName() : "익명")
                 .content(comment.getContent())
                 .likeCount(likeCount != null ? likeCount : 0)
                 .userLike(isUserLike)

@@ -1,8 +1,8 @@
 package jaeik.bimillog.testutil;
 
-import jaeik.bimillog.domain.user.entity.user.SocialProvider;
-import jaeik.bimillog.domain.user.entity.user.User;
-import jaeik.bimillog.domain.user.entity.userdetail.ExistingUserDetail;
+import jaeik.bimillog.domain.member.entity.member.SocialProvider;
+import jaeik.bimillog.domain.member.entity.member.Member;
+import jaeik.bimillog.domain.member.entity.memberdetail.ExistingMemberDetail;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 
 /**
@@ -21,36 +21,36 @@ public final class AuthTestFixtures {
     public static final String TEST_FCM_TOKEN = "fcm-token-123";
     public static final SocialProvider TEST_PROVIDER = SocialProvider.KAKAO;
 
-    public static ExistingUserDetail createExistingUserDetail(User user) {
-        return createExistingUserDetail(user, null, null);
+    public static ExistingMemberDetail createExistingUserDetail(Member member) {
+        return createExistingUserDetail(member, null, null);
     }
 
-    public static ExistingUserDetail createExistingUserDetail(User user, Long tokenId, Long fcmTokenId) {
+    public static ExistingMemberDetail createExistingUserDetail(Member member, Long tokenId, Long fcmTokenId) {
         Long settingId = 1L;
-        if (user.getSetting() != null && user.getSetting().getId() != null) {
-            settingId = user.getSetting().getId();
+        if (member.getSetting() != null && member.getSetting().getId() != null) {
+            settingId = member.getSetting().getId();
         }
 
-        return ExistingUserDetail.builder()
-                .userId(user.getId() != null ? user.getId() : 1L)
+        return ExistingMemberDetail.builder()
+                .userId(member.getId() != null ? member.getId() : 1L)
                 .settingId(settingId)
-                .socialId(user.getSocialId())
-                .socialNickname(user.getSocialNickname())
-                .thumbnailImage(user.getThumbnailImage())
-                .userName(user.getUserName())
-                .provider(user.getProvider())
-                .role(user.getRole())
+                .socialId(member.getSocialId())
+                .socialNickname(member.getSocialNickname())
+                .thumbnailImage(member.getThumbnailImage())
+                .userName(member.getUserName())
+                .provider(member.getProvider())
+                .role(member.getRole())
                 .tokenId(tokenId)
                 .fcmTokenId(fcmTokenId)
                 .build();
     }
 
-    public static CustomUserDetails createCustomUserDetails(User user) {
-        return new CustomUserDetails(createExistingUserDetail(user));
+    public static CustomUserDetails createCustomUserDetails(Member member) {
+        return new CustomUserDetails(createExistingUserDetail(member));
     }
 
-    public static CustomUserDetails createCustomUserDetails(User user, Long tokenId, Long fcmTokenId) {
-        return new CustomUserDetails(createExistingUserDetail(user, tokenId, fcmTokenId));
+    public static CustomUserDetails createCustomUserDetails(Member member, Long tokenId, Long fcmTokenId) {
+        return new CustomUserDetails(createExistingUserDetail(member, tokenId, fcmTokenId));
     }
 
 }

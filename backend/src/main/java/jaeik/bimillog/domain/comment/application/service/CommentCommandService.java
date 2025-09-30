@@ -15,9 +15,9 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalCommentQueryPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalUserQueryPort;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.user.entity.user.User;
-import jaeik.bimillog.domain.user.exception.UserCustomException;
-import jaeik.bimillog.domain.user.exception.UserErrorCode;
+import jaeik.bimillog.domain.member.entity.member.Member;
+import jaeik.bimillog.domain.member.exception.UserCustomException;
+import jaeik.bimillog.domain.member.exception.UserErrorCode;
 import jaeik.bimillog.infrastructure.adapter.in.comment.web.CommentCommandController;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostToCommentAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -77,14 +77,14 @@ public class CommentCommandService implements CommentCommandUseCase {
         try {
             Post post = globalPostQueryPort.findById(postId);
 
-            User user = userId != null ? globalUserQueryPort.findById(userId).orElse(null) : null;
-            String userName = user != null ? user.getUserName() : "익명";
+            Member member = userId != null ? globalUserQueryPort.findById(userId).orElse(null) : null;
+            String userName = member != null ? member.getUserName() : "익명";
 
-            saveCommentWithClosure(post, user, content, password, parentId);
+            saveCommentWithClosure(post, member, content, password, parentId);
 
-            if (post.getUser() != null) {
+            if (post.getMember() != null) {
                 eventPublisher.publishEvent(new CommentCreatedEvent(
-                        post.getUser().getId(),
+                        post.getMember().getId(),
                         userName,
                         postId));
             }
@@ -155,7 +155,7 @@ public class CommentCommandService implements CommentCommandUseCase {
     @Transactional
     public void likeComment(Long userId, Long commentId) {
         Comment comment = globalCommentQueryPort.findById(commentId);
-        User user = globalUserQueryPort.findById(userId)
+        Member member = globalUserQueryPort.findById(userId)
                 .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
 
         if (commentLikePort.isLikedByUser(commentId, userId)) {
@@ -163,7 +163,7 @@ public class CommentCommandService implements CommentCommandUseCase {
         } else {
             CommentLike commentLike = CommentLike.builder()
                     .comment(comment)
-                    .user(user)
+                    .member(member)
                     .build();
             commentLikePort.save(commentLike);
         }
@@ -243,15 +243,15 @@ public class CommentCommandService implements CommentCommandUseCase {
      * <p>writeComment 메서드에서 호출되어 댓글과 클로저 관계를 원자적으로 생성합니다.</p>
      *
      * @param post     댓글이 속한 게시글 엔티티
-     * @param user     댓글 작성 사용자 엔티티
+     * @param member     댓글 작성 사용자 엔티티
      * @param content  댓글 내용
      * @param password 댓글 비밀번호 (선택 사항)
      * @param parentId 부모 댓글 ID (대댓글인 경우)
      * @author Jaeik
      * @since 2.0.0
      */
-    private void saveCommentWithClosure(Post post, User user, String content, Integer password, Long parentId) {
-        Comment comment = Comment.createComment(post, user, content, password);
+    private void saveCommentWithClosure(Post post, Member member, String content, Integer password, Long parentId) {
+        Comment comment = Comment.createComment(post, member, content, password);
         Comment savedComment = commentSavePort.save(comment);
 
         List<CommentClosure> closuresToSave = new ArrayList<>();

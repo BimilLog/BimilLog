@@ -40,7 +40,7 @@ class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
         messageDTO.setAnonymity("익명사용자");
 
         // When & Then
-        performPost("/api/paper/" + testUser.getUserName(), messageDTO)
+        performPost("/api/paper/" + testMember.getUserName(), messageDTO)
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string("메시지가 작성되었습니다."));
@@ -54,10 +54,10 @@ class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
                 "생일 축하해!", 2, 2);
         messageDTO.setDecoType(DecoType.STAR);
         messageDTO.setAnonymity("친구1");
-        messageDTO.setUserId(otherUser.getId());
+        messageDTO.setUserId(otherMember.getId());
 
         // When & Then
-        performPost("/api/paper/" + testUser.getUserName(), messageDTO, otherUserDetails)
+        performPost("/api/paper/" + testMember.getUserName(), messageDTO, otherUserDetails)
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string("메시지가 작성되었습니다."));
@@ -85,7 +85,7 @@ class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
         messageDTO.setAnonymity("매우긴익명사용자이름입니다"); // 8자 초과
 
         // When & Then
-        performPost("/api/paper/" + testUser.getUserName(), messageDTO)
+        performPost("/api/paper/" + testMember.getUserName(), messageDTO)
                 .andDo(print())
                 .andExpect(status().isBadRequest());
     }
@@ -95,7 +95,7 @@ class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
     void deleteMessage_MyPaper_Success() throws Exception {
         // Given
         Message message = PaperTestDataBuilder.createRollingPaper(
-                testUser, "삭제될 메시지", 1, 1);
+                testMember, "삭제될 메시지", 1, 1);
         Message savedMessage = messageRepository.save(message);
 
         MessageDTO messageDTO = TestFixtures.createPaperMessageRequest(

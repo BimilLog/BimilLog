@@ -14,9 +14,9 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
-import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
-import jaeik.bimillog.domain.user.entity.user.User;
-import jaeik.bimillog.domain.user.event.UserWithdrawnEvent;
+import jaeik.bimillog.domain.member.application.port.out.UserQueryPort;
+import jaeik.bimillog.domain.member.entity.member.Member;
+import jaeik.bimillog.domain.member.event.UserWithdrawnEvent;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.PostTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
@@ -88,8 +88,8 @@ class AdminCommandServiceTest extends BaseUnitTest {
     @DisplayName("유효한 신고 정보로 사용자 제재 시 성공")
     void shouldBanUser_WhenValidReportDTO() {
         // Given
-        User userWithId = createTestUserWithId(200L);
-        Post testPost = PostTestDataBuilder.withId(200L, PostTestDataBuilder.createPost(userWithId, "테스트 제목", "테스트 내용"));
+        Member memberWithId = createTestUserWithId(200L);
+        Post testPost = PostTestDataBuilder.withId(200L, PostTestDataBuilder.createPost(memberWithId, "테스트 제목", "테스트 내용"));
         given(globalPostQueryPort.findById(200L)).willReturn(testPost);
 
         // When
@@ -101,8 +101,8 @@ class AdminCommandServiceTest extends BaseUnitTest {
 
         UserBannedEvent capturedEvent = eventCaptor.getValue();
         assertThat(capturedEvent.userId()).isEqualTo(200L);
-        assertThat(capturedEvent.socialId()).isEqualTo(userWithId.getSocialId());
-        assertThat(capturedEvent.provider()).isEqualTo(userWithId.getProvider());
+        assertThat(capturedEvent.socialId()).isEqualTo(memberWithId.getSocialId());
+        assertThat(capturedEvent.provider()).isEqualTo(memberWithId.getProvider());
     }
 
     @Test
@@ -140,10 +140,10 @@ class AdminCommandServiceTest extends BaseUnitTest {
         ReportType commentReportType = ReportType.COMMENT;
         Long commentTargetId = 300L;
         
-        User userWithId = createTestUserWithId(200L);
+        Member memberWithId = createTestUserWithId(200L);
         Comment testComment = Comment.builder()
                 .id(300L)
-                .user(userWithId)
+                .member(memberWithId)
                 .build();
         given(globalCommentQueryPort.findById(300L)).willReturn(testComment);
 
@@ -156,8 +156,8 @@ class AdminCommandServiceTest extends BaseUnitTest {
 
         UserBannedEvent capturedEvent = eventCaptor.getValue();
         assertThat(capturedEvent.userId()).isEqualTo(200L);
-        assertThat(capturedEvent.socialId()).isEqualTo(userWithId.getSocialId());
-        assertThat(capturedEvent.provider()).isEqualTo(userWithId.getProvider());
+        assertThat(capturedEvent.socialId()).isEqualTo(memberWithId.getSocialId());
+        assertThat(capturedEvent.provider()).isEqualTo(memberWithId.getProvider());
     }
 
     @Test
@@ -168,10 +168,10 @@ class AdminCommandServiceTest extends BaseUnitTest {
         Long userId = 100L;
         ReportType reportType = ReportType.COMMENT;
         
-        User mockUser = createTestUserWithId(userId);
+        Member mockMember = createTestUserWithId(userId);
         Comment mockComment = Comment.builder()
                 .id(commentId)
-                .user(mockUser)
+                .member(mockMember)
                 .build();
         
         given(globalCommentQueryPort.findById(commentId)).willReturn(mockComment);
@@ -186,8 +186,8 @@ class AdminCommandServiceTest extends BaseUnitTest {
 
         UserWithdrawnEvent capturedEvent = eventCaptor.getValue();
         assertThat(capturedEvent.userId()).isEqualTo(userId);
-        assertThat(capturedEvent.socialId()).isEqualTo(mockUser.getSocialId());
-        assertThat(capturedEvent.provider()).isEqualTo(mockUser.getProvider());
+        assertThat(capturedEvent.socialId()).isEqualTo(mockMember.getSocialId());
+        assertThat(capturedEvent.provider()).isEqualTo(mockMember.getProvider());
     }
 
     @Test
@@ -229,7 +229,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
         Long targetId = 123L;
         String content = "부적절한 댓글입니다";
         
-        User reporter = createTestUserWithId(userId);
+        Member reporter = createTestUserWithId(userId);
 
         Report expectedReport = Report.createReport(reportType, targetId, content, reporter);
 
@@ -273,7 +273,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
         Long targetId = null;
         String content = "새로운 기능을 건의합니다";
         
-        User reporter = createTestUserWithId(userId);
+        Member reporter = createTestUserWithId(userId);
 
         Report expectedReport = Report.createReport(reportType, targetId, content, reporter);
 

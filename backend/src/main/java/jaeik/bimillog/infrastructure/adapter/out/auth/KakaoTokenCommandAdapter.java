@@ -39,7 +39,7 @@ public class KakaoTokenCommandAdapter implements KakaoTokenCommandPort {
     /**
      * <h3>카카오 토큰 업데이트</h3>
      * <p>로그인 시 갱신된 카카오 토큰 정보를 업데이트합니다.</p>
-     * <p>User ID로 KakaoToken을 조회하여 액세스 토큰과 리프레시 토큰을 갱신합니다.</p>
+     * <p>Member ID로 KakaoToken을 조회하여 액세스 토큰과 리프레시 토큰을 갱신합니다.</p>
      *
      * @param userId 사용자 ID
      * @param kakaoAccessToken 새로운 카카오 액세스 토큰

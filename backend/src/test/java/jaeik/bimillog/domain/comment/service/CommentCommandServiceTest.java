@@ -15,9 +15,9 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalCommentQueryPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalUserQueryPort;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.user.entity.user.User;
-import jaeik.bimillog.domain.user.exception.UserCustomException;
-import jaeik.bimillog.domain.user.exception.UserErrorCode;
+import jaeik.bimillog.domain.member.entity.member.Member;
+import jaeik.bimillog.domain.member.exception.UserCustomException;
+import jaeik.bimillog.domain.member.exception.UserErrorCode;
 import jaeik.bimillog.testutil.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -72,10 +72,10 @@ class CommentCommandServiceTest extends BaseUnitTest {
     @BeforeEach
     void setUp() {
         // getTestUser()를 사용하여 테스트 사용자 획득
-        User user = getTestUser();
-        TestFixtures.setFieldValue(user, "id", 100L);
-        testPost = PostTestDataBuilder.withId(300L, PostTestDataBuilder.createPost(user, "테스트 게시글", "게시글 내용"));
-        testComment = CommentTestDataBuilder.withId(TEST_COMMENT_ID, CommentTestDataBuilder.createComment(user, testPost, TEST_ORIGINAL_CONTENT));
+        Member member = getTestUser();
+        TestFixtures.setFieldValue(member, "id", 100L);
+        testPost = PostTestDataBuilder.withId(300L, PostTestDataBuilder.createPost(member, "테스트 게시글", "게시글 내용"));
+        testComment = CommentTestDataBuilder.withId(TEST_COMMENT_ID, CommentTestDataBuilder.createComment(member, testPost, TEST_ORIGINAL_CONTENT));
     }
 
     @Test
@@ -95,7 +95,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         CommentLike capturedLike = likeCaptor.getValue();
         assertThat(capturedLike.getComment()).isEqualTo(testComment);
-        assertThat(capturedLike.getUser()).isEqualTo(getTestUser());
+        assertThat(capturedLike.getMember()).isEqualTo(getTestUser());
 
         verify(commentLikePort, never()).deleteLikeByIds(anyLong(), anyLong());
     }
@@ -192,7 +192,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         CommentLike capturedLike = likeCaptor.getValue();
         assertThat(capturedLike.getComment()).isEqualTo(ownComment);
-        assertThat(capturedLike.getUser()).isEqualTo(getTestUser());
+        assertThat(capturedLike.getMember()).isEqualTo(getTestUser());
     }
 
     @Test
@@ -260,9 +260,9 @@ class CommentCommandServiceTest extends BaseUnitTest {
     void shouldThrowException_WhenNotCommentOwner() {
         // Given
         Long userId = 100L;
-        User anotherUser = TestUsers.copyWithId(TestUsers.USER3, 999L);
+        Member anotherMember = TestUsers.copyWithId(TestUsers.MEMBER_3, 999L);
 
-        Comment anotherUserComment = CommentTestDataBuilder.createComment(anotherUser, testPost, "다른 사용자 댓글");
+        Comment anotherUserComment = CommentTestDataBuilder.createComment(anotherMember, testPost, "다른 사용자 댓글");
         TestFixtures.setFieldValue(anotherUserComment, "id", 200L);
 
         given(globalCommentQueryPort.findById(200L)).willReturn(anotherUserComment);
@@ -432,9 +432,9 @@ class CommentCommandServiceTest extends BaseUnitTest {
     void shouldThrowException_WhenNotOwnerTriesToDelete() {
         // Given
         Long requestUserId = 100L;
-        User anotherUser = TestUsers.copyWithId(TestUsers.USER3, 999L);
+        Member anotherMember = TestUsers.copyWithId(TestUsers.MEMBER_3, 999L);
 
-        Comment anotherUserComment = CommentTestDataBuilder.createComment(anotherUser, testPost, "다른 사용자 댓글");
+        Comment anotherUserComment = CommentTestDataBuilder.createComment(anotherMember, testPost, "다른 사용자 댓글");
         TestFixtures.setFieldValue(anotherUserComment, "id", 600L);
 
         given(globalCommentQueryPort.findById(600L)).willReturn(anotherUserComment);
@@ -472,7 +472,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         Comment capturedComment = commentCaptor.getValue();
         assertThat(capturedComment.getContent()).isEqualTo(content);
-        assertThat(capturedComment.getUser()).isEqualTo(getTestUser());
+        assertThat(capturedComment.getMember()).isEqualTo(getTestUser());
         assertThat(capturedComment.getPost()).isEqualTo(testPost);
         assertThat(capturedComment.isDeleted()).isFalse();
 
@@ -503,7 +503,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         Comment capturedComment = commentCaptor.getValue();
         assertThat(capturedComment.getContent()).isEqualTo(content);
         assertThat(capturedComment.getPassword()).isEqualTo(password);
-        assertThat(capturedComment.getUser()).isNull();
+        assertThat(capturedComment.getMember()).isNull();
         assertThat(capturedComment.getPost()).isEqualTo(testPost);
         assertThat(capturedComment.isDeleted()).isFalse();
 

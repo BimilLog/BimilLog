@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.out.api.social.kakao;
 
-import jaeik.bimillog.domain.user.application.port.out.KakaoFriendPort;
-import jaeik.bimillog.domain.user.entity.KakaoFriendsResponseVO;
+import jaeik.bimillog.domain.member.application.port.out.KakaoFriendPort;
+import jaeik.bimillog.domain.member.entity.KakaoFriendsResponseVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

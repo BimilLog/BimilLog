@@ -1,7 +1,7 @@
 package jaeik.bimillog.adapter.in.paper;
 
 import jaeik.bimillog.domain.paper.entity.Message;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.out.paper.MessageRepository;
 import jaeik.bimillog.testutil.*;
 import org.junit.jupiter.api.DisplayName;
@@ -34,11 +34,11 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
     void myPaper_WithMessages_Success() throws Exception {
         // Given
         messageRepository.save(PaperTestDataBuilder.createRollingPaper(
-                testUser, "생일 축하해!", 1, 1));
+                testMember, "생일 축하해!", 1, 1));
         messageRepository.save(PaperTestDataBuilder.createRollingPaper(
-                testUser, "항상 행복하세요", 2, 1));
+                testMember, "항상 행복하세요", 2, 1));
         messageRepository.save(PaperTestDataBuilder.createRollingPaper(
-                testUser, "응원합니다", 3, 1));
+                testMember, "응원합니다", 3, 1));
 
         // When & Then
         performGet("/api/paper", testUserDetails)
@@ -57,10 +57,10 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("내 롤링페이퍼 조회 - 성공 (메시지 없음)")
     void myPaper_WithoutMessages_Success() throws Exception {
         // Given - 새로운 사용자 생성 (메시지 없음)
-        User emptyUser = userRepository.save(TestUsers.createUnique());
+        Member emptyMember = userRepository.save(TestUsers.createUnique());
 
         // When & Then
-        performGet("/api/paper", createCustomUserDetails(emptyUser))
+        performGet("/api/paper", createCustomUserDetails(emptyMember))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
@@ -82,12 +82,12 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
     void visitPaper_WithMessages_Success() throws Exception {
         // Given
         messageRepository.save(PaperTestDataBuilder.createRollingPaper(
-                otherUser, "좋은 메시지", 1, 1));
+                otherMember, "좋은 메시지", 1, 1));
         messageRepository.save(PaperTestDataBuilder.createRollingPaper(
-                otherUser, "또 다른 메시지", 2, 2));
+                otherMember, "또 다른 메시지", 2, 2));
 
         // When & Then
-        performGet("/api/paper/" + otherUser.getUserName())
+        performGet("/api/paper/" + otherMember.getUserName())
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
@@ -104,10 +104,10 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("다른 사용자 롤링페이퍼 방문 - 성공 (메시지 없음)")
     void visitPaper_WithoutMessages_Success() throws Exception {
         // Given
-        User emptyUser = userRepository.save(TestUsers.createUnique());
+        Member emptyMember = userRepository.save(TestUsers.createUnique());
 
         // When & Then
-        performGet("/api/paper/" + emptyUser.getUserName())
+        performGet("/api/paper/" + emptyMember.getUserName())
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
@@ -129,10 +129,10 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
     void visitPaper_AuthenticatedUser_Success() throws Exception {
         // Given
         messageRepository.save(PaperTestDataBuilder.createRollingPaper(
-                otherUser, "방문용 메시지", 1, 2));
+                otherMember, "방문용 메시지", 1, 2));
 
         // When & Then
-        performGet("/api/paper/" + otherUser.getUserName(), testUserDetails)
+        performGet("/api/paper/" + otherMember.getUserName(), testUserDetails)
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
@@ -148,11 +148,11 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
     void visitPaper_OwnPaper_Success() throws Exception {
         // Given
         Message message = PaperTestDataBuilder.createRollingPaper(
-                testUser, "자기 메시지", 3, 1);
+                testMember, "자기 메시지", 3, 1);
         messageRepository.save(message);
 
         // When & Then
-        performGet("/api/paper/" + testUser.getUserName(), testUserDetails)
+        performGet("/api/paper/" + testMember.getUserName(), testUserDetails)
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))

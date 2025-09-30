@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.auth.service;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
 import jaeik.bimillog.domain.auth.application.service.SocialWithdrawService;
-import jaeik.bimillog.domain.user.entity.user.SocialProvider;
+import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;

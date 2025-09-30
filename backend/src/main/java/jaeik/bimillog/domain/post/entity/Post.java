@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.post.entity;
 import jaeik.bimillog.domain.global.entity.BaseEntity;
 import jaeik.bimillog.domain.post.application.service.PostAdminService;
 import jaeik.bimillog.domain.post.application.service.PostCommandService;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -38,7 +38,7 @@ public class Post extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    private User user;
+    private Member member;
 
     @NotNull
     @Column(nullable = false, length = 30) // 제목 30자 허용
@@ -68,7 +68,7 @@ public class Post extends BaseEntity {
      * <p>조회수는 0, 공지사항은 false, 캐시플래그는 null로 초기화됩니다.</p>
      * <p>{@link PostCommandService}에서 게시글 작성 시 호출됩니다.</p>
      *
-     * @param user       작성자 정보
+     * @param member       작성자 정보
      * @param title      게시글 제목 (1-30자)
      * @param content    게시글 내용 (1-1000자)
      * @param password   게시글 비밀번호 (선택적)
@@ -77,7 +77,7 @@ public class Post extends BaseEntity {
      * @author Jaeik
      * @since 2.0.0
      */
-    public static Post createPost(User user, String title, String content, Integer password) {
+    public static Post createPost(Member member, String title, String content, Integer password) {
         if (title == null || title.trim().isEmpty()) {
             throw new IllegalArgumentException("게시글 제목은 필수입니다.");
         }
@@ -86,7 +86,7 @@ public class Post extends BaseEntity {
         }
         
         return Post.builder()
-                .user(user)
+                .member(member)
                 .title(title)
                 .content(content)
                 .views(0)
@@ -168,7 +168,7 @@ public class Post extends BaseEntity {
      * @since 2.0.0
      */
     public boolean isAuthor(Long userId) {
-        return this.user != null && this.user.getId().equals(userId);
+        return this.member != null && this.member.getId().equals(userId);
     }
 
 }

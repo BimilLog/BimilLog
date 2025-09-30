@@ -35,7 +35,7 @@ import java.lang.annotation.*;
  *     
  *     {@literal @}Test
  *     void test() throws Exception {
- *         performGet("/api/user/me", testUserDetails)
+ *         performGet("/api/member/me", testUserDetails)
  *             .andExpect(status().isOk());
  *     }
  * }

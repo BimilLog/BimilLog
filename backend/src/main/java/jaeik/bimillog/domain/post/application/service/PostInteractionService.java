@@ -9,7 +9,7 @@ import jaeik.bimillog.domain.post.application.port.out.PostLikeQueryPort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -62,14 +62,14 @@ public class PostInteractionService implements PostInteractionUseCase {
         boolean isAlreadyLiked = postLikeQueryPort.existsByPostIdAndUserId(postId, userId);
         
         // 2. 좋아요 토글을 위해 필요한 엔티티만 로딩
-        User user = globalUserQueryPort.getReferenceById(userId);
+        Member member = globalUserQueryPort.getReferenceById(userId);
         Post post = globalPostQueryPort.findById(postId);
 
         if (isAlreadyLiked) {
-            postLikeCommandPort.deletePostLike(user, post);
+            postLikeCommandPort.deletePostLike(member, post);
             log.debug("게시글 추천 취소됨: userId={}, postId={}", userId, postId);
         } else {
-            PostLike postLike = PostLike.builder().user(user).post(post).build();
+            PostLike postLike = PostLike.builder().member(member).post(post).build();
             postLikeCommandPort.savePostLike(postLike);
             log.debug("게시글 추천됨: userId={}, postId={}", userId, postId);
         }

@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.auth.entity;
 
-import jaeik.bimillog.domain.user.entity.user.SocialProvider;
+import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;

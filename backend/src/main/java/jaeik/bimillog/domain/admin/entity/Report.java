@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.admin.entity;
 
 import jaeik.bimillog.domain.global.entity.BaseEntity;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -28,7 +28,7 @@ public class Report extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    private User reporter;
+    private Member reporter;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
@@ -47,12 +47,12 @@ public class Report extends BaseEntity {
      * @param reportType 신고 유형 (POST, COMMENT, ERROR, IMPROVEMENT)
      * @param targetId 신고 대상 ID (POST/COMMENT 신고 시 해당 ID, ERROR/IMPROVEMENT 시 null)
      * @param content 신고 내용 및 상세 설명
-     * @param reporter 신고자 User 엔티티 (익명 신고 시 null)
+     * @param reporter 신고자 Member 엔티티 (익명 신고 시 null)
      * @return Report 비즈니스 규칙을 준수하는 새로운 신고 엔티티
      * @author Jaeik
      * @since 2.0.0
      */
-    public static Report createReport(ReportType reportType, Long targetId, String content, User reporter) {
+    public static Report createReport(ReportType reportType, Long targetId, String content, Member reporter) {
         return Report.builder()
                 .reportType(reportType)
                 .targetId(targetId)

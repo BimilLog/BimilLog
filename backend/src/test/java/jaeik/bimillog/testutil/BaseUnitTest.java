@@ -1,8 +1,8 @@
 package jaeik.bimillog.testutil;
 
-import jaeik.bimillog.domain.user.entity.Setting;
-import jaeik.bimillog.domain.user.entity.user.User;
-import jaeik.bimillog.domain.user.entity.user.UserRole;
+import jaeik.bimillog.domain.member.entity.Setting;
+import jaeik.bimillog.domain.member.entity.member.Member;
+import jaeik.bimillog.domain.member.entity.member.MemberRole;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
@@ -27,7 +27,7 @@ import static org.mockito.Mockito.mock;
  * <h3>제공되는 기능:</h3>
  * <ul>
  *   <li>MockitoExtension 자동 적용</li>
- *   <li>공통 테스트 사용자 (testUser, adminUser, otherUser) - lazy 초기화</li>
+ *   <li>공통 테스트 사용자 (testMember, adminMember, otherMember) - lazy 초기화</li>
  *   <li>공통 테스트 설정 (defaultSetting, customSetting) - lazy 초기화</li>
  *   <li>필요한 데이터만 생성하여 테스트 성능 향상</li>
  * </ul>
@@ -39,54 +39,54 @@ import static org.mockito.Mockito.mock;
 public abstract class BaseUnitTest {
 
     // Lazy 초기화를 위한 필드들 (실제 사용 시점에 초기화)
-    private User cachedTestUser;
-    private User cachedAdminUser;
-    private User cachedOtherUser;
-    private User cachedThirdUser;
+    private Member cachedTestMember;
+    private Member cachedAdminMember;
+    private Member cachedOtherMember;
+    private Member cachedThirdMember;
     private Setting cachedDefaultSetting;
 
     /**
      * 기본 테스트 사용자 획득 (일반 권한)
      * 첫 호출 시 생성, 이후 캐시된 인스턴스 반환
      */
-    protected User getTestUser() {
-        if (cachedTestUser == null) {
-            cachedTestUser = TestUsers.copyWithId(TestUsers.USER1, 1L);
+    protected Member getTestUser() {
+        if (cachedTestMember == null) {
+            cachedTestMember = TestUsers.copyWithId(TestUsers.MEMBER_1, 1L);
         }
-        return cachedTestUser;
+        return cachedTestMember;
     }
 
     /**
      * 관리자 권한 테스트 사용자 획득
      * 첫 호출 시 생성, 이후 캐시된 인스턴스 반환
      */
-    protected User getAdminUser() {
-        if (cachedAdminUser == null) {
-            cachedAdminUser = TestUsers.copyWithId(TestUsers.withRole(UserRole.ADMIN), 999L);
+    protected Member getAdminUser() {
+        if (cachedAdminMember == null) {
+            cachedAdminMember = TestUsers.copyWithId(TestUsers.withRole(MemberRole.ADMIN), 999L);
         }
-        return cachedAdminUser;
+        return cachedAdminMember;
     }
 
     /**
      * 추가 테스트 사용자 획득 (다른 사용자 시나리오용)
      * 첫 호출 시 생성, 이후 캐시된 인스턴스 반환
      */
-    protected User getOtherUser() {
-        if (cachedOtherUser == null) {
-            cachedOtherUser = TestUsers.copyWithId(TestUsers.USER2, 2L);
+    protected Member getOtherUser() {
+        if (cachedOtherMember == null) {
+            cachedOtherMember = TestUsers.copyWithId(TestUsers.MEMBER_2, 2L);
         }
-        return cachedOtherUser;
+        return cachedOtherMember;
     }
 
     /**
      * 세 번째 테스트 사용자 획득 (복잡한 시나리오용)
      * 첫 호출 시 생성, 이후 캐시된 인스턴스 반환
      */
-    protected User getThirdUser() {
-        if (cachedThirdUser == null) {
-            cachedThirdUser = TestUsers.copyWithId(TestUsers.USER3, 3L);
+    protected Member getThirdUser() {
+        if (cachedThirdMember == null) {
+            cachedThirdMember = TestUsers.copyWithId(TestUsers.MEMBER_3, 3L);
         }
-        return cachedThirdUser;
+        return cachedThirdMember;
     }
 
     /**
@@ -105,7 +105,7 @@ public abstract class BaseUnitTest {
      * @param userId 사용자 ID
      * @return ID가 설정된 테스트 사용자
      */
-    protected User createTestUserWithId(Long userId) {
+    protected Member createTestUserWithId(Long userId) {
         return TestUsers.copyWithId(getTestUser(), userId);
     }
 
@@ -163,7 +163,7 @@ public abstract class BaseUnitTest {
      */
     protected void mockAuthenticatedUser(MockedStatic<SecurityContextHolder> mockedSecurityContext) {
         CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(getTestUser());
-        mockAuthenticatedUser(mockedSecurityContext, userDetails, UserRole.USER);
+        mockAuthenticatedUser(mockedSecurityContext, userDetails, MemberRole.USER);
     }
 
     /**
@@ -175,7 +175,7 @@ public abstract class BaseUnitTest {
      */
     protected void mockAuthenticatedUser(MockedStatic<SecurityContextHolder> mockedSecurityContext,
                                         CustomUserDetails userDetails,
-                                        UserRole role) {
+                                        MemberRole role) {
         SecurityContext securityContext = mock(SecurityContext.class);
         Authentication authentication = new UsernamePasswordAuthenticationToken(
             userDetails,

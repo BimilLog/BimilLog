@@ -2,7 +2,7 @@ package jaeik.bimillog.adapter.out.redis;
 
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.entity.*;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostLikeRepository;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostRepository;
 import jaeik.bimillog.infrastructure.adapter.out.redis.RedisPostSyncAdapter;
@@ -66,7 +66,7 @@ class RedisPostSyncAdapterIntegrationTest {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
-    private User testUser;
+    private Member testMember;
 
     private void persistAndFlush(Object entity) {
         entityManager.persist(entity);
@@ -89,13 +89,13 @@ class RedisPostSyncAdapterIntegrationTest {
         }
 
         // 테스트 사용자 준비
-        testUser = TestUsers.createUniqueWithPrefix("redis");
-        persistAndFlush(testUser);
+        testMember = TestUsers.createUniqueWithPrefix("redis");
+        persistAndFlush(testMember);
     }
 
     private Post createAndSavePost(String title, String content, int views, PostCacheFlag flag, Instant createdAt) {
         Post post = Post.builder()
-                .user(testUser)
+                .member(testMember)
                 .title(title)
                 .content(content)
                 .views(views)
@@ -122,12 +122,12 @@ class RedisPostSyncAdapterIntegrationTest {
 
     private void addLikesToPost(Post post, int count) {
         for (int i = 0; i < count; i++) {
-            User liker = TestUsers.withSocialId("social_" + post.getId() + "_" + i + "_" + System.currentTimeMillis());
+            Member liker = TestUsers.withSocialId("social_" + post.getId() + "_" + i + "_" + System.currentTimeMillis());
             persistAndFlush(liker);
 
             PostLike postLike = PostLike.builder()
                     .post(post)
-                    .user(liker)
+                    .member(liker)
                     .build();
             postLikeRepository.save(postLike);
         }
@@ -222,7 +222,7 @@ class RedisPostSyncAdapterIntegrationTest {
         assertThat(postDetail.title()).isEqualTo("상세 조회 게시글");
         assertThat(postDetail.content()).isEqualTo("상세 내용");
         assertThat(postDetail.likeCount()).isEqualTo(3);
-        assertThat(postDetail.userName()).isEqualTo(testUser.getUserName());
+        assertThat(postDetail.userName()).isEqualTo(testMember.getUserName());
     }
 
     @Test

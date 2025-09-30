@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.notification.entity;
 
 import jaeik.bimillog.domain.global.entity.BaseEntity;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -30,7 +30,7 @@ public class FcmToken extends BaseEntity {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private Member member;
 
     @NotNull
     @Column(nullable = false)
@@ -41,15 +41,15 @@ public class FcmToken extends BaseEntity {
      * <p>새로운 FCM 토큰 엔티티를 생성합니다.</p>
      * <p>사용자와 FCM 토큰을 연결하여 푸시 알림 발송 준비</p>
      *
-     * @param user 토큰을 소유할 사용자 엔티티
+     * @param member 토큰을 소유할 사용자 엔티티
      * @param token FCM 등록 토큰 문자열
      * @return 생성된 FcmToken 엔티티
      * @author Jaeik
      * @since 2.0.0
      */
-    public static FcmToken create(User user, String token) {
+    public static FcmToken create(Member member, String token) {
         return FcmToken.builder()
-                .user(user)
+                .member(member)
                 .fcmRegistrationToken(token)
                 .build();
     }

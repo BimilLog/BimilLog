@@ -1,14 +1,14 @@
 package jaeik.bimillog.infrastructure.filter;
 
 import jaeik.bimillog.domain.auth.application.port.in.BlacklistUseCase;
-import jaeik.bimillog.domain.auth.application.port.out.TokenCommandPort;
-import jaeik.bimillog.domain.auth.entity.JwtToken;
+import jaeik.bimillog.domain.auth.application.port.out.AuthTokenCommandPort;
+import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalTokenQueryPort;
-import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
-import jaeik.bimillog.domain.user.entity.user.User;
-import jaeik.bimillog.domain.user.entity.userdetail.ExistingUserDetail;
+import jaeik.bimillog.domain.member.application.port.out.UserQueryPort;
+import jaeik.bimillog.domain.member.entity.member.Member;
+import jaeik.bimillog.domain.member.entity.memberdetail.ExistingMemberDetail;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
@@ -44,7 +44,7 @@ public class JwtFilter extends OncePerRequestFilter {
     private final GlobalJwtPort globalJwtPort;
     private final GlobalCookiePort globalCookiePort;
     private final BlacklistUseCase blacklistUseCase;
-    private final TokenCommandPort tokenCommandPort;
+    private final AuthTokenCommandPort authTokenCommandPort;
 
     /**
      * <h3>필터 제외 경로 설정</h3>
@@ -126,43 +126,43 @@ public class JwtFilter extends OncePerRequestFilter {
                 // 2-3. 리프레시 토큰에서 tokenId 추출
                 Long tokenId = globalJwtPort.getTokenIdFromToken(refreshToken);
 
-                // 2-4. DB에서 JwtToken 엔티티 조회
-                JwtToken jwtToken = globalTokenQueryPort.findById(tokenId)
+                // 2-4. DB에서 AuthToken 엔티티 조회
+                AuthToken authToken = globalTokenQueryPort.findById(tokenId)
                         .orElseThrow(() -> new CustomException(ErrorCode.TOKEN_NOT_FOUND));
 
                 // 2-5. 탈취 감지: 이미 사용된 리프레시 토큰 재사용 시도
-                if (jwtToken.getUseCount() != null && jwtToken.getUseCount() > 0) {
+                if (authToken.getUseCount() != null && authToken.getUseCount() > 0) {
                     // 모든 토큰 무효화 (보안 조치)
-                    tokenCommandPort.deleteAllByUserId(jwtToken.getUsers().getId());
+                    authTokenCommandPort.deleteAllByUserId(authToken.getUsers().getId());
                     throw new CustomException(ErrorCode.SUSPICIOUS_ACTIVITY);
                 }
 
                 // 2-6. DB 저장 토큰과 클라이언트 토큰 비교 검증
-                if (!refreshToken.equals(jwtToken.getJwtRefreshToken())) {
+                if (!refreshToken.equals(authToken.getRefreshToken())) {
                     // 토큰 불일치 → 탈취 의심
-                    tokenCommandPort.deleteAllByUserId(jwtToken.getUsers().getId());
+                    authTokenCommandPort.deleteAllByUserId(authToken.getUsers().getId());
                     throw new CustomException(ErrorCode.TOKEN_MISMATCH);
                 }
 
                 // 2-7. 사용 표시 (트랜잭션 내에서 DB 저장)
-                tokenCommandPort.markTokenAsUsed(tokenId);
+                authTokenCommandPort.markTokenAsUsed(tokenId);
 
                 // 2-8. 유저 정보 조회
-                User user = userQueryPort.findByIdWithSetting(jwtToken.getUsers().getId())
+                Member member = userQueryPort.findByIdWithSetting(authToken.getUsers().getId())
                         .orElseThrow(() -> new CustomException(ErrorCode.TOKEN_NOT_FOUND));
-                ExistingUserDetail userDetail = ExistingUserDetail.of(user, tokenId, null);
+                ExistingMemberDetail userDetail = ExistingMemberDetail.of(member, tokenId, null);
 
                 // 2-9. 새 액세스 토큰 발급
                 String newAccessToken = globalJwtPort.generateAccessToken(userDetail);
                 ResponseCookie accessCookie = globalCookiePort.generateJwtAccessCookie(newAccessToken);
                 response.addHeader("Set-Cookie", accessCookie.toString());
 
-                // 2-10. Refresh JwtToken Rotation (15일 이하 남았을 때)
+                // 2-10. Refresh AuthToken Rotation (15일 이하 남았을 때)
                 if (globalJwtPort.shouldRefreshToken(refreshToken, 15)) {
                     String newRefreshToken = globalJwtPort.generateRefreshToken(userDetail);
 
                     // DB 업데이트
-                    tokenCommandPort.updateJwtRefreshToken(tokenId, newRefreshToken);
+                    authTokenCommandPort.updateJwtRefreshToken(tokenId, newRefreshToken);
 
                     // 새 리프레시 토큰 쿠키 발급
                     ResponseCookie refreshCookie = globalCookiePort.generateJwtRefreshCookie(newRefreshToken);
@@ -191,7 +191,7 @@ public class JwtFilter extends OncePerRequestFilter {
      * @param jwtAccessToken JWT 엑세스 토큰
      */
     private void setAuthentication(String jwtAccessToken) {
-        ExistingUserDetail userDetail = globalJwtPort.getUserInfoFromToken(jwtAccessToken);
+        ExistingMemberDetail userDetail = globalJwtPort.getUserInfoFromToken(jwtAccessToken);
         CustomUserDetails customUserDetails = new CustomUserDetails(userDetail);
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 customUserDetails,

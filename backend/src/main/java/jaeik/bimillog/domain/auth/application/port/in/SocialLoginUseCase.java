@@ -2,7 +2,7 @@
 package jaeik.bimillog.domain.auth.application.port.in;
 
 import jaeik.bimillog.domain.auth.entity.LoginResult;
-import jaeik.bimillog.domain.user.entity.user.SocialProvider;
+import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 
 /**
  * <h2>소셜 로그인 유스케이스</h2>

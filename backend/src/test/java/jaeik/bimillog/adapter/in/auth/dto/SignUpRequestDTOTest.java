@@ -1,6 +1,6 @@
 package jaeik.bimillog.adapter.in.auth.dto;
 
-import jaeik.bimillog.infrastructure.adapter.in.user.dto.SignUpRequestDTO;
+import jaeik.bimillog.infrastructure.adapter.in.member.dto.SignUpRequestDTO;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -91,7 +91,7 @@ class SignUpRequestDTOTest {
 
     @Nested
     @DisplayName("userName 검증 테스트")
-    class UserNameValidationTests {
+    class MemberNameValidationTests {
 
         @Test
         @DisplayName("userName이 null인 경우 - @NotBlank 검증 실패")

@@ -3,8 +3,8 @@ package jaeik.bimillog.infrastructure.adapter.out.redis;
 import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
-import jaeik.bimillog.domain.user.application.port.out.RedisUserDataPort;
-import jaeik.bimillog.domain.user.entity.user.SocialProvider;
+import jaeik.bimillog.domain.member.application.port.out.RedisUserDataPort;
+import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +31,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
-    private static final String TEMP_KEY_PREFIX = "temp:user:";
+    private static final String TEMP_KEY_PREFIX = "temp:member:";
     private static final Duration TTL = Duration.ofMinutes(5);
     
     private static final String NULL_UUID_MESSAGE = "유효하지 않은 임시 UUID 제공됨: {}";
@@ -126,7 +126,7 @@ public class RedisUserDataAdapter implements RedisUserDataPort {
      * <p>임시 데이터 저장, 조회, 삭제 시 일관된 키 형식을 보장합니다.</p>
      *
      * @param uuid 사용자 식별 UUID
-     * @return "temp:user:" 접두어가 붙은 Redis 키
+     * @return "temp:member:" 접두어가 붙은 Redis 키
      * @author Jaeik
      * @since 2.0.0
      */

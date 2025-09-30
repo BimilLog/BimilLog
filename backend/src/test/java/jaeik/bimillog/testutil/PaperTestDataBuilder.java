@@ -2,7 +2,7 @@ package jaeik.bimillog.testutil;
 
 import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.entity.Message;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 
 /**
  * Paper 도메인 테스트 데이터 빌더
@@ -14,7 +14,7 @@ public class PaperTestDataBuilder {
     /**
      * Rolling Paper 메시지 생성
      */
-    public static Message createRollingPaper(User receiver, String content, int positionX, int positionY) {
+    public static Message createRollingPaper(Member receiver, String content, int positionX, int positionY) {
         return Message.createMessage(
                 receiver,
                 DecoType.POTATO,

@@ -2,9 +2,9 @@ package jaeik.bimillog.adapter.out.global;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import jaeik.bimillog.domain.user.entity.user.SocialProvider;
-import jaeik.bimillog.domain.user.entity.user.UserRole;
-import jaeik.bimillog.domain.user.entity.userdetail.ExistingUserDetail;
+import jaeik.bimillog.domain.member.entity.member.MemberRole;
+import jaeik.bimillog.domain.member.entity.member.SocialProvider;
+import jaeik.bimillog.domain.member.entity.memberdetail.ExistingMemberDetail;
 import jaeik.bimillog.infrastructure.adapter.out.global.GlobalJwtAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -30,7 +30,7 @@ class GlobalJwtAdapterTest {
     private static final String RAW_SECRET = "0123456789abcdef0123456789abcdef";
 
     private GlobalJwtAdapter globalJwtAdapter;
-    private ExistingUserDetail userDetail;
+    private ExistingMemberDetail userDetail;
 
     @BeforeEach
     void setUp() {
@@ -39,7 +39,7 @@ class GlobalJwtAdapterTest {
         ReflectionTestUtils.setField(globalJwtAdapter, "secretKey", secret);
         globalJwtAdapter.init();
 
-        userDetail = ExistingUserDetail.builder()
+        userDetail = ExistingMemberDetail.builder()
                 .userId(1L)
                 .socialId("social-1")
                 .provider(SocialProvider.KAKAO)
@@ -47,7 +47,7 @@ class GlobalJwtAdapterTest {
                 .socialNickname("소셜닉")
                 .thumbnailImage("thumb.jpg")
                 .userName("tester")
-                .role(UserRole.USER)
+                .role(MemberRole.USER)
                 .tokenId(99L)
                 .fcmTokenId(777L)
                 .build();
@@ -61,7 +61,7 @@ class GlobalJwtAdapterTest {
         assertThat(accessToken).isNotBlank();
         assertThat(globalJwtAdapter.validateToken(accessToken)).isTrue();
 
-        ExistingUserDetail parsed = globalJwtAdapter.getUserInfoFromToken(accessToken);
+        ExistingMemberDetail parsed = globalJwtAdapter.getUserInfoFromToken(accessToken);
 
         assertThat(parsed.getUserId()).isEqualTo(userDetail.getUserId());
         assertThat(parsed.getTokenId()).isEqualTo(userDetail.getTokenId());

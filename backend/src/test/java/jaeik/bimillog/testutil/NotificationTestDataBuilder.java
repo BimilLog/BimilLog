@@ -2,7 +2,7 @@ package jaeik.bimillog.testutil;
 
 import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 
 import java.time.LocalDateTime;
 /**
@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
  * <h3>사용 예시:</h3>
  * <pre>
  * Notification notification = NotificationTestDataBuilder.aNotification()
- *     .withReceiver(testUser)
+ *     .withReceiver(testMember)
  *     .withType(NotificationType.COMMENT)
  *     .withMessage("새 댓글이 달렸습니다")
  *     .withRelatedId(postId)
@@ -27,7 +27,7 @@ import java.time.LocalDateTime;
 public class NotificationTestDataBuilder {
 
     private Long id;
-    private User receiver;
+    private Member receiver;
     private NotificationType type = NotificationType.COMMENT;
     private Long relatedId;
     private String message = "Test notification message";
@@ -50,7 +50,7 @@ public class NotificationTestDataBuilder {
      * @param postId 관련 게시글 ID
      * @return NotificationTestDataBuilder 인스턴스
      */
-    public static NotificationTestDataBuilder aCommentNotification(User receiver, Long postId) {
+    public static NotificationTestDataBuilder aCommentNotification(Member receiver, Long postId) {
         return new NotificationTestDataBuilder()
                 .withReceiver(receiver)
                 .withType(NotificationType.COMMENT)
@@ -64,7 +64,7 @@ public class NotificationTestDataBuilder {
      * @param postId 관련 게시글 ID
      * @return NotificationTestDataBuilder 인스턴스
      */
-    public static NotificationTestDataBuilder aLikeNotification(User receiver, Long postId) {
+    public static NotificationTestDataBuilder aLikeNotification(Member receiver, Long postId) {
         return new NotificationTestDataBuilder()
                 .withReceiver(receiver)
                 .withType(NotificationType.POST_FEATURED)
@@ -77,7 +77,7 @@ public class NotificationTestDataBuilder {
      * @param receiver 수신자
      * @return NotificationTestDataBuilder 인스턴스
      */
-    public static NotificationTestDataBuilder aPaperMessageNotification(User receiver) {
+    public static NotificationTestDataBuilder aPaperMessageNotification(Member receiver) {
         return new NotificationTestDataBuilder()
                 .withReceiver(receiver)
                 .withType(NotificationType.PAPER)
@@ -90,14 +90,14 @@ public class NotificationTestDataBuilder {
      * @param message 공지 메시지
      * @return NotificationTestDataBuilder 인스턴스
      */
-    public static NotificationTestDataBuilder anAdminNotification(User receiver, String message) {
+    public static NotificationTestDataBuilder anAdminNotification(Member receiver, String message) {
         return new NotificationTestDataBuilder()
                 .withReceiver(receiver)
                 .withType(NotificationType.ADMIN)
                 .withMessage(message);
     }
 
-    public NotificationTestDataBuilder withReceiver(User receiver) {
+    public NotificationTestDataBuilder withReceiver(Member receiver) {
         this.receiver = receiver;
         return this;
     }
@@ -141,7 +141,7 @@ public class NotificationTestDataBuilder {
      */
     public Notification build() {
         if (receiver == null) {
-            receiver = TestUsers.USER1; // 기본 수신자
+            receiver = TestUsers.MEMBER_1; // 기본 수신자
         }
 
         // Create notification using the static factory method

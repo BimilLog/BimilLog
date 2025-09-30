@@ -1,7 +1,7 @@
 package jaeik.bimillog.adapter.in.post;
 
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.PostCreateDTO;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.PostUpdateDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
@@ -39,12 +39,12 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private PostRepository postRepository;
 
-    private User savedUser;
+    private Member savedMember;
     private CustomUserDetails savedUserDetails;
 
     @Override
     protected void setUpChild() {
-        savedUser = testUser;
+        savedMember = testMember;
         savedUserDetails = testUserDetails;
     }
 
@@ -71,7 +71,7 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
 
         assertThat(savedPost).isPresent();
         assertThat(savedPost.get().getContent()).isEqualTo("게시글 작성 통합 테스트 내용입니다.");
-        assertThat(savedPost.get().getUser().getId()).isEqualTo(savedUser.getId());
+        assertThat(savedPost.get().getMember().getId()).isEqualTo(savedMember.getId());
     }
 
     @Test
@@ -111,7 +111,7 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("게시글 수정 성공")
     void updatePost_Success() throws Exception {
-        Post existingPost = PostTestDataBuilder.createPost(savedUser, "수정 전 제목", "수정 전 내용");
+        Post existingPost = PostTestDataBuilder.createPost(savedMember, "수정 전 제목", "수정 전 내용");
         Post savedPost = postRepository.save(existingPost);
 
         PostUpdateDTO updateReqDTO = PostUpdateDTO.builder()
@@ -136,10 +136,10 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("게시글 수정 실패 - 다른 사용자의 게시글")
     void updatePost_Fail_NotAuthor() throws Exception {
-        User anotherUser = userRepository.save(TestUsers.createUniqueWithPrefix("another"));
+        Member anotherMember = userRepository.save(TestUsers.createUniqueWithPrefix("another"));
 
         Post anotherPost = PostTestDataBuilder.createPost(
-                anotherUser,
+                anotherMember,
                 "다른 사용자 게시글",
                 "다른 사용자가 작성한 게시글"
         );
@@ -163,7 +163,7 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("게시글 삭제 성공")
     void deletePost_Success() throws Exception {
         Post existingPost = PostTestDataBuilder.createPost(
-                savedUser,
+                savedMember,
                 "삭제할 게시글",
                 "삭제할 게시글 내용"
         );
@@ -193,7 +193,7 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("게시글 추천 성공")
     void likePost_Success() throws Exception {
         Post existingPost = PostTestDataBuilder.createPost(
-                savedUser,
+                savedMember,
                 "추천할 게시글",
                 "추천할 게시글 내용"
         );
@@ -220,7 +220,7 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("게시글 추천 실패 - 인증되지 않은 사용자")
     void likePost_Fail_Unauthenticated() throws Exception {
         Post existingPost = PostTestDataBuilder.createPost(
-                savedUser,
+                savedMember,
                 "추천할 게시글",
                 "추천할 게시글 내용"
         );

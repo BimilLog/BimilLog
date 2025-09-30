@@ -9,7 +9,7 @@ import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.paper.exception.PaperCustomException;
 import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.in.global.listener.UserWithdrawListener;
 import jaeik.bimillog.infrastructure.adapter.in.paper.web.PaperCommandController;
 import lombok.RequiredArgsConstructor;
@@ -88,14 +88,14 @@ public class PaperCommandService implements PaperCommandUseCase {
             throw new PaperCustomException(PaperErrorCode.INVALID_INPUT_VALUE);
         }
 
-        User user = globalUserQueryPort.findByUserName(userName)
+        Member member = globalUserQueryPort.findByUserName(userName)
                 .orElseThrow(() -> new PaperCustomException(PaperErrorCode.USERNAME_NOT_FOUND));
 
-        Message message = Message.createMessage(user, decoType, anonymity, content, x, y);
+        Message message = Message.createMessage(member, decoType, anonymity, content, x, y);
         paperCommandPort.save(message);
 
         eventPublisher.publishEvent(new RollingPaperEvent(
-                user.getId(),
+                member.getId(),
                 userName
         ));
     }

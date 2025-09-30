@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.notification.application.port.out;
 import jaeik.bimillog.domain.notification.application.service.NotificationCommandService;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 
 /**
  * <h2>알림 명령 포트</h2>
@@ -20,14 +20,14 @@ public interface NotificationCommandPort {
      * <p>댓글 작성, 롤링페이퍼 메시지 작성, 인기글 등극 이벤트에 대응합니다.</p>
      * <p>{@link NotificationCommandService}에서 이벤트 리스너 호출 시 사용됩니다.</p>
      *
-     * @param user 알림을 받을 사용자 엔티티
+     * @param member 알림을 받을 사용자 엔티티
      * @param type 알림 유형 (COMMENT, PAPER_PLANT, POST_FEATURED 등)
      * @param content 알림 내용 텍스트
      * @param url 알림 클릭 시 이동할 URL
      * @author Jaeik
      * @since 2.0.0
      */
-    void save(User user, NotificationType type, String content, String url);
+    void save(Member member, NotificationType type, String content, String url);
 
     /**
      * <h3>알림 일괄 업데이트</h3>

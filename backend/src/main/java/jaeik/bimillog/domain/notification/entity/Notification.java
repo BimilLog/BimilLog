@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.notification.entity;
 
 import jaeik.bimillog.domain.global.entity.BaseEntity;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -30,7 +30,7 @@ public class Notification extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    private User users;
+    private Member users;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -62,7 +62,7 @@ public class Notification extends BaseEntity {
      * <p>새로운 알림 엔티티를 생성합니다.</p>
      * <p>읽음 상태는 기본적으로 false로 설정됩니다.</p>
      *
-     * @param user 알림을 받을 사용자 엔티티
+     * @param member 알림을 받을 사용자 엔티티
      * @param notificationType 알림 유형
      * @param content 알림 내용
      * @param url 알림 클릭 시 이동할 URL
@@ -70,9 +70,9 @@ public class Notification extends BaseEntity {
      * @author Jaeik
      * @since 2.0.0
      */
-    public static Notification create(User user, NotificationType notificationType, String content, String url) {
+    public static Notification create(Member member, NotificationType notificationType, String content, String url) {
         return Notification.builder()
-                .users(user)
+                .users(member)
                 .notificationType(notificationType)
                 .content(content)
                 .url(url)

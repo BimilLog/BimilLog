@@ -67,7 +67,7 @@ public class PostLikeQueryAdapter implements PostLikeQueryPort {
 
     /**
      * <h3>ID 기반 추천 존재 여부 확인</h3>
-     * <p>Post와 User 엔티티를 로드하지 않고 ID만으로 추천 여부를 확인합니다.</p>
+     * <p>Post와 Member 엔티티를 로드하지 않고 ID만으로 추천 여부를 확인합니다.</p>
      * <p>캐시된 게시글의 추천 여부 확인 시 사용</p>
      *
      * @param postId 게시글 ID

@@ -2,7 +2,7 @@ package jaeik.bimillog.adapter.in.admin.dto;
 
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.in.admin.dto.ReportDTO;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
@@ -265,13 +265,13 @@ class ReportDTOTest {
     @DisplayName("인증된 사용자 신고 엔티티 변환 - 성공")
     void from_AuthenticatedReport_Success() {
         // Given
-        User mockUser = mock(User.class);
-        given(mockUser.getId()).willReturn(100L);
-        given(mockUser.getUserName()).willReturn("testuser");
+        Member mockMember = mock(Member.class);
+        given(mockMember.getId()).willReturn(100L);
+        given(mockMember.getUserName()).willReturn("testuser");
 
         Report mockReport = mock(Report.class);
         given(mockReport.getId()).willReturn(1L);
-        given(mockReport.getReporter()).willReturn(mockUser);
+        given(mockReport.getReporter()).willReturn(mockMember);
         given(mockReport.getReportType()).willReturn(ReportType.POST);
         given(mockReport.getTargetId()).willReturn(123L);
         given(mockReport.getContent()).willReturn("부적절한 게시글입니다");

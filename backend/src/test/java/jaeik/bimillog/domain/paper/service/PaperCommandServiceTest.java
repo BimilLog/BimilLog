@@ -9,7 +9,7 @@ import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.paper.exception.PaperCustomException;
 import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -111,15 +111,15 @@ class PaperCommandServiceTest extends BaseUnitTest {
     void shouldWriteMessage_WhenValidInput() {
         // Given
         Long userId = 1L;
-        User userWithId = createTestUserWithId(userId);
-        String userName = userWithId.getUserName();
+        Member memberWithId = createTestUserWithId(userId);
+        String userName = memberWithId.getUserName();
         DecoType decoType = DecoType.APPLE;
         String anonymity = "익명";
         String content = "테스트 메시지";
         int x = 2;
         int y = 2;
 
-        given(globalUserQueryPort.findByUserName(userName)).willReturn(Optional.of(userWithId));
+        given(globalUserQueryPort.findByUserName(userName)).willReturn(Optional.of(memberWithId));
 
         // When
         paperCommandService.writeMessage(userName, decoType, anonymity, content, x, y);
@@ -188,15 +188,15 @@ class PaperCommandServiceTest extends BaseUnitTest {
     void shouldPublishCorrectEvent_WhenWriteMessage() {
         // Given
         Long userId = 1L;
-        User userWithId = createTestUserWithId(userId);
-        String userName = userWithId.getUserName();
+        Member memberWithId = createTestUserWithId(userId);
+        String userName = memberWithId.getUserName();
         DecoType decoType = DecoType.APPLE;
         String anonymity = "익명";
         String content = "테스트 메시지";
         int x = 2;
         int y = 2;
 
-        given(globalUserQueryPort.findByUserName(userName)).willReturn(Optional.of(userWithId));
+        given(globalUserQueryPort.findByUserName(userName)).willReturn(Optional.of(memberWithId));
 
         // When
         paperCommandService.writeMessage(userName, decoType, anonymity, content, x, y);

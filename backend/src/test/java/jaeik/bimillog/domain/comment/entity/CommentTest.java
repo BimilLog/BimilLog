@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.comment.entity;
 
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -21,16 +21,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Tag("test")
 class CommentTest {
 
-    private User createTestUser(Long id) {
-        return TestUsers.copyWithId(TestUsers.USER1, id);
+    private Member createTestUser(Long id) {
+        return TestUsers.copyWithId(TestUsers.MEMBER_1, id);
     }
 
-    private Post createTestPost(User user) {
+    private Post createTestPost(Member member) {
         return Post.builder()
                 .id(1L)
                 .title("테스트 게시글")
                 .content("테스트 게시글 내용입니다.")
-                .user(user)
+                .member(member)
                 .build();
     }
 
@@ -38,13 +38,13 @@ class CommentTest {
     @DisplayName("회원 댓글 수정/삭제 권한 검증 - 댓글 작성자가 맞는 경우")
     void canModify_MemberComment_Owner_ReturnsTrue() {
         // Given
-        User user = createTestUser(1L);
-        Post post = createTestPost(user);
+        Member member = createTestUser(1L);
+        Post post = createTestPost(member);
         
         Comment comment = Comment.builder()
                 .id(1L)
                 .post(post)
-                .user(user) // 회원 댓글
+                .member(member) // 회원 댓글
                 .content("회원 댓글입니다.")
                 .deleted(false)
                 .password(null) // 회원 댓글은 비밀번호 없음
@@ -58,13 +58,13 @@ class CommentTest {
     @DisplayName("회원 댓글 수정/삭제 권한 검증 - 다른 사용자가 시도하는 경우")
     void canModify_MemberComment_NotOwner_ReturnsFalse() {
         // Given
-        User user = createTestUser(1L);
-        Post post = createTestPost(user);
+        Member member = createTestUser(1L);
+        Post post = createTestPost(member);
         
         Comment comment = Comment.builder()
                 .id(1L)
                 .post(post)
-                .user(user) // 회원 댓글 (user ID = 1L)
+                .member(member) // 회원 댓글 (member ID = 1L)
                 .content("회원 댓글입니다.")
                 .deleted(false)
                 .password(null)
@@ -78,13 +78,13 @@ class CommentTest {
     @DisplayName("회원 댓글 수정/삭제 권한 검증 - userId가 null인 경우")
     void canModify_MemberComment_NullUserId_ReturnsFalse() {
         // Given
-        User user = createTestUser(1L);
-        Post post = createTestPost(user);
+        Member member = createTestUser(1L);
+        Post post = createTestPost(member);
         
         Comment comment = Comment.builder()
                 .id(1L)
                 .post(post)
-                .user(user) // 회원 댓글
+                .member(member) // 회원 댓글
                 .content("회원 댓글입니다.")
                 .deleted(false)
                 .password(null)
@@ -98,13 +98,13 @@ class CommentTest {
     @DisplayName("익명 댓글 수정/삭제 권한 검증 - 올바른 비밀번호")
     void canModify_AnonymousComment_CorrectPassword_ReturnsTrue() {
         // Given
-        User user = createTestUser(1L);
-        Post post = createTestPost(user);
+        Member member = createTestUser(1L);
+        Post post = createTestPost(member);
         
         Comment comment = Comment.builder()
                 .id(1L)
                 .post(post)
-                .user(null) // 익명 댓글
+                .member(null) // 익명 댓글
                 .content("익명 댓글입니다.")
                 .deleted(false)
                 .password(1234) // 익명 댓글 비밀번호
@@ -118,13 +118,13 @@ class CommentTest {
     @DisplayName("익명 댓글 수정/삭제 권한 검증 - 잘못된 비밀번호")
     void canModify_AnonymousComment_WrongPassword_ReturnsFalse() {
         // Given
-        User user = createTestUser(1L);
-        Post post = createTestPost(user);
+        Member member = createTestUser(1L);
+        Post post = createTestPost(member);
         
         Comment comment = Comment.builder()
                 .id(1L)
                 .post(post)
-                .user(null) // 익명 댓글
+                .member(null) // 익명 댓글
                 .content("익명 댓글입니다.")
                 .deleted(false)
                 .password(1234)
@@ -138,13 +138,13 @@ class CommentTest {
     @DisplayName("익명 댓글 수정/삭제 권한 검증 - 비밀번호가 null인 경우")
     void canModify_AnonymousComment_NullPassword_ReturnsFalse() {
         // Given
-        User user = createTestUser(1L);
-        Post post = createTestPost(user);
+        Member member = createTestUser(1L);
+        Post post = createTestPost(member);
         
         Comment comment = Comment.builder()
                 .id(1L)
                 .post(post)
-                .user(null) // 익명 댓글
+                .member(null) // 익명 댓글
                 .content("익명 댓글입니다.")
                 .deleted(false)
                 .password(1234)
@@ -158,13 +158,13 @@ class CommentTest {
     @DisplayName("익명 댓글 수정/삭제 권한 검증 - 회원이 익명 댓글에 접근하는 경우")
     void canModify_AnonymousComment_MemberTryingAccess_ReturnsFalse() {
         // Given
-        User user = createTestUser(1L);
-        Post post = createTestPost(user);
+        Member member = createTestUser(1L);
+        Post post = createTestPost(member);
         
         Comment comment = Comment.builder()
                 .id(1L)
                 .post(post)
-                .user(null) // 익명 댓글
+                .member(null) // 익명 댓글
                 .content("익명 댓글입니다.")
                 .deleted(false)
                 .password(1234)
@@ -178,13 +178,13 @@ class CommentTest {
     @DisplayName("댓글 수정 기능 테스트")
     void updateComment_UpdatesContent() {
         // Given
-        User user = createTestUser(1L);
-        Post post = createTestPost(user);
+        Member member = createTestUser(1L);
+        Post post = createTestPost(member);
         
         Comment comment = Comment.builder()
                 .id(1L)
                 .post(post)
-                .user(user)
+                .member(member)
                 .content("원본 댓글 내용")
                 .deleted(false)
                 .build();
@@ -200,15 +200,15 @@ class CommentTest {
     @DisplayName("댓글 생성 팩토리 메서드 테스트 - 회원 댓글")
     void createComment_MemberComment() {
         // Given
-        User user = createTestUser(1L);
-        Post post = createTestPost(user);
+        Member member = createTestUser(1L);
+        Post post = createTestPost(member);
         
         // When
-        Comment comment = Comment.createComment(post, user, "회원 댓글 내용", null);
+        Comment comment = Comment.createComment(post, member, "회원 댓글 내용", null);
         
         // Then
         assertThat(comment.getPost()).isEqualTo(post);
-        assertThat(comment.getUser()).isEqualTo(user);
+        assertThat(comment.getMember()).isEqualTo(member);
         assertThat(comment.getContent()).isEqualTo("회원 댓글 내용");
         assertThat(comment.isDeleted()).isFalse();
         assertThat(comment.getPassword()).isNull();
@@ -218,15 +218,15 @@ class CommentTest {
     @DisplayName("댓글 생성 팩토리 메서드 테스트 - 익명 댓글")
     void createComment_AnonymousComment() {
         // Given
-        User user = createTestUser(1L);
-        Post post = createTestPost(user);
+        Member member = createTestUser(1L);
+        Post post = createTestPost(member);
         
         // When
         Comment comment = Comment.createComment(post, null, "익명 댓글 내용", 1234);
         
         // Then
         assertThat(comment.getPost()).isEqualTo(post);
-        assertThat(comment.getUser()).isNull();
+        assertThat(comment.getMember()).isNull();
         assertThat(comment.getContent()).isEqualTo("익명 댓글 내용");
         assertThat(comment.isDeleted()).isFalse();
         assertThat(comment.getPassword()).isEqualTo(1234);

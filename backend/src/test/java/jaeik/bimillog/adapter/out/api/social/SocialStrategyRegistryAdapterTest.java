@@ -1,7 +1,7 @@
 package jaeik.bimillog.adapter.out.api.social;
 
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
-import jaeik.bimillog.domain.user.entity.user.SocialProvider;
+import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.out.api.social.SocialStrategyRegistryAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.DisplayName;

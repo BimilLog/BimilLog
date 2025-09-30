@@ -9,8 +9,8 @@ import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
 import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
-import jaeik.bimillog.domain.user.entity.user.User;
-import jaeik.bimillog.domain.user.entity.user.UserRole;
+import jaeik.bimillog.domain.member.entity.member.Member;
+import jaeik.bimillog.domain.member.entity.member.MemberRole;
 import jaeik.bimillog.testutil.TestUsers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -60,7 +60,7 @@ class FcmServiceTest {
     @DisplayName("FCM 토큰 등록 - 성공")
     void shouldRegisterFcmToken_WhenValidInput() {
         // Given
-        User user = TestUsers.USER1;
+        Member member = TestUsers.MEMBER_1;
         String fcmToken = "valid-fcm-TemporaryToken";
         Long expectedTokenId = 100L;
         FcmToken savedToken = mock(FcmToken.class);
@@ -69,7 +69,7 @@ class FcmServiceTest {
         given(fcmPort.save(any(FcmToken.class))).willReturn(savedToken);
 
         // When
-        Long actualTokenId = notificationFcmService.registerFcmToken(user, fcmToken);
+        Long actualTokenId = notificationFcmService.registerFcmToken(member, fcmToken);
 
         // Then
         verify(fcmPort, times(1)).save(any(FcmToken.class));
@@ -81,11 +81,11 @@ class FcmServiceTest {
     @DisplayName("FCM 토큰 등록 - 사용자 null 예외")
     void shouldThrowException_WhenUserIsNull() {
         // Given
-        User user = null;
+        Member member = null;
         String fcmToken = "valid-fcm-TemporaryToken";
 
         // When & Then
-        assertThatThrownBy(() -> notificationFcmService.registerFcmToken(user, fcmToken))
+        assertThatThrownBy(() -> notificationFcmService.registerFcmToken(member, fcmToken))
                 .isInstanceOf(NotificationCustomException.class)
                 .hasFieldOrPropertyWithValue("notificationErrorCode", NotificationErrorCode.NOTIFICATION_USER_NOT_FOUND);
 
@@ -96,11 +96,11 @@ class FcmServiceTest {
     @DisplayName("FCM 토큰 등록 - null 토큰인 경우")
     void shouldNotRegister_WhenFcmTokenIsNull() {
         // Given
-        User user = TestUsers.USER1;
+        Member member = TestUsers.MEMBER_1;
         String fcmToken = null;
 
         // When
-        Long result = notificationFcmService.registerFcmToken(user, fcmToken);
+        Long result = notificationFcmService.registerFcmToken(member, fcmToken);
 
         // Then
         verify(fcmPort, never()).save(any());
@@ -111,11 +111,11 @@ class FcmServiceTest {
     @DisplayName("FCM 토큰 등록 - 빈 토큰인 경우")
     void shouldNotRegister_WhenFcmTokenIsEmpty() {
         // Given
-        User user = TestUsers.USER2;
+        Member member = TestUsers.MEMBER_2;
         String fcmToken = "";
 
         // When
-        Long result = notificationFcmService.registerFcmToken(user, fcmToken);
+        Long result = notificationFcmService.registerFcmToken(member, fcmToken);
 
         // Then
         verify(fcmPort, never()).save(any());
@@ -141,7 +141,7 @@ class FcmServiceTest {
     void shouldSendCommentNotification_WhenValidTokens() throws IOException {
         // Given
         Long postUserId = 1L;
-        String commenterName = TestUsers.USER3.getSocialNickname();
+        String commenterName = TestUsers.MEMBER_3.getSocialNickname();
         
         List<FcmToken> fcmTokens = Arrays.asList(
                 createMockFcmToken("token1"),
@@ -164,7 +164,7 @@ class FcmServiceTest {
     void shouldNotSendCommentNotification_WhenNoTokens() throws IOException {
         // Given
         Long postUserId = 2L;
-        String commenterName = TestUsers.USER2.getUserName();
+        String commenterName = TestUsers.MEMBER_2.getUserName();
         
         given(notificationUtilPort.FcmEligibleFcmTokens(postUserId, NotificationType.COMMENT)).willReturn(Collections.emptyList());
 
@@ -182,7 +182,7 @@ class FcmServiceTest {
     void shouldLogError_WhenCommentNotificationFails() {
         // Given
         Long postUserId = 1L;
-        String commenterName = TestUsers.withRole(UserRole.ADMIN).getUserName();
+        String commenterName = TestUsers.withRole(MemberRole.ADMIN).getUserName();
         
         given(notificationUtilPort.FcmEligibleFcmTokens(postUserId, NotificationType.COMMENT))
                 .willThrow(new RuntimeException("FCM 서비스 오류"));

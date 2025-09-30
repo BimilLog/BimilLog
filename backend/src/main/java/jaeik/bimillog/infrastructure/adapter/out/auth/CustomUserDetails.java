@@ -1,8 +1,8 @@
 package jaeik.bimillog.infrastructure.adapter.out.auth;
 
-import jaeik.bimillog.domain.user.entity.user.SocialProvider;
-import jaeik.bimillog.domain.user.entity.user.UserRole;
-import jaeik.bimillog.domain.user.entity.userdetail.ExistingUserDetail;
+import jaeik.bimillog.domain.member.entity.member.MemberRole;
+import jaeik.bimillog.domain.member.entity.member.SocialProvider;
+import jaeik.bimillog.domain.member.entity.memberdetail.ExistingMemberDetail;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -28,7 +28,7 @@ import java.util.List;
 @Getter
 public class CustomUserDetails implements UserDetails {
 
-    private final ExistingUserDetail existingUserDetail;
+    private final ExistingMemberDetail existingMemberDetail;
     private final Collection<? extends GrantedAuthority> authorities;
 
     /**
@@ -40,11 +40,11 @@ public class CustomUserDetails implements UserDetails {
      * 
      * @since 2.0.0
      * @author Jaeik
-     * @param existingUserDetail 사용자 정보 DTO
+     * @param existingMemberDetail 사용자 정보 DTO
      */
-    public CustomUserDetails(ExistingUserDetail existingUserDetail) {
-        this.existingUserDetail = existingUserDetail;
-        this.authorities = createAuthorities(existingUserDetail.getRole());
+    public CustomUserDetails(ExistingMemberDetail existingMemberDetail) {
+        this.existingMemberDetail = existingMemberDetail;
+        this.authorities = createAuthorities(existingMemberDetail.getRole());
     }
 
     /**
@@ -59,7 +59,7 @@ public class CustomUserDetails implements UserDetails {
      * @param role 사용자 역할
      * @return 권한 컬렉션
      */
-    private Collection<? extends GrantedAuthority> createAuthorities(UserRole role) {
+    private Collection<? extends GrantedAuthority> createAuthorities(MemberRole role) {
         List<GrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_" + role.name()));
         return authorities;
@@ -77,7 +77,7 @@ public class CustomUserDetails implements UserDetails {
      * @return 유저 ID
      */
     public Long getUserId() {
-        return existingUserDetail.getUserId();
+        return existingMemberDetail.getUserId();
     }
 
     /**
@@ -89,7 +89,7 @@ public class CustomUserDetails implements UserDetails {
      * @return 토큰 ID
      */
     public Long getTokenId() {
-        return existingUserDetail.getTokenId();
+        return existingMemberDetail.getTokenId();
     }
 
     /**
@@ -102,7 +102,7 @@ public class CustomUserDetails implements UserDetails {
      * @return FCM 토큰 ID
      */
     public Long getFcmTokenId() {
-        return existingUserDetail.getFcmTokenId();
+        return existingMemberDetail.getFcmTokenId();
     }
 
     /**
@@ -115,7 +115,7 @@ public class CustomUserDetails implements UserDetails {
      * @return 설정 ID
      */
     public Long getSettingId() {
-        return existingUserDetail.getSettingId();
+        return existingMemberDetail.getSettingId();
     }
 
     /**
@@ -128,7 +128,7 @@ public class CustomUserDetails implements UserDetails {
      * @return 소셜 제공자
      */
     public SocialProvider getSocialProvider() {
-        return existingUserDetail.getProvider();
+        return existingMemberDetail.getProvider();
     }
 
     /**
@@ -140,7 +140,7 @@ public class CustomUserDetails implements UserDetails {
      * @author Jaeik
      * @return 소셜 ID
      */
-    public String getSocialId() {return  existingUserDetail.getSocialId();}
+    public String getSocialId() {return  existingMemberDetail.getSocialId();}
 
     /**
      * <h3>닉네임 조회</h3>
@@ -153,7 +153,7 @@ public class CustomUserDetails implements UserDetails {
      */
     @Override
     public String getUsername() {
-        return existingUserDetail.getUserName();
+        return existingMemberDetail.getUserName();
     }
 
     /**

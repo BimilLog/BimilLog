@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.notification.application.port.out.NotificationComma
 import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -54,7 +54,7 @@ public class NotificationCommandAdapter implements NotificationCommandPort {
      * <h3>알림 저장</h3>
      * <p>새로운 알림을 데이터베이스에 저장합니다.</p>
      *
-     * @param user    알림을 받을 사용자 엔티티
+     * @param member    알림을 받을 사용자 엔티티
      * @param type    알림 유형
      * @param content 알림 내용
      * @param url     알림 클릭 시 이동할 URL
@@ -62,8 +62,8 @@ public class NotificationCommandAdapter implements NotificationCommandPort {
      * @since 2.0.0
      */
     @Override
-    public void save(User user, NotificationType type, String content, String url) {
-        notificationRepository.save(Notification.create(user, type, content, url));
+    public void save(Member member, NotificationType type, String content, String url) {
+        notificationRepository.save(Notification.create(member, type, content, url));
     }
 
     /**

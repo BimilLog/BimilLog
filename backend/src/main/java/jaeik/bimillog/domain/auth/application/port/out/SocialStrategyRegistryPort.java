@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.auth.application.port.out;
 
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
-import jaeik.bimillog.domain.user.entity.user.SocialProvider;
+import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 
 /**
  * <h2>소셜 전략 레지스트리 포트</h2>

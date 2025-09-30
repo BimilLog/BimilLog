@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.post.application.port.out;
 
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 
 /**
  * <h2>게시글 추천 명령 포트</h2>
@@ -32,12 +32,12 @@ public interface PostLikeCommandPort {
      * <p>사용자가 특정 게시글에 대해 누른 추천을 삭제합니다.</p>
      * <p>PostInteractionService의 removeLike 메서드에서 추천 취소 시 호출됩니다.</p>
      *
-     * @param user 추천을 취소할 사용자
+     * @param member 추천을 취소할 사용자
      * @param post 추천을 취소할 게시글
      * @author Jaeik
      * @since 2.0.0
      */
-    void deletePostLike(User user, Post post);
+    void deletePostLike(Member member, Post post);
 
     /**
      * <h3>게시글의 모든 추천 일괄 삭제</h3>

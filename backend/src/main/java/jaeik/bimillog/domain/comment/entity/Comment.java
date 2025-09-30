@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.comment.entity;
 
 import jaeik.bimillog.domain.global.entity.BaseEntity;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -39,7 +39,7 @@ public class Comment extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    private User user;
+    private Member member;
 
     @NotNull
     @Column(nullable = false) // 255자 허용
@@ -57,17 +57,17 @@ public class Comment extends BaseEntity {
      * <p>회원 댓글인 경우 password는 null, 익명 댓글인 경우 user는 null로 설정됩니다.</p>
      *
      * @param post     댓글이 달릴 게시글
-     * @param user     댓글 작성자 (익명 댓글인 경우 null)
+     * @param member     댓글 작성자 (익명 댓글인 경우 null)
      * @param content  댓글 내용
      * @param password 댓글 비밀번호 (회원 댓글인 경우 null)
      * @return 생성된 댓글 엔티티
      * @author Jaeik
      * @since 2.0.0
      */
-    public static Comment createComment(Post post, User user, String content, Integer password) {
+    public static Comment createComment(Post post, Member member, String content, Integer password) {
         return Comment.builder()
                 .post(post)
-                .user(user)
+                .member(member)
                 .content(content)
                 .deleted(false)
                 .password(password)
@@ -97,7 +97,7 @@ public class Comment extends BaseEntity {
      * @since 2.0.0
      */
     private boolean isOwner(Long userId) {
-        return this.user != null && this.user.getId().equals(userId);
+        return this.member != null && this.member.getId().equals(userId);
     }
 
     /**
@@ -136,7 +136,7 @@ public class Comment extends BaseEntity {
      * @since 2.0.0
      */
     public void anonymize() {
-        this.user = null;
+        this.member = null;
         this.content = "탈퇴한 사용자의 댓글입니다";
         this.deleted = true;
     }
@@ -154,7 +154,7 @@ public class Comment extends BaseEntity {
      */
     public boolean canModify(Long userId, Integer password) {
         // 댓글이 원래 익명 댓글인지 회원 댓글인지 먼저 확인
-        if (this.user == null) {
+        if (this.member == null) {
             // 익명 댓글: 비밀번호 검증
             return isPasswordMatch(password);
         } else {

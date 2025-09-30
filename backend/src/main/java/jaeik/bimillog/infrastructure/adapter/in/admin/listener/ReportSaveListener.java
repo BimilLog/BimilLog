@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.in.admin.listener;
 
 import jaeik.bimillog.domain.admin.application.port.in.AdminCommandUseCase;
-import jaeik.bimillog.domain.user.event.ReportSubmittedEvent;
+import jaeik.bimillog.domain.member.event.ReportSubmittedEvent;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,8 +27,8 @@ public class ReportSaveListener {
 
     /**
      * <h3>신고 제출 이벤트 비동기 처리</h3>
-     * <p>User 도메인에서 발행된 ReportSubmittedEvent를 구독하여 Admin 도메인의 신고 접수 로직을 실행합니다.</p>
-     * <p>사용자가 프론트엔드에서 신고 폼을 제출할 때 User 도메인의 서비스에서 이벤트를 발행하면 이 메서드가 호출됩니다.</p>
+     * <p>Member 도메인에서 발행된 ReportSubmittedEvent를 구독하여 Admin 도메인의 신고 접수 로직을 실행합니다.</p>
+     * <p>사용자가 프론트엔드에서 신고 폼을 제출할 때 Member 도메인의 서비스에서 이벤트를 발행하면 이 메서드가 호출됩니다.</p>
      * <p>AdminCommandUseCase를 호출하여 실제 신고 데이터를 생성하고 저장하는 비즈니스 로직을 수행합니다.</p>
      *
      * @param event 사용자 신고 제출 이벤트 (신고자 정보, 신고 유형, 대상 ID, 신고 내용 포함)

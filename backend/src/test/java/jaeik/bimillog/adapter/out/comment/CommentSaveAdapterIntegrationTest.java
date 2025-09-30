@@ -4,7 +4,7 @@ import jaeik.bimillog.BimilLogApplication;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentClosure;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.out.comment.CommentClosureRepository;
 import jaeik.bimillog.infrastructure.adapter.out.comment.CommentRepository;
 import jaeik.bimillog.infrastructure.adapter.out.comment.CommentSaveAdapter;
@@ -63,7 +63,7 @@ class CommentSaveAdapterIntegrationTest {
     @Autowired
     private CommentSaveAdapter commentSaveAdapter;
 
-    private User testUser;
+    private Member testMember;
     private Post testPost;
     private Comment parentComment;
     private Comment childComment;
@@ -75,20 +75,20 @@ class CommentSaveAdapterIntegrationTest {
         commentRepository.deleteAll();
         
         // 테스트용 사용자 생성 - TestUsers 활용
-        testUser = TestUsers.createUnique();
-        entityManager.persistAndFlush(testUser.getSetting());
-        entityManager.persistAndFlush(testUser);
+        testMember = TestUsers.createUnique();
+        entityManager.persistAndFlush(testMember.getSetting());
+        entityManager.persistAndFlush(testMember);
 
         // 테스트용 게시글 생성 - CommentTestDataBuilder 활용
-        testPost = PostTestDataBuilder.createPost(testUser, "테스트 게시글", "테스트 게시글 내용입니다.");
+        testPost = PostTestDataBuilder.createPost(testMember, "테스트 게시글", "테스트 게시글 내용입니다.");
         entityManager.persistAndFlush(testPost);
         
         // 부모 댓글 생성 - CommentTestDataBuilder 활용
-        parentComment = CommentTestDataBuilder.createComment(testUser, testPost, "부모 댓글");
+        parentComment = CommentTestDataBuilder.createComment(testMember, testPost, "부모 댓글");
         parentComment = commentRepository.save(parentComment);
         
         // 자식 댓글 생성 - CommentTestDataBuilder 활용
-        childComment = CommentTestDataBuilder.createComment(testUser, testPost, "자식 댓글");
+        childComment = CommentTestDataBuilder.createComment(testMember, testPost, "자식 댓글");
         childComment = commentRepository.save(childComment);
     }
 
@@ -96,7 +96,7 @@ class CommentSaveAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 새로운 댓글 저장")
     void shouldSaveNewComment_WhenValidCommentProvided() {
         // Given
-        Comment newComment = Comment.createComment(testPost, testUser, "테스트 댓글 내용", null);
+        Comment newComment = Comment.createComment(testPost, testMember, "테스트 댓글 내용", null);
 
         // When
         Comment result = commentSaveAdapter.save(newComment);
@@ -106,7 +106,7 @@ class CommentSaveAdapterIntegrationTest {
         assertThat(result.getId()).isNotNull();
         assertThat(result.getContent()).isEqualTo("테스트 댓글 내용");
         assertThat(result.getPost()).isEqualTo(testPost);
-        assertThat(result.getUser()).isEqualTo(testUser);
+        assertThat(result.getMember()).isEqualTo(testMember);
         assertThat(result.getPassword()).isNull();
         
         // 데이터베이스에 실제로 저장되었는지 검증
@@ -128,13 +128,13 @@ class CommentSaveAdapterIntegrationTest {
         assertThat(result).isNotNull();
         assertThat(result.getId()).isNotNull();
         assertThat(result.getContent()).isEqualTo("익명 댓글 내용");
-        assertThat(result.getUser()).isNull();
+        assertThat(result.getMember()).isNull();
         assertThat(result.getPassword()).isEqualTo(1234);
         
         // 데이터베이스에 실제로 저장되었는지 검증
         Optional<Comment> savedComment = commentRepository.findById(result.getId());
         assertThat(savedComment).isPresent();
-        assertThat(savedComment.get().getUser()).isNull();
+        assertThat(savedComment.get().getMember()).isNull();
         assertThat(savedComment.get().getPassword()).isEqualTo(1234);
     }
 
@@ -142,7 +142,7 @@ class CommentSaveAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 댓글 수정 저장")
     void shouldUpdateComment_WhenCommentModified() {
         // Given
-        Comment existingComment = Comment.createComment(testPost, testUser, "원본 댓글", null);
+        Comment existingComment = Comment.createComment(testPost, testMember, "원본 댓글", null);
         existingComment = commentRepository.save(existingComment);
         
         // 댓글 수정
@@ -190,7 +190,7 @@ class CommentSaveAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 다중 댓글 클로저 일괄 저장")
     void shouldSaveAllCommentClosures_WhenMultipleClosuresProvided() {
         // Given
-        Comment grandChildComment = Comment.createComment(testPost, testUser, "손자 댓글", null);
+        Comment grandChildComment = Comment.createComment(testPost, testMember, "손자 댓글", null);
         grandChildComment = commentRepository.save(grandChildComment);
         
         List<CommentClosure> closures = List.of(
@@ -223,7 +223,7 @@ class CommentSaveAdapterIntegrationTest {
     void shouldGetParentClosures_WhenParentCommentHasAncestors() {
         // Given: 3레벨 계층 구조 설정
         final Comment grandParentComment = commentRepository.save(
-                Comment.createComment(testPost, testUser, "조부모 댓글", null));
+                Comment.createComment(testPost, testMember, "조부모 댓글", null));
         
         // 클로저 관계 저장
         List<CommentClosure> closures = List.of(
@@ -254,7 +254,7 @@ class CommentSaveAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 최상위 댓글의 조상 클로저 관계 조회")
     void shouldGetEmptyParentClosures_WhenRootCommentHasNoAncestors() {
         // Given: 최상위 댓글 (조상이 없음)
-        Comment rootComment = Comment.createComment(testPost, testUser, "최상위 댓글", null);
+        Comment rootComment = Comment.createComment(testPost, testMember, "최상위 댓글", null);
         rootComment = commentRepository.save(rootComment);
 
         // When: 최상위 댓글의 조상 클로저 관계 조회
@@ -293,7 +293,7 @@ class CommentSaveAdapterIntegrationTest {
     @DisplayName("통합 워크플로우 - 댓글 저장 후 클로저 관계 설정")
     void shouldSaveCommentAndClosure_WhenIntegratedWorkflowPerformed() {
         // Given: 새로운 댓글 저장
-        Comment newComment = Comment.createComment(testPost, testUser, "통합 테스트 댓글", null);
+        Comment newComment = Comment.createComment(testPost, testMember, "통합 테스트 댓글", null);
         Comment savedComment = commentSaveAdapter.save(newComment);
 
         // When: 저장된 댓글을 위한 클로저 관계 생성
@@ -316,11 +316,11 @@ class CommentSaveAdapterIntegrationTest {
     void shouldCreateMultiLevelCommentHierarchy_WhenComplexStructureBuilt() {
         // Given: 복잡한 댓글 계층 구조
         final Comment level1 = commentSaveAdapter.save(
-            Comment.createComment(testPost, testUser, "1단계 댓글", null));
+            Comment.createComment(testPost, testMember, "1단계 댓글", null));
         final Comment level2 = commentSaveAdapter.save(
-            Comment.createComment(testPost, testUser, "2단계 댓글", null));
+            Comment.createComment(testPost, testMember, "2단계 댓글", null));
         final Comment level3 = commentSaveAdapter.save(
-            Comment.createComment(testPost, testUser, "3단계 댓글", null));
+            Comment.createComment(testPost, testMember, "3단계 댓글", null));
 
         // When: 계층 구조 클로저 관계 일괄 생성
         List<CommentClosure> hierarchyClosures = List.of(

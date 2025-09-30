@@ -12,8 +12,8 @@ import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
-import jaeik.bimillog.domain.user.entity.userdetail.ExistingUserDetail;
-import jaeik.bimillog.domain.user.entity.userdetail.NewUserDetail;
+import jaeik.bimillog.domain.member.entity.memberdetail.ExistingMemberDetail;
+import jaeik.bimillog.domain.member.entity.memberdetail.NewMemberDetail;
 import jaeik.bimillog.domain.auth.entity.KakaoUserInfo;
 import jaeik.bimillog.testutil.AuthTestFixtures;
 import jaeik.bimillog.testutil.BaseUnitTest;
@@ -74,7 +74,7 @@ class SocialLoginServiceTest extends BaseUnitTest {
         String generatedRefreshToken = "generated-refresh-token";
         KakaoUserInfo kakaoUserInfo = getTestKakaoUserInfo();
         SocialUserProfile testUserProfile = getTestUserProfile();
-        ExistingUserDetail existingUserDetail = getExistingUserDetail();
+        ExistingMemberDetail existingMemberDetail = getExistingUserDetail();
         List<ResponseCookie> jwtCookies = getJwtCookies();
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
@@ -85,9 +85,9 @@ class SocialLoginServiceTest extends BaseUnitTest {
             given(kakaoStrategy.getUserInfo(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN)).willReturn(kakaoUserInfo);
             given(blacklistPort.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
             given(authToUserPort.delegateUserData(TEST_PROVIDER, testUserProfile))
-                .willReturn(existingUserDetail);
-            given(globalJwtPort.generateAccessToken(existingUserDetail)).willReturn(generatedAccessToken);
-            given(globalJwtPort.generateRefreshToken(existingUserDetail)).willReturn(generatedRefreshToken);
+                .willReturn(existingMemberDetail);
+            given(globalJwtPort.generateAccessToken(existingMemberDetail)).willReturn(generatedAccessToken);
+            given(globalJwtPort.generateRefreshToken(existingMemberDetail)).willReturn(generatedRefreshToken);
             given(globalCookiePort.generateJwtCookie(generatedAccessToken, generatedRefreshToken))
                 .willReturn(jwtCookies);
 
@@ -103,8 +103,8 @@ class SocialLoginServiceTest extends BaseUnitTest {
             verify(kakaoStrategy).getToken(TEST_AUTH_CODE);
             verify(kakaoStrategy).getUserInfo(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
             verify(authToUserPort).delegateUserData(TEST_PROVIDER, testUserProfile);
-            verify(globalJwtPort).generateAccessToken(existingUserDetail);
-            verify(globalJwtPort).generateRefreshToken(existingUserDetail);
+            verify(globalJwtPort).generateAccessToken(existingMemberDetail);
+            verify(globalJwtPort).generateRefreshToken(existingMemberDetail);
             verify(globalCookiePort).generateJwtCookie(generatedAccessToken, generatedRefreshToken);
         }
     }
@@ -115,8 +115,8 @@ class SocialLoginServiceTest extends BaseUnitTest {
         // Given
         KakaoUserInfo kakaoUserInfo = getTestKakaoUserInfo();
         SocialUserProfile testUserProfile = getTestUserProfile();
-        NewUserDetail newUserDetail = getNewUserDetail();
-        String uuid = newUserDetail.getUuid() != null ? newUserDetail.getUuid() : "test-uuid";
+        NewMemberDetail newMemberDetail = getNewUserDetail();
+        String uuid = newMemberDetail.getUuid() != null ? newMemberDetail.getUuid() : "test-uuid";
         ResponseCookie tempCookie = ResponseCookie.from("temp", uuid)
                 .path("/")
                 .maxAge(60 * 10) // 10분
@@ -133,8 +133,8 @@ class SocialLoginServiceTest extends BaseUnitTest {
             given(kakaoStrategy.getUserInfo(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN)).willReturn(kakaoUserInfo);
             given(blacklistPort.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
             given(authToUserPort.delegateUserData(TEST_PROVIDER, testUserProfile))
-                .willReturn(newUserDetail);
-            given(globalCookiePort.createTempCookie(newUserDetail)).willReturn(tempCookie);
+                .willReturn(newMemberDetail);
+            given(globalCookiePort.createTempCookie(newMemberDetail)).willReturn(tempCookie);
 
             // When
             LoginResult result = socialLoginService.processSocialLogin(TEST_PROVIDER, TEST_AUTH_CODE, TEST_FCM_TOKEN);
@@ -142,14 +142,14 @@ class SocialLoginServiceTest extends BaseUnitTest {
             // Then
             assertThat(result).isInstanceOf(LoginResult.NewUser.class);
             LoginResult.NewUser newUserResponse = (LoginResult.NewUser) result;
-            assertThat(newUserResponse.uuid()).isEqualTo(newUserDetail.getUuid());
+            assertThat(newUserResponse.uuid()).isEqualTo(newMemberDetail.getUuid());
             assertThat(newUserResponse.tempCookie()).isNotNull();
 
             verify(strategyRegistry).getStrategy(TEST_PROVIDER);
             verify(kakaoStrategy).getToken(TEST_AUTH_CODE);
             verify(kakaoStrategy).getUserInfo(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
             verify(authToUserPort).delegateUserData(TEST_PROVIDER, testUserProfile);
-            verify(globalCookiePort).createTempCookie(newUserDetail);
+            verify(globalCookiePort).createTempCookie(newMemberDetail);
         }
     }
 
@@ -219,7 +219,7 @@ class SocialLoginServiceTest extends BaseUnitTest {
     /**
      * 기존 사용자 상세 정보 획득 - SocialLoginServiceTest 전용
      */
-    private ExistingUserDetail getExistingUserDetail() {
+    private ExistingMemberDetail getExistingUserDetail() {
         Long settingId = 1L;
         if (getTestUser().getSetting() != null && getTestUser().getSetting().getId() != null) {
             settingId = getTestUser().getSetting().getId();
@@ -230,8 +230,8 @@ class SocialLoginServiceTest extends BaseUnitTest {
     /**
      * 신규 사용자 상세 정보 획득 - SocialLoginServiceTest 전용
      */
-    private NewUserDetail getNewUserDetail() {
-        return NewUserDetail.builder()
+    private NewMemberDetail getNewUserDetail() {
+        return NewMemberDetail.builder()
                 .uuid("test-uuid-123")
                 .build();
     }

@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.admin.event;
 
-import jaeik.bimillog.domain.user.entity.user.SocialProvider;
+import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 
 /**
  * <h2>UserBannedEvent</h2>

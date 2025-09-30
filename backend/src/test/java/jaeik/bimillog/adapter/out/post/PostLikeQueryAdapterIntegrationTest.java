@@ -2,7 +2,7 @@ package jaeik.bimillog.adapter.out.post;
 
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostLikeQueryAdapter;
 import jaeik.bimillog.testutil.H2TestConfiguration;
 import jaeik.bimillog.testutil.TestUsers;
@@ -46,15 +46,15 @@ class PostLikeQueryAdapterIntegrationTest {
     @Autowired
     private TestEntityManager testEntityManager;
 
-    private User author;
-    private User likerOne;
-    private User likerTwo;
+    private Member author;
+    private Member likerOne;
+    private Member likerTwo;
 
     @BeforeEach
     void setUp() {
-        author = testEntityManager.persistAndFlush(TestUsers.copyWithId(TestUsers.USER1, null));
-        likerOne = testEntityManager.persistAndFlush(TestUsers.copyWithId(TestUsers.USER2, null));
-        likerTwo = testEntityManager.persistAndFlush(TestUsers.copyWithId(TestUsers.USER3, null));
+        author = testEntityManager.persistAndFlush(TestUsers.copyWithId(TestUsers.MEMBER_1, null));
+        likerOne = testEntityManager.persistAndFlush(TestUsers.copyWithId(TestUsers.MEMBER_2, null));
+        likerTwo = testEntityManager.persistAndFlush(TestUsers.copyWithId(TestUsers.MEMBER_3, null));
     }
 
     @Test
@@ -110,10 +110,10 @@ class PostLikeQueryAdapterIntegrationTest {
         return testEntityManager.persistAndFlush(post);
     }
 
-    private void persistLike(Post post, User user) {
+    private void persistLike(Post post, Member member) {
         PostLike postLike = PostLike.builder()
                 .post(post)
-                .user(user)
+                .member(member)
                 .build();
         testEntityManager.persist(postLike);
     }

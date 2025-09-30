@@ -37,7 +37,7 @@ class PostAdminControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     private void createTestPost() {
-        testPost = PostTestDataBuilder.createPost(testUser, "테스트 게시글", "테스트 게시글 내용입니다.");
+        testPost = PostTestDataBuilder.createPost(testMember, "테스트 게시글", "테스트 게시글 내용입니다.");
         testPost = postRepository.save(testPost);
     }
 

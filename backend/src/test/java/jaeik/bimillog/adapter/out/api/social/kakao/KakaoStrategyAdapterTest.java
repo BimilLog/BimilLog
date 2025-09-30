@@ -2,7 +2,7 @@ package jaeik.bimillog.adapter.out.api.social.kakao;
 
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.global.vo.KakaoKeyVO;
-import jaeik.bimillog.domain.user.entity.user.SocialProvider;
+import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import jaeik.bimillog.domain.auth.entity.KakaoUserInfo;
 import jaeik.bimillog.infrastructure.adapter.out.api.social.kakao.KakaoApiClient;
 import jaeik.bimillog.infrastructure.adapter.out.api.social.kakao.KakaoAuthClient;
@@ -132,7 +132,7 @@ class KakaoStrategyAdapterTest extends BaseUnitTest {
     void shouldThrowExceptionWhenTokenRequestFails() {
         // Given
         given(kakaoAuthClient.getToken(anyString(), any(Map.class)))
-            .willThrow(new RuntimeException("JwtToken request failed"));
+            .willThrow(new RuntimeException("AuthToken request failed"));
 
         // When & Then
         assertThatThrownBy(() ->
@@ -146,13 +146,13 @@ class KakaoStrategyAdapterTest extends BaseUnitTest {
     void shouldThrowExceptionWhenUserInfoRequestFails() {
         // Given
         given(kakaoApiClient.getUserInfo(anyString()))
-            .willThrow(new RuntimeException("User info request failed"));
+            .willThrow(new RuntimeException("Member info request failed"));
 
         // When & Then
         assertThatThrownBy(() ->
             kakaoStrategyAdapter.getUserInfo(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN))
             .isInstanceOf(RuntimeException.class)
-            .hasMessageContaining("Kakao user info request failed");
+            .hasMessageContaining("Kakao member info request failed");
     }
 
     @Test

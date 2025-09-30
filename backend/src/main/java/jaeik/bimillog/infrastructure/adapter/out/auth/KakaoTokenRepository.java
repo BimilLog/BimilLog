@@ -31,7 +31,7 @@ public interface KakaoTokenRepository extends JpaRepository<KakaoToken, Long> {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Query("SELECT kt FROM KakaoToken kt WHERE kt.id IN (SELECT u.kakaoToken.id FROM User u WHERE u.id = :userId)")
+    @Query("SELECT kt FROM KakaoToken kt WHERE kt.id IN (SELECT u.kakaoToken.id FROM Member u WHERE u.id = :userId)")
     Optional<KakaoToken> findByUserId(@Param("userId") Long userId);
 
     /**
@@ -43,6 +43,6 @@ public interface KakaoTokenRepository extends JpaRepository<KakaoToken, Long> {
      * @since 2.0.0
      */
     @Modifying
-    @Query("DELETE FROM KakaoToken kt WHERE kt.id IN (SELECT u.kakaoToken.id FROM User u WHERE u.id = :userId)")
+    @Query("DELETE FROM KakaoToken kt WHERE kt.id IN (SELECT u.kakaoToken.id FROM Member u WHERE u.id = :userId)")
     void deleteByUserId(@Param("userId") Long userId);
 }

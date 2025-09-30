@@ -80,7 +80,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
         ArgumentCaptor<PostLike> postLikeCaptor = ArgumentCaptor.forClass(PostLike.class);
         verify(postLikeCommandPort).savePostLike(postLikeCaptor.capture());
         PostLike savedPostLike = postLikeCaptor.getValue();
-        assertThat(savedPostLike.getUser()).isEqualTo(getTestUser());
+        assertThat(savedPostLike.getMember()).isEqualTo(getTestUser());
         assertThat(savedPostLike.getPost()).isEqualTo(post);
 
         verify(postLikeCommandPort, never()).deletePostLike(any(), any());

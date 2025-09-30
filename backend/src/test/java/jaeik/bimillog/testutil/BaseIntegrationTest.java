@@ -1,11 +1,11 @@
 package jaeik.bimillog.testutil;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jaeik.bimillog.domain.user.entity.Setting;
-import jaeik.bimillog.domain.user.entity.user.User;
-import jaeik.bimillog.domain.user.entity.user.UserRole;
+import jaeik.bimillog.domain.member.entity.Setting;
+import jaeik.bimillog.domain.member.entity.member.Member;
+import jaeik.bimillog.domain.member.entity.member.MemberRole;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
-import jaeik.bimillog.infrastructure.adapter.out.user.UserRepository;
+import jaeik.bimillog.infrastructure.adapter.out.member.UserRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -80,17 +80,17 @@ public abstract class BaseIntegrationTest {
     /**
      * 기본 테스트 사용자 (DB에 저장됨)
      */
-    protected User testUser;
+    protected Member testMember;
 
     /**
      * 관리자 권한 테스트 사용자 (DB에 저장됨)
      */
-    protected User adminUser;
+    protected Member adminMember;
 
     /**
      * 추가 테스트 사용자 (DB에 저장됨)
      */
-    protected User otherUser;
+    protected Member otherMember;
 
     /**
      * 테스트 사용자의 CustomUserDetails
@@ -136,9 +136,9 @@ public abstract class BaseIntegrationTest {
         setupTestUsers();
 
         // CustomUserDetails 생성
-        this.testUserDetails = createCustomUserDetails(testUser);
-        this.adminUserDetails = createCustomUserDetails(adminUser);
-        this.otherUserDetails = createCustomUserDetails(otherUser);
+        this.testUserDetails = createCustomUserDetails(testMember);
+        this.adminUserDetails = createCustomUserDetails(adminMember);
+        this.otherUserDetails = createCustomUserDetails(otherMember);
 
         // 하위 클래스의 추가 설정
         setUpChild();
@@ -150,17 +150,17 @@ public abstract class BaseIntegrationTest {
     protected void setupTestUsers() {
         if (userRepository != null) {
             // 고유한 사용자 생성하여 충돌 방지
-            this.testUser = userRepository.save(TestUsers.createUniqueWithPrefix("test"));
-            this.adminUser = userRepository.save(TestUsers.createUniqueWithPrefix("admin", builder -> {
-                builder.role(UserRole.ADMIN);
+            this.testMember = userRepository.save(TestUsers.createUniqueWithPrefix("test"));
+            this.adminMember = userRepository.save(TestUsers.createUniqueWithPrefix("admin", builder -> {
+                builder.role(MemberRole.ADMIN);
                 builder.setting(TestUsers.createAllDisabledSetting());
             }));
-            this.otherUser = userRepository.save(TestUsers.createUniqueWithPrefix("other"));
+            this.otherMember = userRepository.save(TestUsers.createUniqueWithPrefix("other"));
         } else {
             // UserRepository가 없는 경우 기본 사용자 사용
-            this.testUser = TestUsers.USER1;
-            this.adminUser = TestUsers.withRole(UserRole.ADMIN);
-            this.otherUser = TestUsers.USER2;
+            this.testMember = TestUsers.MEMBER_1;
+            this.adminMember = TestUsers.withRole(MemberRole.ADMIN);
+            this.otherMember = TestUsers.MEMBER_2;
         }
     }
 
@@ -173,11 +173,11 @@ public abstract class BaseIntegrationTest {
 
     /**
      * CustomUserDetails 생성 유틸리티
-     * @param user 사용자 엔티티
+     * @param member 사용자 엔티티
      * @return CustomUserDetails 인스턴스
      */
-    protected CustomUserDetails createCustomUserDetails(User user) {
-        return AuthTestFixtures.createCustomUserDetails(user);
+    protected CustomUserDetails createCustomUserDetails(Member member) {
+        return AuthTestFixtures.createCustomUserDetails(member);
     }
 
     /**

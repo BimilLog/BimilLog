@@ -6,10 +6,10 @@ import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.KakaoUserInfo;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
-import jaeik.bimillog.domain.user.application.port.out.KakaoFriendPort;
-import jaeik.bimillog.domain.user.entity.KakaoFriendsResponseVO;
-import jaeik.bimillog.domain.user.entity.user.SocialProvider;
-import jaeik.bimillog.domain.user.entity.userdetail.ExistingUserDetail;
+import jaeik.bimillog.domain.member.application.port.out.KakaoFriendPort;
+import jaeik.bimillog.domain.member.entity.KakaoFriendsResponseVO;
+import jaeik.bimillog.domain.member.entity.member.SocialProvider;
+import jaeik.bimillog.domain.member.entity.memberdetail.ExistingMemberDetail;
 import jaeik.bimillog.infrastructure.adapter.out.global.GlobalCookieAdapter;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -53,9 +53,9 @@ public class TestSocialLoginPortConfig {
             String socialId;
 
             // accessToken에 따라 다른 사용자 ID 반환 (테스트 목적)
-            if ("new-user-token".equals(accessToken)) {
-                socialId = "new-user-social-id";
-            } else if ("existing-user-token".equals(accessToken)) {
+            if ("new-member-token".equals(accessToken)) {
+                socialId = "new-member-social-id";
+            } else if ("existing-member-token".equals(accessToken)) {
                 socialId = "test-social-id-12345"; // 통합 테스트에서 생성한 기존 사용자 ID와 일치
             } else {
                 socialId = "test-social-id";
@@ -65,7 +65,7 @@ public class TestSocialLoginPortConfig {
                 socialId,
                 null, // 카카오는 이메일을 제공하지 않음
                 SocialProvider.KAKAO,
-                "Test User",
+                "Test Member",
                 "https://example.com/profile.jpg"
             );
         }
@@ -127,12 +127,12 @@ public class TestSocialLoginPortConfig {
     public GlobalJwtPort testGlobalJwtPort() {
         return new GlobalJwtPort() {
             @Override
-            public String generateAccessToken(ExistingUserDetail userDetail) {
+            public String generateAccessToken(ExistingMemberDetail userDetail) {
                 return "test-access-TemporaryToken";
             }
 
             @Override
-            public String generateRefreshToken(ExistingUserDetail userDetail) {
+            public String generateRefreshToken(ExistingMemberDetail userDetail) {
                 return "test-refresh-TemporaryToken";
             }
 
@@ -142,8 +142,8 @@ public class TestSocialLoginPortConfig {
             }
 
             @Override
-            public ExistingUserDetail getUserInfoFromToken(String jwtAccessToken) {
-                return ExistingUserDetail.of(TestUsers.USER1, 1L, 1L);
+            public ExistingMemberDetail getUserInfoFromToken(String jwtAccessToken) {
+                return ExistingMemberDetail.of(TestUsers.MEMBER_1, 1L, 1L);
             }
 
             @Override

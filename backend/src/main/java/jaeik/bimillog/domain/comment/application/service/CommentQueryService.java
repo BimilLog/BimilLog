@@ -9,7 +9,7 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalCommentQueryPort;
 import jaeik.bimillog.infrastructure.adapter.in.comment.web.CommentQueryController;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostToCommentAdapter;
-import jaeik.bimillog.infrastructure.adapter.out.user.UserActivityAdapter;
+import jaeik.bimillog.infrastructure.adapter.out.member.UserActivityAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;

@@ -60,7 +60,7 @@ class FcmAdapterTest extends BaseUnitTest {
         // Given: 저장할 FCM 토큰과 예상 결과
         FcmToken savedToken = FcmToken.builder()
                 .id(1L)
-                .user(getTestUser())
+                .member(getTestUser())
                 .fcmRegistrationToken("new-fcm-TemporaryToken")
                 .build();
 
@@ -73,7 +73,7 @@ class FcmAdapterTest extends BaseUnitTest {
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(1L);
         assertThat(result.getFcmRegistrationToken()).isEqualTo("new-fcm-TemporaryToken");
-        assertThat(result.getUser()).isEqualTo(getTestUser());
+        assertThat(result.getMember()).isEqualTo(getTestUser());
 
         verify(fcmTokenRepository).save(any(FcmToken.class));
     }

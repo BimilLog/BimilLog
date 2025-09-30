@@ -87,7 +87,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, "/").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/auth/login", "/api/global/health", "/api/auth/me", "/api/user/signup").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/global/health", "/api/auth/me", "/api/member/signup").permitAll()
                         .requestMatchers("/api/comment/like").authenticated()
                         .requestMatchers("/api/comment/**").permitAll()
                         .requestMatchers("/api/post/{postId}/notice").hasRole("ADMIN")
@@ -95,7 +95,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/post/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/paper/{userName}").permitAll()
-                        .requestMatchers("/api/user/suggestion", "/api/user/username/check", "/api/user/report").permitAll()
+                        .requestMatchers("/api/member/suggestion", "/api/member/username/check", "/api/member/report").permitAll()
                         .requestMatchers("/data/**").permitAll() // 개발용 임시 데이터 API
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)

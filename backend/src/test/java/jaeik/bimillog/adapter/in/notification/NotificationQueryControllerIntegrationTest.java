@@ -1,7 +1,7 @@
 package jaeik.bimillog.adapter.in.notification;
 
 import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.out.notification.NotificationRepository;
 import jaeik.bimillog.testutil.*;
 import org.junit.jupiter.api.DisplayName;
@@ -60,12 +60,12 @@ class NotificationQueryControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("로그인된 사용자의 알림 목록 조회 - 알림 없음")
     void getNotifications_NoNotifications_Success() throws Exception {
         // Given - 알림이 없는 새로운 사용자
-        User userWithoutNotifications = TestUsers.createUniqueWithPrefix("anotheruser");
-        userRepository.save(userWithoutNotifications);
+        Member memberWithoutNotifications = TestUsers.createUniqueWithPrefix("anotheruser");
+        userRepository.save(memberWithoutNotifications);
 
         // When & Then - otherUser를 사용하는 것이 더 적절하지만, 새 사용자가 필요한 경우
         mockMvc.perform(get("/api/notification/list")
-                        .with(user(createCustomUserDetails(userWithoutNotifications))))
+                        .with(user(createCustomUserDetails(memberWithoutNotifications))))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
@@ -118,28 +118,28 @@ class NotificationQueryControllerIntegrationTest extends BaseIntegrationTest {
     private void createTestNotifications() {
         // 다양한 타입의 알림 생성 - TestDataBuilder 사용
         notificationRepository.save(
-                NotificationTestDataBuilder.aPaperMessageNotification(testUser)
+                NotificationTestDataBuilder.aPaperMessageNotification(testMember)
                         .asUnread()
                         .build()
         );
         notificationRepository.save(
-                NotificationTestDataBuilder.aCommentNotification(testUser, 1L)
+                NotificationTestDataBuilder.aCommentNotification(testMember, 1L)
                         .asRead()
                         .build()
         );
         notificationRepository.save(
-                NotificationTestDataBuilder.aLikeNotification(testUser, 2L)
+                NotificationTestDataBuilder.aLikeNotification(testMember, 2L)
                         .asUnread()
                         .build()
         );
         notificationRepository.save(
-                NotificationTestDataBuilder.anAdminNotification(testUser, "공지사항이 등록되었습니다")
+                NotificationTestDataBuilder.anAdminNotification(testMember, "공지사항이 등록되었습니다")
                         .asRead()
                         .build()
         );
         notificationRepository.save(
                 NotificationTestDataBuilder.aNotification()
-                        .withReceiver(testUser)
+                        .withReceiver(testMember)
                         .withType(NotificationType.INITIATE)
                         .withMessage("초기화 알림")
                         .asUnread()

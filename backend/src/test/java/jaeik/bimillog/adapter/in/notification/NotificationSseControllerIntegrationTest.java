@@ -1,6 +1,6 @@
 package jaeik.bimillog.adapter.in.notification;
 
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.H2TestConfiguration;
@@ -66,10 +66,10 @@ class NotificationSseControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("다른 사용자들의 동시 SSE 구독 - 성공")
     void subscribe_MultipleUsers_Success() throws Exception {
-        // Given - 추가 사용자 생성 (BaseIntegrationTest에서 otherUser, adminUser 이미 제공)
-        User additionalUser = TestUsers.createUniqueWithPrefix("additional");
-        userRepository.save(additionalUser);
-        CustomUserDetails additionalUserDetails = createCustomUserDetails(additionalUser);
+        // Given - 추가 사용자 생성 (BaseIntegrationTest에서 otherMember, adminMember 이미 제공)
+        Member additionalMember = TestUsers.createUniqueWithPrefix("additional");
+        userRepository.save(additionalMember);
+        CustomUserDetails additionalUserDetails = createCustomUserDetails(additionalMember);
 
         // When & Then - 각각 구독 가능해야 함
         mockMvc.perform(get("/api/notification/subscribe")

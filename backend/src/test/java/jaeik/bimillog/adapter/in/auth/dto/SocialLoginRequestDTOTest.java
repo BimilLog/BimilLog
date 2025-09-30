@@ -1,6 +1,6 @@
 package jaeik.bimillog.adapter.in.auth.dto;
 
-import jaeik.bimillog.domain.user.entity.user.SocialProvider;
+import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.in.auth.dto.SocialLoginRequestDTO;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
@@ -204,7 +204,7 @@ class SocialLoginRequestDTOTest {
 
     @Nested
     @DisplayName("FCM 토큰 검증 테스트")
-    class FcmJwtTokenValidationTests {
+    class FcmAuthTokenValidationTests {
 
         @Test
         @DisplayName("유효한 FCM 토큰 형식 - 검증 통과")

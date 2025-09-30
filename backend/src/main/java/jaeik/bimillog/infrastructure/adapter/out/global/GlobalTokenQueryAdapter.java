@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.out.global;
 
-import jaeik.bimillog.domain.auth.entity.JwtToken;
+import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.infrastructure.adapter.out.auth.JwtTokenRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,12 +30,12 @@ public class GlobalTokenQueryAdapter implements GlobalTokenQueryPort {
      * <p>TokenRepository를 통해 데이터베이스에서 토큰 정보를 조회합니다.</p>
      *
      * @param tokenId 조회할 토큰 ID
-     * @return Optional&lt;JwtToken&gt; 조회된 토큰 객체 (존재하지 않으면 Optional.empty())
+     * @return Optional&lt;AuthToken&gt; 조회된 토큰 객체 (존재하지 않으면 Optional.empty())
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public Optional<JwtToken> findById(Long tokenId) {
+    public Optional<AuthToken> findById(Long tokenId) {
         return jwtTokenRepository.findById(tokenId);
     }
 
@@ -45,12 +45,12 @@ public class GlobalTokenQueryAdapter implements GlobalTokenQueryPort {
      * <p>TokenRepository를 통해 해당 사용자의 모든 토큰을 조회합니다.</p>
      *
      * @param userId 토큰을 조회할 사용자 ID
-     * @return List&lt;JwtToken&gt; 해당 사용자의 모든 토큰 목록
+     * @return List&lt;AuthToken&gt; 해당 사용자의 모든 토큰 목록
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public List<JwtToken> findAllByUserId(Long userId) {
+    public List<AuthToken> findAllByUserId(Long userId) {
         return jwtTokenRepository.findByUsersId(userId);
     }
 }

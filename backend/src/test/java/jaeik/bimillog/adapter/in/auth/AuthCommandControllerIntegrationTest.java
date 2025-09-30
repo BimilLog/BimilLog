@@ -1,7 +1,7 @@
 package jaeik.bimillog.adapter.in.auth;
 
-import jaeik.bimillog.domain.auth.entity.JwtToken;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.auth.entity.AuthToken;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.in.auth.dto.SocialLoginRequestDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.auth.TokenRepository;
@@ -63,12 +63,12 @@ class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("소셜 로그인 통합 테스트 - 기존 사용자")
     void socialLogin_ExistingUser_IntegrationTest() throws Exception {
-        User existingUser = TestUsers.createUser(builder -> {
+        Member existingMember = TestUsers.createUser(builder -> {
             builder.socialId("test-social-id-12345");
-            builder.userName("existing-user");
-            builder.socialNickname("existing-user");
+            builder.userName("existing-member");
+            builder.socialNickname("existing-member");
         });
-        userRepository.save(existingUser);
+        userRepository.save(existingMember);
 
         SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "existing_user_code", null);
 
@@ -86,13 +86,13 @@ class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("로그아웃 통합 테스트 - 성공")
     void logout_IntegrationTest_Success() throws Exception {
-        User testUser = TestUsers.createUnique();
-        testUser = userRepository.save(testUser);
+        Member testMember = TestUsers.createUnique();
+        testMember = userRepository.save(testMember);
 
-        JwtToken jwtToken = JwtToken.createToken("access-jwtToken", "refresh-jwtToken", testUser);
-        jwtToken = tokenRepository.save(jwtToken);
+        AuthToken authToken = AuthToken.createToken("access-authToken", "refresh-authToken", testMember);
+        authToken = tokenRepository.save(authToken);
 
-        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testUser, jwtToken.getId(), null);
+        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testMember, authToken.getId(), null);
 
         mockMvc.perform(post("/api/auth/logout")
                         .with(user(userDetails))
@@ -108,12 +108,12 @@ class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("회원탈퇴 통합 테스트 - 성공")
     void withdraw_IntegrationTest_Success() throws Exception {
-        User testUser = TestUsers.createUnique();
-        userRepository.save(testUser);
+        Member testMember = TestUsers.createUnique();
+        userRepository.save(testMember);
 
-        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testUser);
+        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testMember);
 
-        mockMvc.perform(delete("/api/user/withdraw")
+        mockMvc.perform(delete("/api/member/withdraw")
                         .with(user(userDetails))
                         .with(csrf()))
                 .andDo(print())

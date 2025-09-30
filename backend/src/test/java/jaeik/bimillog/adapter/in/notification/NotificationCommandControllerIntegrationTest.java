@@ -199,20 +199,20 @@ class NotificationCommandControllerIntegrationTest extends BaseIntegrationTest {
      */
     private List<Notification> createTestNotifications() {
         List<Notification> notifications = Arrays.asList(
-                NotificationTestDataBuilder.aPaperMessageNotification(testUser)
+                NotificationTestDataBuilder.aPaperMessageNotification(testMember)
                         .asUnread()
                         .build(),
-                NotificationTestDataBuilder.aCommentNotification(testUser, 1L)
+                NotificationTestDataBuilder.aCommentNotification(testMember, 1L)
                         .asRead()
                         .build(),
-                NotificationTestDataBuilder.aLikeNotification(testUser, 2L)
+                NotificationTestDataBuilder.aLikeNotification(testMember, 2L)
                         .asUnread()
                         .build(),
-                NotificationTestDataBuilder.anAdminNotification(testUser, "공지사항이 등록되었습니다")
+                NotificationTestDataBuilder.anAdminNotification(testMember, "공지사항이 등록되었습니다")
                         .asRead()
                         .build(),
                 NotificationTestDataBuilder.aNotification()
-                        .withReceiver(testUser)
+                        .withReceiver(testMember)
                         .withType(NotificationType.INITIATE)
                         .withMessage("초기화 알림")
                         .asUnread()

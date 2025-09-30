@@ -10,7 +10,7 @@ import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.in.post.web.PostCommandController;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -58,8 +58,8 @@ public class PostCommandService implements PostCommandUseCase {
     @Override
     @Transactional
     public Long writePost(Long userId, String title, String content, Integer password) {
-        User user = (userId != null) ? globalUserQueryPort.getReferenceById(userId) : null;
-        Post newPost = Post.createPost(user, title, content, password);
+        Member member = (userId != null) ? globalUserQueryPort.getReferenceById(userId) : null;
+        Post newPost = Post.createPost(member, title, content, password);
         Post savedPost = postCommandPort.create(newPost);
         return savedPost.getId();
     }

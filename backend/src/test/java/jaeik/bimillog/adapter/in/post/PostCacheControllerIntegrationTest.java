@@ -3,7 +3,7 @@ package jaeik.bimillog.adapter.in.post;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostLike;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostLikeRepository;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostRepository;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
@@ -42,22 +42,22 @@ class PostCacheControllerIntegrationTest extends BaseIntegrationTest {
     @Autowired
     private PostLikeRepository postLikeRepository;
 
-    private User savedUser;
-    private List<User> likeUsers;
+    private Member savedMember;
+    private List<Member> likeMembers;
 
     @Override
     protected void setUpChild() {
-        savedUser = testUser;
-        likeUsers = createLikeUsers();
+        savedMember = testMember;
+        likeMembers = createLikeUsers();
         createTestPosts();
     }
 
-    private List<User> createLikeUsers() {
-        List<User> users = new ArrayList<>();
+    private List<Member> createLikeUsers() {
+        List<Member> members = new ArrayList<>();
         for (int i = 0; i < 200; i++) {
-            users.add(TestUsers.withSocialId("like_user_" + i));
+            members.add(TestUsers.withSocialId("like_user_" + i));
         }
-        return userRepository.saveAll(users);
+        return userRepository.saveAll(members);
     }
 
     private void createTestPosts() {
@@ -65,7 +65,7 @@ class PostCacheControllerIntegrationTest extends BaseIntegrationTest {
 
         for (int i = 1; i <= 3; i++) {
             Post realtimePost = Post.builder()
-                    .user(savedUser)
+                    .member(savedMember)
                     .title("실시간 인기글 " + i)
                     .content("실시간 인기글 내용 " + i)
                     .password(123456)
@@ -78,7 +78,7 @@ class PostCacheControllerIntegrationTest extends BaseIntegrationTest {
 
         for (int i = 1; i <= 3; i++) {
             Post weeklyPost = Post.builder()
-                    .user(savedUser)
+                    .member(savedMember)
                     .title("주간 인기글 " + i)
                     .content("주간 인기글 내용 " + i)
                     .password(123456)
@@ -91,7 +91,7 @@ class PostCacheControllerIntegrationTest extends BaseIntegrationTest {
 
         for (int i = 1; i <= 5; i++) {
             Post legendPost = Post.builder()
-                    .user(savedUser)
+                    .member(savedMember)
                     .title("레전드 인기글 " + i)
                     .content("레전드 인기글 내용 " + i)
                     .password(123456)
@@ -104,7 +104,7 @@ class PostCacheControllerIntegrationTest extends BaseIntegrationTest {
 
         for (int i = 1; i <= 2; i++) {
             Post noticePost = Post.builder()
-                    .user(savedUser)
+                    .member(savedMember)
                     .title("공지사항 " + i)
                     .content("공지사항 내용 " + i)
                     .password(123456)
@@ -123,7 +123,7 @@ class PostCacheControllerIntegrationTest extends BaseIntegrationTest {
             int likesToAdd = 10 + i;
             for (int j = 0; j < likesToAdd; j++) {
                 postLikeRepository.save(PostLike.builder()
-                        .user(likeUsers.get(likeUserIndex++))
+                        .member(likeMembers.get(likeUserIndex++))
                         .post(post)
                         .build());
             }
@@ -134,7 +134,7 @@ class PostCacheControllerIntegrationTest extends BaseIntegrationTest {
             int likesToAdd = 12 + i;
             for (int j = 0; j < likesToAdd; j++) {
                 postLikeRepository.save(PostLike.builder()
-                        .user(likeUsers.get(likeUserIndex++))
+                        .member(likeMembers.get(likeUserIndex++))
                         .post(post)
                         .build());
             }
@@ -145,7 +145,7 @@ class PostCacheControllerIntegrationTest extends BaseIntegrationTest {
             int likesToAdd = 14 + i;
             for (int j = 0; j < likesToAdd; j++) {
                 postLikeRepository.save(PostLike.builder()
-                        .user(likeUsers.get(likeUserIndex++))
+                        .member(likeMembers.get(likeUserIndex++))
                         .post(post)
                         .build());
             }

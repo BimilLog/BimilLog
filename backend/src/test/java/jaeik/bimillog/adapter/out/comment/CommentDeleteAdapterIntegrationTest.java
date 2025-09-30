@@ -2,11 +2,11 @@ package jaeik.bimillog.adapter.out.comment;
 
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.out.comment.CommentDeleteAdapter;
 import jaeik.bimillog.infrastructure.adapter.out.comment.CommentRepository;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostRepository;
-import jaeik.bimillog.infrastructure.adapter.out.user.UserRepository;
+import jaeik.bimillog.infrastructure.adapter.out.member.UserRepository;
 import jaeik.bimillog.testutil.H2TestConfiguration;
 import jaeik.bimillog.testutil.TestUsers;
 import jakarta.persistence.EntityManager;
@@ -55,7 +55,7 @@ class CommentDeleteAdapterIntegrationTest {
     @Autowired
     private UserRepository userRepository;
 
-    private User testUser;
+    private Member testMember;
     private Post testPost;
 
     @BeforeEach
@@ -66,12 +66,12 @@ class CommentDeleteAdapterIntegrationTest {
         userRepository.deleteAll();
 
         // 테스트용 사용자 생성
-        testUser = TestUsers.createUniqueWithPrefix("test");
-        testUser = userRepository.save(testUser);
+        testMember = TestUsers.createUniqueWithPrefix("test");
+        testMember = userRepository.save(testMember);
 
         // 테스트용 게시글 생성
         testPost = Post.builder()
-                .user(testUser)
+                .member(testMember)
                 .title("테스트 게시글")
                 .content("테스트 내용")
                 .isNotice(false)
@@ -89,7 +89,7 @@ class CommentDeleteAdapterIntegrationTest {
         // Given: 기존 댓글 생성 및 저장 (자손이 없는 댓글)
         Comment existingComment = Comment.createComment(
                 testPost,
-                testUser,
+                testMember,
                 "삭제될 댓글",
                 null
         );
@@ -115,7 +115,7 @@ class CommentDeleteAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 클로저 테이블과 함께 댓글 삭제")
     void shouldDeleteCommentWithClosures_WhenValidCommentProvided() {
         // Given: 댓글 생성 및 클로저 관계 설정
-        Comment comment = Comment.createComment(testPost, testUser, "테스트 댓글", null);
+        Comment comment = Comment.createComment(testPost, testMember, "테스트 댓글", null);
         comment = commentRepository.save(comment);
         Long commentId = comment.getId();
 

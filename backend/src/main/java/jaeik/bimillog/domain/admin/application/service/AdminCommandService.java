@@ -10,9 +10,9 @@ import jaeik.bimillog.domain.admin.exception.AdminErrorCode;
 import jaeik.bimillog.domain.auth.application.port.in.BlacklistUseCase;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCommentQueryPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
-import jaeik.bimillog.domain.user.application.port.out.UserQueryPort;
-import jaeik.bimillog.domain.user.entity.user.User;
-import jaeik.bimillog.domain.user.event.UserWithdrawnEvent;
+import jaeik.bimillog.domain.member.application.port.out.UserQueryPort;
+import jaeik.bimillog.domain.member.entity.member.Member;
+import jaeik.bimillog.domain.member.event.UserWithdrawnEvent;
 import jaeik.bimillog.infrastructure.adapter.in.admin.web.AdminCommandController;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -59,7 +59,7 @@ public class AdminCommandService implements AdminCommandUseCase {
     @Override
     @Transactional
     public void createReport(Long userId, ReportType reportType, Long targetId, String content) {
-        User reporter = Optional.ofNullable(userId)
+        Member reporter = Optional.ofNullable(userId)
                 .flatMap(userQueryPort::findById)
                 .orElse(null);
 
@@ -82,10 +82,10 @@ public class AdminCommandService implements AdminCommandUseCase {
     @Override
     @Transactional
     public void banUser(ReportType reportType, Long targetId) {
-        User user = resolveUser(reportType, targetId);
-        blacklistUseCase.addToBlacklist(user.getId(), user.getSocialId(), user.getProvider());
-        blacklistUseCase.blacklistAllUserTokens(user.getId());
-        eventPublisher.publishEvent(new UserBannedEvent(user.getId(), user.getSocialId(), user.getProvider()));
+        Member member = resolveUser(reportType, targetId);
+        blacklistUseCase.addToBlacklist(member.getId(), member.getSocialId(), member.getProvider());
+        blacklistUseCase.blacklistAllUserTokens(member.getId());
+        eventPublisher.publishEvent(new UserBannedEvent(member.getId(), member.getSocialId(), member.getProvider()));
     }
 
     /**
@@ -102,10 +102,10 @@ public class AdminCommandService implements AdminCommandUseCase {
      */
     @Override
     public void forceWithdrawUser(ReportType reportType, Long targetId) {
-        User user = resolveUser(reportType, targetId);
-        blacklistUseCase.addToBlacklist(user.getId(), user.getSocialId(), user.getProvider());
-        blacklistUseCase.blacklistAllUserTokens(user.getId());
-        eventPublisher.publishEvent(new UserWithdrawnEvent(user.getId(), user.getSocialId(), user.getProvider()));
+        Member member = resolveUser(reportType, targetId);
+        blacklistUseCase.addToBlacklist(member.getId(), member.getSocialId(), member.getProvider());
+        blacklistUseCase.blacklistAllUserTokens(member.getId());
+        eventPublisher.publishEvent(new UserWithdrawnEvent(member.getId(), member.getSocialId(), member.getProvider()));
     }
 
     /**
@@ -132,22 +132,22 @@ public class AdminCommandService implements AdminCommandUseCase {
      *
      * @param reportType 신고 유형 (POST, COMMENT만 허용)
      * @param targetId 신고 대상 ID (게시글 ID 또는 댓글 ID)
-     * @return User 신고 대상 사용자 엔티티
+     * @return Member 신고 대상 사용자 엔티티
      * @throws AdminCustomException 대상 사용자를 찾을 수 없는 경우
      * @author Jaeik
      * @since 2.0.0
      */
-    private User resolveUser(ReportType reportType, Long targetId) {
-        User user = switch (reportType) {
-            case POST -> globalPostQueryPort.findById(targetId).getUser();
-            case COMMENT -> globalCommentQueryPort.findById(targetId).getUser();
+    private Member resolveUser(ReportType reportType, Long targetId) {
+        Member member = switch (reportType) {
+            case POST -> globalPostQueryPort.findById(targetId).getMember();
+            case COMMENT -> globalCommentQueryPort.findById(targetId).getMember();
             default -> throw new AdminCustomException(AdminErrorCode.INVALID_REPORT_TARGET);
         };
 
-        if (user == null) {
+        if (member == null) {
             throw new AdminCustomException(AdminErrorCode.USER_NOT_FOUND);
         }
 
-        return user;
+        return member;
     }
 }

@@ -3,7 +3,7 @@ package jaeik.bimillog.infrastructure.adapter.out.post;
 import jaeik.bimillog.domain.post.application.port.out.PostLikeCommandPort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -40,14 +40,14 @@ public class PostLikeCommandAdapter implements PostLikeCommandPort {
      * <p>특정 사용자 및 게시글에 해당하는 추천을 JPA로 삭제합니다.</p>
      * <p>PostLikeCommandUseCase가 게시글 추천 취소 처리 시 호출합니다.</p>
      *
-     * @param user 삭제할 추천의 사용자 엔티티
+     * @param member 삭제할 추천의 사용자 엔티티
      * @param post 삭제할 추천의 게시글 엔티티
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void deletePostLike(User user, Post post) {
-        postLikeRepository.deleteByUserAndPost(user, post);
+    public void deletePostLike(Member member, Post post) {
+        postLikeRepository.deleteByUserAndPost(member, post);
     }
 
     /**

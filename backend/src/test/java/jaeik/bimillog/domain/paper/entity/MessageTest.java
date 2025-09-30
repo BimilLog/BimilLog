@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.paper.entity;
 
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -24,7 +24,7 @@ import static org.mockito.BDDMockito.given;
 class MessageTest {
 
     @Mock
-    private User user;
+    private Member member;
 
     @Test
     @DisplayName("팩토리 메서드가 필수 필드를 채운다")
@@ -37,10 +37,10 @@ class MessageTest {
         int y = 4;
 
         // When
-        Message message = Message.createMessage(user, decoType, anonymity, content, x, y);
+        Message message = Message.createMessage(member, decoType, anonymity, content, x, y);
 
         // Then
-        assertThat(message.getUser()).isEqualTo(user);
+        assertThat(message.getMember()).isEqualTo(member);
         assertThat(message.getDecoType()).isEqualTo(decoType);
         assertThat(message.getAnonymity()).isEqualTo(anonymity);
         assertThat(message.getContent()).isEqualTo(content);
@@ -53,8 +53,8 @@ class MessageTest {
     void shouldAllowDeleteWhenOwnerMatches() {
         // Given
         Long ownerId = 123L;
-        given(user.getId()).willReturn(ownerId);
-        Message message = Message.createMessage(user, DecoType.APPLE, "익명", "내용", 1, 1);
+        given(member.getId()).willReturn(ownerId);
+        Message message = Message.createMessage(member, DecoType.APPLE, "익명", "내용", 1, 1);
 
         // When
         boolean result = message.canBeDeletedBy(ownerId);
@@ -69,8 +69,8 @@ class MessageTest {
         // Given
         Long ownerId = 123L;
         Long requesterId = 999L;
-        given(user.getId()).willReturn(ownerId);
-        Message message = Message.createMessage(user, DecoType.APPLE, "익명", "내용", 1, 1);
+        given(member.getId()).willReturn(ownerId);
+        Message message = Message.createMessage(member, DecoType.APPLE, "익명", "내용", 1, 1);
 
         // When
         boolean result = message.canBeDeletedBy(requesterId);
@@ -84,8 +84,8 @@ class MessageTest {
     void shouldRejectDeleteWhenUserOrRequesterMissing() {
         // Given
         Message messageWithoutUser = Message.createMessage(null, DecoType.APPLE, "익명", "내용", 1, 1);
-        Message messageWithUser = Message.createMessage(user, DecoType.APPLE, "익명", "내용", 1, 1);
-        given(user.getId()).willReturn(10L);
+        Message messageWithUser = Message.createMessage(member, DecoType.APPLE, "익명", "내용", 1, 1);
+        given(member.getId()).willReturn(10L);
 
         // When
         boolean withoutUser = messageWithoutUser.canBeDeletedBy(10L);
@@ -101,8 +101,8 @@ class MessageTest {
     void shouldReturnUserIdWhenPresent() {
         // Given
         Long userId = 456L;
-        given(user.getId()).willReturn(userId);
-        Message message = Message.createMessage(user, DecoType.BANANA, "익명", "내용", 1, 1);
+        given(member.getId()).willReturn(userId);
+        Message message = Message.createMessage(member, DecoType.BANANA, "익명", "내용", 1, 1);
 
         // When
         Long actual = message.getUserId();

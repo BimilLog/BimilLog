@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.paper.entity;
 
 import jaeik.bimillog.domain.global.entity.BaseEntity;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.security.MessageEncryptConverter;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -37,7 +37,7 @@ public class Message extends BaseEntity {
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private Member member;
 
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -71,7 +71,7 @@ public class Message extends BaseEntity {
      * 생성된 엔티티는 AES-256 암호화를 통해 content가 자동으로 암호화되어 저장됩니다.
      * </p>
      *
-     * @param user 롤링페이퍼 소유자 사용자 엔티티
+     * @param member 롤링페이퍼 소유자 사용자 엔티티
      * @param decoType 메시지 장식 스타일
      * @param anonymity 익명 작성자 이름
      * @param content 메시지 내용 (자동 암호화됨)
@@ -81,10 +81,10 @@ public class Message extends BaseEntity {
      * @author Jaeik
      * @since 2.0.0
      */
-    public static Message createMessage(User user, DecoType decoType, String anonymity, 
-                                      String content, int x, int y) {
+    public static Message createMessage(Member member, DecoType decoType, String anonymity,
+                                        String content, int x, int y) {
         return Message.builder()
-                .user(user)
+                .member(member)
                 .decoType(decoType)
                 .anonymity(anonymity)
                 .content(content)
@@ -103,7 +103,7 @@ public class Message extends BaseEntity {
      * @since 2.0.0
      */
     public Long getUserId() {
-        return this.user != null ? this.user.getId() : null;
+        return this.member != null ? this.member.getId() : null;
     }
 
     /**
@@ -113,7 +113,7 @@ public class Message extends BaseEntity {
      * 롤링페이퍼 소유자가 자신의 페이퍼에서 부적절하거나 원하지 않는 메시지를 발견하고
      * 삭제 버튼을 클릭한 상황에서, PaperCommandService가 실제 삭제를 수행하기 전
      * "이 사용자가 정말로 이 메시지를 삭제할 권한이 있는가?"를 검증하기 위해 호출하는 메서드입니다.
-     * 오직 롤링페이퍼 소유자(user)만이 해당 페이퍼의 메시지를 삭제할 수 있도록 보장합니다.
+     * 오직 롤링페이퍼 소유자(member)만이 해당 페이퍼의 메시지를 삭제할 수 있도록 보장합니다.
      * </p>
      *
      * @param userId 삭제를 요청한 사용자의 ID
@@ -122,7 +122,7 @@ public class Message extends BaseEntity {
      * @since 2.0.0
      */
     public boolean canBeDeletedBy(Long userId) {
-        return this.user != null && this.user.getId().equals(userId);
+        return this.member != null && this.member.getId().equals(userId);
     }
 }
 

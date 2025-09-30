@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.global.application.port.out;
 
-import jaeik.bimillog.domain.user.entity.userdetail.NewUserDetail;
+import jaeik.bimillog.domain.member.entity.memberdetail.NewMemberDetail;
 import org.springframework.http.ResponseCookie;
 
 import java.util.List;
@@ -21,12 +21,12 @@ public interface GlobalCookiePort {
      *
      * <p>신규 회원가입 시 사용자의 임시 UUID를 담는 쿠키를 생성합니다.</p>
      *
-     * @param newUserDetail 임시 사용자 정보
+     * @param newMemberDetail 임시 사용자 정보
      * @return 임시 사용자 ID 쿠키
      * @author Jaeik
      * @since 2.0.0
      */
-    ResponseCookie createTempCookie(NewUserDetail newUserDetail);
+    ResponseCookie createTempCookie(NewMemberDetail newMemberDetail);
 
     /**
      * <h3>JWT 토큰 쿠키 생성</h3>

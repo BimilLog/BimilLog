@@ -105,7 +105,7 @@ class PostQueryServiceTest extends BaseUnitTest {
                 .likeCount(5)
                 .postCacheFlag(PostCacheFlag.REALTIME)
                 .createdAt(Instant.now())
-                .userName("testUser")
+                .userName("testMember")
                 .commentCount(3)
                 .isNotice(false)
                 .build();
@@ -139,7 +139,7 @@ class PostQueryServiceTest extends BaseUnitTest {
                 .postCacheFlag(PostCacheFlag.REALTIME)
                 .createdAt(Instant.now())
                 .userId(1L)
-                .userName("testUser")
+                .userName("testMember")
                 .commentCount(3)
                 .isNotice(false)
                 .isLiked(false)
@@ -185,7 +185,7 @@ class PostQueryServiceTest extends BaseUnitTest {
                 .likeCount(5)
                 .postCacheFlag(PostCacheFlag.REALTIME)
                 .createdAt(Instant.now())
-                .userName("testUser")
+                .userName("testMember")
                 .commentCount(3)
                 .isNotice(false)
                 .build();
@@ -226,7 +226,7 @@ class PostQueryServiceTest extends BaseUnitTest {
                 .likeCount(5)
                 .postCacheFlag(PostCacheFlag.REALTIME)
                 .createdAt(Instant.now())
-                .userName("testUser")
+                .userName("testMember")
                 .commentCount(3)
                 .isNotice(false)
                 .build();

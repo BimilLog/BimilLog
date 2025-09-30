@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.global.application.port.out;
 
 import jaeik.bimillog.domain.auth.application.service.BlacklistService;
-import jaeik.bimillog.domain.user.entity.userdetail.ExistingUserDetail;
+import jaeik.bimillog.domain.member.entity.memberdetail.ExistingMemberDetail;
 import jaeik.bimillog.infrastructure.adapter.out.global.GlobalCookieAdapter;
 import jaeik.bimillog.infrastructure.filter.JwtFilter;
 
@@ -25,7 +25,7 @@ public interface GlobalJwtPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    String generateAccessToken(ExistingUserDetail userDetail);
+    String generateAccessToken(ExistingMemberDetail userDetail);
 
     /**
      * <h3>JWT 리프레시 토큰 생성</h3>
@@ -37,7 +37,7 @@ public interface GlobalJwtPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    String generateRefreshToken(ExistingUserDetail userDetail);
+    String generateRefreshToken(ExistingMemberDetail userDetail);
 
     /**
      * <h3>JWT 토큰 유효성 검사</h3>
@@ -53,7 +53,7 @@ public interface GlobalJwtPort {
 
     /**
      * <h3>JWT 액세스 토큰에서 사용자 정보 추출</h3>
-     * <p>JWT 액세스 토큰에서 사용자 정보를 추출하여 UserDetail DTO로 변환합니다.</p>
+     * <p>JWT 액세스 토큰에서 사용자 정보를 추출하여 MemberDetail DTO로 변환합니다.</p>
      * <p>{@link JwtFilter}에서 인증된 사용자의 정보를 SecurityContext에 설정하기 위해 호출됩니다.</p>
      *
      * @param jwtAccessToken JWT 액세스 토큰
@@ -61,7 +61,7 @@ public interface GlobalJwtPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    ExistingUserDetail getUserInfoFromToken(String jwtAccessToken);
+    ExistingMemberDetail getUserInfoFromToken(String jwtAccessToken);
 
     /**
      * <h3>JWT 리프레시 토큰에서 토큰 ID 추출</h3>

@@ -6,7 +6,7 @@ import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.SseMessage;
 import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
 import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
-import jaeik.bimillog.domain.user.application.port.in.UserQueryUseCase;
+import jaeik.bimillog.domain.member.application.port.in.UserQueryUseCase;
 import jaeik.bimillog.infrastructure.adapter.out.sse.SseAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.BeforeEach;

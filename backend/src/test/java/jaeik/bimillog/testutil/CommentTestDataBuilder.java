@@ -2,7 +2,7 @@ package jaeik.bimillog.testutil;
 
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.in.comment.dto.CommentReqDTO;
 
 /**
@@ -19,15 +19,15 @@ public class CommentTestDataBuilder {
      * <h3>테스트용 댓글 생성 (기본)</h3>
      * <p>지정된 사용자와 게시글로 테스트용 댓글을 생성합니다.</p>
      *
-     * @param user 댓글 작성자
+     * @param member 댓글 작성자
      * @param post 댓글이 달린 게시글
      * @param content 댓글 내용
      * @return Comment 테스트용 댓글 엔티티
      */
-    public static Comment createComment(User user, Post post, String content) {
+    public static Comment createComment(Member member, Post post, String content) {
         return Comment.builder()
                 .content(content)
-                .user(user)
+                .member(member)
                 .post(post)
                 .deleted(false)
                 .build();

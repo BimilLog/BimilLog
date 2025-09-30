@@ -3,7 +3,7 @@ package jaeik.bimillog.adapter.in.comment;
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.user.entity.user.User;
+import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.in.comment.dto.CommentLikeReqDTO;
 import jaeik.bimillog.infrastructure.adapter.in.comment.dto.CommentReqDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
@@ -58,7 +58,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
     @Override
     protected void setUpChild() {
         // testUser는 BaseIntegrationTest에서 이미 생성됨
-        testPost = PostTestDataBuilder.createPost(testUser, "테스트 게시글", "테스트 게시글 내용입니다.");
+        testPost = PostTestDataBuilder.createPost(testMember, "테스트 게시글", "테스트 게시글 내용입니다.");
         postRepository.save(testPost);
     }
     
@@ -101,7 +101,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
                 .findFirst();
 
         assertThat(savedComment).isPresent();
-        assertThat(savedComment.get().getUser().getId()).isEqualTo(testUser.getId());
+        assertThat(savedComment.get().getMember().getId()).isEqualTo(testMember.getId());
         assertThat(savedComment.get().getPost().getId()).isEqualTo(testPost.getId());
     }
     
@@ -109,7 +109,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("대댓글 작성 통합 테스트")
     void writeReplyComment_IntegrationTest() throws Exception {
         // Given - 부모 댓글 생성
-        commentCommandUseCase.writeComment(testUser.getId(), testPost.getId(), null, "부모 댓글입니다.", null);
+        commentCommandUseCase.writeComment(testMember.getId(), testPost.getId(), null, "부모 댓글입니다.", null);
         
         // 생성된 부모 댓글 조회
         Comment parentComment = commentRepository.findAll()
@@ -123,7 +123,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
         requestDto.setParentId(parentComment.getId());
         requestDto.setContent("대댓글 테스트입니다.");
         
-        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testUser);
+        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testMember);
         
         // When & Then
         mockMvc.perform(post("/api/comment/write")
@@ -149,14 +149,14 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
     void updateComment_IntegrationTest() throws Exception {
         // Given
         Comment existingComment = CommentTestDataBuilder.createComment(
-                testUser, testPost, "원본 댓글 내용입니다.");
+                testMember, testPost, "원본 댓글 내용입니다.");
         commentRepository.save(existingComment);
         
         CommentReqDTO requestDto = new CommentReqDTO();
         requestDto.setId(existingComment.getId());
         requestDto.setContent("수정된 댓글 내용입니다.");
         
-        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testUser);
+        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testMember);
         
         // When & Then
         mockMvc.perform(post("/api/comment/update")
@@ -177,7 +177,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("댓글 삭제 통합 테스트")
     void deleteComment_IntegrationTest() throws Exception {
         // Given - 댓글 생성
-        commentCommandUseCase.writeComment(testUser.getId(), testPost.getId(), null, "테스트 댓글입니다.", null);
+        commentCommandUseCase.writeComment(testMember.getId(), testPost.getId(), null, "테스트 댓글입니다.", null);
         
         // 생성된 댓글 조회
         Comment existingComment = commentRepository.findAll()
@@ -188,7 +188,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
         
         CommentReqDTO requestDto = CommentTestDataBuilder.createDeleteCommentReqDTO(existingComment.getId());
         
-        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testUser);
+        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testMember);
         
         // When & Then
         mockMvc.perform(post("/api/comment/delete")
@@ -212,14 +212,14 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
     void likeComment_IntegrationTest() throws Exception {
         // Given
         Comment existingComment = CommentTestDataBuilder.createComment(
-                testUser, testPost, "추천할 댓글입니다.");
+                testMember, testPost, "추천할 댓글입니다.");
         commentRepository.save(existingComment);
         
         // 추천 API용 DTO 생성 (commentId만 필요)
         CommentLikeReqDTO requestDto = new CommentLikeReqDTO();
         requestDto.setCommentId(existingComment.getId());
         
-        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testUser);
+        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testMember);
         
         // When & Then
         mockMvc.perform(post("/api/comment/like")
@@ -239,7 +239,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
         CommentReqDTO requestDto = CommentTestDataBuilder.createCommentReqDTO(
                 testPost.getId(), "A".repeat(1001)); // 1000자 초과
         
-        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testUser);
+        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testMember);
         
         // When & Then
         mockMvc.perform(post("/api/comment/write")
@@ -317,16 +317,16 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("다른 사용자 댓글 삭제 시도 - 권한 없음")
     void deleteOtherUserComment_Unauthorized_IntegrationTest() throws Exception {
         // Given: 다른 사용자의 댓글
-        User anotherUser = TestUsers.createUniqueWithPrefix("another");
-        userRepository.save(anotherUser);
+        Member anotherMember = TestUsers.createUniqueWithPrefix("another");
+        userRepository.save(anotherMember);
         
         Comment otherUserComment = CommentTestDataBuilder.createComment(
-                anotherUser, testPost, "다른 사용자의 댓글");
+                anotherMember, testPost, "다른 사용자의 댓글");
         commentRepository.save(otherUserComment);
         
         CommentReqDTO requestDto = CommentTestDataBuilder.createDeleteCommentReqDTO(otherUserComment.getId());
         
-        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testUser); // 현재 사용자
+        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testMember); // 현재 사용자
         
         // When & Then
         mockMvc.perform(post("/api/comment/delete")

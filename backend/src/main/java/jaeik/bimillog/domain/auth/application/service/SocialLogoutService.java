@@ -2,13 +2,13 @@ package jaeik.bimillog.domain.auth.application.service;
 
 import jaeik.bimillog.domain.auth.application.port.in.SocialLogoutUseCase;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
-import jaeik.bimillog.domain.auth.entity.JwtToken;
+import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.global.application.port.out.GlobalKakaoTokenQueryPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalTokenQueryPort;
-import jaeik.bimillog.domain.user.entity.user.SocialProvider;
+import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.in.auth.web.AuthCommandController;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,7 +47,7 @@ public class SocialLogoutService implements SocialLogoutUseCase {
      */
     @Override
     public void logout(Long userId, SocialProvider provider, Long tokenId) {
-        JwtToken jwtToken = getToken(tokenId);
+        AuthToken authToken = getToken(tokenId);
         KakaoToken kakaoToken = globalKakaoTokenQueryPort.findByUserId(userId)
                 .orElseThrow(() -> new AuthCustomException(AuthErrorCode.NOT_FIND_TOKEN));
         performSocialLogout(userId, provider, kakaoToken);
@@ -93,12 +93,12 @@ public class SocialLogoutService implements SocialLogoutUseCase {
      * <p>{@link #logout} 메서드에서 로그아웃 플로우에서 가장 먼저 호출됩니다.</p>
      *
      * @param tokenId 토큰 ID
-     * @return JwtToken 조회된 토큰 엔티티
+     * @return AuthToken 조회된 토큰 엔티티
      * @throws AuthCustomException 토큰을 찾을 수 없는 경우 ({@link AuthErrorCode#NOT_FIND_TOKEN})
      * @author Jaeik
      * @since 2.0.0
      */
-    private JwtToken getToken(Long tokenId) {
+    private AuthToken getToken(Long tokenId) {
         // 토큰 조회 실패시 로그아웃 예외 재로그인 필요
         return globalTokenQueryPort.findById(tokenId)
                 .orElseThrow(() -> {
