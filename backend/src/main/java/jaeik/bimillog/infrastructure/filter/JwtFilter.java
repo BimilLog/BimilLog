@@ -144,8 +144,8 @@ public class JwtFilter extends OncePerRequestFilter {
                     throw new CustomException(ErrorCode.TOKEN_MISMATCH);
                 }
 
-                // 2-7. 사용 표시
-                jwtToken.markAsUsed();
+                // 2-7. 사용 표시 (트랜잭션 내에서 DB 저장)
+                tokenCommandPort.markTokenAsUsed(tokenId);
 
                 // 2-8. 유저 정보 조회
                 User user = userQueryPort.findByIdWithSetting(jwtToken.getUsers().getId())

@@ -10,9 +10,9 @@ import lombok.experimental.SuperBuilder;
 import java.time.LocalDateTime;
 
 /**
- * <h2>토큰 엔티티</h2>
- * <p>사용자의 카카오 및 JWT 토큰 정보를 저장하는 엔티티</p>
- * <p>카카오 액세스 토큰, 카카오 리프레시 토큰, JWT 리프레시 토큰을 포함</p>
+ * <h2>JWT 토큰 엔티티</h2>
+ * <p>사용자의 JWT 리프레시 토큰 정보를 저장하는 엔티티</p>
+ * <p>Token Rotation과 재사용 공격 감지를 위한 사용 이력을 추적합니다</p>
  *
  * @author Jaeik
  * @since 2.0.0
@@ -43,11 +43,10 @@ public class JwtToken extends BaseEntity {
     private Integer useCount;
 
     /**
-     * <h3>토큰 생성</h3>
-     * <p>사용자와 토큰 정보로 JwtToken 엔티티를 생성합니다.</p>
+     * <h3>JWT 토큰 생성</h3>
+     * <p>사용자와 JWT 리프레시 토큰으로 JwtToken 엔티티를 생성합니다.</p>
+     * <p>사용 횟수는 0으로 초기화됩니다.</p>
      *
-     * @param kakaoAccessToken 카카오 액세스 토큰
-     * @param kakaoRefreshToken 카카오 리프레시 토큰
      * @param jwtRefreshToken JWT 리프레시 토큰
      * @param user 사용자 엔티티
      * @return 생성된 JwtToken 엔티티
