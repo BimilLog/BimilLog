@@ -48,14 +48,14 @@ public class MemberQueryController {
      * <p>사용자의 닉네임이 이미 사용 중인지 확인하는 요청을 처리</p>
      * <p>클라이언트에서 GET /api/member/username/check 요청 시 호출됩니다.</p>
      *
-     * @param userName 닉네임
+     * @param memberName 닉네임
      * @return 닉네임 사용 가능 여부
      * @since 2.0.0
      * @author Jaeik
      */
     @GetMapping("/username/check")
-    public ResponseEntity<Boolean> checkUserName(@RequestParam String userName) {
-        boolean isAvailable = !memberQueryUseCase.existsByUserName(userName);
+    public ResponseEntity<Boolean> checkUserName(@RequestParam String memberName) {
+        boolean isAvailable = !memberQueryUseCase.existsByMemberName(memberName);
         return ResponseEntity.ok(isAvailable);
     }
 
@@ -93,7 +93,7 @@ public class MemberQueryController {
                                                             @RequestParam int size,
                                                             @AuthenticationPrincipal CustomUserDetails userDetails) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<PostSearchResult> postList = memberActivityUseCase.getUserPosts(userDetails.getUserId(), pageable);
+        Page<PostSearchResult> postList = memberActivityUseCase.getMemberPosts(userDetails.getMemberId(), pageable);
         Page<SimplePostDTO> dtoList = postList.map(postResponseMapper::convertToSimplePostResDTO);
         return ResponseEntity.ok(dtoList);
     }
@@ -115,7 +115,7 @@ public class MemberQueryController {
                                                                  @RequestParam int size,
                                                                  @AuthenticationPrincipal CustomUserDetails userDetails) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<PostSearchResult> likedPosts = memberActivityUseCase.getUserLikedPosts(userDetails.getUserId(), pageable);
+        Page<PostSearchResult> likedPosts = memberActivityUseCase.getMemberLikedPosts(userDetails.getMemberId(), pageable);
         Page<SimplePostDTO> dtoList = likedPosts.map(postResponseMapper::convertToSimplePostResDTO);
         return ResponseEntity.ok(dtoList);
     }
@@ -137,7 +137,7 @@ public class MemberQueryController {
                                                                  @RequestParam int size,
                                                                  @AuthenticationPrincipal CustomUserDetails userDetails) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<SimpleCommentInfo> commentInfoList = memberActivityUseCase.getUserComments(userDetails.getUserId(), pageable);
+        Page<SimpleCommentInfo> commentInfoList = memberActivityUseCase.getMemberComments(userDetails.getMemberId(), pageable);
         Page<SimpleCommentDTO> commentList = commentInfoList.map(this::convertToSimpleCommentDTO);
         return ResponseEntity.ok(commentList);
     }
@@ -159,7 +159,7 @@ public class MemberQueryController {
                                                                       @RequestParam int size,
                                                                       @AuthenticationPrincipal CustomUserDetails userDetails) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<SimpleCommentInfo> likedCommentsInfo = memberActivityUseCase.getUserLikedComments(userDetails.getUserId(), pageable);
+        Page<SimpleCommentInfo> likedCommentsInfo = memberActivityUseCase.getMemberLikedComments(userDetails.getMemberId(), pageable);
         Page<SimpleCommentDTO> likedComments = likedCommentsInfo.map(this::convertToSimpleCommentDTO);
         return ResponseEntity.ok(likedComments);
     }
@@ -181,7 +181,7 @@ public class MemberQueryController {
                                                                @RequestParam(defaultValue = "10") Integer limit,
                                                                @AuthenticationPrincipal CustomUserDetails userDetails) {
         KakaoFriendsResponseVO friendsResponseVO = memberFriendUseCase.getKakaoFriendList(
-                userDetails.getUserId(),
+                userDetails.getMemberId(),
                 userDetails.getTokenId(), // JWT에서 파싱된 현재 기기의 토큰 ID
                 offset,
                 limit
@@ -203,7 +203,7 @@ public class MemberQueryController {
         return new SimpleCommentDTO(
                 commentInfo.getId(),
                 commentInfo.getPostId(),
-                commentInfo.getUserName(),
+                commentInfo.getMemberName(),
                 commentInfo.getContent(),
                 commentInfo.getCreatedAt(),
                 commentInfo.getLikeCount(),

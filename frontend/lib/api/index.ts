@@ -57,6 +57,7 @@ export type {
 } from '@/types/domains/auth'
 
 export type {
+  Member,
   User,
   Setting,
   KakaoFriend,

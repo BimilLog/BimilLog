@@ -69,7 +69,7 @@ public class LogFilter extends OncePerRequestFilter {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null) {
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-            Long userId = userDetails.getExistingMemberDetail().getUserId();
+            Long userId = userDetails.getExistingMemberDetail().getMemberId();
             String socialId = userDetails.getExistingMemberDetail().getSocialId();
             String socialNickname = userDetails.getExistingMemberDetail().getSocialNickname();
             String provider = userDetails.getExistingMemberDetail().getProvider().name();

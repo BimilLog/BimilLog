@@ -2,15 +2,15 @@ package jaeik.bimillog.adapter.out.member;
 
 import jaeik.bimillog.domain.auth.application.port.out.AuthTokenPort;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
-import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import jaeik.bimillog.domain.member.entity.memberdetail.ExistingMemberDetail;
 import jaeik.bimillog.infrastructure.adapter.out.member.SaveMemberAdapter;
-import jaeik.bimillog.infrastructure.adapter.out.member.UserRepository;
+import jaeik.bimillog.infrastructure.adapter.out.member.MemberRepository;
 import jaeik.bimillog.testutil.BaseUnitTest;
-import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestMembers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -36,7 +36,7 @@ import static org.mockito.Mockito.verify;
 class SaveMemberAdapterTest extends BaseUnitTest {
 
     @Mock private AuthTokenPort authTokenPort;
-    @Mock private UserRepository userRepository;
+    @Mock private MemberRepository userRepository;
     @Mock private FcmUseCase fcmUseCase;
 
     @InjectMocks private SaveMemberAdapter saveUserAdapter;
@@ -46,7 +46,7 @@ class SaveMemberAdapterTest extends BaseUnitTest {
     void shouldHandleExistingUserLogin_WhenValidUserDataProvided() {
         // Given: 기존 사용자와 토큰 정보
         String fcmToken = "fcm-TemporaryToken-12345";
-        SocialUserProfile userProfile = new SocialUserProfile("123456789", "test@example.com", SocialProvider.KAKAO, "업데이트된닉네임", "https://updated-profile.jpg", "access-TemporaryToken", "refresh-TemporaryToken", fcmToken);
+        SocialMemberProfile userProfile = new SocialMemberProfile("123456789", "test@example.com", SocialProvider.KAKAO, "업데이트된닉네임", "https://updated-profile.jpg", "access-TemporaryToken", "refresh-TemporaryToken", fcmToken);
 
         Long fcmTokenId = 100L;
         Long tokenId = 1L;
@@ -54,11 +54,12 @@ class SaveMemberAdapterTest extends BaseUnitTest {
         Member existingMember = createTestUserWithId(1L);
         existingMember.updateUserInfo("기존닉네임", "https://old-profile.jpg");
 
+        // AuthToken은 JWT refreshToken만 관리 (초기에는 빈 문자열, SocialLoginService에서 실제 JWT 업데이트)
         AuthToken savedAuthToken = AuthToken.builder()
                 .id(tokenId)
-                .accessToken("access-TemporaryToken")
-                .refreshToken("refresh-TemporaryToken")
-                .users(existingMember)
+                .refreshToken("")
+                .member(existingMember)
+                .useCount(0)
                 .build();
 
         given(authTokenPort.save(any(AuthToken.class))).willReturn(savedAuthToken);
@@ -75,9 +76,9 @@ class SaveMemberAdapterTest extends BaseUnitTest {
         ArgumentCaptor<AuthToken> tokenCaptor = ArgumentCaptor.forClass(AuthToken.class);
         verify(authTokenPort).save(tokenCaptor.capture());
         AuthToken capturedAuthToken = tokenCaptor.getValue();
-        assertThat(capturedAuthToken.getAccessToken()).isEqualTo("access-TemporaryToken");
-        assertThat(capturedAuthToken.getRefreshToken()).isEqualTo("refresh-TemporaryToken");
-        assertThat(capturedAuthToken.getUsers()).isEqualTo(existingMember);
+        // AuthToken은 JWT refreshToken만 저장 (초기에는 빈 문자열)
+        assertThat(capturedAuthToken.getRefreshToken()).isEqualTo("");
+        assertThat(capturedAuthToken.getMember()).isEqualTo(existingMember);
 
         // FCM 토큰 등록 및 ID 반환 검증
         verify(fcmUseCase).registerFcmToken(existingMember, fcmToken);
@@ -93,15 +94,15 @@ class SaveMemberAdapterTest extends BaseUnitTest {
     @DisplayName("기존 사용자 로그인 - FCM 토큰 없을 때 등록 미호출")
     void shouldNotPublishFcmEvent_WhenExistingUserHasNoFcmToken() {
         // Given: FCM 토큰이 없는 기존 사용자 로그인
-        SocialUserProfile userProfile = new SocialUserProfile("123456789", "fcm@example.com", SocialProvider.KAKAO, "FCM없음", "https://example.jpg", "access-TemporaryToken", "refresh-TemporaryToken", null);
+        SocialMemberProfile userProfile = new SocialMemberProfile("123456789", "fcm@example.com", SocialProvider.KAKAO, "FCM없음", "https://example.jpg", "access-TemporaryToken", "refresh-TemporaryToken", null);
 
         Member existingMember = createTestUserWithId(1L);
 
         AuthToken savedAuthToken = AuthToken.builder()
                 .id(1L)
-                .accessToken("access-TemporaryToken")
-                .refreshToken("refresh-TemporaryToken")
-                .users(existingMember)
+                .refreshToken("")
+                .member(existingMember)
+                .useCount(0)
                 .build();
 
         given(authTokenPort.save(any(AuthToken.class))).willReturn(savedAuthToken);
@@ -125,9 +126,9 @@ class SaveMemberAdapterTest extends BaseUnitTest {
         String fcmToken = "new-fcm-TemporaryToken";
         Long fcmTokenId = 200L;
 
-        SocialUserProfile userProfile = new SocialUserProfile("987654321", "newuser@example.com", SocialProvider.KAKAO, "신규사용자", "https://new-profile.jpg", "access-TemporaryToken", "refresh-TemporaryToken", fcmToken);
+        SocialMemberProfile userProfile = new SocialMemberProfile("987654321", "newuser@example.com", SocialProvider.KAKAO, "신규사용자", "https://new-profile.jpg", "access-TemporaryToken", "refresh-TemporaryToken", fcmToken);
 
-        Member newMember = TestUsers.copyWithId(getOtherUser(), 2L);
+        Member newMember = TestMembers.copyWithId(getOtherUser(), 2L);
 
         AuthToken newAuthToken = AuthToken.builder()
                 .id(1L)
@@ -171,16 +172,16 @@ class SaveMemberAdapterTest extends BaseUnitTest {
         // Given: FCM 토큰이 없는 신규 사용자
         String userName = "userWithoutFcm";
 
-        SocialUserProfile userProfile = new SocialUserProfile("111222333", "nofcm@example.com", SocialProvider.KAKAO, "FCM없음", "https://no-fcm.jpg", "access-TemporaryToken", "refresh-TemporaryToken", null);
+        SocialMemberProfile userProfile = new SocialMemberProfile("111222333", "nofcm@example.com", SocialProvider.KAKAO, "FCM없음", "https://no-fcm.jpg", "access-TemporaryToken", "refresh-TemporaryToken", null);
 
-        Member newMember = TestUsers.copyWithId(getThirdUser(), 3L);
+        Member newMember = TestMembers.copyWithId(getThirdUser(), 3L);
         newMember.updateUserInfo("FCM없음", "https://no-fcm.jpg");
 
         AuthToken newAuthToken = AuthToken.builder()
                 .id(1L)
-                .accessToken("access-TemporaryToken")
-                .refreshToken("refresh-TemporaryToken")
-                .users(newMember)
+                .refreshToken("")
+                .member(newMember)
+                .useCount(0)
                 .build();
 
         given(userRepository.save(any(Member.class))).willReturn(newMember);

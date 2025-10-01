@@ -41,6 +41,6 @@ public class NotificationSseController {
      */
     @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter subscribe(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        return sseUseCase.subscribe(userDetails.getUserId(), userDetails.getTokenId());
+        return sseUseCase.subscribe(userDetails.getMemberId(), userDetails.getTokenId());
     }
 }

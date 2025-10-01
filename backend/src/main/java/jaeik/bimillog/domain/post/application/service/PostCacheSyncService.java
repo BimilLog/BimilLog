@@ -131,17 +131,17 @@ public class PostCacheSyncService {
      */
     private void publishFeaturedEvent(List<PostSearchResult> posts, String notiTitle, String eventTitle, String eventBodyFormat) {
         posts.stream()
-                .filter(post -> post.getUserId() != null)
+                .filter(post -> post.getMemberId() != null)
                 .forEach(post -> {
                     String eventBody = String.format(eventBodyFormat, post.getTitle());
                     eventPublisher.publishEvent(new PostFeaturedEvent(
-                            post.getUserId(),
+                            post.getMemberId(),
                             notiTitle,
                             post.getId(),
                             eventTitle,
                             eventBody
                     ));
-                    log.info("게시글 ID {}에 대한 인기글 알림 이벤트 발행: 사용자 ID={}", post.getId(), post.getUserId());
+                    log.info("게시글 ID {}에 대한 인기글 알림 이벤트 발행: 회원 ID={}", post.getId(), post.getMemberId());
                 });
     }
 }

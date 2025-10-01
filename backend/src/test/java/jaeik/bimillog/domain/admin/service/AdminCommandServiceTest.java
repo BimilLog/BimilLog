@@ -16,7 +16,7 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import jaeik.bimillog.domain.member.entity.member.Member;
-import jaeik.bimillog.domain.member.event.UserWithdrawnEvent;
+import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.PostTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
@@ -180,11 +180,11 @@ class AdminCommandServiceTest extends BaseUnitTest {
         adminCommandService.forceWithdrawUser(reportType, commentId);
 
         // Then
-        ArgumentCaptor<UserWithdrawnEvent> eventCaptor =
-                ArgumentCaptor.forClass(UserWithdrawnEvent.class);
+        ArgumentCaptor<MemberWithdrawnEvent> eventCaptor =
+                ArgumentCaptor.forClass(MemberWithdrawnEvent.class);
         verify(eventPublisher).publishEvent(eventCaptor.capture());
 
-        UserWithdrawnEvent capturedEvent = eventCaptor.getValue();
+        MemberWithdrawnEvent capturedEvent = eventCaptor.getValue();
         assertThat(capturedEvent.userId()).isEqualTo(userId);
         assertThat(capturedEvent.socialId()).isEqualTo(mockMember.getSocialId());
         assertThat(capturedEvent.provider()).isEqualTo(mockMember.getProvider());

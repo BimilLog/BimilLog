@@ -7,7 +7,7 @@ import jaeik.bimillog.infrastructure.adapter.out.notification.NotificationQueryA
 import jaeik.bimillog.testutil.H2TestConfiguration;
 import jaeik.bimillog.testutil.NotificationTestDataBuilder;
 import jaeik.bimillog.testutil.TestFixtures;
-import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestMembers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -53,8 +53,8 @@ class NotificationQueryAdapterIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        targetMember = TestUsers.copyWithId(TestUsers.MEMBER_1, null);
-        otherMember = TestUsers.copyWithId(TestUsers.MEMBER_2, null);
+        targetMember = TestMembers.copyWithId(TestMembers.MEMBER_1, null);
+        otherMember = TestMembers.copyWithId(TestMembers.MEMBER_2, null);
 
         targetMember = testEntityManager.persistAndFlush(targetMember);
         otherMember = testEntityManager.persistAndFlush(otherMember);

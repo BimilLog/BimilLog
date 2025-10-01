@@ -26,7 +26,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class SocialUserProfile {
+public class SocialMemberProfile {
     String socialId;
     String email;
     SocialProvider provider;
@@ -36,7 +36,7 @@ public class SocialUserProfile {
     String kakaoRefreshToken;
     String fcmToken;
 
-    public static SocialUserProfile of(String socialId, String email, SocialProvider provider, String nickname, String profileImageUrl, String kakaoAccessToken, String kakaoRefreshToken, String fcmToken) {
-        return new SocialUserProfile(socialId, email, provider, nickname, profileImageUrl, kakaoAccessToken, kakaoRefreshToken, fcmToken);
+    public static SocialMemberProfile of(String socialId, String email, SocialProvider provider, String nickname, String profileImageUrl, String kakaoAccessToken, String kakaoRefreshToken, String fcmToken) {
+        return new SocialMemberProfile(socialId, email, provider, nickname, profileImageUrl, kakaoAccessToken, kakaoRefreshToken, fcmToken);
     }
 }

@@ -27,7 +27,7 @@ public class VisitMessageDTO {
 
     private Long id;
 
-    private Long userId;
+    private Long memberId;
 
     private DecoType decoType;
 
@@ -50,7 +50,7 @@ public class VisitMessageDTO {
     public static VisitMessageDTO from(VisitMessageDetail visitMessageDetail) {
         VisitMessageDTO dto = new VisitMessageDTO();
         dto.id = visitMessageDetail.id();
-        dto.userId = visitMessageDetail.userId();
+        dto.memberId = visitMessageDetail.memberId();
         dto.decoType = visitMessageDetail.decoType();
         dto.x = visitMessageDetail.x();
         dto.y = visitMessageDetail.y();

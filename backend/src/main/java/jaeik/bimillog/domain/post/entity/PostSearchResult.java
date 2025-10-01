@@ -35,8 +35,8 @@ public class PostSearchResult implements Serializable {
     private Integer likeCount;
     private PostCacheFlag postCacheFlag;
     private Instant createdAt;
-    private Long userId;
-    private String userName;
+    private Long memberId;
+    private String memberName;
     private Integer commentCount;
     private boolean isNotice;
 
@@ -94,8 +94,8 @@ public class PostSearchResult implements Serializable {
                 .likeCount(postDetail.likeCount())
                 .postCacheFlag(postDetail.postCacheFlag())
                 .createdAt(postDetail.createdAt())
-                .userId(postDetail.userId())
-                .userName(postDetail.userName())
+                .memberId(postDetail.memberId())
+                .memberName(postDetail.memberName())
                 .commentCount(postDetail.commentCount())
                 .isNotice(postDetail.isNotice())
                 .build();
@@ -110,9 +110,9 @@ public class PostSearchResult implements Serializable {
      * @since 2.0.0
      * @author Jaeik
      */
-    public PostSearchResult(Long id, String title, String content, Integer viewCount, 
+    public PostSearchResult(Long id, String title, String content, Integer viewCount,
                            Integer likeCount, PostCacheFlag postCacheFlag, Instant createdAt,
-                           Long userId, String userName, Integer commentCount, boolean isNotice) {
+                           Long memberId, String memberName, Integer commentCount, boolean isNotice) {
         this.id = id;
         this.title = title;
         this.content = content;
@@ -120,8 +120,8 @@ public class PostSearchResult implements Serializable {
         this.likeCount = likeCount;
         this.postCacheFlag = postCacheFlag;
         this.createdAt = createdAt;
-        this.userId = userId;
-        this.userName = userName;
+        this.memberId = memberId;
+        this.memberName = memberName;
         this.commentCount = commentCount;
         this.isNotice = isNotice;
     }

@@ -27,7 +27,7 @@ public class SimpleCommentDTO {
     private Long postId;
 
     @NotNull
-    private String userName;
+    private String memberName;
 
     @NotNull
     private String content;
@@ -45,7 +45,7 @@ public class SimpleCommentDTO {
      *
      * @param id        댓글 ID
      * @param postId    게시글 ID
-     * @param userName  사용자 이름
+     * @param memberName  사용자 이름
      * @param content   댓글 내용
      * @param createdAt 댓글 작성 시간
      * @param likeCount     댓글 추천 수
@@ -57,14 +57,14 @@ public class SimpleCommentDTO {
     public SimpleCommentDTO(
             Long id,
             Long postId,
-            String userName,
+            String memberName,
             String content,
             Instant createdAt,
             Integer likeCount,
             boolean userLike) {
         this.id = id;
         this.postId = postId;
-        this.userName = userName != null ? userName : "익명";
+        this.memberName = memberName != null ? memberName : "익명";
         this.content = content;
         this.createdAt = createdAt;
         this.likeCount = likeCount != null ? likeCount : 0;

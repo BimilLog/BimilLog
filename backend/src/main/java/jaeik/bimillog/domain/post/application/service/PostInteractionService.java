@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.post.application.service;
 
 import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalUserQueryPort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalMemberQueryPort;
 import jaeik.bimillog.domain.post.application.port.in.PostInteractionUseCase;
 import jaeik.bimillog.domain.post.application.port.out.PostCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.PostLikeCommandPort;
@@ -40,7 +40,7 @@ public class PostInteractionService implements PostInteractionUseCase {
     private final GlobalPostQueryPort globalPostQueryPort;
     private final PostLikeCommandPort postLikeCommandPort;
     private final PostLikeQueryPort postLikeQueryPort;
-    private final GlobalUserQueryPort globalUserQueryPort;
+    private final GlobalMemberQueryPort globalUserQueryPort;
 
     /**
      * <h3>게시글 좋아요 토글 비즈니스 로직 실행</h3>
@@ -49,7 +49,7 @@ public class PostInteractionService implements PostInteractionUseCase {
      * <p>ID 기반 조회로 불필요한 엔티티 로딩을 최소화하여 성능을 향상시킵니다.</p>
      * <p>PostCommandController에서 좋아요 토글 요청 시 호출됩니다.</p>
      *
-     * @param userId 현재 로그인한 사용자 ID
+     * @param memberId 현재 로그인한 사용자 ID
      * @param postId 좋아요 대상 게시글 ID
      * @throws PostCustomException 게시글을 찾을 수 없는 경우
      * @author Jaeik
@@ -57,21 +57,21 @@ public class PostInteractionService implements PostInteractionUseCase {
      */
     @Override
     @Transactional
-    public void likePost(Long userId, Long postId) {
+    public void likePost(Long memberId, Long postId) {
         // 1. ID 기반으로 좋아요 존재 여부 확인 (엔티티 로딩 최소화)
-        boolean isAlreadyLiked = postLikeQueryPort.existsByPostIdAndUserId(postId, userId);
+        boolean isAlreadyLiked = postLikeQueryPort.existsByPostIdAndUserId(postId, memberId);
         
         // 2. 좋아요 토글을 위해 필요한 엔티티만 로딩
-        Member member = globalUserQueryPort.getReferenceById(userId);
+        Member member = globalUserQueryPort.getReferenceById(memberId);
         Post post = globalPostQueryPort.findById(postId);
 
         if (isAlreadyLiked) {
             postLikeCommandPort.deletePostLike(member, post);
-            log.debug("게시글 추천 취소됨: userId={}, postId={}", userId, postId);
+            log.debug("게시글 추천 취소됨: memberId={}, postId={}", memberId, postId);
         } else {
             PostLike postLike = PostLike.builder().member(member).post(post).build();
             postLikeCommandPort.savePostLike(postLike);
-            log.debug("게시글 추천됨: userId={}, postId={}", userId, postId);
+            log.debug("게시글 추천됨: memberId={}, postId={}", memberId, postId);
         }
     }
 

@@ -31,10 +31,10 @@ public interface UrlGeneratorPort {
      * <p>프론트엔드의 라우팅 규칙에 따라 사용자명을 기반으로 한 롤링페이퍼 경로를 생성합니다.</p>
      * <p>{@link NotificationCommandService}에서 롤링페이퍼 메시지 작성 알림 생성 시 호출됩니다.</p>
      *
-     * @param userName 롤링페이퍼 소유자의 사용자명
-     * @return 롤링페이퍼 페이지 URL (예: /papers/{userName})
+     * @param memberName 롤링페이퍼 소유자의 사용자명
+     * @return 롤링페이퍼 페이지 URL (예: /papers/{memberName})
      * @author Jaeik
      * @since 2.0.0
      */
-    String generateRollingPaperUrl(String userName);
+    String generateRollingPaperUrl(String memberName);
 }

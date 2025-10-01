@@ -39,8 +39,8 @@ public class SimplePostDTO {
     private Integer likeCount;
     private PostCacheFlag postCacheFlag;
     private Instant createdAt;
-    private Long userId;
-    private String userName;
+    private Long memberId;
+    private String memberName;
     private Integer commentCount;
     private boolean isNotice;
 

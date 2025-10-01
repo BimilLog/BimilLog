@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.member.service;
 
-import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
@@ -59,7 +59,7 @@ class SignUpServiceTest extends BaseUnitTest {
 
     private String testUserName;
     private String testUuid;
-    private SocialUserProfile testSocialProfile;
+    private SocialMemberProfile testSocialProfile;
     private List<ResponseCookie> testCookies;
     private ExistingMemberDetail testUserDetail;
     private final String testAccessToken = "test-access-TemporaryToken";
@@ -70,7 +70,7 @@ class SignUpServiceTest extends BaseUnitTest {
         testUserName = "testMember";
         testUuid = "test-uuid-123";
 
-        testSocialProfile = new SocialUserProfile("kakao123", "test@example.com", SocialProvider.KAKAO, "testMember", "profile.jpg", "access-TemporaryToken", "refresh-TemporaryToken", "fcm-TemporaryToken");
+        testSocialProfile = new SocialMemberProfile("kakao123", "test@example.com", SocialProvider.KAKAO, "testMember", "profile.jpg", "access-TemporaryToken", "refresh-TemporaryToken", "fcm-TemporaryToken");
 
         testCookies = List.of(
                 ResponseCookie.from("access_token", "access-TemporaryToken").build(),
@@ -87,7 +87,7 @@ class SignUpServiceTest extends BaseUnitTest {
         given(redisMemberDataPort.getTempData(testUuid)).willReturn(Optional.of(testSocialProfile));
         given(saveMemberPort.saveNewUser(
                 eq(testUserName),
-                any(SocialUserProfile.class)
+                any(SocialMemberProfile.class)
         )).willReturn(testUserDetail);
         given(globalJwtPort.generateAccessToken(testUserDetail)).willReturn(testAccessToken);
         given(globalJwtPort.generateRefreshToken(testUserDetail)).willReturn(testRefreshToken);
@@ -103,7 +103,7 @@ class SignUpServiceTest extends BaseUnitTest {
         verify(redisMemberDataPort).getTempData(testUuid);
         verify(saveMemberPort).saveNewUser(
                 eq(testUserName),
-                any(SocialUserProfile.class)
+                any(SocialMemberProfile.class)
         );
         verify(redisMemberDataPort).removeTempData(testUuid);
         verify(globalJwtPort).generateAccessToken(testUserDetail);
@@ -132,12 +132,12 @@ class SignUpServiceTest extends BaseUnitTest {
     @DisplayName("FCM 토큰이 없는 임시 데이터로 회원 가입")
     void shouldSignUp_WhenTemporaryDataWithoutFcmToken() {
         // Given
-        SocialUserProfile profileWithoutFcm = new SocialUserProfile("kakao123", "test@example.com", SocialProvider.KAKAO, "testMember", "profile.jpg", "access-TemporaryToken", "refresh-TemporaryToken", null);
+        SocialMemberProfile profileWithoutFcm = new SocialMemberProfile("kakao123", "test@example.com", SocialProvider.KAKAO, "testMember", "profile.jpg", "access-TemporaryToken", "refresh-TemporaryToken", null);
 
         given(redisMemberDataPort.getTempData(testUuid)).willReturn(Optional.of(profileWithoutFcm));
         given(saveMemberPort.saveNewUser(
                 eq(testUserName),
-                any(SocialUserProfile.class)
+                any(SocialMemberProfile.class)
         )).willReturn(testUserDetail);
         given(globalJwtPort.generateAccessToken(testUserDetail)).willReturn(testAccessToken);
         given(globalJwtPort.generateRefreshToken(testUserDetail)).willReturn(testRefreshToken);
@@ -150,7 +150,7 @@ class SignUpServiceTest extends BaseUnitTest {
         assertThat(result).isEqualTo(testCookies);
 
         verify(redisMemberDataPort).getTempData(testUuid);
-        verify(saveMemberPort).saveNewUser(eq(testUserName), any(SocialUserProfile.class));
+        verify(saveMemberPort).saveNewUser(eq(testUserName), any(SocialMemberProfile.class));
         verify(redisMemberDataPort).removeTempData(testUuid);
         verify(globalJwtPort).generateAccessToken(testUserDetail);
         verify(globalJwtPort).generateRefreshToken(testUserDetail);

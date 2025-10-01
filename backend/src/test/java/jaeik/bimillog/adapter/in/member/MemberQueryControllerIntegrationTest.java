@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.auth.TokenRepository;
-import jaeik.bimillog.infrastructure.adapter.out.member.UserRepository;
+import jaeik.bimillog.infrastructure.adapter.out.member.MemberRepository;
 import jaeik.bimillog.testutil.*;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -33,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class MemberQueryControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
-    private UserRepository userRepository;
+    private MemberRepository userRepository;
 
     @Autowired
     private TokenRepository tokenRepository;
@@ -56,7 +56,7 @@ class MemberQueryControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("닉네임 중복 확인 통합 테스트 - 중복된 닉네임")
     void checkUserName_Duplicate_IntegrationTest() throws Exception {
         // Given - 기존 사용자 생성 및 저장
-        Member existingMember = TestUsers.createUnique();
+        Member existingMember = TestMembers.createUnique();
         userRepository.save(existingMember);
 
         // When & Then
@@ -71,7 +71,7 @@ class MemberQueryControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("사용자 설정 조회 통합 테스트 - 성공")
     void getSetting_IntegrationTest_Success() throws Exception {
         // Given - 테스트 사용자 생성 및 저장
-        Member testMember = TestUsers.createUnique();
+        Member testMember = TestMembers.createUnique();
         userRepository.save(testMember);
         
         var userDetails = createCustomUserDetails(testMember);
@@ -91,7 +91,7 @@ class MemberQueryControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("사용자 작성 게시글 목록 조회 통합 테스트 - 성공")
     void getUserPosts_IntegrationTest_Success() throws Exception {
         // Given - 테스트 사용자 생성 및 저장
-        Member testMember = TestUsers.createUnique();
+        Member testMember = TestMembers.createUnique();
         userRepository.save(testMember);
         
         var userDetails = createCustomUserDetails(testMember);
@@ -113,7 +113,7 @@ class MemberQueryControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("사용자 추천한 게시글 목록 조회 통합 테스트 - 성공")
     void getUserLikedPosts_IntegrationTest_Success() throws Exception {
         // Given - 테스트 사용자 생성 및 저장
-        Member testMember = TestUsers.createUnique();
+        Member testMember = TestMembers.createUnique();
         userRepository.save(testMember);
         
         var userDetails = createCustomUserDetails(testMember);
@@ -135,7 +135,7 @@ class MemberQueryControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("사용자 작성 댓글 목록 조회 통합 테스트 - 성공")
     void getUserComments_IntegrationTest_Success() throws Exception {
         // Given - 테스트 사용자 생성 및 저장
-        Member testMember = TestUsers.createUnique();
+        Member testMember = TestMembers.createUnique();
         userRepository.save(testMember);
         
         var userDetails = createCustomUserDetails(testMember);
@@ -157,7 +157,7 @@ class MemberQueryControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("사용자 추천한 댓글 목록 조회 통합 테스트 - 성공")
     void getUserLikedComments_IntegrationTest_Success() throws Exception {
         // Given - 테스트 사용자 생성 및 저장
-        Member testMember = TestUsers.createUnique();
+        Member testMember = TestMembers.createUnique();
         userRepository.save(testMember);
         
         var userDetails = createCustomUserDetails(testMember);
@@ -182,7 +182,7 @@ class MemberQueryControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("카카오 친구 목록 조회 - 정상 케이스 (Mock 환경)")
     void getKakaoFriendList_Success() throws Exception {
         // Given - 테스트용 사용자 생성 및 저장
-        Member member = TestUsers.createUnique();
+        Member member = TestMembers.createUnique();
         Member savedMember = userRepository.save(member);
         
         // 테스트용 토큰 생성 및 저장

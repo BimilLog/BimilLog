@@ -76,8 +76,8 @@ public class CustomUserDetails implements UserDetails {
      * @author Jaeik
      * @return 유저 ID
      */
-    public Long getUserId() {
-        return existingMemberDetail.getUserId();
+    public Long getMemberId() {
+        return existingMemberDetail.getMemberId();
     }
 
     /**
@@ -153,7 +153,7 @@ public class CustomUserDetails implements UserDetails {
      */
     @Override
     public String getUsername() {
-        return existingMemberDetail.getUserName();
+        return existingMemberDetail.getMemberName();
     }
 
     /**

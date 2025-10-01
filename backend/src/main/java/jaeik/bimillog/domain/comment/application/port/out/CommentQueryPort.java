@@ -32,12 +32,12 @@ public interface CommentQueryPort {
      * <p>{@link CommentQueryService}에서 인기 댓글 목록 조회 시 호출됩니다.</p>
      *
      * @param postId 게시글 ID
-     * @param userId 사용자 ID (추천 여부 확인용, null 가능)
+     * @param memberId 사용자 ID (추천 여부 확인용, null 가능)
      * @return List<CommentInfo> 추천 수 기준으로 정렬된 인기 댓글 목록
      * @author Jaeik
      * @since 2.0.0
      */
-    List<CommentInfo> findPopularComments(Long postId, Long userId);
+    List<CommentInfo> findPopularComments(Long postId, Long memberId);
 
     /**
      * <h3>다중 게시글의 댓글 수 일괄 조회</h3>
@@ -59,50 +59,50 @@ public interface CommentQueryPort {
      *
      * @param postId   게시글 ID
      * @param pageable 페이지 정보
-     * @param userId   사용자 ID (추천 여부 확인용, null 가능)
+     * @param memberId   사용자 ID (추천 여부 확인용, null 가능)
      * @return Page<CommentInfo> 작성 시간 오름차순으로 정렬된 댓글 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<CommentInfo> findCommentsWithOldestOrder(Long postId, Pageable pageable, Long userId);
+    Page<CommentInfo> findCommentsWithOldestOrder(Long postId, Pageable pageable, Long memberId);
 
     /**
      * <h3>사용자 작성 댓글 이력 조회</h3>
      * <p>특정 사용자가 작성한 모든 댓글을 최신순으로 정렬하여 페이지네이션으로 조회합니다.</p>
      * <p>{@link MemberActivityAdapter}에서 사용자 활동 내역 조회 시 호출됩니다.</p>
      *
-     * @param userId   사용자 ID
+     * @param memberId   사용자 ID
      * @param pageable 페이지 정보
      * @return Page<SimpleCommentInfo> 작성한 댓글 목록 페이지 (최신순)
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<SimpleCommentInfo> findCommentsByUserId(Long userId, Pageable pageable);
+    Page<SimpleCommentInfo> findCommentsByMemberId(Long memberId, Pageable pageable);
 
     /**
      * <h3>사용자 추천 댓글 이력 조회</h3>
      * <p>특정 사용자가 추천한 모든 댓글을 최신 추천순으로 정렬하여 페이지네이션으로 조회합니다.</p>
      * <p>{@link MemberActivityAdapter}에서 사용자 추천 활동 내역 조회 시 호출됩니다.</p>
      *
-     * @param userId   사용자 ID
+     * @param memberId   사용자 ID
      * @param pageable 페이지 정보
      * @return Page<SimpleCommentInfo> 추천한 댓글 목록 페이지 (최신 추천순)
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<SimpleCommentInfo> findLikedCommentsByUserId(Long userId, Pageable pageable);
+    Page<SimpleCommentInfo> findLikedCommentsByMemberId(Long memberId, Pageable pageable);
 
     /**
      * <h3>특정 사용자의 모든 댓글 조회</h3>
      * <p>사용자 탈퇴 시 댓글 처리를 위해 특정 사용자의 모든 댓글 엔티티를 조회합니다.</p>
      * <p>{@link CommentCommandService}에서 사용자 탈퇴 처리 시 호출됩니다.</p>
      *
-     * @param userId 조회할 사용자 ID
+     * @param memberId 조회할 사용자 ID
      * @return List<Comment> 사용자가 작성한 모든 댓글 엔티티 목록
      * @author Jaeik
      * @since 2.0.0
      */
-    List<Comment> findAllByUserId(Long userId);
+    List<Comment> findAllByMemberId(Long memberId);
 
     /**
      * <h3>특정 글의 모든 댓글 조회</h3>

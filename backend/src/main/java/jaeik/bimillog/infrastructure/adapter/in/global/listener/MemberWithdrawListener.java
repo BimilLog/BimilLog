@@ -12,7 +12,7 @@ import jaeik.bimillog.domain.paper.application.port.in.PaperCommandUseCase;
 import jaeik.bimillog.domain.post.application.port.in.PostCommandUseCase;
 import jaeik.bimillog.domain.member.application.port.in.MemberCommandUseCase;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
-import jaeik.bimillog.domain.member.event.UserWithdrawnEvent;
+import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
@@ -42,29 +42,29 @@ public class MemberWithdrawListener {
      * <p>모든 관련 데이터를 순차적으로 정리합니다: SSE 연결, 소셜 계정 연동 해제, 댓글 처리, 게시글 삭제,
      * 토큰 무효화, FCM 토큰 삭제, 알림 삭제, 롤링페이퍼 메시지 삭제, 신고 기록 삭제, 카카오 토큰 삭제, 계정 정보 삭제</p>
      *
-     * @param userWithdrawnEvent 회원 탈퇴 이벤트 (userId, socialId, provider 포함)
+     * @param userWithdrawnEvent 회원 탈퇴 이벤트 (memberId, socialId, provider 포함)
      * @author Jaeik
      * @since 2.0.0
      */
     @Async
     @EventListener
     @Transactional
-    public void memberWithdraw(UserWithdrawnEvent userWithdrawnEvent) {
-        Long userId = userWithdrawnEvent.userId();
+    public void memberWithdraw(MemberWithdrawnEvent userWithdrawnEvent) {
+        Long memberId = userWithdrawnEvent.memberId();
         String socialId = userWithdrawnEvent.socialId();
         SocialProvider provider = userWithdrawnEvent.provider();
 
-        sseUseCase.deleteEmitters(userId, null);
+        sseUseCase.deleteEmitters(memberId, null);
         socialWithdrawUseCase.unlinkSocialAccount(provider, socialId);
-        commentCommandUseCase.processUserCommentsOnWithdrawal(userId);
-        postCommandUseCase.deleteAllPostsByUserId(userId); // 구현 필요
-        authTokenUseCase.deleteTokens(userId, null);
-        fcmUseCase.deleteFcmTokens(userId, null);
-        notificationCommandUseCase.deleteAllNotification(userId);
-        paperCommandUseCase.deleteMessageInMyPaper(userId, null);
-        adminCommandUseCase.deleteAllReportsByUserId(userId);
-        kakaoTokenUseCase.deleteByUserId(userId);
-        memberCommandUseCase.removeUserAccount(userId);
+        commentCommandUseCase.processUserCommentsOnWithdrawal(memberId);
+        postCommandUseCase.deleteAllPostsByMemberId(memberId); // 구현 필요
+        authTokenUseCase.deleteTokens(memberId, null);
+        fcmUseCase.deleteFcmTokens(memberId, null);
+        notificationCommandUseCase.deleteAllNotification(memberId);
+        paperCommandUseCase.deleteMessageInMyPaper(memberId, null);
+        adminCommandUseCase.deleteAllReportsByUserId(memberId);
+        kakaoTokenUseCase.deleteByMemberId(memberId);
+        memberCommandUseCase.removeMemberAccount(memberId);
         SecurityContextHolder.clearContext();
     }
 }

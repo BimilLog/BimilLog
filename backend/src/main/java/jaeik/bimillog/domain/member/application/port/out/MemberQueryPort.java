@@ -60,24 +60,24 @@ public interface MemberQueryPort {
      * <p>주어진 닉네임을 가진 사용자가 존재하는지 확인합니다.</p>
      * <p>{@link MemberQueryService}에서 닉네임 중복 확인 시 호출됩니다.</p>
      *
-     * @param userName 확인할 닉네임
+     * @param memberName 확인할 닉네임
      * @return boolean 존재하면 true, 아니면 false
      * @author Jaeik
      * @since 2.0.0
      */
-    boolean existsByUserName(String userName);
+    boolean existsByMemberName(String memberName);
 
     /**
      * <h3>닉네임으로 사용자 조회</h3>
      * <p>주어진 닉네임으로 사용자 정보를 조회합니다.</p>
      * <p>{@link MemberQueryService}에서 닉네임 기반 사용자 조회 시 호출됩니다.</p>
      *
-     * @param userName 조회할 닉네임
+     * @param memberName 조회할 닉네임
      * @return Optional<Member> 조회된 사용자 객체
      * @author Jaeik
      * @since 2.0.0
      */
-    Optional<Member> findByUserName(String userName);
+    Optional<Member> findByMemberName(String memberName);
 
     /**
      * <h3>ID로 설정 조회</h3>
@@ -102,7 +102,7 @@ public interface MemberQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    List<String> findUserNamesInOrder(List<String> socialIds);
+    List<String> findMemberNamesInOrder(List<String> socialIds);
 
     /**
      * <h3>ID로 사용자 프록시 가져오기</h3>
@@ -110,10 +110,10 @@ public interface MemberQueryPort {
      * <p>JPA 연관 관계 설정 시 사용됩니다.</p>
      * <p>{@link MemberQueryService}에서 사용자 엔티티 참조 생성 시 호출됩니다.</p>
      *
-     * @param userId 참조를 가져올 사용자 ID
+     * @param memberId 참조를 가져올 사용자 ID
      * @return Member 사용자 엔티티 참조
      * @author Jaeik
      * @since 2.0.0
      */
-    Member getReferenceById(Long userId);
+    Member getReferenceById(Long memberId);
 }

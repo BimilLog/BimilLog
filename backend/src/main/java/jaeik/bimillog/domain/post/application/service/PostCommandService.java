@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.post.application.service;
 
 import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalUserQueryPort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalMemberQueryPort;
 import jaeik.bimillog.domain.post.application.port.in.PostCommandUseCase;
 import jaeik.bimillog.domain.post.application.port.out.PostCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.PostLikeCommandPort;
@@ -35,7 +35,7 @@ public class PostCommandService implements PostCommandUseCase {
 
     private final PostCommandPort postCommandPort;
     private final GlobalPostQueryPort globalPostQueryPort;
-    private final GlobalUserQueryPort globalUserQueryPort;
+    private final GlobalMemberQueryPort globalUserQueryPort;
     private final RedisPostCommandPort redisPostCommandPort;
     private final PostLikeCommandPort postLikeCommandPort;
     private final PostToCommentPort postToCommentPort;
@@ -47,7 +47,7 @@ public class PostCommandService implements PostCommandUseCase {
      * <p>익명/회원 구분 처리, Post 팩토리 메서드로 엔티티 생성</p>
      * <p>{@link PostCommandController}에서 게시글 작성 API 처리 시 호출됩니다.</p>
      *
-     * @param userId   작성자 사용자 ID (null이면 익명 게시글)
+     * @param memberId   작성자 사용자 ID (null이면 익명 게시글)
      * @param title    게시글 제목
      * @param content  게시글 내용
      * @param password 게시글 비밀번호 (익명 게시글인 경우)
@@ -57,8 +57,8 @@ public class PostCommandService implements PostCommandUseCase {
      */
     @Override
     @Transactional
-    public Long writePost(Long userId, String title, String content, Integer password) {
-        Member member = (userId != null) ? globalUserQueryPort.getReferenceById(userId) : null;
+    public Long writePost(Long memberId, String title, String content, Integer password) {
+        Member member = (memberId != null) ? globalUserQueryPort.getReferenceById(memberId) : null;
         Post newPost = Post.createPost(member, title, content, password);
         Post savedPost = postCommandPort.create(newPost);
         return savedPost.getId();
@@ -71,7 +71,7 @@ public class PostCommandService implements PostCommandUseCase {
      * <p>작성자 권한 검증 후 게시글 업데이트, 관련 캐시 삭제</p>
      * <p>{@link PostCommandController}에서 게시글 수정 API 처리 시 호출됩니다.</p>
      *
-     * @param userId  현재 로그인 사용자 ID
+     * @param memberId  현재 로그인 사용자 ID
      * @param postId  수정할 게시글 ID
      * @param title   새로운 제목
      * @param content 새로운 내용
@@ -81,17 +81,17 @@ public class PostCommandService implements PostCommandUseCase {
      */
     @Override
     @Transactional
-    public void updatePost(Long userId, Long postId, String title, String content) {
+    public void updatePost(Long memberId, Long postId, String title, String content) {
         Post post = globalPostQueryPort.findById(postId);
 
-        if (!post.isAuthor(userId)) {
+        if (!post.isAuthor(memberId)) {
             throw new PostCustomException(PostErrorCode.FORBIDDEN);
         }
 
         post.updatePost(title, content);
         redisPostCommandPort.deleteCache(null, postId);
         
-        log.info("게시글 수정 완료: postId={}, userId={}, title={}", postId, userId, title);
+        log.info("게시글 수정 완료: postId={}, memberId={}, title={}", postId, memberId, title);
     }
 
     /**
@@ -100,7 +100,7 @@ public class PostCommandService implements PostCommandUseCase {
      * <p>작성자 권한 검증 후 게시글과 연관 데이터 삭제, 관련 캐시 제거</p>
      * <p>{@link PostCommandController}에서 게시글 삭제 API 처리 시 호출됩니다.</p>
      *
-     * @param userId 현재 로그인 사용자 ID
+     * @param memberId 현재 로그인 사용자 ID
      * @param postId 삭제할 게시글 ID
      * @throws PostCustomException 권한이 없거나 게시글을 찾을 수 없는 경우
      * @author Jaeik
@@ -108,10 +108,10 @@ public class PostCommandService implements PostCommandUseCase {
      */
     @Override
     @Transactional
-    public void deletePost(Long userId, Long postId) {
+    public void deletePost(Long memberId, Long postId) {
         Post post = globalPostQueryPort.findById(postId);
 
-        if (!post.isAuthor(userId)) {
+        if (!post.isAuthor(memberId)) {
             throw new PostCustomException(PostErrorCode.FORBIDDEN);
         }
 
@@ -121,11 +121,11 @@ public class PostCommandService implements PostCommandUseCase {
         postLikeCommandPort.deletePostLikeByPostId(postId);
         postCommandPort.delete(post);
         redisPostCommandPort.deleteCache(null, postId);
-        log.info("게시글 삭제 완료: postId={}, userId={}, title={}", postId, userId, postTitle);
+        log.info("게시글 삭제 완료: postId={}, memberId={}, title={}", postId, memberId, postTitle);
     }
 
     @Override
-    public void deleteAllPostsByUserId(Long userId) {
+    public void deleteAllPostsByMemberId(Long memberId) {
 
     }
 }

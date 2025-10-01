@@ -30,22 +30,22 @@ public class NotificationCommandAdapter implements NotificationCommandPort {
      * <p>삭제: Repository 메서드로 일괄 삭제</p>
      * <p>읽음 처리: 엔티티 조회 후 markAsRead() 호출하여 더티체킹 활용</p>
      *
-     * @param userId           현재 로그인한 사용자 ID
+     * @param memberId           현재 로그인한 사용자 ID
      * @param updateCommand 업데이트할 알림 정보 명령 (삭제할 ID 목록, 읽음 처리할 ID 목록 포함)
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void batchUpdate(Long userId, NotificationUpdateVO updateCommand) {
+    public void batchUpdate(Long memberId, NotificationUpdateVO updateCommand) {
         List<Long> deleteIds = updateCommand.deletedIds();
         List<Long> readIds = updateCommand.readIds();
 
         if (deleteIds != null && !deleteIds.isEmpty()) {
-            notificationRepository.deleteAllByIdInAndUsersId(deleteIds, userId);
+            notificationRepository.deleteAllByIdInAndMemberId(deleteIds, memberId);
         }
 
         if (readIds != null && !readIds.isEmpty()) {
-            List<Notification> notifications = notificationRepository.findAllByIdInAndUsersId(readIds, userId);
+            List<Notification> notifications = notificationRepository.findAllByIdInAndMemberId(readIds, memberId);
             notifications.forEach(Notification::markAsRead);
         }
     }
@@ -71,12 +71,12 @@ public class NotificationCommandAdapter implements NotificationCommandPort {
      * <p>특정 사용자의 모든 알림을 데이터베이스에서 삭제합니다.</p>
      * <p>사용자 탈퇴 시 해당 사용자의 모든 알림 데이터를 정리하는데 사용됩니다.</p>
      *
-     * @param userId 알림을 삭제할 대상 사용자 ID
+     * @param memberId 알림을 삭제할 대상 사용자 ID
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void deleteAllByUserId(Long userId) {
-        notificationRepository.deleteAllByUsersId(userId);
+    public void deleteAllByMemberId(Long memberId) {
+        notificationRepository.deleteAllByMemberId(memberId);
     }
 }

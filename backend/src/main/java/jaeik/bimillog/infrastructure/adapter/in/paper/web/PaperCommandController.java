@@ -29,17 +29,17 @@ public class PaperCommandController {
      * <p>메시지 작성 POST 요청을 처리합니다.</p>
      * <p>익명 사용자도 접근 가능하며, 그리드 레이아웃에 맞는 좌표를 지정할 수 있습니다.</p>
      *
-     * @param userName   메시지를 작성할 롤링페이퍼 소유자의 사용자명
+     * @param memberName   메시지를 작성할 롤링페이퍼 소유자의 사용자명
      * @param messageDTO 작성할 메시지 정보
      * @return HTTP 응답 엔티티
      * @author Jaeik
      * @since 2.0.0
      */
-    @PostMapping("/{userName}")
+    @PostMapping("/{memberName}")
     public ResponseEntity<String> writeMessage(
-            @PathVariable String userName,
+            @PathVariable String memberName,
             @RequestBody @Valid MessageDTO messageDTO) {
-        paperCommandUseCase.writeMessage(userName, messageDTO.getDecoType(), 
+        paperCommandUseCase.writeMessage(memberName, messageDTO.getDecoType(), 
                 messageDTO.getAnonymity(), messageDTO.getContent(), 
                 messageDTO.getX(), messageDTO.getY());
         return ResponseEntity.ok("메시지가 작성되었습니다.");
@@ -59,8 +59,8 @@ public class PaperCommandController {
     @PostMapping("/delete")
     public ResponseEntity<String> deleteMessage(@AuthenticationPrincipal CustomUserDetails userDetails,
                                                 @RequestBody @Valid MessageDTO messageDTO) {
-        Long userId = userDetails.getUserId();
-        paperCommandUseCase.deleteMessageInMyPaper(userId, messageDTO.getId());
+        Long memberId = userDetails.getMemberId();
+        paperCommandUseCase.deleteMessageInMyPaper(memberId, messageDTO.getId());
         return ResponseEntity.ok("메시지가 삭제되었습니다.");
     }
 }

@@ -28,13 +28,13 @@ public class GlobalKakaoTokenQueryAdapter implements GlobalKakaoTokenQueryPort {
      * <p>특정 사용자의 카카오 OAuth 토큰을 조회합니다.</p>
      * <p>KakaoTokenRepository를 통해 데이터베이스에서 조회합니다.</p>
      *
-     * @param userId 조회할 사용자 ID
+     * @param memberId 조회할 사용자 ID
      * @return Optional&lt;KakaoToken&gt; 조회된 카카오 토큰 (존재하지 않으면 Optional.empty())
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public Optional<KakaoToken> findByUserId(Long userId) {
-        return kakaoTokenRepository.findByUserId(userId);
+    public Optional<KakaoToken> findByMemberId(Long memberId) {
+        return kakaoTokenRepository.findByMemberId(memberId);
     }
 }

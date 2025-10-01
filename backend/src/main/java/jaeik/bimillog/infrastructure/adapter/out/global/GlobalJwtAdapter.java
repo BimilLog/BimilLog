@@ -61,12 +61,12 @@ public class GlobalJwtAdapter implements GlobalJwtPort {
         Date validity = new Date(now + 3600000);
 
         return Jwts.builder()
-                .setSubject(String.valueOf(userDetail.getUserId()))
+                .setSubject(String.valueOf(userDetail.getMemberId()))
                 .claim("tokenId", userDetail.getTokenId())
                 .claim("socialId", userDetail.getSocialId())
                 .claim("provider", userDetail.getProvider().name())
                 .claim("settingId", userDetail.getSettingId())
-                .claim("userName", userDetail.getUserName())
+                .claim("memberName", userDetail.getMemberName())
                 .claim("role", userDetail.getRole().name())
                 .claim("socialNickname", userDetail.getSocialNickname())
                 .claim("thumbnailImage", userDetail.getThumbnailImage())
@@ -135,12 +135,12 @@ public class GlobalJwtAdapter implements GlobalJwtPort {
         Claims claims = getClaims(jwtAccessToken);
 
         return ExistingMemberDetail.builder()
-                .userId(Long.parseLong(claims.getSubject()))
+                .memberId(Long.parseLong(claims.getSubject()))
                 .socialId(claims.get("socialId", String.class))
                 .provider(SocialProvider.valueOf(claims.get("provider", String.class)))
                 .socialNickname(claims.get("socialNickname", String.class))
                 .thumbnailImage(claims.get("thumbnailImage", String.class))
-                .userName(claims.get("userName", String.class))
+                .memberName(claims.get("userName", String.class))
                 .role(MemberRole.valueOf(claims.get("role", String.class)))
                 .tokenId(claims.get("tokenId", Long.class))
                 .fcmTokenId(claims.get("fcmTokenId", Long.class))

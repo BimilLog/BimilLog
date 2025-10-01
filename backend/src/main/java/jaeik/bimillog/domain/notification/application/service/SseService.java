@@ -32,15 +32,15 @@ public class SseService implements SseUseCase {
      * <p>다중 기기 지원을 위해 사용자 ID와 토큰 ID 조합으로 고유한 연결 식별자를 관리합니다.</p>
      * <p>{@link NotificationSseController}에서 클라이언트의 SSE 구독 API 요청을 처리하기 위해 호출됩니다.</p>
      *
-     * @param userId 구독할 사용자 ID
+     * @param memberId 구독할 사용자 ID
      * @param tokenId 구독 토큰 ID (다중 기기 구분용)
      * @return SseEmitter 객체 (30분 타임아웃)
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public SseEmitter subscribe(Long userId, Long tokenId) {
-        return ssePort.subscribe(userId, tokenId);
+    public SseEmitter subscribe(Long memberId, Long tokenId) {
+        return ssePort.subscribe(memberId, tokenId);
     }
 
     /**
@@ -49,14 +49,14 @@ public class SseService implements SseUseCase {
      * <p>사용자 탈퇴 시에는 tokenId를 null로 전달하여 모든 연결을 정리하고,</p>
      * <p>개별 기기 로그아웃 시에는 tokenId를 전달하여 해당 기기만 연결 해제합니다.</p>
      *
-     * @param userId 사용자 ID
+     * @param memberId 사용자 ID
      * @param tokenId 토큰 ID (null인 경우 모든 연결 정리)
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void deleteEmitters(Long userId, Long tokenId) {
-        ssePort.deleteEmitters(userId, tokenId);
+    public void deleteEmitters(Long memberId, Long tokenId) {
+        ssePort.deleteEmitters(memberId, tokenId);
     }
 
     /**
@@ -86,14 +86,14 @@ public class SseService implements SseUseCase {
      * <p>{@link NotificationGenerateListener}에서 롤링페이퍼 메시지 작성 이벤트 발생 시 호출됩니다.</p>
      *
      * @param farmOwnerId 롤링페이퍼 주인 ID
-     * @param userName    사용자 이름
+     * @param memberName    사용자 이름
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void sendPaperPlantNotification(Long farmOwnerId, String userName) {
+    public void sendPaperPlantNotification(Long farmOwnerId, String memberName) {
         String message = "롤링페이퍼에 메시지가 작성되었어요!";
-        String url = urlGeneratorPort.generateRollingPaperUrl(userName);
+        String url = urlGeneratorPort.generateRollingPaperUrl(memberName);
         SseMessage sseMessage = SseMessage.of(farmOwnerId, NotificationType.PAPER, message, url);
         ssePort.send(sseMessage);
     }
@@ -104,16 +104,16 @@ public class SseService implements SseUseCase {
      * <p>전달받은 알림 메시지와 게시글 페이지 URL을 사용하여 SseMessage를 구성하고, 활성 SSE 연결에 브로드캐스트합니다.</p>
      * <p>{@link NotificationGenerateListener}에서 인기글 등극 이벤트 발생 시 호출됩니다.</p>
      *
-     * @param userId  사용자 ID
+     * @param memberId  사용자 ID
      * @param message 알림 메시지
      * @param postId  게시글 ID
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void sendPostFeaturedNotification(Long userId, String message, Long postId) {
+    public void sendPostFeaturedNotification(Long memberId, String message, Long postId) {
         String url = urlGeneratorPort.generatePostUrl(postId);
-        SseMessage sseMessage = SseMessage.of(userId, NotificationType.POST_FEATURED, message, url);
+        SseMessage sseMessage = SseMessage.of(memberId, NotificationType.POST_FEATURED, message, url);
         ssePort.send(sseMessage);
     }
 }

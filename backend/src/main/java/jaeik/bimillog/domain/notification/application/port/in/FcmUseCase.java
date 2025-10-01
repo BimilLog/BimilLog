@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
 import jaeik.bimillog.domain.member.entity.member.Member;
-import jaeik.bimillog.domain.member.event.UserWithdrawnEvent;
+import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.infrastructure.adapter.in.notification.web.NotificationSseController;
 
 /**
@@ -36,14 +36,14 @@ public interface FcmUseCase {
      * <h3>FCM 토큰 삭제</h3>
      * <p>로그아웃시 특정 토큰만 삭제하거나 회원탈퇴시 모든 토큰을 삭제합니다.</p>
      * <p>fcmTokenId가 null인 경우 모든 토큰 삭제, 값이 있는 경우 특정 토큰만 삭제합니다.</p>
-     * <p>{@link MemberLoggedOutEvent}, {@link UserWithdrawnEvent} 이벤트 발생시 호출됩니다.</p>
+     * <p>{@link MemberLoggedOutEvent}, {@link MemberWithdrawnEvent} 이벤트 발생시 호출됩니다.</p>
      *
-     * @param userId 사용자 ID
+     * @param memberId 사용자 ID
      * @param fcmTokenId 삭제할 토큰 ID (null인 경우 모든 토큰 삭제)
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteFcmTokens(Long userId, Long fcmTokenId);
+    void deleteFcmTokens(Long memberId, Long fcmTokenId);
 
     /**
      * <h3>댓글 알림 FCM 전송</h3>
@@ -76,12 +76,12 @@ public interface FcmUseCase {
      * <p>조회수, 댓글 수, 좋아요 수 등의 기준을 만족한 게시글에 대해 발송됩니다.</p>
      * <p>{@link PostFeaturedEvent} 이벤트 발생시 인기글 등극 알림 전송 흐름에서 호출됩니다.</p>
      *
-     * @param userId  사용자 ID
+     * @param memberId  사용자 ID
      * @param title   알림 제목
      * @param body    알림 내용
      * @author Jaeik
      * @since 2.0.0
      */
-    void sendPostFeaturedNotification(Long userId, String title, String body);
+    void sendPostFeaturedNotification(Long memberId, String title, String body);
 
 }

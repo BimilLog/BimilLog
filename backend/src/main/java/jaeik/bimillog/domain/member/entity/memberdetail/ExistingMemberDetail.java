@@ -36,13 +36,13 @@ import org.springframework.lang.Nullable;
 public class ExistingMemberDetail implements MemberDetail {
 
     // 사용자 기본 정보
-    private Long userId;
+    private Long memberId;
     private String socialId;
     private SocialProvider provider;
     private Long settingId;
     private String socialNickname;
     private String thumbnailImage;
-    private String userName;
+    private String memberName;
     private MemberRole role;
 
     // 인증 관련 추가 필드
@@ -53,15 +53,15 @@ public class ExistingMemberDetail implements MemberDetail {
 
     public static ExistingMemberDetail of(Member member, Long tokenId, @Nullable Long fcmTokenId) {
         Long settingId = (member.getSetting() != null) ? member.getSetting().getId() : null;
-        
+
         return ExistingMemberDetail.builder()
-                .userId(member.getId())
+                .memberId(member.getId())
                 .socialId(member.getSocialId())
                 .provider(member.getProvider())
                 .settingId(settingId)
                 .socialNickname(member.getSocialNickname())
                 .thumbnailImage(member.getThumbnailImage())
-                .userName(member.getUserName())
+                .memberName(member.getMemberName())
                 .role(member.getRole())
                 .tokenId(tokenId)
                 .fcmTokenId(fcmTokenId)

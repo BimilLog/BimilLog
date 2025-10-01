@@ -32,10 +32,10 @@ public class CommentDTO {
 
     private Long postId;
 
-    private Long userId;
+    private Long memberId;
 
     @Size(max = 8, message = "닉네임은 최대 8글자 까지 입력 가능합니다.")
-    private String userName;
+    private String memberName;
 
     @Size(max = 255, message = "댓글은 최대 255자 까지 입력 가능합니다.")
     private String content;
@@ -57,8 +57,8 @@ public class CommentDTO {
      *
      * @param id        댓글 ID
      * @param postId    게시글 ID
-     * @param userId    사용자 ID
-     * @param userName  사용자명
+     * @param memberId    사용자 ID
+     * @param memberName  사용자명
      * @param content   댓글 내용
      * @param deleted   삭제 여부
      * @param createdAt 생성일시
@@ -68,11 +68,11 @@ public class CommentDTO {
      * @since 2.0.0
      */
     @QueryProjection
-    public CommentDTO(Long id, Long postId, Long userId, String userName, String content, boolean deleted, Instant createdAt, Long parentId, Integer likes) {
+    public CommentDTO(Long id, Long postId, Long memberId, String memberName, String content, boolean deleted, Instant createdAt, Long parentId, Integer likes) {
         this.id = id;
         this.postId = postId;
-        this.userId = userId;
-        this.userName = userName;
+        this.memberId = memberId;
+        this.memberName = memberName;
         this.content = content;
         this.deleted = deleted;
         this.createdAt = createdAt;

@@ -21,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class MemberCommandAdapter implements MemberCommandPort {
 
-    private final UserRepository userRepository;
+    private final MemberRepository userRepository;
 
     /**
      * <h3>사용자 계정과 설정 삭제</h3>
@@ -29,15 +29,15 @@ public class MemberCommandAdapter implements MemberCommandPort {
      * <p>JOIN을 통한 원자적 삭제로 데이터 일관성을 보장합니다.</p>
      * <p>{@link MemberCommandService#removeUserAccount}에서 회원 탈퇴 처리 시 호출됩니다.</p>
      *
-     * @param userId 삭제할 사용자 ID
+     * @param memberId 삭제할 사용자 ID
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     @Transactional
-    public void deleteUserAndSetting(Long userId) {
-        log.debug("사용자 계정 삭제 수행 - userId: {}", userId);
-        userRepository.deleteUserAndSettingByUserId(userId);
-        log.debug("사용자 계정 삭제 완료 - userId: {}", userId);
+    public void deleteMemberAndSetting(Long memberId) {
+        log.debug("회원 계정 삭제 수행 - memberId: {}", memberId);
+        userRepository.deleteMemberAndSettingByMemberId(memberId);
+        log.debug("회원 계정 삭제 완료 - memberId: {}", memberId);
     }
 }

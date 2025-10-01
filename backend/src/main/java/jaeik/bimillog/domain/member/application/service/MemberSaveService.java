@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.member.application.service;
 
-import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.member.application.port.in.MemberSaveUseCase;
 import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
 import jaeik.bimillog.domain.member.application.port.out.RedisMemberDataPort;
@@ -57,7 +57,7 @@ public class MemberSaveService implements MemberSaveUseCase {
      * @since 2.0.0
      */
     @Override
-    public MemberDetail processUserData(SocialProvider provider, SocialUserProfile userProfile) {
+    public MemberDetail processUserData(SocialProvider provider, SocialMemberProfile userProfile) {
         Optional<Member> existingUser = memberQueryPort.findByProviderAndSocialId(provider, userProfile.getSocialId());
         if (existingUser.isPresent()) {
             Member member = existingUser.get();
@@ -71,14 +71,14 @@ public class MemberSaveService implements MemberSaveUseCase {
      * <h3>신규 사용자 임시 데이터 저장</h3>
      * <p>최초 소셜 로그인하는 사용자의 임시 정보를 저장합니다.</p>
      * <p>회원가입 페이지에서 사용할 UUID 키와 임시 쿠키를 생성합니다.</p>
-     * <p>{@link #processUserData(SocialProvider, SocialUserProfile)}에서 신규 사용자 판별 후 호출됩니다.</p>
+     * <p>{@link #processUserData(SocialProvider, SocialMemberProfile)}에서 신규 사용자 판별 후 호출됩니다.</p>
      *
      * @param authResult 소셜 로그인 인증 결과 (FCM 토큰 포함)
      * @return NewUser 회원가입용 UUID와 임시 쿠키 정보
      * @author Jaeik
      * @since 2.0.0
      */
-    private NewMemberDetail handleNewUser(SocialUserProfile authResult) {
+    private NewMemberDetail handleNewUser(SocialMemberProfile authResult) {
         String uuid = UUID.randomUUID().toString();
         redisMemberDataPort.saveTempData(uuid, authResult);
         return NewMemberDetail.of(uuid);

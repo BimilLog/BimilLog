@@ -13,7 +13,7 @@ import org.springframework.http.HttpStatus;
  * @version 2.0.0
  */
 @Getter
-public enum UserErrorCode {
+public enum MemberErrorCode {
 
     /**
      * <h3>사용자 조회 관련 에러 코드</h3>
@@ -38,7 +38,7 @@ public enum UserErrorCode {
     private final ErrorCode.LogLevel logLevel;
 
     /**
-     * <h3>UserErrorCode 생성자</h3>
+     * <h3>MemberErrorCode 생성자</h3>
      * <p>HTTP 상태, 메시지, 로그 레벨을 받아 사용자 전용 에러 코드를 생성합니다.</p>
      *
      * @param status HTTP 상태 코드
@@ -47,7 +47,7 @@ public enum UserErrorCode {
      * @author Jaeik
      * @since 2.0.0
      */
-    UserErrorCode(HttpStatus status, String message, ErrorCode.LogLevel logLevel) {
+    MemberErrorCode(HttpStatus status, String message, ErrorCode.LogLevel logLevel) {
         this.status = status;
         this.message = message;
         this.logLevel = logLevel;

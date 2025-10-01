@@ -22,11 +22,11 @@ public interface SignUpUseCase {
      * <p>Redis에 저장된 임시 소셜 로그인 데이터를 기반으로 실제 사용자 계정을 생성합니다.</p>
      * <p>{@link MemberCommandController}에서 POST /api/member/signup 요청 처리 시 호출됩니다.</p>
      *
-     * @param userName 사용자가 입력한 닉네임
+     * @param memberName 사용자가 입력한 닉네임
      * @param uuid Redis에 저장된 임시 사용자 데이터의 UUID 키
      * @return JWT 토큰이 포함된 인증 쿠키 리스트
      * @author Jaeik
      * @since 2.0.0
      */
-    List<ResponseCookie> signUp(String userName, String uuid);
+    List<ResponseCookie> signUp(String memberName, String uuid);
 }

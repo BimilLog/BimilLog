@@ -40,12 +40,12 @@ public class NotificationQueryService implements NotificationQueryUseCase {
     @Override
     @Transactional(readOnly = true)
     public List<Notification> getNotificationList(CustomUserDetails userDetails) {
-        if (userDetails == null || userDetails.getUserId() == null) {
+        if (userDetails == null || userDetails.getMemberId() == null) {
             return Collections.emptyList();
         }
-        
-        List<Notification> notifications = notificationQueryPort.getNotificationList(userDetails.getUserId());
-        
+
+        List<Notification> notifications = notificationQueryPort.getNotificationList(userDetails.getMemberId());
+
         return notifications != null ? notifications : Collections.emptyList();
     }
 }

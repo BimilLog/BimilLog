@@ -15,7 +15,7 @@ public interface MemberFriendUseCase {
      * <h3>카카오 친구 목록 조회</h3>
      * <p>현재 로그인한 사용자의 카카오 친구 목록을 조회합니다.</p>
      *
-     * @param userId 사용자 ID
+     * @param memberId 사용자 ID
      * @param tokenId 현재 요청 기기의 토큰 ID (UserDetails에서 추출)
      * @param offset 조회 시작 위치 (기본값: 0)
      * @param limit  조회할 친구 수 (기본값: 10, 최대: 100)
@@ -23,5 +23,5 @@ public interface MemberFriendUseCase {
      * @since 2.0.0
      * @author Jaeik
      */
-    KakaoFriendsResponseVO getKakaoFriendList(Long userId, Long tokenId, Integer offset, Integer limit);
+    KakaoFriendsResponseVO getKakaoFriendList(Long memberId, Long tokenId, Integer offset, Integer limit);
 }

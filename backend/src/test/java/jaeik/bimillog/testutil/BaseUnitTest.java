@@ -51,7 +51,7 @@ public abstract class BaseUnitTest {
      */
     protected Member getTestUser() {
         if (cachedTestMember == null) {
-            cachedTestMember = TestUsers.copyWithId(TestUsers.MEMBER_1, 1L);
+            cachedTestMember = TestMembers.copyWithId(TestMembers.MEMBER_1, 1L);
         }
         return cachedTestMember;
     }
@@ -62,7 +62,7 @@ public abstract class BaseUnitTest {
      */
     protected Member getAdminUser() {
         if (cachedAdminMember == null) {
-            cachedAdminMember = TestUsers.copyWithId(TestUsers.withRole(MemberRole.ADMIN), 999L);
+            cachedAdminMember = TestMembers.copyWithId(TestMembers.withRole(MemberRole.ADMIN), 999L);
         }
         return cachedAdminMember;
     }
@@ -73,7 +73,7 @@ public abstract class BaseUnitTest {
      */
     protected Member getOtherUser() {
         if (cachedOtherMember == null) {
-            cachedOtherMember = TestUsers.copyWithId(TestUsers.MEMBER_2, 2L);
+            cachedOtherMember = TestMembers.copyWithId(TestMembers.MEMBER_2, 2L);
         }
         return cachedOtherMember;
     }
@@ -84,7 +84,7 @@ public abstract class BaseUnitTest {
      */
     protected Member getThirdUser() {
         if (cachedThirdMember == null) {
-            cachedThirdMember = TestUsers.copyWithId(TestUsers.MEMBER_3, 3L);
+            cachedThirdMember = TestMembers.copyWithId(TestMembers.MEMBER_3, 3L);
         }
         return cachedThirdMember;
     }
@@ -95,7 +95,7 @@ public abstract class BaseUnitTest {
      */
     protected Setting getDefaultSetting() {
         if (cachedDefaultSetting == null) {
-            cachedDefaultSetting = TestUsers.createAllEnabledSetting();
+            cachedDefaultSetting = TestMembers.createAllEnabledSetting();
         }
         return cachedDefaultSetting;
     }
@@ -106,7 +106,7 @@ public abstract class BaseUnitTest {
      * @return ID가 설정된 테스트 사용자
      */
     protected Member createTestUserWithId(Long userId) {
-        return TestUsers.copyWithId(getTestUser(), userId);
+        return TestMembers.copyWithId(getTestUser(), userId);
     }
 
     /**
@@ -119,7 +119,7 @@ public abstract class BaseUnitTest {
     protected Setting createCustomSetting(boolean messageNotification,
                                          boolean commentNotification,
                                          boolean postFeaturedNotification) {
-        return TestUsers.createSetting(messageNotification, commentNotification, postFeaturedNotification);
+        return TestMembers.createSetting(messageNotification, commentNotification, postFeaturedNotification);
     }
 
     /**

@@ -1,8 +1,8 @@
 package jaeik.bimillog.adapter.out.api.social.kakao;
 
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
-import jaeik.bimillog.domain.member.exception.UserCustomException;
-import jaeik.bimillog.domain.member.exception.UserErrorCode;
+import jaeik.bimillog.domain.member.exception.MemberCustomException;
+import jaeik.bimillog.domain.member.exception.MemberErrorCode;
 import jaeik.bimillog.infrastructure.adapter.out.api.dto.KakaoFriendsDTO;
 import jaeik.bimillog.infrastructure.adapter.out.api.social.kakao.KakaoApiClient;
 import jaeik.bimillog.infrastructure.adapter.out.api.social.kakao.KakaoSocialAdapter;
@@ -85,7 +85,7 @@ class KakaoSocialAdapterTest extends BaseUnitTest {
     }
 
     @Test
-    @DisplayName("getFriendList 실패 - API 호출 실패 시 UserCustomException 발생")
+    @DisplayName("getFriendList 실패 - API 호출 실패 시 MemberCustomException 발생")
     void shouldThrowUserCustomException_WhenApiCallFails() {
         // Given
         given(kakaoApiClient.getFriends(anyString(), anyInt(), anyInt()))
@@ -94,10 +94,10 @@ class KakaoSocialAdapterTest extends BaseUnitTest {
         // When & Then
         assertThatThrownBy(() ->
             kakaoSocialAdapter.getFriendList(TEST_ACCESS_TOKEN, DEFAULT_OFFSET, DEFAULT_LIMIT))
-            .isInstanceOf(UserCustomException.class)
+            .isInstanceOf(MemberCustomException.class)
             .satisfies(exception -> {
-                UserCustomException userException = (UserCustomException) exception;
-                assertThat(userException.getUserErrorCode()).isEqualTo(UserErrorCode.KAKAO_FRIEND_API_ERROR);
+                MemberCustomException userException = (MemberCustomException) exception;
+                assertThat(userException.getMemberErrorCode()).isEqualTo(MemberErrorCode.KAKAO_FRIEND_API_ERROR);
             });
 
         verify(kakaoApiClient).getFriends(

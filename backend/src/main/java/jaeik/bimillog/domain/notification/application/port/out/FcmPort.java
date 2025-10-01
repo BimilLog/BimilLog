@@ -20,12 +20,12 @@ public interface FcmPort {
      * <p>로그아웃시 특정 토큰만 삭제하거나 회원탈퇴시 모든 토큰을 삭제합니다.</p>
      * <p>fcmTokenId가 null인 경우 모든 토큰 삭제, 값이 있는 경우 특정 토큰만 삭제합니다.</p>
      *
-     * @param userId 사용자 ID
+     * @param memberId 사용자 ID
      * @param fcmTokenId 삭제할 토큰 ID (null인 경우 모든 토큰 삭제)
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteFcmTokens(Long userId, Long fcmTokenId);
+    void deleteFcmTokens(Long memberId, Long fcmTokenId);
 
     /**
      * <h3>FCM 토큰 저장</h3>

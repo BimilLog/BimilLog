@@ -71,13 +71,13 @@ public interface CommentQueryUseCase {
      * <p>최신 작성 댓글부터 과거 순서로 정렬하여 반환합니다.</p>
      * <p>UserToCommentAdapter에서 사용자 활동 조회 시 호출합니다.</p>
      *
-     * @param userId   사용자 ID
+     * @param memberId   사용자 ID
      * @param pageable 페이지 정보
      * @return Page<SimpleCommentInfo> 작성한 댓글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<SimpleCommentInfo> getUserComments(Long userId, Pageable pageable);
+    Page<SimpleCommentInfo> getMemberComments(Long memberId, Pageable pageable);
 
     /**
      * <h3>사용자 추천한 댓글 목록 조회</h3>
@@ -85,13 +85,13 @@ public interface CommentQueryUseCase {
      * <p>최신 추천 댓글부터 과거 순서로 정렬하여 반환합니다.</p>
      * <p>UserToCommentAdapter에서 사용자 추천 댓글 조회 시 호출합니다.</p>
      *
-     * @param userId   사용자 ID
+     * @param memberId   사용자 ID
      * @param pageable 페이지 정보
      * @return Page<SimpleCommentInfo> 추천한 댓글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<SimpleCommentInfo> getUserLikedComments(Long userId, Pageable pageable);
+    Page<SimpleCommentInfo> getMemberLikedComments(Long memberId, Pageable pageable);
 
     /**
      * <h3>게시글 ID 목록에 대한 댓글 수 조회</h3>

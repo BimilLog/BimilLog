@@ -12,7 +12,7 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public class UserErrorResponse {
+public class MemberErrorResponse {
     private int status;
     private String target;
     private String message;

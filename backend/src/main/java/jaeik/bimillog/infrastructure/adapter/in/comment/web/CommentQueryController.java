@@ -101,8 +101,8 @@ public class CommentQueryController {
         CommentDTO commentDTO = new CommentDTO(
                 commentInfo.getId(),
                 commentInfo.getPostId(),
-                commentInfo.getUserId(),
-                commentInfo.getUserName(),
+                commentInfo.getMemberId(),
+                commentInfo.getMemberName(),
                 commentInfo.getContent(),
                 commentInfo.isDeleted(),
                 commentInfo.getCreatedAt(),

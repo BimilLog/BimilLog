@@ -16,11 +16,11 @@ public interface MemberCommandPort {
      * <h3>사용자 계정과 설정 삭제</h3>
      * <p>사용자 계정과 연관된 설정을 데이터베이스에서 완전히 삭제합니다.</p>
      * <p>Native Query를 사용하여 User와 Setting을 동시에 삭제합니다.</p>
-     * <p>{@link MemberCommandService#removeUserAccount}에서 회원 탈퇴 처리 시 호출됩니다.</p>
+     * <p>{@link MemberCommandService#removeMemberAccount}에서 회원 탈퇴 처리 시 호출됩니다.</p>
      *
-     * @param userId 삭제할 사용자 ID
+     * @param memberId 삭제할 사용자 ID
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteUserAndSetting(Long userId);
+    void deleteMemberAndSetting(Long memberId);
 }

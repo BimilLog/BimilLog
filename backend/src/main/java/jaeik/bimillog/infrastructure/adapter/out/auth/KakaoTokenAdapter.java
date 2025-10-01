@@ -41,7 +41,7 @@ public class KakaoTokenAdapter implements KakaoTokenPort {
      * <p>로그인 시 갱신된 카카오 토큰 정보를 업데이트합니다.</p>
      * <p>Member ID로 KakaoToken을 조회하여 액세스 토큰과 리프레시 토큰을 갱신합니다.</p>
      *
-     * @param userId 사용자 ID
+     * @param memberId 사용자 ID
      * @param kakaoAccessToken 새로운 카카오 액세스 토큰
      * @param kakaoRefreshToken 새로운 카카오 리프레시 토큰
      * @author Jaeik
@@ -49,9 +49,9 @@ public class KakaoTokenAdapter implements KakaoTokenPort {
      */
     @Override
     @Transactional
-    public void updateTokens(Long userId, String kakaoAccessToken, String kakaoRefreshToken) {
-        KakaoToken kakaoToken = kakaoTokenRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("카카오 토큰을 조회할 수 없습니다. 아이디: " + userId));
+    public void updateTokens(Long memberId, String kakaoAccessToken, String kakaoRefreshToken) {
+        KakaoToken kakaoToken = kakaoTokenRepository.findByMemberId(memberId)
+                .orElseThrow(() -> new RuntimeException("카카오 토큰을 조회할 수 없습니다. 아이디: " + memberId));
         kakaoToken.updateTokens(kakaoAccessToken, kakaoRefreshToken);
     }
 
@@ -59,13 +59,13 @@ public class KakaoTokenAdapter implements KakaoTokenPort {
      * <h3>카카오 토큰 삭제</h3>
      * <p>회원 탈퇴 시 카카오 토큰을 삭제합니다.</p>
      *
-     * @param userId 사용자 ID
+     * @param memberId 사용자 ID
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     @Transactional
-    public void deleteByUserId(Long userId) {
-        kakaoTokenRepository.deleteByUserId(userId);
+    public void deleteByMemberId(Long memberId) {
+        kakaoTokenRepository.deleteByMemberId(memberId);
     }
 }

@@ -2,19 +2,19 @@ import { apiClient } from '../client'
 import { Setting } from '@/types/domains/user'
 
 export const userCommand = {
-  updateUserName: (userName: string) => 
-    apiClient.post("/api/user/username", { userName }),
-  
-  updateSettings: (settings: Setting) => 
-    apiClient.post("/api/user/setting", settings),
-  
+  updateUserName: (userName: string) =>
+    apiClient.post("/api/member/username", { userName }),
+
+  updateSettings: (settings: Setting) =>
+    apiClient.post("/api/member/setting", settings),
+
   submitReport: (report: {
     reportType: "POST" | "COMMENT" | "ERROR" | "IMPROVEMENT"
     targetId?: number
     content: string
-  }) => apiClient.post("/api/user/report", report),
-  
+  }) => apiClient.post("/api/member/report", report),
+
 
   withdraw: () =>
-    apiClient.delete("/api/user/withdraw"),
+    apiClient.delete("/api/member/withdraw"),
 }

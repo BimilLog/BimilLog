@@ -29,8 +29,8 @@ public class CommentInfo {
     private Long id;
     private Long parentId;
     private Long postId;
-    private Long userId;
-    private String userName;
+    private Long memberId;
+    private String memberName;
     private String content;
     private boolean popular;
     private boolean deleted;
@@ -55,8 +55,8 @@ public class CommentInfo {
                 .id(comment.getId())
                 .parentId(parentId)
                 .postId(comment.getPost().getId())
-                .userId(comment.getMember() != null ? comment.getMember().getId() : null)
-                .userName(comment.getMember() != null ? comment.getMember().getUserName() : "익명")
+                .memberId(comment.getMember() != null ? comment.getMember().getId() : null)
+                .memberName(comment.getMember() != null ? comment.getMember().getMemberName() : "익명")
                 .content(comment.getContent())
                 .popular(false)
                 .deleted(comment.isDeleted())
@@ -102,8 +102,8 @@ public class CommentInfo {
      * @param id 댓글 ID
      * @param parentId 부모 댓글 ID
      * @param postId 게시글 ID
-     * @param userId 사용자 ID
-     * @param userName 사용자명
+     * @param memberId 사용자 ID
+     * @param memberName 사용자명
      * @param content 댓글 내용
      * @param popular 인기 댓글 여부
      * @param deleted 삭제 여부
@@ -113,13 +113,13 @@ public class CommentInfo {
      * @author Jaeik
      * @since 2.0.0
      */
-    public CommentInfo(Long id, Long parentId, Long postId, Long userId, String userName, String content,
+    public CommentInfo(Long id, Long parentId, Long postId, Long memberId, String memberName, String content,
                       boolean popular, boolean deleted, Integer likeCount, Instant createdAt, boolean userLike) {
         this.id = id;
         this.parentId = parentId;
         this.postId = postId;
-        this.userId = userId;
-        this.userName = userName;
+        this.memberId = memberId;
+        this.memberName = memberName;
         this.content = content;
         this.popular = popular;
         this.deleted = deleted;
@@ -135,8 +135,8 @@ public class CommentInfo {
      *
      * @param id 댓글 ID
      * @param postId 게시글 ID
-     * @param userId 사용자 ID
-     * @param userName 사용자명
+     * @param memberId 사용자 ID
+     * @param memberName 사용자명
      * @param content 댓글 내용
      * @param deleted 삭제 여부
      * @param createdAt 생성 시간
@@ -146,13 +146,13 @@ public class CommentInfo {
      * @author Jaeik
      * @since 2.0.0
      */
-    public CommentInfo(Long id, Long postId, Long userId, String userName, String content,
+    public CommentInfo(Long id, Long postId, Long memberId, String memberName, String content,
                       Boolean deleted, Instant createdAt, Long parentId, Integer likeCount, Boolean userLike) {
         this.id = id;
         this.parentId = parentId;
         this.postId = postId;
-        this.userId = userId;
-        this.userName = userName;
+        this.memberId = memberId;
+        this.memberName = memberName;
         this.content = content;
         this.popular = false; // 기본값
         this.deleted = deleted != null ? deleted : false;

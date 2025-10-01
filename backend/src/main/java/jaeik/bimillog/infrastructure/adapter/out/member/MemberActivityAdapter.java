@@ -28,60 +28,60 @@ public class MemberActivityAdapter implements MemberActivityPort {
      * <h3>사용자 작성 게시글 목록 조회</h3>
      * <p>특정 사용자가 작성한 게시글 목록을 게시글 도메인을 통해 조회합니다.</p>
      *
-     * @param userId   사용자 ID
+     * @param memberId   사용자 ID
      * @param pageable 페이지 정보
      * @return Page<PostSearchResult> 작성한 게시글 목록 페이지
      * @author jaeik
      * @since 2.0.0
      */
     @Override
-    public Page<PostSearchResult> findPostsByUserId(Long userId, Pageable pageable) {
-        return postQueryUseCase.getUserPosts(userId, pageable);
+    public Page<PostSearchResult> findPostsByMemberId(Long memberId, Pageable pageable) {
+        return postQueryUseCase.getMemberPosts(memberId, pageable);
     }
 
     /**
      * <h3>사용자 추천한 게시글 목록 조회</h3>
      * <p>특정 사용자가 추천한 게시글 목록을 게시글 도메인을 통해 조회합니다.</p>
      *
-     * @param userId   사용자 ID
+     * @param memberId   사용자 ID
      * @param pageable 페이지 정보
      * @return Page<PostSearchResult> 추천한 게시글 목록 페이지
      * @author jaeik
      * @since 2.0.0
      */
     @Override
-    public Page<PostSearchResult> findLikedPostsByUserId(Long userId, Pageable pageable) {
-        return postQueryUseCase.getUserLikedPosts(userId, pageable);
+    public Page<PostSearchResult> findLikedPostsByMemberId(Long memberId, Pageable pageable) {
+        return postQueryUseCase.getMemberLikedPosts(memberId, pageable);
     }
 
     /**
      * <h3>사용자 작성 댓글 목록 조회</h3>
      * <p>특정 사용자가 작성한 댓글 목록을 Comment 도메인을 통해 조회합니다.</p>
      *
-     * @param userId   사용자 ID
+     * @param memberId   사용자 ID
      * @param pageable 페이지 정보
      * @return Page<SimpleCommentInfo> 작성한 댓글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public Page<SimpleCommentInfo> findCommentsByUserId(Long userId, Pageable pageable) {
-        return commentQueryUseCase.getUserComments(userId, pageable);
+    public Page<SimpleCommentInfo> findCommentsByMemberId(Long memberId, Pageable pageable) {
+        return commentQueryUseCase.getMemberComments(memberId, pageable);
     }
 
     /**
      * <h3>사용자 추천한 댓글 목록 조회</h3>
      * <p>특정 사용자가 추천한 댓글 목록을 Comment 도메인을 통해 조회합니다.</p>
      *
-     * @param userId   사용자 ID
+     * @param memberId   사용자 ID
      * @param pageable 페이지 정보
      * @return Page<SimpleCommentInfo> 추천한 댓글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public Page<SimpleCommentInfo> findLikedCommentsByUserId(Long userId, Pageable pageable) {
-        return commentQueryUseCase.getUserLikedComments(userId, pageable);
+    public Page<SimpleCommentInfo> findLikedCommentsByMemberId(Long memberId, Pageable pageable) {
+        return commentQueryUseCase.getMemberLikedComments(memberId, pageable);
     }
 
 }

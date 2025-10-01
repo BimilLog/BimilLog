@@ -23,13 +23,13 @@ public interface PaperCommandUseCase {
      * <p>{@link PaperCommandController}에서 메시지 삭제 요청 시 호출되거나,</p>
      * <p>{@link MemberWithdrawListener}에서 회원탈퇴 시 호출됩니다.</p>
      *
-     * @param userId 현재 로그인한 사용자 ID
+     * @param memberId 현재 로그인한 사용자 ID
      * @param messageId 삭제할 메시지 ID (null인 경우 모든 메시지 삭제)
      * @throws PaperCustomException 특정 메시지 삭제 시 권한이 없는 경우 (MESSAGE_DELETE_FORBIDDEN)
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteMessageInMyPaper(Long userId, Long messageId);
+    void deleteMessageInMyPaper(Long memberId, Long messageId);
 
     /**
      * <h3>메시지 작성</h3>
@@ -37,7 +37,7 @@ public interface PaperCommandUseCase {
      * <p>메시지 작성 완료 후 알림 이벤트를 발행합니다.</p>
      * <p>{@link PaperCommandController}에서 메시지 작성 요청 시 호출됩니다.</p>
      *
-     * @param userName 롤링페이퍼 소유자의 사용자명
+     * @param memberName 롤링페이퍼 소유자의 사용자명
      * @param decoType 데코레이션 타입
      * @param anonymity 익명 이름
      * @param content 메시지 내용
@@ -47,7 +47,7 @@ public interface PaperCommandUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    void writeMessage(String userName, DecoType decoType, String anonymity,
+    void writeMessage(String memberName, DecoType decoType, String anonymity,
                      String content, int x, int y);
 
 }

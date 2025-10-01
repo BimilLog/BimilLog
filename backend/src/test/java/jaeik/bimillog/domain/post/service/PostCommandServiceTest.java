@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalUserQueryPort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalMemberQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.PostLikeCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.PostToCommentPort;
@@ -44,7 +44,7 @@ class PostCommandServiceTest extends BaseUnitTest {
     private GlobalPostQueryPort globalPostQueryPort;
 
     @Mock
-    private GlobalUserQueryPort globalUserQueryPort;
+    private GlobalMemberQueryPort globalUserQueryPort;
 
     @Mock
     private RedisPostCommandPort redisPostCommandPort;

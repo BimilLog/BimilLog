@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.post.entity.PostLike;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostLikeQueryAdapter;
 import jaeik.bimillog.testutil.H2TestConfiguration;
-import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestMembers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -52,9 +52,9 @@ class PostLikeQueryAdapterIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        author = testEntityManager.persistAndFlush(TestUsers.copyWithId(TestUsers.MEMBER_1, null));
-        likerOne = testEntityManager.persistAndFlush(TestUsers.copyWithId(TestUsers.MEMBER_2, null));
-        likerTwo = testEntityManager.persistAndFlush(TestUsers.copyWithId(TestUsers.MEMBER_3, null));
+        author = testEntityManager.persistAndFlush(TestMembers.copyWithId(TestMembers.MEMBER_1, null));
+        likerOne = testEntityManager.persistAndFlush(TestMembers.copyWithId(TestMembers.MEMBER_2, null));
+        likerTwo = testEntityManager.persistAndFlush(TestMembers.copyWithId(TestMembers.MEMBER_3, null));
     }
 
     @Test

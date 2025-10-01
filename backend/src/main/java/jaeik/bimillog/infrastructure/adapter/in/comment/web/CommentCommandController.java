@@ -53,9 +53,9 @@ public class CommentCommandController {
     public ResponseEntity<String> writeComment(
             @Valid @RequestBody CommentReqDTO commentReqDto,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        commentReqDto.setUserId(userDetails != null ? userDetails.getUserId() : null);
+        commentReqDto.setMemberId(userDetails != null ? userDetails.getMemberId() : null);
         commentCommandUseCase.writeComment(
-                commentReqDto.getUserId(),
+                commentReqDto.getMemberId(),
                 commentReqDto.getPostId(),
                 commentReqDto.getParentId(),
                 commentReqDto.getContent(),
@@ -81,10 +81,10 @@ public class CommentCommandController {
     public ResponseEntity<String> updateComment(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody @Valid CommentReqDTO commentReqDto) {
-        commentReqDto.setUserId(userDetails != null ? userDetails.getUserId() : null);
+        commentReqDto.setMemberId(userDetails != null ? userDetails.getMemberId() : null);
         commentCommandUseCase.updateComment(
                 commentReqDto.getId(),
-                commentReqDto.getUserId(),
+                commentReqDto.getMemberId(),
                 commentReqDto.getContent(),
                 commentReqDto.getPassword()
         );
@@ -108,10 +108,10 @@ public class CommentCommandController {
     public ResponseEntity<String> deleteComment(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody @Valid CommentReqDTO commentReqDto) {
-        commentReqDto.setUserId(userDetails != null ? userDetails.getUserId() : null);
+        commentReqDto.setMemberId(userDetails != null ? userDetails.getMemberId() : null);
         commentCommandUseCase.deleteComment(
                 commentReqDto.getId(),
-                commentReqDto.getUserId(),
+                commentReqDto.getMemberId(),
                 commentReqDto.getPassword()
         );
         return ResponseEntity.ok("댓글 삭제 완료");
@@ -134,8 +134,8 @@ public class CommentCommandController {
     public ResponseEntity<String> likeComment(
             @RequestBody @Valid CommentLikeReqDTO commentLikeReqDto,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails != null ? userDetails.getUserId() : null;
-        commentCommandUseCase.likeComment(userId, commentLikeReqDto.getCommentId());
+        Long memberId = userDetails != null ? userDetails.getMemberId() : null;
+        commentCommandUseCase.likeComment(memberId, commentLikeReqDto.getCommentId());
         return ResponseEntity.ok("추천 처리 완료");
     }
 

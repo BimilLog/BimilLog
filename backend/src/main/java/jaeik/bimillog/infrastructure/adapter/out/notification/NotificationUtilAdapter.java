@@ -7,8 +7,8 @@ import jaeik.bimillog.domain.notification.application.port.out.NotificationUtilP
 import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.QFcmToken;
-import jaeik.bimillog.domain.user.entity.QSetting;
-import jaeik.bimillog.domain.user.entity.user.QUser;
+import jaeik.bimillog.domain.member.entity.QSetting;
+import jaeik.bimillog.domain.member.entity.member.QMember;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -32,23 +32,23 @@ public class NotificationUtilAdapter implements NotificationUtilPort {
      * <h3>알림 수신 자격 확인</h3>
      * <p>주어진 사용자 ID와 알림 유형에 따라 사용자가 알림을 수신할 자격이 있는지 확인합니다.</p>
      *
-     * @param userId 확인할 사용자의 ID
+     * @param memberId 확인할 사용자의 ID
      * @param type 확인할 알림 유형
      * @return 알림 수신이 가능하면 true, 그렇지 않으면 false
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public boolean SseEligibleForNotification(Long userId, NotificationType type) {
-        QUser qUser = QUser.user;
+    public boolean SseEligibleForNotification(Long memberId, NotificationType type) {
+        QMember qMember = QMember.member;
         QSetting qSetting = QSetting.setting;
         
         return queryFactory
-            .select(qUser)
-            .from(qUser)
-            .join(qUser.setting, qSetting)
+            .select(qMember)
+            .from(qMember)
+            .join(qMember.setting, qSetting)
             .where(
-                qUser.id.eq(userId),
+                qMember.id.eq(memberId),
                 notificationTypeCondition(type, qSetting)
             )
             .fetchFirst() != null;
@@ -58,24 +58,24 @@ public class NotificationUtilAdapter implements NotificationUtilPort {
      * <h3>알림 수신 자격이 있는 FCM 토큰 조회</h3>
      * <p>사용자가 특정 타입의 알림을 받을 수 있는 경우 해당 사용자의 모든 FCM 토큰을 조회합니다.</p>
      *
-     * @param userId 사용자 ID
+     * @param memberId 사용자 ID
      * @param type   알림 타입
      * @return 알림 수신 자격이 있는 경우 FCM 토큰 목록, 없는 경우 빈 목록
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public List<FcmToken> FcmEligibleFcmTokens(Long userId, NotificationType type) {
-        QUser qUser = QUser.user;
+    public List<FcmToken> FcmEligibleFcmTokens(Long memberId, NotificationType type) {
+        QMember qMember = QMember.member;
         QSetting qSetting = QSetting.setting;
         QFcmToken qFcmToken = QFcmToken.fcmToken;
         
         return queryFactory
             .selectFrom(qFcmToken)
-            .join(qFcmToken.user, qUser)
-            .join(qUser.setting, qSetting)
+            .join(qFcmToken.member, qMember)
+            .join(qMember.setting, qSetting)
             .where(
-                qUser.id.eq(userId),
+                qMember.id.eq(memberId),
                 notificationTypeCondition(type, qSetting)
             )
             .fetch();

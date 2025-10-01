@@ -48,7 +48,7 @@ public class SseAdapter implements SsePort {
 
     /**
      * SSE Emitter 저장소
-     * <p>키: EmitterId (userId_tokenId_timestamp), 값: SseEmitter 객체</p>
+     * <p>키: EmitterId (memberId_tokenId_timestamp), 값: SseEmitter 객체</p>
      */
     private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
 
@@ -66,21 +66,21 @@ public class SseAdapter implements SsePort {
      *   <li>onTimeout: 연결 타임아웃 시 {@link #deleteById} 호출</li>
      * </ul>
      *
-     * @param userId 구독할 사용자의 ID
+     * @param memberId 구독할 사용자의 ID
      * @param tokenId FCM 토큰 ID (멀티 디바이스 구분용)
      * @return 생성된 SseEmitter 객체 (무한 타임아웃)
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public SseEmitter subscribe(Long userId, Long tokenId) {
-        String emitterId = makeTimeIncludeId(userId, tokenId);
+    public SseEmitter subscribe(Long memberId, Long tokenId) {
+        String emitterId = makeTimeIncludeId(memberId, tokenId);
         SseEmitter emitter = save(emitterId, new SseEmitter(Long.MAX_VALUE));
 
         emitter.onCompletion(() -> deleteById(emitterId));
         emitter.onTimeout(() -> deleteById(emitterId));
 
-        SseMessage initMessage = SseMessage.of(userId, NotificationType.INITIATE,
+        SseMessage initMessage = SseMessage.of(memberId, NotificationType.INITIATE,
                 "이벤트 스트림이 생성되었습니다. [emitterId=%s]".formatted(emitterId), "");
         sendNotification(emitter, emitterId, initMessage);
 
@@ -108,14 +108,14 @@ public class SseAdapter implements SsePort {
     public void send(SseMessage sseMessage) {
         try {
             // 알림 설정 확인
-            if (!notificationUtilPort.SseEligibleForNotification(sseMessage.userId(), sseMessage.type())) {
+            if (!notificationUtilPort.SseEligibleForNotification(sseMessage.memberId(), sseMessage.type())) {
                 return; // 알림 수신이 비활성화된 경우 전송하지 않음
             }
             
-            Member member = memberQueryUseCase.findById(sseMessage.userId())
+            Member member = memberQueryUseCase.findById(sseMessage.memberId())
                     .orElseThrow(() -> new NotificationCustomException(NotificationErrorCode.INVALID_USER_CONTEXT));
             notificationCommandPort.save(member, sseMessage.type(), sseMessage.message(), sseMessage.url());
-            Map<String, SseEmitter> emitters = findAllEmitterByUserId(sseMessage.userId());
+            Map<String, SseEmitter> emitters = findAllEmitterByMemberId(sseMessage.memberId());
 
             emitters.forEach(
                     (emitterId, emitter) -> {
@@ -163,7 +163,7 @@ public class SseAdapter implements SsePort {
      *   <li>tokenId != null: 특정 기기의 연결만 제거 (단일 기기 로그아웃)</li>
      * </ul>
      *
-     * @param userId 사용자 ID
+     * @param memberId 사용자 ID
      * @param tokenId FCM 토큰 ID (null 허용, null이면 모든 연결 제거)
      * @see #deleteAllEmitterByUserId(Long)
      * @see #deleteEmitterByUserIdAndTokenId(Long, Long)
@@ -171,11 +171,11 @@ public class SseAdapter implements SsePort {
      * @since 2.0.0
      */
     @Override
-    public void deleteEmitters(Long userId, Long tokenId) {
+    public void deleteEmitters(Long memberId, Long tokenId) {
         if (tokenId != null) {
-            deleteEmitterByUserIdAndTokenId(userId, tokenId);
+            deleteEmitterByUserIdAndTokenId(memberId, tokenId);
         } else {
-            deleteAllEmitterByUserId(userId);
+            deleteAllEmitterByUserId(memberId);
         }
     }
 
@@ -183,14 +183,14 @@ public class SseAdapter implements SsePort {
      * <h3>시간 기반 고유 Emitter ID 생성</h3>
      * <p>동일한 사용자/기기에서도 시간으로 구분되는 고유 ID를 생성합니다.</p>
      *
-     * @param userId 사용자 ID
+     * @param memberId 사용자 ID
      * @param tokenId FCM 토큰 ID
      * @return 생성된 고유 Emitter ID (시간 기반으로 중복 불가)
      * @author Jaeik
      * @since 2.0.0
      */
-    private String makeTimeIncludeId(Long userId, Long tokenId) {
-        return userId + "_" + tokenId + "_" + System.currentTimeMillis();
+    private String makeTimeIncludeId(Long memberId, Long tokenId) {
+        return memberId + "_" + tokenId + "_" + System.currentTimeMillis();
     }
 
     /**
@@ -198,7 +198,7 @@ public class SseAdapter implements SsePort {
      * <p>새로운 SSE 연결을 내부 저장소에 등록합니다.</p>
      * <p>{@link #subscribe}에서 새 연결 생성 시 호출됨</p>
      *
-     * @param emitterId  고유 Emitter ID (userId_tokenId_timestamp)
+     * @param emitterId  고유 Emitter ID (memberId_tokenId_timestamp)
      * @param sseEmitter 저장할 SseEmitter 객체
      * @return 저장된 SseEmitter 객체 (체이닝용)
      * @author Jaeik
@@ -213,17 +213,17 @@ public class SseAdapter implements SsePort {
      * <h3>사용자의 모든 Emitter 조회 - 멀티 디바이스 지원</h3>
      * <p>특정 사용자의 모든 활성 SSE 연결을 조회합니다.</p>
      *
-     * <p> userId로 시작하는 모든 emitterId를 필터링합니다.</p>
+     * <p>memberId로 시작하는 모든 emitterId를 필터링합니다.</p>
      *
-     * @param userId 조회할 사용자 ID
+     * @param memberId 조회할 사용자 ID
      * @return 해당 사용자의 모든 Emitter Map (비어있을 수 있음)
      * @author Jaeik
      * @since 2.0.0
      */
-    private Map<String, SseEmitter> findAllEmitterByUserId(Long userId) {
-        String userIdPrefix = userId + "_";
+    private Map<String, SseEmitter> findAllEmitterByMemberId(Long memberId) {
+        String memberIdPrefix = memberId + "_";
         return emitters.entrySet().stream()
-                .filter(entry -> entry.getKey().startsWith(userIdPrefix))
+                .filter(entry -> entry.getKey().startsWith(memberIdPrefix))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
@@ -252,13 +252,13 @@ public class SseAdapter implements SsePort {
      * <p>removeIf를 사용하여 원자적으로 삭제를 수행합니다.</p>
      * <p>회원탈퇴 등 사용자의 모든 연결을 정리할 때 사용됩니다.</p>
      *
-     * @param userId 삭제할 사용자 ID
+     * @param memberId 삭제할 사용자 ID
      * @author Jaeik
      * @since 2.0.0
      */
-    private void deleteAllEmitterByUserId(Long userId) {
-        String userIdPrefix = userId + "_";
-        emitters.entrySet().removeIf(entry -> entry.getKey().startsWith(userIdPrefix));
+    private void deleteAllEmitterByUserId(Long memberId) {
+        String memberIdPrefix = memberId + "_";
+        emitters.entrySet().removeIf(entry -> entry.getKey().startsWith(memberIdPrefix));
     }
 
     /**
@@ -269,13 +269,13 @@ public class SseAdapter implements SsePort {
      * <p>멀티 디바이스 환경에서 하나의 기기만 로그아웃할 때 사용됩니다.</p>
      * <p>같은 기기의 여러 연결(재접속 등)을 모두 정리합니다.</p>
      *
-     * @param userId 사용자 ID
+     * @param memberId 사용자 ID
      * @param tokenId FCM 토큰 ID (기기 식별자)
      * @author Jaeik
      * @since 2.0.0
      */
-    private void deleteEmitterByUserIdAndTokenId(Long userId, Long tokenId) {
-        String userTokenPrefix = userId + "_" + tokenId + "_";
-        emitters.entrySet().removeIf(entry -> entry.getKey().startsWith(userTokenPrefix));
+    private void deleteEmitterByUserIdAndTokenId(Long memberId, Long tokenId) {
+        String memberTokenPrefix = memberId + "_" + tokenId + "_";
+        emitters.entrySet().removeIf(entry -> entry.getKey().startsWith(memberTokenPrefix));
     }
 }

@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.member.service;
 
-import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
 import jaeik.bimillog.domain.member.application.port.out.RedisMemberDataPort;
 import jaeik.bimillog.domain.member.application.port.out.SaveMemberPort;
@@ -52,13 +52,13 @@ class MemberSaveServiceTest extends BaseUnitTest {
     @InjectMocks
     private MemberSaveService userSaveService;
 
-    private SocialUserProfile testSocialProfile;
+    private SocialMemberProfile testSocialProfile;
     private String testFcmToken;
 
     @BeforeEach
     protected void setUpChild() {
         testFcmToken = "fcm-TemporaryToken-123";
-        testSocialProfile = new SocialUserProfile(
+        testSocialProfile = new SocialMemberProfile(
             "kakao123",
             "test@example.com",
             SocialProvider.KAKAO,
@@ -126,7 +126,7 @@ class MemberSaveServiceTest extends BaseUnitTest {
 
         // Redis에 임시 데이터 저장 검증
         ArgumentCaptor<String> uuidCaptor = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<SocialUserProfile> profileCaptor = ArgumentCaptor.forClass(SocialUserProfile.class);
+        ArgumentCaptor<SocialMemberProfile> profileCaptor = ArgumentCaptor.forClass(SocialMemberProfile.class);
 
         verify(redisMemberDataPort).saveTempData(
             uuidCaptor.capture(),
@@ -143,7 +143,7 @@ class MemberSaveServiceTest extends BaseUnitTest {
     @DisplayName("FCM 토큰이 null인 경우 처리")
     void shouldProcessUserData_WhenFcmTokenIsNull() {
         // Given
-        SocialUserProfile profileWithoutFcm = new SocialUserProfile(
+        SocialMemberProfile profileWithoutFcm = new SocialMemberProfile(
             "kakao123",
             "test@example.com",
             SocialProvider.KAKAO,
@@ -183,7 +183,7 @@ class MemberSaveServiceTest extends BaseUnitTest {
     @DisplayName("신규 사용자 - FCM 토큰 없이 처리")
     void shouldHandleNewUser_WithoutFcmToken() {
         // Given
-        SocialUserProfile profileWithoutFcm = new SocialUserProfile(
+        SocialMemberProfile profileWithoutFcm = new SocialMemberProfile(
             "kakao123",
             "test@example.com",
             SocialProvider.KAKAO,
@@ -220,7 +220,7 @@ class MemberSaveServiceTest extends BaseUnitTest {
     @DisplayName("다른 소셜 프로바이더로 기존 사용자 조회")
     void shouldFindExistingUser_WithDifferentProvider() {
         // Given
-        SocialUserProfile googleProfile = new SocialUserProfile(
+        SocialMemberProfile googleProfile = new SocialMemberProfile(
             "google456",
             "google@example.com",
             SocialProvider.GOOGLE,

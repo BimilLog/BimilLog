@@ -26,7 +26,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @Table(name = "message", uniqueConstraints =
-        {@UniqueConstraint(name = "unique_user_x_y", columnNames = {"user_id", "x", "y"})})
+        {@UniqueConstraint(name = "unique_member_x_y", columnNames = {"member_id", "x", "y"})})
 public class Message extends BaseEntity {
 
     @Id
@@ -36,7 +36,7 @@ public class Message extends BaseEntity {
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
     @NotNull
@@ -95,14 +95,14 @@ public class Message extends BaseEntity {
 
     /**
      * <h3>메시지 작성자 ID 조회</h3>
-     * <p>메시지 작성자의 사용자 ID를 반환합니다.</p>
+     * <p>메시지 작성자의 회원 ID를 반환합니다.</p>
      * <p>MessageDetail과 VisitMessageDetail에서 메시지 변환 시 호출되는 메서드</p>
      *
-     * @return 작성자 사용자 ID
+     * @return 작성자 회원 ID
      * @author Jaeik
      * @since 2.0.0
      */
-    public Long getUserId() {
+    public Long getMemberId() {
         return this.member != null ? this.member.getId() : null;
     }
 

@@ -9,7 +9,7 @@ import jaeik.bimillog.infrastructure.adapter.out.notification.NotificationComman
 import jaeik.bimillog.infrastructure.adapter.out.notification.NotificationRepository;
 import jaeik.bimillog.testutil.H2TestConfiguration;
 import jaeik.bimillog.testutil.NotificationTestDataBuilder;
-import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestMembers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -65,7 +65,7 @@ class NotificationCommandAdapterIntegrationTest {
     @BeforeEach
     void setUp() {
         // Given: 테스트용 사용저 설정 및 저장
-        testMember = TestUsers.copyWithId(TestUsers.MEMBER_1, null);
+        testMember = TestMembers.copyWithId(TestMembers.MEMBER_1, null);
         testMember = testEntityManager.persistAndFlush(testMember);
         testUserId = testMember.getId();
     }
@@ -86,7 +86,7 @@ class NotificationCommandAdapterIntegrationTest {
         assertThat(savedNotifications).hasSize(1);
 
         Notification savedNotification = savedNotifications.getFirst();
-        assertThat(savedNotification.getUsers()).isEqualTo(testMember);
+        assertThat(savedNotification.getMember()).isEqualTo(testMember);
         assertThat(savedNotification.getNotificationType()).isEqualTo(type);
         assertThat(savedNotification.getContent()).isEqualTo(content);
         assertThat(savedNotification.getUrl()).isEqualTo(url);
@@ -243,7 +243,7 @@ class NotificationCommandAdapterIntegrationTest {
     @Transactional
     void shouldNotUpdateOtherUsersNotifications_WhenDifferentUserProvided() {
         // Given: 다른 사용자와 그의 알림 생성
-        Member otherMember = TestUsers.copyWithId(TestUsers.MEMBER_2, null);
+        Member otherMember = TestMembers.copyWithId(TestMembers.MEMBER_2, null);
         otherMember = testEntityManager.persistAndFlush(otherMember);
 
         // 현재 사용자와 다른 사용자의 알림 각각 생성
@@ -271,7 +271,7 @@ class NotificationCommandAdapterIntegrationTest {
         List<Notification> remainingNotifications = notificationRepository.findAll();
         assertThat(remainingNotifications).hasSize(1);
         assertThat(remainingNotifications.getFirst().getId()).isEqualTo(otherNotification.getId());
-        assertThat(remainingNotifications.getFirst().getUsers().getId()).isEqualTo(otherMember.getId());
+        assertThat(remainingNotifications.getFirst().getMember().getId()).isEqualTo(otherMember.getId());
     }
 
 

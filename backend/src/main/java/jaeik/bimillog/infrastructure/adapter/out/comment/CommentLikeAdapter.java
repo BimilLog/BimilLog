@@ -47,14 +47,14 @@ public class CommentLikeAdapter implements CommentLikePort {
      * <p>{@link CommentCommandService}에서 댓글 추천 취소 처리 시 호출됩니다.</p>
      *
      * @param commentId 추천을 삭제할 댓글 ID
-     * @param userId    추천을 삭제할 사용자 ID
+     * @param memberId    추천을 삭제할 사용자 ID
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     @Transactional
-    public void deleteLikeByIds(Long commentId, Long userId) {
-        commentLikeRepository.deleteByCommentIdAndUserId(commentId, userId);
+    public void deleteLikeByIds(Long commentId, Long memberId) {
+        commentLikeRepository.deleteByCommentIdAndUserId(commentId, memberId);
     }
 
     /**
@@ -64,13 +64,13 @@ public class CommentLikeAdapter implements CommentLikePort {
      * <p>{@link CommentCommandService}에서 댓글 추천 상태 확인 시 호출됩니다.</p>
      *
      * @param commentId 댓글 ID
-     * @param userId    사용자 ID
+     * @param memberId    사용자 ID
      * @return boolean 추천을 눌렀으면 true, 아니면 false
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public boolean isLikedByUser(Long commentId, Long userId) {
-        return commentLikeRepository.existsByCommentIdAndUserId(commentId, userId);
+    public boolean isLikedByUser(Long commentId, Long memberId) {
+        return commentLikeRepository.existsByCommentIdAndUserId(commentId, memberId);
     }
 }

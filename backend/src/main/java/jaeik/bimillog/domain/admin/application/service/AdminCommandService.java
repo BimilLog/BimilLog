@@ -12,7 +12,7 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalCommentQueryPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
 import jaeik.bimillog.domain.member.entity.member.Member;
-import jaeik.bimillog.domain.member.event.UserWithdrawnEvent;
+import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.infrastructure.adapter.in.admin.web.AdminCommandController;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -48,7 +48,7 @@ public class AdminCommandService implements AdminCommandUseCase {
      * <p>익명/로그인 사용자 구분 처리, POST/COMMENT 대상 유효성 검증</p>
      * <p>{@link AdminCommandController}에서 신고 접수 시 호출됩니다.</p>
      *
-     * @param userId 신고자 사용자 ID (null이면 익명 신고로 처리)
+     * @param memberId 신고자 사용자 ID (null이면 익명 신고로 처리)
      * @param reportType 신고 유형 (POST, COMMENT, ERROR, IMPROVEMENT)
      * @param targetId 신고 대상 ID (POST/COMMENT 신고 시 필수, ERROR/IMPROVEMENT 시 null 허용)
      * @param content 신고 내용 및 상세 설명
@@ -58,8 +58,8 @@ public class AdminCommandService implements AdminCommandUseCase {
      */
     @Override
     @Transactional
-    public void createReport(Long userId, ReportType reportType, Long targetId, String content) {
-        Member reporter = Optional.ofNullable(userId)
+    public void createReport(Long memberId, ReportType reportType, Long targetId, String content) {
+        Member reporter = Optional.ofNullable(memberId)
                 .flatMap(memberQueryPort::findById)
                 .orElse(null);
 
@@ -105,7 +105,7 @@ public class AdminCommandService implements AdminCommandUseCase {
         Member member = resolveUser(reportType, targetId);
         blacklistUseCase.addToBlacklist(member.getId(), member.getSocialId(), member.getProvider());
         blacklistUseCase.blacklistAllUserTokens(member.getId());
-        eventPublisher.publishEvent(new UserWithdrawnEvent(member.getId(), member.getSocialId(), member.getProvider()));
+        eventPublisher.publishEvent(new MemberWithdrawnEvent(member.getId(), member.getSocialId(), member.getProvider()));
     }
 
     /**
@@ -114,14 +114,14 @@ public class AdminCommandService implements AdminCommandUseCase {
      * <p>익명 신고는 영향받지 않으며, 로그인 사용자가 작성한 신고만 삭제됩니다.</p>
      * <p>UserWithdrawListener에서 회원 탈퇴 처리 시 호출됩니다.</p>
      *
-     * @param userId 신고 내역을 삭제할 사용자 ID
+     * @param memberId 신고 내역을 삭제할 사용자 ID
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     @Transactional
-    public void deleteAllReportsByUserId(Long userId) {
-        adminCommandPort.deleteAllReportsByUserId(userId);
+    public void deleteAllReportsByUserId(Long memberId) {
+        adminCommandPort.deleteAllReportsByUserId(memberId);
     }
 
     /**

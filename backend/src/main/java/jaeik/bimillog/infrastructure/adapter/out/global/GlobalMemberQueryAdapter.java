@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.out.global;
 
-import jaeik.bimillog.domain.global.application.port.out.GlobalUserQueryPort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalMemberQueryPort;
 import jaeik.bimillog.domain.member.application.port.in.MemberQueryUseCase;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ import java.util.Optional;
  */
 @Component
 @RequiredArgsConstructor
-public class GlobalUserQueryAdapter implements GlobalUserQueryPort {
+public class GlobalMemberQueryAdapter implements GlobalMemberQueryPort {
 
     private final MemberQueryUseCase memberQueryUseCase;
 
@@ -28,14 +28,14 @@ public class GlobalUserQueryAdapter implements GlobalUserQueryPort {
      * <p>특정 ID에 해당하는 사용자 엔티티를 조회합니다.</p>
      * <p>Member 도메인의 UserQueryUseCase를 통해 사용자 정보를 조회합니다.</p>
      *
-     * @param userId 조회할 사용자 ID
+     * @param memberId 조회할 사용자 ID
      * @return Optional&lt;Member&gt; 조회된 사용자 객체 (존재하지 않으면 Optional.empty())
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public Optional<Member> findById(Long userId) {
-        return memberQueryUseCase.findById(userId);
+    public Optional<Member> findById(Long memberId) {
+        return memberQueryUseCase.findById(memberId);
     }
 
     /**
@@ -43,14 +43,14 @@ public class GlobalUserQueryAdapter implements GlobalUserQueryPort {
      * <p>특정 사용자명에 해당하는 사용자 엔티티를 조회합니다.</p>
      * <p>Member 도메인의 UserQueryUseCase를 통해 사용자 정보를 조회합니다.</p>
      *
-     * @param userName 조회할 사용자명
+     * @param memberName 조회할 사용자명
      * @return Optional&lt;Member&gt; 조회된 사용자 객체 (존재하지 않으면 Optional.empty())
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public Optional<Member> findByUserName(String userName) {
-        return memberQueryUseCase.findByUserName(userName);
+    public Optional<Member> findByMemberName(String memberName) {
+        return memberQueryUseCase.findByMemberName(memberName);
     }
 
     /**
@@ -58,14 +58,14 @@ public class GlobalUserQueryAdapter implements GlobalUserQueryPort {
      * <p>특정 사용자명을 가진 사용자가 시스템에 존재하는지 확인합니다.</p>
      * <p>Member 도메인의 UserQueryUseCase를 통해 존재 여부를 확인합니다.</p>
      *
-     * @param userName 확인할 사용자명
+     * @param memberName 확인할 사용자명
      * @return boolean 사용자명이 존재하면 true, 그렇지 않으면 false
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public boolean existsByUserName(String userName) {
-        return memberQueryUseCase.existsByUserName(userName);
+    public boolean existsByMemberName(String memberName) {
+        return memberQueryUseCase.existsByMemberName(memberName);
     }
 
     /**
@@ -73,13 +73,13 @@ public class GlobalUserQueryAdapter implements GlobalUserQueryPort {
      * <p>실제 데이터베이스 조회 없이 사용자 ID를 가진 Member 프록시 객체를 반환합니다.</p>
      * <p>Member 도메인의 UserQueryUseCase를 통해 프록시 객체를 생성합니다.</p>
      *
-     * @param userId 참조할 사용자 ID
+     * @param memberId 참조할 사용자 ID
      * @return Member 프록시 객체 (실제 데이터는 지연 로딩)
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public Member getReferenceById(Long userId) {
-        return memberQueryUseCase.getReferenceById(userId);
+    public Member getReferenceById(Long memberId) {
+        return memberQueryUseCase.getReferenceById(memberId);
     }
 }

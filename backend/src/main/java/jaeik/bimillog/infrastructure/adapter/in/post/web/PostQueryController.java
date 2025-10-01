@@ -83,8 +83,8 @@ public class PostQueryController {
                                                @AuthenticationPrincipal CustomUserDetails userDetails,
                                                HttpServletRequest request,
                                                HttpServletResponse response) {
-        Long userId = (userDetails != null) ? userDetails.getUserId() : null;
-        PostDetail postDetail = postQueryUseCase.getPost(postId, userId);
+        Long memberId = (userDetails != null) ? userDetails.getMemberId() : null;
+        PostDetail postDetail = postQueryUseCase.getPost(postId, memberId);
         FullPostDTO fullPostDTO = postResponseMapper.convertToFullPostResDTO(postDetail);
         
         // 중복 조회 검증 후 조회수 증가 이벤트 발행

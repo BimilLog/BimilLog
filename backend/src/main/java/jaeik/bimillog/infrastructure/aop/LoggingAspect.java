@@ -123,7 +123,7 @@ public class LoggingAspect {
     private void setupMDC() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof CustomUserDetails userDetails) {
-            MDC.put("userId", String.valueOf(userDetails.getUserId()));
+            MDC.put("userId", String.valueOf(userDetails.getMemberId()));
             MDC.put("username", userDetails.getUsername());
         }
         MDC.put("traceId", generateTraceId());

@@ -1,15 +1,15 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import { authQuery, authCommand, userCommand, sseManager, type User } from '@/lib/api';
+import { authQuery, authCommand, userCommand, sseManager, type Member } from '@/lib/api';
 import { logger } from '@/lib/utils';
 
 interface AuthState {
-  user: User | null;
+  user: Member | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  
+
   // Actions
-  setUser: (user: User | null) => void;
+  setUser: (user: Member | null) => void;
   setLoading: (loading: boolean) => void;
   
   // API Actions
@@ -52,9 +52,9 @@ export const useAuthStore = create<AuthState>()(
               });
 
               // 기존회원(로그인) 또는 신규회원(회원가입 완료) 시 SSE 연결
-              // userName이 있어야만 실시간 알림을 받을 수 있음 (회원가입 완료 상태)
-              if (response.data.userName?.trim()) {
-                logger.log(`사용자 인증 완료 (${response.data.userName}) - SSE 연결 시작`);
+              // memberName이 있어야만 실시간 알림을 받을 수 있음 (회원가입 완료 상태)
+              if (response.data.memberName?.trim()) {
+                logger.log(`사용자 인증 완료 (${response.data.memberName}) - SSE 연결 시작`);
                 sseManager.connect();
               }
             } else {

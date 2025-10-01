@@ -62,27 +62,27 @@ public class PostQueryService implements PostQueryUseCase {
      * <p>{@link PostQueryController}에서 게시글 상세 조회 요청 시 호출됩니다.</p>
      *
      * @param postId 게시글 ID
-     * @param userId 현재 로그인한 사용자 ID (추천 여부 확인용, null 허용)
+     * @param memberId 현재 로그인한 사용자 ID (추천 여부 확인용, null 허용)
      * @return PostDetail 게시글 상세 정보 (좋아요 수, 댓글 수, 사용자 좋아요 여부 포함)
      * @throws PostCustomException 게시글을 찾을 수 없는 경우
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public PostDetail getPost(Long postId, Long userId) {
+    public PostDetail getPost(Long postId, Long memberId) {
         // 1. 캐시에서 인기글 조회 시도 (최적화: 1번의 Redis 호출로 통합)
         PostDetail cachedPost = redisPostQueryPort.getCachedPostIfExists(postId);
         if (cachedPost != null) {
             // 캐시 히트: 사용자 좋아요 정보만 추가 확인 필요
-            if (userId != null) {
-                boolean isLiked = postLikeQueryPort.existsByPostIdAndUserId(postId, userId);
+            if (memberId != null) {
+                boolean isLiked = postLikeQueryPort.existsByPostIdAndUserId(postId, memberId);
                 return cachedPost.withIsLiked(isLiked);
             }
             return cachedPost;
         }
 
         // 2. 캐시 미스 또는 일반 게시글: JOIN 쿼리로 조회
-        return getPostFromDatabaseOptimized(postId, userId);
+        return getPostFromDatabaseOptimized(postId, memberId);
     }
 
     /**
@@ -92,14 +92,14 @@ public class PostQueryService implements PostQueryUseCase {
      * <p>getPost 메서드에서 캐시 조회 실패 시 호출됩니다.</p>
      *
      * @param postId 게시글 ID
-     * @param userId 현재 로그인한 사용자 ID (좋아요 여부 확인용, null 허용)
+     * @param memberId 현재 로그인한 사용자 ID (좋아요 여부 확인용, null 허용)
      * @return PostDetail 게시글 상세 정보 DTO
      * @throws PostCustomException 게시글을 찾을 수 없는 경우
      * @author Jaeik
      * @since 2.0.0
      */
-    private PostDetail getPostFromDatabaseOptimized(Long postId, Long userId) {
-        return postQueryPort.findPostDetailWithCounts(postId, userId)
+    private PostDetail getPostFromDatabaseOptimized(Long postId, Long memberId) {
+        return postQueryPort.findPostDetailWithCounts(postId, memberId)
                 .orElseThrow(() -> new PostCustomException(PostErrorCode.POST_NOT_FOUND));
     }
 
@@ -181,30 +181,30 @@ public class PostQueryService implements PostQueryUseCase {
      * <h3>사용자 작성 게시글 목록 조회 </h3>
      * <p>특정 사용자가 작성한 게시글 목록을 페이지네이션으로 조회합니다.</p>
      *
-     * @param userId   사용자 ID
+     * @param memberId   사용자 ID
      * @param pageable 페이지 정보
      * @return 작성한 게시글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public Page<PostSearchResult> getUserPosts(Long userId, Pageable pageable) {
-        return postQueryPort.findPostsByUserId(userId, pageable);
+    public Page<PostSearchResult> getMemberPosts(Long memberId, Pageable pageable) {
+        return postQueryPort.findPostsByMemberId(memberId, pageable);
     }
 
     /**
      * <h3>사용자 추천한 게시글 목록 조회 </h3>
      * <p>특정 사용자가 추천한 게시글 목록을 페이지네이션으로 조회합니다.</p>
      *
-     * @param userId   사용자 ID
+     * @param memberId   사용자 ID
      * @param pageable 페이지 정보
      * @return 추천한 게시글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public Page<PostSearchResult> getUserLikedPosts(Long userId, Pageable pageable) {
-        return postQueryPort.findLikedPostsByUserId(userId, pageable);
+    public Page<PostSearchResult> getMemberLikedPosts(Long memberId, Pageable pageable) {
+        return postQueryPort.findLikedPostsByMemberId(memberId, pageable);
     }
 
     /**

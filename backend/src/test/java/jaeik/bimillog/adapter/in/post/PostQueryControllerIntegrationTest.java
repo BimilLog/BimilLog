@@ -4,11 +4,11 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostRepository;
-import jaeik.bimillog.infrastructure.adapter.out.member.UserRepository;
+import jaeik.bimillog.infrastructure.adapter.out.member.MemberRepository;
 import jaeik.bimillog.testutil.AuthTestFixtures;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
-import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.annotation.IntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -40,7 +40,7 @@ class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
     private PostRepository postRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    private MemberRepository userRepository;
 
     private CustomUserDetails queryUserDetails;
     private Post testPost1;
@@ -49,7 +49,7 @@ class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
 
     @Override
     protected void setUpChild() {
-        var user = TestUsers.createUser(builder -> {
+        var user = TestMembers.createUser(builder -> {
             builder.socialId("12345");
             builder.userName("테스트사용자");
             builder.socialNickname("테스트사용자");

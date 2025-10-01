@@ -1,8 +1,8 @@
 package jaeik.bimillog.infrastructure.adapter.out.api.social.kakao;
 
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
-import jaeik.bimillog.domain.member.exception.UserCustomException;
-import jaeik.bimillog.domain.member.exception.UserErrorCode;
+import jaeik.bimillog.domain.member.exception.MemberCustomException;
+import jaeik.bimillog.domain.member.exception.MemberErrorCode;
 import jaeik.bimillog.infrastructure.adapter.out.api.dto.KakaoFriendsDTO;
 import jaeik.bimillog.infrastructure.adapter.out.api.social.SocialAdapter;
 import org.springframework.stereotype.Component;
@@ -53,7 +53,7 @@ public class KakaoSocialAdapter implements SocialAdapter {
         try {
             return kakaoApiClient.getFriends("Bearer " + accessToken, offset, limit);
         } catch (Exception e) {
-            throw new UserCustomException(UserErrorCode.KAKAO_FRIEND_API_ERROR, e);
+            throw new MemberCustomException(MemberErrorCode.KAKAO_FRIEND_API_ERROR, e);
         }
     }
 }

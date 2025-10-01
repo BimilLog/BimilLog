@@ -22,10 +22,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Table(
         indexes = {
-                @Index(name = "idx_comment_like_user_comment", columnList = "comment_id, user_id")
+                @Index(name = "idx_comment_like_member_comment", columnList = "comment_id, member_id")
         },
         uniqueConstraints = {
-                @UniqueConstraint(name = "uk_comment_like_user_comment", columnNames = {"comment_id", "user_id"})
+                @UniqueConstraint(name = "uk_comment_like_member_comment", columnNames = {"comment_id", "member_id"})
         }
 )
 public class CommentLike {
@@ -36,7 +36,7 @@ public class CommentLike {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "member_id")
     private Member member;
 
     @ManyToOne(fetch = FetchType.LAZY)

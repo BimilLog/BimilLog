@@ -13,7 +13,7 @@ import java.time.Instant;
  * <p>메시지의 모든 정보(내용, 익명 이름 등)를 포함하여 소유자에게 제공</p>
  *
  * @param id 메시지 ID
- * @param userId 사용자 ID
+ * @param memberId 사용자 ID
  * @param decoType 데코레이션 타입
  * @param anonymity 익명 이름
  * @param content 메시지 내용
@@ -25,7 +25,7 @@ import java.time.Instant;
  */
 public record MessageDetail(
         Long id,
-        Long userId,
+        Long memberId,
         DecoType decoType,
         String anonymity,
         String content,
@@ -51,7 +51,7 @@ public record MessageDetail(
     public static MessageDetail from(Message message) {
         return MessageDetail.builder()
                 .id(message.getId())
-                .userId(message.getUserId())
+                .memberId(message.getMemberId())
                 .decoType(message.getDecoType())
                 .anonymity(message.getAnonymity())
                 .content(message.getContent())

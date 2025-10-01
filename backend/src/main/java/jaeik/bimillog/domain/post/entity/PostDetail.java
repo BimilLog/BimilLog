@@ -21,8 +21,8 @@ import java.time.Instant;
  * @param likeCount 추천수
  * @param postCacheFlag 캐시 플래그 (인기글 분류)
  * @param createdAt 작성일시
- * @param userId 작성자 ID
- * @param userName 작성자 이름
+ * @param memberId 작성자 ID
+ * @param memberName 작성자 이름
  * @param commentCount 댓글 수
  * @param isNotice 공지사항 여부
  * @param isLiked 사용자 추천 여부 (로그인 사용자만)
@@ -37,8 +37,8 @@ public record PostDetail(
         Integer likeCount,
         PostCacheFlag postCacheFlag,
         Instant createdAt,
-        Long userId,
-        String userName,
+        Long memberId,
+        String memberName,
         Integer commentCount,
         boolean isNotice,
         boolean isLiked
@@ -75,8 +75,8 @@ public record PostDetail(
                 .likeCount(likeCount)
                 .postCacheFlag(post.getPostCacheFlag())
                 .createdAt(post.getCreatedAt())
-                .userId(post.getMember().getId())
-                .userName(post.getMember().getUserName())
+                .memberId(post.getMember().getId())
+                .memberName(post.getMember().getMemberName())
                 .commentCount(commentCount)
                 .isNotice(post.isNotice())
                 .isLiked(isLiked)
@@ -135,8 +135,8 @@ public record PostDetail(
                 .likeCount(this.likeCount)
                 .postCacheFlag(this.postCacheFlag)
                 .createdAt(this.createdAt)
-                .userId(this.userId)
-                .userName(this.userName)
+                .memberId(this.memberId)
+                .memberName(this.memberName)
                 .commentCount(this.commentCount)
                 .isNotice(this.isNotice)
                 .isLiked(isLiked)

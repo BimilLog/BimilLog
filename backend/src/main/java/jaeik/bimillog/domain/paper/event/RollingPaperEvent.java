@@ -12,20 +12,20 @@ import jaeik.bimillog.infrastructure.adapter.in.notification.listener.Notificati
  * <p>롤링페이퍼 주인에게 새로운 메시지가 작성되었음을 실시간 알림</p>
  *
  * @param paperOwnerId 롤링페이퍼 주인 ID (알림을 받을 사용자)
- * @param userName 닉네임
+ * @param memberName 닉네임
  * @author Jaeik
  * @version 2.0.0
  * {@link NotificationGenerateListener} 롤링페이퍼 메시지 알림 발송
  */
 public record RollingPaperEvent(
         Long paperOwnerId,
-        String userName
+        String memberName
 ) {
     public RollingPaperEvent {
         if (paperOwnerId == null) {
             throw new IllegalArgumentException("롤링페이퍼 주인 ID는 null일 수 없습니다.");
         }
-        if (userName == null || userName.isBlank()) {
+        if (memberName == null || memberName.isBlank()) {
             throw new IllegalArgumentException("사용자 이름은 null이거나 비어있을 수 없습니다.");
         }
     }

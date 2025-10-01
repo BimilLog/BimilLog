@@ -81,7 +81,7 @@ public class KakaoFriendsDTO {
         private Boolean favorite;
 
         @Setter
-        private String userName;
+        private String memberName;
 
         /**
          * <h3>DTO를 VO로 변환</h3>
@@ -90,7 +90,7 @@ public class KakaoFriendsDTO {
          * @return KakaoFriendsResponseVO.Friend 객체
          */
         public KakaoFriendsResponseVO.Friend toVO() {
-            return KakaoFriendsResponseVO.Friend.of(id, uuid, profileNickname, profileThumbnailImage, favorite, userName);
+            return KakaoFriendsResponseVO.Friend.of(id, uuid, profileNickname, profileThumbnailImage, favorite, memberName);
         }
 
         /**
@@ -107,7 +107,7 @@ public class KakaoFriendsDTO {
             dto.profileNickname = vo.profileNickname();
             dto.profileThumbnailImage = vo.profileThumbnailImage();
             dto.favorite = vo.favorite();
-            dto.userName = vo.userName();
+            dto.memberName = vo.memberName();
             return dto;
         }
     }

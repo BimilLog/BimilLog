@@ -22,9 +22,9 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
      * <p>신고자 ID를 기준으로 해당 사용자가 작성한 모든 신고를 삭제합니다.</p>
      * <p>주로 사용자 탈퇴 시 해당 사용자의 모든 신고를 정리하는데 사용됩니다.</p>
      *
-     * @param userId 삭제할 신고들의 신고자 ID
+     * @param memberId 삭제할 신고들의 신고자 ID
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteAllByReporterId(Long userId);
+    void deleteAllByReporterId(Long memberId);
 }

@@ -51,8 +51,8 @@ public class CommentQueryService implements CommentQueryUseCase {
      */
     @Override
     public List<CommentInfo> getPopularComments(Long postId, CustomUserDetails userDetails) {
-        Long userId = userDetails != null ? userDetails.getUserId() : null;
-        return commentQueryPort.findPopularComments(postId, userId);
+        Long memberId = userDetails != null ? userDetails.getMemberId() : null;
+        return commentQueryPort.findPopularComments(postId, memberId);
     }
 
     /**
@@ -70,8 +70,8 @@ public class CommentQueryService implements CommentQueryUseCase {
      */
     @Override
     public Page<CommentInfo> getCommentsOldestOrder(Long postId, Pageable pageable, CustomUserDetails userDetails) {
-        Long userId = userDetails != null ? userDetails.getUserId() : null;
-        return commentQueryPort.findCommentsWithOldestOrder(postId, pageable, userId);
+        Long memberId = userDetails != null ? userDetails.getMemberId() : null;
+        return commentQueryPort.findCommentsWithOldestOrder(postId, pageable, memberId);
     }
 
     /**
@@ -96,15 +96,15 @@ public class CommentQueryService implements CommentQueryUseCase {
      * <p>최신 작성 댓글부터 과거 순서로 정렬하여 반환합니다.</p>
      * <p>{@link MemberActivityAdapter}에서 사용자 활동 조회 시 호출됩니다.</p>
      *
-     * @param userId   사용자 ID
+     * @param memberId   사용자 ID
      * @param pageable 페이지 정보
      * @return Page<SimpleCommentInfo> 작성한 댓글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public Page<SimpleCommentInfo> getUserComments(Long userId, Pageable pageable) {
-        return commentQueryPort.findCommentsByUserId(userId, pageable);
+    public Page<SimpleCommentInfo> getMemberComments(Long memberId, Pageable pageable) {
+        return commentQueryPort.findCommentsByMemberId(memberId, pageable);
     }
 
     /**
@@ -113,15 +113,15 @@ public class CommentQueryService implements CommentQueryUseCase {
      * <p>최신 추천 댓글부터 과거 순서로 정렬하여 반환합니다.</p>
      * <p>{@link MemberActivityAdapter}에서 사용자 추천 댓글 조회 시 호출됩니다.</p>
      *
-     * @param userId   사용자 ID
+     * @param memberId   사용자 ID
      * @param pageable 페이지 정보
      * @return Page<SimpleCommentInfo> 추천한 댓글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public Page<SimpleCommentInfo> getUserLikedComments(Long userId, Pageable pageable) {
-        return commentQueryPort.findLikedCommentsByUserId(userId, pageable);
+    public Page<SimpleCommentInfo> getMemberLikedComments(Long memberId, Pageable pageable) {
+        return commentQueryPort.findLikedCommentsByMemberId(memberId, pageable);
     }
 
     /**

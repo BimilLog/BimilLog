@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.auth.event.MemberLoggedOutEvent;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
-import jaeik.bimillog.domain.member.event.UserWithdrawnEvent;
+import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.infrastructure.adapter.in.notification.web.NotificationSseController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -24,27 +24,27 @@ public interface SseUseCase {
      * <p>사용자 ID와 토큰 ID 조합으로 다중 기기 연결을 관리합니다.</p>
      * <p>{@link NotificationSseController}에서 클라이언트의 SSE 구독 API 요청 시 호출됩니다.</p>
      *
-     * @param userId  사용자 ID
+     * @param memberId  사용자 ID
      * @param tokenId 토큰 ID (다중 기기 구분용)
      * @return SSE Emitter (30분 타임아웃)
      * @author Jaeik
      * @since 2.0.0
      */
-    SseEmitter subscribe(Long userId, Long tokenId);
+    SseEmitter subscribe(Long memberId, Long tokenId);
 
     /**
      * <h3>SSE 연결 정리</h3>
      * <p>사용자의 SSE Emitter 연결을 정리하고 메모리에서 제거합니다.</p>
      * <p>tokenId가 null인 경우 모든 SSE 연결을 해제하고, 값이 있는 경우 특정 기기만 해제합니다.</p>
-     * <p>{@link UserWithdrawnEvent} 이벤트 발생시 모든 연결 정리(tokenId=null),</p>
+     * <p>{@link MemberWithdrawnEvent} 이벤트 발생시 모든 연결 정리(tokenId=null),</p>
      * <p>{@link MemberLoggedOutEvent} 이벤트 발생시 특정 기기 연결 정리(tokenId 값 있음)에서 호출됩니다.</p>
      *
-     * @param userId 사용자 ID
+     * @param memberId 사용자 ID
      * @param tokenId 토큰 ID (null인 경우 모든 연결 정리)
      * @since 2.0.0
      * @author Jaeik
      */
-    void deleteEmitters(Long userId, Long tokenId);
+    void deleteEmitters(Long memberId, Long tokenId);
 
     /**
      * <h3>댓글 알림 SSE 전송</h3>
@@ -67,11 +67,11 @@ public interface SseUseCase {
      * <p>{@link RollingPaperEvent} 이벤트 발생시 롤링페이퍼 메시지 작성 알림 전송 흐름에서 호출됩니다.</p>
      *
      * @param farmOwnerId 롤링페이퍼 주인 ID
-     * @param userName    사용자 이름
+     * @param memberName    사용자 이름
      * @author Jaeik
      * @since 2.0.0
      */
-    void sendPaperPlantNotification(Long farmOwnerId, String userName);
+    void sendPaperPlantNotification(Long farmOwnerId, String memberName);
 
     /**
      * <h3>인기글 등극 알림 SSE 전송</h3>
@@ -79,11 +79,11 @@ public interface SseUseCase {
      * <p>조회수, 댓글 수, 좋아요 수 등의 기준을 만족한 게시글에 대해 발송됩니다.</p>
      * <p>{@link PostFeaturedEvent} 이벤트 발생시 인기글 등극 알림 전송 흐름에서 호출됩니다.</p>
      *
-     * @param userId  사용자 ID
+     * @param memberId  사용자 ID
      * @param message 알림 메시지
      * @param postId  게시글 ID
      * @author Jaeik
      * @since 2.0.0
      */
-    void sendPostFeaturedNotification(Long userId, String message, Long postId);
+    void sendPostFeaturedNotification(Long memberId, String message, Long postId);
 }

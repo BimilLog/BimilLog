@@ -18,34 +18,34 @@ public interface MemberCommandUseCase {
      * <p>사용자의 알림 설정을 수정합니다.</p>
      * <p>{@link MemberCommandController}에서 설정 수정 API 요청 시 호출됩니다.</p>
      *
-     * @param userId    사용자 ID
+     * @param memberId    사용자 ID
      * @param setting 수정할 설정 정보
      * @since 2.0.0
      * @author Jaeik
      */
-    void updateUserSettings(Long userId, Setting setting);
+    void updateMemberSettings(Long memberId, Setting setting);
 
     /**
      * <h3>닉네임 변경</h3>
      * <p>사용자의 닉네임을 변경합니다.</p>
      * <p>{@link MemberCommandController}에서 닉네임 변경 API 요청 시 호출됩니다.</p>
      *
-     * @param userId      사용자 ID
+     * @param memberId      사용자 ID
      * @param newUserName 새로운 닉네임
      * @since 2.0.0
      * @author Jaeik
      */
-    void updateUserName(Long userId, String newUserName);
+    void updateMemberName(Long memberId, String newUserName);
 
     /**
      * <h3>사용자 엔티티 삭제</h3>
      * <p>회원 탈퇴 시 사용자 엔티티를 데이터베이스에서 완전히 삭제합니다.</p>
      * <p>사용자 삭제 이후 설정도 삭제 합니다</p>
-     * <p>UserWithdrawnEvent 이벤트 발생시 회원 탈퇴 처리 흐름에서 호출됩니다.</p>
+     * <p>MemberWithdrawnEvent 이벤트 발생시 회원 탈퇴 처리 흐름에서 호출됩니다.</p>
      *
-     * @param userId 삭제할 사용자 ID
+     * @param memberId 삭제할 사용자 ID
      * @author Jaeik
      * @since 2.0.0
      */
-    void removeUserAccount(Long userId);
+    void removeMemberAccount(Long memberId);
 }

@@ -6,7 +6,7 @@ import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
 import jaeik.bimillog.domain.member.application.service.MemberQueryService;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.entity.member.Member;
-import jaeik.bimillog.domain.user.entity.user.QUser;
+import jaeik.bimillog.domain.member.entity.member.QMember;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -31,10 +31,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MemberQueryAdapter implements MemberQueryPort {
 
-    private final UserRepository userRepository;
+    private final MemberRepository userRepository;
     private final SettingRepository settingRepository;
     private final JPAQueryFactory jpaQueryFactory;
-    private final QUser user = QUser.user;
+    private final QMember member = QMember.member;
 
     /**
      * <h3>ID로 사용자 조회</h3>
@@ -66,9 +66,9 @@ public class MemberQueryAdapter implements MemberQueryPort {
     @Transactional(readOnly = true)
     public Optional<Member> findByIdWithSetting(Long id) {
         Member result = jpaQueryFactory
-                .selectFrom(user)
-                .leftJoin(user.setting).fetchJoin()
-                .where(user.id.eq(id))
+                .selectFrom(member)
+                .leftJoin(member.setting).fetchJoin()
+                .where(member.id.eq(id))
                 .fetchOne();
         return Optional.ofNullable(result);
     }
@@ -95,15 +95,15 @@ public class MemberQueryAdapter implements MemberQueryPort {
      * <p>주어진 닉네임을 가진 사용자가 존재하는지 확인합니다.</p>
      * <p>{@link MemberQueryService}에서 닉네임 중복 확인 시 호출됩니다.</p>
      *
-     * @param userName 확인할 닉네임
+     * @param memberName 확인할 닉네임
      * @return boolean 존재하면 true, 아니면 false
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     @Transactional(readOnly = true)
-    public boolean existsByUserName(String userName) {
-        return userRepository.existsByUserName(userName);
+    public boolean existsByMemberName(String memberName) {
+        return userRepository.existsByMemberName(memberName);
     }
 
     /**
@@ -111,15 +111,15 @@ public class MemberQueryAdapter implements MemberQueryPort {
      * <p>주어진 닉네임으로 사용자 정보를 조회합니다.</p>
      * <p>{@link MemberQueryService}에서 닉네임 기반 사용자 조회 시 호출됩니다.</p>
      *
-     * @param userName 조회할 닉네임
+     * @param memberName 조회할 닉네임
      * @return Optional<Member> 조회된 사용자 객체. 존재하지 않으면 Optional.empty()
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     @Transactional(readOnly = true)
-    public Optional<Member> findByUserName(String userName) {
-        return userRepository.findByUserName(userName);
+    public Optional<Member> findByMemberName(String memberName) {
+        return userRepository.findByMemberName(memberName);
     }
 
     /**
@@ -151,21 +151,21 @@ public class MemberQueryAdapter implements MemberQueryPort {
      */
     @Override
     @Transactional(readOnly = true)
-    public List<String> findUserNamesInOrder(List<String> socialIds) {
+    public List<String> findMemberNamesInOrder(List<String> socialIds) {
         if (socialIds == null || socialIds.isEmpty()) {
             return Collections.emptyList();
         }
 
         List<Tuple> results = jpaQueryFactory
-                .select(user.socialId, user.userName)
-                .from(user)
-                .where(user.socialId.in(socialIds))
+                .select(member.socialId, member.memberName)
+                .from(member)
+                .where(member.socialId.in(socialIds))
                 .fetch();
 
         Map<String, String> socialIdToUserName = results.stream()
                 .collect(Collectors.toMap(
-                        tuple -> tuple.get(user.socialId),
-                        tuple -> Optional.ofNullable(tuple.get(user.userName)).orElse(""),
+                        tuple -> tuple.get(member.socialId),
+                        tuple -> Optional.ofNullable(tuple.get(member.memberName)).orElse(""),
                         (existing, replacement) -> existing // Handle duplicate keys if any
                 ));
 
@@ -180,14 +180,14 @@ public class MemberQueryAdapter implements MemberQueryPort {
      * <p>JPA 연관 관계 설정 시 성능 최적화를 위해 사용됩니다.</p>
      * <p>{@link MemberQueryService}에서 사용자 엔티티 참조 생성 시 호출됩니다.</p>
      *
-     * @param userId 참조를 가져올 사용자 ID
+     * @param memberId 참조를 가져올 사용자 ID
      * @return Member 사용자 엔티티 참조
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     @Transactional(readOnly = true)
-    public Member getReferenceById(Long userId) {
-        return userRepository.getReferenceById(userId);
+    public Member getReferenceById(Long memberId) {
+        return userRepository.getReferenceById(memberId);
     }
 }

@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.notification.service;
 
-import jaeik.bimillog.domain.global.application.port.out.GlobalUserQueryPort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalMemberQueryPort;
 import jaeik.bimillog.domain.notification.application.port.out.FcmPort;
 import jaeik.bimillog.domain.notification.application.port.out.NotificationUtilPort;
 import jaeik.bimillog.domain.notification.application.service.FcmService;
@@ -11,7 +11,7 @@ import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
 import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.domain.member.entity.member.MemberRole;
-import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestMembers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -48,7 +48,7 @@ class FcmServiceTest {
     private FcmPort fcmPort;
 
     @Mock
-    private GlobalUserQueryPort globalUserQueryPort;
+    private GlobalMemberQueryPort globalUserQueryPort;
 
     @Mock
     private NotificationUtilPort notificationUtilPort;
@@ -60,7 +60,7 @@ class FcmServiceTest {
     @DisplayName("FCM 토큰 등록 - 성공")
     void shouldRegisterFcmToken_WhenValidInput() {
         // Given
-        Member member = TestUsers.MEMBER_1;
+        Member member = TestMembers.MEMBER_1;
         String fcmToken = "valid-fcm-TemporaryToken";
         Long expectedTokenId = 100L;
         FcmToken savedToken = mock(FcmToken.class);
@@ -96,7 +96,7 @@ class FcmServiceTest {
     @DisplayName("FCM 토큰 등록 - null 토큰인 경우")
     void shouldNotRegister_WhenFcmTokenIsNull() {
         // Given
-        Member member = TestUsers.MEMBER_1;
+        Member member = TestMembers.MEMBER_1;
         String fcmToken = null;
 
         // When
@@ -111,7 +111,7 @@ class FcmServiceTest {
     @DisplayName("FCM 토큰 등록 - 빈 토큰인 경우")
     void shouldNotRegister_WhenFcmTokenIsEmpty() {
         // Given
-        Member member = TestUsers.MEMBER_2;
+        Member member = TestMembers.MEMBER_2;
         String fcmToken = "";
 
         // When
@@ -141,7 +141,7 @@ class FcmServiceTest {
     void shouldSendCommentNotification_WhenValidTokens() throws IOException {
         // Given
         Long postUserId = 1L;
-        String commenterName = TestUsers.MEMBER_3.getSocialNickname();
+        String commenterName = TestMembers.MEMBER_3.getSocialNickname();
         
         List<FcmToken> fcmTokens = Arrays.asList(
                 createMockFcmToken("token1"),
@@ -164,7 +164,7 @@ class FcmServiceTest {
     void shouldNotSendCommentNotification_WhenNoTokens() throws IOException {
         // Given
         Long postUserId = 2L;
-        String commenterName = TestUsers.MEMBER_2.getUserName();
+        String commenterName = TestMembers.MEMBER_2.getUserName();
         
         given(notificationUtilPort.FcmEligibleFcmTokens(postUserId, NotificationType.COMMENT)).willReturn(Collections.emptyList());
 
@@ -182,7 +182,7 @@ class FcmServiceTest {
     void shouldLogError_WhenCommentNotificationFails() {
         // Given
         Long postUserId = 1L;
-        String commenterName = TestUsers.withRole(MemberRole.ADMIN).getUserName();
+        String commenterName = TestMembers.withRole(MemberRole.ADMIN).getUserName();
         
         given(notificationUtilPort.FcmEligibleFcmTokens(postUserId, NotificationType.COMMENT))
                 .willThrow(new RuntimeException("FCM 서비스 오류"));

@@ -29,7 +29,7 @@ public class SimpleCommentInfo {
     
     private Long id;
     private Long postId;
-    private String userName;
+    private String memberName;
     private String content;
     private Integer likeCount;
     private boolean userLike;
@@ -50,7 +50,7 @@ public class SimpleCommentInfo {
         return SimpleCommentInfo.builder()
                 .id(comment.getId())
                 .postId(comment.getPost().getId())
-                .userName(comment.getMember() != null ? comment.getMember().getUserName() : "익명")
+                .memberName(comment.getMember() != null ? comment.getMember().getMemberName() : "익명")
                 .content(comment.getContent())
                 .likeCount(likeCount != null ? likeCount : 0)
                 .userLike(isUserLike)
@@ -91,7 +91,7 @@ public class SimpleCommentInfo {
      *
      * @param id 댓글 ID
      * @param postId 게시글 ID
-     * @param userName 사용자명
+     * @param memberName 사용자명
      * @param content 댓글 내용
      * @param createdAt 생성시각
      * @param likeCount 추천수
@@ -99,11 +99,11 @@ public class SimpleCommentInfo {
      * @author Jaeik
      * @since 2.0.0
      */
-    public SimpleCommentInfo(Long id, Long postId, String userName, String content, 
+    public SimpleCommentInfo(Long id, Long postId, String memberName, String content,
                             Instant createdAt, Integer likeCount, boolean userLike) {
         this.id = id;
         this.postId = postId;
-        this.userName = userName != null ? userName : "익명";
+        this.memberName = memberName != null ? memberName : "익명";
         this.content = content;
         this.createdAt = createdAt;
         this.likeCount = likeCount != null ? likeCount : 0;

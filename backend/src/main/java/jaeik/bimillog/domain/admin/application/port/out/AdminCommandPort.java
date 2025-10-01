@@ -31,9 +31,9 @@ public interface AdminCommandPort {
      * <p>익명 신고는 영향받지 않으며, 로그인 사용자가 작성한 신고만 삭제됩니다.</p>
      * <p>{@link AdminCommandService}에서 회원 탈퇴 처리 흐름에서 호출됩니다.</p>
      *
-     * @param userId 신고 내역을 삭제할 사용자 ID
+     * @param memberId 신고 내역을 삭제할 사용자 ID
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteAllReportsByUserId(Long userId);
+    void deleteAllReportsByUserId(Long memberId);
 }

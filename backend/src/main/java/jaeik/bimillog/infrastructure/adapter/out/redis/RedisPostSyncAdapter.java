@@ -8,7 +8,7 @@ import jaeik.bimillog.domain.post.application.port.out.RedisPostSyncPort;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
 import jaeik.bimillog.domain.post.entity.QPost;
 import jaeik.bimillog.domain.post.entity.QPostLike;
-import jaeik.bimillog.domain.user.entity.user.QUser;
+import jaeik.bimillog.domain.member.entity.member.QMember;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -115,7 +115,7 @@ public class RedisPostSyncAdapter implements RedisPostSyncPort {
      */
     private JPAQuery<PostSearchResult> createBasePopularPostsQuery() {
         QPost post = QPost.post;
-        QUser user = QUser.user;
+        QMember member = QMember.member;
         QPostLike postLike = QPostLike.postLike;
         QComment comment = QComment.comment;
 
@@ -128,15 +128,15 @@ public class RedisPostSyncAdapter implements RedisPostSyncPort {
                         postLike.countDistinct().intValue(), // 5. likeCount (Integer)
                         post.postCacheFlag,                  // 6. postCacheFlag (PostCacheFlag)
                         post.createdAt,                      // 7. createdAt (Instant)
-                        user.id,                             // 8. userId (Long)
-                        user.userName,                       // 9. userName (String)
+                        member.id,                             // 8. memberId (Long)
+                        member.memberName,                       // 9. memberName (String)
                         comment.countDistinct().intValue(),  // 10. commentCount (Integer)
                         post.isNotice))                      // 11. isNotice (boolean)
                 .from(post)
-                .leftJoin(post.user, user)
+                .leftJoin(post.member, member)
                 .leftJoin(comment).on(post.id.eq(comment.post.id))
                 .leftJoin(postLike).on(post.id.eq(postLike.post.id))
-                .groupBy(post.id, user.id);
+                .groupBy(post.id, member.id);
     }
 
 

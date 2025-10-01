@@ -28,12 +28,12 @@ public interface AuthTokenPort {
      * <p>로그아웃시 특정 토큰만 삭제</p>
      * <p>회원탈퇴시 모든 토큰 삭제</p>
      *
-     * @param userId 사용자 ID
+     * @param memberId 사용자 ID
      * @param tokenId 삭제할 토큰 ID (null인 경우 모든 토큰 삭제 - 회원탈퇴용)
      * @since 2.0.0
      * @author Jaeik
      */
-    void deleteTokens(Long userId, Long tokenId);
+    void deleteTokens(Long memberId, Long tokenId);
 
     /**
      * <h3>JWT 리프레시 토큰 업데이트</h3>
@@ -48,15 +48,15 @@ public interface AuthTokenPort {
     void updateJwtRefreshToken(Long tokenId, String newJwtRefreshToken);
 
     /**
-     * <h3>사용자의 모든 토큰 삭제</h3>
-     * <p>보안 위협 감지 시 특정 사용자의 모든 활성 토큰을 무효화합니다.</p>
+     * <h3>회원의 모든 토큰 삭제</h3>
+     * <p>보안 위협 감지 시 특정 회원의 모든 활성 토큰을 무효화합니다.</p>
      * <p>리프레시 토큰 탈취 또는 재사용 공격 감지 시 사용됩니다.</p>
      *
-     * @param userId 사용자 ID
+     * @param memberId 회원 ID
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteAllByUserId(Long userId);
+    void deleteAllByMemberId(Long memberId);
 
     /**
      * <h3>토큰 사용 기록</h3>

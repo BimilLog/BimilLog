@@ -13,8 +13,8 @@ import lombok.Builder;
  * @version 2.0.0
  */
 @Builder
-public record MemberInfoResponseDTO(Long userId, Long settingId, String socialNickname, String thumbnailImage,
-                                    String userName, MemberRole role) {
+public record MemberInfoResponseDTO(Long memberId, Long settingId, String socialNickname, String thumbnailImage,
+                                    String memberName, MemberRole role) {
 
     /**
      * <h3>ClientDTO에서 UserInfoResponseDTO로 변환</h3>
@@ -27,11 +27,11 @@ public record MemberInfoResponseDTO(Long userId, Long settingId, String socialNi
      */
     public static MemberInfoResponseDTO from(ExistingMemberDetail userDetail) {
         return MemberInfoResponseDTO.builder()
-                .userId(userDetail.getUserId())
+                .memberId(userDetail.getMemberId())
                 .settingId(userDetail.getSettingId())
                 .socialNickname(userDetail.getSocialNickname())
                 .thumbnailImage(userDetail.getThumbnailImage())
-                .userName(userDetail.getUserName())
+                .memberName(userDetail.getMemberName())
                 .role(userDetail.getRole())
                 .build();
     }

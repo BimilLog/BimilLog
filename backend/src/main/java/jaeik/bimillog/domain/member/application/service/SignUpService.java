@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.member.application.service;
 
 import jaeik.bimillog.domain.auth.application.port.out.AuthTokenPort;
-import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
@@ -42,7 +42,7 @@ public class SignUpService implements SignUpUseCase {
      * <p>임시 UUID로 저장된 소셜 인증 정보를 조회하여 실제 사용자 계정을 생성합니다.</p>
      * <p>{@link MemberCommandController}에서 POST /api/member/signup 요청 처리 시 호출됩니다.</p>
      *
-     * @param userName 사용자가 입력한 표시 이름 (DTO에서 이미 검증됨)
+     * @param memberName 사용자가 입력한 표시 이름 (DTO에서 이미 검증됨)
      * @param uuid 임시 소셜 인증 데이터 저장용 UUID 키 (DTO에서 이미 검증됨)
      * @return ResponseCookie JWT 토큰이 설정된 쿠키 목록
      * @throws AuthCustomException 임시 데이터가 존재하지 않는 경우 (INVALID_TEMP_DATA)
@@ -50,20 +50,20 @@ public class SignUpService implements SignUpUseCase {
      * @since 2.0.0
      */
     @Override
-    public List<ResponseCookie> signUp(String userName, String uuid) {
-        Optional<SocialUserProfile> socialUserProfile = redisMemberDataPort.getTempData(uuid);
+    public List<ResponseCookie> signUp(String memberName, String uuid) {
+        Optional<SocialMemberProfile> socialMemberProfile = redisMemberDataPort.getTempData(uuid);
 
-        if (socialUserProfile.isEmpty()) {
+        if (socialMemberProfile.isEmpty()) {
             throw new AuthCustomException(AuthErrorCode.INVALID_TEMP_DATA);
         }
 
-        SocialUserProfile userProfile = socialUserProfile.get();
-        ExistingMemberDetail userDetail = (ExistingMemberDetail) saveMemberPort.saveNewUser(userName.trim(), userProfile);
-        String accessToken = globalJwtPort.generateAccessToken(userDetail);
-        String refreshToken = globalJwtPort.generateRefreshToken(userDetail);
+        SocialMemberProfile memberProfile = socialMemberProfile.get();
+        ExistingMemberDetail memberDetail = (ExistingMemberDetail) saveMemberPort.saveNewMember(memberName.trim(), memberProfile);
+        String accessToken = globalJwtPort.generateAccessToken(memberDetail);
+        String refreshToken = globalJwtPort.generateRefreshToken(memberDetail);
 
         // DB에 JWT 리프레시 토큰 저장 (보안 강화 - SocialLoginService와 동일)
-        authTokenPort.updateJwtRefreshToken(userDetail.getTokenId(), refreshToken);
+        authTokenPort.updateJwtRefreshToken(memberDetail.getTokenId(), refreshToken);
 
         redisMemberDataPort.removeTempData(uuid);
         return globalCookiePort.generateJwtCookie(accessToken, refreshToken);

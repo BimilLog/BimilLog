@@ -31,23 +31,23 @@ public interface BlacklistUseCase {
      * <h3>사용자의 모든 JWT를 블랙리스트에 등록</h3>
      * <p>특정 사용자의 모든 JWT를 블랙리스트에 등록하여 즉시 로그아웃 처리합니다.</p>
      *
-     * @param userId 강제 로그아웃할 사용자 ID
+     * @param memberId 강제 로그아웃할 사용자 ID
      * @author Jaeik
      * @since 2.0.0
      */
-    void blacklistAllUserTokens(Long userId);
+    void blacklistAllUserTokens(Long memberId);
 
     /**
      * <h3>사용자 블랙리스트 추가</h3>
      * <p>사용자 ID를 기반으로 해당 사용자를 블랙리스트에 추가합니다.</p>
      * <p>{@link AdminCommandController}에서 사용자 블랙리스트 API 요청 시 호출됩니다.</p>
      *
-     * @param userId 블랙리스트에 추가할 사용자 ID
+     * @param memberId 블랙리스트에 추가할 사용자 ID
      * @param socialId 소셜 ID
      * @param provider 소셜 프로바이더 타입
      * @author Jaeik
      * @since 2.0.0
      */
-    void addToBlacklist(Long userId, String socialId, SocialProvider provider);
+    void addToBlacklist(Long memberId, String socialId, SocialProvider provider);
 
 }

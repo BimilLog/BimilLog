@@ -30,7 +30,7 @@ public interface KakaoApiClient {
      * @author Jaeik
      * @since 2.0.0
      */
-    @GetMapping("/v2/member/me")
+    @GetMapping("/v2/user/me")
     Map<String, Object> getUserInfo(@RequestHeader("Authorization") String authorization);
 
     /**
@@ -42,7 +42,7 @@ public interface KakaoApiClient {
      * @author Jaeik
      * @since 2.0.0
      */
-    @PostMapping("/v1/member/logout")
+    @PostMapping("/v1/user/logout")
     void logout(@RequestHeader("Authorization") String authorization,
                 @RequestHeader("Content-Type") String contentType);
 
@@ -55,7 +55,7 @@ public interface KakaoApiClient {
      * @author Jaeik
      * @since 2.0.0
      */
-    @PostMapping(value = "/v1/member/unlink", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    @PostMapping(value = "/v1/user/unlink", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     void unlink(@RequestHeader("Authorization") String authorization,
                 @RequestParam Map<String, String> params);
 

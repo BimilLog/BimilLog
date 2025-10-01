@@ -88,7 +88,7 @@ public class ReportDTO {
         return ReportDTO.builder()
                 .id(report.getId())
                 .reporterId(reporter != null ? reporter.getId() : null)
-                .reporterName(reporter != null ? reporter.getUserName() : "익명")
+                .reporterName(reporter != null ? reporter.getMemberName() : "익명")
                 .reportType(report.getReportType())
                 .targetId(report.getTargetId())
                 .content(report.getContent())

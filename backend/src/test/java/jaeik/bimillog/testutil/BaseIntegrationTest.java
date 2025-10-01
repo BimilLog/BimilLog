@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.domain.member.entity.member.MemberRole;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
-import jaeik.bimillog.infrastructure.adapter.out.member.UserRepository;
+import jaeik.bimillog.infrastructure.adapter.out.member.MemberRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -64,7 +64,7 @@ public abstract class BaseIntegrationTest {
     protected ObjectMapper objectMapper;
 
     @Autowired(required = false)
-    protected UserRepository userRepository;
+    protected MemberRepository userRepository;
 
     @Autowired(required = false)
     protected TestEntityManager entityManager;
@@ -129,8 +129,8 @@ public abstract class BaseIntegrationTest {
                 .build();
 
         // 설정 초기화
-        this.defaultSetting = TestUsers.createAllEnabledSetting();
-        this.customSetting = TestUsers.createAllDisabledSetting();
+        this.defaultSetting = TestMembers.createAllEnabledSetting();
+        this.customSetting = TestMembers.createAllDisabledSetting();
 
         // 사용자 생성 및 저장
         setupTestUsers();
@@ -150,17 +150,17 @@ public abstract class BaseIntegrationTest {
     protected void setupTestUsers() {
         if (userRepository != null) {
             // 고유한 사용자 생성하여 충돌 방지
-            this.testMember = userRepository.save(TestUsers.createUniqueWithPrefix("test"));
-            this.adminMember = userRepository.save(TestUsers.createUniqueWithPrefix("admin", builder -> {
+            this.testMember = userRepository.save(TestMembers.createUniqueWithPrefix("test"));
+            this.adminMember = userRepository.save(TestMembers.createUniqueWithPrefix("admin", builder -> {
                 builder.role(MemberRole.ADMIN);
-                builder.setting(TestUsers.createAllDisabledSetting());
+                builder.setting(TestMembers.createAllDisabledSetting());
             }));
-            this.otherMember = userRepository.save(TestUsers.createUniqueWithPrefix("other"));
+            this.otherMember = userRepository.save(TestMembers.createUniqueWithPrefix("other"));
         } else {
             // UserRepository가 없는 경우 기본 사용자 사용
-            this.testMember = TestUsers.MEMBER_1;
-            this.adminMember = TestUsers.withRole(MemberRole.ADMIN);
-            this.otherMember = TestUsers.MEMBER_2;
+            this.testMember = TestMembers.MEMBER_1;
+            this.adminMember = TestMembers.withRole(MemberRole.ADMIN);
+            this.otherMember = TestMembers.MEMBER_2;
         }
     }
 

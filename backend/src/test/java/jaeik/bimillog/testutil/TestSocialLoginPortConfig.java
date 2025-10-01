@@ -3,7 +3,7 @@ package jaeik.bimillog.testutil;
 import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
-import jaeik.bimillog.domain.auth.entity.KakaoUserInfo;
+import jaeik.bimillog.domain.auth.entity.KakaoMemberInfo;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.member.application.port.out.KakaoFriendPort;
@@ -49,7 +49,7 @@ public class TestSocialLoginPortConfig {
         }
 
         @Override
-        public KakaoUserInfo getUserInfo(String accessToken, String refreshToken) {
+        public KakaoMemberInfo getUserInfo(String accessToken, String refreshToken) {
             String socialId;
 
             // accessToken에 따라 다른 사용자 ID 반환 (테스트 목적)
@@ -61,7 +61,7 @@ public class TestSocialLoginPortConfig {
                 socialId = "test-social-id";
             }
 
-            return KakaoUserInfo.of(
+            return KakaoMemberInfo.of(
                 socialId,
                 null, // 카카오는 이메일을 제공하지 않음
                 SocialProvider.KAKAO,
@@ -143,7 +143,7 @@ public class TestSocialLoginPortConfig {
 
             @Override
             public ExistingMemberDetail getUserInfoFromToken(String jwtAccessToken) {
-                return ExistingMemberDetail.of(TestUsers.MEMBER_1, 1L, 1L);
+                return ExistingMemberDetail.of(TestMembers.MEMBER_1, 1L, 1L);
             }
 
             @Override

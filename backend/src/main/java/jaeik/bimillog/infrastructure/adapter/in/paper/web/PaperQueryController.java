@@ -43,8 +43,8 @@ public class PaperQueryController {
      */
     @GetMapping
     public ResponseEntity<List<MessageDTO>> myPaper(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long userId = userDetails.getUserId();
-        List<MessageDetail> messageDetails = paperQueryUseCase.getMyPaper(userId);
+        Long memberId = userDetails.getMemberId();
+        List<MessageDetail> messageDetails = paperQueryUseCase.getMyPaper(memberId);
         List<MessageDTO> messageDTOs = messageDetails.stream()
                 .map(MessageDTO::from)
                 .toList();
@@ -56,14 +56,14 @@ public class PaperQueryController {
      * <p>특정 사용자명으로 다른 사용자의 롤링페이퍼를 방문하여 메시지 목록을 조회합니다.</p>
      * <p>방문자에게는 메시지 내용과 익명 작성자명을 제외한 그리드 레이아웃 정보만 제공합니다.</p>
      *
-     * @param userName 방문할 롤링페이퍼 소유자의 사용자명
+     * @param memberName 방문할 롤링페이퍼 소유자의 사용자명
      * @return HTTP 응답 엔티티
      * @author Jaeik
      * @since 2.0.0
      */
-    @GetMapping("/{userName}")
-    public ResponseEntity<List<VisitMessageDTO>> visitPaper(@PathVariable String userName) {
-        List<VisitMessageDetail> visitMessageDetails = paperQueryUseCase.visitPaper(userName);
+    @GetMapping("/{memberName}")
+    public ResponseEntity<List<VisitMessageDTO>> visitPaper(@PathVariable String memberName) {
+        List<VisitMessageDetail> visitMessageDetails = paperQueryUseCase.visitPaper(memberName);
         List<VisitMessageDTO> visitMessageDTOs = visitMessageDetails.stream()
                 .map(VisitMessageDTO::from)
                 .toList();

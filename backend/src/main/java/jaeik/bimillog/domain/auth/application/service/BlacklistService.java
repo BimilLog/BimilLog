@@ -9,7 +9,7 @@ import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
-import jaeik.bimillog.domain.member.event.UserWithdrawnEvent;
+import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.infrastructure.filter.JwtFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -74,19 +74,19 @@ public class BlacklistService implements BlacklistUseCase {
      * <h3>사용자 전체 토큰 블랙리스트 등록</h3>
      * <p>특정 사용자가 보유한 모든 활성 JWT 토큰을 블랙리스트에 등록합니다.</p>
      * <p>사용자 계정 정지, 보안 위반, 강제 로그아웃 처리 시 모든 세션을 무효화합니다.</p>
-     * <p>{@link UserWithdrawnEvent}, {@link MemberBannedEvent} 이벤트 발생 시 토큰 무효화를 위해 호출됩니다.</p>
+     * <p>{@link MemberWithdrawnEvent}, {@link MemberBannedEvent} 이벤트 발생 시 토큰 무효화를 위해 호출됩니다.</p>
      *
-     * @param userId 토큰을 차단할 사용자 ID
+     * @param memberId 토큰을 차단할 사용자 ID
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void blacklistAllUserTokens(Long userId) {
+    public void blacklistAllUserTokens(Long memberId) {
         try {
-            List<AuthToken> userAuthTokens = globalTokenQueryPort.findAllByUserId(userId);
+            List<AuthToken> userAuthTokens = globalTokenQueryPort.findAllByMemberId(memberId);
 
             if (userAuthTokens.isEmpty()) {
-                log.info("사용자 {}의 활성 토큰을 찾을 수 없음", userId);
+                log.info("사용자 {}의 활성 토큰을 찾을 수 없음", memberId);
                 return;
             }
 
@@ -106,13 +106,13 @@ public class BlacklistService implements BlacklistUseCase {
 
             if (!tokenHashes.isEmpty()) {
                 redisJwtBlacklistPort.blacklistTokenHashes(tokenHashes, DEFAULT_TTL);
-                log.info("사용자 {}의 토큰 {}개가 블랙리스트에 추가됨", userId, tokenHashes.size());
+                log.info("사용자 {}의 토큰 {}개가 블랙리스트에 추가됨", memberId, tokenHashes.size());
             } else {
-                log.warn("사용자 {}에 대해 블랙리스트에 추가할 유효한 토큰 해시가 없음", userId);
+                log.warn("사용자 {}에 대해 블랙리스트에 추가할 유효한 토큰 해시가 없음", memberId);
             }
 
         } catch (Exception e) {
-            log.error("사용자 {}의 모든 토큰 블랙리스트 등록 실패, 오류={}", userId, e.getMessage(), e);
+            log.error("사용자 {}의 모든 토큰 블랙리스트 등록 실패, 오류={}", memberId, e.getMessage(), e);
         }
     }
 
@@ -120,21 +120,21 @@ public class BlacklistService implements BlacklistUseCase {
      * <h3>사용자 블랙리스트 추가</h3>
      * <p>사용자 ID를 기반으로 사용자를 조회하고 해당 사용자의 소셜 정보로 블랙리스트에 추가합니다.</p>
      *
-     * @param userId 블랙리스트에 추가할 사용자 ID
+     * @param memberId 블랙리스트에 추가할 사용자 ID
      * @since 2.0.0
      * @author Jaeik
      */
     @Override
     @Transactional
-    public void addToBlacklist(Long userId, String socialId, SocialProvider provider) {
+    public void addToBlacklist(Long memberId, String socialId, SocialProvider provider) {
         BlackList blackList = BlackList.createBlackList(socialId, provider);
         try {
             blacklistPort.saveBlackList(blackList);
-            log.info("사용자 블랙리스트 추가 완료 - userId: {}, socialId: {}, provider: {}",
-                    userId, socialId, provider);
+            log.info("사용자 블랙리스트 추가 완료 - memberId: {}, socialId: {}, provider: {}",
+                    memberId, socialId, provider);
         } catch (DataIntegrityViolationException e) {
-            log.warn("이미 블랙리스트에 등록된 사용자 - userId: {}, socialId: {}",
-                    userId, socialId);
+            log.warn("이미 블랙리스트에 등록된 사용자 - memberId: {}, socialId: {}",
+                    memberId, socialId);
         }
     }
 

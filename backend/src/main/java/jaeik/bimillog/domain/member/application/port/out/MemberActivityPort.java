@@ -18,47 +18,47 @@ public interface MemberActivityPort {
      * <h3>사용자 작성 게시글 목록 조회</h3>
      * <p>특정 사용자가 작성한 게시글 목록을 페이지네이션으로 조회합니다.</p>
      *
-     * @param userId   사용자 ID
+     * @param memberId   사용자 ID
      * @param pageable 페이지 정보
      * @return 작성한 게시글 목록 페이지
      * @author jaeik
      * @version 2.0.0
      */
-    Page<PostSearchResult> findPostsByUserId(Long userId, Pageable pageable);
+    Page<PostSearchResult> findPostsByMemberId(Long memberId, Pageable pageable);
 
     /**
      * <h3>사용자 추천한 게시글 목록 조회</h3>
      * <p>특정 사용자가 추천한 게시글 목록을 페이지네이션으로 조회합니다.</p>
      *
-     * @param userId   사용자 ID
+     * @param memberId   사용자 ID
      * @param pageable 페이지 정보
      * @return 추천한 게시글 목록 페이지
      * @author jaeik
      * @version 2.0.0
      */
-    Page<PostSearchResult> findLikedPostsByUserId(Long userId, Pageable pageable);
+    Page<PostSearchResult> findLikedPostsByMemberId(Long memberId, Pageable pageable);
 
     /**
      * <h3>사용자 작성 댓글 목록 조회</h3>
      * <p>특정 사용자가 작성한 댓글 목록을 페이지네이션으로 조회합니다.</p>
      *
-     * @param userId   사용자 ID
+     * @param memberId   사용자 ID
      * @param pageable 페이지 정보
      * @return Page<SimpleCommentInfo> 작성한 댓글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<SimpleCommentInfo> findCommentsByUserId(Long userId, Pageable pageable);
+    Page<SimpleCommentInfo> findCommentsByMemberId(Long memberId, Pageable pageable);
 
     /**
      * <h3>사용자 추천한 댓글 목록 조회</h3>
      * <p>특정 사용자가 추천한 댓글 목록을 페이지네이션으로 조회합니다.</p>
      *
-     * @param userId   사용자 ID
+     * @param memberId   사용자 ID
      * @param pageable 페이지 정보
      * @return Page<SimpleCommentInfo> 추천한 댓글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<SimpleCommentInfo> findLikedCommentsByUserId(Long userId, Pageable pageable);
+    Page<SimpleCommentInfo> findLikedCommentsByMemberId(Long memberId, Pageable pageable);
 }

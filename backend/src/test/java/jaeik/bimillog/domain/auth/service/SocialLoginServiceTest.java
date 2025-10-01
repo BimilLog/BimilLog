@@ -7,14 +7,14 @@ import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPor
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
-import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.member.entity.memberdetail.ExistingMemberDetail;
 import jaeik.bimillog.domain.member.entity.memberdetail.NewMemberDetail;
-import jaeik.bimillog.domain.auth.entity.KakaoUserInfo;
+import jaeik.bimillog.domain.auth.entity.KakaoMemberInfo;
 import jaeik.bimillog.testutil.AuthTestFixtures;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.BeforeEach;
@@ -72,8 +72,8 @@ class SocialLoginServiceTest extends BaseUnitTest {
         // Given
         String generatedAccessToken = "generated-access-token";
         String generatedRefreshToken = "generated-refresh-token";
-        KakaoUserInfo kakaoUserInfo = getTestKakaoUserInfo();
-        SocialUserProfile testUserProfile = getTestUserProfile();
+        KakaoMemberInfo kakaoUserInfo = getTestKakaoUserInfo();
+        SocialMemberProfile testUserProfile = getTestUserProfile();
         ExistingMemberDetail existingMemberDetail = getExistingUserDetail();
         List<ResponseCookie> jwtCookies = getJwtCookies();
 
@@ -113,8 +113,8 @@ class SocialLoginServiceTest extends BaseUnitTest {
     @DisplayName("신규 사용자 소셜 로그인 성공")
     void shouldProcessSocialLogin_WhenNewUser() {
         // Given
-        KakaoUserInfo kakaoUserInfo = getTestKakaoUserInfo();
-        SocialUserProfile testUserProfile = getTestUserProfile();
+        KakaoMemberInfo kakaoUserInfo = getTestKakaoUserInfo();
+        SocialMemberProfile testUserProfile = getTestUserProfile();
         NewMemberDetail newMemberDetail = getNewUserDetail();
         String uuid = newMemberDetail.getUuid() != null ? newMemberDetail.getUuid() : "test-uuid";
         ResponseCookie tempCookie = ResponseCookie.from("temp", uuid)
@@ -157,7 +157,7 @@ class SocialLoginServiceTest extends BaseUnitTest {
     @DisplayName("블랙리스트 사용자 로그인 시 예외 발생")
     void shouldThrowException_WhenBlacklistedUser() {
         // Given
-        KakaoUserInfo kakaoUserInfo = getTestKakaoUserInfo();
+        KakaoMemberInfo kakaoUserInfo = getTestKakaoUserInfo();
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             mockAnonymousAuthentication(mockedSecurityContext);
@@ -271,8 +271,8 @@ class SocialLoginServiceTest extends BaseUnitTest {
     /**
      * 카카오 사용자 정보 DTO 획득 - SocialLoginServiceTest 전용
      */
-    private KakaoUserInfo getTestKakaoUserInfo() {
-        return KakaoUserInfo.of(
+    private KakaoMemberInfo getTestKakaoUserInfo() {
+        return KakaoMemberInfo.of(
                 AuthTestFixtures.TEST_SOCIAL_ID,
                 AuthTestFixtures.TEST_EMAIL,
                 AuthTestFixtures.TEST_PROVIDER,
@@ -284,8 +284,8 @@ class SocialLoginServiceTest extends BaseUnitTest {
     /**
      * 소셜 로그인 사용자 프로필 획득 - SocialLoginServiceTest 전용
      */
-    private SocialUserProfile getTestUserProfile() {
-        return new SocialUserProfile(
+    private SocialMemberProfile getTestUserProfile() {
+        return new SocialMemberProfile(
                 AuthTestFixtures.TEST_SOCIAL_ID,
                 AuthTestFixtures.TEST_EMAIL,
                 AuthTestFixtures.TEST_PROVIDER,

@@ -35,12 +35,12 @@ public interface NotificationCommandPort {
      * <p>전체 알림 또는 선택된 알림에 대해 일괄 업데이트를 수행합니다.</p>
      * <p>{@link NotificationCommandService}에서 사용자의 알림 관리 API 요청 시 호출됩니다.</p>
      *
-     * @param userId        대상 사용자 ID
+     * @param memberId        대상 사용자 ID
      * @param updateCommand 알림 업데이트 정보 (작업 타입과 대상 알림 ID 목록 포함)
      * @author Jaeik
      * @since 2.0.0
      */
-    void batchUpdate(Long userId, NotificationUpdateVO updateCommand);
+    void batchUpdate(Long memberId, NotificationUpdateVO updateCommand);
 
     /**
      * <h3>사용자의 모든 알림 삭제</h3>
@@ -48,9 +48,9 @@ public interface NotificationCommandPort {
      * <p>주로 사용자 탈퇴 시 호출되어 해당 사용자의 모든 알림 데이터를 정리합니다.</p>
      * <p>{@link NotificationCommandService}에서 회원 탈퇴 이벤트 처리 시 호출됩니다.</p>
      *
-     * @param userId 알림을 삭제할 대상 사용자 ID
+     * @param memberId 알림을 삭제할 대상 사용자 ID
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteAllByUserId(Long userId);
+    void deleteAllByMemberId(Long memberId);
 }

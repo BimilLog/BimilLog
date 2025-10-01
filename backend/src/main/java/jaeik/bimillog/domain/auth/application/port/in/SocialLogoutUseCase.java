@@ -24,7 +24,7 @@ public interface SocialLogoutUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    void logout(Long userId, SocialProvider provider, Long tokenId);
+    void logout(Long memberId, SocialProvider provider, Long tokenId);
 
     /**
      * <h3>강제 로그아웃 처리</h3>
@@ -32,5 +32,5 @@ public interface SocialLogoutUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    void forceLogout(Long userId, SocialProvider provider, String socialId);
+    void forceLogout(Long memberId, SocialProvider provider, String socialId);
 }

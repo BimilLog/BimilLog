@@ -4,8 +4,8 @@ import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.global.entity.BaseEntity;
 import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
 import jaeik.bimillog.domain.member.entity.Setting;
-import jaeik.bimillog.domain.member.exception.UserCustomException;
-import jaeik.bimillog.domain.member.exception.UserErrorCode;
+import jaeik.bimillog.domain.member.exception.MemberCustomException;
+import jaeik.bimillog.domain.member.exception.MemberErrorCode;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -28,7 +28,7 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Table(name = "member", indexes = {
-        @Index(name = "idx_user_username", columnList = "userName"),
+        @Index(name = "idx_member_membername", columnList = "memberName"),
         @Index(name = "uk_provider_social_id", columnList = "provider, social_id", unique = true),
 })
 
@@ -59,8 +59,8 @@ public class Member extends BaseEntity {
     private SocialProvider provider;
 
     @NotNull
-    @Column(name = "user_name", unique = true, nullable = false)
-    private String userName;
+    @Column(name = "member_name", unique = true, nullable = false)
+    private String memberName;
 
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -85,7 +85,7 @@ public class Member extends BaseEntity {
      * @author Jaeik
      * @since 2.0.0
      */
-    public void updateUserInfo(String socialNickname, String thumbnailImage) {
+    public void updateMemberInfo(String socialNickname, String thumbnailImage) {
         this.socialNickname = socialNickname;
         this.thumbnailImage = thumbnailImage;
     }
@@ -97,18 +97,18 @@ public class Member extends BaseEntity {
      * 비즈니스 규칙에 따른 닉네임 변경 수행. 중복 검사 및 Race Condition 처리 포함.
      * </p>
      *
-     * @param newUserName 새로운 닉네임
+     * @param newMemberName 새로운 닉네임
      * @param memberQueryPort 중복 확인을 위한 쿼리 포트
-     * @throws UserCustomException 중복된 닉네임인 경우
+     * @throws MemberCustomException 중복된 닉네임인 경우
      * @author Jaeik
      * @since 2.0.0
      */
-    public void changeUserName(String newUserName, MemberQueryPort memberQueryPort) {
-        if (memberQueryPort.existsByUserName(newUserName)) {
-            throw new UserCustomException(UserErrorCode.EXISTED_NICKNAME);
+    public void changeMemberName(String newMemberName, MemberQueryPort memberQueryPort) {
+        if (memberQueryPort.existsByMemberName(newMemberName)) {
+            throw new MemberCustomException(MemberErrorCode.EXISTED_NICKNAME);
         }
-        
-        this.userName = newUserName;
+
+        this.memberName = newMemberName;
     }
 
     /**
@@ -139,18 +139,18 @@ public class Member extends BaseEntity {
      * @param provider 소셜 제공자
      * @param nickname 소셜 닉네임
      * @param profileImageUrl 소셜 프로필 사진 url
-     * @param userName 사용자 이름
+     * @param memberName 사용자 이름
      * @param setting 사용자 설정
      * @param kakaoToken 카카오 OAuth 토큰
      * @return 생성된 사용자 엔티티
      */
-    public static Member createUser(String socialId, SocialProvider provider, String nickname, String profileImageUrl, String userName, Setting setting, KakaoToken kakaoToken) {
+    public static Member createMember(String socialId, SocialProvider provider, String nickname, String profileImageUrl, String memberName, Setting setting, KakaoToken kakaoToken) {
         return Member.builder()
                 .socialId(socialId)
                 .provider(provider)
                 .socialNickname(nickname)
                 .thumbnailImage(profileImageUrl)
-                .userName(userName)
+                .memberName(memberName)
                 .role(MemberRole.USER)
                 .setting(setting)
                 .kakaoToken(kakaoToken)

@@ -52,25 +52,25 @@ public class PostCommandController {
          excludeParams = {"password", "userDetails"})
     public ResponseEntity<Void> writePost(@AuthenticationPrincipal CustomUserDetails userDetails,
                                           @RequestBody @Valid PostCreateDTO postCreateDTO) {
-        Long userId = (userDetails != null) ? userDetails.getUserId() : null;
-        postCreateDTO.setUserId(userId);
-        
-        // userId 설정 후 수동 검증 실행
+        Long memberId = (userDetails != null) ? userDetails.getMemberId() : null;
+        postCreateDTO.setMemberId(memberId);
+
+        // memberId 설정 후 수동 검증 실행
         validatePostRequest(postCreateDTO);
-        
-        Long postId = postCommandUseCase.writePost(userId, postCreateDTO.getTitle(), postCreateDTO.getContent(), postCreateDTO.getParsedPassword());
+
+        Long postId = postCommandUseCase.writePost(memberId, postCreateDTO.getTitle(), postCreateDTO.getContent(), postCreateDTO.getParsedPassword());
         return ResponseEntity.created(URI.create("/api/posts/" + postId)).build();
     }
-    
+
     private void validatePostRequest(PostCreateDTO postCreateDTO) {
         boolean hasPassword = postCreateDTO.getPassword() != null && !postCreateDTO.getPassword().trim().isEmpty();
-        Long userId = postCreateDTO.getUserId();
-        
-        if (userId == null && !hasPassword) {
+        Long memberId = postCreateDTO.getMemberId();
+
+        if (memberId == null && !hasPassword) {
             throw new PostCustomException(PostErrorCode.INVALID_INPUT_VALUE);
         }
-        
-        if (userId != null && hasPassword) {
+
+        if (memberId != null && hasPassword) {
             throw new PostCustomException(PostErrorCode.INVALID_INPUT_VALUE);
         }
     }
@@ -90,7 +90,7 @@ public class PostCommandController {
     public ResponseEntity<Void> updatePost(@PathVariable Long postId,
                                            @AuthenticationPrincipal CustomUserDetails userDetails,
                                            @RequestBody @Valid PostUpdateDTO postUpdateDTO) {
-        postCommandUseCase.updatePost(userDetails.getUserId(), postId, postUpdateDTO.getTitle(), postUpdateDTO.getContent());
+        postCommandUseCase.updatePost(userDetails.getMemberId(), postId, postUpdateDTO.getTitle(), postUpdateDTO.getContent());
         return ResponseEntity.ok().build();
     }
 
@@ -107,7 +107,7 @@ public class PostCommandController {
     @DeleteMapping("/{postId}")
     public ResponseEntity<Void> deletePost(@PathVariable Long postId,
                                            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        postCommandUseCase.deletePost(userDetails.getUserId(), postId);
+        postCommandUseCase.deletePost(userDetails.getMemberId(), postId);
         return ResponseEntity.noContent().build();
     }
 
@@ -124,7 +124,7 @@ public class PostCommandController {
     @PostMapping("/{postId}/like")
     public ResponseEntity<Void> likePost(@PathVariable Long postId,
                                          @AuthenticationPrincipal CustomUserDetails userDetails) {
-        postInteractionUseCase.likePost(userDetails.getUserId(), postId);
+        postInteractionUseCase.likePost(userDetails.getMemberId(), postId);
         return ResponseEntity.ok().build();
     }
 

@@ -43,17 +43,17 @@ public class PaperCommandAdapter implements PaperCommandPort {
      * <p>messageId가 있는 경우: 특정 메시지를 삭제 (단건 삭제)</p>
      * <p>{@link PaperCommandService#deleteMessageInMyPaper}에서 호출됩니다.</p>
      *
-     * @param userId 사용자 ID (전체 삭제 시 사용)
-     * @param messageId 삭제할 메시지 ID (null인 경우 userId로 전체 삭제)
+     * @param memberId 사용자 ID (전체 삭제 시 사용)
+     * @param messageId 삭제할 메시지 ID (null인 경우 memberId로 전체 삭제)
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void deleteMessage(Long userId, Long messageId) {
+    public void deleteMessage(Long memberId, Long messageId) {
         if (messageId != null) {
             messageRepository.deleteById(messageId);
         } else {
-            messageRepository.deleteAllByUser_Id(userId);
+            messageRepository.deleteAllByUser_Id(memberId);
         }
     }
 }

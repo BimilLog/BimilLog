@@ -8,7 +8,7 @@ import jaeik.bimillog.infrastructure.adapter.out.post.PostLikeRepository;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostRepository;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
-import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.annotation.IntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -55,7 +55,7 @@ class PostCacheControllerIntegrationTest extends BaseIntegrationTest {
     private List<Member> createLikeUsers() {
         List<Member> members = new ArrayList<>();
         for (int i = 0; i < 200; i++) {
-            members.add(TestUsers.withSocialId("like_user_" + i));
+            members.add(TestMembers.withSocialId("like_user_" + i));
         }
         return userRepository.saveAll(members);
     }

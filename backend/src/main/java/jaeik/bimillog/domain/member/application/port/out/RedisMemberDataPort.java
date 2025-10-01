@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.member.application.port.out;
 
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
-import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.member.application.service.SignUpService;
 
 import java.util.Optional;
@@ -28,7 +28,7 @@ public interface RedisMemberDataPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    void saveTempData(String uuid, SocialUserProfile userProfile);
+    void saveTempData(String uuid, SocialMemberProfile userProfile);
 
     /**
      * <h3>임시 사용자 데이터 조회</h3>
@@ -41,7 +41,7 @@ public interface RedisMemberDataPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    Optional<SocialUserProfile> getTempData(String uuid);
+    Optional<SocialMemberProfile> getTempData(String uuid);
 
     /**
      * <h3>임시 사용자 데이터 삭제</h3>

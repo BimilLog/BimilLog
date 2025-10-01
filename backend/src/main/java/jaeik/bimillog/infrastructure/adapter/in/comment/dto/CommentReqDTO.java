@@ -33,7 +33,7 @@ public class CommentReqDTO {
 
     private Long postId;
 
-    private Long userId;
+    private Long memberId;
 
     @Size(max = 1000, message = "글 내용은 최대 1000자 까지 입력 가능합니다.")
     private String content;
@@ -58,14 +58,14 @@ public class CommentReqDTO {
             if (password != null) {
                 return password >= 1000 && password <= 9999;
             }
-            // userId가 명시적으로 설정되고 password가 없는 경우 회원 댓글로 검증
-            if (userId != null) {
+            // memberId가 명시적으로 설정되고 password가 없는 경우 회원 댓글로 검증
+            if (memberId != null) {
                 return true;
             }
-            // userId도 password도 없는 경우는 컨트롤러에서 설정할 예정이므로 통과
+            // memberId도 password도 없는 경우는 컨트롤러에서 설정할 예정이므로 통과
             return true;
         }
-        return true; // 수정/삭제시에는 userId 검증 생략 (컨트롤러에서 설정됨)
+        return true; // 수정/삭제시에는 memberId 검증 생략 (컨트롤러에서 설정됨)
     }
 
     @AssertTrue(message = "댓글 수정 시 댓글 ID와 내용은 필수입니다.")

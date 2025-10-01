@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.paper.service;
 
-import jaeik.bimillog.domain.global.application.port.out.GlobalUserQueryPort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalMemberQueryPort;
 import jaeik.bimillog.domain.paper.application.port.out.PaperCommandPort;
 import jaeik.bimillog.domain.paper.application.port.out.PaperQueryPort;
 import jaeik.bimillog.domain.paper.application.service.PaperCommandService;
@@ -43,7 +43,7 @@ class PaperCommandServiceTest extends BaseUnitTest {
     private PaperQueryPort paperQueryPort;
 
     @Mock
-    private GlobalUserQueryPort globalUserQueryPort;
+    private GlobalMemberQueryPort globalUserQueryPort;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;

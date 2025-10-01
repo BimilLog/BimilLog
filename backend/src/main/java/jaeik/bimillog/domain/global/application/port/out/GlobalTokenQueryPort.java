@@ -33,10 +33,10 @@ public interface GlobalTokenQueryPort {
      * <p>특정 사용자가 소유한 모든 토큰을 조회합니다.</p>
      * <p>사용자 차단, 회원 탈퇴 시 모든 토큰을 블랙리스트에 등록하거나 삭제할 때 사용됩니다.</p>
      *
-     * @param userId 토큰을 조회할 사용자 ID
+     * @param memberId 토큰을 조회할 사용자 ID
      * @return List&lt;AuthToken&gt; 해당 사용자의 모든 토큰 목록
      * @author Jaeik
      * @since 2.0.0
      */
-    List<AuthToken> findAllByUserId(Long userId);
+    List<AuthToken> findAllByMemberId(Long memberId);
 }

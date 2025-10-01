@@ -4,10 +4,10 @@ import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
 import jaeik.bimillog.domain.member.application.service.MemberCommandService;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.entity.member.Member;
-import jaeik.bimillog.domain.member.exception.UserCustomException;
-import jaeik.bimillog.domain.member.exception.UserErrorCode;
+import jaeik.bimillog.domain.member.exception.MemberCustomException;
+import jaeik.bimillog.domain.member.exception.MemberErrorCode;
 import jaeik.bimillog.testutil.BaseUnitTest;
-import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestMembers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -75,8 +75,8 @@ class MemberCommandServiceTest extends BaseUnitTest {
 
         // When & Then
         assertThatThrownBy(() -> userCommandService.updateUserSettings(userId, newSetting))
-                .isInstanceOf(UserCustomException.class)
-                .hasMessage(UserErrorCode.USER_NOT_FOUND.getMessage());
+                .isInstanceOf(MemberCustomException.class)
+                .hasMessage(MemberErrorCode.USER_NOT_FOUND.getMessage());
 
         verify(memberQueryPort).findById(userId);
     }
@@ -132,8 +132,8 @@ class MemberCommandServiceTest extends BaseUnitTest {
 
         // When & Then
         assertThatThrownBy(() -> userCommandService.updateUserName(userId, newUserName))
-                .isInstanceOf(UserCustomException.class)
-                .hasMessage(UserErrorCode.USER_NOT_FOUND.getMessage());
+                .isInstanceOf(MemberCustomException.class)
+                .hasMessage(MemberErrorCode.USER_NOT_FOUND.getMessage());
 
         verify(memberQueryPort).findById(userId);
     }
@@ -209,7 +209,7 @@ class MemberCommandServiceTest extends BaseUnitTest {
         Long userId = 1L;
         String racedUserName = "racedNickname";
 
-        Member member = TestUsers.copyWithId(getTestUser(), userId);
+        Member member = TestMembers.copyWithId(getTestUser(), userId);
 
         given(memberQueryPort.findById(userId)).willReturn(Optional.of(member));
 

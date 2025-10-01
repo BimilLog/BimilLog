@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.paper.application.service;
 
-import jaeik.bimillog.domain.global.application.port.out.GlobalUserQueryPort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalMemberQueryPort;
 import jaeik.bimillog.domain.paper.application.port.in.PaperQueryUseCase;
 import jaeik.bimillog.domain.paper.application.port.out.PaperQueryPort;
 import jaeik.bimillog.domain.paper.entity.Message;
@@ -27,7 +27,7 @@ import java.util.List;
 public class PaperQueryService implements PaperQueryUseCase {
 
     private final PaperQueryPort paperQueryPort;
-    private final GlobalUserQueryPort globalUserQueryPort;
+    private final GlobalMemberQueryPort globalUserQueryPort;
 
 
     /**
@@ -36,14 +36,14 @@ public class PaperQueryService implements PaperQueryUseCase {
      * <p>메시지 내용과 작성자명을 포함한 완전한 정보를 제공합니다.</p>
      * <p>{@link PaperQueryController}에서 내 롤링페이퍼 조회 요청 시 호출됩니다.</p>
      *
-     * @param userId 조회할 사용자 ID
+     * @param memberId 조회할 사용자 ID
      * @return 사용자의 롤링페이퍼 메시지 상세 정보 목록
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public List<MessageDetail> getMyPaper(Long userId) {
-        List<Message> messages = paperQueryPort.findMessagesByUserId(userId);
+    public List<MessageDetail> getMyPaper(Long memberId) {
+        List<Message> messages = paperQueryPort.findMessagesByUserId(memberId);
         return messages.stream()
                 .map(MessageDetail::from)
                 .toList();
@@ -56,23 +56,23 @@ public class PaperQueryService implements PaperQueryUseCase {
      * <p>내용과 작성자명은 제외하고 그리드 위치와 장식 정보만 제공합니다.</p>
      * <p>{@link PaperQueryController}에서 타인의 롤링페이퍼 방문 요청 시 호출됩니다.</p>
      *
-     * @param userName 방문할 사용자명
+     * @param memberName 방문할 사용자명
      * @return 방문용 메시지 상세 정보 목록
      * @throws PaperCustomException 사용자가 존재하지 않는 경우
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public List<VisitMessageDetail> visitPaper(String userName) {
-        if (userName == null || userName.trim().isEmpty()) {
+    public List<VisitMessageDetail> visitPaper(String memberName) {
+        if (memberName == null || memberName.trim().isEmpty()) {
             throw new PaperCustomException(PaperErrorCode.INVALID_INPUT_VALUE);
         }
         
-        boolean exists = globalUserQueryPort.existsByUserName(userName);
+        boolean exists = globalUserQueryPort.existsByMemberName(memberName);
         if (!exists) {
             throw new PaperCustomException(PaperErrorCode.USERNAME_NOT_FOUND);
         }
-        List<Message> messages = paperQueryPort.findMessagesByUserName(userName);
+        List<Message> messages = paperQueryPort.findMessagesByMemberName(memberName);
         return messages.stream()
                 .map(VisitMessageDetail::from)
                 .toList();

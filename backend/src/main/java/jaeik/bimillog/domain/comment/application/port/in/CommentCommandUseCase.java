@@ -19,7 +19,7 @@ public interface CommentCommandUseCase {
      * <p>로그인 사용자는 별도 인증 없이 작성, 익명 사용자는 비밀번호를 설정합니다.</p>
      * <p>{@link CommentCommandController}에서 API 요청을 처리할 때 호출합니다.</p>
      *
-     * @param userId 사용자 ID (로그인한 경우), null인 경우 익명 댓글
+     * @param memberId 사용자 ID (로그인한 경우), null인 경우 익명 댓글
      * @param postId 게시글 ID
      * @param parentId 부모 댓글 ID (대댓글인 경우)
      * @param content 댓글 내용
@@ -27,7 +27,7 @@ public interface CommentCommandUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    void writeComment(Long userId, Long postId, Long parentId, String content, Integer password);
+    void writeComment(Long memberId, Long postId, Long parentId, String content, Integer password);
 
     /**
      * <h3>댓글 수정</h3>
@@ -36,13 +36,13 @@ public interface CommentCommandUseCase {
      * <p>{@link CommentCommandController}에서 API 요청을 처리할 때 호출합니다.</p>
      *
      * @param commentId 수정할 댓글 ID
-     * @param userId 사용자 ID (로그인한 경우), null인 경우 익명 댓글
+     * @param memberId 사용자 ID (로그인한 경우), null인 경우 익명 댓글
      * @param content 새로운 댓글 내용
      * @param password 댓글 비밀번호 (익명 댓글인 경우)
      * @author Jaeik
      * @since 2.0.0
      */
-    void updateComment(Long commentId, Long userId, String content, Integer password);
+    void updateComment(Long commentId, Long memberId, String content, Integer password);
 
     /**
      * <h3>댓글 삭제</h3>
@@ -51,12 +51,12 @@ public interface CommentCommandUseCase {
      * <p>{@link CommentCommandController}에서 API 요청을 처리할 때 호출합니다.</p>
      *
      * @param commentId 삭제할 댓글 ID
-     * @param userId 사용자 ID (로그인한 경우), null인 경우 익명 댓글
+     * @param memberId 사용자 ID (로그인한 경우), null인 경우 익명 댓글
      * @param password 댓글 비밀번호 (익명 댓글인 경우)
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteComment(Long commentId, Long userId, Integer password);
+    void deleteComment(Long commentId, Long memberId, Integer password);
 
     /**
      * <h3>사용자 탈퇴 시 댓글 처리</h3>
@@ -64,11 +64,11 @@ public interface CommentCommandUseCase {
      * <p>자손이 있는 댓글: 소프트 삭제 + 익명화</p>
      * <p>자손이 없는 댓글: 하드 삭제</p>
      *
-     * @param userId 탈퇴하는 사용자 ID
+     * @param memberId 탈퇴하는 사용자 ID
      * @author Jaeik
      * @since 2.0.0
      */
-    void processUserCommentsOnWithdrawal(Long userId);
+    void processUserCommentsOnWithdrawal(Long memberId);
 
     /**
      * <h3>댓글 추천/취소</h3>
@@ -76,12 +76,12 @@ public interface CommentCommandUseCase {
      * <p>이미 추천한 댓글을 다시 누르면 취소, 추천하지 않은 댓글을 누르면 추천됩니다.</p>
      * <p>{@link CommentCommandController}에서 API 요청을 처리할 때 호출합니다.</p>
      *
-     * @param userId 사용자 ID (로그인한 경우), null인 경우 익명 사용자
+     * @param memberId 사용자 ID (로그인한 경우), null인 경우 익명 사용자
      * @param commentId 추천/취소할 댓글 ID
      * @author Jaeik
      * @since 2.0.0
      */
-    void likeComment(Long userId, Long commentId);
+    void likeComment(Long memberId, Long commentId);
 
     /**
      * <h3>특정 글의 모든 댓글 삭제</h3>

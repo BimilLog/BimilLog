@@ -7,7 +7,7 @@ package jaeik.bimillog.domain.notification.entity;
  * </p>
  * <p>롤링페이퍼 메시지 등록, 댓글 작성, 관리자 공지 등의 이벤트 발생 시 NotificationService에서 요청되어 실시간 브라우저 알림을 위한 SSE 메시지를 생성하는 클래스</p>
  *
- * @param userId 수신자 사용자 ID
+ * @param memberId 수신자 회원 ID
  * @param type 알림 유형
  * @param message 알림 메시지
  * @param url 알림 클릭 시 이동할 URL
@@ -15,7 +15,7 @@ package jaeik.bimillog.domain.notification.entity;
  * @version 2.0.0
  */
 public record SseMessage(
-        Long userId,
+        Long memberId,
         NotificationType type,
         String message,
         String url
@@ -24,10 +24,10 @@ public record SseMessage(
 
     /**
      * <h3>SSE 메시지 생성</h3>
-     * <p>사용자 ID, 알림 유형, 메시지, URL로 SSE 메시지를 생성합니다.</p>
+     * <p>회원 ID, 알림 유형, 메시지, URL로 SSE 메시지를 생성합니다.</p>
      * <p>롤링페이퍼 메시지 등록, 댓글 작성, 관리자 공지 등의 이벤트 발생 시 NotificationService에서 실시간 브라우저 알림 전송을 위해 호출되는 메서드</p>
      *
-     * @param userId 수신자 사용자 ID
+     * @param memberId 수신자 회원 ID
      * @param type 알림 유형
      * @param message 알림 메시지
      * @param url 알림 URL
@@ -35,8 +35,8 @@ public record SseMessage(
      * @author Jaeik
      * @since 2.0.0
      */
-    public static SseMessage of(Long userId, NotificationType type, String message, String url) {
-        return new SseMessage(userId, type, message, url);
+    public static SseMessage of(Long memberId, NotificationType type, String message, String url) {
+        return new SseMessage(memberId, type, message, url);
     }
 
     /**

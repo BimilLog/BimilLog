@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.member.application.port.in.SignUpUseCase;
 import jaeik.bimillog.domain.member.application.port.in.MemberCommandUseCase;
 import jaeik.bimillog.domain.member.event.ReportSubmittedEvent;
-import jaeik.bimillog.domain.member.event.UserWithdrawnEvent;
+import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.infrastructure.adapter.in.admin.dto.ReportDTO;
 import jaeik.bimillog.infrastructure.adapter.in.auth.dto.AuthResponseDTO;
 import jaeik.bimillog.infrastructure.adapter.in.member.dto.SettingDTO;
@@ -43,7 +43,7 @@ public class MemberCommandController {
      * <h3>회원가입</h3>
      * <p>사용자의 회원가입 요청을 처리합니다.</p>
      *
-     * @param request 회원가입 요청 DTO (userName, uuid)
+     * @param request 회원가입 요청 DTO (memberName, uuid)
      * @return 회원 가입 성공 응답
      * @author Jaeik
      * @since 2.0.0
@@ -56,7 +56,7 @@ public class MemberCommandController {
     public ResponseEntity<AuthResponseDTO> signUp(@Valid @RequestBody SignUpRequestDTO request) {
 
         // 회원가입 로직 실행 후 쿠키 리스트 받기
-        List<ResponseCookie> cookies = signUpUseCase.signUp(request.getUserName(), request.getUuid());
+        List<ResponseCookie> cookies = signUpUseCase.signUp(request.getMemberName(), request.getUuid());
 
         // ResponseEntity builder 생성
         ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.ok();
@@ -85,7 +85,7 @@ public class MemberCommandController {
     @PostMapping("/username")
     public ResponseEntity<String> updateUserName(@AuthenticationPrincipal CustomUserDetails userDetails,
                                                  @RequestBody @Valid MemberNameDTO memberNameDTO) {
-        memberCommandUseCase.updateUserName(userDetails.getUserId(), memberNameDTO.getUserName());
+        memberCommandUseCase.updateMemberName(userDetails.getMemberId(), memberNameDTO.getMemberName());
         return ResponseEntity.ok("닉네임이 변경되었습니다.");
     }
 
@@ -103,7 +103,7 @@ public class MemberCommandController {
     @PostMapping("/setting")
     public ResponseEntity<String> updateSetting(@RequestBody @Valid SettingDTO settingDTO,
                                                 @AuthenticationPrincipal CustomUserDetails userDetails) {
-        memberCommandUseCase.updateUserSettings(userDetails.getUserId(), settingDTO.toSettingEntity());
+        memberCommandUseCase.updateMemberSettings(userDetails.getMemberId(), settingDTO.toSettingEntity());
         return ResponseEntity.ok("설정 수정 완료");
     }
 
@@ -149,7 +149,7 @@ public class MemberCommandController {
      */
     @DeleteMapping("/withdraw")
     public ResponseEntity<AuthResponseDTO> withdraw(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        eventPublisher.publishEvent(new UserWithdrawnEvent(userDetails.getUserId(), userDetails.getSocialId(), userDetails.getSocialProvider()));
+        eventPublisher.publishEvent(new MemberWithdrawnEvent(userDetails.getMemberId(), userDetails.getSocialId(), userDetails.getSocialProvider()));
         return ResponseEntity.ok()
                 .headers(headers -> globalCookiePort.getLogoutCookies().forEach(cookie ->
                         headers.add("Set-Cookie", cookie.toString())))

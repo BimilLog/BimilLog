@@ -141,7 +141,7 @@ public class NotificationTestDataBuilder {
      */
     public Notification build() {
         if (receiver == null) {
-            receiver = TestUsers.MEMBER_1; // 기본 수신자
+            receiver = TestMembers.MEMBER_1; // 기본 수신자
         }
 
         // Create notification using the static factory method

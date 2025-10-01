@@ -9,7 +9,7 @@ import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPor
 import jaeik.bimillog.domain.auth.application.port.out.AuthTokenPort;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
-import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
@@ -19,7 +19,7 @@ import jaeik.bimillog.domain.member.entity.memberdetail.ExistingMemberDetail;
 import jaeik.bimillog.domain.member.entity.memberdetail.NewMemberDetail;
 import jaeik.bimillog.domain.member.entity.memberdetail.MemberDetail;
 import jaeik.bimillog.infrastructure.adapter.in.auth.web.AuthCommandController;
-import jaeik.bimillog.domain.auth.entity.KakaoUserInfo;
+import jaeik.bimillog.domain.auth.entity.KakaoMemberInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseCookie;
@@ -72,10 +72,10 @@ public class SocialLoginService implements SocialLoginUseCase {
         // 1. 전략 포트를 통해 OAuth 인증 수행
         SocialStrategyPort strategy = strategyRegistryPort.getStrategy(provider);
         KakaoToken kakaoToken = strategy.getToken(code);
-        KakaoUserInfo kakaoUserInfo = strategy.getUserInfo(kakaoToken.getKakaoAccessToken());
+        KakaoMemberInfo kakaoUserInfo = strategy.getUserInfo(kakaoToken.getKakaoAccessToken());
 
-        // 2. KakaoToken, KakaoUserInfo, fcmToken을 조합하여 SocialUserProfile 생성
-        SocialUserProfile socialUserProfile = SocialUserProfile.of(
+        // 2. KakaoToken, KakaoMemberInfo, fcmToken을 조합하여 SocialMemberProfile 생성
+        SocialMemberProfile socialUserProfile = SocialMemberProfile.of(
                 kakaoUserInfo.getSocialId(),
                 kakaoUserInfo.getEmail(),
                 kakaoUserInfo.getProvider(),

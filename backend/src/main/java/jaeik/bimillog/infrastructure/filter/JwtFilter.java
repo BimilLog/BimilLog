@@ -133,14 +133,14 @@ public class JwtFilter extends OncePerRequestFilter {
                 // 2-5. 탈취 감지: 이미 사용된 리프레시 토큰 재사용 시도
                 if (authToken.getUseCount() != null && authToken.getUseCount() > 0) {
                     // 모든 토큰 무효화 (보안 조치)
-                    authTokenPort.deleteAllByUserId(authToken.getUsers().getId());
+                    authTokenPort.deleteAllByMemberId(authToken.getMember().getId());
                     throw new CustomException(ErrorCode.SUSPICIOUS_ACTIVITY);
                 }
 
                 // 2-6. DB 저장 토큰과 클라이언트 토큰 비교 검증
                 if (!refreshToken.equals(authToken.getRefreshToken())) {
                     // 토큰 불일치 → 탈취 의심
-                    authTokenPort.deleteAllByUserId(authToken.getUsers().getId());
+                    authTokenPort.deleteAllByMemberId(authToken.getMember().getId());
                     throw new CustomException(ErrorCode.TOKEN_MISMATCH);
                 }
 
@@ -148,7 +148,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 authTokenPort.markTokenAsUsed(tokenId);
 
                 // 2-8. 유저 정보 조회
-                Member member = memberQueryPort.findByIdWithSetting(authToken.getUsers().getId())
+                Member member = memberQueryPort.findByIdWithSetting(authToken.getMember().getId())
                         .orElseThrow(() -> new CustomException(ErrorCode.TOKEN_NOT_FOUND));
                 ExistingMemberDetail userDetail = ExistingMemberDetail.of(member, tokenId, null);
 

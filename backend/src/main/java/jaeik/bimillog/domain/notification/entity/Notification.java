@@ -29,8 +29,8 @@ public class Notification extends BaseEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private Member users;
+    @JoinColumn(name = "member_id")
+    private Member member;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -72,7 +72,7 @@ public class Notification extends BaseEntity {
      */
     public static Notification create(Member member, NotificationType notificationType, String content, String url) {
         return Notification.builder()
-                .users(member)
+                .member(member)
                 .notificationType(notificationType)
                 .content(content)
                 .url(url)

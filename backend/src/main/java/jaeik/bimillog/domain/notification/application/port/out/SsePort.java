@@ -19,13 +19,13 @@ public interface SsePort {
      * <p>30분 타임아웃을 설정하며, 사용자 ID와 토큰 ID 조합으로 고유한 연결 식별자를 생성합니다.</p>
      * <p>NotificationSseService에서 클라이언트의 구독 요청 시 호출됩니다.</p>
      *
-     * @param userId  사용자 ID
+     * @param memberId  사용자 ID
      * @param tokenId 토큰 ID (다중 기기 구분용)
      * @return SseEmitter (30분 타임아웃 설정된 SSE 연결)
      * @author Jaeik
      * @since 2.0.0
      */
-    SseEmitter subscribe(Long userId, Long tokenId);
+    SseEmitter subscribe(Long memberId, Long tokenId);
 
     /**
      * <h3>SSE 연결 정리</h3>
@@ -34,12 +34,12 @@ public interface SsePort {
      * <p>tokenId가 있는 경우 해당 기기의 SSE 연결만 선택적으로 제거합니다.</p>
      * <p>NotificationSseService에서 사용자 탈퇴 또는 로그아웃 시 연결 정리를 위해 호출됩니다.</p>
      *
-     * @param userId 사용자 ID
+     * @param memberId 사용자 ID
      * @param tokenId 토큰 ID (null인 경우 모든 연결 정리)
      * @since 2.0.0
      * @author Jaeik
      */
-    void deleteEmitters(Long userId, Long tokenId);
+    void deleteEmitters(Long memberId, Long tokenId);
 
     /**
      * <h3>SSE 메시지 전송</h3>

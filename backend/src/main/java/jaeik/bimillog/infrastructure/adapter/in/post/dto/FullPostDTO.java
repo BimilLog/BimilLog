@@ -29,8 +29,8 @@ import java.time.Instant;
 @AllArgsConstructor
 public class FullPostDTO {
     private Long id;
-    private Long userId;
-    private String userName;
+    private Long memberId;
+    private String memberName;
     private String title;
     private String content;
     private Integer viewCount;

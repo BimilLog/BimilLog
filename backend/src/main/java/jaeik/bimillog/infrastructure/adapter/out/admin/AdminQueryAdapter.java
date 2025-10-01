@@ -7,7 +7,7 @@ import jaeik.bimillog.domain.admin.application.service.AdminQueryService;
 import jaeik.bimillog.domain.admin.entity.QReport;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.domain.user.entity.user.QUser;
+import jaeik.bimillog.domain.member.entity.member.QMember;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -46,13 +46,13 @@ public class AdminQueryAdapter implements AdminQueryPort {
     @Transactional(readOnly = true)
     public Page<Report> findReportsWithPaging(ReportType reportType, Pageable pageable) {
         QReport report = QReport.report;
-        QUser user = QUser.user;
+        QMember member = QMember.member;
         BooleanExpression whereClause = (reportType == null) ? null : report.reportType.eq(reportType);
 
         List<Report> reports = queryFactory
                 .select(report)
                 .from(report)
-                .leftJoin(report.reporter, user).fetchJoin()
+                .leftJoin(report.reporter, member).fetchJoin()
                 .where(whereClause)
                 .orderBy(report.createdAt.desc())
                 .offset(pageable.getOffset())

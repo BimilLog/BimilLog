@@ -71,18 +71,18 @@ public class PostLikeQueryAdapter implements PostLikeQueryPort {
      * <p>캐시된 게시글의 추천 여부 확인 시 사용</p>
      *
      * @param postId 게시글 ID
-     * @param userId 사용자 ID
+     * @param memberId 사용자 ID
      * @return 추천이 존재하면 true, 아니면 false
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public boolean existsByPostIdAndUserId(Long postId, Long userId) {
+    public boolean existsByPostIdAndUserId(Long postId, Long memberId) {
         Integer count = jpaQueryFactory
                 .selectOne()
                 .from(postLike)
                 .where(postLike.post.id.eq(postId)
-                        .and(postLike.user.id.eq(userId)))
+                        .and(postLike.member.id.eq(memberId)))
                 .fetchFirst();
         
         return count != null;

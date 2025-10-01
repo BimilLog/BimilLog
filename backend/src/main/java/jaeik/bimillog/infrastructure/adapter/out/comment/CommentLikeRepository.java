@@ -26,26 +26,26 @@ public interface CommentLikeRepository extends JpaRepository<CommentLike, Long> 
      * <p>주어진 댓글 ID와 사용자 ID에 해당하는 추천이 존재하는지 EXISTS 쿼리로 확인합니다.</p>
      *
      * @param commentId 댓글 ID
-     * @param userId    사용자 ID
+     * @param memberId    사용자 ID
      * @return boolean 추천이 존재하면 true, 아니면 false
      * @author Jaeik
      * @since 2.0.0
      */
-    @Query("SELECT CASE WHEN COUNT(cl) > 0 THEN true ELSE false END FROM CommentLike cl WHERE cl.comment.id = :commentId AND cl.member.id = :userId")
-    boolean existsByCommentIdAndUserId(@Param("commentId") Long commentId, @Param("userId") Long userId);
+    @Query("SELECT CASE WHEN COUNT(cl) > 0 THEN true ELSE false END FROM CommentLike cl WHERE cl.comment.id = :commentId AND cl.member.id = :memberId")
+    boolean existsByCommentIdAndUserId(@Param("commentId") Long commentId, @Param("memberId") Long memberId);
 
     /**
      * <h3>댓글 ID와 사용자 ID로 추천 삭제</h3>
      * <p>주어진 댓글 ID와 사용자 ID에 해당하는 추천을 직접 삭제합니다.</p>
      *
      * @param commentId 댓글 ID
-     * @param userId    사용자 ID
+     * @param memberId    사용자 ID
      * @author Jaeik
      * @since 2.0.0
      */
     @Modifying
-    @Query("DELETE FROM CommentLike cl WHERE cl.comment.id = :commentId AND cl.member.id = :userId")
-    void deleteByCommentIdAndUserId(@Param("commentId") Long commentId, @Param("userId") Long userId);
+    @Query("DELETE FROM CommentLike cl WHERE cl.comment.id = :commentId AND cl.member.id = :memberId")
+    void deleteByCommentIdAndUserId(@Param("commentId") Long commentId, @Param("memberId") Long memberId);
 
 }
 

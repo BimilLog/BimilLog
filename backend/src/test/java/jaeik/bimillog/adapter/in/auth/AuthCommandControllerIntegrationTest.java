@@ -8,7 +8,7 @@ import jaeik.bimillog.infrastructure.adapter.out.auth.TokenRepository;
 import jaeik.bimillog.testutil.AuthTestFixtures;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
-import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.annotation.IntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -63,7 +63,7 @@ class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("소셜 로그인 통합 테스트 - 기존 사용자")
     void socialLogin_ExistingUser_IntegrationTest() throws Exception {
-        Member existingMember = TestUsers.createUser(builder -> {
+        Member existingMember = TestMembers.createUser(builder -> {
             builder.socialId("test-social-id-12345");
             builder.userName("existing-member");
             builder.socialNickname("existing-member");
@@ -86,7 +86,7 @@ class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("로그아웃 통합 테스트 - 성공")
     void logout_IntegrationTest_Success() throws Exception {
-        Member testMember = TestUsers.createUnique();
+        Member testMember = TestMembers.createUnique();
         testMember = userRepository.save(testMember);
 
         AuthToken authToken = AuthToken.createToken("access-authToken", "refresh-authToken", testMember);
@@ -108,7 +108,7 @@ class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("회원탈퇴 통합 테스트 - 성공")
     void withdraw_IntegrationTest_Success() throws Exception {
-        Member testMember = TestUsers.createUnique();
+        Member testMember = TestMembers.createUnique();
         userRepository.save(testMember);
 
         CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testMember);

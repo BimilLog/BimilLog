@@ -7,7 +7,7 @@ import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.out.notification.NotificationUtilAdapter;
 import jaeik.bimillog.testutil.H2TestConfiguration;
-import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestMembers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -60,15 +60,15 @@ class NotificationUtilAdapterIntegrationTest {
     @BeforeEach
     void setUp() {
         // Given: 알림이 활성화된 사용자 설정
-        enabledMember = TestUsers.copyWithId(TestUsers.MEMBER_1, null);
+        enabledMember = TestMembers.copyWithId(TestMembers.MEMBER_1, null);
         enabledMember = testEntityManager.persistAndFlush(enabledMember);
         enabledUserId = enabledMember.getId();
 
         // Given: 알림이 비활성화된 사용자 설정
-        Setting disabledSetting = TestUsers.createAllDisabledSetting();
+        Setting disabledSetting = TestMembers.createAllDisabledSetting();
         disabledSetting = testEntityManager.persistAndFlush(disabledSetting);
 
-        Member sourceMember = TestUsers.MEMBER_2;
+        Member sourceMember = TestMembers.MEMBER_2;
         disabledMember = Member.createUser(
             sourceMember.getSocialId(),
             sourceMember.getProvider(),

@@ -5,7 +5,7 @@ import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.H2TestConfiguration;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
-import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestMembers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -67,7 +67,7 @@ class NotificationSseControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("다른 사용자들의 동시 SSE 구독 - 성공")
     void subscribe_MultipleUsers_Success() throws Exception {
         // Given - 추가 사용자 생성 (BaseIntegrationTest에서 otherMember, adminMember 이미 제공)
-        Member additionalMember = TestUsers.createUniqueWithPrefix("additional");
+        Member additionalMember = TestMembers.createUniqueWithPrefix("additional");
         userRepository.save(additionalMember);
         CustomUserDetails additionalUserDetails = createCustomUserDetails(additionalMember);
 

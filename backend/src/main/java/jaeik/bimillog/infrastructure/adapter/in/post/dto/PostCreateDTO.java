@@ -32,7 +32,7 @@ public class PostCreateDTO {
     @Pattern(regexp = "^\\d{4}$", message = "비밀번호는 4자리 숫자여야 합니다")
     private String password;
 
-    private Long userId;
+    private Long memberId;
 
     public Integer getParsedPassword() {
         if (password != null && !password.trim().isEmpty()) {

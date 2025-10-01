@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.auth.application.port.out.KakaoTokenPort;
 import jaeik.bimillog.domain.auth.application.port.out.AuthTokenPort;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
-import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.member.application.port.out.SaveMemberPort;
 import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
 import jaeik.bimillog.domain.member.entity.Setting;
@@ -38,7 +38,7 @@ public class SaveMemberAdapter implements SaveMemberPort {
 
     private final AuthTokenPort authTokenPort;
     private final KakaoTokenPort kakaoTokenPort;
-    private final UserRepository userRepository;
+    private final MemberRepository userRepository;
     private final FcmUseCase fcmUseCase;
 
     /**
@@ -53,8 +53,8 @@ public class SaveMemberAdapter implements SaveMemberPort {
      */
     @Override
     @Transactional
-    public ExistingMemberDetail handleExistingUserData(Member existingMember, SocialUserProfile userProfile) {
-        existingMember.updateUserInfo(userProfile.getNickname(), userProfile.getProfileImageUrl());
+    public ExistingMemberDetail handleExistingUserData(Member existingMember, SocialMemberProfile userProfile) {
+        existingMember.updateMemberInfo(userProfile.getNickname(), userProfile.getProfileImageUrl());
 
         Long fcmTokenId = registerFcmTokenIfPresent(existingMember, userProfile.getFcmToken());
 
@@ -77,7 +77,7 @@ public class SaveMemberAdapter implements SaveMemberPort {
      * <p>소셜 로그인 회원가입에서 입력받은 닉네임과 임시 데이터를 사용하여 신규 회원을 등록합니다.</p>
      * <p>Member 엔티티와 Setting 생성, AuthToken 엔티티 생성/저장, FCM 토큰 등록을 수행합니다.</p>
      *
-     * @param userName 사용자가 입력한 닉네임
+     * @param memberName 사용자가 입력한 닉네임
      * @param userProfile 소셜 사용자 프로필 (OAuth 액세스/리프레시 토큰, FCM 토큰 포함)
      * @return ExistingMemberDetail 생성된 사용자 정보를 담은 객체
      * @author Jaeik
@@ -85,7 +85,7 @@ public class SaveMemberAdapter implements SaveMemberPort {
      */
     @Override
     @Transactional
-    public ExistingMemberDetail saveNewUser(String userName, SocialUserProfile userProfile) {
+    public ExistingMemberDetail saveNewMember(String memberName, SocialMemberProfile userProfile) {
         Setting setting = Setting.createSetting();
 
         // 1. KakaoToken 생성 및 저장
@@ -98,12 +98,12 @@ public class SaveMemberAdapter implements SaveMemberPort {
 
         // 2. Member 생성 (KakaoToken 포함)
         Member member = userRepository.save(
-            Member.createUser(
+            Member.createMember(
                 userProfile.getSocialId(),
                 userProfile.getProvider(),
                 userProfile.getNickname(),
                 userProfile.getProfileImageUrl(),
-                userName,
+                memberName,
                 setting,
                 kakaoToken
             )

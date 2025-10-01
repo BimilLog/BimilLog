@@ -48,13 +48,13 @@ public class UrlGeneratorAdapter implements UrlGeneratorPort {
      * <h3>롤링페이퍼 URL 생성</h3>
      * <p>주어진 사용자 이름에 해당하는 롤링페이퍼 페이지 URL을 생성합니다.</p>
      *
-     * @param userName 롤링페이퍼 주인의 사용자 이름
+     * @param memberName 롤링페이퍼 주인의 사용자 이름
      * @return 롤링페이퍼 URL
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public String generateRollingPaperUrl(String userName) {
-        return baseUrl + "/rolling-paper/" + userName;
+    public String generateRollingPaperUrl(String memberName) {
+        return baseUrl + "/rolling-paper/" + memberName;
     }
 }

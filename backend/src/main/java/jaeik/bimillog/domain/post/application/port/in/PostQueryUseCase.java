@@ -39,12 +39,12 @@ public interface PostQueryUseCase {
      * <p>{@link PostQueryController}에서 GET /api/post/{postId} 요청 처리 시 호출됩니다.</p>
      *
      * @param postId 조회할 게시글의 식별자 ID
-     * @param userId 현재 로그인한 사용자 ID (추천여부 확인용, null 가능)
+     * @param memberId 현재 로그인한 사용자 ID (추천여부 확인용, null 가능)
      * @return PostDetail 게시글 상세 정보와 연관 데이터
      * @author Jaeik
      * @since 2.0.0
      */
-    PostDetail getPost(Long postId, Long userId);
+    PostDetail getPost(Long postId, Long memberId);
 
     /**
      * <h3>게시글 전문 검색</h3>
@@ -118,13 +118,13 @@ public interface PostQueryUseCase {
      * <p>사용자 프로필 페이지에서 작성 활동 내역 확인 시 사용</p>
      * <p>Member 도메인에서 사용자 활동 내역 조회 시 호출됩니다.</p>
      *
-     * @param userId 작성글을 조회할 사용자의 식별자 ID
+     * @param memberId 작성글을 조회할 사용자의 식별자 ID
      * @param pageable 페이지 정보 (페이지 번호, 크기, 정렬)
      * @return Page<PostSearchResult> 사용자가 작성한 게시글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<PostSearchResult> getUserPosts(Long userId, Pageable pageable);
+    Page<PostSearchResult> getMemberPosts(Long memberId, Pageable pageable);
 
     /**
      * <h3>사용자 추천 게시글 내역 조회</h3>
@@ -132,11 +132,11 @@ public interface PostQueryUseCase {
      * <p>사용자 프로필 페이지에서 추천한 게시글 내역 확인 시 사용</p>
      * <p>Member 도메인에서 사용자 활동 내역 조회 시 호출됩니다.</p>
      *
-     * @param userId 추천글을 조회할 사용자의 식별자 ID
+     * @param memberId 추천글을 조회할 사용자의 식별자 ID
      * @param pageable 페이지 정보 (페이지 번호, 크기, 정렬)
      * @return Page<PostSearchResult> 사용자가 추천한 게시글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<PostSearchResult> getUserLikedPosts(Long userId, Pageable pageable);
+    Page<PostSearchResult> getMemberLikedPosts(Long memberId, Pageable pageable);
 }

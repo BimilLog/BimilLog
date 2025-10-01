@@ -12,7 +12,7 @@ import lombok.Builder;
  * <p>장식과 위치 정보만 제공하여 롤링페이퍼의 시각적 구성만 확인 가능</p>
  *
  * @param id 메시지 ID
- * @param userId 사용자 ID (작성자가 본인인지 확인용)
+ * @param memberId 사용자 ID (작성자가 본인인지 확인용)
  * @param decoType 데코레이션 타입
  * @param x 메시지 x 좌표
  * @param y 메시지 y 좌표
@@ -21,7 +21,7 @@ import lombok.Builder;
  */
 public record VisitMessageDetail(
         Long id,
-        Long userId,
+        Long memberId,
         DecoType decoType,
         int x,
         int y
@@ -44,7 +44,7 @@ public record VisitMessageDetail(
     public static VisitMessageDetail from(Message message) {
         return VisitMessageDetail.builder()
                 .id(message.getId())
-                .userId(message.getUserId())
+                .memberId(message.getMemberId())
                 .decoType(message.getDecoType())
                 .x(message.getX())
                 .y(message.getY())

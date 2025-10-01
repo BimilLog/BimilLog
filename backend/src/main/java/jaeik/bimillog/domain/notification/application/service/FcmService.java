@@ -67,14 +67,14 @@ public class FcmService implements FcmUseCase {
      * <p>fcmTokenId가 null인 경우 모든 토큰 삭제, 값이 있는 경우 특정 토큰만 삭제합니다.</p>
      * <p>MemberLogoutListener, MemberWithdrawListener, UserBannedListener에서 호출됩니다.</p>
      *
-     * @param userId 사용자 ID
+     * @param memberId 사용자 ID
      * @param fcmTokenId 삭제할 토큰 ID (null인 경우 모든 토큰 삭제)
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void deleteFcmTokens(Long userId, Long fcmTokenId) {
-        fcmPort.deleteFcmTokens(userId, fcmTokenId);
+    public void deleteFcmTokens(Long memberId, Long fcmTokenId) {
+        fcmPort.deleteFcmTokens(memberId, fcmTokenId);
     }
 
     /**
@@ -130,20 +130,20 @@ public class FcmService implements FcmUseCase {
      * <p>알림 수신 자격 검증을 거쳐 유효한 FCM 토큰에만 알림을 발송하며, 전송 실패 시에도 예외를 발생시키지 않습니다.</p>
      * <p>PostFeaturedListener에서 인기글 등극 이벤트 발생 시 호출됩니다.</p>
      *
-     * @param userId 사용자 ID
+     * @param memberId 사용자 ID
      * @param title  알림 제목
      * @param body   알림 내용
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void sendPostFeaturedNotification(Long userId, String title, String body) {
+    public void sendPostFeaturedNotification(Long memberId, String title, String body) {
         try {
-            List<FcmToken> tokens = notificationUtilPort.FcmEligibleFcmTokens(userId, NotificationType.POST_FEATURED);
+            List<FcmToken> tokens = notificationUtilPort.FcmEligibleFcmTokens(memberId, NotificationType.POST_FEATURED);
             sendNotifications(tokens, title, body);
-            log.info("인기글 등극 알림 FCM 전송 완료: 사용자 ID={}, 토큰 수={}", userId, tokens.size());
+            log.info("인기글 등극 알림 FCM 전송 완료: 사용자 ID={}, 토큰 수={}", memberId, tokens.size());
         } catch (Exception e) {
-            log.error("FCM 인기글 등극 알림 전송 실패: 사용자 ID={}, 제목={}", userId, title, e);
+            log.error("FCM 인기글 등극 알림 전송 실패: 사용자 ID={}, 제목={}", memberId, title, e);
         }
     }
 

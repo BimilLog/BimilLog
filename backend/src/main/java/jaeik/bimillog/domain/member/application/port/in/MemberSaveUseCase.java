@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.member.application.port.in;
 
-import jaeik.bimillog.domain.auth.entity.SocialUserProfile;
+import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import jaeik.bimillog.domain.member.entity.memberdetail.MemberDetail;
 import jaeik.bimillog.infrastructure.adapter.out.auth.AuthToMemberAdapter;
@@ -19,5 +19,5 @@ public interface MemberSaveUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    MemberDetail processUserData(SocialProvider provider, SocialUserProfile profile);
+    MemberDetail processUserData(SocialProvider provider, SocialMemberProfile profile);
 }

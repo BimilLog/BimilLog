@@ -13,11 +13,11 @@ import jaeik.bimillog.domain.comment.exception.CommentCustomException;
 import jaeik.bimillog.domain.comment.exception.CommentErrorCode;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCommentQueryPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalUserQueryPort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalMemberQueryPort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.member.entity.member.Member;
-import jaeik.bimillog.domain.member.exception.UserCustomException;
-import jaeik.bimillog.domain.member.exception.UserErrorCode;
+import jaeik.bimillog.domain.member.exception.MemberCustomException;
+import jaeik.bimillog.domain.member.exception.MemberErrorCode;
 import jaeik.bimillog.infrastructure.adapter.in.comment.web.CommentCommandController;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostToCommentAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -48,7 +48,7 @@ public class CommentCommandService implements CommentCommandUseCase {
 
     private final ApplicationEventPublisher eventPublisher;
     private final GlobalPostQueryPort globalPostQueryPort;
-    private final GlobalUserQueryPort globalUserQueryPort;
+    private final GlobalMemberQueryPort globalUserQueryPort;
     private final GlobalCommentQueryPort globalCommentQueryPort;
     private final CommentSavePort commentSavePort;
     private final CommentDeletePort commentDeletePort;
@@ -63,7 +63,7 @@ public class CommentCommandService implements CommentCommandUseCase {
      * <p>댓글 작성 완료 후 CommentCreatedEvent 발행으로 알림 시스템 연동</p>
      * <p>{@link CommentCommandController}에서 댓글 작성 API 처리 시 호출됩니다.</p>
      *
-     * @param userId   로그인한 사용자 ID (null이면 익명 댓글로 처리)
+     * @param memberId   로그인한 사용자 ID (null이면 익명 댓글로 처리)
      * @param postId   게시글 ID
      * @param parentId 부모 댓글 ID (대댓글인 경우)
      * @param content  댓글 내용
@@ -73,19 +73,19 @@ public class CommentCommandService implements CommentCommandUseCase {
      */
     @Override
     @Transactional
-    public void writeComment(Long userId, Long postId, Long parentId, String content, Integer password) {
+    public void writeComment(Long memberId, Long postId, Long parentId, String content, Integer password) {
         try {
             Post post = globalPostQueryPort.findById(postId);
 
-            Member member = userId != null ? globalUserQueryPort.findById(userId).orElse(null) : null;
-            String userName = member != null ? member.getUserName() : "익명";
+            Member member = memberId != null ? globalUserQueryPort.findById(memberId).orElse(null) : null;
+            String memberName = member != null ? member.getMemberName() : "익명";
 
             saveCommentWithClosure(post, member, content, password, parentId);
 
             if (post.getMember() != null) {
                 eventPublisher.publishEvent(new CommentCreatedEvent(
                         post.getMember().getId(),
-                        userName,
+                        memberName,
                         postId));
             }
         } catch (CustomException e) {
@@ -103,7 +103,7 @@ public class CommentCommandService implements CommentCommandUseCase {
      * <p>{@link CommentCommandController}에서 댓글 수정 API 처리 시 호출됩니다.</p>
      *
      * @param commentId 수정할 댓글 ID
-     * @param userId    로그인한 사용자 ID (null이면 익명 댓글 권한으로 검증)
+     * @param memberId    로그인한 사용자 ID (null이면 익명 댓글 권한으로 검증)
      * @param content   새로운 댓글 내용
      * @param password  댓글 비밀번호 (익명 댓글인 경우)
      * @author Jaeik
@@ -111,8 +111,8 @@ public class CommentCommandService implements CommentCommandUseCase {
      */
     @Override
     @Transactional
-    public void updateComment(Long commentId, Long userId, String content, Integer password) {
-        Comment comment = validateComment(commentId, userId, password);
+    public void updateComment(Long commentId, Long memberId, String content, Integer password) {
+        Comment comment = validateComment(commentId, memberId, password);
         comment.updateComment(content);
     }
 
@@ -123,15 +123,15 @@ public class CommentCommandService implements CommentCommandUseCase {
      * <p>{@link CommentCommandController}에서 댓글 삭제 API 처리 시 호출됩니다.</p>
      *
      * @param commentId 삭제할 댓글 ID
-     * @param userId    사용자 ID (로그인한 경우), null인 경우 익명 댓글
+     * @param memberId    사용자 ID (로그인한 경우), null인 경우 익명 댓글
      * @param password  댓글 비밀번호 (익명 댓글인 경우)
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     @Transactional
-    public void deleteComment(Long commentId, Long userId, Integer password) {
-        Comment comment = validateComment(commentId, userId, password);
+    public void deleteComment(Long commentId, Long memberId, Integer password) {
+        Comment comment = validateComment(commentId, memberId, password);
 
         if (commentQueryPort.hasDescendants(commentId)) {
             comment.softDelete(); // 더티 체킹으로 자동 업데이트
@@ -146,20 +146,20 @@ public class CommentCommandService implements CommentCommandUseCase {
      * <p>이미 추천한 댓글을 다시 누르면 취소, 추천하지 않은 댓글을 누르면 추천됩니다.</p>
      * <p>{@link CommentCommandController}에서 댓글 추천 API 처리 시 호출됩니다.</p>
      *
-     * @param userId    사용자 ID (로그인한 경우), null인 경우 예외 발생
+     * @param memberId    사용자 ID (로그인한 경우), null인 경우 예외 발생
      * @param commentId 추천/취소할 댓글 ID
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     @Transactional
-    public void likeComment(Long userId, Long commentId) {
+    public void likeComment(Long memberId, Long commentId) {
         Comment comment = globalCommentQueryPort.findById(commentId);
-        Member member = globalUserQueryPort.findById(userId)
-                .orElseThrow(() -> new UserCustomException(UserErrorCode.USER_NOT_FOUND));
+        Member member = globalUserQueryPort.findById(memberId)
+                .orElseThrow(() -> new MemberCustomException(MemberErrorCode.USER_NOT_FOUND));
 
-        if (commentLikePort.isLikedByUser(commentId, userId)) {
-            commentLikePort.deleteLikeByIds(commentId, userId);
+        if (commentLikePort.isLikedByUser(commentId, memberId)) {
+            commentLikePort.deleteLikeByIds(commentId, memberId);
         } else {
             CommentLike commentLike = CommentLike.builder()
                     .comment(comment)
@@ -175,14 +175,14 @@ public class CommentCommandService implements CommentCommandUseCase {
      * <p>자손이 있는 댓글: 엔티티 메서드로 익명화 (더티 체킹)</p>
      * <p>자손이 없는 댓글: Port를 통한 하드 삭제</p>
      *
-     * @param userId 탈퇴하는 사용자 ID
+     * @param memberId 탈퇴하는 사용자 ID
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     @Transactional
-    public void processUserCommentsOnWithdrawal(Long userId) {
-        List<Comment> userComments = commentQueryPort.findAllByUserId(userId);
+    public void processUserCommentsOnWithdrawal(Long memberId) {
+        List<Comment> userComments = commentQueryPort.findAllByMemberId(memberId);
 
         for (Comment comment : userComments) {
             if (commentQueryPort.hasDescendants(comment.getId())) {
@@ -220,16 +220,16 @@ public class CommentCommandService implements CommentCommandUseCase {
      * <p>updateComment, deleteComment 메서드에서 공통 권한 검증용으로 사용됩니다.</p>
      *
      * @param commentId 댓글 ID
-     * @param userId    사용자 ID (로그인한 경우), null인 경우 익명 댓글
+     * @param memberId    사용자 ID (로그인한 경우), null인 경우 익명 댓글
      * @param password  댓글 비밀번호 (익명 댓글인 경우)
      * @return Comment 유효성 검사를 통과한 댓글 엔티티
      * @author Jaeik
      * @since 2.0.0
      */
-    private Comment validateComment(Long commentId, Long userId, Integer password) {
+    private Comment validateComment(Long commentId, Long memberId, Integer password) {
         Comment comment = globalCommentQueryPort.findById(commentId);
 
-        if (!comment.canModify(userId, password)) {
+        if (!comment.canModify(memberId, password)) {
             throw new CommentCustomException(CommentErrorCode.COMMENT_UNAUTHORIZED);
         }
 

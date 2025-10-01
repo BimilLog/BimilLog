@@ -67,7 +67,7 @@ public class NotificationGenerateListener {
         // SSE 알림 전송
         sseUseCase.sendPaperPlantNotification(
                 event.paperOwnerId(),
-                event.userName());
+                event.memberName());
         
         // FCM 알림 전송
         fcmUseCase.sendPaperPlantNotification(
@@ -88,13 +88,13 @@ public class NotificationGenerateListener {
     public void handlePostFeaturedEvent(PostFeaturedEvent event) {
         // SSE 알림 전송
         sseUseCase.sendPostFeaturedNotification(
-                event.userId(),
+                event.memberId(),
                 event.sseMessage(),
                 event.postId());
         
         // FCM 알림 전송
         fcmUseCase.sendPostFeaturedNotification(
-                event.userId(),
+                event.memberId(),
                 event.fcmTitle(),
                 event.fcmBody());
     }

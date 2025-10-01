@@ -37,23 +37,23 @@ public interface MemberQueryUseCase {
      * <p>해당 닉네임을 가진 사용자가 존재하는지 확인합니다.</p>
      * <p>{@link MemberQueryController}, {@link PaperQueryService}에서 닉네임 중복 확인 시 호출됩니다.</p>
      *
-     * @param userName 확인할 닉네임
+     * @param memberName 확인할 닉네임
      * @return boolean 존재하면 true, 아니면 false
      * @author Jaeik
      * @since 2.0.0
      */
-    boolean existsByUserName(String userName);
+    boolean existsByMemberName(String memberName);
 
     /**
      * <h3>닉네임으로 사용자 조회</h3>
      * <p>닉네임을 사용하여 사용자를 조회합니다.</p>
      *
-     * @param userName 사용자 닉네임
+     * @param memberName 사용자 닉네임
      * @return Optional<Member> 조회된 사용자 객체. 존재하지 않으면 Optional.empty()
      * @author Jaeik
      * @since 2.0.0
      */
-    Optional<Member> findByUserName(String userName);
+    Optional<Member> findByMemberName(String memberName);
 
     /**
      * <h3>ID로 사용자 프록시 조회</h3>
@@ -61,12 +61,12 @@ public interface MemberQueryUseCase {
      * <p>JPA 연관 관계 설정 시 사용됩니다.</p>
      * <p>{@link PostCommandService}, {@link PostInteractionService}에서 게시글 연관 엔티티 설정 시 호출됩니다.</p>
      *
-     * @param userId 사용자 ID
+     * @param memberId 사용자 ID
      * @return Member 프록시 객체
      * @author Jaeik
      * @since 2.0.0
      */
-    Member getReferenceById(Long userId);
+    Member getReferenceById(Long memberId);
 
     /**
      * <h3>설정 ID로 설정 조회</h3>

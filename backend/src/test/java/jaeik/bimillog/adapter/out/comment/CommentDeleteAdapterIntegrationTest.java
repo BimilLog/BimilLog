@@ -6,9 +6,9 @@ import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.out.comment.CommentDeleteAdapter;
 import jaeik.bimillog.infrastructure.adapter.out.comment.CommentRepository;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostRepository;
-import jaeik.bimillog.infrastructure.adapter.out.member.UserRepository;
+import jaeik.bimillog.infrastructure.adapter.out.member.MemberRepository;
 import jaeik.bimillog.testutil.H2TestConfiguration;
-import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestMembers;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -53,7 +53,7 @@ class CommentDeleteAdapterIntegrationTest {
     private PostRepository postRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    private MemberRepository userRepository;
 
     private Member testMember;
     private Post testPost;
@@ -66,7 +66,7 @@ class CommentDeleteAdapterIntegrationTest {
         userRepository.deleteAll();
 
         // 테스트용 사용자 생성
-        testMember = TestUsers.createUniqueWithPrefix("test");
+        testMember = TestMembers.createUniqueWithPrefix("test");
         testMember = userRepository.save(testMember);
 
         // 테스트용 게시글 생성

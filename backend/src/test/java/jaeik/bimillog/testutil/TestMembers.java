@@ -14,9 +14,9 @@ import java.util.function.Consumer;
  * <p>모든 사용자는 기본 Setting을 포함하여 생성됨</p>
  *
  * @author Jaeik
- * @version 3.1.0
+ * @version 2.0.0
  */
-public class TestUsers {
+public class TestMembers {
 
     // 미리 정의된 사용자 인스턴스들 (Setting 포함)
     public static final Member MEMBER_1;

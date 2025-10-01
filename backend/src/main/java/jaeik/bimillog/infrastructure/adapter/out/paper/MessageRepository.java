@@ -29,10 +29,10 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
      * <p>주로 사용자 탈퇴 시 해당 사용자의 모든 메시지를 정리하는데 사용됩니다.</p>
      * <p>{@link PaperCommandAdapter#deleteMessage}에서 messageId가 null일 때 호출됩니다.</p>
      *
-     * @param userId 메시지를 삭제할 사용자 ID
+     * @param memberId 메시지를 삭제할 사용자 ID
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteAllByUser_Id(Long userId);
+    void deleteAllByUser_Id(Long memberId);
 
 }

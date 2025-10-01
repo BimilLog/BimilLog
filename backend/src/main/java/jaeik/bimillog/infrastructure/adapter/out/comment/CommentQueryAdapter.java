@@ -6,7 +6,7 @@ import jaeik.bimillog.domain.comment.application.port.out.CommentQueryPort;
 import jaeik.bimillog.domain.comment.application.service.CommentCommandService;
 import jaeik.bimillog.domain.comment.application.service.CommentQueryService;
 import jaeik.bimillog.domain.comment.entity.*;
-import jaeik.bimillog.domain.user.entity.user.QUser;
+import jaeik.bimillog.domain.member.entity.member.QMember;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -40,7 +40,7 @@ public class CommentQueryAdapter implements CommentQueryPort {
     private static final QComment comment = QComment.comment;
     private static final QCommentLike commentLike = QCommentLike.commentLike;
     private static final QCommentClosure closure = QCommentClosure.commentClosure;
-    private static final QUser user = QUser.user;
+    private static final QMember member = QMember.member;
 
 
 
@@ -51,22 +51,22 @@ public class CommentQueryAdapter implements CommentQueryPort {
      * <p>최신 작성 댓글부터 과거 순서로 정렬하여 반환합니다.</p>
      * <p>{@link CommentQueryService}에서 사용자 작성 댓글 목록 조회 시 호출됩니다.</p>
      *
-     * @param userId   사용자 ID
+     * @param memberId   사용자 ID
      * @param pageable 페이지 정보
      * @return Page<SimpleCommentInfo> 작성한 댓글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public Page<SimpleCommentInfo> findCommentsByUserId(Long userId, Pageable pageable) {
+    public Page<SimpleCommentInfo> findCommentsByMemberId(Long memberId, Pageable pageable) {
 
         List<SimpleCommentInfo> content = jpaQueryFactory
-                .select(getSimpleCommentInfoProjection(userId)) // userId를 매개변수로 전달
+                .select(getSimpleCommentInfoProjection(memberId)) // memberId를 매개변수로 전달
                 .from(comment)
-                .leftJoin(comment.user, user)
+                .leftJoin(comment.member, member)
                 .leftJoin(commentLike).on(comment.id.eq(commentLike.comment.id))
-                .where(comment.user.id.eq(userId))
-                .groupBy(comment.id, user.userName, comment.createdAt)
+                .where(comment.member.id.eq(memberId))
+                .groupBy(comment.id, member.memberName, comment.createdAt)
                 .orderBy(comment.createdAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -75,7 +75,7 @@ public class CommentQueryAdapter implements CommentQueryPort {
         Long total = jpaQueryFactory
                 .select(comment.count())
                 .from(comment)
-                .where(comment.user.id.eq(userId))
+                .where(comment.member.id.eq(memberId))
                 .fetchOne();
 
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
@@ -87,22 +87,22 @@ public class CommentQueryAdapter implements CommentQueryPort {
      * <p>최신 추천 댓글부터 과거 순서로 정렬하여 반환합니다.</p>
      * <p>{@link CommentQueryService}에서 사용자 추천한 댓글 목록 조회 시 호출됩니다.</p>
      *
-     * @param userId   사용자 ID
+     * @param memberId   사용자 ID
      * @param pageable 페이지 정보
      * @return Page<SimpleCommentInfo> 추천한 댓글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public Page<SimpleCommentInfo> findLikedCommentsByUserId(Long userId, Pageable pageable) {
+    public Page<SimpleCommentInfo> findLikedCommentsByMemberId(Long memberId, Pageable pageable) {
 
         List<SimpleCommentInfo> content = jpaQueryFactory
-                .select(getSimpleCommentInfoProjection(userId)) // userId를 매개변수로 전달
+                .select(getSimpleCommentInfoProjection(memberId)) // memberId를 매개변수로 전달
                 .from(comment)
                 .join(commentLike).on(comment.id.eq(commentLike.comment.id))
-                .leftJoin(comment.user, user)
-                .where(commentLike.user.id.eq(userId))
-                .groupBy(comment.id, user.userName, comment.createdAt)
+                .leftJoin(comment.member, member)
+                .where(commentLike.member.id.eq(memberId))
+                .groupBy(comment.id, member.memberName, comment.createdAt)
                 .orderBy(comment.createdAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -112,7 +112,7 @@ public class CommentQueryAdapter implements CommentQueryPort {
                 .select(comment.countDistinct())
                 .from(comment)
                 .join(commentLike).on(comment.id.eq(commentLike.comment.id))
-                .where(commentLike.user.id.eq(userId))
+                .where(commentLike.member.id.eq(memberId))
                 .fetchOne();
 
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
@@ -125,22 +125,22 @@ public class CommentQueryAdapter implements CommentQueryPort {
      * <p>{@link CommentQueryService}에서 인기 댓글 조회 시 호출됩니다.</p>
      *
      * @param postId 게시글 ID
-     * @param userId 사용자 ID (추천 여부 확인용, null 가능)
+     * @param memberId 사용자 ID (추천 여부 확인용, null 가능)
      * @return List<CommentInfo> 인기 댓글 정보 목록
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public List<CommentInfo> findPopularComments(Long postId, Long userId) {
+    public List<CommentInfo> findPopularComments(Long postId, Long memberId) {
 
         List<CommentInfo> popularComments = jpaQueryFactory
-                .select(getCommentInfoProjectionWithUserLike(userId))
+                .select(getCommentInfoProjectionWithUserLike(memberId))
                 .from(comment)
-                .leftJoin(comment.user, user)
+                .leftJoin(comment.member, member)
                 .leftJoin(commentLike).on(comment.id.eq(commentLike.comment.id))
                 .leftJoin(closure).on(comment.id.eq(closure.descendant.id).and(closure.depth.eq(0)))
                 .where(comment.post.id.eq(postId))
-                .groupBy(comment.id, user.userName, closure.ancestor.id, comment.createdAt)
+                .groupBy(comment.id, member.memberName, closure.ancestor.id, comment.createdAt)
                 .having(commentLike.countDistinct().goe(3)) // 추천 3개 이상
                 .orderBy(commentLike.countDistinct().desc())
                 .limit(5)
@@ -187,21 +187,21 @@ public class CommentQueryAdapter implements CommentQueryPort {
      *
      * @param postId   게시글 ID
      * @param pageable 페이지 정보
-     * @param userId   사용자 ID (추천 여부 확인용, null 가능)
+     * @param memberId   사용자 ID (추천 여부 확인용, null 가능)
      * @return Page<CommentInfo> 과거순 댓글 페이지
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public Page<CommentInfo> findCommentsWithOldestOrder(Long postId, Pageable pageable, Long userId) {
+    public Page<CommentInfo> findCommentsWithOldestOrder(Long postId, Pageable pageable, Long memberId) {
         List<CommentInfo> content = jpaQueryFactory
-                .select(getCommentInfoProjectionWithUserLike(userId))
+                .select(getCommentInfoProjectionWithUserLike(memberId))
                 .distinct()
                 .from(comment)
-                .leftJoin(comment.user, user)
+                .leftJoin(comment.member, member)
                 .leftJoin(commentLike).on(comment.id.eq(commentLike.comment.id))
                 .where(comment.post.id.eq(postId))
-                .groupBy(comment.id, user.userName, comment.createdAt)
+                .groupBy(comment.id, member.memberName, comment.createdAt)
                 .orderBy(comment.createdAt.asc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -216,16 +216,16 @@ public class CommentQueryAdapter implements CommentQueryPort {
      * <p>사용자 탈퇴 시 댓글 처리를 위해 특정 사용자의 모든 댓글 엔티티를 조회합니다.</p>
      * <p>{@link CommentCommandService}에서 사용자 탈퇴 처리 시 호출됩니다.</p>
      *
-     * @param userId 조회할 사용자 ID
+     * @param memberId 조회할 사용자 ID
      * @return List<Comment> 사용자가 작성한 모든 댓글 엔티티 목록
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public List<Comment> findAllByUserId(Long userId) {
+    public List<Comment> findAllByMemberId(Long memberId) {
         return jpaQueryFactory
                 .selectFrom(comment)
-                .where(comment.user.id.eq(userId))
+                .where(comment.member.id.eq(memberId))
                 .fetch();
     }
 

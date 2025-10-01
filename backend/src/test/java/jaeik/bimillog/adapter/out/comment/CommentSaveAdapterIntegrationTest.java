@@ -11,7 +11,7 @@ import jaeik.bimillog.infrastructure.adapter.out.comment.CommentSaveAdapter;
 import jaeik.bimillog.testutil.CommentTestDataBuilder;
 import jaeik.bimillog.testutil.H2TestConfiguration;
 import jaeik.bimillog.testutil.PostTestDataBuilder;
-import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestMembers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -74,8 +74,8 @@ class CommentSaveAdapterIntegrationTest {
         commentClosureRepository.deleteAll();
         commentRepository.deleteAll();
         
-        // 테스트용 사용자 생성 - TestUsers 활용
-        testMember = TestUsers.createUnique();
+        // 테스트용 사용자 생성 - TestMembers 활용
+        testMember = TestMembers.createUnique();
         entityManager.persistAndFlush(testMember.getSetting());
         entityManager.persistAndFlush(testMember);
 

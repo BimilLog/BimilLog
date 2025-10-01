@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.comment.entity;
 
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.member.entity.member.Member;
-import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestMembers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class CommentTest {
 
     private Member createTestUser(Long id) {
-        return TestUsers.copyWithId(TestUsers.MEMBER_1, id);
+        return TestMembers.copyWithId(TestMembers.MEMBER_1, id);
     }
 
     private Post createTestPost(Member member) {

@@ -5,7 +5,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
 import jaeik.bimillog.domain.comment.entity.*;
-import jaeik.bimillog.domain.user.entity.user.QUser;
+import jaeik.bimillog.domain.member.entity.member.QMember;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -25,31 +25,31 @@ public class CommentProjection {
     private static final QComment comment = QComment.comment;
     private static final QCommentLike commentLike = QCommentLike.commentLike;
     private static final QCommentClosure closure = QCommentClosure.commentClosure;
-    private static final QUser user = QUser.user;
+    private static final QMember member = QMember.member;
 
 
     /**
      * <h3>SimpleCommentInfo 도메인 객체 프로젝션 (사용자별 추천 여부 포함)</h3>
      * <p>SimpleCommentInfo로 변환하는 프로젝션 - 서브쿼리로 사용자별 추천 여부를 한번에 계산</p>
      *
-     * @param userId 사용자 ID (null인 경우 userLike는 false)
+     * @param memberId 사용자 ID (null인 경우 userLike는 false)
      * @return ConstructorExpression<SimpleCommentInfo> 댓글 도메인 객체 프로젝션
      * @author Jaeik
      * @since 2.0.0
      */
-    public static ConstructorExpression<SimpleCommentInfo> getSimpleCommentInfoProjection(Long userId) {
+    public static ConstructorExpression<SimpleCommentInfo> getSimpleCommentInfoProjection(Long memberId) {
         return Projections.constructor(SimpleCommentInfo.class,
                 comment.id,
                 comment.post.id,
-                user.userName,
+                member.memberName,
                 comment.content,
                 comment.createdAt,
                 commentLike.countDistinct().coalesce(0L).intValue(), // 실제 추천 수 계산
-                userId != null ? 
+                memberId != null ?
                     JPAExpressions.selectOne()
                         .from(QCommentLike.commentLike)
                         .where(QCommentLike.commentLike.comment.id.eq(comment.id)
-                            .and(QCommentLike.commentLike.user.id.eq(userId)))
+                            .and(QCommentLike.commentLike.member.id.eq(memberId)))
                         .exists()
                     : Expressions.constant(false)
         );
@@ -59,17 +59,17 @@ public class CommentProjection {
      * <h3>CommentInfo 도메인 객체 프로젝션 (사용자별 추천 여부 포함)</h3>
      * <p>CommentInfo로 변환하는 프로젝션 - 서브쿼리로 사용자별 추천 여부를 한번에 계산</p>
      *
-     * @param userId 사용자 ID (null인 경우 userLike는 false)
+     * @param memberId 사용자 ID (null인 경우 userLike는 false)
      * @return ConstructorExpression<CommentInfo> 댓글 도메인 객체 프로젝션
      * @author Jaeik
      * @since 2.0.0
      */
-    public static ConstructorExpression<CommentInfo> getCommentInfoProjectionWithUserLike(Long userId) {
+    public static ConstructorExpression<CommentInfo> getCommentInfoProjectionWithUserLike(Long memberId) {
         return Projections.constructor(CommentInfo.class,
                 comment.id,
                 comment.post.id,
-                comment.user.id,
-                user.userName,
+                comment.member.id,
+                member.memberName,
                 comment.content,
                 comment.deleted,
                 comment.createdAt,
@@ -80,11 +80,11 @@ public class CommentProjection {
                         .and(closure.depth.eq(1)))
                     .limit(1),
                 commentLike.countDistinct().coalesce(0L).intValue(),
-                userId != null ? 
+                memberId != null ?
                     JPAExpressions.selectOne()
                         .from(QCommentLike.commentLike)
                         .where(QCommentLike.commentLike.comment.id.eq(comment.id)
-                            .and(QCommentLike.commentLike.user.id.eq(userId)))
+                            .and(QCommentLike.commentLike.member.id.eq(memberId)))
                         .exists()
                     : Expressions.constant(false)
         );

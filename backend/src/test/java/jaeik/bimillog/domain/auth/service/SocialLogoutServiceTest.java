@@ -166,7 +166,7 @@ class SocialLogoutServiceTest extends BaseUnitTest {
      */
     private AuthToken createMockTokenWithUser(Member member) {
         AuthToken mockAuthToken = mock(AuthToken.class);
-        given(mockAuthToken.getUsers()).willReturn(member);
+        given(mockAuthToken.getMember()).willReturn(member);
         given(mockAuthToken.getAccessToken()).willReturn(AuthTestFixtures.TEST_ACCESS_TOKEN);
         given(mockAuthToken.getRefreshToken()).willReturn(AuthTestFixtures.TEST_REFRESH_TOKEN);
         given(mockAuthToken.getId()).willReturn(1L);

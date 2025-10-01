@@ -25,7 +25,7 @@ public interface NotificationCommandUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    void batchUpdate(Long userId, NotificationUpdateVO updateCommand);
+    void batchUpdate(Long memberId, NotificationUpdateVO updateCommand);
 
     /**
      * <h3>특정 사용자의 알림 전체 삭제</h3>
@@ -34,5 +34,5 @@ public interface NotificationCommandUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteAllNotification(Long userId);
+    void deleteAllNotification(Long memberId);
 }

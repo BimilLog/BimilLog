@@ -23,32 +23,32 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
      * <p>더티체킹을 위한 엔티티 조회에 사용됩니다.</p>
      *
      * @param ids 조회할 알림 ID 목록
-     * @param userId 사용자 ID
+     * @param memberId 사용자 ID
      * @return 조회된 알림 엔티티 목록
      * @author Jaeik
      * @since 2.0.0
      */
-    List<Notification> findAllByIdInAndUsersId(List<Long> ids, Long userId);
+    List<Notification> findAllByIdInAndMemberId(List<Long> ids, Long memberId);
 
     /**
      * <h3>사용자 ID와 알림 ID 목록으로 알림 삭제</h3>
      * <p>특정 사용자의 알림 중에서 지정된 ID 목록에 해당하는 알림들을 삭제합니다.</p>
      *
      * @param ids 삭제할 알림 ID 목록
-     * @param userId 사용자 ID
+     * @param memberId 사용자 ID
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteAllByIdInAndUsersId(List<Long> ids, Long userId);
+    void deleteAllByIdInAndMemberId(List<Long> ids, Long memberId);
 
     /**
      * <h3>사용자 ID로 모든 알림 삭제</h3>
      * <p>특정 사용자의 모든 알림을 삭제합니다.</p>
      * <p>주로 사용자 탈퇴 시 해당 사용자의 모든 알림을 정리하는데 사용됩니다.</p>
      *
-     * @param userId 삭제할 알림들의 사용자 ID
+     * @param memberId 삭제할 알림들의 사용자 ID
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteAllByUsersId(Long userId);
+    void deleteAllByMemberId(Long memberId);
 }

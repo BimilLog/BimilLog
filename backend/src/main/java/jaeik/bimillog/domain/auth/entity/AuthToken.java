@@ -30,8 +30,8 @@ public class AuthToken extends BaseEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private Member users;
+    @JoinColumn(name = "member_id")
+    private Member member;
 
     @Column(name = "refresh_token", length = 500)
     private String refreshToken;
@@ -55,7 +55,7 @@ public class AuthToken extends BaseEntity {
     public static AuthToken createToken(String jwtRefreshToken, Member member) {
         return AuthToken.builder()
                 .refreshToken(jwtRefreshToken)
-                .users(member)
+                .member(member)
                 .useCount(0)
                 .build();
     }

@@ -7,20 +7,20 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
-public class KakaoUserInfo {
+public class KakaoMemberInfo {
     private final String socialId;
     private final String email;
     private final SocialProvider provider;
     private final String nickname;
     private final String profileImageUrl;
 
-    public static KakaoUserInfo of(
+    public static KakaoMemberInfo of(
             String socialId,
             String email,
             SocialProvider provider,
             String nickname,
             String profileImageUrl
     ) {
-        return new KakaoUserInfo(socialId, email, provider, nickname, profileImageUrl);
+        return new KakaoMemberInfo(socialId, email, provider, nickname, profileImageUrl);
     }
 }

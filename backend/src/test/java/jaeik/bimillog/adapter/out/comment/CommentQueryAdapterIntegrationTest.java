@@ -10,11 +10,11 @@ import jaeik.bimillog.infrastructure.adapter.out.comment.CommentLikeRepository;
 import jaeik.bimillog.infrastructure.adapter.out.comment.CommentQueryAdapter;
 import jaeik.bimillog.infrastructure.adapter.out.comment.CommentRepository;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostRepository;
-import jaeik.bimillog.infrastructure.adapter.out.member.UserRepository;
+import jaeik.bimillog.infrastructure.adapter.out.member.MemberRepository;
 import jaeik.bimillog.testutil.CommentTestDataBuilder;
 import jaeik.bimillog.testutil.H2TestConfiguration;
 import jaeik.bimillog.testutil.PostTestDataBuilder;
-import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestMembers;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -62,7 +62,7 @@ class CommentQueryAdapterIntegrationTest {
     private PostRepository postRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    private MemberRepository userRepository;
 
     @Autowired
     private EntityManager entityManager;
@@ -80,10 +80,10 @@ class CommentQueryAdapterIntegrationTest {
         userRepository.deleteAll();
 
         // 테스트용 사용자 생성
-        testMember = TestUsers.createUniqueWithPrefix("test");
+        testMember = TestMembers.createUniqueWithPrefix("test");
         testMember = userRepository.save(testMember);
 
-        otherMember = TestUsers.createUniqueWithPrefix("other");
+        otherMember = TestMembers.createUniqueWithPrefix("other");
         otherMember = userRepository.save(otherMember);
 
         // 테스트용 게시글 생성
@@ -157,7 +157,7 @@ class CommentQueryAdapterIntegrationTest {
 
         // 3개 이상의 추천 생성 (인기 댓글 조건 충족)
         for (int i = 0; i < 3; i++) {
-            Member likeMember = TestUsers.createUniqueWithPrefix("likeMember" + i);
+            Member likeMember = TestMembers.createUniqueWithPrefix("likeMember" + i);
             userRepository.save(likeMember);
 
             CommentLike like = CommentLike.builder()
@@ -198,7 +198,7 @@ class CommentQueryAdapterIntegrationTest {
 
         // 3개 이상의 추천 생성 (다른 사용자들이 추천)
         for (int i = 0; i < 4; i++) {
-            Member likeMember = TestUsers.createUniqueWithPrefix("notLikeUser" + i);
+            Member likeMember = TestMembers.createUniqueWithPrefix("notLikeUser" + i);
             userRepository.save(likeMember);
 
             CommentLike like = CommentLike.builder()

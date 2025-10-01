@@ -38,7 +38,7 @@ public class SocialLogoutService implements SocialLogoutUseCase {
      * <p>소셜 플랫폼 로그아웃, 이벤트 발행, 보안 컨텍스트 정리를 순차적으로 실행합니다.</p>
      * <p>{@link AuthCommandController}에서 POST /api/auth/logout 요청 처리 시 호출됩니다.</p>
      *
-     * @param userId 사용자 ID
+     * @param memberId 사용자 ID
      * @param provider 소셜 로그인 제공자
      * @param tokenId 토큰 ID
      * @throws AuthCustomException 토큰을 찾을 수 없는 경우 ({@link AuthErrorCode#NOT_FIND_TOKEN})
@@ -46,15 +46,15 @@ public class SocialLogoutService implements SocialLogoutUseCase {
      * @since 2.0.0
      */
     @Override
-    public void logout(Long userId, SocialProvider provider, Long tokenId) {
+    public void logout(Long memberId, SocialProvider provider, Long tokenId) {
         AuthToken authToken = getToken(tokenId);
-        KakaoToken kakaoToken = globalKakaoTokenQueryPort.findByUserId(userId)
+        KakaoToken kakaoToken = globalKakaoTokenQueryPort.findByMemberId(memberId)
                 .orElseThrow(() -> new AuthCustomException(AuthErrorCode.NOT_FIND_TOKEN));
-        performSocialLogout(userId, provider, kakaoToken);
+        performSocialLogout(memberId, provider, kakaoToken);
     }
 
     @Override
-    public void forceLogout(Long userId, SocialProvider provider, String socialId) {
+    public void forceLogout(Long memberId, SocialProvider provider, String socialId) {
 
     }
 
@@ -66,20 +66,20 @@ public class SocialLogoutService implements SocialLogoutUseCase {
      * <p>소셜 로그아웃 실패 시에도 전체 로그아웃 프로세스를 중단하지 않고 로그만 기록합니다.</p>
      * <p>{@link #logout} 메서드에서 메인 로그아웃 플로우의 일부로 호출됩니다.</p>
      *
-     * @param userId 사용자 ID
+     * @param memberId 사용자 ID
      * @param provider 소셜 로그인 제공자
      * @param kakaoToken 사용자의 카카오 토큰 정보
      * @author Jaeik
      * @since 2.0.0
      */
-    private void performSocialLogout(Long userId, SocialProvider provider, KakaoToken kakaoToken) {
+    private void performSocialLogout(Long memberId, SocialProvider provider, KakaoToken kakaoToken) {
         try {
             strategyRegistry.getStrategy(provider).logout(provider, kakaoToken.getKakaoAccessToken());
-            log.debug("소셜 로그아웃 성공 - 사용자 ID: {}, 제공자: {}", userId, provider);
+            log.debug("소셜 로그아웃 성공 - 사용자 ID: {}, 제공자: {}", memberId, provider);
         } catch (Exception e) {
             // 소셜 로그아웃 실패시에도 데이터 처리 계속 진행 로그만 남김
             log.error("소셜 로그아웃 실패 - 사용자 ID: {}, 제공자: {}, 오류: {}",
-                    userId,
+                    memberId,
                     provider,
                     e.getMessage());
         }

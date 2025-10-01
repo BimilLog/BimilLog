@@ -23,7 +23,7 @@ public class SignUpRequestDTO {
 
     @NotBlank(message = "사용자 이름은 필수입니다.")
     @Size(min = 1, max = 20, message = "사용자 이름은 1자 이상 20자 이하여야 합니다.")
-    private String userName;
+    private String memberName;
 
     @NotBlank(message = "임시 UUID는 필수입니다.")
     @Pattern(regexp = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", 
@@ -40,9 +40,9 @@ public class SignUpRequestDTO {
      * @since 2.0.0
      */
     @AssertTrue(message = "사용자 이름에 유효한 문자가 포함되어야 합니다.")
-    public boolean isUserNameValidAfterTrim() {
-        if (userName == null) return false;
-        String trimmed = userName.trim();
+    public boolean isMemberNameValidAfterTrim() {
+        if (memberName == null) return false;
+        String trimmed = memberName.trim();
         return !trimmed.isEmpty() && trimmed.length() <= 20;
     }
 
@@ -56,8 +56,8 @@ public class SignUpRequestDTO {
      * @since 2.0.0
      */
     @AssertTrue(message = "사용자 이름에 허용되지 않은 문자가 포함되어 있습니다.")
-    public boolean isUserNameCharacterValid() {
-        if (userName == null) return false;
-        return userName.matches("^[가-힣a-zA-Z0-9\\s._-]*$");
+    public boolean isMemberNameCharacterValid() {
+        if (memberName == null) return false;
+        return memberName.matches("^[가-힣a-zA-Z0-9\\s._-]*$");
     }
 }

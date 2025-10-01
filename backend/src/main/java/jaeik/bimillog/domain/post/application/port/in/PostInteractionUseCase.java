@@ -19,12 +19,12 @@ public interface PostInteractionUseCase {
      * <p>PostCommandController에서 게시글 추천 토글 API 요청을 처리할 때 호출됩니다.</p>
      * <p>중복 추천 방지를 위해 기존 추천 여부를 체크하고 상태를 변경합니다.</p>
      *
-     * @param userId 추천을 요청한 사용자의 ID
+     * @param memberId 추천을 요청한 사용자의 ID
      * @param postId 추천 대상 게시글의 식별자 ID
      * @author Jaeik
      * @since 2.0.0
      */
-    void likePost(Long userId, Long postId);
+    void likePost(Long memberId, Long postId);
 
     /**
      * <h3>게시글 조회수 1 증가</h3>

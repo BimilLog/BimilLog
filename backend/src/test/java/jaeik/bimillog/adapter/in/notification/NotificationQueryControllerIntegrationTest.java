@@ -60,7 +60,7 @@ class NotificationQueryControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("로그인된 사용자의 알림 목록 조회 - 알림 없음")
     void getNotifications_NoNotifications_Success() throws Exception {
         // Given - 알림이 없는 새로운 사용자
-        Member memberWithoutNotifications = TestUsers.createUniqueWithPrefix("anotheruser");
+        Member memberWithoutNotifications = TestMembers.createUniqueWithPrefix("anotheruser");
         userRepository.save(memberWithoutNotifications);
 
         // When & Then - otherUser를 사용하는 것이 더 적절하지만, 새 사용자가 필요한 경우

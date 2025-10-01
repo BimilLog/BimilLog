@@ -317,7 +317,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("다른 사용자 댓글 삭제 시도 - 권한 없음")
     void deleteOtherUserComment_Unauthorized_IntegrationTest() throws Exception {
         // Given: 다른 사용자의 댓글
-        Member anotherMember = TestUsers.createUniqueWithPrefix("another");
+        Member anotherMember = TestMembers.createUniqueWithPrefix("another");
         userRepository.save(anotherMember);
         
         Comment otherUserComment = CommentTestDataBuilder.createComment(

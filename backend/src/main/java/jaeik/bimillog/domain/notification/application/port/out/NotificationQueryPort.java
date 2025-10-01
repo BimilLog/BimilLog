@@ -22,10 +22,10 @@ public interface NotificationQueryPort {
      * <p>생성일 내림차순으로 정렬됩니다.</p>
      * <p>{@link NotificationQueryService}에서 사용자의 알림함 조회 시 호출됩니다.</p>
      *
-     * @param userId 조회할 사용자 ID
+     * @param memberId 조회할 사용자 ID
      * @return 알림 리스트 (최신순 정렬, 읽음 상태 및 메타데이터 포함)
      * @author Jaeik
      * @since 2.0.0
      */
-    List<Notification> getNotificationList(Long userId);
+    List<Notification> getNotificationList(Long memberId);
 }

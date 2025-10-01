@@ -13,11 +13,11 @@ import jaeik.bimillog.domain.comment.exception.CommentCustomException;
 import jaeik.bimillog.domain.comment.exception.CommentErrorCode;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCommentQueryPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalUserQueryPort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalMemberQueryPort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.member.entity.member.Member;
-import jaeik.bimillog.domain.member.exception.UserCustomException;
-import jaeik.bimillog.domain.member.exception.UserErrorCode;
+import jaeik.bimillog.domain.member.exception.MemberCustomException;
+import jaeik.bimillog.domain.member.exception.MemberErrorCode;
 import jaeik.bimillog.testutil.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -58,7 +58,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
     @Mock private CommentDeletePort commentDeletePort;
     @Mock private CommentQueryPort commentQueryPort;
     @Mock private CommentLikePort commentLikePort;
-    @Mock private GlobalUserQueryPort globalUserQueryPort;
+    @Mock private GlobalMemberQueryPort globalUserQueryPort;
     @Mock private GlobalPostQueryPort globalPostQueryPort;
     @Mock private GlobalCommentQueryPort globalCommentQueryPort;
     @Mock private ApplicationEventPublisher eventPublisher;
@@ -143,8 +143,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.likeComment(getTestUser().getId(), TEST_COMMENT_ID))
-                .isInstanceOf(UserCustomException.class)
-                .hasFieldOrPropertyWithValue("userErrorCode", UserErrorCode.USER_NOT_FOUND);
+                .isInstanceOf(MemberCustomException.class)
+                .hasFieldOrPropertyWithValue("userErrorCode", MemberErrorCode.USER_NOT_FOUND);
 
         verify(globalCommentQueryPort).findById(TEST_COMMENT_ID);
         verify(globalUserQueryPort).findById(getTestUser().getId());
@@ -162,8 +162,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.likeComment(null, TEST_COMMENT_ID))
-                .isInstanceOf(UserCustomException.class)
-                .hasFieldOrPropertyWithValue("userErrorCode", UserErrorCode.USER_NOT_FOUND);
+                .isInstanceOf(MemberCustomException.class)
+                .hasFieldOrPropertyWithValue("userErrorCode", MemberErrorCode.USER_NOT_FOUND);
 
         verify(globalCommentQueryPort).findById(TEST_COMMENT_ID);
         verify(globalUserQueryPort).findById(null);
@@ -260,7 +260,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
     void shouldThrowException_WhenNotCommentOwner() {
         // Given
         Long userId = 100L;
-        Member anotherMember = TestUsers.copyWithId(TestUsers.MEMBER_3, 999L);
+        Member anotherMember = TestMembers.copyWithId(TestMembers.MEMBER_3, 999L);
 
         Comment anotherUserComment = CommentTestDataBuilder.createComment(anotherMember, testPost, "다른 사용자 댓글");
         TestFixtures.setFieldValue(anotherUserComment, "id", 200L);
@@ -432,7 +432,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
     void shouldThrowException_WhenNotOwnerTriesToDelete() {
         // Given
         Long requestUserId = 100L;
-        Member anotherMember = TestUsers.copyWithId(TestUsers.MEMBER_3, 999L);
+        Member anotherMember = TestMembers.copyWithId(TestMembers.MEMBER_3, 999L);
 
         Comment anotherUserComment = CommentTestDataBuilder.createComment(anotherMember, testPost, "다른 사용자 댓글");
         TestFixtures.setFieldValue(anotherUserComment, "id", 600L);

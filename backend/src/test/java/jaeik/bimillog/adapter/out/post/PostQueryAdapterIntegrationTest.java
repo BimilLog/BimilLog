@@ -9,7 +9,7 @@ import jaeik.bimillog.domain.post.entity.PostSearchType;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostQueryAdapter;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
-import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestMembers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -75,7 +75,7 @@ class PostQueryAdapterIntegrationTest {
     @BeforeEach
     void setUp() {
         // 테스트용 사용자 생성
-        testMember = TestUsers.copyWithId(TestUsers.MEMBER_1, null);
+        testMember = TestMembers.copyWithId(TestMembers.MEMBER_1, null);
         entityManager.persistAndFlush(testMember);
 
         // 테스트용 게시글들 생성
@@ -179,7 +179,7 @@ class PostQueryAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 사용자 추천 게시글 조회")
     void shouldFindLikedPostsByUserId_WhenUserHasLikedPosts() {
         // Given: 사용자가 게시글에 추천을 누름
-        Member likeMember = TestUsers.copyWithId(TestUsers.MEMBER_2, null);
+        Member likeMember = TestMembers.copyWithId(TestMembers.MEMBER_2, null);
         entityManager.persistAndFlush(likeMember);
 
         // 게시글에 좋아요 추가

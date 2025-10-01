@@ -8,7 +8,7 @@ import jaeik.bimillog.infrastructure.adapter.out.post.PostRepository;
 import jaeik.bimillog.infrastructure.adapter.out.redis.RedisPostSyncAdapter;
 import jaeik.bimillog.testutil.RedisTestHelper;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
-import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestMembers;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -89,7 +89,7 @@ class RedisPostSyncAdapterIntegrationTest {
         }
 
         // 테스트 사용자 준비
-        testMember = TestUsers.createUniqueWithPrefix("redis");
+        testMember = TestMembers.createUniqueWithPrefix("redis");
         persistAndFlush(testMember);
     }
 
@@ -122,7 +122,7 @@ class RedisPostSyncAdapterIntegrationTest {
 
     private void addLikesToPost(Post post, int count) {
         for (int i = 0; i < count; i++) {
-            Member liker = TestUsers.withSocialId("social_" + post.getId() + "_" + i + "_" + System.currentTimeMillis());
+            Member liker = TestMembers.withSocialId("social_" + post.getId() + "_" + i + "_" + System.currentTimeMillis());
             persistAndFlush(liker);
 
             PostLike postLike = PostLike.builder()

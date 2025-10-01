@@ -12,7 +12,7 @@ import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostToCommentPort;
 import jaeik.bimillog.domain.post.application.service.PostQueryService;
 import jaeik.bimillog.domain.post.entity.*;
-import jaeik.bimillog.domain.user.entity.user.QUser;
+import jaeik.bimillog.domain.member.entity.member.QMember;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
@@ -45,7 +45,7 @@ public class PostQueryAdapter implements PostQueryPort {
     private final PostLikeQueryPort postLikeQueryPort;
 
     private static final QPost post = QPost.post;
-    private static final QUser user = QUser.user;
+    private static final QMember member = QMember.member;
     private static final QPostLike postLike = QPostLike.postLike;
     private static final QComment comment = QComment.comment;
 
@@ -92,15 +92,15 @@ public class PostQueryAdapter implements PostQueryPort {
      * <p>특정 사용자가 작성한 게시글 목록을 페이지네이션으로 조회합니다.</p>
      * <p>{@link PostQueryService}에서 사용자 작성 게시글 내역 조회 시 호출됩니다.</p>
      *
-     * @param userId   사용자 ID
+     * @param memberId   사용자 ID
      * @param pageable 페이지 정보
      * @return 작성한 게시글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public Page<PostSearchResult> findPostsByUserId(Long userId, Pageable pageable) {
-        BooleanExpression condition = user.id.eq(userId);
+    public Page<PostSearchResult> findPostsByMemberId(Long memberId, Pageable pageable) {
+        BooleanExpression condition = member.id.eq(memberId);
         return findPostsWithCondition(condition, pageable, null, null);
     }
 
@@ -110,19 +110,19 @@ public class PostQueryAdapter implements PostQueryPort {
      * <p>배치 조회로 댓글 수와 추천 수 조회</p>
      * <p>{@link PostQueryService}에서 사용자 추천 게시글 내역 조회 시 호출됩니다.</p>
      *
-     * @param userId   사용자 ID
+     * @param memberId   사용자 ID
      * @param pageable 페이지 정보
      * @return 추천한 게시글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public Page<PostSearchResult> findLikedPostsByUserId(Long userId, Pageable pageable) {
+    public Page<PostSearchResult> findLikedPostsByMemberId(Long memberId, Pageable pageable) {
         QPostLike userPostLike = new QPostLike("userPostLike");
         
         // 1. 게시글 기본 정보 조회 (댓글, 추천 JOIN 제외)
         List<PostSearchResult> content = buildBasePostQueryWithoutJoins()
-                .join(userPostLike).on(post.id.eq(userPostLike.post.id).and(userPostLike.user.id.eq(userId)))
+                .join(userPostLike).on(post.id.eq(userPostLike.post.id).and(userPostLike.member.id.eq(memberId)))
                 .orderBy(post.createdAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -146,7 +146,7 @@ public class PostQueryAdapter implements PostQueryPort {
         Long total = jpaQueryFactory
                 .select(post.countDistinct())
                 .from(post)
-                .join(userPostLike).on(post.id.eq(userPostLike.post.id).and(userPostLike.user.id.eq(userId)))
+                .join(userPostLike).on(post.id.eq(userPostLike.post.id).and(userPostLike.member.id.eq(memberId)))
                 .fetchOne();
 
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
@@ -179,8 +179,8 @@ public class PostQueryAdapter implements PostQueryPort {
         BooleanExpression likeCondition = switch (type) {
             case TITLE -> post.title.contains(query);
             case WRITER -> query.length() >= 4
-                ? user.userName.startsWith(query)  // 4글자 이상: LIKE% 검색 (인덱스 효율성)
-                : user.userName.contains(query);   // 1-3글자: %LIKE% 검색 (완전 일치)
+                ? member.memberName.startsWith(query)  // 4글자 이상: LIKE% 검색 (인덱스 효율성)
+                : member.memberName.contains(query);   // 1-3글자: %LIKE% 검색 (완전 일치)
             case TITLE_CONTENT -> post.title.contains(query)
                                    .or(post.content.contains(query));
         };
@@ -306,7 +306,7 @@ public class PostQueryAdapter implements PostQueryPort {
             return jpaQueryFactory
                     .select(post.count())
                     .from(post)
-                    .leftJoin(post.user, user)
+                    .leftJoin(post.member, member)
                     .where(condition)
                     .fetchOne();
         }
@@ -331,12 +331,12 @@ public class PostQueryAdapter implements PostQueryPort {
                         Expressions.constant(0),          // Integer likeCount - 나중에 설정
                         post.postCacheFlag,               // PostCacheFlag postCacheFlag
                         post.createdAt,                   // Instant createdAt
-                        user.id,                          // Long userId
-                        user.userName,                    // String userName
+                        member.id,                          // Long memberId
+                        member.memberName,                    // String memberName
                         Expressions.constant(0),         // Integer commentCount - 나중에 설정
                         post.isNotice))                   // boolean isNotice
                 .from(post)
-                .leftJoin(post.user, user);
+                .leftJoin(post.member, member);
     }
 
     /**
@@ -346,13 +346,13 @@ public class PostQueryAdapter implements PostQueryPort {
      * <p>{@link PostQueryService}에서 게시글 상세 페이지 조회 시 호출됩니다.</p>
      *
      * @param postId 조회할 게시글 ID
-     * @param userId 현재 사용자 ID (좋아요 여부 확인용, null 가능)
+     * @param memberId 현재 사용자 ID (좋아요 여부 확인용, null 가능)
      * @return 게시글 상세 정보 프로젝션 (게시글이 없으면 empty)
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public Optional<PostDetail> findPostDetailWithCounts(Long postId, Long userId) {
+    public Optional<PostDetail> findPostDetailWithCounts(Long postId, Long memberId) {
         QPostLike userPostLike = new QPostLike("userPostLike");
         
         PostDetail result = jpaQueryFactory
@@ -365,8 +365,8 @@ public class PostQueryAdapter implements PostQueryPort {
                         postLike.countDistinct().castToNum(Integer.class),
                         post.postCacheFlag,
                         post.createdAt,
-                        user.id,
-                        user.userName,
+                        member.id,
+                        member.memberName,
                         // 댓글 개수 (COUNT)
                         comment.countDistinct().castToNum(Integer.class),
                         // 공지사항 여부 (boolean isNotice)
@@ -378,16 +378,16 @@ public class PostQueryAdapter implements PostQueryPort {
                                 .otherwise(false)
                 ))
                 .from(post)
-                .leftJoin(post.user, user)
+                .leftJoin(post.member, member)
                 .leftJoin(postLike).on(postLike.post.id.eq(post.id))
                 .leftJoin(comment).on(comment.post.id.eq(post.id))
                 .leftJoin(userPostLike).on(
                         userPostLike.post.id.eq(post.id)
-                        .and(userId != null ? userPostLike.user.id.eq(userId) : Expressions.FALSE)
+                        .and(memberId != null ? userPostLike.member.id.eq(memberId) : Expressions.FALSE)
                 )
                 .where(post.id.eq(postId))
                 .groupBy(post.id, post.title, post.content, post.views, post.createdAt,
-                        user.id, user.userName, post.isNotice, post.postCacheFlag, userPostLike.id)
+                        member.id, member.memberName, post.isNotice, post.postCacheFlag, userPostLike.id)
                 .fetchOne();
 
         return Optional.ofNullable(result);
@@ -410,12 +410,12 @@ public class PostQueryAdapter implements PostQueryPort {
         }
 
         QPost post = QPost.post;
-        QUser user = QUser.user;
+        QMember member = QMember.member;
         QPostLike postLike = QPostLike.postLike;
 
         Post entity = jpaQueryFactory
                 .selectFrom(post)
-                .leftJoin(post.user, user).fetchJoin()
+                .leftJoin(post.member, member).fetchJoin()
                 .where(post.id.eq(postId))
                 .fetchOne();
 

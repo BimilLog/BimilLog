@@ -11,9 +11,9 @@ export const authCommand = {
     return apiClient.post<AuthResponse>("/api/auth/login", requestBody)
   },
   
-  signUp: (userName: string, uuid: string) => {
+  signUp: (memberName: string, uuid: string) => {
     const requestBody: SignUpRequest = {
-      userName,
+      memberName,
       uuid
     }
     return apiClient.post<AuthResponse>("/api/auth/signup", requestBody)

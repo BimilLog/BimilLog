@@ -24,12 +24,12 @@ public class KakaoTokenService implements KakaoTokenUseCase {
      * <p>특정 사용자의 카카오 OAuth 토큰을 삭제합니다.</p>
      * <p>로그아웃, 회원탈퇴, 사용자 차단 시 호출되어 카카오 토큰을 정리합니다.</p>
      *
-     * @param userId 사용자 ID
+     * @param memberId 사용자 ID
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void deleteByUserId(Long userId) {
-        kakaoTokenPort.deleteByUserId(userId);
+    public void deleteByMemberId(Long memberId) {
+        kakaoTokenPort.deleteByMemberId(memberId);
     }
 }

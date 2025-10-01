@@ -20,7 +20,7 @@ public interface PostCommandUseCase {
      * <p>익명/회원 게시글 모두 지원하며, 익명 게시글은 비밀번호 설정이 가능합니다.</p>
      * <p>{@link PostCommandController}에서 게시글 작성 API 처리 시 호출됩니다.</p>
      *
-     * @param userId   게시글 작성자의 사용자 ID (null이면 익명 게시글)
+     * @param memberId   게시글 작성자의 사용자 ID (null이면 익명 게시글)
      * @param title    게시글 제목
      * @param content  게시글 본문 내용
      * @param password 게시글 비밀번호 (익명 게시글인 경우)
@@ -28,7 +28,7 @@ public interface PostCommandUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    Long writePost(Long userId, String title, String content, Integer password);
+    Long writePost(Long memberId, String title, String content, Integer password);
 
     /**
      * <h3>게시글 수정</h3>
@@ -36,14 +36,14 @@ public interface PostCommandUseCase {
      * <p>작성자 권한 검증 후 제목과 내용을 업데이트합니다.</p>
      * <p>{@link PostCommandController}에서 게시글 수정 API 처리 시 호출됩니다.</p>
      *
-     * @param userId  수정 요청 사용자 ID (작성자 검증용)
+     * @param memberId  수정 요청 사용자 ID (작성자 검증용)
      * @param postId  수정할 게시글 ID
      * @param title   새로운 제목
      * @param content 새로운 내용
      * @author Jaeik
      * @since 2.0.0
      */
-    void updatePost(Long userId, Long postId, String title, String content);
+    void updatePost(Long memberId, Long postId, String title, String content);
 
     /**
      * <h3>게시글 삭제</h3>
@@ -51,22 +51,22 @@ public interface PostCommandUseCase {
      * <p>작성자 권한 검증 후 게시글과 연관 데이터를 제거합니다.</p>
      * <p>{@link PostCommandController}에서 게시글 삭제 API 처리 시 호출됩니다.</p>
      *
-     * @param userId 삭제 요청 사용자 ID (작성자 검증용)
+     * @param memberId 삭제 요청 사용자 ID (작성자 검증용)
      * @param postId 삭제할 게시글 ID
      * @author Jaeik
      * @since 2.0.0
      */
-    void deletePost(Long userId, Long postId);
+    void deletePost(Long memberId, Long postId);
 
     /**
      * <h3>특정 사용자의 모든 게시글 삭제</h3>
      * <p>회원 탈퇴 시 해당 사용자가 작성한 모든 게시글을 삭제합니다.</p>
      * <p>글, 글 추천도 함께 삭제됩니다.</p>
-     * <p>UserWithdrawnEvent 이벤트 발생시 회원 탈퇴 처리 흐름에서 호출됩니다.</p>
+     * <p>MemberWithdrawnEvent 이벤트 발생시 회원 탈퇴 처리 흐름에서 호출됩니다.</p>
      *
-     * @param userId 게시글을 삭제할 사용자 ID
+     * @param memberId 게시글을 삭제할 사용자 ID
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteAllPostsByUserId(Long userId);
+    void deleteAllPostsByMemberId(Long memberId);
 }

@@ -44,12 +44,12 @@ public class AdminCommandAdapter implements AdminCommandPort {
      * <p>익명 신고는 reporter가 null이므로 영향받지 않습니다.</p>
      * <p>{@link AdminCommandService}에서 회원 탈퇴 처리 시 호출됩니다.</p>
      *
-     * @param userId 신고를 삭제할 대상 사용자 ID
+     * @param memberId 신고를 삭제할 대상 사용자 ID
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void deleteAllReportsByUserId(Long userId) {
-        reportRepository.deleteAllByReporterId(userId);
+    public void deleteAllReportsByUserId(Long memberId) {
+        reportRepository.deleteAllByReporterId(memberId);
     }
 }

@@ -28,7 +28,7 @@ public class MemberActivityService implements MemberActivityUseCase {
      * <h3>사용자 작성 게시글 목록 조회</h3>
      * <p>해당 사용자가 작성한 게시글 목록을 페이지네이션으로 조회합니다.</p>
      *
-     * @param userId   사용자 ID
+     * @param memberId   사용자 ID
      * @param pageable 페이지 정보
      * @return 작성한 게시글 목록 페이지
      * @author jaeik
@@ -36,15 +36,15 @@ public class MemberActivityService implements MemberActivityUseCase {
      */
     @Override
     @Transactional(readOnly = true)
-    public Page<PostSearchResult> getUserPosts(Long userId, Pageable pageable) {
-        return memberActivityPort.findPostsByUserId(userId, pageable);
+    public Page<PostSearchResult> getMemberPosts(Long memberId, Pageable pageable) {
+        return memberActivityPort.findPostsByMemberId(memberId, pageable);
     }
 
     /**
      * <h3>사용자 추천한 게시글 목록 조회</h3>
      * <p>해당 사용자가 추천한 게시글 목록을 페이지네이션으로 조회합니다.</p>
      *
-     * @param userId   사용자 ID
+     * @param memberId   사용자 ID
      * @param pageable 페이지 정보
      * @return 추천한 게시글 목록 페이지
      * @author jaeik
@@ -52,8 +52,8 @@ public class MemberActivityService implements MemberActivityUseCase {
      */
     @Override
     @Transactional(readOnly = true)
-    public Page<PostSearchResult> getUserLikedPosts(Long userId, Pageable pageable) {
-        return memberActivityPort.findLikedPostsByUserId(userId, pageable);
+    public Page<PostSearchResult> getMemberLikedPosts(Long memberId, Pageable pageable) {
+        return memberActivityPort.findLikedPostsByMemberId(memberId, pageable);
     }
 
     /**
@@ -61,7 +61,7 @@ public class MemberActivityService implements MemberActivityUseCase {
      * <p>해당 사용자가 작성한 댓글 목록을 페이지네이션으로 조회합니다.</p>
      * <p>댓글조회포트(출력포트) -> 댓글조회어댑터(출력어댑터) -> 댓글조회유스케이스(댓글의 입력포트) 순서로 접근합니다.</p>
      *
-     * @param userId   사용자 ID
+     * @param memberId   사용자 ID
      * @param pageable 페이지 정보
      * @return 작성한 댓글 목록 페이지
      * @author jaeik
@@ -69,15 +69,15 @@ public class MemberActivityService implements MemberActivityUseCase {
      */
     @Override
     @Transactional(readOnly = true)
-    public Page<SimpleCommentInfo> getUserComments(Long userId, Pageable pageable) {
-        return memberActivityPort.findCommentsByUserId(userId, pageable);
+    public Page<SimpleCommentInfo> getMemberComments(Long memberId, Pageable pageable) {
+        return memberActivityPort.findCommentsByMemberId(memberId, pageable);
     }
 
     /**
      * <h3>사용자 추천한 댓글 목록 조회</h3>
      * <p>해당 사용자가 추천한 댓글 목록을 페이지네이션으로 조회합니다.</p>
      * *
-     * @param userId   사용자 ID
+     * @param memberId   사용자 ID
      * @param pageable 페이지 정보
      * @return 추천한 댓글 목록 페이지
      * @author jaeik
@@ -85,7 +85,7 @@ public class MemberActivityService implements MemberActivityUseCase {
      */
     @Override
     @Transactional(readOnly = true)
-    public Page<SimpleCommentInfo> getUserLikedComments(Long userId, Pageable pageable) {
-        return memberActivityPort.findLikedCommentsByUserId(userId, pageable);
+    public Page<SimpleCommentInfo> getMemberLikedComments(Long memberId, Pageable pageable) {
+        return memberActivityPort.findLikedCommentsByMemberId(memberId, pageable);
     }
 }

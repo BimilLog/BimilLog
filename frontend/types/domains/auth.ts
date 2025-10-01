@@ -8,8 +8,8 @@ export interface AuthResponse {
   status: AuthStatus;
   uuid?: string; // NEW_USER일 때 회원가입에 필요한 임시 식별자
   data?: { // 각 상황에 따라 다른 필드들이 선택적으로 포함됨
-    userId?: number;
-    userName?: string;
+    memberId?: number;
+    memberName?: string;
     email?: string;
     profileImage?: string;
     socialId?: string;  // Backend StrategyLoginResult.userProfile.socialId
@@ -37,7 +37,7 @@ export interface SocialLoginRequest {
 }
 
 export interface SignUpRequest {
-  userName: string;
+  memberName: string;
   uuid: string;
   marketingConsent?: boolean;
   privacyConsent?: boolean;
@@ -45,7 +45,7 @@ export interface SignUpRequest {
 
 export interface LoginStatus {
   isLoggedIn: boolean;
-  userName?: string;
+  memberName?: string;
   lastLoginAt?: string;
   loginMethod?: SocialProvider;
 }
@@ -61,7 +61,7 @@ export interface AuthTokens {
 export interface AuthSession {
   user?: {
     id: number;
-    userName: string;
+    memberName: string;
     email?: string;
     profileImage?: string;
   };
@@ -96,7 +96,7 @@ export interface AuthLoadingProps {
 // 이전 버전 호환성을 위해 유지되는 타입 (새로운 개발에서는 AuthSession.user 사용 권장)
 export interface LegacyUser {
   id: number;
-  userName: string;
+  memberName: string;
   email: string;
   createdAt: string;
   updatedAt: string;

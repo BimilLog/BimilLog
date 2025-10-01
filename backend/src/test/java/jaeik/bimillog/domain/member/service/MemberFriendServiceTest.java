@@ -7,8 +7,8 @@ import jaeik.bimillog.domain.member.application.port.out.KakaoFriendPort;
 import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
 import jaeik.bimillog.domain.member.application.service.MemberFriendService;
 import jaeik.bimillog.domain.member.entity.KakaoFriendsResponseVO;
-import jaeik.bimillog.domain.member.exception.UserCustomException;
-import jaeik.bimillog.domain.member.exception.UserErrorCode;
+import jaeik.bimillog.domain.member.exception.MemberCustomException;
+import jaeik.bimillog.domain.member.exception.MemberErrorCode;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -98,8 +98,8 @@ class MemberFriendServiceTest extends BaseUnitTest {
 
         // Then
         assertThat(thrown)
-                .isInstanceOf(UserCustomException.class)
-                .hasMessage(UserErrorCode.KAKAO_FRIEND_API_ERROR.getMessage())
+                .isInstanceOf(MemberCustomException.class)
+                .hasMessage(MemberErrorCode.KAKAO_FRIEND_API_ERROR.getMessage())
                 .hasCauseInstanceOf(AuthCustomException.class);
         verify(globalTokenQueryPort).findById(1L);
     }
@@ -119,8 +119,8 @@ class MemberFriendServiceTest extends BaseUnitTest {
 
         // Then
         assertThat(thrown)
-                .isInstanceOf(UserCustomException.class)
-                .hasMessage(UserErrorCode.KAKAO_FRIEND_API_ERROR.getMessage())
+                .isInstanceOf(MemberCustomException.class)
+                .hasMessage(MemberErrorCode.KAKAO_FRIEND_API_ERROR.getMessage())
                 .hasCauseInstanceOf(AuthCustomException.class);
         verify(globalTokenQueryPort).findById(1L);
     }
@@ -140,8 +140,8 @@ class MemberFriendServiceTest extends BaseUnitTest {
 
         // Then
         assertThat(thrown)
-                .isInstanceOf(UserCustomException.class)
-                .hasMessage(UserErrorCode.KAKAO_FRIEND_API_ERROR.getMessage())
+                .isInstanceOf(MemberCustomException.class)
+                .hasMessage(MemberErrorCode.KAKAO_FRIEND_API_ERROR.getMessage())
                 .hasCauseInstanceOf(AuthCustomException.class);
         verify(globalTokenQueryPort).findById(1L);
     }
@@ -202,12 +202,12 @@ class MemberFriendServiceTest extends BaseUnitTest {
                 .build();
         given(globalTokenQueryPort.findById(1L)).willReturn(Optional.of(authToken));
         given(kakaoFriendPort.getFriendList("access-TemporaryToken", 0, 10))
-                .willThrow(new UserCustomException(UserErrorCode.KAKAO_FRIEND_API_ERROR));
+                .willThrow(new MemberCustomException(MemberErrorCode.KAKAO_FRIEND_API_ERROR));
 
         // When & Then
         assertThatThrownBy(() -> userFriendService.getKakaoFriendList(1L, 1L, 0, 10))
-                .isInstanceOf(UserCustomException.class)
-                .hasMessage(UserErrorCode.KAKAO_FRIEND_CONSENT_FAIL.getMessage());
+                .isInstanceOf(MemberCustomException.class)
+                .hasMessage(MemberErrorCode.KAKAO_FRIEND_CONSENT_FAIL.getMessage());
     }
 
     @Test
@@ -224,8 +224,8 @@ class MemberFriendServiceTest extends BaseUnitTest {
 
         // When & Then
         assertThatThrownBy(() -> userFriendService.getKakaoFriendList(1L, 1L, 0, 10))
-                .isInstanceOf(UserCustomException.class)
-                .hasMessage(UserErrorCode.KAKAO_FRIEND_API_ERROR.getMessage());
+                .isInstanceOf(MemberCustomException.class)
+                .hasMessage(MemberErrorCode.KAKAO_FRIEND_API_ERROR.getMessage());
     }
 
     @Test

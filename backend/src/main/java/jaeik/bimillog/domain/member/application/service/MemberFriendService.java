@@ -10,8 +10,8 @@ import jaeik.bimillog.domain.member.application.port.in.MemberFriendUseCase;
 import jaeik.bimillog.domain.member.application.port.out.KakaoFriendPort;
 import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
 import jaeik.bimillog.domain.member.entity.KakaoFriendsResponseVO;
-import jaeik.bimillog.domain.member.exception.UserCustomException;
-import jaeik.bimillog.domain.member.exception.UserErrorCode;
+import jaeik.bimillog.domain.member.exception.MemberCustomException;
+import jaeik.bimillog.domain.member.exception.MemberErrorCode;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,9 +41,9 @@ public class MemberFriendService implements MemberFriendUseCase {
     /**
      * <h3>카카오 친구 목록 조회</h3>
      * <p>현재 로그인한 사용자의 카카오 친구 목록을 조회하고, 비밀로그 가입 여부를 확인합니다.</p>
-     * <p><strong>성능 최적화:</strong> findUserNamesInOrder 메소드를 사용하여 배치 조회로 N+1 문제를 해결합니다.</p>
+     * <p><strong>성능 최적화:</strong> findMemberNamesInOrder 메소드를 사용하여 배치 조회로 N+1 문제를 해결합니다.</p>
      *
-     * @param userId   사용자 ID
+     * @param memberId   사용자 ID
      * @param offset   조회 시작 위치 (기본값: 0)
      * @param limit    조회할 친구 수 (기본값: 10, 최대: 100)
      * @param tokenId  현재 요청 기기 토큰 ID
@@ -54,18 +54,18 @@ public class MemberFriendService implements MemberFriendUseCase {
      */
     @Override
     @Transactional(readOnly = true)
-    public KakaoFriendsResponseVO getKakaoFriendList(Long userId, Long tokenId, Integer offset, Integer limit) {
+    public KakaoFriendsResponseVO getKakaoFriendList(Long memberId, Long tokenId, Integer offset, Integer limit) {
         // 기본값 설정
         int actualOffset = offset != null ? offset : 0;
         int actualLimit = limit != null ? Math.min(limit, 100) : 10;
 
         try {
-            // 1. 현재 요청 기기의 AuthToken 조회 (userId 추출용)
+            // 1. 현재 요청 기기의 AuthToken 조회 (memberId 추출용)
             AuthToken authToken = globalTokenQueryPort.findById(tokenId)
                     .orElseThrow(() -> new AuthCustomException(AuthErrorCode.NOT_FIND_TOKEN));
 
             // 2. KakaoToken 조회
-            KakaoToken kakaoToken = globalKakaoTokenQueryPort.findByUserId(authToken.getUsers().getId())
+            KakaoToken kakaoToken = globalKakaoTokenQueryPort.findByMemberId(authToken.getMember().getId())
                     .orElseThrow(() -> new AuthCustomException(AuthErrorCode.NOT_FIND_TOKEN));
 
             // 카카오 액세스 토큰 확인
@@ -80,19 +80,19 @@ public class MemberFriendService implements MemberFriendUseCase {
             // 4. 친구 목록 처리 (비밀로그 가입 여부 체크)
             return processFriendList(response);
             
-        } catch (UserCustomException e) {
+        } catch (MemberCustomException e) {
             // 카카오 친구 동의 필요한 경우 특별한 에러 메시지 처리
-            if (e.getUserErrorCode() == UserErrorCode.KAKAO_FRIEND_API_ERROR) {
-                throw new UserCustomException(UserErrorCode.KAKAO_FRIEND_CONSENT_FAIL);
+            if (e.getMemberErrorCode() == MemberErrorCode.KAKAO_FRIEND_API_ERROR) {
+                throw new MemberCustomException(MemberErrorCode.KAKAO_FRIEND_CONSENT_FAIL);
             }
             throw e;
         } catch (Exception e) {
             // UserCustomException은 그대로 전파
-            if (e instanceof UserCustomException) {
+            if (e instanceof MemberCustomException) {
                 throw e;
             }
             log.error("카카오 API 호출 중 예상치 못한 오류 발생: {}", e.getMessage(), e);
-            throw new UserCustomException(UserErrorCode.KAKAO_FRIEND_API_ERROR, e);
+            throw new MemberCustomException(MemberErrorCode.KAKAO_FRIEND_API_ERROR, e);
         }
     }
 
@@ -115,23 +115,23 @@ public class MemberFriendService implements MemberFriendUseCase {
                 .collect(Collectors.toList());
 
         // 2. 배치로 사용자 이름 조회 (N+1 문제 해결)
-        List<String> userNames = memberQueryPort.findUserNamesInOrder(socialIds);
+        List<String> memberNames = memberQueryPort.findMemberNamesInOrder(socialIds);
 
         // 3. 결과를 각 친구에게 매핑 (Stream API 활용)
         List<KakaoFriendsResponseVO.Friend> updatedElements = elements.stream()
                 .map(originalFriend -> {
                     // 순서가 보장되므로 인덱스로 사용자 이름 조회
                     int index = elements.indexOf(originalFriend);
-                    String userName = userNames.get(index);
-                    if (!userName.isEmpty()) {
-                        // 가입된 친구인 경우 userName 필드 업데이트
+                    String memberName = memberNames.get(index);
+                    if (!memberName.isEmpty()) {
+                        // 가입된 친구인 경우 memberName 필드 업데이트
                         return KakaoFriendsResponseVO.Friend.of(
                                 originalFriend.id(),
                                 originalFriend.uuid(),
                                 originalFriend.profileNickname(),
                                 originalFriend.profileThumbnailImage(),
                                 originalFriend.favorite(),
-                                userName
+                                memberName
                         );
                     }
                     return originalFriend;

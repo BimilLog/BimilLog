@@ -5,8 +5,8 @@ import jaeik.bimillog.domain.member.application.port.in.MemberQueryUseCase;
 import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.entity.member.Member;
-import jaeik.bimillog.domain.member.exception.UserCustomException;
-import jaeik.bimillog.domain.member.exception.UserErrorCode;
+import jaeik.bimillog.domain.member.exception.MemberCustomException;
+import jaeik.bimillog.domain.member.exception.MemberErrorCode;
 import jaeik.bimillog.infrastructure.adapter.in.member.web.MemberQueryController;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -50,15 +50,15 @@ public class MemberQueryService implements MemberQueryUseCase {
      * <p>해당 닉네임을 가진 사용자가 존재하는지 확인합니다.</p>
      * <p>{@link MemberQueryController}에서 닉네임 중복 확인 API 시 호출됩니다.</p>
      *
-     * @param userName 확인할 닉네임
+     * @param memberName 확인할 닉네임
      * @return boolean 존재하면 true, 아니면 false
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     @Transactional(readOnly = true)
-    public boolean existsByUserName(String userName) {
-        return memberQueryPort.existsByUserName(userName);
+    public boolean existsByMemberName(String memberName) {
+        return memberQueryPort.existsByMemberName(memberName);
     }
 
     /**
@@ -66,15 +66,15 @@ public class MemberQueryService implements MemberQueryUseCase {
      * <p>닉네임을 사용하여 사용자를 조회합니다.</p>
      * <p>{@link MemberQueryUseCase}에서 닉네임 기반 사용자 조회 시 호출됩니다.</p>
      *
-     * @param userName 사용자 닉네임
+     * @param memberName 사용자 닉네임
      * @return Optional<Member> 조회된 사용자 객체. 존재하지 않으면 Optional.empty()
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     @Transactional(readOnly = true)
-    public Optional<Member> findByUserName(String userName) {
-        return memberQueryPort.findByUserName(userName);
+    public Optional<Member> findByMemberName(String memberName) {
+        return memberQueryPort.findByMemberName(memberName);
     }
 
 
@@ -84,15 +84,15 @@ public class MemberQueryService implements MemberQueryUseCase {
      * <p>JPA 연관 관계 설정 시 사용됩니다.</p>
      * <p>{@link MemberQueryUseCase}에서 사용자 엔티티 참조 생성 시 호출됩니다.</p>
      *
-     * @param userId 사용자 ID
+     * @param memberId 사용자 ID
      * @return Member 프록시 객체
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     @Transactional(readOnly = true)
-    public Member getReferenceById(Long userId) {
-        return memberQueryPort.getReferenceById(userId);
+    public Member getReferenceById(Long memberId) {
+        return memberQueryPort.getReferenceById(memberId);
     }
 
     /**
@@ -103,7 +103,7 @@ public class MemberQueryService implements MemberQueryUseCase {
      *
      * @param settingId 설정 ID
      * @return 설정 엔티티
-     * @throws UserCustomException 설정을 찾을 수 없는 경우
+     * @throws MemberCustomException 설정을 찾을 수 없는 경우
      * @since 2.0.0
      * @author Jaeik
      */
@@ -111,6 +111,6 @@ public class MemberQueryService implements MemberQueryUseCase {
     @Transactional(readOnly = true)
     public Setting findBySettingId(Long settingId) {
         return memberQueryPort.findSettingById(settingId)
-                .orElseThrow(() -> new UserCustomException(UserErrorCode.SETTINGS_NOT_FOUND));
+                .orElseThrow(() -> new MemberCustomException(MemberErrorCode.SETTINGS_NOT_FOUND));
     }
 }

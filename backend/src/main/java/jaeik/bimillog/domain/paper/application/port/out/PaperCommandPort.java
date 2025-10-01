@@ -21,12 +21,12 @@ public interface PaperCommandPort {
      * <p>- 단건 삭제 시: 소유권 검증 완료 후 호출</p>
      * <p>- 전체 삭제 시: 회원탈퇴 처리 중 호출</p>
      *
-     * @param userId 사용자 ID
+     * @param memberId 사용자 ID
      * @param messageId 삭제할 메시지 ID (null인 경우 모든 메시지 삭제)
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteMessage(Long userId, Long messageId);
+    void deleteMessage(Long memberId, Long messageId);
     /**
      * <h3>메시지 저장</h3>
      * <p>새로운 롤링페이퍼 메시지를 저장합니다.</p>

@@ -36,10 +36,10 @@ public interface PostLikeQueryPort {
      * <p>{@link PostQueryService}에서 캐시된 게시글의 사용자별 추천 상태 확인 시 호출됩니다.</p>
      *
      * @param postId 추천 여부를 확인할 게시글 ID
-     * @param userId 추천 여부를 확인할 사용자 ID
+     * @param memberId 추천 여부를 확인할 사용자 ID
      * @return 추천이 존재하면 true, 존재하지 않으면 false
      * @author Jaeik
      * @since 2.0.0
      */
-    boolean existsByPostIdAndUserId(Long postId, Long userId);
+    boolean existsByPostIdAndUserId(Long postId, Long memberId);
 }

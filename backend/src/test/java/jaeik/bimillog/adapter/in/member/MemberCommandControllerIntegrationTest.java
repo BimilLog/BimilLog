@@ -9,11 +9,11 @@ import jaeik.bimillog.infrastructure.adapter.in.member.dto.SettingDTO;
 import jaeik.bimillog.infrastructure.adapter.in.member.dto.SignUpRequestDTO;
 import jaeik.bimillog.infrastructure.adapter.in.member.dto.MemberNameDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
-import jaeik.bimillog.infrastructure.adapter.out.member.UserRepository;
+import jaeik.bimillog.infrastructure.adapter.out.member.MemberRepository;
 import jaeik.bimillog.testutil.AuthTestFixtures;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
-import jaeik.bimillog.testutil.TestUsers;
+import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.annotation.IntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -47,7 +47,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
-    private UserRepository userRepository;
+    private MemberRepository userRepository;
 
     @Test
     @DisplayName("회원가입 통합 테스트 - 성공")
@@ -88,7 +88,7 @@ class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("닉네임 변경 통합 테스트 - 성공")
     void updateUserName_IntegrationTest_Success() throws Exception {
         // Given - 테스트 사용자 생성 및 저장
-        Member testMember = TestUsers.createUnique();
+        Member testMember = TestMembers.createUnique();
         userRepository.save(testMember);
         
         CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testMember);
@@ -111,7 +111,7 @@ class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("닉네임 변경 통합 테스트 - 유효성 검증 실패 (8글자 초과)")
     void updateUserName_IntegrationTest_ValidationFail() throws Exception {
         // Given - 테스트 사용자 생성 및 저장
-        Member testMember = TestUsers.createUnique();
+        Member testMember = TestMembers.createUnique();
         userRepository.save(testMember);
         
         var userDetails = createCustomUserDetails(testMember);
@@ -133,7 +133,7 @@ class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("설정 수정 통합 테스트 - 성공")
     void updateSetting_IntegrationTest_Success() throws Exception {
         // Given - 테스트 사용자 생성 및 저장
-        Member testMember = TestUsers.createUnique();
+        Member testMember = TestMembers.createUnique();
         userRepository.save(testMember);
         
         var userDetails = createCustomUserDetails(testMember);
@@ -163,7 +163,7 @@ class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("설정 수정 - null 값 검증 실패 - 400 Bad Request")
     void updateSetting_NullValidation_BadRequest() throws Exception {
         // Given
-        Member testMember = TestUsers.createUnique();
+        Member testMember = TestMembers.createUnique();
         userRepository.save(testMember);
         
         var userDetails = createCustomUserDetails(testMember);
@@ -189,7 +189,7 @@ class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("닉네임 변경 - 빈 문자열 검증 실패 - 400 Bad Request")
     void updateUserName_BlankValidation_BadRequest() throws Exception {
         // Given
-        Member testMember = TestUsers.createUnique();
+        Member testMember = TestMembers.createUnique();
         userRepository.save(testMember);
         
         var userDetails = createCustomUserDetails(testMember);
@@ -220,7 +220,7 @@ class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
                 .content("테스트 신고 내용입니다.")
                 .build();
 
-        Member testMember = TestUsers.createUnique();
+        Member testMember = TestMembers.createUnique();
         userRepository.save(testMember);
         var userDetails = createCustomUserDetails(testMember);
 
@@ -245,7 +245,7 @@ class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
                 .content("") // 빈 내용
                 .build();
 
-        Member testMember = TestUsers.createUnique();
+        Member testMember = TestMembers.createUnique();
         userRepository.save(testMember);
         var userDetails = createCustomUserDetails(testMember);
 

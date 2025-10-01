@@ -31,7 +31,7 @@ public class MessageDTO {
 
     private Long id;
 
-    private Long userId;
+    private Long memberId;
 
     private DecoType decoType;
 
@@ -131,7 +131,7 @@ public class MessageDTO {
     public static MessageDTO from(MessageDetail messageDetail) {
         MessageDTO dto = new MessageDTO();
         dto.id = messageDetail.id();
-        dto.userId = messageDetail.userId();
+        dto.memberId = messageDetail.memberId();
         dto.decoType = messageDetail.decoType();
         dto.anonymity = messageDetail.anonymity();
         dto.content = messageDetail.content();
