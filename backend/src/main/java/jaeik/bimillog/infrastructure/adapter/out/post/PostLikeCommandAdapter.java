@@ -47,7 +47,7 @@ public class PostLikeCommandAdapter implements PostLikeCommandPort {
      */
     @Override
     public void deletePostLike(Member member, Post post) {
-        postLikeRepository.deleteByUserAndPost(member, post);
+        postLikeRepository.deleteByMemberAndPost(member, post);
     }
 
     /**

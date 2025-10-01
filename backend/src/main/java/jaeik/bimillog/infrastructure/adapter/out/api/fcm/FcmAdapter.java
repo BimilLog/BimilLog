@@ -83,9 +83,9 @@ public class FcmAdapter implements FcmPort {
     @Override
     public void deleteFcmTokens(Long memberId, Long fcmTokenId) {
         if (fcmTokenId != null) {
-            fcmTokenRepository.deleteByUser_IdAndId(memberId, fcmTokenId);
+            fcmTokenRepository.deleteByMember_IdAndId(memberId, fcmTokenId);
         } else {
-            fcmTokenRepository.deleteByUser_Id(memberId);
+            fcmTokenRepository.deleteByMember_Id(memberId);
         }
     }
 

@@ -7,12 +7,12 @@
 --   User 테이블과 JwtToken 테이블을 JPA 엔티티와 일치하도록 전면 리네이밍합니다.
 --   1. user → member (테이블명)
 --   2. user_id → member_id (PK 컬럼명)
---   3. jwt_token → auth_token (테이블명)
---   4. jwt_token_id → auth_token_id (PK 컬럼명)
---   5. jwt_refresh_token → refresh_token (컬럼명)
---   6. 모든 FK를 member.member_id 참조로 재생성
---
---   주의: FK 컬럼명 user_id는 유지되지만, member.member_id를 참조하도록 변경됩니다.
+--   3. user_name → member_name (비즈니스 컬럼명)
+--   4. jwt_token → auth_token (테이블명)
+--   5. jwt_token_id → auth_token_id (PK 컬럼명)
+--   6. jwt_refresh_token → refresh_token (컬럼명)
+--   7. 모든 FK 컬럼명 user_id → member_id 변경 (9개 테이블)
+--   8. 모든 FK를 member.member_id 참조로 재생성
 -- ================================================================================================
 
 DELIMITER $$
@@ -301,6 +301,9 @@ ALTER TABLE `user` CHANGE COLUMN `user_id` `member_id` BIGINT NOT NULL AUTO_INCR
 -- 2-2. 테이블명 변경: user → member
 ALTER TABLE `user` RENAME TO `member`;
 
+-- 2-3. user_name → member_name 컬럼명 변경
+ALTER TABLE `member` CHANGE COLUMN `user_name` `member_name` VARCHAR(255) NOT NULL;
+
 -- ============================================
 -- 3단계: jwt_token 테이블 변경 (존재하는 경우)
 -- ============================================
@@ -455,7 +458,7 @@ WHERE CONSTRAINT_SCHEMA = DATABASE()
 
 -- ================================================================================================
 -- Migration Notes:
--- 1. user 테이블 → member 테이블 (PK: user_id → member_id)
+-- 1. user 테이블 → member 테이블 (PK: user_id → member_id, 비즈니스 컬럼: user_name → member_name)
 -- 2. jwt_token 테이블 → auth_token 테이블 (PK: jwt_token_id → auth_token_id)
 -- 3. jwt_refresh_token 컬럼 → refresh_token 컬럼
 -- 4. 모든 FK 컬럼명 user_id → member_id 변경 (9개 테이블)

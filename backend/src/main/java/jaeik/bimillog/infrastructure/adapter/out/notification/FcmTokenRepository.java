@@ -22,7 +22,7 @@ public interface FcmTokenRepository extends JpaRepository<FcmToken, Long> {
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteByUser_Id(Long memberId);
+    void deleteByMember_Id(Long memberId);
 
     /**
      * <h3>사용자 ID와 토큰 ID로 특정 FCM 토큰 삭제</h3>
@@ -34,6 +34,6 @@ public interface FcmTokenRepository extends JpaRepository<FcmToken, Long> {
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteByUser_IdAndId(Long memberId, Long fcmTokenId);
+    void deleteByMember_IdAndId(Long memberId, Long fcmTokenId);
 
 }

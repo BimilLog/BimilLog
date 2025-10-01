@@ -53,7 +53,7 @@ public class PaperCommandAdapter implements PaperCommandPort {
         if (messageId != null) {
             messageRepository.deleteById(messageId);
         } else {
-            messageRepository.deleteAllByUser_Id(memberId);
+            messageRepository.deleteAllByMember_Id(memberId);
         }
     }
 }

@@ -27,7 +27,7 @@ public interface PostLikeRepository extends JpaRepository<PostLike, Long> {
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteByUserAndPost(Member member, Post post);
+    void deleteByMemberAndPost(Member member, Post post);
 
     /**
      * <h3>게시글 ID로 모든 추천 삭제</h3>
