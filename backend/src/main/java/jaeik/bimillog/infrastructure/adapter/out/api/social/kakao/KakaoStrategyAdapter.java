@@ -54,7 +54,7 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
      * @since 2.0.0
      */
     @Override
-    public KakaoToken getToken(String code) {
+    public KakaoToken getSocialToken(String code) {
         Map<String, String> params = new HashMap<>();
         params.put("grant_type", "authorization_code");
         params.put("client_id", kakaoKeyVO.getCLIENT_ID());
@@ -100,7 +100,7 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
 
             return KakaoMemberInfo.of(
                     socialId,
-                    null, // 카카오는 보안정책상 이메일을 제공하지 않음
+                    null, // 이메일이 필요없어서 받지 않고 있음
                     SocialProvider.KAKAO,
                     nickname,
                     thumbnailImage

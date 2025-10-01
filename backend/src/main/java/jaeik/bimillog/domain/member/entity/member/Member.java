@@ -49,10 +49,8 @@ public class Member extends BaseEntity {
     @JoinColumn(name = "setting_id")
     private Setting setting;
 
-    /**
-     * FK 제거 (V2.5): 독립적 라이프사이클 관리
-     * 로그아웃 시 토큰 삭제, 재로그인 시 재생성으로 Member와 분리
-     */
+    // Null + FK 제거 + Cascade 없음
+    // 카카오 토큰이 없는 순간도 있음 + 고아 객체의 생성 가능성 낮음 + FK 필요성 없음
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "kakao_token_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private KakaoToken kakaoToken;

@@ -2,11 +2,7 @@
 package jaeik.bimillog.domain.auth.application.service;
 
 import jaeik.bimillog.domain.auth.application.port.in.SocialLoginUseCase;
-import jaeik.bimillog.domain.auth.application.port.out.AuthToMemberPort;
-import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
-import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
-import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
-import jaeik.bimillog.domain.auth.application.port.out.AuthTokenPort;
+import jaeik.bimillog.domain.auth.application.port.out.*;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
@@ -71,7 +67,7 @@ public class SocialLoginService implements SocialLoginUseCase {
 
         // 1. 전략 포트를 통해 OAuth 인증 수행
         SocialStrategyPort strategy = strategyRegistryPort.getStrategy(provider);
-        KakaoToken kakaoToken = strategy.getToken(code);
+        KakaoToken kakaoToken = strategy.getSocialToken(code);
         KakaoMemberInfo kakaoUserInfo = strategy.getUserInfo(kakaoToken.getKakaoAccessToken());
 
         // 2. KakaoToken, KakaoMemberInfo, fcmToken을 조합하여 SocialMemberProfile 생성

@@ -70,7 +70,7 @@ class KakaoStrategyAdapterTest extends BaseUnitTest {
 
     @Test
     @DisplayName("getToken과 getUserInfo 성공 - 토큰 발급과 사용자 정보 조회")
-    void shouldGetTokenAndUserInfoSuccessfully() {
+    void shouldGetSocialTokenAndUserInfoSuccessfully() {
         // Given - KakaoTestDataBuilder를 사용한 응답 데이터 생성
         Map<String, Object> tokenResponse = KakaoTestDataBuilder.createTokenResponse(
             TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
@@ -98,8 +98,8 @@ class KakaoStrategyAdapterTest extends BaseUnitTest {
         given(kakaoAuthClient.getToken(anyString(), any(Map.class))).willReturn(tokenResponse);
         given(kakaoApiClient.getUserInfo(anyString())).willReturn(userInfoResponse);
 
-        // When - getToken 호출
-        KakaoToken tokenDTO = kakaoStrategyAdapter.getToken(TEST_AUTH_CODE);
+        // When - getSocialToken 호출
+        KakaoToken tokenDTO = kakaoStrategyAdapter.getSocialToken(TEST_AUTH_CODE);
 
         // Then - 토큰 검증
         assertThat(tokenDTO).isNotNull();
@@ -128,7 +128,7 @@ class KakaoStrategyAdapterTest extends BaseUnitTest {
     }
 
     @Test
-    @DisplayName("getToken 실패 - 토큰 발급 실패 시 예외 발생")
+    @DisplayName("getSocialToken 실패 - 토큰 발급 실패 시 예외 발생")
     void shouldThrowExceptionWhenTokenRequestFails() {
         // Given
         given(kakaoAuthClient.getToken(anyString(), any(Map.class)))
@@ -136,7 +136,7 @@ class KakaoStrategyAdapterTest extends BaseUnitTest {
 
         // When & Then
         assertThatThrownBy(() ->
-            kakaoStrategyAdapter.getToken(TEST_AUTH_CODE))
+            kakaoStrategyAdapter.getSocialToken(TEST_AUTH_CODE))
             .isInstanceOf(RuntimeException.class)
             .hasMessageContaining("Kakao token request failed");
     }

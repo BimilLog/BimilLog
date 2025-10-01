@@ -36,7 +36,7 @@ public interface SocialStrategyPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    KakaoToken getToken(String code);
+    KakaoToken getSocialToken(String code);
 
     /**
      * <h3>소셜 플랫폼 사용자 정보 조회</h3>

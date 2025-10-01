@@ -44,7 +44,7 @@ public class TestSocialLoginPortConfig {
         }
 
         @Override
-        public KakaoToken getToken(String code) {
+        public KakaoToken getSocialToken(String code) {
             return KakaoToken.createKakaoToken("dummy-access-token", "dummy-refresh-token");
         }
 
