@@ -1,7 +1,15 @@
+buildscript {
+    dependencies {
+        classpath 'com.mysql:mysql-connector-j:9.1.0'
+        classpath 'org.flywaydb:flyway-mysql:10.21.0'
+    }
+}
+
 plugins {
     id 'java'
     id 'org.springframework.boot' version '3.4.4'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.flywaydb.flyway' version '10.21.0'
 }
 
 group = 'jaeik'
@@ -176,4 +184,11 @@ dependencyManagement {
     imports {
         mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}" // openfeign 호환
     }
+}
+
+flyway {
+    url = 'jdbc:mysql://localhost:3306/bimillog?allowPublicKeyRetrieval=true&useSSL=false'
+    user = 'root'
+    password = System.getenv('MYSQL_PASSWORD')
+    driver = 'com.mysql.cj.jdbc.Driver'
 }

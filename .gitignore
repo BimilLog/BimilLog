@@ -77,6 +77,8 @@ replay_pid*
 /.cursor/
 /backend/AOP_LOGGING_GUIDE.md
 /backend/src/main/resources/dump/
-/LOGBACK_ANALYSIS.md
+/docs/LOGBACK_ANALYSIS.md
 /backend/SOCIAL_LOGIN_STRATEGY_PATTERN.md
 /AGENTS.md
+/backend/flyway.toml
+/docs/
