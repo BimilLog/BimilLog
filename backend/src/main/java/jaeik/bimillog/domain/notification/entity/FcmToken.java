@@ -23,11 +23,12 @@ import lombok.experimental.SuperBuilder;
 public class FcmToken extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // PK 번호
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "fcm_token_id")
     private Long id;
 
-    @NotNull
+    // DB레벨 Cascade 적용 FcmToken은 회원탈퇴시 자동 삭제
+    // Null + FK = Null 허용하되 참조 무결성 확보
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;

@@ -82,7 +82,6 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
      * <p>카카오 API 응답에서 필요한 사용자 정보를 추출하여 DTO로 변환합니다.</p>
      *
      * @param accessToken 카카오 액세스 토큰
-     * @param refreshToken 카카오 리프레시 토큰
      * @return KakaoMemberInfo 카카오 사용자 정보 DTO (이메일은 null)
      * @author Jaeik
      * @since 2.0.0

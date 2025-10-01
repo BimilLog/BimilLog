@@ -44,7 +44,6 @@ public interface SocialStrategyPort {
      * <p>각 플랫폼의 API 응답을 DTO로 변환하여 반환합니다.</p>
      *
      * @param accessToken 소셜 플랫폼 액세스 토큰
-     * @param refreshToken 소셜 플랫폼 리프레시 토큰
      * @return KakaoMemberInfo 소셜 사용자 정보 DTO
      * @author Jaeik
      * @since 2.0.0

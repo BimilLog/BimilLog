@@ -214,7 +214,8 @@ ALTER TABLE `notification`
 
 ALTER TABLE `fcm_token`
   ADD CONSTRAINT `fk_fcm_token_member`
-  FOREIGN KEY (`member_id`) REFERENCES `member` (`member_id`);
+  FOREIGN KEY (`member_id`) REFERENCES `member` (`member_id`)
+  ON DELETE CASCADE;
 
 ALTER TABLE `member`
   ADD CONSTRAINT `fk_member_setting`
@@ -258,11 +259,11 @@ SELECT
 FROM information_schema.TABLES
 WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'kakao_token';
 
--- CASCADE 설정 확인 (6개)
+-- CASCADE 설정 확인 (7개)
 SELECT
     CASE
-        WHEN COUNT(*) = 6 THEN 'SUCCESS: 6 CASCADE constraints configured'
-        ELSE CONCAT('WARNING: Expected 6 CASCADE, found ', COUNT(*))
+        WHEN COUNT(*) = 7 THEN 'SUCCESS: 7 CASCADE constraints configured'
+        ELSE CONCAT('WARNING: Expected 7 CASCADE, found ', COUNT(*))
     END AS cascade_status
 FROM information_schema.REFERENTIAL_CONSTRAINTS
 WHERE CONSTRAINT_SCHEMA = DATABASE()
@@ -273,7 +274,8 @@ WHERE CONSTRAINT_SCHEMA = DATABASE()
     'fk_comment_post',
     'fk_post_like_post',
     'fk_post_like_member',
-    'fk_member_setting'
+    'fk_member_setting',
+    'fk_fcm_token_member'
   );
 
 -- FK 없는 컬럼 확인 (3개)
@@ -288,11 +290,12 @@ SELECT
 -- 4. V2.5: 최종 CASCADE 설정 (6개) 및 FK 제거 (3개)
 -- 5. V2.3의 "모든 CASCADE 제거" 단계는 생략 (최종 상태만 반영)
 --
--- CASCADE가 있는 FK (6개):
+-- CASCADE가 있는 FK (7개):
 --   - comment_like.comment_id, comment_like.member_id
 --   - comment.post_id
 --   - post_like.post_id, post_like.member_id
 --   - member.setting_id
+--   - fcm_token.member_id
 --
 -- FK가 없는 컬럼 (3개):
 --   - auth_token.member_id (보안 감사 이력 보존)
