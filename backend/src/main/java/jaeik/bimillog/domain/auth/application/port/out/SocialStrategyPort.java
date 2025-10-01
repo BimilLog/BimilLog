@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.auth.application.port.out;
 
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
-import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.KakaoMemberInfo;
+import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 
 /**
@@ -27,16 +27,17 @@ public interface SocialStrategyPort {
     SocialProvider getSupportedProvider();
 
     /**
-     * <h3>소셜 플랫폼 OAuth 토큰 발급</h3>
+     * <h3>소셜 플랫폼 OAuth 토큰 발급 및 사용자 정보 조회</h3>
      * <p>OAuth 2.0 인증 코드를 사용하여 소셜 플랫폼으로부터 액세스 토큰과 리프레시 토큰을 발급받습니다.</p>
-     * <p>각 플랫폼의 토큰 엔드포인트에 인증 코드를 전송하고 토큰을 받아옵니다.</p>
+     * <p>토큰 응답에 포함된 id_token의 페이로드를 파싱하여 사용자 정보(소셜ID, 닉네임, 프로필 이미지)를 추출합니다.</p>
+     * <p>이를 통해 별도의 사용자 정보 API 호출 없이 한 번의 요청으로 모든 필요한 정보를 얻을 수 있습니다.</p>
      *
      * @param code OAuth 2.0 인증 코드
-     * @return KakaoToken 액세스 토큰과 리프레시 토큰을 담은 DTO
+     * @return SocialMemberProfile 소셜 토큰 및 사용자 정보를 담은 프로필 객체 (fcmToken은 null)
      * @author Jaeik
      * @since 2.0.0
      */
-    KakaoToken getSocialToken(String code);
+    SocialMemberProfile getSocialToken(String code);
 
     /**
      * <h3>소셜 플랫폼 사용자 정보 조회</h3>

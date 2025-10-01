@@ -2,8 +2,8 @@ package jaeik.bimillog.testutil;
 
 import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
-import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.KakaoMemberInfo;
+import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.member.application.port.out.KakaoFriendPort;
@@ -44,8 +44,30 @@ public class TestSocialLoginPortConfig {
         }
 
         @Override
-        public KakaoToken getSocialToken(String code) {
-            return KakaoToken.createKakaoToken("dummy-access-token", "dummy-refresh-token");
+        public SocialMemberProfile getSocialToken(String code) {
+            String socialId;
+            String accessToken = "dummy-access-token";
+            String refreshToken = "dummy-refresh-token";
+
+            // code에 따라 다른 회원 ID 반환 (테스트 목적)
+            if ("new-member-code".equals(code)) {
+                socialId = "new-member-social-id";
+            } else if ("existing-member-code".equals(code)) {
+                socialId = "test-social-id-12345"; // 통합 테스트에서 생성한 기존 회원 ID와 일치
+            } else {
+                socialId = "test-social-id";
+            }
+
+            return SocialMemberProfile.of(
+                socialId,
+                null, // 카카오는 이메일을 제공하지 않음
+                SocialProvider.KAKAO,
+                "Test Member",
+                "https://example.com/profile.jpg",
+                accessToken,
+                refreshToken,
+                null
+            );
         }
 
         @Override

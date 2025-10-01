@@ -1,14 +1,18 @@
 package jaeik.bimillog.infrastructure.adapter.out.api.social.kakao;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.KakaoMemberInfo;
+import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.global.vo.KakaoKeyVO;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,6 +32,7 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
     private final KakaoKeyVO kakaoKeyVO;
     private final KakaoAuthClient kakaoAuthClient;
     private final KakaoApiClient kakaoApiClient;
+    private final ObjectMapper objectMapper;
 
     /**
      * <h3>지원하는 소셜 제공자 반환</h3>
@@ -44,17 +49,18 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
     }
 
     /**
-     * <h3>카카오 OAuth 토큰 발급</h3>
+     * <h3>카카오 OAuth 토큰 발급 및 사용자 정보 조회</h3>
      * <p>카카오 OAuth 2.0 인증 코드를 사용하여 카카오 인증 서버로부터 액세스 토큰과 리프레시 토큰을 발급받습니다.</p>
-     * <p>카카오 소셜 로그인 처리 내부에서 사용되며, authenticate() 프로세스의 일부로 호출됩니다.</p>
+     * <p>응답에 포함된 id_token의 페이로드를 파싱하여 사용자 정보(소셜ID, 닉네임, 프로필 이미지)를 추출합니다.</p>
+     * <p>별도의 사용자 정보 API 호출 없이 한 번의 요청으로 모든 필요한 정보를 얻습니다.</p>
      *
      * @param code 카카오 OAuth 2.0 인증 코드
-     * @return KakaoToken 카카오 액세스/리프레시 토큰을 담은 DTO
+     * @return SocialMemberProfile 소셜 토큰 및 사용자 정보를 담은 프로필 객체 (fcmToken은 null)
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public KakaoToken getSocialToken(String code) {
+    public SocialMemberProfile getSocialToken(String code) {
         Map<String, String> params = new HashMap<>();
         params.put("grant_type", "authorization_code");
         params.put("client_id", kakaoKeyVO.getCLIENT_ID());
@@ -70,7 +76,24 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
 
             String accessToken = (String) responseBody.get("access_token");
             String refreshToken = (String) responseBody.get("refresh_token");
-            return KakaoToken.createKakaoToken(accessToken, refreshToken);
+            String idToken = (String) responseBody.get("id_token");
+
+            Map<String, Object> payload = parseIdTokenPayload(idToken);
+
+            String socialId = String.valueOf(payload.get("sub"));
+            String nickname = (String) payload.get("nickname");
+            String profileImageUrl = (String) payload.get("picture");
+
+            return SocialMemberProfile.of(
+                    socialId,
+                    null,
+                    SocialProvider.KAKAO,
+                    nickname,
+                    profileImageUrl,
+                    accessToken,
+                    refreshToken,
+                    null
+            );
         } catch (Exception e) {
             throw new RuntimeException("Kakao token request failed: " + e.getMessage(), e);
         }
@@ -149,5 +172,30 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
     @Override
     public void logout(SocialProvider provider, String accessToken) throws Exception {
         kakaoApiClient.logout("Bearer " + accessToken, "application/x-www-form-urlencoded;charset=utf-8");
+    }
+
+    /**
+     * <h3>ID Token 페이로드 파싱</h3>
+     * <p>JWT 형식의 id_token을 파싱하여 페이로드 데이터를 추출합니다.</p>
+     * <p>JWT는 header.payload.signature 구조로 되어 있으며, payload 부분을 Base64 디코딩하여 JSON 파싱합니다.</p>
+     *
+     * @param idToken JWT 형식의 id_token
+     * @return 페이로드 데이터 맵 (sub, nickname, picture 등 포함)
+     * @throws RuntimeException JWT 파싱 실패 시
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private Map<String, Object> parseIdTokenPayload(String idToken) {
+        try {
+            String[] parts = idToken.split("\\.");
+            if (parts.length != 3) {
+                throw new IllegalArgumentException("Invalid JWT format");
+            }
+
+            String payload = new String(Base64.getUrlDecoder().decode(parts[1]));
+            return objectMapper.readValue(payload, new TypeReference<Map<String, Object>>() {});
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to parse id_token: " + e.getMessage(), e);
+        }
     }
 }

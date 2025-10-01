@@ -91,7 +91,7 @@ export const generateKakaoConsentUrl = (): string => {
     client_id: clientId,
     redirect_uri: redirectUri,
     response_type: 'code',
-    scope: 'friends', // 카카오 친구 목록 권한 요청
+    scope: 'openId, friends', // 카카오 친구 목록 권한 요청
     prompt: 'consent', // 이미 동의한 권한도 다시 동의 화면 표시 (권한 재설정용)
   });
 

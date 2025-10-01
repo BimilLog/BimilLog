@@ -1,9 +1,10 @@
 package jaeik.bimillog.adapter.out.api.social.kakao;
 
-import jaeik.bimillog.domain.auth.entity.KakaoToken;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jaeik.bimillog.domain.auth.entity.KakaoMemberInfo;
+import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.global.vo.KakaoKeyVO;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
-import jaeik.bimillog.domain.auth.entity.KakaoMemberInfo;
 import jaeik.bimillog.infrastructure.adapter.out.api.social.kakao.KakaoApiClient;
 import jaeik.bimillog.infrastructure.adapter.out.api.social.kakao.KakaoAuthClient;
 import jaeik.bimillog.infrastructure.adapter.out.api.social.kakao.KakaoStrategyAdapter;
@@ -46,6 +47,7 @@ class KakaoStrategyAdapterTest extends BaseUnitTest {
     @Mock private KakaoApiClient kakaoApiClient;
 
     private KakaoStrategyAdapter kakaoStrategyAdapter;
+    private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() {
@@ -55,7 +57,8 @@ class KakaoStrategyAdapterTest extends BaseUnitTest {
         lenient().when(kakaoKeyVO.getREDIRECT_URI()).thenReturn(KAKAO_REDIRECT_URI);
         lenient().when(kakaoKeyVO.getADMIN_KEY()).thenReturn(KAKAO_ADMIN_KEY);
 
-        kakaoStrategyAdapter = new KakaoStrategyAdapter(kakaoKeyVO, kakaoAuthClient, kakaoApiClient);
+        objectMapper = new ObjectMapper();
+        kakaoStrategyAdapter = new KakaoStrategyAdapter(kakaoKeyVO, kakaoAuthClient, kakaoApiClient, objectMapper);
     }
 
     @Test
@@ -69,42 +72,32 @@ class KakaoStrategyAdapterTest extends BaseUnitTest {
     }
 
     @Test
-    @DisplayName("getToken과 getUserInfo 성공 - 토큰 발급과 사용자 정보 조회")
-    void shouldGetSocialTokenAndUserInfoSuccessfully() {
-        // Given - KakaoTestDataBuilder를 사용한 응답 데이터 생성
-        Map<String, Object> tokenResponse = KakaoTestDataBuilder.createTokenResponse(
-            TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
+    @DisplayName("getSocialToken 성공 - 토큰 발급 및 id_token 파싱으로 사용자 정보 획득")
+    void shouldGetSocialTokenWithUserInfoSuccessfully() {
+        // Given - id_token 페이로드 생성 (sub, nickname, picture 포함)
+        String idTokenPayload = "eyJhdWQiOiJ0ZXN0LWNsaWVudC1pZCIsInN1YiI6IjEyMzQ1Njc4OSIsIm5pY2tuYW1lIjoi7YWM7Iqk7Yq4IOuLieuEpOyehCIsInBpY3R1cmUiOiJodHRwczovL2V4YW1wbGUuY29tL3Byb2ZpbGUuanBnIiwiaXNzIjoiaHR0cHM6Ly9rYXV0aC5rYWthby5jb20iLCJpYXQiOjE3MDAwMDAwMDAsImV4cCI6MTcwMDAwMzYwMH0";
+        String idToken = "eyJhbGciOiJSUzI1NiJ9." + idTokenPayload + ".signature";
 
-        Map<String, Object> userInfoResponse = new java.util.HashMap<>();
-        userInfoResponse.put("id", 123456789L);
-
-        Map<String, Object> profile = new java.util.HashMap<>();
-        profile.put("nickname", TEST_SOCIAL_NICKNAME);
-        profile.put("thumbnail_image_url", TEST_PROFILE_IMAGE);
-        profile.put("profile_image_url", TEST_PROFILE_IMAGE);
-        profile.put("is_default_image", false);
-
-        Map<String, Object> kakaoAccount = new java.util.HashMap<>();
-        kakaoAccount.put("email", TEST_EMAIL);
-        kakaoAccount.put("profile", profile);
-        kakaoAccount.put("has_email", TEST_EMAIL != null);
-        kakaoAccount.put("email_needs_agreement", false);
-        kakaoAccount.put("is_email_valid", true);
-        kakaoAccount.put("is_email_verified", true);
-
-        userInfoResponse.put("kakao_account", kakaoAccount);
-        userInfoResponse.put("connected_at", "2024-01-01T00:00:00Z");
+        Map<String, Object> tokenResponse = new java.util.HashMap<>();
+        tokenResponse.put("access_token", TEST_ACCESS_TOKEN);
+        tokenResponse.put("refresh_token", TEST_REFRESH_TOKEN);
+        tokenResponse.put("id_token", idToken);
 
         given(kakaoAuthClient.getToken(anyString(), any(Map.class))).willReturn(tokenResponse);
-        given(kakaoApiClient.getUserInfo(anyString())).willReturn(userInfoResponse);
 
         // When - getSocialToken 호출
-        KakaoToken tokenDTO = kakaoStrategyAdapter.getSocialToken(TEST_AUTH_CODE);
+        SocialMemberProfile result = kakaoStrategyAdapter.getSocialToken(TEST_AUTH_CODE);
 
-        // Then - 토큰 검증
-        assertThat(tokenDTO).isNotNull();
-        assertThat(tokenDTO.getKakaoAccessToken()).isEqualTo(TEST_ACCESS_TOKEN);
-        assertThat(tokenDTO.getKakaoRefreshToken()).isEqualTo(TEST_REFRESH_TOKEN);
+        // Then - 결과 검증
+        assertThat(result).isNotNull();
+        assertThat(result.getSocialId()).isEqualTo("123456789");
+        assertThat(result.getEmail()).isNull();
+        assertThat(result.getProvider()).isEqualTo(SocialProvider.KAKAO);
+        assertThat(result.getNickname()).isEqualTo("테스트 닉네임");
+        assertThat(result.getProfileImageUrl()).isEqualTo("https://example.com/profile.jpg");
+        assertThat(result.getKakaoAccessToken()).isEqualTo(TEST_ACCESS_TOKEN);
+        assertThat(result.getKakaoRefreshToken()).isEqualTo(TEST_REFRESH_TOKEN);
+        assertThat(result.getFcmToken()).isNull();
 
         verify(kakaoAuthClient).getToken(anyString(), argThat(params -> {
             Map<String, String> expectedParams = (Map<String, String>) params;
@@ -112,19 +105,6 @@ class KakaoStrategyAdapterTest extends BaseUnitTest {
                    expectedParams.get("client_id").equals(KAKAO_CLIENT_ID) &&
                    expectedParams.get("code").equals(TEST_AUTH_CODE);
         }));
-
-        // When - getUserInfo 호출
-        KakaoMemberInfo result = kakaoStrategyAdapter.getUserInfo(TEST_ACCESS_TOKEN);
-
-        // Then - 사용자 정보 검증
-        assertThat(result).isNotNull();
-        assertThat(result.getSocialId()).isEqualTo("123456789");
-        assertThat(result.getEmail()).isNull(); // 카카오는 이메일을 제공하지 않음
-        assertThat(result.getProvider()).isEqualTo(SocialProvider.KAKAO);
-        assertThat(result.getNickname()).isEqualTo(TEST_SOCIAL_NICKNAME);
-        assertThat(result.getProfileImageUrl()).isEqualTo(TEST_PROFILE_IMAGE);
-
-        verify(kakaoApiClient).getUserInfo(eq("Bearer " + TEST_ACCESS_TOKEN));
     }
 
     @Test

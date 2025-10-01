@@ -3,7 +3,6 @@ package jaeik.bimillog.domain.auth.application.service;
 
 import jaeik.bimillog.domain.auth.application.port.in.SocialLoginUseCase;
 import jaeik.bimillog.domain.auth.application.port.out.*;
-import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
@@ -15,7 +14,6 @@ import jaeik.bimillog.domain.member.entity.memberdetail.ExistingMemberDetail;
 import jaeik.bimillog.domain.member.entity.memberdetail.NewMemberDetail;
 import jaeik.bimillog.domain.member.entity.memberdetail.MemberDetail;
 import jaeik.bimillog.infrastructure.adapter.in.auth.web.AuthCommandController;
-import jaeik.bimillog.domain.auth.entity.KakaoMemberInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseCookie;
@@ -65,22 +63,12 @@ public class SocialLoginService implements SocialLoginUseCase {
     public LoginResult processSocialLogin(SocialProvider provider, String code, String fcmToken) {
         validateLogin();
 
-        // 1. 전략 포트를 통해 OAuth 인증 수행
+        // 1. 전략 포트를 통해 OAuth 인증 수행 및 사용자 정보 조회 (한 번의 호출로 토큰 + 사용자 정보 획득)
         SocialStrategyPort strategy = strategyRegistryPort.getStrategy(provider);
-        KakaoToken kakaoToken = strategy.getSocialToken(code);
-        KakaoMemberInfo kakaoUserInfo = strategy.getUserInfo(kakaoToken.getKakaoAccessToken());
+        SocialMemberProfile socialUserProfile = strategy.getSocialToken(code);
 
-        // 2. KakaoToken, KakaoMemberInfo, fcmToken을 조합하여 SocialMemberProfile 생성
-        SocialMemberProfile socialUserProfile = SocialMemberProfile.of(
-                kakaoUserInfo.getSocialId(),
-                kakaoUserInfo.getEmail(),
-                kakaoUserInfo.getProvider(),
-                kakaoUserInfo.getNickname(),
-                kakaoUserInfo.getProfileImageUrl(),
-                kakaoToken.getKakaoAccessToken(),
-                kakaoToken.getKakaoRefreshToken(),
-                fcmToken
-        );
+        // 2. FCM 토큰 설정
+        socialUserProfile.setFcmToken(fcmToken);
 
         // 3. 블랙리스트 사용자 확인
         if (blacklistPort.existsByProviderAndSocialId(provider, socialUserProfile.getSocialId())) {
