@@ -29,8 +29,12 @@ public class AuthToken extends BaseEntity {
     @Column(name = "auth_token_id")
     private Long id;
 
+    /**
+     * FK 제거 (V2.5): 보안 감사용 로그인/로그아웃 이력 영구 보존
+     * Member 탈퇴 후에도 토큰 발급 이력을 추적할 수 있도록 독립적 관리
+     */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
+    @JoinColumn(name = "member_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Member member;
 
     @Column(name = "refresh_token", length = 500)

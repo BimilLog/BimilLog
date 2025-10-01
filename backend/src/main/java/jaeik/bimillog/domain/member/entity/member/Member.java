@@ -39,14 +39,22 @@ public class Member extends BaseEntity {
     @Column(name = "member_id")
     private Long id;
 
+    /**
+     * JPA CASCADE (V2.5): Member 저장 시 Setting 자동 저장, 삭제 시 자동 삭제
+     * DB CASCADE (V2.5): Member 삭제 시 Setting 자동 삭제
+     * 생명주기 일치: Member와 Setting은 항상 함께 생성/삭제
+     */
     @NotNull
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
     @JoinColumn(name = "setting_id")
     private Setting setting;
 
-    @NotNull
+    /**
+     * FK 제거 (V2.5): 독립적 라이프사이클 관리
+     * 로그아웃 시 토큰 삭제, 재로그인 시 재생성으로 Member와 분리
+     */
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "kakao_token_id")
+    @JoinColumn(name = "kakao_token_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private KakaoToken kakaoToken;
 
     @NotNull

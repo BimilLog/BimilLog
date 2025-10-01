@@ -26,8 +26,12 @@ public class Report extends BaseEntity {
     @Column(name = "report_id")
     private Long id;
 
+    /**
+     * FK 제거 (V2.5): 법적/관리적 영구 보관, 악의적 사용자 추적
+     * Member 탈퇴 후에도 신고 이력을 영구 보존하여 재가입 시 대응 가능
+     */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
+    @JoinColumn(name = "member_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Member reporter;
 
     @Column(nullable = false)

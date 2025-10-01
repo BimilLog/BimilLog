@@ -4,8 +4,6 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalMemberQueryPort;
 import jaeik.bimillog.domain.post.application.port.in.PostCommandUseCase;
 import jaeik.bimillog.domain.post.application.port.out.PostCommandPort;
-import jaeik.bimillog.domain.post.application.port.out.PostLikeCommandPort;
-import jaeik.bimillog.domain.post.application.port.out.PostToCommentPort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
@@ -37,8 +35,6 @@ public class PostCommandService implements PostCommandUseCase {
     private final GlobalPostQueryPort globalPostQueryPort;
     private final GlobalMemberQueryPort globalUserQueryPort;
     private final RedisPostCommandPort redisPostCommandPort;
-    private final PostLikeCommandPort postLikeCommandPort;
-    private final PostToCommentPort postToCommentPort;
 
 
     /**
@@ -117,8 +113,7 @@ public class PostCommandService implements PostCommandUseCase {
 
         String postTitle = post.getTitle();
 
-        postToCommentPort.deleteCommentInPost(postId);
-        postLikeCommandPort.deletePostLikeByPostId(postId);
+        // CASCADE로 Comment와 PostLike 자동 삭제
         postCommandPort.delete(post);
         redisPostCommandPort.deleteCache(null, postId);
         log.info("게시글 삭제 완료: postId={}, memberId={}, title={}", postId, memberId, postTitle);

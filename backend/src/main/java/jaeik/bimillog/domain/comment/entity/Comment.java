@@ -33,10 +33,18 @@ public class Comment extends BaseEntity {
     @Column(name = "comment_id")
     private Long id;
 
+    /**
+     * DB 레벨 CASCADE: Post 삭제 시 Comment 자동 삭제 (V2.5)
+     * JPA cascade 없음: ManyToOne 관계로 Post가 Comment 생명주기 관리하지 않음
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id")
     private Post post;
 
+    /**
+     * FK 유지: Member 삭제 시 참조 무결성 보장
+     * 익명 댓글 지원으로 nullable
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
