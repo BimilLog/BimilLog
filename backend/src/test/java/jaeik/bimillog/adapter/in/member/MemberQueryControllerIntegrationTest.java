@@ -3,7 +3,7 @@ package jaeik.bimillog.adapter.in.member;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
-import jaeik.bimillog.infrastructure.adapter.out.auth.TokenRepository;
+import jaeik.bimillog.infrastructure.adapter.out.auth.AuthTokenRepository;
 import jaeik.bimillog.infrastructure.adapter.out.member.MemberRepository;
 import jaeik.bimillog.testutil.*;
 import org.junit.jupiter.api.DisplayName;
@@ -36,7 +36,7 @@ class MemberQueryControllerIntegrationTest extends BaseIntegrationTest {
     private MemberRepository userRepository;
 
     @Autowired
-    private TokenRepository tokenRepository;
+    private AuthTokenRepository authTokenRepository;
 
     @Test
     @DisplayName("닉네임 중복 확인 통합 테스트 - 사용 가능한 닉네임")
@@ -46,7 +46,7 @@ class MemberQueryControllerIntegrationTest extends BaseIntegrationTest {
 
         // When & Then
         mockMvc.perform(get("/api/member/username/check")
-                        .param("userName", availableUserName))
+                        .param("memberName", availableUserName))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string("true"));
@@ -61,7 +61,7 @@ class MemberQueryControllerIntegrationTest extends BaseIntegrationTest {
 
         // When & Then
         mockMvc.perform(get("/api/member/username/check")
-                        .param("userName", existingMember.getUserName()))
+                        .param("memberName", existingMember.getMemberName()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string("false"));
@@ -186,8 +186,8 @@ class MemberQueryControllerIntegrationTest extends BaseIntegrationTest {
         Member savedMember = userRepository.save(member);
         
         // 테스트용 토큰 생성 및 저장
-        AuthToken authToken = AuthToken.createToken("test-access-TemporaryToken", "test-refresh-TemporaryToken", savedMember);
-        AuthToken savedAuthToken = tokenRepository.save(authToken);
+        AuthToken authToken = AuthToken.createToken("test-refresh-TemporaryToken", savedMember);
+        AuthToken savedAuthToken = authTokenRepository.save(authToken);
         
         CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(savedMember, savedAuthToken.getId(), null);
 

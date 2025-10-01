@@ -100,7 +100,7 @@ class CommentReqDTOTest {
         CommentReqDTO dto = new CommentReqDTO();
         dto.setPostId(1L);
         dto.setContent("회원 댓글");
-        dto.setUserId(1L);
+        dto.setMemberId(1L);
         
         // When & Then
         assertThat(dto.isPasswordValid()).isTrue(); // 회원 댓글은 비밀번호가 null이어야 함

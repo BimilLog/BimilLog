@@ -1,6 +1,7 @@
 package jaeik.bimillog.event.auth;
 
 import jaeik.bimillog.domain.auth.application.port.in.AuthTokenUseCase;
+import jaeik.bimillog.domain.auth.application.port.in.KakaoTokenUseCase;
 import jaeik.bimillog.domain.auth.event.MemberLoggedOutEvent;
 import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
 import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
@@ -38,25 +39,30 @@ public class MemberLoggedOutEventIntegrationTest extends BaseEventIntegrationTes
     @MockitoBean
     private FcmUseCase fcmUseCase;
 
+    @MockitoBean
+    private KakaoTokenUseCase kakaoTokenUseCase;
+
     @Test
     @DisplayName("사용자 로그아웃 이벤트 워크플로우 - 토큰 정리와 SSE 정리까지 완료")
     void userLoggedOutEventWorkflow_ShouldCompleteCleanupTasks() {
         // Given
-        Long userId = 1L;
+        Long memberId = 1L;
         Long tokenId = 100L;
         Long fcmTokenId = 200L;
-        MemberLoggedOutEvent event = new MemberLoggedOutEvent(userId, tokenId, fcmTokenId, SocialProvider.KAKAO);
+        MemberLoggedOutEvent event = new MemberLoggedOutEvent(memberId, tokenId, fcmTokenId, SocialProvider.KAKAO);
 
         // When & Then
         publishAndVerify(event, () -> {
             // SSE 연결 정리
-            verify(sseUseCase).deleteEmitters(eq(userId), eq(tokenId));
+            verify(sseUseCase).deleteEmitters(eq(memberId), eq(tokenId));
             // 소셜 플랫폼 로그아웃
-            verify(socialLogoutUseCase).logout(eq(userId), eq(SocialProvider.KAKAO), eq(tokenId));
+            verify(socialLogoutUseCase).logout(eq(memberId), eq(SocialProvider.KAKAO), eq(tokenId));
             // FCM 토큰 삭제
-            verify(fcmUseCase).deleteFcmTokens(eq(userId), eq(fcmTokenId));
+            verify(fcmUseCase).deleteFcmTokens(eq(memberId), eq(fcmTokenId));
             // JWT 토큰 무효화
-            verify(authTokenUseCase).deleteTokens(eq(userId), eq(tokenId));
+            verify(authTokenUseCase).deleteTokens(eq(memberId), eq(tokenId));
+            // 카카오 토큰 삭제
+            verify(kakaoTokenUseCase).deleteByMemberId(eq(memberId));
         });
     }
 
@@ -90,6 +96,11 @@ public class MemberLoggedOutEventIntegrationTest extends BaseEventIntegrationTes
             verify(authTokenUseCase).deleteTokens(eq(1L), eq(101L));
             verify(authTokenUseCase).deleteTokens(eq(2L), eq(102L));
             verify(authTokenUseCase).deleteTokens(eq(3L), eq(103L));
+
+            // 카카오 토큰 삭제
+            verify(kakaoTokenUseCase).deleteByMemberId(eq(1L));
+            verify(kakaoTokenUseCase).deleteByMemberId(eq(2L));
+            verify(kakaoTokenUseCase).deleteByMemberId(eq(3L));
         });
     }
 

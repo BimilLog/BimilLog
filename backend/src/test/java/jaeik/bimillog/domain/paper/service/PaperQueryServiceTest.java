@@ -38,7 +38,7 @@ class PaperQueryServiceTest extends BaseUnitTest {
     private PaperQueryPort paperQueryPort;
 
     @Mock
-    private GlobalMemberQueryPort globalUserQueryPort;
+    private GlobalMemberQueryPort globalMemberQueryPort;
 
     @InjectMocks
     private PaperQueryService paperQueryService;
@@ -48,44 +48,44 @@ class PaperQueryServiceTest extends BaseUnitTest {
     @DisplayName("다른 사용자 롤링페이퍼 방문 - 성공")
     void shouldVisitPaper_WhenValidUserName() {
         // Given
-        String userName = getTestUser().getUserName();
+        String memberName = getTestMember().getMemberName();
         List<Message> messages = Arrays.asList(
-                PaperTestDataBuilder.createRollingPaper(getTestUser(), "메시지1", 5, 5),
-                PaperTestDataBuilder.createRollingPaper(getOtherUser(), "메시지2", 10, 10)
+                PaperTestDataBuilder.createRollingPaper(getTestMember(), "메시지1", 5, 5),
+                PaperTestDataBuilder.createRollingPaper(getOtherMember(), "메시지2", 10, 10)
         );
 
-        given(globalUserQueryPort.existsByUserName(userName)).willReturn(true);
-        given(paperQueryPort.findMessagesByUserName(userName)).willReturn(messages);
+        given(globalMemberQueryPort.existsByMemberName(memberName)).willReturn(true);
+        given(paperQueryPort.findMessagesByMemberName(memberName)).willReturn(messages);
 
         // When
-        List<VisitMessageDetail> result = paperQueryService.visitPaper(userName);
+        List<VisitMessageDetail> result = paperQueryService.visitPaper(memberName);
 
         // Then
         assertThat(result).isNotNull();
         assertThat(result).hasSize(2);
-        assertThat(result.get(0).userId()).isEqualTo(getTestUser().getId());
-        assertThat(result.get(1).userId()).isEqualTo(getOtherUser().getId());
+        assertThat(result.get(0).memberId()).isEqualTo(getTestMember().getId());
+        assertThat(result.get(1).memberId()).isEqualTo(getOtherMember().getId());
 
-        verify(globalUserQueryPort, times(1)).existsByUserName(userName);
-        verify(paperQueryPort, times(1)).findMessagesByUserName(userName);
-        verifyNoMoreInteractions(globalUserQueryPort, paperQueryPort);
+        verify(globalMemberQueryPort, times(1)).existsByMemberName(memberName);
+        verify(paperQueryPort, times(1)).findMessagesByMemberName(memberName);
+        verifyNoMoreInteractions(globalMemberQueryPort, paperQueryPort);
     }
 
     @Test
     @DisplayName("다른 사용자 롤링페이퍼 방문 - 사용자 없음")
     void shouldThrowException_WhenUserNotExists() {
         // Given
-        String userName = "nonexistentuser";
+        String memberName = "nonexistentuser";
 
-        given(globalUserQueryPort.existsByUserName(userName)).willReturn(false);
+        given(globalMemberQueryPort.existsByMemberName(memberName)).willReturn(false);
 
         // When & Then
-        assertThatThrownBy(() -> paperQueryService.visitPaper(userName))
+        assertThatThrownBy(() -> paperQueryService.visitPaper(memberName))
                 .isInstanceOf(PaperCustomException.class)
                 .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.USERNAME_NOT_FOUND);
 
-        verify(globalUserQueryPort, times(1)).existsByUserName(userName);
-        verify(paperQueryPort, never()).findMessagesByUserName(any());
+        verify(globalMemberQueryPort, times(1)).existsByMemberName(memberName);
+        verify(paperQueryPort, never()).findMessagesByMemberName(any());
     }
 
 
@@ -93,15 +93,15 @@ class PaperQueryServiceTest extends BaseUnitTest {
     @Test
     @DisplayName("다른 사용자 롤링페이퍼 방문 - null 또는 빈 사용자명 예외")
     void shouldThrowException_WhenInvalidUserName() {
-        // Given - null userName
-        String userName = null;
+        // Given - null memberName
+        String memberName = null;
 
         // When & Then - null case
-        assertThatThrownBy(() -> paperQueryService.visitPaper(userName))
+        assertThatThrownBy(() -> paperQueryService.visitPaper(memberName))
                 .isInstanceOf(PaperCustomException.class)
                 .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.INVALID_INPUT_VALUE);
 
-        // Given - empty userName
+        // Given - empty memberName
         String emptyUserName = "   ";
 
         // When & Then - empty case
@@ -109,8 +109,8 @@ class PaperQueryServiceTest extends BaseUnitTest {
                 .isInstanceOf(PaperCustomException.class)
                 .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.INVALID_INPUT_VALUE);
 
-        verify(globalUserQueryPort, never()).existsByUserName(any());
-        verify(paperQueryPort, never()).findMessagesByUserName(any());
+        verify(globalMemberQueryPort, never()).existsByMemberName(any());
+        verify(paperQueryPort, never()).findMessagesByMemberName(any());
     }
 
 }

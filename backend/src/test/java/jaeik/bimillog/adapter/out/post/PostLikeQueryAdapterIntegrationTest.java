@@ -91,7 +91,7 @@ class PostLikeQueryAdapterIntegrationTest {
 
     @Test
     @DisplayName("추천 존재 여부를 빠르게 확인한다")
-    void shouldCheckExistenceByPostIdAndUserId() {
+    void shouldCheckExistenceByPostIdAndMemberId() {
         Post post = persistPost("존재 여부 테스트 게시글");
         persistLike(post, likerOne);
 

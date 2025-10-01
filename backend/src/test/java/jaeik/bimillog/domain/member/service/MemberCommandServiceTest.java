@@ -37,26 +37,26 @@ class MemberCommandServiceTest extends BaseUnitTest {
     private MemberQueryPort memberQueryPort;
 
     @InjectMocks
-    private MemberCommandService userCommandService;
+    private MemberCommandService memberCommandService;
 
     @Test
     @DisplayName("사용자 설정 수정 - 정상 케이스")
     void shouldUpdateUserSettings_WhenUserExists() {
         // Given
-        Long userId = 1L;
+        Long memberId = 1L;
         Setting existingSetting = createCustomSetting(true, true, false);
 
-        Member member = createTestUserWithId(userId);
+        Member member = createTestMemberWithId(memberId);
 
         Setting newSetting = createCustomSetting(false, false, true);
 
-        given(memberQueryPort.findById(userId)).willReturn(Optional.of(member));
+        given(memberQueryPort.findById(memberId)).willReturn(Optional.of(member));
 
         // When
-        userCommandService.updateUserSettings(userId, newSetting);
+        memberCommandService.updateMemberSettings(memberId, newSetting);
 
         // Then
-        verify(memberQueryPort).findById(userId);
+        verify(memberQueryPort).findById(memberId);
         
         // Setting이 업데이트되었는지 확인
         assertThat(member.getSetting().isMessageNotification()).isFalse();
@@ -68,74 +68,74 @@ class MemberCommandServiceTest extends BaseUnitTest {
     @DisplayName("사용자 설정 수정 - 사용자가 존재하지 않는 경우")
     void shouldThrowException_WhenUserNotFoundForSettingUpdate() {
         // Given
-        Long userId = 999L;
+        Long memberId = 999L;
         Setting newSetting = getDefaultSetting();
 
-        given(memberQueryPort.findById(userId)).willReturn(Optional.empty());
+        given(memberQueryPort.findById(memberId)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> userCommandService.updateUserSettings(userId, newSetting))
+        assertThatThrownBy(() -> memberCommandService.updateMemberSettings(memberId, newSetting))
                 .isInstanceOf(MemberCustomException.class)
                 .hasMessage(MemberErrorCode.USER_NOT_FOUND.getMessage());
 
-        verify(memberQueryPort).findById(userId);
+        verify(memberQueryPort).findById(memberId);
     }
 
     @Test
     @DisplayName("닉네임 변경 - 정상 케이스")
     void shouldUpdateUserName_WhenValidNewUserName() {
         // Given
-        Long userId = 1L;
+        Long memberId = 1L;
         String newUserName = "newUserName";
 
-        Member member = createTestUserWithId(userId);
+        Member member = createTestMemberWithId(memberId);
 
-        given(memberQueryPort.findById(userId)).willReturn(Optional.of(member));
+        given(memberQueryPort.findById(memberId)).willReturn(Optional.of(member));
 
         // When
-        userCommandService.updateUserName(userId, newUserName);
+        memberCommandService.updateMemberName(memberId, newUserName);
 
         // Then
-        verify(memberQueryPort).findById(userId);
+        verify(memberQueryPort).findById(memberId);
         // JPA 변경 감지를 사용하므로 명시적 savePostLike() 호출 없음
         
-        assertThat(member.getUserName()).isEqualTo(newUserName);
+        assertThat(member.getMemberName()).isEqualTo(newUserName);
     }
 
     @Test
     @DisplayName("닉네임 변경 - 이미 존재하는 닉네임")
     void shouldThrowException_WhenUserNameAlreadyExists() {
         // Given
-        Long userId = 1L;
+        Long memberId = 1L;
         String existingUserName = "existingUser";
-        Member member = createTestUserWithId(userId);
+        Member member = createTestMemberWithId(memberId);
 
-        given(memberQueryPort.findById(userId)).willReturn(Optional.of(member));
+        given(memberQueryPort.findById(memberId)).willReturn(Optional.of(member));
 
         // When & Then
         // 실제 구현에서는 member.changeUserName()에서 중복 검사 후 변경
         // 단위 테스트에서는 정상 케이스만 테스트하고 중복 검사는 통합 테스트에서
-        userCommandService.updateUserName(userId, existingUserName);
+        memberCommandService.updateMemberName(memberId, existingUserName);
         
-        verify(memberQueryPort).findById(userId);
-        assertThat(member.getUserName()).isEqualTo(existingUserName);
+        verify(memberQueryPort).findById(memberId);
+        assertThat(member.getMemberName()).isEqualTo(existingUserName);
     }
 
     @Test
     @DisplayName("닉네임 변경 - 사용자가 존재하지 않는 경우")
     void shouldThrowException_WhenUserNotFoundForUserNameUpdate() {
         // Given
-        Long userId = 999L;
+        Long memberId = 999L;
         String newUserName = "newUserName";
 
-        given(memberQueryPort.findById(userId)).willReturn(Optional.empty());
+        given(memberQueryPort.findById(memberId)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> userCommandService.updateUserName(userId, newUserName))
+        assertThatThrownBy(() -> memberCommandService.updateMemberName(memberId, newUserName))
                 .isInstanceOf(MemberCustomException.class)
                 .hasMessage(MemberErrorCode.USER_NOT_FOUND.getMessage());
 
-        verify(memberQueryPort).findById(userId);
+        verify(memberQueryPort).findById(memberId);
     }
 
 
@@ -144,19 +144,19 @@ class MemberCommandServiceTest extends BaseUnitTest {
     @DisplayName("적절한 길이의 닉네임 변경 성공")
     void shouldUpdateUserName_WhenValidLengthUserName() {
         // Given
-        Long userId = 1L;
+        Long memberId = 1L;
         String validUserName = "a".repeat(20); // 20자 길이 (제한 내)
 
-        Member member = createTestUserWithId(userId);
+        Member member = createTestMemberWithId(memberId);
 
-        given(memberQueryPort.findById(userId)).willReturn(Optional.of(member));
+        given(memberQueryPort.findById(memberId)).willReturn(Optional.of(member));
 
         // When
-        userCommandService.updateUserName(userId, validUserName);
+        memberCommandService.updateMemberName(memberId, validUserName);
 
         // Then
-        verify(memberQueryPort).findById(userId);
-        assertThat(member.getUserName()).isEqualTo(validUserName);
+        verify(memberQueryPort).findById(memberId);
+        assertThat(member.getMemberName()).isEqualTo(validUserName);
     }
 
 
@@ -164,19 +164,19 @@ class MemberCommandServiceTest extends BaseUnitTest {
     @DisplayName("허용되는 문자 조합 닉네임 변경 성공")
     void shouldUpdateUserName_WhenValidCharacterUserName() {
         // Given
-        Long userId = 1L;
+        Long memberId = 1L;
         String validUserName = "user123_"; // 영문, 숫자, 언더스코어만 허용 가정
 
-        Member member = createTestUserWithId(userId);
+        Member member = createTestMemberWithId(memberId);
 
-        given(memberQueryPort.findById(userId)).willReturn(Optional.of(member));
+        given(memberQueryPort.findById(memberId)).willReturn(Optional.of(member));
 
         // When
-        userCommandService.updateUserName(userId, validUserName);
+        memberCommandService.updateMemberName(memberId, validUserName);
 
         // Then
-        verify(memberQueryPort).findById(userId);
-        assertThat(member.getUserName()).isEqualTo(validUserName);
+        verify(memberQueryPort).findById(memberId);
+        assertThat(member.getMemberName()).isEqualTo(validUserName);
     }
 
 
@@ -184,21 +184,21 @@ class MemberCommandServiceTest extends BaseUnitTest {
     @DisplayName("부분적 설정 업데이트")
     void shouldUpdateUserSettings_WhenPartialSetting() {
         // Given
-        Long userId = 1L;
+        Long memberId = 1L;
         Setting existingSetting = createCustomSetting(false, true, false);
 
-        Member member = createTestUserWithId(userId);
+        Member member = createTestMemberWithId(memberId);
 
         // 부분적 설정만 포함된 Setting
         Setting partialSetting = createCustomSetting(true, false, false);
 
-        given(memberQueryPort.findById(userId)).willReturn(Optional.of(member));
+        given(memberQueryPort.findById(memberId)).willReturn(Optional.of(member));
 
         // When
-        userCommandService.updateUserSettings(userId, partialSetting);
+        memberCommandService.updateMemberSettings(memberId, partialSetting);
 
         // Then
-        verify(memberQueryPort).findById(userId);
+        verify(memberQueryPort).findById(memberId);
         // 부분적 업데이트 동작은 JPA 변경 감지에 의존
     }
 
@@ -206,19 +206,19 @@ class MemberCommandServiceTest extends BaseUnitTest {
     @DisplayName("닉네임 변경 Race Condition - 데이터베이스 제약조건 위반 처리")
     void shouldHandleRaceCondition_WhenDataIntegrityViolationOccurs() {
         // Given: Race Condition 시나리오
-        Long userId = 1L;
+        Long memberId = 1L;
         String racedUserName = "racedNickname";
 
-        Member member = TestMembers.copyWithId(getTestUser(), userId);
+        Member member = TestMembers.copyWithId(getTestMember(), memberId);
 
-        given(memberQueryPort.findById(userId)).willReturn(Optional.of(member));
+        given(memberQueryPort.findById(memberId)).willReturn(Optional.of(member));
 
         // When & Then: 정상 케이스로 단순화
         // DataIntegrityViolationException 처리는 통합 테스트에서 확인
-        userCommandService.updateUserName(userId, racedUserName);
+        memberCommandService.updateMemberName(memberId, racedUserName);
         
-        verify(memberQueryPort).findById(userId);
-        assertThat(member.getUserName()).isEqualTo(racedUserName);
+        verify(memberQueryPort).findById(memberId);
+        assertThat(member.getMemberName()).isEqualTo(racedUserName);
     }
 
     /*

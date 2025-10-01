@@ -89,7 +89,7 @@ class PostQueryServiceTest extends BaseUnitTest {
     void shouldGetPost_WhenNotPopularPost_WithOptimizedQuery() {
         // Given
         Long postId = 1L;
-        Long userId = 2L;
+        Long memberId = 2L;
 
         // 캐시에 없음 (인기글이 아님)
         given(redisPostQueryPort.getCachedPostIfExists(postId)).willReturn(null);
@@ -99,26 +99,26 @@ class PostQueryServiceTest extends BaseUnitTest {
                 .id(postId)
                 .title("Test Title")
                 .content("Test Content")
-                .userId(userId != null ? userId : 1L)
-                .isLiked(userId != null)
+                .memberId(memberId != null ? memberId : 1L)
+                .isLiked(memberId != null)
                 .viewCount(10)
                 .likeCount(5)
                 .postCacheFlag(PostCacheFlag.REALTIME)
                 .createdAt(Instant.now())
-                .userName("testMember")
+                .memberName("testMember")
                 .commentCount(3)
                 .isNotice(false)
                 .build();
-        given(postQueryPort.findPostDetailWithCounts(postId, userId))
+        given(postQueryPort.findPostDetailWithCounts(postId, memberId))
                 .willReturn(Optional.of(mockPostDetail));
 
         // When
-        PostDetail result = postQueryService.getPost(postId, userId);
+        PostDetail result = postQueryService.getPost(postId, memberId);
 
         // Then
         assertThat(result).isNotNull();
         verify(redisPostQueryPort).getCachedPostIfExists(postId); // 1회 Redis 호출
-        verify(postQueryPort).findPostDetailWithCounts(postId, userId); // 1회 DB 쿼리
+        verify(postQueryPort).findPostDetailWithCounts(postId, memberId); // 1회 DB 쿼리
         verify(globalPostQueryPort, never()).findById(any()); // 기존 개별 쿼리 호출 안함
         verify(postLikeQueryPort, never()).existsByPostIdAndUserId(any(), any());
     }
@@ -128,7 +128,7 @@ class PostQueryServiceTest extends BaseUnitTest {
     void shouldGetPost_WhenPopularPostFromCache_Optimized() {
         // Given
         Long postId = 1L;
-        Long userId = 2L;
+        Long memberId = 2L;
 
         PostDetail cachedFullPost = PostDetail.builder()
                 .id(postId)
@@ -138,8 +138,8 @@ class PostQueryServiceTest extends BaseUnitTest {
                 .likeCount(5)
                 .postCacheFlag(PostCacheFlag.REALTIME)
                 .createdAt(Instant.now())
-                .userId(1L)
-                .userName("testMember")
+                .memberId(1L)
+                .memberName("testMember")
                 .commentCount(3)
                 .isNotice(false)
                 .isLiked(false)
@@ -149,17 +149,17 @@ class PostQueryServiceTest extends BaseUnitTest {
         given(redisPostQueryPort.getCachedPostIfExists(postId)).willReturn(cachedFullPost);
 
         // 좋아요 정보만 추가 확인 (Post 엔티티 로드 없이 ID로만 확인)
-        given(postLikeQueryPort.existsByPostIdAndUserId(postId, userId)).willReturn(false);
+        given(postLikeQueryPort.existsByPostIdAndUserId(postId, memberId)).willReturn(false);
 
         // When
-        PostDetail result = postQueryService.getPost(postId, userId);
+        PostDetail result = postQueryService.getPost(postId, memberId);
 
         // Then
         assertThat(result).isNotNull();
         assertThat(result.isLiked()).isFalse();
 
         verify(redisPostQueryPort).getCachedPostIfExists(postId); // 1회 Redis 호출 (최적화)
-        verify(postLikeQueryPort).existsByPostIdAndUserId(postId, userId);
+        verify(postLikeQueryPort).existsByPostIdAndUserId(postId, memberId);
         verify(globalPostQueryPort, never()).findById(any()); // 캐시 히트 시 DB 조회 안함
         verify(postQueryPort, never()).findPostDetailWithCounts(any(), any()); // JOIN 쿼리도 호출 안함
     }
@@ -169,7 +169,7 @@ class PostQueryServiceTest extends BaseUnitTest {
     void shouldGetPost_WhenCacheMiss_WithOptimizedQuery() {
         // Given
         Long postId = 1L;
-        Long userId = 2L;
+        Long memberId = 2L;
 
         // 캐시에 상세 정보가 없음 (인기글이 아니거나 캐시 만료)
         given(redisPostQueryPort.getCachedPostIfExists(postId)).willReturn(null);
@@ -179,26 +179,26 @@ class PostQueryServiceTest extends BaseUnitTest {
                 .id(postId)
                 .title("Test Title")
                 .content("Test Content")
-                .userId(userId != null ? userId : 1L)
-                .isLiked(userId != null)
+                .memberId(memberId != null ? memberId : 1L)
+                .isLiked(memberId != null)
                 .viewCount(10)
                 .likeCount(5)
                 .postCacheFlag(PostCacheFlag.REALTIME)
                 .createdAt(Instant.now())
-                .userName("testMember")
+                .memberName("testMember")
                 .commentCount(3)
                 .isNotice(false)
                 .build();
-        given(postQueryPort.findPostDetailWithCounts(postId, userId))
+        given(postQueryPort.findPostDetailWithCounts(postId, memberId))
                 .willReturn(Optional.of(mockPostDetail));
 
         // When
-        PostDetail result = postQueryService.getPost(postId, userId);
+        PostDetail result = postQueryService.getPost(postId, memberId);
 
         // Then
         assertThat(result).isNotNull();
         verify(redisPostQueryPort).getCachedPostIfExists(postId); // 1회 Redis 호출 (최적화)
-        verify(postQueryPort).findPostDetailWithCounts(postId, userId); // 1회 DB JOIN 쿼리 (최적화)
+        verify(postQueryPort).findPostDetailWithCounts(postId, memberId); // 1회 DB JOIN 쿼리 (최적화)
 
         // 기존 개별 쿼리들은 호출되지 않음을 검증
         verify(globalPostQueryPort, never()).findById(any());
@@ -206,11 +206,11 @@ class PostQueryServiceTest extends BaseUnitTest {
     }
 
     @Test
-    @DisplayName("게시글 상세 조회 - 익명 사용자 (userId null, 최적화)")
+    @DisplayName("게시글 상세 조회 - 익명 사용자 (memberId null, 최적화)")
     void shouldGetPost_WhenAnonymousUser() {
         // Given
         Long postId = 1L;
-        Long userId = null;
+        Long memberId = null;
 
         // 캐시에 없음 (인기글이 아니거나 캐시 만료)
         given(redisPostQueryPort.getCachedPostIfExists(postId)).willReturn(null);
@@ -220,28 +220,28 @@ class PostQueryServiceTest extends BaseUnitTest {
                 .id(postId)
                 .title("Test Title")
                 .content("Test Content")
-                .userId(userId != null ? userId : 1L)
-                .isLiked(userId != null)
+                .memberId(memberId != null ? memberId : 1L)
+                .isLiked(memberId != null)
                 .viewCount(10)
                 .likeCount(5)
                 .postCacheFlag(PostCacheFlag.REALTIME)
                 .createdAt(Instant.now())
-                .userName("testMember")
+                .memberName("testMember")
                 .commentCount(3)
                 .isNotice(false)
                 .build();
-        given(postQueryPort.findPostDetailWithCounts(postId, userId))
+        given(postQueryPort.findPostDetailWithCounts(postId, memberId))
                 .willReturn(Optional.of(mockPostDetail));
 
         // When
-        PostDetail result = postQueryService.getPost(postId, userId);
+        PostDetail result = postQueryService.getPost(postId, memberId);
 
         // Then
         assertThat(result).isNotNull();
         assertThat(result.isLiked()).isFalse(); // 익명 사용자는 항상 false
 
         verify(redisPostQueryPort).getCachedPostIfExists(postId); // 1회 Redis 호출
-        verify(postQueryPort).findPostDetailWithCounts(postId, userId); // 1회 JOIN 쿼리
+        verify(postQueryPort).findPostDetailWithCounts(postId, memberId); // 1회 JOIN 쿼리
 
         // 기존 개별 쿼리들은 호출되지 않음
         verify(globalPostQueryPort, never()).findById(any());
@@ -253,19 +253,19 @@ class PostQueryServiceTest extends BaseUnitTest {
     void shouldThrowException_WhenPostNotFound_Optimized() {
         // Given
         Long postId = 999L;
-        Long userId = 1L;
+        Long memberId = 1L;
 
         // 캐시에도 없고 DB에도 없는 경우
         given(redisPostQueryPort.getCachedPostIfExists(postId)).willReturn(null);
-        given(postQueryPort.findPostDetailWithCounts(postId, userId)).willReturn(Optional.empty());
+        given(postQueryPort.findPostDetailWithCounts(postId, memberId)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> postQueryService.getPost(postId, userId))
+        assertThatThrownBy(() -> postQueryService.getPost(postId, memberId))
                 .isInstanceOf(PostCustomException.class)
                 .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.POST_NOT_FOUND);
 
         verify(redisPostQueryPort).getCachedPostIfExists(postId);
-        verify(postQueryPort).findPostDetailWithCounts(postId, userId);
+        verify(postQueryPort).findPostDetailWithCounts(postId, memberId);
         // 기존 개별 쿼리는 호출되지 않음
         verify(globalPostQueryPort, never()).findById(any());
     }
@@ -407,7 +407,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         // Given
         Long postId = 1L;
 
-        Post mockPost = PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestUser(), "Test Post", "Content"));
+        Post mockPost = PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestMember(), "Test Post", "Content"));
         given(globalPostQueryPort.findById(postId)).willReturn(mockPost);
 
         // When
@@ -440,42 +440,42 @@ class PostQueryServiceTest extends BaseUnitTest {
     @DisplayName("사용자 작성 게시글 조회 - 성공")
     void shouldGetUserPosts_Successfully() {
         // Given
-        Long userId = 1L;
+        Long memberId = 1L;
         Pageable pageable = PageRequest.of(0, 10);
         PostSearchResult userPost = PostTestDataBuilder.createPostSearchResult(1L, "사용자 게시글");
         Page<PostSearchResult> expectedPage = new PageImpl<>(List.of(userPost), pageable, 1);
 
-        given(postQueryPort.findPostsByUserId(userId, pageable)).willReturn(expectedPage);
+        given(postQueryPort.findPostsByMemberId(memberId, pageable)).willReturn(expectedPage);
 
         // When
-        Page<PostSearchResult> result = postQueryService.getUserPosts(userId, pageable);
+        Page<PostSearchResult> result = postQueryService.getMemberPosts(memberId, pageable);
 
         // Then
         assertThat(result).isEqualTo(expectedPage);
         assertThat(result.getContent()).hasSize(1);
 
-        verify(postQueryPort).findPostsByUserId(userId, pageable);
+        verify(postQueryPort).findPostsByMemberId(memberId, pageable);
     }
 
     @Test
     @DisplayName("사용자 추천한 게시글 조회 - 성공")
     void shouldGetUserLikedPosts_Successfully() {
         // Given
-        Long userId = 1L;
+        Long memberId = 1L;
         Pageable pageable = PageRequest.of(0, 10);
         PostSearchResult likedPost = PostTestDataBuilder.createPostSearchResult(1L, "추천한 게시글");
         Page<PostSearchResult> expectedPage = new PageImpl<>(List.of(likedPost), pageable, 1);
 
-        given(postQueryPort.findLikedPostsByUserId(userId, pageable)).willReturn(expectedPage);
+        given(postQueryPort.findLikedPostsByMemberId(memberId, pageable)).willReturn(expectedPage);
 
         // When
-        Page<PostSearchResult> result = postQueryService.getUserLikedPosts(userId, pageable);
+        Page<PostSearchResult> result = postQueryService.getMemberLikedPosts(memberId, pageable);
 
         // Then
         assertThat(result).isEqualTo(expectedPage);
         assertThat(result.getContent()).hasSize(1);
 
-        verify(postQueryPort).findLikedPostsByUserId(userId, pageable);
+        verify(postQueryPort).findLikedPostsByMemberId(memberId, pageable);
     }
 
     @Test

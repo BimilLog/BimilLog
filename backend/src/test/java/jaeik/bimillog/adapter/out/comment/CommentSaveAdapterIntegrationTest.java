@@ -84,11 +84,11 @@ class CommentSaveAdapterIntegrationTest {
         entityManager.persistAndFlush(testPost);
         
         // 부모 댓글 생성 - CommentTestDataBuilder 활용
-        parentComment = CommentTestDataBuilder.createComment(testMember, testPost, "부모 댓글");
+        parentComment = CommentTestDataBuilder.createComment(testPost, testMember, "부모 댓글");
         parentComment = commentRepository.save(parentComment);
         
         // 자식 댓글 생성 - CommentTestDataBuilder 활용
-        childComment = CommentTestDataBuilder.createComment(testMember, testPost, "자식 댓글");
+        childComment = CommentTestDataBuilder.createComment(testPost, testMember, "자식 댓글");
         childComment = commentRepository.save(childComment);
     }
 

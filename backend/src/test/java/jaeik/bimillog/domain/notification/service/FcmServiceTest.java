@@ -126,13 +126,13 @@ class FcmServiceTest {
     @DisplayName("FCM 토큰 삭제 - 성공")
     void shouldDeleteFcmTokens_WhenValidUserId() {
         // Given
-        Long userId = 1L;
+        Long memberId = 1L;
 
         // When
-        notificationFcmService.deleteFcmTokens(userId, null);
+        notificationFcmService.deleteFcmTokens(memberId, null);
 
         // Then
-        verify(fcmPort, times(1)).deleteFcmTokens(userId, null);
+        verify(fcmPort, times(1)).deleteFcmTokens(memberId, null);
         verifyNoMoreInteractions(fcmPort);
     }
 
@@ -164,7 +164,7 @@ class FcmServiceTest {
     void shouldNotSendCommentNotification_WhenNoTokens() throws IOException {
         // Given
         Long postUserId = 2L;
-        String commenterName = TestMembers.MEMBER_2.getUserName();
+        String commenterName = TestMembers.MEMBER_2.getMemberName();
         
         given(notificationUtilPort.FcmEligibleFcmTokens(postUserId, NotificationType.COMMENT)).willReturn(Collections.emptyList());
 
@@ -182,7 +182,7 @@ class FcmServiceTest {
     void shouldLogError_WhenCommentNotificationFails() {
         // Given
         Long postUserId = 1L;
-        String commenterName = TestMembers.withRole(MemberRole.ADMIN).getUserName();
+        String commenterName = TestMembers.withRole(MemberRole.ADMIN).getMemberName();
         
         given(notificationUtilPort.FcmEligibleFcmTokens(postUserId, NotificationType.COMMENT))
                 .willThrow(new RuntimeException("FCM 서비스 오류"));
@@ -238,7 +238,7 @@ class FcmServiceTest {
     @DisplayName("인기글 등극 알림 FCM 전송 - 성공")
     void shouldSendPostFeaturedNotification_WhenValidTokens() throws IOException {
         // Given
-        Long userId = 1L;
+        Long memberId = 1L;
         String title = "축하합니다!";
         String body = "게시글이 인기글로 선정되었습니다.";
         
@@ -246,13 +246,13 @@ class FcmServiceTest {
                 createMockFcmToken("token1")
         );
         
-        given(notificationUtilPort.FcmEligibleFcmTokens(userId, NotificationType.POST_FEATURED)).willReturn(fcmTokens);
+        given(notificationUtilPort.FcmEligibleFcmTokens(memberId, NotificationType.POST_FEATURED)).willReturn(fcmTokens);
 
         // When
-        notificationFcmService.sendPostFeaturedNotification(userId, title, body);
+        notificationFcmService.sendPostFeaturedNotification(memberId, title, body);
 
         // Then
-        verify(notificationUtilPort, times(1)).FcmEligibleFcmTokens(userId, NotificationType.POST_FEATURED);
+        verify(notificationUtilPort, times(1)).FcmEligibleFcmTokens(memberId, NotificationType.POST_FEATURED);
         verify(fcmPort, times(1)).sendMessageTo(any(FcmMessage.class));
         verifyNoMoreInteractions(fcmPort);
     }
@@ -261,17 +261,17 @@ class FcmServiceTest {
     @DisplayName("인기글 등극 알림 FCM 전송 - 토큰 없음")
     void shouldNotSendPostFeaturedNotification_WhenNoTokens() throws IOException {
         // Given
-        Long userId = 1L;
+        Long memberId = 1L;
         String title = "축하합니다!";
         String body = "게시글이 인기글로 선정되었습니다.";
         
-        given(notificationUtilPort.FcmEligibleFcmTokens(userId, NotificationType.POST_FEATURED)).willReturn(Collections.emptyList());
+        given(notificationUtilPort.FcmEligibleFcmTokens(memberId, NotificationType.POST_FEATURED)).willReturn(Collections.emptyList());
 
         // When
-        notificationFcmService.sendPostFeaturedNotification(userId, title, body);
+        notificationFcmService.sendPostFeaturedNotification(memberId, title, body);
 
         // Then
-        verify(notificationUtilPort, times(1)).FcmEligibleFcmTokens(userId, NotificationType.POST_FEATURED);
+        verify(notificationUtilPort, times(1)).FcmEligibleFcmTokens(memberId, NotificationType.POST_FEATURED);
         verify(fcmPort, never()).sendMessageTo(any());
         verifyNoMoreInteractions(fcmPort);
     }
@@ -280,18 +280,18 @@ class FcmServiceTest {
     @DisplayName("인기글 등극 알림 FCM 전송 - 예외 발생 시 로그만 출력")
     void shouldLogError_WhenPostFeaturedNotificationFails() {
         // Given
-        Long userId = 1L;
+        Long memberId = 1L;
         String title = "축하합니다!";
         String body = "게시글이 인기글로 선정되었습니다.";
         
-        given(notificationUtilPort.FcmEligibleFcmTokens(userId, NotificationType.POST_FEATURED))
+        given(notificationUtilPort.FcmEligibleFcmTokens(memberId, NotificationType.POST_FEATURED))
                 .willThrow(new RuntimeException("FCM 서비스 오류"));
 
         // When
-        notificationFcmService.sendPostFeaturedNotification(userId, title, body);
+        notificationFcmService.sendPostFeaturedNotification(memberId, title, body);
 
         // Then
-        verify(notificationUtilPort, times(1)).FcmEligibleFcmTokens(userId, NotificationType.POST_FEATURED);
+        verify(notificationUtilPort, times(1)).FcmEligibleFcmTokens(memberId, NotificationType.POST_FEATURED);
         // 예외가 발생해도 서비스는 정상적으로 완료되어야 함
     }
 

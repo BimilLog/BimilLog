@@ -86,7 +86,7 @@ class KakaoSocialAdapterTest extends BaseUnitTest {
 
     @Test
     @DisplayName("getFriendList 실패 - API 호출 실패 시 MemberCustomException 발생")
-    void shouldThrowUserCustomException_WhenApiCallFails() {
+    void shouldThrowMemberCustomException_WhenApiCallFails() {
         // Given
         given(kakaoApiClient.getFriends(anyString(), anyInt(), anyInt()))
             .willThrow(new RuntimeException("Kakao API error"));
@@ -96,8 +96,8 @@ class KakaoSocialAdapterTest extends BaseUnitTest {
             kakaoSocialAdapter.getFriendList(TEST_ACCESS_TOKEN, DEFAULT_OFFSET, DEFAULT_LIMIT))
             .isInstanceOf(MemberCustomException.class)
             .satisfies(exception -> {
-                MemberCustomException userException = (MemberCustomException) exception;
-                assertThat(userException.getMemberErrorCode()).isEqualTo(MemberErrorCode.KAKAO_FRIEND_API_ERROR);
+                MemberCustomException memberException = (MemberCustomException) exception;
+                assertThat(memberException.getMemberErrorCode()).isEqualTo(MemberErrorCode.KAKAO_FRIEND_API_ERROR);
             });
 
         verify(kakaoApiClient).getFriends(

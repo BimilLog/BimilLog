@@ -149,7 +149,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
     void updateComment_IntegrationTest() throws Exception {
         // Given
         Comment existingComment = CommentTestDataBuilder.createComment(
-                testMember, testPost, "원본 댓글 내용입니다.");
+                testPost, testMember, "원본 댓글 내용입니다.");
         commentRepository.save(existingComment);
         
         CommentReqDTO requestDto = new CommentReqDTO();
@@ -212,7 +212,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
     void likeComment_IntegrationTest() throws Exception {
         // Given
         Comment existingComment = CommentTestDataBuilder.createComment(
-                testMember, testPost, "추천할 댓글입니다.");
+                testPost, testMember, "추천할 댓글입니다.");
         commentRepository.save(existingComment);
         
         // 추천 API용 DTO 생성 (commentId만 필요)
@@ -321,7 +321,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
         memberRepository.save(anotherMember);
         
         Comment otherUserComment = CommentTestDataBuilder.createComment(
-                anotherMember, testPost, "다른 사용자의 댓글");
+                testPost, anotherMember, "다른 사용자의 댓글");
         commentRepository.save(otherUserComment);
         
         CommentReqDTO requestDto = CommentTestDataBuilder.createDeleteCommentReqDTO(otherUserComment.getId());

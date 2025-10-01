@@ -70,8 +70,8 @@ class RedisPostCommandAdapterTest extends BaseUnitTest {
                 .isLiked(false)
                 .postCacheFlag(PostCacheFlag.REALTIME)
                 .createdAt(java.time.Instant.now())
-                .userId(1L)
-                .userName("testMember")
+                .memberId(1L)
+                .memberName("testMember")
                 .isNotice(false)
                 .build();
     }

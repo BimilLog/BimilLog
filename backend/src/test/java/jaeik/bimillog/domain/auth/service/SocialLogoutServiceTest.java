@@ -54,18 +54,18 @@ class SocialLogoutServiceTest extends BaseUnitTest {
 
     @Test
     @DisplayName("정상적인 로그아웃 처리")
-    void shouldLogout_WhenValidUserDetails() {
+    void shouldLogout_WhenValidMemberDetails() {
         // Given
-        Long userId = 100L;
+        Long memberId = 100L;
         Long tokenId = 200L;
         SocialProvider provider = TEST_PROVIDER;
 
-        AuthToken mockAuthToken = createMockTokenWithUser(getTestUser());
+        AuthToken mockAuthToken = createMockTokenWithMember(getTestMember());
         given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(mockAuthToken));
         given(strategyRegistry.getStrategy(provider)).willReturn(kakaoStrategy);
 
         // When
-        socialLogoutService.logout(userId, provider, tokenId);
+        socialLogoutService.logout(memberId, provider, tokenId);
 
         // Then
         // 포트 호출 검증
@@ -82,13 +82,13 @@ class SocialLogoutServiceTest extends BaseUnitTest {
     @DisplayName("토큰이 존재하지 않는 경우 예외 발생")
     void shouldThrowException_WhenTokenNotFound() {
         // Given
-        Long userId = 100L;
+        Long memberId = 100L;
         Long tokenId = 200L;
         SocialProvider provider = TEST_PROVIDER;
         given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> socialLogoutService.logout(userId, provider, tokenId))
+        assertThatThrownBy(() -> socialLogoutService.logout(memberId, provider, tokenId))
                 .isInstanceOf(AuthCustomException.class)
                 .hasFieldOrPropertyWithValue("authErrorCode", AuthErrorCode.NOT_FIND_TOKEN);
 
@@ -104,11 +104,11 @@ class SocialLogoutServiceTest extends BaseUnitTest {
     @DisplayName("소셜 로그아웃 실패 시에도 전체 로그아웃 프로세스는 성공")
     void shouldCompleteLogout_WhenSocialLogoutFails() {
         // Given
-        Long userId = 100L;
+        Long memberId = 100L;
         Long tokenId = 200L;
         SocialProvider provider = TEST_PROVIDER;
 
-        AuthToken mockAuthToken = createMockTokenWithUser(getTestUser());
+        AuthToken mockAuthToken = createMockTokenWithMember(getTestMember());
         given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(mockAuthToken));
         given(strategyRegistry.getStrategy(provider)).willReturn(kakaoStrategy);
 
@@ -121,7 +121,7 @@ class SocialLogoutServiceTest extends BaseUnitTest {
         }
 
         // When - 소셜 로그아웃이 실패해도 예외가 발생하지 않고 정상 처리되어야 함
-        socialLogoutService.logout(userId, provider, tokenId);
+        socialLogoutService.logout(memberId, provider, tokenId);
 
         // Then
         verify(globalTokenQueryPort).findById(tokenId);
@@ -136,18 +136,18 @@ class SocialLogoutServiceTest extends BaseUnitTest {
 
     @Test
     @DisplayName("다양한 사용자 정보로 로그아웃 처리")
-    void shouldHandleDifferentUserDetails() {
+    void shouldHandleDifferentMemberDetails() {
         // Given - 관리자 사용자
-        Long adminUserId = 999L;
+        Long adminMemberId = 999L;
         Long adminTokenId = 888L;
         SocialProvider provider = TEST_PROVIDER;
 
-        AuthToken adminAuthToken = createMockTokenWithUser(getAdminUser());
+        AuthToken adminAuthToken = createMockTokenWithMember(getAdminMember());
         given(globalTokenQueryPort.findById(adminTokenId)).willReturn(Optional.of(adminAuthToken));
         given(strategyRegistry.getStrategy(provider)).willReturn(kakaoStrategy);
 
         // When
-        socialLogoutService.logout(adminUserId, provider, adminTokenId);
+        socialLogoutService.logout(adminMemberId, provider, adminTokenId);
 
         // Then
         verify(globalTokenQueryPort).findById(adminTokenId);
@@ -164,10 +164,9 @@ class SocialLogoutServiceTest extends BaseUnitTest {
      * @param member 사용자
      * @return Mock AuthToken with Member
      */
-    private AuthToken createMockTokenWithUser(Member member) {
+    private AuthToken createMockTokenWithMember(Member member) {
         AuthToken mockAuthToken = mock(AuthToken.class);
         given(mockAuthToken.getMember()).willReturn(member);
-        given(mockAuthToken.getAccessToken()).willReturn(AuthTestFixtures.TEST_ACCESS_TOKEN);
         given(mockAuthToken.getRefreshToken()).willReturn(AuthTestFixtures.TEST_REFRESH_TOKEN);
         given(mockAuthToken.getId()).willReturn(1L);
         return mockAuthToken;

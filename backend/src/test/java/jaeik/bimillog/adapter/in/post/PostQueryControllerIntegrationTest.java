@@ -49,12 +49,11 @@ class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
 
     @Override
     protected void setUpChild() {
-        var user = TestMembers.createUser(builder -> {
-            builder.socialId("12345");
-            builder.userName("테스트사용자");
-            builder.socialNickname("테스트사용자");
-            builder.thumbnailImage("http://test-profile.jpg");
-        });
+        var user = TestMembers.createMember(
+                "12345",
+                "테스트사용자",
+                "테스트사용자"
+        );
         var savedUser = userRepository.save(user);
         queryUserDetails = AuthTestFixtures.createCustomUserDetails(savedUser);
         createTestPosts(savedUser);
@@ -206,7 +205,7 @@ class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.id", is(testPost1.getId().intValue())))
                 .andExpect(jsonPath("$.title", is("첫 번째 테스트 게시글")))
                 .andExpect(jsonPath("$.content", is("첫 번째 게시글의 내용입니다.")))
-                .andExpect(jsonPath("$.userName", is("테스트사용자")))
+                .andExpect(jsonPath("$.memberName", is("테스트사용자")))
                 .andExpect(jsonPath("$.viewCount", is(10)))
                 .andExpect(jsonPath("$.likeCount", is(0)))
                 .andExpect(jsonPath("$.commentCount", is(0)))
@@ -222,7 +221,7 @@ class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.id", is(testPost2.getId().intValue())))
                 .andExpect(jsonPath("$.title", is("두 번째 검색 게시글")))
                 .andExpect(jsonPath("$.content", is("검색용 키워드가 포함된 내용입니다.")))
-                .andExpect(jsonPath("$.userName", is("테스트사용자")));
+                .andExpect(jsonPath("$.memberName", is("테스트사용자")));
     }
 
     @Test

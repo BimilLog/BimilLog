@@ -151,10 +151,7 @@ public abstract class BaseIntegrationTest {
         if (memberRepository != null) {
             // 고유한 회원 생성하여 충돌 방지
             this.testMember = memberRepository.save(TestMembers.createUniqueWithPrefix("test"));
-            this.adminMember = memberRepository.save(TestMembers.createUniqueWithPrefix("admin", builder -> {
-                builder.role(MemberRole.ADMIN);
-                builder.setting(TestMembers.createAllDisabledSetting());
-            }));
+            this.adminMember = memberRepository.save(TestMembers.withRole(MemberRole.ADMIN));
             this.otherMember = memberRepository.save(TestMembers.createUniqueWithPrefix("other"));
         } else {
             // MemberRepository가 없는 경우 기본 회원 사용

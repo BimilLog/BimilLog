@@ -41,44 +41,44 @@ class SseServiceTest {
     @DisplayName("SSE 구독은 포트에서 생성한 Emitter를 그대로 반환한다")
     void shouldReturnEmitterFromPort() {
         // Given
-        Long userId = 1L;
+        Long memberId = 1L;
         Long tokenId = 2L;
         SseEmitter emitter = new SseEmitter(1000L);
-        given(ssePort.subscribe(userId, tokenId)).willReturn(emitter);
+        given(ssePort.subscribe(memberId, tokenId)).willReturn(emitter);
 
         // When
-        SseEmitter result = notificationSseService.subscribe(userId, tokenId);
+        SseEmitter result = notificationSseService.subscribe(memberId, tokenId);
 
         // Then
         assertThat(result).isEqualTo(emitter);
-        verify(ssePort).subscribe(userId, tokenId);
+        verify(ssePort).subscribe(memberId, tokenId);
     }
 
     @Test
     @DisplayName("사용자 탈퇴 시 모든 Emitter를 제거한다")
     void shouldDeleteAllEmittersByUserId() {
         // Given
-        Long userId = 10L;
+        Long memberId = 10L;
 
         // When
-        notificationSseService.deleteEmitters(userId, null);
+        notificationSseService.deleteEmitters(memberId, null);
 
         // Then
-        verify(ssePort).deleteEmitters(userId, null);
+        verify(ssePort).deleteEmitters(memberId, null);
     }
 
     @Test
     @DisplayName("특정 기기 로그아웃 시 해당 Emitter만 제거한다")
     void shouldDeleteEmitterByUserAndToken() {
         // Given
-        Long userId = 10L;
+        Long memberId = 10L;
         Long tokenId = 99L;
 
         // When
-        notificationSseService.deleteEmitters(userId, tokenId);
+        notificationSseService.deleteEmitters(memberId, tokenId);
 
         // Then
-        verify(ssePort).deleteEmitters(userId, tokenId);
+        verify(ssePort).deleteEmitters(memberId, tokenId);
     }
 
     @Test
@@ -126,25 +126,25 @@ class SseServiceTest {
     @DisplayName("인기글 알림 SSE 메시지를 보낸다")
     void shouldSendPostFeaturedNotification() {
         // Given
-        Long userId = 7L;
+        Long memberId = 7L;
         Long postId = 31L;
         String message = "인기글 축하";
         String expectedUrl = "/posts/" + postId;
         given(urlGeneratorPort.generatePostUrl(postId)).willReturn(expectedUrl);
 
         // When
-        notificationSseService.sendPostFeaturedNotification(userId, message, postId);
+        notificationSseService.sendPostFeaturedNotification(memberId, message, postId);
 
         // Then
         verify(urlGeneratorPort).generatePostUrl(postId);
         verify(ssePort).send(argThat(sseMessage ->
-                matchesMessage(sseMessage, userId, NotificationType.POST_FEATURED, message, expectedUrl)
+                matchesMessage(sseMessage, memberId, NotificationType.POST_FEATURED, message, expectedUrl)
         ));
     }
 
-    private boolean matchesMessage(SseMessage message, Long userId, NotificationType type, String expectedMessage, String expectedUrl) {
+    private boolean matchesMessage(SseMessage message, Long memberId, NotificationType type, String expectedMessage, String expectedUrl) {
         return message != null
-                && message.userId().equals(userId)
+                && message.memberId().equals(memberId)
                 && message.type() == type
                 && message.message().equals(expectedMessage)
                 && message.url().equals(expectedUrl);

@@ -100,15 +100,15 @@ class MessageTest {
     @DisplayName("getUserId는 사용자 ID를 그대로 반환한다")
     void shouldReturnUserIdWhenPresent() {
         // Given
-        Long userId = 456L;
-        given(member.getId()).willReturn(userId);
+        Long memberId = 456L;
+        given(member.getId()).willReturn(memberId);
         Message message = Message.createMessage(member, DecoType.BANANA, "익명", "내용", 1, 1);
 
         // When
-        Long actual = message.getUserId();
+        Long actual = message.getMemberId();
 
         // Then
-        assertThat(actual).isEqualTo(userId);
+        assertThat(actual).isEqualTo(memberId);
     }
 
     @Test
@@ -118,7 +118,7 @@ class MessageTest {
         Message message = Message.createMessage(null, DecoType.BANANA, "익명", "내용", 1, 1);
 
         // When
-        Long actual = message.getUserId();
+        Long actual = message.getMemberId();
 
         // Then
         assertThat(actual).isNull();

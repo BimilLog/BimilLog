@@ -1,8 +1,11 @@
 package jaeik.bimillog.event.admin;
 
 import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
-import jaeik.bimillog.domain.auth.application.port.in.BlacklistUseCase;
-import jaeik.bimillog.domain.auth.application.port.in.SocialWithdrawUseCase;
+import jaeik.bimillog.domain.auth.application.port.in.AuthTokenUseCase;
+import jaeik.bimillog.domain.auth.application.port.in.KakaoTokenUseCase;
+import jaeik.bimillog.domain.auth.application.port.in.SocialLogoutUseCase;
+import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
+import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
@@ -26,28 +29,41 @@ import static org.mockito.Mockito.verify;
 public class MemberBannedEventIntegrationTest extends BaseEventIntegrationTest {
 
     @MockitoBean
-    private BlacklistUseCase blacklistUseCase;
+    private SseUseCase sseUseCase;
 
     @MockitoBean
-    private SocialWithdrawUseCase socialWithdrawUseCase;
+    private SocialLogoutUseCase socialLogoutUseCase;
+
+    @MockitoBean
+    private FcmUseCase fcmUseCase;
+
+    @MockitoBean
+    private AuthTokenUseCase authTokenUseCase;
+
+    @MockitoBean
+    private KakaoTokenUseCase kakaoTokenUseCase;
 
     @Test
-    @DisplayName("사용자 차단 이벤트 워크플로우 -  블랙리스트 등록까지 완료")
-    void userBannedEventWorkflow_ShouldCompleteBanAndBlacklist() {
+    @DisplayName("사용자 차단 이벤트 워크플로우 - 강제 로그아웃 및 정리 완료")
+    void userBannedEventWorkflow_ShouldCompleteBanAndCleanup() {
         // Given
-        Long userId = 1L;
+        Long memberId = 1L;
         String socialId = "testKakaoId123";
         SocialProvider provider = SocialProvider.KAKAO;
-        MemberBannedEvent event = new MemberBannedEvent(userId, socialId, provider);
+        MemberBannedEvent event = new MemberBannedEvent(memberId, socialId, provider);
 
         // When & Then
         publishAndVerify(event, () -> {
-            // 사용자 블랙리스트 등록
-            verify(blacklistUseCase).addToBlacklist(eq(userId), eq(socialId), eq(provider));
+            // SSE 연결 정리
+            verify(sseUseCase).deleteEmitters(eq(memberId), eq(null));
+            // 소셜 플랫폼 강제 로그아웃
+            verify(socialLogoutUseCase).forceLogout(eq(memberId), eq(provider), eq(socialId));
+            // FCM 토큰 삭제
+            verify(fcmUseCase).deleteFcmTokens(eq(memberId), eq(null));
             // JWT 토큰 무효화
-            verify(blacklistUseCase).blacklistAllUserTokens(eq(userId));
-            // 소셜 연결 해제
-            verify(socialWithdrawUseCase).unlinkSocialAccount(eq(provider), eq(socialId));
+            verify(authTokenUseCase).deleteTokens(eq(memberId), eq(null));
+            // 카카오 토큰 삭제
+            verify(kakaoTokenUseCase).deleteByMemberId(eq(memberId));
         });
     }
 
@@ -61,17 +77,30 @@ public class MemberBannedEventIntegrationTest extends BaseEventIntegrationTest {
 
         // When & Then - 동시에 여러 사용자 차단 이벤트 발행
         publishEventsAndVerify(new Object[]{event1, event2, event3}, () -> {
-            verify(blacklistUseCase).addToBlacklist(eq(1L), eq("kakao123"), eq(SocialProvider.KAKAO));
-            verify(blacklistUseCase).addToBlacklist(eq(2L), eq("kakao456"), eq(SocialProvider.KAKAO));
-            verify(blacklistUseCase).addToBlacklist(eq(3L), eq("kakao789"), eq(SocialProvider.KAKAO));
+            // SSE 연결 정리
+            verify(sseUseCase).deleteEmitters(eq(1L), eq(null));
+            verify(sseUseCase).deleteEmitters(eq(2L), eq(null));
+            verify(sseUseCase).deleteEmitters(eq(3L), eq(null));
 
-            verify(blacklistUseCase).blacklistAllUserTokens(eq(1L));
-            verify(blacklistUseCase).blacklistAllUserTokens(eq(2L));
-            verify(blacklistUseCase).blacklistAllUserTokens(eq(3L));
+            // 소셜 플랫폼 강제 로그아웃
+            verify(socialLogoutUseCase).forceLogout(eq(1L), eq(SocialProvider.KAKAO), eq("kakao123"));
+            verify(socialLogoutUseCase).forceLogout(eq(2L), eq(SocialProvider.KAKAO), eq("kakao456"));
+            verify(socialLogoutUseCase).forceLogout(eq(3L), eq(SocialProvider.KAKAO), eq("kakao789"));
 
-            verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("kakao123"));
-            verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("kakao456"));
-            verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("kakao789"));
+            // FCM 토큰 삭제
+            verify(fcmUseCase).deleteFcmTokens(eq(1L), eq(null));
+            verify(fcmUseCase).deleteFcmTokens(eq(2L), eq(null));
+            verify(fcmUseCase).deleteFcmTokens(eq(3L), eq(null));
+
+            // JWT 토큰 무효화
+            verify(authTokenUseCase).deleteTokens(eq(1L), eq(null));
+            verify(authTokenUseCase).deleteTokens(eq(2L), eq(null));
+            verify(authTokenUseCase).deleteTokens(eq(3L), eq(null));
+
+            // 카카오 토큰 삭제
+            verify(kakaoTokenUseCase).deleteByMemberId(eq(1L));
+            verify(kakaoTokenUseCase).deleteByMemberId(eq(2L));
+            verify(kakaoTokenUseCase).deleteByMemberId(eq(3L));
         });
     }
 
@@ -84,9 +113,11 @@ public class MemberBannedEventIntegrationTest extends BaseEventIntegrationTest {
 
         // When & Then - 모든 제공자별로 적절히 처리되어야 함
         publishAndVerify(kakaoEvent, () -> {
-            verify(blacklistUseCase).addToBlacklist(eq(1L), eq("kakaoUser"), eq(SocialProvider.KAKAO));
-            verify(blacklistUseCase).blacklistAllUserTokens(eq(1L));
-            verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("kakaoUser"));
+            verify(sseUseCase).deleteEmitters(eq(1L), eq(null));
+            verify(socialLogoutUseCase).forceLogout(eq(1L), eq(SocialProvider.KAKAO), eq("kakaoUser"));
+            verify(fcmUseCase).deleteFcmTokens(eq(1L), eq(null));
+            verify(authTokenUseCase).deleteTokens(eq(1L), eq(null));
+            verify(kakaoTokenUseCase).deleteByMemberId(eq(1L));
         });
     }
 }

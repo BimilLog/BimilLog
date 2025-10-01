@@ -36,12 +36,12 @@ public class RollingPaperEventIntegrationTest extends BaseEventIntegrationTest {
     void rollingPaperEventWorkflow_ShouldCompleteNotifications() {
         // Given
         Long paperOwnerId = 1L;
-        String userName = "테스트사용자";
-        RollingPaperEvent event = new RollingPaperEvent(paperOwnerId, userName);
+        String memberName = "테스트사용자";
+        RollingPaperEvent event = new RollingPaperEvent(paperOwnerId, memberName);
 
         // When & Then
         publishAndVerify(event, () -> {
-            verify(sseUseCase).sendPaperPlantNotification(eq(paperOwnerId), eq(userName));
+            verify(sseUseCase).sendPaperPlantNotification(eq(paperOwnerId), eq(memberName));
             verify(fcmUseCase).sendPaperPlantNotification(eq(paperOwnerId));
         });
     }
@@ -51,14 +51,14 @@ public class RollingPaperEventIntegrationTest extends BaseEventIntegrationTest {
     void eventProcessingWithException_SseNotificationFailure() {
         // Given
         Long paperOwnerId = 1L;
-        String userName = "테스트사용자";
-        RollingPaperEvent event = new RollingPaperEvent(paperOwnerId, userName);
+        String memberName = "테스트사용자";
+        RollingPaperEvent event = new RollingPaperEvent(paperOwnerId, memberName);
 
         // SSE 알림 실패 시뮬레이션
-        doThrow(new RuntimeException("SSE 알림 실패")).when(sseUseCase).sendPaperPlantNotification(paperOwnerId, userName);
+        doThrow(new RuntimeException("SSE 알림 실패")).when(sseUseCase).sendPaperPlantNotification(paperOwnerId, memberName);
 
         // When & Then - SSE 실패 시 FCM은 호출되지 않음 (순차 실행이므로)
-        publishAndExpectException(event, () -> verify(sseUseCase).sendPaperPlantNotification(eq(paperOwnerId), eq(userName)));
+        publishAndExpectException(event, () -> verify(sseUseCase).sendPaperPlantNotification(eq(paperOwnerId), eq(memberName)));
     }
 
     @Test
@@ -66,15 +66,15 @@ public class RollingPaperEventIntegrationTest extends BaseEventIntegrationTest {
     void eventProcessingWithException_FcmNotificationFailure() {
         // Given
         Long paperOwnerId = 1L;
-        String userName = "테스트사용자";
-        RollingPaperEvent event = new RollingPaperEvent(paperOwnerId, userName);
+        String memberName = "테스트사용자";
+        RollingPaperEvent event = new RollingPaperEvent(paperOwnerId, memberName);
 
         // FCM 알림 실패 시뮬레이션
         doThrow(new RuntimeException("FCM 알림 실패")).when(fcmUseCase).sendPaperPlantNotification(paperOwnerId);
 
         // When & Then - SSE는 성공하고 FCM 실패 시에도 둘 다 호출됨
         publishAndExpectException(event, () -> {
-            verify(sseUseCase).sendPaperPlantNotification(eq(paperOwnerId), eq(userName));
+            verify(sseUseCase).sendPaperPlantNotification(eq(paperOwnerId), eq(memberName));
             verify(fcmUseCase).sendPaperPlantNotification(eq(paperOwnerId));
         });
     }

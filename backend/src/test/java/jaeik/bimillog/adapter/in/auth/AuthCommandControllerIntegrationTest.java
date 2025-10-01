@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.in.auth.dto.SocialLoginRequestDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
-import jaeik.bimillog.infrastructure.adapter.out.auth.TokenRepository;
+import jaeik.bimillog.infrastructure.adapter.out.auth.AuthTokenRepository;
 import jaeik.bimillog.testutil.AuthTestFixtures;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
@@ -38,7 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
-    private TokenRepository tokenRepository;
+    private AuthTokenRepository authTokenRepository;
 
     @Test
     @DisplayName("소셜 로그인 통합 테스트 - 신규 사용자")
@@ -63,11 +63,11 @@ class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("소셜 로그인 통합 테스트 - 기존 사용자")
     void socialLogin_ExistingUser_IntegrationTest() throws Exception {
-        Member existingMember = TestMembers.createUser(builder -> {
-            builder.socialId("test-social-id-12345");
-            builder.userName("existing-member");
-            builder.socialNickname("existing-member");
-        });
+        Member existingMember = TestMembers.createMember(
+                "test-social-id-12345",
+                "existing-member",
+                "existing-member"
+        );
         memberRepository.save(existingMember);
 
         SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "existing_user_code", null);
@@ -89,8 +89,8 @@ class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
         Member testMember = TestMembers.createUnique();
         testMember = memberRepository.save(testMember);
 
-        AuthToken authToken = AuthToken.createToken("access-authToken", "refresh-authToken", testMember);
-        authToken = tokenRepository.save(authToken);
+        AuthToken authToken = AuthToken.createToken("refresh-authToken", testMember);
+        authToken = authTokenRepository.save(authToken);
 
         CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testMember, authToken.getId(), null);
 

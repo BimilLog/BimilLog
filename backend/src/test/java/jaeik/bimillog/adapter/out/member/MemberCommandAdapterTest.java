@@ -42,7 +42,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 class MemberCommandAdapterTest {
 
     @Autowired
-    private MemberCommandAdapter userCommandAdapter;
+    private MemberCommandAdapter memberCommandAdapter;
 
     @Autowired
     private TestEntityManager testEntityManager;
@@ -56,13 +56,14 @@ class MemberCommandAdapterTest {
         testSetting = Setting.createSetting();
         testEntityManager.persist(testSetting);
 
-        testMember = Member.createUser(
+        testMember = Member.createMember(
                 "12345678",
                 SocialProvider.KAKAO,
                 "TestNickname",
                 "https://test.com/profile.jpg",
                 "testUser123",
-                testSetting
+                testSetting,
+                null
         );
         testEntityManager.persist(testMember);
         testEntityManager.flush();
@@ -71,88 +72,89 @@ class MemberCommandAdapterTest {
 
     @Test
     @DisplayName("사용자와 설정이 동시에 삭제되어야 한다")
-    void deleteUserAndSetting_ShouldDeleteBothUserAndSetting() {
+    void deleteMemberAndSetting_ShouldDeleteBothMemberAndSetting() {
         // Given
-        Long userId = testMember.getId();
+        Long memberId = testMember.getId();
         Long settingId = testSetting.getId();
 
         // 삭제 전 존재 확인
-        assertThat(testEntityManager.find(Member.class, userId)).isNotNull();
+        assertThat(testEntityManager.find(Member.class, memberId)).isNotNull();
         assertThat(testEntityManager.find(Setting.class, settingId)).isNotNull();
 
         // When
-        userCommandAdapter.deleteUserAndSetting(userId);
+        memberCommandAdapter.deleteMemberAndSetting(memberId);
         testEntityManager.flush();
         testEntityManager.clear();
 
         // Then
-        assertThat(testEntityManager.find(Member.class, userId)).isNull();
+        assertThat(testEntityManager.find(Member.class, memberId)).isNull();
         assertThat(testEntityManager.find(Setting.class, settingId)).isNull();
     }
 
     @Test
     @DisplayName("존재하지 않는 사용자 삭제 시 예외가 발생하지 않아야 한다")
-    void deleteUserAndSetting_WithNonExistentUser_ShouldNotThrowException() {
+    void deleteMemberAndSetting_WithNonExistentMember_ShouldNotThrowException() {
         // Given
-        Long nonExistentUserId = 99999L;
+        Long nonExistentMemberId = 99999L;
 
         // When & Then
-        assertThatCode(() -> userCommandAdapter.deleteUserAndSetting(nonExistentUserId))
+        assertThatCode(() -> memberCommandAdapter.deleteMemberAndSetting(nonExistentMemberId))
                 .doesNotThrowAnyException();
     }
 
     @Test
     @DisplayName("이미 삭제된 사용자를 재삭제해도 멱등성이 보장되어야 한다")
-    void deleteUserAndSetting_Idempotency_ShouldBeGuaranteed() {
+    void deleteMemberAndSetting_Idempotency_ShouldBeGuaranteed() {
         // Given
-        Long userId = testMember.getId();
+        Long memberId = testMember.getId();
 
         // 첫 번째 삭제
-        userCommandAdapter.deleteUserAndSetting(userId);
+        memberCommandAdapter.deleteMemberAndSetting(memberId);
         testEntityManager.flush();
         testEntityManager.clear();
 
         // When & Then - 두 번째 삭제
         assertThatCode(() -> {
-            userCommandAdapter.deleteUserAndSetting(userId);
+            memberCommandAdapter.deleteMemberAndSetting(memberId);
             testEntityManager.flush();
         }).doesNotThrowAnyException();
 
         // 여전히 삭제된 상태 확인
-        assertThat(testEntityManager.find(Member.class, userId)).isNull();
+        assertThat(testEntityManager.find(Member.class, memberId)).isNull();
     }
 
     @Test
     @DisplayName("여러 사용자가 있을 때 특정 사용자만 삭제되어야 한다")
-    void deleteUserAndSetting_WithMultipleUsers_ShouldDeleteOnlyTargetUser() {
+    void deleteMemberAndSetting_WithMultipleMembers_ShouldDeleteOnlyTargetMember() {
         // Given
         Setting otherSetting = Setting.createSetting();
         testEntityManager.persist(otherSetting);
 
-        Member otherMember = Member.createUser(
+        Member otherMember = Member.createMember(
                 "87654321",
                 SocialProvider.KAKAO,
                 "OtherNickname",
                 "https://test.com/other.jpg",
                 "otherUser456",
-                otherSetting
+                otherSetting,
+                null
         );
         testEntityManager.persist(otherMember);
         testEntityManager.flush();
         testEntityManager.clear();
 
-        Long targetUserId = testMember.getId();
-        Long otherUserId = otherMember.getId();
+        Long targetMemberId = testMember.getId();
+        Long otherMemberId = otherMember.getId();
         Long otherSettingId = otherSetting.getId();
 
         // When
-        userCommandAdapter.deleteUserAndSetting(targetUserId);
+        memberCommandAdapter.deleteMemberAndSetting(targetMemberId);
         testEntityManager.flush();
         testEntityManager.clear();
 
         // Then
-        assertThat(testEntityManager.find(Member.class, targetUserId)).isNull();
-        assertThat(testEntityManager.find(Member.class, otherUserId)).isNotNull();
+        assertThat(testEntityManager.find(Member.class, targetMemberId)).isNull();
+        assertThat(testEntityManager.find(Member.class, otherMemberId)).isNotNull();
         assertThat(testEntityManager.find(Setting.class, otherSettingId)).isNotNull();
     }
 }

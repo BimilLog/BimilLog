@@ -77,7 +77,7 @@ class PostAdminControllerIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @DisplayName("게시글 공지 토글 실패 - 일반 사용자 권한 없음")
-    void togglePostNotice_Fail_WithUserRole() throws Exception {
+    void togglePostNotice_Fail_WithMemberRole() throws Exception {
         // When & Then - 403 Forbidden 예상
         performPost("/api/post/" + testPost.getId() + "/notice", null, testUserDetails)
                 .andDo(print())

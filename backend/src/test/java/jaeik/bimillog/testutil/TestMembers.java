@@ -1,5 +1,6 @@
 package jaeik.bimillog.testutil;
 
+import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.domain.member.entity.member.MemberRole;
@@ -24,67 +25,67 @@ public class TestMembers {
     public static final Member MEMBER_3;
 
     static {
-        MEMBER_1 = createMember(builder -> {
-            builder.socialId("kakao123456");
-            builder.memberName("testUser1");
-            builder.socialNickname("테스트회원1");
-            builder.thumbnailImage("http://example.com/profile1.jpg");
-        });
+        MEMBER_1 = Member.createMember(
+                "kakao123456",
+                SocialProvider.KAKAO,
+                "테스트회원1",
+                "http://example.com/profile1.jpg",
+                "testUser1",
+                createAllEnabledSetting(),
+                createTestKakaoToken()
+        );
 
-        MEMBER_2 = createMember(builder -> {
-            builder.socialId("kakao789012");
-            builder.memberName("testUser2");
-            builder.socialNickname("테스트회원2");
-            builder.thumbnailImage("http://example.com/profile2.jpg");
-        });
+        MEMBER_2 = Member.createMember(
+                "kakao789012",
+                SocialProvider.KAKAO,
+                "테스트회원2",
+                "http://example.com/profile2.jpg",
+                "testUser2",
+                createAllEnabledSetting(),
+                createTestKakaoToken()
+        );
 
-        MEMBER_3 = createMember(builder -> {
-            builder.socialId("kakao345678");
-            builder.memberName("testUser3");
-            builder.socialNickname("테스트회원3");
-            builder.thumbnailImage("http://example.com/profile3.jpg");
-        });
+        MEMBER_3 = Member.createMember(
+                "kakao345678",
+                SocialProvider.KAKAO,
+                "테스트회원3",
+                "http://example.com/profile3.jpg",
+                "testUser3",
+                createAllEnabledSetting(),
+                createTestKakaoToken()
+        );
     }
 
     /**
-     * 기본 템플릿을 기반으로 한 회원 빌더 제공
+     * 기본 템플릿 회원 생성
      */
-    public static Member.MemberBuilder builder() {
-        return Member.builder()
-                .socialId("kakao-template")
-                .provider(SocialProvider.KAKAO)
-                .memberName("testMember")
-                .socialNickname("테스트회원")
-                .thumbnailImage("http://example.com/profile.jpg")
-                .role(MemberRole.USER)
-                .setting(createAllEnabledSetting());
-    }
-
-    /**
-     * 템플릿 기반 회원 생성 (커스터마이징 람다 적용)
-     */
-    public static Member createMember(Consumer<Member.MemberBuilder> customizer) {
-        Member.MemberBuilder builder = builder();
-        if (customizer != null) {
-            customizer.accept(builder);
-        }
-        return builder.build();
+    public static Member createMember(String socialId, String memberName, String socialNickname) {
+        return Member.createMember(
+                socialId,
+                SocialProvider.KAKAO,
+                socialNickname,
+                "http://example.com/profile.jpg",
+                memberName,
+                createAllEnabledSetting(),
+                createTestKakaoToken()
+        );
     }
 
     /**
      * 기존 회원을 복사하며 특정 ID 설정
      */
     public static Member copyWithId(Member member, Long id) {
-        return builder()
-                .id(id)
-                .socialId(member.getSocialId())
-                .provider(member.getProvider())
-                .memberName(member.getMemberName())
-                .socialNickname(member.getSocialNickname())
-                .thumbnailImage(member.getThumbnailImage())
-                .role(member.getRole())
-                .setting(cloneSetting(member.getSetting()))
-                .build();
+        Member copied = Member.createMember(
+                member.getSocialId(),
+                member.getProvider(),
+                member.getSocialNickname(),
+                member.getThumbnailImage(),
+                member.getMemberName(),
+                cloneSetting(member.getSetting()),
+                createTestKakaoToken()
+        );
+        TestFixtures.setFieldValue(copied, "id", id);
+        return copied;
     }
 
     /**
@@ -92,30 +93,32 @@ public class TestMembers {
      */
     public static Member withSocialId(String socialId) {
         String generatedMemberName = MEMBER_1.getMemberName() + "_" + socialId;
-        return createMember(builder -> {
-            builder.socialId(socialId);
-            builder.memberName(generatedMemberName);
-            builder.socialNickname(MEMBER_1.getSocialNickname());
-            builder.thumbnailImage(MEMBER_1.getThumbnailImage());
-        });
+        return createMember(
+                socialId,
+                generatedMemberName,
+                MEMBER_1.getSocialNickname()
+        );
     }
 
     /**
      * 특정 role을 가진 회원 생성 (ADMIN 생성 시 사용)
      */
     public static Member withRole(MemberRole role) {
-        return createMember(builder -> {
-            builder.role(role);
-            if (role == MemberRole.ADMIN) {
-                builder.socialId("kakao999999");
-                builder.memberName("adminMember");
-                builder.socialNickname("관리자");
-                builder.thumbnailImage("http://example.com/admin.jpg");
-                builder.setting(createAllDisabledSetting());
-            } else {
-                builder.setting(createAllEnabledSetting());
-            }
-        });
+        if (role == MemberRole.ADMIN) {
+            Member admin = Member.createMember(
+                    "kakao999999",
+                    SocialProvider.KAKAO,
+                    "관리자",
+                    "http://example.com/admin.jpg",
+                    "adminMember",
+                    createAllDisabledSetting(),
+                    createTestKakaoToken()
+            );
+            TestFixtures.setFieldValue(admin, "role", MemberRole.ADMIN);
+            return admin;
+        } else {
+            return createMember("kakao-user", "testUser", "테스트회원");
+        }
     }
 
     /**
@@ -124,11 +127,11 @@ public class TestMembers {
      */
     public static Member createUnique() {
         String timestamp = String.valueOf(System.currentTimeMillis());
-        return createMember(builder -> {
-            builder.socialId("user_" + timestamp);
-            builder.memberName("user_" + timestamp);
-            builder.socialNickname("테스트회원_" + timestamp);
-        });
+        return createMember(
+                "user_" + timestamp,
+                "user_" + timestamp,
+                "테스트회원_" + timestamp
+        );
     }
 
     /**
@@ -136,24 +139,12 @@ public class TestMembers {
      * @param prefix 회원 식별 접두사
      */
     public static Member createUniqueWithPrefix(String prefix) {
-        return createUniqueWithPrefix(prefix, null);
-    }
-
-    /**
-     * 고유한 회원 생성 (접두사 및 커스터마이징 지원)
-     * @param prefix 회원 식별 접두사
-     * @param customizer 회원 정의 빌더 커스터마이저
-     */
-    public static Member createUniqueWithPrefix(String prefix, Consumer<Member.MemberBuilder> customizer) {
         String timestamp = String.valueOf(System.currentTimeMillis());
-        return createMember(builder -> {
-            builder.socialId(prefix + "_" + timestamp);
-            builder.memberName(prefix + "_" + timestamp);
-            builder.socialNickname(prefix + "_소셜닉네임");
-            if (customizer != null) {
-                customizer.accept(builder);
-            }
-        });
+        return createMember(
+                prefix + "_" + timestamp,
+                prefix + "_" + timestamp,
+                prefix + "_소셜닉네임"
+        );
     }
 
     /**
@@ -192,5 +183,15 @@ public class TestMembers {
                 .commentNotification(original.isCommentNotification())
                 .postFeaturedNotification(original.isPostFeaturedNotification())
                 .build();
+    }
+
+    /**
+     * 테스트용 KakaoToken 생성
+     */
+    private static KakaoToken createTestKakaoToken() {
+        return KakaoToken.createKakaoToken(
+                "test-kakao-access-token",
+                "test-kakao-refresh-token"
+        );
     }
 }

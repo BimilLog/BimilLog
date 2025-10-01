@@ -57,7 +57,7 @@ class NotificationQueryServiceTest {
     void shouldReturnEmptyList_WhenPortReturnsNull() {
         // Given
         CustomUserDetails userDetails = mock(CustomUserDetails.class);
-        given(userDetails.getUserId()).willReturn(1L);
+        given(userDetails.getMemberId()).willReturn(1L);
         given(notificationQueryPort.getNotificationList(1L)).willReturn(null);
 
         // When

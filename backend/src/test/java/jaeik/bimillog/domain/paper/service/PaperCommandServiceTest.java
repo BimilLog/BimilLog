@@ -43,7 +43,7 @@ class PaperCommandServiceTest extends BaseUnitTest {
     private PaperQueryPort paperQueryPort;
 
     @Mock
-    private GlobalMemberQueryPort globalUserQueryPort;
+    private GlobalMemberQueryPort globalMemberQueryPort;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -55,17 +55,17 @@ class PaperCommandServiceTest extends BaseUnitTest {
     @DisplayName("내 롤링페이퍼 메시지 삭제 - 성공")
     void shouldDeleteMessageInMyPaper_WhenOwnerDeletes() {
         // Given
-        Long userId = 1L;
+        Long memberId = 1L;
         Long messageId = 123L;
 
-        given(paperQueryPort.findOwnerIdByMessageId(messageId)).willReturn(Optional.of(userId));
+        given(paperQueryPort.findOwnerIdByMessageId(messageId)).willReturn(Optional.of(memberId));
 
         // When
-        paperCommandService.deleteMessageInMyPaper(userId, messageId);
+        paperCommandService.deleteMessageInMyPaper(memberId, messageId);
 
         // Then
         verify(paperQueryPort, times(1)).findOwnerIdByMessageId(messageId);
-        verify(paperCommandPort, times(1)).deleteMessage(userId, messageId);
+        verify(paperCommandPort, times(1)).deleteMessage(memberId, messageId);
         verifyNoMoreInteractions(paperQueryPort, paperCommandPort);
     }
 
@@ -73,13 +73,13 @@ class PaperCommandServiceTest extends BaseUnitTest {
     @DisplayName("내 롤링페이퍼 메시지 삭제 - 메시지 없음 예외")
     void shouldThrowException_WhenMessageNotFound() {
         // Given
-        Long userId = 999L;
+        Long memberId = 999L;
         Long messageId = 999L;
 
         given(paperQueryPort.findOwnerIdByMessageId(messageId)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(userId, messageId))
+        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(memberId, messageId))
                 .isInstanceOf(PaperCustomException.class)
                 .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.MESSAGE_NOT_FOUND);
 
@@ -91,14 +91,14 @@ class PaperCommandServiceTest extends BaseUnitTest {
     @DisplayName("내 롤링페이퍼 메시지 삭제 - 소유자가 아닌 경우 예외")
     void shouldThrowException_WhenNotOwner() {
         // Given
-        Long userId = 1L;
+        Long memberId = 1L;
         Long ownerId = 2L; // 다른 사용자
         Long messageId = 123L;
 
         given(paperQueryPort.findOwnerIdByMessageId(messageId)).willReturn(Optional.of(ownerId));
 
         // When & Then
-        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(userId, messageId))
+        assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(memberId, messageId))
                 .isInstanceOf(PaperCustomException.class)
                 .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.MESSAGE_DELETE_FORBIDDEN);
 
@@ -110,46 +110,46 @@ class PaperCommandServiceTest extends BaseUnitTest {
     @DisplayName("메시지 작성 - 성공")
     void shouldWriteMessage_WhenValidInput() {
         // Given
-        Long userId = 1L;
-        Member memberWithId = createTestUserWithId(userId);
-        String userName = memberWithId.getUserName();
+        Long memberId = 1L;
+        Member memberWithId = createTestMemberWithId(memberId);
+        String memberName = memberWithId.getMemberName();
         DecoType decoType = DecoType.APPLE;
         String anonymity = "익명";
         String content = "테스트 메시지";
         int x = 2;
         int y = 2;
 
-        given(globalUserQueryPort.findByUserName(userName)).willReturn(Optional.of(memberWithId));
+        given(globalMemberQueryPort.findByMemberName(memberName)).willReturn(Optional.of(memberWithId));
 
         // When
-        paperCommandService.writeMessage(userName, decoType, anonymity, content, x, y);
+        paperCommandService.writeMessage(memberName, decoType, anonymity, content, x, y);
 
         // Then
-        verify(globalUserQueryPort, times(1)).findByUserName(userName);
+        verify(globalMemberQueryPort, times(1)).findByMemberName(memberName);
         verify(paperCommandPort, times(1)).save(any(Message.class));
         verify(eventPublisher, times(1)).publishEvent(any(RollingPaperEvent.class));
-        verifyNoMoreInteractions(globalUserQueryPort, paperCommandPort, eventPublisher);
+        verifyNoMoreInteractions(globalMemberQueryPort, paperCommandPort, eventPublisher);
     }
 
     @Test
     @DisplayName("메시지 작성 - 사용자 없음 예외")
     void shouldThrowException_WhenUserNotFound() {
         // Given
-        String userName = "nonexistentuser";
+        String memberName = "nonexistentuser";
         DecoType decoType = DecoType.APPLE;
         String anonymity = "익명";
         String content = "테스트 메시지";
         int x = 2;
         int y = 2;
 
-        given(globalUserQueryPort.findByUserName(userName)).willReturn(Optional.empty());
+        given(globalMemberQueryPort.findByMemberName(memberName)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> paperCommandService.writeMessage(userName, decoType, anonymity, content, x, y))
+        assertThatThrownBy(() -> paperCommandService.writeMessage(memberName, decoType, anonymity, content, x, y))
                 .isInstanceOf(PaperCustomException.class)
                 .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.USERNAME_NOT_FOUND);
 
-        verify(globalUserQueryPort, times(1)).findByUserName(userName);
+        verify(globalMemberQueryPort, times(1)).findByMemberName(memberName);
         verify(paperCommandPort, never()).save(any());
         verify(eventPublisher, never()).publishEvent(any());
     }
@@ -157,8 +157,8 @@ class PaperCommandServiceTest extends BaseUnitTest {
     @Test
     @DisplayName("메시지 작성 - null 또는 빈 사용자명 예외")
     void shouldThrowException_WhenInvalidUserName() {
-        // Given - null userName
-        String userName = null;
+        // Given - null memberName
+        String memberName = null;
         DecoType decoType = DecoType.APPLE;
         String anonymity = "익명";
         String content = "테스트 메시지";
@@ -166,11 +166,11 @@ class PaperCommandServiceTest extends BaseUnitTest {
         int y = 2;
 
         // When & Then - null case
-        assertThatThrownBy(() -> paperCommandService.writeMessage(userName, decoType, anonymity, content, x, y))
+        assertThatThrownBy(() -> paperCommandService.writeMessage(memberName, decoType, anonymity, content, x, y))
                 .isInstanceOf(PaperCustomException.class)
                 .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.INVALID_INPUT_VALUE);
 
-        // Given - empty userName
+        // Given - empty memberName
         String emptyUserName = "   ";
 
         // When & Then - empty case
@@ -178,7 +178,7 @@ class PaperCommandServiceTest extends BaseUnitTest {
                 .isInstanceOf(PaperCustomException.class)
                 .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.INVALID_INPUT_VALUE);
 
-        verify(globalUserQueryPort, never()).findByUserName(any());
+        verify(globalMemberQueryPort, never()).findByMemberName(any());
         verify(paperCommandPort, never()).save(any());
         verify(eventPublisher, never()).publishEvent(any());
     }
@@ -187,24 +187,24 @@ class PaperCommandServiceTest extends BaseUnitTest {
     @DisplayName("메시지 작성 - 이벤트 발행 검증")
     void shouldPublishCorrectEvent_WhenWriteMessage() {
         // Given
-        Long userId = 1L;
-        Member memberWithId = createTestUserWithId(userId);
-        String userName = memberWithId.getUserName();
+        Long memberId = 1L;
+        Member memberWithId = createTestMemberWithId(memberId);
+        String memberName = memberWithId.getMemberName();
         DecoType decoType = DecoType.APPLE;
         String anonymity = "익명";
         String content = "테스트 메시지";
         int x = 2;
         int y = 2;
 
-        given(globalUserQueryPort.findByUserName(userName)).willReturn(Optional.of(memberWithId));
+        given(globalMemberQueryPort.findByMemberName(memberName)).willReturn(Optional.of(memberWithId));
 
         // When
-        paperCommandService.writeMessage(userName, decoType, anonymity, content, x, y);
+        paperCommandService.writeMessage(memberName, decoType, anonymity, content, x, y);
 
         // Then
         verify(eventPublisher, times(1)).publishEvent(argThat((RollingPaperEvent event) ->
-            event.paperOwnerId().equals(userId) &&
-            event.userName().equals(userName)
+            event.paperOwnerId().equals(memberId) &&
+            event.memberName().equals(memberName)
         ));
     }
 }

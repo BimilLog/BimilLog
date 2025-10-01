@@ -77,11 +77,11 @@ class MemberSaveServiceTest extends BaseUnitTest {
         given(memberQueryPort.findByProviderAndSocialId(
             SocialProvider.KAKAO,
             "kakao123"
-        )).willReturn(Optional.of(getTestUser()));
+        )).willReturn(Optional.of(getTestMember()));
 
-        ExistingMemberDetail expectedDetail = ExistingMemberDetail.of(getTestUser(), 1L, 100L);
+        ExistingMemberDetail expectedDetail = ExistingMemberDetail.of(getTestMember(), 1L, 100L);
         given(saveMemberPort.handleExistingUserData(
-            getTestUser(),
+            getTestMember(),
             testSocialProfile
         )).willReturn(expectedDetail);
 
@@ -94,12 +94,12 @@ class MemberSaveServiceTest extends BaseUnitTest {
         // Then
         assertThat(result).isInstanceOf(ExistingMemberDetail.class);
         ExistingMemberDetail existingMemberDetail = (ExistingMemberDetail) result;
-        assertThat(existingMemberDetail.getUserId()).isEqualTo(getTestUser().getId());
+        assertThat(existingMemberDetail.getMemberId()).isEqualTo(getTestMember().getId());
         assertThat(existingMemberDetail.getTokenId()).isEqualTo(1L);
         assertThat(existingMemberDetail.getFcmTokenId()).isEqualTo(100L);
 
         verify(memberQueryPort).findByProviderAndSocialId(SocialProvider.KAKAO, "kakao123");
-        verify(saveMemberPort).handleExistingUserData(getTestUser(), testSocialProfile);
+        verify(saveMemberPort).handleExistingUserData(getTestMember(), testSocialProfile);
         verify(redisMemberDataPort, never()).saveTempData(any(), any());
     }
 
@@ -157,11 +157,11 @@ class MemberSaveServiceTest extends BaseUnitTest {
         given(memberQueryPort.findByProviderAndSocialId(
             SocialProvider.KAKAO,
             "kakao123"
-        )).willReturn(Optional.of(getTestUser()));
+        )).willReturn(Optional.of(getTestMember()));
 
-        ExistingMemberDetail expectedDetail = ExistingMemberDetail.of(getTestUser(), 1L, null);
+        ExistingMemberDetail expectedDetail = ExistingMemberDetail.of(getTestMember(), 1L, null);
         given(saveMemberPort.handleExistingUserData(
-            getTestUser(),
+            getTestMember(),
             profileWithoutFcm
         )).willReturn(expectedDetail);
 
@@ -176,7 +176,7 @@ class MemberSaveServiceTest extends BaseUnitTest {
         ExistingMemberDetail existingMemberDetail = (ExistingMemberDetail) result;
         assertThat(existingMemberDetail.getFcmTokenId()).isNull();
 
-        verify(saveMemberPort).handleExistingUserData(getTestUser(), profileWithoutFcm);
+        verify(saveMemberPort).handleExistingUserData(getTestMember(), profileWithoutFcm);
     }
 
     @Test
@@ -231,7 +231,7 @@ class MemberSaveServiceTest extends BaseUnitTest {
             testFcmToken
         );
 
-        Member googleMember = getOtherUser();
+        Member googleMember = getOtherMember();
         given(memberQueryPort.findByProviderAndSocialId(
             SocialProvider.GOOGLE,
             "google456"

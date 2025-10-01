@@ -50,7 +50,7 @@ class CommentQueryControllerIntegrationTest extends BaseIntegrationTest {
         // 테스트용 댓글들 생성
         for (int i = 1; i <= 5; i++) {
             Comment comment = CommentTestDataBuilder.createComment(
-                    testMember, testPost, "테스트 댓글 " + i);
+                    testPost, testMember, "테스트 댓글 " + i);
             commentRepository.save(comment);
         }
     }

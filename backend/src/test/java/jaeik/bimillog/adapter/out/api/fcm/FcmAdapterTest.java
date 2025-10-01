@@ -51,7 +51,7 @@ class FcmAdapterTest extends BaseUnitTest {
     @BeforeEach
     void setUp() {
         // Given: 테스트용 FCM 토큰 설정
-        testFcmToken = FcmToken.create(getTestUser(), "test-fcm-TemporaryToken");
+        testFcmToken = FcmToken.create(getTestMember(), "test-fcm-TemporaryToken");
     }
 
     @Test
@@ -60,7 +60,7 @@ class FcmAdapterTest extends BaseUnitTest {
         // Given: 저장할 FCM 토큰과 예상 결과
         FcmToken savedToken = FcmToken.builder()
                 .id(1L)
-                .member(getTestUser())
+                .member(getTestMember())
                 .fcmRegistrationToken("new-fcm-TemporaryToken")
                 .build();
 
@@ -73,23 +73,23 @@ class FcmAdapterTest extends BaseUnitTest {
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(1L);
         assertThat(result.getFcmRegistrationToken()).isEqualTo("new-fcm-TemporaryToken");
-        assertThat(result.getMember()).isEqualTo(getTestUser());
+        assertThat(result.getMember()).isEqualTo(getTestMember());
 
         verify(fcmTokenRepository).save(any(FcmToken.class));
     }
 
     @Test
     @DisplayName("정상 케이스 - 사용자 ID로 FCM 토큰 삭제")
-    void shouldDeleteFcmTokensByUserId_WhenUserIdProvided() {
+    void shouldDeleteFcmTokensByMemberId_WhenMemberIdProvided() {
         // Given: 삭제할 사용자 ID
-        Long userId = 1L;
-        doNothing().when(fcmTokenRepository).deleteByUser_Id(userId);
+        Long memberId = 1L;
+        doNothing().when(fcmTokenRepository).deleteByMember_Id(memberId);
 
         // When: 사용자 ID로 FCM 토큰 삭제
-        fcmAdapter.deleteFcmTokens(userId, null);
+        fcmAdapter.deleteFcmTokens(memberId, null);
 
         // Then: 삭제 동작 검증
-        verify(fcmTokenRepository).deleteByUser_Id(userId);
+        verify(fcmTokenRepository).deleteByMember_Id(memberId);
     }
 
     @Test

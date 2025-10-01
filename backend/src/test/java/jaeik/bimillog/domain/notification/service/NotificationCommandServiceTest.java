@@ -53,13 +53,13 @@ class NotificationCommandServiceTest {
     @DisplayName("알림 일괄 업데이트 - 정상 플로우")
     void shouldDelegateToPort_WhenUserPresent() {
         // Given
-        Long userId = 42L;
+        Long memberId = 42L;
         NotificationUpdateVO updateCommand = NotificationUpdateVO.of(List.of(10L), List.of(20L));
 
         // When
-        notificationCommandService.batchUpdate(userId, updateCommand);
+        notificationCommandService.batchUpdate(memberId, updateCommand);
 
         // Then
-        verify(notificationCommandPort).batchUpdate(userId, updateCommand);
+        verify(notificationCommandPort).batchUpdate(memberId, updateCommand);
     }
 }

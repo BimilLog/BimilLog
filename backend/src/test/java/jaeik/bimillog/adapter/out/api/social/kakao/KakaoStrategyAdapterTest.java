@@ -103,8 +103,8 @@ class KakaoStrategyAdapterTest extends BaseUnitTest {
 
         // Then - 토큰 검증
         assertThat(tokenDTO).isNotNull();
-        assertThat(tokenDTO.accessToken()).isEqualTo(TEST_ACCESS_TOKEN);
-        assertThat(tokenDTO.refreshToken()).isEqualTo(TEST_REFRESH_TOKEN);
+        assertThat(tokenDTO.getKakaoAccessToken()).isEqualTo(TEST_ACCESS_TOKEN);
+        assertThat(tokenDTO.getKakaoRefreshToken()).isEqualTo(TEST_REFRESH_TOKEN);
 
         verify(kakaoAuthClient).getToken(anyString(), argThat(params -> {
             Map<String, String> expectedParams = (Map<String, String>) params;
@@ -114,7 +114,7 @@ class KakaoStrategyAdapterTest extends BaseUnitTest {
         }));
 
         // When - getUserInfo 호출
-        KakaoMemberInfo result = kakaoStrategyAdapter.getUserInfo(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
+        KakaoMemberInfo result = kakaoStrategyAdapter.getUserInfo(TEST_ACCESS_TOKEN);
 
         // Then - 사용자 정보 검증
         assertThat(result).isNotNull();
@@ -150,7 +150,7 @@ class KakaoStrategyAdapterTest extends BaseUnitTest {
 
         // When & Then
         assertThatThrownBy(() ->
-            kakaoStrategyAdapter.getUserInfo(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN))
+            kakaoStrategyAdapter.getUserInfo(TEST_ACCESS_TOKEN))
             .isInstanceOf(RuntimeException.class)
             .hasMessageContaining("Kakao member info request failed");
     }

@@ -19,18 +19,13 @@ public class CommentTestDataBuilder {
      * <h3>테스트용 댓글 생성 (기본)</h3>
      * <p>지정된 회원과 게시글로 테스트용 댓글을 생성합니다.</p>
      *
-     * @param member 댓글 작성자
      * @param post 댓글이 달린 게시글
+     * @param member 댓글 작성자
      * @param content 댓글 내용
      * @return Comment 테스트용 댓글 엔티티
      */
-    public static Comment createComment(Member member, Post post, String content) {
-        return Comment.builder()
-                .content(content)
-                .member(member)
-                .post(post)
-                .deleted(false)
-                .build();
+    public static Comment createComment(Post post, Member member, String content) {
+        return Comment.createComment(post, member, content, null);
     }
     
     /**

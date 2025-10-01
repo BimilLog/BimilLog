@@ -267,7 +267,7 @@ class ReportDTOTest {
         // Given
         Member mockMember = mock(Member.class);
         given(mockMember.getId()).willReturn(100L);
-        given(mockMember.getUserName()).willReturn("testuser");
+        given(mockMember.getMemberName()).willReturn("testuser");
 
         Report mockReport = mock(Report.class);
         given(mockReport.getId()).willReturn(1L);

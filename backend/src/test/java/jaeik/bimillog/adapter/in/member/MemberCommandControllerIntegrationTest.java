@@ -94,7 +94,7 @@ class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
         CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testMember);
         
         MemberNameDTO memberNameDTO = new MemberNameDTO();
-        memberNameDTO.setUserName("새로운닉네임");
+        memberNameDTO.setMemberName("새로운닉네임");
 
         // When & Then
         mockMvc.perform(post("/api/member/username")
@@ -117,7 +117,7 @@ class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
         var userDetails = createCustomUserDetails(testMember);
         
         MemberNameDTO memberNameDTO = new MemberNameDTO();
-        memberNameDTO.setUserName("아주긴닉네임이라서8글자초과"); // 8글자 초과
+        memberNameDTO.setMemberName("아주긴닉네임이라서8글자초과"); // 8글자 초과
 
         // When & Then
         mockMvc.perform(post("/api/member/username")
@@ -195,7 +195,7 @@ class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
         var userDetails = createCustomUserDetails(testMember);
         
         MemberNameDTO memberNameDTO = new MemberNameDTO();
-        memberNameDTO.setUserName(""); // 빈 문자열
+        memberNameDTO.setMemberName(""); // 빈 문자열
 
         // When & Then
         mockMvc.perform(post("/api/member/username")

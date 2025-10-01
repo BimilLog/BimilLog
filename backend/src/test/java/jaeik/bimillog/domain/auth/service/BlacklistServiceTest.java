@@ -135,20 +135,20 @@ class BlacklistServiceTest extends BaseUnitTest {
 
     @Test
     @DisplayName("사용자의 모든 토큰을 블랙리스트에 등록 성공")
-    void shouldBlacklistAllUserTokens_WhenUserHasTokens() {
+    void shouldBlacklistAllMemberTokens_WhenMemberHasTokens() {
         // Given
-        Long userId = getTestUser().getId() != null ? getTestUser().getId() : 100L;
+        Long memberId = getTestMember().getId() != null ? getTestMember().getId() : 100L;
         String reason = "Security violation";
         
-        given(globalTokenQueryPort.findAllByUserId(userId)).willReturn(testAuthTokenList);
+        given(globalTokenQueryPort.findAllByMemberId(memberId)).willReturn(testAuthTokenList);
         given(globalJwtPort.generateTokenHash("access-token-0")).willReturn("hash0");
         given(globalJwtPort.generateTokenHash("access-token-1")).willReturn("hash1");
 
         // When
-        blacklistService.blacklistAllUserTokens(userId);
+        blacklistService.blacklistAllUserTokens(memberId);
 
         // Then
-        verify(globalTokenQueryPort).findAllByUserId(userId);
+        verify(globalTokenQueryPort).findAllByMemberId(memberId);
         verify(globalJwtPort).generateTokenHash("access-token-0");
         verify(globalJwtPort).generateTokenHash("access-token-1");
 
@@ -167,17 +167,17 @@ class BlacklistServiceTest extends BaseUnitTest {
 
     @Test
     @DisplayName("사용자에게 활성 토큰이 없는 경우 처리")
-    void shouldHandleGracefully_WhenUserHasNoTokens() {
+    void shouldHandleGracefully_WhenMemberHasNoTokens() {
         // Given
-        Long userId = 100L;
+        Long memberId = 100L;
         String reason = "Security violation";
-        given(globalTokenQueryPort.findAllByUserId(userId)).willReturn(List.of());
+        given(globalTokenQueryPort.findAllByMemberId(memberId)).willReturn(List.of());
 
         // When
-        blacklistService.blacklistAllUserTokens(userId);
+        blacklistService.blacklistAllUserTokens(memberId);
 
         // Then
-        verify(globalTokenQueryPort).findAllByUserId(userId);
+        verify(globalTokenQueryPort).findAllByMemberId(memberId);
         verify(globalJwtPort, never()).generateTokenHash(anyString());
         verify(redisJwtBlacklistPort, never()).blacklistTokenHashes(any(), any());
     }
@@ -186,16 +186,16 @@ class BlacklistServiceTest extends BaseUnitTest {
     @DisplayName("토큰 해시 생성 일부 실패 시 유효한 해시만 블랙리스트에 등록")
     void shouldBlacklistValidHashes_WhenSomeTokenHashGenerationFails() {
         // Given
-        Long userId = 100L;
+        Long memberId = 100L;
         String reason = "Partial failure test";
         
-        given(globalTokenQueryPort.findAllByUserId(userId)).willReturn(testAuthTokenList);
+        given(globalTokenQueryPort.findAllByMemberId(memberId)).willReturn(testAuthTokenList);
         given(globalJwtPort.generateTokenHash("access-token-0")).willReturn("hash0");
         doThrow(new RuntimeException("Hash generation failed"))
                 .when(globalJwtPort).generateTokenHash("access-token-1");
 
         // When
-        blacklistService.blacklistAllUserTokens(userId);
+        blacklistService.blacklistAllUserTokens(memberId);
 
         // Then
         ArgumentCaptor<List<String>> hashesCaptor = ArgumentCaptor.forClass(List.class);
@@ -212,18 +212,18 @@ class BlacklistServiceTest extends BaseUnitTest {
     @DisplayName("모든 토큰 해시 생성 실패 시 블랙리스트 등록하지 않음")
     void shouldNotBlacklist_WhenAllTokenHashGenerationFails() {
         // Given
-        Long userId = 100L;
+        Long memberId = 100L;
         String reason = "Complete failure test";
         
-        given(globalTokenQueryPort.findAllByUserId(userId)).willReturn(testAuthTokenList);
+        given(globalTokenQueryPort.findAllByMemberId(memberId)).willReturn(testAuthTokenList);
         doThrow(new RuntimeException("Hash generation failed"))
                 .when(globalJwtPort).generateTokenHash(anyString());
 
         // When
-        blacklistService.blacklistAllUserTokens(userId);
+        blacklistService.blacklistAllUserTokens(memberId);
 
         // Then
-        verify(globalTokenQueryPort).findAllByUserId(userId);
+        verify(globalTokenQueryPort).findAllByMemberId(memberId);
         verify(globalJwtPort).generateTokenHash("access-token-0");
         verify(globalJwtPort).generateTokenHash("access-token-1");
         verify(redisJwtBlacklistPort, never()).blacklistTokenHashes(any(), any());
@@ -231,18 +231,18 @@ class BlacklistServiceTest extends BaseUnitTest {
 
     @Test
     @DisplayName("사용자 토큰 조회 실패 시 예외 처리")
-    void shouldHandleException_WhenLoadingUserTokensFails() {
+    void shouldHandleException_WhenLoadingMemberTokensFails() {
         // Given
-        Long userId = 100L;
+        Long memberId = 100L;
         String reason = "Load failure test";
         doThrow(new RuntimeException("AuthToken loading failed"))
-                .when(globalTokenQueryPort).findAllByUserId(userId);
+                .when(globalTokenQueryPort).findAllByMemberId(memberId);
 
         // When
-        blacklistService.blacklistAllUserTokens(userId);
+        blacklistService.blacklistAllUserTokens(memberId);
 
         // Then
-        verify(globalTokenQueryPort).findAllByUserId(userId);
+        verify(globalTokenQueryPort).findAllByMemberId(memberId);
         verify(globalJwtPort, never()).generateTokenHash(anyString());
         verify(redisJwtBlacklistPort, never()).blacklistTokenHashes(any(), any());
     }
@@ -253,20 +253,20 @@ class BlacklistServiceTest extends BaseUnitTest {
     @DisplayName("많은 수의 토큰을 블랙리스트에 등록")
     void shouldHandleManyTokens() {
         // Given
-        Long userId = 100L;
+        Long memberId = 100L;
         String reason = "Many tokens test";
         List<AuthToken> manyAuthTokens = createMultipleTokens(10);
         
-        given(globalTokenQueryPort.findAllByUserId(userId)).willReturn(manyAuthTokens);
+        given(globalTokenQueryPort.findAllByMemberId(memberId)).willReturn(manyAuthTokens);
         for (int i = 0; i < 10; i++) {
             given(globalJwtPort.generateTokenHash("access-token-" + i)).willReturn("hash" + i);
         }
 
         // When
-        blacklistService.blacklistAllUserTokens(userId);
+        blacklistService.blacklistAllUserTokens(memberId);
 
         // Then
-        verify(globalTokenQueryPort).findAllByUserId(userId);
+        verify(globalTokenQueryPort).findAllByMemberId(memberId);
         for (int i = 0; i < 10; i++) {
             verify(globalJwtPort).generateTokenHash("access-token-" + i);
         }
@@ -285,12 +285,12 @@ class BlacklistServiceTest extends BaseUnitTest {
     @DisplayName("블랙리스트 추가 - 정상 케이스")
     void shouldAddToBlacklist_WhenValidParameters() {
         // Given
-        Long userId = 1L;
+        Long memberId = 1L;
         String socialId = "kakao12345";
         SocialProvider provider = SocialProvider.KAKAO;
 
         // When
-        blacklistService.addToBlacklist(userId, socialId, provider);
+        blacklistService.addToBlacklist(memberId, socialId, provider);
 
         // Then
         ArgumentCaptor<BlackList> blackListCaptor = ArgumentCaptor.forClass(BlackList.class);
@@ -306,7 +306,7 @@ class BlacklistServiceTest extends BaseUnitTest {
     @DisplayName("블랙리스트 추가 - 중복 등록 시 예외 처리")
     void shouldHandleException_WhenDuplicateEntry() {
         // Given
-        Long userId = 1L;
+        Long memberId = 1L;
         String socialId = "kakao12345";
         SocialProvider provider = SocialProvider.KAKAO;
 
@@ -314,7 +314,7 @@ class BlacklistServiceTest extends BaseUnitTest {
                 .when(blacklistPort).saveBlackList(any(BlackList.class));
 
         // When - 예외가 발생해도 메서드가 정상 종료되어야 함 (로그만 출력)
-        blacklistService.addToBlacklist(userId, socialId, provider);
+        blacklistService.addToBlacklist(memberId, socialId, provider);
 
         // Then
         verify(blacklistPort).saveBlackList(any(BlackList.class));
@@ -324,12 +324,12 @@ class BlacklistServiceTest extends BaseUnitTest {
     @DisplayName("블랙리스트 추가 - null 파라미터 처리")
     void shouldCreateBlacklist_WithNullParameters() {
         // Given
-        Long userId = null;
+        Long memberId = null;
         String socialId = null;
         SocialProvider provider = null;
 
         // When
-        blacklistService.addToBlacklist(userId, socialId, provider);
+        blacklistService.addToBlacklist(memberId, socialId, provider);
 
         // Then
         ArgumentCaptor<BlackList> blackListCaptor = ArgumentCaptor.forClass(BlackList.class);
@@ -345,12 +345,12 @@ class BlacklistServiceTest extends BaseUnitTest {
     @DisplayName("블랙리스트 추가 - 다양한 소셜 제공자")
     void shouldAddToBlacklist_WithVariousProviders() {
         // Given
-        Long userId = 1L;
+        Long memberId = 1L;
         String socialId = "socialUser123";
         SocialProvider provider = SocialProvider.KAKAO;
 
         // When
-        blacklistService.addToBlacklist(userId, socialId, provider);
+        blacklistService.addToBlacklist(memberId, socialId, provider);
 
         // Then
         ArgumentCaptor<BlackList> blackListCaptor = ArgumentCaptor.forClass(BlackList.class);
@@ -368,7 +368,6 @@ class BlacklistServiceTest extends BaseUnitTest {
         List<AuthToken> authTokens = new ArrayList<>();
         for (int i = 0; i < count; i++) {
             authTokens.add(AuthToken.builder()
-                    .accessToken("access-token-" + i)
                     .refreshToken("refresh-token-" + i)
                     .build());
         }

@@ -90,11 +90,11 @@ class SignUpRequestDTOTest {
     }
 
     @Nested
-    @DisplayName("userName 검증 테스트")
+    @DisplayName("memberName 검증 테스트")
     class MemberNameValidationTests {
 
         @Test
-        @DisplayName("userName이 null인 경우 - @NotBlank 검증 실패")
+        @DisplayName("memberName이 null인 경우 - @NotBlank 검증 실패")
         void shouldFail_WhenUserNameIsNull() {
             // Given
             SignUpRequestDTO request = new SignUpRequestDTO(null, VALID_UUID);
@@ -114,7 +114,7 @@ class SignUpRequestDTOTest {
         }
 
         @Test
-        @DisplayName("userName이 빈 문자열인 경우 - @NotBlank 검증 실패")
+        @DisplayName("memberName이 빈 문자열인 경우 - @NotBlank 검증 실패")
         void shouldFail_WhenUserNameIsEmpty() {
             // Given
             SignUpRequestDTO request = new SignUpRequestDTO("", VALID_UUID);
@@ -134,7 +134,7 @@ class SignUpRequestDTOTest {
         }
 
         @Test
-        @DisplayName("userName이 공백으로만 구성된 경우 - @AssertTrue 검증 실패")
+        @DisplayName("memberName이 공백으로만 구성된 경우 - @AssertTrue 검증 실패")
         void shouldFail_WhenUserNameIsBlank() {
             // Given
             SignUpRequestDTO request = new SignUpRequestDTO("   ", VALID_UUID);
@@ -153,7 +153,7 @@ class SignUpRequestDTOTest {
         }
 
         @Test
-        @DisplayName("userName이 20자를 초과하는 경우 - @Size 검증 실패")
+        @DisplayName("memberName이 20자를 초과하는 경우 - @Size 검증 실패")
         void shouldFail_WhenUserNameIsTooLong() {
             // Given
             String longUserName = "이것은아주긴사용자이름입니다정말로길어요!"; // 21자 이상
@@ -174,7 +174,7 @@ class SignUpRequestDTOTest {
         }
 
         @Test
-        @DisplayName("userName에 허용되지 않은 특수문자가 포함된 경우 - @AssertTrue 검증 실패")
+        @DisplayName("memberName에 허용되지 않은 특수문자가 포함된 경우 - @AssertTrue 검증 실패")
         void shouldFail_WhenUserNameContainsInvalidSpecialChars() {
             // Given
             SignUpRequestDTO request = new SignUpRequestDTO("사용자@#$%", VALID_UUID);
@@ -190,7 +190,7 @@ class SignUpRequestDTOTest {
         }
 
         @Test
-        @DisplayName("userName 앞뒤 공백 처리 후 20자 초과 - @AssertTrue 검증 실패")
+        @DisplayName("memberName 앞뒤 공백 처리 후 20자 초과 - @AssertTrue 검증 실패")
         void shouldFail_WhenTrimmedUserNameIsTooLong() {
             // Given
             String userNameWithSpaces = "  이것은아주긴사용자이름입니다정말로길어요!  "; // trim 후 21자
@@ -321,7 +321,7 @@ class SignUpRequestDTOTest {
     class CombinedValidationTests {
 
         @Test
-        @DisplayName("userName과 UUID 모두 유효하지 않은 경우 - 여러 검증 실패")
+        @DisplayName("memberName과 UUID 모두 유효하지 않은 경우 - 여러 검증 실패")
         void shouldFail_WhenBothFieldsAreInvalid() {
             // Given
             SignUpRequestDTO request = new SignUpRequestDTO("", "invalid-uuid");
@@ -330,7 +330,7 @@ class SignUpRequestDTOTest {
             Set<ConstraintViolation<SignUpRequestDTO>> violations = validator.validate(request);
 
             // Then
-            assertThat(violations).hasSize(4); // userName(3) + UUID(1)
+            assertThat(violations).hasSize(4); // memberName(3) + UUID(1)
         }
 
         @Test
@@ -343,7 +343,7 @@ class SignUpRequestDTOTest {
             Set<ConstraintViolation<SignUpRequestDTO>> violations = validator.validate(request);
 
             // Then
-            assertThat(violations).hasSize(4); // userName(3) + UUID(1)
+            assertThat(violations).hasSize(4); // memberName(3) + UUID(1)
         }
     }
 }

@@ -21,16 +21,16 @@ class SseMessageTest {
     @DisplayName("SSE 메시지 생성 - of 팩터리 메서드")
     void shouldCreateSseMessage_WhenValidInput() {
         // Given
-        Long userId = 1L;
+        Long memberId = 1L;
         NotificationType type = NotificationType.COMMENT;
         String message = "댓글이 작성되었습니다!";
         String url = "/board/post/123";
 
         // When
-        SseMessage sseMessage = SseMessage.of(userId, type, message, url);
+        SseMessage sseMessage = SseMessage.of(memberId, type, message, url);
 
         // Then
-        assertThat(sseMessage.userId()).isEqualTo(userId);
+        assertThat(sseMessage.memberId()).isEqualTo(memberId);
         assertThat(sseMessage.type()).isEqualTo(type);
         assertThat(sseMessage.message()).isEqualTo(message);
         assertThat(sseMessage.url()).isEqualTo(url);
@@ -40,16 +40,16 @@ class SseMessageTest {
     @DisplayName("SSE 메시지 생성 - 생성자 직접 호출")
     void shouldCreateSseMessage_WhenUsingConstructor() {
         // Given
-        Long userId = 2L;
+        Long memberId = 2L;
         NotificationType type = NotificationType.PAPER;
         String message = "롤링페이퍼에 메시지가 작성되었어요!";
         String url = "/rolling-paper/testuser";
 
         // When
-        SseMessage sseMessage = new SseMessage(userId, type, message, url);
+        SseMessage sseMessage = new SseMessage(memberId, type, message, url);
 
         // Then
-        assertThat(sseMessage.userId()).isEqualTo(userId);
+        assertThat(sseMessage.memberId()).isEqualTo(memberId);
         assertThat(sseMessage.type()).isEqualTo(type);
         assertThat(sseMessage.message()).isEqualTo(message);
         assertThat(sseMessage.url()).isEqualTo(url);
@@ -114,7 +114,7 @@ class SseMessageTest {
 
         // Then
         assertThat(stringRepresentation).contains("SseMessage");
-        assertThat(stringRepresentation).contains("userId=1");
+        assertThat(stringRepresentation).contains("memberId=1");
         assertThat(stringRepresentation).contains("type=INITIATE");
         assertThat(stringRepresentation).contains("message=이벤트 스트림이 생성되었습니다.");
     }

@@ -45,24 +45,24 @@ class RedisMemberDataAdapterIntegrationTest {
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
-    private SocialMemberProfile testUserProfile;
+    private SocialMemberProfile testMemberProfile;
     private String testUuid;
 
     @BeforeEach
     void setUp() {
         // Redis 초기화
         RedisTestHelper.flushRedis(redisTemplate);
-        
+
         // 테스트 데이터 준비
         testUuid = "test-uuid-12345";
-        testUserProfile = RedisTestHelper.defaultSocialUserProfile();
+        testMemberProfile = RedisTestHelper.defaultSocialMemberProfile();
     }
 
     @Test
     @DisplayName("정상 케이스 - 임시 데이터 저장 및 조회")
     void shouldSaveAndRetrieveTempData_WhenValidDataProvided() {
         // Given: FCM 토큰을 포함한 프로필
-        SocialMemberProfile profileWithFcm = RedisTestHelper.createTestSocialUserProfile("123456789", "test@example.com");
+        SocialMemberProfile profileWithFcm = RedisTestHelper.createTestSocialMemberProfile("123456789", "test@example.com");
 
         // When: 임시 데이터 저장
         redisTempDataAdapter.saveTempData(testUuid, profileWithFcm);
@@ -77,7 +77,7 @@ class RedisMemberDataAdapterIntegrationTest {
         assertThat(savedData.get().getFcmToken()).isNull(); // RedisTestHelper는 기본적으로 null FCM 토큰 생성
 
         // Redis에서 직접 확인
-        String key = RedisTestHelper.RedisKeys.tempUserData(testUuid);
+        String key = RedisTestHelper.RedisKeys.tempMemberData(testUuid);
         assertThat(redisTemplate.hasKey(key)).isTrue();
     }
 
@@ -85,9 +85,9 @@ class RedisMemberDataAdapterIntegrationTest {
     @DisplayName("정상 케이스 - TTL 설정 확인")
     void shouldSetCorrectTTL_WhenDataSaved() {
         // When: 임시 데이터 저장
-        redisTempDataAdapter.saveTempData(testUuid, testUserProfile);
+        redisTempDataAdapter.saveTempData(testUuid, testMemberProfile);
 
-        String key = RedisTestHelper.RedisKeys.tempUserData(testUuid);
+        String key = RedisTestHelper.RedisKeys.tempMemberData(testUuid);
 
         // Then: TTL이 설정되어 있음 (약 5분)
         Long ttl = redisTemplate.getExpire(key, TimeUnit.SECONDS);
@@ -102,10 +102,10 @@ class RedisMemberDataAdapterIntegrationTest {
     @DisplayName("예외 케이스 - null 값들로 저장 시 예외 발생")
     void shouldThrowException_WhenInvalidDataProvided() {
         // When & Then: null UUID로 저장 시도 시 예외 발생
-        assertThatThrownBy(() -> redisTempDataAdapter.saveTempData(null, testUserProfile))
+        assertThatThrownBy(() -> redisTempDataAdapter.saveTempData(null, testMemberProfile))
                 .isInstanceOf(AuthCustomException.class);
 
-        // null userProfile로 저장 시도 시 예외 발생
+        // null memberProfile로 저장 시도 시 예외 발생
         assertThatThrownBy(() -> redisTempDataAdapter.saveTempData(testUuid, null))
                 .isInstanceOf(AuthCustomException.class);
     }
@@ -127,7 +127,7 @@ class RedisMemberDataAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 임시 데이터 삭제")
     void shouldRemoveTempData_WhenDataExists() {
         // Given: 저장된 데이터
-        redisTempDataAdapter.saveTempData(testUuid, testUserProfile);
+        redisTempDataAdapter.saveTempData(testUuid, testMemberProfile);
         assertThat(redisTempDataAdapter.getTempData(testUuid)).isPresent();
 
         // When: 데이터 삭제
@@ -138,7 +138,7 @@ class RedisMemberDataAdapterIntegrationTest {
         assertThat(result).isEmpty();
 
         // Redis에서도 삭제됨 확인
-        String key = RedisTestHelper.RedisKeys.tempUserData(testUuid);
+        String key = RedisTestHelper.RedisKeys.tempMemberData(testUuid);
         assertThat(redisTemplate.hasKey(key)).isFalse();
     }
 
@@ -168,7 +168,7 @@ class RedisMemberDataAdapterIntegrationTest {
         SocialMemberProfile profileWithFcm = new SocialMemberProfile(
             "123456789",
             "test@example.com",
-            testUserProfile.getProvider(),
+            testMemberProfile.getProvider(),
             "testMember",
             "https://example.com/profile.jpg",
             "access-token",

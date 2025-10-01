@@ -51,7 +51,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
     private PostLikeQueryPort postLikeQueryPort;
 
     @Mock
-    private GlobalMemberQueryPort globalUserQueryPort;
+    private GlobalMemberQueryPort globalMemberQueryPort;
 
     @InjectMocks
     private PostInteractionService postInteractionService;
@@ -60,27 +60,27 @@ class PostInteractionServiceTest extends BaseUnitTest {
     @DisplayName("게시글 추천 - 처음 추천하는 경우")
     void shouldAddLike_WhenFirstTimeLiking() {
         // Given
-        Long userId = 1L;
+        Long memberId = 1L;
         Long postId = 123L;
-        Post post = PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestUser(), "테스트 게시글", "내용"));
+        Post post = PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestMember(), "테스트 게시글", "내용"));
 
-        given(postLikeQueryPort.existsByPostIdAndUserId(postId, userId)).willReturn(false);
-        given(globalUserQueryPort.getReferenceById(userId)).willReturn(getTestUser());
+        given(postLikeQueryPort.existsByPostIdAndUserId(postId, memberId)).willReturn(false);
+        given(globalMemberQueryPort.getReferenceById(memberId)).willReturn(getTestMember());
         given(globalPostQueryPort.findById(postId)).willReturn(post);
 
         // When
-        postInteractionService.likePost(userId, postId);
+        postInteractionService.likePost(memberId, postId);
 
         // Then
-        verify(postLikeQueryPort).existsByPostIdAndUserId(postId, userId);
-        verify(globalUserQueryPort).getReferenceById(userId);
+        verify(postLikeQueryPort).existsByPostIdAndUserId(postId, memberId);
+        verify(globalMemberQueryPort).getReferenceById(memberId);
         verify(globalPostQueryPort).findById(postId);
 
         // ArgumentCaptor로 PostLike 객체 검증
         ArgumentCaptor<PostLike> postLikeCaptor = ArgumentCaptor.forClass(PostLike.class);
         verify(postLikeCommandPort).savePostLike(postLikeCaptor.capture());
         PostLike savedPostLike = postLikeCaptor.getValue();
-        assertThat(savedPostLike.getMember()).isEqualTo(getTestUser());
+        assertThat(savedPostLike.getMember()).isEqualTo(getTestMember());
         assertThat(savedPostLike.getPost()).isEqualTo(post);
 
         verify(postLikeCommandPort, never()).deletePostLike(any(), any());
@@ -90,22 +90,22 @@ class PostInteractionServiceTest extends BaseUnitTest {
     @DisplayName("게시글 추천 - 이미 추천한 경우 (추천 취소)")
     void shouldRemoveLike_WhenAlreadyLiked() {
         // Given
-        Long userId = 1L;
+        Long memberId = 1L;
         Long postId = 123L;
-        Post post = PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestUser(), "테스트 게시글", "내용"));
+        Post post = PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestMember(), "테스트 게시글", "내용"));
 
-        given(postLikeQueryPort.existsByPostIdAndUserId(postId, userId)).willReturn(true);
-        given(globalUserQueryPort.getReferenceById(userId)).willReturn(getTestUser());
+        given(postLikeQueryPort.existsByPostIdAndUserId(postId, memberId)).willReturn(true);
+        given(globalMemberQueryPort.getReferenceById(memberId)).willReturn(getTestMember());
         given(globalPostQueryPort.findById(postId)).willReturn(post);
 
         // When
-        postInteractionService.likePost(userId, postId);
+        postInteractionService.likePost(memberId, postId);
 
         // Then
-        verify(postLikeQueryPort).existsByPostIdAndUserId(postId, userId);
-        verify(globalUserQueryPort).getReferenceById(userId);
+        verify(postLikeQueryPort).existsByPostIdAndUserId(postId, memberId);
+        verify(globalMemberQueryPort).getReferenceById(memberId);
         verify(globalPostQueryPort).findById(postId);
-        verify(postLikeCommandPort).deletePostLike(getTestUser(), post);
+        verify(postLikeCommandPort).deletePostLike(getTestMember(), post);
         verify(postLikeCommandPort, never()).savePostLike(any());
     }
 
@@ -113,20 +113,20 @@ class PostInteractionServiceTest extends BaseUnitTest {
     @DisplayName("게시글 추천 - 존재하지 않는 게시글인 경우")
     void shouldThrowException_WhenLikingNonExistentPost() {
         // Given
-        Long userId = 1L;
+        Long memberId = 1L;
         Long postId = 999L;
 
-        given(postLikeQueryPort.existsByPostIdAndUserId(postId, userId)).willReturn(false);
-        given(globalUserQueryPort.getReferenceById(userId)).willReturn(getTestUser());
+        given(postLikeQueryPort.existsByPostIdAndUserId(postId, memberId)).willReturn(false);
+        given(globalMemberQueryPort.getReferenceById(memberId)).willReturn(getTestMember());
         given(globalPostQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
         // When & Then
-        assertThatThrownBy(() -> postInteractionService.likePost(userId, postId))
+        assertThatThrownBy(() -> postInteractionService.likePost(memberId, postId))
                 .isInstanceOf(PostCustomException.class)
                 .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.POST_NOT_FOUND);
 
-        verify(postLikeQueryPort).existsByPostIdAndUserId(postId, userId);
-        verify(globalUserQueryPort).getReferenceById(userId);
+        verify(postLikeQueryPort).existsByPostIdAndUserId(postId, memberId);
+        verify(globalMemberQueryPort).getReferenceById(memberId);
         verify(globalPostQueryPort).findById(postId);
         verify(postLikeCommandPort, never()).savePostLike(any());
         verify(postLikeCommandPort, never()).deletePostLike(any(), any());

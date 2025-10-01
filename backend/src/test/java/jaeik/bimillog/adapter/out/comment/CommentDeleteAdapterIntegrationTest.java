@@ -53,7 +53,7 @@ class CommentDeleteAdapterIntegrationTest {
     private PostRepository postRepository;
 
     @Autowired
-    private MemberRepository userRepository;
+    private MemberRepository memberRepository;
 
     private Member testMember;
     private Post testPost;
@@ -63,11 +63,11 @@ class CommentDeleteAdapterIntegrationTest {
         // 테스트 데이터 초기화
         commentRepository.deleteAll();
         postRepository.deleteAll();
-        userRepository.deleteAll();
+        memberRepository.deleteAll();
 
         // 테스트용 사용자 생성
         testMember = TestMembers.createUniqueWithPrefix("test");
-        testMember = userRepository.save(testMember);
+        testMember = memberRepository.save(testMember);
 
         // 테스트용 게시글 생성
         testPost = Post.builder()

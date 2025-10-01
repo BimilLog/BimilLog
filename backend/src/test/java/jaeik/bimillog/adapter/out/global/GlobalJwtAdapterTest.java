@@ -30,7 +30,7 @@ class GlobalJwtAdapterTest {
     private static final String RAW_SECRET = "0123456789abcdef0123456789abcdef";
 
     private GlobalJwtAdapter globalJwtAdapter;
-    private ExistingMemberDetail userDetail;
+    private ExistingMemberDetail memberDetail;
 
     @BeforeEach
     void setUp() {
@@ -39,14 +39,14 @@ class GlobalJwtAdapterTest {
         ReflectionTestUtils.setField(globalJwtAdapter, "secretKey", secret);
         globalJwtAdapter.init();
 
-        userDetail = ExistingMemberDetail.builder()
-                .userId(1L)
+        memberDetail = ExistingMemberDetail.builder()
+                .memberId(1L)
                 .socialId("social-1")
                 .provider(SocialProvider.KAKAO)
                 .settingId(10L)
                 .socialNickname("소셜닉")
                 .thumbnailImage("thumb.jpg")
-                .userName("tester")
+                .memberName("tester")
                 .role(MemberRole.USER)
                 .tokenId(99L)
                 .fcmTokenId(777L)
@@ -56,26 +56,26 @@ class GlobalJwtAdapterTest {
     @Test
     @DisplayName("액세스 토큰 생성 후 사용자 정보를 역직렬화한다")
     void shouldGenerateAndParseAccessToken() {
-        String accessToken = globalJwtAdapter.generateAccessToken(userDetail);
+        String accessToken = globalJwtAdapter.generateAccessToken(memberDetail);
 
         assertThat(accessToken).isNotBlank();
         assertThat(globalJwtAdapter.validateToken(accessToken)).isTrue();
 
         ExistingMemberDetail parsed = globalJwtAdapter.getUserInfoFromToken(accessToken);
 
-        assertThat(parsed.getUserId()).isEqualTo(userDetail.getUserId());
-        assertThat(parsed.getTokenId()).isEqualTo(userDetail.getTokenId());
-        assertThat(parsed.getUserName()).isEqualTo(userDetail.getUserName());
-        assertThat(parsed.getProvider()).isEqualTo(userDetail.getProvider());
+        assertThat(parsed.getMemberId()).isEqualTo(memberDetail.getMemberId());
+        assertThat(parsed.getTokenId()).isEqualTo(memberDetail.getTokenId());
+        assertThat(parsed.getMemberName()).isEqualTo(memberDetail.getMemberName());
+        assertThat(parsed.getProvider()).isEqualTo(memberDetail.getProvider());
     }
 
     @Test
     @DisplayName("리프레시 토큰에서 토큰 ID를 추출한다")
     void shouldGenerateRefreshTokenAndExtractTokenId() {
-        String refreshToken = globalJwtAdapter.generateRefreshToken(userDetail);
+        String refreshToken = globalJwtAdapter.generateRefreshToken(memberDetail);
 
         assertThat(refreshToken).isNotBlank();
-        assertThat(globalJwtAdapter.getTokenIdFromToken(refreshToken)).isEqualTo(userDetail.getTokenId());
+        assertThat(globalJwtAdapter.getTokenIdFromToken(refreshToken)).isEqualTo(memberDetail.getTokenId());
     }
 
     @Test

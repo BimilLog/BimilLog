@@ -88,7 +88,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
     @DisplayName("유효한 신고 정보로 사용자 제재 시 성공")
     void shouldBanUser_WhenValidReportDTO() {
         // Given
-        Member memberWithId = createTestUserWithId(200L);
+        Member memberWithId = createTestMemberWithId(200L);
         Post testPost = PostTestDataBuilder.withId(200L, PostTestDataBuilder.createPost(memberWithId, "테스트 제목", "테스트 내용"));
         given(globalPostQueryPort.findById(200L)).willReturn(testPost);
 
@@ -100,7 +100,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
         verify(eventPublisher).publishEvent(eventCaptor.capture());
 
         MemberBannedEvent capturedEvent = eventCaptor.getValue();
-        assertThat(capturedEvent.userId()).isEqualTo(200L);
+        assertThat(capturedEvent.memberId()).isEqualTo(200L);
         assertThat(capturedEvent.socialId()).isEqualTo(memberWithId.getSocialId());
         assertThat(capturedEvent.provider()).isEqualTo(memberWithId.getProvider());
     }
@@ -140,7 +140,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
         ReportType commentReportType = ReportType.COMMENT;
         Long commentTargetId = 300L;
         
-        Member memberWithId = createTestUserWithId(200L);
+        Member memberWithId = createTestMemberWithId(200L);
         Comment testComment = Comment.builder()
                 .id(300L)
                 .member(memberWithId)
@@ -155,7 +155,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
         verify(eventPublisher).publishEvent(eventCaptor.capture());
 
         MemberBannedEvent capturedEvent = eventCaptor.getValue();
-        assertThat(capturedEvent.userId()).isEqualTo(200L);
+        assertThat(capturedEvent.memberId()).isEqualTo(200L);
         assertThat(capturedEvent.socialId()).isEqualTo(memberWithId.getSocialId());
         assertThat(capturedEvent.provider()).isEqualTo(memberWithId.getProvider());
     }
@@ -165,10 +165,10 @@ class AdminCommandServiceTest extends BaseUnitTest {
     void shouldPublishEvent_WhenValidCommentReport() {
         // Given
         Long commentId = 1L;
-        Long userId = 100L;
+        Long memberId = 100L;
         ReportType reportType = ReportType.COMMENT;
         
-        Member mockMember = createTestUserWithId(userId);
+        Member mockMember = createTestMemberWithId(memberId);
         Comment mockComment = Comment.builder()
                 .id(commentId)
                 .member(mockMember)
@@ -185,7 +185,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
         verify(eventPublisher).publishEvent(eventCaptor.capture());
 
         MemberWithdrawnEvent capturedEvent = eventCaptor.getValue();
-        assertThat(capturedEvent.userId()).isEqualTo(userId);
+        assertThat(capturedEvent.memberId()).isEqualTo(memberId);
         assertThat(capturedEvent.socialId()).isEqualTo(mockMember.getSocialId());
         assertThat(capturedEvent.provider()).isEqualTo(mockMember.getProvider());
     }
@@ -224,23 +224,23 @@ class AdminCommandServiceTest extends BaseUnitTest {
     @DisplayName("인증된 사용자 신고 생성 - 성공")
     void createReport_AuthenticatedUser_Success() {
         // Given
-        Long userId = 1L;
+        Long memberId = 1L;
         ReportType reportType = ReportType.COMMENT;
         Long targetId = 123L;
         String content = "부적절한 댓글입니다";
         
-        Member reporter = createTestUserWithId(userId);
+        Member reporter = createTestMemberWithId(memberId);
 
         Report expectedReport = Report.createReport(reportType, targetId, content, reporter);
 
-        given(memberQueryPort.findById(userId)).willReturn(Optional.of(reporter));
+        given(memberQueryPort.findById(memberId)).willReturn(Optional.of(reporter));
         given(adminCommandPort.save(any(Report.class))).willReturn(expectedReport);
 
         // When
-        adminCommandService.createReport(userId, reportType, targetId, content);
+        adminCommandService.createReport(memberId, reportType, targetId, content);
 
         // Then
-        verify(memberQueryPort, times(1)).findById(userId);
+        verify(memberQueryPort, times(1)).findById(memberId);
         verify(adminCommandPort, times(1)).save(any(Report.class));
     }
 
@@ -248,7 +248,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
     @DisplayName("익명 사용자 신고 생성 - 성공")
     void createReport_AnonymousUser_Success() {
         // Given
-        Long userId = null; // 익명 사용자
+        Long memberId = null; // 익명 사용자
         ReportType reportType = ReportType.POST;
         Long targetId = 456L;
         String content = "스팸 게시글입니다";
@@ -257,7 +257,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
         given(adminCommandPort.save(any(Report.class))).willReturn(expectedReport);
 
         // When
-        adminCommandService.createReport(userId, reportType, targetId, content);
+        adminCommandService.createReport(memberId, reportType, targetId, content);
 
         // Then
         verify(memberQueryPort, never()).findById(any()); // 익명 사용자는 조회하지 않음
@@ -268,23 +268,23 @@ class AdminCommandServiceTest extends BaseUnitTest {
     @DisplayName("건의사항 생성 - 성공 (targetId null)")
     void createReport_Suggestion_Success() {
         // Given
-        Long userId = 2L;
+        Long memberId = 2L;
         ReportType reportType = ReportType.IMPROVEMENT;
         Long targetId = null;
         String content = "새로운 기능을 건의합니다";
         
-        Member reporter = createTestUserWithId(userId);
+        Member reporter = createTestMemberWithId(memberId);
 
         Report expectedReport = Report.createReport(reportType, targetId, content, reporter);
 
-        given(memberQueryPort.findById(userId)).willReturn(Optional.of(reporter));
+        given(memberQueryPort.findById(memberId)).willReturn(Optional.of(reporter));
         given(adminCommandPort.save(any(Report.class))).willReturn(expectedReport);
 
         // When
-        adminCommandService.createReport(userId, reportType, targetId, content);
+        adminCommandService.createReport(memberId, reportType, targetId, content);
 
         // Then
-        verify(memberQueryPort, times(1)).findById(userId);
+        verify(memberQueryPort, times(1)).findById(memberId);
         verify(adminCommandPort, times(1)).save(any(Report.class));
     }
 
@@ -293,18 +293,18 @@ class AdminCommandServiceTest extends BaseUnitTest {
     @DisplayName("신고 생성 - 성공 (존재하지 않는 사용자 ID는 익명 신고로 처리)")
     void createReport_Success_NonExistentUserTreatedAsAnonymous() {
         // Given
-        Long userId = 999L;
+        Long memberId = 999L;
         ReportType reportType = ReportType.COMMENT;
         Long targetId = 123L;
         String content = "부적절한 댓글입니다";
         
-        given(memberQueryPort.findById(userId)).willReturn(Optional.empty());
+        given(memberQueryPort.findById(memberId)).willReturn(Optional.empty());
 
         // When & Then - 예외가 발생하지 않고 정상적으로 처리되어야 함
-        assertThatCode(() -> adminCommandService.createReport(userId, reportType, targetId, content))
+        assertThatCode(() -> adminCommandService.createReport(memberId, reportType, targetId, content))
                 .doesNotThrowAnyException();
 
-        verify(memberQueryPort, times(1)).findById(userId);
+        verify(memberQueryPort, times(1)).findById(memberId);
         verify(adminCommandPort, times(1)).save(any(Report.class));
     }
 

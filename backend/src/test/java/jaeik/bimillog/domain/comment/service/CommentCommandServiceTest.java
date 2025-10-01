@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.comment.service;
 
 import jaeik.bimillog.domain.comment.application.port.out.CommentDeletePort;
 import jaeik.bimillog.domain.comment.application.port.out.CommentLikePort;
-import jaeik.bimillog.domain.comment.application.port.out.CommentQueryPort;
 import jaeik.bimillog.domain.comment.application.port.out.CommentSavePort;
 import jaeik.bimillog.domain.comment.application.service.CommentCommandService;
 import jaeik.bimillog.domain.comment.entity.Comment;
@@ -12,12 +11,12 @@ import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.exception.CommentCustomException;
 import jaeik.bimillog.domain.comment.exception.CommentErrorCode;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCommentQueryPort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalMemberQueryPort;
-import jaeik.bimillog.domain.post.entity.Post;
+import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.domain.member.exception.MemberCustomException;
 import jaeik.bimillog.domain.member.exception.MemberErrorCode;
+import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.testutil.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -56,9 +55,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
     @Mock private CommentSavePort commentSavePort;
     @Mock private CommentDeletePort commentDeletePort;
-    @Mock private CommentQueryPort commentQueryPort;
     @Mock private CommentLikePort commentLikePort;
-    @Mock private GlobalMemberQueryPort globalUserQueryPort;
+    @Mock private GlobalMemberQueryPort globalMemberQueryPort;
     @Mock private GlobalPostQueryPort globalPostQueryPort;
     @Mock private GlobalCommentQueryPort globalCommentQueryPort;
     @Mock private ApplicationEventPublisher eventPublisher;
@@ -71,23 +69,23 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
     @BeforeEach
     void setUp() {
-        // getTestUser()를 사용하여 테스트 사용자 획득
-        Member member = getTestUser();
+        // getTestMember()를 사용하여 테스트 사용자 획득
+        Member member = getTestMember();
         TestFixtures.setFieldValue(member, "id", 100L);
         testPost = PostTestDataBuilder.withId(300L, PostTestDataBuilder.createPost(member, "테스트 게시글", "게시글 내용"));
-        testComment = CommentTestDataBuilder.withId(TEST_COMMENT_ID, CommentTestDataBuilder.createComment(member, testPost, TEST_ORIGINAL_CONTENT));
+        testComment = CommentTestDataBuilder.withId(TEST_COMMENT_ID, CommentTestDataBuilder.createComment(testPost, member, TEST_ORIGINAL_CONTENT));
     }
 
     @Test
     @DisplayName("댓글 좋아요 추가 성공")
-    void shouldAddLike_WhenUserHasNotLikedComment() {
+    void shouldAddLike_WhenMemberHasNotLikedComment() {
         // Given
         given(globalCommentQueryPort.findById(TEST_COMMENT_ID)).willReturn(testComment);
-        given(globalUserQueryPort.findById(getTestUser().getId())).willReturn(Optional.of(getTestUser()));
-        given(commentLikePort.isLikedByUser(TEST_COMMENT_ID, getTestUser().getId())).willReturn(false);
+        given(globalMemberQueryPort.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
+        given(commentLikePort.isLikedByUser(TEST_COMMENT_ID, getTestMember().getId())).willReturn(false);
 
         // When
-        commentCommandService.likeComment(getTestUser().getId(), TEST_COMMENT_ID);
+        commentCommandService.likeComment(getTestMember().getId(), TEST_COMMENT_ID);
 
         // Then
         ArgumentCaptor<CommentLike> likeCaptor = ArgumentCaptor.forClass(CommentLike.class);
@@ -95,24 +93,24 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         CommentLike capturedLike = likeCaptor.getValue();
         assertThat(capturedLike.getComment()).isEqualTo(testComment);
-        assertThat(capturedLike.getMember()).isEqualTo(getTestUser());
+        assertThat(capturedLike.getMember()).isEqualTo(getTestMember());
 
         verify(commentLikePort, never()).deleteLikeByIds(anyLong(), anyLong());
     }
 
     @Test
     @DisplayName("댓글 좋아요 취소 성공")
-    void shouldRemoveLike_WhenUserHasAlreadyLikedComment() {
+    void shouldRemoveLike_WhenMemberHasAlreadyLikedComment() {
         // Given
         given(globalCommentQueryPort.findById(TEST_COMMENT_ID)).willReturn(testComment);
-        given(globalUserQueryPort.findById(getTestUser().getId())).willReturn(Optional.of(getTestUser()));
-        given(commentLikePort.isLikedByUser(TEST_COMMENT_ID, getTestUser().getId())).willReturn(true);
+        given(globalMemberQueryPort.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
+        given(commentLikePort.isLikedByUser(TEST_COMMENT_ID, getTestMember().getId())).willReturn(true);
 
         // When
-        commentCommandService.likeComment(getTestUser().getId(), TEST_COMMENT_ID);
+        commentCommandService.likeComment(getTestMember().getId(), TEST_COMMENT_ID);
 
         // Then
-        verify(commentLikePort).deleteLikeByIds(TEST_COMMENT_ID, getTestUser().getId());
+        verify(commentLikePort).deleteLikeByIds(TEST_COMMENT_ID, getTestMember().getId());
         verify(commentLikePort, never()).save(any());
     }
 
@@ -123,12 +121,12 @@ class CommentCommandServiceTest extends BaseUnitTest {
         given(globalCommentQueryPort.findById(TEST_COMMENT_ID)).willThrow(new CommentCustomException(CommentErrorCode.COMMENT_NOT_FOUND));
 
         // When & Then
-        assertThatThrownBy(() -> commentCommandService.likeComment(getTestUser().getId(), TEST_COMMENT_ID))
+        assertThatThrownBy(() -> commentCommandService.likeComment(getTestMember().getId(), TEST_COMMENT_ID))
                 .isInstanceOf(CommentCustomException.class)
                 .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_NOT_FOUND);
 
         verify(globalCommentQueryPort).findById(TEST_COMMENT_ID);
-        verify(globalUserQueryPort, never()).findById(any());
+        verify(globalMemberQueryPort, never()).findById(any());
         verify(commentLikePort, never()).isLikedByUser(any(), any());
         verify(commentLikePort, never()).save(any());
         verify(commentLikePort, never()).deleteLikeByIds(anyLong(), anyLong());
@@ -139,26 +137,26 @@ class CommentCommandServiceTest extends BaseUnitTest {
     void shouldThrowException_WhenUserNotFound() {
         // Given
         given(globalCommentQueryPort.findById(TEST_COMMENT_ID)).willReturn(testComment);
-        given(globalUserQueryPort.findById(getTestUser().getId())).willReturn(Optional.empty());
+        given(globalMemberQueryPort.findById(getTestMember().getId())).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> commentCommandService.likeComment(getTestUser().getId(), TEST_COMMENT_ID))
+        assertThatThrownBy(() -> commentCommandService.likeComment(getTestMember().getId(), TEST_COMMENT_ID))
                 .isInstanceOf(MemberCustomException.class)
                 .hasFieldOrPropertyWithValue("userErrorCode", MemberErrorCode.USER_NOT_FOUND);
 
         verify(globalCommentQueryPort).findById(TEST_COMMENT_ID);
-        verify(globalUserQueryPort).findById(getTestUser().getId());
+        verify(globalMemberQueryPort).findById(getTestMember().getId());
         verify(commentLikePort, never()).isLikedByUser(any(), any());
         verify(commentLikePort, never()).save(any());
         verify(commentLikePort, never()).deleteLikeByIds(anyLong(), anyLong());
     }
 
     @Test
-    @DisplayName("익명 사용자(null userId)가 좋아요 시 예외 발생")
+    @DisplayName("익명 사용자(null memberId)가 좋아요 시 예외 발생")
     void shouldThrowException_WhenUserIdIsNull() {
         // Given
         given(globalCommentQueryPort.findById(TEST_COMMENT_ID)).willReturn(testComment);
-        given(globalUserQueryPort.findById(null)).willReturn(Optional.empty());
+        given(globalMemberQueryPort.findById(null)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.likeComment(null, TEST_COMMENT_ID))
@@ -166,7 +164,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("userErrorCode", MemberErrorCode.USER_NOT_FOUND);
 
         verify(globalCommentQueryPort).findById(TEST_COMMENT_ID);
-        verify(globalUserQueryPort).findById(null);
+        verify(globalMemberQueryPort).findById(null);
         verify(commentLikePort, never()).isLikedByUser(any(), any());
         verify(commentLikePort, never()).save(any());
         verify(commentLikePort, never()).deleteLikeByIds(anyLong(), anyLong());
@@ -176,15 +174,15 @@ class CommentCommandServiceTest extends BaseUnitTest {
     @DisplayName("자신의 댓글에 좋아요")
     void shouldAllowSelfLike() {
         // Given
-        Comment ownComment = CommentTestDataBuilder.createComment(getTestUser(), testPost, "내가 작성한 댓글");
+        Comment ownComment = CommentTestDataBuilder.createComment(testPost, getTestMember(), "내가 작성한 댓글");
         TestFixtures.setFieldValue(ownComment, "id", 200L);
 
         given(globalCommentQueryPort.findById(TEST_COMMENT_ID)).willReturn(ownComment);
-        given(globalUserQueryPort.findById(getTestUser().getId())).willReturn(Optional.of(getTestUser()));
-        given(commentLikePort.isLikedByUser(TEST_COMMENT_ID, getTestUser().getId())).willReturn(false);
+        given(globalMemberQueryPort.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
+        given(commentLikePort.isLikedByUser(TEST_COMMENT_ID, getTestMember().getId())).willReturn(false);
 
         // When
-        commentCommandService.likeComment(getTestUser().getId(), TEST_COMMENT_ID);
+        commentCommandService.likeComment(getTestMember().getId(), TEST_COMMENT_ID);
 
         // Then
         ArgumentCaptor<CommentLike> likeCaptor = ArgumentCaptor.forClass(CommentLike.class);
@@ -192,17 +190,17 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         CommentLike capturedLike = likeCaptor.getValue();
         assertThat(capturedLike.getComment()).isEqualTo(ownComment);
-        assertThat(capturedLike.getMember()).isEqualTo(getTestUser());
+        assertThat(capturedLike.getMember()).isEqualTo(getTestMember());
     }
 
     @Test
     @DisplayName("인증된 사용자의 댓글 수정 성공")
-    void shouldUpdateComment_WhenAuthenticatedUserOwnsComment() {
+    void shouldUpdateComment_WhenAuthenticatedMemberOwnsComment() {
         // Given
         given(globalCommentQueryPort.findById(TEST_COMMENT_ID)).willReturn(testComment);
 
         // When
-        commentCommandService.updateComment(TEST_COMMENT_ID, getTestUser().getId(), TEST_UPDATED_CONTENT, null);
+        commentCommandService.updateComment(TEST_COMMENT_ID, getTestMember().getId(), TEST_UPDATED_CONTENT, null);
 
         // Then
         verify(globalCommentQueryPort).findById(TEST_COMMENT_ID);
@@ -210,7 +208,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
     @Test
     @DisplayName("익명 사용자의 패스워드 일치로 댓글 수정 성공")
-    void shouldUpdateComment_WhenAnonymousUserWithCorrectPassword() {
+    void shouldUpdateComment_WhenAnonymousMemberWithCorrectPassword() {
         // Given
         Comment anonymousComment = Comment.createComment(testPost, null, "익명 댓글", TEST_PASSWORD);
         TestFixtures.setFieldValue(anonymousComment, "id", TEST_COMMENT_ID);
@@ -231,7 +229,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         given(globalCommentQueryPort.findById(TEST_COMMENT_ID)).willThrow(new CommentCustomException(CommentErrorCode.COMMENT_NOT_FOUND));
 
         // When & Then
-        assertThatThrownBy(() -> commentCommandService.updateComment(TEST_COMMENT_ID, getTestUser().getId(), TEST_UPDATED_CONTENT, null))
+        assertThatThrownBy(() -> commentCommandService.updateComment(TEST_COMMENT_ID, getTestMember().getId(), TEST_UPDATED_CONTENT, null))
                 .isInstanceOf(CommentCustomException.class)
                 .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_NOT_FOUND);
 
@@ -259,16 +257,16 @@ class CommentCommandServiceTest extends BaseUnitTest {
     @DisplayName("다른 사용자가 댓글 수정 시 ONLY_COMMENT_OWNER_UPDATE 예외 발생")
     void shouldThrowException_WhenNotCommentOwner() {
         // Given
-        Long userId = 100L;
+        Long memberId = 100L;
         Member anotherMember = TestMembers.copyWithId(TestMembers.MEMBER_3, 999L);
 
-        Comment anotherUserComment = CommentTestDataBuilder.createComment(anotherMember, testPost, "다른 사용자 댓글");
-        TestFixtures.setFieldValue(anotherUserComment, "id", 200L);
+        Comment anotherMemberComment = CommentTestDataBuilder.createComment(testPost, anotherMember, "다른 사용자 댓글");
+        TestFixtures.setFieldValue(anotherMemberComment, "id", 200L);
 
-        given(globalCommentQueryPort.findById(200L)).willReturn(anotherUserComment);
+        given(globalCommentQueryPort.findById(200L)).willReturn(anotherMemberComment);
 
         // When & Then
-        assertThatThrownBy(() -> commentCommandService.updateComment(200L, userId, TEST_UPDATED_CONTENT, null))
+        assertThatThrownBy(() -> commentCommandService.updateComment(200L, memberId, TEST_UPDATED_CONTENT, null))
                 .isInstanceOf(CommentCustomException.class)
                 .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_UNAUTHORIZED);
 
@@ -279,11 +277,11 @@ class CommentCommandServiceTest extends BaseUnitTest {
     @DisplayName("후손이 없는 댓글 삭제 시 완전 삭제")
     void shouldDeleteComment_WhenNoDescendants() {
         // Given
-        Long userId = 100L;
+        Long memberId = 100L;
         given(globalCommentQueryPort.findById(200L)).willReturn(testComment);
 
         // When
-        commentCommandService.deleteComment(200L, userId, null);
+        commentCommandService.deleteComment(200L, memberId, null);
 
         // Then
         verify(globalCommentQueryPort).findById(200L);
@@ -294,11 +292,11 @@ class CommentCommandServiceTest extends BaseUnitTest {
     @DisplayName("후손이 있는 댓글 삭제 시 소프트 삭제")
     void shouldSoftDeleteComment_WhenHasDescendants() {
         // Given
-        Long userId = 100L;
+        Long memberId = 100L;
         given(globalCommentQueryPort.findById(200L)).willReturn(testComment);
 
         // When
-        commentCommandService.deleteComment(200L, userId, null);
+        commentCommandService.deleteComment(200L, memberId, null);
 
         // Then
         verify(globalCommentQueryPort).findById(200L);
@@ -308,7 +306,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
     @Test
     @DisplayName("인증 정보가 null인 상태에서 패스워드 없는 댓글 수정 시 예외 발생")
-    void shouldThrowException_WhenNullUserDetailsWithoutPassword() {
+    void shouldThrowException_WhenNullMemberDetailsWithoutPassword() {
         // Given
         given(globalCommentQueryPort.findById(200L)).willReturn(testComment);
 
@@ -324,15 +322,15 @@ class CommentCommandServiceTest extends BaseUnitTest {
     @DisplayName("이미 삭제된 댓글에 대한 작업")
     void shouldHandleDeletedComment() {
         // Given
-        Long userId = 100L;
-        Comment deletedComment = CommentTestDataBuilder.createComment(getTestUser(), testPost, "삭제된 댓글");
+        Long memberId = 100L;
+        Comment deletedComment = CommentTestDataBuilder.createComment(testPost, getTestMember(), "삭제된 댓글");
         TestFixtures.setFieldValue(deletedComment, "id", 200L);
         TestFixtures.setFieldValue(deletedComment, "deleted", true);
 
         given(globalCommentQueryPort.findById(200L)).willReturn(deletedComment);
 
         // When
-        commentCommandService.updateComment(200L, userId, TEST_UPDATED_CONTENT, null);
+        commentCommandService.updateComment(200L, memberId, TEST_UPDATED_CONTENT, null);
 
         // Then
         verify(globalCommentQueryPort).findById(200L);
@@ -340,7 +338,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
     @Test
     @DisplayName("빈 문자열 패스워드로 댓글 수정 시 ONLY_COMMENT_OWNER_UPDATE 예외 발생")
-    void shouldThrowException_WhenEmptyPasswordWithoutUser() {
+    void shouldThrowException_WhenEmptyPasswordWithoutMember() {
         // Given
         Comment emptyPasswordComment = Comment.createComment(testPost, null, "빈 패스워드 댓글", null);
         TestFixtures.setFieldValue(emptyPasswordComment, "id", 200L);
@@ -394,16 +392,16 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
     @Test
     @DisplayName("계층 댓글 삭제 - 자손이 있는 인증 사용자 댓글 소프트 삭제")
-    void shouldSoftDeleteUserComment_WhenHasDescendants() {
+    void shouldSoftDeleteMemberComment_WhenHasDescendants() {
         // Given
-        Long userId = 100L;
-        Comment parentComment = CommentTestDataBuilder.createComment(getTestUser(), testPost, "부모 댓글");
+        Long memberId = 100L;
+        Comment parentComment = CommentTestDataBuilder.createComment(testPost, getTestMember(), "부모 댓글");
         TestFixtures.setFieldValue(parentComment, "id", 400L);
 
         given(globalCommentQueryPort.findById(400L)).willReturn(parentComment);
 
         // When
-        commentCommandService.deleteComment(400L, userId, null);
+        commentCommandService.deleteComment(400L, memberId, null);
 
         // Then
         verify(globalCommentQueryPort).findById(400L);
@@ -431,16 +429,16 @@ class CommentCommandServiceTest extends BaseUnitTest {
     @DisplayName("다른 사용자가 댓글 삭제 시도 - ONLY_COMMENT_OWNER_UPDATE 예외 발생")
     void shouldThrowException_WhenNotOwnerTriesToDelete() {
         // Given
-        Long requestUserId = 100L;
+        Long requestMemberId = 100L;
         Member anotherMember = TestMembers.copyWithId(TestMembers.MEMBER_3, 999L);
 
-        Comment anotherUserComment = CommentTestDataBuilder.createComment(anotherMember, testPost, "다른 사용자 댓글");
-        TestFixtures.setFieldValue(anotherUserComment, "id", 600L);
+        Comment anotherMemberComment = CommentTestDataBuilder.createComment(testPost, anotherMember, "다른 사용자 댓글");
+        TestFixtures.setFieldValue(anotherMemberComment, "id", 600L);
 
-        given(globalCommentQueryPort.findById(600L)).willReturn(anotherUserComment);
+        given(globalCommentQueryPort.findById(600L)).willReturn(anotherMemberComment);
 
         // When & Then
-        assertThatThrownBy(() -> commentCommandService.deleteComment(600L, requestUserId, null))
+        assertThatThrownBy(() -> commentCommandService.deleteComment(600L, requestMemberId, null))
                 .isInstanceOf(CommentCustomException.class)
                 .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_UNAUTHORIZED);
 
@@ -452,19 +450,19 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
     @Test
     @DisplayName("인증 사용자의 일반 댓글 작성 성공")
-    void shouldWriteComment_WhenAuthenticatedUser() {
+    void shouldWriteComment_WhenAuthenticatedMember() {
         // Given
         Long postId = 300L;
         String content = "인증 사용자 댓글";
-        Comment savedComment = CommentTestDataBuilder.createComment(getTestUser(), testPost, content);
+        Comment savedComment = CommentTestDataBuilder.createComment(testPost, getTestMember(), content);
         TestFixtures.setFieldValue(savedComment, "id", TEST_COMMENT_ID);
 
         given(globalPostQueryPort.findById(postId)).willReturn(testPost);
-        given(globalUserQueryPort.findById(getTestUser().getId())).willReturn(Optional.of(getTestUser()));
+        given(globalMemberQueryPort.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
         given(commentSavePort.save(any(Comment.class))).willReturn(savedComment);
 
         // When
-        commentCommandService.writeComment(getTestUser().getId(), postId, null, content, null);
+        commentCommandService.writeComment(getTestMember().getId(), postId, null, content, null);
 
         // Then
         ArgumentCaptor<Comment> commentCaptor = ArgumentCaptor.forClass(Comment.class);
@@ -472,7 +470,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         Comment capturedComment = commentCaptor.getValue();
         assertThat(capturedComment.getContent()).isEqualTo(content);
-        assertThat(capturedComment.getMember()).isEqualTo(getTestUser());
+        assertThat(capturedComment.getMember()).isEqualTo(getTestMember());
         assertThat(capturedComment.getPost()).isEqualTo(testPost);
         assertThat(capturedComment.isDeleted()).isFalse();
 
@@ -482,7 +480,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
     @Test
     @DisplayName("익명 사용자의 비밀번호 댓글 작성 성공")
-    void shouldWriteComment_WhenAnonymousUserWithPassword() {
+    void shouldWriteComment_WhenAnonymousMemberWithPassword() {
         // Given
         Long postId = 300L;
         String content = "익명 댓글";
@@ -519,22 +517,22 @@ class CommentCommandServiceTest extends BaseUnitTest {
         Long postId = 300L;
         Long parentId = 100L;
         String content = "대댓글";
-        Comment savedComment = CommentTestDataBuilder.createComment(getTestUser(), testPost, content);
+        Comment savedComment = CommentTestDataBuilder.createComment(testPost, getTestMember(), content);
         TestFixtures.setFieldValue(savedComment, "id", TEST_COMMENT_ID);
 
-        Comment parentComment = CommentTestDataBuilder.createComment(getTestUser(), testPost, "부모 댓글");
+        Comment parentComment = CommentTestDataBuilder.createComment(testPost, getTestMember(), "부모 댓글");
         TestFixtures.setFieldValue(parentComment, "id", parentId);
 
         CommentClosure parentClosure = CommentClosure.createCommentClosure(parentComment, parentComment, 0);
         List<CommentClosure> parentClosures = Collections.singletonList(parentClosure);
 
         given(globalPostQueryPort.findById(postId)).willReturn(testPost);
-        given(globalUserQueryPort.findById(getTestUser().getId())).willReturn(Optional.of(getTestUser()));
+        given(globalMemberQueryPort.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
         given(commentSavePort.save(any(Comment.class))).willReturn(savedComment);
         given(commentSavePort.getParentClosures(parentId)).willReturn(Optional.of(parentClosures));
 
         // When
-        commentCommandService.writeComment(getTestUser().getId(), postId, parentId, content, null);
+        commentCommandService.writeComment(getTestMember().getId(), postId, parentId, content, null);
 
         // Then
         ArgumentCaptor<List<CommentClosure>> closureCaptor = ArgumentCaptor.forClass(List.class);
@@ -554,7 +552,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         given(globalPostQueryPort.findById(postId)).willThrow(new RuntimeException("게시글을 찾을 수 없습니다."));
 
         // When & Then
-        assertThatThrownBy(() -> commentCommandService.writeComment(getTestUser().getId(), postId, null, "댓글", null))
+        assertThatThrownBy(() -> commentCommandService.writeComment(getTestMember().getId(), postId, null, "댓글", null))
                 .isInstanceOf(CommentCustomException.class)
                 .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_WRITE_FAILED);
 
@@ -569,16 +567,16 @@ class CommentCommandServiceTest extends BaseUnitTest {
         // Given
         Long postId = 300L;
         Long parentId = 999L;
-        Comment savedComment = CommentTestDataBuilder.createComment(getTestUser(), testPost, "대댓글");
+        Comment savedComment = CommentTestDataBuilder.createComment(testPost, getTestMember(), "대댓글");
         TestFixtures.setFieldValue(savedComment, "id", TEST_COMMENT_ID);
 
         given(globalPostQueryPort.findById(postId)).willReturn(testPost);
-        given(globalUserQueryPort.findById(getTestUser().getId())).willReturn(Optional.of(getTestUser()));
+        given(globalMemberQueryPort.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
         given(commentSavePort.save(any(Comment.class))).willReturn(savedComment);
         given(commentSavePort.getParentClosures(parentId)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> commentCommandService.writeComment(getTestUser().getId(), postId, parentId, "대댓글", null))
+        assertThatThrownBy(() -> commentCommandService.writeComment(getTestMember().getId(), postId, parentId, "대댓글", null))
                 .isInstanceOf(CommentCustomException.class)
                 .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_WRITE_FAILED);
 
@@ -599,13 +597,13 @@ class CommentCommandServiceTest extends BaseUnitTest {
         Long grandParentId = 50L;
         String content = "대댓글의 대댓글";
         
-        Comment savedComment = CommentTestDataBuilder.createComment(getTestUser(), testPost, content);
+        Comment savedComment = CommentTestDataBuilder.createComment(testPost, getTestMember(), content);
         TestFixtures.setFieldValue(savedComment, "id", TEST_COMMENT_ID);
 
-        Comment parentComment = CommentTestDataBuilder.createComment(getTestUser(), testPost, "부모 댓글");
+        Comment parentComment = CommentTestDataBuilder.createComment(testPost, getTestMember(), "부모 댓글");
         TestFixtures.setFieldValue(parentComment, "id", parentId);
         
-        Comment grandParentComment = CommentTestDataBuilder.createComment(getTestUser(), testPost, "조부모 댓글");
+        Comment grandParentComment = CommentTestDataBuilder.createComment(testPost, getTestMember(), "조부모 댓글");
         TestFixtures.setFieldValue(grandParentComment, "id", grandParentId);
 
         // 클로저 테이블 관계: grandParent -> parent -> child
@@ -616,12 +614,12 @@ class CommentCommandServiceTest extends BaseUnitTest {
         List<CommentClosure> parentClosures = List.of(parentToGrandParent, parentClosure);
 
         given(globalPostQueryPort.findById(postId)).willReturn(testPost);
-        given(globalUserQueryPort.findById(getTestUser().getId())).willReturn(Optional.of(getTestUser()));
+        given(globalMemberQueryPort.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
         given(commentSavePort.save(any(Comment.class))).willReturn(savedComment);
         given(commentSavePort.getParentClosures(parentId)).willReturn(Optional.of(parentClosures));
 
         // When
-        commentCommandService.writeComment(getTestUser().getId(), postId, parentId, content, null);
+        commentCommandService.writeComment(getTestMember().getId(), postId, parentId, content, null);
 
         // Then
         ArgumentCaptor<List<CommentClosure>> closureCaptor = ArgumentCaptor.forClass(List.class);

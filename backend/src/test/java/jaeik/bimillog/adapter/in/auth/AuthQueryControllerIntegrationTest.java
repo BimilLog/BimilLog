@@ -46,19 +46,14 @@ class AuthQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.settingId").value(savedMember.getSetting().getId()))
                 .andExpect(jsonPath("$.socialNickname").value(savedMember.getSocialNickname()))
                 .andExpect(jsonPath("$.thumbnailImage").value(savedMember.getThumbnailImage()))
-                .andExpect(jsonPath("$.userName").value(savedMember.getUserName()))
+                .andExpect(jsonPath("$.memberName").value(savedMember.getMemberName()))
                 .andExpect(jsonPath("$.role").value("USER"));
     }
 
     @Test
     @DisplayName("현재 사용자 정보 조회 통합 테스트 - 관리자 사용자")
     void getCurrentUser_AdminUser_IntegrationTest() throws Exception {
-        Member adminMember = TestMembers.createUniqueWithPrefix("관리자", builder -> {
-            builder.userName("관리자");
-            builder.socialNickname("관리자");
-            builder.role(MemberRole.ADMIN);
-            builder.setting(TestMembers.createAllDisabledSetting());
-        });
+        Member adminMember = TestMembers.withRole(MemberRole.ADMIN);
         Member savedAdmin = memberRepository.save(adminMember);
 
         CustomUserDetails adminUserDetails = AuthTestFixtures.createCustomUserDetails(savedAdmin);
@@ -70,7 +65,7 @@ class AuthQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.userId").value(savedAdmin.getId()))
                 .andExpect(jsonPath("$.role").value("ADMIN"))
-                .andExpect(jsonPath("$.userName").value("관리자"));
+                .andExpect(jsonPath("$.memberName").value("관리자"));
     }
 
     @Test

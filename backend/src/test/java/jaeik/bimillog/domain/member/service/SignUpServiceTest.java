@@ -77,7 +77,7 @@ class SignUpServiceTest extends BaseUnitTest {
                 ResponseCookie.from("refresh_token", "refresh-TemporaryToken").build()
         );
 
-        testUserDetail = ExistingMemberDetail.of(getTestUser(), 1L, 100L);
+        testUserDetail = ExistingMemberDetail.of(getTestMember(), 1L, 100L);
     }
 
     @Test
@@ -85,7 +85,7 @@ class SignUpServiceTest extends BaseUnitTest {
     void shouldSignUp_WhenValidTemporaryData() {
         // Given
         given(redisMemberDataPort.getTempData(testUuid)).willReturn(Optional.of(testSocialProfile));
-        given(saveMemberPort.saveNewUser(
+        given(saveMemberPort.saveNewMember(
                 eq(testUserName),
                 any(SocialMemberProfile.class)
         )).willReturn(testUserDetail);
@@ -101,7 +101,7 @@ class SignUpServiceTest extends BaseUnitTest {
         assertThat(result).hasSize(2);
 
         verify(redisMemberDataPort).getTempData(testUuid);
-        verify(saveMemberPort).saveNewUser(
+        verify(saveMemberPort).saveNewMember(
                 eq(testUserName),
                 any(SocialMemberProfile.class)
         );
@@ -125,7 +125,7 @@ class SignUpServiceTest extends BaseUnitTest {
 
         verify(redisMemberDataPort).getTempData(nonExistentUuid);
         // saveNewUser should never be called
-        verify(saveMemberPort, never()).saveNewUser(any(), any());
+        verify(saveMemberPort, never()).saveNewMember(any(), any());
     }
 
     @Test
@@ -135,7 +135,7 @@ class SignUpServiceTest extends BaseUnitTest {
         SocialMemberProfile profileWithoutFcm = new SocialMemberProfile("kakao123", "test@example.com", SocialProvider.KAKAO, "testMember", "profile.jpg", "access-TemporaryToken", "refresh-TemporaryToken", null);
 
         given(redisMemberDataPort.getTempData(testUuid)).willReturn(Optional.of(profileWithoutFcm));
-        given(saveMemberPort.saveNewUser(
+        given(saveMemberPort.saveNewMember(
                 eq(testUserName),
                 any(SocialMemberProfile.class)
         )).willReturn(testUserDetail);
@@ -150,7 +150,7 @@ class SignUpServiceTest extends BaseUnitTest {
         assertThat(result).isEqualTo(testCookies);
 
         verify(redisMemberDataPort).getTempData(testUuid);
-        verify(saveMemberPort).saveNewUser(eq(testUserName), any(SocialMemberProfile.class));
+        verify(saveMemberPort).saveNewMember(eq(testUserName), any(SocialMemberProfile.class));
         verify(redisMemberDataPort).removeTempData(testUuid);
         verify(globalJwtPort).generateAccessToken(testUserDetail);
         verify(globalJwtPort).generateRefreshToken(testUserDetail);

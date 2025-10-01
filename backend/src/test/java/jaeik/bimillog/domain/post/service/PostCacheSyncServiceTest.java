@@ -128,10 +128,10 @@ class PostCacheSyncServiceTest {
         
         List<PostFeaturedEvent> events = eventCaptor.getAllValues();
         assertThat(events).hasSize(2);
-        assertThat(events.getFirst().userId()).isEqualTo(1L);
+        assertThat(events.getFirst().memberId()).isEqualTo(1L);
         assertThat(events.get(0).sseMessage()).isEqualTo("주간 인기 게시글로 선정되었어요!");
         assertThat(events.get(0).postId()).isEqualTo(1L);
-        assertThat(events.get(1).userId()).isEqualTo(2L);
+        assertThat(events.get(1).memberId()).isEqualTo(2L);
     }
 
     @Test
@@ -162,7 +162,7 @@ class PostCacheSyncServiceTest {
         verify(eventPublisher, times(1)).publishEvent(eventCaptor.capture());
         
         PostFeaturedEvent event = eventCaptor.getValue();
-        assertThat(event.userId()).isEqualTo(2L);
+        assertThat(event.memberId()).isEqualTo(2L);
         assertThat(event.postId()).isEqualTo(2L);
     }
 
@@ -191,7 +191,7 @@ class PostCacheSyncServiceTest {
         verify(eventPublisher).publishEvent(eventCaptor.capture());
         
         PostFeaturedEvent event = eventCaptor.getValue();
-        assertThat(event.userId()).isEqualTo(1L);
+        assertThat(event.memberId()).isEqualTo(1L);
         assertThat(event.sseMessage()).isEqualTo("명예의 전당에 등극했어요!");
         assertThat(event.fcmTitle()).isEqualTo("명예의 전당 등극");
         assertThat(event.fcmBody()).contains("명예의 전당에 등극했습니다");
@@ -266,11 +266,11 @@ class PostCacheSyncServiceTest {
     }
 
     // 테스트 유틸리티 메서드들
-    private PostSearchResult createPostSearchResult(Long id, String title, Long userId) {
+    private PostSearchResult createPostSearchResult(Long id, String title, Long memberId) {
         return PostSearchResult.builder()
                 .id(id)
                 .title(title)
-                .userId(userId)
+                .memberId(memberId)
                 .build();
     }
 
@@ -283,8 +283,8 @@ class PostCacheSyncServiceTest {
                 .likeCount(0)
                 .postCacheFlag(null)
                 .createdAt(java.time.Instant.now())
-                .userId(1L)
-                .userName("테스트 사용자")
+                .memberId(1L)
+                .memberName("테스트 사용자")
                 .commentCount(0)
                 .isNotice(false)
                 .isLiked(false)
@@ -296,7 +296,7 @@ class PostCacheSyncServiceTest {
                 .mapToObj(i -> createPostSearchResult(
                         (long) i, 
                         "제목" + i, 
-                        i % 2 == 0 ? (long) i : null // 짝수만 userId 설정
+                        i % 2 == 0 ? (long) i : null // 짝수만 memberId 설정
                 ))
                 .toList();
     }

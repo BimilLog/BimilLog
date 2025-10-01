@@ -153,13 +153,13 @@ class PostQueryAdapterIntegrationTest {
 
     @Test
     @DisplayName("정상 케이스 - 사용자별 작성 게시글 조회")
-    void shouldFindPostsByUserId_WhenValidUserIdProvided() {
+    void shouldFindPostsByMemberId_WhenValidMemberIdProvided() {
         // Given: 사용자 ID와 페이지 요청
-        Long userId = testMember.getId();
+        Long memberId = testMember.getId();
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 사용자별 게시글 조회
-        Page<PostSearchResult> result = postQueryAdapter.findPostsByUserId(userId, pageable);
+        Page<PostSearchResult> result = postQueryAdapter.findPostsByMemberId(memberId, pageable);
 
         // Then: 해당 사용자의 게시글만 조회됨
         assertThat(result).isNotNull();
@@ -167,17 +167,17 @@ class PostQueryAdapterIntegrationTest {
         assertThat(result.getTotalElements()).isEqualTo(4L);
 
         // 모든 게시글의 작성자가 해당 사용자인지 확인
-        List<String> userNames = result.getContent().stream()
-                .map(PostSearchResult::getUserName)
+        List<String> memberNames = result.getContent().stream()
+                .map(PostSearchResult::getMemberName)
                 .distinct()
                 .toList();
-        assertThat(userNames).containsExactly(testMember.getUserName());
+        assertThat(memberNames).containsExactly(testMember.getMemberName());
     }
 
 
     @Test
     @DisplayName("정상 케이스 - 사용자 추천 게시글 조회")
-    void shouldFindLikedPostsByUserId_WhenUserHasLikedPosts() {
+    void shouldFindLikedPostsByMemberId_WhenMemberHasLikedPosts() {
         // Given: 사용자가 게시글에 추천을 누름
         Member likeMember = TestMembers.copyWithId(TestMembers.MEMBER_2, null);
         entityManager.persistAndFlush(likeMember);
@@ -199,7 +199,7 @@ class PostQueryAdapterIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 사용자 추천 게시글 조회
-        Page<PostSearchResult> result = postQueryAdapter.findLikedPostsByUserId(likeMember.getId(), pageable);
+        Page<PostSearchResult> result = postQueryAdapter.findLikedPostsByMemberId(likeMember.getId(), pageable);
 
         // Then: 추천한 게시글들이 조회됨
         assertThat(result).isNotNull();
@@ -252,7 +252,7 @@ class PostQueryAdapterIntegrationTest {
         assertThat(result).isNotNull();
         assertThat(result.getContent()).hasSizeGreaterThan(0);
         assertThat(result.getContent()).allMatch(post ->
-                post.getUserName().toLowerCase().contains(query.toLowerCase()));
+                post.getMemberName().toLowerCase().contains(query.toLowerCase()));
     }
 
 

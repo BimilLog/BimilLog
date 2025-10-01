@@ -3,7 +3,6 @@ package jaeik.bimillog.domain.comment.service;
 import jaeik.bimillog.domain.comment.application.port.out.CommentQueryPort;
 import jaeik.bimillog.domain.comment.application.service.CommentQueryService;
 import jaeik.bimillog.domain.comment.entity.CommentInfo;
-import jaeik.bimillog.domain.global.application.port.out.GlobalCommentQueryPort;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -35,28 +34,25 @@ class CommentQueryServiceTest {
     @Mock
     private CommentQueryPort commentQueryPort;
 
-    @Mock
-    private GlobalCommentQueryPort globalCommentQueryPort;
-
     @InjectMocks
     private CommentQueryService commentQueryService;
 
     @Test
     @DisplayName("인기 댓글 조회 - 사용자 정보가 있으면 ID 전달")
-    void shouldPassUserIdForPopularComments() {
+    void shouldPassMemberIdForPopularComments() {
         // Given
         Long postId = 1L;
-        Long userId = 10L;
+        Long memberId = 10L;
         CustomUserDetails userDetails = mock(CustomUserDetails.class);
-        given(userDetails.getUserId()).willReturn(userId);
-        given(commentQueryPort.findPopularComments(postId, userId)).willReturn(List.of());
+        given(userDetails.getMemberId()).willReturn(memberId);
+        given(commentQueryPort.findPopularComments(postId, memberId)).willReturn(List.of());
 
         // When
         List<CommentInfo> result = commentQueryService.getPopularComments(postId, userDetails);
 
         // Then
         assertThat(result).isEmpty();
-        verify(commentQueryPort).findPopularComments(postId, userId);
+        verify(commentQueryPort).findPopularComments(postId, memberId);
     }
 
     @Test
@@ -76,27 +72,27 @@ class CommentQueryServiceTest {
 
     @Test
     @DisplayName("댓글 목록 조회 - 사용자 정보에 따라 ID 전달")
-    void shouldHandleOldestCommentsWithUserId() {
+    void shouldHandleOldestCommentsWithMemberId() {
         // Given
         Long postId = 3L;
         PageRequest pageable = PageRequest.of(0, 10);
-        Long userId = 20L;
+        Long memberId = 20L;
         CustomUserDetails userDetails = mock(CustomUserDetails.class);
-        given(userDetails.getUserId()).willReturn(userId);
+        given(userDetails.getMemberId()).willReturn(memberId);
         Page<CommentInfo> expected = new PageImpl<>(List.of());
-        given(commentQueryPort.findCommentsWithOldestOrder(postId, pageable, userId)).willReturn(expected);
+        given(commentQueryPort.findCommentsWithOldestOrder(postId, pageable, memberId)).willReturn(expected);
 
         // When
         Page<CommentInfo> result = commentQueryService.getCommentsOldestOrder(postId, pageable, userDetails);
 
         // Then
         assertThat(result).isEqualTo(expected);
-        verify(commentQueryPort).findCommentsWithOldestOrder(postId, pageable, userId);
+        verify(commentQueryPort).findCommentsWithOldestOrder(postId, pageable, memberId);
     }
 
     @Test
     @DisplayName("댓글 목록 조회 - 사용자 정보 없으면 null 전달")
-    void shouldHandleOldestCommentsWithoutUserId() {
+    void shouldHandleOldestCommentsWithoutMemberId() {
         // Given
         Long postId = 4L;
         PageRequest pageable = PageRequest.of(0, 5);

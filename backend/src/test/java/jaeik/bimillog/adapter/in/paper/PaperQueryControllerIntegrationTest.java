@@ -87,7 +87,7 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
                 otherMember, "또 다른 메시지", 2, 2));
 
         // When & Then
-        performGet("/api/paper/" + otherMember.getUserName())
+        performGet("/api/paper/" + otherMember.getMemberName())
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
@@ -107,7 +107,7 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
         Member emptyMember = memberRepository.save(TestMembers.createUnique());
 
         // When & Then
-        performGet("/api/paper/" + emptyMember.getUserName())
+        performGet("/api/paper/" + emptyMember.getMemberName())
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
@@ -132,7 +132,7 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
                 otherMember, "방문용 메시지", 1, 2));
 
         // When & Then
-        performGet("/api/paper/" + otherMember.getUserName(), testUserDetails)
+        performGet("/api/paper/" + otherMember.getMemberName(), testUserDetails)
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
@@ -144,7 +144,7 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
     }
     
     @Test
-    @DisplayName("자신의 롤링페이퍼를 userName으로 방문 - 성공")
+    @DisplayName("자신의 롤링페이퍼를 memberName으로 방문 - 성공")
     void visitPaper_OwnPaper_Success() throws Exception {
         // Given
         Message message = PaperTestDataBuilder.createRollingPaper(
@@ -152,7 +152,7 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
         messageRepository.save(message);
 
         // When & Then
-        performGet("/api/paper/" + testMember.getUserName(), testUserDetails)
+        performGet("/api/paper/" + testMember.getMemberName(), testUserDetails)
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
