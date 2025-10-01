@@ -30,9 +30,9 @@ import java.lang.annotation.*;
  * <h3>사용 예시:</h3>
  * <pre>
  * {@literal @}IntegrationTest
- * {@literal @}DisplayName("UserController 통합 테스트")
- * class UserControllerIntegrationTest extends BaseIntegrationTest {
- *     
+ * {@literal @}DisplayName("MemberController 통합 테스트")
+ * class MemberControllerIntegrationTest extends BaseIntegrationTest {
+ *
  *     {@literal @}Test
  *     void test() throws Exception {
  *         performGet("/api/member/me", testUserDetails)

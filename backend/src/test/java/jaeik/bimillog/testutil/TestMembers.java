@@ -8,63 +8,63 @@ import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import java.util.function.Consumer;
 
 /**
- * <h2>미리 정의된 테스트 사용자 인스턴스</h2>
- * <p>테스트에서 바로 사용할 수 있는 사전 정의된 사용자 객체들</p>
+ * <h2>미리 정의된 테스트 회원 인스턴스</h2>
+ * <p>테스트에서 바로 사용할 수 있는 사전 정의된 회원 객체들</p>
  * <p>성능 향상 및 코드 간소화를 위해 객체 재사용</p>
- * <p>모든 사용자는 기본 Setting을 포함하여 생성됨</p>
+ * <p>모든 회원은 기본 Setting을 포함하여 생성됨</p>
  *
  * @author Jaeik
  * @version 2.0.0
  */
 public class TestMembers {
 
-    // 미리 정의된 사용자 인스턴스들 (Setting 포함)
+    // 미리 정의된 회원 인스턴스들 (Setting 포함)
     public static final Member MEMBER_1;
     public static final Member MEMBER_2;
     public static final Member MEMBER_3;
 
     static {
-        MEMBER_1 = createUser(builder -> {
+        MEMBER_1 = createMember(builder -> {
             builder.socialId("kakao123456");
-            builder.userName("testUser1");
-            builder.socialNickname("테스트유저1");
+            builder.memberName("testUser1");
+            builder.socialNickname("테스트회원1");
             builder.thumbnailImage("http://example.com/profile1.jpg");
         });
 
-        MEMBER_2 = createUser(builder -> {
+        MEMBER_2 = createMember(builder -> {
             builder.socialId("kakao789012");
-            builder.userName("testUser2");
-            builder.socialNickname("테스트유저2");
+            builder.memberName("testUser2");
+            builder.socialNickname("테스트회원2");
             builder.thumbnailImage("http://example.com/profile2.jpg");
         });
 
-        MEMBER_3 = createUser(builder -> {
+        MEMBER_3 = createMember(builder -> {
             builder.socialId("kakao345678");
-            builder.userName("testUser3");
-            builder.socialNickname("테스트유저3");
+            builder.memberName("testUser3");
+            builder.socialNickname("테스트회원3");
             builder.thumbnailImage("http://example.com/profile3.jpg");
         });
     }
 
     /**
-     * 기본 템플릿을 기반으로 한 사용자 빌더 제공
+     * 기본 템플릿을 기반으로 한 회원 빌더 제공
      */
-    public static Member.UserBuilder builder() {
+    public static Member.MemberBuilder builder() {
         return Member.builder()
                 .socialId("kakao-template")
                 .provider(SocialProvider.KAKAO)
-                .userName("testMember")
-                .socialNickname("테스트유저")
+                .memberName("testMember")
+                .socialNickname("테스트회원")
                 .thumbnailImage("http://example.com/profile.jpg")
                 .role(MemberRole.USER)
                 .setting(createAllEnabledSetting());
     }
 
     /**
-     * 템플릿 기반 사용자 생성 (커스터마이징 람다 적용)
+     * 템플릿 기반 회원 생성 (커스터마이징 람다 적용)
      */
-    public static Member createUser(Consumer<Member.UserBuilder> customizer) {
-        Member.UserBuilder builder = builder();
+    public static Member createMember(Consumer<Member.MemberBuilder> customizer) {
+        Member.MemberBuilder builder = builder();
         if (customizer != null) {
             customizer.accept(builder);
         }
@@ -72,14 +72,14 @@ public class TestMembers {
     }
 
     /**
-     * 기존 사용자를 복사하며 특정 ID 설정
+     * 기존 회원을 복사하며 특정 ID 설정
      */
     public static Member copyWithId(Member member, Long id) {
         return builder()
                 .id(id)
                 .socialId(member.getSocialId())
                 .provider(member.getProvider())
-                .userName(member.getUserName())
+                .memberName(member.getMemberName())
                 .socialNickname(member.getSocialNickname())
                 .thumbnailImage(member.getThumbnailImage())
                 .role(member.getRole())
@@ -88,27 +88,27 @@ public class TestMembers {
     }
 
     /**
-     * 특정 소셜 ID를 가진 사용자 생성
+     * 특정 소셜 ID를 가진 회원 생성
      */
     public static Member withSocialId(String socialId) {
-        String generatedUserName = MEMBER_1.getUserName() + "_" + socialId;
-        return createUser(builder -> {
+        String generatedMemberName = MEMBER_1.getMemberName() + "_" + socialId;
+        return createMember(builder -> {
             builder.socialId(socialId);
-            builder.userName(generatedUserName);
+            builder.memberName(generatedMemberName);
             builder.socialNickname(MEMBER_1.getSocialNickname());
             builder.thumbnailImage(MEMBER_1.getThumbnailImage());
         });
     }
 
     /**
-     * 특정 role을 가진 사용자 생성 (ADMIN 생성 시 사용)
+     * 특정 role을 가진 회원 생성 (ADMIN 생성 시 사용)
      */
     public static Member withRole(MemberRole role) {
-        return createUser(builder -> {
+        return createMember(builder -> {
             builder.role(role);
             if (role == MemberRole.ADMIN) {
                 builder.socialId("kakao999999");
-                builder.userName("adminMember");
+                builder.memberName("adminMember");
                 builder.socialNickname("관리자");
                 builder.thumbnailImage("http://example.com/admin.jpg");
                 builder.setting(createAllDisabledSetting());
@@ -119,36 +119,36 @@ public class TestMembers {
     }
 
     /**
-     * 고유한 사용자 생성 (타임스탬프 기반)
-     * 통합 테스트에서 고유한 사용자가 필요한 경우 사용
+     * 고유한 회원 생성 (타임스탬프 기반)
+     * 통합 테스트에서 고유한 회원이 필요한 경우 사용
      */
     public static Member createUnique() {
         String timestamp = String.valueOf(System.currentTimeMillis());
-        return createUser(builder -> {
+        return createMember(builder -> {
             builder.socialId("user_" + timestamp);
-            builder.userName("user_" + timestamp);
-            builder.socialNickname("테스트유저_" + timestamp);
+            builder.memberName("user_" + timestamp);
+            builder.socialNickname("테스트회원_" + timestamp);
         });
     }
 
     /**
-     * 고유한 사용자 생성 (접두사 지정)
-     * @param prefix 사용자 식별 접두사
+     * 고유한 회원 생성 (접두사 지정)
+     * @param prefix 회원 식별 접두사
      */
     public static Member createUniqueWithPrefix(String prefix) {
         return createUniqueWithPrefix(prefix, null);
     }
 
     /**
-     * 고유한 사용자 생성 (접두사 및 커스터마이징 지원)
-     * @param prefix 사용자 식별 접두사
-     * @param customizer 사용자 정의 빌더 커스터마이저
+     * 고유한 회원 생성 (접두사 및 커스터마이징 지원)
+     * @param prefix 회원 식별 접두사
+     * @param customizer 회원 정의 빌더 커스터마이저
      */
-    public static Member createUniqueWithPrefix(String prefix, Consumer<Member.UserBuilder> customizer) {
+    public static Member createUniqueWithPrefix(String prefix, Consumer<Member.MemberBuilder> customizer) {
         String timestamp = String.valueOf(System.currentTimeMillis());
-        return createUser(builder -> {
+        return createMember(builder -> {
             builder.socialId(prefix + "_" + timestamp);
-            builder.userName(prefix + "_" + timestamp);
+            builder.memberName(prefix + "_" + timestamp);
             builder.socialNickname(prefix + "_소셜닉네임");
             if (customizer != null) {
                 customizer.accept(builder);

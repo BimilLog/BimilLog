@@ -37,7 +37,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
  *   <li>MockMvc 자동 설정 및 헬퍼 메서드</li>
  *   <li>Spring Security 통합</li>
  *   <li>트랜잭션 롤백</li>
- *   <li>공통 테스트 사용자 및 설정</li>
+ *   <li>공통 테스트 회원 및 설정</li>
  *   <li>CustomUserDetails 생성 유틸리티</li>
  * </ul>
  * 
@@ -64,7 +64,7 @@ public abstract class BaseIntegrationTest {
     protected ObjectMapper objectMapper;
 
     @Autowired(required = false)
-    protected MemberRepository userRepository;
+    protected MemberRepository memberRepository;
 
     @Autowired(required = false)
     protected TestEntityManager entityManager;
@@ -78,32 +78,32 @@ public abstract class BaseIntegrationTest {
     protected MockMvc mockMvc;
 
     /**
-     * 기본 테스트 사용자 (DB에 저장됨)
+     * 기본 테스트 회원 (DB에 저장됨)
      */
     protected Member testMember;
 
     /**
-     * 관리자 권한 테스트 사용자 (DB에 저장됨)
+     * 관리자 권한 테스트 회원 (DB에 저장됨)
      */
     protected Member adminMember;
 
     /**
-     * 추가 테스트 사용자 (DB에 저장됨)
+     * 추가 테스트 회원 (DB에 저장됨)
      */
     protected Member otherMember;
 
     /**
-     * 테스트 사용자의 CustomUserDetails
+     * 테스트 회원의 CustomUserDetails
      */
     protected CustomUserDetails testUserDetails;
 
     /**
-     * 관리자 사용자의 CustomUserDetails
+     * 관리자 회원의 CustomUserDetails
      */
     protected CustomUserDetails adminUserDetails;
 
     /**
-     * 추가 사용자의 CustomUserDetails
+     * 추가 회원의 CustomUserDetails
      */
     protected CustomUserDetails otherUserDetails;
 
@@ -132,8 +132,8 @@ public abstract class BaseIntegrationTest {
         this.defaultSetting = TestMembers.createAllEnabledSetting();
         this.customSetting = TestMembers.createAllDisabledSetting();
 
-        // 사용자 생성 및 저장
-        setupTestUsers();
+        // 회원 생성 및 저장
+        setupTestMembers();
 
         // CustomUserDetails 생성
         this.testUserDetails = createCustomUserDetails(testMember);
@@ -145,19 +145,19 @@ public abstract class BaseIntegrationTest {
     }
 
     /**
-     * 테스트 사용자들을 DB에 저장
+     * 테스트 회원들을 DB에 저장
      */
-    protected void setupTestUsers() {
-        if (userRepository != null) {
-            // 고유한 사용자 생성하여 충돌 방지
-            this.testMember = userRepository.save(TestMembers.createUniqueWithPrefix("test"));
-            this.adminMember = userRepository.save(TestMembers.createUniqueWithPrefix("admin", builder -> {
+    protected void setupTestMembers() {
+        if (memberRepository != null) {
+            // 고유한 회원 생성하여 충돌 방지
+            this.testMember = memberRepository.save(TestMembers.createUniqueWithPrefix("test"));
+            this.adminMember = memberRepository.save(TestMembers.createUniqueWithPrefix("admin", builder -> {
                 builder.role(MemberRole.ADMIN);
                 builder.setting(TestMembers.createAllDisabledSetting());
             }));
-            this.otherMember = userRepository.save(TestMembers.createUniqueWithPrefix("other"));
+            this.otherMember = memberRepository.save(TestMembers.createUniqueWithPrefix("other"));
         } else {
-            // UserRepository가 없는 경우 기본 사용자 사용
+            // MemberRepository가 없는 경우 기본 회원 사용
             this.testMember = TestMembers.MEMBER_1;
             this.adminMember = TestMembers.withRole(MemberRole.ADMIN);
             this.otherMember = TestMembers.MEMBER_2;
@@ -173,7 +173,7 @@ public abstract class BaseIntegrationTest {
 
     /**
      * CustomUserDetails 생성 유틸리티
-     * @param member 사용자 엔티티
+     * @param member 회원 엔티티
      * @return CustomUserDetails 인스턴스
      */
     protected CustomUserDetails createCustomUserDetails(Member member) {

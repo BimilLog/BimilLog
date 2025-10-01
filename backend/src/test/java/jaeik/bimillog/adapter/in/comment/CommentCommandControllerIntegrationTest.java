@@ -75,7 +75,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
                 } catch (Exception ignored) {}
             });
             postRepository.deleteAll();
-            userRepository.deleteAll();
+            memberRepository.deleteAll();
         } catch (Exception e) {
             System.err.println("tearDown failed: " + e.getMessage());
         }
@@ -318,7 +318,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
     void deleteOtherUserComment_Unauthorized_IntegrationTest() throws Exception {
         // Given: 다른 사용자의 댓글
         Member anotherMember = TestMembers.createUniqueWithPrefix("another");
-        userRepository.save(anotherMember);
+        memberRepository.save(anotherMember);
         
         Comment otherUserComment = CommentTestDataBuilder.createComment(
                 anotherMember, testPost, "다른 사용자의 댓글");

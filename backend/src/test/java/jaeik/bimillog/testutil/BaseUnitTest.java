@@ -27,7 +27,7 @@ import static org.mockito.Mockito.mock;
  * <h3>제공되는 기능:</h3>
  * <ul>
  *   <li>MockitoExtension 자동 적용</li>
- *   <li>공통 테스트 사용자 (testMember, adminMember, otherMember) - lazy 초기화</li>
+ *   <li>공통 테스트 회원 (testMember, adminMember, otherMember) - lazy 초기화</li>
  *   <li>공통 테스트 설정 (defaultSetting, customSetting) - lazy 초기화</li>
  *   <li>필요한 데이터만 생성하여 테스트 성능 향상</li>
  * </ul>
@@ -46,10 +46,10 @@ public abstract class BaseUnitTest {
     private Setting cachedDefaultSetting;
 
     /**
-     * 기본 테스트 사용자 획득 (일반 권한)
+     * 기본 테스트 회원 획득 (일반 권한)
      * 첫 호출 시 생성, 이후 캐시된 인스턴스 반환
      */
-    protected Member getTestUser() {
+    protected Member getTestMember() {
         if (cachedTestMember == null) {
             cachedTestMember = TestMembers.copyWithId(TestMembers.MEMBER_1, 1L);
         }
@@ -57,10 +57,10 @@ public abstract class BaseUnitTest {
     }
 
     /**
-     * 관리자 권한 테스트 사용자 획득
+     * 관리자 권한 테스트 회원 획득
      * 첫 호출 시 생성, 이후 캐시된 인스턴스 반환
      */
-    protected Member getAdminUser() {
+    protected Member getAdminMember() {
         if (cachedAdminMember == null) {
             cachedAdminMember = TestMembers.copyWithId(TestMembers.withRole(MemberRole.ADMIN), 999L);
         }
@@ -68,10 +68,10 @@ public abstract class BaseUnitTest {
     }
 
     /**
-     * 추가 테스트 사용자 획득 (다른 사용자 시나리오용)
+     * 추가 테스트 회원 획득 (다른 회원 시나리오용)
      * 첫 호출 시 생성, 이후 캐시된 인스턴스 반환
      */
-    protected Member getOtherUser() {
+    protected Member getOtherMember() {
         if (cachedOtherMember == null) {
             cachedOtherMember = TestMembers.copyWithId(TestMembers.MEMBER_2, 2L);
         }
@@ -79,10 +79,10 @@ public abstract class BaseUnitTest {
     }
 
     /**
-     * 세 번째 테스트 사용자 획득 (복잡한 시나리오용)
+     * 세 번째 테스트 회원 획득 (복잡한 시나리오용)
      * 첫 호출 시 생성, 이후 캐시된 인스턴스 반환
      */
-    protected Member getThirdUser() {
+    protected Member getThirdMember() {
         if (cachedThirdMember == null) {
             cachedThirdMember = TestMembers.copyWithId(TestMembers.MEMBER_3, 3L);
         }
@@ -101,12 +101,12 @@ public abstract class BaseUnitTest {
     }
 
     /**
-     * ID가 포함된 테스트 사용자 생성 헬퍼 메서드
-     * @param userId 사용자 ID
-     * @return ID가 설정된 테스트 사용자
+     * ID가 포함된 테스트 회원 생성 헬퍼 메서드
+     * @param memberId 회원 ID
+     * @return ID가 설정된 테스트 회원
      */
-    protected Member createTestUserWithId(Long userId) {
-        return TestMembers.copyWithId(getTestUser(), userId);
+    protected Member createTestMemberWithId(Long memberId) {
+        return TestMembers.copyWithId(getTestMember(), memberId);
     }
 
     /**
@@ -140,8 +140,8 @@ public abstract class BaseUnitTest {
     // ==================== SecurityContext Mock 헬퍼 메서드 ====================
 
     /**
-     * 익명 사용자로 SecurityContext를 Mock 설정
-     * <p>인증되지 않은 사용자 테스트 시 사용</p>
+     * 익명 회원으로 SecurityContext를 Mock 설정
+     * <p>인증되지 않은 회원 테스트 시 사용</p>
      * @param mockedSecurityContext MockedStatic SecurityContextHolder
      */
     protected void mockAnonymousAuthentication(MockedStatic<SecurityContextHolder> mockedSecurityContext) {
@@ -157,23 +157,23 @@ public abstract class BaseUnitTest {
     }
 
     /**
-     * 인증된 사용자로 SecurityContext를 Mock 설정 (기본 테스트 사용자)
-     * <p>기본 테스트 사용자와 USER 권한으로 설정</p>
+     * 인증된 회원으로 SecurityContext를 Mock 설정 (기본 테스트 회원)
+     * <p>기본 테스트 회원과 USER 권한으로 설정</p>
      * @param mockedSecurityContext MockedStatic SecurityContextHolder
      */
-    protected void mockAuthenticatedUser(MockedStatic<SecurityContextHolder> mockedSecurityContext) {
-        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(getTestUser());
-        mockAuthenticatedUser(mockedSecurityContext, userDetails, MemberRole.USER);
+    protected void mockAuthenticatedMember(MockedStatic<SecurityContextHolder> mockedSecurityContext) {
+        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(getTestMember());
+        mockAuthenticatedMember(mockedSecurityContext, userDetails, MemberRole.USER);
     }
 
     /**
-     * 특정 사용자와 권한으로 SecurityContext를 Mock 설정
+     * 특정 회원과 권한으로 SecurityContext를 Mock 설정
      * <p>가장 유연한 SecurityContext Mock 메서드</p>
      * @param mockedSecurityContext MockedStatic SecurityContextHolder
      * @param userDetails CustomUserDetails
-     * @param role 사용자 권한
+     * @param role 회원 권한
      */
-    protected void mockAuthenticatedUser(MockedStatic<SecurityContextHolder> mockedSecurityContext,
+    protected void mockAuthenticatedMember(MockedStatic<SecurityContextHolder> mockedSecurityContext,
                                         CustomUserDetails userDetails,
                                         MemberRole role) {
         SecurityContext securityContext = mock(SecurityContext.class);

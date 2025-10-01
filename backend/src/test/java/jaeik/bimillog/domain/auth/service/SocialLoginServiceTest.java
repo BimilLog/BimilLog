@@ -224,7 +224,7 @@ class SocialLoginServiceTest extends BaseUnitTest {
         if (getTestUser().getSetting() != null && getTestUser().getSetting().getId() != null) {
             settingId = getTestUser().getSetting().getId();
         }
-        return AuthTestFixtures.createExistingUserDetail(getTestUser());
+        return AuthTestFixtures.createExistingMemberDetail(getTestUser());
     }
 
     /**

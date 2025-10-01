@@ -13,7 +13,7 @@ public final class AuthTestFixtures {
 
     public static final String TEST_SOCIAL_ID = "kakao123456";
     public static final String TEST_EMAIL = "test@example.com";
-    public static final String TEST_SOCIAL_NICKNAME = "테스트유저";
+    public static final String TEST_SOCIAL_NICKNAME = "테스트회원";
     public static final String TEST_PROFILE_IMAGE = "http://example.com/profile.jpg";
     public static final String TEST_ACCESS_TOKEN = "access-test-token";
     public static final String TEST_REFRESH_TOKEN = "refresh-test-token";
@@ -21,23 +21,23 @@ public final class AuthTestFixtures {
     public static final String TEST_FCM_TOKEN = "fcm-token-123";
     public static final SocialProvider TEST_PROVIDER = SocialProvider.KAKAO;
 
-    public static ExistingMemberDetail createExistingUserDetail(Member member) {
-        return createExistingUserDetail(member, null, null);
+    public static ExistingMemberDetail createExistingMemberDetail(Member member) {
+        return createExistingMemberDetail(member, null, null);
     }
 
-    public static ExistingMemberDetail createExistingUserDetail(Member member, Long tokenId, Long fcmTokenId) {
+    public static ExistingMemberDetail createExistingMemberDetail(Member member, Long tokenId, Long fcmTokenId) {
         Long settingId = 1L;
         if (member.getSetting() != null && member.getSetting().getId() != null) {
             settingId = member.getSetting().getId();
         }
 
         return ExistingMemberDetail.builder()
-                .userId(member.getId() != null ? member.getId() : 1L)
+                .memberId(member.getId() != null ? member.getId() : 1L)
                 .settingId(settingId)
                 .socialId(member.getSocialId())
                 .socialNickname(member.getSocialNickname())
                 .thumbnailImage(member.getThumbnailImage())
-                .userName(member.getUserName())
+                .memberName(member.getMemberName())
                 .provider(member.getProvider())
                 .role(member.getRole())
                 .tokenId(tokenId)
@@ -46,11 +46,11 @@ public final class AuthTestFixtures {
     }
 
     public static CustomUserDetails createCustomUserDetails(Member member) {
-        return new CustomUserDetails(createExistingUserDetail(member));
+        return new CustomUserDetails(createExistingMemberDetail(member));
     }
 
     public static CustomUserDetails createCustomUserDetails(Member member, Long tokenId, Long fcmTokenId) {
-        return new CustomUserDetails(createExistingUserDetail(member, tokenId, fcmTokenId));
+        return new CustomUserDetails(createExistingMemberDetail(member, tokenId, fcmTokenId));
     }
 
 }

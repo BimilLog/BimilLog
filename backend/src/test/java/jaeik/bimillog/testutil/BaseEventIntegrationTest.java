@@ -125,7 +125,7 @@ public abstract class BaseEventIntegrationTest extends BaseIntegrationTest {
     }
 
     /**
-     * 비동기 검증 (사용자 정의 타임아웃)
+     * 비동기 검증 (커스텀 타임아웃)
      * @param verification 검증 로직
      * @param timeout 타임아웃 설정
      */

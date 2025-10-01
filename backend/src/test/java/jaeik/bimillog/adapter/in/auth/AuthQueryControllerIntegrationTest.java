@@ -33,7 +33,7 @@ class AuthQueryControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("현재 사용자 정보 조회 통합 테스트 - 일반 사용자")
     void getCurrentUser_RegularUser_IntegrationTest() throws Exception {
         Member testMember = TestMembers.createUniqueWithPrefix("통합테스트사용자");
-        Member savedMember = userRepository.save(testMember);
+        Member savedMember = memberRepository.save(testMember);
 
         CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(savedMember);
 
@@ -59,7 +59,7 @@ class AuthQueryControllerIntegrationTest extends BaseIntegrationTest {
             builder.role(MemberRole.ADMIN);
             builder.setting(TestMembers.createAllDisabledSetting());
         });
-        Member savedAdmin = userRepository.save(adminMember);
+        Member savedAdmin = memberRepository.save(adminMember);
 
         CustomUserDetails adminUserDetails = AuthTestFixtures.createCustomUserDetails(savedAdmin);
 

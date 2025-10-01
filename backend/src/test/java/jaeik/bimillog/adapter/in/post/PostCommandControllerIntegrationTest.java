@@ -136,7 +136,7 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("게시글 수정 실패 - 다른 사용자의 게시글")
     void updatePost_Fail_NotAuthor() throws Exception {
-        Member anotherMember = userRepository.save(TestMembers.createUniqueWithPrefix("another"));
+        Member anotherMember = memberRepository.save(TestMembers.createUniqueWithPrefix("another"));
 
         Post anotherPost = PostTestDataBuilder.createPost(
                 anotherMember,

@@ -49,14 +49,14 @@ public class TestSocialLoginPortConfig {
         }
 
         @Override
-        public KakaoMemberInfo getUserInfo(String accessToken, String refreshToken) {
+        public KakaoMemberInfo getUserInfo(String accessToken) {
             String socialId;
 
-            // accessToken에 따라 다른 사용자 ID 반환 (테스트 목적)
+            // accessToken에 따라 다른 회원 ID 반환 (테스트 목적)
             if ("new-member-token".equals(accessToken)) {
                 socialId = "new-member-social-id";
             } else if ("existing-member-token".equals(accessToken)) {
-                socialId = "test-social-id-12345"; // 통합 테스트에서 생성한 기존 사용자 ID와 일치
+                socialId = "test-social-id-12345"; // 통합 테스트에서 생성한 기존 회원 ID와 일치
             } else {
                 socialId = "test-social-id";
             }

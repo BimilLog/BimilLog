@@ -17,7 +17,7 @@ public class CommentTestDataBuilder {
 
     /**
      * <h3>테스트용 댓글 생성 (기본)</h3>
-     * <p>지정된 사용자와 게시글로 테스트용 댓글을 생성합니다.</p>
+     * <p>지정된 회원과 게시글로 테스트용 댓글을 생성합니다.</p>
      *
      * @param member 댓글 작성자
      * @param post 댓글이 달린 게시글

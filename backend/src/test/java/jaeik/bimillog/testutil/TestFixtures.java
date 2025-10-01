@@ -47,7 +47,7 @@ public class TestFixtures {
         MessageDTO dto = new MessageDTO();
         dto.setDecoType(jaeik.bimillog.domain.paper.entity.DecoType.POTATO);
         dto.setContent(content);
-        dto.setAnonymity("테스트사용자");
+        dto.setAnonymity("테스트회원");
         dto.setX(positionX);
         dto.setY(positionY);
         return dto;

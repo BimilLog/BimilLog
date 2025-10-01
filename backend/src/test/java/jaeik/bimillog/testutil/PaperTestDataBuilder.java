@@ -18,7 +18,7 @@ public class PaperTestDataBuilder {
         return Message.createMessage(
                 receiver,
                 DecoType.POTATO,
-                "테스트사용자",
+                "테스트회원",
                 content,
                 positionX,
                 positionY

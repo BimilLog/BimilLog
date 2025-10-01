@@ -15,7 +15,7 @@ import java.util.Map;
  * <ul>
  *   <li>KakaoFriendsDTO 및 Friend 객체 생성</li>
  *   <li>카카오 토큰 응답 생성</li>
- *   <li>카카오 사용자 정보 응답 생성</li>
+ *   <li>카카오 회원 정보 응답 생성</li>
  * </ul>
  *
  * @author Jaeik

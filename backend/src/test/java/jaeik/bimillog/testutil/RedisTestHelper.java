@@ -59,7 +59,7 @@ public class RedisTestHelper {
      * @param email 이메일
      * @return SocialMemberProfile
      */
-    public static SocialMemberProfile createTestSocialUserProfile(String socialId, String email) {
+    public static SocialMemberProfile createTestSocialMemberProfile(String socialId, String email) {
         return new SocialMemberProfile(
                 socialId,
                 email,
@@ -76,8 +76,8 @@ public class RedisTestHelper {
      * 기본 SocialMemberProfile 생성
      * @return 기본값이 설정된 SocialMemberProfile
      */
-    public static SocialMemberProfile defaultSocialUserProfile() {
-        return createTestSocialUserProfile("123456789", "test@example.com");
+    public static SocialMemberProfile defaultSocialMemberProfile() {
+        return createTestSocialMemberProfile("123456789", "test@example.com");
     }
 
     /**
@@ -92,7 +92,7 @@ public class RedisTestHelper {
             return "cache:posts:" + cacheType.name().toLowerCase();
         }
 
-        public static String tempUserData(String uuid) {
+        public static String tempMemberData(String uuid) {
             return "temp:member:" + uuid;
         }
 
