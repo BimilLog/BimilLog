@@ -68,7 +68,7 @@ class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
                 "existing-member",
                 "existing-member"
         );
-        memberRepository.save(existingMember);
+        saveMember(existingMember);
 
         SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "existing_user_code", null);
 
@@ -87,7 +87,7 @@ class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("로그아웃 통합 테스트 - 성공")
     void logout_IntegrationTest_Success() throws Exception {
         Member testMember = TestMembers.createUnique();
-        testMember = memberRepository.save(testMember);
+        testMember = saveMember(testMember);
 
         AuthToken authToken = AuthToken.createToken("refresh-authToken", testMember);
         authToken = authTokenRepository.save(authToken);
@@ -109,7 +109,7 @@ class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("회원탈퇴 통합 테스트 - 성공")
     void withdraw_IntegrationTest_Success() throws Exception {
         Member testMember = TestMembers.createUnique();
-        memberRepository.save(testMember);
+        saveMember(testMember);
 
         CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testMember);
 

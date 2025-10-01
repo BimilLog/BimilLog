@@ -64,8 +64,19 @@ class NotificationCommandAdapterIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        // Given: 테스트용 회원 설정 및 저장
-        testMember = TestMembers.copyWithId(TestMembers.MEMBER_1, null);
+        // Given: 테스트용 회원 설정 및 저장 (연관 엔티티 먼저 저장)
+        Member tempMember = TestMembers.copyWithId(TestMembers.MEMBER_1, null);
+        testEntityManager.persistAndFlush(tempMember.getSetting());
+        testEntityManager.persistAndFlush(tempMember.getKakaoToken());
+        testMember = jaeik.bimillog.domain.member.entity.member.Member.createMember(
+            tempMember.getSocialId(),
+            tempMember.getProvider(),
+            tempMember.getSocialNickname(),
+            tempMember.getThumbnailImage(),
+            tempMember.getMemberName(),
+            tempMember.getSetting(),
+            tempMember.getKakaoToken()
+        );
         testMember = testEntityManager.persistAndFlush(testMember);
         testMemberId = testMember.getId();
     }
@@ -125,7 +136,7 @@ class NotificationCommandAdapterIntegrationTest {
         List<Notification> remainingNotifications = notificationRepository.findAll();
         assertThat(remainingNotifications).hasSize(1);
         assertThat(remainingNotifications.getFirst().getId()).isEqualTo(notification2.getId());
-        assertThat(remainingNotifications.getFirst().getContent()).isEqualTo("메시지 알림 2");
+        assertThat(remainingNotifications.getFirst().getContent()).isEqualTo("새로운 롤링페이퍼 메시지가 도착했습니다.");
     }
 
     @Test
@@ -243,7 +254,19 @@ class NotificationCommandAdapterIntegrationTest {
     @Transactional
     void shouldNotUpdateOtherUsersNotifications_WhenDifferentUserProvided() {
         // Given: 다른 사용자와 그의 알림 생성
-        Member otherMember = TestMembers.copyWithId(TestMembers.MEMBER_2, null);
+        Member tempOtherMember = TestMembers.copyWithId(TestMembers.MEMBER_2, null);
+        testEntityManager.persistAndFlush(tempOtherMember.getSetting());
+        testEntityManager.persistAndFlush(tempOtherMember.getKakaoToken());
+
+        Member otherMember = jaeik.bimillog.domain.member.entity.member.Member.createMember(
+            tempOtherMember.getSocialId(),
+            tempOtherMember.getProvider(),
+            tempOtherMember.getSocialNickname(),
+            tempOtherMember.getThumbnailImage(),
+            tempOtherMember.getMemberName(),
+            tempOtherMember.getSetting(),
+            tempOtherMember.getKakaoToken()
+        );
         otherMember = testEntityManager.persistAndFlush(otherMember);
 
         // 현재 사용자와 다른 사용자의 알림 각각 생성

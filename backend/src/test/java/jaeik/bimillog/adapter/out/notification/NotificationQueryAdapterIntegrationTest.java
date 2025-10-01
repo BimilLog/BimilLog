@@ -53,10 +53,32 @@ class NotificationQueryAdapterIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        targetMember = TestMembers.copyWithId(TestMembers.MEMBER_1, null);
-        otherMember = TestMembers.copyWithId(TestMembers.MEMBER_2, null);
-
+        Member tempTargetMember = TestMembers.copyWithId(TestMembers.MEMBER_1, null);
+        testEntityManager.persistAndFlush(tempTargetMember.getSetting());
+        testEntityManager.persistAndFlush(tempTargetMember.getKakaoToken());
+        targetMember = jaeik.bimillog.domain.member.entity.member.Member.createMember(
+            tempTargetMember.getSocialId(),
+            tempTargetMember.getProvider(),
+            tempTargetMember.getSocialNickname(),
+            tempTargetMember.getThumbnailImage(),
+            tempTargetMember.getMemberName(),
+            tempTargetMember.getSetting(),
+            tempTargetMember.getKakaoToken()
+        );
         targetMember = testEntityManager.persistAndFlush(targetMember);
+
+        Member tempOtherMember = TestMembers.copyWithId(TestMembers.MEMBER_2, null);
+        testEntityManager.persistAndFlush(tempOtherMember.getSetting());
+        testEntityManager.persistAndFlush(tempOtherMember.getKakaoToken());
+        otherMember = jaeik.bimillog.domain.member.entity.member.Member.createMember(
+            tempOtherMember.getSocialId(),
+            tempOtherMember.getProvider(),
+            tempOtherMember.getSocialNickname(),
+            tempOtherMember.getThumbnailImage(),
+            tempOtherMember.getMemberName(),
+            tempOtherMember.getSetting(),
+            tempOtherMember.getKakaoToken()
+        );
         otherMember = testEntityManager.persistAndFlush(otherMember);
     }
 

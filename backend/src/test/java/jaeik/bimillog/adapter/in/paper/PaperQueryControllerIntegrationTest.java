@@ -57,7 +57,7 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("내 롤링페이퍼 조회 - 성공 (메시지 없음)")
     void myPaper_WithoutMessages_Success() throws Exception {
         // Given - 새로운 사용자 생성 (메시지 없음)
-        Member emptyMember = memberRepository.save(TestMembers.createUnique());
+        Member emptyMember = saveMember(TestMembers.createUnique());
 
         // When & Then
         performGet("/api/paper", createCustomUserDetails(emptyMember))
@@ -104,7 +104,7 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("다른 사용자 롤링페이퍼 방문 - 성공 (메시지 없음)")
     void visitPaper_WithoutMessages_Success() throws Exception {
         // Given
-        Member emptyMember = memberRepository.save(TestMembers.createUnique());
+        Member emptyMember = saveMember(TestMembers.createUnique());
 
         // When & Then
         performGet("/api/paper/" + emptyMember.getMemberName())

@@ -33,7 +33,7 @@ class AuthQueryControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("현재 사용자 정보 조회 통합 테스트 - 일반 사용자")
     void getCurrentUser_RegularUser_IntegrationTest() throws Exception {
         Member testMember = TestMembers.createUniqueWithPrefix("통합테스트사용자");
-        Member savedMember = memberRepository.save(testMember);
+        Member savedMember = saveMember(testMember);
 
         CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(savedMember);
 
@@ -42,7 +42,7 @@ class AuthQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.userId").value(savedMember.getId()))
+                .andExpect(jsonPath("$.memberId").value(savedMember.getId()))
                 .andExpect(jsonPath("$.settingId").value(savedMember.getSetting().getId()))
                 .andExpect(jsonPath("$.socialNickname").value(savedMember.getSocialNickname()))
                 .andExpect(jsonPath("$.thumbnailImage").value(savedMember.getThumbnailImage()))
@@ -54,7 +54,7 @@ class AuthQueryControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("현재 사용자 정보 조회 통합 테스트 - 관리자 사용자")
     void getCurrentUser_AdminUser_IntegrationTest() throws Exception {
         Member adminMember = TestMembers.withRole(MemberRole.ADMIN);
-        Member savedAdmin = memberRepository.save(adminMember);
+        Member savedAdmin = saveMember(adminMember);
 
         CustomUserDetails adminUserDetails = AuthTestFixtures.createCustomUserDetails(savedAdmin);
 
@@ -63,7 +63,7 @@ class AuthQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.userId").value(savedAdmin.getId()))
+                .andExpect(jsonPath("$.memberId").value(savedAdmin.getId()))
                 .andExpect(jsonPath("$.role").value("ADMIN"))
                 .andExpect(jsonPath("$.memberName").value("관리자"));
     }

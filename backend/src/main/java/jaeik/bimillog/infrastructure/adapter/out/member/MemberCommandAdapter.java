@@ -1,7 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.out.member;
 
 import jaeik.bimillog.domain.member.application.port.out.MemberCommandPort;
-import jaeik.bimillog.domain.member.application.service.MemberCommandService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -22,12 +21,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberCommandAdapter implements MemberCommandPort {
 
     private final MemberRepository userRepository;
+    private final SettingRepository settingRepository;
 
     /**
      * <h3>사용자 계정과 설정 삭제</h3>
-     * <p>Native Query를 사용하여 User와 Setting을 동시에 삭제합니다.</p>
-     * <p>JOIN을 통한 원자적 삭제로 데이터 일관성을 보장합니다.</p>
-     * <p>{@link MemberCommandService#removeUserAccount}에서 회원 탈퇴 처리 시 호출됩니다.</p>
+     * <p>Member를 먼저 조회하여 settingId를 저장한 후, Member → Setting 순서로 삭제합니다.</p>
+     * <p>FK constraint를 고려하여 Member를 먼저 삭제해야 합니다.</p>
      *
      * @param memberId 삭제할 사용자 ID
      * @author Jaeik
@@ -37,7 +36,20 @@ public class MemberCommandAdapter implements MemberCommandPort {
     @Transactional
     public void deleteMemberAndSetting(Long memberId) {
         log.debug("회원 계정 삭제 수행 - memberId: {}", memberId);
-        userRepository.deleteMemberAndSettingByMemberId(memberId);
+
+        // 1. settingId 조회 (Member 삭제 전)
+        Long settingId = userRepository.findById(memberId)
+                .map(member -> member.getSetting().getId())
+                .orElse(null);
+
+        // 2. Member 먼저 삭제 (FK 참조 제거)
+        userRepository.deleteByMemberId(memberId);
+
+        // 3. Setting 나중 삭제
+        if (settingId != null) {
+            settingRepository.deleteById(settingId);
+        }
+
         log.debug("회원 계정 삭제 완료 - memberId: {}", memberId);
     }
 }

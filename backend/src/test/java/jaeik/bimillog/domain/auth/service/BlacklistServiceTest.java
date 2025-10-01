@@ -139,18 +139,18 @@ class BlacklistServiceTest extends BaseUnitTest {
         // Given
         Long memberId = getTestMember().getId() != null ? getTestMember().getId() : 100L;
         String reason = "Security violation";
-        
+
         given(globalTokenQueryPort.findAllByMemberId(memberId)).willReturn(testAuthTokenList);
-        given(globalJwtPort.generateTokenHash("access-token-0")).willReturn("hash0");
-        given(globalJwtPort.generateTokenHash("access-token-1")).willReturn("hash1");
+        given(globalJwtPort.generateTokenHash("refresh-token-0")).willReturn("hash0");
+        given(globalJwtPort.generateTokenHash("refresh-token-1")).willReturn("hash1");
 
         // When
         blacklistService.blacklistAllUserTokens(memberId);
 
         // Then
         verify(globalTokenQueryPort).findAllByMemberId(memberId);
-        verify(globalJwtPort).generateTokenHash("access-token-0");
-        verify(globalJwtPort).generateTokenHash("access-token-1");
+        verify(globalJwtPort).generateTokenHash("refresh-token-0");
+        verify(globalJwtPort).generateTokenHash("refresh-token-1");
 
         ArgumentCaptor<List<String>> hashesCaptor = ArgumentCaptor.forClass(List.class);
         ArgumentCaptor<Duration> durationCaptor = ArgumentCaptor.forClass(Duration.class);
@@ -188,11 +188,11 @@ class BlacklistServiceTest extends BaseUnitTest {
         // Given
         Long memberId = 100L;
         String reason = "Partial failure test";
-        
+
         given(globalTokenQueryPort.findAllByMemberId(memberId)).willReturn(testAuthTokenList);
-        given(globalJwtPort.generateTokenHash("access-token-0")).willReturn("hash0");
+        given(globalJwtPort.generateTokenHash("refresh-token-0")).willReturn("hash0");
         doThrow(new RuntimeException("Hash generation failed"))
-                .when(globalJwtPort).generateTokenHash("access-token-1");
+                .when(globalJwtPort).generateTokenHash("refresh-token-1");
 
         // When
         blacklistService.blacklistAllUserTokens(memberId);
@@ -203,7 +203,7 @@ class BlacklistServiceTest extends BaseUnitTest {
                 hashesCaptor.capture(),
                 any(Duration.class)
         );
-        
+
         List<String> capturedHashes = hashesCaptor.getValue();
         assertThat(capturedHashes).containsExactly("hash0");
     }
@@ -214,7 +214,7 @@ class BlacklistServiceTest extends BaseUnitTest {
         // Given
         Long memberId = 100L;
         String reason = "Complete failure test";
-        
+
         given(globalTokenQueryPort.findAllByMemberId(memberId)).willReturn(testAuthTokenList);
         doThrow(new RuntimeException("Hash generation failed"))
                 .when(globalJwtPort).generateTokenHash(anyString());
@@ -224,8 +224,8 @@ class BlacklistServiceTest extends BaseUnitTest {
 
         // Then
         verify(globalTokenQueryPort).findAllByMemberId(memberId);
-        verify(globalJwtPort).generateTokenHash("access-token-0");
-        verify(globalJwtPort).generateTokenHash("access-token-1");
+        verify(globalJwtPort).generateTokenHash("refresh-token-0");
+        verify(globalJwtPort).generateTokenHash("refresh-token-1");
         verify(redisJwtBlacklistPort, never()).blacklistTokenHashes(any(), any());
     }
 
@@ -256,10 +256,10 @@ class BlacklistServiceTest extends BaseUnitTest {
         Long memberId = 100L;
         String reason = "Many tokens test";
         List<AuthToken> manyAuthTokens = createMultipleTokens(10);
-        
+
         given(globalTokenQueryPort.findAllByMemberId(memberId)).willReturn(manyAuthTokens);
         for (int i = 0; i < 10; i++) {
-            given(globalJwtPort.generateTokenHash("access-token-" + i)).willReturn("hash" + i);
+            given(globalJwtPort.generateTokenHash("refresh-token-" + i)).willReturn("hash" + i);
         }
 
         // When
@@ -268,7 +268,7 @@ class BlacklistServiceTest extends BaseUnitTest {
         // Then
         verify(globalTokenQueryPort).findAllByMemberId(memberId);
         for (int i = 0; i < 10; i++) {
-            verify(globalJwtPort).generateTokenHash("access-token-" + i);
+            verify(globalJwtPort).generateTokenHash("refresh-token-" + i);
         }
 
         ArgumentCaptor<List<String>> hashesCaptor = ArgumentCaptor.forClass(List.class);

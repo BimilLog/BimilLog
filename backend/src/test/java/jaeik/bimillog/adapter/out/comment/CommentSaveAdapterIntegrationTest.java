@@ -73,20 +73,31 @@ class CommentSaveAdapterIntegrationTest {
         // 테스트 데이터 초기화
         commentClosureRepository.deleteAll();
         commentRepository.deleteAll();
-        
-        // 테스트용 사용자 생성 - TestMembers 활용
-        testMember = TestMembers.createUnique();
-        entityManager.persistAndFlush(testMember.getSetting());
+
+        // 테스트용 사용자 생성 - TestMembers 활용 (연관 엔티티 먼저 저장)
+        Member tempMember = TestMembers.createUnique();
+        entityManager.persistAndFlush(tempMember.getSetting());
+        entityManager.persistAndFlush(tempMember.getKakaoToken());
+
+        testMember = jaeik.bimillog.domain.member.entity.member.Member.createMember(
+            tempMember.getSocialId(),
+            tempMember.getProvider(),
+            tempMember.getSocialNickname(),
+            tempMember.getThumbnailImage(),
+            tempMember.getMemberName(),
+            tempMember.getSetting(),
+            tempMember.getKakaoToken()
+        );
         entityManager.persistAndFlush(testMember);
 
         // 테스트용 게시글 생성 - CommentTestDataBuilder 활용
         testPost = PostTestDataBuilder.createPost(testMember, "테스트 게시글", "테스트 게시글 내용입니다.");
         entityManager.persistAndFlush(testPost);
-        
+
         // 부모 댓글 생성 - CommentTestDataBuilder 활용
         parentComment = CommentTestDataBuilder.createComment(testPost, testMember, "부모 댓글");
         parentComment = commentRepository.save(parentComment);
-        
+
         // 자식 댓글 생성 - CommentTestDataBuilder 활용
         childComment = CommentTestDataBuilder.createComment(testPost, testMember, "자식 댓글");
         childComment = commentRepository.save(childComment);

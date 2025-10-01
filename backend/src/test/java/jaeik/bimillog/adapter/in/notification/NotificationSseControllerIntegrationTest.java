@@ -68,7 +68,7 @@ class NotificationSseControllerIntegrationTest extends BaseIntegrationTest {
     void subscribe_MultipleUsers_Success() throws Exception {
         // Given - 추가 사용자 생성 (BaseIntegrationTest에서 otherMember, adminMember 이미 제공)
         Member additionalMember = TestMembers.createUniqueWithPrefix("additional");
-        memberRepository.save(additionalMember);
+        saveMember(additionalMember);
         CustomUserDetails additionalUserDetails = createCustomUserDetails(additionalMember);
 
         // When & Then - 각각 구독 가능해야 함

@@ -52,9 +52,47 @@ class PostLikeQueryAdapterIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        author = testEntityManager.persistAndFlush(TestMembers.copyWithId(TestMembers.MEMBER_1, null));
-        likerOne = testEntityManager.persistAndFlush(TestMembers.copyWithId(TestMembers.MEMBER_2, null));
-        likerTwo = testEntityManager.persistAndFlush(TestMembers.copyWithId(TestMembers.MEMBER_3, null));
+        Member tempAuthor = TestMembers.copyWithId(TestMembers.MEMBER_1, null);
+        testEntityManager.persistAndFlush(tempAuthor.getSetting());
+        testEntityManager.persistAndFlush(tempAuthor.getKakaoToken());
+        author = jaeik.bimillog.domain.member.entity.member.Member.createMember(
+            tempAuthor.getSocialId(),
+            tempAuthor.getProvider(),
+            tempAuthor.getSocialNickname(),
+            tempAuthor.getThumbnailImage(),
+            tempAuthor.getMemberName(),
+            tempAuthor.getSetting(),
+            tempAuthor.getKakaoToken()
+        );
+        author = testEntityManager.persistAndFlush(author);
+
+        Member tempLikerOne = TestMembers.copyWithId(TestMembers.MEMBER_2, null);
+        testEntityManager.persistAndFlush(tempLikerOne.getSetting());
+        testEntityManager.persistAndFlush(tempLikerOne.getKakaoToken());
+        likerOne = jaeik.bimillog.domain.member.entity.member.Member.createMember(
+            tempLikerOne.getSocialId(),
+            tempLikerOne.getProvider(),
+            tempLikerOne.getSocialNickname(),
+            tempLikerOne.getThumbnailImage(),
+            tempLikerOne.getMemberName(),
+            tempLikerOne.getSetting(),
+            tempLikerOne.getKakaoToken()
+        );
+        likerOne = testEntityManager.persistAndFlush(likerOne);
+
+        Member tempLikerTwo = TestMembers.copyWithId(TestMembers.MEMBER_3, null);
+        testEntityManager.persistAndFlush(tempLikerTwo.getSetting());
+        testEntityManager.persistAndFlush(tempLikerTwo.getKakaoToken());
+        likerTwo = jaeik.bimillog.domain.member.entity.member.Member.createMember(
+            tempLikerTwo.getSocialId(),
+            tempLikerTwo.getProvider(),
+            tempLikerTwo.getSocialNickname(),
+            tempLikerTwo.getThumbnailImage(),
+            tempLikerTwo.getMemberName(),
+            tempLikerTwo.getSetting(),
+            tempLikerTwo.getKakaoToken()
+        );
+        likerTwo = testEntityManager.persistAndFlush(likerTwo);
     }
 
     @Test

@@ -140,7 +140,7 @@ public class GlobalJwtAdapter implements GlobalJwtPort {
                 .provider(SocialProvider.valueOf(claims.get("provider", String.class)))
                 .socialNickname(claims.get("socialNickname", String.class))
                 .thumbnailImage(claims.get("thumbnailImage", String.class))
-                .memberName(claims.get("userName", String.class))
+                .memberName(claims.get("memberName", String.class))
                 .role(MemberRole.valueOf(claims.get("role", String.class)))
                 .tokenId(claims.get("tokenId", Long.class))
                 .fcmTokenId(claims.get("fcmTokenId", Long.class))

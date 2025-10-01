@@ -57,7 +57,7 @@ class PostCacheControllerIntegrationTest extends BaseIntegrationTest {
         for (int i = 0; i < 200; i++) {
             members.add(TestMembers.withSocialId("like_user_" + i));
         }
-        return memberRepository.saveAll(members);
+        return saveMembers(members);
     }
 
     private void createTestPosts() {

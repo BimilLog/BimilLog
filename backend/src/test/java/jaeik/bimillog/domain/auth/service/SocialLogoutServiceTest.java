@@ -4,8 +4,10 @@ import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
 import jaeik.bimillog.domain.auth.application.service.SocialLogoutService;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
+import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
+import jaeik.bimillog.domain.global.application.port.out.GlobalKakaoTokenQueryPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import jaeik.bimillog.domain.member.entity.member.Member;
@@ -49,6 +51,9 @@ class SocialLogoutServiceTest extends BaseUnitTest {
     @Mock
     private GlobalTokenQueryPort globalTokenQueryPort;
 
+    @Mock
+    private GlobalKakaoTokenQueryPort globalKakaoTokenQueryPort;
+
     @InjectMocks
     private SocialLogoutService socialLogoutService;
 
@@ -60,16 +65,22 @@ class SocialLogoutServiceTest extends BaseUnitTest {
         Long tokenId = 200L;
         SocialProvider provider = TEST_PROVIDER;
 
-        AuthToken mockAuthToken = createMockTokenWithMember(getTestMember());
+        AuthToken mockAuthToken = AuthToken.builder()
+                .refreshToken("test-refresh-token")
+                .member(getTestMember())
+                .build();
+        KakaoToken mockKakaoToken = KakaoToken.createKakaoToken(TEST_ACCESS_TOKEN, "kakao-refresh-token");
+
         given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(mockAuthToken));
+        given(globalKakaoTokenQueryPort.findByMemberId(memberId)).willReturn(Optional.of(mockKakaoToken));
         given(strategyRegistry.getStrategy(provider)).willReturn(kakaoStrategy);
 
         // When
         socialLogoutService.logout(memberId, provider, tokenId);
 
         // Then
-        // 포트 호출 검증
         verify(globalTokenQueryPort).findById(tokenId);
+        verify(globalKakaoTokenQueryPort).findByMemberId(memberId);
         verify(strategyRegistry).getStrategy(provider);
         try {
             verify(kakaoStrategy).logout(provider, TEST_ACCESS_TOKEN);
@@ -108,8 +119,14 @@ class SocialLogoutServiceTest extends BaseUnitTest {
         Long tokenId = 200L;
         SocialProvider provider = TEST_PROVIDER;
 
-        AuthToken mockAuthToken = createMockTokenWithMember(getTestMember());
+        AuthToken mockAuthToken = AuthToken.builder()
+                .refreshToken("test-refresh-token")
+                .member(getTestMember())
+                .build();
+        KakaoToken mockKakaoToken = KakaoToken.createKakaoToken(TEST_ACCESS_TOKEN, "kakao-refresh-token");
+
         given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(mockAuthToken));
+        given(globalKakaoTokenQueryPort.findByMemberId(memberId)).willReturn(Optional.of(mockKakaoToken));
         given(strategyRegistry.getStrategy(provider)).willReturn(kakaoStrategy);
 
         // 소셜 로그아웃이 실패하도록 설정
@@ -125,6 +142,7 @@ class SocialLogoutServiceTest extends BaseUnitTest {
 
         // Then
         verify(globalTokenQueryPort).findById(tokenId);
+        verify(globalKakaoTokenQueryPort).findByMemberId(memberId);
         verify(strategyRegistry).getStrategy(provider);
         // 소셜 로그아웃이 호출되었지만 실패한 것 확인
         try {
@@ -142,8 +160,14 @@ class SocialLogoutServiceTest extends BaseUnitTest {
         Long adminTokenId = 888L;
         SocialProvider provider = TEST_PROVIDER;
 
-        AuthToken adminAuthToken = createMockTokenWithMember(getAdminMember());
+        AuthToken adminAuthToken = AuthToken.builder()
+                .refreshToken("admin-refresh-token")
+                .member(getAdminMember())
+                .build();
+        KakaoToken mockKakaoToken = KakaoToken.createKakaoToken(TEST_ACCESS_TOKEN, "kakao-refresh-token");
+
         given(globalTokenQueryPort.findById(adminTokenId)).willReturn(Optional.of(adminAuthToken));
+        given(globalKakaoTokenQueryPort.findByMemberId(adminMemberId)).willReturn(Optional.of(mockKakaoToken));
         given(strategyRegistry.getStrategy(provider)).willReturn(kakaoStrategy);
 
         // When
@@ -151,24 +175,12 @@ class SocialLogoutServiceTest extends BaseUnitTest {
 
         // Then
         verify(globalTokenQueryPort).findById(adminTokenId);
+        verify(globalKakaoTokenQueryPort).findByMemberId(adminMemberId);
         verify(strategyRegistry).getStrategy(provider);
         try {
             verify(kakaoStrategy).logout(provider, TEST_ACCESS_TOKEN);
         } catch (Exception e) {
             // verify 호출 시 예외는 무시
         }
-    }
-
-    /**
-     * 특정 사용자를 포함한 Mock AuthToken 생성
-     * @param member 사용자
-     * @return Mock AuthToken with Member
-     */
-    private AuthToken createMockTokenWithMember(Member member) {
-        AuthToken mockAuthToken = mock(AuthToken.class);
-        given(mockAuthToken.getMember()).willReturn(member);
-        given(mockAuthToken.getRefreshToken()).willReturn(AuthTestFixtures.TEST_REFRESH_TOKEN);
-        given(mockAuthToken.getId()).willReturn(1L);
-        return mockAuthToken;
     }
 }

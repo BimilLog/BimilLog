@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.member.service;
 
+import jaeik.bimillog.domain.auth.application.port.out.AuthTokenPort;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
@@ -53,6 +54,9 @@ class SignUpServiceTest extends BaseUnitTest {
 
     @Mock
     private GlobalJwtPort globalJwtPort;
+
+    @Mock
+    private AuthTokenPort authTokenPort;
 
     @InjectMocks
     private SignUpService signUpService;

@@ -52,9 +52,12 @@ class MemberCommandAdapterTest {
 
     @BeforeEach
     void setUp() {
-        // 테스트 데이터 준비
+        // 테스트 데이터 준비 (연관 엔티티 먼저 저장)
         testSetting = Setting.createSetting();
         testEntityManager.persist(testSetting);
+
+        jaeik.bimillog.domain.auth.entity.KakaoToken testKakaoToken = jaeik.bimillog.domain.auth.entity.KakaoToken.createKakaoToken("test-access-token", "test-refresh-token");
+        testEntityManager.persist(testKakaoToken);
 
         testMember = Member.createMember(
                 "12345678",
@@ -63,7 +66,7 @@ class MemberCommandAdapterTest {
                 "https://test.com/profile.jpg",
                 "testUser123",
                 testSetting,
-                null
+                testKakaoToken
         );
         testEntityManager.persist(testMember);
         testEntityManager.flush();
@@ -126,9 +129,12 @@ class MemberCommandAdapterTest {
     @Test
     @DisplayName("여러 사용자가 있을 때 특정 사용자만 삭제되어야 한다")
     void deleteMemberAndSetting_WithMultipleMembers_ShouldDeleteOnlyTargetMember() {
-        // Given
+        // Given (연관 엔티티 먼저 저장)
         Setting otherSetting = Setting.createSetting();
         testEntityManager.persist(otherSetting);
+
+        jaeik.bimillog.domain.auth.entity.KakaoToken otherKakaoToken = jaeik.bimillog.domain.auth.entity.KakaoToken.createKakaoToken("other-access", "other-refresh");
+        testEntityManager.persist(otherKakaoToken);
 
         Member otherMember = Member.createMember(
                 "87654321",
@@ -137,7 +143,7 @@ class MemberCommandAdapterTest {
                 "https://test.com/other.jpg",
                 "otherUser456",
                 otherSetting,
-                null
+                otherKakaoToken
         );
         testEntityManager.persist(otherMember);
         testEntityManager.flush();

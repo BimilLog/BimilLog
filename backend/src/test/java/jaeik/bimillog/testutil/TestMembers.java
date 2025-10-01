@@ -105,12 +105,13 @@ public class TestMembers {
      */
     public static Member withRole(MemberRole role) {
         if (role == MemberRole.ADMIN) {
+            String timestamp = String.valueOf(System.currentTimeMillis());
             Member admin = Member.createMember(
-                    "kakao999999",
+                    "kakao_admin_" + timestamp,
                     SocialProvider.KAKAO,
-                    "관리자",
+                    "관리자_" + timestamp,
                     "http://example.com/admin.jpg",
-                    "adminMember",
+                    "adminMember_" + timestamp,
                     createAllDisabledSetting(),
                     createTestKakaoToken()
             );

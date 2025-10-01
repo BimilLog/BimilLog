@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.comment.service;
 
 import jaeik.bimillog.domain.comment.application.port.out.CommentDeletePort;
 import jaeik.bimillog.domain.comment.application.port.out.CommentLikePort;
+import jaeik.bimillog.domain.comment.application.port.out.CommentQueryPort;
 import jaeik.bimillog.domain.comment.application.port.out.CommentSavePort;
 import jaeik.bimillog.domain.comment.application.service.CommentCommandService;
 import jaeik.bimillog.domain.comment.entity.Comment;
@@ -55,6 +56,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
     @Mock private CommentSavePort commentSavePort;
     @Mock private CommentDeletePort commentDeletePort;
+    @Mock private CommentQueryPort commentQueryPort;
     @Mock private CommentLikePort commentLikePort;
     @Mock private GlobalMemberQueryPort globalMemberQueryPort;
     @Mock private GlobalPostQueryPort globalPostQueryPort;
@@ -142,7 +144,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         // When & Then
         assertThatThrownBy(() -> commentCommandService.likeComment(getTestMember().getId(), TEST_COMMENT_ID))
                 .isInstanceOf(MemberCustomException.class)
-                .hasFieldOrPropertyWithValue("userErrorCode", MemberErrorCode.USER_NOT_FOUND);
+                .hasFieldOrPropertyWithValue("memberErrorCode", MemberErrorCode.USER_NOT_FOUND);
 
         verify(globalCommentQueryPort).findById(TEST_COMMENT_ID);
         verify(globalMemberQueryPort).findById(getTestMember().getId());
@@ -161,7 +163,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         // When & Then
         assertThatThrownBy(() -> commentCommandService.likeComment(null, TEST_COMMENT_ID))
                 .isInstanceOf(MemberCustomException.class)
-                .hasFieldOrPropertyWithValue("userErrorCode", MemberErrorCode.USER_NOT_FOUND);
+                .hasFieldOrPropertyWithValue("memberErrorCode", MemberErrorCode.USER_NOT_FOUND);
 
         verify(globalCommentQueryPort).findById(TEST_COMMENT_ID);
         verify(globalMemberQueryPort).findById(null);
@@ -279,6 +281,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         // Given
         Long memberId = 100L;
         given(globalCommentQueryPort.findById(200L)).willReturn(testComment);
+        given(commentQueryPort.hasDescendants(200L)).willReturn(false);
 
         // When
         commentCommandService.deleteComment(200L, memberId, null);
@@ -294,13 +297,15 @@ class CommentCommandServiceTest extends BaseUnitTest {
         // Given
         Long memberId = 100L;
         given(globalCommentQueryPort.findById(200L)).willReturn(testComment);
+        given(commentQueryPort.hasDescendants(200L)).willReturn(true);
 
         // When
         commentCommandService.deleteComment(200L, memberId, null);
 
         // Then
         verify(globalCommentQueryPort).findById(200L);
-        verify(commentDeletePort).deleteComment(200L);
+        verify(commentQueryPort).hasDescendants(200L);
+        verify(commentDeletePort, never()).deleteComment(any());
     }
 
 
@@ -363,6 +368,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         TestFixtures.setFieldValue(anonymousComment, "id", 300L);
 
         given(globalCommentQueryPort.findById(300L)).willReturn(anonymousComment);
+        given(commentQueryPort.hasDescendants(300L)).willReturn(false);
 
         // When
         commentCommandService.deleteComment(300L, null, 1234);
@@ -399,13 +405,15 @@ class CommentCommandServiceTest extends BaseUnitTest {
         TestFixtures.setFieldValue(parentComment, "id", 400L);
 
         given(globalCommentQueryPort.findById(400L)).willReturn(parentComment);
+        given(commentQueryPort.hasDescendants(400L)).willReturn(true);
 
         // When
         commentCommandService.deleteComment(400L, memberId, null);
 
         // Then
         verify(globalCommentQueryPort).findById(400L);
-        verify(commentDeletePort).deleteComment(400L);
+        verify(commentQueryPort).hasDescendants(400L);
+        verify(commentDeletePort, never()).deleteComment(any());
     }
 
     @Test
@@ -416,13 +424,15 @@ class CommentCommandServiceTest extends BaseUnitTest {
         TestFixtures.setFieldValue(anonymousParentComment, "id", 500L);
 
         given(globalCommentQueryPort.findById(500L)).willReturn(anonymousParentComment);
+        given(commentQueryPort.hasDescendants(500L)).willReturn(true);
 
         // When
         commentCommandService.deleteComment(500L, null, 5678);
 
         // Then
         verify(globalCommentQueryPort).findById(500L);
-        verify(commentDeletePort).deleteComment(500L);
+        verify(commentQueryPort).hasDescendants(500L);
+        verify(commentDeletePort, never()).deleteComment(any());
     }
 
     @Test

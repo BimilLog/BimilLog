@@ -150,15 +150,61 @@ public abstract class BaseIntegrationTest {
     protected void setupTestMembers() {
         if (memberRepository != null) {
             // 고유한 회원 생성하여 충돌 방지
-            this.testMember = memberRepository.save(TestMembers.createUniqueWithPrefix("test"));
-            this.adminMember = memberRepository.save(TestMembers.withRole(MemberRole.ADMIN));
-            this.otherMember = memberRepository.save(TestMembers.createUniqueWithPrefix("other"));
+            Member testMemberToSave = TestMembers.createUniqueWithPrefix("test");
+            Member adminMemberToSave = TestMembers.withRole(MemberRole.ADMIN);
+            Member otherMemberToSave = TestMembers.createUniqueWithPrefix("other");
+
+            // Member를 저장하기 전에 연관된 Setting과 KakaoToken을 먼저 persist
+            persistMemberDependencies(testMemberToSave);
+            persistMemberDependencies(adminMemberToSave);
+            persistMemberDependencies(otherMemberToSave);
+
+            // Member 저장
+            this.testMember = memberRepository.save(testMemberToSave);
+            this.adminMember = memberRepository.save(adminMemberToSave);
+            this.otherMember = memberRepository.save(otherMemberToSave);
         } else {
             // MemberRepository가 없는 경우 기본 회원 사용
             this.testMember = TestMembers.MEMBER_1;
             this.adminMember = TestMembers.withRole(MemberRole.ADMIN);
             this.otherMember = TestMembers.MEMBER_2;
         }
+    }
+
+    /**
+     * Member의 연관 엔티티(Setting, KakaoToken)를 먼저 persist
+     */
+    private void persistMemberDependencies(Member member) {
+        if (member.getSetting() != null) {
+            entityManagerDelegate.persist(member.getSetting());
+        }
+        if (member.getKakaoToken() != null) {
+            entityManagerDelegate.persist(member.getKakaoToken());
+        }
+    }
+
+    /**
+     * Member를 안전하게 저장하는 헬퍼 메서드
+     * Member의 연관 엔티티(Setting, KakaoToken)를 자동으로 persist한 후 Member를 저장
+     *
+     * @param member 저장할 Member 엔티티
+     * @return 저장된 Member 엔티티
+     */
+    protected Member saveMember(Member member) {
+        persistMemberDependencies(member);
+        return memberRepository.save(member);
+    }
+
+    /**
+     * 여러 Member를 안전하게 저장하는 헬퍼 메서드
+     * 각 Member의 연관 엔티티(Setting, KakaoToken)를 자동으로 persist한 후 Member들을 저장
+     *
+     * @param members 저장할 Member 엔티티들
+     * @return 저장된 Member 엔티티들
+     */
+    protected java.util.List<Member> saveMembers(java.util.List<Member> members) {
+        members.forEach(this::persistMemberDependencies);
+        return memberRepository.saveAll(members);
     }
 
     /**
