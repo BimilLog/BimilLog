@@ -7,7 +7,6 @@ import jaeik.bimillog.domain.member.application.port.in.MemberCommandUseCase;
 import jaeik.bimillog.domain.member.event.ReportSubmittedEvent;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.infrastructure.adapter.in.admin.dto.ReportDTO;
-import jaeik.bimillog.infrastructure.adapter.in.auth.dto.AuthResponseDTO;
 import jaeik.bimillog.infrastructure.adapter.in.member.dto.SettingDTO;
 import jaeik.bimillog.infrastructure.adapter.in.member.dto.SignUpRequestDTO;
 import jaeik.bimillog.infrastructure.adapter.in.member.dto.MemberNameDTO;
@@ -55,7 +54,7 @@ public class MemberCommandController {
             logExecutionTime = true,
             excludeParams = {"uuid"},
             message = "회원가입 요청")
-    public ResponseEntity<AuthResponseDTO> signUp(
+    public ResponseEntity<Void> signUp(
             @Valid @RequestBody SignUpRequestDTO request,
             @CookieValue(name = "temp_user_id") String uuid) {
 
@@ -71,7 +70,7 @@ public class MemberCommandController {
         }
 
         // Body 설정 후 ResponseEntity 반환
-        return responseBuilder.body(AuthResponseDTO.success("회원 가입 성공"));
+        return responseBuilder.build();
     }
 
 
@@ -152,11 +151,11 @@ public class MemberCommandController {
      * @since 2.0.0
      */
     @DeleteMapping("/withdraw")
-    public ResponseEntity<AuthResponseDTO> withdraw(@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<Void> withdraw(@AuthenticationPrincipal CustomUserDetails userDetails) {
         eventPublisher.publishEvent(new MemberWithdrawnEvent(userDetails.getMemberId(), userDetails.getSocialId(), userDetails.getSocialProvider()));
         return ResponseEntity.ok()
                 .headers(headers -> globalCookiePort.getLogoutCookies().forEach(cookie ->
                         headers.add("Set-Cookie", cookie.toString())))
-                .body(AuthResponseDTO.success("회원탈퇴 성공"));
+                .build();
     }
 }

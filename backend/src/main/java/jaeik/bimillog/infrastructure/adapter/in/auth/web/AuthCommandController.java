@@ -6,7 +6,6 @@ import jaeik.bimillog.domain.auth.event.MemberLoggedOutEvent;
 import jaeik.bimillog.domain.global.annotation.Log;
 import jaeik.bimillog.domain.global.annotation.Log.LogLevel;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
-import jaeik.bimillog.infrastructure.adapter.in.auth.dto.AuthResponseDTO;
 import jaeik.bimillog.infrastructure.adapter.in.auth.dto.SocialLoginRequestDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jakarta.validation.Valid;
@@ -49,24 +48,24 @@ public class AuthCommandController {
      * @since 2.0.0
      */
     @PostMapping("/login")
-    @Log(level = LogLevel.INFO, 
+    @Log(level = LogLevel.INFO,
          logExecutionTime = true,
          excludeParams = {"code", "fcmToken"},
          message = "소셜 로그인 요청")
-    public ResponseEntity<AuthResponseDTO> socialLogin(@Valid @RequestBody SocialLoginRequestDTO request) {
+    public ResponseEntity<String> socialLogin(@Valid @RequestBody SocialLoginRequestDTO request) {
         LoginResult loginResult = socialLoginUseCase.processSocialLogin(
-                request.getSocialProvider(), 
-                request.getCode(), 
+                request.getSocialProvider(),
+                request.getCode(),
                 request.getFcmToken());
 
         return switch (loginResult) {
             case LoginResult.NewUser(var tempCookie) -> ResponseEntity.ok()
                     .header("Set-Cookie", tempCookie.toString())
-                    .body(AuthResponseDTO.newUser());
+                    .body("NEW_USER");
             case LoginResult.ExistingUser(var cookies) -> ResponseEntity.ok()
                     .headers(headers -> cookies.forEach(cookie ->
                             headers.add("Set-Cookie", cookie.toString())))
-                    .body(AuthResponseDTO.existingUser());
+                    .body("EXISTING_USER");
         };
     }
 
@@ -85,11 +84,11 @@ public class AuthCommandController {
     @Log(level = LogLevel.INFO,
          message = "로그아웃 요청",
          logParams = false)
-    public ResponseEntity<AuthResponseDTO> logout(@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<Void> logout(@AuthenticationPrincipal CustomUserDetails userDetails) {
         eventPublisher.publishEvent(new MemberLoggedOutEvent(userDetails.getMemberId(), userDetails.getTokenId(), userDetails.getFcmTokenId(), userDetails.getSocialProvider()));
         return ResponseEntity.ok()
                 .headers(headers -> globalCookiePort.getLogoutCookies().forEach(cookie ->
                         headers.add("Set-Cookie", cookie.toString())))
-                .body(AuthResponseDTO.success("로그아웃 성공"));
+                .build();
     }
 }

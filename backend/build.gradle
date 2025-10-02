@@ -126,8 +126,26 @@ clean.doLast {
 }
 
 tasks.named('test') {
+    useJUnitPlatform()
+
+    def cpuCount = Runtime.runtime.availableProcessors()
+    maxParallelForks = Math.max(1, cpuCount.intdiv(2))
+
+    systemProperty "junit.jupiter.execution.parallel.enabled", "true"
+    systemProperty "junit.jupiter.execution.parallel.mode.default", "concurrent"
+    systemProperty "junit.jupiter.execution.parallel.mode.classes.default", "concurrent"
+    systemProperty "junit.jupiter.execution.parallel.config.strategy", "dynamic"
+}
+
+tasks.register('unitTest', Test) {
+    group = 'verification'
+    description = '단위 테스트를 실행합니다.'
+
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+
     useJUnitPlatform {
-        includeTags 'test'
+        includeTags 'unit'
         excludeTags 'integration', 'tc'
     }
 
@@ -153,7 +171,7 @@ tasks.register('integrationTest', Test) {
     }
 
     maxParallelForks = 1
-    shouldRunAfter tasks.named('test')
+    shouldRunAfter tasks.named('unitTest')
 }
 
 tasks.register('tcTest', Test) {
@@ -169,6 +187,7 @@ tasks.register('tcTest', Test) {
 
     maxParallelForks = 1
     shouldRunAfter tasks.named('integrationTest')
+    shouldRunAfter tasks.named('unitTest')
 }
 
 tasks.named('check') {

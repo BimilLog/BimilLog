@@ -30,7 +30,7 @@ export function useNotifications() {
     }
 
     // 닉네임이 설정되지 않은 경우 SSE 연결 불가
-    if (!user.userName || user.userName.trim() === "") {
+    if (!user.memberName || user.memberName.trim() === "") {
       return false
     }
 
@@ -60,7 +60,7 @@ export function useNotifications() {
   // SSE 이벤트 리스너 등록/해제: 실시간 알림 처리와 연결 상태 관리
   useEffect(() => {
     if (canConnectSSE()) {
-      logger.log(`사용자 인증 완료 (${user?.userName}) - 알림 리스너 등록`)
+      logger.log(`사용자 인증 완료 (${user?.memberName}) - 알림 리스너 등록`)
 
       // 중복 리스너 방지: 기존 리스너 제거 후 새로 등록
       sseManager.removeEventListener("notification")

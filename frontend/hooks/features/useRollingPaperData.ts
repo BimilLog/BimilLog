@@ -19,8 +19,8 @@ export function useRollingPaperData(targetNickname?: string) {
       // nickname이 없으면 본인의 롤링페이퍼 페이지
       return true;
     }
-    return isAuthenticated && user?.userName === targetNickname;
-  }, [isAuthenticated, user?.userName, targetNickname]);
+    return isAuthenticated && user?.memberName === targetNickname;
+  }, [isAuthenticated, user?.memberName, targetNickname]);
 
   // 조건부로 적절한 쿼리 선택 및 실행
   // 본인 롤링페이퍼 조회 (isOwner일 때만 실행)

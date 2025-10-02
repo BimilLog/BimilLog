@@ -56,7 +56,7 @@ export function useEditForm() {
 
         // 회원 글일 경우 작성자만 권한 부여
         if (!isGuestPost) {
-          if (isAuthenticated && user?.userId === postData.userId) {
+          if (isAuthenticated && user?.memberId === postData.userId) {
             setIsAuthorized(true);
           } else {
             // 회원 글인데 다른 사용자가 접근한 경우

@@ -4,11 +4,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle, Input, Label, SafeHTML } from "@/components";
 import { Save, Lightbulb } from "lucide-react";
 import { LazyEditor } from "@/lib/utils/lazy-components";
-
-interface User {
-  userName: string;
-  role?: string;
-}
+import type { Member } from "@/types/domains/user";
 
 interface WriteFormProps {
   // Form states - 폼의 상태 관리를 위한 props
@@ -20,7 +16,7 @@ interface WriteFormProps {
   setPassword: (value: string) => void;
 
   // User info - 사용자 정보 및 인증 상태
-  user: User | null;
+  user: Member | null;
   isAuthenticated: boolean;
 
   // Preview - 미리보기 모드 여부
@@ -123,12 +119,12 @@ export const WriteForm: React.FC<WriteFormProps> = ({
                 <div className="flex items-center space-x-2">
                   <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full flex items-center justify-center">
                     <span className="text-white text-sm font-bold">
-                      {user?.userName?.charAt(0) || "?"}
+                      {user?.memberName?.charAt(0) || "?"}
                     </span>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-brand-primary">
-                      작성자: {user?.userName}
+                      작성자: {user?.memberName}
                     </p>
                     <p className="text-xs text-brand-muted">
                       게시글은 수정 및 삭제가 가능합니다
@@ -144,7 +140,7 @@ export const WriteForm: React.FC<WriteFormProps> = ({
             <h1 className="text-3xl font-bold mb-4">{title}</h1>
             <div className="text-sm text-brand-secondary mb-6">
               {/* 작성자 표시: 인증된 사용자는 이름, 비인증 사용자는 '익명' */}
-              작성자: {isAuthenticated ? user?.userName : "익명"}
+              작성자: {isAuthenticated ? user?.memberName : "익명"}
             </div>
             {formatPreviewContent(content)}
           </div>

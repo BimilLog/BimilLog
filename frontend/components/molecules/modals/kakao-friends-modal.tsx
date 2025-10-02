@@ -145,12 +145,12 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
 
   /**
    * 친구의 롤링페이퍼 페이지로 이동하는 핸들러
-   * userName을 URL 인코딩하여 안전한 라우팅 보장
+   * memberName을 URL 인코딩하여 안전한 라우팅 보장
    */
-  const handleVisitRollingPaper = (userName: string) => {
-    if (userName) {
+  const handleVisitRollingPaper = (memberName: string) => {
+    if (memberName) {
       // 친구 롤링페이퍼 페이지로 라우팅 후 모달 닫기
-      router.push(`/rolling-paper/${encodeURIComponent(userName)}`);
+      router.push(`/rolling-paper/${encodeURIComponent(memberName)}`);
       onClose();
     }
   };
@@ -284,14 +284,14 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
                         <h3 className="text-sm font-semibold text-brand-primary truncate">
                           {friend.profile_nickname}
                         </h3>
-                        {/* 비밀로그 가입 여부 표시 (userName이 있으면 가입자) */}
-                        {friend.userName && (
+                        {/* 비밀로그 가입 여부 표시 (memberName이 있으면 가입자) */}
+                        {friend.memberName && (
                           <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
-                            @{friend.userName}
+                            @{friend.memberName}
                           </span>
                         )}
                       </div>
-                      {friend.userName && (
+                      {friend.memberName && (
                         <p className="text-xs text-brand-secondary mt-1">
                           비밀로그 사용자
                         </p>
@@ -300,12 +300,12 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
 
                     {/* 액션 버튼 영역 (가입자/비가입자 구분) */}
                     <div className="flex items-center space-x-2">
-                      {friend.userName ? (
+                      {friend.memberName ? (
                         /* 비밀로그 회원인 경우 롤링페이퍼 바로가기 버튼 */
                         <Button
                           size="sm"
                           onClick={() =>
-                            handleVisitRollingPaper(friend.userName)
+                            handleVisitRollingPaper(friend.memberName)
                           }
                           className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white text-xs px-3 py-1.5"
                         >

@@ -17,7 +17,7 @@ import { useAuth } from '@/hooks';
  */
 export const useNotificationSync = () => {
   const { isAuthenticated } = useAuth();
-  const intervalRef = useRef<NodeJS.Timeout>();
+  const intervalRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   // 일괄 업데이트 뮤테이션
   const syncMutation = useMutation({

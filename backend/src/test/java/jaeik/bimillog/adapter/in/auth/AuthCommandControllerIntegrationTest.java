@@ -56,8 +56,7 @@ class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().exists("Set-Cookie"))
-                .andExpect(jsonPath("$.uuid").exists())
-                .andExpect(jsonPath("$.uuid").isString());
+                .andExpect(content().string("NEW_USER"));
     }
 
     @Test
@@ -79,8 +78,7 @@ class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().exists("Set-Cookie"))
-                .andExpect(jsonPath("$.status").value("EXISTING_USER"))
-                .andExpect(jsonPath("$.data.message").value("LOGIN_SUCCESS"));
+                .andExpect(content().string("EXISTING_USER"));
     }
 
     @Test
@@ -100,9 +98,7 @@ class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(header().exists("Set-Cookie"))
-                .andExpect(jsonPath("$.status").value("SUCCESS"))
-                .andExpect(jsonPath("$.data.message").value("로그아웃 성공"));
+                .andExpect(header().exists("Set-Cookie"));
     }
 
     @Test
@@ -118,9 +114,7 @@ class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
                         .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(header().exists("Set-Cookie"))
-                .andExpect(jsonPath("$.status").value("SUCCESS"))
-                .andExpect(jsonPath("$.data.message").value("회원탈퇴 성공"));
+                .andExpect(header().exists("Set-Cookie"));
     }
 
     @Test

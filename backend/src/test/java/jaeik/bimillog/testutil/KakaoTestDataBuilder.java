@@ -2,9 +2,7 @@ package jaeik.bimillog.testutil;
 
 import jaeik.bimillog.infrastructure.adapter.out.api.dto.KakaoFriendsDTO;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * <h2>카카오 API 테스트 데이터 빌더</h2>
@@ -92,21 +90,5 @@ public class KakaoTestDataBuilder {
      */
     public static KakaoFriendsDTO createEmptyKakaoFriendsResponse() {
         return createKakaoFriendsResponse(List.of(), 0, null, null, 0);
-    }
-
-    /**
-     * 카카오 토큰 응답 Map 생성
-     * @param accessToken 액세스 토큰
-     * @param refreshToken 리프레시 토큰
-     * @return 토큰 응답 Map
-     */
-    public static Map<String, Object> createTokenResponse(String accessToken, String refreshToken) {
-        Map<String, Object> tokenResponse = new HashMap<>();
-        tokenResponse.put("access_token", accessToken);
-        tokenResponse.put("refresh_token", refreshToken);
-        tokenResponse.put("token_type", "Bearer");
-        tokenResponse.put("expires_in", 43199);
-        tokenResponse.put("refresh_token_expires_in", 5183999);
-        return tokenResponse;
     }
 }

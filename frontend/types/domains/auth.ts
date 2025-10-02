@@ -1,29 +1,9 @@
 // 카카오 OAuth 로그인 결과 상태
 // NEW_USER: 첫 로그인, 회원가입 필요 | EXISTING_USER: 기존 회원, 로그인 완료
-// SUCCESS: 일반적인 성공 | ERROR: 로그인 실패
-export type AuthStatus = "NEW_USER" | "EXISTING_USER" | "SUCCESS" | "ERROR";
+export type AuthStatus = "NEW_USER" | "EXISTING_USER";
 
-// 백엔드 AuthController에서 반환하는 복합적인 응답 구조
-export interface AuthResponse {
-  status: AuthStatus;
-  data?: { // 각 상황에 따라 다른 필드들이 선택적으로 포함됨
-    memberId?: number;
-    memberName?: string;
-    email?: string;
-    profileImage?: string;
-    socialId?: string;  // Backend StrategyLoginResult.userProfile.socialId
-    provider?: SocialProvider;  // Backend StrategyLoginResult.userProfile.provider
-    createdAt?: string;
-    token?: {  // Backend StrategyLoginResult.token
-      accessToken?: string;
-      refreshToken?: string;
-      expiresAt?: string;
-    };
-    [key: string]: unknown; // 백엔드에서 추가 데이터가 올 수 있음
-  };
-  error?: string;
-  errorCode?: string;
-}
+// 백엔드 AuthController에서 반환하는 응답 (문자열 직접 반환)
+export type AuthResponse = AuthStatus;
 
 // 지원하는 소셜 로그인 제공자 (현재는 KAKAO만 구현됨)
 export type SocialProvider = "KAKAO" | "GOOGLE" | "NAVER";

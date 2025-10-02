@@ -42,7 +42,7 @@ export const useCreateBoardPost = () => {
       }
 
       const postData = {
-        userName: isAuthenticated ? user!.userName : null,
+        userName: isAuthenticated ? user!.memberName : null,
         title: data.title.trim(),
         content: plainContent,
         password: validatedPassword,

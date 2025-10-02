@@ -103,8 +103,12 @@ describe("WriteForm", () => {
 
     it("로그인 사용자에게는 작성자 정보를 표시한다", () => {
       const testUser = {
-        userName: "홍길동",
-        role: "USER",
+        memberId: 1,
+        settingId: 1,
+        socialNickname: "kakao",
+        thumbnailImage: "",
+        memberName: "홍길동",
+        role: "USER" as const,
       };
 
       render(
@@ -121,8 +125,12 @@ describe("WriteForm", () => {
 
     it("로그인 사용자에게는 비밀번호 필드를 표시하지 않는다", () => {
       const testUser = {
-        userName: "홍길동",
-        role: "USER",
+        memberId: 1,
+        settingId: 1,
+        socialNickname: "kakao",
+        thumbnailImage: "",
+        memberName: "홍길동",
+        role: "USER" as const,
       };
 
       render(
@@ -138,8 +146,12 @@ describe("WriteForm", () => {
 
     it("사용자 이름의 첫 글자를 아바타로 표시한다", () => {
       const testUser = {
-        userName: "테스터",
-        role: "USER",
+        memberId: 1,
+        settingId: 1,
+        socialNickname: "kakao",
+        thumbnailImage: "",
+        memberName: "테스터",
+        role: "USER" as const,
       };
 
       render(
@@ -155,8 +167,12 @@ describe("WriteForm", () => {
 
     it("사용자 이름이 없으면 ? 를 아바타로 표시한다", () => {
       const testUser = {
-        userName: "",
-        role: "USER",
+        memberId: 1,
+        settingId: 1,
+        socialNickname: "kakao",
+        thumbnailImage: "",
+        memberName: "",
+        role: "USER" as const,
       };
 
       render(
@@ -188,8 +204,12 @@ describe("WriteForm", () => {
 
     it("미리보기 모드에서 로그인 사용자의 이름을 표시한다", () => {
       const testUser = {
-        userName: "김철수",
-        role: "USER",
+        memberId: 1,
+        settingId: 1,
+        socialNickname: "kakao",
+        thumbnailImage: "",
+        memberName: "김철수",
+        role: "USER" as const,
       };
 
       render(

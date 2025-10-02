@@ -20,7 +20,7 @@ export const useUpdateUsername = () => {
       if (response.success) {
         // 사용자 정보 업데이트
         if (user) {
-          setUser({ ...user, userName: username });
+          setUser({ ...user, memberName: username });
         }
         // 캐시 무효화
         queryClient.invalidateQueries({ queryKey: queryKeys.user.all });

@@ -35,7 +35,7 @@ export const PostContentActions: React.FC<PostContentActionsProps> = ({
   onLike,
 }) => {
   const { user } = useAuth();
-  const isOwnPost = user?.userId === post.userId;
+  const isOwnPost = user?.memberId === post.userId;
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const { showFeedback, showError } = useToast();
 

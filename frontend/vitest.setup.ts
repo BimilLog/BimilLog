@@ -16,13 +16,13 @@ const createStorage = () => {
       store = {};
     }),
     key: vi.fn((index: number) => Object.keys(store)[index] ?? null),
-  } as Storage;
+  };
 
   Object.defineProperty(storage, "length", {
     get: () => Object.keys(store).length,
   });
 
-  return storage;
+  return storage as unknown as Storage;
 };
 
 const localStorageMock = createStorage();

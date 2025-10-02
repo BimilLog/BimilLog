@@ -45,7 +45,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
   onLogout,
   className,
 }) => {
-  const [nicknameInput, setNicknameInput] = useState(user.userName);
+  const [nicknameInput, setNicknameInput] = useState(user.memberName);
   const [nicknameMessage, setNicknameMessage] = useState("");
   const [isNicknameFormatValid, setIsNicknameFormatValid] = useState(false);
   const [isNicknameAvailable, setIsNicknameAvailable] = useState<boolean | null>(null);
@@ -67,7 +67,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
 
   const handleCheckNickname = async () => {
     if (!isNicknameFormatValid) return;
-    if (nicknameInput === user.userName) {
+    if (nicknameInput === user.memberName) {
       setNicknameMessage("현재 닉네임과 같습니다.");
       setIsNicknameAvailable(false);
       return;
@@ -136,7 +136,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
   const handleDialogOpenChange = (open: boolean) => {
     setIsNicknameDialogOpen(open);
     if (!open) {
-      setNicknameInput(user.userName);
+      setNicknameInput(user.memberName);
       setNicknameMessage("");
       setIsNicknameFormatValid(false);
       setIsNicknameAvailable(null);
@@ -154,8 +154,8 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
               <div className="relative mb-4 md:mb-0">
                 <Avatar
                   img={user.thumbnailImage}
-                  alt={user.userName}
-                  placeholderInitials={getInitials(user.userName)}
+                  alt={user.memberName}
+                  placeholderInitials={getInitials(user.memberName)}
                   size="xl"
                   className="w-24 h-24 md:w-32 md:h-32 ring-4 ring-white shadow-brand-lg"
                   rounded
@@ -173,7 +173,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
                   <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-3 mb-2 md:mb-0">
                     <div className="flex items-center justify-center md:justify-start space-x-2">
                       <h2 className="text-3xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-                        {user.userName}
+                        {user.memberName}
                       </h2>
                       {user.role === "ADMIN" && (
                         <Badge className="bg-gradient-to-r from-red-500 to-pink-600 text-white border-0">
@@ -306,8 +306,8 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
 }, (prevProps, nextProps) => {
   // 사용자 정보가 변경되었는지 확인
   return (
-    prevProps.user.userId === nextProps.user.userId &&
-    prevProps.user.userName === nextProps.user.userName &&
+    prevProps.user.memberId === nextProps.user.memberId &&
+    prevProps.user.memberName === nextProps.user.memberName &&
     prevProps.user.thumbnailImage === nextProps.user.thumbnailImage &&
     prevProps.user.role === nextProps.user.role &&
     prevProps.user.socialNickname === nextProps.user.socialNickname &&

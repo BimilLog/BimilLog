@@ -39,11 +39,10 @@ export const useKakaoCallback = () => {
         // Authorization Code와 FCM 토큰을 백엔드로 전송하여 JWT 토큰 받기
         const response = await authCommand.kakaoLogin(code, fcmToken || undefined);
 
-        if (response.success) {
-          const data = response.data as { status?: string };
+        if (response.success && response.data) {
           // 신규 사용자인 경우 회원가입 페이지로 이동
           // UUID는 HttpOnly 쿠키로 전달되어 프론트엔드에서 직접 접근 불가
-          if (data?.status === "NEW_USER") {
+          if (response.data === "NEW_USER") {
             router.push("/signup?required=true");
           } else {
             // 기존 사용자인 경우 메인 페이지로 이동

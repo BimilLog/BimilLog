@@ -125,7 +125,7 @@ export function useRollingPaperSearch(): UseRollingPaperSearchReturn {
 
     try {
       // 자신의 롤링페이퍼 검색 시 API 호출 없이 직접 리다이렉트 (성능 최적화)
-      if (user && user.userName === trimmedNickname) {
+      if (user && user.memberName === trimmedNickname) {
         // 자신의 롤링페이퍼로 리다이렉트
         router.push("/rolling-paper");
         setIsSearching(false);

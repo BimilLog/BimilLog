@@ -54,11 +54,11 @@ describe("useAuthStore", () => {
     vi.mocked(authQuery.getCurrentUser).mockResolvedValue({
       success: true,
       data: {
-        userId: 1,
+        memberId: 1,
         settingId: 10,
         socialNickname: "카카오",
         thumbnailImage: "https://example.com/profile.png",
-        userName: "홍길동",
+        memberName: "홍길동",
         role: "USER",
       },
     });
@@ -66,7 +66,7 @@ describe("useAuthStore", () => {
     await useAuthStore.getState().refreshUser();
 
     const state = useAuthStore.getState();
-    expect(state.user?.userName).toBe("홍길동");
+    expect(state.user?.memberName).toBe("홍길동");
     expect(state.isAuthenticated).toBe(true);
     expect(state.isLoading).toBe(false);
     expect(vi.mocked(sseManager.connect)).toHaveBeenCalledTimes(1);

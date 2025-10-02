@@ -139,7 +139,7 @@ export const AuthHeader = React.memo(() => {
               inline
               label={
                 <Avatar
-                  alt={user.userName}
+                  alt={user.memberName}
                   img={user.thumbnailImage}
                   rounded
                   className="hover:ring-2 hover:ring-purple-200 transition-all cursor-pointer"
@@ -180,7 +180,7 @@ export const AuthHeader = React.memo(() => {
               }}
             >
               <DropdownHeader>
-                <span className="block text-sm font-semibold">{user.userName}</span>
+                <span className="block text-sm font-semibold">{user.memberName}</span>
                 <span className="block truncate text-sm text-gray-500">
                   @{user.socialNickname}
                 </span>

@@ -38,8 +38,11 @@ import { useAuth } from "@/hooks";
 // Notification API 모킹
 const mockNotification = vi.fn();
 global.Notification = mockNotification as any;
-global.Notification.permission = "default";
-global.Notification.requestPermission = vi.fn(() => Promise.resolve("granted"));
+Object.defineProperty(global.Notification, 'permission', {
+  writable: true,
+  value: "default"
+});
+global.Notification.requestPermission = vi.fn(() => Promise.resolve("granted" as NotificationPermission));
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
@@ -69,6 +72,12 @@ describe("useNotifications", () => {
     vi.mocked(useAuth).mockReturnValue({
       isAuthenticated: false,
       user: null,
+      isLoading: false,
+      login: vi.fn(),
+      logout: vi.fn(),
+      signUp: vi.fn(),
+      updateUserName: vi.fn(),
+      refreshUser: vi.fn(),
     });
 
     const { result } = renderHook(() => useNotifications(), {
@@ -84,10 +93,19 @@ describe("useNotifications", () => {
     vi.mocked(useAuth).mockReturnValue({
       isAuthenticated: true,
       user: {
-        userId: 1,
-        userName: "",
+        memberId: 1,
+        settingId: 1,
+        socialNickname: "test",
+        thumbnailImage: "",
+        memberName: "",
         role: "USER",
       },
+      isLoading: false,
+      login: vi.fn(),
+      logout: vi.fn(),
+      signUp: vi.fn(),
+      updateUserName: vi.fn(),
+      refreshUser: vi.fn(),
     });
 
     const { result } = renderHook(() => useNotifications(), {
@@ -103,10 +121,19 @@ describe("useNotifications", () => {
     vi.mocked(useAuth).mockReturnValue({
       isAuthenticated: true,
       user: {
-        userId: 1,
-        userName: "테스트사용자",
+        memberId: 1,
+        settingId: 1,
+        socialNickname: "test",
+        thumbnailImage: "",
+        memberName: "테스트사용자",
         role: "USER",
       },
+      isLoading: false,
+      login: vi.fn(),
+      logout: vi.fn(),
+      signUp: vi.fn(),
+      updateUserName: vi.fn(),
+      refreshUser: vi.fn(),
     });
 
     vi.mocked(sseManager).isConnected.mockReturnValue(true);
@@ -135,15 +162,27 @@ describe("useNotifications", () => {
   });
 
   it("알림을 수신하면 브라우저 알림을 표시한다", async () => {
-    global.Notification.permission = "granted";
+    Object.defineProperty(global.Notification, 'permission', {
+      writable: true,
+      value: "granted"
+    });
 
     vi.mocked(useAuth).mockReturnValue({
       isAuthenticated: true,
       user: {
-        userId: 1,
-        userName: "테스트사용자",
+        memberId: 1,
+        settingId: 1,
+        socialNickname: "test",
+        thumbnailImage: "",
+        memberName: "테스트사용자",
         role: "USER",
       },
+      isLoading: false,
+      login: vi.fn(),
+      logout: vi.fn(),
+      signUp: vi.fn(),
+      updateUserName: vi.fn(),
+      refreshUser: vi.fn(),
     });
 
     renderHook(() => useNotifications(), {
@@ -158,8 +197,12 @@ describe("useNotifications", () => {
 
     // 알림 데이터로 이벤트 핸들러 실행
     const notificationData = {
+      id: 1,
+      notificationType: "COMMENT" as const,
       content: "새로운 댓글이 달렸습니다",
       url: "/post/123",
+      createdAt: new Date().toISOString(),
+      read: false,
     };
 
     eventHandler(notificationData);
@@ -175,10 +218,19 @@ describe("useNotifications", () => {
     vi.mocked(useAuth).mockReturnValue({
       isAuthenticated: true,
       user: {
-        userId: 1,
-        userName: "테스트사용자",
+        memberId: 1,
+        settingId: 1,
+        socialNickname: "test",
+        thumbnailImage: "",
+        memberName: "테스트사용자",
         role: "USER",
       },
+      isLoading: false,
+      login: vi.fn(),
+      logout: vi.fn(),
+      signUp: vi.fn(),
+      updateUserName: vi.fn(),
+      refreshUser: vi.fn(),
     });
 
     // 초기 상태: DISCONNECTED
@@ -211,10 +263,19 @@ describe("useNotifications", () => {
     vi.mocked(useAuth).mockReturnValue({
       isAuthenticated: true,
       user: {
-        userId: 1,
-        userName: "테스트사용자",
+        memberId: 1,
+        settingId: 1,
+        socialNickname: "test",
+        thumbnailImage: "",
+        memberName: "테스트사용자",
         role: "USER",
       },
+      isLoading: false,
+      login: vi.fn(),
+      logout: vi.fn(),
+      signUp: vi.fn(),
+      updateUserName: vi.fn(),
+      refreshUser: vi.fn(),
     });
 
     const { unmount } = renderHook(() => useNotifications(), {
@@ -241,10 +302,19 @@ describe("useNotifications", () => {
     vi.mocked(useAuth).mockReturnValue({
       isAuthenticated: true,
       user: {
-        userId: 1,
-        userName: "테스트사용자",
+        memberId: 1,
+        settingId: 1,
+        socialNickname: "test",
+        thumbnailImage: "",
+        memberName: "테스트사용자",
         role: "USER",
       },
+      isLoading: false,
+      login: vi.fn(),
+      logout: vi.fn(),
+      signUp: vi.fn(),
+      updateUserName: vi.fn(),
+      refreshUser: vi.fn(),
     });
     vi.mocked(sseManager).isConnected.mockReturnValue(true);
     vi.mocked(sseManager).getConnectionState.mockReturnValue("CONNECTED");
@@ -260,6 +330,12 @@ describe("useNotifications", () => {
     vi.mocked(useAuth).mockReturnValue({
       isAuthenticated: false,
       user: null,
+      isLoading: false,
+      login: vi.fn(),
+      logout: vi.fn(),
+      signUp: vi.fn(),
+      updateUserName: vi.fn(),
+      refreshUser: vi.fn(),
     });
 
     rerender();
@@ -275,10 +351,19 @@ describe("useNotifications", () => {
     vi.mocked(useAuth).mockReturnValue({
       isAuthenticated: true,
       user: {
-        userId: 1,
-        userName: "테스트사용자",
+        memberId: 1,
+        settingId: 1,
+        socialNickname: "test",
+        thumbnailImage: "",
+        memberName: "테스트사용자",
         role: "USER",
       },
+      isLoading: false,
+      login: vi.fn(),
+      logout: vi.fn(),
+      signUp: vi.fn(),
+      updateUserName: vi.fn(),
+      refreshUser: vi.fn(),
     });
 
     const { result } = renderHook(() => useNotifications(), {
@@ -293,15 +378,27 @@ describe("useNotifications", () => {
   });
 
   it("알림 권한이 거부된 경우 브라우저 알림을 표시하지 않는다", () => {
-    global.Notification.permission = "denied";
+    Object.defineProperty(global.Notification, 'permission', {
+      writable: true,
+      value: "denied"
+    });
 
     vi.mocked(useAuth).mockReturnValue({
       isAuthenticated: true,
       user: {
-        userId: 1,
-        userName: "테스트사용자",
+        memberId: 1,
+        settingId: 1,
+        socialNickname: "test",
+        thumbnailImage: "",
+        memberName: "테스트사용자",
         role: "USER",
       },
+      isLoading: false,
+      login: vi.fn(),
+      logout: vi.fn(),
+      signUp: vi.fn(),
+      updateUserName: vi.fn(),
+      refreshUser: vi.fn(),
     });
 
     renderHook(() => useNotifications(), {
@@ -310,8 +407,12 @@ describe("useNotifications", () => {
 
     const eventHandler = vi.mocked(sseManager).addEventListener.mock.calls[0][1];
     const notificationData = {
+      id: 1,
+      notificationType: "COMMENT" as const,
       content: "새로운 댓글이 달렸습니다",
       url: "/post/123",
+      createdAt: new Date().toISOString(),
+      read: false,
     };
 
     // 이벤트 핸들러 실행

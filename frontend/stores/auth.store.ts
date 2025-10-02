@@ -16,7 +16,7 @@ interface AuthState {
   refreshUser: () => Promise<void>;
   login: (postAuthRedirectUrl?: string) => void;
   logout: () => Promise<void>;
-  signUp: (userName: string, uuid: string) => Promise<{ success: boolean; error?: string }>;
+  signUp: (userName: string) => Promise<{ success: boolean; error?: string }>;
   updateUserName: (userName: string) => Promise<boolean>;
 
   
@@ -113,16 +113,16 @@ export const useAuthStore = create<AuthState>()(
           }
         },
         
-        signUp: async (userName: string, uuid: string) => {
+        signUp: async (userName: string) => {
           try {
-            const response = await authCommand.signUp(userName, uuid);
+            const response = await authCommand.signUp(userName);
             if (response.success) {
               await get().refreshUser();
               return { success: true };
             }
-            return { 
-              success: false, 
-              error: response.error || "회원가입에 실패했습니다." 
+            return {
+              success: false,
+              error: response.error || "회원가입에 실패했습니다."
             };
           } catch (error) {
             logger.error("SignUp failed:", error);

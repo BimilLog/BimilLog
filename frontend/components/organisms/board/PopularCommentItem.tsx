@@ -27,7 +27,7 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
   const { showError, showFeedback, showWarning } = useToast();
 
   const isMyComment = (comment: Comment) => {
-    return user?.userId === comment.userId;
+    return user?.memberId === comment.userId;
   };
 
   const handleReport = async () => {

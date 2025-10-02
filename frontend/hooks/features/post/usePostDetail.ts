@@ -135,11 +135,11 @@ export function usePostDetail(id: string | null, initialPost?: Post) {
     if (post.userName === "익명" || post.userName === null) {
       return !isAuthenticated;  // 익명 게시글은 로그인하지 않은 사용자만 수정 가능
     }
-    return isAuthenticated && user?.userName === post.userName;  // 로그인 게시글은 작성자만 수정 가능
+    return isAuthenticated && user?.memberName === post.userName;  // 로그인 게시글은 작성자만 수정 가능
   };
 
   const isMyComment = (comment: Comment) => {
-    return isAuthenticated && user?.userName === comment.userName;
+    return isAuthenticated && user?.memberName === comment.userName;
   };
 
   // 댓글 권한 체크: 익명 댓글은 비로그인 사용자만, 로그인 댓글은 작성자만 수정 가능
@@ -147,7 +147,7 @@ export function usePostDetail(id: string | null, initialPost?: Post) {
     if (comment.userName === "익명" || comment.userName === null) {
       return !isAuthenticated;
     }
-    return isAuthenticated && user?.userName === comment.userName;
+    return isAuthenticated && user?.memberName === comment.userName;
   };
 
   // Effects
