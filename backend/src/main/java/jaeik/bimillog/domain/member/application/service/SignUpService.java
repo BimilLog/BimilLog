@@ -26,8 +26,8 @@ import java.util.Optional;
 
 /**
  * <h2>회원가입 서비스</h2>
- * <p>소셜 로그인을 통한 신규 사용자의 회원가입을 처리하는 서비스입니다.</p>
- * <p>임시 데이터 조회, 사용자 계정 생성, 인증 쿠키 발급</p>
+ * <p>소셜 로그인 이후 Redis에 저장된 임시 프로필을 정식 회원으로 승격시키는 업무를 담당합니다.</p>
+ * <p>임시 데이터 조회 → Member/Setting 생성 → KakaoToken · AuthToken · FCM 저장 → JWT 쿠키 발급 흐름을 묶습니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -45,6 +45,16 @@ public class SignUpService implements SignUpUseCase {
     private final GlobalFcmSaveUseCase globalFcmSaveUseCase;
 
 
+    /**
+     * <h3>신규 회원 가입 처리</h3>
+     * <p>Redis에 저장된 소셜 프로필과 사용자가 입력한 표시 이름으로 정식 회원을 생성합니다.</p>
+     * <p>카카오 토큰/회원/인증 토큰/FCM 토큰을 순차적으로 저장하고 최종 JWT 쿠키를 발급합니다.</p>
+     *
+     * @param memberName 사용자가 입력한 표시 이름
+     * @param uuid Redis에 저장된 임시 프로필 키
+     * @return JWT 액세스/리프레시 쿠키 목록
+     * @throws AuthCustomException 임시 데이터가 만료되었거나 존재하지 않을 때
+     */
     @Override
     @Transactional
     public List<ResponseCookie> signUp(String memberName, String uuid) {

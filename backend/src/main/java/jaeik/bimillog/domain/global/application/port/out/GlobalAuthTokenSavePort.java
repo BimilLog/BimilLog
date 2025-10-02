@@ -2,7 +2,11 @@ package jaeik.bimillog.domain.global.application.port.out;
 
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 
-
+/**
+ * <h2>글로벌 AuthToken 저장 포트</h2>
+ * <p>Auth 도메인과 Member 도메인 어느 쪽에서 호출하더라도 동일한 저장 로직을 이용하도록 추상화합니다.</p>
+ * <p>소셜 로그인/회원가입 시 신규 {@link AuthToken}을 저장하거나, 리프레시 토큰을 회전시킬 때 갱신합니다.</p>
+ */
 public interface GlobalAuthTokenSavePort {
 
     /**

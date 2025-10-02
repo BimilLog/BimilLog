@@ -36,8 +36,10 @@ import java.util.UUID;
 
 /**
  * <h2>소셜 로그인 서비스</h2>
- * <p>소셜 플랫폼을 통한 로그인 및 계정 연동 해제를 처리하는 서비스입니다.</p>
- * <p>소셜 로그인 처리, 기존/신규 사용자 구분, 소셜 계정 연동 해제</p>
+ * <p>소셜 플랫폼 인증 결과를 조립하여 우리 시스템의 로그인 플로우를 완성합니다.</p>
+ * <p>프로필 조회 → 블랙리스트 검증 → 기존/신규 분기 → 토큰 발급까지 단일 트랜잭션으로 처리합니다.</p>
+ * <p>기존 회원은 Member 도메인에 프로필/카카오 토큰 갱신을 위임하고, 신규 회원은 Redis에 임시 정보를 저장합니다.</p>
+ * <p>Auth/Global 도메인 포트를 이용해 JWT·AuthToken·FCM 토큰을 최종적으로 발급합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -58,18 +60,16 @@ public class SocialLoginService implements SocialLoginUseCase {
 
     /**
      * <h3>소셜 플랫폼 로그인 처리</h3>
-     * <p>외부 소셜 플랫폼을 통한 사용자 인증 및 로그인을 처리합니다.</p>
-     * <p>기존 사용자는 즉시 로그인 처리하고, 신규 사용자는 회원가입을 위한 임시 데이터를 저장합니다.</p>
-     * <p>{@link AuthCommandController}에서 소셜 로그인 요청 처리 시 호출됩니다.</p>
+     * <p>외부 소셜 인증 결과(code)를 받아 우리 시스템의 로그인 결과로 변환합니다.</p>
+     * <p>기존 회원이라면 Member 도메인으로 프로필을 갱신하고 AuthToken/FCM/JWT를 발급합니다.</p>
+     * <p>신규 회원이라면 Redis에 임시 정보를 저장하고 가입 페이지로 넘길 UUID 임시 쿠키를 발급합니다.</p>
+     * <p>{@link AuthCommandController}에서 POST /auth/social 요청 처리 시 호출됩니다.</p>
      *
-     * @param provider 소셜 플랫폼 제공자 (DTO에서 이미 검증됨)
-     * @param code     OAuth 인가 코드 (DTO에서 이미 검증됨)
-     * @param fcmToken 푸시 알림용 Firebase Cloud Messaging 토큰 (선택사항)
-     * @return LoginResult 기존 사용자(쿠키) 또는 신규 사용자(UUID) 정보
-     * @throws AuthCustomException 블랙리스트 사용자인 경우
-     * @throws AuthCustomException 이미 로그인 상태인 경우
-     * @author Jaeik
-     * @since 2.0.0
+     * @param provider 소셜 플랫폼 제공자 (KAKAO 등)
+     * @param code     OAuth 인가 코드
+     * @param fcmToken 푸시용 FCM 토큰 (선택 사항)
+     * @return 로그인 완료 시 {@link LoginResult.ExistingUser}, 신규 회원이면 {@link LoginResult.NewUser}
+     * @throws AuthCustomException 블랙리스트 사용자 또는 이미 로그인한 사용자
      */
     @Override
     @Transactional

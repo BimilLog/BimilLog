@@ -48,7 +48,7 @@ class GlobalJwtAdapterTest {
                 .thumbnailImage("thumb.jpg")
                 .memberName("tester")
                 .role(MemberRole.USER)
-                .tokenId(99L)
+                .authTokenId(99L)
                 .fcmTokenId(777L)
                 .build();
     }
@@ -64,9 +64,10 @@ class GlobalJwtAdapterTest {
         MemberDetail parsed = globalJwtAdapter.getUserInfoFromToken(accessToken);
 
         assertThat(parsed.getMemberId()).isEqualTo(memberDetail.getMemberId());
-        assertThat(parsed.getTokenId()).isEqualTo(memberDetail.getTokenId());
+        assertThat(parsed.getAuthTokenId()).isEqualTo(memberDetail.getAuthTokenId());
         assertThat(parsed.getMemberName()).isEqualTo(memberDetail.getMemberName());
         assertThat(parsed.getProvider()).isEqualTo(memberDetail.getProvider());
+        assertThat(parsed.getFcmTokenId()).isEqualTo(memberDetail.getFcmTokenId());
     }
 
     @Test
@@ -75,7 +76,7 @@ class GlobalJwtAdapterTest {
         String refreshToken = globalJwtAdapter.generateRefreshToken(memberDetail);
 
         assertThat(refreshToken).isNotBlank();
-        assertThat(globalJwtAdapter.getTokenIdFromToken(refreshToken)).isEqualTo(memberDetail.getTokenId());
+        assertThat(globalJwtAdapter.getTokenIdFromToken(refreshToken)).isEqualTo(memberDetail.getAuthTokenId());
     }
 
     @Test

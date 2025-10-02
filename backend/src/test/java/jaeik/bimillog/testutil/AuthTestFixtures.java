@@ -40,7 +40,7 @@ public final class AuthTestFixtures {
                 .memberName(member.getMemberName())
                 .provider(member.getProvider())
                 .role(member.getRole())
-                .tokenId(tokenId)
+                .authTokenId(tokenId)
                 .fcmTokenId(fcmTokenId)
                 .build();
     }

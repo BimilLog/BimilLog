@@ -11,16 +11,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <h2>사용자 저장 서비스</h2>
- * <p>소셜 로그인 시 사용자 데이터 저장 및 처리를 담당하는 서비스입니다.</p>
- * <p>기존 사용자와 신규 사용자를 구분하여 각각 적절한 처리를 수행합니다.</p>
- * <p>Auth 도메인과 분리되어 순수하게 사용자 데이터 관리 책임만 가집니다.</p>
+ * <p>소셜 로그인 단계에서 Member 도메인이 담당해야 할 최소 책임만 수행합니다.</p>
+ * <p>기존 회원의 프로필/카카오 토큰을 갱신하거나, 신규 회원의 프로필 정보를 Redis에 임시 저장합니다.</p>
+ * <p>이 서비스는 엔티티 상태 변경에만 집중하고, JWT/FCM/토큰 발급은 상위(Auth) 서비스가 조립합니다.</p>
  *
- * <h3>주요 책임:</h3>
+ * <h3>책임 분리:</h3>
  * <ul>
- *   <li>소셜 로그인 사용자 조회 및 판별</li>
- *   <li>기존 사용자: 프로필 업데이트 및 토큰 저장</li>
- *   <li>신규 사용자: 임시 데이터 저장 및 UUID 발급</li>
- *   <li>FCM 토큰 등록 요청</li>
+ *   <li>기존 회원: 엔티티에 최신 프로필과 카카오 토큰을 적용</li>
+ *   <li>신규 회원: Redis에 {@link SocialMemberProfile}을 UUID 키와 함께 저장</li>
  * </ul>
  *
  * @author Jaeik
@@ -41,12 +39,9 @@ public class MemberSaveService implements MemberSaveUseCase {
     }
 
     /**
-     * <h3>신규 사용자 임시 데이터 저장</h3>
-     * <p>최초 소셜 로그인하는 사용자의 임시 정보를 저장합니다.</p>
-     * <p>회원가입 페이지에서 사용할 UUID 키를 생성합니다.</p>
-     *
-     * @author Jaeik
-     * @since 2.0.0
+     * <h3>신규 회원 임시 정보 저장</h3>
+     * <p>회원가입이 완료되기 전까지 사용할 소셜 프로필을 Redis에 저장합니다.</p>
+     * <p>이 메서드는 로그인 단계에서만 호출되며, UUID는 클라이언트 임시 쿠키와 매칭됩니다.</p>
      */
     @Override
     @Transactional
@@ -54,3 +49,4 @@ public class MemberSaveService implements MemberSaveUseCase {
         redisMemberDataPort.saveTempData(uuid, memberProfile);
     }
 }
+

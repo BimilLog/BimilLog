@@ -64,12 +64,13 @@ public class GlobalJwtAdapter implements GlobalJwtPort {
                 .setSubject(String.valueOf(userDetail.getMemberId()))
                 .claim("AuthTokenId", userDetail.getAuthTokenId())
                 .claim("socialId", userDetail.getSocialId())
-                .claim("provider", userDetail.getProvider())
+                .claim("provider", userDetail.getProvider() != null ? userDetail.getProvider().name() : null)
                 .claim("settingId", userDetail.getSettingId())
                 .claim("memberName", userDetail.getMemberName())
-                .claim("role", userDetail.getRole())
+                .claim("role", userDetail.getRole() != null ? userDetail.getRole().name() : null)
                 .claim("socialNickname", userDetail.getSocialNickname())
                 .claim("thumbnailImage", userDetail.getThumbnailImage())
+                .claim("fcmTokenId", userDetail.getFcmTokenId())
                 .setIssuedAt(new Date(now))
                 .setExpiration(validity)
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -134,14 +135,17 @@ public class GlobalJwtAdapter implements GlobalJwtPort {
     public MemberDetail getUserInfoFromToken(String jwtAccessToken) {
         Claims claims = getClaims(jwtAccessToken);
 
+        String provider = claims.get("provider", String.class);
+        String role = claims.get("role", String.class);
+
         return MemberDetail.builder()
                 .memberId(Long.parseLong(claims.getSubject()))
                 .socialId(claims.get("socialId", String.class))
-                .provider(SocialProvider.valueOf(claims.get("provider", String.class)))
+                .provider(provider != null ? SocialProvider.valueOf(provider) : null)
                 .socialNickname(claims.get("socialNickname", String.class))
                 .thumbnailImage(claims.get("thumbnailImage", String.class))
                 .memberName(claims.get("memberName", String.class))
-                .role(MemberRole.valueOf(claims.get("role", String.class)))
+                .role(role != null ? MemberRole.valueOf(role) : null)
                 .authTokenId(claims.get("AuthTokenId", Long.class))
                 .fcmTokenId(claims.get("fcmTokenId", Long.class))
                 .settingId(claims.get("settingId", Long.class))
