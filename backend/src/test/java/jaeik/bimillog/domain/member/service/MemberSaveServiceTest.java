@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
 import jaeik.bimillog.domain.member.application.port.out.RedisMemberDataPort;
 import jaeik.bimillog.domain.member.application.port.out.SaveMemberPort;
 import jaeik.bimillog.domain.member.application.service.MemberSaveService;
-import jaeik.bimillog.domain.member.entity.MemberDetail;
+import jaeik.bimillog.domain.auth.entity.MemberDetail;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import jaeik.bimillog.testutil.BaseUnitTest;
@@ -168,7 +168,7 @@ class MemberSaveServiceTest extends BaseUnitTest {
 
     @Test
     @DisplayName("신규 사용자 - FCM 토큰 없이 처리")
-    void shouldHandleNewUser_WithoutFcmToken() {
+    void shouldHandleNewMember_WithoutFcmToken() {
         // Given
         SocialMemberProfile profileWithoutFcm = new SocialMemberProfile(
             "kakao123",

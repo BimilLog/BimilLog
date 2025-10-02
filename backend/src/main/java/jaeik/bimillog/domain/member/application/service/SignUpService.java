@@ -9,7 +9,7 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.member.application.port.in.SignUpUseCase;
 import jaeik.bimillog.domain.member.application.port.out.RedisMemberDataPort;
 import jaeik.bimillog.domain.member.application.port.out.SaveMemberPort;
-import jaeik.bimillog.domain.member.entity.MemberDetail;
+import jaeik.bimillog.domain.auth.entity.MemberDetail;
 import jaeik.bimillog.infrastructure.adapter.in.member.web.MemberCommandController;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;

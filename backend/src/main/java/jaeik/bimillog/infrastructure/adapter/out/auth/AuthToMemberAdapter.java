@@ -1,13 +1,16 @@
 package jaeik.bimillog.infrastructure.adapter.out.auth;
 
 import jaeik.bimillog.domain.auth.application.port.out.AuthToMemberPort;
-import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
+import jaeik.bimillog.domain.member.application.port.in.MemberQueryUseCase;
 import jaeik.bimillog.domain.member.application.port.in.MemberSaveUseCase;
-import jaeik.bimillog.domain.member.entity.MemberDetail;
+import jaeik.bimillog.domain.member.entity.member.Member;
+import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
 
 /**
  * <h2>인증-사용자 도메인 연결 어댑터</h2>
@@ -33,20 +36,23 @@ import org.springframework.stereotype.Component;
 public class AuthToMemberAdapter implements AuthToMemberPort {
 
     private final MemberSaveUseCase memberSaveUseCase;
+    private final MemberQueryUseCase memberQueryUseCase;
 
-    /**
-     * <h3>사용자 데이터 처리 위임</h3>
-     * <p>Member 도메인에 사용자 처리를 위임하고 그 결과를 반환합니다.</p>
-     * <p>기존 사용자 또는 신규 사용자 정보를 MemberDetail 형태로 반환합니다.</p>
-     * <p>{@link SocialLoginService}에서 소셜 로그인 처리 시 호출됩니다.</p>
-     *
-     * @param profile 소셜 사용자 프로필 정보 (FCM 토큰, provider 포함)
-     * @return MemberDetail 기존 사용자(uuid = null) 또는 신규 사용자(uuid != null) 정보
-     * @author Jaeik
-     * @since 2.0.0
-     */
     @Override
-    public MemberDetail delegateUserData(SocialMemberProfile profile, KakaoToken kakaoToken) {
-        return memberSaveUseCase.processUserData(profile, kakaoToken);
+    public Member handleExistingMember(Member member, String newNickname, String newProfileImage, KakaoToken savedKakaoToken) {
+        return memberSaveUseCase.handleExistingMember(member, newNickname, newProfileImage, savedKakaoToken);
     }
+
+    @Override
+    public void handleNewUser(SocialMemberProfile memberProfile, String uuid) {
+        memberSaveUseCase.handleNewMember(memberProfile, uuid);
+    }
+
+    @Override
+    public Optional<Member> checkMember(SocialProvider provider, String socialId) {
+        return memberQueryUseCase.findByProviderAndSocialId(provider, socialId);
+    }
+
+
+
 }

@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.member.application.port.in;
 
+import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import jaeik.bimillog.domain.paper.application.service.PaperQueryService;
 import jaeik.bimillog.domain.post.application.service.PostCommandService;
 import jaeik.bimillog.domain.post.application.service.PostInteractionService;
@@ -80,4 +81,7 @@ public interface MemberQueryUseCase {
      * @author Jaeik
      */
     Setting findBySettingId(Long settingId);
+
+    Optional<Member> findByProviderAndSocialId(SocialProvider provider, String socialId);
+
 }

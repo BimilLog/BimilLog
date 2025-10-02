@@ -1,10 +1,8 @@
 package jaeik.bimillog.domain.member.application.port.out;
 
+import jaeik.bimillog.domain.auth.entity.MemberDetail;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.member.application.service.MemberSaveService;
 import jaeik.bimillog.domain.member.application.service.SignUpService;
-import jaeik.bimillog.domain.member.entity.MemberDetail;
-import jaeik.bimillog.domain.member.entity.member.Member;
 
 /**
  * <h2>사용자 정보 저장 포트</h2>
@@ -15,20 +13,6 @@ import jaeik.bimillog.domain.member.entity.member.Member;
  * @version 2.0.0
  */
 public interface SaveMemberPort {
-
-    /**
-     * <h3>기존 사용자 로그인 처리</h3>
-     * <p>기존 회원의 소셜 로그인 시 사용자 정보를 업데이트하고 상세 정보를 반환합니다.</p>
-     * <p>최신 소셜 프로필 정보 동기화, AuthToken 엔티티 생성/저장, FCM 토큰 등록을 처리합니다.</p>
-     * <p>{@link MemberSaveService}에서 기존 회원 소셜 로그인 완료 처리 시 호출됩니다.</p>
-     *
-     * @param existingMember 기존 사용자 엔티티
-     * @param userProfile 소셜 플랫폼에서 가져온 최신 사용자 프로필 정보 (OAuth 액세스/리프레시 토큰, FCM 토큰 포함)
-     * @return MemberDetail 기존 사용자 상세 정보 (uuid = null)
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    MemberDetail handleExistingUserData(Member existingMember, SocialMemberProfile userProfile);
 
     /**
      * <h3>신규 사용자 정보 저장</h3>

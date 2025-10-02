@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.member.entity;
+package jaeik.bimillog.domain.auth.entity;
 
 import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.domain.member.entity.member.MemberRole;
@@ -60,7 +60,7 @@ public class MemberDetail {
 
     // 인증 관련 추가 필드
     @Nullable
-    private Long tokenId;
+    private Long authTokenId;
 
     @Nullable
     private Long fcmTokenId;
@@ -78,11 +78,11 @@ public class MemberDetail {
      * <p>기존 회원의 상세 정보를 생성합니다. uuid는 null로 설정됩니다.</p>
      *
      * @param member Member 엔티티
-     * @param tokenId AuthToken ID
+     * @param authTokenId AuthToken ID
      * @param fcmTokenId FCM 토큰 ID (nullable)
      * @return MemberDetail 객체
      */
-    public static MemberDetail ofExisting(Member member, Long tokenId, @Nullable Long fcmTokenId) {
+    public static MemberDetail ofExisting(Member member, Long authTokenId, @Nullable Long fcmTokenId) {
         Long settingId = (member.getSetting() != null) ? member.getSetting().getId() : null;
 
         return MemberDetail.builder()
@@ -94,7 +94,7 @@ public class MemberDetail {
                 .thumbnailImage(member.getThumbnailImage())
                 .memberName(member.getMemberName())
                 .role(member.getRole())
-                .tokenId(tokenId)
+                .authTokenId(authTokenId)
                 .fcmTokenId(fcmTokenId)
                 .uuid(null)
                 .build();

@@ -1,14 +1,12 @@
 package jaeik.bimillog.domain.notification.application.service;
 
+import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
 import jaeik.bimillog.domain.notification.application.port.out.FcmPort;
 import jaeik.bimillog.domain.notification.application.port.out.NotificationUtilPort;
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
-import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
-import jaeik.bimillog.domain.member.entity.member.Member;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -45,20 +43,11 @@ public class FcmService implements FcmUseCase {
      */
     @Override
     public Long registerFcmToken(Member member, String fcmToken) {
-        if (member == null) {
-            throw new NotificationCustomException(NotificationErrorCode.NOTIFICATION_USER_NOT_FOUND);
+        if (fcmToken != null && !fcmToken.isEmpty()) {
+            FcmToken savedToken = fcmPort.save(FcmToken.create(member, fcmToken));
+            return savedToken.getId();
         }
-
-        log.info("FCM 토큰 등록 처리 시작: 사용자 ID={}", member.getId());
-
-        if (fcmToken == null || fcmToken.isEmpty()) {
-            log.warn("FCM 토큰이 비어있습니다. 사용자 ID={}", member.getId());
-            return null;
-        }
-
-        FcmToken savedToken = fcmPort.save(FcmToken.create(member, fcmToken));
-        log.info("FCM 토큰 등록 완료: 사용자 ID={}, 토큰 ID={}", member.getId(), savedToken.getId());
-        return savedToken.getId();
+        return null;
     }
 
     /**

@@ -6,7 +6,7 @@ import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.member.application.port.out.SaveMemberPort;
-import jaeik.bimillog.domain.member.entity.MemberDetail;
+import jaeik.bimillog.domain.auth.entity.MemberDetail;
 import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.entity.member.Member;
@@ -40,30 +40,6 @@ public class SaveMemberAdapter implements SaveMemberPort {
     private final KakaoTokenPort kakaoTokenPort;
     private final MemberRepository userRepository;
     private final FcmUseCase fcmUseCase;
-
-    /**
-     * <h3>기존 사용자 로그인 처리</h3>
-     * <p>기존 회원의 소셜 로그인 시 사용자 정보 업데이트와 JWT 쿠키 발급을 처리합니다.</p>
-     * <p>프로필 정보 동기화, 새로운 AuthToken 엔티티 생성/저장, FCM 토큰 등록, JWT 쿠키 발급을 수행합니다.</p>
-     *
-     * @param userProfile 소셜 사용자 프로필 (OAuth 액세스/리프레시 토큰, FCM 토큰 포함)
-     * @return JWT 인증 쿠키 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    @Transactional
-    public MemberDetail handleExistingUserData(Member existingMember, SocialMemberProfile userProfile) {
-        existingMember.updateMemberInfo(userProfile.getNickname(), userProfile.getProfileImageUrl());
-
-        Long fcmTokenId = registerFcmTokenIfPresent(existingMember, userProfile.getFcmToken());
-
-        // AuthToken 엔티티 생성 (JWT 리프레시 토큰은 빈 문자열, SocialLoginService에서 업데이트)
-        AuthToken newAuthToken = AuthToken.createToken("", existingMember);
-        Long tokenId = authTokenPort.save(newAuthToken).getId();
-
-        return MemberDetail.ofExisting(existingMember, tokenId, fcmTokenId);
-    }
 
     /**
      * <h3>신규 사용자 등록</h3>
@@ -102,29 +78,12 @@ public class SaveMemberAdapter implements SaveMemberPort {
             )
         );
 
-        Long fcmTokenId = registerFcmTokenIfPresent(member, userProfile.getFcmToken());
+        Long fcmTokenId = fcmUseCase.registerFcmToken(member, userProfile.getFcmToken());
 
         // 3. AuthToken 엔티티 생성 (JWT 리프레시 토큰은 빈 문자열, SocialLoginService에서 업데이트)
         AuthToken newAuthToken = AuthToken.createToken("", member);
         Long tokenId = authTokenPort.save(newAuthToken).getId();
 
         return MemberDetail.ofExisting(member, tokenId, fcmTokenId);
-    }
-
-    /**
-     * <h3>FCM 토큰 등록 처리</h3>
-     * <p>FCM 토큰이 존재할 경우에만 알림 서비스에 등록합니다.</p>
-     *
-     * @param member 사용자
-     * @param fcmToken FCM 토큰 (빈 문자열이나 null인 경우 무시)
-     * @return 저장된 FCM 토큰 ID (토큰이 없거나 빈 값인 경우 null)
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private Long registerFcmTokenIfPresent(Member member, String fcmToken) {
-        if (fcmToken != null && !fcmToken.isEmpty()) {
-            return fcmUseCase.registerFcmToken(member, fcmToken);
-        }
-        return null;
     }
 }

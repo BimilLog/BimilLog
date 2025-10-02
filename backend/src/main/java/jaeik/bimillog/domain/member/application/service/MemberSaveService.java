@@ -3,18 +3,11 @@ package jaeik.bimillog.domain.member.application.service;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.member.application.port.in.MemberSaveUseCase;
-import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
 import jaeik.bimillog.domain.member.application.port.out.RedisMemberDataPort;
-import jaeik.bimillog.domain.member.application.port.out.SaveMemberPort;
-import jaeik.bimillog.domain.member.entity.MemberDetail;
 import jaeik.bimillog.domain.member.entity.member.Member;
-import jaeik.bimillog.infrastructure.adapter.out.auth.AuthToMemberAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
-import java.util.UUID;
 
 /**
  * <h2>사용자 저장 서비스</h2>
@@ -37,51 +30,27 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class MemberSaveService implements MemberSaveUseCase {
 
-    private final MemberQueryPort memberQueryPort;
-    private final SaveMemberPort saveMemberPort;
     private final RedisMemberDataPort redisMemberDataPort;
 
-    /**
-     * <h3>사용자 데이터 저장 및 처리</h3>
-     * <p>소셜 로그인 정보를 바탕으로 사용자 데이터를 저장하거나 업데이트합니다.</p>
-     * <p>기존 사용자는 정보를 업데이트하고, 신규 사용자는 임시 데이터를 저장합니다.</p>
-     * <p>{@link AuthToMemberAdapter}에서 Auth 도메인의 요청을 받아 호출됩니다.</p>
-     * <p>기존 사용자와 신규 사용자를 구분하여 각각의 로그인 처리를 수행합니다.</p>
-     * <p>기존 사용자: 프로필 업데이트 후 즉시 로그인 완료 (uuid = null)</p>
-     * <p>신규 사용자: 임시 데이터 저장 후 회원가입 페이지로 안내 (uuid != null)</p>
-     *
-     * @param userProfile 소셜 사용자 프로필 정보 (FCM 토큰, provider 포함)
-     * @return MemberDetail 기존 사용자(uuid = null) 또는 신규 사용자(uuid != null) 정보
-     * @author Jaeik
-     * @since 3.0.0
-     */
     @Override
     @Transactional
-    public MemberDetail processUserData(SocialMemberProfile memberProfile, KakaoToken kakaoToken) {
-        Optional<Member> existingUser = memberQueryPort.findByProviderAndSocialId(memberProfile.getProvider(), memberProfile.getSocialId());
-        if (existingUser.isPresent()) {
-            Member member = existingUser.get();
-            member.updateKakaoToken(kakaoToken);
-            return saveMemberPort.handleExistingUserData(member, memberProfile);
-        } else {
-            return handleNewUser(memberProfile);
-        }
+    public Member handleExistingMember(Member member, String newNickname, String newProfileImage, KakaoToken savedKakaoToken) {
+        member.updateKakaoToken(savedKakaoToken);
+        member.updateMemberInfo(newNickname, newProfileImage);
+        return member;
     }
 
     /**
      * <h3>신규 사용자 임시 데이터 저장</h3>
      * <p>최초 소셜 로그인하는 사용자의 임시 정보를 저장합니다.</p>
      * <p>회원가입 페이지에서 사용할 UUID 키를 생성합니다.</p>
-     * <p>{@link #processUserData(SocialMemberProfile)}에서 신규 사용자 판별 후 호출됩니다.</p>
      *
-     * @param authResult 소셜 로그인 인증 결과 (FCM 토큰 포함)
-     * @return MemberDetail 회원가입용 UUID를 포함하는 신규 사용자 정보
      * @author Jaeik
-     * @since 3.0.0
+     * @since 2.0.0
      */
-    private MemberDetail handleNewUser(SocialMemberProfile memberProfile) {
-        String uuid = UUID.randomUUID().toString();
+    @Override
+    @Transactional
+    public void handleNewMember(SocialMemberProfile memberProfile, String uuid) {
         redisMemberDataPort.saveTempData(uuid, memberProfile);
-        return MemberDetail.ofNew(uuid);
     }
 }
