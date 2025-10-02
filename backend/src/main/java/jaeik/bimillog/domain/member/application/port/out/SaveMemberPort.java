@@ -1,8 +1,7 @@
 package jaeik.bimillog.domain.member.application.port.out;
 
-import jaeik.bimillog.domain.auth.entity.MemberDetail;
-import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.member.application.service.SignUpService;
+import jaeik.bimillog.domain.member.entity.member.Member;
 
 /**
  * <h2>사용자 정보 저장 포트</h2>
@@ -26,6 +25,6 @@ public interface SaveMemberPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    MemberDetail saveNewMember(String memberName, SocialMemberProfile userProfile);
+    Member saveNewMember(Member member);
 
 }

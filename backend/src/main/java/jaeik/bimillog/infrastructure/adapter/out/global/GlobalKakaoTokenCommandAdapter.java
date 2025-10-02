@@ -1,7 +1,8 @@
-package jaeik.bimillog.infrastructure.adapter.out.auth;
+package jaeik.bimillog.infrastructure.adapter.out.global;
 
-import jaeik.bimillog.domain.auth.application.port.out.KakaoTokenPort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalKakaoTokenCommandPort;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
+import jaeik.bimillog.infrastructure.adapter.out.auth.KakaoTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Component
 @RequiredArgsConstructor
-public class KakaoTokenAdapter implements KakaoTokenPort {
+public class GlobalKakaoTokenCommandAdapter implements GlobalKakaoTokenCommandPort {
 
     private final KakaoTokenRepository kakaoTokenRepository;
 
@@ -34,25 +35,6 @@ public class KakaoTokenAdapter implements KakaoTokenPort {
     @Override
     public KakaoToken save(KakaoToken kakaoToken) {
         return kakaoTokenRepository.save(kakaoToken);
-    }
-
-    /**
-     * <h3>카카오 토큰 업데이트</h3>
-     * <p>로그인 시 갱신된 카카오 토큰 정보를 업데이트합니다.</p>
-     * <p>Member ID로 KakaoToken을 조회하여 액세스 토큰과 리프레시 토큰을 갱신합니다.</p>
-     *
-     * @param memberId 사용자 ID
-     * @param kakaoAccessToken 새로운 카카오 액세스 토큰
-     * @param kakaoRefreshToken 새로운 카카오 리프레시 토큰
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    @Transactional
-    public void updateTokens(Long memberId, String kakaoAccessToken, String kakaoRefreshToken) {
-        KakaoToken kakaoToken = kakaoTokenRepository.findByMemberId(memberId)
-                .orElseThrow(() -> new RuntimeException("카카오 토큰을 조회할 수 없습니다. 아이디: " + memberId));
-        kakaoToken.updateTokens(kakaoAccessToken, kakaoRefreshToken);
     }
 
     /**

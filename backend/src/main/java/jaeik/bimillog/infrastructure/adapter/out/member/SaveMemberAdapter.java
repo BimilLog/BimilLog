@@ -1,14 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.out.member;
 
-import jaeik.bimillog.domain.auth.application.port.out.KakaoTokenPort;
-import jaeik.bimillog.domain.auth.application.port.out.AuthTokenPort;
-import jaeik.bimillog.domain.auth.entity.AuthToken;
-import jaeik.bimillog.domain.auth.entity.KakaoToken;
-import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.member.application.port.out.SaveMemberPort;
-import jaeik.bimillog.domain.auth.entity.MemberDetail;
-import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
-import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -36,10 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class SaveMemberAdapter implements SaveMemberPort {
 
-    private final AuthTokenPort authTokenPort;
-    private final KakaoTokenPort kakaoTokenPort;
     private final MemberRepository userRepository;
-    private final FcmUseCase fcmUseCase;
 
     /**
      * <h3>신규 사용자 등록</h3>
@@ -54,36 +43,7 @@ public class SaveMemberAdapter implements SaveMemberPort {
      */
     @Override
     @Transactional
-    public MemberDetail saveNewMember(String memberName, SocialMemberProfile userProfile) {
-        Setting setting = Setting.createSetting();
-
-        // 1. KakaoToken 생성 및 저장
-        KakaoToken kakaoToken = kakaoTokenPort.save(
-            KakaoToken.createKakaoToken(
-                userProfile.getKakaoAccessToken(),
-                userProfile.getKakaoRefreshToken()
-            )
-        );
-
-        // 2. Member 생성 (KakaoToken 포함)
-        Member member = userRepository.save(
-            Member.createMember(
-                userProfile.getSocialId(),
-                userProfile.getProvider(),
-                userProfile.getNickname(),
-                userProfile.getProfileImageUrl(),
-                memberName,
-                setting,
-                kakaoToken
-            )
-        );
-
-        Long fcmTokenId = fcmUseCase.registerFcmToken(member, userProfile.getFcmToken());
-
-        // 3. AuthToken 엔티티 생성 (JWT 리프레시 토큰은 빈 문자열, SocialLoginService에서 업데이트)
-        AuthToken newAuthToken = AuthToken.createToken("", member);
-        Long tokenId = authTokenPort.save(newAuthToken).getId();
-
-        return MemberDetail.ofExisting(member, tokenId, fcmTokenId);
+    public Member saveNewMember(Member member) {
+        return userRepository.save(member);
     }
 }

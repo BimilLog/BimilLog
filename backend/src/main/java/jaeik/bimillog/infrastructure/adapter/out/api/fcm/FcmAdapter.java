@@ -3,7 +3,6 @@ package jaeik.bimillog.infrastructure.adapter.out.api.fcm;
 import com.google.auth.oauth2.GoogleCredentials;
 import jaeik.bimillog.domain.notification.application.port.out.FcmPort;
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
-import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.infrastructure.adapter.out.api.dto.FcmMessageDTO;
 import jaeik.bimillog.infrastructure.adapter.out.notification.FcmTokenRepository;
 import lombok.RequiredArgsConstructor;
@@ -55,20 +54,6 @@ public class FcmAdapter implements FcmPort {
         );
     }
 
-
-    /**
-     * <h3>FCM 토큰 저장</h3>
-     * <p>FCM 토큰 엔티티를 저장합니다.</p>
-     *
-     * @param fcmToken 저장할 FCM 토큰 엔티티
-     * @return 저장된 FCM 토큰 엔티티
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public FcmToken save(FcmToken fcmToken) {
-        return fcmTokenRepository.save(fcmToken);
-    }
 
     /**
      * <h3>FCM 토큰 삭제</h3>

@@ -2,15 +2,24 @@
 package jaeik.bimillog.domain.auth.application.service;
 
 import jaeik.bimillog.domain.auth.application.port.in.SocialLoginUseCase;
-import jaeik.bimillog.domain.auth.application.port.out.*;
-import jaeik.bimillog.domain.auth.entity.*;
+import jaeik.bimillog.domain.auth.application.port.out.AuthToMemberPort;
+import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
+import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
+import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
+import jaeik.bimillog.domain.auth.entity.AuthToken;
+import jaeik.bimillog.domain.auth.entity.KakaoToken;
+import jaeik.bimillog.domain.auth.entity.LoginResult;
+import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
+import jaeik.bimillog.domain.global.application.port.in.GlobalFcmSaveUseCase;
+import jaeik.bimillog.domain.global.application.port.out.GlobalAuthTokenSavePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalKakaoTokenCommandPort;
+import jaeik.bimillog.domain.global.entity.MemberDetail;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
-import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
 import jaeik.bimillog.infrastructure.adapter.in.auth.web.AuthCommandController;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,9 +52,9 @@ public class SocialLoginService implements SocialLoginUseCase {
     private final BlacklistPort blacklistPort;
     private final GlobalCookiePort globalCookiePort;
     private final GlobalJwtPort globalJwtPort;
-    private final AuthTokenPort authTokenPort;
-    private final KakaoTokenPort kakaoTokenPort;
-    private final FcmUseCase fcmUseCase;
+    private final GlobalAuthTokenSavePort globalAuthTokenSavePort;
+    private final GlobalKakaoTokenCommandPort globalKakaoTokenCommandPort;
+    private final GlobalFcmSaveUseCase globalFcmSaveUseCase;
 
     /**
      * <h3>소셜 플랫폼 로그인 처리</h3>
@@ -93,18 +102,18 @@ public class SocialLoginService implements SocialLoginUseCase {
             Member existingMember = member.get();
 
             // 5-1 카카오 토큰 생성
-            KakaoToken receivedKakaoToken = KakaoToken.createKakaoToken(kakaoAccessToken, kakaoRefreshToken);
-            KakaoToken savedKakaoToken = kakaoTokenPort.save(receivedKakaoToken);
+            KakaoToken initialKakaoToken = KakaoToken.createKakaoToken(kakaoAccessToken, kakaoRefreshToken);
+            KakaoToken persistedKakaoToken = globalKakaoTokenCommandPort.save(initialKakaoToken);
 
             // 5-2 멤버 정보 업데이트
-            Member updateMember = authToMemberPort.handleExistingMember(existingMember, nickname, profileImageUrl, savedKakaoToken);
+            Member updateMember = authToMemberPort.handleExistingMember(existingMember, nickname, profileImageUrl, persistedKakaoToken);
 
             // 5-3 AuthToken 생성
             AuthToken initialAuthToken = AuthToken.createToken("", updateMember);
-            AuthToken persistedAuthToken = authTokenPort.save(initialAuthToken);
+            AuthToken persistedAuthToken = globalAuthTokenSavePort.save(initialAuthToken);
 
             // 5-4 FCM 토큰 생성
-            Long fcmTokenId = fcmUseCase.registerFcmToken(updateMember, fcmToken);
+            Long fcmTokenId = globalFcmSaveUseCase.registerFcmToken(updateMember, fcmToken);
 
             // 5-5 MemberDetail 생성
             MemberDetail memberDetail = MemberDetail.ofExisting(updateMember, persistedAuthToken.getId(), fcmTokenId);
@@ -112,7 +121,7 @@ public class SocialLoginService implements SocialLoginUseCase {
             // 5-6 액세스 토큰 및 리프레시 토큰 생성 및 업데이트
             String accessToken = globalJwtPort.generateAccessToken(memberDetail);
             String refreshToken = globalJwtPort.generateRefreshToken(memberDetail);
-            authTokenPort.updateJwtRefreshToken(persistedAuthToken.getId(), refreshToken);
+            globalAuthTokenSavePort.updateJwtRefreshToken(persistedAuthToken.getId(), refreshToken);
 
             // 5-7 JWT 쿠키 생성 및 반환
             List<ResponseCookie> cookies = globalCookiePort.generateJwtCookie(accessToken, refreshToken);

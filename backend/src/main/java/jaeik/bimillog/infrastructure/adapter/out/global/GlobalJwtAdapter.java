@@ -4,7 +4,7 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
-import jaeik.bimillog.domain.auth.entity.MemberDetail;
+import jaeik.bimillog.domain.global.entity.MemberDetail;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import jaeik.bimillog.domain.member.entity.member.MemberRole;
 import jakarta.annotation.PostConstruct;
@@ -62,12 +62,12 @@ public class GlobalJwtAdapter implements GlobalJwtPort {
 
         return Jwts.builder()
                 .setSubject(String.valueOf(userDetail.getMemberId()))
-                .claim("tokenId", userDetail.getTokenId())
+                .claim("AuthTokenId", userDetail.getAuthTokenId())
                 .claim("socialId", userDetail.getSocialId())
-                .claim("provider", userDetail.getProvider().name())
+                .claim("provider", userDetail.getProvider())
                 .claim("settingId", userDetail.getSettingId())
                 .claim("memberName", userDetail.getMemberName())
-                .claim("role", userDetail.getRole().name())
+                .claim("role", userDetail.getRole())
                 .claim("socialNickname", userDetail.getSocialNickname())
                 .claim("thumbnailImage", userDetail.getThumbnailImage())
                 .setIssuedAt(new Date(now))
@@ -91,7 +91,7 @@ public class GlobalJwtAdapter implements GlobalJwtPort {
         Date validity = new Date(now + (3600000L * 720));
 
         return Jwts.builder()
-                .setSubject(String.valueOf(userDetail.getTokenId()))
+                .setSubject(String.valueOf(userDetail.getAuthTokenId()))
                 .setIssuedAt(new Date(now))
                 .setExpiration(validity)
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -142,7 +142,7 @@ public class GlobalJwtAdapter implements GlobalJwtPort {
                 .thumbnailImage(claims.get("thumbnailImage", String.class))
                 .memberName(claims.get("memberName", String.class))
                 .role(MemberRole.valueOf(claims.get("role", String.class)))
-                .tokenId(claims.get("tokenId", Long.class))
+                .authTokenId(claims.get("AuthTokenId", Long.class))
                 .fcmTokenId(claims.get("fcmTokenId", Long.class))
                 .settingId(claims.get("settingId", Long.class))
                 .build();

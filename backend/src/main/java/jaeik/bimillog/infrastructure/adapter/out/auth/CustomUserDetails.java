@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.out.auth;
 
 import jaeik.bimillog.domain.member.entity.member.MemberRole;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
-import jaeik.bimillog.domain.auth.entity.MemberDetail;
+import jaeik.bimillog.domain.global.entity.MemberDetail;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -81,15 +81,15 @@ public class CustomUserDetails implements UserDetails {
     }
 
     /**
-     * <h3>사용자 토큰 ID 조회</h3>
+     * <h3>사용자 jwt ID 조회</h3>
      *
-     * <p>사용자의 토큰 ID를 반환한다.</p>
+     * <p>사용자의 JWT ID를 반환한다.</p>
      * @since 2.0.0
      * @author Jaeik
      * @return 토큰 ID
      */
     public Long getTokenId() {
-        return memberDetail.getTokenId();
+        return memberDetail.getAuthTokenId();
     }
 
     /**

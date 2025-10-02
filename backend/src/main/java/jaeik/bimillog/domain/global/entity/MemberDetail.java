@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.auth.entity;
+package jaeik.bimillog.domain.global.entity;
 
 import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.domain.member.entity.member.MemberRole;
@@ -33,45 +33,27 @@ import org.springframework.lang.Nullable;
 @AllArgsConstructor
 public class MemberDetail {
 
-    // 사용자 기본 정보
-    @Nullable
     private Long memberId;
 
-    @Nullable
     private String socialId;
 
-    @Nullable
     private SocialProvider provider;
 
-    @Nullable
     private Long settingId;
 
-    @Nullable
     private String socialNickname;
 
-    @Nullable
     private String thumbnailImage;
 
-    @Nullable
     private String memberName;
 
-    @Nullable
     private MemberRole role;
 
-    // 인증 관련 추가 필드
-    @Nullable
     private Long authTokenId;
 
     @Nullable
     private Long fcmTokenId;
 
-    /**
-     * 신규 회원 임시 식별자
-     * <p>신규 회원인 경우에만 값이 존재하며, 기존 회원은 null입니다.</p>
-     * <p>Redis에 저장된 임시 데이터 조회 키로 사용됩니다.</p>
-     */
-    @Nullable
-    private String uuid;
 
     /**
      * <h3>기존 회원용 팩토리 메서드</h3>
@@ -96,20 +78,6 @@ public class MemberDetail {
                 .role(member.getRole())
                 .authTokenId(authTokenId)
                 .fcmTokenId(fcmTokenId)
-                .uuid(null)
-                .build();
-    }
-
-    /**
-     * <h3>신규 회원용 팩토리 메서드</h3>
-     * <p>신규 회원의 임시 정보를 생성합니다. uuid만 설정되고 나머지는 null입니다.</p>
-     *
-     * @param uuid 임시 사용자 식별자
-     * @return MemberDetail 객체
-     */
-    public static MemberDetail ofNew(String uuid) {
-        return MemberDetail.builder()
-                .uuid(uuid)
                 .build();
     }
 }

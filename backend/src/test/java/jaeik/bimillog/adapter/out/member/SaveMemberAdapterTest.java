@@ -1,11 +1,11 @@
 package jaeik.bimillog.adapter.out.member;
 
 import jaeik.bimillog.domain.auth.application.port.out.AuthTokenPort;
-import jaeik.bimillog.domain.auth.application.port.out.KakaoTokenPort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalKakaoTokenCommandPort;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.auth.entity.MemberDetail;
+import jaeik.bimillog.domain.global.entity.MemberDetail;
 import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
@@ -38,7 +38,7 @@ import static org.mockito.Mockito.verify;
 class SaveMemberAdapterTest extends BaseUnitTest {
 
     @Mock private AuthTokenPort authTokenPort;
-    @Mock private KakaoTokenPort kakaoTokenPort;
+    @Mock private GlobalKakaoTokenCommandPort globalKakaoTokenCommandPort;
     @Mock private MemberRepository memberRepository;
     @Mock private FcmUseCase fcmUseCase;
 
@@ -76,7 +76,7 @@ class SaveMemberAdapterTest extends BaseUnitTest {
         assertThat(existingMember.getThumbnailImage()).isEqualTo("https://updated-profile.jpg");
 
         // 카카오 토큰 업데이트 검증
-        verify(kakaoTokenPort).updateTokens(
+        verify(globalKakaoTokenCommandPort).updateTokens(
             existingMember.getId(),
             "access-TemporaryToken",
             "refresh-TemporaryToken"
@@ -121,7 +121,7 @@ class SaveMemberAdapterTest extends BaseUnitTest {
         MemberDetail result = saveMemberAdapter.handleExistingUserData(existingMember, memberProfile);
 
         // Then: 카카오 토큰 업데이트 검증
-        verify(kakaoTokenPort).updateTokens(
+        verify(globalKakaoTokenCommandPort).updateTokens(
             existingMember.getId(),
             "access-TemporaryToken",
             "refresh-TemporaryToken"
@@ -161,7 +161,7 @@ class SaveMemberAdapterTest extends BaseUnitTest {
                 .useCount(0)
                 .build();
 
-        given(kakaoTokenPort.save(any(KakaoToken.class))).willReturn(savedKakaoToken);
+        given(globalKakaoTokenCommandPort.save(any(KakaoToken.class))).willReturn(savedKakaoToken);
         given(memberRepository.save(any(Member.class))).willReturn(newMember);
         given(authTokenPort.save(any(AuthToken.class))).willReturn(newAuthToken);
         given(fcmUseCase.registerFcmToken(newMember, fcmToken)).willReturn(fcmTokenId);
@@ -171,7 +171,7 @@ class SaveMemberAdapterTest extends BaseUnitTest {
 
         // Then: 카카오 토큰 저장 검증
         ArgumentCaptor<KakaoToken> kakaoTokenCaptor = ArgumentCaptor.forClass(KakaoToken.class);
-        verify(kakaoTokenPort).save(kakaoTokenCaptor.capture());
+        verify(globalKakaoTokenCommandPort).save(kakaoTokenCaptor.capture());
         KakaoToken capturedKakaoToken = kakaoTokenCaptor.getValue();
         assertThat(capturedKakaoToken.getKakaoAccessToken()).isEqualTo("access-TemporaryToken");
         assertThat(capturedKakaoToken.getKakaoRefreshToken()).isEqualTo("refresh-TemporaryToken");
@@ -223,7 +223,7 @@ class SaveMemberAdapterTest extends BaseUnitTest {
                 .useCount(0)
                 .build();
 
-        given(kakaoTokenPort.save(any(KakaoToken.class))).willReturn(savedKakaoToken);
+        given(globalKakaoTokenCommandPort.save(any(KakaoToken.class))).willReturn(savedKakaoToken);
         given(memberRepository.save(any(Member.class))).willReturn(newMember);
         given(authTokenPort.save(any(AuthToken.class))).willReturn(newAuthToken);
 
@@ -231,7 +231,7 @@ class SaveMemberAdapterTest extends BaseUnitTest {
         MemberDetail result = saveMemberAdapter.saveNewMember(memberName, memberProfile);
 
         // Then: 카카오 토큰 저장 검증
-        verify(kakaoTokenPort).save(any(KakaoToken.class));
+        verify(globalKakaoTokenCommandPort).save(any(KakaoToken.class));
 
         // FCM 토큰이 null이므로 FCM 등록 호출되지 않음
         verify(fcmUseCase, never()).registerFcmToken(any(), any());

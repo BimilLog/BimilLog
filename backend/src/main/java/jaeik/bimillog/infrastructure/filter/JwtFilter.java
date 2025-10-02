@@ -3,11 +3,12 @@ package jaeik.bimillog.infrastructure.filter;
 import jaeik.bimillog.domain.auth.application.port.in.BlacklistUseCase;
 import jaeik.bimillog.domain.auth.application.port.out.AuthTokenPort;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
+import jaeik.bimillog.domain.global.application.port.out.GlobalAuthTokenSavePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
-import jaeik.bimillog.domain.auth.entity.MemberDetail;
+import jaeik.bimillog.domain.global.entity.MemberDetail;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -45,6 +46,7 @@ public class JwtFilter extends OncePerRequestFilter {
     private final GlobalCookiePort globalCookiePort;
     private final BlacklistUseCase blacklistUseCase;
     private final AuthTokenPort authTokenPort;
+    private final GlobalAuthTokenSavePort globalAuthTokenSavePort;
 
     /**
      * <h3>필터 제외 경로 설정</h3>
@@ -162,7 +164,7 @@ public class JwtFilter extends OncePerRequestFilter {
                     String newRefreshToken = globalJwtPort.generateRefreshToken(userDetail);
 
                     // DB 업데이트
-                    authTokenPort.updateJwtRefreshToken(tokenId, newRefreshToken);
+                    globalAuthTokenSavePort.updateJwtRefreshToken(tokenId, newRefreshToken);
 
                     // 새 리프레시 토큰 쿠키 발급
                     ResponseCookie refreshCookie = globalCookiePort.generateJwtRefreshCookie(newRefreshToken);
