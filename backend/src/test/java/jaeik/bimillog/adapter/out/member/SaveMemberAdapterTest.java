@@ -1,14 +1,14 @@
-package jaeik.bimillog.adapter.out.member;
+package jaeik.bimillog.infrastructure.adapter.out.member;
 
 import jaeik.bimillog.domain.member.entity.member.Member;
-import jaeik.bimillog.infrastructure.adapter.out.member.MemberRepository;
-import jaeik.bimillog.testutil.BaseUnitTest;
-import jaeik.bimillog.testutil.TestMembers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+
+import jaeik.bimillog.testutil.BaseUnitTest;
+import jaeik.bimillog.testutil.TestMembers;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;

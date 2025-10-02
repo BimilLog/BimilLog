@@ -71,24 +71,7 @@ public class TestSocialLoginPortConfig {
 
         @Override
         public void getUserInfo(String accessToken) {
-            String socialId;
-
-            // accessToken에 따라 다른 회원 ID 반환 (테스트 목적)
-            if ("new-member-token".equals(accessToken)) {
-                socialId = "new-member-social-id";
-            } else if ("existing-member-token".equals(accessToken)) {
-                socialId = "test-social-id-12345"; // 통합 테스트에서 생성한 기존 회원 ID와 일치
-            } else {
-                socialId = "test-social-id";
-            }
-
-            KakaoMemberInfo.of(
-                    socialId,
-                    null, // 카카오는 이메일을 제공하지 않음
-                    SocialProvider.KAKAO,
-                    "Test Member",
-                    "https://example.com/profile.jpg"
-            );
+            // 테스트 더블에서는 사용자 정보 API 호출이 필요 없으므로 no-op 처리
         }
 
         @Override

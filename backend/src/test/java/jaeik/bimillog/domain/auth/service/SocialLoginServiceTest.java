@@ -33,6 +33,7 @@ import org.mockito.quality.Strictness;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -138,14 +139,6 @@ class SocialLoginServiceTest extends BaseUnitTest {
     void shouldProcessSocialLogin_WhenNewUser() {
         // Given
         SocialMemberProfile testMemberProfile = getTestMemberProfile();
-        ResponseCookie templateCookie = ResponseCookie.from("temp", "placeholder")
-                .path("/")
-                .maxAge(60 * 10)
-                .httpOnly(true)
-                .secure(true)
-                .sameSite("Lax")
-                .build();
-
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             mockAnonymousAuthentication(mockedSecurityContext);
 
@@ -156,12 +149,12 @@ class SocialLoginServiceTest extends BaseUnitTest {
             doNothing().when(authToMemberPort).handleNewUser(any(SocialMemberProfile.class), anyString());
             given(globalCookiePort.createTempCookie(anyString())).willAnswer(invocation -> {
                 String generatedUuid = invocation.getArgument(0);
-                return ResponseCookie.from(templateCookie.getName(), generatedUuid)
-                        .path(templateCookie.getPath())
-                        .maxAge(templateCookie.getMaxAge().orElse(null))
-                        .httpOnly(templateCookie.isHttpOnly())
-                        .secure(templateCookie.isSecure())
-                        .sameSite(templateCookie.getSameSite())
+                return ResponseCookie.from("temp", generatedUuid)
+                        .path("/")
+                        .maxAge(Duration.ofMinutes(10))
+                        .httpOnly(true)
+                        .secure(true)
+                        .sameSite("Lax")
                         .build();
             });
 

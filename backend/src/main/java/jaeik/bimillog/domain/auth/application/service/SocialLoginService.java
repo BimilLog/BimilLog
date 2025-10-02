@@ -20,7 +20,6 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalKakaoTokenCommand
 import jaeik.bimillog.domain.global.entity.MemberDetail;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
-import jaeik.bimillog.infrastructure.adapter.in.auth.web.AuthCommandController;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseCookie;
@@ -63,7 +62,6 @@ public class SocialLoginService implements SocialLoginUseCase {
      * <p>외부 소셜 인증 결과(code)를 받아 우리 시스템의 로그인 결과로 변환합니다.</p>
      * <p>기존 회원이라면 Member 도메인으로 프로필을 갱신하고 AuthToken/FCM/JWT를 발급합니다.</p>
      * <p>신규 회원이라면 Redis에 임시 정보를 저장하고 가입 페이지로 넘길 UUID 임시 쿠키를 발급합니다.</p>
-     * <p>{@link AuthCommandController}에서 POST /auth/social 요청 처리 시 호출됩니다.</p>
      *
      * @param provider 소셜 플랫폼 제공자 (KAKAO 등)
      * @param code     OAuth 인가 코드
@@ -76,7 +74,7 @@ public class SocialLoginService implements SocialLoginUseCase {
     public LoginResult processSocialLogin(SocialProvider provider, String code, String fcmToken) {
         validateLogin();
 
-        // 1. 전략 포트를 통해 OAuth 인증 수행 및 사용자 정보 조회 (한 번의 호출로 토큰 + 사용자 정보 획득)
+        // 1. 전략 포트를 통해 OAuth 인증 수행 및 사용자 정보 조회
         SocialStrategyPort strategy = strategyRegistryPort.getStrategy(provider);
         SocialMemberProfile socialUserProfile = strategy.getSocialToken(code);
 

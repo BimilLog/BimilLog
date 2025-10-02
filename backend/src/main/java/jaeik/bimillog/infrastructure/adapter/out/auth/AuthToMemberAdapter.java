@@ -29,7 +29,6 @@ import java.util.Optional;
  *
  * @author Jaeik
  * @version 2.0.0
- * @since 2025-01
  */
 @Component
 @RequiredArgsConstructor
