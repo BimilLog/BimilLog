@@ -20,7 +20,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface CommentLikeRepository extends JpaRepository<CommentLike, Long> {
 
-
     /**
      * <h3>댓글 ID와 사용자 ID로 추천 존재 여부 확인</h3>
      * <p>주어진 댓글 ID와 사용자 ID에 해당하는 추천이 존재하는지 EXISTS 쿼리로 확인합니다.</p>
@@ -46,7 +45,6 @@ public interface CommentLikeRepository extends JpaRepository<CommentLike, Long> 
     @Modifying
     @Query("DELETE FROM CommentLike cl WHERE cl.comment.id = :commentId AND cl.member.id = :memberId")
     void deleteByCommentIdAndUserId(@Param("commentId") Long commentId, @Param("memberId") Long memberId);
-
 }
 
 

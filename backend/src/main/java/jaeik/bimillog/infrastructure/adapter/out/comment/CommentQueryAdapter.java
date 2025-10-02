@@ -36,14 +36,10 @@ import static jaeik.bimillog.infrastructure.adapter.out.comment.CommentProjectio
 public class CommentQueryAdapter implements CommentQueryPort {
 
     private final JPAQueryFactory jpaQueryFactory;
-
     private static final QComment comment = QComment.comment;
     private static final QCommentLike commentLike = QCommentLike.commentLike;
     private static final QCommentClosure closure = QCommentClosure.commentClosure;
     private static final QMember member = QMember.member;
-
-
-
 
     /**
      * <h3>사용자 작성 댓글 목록 조회</h3>
@@ -177,7 +173,6 @@ public class CommentQueryAdapter implements CommentQueryPort {
                         tuple -> Objects.requireNonNull(tuple.get(comment.count())).intValue()
                 ));
     }
-
 
     /**
      * <h3>과거순 댓글 조회</h3>

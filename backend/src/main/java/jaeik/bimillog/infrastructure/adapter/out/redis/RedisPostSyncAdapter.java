@@ -138,8 +138,4 @@ public class RedisPostSyncAdapter implements RedisPostSyncPort {
                 .leftJoin(postLike).on(post.id.eq(postLike.post.id))
                 .groupBy(post.id, member.id);
     }
-
-
-
-
 }

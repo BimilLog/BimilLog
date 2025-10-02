@@ -20,18 +20,6 @@ import org.springframework.stereotype.Repository;
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     /**
-     * <h3>게시글 ID로 모든 댓글 삭제</h3>
-     * <p>주어진 게시글 ID에 해당하는 모든 댓글을 삭제합니다.</p>
-     *
-     * @param postId 게시글 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Modifying
-    @Query("DELETE FROM Comment c WHERE c.post.id = :postId")
-    void deleteAllByPostId(@Param("postId") Long postId);
-
-    /**
      * <h3>클로저 테이블에서 자손 관계 삭제</h3>
      * <p>자손이 없는 댓글의 모든 클로저 관계를 삭제합니다.</p>
      *

@@ -18,14 +18,6 @@ public class UrlGeneratorAdapter implements UrlGeneratorPort {
 
     private final String baseUrl;
 
-    /**
-     * <h3>생성자</h3>
-     * <p>기본 URL을 설정합니다.</p>
-     *
-     * @param baseUrl 애플리케이션의 기본 URL
-     * @author Jaeik
-     * @since 2.0.0
-     */
     public UrlGeneratorAdapter(@Value("${url}") String baseUrl) {
         this.baseUrl = baseUrl;
     }

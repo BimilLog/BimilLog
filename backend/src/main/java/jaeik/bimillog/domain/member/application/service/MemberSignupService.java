@@ -44,7 +44,6 @@ public class MemberSignupService implements MemberSignupUseCase {
     private final GlobalKakaoTokenCommandPort globalKakaoTokenCommandPort;
     private final GlobalFcmSaveUseCase globalFcmSaveUseCase;
 
-
     /**
      * <h3>신규 회원 가입 처리</h3>
      * <p>Redis에 저장된 소셜 프로필과 사용자가 입력한 표시 이름으로 정식 회원을 생성합니다.</p>

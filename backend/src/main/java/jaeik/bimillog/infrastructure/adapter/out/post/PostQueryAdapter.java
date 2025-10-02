@@ -49,8 +49,6 @@ public class PostQueryAdapter implements PostQueryPort {
     private static final QPostLike postLike = QPostLike.postLike;
     private static final QComment comment = QComment.comment;
 
-
-
     /**
      * <h3>페이지별 게시글 조회</h3>
      * <p>페이지 정보에 따라 게시글 목록을 조회합니다.</p>

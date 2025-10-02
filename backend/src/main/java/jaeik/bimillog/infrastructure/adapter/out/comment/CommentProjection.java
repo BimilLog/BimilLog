@@ -27,7 +27,6 @@ public class CommentProjection {
     private static final QCommentClosure closure = QCommentClosure.commentClosure;
     private static final QMember member = QMember.member;
 
-
     /**
      * <h3>SimpleCommentInfo 도메인 객체 프로젝션 (사용자별 추천 여부 포함)</h3>
      * <p>SimpleCommentInfo로 변환하는 프로젝션 - 서브쿼리로 사용자별 추천 여부를 한번에 계산</p>
