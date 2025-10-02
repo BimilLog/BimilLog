@@ -5,7 +5,6 @@ import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.member.application.port.in.MemberSaveUseCase;
 import jaeik.bimillog.domain.member.entity.MemberDetail;
-import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -40,13 +39,13 @@ public class AuthToMemberAdapter implements AuthToMemberPort {
      * <p>기존 사용자 또는 신규 사용자 정보를 MemberDetail 형태로 반환합니다.</p>
      * <p>{@link SocialLoginService}에서 소셜 로그인 처리 시 호출됩니다.</p>
      *
-     * @param provider 소셜 로그인 제공자 (KAKAO 등)
-     * @param profile 소셜 사용자 프로필 정보 (FCM 토큰 포함)
+     * @param profile 소셜 사용자 프로필 정보 (FCM 토큰, provider 포함)
      * @return MemberDetail 기존 사용자(uuid = null) 또는 신규 사용자(uuid != null) 정보
      * @author Jaeik
      * @since 2.0.0
      */
-    public MemberDetail delegateUserData(SocialProvider provider, SocialMemberProfile profile) {
-        return memberSaveUseCase.processUserData(provider, profile);
+    @Override
+    public MemberDetail delegateUserData(SocialMemberProfile profile) {
+        return memberSaveUseCase.processUserData(profile);
     }
 }

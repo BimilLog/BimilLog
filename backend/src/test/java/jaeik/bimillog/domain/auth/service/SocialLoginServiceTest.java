@@ -74,7 +74,7 @@ class SocialLoginServiceTest extends BaseUnitTest {
             given(strategyRegistryPort.getStrategy(TEST_PROVIDER)).willReturn(kakaoStrategy);
             given(kakaoStrategy.getSocialToken(TEST_AUTH_CODE)).willReturn(testMemberProfile);
             given(blacklistPort.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
-            given(authToMemberPort.delegateUserData(eq(TEST_PROVIDER), any(SocialMemberProfile.class)))
+            given(authToMemberPort.delegateUserData(any(SocialMemberProfile.class)))
                 .willReturn(memberDetail);
             given(globalJwtPort.generateAccessToken(memberDetail)).willReturn(generatedAccessToken);
             given(globalJwtPort.generateRefreshToken(memberDetail)).willReturn(generatedRefreshToken);
@@ -91,7 +91,7 @@ class SocialLoginServiceTest extends BaseUnitTest {
 
             verify(strategyRegistryPort).getStrategy(TEST_PROVIDER);
             verify(kakaoStrategy).getSocialToken(TEST_AUTH_CODE);
-            verify(authToMemberPort).delegateUserData(eq(TEST_PROVIDER), any(SocialMemberProfile.class));
+            verify(authToMemberPort).delegateUserData(any(SocialMemberProfile.class));
             verify(globalJwtPort).generateAccessToken(memberDetail);
             verify(globalJwtPort).generateRefreshToken(memberDetail);
             verify(authTokenPort).updateJwtRefreshToken(memberDetail.getTokenId(), generatedRefreshToken);
@@ -120,7 +120,7 @@ class SocialLoginServiceTest extends BaseUnitTest {
             given(strategyRegistryPort.getStrategy(TEST_PROVIDER)).willReturn(kakaoStrategy);
             given(kakaoStrategy.getSocialToken(TEST_AUTH_CODE)).willReturn(testMemberProfile);
             given(blacklistPort.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
-            given(authToMemberPort.delegateUserData(eq(TEST_PROVIDER), any(SocialMemberProfile.class)))
+            given(authToMemberPort.delegateUserData(any(SocialMemberProfile.class)))
                 .willReturn(newMemberDetail);
             given(globalCookiePort.createTempCookie(newMemberDetail.getUuid())).willReturn(tempCookie);
 
@@ -135,7 +135,7 @@ class SocialLoginServiceTest extends BaseUnitTest {
 
             verify(strategyRegistryPort).getStrategy(TEST_PROVIDER);
             verify(kakaoStrategy).getSocialToken(TEST_AUTH_CODE);
-            verify(authToMemberPort).delegateUserData(eq(TEST_PROVIDER), any(SocialMemberProfile.class));
+            verify(authToMemberPort).delegateUserData(any(SocialMemberProfile.class));
             verify(globalCookiePort).createTempCookie(newMemberDetail.getUuid());
         }
     }

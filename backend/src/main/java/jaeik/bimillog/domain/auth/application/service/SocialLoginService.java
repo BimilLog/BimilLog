@@ -65,7 +65,7 @@ public class SocialLoginService implements SocialLoginUseCase {
         SocialStrategyPort strategy = strategyRegistryPort.getStrategy(provider);
         SocialMemberProfile socialUserProfile = strategy.getSocialToken(code);
 
-        // 2. FCM 토큰 설정
+        // 2. FCM 토큰 주입
         socialUserProfile.setFcmToken(fcmToken);
 
         // 3. 블랙리스트 사용자 확인
@@ -74,10 +74,12 @@ public class SocialLoginService implements SocialLoginUseCase {
         }
 
         // 4. 로그인 이후 유저 데이터 작업 유저 도메인으로 책임 위임 결과 값으로 유저 정보 획득
-        MemberDetail memberDetail = authToMemberPort.delegateUserData(provider, socialUserProfile);
+        MemberDetail memberDetail = authToMemberPort.delegateUserData(socialUserProfile);
 
         // 5. 기존 유저, 신규 유저에 따라 다른 반환값을 LoginResult에 작성
         if (memberDetail.getUuid() == null) {
+
+
             // 5-1. 기존 유저: JWT 액세스 토큰 및 리프레시 토큰 생성
             String accessToken = globalJwtPort.generateAccessToken(memberDetail);
             String refreshToken = globalJwtPort.generateRefreshToken(memberDetail);

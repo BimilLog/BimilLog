@@ -4,8 +4,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
-import jaeik.bimillog.domain.auth.entity.KakaoToken;
-import jaeik.bimillog.domain.auth.entity.KakaoMemberInfo;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.global.vo.KakaoKeyVO;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
@@ -105,12 +103,11 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
      * <p>카카오 API 응답에서 필요한 사용자 정보를 추출하여 DTO로 변환합니다.</p>
      *
      * @param accessToken 카카오 액세스 토큰
-     * @return KakaoMemberInfo 카카오 사용자 정보 DTO (이메일은 null)
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public KakaoMemberInfo getUserInfo(String accessToken) {
+    public void getUserInfo(String accessToken) {
         try {
             Map<String, Object> responseBody = kakaoApiClient.getUserInfo("Bearer " + accessToken);
 
@@ -121,13 +118,13 @@ public class KakaoStrategyAdapter implements SocialStrategyPort {
             String nickname = (String) profile.get("nickname");
             String thumbnailImage = (String) profile.get("thumbnail_image_url");
 
-            return KakaoMemberInfo.of(
-                    socialId,
-                    null, // 이메일이 필요없어서 받지 않고 있음
-                    SocialProvider.KAKAO,
-                    nickname,
-                    thumbnailImage
-            );
+//            KakaoMemberInfo.of(
+//                    socialId,
+//                    null, // 이메일이 필요없어서 받지 않고 있음
+//                    SocialProvider.KAKAO,
+//                    nickname,
+//                    thumbnailImage
+//            );
         } catch (Exception e) {
             throw new RuntimeException("Kakao member info request failed: " + e.getMessage(), e);
         }

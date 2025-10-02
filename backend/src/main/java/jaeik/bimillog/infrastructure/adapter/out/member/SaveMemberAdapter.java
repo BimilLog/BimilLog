@@ -121,7 +121,6 @@ public class SaveMemberAdapter implements SaveMemberPort {
     /**
      * <h3>FCM 토큰 등록 처리</h3>
      * <p>FCM 토큰이 존재할 경우에만 알림 서비스에 등록합니다.</p>
-     * <p>{@link #handleExistingUserData}, {@link #saveNewUser} 메서드에서 FCM 토큰 등록을 위해 호출됩니다.</p>
      *
      * @param member 사용자
      * @param fcmToken FCM 토큰 (빈 문자열이나 null인 경우 무시)

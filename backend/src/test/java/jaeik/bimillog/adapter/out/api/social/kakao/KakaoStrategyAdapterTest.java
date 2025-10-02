@@ -1,7 +1,6 @@
 package jaeik.bimillog.adapter.out.api.social.kakao;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jaeik.bimillog.domain.auth.entity.KakaoMemberInfo;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.global.vo.KakaoKeyVO;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
@@ -9,7 +8,6 @@ import jaeik.bimillog.infrastructure.adapter.out.api.social.kakao.KakaoApiClient
 import jaeik.bimillog.infrastructure.adapter.out.api.social.kakao.KakaoAuthClient;
 import jaeik.bimillog.infrastructure.adapter.out.api.social.kakao.KakaoStrategyAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
-import jaeik.bimillog.testutil.KakaoTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;

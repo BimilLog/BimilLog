@@ -84,10 +84,7 @@ class MemberSaveServiceTest extends BaseUnitTest {
         )).willReturn(expectedDetail);
 
         // When
-        MemberDetail result = userSaveService.processUserData(
-            SocialProvider.KAKAO,
-            testSocialProfile
-        );
+        MemberDetail result = userSaveService.processUserData(testSocialProfile);
 
         // Then
         assertThat(result).isInstanceOf(MemberDetail.class);
@@ -111,10 +108,7 @@ class MemberSaveServiceTest extends BaseUnitTest {
         )).willReturn(Optional.empty());
 
         // When
-        MemberDetail result = userSaveService.processUserData(
-            SocialProvider.KAKAO,
-            testSocialProfile
-        );
+        MemberDetail result = userSaveService.processUserData(testSocialProfile);
 
         // Then
         assertThat(result.getUuid()).isNotNull();
@@ -162,10 +156,7 @@ class MemberSaveServiceTest extends BaseUnitTest {
         )).willReturn(expectedDetail);
 
         // When
-        MemberDetail result = userSaveService.processUserData(
-            SocialProvider.KAKAO,
-            profileWithoutFcm
-        );
+        MemberDetail result = userSaveService.processUserData(profileWithoutFcm);
 
         // Then
         assertThat(result).isInstanceOf(MemberDetail.class);
@@ -196,10 +187,7 @@ class MemberSaveServiceTest extends BaseUnitTest {
         )).willReturn(Optional.empty());
 
         // When
-        MemberDetail result = userSaveService.processUserData(
-            SocialProvider.KAKAO,
-            profileWithoutFcm
-        );
+        MemberDetail result = userSaveService.processUserData(profileWithoutFcm);
 
         // Then
         assertThat(result.getUuid()).isNotNull();
@@ -239,10 +227,7 @@ class MemberSaveServiceTest extends BaseUnitTest {
         )).willReturn(expectedDetail);
 
         // When
-        MemberDetail result = userSaveService.processUserData(
-            SocialProvider.GOOGLE,
-            googleProfile
-        );
+        MemberDetail result = userSaveService.processUserData(googleProfile);
 
         // Then
         assertThat(result).isInstanceOf(MemberDetail.class);
