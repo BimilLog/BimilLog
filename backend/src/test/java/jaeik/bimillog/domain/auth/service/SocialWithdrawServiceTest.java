@@ -21,7 +21,7 @@ import static org.mockito.Mockito.verify;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("SocialWithdrawService 테스트")
-@Tag("test")
+@Tag("unit")
 class SocialWithdrawServiceTest {
 
     @Mock

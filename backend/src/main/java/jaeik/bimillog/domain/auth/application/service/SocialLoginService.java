@@ -10,9 +10,7 @@ import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
-import jaeik.bimillog.domain.member.entity.memberdetail.ExistingMemberDetail;
-import jaeik.bimillog.domain.member.entity.memberdetail.NewMemberDetail;
-import jaeik.bimillog.domain.member.entity.memberdetail.MemberDetail;
+import jaeik.bimillog.domain.member.entity.MemberDetail;
 import jaeik.bimillog.infrastructure.adapter.in.auth.web.AuthCommandController;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -79,21 +77,21 @@ public class SocialLoginService implements SocialLoginUseCase {
         MemberDetail memberDetail = authToMemberPort.delegateUserData(provider, socialUserProfile);
 
         // 5. 기존 유저, 신규 유저에 따라 다른 반환값을 LoginResult에 작성
-        if (memberDetail instanceof ExistingMemberDetail existingDetail) {
-
-            // 5-1. JWT 액세스 토큰 및 리프레시 토큰 생성
-            String accessToken = globalJwtPort.generateAccessToken(existingDetail);
-            String refreshToken = globalJwtPort.generateRefreshToken(existingDetail);
+        if (memberDetail.getUuid() == null) {
+            // 5-1. 기존 유저: JWT 액세스 토큰 및 리프레시 토큰 생성
+            String accessToken = globalJwtPort.generateAccessToken(memberDetail);
+            String refreshToken = globalJwtPort.generateRefreshToken(memberDetail);
 
             // 5-2. DB에 JWT 리프레시 토큰 저장 (보안 강화)
-            authTokenPort.updateJwtRefreshToken(existingDetail.getTokenId(), refreshToken);
+            authTokenPort.updateJwtRefreshToken(memberDetail.getTokenId(), refreshToken);
 
             // 5-3. JWT 쿠키 생성 및 반환
             List<ResponseCookie> cookies = globalCookiePort.generateJwtCookie(accessToken, refreshToken);
             return new LoginResult.ExistingUser(cookies);
         } else {
-            ResponseCookie tempCookie = globalCookiePort.createTempCookie((NewMemberDetail) memberDetail);
-            return new LoginResult.NewUser(((NewMemberDetail) memberDetail).getUuid(), tempCookie);
+            // 5-4. 신규 유저: 임시 쿠키 생성 및 반환
+            ResponseCookie tempCookie = globalCookiePort.createTempCookie(memberDetail.getUuid());
+            return new LoginResult.NewUser(tempCookie);
         }
     }
 

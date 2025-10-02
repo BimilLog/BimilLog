@@ -21,12 +21,12 @@ public record AuthResponseDTO(
     /**
      * <h3>신규 사용자 응답 생성</h3>
      * <p>회원가입이 필요한 신규 사용자를 위한 응답</p>
+     * <p>임시 UUID는 HttpOnly 쿠키로만 전달되며, 응답 본문에는 포함되지 않습니다.</p>
      *
-     * @param uuid 임시 사용자 UUID
      * @return 신규 사용자 응답
      */
-    public static AuthResponseDTO newUser(String uuid) {
-        return new AuthResponseDTO("NEW_USER", uuid, Map.of("uuid", uuid));
+    public static AuthResponseDTO newUser() {
+        return new AuthResponseDTO("NEW_USER", null, Map.of("message", "SIGNUP_REQUIRED"));
     }
     
     /**

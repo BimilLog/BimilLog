@@ -7,7 +7,7 @@ import { useToastStore } from "@/stores/toast.store";
 // Re-export hooks that were moved to separate files
 export { usePasswordModal } from './usePasswordModal';
 // Auth-related hooks are now in features/auth
-export { useKakaoCallback, useAuthError, useSignupUuid } from '../features/auth';
+export { useKakaoCallback, useAuthError, useSignupRequired } from '../features/auth';
 
 // ===== MAIN USE AUTH HOOK =====
 interface UseAuthOptions {

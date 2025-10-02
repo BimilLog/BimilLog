@@ -36,7 +36,7 @@ import static org.mockito.Mockito.*;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PostCacheSyncService 테스트")
-@Tag("test")
+@Tag("unit")
 class PostCacheSyncServiceTest {
 
     @Mock

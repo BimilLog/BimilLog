@@ -13,7 +13,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  * <ul>
  *   <li>엔티티 생성 (Post, Comment, Notification, RollingPaper 등)</li>
  *   <li>DTO 생성 (요청/응답 DTO)</li>
- *   <li>인증 객체 생성 (CustomUserDetails, ExistingMemberDetail)</li>
+ *   <li>인증 객체 생성 (CustomUserDetails, MemberDetail)</li>
  *   <li>쿠키 및 토큰 생성</li>
  * </ul>
  *

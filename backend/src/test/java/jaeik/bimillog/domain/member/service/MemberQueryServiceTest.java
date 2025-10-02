@@ -29,7 +29,7 @@ import static org.mockito.Mockito.verify;
  * @version 2.0.0
  */
 @DisplayName("MemberQueryService 테스트")
-@Tag("test")
+@Tag("unit")
 class MemberQueryServiceTest extends BaseUnitTest {
 
     @Mock

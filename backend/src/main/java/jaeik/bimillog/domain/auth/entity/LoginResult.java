@@ -18,12 +18,11 @@ public sealed interface LoginResult
     /**
      * <h3>신규 사용자 로그인 결과</h3>
      * <p>최초 소셜 로그인으로 회원가입이 필요한 사용자의 결과입니다.</p>
-     * <p>임시 UUID를 통해 회원가입 페이지로 연결하기 위한 정보를 담고 있습니다.</p>
+     * <p>임시 UUID가 담긴 HttpOnly 쿠키를 통해 회원가입 세션을 유지합니다.</p>
      *
-     * @param uuid 회원가입에 사용할 임시 사용자 UUID 키
-     * @param tempCookie 임시 세션 유지용 쿠키
+     * @param tempCookie 임시 UUID가 담긴 세션 쿠키 (HttpOnly)
      */
-    record NewUser(String uuid, ResponseCookie tempCookie) implements LoginResult {}
+    record NewUser(ResponseCookie tempCookie) implements LoginResult {}
 
     /**
      * <h3>기존 사용자 로그인 결과</h3>

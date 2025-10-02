@@ -4,9 +4,9 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
+import jaeik.bimillog.domain.member.entity.MemberDetail;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import jaeik.bimillog.domain.member.entity.member.MemberRole;
-import jaeik.bimillog.domain.member.entity.memberdetail.ExistingMemberDetail;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -56,7 +56,7 @@ public class GlobalJwtAdapter implements GlobalJwtPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    public String generateAccessToken(ExistingMemberDetail userDetail) {
+    public String generateAccessToken(MemberDetail userDetail) {
         long now = (new Date()).getTime();
         Date validity = new Date(now + 3600000);
 
@@ -86,7 +86,7 @@ public class GlobalJwtAdapter implements GlobalJwtPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    public String generateRefreshToken(ExistingMemberDetail userDetail) {
+    public String generateRefreshToken(MemberDetail userDetail) {
         long now = (new Date()).getTime();
         Date validity = new Date(now + (3600000L * 720));
 
@@ -131,10 +131,10 @@ public class GlobalJwtAdapter implements GlobalJwtPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    public ExistingMemberDetail getUserInfoFromToken(String jwtAccessToken) {
+    public MemberDetail getUserInfoFromToken(String jwtAccessToken) {
         Claims claims = getClaims(jwtAccessToken);
 
-        return ExistingMemberDetail.builder()
+        return MemberDetail.builder()
                 .memberId(Long.parseLong(claims.getSubject()))
                 .socialId(claims.get("socialId", String.class))
                 .provider(SocialProvider.valueOf(claims.get("provider", String.class)))

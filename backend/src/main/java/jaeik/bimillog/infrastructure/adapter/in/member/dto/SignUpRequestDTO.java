@@ -2,7 +2,6 @@ package jaeik.bimillog.infrastructure.adapter.in.member.dto;
 
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -11,7 +10,8 @@ import lombok.NoArgsConstructor;
 /**
  * <h2>회원가입 요청 DTO</h2>
  * <p>회원가입 API 요청을 위한 DTO입니다.</p>
- * <p>사용자 이름 유효성 검증, UUID 형식 검증</p>
+ * <p>사용자 이름 유효성 검증</p>
+ * <p>UUID는 HttpOnly 쿠키를 통해 서버로 전달되므로 요청 본문에 포함하지 않습니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -24,11 +24,6 @@ public class SignUpRequestDTO {
     @NotBlank(message = "사용자 이름은 필수입니다.")
     @Size(min = 1, max = 20, message = "사용자 이름은 1자 이상 20자 이하여야 합니다.")
     private String memberName;
-
-    @NotBlank(message = "임시 UUID는 필수입니다.")
-    @Pattern(regexp = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", 
-             message = "올바른 UUID 형식이 아닙니다.")
-    private String uuid;
 
     /**
      * <h3>사용자 이름 유효성 검증</h3>

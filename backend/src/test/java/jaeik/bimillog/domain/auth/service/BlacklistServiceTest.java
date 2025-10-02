@@ -37,7 +37,7 @@ import static org.mockito.Mockito.*;
  * @version 2.0.0
  */
 @DisplayName("BlacklistService 단위 테스트")
-@Tag("test")
+@Tag("unit")
 class BlacklistServiceTest extends BaseUnitTest {
 
     @Mock

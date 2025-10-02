@@ -35,7 +35,7 @@ import static org.mockito.BDDMockito.verify;
  * @author Jaeik
  * @version 2.0.0
  */
-@Tag("test")
+@Tag("unit")
 class RedisPostQueryAdapterTest extends BaseUnitTest {
 
     @Mock

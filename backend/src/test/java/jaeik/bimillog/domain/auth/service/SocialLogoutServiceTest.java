@@ -39,7 +39,7 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("SocialLogoutService 단위 테스트")
 @MockitoSettings(strictness = Strictness.LENIENT)
-@Tag("test")
+@Tag("unit")
 class SocialLogoutServiceTest extends BaseUnitTest {
 
     @Mock

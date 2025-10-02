@@ -34,7 +34,7 @@ import static org.mockito.Mockito.*;
  *
  */
 @DisplayName("PostCommandService 테스트")
-@Tag("test")
+@Tag("unit")
 class PostCommandServiceTest extends BaseUnitTest {
 
     @Mock

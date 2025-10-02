@@ -6,10 +6,10 @@ import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.member.application.port.out.SaveMemberPort;
+import jaeik.bimillog.domain.member.entity.MemberDetail;
 import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.entity.member.Member;
-import jaeik.bimillog.domain.member.entity.memberdetail.ExistingMemberDetail;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,7 +53,7 @@ public class SaveMemberAdapter implements SaveMemberPort {
      */
     @Override
     @Transactional
-    public ExistingMemberDetail handleExistingUserData(Member existingMember, SocialMemberProfile userProfile) {
+    public MemberDetail handleExistingUserData(Member existingMember, SocialMemberProfile userProfile) {
         existingMember.updateMemberInfo(userProfile.getNickname(), userProfile.getProfileImageUrl());
 
         Long fcmTokenId = registerFcmTokenIfPresent(existingMember, userProfile.getFcmToken());
@@ -69,7 +69,7 @@ public class SaveMemberAdapter implements SaveMemberPort {
         AuthToken newAuthToken = AuthToken.createToken("", existingMember);
         Long tokenId = authTokenPort.save(newAuthToken).getId();
 
-        return ExistingMemberDetail.of(existingMember, tokenId, fcmTokenId);
+        return MemberDetail.ofExisting(existingMember, tokenId, fcmTokenId);
     }
 
     /**
@@ -79,13 +79,13 @@ public class SaveMemberAdapter implements SaveMemberPort {
      *
      * @param memberName 사용자가 입력한 닉네임
      * @param userProfile 소셜 사용자 프로필 (OAuth 액세스/리프레시 토큰, FCM 토큰 포함)
-     * @return ExistingMemberDetail 생성된 사용자 정보를 담은 객체
+     * @return MemberDetail 생성된 사용자 정보를 담은 객체
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     @Transactional
-    public ExistingMemberDetail saveNewMember(String memberName, SocialMemberProfile userProfile) {
+    public MemberDetail saveNewMember(String memberName, SocialMemberProfile userProfile) {
         Setting setting = Setting.createSetting();
 
         // 1. KakaoToken 생성 및 저장
@@ -115,7 +115,7 @@ public class SaveMemberAdapter implements SaveMemberPort {
         AuthToken newAuthToken = AuthToken.createToken("", member);
         Long tokenId = authTokenPort.save(newAuthToken).getId();
 
-        return ExistingMemberDetail.of(member, tokenId, fcmTokenId);
+        return MemberDetail.ofExisting(member, tokenId, fcmTokenId);
     }
 
     /**

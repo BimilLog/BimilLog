@@ -22,7 +22,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  * @version 2.0.0
  */
 @DisplayName("SocialLoginRequestDTO 검증 테스트")
-@Tag("test")
+@Tag("unit")
 class SocialLoginRequestDTOTest {
 
     private Validator validator;

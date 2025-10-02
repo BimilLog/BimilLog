@@ -7,8 +7,8 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalTokenQueryPort;
 import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
+import jaeik.bimillog.domain.member.entity.MemberDetail;
 import jaeik.bimillog.domain.member.entity.member.Member;
-import jaeik.bimillog.domain.member.entity.memberdetail.ExistingMemberDetail;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
@@ -150,7 +150,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 // 2-8. 유저 정보 조회
                 Member member = memberQueryPort.findByIdWithSetting(authToken.getMember().getId())
                         .orElseThrow(() -> new CustomException(ErrorCode.TOKEN_NOT_FOUND));
-                ExistingMemberDetail userDetail = ExistingMemberDetail.of(member, tokenId, null);
+                MemberDetail userDetail = MemberDetail.ofExisting(member, tokenId, null);
 
                 // 2-9. 새 액세스 토큰 발급
                 String newAccessToken = globalJwtPort.generateAccessToken(userDetail);
@@ -191,7 +191,7 @@ public class JwtFilter extends OncePerRequestFilter {
      * @param jwtAccessToken JWT 엑세스 토큰
      */
     private void setAuthentication(String jwtAccessToken) {
-        ExistingMemberDetail userDetail = globalJwtPort.getUserInfoFromToken(jwtAccessToken);
+        MemberDetail userDetail = globalJwtPort.getUserInfoFromToken(jwtAccessToken);
         CustomUserDetails customUserDetails = new CustomUserDetails(userDetail);
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 customUserDetails,

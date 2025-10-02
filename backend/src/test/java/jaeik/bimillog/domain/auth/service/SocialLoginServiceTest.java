@@ -12,8 +12,7 @@ import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
-import jaeik.bimillog.domain.member.entity.memberdetail.ExistingMemberDetail;
-import jaeik.bimillog.domain.member.entity.memberdetail.NewMemberDetail;
+import jaeik.bimillog.domain.member.entity.MemberDetail;
 import jaeik.bimillog.testutil.AuthTestFixtures;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.DisplayName;
@@ -44,7 +43,7 @@ import static org.mockito.Mockito.*;
  * @version 2.0.0
  */
 @DisplayName("SocialLoginService 단위 테스트")
-@Tag("test")
+@Tag("unit")
 @MockitoSettings(strictness = Strictness.LENIENT)
 class SocialLoginServiceTest extends BaseUnitTest {
 
@@ -66,7 +65,7 @@ class SocialLoginServiceTest extends BaseUnitTest {
         String generatedAccessToken = "generated-access-token";
         String generatedRefreshToken = "generated-refresh-token";
         SocialMemberProfile testMemberProfile = getTestMemberProfile();
-        ExistingMemberDetail existingMemberDetail = getExistingMemberDetail();
+        MemberDetail memberDetail = getExistingMemberDetail();
         List<ResponseCookie> jwtCookies = getJwtCookies();
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
@@ -76,9 +75,9 @@ class SocialLoginServiceTest extends BaseUnitTest {
             given(kakaoStrategy.getSocialToken(TEST_AUTH_CODE)).willReturn(testMemberProfile);
             given(blacklistPort.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
             given(authToMemberPort.delegateUserData(eq(TEST_PROVIDER), any(SocialMemberProfile.class)))
-                .willReturn(existingMemberDetail);
-            given(globalJwtPort.generateAccessToken(existingMemberDetail)).willReturn(generatedAccessToken);
-            given(globalJwtPort.generateRefreshToken(existingMemberDetail)).willReturn(generatedRefreshToken);
+                .willReturn(memberDetail);
+            given(globalJwtPort.generateAccessToken(memberDetail)).willReturn(generatedAccessToken);
+            given(globalJwtPort.generateRefreshToken(memberDetail)).willReturn(generatedRefreshToken);
             given(globalCookiePort.generateJwtCookie(generatedAccessToken, generatedRefreshToken))
                 .willReturn(jwtCookies);
 
@@ -93,9 +92,9 @@ class SocialLoginServiceTest extends BaseUnitTest {
             verify(strategyRegistryPort).getStrategy(TEST_PROVIDER);
             verify(kakaoStrategy).getSocialToken(TEST_AUTH_CODE);
             verify(authToMemberPort).delegateUserData(eq(TEST_PROVIDER), any(SocialMemberProfile.class));
-            verify(globalJwtPort).generateAccessToken(existingMemberDetail);
-            verify(globalJwtPort).generateRefreshToken(existingMemberDetail);
-            verify(authTokenPort).updateJwtRefreshToken(existingMemberDetail.getTokenId(), generatedRefreshToken);
+            verify(globalJwtPort).generateAccessToken(memberDetail);
+            verify(globalJwtPort).generateRefreshToken(memberDetail);
+            verify(authTokenPort).updateJwtRefreshToken(memberDetail.getTokenId(), generatedRefreshToken);
             verify(globalCookiePort).generateJwtCookie(generatedAccessToken, generatedRefreshToken);
         }
     }
@@ -105,7 +104,7 @@ class SocialLoginServiceTest extends BaseUnitTest {
     void shouldProcessSocialLogin_WhenNewUser() {
         // Given
         SocialMemberProfile testMemberProfile = getTestMemberProfile();
-        NewMemberDetail newMemberDetail = getNewMemberDetail();
+        MemberDetail newMemberDetail = getNewMemberDetail();
         String uuid = newMemberDetail.getUuid() != null ? newMemberDetail.getUuid() : "test-uuid";
         ResponseCookie tempCookie = ResponseCookie.from("temp", uuid)
                 .path("/")
@@ -123,7 +122,7 @@ class SocialLoginServiceTest extends BaseUnitTest {
             given(blacklistPort.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
             given(authToMemberPort.delegateUserData(eq(TEST_PROVIDER), any(SocialMemberProfile.class)))
                 .willReturn(newMemberDetail);
-            given(globalCookiePort.createTempCookie(newMemberDetail)).willReturn(tempCookie);
+            given(globalCookiePort.createTempCookie(newMemberDetail.getUuid())).willReturn(tempCookie);
 
             // When
             LoginResult result = socialLoginService.processSocialLogin(TEST_PROVIDER, TEST_AUTH_CODE, TEST_FCM_TOKEN);
@@ -131,13 +130,13 @@ class SocialLoginServiceTest extends BaseUnitTest {
             // Then
             assertThat(result).isInstanceOf(LoginResult.NewUser.class);
             LoginResult.NewUser newUserResponse = (LoginResult.NewUser) result;
-            assertThat(newUserResponse.uuid()).isEqualTo(newMemberDetail.getUuid());
             assertThat(newUserResponse.tempCookie()).isNotNull();
+            assertThat(newUserResponse.tempCookie().getValue()).isEqualTo(uuid);
 
             verify(strategyRegistryPort).getStrategy(TEST_PROVIDER);
             verify(kakaoStrategy).getSocialToken(TEST_AUTH_CODE);
             verify(authToMemberPort).delegateUserData(eq(TEST_PROVIDER), any(SocialMemberProfile.class));
-            verify(globalCookiePort).createTempCookie(newMemberDetail);
+            verify(globalCookiePort).createTempCookie(newMemberDetail.getUuid());
         }
     }
 
@@ -205,7 +204,7 @@ class SocialLoginServiceTest extends BaseUnitTest {
     /**
      * 기존 사용자 상세 정보 획득 - SocialLoginServiceTest 전용
      */
-    private ExistingMemberDetail getExistingMemberDetail() {
+    private MemberDetail getExistingMemberDetail() {
         Long settingId = 1L;
         if (getTestMember().getSetting() != null && getTestMember().getSetting().getId() != null) {
             settingId = getTestMember().getSetting().getId();
@@ -216,10 +215,8 @@ class SocialLoginServiceTest extends BaseUnitTest {
     /**
      * 신규 사용자 상세 정보 획득 - SocialLoginServiceTest 전용
      */
-    private NewMemberDetail getNewMemberDetail() {
-        return NewMemberDetail.builder()
-                .uuid("test-uuid-123")
-                .build();
+    private MemberDetail getNewMemberDetail() {
+        return MemberDetail.ofNew("test-uuid-123");
     }
 
     /**

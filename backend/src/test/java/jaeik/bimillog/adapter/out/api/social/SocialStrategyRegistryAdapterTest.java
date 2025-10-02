@@ -26,7 +26,7 @@ import static org.mockito.BDDMockito.given;
  * @version 2.0.0
  */
 @DisplayName("SocialStrategyRegistryAdapter 단위 테스트")
-@Tag("test")
+@Tag("unit")
 class SocialStrategyRegistryAdapterTest extends BaseUnitTest {
 
     @Mock

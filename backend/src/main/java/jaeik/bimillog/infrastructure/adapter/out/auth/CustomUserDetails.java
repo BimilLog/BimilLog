@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.out.auth;
 
 import jaeik.bimillog.domain.member.entity.member.MemberRole;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
-import jaeik.bimillog.domain.member.entity.memberdetail.ExistingMemberDetail;
+import jaeik.bimillog.domain.member.entity.MemberDetail;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -28,7 +28,7 @@ import java.util.List;
 @Getter
 public class CustomUserDetails implements UserDetails {
 
-    private final ExistingMemberDetail existingMemberDetail;
+    private final MemberDetail memberDetail;
     private final Collection<? extends GrantedAuthority> authorities;
 
     /**
@@ -40,11 +40,11 @@ public class CustomUserDetails implements UserDetails {
      * 
      * @since 2.0.0
      * @author Jaeik
-     * @param existingMemberDetail 사용자 정보 DTO
+     * @param memberDetail 사용자 정보 DTO
      */
-    public CustomUserDetails(ExistingMemberDetail existingMemberDetail) {
-        this.existingMemberDetail = existingMemberDetail;
-        this.authorities = createAuthorities(existingMemberDetail.getRole());
+    public CustomUserDetails(MemberDetail memberDetail) {
+        this.memberDetail = memberDetail;
+        this.authorities = createAuthorities(memberDetail.getRole());
     }
 
     /**
@@ -77,7 +77,7 @@ public class CustomUserDetails implements UserDetails {
      * @return 유저 ID
      */
     public Long getMemberId() {
-        return existingMemberDetail.getMemberId();
+        return memberDetail.getMemberId();
     }
 
     /**
@@ -89,7 +89,7 @@ public class CustomUserDetails implements UserDetails {
      * @return 토큰 ID
      */
     public Long getTokenId() {
-        return existingMemberDetail.getTokenId();
+        return memberDetail.getTokenId();
     }
 
     /**
@@ -102,7 +102,7 @@ public class CustomUserDetails implements UserDetails {
      * @return FCM 토큰 ID
      */
     public Long getFcmTokenId() {
-        return existingMemberDetail.getFcmTokenId();
+        return memberDetail.getFcmTokenId();
     }
 
     /**
@@ -115,7 +115,7 @@ public class CustomUserDetails implements UserDetails {
      * @return 설정 ID
      */
     public Long getSettingId() {
-        return existingMemberDetail.getSettingId();
+        return memberDetail.getSettingId();
     }
 
     /**
@@ -128,7 +128,7 @@ public class CustomUserDetails implements UserDetails {
      * @return 소셜 제공자
      */
     public SocialProvider getSocialProvider() {
-        return existingMemberDetail.getProvider();
+        return memberDetail.getProvider();
     }
 
     /**
@@ -140,7 +140,7 @@ public class CustomUserDetails implements UserDetails {
      * @author Jaeik
      * @return 소셜 ID
      */
-    public String getSocialId() {return  existingMemberDetail.getSocialId();}
+    public String getSocialId() {return  memberDetail.getSocialId();}
 
     /**
      * <h3>닉네임 조회</h3>
@@ -153,7 +153,7 @@ public class CustomUserDetails implements UserDetails {
      */
     @Override
     public String getUsername() {
-        return existingMemberDetail.getMemberName();
+        return memberDetail.getMemberName();
     }
 
     /**

@@ -29,8 +29,7 @@ public interface SocialStrategyPort {
     /**
      * <h3>소셜 플랫폼 OAuth 토큰 발급 및 사용자 정보 조회</h3>
      * <p>OAuth 2.0 인증 코드를 사용하여 소셜 플랫폼으로부터 액세스 토큰과 리프레시 토큰을 발급받습니다.</p>
-     * <p>토큰 응답에 포함된 id_token의 페이로드를 파싱하여 사용자 정보(소셜ID, 닉네임, 프로필 이미지)를 추출합니다.</p>
-     * <p>이를 통해 별도의 사용자 정보 API 호출 없이 한 번의 요청으로 모든 필요한 정보를 얻을 수 있습니다.</p>
+     * <p>open connect를 활용해 사용자 정보도 얻어 옵니다</p>
      *
      * @param code OAuth 2.0 인증 코드
      * @return SocialMemberProfile 소셜 토큰 및 사용자 정보를 담은 프로필 객체 (fcmToken은 null)

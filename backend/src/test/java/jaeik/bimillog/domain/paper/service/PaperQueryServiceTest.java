@@ -31,7 +31,7 @@ import static org.mockito.Mockito.*;
  * @version 2.0.0
  */
 @DisplayName("PaperQueryService 테스트")
-@Tag("test")
+@Tag("unit")
 class PaperQueryServiceTest extends BaseUnitTest {
 
     @Mock

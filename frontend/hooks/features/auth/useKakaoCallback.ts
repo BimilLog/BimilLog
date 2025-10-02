@@ -40,10 +40,11 @@ export const useKakaoCallback = () => {
         const response = await authCommand.kakaoLogin(code, fcmToken || undefined);
 
         if (response.success) {
-          const data = response.data as { status?: string; uuid?: string };
-          // 신규 사용자인 경우 회원가입 페이지로 이동 (임시 UUID 포함)
-          if (data?.status === "NEW_USER" && data?.uuid) {
-            router.push(`/signup?required=true&uuid=${data.uuid}`);
+          const data = response.data as { status?: string };
+          // 신규 사용자인 경우 회원가입 페이지로 이동
+          // UUID는 HttpOnly 쿠키로 전달되어 프론트엔드에서 직접 접근 불가
+          if (data?.status === "NEW_USER") {
+            router.push("/signup?required=true");
           } else {
             // 기존 사용자인 경우 메인 페이지로 이동
             router.push("/");

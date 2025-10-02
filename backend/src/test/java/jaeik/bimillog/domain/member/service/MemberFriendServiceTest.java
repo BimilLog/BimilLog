@@ -34,7 +34,7 @@ import static org.mockito.Mockito.verify;
  * <p>카카오 친구 조회 흐름과 예외 매핑을 검증합니다.</p>
  */
 @DisplayName("MemberFriendService 테스트")
-@Tag("test")
+@Tag("unit")
 class MemberFriendServiceTest extends BaseUnitTest {
 
     @Mock

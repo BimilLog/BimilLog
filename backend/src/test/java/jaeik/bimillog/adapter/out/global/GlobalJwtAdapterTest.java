@@ -2,9 +2,9 @@ package jaeik.bimillog.adapter.out.global;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import jaeik.bimillog.domain.member.entity.MemberDetail;
 import jaeik.bimillog.domain.member.entity.member.MemberRole;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
-import jaeik.bimillog.domain.member.entity.memberdetail.ExistingMemberDetail;
 import jaeik.bimillog.infrastructure.adapter.out.global.GlobalJwtAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,13 +24,13 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <h2>GlobalJwtAdapter 단위 테스트</h2>
  * <p>JWT 생성과 파싱, 해시 생성 로직을 검증한다.</p>
  */
-@Tag("test")
+@Tag("unit")
 class GlobalJwtAdapterTest {
 
     private static final String RAW_SECRET = "0123456789abcdef0123456789abcdef";
 
     private GlobalJwtAdapter globalJwtAdapter;
-    private ExistingMemberDetail memberDetail;
+    private MemberDetail memberDetail;
 
     @BeforeEach
     void setUp() {
@@ -39,7 +39,7 @@ class GlobalJwtAdapterTest {
         ReflectionTestUtils.setField(globalJwtAdapter, "secretKey", secret);
         globalJwtAdapter.init();
 
-        memberDetail = ExistingMemberDetail.builder()
+        memberDetail = MemberDetail.builder()
                 .memberId(1L)
                 .socialId("social-1")
                 .provider(SocialProvider.KAKAO)
@@ -61,7 +61,7 @@ class GlobalJwtAdapterTest {
         assertThat(accessToken).isNotBlank();
         assertThat(globalJwtAdapter.validateToken(accessToken)).isTrue();
 
-        ExistingMemberDetail parsed = globalJwtAdapter.getUserInfoFromToken(accessToken);
+        MemberDetail parsed = globalJwtAdapter.getUserInfoFromToken(accessToken);
 
         assertThat(parsed.getMemberId()).isEqualTo(memberDetail.getMemberId());
         assertThat(parsed.getTokenId()).isEqualTo(memberDetail.getTokenId());

@@ -60,9 +60,9 @@ public class AuthCommandController {
                 request.getFcmToken());
 
         return switch (loginResult) {
-            case LoginResult.NewUser(var uuid, var tempCookie) -> ResponseEntity.ok()
+            case LoginResult.NewUser(var tempCookie) -> ResponseEntity.ok()
                     .header("Set-Cookie", tempCookie.toString())
-                    .body(AuthResponseDTO.newUser(uuid));
+                    .body(AuthResponseDTO.newUser());
             case LoginResult.ExistingUser(var cookies) -> ResponseEntity.ok()
                     .headers(headers -> cookies.forEach(cookie ->
                             headers.add("Set-Cookie", cookie.toString())))

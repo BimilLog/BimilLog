@@ -34,7 +34,7 @@ import static org.mockito.Mockito.verify;
  * @author Jaeik
  * @version 2.0.0
  */
-@Tag("test")
+@Tag("unit")
 class FcmAdapterTest extends BaseUnitTest {
 
     @Mock

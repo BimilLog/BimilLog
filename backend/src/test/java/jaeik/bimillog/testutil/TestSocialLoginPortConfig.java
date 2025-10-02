@@ -8,8 +8,8 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.member.application.port.out.KakaoFriendPort;
 import jaeik.bimillog.domain.member.entity.KakaoFriendsResponseVO;
+import jaeik.bimillog.domain.member.entity.MemberDetail;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
-import jaeik.bimillog.domain.member.entity.memberdetail.ExistingMemberDetail;
 import jaeik.bimillog.infrastructure.adapter.out.global.GlobalCookieAdapter;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -149,12 +149,12 @@ public class TestSocialLoginPortConfig {
     public GlobalJwtPort testGlobalJwtPort() {
         return new GlobalJwtPort() {
             @Override
-            public String generateAccessToken(ExistingMemberDetail userDetail) {
+            public String generateAccessToken(MemberDetail userDetail) {
                 return "test-access-TemporaryToken";
             }
 
             @Override
-            public String generateRefreshToken(ExistingMemberDetail userDetail) {
+            public String generateRefreshToken(MemberDetail userDetail) {
                 return "test-refresh-TemporaryToken";
             }
 
@@ -164,8 +164,8 @@ public class TestSocialLoginPortConfig {
             }
 
             @Override
-            public ExistingMemberDetail getUserInfoFromToken(String jwtAccessToken) {
-                return ExistingMemberDetail.of(TestMembers.MEMBER_1, 1L, 1L);
+            public MemberDetail getUserInfoFromToken(String jwtAccessToken) {
+                return MemberDetail.ofExisting(TestMembers.MEMBER_1, 1L, 1L);
             }
 
             @Override

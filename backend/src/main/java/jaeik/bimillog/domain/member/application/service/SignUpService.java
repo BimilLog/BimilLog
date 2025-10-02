@@ -9,7 +9,7 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.member.application.port.in.SignUpUseCase;
 import jaeik.bimillog.domain.member.application.port.out.RedisMemberDataPort;
 import jaeik.bimillog.domain.member.application.port.out.SaveMemberPort;
-import jaeik.bimillog.domain.member.entity.memberdetail.ExistingMemberDetail;
+import jaeik.bimillog.domain.member.entity.MemberDetail;
 import jaeik.bimillog.infrastructure.adapter.in.member.web.MemberCommandController;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
@@ -58,7 +58,7 @@ public class SignUpService implements SignUpUseCase {
         }
 
         SocialMemberProfile memberProfile = socialMemberProfile.get();
-        ExistingMemberDetail memberDetail = (ExistingMemberDetail) saveMemberPort.saveNewMember(memberName.trim(), memberProfile);
+        MemberDetail memberDetail = saveMemberPort.saveNewMember(memberName.trim(), memberProfile);
         String accessToken = globalJwtPort.generateAccessToken(memberDetail);
         String refreshToken = globalJwtPort.generateRefreshToken(memberDetail);
 

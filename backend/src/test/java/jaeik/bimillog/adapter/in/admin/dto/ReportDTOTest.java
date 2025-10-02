@@ -29,7 +29,7 @@ import static org.mockito.Mockito.mock;
  * @version 2.0.0
  */
 @DisplayName("ReportDTO 검증 테스트")
-@Tag("test")
+@Tag("unit")
 class ReportDTOTest {
 
     private Validator validator;

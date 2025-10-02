@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.in.auth.dto;
 
 import jaeik.bimillog.domain.member.entity.member.MemberRole;
-import jaeik.bimillog.domain.member.entity.memberdetail.ExistingMemberDetail;
+import jaeik.bimillog.domain.member.entity.MemberDetail;
 import lombok.Builder;
 
 /**
@@ -25,7 +25,7 @@ public record MemberInfoResponseDTO(Long memberId, Long settingId, String social
      * @since 2.0.0
      * @author Jaeik
      */
-    public static MemberInfoResponseDTO from(ExistingMemberDetail userDetail) {
+    public static MemberInfoResponseDTO from(MemberDetail userDetail) {
         return MemberInfoResponseDTO.builder()
                 .memberId(userDetail.getMemberId())
                 .settingId(userDetail.getSettingId())

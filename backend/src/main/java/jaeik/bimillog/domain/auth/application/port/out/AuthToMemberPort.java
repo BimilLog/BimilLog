@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.auth.application.port.out;
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
-import jaeik.bimillog.domain.member.entity.memberdetail.MemberDetail;
+import jaeik.bimillog.domain.member.entity.MemberDetail;
 
 /**
  * <h2>인증 TO 유저 포트</h2>
@@ -23,7 +23,7 @@ public interface AuthToMemberPort {
      *
      * @param provider 소셜 로그인 제공자 (KAKAO 등)
      * @param profile 소셜 사용자 프로필 정보 (FCM 토큰 포함)
-     * @return LoginResult 기존 사용자(쿠키) 또는 신규 사용자(UUID) 정보
+     * @return MemberDetail 기존 사용자(uuid = null) 또는 신규 사용자(uuid != null) 정보
      * @author Jaeik
      * @since 2.0.0
      */

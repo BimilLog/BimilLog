@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, AuthLoadingScreen } from "@/components";
 import Link from "next/link";
-import { useAuth, useToast, useSignupUuid } from "@/hooks";
+import { useAuth, useToast, useSignupRequired } from "@/hooks";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuthLayout, NicknameSetupForm } from "@/components/organisms/auth";
 
@@ -25,8 +25,8 @@ export default function SignUpPage() {
   // URL 쿼리에서 required=true인 경우 닉네임 설정이 필요한 회원가입 단계
   const needsNickname = searchParams.get("required") === "true";
   const { showSuccess, showError } = useToast();
-  // 카카오 OAuth 후 임시 발급받은 UUID를 검증 (닉네임 설정 전까지 유효)
-  const { tempUuid, isValidating, error } = useSignupUuid();
+  // UUID는 HttpOnly 쿠키로 전달되어 프론트엔드에서 직접 접근 불가
+  const { isRequired } = useSignupRequired();
 
   // 이미 로그인된 사용자가 일반 회원가입 페이지에 접근한 경우 홈으로 리다이렉트
   // needsNickname이 false인 경우는 일반적인 /signup 접근을 의미
@@ -36,23 +36,18 @@ export default function SignUpPage() {
     }
   }, [isLoading, isAuthenticated, router, needsNickname]);
 
-  // 1. 일반 로딩 상태 또는 2. 닉네임 설정 단계에서 UUID 검증 중인 상태
-  if (isLoading || (needsNickname && isValidating)) {
+  // 로딩 상태
+  if (isLoading) {
     return <AuthLoadingScreen message="로딩 중..." />;
   }
 
-  // 닉네임 설정 단계에서 UUID 검증 실패 (만료, 유효하지 않은 UUID 등)
-  if (needsNickname && error) {
-    return <AuthLoadingScreen message="회원가입 오류" subMessage={error} />;
-  }
-
-  // 카카오 로그인 후 닉네임 설정 단계 (required=true & 유효한 tempUuid 존재)
-  // 회원가입 플로우: 카카오 로그인 → OAuth 콜백 → 임시 UUID 발급 → 닉네임 설정 → 회원가입 완료
-  if (needsNickname && tempUuid) {
+  // 카카오 로그인 후 닉네임 설정 단계 (required=true)
+  // 회원가입 플로우: 카카오 로그인 → OAuth 콜백 → 임시 UUID 발급 (HttpOnly 쿠키) → 닉네임 설정 → 회원가입 완료
+  // UUID는 HttpOnly 쿠키로 전달되어 프론트엔드에서 접근 불가, 회원가입 API 호출 시 자동 전송
+  if (needsNickname) {
     return (
       <AuthLayout>
         <NicknameSetupForm
-          tempUuid={tempUuid}
           onSuccess={() => {
             showSuccess("회원가입 완료", "비밀로그에 오신 것을 환영합니다!");
           }}

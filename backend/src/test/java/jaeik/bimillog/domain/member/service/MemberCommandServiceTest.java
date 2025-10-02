@@ -30,7 +30,7 @@ import static org.mockito.Mockito.verify;
  * @version 2.0.0
  */
 @DisplayName("MemberCommandService 테스트")
-@Tag("test")
+@Tag("unit")
 class MemberCommandServiceTest extends BaseUnitTest {
 
     @Mock

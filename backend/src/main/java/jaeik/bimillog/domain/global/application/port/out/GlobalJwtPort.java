@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.global.application.port.out;
 
 import jaeik.bimillog.domain.auth.application.service.BlacklistService;
-import jaeik.bimillog.domain.member.entity.memberdetail.ExistingMemberDetail;
+import jaeik.bimillog.domain.member.entity.MemberDetail;
 import jaeik.bimillog.infrastructure.adapter.out.global.GlobalCookieAdapter;
 import jaeik.bimillog.infrastructure.filter.JwtFilter;
 
@@ -25,7 +25,7 @@ public interface GlobalJwtPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    String generateAccessToken(ExistingMemberDetail userDetail);
+    String generateAccessToken(MemberDetail userDetail);
 
     /**
      * <h3>JWT 리프레시 토큰 생성</h3>
@@ -37,7 +37,7 @@ public interface GlobalJwtPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    String generateRefreshToken(ExistingMemberDetail userDetail);
+    String generateRefreshToken(MemberDetail userDetail);
 
     /**
      * <h3>JWT 토큰 유효성 검사</h3>
@@ -61,7 +61,7 @@ public interface GlobalJwtPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    ExistingMemberDetail getUserInfoFromToken(String jwtAccessToken);
+    MemberDetail getUserInfoFromToken(String jwtAccessToken);
 
     /**
      * <h3>JWT 리프레시 토큰에서 토큰 ID 추출</h3>

@@ -38,7 +38,7 @@ import static org.mockito.Mockito.when;
  * @author Jaeik
  * @version 2.0.0
  */
-@Tag("test")
+@Tag("unit")
 class RedisPostCommandAdapterTest extends BaseUnitTest {
 
     @Mock

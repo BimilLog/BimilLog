@@ -5,11 +5,9 @@ import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
 import jaeik.bimillog.domain.member.application.port.out.RedisMemberDataPort;
 import jaeik.bimillog.domain.member.application.port.out.SaveMemberPort;
 import jaeik.bimillog.domain.member.application.service.MemberSaveService;
+import jaeik.bimillog.domain.member.entity.MemberDetail;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
-import jaeik.bimillog.domain.member.entity.memberdetail.ExistingMemberDetail;
-import jaeik.bimillog.domain.member.entity.memberdetail.NewMemberDetail;
-import jaeik.bimillog.domain.member.entity.memberdetail.MemberDetail;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -37,7 +35,7 @@ import static org.mockito.Mockito.verify;
  * @version 2.0.0
  */
 @DisplayName("MemberSaveService 단위 테스트")
-@Tag("test")
+@Tag("unit")
 class MemberSaveServiceTest extends BaseUnitTest {
 
     @Mock
@@ -71,7 +69,7 @@ class MemberSaveServiceTest extends BaseUnitTest {
     }
 
     @Test
-    @DisplayName("기존 사용자 처리 - ExistingMemberDetail 반환")
+    @DisplayName("기존 사용자 처리 - MemberDetail 반환")
     void shouldReturnExistingUserDetail_WhenExistingUser() {
         // Given
         given(memberQueryPort.findByProviderAndSocialId(
@@ -79,7 +77,7 @@ class MemberSaveServiceTest extends BaseUnitTest {
             "kakao123"
         )).willReturn(Optional.of(getTestMember()));
 
-        ExistingMemberDetail expectedDetail = ExistingMemberDetail.of(getTestMember(), 1L, 100L);
+        MemberDetail expectedDetail = MemberDetail.ofExisting(getTestMember(), 1L, 100L);
         given(saveMemberPort.handleExistingUserData(
             getTestMember(),
             testSocialProfile
@@ -92,11 +90,11 @@ class MemberSaveServiceTest extends BaseUnitTest {
         );
 
         // Then
-        assertThat(result).isInstanceOf(ExistingMemberDetail.class);
-        ExistingMemberDetail existingMemberDetail = (ExistingMemberDetail) result;
-        assertThat(existingMemberDetail.getMemberId()).isEqualTo(getTestMember().getId());
-        assertThat(existingMemberDetail.getTokenId()).isEqualTo(1L);
-        assertThat(existingMemberDetail.getFcmTokenId()).isEqualTo(100L);
+        assertThat(result).isInstanceOf(MemberDetail.class);
+        MemberDetail memberDetail = (MemberDetail) result;
+        assertThat(memberDetail.getMemberId()).isEqualTo(getTestMember().getId());
+        assertThat(memberDetail.getTokenId()).isEqualTo(1L);
+        assertThat(memberDetail.getFcmTokenId()).isEqualTo(100L);
 
         verify(memberQueryPort).findByProviderAndSocialId(SocialProvider.KAKAO, "kakao123");
         verify(saveMemberPort).handleExistingUserData(getTestMember(), testSocialProfile);
@@ -119,10 +117,8 @@ class MemberSaveServiceTest extends BaseUnitTest {
         );
 
         // Then
-        assertThat(result).isInstanceOf(NewMemberDetail.class);
-        NewMemberDetail newMemberDetail = (NewMemberDetail) result;
-        assertThat(newMemberDetail.getUuid()).isNotNull();
-        assertThat(newMemberDetail.getUuid()).isNotEmpty();
+        assertThat(result.getUuid()).isNotNull();
+        assertThat(result.getUuid()).isNotEmpty();
 
         // Redis에 임시 데이터 저장 검증
         ArgumentCaptor<String> uuidCaptor = ArgumentCaptor.forClass(String.class);
@@ -133,7 +129,7 @@ class MemberSaveServiceTest extends BaseUnitTest {
             profileCaptor.capture()
         );
 
-        assertThat(uuidCaptor.getValue()).isEqualTo(newMemberDetail.getUuid());
+        assertThat(uuidCaptor.getValue()).isEqualTo(result.getUuid());
         assertThat(profileCaptor.getValue()).isEqualTo(testSocialProfile);
 
         verify(saveMemberPort, never()).handleExistingUserData(any(), any());
@@ -159,7 +155,7 @@ class MemberSaveServiceTest extends BaseUnitTest {
             "kakao123"
         )).willReturn(Optional.of(getTestMember()));
 
-        ExistingMemberDetail expectedDetail = ExistingMemberDetail.of(getTestMember(), 1L, null);
+        MemberDetail expectedDetail = MemberDetail.ofExisting(getTestMember(), 1L, null);
         given(saveMemberPort.handleExistingUserData(
             getTestMember(),
             profileWithoutFcm
@@ -172,9 +168,9 @@ class MemberSaveServiceTest extends BaseUnitTest {
         );
 
         // Then
-        assertThat(result).isInstanceOf(ExistingMemberDetail.class);
-        ExistingMemberDetail existingMemberDetail = (ExistingMemberDetail) result;
-        assertThat(existingMemberDetail.getFcmTokenId()).isNull();
+        assertThat(result).isInstanceOf(MemberDetail.class);
+        MemberDetail memberDetail = (MemberDetail) result;
+        assertThat(memberDetail.getFcmTokenId()).isNull();
 
         verify(saveMemberPort).handleExistingUserData(getTestMember(), profileWithoutFcm);
     }
@@ -206,12 +202,11 @@ class MemberSaveServiceTest extends BaseUnitTest {
         );
 
         // Then
-        assertThat(result).isInstanceOf(NewMemberDetail.class);
-        NewMemberDetail newMemberDetail = (NewMemberDetail) result;
+        assertThat(result.getUuid()).isNotNull();
 
         // Redis에 FCM 토큰 없이 저장되는지 검증
         verify(redisMemberDataPort).saveTempData(
-            eq(newMemberDetail.getUuid()),
+            eq(result.getUuid()),
             eq(profileWithoutFcm)
         );
     }
@@ -237,7 +232,7 @@ class MemberSaveServiceTest extends BaseUnitTest {
             "google456"
         )).willReturn(Optional.of(googleMember));
 
-        ExistingMemberDetail expectedDetail = ExistingMemberDetail.of(googleMember, 2L, 200L);
+        MemberDetail expectedDetail = MemberDetail.ofExisting(googleMember, 2L, 200L);
         given(saveMemberPort.handleExistingUserData(
                 googleMember,
             googleProfile
@@ -250,7 +245,7 @@ class MemberSaveServiceTest extends BaseUnitTest {
         );
 
         // Then
-        assertThat(result).isInstanceOf(ExistingMemberDetail.class);
+        assertThat(result).isInstanceOf(MemberDetail.class);
         verify(memberQueryPort).findByProviderAndSocialId(SocialProvider.GOOGLE, "google456");
         verify(saveMemberPort).handleExistingUserData(googleMember, googleProfile);
     }

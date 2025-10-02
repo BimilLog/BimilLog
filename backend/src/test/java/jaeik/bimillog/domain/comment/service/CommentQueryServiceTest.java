@@ -28,7 +28,7 @@ import static org.mockito.Mockito.verify;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("CommentQueryService 테스트")
-@Tag("test")
+@Tag("unit")
 class CommentQueryServiceTest {
 
     @Mock

@@ -36,7 +36,7 @@ import static org.mockito.Mockito.*;
  * @version 2.0.0
  * @see SseAdapter
  */
-@Tag("test")
+@Tag("unit")
 @DisplayName("SseAdapter 단위 테스트")
 class SseAdapterTest extends BaseUnitTest {
 

@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PostViewCookieUtil 테스트")
-@Tag("test")
+@Tag("unit")
 class PostViewCookieUtilTest {
 
     @InjectMocks

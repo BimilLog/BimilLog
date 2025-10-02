@@ -5,10 +5,10 @@ import jaeik.bimillog.domain.auth.application.port.out.KakaoTokenPort;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
+import jaeik.bimillog.domain.member.entity.MemberDetail;
 import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
-import jaeik.bimillog.domain.member.entity.memberdetail.ExistingMemberDetail;
 import jaeik.bimillog.infrastructure.adapter.out.member.SaveMemberAdapter;
 import jaeik.bimillog.infrastructure.adapter.out.member.MemberRepository;
 import jaeik.bimillog.testutil.BaseUnitTest;
@@ -34,7 +34,7 @@ import static org.mockito.Mockito.verify;
  * @author Jaeik
  * @version 2.0.0
  */
-@Tag("test")
+@Tag("unit")
 class SaveMemberAdapterTest extends BaseUnitTest {
 
     @Mock private AuthTokenPort authTokenPort;
@@ -69,7 +69,7 @@ class SaveMemberAdapterTest extends BaseUnitTest {
         given(fcmUseCase.registerFcmToken(existingMember, fcmToken)).willReturn(fcmTokenId);
 
         // When: 기존 회원 로그인 처리
-        ExistingMemberDetail result = saveMemberAdapter.handleExistingUserData(existingMember, memberProfile);
+        MemberDetail result = saveMemberAdapter.handleExistingUserData(existingMember, memberProfile);
 
         // Then: 회원 정보 업데이트 검증
         assertThat(existingMember.getSocialNickname()).isEqualTo("업데이트된닉네임");
@@ -93,7 +93,7 @@ class SaveMemberAdapterTest extends BaseUnitTest {
         // FCM 토큰 등록 및 ID 반환 검증
         verify(fcmUseCase).registerFcmToken(existingMember, fcmToken);
 
-        // 반환된 ExistingMemberDetail 검증
+        // 반환된 MemberDetail 검증
         assertThat(result).isNotNull();
         assertThat(result.getMemberId()).isEqualTo(existingMember.getId());
         assertThat(result.getTokenId()).isEqualTo(tokenId);
@@ -118,7 +118,7 @@ class SaveMemberAdapterTest extends BaseUnitTest {
         given(authTokenPort.save(any(AuthToken.class))).willReturn(savedAuthToken);
 
         // When: FCM 토큰 없이 기존 회원 로그인 처리
-        ExistingMemberDetail result = saveMemberAdapter.handleExistingUserData(existingMember, memberProfile);
+        MemberDetail result = saveMemberAdapter.handleExistingUserData(existingMember, memberProfile);
 
         // Then: 카카오 토큰 업데이트 검증
         verify(kakaoTokenPort).updateTokens(
@@ -167,7 +167,7 @@ class SaveMemberAdapterTest extends BaseUnitTest {
         given(fcmUseCase.registerFcmToken(newMember, fcmToken)).willReturn(fcmTokenId);
 
         // When: 신규 회원 저장
-        ExistingMemberDetail result = saveMemberAdapter.saveNewMember(memberName, memberProfile);
+        MemberDetail result = saveMemberAdapter.saveNewMember(memberName, memberProfile);
 
         // Then: 카카오 토큰 저장 검증
         ArgumentCaptor<KakaoToken> kakaoTokenCaptor = ArgumentCaptor.forClass(KakaoToken.class);
@@ -191,7 +191,7 @@ class SaveMemberAdapterTest extends BaseUnitTest {
         // 토큰 저장 검증
         verify(authTokenPort).save(any(AuthToken.class));
 
-        // 반환된 ExistingMemberDetail 검증
+        // 반환된 MemberDetail 검증
         assertThat(result).isNotNull();
         assertThat(result.getMemberId()).isEqualTo(newMember.getId());
         assertThat(result.getTokenId()).isEqualTo(1L);
@@ -228,7 +228,7 @@ class SaveMemberAdapterTest extends BaseUnitTest {
         given(authTokenPort.save(any(AuthToken.class))).willReturn(newAuthToken);
 
         // When: FCM 토큰 없이 회원 저장
-        ExistingMemberDetail result = saveMemberAdapter.saveNewMember(memberName, memberProfile);
+        MemberDetail result = saveMemberAdapter.saveNewMember(memberName, memberProfile);
 
         // Then: 카카오 토큰 저장 검증
         verify(kakaoTokenPort).save(any(KakaoToken.class));

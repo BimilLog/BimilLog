@@ -4,8 +4,8 @@ import jaeik.bimillog.domain.auth.application.port.out.AuthToMemberPort;
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.member.application.port.in.MemberSaveUseCase;
+import jaeik.bimillog.domain.member.entity.MemberDetail;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
-import jaeik.bimillog.domain.member.entity.memberdetail.MemberDetail;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -42,7 +42,7 @@ public class AuthToMemberAdapter implements AuthToMemberPort {
      *
      * @param provider 소셜 로그인 제공자 (KAKAO 등)
      * @param profile 소셜 사용자 프로필 정보 (FCM 토큰 포함)
-     * @return MemberDetail 기존 사용자 또는 신규 사용자 정보
+     * @return MemberDetail 기존 사용자(uuid = null) 또는 신규 사용자(uuid != null) 정보
      * @author Jaeik
      * @since 2.0.0
      */

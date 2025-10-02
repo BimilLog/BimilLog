@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.member.application.port.in;
 
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
+import jaeik.bimillog.domain.member.entity.MemberDetail;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
-import jaeik.bimillog.domain.member.entity.memberdetail.MemberDetail;
 import jaeik.bimillog.infrastructure.adapter.out.auth.AuthToMemberAdapter;
 
 public interface MemberSaveUseCase {
@@ -15,9 +15,9 @@ public interface MemberSaveUseCase {
      *
      * @param provider 소셜 로그인 제공자 (KAKAO 등)
      * @param profile 소셜 사용자 프로필 정보 (FCM 토큰 포함)
-     * @return MemberDetail 기존 사용자(ExistingMemberDetail) 또는 신규 사용자(NewMemberDetail) 정보
+     * @return MemberDetail 기존 사용자(uuid = null) 또는 신규 사용자(uuid != null) 정보
      * @author Jaeik
-     * @since 2.0.0
+     * @since 3.0.0
      */
     MemberDetail processUserData(SocialProvider provider, SocialMemberProfile profile);
 }

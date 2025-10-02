@@ -1,36 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 /**
- * 회원가입 UUID 검증 훅
- * 백엔드에서 회원가입 시점에 UUID를 검증하므로 프론트엔드는 UUID 추출만 수행
+ * 회원가입 필수 여부 확인 훅
+ * UUID는 HttpOnly 쿠키로 전달되어 프론트엔드에서 접근 불가
+ * required 파라미터로만 회원가입 필수 여부 확인
  */
-export const useSignupUuid = () => {
-  const [tempUuid, setTempUuid] = useState<string | null>(null);
-  const [isValidating, setIsValidating] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export const useSignupRequired = () => {
   const searchParams = useSearchParams();
+  const isRequired = searchParams.get("required") === "true";
 
-  useEffect(() => {
-    const uuid = searchParams.get("uuid");
-    const required = searchParams.get("required");
-
-    // 회원가입이 필요한 페이지인데 UUID가 없는 경우
-    if (required === "true" && !uuid) {
-      setError("회원가입을 위해 카카오 로그인이 필요합니다.");
-      setIsValidating(false);
-      return;
-    }
-
-    // UUID가 있으면 저장 (백엔드에서 회원가입 시점에 검증)
-    if (uuid) {
-      setTempUuid(uuid);
-    }
-
-    setIsValidating(false);
-  }, [searchParams]);
-
-  return { tempUuid, isValidating, error };
+  return { isRequired };
 };

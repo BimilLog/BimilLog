@@ -3,8 +3,8 @@ package jaeik.bimillog.domain.member.application.port.out;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.member.application.service.SignUpService;
 import jaeik.bimillog.domain.member.application.service.MemberSaveService;
+import jaeik.bimillog.domain.member.entity.MemberDetail;
 import jaeik.bimillog.domain.member.entity.member.Member;
-import jaeik.bimillog.domain.member.entity.memberdetail.MemberDetail;
 
 /**
  * <h2>사용자 정보 저장 포트</h2>
@@ -24,7 +24,7 @@ public interface SaveMemberPort {
      *
      * @param existingMember 기존 사용자 엔티티
      * @param userProfile 소셜 플랫폼에서 가져온 최신 사용자 프로필 정보 (OAuth 액세스/리프레시 토큰, FCM 토큰 포함)
-     * @return MemberDetail 기존 사용자 상세 정보 (ExistingMemberDetail)
+     * @return MemberDetail 기존 사용자 상세 정보 (uuid = null)
      * @author Jaeik
      * @since 2.0.0
      */
@@ -38,7 +38,7 @@ public interface SaveMemberPort {
      *
      * @param memberName 사용자가 입력한 닉네임
      * @param userProfile Redis에서 복원된 소셜 사용자 프로필 정보 (OAuth 액세스/리프레시 토큰, FCM 토큰 포함)
-     * @return MemberDetail 생성된 사용자 정보를 담은 객체
+     * @return MemberDetail 생성된 사용자 정보를 담은 객체 (uuid = null)
      * @author Jaeik
      * @since 2.0.0
      */

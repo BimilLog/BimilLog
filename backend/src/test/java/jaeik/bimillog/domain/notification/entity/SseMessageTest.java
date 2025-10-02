@@ -14,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @version 2.0.0
  */
 @DisplayName("SseMessage 도메인 값 객체 테스트")
-@Tag("test")
+@Tag("unit")
 class SseMessageTest {
 
     @Test

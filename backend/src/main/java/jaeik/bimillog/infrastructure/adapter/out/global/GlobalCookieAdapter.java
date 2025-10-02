@@ -1,7 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.out.global;
 
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
-import jaeik.bimillog.domain.member.entity.memberdetail.NewMemberDetail;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
@@ -30,14 +29,14 @@ public class GlobalCookieAdapter implements GlobalCookiePort {
      *
      * <p>신규 회원가입 시 사용자의 임시 UUID를 담는 쿠키를 생성합니다.</p>
      *
-     * @param newMemberDetail 임시 사용자 정보
+     * @param uuid 임시 사용자 UUID
      * @return 임시 사용자 ID 쿠키
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public ResponseCookie createTempCookie(NewMemberDetail newMemberDetail) {
-        return ResponseCookie.from(TEMP_USER_ID_COOKIE, newMemberDetail.getUuid())
+    public ResponseCookie createTempCookie(String uuid) {
+        return ResponseCookie.from(TEMP_USER_ID_COOKIE, uuid)
                 .path("/")
                 .maxAge(600) // 10분
                 .httpOnly(true)

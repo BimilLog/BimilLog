@@ -18,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @version 2.0.0
  */
 @DisplayName("Comment 엔티티 단위 테스트")
-@Tag("test")
+@Tag("unit")
 class CommentTest {
 
     private Member createTestUser(Long id) {

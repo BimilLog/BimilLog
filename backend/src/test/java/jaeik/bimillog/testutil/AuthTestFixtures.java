@@ -1,8 +1,8 @@
 package jaeik.bimillog.testutil;
 
+import jaeik.bimillog.domain.member.entity.MemberDetail;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import jaeik.bimillog.domain.member.entity.member.Member;
-import jaeik.bimillog.domain.member.entity.memberdetail.ExistingMemberDetail;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 
 /**
@@ -21,17 +21,17 @@ public final class AuthTestFixtures {
     public static final String TEST_FCM_TOKEN = "fcm-token-123";
     public static final SocialProvider TEST_PROVIDER = SocialProvider.KAKAO;
 
-    public static ExistingMemberDetail createExistingMemberDetail(Member member) {
+    public static MemberDetail createExistingMemberDetail(Member member) {
         return createExistingMemberDetail(member, null, null);
     }
 
-    public static ExistingMemberDetail createExistingMemberDetail(Member member, Long tokenId, Long fcmTokenId) {
+    public static MemberDetail createExistingMemberDetail(Member member, Long tokenId, Long fcmTokenId) {
         Long settingId = 1L;
         if (member.getSetting() != null && member.getSetting().getId() != null) {
             settingId = member.getSetting().getId();
         }
 
-        return ExistingMemberDetail.builder()
+        return MemberDetail.builder()
                 .memberId(member.getId() != null ? member.getId() : 1L)
                 .settingId(settingId)
                 .socialId(member.getSocialId())

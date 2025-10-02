@@ -20,7 +20,7 @@ import static org.mockito.BDDMockito.given;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Message 엔티티 테스트")
-@Tag("test")
+@Tag("unit")
 class MessageTest {
 
     @Mock

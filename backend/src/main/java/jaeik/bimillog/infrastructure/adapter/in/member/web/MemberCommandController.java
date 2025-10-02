@@ -42,8 +42,10 @@ public class MemberCommandController {
     /**
      * <h3>회원가입</h3>
      * <p>사용자의 회원가입 요청을 처리합니다.</p>
+     * <p>UUID는 HttpOnly 쿠키를 통해 전달받아 서버에서 추출합니다.</p>
      *
-     * @param request 회원가입 요청 DTO (memberName, uuid)
+     * @param request 회원가입 요청 DTO (memberName)
+     * @param uuid HttpOnly 쿠키로 전달된 임시 UUID
      * @return 회원 가입 성공 응답
      * @author Jaeik
      * @since 2.0.0
@@ -53,10 +55,12 @@ public class MemberCommandController {
             logExecutionTime = true,
             excludeParams = {"uuid"},
             message = "회원가입 요청")
-    public ResponseEntity<AuthResponseDTO> signUp(@Valid @RequestBody SignUpRequestDTO request) {
+    public ResponseEntity<AuthResponseDTO> signUp(
+            @Valid @RequestBody SignUpRequestDTO request,
+            @CookieValue(name = "temp_user_id") String uuid) {
 
         // 회원가입 로직 실행 후 쿠키 리스트 받기
-        List<ResponseCookie> cookies = signUpUseCase.signUp(request.getMemberName(), request.getUuid());
+        List<ResponseCookie> cookies = signUpUseCase.signUp(request.getMemberName(), uuid);
 
         // ResponseEntity builder 생성
         ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.ok();

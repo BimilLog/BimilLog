@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 import { Button } from "@/components";
 import { Input } from "@/components";
 import { Label } from "@/components";
@@ -14,12 +14,11 @@ import { validationRules } from "@/lib/utils/validation-helpers";
 import { logger } from '@/lib/utils/logger';
 
 interface NicknameSetupFormProps {
-  tempUuid: string;
   onSuccess: () => void;
   onError: (error: string) => void;
 }
 
-export function NicknameSetupForm({ tempUuid, onSuccess, onError }: NicknameSetupFormProps) {
+export function NicknameSetupForm({ onSuccess, onError }: NicknameSetupFormProps) {
   const { signUp } = useAuth();
   const { refetch: refetchNotifications } = useNotificationList();
   const router = useRouter();
@@ -31,12 +30,6 @@ export function NicknameSetupForm({ tempUuid, onSuccess, onError }: NicknameSetu
   const [isChecking, setIsChecking] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // UUID 유효성 검증: 카카오 OAuth 로그인 후 임시 저장된 UUID 형식 검증
-  // 사용자가 직접 URL을 조작하여 가짜 회원가입을 시도하는 것을 방지
-  const validateUuid = useCallback((uuid: string): boolean => {
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    return uuidRegex.test(uuid);
-  }, []);
 
   // 닉네임 입력 처리: 실시간 형식 검증 및 중복확인 상태 초기화
   // 사용자가 닉네임을 변경할 때마다 중복확인을 다시 하도록 유도
@@ -80,25 +73,17 @@ export function NicknameSetupForm({ tempUuid, onSuccess, onError }: NicknameSetu
     }
   };
 
-  // 회원가입 완료 처리: 닉네임과 임시 UUID를 사용하여 최종 계정 생성
-  // 성공 시 세션 정리 및 알림 설정, 메인 페이지로 리다이렉트
+  // 회원가입 완료 처리: 닉네임을 사용하여 최종 계정 생성
+  // UUID는 HttpOnly 쿠키로 자동 전송됨
+  // 성공 시 알림 설정, 메인 페이지로 리다이렉트
   const handleSubmit = async () => {
     if (!isNicknameFormatValid || !isNicknameAvailable) return;
 
-    // UUID 유효성 재확인: 보안 강화를 위해 최종 제출 전 다시 한 번 검증
-    if (!validateUuid(tempUuid)) {
-      onError("잘못된 회원가입 정보입니다.");
-      return;
-    }
-
     setIsSubmitting(true);
     try {
-      const result = await signUp(nickname, tempUuid);
+      const result = await signUp(nickname);
 
       if (result.success) {
-        // 세션스토리지에서 임시 UUID 제거: 보안상 중요한 정리 작업
-        sessionStorage.removeItem("tempUserUuid");
-
         // 알림 목록 새로고침: 새 계정에 대한 알림 설정 업데이트
         await refetchNotifications();
 

@@ -64,18 +64,17 @@ class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        // 2. 응답에서 UUID 추출
-        String responseBody = loginResult.getResponse().getContentAsString();
-        ObjectMapper mapper = new ObjectMapper();
-        var responseMap = mapper.readValue(responseBody, Map.class);
-        String uuid = (String) responseMap.get("uuid");
+        // 2. 응답에서 temp_user_id 쿠키 추출 (UUID는 HttpOnly 쿠키로 전달됨)
+        var tempCookie = loginResult.getResponse().getCookie("temp_user_id");
+        assertThat(tempCookie).isNotNull();
 
-        // 3. 회원가입 수행
-        SignUpRequestDTO signUpRequest = new SignUpRequestDTO("통합테스트사용자", uuid);
+        // 3. 회원가입 수행 (UUID는 요청 본문이 아닌 쿠키로 전달)
+        SignUpRequestDTO signUpRequest = new SignUpRequestDTO("통합테스트사용자");
 
         mockMvc.perform(post("/api/member/signup")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(signUpRequest))
+                        .cookie(tempCookie)
                         .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isOk())

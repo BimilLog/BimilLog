@@ -10,7 +10,7 @@ import jaeik.bimillog.domain.member.application.port.out.RedisMemberDataPort;
 import jaeik.bimillog.domain.member.application.port.out.SaveMemberPort;
 import jaeik.bimillog.domain.member.application.service.SignUpService;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
-import jaeik.bimillog.domain.member.entity.memberdetail.ExistingMemberDetail;
+import jaeik.bimillog.domain.member.entity.MemberDetail;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -40,7 +40,7 @@ import static org.mockito.Mockito.verify;
  * @version 2.0.0
  */
 @DisplayName("SignUpService 단위 테스트")
-@Tag("test")
+@Tag("unit")
 class SignUpServiceTest extends BaseUnitTest {
 
     @Mock
@@ -65,7 +65,7 @@ class SignUpServiceTest extends BaseUnitTest {
     private String testUuid;
     private SocialMemberProfile testSocialProfile;
     private List<ResponseCookie> testCookies;
-    private ExistingMemberDetail testUserDetail;
+    private MemberDetail testUserDetail;
     private final String testAccessToken = "test-access-TemporaryToken";
     private final String testRefreshToken = "test-refresh-TemporaryToken";
 
@@ -81,7 +81,7 @@ class SignUpServiceTest extends BaseUnitTest {
                 ResponseCookie.from("refresh_token", "refresh-TemporaryToken").build()
         );
 
-        testUserDetail = ExistingMemberDetail.of(getTestMember(), 1L, 100L);
+        testUserDetail = MemberDetail.ofExisting(getTestMember(), 1L, 100L);
     }
 
     @Test

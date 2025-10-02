@@ -6,7 +6,6 @@ export type AuthStatus = "NEW_USER" | "EXISTING_USER" | "SUCCESS" | "ERROR";
 // 백엔드 AuthController에서 반환하는 복합적인 응답 구조
 export interface AuthResponse {
   status: AuthStatus;
-  uuid?: string; // NEW_USER일 때 회원가입에 필요한 임시 식별자
   data?: { // 각 상황에 따라 다른 필드들이 선택적으로 포함됨
     memberId?: number;
     memberName?: string;
@@ -38,9 +37,9 @@ export interface SocialLoginRequest {
 
 export interface SignUpRequest {
   memberName: string;
-  uuid: string;
   marketingConsent?: boolean;
   privacyConsent?: boolean;
+  // UUID는 HttpOnly 쿠키로 전달되어 요청 본문에 포함하지 않음
 }
 
 export interface LoginStatus {

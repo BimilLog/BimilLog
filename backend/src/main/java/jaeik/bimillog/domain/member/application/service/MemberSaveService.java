@@ -5,10 +5,9 @@ import jaeik.bimillog.domain.member.application.port.in.MemberSaveUseCase;
 import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
 import jaeik.bimillog.domain.member.application.port.out.RedisMemberDataPort;
 import jaeik.bimillog.domain.member.application.port.out.SaveMemberPort;
+import jaeik.bimillog.domain.member.entity.MemberDetail;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
-import jaeik.bimillog.domain.member.entity.memberdetail.NewMemberDetail;
-import jaeik.bimillog.domain.member.entity.memberdetail.MemberDetail;
 import jaeik.bimillog.infrastructure.adapter.out.auth.AuthToMemberAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -47,14 +46,14 @@ public class MemberSaveService implements MemberSaveUseCase {
      * <p>기존 사용자는 정보를 업데이트하고, 신규 사용자는 임시 데이터를 저장합니다.</p>
      * <p>{@link AuthToMemberAdapter}에서 Auth 도메인의 요청을 받아 호출됩니다.</p>
      * <p>기존 사용자와 신규 사용자를 구분하여 각각의 로그인 처리를 수행합니다.</p>
-     * <p>기존 사용자: 프로필 업데이트 후 즉시 로그인 완료</p>
-     * <p>신규 사용자: 임시 데이터 저장 후 회원가입 페이지로 안내</p>
+     * <p>기존 사용자: 프로필 업데이트 후 즉시 로그인 완료 (uuid = null)</p>
+     * <p>신규 사용자: 임시 데이터 저장 후 회원가입 페이지로 안내 (uuid != null)</p>
      *
      * @param provider 소셜 로그인 제공자 (KAKAO 등)
      * @param userProfile 소셜 사용자 프로필 정보 (FCM 토큰 포함)
-     * @return MemberDetail 기존 사용자(ExistingMemberDetail) 또는 신규 사용자(NewMemberDetail) 정보
+     * @return MemberDetail 기존 사용자(uuid = null) 또는 신규 사용자(uuid != null) 정보
      * @author Jaeik
-     * @since 2.0.0
+     * @since 3.0.0
      */
     @Override
     public MemberDetail processUserData(SocialProvider provider, SocialMemberProfile userProfile) {
@@ -70,17 +69,17 @@ public class MemberSaveService implements MemberSaveUseCase {
     /**
      * <h3>신규 사용자 임시 데이터 저장</h3>
      * <p>최초 소셜 로그인하는 사용자의 임시 정보를 저장합니다.</p>
-     * <p>회원가입 페이지에서 사용할 UUID 키와 임시 쿠키를 생성합니다.</p>
+     * <p>회원가입 페이지에서 사용할 UUID 키를 생성합니다.</p>
      * <p>{@link #processUserData(SocialProvider, SocialMemberProfile)}에서 신규 사용자 판별 후 호출됩니다.</p>
      *
      * @param authResult 소셜 로그인 인증 결과 (FCM 토큰 포함)
-     * @return NewUser 회원가입용 UUID와 임시 쿠키 정보
+     * @return MemberDetail 회원가입용 UUID를 포함하는 신규 사용자 정보
      * @author Jaeik
-     * @since 2.0.0
+     * @since 3.0.0
      */
-    private NewMemberDetail handleNewUser(SocialMemberProfile authResult) {
+    private MemberDetail handleNewUser(SocialMemberProfile authResult) {
         String uuid = UUID.randomUUID().toString();
         redisMemberDataPort.saveTempData(uuid, authResult);
-        return NewMemberDetail.of(uuid);
+        return MemberDetail.ofNew(uuid);
     }
 }

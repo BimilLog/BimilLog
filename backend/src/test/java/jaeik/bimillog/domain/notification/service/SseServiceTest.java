@@ -25,7 +25,7 @@ import static org.mockito.Mockito.verify;
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("SseService 테스트")
-@Tag("test")
+@Tag("unit")
 class SseServiceTest {
 
     @Mock
