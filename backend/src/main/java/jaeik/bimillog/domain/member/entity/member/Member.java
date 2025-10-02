@@ -96,7 +96,6 @@ public class Member extends BaseEntity {
         this.thumbnailImage = thumbnailImage;
     }
 
-    // 카카오 토큰 생성
     public void updateKakaoToken(KakaoToken kakaoToken) {
         this.kakaoToken = kakaoToken;
     }

@@ -13,7 +13,7 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalKakaoTokenCommand
 import jaeik.bimillog.domain.global.entity.MemberDetail;
 import jaeik.bimillog.domain.member.application.port.out.RedisMemberDataPort;
 import jaeik.bimillog.domain.member.application.port.out.SaveMemberPort;
-import jaeik.bimillog.domain.member.application.service.SignUpService;
+import jaeik.bimillog.domain.member.application.service.MemberSignupService;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import jaeik.bimillog.testutil.BaseUnitTest;
@@ -39,12 +39,12 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 /**
- * <h2>SignUpService 단위 테스트</h2>
+ * <h2>MemberSignupService 단위 테스트</h2>
  * <p>신규 회원 가입 시 Redis 임시 데이터 조회부터 JWT 쿠키 발급까지의 흐름을 검증합니다.</p>
  */
-@DisplayName("SignUpService 단위 테스트")
+@DisplayName("MemberSignupService 단위 테스트")
 @Tag("unit")
-class SignUpServiceTest extends BaseUnitTest {
+class MemberSignupServiceTest extends BaseUnitTest {
 
     @Mock private RedisMemberDataPort redisMemberDataPort;
     @Mock private SaveMemberPort saveMemberPort;
@@ -54,7 +54,7 @@ class SignUpServiceTest extends BaseUnitTest {
     @Mock private GlobalKakaoTokenCommandPort globalKakaoTokenCommandPort;
     @Mock private GlobalFcmSaveUseCase globalFcmSaveUseCase;
 
-    @InjectMocks private SignUpService signUpService;
+    @InjectMocks private MemberSignupService signUpService;
 
     private SocialMemberProfile socialProfile;
     private Member persistedMember;
@@ -103,7 +103,7 @@ class SignUpServiceTest extends BaseUnitTest {
 
     @Test
     @DisplayName("유효한 임시 데이터로 회원 가입을 완료한다")
-    void shouldSignUpWithValidTemporaryData() {
+    void shouldSignupWithValidTemporaryData() {
         given(redisMemberDataPort.getTempData("uuid-123")).willReturn(Optional.of(socialProfile));
         given(globalKakaoTokenCommandPort.save(any(KakaoToken.class)))
                 .willReturn(KakaoToken.createKakaoToken("access-token", "refresh-token"));
@@ -114,7 +114,7 @@ class SignUpServiceTest extends BaseUnitTest {
         given(globalJwtPort.generateRefreshToken(any(MemberDetail.class))).willReturn("refresh-jwt");
         given(globalCookiePort.generateJwtCookie("access-jwt", "refresh-jwt")).willReturn(jwtCookies);
 
-        List<ResponseCookie> result = signUpService.signUp("tester", "uuid-123");
+        List<ResponseCookie> result = signUpService.signup("tester", "uuid-123");
 
         assertThat(result).isEqualTo(jwtCookies);
         verify(redisMemberDataPort).getTempData("uuid-123");
@@ -141,7 +141,7 @@ class SignUpServiceTest extends BaseUnitTest {
     void shouldThrowExceptionWhenTempDataMissing() {
         given(redisMemberDataPort.getTempData("missing-uuid")).willReturn(Optional.empty());
 
-        assertThatThrownBy(() -> signUpService.signUp("tester", "missing-uuid"))
+        assertThatThrownBy(() -> signUpService.signup("tester", "missing-uuid"))
                 .isInstanceOf(AuthCustomException.class)
                 .hasFieldOrPropertyWithValue("authErrorCode", AuthErrorCode.INVALID_TEMP_DATA);
 
@@ -151,7 +151,7 @@ class SignUpServiceTest extends BaseUnitTest {
 
     @Test
     @DisplayName("FCM 토큰이 없어도 회원 가입은 정상 진행된다")
-    void shouldSignUpWithoutFcmToken() {
+    void shouldSignupWithoutFcmToken() {
         SocialMemberProfile profileWithoutFcm = new SocialMemberProfile(
                 "kakao123",
                 "signup@example.com",
@@ -173,7 +173,7 @@ class SignUpServiceTest extends BaseUnitTest {
         given(globalJwtPort.generateRefreshToken(any(MemberDetail.class))).willReturn("refresh-jwt");
         given(globalCookiePort.generateJwtCookie("access-jwt", "refresh-jwt")).willReturn(jwtCookies);
 
-        List<ResponseCookie> result = signUpService.signUp("tester", "uuid-123");
+        List<ResponseCookie> result = signUpService.signup("tester", "uuid-123");
 
         assertThat(result).isEqualTo(jwtCookies);
         verify(globalFcmSaveUseCase).registerFcmToken(persistedMember, null);

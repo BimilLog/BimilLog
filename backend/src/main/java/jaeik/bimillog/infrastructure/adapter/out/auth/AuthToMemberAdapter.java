@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.auth.application.port.out.AuthToMemberPort;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.member.application.port.in.MemberQueryUseCase;
-import jaeik.bimillog.domain.member.application.port.in.MemberSaveUseCase;
+import jaeik.bimillog.domain.member.application.port.in.HandleMemberLoginUseCase;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import lombok.RequiredArgsConstructor;
@@ -34,17 +34,17 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AuthToMemberAdapter implements AuthToMemberPort {
 
-    private final MemberSaveUseCase memberSaveUseCase;
+    private final HandleMemberLoginUseCase handleMemberLoginUseCase;
     private final MemberQueryUseCase memberQueryUseCase;
 
     @Override
     public Member handleExistingMember(Member member, String newNickname, String newProfileImage, KakaoToken savedKakaoToken) {
-        return memberSaveUseCase.handleExistingMember(member, newNickname, newProfileImage, savedKakaoToken);
+        return handleMemberLoginUseCase.handleExistingMember(member, newNickname, newProfileImage, savedKakaoToken);
     }
 
     @Override
     public void handleNewUser(SocialMemberProfile memberProfile, String uuid) {
-        memberSaveUseCase.handleNewMember(memberProfile, uuid);
+        handleMemberLoginUseCase.handleNewMember(memberProfile, uuid);
     }
 
     @Override

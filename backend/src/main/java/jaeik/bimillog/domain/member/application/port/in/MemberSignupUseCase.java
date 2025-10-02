@@ -14,7 +14,7 @@ import java.util.List;
  * @author Jaeik
  * @version 2.0.0
  */
-public interface SignUpUseCase {
+public interface MemberSignupUseCase {
 
     /**
      * <h3>회원가입 처리</h3>
@@ -28,5 +28,5 @@ public interface SignUpUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    List<ResponseCookie> signUp(String memberName, String uuid);
+    List<ResponseCookie> signup(String memberName, String uuid);
 }

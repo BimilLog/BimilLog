@@ -11,7 +11,7 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalKakaoTokenCommandPort;
 import jaeik.bimillog.domain.global.entity.MemberDetail;
-import jaeik.bimillog.domain.member.application.port.in.SignUpUseCase;
+import jaeik.bimillog.domain.member.application.port.in.MemberSignupUseCase;
 import jaeik.bimillog.domain.member.application.port.out.RedisMemberDataPort;
 import jaeik.bimillog.domain.member.application.port.out.SaveMemberPort;
 import jaeik.bimillog.domain.member.entity.Setting;
@@ -34,7 +34,7 @@ import java.util.Optional;
  */
 @Service
 @RequiredArgsConstructor
-public class SignUpService implements SignUpUseCase {
+public class MemberSignupService implements MemberSignupUseCase {
 
     private final RedisMemberDataPort redisMemberDataPort;
     private final SaveMemberPort saveMemberPort;
@@ -57,7 +57,7 @@ public class SignUpService implements SignUpUseCase {
      */
     @Override
     @Transactional
-    public List<ResponseCookie> signUp(String memberName, String uuid) {
+    public List<ResponseCookie> signup(String memberName, String uuid) {
         Optional<SocialMemberProfile> socialMemberProfile = redisMemberDataPort.getTempData(uuid);
 
         if (socialMemberProfile.isEmpty()) {

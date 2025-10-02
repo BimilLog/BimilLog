@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.member.application.port.out;
 
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.member.application.service.SignUpService;
+import jaeik.bimillog.domain.member.application.service.MemberSignupService;
 
 import java.util.Optional;
 
@@ -34,7 +34,7 @@ public interface RedisMemberDataPort {
      * <h3>임시 사용자 데이터 조회</h3>
      * <p>UUID를 사용하여 Redis에 저장된 임시 사용자 데이터를 조회합니다.</p>
      * <p>회원가입 완료 시 임시로 저장된 소셜 프로필 정보를 복원하는데 사용됩니다.</p>
-     * <p>{@link SignUpService}에서 회원가입 요청 처리 시 임시 데이터 복원을 위해 호출됩니다.</p>
+     * <p>{@link MemberSignupService}에서 회원가입 요청 처리 시 임시 데이터 복원을 위해 호출됩니다.</p>
      *
      * @param uuid 조회할 임시 데이터의 UUID 키
      * @return 조회된 소셜 사용자 프로필 (존재하지 않으면 Optional.empty())

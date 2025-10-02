@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.member.entity.member.Member;
 
-public interface MemberSaveUseCase {
+public interface HandleMemberLoginUseCase {
 
 
     Member handleExistingMember(Member member, String newNickname, String newProfileImage, KakaoToken savedKakaoToken);

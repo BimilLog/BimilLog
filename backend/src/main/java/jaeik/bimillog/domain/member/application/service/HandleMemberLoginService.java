@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.member.application.service;
 
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.member.application.port.in.MemberSaveUseCase;
+import jaeik.bimillog.domain.member.application.port.in.HandleMemberLoginUseCase;
 import jaeik.bimillog.domain.member.application.port.out.RedisMemberDataPort;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
-public class MemberSaveService implements MemberSaveUseCase {
+public class HandleMemberLoginService implements HandleMemberLoginUseCase {
 
     private final RedisMemberDataPort redisMemberDataPort;
 

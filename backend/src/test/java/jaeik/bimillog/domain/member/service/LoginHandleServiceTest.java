@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.member.service;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.member.application.port.out.RedisMemberDataPort;
-import jaeik.bimillog.domain.member.application.service.MemberSaveService;
+import jaeik.bimillog.domain.member.application.service.HandleMemberLoginService;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import jaeik.bimillog.testutil.BaseUnitTest;
@@ -20,18 +20,18 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 /**
- * <h2>MemberSaveService 단위 테스트</h2>
+ * <h2>HandleMemberLoginService 단위 테스트</h2>
  * <p>소셜 로그인 시 기존 회원 갱신과 신규 회원 임시 저장 로직을 검증합니다.</p>
  */
-@DisplayName("MemberSaveService 단위 테스트")
+@DisplayName("HandleMemberLoginService 단위 테스트")
 @Tag("unit")
-class MemberSaveServiceTest extends BaseUnitTest {
+class LoginHandleServiceTest extends BaseUnitTest {
 
     @Mock
     private RedisMemberDataPort redisMemberDataPort;
 
     @InjectMocks
-    private MemberSaveService memberSaveService;
+    private HandleMemberLoginService loginHandleService;
 
     @Test
     @DisplayName("기존 회원 프로필과 카카오 토큰을 갱신한다")
@@ -44,7 +44,7 @@ class MemberSaveServiceTest extends BaseUnitTest {
 
         KakaoToken kakaoToken = KakaoToken.createKakaoToken("new-access", "new-refresh");
 
-        Member updated = memberSaveService.handleExistingMember(member, "신규닉네임", "http://image/new.jpg", kakaoToken);
+        Member updated = loginHandleService.handleExistingMember(member, "신규닉네임", "http://image/new.jpg", kakaoToken);
 
         assertThat(updated).isSameAs(member);
         assertThat(member.getSocialNickname()).isEqualTo("신규닉네임");
@@ -69,7 +69,7 @@ class MemberSaveServiceTest extends BaseUnitTest {
         );
         String uuid = "uuid-123";
 
-        memberSaveService.handleNewMember(profile, uuid);
+        loginHandleService.handleNewMember(profile, uuid);
 
         verify(redisMemberDataPort).saveTempData(uuid, profile);
     }
