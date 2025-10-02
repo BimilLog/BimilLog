@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.member.application.port.out;
 
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.member.application.service.SignUpService;
 import jaeik.bimillog.domain.member.application.service.MemberSaveService;
+import jaeik.bimillog.domain.member.application.service.SignUpService;
 import jaeik.bimillog.domain.member.entity.MemberDetail;
 import jaeik.bimillog.domain.member.entity.member.Member;
 

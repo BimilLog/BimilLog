@@ -3,14 +3,15 @@ package jaeik.bimillog.domain.auth.application.service;
 
 import jaeik.bimillog.domain.auth.application.port.in.SocialLoginUseCase;
 import jaeik.bimillog.domain.auth.application.port.out.*;
+import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
-import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import jaeik.bimillog.domain.member.entity.MemberDetail;
+import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.in.auth.web.AuthCommandController;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +42,7 @@ public class SocialLoginService implements SocialLoginUseCase {
     private final GlobalCookiePort globalCookiePort;
     private final GlobalJwtPort globalJwtPort;
     private final AuthTokenPort authTokenPort;
+    private final KakaoTokenPort kakaoTokenPort;
 
     /**
      * <h3>소셜 플랫폼 로그인 처리</h3>
@@ -73,12 +75,15 @@ public class SocialLoginService implements SocialLoginUseCase {
             throw new AuthCustomException(AuthErrorCode.BLACKLIST_USER);
         }
 
+        // 3. 카카오 토큰 생성
+        KakaoToken receivedKakaoToken = KakaoToken.createKakaoToken(socialUserProfile.getKakaoAccessToken(), socialUserProfile.getKakaoRefreshToken());
+        KakaoToken savedKakaoToken = kakaoTokenPort.save(receivedKakaoToken);
+
         // 4. 로그인 이후 유저 데이터 작업 유저 도메인으로 책임 위임 결과 값으로 유저 정보 획득
-        MemberDetail memberDetail = authToMemberPort.delegateUserData(socialUserProfile);
+        MemberDetail memberDetail = authToMemberPort.delegateUserData(socialUserProfile, savedKakaoToken);
 
         // 5. 기존 유저, 신규 유저에 따라 다른 반환값을 LoginResult에 작성
         if (memberDetail.getUuid() == null) {
-
 
             // 5-1. 기존 유저: JWT 액세스 토큰 및 리프레시 토큰 생성
             String accessToken = globalJwtPort.generateAccessToken(memberDetail);

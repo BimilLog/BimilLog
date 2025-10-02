@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.member.application.port.in;
 
+import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.member.entity.MemberDetail;
 import jaeik.bimillog.infrastructure.adapter.out.auth.AuthToMemberAdapter;
@@ -17,5 +18,5 @@ public interface MemberSaveUseCase {
      * @author Jaeik
      * @since 3.0.0
      */
-    MemberDetail processUserData(SocialMemberProfile profile);
+    MemberDetail processUserData(SocialMemberProfile profile, KakaoToken kakaoToken);
 }

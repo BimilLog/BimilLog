@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.member.application.service;
 
+import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.member.application.port.in.MemberSaveUseCase;
 import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
@@ -10,6 +11,7 @@ import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.out.auth.AuthToMemberAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -54,13 +56,15 @@ public class MemberSaveService implements MemberSaveUseCase {
      * @since 3.0.0
      */
     @Override
-    public MemberDetail processUserData(SocialMemberProfile userProfile) {
-        Optional<Member> existingUser = memberQueryPort.findByProviderAndSocialId(userProfile.getProvider(), userProfile.getSocialId());
+    @Transactional
+    public MemberDetail processUserData(SocialMemberProfile memberProfile, KakaoToken kakaoToken) {
+        Optional<Member> existingUser = memberQueryPort.findByProviderAndSocialId(memberProfile.getProvider(), memberProfile.getSocialId());
         if (existingUser.isPresent()) {
             Member member = existingUser.get();
-            return saveMemberPort.handleExistingUserData(member, userProfile);
+            member.updateKakaoToken(kakaoToken);
+            return saveMemberPort.handleExistingUserData(member, memberProfile);
         } else {
-            return handleNewUser(userProfile);
+            return handleNewUser(memberProfile);
         }
     }
 
@@ -75,9 +79,9 @@ public class MemberSaveService implements MemberSaveUseCase {
      * @author Jaeik
      * @since 3.0.0
      */
-    private MemberDetail handleNewUser(SocialMemberProfile authResult) {
+    private MemberDetail handleNewUser(SocialMemberProfile memberProfile) {
         String uuid = UUID.randomUUID().toString();
-        redisMemberDataPort.saveTempData(uuid, authResult);
+        redisMemberDataPort.saveTempData(uuid, memberProfile);
         return MemberDetail.ofNew(uuid);
     }
 }

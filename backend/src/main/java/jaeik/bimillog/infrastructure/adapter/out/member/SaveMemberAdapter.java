@@ -58,13 +58,6 @@ public class SaveMemberAdapter implements SaveMemberPort {
 
         Long fcmTokenId = registerFcmTokenIfPresent(existingMember, userProfile.getFcmToken());
 
-        // 카카오 토큰 업데이트 (로그인 시 갱신된 토큰 반영)
-        kakaoTokenPort.updateTokens(
-            existingMember.getId(),
-            userProfile.getKakaoAccessToken(),
-            userProfile.getKakaoRefreshToken()
-        );
-
         // AuthToken 엔티티 생성 (JWT 리프레시 토큰은 빈 문자열, SocialLoginService에서 업데이트)
         AuthToken newAuthToken = AuthToken.createToken("", existingMember);
         Long tokenId = authTokenPort.save(newAuthToken).getId();

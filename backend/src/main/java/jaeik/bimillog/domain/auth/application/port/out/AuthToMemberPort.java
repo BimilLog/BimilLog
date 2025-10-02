@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.auth.application.port.out;
 
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
+import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.member.entity.MemberDetail;
 
@@ -25,6 +26,6 @@ public interface AuthToMemberPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    MemberDetail delegateUserData(SocialMemberProfile profile);
+    MemberDetail delegateUserData(SocialMemberProfile profile, KakaoToken savedKakaoToken);
 
 }

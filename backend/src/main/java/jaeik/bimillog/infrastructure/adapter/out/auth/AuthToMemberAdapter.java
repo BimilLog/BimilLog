@@ -2,6 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.out.auth;
 
 import jaeik.bimillog.domain.auth.application.port.out.AuthToMemberPort;
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
+import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.member.application.port.in.MemberSaveUseCase;
 import jaeik.bimillog.domain.member.entity.MemberDetail;
@@ -45,7 +46,7 @@ public class AuthToMemberAdapter implements AuthToMemberPort {
      * @since 2.0.0
      */
     @Override
-    public MemberDetail delegateUserData(SocialMemberProfile profile) {
-        return memberSaveUseCase.processUserData(profile);
+    public MemberDetail delegateUserData(SocialMemberProfile profile, KakaoToken kakaoToken) {
+        return memberSaveUseCase.processUserData(profile, kakaoToken);
     }
 }
