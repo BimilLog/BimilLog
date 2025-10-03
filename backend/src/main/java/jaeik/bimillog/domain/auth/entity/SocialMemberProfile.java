@@ -28,6 +28,23 @@ public class SocialMemberProfile {
     String kakaoRefreshToken;
     String fcmToken;
 
+    /**
+     * <h3>소셜 회원 프로필 생성</h3>
+     * <p>소셜 플랫폼에서 가져온 회원 정보로 프로필 객체를 생성합니다.</p>
+     * <p>회원가입 전 Redis에 임시 저장하거나 회원가입 시 Member 엔티티 생성에 사용됩니다.</p>
+     *
+     * @param socialId 소셜 플랫폼에서 제공하는 고유 ID
+     * @param email 소셜 계정 이메일
+     * @param provider 소셜 플랫폼 제공자 (KAKAO 등)
+     * @param nickname 소셜 플랫폼 닉네임
+     * @param profileImageUrl 소셜 플랫폼 프로필 이미지 URL
+     * @param kakaoAccessToken 카카오 액세스 토큰
+     * @param kakaoRefreshToken 카카오 리프레시 토큰
+     * @param fcmToken FCM 푸시 알림 토큰
+     * @return 생성된 소셜 회원 프로필 객체
+     * @author Jaeik
+     * @since 2.0.0
+     */
     public static SocialMemberProfile of(String socialId, String email, SocialProvider provider, String nickname, String profileImageUrl, String kakaoAccessToken, String kakaoRefreshToken, String fcmToken) {
         return new SocialMemberProfile(socialId, email, provider, nickname, profileImageUrl, kakaoAccessToken, kakaoRefreshToken, fcmToken);
     }

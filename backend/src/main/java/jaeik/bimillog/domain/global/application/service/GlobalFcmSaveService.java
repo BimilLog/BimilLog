@@ -8,6 +8,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * <h2>전역 FCM 토큰 저장 서비스</h2>
+ * <p>여러 도메인에서 공통으로 사용하는 FCM 토큰 등록 기능을 제공하는 서비스입니다.</p>
+ * <p>소셜 로그인, 회원가입 시 FCM 토큰 자동 등록에 사용됩니다.</p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ */
 @Service
 @RequiredArgsConstructor
 public class GlobalFcmSaveService implements GlobalFcmSaveUseCase {

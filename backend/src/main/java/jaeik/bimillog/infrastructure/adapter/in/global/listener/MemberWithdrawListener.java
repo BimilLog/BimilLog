@@ -20,6 +20,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * <h2>사용자 탈퇴 이벤트 리스너</h2>
+ * <p>사용자 탈퇴 또는 강제 탈퇴 시 발생하는 {@link MemberWithdrawnEvent}를 비동기로 처리합니다.</p>
+ * <p>소셜 계정 연동 해제, 댓글/게시글 삭제, 토큰 무효화, 알림/메시지/신고 기록 삭제, 계정 정보 삭제를 수행합니다.</p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ */
 @Service
 @RequiredArgsConstructor
 public class MemberWithdrawListener {

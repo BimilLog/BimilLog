@@ -53,6 +53,8 @@ public class MemberSignupService implements MemberSignupUseCase {
      * @param uuid Redis에 저장된 임시 프로필 키
      * @return JWT 액세스/리프레시 쿠키 목록
      * @throws AuthCustomException 임시 데이터가 만료되었거나 존재하지 않을 때
+     * @author Jaeik
+     * @since 2.0.0
      */
     @Override
     @Transactional

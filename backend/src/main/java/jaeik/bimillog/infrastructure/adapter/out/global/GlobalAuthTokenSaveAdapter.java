@@ -11,6 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
  * <h2>글로벌 AuthToken 저장 어댑터</h2>
  * <p>{@link GlobalAuthTokenSavePort}를 구현하여 JpaRepository에 저장/갱신을 위임합니다.</p>
  * <p>소셜 로그인, 회원가입, JWT 회전 등 다양한 진입점에서 동일 저장 로직을 재사용합니다.</p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
  */
 @Component
 @RequiredArgsConstructor

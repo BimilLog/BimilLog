@@ -1,6 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.out.auth;
 
 import jaeik.bimillog.domain.auth.application.port.out.AuthTokenPort;
+import jaeik.bimillog.domain.auth.application.service.SocialWithdrawService;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -25,7 +26,7 @@ public class AuthTokenAdapter implements AuthTokenPort {
      * <h3>토큰 삭제</h3>
      * <p>로그아웃시 특정 토큰만 삭제</p>
      * <p>회원탈퇴시 모든 토큰 삭제</p>
-     * <p>{@link WithdrawService}에서 특정 토큰 정리 시 호출됩니다.</p>
+     * <p>{@link SocialWithdrawService}에서 특정 토큰 정리 시 호출됩니다.</p>
      *
      * @param memberId 사용자 ID
      * @param tokenId 삭제할 토큰 ID (null인 경우 모든 토큰 삭제 - 회원탈퇴용)

@@ -115,6 +115,17 @@ public class MemberQueryService implements MemberQueryUseCase {
                 .orElseThrow(() -> new MemberCustomException(MemberErrorCode.SETTINGS_NOT_FOUND));
     }
 
+    /**
+     * <h3>소셜 제공자와 소셜 ID로 사용자 조회</h3>
+     * <p>특정 소셜 플랫폼의 소셜 ID에 해당하는 사용자를 조회합니다.</p>
+     * <p>소셜 로그인 단계에서 기존 회원 여부를 확인할 때 사용됩니다.</p>
+     *
+     * @param provider 소셜 플랫폼 제공자 (KAKAO 등)
+     * @param socialId 소셜 플랫폼에서 제공하는 고유 ID
+     * @return Optional&lt;Member&gt; 조회된 사용자 (존재하지 않으면 Optional.empty())
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public Optional<Member> findByProviderAndSocialId(SocialProvider provider, String socialId) {
         return memberQueryPort.findByProviderAndSocialId(provider, socialId);

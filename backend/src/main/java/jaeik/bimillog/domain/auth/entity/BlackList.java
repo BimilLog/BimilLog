@@ -42,6 +42,8 @@ public class BlackList extends BaseEntity{
      * @param socialId 소셜 ID
      * @param provider 제공자
      * @return 생성된 블랙리스트 엔티티
+     * @author Jaeik
+     * @since 2.0.0
      */
     public static BlackList createBlackList(String socialId, SocialProvider provider) {
         return BlackList.builder()

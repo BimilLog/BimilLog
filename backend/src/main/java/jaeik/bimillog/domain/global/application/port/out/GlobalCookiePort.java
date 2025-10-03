@@ -23,7 +23,7 @@ public interface GlobalCookiePort {
      * @param uuid 임시 사용자 UUID
      * @return 임시 사용자 ID 쿠키
      * @author Jaeik
-     * @since 3.0.0
+     * @since 2.0.0
      */
     ResponseCookie createTempCookie(String uuid);
 

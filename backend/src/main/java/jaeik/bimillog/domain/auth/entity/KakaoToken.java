@@ -13,7 +13,7 @@ import lombok.experimental.SuperBuilder;
  * <p>User와 1:1 관계를 가지며, 카카오 API 호출에 사용됩니다.</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @since 2.0.0
  */
 @Entity
 @SuperBuilder

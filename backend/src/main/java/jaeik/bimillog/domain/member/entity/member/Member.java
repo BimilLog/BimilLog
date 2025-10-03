@@ -96,6 +96,15 @@ public class Member extends BaseEntity {
         this.thumbnailImage = thumbnailImage;
     }
 
+    /**
+     * <h3>카카오 토큰 갱신</h3>
+     * <p>소셜 로그인 시 카카오 토큰을 최신 토큰으로 갱신합니다.</p>
+     * <p>기존 토큰이 만료되거나 갱신이 필요할 때 호출됩니다.</p>
+     *
+     * @param kakaoToken 갱신할 카카오 토큰 엔티티
+     * @author Jaeik
+     * @since 2.0.0
+     */
     public void updateKakaoToken(KakaoToken kakaoToken) {
         this.kakaoToken = kakaoToken;
     }
