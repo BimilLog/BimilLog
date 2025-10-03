@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.post.application.port.in;
 
+import jaeik.bimillog.infrastructure.adapter.in.global.listener.MemberWithdrawListener;
 import jaeik.bimillog.infrastructure.adapter.in.post.web.PostCommandController;
 
 
@@ -59,10 +60,9 @@ public interface PostCommandUseCase {
     void deletePost(Long memberId, Long postId);
 
     /**
-     * <h3>특정 사용자의 모든 게시글 삭제</h3>
+     * <h3>회원 작성 게시글 일괄 삭제</h3>
      * <p>회원 탈퇴 시 해당 사용자가 작성한 모든 게시글을 삭제합니다.</p>
-     * <p>글, 글 추천도 함께 삭제됩니다.</p>
-     * <p>MemberWithdrawnEvent 이벤트 발생시 회원 탈퇴 처리 흐름에서 호출됩니다.</p>
+     * <p>{@link MemberWithdrawListener}에서 탈퇴 처리 시 호출됩니다.</p>
      *
      * @param memberId 게시글을 삭제할 사용자 ID
      * @author Jaeik

@@ -57,7 +57,7 @@ class SocialLogoutServiceTest extends BaseUnitTest {
 
     @Test
     @DisplayName("정상적인 로그아웃 처리")
-    void shouldSocialLogout_WhenValidMemberDetails() {
+    void shouldSocialLogout_WhenValidMemberDetails() throws Exception {
         // Given
         Long memberId = 100L;
         Long tokenId = 200L;
@@ -89,7 +89,7 @@ class SocialLogoutServiceTest extends BaseUnitTest {
 
     @Test
     @DisplayName("토큰이 존재하지 않는 경우 예외 발생")
-    void shouldThrowException_WhenTokenNotFound() {
+    void shouldThrowException_WhenTokenNotFound() throws Exception {
         // Given
         Long memberId = 100L;
         Long tokenId = 200L;
@@ -111,7 +111,7 @@ class SocialLogoutServiceTest extends BaseUnitTest {
 
     @Test
     @DisplayName("소셜 로그아웃 실패 시에도 전체 로그아웃 프로세스는 성공")
-    void shouldCompleteLogout_WhenSocialSocialLogoutFails() {
+    void shouldCompleteLogout_WhenSocialSocialLogoutFails() throws Exception {
         // Given
         Long memberId = 100L;
         Long tokenId = 200L;
@@ -152,7 +152,7 @@ class SocialLogoutServiceTest extends BaseUnitTest {
 
     @Test
     @DisplayName("다양한 사용자 정보로 로그아웃 처리")
-    void shouldHandleDifferentMemberDetails() {
+    void shouldHandleDifferentMemberDetails() throws Exception {
         // Given - 관리자 사용자
         Long adminMemberId = 999L;
         Long adminTokenId = 888L;

@@ -43,6 +43,7 @@ public class PostQueryAdapter implements PostQueryPort {
     private final PostFulltextRepository postFullTextRepository;
     private final PostToCommentPort postToCommentPort;
     private final PostLikeQueryPort postLikeQueryPort;
+    private final PostRepository postRepository;
 
     private static final QPost post = QPost.post;
     private static final QMember member = QMember.member;
@@ -440,6 +441,15 @@ public class PostQueryAdapter implements PostQueryPort {
 
         // PostDetail 직접 생성
         return PostDetail.of(entity, Math.toIntExact(likeCount), Math.toIntExact(commentCount), false);
+    }
+
+    /**
+     * <h3>캐시 플래그가 있는 게시글 ID 조회</h3>
+     * <p>사용자가 작성한 게시글 중 캐시 플래그가 설정된 게시글의 ID만 조회합니다.</p>
+     */
+    @Override
+    public List<Long> findCachedPostIdsByMemberId(Long memberId) {
+        return postRepository.findIdsWithCacheFlagByMemberId(memberId);
     }
 
 }

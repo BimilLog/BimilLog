@@ -50,6 +50,20 @@ public class PostCommandAdapter implements PostCommandPort {
     }
 
     /**
+     * <h3>회원 작성 게시글 일괄 삭제</h3>
+     * <p>특정 사용자가 작성한 모든 게시글을 한 번에 삭제합니다.</p>
+     * <p>{@link PostCommandService}에서 회원 탈퇴 시 호출됩니다.</p>
+     *
+     * @param memberId 게시글을 작성한 사용자 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public void deleteAllByMemberId(Long memberId) {
+        postRepository.deleteAllByMemberId(memberId);
+    }
+
+    /**
      * <h3>조회수 증가</h3>
      * <p>게시글 ID로 조회수를 1 증가시킵니다.</p>
      * <p>UPDATE 쿼리로 해당 게시글의 views 필드 증가</p>

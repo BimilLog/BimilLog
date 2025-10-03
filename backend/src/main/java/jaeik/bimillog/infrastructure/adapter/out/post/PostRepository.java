@@ -5,6 +5,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
+
 /**
  * <h2>PostRepository</h2>
  * <p>Post 엔티티 JPA Repository 인터페이스입니다.</p>
@@ -14,6 +16,30 @@ import org.springframework.data.jpa.repository.Query;
  * @version 2.0.0
  */
 public interface PostRepository extends JpaRepository<Post, Long> {
+
+    /**
+     * <h3>캐시 플래그가 있는 게시글 ID 조회</h3>
+     * <p>사용자가 작성한 게시글 중 캐시 플래그가 설정된 게시글의 ID만 조회합니다.</p>
+     *
+     * @param memberId 게시글을 작성한 사용자 ID
+     * @return List<Long> 캐시 플래그가 있는 게시글 ID 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Query("SELECT p.id FROM Post p WHERE p.member.id = :memberId AND p.postCacheFlag IS NOT NULL")
+    List<Long> findIdsWithCacheFlagByMemberId(Long memberId);
+
+    /**
+     * <h3>회원 작성 게시글 일괄 삭제</h3>
+     * <p>특정 사용자가 작성한 모든 게시글을 한 번에 삭제합니다.</p>
+     *
+     * @param memberId 게시글을 작성한 사용자 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Modifying
+    @Query("DELETE FROM Post p WHERE p.member.id = :memberId")
+    void deleteAllByMemberId(Long memberId);
 
     /**
      * <h3>조회수 직접 증가 (최적화)</h3>

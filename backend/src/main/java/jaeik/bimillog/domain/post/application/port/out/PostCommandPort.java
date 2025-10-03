@@ -40,6 +40,16 @@ public interface PostCommandPort {
     void delete(Post post);
 
     /**
+     * <h3>회원 작성 게시글 일괄 삭제</h3>
+     * <p>특정 사용자가 작성한 게시글을 한 번에 삭제합니다.</p>
+     *
+     * @param memberId 게시글을 삭제할 사용자 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    void deleteAllByMemberId(Long memberId);
+
+    /**
      * <h3>조회수 증가</h3>
      * <p>특정 게시글의 조회수를 1 증가시킵니다.</p>
      * <p>UPDATE 쿼리로 해당 게시글의 views 필드를 증가</p>

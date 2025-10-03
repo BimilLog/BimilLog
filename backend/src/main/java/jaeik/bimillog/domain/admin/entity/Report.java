@@ -26,10 +26,9 @@ public class Report extends BaseEntity {
     @Column(name = "report_id")
     private Long id;
 
-    /**
-     * FK 제거 (V2.5): 법적/관리적 영구 보관, 악의적 사용자 추적
-     * Member 탈퇴 후에도 신고 이력을 영구 보존하여 재가입 시 대응 가능
-     */
+    // Nullable 허용 : 익명 신고 허용
+    // FK 제거 : 법적/관리적 영구 보관, 악의적 사용자 추적
+    // Member 탈퇴 후에도 신고 이력을 영구 보존하여 재가입 시 대응 가능
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Member reporter;
@@ -63,5 +62,16 @@ public class Report extends BaseEntity {
                 .content(content)
                 .reporter(reporter)
                 .build();
+    }
+
+    /**
+     * <h3>신고자 익명화</h3>
+     * <p>회원 탈퇴 후 신고 이력을 유지하면서 사용자 연관만 제거합니다.</p>
+     *
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public void anonymizeReporter() {
+        this.reporter = null;
     }
 }

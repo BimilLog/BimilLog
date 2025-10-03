@@ -35,18 +35,15 @@ public class CommentLike {
     @Column(name = "comment_like_id")
     private Long id;
 
-    /**
-     * DB 레벨 CASCADE (V2.5): Member 삭제 시 CommentLike 자동 삭제
-     * JPA cascade 없음: ManyToOne 관계로 Member가 CommentLike 생명주기 관리하지 않음
-     */
+
+    // DB 레벨 CASCADE : Member 삭제 시 CommentLike 자동 삭제
+    // JPA cascade 없음: ManyToOne 관계로 Member가 CommentLike 생명주기 관리하지 않음
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
 
-    /**
-     * DB 레벨 CASCADE (V2.5): Comment 삭제 시 CommentLike 자동 삭제
-     * JPA cascade 없음: ManyToOne 관계로 Comment가 CommentLike 생명주기 관리하지 않음
-     */
+    // DB 레벨 CASCADE : Comment 삭제 시 CommentLike 자동 삭제
+    // JPA cascade 없음: ManyToOne 관계로 Comment가 CommentLike 생명주기 관리하지 않음
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "comment_id")
     private Comment comment;

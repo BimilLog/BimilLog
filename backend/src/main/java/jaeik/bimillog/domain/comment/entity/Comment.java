@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.comment.entity;
 
 import jaeik.bimillog.domain.global.entity.BaseEntity;
-import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.member.entity.member.Member;
+import jaeik.bimillog.domain.post.entity.Post;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -33,18 +33,15 @@ public class Comment extends BaseEntity {
     @Column(name = "comment_id")
     private Long id;
 
-    /**
-     * DB 레벨 CASCADE: Post 삭제 시 Comment 자동 삭제 (V2.5)
-     * JPA cascade 없음: ManyToOne 관계로 Post가 Comment 생명주기 관리하지 않음
-     */
+
+    // DB 레벨 CASCADE: Post 삭제 시 Comment 자동 삭제
+    // JPA cascade 없음: ManyToOne 관계로 Post가 Comment 생명주기 관리하지 않음
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id")
     private Post post;
 
-    /**
-     * FK 유지: Member 삭제 시 참조 무결성 보장
-     * 익명 댓글 지원으로 nullable
-     */
+    // 익명 댓글 지원으로 nullable
+    // 익명 지원 Nullable FK 존재하지만 회원삭제시 댓글 삭제 안됨 명시적 삭제 필요
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
@@ -73,7 +70,7 @@ public class Comment extends BaseEntity {
      * @since 2.0.0
      */
     public static Comment createComment(Post post, Member member, String content, Integer password) {
-        return Comment.builder()
+        return jaeik.bimillog.domain.comment.entity.Comment.builder()
                 .post(post)
                 .member(member)
                 .content(content)
@@ -145,7 +142,6 @@ public class Comment extends BaseEntity {
      */
     public void anonymize() {
         this.member = null;
-        this.content = "탈퇴한 사용자의 댓글입니다";
         this.deleted = true;
     }
 

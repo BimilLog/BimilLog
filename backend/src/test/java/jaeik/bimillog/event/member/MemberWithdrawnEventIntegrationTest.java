@@ -95,9 +95,11 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
             verify(paperCommandUseCase).deleteMessageInMyPaper(eq(memberId), eq(null));
             // 9. 신고 기록 삭제
             verify(adminCommandUseCase).deleteAllReportsByUserId(eq(memberId));
-            // 10. 카카오 토큰 삭제
+            // 10. 신고자 익명화
+            verify(adminCommandUseCase).anonymizeReporterByUserId(eq(memberId));
+            // 11. 카카오 토큰 삭제
             verify(kakaoTokenUseCase).deleteByMemberId(eq(memberId));
-            // 11. 계정 정보 삭제
+            // 12. 계정 정보 삭제
             verify(memberCommandUseCase).removeMemberAccount(eq(memberId));
         });
     }
@@ -156,6 +158,11 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
             verify(adminCommandUseCase).deleteAllReportsByUserId(eq(1L));
             verify(adminCommandUseCase).deleteAllReportsByUserId(eq(2L));
             verify(adminCommandUseCase).deleteAllReportsByUserId(eq(3L));
+
+            // 신고자 익명화
+            verify(adminCommandUseCase).anonymizeReporterByUserId(eq(1L));
+            verify(adminCommandUseCase).anonymizeReporterByUserId(eq(2L));
+            verify(adminCommandUseCase).anonymizeReporterByUserId(eq(3L));
 
             // 카카오 토큰 삭제
             verify(kakaoTokenUseCase).deleteByMemberId(eq(1L));

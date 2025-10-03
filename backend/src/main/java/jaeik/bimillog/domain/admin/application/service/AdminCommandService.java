@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.admin.application.service;
 
 import jaeik.bimillog.domain.admin.application.port.in.AdminCommandUseCase;
 import jaeik.bimillog.domain.admin.application.port.out.AdminCommandPort;
+import jaeik.bimillog.domain.admin.application.port.out.AdminQueryPort;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
@@ -19,6 +20,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -37,6 +39,7 @@ public class AdminCommandService implements AdminCommandUseCase {
 
     private final ApplicationEventPublisher eventPublisher;
     private final AdminCommandPort adminCommandPort;
+    private final AdminQueryPort adminQueryPort;
     private final MemberQueryPort memberQueryPort;
     private final GlobalPostQueryPort globalPostQueryPort;
     private final GlobalCommentQueryPort globalCommentQueryPort;
@@ -109,19 +112,20 @@ public class AdminCommandService implements AdminCommandUseCase {
     }
 
     /**
-     * <h3>특정 사용자의 모든 신고 삭제</h3>
-     * <p>회원 탈퇴 시 해당 사용자가 작성한 모든 신고 내역을 삭제합니다.</p>
-     * <p>익명 신고는 영향받지 않으며, 로그인 사용자가 작성한 신고만 삭제됩니다.</p>
-     * <p>UserWithdrawListener에서 회원 탈퇴 처리 시 호출됩니다.</p>
+     * <h3>신고자 익명화</h3>
+     * <p>회원 탈퇴 시 신고 이력은 유지하면서 reporter 연관만 제거합니다.</p>
      *
-     * @param memberId 신고 내역을 삭제할 사용자 ID
+     * @param memberId 탈퇴한 사용자 ID
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     @Transactional
-    public void deleteAllReportsByUserId(Long memberId) {
-        adminCommandPort.deleteAllReportsByUserId(memberId);
+    public void anonymizeReporterByUserId(Long memberId) {
+        List<Report> reports = adminQueryPort.findAllReportsByUserId(memberId);
+        for (Report report : reports) {
+            report.anonymizeReporter();
+        }
     }
 
     /**

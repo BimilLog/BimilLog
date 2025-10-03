@@ -7,6 +7,7 @@ import jaeik.bimillog.domain.post.entity.PostSearchType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -102,5 +103,14 @@ public interface PostQueryPort {
      * @since 2.0.0
      */
     PostDetail findPostDetail(Long postId);
+
+    /**
+     * <h3>캐시 플래그가 있는 게시글 ID 조회</h3>
+     * <p>사용자가 작성한 게시글 중 캐시 플래그가 설정된 게시글의 ID만 조회합니다.</p>
+     *
+     * @param memberId 게시글을 조회할 사용자 ID
+     * @return List<Long> 캐시 플래그가 설정된 게시글 ID 목록
+     */
+    List<Long> findCachedPostIdsByMemberId(Long memberId);
 
 }

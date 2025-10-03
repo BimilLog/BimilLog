@@ -52,7 +52,6 @@ public class MemberCommandService implements MemberCommandUseCase {
                 newSetting.isCommentNotification(),
                 newSetting.isPostFeaturedNotification()
         );
-        // JPA 변경 감지로 자동 저장
     }
 
     /**

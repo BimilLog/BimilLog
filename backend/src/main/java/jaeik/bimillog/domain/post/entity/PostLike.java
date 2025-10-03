@@ -31,18 +31,14 @@ public class PostLike {
     @Column(name = "post_like_id")
     private Long id;
 
-    /**
-     * DB 레벨 CASCADE (V2.5): Member 삭제 시 PostLike 자동 삭제
-     * JPA cascade 없음: ManyToOne 관계로 Member가 PostLike 생명주기 관리하지 않음
-     */
+    // DB 레벨 CASCADE : Member 삭제 시 PostLike 자동 삭제
+    // JPA cascade 없음 : ManyToOne 관계로 Member가 PostLike 생명주기 관리하지 않음
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
 
-    /**
-     * DB 레벨 CASCADE (V2.5): Post 삭제 시 PostLike 자동 삭제
-     * JPA cascade 없음: ManyToOne 관계로 Post가 PostLike 생명주기 관리하지 않음
-     */
+    // DB 레벨 CASCADE : Post 삭제 시 PostLike 자동 삭제
+    // JPA cascade 없음 : ManyToOne 관계로 Post가 PostLike 생명주기 관리하지 않음
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id")
     private Post post;

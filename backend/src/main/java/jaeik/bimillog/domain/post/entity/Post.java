@@ -36,6 +36,7 @@ public class Post extends BaseEntity {
     @Column(name = "post_id")
     private Long id;
 
+    // 익명 지원 Nullable FK 존재하지만 회원삭제시 글 삭제 안됨 명시적 삭제 필요
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;

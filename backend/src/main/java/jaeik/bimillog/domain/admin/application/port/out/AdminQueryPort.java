@@ -6,6 +6,8 @@ import jaeik.bimillog.domain.admin.entity.ReportType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
+
 /**
  * <h2>관리자 조회 포트</h2>
  * <p>관리자 도메인의 조회 작업을 담당하는 포트입니다.</p>
@@ -28,5 +30,17 @@ public interface AdminQueryPort {
      * @since 2.0.0
      */
     Page<Report> findReportsWithPaging(ReportType reportType, Pageable pageable);
+
+    /**
+     * <h3>특정 사용자의 신고 조회</h3>
+     * <p>회원 탈퇴 시 reporter 연관을 제거하기 위해 신고 엔티티를 로딩합니다.</p>
+     *
+     * @param memberId 신고를 조회할 사용자 ID
+     * @return java.util.List<Report> 해당 사용자가 작성한 신고 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    List<Report> findAllReportsByUserId(Long memberId);
+
 
 }

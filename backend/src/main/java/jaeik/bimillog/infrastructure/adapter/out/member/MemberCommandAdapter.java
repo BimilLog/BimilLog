@@ -20,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class MemberCommandAdapter implements MemberCommandPort {
 
-    private final MemberRepository userRepository;
+    private final MemberRepository memberRepository;
 
     /**
      * <h3>사용자 계정과 설정 삭제</h3>
@@ -35,9 +35,7 @@ public class MemberCommandAdapter implements MemberCommandPort {
     @Transactional
     public void deleteMemberAndSetting(Long memberId) {
         log.debug("회원 계정 삭제 수행 - memberId: {}", memberId);
-
-        userRepository.findById(memberId).ifPresent(userRepository::delete);
-
+        memberRepository.deleteById(memberId);
         log.debug("회원 계정 삭제 완료 - memberId: {}", memberId);
     }
 }

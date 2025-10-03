@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalMemberQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.PostLikeCommandPort;
+import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
 import jaeik.bimillog.domain.post.application.service.PostCommandService;
 import jaeik.bimillog.domain.post.entity.Post;
@@ -16,6 +17,8 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -50,6 +53,9 @@ class PostCommandServiceTest extends BaseUnitTest {
 
     @Mock
     private PostLikeCommandPort postLikeCommandPort;
+
+    @Mock
+    private PostQueryPort postQueryPort;
 
     @InjectMocks
     private PostCommandService postCommandService;
@@ -210,6 +216,43 @@ class PostCommandServiceTest extends BaseUnitTest {
         verify(otherUserPost, times(1)).isAuthor(memberId);
         verify(postCommandPort, never()).delete(any());
         verify(redisPostCommandPort, never()).deleteCache(any(), any());
+    }
+
+    @Test
+    @DisplayName("회원 작성 게시글 일괄 삭제 - 게시글 존재")
+    void shouldDeleteAllPostsByMemberId_WhenPostsExist() {
+        // Given
+        Long memberId = 1L;
+        Long postId1 = 10L;
+        Long postId2 = 11L;
+
+        given(postQueryPort.findCachedPostIdsByMemberId(memberId)).willReturn(List.of(postId1, postId2));
+        // When
+        postCommandService.deleteAllPostsByMemberId(memberId);
+
+        // Then
+        verify(postQueryPort, times(1)).findCachedPostIdsByMemberId(memberId);
+        verify(redisPostCommandPort, times(1)).deleteCache(null, postId1);
+        verify(redisPostCommandPort, times(1)).deleteCache(null, postId2);
+        verify(postCommandPort, times(1)).deleteAllByMemberId(memberId);
+        verifyNoMoreInteractions(postQueryPort, postCommandPort, redisPostCommandPort);
+    }
+
+    @Test
+    @DisplayName("회원 작성 게시글 일괄 삭제 - 게시글 없음")
+    void shouldSkipDeletingPosts_WhenNoPostsExist() {
+        // Given
+        Long memberId = 1L;
+        given(postQueryPort.findCachedPostIdsByMemberId(memberId)).willReturn(List.of());
+
+        // When
+        postCommandService.deleteAllPostsByMemberId(memberId);
+
+        // Then
+        verify(postQueryPort, times(1)).findCachedPostIdsByMemberId(memberId);
+        verify(postCommandPort, times(1)).deleteAllByMemberId(memberId);
+        verify(redisPostCommandPort, never()).deleteCache(any(), any());
+        verifyNoMoreInteractions(postQueryPort, postCommandPort, redisPostCommandPort);
     }
 
 

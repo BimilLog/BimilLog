@@ -48,8 +48,8 @@ public class MemberWithdrawListener {
      * <h3>사용자 탈퇴 이벤트 처리</h3>
      * <p>사용자가 회원 탈퇴하거나 관리자에 의해 강제 탈퇴될 때 발생하는 이벤트를 처리합니다.</p>
      * <p>모든 관련 데이터를 순차적으로 정리합니다: SSE 연결, 소셜 계정 연동 해제, 댓글 처리, 게시글 삭제,
-     * 토큰 무효화, FCM 토큰 삭제, 알림 삭제, 롤링페이퍼 메시지 삭제, 신고 기록 삭제, 카카오 토큰 삭제, 계정 정보 삭제</p>
-     *
+     * 토큰 무효화, FCM 토큰 삭제, 알림 삭제, 롤링페이퍼 메시지 삭제,카카오 토큰 삭제, 계정 정보 삭제</p>
+     * <p>신고 기록은 익명화</p>
      * @param userWithdrawnEvent 회원 탈퇴 이벤트 (memberId, socialId, provider 포함)
      * @author Jaeik
      * @since 2.0.0
@@ -62,16 +62,38 @@ public class MemberWithdrawListener {
         String socialId = userWithdrawnEvent.socialId();
         SocialProvider provider = userWithdrawnEvent.provider();
 
+        // SSE 연결해제
         sseUseCase.deleteEmitters(memberId, null);
+
+        // 카카오 연결해제
         socialWithdrawUseCase.unlinkSocialAccount(provider, socialId);
+
+        // 게시글 삭제, 게시글 삭제 시 댓글과 각 추천이 함께 제거되고, 타 게시글에 남긴 댓글은 별도 처리합니다.
+        // 타인의 글과 댓글에 있는 추천은 회원 탈퇴시에 처리 됩니다.
+        postCommandUseCase.deleteAllPostsByMemberId(memberId);
+
+        // 타 게시글의 댓글 삭제 및 익명화
         commentCommandUseCase.processUserCommentsOnWithdrawal(memberId);
-        postCommandUseCase.deleteAllPostsByMemberId(memberId); // 구현 필요
-        authTokenUseCase.deleteTokens(memberId, null);
-        fcmUseCase.deleteFcmTokens(memberId, null);
-        notificationCommandUseCase.deleteAllNotification(memberId);
+
+        // 롤링페이퍼 메시지 삭제
         paperCommandUseCase.deleteMessageInMyPaper(memberId, null);
-        adminCommandUseCase.deleteAllReportsByUserId(memberId);
+
+        // 알림 삭제
+        notificationCommandUseCase.deleteAllNotification(memberId);
+
+        // 모든 FCM 토큰 제거
+        fcmUseCase.deleteFcmTokens(memberId, null);
+
+        // 모든 AuthToken 제거
+        authTokenUseCase.deleteTokens(memberId, null);
+
+        // 신고자 익명화
+        adminCommandUseCase.anonymizeReporterByUserId(memberId);
+
+        // 카카오 토큰 제거
         kakaoTokenUseCase.deleteByMemberId(memberId);
+
+        // 사용자 정보 삭제 Cascade로 설정도 함께 삭제
         memberCommandUseCase.removeMemberAccount(memberId);
         SecurityContextHolder.clearContext();
     }

@@ -3,9 +3,6 @@ package jaeik.bimillog.infrastructure.adapter.out.member;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -55,18 +52,4 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
      * @since 2.0.0
      */
     boolean existsByMemberName(String memberName);
-
-    /**
-     * <h3>사용자 삭제</h3>
-     * <p>사용자 ID를 기준으로 Member를 삭제합니다.</p>
-     * <p>Setting은 별도로 삭제되어야 합니다.</p>
-     * <p>회원 탈퇴 처리 시 MemberCommandAdapter에서 호출됩니다.</p>
-     *
-     * @param memberId 삭제할 사용자 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Modifying
-    @Query(value = "DELETE FROM member WHERE member_id = :memberId", nativeQuery = true)
-    void deleteByMemberId(@Param("memberId") Long memberId);
 }

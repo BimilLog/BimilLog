@@ -56,7 +56,7 @@ public class MemberLoggedOutEventIntegrationTest extends BaseEventIntegrationTes
             // SSE 연결 정리
             verify(sseUseCase).deleteEmitters(eq(memberId), eq(tokenId));
             // 소셜 플랫폼 로그아웃
-            verify(socialLogoutUseCase).socialLogout(eq(memberId), eq(SocialProvider.KAKAO), eq(tokenId));
+            verifySocialLogout(memberId, tokenId);
             // FCM 토큰 삭제
             verify(fcmUseCase).deleteFcmTokens(eq(memberId), eq(fcmTokenId));
             // JWT 토큰 무효화
@@ -66,6 +66,13 @@ public class MemberLoggedOutEventIntegrationTest extends BaseEventIntegrationTes
         });
     }
 
+    private void verifySocialLogout(Long memberId, Long tokenId) {
+        try {
+            verify(socialLogoutUseCase).socialLogout(eq(memberId), eq(SocialProvider.KAKAO), eq(tokenId));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @Test
     @DisplayName("여러 사용자 로그아웃 이벤트 동시 처리")
@@ -83,9 +90,9 @@ public class MemberLoggedOutEventIntegrationTest extends BaseEventIntegrationTes
             verify(sseUseCase).deleteEmitters(eq(3L), eq(103L));
 
             // 소셜 플랫폼 로그아웃
-            verify(socialLogoutUseCase).socialLogout(eq(1L), eq(SocialProvider.KAKAO), eq(101L));
-            verify(socialLogoutUseCase).socialLogout(eq(2L), eq(SocialProvider.KAKAO), eq(102L));
-            verify(socialLogoutUseCase).socialLogout(eq(3L), eq(SocialProvider.KAKAO), eq(103L));
+            verifySocialLogout(1L, 101L);
+            verifySocialLogout(2L, 102L);
+            verifySocialLogout(3L, 103L);
 
             // FCM 토큰 삭제
             verify(fcmUseCase).deleteFcmTokens(eq(1L), eq(201L));

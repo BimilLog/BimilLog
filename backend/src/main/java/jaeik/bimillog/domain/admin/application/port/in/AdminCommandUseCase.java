@@ -3,6 +3,7 @@ package jaeik.bimillog.domain.admin.application.port.in;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.infrastructure.adapter.in.admin.listener.ReportSaveListener;
 import jaeik.bimillog.infrastructure.adapter.in.admin.web.AdminCommandController;
+import jaeik.bimillog.infrastructure.adapter.in.global.listener.MemberWithdrawListener;
 
 /**
  * <h2>관리자 명령 유스케이스</h2>
@@ -57,14 +58,13 @@ public interface AdminCommandUseCase {
     void forceWithdrawUser(ReportType reportType, Long targetId);
 
     /**
-     * <h3>특정 사용자가 작성한 모든 신고 삭제</h3>
-     * <p>회원 탈퇴 시 해당 사용자가 작성한 모든 신고 내역을 삭제합니다.</p>
-     * <p>익명 신고는 영향받지 않으며, 로그인 사용자가 작성한 신고만 삭제됩니다.</p>
-     * <p>MemberWithdrawnEvent 이벤트 발생시 회원 탈퇴 처리 흐름에서 호출됩니다.</p>
+     * <h3>신고자 익명화</h3>
+     * <p>회원 탈퇴 시 해당 사용자가 작성한 신고의 reporter 연관을 제거합니다.</p>
+     * <p>{@link MemberWithdrawListener}에서 호출됩니다.</p>
      *
-     * @param memberId 신고 내역을 삭제할 사용자 ID
+     * @param memberId 탈퇴한 사용자 ID
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteAllReportsByUserId(Long memberId);
+    void anonymizeReporterByUserId(Long memberId);
 }

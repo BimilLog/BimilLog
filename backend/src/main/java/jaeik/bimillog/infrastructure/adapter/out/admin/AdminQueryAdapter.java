@@ -30,6 +30,7 @@ import java.util.List;
 public class AdminQueryAdapter implements AdminQueryPort {
 
     private final JPAQueryFactory queryFactory;
+    private final ReportRepository reportRepository;
 
     /**
      * <h3>신고 목록 페이지네이션 조회</h3>
@@ -66,5 +67,10 @@ public class AdminQueryAdapter implements AdminQueryPort {
                 .fetchOne();
 
         return new PageImpl<>(reports, pageable, count == null ? 0 : count);
+    }
+
+    @Override
+    public List<Report> findAllReportsByUserId(Long memberId) {
+        return reportRepository.findAllByReporterId(memberId);
     }
 }

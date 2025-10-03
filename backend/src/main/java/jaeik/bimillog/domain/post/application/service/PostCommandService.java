@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalMemberQueryPort;
 import jaeik.bimillog.domain.post.application.port.in.PostCommandUseCase;
 import jaeik.bimillog.domain.post.application.port.out.PostCommandPort;
+import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
@@ -14,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 
 /**
@@ -35,6 +38,7 @@ public class PostCommandService implements PostCommandUseCase {
     private final GlobalPostQueryPort globalPostQueryPort;
     private final GlobalMemberQueryPort globalUserQueryPort;
     private final RedisPostCommandPort redisPostCommandPort;
+    private final PostQueryPort postQueryPort;
 
 
     /**
@@ -71,7 +75,6 @@ public class PostCommandService implements PostCommandUseCase {
      * @param postId  수정할 게시글 ID
      * @param title   새로운 제목
      * @param content 새로운 내용
-     * @throws PostCustomException 권한이 없거나 게시글을 찾을 수 없는 경우
      * @author Jaeik
      * @since 2.0.0
      */
@@ -98,7 +101,6 @@ public class PostCommandService implements PostCommandUseCase {
      *
      * @param memberId 현재 로그인 사용자 ID
      * @param postId 삭제할 게시글 ID
-     * @throws PostCustomException 권한이 없거나 게시글을 찾을 수 없는 경우
      * @author Jaeik
      * @since 2.0.0
      */
@@ -119,8 +121,23 @@ public class PostCommandService implements PostCommandUseCase {
         log.info("게시글 삭제 완료: postId={}, memberId={}, title={}", postId, memberId, postTitle);
     }
 
+    /**
+     * <h3>회원 작성 게시글 일괄 삭제</h3>
+     * <p>회원 탈퇴 시 사용자가 작성한 모든 게시글을 삭제합니다.</p>
+     *
+     * @param memberId 게시글을 삭제할 사용자 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
+    @Transactional
     public void deleteAllPostsByMemberId(Long memberId) {
+        List<Long> cachedPostIds = postQueryPort.findCachedPostIdsByMemberId(memberId);
 
+        for (Long postId : cachedPostIds) {
+            redisPostCommandPort.deleteCache(null, postId);
+        }
+
+        postCommandPort.deleteAllByMemberId(memberId);
     }
 }
