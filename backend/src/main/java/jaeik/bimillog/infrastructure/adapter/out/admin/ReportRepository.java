@@ -3,6 +3,8 @@ package jaeik.bimillog.infrastructure.adapter.out.admin;
 import jaeik.bimillog.domain.admin.entity.Report;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
+
 /**
  * <h2>신고 저장소</h2>
  * <p>
@@ -18,17 +20,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface ReportRepository extends JpaRepository<Report, Long> {
 
     /**
-     * <h3>특정 사용자의 모든 신고 삭제</h3>
-     * <p>신고자 ID를 기준으로 해당 사용자가 작성한 모든 신고를 삭제합니다.</p>
-     * <p>주로 사용자 탈퇴 시 해당 사용자의 모든 신고를 정리하는데 사용됩니다.</p>
-     *
-     * @param memberId 삭제할 신고들의 신고자 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    void deleteAllByReporterId(Long memberId);
-
-    /**
      * <h3>특정 사용자가 작성한 신고 조회</h3>
      * <p>회원 탈퇴 시 reporter 연관을 제거하기 위해 사용됩니다.</p>
      *
@@ -37,5 +28,5 @@ public interface ReportRepository extends JpaRepository<Report, Long> {
      * @author Jaeik
      * @since 2.0.0
      */
-    java.util.List<Report> findAllByReporterId(Long memberId);
+    List<Report> findAllByReporterId(Long memberId);
 }

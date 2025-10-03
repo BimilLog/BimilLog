@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.admin.service;
 
 import jaeik.bimillog.domain.admin.application.port.out.AdminCommandPort;
+import jaeik.bimillog.domain.admin.application.port.out.AdminQueryPort;
 import jaeik.bimillog.domain.admin.application.service.AdminCommandService;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
@@ -28,6 +29,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationEventPublisher;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
@@ -54,6 +56,9 @@ class AdminCommandServiceTest extends BaseUnitTest {
     private AdminCommandPort adminCommandPort;
 
     @Mock
+    private AdminQueryPort adminQueryPort;
+
+    @Mock
     private MemberQueryPort memberQueryPort;
 
     @Mock
@@ -77,6 +82,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
         adminCommandService = new AdminCommandService(
                 eventPublisher,
                 adminCommandPort,
+                adminQueryPort,
                 memberQueryPort,
                 globalPostQueryPort,
                 globalCommentQueryPort,
@@ -308,5 +314,21 @@ class AdminCommandServiceTest extends BaseUnitTest {
         verify(adminCommandPort, times(1)).save(any(Report.class));
     }
 
+    @Test
+    @DisplayName("회원 탈퇴 시 신고자 익명화")
+    void anonymizeReporterByUserId_ShouldClearReporter() {
+        // Given
+        Long memberId = 10L;
+        Member reporter = createTestMemberWithId(memberId);
+        Report report = Report.createReport(ReportType.POST, 1L, "신고 내용", reporter);
+        given(adminQueryPort.findAllReportsByUserId(memberId)).willReturn(List.of(report));
+
+        // When
+        adminCommandService.anonymizeReporterByUserId(memberId);
+
+        // Then
+        verify(adminQueryPort, times(1)).findAllReportsByUserId(memberId);
+        assertThat(report.getReporter()).isNull();
+    }
 
 }
