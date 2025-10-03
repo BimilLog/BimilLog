@@ -36,10 +36,10 @@ public class MemberCommandService implements MemberCommandUseCase {
      * <p>사용자의 알림 설정을 수정합니다.</p>
      * <p>{@link MemberCommandController}에서 설정 수정 API 요청 시 호출됩니다.</p>
      *
-     * @param memberId    사용자 ID
+     * @param memberId   사용자 ID
      * @param newSetting 수정할 설정 정보
-     * @since 2.0.0
      * @author Jaeik
+     * @since 2.0.0
      */
     @Override
     @Transactional
@@ -64,22 +64,21 @@ public class MemberCommandService implements MemberCommandUseCase {
      * @param newMemberName 새로운 닉네임
      * @throws MemberCustomException EXISTED_NICKNAME - 닉네임이 중복된 경우
      * @throws MemberCustomException USER_NOT_FOUND - 사용자를 찾을 수 없는 경우
-     * @since 2.0.0
      * @author Jaeik
+     * @since 2.0.0
      */
     @Override
     @Transactional
     public void updateMemberName(Long memberId, String newMemberName) {
-        Member member = memberQueryPort.findById(memberId)
-                .orElseThrow(() -> new MemberCustomException(MemberErrorCode.USER_NOT_FOUND));
-
         try {
-            // 엔티티가 비즈니스 로직 처리. JPA 변경 감지로 자동 저장되므로 명시적 save는 불필요합니다.
-            member.changeMemberName(newMemberName, memberQueryPort);
+            Member member = memberQueryPort.findById(memberId)
+                    .orElseThrow(() -> new MemberCustomException(MemberErrorCode.USER_NOT_FOUND));
+            member.changeMemberName(newMemberName);
         } catch (DataIntegrityViolationException e) {
-            // Race Condition 발생 시: 다른 사용자가 동시에 같은 닉네임으로 변경한 경우
-            log.warn("닉네임 경쟁 상태 감지됨 - 사용자 ID: {}, 새 닉네임: {}", memberId, newMemberName, e);
-            throw new MemberCustomException(MemberErrorCode.EXISTED_NICKNAME);
+            if (e.getMessage() != null && e.getMessage().contains("member_name")) {
+                throw new MemberCustomException(MemberErrorCode.EXISTED_NICKNAME);
+            }
+            throw e;
         }
     }
 

@@ -14,6 +14,7 @@ import jaeik.bimillog.domain.member.application.port.in.MemberCommandUseCase;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class MemberWithdrawListener {
 
     private final SocialWithdrawUseCase socialWithdrawUseCase;
@@ -66,7 +68,11 @@ public class MemberWithdrawListener {
         sseUseCase.deleteEmitters(memberId, null);
 
         // 카카오 연결해제
-        socialWithdrawUseCase.unlinkSocialAccount(provider, socialId);
+        try {
+            socialWithdrawUseCase.unlinkSocialAccount(provider, socialId);
+        } catch (Exception ex) {
+            log.warn("소셜 계정 연동 해제 실패 - provider: {}, socialId: {}. 탈퇴 후속 처리를 계속 진행합니다.", provider, socialId, ex);
+        }
 
         // 게시글 삭제, 게시글 삭제 시 댓글과 각 추천이 함께 제거되고, 타 게시글에 남긴 댓글은 별도 처리합니다.
         // 타인의 글과 댓글에 있는 추천은 회원 탈퇴시에 처리 됩니다.

@@ -80,7 +80,6 @@ public class MemberCommandController {
     /**
      * <h3>닉네임 변경 API</h3>
      * <p>사용자의 닉네임을 변경하는 요청을 처리</p>
-     * <p>클라이언트에서 POST /api/member/username 요청 시 호출됩니다.</p>
      *
      * @param userDetails 사용자 인증 정보
      * @param memberNameDTO 닉네임 DTO

@@ -2,10 +2,7 @@ package jaeik.bimillog.domain.member.entity.member;
 
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.global.entity.BaseEntity;
-import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
 import jaeik.bimillog.domain.member.entity.Setting;
-import jaeik.bimillog.domain.member.exception.MemberCustomException;
-import jaeik.bimillog.domain.member.exception.MemberErrorCode;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -113,20 +110,17 @@ public class Member extends BaseEntity {
      * <h3>닉네임 변경</h3>
      *
      * <p>
-     * 비즈니스 규칙에 따른 닉네임 변경 수행. 중복 검사 및 Race Condition 처리 포함.
+     * 사용자의 닉네임을 변경합니다. JPA 더티체킹을 통해 트랜잭션 커밋 시 UPDATE가 수행됩니다.
+     * </p>
+     * <p>
+     * DB UNIQUE 제약조건에 의해 중복 닉네임 사용 시 DataIntegrityViolationException이 발생합니다.
      * </p>
      *
      * @param newMemberName 새로운 닉네임
-     * @param memberQueryPort 중복 확인을 위한 쿼리 포트
-     * @throws MemberCustomException 중복된 닉네임인 경우
      * @author Jaeik
      * @since 2.0.0
      */
-    public void changeMemberName(String newMemberName, MemberQueryPort memberQueryPort) {
-        if (memberQueryPort.existsByMemberName(newMemberName)) {
-            throw new MemberCustomException(MemberErrorCode.EXISTED_NICKNAME);
-        }
-
+    public void changeMemberName(String newMemberName) {
         this.memberName = newMemberName;
     }
 

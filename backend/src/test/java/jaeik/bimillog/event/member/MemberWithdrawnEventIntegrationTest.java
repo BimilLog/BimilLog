@@ -4,6 +4,9 @@ import jaeik.bimillog.domain.admin.application.port.in.AdminCommandUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.AuthTokenUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.KakaoTokenUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.SocialWithdrawUseCase;
+import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
+import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
+import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.bimillog.domain.member.application.port.in.MemberCommandUseCase;
 import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
@@ -14,13 +17,20 @@ import jaeik.bimillog.domain.post.application.port.in.PostCommandUseCase;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
+import java.util.concurrent.atomic.AtomicBoolean;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -38,7 +48,7 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
     @MockitoBean
     private SseUseCase sseUseCase;
 
-    @MockitoBean
+    @SpyBean
     private SocialWithdrawUseCase socialWithdrawUseCase;
 
     @MockitoBean
@@ -68,6 +78,41 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
     @MockitoBean
     private MemberCommandUseCase memberCommandUseCase;
 
+    @MockitoBean
+    private SocialStrategyRegistryPort socialStrategyRegistryPort;
+
+    private static final SocialStrategyPort NOOP_STRATEGY = new SocialStrategyPort() {
+        @Override
+        public SocialProvider getSupportedProvider() {
+            return SocialProvider.KAKAO;
+        }
+
+        @Override
+        public SocialMemberProfile getSocialToken(String code) {
+            throw new UnsupportedOperationException("테스트 전략에서는 소셜 토큰 발급을 지원하지 않습니다.");
+        }
+
+        @Override
+        public void getUserInfo(String accessToken) {
+            // no-op
+        }
+
+        @Override
+        public void unlink(SocialProvider provider, String socialId) {
+            // no-op
+        }
+
+        @Override
+        public void logout(SocialProvider provider, String accessToken) {
+            // no-op
+        }
+    };
+
+    @BeforeEach
+    void setUpSocialStrategy() {
+        doReturn(NOOP_STRATEGY).when(socialStrategyRegistryPort).getStrategy(any());
+    }
+
     @Test
     @DisplayName("사용자 탈퇴 이벤트 워크플로우 - 모든 데이터 정리 완료")
     void userWithdrawnEventWorkflow_ShouldCompleteAllCleanupTasks() {
@@ -79,8 +124,8 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
         publishAndVerify(event, () -> {
             // 1. SSE 연결 정리
             verify(sseUseCase).deleteEmitters(eq(memberId), eq(null));
-            // 2. 소셜 계정 연동 해제
-            verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("testSocialId"));
+            // 2. 소셜 계정 연동 해제 전략 조회
+            verify(socialStrategyRegistryPort).getStrategy(eq(SocialProvider.KAKAO));
             // 3. 댓글 처리
             verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(memberId));
             // 4. 게시글 삭제
@@ -117,10 +162,8 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
             verify(sseUseCase).deleteEmitters(eq(2L), eq(null));
             verify(sseUseCase).deleteEmitters(eq(3L), eq(null));
 
-            // 소셜 계정 연동 해제
-            verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("testSocialId1"));
-            verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("testSocialId2"));
-            verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("testSocialId3"));
+            // 소셜 계정 연동 해제 전략 조회
+            verify(socialStrategyRegistryPort, times(3)).getStrategy(eq(SocialProvider.KAKAO));
 
             // 댓글 처리
             verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(1L));
@@ -170,6 +213,63 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
     }
 
     @Test
+    @DisplayName("소셜 연결 해제 실패 시에도 나머지 정리를 수행")
+    void socialUnlinkFailure_ShouldContinueCleanup() {
+        // Given
+        Long memberId = 42L;
+        MemberWithdrawnEvent event = new MemberWithdrawnEvent(memberId, "failingSocialId", SocialProvider.KAKAO);
+
+        AtomicBoolean unlinkAttempted = new AtomicBoolean(false);
+
+        SocialStrategyPort failingStrategy = new SocialStrategyPort() {
+            @Override
+            public SocialProvider getSupportedProvider() {
+                return SocialProvider.KAKAO;
+            }
+
+            @Override
+            public SocialMemberProfile getSocialToken(String code) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public void getUserInfo(String accessToken) {
+                // no-op
+            }
+
+            @Override
+            public void unlink(SocialProvider provider, String socialId) {
+                unlinkAttempted.set(true);
+                throw new RuntimeException("소셜 해제 실패");
+            }
+
+            @Override
+            public void logout(SocialProvider provider, String accessToken) {
+                // no-op
+            }
+        };
+
+        doReturn(failingStrategy).when(socialStrategyRegistryPort).getStrategy(SocialProvider.KAKAO);
+
+        // When & Then
+        publishAndVerify(event, () -> {
+            verify(sseUseCase).deleteEmitters(eq(memberId), eq(null));
+            verify(socialStrategyRegistryPort).getStrategy(eq(SocialProvider.KAKAO));
+            verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(memberId));
+            verify(postCommandUseCase).deleteAllPostsByMemberId(eq(memberId));
+            verify(authTokenUseCase).deleteTokens(eq(memberId), eq(null));
+            verify(fcmUseCase).deleteFcmTokens(eq(memberId), eq(null));
+            verify(notificationCommandUseCase).deleteAllNotification(eq(memberId));
+            verify(paperCommandUseCase).deleteMessageInMyPaper(eq(memberId), eq(null));
+            verify(adminCommandUseCase).anonymizeReporterByUserId(eq(memberId));
+            verify(kakaoTokenUseCase).deleteByMemberId(eq(memberId));
+            verify(memberCommandUseCase).removeMemberAccount(eq(memberId));
+        });
+
+        assertThat(unlinkAttempted).isTrue();
+    }
+
+    @Test
     @DisplayName("예외 상황에서의 이벤트 처리 - 단일 리스너의 순차 처리")
     void eventProcessingWithException_SequentialProcessing() {
         // Given
@@ -182,8 +282,8 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
         publishAndExpectException(event, () -> {
             // SSE 연결 정리는 먼저 실행됨
             verify(sseUseCase).deleteEmitters(eq(1L), eq(null));
-            // 소셜 계정 연동 해제도 실행됨
-            verify(socialWithdrawUseCase).unlinkSocialAccount(eq(SocialProvider.KAKAO), eq("testSocialId1"));
+            // 소셜 계정 연동 해제 전략 조회도 실행됨
+            verify(socialStrategyRegistryPort).getStrategy(eq(SocialProvider.KAKAO));
             // 댓글 처리에서 예외 발생
             verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(1L));
         });

@@ -69,7 +69,7 @@ class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
         );
         saveMember(existingMember);
 
-        SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "existing_user_code", null);
+        SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "existing-member-code", null);
 
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
