@@ -69,6 +69,9 @@ public class MemberCommandController {
             responseBuilder.header("Set-Cookie", cookie.toString());
         }
 
+        ResponseCookie expiredTempCookie = globalCookiePort.expireTempCookie();
+        responseBuilder.header("Set-Cookie", expiredTempCookie.toString());
+
         // Body 설정 후 ResponseEntity 반환
         return responseBuilder.build();
     }

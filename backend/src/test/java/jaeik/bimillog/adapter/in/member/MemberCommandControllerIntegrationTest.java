@@ -1,29 +1,24 @@
 package jaeik.bimillog.adapter.in.member;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.in.admin.dto.ReportDTO;
 import jaeik.bimillog.infrastructure.adapter.in.auth.dto.SocialLoginRequestDTO;
+import jaeik.bimillog.infrastructure.adapter.in.member.dto.MemberNameDTO;
 import jaeik.bimillog.infrastructure.adapter.in.member.dto.SettingDTO;
 import jaeik.bimillog.infrastructure.adapter.in.member.dto.SignUpRequestDTO;
-import jaeik.bimillog.infrastructure.adapter.in.member.dto.MemberNameDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.member.MemberRepository;
 import jaeik.bimillog.testutil.AuthTestFixtures;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
-import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
 import jaeik.bimillog.testutil.TestMembers;
+import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
 import jaeik.bimillog.testutil.annotation.IntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -51,7 +46,6 @@ class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
 
     @Test
     @DisplayName("회원가입 통합 테스트 - 성공")
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     void signUp_IntegrationTest_Success() throws Exception {
         // Given - 먼저 소셜 로그인으로 temp 데이터를 생성
         SocialLoginRequestDTO socialRequest = new SocialLoginRequestDTO("KAKAO", "new_user_code", "integration-test-fcm-TemporaryToken");
@@ -79,8 +73,9 @@ class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(header().exists("Set-Cookie"))
-                .andExpect(jsonPath("$.status").value("SUCCESS"))
-                .andExpect(jsonPath("$.data.message").value("회원 가입 성공"));
+                .andExpect(cookie().value("temp_user_id", ""))
+                .andExpect(cookie().maxAge("temp_user_id", 0))
+                .andExpect(content().string(""));
     }
 
     @Test
@@ -88,7 +83,7 @@ class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
     void updateUserName_IntegrationTest_Success() throws Exception {
         // Given - 테스트 사용자 생성 및 저장
         Member testMember = TestMembers.createUnique();
-        userRepository.save(testMember);
+        testMember = saveMember(testMember);
         
         CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(testMember);
         
@@ -111,7 +106,7 @@ class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
     void updateUserName_IntegrationTest_ValidationFail() throws Exception {
         // Given - 테스트 사용자 생성 및 저장
         Member testMember = TestMembers.createUnique();
-        userRepository.save(testMember);
+        testMember = saveMember(testMember);
         
         var userDetails = createCustomUserDetails(testMember);
         
@@ -133,7 +128,7 @@ class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
     void updateSetting_IntegrationTest_Success() throws Exception {
         // Given - 테스트 사용자 생성 및 저장
         Member testMember = TestMembers.createUnique();
-        userRepository.save(testMember);
+        testMember = saveMember(testMember);
         
         var userDetails = createCustomUserDetails(testMember);
         
@@ -163,7 +158,7 @@ class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
     void updateSetting_NullValidation_BadRequest() throws Exception {
         // Given
         Member testMember = TestMembers.createUnique();
-        userRepository.save(testMember);
+        testMember = saveMember(testMember);
         
         var userDetails = createCustomUserDetails(testMember);
         
@@ -189,7 +184,7 @@ class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
     void updateUserName_BlankValidation_BadRequest() throws Exception {
         // Given
         Member testMember = TestMembers.createUnique();
-        userRepository.save(testMember);
+        testMember = saveMember(testMember);
         
         var userDetails = createCustomUserDetails(testMember);
         
@@ -220,7 +215,7 @@ class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
                 .build();
 
         Member testMember = TestMembers.createUnique();
-        userRepository.save(testMember);
+        testMember = saveMember(testMember);
         var userDetails = createCustomUserDetails(testMember);
 
         // When & Then
@@ -245,7 +240,7 @@ class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
                 .build();
 
         Member testMember = TestMembers.createUnique();
-        userRepository.save(testMember);
+        testMember = saveMember(testMember);
         var userDetails = createCustomUserDetails(testMember);
 
         // When & Then
@@ -268,8 +263,7 @@ class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
                         .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("SUCCESS"))
-                .andExpect(jsonPath("$.data.message").value("회원탈퇴 성공"))
+                .andExpect(content().string(""))
                 .andReturn();
 
         var cookies = result.getResponse().getHeaders("Set-Cookie");

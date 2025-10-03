@@ -130,4 +130,21 @@ public class GlobalCookieAdapter implements GlobalCookiePort {
                 .secure(false)
                 .build();
     }
+
+    /**
+     * <h3>임시 사용자 ID 쿠키 만료</h3>
+     * <p>temp_user_id 쿠키를 즉시 만료시키는 ResponseCookie를 생성합니다.</p>
+     *
+     * @return 만료 처리된 임시 쿠키 ResponseCookie
+     */
+    @Override
+    public ResponseCookie expireTempCookie() {
+        return ResponseCookie.from(TEMP_USER_ID_COOKIE, "")
+                .path("/")
+                .maxAge(0)
+                .httpOnly(true)
+                .sameSite("Lax")
+                .secure(false)
+                .build();
+    }
 }
