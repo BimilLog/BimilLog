@@ -56,7 +56,7 @@ public class MemberLoggedOutEventIntegrationTest extends BaseEventIntegrationTes
             // SSE 연결 정리
             verify(sseUseCase).deleteEmitters(eq(memberId), eq(tokenId));
             // 소셜 플랫폼 로그아웃
-            verify(socialLogoutUseCase).logout(eq(memberId), eq(SocialProvider.KAKAO), eq(tokenId));
+            verify(socialLogoutUseCase).socialLogout(eq(memberId), eq(SocialProvider.KAKAO), eq(tokenId));
             // FCM 토큰 삭제
             verify(fcmUseCase).deleteFcmTokens(eq(memberId), eq(fcmTokenId));
             // JWT 토큰 무효화
@@ -83,9 +83,9 @@ public class MemberLoggedOutEventIntegrationTest extends BaseEventIntegrationTes
             verify(sseUseCase).deleteEmitters(eq(3L), eq(103L));
 
             // 소셜 플랫폼 로그아웃
-            verify(socialLogoutUseCase).logout(eq(1L), eq(SocialProvider.KAKAO), eq(101L));
-            verify(socialLogoutUseCase).logout(eq(2L), eq(SocialProvider.KAKAO), eq(102L));
-            verify(socialLogoutUseCase).logout(eq(3L), eq(SocialProvider.KAKAO), eq(103L));
+            verify(socialLogoutUseCase).socialLogout(eq(1L), eq(SocialProvider.KAKAO), eq(101L));
+            verify(socialLogoutUseCase).socialLogout(eq(2L), eq(SocialProvider.KAKAO), eq(102L));
+            verify(socialLogoutUseCase).socialLogout(eq(3L), eq(SocialProvider.KAKAO), eq(103L));
 
             // FCM 토큰 삭제
             verify(fcmUseCase).deleteFcmTokens(eq(1L), eq(201L));

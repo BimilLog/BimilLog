@@ -169,7 +169,7 @@ class KakaoStrategyAdapterTest extends BaseUnitTest {
     }
 
     @Test
-    @DisplayName("logout 성공")
+    @DisplayName("socialLogout 성공")
     void shouldLogoutSuccessfully() throws Exception {
         // Given
         doNothing().when(kakaoApiClient).logout(anyString(), anyString());
@@ -185,7 +185,7 @@ class KakaoStrategyAdapterTest extends BaseUnitTest {
     }
 
     @Test
-    @DisplayName("logout 실패시 예외를 상위로 전파한다")
+    @DisplayName("socialLogout 실패시 예외를 상위로 전파한다")
     void shouldPropagateExceptionWhenLogoutFails() {
         // Given
         RuntimeException expectedException = new RuntimeException("Logout failed");

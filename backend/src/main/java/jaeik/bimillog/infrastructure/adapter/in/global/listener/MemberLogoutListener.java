@@ -37,23 +37,23 @@ public class MemberLogoutListener {
      * <p>사용자가 로그아웃할 때 발생하는 이벤트를 비동기로 처리합니다.</p>
      * <p>SSE 연결 종료, 소셜 플랫폼 로그아웃, FCM 토큰 삭제, JWT 토큰 무효화, 카카오 토큰 삭제를 순차적으로 수행합니다.</p>
      *
-     * @param memberLoggedOutEvent 로그아웃 이벤트 (memberId, tokenId, fcmTokenId, provider 포함)
+     * @param memberLoggedOutEvent 로그아웃 이벤트 (memberId, authTokenId, fcmTokenId, provider 포함)
      * @author Jaeik
      * @since 2.0.0
      */
     @Async
     @EventListener
     @Transactional
-    public void memberLogout(MemberLoggedOutEvent memberLoggedOutEvent) {
+    public void memberLogout(MemberLoggedOutEvent memberLoggedOutEvent) throws Exception {
         Long memberId = memberLoggedOutEvent.memberId();
-        Long tokenId = memberLoggedOutEvent.tokenId();
+        Long AuthTokenId = memberLoggedOutEvent.authTokenId();
         Long fcmTokenId = memberLoggedOutEvent.fcmTokenId();
         SocialProvider provider = memberLoggedOutEvent.provider();
 
-        sseUseCase.deleteEmitters(memberId, tokenId);
-        socialLogoutUseCase.logout(memberId, provider, tokenId);
+        sseUseCase.deleteEmitters(memberId, AuthTokenId);
+        socialLogoutUseCase.socialLogout(memberId, provider, AuthTokenId);
         fcmUseCase.deleteFcmTokens(memberId, fcmTokenId);
-        authTokenUseCase.deleteTokens(memberId, tokenId);
+        authTokenUseCase.deleteTokens(memberId, AuthTokenId);
         kakaoTokenUseCase.deleteByMemberId(memberId);
         SecurityContextHolder.clearContext();
 

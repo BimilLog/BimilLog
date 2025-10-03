@@ -42,7 +42,7 @@ public interface KakaoApiClient {
      * @author Jaeik
      * @since 2.0.0
      */
-    @PostMapping("/v1/user/logout")
+    @PostMapping("/v1/user/socialLogout")
     void logout(@RequestHeader("Authorization") String authorization,
                 @RequestHeader("Content-Type") String contentType);
 

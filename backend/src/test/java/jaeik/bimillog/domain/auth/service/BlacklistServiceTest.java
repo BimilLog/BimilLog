@@ -6,7 +6,7 @@ import jaeik.bimillog.domain.auth.application.service.BlacklistService;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.BlackList;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalTokenQueryPort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalAuthTokenQueryPort;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,7 +47,7 @@ class BlacklistServiceTest extends BaseUnitTest {
     private RedisJwtBlacklistPort redisJwtBlacklistPort;
 
     @Mock
-    private GlobalTokenQueryPort globalTokenQueryPort;
+    private GlobalAuthTokenQueryPort globalAuthTokenQueryPort;
 
     @Mock
     private BlacklistPort blacklistPort;
@@ -140,7 +140,7 @@ class BlacklistServiceTest extends BaseUnitTest {
         Long memberId = getTestMember().getId() != null ? getTestMember().getId() : 100L;
         String reason = "Security violation";
 
-        given(globalTokenQueryPort.findAllByMemberId(memberId)).willReturn(testAuthTokenList);
+        given(globalAuthTokenQueryPort.findAllByMemberId(memberId)).willReturn(testAuthTokenList);
         given(globalJwtPort.generateTokenHash("refresh-token-0")).willReturn("hash0");
         given(globalJwtPort.generateTokenHash("refresh-token-1")).willReturn("hash1");
 
@@ -148,7 +148,7 @@ class BlacklistServiceTest extends BaseUnitTest {
         blacklistService.blacklistAllUserTokens(memberId);
 
         // Then
-        verify(globalTokenQueryPort).findAllByMemberId(memberId);
+        verify(globalAuthTokenQueryPort).findAllByMemberId(memberId);
         verify(globalJwtPort).generateTokenHash("refresh-token-0");
         verify(globalJwtPort).generateTokenHash("refresh-token-1");
 
@@ -171,13 +171,13 @@ class BlacklistServiceTest extends BaseUnitTest {
         // Given
         Long memberId = 100L;
         String reason = "Security violation";
-        given(globalTokenQueryPort.findAllByMemberId(memberId)).willReturn(List.of());
+        given(globalAuthTokenQueryPort.findAllByMemberId(memberId)).willReturn(List.of());
 
         // When
         blacklistService.blacklistAllUserTokens(memberId);
 
         // Then
-        verify(globalTokenQueryPort).findAllByMemberId(memberId);
+        verify(globalAuthTokenQueryPort).findAllByMemberId(memberId);
         verify(globalJwtPort, never()).generateTokenHash(anyString());
         verify(redisJwtBlacklistPort, never()).blacklistTokenHashes(any(), any());
     }
@@ -189,7 +189,7 @@ class BlacklistServiceTest extends BaseUnitTest {
         Long memberId = 100L;
         String reason = "Partial failure test";
 
-        given(globalTokenQueryPort.findAllByMemberId(memberId)).willReturn(testAuthTokenList);
+        given(globalAuthTokenQueryPort.findAllByMemberId(memberId)).willReturn(testAuthTokenList);
         given(globalJwtPort.generateTokenHash("refresh-token-0")).willReturn("hash0");
         doThrow(new RuntimeException("Hash generation failed"))
                 .when(globalJwtPort).generateTokenHash("refresh-token-1");
@@ -215,7 +215,7 @@ class BlacklistServiceTest extends BaseUnitTest {
         Long memberId = 100L;
         String reason = "Complete failure test";
 
-        given(globalTokenQueryPort.findAllByMemberId(memberId)).willReturn(testAuthTokenList);
+        given(globalAuthTokenQueryPort.findAllByMemberId(memberId)).willReturn(testAuthTokenList);
         doThrow(new RuntimeException("Hash generation failed"))
                 .when(globalJwtPort).generateTokenHash(anyString());
 
@@ -223,7 +223,7 @@ class BlacklistServiceTest extends BaseUnitTest {
         blacklistService.blacklistAllUserTokens(memberId);
 
         // Then
-        verify(globalTokenQueryPort).findAllByMemberId(memberId);
+        verify(globalAuthTokenQueryPort).findAllByMemberId(memberId);
         verify(globalJwtPort).generateTokenHash("refresh-token-0");
         verify(globalJwtPort).generateTokenHash("refresh-token-1");
         verify(redisJwtBlacklistPort, never()).blacklistTokenHashes(any(), any());
@@ -236,13 +236,13 @@ class BlacklistServiceTest extends BaseUnitTest {
         Long memberId = 100L;
         String reason = "Load failure test";
         doThrow(new RuntimeException("AuthToken loading failed"))
-                .when(globalTokenQueryPort).findAllByMemberId(memberId);
+                .when(globalAuthTokenQueryPort).findAllByMemberId(memberId);
 
         // When
         blacklistService.blacklistAllUserTokens(memberId);
 
         // Then
-        verify(globalTokenQueryPort).findAllByMemberId(memberId);
+        verify(globalAuthTokenQueryPort).findAllByMemberId(memberId);
         verify(globalJwtPort, never()).generateTokenHash(anyString());
         verify(redisJwtBlacklistPort, never()).blacklistTokenHashes(any(), any());
     }
@@ -257,7 +257,7 @@ class BlacklistServiceTest extends BaseUnitTest {
         String reason = "Many tokens test";
         List<AuthToken> manyAuthTokens = createMultipleTokens(10);
 
-        given(globalTokenQueryPort.findAllByMemberId(memberId)).willReturn(manyAuthTokens);
+        given(globalAuthTokenQueryPort.findAllByMemberId(memberId)).willReturn(manyAuthTokens);
         for (int i = 0; i < 10; i++) {
             given(globalJwtPort.generateTokenHash("refresh-token-" + i)).willReturn("hash" + i);
         }
@@ -266,7 +266,7 @@ class BlacklistServiceTest extends BaseUnitTest {
         blacklistService.blacklistAllUserTokens(memberId);
 
         // Then
-        verify(globalTokenQueryPort).findAllByMemberId(memberId);
+        verify(globalAuthTokenQueryPort).findAllByMemberId(memberId);
         for (int i = 0; i < 10; i++) {
             verify(globalJwtPort).generateTokenHash("refresh-token-" + i);
         }

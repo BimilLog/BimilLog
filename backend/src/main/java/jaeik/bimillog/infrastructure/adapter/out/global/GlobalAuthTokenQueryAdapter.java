@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.out.global;
 
 import jaeik.bimillog.domain.auth.entity.AuthToken;
-import jaeik.bimillog.domain.global.application.port.out.GlobalTokenQueryPort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalAuthTokenQueryPort;
 import jaeik.bimillog.infrastructure.adapter.out.auth.AuthTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -20,7 +20,7 @@ import java.util.Optional;
  */
 @Component
 @RequiredArgsConstructor
-public class GlobalTokenQueryAdapter implements GlobalTokenQueryPort {
+public class GlobalAuthTokenQueryAdapter implements GlobalAuthTokenQueryPort {
 
     private final AuthTokenRepository authTokenRepository;
 

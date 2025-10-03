@@ -36,8 +36,8 @@ public interface SseUseCase {
      * <h3>SSE 연결 정리</h3>
      * <p>사용자의 SSE Emitter 연결을 정리하고 메모리에서 제거합니다.</p>
      * <p>tokenId가 null인 경우 모든 SSE 연결을 해제하고, 값이 있는 경우 특정 기기만 해제합니다.</p>
-     * <p>{@link MemberWithdrawnEvent} 이벤트 발생시 모든 연결 정리(tokenId=null),</p>
-     * <p>{@link MemberLoggedOutEvent} 이벤트 발생시 특정 기기 연결 정리(tokenId 값 있음)에서 호출됩니다.</p>
+     * <p>{@link MemberWithdrawnEvent} 이벤트 발생시 모든 연결 정리(authTokenId=null),</p>
+     * <p>{@link MemberLoggedOutEvent} 이벤트 발생시 특정 기기 연결 정리(authTokenId 값 있음)에서 호출됩니다.</p>
      *
      * @param memberId 사용자 ID
      * @param tokenId 토큰 ID (null인 경우 모든 연결 정리)

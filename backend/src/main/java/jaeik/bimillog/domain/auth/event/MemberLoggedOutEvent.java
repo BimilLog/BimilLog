@@ -8,7 +8,7 @@ import jaeik.bimillog.domain.member.entity.member.SocialProvider;
  * <p>토큰 무효화, SSE 연결 정리, 알림 구독 해제 등의 후처리 작업 트리거</p>
  *
  * @param memberId 로그아웃을 수행한 사용자의 고유 ID
- * @param tokenId 무효화할 JWT 토큰의 고유 ID
+ * @param authTokenId 무효화할 JWT 토큰의 고유 ID
  * @param fcmTokenId 삭제할 FCM 토큰의 고유 ID (다중 기기 지원)
  * @param provider 소셜 로그인 제공자 (KAKAO 등)
  * @author Jaeik
@@ -16,7 +16,7 @@ import jaeik.bimillog.domain.member.entity.member.SocialProvider;
  *
  */
 public record MemberLoggedOutEvent(Long memberId,
-                                   Long tokenId,
+                                   Long authTokenId,
                                    Long fcmTokenId,
                                    SocialProvider provider){
 

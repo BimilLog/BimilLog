@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.global.application.port.out.GlobalKakaoTokenQueryPort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalTokenQueryPort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalAuthTokenQueryPort;
 import jaeik.bimillog.domain.member.application.port.in.MemberFriendUseCase;
 import jaeik.bimillog.domain.member.application.port.out.KakaoFriendPort;
 import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
@@ -35,7 +35,7 @@ public class MemberFriendService implements MemberFriendUseCase {
 
     private final KakaoFriendPort kakaoFriendPort;
     private final MemberQueryPort memberQueryPort;
-    private final GlobalTokenQueryPort globalTokenQueryPort;
+    private final GlobalAuthTokenQueryPort globalAuthTokenQueryPort;
     private final GlobalKakaoTokenQueryPort globalKakaoTokenQueryPort;
 
     /**
@@ -61,7 +61,7 @@ public class MemberFriendService implements MemberFriendUseCase {
 
         try {
             // 1. 현재 요청 기기의 AuthToken 조회 (memberId 추출용)
-            AuthToken authToken = globalTokenQueryPort.findById(tokenId)
+            AuthToken authToken = globalAuthTokenQueryPort.findById(tokenId)
                     .orElseThrow(() -> new AuthCustomException(AuthErrorCode.NOT_FIND_TOKEN));
 
             // 2. KakaoToken 조회

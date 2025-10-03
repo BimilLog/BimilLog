@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.global.application.port.out.GlobalKakaoTokenQueryPort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalTokenQueryPort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalAuthTokenQueryPort;
 import jaeik.bimillog.domain.member.application.port.out.KakaoFriendPort;
 import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
 import jaeik.bimillog.domain.member.application.service.MemberFriendService;
@@ -44,7 +44,7 @@ class MemberFriendServiceTest extends BaseUnitTest {
     private MemberQueryPort memberQueryPort;
 
     @Mock
-    private GlobalTokenQueryPort globalTokenQueryPort;
+    private GlobalAuthTokenQueryPort globalAuthTokenQueryPort;
 
     @Mock
     private GlobalKakaoTokenQueryPort globalKakaoTokenQueryPort;
@@ -76,7 +76,7 @@ class MemberFriendServiceTest extends BaseUnitTest {
         );
         List<String> userNames = Arrays.asList("", "bimillogUser", "");
 
-        given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(authToken));
+        given(globalAuthTokenQueryPort.findById(tokenId)).willReturn(Optional.of(authToken));
         given(globalKakaoTokenQueryPort.findByMemberId(getTestMember().getId())).willReturn(Optional.of(kakaoToken));
         given(kakaoFriendPort.getFriendList("access-TemporaryToken", 0, 3)).willReturn(kakaoResponse);
         given(memberQueryPort.findMemberNamesInOrder(Arrays.asList("1", "2", "3"))).willReturn(userNames);
@@ -98,7 +98,7 @@ class MemberFriendServiceTest extends BaseUnitTest {
     @DisplayName("카카오 친구 목록 조회 - 토큰이 존재하지 않으면 예외")
     void shouldThrowException_WhenTokenNotFound() {
         // Given
-        given(globalTokenQueryPort.findById(1L)).willReturn(Optional.empty());
+        given(globalAuthTokenQueryPort.findById(1L)).willReturn(Optional.empty());
 
         // When
         Throwable thrown = catchThrowable(() -> memberFriendService.getKakaoFriendList(1L, 1L, 0, 10));
@@ -108,7 +108,7 @@ class MemberFriendServiceTest extends BaseUnitTest {
                 .isInstanceOf(MemberCustomException.class)
                 .hasMessage(MemberErrorCode.KAKAO_FRIEND_API_ERROR.getMessage())
                 .hasCauseInstanceOf(AuthCustomException.class);
-        verify(globalTokenQueryPort).findById(1L);
+        verify(globalAuthTokenQueryPort).findById(1L);
     }
 
     @Test
@@ -121,7 +121,7 @@ class MemberFriendServiceTest extends BaseUnitTest {
                 .build();
         KakaoToken kakaoToken = KakaoToken.createKakaoToken(null, "kakao-refresh-token");
 
-        given(globalTokenQueryPort.findById(1L)).willReturn(Optional.of(authToken));
+        given(globalAuthTokenQueryPort.findById(1L)).willReturn(Optional.of(authToken));
         given(globalKakaoTokenQueryPort.findByMemberId(getTestMember().getId())).willReturn(Optional.of(kakaoToken));
 
         // When
@@ -132,7 +132,7 @@ class MemberFriendServiceTest extends BaseUnitTest {
                 .isInstanceOf(MemberCustomException.class)
                 .hasMessage(MemberErrorCode.KAKAO_FRIEND_API_ERROR.getMessage())
                 .hasCauseInstanceOf(AuthCustomException.class);
-        verify(globalTokenQueryPort).findById(1L);
+        verify(globalAuthTokenQueryPort).findById(1L);
     }
 
     @Test
@@ -145,7 +145,7 @@ class MemberFriendServiceTest extends BaseUnitTest {
                 .build();
         KakaoToken kakaoToken = KakaoToken.createKakaoToken("", "kakao-refresh-token");
 
-        given(globalTokenQueryPort.findById(1L)).willReturn(Optional.of(authToken));
+        given(globalAuthTokenQueryPort.findById(1L)).willReturn(Optional.of(authToken));
         given(globalKakaoTokenQueryPort.findByMemberId(getTestMember().getId())).willReturn(Optional.of(kakaoToken));
 
         // When
@@ -156,7 +156,7 @@ class MemberFriendServiceTest extends BaseUnitTest {
                 .isInstanceOf(MemberCustomException.class)
                 .hasMessage(MemberErrorCode.KAKAO_FRIEND_API_ERROR.getMessage())
                 .hasCauseInstanceOf(AuthCustomException.class);
-        verify(globalTokenQueryPort).findById(1L);
+        verify(globalAuthTokenQueryPort).findById(1L);
     }
 
     @Test
@@ -172,7 +172,7 @@ class MemberFriendServiceTest extends BaseUnitTest {
                 Collections.emptyList(), 0, null, null, 0
         );
 
-        given(globalTokenQueryPort.findById(1L)).willReturn(Optional.of(authToken));
+        given(globalAuthTokenQueryPort.findById(1L)).willReturn(Optional.of(authToken));
         given(globalKakaoTokenQueryPort.findByMemberId(getTestMember().getId())).willReturn(Optional.of(kakaoToken));
         given(kakaoFriendPort.getFriendList("access-TemporaryToken", 0, 10)).willReturn(kakaoResponse);
 
@@ -197,7 +197,7 @@ class MemberFriendServiceTest extends BaseUnitTest {
                 Collections.emptyList(), 0, null, null, 0
         );
 
-        given(globalTokenQueryPort.findById(1L)).willReturn(Optional.of(authToken));
+        given(globalAuthTokenQueryPort.findById(1L)).willReturn(Optional.of(authToken));
         given(globalKakaoTokenQueryPort.findByMemberId(getTestMember().getId())).willReturn(Optional.of(kakaoToken));
         given(kakaoFriendPort.getFriendList("access-TemporaryToken", 0, 100)).willReturn(kakaoResponse);
 
@@ -219,7 +219,7 @@ class MemberFriendServiceTest extends BaseUnitTest {
                 .build();
         KakaoToken kakaoToken = KakaoToken.createKakaoToken("access-TemporaryToken", "kakao-refresh-token");
 
-        given(globalTokenQueryPort.findById(1L)).willReturn(Optional.of(authToken));
+        given(globalAuthTokenQueryPort.findById(1L)).willReturn(Optional.of(authToken));
         given(globalKakaoTokenQueryPort.findByMemberId(getTestMember().getId())).willReturn(Optional.of(kakaoToken));
         given(kakaoFriendPort.getFriendList("access-TemporaryToken", 0, 10))
                 .willThrow(new MemberCustomException(MemberErrorCode.KAKAO_FRIEND_API_ERROR));
@@ -240,7 +240,7 @@ class MemberFriendServiceTest extends BaseUnitTest {
                 .build();
         KakaoToken kakaoToken = KakaoToken.createKakaoToken("access-TemporaryToken", "kakao-refresh-token");
 
-        given(globalTokenQueryPort.findById(1L)).willReturn(Optional.of(authToken));
+        given(globalAuthTokenQueryPort.findById(1L)).willReturn(Optional.of(authToken));
         given(globalKakaoTokenQueryPort.findByMemberId(getTestMember().getId())).willReturn(Optional.of(kakaoToken));
         given(kakaoFriendPort.getFriendList("access-TemporaryToken", 0, 10))
                 .willThrow(new RuntimeException("일반적인 API 에러"));
@@ -264,7 +264,7 @@ class MemberFriendServiceTest extends BaseUnitTest {
                 Collections.emptyList(), 0, null, null, 0
         );
 
-        given(globalTokenQueryPort.findById(1L)).willReturn(Optional.of(authToken));
+        given(globalAuthTokenQueryPort.findById(1L)).willReturn(Optional.of(authToken));
         given(globalKakaoTokenQueryPort.findByMemberId(getTestMember().getId())).willReturn(Optional.of(kakaoToken));
         given(kakaoFriendPort.getFriendList("access-TemporaryToken", 0, 10)).willReturn(kakaoResponse);
 
@@ -294,7 +294,7 @@ class MemberFriendServiceTest extends BaseUnitTest {
         );
         List<String> userNames = Arrays.asList("user1", "user2");
 
-        given(globalTokenQueryPort.findById(1L)).willReturn(Optional.of(authToken));
+        given(globalAuthTokenQueryPort.findById(1L)).willReturn(Optional.of(authToken));
         given(globalKakaoTokenQueryPort.findByMemberId(getTestMember().getId())).willReturn(Optional.of(kakaoToken));
         given(kakaoFriendPort.getFriendList("access-TemporaryToken", 0, 10)).willReturn(kakaoResponse);
         given(memberQueryPort.findMemberNamesInOrder(Arrays.asList("1", "2"))).willReturn(userNames);

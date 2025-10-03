@@ -8,10 +8,8 @@ import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.global.application.port.out.GlobalKakaoTokenQueryPort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalTokenQueryPort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalAuthTokenQueryPort;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
-import jaeik.bimillog.domain.member.entity.member.Member;
-import jaeik.bimillog.testutil.AuthTestFixtures;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -49,7 +47,7 @@ class SocialLogoutServiceTest extends BaseUnitTest {
     private SocialStrategyPort kakaoStrategy;
 
     @Mock
-    private GlobalTokenQueryPort globalTokenQueryPort;
+    private GlobalAuthTokenQueryPort globalAuthTokenQueryPort;
 
     @Mock
     private GlobalKakaoTokenQueryPort globalKakaoTokenQueryPort;
@@ -59,7 +57,7 @@ class SocialLogoutServiceTest extends BaseUnitTest {
 
     @Test
     @DisplayName("정상적인 로그아웃 처리")
-    void shouldLogout_WhenValidMemberDetails() {
+    void shouldSocialLogout_WhenValidMemberDetails() {
         // Given
         Long memberId = 100L;
         Long tokenId = 200L;
@@ -71,15 +69,15 @@ class SocialLogoutServiceTest extends BaseUnitTest {
                 .build();
         KakaoToken mockKakaoToken = KakaoToken.createKakaoToken(TEST_ACCESS_TOKEN, "kakao-refresh-token");
 
-        given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(mockAuthToken));
+        given(globalAuthTokenQueryPort.findById(tokenId)).willReturn(Optional.of(mockAuthToken));
         given(globalKakaoTokenQueryPort.findByMemberId(memberId)).willReturn(Optional.of(mockKakaoToken));
         given(strategyRegistry.getStrategy(provider)).willReturn(kakaoStrategy);
 
         // When
-        socialLogoutService.logout(memberId, provider, tokenId);
+        socialLogoutService.socialLogout(memberId, provider, tokenId);
 
         // Then
-        verify(globalTokenQueryPort).findById(tokenId);
+        verify(globalAuthTokenQueryPort).findById(tokenId);
         verify(globalKakaoTokenQueryPort).findByMemberId(memberId);
         verify(strategyRegistry).getStrategy(provider);
         try {
@@ -96,14 +94,14 @@ class SocialLogoutServiceTest extends BaseUnitTest {
         Long memberId = 100L;
         Long tokenId = 200L;
         SocialProvider provider = TEST_PROVIDER;
-        given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.empty());
+        given(globalAuthTokenQueryPort.findById(tokenId)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> socialLogoutService.logout(memberId, provider, tokenId))
+        assertThatThrownBy(() -> socialLogoutService.socialLogout(memberId, provider, tokenId))
                 .isInstanceOf(AuthCustomException.class)
                 .hasFieldOrPropertyWithValue("authErrorCode", AuthErrorCode.NOT_FIND_TOKEN);
 
-        verify(globalTokenQueryPort).findById(tokenId);
+        verify(globalAuthTokenQueryPort).findById(tokenId);
         // 토큰이 없으면 예외가 발생하므로 다른 메서드들은 호출되지 않음
         verify(strategyRegistry, never()).getStrategy(any(SocialProvider.class));
         verifyNoMoreInteractions(kakaoStrategy);
@@ -113,7 +111,7 @@ class SocialLogoutServiceTest extends BaseUnitTest {
 
     @Test
     @DisplayName("소셜 로그아웃 실패 시에도 전체 로그아웃 프로세스는 성공")
-    void shouldCompleteLogout_WhenSocialLogoutFails() {
+    void shouldCompleteLogout_WhenSocialSocialLogoutFails() {
         // Given
         Long memberId = 100L;
         Long tokenId = 200L;
@@ -125,23 +123,23 @@ class SocialLogoutServiceTest extends BaseUnitTest {
                 .build();
         KakaoToken mockKakaoToken = KakaoToken.createKakaoToken(TEST_ACCESS_TOKEN, "kakao-refresh-token");
 
-        given(globalTokenQueryPort.findById(tokenId)).willReturn(Optional.of(mockAuthToken));
+        given(globalAuthTokenQueryPort.findById(tokenId)).willReturn(Optional.of(mockAuthToken));
         given(globalKakaoTokenQueryPort.findByMemberId(memberId)).willReturn(Optional.of(mockKakaoToken));
         given(strategyRegistry.getStrategy(provider)).willReturn(kakaoStrategy);
 
         // 소셜 로그아웃이 실패하도록 설정
         try {
-            doThrow(new RuntimeException("Social logout failed"))
+            doThrow(new RuntimeException("Social socialLogout failed"))
                 .when(kakaoStrategy).logout(provider, TEST_ACCESS_TOKEN);
         } catch (Exception e) {
             // mock 설정 중 예외는 무시
         }
 
         // When - 소셜 로그아웃이 실패해도 예외가 발생하지 않고 정상 처리되어야 함
-        socialLogoutService.logout(memberId, provider, tokenId);
+        socialLogoutService.socialLogout(memberId, provider, tokenId);
 
         // Then
-        verify(globalTokenQueryPort).findById(tokenId);
+        verify(globalAuthTokenQueryPort).findById(tokenId);
         verify(globalKakaoTokenQueryPort).findByMemberId(memberId);
         verify(strategyRegistry).getStrategy(provider);
         // 소셜 로그아웃이 호출되었지만 실패한 것 확인
@@ -166,15 +164,15 @@ class SocialLogoutServiceTest extends BaseUnitTest {
                 .build();
         KakaoToken mockKakaoToken = KakaoToken.createKakaoToken(TEST_ACCESS_TOKEN, "kakao-refresh-token");
 
-        given(globalTokenQueryPort.findById(adminTokenId)).willReturn(Optional.of(adminAuthToken));
+        given(globalAuthTokenQueryPort.findById(adminTokenId)).willReturn(Optional.of(adminAuthToken));
         given(globalKakaoTokenQueryPort.findByMemberId(adminMemberId)).willReturn(Optional.of(mockKakaoToken));
         given(strategyRegistry.getStrategy(provider)).willReturn(kakaoStrategy);
 
         // When
-        socialLogoutService.logout(adminMemberId, provider, adminTokenId);
+        socialLogoutService.socialLogout(adminMemberId, provider, adminTokenId);
 
         // Then
-        verify(globalTokenQueryPort).findById(adminTokenId);
+        verify(globalAuthTokenQueryPort).findById(adminTokenId);
         verify(globalKakaoTokenQueryPort).findByMemberId(adminMemberId);
         verify(strategyRegistry).getStrategy(provider);
         try {

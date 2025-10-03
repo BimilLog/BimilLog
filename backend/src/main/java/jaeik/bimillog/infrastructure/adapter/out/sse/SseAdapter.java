@@ -159,8 +159,8 @@ public class SseAdapter implements SsePort {
      *
      * <p>동작 방식:</p>
      * <ul>
-     *   <li>tokenId == null: 사용자의 모든 연결 제거 (완전 로그아웃)</li>
-     *   <li>tokenId != null: 특정 기기의 연결만 제거 (단일 기기 로그아웃)</li>
+     *   <li>authTokenId == null: 사용자의 모든 연결 제거 (완전 로그아웃)</li>
+     *   <li>authTokenId != null: 특정 기기의 연결만 제거 (단일 기기 로그아웃)</li>
      * </ul>
      *
      * @param memberId 사용자 ID

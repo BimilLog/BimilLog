@@ -7,7 +7,7 @@ import jaeik.bimillog.domain.auth.application.port.out.RedisJwtBlacklistPort;
 import jaeik.bimillog.domain.auth.entity.BlackList;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalTokenQueryPort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalAuthTokenQueryPort;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.infrastructure.filter.JwtFilter;
@@ -39,7 +39,7 @@ public class BlacklistService implements BlacklistUseCase {
 
     private final GlobalJwtPort globalJwtPort;
     private final RedisJwtBlacklistPort redisJwtBlacklistPort;
-    private final GlobalTokenQueryPort globalTokenQueryPort;
+    private final GlobalAuthTokenQueryPort globalAuthTokenQueryPort;
     private final BlacklistPort blacklistPort;
 
     /**
@@ -83,7 +83,7 @@ public class BlacklistService implements BlacklistUseCase {
     @Override
     public void blacklistAllUserTokens(Long memberId) {
         try {
-            List<AuthToken> userAuthTokens = globalTokenQueryPort.findAllByMemberId(memberId);
+            List<AuthToken> userAuthTokens = globalAuthTokenQueryPort.findAllByMemberId(memberId);
 
             if (userAuthTokens.isEmpty()) {
                 log.info("사용자 {}의 활성 토큰을 찾을 수 없음", memberId);

@@ -6,7 +6,7 @@ import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.global.application.port.out.GlobalAuthTokenSavePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalTokenQueryPort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalAuthTokenQueryPort;
 import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
 import jaeik.bimillog.domain.global.entity.MemberDetail;
 import jaeik.bimillog.domain.member.entity.member.Member;
@@ -40,7 +40,7 @@ import java.io.IOException;
 @Component
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
-    private final GlobalTokenQueryPort globalTokenQueryPort;
+    private final GlobalAuthTokenQueryPort globalAuthTokenQueryPort;
     private final MemberQueryPort memberQueryPort;
     private final GlobalJwtPort globalJwtPort;
     private final GlobalCookiePort globalCookiePort;
@@ -125,11 +125,11 @@ public class JwtFilter extends OncePerRequestFilter {
             }
 
             try {
-                // 2-3. 리프레시 토큰에서 tokenId 추출
+                // 2-3. 리프레시 토큰에서 authTokenId 추출
                 Long tokenId = globalJwtPort.getTokenIdFromToken(refreshToken);
 
                 // 2-4. DB에서 AuthToken 엔티티 조회
-                AuthToken authToken = globalTokenQueryPort.findById(tokenId)
+                AuthToken authToken = globalAuthTokenQueryPort.findById(tokenId)
                         .orElseThrow(() -> new CustomException(ErrorCode.TOKEN_NOT_FOUND));
 
                 // 2-5. 탈취 감지: 이미 사용된 리프레시 토큰 재사용 시도
