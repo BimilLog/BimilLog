@@ -120,7 +120,7 @@ class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
         // When & Then
         performPost("/api/paper/delete", messageDTO)
                 .andDo(print())
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
     
     @Test

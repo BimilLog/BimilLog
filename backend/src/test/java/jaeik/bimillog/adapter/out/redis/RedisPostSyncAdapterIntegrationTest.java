@@ -77,13 +77,13 @@ class RedisPostSyncAdapterIntegrationTest {
     void setUp() {
         // Redis 초기화
         RedisTestHelper.flushRedis(redisTemplate);
-        
+
         // DB 초기화
         try {
             postLikeRepository.deleteAll();
             postRepository.deleteAll();
             entityManager.flush();
-            entityManager.clear();
+            // clear() 제거: 테스트에서 엔티티를 계속 사용하므로 분리하지 않음
         } catch (Exception e) {
             System.err.println("데이터베이스 초기화 경고: " + e.getMessage());
         }

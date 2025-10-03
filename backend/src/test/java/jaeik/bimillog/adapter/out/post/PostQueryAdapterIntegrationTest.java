@@ -120,7 +120,7 @@ class PostQueryAdapterIntegrationTest {
         entityManager.persistAndFlush(noticePost);
 
         entityManager.flush();
-        entityManager.clear();
+        // clear() 제거: 테스트에서 엔티티를 계속 사용하므로 분리하지 않음
     }
 
 

@@ -4,7 +4,6 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalMemberQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.PostLikeCommandPort;
-import jaeik.bimillog.domain.post.application.port.out.PostToCommentPort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
 import jaeik.bimillog.domain.post.application.service.PostCommandService;
 import jaeik.bimillog.domain.post.entity.Post;
@@ -51,9 +50,6 @@ class PostCommandServiceTest extends BaseUnitTest {
 
     @Mock
     private PostLikeCommandPort postLikeCommandPort;
-
-    @Mock
-    private PostToCommentPort postToCommentPort;
 
     @InjectMocks
     private PostCommandService postCommandService;
@@ -168,8 +164,7 @@ class PostCommandServiceTest extends BaseUnitTest {
         // Then
         verify(globalPostQueryPort, times(1)).findById(postId);
         verify(postToDelete, times(1)).isAuthor(memberId);
-        verify(postToCommentPort, times(1)).deleteCommentInPost(postId);
-        verify(postLikeCommandPort, times(1)).deletePostLikeByPostId(postId);
+        // CASCADE로 Comment와 PostLike 자동 삭제되므로 명시적 호출 없음
         verify(postCommandPort, times(1)).delete(postToDelete);
         verify(redisPostCommandPort, times(1)).deleteCache(null, postId);
         verifyNoMoreInteractions(globalPostQueryPort, postCommandPort, redisPostCommandPort);

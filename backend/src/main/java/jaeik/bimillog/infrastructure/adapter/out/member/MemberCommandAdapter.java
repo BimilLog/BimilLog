@@ -21,12 +21,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberCommandAdapter implements MemberCommandPort {
 
     private final MemberRepository userRepository;
-    private final SettingRepository settingRepository;
 
     /**
      * <h3>사용자 계정과 설정 삭제</h3>
-     * <p>Member를 먼저 조회하여 settingId를 저장한 후, Member → Setting 순서로 삭제합니다.</p>
-     * <p>FK constraint를 고려하여 Member를 먼저 삭제해야 합니다.</p>
+     * <p>Member를 JPA delete로 삭제하면 CascadeType.REMOVE로 Setting도 자동 삭제됩니다.</p>
+     * <p>Native Query 대신 JPA 메서드를 사용하여 CASCADE가 올바르게 작동하도록 합니다.</p>
      *
      * @param memberId 삭제할 사용자 ID
      * @author Jaeik
@@ -37,18 +36,7 @@ public class MemberCommandAdapter implements MemberCommandPort {
     public void deleteMemberAndSetting(Long memberId) {
         log.debug("회원 계정 삭제 수행 - memberId: {}", memberId);
 
-        // 1. settingId 조회 (Member 삭제 전)
-        Long settingId = userRepository.findById(memberId)
-                .map(member -> member.getSetting().getId())
-                .orElse(null);
-
-        // 2. Member 먼저 삭제 (FK 참조 제거)
-        userRepository.deleteByMemberId(memberId);
-
-        // 3. Setting 나중 삭제
-        if (settingId != null) {
-            settingRepository.deleteById(settingId);
-        }
+        userRepository.findById(memberId).ifPresent(userRepository::delete);
 
         log.debug("회원 계정 삭제 완료 - memberId: {}", memberId);
     }

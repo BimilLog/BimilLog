@@ -20,7 +20,7 @@ import java.util.List;
  * <p>
  * ClientDTO 객체를 사용하여 사용자 정보를 저장하고, 권한을 설정하는 기능을 제공
  * </p>
- * 
+ *
  * @author Jaeik
  * @version 2.0.0
  * @since 2.0.0
@@ -37,10 +37,10 @@ public class CustomUserDetails implements UserDetails {
      * <p>
      * ClientDTO를 받아서 CustomUserDetails 객체를 생성한다.
      * </p>
-     * 
-     * @since 2.0.0
-     * @author Jaeik
+     *
      * @param memberDetail 사용자 정보 DTO
+     * @author Jaeik
+     * @since 2.0.0
      */
     public CustomUserDetails(MemberDetail memberDetail) {
         this.memberDetail = memberDetail;
@@ -53,11 +53,11 @@ public class CustomUserDetails implements UserDetails {
      * <p>
      * 사용자 역할을 기반으로 권한을 생성한다.
      * </p>
-     * 
-     * @since 2.0.0
-     * @author Jaeik
+     *
      * @param role 사용자 역할
      * @return 권한 컬렉션
+     * @author Jaeik
+     * @since 2.0.0
      */
     private Collection<? extends GrantedAuthority> createAuthorities(MemberRole role) {
         List<GrantedAuthority> authorities = new ArrayList<>();
@@ -71,10 +71,10 @@ public class CustomUserDetails implements UserDetails {
      * <p>
      * 사용자의 유저 ID를 반환한다.
      * </p>
-     * 
-     * @since 2.0.0
-     * @author Jaeik
+     *
      * @return 유저 ID
+     * @author Jaeik
+     * @since 2.0.0
      */
     public Long getMemberId() {
         return memberDetail.getMemberId();
@@ -84,9 +84,10 @@ public class CustomUserDetails implements UserDetails {
      * <h3>사용자 jwt ID 조회</h3>
      *
      * <p>사용자의 JWT ID를 반환한다.</p>
-     * @since 2.0.0
-     * @author Jaeik
+     *
      * @return 토큰 ID
+     * @author Jaeik
+     * @since 2.0.0
      */
     public Long getTokenId() {
         return memberDetail.getAuthTokenId();
@@ -97,9 +98,9 @@ public class CustomUserDetails implements UserDetails {
      *
      * <p>사용자의 FCM 토큰 ID를 반환한다.</p>
      *
-     * @since 2.0.0
-     * @author Jaeik
      * @return FCM 토큰 ID
+     * @author Jaeik
+     * @since 2.0.0
      */
     public Long getFcmTokenId() {
         return memberDetail.getFcmTokenId();
@@ -110,9 +111,9 @@ public class CustomUserDetails implements UserDetails {
      *
      * <p>사용자의 설정 ID를 반환한다. JWT 토큰에서 직접 설정 조회를 한다.</p>
      *
-     * @since 2.0.0
-     * @author Jaeik
      * @return 설정 ID
+     * @author Jaeik
+     * @since 2.0.0
      */
     public Long getSettingId() {
         return memberDetail.getSettingId();
@@ -123,9 +124,9 @@ public class CustomUserDetails implements UserDetails {
      *
      * <p>사용자의 소셜 제공자를 반환한다.</p>
      *
-     * @since 2.0.0
-     * @author Jaeik
      * @return 소셜 제공자
+     * @author Jaeik
+     * @since 2.0.0
      */
     public SocialProvider getSocialProvider() {
         return memberDetail.getProvider();
@@ -136,20 +137,22 @@ public class CustomUserDetails implements UserDetails {
      *
      * <p>사용자의 소셜 ID를 반환한다.</p>
      *
-     * @since 2.0.0
-     * @author Jaeik
      * @return 소셜 ID
+     * @author Jaeik
+     * @since 2.0.0
      */
-    public String getSocialId() {return  memberDetail.getSocialId();}
+    public String getSocialId() {
+        return memberDetail.getSocialId();
+    }
 
     /**
      * <h3>닉네임 조회</h3>
      *
      * <p>사용자의 닉네임을 반환한다.</p>
      *
-     * @since 2.0.0
-     * @author Jaeik
      * @return 사용자 닉네임
+     * @author Jaeik
+     * @since 2.0.0
      */
     @Override
     public String getUsername() {
