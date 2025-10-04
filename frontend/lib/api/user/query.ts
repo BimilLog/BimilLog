@@ -4,8 +4,8 @@ import { SimplePost, SimpleComment } from '@/types'
 import { PageResponse } from '@/types/common'
 
 export const userQuery = {
-  checkUserName: (userName: string) =>
-    apiClient.get<boolean>(`/api/member/username/check?userName=${encodeURIComponent(userName)}`),
+  checkUserName: (memberName: string) =>
+    apiClient.get<boolean>(`/api/member/username/check?memberName=${encodeURIComponent(memberName)}`),
 
   getSettings: () =>
     apiClient.get<Setting>("/api/member/setting"),

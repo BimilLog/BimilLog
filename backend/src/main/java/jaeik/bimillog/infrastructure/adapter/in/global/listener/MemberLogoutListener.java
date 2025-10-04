@@ -8,6 +8,7 @@ import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
 import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Jaeik
  * @version 2.0.0
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MemberLogoutListener {
@@ -51,7 +53,11 @@ public class MemberLogoutListener {
         SocialProvider provider = memberLoggedOutEvent.provider();
 
         sseUseCase.deleteEmitters(memberId, AuthTokenId);
-        socialLogoutUseCase.socialLogout(memberId, provider, AuthTokenId);
+        try {
+            socialLogoutUseCase.socialLogout(memberId, provider, AuthTokenId);
+        } catch (Exception ex) {
+            log.warn("소셜 로그아웃 실패 - provider: {}, memberId: {}. 이후 정리 작업은 계속 진행합니다.", provider, memberId, ex);
+        }
         fcmUseCase.deleteFcmTokens(memberId, fcmTokenId);
         authTokenUseCase.deleteTokens(memberId, AuthTokenId);
         kakaoTokenUseCase.deleteByMemberId(memberId);

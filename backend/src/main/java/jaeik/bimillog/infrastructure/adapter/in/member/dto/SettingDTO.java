@@ -39,9 +39,9 @@ public class SettingDTO {
      */
     public Setting toSettingEntity() {
         return Setting.builder()
-                .messageNotification(messageNotification.booleanValue())
-                .commentNotification(commentNotification.booleanValue())
-                .postFeaturedNotification(postFeaturedNotification.booleanValue())
+                .messageNotification(messageNotification)
+                .commentNotification(commentNotification)
+                .postFeaturedNotification(postFeaturedNotification)
                 .build();
     }
 
@@ -56,9 +56,9 @@ public class SettingDTO {
      */
     public static SettingDTO fromSetting(Setting setting) {
         return SettingDTO.builder()
-                .messageNotification(Boolean.valueOf(setting.isMessageNotification()))
-                .commentNotification(Boolean.valueOf(setting.isCommentNotification()))
-                .postFeaturedNotification(Boolean.valueOf(setting.isPostFeaturedNotification()))
+                .messageNotification(setting.isMessageNotification())
+                .commentNotification(setting.isCommentNotification())
+                .postFeaturedNotification(setting.isPostFeaturedNotification())
                 .build();
     }
 }

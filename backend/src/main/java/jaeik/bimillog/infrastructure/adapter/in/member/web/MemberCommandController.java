@@ -76,7 +76,6 @@ public class MemberCommandController {
         return responseBuilder.build();
     }
 
-
     /**
      * <h3>닉네임 변경 API</h3>
      * <p>사용자의 닉네임을 변경하는 요청을 처리</p>

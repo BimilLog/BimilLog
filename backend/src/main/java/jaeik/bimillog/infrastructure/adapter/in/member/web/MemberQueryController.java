@@ -46,7 +46,6 @@ public class MemberQueryController {
     /**
      * <h3>닉네임 중복 확인 API</h3>
      * <p>사용자의 닉네임이 이미 사용 중인지 확인하는 요청을 처리</p>
-     * <p>클라이언트에서 GET /api/member/username/check 요청 시 호출됩니다.</p>
      *
      * @param memberName 닉네임
      * @return 닉네임 사용 가능 여부
@@ -61,9 +60,6 @@ public class MemberQueryController {
 
     /**
      * <h3>사용자 설정 조회 API</h3>
-     * <p>JWT 토큰의 settingId를 활용하여 효율적으로 설정 정보를 조회</p>
-     * <p>Member 전체 조회 없이 Setting만 직접 조회하여 성능 최적화</p>
-     * <p>클라이언트에서 GET /api/member/setting 요청 시 호출됩니다.</p>
      *
      * @param userDetails 사용자 인증 정보 (JWT에서 settingId 포함)
      * @return 사용자 설정 DTO
@@ -79,7 +75,6 @@ public class MemberQueryController {
     /**
      * <h3>사용자가 작성한 게시글 목록 조회 API</h3>
      * <p>현재 로그인한 사용자가 작성한 게시글 목록을 페이지네이션으로 조회합니다.</p>
-     * <p>클라이언트에서 GET /api/member/posts 요청 시 호출됩니다.</p>
      *
      * @param page        페이지 번호
      * @param size        페이지 크기  
@@ -182,7 +177,7 @@ public class MemberQueryController {
                                                                @AuthenticationPrincipal CustomUserDetails userDetails) {
         KakaoFriendsResponseVO friendsResponseVO = memberFriendUseCase.getKakaoFriendList(
                 userDetails.getMemberId(),
-                userDetails.getTokenId(), // JWT에서 파싱된 현재 기기의 토큰 ID
+                userDetails.getTokenId(),
                 offset,
                 limit
         );

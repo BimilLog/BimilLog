@@ -2,8 +2,8 @@ import { apiClient } from '../client'
 import { Setting } from '@/types/domains/user'
 
 export const userCommand = {
-  updateUserName: (userName: string) =>
-    apiClient.post("/api/member/username", { userName }),
+  updateUserName: (memberName: string) =>
+    apiClient.post("/api/member/username", { memberName }),
 
   updateSettings: (settings: Setting) =>
     apiClient.post("/api/member/setting", settings),
