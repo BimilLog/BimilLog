@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Toast as FlowbiteToast } from "flowbite-react";
 import {
   X,
@@ -60,12 +60,12 @@ export function ToastComponent({ toast, onRemove }: ToastProps) {
   const IconComponent = iconMap[toast.type];
   const theme = colorTheme[toast.type];
 
-  const handleRemove = () => {
+  const handleRemove = useCallback(() => {
     setIsLeaving(true);
     setTimeout(() => {
       onRemove(toast.id);
     }, 300);
-  };
+  }, [onRemove, toast.id]);
 
   useEffect(() => {
     // 마운트 시 애니메이션

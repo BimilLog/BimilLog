@@ -45,6 +45,7 @@ function BoardClient() {
   const realtimePosts = popularTab === 'realtime' ? popularPostsData : [];
   const weeklyPosts = popularTab === 'weekly' ? popularPostsData : [];
   const legendPosts = popularTab === 'legend' ? popularPostsData : [];
+  const { currentPage, setPageSize, setCurrentPage } = pagination;
 
   // 탭 변경 핸들러 메모이제이션
   // 메인 탭(all/realtime/popular/legend)과 인기글 탭(realtime/weekly/legend) 동기화
@@ -64,13 +65,13 @@ function BoardClient() {
     if (activeTab === "all") {
       fetchPostsAndSearch();
     }
-  }, [pagination.currentPage, activeTab, fetchPostsAndSearch]);
+  }, [currentPage, activeTab, fetchPostsAndSearch]);
 
   // 페이지당 게시글 수 변경 시 처리 - 첫 페이지로 리셋 후 새로운 페이지 크기 적용
   useEffect(() => {
-    pagination.setPageSize(Number(postsPerPage));
-    pagination.setCurrentPage(0); // 페이지 크기 변경 시 첫 페이지로 이동
-  }, [postsPerPage]);
+    setPageSize(Number(postsPerPage));
+    setCurrentPage(0); // 페이지 크기 변경 시 첫 페이지로 이동
+  }, [postsPerPage, setPageSize, setCurrentPage]);
 
   return (
     <MainLayout

@@ -3,9 +3,9 @@ package jaeik.bimillog.infrastructure.adapter.in.member.web;
 import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
 import jaeik.bimillog.domain.member.application.port.in.MemberActivityUseCase;
 import jaeik.bimillog.domain.member.application.port.in.MemberFriendUseCase;
+import jaeik.bimillog.domain.member.entity.KakaoFriends;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
 import jaeik.bimillog.domain.member.application.port.in.MemberQueryUseCase;
-import jaeik.bimillog.domain.member.entity.KakaoFriendsResponseVO;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.infrastructure.adapter.in.comment.dto.SimpleCommentDTO;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.SimplePostDTO;
@@ -171,9 +171,10 @@ public class MemberQueryController {
     public ResponseEntity<KakaoFriendsDTO> getKakaoFriendList(@RequestParam(defaultValue = "0") Integer offset,
                                                                @RequestParam(defaultValue = "10") Integer limit,
                                                                @AuthenticationPrincipal CustomUserDetails userDetails) {
-        KakaoFriendsResponseVO friendsResponseVO = memberFriendUseCase.getKakaoFriendList(
+        KakaoFriends friendsResponseVO = memberFriendUseCase.getKakaoFriendList(
                 userDetails.getMemberId(),
                 userDetails.getTokenId(),
+                userDetails.getSocialProvider(),
                 offset,
                 limit
         );

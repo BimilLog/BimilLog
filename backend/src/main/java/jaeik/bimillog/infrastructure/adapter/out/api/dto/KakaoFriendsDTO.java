@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.out.api.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jaeik.bimillog.domain.member.entity.KakaoFriendsResponseVO;
+import jaeik.bimillog.domain.member.entity.KakaoFriends;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -31,26 +31,26 @@ public class KakaoFriendsDTO {
      * <h3>DTO를 VO로 변환</h3>
      * <p>인프라 KakaoFriendsResponse를 도메인 VO로 변환합니다.</p>
      *
-     * @return KakaoFriendsResponseVO 객체
+     * @return KakaoFriends 객체
      */
-    public KakaoFriendsResponseVO toVO() {
-        List<KakaoFriendsResponseVO.Friend> voElements = null;
+    public KakaoFriends toVO() {
+        List<KakaoFriends.Friend> voElements = null;
         if (elements != null) {
             voElements = elements.stream()
                     .map(Friend::toVO)
                     .toList();
         }
-        return KakaoFriendsResponseVO.of(voElements, totalCount, beforeUrl, afterUrl, favoriteCount);
+        return KakaoFriends.of(voElements, totalCount, beforeUrl, afterUrl, favoriteCount);
     }
 
     /**
      * <h3>VO에서 DTO로 변환</h3>
      * <p>도메인 KakaoFriendsResponseVO를 인프라 DTO로 변환합니다.</p>
      *
-     * @param vo 도메인 KakaoFriendsResponseVO
+     * @param vo 도메인 KakaoFriends
      * @return KakaoFriendsDTO DTO
      */
-    public static KakaoFriendsDTO fromVO(KakaoFriendsResponseVO vo) {
+    public static KakaoFriendsDTO fromVO(KakaoFriends vo) {
         KakaoFriendsDTO response = new KakaoFriendsDTO();
         if (vo.elements() != null) {
             response.elements = vo.elements().stream()
@@ -87,20 +87,20 @@ public class KakaoFriendsDTO {
          * <h3>DTO를 VO로 변환</h3>
          * <p>인프라 Friend DTO를 도메인 VO로 변환합니다.</p>
          *
-         * @return KakaoFriendsResponseVO.Friend 객체
+         * @return KakaoFriends.Friend 객체
          */
-        public KakaoFriendsResponseVO.Friend toVO() {
-            return KakaoFriendsResponseVO.Friend.of(id, uuid, profileNickname, profileThumbnailImage, favorite, memberName);
+        public KakaoFriends.Friend toVO() {
+            return KakaoFriends.Friend.of(id, uuid, profileNickname, profileThumbnailImage, favorite, memberName);
         }
 
         /**
          * <h3>VO에서 DTO로 변환</h3>
-         * <p>도메인 KakaoFriendsResponseVO.Friend를 인프라 DTO로 변환합니다.</p>
+         * <p>도메인 KakaoFriends.Friend를 인프라 DTO로 변환합니다.</p>
          *
-         * @param vo 도메인 KakaoFriendsResponseVO.Friend
+         * @param vo 도메인 KakaoFriends.Friend
          * @return Friend 객체
          */
-        public static Friend fromVO(KakaoFriendsResponseVO.Friend vo) {
+        public static Friend fromVO(KakaoFriends.Friend vo) {
             Friend dto = new Friend();
             dto.id = vo.id();
             dto.uuid = vo.uuid();

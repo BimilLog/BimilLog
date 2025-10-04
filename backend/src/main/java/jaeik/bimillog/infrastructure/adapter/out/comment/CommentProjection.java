@@ -5,7 +5,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPAExpressions;
 import jaeik.bimillog.domain.comment.entity.*;
-import jaeik.bimillog.domain.member.entity.member.QMember;
+import jaeik.bimillog.domain.member.entity.QMember;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

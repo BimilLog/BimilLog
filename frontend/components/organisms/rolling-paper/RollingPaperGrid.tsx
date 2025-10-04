@@ -94,11 +94,15 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
       await onMessageSubmit?.({ x: actualX, y: actualY }, data);
       setModalOpen(false); // 성공 시에만 모달 닫기
       // 성공 메시지는 useRollingPaperMutations에서 처리하므로 제거
-    } catch (error: any) {
+    } catch (error) {
       console.error('[RollingPaperGrid] 메시지 제출 실패:', error);
 
       // 에러 메시지 분석
-      const errorMessage = error?.response?.data?.message || error?.message || '';
+      const requestError = error as {
+        response?: { data?: { message?: string } };
+        message?: string;
+      };
+      const errorMessage = requestError.response?.data?.message || requestError.message || '';
 
       if (errorMessage.includes('unique_user_x_y') || errorMessage.includes('중복')) {
         onError?.("이미 메시지가 있는 위치입니다. 다른 위치를 선택해주세요.");
@@ -109,7 +113,7 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
       }
       // 에러 시에도 모달은 열어둠 (재시도 가능)
     }
-  }, [onMessageSubmit, onSuccess, onError, currentPage, isMobile, pageWidth]);
+  }, [onMessageSubmit, onError, currentPage, isMobile, pageWidth]);
 
   // 셀 클릭 핸들러
   const handleCellClick = useCallback((actualX: number, actualY: number) => {

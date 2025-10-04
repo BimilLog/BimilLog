@@ -64,6 +64,8 @@ export interface RollingPaperContainerProps {
 /**
  * 롤링페이퍼 뷰 Props
  */
+import type { Toast } from "@/components";
+
 export interface RollingPaperViewProps {
   targetNickname: string;
   isPublic: boolean;
@@ -85,7 +87,7 @@ export interface RollingPaperViewProps {
   handleMessageSubmit: (position: GridPosition, data: unknown) => Promise<void>;
   handleMessageClick: (message: RollingPaperMessage | VisitMessage) => void;
   refetchMessages: () => Promise<void>;
-  toasts: any[];
+  toasts: Toast[];
   removeToast: (id: string) => void;
   showSuccess: (title: string, message: string) => void;
   showError: (title: string, message: string) => void;

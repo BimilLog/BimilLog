@@ -9,8 +9,7 @@ import jaeik.bimillog.domain.global.application.strategy.SocialFriendStrategy;
 import jaeik.bimillog.domain.global.application.strategy.SocialPlatformStrategy;
 import jaeik.bimillog.domain.member.application.port.in.MemberFriendUseCase;
 import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
-import jaeik.bimillog.domain.member.entity.KakaoFriendsResponseVO;
-import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.member.entity.KakaoFriends;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.exception.MemberCustomException;
 import jaeik.bimillog.domain.member.exception.MemberErrorCode;
@@ -20,8 +19,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * <h2>사용자 친구 서비스</h2>
@@ -47,51 +46,40 @@ public class MemberFriendService implements MemberFriendUseCase {
      * @param offset   조회 시작 위치 (기본값: 0)
      * @param limit    조회할 친구 수 (기본값: 10, 최대: 100)
      * @param tokenId  현재 요청 기기 토큰 ID
-     * @return KakaoFriendsResponseVO 카카오 친구 목록 응답 (비밀로그 가입 여부 포함)
+     * @return KakaoFriends 카카오 친구 목록 응답 (비밀로그 가입 여부 포함)
      * @throws CustomException 사용자를 찾을 수 없거나 카카오 API 오류 시
      * @since 2.0.0
      * @author Jaeik
      */
     @Override
     @Transactional(readOnly = true)
-    public KakaoFriendsResponseVO getKakaoFriendList(Long memberId, Long tokenId, Integer offset, Integer limit) {
+    public KakaoFriends getKakaoFriendList(Long memberId, Long tokenId, SocialProvider provider, Integer offset, Integer limit) {
         // 기본값 설정
         int actualOffset = offset != null ? offset : 0;
         int actualLimit = limit != null ? Math.min(limit, 100) : 10;
 
         try {
-
-            Member member = memberQueryPort.findById(memberId)
-                    .orElseThrow(() -> new MemberCustomException(MemberErrorCode.USER_NOT_FOUND));
-            SocialProvider provider = member.getProvider();
-
+            // 카카오 토큰 조회
             KakaoToken kakaoToken = globalKakaoTokenQueryPort.findByMemberId(memberId)
                     .orElseThrow(() -> new AuthCustomException(AuthErrorCode.NOT_FIND_TOKEN));
 
-            if (kakaoToken.getKakaoAccessToken() == null || kakaoToken.getKakaoAccessToken().isEmpty()) {
-                throw new AuthCustomException(AuthErrorCode.NOT_FIND_TOKEN);
-            }
-
+            // 전략 조회
             SocialPlatformStrategy platformStrategy = globalSocialStrategyPort.getStrategy(provider);
             SocialFriendStrategy friendStrategy = platformStrategy.friend()
                     .orElseThrow(() -> new MemberCustomException(MemberErrorCode.UNSUPPORTED_SOCIAL_FRIEND));
 
-            KakaoFriendsResponseVO response = friendStrategy.getFriendList(
+            KakaoFriends response = friendStrategy.getFriendList(
                     kakaoToken.getKakaoAccessToken(), actualOffset, actualLimit);
 
             return processFriendList(response);
             
         } catch (MemberCustomException e) {
-            // 카카오 친구 동의 필요한 경우 특별한 에러 메시지 처리
+            // 카카오 친구 동의 필요한 경우
             if (e.getMemberErrorCode() == MemberErrorCode.KAKAO_FRIEND_API_ERROR) {
                 throw new MemberCustomException(MemberErrorCode.KAKAO_FRIEND_CONSENT_FAIL);
             }
             throw e;
         } catch (Exception e) {
-            // UserCustomException은 그대로 전파
-            if (e instanceof MemberCustomException) {
-                throw e;
-            }
             log.error("카카오 API 호출 중 예상치 못한 오류 발생: {}", e.getMessage(), e);
             throw new MemberCustomException(MemberErrorCode.KAKAO_FRIEND_API_ERROR, e);
         }
@@ -104,43 +92,41 @@ public class MemberFriendService implements MemberFriendUseCase {
      * @param friendsResponse 카카오 API에서 받은 친구 목록 응답
      * @return 비밀로그 가입 정보가 추가된 새로운 응답 객체
      */
-    private KakaoFriendsResponseVO processFriendList(KakaoFriendsResponseVO friendsResponse) {
-        List<KakaoFriendsResponseVO.Friend> elements = friendsResponse.elements();
+    private KakaoFriends processFriendList(KakaoFriends friendsResponse) {
+        List<KakaoFriends.Friend> elements = friendsResponse.elements();
         if (elements == null || elements.isEmpty()) {
             return friendsResponse;
         }
 
-        // 1. 모든 친구의 소셜 ID를 수집
         List<String> socialIds = elements.stream()
                 .map(friend -> String.valueOf(friend.id()))
-                .collect(Collectors.toList());
-
-        // 2. 배치로 사용자 이름 조회 (N+1 문제 해결)
-        List<String> memberNames = memberQueryPort.findMemberNamesInOrder(socialIds);
-
-        // 3. 결과를 각 친구에게 매핑 (Stream API 활용)
-        List<KakaoFriendsResponseVO.Friend> updatedElements = elements.stream()
-                .map(originalFriend -> {
-                    // 순서가 보장되므로 인덱스로 사용자 이름 조회
-                    int index = elements.indexOf(originalFriend);
-                    String memberName = memberNames.get(index);
-                    if (!memberName.isEmpty()) {
-                        // 가입된 친구인 경우 memberName 필드 업데이트
-                        return KakaoFriendsResponseVO.Friend.of(
-                                originalFriend.id(),
-                                originalFriend.uuid(),
-                                originalFriend.profileNickname(),
-                                originalFriend.profileThumbnailImage(),
-                                originalFriend.favorite(),
-                                memberName
-                        );
-                    }
-                    return originalFriend;
-                })
                 .toList();
 
-        // 4. 새로운 응답 객체 생성
-        return KakaoFriendsResponseVO.of(
+        List<String> memberNames = memberQueryPort.findMemberNamesInOrder(socialIds);
+
+        List<KakaoFriends.Friend> updatedElements = new ArrayList<>(elements.size());
+        for (int index = 0; index < elements.size(); index++) {
+            KakaoFriends.Friend originalFriend = elements.get(index);
+            String memberName = (memberNames != null && memberNames.size() > index)
+                    ? memberNames.get(index)
+                    : "";
+
+            if (memberName == null || memberName.isEmpty()) {
+                updatedElements.add(originalFriend);
+                continue;
+            }
+
+            updatedElements.add(KakaoFriends.Friend.of(
+                    originalFriend.id(),
+                    originalFriend.uuid(),
+                    originalFriend.profileNickname(),
+                    originalFriend.profileThumbnailImage(),
+                    originalFriend.favorite(),
+                    memberName
+            ));
+        }
+
+        return KakaoFriends.of(
                 updatedElements,
                 friendsResponse.totalCount(),
                 friendsResponse.beforeUrl(),

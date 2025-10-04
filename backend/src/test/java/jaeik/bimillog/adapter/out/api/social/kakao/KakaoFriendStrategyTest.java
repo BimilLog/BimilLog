@@ -1,6 +1,6 @@
 package jaeik.bimillog.adapter.out.api.social.kakao;
 
-import jaeik.bimillog.domain.member.entity.KakaoFriendsResponseVO;
+import jaeik.bimillog.domain.member.entity.KakaoFriends;
 import jaeik.bimillog.infrastructure.adapter.out.api.dto.KakaoFriendsDTO;
 import jaeik.bimillog.infrastructure.adapter.out.api.social.kakao.KakaoApiClient;
 import jaeik.bimillog.infrastructure.adapter.out.api.social.kakao.KakaoFriendStrategy;
@@ -53,19 +53,19 @@ class KakaoFriendStrategyTest extends BaseUnitTest {
         when(kakaoApiClient.getFriends(eq(AUTHORIZATION_PREFIX + accessToken), eq(offset), eq(limit)))
             .thenReturn(expectedResponse);
 
-        KakaoFriendsResponseVO result = kakaoFriendStrategy.getFriendList(accessToken, offset, limit);
+        KakaoFriends result = kakaoFriendStrategy.getFriendList(accessToken, offset, limit);
 
         assertThat(result).isNotNull();
         assertThat(result.elements()).hasSize(2);
         assertThat(result.totalCount()).isEqualTo(2);
         assertThat(result.favoriteCount()).isEqualTo(1);
 
-        KakaoFriendsResponseVO.Friend friend1 = result.elements().getFirst();
+        KakaoFriends.Friend friend1 = result.elements().getFirst();
         assertThat(friend1.id()).isEqualTo(1L);
         assertThat(friend1.profileNickname()).isEqualTo("친구1");
         assertThat(friend1.favorite()).isFalse();
 
-        KakaoFriendsResponseVO.Friend friend2 = result.elements().get(1);
+        KakaoFriends.Friend friend2 = result.elements().get(1);
         assertThat(friend2.id()).isEqualTo(2L);
         assertThat(friend2.profileNickname()).isEqualTo("친구2");
         assertThat(friend2.favorite()).isTrue();
@@ -87,7 +87,7 @@ class KakaoFriendStrategyTest extends BaseUnitTest {
         when(kakaoApiClient.getFriends(eq(AUTHORIZATION_PREFIX + accessToken), eq(offset), eq(limit)))
             .thenReturn(emptyResponse);
 
-        KakaoFriendsResponseVO result = kakaoFriendStrategy.getFriendList(accessToken, offset, limit);
+        KakaoFriends result = kakaoFriendStrategy.getFriendList(accessToken, offset, limit);
 
         assertThat(result).isNotNull();
         assertThat(result.elements()).isEmpty();
@@ -115,7 +115,7 @@ class KakaoFriendStrategyTest extends BaseUnitTest {
         when(kakaoApiClient.getFriends(eq(AUTHORIZATION_PREFIX + accessToken), eq(offset), eq(limit)))
             .thenReturn(paginatedResponse);
 
-        KakaoFriendsResponseVO result = kakaoFriendStrategy.getFriendList(accessToken, offset, limit);
+        KakaoFriends result = kakaoFriendStrategy.getFriendList(accessToken, offset, limit);
 
         assertThat(result).isNotNull();
         assertThat(result.elements()).hasSize(2);

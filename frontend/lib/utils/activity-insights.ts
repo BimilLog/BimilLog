@@ -12,8 +12,7 @@ export interface ActivityEvent {
     commentId?: number;
     paperId?: string;
     searchQuery?: string;
-    [key: string]: any;
-  };
+  } & Record<string, unknown>;
 }
 
 export interface ActivityStats {

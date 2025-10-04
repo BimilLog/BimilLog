@@ -9,8 +9,10 @@ import jaeik.bimillog.domain.global.application.strategy.SocialAuthStrategy;
 import jaeik.bimillog.domain.global.application.strategy.SocialFriendStrategy;
 import jaeik.bimillog.domain.global.application.strategy.SocialPlatformStrategy;
 import jaeik.bimillog.domain.global.entity.MemberDetail;
-import jaeik.bimillog.domain.member.entity.KakaoFriendsResponseVO;
+import jaeik.bimillog.domain.member.entity.KakaoFriends;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
+import jaeik.bimillog.domain.member.exception.MemberCustomException;
+import jaeik.bimillog.domain.member.exception.MemberErrorCode;
 import jaeik.bimillog.infrastructure.adapter.out.global.GlobalCookieAdapter;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -25,7 +27,8 @@ import java.util.Collections;
 @TestConfiguration
 public class TestSocialLoginPortConfig {
 
-    private static final TestSocialPlatformStrategy TEST_PLATFORM_STRATEGY = new TestSocialPlatformStrategy();
+    private static final TestSocialFriendStrategy TEST_FRIEND_STRATEGY = new TestSocialFriendStrategy();
+    private static final TestSocialPlatformStrategy TEST_PLATFORM_STRATEGY = new TestSocialPlatformStrategy(TEST_FRIEND_STRATEGY);
 
     @Bean
     @Primary
@@ -38,10 +41,14 @@ public class TestSocialLoginPortConfig {
         };
     }
 
+    public static void setFriendConsentRequired(boolean required) {
+        TEST_FRIEND_STRATEGY.setConsentRequired(required);
+    }
+
     private static final class TestSocialPlatformStrategy extends SocialPlatformStrategy {
 
-        TestSocialPlatformStrategy() {
-            super(SocialProvider.KAKAO, new TestSocialAuthStrategy(), new TestSocialFriendStrategy());
+        TestSocialPlatformStrategy(TestSocialFriendStrategy friendStrategy) {
+            super(SocialProvider.KAKAO, new TestSocialAuthStrategy(), friendStrategy);
         }
     }
 
@@ -96,14 +103,23 @@ public class TestSocialLoginPortConfig {
 
     private static final class TestSocialFriendStrategy implements SocialFriendStrategy {
 
+        private boolean consentRequired;
+
+        void setConsentRequired(boolean consentRequired) {
+            this.consentRequired = consentRequired;
+        }
+
         @Override
         public SocialProvider getProvider() {
             return SocialProvider.KAKAO;
         }
 
         @Override
-        public KakaoFriendsResponseVO getFriendList(String accessToken, Integer offset, Integer limit) {
-            return KakaoFriendsResponseVO.of(
+        public KakaoFriends getFriendList(String accessToken, Integer offset, Integer limit) {
+            if (consentRequired) {
+                throw new MemberCustomException(MemberErrorCode.KAKAO_FRIEND_API_ERROR);
+            }
+            return KakaoFriends.of(
                 Collections.emptyList(),
                 0,
                 null,

@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { Button, Card, CardContent, CardDescription, CardHeader, CardTitle, AuthLoadingScreen } from "@/components";
 import Link from "next/link";
-import { useAuth, useToast, useSignupRequired } from "@/hooks";
+import { useAuth, useToast } from "@/hooks";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuthLayout, NicknameSetupForm } from "@/components/organisms/auth";
 
@@ -26,7 +26,6 @@ export default function SignUpPage() {
   const needsNickname = searchParams.get("required") === "true";
   const { showSuccess, showError } = useToast();
   // UUID는 HttpOnly 쿠키로 전달되어 프론트엔드에서 직접 접근 불가
-  const { isRequired } = useSignupRequired();
 
   // 이미 로그인된 사용자가 일반 회원가입 페이지에 접근한 경우 홈으로 리다이렉트
   // needsNickname이 false인 경우는 일반적인 /signup 접근을 의미

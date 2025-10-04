@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.member.application.port.in;
 
-import jaeik.bimillog.domain.member.entity.KakaoFriendsResponseVO;
+import jaeik.bimillog.domain.member.entity.KakaoFriends;
+import jaeik.bimillog.domain.member.entity.SocialProvider;
 
 /**
  * <h2>사용자 통합 기능 유스케이스</h2>
@@ -19,9 +20,9 @@ public interface MemberFriendUseCase {
      * @param tokenId 현재 요청 기기의 토큰 ID (UserDetails에서 추출)
      * @param offset 조회 시작 위치 (기본값: 0)
      * @param limit  조회할 친구 수 (기본값: 10, 최대: 100)
-     * @return KakaoFriendsResponseVO 카카오 친구 목록 응답
+     * @return KakaoFriends 카카오 친구 목록 응답
      * @since 2.0.0
      * @author Jaeik
      */
-    KakaoFriendsResponseVO getKakaoFriendList(Long memberId, Long tokenId, Integer offset, Integer limit);
+    KakaoFriends getKakaoFriendList(Long memberId, Long tokenId, SocialProvider provider, Integer offset, Integer limit);
 }

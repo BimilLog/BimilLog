@@ -3,6 +3,8 @@
  * 사용자 활동에 따른 업적 뱃지 관리
  */
 
+import type { ActivityStats } from './activity-insights';
+
 export interface Badge {
   id: string;
   name: string;
@@ -476,7 +478,7 @@ export function getBadgeStats() {
 /**
  * 활동 데이터로부터 뱃지 진행도 동기화
  */
-export function syncBadgeProgressFromActivity(stats: any): void {
+export function syncBadgeProgressFromActivity(stats: ActivityStats | null | undefined): void {
   if (!stats) return;
 
   // 각 통계 타입에 대해 진행도 업데이트

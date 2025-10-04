@@ -8,7 +8,7 @@ import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.QFcmToken;
 import jaeik.bimillog.domain.member.entity.QSetting;
-import jaeik.bimillog.domain.member.entity.member.QMember;
+import jaeik.bimillog.domain.member.entity.QMember;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

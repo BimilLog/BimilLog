@@ -202,10 +202,12 @@ export const validationRules = {
 /**
  * 여러 필드를 한번에 검증하는 헬퍼
  */
+type ValidationRule = (value: string, ...args: unknown[]) => ValidationResult;
+
 interface FieldValidation {
   value: string;
-  rules: ((value: string, ...args: any[]) => ValidationResult)[];
-  args?: any[];
+  rules: ValidationRule[];
+  args?: unknown[];
 }
 
 interface ValidationFields {
@@ -240,8 +242,8 @@ export const validateFields = (fields: ValidationFields): {
  * React Hook Form과 함께 사용할 수 있는 검증 규칙 변환기
  */
 export const toReactHookFormRule = (
-  validationFn: (value: string, ...args: any[]) => ValidationResult,
-  ...args: any[]
+  validationFn: ValidationRule,
+  ...args: unknown[]
 ) => ({
   validate: (value: string) => {
     const result = validationFn(value, ...args);

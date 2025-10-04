@@ -16,7 +16,7 @@ import java.util.List;
  * @author Jaeik
  * @since 2.0.0
  */
-public record KakaoFriendsResponseVO(
+public record KakaoFriends(
         List<Friend> elements,
         Integer totalCount,
         String beforeUrl,
@@ -32,10 +32,10 @@ public record KakaoFriendsResponseVO(
      * @param beforeUrl 이전 페이지 URL
      * @param afterUrl 다음 페이지 URL
      * @param favoriteCount 즐겨찾기 친구 수
-     * @return KakaoFriendsResponseVO 객체
+     * @return KakaoFriends 객체
      */
-    public static KakaoFriendsResponseVO of(List<Friend> elements, Integer totalCount, String beforeUrl, String afterUrl, Integer favoriteCount) {
-        return new KakaoFriendsResponseVO(elements, totalCount, beforeUrl, afterUrl, favoriteCount);
+    public static KakaoFriends of(List<Friend> elements, Integer totalCount, String beforeUrl, String afterUrl, Integer favoriteCount) {
+        return new KakaoFriends(elements, totalCount, beforeUrl, afterUrl, favoriteCount);
     }
 
     /**

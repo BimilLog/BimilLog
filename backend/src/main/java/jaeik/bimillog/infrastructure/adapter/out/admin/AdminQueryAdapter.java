@@ -7,7 +7,7 @@ import jaeik.bimillog.domain.admin.application.service.AdminQueryService;
 import jaeik.bimillog.domain.admin.entity.QReport;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.domain.member.entity.member.QMember;
+import jaeik.bimillog.domain.member.entity.QMember;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;

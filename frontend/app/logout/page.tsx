@@ -11,6 +11,7 @@ export default function LogoutPage() {
   const { logout } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const consentParam = searchParams?.get('consent');
   // 중복 실행 방지를 위한 플래그 (logout 로직이 여러 번 실행되는 것을 막음)
   const isProcessingRef = useRef(false);
   // 컴포넌트가 언마운트된 후 setState 호출을 방지하는 플래그
@@ -45,7 +46,7 @@ export default function LogoutPage() {
         // 컴포넌트가 아직 마운트되어 있을 때만 라우팅 실행 (메모리 누수 방지)
         if (isMountedRef.current) {
           // 카카오 친구 동의 플로우 확인
-          const isConsentFlow = searchParams?.get('consent') === 'true';
+          const isConsentFlow = consentParam === 'true';
 
           if (isConsentFlow) {
             // sessionStorage에서 동의 URL 가져오기
@@ -65,7 +66,7 @@ export default function LogoutPage() {
     // 로그아웃이 5초 이상 걸릴 경우 강제로 이동 (fallback 처리)
     const timeoutId = setTimeout(() => {
       if (isMountedRef.current) {
-        const isConsentFlow = searchParams?.get('consent') === 'true';
+        const isConsentFlow = consentParam === 'true';
 
         if (isConsentFlow) {
           const consentUrl = sessionStorage.getItem('kakaoConsentUrl');
@@ -86,7 +87,7 @@ export default function LogoutPage() {
       clearTimeout(timeoutId);
       isProcessingRef.current = false;
     };
-  }, [logout, router]);
+  }, [logout, router, consentParam]);
 
   return (
     <AuthLoadingScreen 

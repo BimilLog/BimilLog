@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.global.application.strategy;
 
-import jaeik.bimillog.domain.member.entity.KakaoFriendsResponseVO;
+import jaeik.bimillog.domain.member.entity.KakaoFriends;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 
 /**
@@ -24,5 +24,5 @@ public interface SocialFriendStrategy {
      * @param limit 조회할 수량
      * @return 친구 목록 응답
      */
-    KakaoFriendsResponseVO getFriendList(String accessToken, Integer offset, Integer limit);
+    KakaoFriends getFriendList(String accessToken, Integer offset, Integer limit);
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { logger } from '@/lib/utils/logger';
 
 interface AdFitBannerProps {
@@ -97,7 +97,7 @@ export function AdFitBanner({
   }, [onAdFail]);
 
   // NO-AD 콜백 함수
-  const handleAdFail = (element: HTMLElement) => {
+  const handleAdFail = useCallback((element: HTMLElement) => {
     if (process.env.NODE_ENV === 'development') {
       logger.log("AdFit 광고 로딩 실패:", element);
     }
@@ -108,14 +108,19 @@ export function AdFitBanner({
     if (element) {
       element.style.display = "none";
     }
-  };
+  }, [onAdFail]);
 
   // 전역 콜백 함수 등록
   useEffect(() => {
     if (typeof window !== "undefined") {
       (window as unknown as Record<string, (element: HTMLElement) => void>)[`adfit_fail_${adUnit}`] = handleAdFail;
     }
-  }, [adUnit, onAdFail, handleAdFail]);
+    return () => {
+      if (typeof window !== "undefined") {
+        delete (window as unknown as Record<string, unknown>)[`adfit_fail_${adUnit}`];
+      }
+    };
+  }, [adUnit, handleAdFail]);
 
   if (isAdFailed) {
     return null;

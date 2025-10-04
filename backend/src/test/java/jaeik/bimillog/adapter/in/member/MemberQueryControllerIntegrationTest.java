@@ -6,6 +6,7 @@ import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.auth.AuthTokenRepository;
 import jaeik.bimillog.infrastructure.adapter.out.member.MemberRepository;
 import jaeik.bimillog.testutil.*;
+import jaeik.bimillog.domain.member.exception.MemberErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -183,7 +184,7 @@ class MemberQueryControllerIntegrationTest extends BaseIntegrationTest {
     void getKakaoFriendList_Success() throws Exception {
         // Given - 테스트용 사용자 생성 및 저장
         Member member = TestMembers.createUnique();
-        Member savedMember = userRepository.save(member);
+        Member savedMember = saveMember(member);
         
         // 테스트용 토큰 생성 및 저장
         AuthToken authToken = AuthToken.createToken("test-refresh-TemporaryToken", savedMember);
@@ -201,8 +202,28 @@ class MemberQueryControllerIntegrationTest extends BaseIntegrationTest {
                 // Note: 실제 카카오 API 호출은 Mock으로 처리되므로 응답 구조 검증은 제한적
     }
 
+    @Test
+    @DisplayName("카카오 친구 목록 조회 - 동의 필요 시 401 응답")
+    void getKakaoFriendList_ConsentRequired() throws Exception {
+        // Given
+        Member member = TestMembers.createUnique();
+        Member savedMember = saveMember(member);
 
+        AuthToken authToken = AuthToken.createToken("test-refresh-TemporaryToken", savedMember);
+        AuthToken savedAuthToken = authTokenRepository.save(authToken);
+        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(savedMember, savedAuthToken.getId(), null);
 
-
-
+        TestSocialLoginPortConfig.setFriendConsentRequired(true);
+        try {
+            mockMvc.perform(get("/api/member/friendlist")
+                            .param("offset", "0")
+                            .param("limit", "10")
+                            .with(user(userDetails)))
+                    .andDo(print())
+                    .andExpect(status().isUnauthorized())
+                    .andExpect(jsonPath("$.message").value(MemberErrorCode.KAKAO_FRIEND_CONSENT_FAIL.getMessage()));
+        } finally {
+            TestSocialLoginPortConfig.setFriendConsentRequired(false);
+        }
+    }
 }

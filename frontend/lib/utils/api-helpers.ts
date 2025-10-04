@@ -9,16 +9,16 @@ import type { ApiResponse } from '@/types/common';
 /**
  * API 응답 성공 처리 패턴
  */
-interface SuccessHandlerOptions {
+interface SuccessHandlerOptions<T> {
   showToast?: boolean;
   message?: string;
-  onSuccess?: (data: any) => void;
+  onSuccess?: (data: T) => void;
   redirectUrl?: string;
 }
 
 export const handleApiSuccess = <T>(
   response: ApiResponse<T>,
-  options: SuccessHandlerOptions = {}
+  options: SuccessHandlerOptions<T> = {}
 ): T | null => {
   const {
     showToast = false,
@@ -52,17 +52,17 @@ export const handleApiSuccess = <T>(
 /**
  * API 응답 에러 처리 패턴
  */
-interface ErrorHandlerOptions {
+interface ErrorHandlerOptions<T> {
   showToast?: boolean;
   customMessage?: string;
   onError?: (error: AppError) => void;
-  fallbackData?: any;
+  fallbackData?: T | null;
 }
 
-export const handleApiError = (
+export const handleApiError = <T>(
   error: unknown,
-  options: ErrorHandlerOptions = {}
-): any => {
+  options: ErrorHandlerOptions<T> = {}
+): T | null => {
   const {
     showToast = true,
     customMessage,
@@ -88,26 +88,27 @@ export const handleApiError = (
     onError(appError);
   }
 
-  return fallbackData;
+  return fallbackData ?? null;
 };
 
 /**
  * API 호출 래퍼 - 성공/실패 처리 자동화
  */
-interface ApiCallOptions extends SuccessHandlerOptions, ErrorHandlerOptions {
+interface ApiCallOptions<T> extends SuccessHandlerOptions<T>, ErrorHandlerOptions<T> {
   loadingMessage?: string;
   showLoadingToast?: boolean;
 }
 
 export const executeApiCall = async <T>(
   apiCall: () => Promise<ApiResponse<T>>,
-  options: ApiCallOptions = {}
+  options: ApiCallOptions<T> = {}
 ): Promise<T | null> => {
   const {
     loadingMessage = '처리 중...',
     showLoadingToast = false,
-    ...handlerOptions
+    ...restOptions
   } = options;
+  const handlerOptions = restOptions as SuccessHandlerOptions<T> & ErrorHandlerOptions<T>;
 
   let loadingToast: string | number | undefined;
 
@@ -132,7 +133,7 @@ export const executeApiCall = async <T>(
       toast.dismiss(loadingToast);
     }
 
-    return handleApiError(error, handlerOptions);
+    return handleApiError<T>(error, handlerOptions);
   }
 };
 
@@ -142,7 +143,7 @@ export const executeApiCall = async <T>(
 interface ParallelApiCall<T> {
   name: string;
   call: () => Promise<ApiResponse<T>>;
-  options?: ApiCallOptions;
+  options?: ApiCallOptions<T>;
 }
 
 export const executeParallelApiCalls = async <T>(
@@ -152,7 +153,7 @@ export const executeParallelApiCalls = async <T>(
   // Promise.all과 달리 하나 실패해도 전체가 실패하지 않음
   const results = await Promise.allSettled(
     calls.map(async ({ name, call, options = {} }) => {
-      const result = await executeApiCall(call, {
+      const result = await executeApiCall<T>(call, {
         ...options,
         showToast: false // 병렬 호출에서는 개별 토스트 비활성화
       });
@@ -197,7 +198,7 @@ interface RetryOptions {
 
 export const executeApiWithRetry = async <T>(
   apiCall: () => Promise<ApiResponse<T>>,
-  options: RetryOptions & ApiCallOptions = {}
+  options: RetryOptions & ApiCallOptions<T> = {}
 ): Promise<T | null> => {
   const {
     maxRetries = 3,
@@ -207,13 +208,14 @@ export const executeApiWithRetry = async <T>(
     ...apiOptions
   } = options;
 
+  const apiHandlerOptions = apiOptions as ApiCallOptions<T>;
   let lastError: unknown;
 
   // 최대 재시도 횟수 + 1 (초기 시도 포함)만큼 반복
   for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
     try {
-      return await executeApiCall(apiCall, {
-        ...apiOptions,
+      return await executeApiCall<T>(apiCall, {
+        ...apiHandlerOptions,
         showLoadingToast: attempt === 1 // 첫 시도에만 로딩 표시
       });
     } catch (error) {
@@ -237,14 +239,20 @@ export const executeApiWithRetry = async <T>(
   }
 
   // 최종 실패 처리
-  return handleApiError(lastError, apiOptions);
+  return handleApiError<T>(lastError, apiHandlerOptions);
 };
 
 /**
  * API 응답 캐싱 헬퍼 (간단한 메모리 캐시)
  * TTL(Time To Live) 기반 메모리 캐시로 불필요한 API 호출 감소
  */
-const apiCache = new Map<string, { data: any; timestamp: number; ttl: number }>();
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+  ttl: number;
+}
+
+const apiCache = new Map<string, CacheEntry<unknown>>();
 
 interface CacheOptions {
   key: string;
@@ -255,17 +263,17 @@ interface CacheOptions {
 export const executeApiWithCache = async <T>(
   apiCall: () => Promise<ApiResponse<T>>,
   cacheOptions: CacheOptions,
-  apiOptions: ApiCallOptions = {}
+  apiOptions: ApiCallOptions<T> = {}
 ): Promise<T | null> => {
   const { key, ttl = 5 * 60 * 1000, forceRefresh = false } = cacheOptions;
 
   // 캐시 확인 - forceRefresh가 false이고 해당 키의 캐시가 존재하는 경우
   if (!forceRefresh && apiCache.has(key)) {
-    const cached = apiCache.get(key)!;
+    const cached = apiCache.get(key) as CacheEntry<T> | undefined;
     const now = Date.now();
-
+ 
     // TTL 검사: 현재 시간 - 캐시 생성 시간 < TTL이면 캐시 유효
-    if (now - cached.timestamp < cached.ttl) {
+    if (cached && now - cached.timestamp < cached.ttl) {
       return cached.data; // 유효한 캐시 데이터 즉시 반환
     }
 
@@ -274,15 +282,16 @@ export const executeApiWithCache = async <T>(
   }
 
   // 캐시 미스 또는 만료된 경우 실제 API 호출
-  const result = await executeApiCall(apiCall, apiOptions);
-
+  const result = await executeApiCall<T>(apiCall, apiOptions);
+ 
   // 성공 시에만 캐시 저장 - 실패한 응답은 캐싱하지 않음
   if (result !== null) {
-    apiCache.set(key, {
+    const entry: CacheEntry<T> = {
       data: result,
       timestamp: Date.now(), // 캐시 생성 시점 기록
       ttl
-    });
+    };
+    apiCache.set(key, entry);
   }
 
   return result;

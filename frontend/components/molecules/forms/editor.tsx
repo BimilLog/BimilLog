@@ -246,22 +246,23 @@ const QuillEditor: React.FC<EditorProps> = ({
 
     initQuill();
 
+    const quillInstance = quillRef.current;
+    const editorElement = editorRef.current;
+
     // 컴포넌트 언마운트 시 메모리 누수 방지를 위한 정리
     return () => {
-      if (quillRef.current) {
+      if (quillInstance) {
         try {
-          (quillRef.current as { off: (event: string) => void }).off("text-change");
+          (quillInstance as { off: (event: string) => void }).off("text-change");
           // DOM 정리 - 툴바 제거
-          if (editorRef.current) {
-            const toolbar = editorRef.current.querySelector('.ql-toolbar');
-            toolbar?.remove();
-          }
+          const toolbar = editorElement?.querySelector('.ql-toolbar');
+          toolbar?.remove();
         } catch (err) {
           logger.error("Error cleaning up Quill:", err);
         }
       }
     };
-  }, [onChange, placeholder]);
+  }, [onChange, placeholder, value]);
 
   /**
    * 외부에서 value prop이 변경되었을 때 에디터 내용 동기화
