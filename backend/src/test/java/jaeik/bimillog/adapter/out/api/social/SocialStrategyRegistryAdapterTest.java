@@ -2,7 +2,7 @@ package jaeik.bimillog.adapter.out.api.social;
 
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
-import jaeik.bimillog.infrastructure.adapter.out.api.social.SocialStrategyRegistryAdapter;
+import jaeik.bimillog.infrastructure.adapter.out.api.social.GlobalSocialStrategyAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -18,14 +18,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 
 /**
- * <h2>SocialStrategyRegistryAdapter 테스트</h2>
+ * <h2>GlobalSocialStrategyAdapter 테스트</h2>
  * <p>소셜 로그인 전략 레지스트리의 핵심 동작을 검증하는 단위 테스트</p>
  * <p>전략 자동 등록, 중복 처리, 동적 선택 기능 검증</p>
  *
  * @author Jaeik
  * @version 2.0.0
  */
-@DisplayName("SocialStrategyRegistryAdapter 단위 테스트")
+@DisplayName("GlobalSocialStrategyAdapter 단위 테스트")
 @Tag("unit")
 class SocialStrategyRegistryAdapterTest extends BaseUnitTest {
 
@@ -51,7 +51,7 @@ class SocialStrategyRegistryAdapterTest extends BaseUnitTest {
         );
 
         // When - 레지스트리 생성 시 전략들이 자동 등록됨
-        SocialStrategyRegistryAdapter registry = new SocialStrategyRegistryAdapter(strategies);
+        GlobalSocialStrategyAdapter registry = new GlobalSocialStrategyAdapter(strategies);
 
         // Then - 각 Provider별로 올바른 전략이 반환되는지 검증
         assertThat(registry.getStrategy(SocialProvider.KAKAO)).isEqualTo(kakaoStrategy);
@@ -74,7 +74,7 @@ class SocialStrategyRegistryAdapterTest extends BaseUnitTest {
         );
 
         // When - 중복된 전략을 포함한 레지스트리 생성
-        SocialStrategyRegistryAdapter registry = new SocialStrategyRegistryAdapter(strategies);
+        GlobalSocialStrategyAdapter registry = new GlobalSocialStrategyAdapter(strategies);
 
         // Then - 첫 번째로 등록된 전략이 유지되는지 검증
         assertThat(registry.getStrategy(SocialProvider.KAKAO)).isEqualTo(firstKakaoStrategy);
@@ -88,7 +88,7 @@ class SocialStrategyRegistryAdapterTest extends BaseUnitTest {
         given(kakaoStrategy.getSupportedProvider()).willReturn(SocialProvider.KAKAO);
 
         List<SocialStrategyPort> strategies = Collections.singletonList(kakaoStrategy);
-        SocialStrategyRegistryAdapter registry = new SocialStrategyRegistryAdapter(strategies);
+        GlobalSocialStrategyAdapter registry = new GlobalSocialStrategyAdapter(strategies);
 
         // When & Then - 등록되지 않은 GOOGLE Provider 요청 시 예외 발생
         assertThatThrownBy(() -> registry.getStrategy(SocialProvider.GOOGLE))
@@ -102,7 +102,7 @@ class SocialStrategyRegistryAdapterTest extends BaseUnitTest {
     void shouldThrowExceptionForAnyProviderWhenNoStrategiesRegistered() {
         // Given - 빈 전략 목록으로 레지스트리 생성
         List<SocialStrategyPort> emptyStrategies = Collections.emptyList();
-        SocialStrategyRegistryAdapter registry = new SocialStrategyRegistryAdapter(emptyStrategies);
+        GlobalSocialStrategyAdapter registry = new GlobalSocialStrategyAdapter(emptyStrategies);
 
         // When & Then - 모든 Provider 요청에 대해 예외 발생
         for (SocialProvider provider : SocialProvider.values()) {
@@ -120,7 +120,7 @@ class SocialStrategyRegistryAdapterTest extends BaseUnitTest {
         given(kakaoStrategy.getSupportedProvider()).willReturn(SocialProvider.KAKAO);
 
         List<SocialStrategyPort> strategies = Collections.singletonList(kakaoStrategy);
-        SocialStrategyRegistryAdapter registry = new SocialStrategyRegistryAdapter(strategies);
+        GlobalSocialStrategyAdapter registry = new GlobalSocialStrategyAdapter(strategies);
 
         // When & Then - KAKAO는 정상 반환, 다른 Provider는 예외
         assertThat(registry.getStrategy(SocialProvider.KAKAO)).isEqualTo(kakaoStrategy);
@@ -138,7 +138,7 @@ class SocialStrategyRegistryAdapterTest extends BaseUnitTest {
         // Given - 초기 전략 등록
         given(kakaoStrategy.getSupportedProvider()).willReturn(SocialProvider.KAKAO);
         List<SocialStrategyPort> initialStrategies = Collections.singletonList(kakaoStrategy);
-        SocialStrategyRegistryAdapter registry = new SocialStrategyRegistryAdapter(initialStrategies);
+        GlobalSocialStrategyAdapter registry = new GlobalSocialStrategyAdapter(initialStrategies);
 
         // 첫 번째 전략 확인
         SocialStrategyPort firstStrategy = registry.getStrategy(SocialProvider.KAKAO);

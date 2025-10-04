@@ -5,9 +5,8 @@ import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 
 /**
- * <h2>소셜 로그인 전략 포트</h2>
- * <p>소셜 플랫폼별 OAuth 2.0 인증 전략을 도메인 레벨에서 관리하는 포트입니다.</p>
- * <p>OAuth 인증 코드 처리, 토큰 교환, 사용자 프로필 조회, 계정 연동 해제 등 인증 로직</p>
+ * <h2>소셜 전략 포트</h2>
+ * <p>각 소셜의 외부 api를 추상합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0

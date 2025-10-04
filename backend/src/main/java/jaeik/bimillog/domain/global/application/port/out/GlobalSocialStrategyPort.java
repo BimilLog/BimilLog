@@ -1,17 +1,18 @@
-package jaeik.bimillog.domain.auth.application.port.out;
+package jaeik.bimillog.domain.global.application.port.out;
 
+import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 
 /**
- * <h2>소셜 전략 레지스트리 포트</h2>
- * <p>소셜 제공자별 로그인 전략을 관리하고 조회하는 레지스트리 포트입니다.</p>
+ * <h2>글로벌 소셜 전략 포트</h2>
+ * <p>소셜 전략을 관리하고 조회하는 중앙 포트입니다.</p>
  * <p>전략 패턴 구현체들을 중앙에서 관리하여 동적 전략 선택 지원</p>
  *
  * @author Jaeik
  * @version 2.0.0
  */
-public interface SocialStrategyRegistryPort {
+public interface GlobalSocialStrategyPort {
 
     /**
      * <h3>제공자별 전략 조회</h3>

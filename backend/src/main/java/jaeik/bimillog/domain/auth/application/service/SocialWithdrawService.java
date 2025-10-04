@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.auth.application.service;
 import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
 import jaeik.bimillog.domain.auth.application.port.in.SocialWithdrawUseCase;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
-import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPort;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class SocialWithdrawService implements SocialWithdrawUseCase {
 
-    private final SocialStrategyRegistryPort strategyRegistryPort;
+    private final GlobalSocialStrategyPort strategyRegistryPort;
 
 
     /**

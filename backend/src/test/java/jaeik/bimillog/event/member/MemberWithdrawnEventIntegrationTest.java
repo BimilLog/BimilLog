@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.auth.application.port.in.AuthTokenUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.KakaoTokenUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.SocialWithdrawUseCase;
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
-import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPort;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.bimillog.domain.member.application.port.in.MemberCommandUseCase;
@@ -79,7 +79,7 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
     private MemberCommandUseCase memberCommandUseCase;
 
     @MockitoBean
-    private SocialStrategyRegistryPort socialStrategyRegistryPort;
+    private GlobalSocialStrategyPort globalSocialStrategyPort;
 
     private static final SocialStrategyPort NOOP_STRATEGY = new SocialStrategyPort() {
         @Override
@@ -110,7 +110,7 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
 
     @BeforeEach
     void setUpSocialStrategy() {
-        doReturn(NOOP_STRATEGY).when(socialStrategyRegistryPort).getStrategy(any());
+        doReturn(NOOP_STRATEGY).when(globalSocialStrategyPort).getStrategy(any());
     }
 
     @Test
@@ -125,7 +125,7 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
             // 1. SSE 연결 정리
             verify(sseUseCase).deleteEmitters(eq(memberId), eq(null));
             // 2. 소셜 계정 연동 해제 전략 조회
-            verify(socialStrategyRegistryPort).getStrategy(eq(SocialProvider.KAKAO));
+            verify(globalSocialStrategyPort).getStrategy(eq(SocialProvider.KAKAO));
             // 3. 댓글 처리
             verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(memberId));
             // 4. 게시글 삭제
@@ -163,7 +163,7 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
             verify(sseUseCase).deleteEmitters(eq(3L), eq(null));
 
             // 소셜 계정 연동 해제 전략 조회
-            verify(socialStrategyRegistryPort, times(3)).getStrategy(eq(SocialProvider.KAKAO));
+            verify(globalSocialStrategyPort, times(3)).getStrategy(eq(SocialProvider.KAKAO));
 
             // 댓글 처리
             verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(1L));
@@ -249,12 +249,12 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
             }
         };
 
-        doReturn(failingStrategy).when(socialStrategyRegistryPort).getStrategy(SocialProvider.KAKAO);
+        doReturn(failingStrategy).when(globalSocialStrategyPort).getStrategy(SocialProvider.KAKAO);
 
         // When & Then
         publishAndVerify(event, () -> {
             verify(sseUseCase).deleteEmitters(eq(memberId), eq(null));
-            verify(socialStrategyRegistryPort).getStrategy(eq(SocialProvider.KAKAO));
+            verify(globalSocialStrategyPort).getStrategy(eq(SocialProvider.KAKAO));
             verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(memberId));
             verify(postCommandUseCase).deleteAllPostsByMemberId(eq(memberId));
             verify(authTokenUseCase).deleteTokens(eq(memberId), eq(null));
@@ -283,7 +283,7 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
             // SSE 연결 정리는 먼저 실행됨
             verify(sseUseCase).deleteEmitters(eq(1L), eq(null));
             // 소셜 계정 연동 해제 전략 조회도 실행됨
-            verify(socialStrategyRegistryPort).getStrategy(eq(SocialProvider.KAKAO));
+            verify(globalSocialStrategyPort).getStrategy(eq(SocialProvider.KAKAO));
             // 댓글 처리에서 예외 발생
             verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(1L));
         });

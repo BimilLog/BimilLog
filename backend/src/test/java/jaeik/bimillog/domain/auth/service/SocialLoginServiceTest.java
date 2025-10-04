@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
-import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
 import jaeik.bimillog.domain.auth.application.service.SocialLoginTransactionalService;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
@@ -39,7 +39,7 @@ import static org.mockito.Mockito.*;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class SocialLoginServiceTest extends BaseUnitTest {
 
-    @Mock private SocialStrategyRegistryPort strategyRegistryPort;
+    @Mock private GlobalSocialStrategyPort strategyRegistryPort;
     @Mock private SocialStrategyPort kakaoStrategy;
     @Mock private SocialLoginTransactionalService socialLoginTransactionalService;
 

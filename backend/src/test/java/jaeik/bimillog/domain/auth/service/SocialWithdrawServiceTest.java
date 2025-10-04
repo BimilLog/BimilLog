@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
-import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.service.SocialWithdrawService;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import org.junit.jupiter.api.DisplayName;
@@ -25,7 +25,7 @@ import static org.mockito.Mockito.verify;
 class SocialWithdrawServiceTest {
 
     @Mock
-    private SocialStrategyRegistryPort strategyRegistryPort;
+    private GlobalSocialStrategyPort strategyRegistryPort;
 
     @Mock
     private SocialStrategyPort socialStrategyPort;

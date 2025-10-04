@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.out.api.social;
 
 import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
-import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyRegistryPort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
 import jaeik.bimillog.domain.member.entity.member.SocialProvider;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,7 @@ import java.util.Optional;
  */
 @Component
 @Slf4j
-public class SocialStrategyRegistryAdapter implements SocialStrategyRegistryPort {
+public class GlobalSocialStrategyAdapter implements GlobalSocialStrategyPort {
 
     private final Map<SocialProvider, SocialStrategyPort> strategies;
 
@@ -35,22 +35,12 @@ public class SocialStrategyRegistryAdapter implements SocialStrategyRegistryPort
      * @author Jaeik
      * @since 2.0.0
      */
-    public SocialStrategyRegistryAdapter(List<SocialStrategyPort> strategyList) {
+    public GlobalSocialStrategyAdapter(List<SocialStrategyPort> strategyList) {
         this.strategies = new EnumMap<>(SocialProvider.class);
-
         for (SocialStrategyPort strategy : strategyList) {
             SocialProvider provider = strategy.getSupportedProvider();
-
-            if (strategies.containsKey(provider)) {
-                log.warn("중복된 소셜 로그인 전략 발견: {}. 기존 전략을 유지합니다.", provider);
-                continue;
-            }
-
             strategies.put(provider, strategy);
-            log.info("소셜 로그인 전략 등록: {}", provider);
         }
-
-        log.info("소셜 로그인 전략 레지스트리 초기화 완료. 등록된 제공자: {}", strategies.keySet());
     }
 
     /**
