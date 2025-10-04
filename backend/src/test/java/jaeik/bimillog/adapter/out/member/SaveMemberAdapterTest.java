@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.out.member;
 
-import jaeik.bimillog.domain.member.entity.member.Member;
+import jaeik.bimillog.domain.member.entity.Member;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;

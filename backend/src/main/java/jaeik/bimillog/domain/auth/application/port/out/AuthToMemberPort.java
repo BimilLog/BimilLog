@@ -2,8 +2,8 @@ package jaeik.bimillog.domain.auth.application.port.out;
 
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.member.entity.member.Member;
-import jaeik.bimillog.domain.member.entity.member.SocialProvider;
+import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.member.entity.SocialProvider;
 
 import java.util.Optional;
 

@@ -2,7 +2,7 @@ package jaeik.bimillog.adapter.in.admin.dto;
 
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.domain.member.entity.member.Member;
+import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.infrastructure.adapter.in.admin.dto.ReportDTO;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;

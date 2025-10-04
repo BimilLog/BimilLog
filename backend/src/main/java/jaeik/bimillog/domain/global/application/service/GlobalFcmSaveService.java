@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.global.application.service;
 
 import jaeik.bimillog.domain.global.application.port.in.GlobalFcmSaveUseCase;
 import jaeik.bimillog.domain.global.application.port.out.GlobalFcmSavePort;
-import jaeik.bimillog.domain.member.entity.member.Member;
+import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

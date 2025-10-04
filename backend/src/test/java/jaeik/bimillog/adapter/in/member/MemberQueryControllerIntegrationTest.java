@@ -1,7 +1,7 @@
 package jaeik.bimillog.adapter.in.member;
 
 import jaeik.bimillog.domain.auth.entity.AuthToken;
-import jaeik.bimillog.domain.member.entity.member.Member;
+import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.auth.AuthTokenRepository;
 import jaeik.bimillog.infrastructure.adapter.out.member.MemberRepository;

@@ -1,8 +1,8 @@
 package jaeik.bimillog.testutil;
 
 import jaeik.bimillog.domain.member.entity.Setting;
-import jaeik.bimillog.domain.member.entity.member.Member;
-import jaeik.bimillog.domain.member.entity.member.MemberRole;
+import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.member.entity.MemberRole;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;

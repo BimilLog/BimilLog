@@ -4,8 +4,8 @@ import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentInfo;
 import jaeik.bimillog.domain.comment.entity.CommentLike;
 import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
+import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.out.comment.CommentLikeRepository;
 import jaeik.bimillog.infrastructure.adapter.out.comment.CommentQueryAdapter;
 import jaeik.bimillog.infrastructure.adapter.out.comment.CommentRepository;
@@ -93,7 +93,7 @@ class CommentQueryAdapterIntegrationTest {
         jaeik.bimillog.domain.auth.entity.KakaoToken testKakaoToken = kakaoTokenRepository.save(tempTestMember.getKakaoToken());
 
         testMember = memberRepository.save(
-            jaeik.bimillog.domain.member.entity.member.Member.createMember(
+            Member.createMember(
                 tempTestMember.getSocialId(),
                 tempTestMember.getProvider(),
                 tempTestMember.getSocialNickname(),
@@ -109,7 +109,7 @@ class CommentQueryAdapterIntegrationTest {
         jaeik.bimillog.domain.auth.entity.KakaoToken otherKakaoToken = kakaoTokenRepository.save(tempOtherMember.getKakaoToken());
 
         otherMember = memberRepository.save(
-            jaeik.bimillog.domain.member.entity.member.Member.createMember(
+            Member.createMember(
                 tempOtherMember.getSocialId(),
                 tempOtherMember.getProvider(),
                 tempOtherMember.getSocialNickname(),
@@ -195,7 +195,7 @@ class CommentQueryAdapterIntegrationTest {
             jaeik.bimillog.domain.member.entity.Setting likeSetting = settingRepository.save(tempLikeMember.getSetting());
             jaeik.bimillog.domain.auth.entity.KakaoToken likeKakaoToken = kakaoTokenRepository.save(tempLikeMember.getKakaoToken());
 
-            Member likeMember = jaeik.bimillog.domain.member.entity.member.Member.createMember(
+            Member likeMember = Member.createMember(
                 tempLikeMember.getSocialId(),
                 tempLikeMember.getProvider(),
                 tempLikeMember.getSocialNickname(),
@@ -248,7 +248,7 @@ class CommentQueryAdapterIntegrationTest {
             jaeik.bimillog.domain.member.entity.Setting likeSetting = settingRepository.save(tempLikeMember.getSetting());
             jaeik.bimillog.domain.auth.entity.KakaoToken likeKakaoToken = kakaoTokenRepository.save(tempLikeMember.getKakaoToken());
 
-            Member likeMember = jaeik.bimillog.domain.member.entity.member.Member.createMember(
+            Member likeMember = Member.createMember(
                 tempLikeMember.getSocialId(),
                 tempLikeMember.getProvider(),
                 tempLikeMember.getSocialNickname(),

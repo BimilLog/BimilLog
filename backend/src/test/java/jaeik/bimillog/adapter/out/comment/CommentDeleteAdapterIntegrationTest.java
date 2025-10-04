@@ -1,8 +1,8 @@
 package jaeik.bimillog.adapter.out.comment;
 
 import jaeik.bimillog.domain.comment.entity.Comment;
+import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.out.comment.CommentDeleteAdapter;
 import jaeik.bimillog.infrastructure.adapter.out.comment.CommentRepository;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostRepository;
@@ -79,7 +79,7 @@ class CommentDeleteAdapterIntegrationTest {
         jaeik.bimillog.domain.auth.entity.KakaoToken testKakaoToken = kakaoTokenRepository.save(tempTestMember.getKakaoToken());
 
         testMember = memberRepository.save(
-            jaeik.bimillog.domain.member.entity.member.Member.createMember(
+            Member.createMember(
                 tempTestMember.getSocialId(),
                 tempTestMember.getProvider(),
                 tempTestMember.getSocialNickname(),

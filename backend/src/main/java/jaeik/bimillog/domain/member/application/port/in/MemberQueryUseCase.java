@@ -1,11 +1,11 @@
 package jaeik.bimillog.domain.member.application.port.in;
 
-import jaeik.bimillog.domain.member.entity.member.SocialProvider;
+import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.paper.application.service.PaperQueryService;
 import jaeik.bimillog.domain.post.application.service.PostCommandService;
 import jaeik.bimillog.domain.post.application.service.PostInteractionService;
 import jaeik.bimillog.domain.member.entity.Setting;
-import jaeik.bimillog.domain.member.entity.member.Member;
+import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.infrastructure.adapter.in.member.web.MemberQueryController;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 

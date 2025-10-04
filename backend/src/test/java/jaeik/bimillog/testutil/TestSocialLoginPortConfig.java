@@ -1,45 +1,55 @@
 package jaeik.bimillog.testutil;
 
 import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
-import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
-import jaeik.bimillog.domain.member.application.port.out.KakaoFriendPort;
-import jaeik.bimillog.domain.member.entity.KakaoFriendsResponseVO;
+import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPort;
+import jaeik.bimillog.domain.global.application.strategy.SocialAuthStrategy;
+import jaeik.bimillog.domain.global.application.strategy.SocialFriendStrategy;
+import jaeik.bimillog.domain.global.application.strategy.SocialPlatformStrategy;
 import jaeik.bimillog.domain.global.entity.MemberDetail;
-import jaeik.bimillog.domain.member.entity.member.SocialProvider;
+import jaeik.bimillog.domain.member.entity.KakaoFriendsResponseVO;
+import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.out.global.GlobalCookieAdapter;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
-import org.springframework.core.Ordered;
-import org.springframework.core.annotation.Order;
 
 import java.util.Collections;
 
 /**
- * <h2>테스트용 소셜 로그인 포트 설정</h2>
- * <p>통합 테스트에서 실제 소셜 API 호출을 방지하기 위한 Mock 구현</p>
- *
- * @author Jaeik
- * @since 2.0.0
+ * <h2>테스트용 소셜 로그인 설정</h2>
+ * <p>통합 테스트에서 외부 소셜 연동을 대체하는 전략을 제공합니다.</p>
  */
 @TestConfiguration
 public class TestSocialLoginPortConfig {
 
+    private static final TestSocialPlatformStrategy TEST_PLATFORM_STRATEGY = new TestSocialPlatformStrategy();
+
     @Bean
     @Primary
-    @Order(Ordered.HIGHEST_PRECEDENCE)
-    public SocialStrategyPort testSocialStrategyPort() {
-        return new TestSocialStrategyPort();
+    public GlobalSocialStrategyPort testGlobalSocialStrategyPort() {
+        return provider -> {
+            if (provider == SocialProvider.KAKAO) {
+                return TEST_PLATFORM_STRATEGY;
+            }
+            throw new IllegalArgumentException("지원하지 않는 테스트 소셜 제공자: " + provider);
+        };
     }
 
-    private static final class TestSocialStrategyPort implements SocialStrategyPort, Ordered {
+    private static final class TestSocialPlatformStrategy extends SocialPlatformStrategy {
+
+        TestSocialPlatformStrategy() {
+            super(SocialProvider.KAKAO, new TestSocialAuthStrategy(), new TestSocialFriendStrategy());
+        }
+    }
+
+    private static final class TestSocialAuthStrategy implements SocialAuthStrategy {
 
         @Override
-        public SocialProvider getSupportedProvider() {
-            return SocialProvider.KAKAO; // 테스트용으로 KAKAO 제공자 지원
+        public SocialProvider getProvider() {
+            return SocialProvider.KAKAO;
         }
 
         @Override
@@ -48,18 +58,17 @@ public class TestSocialLoginPortConfig {
             String accessToken = "dummy-access-token";
             String refreshToken = "dummy-refresh-token";
 
-            // code에 따라 다른 회원 ID 반환 (테스트 목적)
             if ("new-member-code".equals(code)) {
                 socialId = "new-member-social-id";
             } else if ("existing-member-code".equals(code)) {
-                socialId = "test-social-id-12345"; // 통합 테스트에서 생성한 기존 회원 ID와 일치
+                socialId = "test-social-id-12345";
             } else {
                 socialId = "test-social-id";
             }
 
             return SocialMemberProfile.of(
                 socialId,
-                null, // 카카오는 이메일을 제공하지 않음
+                null,
                 SocialProvider.KAKAO,
                 "Test Member",
                 "https://example.com/profile.jpg",
@@ -71,22 +80,36 @@ public class TestSocialLoginPortConfig {
 
         @Override
         public void getUserInfo(String accessToken) {
-            // 테스트 더블에서는 사용자 정보 API 호출이 필요 없으므로 no-op 처리
+            // no-op
         }
 
         @Override
-        public void logout(SocialProvider provider, String accessToken) {
-            // 테스트용 더미 구현 - 아무 작업도 하지 않음
+        public void unlink(String socialId) {
+            // no-op
         }
 
         @Override
-        public void unlink(SocialProvider provider, String socialId) {
-            // 테스트용 더미 구현 - 아무 작업도 하지 않음
+        public void logout(String accessToken) {
+            // no-op
+        }
+    }
+
+    private static final class TestSocialFriendStrategy implements SocialFriendStrategy {
+
+        @Override
+        public SocialProvider getProvider() {
+            return SocialProvider.KAKAO;
         }
 
         @Override
-        public int getOrder() {
-            return Ordered.HIGHEST_PRECEDENCE;
+        public KakaoFriendsResponseVO getFriendList(String accessToken, Integer offset, Integer limit) {
+            return KakaoFriendsResponseVO.of(
+                Collections.emptyList(),
+                0,
+                null,
+                null,
+                0
+            );
         }
     }
 
@@ -96,32 +119,12 @@ public class TestSocialLoginPortConfig {
         return new BlacklistPort() {
             @Override
             public boolean existsByProviderAndSocialId(SocialProvider provider, String socialId) {
-                // 테스트용 더미 구현 - 항상 false 반환 (블랙리스트에 없음)
                 return false;
             }
 
             @Override
             public void saveBlackList(jaeik.bimillog.domain.auth.entity.BlackList blackList) {
-                // 테스트용 더미 구현 - 아무 작업도 하지 않음
-            }
-        };
-    }
-
-    @Bean
-    @Primary
-    public KakaoFriendPort testKakaoFriendPort() {
-        return new KakaoFriendPort() {
-            @Override
-            public KakaoFriendsResponseVO getFriendList(String accessToken, Integer offset, Integer limit) {
-                // 테스트용 더미 친구 목록 응답
-                KakaoFriendsResponseVO response = KakaoFriendsResponseVO.of(
-                    Collections.emptyList(), // 빈 친구 목록
-                    0, // 전체 친구 수
-                    null, // 이전 페이지 URL
-                    null, // 다음 페이지 URL
-                    0 // 즐겨찾기 친구 수
-                );
-                return response;
+                // no-op
             }
         };
     }

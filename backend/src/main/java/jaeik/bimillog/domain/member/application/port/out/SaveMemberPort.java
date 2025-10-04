@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.member.application.port.out;
 
 import jaeik.bimillog.domain.member.application.service.MemberSignupService;
-import jaeik.bimillog.domain.member.entity.member.Member;
+import jaeik.bimillog.domain.member.entity.Member;
 
 /**
  * <h2>회원 저장 포트</h2>

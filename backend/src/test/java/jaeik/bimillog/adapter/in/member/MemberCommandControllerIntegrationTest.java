@@ -1,7 +1,7 @@
 package jaeik.bimillog.adapter.in.member;
 
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.domain.member.entity.member.Member;
+import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.infrastructure.adapter.in.admin.dto.ReportDTO;
 import jaeik.bimillog.infrastructure.adapter.in.auth.dto.SocialLoginRequestDTO;
 import jaeik.bimillog.infrastructure.adapter.in.member.dto.MemberNameDTO;

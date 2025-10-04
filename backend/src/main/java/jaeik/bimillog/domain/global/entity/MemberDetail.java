@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.global.entity;
 
-import jaeik.bimillog.domain.member.entity.member.Member;
-import jaeik.bimillog.domain.member.entity.member.MemberRole;
-import jaeik.bimillog.domain.member.entity.member.SocialProvider;
+import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.member.entity.MemberRole;
+import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.in.auth.dto.MemberInfoResponseDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

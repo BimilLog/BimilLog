@@ -1,9 +1,9 @@
-package jaeik.bimillog.infrastructure.adapter.out.api.social;
+package jaeik.bimillog.infrastructure.adapter.out.global;
 
-import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
-import jaeik.bimillog.domain.member.entity.member.SocialProvider;
+import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPort;
+import jaeik.bimillog.domain.global.application.strategy.SocialPlatformStrategy;
+import jaeik.bimillog.domain.member.entity.SocialProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -24,22 +24,22 @@ import java.util.Optional;
 @Slf4j
 public class GlobalSocialStrategyAdapter implements GlobalSocialStrategyPort {
 
-    private final Map<SocialProvider, SocialStrategyPort> strategies;
+    private final Map<SocialProvider, SocialPlatformStrategy> strategies;
 
     /**
      * <h3>전략 레지스트리 생성자</h3>
      * <p>Spring 컨테이너에 등록된 모든 전략 구현체를 자동으로 수집하여 등록합니다.</p>
      * <p>각 전략의 getSupportedProvider() 메서드를 통해 제공자를 식별하고 매핑합니다.</p>
      *
-     * @param strategyList Spring 컨테이너에 등록된 모든 SocialStrategyPort 구현체
+     * @param strategyList Spring 컨테이너에 등록된 모든 SocialPlatformStrategy 구현체
      * @author Jaeik
      * @since 2.0.0
      */
-    public GlobalSocialStrategyAdapter(List<SocialStrategyPort> strategyList) {
+    public GlobalSocialStrategyAdapter(List<SocialPlatformStrategy> strategyList) {
         this.strategies = new EnumMap<>(SocialProvider.class);
-        for (SocialStrategyPort strategy : strategyList) {
+        for (SocialPlatformStrategy strategy : strategyList) {
             SocialProvider provider = strategy.getSupportedProvider();
-            strategies.put(provider, strategy);
+            strategies.putIfAbsent(provider, strategy);
         }
     }
 
@@ -55,7 +55,7 @@ public class GlobalSocialStrategyAdapter implements GlobalSocialStrategyPort {
      * @since 2.0.0
      */
     @Override
-    public SocialStrategyPort getStrategy(SocialProvider provider) {
+    public SocialPlatformStrategy getStrategy(SocialProvider provider) {
         return Optional.ofNullable(strategies.get(provider))
             .orElseThrow(() -> new IllegalArgumentException(
                 "지원하지 않는 소셜 제공자: " + provider +

@@ -1,10 +1,10 @@
 package jaeik.bimillog.adapter.out.notification;
 
 import jaeik.bimillog.BimilLogApplication;
+import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
-import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.out.notification.NotificationCommandAdapter;
 import jaeik.bimillog.infrastructure.adapter.out.notification.NotificationRepository;
 import jaeik.bimillog.testutil.H2TestConfiguration;
@@ -68,7 +68,7 @@ class NotificationCommandAdapterIntegrationTest {
         Member tempMember = TestMembers.copyWithId(TestMembers.MEMBER_1, null);
         testEntityManager.persistAndFlush(tempMember.getSetting());
         testEntityManager.persistAndFlush(tempMember.getKakaoToken());
-        testMember = jaeik.bimillog.domain.member.entity.member.Member.createMember(
+        testMember = Member.createMember(
             tempMember.getSocialId(),
             tempMember.getProvider(),
             tempMember.getSocialNickname(),
@@ -258,7 +258,7 @@ class NotificationCommandAdapterIntegrationTest {
         testEntityManager.persistAndFlush(tempOtherMember.getSetting());
         testEntityManager.persistAndFlush(tempOtherMember.getKakaoToken());
 
-        Member otherMember = jaeik.bimillog.domain.member.entity.member.Member.createMember(
+        Member otherMember = Member.createMember(
             tempOtherMember.getSocialId(),
             tempOtherMember.getProvider(),
             tempOtherMember.getSocialNickname(),

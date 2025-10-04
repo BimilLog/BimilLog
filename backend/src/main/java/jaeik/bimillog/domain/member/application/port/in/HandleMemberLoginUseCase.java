@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.member.application.port.in;
 
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.member.entity.member.Member;
+import jaeik.bimillog.domain.member.entity.Member;
 
 /**
  * <h2>사용자 로그인 처리 유스케이스</h2>

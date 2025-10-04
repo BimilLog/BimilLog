@@ -3,12 +3,15 @@ package jaeik.bimillog.domain.member.application.service;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
-import jaeik.bimillog.domain.global.application.port.out.GlobalAuthTokenQueryPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalKakaoTokenQueryPort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPort;
+import jaeik.bimillog.domain.global.application.strategy.SocialFriendStrategy;
+import jaeik.bimillog.domain.global.application.strategy.SocialPlatformStrategy;
 import jaeik.bimillog.domain.member.application.port.in.MemberFriendUseCase;
-import jaeik.bimillog.domain.member.application.port.out.KakaoFriendPort;
 import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
 import jaeik.bimillog.domain.member.entity.KakaoFriendsResponseVO;
+import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.exception.MemberCustomException;
 import jaeik.bimillog.domain.member.exception.MemberErrorCode;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -32,10 +35,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public class MemberFriendService implements MemberFriendUseCase {
 
-    private final KakaoFriendPort kakaoFriendPort;
     private final MemberQueryPort memberQueryPort;
-    private final GlobalAuthTokenQueryPort globalAuthTokenQueryPort;
     private final GlobalKakaoTokenQueryPort globalKakaoTokenQueryPort;
+    private final GlobalSocialStrategyPort globalSocialStrategyPort;
 
     /**
      * <h3>카카오 친구 목록 조회</h3>
@@ -59,20 +61,24 @@ public class MemberFriendService implements MemberFriendUseCase {
 
         try {
 
-            // 2. KakaoToken 조회
+            Member member = memberQueryPort.findById(memberId)
+                    .orElseThrow(() -> new MemberCustomException(MemberErrorCode.USER_NOT_FOUND));
+            SocialProvider provider = member.getProvider();
+
             KakaoToken kakaoToken = globalKakaoTokenQueryPort.findByMemberId(memberId)
                     .orElseThrow(() -> new AuthCustomException(AuthErrorCode.NOT_FIND_TOKEN));
 
-            // 카카오 액세스 토큰 확인
             if (kakaoToken.getKakaoAccessToken() == null || kakaoToken.getKakaoAccessToken().isEmpty()) {
                 throw new AuthCustomException(AuthErrorCode.NOT_FIND_TOKEN);
             }
 
-            // 3. 카카오 친구 목록 조회
-            KakaoFriendsResponseVO response = kakaoFriendPort.getFriendList(
+            SocialPlatformStrategy platformStrategy = globalSocialStrategyPort.getStrategy(provider);
+            SocialFriendStrategy friendStrategy = platformStrategy.friend()
+                    .orElseThrow(() -> new MemberCustomException(MemberErrorCode.UNSUPPORTED_SOCIAL_FRIEND));
+
+            KakaoFriendsResponseVO response = friendStrategy.getFriendList(
                     kakaoToken.getKakaoAccessToken(), actualOffset, actualLimit);
-            
-            // 4. 친구 목록 처리 (비밀로그 가입 여부 체크)
+
             return processFriendList(response);
             
         } catch (MemberCustomException e) {

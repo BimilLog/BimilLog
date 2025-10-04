@@ -31,7 +31,8 @@ public enum MemberErrorCode {
      * <h3>카카오 친구 API 관련 에러 코드</h3>
      */
     KAKAO_FRIEND_CONSENT_FAIL(HttpStatus.UNAUTHORIZED, "카카오 친구 추가 동의를 해야 합니다.", ErrorCode.LogLevel.INFO),
-    KAKAO_FRIEND_API_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "카카오 친구 API 호출 실패", ErrorCode.LogLevel.ERROR);
+    KAKAO_FRIEND_API_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "카카오 친구 API 호출 실패", ErrorCode.LogLevel.ERROR),
+    UNSUPPORTED_SOCIAL_FRIEND(HttpStatus.BAD_REQUEST, "지원하지 않는 소셜 친구 조회 기능입니다.", ErrorCode.LogLevel.WARN);
 
     private final HttpStatus status;
     private final String message;

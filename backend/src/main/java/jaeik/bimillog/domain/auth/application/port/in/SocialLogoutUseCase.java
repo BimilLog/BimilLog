@@ -1,7 +1,7 @@
 
 package jaeik.bimillog.domain.auth.application.port.in;
 
-import jaeik.bimillog.domain.member.entity.member.SocialProvider;
+import jaeik.bimillog.domain.member.entity.SocialProvider;
 
 /**
  * <h2>소셜 로그아웃 유스케이스</h2>

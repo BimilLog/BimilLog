@@ -1,13 +1,13 @@
 package jaeik.bimillog.domain.auth.application.service;
 
 import jaeik.bimillog.domain.auth.application.port.in.SocialLogoutUseCase;
-import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPort;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.global.application.port.out.GlobalKakaoTokenQueryPort;
-import jaeik.bimillog.domain.member.entity.member.SocialProvider;
+import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPort;
+import jaeik.bimillog.domain.global.application.strategy.SocialPlatformStrategy;
+import jaeik.bimillog.domain.member.entity.SocialProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,8 +33,8 @@ public class SocialLogoutService implements SocialLogoutUseCase {
     public void socialLogout(Long memberId, SocialProvider provider, Long authTokenId) throws Exception {
         KakaoToken kakaoToken = globalKakaoTokenQueryPort.findByMemberId(memberId)
                 .orElseThrow(() -> new AuthCustomException(AuthErrorCode.NOT_FIND_TOKEN));
-        SocialStrategyPort strategy = strategyRegistry.getStrategy(provider);
-        strategy.logout(provider, kakaoToken.getKakaoAccessToken());
+        SocialPlatformStrategy strategy = strategyRegistry.getStrategy(provider);
+        strategy.auth().logout(kakaoToken.getKakaoAccessToken());
     }
 
     @Override

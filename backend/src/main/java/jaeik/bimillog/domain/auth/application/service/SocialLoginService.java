@@ -2,13 +2,13 @@
 package jaeik.bimillog.domain.auth.application.service;
 
 import jaeik.bimillog.domain.auth.application.port.in.SocialLoginUseCase;
-import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPort;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
-import jaeik.bimillog.domain.member.entity.member.SocialProvider;
+import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPort;
+import jaeik.bimillog.domain.global.application.strategy.SocialPlatformStrategy;
+import jaeik.bimillog.domain.member.entity.SocialProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -50,8 +50,8 @@ public class SocialLoginService implements SocialLoginUseCase {
     public LoginResult processSocialLogin(SocialProvider provider, String code, String fcmToken) {
         validateLogin();
 
-        SocialStrategyPort strategy = strategyRegistryPort.getStrategy(provider);
-        SocialMemberProfile socialUserProfile = strategy.getSocialToken(code);
+        SocialPlatformStrategy strategy = strategyRegistryPort.getStrategy(provider);
+        SocialMemberProfile socialUserProfile = strategy.auth().getSocialToken(code);
         socialUserProfile.setFcmToken(fcmToken);
 
         return socialLoginTransactionalService.finishLogin(provider, socialUserProfile);

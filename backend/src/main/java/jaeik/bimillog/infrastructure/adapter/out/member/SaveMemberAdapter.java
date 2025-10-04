@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.out.member;
 
 import jaeik.bimillog.domain.member.application.port.out.SaveMemberPort;
-import jaeik.bimillog.domain.member.entity.member.Member;
+import jaeik.bimillog.domain.member.entity.Member;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;

@@ -4,9 +4,10 @@ import jaeik.bimillog.domain.admin.application.port.in.AdminCommandUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.AuthTokenUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.KakaoTokenUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.SocialWithdrawUseCase;
-import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPort;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
+import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPort;
+import jaeik.bimillog.domain.global.application.strategy.SocialAuthStrategy;
+import jaeik.bimillog.domain.global.application.strategy.SocialPlatformStrategy;
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.bimillog.domain.member.application.port.in.MemberCommandUseCase;
 import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
@@ -14,7 +15,7 @@ import jaeik.bimillog.domain.notification.application.port.in.NotificationComman
 import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
 import jaeik.bimillog.domain.paper.application.port.in.PaperCommandUseCase;
 import jaeik.bimillog.domain.post.application.port.in.PostCommandUseCase;
-import jaeik.bimillog.domain.member.entity.member.SocialProvider;
+import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -81,36 +82,39 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
     @MockitoBean
     private GlobalSocialStrategyPort globalSocialStrategyPort;
 
-    private static final SocialStrategyPort NOOP_STRATEGY = new SocialStrategyPort() {
-        @Override
-        public SocialProvider getSupportedProvider() {
-            return SocialProvider.KAKAO;
-        }
+    private static final SocialPlatformStrategy NOOP_PLATFORM_STRATEGY = new SocialPlatformStrategy(
+            SocialProvider.KAKAO,
+            new SocialAuthStrategy() {
+                @Override
+                public SocialProvider getProvider() {
+                    return SocialProvider.KAKAO;
+                }
 
-        @Override
-        public SocialMemberProfile getSocialToken(String code) {
-            throw new UnsupportedOperationException("테스트 전략에서는 소셜 토큰 발급을 지원하지 않습니다.");
-        }
+                @Override
+                public SocialMemberProfile getSocialToken(String code) {
+                    throw new UnsupportedOperationException("테스트 전략에서는 소셜 토큰 발급을 지원하지 않습니다.");
+                }
 
-        @Override
-        public void getUserInfo(String accessToken) {
-            // no-op
-        }
+                @Override
+                public void getUserInfo(String accessToken) {
+                    // no-op
+                }
 
-        @Override
-        public void unlink(SocialProvider provider, String socialId) {
-            // no-op
-        }
+                @Override
+                public void unlink(String socialId) {
+                    // no-op
+                }
 
-        @Override
-        public void logout(SocialProvider provider, String accessToken) {
-            // no-op
-        }
-    };
+                @Override
+                public void logout(String accessToken) {
+                    // no-op
+                }
+            }
+    ) {};
 
     @BeforeEach
     void setUpSocialStrategy() {
-        doReturn(NOOP_STRATEGY).when(globalSocialStrategyPort).getStrategy(any());
+        doReturn(NOOP_PLATFORM_STRATEGY).when(globalSocialStrategyPort).getStrategy(any());
     }
 
     @Test
@@ -221,33 +225,36 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
 
         AtomicBoolean unlinkAttempted = new AtomicBoolean(false);
 
-        SocialStrategyPort failingStrategy = new SocialStrategyPort() {
-            @Override
-            public SocialProvider getSupportedProvider() {
-                return SocialProvider.KAKAO;
-            }
+        SocialPlatformStrategy failingStrategy = new SocialPlatformStrategy(
+                SocialProvider.KAKAO,
+                new SocialAuthStrategy() {
+                    @Override
+                    public SocialProvider getProvider() {
+                        return SocialProvider.KAKAO;
+                    }
 
-            @Override
-            public SocialMemberProfile getSocialToken(String code) {
-                throw new UnsupportedOperationException();
-            }
+                    @Override
+                    public SocialMemberProfile getSocialToken(String code) {
+                        throw new UnsupportedOperationException();
+                    }
 
-            @Override
-            public void getUserInfo(String accessToken) {
-                // no-op
-            }
+                    @Override
+                    public void getUserInfo(String accessToken) {
+                        // no-op
+                    }
 
-            @Override
-            public void unlink(SocialProvider provider, String socialId) {
-                unlinkAttempted.set(true);
-                throw new RuntimeException("소셜 해제 실패");
-            }
+                    @Override
+                    public void unlink(String socialId) {
+                        unlinkAttempted.set(true);
+                        throw new RuntimeException("소셜 해제 실패");
+                    }
 
-            @Override
-            public void logout(SocialProvider provider, String accessToken) {
-                // no-op
-            }
-        };
+                    @Override
+                    public void logout(String accessToken) {
+                        // no-op
+                    }
+                }
+        ) {};
 
         doReturn(failingStrategy).when(globalSocialStrategyPort).getStrategy(SocialProvider.KAKAO);
 

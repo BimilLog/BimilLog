@@ -1,8 +1,7 @@
-package jaeik.bimillog.domain.member.entity.member;
+package jaeik.bimillog.domain.member.entity;
 
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.global.entity.BaseEntity;
-import jaeik.bimillog.domain.member.entity.Setting;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;

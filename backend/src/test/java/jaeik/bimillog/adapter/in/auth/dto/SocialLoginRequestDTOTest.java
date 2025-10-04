@@ -1,6 +1,6 @@
 package jaeik.bimillog.adapter.in.auth.dto;
 
-import jaeik.bimillog.domain.member.entity.member.SocialProvider;
+import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.in.auth.dto.SocialLoginRequestDTO;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;

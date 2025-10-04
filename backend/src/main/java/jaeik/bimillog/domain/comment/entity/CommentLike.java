@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.comment.entity;
 
-import jaeik.bimillog.domain.member.entity.member.Member;
+import jaeik.bimillog.domain.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

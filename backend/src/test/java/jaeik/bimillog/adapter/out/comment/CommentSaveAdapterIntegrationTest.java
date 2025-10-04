@@ -3,8 +3,8 @@ package jaeik.bimillog.adapter.out.comment;
 import jaeik.bimillog.BimilLogApplication;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentClosure;
+import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.out.comment.CommentClosureRepository;
 import jaeik.bimillog.infrastructure.adapter.out.comment.CommentRepository;
 import jaeik.bimillog.infrastructure.adapter.out.comment.CommentSaveAdapter;
@@ -79,7 +79,7 @@ class CommentSaveAdapterIntegrationTest {
         entityManager.persistAndFlush(tempMember.getSetting());
         entityManager.persistAndFlush(tempMember.getKakaoToken());
 
-        testMember = jaeik.bimillog.domain.member.entity.member.Member.createMember(
+        testMember = Member.createMember(
             tempMember.getSocialId(),
             tempMember.getProvider(),
             tempMember.getSocialNickname(),

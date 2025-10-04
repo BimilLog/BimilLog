@@ -1,8 +1,8 @@
 package jaeik.bimillog.adapter.out.post;
 
+import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
-import jaeik.bimillog.domain.member.entity.member.Member;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostLikeQueryAdapter;
 import jaeik.bimillog.testutil.H2TestConfiguration;
 import jaeik.bimillog.testutil.TestMembers;
@@ -55,7 +55,7 @@ class PostLikeQueryAdapterIntegrationTest {
         Member tempAuthor = TestMembers.copyWithId(TestMembers.MEMBER_1, null);
         testEntityManager.persistAndFlush(tempAuthor.getSetting());
         testEntityManager.persistAndFlush(tempAuthor.getKakaoToken());
-        author = jaeik.bimillog.domain.member.entity.member.Member.createMember(
+        author = Member.createMember(
             tempAuthor.getSocialId(),
             tempAuthor.getProvider(),
             tempAuthor.getSocialNickname(),
@@ -69,7 +69,7 @@ class PostLikeQueryAdapterIntegrationTest {
         Member tempLikerOne = TestMembers.copyWithId(TestMembers.MEMBER_2, null);
         testEntityManager.persistAndFlush(tempLikerOne.getSetting());
         testEntityManager.persistAndFlush(tempLikerOne.getKakaoToken());
-        likerOne = jaeik.bimillog.domain.member.entity.member.Member.createMember(
+        likerOne = Member.createMember(
             tempLikerOne.getSocialId(),
             tempLikerOne.getProvider(),
             tempLikerOne.getSocialNickname(),
@@ -83,7 +83,7 @@ class PostLikeQueryAdapterIntegrationTest {
         Member tempLikerTwo = TestMembers.copyWithId(TestMembers.MEMBER_3, null);
         testEntityManager.persistAndFlush(tempLikerTwo.getSetting());
         testEntityManager.persistAndFlush(tempLikerTwo.getKakaoToken());
-        likerTwo = jaeik.bimillog.domain.member.entity.member.Member.createMember(
+        likerTwo = Member.createMember(
             tempLikerTwo.getSocialId(),
             tempLikerTwo.getProvider(),
             tempLikerTwo.getSocialNickname(),

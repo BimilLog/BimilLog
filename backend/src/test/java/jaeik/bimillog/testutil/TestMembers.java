@@ -2,11 +2,9 @@ package jaeik.bimillog.testutil;
 
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.member.entity.Setting;
-import jaeik.bimillog.domain.member.entity.member.Member;
-import jaeik.bimillog.domain.member.entity.member.MemberRole;
-import jaeik.bimillog.domain.member.entity.member.SocialProvider;
-
-import java.util.function.Consumer;
+import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.member.entity.MemberRole;
+import jaeik.bimillog.domain.member.entity.SocialProvider;
 
 /**
  * <h2>미리 정의된 테스트 회원 인스턴스</h2>

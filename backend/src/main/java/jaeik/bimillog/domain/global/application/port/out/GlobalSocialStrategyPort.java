@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.global.application.port.out;
 
-import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
-import jaeik.bimillog.domain.member.entity.member.SocialProvider;
+import jaeik.bimillog.domain.global.application.strategy.SocialPlatformStrategy;
+import jaeik.bimillog.domain.member.entity.SocialProvider;
 
 /**
  * <h2>글로벌 소셜 전략 포트</h2>
@@ -25,5 +25,5 @@ public interface GlobalSocialStrategyPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    SocialStrategyPort getStrategy(SocialProvider provider);
+    SocialPlatformStrategy getStrategy(SocialProvider provider);
 }

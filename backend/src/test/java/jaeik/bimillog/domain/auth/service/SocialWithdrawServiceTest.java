@@ -1,9 +1,10 @@
 package jaeik.bimillog.domain.auth.service;
 
-import jaeik.bimillog.domain.auth.application.port.out.SocialStrategyPort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPort;
 import jaeik.bimillog.domain.auth.application.service.SocialWithdrawService;
-import jaeik.bimillog.domain.member.entity.member.SocialProvider;
+import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPort;
+import jaeik.bimillog.domain.global.application.strategy.SocialAuthStrategy;
+import jaeik.bimillog.domain.global.application.strategy.SocialPlatformStrategy;
+import jaeik.bimillog.domain.member.entity.SocialProvider;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -28,7 +29,10 @@ class SocialWithdrawServiceTest {
     private GlobalSocialStrategyPort strategyRegistryPort;
 
     @Mock
-    private SocialStrategyPort socialStrategyPort;
+    private SocialPlatformStrategy socialPlatformStrategy;
+
+    @Mock
+    private SocialAuthStrategy socialAuthStrategy;
 
     @InjectMocks
     private SocialWithdrawService socialWithdrawService;
@@ -39,13 +43,15 @@ class SocialWithdrawServiceTest {
         // Given
         SocialProvider provider = SocialProvider.KAKAO;
         String socialId = "12345";
-        given(strategyRegistryPort.getStrategy(provider)).willReturn(socialStrategyPort);
+        given(strategyRegistryPort.getStrategy(provider)).willReturn(socialPlatformStrategy);
+        given(socialPlatformStrategy.auth()).willReturn(socialAuthStrategy);
 
         // When
         socialWithdrawService.unlinkSocialAccount(provider, socialId);
 
         // Then
         verify(strategyRegistryPort).getStrategy(provider);
-        verify(socialStrategyPort).unlink(provider, socialId);
+        verify(socialPlatformStrategy).auth();
+        verify(socialAuthStrategy).unlink(socialId);
     }
 }
