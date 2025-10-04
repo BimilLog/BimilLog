@@ -42,7 +42,6 @@ public class PostTestDataBuilder {
         return PostSearchResult.builder()
                 .id(id)
                 .title(title)
-                .content("미리보기 내용")
                 .viewCount(0)
                 .likeCount(0)
                 .memberId(1L)

@@ -30,7 +30,6 @@ public class PostSearchResult implements Serializable {
     
     private Long id;
     private String title;
-    private String content;
     private Integer viewCount;
     private Integer likeCount;
     private PostCacheFlag postCacheFlag;
@@ -89,7 +88,6 @@ public class PostSearchResult implements Serializable {
         return PostSearchResult.builder()
                 .id(postDetail.id())
                 .title(postDetail.title())
-                .content(postDetail.content())
                 .viewCount(postDetail.viewCount())
                 .likeCount(postDetail.likeCount())
                 .postCacheFlag(postDetail.postCacheFlag())
@@ -110,12 +108,11 @@ public class PostSearchResult implements Serializable {
      * @since 2.0.0
      * @author Jaeik
      */
-    public PostSearchResult(Long id, String title, String content, Integer viewCount,
+    public PostSearchResult(Long id, String title, Integer viewCount,
                            Integer likeCount, PostCacheFlag postCacheFlag, Instant createdAt,
                            Long memberId, String memberName, Integer commentCount, boolean isNotice) {
         this.id = id;
         this.title = title;
-        this.content = content;
         this.viewCount = viewCount;
         this.likeCount = likeCount;
         this.postCacheFlag = postCacheFlag;

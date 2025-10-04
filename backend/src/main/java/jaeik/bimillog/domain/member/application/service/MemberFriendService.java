@@ -1,11 +1,10 @@
 package jaeik.bimillog.domain.member.application.service;
 
-import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
-import jaeik.bimillog.domain.global.application.port.out.GlobalKakaoTokenQueryPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalAuthTokenQueryPort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalKakaoTokenQueryPort;
 import jaeik.bimillog.domain.member.application.port.in.MemberFriendUseCase;
 import jaeik.bimillog.domain.member.application.port.out.KakaoFriendPort;
 import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
@@ -22,8 +21,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * <h2>사용자 통합 서비스</h2>
- * <p>사용자와 관련된 외부 API 통합 기능을 처리하는 서비스</p>
+ * <h2>사용자 친구 서비스</h2>
+ * <p>사용자와 친구 기능을 처리하는 서비스</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -41,7 +40,6 @@ public class MemberFriendService implements MemberFriendUseCase {
     /**
      * <h3>카카오 친구 목록 조회</h3>
      * <p>현재 로그인한 사용자의 카카오 친구 목록을 조회하고, 비밀로그 가입 여부를 확인합니다.</p>
-     * <p><strong>성능 최적화:</strong> findMemberNamesInOrder 메소드를 사용하여 배치 조회로 N+1 문제를 해결합니다.</p>
      *
      * @param memberId   사용자 ID
      * @param offset   조회 시작 위치 (기본값: 0)
@@ -60,12 +58,9 @@ public class MemberFriendService implements MemberFriendUseCase {
         int actualLimit = limit != null ? Math.min(limit, 100) : 10;
 
         try {
-            // 1. 현재 요청 기기의 AuthToken 조회 (memberId 추출용)
-            AuthToken authToken = globalAuthTokenQueryPort.findById(tokenId)
-                    .orElseThrow(() -> new AuthCustomException(AuthErrorCode.NOT_FIND_TOKEN));
 
             // 2. KakaoToken 조회
-            KakaoToken kakaoToken = globalKakaoTokenQueryPort.findByMemberId(authToken.getMember().getId())
+            KakaoToken kakaoToken = globalKakaoTokenQueryPort.findByMemberId(memberId)
                     .orElseThrow(() -> new AuthCustomException(AuthErrorCode.NOT_FIND_TOKEN));
 
             // 카카오 액세스 토큰 확인

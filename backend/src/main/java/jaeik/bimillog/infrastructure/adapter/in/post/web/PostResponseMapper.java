@@ -38,7 +38,6 @@ public class PostResponseMapper {
         return SimplePostDTO.builder()
                 .id(postSearchResult.getId())
                 .title(postSearchResult.getTitle())
-                .content(postSearchResult.getContent())
                 .viewCount(postSearchResult.getViewCount())
                 .likeCount(postSearchResult.getLikeCount())
                 .postCacheFlag(postSearchResult.getPostCacheFlag())

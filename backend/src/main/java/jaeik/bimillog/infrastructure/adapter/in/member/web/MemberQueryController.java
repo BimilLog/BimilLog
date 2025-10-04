@@ -96,7 +96,6 @@ public class MemberQueryController {
     /**
      * <h3>사용자가 추천한 게시글 목록 조회 API</h3>
      * <p>현재 로그인한 사용자가 추천한 게시글 목록을 페이지네이션으로 조회합니다.</p>
-     * <p>클라이언트에서 GET /api/member/likeposts 요청 시 호출됩니다.</p>
      *
      * @param page        페이지 번호
      * @param size        페이지 크기
@@ -118,7 +117,6 @@ public class MemberQueryController {
     /**
      * <h3>사용자가 작성한 댓글 목록 조회 API</h3>
      * <p>현재 로그인한 사용자가 작성한 댓글 목록을 페이지네이션으로 조회합니다.</p>
-     * <p>클라이언트에서 GET /api/member/comments 요청 시 호출됩니다.</p>
      *
      * @param page        페이지 번호
      * @param size        페이지 크기
@@ -140,7 +138,6 @@ public class MemberQueryController {
     /**
      * <h3>사용자가 추천한 댓글 목록 조회 API</h3>
      * <p>현재 로그인한 사용자가 추천한 댓글 목록을 페이지네이션으로 조회합니다.</p>
-     * <p>클라이언트에서 GET /api/member/likecomments 요청 시 호출됩니다.</p>
      *
      * @param page        페이지 번호
      * @param size        페이지 크기
@@ -162,7 +159,6 @@ public class MemberQueryController {
     /**
      * <h3>카카오 친구 목록 조회 API</h3>
      * <p>현재 로그인한 사용자의 카카오 친구 목록을 조회하고 비밀로그 가입 여부를 포함하여 반환합니다.</p>
-     * <p>클라이언트에서 GET /api/member/friendlist 요청 시 호출됩니다.</p>
      *
      * @param offset      조회 시작 위치 (기본값: 0)
      * @param limit       조회할 친구 수 (기본값: 10, 최대: 100)

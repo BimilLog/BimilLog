@@ -21,9 +21,13 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * <h2>게시글 조회 어댑터</h2>
@@ -64,7 +68,7 @@ public class PostQueryAdapter implements PostQueryPort {
     @Override
     public Page<PostSearchResult> findByPage(Pageable pageable) {
         BooleanExpression condition = post.isNotice.isFalse();
-        return findPostsWithCondition(condition, pageable, null, null);
+        return findPostsWithCondition(condition, pageable);
     }
 
     /**
@@ -82,8 +86,15 @@ public class PostQueryAdapter implements PostQueryPort {
      */
     @Override
     public Page<PostSearchResult> findBySearch(PostSearchType type, String query, Pageable pageable) {
-        BooleanExpression condition = createSearchCondition(type, query, pageable);
-        return findPostsWithCondition(condition, pageable, type, query);
+        if (shouldUseFullText(type, query)) {
+            Page<PostSearchResult> fullTextResult = findPostsByFullText(type, query, pageable);
+            if (!fullTextResult.isEmpty()) {
+                return fullTextResult;
+            }
+        }
+
+        BooleanExpression likeCondition = createLikeSearchCondition(type, query).and(post.isNotice.isFalse());
+        return findPostsWithCondition(likeCondition, pageable);
     }
 
     /**
@@ -100,7 +111,7 @@ public class PostQueryAdapter implements PostQueryPort {
     @Override
     public Page<PostSearchResult> findPostsByMemberId(Long memberId, Pageable pageable) {
         BooleanExpression condition = member.id.eq(memberId);
-        return findPostsWithCondition(condition, pageable, null, null);
+        return findPostsWithCondition(condition, pageable);
     }
 
     /**
@@ -127,20 +138,7 @@ public class PostQueryAdapter implements PostQueryPort {
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        // 2. 게시글 ID 목록 추출
-        List<Long> postIds = content.stream()
-                .map(PostSearchResult::getId)
-                .toList();
-
-        // 3. 배치로 댓글 수와 추천 수 조회
-        Map<Long, Integer> commentCounts = postToCommentPort.findCommentCountsByPostIds(postIds);
-        Map<Long, Integer> likeCounts = postLikeQueryPort.findLikeCountsByPostIds(postIds);
-
-        // 4. 댓글 수와 추천 수 설정 - mutable 객체이므로 직접 수정
-        content.forEach(post -> {
-            post.setCommentCount(commentCounts.getOrDefault(post.getId(), 0));
-            post.setLikeCount(likeCounts.getOrDefault(post.getId(), 0));
-        });
+        populateEngagementMetrics(content);
 
         Long total = jpaQueryFactory
                 .select(post.countDistinct())
@@ -151,84 +149,124 @@ public class PostQueryAdapter implements PostQueryPort {
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
 
-    /**
-     * <h3>단순화된 검색 조건 생성</h3>
-     * <p>Strategy Pattern 제거 후 직접 구현한 단순한 검색 로직</p>
-     * <p>규칙: 3글자 이상이고 writer가 아니면 FULLTEXT, 아니면 LIKE</p>
-     *
-     * @param type  검색 유형 (title, writer, title_content)
-     * @param query 검색어 (DTO에서 이미 검증됨)
-     * @return 생성된 BooleanExpression
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private BooleanExpression createSearchCondition(PostSearchType type, String query, Pageable pageable) {
-        // 3글자 이상이고 WRITER가 아니면 FULLTEXT 검색 시도
-        boolean shouldTryFullText = query.length() >= 3 && type != PostSearchType.WRITER;
-
-        if (shouldTryFullText) {
-            List<Long> postIds = getPostIdsByFullTextSearch(type, query, pageable);
-            if (!postIds.isEmpty()) {
-                return post.id.in(postIds).and(post.isNotice.isFalse());
-            }
-            // FULLTEXT 결과가 없으면 LIKE로 fallback
-        }
-
-        // LIKE 검색
-        BooleanExpression likeCondition = switch (type) {
-            case TITLE -> post.title.contains(query);
-            case WRITER -> query.length() >= 4
-                ? member.memberName.startsWith(query)  // 4글자 이상: LIKE% 검색 (인덱스 효율성)
-                : member.memberName.contains(query);   // 1-3글자: %LIKE% 검색 (완전 일치)
-            case TITLE_CONTENT -> post.title.contains(query)
-                                   .or(post.content.contains(query));
-        };
-
-        return likeCondition.and(post.isNotice.isFalse());
+    private boolean shouldUseFullText(PostSearchType type, String query) {
+        return query.length() >= 3 && type != PostSearchType.WRITER;
     }
 
-    /**
-     * <h3>FULLTEXT 검색으로 Post ID 목록 조회</h3>
-     * <p>PostFullTextRepository를 사용하여 네이티브 쿼리로 검색합니다.</p>
-     * <p>페이징을 적용하여 검색 결과를 제한합니다.</p>
-     * 
-     * @param type 검색 유형
-     * @param query 검색어
-     * @param pageable 페이지 정보 (검색 결과 제한용)
-     * @return 검색된 Post ID 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private List<Long> getPostIdsByFullTextSearch(PostSearchType type, String query, Pageable pageable) {
+    private BooleanExpression createLikeSearchCondition(PostSearchType type, String query) {
+        return switch (type) {
+            case TITLE -> post.title.contains(query);
+            case WRITER -> query.length() >= 4
+                    ? member.memberName.startsWith(query)
+                    : member.memberName.contains(query);
+            case TITLE_CONTENT -> post.title.contains(query)
+                    .or(post.content.contains(query));
+        };
+    }
+
+    private Page<PostSearchResult> findPostsByFullText(PostSearchType type, String query, Pageable pageable) {
+        String searchTerm = query + "*";
         try {
-            String searchTerm = query + "*";
-
-            // 페이징 정보를 활용하여 필요한 만큼만 조회
-            // 최대 1000개로 제한하여 메모리 사용량 제한
-            int limit = Math.min(pageable.getPageSize() * 10, 1000);
-            Pageable searchPageable = Pageable.ofSize(limit);
-
-            List<Object[]> results = switch (type) {
-                case TITLE -> postFullTextRepository.findByTitleFullText(searchTerm, searchPageable);
-                case TITLE_CONTENT -> postFullTextRepository.findByTitleContentFullText(searchTerm, searchPageable);
-                case WRITER -> List.of();  // WRITER는 FULLTEXT 검색 미지원
+            List<Object[]> rows = switch (type) {
+                case TITLE -> postFullTextRepository.findByTitleFullText(searchTerm, pageable);
+                case TITLE_CONTENT -> postFullTextRepository.findByTitleContentFullText(searchTerm, pageable);
+                case WRITER -> List.of();
             };
 
-            return results.stream()
-                    .map(row -> ((Number) row[0]).longValue())
-                    .toList();
+            long total = switch (type) {
+                case TITLE -> postFullTextRepository.countByTitleFullText(searchTerm);
+                case TITLE_CONTENT -> postFullTextRepository.countByTitleContentFullText(searchTerm);
+                case WRITER -> 0L;
+            };
 
+            if (rows.isEmpty()) {
+                return new PageImpl<>(List.of(), pageable, total);
+            }
+
+            List<PostSearchResult> content = mapFullTextRows(rows);
+            populateEngagementMetrics(content);
+
+            return new PageImpl<>(content, pageable, total);
         } catch (DataAccessException e) {
-            // 데이터베이스 관련 예외만 처리
-            log.warn("FULLTEXT 검색 중 데이터베이스 오류 - type: {}, query: {}, error: {}", 
+            log.warn("FULLTEXT 검색 중 데이터베이스 오류 - type: {}, query: {}, error: {}",
                     type, query, e.getMessage());
-            return List.of(); // 빈 목록 반환하여 LIKE 검색으로 폴백
+            return Page.empty(pageable);
         } catch (IllegalArgumentException e) {
-            // 잘못된 검색어 형식 등의 예외 처리
-            log.debug("FULLTEXT 검색 파라미터 오류 - type: {}, query: {}, error: {}", 
+            log.debug("FULLTEXT 검색 파라미터 오류 - type: {}, query: {}, error: {}",
                     type, query, e.getMessage());
-            return List.of();
+            return Page.empty(pageable);
         }
+    }
+
+    private List<PostSearchResult> mapFullTextRows(List<Object[]> rows) {
+        return rows.stream()
+                .map(this::mapFullTextRow)
+                .collect(Collectors.toList());
+    }
+
+    private PostSearchResult mapFullTextRow(Object[] row) {
+        Long id = ((Number) row[0]).longValue();
+        String title = row[1] != null ? row[1].toString() : null;
+        Integer views = row[2] != null ? ((Number) row[2]).intValue() : 0;
+        boolean isNotice = toBoolean(row[3]);
+        PostCacheFlag cacheFlag = row[4] != null ? PostCacheFlag.valueOf(row[4].toString()) : null;
+        Instant createdAt = toInstant(row[5]);
+        Long memberId = row[6] != null ? ((Number) row[6]).longValue() : null;
+        String memberName = row[7] != null ? row[7].toString() : null;
+
+        return PostSearchResult.builder()
+                .id(id)
+                .title(title)
+                .viewCount(views)
+                .likeCount(0)
+                .postCacheFlag(cacheFlag)
+                .createdAt(createdAt)
+                .memberId(memberId)
+                .memberName(memberName)
+                .commentCount(0)
+                .isNotice(isNotice)
+                .build();
+    }
+
+    private boolean toBoolean(Object value) {
+        if (value instanceof Boolean bool) {
+            return bool;
+        }
+        if (value instanceof Number number) {
+            return number.intValue() != 0;
+        }
+        return false;
+    }
+
+    private Instant toInstant(Object value) {
+        if (value instanceof Instant instant) {
+            return instant;
+        }
+        if (value instanceof java.sql.Timestamp timestamp) {
+            return timestamp.toInstant();
+        }
+        if (value instanceof java.time.LocalDateTime localDateTime) {
+            return localDateTime.toInstant(ZoneOffset.UTC);
+        }
+        return null;
+    }
+
+    private void populateEngagementMetrics(List<PostSearchResult> posts) {
+        if (posts.isEmpty()) {
+            return;
+        }
+
+        List<Long> postIds = posts.stream()
+                .map(PostSearchResult::getId)
+                .toList();
+
+        Map<Long, Integer> commentCounts = postToCommentPort.findCommentCountsByPostIds(postIds);
+        Map<Long, Integer> likeCounts = postLikeQueryPort.findLikeCountsByPostIds(postIds);
+
+        posts.forEach(post -> {
+            post.setCommentCount(commentCounts.getOrDefault(post.getId(), 0));
+            post.setLikeCount(likeCounts.getOrDefault(post.getId(), 0));
+        });
     }
 
     /**
@@ -239,14 +277,11 @@ public class PostQueryAdapter implements PostQueryPort {
      *
      * @param condition WHERE 조건
      * @param pageable  페이지 정보
-     * @param searchType 검색 타입 (전문검색 판별용, null 가능)
-     * @param searchQuery 검색어 (전문검색 판별용, null 가능)
      * @return 게시글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    private Page<PostSearchResult> findPostsWithCondition(BooleanExpression condition, Pageable pageable, PostSearchType searchType, String searchQuery) {
-        // 1. 게시글 기본 정보 조회 (댓글, 추천 JOIN 제외)
+    private Page<PostSearchResult> findPostsWithCondition(BooleanExpression condition, Pageable pageable) {
         List<PostSearchResult> content = buildBasePostQueryWithoutJoins()
                 .where(condition)
                 .orderBy(post.createdAt.desc())
@@ -254,61 +289,27 @@ public class PostQueryAdapter implements PostQueryPort {
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        // 2. 게시글 ID 목록 추출
-        List<Long> postIds = content.stream()
-                .map(PostSearchResult::getId)
-                .toList();
+        populateEngagementMetrics(content);
 
-        // 3. 배치로 댓글 수와 추천 수 조회
-        Map<Long, Integer> commentCounts = postToCommentPort.findCommentCountsByPostIds(postIds);
-        Map<Long, Integer> likeCounts = postLikeQueryPort.findLikeCountsByPostIds(postIds);
-
-        // 4. 댓글 수와 추천 수 설정 - mutable 객체이므로 직접 수정
-        content.forEach(post -> {
-            post.setCommentCount(commentCounts.getOrDefault(post.getId(), 0));
-            post.setLikeCount(likeCounts.getOrDefault(post.getId(), 0));
-        });
-
-        // 5. 총 개수 조회 - 전문검색과 일반 검색 분리
-        Long total = calculateTotalCount(condition, searchType, searchQuery);
+        Long total = calculateTotalCount(condition);
 
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
 
     /**
      * <h3>총 개수 계산 메서드</h3>
-     * <p>전문검색과 일반 검색을 구분하여 정확한 총 개수를 계산합니다.</p>
-     * <p>전문검색 시 전용 count 메서드를 사용하여 정확한 페이지네이션을 지원합니다.</p>
+     * <p>일반 조건 검색 시 총 개수를 계산합니다.</p>
      *
      * @param condition WHERE 조건
-     * @param searchType 검색 타입 (null 가능)
-     * @param searchQuery 검색어 (null 가능)
      * @return 총 게시글 수
-     * @author Jaeik
-     * @since 2.0.0
      */
-    private Long calculateTotalCount(BooleanExpression condition, PostSearchType searchType, String searchQuery) {
-        // 전문검색 여부 판별
-        boolean isFullTextSearch = searchType != null && searchQuery != null
-                && searchQuery.length() >= 3 && searchType != PostSearchType.WRITER;
-
-        if (isFullTextSearch) {
-            // 전문검색인 경우 전용 count 메서드 사용
-            String searchTerm = searchQuery + "*";
-            return switch(searchType) {
-                case TITLE -> postFullTextRepository.countByTitleFullText(searchTerm);
-                case TITLE_CONTENT -> postFullTextRepository.countByTitleContentFullText(searchTerm);
-                case WRITER -> 0L;  // WRITER는 전문검색 미지원
-            };
-        } else {
-            // 일반 검색인 경우 QueryDSL 사용
-            return jpaQueryFactory
-                    .select(post.count())
-                    .from(post)
-                    .leftJoin(post.member, member)
-                    .where(condition)
-                    .fetchOne();
-        }
+    private Long calculateTotalCount(BooleanExpression condition) {
+        return jpaQueryFactory
+                .select(post.count())
+                .from(post)
+                .leftJoin(post.member, member)
+                .where(condition)
+                .fetchOne();
     }
 
     /**
@@ -324,14 +325,13 @@ public class PostQueryAdapter implements PostQueryPort {
         return jpaQueryFactory
                 .select(Projections.constructor(PostSearchResult.class,
                         post.id,                           // Long id
-                        post.title,                        // String title  
-                        post.content,                      // String content
+                        post.title,                        // String title
                         post.views.coalesce(0),           // Integer viewCount
                         Expressions.constant(0),          // Integer likeCount - 나중에 설정
                         post.postCacheFlag,               // PostCacheFlag postCacheFlag
                         post.createdAt,                   // Instant createdAt
-                        member.id,                          // Long memberId
-                        member.memberName,                    // String memberName
+                        member.id,                        // Long memberId
+                        member.memberName,                // String memberName
                         Expressions.constant(0),         // Integer commentCount - 나중에 설정
                         post.isNotice))                   // boolean isNotice
                 .from(post)
@@ -407,40 +407,46 @@ public class PostQueryAdapter implements PostQueryPort {
         if (postId == null) {
             return null;
         }
+        return findPostDetailWithCounts(postId, null).orElse(null);
+    }
 
-        QPost post = QPost.post;
-        QMember member = QMember.member;
-        QPostLike postLike = QPostLike.postLike;
-
-        Post entity = jpaQueryFactory
-                .selectFrom(post)
-                .leftJoin(post.member, member).fetchJoin()
-                .where(post.id.eq(postId))
-                .fetchOne();
-
-        if (entity == null) {
-            return null;
+    @Override
+    public List<PostDetail> findPostDetailsByIds(List<Long> postIds) {
+        if (postIds == null || postIds.isEmpty()) {
+            return List.of();
         }
 
-        // 좋아요 수 조회 (중복 쿼리 제거)
-        Long likeCountResult = jpaQueryFactory
-                .select(postLike.count())
-                .from(postLike)
-                .where(postLike.post.id.eq(postId))
-                .fetchOne();
-        long likeCount = likeCountResult != null ? likeCountResult : 0L;
+        List<PostDetail> results = jpaQueryFactory
+                .select(new QPostDetail(
+                        post.id,
+                        post.title,
+                        post.content,
+                        post.views.coalesce(0),
+                        postLike.countDistinct().castToNum(Integer.class),
+                        post.postCacheFlag,
+                        post.createdAt,
+                        member.id,
+                        member.memberName,
+                        comment.countDistinct().castToNum(Integer.class),
+                        post.isNotice.coalesce(false),
+                        Expressions.constant(false)
+                ))
+                .from(post)
+                .leftJoin(post.member, member)
+                .leftJoin(postLike).on(postLike.post.id.eq(post.id))
+                .leftJoin(comment).on(comment.post.id.eq(post.id))
+                .where(post.id.in(postIds))
+                .groupBy(post.id, post.title, post.content, post.views, post.createdAt,
+                        member.id, member.memberName, post.isNotice, post.postCacheFlag)
+                .fetch();
 
-        // 댓글 수 조회 (중복 쿼리 제거)
-        QComment comment = QComment.comment;
-        Long commentCountResult = jpaQueryFactory
-                .select(comment.count())
-                .from(comment)
-                .where(comment.post.id.eq(postId))
-                .fetchOne();
-        long commentCount = commentCountResult != null ? commentCountResult : 0L;
+        Map<Long, PostDetail> resultMap = results.stream()
+                .collect(Collectors.toMap(PostDetail::id, detail -> detail, (left, right) -> left));
 
-        // PostDetail 직접 생성
-        return PostDetail.of(entity, Math.toIntExact(likeCount), Math.toIntExact(commentCount), false);
+        return postIds.stream()
+                .map(resultMap::get)
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     /**

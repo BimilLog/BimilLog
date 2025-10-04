@@ -105,6 +105,15 @@ public interface PostQueryPort {
     PostDetail findPostDetail(Long postId);
 
     /**
+     * <h3>여러 게시글의 상세 정보 조회</h3>
+     * <p>여러 게시글의 상세 정보를 한번에 조회하여 캐시 동기화 시 N+1 문제를 방지합니다.</p>
+     *
+     * @param postIds 조회할 게시글 ID 목록
+     * @return 게시글 상세 정보 리스트
+     */
+    List<PostDetail> findPostDetailsByIds(List<Long> postIds);
+
+    /**
      * <h3>캐시 플래그가 있는 게시글 ID 조회</h3>
      * <p>사용자가 작성한 게시글 중 캐시 플래그가 설정된 게시글의 ID만 조회합니다.</p>
      *

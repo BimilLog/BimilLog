@@ -16,7 +16,7 @@ import java.time.Instant;
  * </p>
  * <p>
  * PostQueryController의 게시글 목록 조회 API에서 응답 바디로 사용되며,
- * 게시글 ID, 제목, 내용, 조회수, 추천수, 댓글수, 공지 여부, 작성 시간, 작성자 정보 등을 포함합니다.
+ * 게시글 ID, 제목, 조회수, 추천수, 댓글수, 공지 여부, 작성 시간, 작성자 정보 등을 포함합니다.
  * </p>
  * <p>
  * 클라이언트의 게시판 메인 페이지에서 GET /api/post/query 엔드포인트 호출 시 페이지 단위로 반환되며,
@@ -34,7 +34,6 @@ import java.time.Instant;
 public class SimplePostDTO {
     private Long id;
     private String title;
-    private String content;
     private Integer viewCount;
     private Integer likeCount;
     private PostCacheFlag postCacheFlag;

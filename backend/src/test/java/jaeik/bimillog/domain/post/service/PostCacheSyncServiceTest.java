@@ -65,16 +65,17 @@ class PostCacheSyncServiceTest {
         PostDetail fullPost1 = createPostDetail(1L, "제목1", "내용1");
         PostDetail fullPost2 = createPostDetail(2L, "제목2", "내용2");
 
+        List<Long> postIds = List.of(1L, 2L);
         given(redisPostSyncPort.findRealtimePopularPosts()).willReturn(posts);
-        given(postQueryPort.findPostDetail(1L)).willReturn(fullPost1);
-        given(postQueryPort.findPostDetail(2L)).willReturn(fullPost2);
+        given(postQueryPort.findPostDetailsByIds(postIds)).willReturn(List.of(fullPost1, fullPost2));
 
         // When
         postCacheSyncService.updateRealtimePopularPosts();
 
         // Then
         verify(redisPostCommandPort).resetPopularFlag(PostCacheFlag.REALTIME);
-        verify(redisPostCommandPort).applyPopularFlag(List.of(1L, 2L), PostCacheFlag.REALTIME);
+        verify(redisPostCommandPort).applyPopularFlag(postIds, PostCacheFlag.REALTIME);
+        verify(postQueryPort).findPostDetailsByIds(postIds);
         verify(redisPostCommandPort).cachePostsWithDetails(PostCacheFlag.REALTIME, List.of(fullPost1, fullPost2));
         
         verifyNoInteractions(eventPublisher); // 실시간은 이벤트 발행 안함
@@ -110,16 +111,17 @@ class PostCacheSyncServiceTest {
         PostDetail fullPost1 = createPostDetail(1L, "주간인기글1", "내용1");
         PostDetail fullPost2 = createPostDetail(2L, "주간인기글2", "내용2");
 
+        List<Long> postIds = List.of(1L, 2L);
         given(redisPostSyncPort.findWeeklyPopularPosts()).willReturn(posts);
-        given(postQueryPort.findPostDetail(1L)).willReturn(fullPost1);
-        given(postQueryPort.findPostDetail(2L)).willReturn(fullPost2);
+        given(postQueryPort.findPostDetailsByIds(postIds)).willReturn(List.of(fullPost1, fullPost2));
 
         // When
         postCacheSyncService.updateWeeklyPopularPosts();
 
         // Then
         verify(redisPostCommandPort).resetPopularFlag(PostCacheFlag.WEEKLY);
-        verify(redisPostCommandPort).applyPopularFlag(List.of(1L, 2L), PostCacheFlag.WEEKLY);
+        verify(redisPostCommandPort).applyPopularFlag(postIds, PostCacheFlag.WEEKLY);
+        verify(postQueryPort).findPostDetailsByIds(postIds);
         verify(redisPostCommandPort).cachePostsWithDetails(PostCacheFlag.WEEKLY, List.of(fullPost1, fullPost2));
 
         // 이벤트 발행 검증
@@ -145,16 +147,17 @@ class PostCacheSyncServiceTest {
         PostDetail fullPost1 = createPostDetail(1L, "익명글", "내용1");
         PostDetail fullPost2 = createPostDetail(2L, "회원글", "내용2");
 
+        List<Long> postIds = List.of(1L, 2L);
         given(redisPostSyncPort.findWeeklyPopularPosts()).willReturn(posts);
-        given(postQueryPort.findPostDetail(1L)).willReturn(fullPost1);
-        given(postQueryPort.findPostDetail(2L)).willReturn(fullPost2);
+        given(postQueryPort.findPostDetailsByIds(postIds)).willReturn(List.of(fullPost1, fullPost2));
 
         // When
         postCacheSyncService.updateWeeklyPopularPosts();
 
         // Then
         verify(redisPostCommandPort).resetPopularFlag(PostCacheFlag.WEEKLY);
-        verify(redisPostCommandPort).applyPopularFlag(List.of(1L, 2L), PostCacheFlag.WEEKLY);
+        verify(redisPostCommandPort).applyPopularFlag(postIds, PostCacheFlag.WEEKLY);
+        verify(postQueryPort).findPostDetailsByIds(postIds);
         verify(redisPostCommandPort).cachePostsWithDetails(eq(PostCacheFlag.WEEKLY), any());
 
         // 익명 게시글은 이벤트 발행 안함, 회원 게시글만 이벤트 발행
@@ -175,15 +178,17 @@ class PostCacheSyncServiceTest {
         
         PostDetail fullPost = createPostDetail(1L, "전설의글", "전설적인 내용");
 
+        List<Long> postIds = List.of(1L);
         given(redisPostSyncPort.findLegendaryPosts()).willReturn(posts);
-        given(postQueryPort.findPostDetail(1L)).willReturn(fullPost);
+        given(postQueryPort.findPostDetailsByIds(postIds)).willReturn(List.of(fullPost));
 
         // When
         postCacheSyncService.updateLegendaryPosts();
 
         // Then
         verify(redisPostCommandPort).resetPopularFlag(PostCacheFlag.LEGEND);
-        verify(redisPostCommandPort).applyPopularFlag(List.of(1L), PostCacheFlag.LEGEND);
+        verify(redisPostCommandPort).applyPopularFlag(postIds, PostCacheFlag.LEGEND);
+        verify(postQueryPort).findPostDetailsByIds(postIds);
         verify(redisPostCommandPort).cachePostsWithDetails(PostCacheFlag.LEGEND, List.of(fullPost));
 
         // 명예의 전당 이벤트 검증
@@ -204,17 +209,19 @@ class PostCacheSyncServiceTest {
         PostSearchResult legendPost = createPostSearchResult(1L, "전설의글", 1L);
         List<PostSearchResult> posts = List.of(legendPost);
 
+        List<Long> postIds = List.of(1L);
         given(redisPostSyncPort.findLegendaryPosts()).willReturn(posts);
-        given(postQueryPort.findPostDetail(1L)).willReturn(null);
+        given(postQueryPort.findPostDetailsByIds(postIds)).willReturn(Collections.emptyList());
 
         // When
         postCacheSyncService.updateLegendaryPosts();
 
         // Then
         verify(redisPostCommandPort).resetPopularFlag(PostCacheFlag.LEGEND);
-        verify(redisPostCommandPort).applyPopularFlag(List.of(1L), PostCacheFlag.LEGEND);
+        verify(redisPostCommandPort).applyPopularFlag(postIds, PostCacheFlag.LEGEND);
+        verify(postQueryPort).findPostDetailsByIds(postIds);
         
-        // 상세 정보가 null이면 빈 리스트로 캐시 메서드 호출됨
+        // 상세 정보가 없으면 빈 리스트로 캐시 메서드 호출됨
         verify(redisPostCommandPort).cachePostsWithDetails(PostCacheFlag.LEGEND, Collections.emptyList());
         
         // 이벤트는 여전히 발행됨
@@ -250,8 +257,7 @@ class PostCacheSyncServiceTest {
         List<Long> postIds = largePosts.stream().map(PostSearchResult::getId).toList();
 
         given(redisPostSyncPort.findWeeklyPopularPosts()).willReturn(largePosts);
-        // 모든 상세 정보는 null로 설정하여 상세 캐싱 건너뛰기
-        largePosts.forEach(post -> given(postQueryPort.findPostDetail(post.getId())).willReturn(null));
+        given(postQueryPort.findPostDetailsByIds(postIds)).willReturn(Collections.emptyList());
 
         // When
         postCacheSyncService.updateWeeklyPopularPosts();
@@ -259,6 +265,7 @@ class PostCacheSyncServiceTest {
         // Then
         verify(redisPostCommandPort).resetPopularFlag(PostCacheFlag.WEEKLY);
         verify(redisPostCommandPort).applyPopularFlag(postIds, PostCacheFlag.WEEKLY);
+        verify(postQueryPort).findPostDetailsByIds(postIds);
         verify(redisPostCommandPort).cachePostsWithDetails(eq(PostCacheFlag.WEEKLY), any());
         
         // 100개 게시글 중 userId가 있는 것들만 이벤트 발행 (50개)

@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -111,10 +110,7 @@ public class PostCacheSyncService {
         List<Long> postIds = posts.stream().map(PostSearchResult::getId).collect(Collectors.toList());
         redisPostCommandPort.applyPopularFlag(postIds, flag);
 
-        List<PostDetail> fullPosts = posts.stream()
-                .map(post -> postQueryPort.findPostDetail(post.getId()))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+        List<PostDetail> fullPosts = postQueryPort.findPostDetailsByIds(postIds);
 
         redisPostCommandPort.cachePostsWithDetails(flag, fullPosts);
         log.info("{} 캐시 업데이트 완료. {}개의 게시글이 처리됨", flag.name(), fullPosts.size());
