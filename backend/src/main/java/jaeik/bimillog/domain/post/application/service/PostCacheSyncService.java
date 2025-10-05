@@ -4,7 +4,6 @@ import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostSyncPort;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
-import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchResult;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
 import lombok.RequiredArgsConstructor;
@@ -15,8 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 /**
  * <h2>PostCacheSyncService</h2>
@@ -37,26 +34,28 @@ public class PostCacheSyncService {
     private final PostQueryPort postQueryPort;
 
     /**
-     * <h3>실시간 인기 게시글 스케줄링 갱신</h3>
-     * <p>스프링 스케줄러를 통해 30분마다 실시간 인기 게시글을 갱신하고 Redis 캐시에 저장합니다.</p>
-     * <p>PostQueryService에서 실시간 인기 게시글 조회 시 이 캐시를 활용합니다.</p>
+     * <h3>실시간 인기 게시글 점수 지수감쇠 적용</h3>
+     * <p>스프링 스케줄러를 통해 5분마다 실시간 인기글 점수에 0.9를 곱하고, 1점 이하 게시글을 제거합니다.</p>
+     * <p>이벤트 기반 점수 시스템으로 전환됨에 따라 RDB 조회 대신 Redis 점수 감쇠만 수행합니다.</p>
      *
      * @author Jaeik
      * @since 2.0.0
      */
-    @Scheduled(fixedRate = 60000 * 30) // 30분마다
-    @Transactional
-    public void updateRealtimePopularPosts() {
-        processPopularPosts(
-                PostCacheFlag.REALTIME,
-                redisPostSyncPort::findRealtimePopularPosts
-        );
+    @Scheduled(fixedRate = 60000 * 5) // 5분마다
+    public void applyRealtimeScoreDecay() {
+        try {
+            redisPostCommandPort.applyRealtimePopularScoreDecay();
+            log.info("실시간 인기글 점수 지수감쇠 적용 완료 (0.9 곱하기, 1점 이하 제거)");
+        } catch (Exception e) {
+            log.error("실시간 인기글 점수 지수감쇠 적용 실패", e);
+        }
     }
 
     /**
      * <h3>주간 인기 게시글 스케줄링 갱신 및 알림 발행</h3>
      * <p>스프링 스케줄러를 통해 1일마다 주간 인기 게시글을 갱신하고 Redis 캐시에 저장합니다.</p>
      * <p>지난 7일간의 조회수와 좋아요 종합 점수를 기반으로 주간 인기 게시글을 선정합니다.</p>
+     * <p>메모리 효율을 위해 postId 목록만 Redis에 저장하고, 상세 정보는 조회 시 캐시 어사이드 패턴으로 가져옵니다.</p>
      * <p>인기 게시글로 선정된 작성자에게 PostFeaturedEvent를 발행하여 알림을 전송합니다.</p>
      * <p>PostQueryService에서 주간 인기 게시글 조회 시와 Notification 도메인에서 알림 발송 시 사용됩니다.</p>
      *
@@ -67,7 +66,16 @@ public class PostCacheSyncService {
     @Transactional
     public void updateWeeklyPopularPosts() {
         List<PostSearchResult> posts = redisPostSyncPort.findWeeklyPopularPosts();
-        processPopularPosts(PostCacheFlag.WEEKLY, () -> posts);
+        if (posts.isEmpty()) {
+            log.info("WEEKLY에 대한 인기 게시글이 없어 캐시 업데이트를 건너뜁니다.");
+            return;
+        }
+
+        // postId 목록만 캐시 (메모리 효율 향상)
+        redisPostCommandPort.cachePostIds(PostCacheFlag.WEEKLY, posts);
+        log.info("WEEKLY 캐시 업데이트 완료. {}개의 게시글 ID가 처리됨", posts.size());
+
+        // 알림 발행
         publishFeaturedEvent(posts, "주간 인기 게시글로 선정되었어요!", "주간 인기 게시글 선정",
                 "회원님의 게시글 %s 이 주간 인기 게시글로 선정되었습니다.");
     }
@@ -76,6 +84,7 @@ public class PostCacheSyncService {
      * <h3>전설 게시글 스케줄링 갱신 및 명예의 전당 알림 발행</h3>
      * <p>스프링 스케줄러를 통해 1일마다 전설 게시글을 갱신하고 Redis 캐시에 저장합니다.</p>
      * <p>역대 최고 조회수와 좋아요를 기록한 레전드급 게시글을 선정하여 명예의 전당으로 관리합니다.</p>
+     * <p>메모리 효율을 위해 postId 목록만 Redis에 저장하고, 상세 정보는 조회 시 캐시 어사이드 패턴으로 가져옵니다.</p>
      * <p>전설 게시글로 선정된 작성자에게 PostFeaturedEvent를 발행하여 특별한 명예 알림을 전송합니다.</p>
      * <p>PostQueryService에서 전설 게시글 조회 시와 Notification 도메인에서 명예 알림 발송 시 사용됩니다.</p>
      *
@@ -86,32 +95,18 @@ public class PostCacheSyncService {
     @Transactional
     public void updateLegendaryPosts() {
         List<PostSearchResult> posts = redisPostSyncPort.findLegendaryPosts();
-        processPopularPosts(PostCacheFlag.LEGEND, () -> posts);
-        publishFeaturedEvent(posts, "명예의 전당에 등극했어요!", "명예의 전당 등극",
-                "회원님의 게시글 %s 이 명예의 전당에 등극했습니다.");
-    }
-
-    /**
-     * <h3>인기 게시글 처리 공통 로직</h3>
-     * <p>인기 게시글을 찾아 상세 정보를 캐시합니다.</p>
-     * <p>DB 플래그 없이 Redis 캐시만 사용하여 인기글 관리</p>
-     *
-     * @param flag 인기 게시글 유형 플래그
-     * @param postFinder 인기 게시글 목록을 찾는 메서드
-     */
-    private void processPopularPosts(PostCacheFlag flag, Supplier<List<PostSearchResult>> postFinder) {
-        List<PostSearchResult> posts = postFinder.get();
-
         if (posts.isEmpty()) {
-            log.info("{}에 대한 인기 게시글이 없어 캐시 업데이트를 건너뜁니다.", flag.name());
+            log.info("LEGEND에 대한 인기 게시글이 없어 캐시 업데이트를 건너뜁니다.");
             return;
         }
 
-        List<Long> postIds = posts.stream().map(PostSearchResult::getId).collect(Collectors.toList());
-        List<PostDetail> fullPosts = postQueryPort.findPostDetailsByIds(postIds);
+        // postId 목록만 캐시 (메모리 효율 향상)
+        redisPostCommandPort.cachePostIds(PostCacheFlag.LEGEND, posts);
+        log.info("LEGEND 캐시 업데이트 완료. {}개의 게시글 ID가 처리됨", posts.size());
 
-        redisPostCommandPort.cachePostsWithDetails(flag, fullPosts);
-        log.info("{} 캐시 업데이트 완료. {}개의 게시글이 처리됨", flag.name(), fullPosts.size());
+        // 알림 발행
+        publishFeaturedEvent(posts, "명예의 전당에 등극했어요!", "명예의 전당 등극",
+                "회원님의 게시글 %s 이 명예의 전당에 등극했습니다.");
     }
 
     /**

@@ -8,10 +8,12 @@ import jaeik.bimillog.domain.post.application.port.out.PostLikeCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.PostLikeQueryPort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
+import jaeik.bimillog.domain.post.event.PostLikeEvent;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.member.entity.Member;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,6 +43,7 @@ public class PostInteractionService implements PostInteractionUseCase {
     private final PostLikeCommandPort postLikeCommandPort;
     private final PostLikeQueryPort postLikeQueryPort;
     private final GlobalMemberQueryPort globalUserQueryPort;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * <h3>게시글 좋아요 토글 비즈니스 로직 실행</h3>
@@ -72,6 +75,9 @@ public class PostInteractionService implements PostInteractionUseCase {
             PostLike postLike = PostLike.builder().member(member).post(post).build();
             postLikeCommandPort.savePostLike(postLike);
             log.debug("게시글 추천됨: memberId={}, postId={}", memberId, postId);
+
+            // 실시간 인기글 점수 증가 이벤트 발행
+            eventPublisher.publishEvent(new PostLikeEvent(postId));
         }
     }
 

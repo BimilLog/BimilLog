@@ -31,6 +31,7 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
     private final RedisTemplate<String, Object> redisTemplate;
     private final Map<PostCacheFlag, CacheMetadata> cacheMetadataMap;
     private static final String FULL_POST_CACHE_PREFIX = "cache:post:";
+    private static final String REALTIME_POPULAR_SCORE_KEY = "cache:realtime:scores";
 
     /**
      * <h3>RedisCacheAdapter 생성자</h3>
@@ -185,7 +186,34 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
                     .toList();
             
             return new PageImpl<>(pagedPosts, pageable, totalElements);
-            
+
+        } catch (Exception e) {
+            throw new PostCustomException(PostErrorCode.REDIS_READ_ERROR, e);
+        }
+    }
+
+    /**
+     * <h3>실시간 인기글 postId 목록 조회</h3>
+     * <p>Redis Sorted Set에서 점수가 높은 상위 5개의 게시글 ID를 조회합니다.</p>
+     * <p>PostQueryService에서 실시간 인기글 목록 조회 시 호출됩니다.</p>
+     *
+     * @return List&lt;Long&gt; 상위 5개 게시글 ID 목록 (점수 내림차순)
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public List<Long> getRealtimePopularPostIds() {
+        try {
+            // Sorted Set에서 점수 높은 순으로 상위 5개 조회
+            Set<Object> postIds = redisTemplate.opsForZSet().reverseRange(REALTIME_POPULAR_SCORE_KEY, 0, 4);
+            if (postIds == null || postIds.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            return postIds.stream()
+                    .map(Object::toString)
+                    .map(Long::valueOf)
+                    .toList();
         } catch (Exception e) {
             throw new PostCustomException(PostErrorCode.REDIS_READ_ERROR, e);
         }

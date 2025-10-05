@@ -214,8 +214,9 @@ public class PostQueryService implements PostQueryUseCase {
 
     /**
      * <h3>실시간/주간 인기 게시글 일괄 조회</h3>
-     * <p>Redis 캐시에서 실시간과 주간 인기 게시글을 한 번에 조회합니다.</p>
-     * <p>각 타입별로 캐시가 없는 경우 개별적으로 PostCacheSyncService를 통해 DB에서 생성합니다.</p>
+     * <p>실시간 인기글은 Redis Sorted Set에서 postId 목록을 조회하고, 주간 인기글은 캐시를 우선 확인합니다.</p>
+     * <p>실시간 인기글: 이벤트 기반 점수 시스템으로 관리되는 postId 목록 조회 → 상세 캐시 활용</p>
+     * <p>주간 인기글: 캐시가 없는 경우 PostCacheSyncService를 통해 DB에서 생성</p>
      * <p>Frontend에서 홈페이지 로딩 시 두 타입을 동시에 필요로 하는 API용 편의 메서드입니다.</p>
      *
      * @return Redis에서 조회된 실시간/주간 인기 게시글 맵 (key: "realtime"/"weekly", value: 게시글 목록)
@@ -224,16 +225,28 @@ public class PostQueryService implements PostQueryUseCase {
      */
     @Override
     public Map<String, List<PostSearchResult>> getRealtimeAndWeeklyPosts() {
-        // 캐시 상태 확인 및 업데이트
-        if (!redisPostQueryPort.hasPopularPostsCache(PostCacheFlag.REALTIME)) {
-            postCacheSyncService.updateRealtimePopularPosts();
-        }
+        // 실시간 인기글: Redis Sorted Set에서 postId 목록 조회 후 상세 캐시 활용
+        List<Long> realtimePostIds = redisPostQueryPort.getRealtimePopularPostIds();
+        List<PostSearchResult> realtimePosts = realtimePostIds.stream()
+                .map(postId -> {
+                    // 캐시 어사이드 패턴으로 조회 (캐시 미스 시 DB 조회 후 캐시 저장)
+                    PostDetail postDetail = redisPostQueryPort.getCachedPostIfExists(postId);
+                    if (postDetail == null) {
+                        postDetail = postQueryPort.findPostDetail(postId);
+                        if (postDetail != null) {
+                            redisPostCommandPort.cachePostDetail(postDetail);
+                        }
+                    }
+                    return postDetail;
+                })
+                .filter(java.util.Objects::nonNull)
+                .map(PostDetail::toSearchResult)
+                .toList();
+
+        // 주간 인기글: 캐시 없으면 스케줄러 호출, postId 목록 조회 후 상세 캐시 활용
         if (!redisPostQueryPort.hasPopularPostsCache(PostCacheFlag.WEEKLY)) {
             postCacheSyncService.updateWeeklyPopularPosts();
         }
-
-        // 두 타입의 데이터를 한 번에 조회
-        List<PostSearchResult> realtimePosts = redisPostQueryPort.getCachedPostList(PostCacheFlag.REALTIME);
         List<PostSearchResult> weeklyPosts = redisPostQueryPort.getCachedPostList(PostCacheFlag.WEEKLY);
 
         return Map.of(

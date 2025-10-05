@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.post.application.port.out;
 
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
+import jaeik.bimillog.domain.post.entity.PostSearchResult;
 
 import java.util.List;
 
@@ -28,6 +29,19 @@ public interface RedisPostCommandPort {
      * @since 2.0.0
      */
     void cachePostsWithDetails(PostCacheFlag type, List<PostDetail> fullPosts);
+
+    /**
+     * <h3>인기글 postId 목록만 캐싱</h3>
+     * <p>인기글 postId 목록만 Redis Sorted Set에 저장합니다 (상세 정보는 저장하지 않음).</p>
+     * <p>조회 시 postId를 활용하여 캐시 어사이드 패턴으로 PostDetail을 조회하여 메모리 효율을 높입니다.</p>
+     * <p>PostCacheSyncService에서 주간/레전드 인기글 업데이트 시 호출됩니다.</p>
+     *
+     * @param type 캐시할 인기글 유형 (WEEKLY, LEGEND만 사용)
+     * @param posts 인기글 목록 (postId와 likeCount 포함)
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    void cachePostIds(PostCacheFlag type, List<PostSearchResult> posts);
 
     /**
      * <h3>캐시 데이터 선택적 삭제</h3>
@@ -65,5 +79,27 @@ public interface RedisPostCommandPort {
      * @since 2.0.0
      */
     void deleteSinglePostCache(Long postId);
+
+    /**
+     * <h3>실시간 인기글 점수 증가</h3>
+     * <p>Redis Sorted Set에서 특정 게시글의 점수를 증가시킵니다.</p>
+     * <p>이벤트 리스너에서 조회/댓글/추천 이벤트 발생 시 호출됩니다.</p>
+     *
+     * @param postId 점수를 증가시킬 게시글 ID
+     * @param score 증가시킬 점수 (조회: 2점, 댓글: 3점, 추천: 4점)
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    void incrementRealtimePopularScore(Long postId, double score);
+
+    /**
+     * <h3>실시간 인기글 전체 점수 지수감쇠 적용</h3>
+     * <p>Redis Sorted Set의 모든 게시글 점수에 0.9를 곱하고, 임계값(1점) 이하의 게시글을 제거합니다.</p>
+     * <p>PostCacheSyncService 스케줄러에서 5분마다 호출됩니다.</p>
+     *
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    void applyRealtimePopularScoreDecay();
 
 }
