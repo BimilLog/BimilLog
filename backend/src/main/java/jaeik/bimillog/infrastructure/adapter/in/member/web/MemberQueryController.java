@@ -60,10 +60,6 @@ public class MemberQueryController {
         return ResponseEntity.ok(SettingDTO.fromSetting(setting));
     }
 
-
-
-
-
     /**
      * <h3>카카오 친구 목록 조회 API</h3>
      * <p>현재 로그인한 사용자의 카카오 친구 목록을 조회하고 비밀로그 가입 여부를 포함하여 반환합니다.</p>

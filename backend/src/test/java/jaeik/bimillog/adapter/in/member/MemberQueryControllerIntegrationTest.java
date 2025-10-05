@@ -58,7 +58,7 @@ class MemberQueryControllerIntegrationTest extends BaseIntegrationTest {
     void checkUserName_Duplicate_IntegrationTest() throws Exception {
         // Given - 기존 사용자 생성 및 저장
         Member existingMember = TestMembers.createUnique();
-        userRepository.save(existingMember);
+        saveMember(existingMember);
 
         // When & Then
         mockMvc.perform(get("/api/member/username/check")
