@@ -18,8 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * <h2>사용자 조회 컨트롤러</h2>
  * <p>사용자 관련 조회 REST API 요청을 처리하는 인바운드 어댑터입니다.</p>
- * <p>닉네임 중복 확인, 사용자 설정 조회, 사용자 활동 조회</p>
- * <p>카카오 친구 목록 조회, 게시글 및 댓글 조회</p>
+ * <p>닉네임 중복 확인, 사용자 설정 조회, 카카오 친구 목록 조회</p>
  *
  * @author Jaeik
  * @version 2.0.0

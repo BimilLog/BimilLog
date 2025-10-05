@@ -99,7 +99,7 @@ class CommentQueryControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("인기댓글 조회 통합 테스트")
     void getPopularComments_IntegrationTest() throws Exception {
         // Given - testUserDetails는 BaseIntegrationTest에서 이미 생성됨
-        
+
         // When & Then
         mockMvc.perform(get("/api/comment/{postId}/popular", testPost.getId())
                 .with(user(testUserDetails)))
@@ -107,5 +107,33 @@ class CommentQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
         // 추천 로직은 별도 CommentLike 엔티티로 관리되므로 실제 추천이 없으면 빈 배열 반환이 정상
+    }
+
+    @Test
+    @DisplayName("사용자 작성 댓글 목록 조회 - 성공")
+    void getUserComments_Success() throws Exception {
+        mockMvc.perform(get("/api/comment/me")
+                        .param("page", "0")
+                        .param("size", "10")
+                        .with(user(testUserDetails)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.totalElements").isNumber())
+                .andExpect(jsonPath("$.totalPages").isNumber());
+    }
+
+    @Test
+    @DisplayName("사용자 추천 댓글 목록 조회 - 성공")
+    void getUserLikedComments_Success() throws Exception {
+        mockMvc.perform(get("/api/comment/me/liked")
+                        .param("page", "0")
+                        .param("size", "10")
+                        .with(user(testUserDetails)))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.totalElements").isNumber())
+                .andExpect(jsonPath("$.totalPages").isNumber());
     }
 }

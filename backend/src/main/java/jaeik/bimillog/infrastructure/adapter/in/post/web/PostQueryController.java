@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
 /**
  * <h2>게시글 조회 컨트롤러</h2>
  * <p>Post 도메인의 조회(Query) 관련 REST API 엔드포인트를 제공하는 웹 어댑터입니다.</p>
- * <p>게시글 목록 조회, 상세 조회, 검색 API 제공</p>
+ * <p>게시글 목록 조회, 상세 조회, 검색, 사용자 작성 게시글, 사용자 추천 게시글 API 제공</p>
  * <p>조회수 증가는 이벤트 기반으로 비동기 처리</p>
  *
  * @author Jaeik
@@ -155,7 +155,7 @@ public class PostQueryController {
      * @since 2.0.0
      * @author Jaeik
      */
-    @GetMapping("/liked")
+    @GetMapping("/me/liked")
     public ResponseEntity<Page<SimplePostDTO>> getUserLikedPosts(@RequestParam int page,
                                                                  @RequestParam int size,
                                                                  @AuthenticationPrincipal CustomUserDetails userDetails) {

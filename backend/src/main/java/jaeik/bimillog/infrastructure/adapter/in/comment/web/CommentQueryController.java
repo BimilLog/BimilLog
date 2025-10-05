@@ -27,7 +27,7 @@ import java.util.List;
  * CQRS 패턴에서 Query 책임을 담당하며 읽기 전용 최적화된 응답을 제공합니다.
  * </p>
  * <p>
- * 처리하는 HTTP 요청: GET /api/comment/{postId}, /api/comment/{postId}/popular
+ * 처리하는 HTTP 요청: GET /api/comment/{postId}, /api/comment/{postId}/popular, /api/comment/me, /api/comment/me/liked
  * </p>
  *
  * @author Jaeik
@@ -120,7 +120,7 @@ public class CommentQueryController {
      * @since 2.0.0
      * @author Jaeik
      */
-    @GetMapping("/liked")
+    @GetMapping("/me/liked")
     public ResponseEntity<Page<SimpleCommentDTO>> getUserLikedComments(@RequestParam int page,
                                                                        @RequestParam int size,
                                                                        @AuthenticationPrincipal CustomUserDetails userDetails) {

@@ -14,14 +14,14 @@ export const userQuery = {
     apiClient.get<KakaoFriendList>(`/api/member/friendlist?offset=${offset}&limit=${limit}`),
 
   getUserPosts: (page = 0, size = 10) =>
-    apiClient.get<PageResponse<SimplePost>>(`/api/member/posts?page=${page}&size=${size}`),
+    apiClient.get<PageResponse<SimplePost>>(`/api/post/me?page=${page}&size=${size}`),
 
   getUserComments: (page = 0, size = 10) =>
-    apiClient.get<PageResponse<SimpleComment>>(`/api/member/comments?page=${page}&size=${size}`),
+    apiClient.get<PageResponse<SimpleComment>>(`/api/comment/me?page=${page}&size=${size}`),
 
   getUserLikedPosts: (page = 0, size = 10) =>
-    apiClient.get<PageResponse<SimplePost>>(`/api/member/likeposts?page=${page}&size=${size}`),
+    apiClient.get<PageResponse<SimplePost>>(`/api/post/me/liked?page=${page}&size=${size}`),
 
   getUserLikedComments: (page = 0, size = 10) =>
-    apiClient.get<PageResponse<SimpleComment>>(`/api/member/likecomments?page=${page}&size=${size}`),
+    apiClient.get<PageResponse<SimpleComment>>(`/api/comment/me/liked?page=${page}&size=${size}`),
 }
