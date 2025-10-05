@@ -17,7 +17,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -118,6 +120,48 @@ public class PostQueryController {
                                                           Pageable pageable) {
         Page<PostSearchResult> postList = postQueryUseCase.searchPost(searchDTO.getType(), searchDTO.getTrimmedQuery(), pageable);
         Page<SimplePostDTO> dtoList = postList.map(postResponseMapper::convertToSimplePostResDTO);
+        return ResponseEntity.ok(dtoList);
+    }
+
+    /**
+     * <h3>사용자가 작성한 게시글 목록 조회 API</h3>
+     * <p>현재 로그인한 사용자가 작성한 게시글 목록을 페이지네이션으로 조회합니다.</p>
+     *
+     * @param page        페이지 번호
+     * @param size        페이지 크기
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @return 작성 게시글 목록 페이지
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    @GetMapping("/me")
+    public ResponseEntity<Page<SimplePostDTO>> getUserPosts(@RequestParam int page,
+                                                            @RequestParam int size,
+                                                            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<PostSearchResult> postList = postQueryUseCase.getMemberPosts(userDetails.getMemberId(), pageable);
+        Page<SimplePostDTO> dtoList = postList.map(postResponseMapper::convertToSimplePostResDTO);
+        return ResponseEntity.ok(dtoList);
+    }
+
+    /**
+     * <h3>사용자가 추천한 게시글 목록 조회 API</h3>
+     * <p>현재 로그인한 사용자가 추천한 게시글 목록을 페이지네이션으로 조회합니다.</p>
+     *
+     * @param page        페이지 번호
+     * @param size        페이지 크기
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @return 추천한 게시글 목록 페이지
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    @GetMapping("/liked")
+    public ResponseEntity<Page<SimplePostDTO>> getUserLikedPosts(@RequestParam int page,
+                                                                 @RequestParam int size,
+                                                                 @AuthenticationPrincipal CustomUserDetails userDetails) {
+        PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<PostSearchResult> likedPosts = postQueryUseCase.getMemberLikedPosts(userDetails.getMemberId(), pageable);
+        Page<SimplePostDTO> dtoList = likedPosts.map(postResponseMapper::convertToSimplePostResDTO);
         return ResponseEntity.ok(dtoList);
     }
 

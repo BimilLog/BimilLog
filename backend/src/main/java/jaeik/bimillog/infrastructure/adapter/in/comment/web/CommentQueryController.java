@@ -2,11 +2,15 @@ package jaeik.bimillog.infrastructure.adapter.in.comment.web;
 
 import jaeik.bimillog.domain.comment.application.port.in.CommentQueryUseCase;
 import jaeik.bimillog.domain.comment.entity.CommentInfo;
+import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
 import jaeik.bimillog.infrastructure.adapter.in.comment.dto.CommentDTO;
+import jaeik.bimillog.infrastructure.adapter.in.comment.dto.SimpleCommentDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -40,7 +44,6 @@ public class CommentQueryController {
      * <h3>댓글 조회 API</h3>
      * <p>클라이언트에서 전송한 댓글 목록 조회 GET 요청을 처리합니다.</p>
      * <p>지정된 게시글의 모든 댓글을 오래된 순서로 정렬하여 페이지별로 반환합니다.</p>
-     * <p>계층형 구조를 유지하며, 대댓글들을 부모 댓글 하위에 올바른 순서로 정렬하여 제공합니다.</p>
      * <p>프론트엔드의 댓글 섹션에서 호출되며, 사용자의 좋아요 상태와 인기 댓글 여부를 포함한 데이터를 반환합니다.</p>
      *
      * @param userDetails 현재 로그인한 사용자 정보 (좋아요 상태 확인용, 선택사항)
@@ -86,6 +89,48 @@ public class CommentQueryController {
     }
 
     /**
+     * <h3>사용자가 작성한 댓글 목록 조회 API</h3>
+     * <p>현재 로그인한 사용자가 작성한 댓글 목록을 페이지네이션으로 조회합니다.</p>
+     *
+     * @param page        페이지 번호
+     * @param size        페이지 크기
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @return 작성 댓글 목록 페이지
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    @GetMapping("/me")
+    public ResponseEntity<Page<SimpleCommentDTO>> getUserComments(@RequestParam int page,
+                                                                  @RequestParam int size,
+                                                                  @AuthenticationPrincipal CustomUserDetails userDetails) {
+        PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<SimpleCommentInfo> commentInfoList = commentQueryUseCase.getMemberComments(userDetails.getMemberId(), pageable);
+        Page<SimpleCommentDTO> commentList = commentInfoList.map(this::convertToSimpleCommentDTO);
+        return ResponseEntity.ok(commentList);
+    }
+
+    /**
+     * <h3>사용자가 추천한 댓글 목록 조회 API</h3>
+     * <p>현재 로그인한 사용자가 추천한 댓글 목록을 페이지네이션으로 조회합니다.</p>
+     *
+     * @param page        페이지 번호
+     * @param size        페이지 크기
+     * @param userDetails 현재 로그인한 사용자 정보
+     * @return 추천한 댓글 목록 페이지
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    @GetMapping("/liked")
+    public ResponseEntity<Page<SimpleCommentDTO>> getUserLikedComments(@RequestParam int page,
+                                                                       @RequestParam int size,
+                                                                       @AuthenticationPrincipal CustomUserDetails userDetails) {
+        PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<SimpleCommentInfo> likedCommentsInfo = commentQueryUseCase.getMemberLikedComments(userDetails.getMemberId(), pageable);
+        Page<SimpleCommentDTO> likedComments = likedCommentsInfo.map(this::convertToSimpleCommentDTO);
+        return ResponseEntity.ok(likedComments);
+    }
+
+    /**
      * <h3>도메인 객체를 DTO로 변환</h3>
      * <p>도메인 계층의 CommentInfo를 웹 계층의 CommentDTO로 변환합니다.</p>
      * <p>도메인과 인프라스트럭처 간 의존성을 분리하기 위한 변환 로직입니다.</p>
@@ -112,5 +157,25 @@ public class CommentQueryController {
         commentDTO.setPopular(commentInfo.isPopular());
         commentDTO.setUserLike(commentInfo.isUserLike());
         return commentDTO;
+    }
+
+    /**
+     * <h3>SimpleCommentInfo를 SimpleCommentDTO로 변환</h3>
+     *
+     * @param commentInfo 변환할 도메인 객체
+     * @return SimpleCommentDTO 응답 DTO
+     * @author jaeik
+     * @since 2.0.0
+     */
+    public SimpleCommentDTO convertToSimpleCommentDTO(SimpleCommentInfo commentInfo) {
+        return new SimpleCommentDTO(
+                commentInfo.getId(),
+                commentInfo.getPostId(),
+                commentInfo.getMemberName(),
+                commentInfo.getContent(),
+                commentInfo.getCreatedAt(),
+                commentInfo.getLikeCount(),
+                commentInfo.isUserLike()
+        );
     }
 }

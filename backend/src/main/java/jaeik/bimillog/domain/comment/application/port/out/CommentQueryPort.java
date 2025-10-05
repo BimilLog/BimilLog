@@ -6,7 +6,6 @@ import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentInfo;
 import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
 import jaeik.bimillog.domain.post.application.service.PostQueryService;
-import jaeik.bimillog.infrastructure.adapter.out.member.MemberActivityAdapter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

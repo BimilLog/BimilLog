@@ -1,22 +1,13 @@
 package jaeik.bimillog.infrastructure.adapter.in.member.web;
 
-import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
-import jaeik.bimillog.domain.member.application.port.in.MemberActivityUseCase;
 import jaeik.bimillog.domain.member.application.port.in.MemberFriendUseCase;
-import jaeik.bimillog.domain.member.entity.KakaoFriends;
-import jaeik.bimillog.domain.post.entity.PostSearchResult;
 import jaeik.bimillog.domain.member.application.port.in.MemberQueryUseCase;
+import jaeik.bimillog.domain.member.entity.KakaoFriends;
 import jaeik.bimillog.domain.member.entity.Setting;
-import jaeik.bimillog.infrastructure.adapter.in.comment.dto.SimpleCommentDTO;
-import jaeik.bimillog.infrastructure.adapter.in.post.dto.SimplePostDTO;
-import jaeik.bimillog.infrastructure.adapter.in.post.web.PostResponseMapper;
 import jaeik.bimillog.infrastructure.adapter.in.member.dto.SettingDTO;
 import jaeik.bimillog.infrastructure.adapter.out.api.dto.KakaoFriendsDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,9 +30,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class MemberQueryController {
 
     private final MemberQueryUseCase memberQueryUseCase;
-    private final MemberActivityUseCase memberActivityUseCase;
     private final MemberFriendUseCase memberFriendUseCase;
-    private final PostResponseMapper postResponseMapper;
 
     /**
      * <h3>닉네임 중복 확인 API</h3>
@@ -72,89 +61,9 @@ public class MemberQueryController {
         return ResponseEntity.ok(SettingDTO.fromSetting(setting));
     }
 
-    /**
-     * <h3>사용자가 작성한 게시글 목록 조회 API</h3>
-     * <p>현재 로그인한 사용자가 작성한 게시글 목록을 페이지네이션으로 조회합니다.</p>
-     *
-     * @param page        페이지 번호
-     * @param size        페이지 크기  
-     * @param userDetails 현재 로그인한 사용자 정보
-     * @return 작성 게시글 목록 페이지
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    @GetMapping("/posts")
-    public ResponseEntity<Page<SimplePostDTO>> getUserPosts(@RequestParam int page,
-                                                            @RequestParam int size,
-                                                            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<PostSearchResult> postList = memberActivityUseCase.getMemberPosts(userDetails.getMemberId(), pageable);
-        Page<SimplePostDTO> dtoList = postList.map(postResponseMapper::convertToSimplePostResDTO);
-        return ResponseEntity.ok(dtoList);
-    }
 
-    /**
-     * <h3>사용자가 추천한 게시글 목록 조회 API</h3>
-     * <p>현재 로그인한 사용자가 추천한 게시글 목록을 페이지네이션으로 조회합니다.</p>
-     *
-     * @param page        페이지 번호
-     * @param size        페이지 크기
-     * @param userDetails 현재 로그인한 사용자 정보
-     * @return 추천한 게시글 목록 페이지
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    @GetMapping("/likeposts")
-    public ResponseEntity<Page<SimplePostDTO>> getUserLikedPosts(@RequestParam int page,
-                                                                 @RequestParam int size,
-                                                                 @AuthenticationPrincipal CustomUserDetails userDetails) {
-        PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<PostSearchResult> likedPosts = memberActivityUseCase.getMemberLikedPosts(userDetails.getMemberId(), pageable);
-        Page<SimplePostDTO> dtoList = likedPosts.map(postResponseMapper::convertToSimplePostResDTO);
-        return ResponseEntity.ok(dtoList);
-    }
 
-    /**
-     * <h3>사용자가 작성한 댓글 목록 조회 API</h3>
-     * <p>현재 로그인한 사용자가 작성한 댓글 목록을 페이지네이션으로 조회합니다.</p>
-     *
-     * @param page        페이지 번호
-     * @param size        페이지 크기
-     * @param userDetails 현재 로그인한 사용자 정보
-     * @return 작성 댓글 목록 페이지
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    @GetMapping("/comments")
-    public ResponseEntity<Page<SimpleCommentDTO>> getUserComments(@RequestParam int page,
-                                                                 @RequestParam int size,
-                                                                 @AuthenticationPrincipal CustomUserDetails userDetails) {
-        PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<SimpleCommentInfo> commentInfoList = memberActivityUseCase.getMemberComments(userDetails.getMemberId(), pageable);
-        Page<SimpleCommentDTO> commentList = commentInfoList.map(this::convertToSimpleCommentDTO);
-        return ResponseEntity.ok(commentList);
-    }
 
-    /**
-     * <h3>사용자가 추천한 댓글 목록 조회 API</h3>
-     * <p>현재 로그인한 사용자가 추천한 댓글 목록을 페이지네이션으로 조회합니다.</p>
-     *
-     * @param page        페이지 번호
-     * @param size        페이지 크기
-     * @param userDetails 현재 로그인한 사용자 정보
-     * @return 추천한 댓글 목록 페이지
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    @GetMapping("/likecomments")
-    public ResponseEntity<Page<SimpleCommentDTO>> getUserLikedComments(@RequestParam int page,
-                                                                      @RequestParam int size,
-                                                                      @AuthenticationPrincipal CustomUserDetails userDetails) {
-        PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<SimpleCommentInfo> likedCommentsInfo = memberActivityUseCase.getMemberLikedComments(userDetails.getMemberId(), pageable);
-        Page<SimpleCommentDTO> likedComments = likedCommentsInfo.map(this::convertToSimpleCommentDTO);
-        return ResponseEntity.ok(likedComments);
-    }
 
     /**
      * <h3>카카오 친구 목록 조회 API</h3>
@@ -181,25 +90,5 @@ public class MemberQueryController {
         
         KakaoFriendsDTO friendsResponse = KakaoFriendsDTO.fromVO(friendsResponseVO);
         return ResponseEntity.ok(friendsResponse);
-    }
-
-    /**
-     * <h3>SimpleCommentInfo를 SimpleCommentDTO로 변환</h3>
-     *
-     * @param commentInfo 변환할 도메인 객체
-     * @return SimpleCommentDTO 응답 DTO
-     * @author jaeik
-     * @since 2.0.0
-     */
-    public SimpleCommentDTO convertToSimpleCommentDTO(SimpleCommentInfo commentInfo) {
-        return new SimpleCommentDTO(
-                commentInfo.getId(),
-                commentInfo.getPostId(),
-                commentInfo.getMemberName(),
-                commentInfo.getContent(),
-                commentInfo.getCreatedAt(),
-                commentInfo.getLikeCount(),
-                commentInfo.isUserLike()
-        );
     }
 }
