@@ -44,10 +44,10 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
     public RedisPostQueryAdapter(RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
         this.cacheMetadataMap = new EnumMap<>(PostCacheFlag.class);
-        cacheMetadataMap.put(PostCacheFlag.REALTIME, new CacheMetadata("cache:posts:realtime", Duration.ofMinutes(30)));
-        cacheMetadataMap.put(PostCacheFlag.WEEKLY, new CacheMetadata("cache:posts:weekly", Duration.ofDays(1)));
-        cacheMetadataMap.put(PostCacheFlag.LEGEND, new CacheMetadata("cache:posts:legend", Duration.ofDays(1)));
-        cacheMetadataMap.put(PostCacheFlag.NOTICE, new CacheMetadata("cache:posts:notice", Duration.ofDays(7)));
+        cacheMetadataMap.put(PostCacheFlag.REALTIME, new CacheMetadata("cache:posts:realtime", Duration.ofMinutes(5)));
+        cacheMetadataMap.put(PostCacheFlag.WEEKLY, new CacheMetadata("cache:posts:weekly", Duration.ofMinutes(5)));
+        cacheMetadataMap.put(PostCacheFlag.LEGEND, new CacheMetadata("cache:posts:legend", Duration.ofMinutes(5)));
+        cacheMetadataMap.put(PostCacheFlag.NOTICE, new CacheMetadata("cache:posts:notice", Duration.ofMinutes(5)));
     }
 
     private record CacheMetadata(String key, Duration ttl) {}

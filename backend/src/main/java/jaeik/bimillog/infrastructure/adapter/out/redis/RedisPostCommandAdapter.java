@@ -1,6 +1,5 @@
 package jaeik.bimillog.infrastructure.adapter.out.redis;
 
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
@@ -39,8 +38,6 @@ public class RedisPostCommandAdapter implements RedisPostCommandPort {
     private static final String REALTIME_POPULAR_SCORE_KEY = "cache:realtime:scores";
     private static final double SCORE_DECAY_RATE = 0.9;
     private static final double SCORE_THRESHOLD = 1.0;
-
-    private final JPAQueryFactory jpaQueryFactory;
 
     private static Map<PostCacheFlag, CacheMetadata> initializeCacheMetadata() {
         Map<PostCacheFlag, CacheMetadata> map = new EnumMap<>(PostCacheFlag.class);

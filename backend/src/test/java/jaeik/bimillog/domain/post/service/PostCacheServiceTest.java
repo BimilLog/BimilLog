@@ -61,9 +61,9 @@ class PostCacheServiceTest {
         // When
         postCacheService.syncNoticeCache(postId, true);
 
-        // Then
-        verify(redisPostCommandPort).cachePostsWithDetails(eq(PostCacheFlag.NOTICE), argThat(details ->
-                details.size() == 1 && detail.equals(details.get(0))
+        // Then (주간/레전드와 동일하게 postId만 저장)
+        verify(redisPostCommandPort).cachePostIds(eq(PostCacheFlag.NOTICE), argThat(searchResults ->
+                searchResults.size() == 1 && searchResults.get(0).getId().equals(postId)
         ));
     }
 
@@ -79,7 +79,7 @@ class PostCacheServiceTest {
 
         // Then
         verify(postQueryPort).findPostDetail(postId);
-        verify(redisPostCommandPort, never()).cachePostsWithDetails(any(), any());
+        verify(redisPostCommandPort, never()).cachePostIds(any(), any());
     }
 
     @Test

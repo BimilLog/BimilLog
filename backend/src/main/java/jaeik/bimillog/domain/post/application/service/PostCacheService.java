@@ -55,8 +55,9 @@ public class PostCacheService implements PostCacheUseCase {
 
     /**
      * <h3>공지사항 캐시 추가 로직</h3>
-     * <p>DB에서 게시글 상세 정보를 조회하여 Redis 공지사항 캐시에 추가합니다.</p>
-     * <p>PostCacheSyncPort를 통해 완전한 게시글 정보를 조회한 후 캐시에 저장하여 빠른 조회를 지원합니다.</p>
+     * <p>DB에서 게시글 정보를 조회하여 Redis 공지사항 캐시에 postId만 추가합니다.</p>
+     * <p>주간/레전드 인기글과 동일한 캐싱 전략으로 메모리 효율성을 높입니다.</p>
+     * <p>상세 정보는 조회 시 캐시 어사이드 패턴으로 처리됩니다.</p>
      * <p>syncNoticeCache 메서드에서 공지사항 설정 시 호출됩니다.</p>
      *
      * @param postId 캐시에 추가할 게시글 ID
@@ -66,11 +67,11 @@ public class PostCacheService implements PostCacheUseCase {
     private void addNoticeToCache(Long postId) {
         log.info("공지사항 캐시 추가 시작: postId={}", postId);
 
-        // 게시글 상세 정보를 DB에서 조회
+        // 게시글 정보를 DB에서 조회 (PostSearchResult로 조회)
         PostDetail postDetail = postQueryPort.findPostDetail(postId);
         if (postDetail != null) {
-            // 단건을 리스트로 감싸서 캐시에 추가
-            redisPostCommandPort.cachePostsWithDetails(PostCacheFlag.NOTICE, List.of(postDetail));
+            // postId만 캐시에 추가 (주간/레전드와 동일한 방식)
+            redisPostCommandPort.cachePostIds(PostCacheFlag.NOTICE, List.of(postDetail.toSearchResult()));
             log.info("공지사항 캐시 추가 완료: postId={}", postId);
         } else {
             log.warn("공지사항 캐시 추가 실패 - 게시글을 찾을 수 없음: postId={}", postId);
