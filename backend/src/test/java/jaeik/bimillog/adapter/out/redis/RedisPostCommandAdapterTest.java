@@ -68,7 +68,6 @@ class RedisPostCommandAdapterTest extends BaseUnitTest {
                 .likeCount(50)
                 .commentCount(10)
                 .isLiked(false)
-                .postCacheFlag(PostCacheFlag.REALTIME)
                 .createdAt(java.time.Instant.now())
                 .memberId(1L)
                 .memberName("testMember")
@@ -90,27 +89,10 @@ class RedisPostCommandAdapterTest extends BaseUnitTest {
 
         // Then
         verify(zSetOperations).add(eq(RedisTestHelper.RedisKeys.postList(cacheType)), eq("1"), eq(50.0));
-        verify(redisTemplate).expire(eq(RedisTestHelper.RedisKeys.postList(cacheType)), eq(Duration.ofMinutes(30)));
-        verify(valueOperations).set(eq(RedisTestHelper.RedisKeys.postDetail(1L)), eq(testPostDetail), eq(Duration.ofDays(1)));
+        verify(redisTemplate).expire(eq(RedisTestHelper.RedisKeys.postList(cacheType)), eq(Duration.ofMinutes(5)));
+        verify(valueOperations).set(eq(RedisTestHelper.RedisKeys.postDetail(1L)), eq(testPostDetail), eq(Duration.ofMinutes(5)));
     }
 
-    @Test
-    @DisplayName("정상 케이스 - 인기 게시글 플래그 적용")
-    void shouldApplyPopularFlag_WhenValidPostIdsProvided() {
-        // Given
-        List<Long> postIds = List.of(1L, 2L);
-        PostCacheFlag cacheFlag = PostCacheFlag.REALTIME;
-        
-        JPAUpdateClause updateClause = RedisTestHelper.setupJpaUpdateClauseMock(jpaQueryFactory, 2L);
-
-        // When
-        redisPostCommandAdapter.applyPopularFlag(postIds, cacheFlag);
-
-        // Then
-        verify(jpaQueryFactory).update(any());
-        verify(updateClause).set(any(Path.class), eq(cacheFlag));
-        verify(updateClause).execute();
-    }
 
     @Test
     @DisplayName("정상 케이스 - 캐시 삭제")

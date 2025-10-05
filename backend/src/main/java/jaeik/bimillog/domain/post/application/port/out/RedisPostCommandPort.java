@@ -45,26 +45,25 @@ public interface RedisPostCommandPort {
     void deleteCache(PostCacheFlag type, Long postId, PostCacheFlag... targetTypes);
 
     /**
-     * <h3>게시글 인기 레벨 플래그 일괄 설정</h3>
-     * <p>지정된 게시글 ID 목록에 특정 인기 레벨 플래그를 일괄 설정합니다.</p>
-     * <p>PostScheduler에서 인기글 계산 완료 후 인기 레벨 플래그 일괄 설정 시 호출됩니다.</p>
+     * <h3>단일 게시글 상세 정보 캐싱</h3>
+     * <p>게시글 상세 정보를 Redis 캐시에 저장합니다.</p>
+     * <p>PostQueryService에서 캐시 어사이드 패턴으로 DB 조회 후 캐시 저장 시 호출됩니다.</p>
      *
-     * @param postIds 인기 플래그를 적용할 게시글 ID 목록
-     * @param postCacheFlag 설정할 인기 레벨 플래그 (예: REALTIME, WEEKLY, LEGEND)
+     * @param postDetail 캐시할 게시글 상세 정보
      * @author Jaeik
      * @since 2.0.0
      */
-    void applyPopularFlag(List<Long> postIds, PostCacheFlag postCacheFlag);
+    void cachePostDetail(PostDetail postDetail);
 
     /**
-     * <h3>인기 레벨 플래그 전체 초기화</h3>
-     * <p>지정된 인기 레벨에 해당하는 모든 게시글의 플래그를 일괄 초기화합니다.</p>
-     * <p>PostScheduler에서 인기글 계산 시작 전 기존 플래그 정리를 위해 호출됩니다.</p>
+     * <h3>단일 게시글 캐시 무효화</h3>
+     * <p>특정 게시글의 캐시 데이터를 Redis에서 삭제합니다.</p>
+     * <p>PostCommandService에서 라이트 어라운드 패턴으로 게시글 수정/삭제 시 호출됩니다.</p>
      *
-     * @param postCacheFlag 초기화할 인기 레벨 플래그
+     * @param postId 캐시를 삭제할 게시글 ID
      * @author Jaeik
      * @since 2.0.0
      */
-    void resetPopularFlag(PostCacheFlag postCacheFlag);
+    void deleteSinglePostCache(Long postId);
 
 }

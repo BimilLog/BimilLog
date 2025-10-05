@@ -101,7 +101,6 @@ class RedisPostSyncAdapterIntegrationTest {
                 .views(views)
                 .isNotice(false)
                 .password(1234)
-                .postCacheFlag(flag)
                 .createdAt(createdAt)
                 .modifiedAt(Instant.now())
                 .build();

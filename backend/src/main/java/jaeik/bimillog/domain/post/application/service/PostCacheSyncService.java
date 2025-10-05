@@ -93,13 +93,13 @@ public class PostCacheSyncService {
 
     /**
      * <h3>인기 게시글 처리 공통 로직</h3>
-     * <p>인기 게시글을 찾아 플래그를 적용하고, 상세 정보를 캐시합니다.</p>
+     * <p>인기 게시글을 찾아 상세 정보를 캐시합니다.</p>
+     * <p>DB 플래그 없이 Redis 캐시만 사용하여 인기글 관리</p>
      *
      * @param flag 인기 게시글 유형 플래그
      * @param postFinder 인기 게시글 목록을 찾는 메서드
      */
     private void processPopularPosts(PostCacheFlag flag, Supplier<List<PostSearchResult>> postFinder) {
-        redisPostCommandPort.resetPopularFlag(flag);
         List<PostSearchResult> posts = postFinder.get();
 
         if (posts.isEmpty()) {
@@ -108,8 +108,6 @@ public class PostCacheSyncService {
         }
 
         List<Long> postIds = posts.stream().map(PostSearchResult::getId).collect(Collectors.toList());
-        redisPostCommandPort.applyPopularFlag(postIds, flag);
-
         List<PostDetail> fullPosts = postQueryPort.findPostDetailsByIds(postIds);
 
         redisPostCommandPort.cachePostsWithDetails(flag, fullPosts);

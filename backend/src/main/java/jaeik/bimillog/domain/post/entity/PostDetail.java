@@ -19,7 +19,6 @@ import java.time.Instant;
  * @param content 게시글 내용
  * @param viewCount 조회수
  * @param likeCount 추천수
- * @param postCacheFlag 캐시 플래그 (인기글 분류)
  * @param createdAt 작성일시
  * @param memberId 작성자 ID
  * @param memberName 작성자 이름
@@ -35,7 +34,6 @@ public record PostDetail(
         String content,
         Integer viewCount,
         Integer likeCount,
-        PostCacheFlag postCacheFlag,
         Instant createdAt,
         Long memberId,
         String memberName,
@@ -73,7 +71,6 @@ public record PostDetail(
                 .content(post.getContent())
                 .viewCount(post.getViews())
                 .likeCount(likeCount)
-                .postCacheFlag(post.getPostCacheFlag())
                 .createdAt(post.getCreatedAt())
                 .memberId(post.getMember().getId())
                 .memberName(post.getMember().getMemberName())
@@ -133,7 +130,6 @@ public record PostDetail(
                 .content(this.content)
                 .viewCount(this.viewCount)
                 .likeCount(this.likeCount)
-                .postCacheFlag(this.postCacheFlag)
                 .createdAt(this.createdAt)
                 .memberId(this.memberId)
                 .memberName(this.memberName)

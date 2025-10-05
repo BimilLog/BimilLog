@@ -105,7 +105,7 @@ class PostCommandServiceTest extends BaseUnitTest {
         verify(globalPostQueryPort, times(1)).findById(postId);
         verify(existingPost, times(1)).isAuthor(memberId);
         verify(existingPost, times(1)).updatePost("수정된 제목", "수정된 내용");
-        verify(redisPostCommandPort, times(1)).deleteCache(null, postId);
+        verify(redisPostCommandPort, times(1)).deleteSinglePostCache(postId);
         verifyNoMoreInteractions(globalPostQueryPort, postCommandPort, redisPostCommandPort);
     }
 
@@ -124,7 +124,7 @@ class PostCommandServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.POST_NOT_FOUND);
 
         verify(globalPostQueryPort, times(1)).findById(postId);
-        verify(redisPostCommandPort, never()).deleteCache(any(), any());
+        verify(redisPostCommandPort, never()).deleteSinglePostCache(any());
     }
 
     @Test
@@ -147,7 +147,7 @@ class PostCommandServiceTest extends BaseUnitTest {
         verify(globalPostQueryPort, times(1)).findById(postId);
         verify(otherUserPost, times(1)).isAuthor(memberId);
         verify(otherUserPost, never()).updatePost(anyString(), anyString());
-        verify(redisPostCommandPort, never()).deleteCache(any(), any());
+        verify(redisPostCommandPort, never()).deleteSinglePostCache(any());
     }
 
     @Test
@@ -172,7 +172,7 @@ class PostCommandServiceTest extends BaseUnitTest {
         verify(postToDelete, times(1)).isAuthor(memberId);
         // CASCADE로 Comment와 PostLike 자동 삭제되므로 명시적 호출 없음
         verify(postCommandPort, times(1)).delete(postToDelete);
-        verify(redisPostCommandPort, times(1)).deleteCache(null, postId);
+        verify(redisPostCommandPort, times(1)).deleteSinglePostCache(postId);
         verifyNoMoreInteractions(globalPostQueryPort, postCommandPort, redisPostCommandPort);
     }
 
@@ -192,7 +192,7 @@ class PostCommandServiceTest extends BaseUnitTest {
 
         verify(globalPostQueryPort, times(1)).findById(postId);
         verify(postCommandPort, never()).delete(any());
-        verify(redisPostCommandPort, never()).deleteCache(any(), any());
+        verify(redisPostCommandPort, never()).deleteSinglePostCache(any());
     }
 
     @Test
@@ -215,7 +215,7 @@ class PostCommandServiceTest extends BaseUnitTest {
         verify(globalPostQueryPort, times(1)).findById(postId);
         verify(otherUserPost, times(1)).isAuthor(memberId);
         verify(postCommandPort, never()).delete(any());
-        verify(redisPostCommandPort, never()).deleteCache(any(), any());
+        verify(redisPostCommandPort, never()).deleteSinglePostCache(any());
     }
 
     @Test
@@ -232,8 +232,8 @@ class PostCommandServiceTest extends BaseUnitTest {
 
         // Then
         verify(postQueryPort, times(1)).findCachedPostIdsByMemberId(memberId);
-        verify(redisPostCommandPort, times(1)).deleteCache(null, postId1);
-        verify(redisPostCommandPort, times(1)).deleteCache(null, postId2);
+        verify(redisPostCommandPort, times(1)).deleteSinglePostCache(postId1);
+        verify(redisPostCommandPort, times(1)).deleteSinglePostCache(postId2);
         verify(postCommandPort, times(1)).deleteAllByMemberId(memberId);
         verifyNoMoreInteractions(postQueryPort, postCommandPort, redisPostCommandPort);
     }
@@ -251,7 +251,7 @@ class PostCommandServiceTest extends BaseUnitTest {
         // Then
         verify(postQueryPort, times(1)).findCachedPostIdsByMemberId(memberId);
         verify(postCommandPort, times(1)).deleteAllByMemberId(memberId);
-        verify(redisPostCommandPort, never()).deleteCache(any(), any());
+        verify(redisPostCommandPort, never()).deleteSinglePostCache(any());
         verifyNoMoreInteractions(postQueryPort, postCommandPort, redisPostCommandPort);
     }
 
@@ -267,7 +267,7 @@ class PostCommandServiceTest extends BaseUnitTest {
 
         given(globalPostQueryPort.findById(postId)).willReturn(existingPost);
         given(existingPost.isAuthor(memberId)).willReturn(true);
-        doThrow(new RuntimeException("Cache delete failed")).when(redisPostCommandPort).deleteCache(null, postId);
+        doThrow(new RuntimeException("Cache delete failed")).when(redisPostCommandPort).deleteSinglePostCache(postId);
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.updatePost(memberId, postId, "title", "content"))
@@ -276,6 +276,6 @@ class PostCommandServiceTest extends BaseUnitTest {
 
         // 게시글 수정은 완료되지만 캐시 삭제에서 실패
         verify(existingPost, times(1)).updatePost("title", "content");
-        verify(redisPostCommandPort, times(1)).deleteCache(null, postId);
+        verify(redisPostCommandPort, times(1)).deleteSinglePostCache(postId);
     }
 }

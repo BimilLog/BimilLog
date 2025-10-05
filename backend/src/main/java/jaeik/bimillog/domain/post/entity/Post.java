@@ -25,9 +25,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @Table(indexes = {
         @Index(name = "idx_post_notice_created", columnList = "is_notice, created_at DESC"),
-        @Index(name = "idx_post_created_at_popular", columnList = "created_at, post_cache_flag"),
         @Index(name = "idx_post_created", columnList = "created_at"),
-        @Index(name = "idx_post_popular_flag", columnList = "post_cache_flag"),
 })
 public class Post extends BaseEntity {
 
@@ -57,16 +55,12 @@ public class Post extends BaseEntity {
     @Column(name = "is_notice", nullable = false)
     private boolean isNotice;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "post_cache_flag")
-    private PostCacheFlag postCacheFlag;
-
     private Integer password;
 
     /**
      * <h3>게시글 생성</h3>
      * <p>새로운 게시글을 생성하는 정적 팩토리 메서드입니다.</p>
-     * <p>조회수는 0, 공지사항은 false, 캐시플래그는 null로 초기화됩니다.</p>
+     * <p>조회수는 0, 공지사항은 false로 초기화됩니다.</p>
      * <p>{@link PostCommandService}에서 게시글 작성 시 호출됩니다.</p>
      *
      * @param member       작성자 정보
@@ -85,7 +79,7 @@ public class Post extends BaseEntity {
         if (content == null || content.trim().isEmpty()) {
             throw new IllegalArgumentException("게시글 내용은 필수입니다.");
         }
-        
+
         return Post.builder()
                 .member(member)
                 .title(title)
@@ -93,7 +87,6 @@ public class Post extends BaseEntity {
                 .views(0)
                 .isNotice(false)
                 .password(password)
-                .postCacheFlag(null)
                 .build();
     }
 
@@ -142,20 +135,6 @@ public class Post extends BaseEntity {
      */
     public void unsetAsNotice() {
         this.isNotice = false;
-    }
-
-    /**
-     * <h3>게시글 캐시 플래그 설정</h3>
-     * <p>게시글의 캐시 플래그를 설정합니다.</p>
-     * <p>배치 작업에서 인기글 선정 시 실행됩니다.</p>
-     * <p>REALTIME, WEEKLY, LEGEND, NOTICE 중 하나로 설정됩니다.</p>
-     *
-     * @param postCacheFlag 설정할 캐시 플래그 (REALTIME/WEEKLY/LEGEND/NOTICE)
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public void updatePostCacheFlag(PostCacheFlag postCacheFlag) {
-        this.postCacheFlag = postCacheFlag;
     }
 
     /**

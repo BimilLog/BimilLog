@@ -209,17 +209,15 @@ public class PostQueryAdapter implements PostQueryPort {
         String title = row[1] != null ? row[1].toString() : null;
         Integer views = row[2] != null ? ((Number) row[2]).intValue() : 0;
         boolean isNotice = toBoolean(row[3]);
-        PostCacheFlag cacheFlag = row[4] != null ? PostCacheFlag.valueOf(row[4].toString()) : null;
-        Instant createdAt = toInstant(row[5]);
-        Long memberId = row[6] != null ? ((Number) row[6]).longValue() : null;
-        String memberName = row[7] != null ? row[7].toString() : null;
+        Instant createdAt = toInstant(row[4]);
+        Long memberId = row[5] != null ? ((Number) row[5]).longValue() : null;
+        String memberName = row[6] != null ? row[6].toString() : null;
 
         return PostSearchResult.builder()
                 .id(id)
                 .title(title)
                 .viewCount(views)
                 .likeCount(0)
-                .postCacheFlag(cacheFlag)
                 .createdAt(createdAt)
                 .memberId(memberId)
                 .memberName(memberName)
@@ -328,7 +326,6 @@ public class PostQueryAdapter implements PostQueryPort {
                         post.title,                        // String title
                         post.views.coalesce(0),           // Integer viewCount
                         Expressions.constant(0),          // Integer likeCount - 나중에 설정
-                        post.postCacheFlag,               // PostCacheFlag postCacheFlag
                         post.createdAt,                   // Instant createdAt
                         member.id,                        // Long memberId
                         member.memberName,                // String memberName
@@ -362,7 +359,6 @@ public class PostQueryAdapter implements PostQueryPort {
                         post.views.coalesce(0),
                         // 좋아요 개수 (COUNT) - Integer likeCount
                         postLike.countDistinct().castToNum(Integer.class),
-                        post.postCacheFlag,
                         post.createdAt,
                         member.id,
                         member.memberName,
@@ -386,7 +382,7 @@ public class PostQueryAdapter implements PostQueryPort {
                 )
                 .where(post.id.eq(postId))
                 .groupBy(post.id, post.title, post.content, post.views, post.createdAt,
-                        member.id, member.memberName, post.isNotice, post.postCacheFlag, userPostLike.id)
+                        member.id, member.memberName, post.isNotice, userPostLike.id)
                 .fetchOne();
 
         return Optional.ofNullable(result);
@@ -423,7 +419,6 @@ public class PostQueryAdapter implements PostQueryPort {
                         post.content,
                         post.views.coalesce(0),
                         postLike.countDistinct().castToNum(Integer.class),
-                        post.postCacheFlag,
                         post.createdAt,
                         member.id,
                         member.memberName,
@@ -437,7 +432,7 @@ public class PostQueryAdapter implements PostQueryPort {
                 .leftJoin(comment).on(comment.post.id.eq(post.id))
                 .where(post.id.in(postIds))
                 .groupBy(post.id, post.title, post.content, post.views, post.createdAt,
-                        member.id, member.memberName, post.isNotice, post.postCacheFlag)
+                        member.id, member.memberName, post.isNotice)
                 .fetch();
 
         Map<Long, PostDetail> resultMap = results.stream()

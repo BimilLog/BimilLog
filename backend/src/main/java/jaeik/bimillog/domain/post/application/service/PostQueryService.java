@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.post.application.port.in.PostQueryUseCase;
 import jaeik.bimillog.domain.post.application.port.out.PostLikeQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
+import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostQueryPort;
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
@@ -37,6 +38,7 @@ public class PostQueryService implements PostQueryUseCase {
     private final PostLikeQueryPort postLikeQueryPort;
     private final PostCacheSyncService postCacheSyncService;
     private final RedisPostQueryPort redisPostQueryPort;
+    private final RedisPostCommandPort redisPostCommandPort;
 
     /**
      * <h3>게시판 목록 조회</h3>
@@ -56,9 +58,10 @@ public class PostQueryService implements PostQueryUseCase {
 
 
     /**
-     * <h3>게시글 상세 조회</h3>
-     * <p>특정 게시글의 상세 내용과 댓글수, 추천수, 사용자 추천여부를 조회합니다.</p>
-     * <p>인기 게시글인 경우 Redis 캐시에서 우선 조회하고, 캐시 미스 시 JOIN 쿼리로 조회합니다.</p>
+     * <h3>게시글 상세 조회 (캐시 어사이드 패턴)</h3>
+     * <p>모든 게시글에 대해 Redis 캐시를 우선 확인하고, 캐시 미스 시 DB 조회 후 캐시에 저장합니다.</p>
+     * <p>캐시 히트: 사용자 좋아요 정보만 추가 확인</p>
+     * <p>캐시 미스: DB 조회 → 캐시 저장 → 반환</p>
      * <p>{@link PostQueryController}에서 게시글 상세 조회 요청 시 호출됩니다.</p>
      *
      * @param postId 게시글 ID
@@ -70,10 +73,10 @@ public class PostQueryService implements PostQueryUseCase {
      */
     @Override
     public PostDetail getPost(Long postId, Long memberId) {
-        // 1. 캐시에서 인기글 조회 시도 (최적화: 1번의 Redis 호출로 통합)
+        // 1. 캐시 확인 (Cache-Aside Read)
         PostDetail cachedPost = redisPostQueryPort.getCachedPostIfExists(postId);
         if (cachedPost != null) {
-            // 캐시 히트: 사용자 좋아요 정보만 추가 확인 필요
+            // 캐시 히트: 사용자 좋아요 정보만 추가 확인
             if (memberId != null) {
                 boolean isLiked = postLikeQueryPort.existsByPostIdAndUserId(postId, memberId);
                 return cachedPost.withIsLiked(isLiked);
@@ -81,8 +84,10 @@ public class PostQueryService implements PostQueryUseCase {
             return cachedPost;
         }
 
-        // 2. 캐시 미스 또는 일반 게시글: JOIN 쿼리로 조회
-        return getPostFromDatabaseOptimized(postId, memberId);
+        // 2. 캐시 미스: DB 조회 후 캐시 저장
+        PostDetail postDetail = getPostFromDatabaseOptimized(postId, memberId);
+        redisPostCommandPort.cachePostDetail(postDetail);
+        return postDetail;
     }
 
     /**

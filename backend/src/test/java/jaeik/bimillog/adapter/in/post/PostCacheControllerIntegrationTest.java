@@ -72,7 +72,6 @@ class PostCacheControllerIntegrationTest extends BaseIntegrationTest {
                     .views(100 * i)
                     .isNotice(false)
                     .build();
-            realtimePost.updatePostCacheFlag(PostCacheFlag.REALTIME);
             testPosts.add(realtimePost);
         }
 
@@ -85,7 +84,6 @@ class PostCacheControllerIntegrationTest extends BaseIntegrationTest {
                     .views(200 * i)
                     .isNotice(false)
                     .build();
-            weeklyPost.updatePostCacheFlag(PostCacheFlag.WEEKLY);
             testPosts.add(weeklyPost);
         }
 
@@ -98,7 +96,6 @@ class PostCacheControllerIntegrationTest extends BaseIntegrationTest {
                     .views(500 * i)
                     .isNotice(false)
                     .build();
-            legendPost.updatePostCacheFlag(PostCacheFlag.LEGEND);
             testPosts.add(legendPost);
         }
 

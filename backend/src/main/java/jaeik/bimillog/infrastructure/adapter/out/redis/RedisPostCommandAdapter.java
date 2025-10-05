@@ -36,16 +36,16 @@ public class RedisPostCommandAdapter implements RedisPostCommandPort {
     private final RedisTemplate<String, Object> redisTemplate;
     private final Map<PostCacheFlag, CacheMetadata> cacheMetadataMap = initializeCacheMetadata();
     private static final String FULL_POST_CACHE_PREFIX = "cache:post:";
-    private static final Duration FULL_POST_CACHE_TTL = Duration.ofDays(1);
+    private static final Duration FULL_POST_CACHE_TTL = Duration.ofMinutes(5);
 
     private final JPAQueryFactory jpaQueryFactory;
 
     private static Map<PostCacheFlag, CacheMetadata> initializeCacheMetadata() {
         Map<PostCacheFlag, CacheMetadata> map = new EnumMap<>(PostCacheFlag.class);
-        map.put(PostCacheFlag.REALTIME, new CacheMetadata("cache:posts:realtime", Duration.ofMinutes(30)));
-        map.put(PostCacheFlag.WEEKLY, new CacheMetadata("cache:posts:weekly", Duration.ofDays(1)));
-        map.put(PostCacheFlag.LEGEND, new CacheMetadata("cache:posts:legend", Duration.ofDays(1)));
-        map.put(PostCacheFlag.NOTICE, new CacheMetadata("cache:posts:notice", Duration.ofDays(7)));
+        map.put(PostCacheFlag.REALTIME, new CacheMetadata("cache:posts:realtime", Duration.ofMinutes(5)));
+        map.put(PostCacheFlag.WEEKLY, new CacheMetadata("cache:posts:weekly", Duration.ofMinutes(5)));
+        map.put(PostCacheFlag.LEGEND, new CacheMetadata("cache:posts:legend", Duration.ofMinutes(5)));
+        map.put(PostCacheFlag.NOTICE, new CacheMetadata("cache:posts:notice", Duration.ofMinutes(5)));
         return map;
     }
 
@@ -115,43 +115,39 @@ public class RedisPostCommandAdapter implements RedisPostCommandPort {
     }
 
     /**
-     * <h3>인기 게시글 캐시 플래그 적용</h3>
-     * <p>주어진 게시글 ID 목록에 대해 인기 게시글 캐시 플래그를 적용합니다.</p>
+     * <h3>단일 게시글 상세 정보 캐싱</h3>
+     * <p>게시글 상세 정보를 Redis 캐시에 저장합니다 (캐시 어사이드 패턴).</p>
      *
-     * @param postIds 게시글 ID 목록
-     * @param postCacheFlag 게시글 캐시 유형
+     * @param postDetail 캐시할 게시글 상세 정보
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    @Transactional
-    public void applyPopularFlag(List<Long> postIds, PostCacheFlag postCacheFlag) {
-        if (postIds == null || postIds.isEmpty()) {
-            return;
+    public void cachePostDetail(PostDetail postDetail) {
+        String key = FULL_POST_CACHE_PREFIX + postDetail.id();
+        try {
+            redisTemplate.opsForValue().set(key, postDetail, FULL_POST_CACHE_TTL);
+        } catch (Exception e) {
+            throw new PostCustomException(PostErrorCode.REDIS_WRITE_ERROR, e);
         }
-        QPost post = QPost.post;
-        jpaQueryFactory.update(post)
-                .set(post.postCacheFlag, postCacheFlag)
-                .where(post.id.in(postIds))
-                .execute();
     }
 
     /**
-     * <h3>인기 게시글 캐시 플래그 초기화</h3>
-     * <p>주어진 게시글 캐시 유형에 해당하는 인기 게시글 캐시 플래그를 초기화합니다.</p>
+     * <h3>단일 게시글 캐시 무효화</h3>
+     * <p>특정 게시글의 캐시 데이터를 Redis에서 삭제합니다 (라이트 어라운드 패턴).</p>
      *
-     * @param postCacheFlag 게시글 캐시 유형
+     * @param postId 캐시를 삭제할 게시글 ID
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    @Transactional
-    public void resetPopularFlag(PostCacheFlag postCacheFlag) {
-        QPost post = QPost.post;
-        jpaQueryFactory.update(post)
-                .set(post.postCacheFlag, (PostCacheFlag) null)
-                .where(post.postCacheFlag.eq(postCacheFlag))
-                .execute();
+    public void deleteSinglePostCache(Long postId) {
+        String detailKey = FULL_POST_CACHE_PREFIX + postId;
+        try {
+            redisTemplate.delete(detailKey);
+        } catch (Exception e) {
+            throw new PostCustomException(PostErrorCode.REDIS_DELETE_ERROR, e);
+        }
     }
 
     /**
@@ -168,7 +164,7 @@ public class RedisPostCommandAdapter implements RedisPostCommandPort {
     public void deleteCache(PostCacheFlag type, Long postId, PostCacheFlag... targetTypes) {
         try {
             if (type == null && targetTypes.length == 0) {
-                // 특정 게시글의 모든 캐시 삭제 (기존 동작 유지)
+                // 특정 게시글의 모든 캐시 삭제
                 deleteSpecificPostCache(postId);
             } else if (type == null) {
                 // 특정 게시글의 지정된 캐시만 삭제 (성능 최적화)
@@ -181,12 +177,12 @@ public class RedisPostCommandAdapter implements RedisPostCommandPort {
             throw new PostCustomException(PostErrorCode.REDIS_DELETE_ERROR, e);
         }
     }
-    
+
     private void deleteSpecificPostCache(Long postId) {
         // 1. 상세 캐시 삭제
         String detailKey = FULL_POST_CACHE_PREFIX + postId;
         redisTemplate.delete(detailKey);
-        
+
         // 2. 모든 목록 캐시에서 해당 게시글 제거
         String postIdStr = postId.toString();
         for (PostCacheFlag type : PostCacheFlag.getPopularPostTypes()) {

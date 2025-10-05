@@ -73,8 +73,6 @@ class PostCacheSyncServiceTest {
         postCacheSyncService.updateRealtimePopularPosts();
 
         // Then
-        verify(redisPostCommandPort).resetPopularFlag(PostCacheFlag.REALTIME);
-        verify(redisPostCommandPort).applyPopularFlag(postIds, PostCacheFlag.REALTIME);
         verify(postQueryPort).findPostDetailsByIds(postIds);
         verify(redisPostCommandPort).cachePostsWithDetails(PostCacheFlag.REALTIME, List.of(fullPost1, fullPost2));
         
@@ -91,11 +89,9 @@ class PostCacheSyncServiceTest {
         postCacheSyncService.updateRealtimePopularPosts();
 
         // Then
-        verify(redisPostCommandPort).resetPopularFlag(PostCacheFlag.REALTIME);
         verify(redisPostSyncPort).findRealtimePopularPosts();
-        
+
         // 게시글이 없으면 캐시 관련 작업 수행 안함
-        verify(redisPostCommandPort, never()).applyPopularFlag(any(), any());
         verify(redisPostCommandPort, never()).cachePostsWithDetails(any(), any());
         verifyNoInteractions(eventPublisher);
     }
@@ -119,8 +115,6 @@ class PostCacheSyncServiceTest {
         postCacheSyncService.updateWeeklyPopularPosts();
 
         // Then
-        verify(redisPostCommandPort).resetPopularFlag(PostCacheFlag.WEEKLY);
-        verify(redisPostCommandPort).applyPopularFlag(postIds, PostCacheFlag.WEEKLY);
         verify(postQueryPort).findPostDetailsByIds(postIds);
         verify(redisPostCommandPort).cachePostsWithDetails(PostCacheFlag.WEEKLY, List.of(fullPost1, fullPost2));
 
@@ -155,8 +149,6 @@ class PostCacheSyncServiceTest {
         postCacheSyncService.updateWeeklyPopularPosts();
 
         // Then
-        verify(redisPostCommandPort).resetPopularFlag(PostCacheFlag.WEEKLY);
-        verify(redisPostCommandPort).applyPopularFlag(postIds, PostCacheFlag.WEEKLY);
         verify(postQueryPort).findPostDetailsByIds(postIds);
         verify(redisPostCommandPort).cachePostsWithDetails(eq(PostCacheFlag.WEEKLY), any());
 
@@ -186,8 +178,6 @@ class PostCacheSyncServiceTest {
         postCacheSyncService.updateLegendaryPosts();
 
         // Then
-        verify(redisPostCommandPort).resetPopularFlag(PostCacheFlag.LEGEND);
-        verify(redisPostCommandPort).applyPopularFlag(postIds, PostCacheFlag.LEGEND);
         verify(postQueryPort).findPostDetailsByIds(postIds);
         verify(redisPostCommandPort).cachePostsWithDetails(PostCacheFlag.LEGEND, List.of(fullPost));
 
@@ -217,8 +207,6 @@ class PostCacheSyncServiceTest {
         postCacheSyncService.updateLegendaryPosts();
 
         // Then
-        verify(redisPostCommandPort).resetPopularFlag(PostCacheFlag.LEGEND);
-        verify(redisPostCommandPort).applyPopularFlag(postIds, PostCacheFlag.LEGEND);
         verify(postQueryPort).findPostDetailsByIds(postIds);
         
         // 상세 정보가 없으면 빈 리스트로 캐시 메서드 호출됨
@@ -243,7 +231,6 @@ class PostCacheSyncServiceTest {
         postCacheSyncService.updateLegendaryPosts();
 
         // Then - @Transactional 동작을 위한 port 호출 검증
-        verify(redisPostCommandPort, times(3)).resetPopularFlag(any());
         verify(redisPostSyncPort).findRealtimePopularPosts();
         verify(redisPostSyncPort).findWeeklyPopularPosts();
         verify(redisPostSyncPort).findLegendaryPosts();
@@ -263,8 +250,6 @@ class PostCacheSyncServiceTest {
         postCacheSyncService.updateWeeklyPopularPosts();
 
         // Then
-        verify(redisPostCommandPort).resetPopularFlag(PostCacheFlag.WEEKLY);
-        verify(redisPostCommandPort).applyPopularFlag(postIds, PostCacheFlag.WEEKLY);
         verify(postQueryPort).findPostDetailsByIds(postIds);
         verify(redisPostCommandPort).cachePostsWithDetails(eq(PostCacheFlag.WEEKLY), any());
         
@@ -288,7 +273,6 @@ class PostCacheSyncServiceTest {
                 .content(content)
                 .viewCount(0)
                 .likeCount(0)
-                .postCacheFlag(null)
                 .createdAt(java.time.Instant.now())
                 .memberId(1L)
                 .memberName("테스트 사용자")

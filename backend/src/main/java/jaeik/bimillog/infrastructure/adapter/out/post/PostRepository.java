@@ -18,15 +18,16 @@ import java.util.List;
 public interface PostRepository extends JpaRepository<Post, Long> {
 
     /**
-     * <h3>캐시 플래그가 있는 게시글 ID 조회</h3>
-     * <p>사용자가 작성한 게시글 중 캐시 플래그가 설정된 게시글의 ID만 조회합니다.</p>
+     * <h3>사용자 작성 게시글 ID 조회</h3>
+     * <p>사용자가 작성한 모든 게시글의 ID 목록을 반환합니다.</p>
+     * <p>캐시 무효화를 위해 사용됩니다 (Redis delete는 멱등성 보장)</p>
      *
      * @param memberId 게시글을 작성한 사용자 ID
-     * @return List<Long> 캐시 플래그가 있는 게시글 ID 목록
+     * @return List<Long> 게시글 ID 목록
      * @author Jaeik
      * @since 2.0.0
      */
-    @Query("SELECT p.id FROM Post p WHERE p.member.id = :memberId AND p.postCacheFlag IS NOT NULL")
+    @Query("SELECT p.id FROM Post p WHERE p.member.id = :memberId")
     List<Long> findIdsWithCacheFlagByMemberId(Long memberId);
 
     /**

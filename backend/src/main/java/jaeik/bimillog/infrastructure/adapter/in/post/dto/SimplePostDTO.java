@@ -1,6 +1,5 @@
 package jaeik.bimillog.infrastructure.adapter.in.post.dto;
 
-import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -36,7 +35,6 @@ public class SimplePostDTO {
     private String title;
     private Integer viewCount;
     private Integer likeCount;
-    private PostCacheFlag postCacheFlag;
     private Instant createdAt;
     private Long memberId;
     private String memberName;

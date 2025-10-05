@@ -26,12 +26,12 @@ public interface PostFulltextRepository extends JpaRepository<Post, Long> {
      *
      * @param keyword  검색어 (BOOLEAN MODE용, 일반적으로 "검색어*" 형태)
      * @param pageable 페이지 정보
-     * @return 검색 결과 (post_id, title, views, is_notice, post_cache_flag, created_at, user_id, user_name)
+     * @return 검색 결과 (post_id, title, views, is_notice, created_at, user_id, user_name)
      * @author Jaeik
      * @since 2.0.0
      */
     @Query(value = """
-            SELECT p.post_id, p.title, p.views, p.is_notice, p.post_cache_flag, p.created_at, p.user_id, u.user_name
+            SELECT p.post_id, p.title, p.views, p.is_notice, p.created_at, p.user_id, u.user_name
             FROM post p
             LEFT JOIN members u ON p.user_id = u.user_id
             WHERE p.is_notice = false
@@ -47,12 +47,12 @@ public interface PostFulltextRepository extends JpaRepository<Post, Long> {
      *
      * @param keyword  검색어 (BOOLEAN MODE용, 일반적으로 "검색어*" 형태)
      * @param pageable 페이지 정보
-     * @return 검색 결과 (post_id, title, views, is_notice, post_cache_flag, created_at, user_id, user_name)
+     * @return 검색 결과 (post_id, title, views, is_notice, created_at, user_id, user_name)
      * @author Jaeik
      * @since 2.0.0
      */
     @Query(value = """
-            SELECT p.post_id, p.title, p.views, p.is_notice, p.post_cache_flag, p.created_at, p.user_id, u.user_name
+            SELECT p.post_id, p.title, p.views, p.is_notice, p.created_at, p.user_id, u.user_name
             FROM post p
             LEFT JOIN members u ON p.user_id = u.user_id
             WHERE p.is_notice = false

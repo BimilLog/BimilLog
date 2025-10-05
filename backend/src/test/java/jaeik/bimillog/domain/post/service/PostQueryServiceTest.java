@@ -59,6 +59,9 @@ class PostQueryServiceTest extends BaseUnitTest {
     @Mock
     private RedisPostQueryPort redisPostQueryPort;
 
+    @Mock
+    private jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort redisPostCommandPort;
+
     @InjectMocks
     private PostQueryService postQueryService;
 
@@ -103,7 +106,6 @@ class PostQueryServiceTest extends BaseUnitTest {
                 .isLiked(memberId != null)
                 .viewCount(10)
                 .likeCount(5)
-                .postCacheFlag(PostCacheFlag.REALTIME)
                 .createdAt(Instant.now())
                 .memberName("testMember")
                 .commentCount(3)
@@ -136,7 +138,6 @@ class PostQueryServiceTest extends BaseUnitTest {
                 .content("캐시된 내용")
                 .viewCount(10)
                 .likeCount(5)
-                .postCacheFlag(PostCacheFlag.REALTIME)
                 .createdAt(Instant.now())
                 .memberId(1L)
                 .memberName("testMember")
@@ -183,7 +184,6 @@ class PostQueryServiceTest extends BaseUnitTest {
                 .isLiked(memberId != null)
                 .viewCount(10)
                 .likeCount(5)
-                .postCacheFlag(PostCacheFlag.REALTIME)
                 .createdAt(Instant.now())
                 .memberName("testMember")
                 .commentCount(3)
@@ -224,7 +224,6 @@ class PostQueryServiceTest extends BaseUnitTest {
                 .isLiked(memberId != null)
                 .viewCount(10)
                 .likeCount(5)
-                .postCacheFlag(PostCacheFlag.REALTIME)
                 .createdAt(Instant.now())
                 .memberName("testMember")
                 .commentCount(3)

@@ -66,9 +66,9 @@ public class PostCommandService implements PostCommandUseCase {
 
 
     /**
-     * <h3>게시글 수정</h3>
-     * <p>기존 게시글의 제목과 내용을 수정합니다.</p>
-     * <p>작성자 권한 검증 후 게시글 업데이트, 관련 캐시 삭제</p>
+     * <h3>게시글 수정 (라이트 어라운드 패턴)</h3>
+     * <p>기존 게시글의 제목과 내용을 수정하고 캐시를 무효화합니다.</p>
+     * <p>작성자 권한 검증 → 게시글 업데이트 → 캐시 무효화 (다음 조회 시 캐시 어사이드로 재생성)</p>
      * <p>{@link PostCommandController}에서 게시글 수정 API 처리 시 호출됩니다.</p>
      *
      * @param memberId  현재 로그인 사용자 ID
@@ -88,15 +88,16 @@ public class PostCommandService implements PostCommandUseCase {
         }
 
         post.updatePost(title, content);
-        redisPostCommandPort.deleteCache(null, postId);
-        
+        redisPostCommandPort.deleteSinglePostCache(postId);
+
         log.info("게시글 수정 완료: postId={}, memberId={}, title={}", postId, memberId, title);
     }
 
     /**
-     * <h3>게시글 삭제</h3>
-     * <p>게시글을 데이터베이스에서 완전히 삭제합니다.</p>
-     * <p>작성자 권한 검증 후 게시글과 연관 데이터 삭제, 관련 캐시 제거</p>
+     * <h3>게시글 삭제 (라이트 어라운드 패턴)</h3>
+     * <p>게시글을 데이터베이스에서 완전히 삭제하고 캐시를 무효화합니다.</p>
+     * <p>작성자 권한 검증 → 게시글 삭제 → 캐시 무효화</p>
+     * <p>CASCADE로 Comment와 PostLike가 자동 삭제됩니다.</p>
      * <p>{@link PostCommandController}에서 게시글 삭제 API 처리 시 호출됩니다.</p>
      *
      * @param memberId 현재 로그인 사용자 ID
@@ -117,13 +118,13 @@ public class PostCommandService implements PostCommandUseCase {
 
         // CASCADE로 Comment와 PostLike 자동 삭제
         postCommandPort.delete(post);
-        redisPostCommandPort.deleteCache(null, postId);
+        redisPostCommandPort.deleteSinglePostCache(postId);
         log.info("게시글 삭제 완료: postId={}, memberId={}, title={}", postId, memberId, postTitle);
     }
 
     /**
-     * <h3>회원 작성 게시글 일괄 삭제</h3>
-     * <p>회원 탈퇴 시 사용자가 작성한 모든 게시글을 삭제합니다.</p>
+     * <h3>회원 작성 게시글 일괄 삭제 (라이트 어라운드 패턴)</h3>
+     * <p>회원 탈퇴 시 사용자가 작성한 모든 게시글을 삭제하고 캐시를 무효화합니다.</p>
      *
      * @param memberId 게시글을 삭제할 사용자 ID
      * @author Jaeik
@@ -135,7 +136,7 @@ public class PostCommandService implements PostCommandUseCase {
         List<Long> cachedPostIds = postQueryPort.findCachedPostIdsByMemberId(memberId);
 
         for (Long postId : cachedPostIds) {
-            redisPostCommandPort.deleteCache(null, postId);
+            redisPostCommandPort.deleteSinglePostCache(postId);
         }
 
         postCommandPort.deleteAllByMemberId(memberId);

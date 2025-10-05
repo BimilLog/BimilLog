@@ -49,7 +49,6 @@ class PostCacheServiceTest {
                 .content("본문")
                 .viewCount(10)
                 .likeCount(2)
-                .postCacheFlag(PostCacheFlag.NOTICE)
                 .createdAt(Instant.now())
                 .memberId(5L)
                 .memberName("작성자")
