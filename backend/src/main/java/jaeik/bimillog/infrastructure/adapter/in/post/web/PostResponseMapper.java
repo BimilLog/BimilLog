@@ -57,15 +57,15 @@ public class PostResponseMapper {
      */
     public FullPostDTO convertToFullPostResDTO(PostDetail postDetail) {
         return FullPostDTO.builder()
-                .id(postDetail.id())
-                .title(postDetail.title())
-                .content(postDetail.content())
-                .viewCount(postDetail.viewCount())
-                .likeCount(postDetail.likeCount())
-                .createdAt(postDetail.createdAt())
-                .memberId(postDetail.memberId())
-                .memberName(postDetail.memberName())
-                .commentCount(postDetail.commentCount())
+                .id(postDetail.getId())
+                .title(postDetail.getTitle())
+                .content(postDetail.getContent())
+                .viewCount(postDetail.getViewCount())
+                .likeCount(postDetail.getLikeCount())
+                .createdAt(postDetail.getCreatedAt())
+                .memberId(postDetail.getMemberId())
+                .memberName(postDetail.getMemberName())
+                .commentCount(postDetail.getCommentCount())
                 .isLiked(postDetail.isLiked())
                 .build();
     }

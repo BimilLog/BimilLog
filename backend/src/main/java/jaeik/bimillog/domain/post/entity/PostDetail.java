@@ -3,6 +3,9 @@ package jaeik.bimillog.domain.post.entity;
 import com.querydsl.core.annotations.QueryProjection;
 import jaeik.bimillog.domain.post.application.service.PostQueryService;
 import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -10,42 +13,55 @@ import java.time.Instant;
 
 /**
  * <h2>게시글 상세 정보 값 객체</h2>
- * <p>게시글 상세 조회 결과를 담는 immutable 도메인 값 객체입니다.</p>
+ * <p>게시글 상세 조회 결과를 담는 도메인 값 객체입니다.</p>
  * <p>QueryDSL Projection과 레디스 캐시를 지원합니다.</p>
  * <p>FullPostResDTO의 도메인 전용 대체 객체로 사용됩니다.</p>
  *
- * @param id 게시글 ID
- * @param title 게시글 제목
- * @param content 게시글 내용
- * @param viewCount 조회수
- * @param likeCount 추천수
- * @param createdAt 작성일시
- * @param memberId 작성자 ID
- * @param memberName 작성자 이름
- * @param commentCount 댓글 수
- * @param isLiked 사용자 추천 여부 (로그인 사용자만)
  * @author Jaeik
  * @version 2.0.0
  */
-public record PostDetail(
-        Long id,
-        String title,
-        String content,
-        Integer viewCount,
-        Integer likeCount,
-        Instant createdAt,
-        Long memberId,
-        String memberName,
-        Integer commentCount,
-        boolean isLiked
-) implements Serializable {
+@Getter
+@Setter
+@NoArgsConstructor
+public class PostDetail implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
+    private Long id;
+    private String title;
+    private String content;
+    private Integer viewCount;
+    private Integer likeCount;
+    private Instant createdAt;
+    private Long memberId;
+    private String memberName;
+    private Integer commentCount;
+    private boolean isLiked;
+
+    /**
+     * <h3>생성자 - QueryDSL Projection용</h3>
+     * <p>QueryDSL @QueryProjection을 위한 전용 생성자입니다.</p>
+     * <p>PostQueryAdapter에서 게시글 상세 조회 시 QueryDSL을 통해 호출됩니다.</p>
+     *
+     * @since 2.0.0
+     * @author Jaeik
+     */
     @Builder
     @QueryProjection
-    public PostDetail {
+    public PostDetail(Long id, String title, String content, Integer viewCount,
+                     Integer likeCount, Instant createdAt, Long memberId,
+                     String memberName, Integer commentCount, boolean isLiked) {
+        this.id = id;
+        this.title = title;
+        this.content = content;
+        this.viewCount = viewCount;
+        this.likeCount = likeCount;
+        this.createdAt = createdAt;
+        this.memberId = memberId;
+        this.memberName = memberName;
+        this.commentCount = commentCount;
+        this.isLiked = isLiked;
     }
 
     /**

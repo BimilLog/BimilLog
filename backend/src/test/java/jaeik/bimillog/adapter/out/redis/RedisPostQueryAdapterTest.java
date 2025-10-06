@@ -82,8 +82,8 @@ class RedisPostQueryAdapterTest extends BaseUnitTest {
 
         // Then
         assertThat(result).isNotNull();
-        assertThat(result.id()).isEqualTo(postId);
-        assertThat(result.title()).isEqualTo("캐시된 게시글");
+        assertThat(result.getId()).isEqualTo(postId);
+        assertThat(result.getTitle()).isEqualTo("캐시된 게시글");
         verify(valueOperations).get(RedisTestHelper.RedisKeys.postDetail(postId));
     }
 

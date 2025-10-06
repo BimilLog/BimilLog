@@ -95,17 +95,17 @@ public class RedisPostCommandAdapter implements RedisPostCommandPort {
             for (PostDetail post : fullPosts) {
                 // 타입별 정렬 점수 계산
                 double score = switch (type) {
-                    case REALTIME, WEEKLY, LEGEND -> post.likeCount();
-                    case NOTICE -> -post.createdAt().toEpochMilli();
+                    case REALTIME, WEEKLY, LEGEND -> post.getLikeCount();
+                    case NOTICE -> -post.getCreatedAt().toEpochMilli();
                 };
-                redisTemplate.opsForZSet().add(listKey, post.id().toString(), score);
+                redisTemplate.opsForZSet().add(listKey, post.getId().toString(), score);
             }
             // TTL 설정
             redisTemplate.expire(listKey, metadata.ttl());
 
             // 2. 상세 캐시: 각 PostDetail 개별 저장 (기존 방식 유지)
             for (PostDetail post : fullPosts) {
-                String key = FULL_POST_CACHE_PREFIX + post.id();
+                String key = FULL_POST_CACHE_PREFIX + post.getId();
                 redisTemplate.opsForValue().set(key, post, FULL_POST_CACHE_TTL);
             }
 
@@ -157,7 +157,7 @@ public class RedisPostCommandAdapter implements RedisPostCommandPort {
      */
     @Override
     public void cachePostDetail(PostDetail postDetail) {
-        String key = FULL_POST_CACHE_PREFIX + postDetail.id();
+        String key = FULL_POST_CACHE_PREFIX + postDetail.getId();
         try {
             redisTemplate.opsForValue().set(key, postDetail, FULL_POST_CACHE_TTL);
         } catch (Exception e) {

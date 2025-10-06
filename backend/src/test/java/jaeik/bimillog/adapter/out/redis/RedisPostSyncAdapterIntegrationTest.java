@@ -197,10 +197,10 @@ class RedisPostSyncAdapterIntegrationTest {
 
         // Then
         assertThat(postDetail).isNotNull();
-        assertThat(postDetail.title()).isEqualTo("상세 조회 게시글");
-        assertThat(postDetail.content()).isEqualTo("상세 내용");
-        assertThat(postDetail.likeCount()).isEqualTo(3);
-        assertThat(postDetail.memberName()).isEqualTo(testMember.getMemberName());
+        assertThat(postDetail.getTitle()).isEqualTo("상세 조회 게시글");
+        assertThat(postDetail.getContent()).isEqualTo("상세 내용");
+        assertThat(postDetail.getLikeCount()).isEqualTo(3);
+        assertThat(postDetail.getMemberName()).isEqualTo(testMember.getMemberName());
     }
 
     @Test

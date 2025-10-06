@@ -51,14 +51,14 @@ public class PostSimpleDetail implements Serializable {
      */
     public static PostSimpleDetail ofPostDetail(PostDetail postDetail) {
         return PostSimpleDetail.builder()
-                .id(postDetail.id())
-                .title(postDetail.title())
-                .viewCount(postDetail.viewCount())
-                .likeCount(postDetail.likeCount())
-                .createdAt(postDetail.createdAt())
-                .memberId(postDetail.memberId())
-                .memberName(postDetail.memberName())
-                .commentCount(postDetail.commentCount())
+                .id(postDetail.getId())
+                .title(postDetail.getTitle())
+                .viewCount(postDetail.getViewCount())
+                .likeCount(postDetail.getLikeCount())
+                .createdAt(postDetail.getCreatedAt())
+                .memberId(postDetail.getMemberId())
+                .memberName(postDetail.getMemberName())
+                .commentCount(postDetail.getCommentCount())
                 .build();
     }
     
