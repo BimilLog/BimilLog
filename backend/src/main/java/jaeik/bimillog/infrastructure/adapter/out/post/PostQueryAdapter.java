@@ -119,7 +119,7 @@ public class PostQueryAdapter implements PostQueryPort {
     }
 
     /**
-     * <h3>공통 게시글 목록 조회</h3>
+     * <h3>게시글 목록 조회</h3>
      * <p>배치 조회로 댓글 수와 추천 수 조회</p>
      *
      * @param contentQueryCustomizer Content 쿼리 커스터마이징 로직 (JOIN, WHERE 등)
