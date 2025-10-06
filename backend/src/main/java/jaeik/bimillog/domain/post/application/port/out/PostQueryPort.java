@@ -64,19 +64,49 @@ public interface PostQueryPort {
     Page<PostSimpleDetail> findLikedPostsByMemberId(Long memberId, Pageable pageable);
 
     /**
-     * <h3>조건별 게시글 검색</h3>
-     * <p>검색 타입(제목, 내용, 작성자)과 검색어를 기반으로 게시글을 검색합니다.</p>
-     * <p>MySQL ngram parser를 활용한 전문 검색으로 한국어 검색 지원</p>
-     * <p>{@link PostQueryService}에서 게시글 전문 검색 처리 시 호출됩니다.</p>
+     * <h3>MySQL FULLTEXT 전문 검색</h3>
+     * <p>MySQL FULLTEXT 인덱스를 사용하여 게시글을 검색합니다.</p>
+     * <p>ngram parser를 활용한 한국어 검색 지원</p>
+     * <p>{@link PostQueryService}에서 검색어가 3글자 이상일 때 우선적으로 호출됩니다.</p>
      *
-     * @param type 검색 타입 (TITLE, WRITER, TITLE_CONTENT)
-     * @param query 검색어 (한국어 키워드)
+     * @param type 검색 타입 (TITLE, TITLE_CONTENT)
+     * @param query 검색어 (3글자 이상)
      * @param pageable 페이지 정보
-     * @return Page<PostSimpleDetail> 검색 조건에 맞는 게시글 목록 페이지
+     * @return Page<PostSimpleDetail> 검색 결과 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<PostSimpleDetail> findBySearch(PostSearchType type, String query, Pageable pageable);
+    Page<PostSimpleDetail> findByFullTextSearch(PostSearchType type, String query, Pageable pageable);
+
+    /**
+     * <h3>접두사 검색 (인덱스 활용)</h3>
+     * <p>LIKE 'query%' 조건으로 검색하여 인덱스를 활용합니다.</p>
+     * <p>주로 작성자 검색에서 4글자 이상일 때 사용</p>
+     * <p>{@link PostQueryService}에서 WRITER 검색 시 호출됩니다.</p>
+     *
+     * @param type 검색 타입 (주로 WRITER)
+     * @param query 검색어
+     * @param pageable 페이지 정보
+     * @return Page<PostSimpleDetail> 검색 결과 페이지
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    Page<PostSimpleDetail> findByPrefixMatch(PostSearchType type, String query, Pageable pageable);
+
+    /**
+     * <h3>부분 문자열 검색 (인덱스 미활용)</h3>
+     * <p>LIKE '%query%' 조건으로 부분 검색을 수행합니다.</p>
+     * <p>전문 검색 실패 시 폴백으로 사용</p>
+     * <p>{@link PostQueryService}에서 다른 검색 방식이 적합하지 않을 때 호출됩니다.</p>
+     *
+     * @param type 검색 타입 (TITLE, WRITER, TITLE_CONTENT)
+     * @param query 검색어
+     * @param pageable 페이지 정보
+     * @return Page<PostSimpleDetail> 검색 결과 페이지
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    Page<PostSimpleDetail> findByPartialMatch(PostSearchType type, String query, Pageable pageable);
 
 
     /**

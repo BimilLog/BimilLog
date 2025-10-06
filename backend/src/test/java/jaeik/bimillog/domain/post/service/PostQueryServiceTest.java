@@ -266,17 +266,17 @@ class PostQueryServiceTest extends BaseUnitTest {
     }
 
     @Test
-    @DisplayName("게시글 검색 - 성공")
-    void shouldSearchPost_Successfully() {
+    @DisplayName("게시글 검색 - 전문검색 전략 (3글자 이상 + TITLE)")
+    void shouldSearchPost_UsingFullTextSearch_When3CharsOrMore() {
         // Given
         PostSearchType type = PostSearchType.TITLE;
-        String query = "검색어";
+        String query = "검색어"; // 3글자
         Pageable pageable = PageRequest.of(0, 10);
 
         PostSimpleDetail searchResult = PostTestDataBuilder.createPostSearchResult(1L, "검색 결과");
         Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(searchResult), pageable, 1);
 
-        given(postQueryPort.findBySearch(type, query, pageable)).willReturn(expectedPage);
+        given(postQueryPort.findByFullTextSearch(type, query, pageable)).willReturn(expectedPage);
 
         // When
         Page<PostSimpleDetail> result = postQueryService.searchPost(type, query, pageable);
@@ -285,7 +285,110 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result).isEqualTo(expectedPage);
         assertThat(result.getContent()).hasSize(1);
 
-        verify(postQueryPort).findBySearch(type, query, pageable);
+        verify(postQueryPort).findByFullTextSearch(type, query, pageable);
+        verify(postQueryPort, never()).findByPartialMatch(any(), any(), any());
+        verify(postQueryPort, never()).findByPrefixMatch(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("게시글 검색 - 전문검색 실패 시 부분검색 폴백")
+    void shouldSearchPost_FallbackToPartialMatch_WhenFullTextSearchFails() {
+        // Given
+        PostSearchType type = PostSearchType.TITLE_CONTENT;
+        String query = "검색어"; // 3글자
+        Pageable pageable = PageRequest.of(0, 10);
+
+        PostSimpleDetail searchResult = PostTestDataBuilder.createPostSearchResult(1L, "폴백 결과");
+        Page<PostSimpleDetail> emptyPage = Page.empty(pageable);
+        Page<PostSimpleDetail> fallbackPage = new PageImpl<>(List.of(searchResult), pageable, 1);
+
+        given(postQueryPort.findByFullTextSearch(type, query, pageable)).willReturn(emptyPage);
+        given(postQueryPort.findByPartialMatch(type, query, pageable)).willReturn(fallbackPage);
+
+        // When
+        Page<PostSimpleDetail> result = postQueryService.searchPost(type, query, pageable);
+
+        // Then
+        assertThat(result).isEqualTo(fallbackPage);
+        assertThat(result.getContent()).hasSize(1);
+
+        verify(postQueryPort).findByFullTextSearch(type, query, pageable);
+        verify(postQueryPort).findByPartialMatch(type, query, pageable);
+    }
+
+    @Test
+    @DisplayName("게시글 검색 - 접두사 검색 전략 (WRITER + 4글자 이상)")
+    void shouldSearchPost_UsingPrefixMatch_WhenWriter4CharsOrMore() {
+        // Given
+        PostSearchType type = PostSearchType.WRITER;
+        String query = "작성자이름"; // 5글자
+        Pageable pageable = PageRequest.of(0, 10);
+
+        PostSimpleDetail searchResult = PostTestDataBuilder.createPostSearchResult(1L, "작성자 검색 결과");
+        Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(searchResult), pageable, 1);
+
+        given(postQueryPort.findByPrefixMatch(type, query, pageable)).willReturn(expectedPage);
+
+        // When
+        Page<PostSimpleDetail> result = postQueryService.searchPost(type, query, pageable);
+
+        // Then
+        assertThat(result).isEqualTo(expectedPage);
+        assertThat(result.getContent()).hasSize(1);
+
+        verify(postQueryPort).findByPrefixMatch(type, query, pageable);
+        verify(postQueryPort, never()).findByFullTextSearch(any(), any(), any());
+        verify(postQueryPort, never()).findByPartialMatch(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("게시글 검색 - 부분검색 전략 (WRITER + 4글자 미만)")
+    void shouldSearchPost_UsingPartialMatch_WhenWriterLessThan4Chars() {
+        // Given
+        PostSearchType type = PostSearchType.WRITER;
+        String query = "작성자"; // 3글자
+        Pageable pageable = PageRequest.of(0, 10);
+
+        PostSimpleDetail searchResult = PostTestDataBuilder.createPostSearchResult(1L, "부분 검색 결과");
+        Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(searchResult), pageable, 1);
+
+        given(postQueryPort.findByPartialMatch(type, query, pageable)).willReturn(expectedPage);
+
+        // When
+        Page<PostSimpleDetail> result = postQueryService.searchPost(type, query, pageable);
+
+        // Then
+        assertThat(result).isEqualTo(expectedPage);
+        assertThat(result.getContent()).hasSize(1);
+
+        verify(postQueryPort).findByPartialMatch(type, query, pageable);
+        verify(postQueryPort, never()).findByFullTextSearch(any(), any(), any());
+        verify(postQueryPort, never()).findByPrefixMatch(any(), any(), any());
+    }
+
+    @Test
+    @DisplayName("게시글 검색 - 부분검색 전략 (3글자 미만)")
+    void shouldSearchPost_UsingPartialMatch_WhenLessThan3Chars() {
+        // Given
+        PostSearchType type = PostSearchType.TITLE;
+        String query = "검색"; // 2글자
+        Pageable pageable = PageRequest.of(0, 10);
+
+        PostSimpleDetail searchResult = PostTestDataBuilder.createPostSearchResult(1L, "부분 검색 결과");
+        Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(searchResult), pageable, 1);
+
+        given(postQueryPort.findByPartialMatch(type, query, pageable)).willReturn(expectedPage);
+
+        // When
+        Page<PostSimpleDetail> result = postQueryService.searchPost(type, query, pageable);
+
+        // Then
+        assertThat(result).isEqualTo(expectedPage);
+        assertThat(result.getContent()).hasSize(1);
+
+        verify(postQueryPort).findByPartialMatch(type, query, pageable);
+        verify(postQueryPort, never()).findByFullTextSearch(any(), any(), any());
+        verify(postQueryPort, never()).findByPrefixMatch(any(), any(), any());
     }
 
 

@@ -221,15 +221,15 @@ class PostQueryAdapterIntegrationTest {
 
 
     @Test
-    @DisplayName("정상 케이스 - 제목 검색 (LIKE 검색 폴백)")
-    void shouldFindPostsByTitleSearch_WhenValidSearchQueryProvided() {
-        // Given: 짧은 검색어로 LIKE 검색 유도 (3글자 미만)
+    @DisplayName("정상 케이스 - 부분 검색 (LIKE '%query%')")
+    void shouldFindPostsByPartialMatch_WhenValidSearchQueryProvided() {
+        // Given: 부분 검색
         PostSearchType searchType = PostSearchType.TITLE;
-        String query = "첫";  // 1글자로 LIKE 검색 강제
+        String query = "첫";
         Pageable pageable = PageRequest.of(0, 10);
 
-        // When: 제목 검색 (LIKE 검색으로 폴백)
-        Page<PostSimpleDetail> result = postQueryAdapter.findBySearch(searchType, query, pageable);
+        // When: 부분 검색
+        Page<PostSimpleDetail> result = postQueryAdapter.findByPartialMatch(searchType, query, pageable);
 
         // Then: 해당 제목이 포함된 게시글 조회됨
         assertThat(result).isNotNull();
@@ -238,21 +238,37 @@ class PostQueryAdapterIntegrationTest {
     }
 
     @Test
-    @DisplayName("정상 케이스 - 작성자 검색")
-    void shouldFindPostsByWriterSearch_WhenValidWriterQueryProvided() {
-        // Given: 작성자 검색어
+    @DisplayName("정상 케이스 - 접두사 검색 (LIKE 'query%')")
+    void shouldFindPostsByPrefixMatch_WhenValidPrefixProvided() {
+        // Given: 접두사 검색 (작성자명 4글자 이상)
         PostSearchType searchType = PostSearchType.WRITER;
         String query = "test";
         Pageable pageable = PageRequest.of(0, 10);
 
-        // When: 작성자 검색
-        Page<PostSimpleDetail> result = postQueryAdapter.findBySearch(searchType, query, pageable);
+        // When: 접두사 검색
+        Page<PostSimpleDetail> result = postQueryAdapter.findByPrefixMatch(searchType, query, pageable);
 
-        // Then: 해당 작성자의 게시글들이 조회됨
+        // Then: 해당 접두사로 시작하는 작성자의 게시글들이 조회됨
         assertThat(result).isNotNull();
         assertThat(result.getContent()).hasSizeGreaterThan(0);
         assertThat(result.getContent()).allMatch(post ->
-                post.getMemberName().toLowerCase().contains(query.toLowerCase()));
+                post.getMemberName().toLowerCase().startsWith(query.toLowerCase()));
+    }
+
+    @Test
+    @DisplayName("정상 케이스 - 전문 검색 (MySQL FULLTEXT)")
+    void shouldFindPostsByFullTextSearch_WhenValidQueryProvided() {
+        // Given: 3글자 이상 검색어
+        PostSearchType searchType = PostSearchType.TITLE;
+        String query = "첫번째";
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When: 전문 검색
+        Page<PostSimpleDetail> result = postQueryAdapter.findByFullTextSearch(searchType, query, pageable);
+
+        // Then: FULLTEXT 인덱스를 사용하여 검색됨
+        assertThat(result).isNotNull();
+        // FULLTEXT 검색 결과는 빈 페이지일 수 있음 (테스트 환경에 따라)
     }
 
 

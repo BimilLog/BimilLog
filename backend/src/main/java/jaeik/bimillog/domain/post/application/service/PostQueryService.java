@@ -109,21 +109,66 @@ public class PostQueryService implements PostQueryUseCase {
     }
 
     /**
-     * <h3>게시글 검색</h3>
-     * <p>검색 타입과 검색어를 기반으로 게시글을 검색합니다.</p>
-     * <p>MySQL Full-text Search와 ngram 파서를 활용한 한국어 검색을 지원합니다.</p>
+     * <h3>게시글 검색 전략 선택</h3>
+     * <p>검색 조건에 따라 최적의 검색 전략을 선택하여 게시글을 검색합니다.</p>
+     * <p>검색 전략:</p>
+     * <ul>
+     *     <li>3글자 이상 + WRITER 아님 → 전문검색 시도 (실패 시 부분검색)</li>
+     *     <li>WRITER + 4글자 이상 → 접두사 검색 (인덱스 활용)</li>
+     *     <li>그 외 → 부분 검색</li>
+     * </ul>
      * <p>{@link PostQueryController}에서 검색 요청 시 호출됩니다.</p>
      *
-     * @param type     검색 유형 (title: 제목, content: 내용, writer: 작성자)
-     * @param query    검색어 (한글, 영문, 숫자 지원)
-     * @param pageable 페이지 정보 (크기, 페이지 번호, 정렬 기준)
+     * @param type     검색 유형 (TITLE, WRITER, TITLE_CONTENT)
+     * @param query    검색어
+     * @param pageable 페이지 정보
      * @return Page&lt;PostSimpleDetail&gt; 검색된 게시글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     public Page<PostSimpleDetail> searchPost(PostSearchType type, String query, Pageable pageable) {
-        return postQueryPort.findBySearch(type, query, pageable);
+        // 전략 1: 3글자 이상 + 작성자 검색 아님 → 전문 검색 시도
+        if (shouldUseFullTextSearch(type, query)) {
+            Page<PostSimpleDetail> fullTextResult = postQueryPort.findByFullTextSearch(type, query, pageable);
+            if (!fullTextResult.isEmpty()) {
+                return fullTextResult;
+            }
+            // 전문 검색 실패 시 부분 검색으로 폴백
+            return postQueryPort.findByPartialMatch(type, query, pageable);
+        }
+
+        // 전략 2: 작성자 검색 + 4글자 이상 → 접두사 검색 (인덱스 활용)
+        if (shouldUsePrefixMatch(type, query)) {
+            return postQueryPort.findByPrefixMatch(type, query, pageable);
+        }
+
+        // 전략 3: 그 외 → 부분 검색
+        return postQueryPort.findByPartialMatch(type, query, pageable);
+    }
+
+    /**
+     * <h3>전문 검색 사용 여부 판단</h3>
+     * <p>검색어가 3글자 이상이고 작성자 검색이 아닌 경우 MySQL FULLTEXT 검색을 사용합니다.</p>
+     *
+     * @param type  검색 유형
+     * @param query 검색어
+     * @return 전문 검색 사용 여부
+     */
+    private boolean shouldUseFullTextSearch(PostSearchType type, String query) {
+        return query.length() >= 3 && type != PostSearchType.WRITER;
+    }
+
+    /**
+     * <h3>접두사 검색 사용 여부 판단</h3>
+     * <p>작성자 검색에서 4글자 이상인 경우 인덱스를 활용한 접두사 검색을 사용합니다.</p>
+     *
+     * @param type  검색 유형
+     * @param query 검색어
+     * @return 접두사 검색 사용 여부
+     */
+    private boolean shouldUsePrefixMatch(PostSearchType type, String query) {
+        return type == PostSearchType.WRITER && query.length() >= 4;
     }
 
 
