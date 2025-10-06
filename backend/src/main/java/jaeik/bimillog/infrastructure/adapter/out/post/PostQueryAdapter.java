@@ -4,6 +4,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.comment.entity.QComment;
 import jaeik.bimillog.domain.member.entity.QMember;
@@ -24,8 +25,8 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -66,8 +67,8 @@ public class PostQueryAdapter implements PostQueryPort {
      */
     @Override
     public Page<PostSimpleDetail> findByPage(Pageable pageable) {
-        BooleanExpression condition = post.isNotice.isFalse();
-        return findPostsWithCondition(condition, pageable);
+        Consumer<JPAQuery<?>> customizer = query -> query.where(post.isNotice.isFalse());
+        return findPostsWithQuery(customizer, customizer, pageable);
     }
 
     /**
@@ -83,8 +84,8 @@ public class PostQueryAdapter implements PostQueryPort {
      */
     @Override
     public Page<PostSimpleDetail> findPostsByMemberId(Long memberId, Pageable pageable) {
-        BooleanExpression condition = member.id.eq(memberId);
-        return findPostsWithCondition(condition, pageable);
+        Consumer<JPAQuery<?>> customizer = query -> query.where(member.id.eq(memberId));
+        return findPostsWithQuery(customizer, customizer, pageable);
     }
 
     /**
@@ -101,8 +102,26 @@ public class PostQueryAdapter implements PostQueryPort {
      */
     @Override
     public Page<PostSimpleDetail> findLikedPostsByMemberId(Long memberId, Pageable pageable) {
-        // 1. 게시글 기본 정보 조회 (댓글, 추천 JOIN 제외)
-        List<PostSimpleDetail> content = jpaQueryFactory
+        Consumer<JPAQuery<?>> customizer = query ->
+                query.join(postLike).on(post.id.eq(postLike.post.id).and(postLike.member.id.eq(memberId)));
+        return findPostsWithQuery(customizer, customizer, pageable);
+    }
+
+    /**
+     * <h3>공통 게시글 목록 조회</h3>
+     * <p>배치 조회로 댓글 수와 추천 수 조회</p>
+     *
+     * @param contentQueryCustomizer Content 쿼리 커스터마이징 로직 (JOIN, WHERE 등)
+     * @param countQueryCustomizer   Count 쿼리 커스터마이징 로직 (JOIN, WHERE 등)
+     * @param pageable               페이지 정보
+     * @return 게시글 목록 페이지
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private Page<PostSimpleDetail> findPostsWithQuery(Consumer<JPAQuery<?>> contentQueryCustomizer,
+                                                      Consumer<JPAQuery<?>> countQueryCustomizer,
+                                                      Pageable pageable) {
+        JPAQuery<PostSimpleDetail> contentQuery = jpaQueryFactory
                 .select(Projections.constructor(PostSimpleDetail.class,
                         post.id,
                         post.title,
@@ -113,61 +132,125 @@ public class PostQueryAdapter implements PostQueryPort {
                         Expressions.stringTemplate("COALESCE({0}, {1})", member.memberName, "비회원").as("memberName"),
                         Expressions.constant(0)))
                 .from(post)
-                .join(postLike).on(post.id.eq(postLike.post.id).and(postLike.member.id.eq(memberId)))
+                .leftJoin(post.member, member);
+
+        // 커스터마이징 적용 (JOIN, WHERE 등)
+        contentQueryCustomizer.accept(contentQuery);
+
+        // 페이징 및 정렬
+        List<PostSimpleDetail> content = contentQuery
                 .orderBy(post.createdAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
 
+        // 배치 조회로 댓글 수와 추천 수 설정
         batchLikeAndCommentCount(content);
 
-        Long total = jpaQueryFactory
+        // Count 쿼리 빌딩
+        JPAQuery<Long> countQuery = jpaQueryFactory
                 .select(post.countDistinct())
-                .from(post)
-                .join(postLike).on(post.id.eq(postLike.post.id).and(postLike.member.id.eq(memberId)))
-                .fetchOne();
+                .from(post);
+
+        // 커스터마이징 적용 (JOIN, WHERE 등)
+        countQueryCustomizer.accept(countQuery);
+
+        Long total = countQuery.fetchOne();
 
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
 
     /**
-     * <h3>공통 게시글 목록 조회</h3>
-     * <p>주어진 조건에 따라 게시글을 조회하고 페이지네이션합니다.</p>
-     * <p>배치 조회로 댓글 수와 추천 수 조회</p>
+     * <h3>게시글 목록에 추천 수와 댓글 수 주입</h3>
+     * <p>게시글 목록의 좋아요 수와 댓글 수를 배치로 조회하여 주입.</p>
      *
-     * @param condition WHERE 조건
-     * @param pageable  페이지 정보
-     * @return 게시글 목록 페이지
+     * @param posts 좋아요 수와 댓글 수를 채울 게시글 목록
      * @author Jaeik
      * @since 2.0.0
      */
-    private Page<PostSimpleDetail> findPostsWithCondition(BooleanExpression condition, Pageable pageable) {
-        List<PostSimpleDetail> content = jpaQueryFactory
-                .select(Projections.constructor(PostSimpleDetail.class,
-                        post.id,
-                        post.title,
-                        post.views,
-                        Expressions.constant(0),
-                        post.createdAt,
-                        member.id,
-                        Expressions.stringTemplate("COALESCE({0}, {1})", member.memberName, "비회원").as("memberName"),
-                        Expressions.constant(0)))
-                .from(post)
-                .leftJoin(post.member, member)
-                .where(condition)
-                .orderBy(post.createdAt.desc())
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
+    private void batchLikeAndCommentCount(List<PostSimpleDetail> posts) {
+        if (posts.isEmpty()) {
+            return;
+        }
 
+        List<Long> postIds = posts.stream()
+                .map(PostSimpleDetail::getId)
+                .toList();
 
-        batchLikeAndCommentCount(content);
+        Map<Long, Integer> commentCounts = postToCommentPort.findCommentCountsByPostIds(postIds);
+        Map<Long, Integer> likeCounts = postLikeQueryPort.findLikeCountsByPostIds(postIds);
 
-        Long total = calculateTotalCount(condition);
-
-        return new PageImpl<>(content, pageable, total != null ? total : 0L);
+        posts.forEach(post -> {
+            post.setCommentCount(commentCounts.getOrDefault(post.getId(), 0));
+            post.setLikeCount(likeCounts.getOrDefault(post.getId(), 0));
+        });
     }
 
+    /**
+     * <h3>게시글 상세 정보 JOIN 쿼리</h3>
+     * <p>게시글, 좋아요 수, 댓글 수, 사용자 좋아요 여부를 한 번의 JOIN 쿼리로 조회합니다.</p>
+     * <p>JOIN으로 필요한 데이터를 한 번에 조회</p>
+     * <p>{@link PostQueryService}에서 게시글 상세 페이지 조회 시 호출됩니다.</p>
+     *
+     * @param postId   조회할 게시글 ID
+     * @param memberId 현재 사용자 ID (좋아요 여부 확인용, null 가능)
+     * @return 게시글 상세 정보 프로젝션 (게시글이 없으면 empty)
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public Optional<PostDetail> findPostDetailWithCounts(Long postId, Long memberId) {
+        QPostLike userPostLike = new QPostLike("userPostLike");
+
+        PostDetail result = jpaQueryFactory
+                .select(new QPostDetail(
+                        post.id,
+                        post.title,
+                        post.content,
+                        post.views.coalesce(0),
+                        // 좋아요 개수 (COUNT) - Integer likeCount
+                        postLike.countDistinct().castToNum(Integer.class),
+                        post.createdAt,
+                        member.id,
+                        member.memberName,
+                        // 댓글 개수 (COUNT)
+                        comment.countDistinct().castToNum(Integer.class),
+                        // 사용자 좋아요 여부 (CASE WHEN)
+                        new CaseBuilder()
+                                .when(userPostLike.id.isNotNull())
+                                .then(true)
+                                .otherwise(false)
+                ))
+                .from(post)
+                .leftJoin(post.member, member)
+                .leftJoin(postLike).on(postLike.post.id.eq(post.id))
+                .leftJoin(comment).on(comment.post.id.eq(post.id))
+                .leftJoin(userPostLike).on(
+                        userPostLike.post.id.eq(post.id)
+                                .and(memberId != null ? userPostLike.member.id.eq(memberId) : Expressions.FALSE)
+                )
+                .where(post.id.eq(postId))
+                .groupBy(post.id, post.title, post.content, post.views, post.createdAt,
+                        member.id, member.memberName, userPostLike.id)
+                .fetchOne();
+
+        return Optional.ofNullable(result);
+    }
+
+    /**
+     * <h3>게시글 상세 조회</h3>
+     * <p>게시글 ID를 기준으로 게시글 상세 정보를 조회합니다.</p>
+     * <p>수정 이력: null 안전성 개선 - null postId 예외 처리 추가</p>
+     *
+     * @param postId 게시글 ID
+     * @return 게시글 상세 정보 DTO
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public PostDetail findPostDetail(Long postId) {
+        return findPostDetailWithCounts(postId, null).orElse(null);
+    }
 
     /**
      * <h3>검색어로 게시글 조회</h3>
@@ -192,13 +275,9 @@ public class PostQueryAdapter implements PostQueryPort {
         }
 
         BooleanExpression likeCondition = createLikeSearchCondition(type, query).and(post.isNotice.isFalse());
-        return findPostsWithCondition(likeCondition, pageable);
+        Consumer<JPAQuery<?>> customizer = q -> q.where(likeCondition);
+        return findPostsWithQuery(customizer, customizer, pageable);
     }
-
-
-
-
-
 
     /**
      * <h3>전문 검색 사용 여부 판단</h3>
@@ -339,181 +418,16 @@ public class PostQueryAdapter implements PostQueryPort {
         return null;
     }
 
-    /**
-     * <h3>게시글 목록에 추천 수와 댓글 수 주입</h3>
-     * <p>게시글 목록의 좋아요 수와 댓글 수를 배치로 조회하여 주입.</p>
-     *
-     * @param posts 좋아요 수와 댓글 수를 채울 게시글 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private void batchLikeAndCommentCount(List<PostSimpleDetail> posts) {
-        if (posts.isEmpty()) {
-            return;
-        }
-
-        List<Long> postIds = posts.stream()
-                .map(PostSimpleDetail::getId)
-                .toList();
-
-        Map<Long, Integer> commentCounts = postToCommentPort.findCommentCountsByPostIds(postIds);
-        Map<Long, Integer> likeCounts = postLikeQueryPort.findLikeCountsByPostIds(postIds);
-
-        posts.forEach(post -> {
-            post.setCommentCount(commentCounts.getOrDefault(post.getId(), 0));
-            post.setLikeCount(likeCounts.getOrDefault(post.getId(), 0));
-        });
-    }
-
 
     /**
-     * <h3>게시글 개수 계산</h3>
-     * <p>일반 조건 검색 시 총 개수를 계산합니다.</p>
-     * <p>페이지네이션을 위한 전체 게시글 수를 조회합니다.</p>
+     * <h3>사용자가 작성한 postId 조회</h3>
+     * <p>사용자가 작성한 글의 postId 목록을 조회합니다.</p>
      *
-     * @param condition WHERE 조건
-     * @return 총 게시글 수
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private Long calculateTotalCount(BooleanExpression condition) {
-        return jpaQueryFactory
-                .select(post.count())
-                .from(post)
-                .leftJoin(post.member, member)
-                .where(condition)
-                .fetchOne();
-    }
-
-    /**
-     * <h3>게시글 상세 정보 JOIN 쿼리</h3>
-     * <p>게시글, 좋아요 수, 댓글 수, 사용자 좋아요 여부를 한 번의 JOIN 쿼리로 조회합니다.</p>
-     * <p>JOIN으로 필요한 데이터를 한 번에 조회</p>
-     * <p>{@link PostQueryService}에서 게시글 상세 페이지 조회 시 호출됩니다.</p>
-     *
-     * @param postId   조회할 게시글 ID
-     * @param memberId 현재 사용자 ID (좋아요 여부 확인용, null 가능)
-     * @return 게시글 상세 정보 프로젝션 (게시글이 없으면 empty)
-     * @author Jaeik
-     * @since 2.0.0
+     * @param memberId 게시글을 조회할 사용자 ID
+     * @return List<Long> 사용자의 게시글 ID 목록
      */
     @Override
-    public Optional<PostDetail> findPostDetailWithCounts(Long postId, Long memberId) {
-        QPostLike userPostLike = new QPostLike("userPostLike");
-
-        PostDetail result = jpaQueryFactory
-                .select(new QPostDetail(
-                        post.id,
-                        post.title,
-                        post.content,
-                        post.views.coalesce(0),
-                        // 좋아요 개수 (COUNT) - Integer likeCount
-                        postLike.countDistinct().castToNum(Integer.class),
-                        post.createdAt,
-                        member.id,
-                        member.memberName,
-                        // 댓글 개수 (COUNT)
-                        comment.countDistinct().castToNum(Integer.class),
-                        // 사용자 좋아요 여부 (CASE WHEN)
-                        new CaseBuilder()
-                                .when(userPostLike.id.isNotNull())
-                                .then(true)
-                                .otherwise(false)
-                ))
-                .from(post)
-                .leftJoin(post.member, member)
-                .leftJoin(postLike).on(postLike.post.id.eq(post.id))
-                .leftJoin(comment).on(comment.post.id.eq(post.id))
-                .leftJoin(userPostLike).on(
-                        userPostLike.post.id.eq(post.id)
-                                .and(memberId != null ? userPostLike.member.id.eq(memberId) : Expressions.FALSE)
-                )
-                .where(post.id.eq(postId))
-                .groupBy(post.id, post.title, post.content, post.views, post.createdAt,
-                        member.id, member.memberName, userPostLike.id)
-                .fetchOne();
-
-        return Optional.ofNullable(result);
-    }
-
-    /**
-     * <h3>게시글 상세 조회</h3>
-     * <p>게시글 ID를 기준으로 게시글 상세 정보를 조회합니다.</p>
-     * <p>수정 이력: null 안전성 개선 - null postId 예외 처리 추가</p>
-     *
-     * @param postId 게시글 ID
-     * @return 게시글 상세 정보 DTO
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public PostDetail findPostDetail(Long postId) {
-        if (postId == null) {
-            return null;
-        }
-        return findPostDetailWithCounts(postId, null).orElse(null);
-    }
-
-    /**
-     * <h3>게시글 ID 목록으로 상세 정보 배치 조회</h3>
-     * <p>여러 게시글의 상세 정보를 한 번에 조회합니다.</p>
-     * <p>요청한 ID 순서대로 결과를 반환하며, 존재하지 않는 게시글은 제외됩니다.</p>
-     * <p>{@link PostQueryService}에서 여러 게시글 상세 정보를 효율적으로 조회할 때 호출됩니다.</p>
-     *
-     * @param postIds 조회할 게시글 ID 목록
-     * @return 게시글 상세 정보 목록 (요청 순서대로 정렬, null이면 빈 리스트)
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public List<PostDetail> findPostDetailsByIds(List<Long> postIds) {
-        if (postIds == null || postIds.isEmpty()) {
-            return List.of();
-        }
-
-        List<PostDetail> results = jpaQueryFactory
-                .select(new QPostDetail(
-                        post.id,
-                        post.title,
-                        post.content,
-                        post.views.coalesce(0),
-                        postLike.countDistinct().castToNum(Integer.class),
-                        post.createdAt,
-                        member.id,
-                        member.memberName,
-                        comment.countDistinct().castToNum(Integer.class),
-                        Expressions.constant(false)
-                ))
-                .from(post)
-                .leftJoin(post.member, member)
-                .leftJoin(postLike).on(postLike.post.id.eq(post.id))
-                .leftJoin(comment).on(comment.post.id.eq(post.id))
-                .where(post.id.in(postIds))
-                .groupBy(post.id, post.title, post.content, post.views, post.createdAt,
-                        member.id, member.memberName)
-                .fetch();
-
-        Map<Long, PostDetail> resultMap = results.stream()
-                .collect(Collectors.toMap(PostDetail::id, detail -> detail, (left, right) -> left));
-
-        return postIds.stream()
-                .map(resultMap::get)
-                .filter(Objects::nonNull)
-                .toList();
-    }
-
-    /**
-     * <h3>캐시 플래그가 있는 게시글 ID 조회</h3>
-     * <p>사용자가 작성한 게시글 중 캐시 플래그가 설정된 게시글의 ID만 조회합니다.</p>
-     * <p>Redis 캐시 동기화 시 특정 사용자의 게시글만 선택적으로 갱신할 때 사용됩니다.</p>
-     *
-     * @param memberId 사용자 ID
-     * @return 캐시 플래그가 설정된 게시글 ID 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public List<Long> findCachedPostIdsByMemberId(Long memberId) {
+    public List<Long> findPostIdsMemberId(Long memberId) {
         return postRepository.findIdsWithCacheFlagByMemberId(memberId);
     }
 

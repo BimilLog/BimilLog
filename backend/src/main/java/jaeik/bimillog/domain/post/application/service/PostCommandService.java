@@ -133,7 +133,7 @@ public class PostCommandService implements PostCommandUseCase {
     @Override
     @Transactional
     public void deleteAllPostsByMemberId(Long memberId) {
-        List<Long> cachedPostIds = postQueryPort.findCachedPostIdsByMemberId(memberId);
+        List<Long> cachedPostIds = postQueryPort.findPostIdsMemberId(memberId);
 
         for (Long postId : cachedPostIds) {
             redisPostCommandPort.deleteSinglePostCache(postId);

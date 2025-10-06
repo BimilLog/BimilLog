@@ -226,12 +226,12 @@ class PostCommandServiceTest extends BaseUnitTest {
         Long postId1 = 10L;
         Long postId2 = 11L;
 
-        given(postQueryPort.findCachedPostIdsByMemberId(memberId)).willReturn(List.of(postId1, postId2));
+        given(postQueryPort.findPostIdsMemberId(memberId)).willReturn(List.of(postId1, postId2));
         // When
         postCommandService.deleteAllPostsByMemberId(memberId);
 
         // Then
-        verify(postQueryPort, times(1)).findCachedPostIdsByMemberId(memberId);
+        verify(postQueryPort, times(1)).findPostIdsMemberId(memberId);
         verify(redisPostCommandPort, times(1)).deleteSinglePostCache(postId1);
         verify(redisPostCommandPort, times(1)).deleteSinglePostCache(postId2);
         verify(postCommandPort, times(1)).deleteAllByMemberId(memberId);
@@ -243,13 +243,13 @@ class PostCommandServiceTest extends BaseUnitTest {
     void shouldSkipDeletingPosts_WhenNoPostsExist() {
         // Given
         Long memberId = 1L;
-        given(postQueryPort.findCachedPostIdsByMemberId(memberId)).willReturn(List.of());
+        given(postQueryPort.findPostIdsMemberId(memberId)).willReturn(List.of());
 
         // When
         postCommandService.deleteAllPostsByMemberId(memberId);
 
         // Then
-        verify(postQueryPort, times(1)).findCachedPostIdsByMemberId(memberId);
+        verify(postQueryPort, times(1)).findPostIdsMemberId(memberId);
         verify(postCommandPort, times(1)).deleteAllByMemberId(memberId);
         verify(redisPostCommandPort, never()).deleteSinglePostCache(any());
         verifyNoMoreInteractions(postQueryPort, postCommandPort, redisPostCommandPort);

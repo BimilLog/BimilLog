@@ -36,21 +36,6 @@ public interface PostQueryPort {
     Page<PostSimpleDetail> findByPage(Pageable pageable);
 
     /**
-     * <h3>조건별 게시글 검색</h3>
-     * <p>검색 타입(제목, 내용, 작성자)과 검색어를 기반으로 게시글을 검색합니다.</p>
-     * <p>MySQL ngram parser를 활용한 전문 검색으로 한국어 검색 지원</p>
-     * <p>{@link PostQueryService}에서 게시글 전문 검색 처리 시 호출됩니다.</p>
-     *
-     * @param type 검색 타입 (TITLE, WRITER, TITLE_CONTENT)
-     * @param query 검색어 (한국어 키워드)
-     * @param pageable 페이지 정보
-     * @return Page<PostSimpleDetail> 검색 조건에 맞는 게시글 목록 페이지
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    Page<PostSimpleDetail> findBySearch(PostSearchType type, String query, Pageable pageable);
-
-    /**
      * <h3>사용자 작성 게시글 목록 조회</h3>
      * <p>특정 사용자가 작성한 게시글 목록을 최신순으로 조회합니다.</p>
      * <p>사용자별 활동 내역 추적 및 개인 포트폴리오 구성 시 사용</p>
@@ -79,6 +64,22 @@ public interface PostQueryPort {
     Page<PostSimpleDetail> findLikedPostsByMemberId(Long memberId, Pageable pageable);
 
     /**
+     * <h3>조건별 게시글 검색</h3>
+     * <p>검색 타입(제목, 내용, 작성자)과 검색어를 기반으로 게시글을 검색합니다.</p>
+     * <p>MySQL ngram parser를 활용한 전문 검색으로 한국어 검색 지원</p>
+     * <p>{@link PostQueryService}에서 게시글 전문 검색 처리 시 호출됩니다.</p>
+     *
+     * @param type 검색 타입 (TITLE, WRITER, TITLE_CONTENT)
+     * @param query 검색어 (한국어 키워드)
+     * @param pageable 페이지 정보
+     * @return Page<PostSimpleDetail> 검색 조건에 맞는 게시글 목록 페이지
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    Page<PostSimpleDetail> findBySearch(PostSearchType type, String query, Pageable pageable);
+
+
+    /**
      * <h3>게시글 통합 상세 정보 조회</h3>
      * <p>게시글과 관련된 모든 정보(좋아요 수, 댓글 수, 사용자별 좋아요 여부)를 JOIN으로 한 번에 조회합니다.</p>
      * <p>{@link PostQueryService}에서 게시글 상세 페이지 조회 시 호출됩니다.</p>
@@ -105,21 +106,12 @@ public interface PostQueryPort {
     PostDetail findPostDetail(Long postId);
 
     /**
-     * <h3>여러 게시글의 상세 정보 조회</h3>
-     * <p>여러 게시글의 상세 정보를 한번에 조회하여 캐시 동기화 시 N+1 문제를 방지합니다.</p>
-     *
-     * @param postIds 조회할 게시글 ID 목록
-     * @return 게시글 상세 정보 리스트
-     */
-    List<PostDetail> findPostDetailsByIds(List<Long> postIds);
-
-    /**
-     * <h3>캐시 플래그가 있는 게시글 ID 조회</h3>
-     * <p>사용자가 작성한 게시글 중 캐시 플래그가 설정된 게시글의 ID만 조회합니다.</p>
+     * <h3>사용자가 작성한 postId 조회</h3>
+     * <p>사용자가 작성한 글의 postId 목록을 조회합니다.</p>
      *
      * @param memberId 게시글을 조회할 사용자 ID
-     * @return List<Long> 캐시 플래그가 설정된 게시글 ID 목록
+     * @return List<Long> 사용자의 게시글 ID 목록
      */
-    List<Long> findCachedPostIdsByMemberId(Long memberId);
+    List<Long> findPostIdsMemberId(Long memberId);
 
 }
