@@ -165,10 +165,6 @@ public class PostQueryService implements PostQueryUseCase {
         if (type != PostCacheFlag.LEGEND) {
             throw new PostCustomException(PostErrorCode.INVALID_INPUT_VALUE);
         }
-
-        if (!redisPostQueryPort.hasPopularPostsCache(type)) {
-            postCacheSyncService.updateLegendaryPosts();
-        }
         return redisPostQueryPort.getCachedPostListPaged(pageable);
     }
 
@@ -261,11 +257,6 @@ public class PostQueryService implements PostQueryUseCase {
                 .filter(java.util.Objects::nonNull)
                 .map(PostDetail::toSearchResult)
                 .toList();
-
-        // 주간 인기글: 캐시 없으면 스케줄러 호출, postId 목록 조회 후 상세 캐시 활용
-        if (!redisPostQueryPort.hasPopularPostsCache(PostCacheFlag.WEEKLY)) {
-            postCacheSyncService.updateWeeklyPopularPosts();
-        }
         List<PostSimpleDetail> weeklyPosts = redisPostQueryPort.getCachedPostList(PostCacheFlag.WEEKLY);
 
         return Map.of(
