@@ -234,7 +234,7 @@ public class PostQueryService implements PostQueryUseCase {
                     // 캐시 어사이드 패턴으로 조회 (캐시 미스 시 DB 조회 후 캐시 저장)
                     PostDetail postDetail = redisPostQueryPort.getCachedPostIfExists(postId);
                     if (postDetail == null) {
-                        postDetail = postQueryPort.findPostDetail(postId);
+                        postDetail = postQueryPort.findPostDetailWithCounts(postId, null).orElse(null);
                         if (postDetail != null) {
                             redisPostCommandPort.cachePostDetail(postDetail);
                         }

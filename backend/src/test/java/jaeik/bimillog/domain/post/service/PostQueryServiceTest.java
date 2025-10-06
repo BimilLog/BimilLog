@@ -517,7 +517,7 @@ class PostQueryServiceTest extends BaseUnitTest {
 
         given(redisPostQueryPort.getRealtimePopularPostIds()).willReturn(List.of(1L));
         given(redisPostQueryPort.getCachedPostIfExists(1L)).willReturn(null); // Cache miss
-        given(postQueryPort.findPostDetail(1L)).willReturn(realtimePost1); // DB fallback
+        given(postQueryPort.findPostDetailWithCounts(1L, null)).willReturn(Optional.of(realtimePost1)); // DB fallback
         given(redisPostQueryPort.hasPopularPostsCache(PostCacheFlag.WEEKLY)).willReturn(true);
         given(redisPostQueryPort.getCachedPostList(PostCacheFlag.WEEKLY)).willReturn(weeklyPosts);
 
@@ -531,7 +531,7 @@ class PostQueryServiceTest extends BaseUnitTest {
 
         verify(redisPostQueryPort).getRealtimePopularPostIds();
         verify(redisPostQueryPort).getCachedPostIfExists(1L);
-        verify(postQueryPort).findPostDetail(1L);
+        verify(postQueryPort).findPostDetailWithCounts(1L, null);
         verify(redisPostQueryPort).hasPopularPostsCache(PostCacheFlag.WEEKLY);
         verify(postCacheSyncService, never()).updateWeeklyPopularPosts();
         verify(redisPostQueryPort).getCachedPostList(PostCacheFlag.WEEKLY);
@@ -573,7 +573,7 @@ class PostQueryServiceTest extends BaseUnitTest {
 
         given(redisPostQueryPort.getRealtimePopularPostIds()).willReturn(List.of(1L));
         given(redisPostQueryPort.getCachedPostIfExists(1L)).willReturn(null); // Cache miss
-        given(postQueryPort.findPostDetail(1L)).willReturn(realtimePost1); // DB fallback
+        given(postQueryPort.findPostDetailWithCounts(1L, null)).willReturn(Optional.of(realtimePost1)); // DB fallback
         given(redisPostQueryPort.hasPopularPostsCache(PostCacheFlag.WEEKLY)).willReturn(false);
         given(redisPostQueryPort.getCachedPostList(PostCacheFlag.WEEKLY)).willReturn(weeklyPosts);
 
@@ -587,7 +587,7 @@ class PostQueryServiceTest extends BaseUnitTest {
 
         verify(redisPostQueryPort).getRealtimePopularPostIds();
         verify(redisPostQueryPort).getCachedPostIfExists(1L);
-        verify(postQueryPort).findPostDetail(1L);
+        verify(postQueryPort).findPostDetailWithCounts(1L, null);
         verify(redisPostQueryPort).hasPopularPostsCache(PostCacheFlag.WEEKLY);
         verify(postCacheSyncService).updateWeeklyPopularPosts();
         verify(redisPostQueryPort).getCachedPostList(PostCacheFlag.WEEKLY);

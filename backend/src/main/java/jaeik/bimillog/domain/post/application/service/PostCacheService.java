@@ -68,7 +68,7 @@ public class PostCacheService implements PostCacheUseCase {
         log.info("공지사항 캐시 추가 시작: postId={}", postId);
 
         // 게시글 정보를 DB에서 조회 (PostSearchResult로 조회)
-        PostDetail postDetail = postQueryPort.findPostDetail(postId);
+        PostDetail postDetail = postQueryPort.findPostDetailWithCounts(postId, null).orElse(null);
         if (postDetail != null) {
             // postId만 캐시에 추가 (주간/레전드와 동일한 방식)
             redisPostCommandPort.cachePostIds(PostCacheFlag.NOTICE, List.of(postDetail.toSearchResult()));

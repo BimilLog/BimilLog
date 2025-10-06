@@ -190,7 +190,7 @@ class RedisPostSyncAdapterIntegrationTest {
         entityManager.clear();
 
         // When
-        PostDetail postDetail = postQueryPort.findPostDetail(post.getId());
+        PostDetail postDetail = postQueryPort.findPostDetailWithCounts(post.getId(), null).orElse(null);
 
         // Then
         assertThat(postDetail).isNotNull();
@@ -207,7 +207,7 @@ class RedisPostSyncAdapterIntegrationTest {
         Long nonExistentPostId = 999L;
 
         // When
-        PostDetail postDetail = postQueryPort.findPostDetail(nonExistentPostId);
+        PostDetail postDetail = postQueryPort.findPostDetailWithCounts(nonExistentPostId, null).orElse(null);
 
         // Then
         assertNull(postDetail);

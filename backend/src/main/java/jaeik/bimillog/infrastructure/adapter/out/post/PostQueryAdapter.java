@@ -238,21 +238,6 @@ public class PostQueryAdapter implements PostQueryPort {
     }
 
     /**
-     * <h3>게시글 상세 조회</h3>
-     * <p>게시글 ID를 기준으로 게시글 상세 정보를 조회합니다.</p>
-     * <p>수정 이력: null 안전성 개선 - null postId 예외 처리 추가</p>
-     *
-     * @param postId 게시글 ID
-     * @return 게시글 상세 정보 DTO
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public PostDetail findPostDetail(Long postId) {
-        return findPostDetailWithCounts(postId, null).orElse(null);
-    }
-
-    /**
      * <h3>검색어로 게시글 조회</h3>
      * <p>검색 유형과 쿼리에 따라 게시글을 검색하고 페이지네이션합니다.</p>
      * <p>3글자 이상이고 writer가 아니면 FULLTEXT, 아니면 LIKE 검색</p>

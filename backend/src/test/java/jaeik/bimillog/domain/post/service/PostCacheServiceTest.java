@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
@@ -55,7 +56,7 @@ class PostCacheServiceTest {
                 .commentCount(0)
                 .isLiked(false)
                 .build();
-        given(postQueryPort.findPostDetail(postId)).willReturn(detail);
+        given(postQueryPort.findPostDetailWithCounts(postId, null)).willReturn(Optional.of(detail));
 
         // When
         postCacheService.syncNoticeCache(postId, true);
@@ -71,13 +72,13 @@ class PostCacheServiceTest {
     void shouldSkipCacheWhenDetailMissing() {
         // Given
         Long postId = 1L;
-        given(postQueryPort.findPostDetail(postId)).willReturn(null);
+        given(postQueryPort.findPostDetailWithCounts(postId, null)).willReturn(Optional.empty());
 
         // When
         postCacheService.syncNoticeCache(postId, true);
 
         // Then
-        verify(postQueryPort).findPostDetail(postId);
+        verify(postQueryPort).findPostDetailWithCounts(postId, null);
         verify(redisPostCommandPort, never()).cachePostIds(any(), any());
     }
 
@@ -92,6 +93,6 @@ class PostCacheServiceTest {
 
         // Then
         verify(redisPostCommandPort).deleteCache(null, postId, PostCacheFlag.NOTICE);
-        verify(postQueryPort, never()).findPostDetail(any());
+        verify(postQueryPort, never()).findPostDetailWithCounts(any(), any());
     }
 }

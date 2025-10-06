@@ -93,19 +93,6 @@ public interface PostQueryPort {
     Optional<PostDetail> findPostDetailWithCounts(Long postId, Long memberId);
 
     /**
-     * <h3>게시글 상세 정보 조회</h3>
-     * <p>특정 게시글의 상세 정보를 데이터베이스에서 조회하여 캐시 가능한 형태로 반환합니다.</p>
-     * <p>PostCacheService에서 개별 게시글 캐시 무효화 후 재캐싱 시 호출됩니다.</p>
-     * <p>게시글 엔티티와 추가 집계 정보(좋아요 수, 댓글 수)를 함께 조회하여 PostDetail 객체로 구성합니다.</p>
-     *
-     * @param postId 조회할 게시글 ID
-     * @return 게시글 상세 정보 (PostDetail 객체)
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    PostDetail findPostDetail(Long postId);
-
-    /**
      * <h3>사용자가 작성한 postId 조회</h3>
      * <p>사용자가 작성한 글의 postId 목록을 조회합니다.</p>
      *
