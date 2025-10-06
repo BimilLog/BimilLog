@@ -11,9 +11,41 @@
 -- ================================================================================================
 
 -- 1. post_cache_flag 관련 인덱스 제거
-ALTER TABLE `post`
-  DROP INDEX IF EXISTS `idx_post_created_at_popular`,
-  DROP INDEX IF EXISTS `idx_post_popular_flag`;
+-- idx_post_created_at_popular 인덱스 제거 (존재하는 경우에만)
+SET @index_exists1 = (
+  SELECT COUNT(*)
+  FROM information_schema.STATISTICS
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'post'
+    AND INDEX_NAME = 'idx_post_created_at_popular'
+);
+
+SET @drop_index_sql1 = IF(@index_exists1 > 0,
+  'ALTER TABLE `post` DROP INDEX `idx_post_created_at_popular`',
+  'SELECT "Index idx_post_created_at_popular does not exist, skipping drop" AS info'
+);
+
+PREPARE stmt1 FROM @drop_index_sql1;
+EXECUTE stmt1;
+DEALLOCATE PREPARE stmt1;
+
+-- idx_post_popular_flag 인덱스 제거 (존재하는 경우에만)
+SET @index_exists2 = (
+  SELECT COUNT(*)
+  FROM information_schema.STATISTICS
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'post'
+    AND INDEX_NAME = 'idx_post_popular_flag'
+);
+
+SET @drop_index_sql2 = IF(@index_exists2 > 0,
+  'ALTER TABLE `post` DROP INDEX `idx_post_popular_flag`',
+  'SELECT "Index idx_post_popular_flag does not exist, skipping drop" AS info'
+);
+
+PREPARE stmt2 FROM @drop_index_sql2;
+EXECUTE stmt2;
+DEALLOCATE PREPARE stmt2;
 
 -- 2. post_cache_flag 컬럼 제거 (존재하는 경우에만)
 SET @column_exists = (

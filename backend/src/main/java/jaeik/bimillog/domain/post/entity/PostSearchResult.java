@@ -36,7 +36,6 @@ public class PostSearchResult implements Serializable {
     private Long memberId;
     private String memberName;
     private Integer commentCount;
-    private boolean isNotice;
 
     /**
      * <h3>게시글 검색 결과 생성</h3>
@@ -93,7 +92,6 @@ public class PostSearchResult implements Serializable {
                 .memberId(postDetail.memberId())
                 .memberName(postDetail.memberName())
                 .commentCount(postDetail.commentCount())
-                .isNotice(postDetail.isNotice())
                 .build();
     }
     
@@ -108,7 +106,7 @@ public class PostSearchResult implements Serializable {
      */
     public PostSearchResult(Long id, String title, Integer viewCount,
                            Integer likeCount, Instant createdAt,
-                           Long memberId, String memberName, Integer commentCount, boolean isNotice) {
+                           Long memberId, String memberName, Integer commentCount) {
         this.id = id;
         this.title = title;
         this.viewCount = viewCount;
@@ -117,6 +115,5 @@ public class PostSearchResult implements Serializable {
         this.memberId = memberId;
         this.memberName = memberName;
         this.commentCount = commentCount;
-        this.isNotice = isNotice;
     }
 }

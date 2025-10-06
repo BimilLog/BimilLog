@@ -267,12 +267,7 @@ class PostQueryAdapterIntegrationTest {
         Page<PostSearchResult> result = postQueryAdapter.findByPage(pageable);
 
         // Then: 공지사항은 제외되고 일반 게시글만 조회됨
-        assertThat(result.getContent()).hasSize(3); // 일반 게시글 3개
-        
-        List<Boolean> noticeFlags = result.getContent().stream()
-                .map(PostSearchResult::isNotice)
-                .toList();
-        assertThat(noticeFlags).allMatch(isNotice -> !isNotice); // 모두 false여야 함
+        assertThat(result.getContent()).hasSize(3); // 일반 게시글 3개만 조회 (공지사항 2개 제외)
     }
 
     @Test

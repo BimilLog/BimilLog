@@ -37,5 +37,4 @@ export interface SimplePost {
   viewCount: number  // v2: views → viewCount
   createdAt: string  // v2: Instant → ISO string
   postCacheFlag?: "NOTICE" | "REALTIME" | "WEEKLY" | "LEGEND"
-  notice: boolean    // v2: _notice → notice (Jackson 직렬화)
 }

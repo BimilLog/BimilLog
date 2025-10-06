@@ -44,7 +44,6 @@ public class PostResponseMapper {
                 .memberId(postSearchResult.getMemberId())
                 .memberName(postSearchResult.getMemberName())
                 .commentCount(postSearchResult.getCommentCount())
-                .isNotice(postSearchResult.isNotice())
                 .build();
     }
 

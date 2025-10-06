@@ -48,7 +48,6 @@ public class PostTestDataBuilder {
                 .memberName("작성자")
                 .commentCount(0)
                 .createdAt(Instant.now())
-                .isNotice(false)
                 .build();
     }
 

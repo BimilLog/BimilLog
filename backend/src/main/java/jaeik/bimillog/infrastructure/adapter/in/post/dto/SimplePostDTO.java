@@ -39,6 +39,5 @@ public class SimplePostDTO {
     private Long memberId;
     private String memberName;
     private Integer commentCount;
-    private boolean isNotice;
 
 }

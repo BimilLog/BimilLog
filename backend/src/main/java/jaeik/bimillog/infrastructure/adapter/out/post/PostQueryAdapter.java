@@ -4,15 +4,14 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
-import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.comment.entity.QComment;
+import jaeik.bimillog.domain.member.entity.QMember;
 import jaeik.bimillog.domain.post.application.port.out.PostLikeQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostToCommentPort;
 import jaeik.bimillog.domain.post.application.service.PostQueryService;
 import jaeik.bimillog.domain.post.entity.*;
-import jaeik.bimillog.domain.member.entity.QMember;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
@@ -55,7 +54,7 @@ public class PostQueryAdapter implements PostQueryPort {
     private static final QComment comment = QComment.comment;
 
     /**
-     * <h3>페이지별 게시글 조회</h3>
+     * <h3>게시판 조회</h3>
      * <p>페이지 정보에 따라 게시글 목록을 조회합니다.</p>
      * <p>공지사항은 제외하고 일반 게시글만 조회</p>
      * <p>{@link PostQueryService}에서 게시판 메인 목록 조회 시 호출됩니다.</p>
@@ -128,11 +127,20 @@ public class PostQueryAdapter implements PostQueryPort {
      */
     @Override
     public Page<PostSearchResult> findLikedPostsByMemberId(Long memberId, Pageable pageable) {
-        QPostLike userPostLike = new QPostLike("userPostLike");
-        
+
         // 1. 게시글 기본 정보 조회 (댓글, 추천 JOIN 제외)
-        List<PostSearchResult> content = buildBasePostQueryWithoutJoins()
-                .join(userPostLike).on(post.id.eq(userPostLike.post.id).and(userPostLike.member.id.eq(memberId)))
+        List<PostSearchResult> content = jpaQueryFactory
+                .select(Projections.constructor(PostSearchResult.class,
+                        post.id,
+                        post.title,
+                        post.views.coalesce(0),
+                        Expressions.constant(0),
+                        post.createdAt,
+                        member.id,
+                        member.memberName,
+                        Expressions.constant(0)))
+                .from(post)
+                .join(postLike).on(post.id.eq(postLike.post.id).and(postLike.member.id.eq(memberId)))
                 .orderBy(post.createdAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -143,7 +151,7 @@ public class PostQueryAdapter implements PostQueryPort {
         Long total = jpaQueryFactory
                 .select(post.countDistinct())
                 .from(post)
-                .join(userPostLike).on(post.id.eq(userPostLike.post.id).and(userPostLike.member.id.eq(memberId)))
+                .join(postLike).on(post.id.eq(postLike.post.id).and(postLike.member.id.eq(memberId)))
                 .fetchOne();
 
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
@@ -208,7 +216,6 @@ public class PostQueryAdapter implements PostQueryPort {
         Long id = ((Number) row[0]).longValue();
         String title = row[1] != null ? row[1].toString() : null;
         Integer views = row[2] != null ? ((Number) row[2]).intValue() : 0;
-        boolean isNotice = toBoolean(row[3]);
         Instant createdAt = toInstant(row[4]);
         Long memberId = row[5] != null ? ((Number) row[5]).longValue() : null;
         String memberName = row[6] != null ? row[6].toString() : null;
@@ -222,7 +229,6 @@ public class PostQueryAdapter implements PostQueryPort {
                 .memberId(memberId)
                 .memberName(memberName)
                 .commentCount(0)
-                .isNotice(isNotice)
                 .build();
     }
 
@@ -280,7 +286,18 @@ public class PostQueryAdapter implements PostQueryPort {
      * @since 2.0.0
      */
     private Page<PostSearchResult> findPostsWithCondition(BooleanExpression condition, Pageable pageable) {
-        List<PostSearchResult> content = buildBasePostQueryWithoutJoins()
+        List<PostSearchResult> content = jpaQueryFactory
+                .select(Projections.constructor(PostSearchResult.class,
+                        post.id,
+                        post.title,
+                        post.views.coalesce(0),
+                        Expressions.constant(0),
+                        post.createdAt,
+                        member.id,
+                        member.memberName,
+                        Expressions.constant(0)))
+                .from(post)
+                .leftJoin(post.member, member)
                 .where(condition)
                 .orderBy(post.createdAt.desc())
                 .offset(pageable.getOffset())
@@ -308,31 +325,6 @@ public class PostQueryAdapter implements PostQueryPort {
                 .leftJoin(post.member, member)
                 .where(condition)
                 .fetchOne();
-    }
-
-    /**
-     * <h3>기본 게시글 쿼리 빌더 (JOIN 제외)</h3>
-     * <p>댓글과 추천 JOIN을 제외한 기본 게시글 쿼리를 생성합니다.</p>
-     * <p>댓글 수와 추천 수는 별도의 배치 조회로 처리됩니다.</p>
-     *
-     * @return JPAQuery<PostSearchResult>
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private JPAQuery<PostSearchResult> buildBasePostQueryWithoutJoins() {
-        return jpaQueryFactory
-                .select(Projections.constructor(PostSearchResult.class,
-                        post.id,                           // Long id
-                        post.title,                        // String title
-                        post.views.coalesce(0),           // Integer viewCount
-                        Expressions.constant(0),          // Integer likeCount - 나중에 설정
-                        post.createdAt,                   // Instant createdAt
-                        member.id,                        // Long memberId
-                        member.memberName,                // String memberName
-                        Expressions.constant(0),         // Integer commentCount - 나중에 설정
-                        post.isNotice))                   // boolean isNotice
-                .from(post)
-                .leftJoin(post.member, member);
     }
 
     /**

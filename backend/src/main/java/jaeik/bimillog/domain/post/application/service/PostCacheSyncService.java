@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.post.application.service;
 
-import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostSyncPort;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
@@ -31,7 +30,6 @@ public class PostCacheSyncService {
     private final RedisPostCommandPort redisPostCommandPort;
     private final RedisPostSyncPort redisPostSyncPort;
     private final ApplicationEventPublisher eventPublisher;
-    private final PostQueryPort postQueryPort;
 
     /**
      * <h3>실시간 인기 게시글 점수 지수감쇠 적용</h3>

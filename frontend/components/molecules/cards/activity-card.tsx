@@ -9,7 +9,6 @@ import {
   ThumbsUp,
   FileText,
   User,
-  Pin,
   Flame,
   TrendingUp,
   Award,
@@ -71,12 +70,6 @@ const PostCard: React.FC<{ post: SimplePost; isLiked: boolean }> = React.memo(({
               <span className="text-base md:text-sm font-medium text-brand-primary">
                 {post.userName}
               </span>
-              {post.notice && (
-                <Badge className="bg-red-100 text-red-700 border-red-200">
-                  <Pin className="w-3 h-3 mr-1" />
-                  공지
-                </Badge>
-              )}
               <PopularityBadge postCacheFlag={post.postCacheFlag} />
             </div>
             <TimeBadge dateString={post.createdAt} size="xs" />

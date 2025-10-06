@@ -9,9 +9,8 @@ interface NoticeListProps {
 }
 
 export const NoticeList = ({ posts }: NoticeListProps) => {
-  const notices = posts.filter((post) => post.notice);
-
-  if (notices.length === 0) {
+  // 공지사항 API로 받은 데이터는 모두 공지사항이므로 별도 필터링 불필요
+  if (posts.length === 0) {
     return null;
   }
 
@@ -21,7 +20,7 @@ export const NoticeList = ({ posts }: NoticeListProps) => {
         <div className="overflow-x-auto">
           <table className="w-full text-base md:text-sm">
             <tbody>
-              {notices.map((notice) => (
+              {posts.map((notice) => (
                 <tr
                   key={notice.id}
                   className="border-b border-gray-100 bg-purple-50/50 hover:bg-purple-100/50 transition-colors"
