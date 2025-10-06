@@ -201,20 +201,16 @@ public class PostQueryAdapter implements PostQueryPort {
     public Optional<PostDetail> findPostDetailWithCounts(Long postId, Long memberId) {
         QPostLike userPostLike = new QPostLike("userPostLike");
 
-        PostDetail result = jpaQueryFactory
-                .select(new QPostDetail(
+        PostDetail result = jpaQueryFactory.select(new QPostDetail(
                         post.id,
                         post.title,
                         post.content,
-                        post.views.coalesce(0),
-                        // 좋아요 개수 (COUNT) - Integer likeCount
+                        post.views,
                         postLike.countDistinct().castToNum(Integer.class),
                         post.createdAt,
                         member.id,
                         member.memberName,
-                        // 댓글 개수 (COUNT)
                         comment.countDistinct().castToNum(Integer.class),
-                        // 사용자 좋아요 여부 (CASE WHEN)
                         new CaseBuilder()
                                 .when(userPostLike.id.isNotNull())
                                 .then(true)

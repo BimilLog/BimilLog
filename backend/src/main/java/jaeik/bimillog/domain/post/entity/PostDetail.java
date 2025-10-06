@@ -5,7 +5,6 @@ import jaeik.bimillog.domain.post.application.service.PostQueryService;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -21,7 +20,6 @@ import java.time.Instant;
  * @version 2.0.0
  */
 @Getter
-@Setter
 @NoArgsConstructor
 public class PostDetail implements Serializable {
 
@@ -62,67 +60,6 @@ public class PostDetail implements Serializable {
         this.memberName = memberName;
         this.commentCount = commentCount;
         this.isLiked = isLiked;
-    }
-
-    /**
-     * <h3>게시글 상세 정보 생성</h3>
-     * <p>게시글 엔티티와 메타 정보로부터 상세 정보를 생성합니다.</p>
-     * <p>로그인 사용자를 위한 추천 상태 포함 버전입니다.</p>
-     * <p>{@link PostQueryService}에서 게시글 상세 조회 시 호출됩니다.</p>
-     *
-     * @param post 게시글 엔티티
-     * @param likeCount 추천수
-     * @param commentCount 댓글수
-     * @param isLiked 사용자 추천 여부
-     * @return PostDetail 값 객체
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    public static PostDetail of(Post post, Integer likeCount, Integer commentCount, boolean isLiked) {
-        return PostDetail.builder()
-                .id(post.getId())
-                .title(post.getTitle())
-                .content(post.getContent())
-                .viewCount(post.getViews())
-                .likeCount(likeCount)
-                .createdAt(post.getCreatedAt())
-                .memberId(post.getMember().getId())
-                .memberName(post.getMember().getMemberName())
-                .commentCount(commentCount)
-                .isLiked(isLiked)
-                .build();
-    }
-
-    /**
-     * <h3>추천 여부 없는 상세 정보 생성</h3>
-     * <p>비로그인 사용자를 위한 상세 정보를 생성합니다.</p>
-     * <p>isLiked 값이 false로 고정됩니다.</p>
-     * <p>{@link PostQueryService}에서 비로그인 사용자의 게시글 상세 조회 시 호출됩니다.</p>
-     *
-     * @param post 게시글 엔티티
-     * @param likeCount 추천수
-     * @param commentCount 댓글수
-     * @return PostDetail 값 객체 (isLiked = false)
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    public static PostDetail of(Post post, Integer likeCount, Integer commentCount) {
-        return of(post, likeCount, commentCount, false);
-    }
-
-    /**
-     * <h3>기본 댓글 수로 상세 정보 생성</h3>
-     * <p>댓글 수 0으로 기본 상세 정보를 생성합니다.</p>
-     * <p>주로 캐시된 게시글 데이터에서 사용됩니다.</p>
-     *
-     * @param post 게시글 엔티티
-     * @param likeCount 추천수
-     * @return PostDetail 값 객체 (commentCount = 0, isLiked = false)
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    public static PostDetail of(Post post, Integer likeCount) {
-        return of(post, likeCount, 0, false);
     }
 
     /**

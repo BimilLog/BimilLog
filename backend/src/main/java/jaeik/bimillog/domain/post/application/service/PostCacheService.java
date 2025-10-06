@@ -31,10 +31,8 @@ public class PostCacheService implements PostCacheUseCase {
 
     /**
      * <h3>공지사항 캐시 동기화 비즈니스 로직 실행</h3>
-     * <p>PostCacheUseCase 인터페이스의 캐시 동기화 기능을 구현하며, 공지사항 상태 변경에 따른 캐시 일관성 유지 규칙을 적용합니다.</p>
      * <p>공지사항 설정 시 Redis 캐시에 게시글을 추가하고, 공지사항 해제 시 캐시에서 제거하여 DB와 캐시 간 동기화를 보장합니다.</p>
      * <p>캐시 무효화와 재생성을 통해 사용자에게 정확한 공지사항 목록을 실시간으로 제공합니다.</p>
-     * <p>PostAdminController에서 공지사항 토글 완료 후 호출됩니다.</p>
      *
      * @param postId 동기화할 게시글 ID
      * @param isNotice 공지사항 여부 (true: 캐시 추가, false: 캐시 제거)
