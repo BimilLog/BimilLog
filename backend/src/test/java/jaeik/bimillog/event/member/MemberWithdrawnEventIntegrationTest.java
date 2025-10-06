@@ -23,8 +23,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -49,7 +49,7 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
     @MockitoBean
     private SseUseCase sseUseCase;
 
-    @SpyBean
+    @MockitoSpyBean
     private SocialWithdrawUseCase socialWithdrawUseCase;
 
     @MockitoBean
