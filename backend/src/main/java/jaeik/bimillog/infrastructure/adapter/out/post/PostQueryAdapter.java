@@ -257,7 +257,37 @@ public class PostQueryAdapter implements PostQueryPort {
      */
     @Override
     public Page<PostSimpleDetail> findByFullTextSearch(PostSearchType type, String query, Pageable pageable) {
-        return findPostsByFullText(type, query, pageable);
+        String searchTerm = query + "*";
+        try {
+            List<Object[]> rows = switch (type) {
+                case TITLE -> postFullTextRepository.findByTitleFullText(searchTerm, pageable);
+                case TITLE_CONTENT -> postFullTextRepository.findByTitleContentFullText(searchTerm, pageable);
+                case WRITER -> List.of();
+            };
+
+            long total = switch (type) {
+                case TITLE -> postFullTextRepository.countByTitleFullText(searchTerm);
+                case TITLE_CONTENT -> postFullTextRepository.countByTitleContentFullText(searchTerm);
+                case WRITER -> 0L;
+            };
+
+            if (rows.isEmpty()) {
+                return new PageImpl<>(List.of(), pageable, total);
+            }
+
+            List<PostSimpleDetail> content = mapFullTextRows(rows);
+            batchLikeAndCommentCount(content);
+
+            return new PageImpl<>(content, pageable, total);
+        } catch (DataAccessException e) {
+            log.warn("FULLTEXT 검색 중 데이터베이스 오류 - type: {}, query: {}, error: {}",
+                    type, query, e.getMessage());
+            return Page.empty(pageable);
+        } catch (IllegalArgumentException e) {
+            log.debug("FULLTEXT 검색 파라미터 오류 - type: {}, query: {}, error: {}",
+                    type, query, e.getMessage());
+            return Page.empty(pageable);
+        }
     }
 
     /**
@@ -308,50 +338,6 @@ public class PostQueryAdapter implements PostQueryPort {
         BooleanExpression finalCondition = condition.and(post.isNotice.isFalse());
         Consumer<JPAQuery<?>> customizer = q -> q.where(finalCondition);
         return findPostsWithQuery(customizer, customizer, pageable);
-    }
-
-    /**
-     * <h3>MySQL FULLTEXT 검색 실행</h3>
-     * <p>MySQL FULLTEXT 인덱스를 사용하여 게시글을 검색합니다.</p>
-     * <p>검색 실패 시 빈 페이지를 반환하며, 에러는 로그로 기록됩니다.</p>
-     *
-     * @param type     검색 유형
-     * @param query    검색어
-     * @param pageable 페이지 정보
-     * @return 검색된 게시글 페이지
-     */
-    private Page<PostSimpleDetail> findPostsByFullText(PostSearchType type, String query, Pageable pageable) {
-        String searchTerm = query + "*";
-        try {
-            List<Object[]> rows = switch (type) {
-                case TITLE -> postFullTextRepository.findByTitleFullText(searchTerm, pageable);
-                case TITLE_CONTENT -> postFullTextRepository.findByTitleContentFullText(searchTerm, pageable);
-                case WRITER -> List.of();
-            };
-
-            long total = switch (type) {
-                case TITLE -> postFullTextRepository.countByTitleFullText(searchTerm);
-                case TITLE_CONTENT -> postFullTextRepository.countByTitleContentFullText(searchTerm);
-                case WRITER -> 0L;
-            };
-
-            if (rows.isEmpty()) {
-                return new PageImpl<>(List.of(), pageable, total);
-            }
-
-            List<PostSimpleDetail> content = mapFullTextRows(rows);
-            batchLikeAndCommentCount(content);
-
-            return new PageImpl<>(content, pageable, total);
-        } catch (DataAccessException e) {
-            log.warn("FULLTEXT 검색 중 데이터베이스 오류 - type: {}, query: {}, error: {}",
-                    type, query, e.getMessage());
-            return Page.empty(pageable);
-        } catch (IllegalArgumentException e) {
-            log.debug("FULLTEXT 검색 파라미터 오류 - type: {}, query: {}, error: {}",
-                    type, query, e.getMessage());
-            return Page.empty(pageable);
-        }
     }
 
     /**
