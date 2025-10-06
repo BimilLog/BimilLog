@@ -1,6 +1,5 @@
 package jaeik.bimillog.infrastructure.adapter.out.post;
 
-import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
@@ -122,14 +121,14 @@ public class PostQueryAdapter implements PostQueryPort {
                                                       Consumer<JPAQuery<?>> countQueryCustomizer,
                                                       Pageable pageable) {
         JPAQuery<PostSimpleDetail> contentQuery = jpaQueryFactory
-                .select(Projections.constructor(PostSimpleDetail.class,
+                .select(new QPostSimpleDetail(
                         post.id,
                         post.title,
                         post.views,
                         Expressions.constant(0),
                         post.createdAt,
                         member.id,
-                        Expressions.stringTemplate("COALESCE({0}, {1})", member.memberName, "비회원").as("memberName"),
+                        Expressions.stringTemplate("COALESCE({0}, {1})", member.memberName, "비회원"),
                         Expressions.constant(0)))
                 .from(post)
                 .leftJoin(post.member, member);

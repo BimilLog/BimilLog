@@ -1,7 +1,9 @@
 package jaeik.bimillog.testutil;
 
+import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.infrastructure.adapter.in.paper.dto.MessageDTO;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.PostCreateDTO;
+import jakarta.persistence.EntityManager;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
@@ -15,6 +17,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  *   <li>DTO 생성 (요청/응답 DTO)</li>
  *   <li>인증 객체 생성 (CustomUserDetails, MemberDetail)</li>
  *   <li>쿠키 및 토큰 생성</li>
+ *   <li>Member 영속화 헬퍼 메서드</li>
  * </ul>
  *
  * @author Jaeik
@@ -62,6 +65,24 @@ public class TestFixtures {
      */
     public static void setFieldValue(Object target, String fieldName, Object value) {
         ReflectionTestUtils.setField(target, fieldName, value);
+    }
+
+    /**
+     * Member의 연관 엔티티(Setting, KakaoToken)를 먼저 persist한 후 Member를 persist
+     * <p>Member 엔티티는 KakaoToken에 Cascade 설정이 없어서 수동으로 영속화가 필요합니다.</p>
+     * <p>Setting은 Cascade.PERSIST가 있지만, 명시적으로 먼저 persist하여 일관성을 유지합니다.</p>
+     *
+     * @param em EntityManager
+     * @param member 영속화할 Member 엔티티
+     */
+    public static void persistMemberWithDependencies(EntityManager em, Member member) {
+        if (member.getSetting() != null) {
+            em.persist(member.getSetting());
+        }
+        if (member.getKakaoToken() != null) {
+            em.persist(member.getKakaoToken());
+        }
+        em.persist(member);
     }
 
 }

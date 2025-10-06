@@ -172,7 +172,8 @@ public abstract class BaseIntegrationTest {
     }
 
     /**
-     * Member의 연관 엔티티(Setting, KakaoToken)를 먼저 persist
+     * Member의 연관 엔티티(Setting, KakaoToken)만 먼저 persist (Member는 제외)
+     * Member는 이후 memberRepository.save()로 저장됩니다.
      */
     private void persistMemberDependencies(Member member) {
         if (member.getSetting() != null) {

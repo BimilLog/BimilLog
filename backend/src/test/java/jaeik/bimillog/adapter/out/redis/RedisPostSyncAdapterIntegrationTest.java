@@ -8,6 +8,7 @@ import jaeik.bimillog.infrastructure.adapter.out.post.PostRepository;
 import jaeik.bimillog.infrastructure.adapter.out.redis.RedisPostSyncAdapter;
 import jaeik.bimillog.testutil.RedisTestHelper;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
+import jaeik.bimillog.testutil.TestFixtures;
 import jaeik.bimillog.testutil.TestMembers;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -88,9 +89,10 @@ class RedisPostSyncAdapterIntegrationTest {
             System.err.println("데이터베이스 초기화 경고: " + e.getMessage());
         }
 
-        // 테스트 사용자 준비
+        // 테스트 사용자 준비 (KakaoToken과 Setting을 포함하여 영속화)
         testMember = TestMembers.createUniqueWithPrefix("redis");
-        persistAndFlush(testMember);
+        TestFixtures.persistMemberWithDependencies(entityManager, testMember);
+        entityManager.flush();
     }
 
     private Post createAndSavePost(String title, String content, int views, PostCacheFlag flag, Instant createdAt) {
@@ -121,7 +123,8 @@ class RedisPostSyncAdapterIntegrationTest {
     private void addLikesToPost(Post post, int count) {
         for (int i = 0; i < count; i++) {
             Member liker = TestMembers.withSocialId("social_" + post.getId() + "_" + i + "_" + System.currentTimeMillis());
-            persistAndFlush(liker);
+            TestFixtures.persistMemberWithDependencies(entityManager, liker);
+            entityManager.flush();
 
             PostLike postLike = PostLike.builder()
                     .post(post)

@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.post.entity;
 
+import com.querydsl.core.annotations.QueryProjection;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,7 +22,6 @@ import java.time.Instant;
  */
 @Getter
 @Setter
-@Builder
 @NoArgsConstructor
 public class PostSimpleDetail implements Serializable {
     
@@ -36,39 +36,6 @@ public class PostSimpleDetail implements Serializable {
     private Long memberId;
     private String memberName;
     private Integer commentCount;
-
-    /**
-     * <h3>게시글 검색 결과 생성</h3>
-     * <p>게시글 엔티티와 메타 정보로부터 검색 결과를 생성합니다.</p>
-     * <p>PostQueryService에서 게시글 목록 조회 시 호출됩니다.</p>
-     * <p>PostDetail을 경유하여 생성로직의 일관성과 코드 재사용성을 보장합니다.</p>
-     *
-     * @param post 게시글 엔티티
-     * @param likeCount 추천수
-     * @param commentCount 댓글수
-     * @return PostSimpleDetail 값 객체
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    public static PostSimpleDetail of(Post post, Integer likeCount, Integer commentCount) {
-        return PostDetail.of(post, likeCount, commentCount).toSearchResult();
-    }
-
-    /**
-     * <h3>기본 댓글 수로 검색 결과 생성</h3>
-     * <p>댓글 수 0으로 기본 검색 결과를 생성합니다.</p>
-     * <p>캐시된 데이터나 댓글 수 업데이트 전 게시글에 사용됩니다.</p>
-     * <p>PostDetail을 경유하여 일관된 객체 생성 로직을 유지합니다.</p>
-     *
-     * @param post 게시글 엔티티
-     * @param likeCount 추천수
-     * @return PostSimpleDetail 값 객체 (commentCount = 0)
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    public static PostSimpleDetail of(Post post, Integer likeCount) {
-        return PostDetail.of(post, likeCount).toSearchResult();
-    }
 
     /**
      * <h3>PostDetail에서 검색 결과 생성</h3>
@@ -97,13 +64,15 @@ public class PostSimpleDetail implements Serializable {
     
     /**
      * <h3>생성자 - QueryDSL Projection용</h3>
-     * <p>QueryDSL Projections.constructor를 위한 전용 생성자입니다.</p>
-     * <p>PostQueryRepository에서 게시글 목록 조회 시 QueryDSL을 통해 호출됩니다.</p>
+     * <p>QueryDSL @QueryProjection을 위한 전용 생성자입니다.</p>
+     * <p>PostQueryAdapter에서 게시글 목록 조회 시 QueryDSL을 통해 호출됩니다.</p>
      * <p>DB에서 직접 PostSimpleDetail 객체로 조회하여 JOIN으로 한 번에 데이터를 가져옵니다.</p>
      *
      * @since 2.0.0
      * @author Jaeik
      */
+    @Builder
+    @QueryProjection
     public PostSimpleDetail(Long id, String title, Integer viewCount,
                             Integer likeCount, Instant createdAt,
                             Long memberId, String memberName, Integer commentCount) {
