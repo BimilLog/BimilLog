@@ -23,7 +23,7 @@ import java.time.Instant;
 @Setter
 @Builder
 @NoArgsConstructor
-public class PostSearchResult implements Serializable {
+public class PostSimpleDetail implements Serializable {
     
     @Serial
     private static final long serialVersionUID = 1L;
@@ -46,11 +46,11 @@ public class PostSearchResult implements Serializable {
      * @param post 게시글 엔티티
      * @param likeCount 추천수
      * @param commentCount 댓글수
-     * @return PostSearchResult 값 객체
+     * @return PostSimpleDetail 값 객체
      * @since 2.0.0
      * @author Jaeik
      */
-    public static PostSearchResult of(Post post, Integer likeCount, Integer commentCount) {
+    public static PostSimpleDetail of(Post post, Integer likeCount, Integer commentCount) {
         return PostDetail.of(post, likeCount, commentCount).toSearchResult();
     }
 
@@ -62,11 +62,11 @@ public class PostSearchResult implements Serializable {
      *
      * @param post 게시글 엔티티
      * @param likeCount 추천수
-     * @return PostSearchResult 값 객체 (commentCount = 0)
+     * @return PostSimpleDetail 값 객체 (commentCount = 0)
      * @since 2.0.0
      * @author Jaeik
      */
-    public static PostSearchResult of(Post post, Integer likeCount) {
+    public static PostSimpleDetail of(Post post, Integer likeCount) {
         return PostDetail.of(post, likeCount).toSearchResult();
     }
 
@@ -78,12 +78,12 @@ public class PostSearchResult implements Serializable {
      * <p>mutable 객체로 설계되어 대량 조회 시 메타데이터 업데이트가 효율적입니다.</p>
      *
      * @param postDetail PostDetail 값 객체
-     * @return PostSearchResult mutable 검색 결과
+     * @return PostSimpleDetail mutable 검색 결과
      * @since 2.0.0
      * @author Jaeik
      */
-    public static PostSearchResult ofPostDetail(PostDetail postDetail) {
-        return PostSearchResult.builder()
+    public static PostSimpleDetail ofPostDetail(PostDetail postDetail) {
+        return PostSimpleDetail.builder()
                 .id(postDetail.id())
                 .title(postDetail.title())
                 .viewCount(postDetail.viewCount())
@@ -99,14 +99,14 @@ public class PostSearchResult implements Serializable {
      * <h3>생성자 - QueryDSL Projection용</h3>
      * <p>QueryDSL Projections.constructor를 위한 전용 생성자입니다.</p>
      * <p>PostQueryRepository에서 게시글 목록 조회 시 QueryDSL을 통해 호출됩니다.</p>
-     * <p>DB에서 직접 PostSearchResult 객체로 조회하여 JOIN으로 한 번에 데이터를 가져옵니다.</p>
+     * <p>DB에서 직접 PostSimpleDetail 객체로 조회하여 JOIN으로 한 번에 데이터를 가져옵니다.</p>
      *
      * @since 2.0.0
      * @author Jaeik
      */
-    public PostSearchResult(Long id, String title, Integer viewCount,
-                           Integer likeCount, Instant createdAt,
-                           Long memberId, String memberName, Integer commentCount) {
+    public PostSimpleDetail(Long id, String title, Integer viewCount,
+                            Integer likeCount, Instant createdAt,
+                            Long memberId, String memberName, Integer commentCount) {
         this.id = id;
         this.title = title;
         this.viewCount = viewCount;

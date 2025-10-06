@@ -47,12 +47,12 @@ public class PostQueryService implements PostQueryUseCase {
      * <p>{@link PostQueryController}에서 게시판 목록 요청 시 호출됩니다.</p>
      *
      * @param pageable 페이지 정보 (크기, 페이지 번호, 정렬 기준)
-     * @return Page&lt;PostSearchResult&gt; 페이지네이션된 게시글 목록
+     * @return Page&lt;PostSimpleDetail&gt; 페이지네이션된 게시글 목록
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public Page<PostSearchResult> getBoard(Pageable pageable) {
+    public Page<PostSimpleDetail> getBoard(Pageable pageable) {
         return postQueryPort.findByPage(pageable);
     }
 
@@ -117,12 +117,12 @@ public class PostQueryService implements PostQueryUseCase {
      * @param type     검색 유형 (title: 제목, content: 내용, writer: 작성자)
      * @param query    검색어 (한글, 영문, 숫자 지원)
      * @param pageable 페이지 정보 (크기, 페이지 번호, 정렬 기준)
-     * @return Page&lt;PostSearchResult&gt; 검색된 게시글 목록 페이지
+     * @return Page&lt;PostSimpleDetail&gt; 검색된 게시글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public Page<PostSearchResult> searchPost(PostSearchType type, String query, Pageable pageable) {
+    public Page<PostSimpleDetail> searchPost(PostSearchType type, String query, Pageable pageable) {
         return postQueryPort.findBySearch(type, query, pageable);
     }
 
@@ -140,7 +140,7 @@ public class PostQueryService implements PostQueryUseCase {
      * @since 2.0.0
      */
     @Override
-    public Page<PostSearchResult> getPopularPostLegend(PostCacheFlag type, Pageable pageable) {
+    public Page<PostSimpleDetail> getPopularPostLegend(PostCacheFlag type, Pageable pageable) {
         // 타입 검증: LEGEND만 허용
         if (type != PostCacheFlag.LEGEND) {
             throw new PostCustomException(PostErrorCode.INVALID_INPUT_VALUE);
@@ -163,7 +163,7 @@ public class PostQueryService implements PostQueryUseCase {
      * @since 2.0.0
      */
     @Override
-    public List<PostSearchResult> getNoticePosts() {
+    public List<PostSimpleDetail> getNoticePosts() {
         return redisPostQueryPort.getCachedPostList(PostCacheFlag.NOTICE);
     }
 
@@ -195,7 +195,7 @@ public class PostQueryService implements PostQueryUseCase {
      * @since 2.0.0
      */
     @Override
-    public Page<PostSearchResult> getMemberPosts(Long memberId, Pageable pageable) {
+    public Page<PostSimpleDetail> getMemberPosts(Long memberId, Pageable pageable) {
         return postQueryPort.findPostsByMemberId(memberId, pageable);
     }
 
@@ -210,7 +210,7 @@ public class PostQueryService implements PostQueryUseCase {
      * @since 2.0.0
      */
     @Override
-    public Page<PostSearchResult> getMemberLikedPosts(Long memberId, Pageable pageable) {
+    public Page<PostSimpleDetail> getMemberLikedPosts(Long memberId, Pageable pageable) {
         return postQueryPort.findLikedPostsByMemberId(memberId, pageable);
     }
 
@@ -226,10 +226,10 @@ public class PostQueryService implements PostQueryUseCase {
      * @since 2.0.0
      */
     @Override
-    public Map<String, List<PostSearchResult>> getRealtimeAndWeeklyPosts() {
+    public Map<String, List<PostSimpleDetail>> getRealtimeAndWeeklyPosts() {
         // 실시간 인기글: Redis Sorted Set에서 postId 목록 조회 후 상세 캐시 활용
         List<Long> realtimePostIds = redisPostQueryPort.getRealtimePopularPostIds();
-        List<PostSearchResult> realtimePosts = realtimePostIds.stream()
+        List<PostSimpleDetail> realtimePosts = realtimePostIds.stream()
                 .map(postId -> {
                     // 캐시 어사이드 패턴으로 조회 (캐시 미스 시 DB 조회 후 캐시 저장)
                     PostDetail postDetail = redisPostQueryPort.getCachedPostIfExists(postId);
@@ -249,7 +249,7 @@ public class PostQueryService implements PostQueryUseCase {
         if (!redisPostQueryPort.hasPopularPostsCache(PostCacheFlag.WEEKLY)) {
             postCacheSyncService.updateWeeklyPopularPosts();
         }
-        List<PostSearchResult> weeklyPosts = redisPostQueryPort.getCachedPostList(PostCacheFlag.WEEKLY);
+        List<PostSimpleDetail> weeklyPosts = redisPostQueryPort.getCachedPostList(PostCacheFlag.WEEKLY);
 
         return Map.of(
             "realtime", realtimePosts,

@@ -1,7 +1,7 @@
 package jaeik.bimillog.testutil;
 
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.post.entity.PostSearchResult;
+import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.member.entity.Member;
 
 import java.time.Instant;
@@ -36,10 +36,10 @@ public class PostTestDataBuilder {
     }
 
     /**
-     * PostSearchResult 생성
+     * PostSimpleDetail 생성
      */
-    public static PostSearchResult createPostSearchResult(Long id, String title) {
-        return PostSearchResult.builder()
+    public static PostSimpleDetail createPostSearchResult(Long id, String title) {
+        return PostSimpleDetail.builder()
                 .id(id)
                 .title(title)
                 .viewCount(0)

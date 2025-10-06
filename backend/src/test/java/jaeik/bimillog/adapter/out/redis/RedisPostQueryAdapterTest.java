@@ -2,7 +2,7 @@ package jaeik.bimillog.adapter.out.redis;
 
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
-import jaeik.bimillog.domain.post.entity.PostSearchResult;
+import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import jaeik.bimillog.infrastructure.adapter.out.redis.RedisPostQueryAdapter;
@@ -103,7 +103,7 @@ class RedisPostQueryAdapterTest extends BaseUnitTest {
         given(valueOperations.get(RedisTestHelper.RedisKeys.postDetail(3L))).willReturn(testPostDetail);
 
         // When
-        List<PostSearchResult> result = redisPostQueryAdapter.getCachedPostList(cacheType);
+        List<PostSimpleDetail> result = redisPostQueryAdapter.getCachedPostList(cacheType);
 
         // Then
         assertThat(result).hasSize(3);
@@ -136,7 +136,7 @@ class RedisPostQueryAdapterTest extends BaseUnitTest {
             .willReturn(Collections.emptySet());
 
         // When
-        List<PostSearchResult> result = redisPostQueryAdapter.getCachedPostList(cacheType);
+        List<PostSimpleDetail> result = redisPostQueryAdapter.getCachedPostList(cacheType);
 
         // Then
         assertThat(result).isEmpty();

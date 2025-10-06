@@ -6,7 +6,7 @@ import jaeik.bimillog.domain.post.application.port.out.RedisPostSyncPort;
 import jaeik.bimillog.domain.post.application.service.PostCacheSyncService;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
-import jaeik.bimillog.domain.post.entity.PostSearchResult;
+import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -73,9 +73,9 @@ class PostCacheSyncServiceTest {
     @DisplayName("주간 인기 게시글 업데이트 - 성공 (이벤트 발행 포함)")
     void shouldUpdateWeeklyPopularPosts_WhenPostsExist() {
         // Given
-        PostSearchResult post1 = createPostSearchResult(1L, "주간인기글1", 1L);
-        PostSearchResult post2 = createPostSearchResult(2L, "주간인기글2", 2L);
-        List<PostSearchResult> posts = List.of(post1, post2);
+        PostSimpleDetail post1 = createPostSearchResult(1L, "주간인기글1", 1L);
+        PostSimpleDetail post2 = createPostSearchResult(2L, "주간인기글2", 2L);
+        List<PostSimpleDetail> posts = List.of(post1, post2);
 
         given(redisPostSyncPort.findWeeklyPopularPosts()).willReturn(posts);
 
@@ -101,9 +101,9 @@ class PostCacheSyncServiceTest {
     @DisplayName("주간 인기 게시글 업데이트 - 익명 게시글 포함 (이벤트 발행 안함)")
     void shouldUpdateWeeklyPopularPosts_WhenAnonymousPostsIncluded() {
         // Given
-        PostSearchResult anonymousPost = createPostSearchResult(1L, "익명글", null); // userId가 null
-        PostSearchResult userPost = createPostSearchResult(2L, "회원글", 2L);
-        List<PostSearchResult> posts = List.of(anonymousPost, userPost);
+        PostSimpleDetail anonymousPost = createPostSearchResult(1L, "익명글", null); // userId가 null
+        PostSimpleDetail userPost = createPostSearchResult(2L, "회원글", 2L);
+        List<PostSimpleDetail> posts = List.of(anonymousPost, userPost);
 
         given(redisPostSyncPort.findWeeklyPopularPosts()).willReturn(posts);
 
@@ -126,8 +126,8 @@ class PostCacheSyncServiceTest {
     @DisplayName("전설의 게시글 업데이트 - 성공 (명예의 전당 메시지)")
     void shouldUpdateLegendaryPosts_WhenPostsExist() {
         // Given
-        PostSearchResult legendPost = createPostSearchResult(1L, "전설의글", 1L);
-        List<PostSearchResult> posts = List.of(legendPost);
+        PostSimpleDetail legendPost = createPostSearchResult(1L, "전설의글", 1L);
+        List<PostSimpleDetail> posts = List.of(legendPost);
 
         given(redisPostSyncPort.findLegendaryPosts()).willReturn(posts);
 
@@ -188,7 +188,7 @@ class PostCacheSyncServiceTest {
     @DisplayName("대량 게시글 처리 - 성능 테스트 시나리오")
     void shouldHandleLargeNumberOfPosts_PerformanceScenario() {
         // Given - 대량의 게시글 생성 (100개)
-        List<PostSearchResult> largePosts = createLargePostList(100);
+        List<PostSimpleDetail> largePosts = createLargePostList(100);
 
         given(redisPostSyncPort.findWeeklyPopularPosts()).willReturn(largePosts);
 
@@ -203,8 +203,8 @@ class PostCacheSyncServiceTest {
     }
 
     // 테스트 유틸리티 메서드들
-    private PostSearchResult createPostSearchResult(Long id, String title, Long memberId) {
-        return PostSearchResult.builder()
+    private PostSimpleDetail createPostSearchResult(Long id, String title, Long memberId) {
+        return PostSimpleDetail.builder()
                 .id(id)
                 .title(title)
                 .memberId(memberId)
@@ -226,7 +226,7 @@ class PostCacheSyncServiceTest {
                 .build();
     }
 
-    private List<PostSearchResult> createLargePostList(int count) {
+    private List<PostSimpleDetail> createLargePostList(int count) {
         return java.util.stream.IntStream.range(0, count)
                 .mapToObj(i -> createPostSearchResult(
                         (long) i, 

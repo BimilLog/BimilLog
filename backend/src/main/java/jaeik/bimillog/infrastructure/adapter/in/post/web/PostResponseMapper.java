@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.in.post.web;
 
 import jaeik.bimillog.domain.post.entity.PostDetail;
-import jaeik.bimillog.domain.post.entity.PostSearchResult;
+import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.FullPostDTO;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.SimplePostDTO;
 import org.springframework.stereotype.Component;
@@ -29,21 +29,21 @@ public class PostResponseMapper {
     /**
      * <h3>PostSearchResult를 SimplePostResDTO로 변환</h3>
      *
-     * @param postSearchResult 변환할 도메인 객체
+     * @param postSimpleDetail 변환할 도메인 객체
      * @return SimplePostDTO 응답 DTO
      * @author jaeik
      * @since 2.0.0
      */
-    public SimplePostDTO convertToSimplePostResDTO(PostSearchResult postSearchResult) {
+    public SimplePostDTO convertToSimplePostResDTO(PostSimpleDetail postSimpleDetail) {
         return SimplePostDTO.builder()
-                .id(postSearchResult.getId())
-                .title(postSearchResult.getTitle())
-                .viewCount(postSearchResult.getViewCount())
-                .likeCount(postSearchResult.getLikeCount())
-                .createdAt(postSearchResult.getCreatedAt())
-                .memberId(postSearchResult.getMemberId())
-                .memberName(postSearchResult.getMemberName())
-                .commentCount(postSearchResult.getCommentCount())
+                .id(postSimpleDetail.getId())
+                .title(postSimpleDetail.getTitle())
+                .viewCount(postSimpleDetail.getViewCount())
+                .likeCount(postSimpleDetail.getLikeCount())
+                .createdAt(postSimpleDetail.getCreatedAt())
+                .memberId(postSimpleDetail.getMemberId())
+                .memberName(postSimpleDetail.getMemberName())
+                .commentCount(postSimpleDetail.getCommentCount())
                 .build();
     }
 

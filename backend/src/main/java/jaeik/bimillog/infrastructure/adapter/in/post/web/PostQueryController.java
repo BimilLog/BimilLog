@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.global.annotation.Log;
 import jaeik.bimillog.domain.global.annotation.Log.LogLevel;
 import jaeik.bimillog.domain.post.application.port.in.PostQueryUseCase;
 import jaeik.bimillog.domain.post.entity.PostDetail;
-import jaeik.bimillog.domain.post.entity.PostSearchResult;
+import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.event.PostViewedEvent;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.FullPostDTO;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.PostSearchDTO;
@@ -57,7 +57,7 @@ public class PostQueryController {
          message = "게시판 목록 조회",
          logResult = false)
     public ResponseEntity<Page<SimplePostDTO>> getBoard(Pageable pageable) {
-        Page<PostSearchResult> postList = postQueryUseCase.getBoard(pageable);
+        Page<PostSimpleDetail> postList = postQueryUseCase.getBoard(pageable);
         Page<SimplePostDTO> dtoList = postList.map(postResponseMapper::convertToSimplePostResDTO);
         return ResponseEntity.ok(dtoList);
     }
@@ -118,7 +118,7 @@ public class PostQueryController {
          logResult = false)
     public ResponseEntity<Page<SimplePostDTO>> searchPost(@Valid @ModelAttribute PostSearchDTO searchDTO,
                                                           Pageable pageable) {
-        Page<PostSearchResult> postList = postQueryUseCase.searchPost(searchDTO.getType(), searchDTO.getTrimmedQuery(), pageable);
+        Page<PostSimpleDetail> postList = postQueryUseCase.searchPost(searchDTO.getType(), searchDTO.getTrimmedQuery(), pageable);
         Page<SimplePostDTO> dtoList = postList.map(postResponseMapper::convertToSimplePostResDTO);
         return ResponseEntity.ok(dtoList);
     }
@@ -139,7 +139,7 @@ public class PostQueryController {
                                                             @RequestParam int size,
                                                             @AuthenticationPrincipal CustomUserDetails userDetails) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<PostSearchResult> postList = postQueryUseCase.getMemberPosts(userDetails.getMemberId(), pageable);
+        Page<PostSimpleDetail> postList = postQueryUseCase.getMemberPosts(userDetails.getMemberId(), pageable);
         Page<SimplePostDTO> dtoList = postList.map(postResponseMapper::convertToSimplePostResDTO);
         return ResponseEntity.ok(dtoList);
     }
@@ -160,7 +160,7 @@ public class PostQueryController {
                                                                  @RequestParam int size,
                                                                  @AuthenticationPrincipal CustomUserDetails userDetails) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<PostSearchResult> likedPosts = postQueryUseCase.getMemberLikedPosts(userDetails.getMemberId(), pageable);
+        Page<PostSimpleDetail> likedPosts = postQueryUseCase.getMemberLikedPosts(userDetails.getMemberId(), pageable);
         Page<SimplePostDTO> dtoList = likedPosts.map(postResponseMapper::convertToSimplePostResDTO);
         return ResponseEntity.ok(dtoList);
     }

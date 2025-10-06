@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.in.post.web;
 
 import jaeik.bimillog.domain.post.application.port.in.PostQueryUseCase;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
-import jaeik.bimillog.domain.post.entity.PostSearchResult;
+import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.SimplePostDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -48,7 +48,7 @@ public class PostCacheController {
      */
     @GetMapping("/popular")
     public ResponseEntity<Map<String, List<SimplePostDTO>>> getPopularBoard() {
-        Map<String, List<PostSearchResult>> popularPosts = postQueryUseCase.getRealtimeAndWeeklyPosts();
+        Map<String, List<PostSimpleDetail>> popularPosts = postQueryUseCase.getRealtimeAndWeeklyPosts();
         
         // DTO 변환
         Map<String, List<SimplePostDTO>> result = Map.of(
@@ -77,7 +77,7 @@ public class PostCacheController {
      */
     @GetMapping("/legend")
     public ResponseEntity<Page<SimplePostDTO>> getLegendBoard(Pageable pageable) {
-        Page<PostSearchResult> legendPopularPosts = postQueryUseCase.getPopularPostLegend(PostCacheFlag.LEGEND, pageable);
+        Page<PostSimpleDetail> legendPopularPosts = postQueryUseCase.getPopularPostLegend(PostCacheFlag.LEGEND, pageable);
         Page<SimplePostDTO> dtoList = legendPopularPosts.map(postResponseMapper::convertToSimplePostResDTO);
         return ResponseEntity.ok(dtoList);
     }

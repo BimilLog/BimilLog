@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.post.application.port.out;
 
 import jaeik.bimillog.domain.post.application.service.PostQueryService;
 import jaeik.bimillog.domain.post.entity.PostDetail;
-import jaeik.bimillog.domain.post.entity.PostSearchResult;
+import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,11 +29,11 @@ public interface PostQueryPort {
      * <p>{@link PostQueryService}에서 게시판 메인 목록 조회 시 호출됩니다.</p>
      *
      * @param pageable 페이지 정보 (크기, 정렬 기준 포함)
-     * @return Page<PostSearchResult> 최신순으로 정렬된 게시글 목록 페이지
+     * @return Page<PostSimpleDetail> 최신순으로 정렬된 게시글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<PostSearchResult> findByPage(Pageable pageable);
+    Page<PostSimpleDetail> findByPage(Pageable pageable);
 
     /**
      * <h3>조건별 게시글 검색</h3>
@@ -44,11 +44,11 @@ public interface PostQueryPort {
      * @param type 검색 타입 (TITLE, WRITER, TITLE_CONTENT)
      * @param query 검색어 (한국어 키워드)
      * @param pageable 페이지 정보
-     * @return Page<PostSearchResult> 검색 조건에 맞는 게시글 목록 페이지
+     * @return Page<PostSimpleDetail> 검색 조건에 맞는 게시글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<PostSearchResult> findBySearch(PostSearchType type, String query, Pageable pageable);
+    Page<PostSimpleDetail> findBySearch(PostSearchType type, String query, Pageable pageable);
 
     /**
      * <h3>사용자 작성 게시글 목록 조회</h3>
@@ -62,7 +62,7 @@ public interface PostQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<PostSearchResult> findPostsByMemberId(Long memberId, Pageable pageable);
+    Page<PostSimpleDetail> findPostsByMemberId(Long memberId, Pageable pageable);
 
     /**
      * <h3>사용자 추천 게시글 목록 조회</h3>
@@ -76,7 +76,7 @@ public interface PostQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<PostSearchResult> findLikedPostsByMemberId(Long memberId, Pageable pageable);
+    Page<PostSimpleDetail> findLikedPostsByMemberId(Long memberId, Pageable pageable);
 
     /**
      * <h3>게시글 통합 상세 정보 조회</h3>

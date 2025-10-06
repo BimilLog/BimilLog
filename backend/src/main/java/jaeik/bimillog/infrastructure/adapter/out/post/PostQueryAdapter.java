@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
  * <p>배치 조회로 댓글 수와 추천 수 조회</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @since 2.0.0
  */
 @Slf4j
 @Repository
@@ -65,10 +65,109 @@ public class PostQueryAdapter implements PostQueryPort {
      * @since 2.0.0
      */
     @Override
-    public Page<PostSearchResult> findByPage(Pageable pageable) {
+    public Page<PostSimpleDetail> findByPage(Pageable pageable) {
         BooleanExpression condition = post.isNotice.isFalse();
         return findPostsWithCondition(condition, pageable);
     }
+
+    /**
+     * <h3>사용자 작성 게시글 목록 조회</h3>
+     * <p>특정 사용자가 작성한 게시글 목록을 페이지네이션으로 조회합니다.</p>
+     * <p>{@link PostQueryService}에서 사용자 작성 게시글 내역 조회 시 호출됩니다.</p>
+     *
+     * @param memberId 사용자 ID
+     * @param pageable 페이지 정보
+     * @return 작성한 게시글 목록 페이지
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public Page<PostSimpleDetail> findPostsByMemberId(Long memberId, Pageable pageable) {
+        BooleanExpression condition = member.id.eq(memberId);
+        return findPostsWithCondition(condition, pageable);
+    }
+
+    /**
+     * <h3>사용자 추천한 게시글 목록 조회</h3>
+     * <p>특정 사용자가 추천한 게시글 목록을 페이지네이션으로 조회합니다.</p>
+     * <p>배치 조회로 댓글 수와 추천 수 조회</p>
+     * <p>{@link PostQueryService}에서 사용자 추천 게시글 내역 조회 시 호출됩니다.</p>
+     *
+     * @param memberId 사용자 ID
+     * @param pageable 페이지 정보
+     * @return 추천한 게시글 목록 페이지
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public Page<PostSimpleDetail> findLikedPostsByMemberId(Long memberId, Pageable pageable) {
+        // 1. 게시글 기본 정보 조회 (댓글, 추천 JOIN 제외)
+        List<PostSimpleDetail> content = jpaQueryFactory
+                .select(Projections.constructor(PostSimpleDetail.class,
+                        post.id,
+                        post.title,
+                        post.views,
+                        Expressions.constant(0),
+                        post.createdAt,
+                        member.id,
+                        Expressions.stringTemplate("COALESCE({0}, {1})", member.memberName, "비회원").as("memberName"),
+                        Expressions.constant(0)))
+                .from(post)
+                .join(postLike).on(post.id.eq(postLike.post.id).and(postLike.member.id.eq(memberId)))
+                .orderBy(post.createdAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        batchLikeAndCommentCount(content);
+
+        Long total = jpaQueryFactory
+                .select(post.countDistinct())
+                .from(post)
+                .join(postLike).on(post.id.eq(postLike.post.id).and(postLike.member.id.eq(memberId)))
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, total != null ? total : 0L);
+    }
+
+    /**
+     * <h3>공통 게시글 목록 조회</h3>
+     * <p>주어진 조건에 따라 게시글을 조회하고 페이지네이션합니다.</p>
+     * <p>배치 조회로 댓글 수와 추천 수 조회</p>
+     *
+     * @param condition WHERE 조건
+     * @param pageable  페이지 정보
+     * @return 게시글 목록 페이지
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private Page<PostSimpleDetail> findPostsWithCondition(BooleanExpression condition, Pageable pageable) {
+        List<PostSimpleDetail> content = jpaQueryFactory
+                .select(Projections.constructor(PostSimpleDetail.class,
+                        post.id,
+                        post.title,
+                        post.views,
+                        Expressions.constant(0),
+                        post.createdAt,
+                        member.id,
+                        Expressions.stringTemplate("COALESCE({0}, {1})", member.memberName, "비회원").as("memberName"),
+                        Expressions.constant(0)))
+                .from(post)
+                .leftJoin(post.member, member)
+                .where(condition)
+                .orderBy(post.createdAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+
+        batchLikeAndCommentCount(content);
+
+        Long total = calculateTotalCount(condition);
+
+        return new PageImpl<>(content, pageable, total != null ? total : 0L);
+    }
+
 
     /**
      * <h3>검색어로 게시글 조회</h3>
@@ -84,9 +183,9 @@ public class PostQueryAdapter implements PostQueryPort {
      * @since 2.0.0
      */
     @Override
-    public Page<PostSearchResult> findBySearch(PostSearchType type, String query, Pageable pageable) {
+    public Page<PostSimpleDetail> findBySearch(PostSearchType type, String query, Pageable pageable) {
         if (shouldUseFullText(type, query)) {
-            Page<PostSearchResult> fullTextResult = findPostsByFullText(type, query, pageable);
+            Page<PostSimpleDetail> fullTextResult = findPostsByFullText(type, query, pageable);
             if (!fullTextResult.isEmpty()) {
                 return fullTextResult;
             }
@@ -96,71 +195,33 @@ public class PostQueryAdapter implements PostQueryPort {
         return findPostsWithCondition(likeCondition, pageable);
     }
 
-    /**
-     * <h3>사용자 작성 게시글 목록 조회</h3>
-     * <p>특정 사용자가 작성한 게시글 목록을 페이지네이션으로 조회합니다.</p>
-     * <p>{@link PostQueryService}에서 사용자 작성 게시글 내역 조회 시 호출됩니다.</p>
-     *
-     * @param memberId   사용자 ID
-     * @param pageable 페이지 정보
-     * @return 작성한 게시글 목록 페이지
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public Page<PostSearchResult> findPostsByMemberId(Long memberId, Pageable pageable) {
-        BooleanExpression condition = member.id.eq(memberId);
-        return findPostsWithCondition(condition, pageable);
-    }
+
+
+
+
 
     /**
-     * <h3>사용자 추천한 게시글 목록 조회</h3>
-     * <p>특정 사용자가 추천한 게시글 목록을 페이지네이션으로 조회합니다.</p>
-     * <p>배치 조회로 댓글 수와 추천 수 조회</p>
-     * <p>{@link PostQueryService}에서 사용자 추천 게시글 내역 조회 시 호출됩니다.</p>
+     * <h3>전문 검색 사용 여부 판단</h3>
+     * <p>검색 조건에 따라 MySQL FULLTEXT 검색을 사용할지 결정합니다.</p>
+     * <p>검색어가 3글자 이상이고 작성자 검색이 아닌 경우 FULLTEXT 검색을 사용합니다.</p>
      *
-     * @param memberId   사용자 ID
-     * @param pageable 페이지 정보
-     * @return 추천한 게시글 목록 페이지
-     * @author Jaeik
-     * @since 2.0.0
+     * @param type  검색 유형
+     * @param query 검색어
+     * @return FULLTEXT 검색 사용 여부
      */
-    @Override
-    public Page<PostSearchResult> findLikedPostsByMemberId(Long memberId, Pageable pageable) {
-
-        // 1. 게시글 기본 정보 조회 (댓글, 추천 JOIN 제외)
-        List<PostSearchResult> content = jpaQueryFactory
-                .select(Projections.constructor(PostSearchResult.class,
-                        post.id,
-                        post.title,
-                        post.views.coalesce(0),
-                        Expressions.constant(0),
-                        post.createdAt,
-                        member.id,
-                        member.memberName,
-                        Expressions.constant(0)))
-                .from(post)
-                .join(postLike).on(post.id.eq(postLike.post.id).and(postLike.member.id.eq(memberId)))
-                .orderBy(post.createdAt.desc())
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
-
-        populateEngagementMetrics(content);
-
-        Long total = jpaQueryFactory
-                .select(post.countDistinct())
-                .from(post)
-                .join(postLike).on(post.id.eq(postLike.post.id).and(postLike.member.id.eq(memberId)))
-                .fetchOne();
-
-        return new PageImpl<>(content, pageable, total != null ? total : 0L);
-    }
-
     private boolean shouldUseFullText(PostSearchType type, String query) {
         return query.length() >= 3 && type != PostSearchType.WRITER;
     }
 
+    /**
+     * <h3>LIKE 검색 조건 생성</h3>
+     * <p>검색 유형에 따라 QueryDSL LIKE 검색 조건을 생성합니다.</p>
+     * <p>WRITER 검색 시: 4글자 이상이면 startsWith, 미만이면 contains 사용</p>
+     *
+     * @param type  검색 유형
+     * @param query 검색어
+     * @return QueryDSL Boolean 표현식
+     */
     private BooleanExpression createLikeSearchCondition(PostSearchType type, String query) {
         return switch (type) {
             case TITLE -> post.title.contains(query);
@@ -172,7 +233,17 @@ public class PostQueryAdapter implements PostQueryPort {
         };
     }
 
-    private Page<PostSearchResult> findPostsByFullText(PostSearchType type, String query, Pageable pageable) {
+    /**
+     * <h3>MySQL FULLTEXT 검색 실행</h3>
+     * <p>MySQL FULLTEXT 인덱스를 사용하여 게시글을 검색합니다.</p>
+     * <p>검색 실패 시 빈 페이지를 반환하며, 에러는 로그로 기록됩니다.</p>
+     *
+     * @param type     검색 유형
+     * @param query    검색어
+     * @param pageable 페이지 정보
+     * @return 검색된 게시글 페이지
+     */
+    private Page<PostSimpleDetail> findPostsByFullText(PostSearchType type, String query, Pageable pageable) {
         String searchTerm = query + "*";
         try {
             List<Object[]> rows = switch (type) {
@@ -191,8 +262,8 @@ public class PostQueryAdapter implements PostQueryPort {
                 return new PageImpl<>(List.of(), pageable, total);
             }
 
-            List<PostSearchResult> content = mapFullTextRows(rows);
-            populateEngagementMetrics(content);
+            List<PostSimpleDetail> content = mapFullTextRows(rows);
+            batchLikeAndCommentCount(content);
 
             return new PageImpl<>(content, pageable, total);
         } catch (DataAccessException e) {
@@ -206,13 +277,28 @@ public class PostQueryAdapter implements PostQueryPort {
         }
     }
 
-    private List<PostSearchResult> mapFullTextRows(List<Object[]> rows) {
+    /**
+     * <h3>FULLTEXT 검색 결과 매핑</h3>
+     * <p>FULLTEXT 검색으로 조회한 Object[] 배열 목록을 PostSimpleDetail 목록으로 변환합니다.</p>
+     *
+     * @param rows FULLTEXT 검색 결과 행 목록
+     * @return 변환된 게시글 간략 정보 목록
+     */
+    private List<PostSimpleDetail> mapFullTextRows(List<Object[]> rows) {
         return rows.stream()
                 .map(this::mapFullTextRow)
                 .collect(Collectors.toList());
     }
 
-    private PostSearchResult mapFullTextRow(Object[] row) {
+    /**
+     * <h3>FULLTEXT 검색 단일 행 매핑</h3>
+     * <p>FULLTEXT 검색으로 조회한 Object[] 배열을 PostSimpleDetail 객체로 변환합니다.</p>
+     * <p>좋아요 수와 댓글 수는 0으로 초기화되며, 이후 배치 조회로 채워집니다.</p>
+     *
+     * @param row FULLTEXT 검색 결과 행 (id, title, views, ?, createdAt, memberId, memberName)
+     * @return 변환된 게시글 간략 정보
+     */
+    private PostSimpleDetail mapFullTextRow(Object[] row) {
         Long id = ((Number) row[0]).longValue();
         String title = row[1] != null ? row[1].toString() : null;
         Integer views = row[2] != null ? ((Number) row[2]).intValue() : 0;
@@ -220,7 +306,7 @@ public class PostQueryAdapter implements PostQueryPort {
         Long memberId = row[5] != null ? ((Number) row[5]).longValue() : null;
         String memberName = row[6] != null ? row[6].toString() : null;
 
-        return PostSearchResult.builder()
+        return PostSimpleDetail.builder()
                 .id(id)
                 .title(title)
                 .viewCount(views)
@@ -232,16 +318,14 @@ public class PostQueryAdapter implements PostQueryPort {
                 .build();
     }
 
-    private boolean toBoolean(Object value) {
-        if (value instanceof Boolean bool) {
-            return bool;
-        }
-        if (value instanceof Number number) {
-            return number.intValue() != 0;
-        }
-        return false;
-    }
-
+    /**
+     * <h3>Object를 Instant로 변환</h3>
+     * <p>다양한 날짜/시간 타입을 Instant로 변환합니다.</p>
+     * <p>지원 타입: Instant, Timestamp, LocalDateTime</p>
+     *
+     * @param value 변환할 날짜/시간 객체
+     * @return Instant 객체 (변환 실패 시 null)
+     */
     private Instant toInstant(Object value) {
         if (value instanceof Instant instant) {
             return instant;
@@ -255,13 +339,21 @@ public class PostQueryAdapter implements PostQueryPort {
         return null;
     }
 
-    private void populateEngagementMetrics(List<PostSearchResult> posts) {
+    /**
+     * <h3>게시글 목록에 추천 수와 댓글 수 주입</h3>
+     * <p>게시글 목록의 좋아요 수와 댓글 수를 배치로 조회하여 주입.</p>
+     *
+     * @param posts 좋아요 수와 댓글 수를 채울 게시글 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private void batchLikeAndCommentCount(List<PostSimpleDetail> posts) {
         if (posts.isEmpty()) {
             return;
         }
 
         List<Long> postIds = posts.stream()
-                .map(PostSearchResult::getId)
+                .map(PostSimpleDetail::getId)
                 .toList();
 
         Map<Long, Integer> commentCounts = postToCommentPort.findCommentCountsByPostIds(postIds);
@@ -273,52 +365,16 @@ public class PostQueryAdapter implements PostQueryPort {
         });
     }
 
-    /**
-     * <h3>공통 게시글 조회 메서드</h3>
-     * <p>주어진 조건에 따라 게시글을 조회하고 페이지네이션합니다.</p>
-     * <p>배치 조회로 댓글 수와 추천 수 조회</p>
-     * <p>전문검색인 경우 정확한 카운트를 위해 전용 count 메서드 사용</p>
-     *
-     * @param condition WHERE 조건
-     * @param pageable  페이지 정보
-     * @return 게시글 목록 페이지
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private Page<PostSearchResult> findPostsWithCondition(BooleanExpression condition, Pageable pageable) {
-        List<PostSearchResult> content = jpaQueryFactory
-                .select(Projections.constructor(PostSearchResult.class,
-                        post.id,
-                        post.title,
-                        post.views.coalesce(0),
-                        Expressions.constant(0),
-                        post.createdAt,
-                        member.id,
-                        member.memberName,
-                        Expressions.constant(0)))
-                .from(post)
-                .leftJoin(post.member, member)
-                .where(condition)
-                .orderBy(post.createdAt.desc())
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
-
-
-
-        populateEngagementMetrics(content);
-
-        Long total = calculateTotalCount(condition);
-
-        return new PageImpl<>(content, pageable, total != null ? total : 0L);
-    }
 
     /**
-     * <h3>총 개수 계산 메서드</h3>
+     * <h3>게시글 개수 계산</h3>
      * <p>일반 조건 검색 시 총 개수를 계산합니다.</p>
+     * <p>페이지네이션을 위한 전체 게시글 수를 조회합니다.</p>
      *
      * @param condition WHERE 조건
      * @return 총 게시글 수
+     * @author Jaeik
+     * @since 2.0.0
      */
     private Long calculateTotalCount(BooleanExpression condition) {
         return jpaQueryFactory
@@ -335,7 +391,7 @@ public class PostQueryAdapter implements PostQueryPort {
      * <p>JOIN으로 필요한 데이터를 한 번에 조회</p>
      * <p>{@link PostQueryService}에서 게시글 상세 페이지 조회 시 호출됩니다.</p>
      *
-     * @param postId 조회할 게시글 ID
+     * @param postId   조회할 게시글 ID
      * @param memberId 현재 사용자 ID (좋아요 여부 확인용, null 가능)
      * @return 게시글 상세 정보 프로젝션 (게시글이 없으면 empty)
      * @author Jaeik
@@ -344,7 +400,7 @@ public class PostQueryAdapter implements PostQueryPort {
     @Override
     public Optional<PostDetail> findPostDetailWithCounts(Long postId, Long memberId) {
         QPostLike userPostLike = new QPostLike("userPostLike");
-        
+
         PostDetail result = jpaQueryFactory
                 .select(new QPostDetail(
                         post.id,
@@ -370,7 +426,7 @@ public class PostQueryAdapter implements PostQueryPort {
                 .leftJoin(comment).on(comment.post.id.eq(post.id))
                 .leftJoin(userPostLike).on(
                         userPostLike.post.id.eq(post.id)
-                        .and(memberId != null ? userPostLike.member.id.eq(memberId) : Expressions.FALSE)
+                                .and(memberId != null ? userPostLike.member.id.eq(memberId) : Expressions.FALSE)
                 )
                 .where(post.id.eq(postId))
                 .groupBy(post.id, post.title, post.content, post.views, post.createdAt,
@@ -398,6 +454,17 @@ public class PostQueryAdapter implements PostQueryPort {
         return findPostDetailWithCounts(postId, null).orElse(null);
     }
 
+    /**
+     * <h3>게시글 ID 목록으로 상세 정보 배치 조회</h3>
+     * <p>여러 게시글의 상세 정보를 한 번에 조회합니다.</p>
+     * <p>요청한 ID 순서대로 결과를 반환하며, 존재하지 않는 게시글은 제외됩니다.</p>
+     * <p>{@link PostQueryService}에서 여러 게시글 상세 정보를 효율적으로 조회할 때 호출됩니다.</p>
+     *
+     * @param postIds 조회할 게시글 ID 목록
+     * @return 게시글 상세 정보 목록 (요청 순서대로 정렬, null이면 빈 리스트)
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public List<PostDetail> findPostDetailsByIds(List<Long> postIds) {
         if (postIds == null || postIds.isEmpty()) {
@@ -438,6 +505,12 @@ public class PostQueryAdapter implements PostQueryPort {
     /**
      * <h3>캐시 플래그가 있는 게시글 ID 조회</h3>
      * <p>사용자가 작성한 게시글 중 캐시 플래그가 설정된 게시글의 ID만 조회합니다.</p>
+     * <p>Redis 캐시 동기화 시 특정 사용자의 게시글만 선택적으로 갱신할 때 사용됩니다.</p>
+     *
+     * @param memberId 사용자 ID
+     * @return 캐시 플래그가 설정된 게시글 ID 목록
+     * @author Jaeik
+     * @since 2.0.0
      */
     @Override
     public List<Long> findCachedPostIdsByMemberId(Long memberId) {

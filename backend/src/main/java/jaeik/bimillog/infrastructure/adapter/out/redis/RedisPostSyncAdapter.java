@@ -5,7 +5,7 @@ import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.comment.entity.QComment;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostSyncPort;
-import jaeik.bimillog.domain.post.entity.PostSearchResult;
+import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.entity.QPost;
 import jaeik.bimillog.domain.post.entity.QPostLike;
 import jaeik.bimillog.domain.member.entity.QMember;
@@ -45,7 +45,7 @@ public class RedisPostSyncAdapter implements RedisPostSyncPort {
      */
     @Override
     @Transactional(readOnly = true)
-    public List<PostSearchResult> findWeeklyPopularPosts() {
+    public List<PostSimpleDetail> findWeeklyPopularPosts() {
         return findPopularPostsByDays(7);
     }
 
@@ -59,7 +59,7 @@ public class RedisPostSyncAdapter implements RedisPostSyncPort {
      */
     @Override
     @Transactional(readOnly = true)
-    public List<PostSearchResult> findLegendaryPosts() {
+    public List<PostSimpleDetail> findLegendaryPosts() {
         QPostLike postLike = QPostLike.postLike;
 
         return createBasePopularPostsQuery()
@@ -79,7 +79,7 @@ public class RedisPostSyncAdapter implements RedisPostSyncPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    private List<PostSearchResult> findPopularPostsByDays(int days) {
+    private List<PostSimpleDetail> findPopularPostsByDays(int days) {
         QPost post = QPost.post;
         QPostLike postLike = QPostLike.postLike;
 
@@ -99,14 +99,14 @@ public class RedisPostSyncAdapter implements RedisPostSyncPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    private JPAQuery<PostSearchResult> createBasePopularPostsQuery() {
+    private JPAQuery<PostSimpleDetail> createBasePopularPostsQuery() {
         QPost post = QPost.post;
         QMember member = QMember.member;
         QPostLike postLike = QPostLike.postLike;
         QComment comment = QComment.comment;
 
         return jpaQueryFactory
-                .select(Projections.constructor(PostSearchResult.class,
+                .select(Projections.constructor(PostSimpleDetail.class,
                         post.id,                              // 1. id (Long)
                         post.title,                           // 2. title (String)
                         post.views.coalesce(0),              // 3. viewCount (Integer)

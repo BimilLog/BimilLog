@@ -147,7 +147,7 @@ class RedisPostSyncAdapterIntegrationTest {
         entityManager.clear();
 
         // When
-        List<PostSearchResult> popularPosts = redisPostSyncAdapter.findWeeklyPopularPosts();
+        List<PostSimpleDetail> popularPosts = redisPostSyncAdapter.findWeeklyPopularPosts();
 
         // Then
         assertThat(popularPosts).hasSize(2);
@@ -171,7 +171,7 @@ class RedisPostSyncAdapterIntegrationTest {
         entityManager.clear();
 
         // When
-        List<PostSearchResult> legendaryPosts = redisPostSyncAdapter.findLegendaryPosts();
+        List<PostSimpleDetail> legendaryPosts = redisPostSyncAdapter.findLegendaryPosts();
 
         // Then
         assertThat(legendaryPosts).hasSize(2);

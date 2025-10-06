@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.post.application.port.out;
 
-import jaeik.bimillog.domain.post.entity.PostSearchResult;
+import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 
 import java.util.List;
 
@@ -28,7 +28,7 @@ public interface RedisPostSyncPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    List<PostSearchResult> findWeeklyPopularPosts();
+    List<PostSimpleDetail> findWeeklyPopularPosts();
 
     /**
      * <h3>전설의 게시글 조회</h3>
@@ -40,7 +40,7 @@ public interface RedisPostSyncPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    List<PostSearchResult> findLegendaryPosts();
+    List<PostSimpleDetail> findLegendaryPosts();
     
 
 }

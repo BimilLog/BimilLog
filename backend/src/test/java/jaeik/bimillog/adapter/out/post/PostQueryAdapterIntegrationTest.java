@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.post.application.port.out.PostLikeQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostToCommentPort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
-import jaeik.bimillog.domain.post.entity.PostSearchResult;
+import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchType;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostQueryAdapter;
@@ -131,7 +131,7 @@ class PostQueryAdapterIntegrationTest {
         Pageable pageable = PageRequest.of(0, 2);
 
         // When: 페이지별 게시글 조회
-        Page<PostSearchResult> result = postQueryAdapter.findByPage(pageable);
+        Page<PostSimpleDetail> result = postQueryAdapter.findByPage(pageable);
 
         // Then: 공지사항이 제외된 일반 게시글만 조회됨
         assertThat(result).isNotNull();
@@ -141,7 +141,7 @@ class PostQueryAdapterIntegrationTest {
 
         // 공지사항은 제외되어야 함
         List<String> titles = result.getContent().stream()
-                .map(PostSearchResult::getTitle)
+                .map(PostSimpleDetail::getTitle)
                 .toList();
         assertThat(titles).doesNotContain("공지사항 제목");
         
@@ -159,7 +159,7 @@ class PostQueryAdapterIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 사용자별 게시글 조회
-        Page<PostSearchResult> result = postQueryAdapter.findPostsByMemberId(memberId, pageable);
+        Page<PostSimpleDetail> result = postQueryAdapter.findPostsByMemberId(memberId, pageable);
 
         // Then: 해당 사용자의 게시글만 조회됨
         assertThat(result).isNotNull();
@@ -168,7 +168,7 @@ class PostQueryAdapterIntegrationTest {
 
         // 모든 게시글의 작성자가 해당 사용자인지 확인
         List<String> memberNames = result.getContent().stream()
-                .map(PostSearchResult::getMemberName)
+                .map(PostSimpleDetail::getMemberName)
                 .distinct()
                 .toList();
         assertThat(memberNames).containsExactly(testMember.getMemberName());
@@ -199,7 +199,7 @@ class PostQueryAdapterIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 사용자 추천 게시글 조회
-        Page<PostSearchResult> result = postQueryAdapter.findLikedPostsByMemberId(likeMember.getId(), pageable);
+        Page<PostSimpleDetail> result = postQueryAdapter.findLikedPostsByMemberId(likeMember.getId(), pageable);
 
         // Then: 추천한 게시글들이 조회됨
         assertThat(result).isNotNull();
@@ -207,7 +207,7 @@ class PostQueryAdapterIntegrationTest {
         assertThat(result.getTotalElements()).isEqualTo(2L);
 
         List<String> likedPostTitles = result.getContent().stream()
-                .map(PostSearchResult::getTitle)
+                .map(PostSimpleDetail::getTitle)
                 .toList();
         assertThat(likedPostTitles).containsExactlyInAnyOrder(
                 "첫 번째 게시글", 
@@ -229,7 +229,7 @@ class PostQueryAdapterIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 제목 검색 (LIKE 검색으로 폴백)
-        Page<PostSearchResult> result = postQueryAdapter.findBySearch(searchType, query, pageable);
+        Page<PostSimpleDetail> result = postQueryAdapter.findBySearch(searchType, query, pageable);
 
         // Then: 해당 제목이 포함된 게시글 조회됨
         assertThat(result).isNotNull();
@@ -246,7 +246,7 @@ class PostQueryAdapterIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 작성자 검색
-        Page<PostSearchResult> result = postQueryAdapter.findBySearch(searchType, query, pageable);
+        Page<PostSimpleDetail> result = postQueryAdapter.findBySearch(searchType, query, pageable);
 
         // Then: 해당 작성자의 게시글들이 조회됨
         assertThat(result).isNotNull();
@@ -264,7 +264,7 @@ class PostQueryAdapterIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 일반 게시글 페이지 조회
-        Page<PostSearchResult> result = postQueryAdapter.findByPage(pageable);
+        Page<PostSimpleDetail> result = postQueryAdapter.findByPage(pageable);
 
         // Then: 공지사항은 제외되고 일반 게시글만 조회됨
         assertThat(result.getContent()).hasSize(3); // 일반 게시글 3개만 조회 (공지사항 2개 제외)
@@ -277,11 +277,11 @@ class PostQueryAdapterIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 게시글 조회
-        Page<PostSearchResult> result = postQueryAdapter.findByPage(pageable);
+        Page<PostSimpleDetail> result = postQueryAdapter.findByPage(pageable);
 
         // Then: 최신 게시글부터 정렬됨 (createdAt 내림차순)
         List<java.time.Instant> createdAts = result.getContent().stream()
-                .map(PostSearchResult::getCreatedAt)
+                .map(PostSimpleDetail::getCreatedAt)
                 .toList();
 
         for (int i = 1; i < createdAts.size(); i++) {

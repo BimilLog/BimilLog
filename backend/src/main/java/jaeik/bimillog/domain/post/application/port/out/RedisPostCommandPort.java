@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.post.application.port.out;
 
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
-import jaeik.bimillog.domain.post.entity.PostSearchResult;
+import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 
 import java.util.List;
 
@@ -41,7 +41,7 @@ public interface RedisPostCommandPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    void cachePostIds(PostCacheFlag type, List<PostSearchResult> posts);
+    void cachePostIds(PostCacheFlag type, List<PostSimpleDetail> posts);
 
     /**
      * <h3>캐시 데이터 선택적 삭제</h3>

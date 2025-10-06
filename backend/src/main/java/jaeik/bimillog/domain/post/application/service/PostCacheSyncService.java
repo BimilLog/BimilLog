@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.post.application.service;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostSyncPort;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
-import jaeik.bimillog.domain.post.entity.PostSearchResult;
+import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -63,7 +63,7 @@ public class PostCacheSyncService {
     @Scheduled(fixedRate = 60000 * 1440) // 1일마다
     @Transactional
     public void updateWeeklyPopularPosts() {
-        List<PostSearchResult> posts = redisPostSyncPort.findWeeklyPopularPosts();
+        List<PostSimpleDetail> posts = redisPostSyncPort.findWeeklyPopularPosts();
         if (posts.isEmpty()) {
             log.info("WEEKLY에 대한 인기 게시글이 없어 캐시 업데이트를 건너뜁니다.");
             return;
@@ -92,7 +92,7 @@ public class PostCacheSyncService {
     @Scheduled(fixedRate = 60000 * 1440) // 1일마다
     @Transactional
     public void updateLegendaryPosts() {
-        List<PostSearchResult> posts = redisPostSyncPort.findLegendaryPosts();
+        List<PostSimpleDetail> posts = redisPostSyncPort.findLegendaryPosts();
         if (posts.isEmpty()) {
             log.info("LEGEND에 대한 인기 게시글이 없어 캐시 업데이트를 건너뜁니다.");
             return;
@@ -116,7 +116,7 @@ public class PostCacheSyncService {
      * @param eventTitle 이벤트 제목
      * @param eventBodyFormat 이벤트 본문 포맷 문자열 (게시글 제목을 %s로 사용)
      */
-    private void publishFeaturedEvent(List<PostSearchResult> posts, String notiTitle, String eventTitle, String eventBodyFormat) {
+    private void publishFeaturedEvent(List<PostSimpleDetail> posts, String notiTitle, String eventTitle, String eventBodyFormat) {
         posts.stream()
                 .filter(post -> post.getMemberId() != null)
                 .forEach(post -> {

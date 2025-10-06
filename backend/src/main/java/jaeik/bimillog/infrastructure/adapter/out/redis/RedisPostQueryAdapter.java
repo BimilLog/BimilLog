@@ -3,7 +3,7 @@ package jaeik.bimillog.infrastructure.adapter.out.redis;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostQueryPort;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
-import jaeik.bimillog.domain.post.entity.PostSearchResult;
+import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -100,7 +100,7 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
      */
     @Override
     @SuppressWarnings("unchecked")
-    public List<PostSearchResult> getCachedPostList(PostCacheFlag type) {
+    public List<PostSimpleDetail> getCachedPostList(PostCacheFlag type) {
         CacheMetadata metadata = getCacheMetadata(type);
         try {
             // 1. Sorted Set에서 ID 목록 조회 (score 높은 순)
@@ -156,7 +156,7 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
      * @since 2.0.0
      */
     @Override
-    public Page<PostSearchResult> getCachedPostListPaged(Pageable pageable) {
+    public Page<PostSimpleDetail> getCachedPostListPaged(Pageable pageable) {
         CacheMetadata metadata = getCacheMetadata(PostCacheFlag.LEGEND);
         try {
             // 1. 전체 크기 조회
@@ -177,7 +177,7 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
             }
             
             // 3. 상세 캐시에서 PostDetail 조회 후 PostSearchResult로 변환
-            List<PostSearchResult> pagedPosts = postIds.stream()
+            List<PostSimpleDetail> pagedPosts = postIds.stream()
                     .map(Object::toString)
                     .map(Long::valueOf)
                     .map(this::getCachedPostIfExists)

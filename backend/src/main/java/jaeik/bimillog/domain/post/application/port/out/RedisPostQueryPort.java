@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.post.application.port.out;
 
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
-import jaeik.bimillog.domain.post.entity.PostSearchResult;
+import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -26,11 +26,11 @@ public interface RedisPostQueryPort {
      * <p>PostQueryService에서 인기글 목록 요청 시 캐시 우선 조회를 위해 호출됩니다.</p>
      *
      * @param type 조회할 인기글 캐시 유형 (REALTIME, WEEKLY, LEGEND, NOTICE)
-     * @return List<PostSearchResult> Redis에서 조회한 인기글 목록 (캐시 없으면 빈 리스트)
+     * @return List<PostSimpleDetail> Redis에서 조회한 인기글 목록 (캐시 없으면 빈 리스트)
      * @author Jaeik
      * @since 2.0.0
      */
-    List<PostSearchResult> getCachedPostList(PostCacheFlag type);
+    List<PostSimpleDetail> getCachedPostList(PostCacheFlag type);
 
     /**
      * <h3>레전드 인기글 페이지네이션 조회</h3>
@@ -38,11 +38,11 @@ public interface RedisPostQueryPort {
      * <p>PostQueryService에서 레전드 게시글 목록 요청 시 호출됩니다.</p>
      *
      * @param pageable 페이지 정보 (페이지 번호와 크기)
-     * @return Page<PostSearchResult> 페이지네이션된 레전드 인기글 목록
+     * @return Page<PostSimpleDetail> 페이지네이션된 레전드 인기글 목록
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<PostSearchResult> getCachedPostListPaged(Pageable pageable);
+    Page<PostSimpleDetail> getCachedPostListPaged(Pageable pageable);
 
     /**
      * <h3>게시글 상세 정보 캐시 조회</h3>

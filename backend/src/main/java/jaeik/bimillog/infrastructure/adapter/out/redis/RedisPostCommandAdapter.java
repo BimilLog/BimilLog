@@ -3,7 +3,7 @@ package jaeik.bimillog.infrastructure.adapter.out.redis;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
-import jaeik.bimillog.domain.post.entity.PostSearchResult;
+import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -126,7 +126,7 @@ public class RedisPostCommandAdapter implements RedisPostCommandPort {
      * @since 2.0.0
      */
     @Override
-    public void cachePostIds(PostCacheFlag type, List<PostSearchResult> posts) {
+    public void cachePostIds(PostCacheFlag type, List<PostSimpleDetail> posts) {
         if (posts == null || posts.isEmpty()) {
             return;
         }
@@ -136,7 +136,7 @@ public class RedisPostCommandAdapter implements RedisPostCommandPort {
         try {
             // Sorted Set에 postId만 저장 (score는 likeCount 사용)
             String listKey = metadata.key();
-            for (PostSearchResult post : posts) {
+            for (PostSimpleDetail post : posts) {
                 redisTemplate.opsForZSet().add(listKey, post.getId().toString(), post.getLikeCount());
             }
             // TTL 설정

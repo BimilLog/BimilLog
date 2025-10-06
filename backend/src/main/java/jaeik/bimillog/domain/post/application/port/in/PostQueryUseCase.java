@@ -26,11 +26,11 @@ public interface PostQueryUseCase {
      * <p>{@link PostQueryController}에서 GET /api/post 요청 처리 시 호출됩니다.</p>
      *
      * @param pageable 페이지 정보 (크기, 정렬 기준 포함)
-     * @return Page<PostSearchResult> 최신순으로 정렬된 게시글 목록 페이지
+     * @return Page<PostSimpleDetail> 최신순으로 정렬된 게시글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<PostSearchResult> getBoard(Pageable pageable);
+    Page<PostSimpleDetail> getBoard(Pageable pageable);
 
     /**
      * <h3>게시글 상세 페이지 조회</h3>
@@ -55,11 +55,11 @@ public interface PostQueryUseCase {
      * @param type 검색 대상 유형 (TITLE: 제목, WRITER: 작성자, TITLE_CONTENT: 제목+내용)
      * @param query 검색할 키워드 (한국어 단어 지원)
      * @param pageable 페이지 정보 (결과 개수 제한 및 정렬)
-     * @return Page<PostSearchResult> 검색 조건에 맞는 게시글 목록 페이지
+     * @return Page<PostSimpleDetail> 검색 조건에 맞는 게시글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<PostSearchResult> searchPost(PostSearchType type, String query, Pageable pageable);
+    Page<PostSimpleDetail> searchPost(PostSearchType type, String query, Pageable pageable);
 
     /**
      * <h3>실시간 및 주간 인기글 동시 조회</h3>
@@ -67,11 +67,11 @@ public interface PostQueryUseCase {
      * <p>Redis 캐시에서 미리 계산된 인기글 데이터 조회</p>
      * <p>{@link PostQueryController}에서 GET /api/post/popular 요청 처리 시 호출됩니다.</p>
      *
-     * @return Map<String, List<PostSearchResult>> 인기글 맵 ("realtime": 실시간, "weekly": 주간)
+     * @return Map<String, List<PostSimpleDetail>> 인기글 맵 ("realtime": 실시간, "weekly": 주간)
      * @author Jaeik
      * @since 2.0.0
      */
-    Map<String, List<PostSearchResult>> getRealtimeAndWeeklyPosts();
+    Map<String, List<PostSimpleDetail>> getRealtimeAndWeeklyPosts();
 
     /**
      * <h3>레전드 인기글 목록 페이지네이션 조회</h3>
@@ -81,11 +81,11 @@ public interface PostQueryUseCase {
      *
      * @param type 조회할 캐시 유형 (PostCacheFlag.LEGEND 고정값)
      * @param pageable 페이지 정보 (페이지 번호, 크기)
-     * @return Page<PostSearchResult> 레전드 인기 게시글 목록 페이지
+     * @return Page<PostSimpleDetail> 레전드 인기 게시글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<PostSearchResult> getPopularPostLegend(PostCacheFlag type, Pageable pageable);
+    Page<PostSimpleDetail> getPopularPostLegend(PostCacheFlag type, Pageable pageable);
 
     /**
      * <h3>공지사항 목록 전체 조회</h3>
@@ -93,11 +93,11 @@ public interface PostQueryUseCase {
      * <p>Redis 캐시에서 공지사항 전체 목록을 한 번에 반환</p>
      * <p>{@link PostQueryController}에서 GET /api/post/notice 요청 처리 시 호출됩니다.</p>
      *
-     * @return List<PostSearchResult> 캐시된 공지사항 게시글 목록
+     * @return List<PostSimpleDetail> 캐시된 공지사항 게시글 목록
      * @author Jaeik
      * @since 2.0.0
      */
-    List<PostSearchResult> getNoticePosts();
+    List<PostSimpleDetail> getNoticePosts();
 
     /**
      * <h3>크로스 도메인 게시글 엔티티 조회</h3>
@@ -120,11 +120,11 @@ public interface PostQueryUseCase {
      *
      * @param memberId 작성글을 조회할 사용자의 식별자 ID
      * @param pageable 페이지 정보 (페이지 번호, 크기, 정렬)
-     * @return Page<PostSearchResult> 사용자가 작성한 게시글 목록 페이지
+     * @return Page<PostSimpleDetail> 사용자가 작성한 게시글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<PostSearchResult> getMemberPosts(Long memberId, Pageable pageable);
+    Page<PostSimpleDetail> getMemberPosts(Long memberId, Pageable pageable);
 
     /**
      * <h3>사용자 추천 게시글 내역 조회</h3>
@@ -134,9 +134,9 @@ public interface PostQueryUseCase {
      *
      * @param memberId 추천글을 조회할 사용자의 식별자 ID
      * @param pageable 페이지 정보 (페이지 번호, 크기, 정렬)
-     * @return Page<PostSearchResult> 사용자가 추천한 게시글 목록 페이지
+     * @return Page<PostSimpleDetail> 사용자가 추천한 게시글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<PostSearchResult> getMemberLikedPosts(Long memberId, Pageable pageable);
+    Page<PostSimpleDetail> getMemberLikedPosts(Long memberId, Pageable pageable);
 }

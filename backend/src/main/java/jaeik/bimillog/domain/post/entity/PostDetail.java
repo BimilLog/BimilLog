@@ -141,12 +141,12 @@ public record PostDetail(
      * <p>isLiked 정보는 목록 화면에서 필요하지 않으므로 제외됩니다.</p>
      * <p>{@link PostQueryService}에서 게시글 목록 조회 시 호출됩니다.</p>
      *
-     * @return PostSearchResult 목록용 검색 결과
+     * @return PostSimpleDetail 목록용 검색 결과
      * @since 2.0.0
      * @author Jaeik
      */
-    public PostSearchResult toSearchResult() {
-        return PostSearchResult.ofPostDetail(this);
+    public PostSimpleDetail toSearchResult() {
+        return PostSimpleDetail.ofPostDetail(this);
     }
 
 }
