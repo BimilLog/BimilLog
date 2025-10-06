@@ -137,7 +137,6 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
         try {
             Object cached = redisTemplate.opsForValue().get(key);
             if (cached instanceof PostDetail postDetail) {
-                // Redis에서 직접 PostDetail로 저장하므로 캐스팅만 필요
                 return postDetail;
             }
         } catch (Exception e) {

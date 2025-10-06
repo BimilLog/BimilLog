@@ -46,7 +46,15 @@ public class RedisPostSyncAdapter implements RedisPostSyncPort {
     @Override
     @Transactional(readOnly = true)
     public List<PostSimpleDetail> findWeeklyPopularPosts() {
-        return findPopularPostsByDays(7);
+        QPost post = QPost.post;
+        QPostLike postLike = QPostLike.postLike;
+
+        return createBasePopularPostsQuery()
+                .where(post.createdAt.after(Instant.now().minus(7, ChronoUnit.DAYS)))
+                .having(postLike.countDistinct().goe(1))
+                .orderBy(postLike.countDistinct().desc())
+                .limit(5)
+                .fetch();
     }
 
     /**
@@ -66,28 +74,6 @@ public class RedisPostSyncAdapter implements RedisPostSyncPort {
                 .having(postLike.countDistinct().goe(20))
                 .orderBy(postLike.countDistinct().desc())
                 .limit(50)
-                .fetch();
-    }
-
-
-    /**
-     * <h3>기간별 인기 게시글 조회</h3>
-     * <p>주어진 기간(일) 내에 추천 수가 많은 게시글을 조회합니다. 결과는 5개로 제한됩니다.</p>
-     *
-     * @param days 기간(일)
-     * @return 인기 게시글 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private List<PostSimpleDetail> findPopularPostsByDays(int days) {
-        QPost post = QPost.post;
-        QPostLike postLike = QPostLike.postLike;
-
-        return createBasePopularPostsQuery()
-                .where(post.createdAt.after(Instant.now().minus(days, ChronoUnit.DAYS)))
-                .having(postLike.countDistinct().goe(1))
-                .orderBy(postLike.countDistinct().desc())
-                .limit(5)
                 .fetch();
     }
 

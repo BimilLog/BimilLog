@@ -129,7 +129,7 @@ public class PostQueryService implements PostQueryUseCase {
     @Override
     public Page<PostSimpleDetail> searchPost(PostSearchType type, String query, Pageable pageable) {
         // 전략 1: 3글자 이상 + 작성자 검색 아님 → 전문 검색 시도
-        if (shouldUseFullTextSearch(type, query)) {
+        if (query.length() >= 3 && type != PostSearchType.WRITER) {
             Page<PostSimpleDetail> fullTextResult = postQueryPort.findByFullTextSearch(type, query, pageable);
             if (!fullTextResult.isEmpty()) {
                 return fullTextResult;
@@ -139,38 +139,13 @@ public class PostQueryService implements PostQueryUseCase {
         }
 
         // 전략 2: 작성자 검색 + 4글자 이상 → 접두사 검색 (인덱스 활용)
-        if (shouldUsePrefixMatch(type, query)) {
+        if (type == PostSearchType.WRITER && query.length() >= 4) {
             return postQueryPort.findByPrefixMatch(type, query, pageable);
         }
 
         // 전략 3: 그 외 → 부분 검색
         return postQueryPort.findByPartialMatch(type, query, pageable);
     }
-
-    /**
-     * <h3>전문 검색 사용 여부 판단</h3>
-     * <p>검색어가 3글자 이상이고 작성자 검색이 아닌 경우 MySQL FULLTEXT 검색을 사용합니다.</p>
-     *
-     * @param type  검색 유형
-     * @param query 검색어
-     * @return 전문 검색 사용 여부
-     */
-    private boolean shouldUseFullTextSearch(PostSearchType type, String query) {
-        return query.length() >= 3 && type != PostSearchType.WRITER;
-    }
-
-    /**
-     * <h3>접두사 검색 사용 여부 판단</h3>
-     * <p>작성자 검색에서 4글자 이상인 경우 인덱스를 활용한 접두사 검색을 사용합니다.</p>
-     *
-     * @param type  검색 유형
-     * @param query 검색어
-     * @return 접두사 검색 사용 여부
-     */
-    private boolean shouldUsePrefixMatch(PostSearchType type, String query) {
-        return type == PostSearchType.WRITER && query.length() >= 4;
-    }
-
 
     /**
      * <h3>레전드 인기 게시글 목록 조회 (페이징)</h3>
@@ -213,11 +188,8 @@ public class PostQueryService implements PostQueryUseCase {
     }
 
     /**
-     * <h3>게시글 엔티티 조회 (도메인 간 통신용)</h3>
-     * <p>PostQueryUseCase 인터페이스의 엔티티 조회 기능을 구현하며, 다른 도메인에서 Post 엔티티가 필요한 경우 사용됩니다.</p>
-     * <p>Comment 도메인에서 댓글 작성 시 게시글 존재성 검증과 알림 발송을 위해 호출됩니다.</p>
-     * <p>Admin 도메인에서 신고 처리 시 게시글 정보 확인을 위해 호출됩니다.</p>
-     * <p>순수한 엔티티를 반환하여 도메인 경계를 명확히 유지합니다.</p>
+     * <h3>게시글 엔티티 조회 </h3>
+     * <p>PostQueryUseCase 인터페이스의 엔티티 조회 기능을 구현 Post 엔티티가 필요한 경우 사용</p>
      *
      * @param postId 게시글 ID
      * @return Post 게시글 엔티티
