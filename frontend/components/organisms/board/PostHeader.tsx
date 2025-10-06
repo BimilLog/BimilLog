@@ -10,7 +10,6 @@ import {
   Lock,
   User,
   ExternalLink,
-  Megaphone,
   TrendingUp,
   Calendar,
   Crown,
@@ -72,26 +71,6 @@ export const PostHeader = React.memo<PostHeaderProps>(({
       <div className="mb-4">
         <div className="flex items-center flex-wrap gap-2 mb-3">
           {post.password && <Lock className="w-4 h-4 stroke-red-500 fill-red-100" />}
-          {post.notice && (
-            <Popover
-              trigger="hover"
-              placement="top"
-              content={
-                <div className="p-3 max-w-xs">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Megaphone className="w-4 h-4 stroke-blue-600 fill-blue-100" />
-                    <span className="font-semibold text-sm">공지사항</span>
-                  </div>
-                  <p className="text-xs text-gray-600">
-                    관리자가 지정한 중요한 공지사항입니다.
-                    상단에 고정되어 표시됩니다.
-                  </p>
-                </div>
-              }
-            >
-              <Badge variant="info" icon={Megaphone}>공지</Badge>
-            </Popover>
-          )}
           {post.postCacheFlag === "REALTIME" && (
             <Popover
               trigger="hover"
@@ -273,7 +252,6 @@ export const PostHeader = React.memo<PostHeaderProps>(({
     prevProps.post.title === nextProps.post.title &&
     prevProps.post.viewCount === nextProps.post.viewCount &&
     prevProps.post.likeCount === nextProps.post.likeCount &&
-    prevProps.post.notice === nextProps.post.notice &&
     prevProps.post.postCacheFlag === nextProps.post.postCacheFlag &&
     prevProps.commentCount === nextProps.commentCount
   );

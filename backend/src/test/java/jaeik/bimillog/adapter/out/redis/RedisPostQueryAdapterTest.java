@@ -65,7 +65,6 @@ class RedisPostQueryAdapterTest extends BaseUnitTest {
             .createdAt(java.time.Instant.now())
             .memberId(1L)
             .memberName("testMember")
-            .isNotice(false)
             .build();
     }
 

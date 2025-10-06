@@ -222,7 +222,6 @@ class PostCacheSyncServiceTest {
                 .memberId(1L)
                 .memberName("테스트 사용자")
                 .commentCount(0)
-                .isNotice(false)
                 .isLiked(false)
                 .build();
     }

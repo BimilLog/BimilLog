@@ -99,7 +99,6 @@ class RedisPostSyncAdapterIntegrationTest {
                 .title(title)
                 .content(content)
                 .views(views)
-                .isNotice(false)
                 .password(1234)
                 .createdAt(createdAt)
                 .modifiedAt(Instant.now())
@@ -131,29 +130,6 @@ class RedisPostSyncAdapterIntegrationTest {
             postLikeRepository.save(postLike);
         }
         entityManager.flush();
-    }
-
-    @Test
-    @DisplayName("정상 케이스 - 실시간 인기 게시글 조회 (지난 1일)")
-    void shouldFindRealtimePopularPosts() {
-        // Given
-        Post recentPost1 = createAndSavePost("최근 인기 게시글1", "내용", 10, PostCacheFlag.REALTIME, Instant.now().minus(10, ChronoUnit.HOURS));
-        Post recentPost2 = createAndSavePost("최근 인기 게시글2", "내용", 5, PostCacheFlag.REALTIME, Instant.now().minus(20, ChronoUnit.HOURS));
-        createAndSavePost("오래된 게시글", "내용", 100, PostCacheFlag.REALTIME, Instant.now().minus(2, ChronoUnit.DAYS));
-
-        addLikesToPost(recentPost1, 5);
-        addLikesToPost(recentPost2, 10);
-
-        entityManager.flush();
-        entityManager.clear();
-
-        // When
-        List<PostSearchResult> popularPosts = redisPostSyncAdapter.findRealtimePopularPosts();
-
-        // Then
-        assertThat(popularPosts).hasSize(2);
-        assertThat(popularPosts.get(0).getTitle()).isEqualTo("최근 인기 게시글2"); // 좋아요 10개
-        assertThat(popularPosts.get(1).getTitle()).isEqualTo("최근 인기 게시글1"); // 좋아요 5개
     }
 
     @Test

@@ -66,7 +66,6 @@ class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .content("첫 번째 게시글의 내용입니다.")
                 .password(123456)
                 .views(10)
-                .isNotice(false)
                 .build();
 
         testPost2 = Post.builder()
@@ -75,7 +74,6 @@ class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .content("검색용 키워드가 포함된 내용입니다.")
                 .password(123456)
                 .views(20)
-                .isNotice(false)
                 .build();
 
         testPost3 = Post.builder()
@@ -84,7 +82,6 @@ class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .content("가장 최근에 작성된 게시글입니다.")
                 .password(123456)
                 .views(5)
-                .isNotice(false)
                 .build();
 
         postRepository.saveAll(Arrays.asList(testPost1, testPost2, testPost3));

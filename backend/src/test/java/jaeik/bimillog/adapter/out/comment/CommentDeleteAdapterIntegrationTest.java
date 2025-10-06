@@ -95,7 +95,6 @@ class CommentDeleteAdapterIntegrationTest {
                 .member(testMember)
                 .title("테스트 게시글")
                 .content("테스트 내용")
-                .isNotice(false)
                 .views(0)
                 .build();
         testPost = postRepository.save(testPost);

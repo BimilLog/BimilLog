@@ -23,7 +23,6 @@ import java.time.Instant;
  * @param memberId 작성자 ID
  * @param memberName 작성자 이름
  * @param commentCount 댓글 수
- * @param isNotice 공지사항 여부
  * @param isLiked 사용자 추천 여부 (로그인 사용자만)
  * @author Jaeik
  * @version 2.0.0
@@ -38,7 +37,6 @@ public record PostDetail(
         Long memberId,
         String memberName,
         Integer commentCount,
-        boolean isNotice,
         boolean isLiked
 ) implements Serializable {
 
@@ -75,7 +73,6 @@ public record PostDetail(
                 .memberId(post.getMember().getId())
                 .memberName(post.getMember().getMemberName())
                 .commentCount(commentCount)
-                .isNotice(post.isNotice())
                 .isLiked(isLiked)
                 .build();
     }
@@ -134,7 +131,6 @@ public record PostDetail(
                 .memberId(this.memberId)
                 .memberName(this.memberName)
                 .commentCount(this.commentCount)
-                .isNotice(this.isNotice)
                 .isLiked(isLiked)
                 .build();
     }

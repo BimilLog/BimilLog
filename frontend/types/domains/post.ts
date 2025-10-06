@@ -20,7 +20,6 @@ export interface Post {
   createdAt: string  // v2: Instant → ISO string
   updatedAt: string  // v2: Instant → ISO string
   liked: boolean     // v2: Jackson이 isLiked를 liked로 직렬화
-  notice: boolean    // v2: Jackson이 isNotice를 notice로 직렬화
   password?: number
 }
 

@@ -154,9 +154,11 @@ public class PostQueryService implements PostQueryUseCase {
 
     /**
      * <h3>공지사항 목록 조회</h3>
-     * <p>캐시된 공지사항 목록을 조회합니다. 캐시가 없는 경우 PostCacheManageService를 통해 업데이트 후 조회합니다.</p>
+     * <p>Redis에 캐시된 공지사항 목록을 조회합니다.</p>
+     * <p>캐시가 없는 경우 빈 리스트를 반환합니다.</p>
+     * <p>공지사항 등록/해제는 PostCacheService.syncNoticeCache()를 통해 관리됩니다.</p>
      *
-     * @return 공지사항 목록
+     * @return 공지사항 목록 (캐시가 없으면 빈 리스트)
      * @author Jaeik
      * @since 2.0.0
      */

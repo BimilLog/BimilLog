@@ -304,6 +304,8 @@ public class PostQueryAdapter implements PostQueryPort {
                 .limit(pageable.getPageSize())
                 .fetch();
 
+
+
         populateEngagementMetrics(content);
 
         Long total = calculateTotalCount(condition);
@@ -356,8 +358,6 @@ public class PostQueryAdapter implements PostQueryPort {
                         member.memberName,
                         // 댓글 개수 (COUNT)
                         comment.countDistinct().castToNum(Integer.class),
-                        // 공지사항 여부 (boolean isNotice)
-                        post.isNotice.coalesce(false),
                         // 사용자 좋아요 여부 (CASE WHEN)
                         new CaseBuilder()
                                 .when(userPostLike.id.isNotNull())
@@ -374,7 +374,7 @@ public class PostQueryAdapter implements PostQueryPort {
                 )
                 .where(post.id.eq(postId))
                 .groupBy(post.id, post.title, post.content, post.views, post.createdAt,
-                        member.id, member.memberName, post.isNotice, userPostLike.id)
+                        member.id, member.memberName, userPostLike.id)
                 .fetchOne();
 
         return Optional.ofNullable(result);
@@ -415,7 +415,6 @@ public class PostQueryAdapter implements PostQueryPort {
                         member.id,
                         member.memberName,
                         comment.countDistinct().castToNum(Integer.class),
-                        post.isNotice.coalesce(false),
                         Expressions.constant(false)
                 ))
                 .from(post)
@@ -424,7 +423,7 @@ public class PostQueryAdapter implements PostQueryPort {
                 .leftJoin(comment).on(comment.post.id.eq(post.id))
                 .where(post.id.in(postIds))
                 .groupBy(post.id, post.title, post.content, post.views, post.createdAt,
-                        member.id, member.memberName, post.isNotice)
+                        member.id, member.memberName)
                 .fetch();
 
         Map<Long, PostDetail> resultMap = results.stream()

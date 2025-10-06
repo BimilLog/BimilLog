@@ -53,7 +53,6 @@ class PostCacheServiceTest {
                 .memberId(5L)
                 .memberName("작성자")
                 .commentCount(0)
-                .isNotice(true)
                 .isLiked(false)
                 .build();
         given(postQueryPort.findPostDetail(postId)).willReturn(detail);

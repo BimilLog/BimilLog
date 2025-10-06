@@ -36,20 +36,6 @@ public class RedisPostSyncAdapter implements RedisPostSyncPort {
     private final JPAQueryFactory jpaQueryFactory;
 
     /**
-     * <h3>실시간 인기 게시글 조회</h3>
-     * <p>지난 1일간의 인기 게시글 목록을 조회합니다.</p>
-     *
-     * @return 실시간 인기 게시글 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public List<PostSearchResult> findRealtimePopularPosts() {
-        return findPopularPostsByDays(1);
-    }
-
-    /**
      * <h3>주간 인기 게시글 조회</h3>
      * <p>지난 7일간의 인기 게시글 목록을 조회합니다.</p>
      *

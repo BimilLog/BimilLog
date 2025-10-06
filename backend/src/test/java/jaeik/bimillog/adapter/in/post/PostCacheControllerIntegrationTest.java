@@ -70,7 +70,6 @@ class PostCacheControllerIntegrationTest extends BaseIntegrationTest {
                     .content("실시간 인기글 내용 " + i)
                     .password(123456)
                     .views(100 * i)
-                    .isNotice(false)
                     .build();
             testPosts.add(realtimePost);
         }
@@ -82,7 +81,6 @@ class PostCacheControllerIntegrationTest extends BaseIntegrationTest {
                     .content("주간 인기글 내용 " + i)
                     .password(123456)
                     .views(200 * i)
-                    .isNotice(false)
                     .build();
             testPosts.add(weeklyPost);
         }
@@ -94,7 +92,6 @@ class PostCacheControllerIntegrationTest extends BaseIntegrationTest {
                     .content("레전드 인기글 내용 " + i)
                     .password(123456)
                     .views(500 * i)
-                    .isNotice(false)
                     .build();
             testPosts.add(legendPost);
         }

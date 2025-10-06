@@ -109,7 +109,6 @@ class PostQueryServiceTest extends BaseUnitTest {
                 .createdAt(Instant.now())
                 .memberName("testMember")
                 .commentCount(3)
-                .isNotice(false)
                 .build();
         given(postQueryPort.findPostDetailWithCounts(postId, memberId))
                 .willReturn(Optional.of(mockPostDetail));
@@ -142,7 +141,6 @@ class PostQueryServiceTest extends BaseUnitTest {
                 .memberId(1L)
                 .memberName("testMember")
                 .commentCount(3)
-                .isNotice(false)
                 .isLiked(false)
                 .build();
 
@@ -187,7 +185,6 @@ class PostQueryServiceTest extends BaseUnitTest {
                 .createdAt(Instant.now())
                 .memberName("testMember")
                 .commentCount(3)
-                .isNotice(false)
                 .build();
         given(postQueryPort.findPostDetailWithCounts(postId, memberId))
                 .willReturn(Optional.of(mockPostDetail));
@@ -227,7 +224,6 @@ class PostQueryServiceTest extends BaseUnitTest {
                 .createdAt(Instant.now())
                 .memberName("testMember")
                 .commentCount(3)
-                .isNotice(false)
                 .build();
         given(postQueryPort.findPostDetailWithCounts(postId, memberId))
                 .willReturn(Optional.of(mockPostDetail));
@@ -609,7 +605,6 @@ class PostQueryServiceTest extends BaseUnitTest {
                 .memberId(1L)
                 .memberName("테스트 사용자")
                 .commentCount(0)
-                .isNotice(false)
                 .isLiked(false)
                 .build();
     }
