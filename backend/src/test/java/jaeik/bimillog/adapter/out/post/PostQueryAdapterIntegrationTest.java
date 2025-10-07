@@ -8,6 +8,7 @@ import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchType;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostQueryAdapter;
+import jaeik.bimillog.infrastructure.adapter.out.post.PostQueryHelper;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestFixtures;
 import jaeik.bimillog.testutil.TestMembers;
@@ -48,13 +49,13 @@ import static org.mockito.BDDMockito.given;
 @DataJpaTest(
         includeFilters = @ComponentScan.Filter(
                 type = FilterType.ASSIGNABLE_TYPE,
-                classes = {PostQueryAdapter.class}
+                classes = {PostQueryAdapter.class, PostQueryHelper.class}
         )
 )
 @Testcontainers
 @ActiveProfiles("tc")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({PostQueryAdapter.class, TestContainersConfiguration.class})
+@Import({PostQueryAdapter.class, PostQueryHelper.class, TestContainersConfiguration.class})
 @Tag("tc")
 class PostQueryAdapterIntegrationTest {
 
