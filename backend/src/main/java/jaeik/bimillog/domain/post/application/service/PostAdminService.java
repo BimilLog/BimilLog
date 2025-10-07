@@ -2,12 +2,11 @@ package jaeik.bimillog.domain.post.application.service;
 
 import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.post.application.port.in.PostAdminUseCase;
-import jaeik.bimillog.domain.post.application.port.out.RedisPostSavePort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostDeletePort;
+import jaeik.bimillog.domain.post.application.port.out.RedisPostSavePort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
-import jaeik.bimillog.infrastructure.adapter.in.post.web.PostAdminController;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,10 +32,8 @@ public class PostAdminService implements PostAdminUseCase {
 
     /**
      * <h3>게시글 공지사항 상태 토글</h3>
-     * <p>게시글의 공지사항 상태를 현재 상태의 반대로 변경합니다.</p>
      * <p>일반 게시글이면 공지로 설정하고, 공지 게시글이면 일반으로 해제합니다.</p>
-     * <p>postIds 영구 저장소에 단일 게시글만 추가/제거하여 효율적으로 관리합니다.</p>
-     * <p>{@link PostAdminController}에서 관리자 공지 토글 요청 시 호출됩니다.</p>
+     * <p>postIds 영구 저장소에 단일 게시글만 추가/제거합니다.</p>
      *
      * @param postId 공지 토글할 게시글 ID
      * @throws PostCustomException 게시글을 찾을 수 없는 경우
@@ -49,13 +46,11 @@ public class PostAdminService implements PostAdminUseCase {
         Post post = globalPostQueryPort.findById(postId);
 
         if (post.isNotice()) {
-            // 공지 해제
             post.unsetAsNotice();
             redisPostDeletePort.removePostIdFromStorage(postId);
             redisPostDeletePort.removePostFromListCache(postId);
             log.info("공지사항 해제: postId={}, title={}", postId, post.getTitle());
         } else {
-            // 공지 설정
             post.setAsNotice();
             redisPostSavePort.addPostIdToStorage(PostCacheFlag.NOTICE, postId);
             log.info("공지사항 설정: postId={}, title={}", postId, post.getTitle());

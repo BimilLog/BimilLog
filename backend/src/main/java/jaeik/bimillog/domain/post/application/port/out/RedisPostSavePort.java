@@ -45,7 +45,6 @@ public interface RedisPostSavePort {
      */
     void cachePostList(PostCacheFlag type, List<PostSimpleDetail> posts);
 
-
     /**
      * <h3>단일 게시글 상세 정보 캐싱</h3>
      * <p>게시글 상세 정보를 Redis 캐시에 저장합니다.</p>
@@ -56,8 +55,6 @@ public interface RedisPostSavePort {
      * @since 2.0.0
      */
     void cachePostDetail(PostDetail postDetail);
-
-
 
     /**
      * <h3>postIds 저장소에 단일 게시글 추가</h3>
@@ -70,7 +67,4 @@ public interface RedisPostSavePort {
      * @since 2.0.0
      */
     void addPostIdToStorage(PostCacheFlag type, Long postId);
-
-
-
 }
