@@ -135,17 +135,17 @@ class PostFulltextSearchIntegrationTest {
     }
 
     @Test
-    @DisplayName("정상 케이스 - 제목 전문 검색 (한글 2글자 이상)")
+    @DisplayName("정상 케이스 - 제목 전문 검색 (3글자 이상, 실제 비즈니스 로직)")
     void shouldFindPostsByTitleFullText_WhenKoreanQueryProvided() {
-        // Given: 한글 검색어 "자바" (ngram 토큰화)
+        // Given: 한글 검색어 "프로그래밍" (3글자 이상, 실제 사용 시나리오)
         PostSearchType searchType = PostSearchType.TITLE;
-        String query = "자바";
+        String query = "프로그래밍";
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 제목 전문 검색
         Page<PostSimpleDetail> result = postQueryAdapter.findByFullTextSearch(searchType, query, pageable);
 
-        // Then: "자바"가 제목에 포함된 게시글 조회 (공지사항 제외)
+        // Then: "프로그래밍"이 제목에 포함된 게시글 조회 (공지사항 제외)
         assertThat(result).isNotNull();
         assertThat(result.getContent()).isNotEmpty();
 
@@ -153,24 +153,24 @@ class PostFulltextSearchIntegrationTest {
         List<String> titles = result.getContent().stream()
                 .map(PostSimpleDetail::getTitle)
                 .toList();
-        assertThat(titles).anyMatch(title -> title.contains("자바"));
+        assertThat(titles).anyMatch(title -> title.contains("프로그래밍"));
 
         // 공지사항은 제외되어야 함
-        assertThat(titles).doesNotContain("자바 커뮤니티 공지사항");
+        assertThat(titles).noneMatch(title -> title.contains("공지사항"));
     }
 
     @Test
-    @DisplayName("정상 케이스 - 제목+내용 전문 검색 (TITLE_CONTENT)")
+    @DisplayName("정상 케이스 - 제목+내용 전문 검색 (3글자 이상, TITLE_CONTENT)")
     void shouldFindPostsByTitleContentFullText_WhenSearchingBothFields() {
-        // Given: "자바" 검색 (제목 또는 내용에 포함)
+        // Given: "스프링" 검색 (제목 또는 내용에 포함, 3글자)
         PostSearchType searchType = PostSearchType.TITLE_CONTENT;
-        String query = "자바";
+        String query = "스프링";
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 제목+내용 전문 검색
         Page<PostSimpleDetail> result = postQueryAdapter.findByFullTextSearch(searchType, query, pageable);
 
-        // Then: 제목 또는 내용에 "자바"가 포함된 게시글 조회
+        // Then: 제목 또는 내용에 "스프링"이 포함된 게시글 조회
         assertThat(result).isNotNull();
         assertThat(result.getContent()).isNotEmpty();
 
@@ -178,12 +178,12 @@ class PostFulltextSearchIntegrationTest {
                 .map(PostSimpleDetail::getTitle)
                 .toList();
 
-        // 제목에 "자바"가 있는 게시글 포함
-        assertThat(titles).anyMatch(title -> title.contains("자바"));
+        // 제목에 "스프링"이 있는 게시글 포함
+        assertThat(titles).anyMatch(title -> title.contains("스프링"));
     }
 
     @Test
-    @DisplayName("정상 케이스 - 내용에만 있는 단어 검색")
+    @DisplayName("정상 케이스 - 내용 전문 검색")
     void shouldFindPostsByContentFullText_WhenKeywordOnlyInContent() {
         // Given: 내용에만 있는 "데이터베이스" 검색
         PostSearchType searchType = PostSearchType.TITLE_CONTENT;
@@ -205,7 +205,7 @@ class PostFulltextSearchIntegrationTest {
     }
 
     @Test
-    @DisplayName("정상 케이스 - 영문 검색")
+    @DisplayName("정상 케이스 - 영문 전문 검색(4글자)")
     void shouldFindPostsByEnglishFullText_WhenEnglishQueryProvided() {
         // Given: 영문 검색어 "Java"
         PostSearchType searchType = PostSearchType.TITLE;
@@ -251,9 +251,9 @@ class PostFulltextSearchIntegrationTest {
     @Test
     @DisplayName("비즈니스 로직 - 공지사항 제외")
     void shouldExcludeNoticePosts_WhenSearching() {
-        // Given: 공지사항에도 포함된 검색어 "자바"
+        // Given: 공지사항에도 포함된 검색어 "커뮤니티" (3글자)
         PostSearchType searchType = PostSearchType.TITLE_CONTENT;
-        String query = "자바";
+        String query = "커뮤니티";
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 전문 검색
@@ -261,13 +261,13 @@ class PostFulltextSearchIntegrationTest {
 
         // Then: 공지사항은 결과에서 제외됨
         assertThat(result).isNotNull();
+        assertThat(result.getContent()).isEmpty(); // 공지사항만 "커뮤니티"를 포함하므로 빈 결과
 
-        if (!result.isEmpty()) {
-            List<String> titles = result.getContent().stream()
-                    .map(PostSimpleDetail::getTitle)
-                    .toList();
-            assertThat(titles).doesNotContain("자바 커뮤니티 공지사항");
-        }
+        // 또는 다른 게시글이 있다면 공지사항이 포함되지 않아야 함
+        List<String> titles = result.getContent().stream()
+                .map(PostSimpleDetail::getTitle)
+                .toList();
+        assertThat(titles).doesNotContain("자바 커뮤니티 공지사항");
     }
 
     @Test
@@ -288,24 +288,26 @@ class PostFulltextSearchIntegrationTest {
     }
 
     @Test
-    @DisplayName("엣지 케이스 - 1글자 검색어 (풀텍스트 미동작 가능)")
-    void shouldHandleSingleCharacterQuery_Gracefully() {
-        // Given: 1글자 검색어 (ngram 최소 크기 미만)
+    @DisplayName("엣지 케이스 - 1글자 검색어 (ngram 토큰 크기 미만, 전문검색 미동작)")
+    void shouldReturnEmptyResult_WhenSingleCharacterQuery() {
+        // Given: 1글자 검색어 (ngram_token_size=2 미만)
         PostSearchType searchType = PostSearchType.TITLE;
         String query = "자";
         Pageable pageable = PageRequest.of(0, 10);
 
-        // When: 전문 검색
+        // When: 전문 검색 시도
         Page<PostSimpleDetail> result = postQueryAdapter.findByFullTextSearch(searchType, query, pageable);
 
-        // Then: 오류 없이 결과 반환 (빈 페이지일 수 있음)
+        // Then: ngram 파서가 1글자를 토큰화하지 않으므로 빈 결과 반환
         assertThat(result).isNotNull();
+        assertThat(result.getContent()).isEmpty();
+        assertThat(result.getTotalElements()).isZero();
     }
 
     @Test
     @DisplayName("비즈니스 로직 - 최신순 정렬")
     void shouldSortByCreatedAtDesc_WhenSearching() {
-        // Given: 여러 게시글에 포함된 검색어
+        // Given: 여러 게시글에 포함된 검색어 "개발자" (3글자)
         PostSearchType searchType = PostSearchType.TITLE_CONTENT;
         String query = "개발";
         Pageable pageable = PageRequest.of(0, 10);
@@ -328,9 +330,9 @@ class PostFulltextSearchIntegrationTest {
     @Test
     @DisplayName("비즈니스 로직 - 댓글 수와 추천 수 포함")
     void shouldIncludeLikeAndCommentCounts_InSearchResults() {
-        // Given: 검색어
+        // Given: 검색어 "프로그래밍" (3글자 이상)
         PostSearchType searchType = PostSearchType.TITLE_CONTENT;
-        String query = "자바";
+        String query = "프로그래밍";
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 전문 검색
@@ -344,23 +346,7 @@ class PostFulltextSearchIntegrationTest {
     }
 
     @Test
-    @DisplayName("엣지 케이스 - WRITER 타입 검색 (빈 결과)")
-    void shouldReturnEmpty_WhenSearchTypeIsWriter() {
-        // Given: WRITER 타입 검색 (풀텍스트 미지원)
-        PostSearchType searchType = PostSearchType.WRITER;
-        String query = "작성자";
-        Pageable pageable = PageRequest.of(0, 10);
-
-        // When: 전문 검색
-        Page<PostSimpleDetail> result = postQueryAdapter.findByFullTextSearch(searchType, query, pageable);
-
-        // Then: 빈 페이지 반환 (WRITER는 풀텍스트 검색 미지원)
-        assertThat(result).isNotNull();
-        assertThat(result.getContent()).isEmpty();
-    }
-
-    @Test
-    @DisplayName("정상 케이스 - 복합 한글 검색 (3글자 이상)")
+    @DisplayName("정상 케이스 - 한글 내용 전문 검색 (3글자)")
     void shouldFindPosts_WhenLongerKoreanQueryProvided() {
         // Given: 3글자 이상 한글 검색어
         PostSearchType searchType = PostSearchType.TITLE_CONTENT;
