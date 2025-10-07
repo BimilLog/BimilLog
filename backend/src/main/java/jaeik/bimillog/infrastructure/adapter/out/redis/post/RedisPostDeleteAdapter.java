@@ -8,9 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import static jaeik.bimillog.infrastructure.adapter.out.redis.post.RedisPostKeys.getPostDetailKey;
-import static jaeik.bimillog.infrastructure.adapter.out.redis.post.RedisPostKeys.getPostIdsStorageKey;
-import static jaeik.bimillog.infrastructure.adapter.out.redis.post.RedisPostKeys.REALTIME_POPULAR_SCORE_KEY;
+import static jaeik.bimillog.infrastructure.adapter.out.redis.post.RedisPostKeys.*;
 
 
 @Component
@@ -20,24 +18,28 @@ public class RedisPostDeleteAdapter implements RedisPostDeletePort {
 
     /**
      * <h3>postIds 저장소에서 단일 게시글 제거</h3>
-     * <p>postIds 영구 저장소에서 게시글 ID를 제거합니다 (Sorted Set 또는 Set).</p>
-     * <p>공지사항 해제 시 호출됩니다.</p>
+     * <p>모든 postIds 영구 저장소에서 게시글 ID를 제거합니다 (Sorted Set 또는 Set).</p>
+     * <p>REALTIME을 제외한 모든 PostCacheFlag를 순회하며 저장소에서 제거합니다.</p>
      *
-     * @param type 캐시 유형 (NOTICE만 사용)
      * @param postId 제거할 게시글 ID
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void removePostIdFromStorage(PostCacheFlag type, Long postId) {
-        String postIdsKey = getPostIdsStorageKey(type);
+    public void removePostIdFromStorage(Long postId) {
         try {
-            if (type == PostCacheFlag.NOTICE) {
-                // 공지사항: Set에서 제거
-                redisTemplate.opsForSet().remove(postIdsKey, postId.toString());
-            } else {
-                // 주간/레전드: Sorted Set에서 제거
-                redisTemplate.opsForZSet().remove(postIdsKey, postId.toString());
+            for (PostCacheFlag type : PostCacheFlag.values()) {
+                if (type == PostCacheFlag.REALTIME) {
+                    continue;
+                }
+                String postIdsKey = getPostIdsStorageKey(type);
+                if (type == PostCacheFlag.NOTICE) {
+                    // 공지사항: Set에서 제거
+                    redisTemplate.opsForSet().remove(postIdsKey, postId.toString());
+                } else {
+                    // 주간/레전드: Sorted Set에서 제거
+                    redisTemplate.opsForZSet().remove(postIdsKey, postId.toString());
+                }
             }
         } catch (Exception e) {
             throw new PostCustomException(PostErrorCode.REDIS_WRITE_ERROR, e);
@@ -64,19 +66,21 @@ public class RedisPostDeleteAdapter implements RedisPostDeletePort {
 
     /**
      * <h3>게시글 목록 캐시에서 단일 게시글 제거 (Hash 필드 삭제)</h3>
-     * <p>Redis Hash에서 특정 postId의 PostSimpleDetail을 삭제합니다.</p>
+     * <p>모든 Redis Hash에서 특정 postId의 PostSimpleDetail을 삭제합니다.</p>
+     * <p>모든 PostCacheFlag를 순회하며 각 타입의 목록 캐시에서 제거합니다.</p>
      * <p>게시글 수정/삭제 시 목록 캐시 무효화를 위해 호출됩니다.</p>
      *
-     * @param type 캐시 유형 (REALTIME, WEEKLY, LEGEND, NOTICE)
      * @param postId 제거할 게시글 ID
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void removePostFromListCache(PostCacheFlag type, Long postId) {
-        String hashKey = RedisPostKeys.CACHE_METADATA_MAP.get(type).key();
+    public void removePostFromListCache(Long postId) {
         try {
-            redisTemplate.opsForHash().delete(hashKey, postId.toString());
+            for (PostCacheFlag type : PostCacheFlag.values()) {
+                String hashKey = RedisPostKeys.CACHE_METADATA_MAP.get(type).key();
+                redisTemplate.opsForHash().delete(hashKey, postId.toString());
+            }
         } catch (Exception e) {
             throw new PostCustomException(PostErrorCode.REDIS_DELETE_ERROR, e);
         }

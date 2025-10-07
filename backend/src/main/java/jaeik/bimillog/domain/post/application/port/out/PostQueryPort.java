@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.post.application.port.out;
 
 import jaeik.bimillog.domain.post.application.service.PostQueryService;
-import jaeik.bimillog.domain.post.entity.PopularPostInfo;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
@@ -138,11 +137,11 @@ public interface PostQueryPort {
      * <p>PostCacheSyncService의 스케쥴러가 주간 인기글 캐시 갱신 시 호출됩니다.</p>
      * <p>추천 수 1개 이상인 게시글을 추천 수 내림차순으로 최대 5개까지 조회하여 Redis 캐시 업데이트용 데이터를 제공합니다.</p>
      *
-     * @return 주간 인기 게시글 목록 (최대 5개, postId, memberId, title 포함)
+     * @return 주간 인기 게시글 목록 (최대 5개, PostSimpleDetail)
      * @author Jaeik
      * @since 2.0.0
      */
-    List<PopularPostInfo> findWeeklyPopularPosts();
+    List<PostSimpleDetail> findWeeklyPopularPosts();
 
     /**
      * <h3>전설의 게시글 조회</h3>
@@ -150,10 +149,10 @@ public interface PostQueryPort {
      * <p>PostCacheSyncService의 스케쥴러가 레전드 인기글 캐시 갱신 시 호출됩니다.</p>
      * <p>추천 수 20개 이상 조건을 만족하는 게시글을 추천 수 내림차순으로 최대 50개까지 조회하여 Redis 캐시 업데이트용 데이터를 제공합니다.</p>
      *
-     * @return 전설의 게시글 목록 (최대 50개, postId, memberId, title 포함)
+     * @return 전설의 게시글 목록 (최대 50개, PostSimpleDetail)
      * @author Jaeik
      * @since 2.0.0
      */
-    List<PopularPostInfo> findLegendaryPosts();
+    List<PostSimpleDetail> findLegendaryPosts();
 
 }

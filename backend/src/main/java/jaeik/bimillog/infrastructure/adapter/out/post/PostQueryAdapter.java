@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -117,29 +118,56 @@ public class PostQueryAdapter implements PostQueryPort {
      * <h3>주간 인기 게시글 조회</h3>
      * <p>지난 7일간의 인기 게시글 목록을 조회합니다.</p>
      *
-     * @return 주간 인기 게시글 목록 (postId, memberId, title 포함)
+     * @return 주간 인기 게시글 목록 (최대 5개, PostSimpleDetail)
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     @Transactional(readOnly = true)
-    public List<PopularPostInfo> findWeeklyPopularPosts() {
+    public List<PostSimpleDetail> findWeeklyPopularPosts() {
         BooleanExpression weeklyCondition = post.createdAt.after(Instant.now().minus(7, ChronoUnit.DAYS));
-        return postQueryHelper.findPopularPosts(weeklyCondition, 1, 5);
+
+        Consumer<JPAQuery<?>> contentCustomizer = query -> query
+            .leftJoin(postLike).on(post.id.eq(postLike.post.id))
+            .where(weeklyCondition)
+            .groupBy(post.id, member.id, post.title)
+            .having(postLike.countDistinct().goe(1))
+            .orderBy(postLike.countDistinct().desc());
+
+        Consumer<JPAQuery<?>> countCustomizer = query -> query
+            .leftJoin(postLike).on(post.id.eq(postLike.post.id))
+            .where(weeklyCondition)
+            .groupBy(post.id)
+            .having(postLike.countDistinct().goe(1));
+
+        return postQueryHelper.findPostsWithQuery(contentCustomizer, countCustomizer, PageRequest.of(0, 5))
+            .getContent();
     }
 
     /**
      * <h3>레전드 게시글 조회</h3>
      * <p>추천 수가 20개 이상인 게시글 중 가장 추천 수가 많은 상위 50개 게시글을 조회합니다.</p>
      *
-     * @return 전설의 게시글 목록 (postId, memberId, title 포함)
+     * @return 전설의 게시글 목록 (최대 50개, PostSimpleDetail)
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     @Transactional(readOnly = true)
-    public List<PopularPostInfo> findLegendaryPosts() {
-        return postQueryHelper.findPopularPosts(null, 20, 50);
+    public List<PostSimpleDetail> findLegendaryPosts() {
+        Consumer<JPAQuery<?>> contentCustomizer = query -> query
+            .leftJoin(postLike).on(post.id.eq(postLike.post.id))
+            .groupBy(post.id, member.id, post.title)
+            .having(postLike.countDistinct().goe(20))
+            .orderBy(postLike.countDistinct().desc());
+
+        Consumer<JPAQuery<?>> countCustomizer = query -> query
+            .leftJoin(postLike).on(post.id.eq(postLike.post.id))
+            .groupBy(post.id)
+            .having(postLike.countDistinct().goe(20));
+
+        return postQueryHelper.findPostsWithQuery(contentCustomizer, countCustomizer, PageRequest.of(0, 50))
+            .getContent();
     }
 
     /**

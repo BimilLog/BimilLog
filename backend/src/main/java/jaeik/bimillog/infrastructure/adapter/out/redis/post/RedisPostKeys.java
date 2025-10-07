@@ -9,7 +9,7 @@ import java.util.EnumMap;
 import java.util.Map;
 
 /**
- * <h2>게시글 Redis 키 및 메타데이터 관리자</h2>
+ * <h2>게시글 Redis 키</h2>
  * <p>게시글 관련 모든 Redis 키 정의, TTL, 스코어링 상수 및 캐시 메타데이터를 관리합니다.</p>
  *
  * @author Jaeik

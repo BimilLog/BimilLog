@@ -146,16 +146,16 @@ class PopularPostQueryAdapterIntegrationTest {
         entityManager.clear();
 
         // When
-        List<PopularPostInfo> popularPosts = postQueryPort.findWeeklyPopularPosts();
+        List<PostSimpleDetail> popularPosts = postQueryPort.findWeeklyPopularPosts();
 
         // Then
         assertThat(popularPosts).hasSize(2);
-        assertThat(popularPosts.get(0).title()).isEqualTo("주간 인기 게시글2"); // 좋아요 12개
-        assertThat(popularPosts.get(0).postId()).isNotNull();
-        assertThat(popularPosts.get(0).memberId()).isEqualTo(testMember.getId());
-        assertThat(popularPosts.get(1).title()).isEqualTo("주간 인기 게시글1"); // 좋아요 10개
-        assertThat(popularPosts.get(1).postId()).isNotNull();
-        assertThat(popularPosts.get(1).memberId()).isEqualTo(testMember.getId());
+        assertThat(popularPosts.get(0).getTitle()).isEqualTo("주간 인기 게시글2"); // 좋아요 12개
+        assertThat(popularPosts.get(0).getId()).isNotNull();
+        assertThat(popularPosts.get(0).getMemberId()).isEqualTo(testMember.getId());
+        assertThat(popularPosts.get(1).getTitle()).isEqualTo("주간 인기 게시글1"); // 좋아요 10개
+        assertThat(popularPosts.get(1).getId()).isNotNull();
+        assertThat(popularPosts.get(1).getMemberId()).isEqualTo(testMember.getId());
     }
 
     @Test
@@ -174,16 +174,16 @@ class PopularPostQueryAdapterIntegrationTest {
         entityManager.clear();
 
         // When
-        List<PopularPostInfo> legendaryPosts = postQueryPort.findLegendaryPosts();
+        List<PostSimpleDetail> legendaryPosts = postQueryPort.findLegendaryPosts();
 
         // Then
         assertThat(legendaryPosts).hasSize(2);
-        assertThat(legendaryPosts.get(0).title()).isEqualTo("전설의 게시글2");
-        assertThat(legendaryPosts.get(0).postId()).isNotNull();
-        assertThat(legendaryPosts.get(0).memberId()).isEqualTo(testMember.getId());
-        assertThat(legendaryPosts.get(1).title()).isEqualTo("전설의 게시글1");
-        assertThat(legendaryPosts.get(1).postId()).isNotNull();
-        assertThat(legendaryPosts.get(1).memberId()).isEqualTo(testMember.getId());
+        assertThat(legendaryPosts.get(0).getTitle()).isEqualTo("전설의 게시글2");
+        assertThat(legendaryPosts.get(0).getId()).isNotNull();
+        assertThat(legendaryPosts.get(0).getMemberId()).isEqualTo(testMember.getId());
+        assertThat(legendaryPosts.get(1).getTitle()).isEqualTo("전설의 게시글1");
+        assertThat(legendaryPosts.get(1).getId()).isNotNull();
+        assertThat(legendaryPosts.get(1).getMemberId()).isEqualTo(testMember.getId());
     }
 
     @Test

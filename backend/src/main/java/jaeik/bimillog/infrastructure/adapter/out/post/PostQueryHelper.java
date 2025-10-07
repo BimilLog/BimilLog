@@ -1,11 +1,8 @@
 package jaeik.bimillog.infrastructure.adapter.out.post;
 
-import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jaeik.bimillog.domain.comment.entity.QComment;
 import jaeik.bimillog.domain.member.entity.QMember;
 import jaeik.bimillog.domain.post.application.port.out.PostLikeQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostToCommentPort;
@@ -42,42 +39,6 @@ public class PostQueryHelper {
 
     private static final QPost post = QPost.post;
     private static final QMember member = QMember.member;
-    private static final QPostLike postLike = QPostLike.postLike;
-    private static final QComment comment = QComment.comment;
-
-    /**
-     * <h3>인기 게시글 공통 조회</h3>
-     * <p>추천 수 기반 인기 게시글을 조회하는 공통 메서드입니다.</p>
-     * <p>whereCondition, 최소 추천 수, 제한 개수를 파라미터로 받아 유연하게 처리합니다.</p>
-     *
-     * @param whereCondition 추가 조건 (기간 필터 등, null이면 조건 미적용)
-     * @param minLikeCount   최소 추천 수 (having 조건)
-     * @param limit          조회할 최대 게시글 수
-     * @return 인기 게시글 목록 (postId, memberId, title 포함)
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public List<PopularPostInfo> findPopularPosts(BooleanExpression whereCondition, int minLikeCount, int limit) {
-        JPAQuery<PopularPostInfo> query = jpaQueryFactory
-                .select(Projections.constructor(PopularPostInfo.class,
-                        post.id,
-                        member.id,
-                        post.title))
-                .from(post)
-                .leftJoin(post.member, member)
-                .leftJoin(postLike).on(post.id.eq(postLike.post.id));
-
-        if (whereCondition != null) {
-            query.where(whereCondition);
-        }
-
-        return query
-                .groupBy(post.id, member.id, post.title)
-                .having(postLike.countDistinct().goe(minLikeCount))
-                .orderBy(postLike.countDistinct().desc())
-                .limit(limit)
-                .fetch();
-    }
 
     /**
      * <h3>게시글 목록 조회</h3>

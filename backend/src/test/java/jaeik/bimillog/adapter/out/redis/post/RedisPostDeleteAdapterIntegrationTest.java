@@ -71,49 +71,6 @@ class RedisPostDeleteAdapterIntegrationTest {
     }
 
     @Test
-    @DisplayName("정상 케이스 - 타입별 캐시 삭제 (목록 + 상세)")
-    void shouldDeleteCache_WhenValidCacheTypeProvided() {
-        // Given: 데이터 준비
-        PostCacheFlag cacheType = PostCacheFlag.REALTIME;
-        List<Long> postIds = List.of(1L, 2L);
-
-        // 목록 캐시와 상세 캐시 모두 저장
-        redisPostSaveAdapter.cachePostIds(cacheType, postIds);
-        redisPostSaveAdapter.cachePostDetail(testPostDetail);
-        redisPostSaveAdapter.cachePostDetail(
-                PostDetail.builder()
-                        .id(2L)
-                        .title("게시글 2")
-                        .content("내용 2")
-                        .viewCount(50)
-                        .likeCount(25)
-                        .commentCount(5)
-                        .isLiked(false)
-                        .createdAt(Instant.now())
-                        .memberId(2L)
-                        .memberName("member2")
-                        .build()
-        );
-
-        String listKey = RedisTestHelper.RedisKeys.postList(cacheType);
-        String detailKey1 = RedisTestHelper.RedisKeys.postDetail(1L);
-        String detailKey2 = RedisTestHelper.RedisKeys.postDetail(2L);
-
-        // 저장 확인
-        assertThat(redisTemplate.hasKey(listKey)).isTrue();
-        assertThat(redisTemplate.hasKey(detailKey1)).isTrue();
-        assertThat(redisTemplate.hasKey(detailKey2)).isTrue();
-
-        // When: 타입별 캐시 삭제
-        redisPostDeleteAdapter.deleteCache(cacheType, null);
-
-        // Then: 목록과 상세 캐시 모두 삭제됨
-        assertThat(redisTemplate.hasKey(listKey)).isFalse();
-        assertThat(redisTemplate.hasKey(detailKey1)).isFalse();
-        assertThat(redisTemplate.hasKey(detailKey2)).isFalse();
-    }
-
-    @Test
     @DisplayName("정상 케이스 - 단일 게시글 캐시 삭제")
     void shouldDeleteSinglePostCache_WhenPostIdProvided() {
         // Given: 게시글 상세 캐시 저장
@@ -129,37 +86,96 @@ class RedisPostDeleteAdapterIntegrationTest {
     }
 
     @Test
-    @DisplayName("정상 케이스 - 특정 게시글의 모든 캐시 삭제")
-    void shouldDeleteAllCachesOfPost_WhenPostIdProvided() {
-        // Given: 여러 타입의 캐시에 게시글 저장
+    @DisplayName("정상 케이스 - 실시간 인기글 점수 저장소에서 게시글 제거")
+    void shouldRemovePostIdFromRealtimeScore() {
+        // Given: score:realtime에 postId 추가
+        Long postId = 1L;
+        String scoreKey = "score:realtime";
+
+        redisTemplate.opsForZSet().add(scoreKey, postId.toString(), 100.0);
+
+        // 저장 확인
+        Double score = redisTemplate.opsForZSet().score(scoreKey, postId.toString());
+        assertThat(score).isEqualTo(100.0);
+
+        // When: removePostIdFromRealtimeScore() 호출
+        redisPostDeleteAdapter.removePostIdFromRealtimeScore(postId);
+
+        // Then: Sorted Set에서 제거됨 확인
+        Double scoreAfter = redisTemplate.opsForZSet().score(scoreKey, postId.toString());
+        assertThat(scoreAfter).isNull();
+    }
+
+    @Test
+    @DisplayName("정상 케이스 - 게시글 목록 캐시 전체 삭제")
+    void shouldClearPostListCache() {
+        // Given: posts:weekly Hash에 여러 게시글 추가
+        PostCacheFlag type = PostCacheFlag.WEEKLY;
+        String hashKey = "posts:weekly";
+
+        redisTemplate.opsForHash().put(hashKey, "1", testPostDetail);
+        redisTemplate.opsForHash().put(hashKey, "2", testPostDetail);
+
+        // 저장 확인
+        assertThat(redisTemplate.hasKey(hashKey)).isTrue();
+        assertThat(redisTemplate.opsForHash().size(hashKey)).isEqualTo(2);
+
+        // When: clearPostListCache() 호출
+        redisPostDeleteAdapter.clearPostListCache(type);
+
+        // Then: Hash 전체가 삭제됨 확인
+        assertThat(redisTemplate.hasKey(hashKey)).isFalse();
+    }
+
+    @Test
+    @DisplayName("정상 케이스 - 목록 캐시에서 단일 게시글 제거 (모든 Hash 필드 삭제)")
+    void shouldRemovePostFromListCache() {
+        // Given: 모든 타입의 Hash에 게시글 추가
         Long postId = 1L;
 
-        // WEEKLY와 LEGEND 목록에 추가
-        redisPostSaveAdapter.cachePostIds(PostCacheFlag.WEEKLY, List.of(postId));
-        redisPostSaveAdapter.cachePostIds(PostCacheFlag.LEGEND, List.of(postId));
+        // 모든 캐시 타입에 게시글 추가
+        redisTemplate.opsForHash().put("posts:realtime", postId.toString(), testPostDetail);
+        redisTemplate.opsForHash().put("posts:weekly", postId.toString(), testPostDetail);
+        redisTemplate.opsForHash().put("posts:legend", postId.toString(), testPostDetail);
+        redisTemplate.opsForHash().put("posts:notice", postId.toString(), testPostDetail);
 
-        // 상세 캐시 추가
-        redisPostSaveAdapter.cachePostDetail(testPostDetail);
+        // 저장 확인
+        assertThat(redisTemplate.opsForHash().hasKey("posts:realtime", postId.toString())).isTrue();
+        assertThat(redisTemplate.opsForHash().hasKey("posts:weekly", postId.toString())).isTrue();
 
-        String weeklyKey = RedisTestHelper.RedisKeys.postList(PostCacheFlag.WEEKLY);
-        String legendKey = RedisTestHelper.RedisKeys.postList(PostCacheFlag.LEGEND);
-        String detailKey = RedisTestHelper.RedisKeys.postDetail(postId);
+        // When: removePostFromListCache() 호출 (모든 타입에서 제거)
+        redisPostDeleteAdapter.removePostFromListCache(postId);
 
-        // 저장 확인 (List에 포함되어 있는지)
-        List<Object> weeklyPosts = redisTemplate.opsForList().range(weeklyKey, 0, -1);
-        List<Object> legendPosts = redisTemplate.opsForList().range(legendKey, 0, -1);
-        assertThat(weeklyPosts).contains(postId.toString());
-        assertThat(legendPosts).contains(postId.toString());
-        assertThat(redisTemplate.hasKey(detailKey)).isTrue();
+        // Then: 모든 Hash에서 필드가 삭제됨 확인
+        assertThat(redisTemplate.opsForHash().hasKey("posts:realtime", postId.toString())).isFalse();
+        assertThat(redisTemplate.opsForHash().hasKey("posts:weekly", postId.toString())).isFalse();
+        assertThat(redisTemplate.opsForHash().hasKey("posts:legend", postId.toString())).isFalse();
+        assertThat(redisTemplate.opsForHash().hasKey("posts:notice", postId.toString())).isFalse();
+    }
 
-        // When: 특정 게시글의 모든 캐시 삭제
-        redisPostDeleteAdapter.deleteCache(null, postId);
+    @Test
+    @DisplayName("정상 케이스 - postIds 저장소에서 게시글 ID 제거 (모든 타입)")
+    void shouldRemovePostIdFromStorage() {
+        // Given: 모든 저장소에 postId 추가
+        Long postId = 1L;
 
-        // Then: 상세 캐시와 모든 목록 캐시에서 제거됨
-        assertThat(redisTemplate.hasKey(detailKey)).isFalse();
-        weeklyPosts = redisTemplate.opsForList().range(weeklyKey, 0, -1);
-        legendPosts = redisTemplate.opsForList().range(legendKey, 0, -1);
-        assertThat(weeklyPosts).doesNotContain(postId.toString());
-        assertThat(legendPosts).doesNotContain(postId.toString());
+        // NOTICE: Set
+        redisTemplate.opsForSet().add("postids:notice", postId.toString());
+        // WEEKLY, LEGEND: Sorted Set
+        redisTemplate.opsForZSet().add("postids:weekly", postId.toString(), 100.0);
+        redisTemplate.opsForZSet().add("postids:legend", postId.toString(), 200.0);
+
+        // 저장 확인
+        assertThat(redisTemplate.opsForSet().isMember("postids:notice", postId.toString())).isTrue();
+        assertThat(redisTemplate.opsForZSet().score("postids:weekly", postId.toString())).isNotNull();
+        assertThat(redisTemplate.opsForZSet().score("postids:legend", postId.toString())).isNotNull();
+
+        // When: removePostIdFromStorage() 호출 (REALTIME 제외한 모든 타입에서 제거)
+        redisPostDeleteAdapter.removePostIdFromStorage(postId);
+
+        // Then: 모든 저장소에서 제거됨 확인
+        assertThat(redisTemplate.opsForSet().isMember("postids:notice", postId.toString())).isFalse();
+        assertThat(redisTemplate.opsForZSet().score("postids:weekly", postId.toString())).isNull();
+        assertThat(redisTemplate.opsForZSet().score("postids:legend", postId.toString())).isNull();
     }
 }

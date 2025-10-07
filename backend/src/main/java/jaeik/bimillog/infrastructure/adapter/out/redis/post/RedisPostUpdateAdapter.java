@@ -10,8 +10,6 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 import static jaeik.bimillog.infrastructure.adapter.out.redis.post.RedisPostKeys.*;
-import static jaeik.bimillog.infrastructure.adapter.out.redis.post.RedisPostKeys.REALTIME_POPULAR_SCORE_KEY;
-import static jaeik.bimillog.infrastructure.adapter.out.redis.post.RedisPostKeys.SCORE_THRESHOLD;
 
 @Component
 @RequiredArgsConstructor

@@ -106,6 +106,7 @@ class PostCommandServiceTest extends BaseUnitTest {
         verify(existingPost, times(1)).isAuthor(memberId);
         verify(existingPost, times(1)).updatePost("수정된 제목", "수정된 내용");
         verify(redisPostDeletePort, times(1)).deleteSinglePostCache(postId);
+        verify(redisPostDeletePort, times(1)).removePostFromListCache(postId);
         verifyNoMoreInteractions(globalPostQueryPort, postCommandPort, redisPostDeletePort);
     }
 
@@ -173,6 +174,9 @@ class PostCommandServiceTest extends BaseUnitTest {
         // CASCADE로 Comment와 PostLike 자동 삭제되므로 명시적 호출 없음
         verify(postCommandPort, times(1)).delete(postToDelete);
         verify(redisPostDeletePort, times(1)).deleteSinglePostCache(postId);
+        verify(redisPostDeletePort, times(1)).removePostIdFromRealtimeScore(postId);
+        verify(redisPostDeletePort, times(1)).removePostFromListCache(postId);
+        verify(redisPostDeletePort, times(1)).removePostIdFromStorage(postId);
         verifyNoMoreInteractions(globalPostQueryPort, postCommandPort, redisPostDeletePort);
     }
 

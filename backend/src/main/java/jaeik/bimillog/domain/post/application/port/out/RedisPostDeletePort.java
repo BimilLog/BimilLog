@@ -17,27 +17,26 @@ public interface RedisPostDeletePort {
 
     /**
      * <h3>postIds 저장소에서 단일 게시글 제거</h3>
-     * <p>postIds 영구 저장소에서 게시글 ID를 제거합니다 (LREM).</p>
-     * <p>공지사항 해제 시 호출됩니다.</p>
+     * <p>모든 postIds 영구 저장소에서 게시글 ID를 제거합니다 (Sorted Set, Set).</p>
+     * <p>내부적으로 모든 PostCacheFlag를 순회하며 REALTIME을 제외한 저장소에서 제거합니다.</p>
      *
-     * @param type 캐시 유형 (NOTICE만 사용)
      * @param postId 제거할 게시글 ID
      * @author Jaeik
      * @since 2.0.0
      */
-    void removePostIdFromStorage(PostCacheFlag type, Long postId);
+    void removePostIdFromStorage(Long postId);
 
     /**
      * <h3>게시글 목록 캐시에서 단일 게시글 제거 (Hash 필드 삭제)</h3>
-     * <p>Redis Hash에서 특정 postId의 PostSimpleDetail을 삭제합니다.</p>
+     * <p>모든 Redis Hash에서 특정 postId의 PostSimpleDetail을 삭제합니다.</p>
+     * <p>내부적으로 모든 PostCacheFlag를 순회하며 각 타입의 목록 캐시에서 제거합니다.</p>
      * <p>게시글 수정/삭제 시 목록 캐시 무효화를 위해 호출됩니다.</p>
      *
-     * @param type 캐시 유형 (REALTIME, WEEKLY, LEGEND, NOTICE)
      * @param postId 제거할 게시글 ID
      * @author Jaeik
      * @since 2.0.0
      */
-    void removePostFromListCache(PostCacheFlag type, Long postId);
+    void removePostFromListCache(Long postId);
 
     /**
      * <h3>실시간 인기글 점수 저장소에서 게시글 제거</h3>

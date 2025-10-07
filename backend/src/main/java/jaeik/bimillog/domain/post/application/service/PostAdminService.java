@@ -51,8 +51,8 @@ public class PostAdminService implements PostAdminUseCase {
         if (post.isNotice()) {
             // 공지 해제
             post.unsetAsNotice();
-            redisPostDeletePort.removePostIdFromStorage(PostCacheFlag.NOTICE, postId);
-            redisPostDeletePort.removePostFromListCache(PostCacheFlag.NOTICE, postId);
+            redisPostDeletePort.removePostIdFromStorage(postId);
+            redisPostDeletePort.removePostFromListCache(postId);
             log.info("공지사항 해제: postId={}, title={}", postId, post.getTitle());
         } else {
             // 공지 설정

@@ -103,7 +103,7 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
             Map<Object, Object> hashEntries = redisTemplate.opsForHash().entries(metadata.key());
 
             // 2. 목록 캐시 미스 시 빈 리스트 반환 (복구는 서비스 레이어에서 처리)
-            if (hashEntries == null || hashEntries.isEmpty()) {
+            if (hashEntries.isEmpty()) {
                 return Collections.emptyList();
             }
 
@@ -199,7 +199,7 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
         try {
             // 1. Hash에서 모든 PostSimpleDetail 조회
             Map<Object, Object> hashEntries = redisTemplate.opsForHash().entries(metadata.key());
-            if (hashEntries == null || hashEntries.isEmpty()) {
+            if (hashEntries.isEmpty()) {
                 return new PageImpl<>(Collections.emptyList(), pageable, 0);
             }
 
@@ -237,7 +237,7 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
      * <p>Redis Sorted Set에서 점수가 높은 상위 5개의 게시글 ID를 조회합니다.</p>
      * <p>PostQueryService에서 실시간 인기글 목록 조회 시 호출됩니다.</p>
      *
-     * @return List&lt;Long&gt; 상위 5개 게시글 ID 목록 (점수 내림차순)
+     * @return List<Long> 상위 5개 게시글 ID 목록 (점수 내림차순)
      * @author Jaeik
      * @since 2.0.0
      */

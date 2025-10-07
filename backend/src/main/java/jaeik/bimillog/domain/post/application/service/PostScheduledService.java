@@ -4,7 +4,6 @@ import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostDeletePort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostSavePort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostUpdatePort;
-import jaeik.bimillog.domain.post.entity.PopularPostInfo;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
@@ -16,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * <h2>PostScheduledService</h2>
@@ -67,36 +65,25 @@ public class PostScheduledService {
     @Scheduled(fixedRate = 60000 * 1440) // 1일마다
     @Transactional
     public void updateWeeklyPopularPosts() {
-        List<PopularPostInfo> posts = postQueryPort.findWeeklyPopularPosts();
+        List<PostSimpleDetail> posts = postQueryPort.findWeeklyPopularPosts();
+
         if (posts.isEmpty()) {
             log.info("WEEKLY에 대한 인기 게시글이 없어 캐시 업데이트를 건너뜁니다.");
             return;
         }
 
-        // postId 목록 추출
-        List<Long> postIds = posts.stream().map(PopularPostInfo::postId).toList();
+        List<Long> postIds = posts.stream().map(PostSimpleDetail::getId).toList();
 
-        // 0. 기존 목록 캐시 삭제 (스케줄러 재실행 시)
         redisPostDeletePort.clearPostListCache(PostCacheFlag.WEEKLY);
-
-        // 1. postId 영구 저장 (TTL 1일, 목록 캐시 복구용)
         redisPostSavePort.cachePostIdsOnly(PostCacheFlag.WEEKLY, postIds);
+        redisPostSavePort.cachePostList(PostCacheFlag.WEEKLY, posts);
 
-        // 2. PostSimpleDetail 조회 및 변환
-        List<PostSimpleDetail> postDetails = postIds.stream()
-                .map(postId -> postQueryPort.findPostDetailWithCounts(postId, null).orElse(null))
-                .filter(Objects::nonNull)
-                .map(postDetail -> postDetail.toSimpleDetail())
-                .toList();
+        log.info("WEEKLY 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
 
-        // 3. Hash 목록 캐시 저장 (TTL 5분, 실제 조회용)
-        redisPostSavePort.cachePostList(PostCacheFlag.WEEKLY, postDetails);
-
-        log.info("WEEKLY 캐시 업데이트 완료. {}개의 게시글이 처리됨", postDetails.size());
-
-        // 알림 발행
-        publishFeaturedEvent(posts, "주간 인기 게시글로 선정되었어요!", "주간 인기 게시글 선정",
-                "회원님의 게시글 %s 이 주간 인기 게시글로 선정되었습니다.");
+        publishFeaturedEventFromSimpleDetails(posts,
+            "주간 인기 게시글로 선정되었어요!",
+            "주간 인기 게시글 선정",
+            "회원님의 게시글 %s 이 주간 인기 게시글로 선정되었습니다.");
     }
 
     /**
@@ -110,36 +97,25 @@ public class PostScheduledService {
     @Scheduled(fixedRate = 60000 * 1440) // 1일마다
     @Transactional
     public void updateLegendaryPosts() {
-        List<PopularPostInfo> posts = postQueryPort.findLegendaryPosts();
+        List<PostSimpleDetail> posts = postQueryPort.findLegendaryPosts();
+
         if (posts.isEmpty()) {
             log.info("LEGEND에 대한 인기 게시글이 없어 캐시 업데이트를 건너뜁니다.");
             return;
         }
 
-        // postId 목록 추출
-        List<Long> postIds = posts.stream().map(PopularPostInfo::postId).toList();
+        List<Long> postIds = posts.stream().map(PostSimpleDetail::getId).toList();
 
-        // 0. 기존 목록 캐시 삭제 (스케줄러 재실행 시)
         redisPostDeletePort.clearPostListCache(PostCacheFlag.LEGEND);
-
-        // 1. postId 영구 저장 (TTL 1일, 목록 캐시 복구용)
         redisPostSavePort.cachePostIdsOnly(PostCacheFlag.LEGEND, postIds);
+        redisPostSavePort.cachePostList(PostCacheFlag.LEGEND, posts);
 
-        // 2. PostSimpleDetail 조회 및 변환
-        List<PostSimpleDetail> postDetails = postIds.stream()
-                .map(postId -> postQueryPort.findPostDetailWithCounts(postId, null).orElse(null))
-                .filter(Objects::nonNull)
-                .map(postDetail -> postDetail.toSimpleDetail())
-                .toList();
+        log.info("LEGEND 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
 
-        // 3. Hash 목록 캐시 저장 (TTL 5분, 실제 조회용)
-        redisPostSavePort.cachePostList(PostCacheFlag.LEGEND, postDetails);
-
-        log.info("LEGEND 캐시 업데이트 완료. {}개의 게시글이 처리됨", postDetails.size());
-
-        // 알림 발행
-        publishFeaturedEvent(posts, "명예의 전당에 등극했어요!", "명예의 전당 등극",
-                "회원님의 게시글 %s 이 명예의 전당에 등극했습니다.");
+        publishFeaturedEventFromSimpleDetails(posts,
+            "명예의 전당에 등극했어요!",
+            "명예의 전당 등극",
+            "회원님의 게시글 %s 이 명예의 전당에 등극했습니다.");
     }
 
     /**
@@ -151,19 +127,25 @@ public class PostScheduledService {
      * @param eventTitle 이벤트 제목
      * @param eventBodyFormat 이벤트 본문 포맷 문자열 (게시글 제목을 %s로 사용)
      */
-    private void publishFeaturedEvent(List<PopularPostInfo> posts, String notiTitle, String eventTitle, String eventBodyFormat) {
+    private void publishFeaturedEventFromSimpleDetails(
+        List<PostSimpleDetail> posts,
+        String notiTitle,
+        String eventTitle,
+        String eventBodyFormat
+    ) {
         posts.stream()
-                .filter(post -> post.memberId() != null)
+                .filter(post -> post.getMemberId() != null)
                 .forEach(post -> {
-                    String eventBody = String.format(eventBodyFormat, post.title());
+                    String eventBody = String.format(eventBodyFormat, post.getTitle());
                     eventPublisher.publishEvent(new PostFeaturedEvent(
-                            post.memberId(),
+                            post.getMemberId(),
                             notiTitle,
-                            post.postId(),
+                            post.getId(),
                             eventTitle,
                             eventBody
                     ));
-                    log.info("게시글 ID {}에 대한 인기글 알림 이벤트 발행: 회원 ID={}", post.postId(), post.memberId());
+                    log.info("게시글 ID {}에 대한 인기글 알림 이벤트 발행: 회원 ID={}",
+                        post.getId(), post.getMemberId());
                 });
     }
 }

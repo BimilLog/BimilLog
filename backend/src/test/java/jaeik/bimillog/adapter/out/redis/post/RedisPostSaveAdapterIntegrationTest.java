@@ -68,24 +68,26 @@ class RedisPostSaveAdapterIntegrationTest {
     }
 
     @Test
-    @DisplayName("정상 케이스 - 인기글 postId 목록 캐시 저장")
-    void shouldCachePostIds_WhenValidPostsProvided() {
+    @DisplayName("정상 케이스 - 인기글 postId 영구 저장소 저장 (postids:weekly)")
+    void shouldCachePostIdsOnly_WhenValidPostsProvided() {
         // Given
         List<Long> postIds = List.of(1L, 2L, 3L);
         PostCacheFlag cacheType = PostCacheFlag.WEEKLY;
-        String cacheKey = RedisTestHelper.RedisKeys.postList(cacheType);
+        String storageKey = "postids:weekly";  // postId 영구 저장소 (Sorted Set)
 
         // When
-        redisPostSaveAdapter.cachePostIds(cacheType, postIds);
+        redisPostSaveAdapter.cachePostIdsOnly(cacheType, postIds);
 
-        // Then: List에 실제로 저장되었는지 확인 (순서 보장)
-        List<Object> cachedPostIds = redisTemplate.opsForList().range(cacheKey, 0, -1);
-        assertThat(cachedPostIds).hasSize(3);
-        assertThat(cachedPostIds).containsExactly("1", "2", "3");
+        // Then: Sorted Set에 실제로 저장되었는지 확인
+        Long size = redisTemplate.opsForZSet().size(storageKey);
+        assertThat(size).isEqualTo(3);
+        assertThat(redisTemplate.opsForZSet().score(storageKey, "1")).isNotNull();
+        assertThat(redisTemplate.opsForZSet().score(storageKey, "2")).isNotNull();
+        assertThat(redisTemplate.opsForZSet().score(storageKey, "3")).isNotNull();
 
-        // TTL 확인 (5분)
-        Long ttl = redisTemplate.getExpire(cacheKey, TimeUnit.SECONDS);
-        assertThat(ttl).isBetween(290L, 300L);
+        // TTL 확인 (1일 = 86400초)
+        Long ttl = redisTemplate.getExpire(storageKey, TimeUnit.SECONDS);
+        assertThat(ttl).isBetween(86390L, 86400L);
     }
 
     @Test
@@ -119,17 +121,17 @@ class RedisPostSaveAdapterIntegrationTest {
     }
 
     @Test
-    @DisplayName("경계값 - 빈 목록으로 캐시 저장 시도")
-    void shouldHandleEmptyList_WhenCachingPostIds() {
+    @DisplayName("경계값 - 빈 목록으로 postId 저장 시도")
+    void shouldHandleEmptyList_WhenCachingPostIdsOnly() {
         // Given
         List<Long> emptyPostIds = List.of();
         PostCacheFlag cacheType = PostCacheFlag.WEEKLY;
-        String cacheKey = RedisTestHelper.RedisKeys.postList(cacheType);
+        String storageKey = "postids:weekly";
 
-        // When: 빈 목록으로 캐시 저장 (아무 동작도 하지 않아야 함)
-        redisPostSaveAdapter.cachePostIds(cacheType, emptyPostIds);
+        // When: 빈 목록으로 저장 (아무 동작도 하지 않아야 함)
+        redisPostSaveAdapter.cachePostIdsOnly(cacheType, emptyPostIds);
 
-        // Then: 캐시 키가 생성되지 않음
-        assertThat(redisTemplate.hasKey(cacheKey)).isFalse();
+        // Then: 저장소 키가 생성되지 않음
+        assertThat(redisTemplate.hasKey(storageKey)).isFalse();
     }
 }
