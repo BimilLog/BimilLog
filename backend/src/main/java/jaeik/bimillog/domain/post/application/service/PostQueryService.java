@@ -5,6 +5,8 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.post.application.port.in.PostQueryUseCase;
 import jaeik.bimillog.domain.post.application.port.out.PostLikeQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
+import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
+import jaeik.bimillog.domain.post.application.port.out.RedisPostQueryPort;
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
@@ -31,6 +33,8 @@ public class PostQueryService implements PostQueryUseCase {
     private final PostQueryPort postQueryPort;
     private final GlobalPostQueryPort globalPostQueryPort;
     private final PostLikeQueryPort postLikeQueryPort;
+    private final RedisPostQueryPort redisPostQueryPort;
+    private final RedisPostCommandPort redisPostCommandPort;
 
     /**
      * <h3>게시판 목록 조회</h3>
