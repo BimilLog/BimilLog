@@ -3,12 +3,12 @@ package jaeik.bimillog.infrastructure.adapter.out.notification;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import jaeik.bimillog.domain.member.entity.QMember;
+import jaeik.bimillog.domain.member.entity.QSetting;
 import jaeik.bimillog.domain.notification.application.port.out.NotificationUtilPort;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.QFcmToken;
-import jaeik.bimillog.domain.member.entity.QSetting;
-import jaeik.bimillog.domain.member.entity.QMember;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

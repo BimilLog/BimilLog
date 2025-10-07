@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.out.global;
 
-import jaeik.bimillog.domain.global.application.port.out.GlobalKakaoTokenCommandPort;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
+import jaeik.bimillog.domain.global.application.port.out.GlobalKakaoTokenCommandPort;
 import jaeik.bimillog.infrastructure.adapter.out.auth.KakaoTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

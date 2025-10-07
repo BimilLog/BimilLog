@@ -1,5 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.out.sse;
 
+import jaeik.bimillog.domain.member.application.port.in.MemberQueryUseCase;
+import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.notification.application.port.out.NotificationCommandPort;
 import jaeik.bimillog.domain.notification.application.port.out.NotificationUtilPort;
 import jaeik.bimillog.domain.notification.application.port.out.SsePort;
@@ -7,8 +9,6 @@ import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.SseMessage;
 import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
 import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
-import jaeik.bimillog.domain.member.application.port.in.MemberQueryUseCase;
-import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.infrastructure.adapter.in.notification.listener.NotificationGenerateListener;
 import jaeik.bimillog.infrastructure.adapter.in.notification.web.NotificationSseController;
 import lombok.RequiredArgsConstructor;

@@ -1,14 +1,13 @@
 package jaeik.bimillog.adapter.in.post;
 
-import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.post.entity.PostCacheFlag;
-import jaeik.bimillog.domain.post.entity.PostLike;
 import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.post.entity.Post;
+import jaeik.bimillog.domain.post.entity.PostLike;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostLikeRepository;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostRepository;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
-import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
 import jaeik.bimillog.testutil.TestMembers;
+import jaeik.bimillog.testutil.TestSocialLoginPortConfig;
 import jaeik.bimillog.testutil.annotation.IntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

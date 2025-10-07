@@ -3,8 +3,8 @@ package jaeik.bimillog.domain.member.application.service;
 
 import jaeik.bimillog.domain.member.application.port.in.MemberQueryUseCase;
 import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
-import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.exception.MemberCustomException;
 import jaeik.bimillog.domain.member.exception.MemberErrorCode;

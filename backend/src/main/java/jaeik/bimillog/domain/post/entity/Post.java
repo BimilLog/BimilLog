@@ -1,9 +1,9 @@
 package jaeik.bimillog.domain.post.entity;
 
 import jaeik.bimillog.domain.global.entity.BaseEntity;
+import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.application.service.PostAdminService;
 import jaeik.bimillog.domain.post.application.service.PostCommandService;
-import jaeik.bimillog.domain.member.entity.Member;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;

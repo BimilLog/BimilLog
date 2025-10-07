@@ -6,15 +6,18 @@ import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
-import jaeik.bimillog.infrastructure.exception.CustomException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static jaeik.bimillog.infrastructure.adapter.out.redis.RedisPostKeys.*;
 
 /**
  * <h2>게시글 캐시 조회 어댑터</h2>
@@ -29,14 +32,11 @@ import java.util.*;
 public class RedisPostQueryAdapter implements RedisPostQueryPort {
 
     private final RedisTemplate<String, Object> redisTemplate;
-    private final Map<PostCacheFlag, CacheMetadata> cacheMetadataMap;
-    private static final String FULL_POST_CACHE_PREFIX = "cache:post:";
-    private static final String POSTIDS_PREFIX = "cache:postids:";
-    private static final String REALTIME_POPULAR_SCORE_KEY = "cache:realtime:scores";
+    private final Map<PostCacheFlag, RedisPostKeys.CacheMetadata> cacheMetadataMap;
 
     /**
-     * <h3>RedisCacheAdapter 생성자</h3>
-     * <p>RedisTemplate을 주입받아 캐시 메타데이터를 초기화합니다.</p>
+     * <h3>RedisPostQueryAdapter 생성자</h3>
+     * <p>RedisTemplate을 주입받아 PostRedisKeys의 캐시 메타데이터 맵을 설정합니다.</p>
      *
      * @param redisTemplate Redis 작업을 위한 템플릿
      * @author Jaeik
@@ -44,14 +44,8 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
      */
     public RedisPostQueryAdapter(RedisTemplate<String, Object> redisTemplate) {
         this.redisTemplate = redisTemplate;
-        this.cacheMetadataMap = new EnumMap<>(PostCacheFlag.class);
-        cacheMetadataMap.put(PostCacheFlag.REALTIME, new CacheMetadata("cache:posts:realtime", Duration.ofMinutes(5)));
-        cacheMetadataMap.put(PostCacheFlag.WEEKLY, new CacheMetadata("cache:posts:weekly", Duration.ofMinutes(5)));
-        cacheMetadataMap.put(PostCacheFlag.LEGEND, new CacheMetadata("cache:posts:legend", Duration.ofMinutes(5)));
-        cacheMetadataMap.put(PostCacheFlag.NOTICE, new CacheMetadata("cache:posts:notice", Duration.ofMinutes(5)));
+        this.cacheMetadataMap = CACHE_METADATA_MAP;
     }
-
-    private record CacheMetadata(String key, Duration ttl) {}
 
     /**
      * <h3>캐시 메타데이터 조회</h3>
@@ -59,12 +53,12 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
      *
      * @param type 게시글 캐시 유형
      * @return 캐시 메타데이터
-     * @throws CustomException 알 수 없는 PostCacheFlag 유형인 경우
+     * @throws PostCustomException 알 수 없는 PostCacheFlag 유형인 경우
      * @author Jaeik
      * @since 2.0.0
      */
-    private CacheMetadata getCacheMetadata(PostCacheFlag type) {
-        CacheMetadata metadata = cacheMetadataMap.get(type);
+    private RedisPostKeys.CacheMetadata getCacheMetadata(PostCacheFlag type) {
+        RedisPostKeys.CacheMetadata metadata = cacheMetadataMap.get(type);
         if (metadata == null) {
             throw new PostCustomException(PostErrorCode.REDIS_READ_ERROR, "Unknown PostCacheFlag type: " + type);
         }
@@ -138,7 +132,7 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
      */
     @Override
     public List<Long> getStoredPostIds(PostCacheFlag type) {
-        String postIdsKey = POSTIDS_PREFIX + type.name().toLowerCase();
+        String postIdsKey = getPostIdsStorageKey(type);
         try {
             List<Object> postIds = redisTemplate.opsForList().range(postIdsKey, 0, -1);
             if (postIds == null || postIds.isEmpty()) {
@@ -164,7 +158,7 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
      */
     @Override
     public PostDetail getCachedPostIfExists(Long postId) {
-        String key = FULL_POST_CACHE_PREFIX + postId;
+        String key = getPostDetailKey(postId);
         try {
             Object cached = redisTemplate.opsForValue().get(key);
             if (cached instanceof PostDetail postDetail) {

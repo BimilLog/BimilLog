@@ -1,12 +1,12 @@
 package jaeik.bimillog.infrastructure.adapter.in.global.listener;
 
+import jaeik.bimillog.domain.auth.application.port.in.AuthTokenUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.KakaoTokenUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.SocialLogoutUseCase;
-import jaeik.bimillog.domain.auth.application.port.in.AuthTokenUseCase;
 import jaeik.bimillog.domain.auth.event.MemberLoggedOutEvent;
+import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
 import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
-import jaeik.bimillog.domain.member.entity.SocialProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;

@@ -1,8 +1,8 @@
 package jaeik.bimillog.testutil;
 
 import jaeik.bimillog.domain.comment.entity.Comment;
-import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.infrastructure.adapter.in.comment.dto.CommentReqDTO;
 
 /**

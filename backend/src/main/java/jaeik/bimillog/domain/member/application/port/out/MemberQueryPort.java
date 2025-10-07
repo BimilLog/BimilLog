@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.member.application.port.out;
 
 import jaeik.bimillog.domain.member.application.service.MemberQueryService;
-import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 
 import java.util.List;

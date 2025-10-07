@@ -3,8 +3,8 @@ package jaeik.bimillog.domain.post.application.port.out;
 import jaeik.bimillog.domain.post.application.service.PostQueryService;
 import jaeik.bimillog.domain.post.entity.PopularPostInfo;
 import jaeik.bimillog.domain.post.entity.PostDetail;
-import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchType;
+import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

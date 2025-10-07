@@ -1,12 +1,12 @@
 package jaeik.bimillog.domain.post.application.port.in;
 
-import jaeik.bimillog.domain.post.entity.*;
+import jaeik.bimillog.domain.post.entity.Post;
+import jaeik.bimillog.domain.post.entity.PostDetail;
+import jaeik.bimillog.domain.post.entity.PostSearchType;
+import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.infrastructure.adapter.in.post.web.PostQueryController;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * <h2>게시글 조회 유스케이스</h2>

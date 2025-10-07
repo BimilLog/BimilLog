@@ -2,9 +2,9 @@ package jaeik.bimillog.adapter.out.notification;
 
 import jaeik.bimillog.BimilLogApplication;
 import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.infrastructure.adapter.out.notification.NotificationUtilAdapter;
 import jaeik.bimillog.testutil.H2TestConfiguration;
 import jaeik.bimillog.testutil.TestMembers;

@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.comment.entity;
 
-import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.testutil.TestMembers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;

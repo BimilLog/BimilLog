@@ -1,7 +1,7 @@
 package jaeik.bimillog.adapter.out.member;
 
-import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.out.member.MemberCommandAdapter;
 import jaeik.bimillog.testutil.H2TestConfiguration;

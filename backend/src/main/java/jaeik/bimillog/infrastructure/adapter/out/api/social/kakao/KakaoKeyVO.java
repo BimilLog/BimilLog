@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.global.vo;
+package jaeik.bimillog.infrastructure.adapter.out.api.social.kakao;
 
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
  *
  * @author Jaeik
  * @version 2.0.0
- * @since 2.0.0
  */
 @Component
 @Getter

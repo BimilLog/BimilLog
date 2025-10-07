@@ -5,18 +5,15 @@ import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
-import jaeik.bimillog.infrastructure.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.script.DefaultRedisScript;
-import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
-import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static jaeik.bimillog.infrastructure.adapter.out.redis.RedisPostKeys.*;
 
 /**
  * <h2>게시글 캐시 명령 어댑터</h2>
@@ -30,45 +27,8 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 public class RedisPostCommandAdapter implements RedisPostCommandPort {
-
     private final RedisTemplate<String, Object> redisTemplate;
-    private final Map<PostCacheFlag, CacheMetadata> cacheMetadataMap = initializeCacheMetadata();
-    private static final String FULL_POST_CACHE_PREFIX = "cache:post:";
-    private static final String POSTIDS_PREFIX = "cache:postids:";
-    private static final String REALTIME_POPULAR_SCORE_KEY = "cache:realtime:scores";
-    private static final double SCORE_DECAY_RATE = 0.9;
-    private static final double SCORE_THRESHOLD = 1.0;
-    private static final Duration FULL_POST_CACHE_TTL = Duration.ofMinutes(5);
-    private static final Duration POSTIDS_TTL_WEEKLY_LEGEND = Duration.ofDays(1);
-    private static final RedisScript<Long> SCORE_DECAY_SCRIPT;
-
-    static {
-        String luaScript =
-            "local members = redis.call('ZRANGE', KEYS[1], 0, -1, 'WITHSCORES') " +
-            "for i = 1, #members, 2 do " +
-            "    local member = members[i] " +
-            "    local score = tonumber(members[i + 1]) " +
-            "    local newScore = score * tonumber(ARGV[1]) " +
-            "    redis.call('ZADD', KEYS[1], newScore, member) " +
-            "end " +
-            "return redis.call('ZCARD', KEYS[1])";
-
-        DefaultRedisScript<Long> script = new DefaultRedisScript<>();
-        script.setScriptText(luaScript);
-        script.setResultType(Long.class);
-        SCORE_DECAY_SCRIPT = script;
-    }
-
-    private static Map<PostCacheFlag, CacheMetadata> initializeCacheMetadata() {
-        Map<PostCacheFlag, CacheMetadata> map = new EnumMap<>(PostCacheFlag.class);
-        map.put(PostCacheFlag.REALTIME, new CacheMetadata("cache:posts:realtime", Duration.ofMinutes(5)));
-        map.put(PostCacheFlag.WEEKLY, new CacheMetadata("cache:posts:weekly", Duration.ofMinutes(5)));
-        map.put(PostCacheFlag.LEGEND, new CacheMetadata("cache:posts:legend", Duration.ofMinutes(5)));
-        map.put(PostCacheFlag.NOTICE, new CacheMetadata("cache:posts:notice", Duration.ofMinutes(5)));
-        return map;
-    }
-
-    private record CacheMetadata(String key, Duration ttl) {}
+    private final Map<PostCacheFlag, RedisPostKeys.CacheMetadata> cacheMetadataMap = RedisPostKeys.CACHE_METADATA_MAP;
 
     /**
      * <h3>캐시 메타데이터 조회</h3>
@@ -76,12 +36,12 @@ public class RedisPostCommandAdapter implements RedisPostCommandPort {
      *
      * @param type 게시글 캐시 유형
      * @return 캐시 메타데이터
-     * @throws CustomException 알 수 없는 PostCacheFlag 유형인 경우
+     * @throws PostCustomException 알 수 없는 PostCacheFlag 유형인 경우
      * @author Jaeik
      * @since 2.0.0
      */
-    private CacheMetadata getCacheMetadata(PostCacheFlag type) {
-        CacheMetadata metadata = cacheMetadataMap.get(type);
+    private RedisPostKeys.CacheMetadata getCacheMetadata(PostCacheFlag type) {
+        RedisPostKeys.CacheMetadata metadata = cacheMetadataMap.get(type);
         if (metadata == null) {
             throw new PostCustomException(PostErrorCode.REDIS_READ_ERROR, "Unknown PostCacheFlag type: " + type);
         }
@@ -95,7 +55,7 @@ public class RedisPostCommandAdapter implements RedisPostCommandPort {
      *
      * @param type  캐시할 게시글 유형 (WEEKLY, LEGEND, NOTICE)
      * @param postIds 캐시할 게시글 ID 목록 (이미 인기도 순으로 정렬됨)
-     * @throws CustomException Redis 쓰기 오류 발생 시
+     * @throws PostCustomException Redis 쓰기 오류 발생 시
      * @author Jaeik
      * @since 2.0.0
      */
@@ -105,7 +65,7 @@ public class RedisPostCommandAdapter implements RedisPostCommandPort {
             return;
         }
 
-        String postIdsKey = POSTIDS_PREFIX + type.name().toLowerCase();
+        String postIdsKey = getPostIdsStorageKey(type);
 
         try {
             // 기존 postIds 캐시 삭제
@@ -117,9 +77,7 @@ public class RedisPostCommandAdapter implements RedisPostCommandPort {
             }
 
             // TTL 설정: 주간/레전드는 1일, 공지는 영구
-            if (type == PostCacheFlag.NOTICE) {
-                // 공지는 TTL 설정하지 않음 (영구)
-            } else {
+            if (type != PostCacheFlag.NOTICE) {
                 // 주간/레전드는 1일
                 redisTemplate.expire(postIdsKey, POSTIDS_TTL_WEEKLY_LEGEND);
             }
@@ -136,7 +94,7 @@ public class RedisPostCommandAdapter implements RedisPostCommandPort {
      *
      * @param type  캐시할 게시글 유형 (WEEKLY, LEGEND, NOTICE)
      * @param postIds 캐시할 게시글 ID 목록 (이미 인기도 순으로 정렬됨)
-     * @throws CustomException Redis 쓰기 오류 발생 시
+     * @throws PostCustomException Redis 쓰기 오류 발생 시
      * @author Jaeik
      * @since 2.0.0
      */
@@ -146,7 +104,7 @@ public class RedisPostCommandAdapter implements RedisPostCommandPort {
             return;
         }
 
-        CacheMetadata metadata = getCacheMetadata(type);
+        RedisPostKeys.CacheMetadata metadata = getCacheMetadata(type);
 
         try {
             // List에 postId만 저장 (RPUSH로 순서대로 삽입)
@@ -172,7 +130,7 @@ public class RedisPostCommandAdapter implements RedisPostCommandPort {
      */
     @Override
     public void cachePostDetail(PostDetail postDetail) {
-        String key = FULL_POST_CACHE_PREFIX + postDetail.getId();
+        String key = getPostDetailKey(postDetail.getId());
         try {
             redisTemplate.opsForValue().set(key, postDetail, FULL_POST_CACHE_TTL);
         } catch (Exception e) {
@@ -190,7 +148,7 @@ public class RedisPostCommandAdapter implements RedisPostCommandPort {
      */
     @Override
     public void deleteSinglePostCache(Long postId) {
-        String detailKey = FULL_POST_CACHE_PREFIX + postId;
+        String detailKey = getPostDetailKey(postId);
         try {
             redisTemplate.delete(detailKey);
         } catch (Exception e) {
@@ -228,20 +186,20 @@ public class RedisPostCommandAdapter implements RedisPostCommandPort {
 
     private void deleteSpecificPostCache(Long postId) {
         // 1. 상세 캐시 삭제
-        String detailKey = FULL_POST_CACHE_PREFIX + postId;
+        String detailKey = getPostDetailKey(postId);
         redisTemplate.delete(detailKey);
 
         // 2. 모든 목록 캐시에서 해당 게시글 제거
         String postIdStr = postId.toString();
         for (PostCacheFlag type : PostCacheFlag.getPopularPostTypes()) {
-            CacheMetadata metadata = getCacheMetadata(type);
+            RedisPostKeys.CacheMetadata metadata = getCacheMetadata(type);
             // LREM: 0 = 모든 매칭 요소 제거
             redisTemplate.opsForList().remove(metadata.key(), 0, postIdStr);
         }
     }
-    
+
     private void deleteTypeCacheWithDetails(PostCacheFlag type) {
-        CacheMetadata metadata = getCacheMetadata(type);
+        RedisPostKeys.CacheMetadata metadata = getCacheMetadata(type);
 
         // 1. 목록 캐시에서 게시글 ID들을 먼저 조회
         List<Object> postIds = redisTemplate.opsForList().range(metadata.key(), 0, -1);
@@ -253,7 +211,8 @@ public class RedisPostCommandAdapter implements RedisPostCommandPort {
         if (postIds != null && !postIds.isEmpty()) {
             List<String> detailKeys = postIds.stream()
                     .map(Object::toString)
-                    .map(postId -> FULL_POST_CACHE_PREFIX + postId)
+                    .map(Long::valueOf)
+                    .map(RedisPostKeys::getPostDetailKey)
                     .collect(Collectors.toList());
             redisTemplate.delete(detailKeys);
         }
@@ -271,13 +230,13 @@ public class RedisPostCommandAdapter implements RedisPostCommandPort {
      */
     private void deleteSpecificPostCache(Long postId, PostCacheFlag[] targetTypes) {
         // 1. 상세 캐시 삭제
-        String detailKey = FULL_POST_CACHE_PREFIX + postId;
+        String detailKey = getPostDetailKey(postId);
         redisTemplate.delete(detailKey);
 
         // 2. 지정된 목록 캐시에서만 해당 게시글 제거
         String postIdStr = postId.toString();
         for (PostCacheFlag type : targetTypes) {
-            CacheMetadata metadata = getCacheMetadata(type);
+            RedisPostKeys.CacheMetadata metadata = getCacheMetadata(type);
             // LREM: 0 = 모든 매칭 요소 제거
             redisTemplate.opsForList().remove(metadata.key(), 0, postIdStr);
         }
@@ -340,7 +299,7 @@ public class RedisPostCommandAdapter implements RedisPostCommandPort {
      */
     @Override
     public void addPostIdToStorage(PostCacheFlag type, Long postId) {
-        String postIdsKey = POSTIDS_PREFIX + type.name().toLowerCase();
+        String postIdsKey = getPostIdsStorageKey(type);
         try {
             redisTemplate.opsForList().leftPush(postIdsKey, postId.toString());
         } catch (Exception e) {
@@ -360,7 +319,7 @@ public class RedisPostCommandAdapter implements RedisPostCommandPort {
      */
     @Override
     public void removePostIdFromStorage(PostCacheFlag type, Long postId) {
-        String postIdsKey = POSTIDS_PREFIX + type.name().toLowerCase();
+        String postIdsKey = getPostIdsStorageKey(type);
         try {
             // LREM: 0 = 모든 매칭 요소 제거
             redisTemplate.opsForList().remove(postIdsKey, 0, postId.toString());

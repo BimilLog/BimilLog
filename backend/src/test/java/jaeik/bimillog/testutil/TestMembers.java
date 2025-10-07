@@ -1,9 +1,9 @@
 package jaeik.bimillog.testutil;
 
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
-import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.MemberRole;
+import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 
 /**

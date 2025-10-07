@@ -2,11 +2,11 @@ package jaeik.bimillog.adapter.in.member;
 
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
+import jaeik.bimillog.domain.member.exception.MemberErrorCode;
 import jaeik.bimillog.infrastructure.adapter.out.auth.AuthTokenRepository;
+import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.out.member.MemberRepository;
 import jaeik.bimillog.testutil.*;
-import jaeik.bimillog.domain.member.exception.MemberErrorCode;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
