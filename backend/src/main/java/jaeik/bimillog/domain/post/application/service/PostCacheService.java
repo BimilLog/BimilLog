@@ -8,7 +8,6 @@ import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
-import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -93,9 +92,6 @@ public class PostCacheService implements PostCacheUseCase {
      */
     @Override
     public Page<PostSimpleDetail> getPopularPostLegend(PostCacheFlag type, Pageable pageable) {
-        if (type != PostCacheFlag.LEGEND) {
-            throw new PostCustomException(PostErrorCode.INVALID_INPUT_VALUE);
-        }
         return redisPostQueryPort.getCachedPostListPaged(pageable);
     }
 

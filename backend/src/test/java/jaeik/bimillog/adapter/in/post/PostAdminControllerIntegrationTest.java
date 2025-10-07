@@ -109,10 +109,10 @@ class PostAdminControllerIntegrationTest extends BaseIntegrationTest {
         // Given
         Long nonExistentPostId = 99999L;
 
-        // When & Then - 500 Internal Server Error 예상 (PostCustomException -> handleAll)
+        // When & Then - 404 Not Found 예상 (PostCustomException -> PostExceptionHandler)
         performPost("/api/post/" + nonExistentPostId + "/notice", null, adminUserDetails)
                 .andDo(print())
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -166,17 +166,17 @@ class PostAdminControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("게시글 공지 토글 성공 - 캐시 실패 시에도 DB 트랜잭션은 성공")
-    void togglePostNotice_Success_EvenWhenCacheFails() throws Exception {
+    @DisplayName("게시글 공지 토글 성공 - 정상 케이스 추가 검증")
+    void togglePostNotice_Success_AdditionalVerification() throws Exception {
         // Given - 초기상태: 비공지
         assert testPost.isNotice() == false;
-        
-        // When & Then - 캐시 실패가 있어도 API는 200 OK 응답
+
+        // When & Then - API 호출 성공
         performPost("/api/post/" + testPost.getId() + "/notice", null, adminUserDetails)
                 .andDo(print())
-                .andExpect(status().isOk()); // 캐시 실패가 있어도 200 OK
+                .andExpect(status().isOk());
 
-        // 실제 DB 확인 - 핵심 비즈니스 로직은 정상 실행됨
+        // 실제 DB 확인 - 공지로 변경됨
         Post updatedPost = postRepository.findById(testPost.getId()).orElseThrow();
         assert updatedPost.isNotice() == true;
     }

@@ -1,8 +1,10 @@
 package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
+import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
 import jaeik.bimillog.domain.post.application.service.PostAdminService;
 import jaeik.bimillog.domain.post.entity.Post;
+import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import jaeik.bimillog.testutil.BaseUnitTest;
@@ -11,6 +13,8 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -31,6 +35,9 @@ class PostAdminServiceTest extends BaseUnitTest {
 
     @Mock
     private GlobalPostQueryPort globalPostQueryPort;
+
+    @Mock
+    private RedisPostCommandPort redisPostCommandPort;
 
     @Mock
     private Post post;
@@ -54,8 +61,9 @@ class PostAdminServiceTest extends BaseUnitTest {
 
         // Then
         verify(globalPostQueryPort).findById(postId);
-        verify(post, times(2)).isNotice(); // 상태 확인 (if문 + 로그)
+        verify(post).isNotice(); // 상태 확인 (if문)
         verify(post).setAsNotice();
+        verify(redisPostCommandPort).cachePostIds(PostCacheFlag.NOTICE, List.of(postId));
     }
 
     @Test
@@ -109,62 +117,10 @@ class PostAdminServiceTest extends BaseUnitTest {
 
         // Then
         verify(globalPostQueryPort).findById(postId);
-        verify(post, times(2)).isNotice(); // 상태 확인 (if문 + 로그)
+        verify(post).isNotice(); // 상태 확인 (if문)
         verify(post).unsetAsNotice();
+        verify(redisPostCommandPort).deleteCache(null, postId, PostCacheFlag.NOTICE);
     }
 
-
-    @Test
-    @DisplayName("게시글 공지 상태 확인 - 공지인 게시글")
-    void shouldReturnTrue_WhenPostIsNotice() {
-        // Given
-        Long postId = 123L;
-        
-        given(globalPostQueryPort.findById(postId)).willReturn(post);
-        given(post.isNotice()).willReturn(true);
-
-        // When
-        boolean result = postAdminService.isPostNotice(postId);
-
-        // Then
-        assertThat(result).isTrue();
-        verify(globalPostQueryPort).findById(postId);
-        verify(post).isNotice();
-    }
-
-    @Test
-    @DisplayName("게시글 공지 상태 확인 - 일반 게시글")
-    void shouldReturnFalse_WhenPostIsNotNotice() {
-        // Given
-        Long postId = 123L;
-        
-        given(globalPostQueryPort.findById(postId)).willReturn(post);
-        given(post.isNotice()).willReturn(false);
-
-        // When
-        boolean result = postAdminService.isPostNotice(postId);
-
-        // Then
-        assertThat(result).isFalse();
-        verify(globalPostQueryPort).findById(postId);
-        verify(post).isNotice();
-    }
-
-    @Test
-    @DisplayName("게시글 공지 상태 확인 - 존재하지 않는 게시글")
-    void shouldThrowException_WhenCheckNonExistentPostNotice() {
-        // Given
-        Long postId = 999L;
-
-        given(globalPostQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
-
-        // When & Then
-        assertThatThrownBy(() -> postAdminService.isPostNotice(postId))
-                .isInstanceOf(PostCustomException.class)
-                .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.POST_NOT_FOUND);
-
-        verify(globalPostQueryPort).findById(postId);
-        verify(post, never()).isNotice();
-    }
 
 }

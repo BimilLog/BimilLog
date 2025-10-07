@@ -70,11 +70,9 @@ public class PostInteractionService implements PostInteractionUseCase {
 
         if (isAlreadyLiked) {
             postLikeCommandPort.deletePostLike(member, post);
-            log.debug("게시글 추천 취소됨: memberId={}, postId={}", memberId, postId);
         } else {
             PostLike postLike = PostLike.builder().member(member).post(post).build();
             postLikeCommandPort.savePostLike(postLike);
-            log.debug("게시글 추천됨: memberId={}, postId={}", memberId, postId);
 
             // 실시간 인기글 점수 증가 이벤트 발행
             eventPublisher.publishEvent(new PostLikeEvent(postId));

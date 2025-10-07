@@ -55,61 +55,6 @@ class PostCacheServiceTest {
     private PostCacheService postCacheService;
 
     @Test
-    @DisplayName("공지사항 캐시 추가 - 게시글 상세 존재")
-    void shouldAddNoticeToCacheWhenDetailExists() {
-        // Given
-        Long postId = 1L;
-        PostDetail detail = PostDetail.builder()
-                .id(postId)
-                .title("공지사항")
-                .content("본문")
-                .viewCount(10)
-                .likeCount(2)
-                .createdAt(Instant.now())
-                .memberId(5L)
-                .memberName("작성자")
-                .commentCount(0)
-                .isLiked(false)
-                .build();
-        given(postQueryPort.findPostDetailWithCounts(postId, null)).willReturn(Optional.of(detail));
-
-        // When
-        postCacheService.syncNoticeCache(postId, true);
-
-        // Then (주간/레전드와 동일하게 postId만 저장)
-        verify(redisPostCommandPort).cachePostIds(eq(PostCacheFlag.NOTICE), eq(List.of(postId)));
-    }
-
-    @Test
-    @DisplayName("공지사항 캐시 추가 - 게시글 상세 없음")
-    void shouldSkipCacheWhenDetailMissing() {
-        // Given
-        Long postId = 1L;
-        given(postQueryPort.findPostDetailWithCounts(postId, null)).willReturn(Optional.empty());
-
-        // When
-        postCacheService.syncNoticeCache(postId, true);
-
-        // Then
-        verify(postQueryPort).findPostDetailWithCounts(postId, null);
-        verify(redisPostCommandPort, never()).cachePostIds(any(), any());
-    }
-
-    @Test
-    @DisplayName("공지사항 캐시 제거")
-    void shouldRemoveNoticeFromCache() {
-        // Given
-        Long postId = 10L;
-
-        // When
-        postCacheService.syncNoticeCache(postId, false);
-
-        // Then
-        verify(redisPostCommandPort).deleteCache(null, postId, PostCacheFlag.NOTICE);
-        verify(postQueryPort, never()).findPostDetailWithCounts(any(), any());
-    }
-
-    @Test
     @DisplayName("실시간 인기글 조회")
     void shouldGetRealtimePosts() {
         // Given
@@ -201,37 +146,6 @@ class PostCacheServiceTest {
         assertThat(result.getContent().get(1).getTitle()).isEqualTo("레전드 게시글 2");
 
         verify(redisPostQueryPort).getCachedPostListPaged(pageable);
-    }
-
-    @Test
-    @DisplayName("레전드 인기 게시글 페이징 조회 - 잘못된 타입으로 호출시 예외 발생")
-    void shouldThrowException_WhenGetPopularPostLegendWithNonLegendType() {
-        // Given
-        PostCacheFlag type = PostCacheFlag.REALTIME; // LEGEND가 아닌 타입
-        Pageable pageable = PageRequest.of(0, 10);
-
-        // When & Then
-        assertThatThrownBy(() -> postCacheService.getPopularPostLegend(type, pageable))
-                .isInstanceOf(PostCustomException.class)
-                .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.INVALID_INPUT_VALUE);
-
-        // 타입 검증에서 바로 예외가 발생하므로 다른 메서드들은 호출되지 않음
-        verify(redisPostQueryPort, never()).getCachedPostListPaged(any());
-    }
-
-    @Test
-    @DisplayName("레전드 인기 게시글 페이징 조회 - null 타입으로 호출시 예외 발생")
-    void shouldThrowException_WhenGetPopularPostLegendWithNullType() {
-        // Given
-        PostCacheFlag type = null;
-        Pageable pageable = PageRequest.of(0, 10);
-
-        // When & Then
-        assertThatThrownBy(() -> postCacheService.getPopularPostLegend(type, pageable))
-                .isInstanceOf(PostCustomException.class)
-                .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.INVALID_INPUT_VALUE);
-
-        verify(redisPostQueryPort, never()).getCachedPostListPaged(any());
     }
 
     @Test
