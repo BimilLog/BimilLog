@@ -126,12 +126,7 @@ public class PostQueryService implements PostQueryUseCase {
     public Page<PostSimpleDetail> searchPost(PostSearchType type, String query, Pageable pageable) {
         // 전략 1: 3글자 이상 + 작성자 검색 아님 → 전문 검색 시도
         if (query.length() >= 3 && type != PostSearchType.WRITER) {
-            Page<PostSimpleDetail> fullTextResult = postQueryPort.findByFullTextSearch(type, query, pageable);
-            if (!fullTextResult.isEmpty()) {
-                return fullTextResult;
-            }
-            // 전문 검색 실패 시 부분 검색으로 폴백
-            return postQueryPort.findByPartialMatch(type, query, pageable);
+            return postQueryPort.findByFullTextSearch(type, query, pageable);
         }
 
         // 전략 2: 작성자 검색 + 4글자 이상 → 접두사 검색 (인덱스 활용)
