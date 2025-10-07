@@ -18,10 +18,23 @@ import java.util.List;
 public interface RedisPostCommandPort {
 
     /**
-     * <h3>인기글 postId 목록 캐싱</h3>
-     * <p>인기글 postId 목록을 Redis Sorted Set에 저장합니다</p>
+     * <h3>인기글 postId 영구 저장</h3>
+     * <p>인기글 postId 목록만 Redis List에 영구 또는 긴 TTL로 저장합니다.</p>
+     * <p>목록 캐시 TTL 만료 시 복구용으로 사용됩니다.</p>
      * <p>PostScheduledService에서 주기적인 인기글 데이터 업데이트 시 호출됩니다.</p>
-     * <p>PostCacheService에서 공지사항 추가/제거 시 호출됩니다.</p>
+     * <p>PostAdminService에서 공지사항 설정/해제 시 호출됩니다.</p>
+     *
+     * @param type 캐시할 인기글 유형 (WEEKLY, LEGEND, NOTICE)
+     * @param postIds 캐시할 게시글 ID 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    void cachePostIdsOnly(PostCacheFlag type, List<Long> postIds);
+
+    /**
+     * <h3>인기글 postId 목록 캐싱</h3>
+     * <p>인기글 postId 목록을 Redis List에 저장합니다 (TTL 5분)</p>
+     * <p>PostScheduledService에서 주기적인 인기글 데이터 업데이트 시 호출됩니다.</p>
      *
      * @param type 캐시할 인기글 유형 (WEEKLY, LEGEND, NOTICE)
      * @param postIds 캐시할 게시글 ID 목록
@@ -88,5 +101,29 @@ public interface RedisPostCommandPort {
      * @since 2.0.0
      */
     void applyRealtimePopularScoreDecay();
+
+    /**
+     * <h3>postIds 저장소에 단일 게시글 추가</h3>
+     * <p>postIds 영구 저장소의 앞에 게시글 ID를 추가합니다 (LPUSH).</p>
+     * <p>공지사항 설정 시 호출됩니다.</p>
+     *
+     * @param type 캐시 유형 (NOTICE만 사용)
+     * @param postId 추가할 게시글 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    void addPostIdToStorage(PostCacheFlag type, Long postId);
+
+    /**
+     * <h3>postIds 저장소에서 단일 게시글 제거</h3>
+     * <p>postIds 영구 저장소에서 게시글 ID를 제거합니다 (LREM).</p>
+     * <p>공지사항 해제 시 호출됩니다.</p>
+     *
+     * @param type 캐시 유형 (NOTICE만 사용)
+     * @param postId 제거할 게시글 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    void removePostIdFromStorage(PostCacheFlag type, Long postId);
 
 }

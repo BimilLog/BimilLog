@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * <h2>PostCacheService</h2>
@@ -59,7 +60,7 @@ public class PostCacheService implements PostCacheUseCase {
                     }
                     return postDetail;
                 })
-                .filter(java.util.Objects::nonNull)
+                .filter(Objects::nonNull)
                 .map(PostDetail::toSearchResult)
                 .toList();
     }
@@ -67,7 +68,7 @@ public class PostCacheService implements PostCacheUseCase {
     /**
      * <h3>주간 인기 게시글 조회</h3>
      * <p>Redis 캐시에서 주간 인기글 목록을 조회합니다.</p>
-     * <p>캐시가 없는 경우 PostCacheSyncService를 통해 DB에서 생성됩니다.</p>
+     * <p>캐시 미스 시 postIds 저장소에서 ID 목록을 가져와 DB 조회 후 반환합니다.</p>
      *
      * @return Redis에서 조회된 주간 인기 게시글 목록
      * @author Jaeik
@@ -75,7 +76,14 @@ public class PostCacheService implements PostCacheUseCase {
      */
     @Override
     public List<PostSimpleDetail> getWeeklyPosts() {
-        return redisPostQueryPort.getCachedPostList(PostCacheFlag.WEEKLY);
+        List<PostSimpleDetail> cachedList = redisPostQueryPort.getCachedPostList(PostCacheFlag.WEEKLY);
+
+        // 캐시 미스 시 postIds 저장소에서 복구
+        if (cachedList.isEmpty()) {
+            return recoverFromStoredPostIds(PostCacheFlag.WEEKLY);
+        }
+
+        return cachedList;
     }
 
     /**
@@ -98,15 +106,44 @@ public class PostCacheService implements PostCacheUseCase {
     /**
      * <h3>공지사항 목록 조회</h3>
      * <p>Redis에 캐시된 공지사항 목록을 조회합니다.</p>
-     * <p>캐시가 없는 경우 빈 리스트를 반환합니다.</p>
-     * <p>공지사항 등록/해제는 PostCacheService.syncNoticeCache()를 통해 관리됩니다.</p>
+     * <p>캐시 미스 시 postIds 저장소에서 ID 목록을 가져와 DB 조회 후 반환합니다.</p>
      *
-     * @return 공지사항 목록 (캐시가 없으면 빈 리스트)
+     * @return 공지사항 목록
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     public List<PostSimpleDetail> getNoticePosts() {
-        return redisPostQueryPort.getCachedPostList(PostCacheFlag.NOTICE);
+        List<PostSimpleDetail> cachedList = redisPostQueryPort.getCachedPostList(PostCacheFlag.NOTICE);
+
+        // 캐시 미스 시 postIds 저장소에서 복구
+        if (cachedList.isEmpty()) {
+            return recoverFromStoredPostIds(PostCacheFlag.NOTICE);
+        }
+
+        return cachedList;
+    }
+
+    /**
+     * <h3>postIds 저장소에서 캐시 복구</h3>
+     * <p>목록 캐시 TTL 만료 시 postIds 저장소에서 ID 목록을 가져와 DB 조회 후 목록을 재구성합니다.</p>
+     *
+     * @param type 복구할 캐시 유형 (WEEKLY, LEGEND, NOTICE)
+     * @return 복구된 게시글 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private List<PostSimpleDetail> recoverFromStoredPostIds(PostCacheFlag type) {
+        List<Long> storedPostIds = redisPostQueryPort.getStoredPostIds(type);
+        if (storedPostIds.isEmpty()) {
+            return List.of();
+        }
+
+        // DB에서 PostDetail 조회 후 PostSimpleDetail 변환
+        return storedPostIds.stream()
+                .map(postId -> postQueryPort.findPostDetailWithCounts(postId, null).orElse(null))
+                .filter(Objects::nonNull)
+                .map(PostDetail::toSearchResult)
+                .toList();
     }
 }

@@ -126,10 +126,10 @@ class RedisPostQueryAdapterIntegrationTest {
         PostCacheFlag cacheType = PostCacheFlag.REALTIME;
         String listKey = RedisTestHelper.RedisKeys.postList(cacheType);
 
-        // ID 목록 저장 - Sorted Set에 직접 저장 (score는 역순)
-        redisTemplate.opsForZSet().add(listKey, "1", 3.0);
-        redisTemplate.opsForZSet().add(listKey, "2", 2.0);
-        redisTemplate.opsForZSet().add(listKey, "3", 1.0);
+        // ID 목록 저장 - List에 직접 저장 (순서대로)
+        redisTemplate.opsForList().rightPush(listKey, "1");
+        redisTemplate.opsForList().rightPush(listKey, "2");
+        redisTemplate.opsForList().rightPush(listKey, "3");
         redisTemplate.expire(listKey, java.time.Duration.ofMinutes(5));
 
         // 상세 정보 저장
@@ -157,7 +157,7 @@ class RedisPostQueryAdapterIntegrationTest {
         // Given: RedisTemplate로 직접 저장 (CommandAdapter 의존성 제거)
         PostCacheFlag cacheType = PostCacheFlag.WEEKLY;
         String listKey = RedisTestHelper.RedisKeys.postList(cacheType);
-        redisTemplate.opsForZSet().add(listKey, "1", 1.0);
+        redisTemplate.opsForList().rightPush(listKey, "1");
         redisTemplate.expire(listKey, java.time.Duration.ofMinutes(5));
 
         // When: 캐시 존재 여부 확인
@@ -214,9 +214,9 @@ class RedisPostQueryAdapterIntegrationTest {
         String listKey = RedisTestHelper.RedisKeys.postList(cacheType);
 
         // ID 목록 3개 저장
-        redisTemplate.opsForZSet().add(listKey, "1", 3.0);
-        redisTemplate.opsForZSet().add(listKey, "2", 2.0);
-        redisTemplate.opsForZSet().add(listKey, "3", 1.0);
+        redisTemplate.opsForList().rightPush(listKey, "1");
+        redisTemplate.opsForList().rightPush(listKey, "2");
+        redisTemplate.opsForList().rightPush(listKey, "3");
         redisTemplate.expire(listKey, java.time.Duration.ofMinutes(5));
 
         // 상세 정보는 2개만 저장 (testPostDetail3은 저장하지 않음)
@@ -238,8 +238,8 @@ class RedisPostQueryAdapterIntegrationTest {
         String listKey = RedisTestHelper.RedisKeys.postList(PostCacheFlag.LEGEND);
 
         for (long i = 1; i <= 20; i++) {
-            // Sorted Set에 postId 저장 (score는 역순)
-            redisTemplate.opsForZSet().add(listKey, String.valueOf(i), 21.0 - i);
+            // List에 postId 저장 (순서대로)
+            redisTemplate.opsForList().rightPush(listKey, String.valueOf(i));
 
             // PostDetail 생성 및 저장
             PostDetail detail = PostDetail.builder()
@@ -281,8 +281,8 @@ class RedisPostQueryAdapterIntegrationTest {
         String listKey = RedisTestHelper.RedisKeys.postList(PostCacheFlag.LEGEND);
 
         for (long i = 1; i <= 20; i++) {
-            // Sorted Set에 postId 저장 (score는 역순)
-            redisTemplate.opsForZSet().add(listKey, String.valueOf(i), 21.0 - i);
+            // List에 postId 저장 (순서대로)
+            redisTemplate.opsForList().rightPush(listKey, String.valueOf(i));
 
             // PostDetail 생성 및 저장
             PostDetail detail = PostDetail.builder()

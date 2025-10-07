@@ -20,7 +20,7 @@ import java.util.*;
  * <h2>게시글 캐시 조회 어댑터</h2>
  * <p>게시글 캐시 조회 포트의 Redis 구현체입니다.</p>
  * <p>인기글 목록 캐시 조회, 게시글 상세 캐시 조회</p>
- * <p>Redis Sorted Set과 개별 상세 캐시 활용</p>
+ * <p>Redis List과 개별 상세 캐시 활용</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -31,6 +31,7 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
     private final RedisTemplate<String, Object> redisTemplate;
     private final Map<PostCacheFlag, CacheMetadata> cacheMetadataMap;
     private static final String FULL_POST_CACHE_PREFIX = "cache:post:";
+    private static final String POSTIDS_PREFIX = "cache:postids:";
     private static final String REALTIME_POPULAR_SCORE_KEY = "cache:realtime:scores";
 
     /**
@@ -91,7 +92,8 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
 
     /**
      * <h3>캐시된 게시글 목록 조회</h3>
-     * <p>Redis Sorted Set에서 게시글 ID 목록을 조회하고 상세 캐시에서 정보를 가져와 변환합니다.</p>
+     * <p>Redis List에서 게시글 ID 목록을 조회하고 상세 캐시에서 정보를 가져와 변환합니다.</p>
+     * <p>목록 캐시 미스 시 postIds 저장소에서 ID를 가져와 DB 조회 후 목록을 재구성합니다.</p>
      *
      * @param type 조회할 캐시 유형
      * @return 캐시된 게시글 목록
@@ -103,19 +105,48 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
     public List<PostSimpleDetail> getCachedPostList(PostCacheFlag type) {
         CacheMetadata metadata = getCacheMetadata(type);
         try {
-            // 1. Sorted Set에서 ID 목록 조회 (score 높은 순)
-            Set<Object> postIds = redisTemplate.opsForZSet().reverseRange(metadata.key(), 0, -1);
+            // 1. 목록 캐시에서 ID 목록 조회 (순서대로)
+            List<Object> postIds = redisTemplate.opsForList().range(metadata.key(), 0, -1);
+
+            // 2. 목록 캐시 미스 시 빈 리스트 반환 (복구는 서비스 레이어에서 처리)
             if (postIds == null || postIds.isEmpty()) {
                 return Collections.emptyList();
             }
 
-            // 2. 상세 캐시에서 PostDetail 조회 후 PostSearchResult로 변환
+            // 3. 상세 캐시에서 PostDetail 조회 후 PostSearchResult로 변환
             return postIds.stream()
                     .map(Object::toString)
                     .map(Long::valueOf)
                     .map(this::getCachedPostIfExists)
                     .filter(java.util.Objects::nonNull)
                     .map(PostDetail::toSearchResult)
+                    .toList();
+        } catch (Exception e) {
+            throw new PostCustomException(PostErrorCode.REDIS_READ_ERROR, e);
+        }
+    }
+
+    /**
+     * <h3>postIds 영구 저장소에서 ID 목록 조회</h3>
+     * <p>캐시 미스 발생 시 복구를 위해 영구 저장된 postId 목록을 조회합니다.</p>
+     * <p>PostQueryService에서 목록 캐시 미스 시 DB 조회를 위한 ID 목록 획득에 사용됩니다.</p>
+     *
+     * @param type 조회할 인기글 캐시 유형 (WEEKLY, LEGEND, NOTICE)
+     * @return 저장된 게시글 ID 목록 (없으면 빈 리스트)
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public List<Long> getStoredPostIds(PostCacheFlag type) {
+        String postIdsKey = POSTIDS_PREFIX + type.name().toLowerCase();
+        try {
+            List<Object> postIds = redisTemplate.opsForList().range(postIdsKey, 0, -1);
+            if (postIds == null || postIds.isEmpty()) {
+                return Collections.emptyList();
+            }
+            return postIds.stream()
+                    .map(Object::toString)
+                    .map(Long::valueOf)
                     .toList();
         } catch (Exception e) {
             throw new PostCustomException(PostErrorCode.REDIS_READ_ERROR, e);
@@ -159,22 +190,22 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
         CacheMetadata metadata = getCacheMetadata(PostCacheFlag.LEGEND);
         try {
             // 1. 전체 크기 조회
-            Long totalElements = redisTemplate.opsForZSet().count(metadata.key(), Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
+            Long totalElements = redisTemplate.opsForList().size(metadata.key());
             if (totalElements == null || totalElements == 0) {
                 return new PageImpl<>(Collections.emptyList(), pageable, 0);
             }
-            
-            // 2. Sorted Set에서 페이징된 ID 목록 조회 (score 높은 순)
+
+            // 2. List에서 페이징된 ID 목록 조회 (순서대로)
             int page = pageable.getPageNumber();
             int size = pageable.getPageSize();
             long start = (long) page * size;
             long end = start + size - 1;
-            
-            Set<Object> postIds = redisTemplate.opsForZSet().reverseRange(metadata.key(), start, end);
+
+            List<Object> postIds = redisTemplate.opsForList().range(metadata.key(), start, end);
             if (postIds == null || postIds.isEmpty()) {
                 return new PageImpl<>(Collections.emptyList(), pageable, totalElements);
             }
-            
+
             // 3. 상세 캐시에서 PostDetail 조회 후 PostSearchResult로 변환
             List<PostSimpleDetail> pagedPosts = postIds.stream()
                     .map(Object::toString)
@@ -183,7 +214,7 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
                     .filter(java.util.Objects::nonNull)
                     .map(PostDetail::toSearchResult)
                     .toList();
-            
+
             return new PageImpl<>(pagedPosts, pageable, totalElements);
 
         } catch (Exception e) {

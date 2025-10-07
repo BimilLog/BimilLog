@@ -282,5 +282,4 @@ public class PostQueryAdapter implements PostQueryPort {
         Consumer<JPAQuery<?>> customizer = q -> q.where(finalCondition);
         return postQueryHelper.findPostsWithQuery(customizer, customizer, pageable);
     }
-
 }

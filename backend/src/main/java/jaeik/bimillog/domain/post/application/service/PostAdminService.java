@@ -12,8 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 /**
  * <h2>게시글 관리자 서비스</h2>
  * <p>게시글 도메인의 관리자 전용 기능을 처리하는 서비스입니다.</p>
@@ -35,6 +33,7 @@ public class PostAdminService implements PostAdminUseCase {
      * <h3>게시글 공지사항 상태 토글</h3>
      * <p>게시글의 공지사항 상태를 현재 상태의 반대로 변경합니다.</p>
      * <p>일반 게시글이면 공지로 설정하고, 공지 게시글이면 일반으로 해제합니다.</p>
+     * <p>postIds 영구 저장소에 단일 게시글만 추가/제거하여 효율적으로 관리합니다.</p>
      * <p>{@link PostAdminController}에서 관리자 공지 토글 요청 시 호출됩니다.</p>
      *
      * @param postId 공지 토글할 게시글 ID
@@ -46,13 +45,16 @@ public class PostAdminService implements PostAdminUseCase {
     @Transactional
     public void togglePostNotice(Long postId) {
         Post post = globalPostQueryPort.findById(postId);
+
         if (post.isNotice()) {
+            // 공지 해제
             post.unsetAsNotice();
-            redisPostCommandPort.deleteCache(null, postId, PostCacheFlag.NOTICE);
+            redisPostCommandPort.removePostIdFromStorage(PostCacheFlag.NOTICE, postId);
             log.info("공지사항 해제: postId={}, title={}", postId, post.getTitle());
         } else {
+            // 공지 설정
             post.setAsNotice();
-            redisPostCommandPort.cachePostIds(PostCacheFlag.NOTICE, List.of(postId));
+            redisPostCommandPort.addPostIdToStorage(PostCacheFlag.NOTICE, postId);
             log.info("공지사항 설정: postId={}, title={}", postId, post.getTitle());
         }
     }

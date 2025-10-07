@@ -79,18 +79,10 @@ class RedisPostCommandAdapterIntegrationTest {
         // When
         redisPostCommandAdapter.cachePostIds(cacheType, postIds);
 
-        // Then: Sorted Set에 실제로 저장되었는지 확인
-        Set<Object> cachedPostIds = redisTemplate.opsForZSet().reverseRange(cacheKey, 0, -1);
+        // Then: List에 실제로 저장되었는지 확인 (순서 보장)
+        List<Object> cachedPostIds = redisTemplate.opsForList().range(cacheKey, 0, -1);
         assertThat(cachedPostIds).hasSize(3);
         assertThat(cachedPostIds).containsExactly("1", "2", "3");
-
-        // 점수 확인 (첫 번째가 가장 높은 점수)
-        Double score1 = redisTemplate.opsForZSet().score(cacheKey, "1");
-        Double score2 = redisTemplate.opsForZSet().score(cacheKey, "2");
-        Double score3 = redisTemplate.opsForZSet().score(cacheKey, "3");
-        assertThat(score1).isEqualTo(3.0); // 첫 번째 = 가장 높은 점수
-        assertThat(score2).isEqualTo(2.0);
-        assertThat(score3).isEqualTo(1.0); // 마지막 = 가장 낮은 점수
 
         // TTL 확인 (5분)
         Long ttl = redisTemplate.getExpire(cacheKey, TimeUnit.SECONDS);
@@ -202,9 +194,11 @@ class RedisPostCommandAdapterIntegrationTest {
         String legendKey = RedisTestHelper.RedisKeys.postList(PostCacheFlag.LEGEND);
         String detailKey = RedisTestHelper.RedisKeys.postDetail(postId);
 
-        // 저장 확인
-        assertThat(redisTemplate.opsForZSet().score(weeklyKey, postId.toString())).isNotNull();
-        assertThat(redisTemplate.opsForZSet().score(legendKey, postId.toString())).isNotNull();
+        // 저장 확인 (List에 포함되어 있는지)
+        List<Object> weeklyPosts = redisTemplate.opsForList().range(weeklyKey, 0, -1);
+        List<Object> legendPosts = redisTemplate.opsForList().range(legendKey, 0, -1);
+        assertThat(weeklyPosts).contains(postId.toString());
+        assertThat(legendPosts).contains(postId.toString());
         assertThat(redisTemplate.hasKey(detailKey)).isTrue();
 
         // When: 특정 게시글의 모든 캐시 삭제
@@ -212,8 +206,10 @@ class RedisPostCommandAdapterIntegrationTest {
 
         // Then: 상세 캐시와 모든 목록 캐시에서 제거됨
         assertThat(redisTemplate.hasKey(detailKey)).isFalse();
-        assertThat(redisTemplate.opsForZSet().score(weeklyKey, postId.toString())).isNull();
-        assertThat(redisTemplate.opsForZSet().score(legendKey, postId.toString())).isNull();
+        weeklyPosts = redisTemplate.opsForList().range(weeklyKey, 0, -1);
+        legendPosts = redisTemplate.opsForList().range(legendKey, 0, -1);
+        assertThat(weeklyPosts).doesNotContain(postId.toString());
+        assertThat(legendPosts).doesNotContain(postId.toString());
     }
 
     @Test

@@ -79,4 +79,16 @@ public interface RedisPostQueryPort {
      */
     List<Long> getRealtimePopularPostIds();
 
+    /**
+     * <h3>postIds 영구 저장소에서 ID 목록 조회</h3>
+     * <p>캐시 미스 발생 시 복구를 위해 영구 저장된 postId 목록을 조회합니다.</p>
+     * <p>PostQueryService에서 목록 캐시 미스 시 DB 조회를 위한 ID 목록 획득에 사용됩니다.</p>
+     *
+     * @param type 조회할 인기글 캐시 유형 (WEEKLY, LEGEND, NOTICE)
+     * @return List&lt;Long&gt; 저장된 게시글 ID 목록 (없으면 빈 리스트)
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    List<Long> getStoredPostIds(PostCacheFlag type);
+
 }

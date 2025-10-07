@@ -8,13 +8,14 @@ import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -33,10 +34,30 @@ public class RedisPostCommandAdapter implements RedisPostCommandPort {
     private final RedisTemplate<String, Object> redisTemplate;
     private final Map<PostCacheFlag, CacheMetadata> cacheMetadataMap = initializeCacheMetadata();
     private static final String FULL_POST_CACHE_PREFIX = "cache:post:";
-    private static final Duration FULL_POST_CACHE_TTL = Duration.ofMinutes(5);
+    private static final String POSTIDS_PREFIX = "cache:postids:";
     private static final String REALTIME_POPULAR_SCORE_KEY = "cache:realtime:scores";
     private static final double SCORE_DECAY_RATE = 0.9;
     private static final double SCORE_THRESHOLD = 1.0;
+    private static final Duration FULL_POST_CACHE_TTL = Duration.ofMinutes(5);
+    private static final Duration POSTIDS_TTL_WEEKLY_LEGEND = Duration.ofDays(1);
+    private static final RedisScript<Long> SCORE_DECAY_SCRIPT;
+
+    static {
+        String luaScript =
+            "local members = redis.call('ZRANGE', KEYS[1], 0, -1, 'WITHSCORES') " +
+            "for i = 1, #members, 2 do " +
+            "    local member = members[i] " +
+            "    local score = tonumber(members[i + 1]) " +
+            "    local newScore = score * tonumber(ARGV[1]) " +
+            "    redis.call('ZADD', KEYS[1], newScore, member) " +
+            "end " +
+            "return redis.call('ZCARD', KEYS[1])";
+
+        DefaultRedisScript<Long> script = new DefaultRedisScript<>();
+        script.setScriptText(luaScript);
+        script.setResultType(Long.class);
+        SCORE_DECAY_SCRIPT = script;
+    }
 
     private static Map<PostCacheFlag, CacheMetadata> initializeCacheMetadata() {
         Map<PostCacheFlag, CacheMetadata> map = new EnumMap<>(PostCacheFlag.class);
@@ -68,8 +89,49 @@ public class RedisPostCommandAdapter implements RedisPostCommandPort {
     }
 
     /**
+     * <h3>인기글 postId 영구 저장</h3>
+     * <p>인기글 postId 목록만 Redis List에 영구 또는 긴 TTL로 저장합니다.</p>
+     * <p>목록 캐시 TTL 만료 시 복구용으로 사용됩니다.</p>
+     *
+     * @param type  캐시할 게시글 유형 (WEEKLY, LEGEND, NOTICE)
+     * @param postIds 캐시할 게시글 ID 목록 (이미 인기도 순으로 정렬됨)
+     * @throws CustomException Redis 쓰기 오류 발생 시
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public void cachePostIdsOnly(PostCacheFlag type, List<Long> postIds) {
+        if (postIds == null || postIds.isEmpty()) {
+            return;
+        }
+
+        String postIdsKey = POSTIDS_PREFIX + type.name().toLowerCase();
+
+        try {
+            // 기존 postIds 캐시 삭제
+            redisTemplate.delete(postIdsKey);
+
+            // List에 postId만 저장 (RPUSH로 순서대로 삽입)
+            for (Long postId : postIds) {
+                redisTemplate.opsForList().rightPush(postIdsKey, postId.toString());
+            }
+
+            // TTL 설정: 주간/레전드는 1일, 공지는 영구
+            if (type == PostCacheFlag.NOTICE) {
+                // 공지는 TTL 설정하지 않음 (영구)
+            } else {
+                // 주간/레전드는 1일
+                redisTemplate.expire(postIdsKey, POSTIDS_TTL_WEEKLY_LEGEND);
+            }
+
+        } catch (Exception e) {
+            throw new PostCustomException(PostErrorCode.REDIS_WRITE_ERROR, e);
+        }
+    }
+
+    /**
      * <h3>인기글 postId 목록 캐싱</h3>
-     * <p>인기글 postId 목록만 Redis Sorted Set에 저장합니다 (상세 정보는 저장하지 않음).</p>
+     * <p>인기글 postId 목록만 Redis List에 저장합니다 (상세 정보는 저장하지 않음).</p>
      * <p>메모리 효율을 위해 postId만 저장하고, 조회 시 캐시 어사이드 패턴으로 PostDetail을 조회합니다.</p>
      *
      * @param type  캐시할 게시글 유형 (WEEKLY, LEGEND, NOTICE)
@@ -87,13 +149,10 @@ public class RedisPostCommandAdapter implements RedisPostCommandPort {
         CacheMetadata metadata = getCacheMetadata(type);
 
         try {
-            // Sorted Set에 postId만 저장 (score는 리스트 순서를 역순으로 사용하여 정렬 유지)
+            // List에 postId만 저장 (RPUSH로 순서대로 삽입)
             String listKey = metadata.key();
-            int size = postIds.size();
-            for (int i = 0; i < size; i++) {
-                Long postId = postIds.get(i);
-                double score = size - i; // 역순 score (첫 번째가 가장 큰 score)
-                redisTemplate.opsForZSet().add(listKey, postId.toString(), score);
+            for (Long postId : postIds) {
+                redisTemplate.opsForList().rightPush(listKey, postId.toString());
             }
             // TTL 설정
             redisTemplate.expire(listKey, metadata.ttl());
@@ -176,19 +235,20 @@ public class RedisPostCommandAdapter implements RedisPostCommandPort {
         String postIdStr = postId.toString();
         for (PostCacheFlag type : PostCacheFlag.getPopularPostTypes()) {
             CacheMetadata metadata = getCacheMetadata(type);
-            redisTemplate.opsForZSet().remove(metadata.key(), postIdStr);
+            // LREM: 0 = 모든 매칭 요소 제거
+            redisTemplate.opsForList().remove(metadata.key(), 0, postIdStr);
         }
     }
     
     private void deleteTypeCacheWithDetails(PostCacheFlag type) {
         CacheMetadata metadata = getCacheMetadata(type);
-        
+
         // 1. 목록 캐시에서 게시글 ID들을 먼저 조회
-        Set<Object> postIds = redisTemplate.opsForZSet().range(metadata.key(), 0, -1);
-        
+        List<Object> postIds = redisTemplate.opsForList().range(metadata.key(), 0, -1);
+
         // 2. 목록 캐시 삭제
         redisTemplate.delete(metadata.key());
-        
+
         // 3. 해당 타입에 속했던 게시글들의 상세 캐시도 삭제
         if (postIds != null && !postIds.isEmpty()) {
             List<String> detailKeys = postIds.stream()
@@ -218,7 +278,8 @@ public class RedisPostCommandAdapter implements RedisPostCommandPort {
         String postIdStr = postId.toString();
         for (PostCacheFlag type : targetTypes) {
             CacheMetadata metadata = getCacheMetadata(type);
-            redisTemplate.opsForZSet().remove(metadata.key(), postIdStr);
+            // LREM: 0 = 모든 매칭 요소 제거
+            redisTemplate.opsForList().remove(metadata.key(), 0, postIdStr);
         }
     }
 
@@ -253,31 +314,56 @@ public class RedisPostCommandAdapter implements RedisPostCommandPort {
     public void applyRealtimePopularScoreDecay() {
         try {
             // 1. 모든 항목의 점수에 0.9 곱하기 (Lua 스크립트 사용)
-            String luaScript =
-                "local members = redis.call('ZRANGE', KEYS[1], 0, -1, 'WITHSCORES') " +
-                "for i = 1, #members, 2 do " +
-                "    local member = members[i] " +
-                "    local score = tonumber(members[i + 1]) " +
-                "    local newScore = score * tonumber(ARGV[1]) " +
-                "    redis.call('ZADD', KEYS[1], newScore, member) " +
-                "end " +
-                "return redis.call('ZCARD', KEYS[1])";
-
             redisTemplate.execute(
-                (org.springframework.data.redis.core.RedisCallback<Object>) connection -> {
-                    return connection.eval(
-                        luaScript.getBytes(),
-                        org.springframework.data.redis.connection.ReturnType.INTEGER,
-                        1,
-                        REALTIME_POPULAR_SCORE_KEY.getBytes(),
-                        String.valueOf(SCORE_DECAY_RATE).getBytes()
-                    );
-                }
+                SCORE_DECAY_SCRIPT,
+                List.of(REALTIME_POPULAR_SCORE_KEY),
+                SCORE_DECAY_RATE
             );
 
             // 2. 임계값(1점) 이하의 게시글 제거
             redisTemplate.opsForZSet().removeRangeByScore(REALTIME_POPULAR_SCORE_KEY, 0, SCORE_THRESHOLD);
 
+        } catch (Exception e) {
+            throw new PostCustomException(PostErrorCode.REDIS_WRITE_ERROR, e);
+        }
+    }
+
+    /**
+     * <h3>postIds 저장소에 단일 게시글 추가</h3>
+     * <p>postIds 영구 저장소의 앞에 게시글 ID를 추가합니다 (LPUSH).</p>
+     * <p>공지사항 설정 시 호출됩니다.</p>
+     *
+     * @param type 캐시 유형 (NOTICE만 사용)
+     * @param postId 추가할 게시글 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public void addPostIdToStorage(PostCacheFlag type, Long postId) {
+        String postIdsKey = POSTIDS_PREFIX + type.name().toLowerCase();
+        try {
+            redisTemplate.opsForList().leftPush(postIdsKey, postId.toString());
+        } catch (Exception e) {
+            throw new PostCustomException(PostErrorCode.REDIS_WRITE_ERROR, e);
+        }
+    }
+
+    /**
+     * <h3>postIds 저장소에서 단일 게시글 제거</h3>
+     * <p>postIds 영구 저장소에서 게시글 ID를 제거합니다 (LREM).</p>
+     * <p>공지사항 해제 시 호출됩니다.</p>
+     *
+     * @param type 캐시 유형 (NOTICE만 사용)
+     * @param postId 제거할 게시글 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public void removePostIdFromStorage(PostCacheFlag type, Long postId) {
+        String postIdsKey = POSTIDS_PREFIX + type.name().toLowerCase();
+        try {
+            // LREM: 0 = 모든 매칭 요소 제거
+            redisTemplate.opsForList().remove(postIdsKey, 0, postId.toString());
         } catch (Exception e) {
             throw new PostCustomException(PostErrorCode.REDIS_WRITE_ERROR, e);
         }
