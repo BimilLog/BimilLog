@@ -1,9 +1,9 @@
 package jaeik.bimillog.infrastructure.adapter.out.redis;
 
 import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
+import jaeik.bimillog.domain.post.entity.PopularPostInfo;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
-import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -120,13 +120,13 @@ public class RedisPostCommandAdapter implements RedisPostCommandPort {
      * <p>메모리 효율을 위해 postId만 저장하고, 조회 시 캐시 어사이드 패턴으로 PostDetail을 조회합니다.</p>
      *
      * @param type  캐시할 게시글 유형 (WEEKLY, LEGEND)
-     * @param posts 인기글 목록 (postId와 likeCount 포함)
+     * @param posts 인기글 목록 (postId 포함, 이미 인기도 순으로 정렬됨)
      * @throws CustomException Redis 쓰기 오류 발생 시
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void cachePostIds(PostCacheFlag type, List<PostSimpleDetail> posts) {
+    public void cachePostIds(PostCacheFlag type, List<PopularPostInfo> posts) {
         if (posts == null || posts.isEmpty()) {
             return;
         }
@@ -134,10 +134,13 @@ public class RedisPostCommandAdapter implements RedisPostCommandPort {
         CacheMetadata metadata = getCacheMetadata(type);
 
         try {
-            // Sorted Set에 postId만 저장 (score는 likeCount 사용)
+            // Sorted Set에 postId만 저장 (score는 리스트 순서를 역순으로 사용하여 정렬 유지)
             String listKey = metadata.key();
-            for (PostSimpleDetail post : posts) {
-                redisTemplate.opsForZSet().add(listKey, post.getId().toString(), post.getLikeCount());
+            int size = posts.size();
+            for (int i = 0; i < size; i++) {
+                PopularPostInfo post = posts.get(i);
+                double score = size - i; // 역순 score (첫 번째가 가장 큰 score)
+                redisTemplate.opsForZSet().add(listKey, post.postId().toString(), score);
             }
             // TTL 설정
             redisTemplate.expire(listKey, metadata.ttl());

@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
 import jaeik.bimillog.domain.post.application.service.PostScheduledService;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
-import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
+import jaeik.bimillog.domain.post.entity.PopularPostInfo;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -69,9 +69,9 @@ class PostScheduledServiceTest {
     @DisplayName("주간 인기 게시글 업데이트 - 성공 (이벤트 발행 포함)")
     void shouldUpdateWeeklyPopularPosts_WhenPostsExist() {
         // Given
-        PostSimpleDetail post1 = createPostSearchResult(1L, "주간인기글1", 1L);
-        PostSimpleDetail post2 = createPostSearchResult(2L, "주간인기글2", 2L);
-        List<PostSimpleDetail> posts = List.of(post1, post2);
+        PopularPostInfo post1 = createPopularPostInfo(1L, "주간인기글1", 1L);
+        PopularPostInfo post2 = createPopularPostInfo(2L, "주간인기글2", 2L);
+        List<PopularPostInfo> posts = List.of(post1, post2);
 
         given(postQueryPort.findWeeklyPopularPosts()).willReturn(posts);
 
@@ -97,9 +97,9 @@ class PostScheduledServiceTest {
     @DisplayName("주간 인기 게시글 업데이트 - 익명 게시글 포함 (이벤트 발행 안함)")
     void shouldUpdateWeeklyPopularPosts_WhenAnonymousPostsIncluded() {
         // Given
-        PostSimpleDetail anonymousPost = createPostSearchResult(1L, "익명글", null); // userId가 null
-        PostSimpleDetail userPost = createPostSearchResult(2L, "회원글", 2L);
-        List<PostSimpleDetail> posts = List.of(anonymousPost, userPost);
+        PopularPostInfo anonymousPost = createPopularPostInfo(1L, "익명글", null); // userId가 null
+        PopularPostInfo userPost = createPopularPostInfo(2L, "회원글", 2L);
+        List<PopularPostInfo> posts = List.of(anonymousPost, userPost);
 
         given(postQueryPort.findWeeklyPopularPosts()).willReturn(posts);
 
@@ -122,8 +122,8 @@ class PostScheduledServiceTest {
     @DisplayName("전설의 게시글 업데이트 - 성공 (명예의 전당 메시지)")
     void shouldUpdateLegendaryPosts_WhenPostsExist() {
         // Given
-        PostSimpleDetail legendPost = createPostSearchResult(1L, "전설의글", 1L);
-        List<PostSimpleDetail> posts = List.of(legendPost);
+        PopularPostInfo legendPost = createPopularPostInfo(1L, "전설의글", 1L);
+        List<PopularPostInfo> posts = List.of(legendPost);
 
         given(postQueryPort.findLegendaryPosts()).willReturn(posts);
 
@@ -184,7 +184,7 @@ class PostScheduledServiceTest {
     @DisplayName("대량 게시글 처리 - 성능 테스트 시나리오")
     void shouldHandleLargeNumberOfPosts_PerformanceScenario() {
         // Given - 대량의 게시글 생성 (100개)
-        List<PostSimpleDetail> largePosts = createLargePostList(100);
+        List<PopularPostInfo> largePosts = createLargePostList(100);
 
         given(postQueryPort.findWeeklyPopularPosts()).willReturn(largePosts);
 
@@ -199,12 +199,8 @@ class PostScheduledServiceTest {
     }
 
     // 테스트 유틸리티 메서드들
-    private PostSimpleDetail createPostSearchResult(Long id, String title, Long memberId) {
-        return PostSimpleDetail.builder()
-                .id(id)
-                .title(title)
-                .memberId(memberId)
-                .build();
+    private PopularPostInfo createPopularPostInfo(Long postId, String title, Long memberId) {
+        return new PopularPostInfo(postId, memberId, title);
     }
 
     private PostDetail createPostDetail(Long id, String title, String content) {
@@ -222,11 +218,11 @@ class PostScheduledServiceTest {
                 .build();
     }
 
-    private List<PostSimpleDetail> createLargePostList(int count) {
+    private List<PopularPostInfo> createLargePostList(int count) {
         return java.util.stream.IntStream.range(0, count)
-                .mapToObj(i -> createPostSearchResult(
-                        (long) i, 
-                        "제목" + i, 
+                .mapToObj(i -> createPopularPostInfo(
+                        (long) i,
+                        "제목" + i,
                         i % 2 == 0 ? (long) i : null // 짝수만 memberId 설정
                 ))
                 .toList();

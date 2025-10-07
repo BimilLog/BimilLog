@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.post.application.port.out;
 
+import jaeik.bimillog.domain.post.entity.PopularPostInfo;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
-import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 
 import java.util.List;
 
@@ -35,11 +35,11 @@ public interface RedisPostCommandPort {
      * <p>인기글 postId 목록을 Redis Sorted Set에 저장합니다</p>
      *
      * @param type 캐시할 인기글 유형 (WEEKLY, LEGEND만 사용)
-     * @param posts 인기글 목록 (postId와 likeCount 포함)
+     * @param posts 인기글 목록 (postId 포함)
      * @author Jaeik
      * @since 2.0.0
      */
-    void cachePostIds(PostCacheFlag type, List<PostSimpleDetail> posts);
+    void cachePostIds(PostCacheFlag type, List<PopularPostInfo> posts);
 
     /**
      * <h3>캐시 데이터 선택적 삭제</h3>

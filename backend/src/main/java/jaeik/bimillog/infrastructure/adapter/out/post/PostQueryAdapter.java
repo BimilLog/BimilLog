@@ -22,7 +22,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -103,9 +105,8 @@ public class PostQueryAdapter implements PostQueryPort {
     }
 
     /**
-     * <h3>사용자 추천한 게시글 목록 조회</h3>
+     * <h3>사용자 추천 게시글 목록 조회</h3>
      * <p>특정 사용자가 추천한 게시글 목록을 페이지네이션으로 조회합니다.</p>
-     * <p>배치 조회로 댓글 수와 추천 수 조회</p>
      * <p>{@link PostQueryService}에서 사용자 추천 게시글 내역 조회 시 호출됩니다.</p>
      *
      * @param memberId 사용자 ID
@@ -120,6 +121,60 @@ public class PostQueryAdapter implements PostQueryPort {
                 query.join(postLike).on(post.id.eq(postLike.post.id).and(postLike.member.id.eq(memberId)));
         return findPostsWithQuery(customizer, customizer, pageable);
     }
+
+    /**
+     * <h3>주간 인기 게시글 조회</h3>
+     * <p>지난 7일간의 인기 게시글 목록을 조회합니다.</p>
+     *
+     * @return 주간 인기 게시글 목록 (postId, memberId, title 포함)
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<PopularPostInfo> findWeeklyPopularPosts() {
+        return jpaQueryFactory
+                .select(Projections.constructor(PopularPostInfo.class,
+                        post.id,
+                        member.id,
+                        post.title))
+                .from(post)
+                .leftJoin(post.member, member)
+                .leftJoin(postLike).on(post.id.eq(postLike.post.id))
+                .where(post.createdAt.after(Instant.now().minus(7, ChronoUnit.DAYS)))
+                .groupBy(post.id, member.id, post.title)
+                .having(postLike.countDistinct().goe(1))
+                .orderBy(postLike.countDistinct().desc())
+                .limit(5)
+                .fetch();
+    }
+
+    /**
+     * <h3>레전드 게시글 조회</h3>
+     * <p>추천 수가 20개 이상인 게시글 중 가장 추천 수가 많은 상위 50개 게시글을 조회합니다.</p>
+     *
+     * @return 전설의 게시글 목록 (postId, memberId, title 포함)
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<PopularPostInfo> findLegendaryPosts() {
+        return jpaQueryFactory
+                .select(Projections.constructor(PopularPostInfo.class,
+                        post.id,
+                        member.id,
+                        post.title))
+                .from(post)
+                .leftJoin(post.member, member)
+                .leftJoin(postLike).on(post.id.eq(postLike.post.id))
+                .groupBy(post.id, member.id, post.title)
+                .having(postLike.countDistinct().goe(20))
+                .orderBy(postLike.countDistinct().desc())
+                .limit(50)
+                .fetch();
+    }
+
 
     /**
      * <h3>게시글 목록 조회</h3>
@@ -199,6 +254,7 @@ public class PostQueryAdapter implements PostQueryPort {
             post.setLikeCount(likeCounts.getOrDefault(post.getId(), 0));
         });
     }
+
 
     /**
      * <h3>게시글 상세 조회</h3>
@@ -396,76 +452,17 @@ public class PostQueryAdapter implements PostQueryPort {
         if (value instanceof Instant instant) {
             return instant;
         }
-        if (value instanceof java.sql.Timestamp timestamp) {
+        if (value instanceof Timestamp timestamp) {
             return timestamp.toInstant();
         }
-        if (value instanceof java.time.LocalDateTime localDateTime) {
+        if (value instanceof LocalDateTime localDateTime) {
             return localDateTime.toInstant(ZoneOffset.UTC);
         }
         return null;
     }
 
-    /**
-     * <h3>주간 인기 게시글 조회</h3>
-     * <p>지난 7일간의 인기 게시글 목록을 조회합니다.</p>
-     *
-     * @return 주간 인기 게시글 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public List<PostSimpleDetail> findWeeklyPopularPosts() {
-        return createBasePopularPostsQuery()
-                .where(post.createdAt.after(Instant.now().minus(7, ChronoUnit.DAYS)))
-                .having(postLike.countDistinct().goe(1))
-                .orderBy(postLike.countDistinct().desc())
-                .limit(5)
-                .fetch();
-    }
 
-    /**
-     * <h3>전설의 게시글 조회</h3>
-     * <p>추천 수가 20개 이상인 게시글 중 가장 추천 수가 많은 상위 50개 게시글을 조회합니다.</p>
-     *
-     * @return 전설의 게시글 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public List<PostSimpleDetail> findLegendaryPosts() {
-        return createBasePopularPostsQuery()
-                .having(postLike.countDistinct().goe(20))
-                .orderBy(postLike.countDistinct().desc())
-                .limit(50)
-                .fetch();
-    }
 
-    /**
-     * <h3>기본 인기 게시글 쿼리 생성</h3>
-     * <p>인기 게시글 조회를 위한 기본 QueryDSL 쿼리를 생성합니다.</p>
-     *
-     * @return 기본 JPAQuery 객체
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private JPAQuery<PostSimpleDetail> createBasePopularPostsQuery() {
-        return jpaQueryFactory
-                .select(Projections.constructor(PostSimpleDetail.class,
-                        post.id,                              // 1. id (Long)
-                        post.title,                           // 2. title (String)
-                        post.views.coalesce(0),              // 3. viewCount (Integer)
-                        postLike.countDistinct().intValue(), // 4. likeCount (Integer)
-                        post.createdAt,                      // 5. createdAt (Instant)
-                        member.id,                           // 6. memberId (Long)
-                        member.memberName,                   // 7. memberName (String)
-                        comment.countDistinct().intValue())) // 8. commentCount (Integer)
-                .from(post)
-                .leftJoin(post.member, member)
-                .leftJoin(comment).on(post.id.eq(comment.post.id))
-                .leftJoin(postLike).on(post.id.eq(postLike.post.id))
-                .groupBy(post.id, member.id);
-    }
+
 
 }

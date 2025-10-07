@@ -2,8 +2,8 @@ package jaeik.bimillog.domain.post.application.service;
 
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
+import jaeik.bimillog.domain.post.entity.PopularPostInfo;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
-import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -61,7 +61,7 @@ public class PostScheduledService {
     @Scheduled(fixedRate = 60000 * 1440) // 1일마다
     @Transactional
     public void updateWeeklyPopularPosts() {
-        List<PostSimpleDetail> posts = postQueryPort.findWeeklyPopularPosts();
+        List<PopularPostInfo> posts = postQueryPort.findWeeklyPopularPosts();
         if (posts.isEmpty()) {
             log.info("WEEKLY에 대한 인기 게시글이 없어 캐시 업데이트를 건너뜁니다.");
             return;
@@ -87,7 +87,7 @@ public class PostScheduledService {
     @Scheduled(fixedRate = 60000 * 1440) // 1일마다
     @Transactional
     public void updateLegendaryPosts() {
-        List<PostSimpleDetail> posts = postQueryPort.findLegendaryPosts();
+        List<PopularPostInfo> posts = postQueryPort.findLegendaryPosts();
         if (posts.isEmpty()) {
             log.info("LEGEND에 대한 인기 게시글이 없어 캐시 업데이트를 건너뜁니다.");
             return;
@@ -111,19 +111,19 @@ public class PostScheduledService {
      * @param eventTitle 이벤트 제목
      * @param eventBodyFormat 이벤트 본문 포맷 문자열 (게시글 제목을 %s로 사용)
      */
-    private void publishFeaturedEvent(List<PostSimpleDetail> posts, String notiTitle, String eventTitle, String eventBodyFormat) {
+    private void publishFeaturedEvent(List<PopularPostInfo> posts, String notiTitle, String eventTitle, String eventBodyFormat) {
         posts.stream()
-                .filter(post -> post.getMemberId() != null)
+                .filter(post -> post.memberId() != null)
                 .forEach(post -> {
-                    String eventBody = String.format(eventBodyFormat, post.getTitle());
+                    String eventBody = String.format(eventBodyFormat, post.title());
                     eventPublisher.publishEvent(new PostFeaturedEvent(
-                            post.getMemberId(),
+                            post.memberId(),
                             notiTitle,
-                            post.getId(),
+                            post.postId(),
                             eventTitle,
                             eventBody
                     ));
-                    log.info("게시글 ID {}에 대한 인기글 알림 이벤트 발행: 회원 ID={}", post.getId(), post.getMemberId());
+                    log.info("게시글 ID {}에 대한 인기글 알림 이벤트 발행: 회원 ID={}", post.postId(), post.memberId());
                 });
     }
 }

@@ -393,8 +393,8 @@ class PostQueryServiceTest extends BaseUnitTest {
 
 
     @Test
-    @DisplayName("레전드 인기 게시글 페이징 조회 - 캐시 있음")
-    void shouldGetPopularPostLegend_WhenCacheExists() {
+    @DisplayName("레전드 인기 게시글 페이징 조회")
+    void shouldGetPopularPostLegend() {
         // Given
         PostCacheFlag type = PostCacheFlag.LEGEND;
         Pageable pageable = PageRequest.of(0, 10);
@@ -403,7 +403,6 @@ class PostQueryServiceTest extends BaseUnitTest {
         PostSimpleDetail legendPost2 = PostTestDataBuilder.createPostSearchResult(2L, "레전드 게시글 2");
         Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(legendPost1, legendPost2), pageable, 2);
 
-        given(redisPostQueryPort.hasPopularPostsCache(type)).willReturn(true);
         given(redisPostQueryPort.getCachedPostListPaged(pageable)).willReturn(expectedPage);
 
         // When
@@ -415,37 +414,8 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.getContent().get(0).getTitle()).isEqualTo("레전드 게시글 1");
         assertThat(result.getContent().get(1).getTitle()).isEqualTo("레전드 게시글 2");
 
-        verify(redisPostQueryPort).hasPopularPostsCache(type);
-        verify(redisPostQueryPort).getCachedPostListPaged(pageable);
-        verify(postScheduledService, never()).updateLegendaryPosts();
-    }
-
-    @Test
-    @DisplayName("레전드 인기 게시글 페이징 조회 - 캐시 없음, 업데이트 후 조회")
-    void shouldGetPopularPostLegend_WhenNoCacheUpdateThenGet() {
-        // Given
-        PostCacheFlag type = PostCacheFlag.LEGEND;
-        Pageable pageable = PageRequest.of(0, 5);
-
-        PostSimpleDetail legendPost = PostTestDataBuilder.createPostSearchResult(1L, "업데이트된 레전드 게시글");
-        Page<PostSimpleDetail> updatedPage = new PageImpl<>(List.of(legendPost), pageable, 1);
-
-        given(redisPostQueryPort.hasPopularPostsCache(type)).willReturn(false);
-        given(redisPostQueryPort.getCachedPostListPaged(pageable)).willReturn(updatedPage);
-
-        // When
-        Page<PostSimpleDetail> result = postQueryService.getPopularPostLegend(type, pageable);
-
-        // Then
-        assertThat(result).isEqualTo(updatedPage);
-        assertThat(result.getContent()).hasSize(1);
-        assertThat(result.getContent().get(0).getTitle()).isEqualTo("업데이트된 레전드 게시글");
-
-        verify(redisPostQueryPort).hasPopularPostsCache(type);
-        verify(postScheduledService).updateLegendaryPosts();
         verify(redisPostQueryPort).getCachedPostListPaged(pageable);
     }
-
 
     @Test
     @DisplayName("레전드 인기 게시글 페이징 조회 - 잘못된 타입으로 호출시 예외 발생")
@@ -577,8 +547,8 @@ class PostQueryServiceTest extends BaseUnitTest {
     }
 
     @Test
-    @DisplayName("실시간/주간 인기글 일괄 조회 - 캐시 모두 있음")
-    void shouldGetRealtimeAndWeeklyPosts_WhenBothCachesExist() {
+    @DisplayName("실시간/주간 인기글 일괄 조회")
+    void shouldGetRealtimeAndWeeklyPosts() {
         // Given
         PostDetail realtimePost1 = createPostDetail(1L, "실시간 인기글 1");
         PostDetail realtimePost2 = createPostDetail(2L, "실시간 인기글 2");
@@ -591,7 +561,6 @@ class PostQueryServiceTest extends BaseUnitTest {
         given(redisPostQueryPort.getRealtimePopularPostIds()).willReturn(List.of(1L, 2L));
         given(redisPostQueryPort.getCachedPostIfExists(1L)).willReturn(realtimePost1);
         given(redisPostQueryPort.getCachedPostIfExists(2L)).willReturn(realtimePost2);
-        given(redisPostQueryPort.hasPopularPostsCache(PostCacheFlag.WEEKLY)).willReturn(true);
         given(redisPostQueryPort.getCachedPostList(PostCacheFlag.WEEKLY)).willReturn(weeklyPosts);
 
         // When
@@ -606,9 +575,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.get("weekly").get(0).getTitle()).isEqualTo("주간 인기글 1");
 
         verify(redisPostQueryPort).getRealtimePopularPostIds();
-        verify(redisPostQueryPort).hasPopularPostsCache(PostCacheFlag.WEEKLY);
         verify(redisPostQueryPort).getCachedPostList(PostCacheFlag.WEEKLY);
-        verify(postScheduledService, never()).updateWeeklyPopularPosts();
     }
 
     @Test
@@ -621,7 +588,6 @@ class PostQueryServiceTest extends BaseUnitTest {
         given(redisPostQueryPort.getRealtimePopularPostIds()).willReturn(List.of(1L));
         given(redisPostQueryPort.getCachedPostIfExists(1L)).willReturn(null); // Cache miss
         given(postQueryPort.findPostDetailWithCounts(1L, null)).willReturn(Optional.of(realtimePost1)); // DB fallback
-        given(redisPostQueryPort.hasPopularPostsCache(PostCacheFlag.WEEKLY)).willReturn(true);
         given(redisPostQueryPort.getCachedPostList(PostCacheFlag.WEEKLY)).willReturn(weeklyPosts);
 
         // When
@@ -635,64 +601,6 @@ class PostQueryServiceTest extends BaseUnitTest {
         verify(redisPostQueryPort).getRealtimePopularPostIds();
         verify(redisPostQueryPort).getCachedPostIfExists(1L);
         verify(postQueryPort).findPostDetailWithCounts(1L, null);
-        verify(redisPostQueryPort).hasPopularPostsCache(PostCacheFlag.WEEKLY);
-        verify(postScheduledService, never()).updateWeeklyPopularPosts();
-        verify(redisPostQueryPort).getCachedPostList(PostCacheFlag.WEEKLY);
-    }
-
-    @Test
-    @DisplayName("실시간/주간 인기글 일괄 조회 - 주간 캐시 없음")
-    void shouldGetRealtimeAndWeeklyPosts_WhenWeeklyCacheMissing() {
-        // Given
-        PostDetail realtimePost1 = createPostDetail(1L, "기존 실시간");
-        List<PostSimpleDetail> weeklyPosts = List.of(PostTestDataBuilder.createPostSearchResult(2L, "업데이트된 주간"));
-
-        given(redisPostQueryPort.getRealtimePopularPostIds()).willReturn(List.of(1L));
-        given(redisPostQueryPort.getCachedPostIfExists(1L)).willReturn(realtimePost1); // Cache hit
-        given(redisPostQueryPort.hasPopularPostsCache(PostCacheFlag.WEEKLY)).willReturn(false);
-        given(redisPostQueryPort.getCachedPostList(PostCacheFlag.WEEKLY)).willReturn(weeklyPosts);
-
-        // When
-        Map<String, List<PostSimpleDetail>> result = postQueryService.getRealtimeAndWeeklyPosts();
-
-        // Then
-        assertThat(result).hasSize(2);
-        assertThat(result.get("realtime")).hasSize(1);
-        assertThat(result.get("weekly")).hasSize(1);
-
-        verify(redisPostQueryPort).getRealtimePopularPostIds();
-        verify(redisPostQueryPort).getCachedPostIfExists(1L);
-        verify(redisPostQueryPort).hasPopularPostsCache(PostCacheFlag.WEEKLY);
-        verify(postScheduledService).updateWeeklyPopularPosts();
-        verify(redisPostQueryPort).getCachedPostList(PostCacheFlag.WEEKLY);
-    }
-
-    @Test
-    @DisplayName("실시간/주간 인기글 일괄 조회 - 두 캐시 모두 없음")
-    void shouldGetRealtimeAndWeeklyPosts_WhenBothCachesMissing() {
-        // Given
-        PostDetail realtimePost1 = createPostDetail(1L, "새로운 실시간");
-        List<PostSimpleDetail> weeklyPosts = List.of(PostTestDataBuilder.createPostSearchResult(2L, "새로운 주간"));
-
-        given(redisPostQueryPort.getRealtimePopularPostIds()).willReturn(List.of(1L));
-        given(redisPostQueryPort.getCachedPostIfExists(1L)).willReturn(null); // Cache miss
-        given(postQueryPort.findPostDetailWithCounts(1L, null)).willReturn(Optional.of(realtimePost1)); // DB fallback
-        given(redisPostQueryPort.hasPopularPostsCache(PostCacheFlag.WEEKLY)).willReturn(false);
-        given(redisPostQueryPort.getCachedPostList(PostCacheFlag.WEEKLY)).willReturn(weeklyPosts);
-
-        // When
-        Map<String, List<PostSimpleDetail>> result = postQueryService.getRealtimeAndWeeklyPosts();
-
-        // Then
-        assertThat(result).hasSize(2);
-        assertThat(result.get("realtime")).hasSize(1);
-        assertThat(result.get("weekly")).hasSize(1);
-
-        verify(redisPostQueryPort).getRealtimePopularPostIds();
-        verify(redisPostQueryPort).getCachedPostIfExists(1L);
-        verify(postQueryPort).findPostDetailWithCounts(1L, null);
-        verify(redisPostQueryPort).hasPopularPostsCache(PostCacheFlag.WEEKLY);
-        verify(postScheduledService).updateWeeklyPopularPosts();
         verify(redisPostQueryPort).getCachedPostList(PostCacheFlag.WEEKLY);
     }
 

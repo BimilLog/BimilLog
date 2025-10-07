@@ -1,4 +1,4 @@
-package jaeik.bimillog.adapter.out.redis;
+package jaeik.bimillog.adapter.out.post;
 
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.entity.*;
@@ -32,8 +32,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
- * <h2>RedisPostSyncAdapter 테스트</h2>
- * <p>PostCacheSyncAdapter가 인기 게시글 조회 기능을 정확히 수행하는지 테스트합니다.</p>
+ * <h2>PostQueryAdapter 인기 게시글 조회 통합 테스트</h2>
+ * <p>주간/전설 인기 게시글 DB 조회 기능을 정확히 수행하는지 테스트합니다.</p>
  * <p>TestContainers를 사용하여 MySQL과 Redis 컨테이너와 함께 통합 테스트를 수행합니다.</p>
  *
  * @author Jaeik
@@ -46,7 +46,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Transactional
 @Tag("tc")
-class RedisPostSyncAdapterIntegrationTest {
+class PopularPostQueryAdapterIntegrationTest {
 
     @Autowired
     private PostQueryPort postQueryPort;
@@ -146,12 +146,16 @@ class RedisPostSyncAdapterIntegrationTest {
         entityManager.clear();
 
         // When
-        List<PostSimpleDetail> popularPosts = postQueryPort.findWeeklyPopularPosts();
+        List<PopularPostInfo> popularPosts = postQueryPort.findWeeklyPopularPosts();
 
         // Then
         assertThat(popularPosts).hasSize(2);
-        assertThat(popularPosts.get(0).getTitle()).isEqualTo("주간 인기 게시글2"); // 좋아요 12개
-        assertThat(popularPosts.get(1).getTitle()).isEqualTo("주간 인기 게시글1"); // 좋아요 10개
+        assertThat(popularPosts.get(0).title()).isEqualTo("주간 인기 게시글2"); // 좋아요 12개
+        assertThat(popularPosts.get(0).postId()).isNotNull();
+        assertThat(popularPosts.get(0).memberId()).isEqualTo(testMember.getId());
+        assertThat(popularPosts.get(1).title()).isEqualTo("주간 인기 게시글1"); // 좋아요 10개
+        assertThat(popularPosts.get(1).postId()).isNotNull();
+        assertThat(popularPosts.get(1).memberId()).isEqualTo(testMember.getId());
     }
 
     @Test
@@ -170,12 +174,16 @@ class RedisPostSyncAdapterIntegrationTest {
         entityManager.clear();
 
         // When
-        List<PostSimpleDetail> legendaryPosts = postQueryPort.findLegendaryPosts();
+        List<PopularPostInfo> legendaryPosts = postQueryPort.findLegendaryPosts();
 
         // Then
         assertThat(legendaryPosts).hasSize(2);
-        assertThat(legendaryPosts.get(0).getTitle()).isEqualTo("전설의 게시글2");
-        assertThat(legendaryPosts.get(1).getTitle()).isEqualTo("전설의 게시글1");
+        assertThat(legendaryPosts.get(0).title()).isEqualTo("전설의 게시글2");
+        assertThat(legendaryPosts.get(0).postId()).isNotNull();
+        assertThat(legendaryPosts.get(0).memberId()).isEqualTo(testMember.getId());
+        assertThat(legendaryPosts.get(1).title()).isEqualTo("전설의 게시글1");
+        assertThat(legendaryPosts.get(1).postId()).isNotNull();
+        assertThat(legendaryPosts.get(1).memberId()).isEqualTo(testMember.getId());
     }
 
     @Test

@@ -63,7 +63,7 @@ class PostCacheServiceTest {
 
         // Then (주간/레전드와 동일하게 postId만 저장)
         verify(redisPostCommandPort).cachePostIds(eq(PostCacheFlag.NOTICE), argThat(searchResults ->
-                searchResults.size() == 1 && searchResults.get(0).getId().equals(postId)
+                searchResults.size() == 1 && searchResults.get(0).postId().equals(postId)
         ));
     }
 

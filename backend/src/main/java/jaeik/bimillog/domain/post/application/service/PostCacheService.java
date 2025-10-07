@@ -3,6 +3,7 @@ package jaeik.bimillog.domain.post.application.service;
 import jaeik.bimillog.domain.post.application.port.in.PostCacheUseCase;
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
+import jaeik.bimillog.domain.post.entity.PopularPostInfo;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import lombok.RequiredArgsConstructor;
@@ -65,11 +66,12 @@ public class PostCacheService implements PostCacheUseCase {
     private void addNoticeToCache(Long postId) {
         log.info("공지사항 캐시 추가 시작: postId={}", postId);
 
-        // 게시글 정보를 DB에서 조회 (PostSearchResult로 조회)
+        // 게시글 정보를 DB에서 조회
         PostDetail postDetail = postQueryPort.findPostDetailWithCounts(postId, null).orElse(null);
         if (postDetail != null) {
             // postId만 캐시에 추가 (주간/레전드와 동일한 방식)
-            redisPostCommandPort.cachePostIds(PostCacheFlag.NOTICE, List.of(postDetail.toSearchResult()));
+            PopularPostInfo noticeInfo = new PopularPostInfo(postDetail.getId(), postDetail.getMemberId(), postDetail.getTitle());
+            redisPostCommandPort.cachePostIds(PostCacheFlag.NOTICE, List.of(noticeInfo));
             log.info("공지사항 캐시 추가 완료: postId={}", postId);
         } else {
             log.warn("공지사항 캐시 추가 실패 - 게시글을 찾을 수 없음: postId={}", postId);
