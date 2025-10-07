@@ -2,7 +2,8 @@ package jaeik.bimillog.domain.post.application.service;
 
 import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.post.application.port.in.PostAdminUseCase;
-import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
+import jaeik.bimillog.domain.post.application.port.out.RedisPostSavePort;
+import jaeik.bimillog.domain.post.application.port.out.RedisPostDeletePort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
@@ -27,7 +28,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class PostAdminService implements PostAdminUseCase {
 
     private final GlobalPostQueryPort globalPostQueryPort;
-    private final RedisPostCommandPort redisPostCommandPort;
+    private final RedisPostSavePort redisPostSavePort;
+    private final RedisPostDeletePort redisPostDeletePort;
 
     /**
      * <h3>게시글 공지사항 상태 토글</h3>
@@ -49,12 +51,12 @@ public class PostAdminService implements PostAdminUseCase {
         if (post.isNotice()) {
             // 공지 해제
             post.unsetAsNotice();
-            redisPostCommandPort.removePostIdFromStorage(PostCacheFlag.NOTICE, postId);
+            redisPostDeletePort.removePostIdFromStorage(PostCacheFlag.NOTICE, postId);
             log.info("공지사항 해제: postId={}, title={}", postId, post.getTitle());
         } else {
             // 공지 설정
             post.setAsNotice();
-            redisPostCommandPort.addPostIdToStorage(PostCacheFlag.NOTICE, postId);
+            redisPostSavePort.addPostIdToStorage(PostCacheFlag.NOTICE, postId);
             log.info("공지사항 설정: postId={}, title={}", postId, post.getTitle());
         }
     }

@@ -6,7 +6,7 @@ import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.application.port.in.PostCommandUseCase;
 import jaeik.bimillog.domain.post.application.port.out.PostCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
-import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
+import jaeik.bimillog.domain.post.application.port.out.RedisPostDeletePort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
@@ -37,7 +37,7 @@ public class PostCommandService implements PostCommandUseCase {
     private final PostCommandPort postCommandPort;
     private final GlobalPostQueryPort globalPostQueryPort;
     private final GlobalMemberQueryPort globalUserQueryPort;
-    private final RedisPostCommandPort redisPostCommandPort;
+    private final RedisPostDeletePort redisPostDeletePort;
     private final PostQueryPort postQueryPort;
 
 
@@ -88,7 +88,7 @@ public class PostCommandService implements PostCommandUseCase {
         }
 
         post.updatePost(title, content);
-        redisPostCommandPort.deleteSinglePostCache(postId);
+        redisPostDeletePort.deleteSinglePostCache(postId);
 
         log.info("게시글 수정 완료: postId={}, memberId={}, title={}", postId, memberId, title);
     }
@@ -118,7 +118,7 @@ public class PostCommandService implements PostCommandUseCase {
 
         // CASCADE로 Comment와 PostLike 자동 삭제
         postCommandPort.delete(post);
-        redisPostCommandPort.deleteSinglePostCache(postId);
+        redisPostDeletePort.deleteSinglePostCache(postId);
         log.info("게시글 삭제 완료: postId={}, memberId={}, title={}", postId, memberId, postTitle);
     }
 
@@ -135,7 +135,7 @@ public class PostCommandService implements PostCommandUseCase {
     public void deleteAllPostsByMemberId(Long memberId) {
         List<Long> postIds = postQueryPort.findPostIdsMemberId(memberId);
         for (Long postId : postIds) {
-            redisPostCommandPort.deleteSinglePostCache(postId);
+            redisPostDeletePort.deleteSinglePostCache(postId);
         }
         postCommandPort.deleteAllByMemberId(memberId);
     }

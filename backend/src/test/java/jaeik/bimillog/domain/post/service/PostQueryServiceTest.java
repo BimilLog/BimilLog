@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.post.service;
 import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostLikeQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
-import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
+import jaeik.bimillog.domain.post.application.port.out.RedisPostSavePort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostQueryPort;
 import jaeik.bimillog.domain.post.application.service.PostQueryService;
 import jaeik.bimillog.domain.post.entity.Post;
@@ -60,7 +60,7 @@ class PostQueryServiceTest extends BaseUnitTest {
     private RedisPostQueryPort redisPostQueryPort;
 
     @Mock
-    private RedisPostCommandPort redisPostCommandPort;
+    private RedisPostSavePort redisPostSavePort;
 
     @InjectMocks
     private PostQueryService postQueryService;

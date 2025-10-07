@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.post.application.service;
 
 import jaeik.bimillog.domain.post.application.port.in.PostCacheUseCase;
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
-import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
+import jaeik.bimillog.domain.post.application.port.out.RedisPostSavePort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostQueryPort;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
@@ -31,7 +31,7 @@ import java.util.Objects;
 @Slf4j
 public class PostCacheService implements PostCacheUseCase {
 
-    private final RedisPostCommandPort redisPostCommandPort;
+    private final RedisPostSavePort redisPostSavePort;
     private final PostQueryPort postQueryPort;
     private final RedisPostQueryPort redisPostQueryPort;
 
@@ -55,7 +55,7 @@ public class PostCacheService implements PostCacheUseCase {
                     if (postDetail == null) {
                         postDetail = postQueryPort.findPostDetailWithCounts(postId, null).orElse(null);
                         if (postDetail != null) {
-                            redisPostCommandPort.cachePostDetail(postDetail);
+                            redisPostSavePort.cachePostDetail(postDetail);
                         }
                     }
                     return postDetail;

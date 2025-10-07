@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.in.post.listener;
 
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
-import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
+import jaeik.bimillog.domain.post.application.port.out.RedisPostUpdatePort;
 import jaeik.bimillog.domain.post.event.PostLikeEvent;
 import jaeik.bimillog.domain.post.event.PostViewedEvent;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class RealtimePopularScoreListener {
 
-    private final RedisPostCommandPort redisPostCommandPort;
+    private final RedisPostUpdatePort redisPostUpdatePort;
 
     private static final double VIEW_SCORE = 2.0;
     private static final double COMMENT_SCORE = 3.0;
@@ -43,7 +43,7 @@ public class RealtimePopularScoreListener {
     @Async
     public void handlePostViewed(PostViewedEvent event) {
         try {
-            redisPostCommandPort.incrementRealtimePopularScore(event.postId(), VIEW_SCORE);
+            redisPostUpdatePort.incrementRealtimePopularScore(event.postId(), VIEW_SCORE);
             log.debug("실시간 인기글 점수 증가 (조회): postId={}, score=+{}", event.postId(), VIEW_SCORE);
         } catch (Exception e) {
             log.error("실시간 인기글 점수 증가 실패 (조회): postId={}", event.postId(), e);
@@ -63,7 +63,7 @@ public class RealtimePopularScoreListener {
     @Async
     public void handleCommentCreated(CommentCreatedEvent event) {
         try {
-            redisPostCommandPort.incrementRealtimePopularScore(event.postId(), COMMENT_SCORE);
+            redisPostUpdatePort.incrementRealtimePopularScore(event.postId(), COMMENT_SCORE);
             log.debug("실시간 인기글 점수 증가 (댓글): postId={}, score=+{}", event.postId(), COMMENT_SCORE);
         } catch (Exception e) {
             log.error("실시간 인기글 점수 증가 실패 (댓글): postId={}", event.postId(), e);
@@ -83,7 +83,7 @@ public class RealtimePopularScoreListener {
     @Async
     public void handlePostLiked(PostLikeEvent event) {
         try {
-            redisPostCommandPort.incrementRealtimePopularScore(event.postId(), LIKE_SCORE);
+            redisPostUpdatePort.incrementRealtimePopularScore(event.postId(), LIKE_SCORE);
             log.debug("실시간 인기글 점수 증가 (추천): postId={}, score=+{}", event.postId(), LIKE_SCORE);
         } catch (Exception e) {
             log.error("실시간 인기글 점수 증가 실패 (추천): postId={}", event.postId(), e);

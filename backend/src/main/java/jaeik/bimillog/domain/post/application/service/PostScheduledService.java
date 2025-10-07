@@ -1,7 +1,8 @@
 package jaeik.bimillog.domain.post.application.service;
 
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
-import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
+import jaeik.bimillog.domain.post.application.port.out.RedisPostSavePort;
+import jaeik.bimillog.domain.post.application.port.out.RedisPostUpdatePort;
 import jaeik.bimillog.domain.post.entity.PopularPostInfo;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
@@ -27,7 +28,8 @@ import java.util.List;
 @Slf4j
 public class PostScheduledService {
 
-    private final RedisPostCommandPort redisPostCommandPort;
+    private final RedisPostSavePort redisPostSavePort;
+    private final RedisPostUpdatePort redisPostUpdatePort;
     private final ApplicationEventPublisher eventPublisher;
     private final PostQueryPort postQueryPort;
 
@@ -42,7 +44,7 @@ public class PostScheduledService {
     @Scheduled(fixedRate = 60000 * 5) // 5분마다
     public void applyRealtimeScoreDecay() {
         try {
-            redisPostCommandPort.applyRealtimePopularScoreDecay();
+            redisPostUpdatePort.applyRealtimePopularScoreDecay();
             log.info("실시간 인기글 점수 지수감쇠 적용 완료 (0.9 곱하기, 1점 이하 제거)");
         } catch (Exception e) {
             log.error("실시간 인기글 점수 지수감쇠 적용 실패", e);
@@ -71,10 +73,10 @@ public class PostScheduledService {
         List<Long> postIds = posts.stream().map(PopularPostInfo::postId).toList();
 
         // 1. postId 영구 저장 (TTL 1일, 목록 캐시 복구용)
-        redisPostCommandPort.cachePostIdsOnly(PostCacheFlag.WEEKLY, postIds);
+        redisPostSavePort.cachePostIdsOnly(PostCacheFlag.WEEKLY, postIds);
 
         // 2. 목록 캐시 저장 (TTL 5분, 실제 조회용)
-        redisPostCommandPort.cachePostIds(PostCacheFlag.WEEKLY, postIds);
+        redisPostSavePort.cachePostIds(PostCacheFlag.WEEKLY, postIds);
 
         log.info("WEEKLY 캐시 업데이트 완료. {}개의 게시글 ID가 처리됨", posts.size());
 
@@ -104,10 +106,10 @@ public class PostScheduledService {
         List<Long> postIds = posts.stream().map(PopularPostInfo::postId).toList();
 
         // 1. postId 영구 저장 (TTL 1일, 목록 캐시 복구용)
-        redisPostCommandPort.cachePostIdsOnly(PostCacheFlag.LEGEND, postIds);
+        redisPostSavePort.cachePostIdsOnly(PostCacheFlag.LEGEND, postIds);
 
         // 2. 목록 캐시 저장 (TTL 5분, 실제 조회용)
-        redisPostCommandPort.cachePostIds(PostCacheFlag.LEGEND, postIds);
+        redisPostSavePort.cachePostIds(PostCacheFlag.LEGEND, postIds);
 
         log.info("LEGEND 캐시 업데이트 완료. {}개의 게시글 ID가 처리됨", posts.size());
 

@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.post.application.port.in.PostQueryUseCase;
 import jaeik.bimillog.domain.post.application.port.out.PostLikeQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
-import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
+import jaeik.bimillog.domain.post.application.port.out.RedisPostSavePort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostQueryPort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostDetail;
@@ -37,7 +37,7 @@ public class PostQueryService implements PostQueryUseCase {
     private final GlobalPostQueryPort globalPostQueryPort;
     private final PostLikeQueryPort postLikeQueryPort;
     private final RedisPostQueryPort redisPostQueryPort;
-    private final RedisPostCommandPort redisPostCommandPort;
+    private final RedisPostSavePort redisPostSavePort;
 
     /**
      * <h3>게시판 목록 조회</h3>
@@ -86,7 +86,7 @@ public class PostQueryService implements PostQueryUseCase {
         // 2. 캐시 미스: DB 조회 후 캐시 저장
         PostDetail postDetail = postQueryPort.findPostDetailWithCounts(postId, memberId)
                 .orElseThrow(() -> new PostCustomException(PostErrorCode.POST_NOT_FOUND));
-        redisPostCommandPort.cachePostDetail(postDetail);
+        redisPostSavePort.cachePostDetail(postDetail);
         return postDetail;
     }
 

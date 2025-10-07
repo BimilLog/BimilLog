@@ -1,7 +1,8 @@
 package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
-import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
+import jaeik.bimillog.domain.post.application.port.out.RedisPostSavePort;
+import jaeik.bimillog.domain.post.application.port.out.RedisPostUpdatePort;
 import jaeik.bimillog.domain.post.application.service.PostScheduledService;
 import jaeik.bimillog.domain.post.entity.PopularPostInfo;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
@@ -39,7 +40,10 @@ import static org.mockito.Mockito.*;
 class PostScheduledServiceTest {
 
     @Mock
-    private RedisPostCommandPort redisPostCommandPort;
+    private RedisPostSavePort redisPostSavePort;
+
+    @Mock
+    private RedisPostUpdatePort redisPostUpdatePort;
 
     @Mock
     private PostQueryPort postQueryPort;
@@ -54,14 +58,14 @@ class PostScheduledServiceTest {
     @DisplayName("실시간 인기글 점수 지수감쇠 적용 - applyRealtimeScoreDecay")
     void shouldApplyRealtimeScoreDecay() {
         // Given
-        doNothing().when(redisPostCommandPort).applyRealtimePopularScoreDecay();
+        doNothing().when(redisPostUpdatePort).applyRealtimePopularScoreDecay();
 
         // When
         postScheduledService.applyRealtimeScoreDecay();
 
         // Then
-        verify(redisPostCommandPort, times(1)).applyRealtimePopularScoreDecay();
-        verifyNoMoreInteractions(redisPostCommandPort);
+        verify(redisPostUpdatePort, times(1)).applyRealtimePopularScoreDecay();
+        verifyNoMoreInteractions(redisPostUpdatePort);
         verifyNoInteractions(eventPublisher); // 실시간 감쇠는 이벤트 발행 안함
     }
 
@@ -79,7 +83,7 @@ class PostScheduledServiceTest {
         postScheduledService.updateWeeklyPopularPosts();
 
         // Then
-        verify(redisPostCommandPort).cachePostIds(eq(PostCacheFlag.WEEKLY), eq(List.of(1L, 2L)));
+        verify(redisPostSavePort).cachePostIds(eq(PostCacheFlag.WEEKLY), eq(List.of(1L, 2L)));
 
         // 이벤트 발행 검증
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -107,7 +111,7 @@ class PostScheduledServiceTest {
         postScheduledService.updateWeeklyPopularPosts();
 
         // Then
-        verify(redisPostCommandPort).cachePostIds(eq(PostCacheFlag.WEEKLY), any());
+        verify(redisPostSavePort).cachePostIds(eq(PostCacheFlag.WEEKLY), any());
 
         // 익명 게시글은 이벤트 발행 안함, 회원 게시글만 이벤트 발행
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -131,7 +135,7 @@ class PostScheduledServiceTest {
         postScheduledService.updateLegendaryPosts();
 
         // Then
-        verify(redisPostCommandPort).cachePostIds(eq(PostCacheFlag.LEGEND), eq(List.of(1L)));
+        verify(redisPostSavePort).cachePostIds(eq(PostCacheFlag.LEGEND), eq(List.of(1L)));
 
         // 명예의 전당 이벤트 검증
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -157,7 +161,7 @@ class PostScheduledServiceTest {
         verify(postQueryPort).findLegendaryPosts();
 
         // 게시글이 없으면 캐시 및 이벤트 발행 안함
-        verify(redisPostCommandPort, never()).cachePostIds(any(), any());
+        verify(redisPostSavePort, never()).cachePostIds(any(), any());
         verify(eventPublisher, never()).publishEvent(any());
     }
 
@@ -175,7 +179,7 @@ class PostScheduledServiceTest {
         postScheduledService.updateLegendaryPosts();
 
         // Then - @Transactional 동작을 위한 port 호출 검증
-        verify(redisPostCommandPort).applyRealtimePopularScoreDecay();
+        verify(redisPostUpdatePort).applyRealtimePopularScoreDecay();
         verify(postQueryPort).findWeeklyPopularPosts();
         verify(postQueryPort).findLegendaryPosts();
     }
@@ -192,7 +196,7 @@ class PostScheduledServiceTest {
         postScheduledService.updateWeeklyPopularPosts();
 
         // Then
-        verify(redisPostCommandPort).cachePostIds(eq(PostCacheFlag.WEEKLY), any());
+        verify(redisPostSavePort).cachePostIds(eq(PostCacheFlag.WEEKLY), any());
 
         // 100개 게시글 중 userId가 있는 것들만 이벤트 발행 (50개)
         verify(eventPublisher, times(50)).publishEvent(any(PostFeaturedEvent.class));

@@ -1,7 +1,8 @@
 package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
-import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
+import jaeik.bimillog.domain.post.application.port.out.RedisPostSavePort;
+import jaeik.bimillog.domain.post.application.port.out.RedisPostDeletePort;
 import jaeik.bimillog.domain.post.application.service.PostAdminService;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
@@ -37,7 +38,10 @@ class PostAdminServiceTest extends BaseUnitTest {
     private GlobalPostQueryPort globalPostQueryPort;
 
     @Mock
-    private RedisPostCommandPort redisPostCommandPort;
+    private RedisPostSavePort redisPostSavePort;
+
+    @Mock
+    private RedisPostDeletePort redisPostDeletePort;
 
     @Mock
     private Post post;
@@ -63,7 +67,7 @@ class PostAdminServiceTest extends BaseUnitTest {
         verify(globalPostQueryPort).findById(postId);
         verify(post).isNotice(); // 상태 확인 (if문)
         verify(post).setAsNotice();
-        verify(redisPostCommandPort).cachePostIds(PostCacheFlag.NOTICE, List.of(postId));
+        verify(redisPostSavePort).addPostIdToStorage(PostCacheFlag.NOTICE, postId);
     }
 
     @Test
@@ -119,7 +123,7 @@ class PostAdminServiceTest extends BaseUnitTest {
         verify(globalPostQueryPort).findById(postId);
         verify(post).isNotice(); // 상태 확인 (if문)
         verify(post).unsetAsNotice();
-        verify(redisPostCommandPort).deleteCache(null, postId, PostCacheFlag.NOTICE);
+        verify(redisPostDeletePort).removePostIdFromStorage(PostCacheFlag.NOTICE, postId);
     }
 
 

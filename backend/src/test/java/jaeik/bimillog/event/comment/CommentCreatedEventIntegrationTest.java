@@ -3,7 +3,7 @@ package jaeik.bimillog.event.comment;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
 import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
-import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
+import jaeik.bimillog.domain.post.application.port.out.RedisPostUpdatePort;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -33,7 +33,7 @@ class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
     private FcmUseCase fcmUseCase;
 
     @MockitoBean
-    private RedisPostCommandPort redisPostCommandPort;
+    private RedisPostUpdatePort redisPostUpdatePort;
 
     private static final double COMMENT_SCORE = 3.0;
 
@@ -49,7 +49,7 @@ class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
                     eq(1L), eq("댓글작성자"), eq(100L));
             verify(fcmUseCase).sendCommentNotification(
                     eq(1L), eq("댓글작성자"));
-            verify(redisPostCommandPort).incrementRealtimePopularScore(
+            verify(redisPostUpdatePort).incrementRealtimePopularScore(
                     eq(100L), eq(COMMENT_SCORE));
         });
     }
@@ -85,9 +85,9 @@ class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
                     eq(2L), eq("댓글작성자3"));
 
             // 실시간 인기글 점수 증가 검증
-            verify(redisPostCommandPort, times(2)).incrementRealtimePopularScore(
+            verify(redisPostUpdatePort, times(2)).incrementRealtimePopularScore(
                     eq(100L), eq(COMMENT_SCORE));
-            verify(redisPostCommandPort).incrementRealtimePopularScore(
+            verify(redisPostUpdatePort).incrementRealtimePopularScore(
                     eq(101L), eq(COMMENT_SCORE));
         });
     }

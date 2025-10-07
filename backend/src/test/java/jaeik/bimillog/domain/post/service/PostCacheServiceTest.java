@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
-import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
+import jaeik.bimillog.domain.post.application.port.out.RedisPostSavePort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostQueryPort;
 import jaeik.bimillog.domain.post.application.service.PostCacheService;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
@@ -38,7 +38,7 @@ import static org.mockito.Mockito.verify;
 class PostCacheServiceTest {
 
     @Mock
-    private RedisPostCommandPort redisPostCommandPort;
+    private RedisPostSavePort redisPostSavePort;
 
     @Mock
     private PostQueryPort postQueryPort;
@@ -93,7 +93,7 @@ class PostCacheServiceTest {
         verify(redisPostQueryPort).getRealtimePopularPostIds();
         verify(redisPostQueryPort).getCachedPostIfExists(1L);
         verify(postQueryPort).findPostDetailWithCounts(1L, null);
-        verify(redisPostCommandPort).cachePostDetail(realtimePost1);
+        verify(redisPostSavePort).cachePostDetail(realtimePost1);
     }
 
     @Test
