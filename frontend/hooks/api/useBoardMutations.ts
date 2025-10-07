@@ -62,7 +62,8 @@ export const useCreateBoardPost = () => {
       if (response.data && response.data.id) {
         // 게시글 목록 캐시 무효화
         queryClient.invalidateQueries({ queryKey: queryKeys.post.lists() });
-        queryClient.invalidateQueries({ queryKey: queryKeys.post.popular() });
+        queryClient.invalidateQueries({ queryKey: queryKeys.post.realtimePopular() });
+        queryClient.invalidateQueries({ queryKey: queryKeys.post.weeklyPopular() });
 
         globalToast.success('게시글이 성공적으로 작성되었습니다!');
         router.push(`/board/post/${response.data.id}`);
@@ -135,7 +136,8 @@ export const useDeleteBoardPost = () => {
       // 캐시에서 게시글 제거
       queryClient.removeQueries({ queryKey: queryKeys.post.detail(response.postId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.post.lists() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.post.popular() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.post.realtimePopular() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.post.weeklyPopular() });
 
       globalToast.success('게시글이 삭제되었습니다.');
       router.push('/board');

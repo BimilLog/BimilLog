@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.in.post.web;
 
-import jaeik.bimillog.domain.post.application.port.in.PostQueryUseCase;
+import jaeik.bimillog.domain.post.application.port.in.PostCacheUseCase;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.SimplePostDTO;
@@ -13,16 +13,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * <h2>게시글 캐시 컨트롤러</h2>
- * <p>Post 도메인의 캐시글을 담당하는 웹 어댑터입니다.</p>
+ * <p>Post 도메인의 캐시 기반 조회를 담당하는 웹 어댑터입니다.</p>
  * <p>실시간, 주간, 레전드, 공지사항 카테고리별 조회 기능을 분리하여 제공합니다.</p>
  * <p>실시간, 주간 인기글 조회</p>
  * <p>레전드 인기글 조회</p>
  * <p>공지사항 조회</p>
- * 
+ *
  * @author Jaeik
  * @version 2.0.0
  */
@@ -31,35 +30,48 @@ import java.util.Map;
 @RequestMapping("/api/post")
 public class PostCacheController {
 
-    private final PostQueryUseCase postQueryUseCase;
+    private final PostCacheUseCase postCacheUseCase;
     private final PostResponseMapper postResponseMapper;
 
     /**
-     * <h3>실시간, 주간 인기글 조회 API</h3>
+     * <h3>실시간 인기글 조회 API</h3>
      *
      * <p>
-     * 실시간, 주간 인기글로 선정된 게시글 목록을 조회한다.
-     * 성능 최적화를 위해 한 번의 유스케이스 호출로 두 타입의 데이터를 가져온다.
+     * 실시간 인기글로 선정된 게시글 목록을 조회한다.
+     * Redis Sorted Set에서 postId 목록 조회 후 캐시 어사이드 패턴으로 상세 정보 획득
      * </p>
      *
      * @since 2.0.0
      * @author Jaeik
-     * @return 실시간, 주간 인기글 목록
+     * @return 실시간 인기글 목록
      */
-    @GetMapping("/popular")
-    public ResponseEntity<Map<String, List<SimplePostDTO>>> getPopularBoard() {
-        Map<String, List<PostSimpleDetail>> popularPosts = postQueryUseCase.getRealtimeAndWeeklyPosts();
-        
-        // DTO 변환
-        Map<String, List<SimplePostDTO>> result = Map.of(
-            "realtime", popularPosts.get("realtime").stream()
+    @GetMapping("/realtime")
+    public ResponseEntity<List<SimplePostDTO>> getRealtimePopularPosts() {
+        List<PostSimpleDetail> realtimePosts = postCacheUseCase.getRealtimePosts();
+        List<SimplePostDTO> result = realtimePosts.stream()
                 .map(postResponseMapper::convertToSimplePostResDTO)
-                .toList(),
-            "weekly", popularPosts.get("weekly").stream()
+                .toList();
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * <h3>주간 인기글 조회 API</h3>
+     *
+     * <p>
+     * 주간 인기글로 선정된 게시글 목록을 조회한다.
+     * Redis 캐시에서 미리 계산된 주간 인기글 데이터 조회
+     * </p>
+     *
+     * @since 2.0.0
+     * @author Jaeik
+     * @return 주간 인기글 목록
+     */
+    @GetMapping("/weekly")
+    public ResponseEntity<List<SimplePostDTO>> getWeeklyPopularPosts() {
+        List<PostSimpleDetail> weeklyPosts = postCacheUseCase.getWeeklyPosts();
+        List<SimplePostDTO> result = weeklyPosts.stream()
                 .map(postResponseMapper::convertToSimplePostResDTO)
-                .toList()
-        );
-        
+                .toList();
         return ResponseEntity.ok(result);
     }
 
@@ -77,7 +89,7 @@ public class PostCacheController {
      */
     @GetMapping("/legend")
     public ResponseEntity<Page<SimplePostDTO>> getLegendBoard(Pageable pageable) {
-        Page<PostSimpleDetail> legendPopularPosts = postQueryUseCase.getPopularPostLegend(PostCacheFlag.LEGEND, pageable);
+        Page<PostSimpleDetail> legendPopularPosts = postCacheUseCase.getPopularPostLegend(PostCacheFlag.LEGEND, pageable);
         Page<SimplePostDTO> dtoList = legendPopularPosts.map(postResponseMapper::convertToSimplePostResDTO);
         return ResponseEntity.ok(dtoList);
     }
@@ -95,7 +107,7 @@ public class PostCacheController {
      */
     @GetMapping("/notice")
     public ResponseEntity<List<SimplePostDTO>> getNoticeBoard() {
-        List<SimplePostDTO> noticePosts = postQueryUseCase.getNoticePosts()
+        List<SimplePostDTO> noticePosts = postCacheUseCase.getNoticePosts()
                 .stream()
                 .map(postResponseMapper::convertToSimplePostResDTO)
                 .toList();

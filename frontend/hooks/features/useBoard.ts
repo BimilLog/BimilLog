@@ -4,7 +4,8 @@
 export {
   useBoardPosts,
   useBoardSearch,
-  useBoardPopularPosts,
+  useBoardRealtimePosts,
+  useBoardWeeklyPosts,
 } from '@/hooks/api/useBoardQueries';
 
 // ============ BOARD MUTATION HOOKS ============

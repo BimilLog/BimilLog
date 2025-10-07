@@ -64,11 +64,20 @@ export function usePopularPostsTabs() {
   // 레전드 탭용 페이지네이션
   const legendPagination = usePagination({ pageSize: 10 });
 
-  // 실시간/주간 인기글 조회
-  const { data: popularData, refetch: refetchPopular } = useQuery({
-    queryKey: queryKeys.post.popular(),
-    queryFn: () => postQuery.getPopular(),
-    enabled: activeTab !== 'legend',
+  // 실시간 인기글 조회
+  const { data: realtimeData, refetch: refetchRealtime } = useQuery({
+    queryKey: queryKeys.post.realtimePopular(),
+    queryFn: postQuery.getRealtimePosts,
+    enabled: activeTab === 'realtime',
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
+
+  // 주간 인기글 조회
+  const { data: weeklyData, refetch: refetchWeekly } = useQuery({
+    queryKey: queryKeys.post.weeklyPopular(),
+    queryFn: postQuery.getWeeklyPosts,
+    enabled: activeTab === 'weekly',
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
   });
@@ -94,17 +103,24 @@ export function usePopularPostsTabs() {
 
   // 현재 활성 탭에 따라 표시할 게시글 데이터 선택
   const posts = useMemo(() => {
-    if (activeTab === 'realtime') return popularData?.data?.realtime || [];
-    if (activeTab === 'weekly') return popularData?.data?.weekly || [];
+    if (activeTab === 'realtime') return realtimeData?.data || [];
+    if (activeTab === 'weekly') return weeklyData?.data || [];
     if (activeTab === 'legend') return legendData?.data?.content || [];
     return [];
-  }, [activeTab, popularData, legendData]);
+  }, [activeTab, realtimeData, weeklyData, legendData]);
+
+  // 현재 탭에 맞는 refetch 함수 선택
+  const refetch = useCallback(() => {
+    if (activeTab === 'realtime') return refetchRealtime();
+    if (activeTab === 'weekly') return refetchWeekly();
+    return refetchLegend();
+  }, [activeTab, refetchRealtime, refetchWeekly, refetchLegend]);
 
   return {
     posts,
     activeTab,
     setActiveTab,
-    refetch: activeTab === 'legend' ? refetchLegend : refetchPopular,
+    refetch,
     // 레전드 탭 전용 페이지네이션
     legendPagination: activeTab === 'legend' ? legendPagination : null
   };

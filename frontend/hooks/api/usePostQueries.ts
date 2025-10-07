@@ -56,12 +56,24 @@ export const usePostSearch = (query: string, page: number = 0, size: number = 10
 };
 
 /**
- * 인기 게시글 목록
+ * 실시간 인기 게시글 목록
  */
-export const usePopularPosts = () => {
+export const useRealtimePosts = () => {
   return useQuery({
-    queryKey: queryKeys.post.popular(),
-    queryFn: postQuery.getPopular,
+    queryKey: queryKeys.post.realtimePopular(),
+    queryFn: postQuery.getRealtimePosts,
+    staleTime: 10 * 60 * 1000, // 10분
+    gcTime: 30 * 60 * 1000, // 30분
+  });
+};
+
+/**
+ * 주간 인기 게시글 목록
+ */
+export const useWeeklyPosts = () => {
+  return useQuery({
+    queryKey: queryKeys.post.weeklyPopular(),
+    queryFn: postQuery.getWeeklyPosts,
     staleTime: 10 * 60 * 1000, // 10분
     gcTime: 30 * 60 * 1000, // 30분
   });

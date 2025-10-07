@@ -30,7 +30,8 @@ export const queryKeys = {
     details: () => [...queryKeys.post.all, 'detail'] as const,
     detail: (postId: number) => [...queryKeys.post.details(), postId] as const,
     search: (query: string, page?: number) => [...queryKeys.post.all, 'search', query, page] as const,
-    popular: () => [...queryKeys.post.all, 'popular'] as const,
+    realtimePopular: () => [...queryKeys.post.all, 'popular', 'realtime'] as const,
+    weeklyPopular: () => [...queryKeys.post.all, 'popular', 'weekly'] as const,
     legend: (filters?: Record<string, string | number | boolean | null | undefined>) => [...queryKeys.post.all, 'legend', filters] as const,
   },
 

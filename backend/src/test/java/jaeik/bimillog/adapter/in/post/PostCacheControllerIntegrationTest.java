@@ -147,13 +147,23 @@ class PostCacheControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("실시간/주간 인기글 조회 성공")
-    void getPopularBoard_Success() throws Exception {
-        mockMvc.perform(get("/api/post/popular"))
+    @DisplayName("실시간 인기글 조회 성공")
+    void getRealtimePopularPosts_Success() throws Exception {
+        mockMvc.perform(get("/api/post/realtime"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.realtime", notNullValue()))
-                .andExpect(jsonPath("$.weekly", notNullValue()));
+                .andExpect(jsonPath("$", notNullValue()))
+                .andExpect(jsonPath("$", isA(List.class)));
+    }
+
+    @Test
+    @DisplayName("주간 인기글 조회 성공")
+    void getWeeklyPopularPosts_Success() throws Exception {
+        mockMvc.perform(get("/api/post/weekly"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", notNullValue()))
+                .andExpect(jsonPath("$", isA(List.class)));
     }
 
     @Test

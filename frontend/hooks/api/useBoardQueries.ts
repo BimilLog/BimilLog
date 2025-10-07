@@ -7,7 +7,8 @@
 // usePostQueries.ts의 훅들을 re-export (하위 호환성 유지)
 export {
   usePostList as useBoardPosts,
-  usePopularPosts as useBoardPopularPosts,
+  useRealtimePosts as useBoardRealtimePosts,
+  useWeeklyPosts as useBoardWeeklyPosts,
 } from './usePostQueries';
 
 // useBoardSearch는 더 유연한 검색 타입을 지원하는 버전

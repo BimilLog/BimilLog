@@ -22,8 +22,11 @@ export const postQuery = {
     )
   },
 
-  getPopular: (): Promise<ApiResponse<{ realtime: SimplePost[]; weekly: SimplePost[] }>> =>
-    apiClient.get("/api/post/popular"),
+  getRealtimePosts: (): Promise<ApiResponse<SimplePost[]>> =>
+    apiClient.get("/api/post/realtime"),
+
+  getWeeklyPosts: (): Promise<ApiResponse<SimplePost[]>> =>
+    apiClient.get("/api/post/weekly"),
 
   getLegend: (page = 0, size = 10): Promise<ApiResponse<PageResponse<SimplePost>>> =>
     apiClient.get(`/api/post/legend?page=${page}&size=${size}`),

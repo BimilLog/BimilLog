@@ -27,7 +27,7 @@ export const handleApiSuccess = <T>(
     redirectUrl
   } = options;
 
-  if (response.success && response.data !== undefined) {
+  if (response.success && response.data !== undefined && response.data !== null) {
     // 성공 토스트 표시
     if (showToast) {
       toast.success(message);
