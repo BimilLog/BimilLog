@@ -69,57 +69,11 @@ public class RedisPostCommandAdapter implements RedisPostCommandPort {
     }
 
     /**
-     * <h3>게시글 전체 캐시 (목록 + 상세)</h3>
-     * <p>게시글 목록과 각 게시글의 상세 정보를 함께 캐시합니다.</p>
-     * <p>PostDetail에서 PostSearchResult를 추출하여 목록 캐시를 생성하고,</p>
-     * <p>각 PostDetail을 개별 상세 캐시로 저장합니다.</p>
-     * <p>공지사항(NOTICE)에서만 사용됩니다.</p>
-     *
-     * @param type 캐시할 게시글 유형
-     * @param fullPosts 캐시할 게시글 상세 정보 목록
-     * @throws CustomException Redis 쓰기 오류 발생 시
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public void cachePostsWithDetails(PostCacheFlag type, List<PostDetail> fullPosts) {
-        if (fullPosts == null || fullPosts.isEmpty()) {
-            return;
-        }
-
-        CacheMetadata metadata = getCacheMetadata(type);
-
-        try {
-            // 1. 목록 캐시: Sorted Set으로 저장 (postId, score)
-            String listKey = metadata.key();
-            for (PostDetail post : fullPosts) {
-                // 타입별 정렬 점수 계산
-                double score = switch (type) {
-                    case REALTIME, WEEKLY, LEGEND -> post.getLikeCount();
-                    case NOTICE -> -post.getCreatedAt().toEpochMilli();
-                };
-                redisTemplate.opsForZSet().add(listKey, post.getId().toString(), score);
-            }
-            // TTL 설정
-            redisTemplate.expire(listKey, metadata.ttl());
-
-            // 2. 상세 캐시: 각 PostDetail 개별 저장 (기존 방식 유지)
-            for (PostDetail post : fullPosts) {
-                String key = FULL_POST_CACHE_PREFIX + post.getId();
-                redisTemplate.opsForValue().set(key, post, FULL_POST_CACHE_TTL);
-            }
-
-        } catch (Exception e) {
-            throw new PostCustomException(PostErrorCode.REDIS_WRITE_ERROR, e);
-        }
-    }
-
-    /**
-     * <h3>인기글 postId 목록만 캐싱</h3>
+     * <h3>인기글 postId 목록 캐싱</h3>
      * <p>인기글 postId 목록만 Redis Sorted Set에 저장합니다 (상세 정보는 저장하지 않음).</p>
      * <p>메모리 효율을 위해 postId만 저장하고, 조회 시 캐시 어사이드 패턴으로 PostDetail을 조회합니다.</p>
      *
-     * @param type  캐시할 게시글 유형 (WEEKLY, LEGEND)
+     * @param type  캐시할 게시글 유형 (WEEKLY, LEGEND, NOTICE)
      * @param posts 인기글 목록 (postId 포함, 이미 인기도 순으로 정렬됨)
      * @throws CustomException Redis 쓰기 오류 발생 시
      * @author Jaeik

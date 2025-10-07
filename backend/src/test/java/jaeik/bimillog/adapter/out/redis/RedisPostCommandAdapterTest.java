@@ -3,8 +3,8 @@ package jaeik.bimillog.adapter.out.redis;
 import com.querydsl.core.types.Path;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.querydsl.jpa.impl.JPAUpdateClause;
+import jaeik.bimillog.domain.post.entity.PopularPostInfo;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
-import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import jaeik.bimillog.infrastructure.adapter.out.redis.RedisPostCommandAdapter;
@@ -49,47 +49,34 @@ class RedisPostCommandAdapterTest extends BaseUnitTest {
 
     @Mock
     private ValueOperations<String, Object> valueOperations;
-    
+
     @Mock
     private ZSetOperations<String, Object> zSetOperations;
 
     @InjectMocks
     private RedisPostCommandAdapter redisPostCommandAdapter;
 
-    private PostDetail testPostDetail;
+    private PopularPostInfo testPopularPostInfo;
 
     @BeforeEach
     void setUp() {
-        testPostDetail = PostDetail.builder()
-                .id(1L)
-                .title("테스트 게시글")
-                .content("테스트 내용")
-                .viewCount(100)
-                .likeCount(50)
-                .commentCount(10)
-                .isLiked(false)
-                .createdAt(java.time.Instant.now())
-                .memberId(1L)
-                .memberName("testMember")
-                .build();
+        testPopularPostInfo = new PopularPostInfo(1L, 1L, "테스트 게시글");
     }
 
     @Test
-    @DisplayName("정상 케이스 - 게시글 목록과 상세 캐시 저장")
-    void shouldCachePosts_WhenValidPostsProvided() {
+    @DisplayName("정상 케이스 - 인기글 postId 목록 캐시 저장")
+    void shouldCachePostIds_WhenValidPostsProvided() {
         // Given
-        List<PostDetail> postDetails = List.of(testPostDetail);
-        PostCacheFlag cacheType = PostCacheFlag.REALTIME;
+        List<PopularPostInfo> posts = List.of(testPopularPostInfo);
+        PostCacheFlag cacheType = PostCacheFlag.WEEKLY;
         when(redisTemplate.opsForZSet()).thenReturn(zSetOperations);
-        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
 
         // When
-        redisPostCommandAdapter.cachePostsWithDetails(cacheType, postDetails);
+        redisPostCommandAdapter.cachePostIds(cacheType, posts);
 
         // Then
-        verify(zSetOperations).add(eq(RedisTestHelper.RedisKeys.postList(cacheType)), eq("1"), eq(50.0));
+        verify(zSetOperations).add(eq(RedisTestHelper.RedisKeys.postList(cacheType)), eq("1"), eq(1.0));
         verify(redisTemplate).expire(eq(RedisTestHelper.RedisKeys.postList(cacheType)), eq(Duration.ofMinutes(5)));
-        verify(valueOperations).set(eq(RedisTestHelper.RedisKeys.postDetail(1L)), eq(testPostDetail), eq(Duration.ofMinutes(5)));
     }
 
 
@@ -114,15 +101,14 @@ class RedisPostCommandAdapterTest extends BaseUnitTest {
     @DisplayName("예외 케이스 - Redis 쓰기 오류 시 PostCustomException 발생")
     void shouldThrowCustomException_WhenRedisWriteError() {
         // Given
-        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         when(redisTemplate.opsForZSet()).thenReturn(zSetOperations);
         doThrow(new RuntimeException("Redis connection failed"))
-            .when(valueOperations).set(anyString(), any(), any(Duration.class));
+            .when(zSetOperations).add(anyString(), anyString(), anyDouble());
 
-        List<PostDetail> postDetails = List.of(testPostDetail);
+        List<PopularPostInfo> posts = List.of(testPopularPostInfo);
 
         // When & Then
-        assertThatThrownBy(() -> redisPostCommandAdapter.cachePostsWithDetails(PostCacheFlag.REALTIME, postDetails))
+        assertThatThrownBy(() -> redisPostCommandAdapter.cachePostIds(PostCacheFlag.WEEKLY, posts))
             .isInstanceOf(PostCustomException.class)
             .satisfies(ex -> {
                 PostCustomException customEx = (PostCustomException) ex;

@@ -133,20 +133,8 @@ public class PostQueryAdapter implements PostQueryPort {
     @Override
     @Transactional(readOnly = true)
     public List<PopularPostInfo> findWeeklyPopularPosts() {
-        return jpaQueryFactory
-                .select(Projections.constructor(PopularPostInfo.class,
-                        post.id,
-                        member.id,
-                        post.title))
-                .from(post)
-                .leftJoin(post.member, member)
-                .leftJoin(postLike).on(post.id.eq(postLike.post.id))
-                .where(post.createdAt.after(Instant.now().minus(7, ChronoUnit.DAYS)))
-                .groupBy(post.id, member.id, post.title)
-                .having(postLike.countDistinct().goe(1))
-                .orderBy(postLike.countDistinct().desc())
-                .limit(5)
-                .fetch();
+        BooleanExpression weeklyCondition = post.createdAt.after(Instant.now().minus(7, ChronoUnit.DAYS));
+        return findPopularPosts(weeklyCondition, 1, 5);
     }
 
     /**
@@ -160,21 +148,42 @@ public class PostQueryAdapter implements PostQueryPort {
     @Override
     @Transactional(readOnly = true)
     public List<PopularPostInfo> findLegendaryPosts() {
-        return jpaQueryFactory
+        return findPopularPosts(null, 20, 50);
+    }
+
+    /**
+     * <h3>인기 게시글 공통 조회</h3>
+     * <p>추천 수 기반 인기 게시글을 조회하는 공통 메서드입니다.</p>
+     * <p>whereCondition, 최소 추천 수, 제한 개수를 파라미터로 받아 유연하게 처리합니다.</p>
+     *
+     * @param whereCondition 추가 조건 (기간 필터 등, null이면 조건 미적용)
+     * @param minLikeCount   최소 추천 수 (having 조건)
+     * @param limit          조회할 최대 게시글 수
+     * @return 인기 게시글 목록 (postId, memberId, title 포함)
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private List<PopularPostInfo> findPopularPosts(BooleanExpression whereCondition, int minLikeCount, int limit) {
+        JPAQuery<PopularPostInfo> query = jpaQueryFactory
                 .select(Projections.constructor(PopularPostInfo.class,
                         post.id,
                         member.id,
                         post.title))
                 .from(post)
                 .leftJoin(post.member, member)
-                .leftJoin(postLike).on(post.id.eq(postLike.post.id))
+                .leftJoin(postLike).on(post.id.eq(postLike.post.id));
+
+        if (whereCondition != null) {
+            query.where(whereCondition);
+        }
+
+        return query
                 .groupBy(post.id, member.id, post.title)
-                .having(postLike.countDistinct().goe(20))
+                .having(postLike.countDistinct().goe(minLikeCount))
                 .orderBy(postLike.countDistinct().desc())
-                .limit(50)
+                .limit(limit)
                 .fetch();
     }
-
 
     /**
      * <h3>게시글 목록 조회</h3>

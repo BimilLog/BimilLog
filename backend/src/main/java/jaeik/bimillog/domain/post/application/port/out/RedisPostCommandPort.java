@@ -19,22 +19,12 @@ import java.util.List;
 public interface RedisPostCommandPort {
 
     /**
-     * <h3>인기글 목록 및 상세 데이터 일괄 캐싱</h3>
-     * <p>인기글 목록과 각 게시글의 상세 정보를 Redis에 동시에 저장합니다.</p>
-     * <p>PostScheduler에서 주기적인 인기글 데이터 업데이트 시 호출됩니다.</p>
-     *
-     * @param type 캐시할 인기글 유형 (REALTIME, WEEKLY, LEGEND, NOTICE)
-     * @param fullPosts 인기글 목록과 상세 데이터가 포함된 PostDetail 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    void cachePostsWithDetails(PostCacheFlag type, List<PostDetail> fullPosts);
-
-    /**
      * <h3>인기글 postId 목록 캐싱</h3>
      * <p>인기글 postId 목록을 Redis Sorted Set에 저장합니다</p>
+     * <p>PostScheduledService에서 주기적인 인기글 데이터 업데이트 시 호출됩니다.</p>
+     * <p>PostCacheService에서 공지사항 추가/제거 시 호출됩니다.</p>
      *
-     * @param type 캐시할 인기글 유형 (WEEKLY, LEGEND만 사용)
+     * @param type 캐시할 인기글 유형 (WEEKLY, LEGEND, NOTICE)
      * @param posts 인기글 목록 (postId 포함)
      * @author Jaeik
      * @since 2.0.0
