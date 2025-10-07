@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.post.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.querydsl.core.annotations.QueryProjection;
 import jaeik.bimillog.domain.post.application.service.PostQueryService;
 import lombok.Builder;
@@ -35,6 +36,8 @@ public class PostDetail implements Serializable {
     private Long memberId;
     private String memberName;
     private Integer commentCount;
+
+    @JsonProperty("isLiked")
     private boolean isLiked;
 
     /**

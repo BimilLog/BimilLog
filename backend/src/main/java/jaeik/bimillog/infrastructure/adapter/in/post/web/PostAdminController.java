@@ -43,10 +43,8 @@ public class PostAdminController {
     @PostMapping("/{postId}/notice")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> togglePostNotice(@PathVariable Long postId) {
-        // 1. 핵심 비즈니스 로직 실행 (DB 업데이트)
         postAdminUseCase.togglePostNotice(postId);
         
-        // 2. 캐시 동기화 (실패 격리)
         try {
             // 현재 공지 상태를 다시 조회하여 캐시 동기화
             boolean isCurrentlyNotice = postAdminUseCase.isPostNotice(postId);

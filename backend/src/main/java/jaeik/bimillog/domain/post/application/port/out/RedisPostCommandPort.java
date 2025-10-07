@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.post.application.port.out;
 
-import jaeik.bimillog.domain.post.entity.PopularPostInfo;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 
@@ -25,11 +24,11 @@ public interface RedisPostCommandPort {
      * <p>PostCacheService에서 공지사항 추가/제거 시 호출됩니다.</p>
      *
      * @param type 캐시할 인기글 유형 (WEEKLY, LEGEND, NOTICE)
-     * @param posts 인기글 목록 (postId 포함)
+     * @param postIds 캐시할 게시글 ID 목록
      * @author Jaeik
      * @since 2.0.0
      */
-    void cachePostIds(PostCacheFlag type, List<PopularPostInfo> posts);
+    void cachePostIds(PostCacheFlag type, List<Long> postIds);
 
     /**
      * <h3>캐시 데이터 선택적 삭제</h3>

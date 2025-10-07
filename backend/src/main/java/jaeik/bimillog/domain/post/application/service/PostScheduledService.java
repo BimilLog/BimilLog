@@ -68,7 +68,8 @@ public class PostScheduledService {
         }
 
         // postId 목록만 캐시 (메모리 효율 향상)
-        redisPostCommandPort.cachePostIds(PostCacheFlag.WEEKLY, posts);
+        List<Long> postIds = posts.stream().map(PopularPostInfo::postId).toList();
+        redisPostCommandPort.cachePostIds(PostCacheFlag.WEEKLY, postIds);
         log.info("WEEKLY 캐시 업데이트 완료. {}개의 게시글 ID가 처리됨", posts.size());
 
         // 알림 발행
@@ -94,7 +95,8 @@ public class PostScheduledService {
         }
 
         // postId 목록만 캐시 (메모리 효율 향상)
-        redisPostCommandPort.cachePostIds(PostCacheFlag.LEGEND, posts);
+        List<Long> postIds = posts.stream().map(PopularPostInfo::postId).toList();
+        redisPostCommandPort.cachePostIds(PostCacheFlag.LEGEND, postIds);
         log.info("LEGEND 캐시 업데이트 완료. {}개의 게시글 ID가 처리됨", posts.size());
 
         // 알림 발행

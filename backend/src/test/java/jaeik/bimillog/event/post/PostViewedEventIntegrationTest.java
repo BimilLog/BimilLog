@@ -1,6 +1,7 @@
 package jaeik.bimillog.event.post;
 
 import jaeik.bimillog.domain.post.application.port.in.PostInteractionUseCase;
+import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
 import jaeik.bimillog.domain.post.event.PostViewedEvent;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
@@ -26,15 +27,21 @@ public class PostViewedEventIntegrationTest extends BaseEventIntegrationTest {
     @MockitoBean
     private PostInteractionUseCase postInteractionUseCase;
 
+    @MockitoBean
+    private RedisPostCommandPort redisPostCommandPort;
+
+    private static final double VIEW_SCORE = 2.0;
+
     @Test
-    @DisplayName("게시글 조회 이벤트 워크플로우 - 조회수 증가까지 완료")
-    void postViewedEventWorkflow_ShouldCompleteViewCountIncrement() {
+    @DisplayName("게시글 조회 이벤트 워크플로우 - 조회수 증가 및 실시간 인기글 점수 증가")
+    void postViewedEventWorkflow_ShouldCompleteViewCountIncrementAndScoreIncrement() {
         // Given
         var event = new PostViewedEvent(1L);
 
         // When & Then
         publishAndVerify(event, () -> {
             verify(postInteractionUseCase).incrementViewCount(eq(1L));
+            verify(redisPostCommandPort).incrementRealtimePopularScore(eq(1L), eq(VIEW_SCORE));
             verifyNoMoreInteractions(postInteractionUseCase);
         });
     }
@@ -55,6 +62,9 @@ public class PostViewedEventIntegrationTest extends BaseEventIntegrationTest {
             verify(postInteractionUseCase).incrementViewCount(eq(1L));
             verify(postInteractionUseCase).incrementViewCount(eq(2L));
             verify(postInteractionUseCase).incrementViewCount(eq(3L));
+            verify(redisPostCommandPort).incrementRealtimePopularScore(eq(1L), eq(VIEW_SCORE));
+            verify(redisPostCommandPort).incrementRealtimePopularScore(eq(2L), eq(VIEW_SCORE));
+            verify(redisPostCommandPort).incrementRealtimePopularScore(eq(3L), eq(VIEW_SCORE));
             verifyNoMoreInteractions(postInteractionUseCase);
         });
     }
@@ -72,6 +82,7 @@ public class PostViewedEventIntegrationTest extends BaseEventIntegrationTest {
         publishEvents(events);
         verifyAsync(() -> {
             verify(postInteractionUseCase, times(3)).incrementViewCount(eq(1L));
+            verify(redisPostCommandPort, times(3)).incrementRealtimePopularScore(eq(1L), eq(VIEW_SCORE));
             verifyNoMoreInteractions(postInteractionUseCase);
         });
     }
@@ -89,6 +100,7 @@ public class PostViewedEventIntegrationTest extends BaseEventIntegrationTest {
         // When & Then - 예외가 발생해도 시스템은 정상 작동
         publishAndVerify(event, () -> {
             verify(postInteractionUseCase).incrementViewCount(eq(1L));
+            verify(redisPostCommandPort).incrementRealtimePopularScore(eq(1L), eq(VIEW_SCORE));
             verifyNoMoreInteractions(postInteractionUseCase);
         });
     }

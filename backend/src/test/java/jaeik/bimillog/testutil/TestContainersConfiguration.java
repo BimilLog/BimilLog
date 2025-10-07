@@ -36,18 +36,9 @@ public class TestContainersConfiguration {
     }
 
     @Bean
+    @Primary
     public RedisConnectionFactory redisConnectionFactory() {
         return new LettuceConnectionFactory(redis.getHost(), redis.getMappedPort(6379));
-    }
-
-    @Bean(name = "testRedisTemplate")
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
-        RedisTemplate<String, Object> template = new RedisTemplate<>();
-        template.setConnectionFactory(connectionFactory);
-        template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
-        template.afterPropertiesSet();
-        return template;
     }
 
     @Bean(name = "testJpaQueryFactory")

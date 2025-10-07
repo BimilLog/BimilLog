@@ -1,17 +1,10 @@
 package jaeik.bimillog.testutil;
 
-import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.querydsl.jpa.impl.JPAUpdateClause;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisTemplate;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.RETURNS_SELF;
-import static org.mockito.Mockito.mock;
 
 /**
  * <h2>Redis 테스트 헬퍼</h2>
@@ -36,21 +29,6 @@ public class RedisTestHelper {
         } catch (Exception e) {
             System.err.println("Redis flush warning: " + e.getMessage());
         }
-    }
-
-    /**
-     * JPAUpdateClause Mock 설정 헬퍼
-     *
-     * @param jpaQueryFactory Mock JPAQueryFactory
-     * @param expectedUpdateCount 예상되는 업데이트 건수
-     * @return 설정된 JPAUpdateClause Mock
-     */
-    public static JPAUpdateClause setupJpaUpdateClauseMock(JPAQueryFactory jpaQueryFactory, long expectedUpdateCount) {
-        JPAUpdateClause updateClause = mock(JPAUpdateClause.class, RETURNS_SELF);
-        given(jpaQueryFactory.update(any())).willReturn(updateClause);
-        given(updateClause.where(any())).willReturn(updateClause);
-        given(updateClause.execute()).willReturn(expectedUpdateCount);
-        return updateClause;
     }
 
     /**

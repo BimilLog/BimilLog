@@ -41,7 +41,6 @@ public class PostAdminService implements PostAdminUseCase {
     @Transactional
     public void togglePostNotice(Long postId) {
         Post post = globalPostQueryPort.findById(postId);
-        
         if (post.isNotice()) {
             post.unsetAsNotice();
             log.info("공지사항 해제: postId={}, title={}", postId, post.getTitle());
@@ -49,8 +48,6 @@ public class PostAdminService implements PostAdminUseCase {
             post.setAsNotice();
             log.info("공지사항 설정: postId={}, title={}", postId, post.getTitle());
         }
-        
-        log.info("게시글 공지 토글 DB 업데이트 완료: postId={}, isNotice={}", postId, post.isNotice());
     }
 
     /**

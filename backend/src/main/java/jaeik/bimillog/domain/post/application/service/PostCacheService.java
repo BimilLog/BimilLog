@@ -128,55 +128,24 @@ public class PostCacheService implements PostCacheUseCase {
     public void syncNoticeCache(Long postId, boolean isNotice) {
         if (isNotice) {
             log.info("공지사항 캐시 추가 동기화 시작: postId={}", postId);
-            addNoticeToCache(postId);
+            log.info("공지사항 캐시 추가 시작: postId={}", postId);
+
+            // 게시글 존재 여부 확인
+            PostDetail postDetail = postQueryPort.findPostDetailWithCounts(postId, null).orElse(null);
+            if (postDetail != null) {
+                // postId만 캐시에 추가 (주간/레전드와 동일한 방식)
+                redisPostCommandPort.cachePostIds(PostCacheFlag.NOTICE, List.of(postId));
+                log.info("공지사항 캐시 추가 완료: postId={}", postId);
+            } else {
+                log.warn("공지사항 캐시 추가 실패 - 게시글을 찾을 수 없음: postId={}", postId);
+            }
         } else {
             log.info("공지사항 캐시 제거 동기화 시작: postId={}", postId);
-            removeNoticeFromCache(postId);
-        }
-    }
+            log.info("공지사항 캐시 제거 시작: postId={}", postId);
 
-    /**
-     * <h3>공지사항 캐시 추가 로직</h3>
-     * <p>DB에서 게시글 정보를 조회하여 Redis 공지사항 캐시에 postId만 추가합니다.</p>
-     * <p>주간/레전드 인기글과 동일한 캐싱 전략으로 메모리 효율성을 높입니다.</p>
-     * <p>상세 정보는 조회 시 캐시 어사이드 패턴으로 처리됩니다.</p>
-     * <p>syncNoticeCache 메서드에서 공지사항 설정 시 호출됩니다.</p>
-     *
-     * @param postId 캐시에 추가할 게시글 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private void addNoticeToCache(Long postId) {
-        log.info("공지사항 캐시 추가 시작: postId={}", postId);
+            // 공지 캐시에서만 삭제
+            redisPostCommandPort.deleteCache(null, postId, PostCacheFlag.NOTICE);
 
-        // 게시글 정보를 DB에서 조회
-        PostDetail postDetail = postQueryPort.findPostDetailWithCounts(postId, null).orElse(null);
-        if (postDetail != null) {
-            // postId만 캐시에 추가 (주간/레전드와 동일한 방식)
-            PopularPostInfo noticeInfo = new PopularPostInfo(postDetail.getId(), postDetail.getMemberId(), postDetail.getTitle());
-            redisPostCommandPort.cachePostIds(PostCacheFlag.NOTICE, List.of(noticeInfo));
-            log.info("공지사항 캐시 추가 완료: postId={}", postId);
-        } else {
-            log.warn("공지사항 캐시 추가 실패 - 게시글을 찾을 수 없음: postId={}", postId);
-        }
-    }
-
-    /**
-     * <h3>공지사항 캐시 제거 로직</h3>
-     * <p>Redis 공지사항 캐시에서 지정된 게시글을 제거합니다.</p>
-     * <p>성능 최적화를 위해 공지사항 캐시에서만 선별적으로 삭제하여 불필요한 캐시 작업을 방지합니다.</p>
-     * <p>syncNoticeCache 메서드에서 공지사항 해제 시 호출됩니다.</p>
-     *
-     * @param postId 캐시에서 제거할 게시글 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private void removeNoticeFromCache(Long postId) {
-        log.info("공지사항 캐시 제거 시작: postId={}", postId);
-
-        // 공지 캐시에서만 삭제
-        redisPostCommandPort.deleteCache(null, postId, PostCacheFlag.NOTICE);
-
-        log.info("공지사항 캐시 제거 완료: postId={}", postId);
+            log.info("공지사항 캐시 제거 완료: postId={}", postId);        }
     }
 }

@@ -79,7 +79,7 @@ class PostScheduledServiceTest {
         postScheduledService.updateWeeklyPopularPosts();
 
         // Then
-        verify(redisPostCommandPort).cachePostIds(PostCacheFlag.WEEKLY, posts);
+        verify(redisPostCommandPort).cachePostIds(eq(PostCacheFlag.WEEKLY), eq(List.of(1L, 2L)));
 
         // 이벤트 발행 검증
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -131,7 +131,7 @@ class PostScheduledServiceTest {
         postScheduledService.updateLegendaryPosts();
 
         // Then
-        verify(redisPostCommandPort).cachePostIds(PostCacheFlag.LEGEND, posts);
+        verify(redisPostCommandPort).cachePostIds(eq(PostCacheFlag.LEGEND), eq(List.of(1L)));
 
         // 명예의 전당 이벤트 검증
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);

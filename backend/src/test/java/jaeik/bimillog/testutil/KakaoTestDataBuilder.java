@@ -47,17 +47,6 @@ public class KakaoTestDataBuilder {
     }
 
     /**
-     * 기본 KakaoFriendsDTO.Friend 객체 생성
-     * @param id 친구 ID
-     * @param nickname 친구 닉네임
-     * @return KakaoFriendsDTO.Friend 객체
-     */
-    public static KakaoFriendsDTO.Friend createSimpleKakaoFriend(Long id, String nickname) {
-        return createKakaoFriend(id, "uuid" + id, nickname, 
-                               "http://example.com/image" + id + ".jpg", false);
-    }
-
-    /**
      * KakaoFriendsDTO 응답 객체 생성
      * @param elements 친구 목록
      * @param totalCount 전체 친구 수
@@ -82,13 +71,5 @@ public class KakaoTestDataBuilder {
         } catch (Exception e) {
             throw new RuntimeException("Failed to create KakaoFriendsResponse", e);
         }
-    }
-
-    /**
-     * 빈 KakaoFriendsDTO 응답 생성
-     * @return 빈 친구 목록을 가진 KakaoFriendsDTO
-     */
-    public static KakaoFriendsDTO createEmptyKakaoFriendsResponse() {
-        return createKakaoFriendsResponse(List.of(), 0, null, null, 0);
     }
 }

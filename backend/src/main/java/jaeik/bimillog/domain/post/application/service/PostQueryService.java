@@ -54,7 +54,7 @@ public class PostQueryService implements PostQueryUseCase {
 
 
     /**
-     * <h3>게시글 상세 조회 (캐시 어사이드 패턴)</h3>
+     * <h3>게시글 상세 조회</h3>
      * <p>모든 게시글에 대해 Redis 캐시를 우선 확인하고, 캐시 미스 시 DB 조회 후 캐시에 저장합니다.</p>
      * <p>캐시 히트: 사용자 좋아요 정보만 추가 확인</p>
      * <p>캐시 미스: DB 조회 → 캐시 저장 → 반환</p>
@@ -81,61 +81,10 @@ public class PostQueryService implements PostQueryUseCase {
         }
 
         // 2. 캐시 미스: DB 조회 후 캐시 저장
-        PostDetail postDetail = getPostFromDatabaseOptimized(postId, memberId);
+        PostDetail postDetail = postQueryPort.findPostDetailWithCounts(postId, memberId)
+                .orElseThrow(() -> new PostCustomException(PostErrorCode.POST_NOT_FOUND));
         redisPostCommandPort.cachePostDetail(postDetail);
         return postDetail;
-    }
-
-    /**
-     * <h3>데이터베이스에서 게시글 조회</h3>
-     * <p>캐시 미스 또는 일반 게시글에 대해 JOIN 쿼리로 모든 필요 정보를 조회합니다.</p>
-     * <p>게시글 기본 정보, 좋아요 수, 댓글 수, 사용자 좋아요 여부를 한번에 처리합니다.</p>
-     * <p>getPost 메서드에서 캐시 조회 실패 시 호출됩니다.</p>
-     *
-     * @param postId 게시글 ID
-     * @param memberId 현재 로그인한 사용자 ID (좋아요 여부 확인용, null 허용)
-     * @return PostDetail 게시글 상세 정보 DTO
-     * @throws PostCustomException 게시글을 찾을 수 없는 경우
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private PostDetail getPostFromDatabaseOptimized(Long postId, Long memberId) {
-        return postQueryPort.findPostDetailWithCounts(postId, memberId)
-                .orElseThrow(() -> new PostCustomException(PostErrorCode.POST_NOT_FOUND));
-    }
-
-    /**
-     * <h3>게시글 검색 전략 선택</h3>
-     * <p>검색 조건에 따라 최적의 검색 전략을 선택하여 게시글을 검색합니다.</p>
-     * <p>검색 전략:</p>
-     * <ul>
-     *     <li>3글자 이상 + WRITER 아님 → 전문검색 시도 (실패 시 부분검색)</li>
-     *     <li>WRITER + 4글자 이상 → 접두사 검색 (인덱스 활용)</li>
-     *     <li>그 외 → 부분 검색</li>
-     * </ul>
-     * <p>{@link PostQueryController}에서 검색 요청 시 호출됩니다.</p>
-     *
-     * @param type     검색 유형 (TITLE, WRITER, TITLE_CONTENT)
-     * @param query    검색어
-     * @param pageable 페이지 정보
-     * @return Page&lt;PostSimpleDetail&gt; 검색된 게시글 목록 페이지
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public Page<PostSimpleDetail> searchPost(PostSearchType type, String query, Pageable pageable) {
-        // 전략 1: 3글자 이상 + 작성자 검색 아님 → 전문 검색 시도
-        if (query.length() >= 3 && type != PostSearchType.WRITER) {
-            return postQueryPort.findByFullTextSearch(type, query, pageable);
-        }
-
-        // 전략 2: 작성자 검색 + 4글자 이상 → 접두사 검색 (인덱스 활용)
-        if (type == PostSearchType.WRITER && query.length() >= 4) {
-            return postQueryPort.findByPrefixMatch(type, query, pageable);
-        }
-
-        // 전략 3: 그 외 → 부분 검색
-        return postQueryPort.findByPartialMatch(type, query, pageable);
     }
 
     /**
@@ -180,5 +129,39 @@ public class PostQueryService implements PostQueryUseCase {
     @Override
     public Page<PostSimpleDetail> getMemberLikedPosts(Long memberId, Pageable pageable) {
         return postQueryPort.findLikedPostsByMemberId(memberId, pageable);
+    }
+
+    /**
+     * <h3>게시글 검색 전략 선택</h3>
+     * <p>검색 조건에 따라 최적의 검색 전략을 선택하여 게시글을 검색합니다.</p>
+     * <p>검색 전략:</p>
+     * <ul>
+     *     <li>3글자 이상 + WRITER 아님 → 전문검색 시도 (실패 시 부분검색)</li>
+     *     <li>WRITER + 4글자 이상 → 접두사 검색 (인덱스 활용)</li>
+     *     <li>그 외 → 부분 검색</li>
+     * </ul>
+     * <p>{@link PostQueryController}에서 검색 요청 시 호출됩니다.</p>
+     *
+     * @param type     검색 유형 (TITLE, WRITER, TITLE_CONTENT)
+     * @param query    검색어
+     * @param pageable 페이지 정보
+     * @return Page&lt;PostSimpleDetail&gt; 검색된 게시글 목록 페이지
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public Page<PostSimpleDetail> searchPost(PostSearchType type, String query, Pageable pageable) {
+        // 전략 1: 3글자 이상 + 작성자 검색 아님 → 전문 검색 시도
+        if (query.length() >= 3 && type != PostSearchType.WRITER) {
+            return postQueryPort.findByFullTextSearch(type, query, pageable);
+        }
+
+        // 전략 2: 작성자 검색 + 4글자 이상 → 접두사 검색 (인덱스 활용)
+        if (type == PostSearchType.WRITER && query.length() >= 4) {
+            return postQueryPort.findByPrefixMatch(type, query, pageable);
+        }
+
+        // 전략 3: 그 외 → 부분 검색
+        return postQueryPort.findByPartialMatch(type, query, pageable);
     }
 }

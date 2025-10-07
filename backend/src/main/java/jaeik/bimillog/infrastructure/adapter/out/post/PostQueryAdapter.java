@@ -225,12 +225,10 @@ public class PostQueryAdapter implements PostQueryPort {
 
             return new PageImpl<>(content, pageable, total);
         } catch (DataAccessException e) {
-            log.warn("FULLTEXT 검색 중 데이터베이스 오류 - type: {}, query: {}, error: {}",
-                    type, query, e.getMessage());
+            log.warn("FULLTEXT 검색 중 데이터베이스 오류 - type: {}, query: {}, error: {}", type, query, e.getMessage());
             return Page.empty(pageable);
         } catch (IllegalArgumentException e) {
-            log.debug("FULLTEXT 검색 파라미터 오류 - type: {}, query: {}, error: {}",
-                    type, query, e.getMessage());
+            log.debug("FULLTEXT 검색 파라미터 오류 - type: {}, query: {}, error: {}", type, query, e.getMessage());
             return Page.empty(pageable);
         }
     }
