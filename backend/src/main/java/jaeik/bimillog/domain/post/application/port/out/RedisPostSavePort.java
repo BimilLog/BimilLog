@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.post.application.port.out;
 
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
+import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 
 import java.util.List;
 
@@ -32,16 +33,17 @@ public interface RedisPostSavePort {
     void cachePostIdsOnly(PostCacheFlag type, List<Long> postIds);
 
     /**
-     * <h3>인기글 postId 목록 캐싱</h3>
-     * <p>인기글 postId 목록을 Redis List에 저장합니다 (TTL 5분)</p>
+     * <h3>인기글 목록 캐싱 (Hash 구조)</h3>
+     * <p>인기글 목록을 Redis Hash에 저장합니다 (TTL 5분)</p>
+     * <p>Hash 구조: Field는 postId, Value는 PostSimpleDetail 객체</p>
      * <p>PostScheduledService에서 주기적인 인기글 데이터 업데이트 시 호출됩니다.</p>
      *
-     * @param type 캐시할 인기글 유형 (WEEKLY, LEGEND, NOTICE)
-     * @param postIds 캐시할 게시글 ID 목록
+     * @param type 캐시할 인기글 유형 (REALTIME, WEEKLY, LEGEND, NOTICE)
+     * @param posts 캐시할 게시글 목록 (PostSimpleDetail)
      * @author Jaeik
      * @since 2.0.0
      */
-    void cachePostIds(PostCacheFlag type, List<Long> postIds);
+    void cachePostList(PostCacheFlag type, List<PostSimpleDetail> posts);
 
 
     /**

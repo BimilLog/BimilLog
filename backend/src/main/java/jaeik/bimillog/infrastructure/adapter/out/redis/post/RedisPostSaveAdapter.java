@@ -1,8 +1,9 @@
-package jaeik.bimillog.infrastructure.adapter.out.redis;
+package jaeik.bimillog.infrastructure.adapter.out.redis.post;
 
 import jaeik.bimillog.domain.post.application.port.out.RedisPostSavePort;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
+import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +13,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;
 
-import static jaeik.bimillog.infrastructure.adapter.out.redis.RedisPostKeys.*;
+import static jaeik.bimillog.infrastructure.adapter.out.redis.post.RedisPostKeys.*;
 
 /**
  * <h2>게시글 캐시 명령 어댑터</h2>
@@ -49,7 +50,7 @@ public class RedisPostSaveAdapter implements RedisPostSavePort {
 
     /**
      * <h3>인기글 postId 영구 저장</h3>
-     * <p>인기글 postId 목록만 Redis List에 영구 또는 긴 TTL로 저장합니다.</p>
+     * <p>인기글 postId 목록만 Redis Sorted Set(주간/레전드) 또는 Set(공지)에 저장합니다.</p>
      * <p>목록 캐시 TTL 만료 시 복구용으로 사용됩니다.</p>
      *
      * @param type  캐시할 게시글 유형 (WEEKLY, LEGEND, NOTICE)
@@ -70,14 +71,21 @@ public class RedisPostSaveAdapter implements RedisPostSavePort {
             // 기존 postIds 캐시 삭제
             redisTemplate.delete(postIdsKey);
 
-            // List에 postId만 저장 (RPUSH로 순서대로 삽입)
-            for (Long postId : postIds) {
-                redisTemplate.opsForList().rightPush(postIdsKey, postId.toString());
+            if (type == PostCacheFlag.NOTICE) {
+                // 공지사항: Set으로 저장 (순서 불필요)
+                for (Long postId : postIds) {
+                    redisTemplate.opsForSet().add(postIdsKey, postId.toString());
+                }
+            } else {
+                // 주간/레전드: Sorted Set으로 저장 (점수 = DB 추출 순서)
+                double score = 1.0;
+                for (Long postId : postIds) {
+                    redisTemplate.opsForZSet().add(postIdsKey, postId.toString(), score++);
+                }
             }
 
             // TTL 설정: 주간/레전드는 1일, 공지는 영구
             if (type != PostCacheFlag.NOTICE) {
-                // 주간/레전드는 1일
                 redisTemplate.expire(postIdsKey, POSTIDS_TTL_WEEKLY_LEGEND);
             }
 
@@ -87,32 +95,33 @@ public class RedisPostSaveAdapter implements RedisPostSavePort {
     }
 
     /**
-     * <h3>인기글 postId 목록 캐싱</h3>
-     * <p>인기글 postId 목록만 Redis List에 저장합니다 (상세 정보는 저장하지 않음).</p>
-     * <p>메모리 효율을 위해 postId만 저장하고, 조회 시 캐시 어사이드 패턴으로 PostDetail을 조회합니다.</p>
+     * <h3>인기글 목록 캐싱 (Hash 구조)</h3>
+     * <p>인기글 목록을 Redis Hash에 저장합니다 (TTL 5분)</p>
+     * <p>Hash 구조: Field는 postId, Value는 PostSimpleDetail 객체</p>
+     * <p>조회 시 postIds 저장소의 순서를 사용하여 정렬합니다.</p>
      *
-     * @param type  캐시할 게시글 유형 (WEEKLY, LEGEND, NOTICE)
-     * @param postIds 캐시할 게시글 ID 목록 (이미 인기도 순으로 정렬됨)
+     * @param type  캐시할 게시글 유형 (REALTIME, WEEKLY, LEGEND, NOTICE)
+     * @param posts 캐시할 게시글 목록 (PostSimpleDetail)
      * @throws PostCustomException Redis 쓰기 오류 발생 시
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void cachePostIds(PostCacheFlag type, List<Long> postIds) {
-        if (postIds == null || postIds.isEmpty()) {
+    public void cachePostList(PostCacheFlag type, List<PostSimpleDetail> posts) {
+        if (posts == null || posts.isEmpty()) {
             return;
         }
 
         RedisPostKeys.CacheMetadata metadata = getCacheMetadata(type);
 
         try {
-            // List에 postId만 저장 (RPUSH로 순서대로 삽입)
-            String listKey = metadata.key();
-            for (Long postId : postIds) {
-                redisTemplate.opsForList().rightPush(listKey, postId.toString());
+            // Hash에 PostSimpleDetail 저장 (HSET)
+            String hashKey = metadata.key();
+            for (PostSimpleDetail post : posts) {
+                redisTemplate.opsForHash().put(hashKey, post.getId().toString(), post);
             }
             // TTL 설정
-            redisTemplate.expire(listKey, metadata.ttl());
+            redisTemplate.expire(hashKey, metadata.ttl());
 
         } catch (Exception e) {
             throw new PostCustomException(PostErrorCode.REDIS_WRITE_ERROR, e);
@@ -139,7 +148,7 @@ public class RedisPostSaveAdapter implements RedisPostSavePort {
 
     /**
      * <h3>postIds 저장소에 단일 게시글 추가</h3>
-     * <p>postIds 영구 저장소의 앞에 게시글 ID를 추가합니다 (LPUSH).</p>
+     * <p>postIds 영구 저장소에 게시글 ID를 추가합니다 (Set 사용).</p>
      * <p>공지사항 설정 시 호출됩니다.</p>
      *
      * @param type 캐시 유형 (NOTICE만 사용)
@@ -151,7 +160,7 @@ public class RedisPostSaveAdapter implements RedisPostSavePort {
     public void addPostIdToStorage(PostCacheFlag type, Long postId) {
         String postIdsKey = getPostIdsStorageKey(type);
         try {
-            redisTemplate.opsForList().leftPush(postIdsKey, postId.toString());
+            redisTemplate.opsForSet().add(postIdsKey, postId.toString());
         } catch (Exception e) {
             throw new PostCustomException(PostErrorCode.REDIS_WRITE_ERROR, e);
         }

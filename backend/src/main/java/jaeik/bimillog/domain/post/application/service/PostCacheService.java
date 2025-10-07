@@ -37,9 +37,9 @@ public class PostCacheService implements PostCacheUseCase {
 
     /**
      * <h3>실시간 인기 게시글 조회</h3>
-     * <p>Redis Sorted Set에서 postId 목록을 조회하고 캐시 어사이드 패턴으로 상세 정보를 획득합니다.</p>
-     * <p>이벤트 기반 점수 시스템으로 관리되는 postId 목록 조회 → 상세 캐시 활용</p>
-     * <p>캐시 미스 시 DB에서 조회 후 캐시에 저장합니다.</p>
+     * <p>Redis Sorted Set에서 postId 목록을 조회하고 posts:realtime Hash에서 상세 정보를 획득합니다.</p>
+     * <p>이벤트 기반 점수 시스템으로 관리되는 postId 목록 조회 → 목록 캐시 활용</p>
+     * <p>캐시 미스 시 DB에서 조회 후 posts:realtime에 저장합니다.</p>
      *
      * @return Redis에서 조회된 실시간 인기 게시글 목록
      * @author Jaeik
@@ -47,21 +47,38 @@ public class PostCacheService implements PostCacheUseCase {
      */
     @Override
     public List<PostSimpleDetail> getRealtimePosts() {
+        // 1. score:realtime에서 상위 5개 postId 조회
         List<Long> realtimePostIds = redisPostQueryPort.getRealtimePopularPostIds();
+        if (realtimePostIds.isEmpty()) {
+            return List.of();
+        }
+
+        // 2. posts:realtime Hash에서 PostSimpleDetail 조회
+        List<PostSimpleDetail> cachedList = redisPostQueryPort.getCachedPostList(PostCacheFlag.REALTIME);
+
+        // 3. 캐시된 데이터를 Map으로 변환 (빠른 조회)
+        java.util.Map<Long, PostSimpleDetail> cachedMap = cachedList.stream()
+                .collect(java.util.stream.Collectors.toMap(PostSimpleDetail::getId, detail -> detail));
+
+        // 4. postId 순서대로 조회하며 캐시 미스 시 DB 조회 후 추가
         return realtimePostIds.stream()
                 .map(postId -> {
-                    // 캐시 어사이드 패턴으로 조회 (캐시 미스 시 DB 조회 후 캐시 저장)
-                    PostDetail postDetail = redisPostQueryPort.getCachedPostIfExists(postId);
-                    if (postDetail == null) {
-                        postDetail = postQueryPort.findPostDetailWithCounts(postId, null).orElse(null);
-                        if (postDetail != null) {
-                            redisPostSavePort.cachePostDetail(postDetail);
-                        }
+                    PostSimpleDetail cached = cachedMap.get(postId);
+                    if (cached != null) {
+                        return cached;
                     }
-                    return postDetail;
+
+                    // 캐시 미스: DB 조회 후 posts:realtime에 추가
+                    PostDetail postDetail = postQueryPort.findPostDetailWithCounts(postId, null).orElse(null);
+                    if (postDetail == null) {
+                        return null;
+                    }
+
+                    PostSimpleDetail simpleDetail = postDetail.toSimpleDetail();
+                    redisPostSavePort.cachePostList(PostCacheFlag.REALTIME, List.of(simpleDetail));
+                    return simpleDetail;
                 })
                 .filter(Objects::nonNull)
-                .map(PostDetail::toSearchResult)
                 .toList();
     }
 
@@ -88,8 +105,9 @@ public class PostCacheService implements PostCacheUseCase {
 
     /**
      * <h3>레전드 인기 게시글 목록 조회 (페이징)</h3>
-     * <p>캐시된 레전드 게시글을 페이지네이션으로 조회합니다. 캐시가 없는 경우 업데이트 후 조회합니다.</p>
-     * <p>Redis List 구조를 활용하여 효율적인 페이징을 제공합니다.</p>
+     * <p>캐시된 레전드 게시글을 페이지네이션으로 조회합니다.</p>
+     * <p>캐시 미스 시 postIds 저장소에서 ID 목록을 가져와 DB 조회 후 캐시에 저장합니다.</p>
+     * <p>Redis Hash 구조를 활용하여 효율적인 페이징을 제공합니다.</p>
      *
      * @param type 조회할 인기 게시글 유형 (PostCacheFlag.LEGEND만 지원)
      * @param pageable 페이지 정보
@@ -100,7 +118,18 @@ public class PostCacheService implements PostCacheUseCase {
      */
     @Override
     public Page<PostSimpleDetail> getPopularPostLegend(PostCacheFlag type, Pageable pageable) {
-        return redisPostQueryPort.getCachedPostListPaged(pageable);
+        Page<PostSimpleDetail> cachedPage = redisPostQueryPort.getCachedPostListPaged(pageable);
+
+        // 캐시 미스 시 postIds 저장소에서 복구 후 재조회
+        if (cachedPage.isEmpty()) {
+            List<PostSimpleDetail> recovered = recoverFromStoredPostIds(PostCacheFlag.LEGEND);
+            if (!recovered.isEmpty()) {
+                redisPostSavePort.cachePostList(PostCacheFlag.LEGEND, recovered);
+                cachedPage = redisPostQueryPort.getCachedPostListPaged(pageable);
+            }
+        }
+
+        return cachedPage;
     }
 
     /**
@@ -143,7 +172,7 @@ public class PostCacheService implements PostCacheUseCase {
         return storedPostIds.stream()
                 .map(postId -> postQueryPort.findPostDetailWithCounts(postId, null).orElse(null))
                 .filter(Objects::nonNull)
-                .map(PostDetail::toSearchResult)
+                .map(PostDetail::toSimpleDetail)
                 .toList();
     }
 }

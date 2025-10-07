@@ -97,7 +97,7 @@ public class PostDetail implements Serializable {
      * @since 2.0.0
      * @author Jaeik
      */
-    public PostSimpleDetail toSearchResult() {
+    public PostSimpleDetail toSimpleDetail() {
         return PostSimpleDetail.builder()
                 .id(this.id)
                 .title(this.title)

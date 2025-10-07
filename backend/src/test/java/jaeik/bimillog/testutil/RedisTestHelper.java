@@ -3,7 +3,7 @@ package jaeik.bimillog.testutil;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
-import jaeik.bimillog.infrastructure.adapter.out.redis.RedisPostKeys;
+import jaeik.bimillog.infrastructure.adapter.out.redis.post.RedisPostKeys;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisTemplate;
 

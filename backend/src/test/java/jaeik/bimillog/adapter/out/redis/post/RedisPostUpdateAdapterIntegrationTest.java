@@ -1,6 +1,6 @@
-package jaeik.bimillog.adapter.out.redis;
+package jaeik.bimillog.adapter.out.redis.post;
 
-import jaeik.bimillog.infrastructure.adapter.out.redis.RedisPostUpdateAdapter;
+import jaeik.bimillog.infrastructure.adapter.out.redis.post.RedisPostUpdateAdapter;
 import jaeik.bimillog.testutil.RedisTestHelper;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import org.junit.jupiter.api.BeforeEach;

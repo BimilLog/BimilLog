@@ -8,6 +8,7 @@ import jaeik.bimillog.domain.post.application.port.out.PostCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostDeletePort;
 import jaeik.bimillog.domain.post.entity.Post;
+import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import jaeik.bimillog.infrastructure.adapter.in.post.web.PostCommandController;
@@ -67,7 +68,7 @@ public class PostCommandService implements PostCommandUseCase {
 
     /**
      * <h3>게시글 수정 (라이트 어라운드 패턴)</h3>
-     * <p>기존 게시글의 제목과 내용을 수정하고 캐시를 무효화합니다.</p>
+     * <p>기존 게시글의 제목과 내용을 수정하고 모든 관련 캐시를 무효화합니다.</p>
      * <p>작성자 권한 검증 → 게시글 업데이트 → 캐시 무효화 (다음 조회 시 캐시 어사이드로 재생성)</p>
      * <p>{@link PostCommandController}에서 게시글 수정 API 처리 시 호출됩니다.</p>
      *
@@ -88,7 +89,13 @@ public class PostCommandService implements PostCommandUseCase {
         }
 
         post.updatePost(title, content);
+
+        // 모든 관련 캐시 무효화
         redisPostDeletePort.deleteSinglePostCache(postId);
+        redisPostDeletePort.removePostFromListCache(PostCacheFlag.REALTIME, postId);
+        redisPostDeletePort.removePostFromListCache(PostCacheFlag.WEEKLY, postId);
+        redisPostDeletePort.removePostFromListCache(PostCacheFlag.LEGEND, postId);
+        redisPostDeletePort.removePostFromListCache(PostCacheFlag.NOTICE, postId);
 
         log.info("게시글 수정 완료: postId={}, memberId={}, title={}", postId, memberId, title);
     }
@@ -118,7 +125,18 @@ public class PostCommandService implements PostCommandUseCase {
 
         // CASCADE로 Comment와 PostLike 자동 삭제
         postCommandPort.delete(post);
+
+        // 모든 관련 캐시 무효화
         redisPostDeletePort.deleteSinglePostCache(postId);
+        redisPostDeletePort.removePostIdFromRealtimeScore(postId);
+        redisPostDeletePort.removePostFromListCache(PostCacheFlag.REALTIME, postId);
+        redisPostDeletePort.removePostFromListCache(PostCacheFlag.WEEKLY, postId);
+        redisPostDeletePort.removePostFromListCache(PostCacheFlag.LEGEND, postId);
+        redisPostDeletePort.removePostFromListCache(PostCacheFlag.NOTICE, postId);
+        redisPostDeletePort.removePostIdFromStorage(PostCacheFlag.WEEKLY, postId);
+        redisPostDeletePort.removePostIdFromStorage(PostCacheFlag.LEGEND, postId);
+        redisPostDeletePort.removePostIdFromStorage(PostCacheFlag.NOTICE, postId);
+
         log.info("게시글 삭제 완료: postId={}, memberId={}, title={}", postId, memberId, postTitle);
     }
 

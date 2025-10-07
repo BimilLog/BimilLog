@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.out.redis;
+package jaeik.bimillog.infrastructure.adapter.out.redis.post;
 
 import jaeik.bimillog.domain.post.application.port.out.RedisPostUpdatePort;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
@@ -9,9 +9,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-import static jaeik.bimillog.infrastructure.adapter.out.redis.RedisPostKeys.*;
-import static jaeik.bimillog.infrastructure.adapter.out.redis.RedisPostKeys.REALTIME_POPULAR_SCORE_KEY;
-import static jaeik.bimillog.infrastructure.adapter.out.redis.RedisPostKeys.SCORE_THRESHOLD;
+import static jaeik.bimillog.infrastructure.adapter.out.redis.post.RedisPostKeys.*;
+import static jaeik.bimillog.infrastructure.adapter.out.redis.post.RedisPostKeys.REALTIME_POPULAR_SCORE_KEY;
+import static jaeik.bimillog.infrastructure.adapter.out.redis.post.RedisPostKeys.SCORE_THRESHOLD;
 
 @Component
 @RequiredArgsConstructor

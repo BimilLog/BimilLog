@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.out.redis;
+package jaeik.bimillog.infrastructure.adapter.out.redis.post;
 
 import jaeik.bimillog.domain.post.application.port.out.RedisPostQueryPort;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static jaeik.bimillog.infrastructure.adapter.out.redis.RedisPostKeys.*;
+import static jaeik.bimillog.infrastructure.adapter.out.redis.post.RedisPostKeys.*;
 
 /**
  * <h2>게시글 캐시 조회 어댑터</h2>
@@ -85,9 +85,9 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
     }
 
     /**
-     * <h3>캐시된 게시글 목록 조회</h3>
-     * <p>Redis List에서 게시글 ID 목록을 조회하고 상세 캐시에서 정보를 가져와 변환합니다.</p>
-     * <p>목록 캐시 미스 시 postIds 저장소에서 ID를 가져와 DB 조회 후 목록을 재구성합니다.</p>
+     * <h3>캐시된 게시글 목록 조회 (Hash 구조)</h3>
+     * <p>Redis Hash에서 PostSimpleDetail 목록을 조회합니다.</p>
+     * <p>postIds 저장소의 순서를 사용하여 정렬합니다.</p>
      *
      * @param type 조회할 캐시 유형
      * @return 캐시된 게시글 목록
@@ -99,21 +99,24 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
     public List<PostSimpleDetail> getCachedPostList(PostCacheFlag type) {
         CacheMetadata metadata = getCacheMetadata(type);
         try {
-            // 1. 목록 캐시에서 ID 목록 조회 (순서대로)
-            List<Object> postIds = redisTemplate.opsForList().range(metadata.key(), 0, -1);
+            // 1. Hash에서 모든 PostSimpleDetail 조회
+            Map<Object, Object> hashEntries = redisTemplate.opsForHash().entries(metadata.key());
 
             // 2. 목록 캐시 미스 시 빈 리스트 반환 (복구는 서비스 레이어에서 처리)
-            if (postIds == null || postIds.isEmpty()) {
+            if (hashEntries == null || hashEntries.isEmpty()) {
                 return Collections.emptyList();
             }
 
-            // 3. 상세 캐시에서 PostDetail 조회 후 PostSearchResult로 변환
-            return postIds.stream()
-                    .map(Object::toString)
-                    .map(Long::valueOf)
-                    .map(this::getCachedPostIfExists)
+            // 3. postIds 저장소에서 순서 가져오기
+            List<Long> orderedIds = getStoredPostIds(type);
+            if (orderedIds.isEmpty()) {
+                return Collections.emptyList();
+            }
+
+            // 4. 순서대로 정렬하여 반환
+            return orderedIds.stream()
+                    .map(id -> (PostSimpleDetail) hashEntries.get(id.toString()))
                     .filter(java.util.Objects::nonNull)
-                    .map(PostDetail::toSearchResult)
                     .toList();
         } catch (Exception e) {
             throw new PostCustomException(PostErrorCode.REDIS_READ_ERROR, e);
@@ -134,10 +137,20 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
     public List<Long> getStoredPostIds(PostCacheFlag type) {
         String postIdsKey = getPostIdsStorageKey(type);
         try {
-            List<Object> postIds = redisTemplate.opsForList().range(postIdsKey, 0, -1);
+            Set<Object> postIds;
+
+            if (type == PostCacheFlag.NOTICE) {
+                // 공지사항: Set에서 조회
+                postIds = redisTemplate.opsForSet().members(postIdsKey);
+            } else {
+                // 주간/레전드: Sorted Set에서 조회 (점수 오름차순 = DB 추출 순서)
+                postIds = redisTemplate.opsForZSet().range(postIdsKey, 0, -1);
+            }
+
             if (postIds == null || postIds.isEmpty()) {
                 return Collections.emptyList();
             }
+
             return postIds.stream()
                     .map(Object::toString)
                     .map(Long::valueOf)
@@ -171,8 +184,9 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
     }
 
     /**
-     * <h3>레전드 게시글 목록 페이지네이션 조회</h3>
-     * <p>레전드 게시글 목록을 페이지네이션으로 조회합니다. Redis List 구조를 활용합니다.</p>
+     * <h3>레전드 게시글 목록 페이지네이션 조회 (Hash 구조)</h3>
+     * <p>레전드 게시글 목록을 페이지네이션으로 조회합니다.</p>
+     * <p>postIds 저장소의 순서를 사용하여 페이징 및 정렬합니다.</p>
      *
      * @param pageable 페이지 정보
      * @return 캐시된 레전드 게시글 목록 페이지
@@ -183,33 +197,35 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
     public Page<PostSimpleDetail> getCachedPostListPaged(Pageable pageable) {
         CacheMetadata metadata = getCacheMetadata(PostCacheFlag.LEGEND);
         try {
-            // 1. 전체 크기 조회
-            Long totalElements = redisTemplate.opsForList().size(metadata.key());
-            if (totalElements == null || totalElements == 0) {
+            // 1. Hash에서 모든 PostSimpleDetail 조회
+            Map<Object, Object> hashEntries = redisTemplate.opsForHash().entries(metadata.key());
+            if (hashEntries == null || hashEntries.isEmpty()) {
                 return new PageImpl<>(Collections.emptyList(), pageable, 0);
             }
 
-            // 2. List에서 페이징된 ID 목록 조회 (순서대로)
-            int page = pageable.getPageNumber();
-            int size = pageable.getPageSize();
-            long start = (long) page * size;
-            long end = start + size - 1;
-
-            List<Object> postIds = redisTemplate.opsForList().range(metadata.key(), start, end);
-            if (postIds == null || postIds.isEmpty()) {
-                return new PageImpl<>(Collections.emptyList(), pageable, totalElements);
+            // 2. postIds 저장소에서 전체 순서 가져오기
+            List<Long> orderedIds = getStoredPostIds(PostCacheFlag.LEGEND);
+            if (orderedIds.isEmpty()) {
+                return new PageImpl<>(Collections.emptyList(), pageable, 0);
             }
 
-            // 3. 상세 캐시에서 PostDetail 조회 후 PostSearchResult로 변환
-            List<PostSimpleDetail> pagedPosts = postIds.stream()
-                    .map(Object::toString)
-                    .map(Long::valueOf)
-                    .map(this::getCachedPostIfExists)
+            // 3. 페이징 처리
+            int page = pageable.getPageNumber();
+            int size = pageable.getPageSize();
+            int start = page * size;
+            int end = Math.min(start + size, orderedIds.size());
+
+            if (start >= orderedIds.size()) {
+                return new PageImpl<>(Collections.emptyList(), pageable, orderedIds.size());
+            }
+
+            // 4. 페이징된 ID 목록으로 PostSimpleDetail 조회
+            List<PostSimpleDetail> pagedPosts = orderedIds.subList(start, end).stream()
+                    .map(id -> (PostSimpleDetail) hashEntries.get(id.toString()))
                     .filter(java.util.Objects::nonNull)
-                    .map(PostDetail::toSearchResult)
                     .toList();
 
-            return new PageImpl<>(pagedPosts, pageable, totalElements);
+            return new PageImpl<>(pagedPosts, pageable, orderedIds.size());
 
         } catch (Exception e) {
             throw new PostCustomException(PostErrorCode.REDIS_READ_ERROR, e);

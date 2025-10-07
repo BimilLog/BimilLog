@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.out.redis;
+package jaeik.bimillog.infrastructure.adapter.out.redis.post;
 
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -22,22 +22,22 @@ public final class RedisPostKeys {
     /**
      * 단일 게시글 상세 정보 캐시 키 접두사
      * <p>Value Type: String (PostDetail)</p>
-     * <p>전체 키 형식: cache:post:{postId}</p>
+     * <p>전체 키 형식: detail:{postId}</p>
      */
-    public static final String FULL_POST_CACHE_PREFIX = "cache:post:";
+    public static final String FULL_POST_CACHE_PREFIX = "detail:";
 
     /**
      * postId 목록 영구 저장소 키 접두사
-     * <p>Value Type: List (postId)</p>
-     * <p>전체 키 형식: cache:postids:{type}</p>
+     * <p>Value Type: Sorted Set (주간/레전드), Set (공지)</p>
+     * <p>전체 키 형식: postids:{type}</p>
      */
-    public static final String POSTIDS_PREFIX = "cache:postids:";
+    public static final String POSTIDS_PREFIX = "postids:";
 
     /**
      * 실시간 인기글 점수 Sorted Set 키
      * <p>Value Type: ZSet (postId, score)</p>
      */
-    public static final String REALTIME_POPULAR_SCORE_KEY = "cache:realtime:scores";
+    public static final String REALTIME_POPULAR_SCORE_KEY = "score:realtime";
 
     // ===================== 2. TTL (Time To Live, 만료 시간) =====================
 
@@ -87,7 +87,7 @@ public final class RedisPostKeys {
     /**
      * <h3>캐시 메타데이터 맵 초기화</h3>
      * <p>각 PostCacheFlag 타입에 대한 Redis 키와 TTL을 설정합니다.</p>
-     * <p>목록 캐시 키는 PostCacheFlag 이름으로 구성하여 일관성을 유지합니다.</p>
+     * <p>목록 캐시는 Hash 구조로 저장되며, Field는 postId, Value는 PostSimpleDetail입니다.</p>
      *
      * @return PostCacheFlag별 캐시 메타데이터 맵
      * @author Jaeik
@@ -96,13 +96,13 @@ public final class RedisPostKeys {
     private static Map<PostCacheFlag, CacheMetadata> initializeCacheMetadata() {
         Map<PostCacheFlag, CacheMetadata> map = new EnumMap<>(PostCacheFlag.class);
         map.put(PostCacheFlag.REALTIME, new CacheMetadata(
-                "cache:posts:realtime", Duration.ofMinutes(5)));
+                "posts:realtime", Duration.ofMinutes(5)));
         map.put(PostCacheFlag.WEEKLY, new CacheMetadata(
-                "cache:posts:weekly", Duration.ofMinutes(5)));
+                "posts:weekly", Duration.ofMinutes(5)));
         map.put(PostCacheFlag.LEGEND, new CacheMetadata(
-                "cache:posts:legend", Duration.ofMinutes(5)));
+                "posts:legend", Duration.ofMinutes(5)));
         map.put(PostCacheFlag.NOTICE, new CacheMetadata(
-                "cache:posts:notice", Duration.ofMinutes(5)));
+                "posts:notice", Duration.ofMinutes(5)));
         return map;
     }
 
@@ -138,7 +138,7 @@ public final class RedisPostKeys {
      * <p>게시글 ID를 사용하여 Redis 상세 캐시 키를 생성합니다.</p>
      *
      * @param postId 게시글 ID
-     * @return 생성된 Redis 키 (형식: cache:post:{postId})
+     * @return 생성된 Redis 키 (형식: detail:{postId})
      * @author Jaeik
      * @since 2.0.0
      */
