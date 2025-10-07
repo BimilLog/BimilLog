@@ -11,11 +11,9 @@ import java.io.Serializable;
 import java.time.Instant;
 
 /**
- * <h2>게시글 검색 결과 값 객체</h2>
+ * <h2>간단 게시글 결과 객체</h2>
  * <p>게시글 목록 조회와 검색 결과를 담는 mutable 도메인 객체입니다.</p>
- * <p>PostDetail과 다르게 mutable로 설계되어 대량 데이터 조회 시 메타데이터 업데이트가 가능합니다.</p>
  * <p>QueryDSL Projection과 레디스 캐시를 지원합니다.</p>
- * <p>SimplePostResDTO의 도메인 전용 대체 객체로 사용됩니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -38,35 +36,8 @@ public class PostSimpleDetail implements Serializable {
     private Integer commentCount;
 
     /**
-     * <h3>PostDetail에서 검색 결과 생성</h3>
-     * <p>PostDetail 값 객체에서 mutable PostSearchResult를 생성합니다.</p>
-     * <p>PostDetail.toSearchResult()에서 내부적으로 호출되어 목록용 객체로 변환합니다.</p>
-     * <p>isLiked 정보는 상세 조회에만 필요하므로 목록용에서는 제외됩니다.</p>
-     * <p>mutable 객체로 설계되어 대량 조회 시 메타데이터 업데이트가 효율적입니다.</p>
-     *
-     * @param postDetail PostDetail 값 객체
-     * @return PostSimpleDetail mutable 검색 결과
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    public static PostSimpleDetail ofPostDetail(PostDetail postDetail) {
-        return PostSimpleDetail.builder()
-                .id(postDetail.getId())
-                .title(postDetail.getTitle())
-                .viewCount(postDetail.getViewCount())
-                .likeCount(postDetail.getLikeCount())
-                .createdAt(postDetail.getCreatedAt())
-                .memberId(postDetail.getMemberId())
-                .memberName(postDetail.getMemberName())
-                .commentCount(postDetail.getCommentCount())
-                .build();
-    }
-    
-    /**
-     * <h3>생성자 - QueryDSL Projection용</h3>
-     * <p>QueryDSL @QueryProjection을 위한 전용 생성자입니다.</p>
-     * <p>PostQueryAdapter에서 게시글 목록 조회 시 QueryDSL을 통해 호출됩니다.</p>
-     * <p>DB에서 직접 PostSimpleDetail 객체로 조회하여 JOIN으로 한 번에 데이터를 가져옵니다.</p>
+     * <h3>생성자</h3>
+     * <p>QueryDSL Projection 지원</p>
      *
      * @since 2.0.0
      * @author Jaeik

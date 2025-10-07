@@ -2,13 +2,17 @@ package jaeik.bimillog.domain.post.application.service;
 
 import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.post.application.port.in.PostAdminUseCase;
+import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
 import jaeik.bimillog.domain.post.entity.Post;
+import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.infrastructure.adapter.in.post.web.PostAdminController;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * <h2>게시글 관리자 서비스</h2>
@@ -25,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PostAdminService implements PostAdminUseCase {
 
     private final GlobalPostQueryPort globalPostQueryPort;
+    private final RedisPostCommandPort redisPostCommandPort;
 
     /**
      * <h3>게시글 공지사항 상태 토글</h3>
@@ -43,32 +48,12 @@ public class PostAdminService implements PostAdminUseCase {
         Post post = globalPostQueryPort.findById(postId);
         if (post.isNotice()) {
             post.unsetAsNotice();
+            redisPostCommandPort.deleteCache(null, postId, PostCacheFlag.NOTICE);
             log.info("공지사항 해제: postId={}, title={}", postId, post.getTitle());
         } else {
             post.setAsNotice();
+            redisPostCommandPort.cachePostIds(PostCacheFlag.NOTICE, List.of(postId));
             log.info("공지사항 설정: postId={}, title={}", postId, post.getTitle());
         }
-    }
-
-    /**
-     * <h3>게시글 공지사항 상태 조회 비즈니스 로직 실행</h3>
-     * <p>PostAdminUseCase 인터페이스의 공지 상태 조회 기능을 구현하며, 캐시 동기화를 위한 현재 상태 확인 규칙을 적용합니다.</p>
-     * <p>게시글의 현재 공지사항 여부를 조회하여 캐시 동기화 로직에서 정확한 상태 판단을 가능하게 합니다.</p>
-     * <p>Post 엔티티의 isNotice 메서드를 통해 도메인 규칙에 따른 상태 조회를 수행합니다.</p>
-     * <p>PostCacheService에서 캐시 동기화 시 현재 공지 상태 확인을 위해 호출됩니다.</p>
-     *
-     * @param postId 상태를 확인할 게시글 ID
-     * @return boolean 공지사항 여부 (true: 공지사항, false: 일반 게시글)
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public boolean isPostNotice(Long postId) {
-        Post post = globalPostQueryPort.findById(postId);
-        
-        boolean isNotice = post.isNotice();
-        log.debug("게시글 공지 상태 조회: postId={}, isNotice={}", postId, isNotice);
-        return isNotice;
     }
 }

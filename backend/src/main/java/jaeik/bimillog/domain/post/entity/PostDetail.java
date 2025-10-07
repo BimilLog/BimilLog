@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.post.entity;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.querydsl.core.annotations.QueryProjection;
 import jaeik.bimillog.domain.post.application.service.PostQueryService;
 import lombok.Builder;
@@ -15,7 +14,6 @@ import java.time.Instant;
  * <h2>게시글 상세 정보 값 객체</h2>
  * <p>게시글 상세 조회 결과를 담는 도메인 값 객체입니다.</p>
  * <p>QueryDSL Projection과 레디스 캐시를 지원합니다.</p>
- * <p>FullPostResDTO의 도메인 전용 대체 객체로 사용됩니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -36,8 +34,6 @@ public class PostDetail implements Serializable {
     private Long memberId;
     private String memberName;
     private Integer commentCount;
-
-    @JsonProperty("isLiked")
     private boolean isLiked;
 
     /**
@@ -93,7 +89,7 @@ public class PostDetail implements Serializable {
 
     /**
      * <h3>목록용 검색 결과로 변환</h3>
-     * <p>PostDetail에서 PostSearchResult로 변환합니다.</p>
+     * <p>PostDetail에서 PostSimpleDetail로 변환합니다.</p>
      * <p>isLiked 정보는 목록 화면에서 필요하지 않으므로 제외됩니다.</p>
      * <p>{@link PostQueryService}에서 게시글 목록 조회 시 호출됩니다.</p>
      *
@@ -102,7 +98,16 @@ public class PostDetail implements Serializable {
      * @author Jaeik
      */
     public PostSimpleDetail toSearchResult() {
-        return PostSimpleDetail.ofPostDetail(this);
+        return PostSimpleDetail.builder()
+                .id(this.id)
+                .title(this.title)
+                .viewCount(this.viewCount)
+                .likeCount(this.likeCount)
+                .createdAt(this.createdAt)
+                .memberId(this.memberId)
+                .memberName(this.memberName)
+                .commentCount(this.commentCount)
+                .build();
     }
 
 }

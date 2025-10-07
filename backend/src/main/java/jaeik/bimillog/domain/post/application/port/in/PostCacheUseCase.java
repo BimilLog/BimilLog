@@ -69,18 +69,4 @@ public interface PostCacheUseCase {
      * @since 2.0.0
      */
     List<PostSimpleDetail> getNoticePosts();
-
-    /**
-     * <h3>공지사항 데이터 동기화</h3>
-     * <p>게시글의 공지사항 상태 변경에 따라 Redis 캐시와 DB 데이터를 동기화합니다.</p>
-     * <p>새로운 공지사항은 캐시에 추가하고, 해제된 공지사항은 캐시에서 제거합니다.</p>
-     * <p>PostAdminService에서 공지 토글 완료 후 데이터 일관성 보장을 위해 호출됩니다.</p>
-     * <p>공지사항 리스트 조회 시 최신 데이터를 제공하기 위해 사용됩니다.</p>
-     *
-     * @param postId 동기화대상 게시글 ID
-     * @param isNotice 변경된 공지사항 상태 (true: 공지로 설정, false: 일반으로 해제)
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    void syncNoticeCache(Long postId, boolean isNotice);
 }

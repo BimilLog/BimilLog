@@ -1,7 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.in.post.web;
 
 import jaeik.bimillog.domain.post.application.port.in.PostAdminUseCase;
-import jaeik.bimillog.domain.post.application.port.in.PostCacheUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -28,10 +27,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class PostAdminController {
 
     private final PostAdminUseCase postAdminUseCase;
-    private final PostCacheUseCase postCacheUseCase;
 
     /**
-     * <h3>게시글 공지사항 등록/삭제 API (관리자용)</h3>
+     * <h3>게시글 공지사항 설정/해제 API (관리자용)</h3>
      * <p>게시글의 공지 설정을 토글합니다. 현재 공지이면 해제하고, 공지가 아니면 설정합니다.</p>
      * <p>관리자 권한이 필요합니다.</p>
      *
@@ -44,16 +42,6 @@ public class PostAdminController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> togglePostNotice(@PathVariable Long postId) {
         postAdminUseCase.togglePostNotice(postId);
-        
-        try {
-            // 현재 공지 상태를 다시 조회하여 캐시 동기화
-            boolean isCurrentlyNotice = postAdminUseCase.isPostNotice(postId);
-            postCacheUseCase.syncNoticeCache(postId, isCurrentlyNotice);
-        } catch (Exception e) {
-            // 캐시 동기화 실패는 로그만 남기고 API 응답에는 영향 없음
-            log.warn("공지사항 캐시 동기화 실패: postId={}, error={}", postId, e.getMessage());
-        }
-        
         return ResponseEntity.ok().build();
     }
 }

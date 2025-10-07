@@ -27,17 +27,4 @@ public interface PostAdminUseCase {
      */
     void togglePostNotice(Long postId);
 
-    /**
-     * <h3>게시글 공지사항 상태 조회</h3>
-     * <p>특정 게시글의 현재 공지사항 설정 여부를 확인합니다.</p>
-     * <p>게시글 엔티티의 isNotice 플래그를 확인하여 boolean 값으로 반환합니다.</p>
-     * <p>{@link PostAdminService}에서 공지 토글 후 변경된 상태를 확인할 때 호출됩니다.</p>
-     *
-     * @param postId 공지 상태를 확인할 게시글 ID
-     * @return boolean 공지사항 설정 여부 (true: 공지사항, false: 일반 게시글)
-     * @throws PostCustomException 게시글을 찾을 수 없는 경우
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    boolean isPostNotice(Long postId);
 }

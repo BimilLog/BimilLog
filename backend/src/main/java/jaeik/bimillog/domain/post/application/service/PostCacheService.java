@@ -4,7 +4,9 @@ import jaeik.bimillog.domain.post.application.port.in.PostCacheUseCase;
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostQueryPort;
-import jaeik.bimillog.domain.post.entity.*;
+import jaeik.bimillog.domain.post.entity.PostCacheFlag;
+import jaeik.bimillog.domain.post.entity.PostDetail;
+import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -111,41 +112,5 @@ public class PostCacheService implements PostCacheUseCase {
     @Override
     public List<PostSimpleDetail> getNoticePosts() {
         return redisPostQueryPort.getCachedPostList(PostCacheFlag.NOTICE);
-    }
-
-    /**
-     * <h3>공지사항 캐시 동기화 비즈니스 로직 실행</h3>
-     * <p>공지사항 설정 시 Redis 캐시에 게시글을 추가하고, 공지사항 해제 시 캐시에서 제거하여 DB와 캐시 간 동기화를 보장합니다.</p>
-     * <p>캐시 무효화와 재생성을 통해 사용자에게 정확한 공지사항 목록을 실시간으로 제공합니다.</p>
-     *
-     * @param postId 동기화할 게시글 ID
-     * @param isNotice 공지사항 여부 (true: 캐시 추가, false: 캐시 제거)
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    @Transactional
-    public void syncNoticeCache(Long postId, boolean isNotice) {
-        if (isNotice) {
-            log.info("공지사항 캐시 추가 동기화 시작: postId={}", postId);
-            log.info("공지사항 캐시 추가 시작: postId={}", postId);
-
-            // 게시글 존재 여부 확인
-            PostDetail postDetail = postQueryPort.findPostDetailWithCounts(postId, null).orElse(null);
-            if (postDetail != null) {
-                // postId만 캐시에 추가 (주간/레전드와 동일한 방식)
-                redisPostCommandPort.cachePostIds(PostCacheFlag.NOTICE, List.of(postId));
-                log.info("공지사항 캐시 추가 완료: postId={}", postId);
-            } else {
-                log.warn("공지사항 캐시 추가 실패 - 게시글을 찾을 수 없음: postId={}", postId);
-            }
-        } else {
-            log.info("공지사항 캐시 제거 동기화 시작: postId={}", postId);
-            log.info("공지사항 캐시 제거 시작: postId={}", postId);
-
-            // 공지 캐시에서만 삭제
-            redisPostCommandPort.deleteCache(null, postId, PostCacheFlag.NOTICE);
-
-            log.info("공지사항 캐시 제거 완료: postId={}", postId);        }
     }
 }
