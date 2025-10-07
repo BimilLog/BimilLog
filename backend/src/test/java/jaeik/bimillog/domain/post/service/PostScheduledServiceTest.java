@@ -2,8 +2,7 @@ package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
-import jaeik.bimillog.domain.post.application.port.out.RedisPostSyncPort;
-import jaeik.bimillog.domain.post.application.service.PostCacheSyncService;
+import jaeik.bimillog.domain.post.application.service.PostScheduledService;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
@@ -27,7 +26,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 /**
- * <h2>PostCacheSyncService 테스트</h2>
+ * <h2>PostScheduledService 테스트</h2>
  * <p>게시글 캐시 동기화 서비스의 비즈니스 로직을 검증하는 단위 테스트</p>
  * <p>스케줄링, 이벤트 처리, 캐시 무효화 등의 복잡한 시나리오를 다양하게 테스트합니다.</p>
  *
@@ -35,15 +34,12 @@ import static org.mockito.Mockito.*;
  * @version 2.0.0
  */
 @ExtendWith(MockitoExtension.class)
-@DisplayName("PostCacheSyncService 테스트")
+@DisplayName("PostScheduledService 테스트")
 @Tag("unit")
-class PostCacheSyncServiceTest {
+class PostScheduledServiceTest {
 
     @Mock
     private RedisPostCommandPort redisPostCommandPort;
-
-    @Mock
-    private RedisPostSyncPort redisPostSyncPort;
 
     @Mock
     private PostQueryPort postQueryPort;
@@ -52,7 +48,7 @@ class PostCacheSyncServiceTest {
     private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
-    private PostCacheSyncService postCacheSyncService;
+    private PostScheduledService postScheduledService;
 
     @Test
     @DisplayName("실시간 인기글 점수 지수감쇠 적용 - applyRealtimeScoreDecay")
@@ -61,7 +57,7 @@ class PostCacheSyncServiceTest {
         doNothing().when(redisPostCommandPort).applyRealtimePopularScoreDecay();
 
         // When
-        postCacheSyncService.applyRealtimeScoreDecay();
+        postScheduledService.applyRealtimeScoreDecay();
 
         // Then
         verify(redisPostCommandPort, times(1)).applyRealtimePopularScoreDecay();
@@ -77,10 +73,10 @@ class PostCacheSyncServiceTest {
         PostSimpleDetail post2 = createPostSearchResult(2L, "주간인기글2", 2L);
         List<PostSimpleDetail> posts = List.of(post1, post2);
 
-        given(redisPostSyncPort.findWeeklyPopularPosts()).willReturn(posts);
+        given(postQueryPort.findWeeklyPopularPosts()).willReturn(posts);
 
         // When
-        postCacheSyncService.updateWeeklyPopularPosts();
+        postScheduledService.updateWeeklyPopularPosts();
 
         // Then
         verify(redisPostCommandPort).cachePostIds(PostCacheFlag.WEEKLY, posts);
@@ -105,10 +101,10 @@ class PostCacheSyncServiceTest {
         PostSimpleDetail userPost = createPostSearchResult(2L, "회원글", 2L);
         List<PostSimpleDetail> posts = List.of(anonymousPost, userPost);
 
-        given(redisPostSyncPort.findWeeklyPopularPosts()).willReturn(posts);
+        given(postQueryPort.findWeeklyPopularPosts()).willReturn(posts);
 
         // When
-        postCacheSyncService.updateWeeklyPopularPosts();
+        postScheduledService.updateWeeklyPopularPosts();
 
         // Then
         verify(redisPostCommandPort).cachePostIds(eq(PostCacheFlag.WEEKLY), any());
@@ -129,10 +125,10 @@ class PostCacheSyncServiceTest {
         PostSimpleDetail legendPost = createPostSearchResult(1L, "전설의글", 1L);
         List<PostSimpleDetail> posts = List.of(legendPost);
 
-        given(redisPostSyncPort.findLegendaryPosts()).willReturn(posts);
+        given(postQueryPort.findLegendaryPosts()).willReturn(posts);
 
         // When
-        postCacheSyncService.updateLegendaryPosts();
+        postScheduledService.updateLegendaryPosts();
 
         // Then
         verify(redisPostCommandPort).cachePostIds(PostCacheFlag.LEGEND, posts);
@@ -152,13 +148,13 @@ class PostCacheSyncServiceTest {
     @DisplayName("전설의 게시글 업데이트 - 게시글 목록 비어있는 경우")
     void shouldUpdateLegendaryPosts_WhenPostListIsEmpty() {
         // Given
-        given(redisPostSyncPort.findLegendaryPosts()).willReturn(Collections.emptyList());
+        given(postQueryPort.findLegendaryPosts()).willReturn(Collections.emptyList());
 
         // When
-        postCacheSyncService.updateLegendaryPosts();
+        postScheduledService.updateLegendaryPosts();
 
         // Then
-        verify(redisPostSyncPort).findLegendaryPosts();
+        verify(postQueryPort).findLegendaryPosts();
 
         // 게시글이 없으면 캐시 및 이벤트 발행 안함
         verify(redisPostCommandPort, never()).cachePostIds(any(), any());
@@ -170,18 +166,18 @@ class PostCacheSyncServiceTest {
     @DisplayName("스케줄링 메서드들의 트랜잭션 동작 검증")
     void shouldVerifyTransactionalBehavior() {
         // Given
-        given(redisPostSyncPort.findWeeklyPopularPosts()).willReturn(Collections.emptyList());
-        given(redisPostSyncPort.findLegendaryPosts()).willReturn(Collections.emptyList());
+        given(postQueryPort.findWeeklyPopularPosts()).willReturn(Collections.emptyList());
+        given(postQueryPort.findLegendaryPosts()).willReturn(Collections.emptyList());
 
         // When - 모든 스케줄링 메서드 호출
-        postCacheSyncService.applyRealtimeScoreDecay();
-        postCacheSyncService.updateWeeklyPopularPosts();
-        postCacheSyncService.updateLegendaryPosts();
+        postScheduledService.applyRealtimeScoreDecay();
+        postScheduledService.updateWeeklyPopularPosts();
+        postScheduledService.updateLegendaryPosts();
 
         // Then - @Transactional 동작을 위한 port 호출 검증
         verify(redisPostCommandPort).applyRealtimePopularScoreDecay();
-        verify(redisPostSyncPort).findWeeklyPopularPosts();
-        verify(redisPostSyncPort).findLegendaryPosts();
+        verify(postQueryPort).findWeeklyPopularPosts();
+        verify(postQueryPort).findLegendaryPosts();
     }
 
     @Test
@@ -190,10 +186,10 @@ class PostCacheSyncServiceTest {
         // Given - 대량의 게시글 생성 (100개)
         List<PostSimpleDetail> largePosts = createLargePostList(100);
 
-        given(redisPostSyncPort.findWeeklyPopularPosts()).willReturn(largePosts);
+        given(postQueryPort.findWeeklyPopularPosts()).willReturn(largePosts);
 
         // When
-        postCacheSyncService.updateWeeklyPopularPosts();
+        postScheduledService.updateWeeklyPopularPosts();
 
         // Then
         verify(redisPostCommandPort).cachePostIds(eq(PostCacheFlag.WEEKLY), any());

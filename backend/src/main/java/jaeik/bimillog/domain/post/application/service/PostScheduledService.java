@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.post.application.service;
 
+import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostCommandPort;
-import jaeik.bimillog.domain.post.application.port.out.RedisPostSyncPort;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /**
- * <h2>PostCacheSyncService</h2>
+ * <h2>PostScheduledService</h2>
  * <p>게시글 인기도 기반 캐시 동기화를 담당하는 스케줄링 서비스로서 시간 기반 캐시 갱신 비즈니스 로직을 오케스트레이션합니다.</p>
  * <p>스프링 스케줄러를 통한 주기적 실행과 이벤트 발행을 통해 도메인 간 통신을 수행</p>
  *
@@ -25,11 +25,11 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class PostCacheSyncService {
+public class PostScheduledService {
 
     private final RedisPostCommandPort redisPostCommandPort;
-    private final RedisPostSyncPort redisPostSyncPort;
     private final ApplicationEventPublisher eventPublisher;
+    private final PostQueryPort postQueryPort;
 
     /**
      * <h3>실시간 인기 게시글 점수 지수감쇠 적용</h3>
@@ -51,11 +51,9 @@ public class PostCacheSyncService {
 
     /**
      * <h3>주간 인기 게시글 스케줄링 갱신 및 알림 발행</h3>
-     * <p>스프링 스케줄러를 통해 1일마다 주간 인기 게시글을 갱신하고 Redis 캐시에 저장합니다.</p>
+     * <p>1일마다 주간 인기 게시글을 갱신하고 postId를 Redis 캐시에 저장합니다.</p>
      * <p>지난 7일간의 조회수와 좋아요 종합 점수를 기반으로 주간 인기 게시글을 선정합니다.</p>
-     * <p>메모리 효율을 위해 postId 목록만 Redis에 저장하고, 상세 정보는 조회 시 캐시 어사이드 패턴으로 가져옵니다.</p>
      * <p>인기 게시글로 선정된 작성자에게 PostFeaturedEvent를 발행하여 알림을 전송합니다.</p>
-     * <p>PostQueryService에서 주간 인기 게시글 조회 시와 Notification 도메인에서 알림 발송 시 사용됩니다.</p>
      *
      * @author Jaeik
      * @since 2.0.0
@@ -63,7 +61,7 @@ public class PostCacheSyncService {
     @Scheduled(fixedRate = 60000 * 1440) // 1일마다
     @Transactional
     public void updateWeeklyPopularPosts() {
-        List<PostSimpleDetail> posts = redisPostSyncPort.findWeeklyPopularPosts();
+        List<PostSimpleDetail> posts = postQueryPort.findWeeklyPopularPosts();
         if (posts.isEmpty()) {
             log.info("WEEKLY에 대한 인기 게시글이 없어 캐시 업데이트를 건너뜁니다.");
             return;
@@ -80,11 +78,8 @@ public class PostCacheSyncService {
 
     /**
      * <h3>전설 게시글 스케줄링 갱신 및 명예의 전당 알림 발행</h3>
-     * <p>스프링 스케줄러를 통해 1일마다 전설 게시글을 갱신하고 Redis 캐시에 저장합니다.</p>
-     * <p>역대 최고 조회수와 좋아요를 기록한 레전드급 게시글을 선정하여 명예의 전당으로 관리합니다.</p>
-     * <p>메모리 효율을 위해 postId 목록만 Redis에 저장하고, 상세 정보는 조회 시 캐시 어사이드 패턴으로 가져옵니다.</p>
-     * <p>전설 게시글로 선정된 작성자에게 PostFeaturedEvent를 발행하여 특별한 명예 알림을 전송합니다.</p>
-     * <p>PostQueryService에서 전설 게시글 조회 시와 Notification 도메인에서 명예 알림 발송 시 사용됩니다.</p>
+     * <p>postId 목록만 Redis에 저장</p>
+     * <p>전설 게시글로 선정된 작성자에게 PostFeaturedEvent를 발행하여 알림을 전송합니다.</p>
      *
      * @author Jaeik
      * @since 2.0.0
@@ -92,7 +87,7 @@ public class PostCacheSyncService {
     @Scheduled(fixedRate = 60000 * 1440) // 1일마다
     @Transactional
     public void updateLegendaryPosts() {
-        List<PostSimpleDetail> posts = redisPostSyncPort.findLegendaryPosts();
+        List<PostSimpleDetail> posts = postQueryPort.findLegendaryPosts();
         if (posts.isEmpty()) {
             log.info("LEGEND에 대한 인기 게시글이 없어 캐시 업데이트를 건너뜁니다.");
             return;

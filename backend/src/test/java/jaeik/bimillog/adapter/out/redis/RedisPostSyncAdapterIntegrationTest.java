@@ -5,7 +5,6 @@ import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostLikeRepository;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostRepository;
-import jaeik.bimillog.infrastructure.adapter.out.redis.RedisPostSyncAdapter;
 import jaeik.bimillog.testutil.RedisTestHelper;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestFixtures;
@@ -48,9 +47,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 @Transactional
 @Tag("tc")
 class RedisPostSyncAdapterIntegrationTest {
-
-    @Autowired
-    private RedisPostSyncAdapter redisPostSyncAdapter;
 
     @Autowired
     private PostQueryPort postQueryPort;
@@ -150,7 +146,7 @@ class RedisPostSyncAdapterIntegrationTest {
         entityManager.clear();
 
         // When
-        List<PostSimpleDetail> popularPosts = redisPostSyncAdapter.findWeeklyPopularPosts();
+        List<PostSimpleDetail> popularPosts = postQueryPort.findWeeklyPopularPosts();
 
         // Then
         assertThat(popularPosts).hasSize(2);
@@ -174,7 +170,7 @@ class RedisPostSyncAdapterIntegrationTest {
         entityManager.clear();
 
         // When
-        List<PostSimpleDetail> legendaryPosts = redisPostSyncAdapter.findLegendaryPosts();
+        List<PostSimpleDetail> legendaryPosts = postQueryPort.findLegendaryPosts();
 
         // Then
         assertThat(legendaryPosts).hasSize(2);

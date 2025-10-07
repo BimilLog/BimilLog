@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostLikeQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostQueryPort;
-import jaeik.bimillog.domain.post.application.service.PostCacheSyncService;
+import jaeik.bimillog.domain.post.application.service.PostScheduledService;
 import jaeik.bimillog.domain.post.application.service.PostQueryService;
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
@@ -54,7 +54,7 @@ class PostQueryServiceTest extends BaseUnitTest {
     private PostLikeQueryPort postLikeQueryPort;
 
     @Mock
-    private PostCacheSyncService postCacheSyncService;
+    private PostScheduledService postScheduledService;
 
     @Mock
     private RedisPostQueryPort redisPostQueryPort;
@@ -417,7 +417,7 @@ class PostQueryServiceTest extends BaseUnitTest {
 
         verify(redisPostQueryPort).hasPopularPostsCache(type);
         verify(redisPostQueryPort).getCachedPostListPaged(pageable);
-        verify(postCacheSyncService, never()).updateLegendaryPosts();
+        verify(postScheduledService, never()).updateLegendaryPosts();
     }
 
     @Test
@@ -442,7 +442,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.getContent().get(0).getTitle()).isEqualTo("업데이트된 레전드 게시글");
 
         verify(redisPostQueryPort).hasPopularPostsCache(type);
-        verify(postCacheSyncService).updateLegendaryPosts();
+        verify(postScheduledService).updateLegendaryPosts();
         verify(redisPostQueryPort).getCachedPostListPaged(pageable);
     }
 
@@ -461,7 +461,7 @@ class PostQueryServiceTest extends BaseUnitTest {
 
         // 타입 검증에서 바로 예외가 발생하므로 다른 메서드들은 호출되지 않음
         verifyNoInteractions(redisPostQueryPort);
-        verifyNoInteractions(postCacheSyncService);
+        verifyNoInteractions(postScheduledService);
     }
 
     @Test
@@ -477,7 +477,7 @@ class PostQueryServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.INVALID_INPUT_VALUE);
 
         verifyNoInteractions(redisPostQueryPort);
-        verifyNoInteractions(postCacheSyncService);
+        verifyNoInteractions(postScheduledService);
     }
 
     @Test
@@ -608,7 +608,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         verify(redisPostQueryPort).getRealtimePopularPostIds();
         verify(redisPostQueryPort).hasPopularPostsCache(PostCacheFlag.WEEKLY);
         verify(redisPostQueryPort).getCachedPostList(PostCacheFlag.WEEKLY);
-        verify(postCacheSyncService, never()).updateWeeklyPopularPosts();
+        verify(postScheduledService, never()).updateWeeklyPopularPosts();
     }
 
     @Test
@@ -636,7 +636,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         verify(redisPostQueryPort).getCachedPostIfExists(1L);
         verify(postQueryPort).findPostDetailWithCounts(1L, null);
         verify(redisPostQueryPort).hasPopularPostsCache(PostCacheFlag.WEEKLY);
-        verify(postCacheSyncService, never()).updateWeeklyPopularPosts();
+        verify(postScheduledService, never()).updateWeeklyPopularPosts();
         verify(redisPostQueryPort).getCachedPostList(PostCacheFlag.WEEKLY);
     }
 
@@ -663,7 +663,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         verify(redisPostQueryPort).getRealtimePopularPostIds();
         verify(redisPostQueryPort).getCachedPostIfExists(1L);
         verify(redisPostQueryPort).hasPopularPostsCache(PostCacheFlag.WEEKLY);
-        verify(postCacheSyncService).updateWeeklyPopularPosts();
+        verify(postScheduledService).updateWeeklyPopularPosts();
         verify(redisPostQueryPort).getCachedPostList(PostCacheFlag.WEEKLY);
     }
 
@@ -692,7 +692,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         verify(redisPostQueryPort).getCachedPostIfExists(1L);
         verify(postQueryPort).findPostDetailWithCounts(1L, null);
         verify(redisPostQueryPort).hasPopularPostsCache(PostCacheFlag.WEEKLY);
-        verify(postCacheSyncService).updateWeeklyPopularPosts();
+        verify(postScheduledService).updateWeeklyPopularPosts();
         verify(redisPostQueryPort).getCachedPostList(PostCacheFlag.WEEKLY);
     }
 

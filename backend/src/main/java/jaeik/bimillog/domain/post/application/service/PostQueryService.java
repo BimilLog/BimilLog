@@ -36,7 +36,7 @@ public class PostQueryService implements PostQueryUseCase {
     private final PostQueryPort postQueryPort;
     private final GlobalPostQueryPort globalPostQueryPort;
     private final PostLikeQueryPort postLikeQueryPort;
-    private final PostCacheSyncService postCacheSyncService;
+    private final PostScheduledService postScheduledService;
     private final RedisPostQueryPort redisPostQueryPort;
     private final RedisPostCommandPort redisPostCommandPort;
 
