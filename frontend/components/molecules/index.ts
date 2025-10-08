@@ -10,7 +10,6 @@ export { BrowserGuideModal } from './modals/browser-guide-modal';
 export { ConfirmModal, useConfirmModal } from './modals/confirm-modal';
 
 // Form components
-export { FormField } from './forms/form-field';
 export { default as Editor } from './forms/editor';
 export { SearchBox } from './forms/search-box';
 

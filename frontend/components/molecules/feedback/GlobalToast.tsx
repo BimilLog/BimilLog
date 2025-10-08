@@ -3,7 +3,8 @@
 import { useEffect } from 'react';
 import { Toast, ToastToggle } from 'flowbite-react';
 import { HiCheck, HiX, HiExclamation, HiInformationCircle } from 'react-icons/hi';
-import { useToastStore } from '@/stores/toastStore';
+import { useToastStore } from '@/stores/toast.store';
+import type { ToastType } from '@/components/molecules/feedback/toast';
 
 export function GlobalToast() {
   const { toasts, removeToast } = useToastStore();
@@ -11,10 +12,10 @@ export function GlobalToast() {
   // 자동 제거 타이머 설정
   useEffect(() => {
     const timers = toasts.map((toast) => {
-      if (toast.duration !== 0) {
+      if (toast.duration && toast.duration !== 0) {
         return setTimeout(() => {
           removeToast(toast.id);
-        }, toast.duration || 5000);
+        }, toast.duration);
       }
       return null;
     });
@@ -26,7 +27,7 @@ export function GlobalToast() {
     };
   }, [toasts, removeToast]);
 
-  const getIcon = (type: 'success' | 'error' | 'warning' | 'info') => {
+  const getIcon = (type: ToastType) => {
     switch (type) {
       case 'success':
         return <HiCheck className="h-5 w-5" />;
@@ -40,7 +41,7 @@ export function GlobalToast() {
     }
   };
 
-  const getColorClass = (type: 'success' | 'error' | 'warning' | 'info') => {
+  const getColorClass = (type: ToastType) => {
     switch (type) {
       case 'success':
         return 'bg-green-100 text-green-500 dark:bg-green-800 dark:text-green-200';
@@ -49,6 +50,8 @@ export function GlobalToast() {
       case 'warning':
         return 'bg-orange-100 text-orange-500 dark:bg-orange-700 dark:text-orange-200';
       case 'info':
+      case 'feedback':
+      case 'neutral':
       default:
         return 'bg-blue-100 text-blue-500 dark:bg-blue-800 dark:text-blue-200';
     }
@@ -64,8 +67,8 @@ export function GlobalToast() {
             {getIcon(toast.type)}
           </div>
           <div className="ml-3 text-sm font-normal">
-            {toast.title && <div className="font-semibold mb-1">{toast.title}</div>}
-            <div>{toast.message}</div>
+            <div className="font-semibold mb-1">{toast.title}</div>
+            {toast.description && <div>{toast.description}</div>}
           </div>
           <ToastToggle onDismiss={() => removeToast(toast.id)} />
         </Toast>

@@ -58,7 +58,6 @@ export type {
 
 export type {
   Member,
-  User,
   Setting,
   KakaoFriend,
   KakaoFriendList

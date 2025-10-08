@@ -26,14 +26,14 @@ import {
   Shield,
   Star,
 } from "lucide-react";
-import { User, userQuery, userCommand } from "@/lib/api";
+import { Member, userQuery, userCommand } from "@/lib/api";
 import { validationRules } from "@/lib/utils/validation-helpers";
 import { useToast } from "@/hooks";
 import { logger } from '@/lib/utils/logger';
 import { ToastContainer } from "@/components";
 
 interface ProfileCardProps {
-  user: User;
+  user: Member;
   onNicknameChange: (newNickname: string) => Promise<void>;
   onLogout: () => Promise<void>;
   className?: string;

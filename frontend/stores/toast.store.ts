@@ -131,3 +131,23 @@ export const useToastStore = create<ToastState>()(
     }
   )
 );
+
+// Helper hook for easier toast usage (compatible with old toastStore interface)
+export const useGlobalToast = () => {
+  const { showSuccess, showError, showWarning, showInfo } = useToastStore();
+
+  return {
+    success: (message: string, title?: string) => {
+      showSuccess(title || '성공', message);
+    },
+    error: (message: string, title?: string) => {
+      showError(title || '오류', message);
+    },
+    warning: (message: string, title?: string) => {
+      showWarning(title || '경고', message);
+    },
+    info: (message: string, title?: string) => {
+      showInfo(title || '알림', message);
+    },
+  };
+};

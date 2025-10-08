@@ -10,10 +10,6 @@ export interface Member {
   role: "USER" | "ADMIN"      // 사용자 권한 레벨
 }
 
-// 하위 호환성을 위한 User 타입 alias (deprecated)
-/** @deprecated Use Member instead */
-export type User = Member
-
 // 설정 타입 - v2 백엔드 SettingDTO 호환
 // 사용자별 알림 설정 (기본값: 모두 true)
 export interface Setting {

@@ -13,7 +13,8 @@ interface ReportListContainerProps {
   reports: Report[];
   isLoading: boolean;
   refetch: () => void;
-  initialFilterType?: string;
+  filterType: string;
+  setFilterType: (type: string) => void;
   initialSearchTerm?: string;
 }
 
@@ -21,36 +22,25 @@ const ReportListContainerComponent: React.FC<ReportListContainerProps> = ({
   reports,
   isLoading,
   refetch,
-  initialFilterType = "all",
+  filterType,
+  setFilterType,
   initialSearchTerm = ""
 }) => {
   const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
-  const [filterType, setFilterType] = useState(initialFilterType);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedReport, setSelectedReport] = useState<Report | null>(null);
 
-  // 검색 및 필터링 최적화 (debounce 효과)
+  // 검색 필터링만 수행 (reportType 필터링은 서버에서 수행됨)
   const filteredReports = useMemo(() => {
     return reports.filter(report => {
       const matchesSearch = searchTerm === "" ||
         report.targetId?.toString().includes(searchTerm) ||
         report.reporterName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         report.content?.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesFilter = filterType === "all" || report.reportType === filterType;
-      
-      return matchesSearch && matchesFilter;
-    });
-  }, [reports, searchTerm, filterType]);
 
-  // 신고 개수 계산 메모화
-  const reportCounts = useMemo(() => ({
-    all: reports.length,
-    POST: reports.filter(r => r.reportType === "POST").length,
-    COMMENT: reports.filter(r => r.reportType === "COMMENT").length,
-    ERROR: reports.filter(r => r.reportType === "ERROR").length,
-    IMPROVEMENT: reports.filter(r => r.reportType === "IMPROVEMENT").length
-  }), [reports]);
+      return matchesSearch;
+    });
+  }, [reports, searchTerm]);
 
   // 이벤트 핸들러 최적화
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -129,7 +119,6 @@ const ReportListContainerComponent: React.FC<ReportListContainerProps> = ({
               <ReportFilters
                 filterType={filterType}
                 setFilterType={setFilterType}
-                reportCounts={reportCounts}
               />
             </div>
           </div>

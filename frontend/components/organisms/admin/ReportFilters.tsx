@@ -1,27 +1,19 @@
 "use client";
 
 import React from "react";
-import { Badge } from "@/components";
 
 interface ReportFiltersProps {
   filterType: string;
   setFilterType: (type: string) => void;
-  reportCounts: {
-    all: number;
-    POST: number;
-    COMMENT: number;
-    ERROR: number;
-    IMPROVEMENT: number;
-  };
 }
 
-export const ReportFilters = React.memo<ReportFiltersProps>(({ filterType, setFilterType, reportCounts }) => {
+export const ReportFilters = React.memo<ReportFiltersProps>(({ filterType, setFilterType }) => {
   const filters = [
-    { id: "all", label: "전체", count: reportCounts.all },
-    { id: "POST", label: "게시글", count: reportCounts.POST },
-    { id: "COMMENT", label: "댓글", count: reportCounts.COMMENT },
-    { id: "ERROR", label: "오류", count: reportCounts.ERROR },
-    { id: "IMPROVEMENT", label: "개선", count: reportCounts.IMPROVEMENT }
+    { id: "all", label: "전체" },
+    { id: "POST", label: "게시글" },
+    { id: "COMMENT", label: "댓글" },
+    { id: "ERROR", label: "오류" },
+    { id: "IMPROVEMENT", label: "개선" }
   ];
 
   return (
@@ -39,12 +31,6 @@ export const ReportFilters = React.memo<ReportFiltersProps>(({ filterType, setFi
           `}
         >
           {filter.label}
-          <Badge 
-            variant={filterType === filter.id ? "default" : "secondary"} 
-            className="ml-2 text-xs"
-          >
-            {filter.count}
-          </Badge>
         </button>
       ))}
     </div>

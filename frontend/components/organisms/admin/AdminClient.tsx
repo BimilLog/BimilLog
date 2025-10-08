@@ -65,8 +65,12 @@ export function AdminClient() {
   const {
     reports,
     isLoading: isReportsLoading,
+    filterType,
+    setFilterType,
     refetch
-  } = useReports();
+  } = useReports({
+    initialFilterType: initialFilterType
+  });
 
   useEffect(() => {
     if (!isAuthLoading && !isAdmin) {
@@ -124,7 +128,8 @@ export function AdminClient() {
                 reports={reports}
                 isLoading={isReportsLoading}
                 refetch={refetch}
-                initialFilterType={initialFilterType}
+                filterType={filterType}
+                setFilterType={setFilterType}
                 initialSearchTerm={initialSearchTerm}
               />
             </TabsContent>

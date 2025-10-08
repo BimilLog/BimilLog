@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { userQuery, paperQuery, User } from "@/lib/api";
+import { userQuery, paperQuery, Member } from "@/lib/api";
 import { logger } from '@/lib/utils/logger';
 
 // ===== USER STATS =====
@@ -13,7 +13,7 @@ interface UserStats {
   totalLikedComments: number;
 }
 
-export function useUserStats(user: User | null) {
+export function useUserStats(user: Member | null) {
   const [userStats, setUserStats] = useState<UserStats>({
     totalMessages: 0,
     totalPosts: 0,

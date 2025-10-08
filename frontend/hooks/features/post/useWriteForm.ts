@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth, useToast } from "@/hooks";
-import { useCreateBoardPost } from '@/hooks/api/useBoardMutations';
+import { useCreatePost } from '@/hooks/api/usePostMutations';
 import { useDraft } from '@/hooks/features/useDraft';
 
 /**
@@ -14,7 +14,7 @@ export function useWriteForm() {
   const { user, isAuthenticated } = useAuth();
   const { showWarning } = useToast();
   // TanStack Query의 mutation 훅 - 게시글 생성 API 호출 및 캐시 관리
-  const createPostMutation = useCreateBoardPost();
+  const createPostMutation = useCreatePost();
 
   // 로컬 폼 상태 관리
   const [title, setTitle] = useState("");
@@ -72,7 +72,7 @@ export function useWriteForm() {
     createPostMutation.mutate({
       title,
       content,
-      password, // 회원은 빈 값, 비회원은 입력된 비밀번호
+      password: password ? parseInt(password, 10) : undefined, // 회원은 undefined, 비회원은 숫자로 변환
     });
 
     // 게시글 작성 성공 시 임시저장 삭제

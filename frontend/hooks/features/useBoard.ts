@@ -1,19 +1,19 @@
 "use client";
 
-// ============ BOARD QUERY HOOKS ============
+// ============ POST QUERY HOOKS ============
+// 단순 API hooks - 직접 사용 시에만 import
 export {
-  useBoardPosts,
-  useBoardSearch,
-  useBoardRealtimePosts,
-  useBoardWeeklyPosts,
-} from '@/hooks/api/useBoardQueries';
+  usePostList as usePostListQuery,
+  useRealtimePosts as useRealtimePostsQuery,
+  useWeeklyPosts as useWeeklyPostsQuery,
+} from '@/hooks/api/usePostQueries';
 
-// ============ BOARD MUTATION HOOKS ============
+// ============ POST MUTATION HOOKS ============
 export {
-  useCreateBoardPost,
-  useUpdateBoardPost,
-  useDeleteBoardPost,
-} from '@/hooks/api/useBoardMutations';
+  useCreatePost,
+  useUpdatePost,
+  useDeletePost,
+} from '@/hooks/api/usePostMutations';
 
 // ============ BOARD FORM HOOKS ============
 // Re-export from post folder for backward compatibility
