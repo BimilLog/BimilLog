@@ -50,29 +50,18 @@ public class CommentReqDTO {
         return true;
     }
 
-    @AssertTrue(message = "익명 댓글은 비밀번호가 필수이며, 회원 댓글은 비밀번호가 없어야 합니다.")
-    public boolean isPasswordValid() {
-        // 댓글 작성시에만 검증 (postId가 있는 경우)
-        if (postId != null) {
-            // 패스워드가 명시적으로 제공된 경우에만 익명 댓글로 간주하여 검증
-            if (password != null) {
-                return password >= 1000 && password <= 9999;
-            }
-            // memberId가 명시적으로 설정되고 password가 없는 경우 회원 댓글로 검증
-            if (memberId != null) {
-                return true;
-            }
-            // memberId도 password도 없는 경우는 컨트롤러에서 설정할 예정이므로 통과
-            return true;
-        }
-        return true; // 수정/삭제시에는 memberId 검증 생략 (컨트롤러에서 설정됨)
-    }
 
     @AssertTrue(message = "댓글 수정 시 댓글 ID와 내용은 필수입니다.")
     public boolean isUpdateValid() {
-        if (id != null && postId == null && parentId == null && content != null) {
+        // 수정/삭제 요청 형태인지 확인 (id만 있고 postId, parentId 없음)
+        boolean isModifyRequest = id != null && postId == null && parentId == null;
+
+        if (isModifyRequest && content != null) {
+            // 수정 요청인 경우: 내용이 비어있지 않아야 함
             return !content.trim().isEmpty();
         }
+
+        // 작성 요청이거나 삭제 요청인 경우 통과
         return true;
     }
 

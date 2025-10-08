@@ -158,8 +158,8 @@ export const MessageForm = React.memo<MessageFormProps>(({
               {...register("content", {
                 required: "메시지를 입력해주세요",
                 maxLength: {
-                  value: 500,
-                  message: "메시지는 500자 이하로 입력해주세요",
+                  value: 255,
+                  message: "메시지는 255자 이하로 입력해주세요",
                 },
                 minLength: {
                   value: 1,
@@ -167,7 +167,7 @@ export const MessageForm = React.memo<MessageFormProps>(({
                 },
               })}
               rows={4}
-              maxLength={500}
+              maxLength={255}
               className="bg-white/80 border-cyan-200 focus:border-cyan-400 font-medium resize-none"
             />
             <div className="flex justify-between items-center mt-1">
@@ -177,7 +177,7 @@ export const MessageForm = React.memo<MessageFormProps>(({
                 </p>
               )}
               <p className="text-right text-xs text-cyan-600 ml-auto">
-                {content.length} / 500
+                {content.length} / 255
               </p>
             </div>
           </div>

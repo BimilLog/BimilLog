@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.paper.service;
 
-import jaeik.bimillog.domain.global.application.port.out.GlobalMemberQueryPort;
 import jaeik.bimillog.domain.paper.application.port.out.PaperQueryPort;
 import jaeik.bimillog.domain.paper.application.service.PaperQueryService;
 import jaeik.bimillog.domain.paper.entity.Message;
@@ -16,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,9 +37,6 @@ class PaperQueryServiceTest extends BaseUnitTest {
     @Mock
     private PaperQueryPort paperQueryPort;
 
-    @Mock
-    private GlobalMemberQueryPort globalMemberQueryPort;
-
     @InjectMocks
     private PaperQueryService paperQueryService;
 
@@ -54,7 +51,6 @@ class PaperQueryServiceTest extends BaseUnitTest {
                 PaperTestDataBuilder.createRollingPaper(getOtherMember(), "메시지2", 10, 10)
         );
 
-        given(globalMemberQueryPort.existsByMemberName(memberName)).willReturn(true);
         given(paperQueryPort.findMessagesByMemberName(memberName)).willReturn(messages);
 
         // When
@@ -66,26 +62,27 @@ class PaperQueryServiceTest extends BaseUnitTest {
         assertThat(result.get(0).memberId()).isEqualTo(getTestMember().getId());
         assertThat(result.get(1).memberId()).isEqualTo(getOtherMember().getId());
 
-        verify(globalMemberQueryPort, times(1)).existsByMemberName(memberName);
         verify(paperQueryPort, times(1)).findMessagesByMemberName(memberName);
-        verifyNoMoreInteractions(globalMemberQueryPort, paperQueryPort);
+        verifyNoMoreInteractions(paperQueryPort);
     }
 
     @Test
-    @DisplayName("다른 사용자 롤링페이퍼 방문 - 사용자 없음")
-    void shouldThrowException_WhenUserNotExists() {
+    @DisplayName("다른 사용자 롤링페이퍼 방문 - 메시지 없는 경우")
+    void shouldReturnEmptyList_WhenNoMessages() {
         // Given
-        String memberName = "nonexistentuser";
+        String memberName = "userWithNoMessages";
 
-        given(globalMemberQueryPort.existsByMemberName(memberName)).willReturn(false);
+        given(paperQueryPort.findMessagesByMemberName(memberName)).willReturn(Collections.emptyList());
 
-        // When & Then
-        assertThatThrownBy(() -> paperQueryService.visitPaper(memberName))
-                .isInstanceOf(PaperCustomException.class)
-                .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.USERNAME_NOT_FOUND);
+        // When
+        List<VisitMessageDetail> result = paperQueryService.visitPaper(memberName);
 
-        verify(globalMemberQueryPort, times(1)).existsByMemberName(memberName);
-        verify(paperQueryPort, never()).findMessagesByMemberName(any());
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result).isEmpty();
+
+        verify(paperQueryPort, times(1)).findMessagesByMemberName(memberName);
+        verifyNoMoreInteractions(paperQueryPort);
     }
 
 
@@ -109,7 +106,6 @@ class PaperQueryServiceTest extends BaseUnitTest {
                 .isInstanceOf(PaperCustomException.class)
                 .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.INVALID_INPUT_VALUE);
 
-        verify(globalMemberQueryPort, never()).existsByMemberName(any());
         verify(paperQueryPort, never()).findMessagesByMemberName(any());
     }
 

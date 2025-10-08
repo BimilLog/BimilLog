@@ -105,24 +105,5 @@ public class Message extends BaseEntity {
     public Long getMemberId() {
         return this.member != null ? this.member.getId() : null;
     }
-
-    /**
-     * <h3>메시지 삭제 권한 확인</h3>
-     * <p>주어진 사용자 ID가 이 메시지를 삭제할 권한이 있는지 확인합니다.</p>
-     * <p>
-     * 롤링페이퍼 소유자가 자신의 페이퍼에서 부적절하거나 원하지 않는 메시지를 발견하고
-     * 삭제 버튼을 클릭한 상황에서, PaperCommandService가 실제 삭제를 수행하기 전
-     * "이 사용자가 정말로 이 메시지를 삭제할 권한이 있는가?"를 검증하기 위해 호출하는 메서드입니다.
-     * 오직 롤링페이퍼 소유자(member)만이 해당 페이퍼의 메시지를 삭제할 수 있도록 보장합니다.
-     * </p>
-     *
-     * @param userId 삭제를 요청한 사용자의 ID
-     * @return 삭제 권한이 있으면 true, 없으면 false
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public boolean canBeDeletedBy(Long userId) {
-        return this.member != null && this.member.getId().equals(userId);
-    }
 }
 

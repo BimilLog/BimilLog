@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.paper.application.service;
 
-import jaeik.bimillog.domain.global.application.port.out.GlobalMemberQueryPort;
 import jaeik.bimillog.domain.paper.application.port.in.PaperQueryUseCase;
 import jaeik.bimillog.domain.paper.application.port.out.PaperQueryPort;
 import jaeik.bimillog.domain.paper.entity.Message;
@@ -27,7 +26,6 @@ import java.util.List;
 public class PaperQueryService implements PaperQueryUseCase {
 
     private final PaperQueryPort paperQueryPort;
-    private final GlobalMemberQueryPort globalUserQueryPort;
 
 
     /**
@@ -54,11 +52,11 @@ public class PaperQueryService implements PaperQueryUseCase {
      * <h3>다른 사용자 롤링페이퍼 방문 조회</h3>
      * <p>다른 사용자의 롤링페이퍼를 방문하여 메시지 목록을 조회합니다.</p>
      * <p>내용과 작성자명은 제외하고 그리드 위치와 장식 정보만 제공합니다.</p>
+     * <p>메시지가 없는 경우 빈 리스트를 반환하여 롤링페이퍼 페이지를 표시할 수 있도록 합니다.</p>
      * <p>{@link PaperQueryController}에서 타인의 롤링페이퍼 방문 요청 시 호출됩니다.</p>
      *
      * @param memberName 방문할 사용자명
      * @return 방문용 메시지 상세 정보 목록
-     * @throws PaperCustomException 사용자가 존재하지 않는 경우
      * @author Jaeik
      * @since 2.0.0
      */
@@ -67,11 +65,7 @@ public class PaperQueryService implements PaperQueryUseCase {
         if (memberName == null || memberName.trim().isEmpty()) {
             throw new PaperCustomException(PaperErrorCode.INVALID_INPUT_VALUE);
         }
-        
-        boolean exists = globalUserQueryPort.existsByMemberName(memberName);
-        if (!exists) {
-            throw new PaperCustomException(PaperErrorCode.USERNAME_NOT_FOUND);
-        }
+
         List<Message> messages = paperQueryPort.findMessagesByMemberName(memberName);
         return messages.stream()
                 .map(VisitMessageDetail::from)

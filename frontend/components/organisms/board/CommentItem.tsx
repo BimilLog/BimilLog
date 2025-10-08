@@ -156,7 +156,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
             {!isMyComment(comment) && (
               <Input
                 type="password"
-                placeholder="비밀번호"
+                placeholder="비밀번호 (1000~9999)"
                 className="mt-2"
                 value={editPassword}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditPassword(e.target.value)}
@@ -321,7 +321,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
                   <div className="mb-3">
                     <Input
                       type="password"
-                      placeholder="비밀번호"
+                      placeholder="비밀번호 (1000~9999)"
                       value={replyPassword}
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setReplyPassword(e.target.value)}
                     />

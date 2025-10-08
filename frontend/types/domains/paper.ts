@@ -34,12 +34,12 @@ export type DecoType =
 // 롤링페이퍼 메시지 타입 - v2 백엔드 MessageDTO 완전 호환
 export interface RollingPaperMessage {
   id: number
-  userId: number
+  memberId: number
   decoType: DecoType
   anonymity: string
   content: string
-  x: number  // 그리드 X 좌표 (1-based, 1부터 시작)
-  y: number  // 그리드 Y 좌표 (1-based, 1부터 시작)
+  x: number  // 그리드 X 좌표 (0-based, 0부터 시작)
+  y: number  // 그리드 Y 좌표 (0-based, 0부터 시작)
   createdAt: string // ISO 8601 string format - 백엔드 Instant는 ISO string으로 변환됨
 }
 
@@ -47,10 +47,10 @@ export interface RollingPaperMessage {
 // RollingPaperMessage와 차이: content, anonymity, createdAt 필드가 없음 (방문자에게 표시되지 않는 정보)
 export interface VisitMessage {
   id: number
-  userId: number
+  memberId: number
   decoType: DecoType
-  x: number  // 그리드 X 좌표 (1-based, 1부터 시작)
-  y: number  // 그리드 Y 좌표 (1-based, 1부터 시작)
+  x: number  // 그리드 X 좌표 (0-based, 0부터 시작)
+  y: number  // 그리드 Y 좌표 (0-based, 0부터 시작)
 }
 
 // 데코레이션 타입 매핑 - UI에 표시할 한글 이름과 Tailwind 그라데이션 색상

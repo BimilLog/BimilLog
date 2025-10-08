@@ -26,7 +26,6 @@ public class PaperCommandController {
 
     /**
      * <h3>롤링페이퍼 메시지 작성 API</h3>
-     * <p>메시지 작성 POST 요청을 처리합니다.</p>
      * <p>익명 사용자도 접근 가능하며, 그리드 레이아웃에 맞는 좌표를 지정할 수 있습니다.</p>
      *
      * @param memberName   메시지를 작성할 롤링페이퍼 소유자의 사용자명
@@ -47,7 +46,6 @@ public class PaperCommandController {
 
     /**
      * <h3>내 롤링페이퍼 메시지 삭제 API</h3>
-     * <p>메시지 삭제 POST 요청을 처리합니다.</p>
      * <p>로그인한 사용자만 접근 가능하며, 자신의 롤링페이퍼에 있는 메시지만 삭제할 수 있습니다.</p>
      *
      * @param userDetails 현재 로그인한 사용자 정보

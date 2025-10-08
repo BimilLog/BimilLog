@@ -54,19 +54,19 @@ export const CommentForm: React.FC<CommentFormProps> = ({
             <div className="mb-4">
               <Input
                 type="password"
-                placeholder="비밀번호 (4자리 숫자)"
+                placeholder="비밀번호 (1000~9999)"
                 {...register("password", {
                   required: !isAuthenticated,
                   pattern: {
-                    value: /^\d{4}$/,
-                    message: "4자리 숫자를 입력해주세요",
+                    value: /^[1-9]\d{3}$/,
+                    message: "1000~9999 사이의 숫자를 입력해주세요",
                   },
                 })}
                 maxLength={4}
               />
               {errors.password && (
                 <p className="text-red-500 text-sm mt-1">
-                  {errors.password.message || "4자리 숫자를 입력해주세요"}
+                  {errors.password.message || "1000~9999 사이의 숫자를 입력해주세요"}
                 </p>
               )}
             </div>
@@ -83,12 +83,12 @@ export const CommentForm: React.FC<CommentFormProps> = ({
               })}
               className="flex-1"
             />
-            <Button 
+            <Button
               type="submit"
               disabled={
-                isSubmittingComment || 
-                !comment.trim() || 
-                (!isAuthenticated && (!password || !/^\d{4}$/.test(password)))
+                isSubmittingComment ||
+                !comment.trim() ||
+                (!isAuthenticated && (!password || !/^[1-9]\d{3}$/.test(password)))
               }
             >
               <Send className="w-4 h-4 stroke-blue-600 fill-blue-100" />

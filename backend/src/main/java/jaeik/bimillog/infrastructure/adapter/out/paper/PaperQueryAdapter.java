@@ -49,11 +49,11 @@ public class PaperQueryAdapter implements PaperQueryPort {
 
     /**
      * <h3>사용자명으로 방문 메시지 목록 조회</h3>
-     * <p>특정 사용자명의 롤링페이퍼에 있는 모든 메시지를 조회합니다.</p>
+     * <p>특정 사용자명의 롤링페이퍼에 있는 모든 메시지를 최신순으로 조회합니다.</p>
      * <p>{@link PaperQueryService#visitPaper}에서 호출됩니다.</p>
      *
      * @param memberName 방문할 롤링페이퍼 소유자의 사용자명
-     * @return List<Message> 해당 사용자의 메시지 목록
+     * @return List<Message> 해당 사용자의 메시지 목록 (최신순 정렬)
      * @author Jaeik
      * @since 2.0.0
      */
@@ -64,6 +64,7 @@ public class PaperQueryAdapter implements PaperQueryPort {
         return jpaQueryFactory
                 .selectFrom(message)
                 .where(message.member.memberName.eq(memberName))
+                .orderBy(message.createdAt.desc())
                 .fetch();
     }
 

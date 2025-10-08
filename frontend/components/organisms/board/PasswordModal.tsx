@@ -26,7 +26,7 @@ export const PasswordModal = React.memo<PasswordModalProps>(({
         <div className="space-y-4">
           <Input
             type="password"
-            placeholder="비밀번호를 입력하세요"
+            placeholder="비밀번호 (1000~9999)"
             value={password}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => onPasswordChange(e.target.value)}
             autoFocus

@@ -8,13 +8,13 @@ export const postCommand = {
     content: string
     password?: number
   }): Promise<ApiResponse<Post>> => {
-    const payload: { title: string; content: string; password?: string } = {
+    const payload: { title: string; content: string; password?: number } = {
       title: post.title,
       content: post.content
     }
 
     if (post.password !== undefined) {
-      payload.password = post.password.toString();
+      payload.password = post.password;
     }
 
     return apiClient.post<{ id: number }>("/api/post", payload).then(response => {
@@ -26,13 +26,13 @@ export const postCommand = {
   },
   
   update: (post: Post & { password?: number }): Promise<ApiResponse<void>> => {
-    const payload: { title: string; content: string; password?: string } = {
+    const payload: { title: string; content: string; password?: number } = {
       title: post.title,
       content: post.content
     }
 
     if (post.password !== undefined) {
-      payload.password = post.password.toString();
+      payload.password = post.password;
     }
 
     return apiClient.put(`/api/post/${post.id}`, payload)
@@ -41,7 +41,7 @@ export const postCommand = {
   delete: (postId: number, password?: number): Promise<ApiResponse<void>> => {
     let payload = undefined;
     if (password !== undefined) {
-      payload = { password: password.toString() };
+      payload = { password: password };
     }
     return apiClient.delete(`/api/post/${postId}`, payload);
   },

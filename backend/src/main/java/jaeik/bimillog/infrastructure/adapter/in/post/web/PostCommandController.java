@@ -56,14 +56,13 @@ public class PostCommandController {
     public ResponseEntity<Void> writePost(@AuthenticationPrincipal CustomUserDetails userDetails,
                                           @RequestBody @Valid PostCreateDTO postCreateDTO) {
         Long memberId = (userDetails != null) ? userDetails.getMemberId() : null;
-        String password = postCreateDTO.getPassword();
+        Integer password = postCreateDTO.getPassword();
 
-        if (memberId == null && (password == null || password.trim().isEmpty())) {
+        if (memberId == null && password == null) {
             throw new PostCustomException(PostErrorCode.BLANK_PASSWORD);
         }
 
-        Integer postPassword = (password != null) ? Integer.parseInt(password) : null;
-        Long postId = postCommandUseCase.writePost(memberId, postCreateDTO.getTitle(), postCreateDTO.getContent(), postPassword);
+        Long postId = postCommandUseCase.writePost(memberId, postCreateDTO.getTitle(), postCreateDTO.getContent(), password);
         return ResponseEntity.created(URI.create("/post/" + postId)).build();
     }
 
@@ -84,14 +83,13 @@ public class PostCommandController {
                                            @RequestBody @Valid PostUpdateDTO postUpdateDTO) {
 
         Long memberId = (userDetails != null) ? userDetails.getMemberId() : null;
-        String password = postUpdateDTO.getPassword();
+        Integer password = postUpdateDTO.getPassword();
 
-        if (memberId == null && (password == null || password.trim().isEmpty())) {
+        if (memberId == null && password == null) {
             throw new PostCustomException(PostErrorCode.BLANK_PASSWORD);
         }
 
-        Integer postPassword = (password != null) ? Integer.parseInt(password) : null;
-        postCommandUseCase.updatePost(memberId, postId, postUpdateDTO.getTitle(), postUpdateDTO.getContent(), postPassword);
+        postCommandUseCase.updatePost(memberId, postId, postUpdateDTO.getTitle(), postUpdateDTO.getContent(), password);
         return ResponseEntity.ok().build();
     }
 
@@ -112,14 +110,13 @@ public class PostCommandController {
                                            @RequestBody(required = false) @Valid PostDeleteDTO postDeleteDTO) {
 
         Long memberId = (userDetails != null) ? userDetails.getMemberId() : null;
-        String password = (postDeleteDTO != null) ? postDeleteDTO.getPassword() : null;
+        Integer password = (postDeleteDTO != null) ? postDeleteDTO.getPassword() : null;
 
-        if (memberId == null && (password == null || password.trim().isEmpty())) {
+        if (memberId == null && password == null) {
             throw new PostCustomException(PostErrorCode.BLANK_PASSWORD);
         }
 
-        Integer postPassword = (password != null) ? Integer.parseInt(password) : null;
-        postCommandUseCase.deletePost(memberId, postId, postPassword);
+        postCommandUseCase.deletePost(memberId, postId, password);
         return ResponseEntity.noContent().build();
     }
 

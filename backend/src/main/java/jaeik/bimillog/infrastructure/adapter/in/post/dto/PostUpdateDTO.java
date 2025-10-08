@@ -1,7 +1,8 @@
 package jaeik.bimillog.infrastructure.adapter.in.post.dto;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
@@ -29,8 +30,9 @@ public class PostUpdateDTO {
     @Size(min = 10, max = 3000, message = "게시글 내용은 1000자 이하여야 합니다")
     private String content;
 
-    @Pattern(regexp = "^[1-9]\\d{3}$", message = "비밀번호는 1000-9999 범위의 4자리 숫자여야 합니다")
-    private String password;
+    @Min(value = 1000, message = "비밀번호는 4자리 숫자여야 합니다")
+    @Max(value = 9999, message = "비밀번호는 4자리 숫자여야 합니다")
+    private Integer password;
 
 
 }

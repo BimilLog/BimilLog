@@ -100,12 +100,12 @@ export const WriteForm: React.FC<WriteFormProps> = ({
                   htmlFor="password"
                   className="text-sm font-medium text-brand-primary"
                 >
-                  비밀번호 (4자리 숫자)
+                  비밀번호 (1000~9999)
                 </Label>
                 <Input
                   id="password"
                   type="password"
-                  placeholder="게시글 수정/삭제 시 필요합니다."
+                  placeholder="게시글 수정/삭제 시 필요합니다 (1000~9999)"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="border-2 border-gray-200 focus:border-purple-400"

@@ -12,7 +12,7 @@ export const commentCommand = {
       postId: comment.postId,
       content: comment.content,
       parentId: comment.parentId,
-      password: comment.password?.toString().padStart(4, '0')
+      password: comment.password
     }
     return apiClient.post("/api/comment/write", payload)
   },
@@ -21,7 +21,7 @@ export const commentCommand = {
     const payload = {
       id: data.commentId,  // Backend expects 'id', not 'commentId'
       content: data.content,
-      password: data.password?.toString().padStart(4, '0')
+      password: data.password
     }
     return apiClient.post("/api/comment/update", payload)
   },
@@ -29,7 +29,7 @@ export const commentCommand = {
   delete: (data: { commentId: number; password?: number }): Promise<ApiResponse<void>> => {
     const payload = {
       id: data.commentId,  // Backend expects 'id', not 'commentId'
-      password: data.password?.toString().padStart(4, '0')
+      password: data.password
     }
     return apiClient.post("/api/comment/delete", payload)
   },
