@@ -2,16 +2,12 @@
 
 import React, { memo } from "react";
 import { Card } from "@/components";
-import { Badge, Button } from "@/components";
+import { Button } from "@/components";
 import Link from "next/link";
 import { type SimplePost } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
 import { usePostReadStatus } from "@/hooks/features/useReadingProgress";
 import {
-  Megaphone,
-  TrendingUp,
-  Calendar,
-  Crown,
   ThumbsUp,
   Eye,
   User,
@@ -61,22 +57,6 @@ const BoardTableRow = memo<TableRowProps>(({
 
   return (
     <TableRow className="bg-white hover:bg-gray-50">
-      {/* 상태 */}
-      <TableCell className="text-center">
-        {post.postCacheFlag === "NOTICE" && (
-          <Badge variant="info" icon={Megaphone}>공지</Badge>
-        )}
-        {post.postCacheFlag === "REALTIME" && (
-          <Badge variant="destructive" icon={TrendingUp}>실시간</Badge>
-        )}
-        {post.postCacheFlag === "WEEKLY" && (
-          <Badge variant="warning" icon={Calendar}>주간</Badge>
-        )}
-        {post.postCacheFlag === "LEGEND" && (
-          <Badge variant="purple" icon={Crown}>레전드</Badge>
-        )}
-      </TableCell>
-
       {/* 순위 또는 번호 */}
       <TableCell className="text-center font-medium">
         {showRanking ? (
@@ -107,7 +87,7 @@ const BoardTableRow = memo<TableRowProps>(({
 
       {/* 작성자 */}
       <TableCell>
-        {post.userName && post.userName !== "익명" ? (
+        {post.memberName && post.memberName !== "익명" ? (
           <Popover
             trigger="click"
             placement="bottom"
@@ -116,10 +96,10 @@ const BoardTableRow = memo<TableRowProps>(({
                 <div className="flex flex-col space-y-2">
                   <div className="flex items-center space-x-2">
                     <User className="w-4 h-4" />
-                    <span className="font-medium">{post.userName}</span>
+                    <span className="font-medium">{post.memberName}</span>
                   </div>
                   <Link
-                    href={`/rolling-paper/${encodeURIComponent(post.userName)}`}
+                    href={`/rolling-paper/${encodeURIComponent(post.memberName)}`}
                   >
                     <Button size="sm" className="w-full justify-start">
                       <ExternalLink className="w-4 h-4 mr-2" />
@@ -132,12 +112,12 @@ const BoardTableRow = memo<TableRowProps>(({
           >
             <button className="truncate max-w-20 hover:text-purple-600 hover:underline transition-colors cursor-pointer inline-flex items-center space-x-1">
               <User className="w-3 h-3" />
-              <span>{post.userName}</span>
+              <span>{post.memberName}</span>
             </button>
           </Popover>
         ) : (
           <span className="truncate max-w-20 text-gray-500">
-            {post.userName || "익명"}
+            {post.memberName || "익명"}
           </span>
         )}
       </TableCell>
@@ -205,31 +185,17 @@ const BoardMobileCard = memo<TableRowProps>(({
       <div className="p-4">
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1">
-            {/* 상태, 번호/순위 표시 */}
+            {/* 번호/순위 표시 */}
             <div className="flex items-center gap-2 mb-2">
-              {/* 상태 뱃지 */}
-              {post.postCacheFlag === "NOTICE" && (
-                <Badge variant="info" icon={Megaphone}>공지</Badge>
-              )}
-              {post.postCacheFlag === "REALTIME" && (
-                <Badge variant="destructive" icon={TrendingUp}>실시간</Badge>
-              )}
-              {post.postCacheFlag === "WEEKLY" && (
-                <Badge variant="warning" icon={Calendar}>주간</Badge>
-              )}
-              {post.postCacheFlag === "LEGEND" && (
-                <Badge variant="purple" icon={Crown}>레전드</Badge>
-              )}
-
               {/* 순위 또는 번호 */}
               {showRanking ? (
                 <span className="text-xl font-bold text-purple-600">
                   #{index + 1}
                 </span>
               ) : (
-                <Badge variant="secondary" className="text-xs">
+                <span className="text-xs text-gray-600">
                   번호: {post.id}
-                </Badge>
+                </span>
               )}
             </div>
 
@@ -253,7 +219,7 @@ const BoardMobileCard = memo<TableRowProps>(({
         {/* 하단 정보 */}
         <div className="flex items-center justify-between text-sm text-brand-secondary">
           <div className="flex items-center gap-3">
-            {post.userName && post.userName !== "익명" ? (
+            {post.memberName && post.memberName !== "익명" ? (
               <Popover
                 trigger="click"
                 placement="bottom"
@@ -262,10 +228,10 @@ const BoardMobileCard = memo<TableRowProps>(({
                     <div className="flex flex-col space-y-2">
                       <div className="flex items-center space-x-2">
                         <User className="w-4 h-4" />
-                        <span className="font-medium">{post.userName}</span>
+                        <span className="font-medium">{post.memberName}</span>
                       </div>
                       <Link
-                        href={`/rolling-paper/${encodeURIComponent(post.userName)}`}
+                        href={`/rolling-paper/${encodeURIComponent(post.memberName)}`}
                       >
                         <Button size="sm" className="w-full justify-start">
                           <ExternalLink className="w-4 h-4 mr-2" />
@@ -278,12 +244,12 @@ const BoardMobileCard = memo<TableRowProps>(({
               >
                 <button className="hover:text-purple-600 transition-colors truncate max-w-20 cursor-pointer inline-flex items-center space-x-1">
                   <User className="w-3 h-3" />
-                  <span>{post.userName}</span>
+                  <span>{post.memberName}</span>
                 </button>
               </Popover>
             ) : (
               <span className="truncate max-w-20 text-gray-500">
-                {post.userName || "익명"}
+                {post.memberName || "익명"}
               </span>
             )}
             <span>{formatDate(post.createdAt)}</span>
@@ -324,7 +290,6 @@ export const BoardTable = memo<BoardTableProps>(({
         <Table hoverable>
           <TableHead>
             <TableRow>
-              <TableHeadCell className="w-20"></TableHeadCell>
               <TableHeadCell className="w-20 text-center">
                 {showRanking ? "순위" : "번호"}
               </TableHeadCell>
@@ -351,7 +316,7 @@ export const BoardTable = memo<BoardTableProps>(({
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={7}
+                  colSpan={6}
                   className="text-center py-12 text-gray-500"
                 >
                   {variant === "all" ? "게시글이 없습니다." : "인기글이 없습니다."}

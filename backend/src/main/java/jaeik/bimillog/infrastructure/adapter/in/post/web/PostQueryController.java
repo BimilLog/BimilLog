@@ -9,6 +9,7 @@ import jaeik.bimillog.domain.post.event.PostViewedEvent;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.FullPostDTO;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.PostSearchDTO;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.SimplePostDTO;
+import jaeik.bimillog.infrastructure.adapter.in.post.web.util.PostResponseMapper;
 import jaeik.bimillog.infrastructure.adapter.in.post.web.util.PostViewCookieUtil;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jakarta.servlet.http.HttpServletRequest;

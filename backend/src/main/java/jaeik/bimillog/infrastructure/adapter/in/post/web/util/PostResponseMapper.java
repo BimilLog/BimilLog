@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.adapter.in.post.web;
+package jaeik.bimillog.infrastructure.adapter.in.post.web.util;
 
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;

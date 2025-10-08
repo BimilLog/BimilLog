@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.post.application.port.in.PostCacheUseCase;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.SimplePostDTO;
+import jaeik.bimillog.infrastructure.adapter.in.post.web.util.PostResponseMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

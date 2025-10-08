@@ -5,8 +5,8 @@ export interface Comment {
   id: number
   parentId?: number       // 대댓글인 경우 부모 댓글 ID (계층 구조)
   postId: number
-  userId?: number         // 탈퇴한 사용자의 경우 null 가능
-  userName: string
+  memberId?: number       // 탈퇴한 사용자의 경우 null 가능
+  memberName: string
   content: string
   popular: boolean        // 인기 댓글 여부 (좋아요 많이 받은 댓글)
   deleted: boolean        // 삭제된 댓글 여부 (소프트 삭제)
@@ -20,7 +20,7 @@ export interface Comment {
 export interface SimpleComment {
   id: number
   postId: number
-  userName: string
+  memberName: string
   content: string
   likeCount: number       // v2: likes → likeCount
   userLike: boolean       // 현재 사용자의 좋아요 여부

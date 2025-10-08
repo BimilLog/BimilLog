@@ -22,9 +22,19 @@ import { PasswordModal } from "./PasswordModal";
 import { DeleteConfirmModal } from "@/components/molecules/modals/DeleteConfirmModal";
 
 // 분리된 훅들 import
-import { usePostDetail, usePostActions, useCommentActions } from "@/hooks/features";
+import { usePostDetail } from "@/hooks/features";
 import { useReadingProgress } from "@/hooks/features/useReadingProgress";
-import { useAuth } from "@/hooks";
+import { useAuth, useToast } from "@/hooks";
+
+// TanStack Query mutation hooks
+import { useLikePost, useDeletePost } from "@/hooks/api/usePostMutations";
+import {
+  useCreateComment,
+  useUpdateComment,
+  useDeleteComment,
+  useLikeCommentOptimized,
+} from "@/hooks/api/useCommentMutations";
+import { useRouter } from "next/navigation";
 
 interface Props {
   initialPost: Post;
@@ -34,6 +44,8 @@ interface Props {
 export default function PostDetailClient({ initialPost, postId }: Props) {
   // 인증 상태 가져오기
   const { isAuthenticated } = useAuth();
+  const router = useRouter();
+  const { showToast } = useToast();
 
   // 읽기 진행률 트래킹
   const { progress } = useReadingProgress({
@@ -65,8 +77,13 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
     setTargetComment,
   } = usePostDetail(postId, initialPost);
 
-  // 댓글 액션 관리
-  const commentActions = useCommentActions(postId, fetchComments);
+  // TanStack Query mutation hooks
+  const { mutate: likePost, isPending: isLikingPost } = useLikePost();
+  const { mutate: deletePost, isPending: isDeletingPost } = useDeletePost();
+  const { mutate: createComment, isPending: isCreatingComment } = useCreateComment();
+  const { mutate: updateComment, isPending: isUpdatingComment } = useUpdateComment();
+  const { mutate: deleteComment, isPending: isDeletingComment } = useDeleteComment();
+  const { mutate: likeComment, isPending: isLikingComment } = useLikeCommentOptimized(Number(postId));
 
   // 댓글 편집 및 답글 상태 관리
   const [editingComment, setEditingComment] = useState<Comment | null>(null);
@@ -79,10 +96,20 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
   // 삭제 확인 모달 상태 관리
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  // CommentSection이 기대하는 시그니처로 래핑 및 핸들러 함수들
-  // 새 댓글 작성 시 parentId가 undefined인 공통 핸들러
-  const handleCommentSubmitForSection = (comment: string, password: string) => {
-    commentActions.handleCommentSubmit(comment, undefined, password);
+  // 댓글 작성 핸들러
+  const handleCommentSubmitForSection = (content: string, password: string) => {
+    createComment(
+      {
+        postId: Number(postId),
+        content,
+        password: password ? Number(password) : undefined,
+      },
+      {
+        onSuccess: () => {
+          // 성공 시 추가 작업 (TanStack Query가 자동으로 캐시 무효화)
+        },
+      }
+    );
   };
 
   // 댓글 수정 상태 관리 - 수정 모드 진입 시 기존 내용을 대입
@@ -94,13 +121,23 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
 
   // 댓글 수정 완료 후 상태 초기화
   const handleUpdateComment = async () => {
-    if (editingComment) {
-      await commentActions.handleCommentEdit(editingComment.id, editContent, editPassword);
-      // 수정 완료 후 모든 수정 상태 초기화
-      setEditingComment(null);
-      setEditContent("");
-      setEditPassword("");
-    }
+    if (!editingComment) return;
+
+    updateComment(
+      {
+        commentId: editingComment.id,
+        content: editContent,
+        password: editPassword ? Number(editPassword) : undefined,
+      },
+      {
+        onSuccess: () => {
+          // 수정 완료 후 상태 초기화
+          setEditingComment(null);
+          setEditContent("");
+          setEditPassword("");
+        },
+      }
+    );
   };
 
   const handleCancelEdit = () => {
@@ -124,13 +161,24 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
 
   // 답글 작성 완료 - parentId로 replyingTo.id 전달
   const handleSubmitReply = async () => {
-    if (replyingTo) {
-      await commentActions.handleCommentSubmit(replyContent, replyingTo.id, replyPassword);
-      // 답글 작성 완료 후 답글 상태 초기화
-      setReplyingTo(null);
-      setReplyContent("");
-      setReplyPassword("");
-    }
+    if (!replyingTo) return;
+
+    createComment(
+      {
+        postId: Number(postId),
+        content: replyContent,
+        parentId: replyingTo.id,
+        password: replyPassword ? Number(replyPassword) : undefined,
+      },
+      {
+        onSuccess: () => {
+          // 답글 작성 완료 후 답글 상태 초기화
+          setReplyingTo(null);
+          setReplyContent("");
+          setReplyPassword("");
+        },
+      }
+    );
   };
 
   const handleUpdateEditContent = (content: string) => {
@@ -149,23 +197,28 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
     setReplyPassword(password);
   };
 
-  // 게시글 액션 관리
-  const postActions = usePostActions(
-    postId,
-    post,
-    canModify,
-    setShowPasswordModal,
-    setPasswordModalTitle,
-    setDeleteMode,
-    setModalPassword,
-    fetchPost
-  );
+  // 게시글 좋아요 핸들러
+  const handleLikePost = () => {
+    if (!isAuthenticated) {
+      showToast({ type: "warning", message: "로그인이 필요합니다." });
+      return;
+    }
+    likePost(Number(postId));
+  };
 
-  // 게시글 삭제 클릭 핸들러 - 로그인 사용자는 확인 모달, 익명은 비밀번호 모달
-  const handleDeleteClick = () => {
-    if (post?.userName === "익명" || post?.userName === null) {
+  // 게시글 삭제 클릭 핸들러
+  const handleDeletePostClick = () => {
+    if (!canModify()) {
+      showToast({ type: "error", message: "삭제 권한이 없습니다." });
+      return;
+    }
+
+    if (post?.memberName === "익명" || post?.memberName === null) {
       // 익명 게시글의 경우 비밀번호 모달
-      postActions.handleDeleteClick();
+      setPasswordModalTitle("게시글 삭제");
+      setDeleteMode("post");
+      setShowPasswordModal(true);
+      setModalPassword("");
     } else {
       // 로그인 사용자의 경우 삭제 확인 모달
       setShowDeleteModal(true);
@@ -175,16 +228,49 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
   // 삭제 확인 후 실제 삭제 실행
   const handleConfirmDelete = async () => {
     setShowDeleteModal(false);
-    await postActions.handleDelete();
+    deletePost(Number(postId));
+  };
+
+  // 댓글 삭제 핸들러
+  const handleDeleteComment = (comment: Comment) => {
+    if (!canModifyComment(comment)) {
+      showToast({ type: "error", message: "삭제 권한이 없습니다." });
+      return;
+    }
+
+    if (comment.memberName === "익명" || comment.memberName === null) {
+      // 익명 댓글의 경우 비밀번호 모달
+      setPasswordModalTitle("댓글 삭제");
+      setDeleteMode("comment");
+      setTargetComment(comment);
+      setShowPasswordModal(true);
+      setModalPassword("");
+    } else {
+      // 로그인 사용자 댓글은 바로 삭제
+      deleteComment({
+        commentId: comment.id,
+      });
+    }
+  };
+
+  // 댓글 좋아요 핸들러
+  const handleLikeComment = (comment: Comment) => {
+    if (!isAuthenticated) {
+      showToast({ type: "warning", message: "로그인이 필요합니다." });
+      return;
+    }
+    likeComment(comment.id);
   };
 
   // 비밀번호 모달 제출 - 게시글/댓글 삭제 모드에 따라 분기 처리
   const handlePasswordSubmit = async () => {
     if (deleteMode === "post") {
-      await postActions.handleDelete(modalPassword);
+      deletePost(Number(postId));
     } else if (deleteMode === "comment" && targetComment) {
-      // 댓글 삭제 시 targetComment로 대상 확인
-      await commentActions.handleCommentDelete(targetComment.id, modalPassword);
+      deleteComment({
+        commentId: targetComment.id,
+        password: modalPassword ? Number(modalPassword) : undefined,
+      });
     }
 
     // 삭제 작업 완료 후 모든 모달 상태 초기화
@@ -258,17 +344,17 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
             post={post}
             commentCount={commentCount}
             canModify={canModify}
-            onDeleteClick={postActions.handleDeleteClick}
+            onDeleteClick={handleDeletePostClick}
           />
           <PostContent
             post={post}
             isAuthenticated={isAuthenticated}
-            onLike={postActions.handleLike}
+            onLike={handleLikePost}
           />
           <PostActions
             post={post}
             canModify={canModify()}
-            onDeletePost={handleDeleteClick}
+            onDeletePost={handleDeletePostClick}
           />
         </Card>
 
@@ -280,7 +366,7 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
           commentCount={commentCount}
           isAuthenticated={isAuthenticated}
 
-          isSubmittingComment={commentActions.isSubmitting}
+          isSubmittingComment={isCreatingComment}
           onSubmitComment={handleCommentSubmitForSection}
 
           editingComment={editingComment}
@@ -289,16 +375,16 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
           replyingTo={replyingTo}
           replyContent={replyContent}
           replyPassword={replyPassword}
-          isSubmittingReply={commentActions.isSubmitting}
+          isSubmittingReply={isCreatingComment}
 
           onEditComment={handleEditComment}
           onUpdateComment={handleUpdateComment}
           onCancelEdit={handleCancelEdit}
-          onDeleteComment={(comment) => commentActions.handleCommentDelete(comment.id)}
+          onDeleteComment={handleDeleteComment}
           onReplyTo={handleReplyTo}
           onReplySubmit={handleSubmitReply}
           onCancelReply={handleCancelReply}
-          onLikeComment={(comment) => commentActions.handleCommentLike(comment.id)}
+          onLikeComment={handleLikeComment}
 
           setEditContent={handleUpdateEditContent}
           setEditPassword={handleUpdateEditPassword}

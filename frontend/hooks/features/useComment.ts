@@ -20,11 +20,18 @@ export {
 } from '@/hooks/api/useCommentMutations';
 
 // ============ LEGACY COMMENT ACTION HOOKS ============
-// Legacy 호환: 기존 PostDetailClient 컴포넌트와의 호환성 유지 (점진적 마이그레이션을 위함)
+// Legacy 호환: 기존 코드와의 호환성 유지 (점진적 마이그레이션을 위함)
 
 /**
- * 댓글 액션 통합 Hook (기존 PostDetailClient용 - Legacy)
- * @deprecated TanStack Query 훅들로 마이그레이션 예정
+ * 댓글 액션 통합 Hook (Legacy)
+ * @deprecated 이 hook은 더 이상 사용되지 않습니다. TanStack Query hooks를 대신 사용하세요:
+ * - useCreateComment() from '@/hooks/api/useCommentMutations'
+ * - useUpdateComment() from '@/hooks/api/useCommentMutations'
+ * - useDeleteComment() from '@/hooks/api/useCommentMutations'
+ * - useLikeCommentOptimized(postId) from '@/hooks/api/useCommentMutations'
+ *
+ * PostDetailClient.tsx는 이미 TanStack Query hooks로 마이그레이션 완료되었습니다.
+ * 새로운 코드에서는 절대 사용하지 마세요.
  */
 export const useCommentActions = (
   postId: string,

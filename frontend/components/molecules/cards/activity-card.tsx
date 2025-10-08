@@ -9,9 +9,6 @@ import {
   ThumbsUp,
   FileText,
   User,
-  Flame,
-  TrendingUp,
-  Award,
   Calendar
 } from "lucide-react";
 import { SimplePost, SimpleComment } from "@/lib/api";
@@ -24,37 +21,6 @@ interface ActivityCardProps {
   className?: string;
 }
 
-const PopularityBadge = ({ postCacheFlag }: { postCacheFlag?: string }) => {
-  if (!postCacheFlag) return null;
-
-  const badges = {
-    REALTIME: {
-      text: "실시간 인기",
-      icon: <Flame className="w-3 h-3 mr-1 text-red-500" />,
-      className: "bg-gradient-to-r from-red-500 to-orange-500 text-white",
-    },
-    WEEKLY: {
-      text: "주간 인기",
-      icon: <TrendingUp className="w-3 h-3 mr-1 text-blue-500" />,
-      className: "bg-gradient-to-r from-blue-500 to-purple-500 text-white",
-    },
-    LEGEND: {
-      text: "레전드",
-      icon: <Award className="w-3 h-3 mr-1 text-yellow-500" />,
-      className: "bg-gradient-to-r from-yellow-500 to-orange-500 text-white",
-    },
-  };
-
-  const badge = badges[postCacheFlag as keyof typeof badges];
-  if (!badge) return null;
-
-  return (
-    <Badge className={`${badge.className} flex items-center text-xs font-medium`}>
-      {badge.icon}
-      {badge.text}
-    </Badge>
-  );
-};
 
 const PostCard: React.FC<{ post: SimplePost; isLiked: boolean }> = React.memo(({ post, isLiked }) => (
   <Card variant="elevated" interactive={true} className="group hover:scale-[1.02]">
@@ -68,9 +34,8 @@ const PostCard: React.FC<{ post: SimplePost; isLiked: boolean }> = React.memo(({
             <div className="flex items-center space-x-2 mb-1">
               <User className="w-4 h-4" />
               <span className="text-base md:text-sm font-medium text-brand-primary">
-                {post.userName}
+                {post.memberName}
               </span>
-              <PopularityBadge postCacheFlag={post.postCacheFlag} />
             </div>
             <TimeBadge dateString={post.createdAt} size="xs" />
           </div>
@@ -147,7 +112,7 @@ const CommentCard: React.FC<{ comment: SimpleComment; isLiked: boolean }> = Reac
             <div className="flex items-center space-x-2 mb-1">
               <User className="w-4 h-4" />
               <span className="text-base md:text-sm font-medium text-brand-primary">
-                {comment.userName}
+                {comment.memberName}
               </span>
             </div>
             <TimeBadge dateString={comment.createdAt} size="xs" />

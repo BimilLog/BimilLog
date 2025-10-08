@@ -39,14 +39,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     // 동적 OG 이미지 생성을 위한 API 엔드포인트 URL 구성
     const ogImageUrl = new URL(`/api/og`, "https://grow-farm.com");
     ogImageUrl.searchParams.set("title", post.title);
-    ogImageUrl.searchParams.set("author", post.userName);
+    ogImageUrl.searchParams.set("author", post.memberName);
     ogImageUrl.searchParams.set("type", "post");
 
         return {
             title: `${post.title} | 비밀로그`,
             description: truncatedContent || "비밀로그 커뮤니티의 게시글입니다.",
-            keywords: generateKeywords(["게시글", post.title, post.userName]),
-            authors: [{ name: post.userName }],
+            keywords: generateKeywords(["게시글", post.title, post.memberName]),
+            authors: [{ name: post.memberName }],
             alternates: {
                 canonical: `https://grow-farm.com/board/post/${postId}`,
             },
@@ -66,7 +66,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
                 locale: "ko_KR",
                 type: "article",
                 publishedTime: post.createdAt,
-                authors: [post.userName],
+                authors: [post.memberName],
             },
             twitter: {
                 card: "summary_large_image",
@@ -107,7 +107,7 @@ export default async function PostDetailPage({ params }: Props) {
     const articleJsonLd = generateStructuredData.article(
       post.title,
       post.content,
-      post.userName,
+      post.memberName,
       post.createdAt,
       `https://grow-farm.com/board/post/${postId}`
     );

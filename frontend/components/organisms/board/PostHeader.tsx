@@ -2,7 +2,7 @@
 
 import React, { useCallback } from "react";
 import { useToast } from "@/hooks";
-import { Badge, Button, CardHeader, CardTitle } from "@/components";
+import { Button, CardHeader, CardTitle } from "@/components";
 import {
   Eye,
   ThumbsUp,
@@ -10,10 +10,6 @@ import {
   Lock,
   User,
   ExternalLink,
-  TrendingUp,
-  Calendar,
-  Crown,
-  Award,
   Share2,
 } from "lucide-react";
 import { Post } from "@/lib/api";
@@ -39,7 +35,7 @@ export const PostHeader = React.memo<PostHeaderProps>(({
   const handleWebShare = useCallback(async () => {
     const shareData = {
       title: `${post.title} | 비밀로그`,
-      text: `${post.userName || "익명"}님이 작성한 글`,
+      text: `${post.memberName || "익명"}님이 작성한 글`,
       url: `${window.location.origin}/board/post/${post.id}`,
     };
 
@@ -63,92 +59,17 @@ export const PostHeader = React.memo<PostHeaderProps>(({
         showError('복사 실패', '링크 복사에 실패했습니다.');
       }
     }
-  }, [post.id, post.title, post.userName, showSuccess, showError]);
+  }, [post.id, post.title, post.memberName, showSuccess, showError]);
 
   return (
     <CardHeader className="border-b p-4 md:p-6">
-      {/* 제목과 배지 */}
+      {/* 제목 */}
       <div className="mb-4">
-        <div className="flex items-center flex-wrap gap-2 mb-3">
-          {post.password && <Lock className="w-4 h-4 stroke-red-500 fill-red-100" />}
-          {post.postCacheFlag === "REALTIME" && (
-            <Popover
-              trigger="hover"
-              placement="top"
-              content={
-                <div className="p-3 max-w-xs">
-                  <div className="flex items-center gap-2 mb-2">
-                    <TrendingUp className="w-4 h-4 stroke-red-500 fill-red-100" />
-                    <span className="font-semibold text-sm">실시간 인기글</span>
-                  </div>
-                  <p className="text-xs text-gray-600">
-                    최근 24시간 동안 조회수와 좋아요가 급상승한 인기 게시글입니다.
-                  </p>
-                  <div className="mt-2 pt-2 border-t">
-                    <div className="flex items-center gap-1 text-xs text-gray-500">
-                      <Award className="w-3 h-3 stroke-indigo-600 fill-indigo-100" />
-                      <span>실시간 업데이트</span>
-                    </div>
-                  </div>
-                </div>
-              }
-            >
-              <Badge variant="destructive" icon={TrendingUp}>실시간</Badge>
-            </Popover>
-          )}
-          {post.postCacheFlag === "WEEKLY" && (
-            <Popover
-              trigger="hover"
-              placement="top"
-              content={
-                <div className="p-3 max-w-xs">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Calendar className="w-4 h-4 stroke-indigo-600 fill-indigo-100" />
-                    <span className="font-semibold text-sm">주간 인기글</span>
-                  </div>
-                  <p className="text-xs text-gray-600">
-                    최근 7일간 많은 사랑을 받은 게시글입니다.
-                    매주 월요일 자정에 선정됩니다.
-                  </p>
-                  <div className="mt-2 pt-2 border-t">
-                    <div className="flex items-center gap-1 text-xs text-gray-500">
-                      <Award className="w-3 h-3 stroke-indigo-600 fill-indigo-100" />
-                      <span>주간 TOP 게시글</span>
-                    </div>
-                  </div>
-                </div>
-              }
-            >
-              <Badge variant="warning" icon={Calendar}>주간</Badge>
-            </Popover>
-          )}
-          {post.postCacheFlag === "LEGEND" && (
-            <Popover
-              trigger="hover"
-              placement="top"
-              content={
-                <div className="p-3 max-w-xs">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Crown className="w-4 h-4 stroke-purple-600 fill-purple-100" />
-                    <span className="font-semibold text-sm">레전드 게시글</span>
-                  </div>
-                  <p className="text-xs text-gray-600">
-                    역대 최고의 인기를 기록한 전설적인 게시글입니다.
-                    좋아요 100개 이상, 댓글 50개 이상 달성 시 선정됩니다.
-                  </p>
-                  <div className="mt-2 pt-2 border-t">
-                    <div className="flex items-center gap-1 text-xs text-gray-500">
-                      <Award className="w-3 h-3 stroke-indigo-600 fill-indigo-100" />
-                      <span>명예의 전당</span>
-                    </div>
-                  </div>
-                </div>
-              }
-            >
-              <Badge variant="purple" icon={Crown}>레전드</Badge>
-            </Popover>
-          )}
-        </div>
+        {post.password && (
+          <div className="mb-3">
+            <Lock className="w-4 h-4 stroke-red-500 fill-red-100" />
+          </div>
+        )}
         <CardTitle className="text-xl md:text-2xl font-bold text-brand-primary leading-tight">
           {post.title}
         </CardTitle>
@@ -160,7 +81,7 @@ export const PostHeader = React.memo<PostHeaderProps>(({
           {/* 작성자와 시간 */}
           <div className="flex items-center space-x-3 text-sm text-brand-muted">
             <div className="flex items-center space-x-2 min-w-0">
-              {post.userName && post.userName !== "익명" ? (
+              {post.memberName && post.memberName !== "익명" ? (
                 <Popover
                   trigger="click"
                   placement="bottom"
@@ -169,11 +90,11 @@ export const PostHeader = React.memo<PostHeaderProps>(({
                       <div className="flex flex-col space-y-2">
                         <div className="flex items-center space-x-2">
                           <User className="w-4 h-4 stroke-slate-600 fill-slate-100" />
-                          <span className="font-medium">{post.userName}</span>
+                          <span className="font-medium">{post.memberName}</span>
                         </div>
                         <Link
                           href={`/rolling-paper/${encodeURIComponent(
-                            post.userName
+                            post.memberName
                           )}`}
                         >
                           <Button size="sm" className="w-full justify-start">
@@ -187,12 +108,12 @@ export const PostHeader = React.memo<PostHeaderProps>(({
                 >
                   <button className="truncate max-w-[120px] md:max-w-none hover:text-purple-600 hover:underline transition-colors cursor-pointer inline-flex items-center space-x-1">
                     <User className="w-3 h-3 stroke-slate-600 fill-slate-100" />
-                    <span>{post.userName}</span>
+                    <span>{post.memberName}</span>
                   </button>
                 </Popover>
               ) : (
                 <span className="truncate max-w-[120px] md:max-w-none text-brand-secondary">
-                  {post.userName || "익명"}
+                  {post.memberName || "익명"}
                 </span>
               )}
             </div>
@@ -225,7 +146,7 @@ export const PostHeader = React.memo<PostHeaderProps>(({
             type="post"
             postId={post.id}
             title={post.title}
-            author={post.userName || "익명"}
+            author={post.memberName || "익명"}
             content={post.content}
             likes={post.likeCount}
             size="sm"
@@ -252,7 +173,6 @@ export const PostHeader = React.memo<PostHeaderProps>(({
     prevProps.post.title === nextProps.post.title &&
     prevProps.post.viewCount === nextProps.post.viewCount &&
     prevProps.post.likeCount === nextProps.post.likeCount &&
-    prevProps.post.postCacheFlag === nextProps.post.postCacheFlag &&
     prevProps.commentCount === nextProps.commentCount
   );
 });

@@ -39,13 +39,13 @@ export const NoticeList = ({ posts }: NoticeListProps) => {
                   <td className="p-4 md:p-3 text-left font-medium w-32 hidden md:table-cell">
                     <Link
                       href={`/rolling-paper/${encodeURIComponent(
-                        notice.userName
+                        notice.memberName
                       )}`}
                       className="hover:text-purple-600 hover:underline transition-colors inline-flex items-center space-x-1"
-                      title={`${notice.userName}님의 롤링페이퍼 보기`}
+                      title={`${notice.memberName}님의 롤링페이퍼 보기`}
                     >
                       <User className="w-3 h-3 stroke-slate-600 fill-slate-100" />
-                      <span>{notice.userName}</span>
+                      <span>{notice.memberName}</span>
                     </Link>
                   </td>
                   <td className="p-4 md:p-3 text-left font-medium w-32 hidden md:table-cell">

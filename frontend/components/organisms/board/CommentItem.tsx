@@ -189,7 +189,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
                 {depth > 0 && (
                   <CornerDownRight className="w-4 h-4 text-purple-500 flex-shrink-0" />
                 )}
-                {comment.userName && comment.userName !== "익명" ? (
+                {comment.memberName && comment.memberName !== "익명" ? (
                   <Popover
                     trigger="click"
                     placement="bottom"
@@ -198,11 +198,11 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
                         <div className="flex flex-col space-y-2">
                           <div className="flex items-center space-x-2">
                             <User className="w-4 h-4" />
-                            <span className="font-medium">{comment.userName}</span>
+                            <span className="font-medium">{comment.memberName}</span>
                           </div>
                           <Link
                             href={`/rolling-paper/${encodeURIComponent(
-                              comment.userName
+                              comment.memberName
                             )}`}
                           >
                             <Button size="sm" className="w-full justify-start">
@@ -216,13 +216,13 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
                   >
                     <button className="font-semibold text-sm sm:text-base hover:text-purple-600 hover:underline transition-colors cursor-pointer inline-flex items-center space-x-1 truncate">
                       <User className="w-3 h-3 flex-shrink-0" />
-                      <span className="truncate">{comment.userName}</span>
+                      <span className="truncate">{comment.memberName}</span>
                     </button>
                   </Popover>
                 ) : (
                   <span className="font-semibold text-sm sm:text-base inline-flex items-center space-x-1 truncate text-brand-secondary">
                     <User className="w-3 h-3 flex-shrink-0 stroke-slate-600 fill-slate-100" />
-                    <span className="truncate">{comment.userName || "익명"}</span>
+                    <span className="truncate">{comment.memberName || "익명"}</span>
                   </span>
                 )}
                 {comment.popular && (
@@ -314,7 +314,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
             {replyingTo?.id === comment.id && (
               <div className="mt-4 p-3 sm:p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <h4 className="text-sm font-semibold mb-3 text-blue-700">
-                  {comment.userName}님에게 답글 작성
+                  {comment.memberName}님에게 답글 작성
                 </h4>
                 {/* 비로그인 사용자는 비밀번호 입력 필요 */}
                 {!isAuthenticated && (
@@ -367,7 +367,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
               key={reply.id}
               comment={reply}
               depth={depth + 1}
-              parentUserName={comment.userName || "익명"} // 부모 댓글 작성자명 전달
+              parentUserName={comment.memberName || "익명"} // 부모 댓글 작성자명 전달
               editingComment={editingComment}
               editContent={editContent}
               editPassword={editPassword}

@@ -27,7 +27,7 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
   const { showError, showFeedback, showWarning } = useToast();
 
   const isMyComment = (comment: Comment) => {
-    return user?.memberId === comment.userId;
+    return user?.memberId === comment.memberId;
   };
 
   const handleReport = async () => {
@@ -74,7 +74,7 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
       {/* 헤더: 닉네임, 날짜, 액션 버튼들 */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          {comment.userName && comment.userName !== "익명" ? (
+          {comment.memberName && comment.memberName !== "익명" ? (
             <Popover
               trigger="click"
               placement="bottom"
@@ -83,11 +83,11 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
                   <div className="flex flex-col space-y-2">
                     <div className="flex items-center space-x-2">
                       <User className="w-4 h-4" />
-                      <span className="font-medium">{comment.userName}</span>
+                      <span className="font-medium">{comment.memberName}</span>
                     </div>
                     <Link
                       href={`/rolling-paper/${encodeURIComponent(
-                        comment.userName
+                        comment.memberName
                       )}`}
                     >
                       <Button size="sm" className="w-full justify-start">
@@ -101,13 +101,13 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
             >
               <button className="font-semibold text-sm sm:text-base text-blue-800 hover:text-purple-600 hover:underline transition-colors cursor-pointer inline-flex items-center space-x-1 truncate">
                 <User className="w-3 h-3 flex-shrink-0" />
-                <span className="truncate">{comment.userName}</span>
+                <span className="truncate">{comment.memberName}</span>
               </button>
             </Popover>
           ) : (
             <span className="font-semibold text-sm sm:text-base inline-flex items-center space-x-1 truncate text-brand-secondary">
               <User className="w-3 h-3 flex-shrink-0 stroke-slate-600 fill-slate-100" />
-              <span className="truncate">{comment.userName || "익명"}</span>
+              <span className="truncate">{comment.memberName || "익명"}</span>
             </span>
           )}
           <span className="bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs px-2 py-1 rounded-full font-semibold flex-shrink-0">

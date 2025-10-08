@@ -1,5 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.in.post.web;
 
+import jaeik.bimillog.domain.auth.exception.AuthCustomException;
+import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.global.annotation.Log;
 import jaeik.bimillog.domain.global.annotation.Log.LogLevel;
 import jaeik.bimillog.domain.post.application.port.in.PostCommandUseCase;
@@ -90,6 +92,9 @@ public class PostCommandController {
     public ResponseEntity<Void> updatePost(@PathVariable Long postId,
                                            @AuthenticationPrincipal CustomUserDetails userDetails,
                                            @RequestBody @Valid PostUpdateDTO postUpdateDTO) {
+        if (userDetails == null) {
+            throw new AuthCustomException(AuthErrorCode.NULL_SECURITY_CONTEXT);
+        }
         postCommandUseCase.updatePost(userDetails.getMemberId(), postId, postUpdateDTO.getTitle(), postUpdateDTO.getContent());
         return ResponseEntity.ok().build();
     }
@@ -107,6 +112,9 @@ public class PostCommandController {
     @DeleteMapping("/{postId}")
     public ResponseEntity<Void> deletePost(@PathVariable Long postId,
                                            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        if (userDetails == null) {
+            throw new AuthCustomException(AuthErrorCode.NULL_SECURITY_CONTEXT);
+        }
         postCommandUseCase.deletePost(userDetails.getMemberId(), postId);
         return ResponseEntity.noContent().build();
     }
@@ -124,6 +132,9 @@ public class PostCommandController {
     @PostMapping("/{postId}/like")
     public ResponseEntity<Void> likePost(@PathVariable Long postId,
                                          @AuthenticationPrincipal CustomUserDetails userDetails) {
+        if (userDetails == null) {
+            throw new AuthCustomException(AuthErrorCode.NULL_SECURITY_CONTEXT);
+        }
         postInteractionUseCase.likePost(userDetails.getMemberId(), postId);
         return ResponseEntity.ok().build();
     }

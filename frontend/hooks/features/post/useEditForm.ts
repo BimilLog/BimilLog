@@ -50,13 +50,13 @@ export function useEditForm() {
         setTitle(postData.title);
         setContent(postData.content);
 
-        // userId가 null 또는 0이면 비회원이 작성한 게시글
-        const isGuestPost = postData.userId === null || postData.userId === 0;
+        // memberId가 null 또는 0이면 비회원이 작성한 게시글
+        const isGuestPost = postData.memberId === null || postData.memberId === 0;
         setIsGuest(isGuestPost);
 
         // 회원 글일 경우 작성자만 권한 부여
         if (!isGuestPost) {
-          if (isAuthenticated && user?.memberId === postData.userId) {
+          if (isAuthenticated && user?.memberId === postData.memberId) {
             setIsAuthorized(true);
           } else {
             // 회원 글인데 다른 사용자가 접근한 경우

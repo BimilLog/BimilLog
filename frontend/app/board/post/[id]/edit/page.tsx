@@ -200,12 +200,12 @@ export default function EditPostPage() {
                     <div className="flex items-center space-x-2">
                       <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full flex items-center justify-center">
                         <span className="text-white text-sm font-bold">
-                          {post.userName?.charAt(0) || "?"}
+                          {post.memberName?.charAt(0) || "?"}
                         </span>
                       </div>
                       <div>
                         <p className="text-sm font-medium text-brand-primary">
-                          작성자: {post.userName}
+                          작성자: {post.memberName}
                         </p>
                         <p className="text-xs text-brand-muted">
                           원본 작성일: {post.createdAt}
@@ -222,7 +222,7 @@ export default function EditPostPage() {
                       {title || "제목을 입력하세요"}
                     </h1>
                     <div className="flex items-center space-x-4 text-sm text-brand-muted">
-                      <span>작성자: {post.userName}</span>
+                      <span>작성자: {post.memberName}</span>
                       <span>작성일: {post.createdAt}</span>
                       <span className="text-orange-600">수정됨</span>
                     </div>

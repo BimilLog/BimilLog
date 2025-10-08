@@ -4,19 +4,13 @@
 // 게시글 상세 페이지에서 사용 (모든 정보 포함)
 export interface Post {
   id: number         // v2: postId → id
-  userId: number
-  userName: string
+  memberId: number
+  memberName: string
   title: string
   content: string
   viewCount: number  // v2: views → viewCount
   likeCount: number  // v2: likes → likeCount
   commentCount: number // v2: 추가된 필드
-  // 캐시 플래그 - 게시글의 인기도/성격 표시:
-  // NOTICE: 공지사항
-  // REALTIME: 실시간 인기 게시글
-  // WEEKLY: 주간 인기 게시글
-  // LEGEND: 레전드 게시글 (역대 최고 인기)
-  postCacheFlag?: "NOTICE" | "REALTIME" | "WEEKLY" | "LEGEND"
   createdAt: string  // v2: Instant → ISO string
   updatedAt: string  // v2: Instant → ISO string
   liked: boolean     // v2: Jackson이 isLiked를 liked로 직렬화
@@ -27,13 +21,11 @@ export interface Post {
 // Post와 차이: updatedAt, liked, password 필드가 없음 (목록에서 불필요한 정보)
 export interface SimplePost {
   id: number         // v2: postId → id
-  userId: number
-  userName: string
+  memberId: number
+  memberName: string
   title: string
-  content: string    // v2: 추가된 필드 (간단한 내용 미리보기)
   commentCount: number
   likeCount: number  // v2: likes → likeCount
   viewCount: number  // v2: views → viewCount
   createdAt: string  // v2: Instant → ISO string
-  postCacheFlag?: "NOTICE" | "REALTIME" | "WEEKLY" | "LEGEND"
 }

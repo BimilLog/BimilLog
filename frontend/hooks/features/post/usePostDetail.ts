@@ -132,22 +132,22 @@ export function usePostDetail(id: string | null, initialPost?: Post) {
   // 권한 체크: 익명 게시글은 비로그인 사용자만 수정 가능, 로그인 게시글은 작성자만 수정 가능
   const canModify = () => {
     if (!post || loading) return false;
-    if (post.userName === "익명" || post.userName === null) {
+    if (post.memberName === "익명" || post.memberName === null) {
       return !isAuthenticated;  // 익명 게시글은 로그인하지 않은 사용자만 수정 가능
     }
-    return isAuthenticated && user?.memberName === post.userName;  // 로그인 게시글은 작성자만 수정 가능
+    return isAuthenticated && user?.memberName === post.memberName;  // 로그인 게시글은 작성자만 수정 가능
   };
 
   const isMyComment = (comment: Comment) => {
-    return isAuthenticated && user?.memberName === comment.userName;
+    return isAuthenticated && user?.memberName === comment.memberName;
   };
 
   // 댓글 권한 체크: 익명 댓글은 비로그인 사용자만, 로그인 댓글은 작성자만 수정 가능
   const canModifyComment = (comment: Comment) => {
-    if (comment.userName === "익명" || comment.userName === null) {
+    if (comment.memberName === "익명" || comment.memberName === null) {
       return !isAuthenticated;
     }
-    return isAuthenticated && user?.memberName === comment.userName;
+    return isAuthenticated && user?.memberName === comment.memberName;
   };
 
   // Effects
