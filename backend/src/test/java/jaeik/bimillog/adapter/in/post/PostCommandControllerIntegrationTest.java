@@ -255,4 +255,108 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
         assertThat(savedPost).isPresent();
         assertThat(savedPost.get().getContent()).isEqualTo(content);
     }
+
+    @Test
+    @DisplayName("비회원 게시글 수정 성공 - 올바른 비밀번호")
+    void updateAnonymousPost_Success_WithCorrectPassword() throws Exception {
+        Post anonymousPost = Post.createPost(null, "익명 게시글", "익명 게시글 내용입니다.", 1234);
+        Post savedPost = postRepository.save(anonymousPost);
+
+        PostUpdateDTO updateReqDTO = PostUpdateDTO.builder()
+                .title("수정된 익명 게시글")
+                .content("수정된 익명 게시글 내용입니다. 10자 이상으로 작성합니다.")
+                .password("1234")
+                .build();
+
+        mockMvc.perform(put("/api/post/{postId}", savedPost.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateReqDTO))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        Optional<Post> updatedPost = postRepository.findById(savedPost.getId());
+        assertThat(updatedPost).isPresent();
+        assertThat(updatedPost.get().getTitle()).isEqualTo("수정된 익명 게시글");
+        assertThat(updatedPost.get().getContent()).isEqualTo("수정된 익명 게시글 내용입니다. 10자 이상으로 작성합니다.");
+    }
+
+    @Test
+    @DisplayName("비회원 게시글 수정 실패 - 잘못된 비밀번호")
+    void updateAnonymousPost_Fail_WithWrongPassword() throws Exception {
+        Post anonymousPost = Post.createPost(null, "익명 게시글", "익명 게시글 내용입니다.", 1234);
+        Post savedPost = postRepository.save(anonymousPost);
+
+        PostUpdateDTO updateReqDTO = PostUpdateDTO.builder()
+                .title("수정된 익명 게시글")
+                .content("수정된 익명 게시글 내용입니다. 10자 이상으로 작성합니다.")
+                .password("9999")
+                .build();
+
+        mockMvc.perform(put("/api/post/{postId}", savedPost.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateReqDTO))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("비회원 게시글 수정 실패 - 비밀번호 없음")
+    void updateAnonymousPost_Fail_WithoutPassword() throws Exception {
+        Post anonymousPost = Post.createPost(null, "익명 게시글", "익명 게시글 내용입니다.", 1234);
+        Post savedPost = postRepository.save(anonymousPost);
+
+        PostUpdateDTO updateReqDTO = PostUpdateDTO.builder()
+                .title("수정된 익명 게시글")
+                .content("수정된 익명 게시글 내용입니다. 10자 이상으로 작성합니다.")
+                .build();
+
+        mockMvc.perform(put("/api/post/{postId}", savedPost.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateReqDTO))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("회원이 비회원 게시글 수정 실패")
+    void updateAnonymousPost_Fail_WithMemberUser() throws Exception {
+        Post anonymousPost = Post.createPost(null, "익명 게시글", "익명 게시글 내용입니다.", 1234);
+        Post savedPost = postRepository.save(anonymousPost);
+
+        PostUpdateDTO updateReqDTO = PostUpdateDTO.builder()
+                .title("수정 시도")
+                .content("수정 시도 내용입니다. 10자 이상으로 작성합니다.")
+                .build();
+
+        mockMvc.perform(put("/api/post/{postId}", savedPost.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateReqDTO))
+                        .with(user(savedUserDetails))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("비회원이 회원 게시글 수정 실패")
+    void updateMemberPost_Fail_WithAnonymousUser() throws Exception {
+        Post memberPost = PostTestDataBuilder.createPost(savedMember, "회원 게시글", "회원 게시글 내용");
+        Post savedPost = postRepository.save(memberPost);
+
+        PostUpdateDTO updateReqDTO = PostUpdateDTO.builder()
+                .title("수정 시도")
+                .content("수정 시도 내용입니다. 10자 이상으로 작성합니다.")
+                .password("1234")
+                .build();
+
+        mockMvc.perform(put("/api/post/{postId}", savedPost.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateReqDTO))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isForbidden());
+    }
 }

@@ -80,10 +80,10 @@ public class PostCommandService implements PostCommandUseCase {
      */
     @Override
     @Transactional
-    public void updatePost(Long memberId, Long postId, String title, String content) {
+    public void updatePost(Long memberId, Long postId, String title, String content, Integer password) {
         Post post = globalPostQueryPort.findById(postId);
 
-        if (!post.isAuthor(memberId)) {
+        if (!post.isAuthor(memberId, password)) {
             throw new PostCustomException(PostErrorCode.FORBIDDEN);
         }
 
@@ -110,10 +110,10 @@ public class PostCommandService implements PostCommandUseCase {
      */
     @Override
     @Transactional
-    public void deletePost(Long memberId, Long postId) {
+    public void deletePost(Long memberId, Long postId, Integer password) {
         Post post = globalPostQueryPort.findById(postId);
 
-        if (!post.isAuthor(memberId)) {
+        if (!post.isAuthor(memberId, password)) {
             throw new PostCustomException(PostErrorCode.FORBIDDEN);
         }
 

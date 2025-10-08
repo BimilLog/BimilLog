@@ -142,13 +142,17 @@ public class Post extends BaseEntity {
      * <p>현재 사용자가 게시글의 작성자인지 확인합니다.</p>
      * <p>{@link PostCommandService}에서 게시글 수정/삭제 시 권한 검증에 사용됩니다.</p>
      *
-     * @param userId 확인할 사용자 ID
+     * @param memberId 확인할 사용자 ID
+     * @param password 확인할 password
      * @return 작성자인 경우 true, 아니면 false
      * @author Jaeik
      * @since 2.0.0
      */
-    public boolean isAuthor(Long userId) {
-        return this.member != null && this.member.getId().equals(userId);
+    public boolean isAuthor(Long memberId, Integer password) {
+        if (this.member != null) {
+            return this.member.getId().equals(memberId);
+        } else {
+            return this.password != null && this.password.equals(password);
+        }
     }
-
 }

@@ -96,14 +96,14 @@ class PostCommandServiceTest extends BaseUnitTest {
         Post existingPost = spy(PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestMember(), "기존 제목", "기존 내용")));
 
         given(globalPostQueryPort.findById(postId)).willReturn(existingPost);
-        given(existingPost.isAuthor(memberId)).willReturn(true);
+        given(existingPost.isAuthor(memberId, null)).willReturn(true);
 
         // When
-        postCommandService.updatePost(memberId, postId, "수정된 제목", "수정된 내용");
+        postCommandService.updatePost(memberId, postId, "수정된 제목", "수정된 내용", null);
 
         // Then
         verify(globalPostQueryPort, times(1)).findById(postId);
-        verify(existingPost, times(1)).isAuthor(memberId);
+        verify(existingPost, times(1)).isAuthor(memberId, null);
         verify(existingPost, times(1)).updatePost("수정된 제목", "수정된 내용");
         verify(redisPostDeletePort, times(1)).deleteSinglePostCache(postId);
         verify(redisPostDeletePort, times(1)).removePostFromListCache(postId);
@@ -120,7 +120,7 @@ class PostCommandServiceTest extends BaseUnitTest {
         given(globalPostQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
         // When & Then
-        assertThatThrownBy(() -> postCommandService.updatePost(memberId, postId, "title", "content"))
+        assertThatThrownBy(() -> postCommandService.updatePost(memberId, postId, "title", "content", null))
                 .isInstanceOf(PostCustomException.class)
                 .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.POST_NOT_FOUND);
 
@@ -138,15 +138,15 @@ class PostCommandServiceTest extends BaseUnitTest {
         Post otherUserPost = spy(PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getOtherMember(), "다른 사용자 게시글", "내용")));
 
         given(globalPostQueryPort.findById(postId)).willReturn(otherUserPost);
-        given(otherUserPost.isAuthor(memberId)).willReturn(false);
+        given(otherUserPost.isAuthor(memberId, null)).willReturn(false);
 
         // When & Then
-        assertThatThrownBy(() -> postCommandService.updatePost(memberId, postId, "title", "content"))
+        assertThatThrownBy(() -> postCommandService.updatePost(memberId, postId, "title", "content", null))
                 .isInstanceOf(PostCustomException.class)
                 .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.FORBIDDEN);
 
         verify(globalPostQueryPort, times(1)).findById(postId);
-        verify(otherUserPost, times(1)).isAuthor(memberId);
+        verify(otherUserPost, times(1)).isAuthor(memberId, null);
         verify(otherUserPost, never()).updatePost(anyString(), anyString());
         verify(redisPostDeletePort, never()).deleteSinglePostCache(any());
     }
@@ -162,15 +162,15 @@ class PostCommandServiceTest extends BaseUnitTest {
         Post postToDelete = spy(PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestMember(), postTitle, "내용")));
 
         given(globalPostQueryPort.findById(postId)).willReturn(postToDelete);
-        given(postToDelete.isAuthor(memberId)).willReturn(true);
+        given(postToDelete.isAuthor(memberId, null)).willReturn(true);
         given(postToDelete.getTitle()).willReturn(postTitle);
 
         // When
-        postCommandService.deletePost(memberId, postId);
+        postCommandService.deletePost(memberId, postId, null);
 
         // Then
         verify(globalPostQueryPort, times(1)).findById(postId);
-        verify(postToDelete, times(1)).isAuthor(memberId);
+        verify(postToDelete, times(1)).isAuthor(memberId, null);
         // CASCADE로 Comment와 PostLike 자동 삭제되므로 명시적 호출 없음
         verify(postCommandPort, times(1)).delete(postToDelete);
         verify(redisPostDeletePort, times(1)).deleteSinglePostCache(postId);
@@ -190,7 +190,7 @@ class PostCommandServiceTest extends BaseUnitTest {
         given(globalPostQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
         // When & Then
-        assertThatThrownBy(() -> postCommandService.deletePost(memberId, postId))
+        assertThatThrownBy(() -> postCommandService.deletePost(memberId, postId, null))
                 .isInstanceOf(PostCustomException.class)
                 .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.POST_NOT_FOUND);
 
@@ -209,15 +209,15 @@ class PostCommandServiceTest extends BaseUnitTest {
         Post otherUserPost = spy(PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getOtherMember(), "다른 사용자 게시글", "내용")));
 
         given(globalPostQueryPort.findById(postId)).willReturn(otherUserPost);
-        given(otherUserPost.isAuthor(memberId)).willReturn(false);
+        given(otherUserPost.isAuthor(memberId, null)).willReturn(false);
 
         // When & Then
-        assertThatThrownBy(() -> postCommandService.deletePost(memberId, postId))
+        assertThatThrownBy(() -> postCommandService.deletePost(memberId, postId, null))
                 .isInstanceOf(PostCustomException.class)
                 .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.FORBIDDEN);
 
         verify(globalPostQueryPort, times(1)).findById(postId);
-        verify(otherUserPost, times(1)).isAuthor(memberId);
+        verify(otherUserPost, times(1)).isAuthor(memberId, null);
         verify(postCommandPort, never()).delete(any());
         verify(redisPostDeletePort, never()).deleteSinglePostCache(any());
     }
@@ -270,11 +270,11 @@ class PostCommandServiceTest extends BaseUnitTest {
         Post existingPost = spy(PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestMember(), "제목", "내용")));
 
         given(globalPostQueryPort.findById(postId)).willReturn(existingPost);
-        given(existingPost.isAuthor(memberId)).willReturn(true);
+        given(existingPost.isAuthor(memberId, null)).willReturn(true);
         doThrow(new RuntimeException("Cache delete failed")).when(redisPostDeletePort).deleteSinglePostCache(postId);
 
         // When & Then
-        assertThatThrownBy(() -> postCommandService.updatePost(memberId, postId, "title", "content"))
+        assertThatThrownBy(() -> postCommandService.updatePost(memberId, postId, "title", "content", null))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Cache delete failed");
 

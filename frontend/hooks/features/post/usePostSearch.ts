@@ -12,12 +12,12 @@ import type { SimplePost } from '@/types/domains/post';
 // 게시글 검색 훅
 export function usePostSearch() {
   const [searchResults, setSearchResults] = useState<SimplePost[]>([]);
-  const [searchType, setSearchType] = useState<'TITLE' | 'TITLE_CONTENT' | 'AUTHOR'>('TITLE');
+  const [searchType, setSearchType] = useState<'TITLE' | 'TITLE_CONTENT' | 'WRITER'>('TITLE');
   const { showToast } = useToast();
 
   const searchMutation = useMutation({
     mutationFn: async ({ searchType, term, page = 1, size = 10 }: {
-      searchType: 'TITLE' | 'TITLE_CONTENT' | 'AUTHOR';
+      searchType: 'TITLE' | 'TITLE_CONTENT' | 'WRITER';
       term: string;
       page?: number;
       size?: number;
@@ -36,7 +36,7 @@ export function usePostSearch() {
 
   const search = useCallback(async (
     term: string,
-    type: 'TITLE' | 'TITLE_CONTENT' | 'AUTHOR' = searchType,
+    type: 'TITLE' | 'TITLE_CONTENT' | 'WRITER' = searchType,
     page = 1,
     size = 10
   ) => {

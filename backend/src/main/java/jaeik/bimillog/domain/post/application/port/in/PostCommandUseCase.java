@@ -44,7 +44,7 @@ public interface PostCommandUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    void updatePost(Long memberId, Long postId, String title, String content);
+    void updatePost(Long memberId, Long postId, String title, String content, Integer password);
 
     /**
      * <h3>게시글 삭제</h3>
@@ -57,7 +57,7 @@ public interface PostCommandUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    void deletePost(Long memberId, Long postId);
+    void deletePost(Long memberId, Long postId, Integer password);
 
     /**
      * <h3>회원 작성 게시글 일괄 삭제</h3>

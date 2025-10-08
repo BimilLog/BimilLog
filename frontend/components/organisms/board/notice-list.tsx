@@ -9,7 +9,7 @@ interface NoticeListProps {
 }
 
 export const NoticeList = ({ posts }: NoticeListProps) => {
-  // 공지사항 API로 받은 데이터는 모두 공지사항이므로 별도 필터링 불필요
+  // /api/post/notice 엔드포인트에서 가져온 공지사항 전용 데이터
   if (posts.length === 0) {
     return null;
   }

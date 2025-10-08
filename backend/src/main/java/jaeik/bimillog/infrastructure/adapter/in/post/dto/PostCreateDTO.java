@@ -33,11 +33,4 @@ public class PostCreateDTO {
     private String password;
 
     private Long memberId;
-
-    public Integer getParsedPassword() {
-        if (password != null && !password.trim().isEmpty()) {
-            return Integer.parseInt(password);
-        }
-        return null;
-    }
 }

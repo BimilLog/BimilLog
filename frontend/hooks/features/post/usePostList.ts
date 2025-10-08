@@ -12,7 +12,7 @@ import { queryKeys } from '@/lib/tanstack-query/keys';
 // 게시글 목록 조회 - TanStack Query 통합
 export function usePostList(pageSize = 30) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchType, setSearchType] = useState<'TITLE' | 'TITLE_CONTENT' | 'AUTHOR'>('TITLE');
+  const [searchType, setSearchType] = useState<'TITLE' | 'TITLE_CONTENT' | 'WRITER'>('TITLE');
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   const pagination = usePagination({ pageSize });
@@ -123,5 +123,22 @@ export function usePopularPostsTabs() {
     refetch,
     // 레전드 탭 전용 페이지네이션
     legendPagination: activeTab === 'legend' ? legendPagination : null
+  };
+}
+
+// 공지사항 조회
+export function useNoticePosts(enabled = true) {
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: queryKeys.post.notices(),
+    queryFn: postQuery.getNoticePosts,
+    enabled, // 조건부 조회 (기본값: true)
+    staleTime: 5 * 60 * 1000, // 5분
+    gcTime: 10 * 60 * 1000, // 10분
+  });
+
+  return {
+    noticePosts: data?.data || [],
+    isLoading,
+    refetch,
   };
 }

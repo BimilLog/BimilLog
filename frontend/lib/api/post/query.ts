@@ -9,16 +9,9 @@ export const postQuery = {
   getById: (postId: number): Promise<ApiResponse<Post>> => 
     apiClient.get(`/api/post/${postId}`),
   
-  search: (type: "TITLE" | "TITLE_CONTENT" | "AUTHOR", query: string, page = 0, size = 10): Promise<ApiResponse<PageResponse<SimplePost>>> => {
-    const typeMap: Record<string, string> = {
-      "TITLE": "title",
-      "AUTHOR": "writer",
-      "TITLE_CONTENT": "title_content"
-    }
-    const backendType = typeMap[type] || "title"
-    
+  search: (type: "TITLE" | "TITLE_CONTENT" | "WRITER", query: string, page = 0, size = 10): Promise<ApiResponse<PageResponse<SimplePost>>> => {
     return apiClient.get(
-      `/api/post/search?type=${backendType}&query=${encodeURIComponent(query)}&page=${page}&size=${size}`
+      `/api/post/search?type=${type}&query=${encodeURIComponent(query)}&page=${page}&size=${size}`
     )
   },
 
@@ -30,4 +23,7 @@ export const postQuery = {
 
   getLegend: (page = 0, size = 10): Promise<ApiResponse<PageResponse<SimplePost>>> =>
     apiClient.get(`/api/post/legend?page=${page}&size=${size}`),
+
+  getNoticePosts: (): Promise<ApiResponse<SimplePost[]>> =>
+    apiClient.get("/api/post/notice"),
 }

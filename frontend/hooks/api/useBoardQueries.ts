@@ -17,7 +17,7 @@ import { queryKeys } from '@/lib/tanstack-query/keys';
 import { postQuery } from '@/lib/api';
 
 export const useBoardSearch = (
-  searchType: 'TITLE' | 'TITLE_CONTENT' | 'AUTHOR',
+  searchType: 'TITLE' | 'TITLE_CONTENT' | 'WRITER',
   query: string,
   page: number = 0,
   size: number = 10

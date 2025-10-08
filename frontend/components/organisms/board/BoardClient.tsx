@@ -11,7 +11,7 @@ import {
 } from "@/components";
 
 // 분리된 훅들 import
-import { usePostList, usePopularPostsTabs } from "@/hooks/features";
+import { usePostList, usePopularPostsTabs, useNoticePosts } from "@/hooks/features";
 
 // 분리된 컴포넌트들 import
 import { BoardHeader } from "@/components/organisms/board/BoardHeader";
@@ -41,7 +41,12 @@ function BoardClient() {
     legendPagination,
   } = usePopularPostsTabs();
 
-  // 탭별 데이터 분리 - 인기글 API는 하나의 상태로 관리되지만 탭에 따라 다른 데이터를 표시
+  // 공지사항 데이터 관리 - '전체' 탭에서만 조회
+  const { noticePosts } = useNoticePosts(activeTab === "all");
+
+  // 탭별 데이터 매핑
+  // popularPostsData는 현재 활성화된 탭의 데이터만 포함 (usePopularPostsTabs가 enabled 옵션으로 조건부 조회)
+  // BoardTabs에 각 탭별 props를 전달하기 위해 현재 탭 데이터를 해당 변수에 할당
   const realtimePosts = popularTab === 'realtime' ? popularPostsData : [];
   const weeklyPosts = popularTab === 'weekly' ? popularPostsData : [];
   const legendPosts = popularTab === 'legend' ? popularPostsData : [];
@@ -113,6 +118,7 @@ function BoardClient() {
           weeklyPosts={weeklyPosts}
           legendPosts={legendPosts}
           legendPagination={legendPagination}
+          noticePosts={noticePosts}
         />
 
         {/* Mobile Advertisement - 게시판 아래로 이동 */}

@@ -7,8 +7,8 @@ import { Search, ListFilter, ChevronDown } from "lucide-react";
 interface BoardSearchProps {
   searchTerm: string;
   setSearchTerm: (term: string) => void;
-  searchType: "TITLE" | "TITLE_CONTENT" | "AUTHOR";
-  setSearchType: (type: "TITLE" | "TITLE_CONTENT" | "AUTHOR") => void;
+  searchType: "TITLE" | "TITLE_CONTENT" | "WRITER";
+  setSearchType: (type: "TITLE" | "TITLE_CONTENT" | "WRITER") => void;
   postsPerPage: string;
   setPostsPerPage: (value: string) => void;
   handleSearch: () => void;
@@ -43,7 +43,7 @@ export const BoardSearch = ({
                   <span>
                     {searchType === "TITLE" ? "제목" :
                      searchType === "TITLE_CONTENT" ? "제목+내용" :
-                     searchType === "AUTHOR" ? "작성자" : "제목"}
+                     searchType === "WRITER" ? "작성자" : "제목"}
                   </span>
                   <ChevronDown className="w-4 h-4 stroke-slate-600 fill-slate-100" />
                 </button>
@@ -55,7 +55,7 @@ export const BoardSearch = ({
               <DropdownItem onClick={() => setSearchType("TITLE_CONTENT")}>
                 제목+내용
               </DropdownItem>
-              <DropdownItem onClick={() => setSearchType("AUTHOR")}>
+              <DropdownItem onClick={() => setSearchType("WRITER")}>
                 작성자
               </DropdownItem>
             </Dropdown>

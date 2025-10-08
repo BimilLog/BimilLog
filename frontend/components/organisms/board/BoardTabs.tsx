@@ -25,6 +25,9 @@ interface BoardTabsProps {
   weeklyPosts: SimplePost[];
   legendPosts: SimplePost[];
   legendPagination?: PaginationState | null;
+
+  // 공지사항 데이터
+  noticePosts: SimplePost[];
 }
 
 const BoardTabsComponent: React.FC<BoardTabsProps> = ({
@@ -38,6 +41,7 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
   weeklyPosts,
   legendPosts,
   legendPagination,
+  noticePosts,
 }) => {
   // 탭 값 매핑
   const getTabValue = (index: number) => {
@@ -134,7 +138,7 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
             </CardHeader>
             <CardContent className="p-0">
               <div className="space-y-4">
-                <NoticeList posts={posts} />
+                <NoticeList posts={noticePosts} />
                 <BoardTable
                   posts={posts}
                   variant="all"

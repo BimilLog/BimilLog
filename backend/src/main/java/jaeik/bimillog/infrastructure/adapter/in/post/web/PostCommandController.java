@@ -9,6 +9,7 @@ import jaeik.bimillog.domain.post.application.port.in.PostInteractionUseCase;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.PostCreateDTO;
+import jaeik.bimillog.infrastructure.adapter.in.post.dto.PostDeleteDTO;
 import jaeik.bimillog.infrastructure.adapter.in.post.dto.PostUpdateDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import jakarta.validation.Valid;
@@ -55,26 +56,15 @@ public class PostCommandController {
     public ResponseEntity<Void> writePost(@AuthenticationPrincipal CustomUserDetails userDetails,
                                           @RequestBody @Valid PostCreateDTO postCreateDTO) {
         Long memberId = (userDetails != null) ? userDetails.getMemberId() : null;
-        postCreateDTO.setMemberId(memberId);
+        String password = postCreateDTO.getPassword();
 
-        // memberId 설정 후 수동 검증 실행
-        validatePostRequest(postCreateDTO);
+        if (memberId == null && (password == null || password.trim().isEmpty())) {
+            throw new PostCustomException(PostErrorCode.BLANK_PASSWORD);
+        }
 
-        Long postId = postCommandUseCase.writePost(memberId, postCreateDTO.getTitle(), postCreateDTO.getContent(), postCreateDTO.getParsedPassword());
+        Integer postPassword = (password != null) ? Integer.parseInt(password) : null;
+        Long postId = postCommandUseCase.writePost(memberId, postCreateDTO.getTitle(), postCreateDTO.getContent(), postPassword);
         return ResponseEntity.created(URI.create("/post/" + postId)).build();
-    }
-
-    private void validatePostRequest(PostCreateDTO postCreateDTO) {
-        boolean hasPassword = postCreateDTO.getPassword() != null && !postCreateDTO.getPassword().trim().isEmpty();
-        Long memberId = postCreateDTO.getMemberId();
-
-        if (memberId == null && !hasPassword) {
-            throw new PostCustomException(PostErrorCode.INVALID_INPUT_VALUE);
-        }
-
-        if (memberId != null && hasPassword) {
-            throw new PostCustomException(PostErrorCode.INVALID_INPUT_VALUE);
-        }
     }
 
     /**
@@ -92,10 +82,16 @@ public class PostCommandController {
     public ResponseEntity<Void> updatePost(@PathVariable Long postId,
                                            @AuthenticationPrincipal CustomUserDetails userDetails,
                                            @RequestBody @Valid PostUpdateDTO postUpdateDTO) {
-        if (userDetails == null) {
-            throw new AuthCustomException(AuthErrorCode.NULL_SECURITY_CONTEXT);
+
+        Long memberId = (userDetails != null) ? userDetails.getMemberId() : null;
+        String password = postUpdateDTO.getPassword();
+
+        if (memberId == null && (password == null || password.trim().isEmpty())) {
+            throw new PostCustomException(PostErrorCode.BLANK_PASSWORD);
         }
-        postCommandUseCase.updatePost(userDetails.getMemberId(), postId, postUpdateDTO.getTitle(), postUpdateDTO.getContent());
+
+        Integer postPassword = (password != null) ? Integer.parseInt(password) : null;
+        postCommandUseCase.updatePost(memberId, postId, postUpdateDTO.getTitle(), postUpdateDTO.getContent(), postPassword);
         return ResponseEntity.ok().build();
     }
 
@@ -103,19 +99,27 @@ public class PostCommandController {
      * <h3>게시글 삭제 API</h3>
      * <p>게시글 작성자만 삭제 가능합니다.</p>
      *
-     * @param postId      삭제할 게시글 ID
-     * @param userDetails 현재 로그인 사용자 정보
+     * @param postId        삭제할 게시글 ID
+     * @param userDetails   현재 로그인 사용자 정보
+     * @param postDeleteDTO 삭제할 게시글 정보
      * @return 성공 응답 (204 No Content)
      * @author Jaeik
      * @since 2.0.0
      */
     @DeleteMapping("/{postId}")
     public ResponseEntity<Void> deletePost(@PathVariable Long postId,
-                                           @AuthenticationPrincipal CustomUserDetails userDetails) {
-        if (userDetails == null) {
-            throw new AuthCustomException(AuthErrorCode.NULL_SECURITY_CONTEXT);
+                                           @AuthenticationPrincipal CustomUserDetails userDetails,
+                                           @RequestBody(required = false) @Valid PostDeleteDTO postDeleteDTO) {
+
+        Long memberId = (userDetails != null) ? userDetails.getMemberId() : null;
+        String password = (postDeleteDTO != null) ? postDeleteDTO.getPassword() : null;
+
+        if (memberId == null && (password == null || password.trim().isEmpty())) {
+            throw new PostCustomException(PostErrorCode.BLANK_PASSWORD);
         }
-        postCommandUseCase.deletePost(userDetails.getMemberId(), postId);
+
+        Integer postPassword = (password != null) ? Integer.parseInt(password) : null;
+        postCommandUseCase.deletePost(memberId, postId, postPassword);
         return ResponseEntity.noContent().build();
     }
 
@@ -138,6 +142,5 @@ public class PostCommandController {
         postInteractionUseCase.likePost(userDetails.getMemberId(), postId);
         return ResponseEntity.ok().build();
     }
-
 }
 
