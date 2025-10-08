@@ -21,13 +21,13 @@ import lombok.*;
 public class SettingDTO {
 
     @NotNull(message = "메시지 알림 설정은 필수입니다")
-    private Boolean messageNotification;
+    private boolean messageNotification;
 
-    @NotNull(message = "댓글 알림 설정은 필수입니다") 
-    private Boolean commentNotification;
+    @NotNull(message = "댓글 알림 설정은 필수입니다")
+    private boolean commentNotification;
 
     @NotNull(message = "게시글 추천 알림 설정은 필수입니다")
-    private Boolean postFeaturedNotification;
+    private boolean postFeaturedNotification;
 
     /**
      * <h3>DTO를 Setting 엔티티로 변환</h3>

@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks";
 import { useTheme } from "@/hooks/features/useTheme";
 import {
@@ -39,7 +40,8 @@ const NotificationBell = dynamic(
 );
 
 export const AuthHeader = React.memo(() => {
-  const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const router = useRouter();
+  const { user, isAuthenticated, isLoading } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
 
@@ -212,7 +214,7 @@ export const AuthHeader = React.memo(() => {
                 </>
               )}
               <DropdownDivider />
-              <DropdownItem onClick={logout} className="text-red-600">
+              <DropdownItem onClick={() => router.push('/logout')} className="text-red-600">
                 <LogOut className="mr-2 h-4 w-4 stroke-red-600 fill-red-100" />
                 로그아웃
               </DropdownItem>

@@ -18,7 +18,23 @@ export default function LoginPage() {
   const { clearAuthError } = useAuthError();
 
   // URL 파라미터에서 에러 메시지를 추출 (카카오 OAuth 콜백에서 전달됨)
-  const error = searchParams.get("error");
+  const errorCode = searchParams.get("error");
+
+  // 에러 코드별 사용자 친화적 메시지
+  const getErrorMessage = (code: string | null): string => {
+    if (!code) return "";
+
+    const errorMessages: Record<string, string> = {
+      "no_code": "카카오 로그인에 실패했습니다. 다시 시도해주세요.",
+      "callback_failed": "로그인 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+      "login_failed": "로그인에 실패했습니다. 다시 시도해주세요.",
+      "access_denied": "카카오 로그인이 취소되었습니다.",
+    };
+
+    return errorMessages[code] || decodeURIComponent(code);
+  };
+
+  const errorMessage = getErrorMessage(errorCode);
 
   // 이미 로그인된 사용자는 홈페이지로 자동 리다이렉션
   useEffect(() => {
@@ -27,15 +43,15 @@ export default function LoginPage() {
     }
   }, [isAuthenticated, router]);
 
-  // 에러가 있을 경우 5초 후 자동으로 에러 상태 초기화 (사용자 경험 개선)
+  // 에러가 있을 경우 10초 후 자동으로 에러 상태 초기화 (사용자 경험 개선)
   useEffect(() => {
-    if (error) {
+    if (errorCode) {
       const timer = setTimeout(() => {
         clearAuthError();
-      }, 5000);
+      }, 10000);
       return () => clearTimeout(timer);
     }
-  }, [error, clearAuthError]);
+  }, [errorCode, clearAuthError]);
 
   const handleLogin = () => {
     kakaoAuthManager.redirectToKakaoAuth();
@@ -55,12 +71,18 @@ export default function LoginPage() {
     >
       <Card className="max-w-sm mx-auto bg-cyan-50 dark:bg-gray-800 border-cyan-200 dark:border-gray-700">
         {/* URL 파라미터로 전달된 에러가 있을 경우에만 에러 메시지 표시 */}
-        {error && (
+        {errorMessage && (
           <div className="mb-4">
             <ErrorAlert>
-              <div>
+              <div className="space-y-2">
                 <p className="font-semibold">로그인 오류</p>
-                <p className="text-sm mt-1">{decodeURIComponent(error)}</p>
+                <p className="text-sm">{errorMessage}</p>
+                <button
+                  onClick={handleLogin}
+                  className="text-sm font-medium text-purple-600 hover:text-purple-700 underline"
+                >
+                  다시 로그인하기
+                </button>
               </div>
             </ErrorAlert>
           </div>

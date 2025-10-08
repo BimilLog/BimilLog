@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useAuth } from "@/hooks";
+import { useAuth, useToast } from "@/hooks";
 import { AuthLoadingScreen } from "@/components";
 import { fcmManager } from "@/lib/auth/fcm";
 import { logger } from '@/lib/utils/logger';
@@ -11,6 +11,7 @@ export default function LogoutPage() {
   const { logout } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { showError } = useToast();
   const consentParam = searchParams?.get('consent');
   // 중복 실행 방지를 위한 플래그 (logout 로직이 여러 번 실행되는 것을 막음)
   const isProcessingRef = useRef(false);
@@ -36,9 +37,8 @@ export default function LogoutPage() {
         // 서버에 로그아웃 요청 전송
         await logout();
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
-          logger.error("Logout failed:", error);
-        }
+        logger.error("Logout failed:", error);
+        showError("로그아웃 중 오류가 발생했습니다. 홈페이지로 이동합니다.");
       } finally {
         // FCM 토큰 캐시 정리
         fcmManager.clearCache();

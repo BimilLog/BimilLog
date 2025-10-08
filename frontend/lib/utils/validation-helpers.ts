@@ -61,10 +61,6 @@ export const validationRules = {
       return { isValid: false, error: '닉네임을 입력해주세요.' };
     }
 
-    if (value.length < 2) {
-      return { isValid: false, error: '닉네임은 2자 이상이어야 합니다.' };
-    }
-
     if (value.length > 8) {
       return { isValid: false, error: '닉네임은 8자 이하여야 합니다.' };
     }

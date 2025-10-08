@@ -22,7 +22,7 @@ import lombok.NoArgsConstructor;
 public class SignUpRequestDTO {
 
     @NotBlank(message = "사용자 이름은 필수입니다.")
-    @Size(min = 1, max = 20, message = "사용자 이름은 1자 이상 20자 이하여야 합니다.")
+    @Size(min = 1, max = 8, message = "사용자 이름은 1자 이상 8자 이하여야 합니다.")
     private String memberName;
 
     /**
@@ -38,21 +38,21 @@ public class SignUpRequestDTO {
     public boolean isMemberNameValidAfterTrim() {
         if (memberName == null) return false;
         String trimmed = memberName.trim();
-        return !trimmed.isEmpty() && trimmed.length() <= 20;
+        return !trimmed.isEmpty() && trimmed.length() >= 1 && trimmed.length() <= 8;
     }
 
     /**
      * <h3>사용자 이름 특수문자 검증</h3>
      * <p>사용자 이름에 금지된 특수문자가 포함되어 있는지 검증합니다.</p>
-     * <p>한글, 영문, 숫자, 공백, 일부 특수문자만 허용합니다.</p>
+     * <p>한글, 영문, 숫자만 허용합니다. 공백 및 특수문자는 허용하지 않습니다.</p>
      *
      * @return 허용된 문자로만 구성되어 있으면 true, 그렇지 않으면 false
      * @author Jaeik
      * @since 2.0.0
      */
-    @AssertTrue(message = "사용자 이름에 허용되지 않은 문자가 포함되어 있습니다.")
+    @AssertTrue(message = "특수문자는 사용할 수 없습니다.")
     public boolean isMemberNameCharacterValid() {
         if (memberName == null) return false;
-        return memberName.matches("^[가-힣a-zA-Z0-9\\s._-]*$");
+        return memberName.matches("^[가-힣a-zA-Z0-9]+$");
     }
 }

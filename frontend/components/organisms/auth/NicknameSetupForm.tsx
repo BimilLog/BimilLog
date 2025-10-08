@@ -108,7 +108,7 @@ export function NicknameSetupForm({ onSuccess, onError }: NicknameSetupFormProps
           닉네임 설정
         </CardTitle>
         <CardDescription className="text-brand-muted">
-          2~8자의 한글, 영문, 숫자만 사용 가능합니다.
+          1~8자의 한글, 영문, 숫자만 사용 가능합니다.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6 pt-6">

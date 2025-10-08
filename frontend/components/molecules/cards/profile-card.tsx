@@ -100,7 +100,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
 
     if (
       !window.confirm(
-        `닉네임을 "${nicknameInput.trim()}"으로 변경하시겠습니까?\n\n주의사항:\n• 변경 후 30일 동안 다시 변경할 수 없습니다.\n• 닉네임 변경 후 재로그인이 필요합니다.\n• 3초 후 자동으로 로그아웃됩니다.`
+        `닉네임을 "${nicknameInput.trim()}"으로 변경하시겠습니까?`
       )
     ) {
       return;
@@ -116,11 +116,11 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
         setIsNicknameAvailable(null);
         showSuccess(
           "닉네임 변경 완료",
-          "닉네임이 성공적으로 변경되었습니다. 3초 후 재로그인 페이지로 이동합니다."
+          "닉네임이 성공적으로 변경되었습니다. 재로그인이 필요합니다."
         );
         setTimeout(async () => {
           await onLogout();
-        }, 3000);
+        }, 1500);
       } else {
         showError("닉네임 변경 실패", response.error || "닉네임 변경에 실패했습니다.");
         setIsNicknameAvailable(false);

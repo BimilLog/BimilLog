@@ -1,6 +1,7 @@
 import React from "react";
-import { ToggleSwitch } from "flowbite-react";
+import { ToggleSwitch, Spinner } from "flowbite-react";
 import { Label } from "@/components";
+import { Check } from "lucide-react";
 
 interface SettingToggleProps {
   icon: React.ReactNode;
@@ -9,6 +10,8 @@ interface SettingToggleProps {
   checked: boolean;
   onChange: (checked: boolean) => void;
   disabled?: boolean;
+  saving?: boolean;
+  saved?: boolean;
   gradient?: string;
   className?: string;
 }
@@ -20,6 +23,8 @@ export const SettingToggle: React.FC<SettingToggleProps> = ({
   checked,
   onChange,
   disabled = false,
+  saving = false,
+  saved = false,
   gradient = "from-gray-500 to-gray-600",
   className,
 }) => (
@@ -35,10 +40,18 @@ export const SettingToggle: React.FC<SettingToggleProps> = ({
         <p className="text-sm text-brand-muted">{description}</p>
       </div>
     </div>
-    <ToggleSwitch
-      checked={checked}
-      onChange={onChange}
-      disabled={disabled}
-    />
+    <div className="flex items-center gap-2">
+      {saving && (
+        <Spinner size="sm" color="purple" aria-label="저장 중..." />
+      )}
+      {saved && !saving && (
+        <Check className="w-5 h-5 text-green-600 animate-in fade-in zoom-in duration-200" />
+      )}
+      <ToggleSwitch
+        checked={checked}
+        onChange={onChange}
+        disabled={disabled || saving}
+      />
+    </div>
   </div>
 );

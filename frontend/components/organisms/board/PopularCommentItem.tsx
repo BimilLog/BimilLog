@@ -41,6 +41,8 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
         reportType: "COMMENT",
         targetId: comment.id,
         content: `댓글 신고: ${comment.content.substring(0, 50)}...`,
+        reporterId: user?.memberId ?? null,
+        reporterName: user?.memberName ?? "익명",
       });
 
       if (response.success) {

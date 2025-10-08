@@ -1,14 +1,19 @@
 import React from "react";
-import { ToggleSwitch, Spinner as FlowbiteSpinner } from "flowbite-react";
+import { ToggleSwitch } from "flowbite-react";
 import { Label } from "@/components";
 import { SettingsSection, SettingToggle } from "@/components/molecules";
 import { Bell, Heart, MessageCircle, TrendingUp } from "lucide-react";
 import { Setting } from "@/lib/api";
 
+type SettingField = keyof Setting;
+
 interface NotificationSettingsProps {
   settings: Setting | null;
   saving: boolean;
+  savingFields: Record<SettingField, boolean>;
+  savedFields: Record<SettingField, boolean>;
   allEnabled: boolean;
+  isIndeterminate?: boolean;
   onSingleToggle: (
     field: keyof Pick<Setting, "messageNotification" | "commentNotification" | "postFeaturedNotification">,
     value: boolean
@@ -20,7 +25,10 @@ interface NotificationSettingsProps {
 export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
   settings,
   saving,
+  savingFields,
+  savedFields,
   allEnabled,
+  isIndeterminate,
   onSingleToggle,
   onAllToggle,
   className,
@@ -35,14 +43,22 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
       <div className="p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-100">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
-            <Label className="font-medium text-brand-primary">전체 알림 설정</Label>
+            <Label className="font-medium text-brand-primary">
+              전체 알림 설정
+              {isIndeterminate && (
+                <span className="ml-2 text-xs text-purple-600 font-normal">(일부만 활성화됨)</span>
+              )}
+            </Label>
             <p className="text-sm text-brand-muted">모든 알림을 한번에 켜거나 끌 수 있습니다.</p>
           </div>
-          <ToggleSwitch
-            checked={allEnabled === true}
-            onChange={onAllToggle}
-            disabled={saving}
-          />
+          <div className="relative">
+            <ToggleSwitch
+              checked={allEnabled === true}
+              onChange={onAllToggle}
+              disabled={saving}
+              className={isIndeterminate ? "opacity-70" : ""}
+            />
+          </div>
         </div>
       </div>
 
@@ -54,6 +70,8 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
           checked={settings?.messageNotification === true}
           onChange={(value) => onSingleToggle("messageNotification", value)}
           disabled={saving}
+          saving={savingFields.messageNotification}
+          saved={savedFields.messageNotification}
           gradient="from-pink-500 to-red-500"
         />
 
@@ -64,6 +82,8 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
           checked={settings?.commentNotification === true}
           onChange={(value) => onSingleToggle("commentNotification", value)}
           disabled={saving}
+          saving={savingFields.commentNotification}
+          saved={savedFields.commentNotification}
           gradient="from-green-500 to-teal-500"
         />
 
@@ -74,18 +94,11 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
           checked={settings?.postFeaturedNotification === true}
           onChange={(value) => onSingleToggle("postFeaturedNotification", value)}
           disabled={saving}
+          saving={savingFields.postFeaturedNotification}
+          saved={savedFields.postFeaturedNotification}
           gradient="from-orange-500 to-yellow-500"
         />
       </div>
-
-      {saving && (
-        <div className="flex items-center justify-center py-4">
-          <div className="flex items-center gap-2">
-            <FlowbiteSpinner color="pink" size="sm" aria-label="설정을 저장하는 중..." />
-            <span className="text-sm text-brand-muted">설정을 저장하는 중...</span>
-          </div>
-        </div>
-      )}
     </div>
   </SettingsSection>
 );

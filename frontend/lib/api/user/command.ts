@@ -12,6 +12,8 @@ export const userCommand = {
     reportType: "POST" | "COMMENT" | "ERROR" | "IMPROVEMENT"
     targetId?: number
     content: string
+    reporterId: number | null
+    reporterName: string
   }) => apiClient.post("/api/member/report", report),
 
 

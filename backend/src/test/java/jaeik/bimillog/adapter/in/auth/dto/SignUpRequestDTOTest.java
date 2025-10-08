@@ -76,10 +76,23 @@ class SignUpRequestDTOTest {
         }
 
         @Test
-        @DisplayName("허용된 특수문자가 포함된 사용자 이름 - 검증 통과")
-        void shouldPass_WhenUserNameContainsAllowedSpecialChars() {
+        @DisplayName("8자 사용자 이름 - 검증 통과")
+        void shouldPass_WhenUserNameIs8Characters() {
             // Given
-            SignUpRequestDTO request = new SignUpRequestDTO("사용자_이름.test-123");
+            SignUpRequestDTO request = new SignUpRequestDTO("사용자1234");
+
+            // When
+            Set<ConstraintViolation<SignUpRequestDTO>> violations = validator.validate(request);
+
+            // Then
+            assertThat(violations).isEmpty();
+        }
+
+        @Test
+        @DisplayName("2자 사용자 이름 - 검증 통과")
+        void shouldPass_WhenUserNameIs2Characters() {
+            // Given
+            SignUpRequestDTO request = new SignUpRequestDTO("홍길");
 
             // When
             Set<ConstraintViolation<SignUpRequestDTO>> violations = validator.validate(request);
@@ -109,7 +122,7 @@ class SignUpRequestDTOTest {
                     .containsExactlyInAnyOrder(
                             "사용자 이름은 필수입니다.",
                             "사용자 이름에 유효한 문자가 포함되어야 합니다.",
-                            "사용자 이름에 허용되지 않은 문자가 포함되어 있습니다."
+                            "특수문자는 사용할 수 없습니다."
                     );
         }
 
@@ -123,13 +136,14 @@ class SignUpRequestDTOTest {
             Set<ConstraintViolation<SignUpRequestDTO>> violations = validator.validate(request);
 
             // Then
-            assertThat(violations).hasSize(3); // @NotBlank + @Size + @AssertTrue
+            assertThat(violations).hasSize(4); // @NotBlank + @Size + 두 개의 @AssertTrue
             assertThat(violations)
                     .extracting(ConstraintViolation::getMessage)
                     .containsExactlyInAnyOrder(
                             "사용자 이름은 필수입니다.",
-                            "사용자 이름은 1자 이상 20자 이하여야 합니다.",
-                            "사용자 이름에 유효한 문자가 포함되어야 합니다."
+                            "사용자 이름은 1자 이상 8자 이하여야 합니다.",
+                            "사용자 이름에 유효한 문자가 포함되어야 합니다.",
+                            "특수문자는 사용할 수 없습니다."
                     );
         }
 
@@ -143,39 +157,52 @@ class SignUpRequestDTOTest {
             Set<ConstraintViolation<SignUpRequestDTO>> violations = validator.validate(request);
 
             // Then
-            assertThat(violations).hasSize(2); // @NotBlank + @AssertTrue
+            assertThat(violations).hasSize(3); // @NotBlank + 두 개의 @AssertTrue
             assertThat(violations)
                     .extracting(ConstraintViolation::getMessage)
                     .containsExactlyInAnyOrder(
                             "사용자 이름은 필수입니다.",
-                            "사용자 이름에 유효한 문자가 포함되어야 합니다."
+                            "사용자 이름에 유효한 문자가 포함되어야 합니다.",
+                            "특수문자는 사용할 수 없습니다."
                     );
         }
 
         @Test
-        @DisplayName("memberName이 20자를 초과하는 경우 - @Size 검증 실패")
+        @DisplayName("memberName이 8자를 초과하는 경우 - @Size 검증 실패")
         void shouldFail_WhenUserNameIsTooLong() {
             // Given
-            String longUserName = "이것은아주긴사용자이름입니다정말로길어요!"; // 21자 이상
+            String longUserName = "사용자이름1234"; // 9자
             SignUpRequestDTO request = new SignUpRequestDTO(longUserName);
 
             // When
             Set<ConstraintViolation<SignUpRequestDTO>> violations = validator.validate(request);
 
             // Then
-            assertThat(violations).hasSize(3); // @Size + 두 개의 @AssertTrue
+            assertThat(violations).hasSize(2); // @Size + @AssertTrue (trim)
             assertThat(violations)
                     .extracting(ConstraintViolation::getMessage)
                     .containsExactlyInAnyOrder(
-                            "사용자 이름은 1자 이상 20자 이하여야 합니다.",
-                            "사용자 이름에 유효한 문자가 포함되어야 합니다.",
-                            "사용자 이름에 허용되지 않은 문자가 포함되어 있습니다."
+                            "사용자 이름은 1자 이상 8자 이하여야 합니다.",
+                            "사용자 이름에 유효한 문자가 포함되어야 합니다."
                     );
         }
 
         @Test
-        @DisplayName("memberName에 허용되지 않은 특수문자가 포함된 경우 - @AssertTrue 검증 실패")
-        void shouldFail_WhenUserNameContainsInvalidSpecialChars() {
+        @DisplayName("memberName이 1자인 경우 - 검증 통과")
+        void shouldPass_WhenUserNameIsOneCharacter() {
+            // Given
+            SignUpRequestDTO request = new SignUpRequestDTO("홍");
+
+            // When
+            Set<ConstraintViolation<SignUpRequestDTO>> violations = validator.validate(request);
+
+            // Then
+            assertThat(violations).isEmpty();
+        }
+
+        @Test
+        @DisplayName("memberName에 특수문자가 포함된 경우 - @AssertTrue 검증 실패")
+        void shouldFail_WhenUserNameContainsSpecialChars() {
             // Given
             SignUpRequestDTO request = new SignUpRequestDTO("사용자@#$%");
 
@@ -186,14 +213,46 @@ class SignUpRequestDTOTest {
             assertThat(violations).hasSize(1);
             assertThat(violations)
                     .extracting(ConstraintViolation::getMessage)
-                    .contains("사용자 이름에 허용되지 않은 문자가 포함되어 있습니다.");
+                    .contains("특수문자는 사용할 수 없습니다.");
         }
 
         @Test
-        @DisplayName("memberName 앞뒤 공백 처리 후 20자 초과 - @AssertTrue 검증 실패")
+        @DisplayName("memberName에 공백이 포함된 경우 - @AssertTrue 검증 실패")
+        void shouldFail_WhenUserNameContainsSpaces() {
+            // Given
+            SignUpRequestDTO request = new SignUpRequestDTO("사용자 이름");
+
+            // When
+            Set<ConstraintViolation<SignUpRequestDTO>> violations = validator.validate(request);
+
+            // Then
+            assertThat(violations).hasSize(1);
+            assertThat(violations)
+                    .extracting(ConstraintViolation::getMessage)
+                    .contains("특수문자는 사용할 수 없습니다.");
+        }
+
+        @Test
+        @DisplayName("memberName에 점, 밑줄, 하이픈이 포함된 경우 - @AssertTrue 검증 실패")
+        void shouldFail_WhenUserNameContainsDotUnderscoreHyphen() {
+            // Given
+            SignUpRequestDTO request = new SignUpRequestDTO("사용자._-");
+
+            // When
+            Set<ConstraintViolation<SignUpRequestDTO>> violations = validator.validate(request);
+
+            // Then
+            assertThat(violations).hasSize(1);
+            assertThat(violations)
+                    .extracting(ConstraintViolation::getMessage)
+                    .contains("특수문자는 사용할 수 없습니다.");
+        }
+
+        @Test
+        @DisplayName("memberName 앞뒤 공백 처리 후 8자 초과 - @AssertTrue 검증 실패")
         void shouldFail_WhenTrimmedUserNameIsTooLong() {
             // Given
-            String userNameWithSpaces = "  이것은아주긴사용자이름입니다정말로길어요!  "; // trim 후 21자
+            String userNameWithSpaces = "  사용자이름1234  "; // trim 후 9자
             SignUpRequestDTO request = new SignUpRequestDTO(userNameWithSpaces);
 
             // When
@@ -204,9 +263,9 @@ class SignUpRequestDTOTest {
             assertThat(violations)
                     .extracting(ConstraintViolation::getMessage)
                     .containsExactlyInAnyOrder(
-                            "사용자 이름은 1자 이상 20자 이하여야 합니다.",
+                            "사용자 이름은 1자 이상 8자 이하여야 합니다.",
                             "사용자 이름에 유효한 문자가 포함되어야 합니다.",
-                            "사용자 이름에 허용되지 않은 문자가 포함되어 있습니다."
+                            "특수문자는 사용할 수 없습니다."
                     );
         }
     }

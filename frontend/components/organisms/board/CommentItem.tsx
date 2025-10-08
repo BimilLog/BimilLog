@@ -90,7 +90,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
   onLikeComment,
   canModifyComment,
 }) => {
-  const { } = useAuth();
+  const { user } = useAuth();
   const { showFeedback, showError } = useToast();
 
   // 댓글 계층구조 처리: 최대 3단계까지만 지원하여 모바일에서도 읽기 편하도록 제한
@@ -108,6 +108,8 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
         reportType: "COMMENT",
         targetId: comment.id,
         content: reason,
+        reporterId: isAuthenticated && user?.memberId ? user.memberId : null,
+        reporterName: isAuthenticated && user?.memberName ? user.memberName : "익명",
       });
 
       if (response.success) {

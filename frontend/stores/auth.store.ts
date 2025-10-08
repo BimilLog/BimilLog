@@ -102,6 +102,7 @@ export const useAuthStore = create<AuthState>()(
             logger.log("로그아웃 API 응답:", response);
           } catch (error) {
             logger.error("Logout failed:", error);
+            throw error; // 에러를 다시 throw하여 호출자가 처리할 수 있도록
           } finally {
             // API 호출 성공/실패 관계없이 항상 상태 초기화
             // SSE 연결 해제하고 사용자 정보를 모두 제거

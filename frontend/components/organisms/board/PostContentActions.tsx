@@ -46,6 +46,8 @@ export const PostContentActions: React.FC<PostContentActionsProps> = ({
         reportType: "POST",
         targetId: post.id, // v2에서는 post.id 사용
         content: reason,
+        reporterId: isAuthenticated && user?.memberId ? user.memberId : null,
+        reporterName: isAuthenticated && user?.memberName ? user.memberName : "익명",
       });
 
       if (response.success) {

@@ -41,12 +41,18 @@ export default function SettingsPage() {
     settings,
     loading,
     saving,
+    savingFields,
+    savedFields,
     withdrawing,
+    showWithdrawModal,
     allEnabled,
+    isIndeterminate,
     error,
     handleSingleToggle,
     handleAllToggle,
-    handleWithdraw,
+    handleOpenWithdrawModal,
+    handleCloseWithdrawModal,
+    handleConfirmWithdraw,
     loadSettings,
   } = useSettings();
 
@@ -56,23 +62,6 @@ export default function SettingsPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
           <CuteLoadingSpinner message="설정을 불러오는 중..." />
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto">
-          <ErrorAlert>
-            <div className="flex items-center justify-between">
-              <span>{error}</span>
-              <Button onClick={loadSettings} variant="outline" size="sm" className="ml-4">
-                다시 시도
-              </Button>
-            </div>
-          </ErrorAlert>
         </div>
       </div>
     );
@@ -94,16 +83,33 @@ export default function SettingsPage() {
 
       <div className="pb-8">
         <div className="max-w-2xl mx-auto space-y-6">
+          {error && (
+            <ErrorAlert>
+              <div className="flex items-center justify-between">
+                <span>{error}</span>
+                <Button onClick={loadSettings} variant="outline" size="sm" className="ml-4">
+                  다시 시도
+                </Button>
+              </div>
+            </ErrorAlert>
+          )}
+
           <NotificationSettings
             settings={settings}
             saving={saving}
+            savingFields={savingFields}
+            savedFields={savedFields}
             allEnabled={allEnabled}
+            isIndeterminate={isIndeterminate}
             onSingleToggle={handleSingleToggle}
             onAllToggle={handleAllToggle}
           />
           <AccountSettings
             withdrawing={withdrawing}
-            onWithdraw={handleWithdraw}
+            showWithdrawModal={showWithdrawModal}
+            onOpenWithdrawModal={handleOpenWithdrawModal}
+            onCloseWithdrawModal={handleCloseWithdrawModal}
+            onConfirmWithdraw={handleConfirmWithdraw}
           />
         </div>
       </div>

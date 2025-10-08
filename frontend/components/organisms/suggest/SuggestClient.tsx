@@ -10,6 +10,7 @@ import { Lightbulb, Send, Bug, FileText } from "lucide-react";
 import { userCommand } from "@/lib/api";
 import { useToast } from "@/hooks";
 import { logger } from '@/lib/utils/logger';
+import { useAuthStore } from "@/stores/auth.store";
 
 // Dynamic import for heavy components
 const Textarea = dynamic(
@@ -55,8 +56,10 @@ export default function SuggestClient() {
   const [suggestionType, setSuggestionType] = useState<SuggestionType | "">("");
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [lastSubmitTime, setLastSubmitTime] = useState<number>(0);
   const { showError, showWarning, showFeedback, toasts, removeToast } =
     useToast();
+  const { user, isAuthenticated } = useAuthStore();
 
   const selectedType = suggestionTypes.find(
     (type) => type.value === suggestionType
@@ -75,15 +78,25 @@ export default function SuggestClient() {
       return;
     }
 
+    const now = Date.now();
+    if (now - lastSubmitTime < 3000) {
+      showWarning("중복 제출 방지", "3초 후에 다시 시도해주세요.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       const response = await userCommand.submitReport({
         reportType: suggestionType,
         content: content.trim(),
+        reporterId: isAuthenticated && user?.memberId ? user.memberId : null,
+        reporterName: isAuthenticated && user?.memberName ? user.memberName : "익명",
       });
 
       if (response.success) {
+        setLastSubmitTime(Date.now());
+
         showFeedback(
           "건의사항 접수 완료",
           "소중한 의견 감사합니다! 빠른 시일 내에 검토하여 반영하겠습니다.",

@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import { queryKeys } from '@/lib/tanstack-query/keys';
 import { userQuery } from '@/lib/api';
 
@@ -58,12 +58,26 @@ export const useUserLikedComments = (page: number = 0, size: number = 10) => {
 };
 
 /**
- * 친구 목록 조회
+ * 친구 목록 무한 스크롤 조회
  */
-export const useUserFriendList = (offset: number = 0, limit: number = 10) => {
-  return useQuery({
+export const useInfiniteUserFriendList = (limit: number = 20) => {
+  return useInfiniteQuery({
     queryKey: queryKeys.user.friendList(),
-    queryFn: () => userQuery.getFriendList(offset, limit),
+    queryFn: ({ pageParam = 0 }) => userQuery.getFriendList(pageParam, limit),
+    getNextPageParam: (lastPage, allPages) => {
+      if (!lastPage.success || !lastPage.data) return undefined;
+
+      const loadedCount = allPages.reduce((sum, page) => {
+        return sum + (page.data?.elements?.length || 0);
+      }, 0);
+
+      if (loadedCount >= lastPage.data.total_count) {
+        return undefined;
+      }
+
+      return loadedCount;
+    },
+    initialPageParam: 0,
     staleTime: 10 * 60 * 1000, // 10분
     gcTime: 30 * 60 * 1000, // 30분
   });
