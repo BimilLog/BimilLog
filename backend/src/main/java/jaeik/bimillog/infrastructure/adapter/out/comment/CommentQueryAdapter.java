@@ -1,6 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.out.comment;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.comment.application.port.out.CommentQueryPort;
 import jaeik.bimillog.domain.comment.application.service.CommentCommandService;
@@ -55,14 +56,21 @@ public class CommentQueryAdapter implements CommentQueryPort {
      */
     @Override
     public Page<SimpleCommentInfo> findCommentsByMemberId(Long memberId, Pageable pageable) {
+        // N+1 문제 해결을 위한 별도 Q타입 생성
+        QCommentLike userCommentLike = new QCommentLike("userCommentLike");
 
+        // 쿼리 빌딩 - memberId가 있으므로 항상 userLike 조인
         List<SimpleCommentInfo> content = jpaQueryFactory
-                .select(getSimpleCommentInfoProjection(memberId)) // memberId를 매개변수로 전달
+                .select(getSimpleCommentInfoProjection(userCommentLike))
                 .from(comment)
-                .leftJoin(comment.member, member)
+                .join(comment.member, member)
                 .leftJoin(commentLike).on(comment.id.eq(commentLike.comment.id))
+                .leftJoin(userCommentLike).on(
+                        userCommentLike.comment.id.eq(comment.id)
+                        .and(userCommentLike.member.id.eq(memberId))
+                )
                 .where(comment.member.id.eq(memberId))
-                .groupBy(comment.id, member.memberName, comment.createdAt)
+                .groupBy(comment.id, member.memberName, comment.createdAt, userCommentLike.id)
                 .orderBy(comment.createdAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -91,14 +99,21 @@ public class CommentQueryAdapter implements CommentQueryPort {
      */
     @Override
     public Page<SimpleCommentInfo> findLikedCommentsByMemberId(Long memberId, Pageable pageable) {
+        // N+1 문제 해결을 위한 별도 Q타입 생성
+        QCommentLike userCommentLike = new QCommentLike("userCommentLike");
 
+        // 쿼리 빌딩 - memberId가 있으므로 항상 userLike 조인
         List<SimpleCommentInfo> content = jpaQueryFactory
-                .select(getSimpleCommentInfoProjection(memberId)) // memberId를 매개변수로 전달
+                .select(getSimpleCommentInfoProjection(userCommentLike))
                 .from(comment)
                 .join(commentLike).on(comment.id.eq(commentLike.comment.id))
                 .leftJoin(comment.member, member)
+                .leftJoin(userCommentLike).on(
+                        userCommentLike.comment.id.eq(comment.id)
+                        .and(userCommentLike.member.id.eq(memberId))
+                )
                 .where(commentLike.member.id.eq(memberId))
-                .groupBy(comment.id, member.memberName, comment.createdAt)
+                .groupBy(comment.id, member.memberName, comment.createdAt, userCommentLike.id)
                 .orderBy(comment.createdAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -128,15 +143,35 @@ public class CommentQueryAdapter implements CommentQueryPort {
      */
     @Override
     public List<CommentInfo> findPopularComments(Long postId, Long memberId) {
+        // N+1 문제 해결을 위한 별도 Q타입 생성
+        QCommentClosure parentClosure = new QCommentClosure("parentClosure");
+        QCommentLike userCommentLike = new QCommentLike("userCommentLike");
 
-        List<CommentInfo> popularComments = jpaQueryFactory
-                .select(getCommentInfoProjectionWithUserLike(memberId))
+        // 쿼리 빌딩
+        JPAQuery<CommentInfo> query = jpaQueryFactory
+                .select(getCommentInfoProjectionWithUserLike(parentClosure, userCommentLike))
                 .from(comment)
                 .leftJoin(comment.member, member)
                 .leftJoin(commentLike).on(comment.id.eq(commentLike.comment.id))
-                .leftJoin(closure).on(comment.id.eq(closure.descendant.id).and(closure.depth.eq(0)))
+                // parentId 조회를 위한 closure 조인 (depth=1)
+                .leftJoin(parentClosure).on(
+                        parentClosure.descendant.id.eq(comment.id)
+                        .and(parentClosure.depth.eq(1))
+                );
+
+        // memberId가 있을 때만 userLike 조인
+        if (memberId != null) {
+            query.leftJoin(userCommentLike).on(
+                    userCommentLike.comment.id.eq(comment.id)
+                    .and(userCommentLike.member.id.eq(memberId))
+            );
+        }
+
+        // 쿼리 실행
+        List<CommentInfo> popularComments = query
                 .where(comment.post.id.eq(postId))
-                .groupBy(comment.id, member.memberName, closure.ancestor.id, comment.createdAt)
+                .groupBy(comment.id, member.memberName, comment.createdAt,
+                         parentClosure.ancestor.id, userCommentLike.id)
                 .having(commentLike.countDistinct().goe(3)) // 추천 3개 이상
                 .orderBy(commentLike.countDistinct().desc())
                 .limit(5)
@@ -189,14 +224,36 @@ public class CommentQueryAdapter implements CommentQueryPort {
      */
     @Override
     public Page<CommentInfo> findCommentsWithOldestOrder(Long postId, Pageable pageable, Long memberId) {
-        List<CommentInfo> content = jpaQueryFactory
-                .select(getCommentInfoProjectionWithUserLike(memberId))
+        // N+1 문제 해결을 위한 별도 Q타입 생성
+        QCommentClosure parentClosure = new QCommentClosure("parentClosure");
+        QCommentLike userCommentLike = new QCommentLike("userCommentLike");
+
+        // 쿼리 빌딩
+        JPAQuery<CommentInfo> query = jpaQueryFactory
+                .select(getCommentInfoProjectionWithUserLike(parentClosure, userCommentLike))
                 .distinct()
                 .from(comment)
                 .leftJoin(comment.member, member)
                 .leftJoin(commentLike).on(comment.id.eq(commentLike.comment.id))
+                // parentId 조회를 위한 closure 조인 (depth=1)
+                .leftJoin(parentClosure).on(
+                        parentClosure.descendant.id.eq(comment.id)
+                        .and(parentClosure.depth.eq(1))
+                );
+
+        // memberId가 있을 때만 userLike 조인
+        if (memberId != null) {
+            query.leftJoin(userCommentLike).on(
+                    userCommentLike.comment.id.eq(comment.id)
+                    .and(userCommentLike.member.id.eq(memberId))
+            );
+        }
+
+        // 쿼리 실행
+        List<CommentInfo> content = query
                 .where(comment.post.id.eq(postId))
-                .groupBy(comment.id, member.memberName, comment.createdAt)
+                .groupBy(comment.id, member.memberName, comment.createdAt,
+                         parentClosure.ancestor.id, userCommentLike.id)
                 .orderBy(comment.createdAt.asc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())

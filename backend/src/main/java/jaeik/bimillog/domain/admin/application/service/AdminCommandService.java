@@ -104,6 +104,7 @@ public class AdminCommandService implements AdminCommandUseCase {
      * @since 2.0.0
      */
     @Override
+    @Transactional
     public void forceWithdrawUser(ReportType reportType, Long targetId) {
         Member member = resolveUser(reportType, targetId);
         blacklistUseCase.addToBlacklist(member.getId(), member.getSocialId(), member.getProvider());

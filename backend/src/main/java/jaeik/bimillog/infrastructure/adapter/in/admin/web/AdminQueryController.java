@@ -35,7 +35,7 @@ public class AdminQueryController {
      * <p>최신순으로 정렬된 데이터를 제공합니다.</p>
      *
      * @param page 페이지 번호 (0부터 시작, 기본값: 0)
-     * @param size 페이지당 신고 수 (기본값: 10, 최대 100)
+     * @param size 페이지당 신고 수 (기본값: 20, 최대 100)
      * @param reportType 필터링할 신고 유형 (POST, COMMENT, ERROR, IMPROVEMENT 중 선택, null이면 전체)
      * @return ResponseEntity<Page<ReportDTO>> 페이지네이션된 신고 목록과 메타데이터
      * @author Jaeik
@@ -44,7 +44,7 @@ public class AdminQueryController {
     @GetMapping("/reports")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<ReportDTO>> getReportList(@RequestParam(defaultValue = "0") int page,
-                                                         @RequestParam(defaultValue = "10") int size,
+                                                         @RequestParam(defaultValue = "20") int size,
                                                          @RequestParam(required = false) ReportType reportType) {
         Page<Report> reports = adminQueryUseCase.getReportList(page, size, reportType);
         Page<ReportDTO> reportList = reports.map(ReportDTO::from);

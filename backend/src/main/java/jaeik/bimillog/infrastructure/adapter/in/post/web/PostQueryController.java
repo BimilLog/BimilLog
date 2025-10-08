@@ -136,8 +136,8 @@ public class PostQueryController {
      * @author Jaeik
      */
     @GetMapping("/me")
-    public ResponseEntity<Page<SimplePostDTO>> getUserPosts(@RequestParam int page,
-                                                            @RequestParam int size,
+    public ResponseEntity<Page<SimplePostDTO>> getUserPosts(@RequestParam(defaultValue = "0") int page,
+                                                            @RequestParam(defaultValue = "10") int size,
                                                             @AuthenticationPrincipal CustomUserDetails userDetails) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<PostSimpleDetail> postList = postQueryUseCase.getMemberPosts(userDetails.getMemberId(), pageable);
@@ -157,8 +157,8 @@ public class PostQueryController {
      * @author Jaeik
      */
     @GetMapping("/me/liked")
-    public ResponseEntity<Page<SimplePostDTO>> getUserLikedPosts(@RequestParam int page,
-                                                                 @RequestParam int size,
+    public ResponseEntity<Page<SimplePostDTO>> getUserLikedPosts(@RequestParam(defaultValue = "0") int page,
+                                                                 @RequestParam(defaultValue = "10") int size,
                                                                  @AuthenticationPrincipal CustomUserDetails userDetails) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<PostSimpleDetail> likedPosts = postQueryUseCase.getMemberLikedPosts(userDetails.getMemberId(), pageable);

@@ -42,7 +42,7 @@ public class SocialLogoutService implements SocialLogoutUseCase {
      * @since 2.0.0
      */
     @Override
-    public void socialLogout(Long memberId, SocialProvider provider, Long authTokenId) throws Exception {
+    public void socialLogout(Long memberId, SocialProvider provider) throws Exception {
         KakaoToken kakaoToken = globalKakaoTokenQueryPort.findByMemberId(memberId)
                 .orElseThrow(() -> new AuthCustomException(AuthErrorCode.NOT_FIND_TOKEN));
         SocialPlatformStrategy strategy = strategyRegistry.getStrategy(provider);
@@ -62,6 +62,9 @@ public class SocialLogoutService implements SocialLogoutUseCase {
      */
     @Override
     public void forceLogout(Long memberId, SocialProvider provider, String socialId) {
-        // TODO: 강제 로그아웃 로직 구현 필요
+        KakaoToken kakaoToken = globalKakaoTokenQueryPort.findByMemberId(memberId)
+                .orElseThrow(() -> new AuthCustomException(AuthErrorCode.NOT_FIND_TOKEN));
+        SocialPlatformStrategy strategy = strategyRegistry.getStrategy(provider);
+        strategy.auth().forceLogout(socialId);
     }
 }

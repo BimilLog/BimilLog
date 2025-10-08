@@ -59,6 +59,8 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
     comments,
     popularComments,
     loading,
+    hasMoreComments,
+    isLoadingMore,
     showPasswordModal,
     modalPassword,
     passwordModalTitle,
@@ -66,6 +68,7 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
     targetComment,
     fetchPost,
     fetchComments,
+    loadMoreComments,
     getTotalCommentCount,
     canModify,
     isMyComment,
@@ -379,6 +382,9 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
           commentCount={commentCount}
           isAuthenticated={isAuthenticated}
 
+          hasMoreComments={hasMoreComments}
+          isLoadingMore={isLoadingMore}
+
           isSubmittingComment={isCreatingComment}
           onSubmitComment={handleCommentSubmitForSection}
 
@@ -398,6 +404,7 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
           onReplySubmit={handleSubmitReply}
           onCancelReply={handleCancelReply}
           onLikeComment={handleLikeComment}
+          onLoadMore={loadMoreComments}
 
           setEditContent={handleUpdateEditContent}
           setEditPassword={handleUpdateEditPassword}

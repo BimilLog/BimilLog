@@ -34,7 +34,7 @@ public class SseService implements SseUseCase {
      *
      * @param memberId 구독할 사용자 ID
      * @param tokenId 구독 토큰 ID (다중 기기 구분용)
-     * @return SseEmitter 객체 (30분 타임아웃)
+     * @return SseEmitter 객체 (무제한 타임아웃, 로그아웃 시 명시적으로 종료)
      * @author Jaeik
      * @since 2.0.0
      */

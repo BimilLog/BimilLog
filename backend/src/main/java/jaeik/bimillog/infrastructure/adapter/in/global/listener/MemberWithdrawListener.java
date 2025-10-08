@@ -17,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -101,6 +100,5 @@ public class MemberWithdrawListener {
 
         // 사용자 정보 삭제 Cascade로 설정도 함께 삭제
         memberCommandUseCase.removeMemberAccount(memberId);
-        SecurityContextHolder.clearContext();
     }
 }

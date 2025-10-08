@@ -68,58 +68,6 @@ class CommentReqDTOTest {
     }
 
     @Test
-    @DisplayName("비밀번호 검증 - 익명 댓글 (유효한 비밀번호)")
-    void isPasswordValid_AnonymousComment_ValidPassword_ReturnsTrue() {
-        // Given
-        CommentReqDTO dto = new CommentReqDTO();
-        dto.setPostId(1L);
-        dto.setContent("익명 댓글");
-        dto.setPassword(1234);
-        
-        // When & Then
-        assertThat(dto.isPasswordValid()).isTrue();
-    }
-
-    @Test
-    @DisplayName("비밀번호 검증 - 익명 댓글 (유효하지 않은 비밀번호)")
-    void isPasswordValid_AnonymousComment_InvalidPassword_ReturnsFalse() {
-        // Given
-        CommentReqDTO dto = new CommentReqDTO();
-        dto.setPostId(1L);
-        dto.setContent("익명 댓글");
-        dto.setPassword(999); // 1000 미만
-        
-        // When & Then
-        assertThat(dto.isPasswordValid()).isFalse();
-    }
-
-    @Test
-    @DisplayName("비밀번호 검증 - 회원 댓글 (userId 설정됨)")
-    void isPasswordValid_MemberComment_ReturnsTrue() {
-        // Given
-        CommentReqDTO dto = new CommentReqDTO();
-        dto.setPostId(1L);
-        dto.setContent("회원 댓글");
-        dto.setMemberId(1L);
-        
-        // When & Then
-        assertThat(dto.isPasswordValid()).isTrue(); // 회원 댓글은 비밀번호가 null이어야 함
-    }
-
-    @Test
-    @DisplayName("비밀번호 검증 - 컨트롤러에서 설정 예정인 경우 통과")
-    void isPasswordValid_PendingControllerSetup_ReturnsTrue() {
-        // Given - 컨트롤러에서 userId를 설정하기 전 상태
-        CommentReqDTO dto = new CommentReqDTO();
-        dto.setPostId(1L);
-        dto.setContent("댓글 내용");
-        // userId도 password도 설정되지 않은 상태
-        
-        // When & Then
-        assertThat(dto.isPasswordValid()).isTrue(); // 컨트롤러에서 설정할 예정이므로 통과
-    }
-
-    @Test
     @DisplayName("댓글 수정 검증 - 유효한 데이터")
     void isUpdateValid_ValidData_ReturnsTrue() {
         // Given

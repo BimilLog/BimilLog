@@ -1,6 +1,6 @@
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components";
-import { MessageSquare } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, Button, Spinner } from "@/components";
+import { MessageSquare, ChevronDown } from "lucide-react";
 import { Comment } from "@/lib/api";
 import { CommentItem } from "./CommentItem";
 
@@ -20,6 +20,8 @@ interface CommentListProps {
   replyPassword: string;
   isAuthenticated: boolean;
   isSubmittingReply: boolean;
+  hasMoreComments: boolean;
+  isLoadingMore: boolean;
   onEditComment: (comment: Comment) => void;
   onUpdateComment: () => void;
   onCancelEdit: () => void;
@@ -27,6 +29,7 @@ interface CommentListProps {
   onReplyTo: (comment: Comment) => void;
   onReplySubmit: () => void;
   onCancelReply: () => void;
+  onLoadMore: () => void;
   setEditContent: (content: string) => void;
   setEditPassword: (password: string) => void;
   setReplyContent: (content: string) => void;
@@ -48,6 +51,8 @@ export const CommentList = React.memo<CommentListProps>(({
   replyPassword,
   isAuthenticated,
   isSubmittingReply,
+  hasMoreComments,
+  isLoadingMore,
   onEditComment,
   onUpdateComment,
   onCancelEdit,
@@ -55,6 +60,7 @@ export const CommentList = React.memo<CommentListProps>(({
   onReplyTo,
   onReplySubmit,
   onCancelReply,
+  onLoadMore,
   setEditContent,
   setEditPassword,
   setReplyContent,
@@ -73,38 +79,62 @@ export const CommentList = React.memo<CommentListProps>(({
       </CardHeader>
       <CardContent>
         {comments.length > 0 ? (
-          <div className="space-y-4">
-            {comments.map((comment) => (
-              <CommentItem
-                key={comment.id}
-                comment={comment}
-                depth={0}
-                postId={postId}
-                editingComment={editingComment}
-                editContent={editContent}
-                editPassword={editPassword}
-                replyingTo={replyingTo}
-                replyContent={replyContent}
-                replyPassword={replyPassword}
-                isAuthenticated={isAuthenticated}
-                isSubmittingReply={isSubmittingReply}
-                onEditComment={onEditComment}
-                onUpdateComment={onUpdateComment}
-                onCancelEdit={onCancelEdit}
-                onDeleteComment={onDeleteComment}
-                onReplyTo={onReplyTo}
-                onReplySubmit={onReplySubmit}
-                onCancelReply={onCancelReply}
-                setEditContent={setEditContent}
-                setEditPassword={setEditPassword}
-                setReplyContent={setReplyContent}
-                setReplyPassword={setReplyPassword}
-                isMyComment={isMyComment}
-                onLikeComment={onLikeComment}
-                canModifyComment={canModifyComment}
-              />
-            ))}
-          </div>
+          <>
+            <div className="space-y-4">
+              {comments.map((comment) => (
+                <CommentItem
+                  key={comment.id}
+                  comment={comment}
+                  depth={0}
+                  postId={postId}
+                  editingComment={editingComment}
+                  editContent={editContent}
+                  editPassword={editPassword}
+                  replyingTo={replyingTo}
+                  replyContent={replyContent}
+                  replyPassword={replyPassword}
+                  isAuthenticated={isAuthenticated}
+                  isSubmittingReply={isSubmittingReply}
+                  onEditComment={onEditComment}
+                  onUpdateComment={onUpdateComment}
+                  onCancelEdit={onCancelEdit}
+                  onDeleteComment={onDeleteComment}
+                  onReplyTo={onReplyTo}
+                  onReplySubmit={onReplySubmit}
+                  onCancelReply={onCancelReply}
+                  setEditContent={setEditContent}
+                  setEditPassword={setEditPassword}
+                  setReplyContent={setReplyContent}
+                  setReplyPassword={setReplyPassword}
+                  isMyComment={isMyComment}
+                  onLikeComment={onLikeComment}
+                  canModifyComment={canModifyComment}
+                />
+              ))}
+            </div>
+            {hasMoreComments && (
+              <div className="mt-6 flex justify-center">
+                <Button
+                  onClick={onLoadMore}
+                  disabled={isLoadingMore}
+                  variant="outline"
+                  className="w-full sm:w-auto"
+                >
+                  {isLoadingMore ? (
+                    <>
+                      <Spinner size="sm" className="mr-2" />
+                      로딩 중...
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="w-4 h-4 mr-2" />
+                      댓글 더보기
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+          </>
         ) : (
           <p className="text-brand-secondary text-center">
             첫 번째 댓글을 작성해보세요!

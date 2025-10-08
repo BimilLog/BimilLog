@@ -79,7 +79,7 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
     void writePost_Fail_NoTitle() throws Exception {
         PostCreateDTO postCreateDTO = PostCreateDTO.builder()
                 .content("제목이 없는 게시글 내용")
-                .password("1234")
+                .password(1234)
                 .build();
 
         mockMvc.perform(post("/api/post")
@@ -343,7 +343,7 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
         PostUpdateDTO updateReqDTO = PostUpdateDTO.builder()
                 .title("수정된 익명 게시글")
                 .content("수정된 익명 게시글 내용입니다. 10자 이상으로 작성합니다.")
-                .password("1234")
+                .password(1234)
                 .build();
 
         mockMvc.perform(put("/api/post/{postId}", savedPost.getId())
@@ -368,7 +368,7 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
         PostUpdateDTO updateReqDTO = PostUpdateDTO.builder()
                 .title("수정된 익명 게시글")
                 .content("수정된 익명 게시글 내용입니다. 10자 이상으로 작성합니다.")
-                .password("9999")
+                .password(9999)
                 .build();
 
         mockMvc.perform(put("/api/post/{postId}", savedPost.getId())
@@ -427,7 +427,7 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
         PostUpdateDTO updateReqDTO = PostUpdateDTO.builder()
                 .title("수정 시도")
                 .content("수정 시도 내용입니다. 10자 이상으로 작성합니다.")
-                .password("1234")
+                .password(1234)
                 .build();
 
         mockMvc.perform(put("/api/post/{postId}", savedPost.getId())

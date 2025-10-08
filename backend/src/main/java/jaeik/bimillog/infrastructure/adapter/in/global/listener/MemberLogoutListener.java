@@ -54,7 +54,7 @@ public class MemberLogoutListener {
 
         sseUseCase.deleteEmitters(memberId, AuthTokenId);
         try {
-            socialLogoutUseCase.socialLogout(memberId, provider, AuthTokenId);
+            socialLogoutUseCase.socialLogout(memberId, provider);
         } catch (Exception ex) {
             log.warn("소셜 로그아웃 실패 - provider: {}, memberId: {}. 이후 정리 작업은 계속 진행합니다.", provider, memberId, ex);
         }

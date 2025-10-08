@@ -99,6 +99,11 @@ public class TestSocialLoginPortConfig {
         public void logout(String accessToken) {
             // no-op
         }
+
+        @Override
+        public void forceLogout(String socialId) {
+            // no-op
+        }
     }
 
     private static final class TestSocialFriendStrategy implements SocialFriendStrategy {

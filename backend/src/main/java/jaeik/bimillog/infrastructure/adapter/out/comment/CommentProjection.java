@@ -29,14 +29,14 @@ public class CommentProjection {
 
     /**
      * <h3>SimpleCommentInfo 도메인 객체 프로젝션 (사용자별 추천 여부 포함)</h3>
-     * <p>SimpleCommentInfo로 변환하는 프로젝션 - 서브쿼리로 사용자별 추천 여부를 한번에 계산</p>
+     * <p>SimpleCommentInfo로 변환하는 프로젝션 - 조인된 userCommentLike로 추천 여부 확인</p>
      *
-     * @param memberId 사용자 ID (null인 경우 userLike는 false)
+     * @param userCommentLike 사용자별 좋아요 조인 엔티티 (메인 쿼리에서 조인 필요)
      * @return ConstructorExpression<SimpleCommentInfo> 댓글 도메인 객체 프로젝션
      * @author Jaeik
      * @since 2.0.0
      */
-    public static ConstructorExpression<SimpleCommentInfo> getSimpleCommentInfoProjection(Long memberId) {
+    public static ConstructorExpression<SimpleCommentInfo> getSimpleCommentInfoProjection(QCommentLike userCommentLike) {
         return Projections.constructor(SimpleCommentInfo.class,
                 comment.id,
                 comment.post.id,
@@ -44,26 +44,23 @@ public class CommentProjection {
                 comment.content,
                 comment.createdAt,
                 commentLike.countDistinct().coalesce(0L).intValue(), // 실제 추천 수 계산
-                memberId != null ?
-                    JPAExpressions.selectOne()
-                        .from(QCommentLike.commentLike)
-                        .where(QCommentLike.commentLike.comment.id.eq(comment.id)
-                            .and(QCommentLike.commentLike.member.id.eq(memberId)))
-                        .exists()
-                    : Expressions.constant(false)
+                userCommentLike.id.isNotNull() // 조인된 userCommentLike 존재 여부로 판단
         );
     }
 
     /**
      * <h3>CommentInfo 도메인 객체 프로젝션 (사용자별 추천 여부 포함)</h3>
-     * <p>CommentInfo로 변환하는 프로젝션 - 서브쿼리로 사용자별 추천 여부를 한번에 계산</p>
+     * <p>CommentInfo로 변환하는 프로젝션 - 조인된 엔티티를 직접 사용하여 N+1 문제 해결</p>
      *
-     * @param memberId 사용자 ID (null인 경우 userLike는 false)
+     * @param parentClosure 부모 댓글 관계 조인 엔티티 (메인 쿼리에서 depth=1 조건으로 조인 필요)
+     * @param userCommentLike 사용자별 좋아요 조인 엔티티 (메인 쿼리에서 조인 필요)
      * @return ConstructorExpression<CommentInfo> 댓글 도메인 객체 프로젝션
      * @author Jaeik
      * @since 2.0.0
      */
-    public static ConstructorExpression<CommentInfo> getCommentInfoProjectionWithUserLike(Long memberId) {
+    public static ConstructorExpression<CommentInfo> getCommentInfoProjectionWithUserLike(
+            QCommentClosure parentClosure,
+            QCommentLike userCommentLike) {
         return Projections.constructor(CommentInfo.class,
                 comment.id,
                 comment.post.id,
@@ -72,20 +69,11 @@ public class CommentProjection {
                 comment.content,
                 comment.deleted,
                 comment.createdAt,
-                // parentId: depth=1인 closure에서 ancestor.id를 가져오거나, 없으면 자기 자신의 id
-                JPAExpressions.select(closure.ancestor.id.coalesce(comment.id))
-                    .from(closure)
-                    .where(closure.descendant.id.eq(comment.id)
-                        .and(closure.depth.eq(1)))
-                    .limit(1),
+                // parentId: 조인된 parentClosure에서 ancestor.id 직접 참조 (서브쿼리 제거)
+                parentClosure.ancestor.id.coalesce(comment.id),
                 commentLike.countDistinct().coalesce(0L).intValue(),
-                memberId != null ?
-                    JPAExpressions.selectOne()
-                        .from(QCommentLike.commentLike)
-                        .where(QCommentLike.commentLike.comment.id.eq(comment.id)
-                            .and(QCommentLike.commentLike.member.id.eq(memberId)))
-                        .exists()
-                    : Expressions.constant(false)
+                // userLike: 조인된 userCommentLike 존재 여부로 판단 (서브쿼리 제거)
+                userCommentLike.id.isNotNull()
         );
     }
 }

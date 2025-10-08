@@ -107,6 +107,11 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
                 public void logout(String accessToken) {
                     // no-op
                 }
+
+                @Override
+                public void forceLogout(String socialId) {
+                    // no-op
+                }
             }
     ) {};
 
@@ -249,6 +254,11 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
 
                     @Override
                     public void logout(String accessToken) {
+                        // no-op
+                    }
+
+                    @Override
+                    public void forceLogout(String socialId) {
                         // no-op
                     }
                 }

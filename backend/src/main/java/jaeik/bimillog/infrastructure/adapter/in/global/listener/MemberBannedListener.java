@@ -10,7 +10,6 @@ import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,6 +53,5 @@ public class MemberBannedListener {
         fcmUseCase.deleteFcmTokens(memberId, null);
         authTokenUseCase.deleteTokens(memberId, null);
         kakaoTokenUseCase.deleteByMemberId(memberId);
-        SecurityContextHolder.clearContext();
     }
 }

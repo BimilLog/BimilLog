@@ -11,6 +11,10 @@ interface CommentSectionProps {
   commentCount: number;
   isAuthenticated: boolean;
 
+  // Pagination props
+  hasMoreComments: boolean;
+  isLoadingMore: boolean;
+
   // CommentForm props
   isSubmittingComment: boolean;
   onSubmitComment: (comment: string, password: string) => void;
@@ -32,6 +36,7 @@ interface CommentSectionProps {
   onReplySubmit: () => void;
   onCancelReply: () => void;
   onLikeComment: (comment: Comment) => void;
+  onLoadMore: () => void;
 
   setEditContent: (content: string) => void;
   setEditPassword: (password: string) => void;
@@ -56,6 +61,10 @@ const CommentSection = memo(({
   commentCount,
   isAuthenticated,
 
+  // Pagination
+  hasMoreComments,
+  isLoadingMore,
+
   // CommentForm
   isSubmittingComment,
   onSubmitComment,
@@ -77,6 +86,7 @@ const CommentSection = memo(({
   onReplySubmit,
   onCancelReply,
   onLikeComment,
+  onLoadMore,
 
   setEditContent,
   setEditPassword,
@@ -120,6 +130,8 @@ const CommentSection = memo(({
         replyPassword={replyPassword}
         isAuthenticated={isAuthenticated}
         isSubmittingReply={isSubmittingReply}
+        hasMoreComments={hasMoreComments}
+        isLoadingMore={isLoadingMore}
         onEditComment={onEditComment}
         onUpdateComment={onUpdateComment}
         onCancelEdit={onCancelEdit}
@@ -127,6 +139,7 @@ const CommentSection = memo(({
         onReplyTo={onReplyTo}
         onReplySubmit={onReplySubmit}
         onCancelReply={onCancelReply}
+        onLoadMore={onLoadMore}
         setEditContent={setEditContent}
         setEditPassword={setEditPassword}
         setReplyContent={setReplyContent}

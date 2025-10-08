@@ -53,7 +53,7 @@ export function useReports(options: UseReportsOptions = {}) {
     fetchReports();
   }, [fetchReports]);
 
-  // 검색어 기반 신고 목록 필터링: 신고 내용, 대상 제목, 신고자명, 대상 ID 검색
+  // 검색어 기반 신고 목록 필터링: 신고 내용, 신고자명, 대상 ID 검색
   const filteredReports = useMemo(() => {
     if (!reports?.content) return [];
     if (!debouncedSearchTerm) return reports.content;
@@ -62,7 +62,6 @@ export function useReports(options: UseReportsOptions = {}) {
     return reports.content.filter(
       (report) =>
         report.content?.toLowerCase().includes(searchLower) ||
-        report.targetTitle?.toLowerCase().includes(searchLower) ||
         report.reporterName?.toLowerCase().includes(searchLower) ||
         (report.targetId && report.targetId.toString().includes(debouncedSearchTerm))
     );

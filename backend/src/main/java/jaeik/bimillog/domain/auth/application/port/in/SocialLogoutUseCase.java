@@ -20,12 +20,11 @@ public interface SocialLogoutUseCase {
      *
      * @param memberId 회원 ID
      * @param provider 소셜 플랫폼 제공자 (KAKAO 등)
-     * @param authTokenId 인증 토큰 ID (현재 사용되지 않음)
      * @throws Exception 소셜 플랫폼 로그아웃 처리 중 예외 발생 시
      * @author Jaeik
      * @since 2.0.0
      */
-    void socialLogout(Long memberId, SocialProvider provider, Long authTokenId) throws Exception;
+    void socialLogout(Long memberId, SocialProvider provider) throws Exception;
 
     /**
      * <h3>강제 로그아웃</h3>

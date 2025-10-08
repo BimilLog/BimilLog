@@ -157,6 +157,11 @@ public class KakaoAuthStrategy implements SocialAuthStrategy {
         kakaoApiClient.logout("Bearer " + accessToken, "application/x-www-form-urlencoded;charset=utf-8");
     }
 
+    @Override
+    public void forceLogout(String socialId) {
+
+    }
+
     /**
      * <h3>ID 토큰 파싱</h3>
      * <p>JWT 형식의 ID 토큰을 파싱하여 페이로드 정보를 추출합니다.</p>

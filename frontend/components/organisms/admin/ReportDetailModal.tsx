@@ -229,22 +229,6 @@ function ReportDetailModalContent({
                       </p>
                     </div>
                   </div>
-
-                  {/* 신고된 콘텐츠가 있는 경우에만 표시 (조건부 렌더링) */}
-                  {report.targetTitle && (
-                    <div>
-                      <h3 className="text-sm font-semibold text-brand-primary mb-2 flex items-center gap-2">
-                        <MessageSquare className="w-4 h-4 stroke-slate-600 fill-slate-100" />
-                        신고된 콘텐츠
-                      </h3>
-                      {/* 신고 대상이 된 게시글/댓글의 실제 내용 */}
-                      <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
-                        <p className="text-brand-primary whitespace-pre-wrap">
-                          {report.targetTitle}
-                        </p>
-                      </div>
-                    </div>
-                  )}
                 </div>
               </Card>
             </TabsContent>

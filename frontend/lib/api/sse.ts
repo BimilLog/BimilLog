@@ -31,12 +31,17 @@ export class SSEManager {
       
       const handleSSEEvent = (event: MessageEvent) => {
         logger.log(`SSE ${event.type} event received:`, event.data)
-        
+
         try {
           const data = JSON.parse(event.data)
-          
+
           logger.log("Parsed SSE data:", data)
-          
+
+          if (event.type === "INITIATE") {
+            logger.log("SSE 연결 초기화 완료:", data.message)
+            return
+          }
+
           const notificationData = {
             id: data.id || Date.now() + Math.random(),
             content: data.message || data.content || data.data || "새로운 알림",
@@ -45,12 +50,7 @@ export class SSEManager {
             createdAt: data.createdAt || new Date().toISOString(),
             read: false
           }
-          
-          if (event.type === "INITIATE") {
-            logger.log("SSE 연결 초기화 완료:", data.message)
-            return
-          }
-          
+
           const listener = this.listeners.get("notification")
           if (listener) {
             logger.log("SSE 알림 리스너 실행:", notificationData)

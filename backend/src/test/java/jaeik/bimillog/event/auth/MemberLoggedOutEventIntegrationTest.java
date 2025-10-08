@@ -68,7 +68,7 @@ public class MemberLoggedOutEventIntegrationTest extends BaseEventIntegrationTes
 
     private void verifySocialLogout(Long memberId, Long tokenId) {
         try {
-            verify(socialLogoutUseCase).socialLogout(eq(memberId), eq(SocialProvider.KAKAO), eq(tokenId));
+            verify(socialLogoutUseCase).socialLogout(eq(memberId), eq(SocialProvider.KAKAO));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

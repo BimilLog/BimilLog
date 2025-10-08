@@ -68,7 +68,7 @@ public class SseAdapter implements SsePort {
      *
      * @param memberId 구독할 사용자의 ID
      * @param tokenId FCM 토큰 ID (멀티 디바이스 구분용)
-     * @return 생성된 SseEmitter 객체 (무한 타임아웃)
+     * @return 생성된 SseEmitter 객체 (무제한 타임아웃, 로그아웃 시 명시적으로 종료)
      * @author Jaeik
      * @since 2.0.0
      */
@@ -96,8 +96,8 @@ public class SseAdapter implements SsePort {
      * <ol>
      *   <li>알림 설정 확인 ({@link NotificationUtilPort#SseEligibleForNotification})</li>
      *   <li>사용자 정보 조회 및 검증</li>
-     *   <li>알림 데이터베이스 저장</li>
-     *   <li>해당 사용자의 모든 Emitter에 브로드캐스팅</li>
+     *   <li>알림 데이터베이스 저장 (히스토리 관리용)</li>
+     *   <li>해당 사용자의 모든 Emitter에 SSE 메시지 브로드캐스팅</li>
      * </ol>
      *
      * @param sseMessage SSE 메시지 (사용자ID, 타입, 내용, URL 포함)
@@ -111,10 +111,13 @@ public class SseAdapter implements SsePort {
             if (!notificationUtilPort.SseEligibleForNotification(sseMessage.memberId(), sseMessage.type())) {
                 return; // 알림 수신이 비활성화된 경우 전송하지 않음
             }
-            
+
             Member member = memberQueryUseCase.findById(sseMessage.memberId())
                     .orElseThrow(() -> new NotificationCustomException(NotificationErrorCode.INVALID_USER_CONTEXT));
+
+            // DB에 저장 (알림 히스토리용)
             notificationCommandPort.save(member, sseMessage.type(), sseMessage.message(), sseMessage.url());
+
             Map<String, SseEmitter> emitters = findAllEmitterByMemberId(sseMessage.memberId());
 
             emitters.forEach(

@@ -59,7 +59,7 @@ class SocialLogoutServiceTest extends BaseUnitTest {
         given(kakaoPlatformStrategy.auth()).willReturn(kakaoAuthStrategy);
 
         // when
-        socialLogoutService.socialLogout(memberId, TEST_PROVIDER, 200L);
+        socialLogoutService.socialLogout(memberId, TEST_PROVIDER);
 
         // then
         ArgumentCaptor<String> tokenCaptor = ArgumentCaptor.forClass(String.class);
@@ -76,7 +76,7 @@ class SocialLogoutServiceTest extends BaseUnitTest {
         given(globalKakaoTokenQueryPort.findByMemberId(100L)).willReturn(Optional.empty());
 
         // expect
-        assertThatThrownBy(() -> socialLogoutService.socialLogout(100L, TEST_PROVIDER, 200L))
+        assertThatThrownBy(() -> socialLogoutService.socialLogout(100L, TEST_PROVIDER))
                 .isInstanceOf(AuthCustomException.class)
                 .hasFieldOrPropertyWithValue("authErrorCode", AuthErrorCode.NOT_FIND_TOKEN);
 
@@ -96,7 +96,7 @@ class SocialLogoutServiceTest extends BaseUnitTest {
         doThrow(new RuntimeException("logout failed")).when(kakaoAuthStrategy).logout(TEST_ACCESS_TOKEN);
 
         // when
-        assertThatThrownBy(() -> socialLogoutService.socialLogout(memberId, TEST_PROVIDER, 200L))
+        assertThatThrownBy(() -> socialLogoutService.socialLogout(memberId, TEST_PROVIDER))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("logout failed");
 
@@ -117,7 +117,7 @@ class SocialLogoutServiceTest extends BaseUnitTest {
         given(kakaoPlatformStrategy.auth()).willReturn(kakaoAuthStrategy);
 
         // when
-        socialLogoutService.socialLogout(adminMemberId, TEST_PROVIDER, 888L);
+        socialLogoutService.socialLogout(adminMemberId, TEST_PROVIDER);
 
         // then
         verify(kakaoAuthStrategy).logout(TEST_ACCESS_TOKEN);

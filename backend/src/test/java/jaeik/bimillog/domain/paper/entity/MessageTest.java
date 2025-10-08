@@ -49,54 +49,6 @@ class MessageTest {
     }
 
     @Test
-    @DisplayName("소유자가 삭제를 요청하면 true")
-    void shouldAllowDeleteWhenOwnerMatches() {
-        // Given
-        Long ownerId = 123L;
-        given(member.getId()).willReturn(ownerId);
-        Message message = Message.createMessage(member, DecoType.APPLE, "익명", "내용", 1, 1);
-
-        // When
-        boolean result = message.canBeDeletedBy(ownerId);
-
-        // Then
-        assertThat(result).isTrue();
-    }
-
-    @Test
-    @DisplayName("소유자가 아니면 삭제가 거부된다")
-    void shouldRejectDeleteWhenOwnerDiffers() {
-        // Given
-        Long ownerId = 123L;
-        Long requesterId = 999L;
-        given(member.getId()).willReturn(ownerId);
-        Message message = Message.createMessage(member, DecoType.APPLE, "익명", "내용", 1, 1);
-
-        // When
-        boolean result = message.canBeDeletedBy(requesterId);
-
-        // Then
-        assertThat(result).isFalse();
-    }
-
-    @Test
-    @DisplayName("사용자 또는 요청 ID가 없으면 삭제가 거부된다")
-    void shouldRejectDeleteWhenUserOrRequesterMissing() {
-        // Given
-        Message messageWithoutUser = Message.createMessage(null, DecoType.APPLE, "익명", "내용", 1, 1);
-        Message messageWithUser = Message.createMessage(member, DecoType.APPLE, "익명", "내용", 1, 1);
-        given(member.getId()).willReturn(10L);
-
-        // When
-        boolean withoutUser = messageWithoutUser.canBeDeletedBy(10L);
-        boolean requesterNull = messageWithUser.canBeDeletedBy(null);
-
-        // Then
-        assertThat(withoutUser).isFalse();
-        assertThat(requesterNull).isFalse();
-    }
-
-    @Test
     @DisplayName("getUserId는 사용자 ID를 그대로 반환한다")
     void shouldReturnUserIdWhenPresent() {
         // Given

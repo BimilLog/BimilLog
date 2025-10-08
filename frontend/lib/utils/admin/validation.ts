@@ -9,7 +9,6 @@ export interface ValidatedReport {
   reporterName: string;
   reportType: ReportType;
   targetId?: number | null;
-  targetTitle?: string | null;
   content: string;
   createdAt: string;
   updatedAt?: string;

@@ -1,6 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.in.admin.web;
 
 import jaeik.bimillog.domain.admin.application.port.in.AdminCommandUseCase;
+import jaeik.bimillog.infrastructure.adapter.in.admin.dto.ForceWithdrawDTO;
 import jaeik.bimillog.infrastructure.adapter.in.admin.dto.ReportDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -49,17 +50,17 @@ public class AdminCommandController {
      * <h3>사용자 강제 탈퇴 처리 API</h3>
      * <p>관리자 대시보드에서 심각한 위반으로 판단하여 사용자를 영구적으로 시스템에서 제거하는 REST API입니다.</p>
      * <p>단순 제재보다 강력한 최종 조치입니다.</p>
-     * <p>AdminCommandUseCase.forceWithdrawUser를 호출하여 UserForcedWithdrawalEvent를 발행하고 Auth 도메인에 탈퇴 처리를 위임합니다.</p>
+     * <p>AdminCommandUseCase.forceWithdrawUser를 호출하여 MemberWithdrawnEvent를 발행하고 탈퇴 처리를 위임합니다.</p>
      *
-     * @param reportDTO 신고 정보 DTO (신고 유형, 대상 ID 포함)
+     * @param forceWithdrawDTO 강제 탈퇴 DTO (신고 유형, 대상 ID 포함)
      * @return ResponseEntity<String> 강제 탈퇴 완료 응답 메시지
      * @author Jaeik
      * @since 2.0.0
      */
     @PostMapping("/withdraw")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> forceWithdrawUser(@RequestBody ReportDTO reportDTO) {
-        adminCommandUseCase.forceWithdrawUser(reportDTO.getReportType(), reportDTO.getTargetId());
+    public ResponseEntity<String> forceWithdrawUser(@RequestBody ForceWithdrawDTO forceWithdrawDTO) {
+        adminCommandUseCase.forceWithdrawUser(forceWithdrawDTO.getReportType(), forceWithdrawDTO.getTargetId());
         return ResponseEntity.ok("관리자 권한으로 사용자 탈퇴가 완료되었습니다.");
     }
 }

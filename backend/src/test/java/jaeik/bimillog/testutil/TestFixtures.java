@@ -35,7 +35,7 @@ public class TestFixtures {
         return PostCreateDTO.builder()
                 .title(title)
                 .content(content)
-                .password("1234")
+                .password(1234)
                 .build();
     }
 

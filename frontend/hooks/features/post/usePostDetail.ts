@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useQuery } from '@tanstack/react-query';
 import { postQuery, commentQuery } from '@/lib/api';
 import { queryKeys } from '@/lib/tanstack-query/keys';
-import { useAuth } from '@/hooks';
+import { useAuth, useToast } from '@/hooks';
+import { usePopularComments } from '@/hooks/api/useCommentQueries';
 import type { Post } from '@/types/domains/post';
 import type { Comment } from '@/types/domains/comment';
 
@@ -28,6 +29,11 @@ export function usePostDetailQuery(postId: number) {
 export function usePostDetail(id: string | null, initialPost?: Post) {
   const router = useRouter();
   const { user, isAuthenticated } = useAuth();
+  const { showError } = useToast();
+
+  // TanStack Query - 인기 댓글 조회
+  const { data: popularCommentsData } = usePopularComments(Number(id) || 0);
+  const popularComments = popularCommentsData || [];
 
   // Post 상태
   const [post, setPost] = useState<Post | null>(initialPost || null);
@@ -35,7 +41,11 @@ export function usePostDetail(id: string | null, initialPost?: Post) {
 
   // Comment 상태
   const [comments, setComments] = useState<CommentWithReplies[]>([]);
-  const [popularComments, setPopularComments] = useState<Comment[]>([]);
+
+  // Pagination 상태
+  const [currentPage, setCurrentPage] = useState(0);
+  const [hasMoreComments, setHasMoreComments] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   // Modal 상태
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -61,6 +71,21 @@ export function usePostDetail(id: string | null, initialPost?: Post) {
       setLoading(false);
     }
   }, [id, router]);
+
+  // 트리 구조를 평면 배열로 변환: 페이지네이션 시 기존 댓글 보존을 위해 필요
+  const flattenComments = useCallback((comments: CommentWithReplies[]): Comment[] => {
+    const result: Comment[] = [];
+
+    const flatten = (comment: CommentWithReplies) => {
+      result.push(comment);
+      if (comment.replies && comment.replies.length > 0) {
+        comment.replies.forEach(flatten);
+      }
+    };
+
+    comments.forEach(flatten);
+    return result;
+  }, []);
 
   // 댓글 트리 구조 빌드: parentId를 기반으로 평면 배열을 계층 구조로 변환
   const buildCommentTree = useCallback((comments: Comment[]): CommentWithReplies[] => {
@@ -93,28 +118,69 @@ export function usePostDetail(id: string | null, initialPost?: Post) {
     if (!id) return;
 
     try {
-      const [commentsResponse, popularResponse] = await Promise.all([
-        commentQuery.getByPostId(Number(id), 0),
-        commentQuery.getPopular(Number(id)),
-      ]);
+      const commentsResponse = await commentQuery.getByPostId(Number(id), 0);
 
       if (commentsResponse.success && commentsResponse.data) {
         const treeComments = buildCommentTree(commentsResponse.data.content);
         setComments(treeComments);
+
+        // 페이지네이션 상태 초기화 - PageResponse.last 활용
+        setCurrentPage(0);
+        setHasMoreComments(!commentsResponse.data.last);
       } else {
         setComments([]);
-      }
-
-      if (popularResponse.success && popularResponse.data) {
-        setPopularComments(popularResponse.data);
-      } else {
-        setPopularComments([]);
+        setHasMoreComments(false);
       }
     } catch (error) {
       setComments([]);
-      setPopularComments([]);
+      setHasMoreComments(false);
+      showError("댓글 로딩 실패", "잠시 후 다시 시도해주세요.");
     }
-  }, [id, buildCommentTree]);
+  }, [id, buildCommentTree, showError]);
+
+  const loadMoreComments = useCallback(async () => {
+    if (!id || isLoadingMore || !hasMoreComments) return;
+
+    setIsLoadingMore(true);
+    const nextPage = currentPage + 1;
+
+    try {
+      const commentsResponse = await commentQuery.getByPostId(Number(id), nextPage);
+
+      if (commentsResponse.success && commentsResponse.data) {
+        const newComments = commentsResponse.data.content;
+
+        if (newComments.length > 0) {
+          // 1. 기존 트리를 평면 배열로 변환 (replies 보존)
+          const existingFlat = flattenComments(comments);
+
+          // 2. 기존 + 새 댓글 합치기 (중복 제거)
+          const allComments = [...existingFlat, ...newComments].reduce((acc, comment) => {
+            const exists = acc.find((c) => c.id === comment.id);
+            if (!exists) acc.push(comment);
+            return acc;
+          }, [] as Comment[]);
+
+          // 3. 평면 배열을 트리 구조로 재구성
+          const treeComments = buildCommentTree(allComments);
+          setComments(treeComments);
+          setCurrentPage(nextPage);
+
+          // PageResponse.last 속성으로 종료 조건 판단
+          setHasMoreComments(!commentsResponse.data.last);
+        } else {
+          setHasMoreComments(false);
+        }
+      } else {
+        setHasMoreComments(false);
+      }
+    } catch (error) {
+      setHasMoreComments(false);
+      showError("댓글 로딩 실패", "잠시 후 다시 시도해주세요.");
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [id, currentPage, hasMoreComments, isLoadingMore, comments, flattenComments, buildCommentTree, showError]);
 
   const getTotalCommentCount = (
     comments: (Comment & { replies?: Comment[] })[]
@@ -166,6 +232,10 @@ export function usePostDetail(id: string | null, initialPost?: Post) {
     popularComments,
     loading,
 
+    // Pagination state
+    hasMoreComments,
+    isLoadingMore,
+
     // Modal state
     showPasswordModal,
     modalPassword,
@@ -176,6 +246,7 @@ export function usePostDetail(id: string | null, initialPost?: Post) {
     // Actions
     fetchPost,
     fetchComments,
+    loadMoreComments,
     getTotalCommentCount,
     canModify,
     isMyComment,

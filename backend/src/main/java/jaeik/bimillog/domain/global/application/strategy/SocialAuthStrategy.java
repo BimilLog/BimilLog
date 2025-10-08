@@ -45,4 +45,6 @@ public interface SocialAuthStrategy {
      * @throws Exception 로그아웃 처리 중 예외 발생 시
      */
     void logout(String accessToken) throws Exception;
+
+    void forceLogout(String socialId);
 }

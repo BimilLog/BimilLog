@@ -21,7 +21,6 @@ public record SseMessage(
         String url
 ) {
 
-
     /**
      * <h3>SSE 메시지 생성</h3>
      * <p>회원 ID, 알림 유형, 메시지, URL로 SSE 메시지를 생성합니다.</p>
