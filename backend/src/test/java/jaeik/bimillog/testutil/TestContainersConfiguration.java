@@ -18,13 +18,13 @@ public class TestContainersConfiguration {
     @Bean
     @ServiceConnection
     MySQLContainer<?> mysqlContainer() {
-        return new MySQLContainer<>("mysql:8.0")
+        return new MySQLContainer<>("mysql:8.0.43")
                 .withDatabaseName("testdb")
                 .withUsername("test")
                 .withPassword("test");
     }
 
-    static GenericContainer<?> redis = new GenericContainer<>("redis:latest")
+    static GenericContainer<?> redis = new GenericContainer<>("redis:8.2.2-alpine3.22")
             .withExposedPorts(6379)
             .withReuse(true);
 
