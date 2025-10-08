@@ -92,16 +92,10 @@ export function useEditForm() {
       return false;
     }
 
-    // 비회원 게시글의 경우 비밀번호 검증
-    if (isGuest) {
-      try {
-        validatePassword(guestPassword, false);
-      } catch (error) {
-        if (error instanceof Error) {
-          showWarning("비밀번호 확인", error.message);
-        }
-        return false;
-      }
+    // 비회원 게시글의 경우 비밀번호 입력 확인
+    if (isGuest && !guestPassword.trim()) {
+      showWarning("비밀번호 확인", "비밀번호를 입력해주세요.");
+      return false;
     }
 
     return true;
@@ -115,11 +109,16 @@ export function useEditForm() {
 
     setIsSubmitting(true);
     try {
+      let validatedPassword: number | undefined = undefined;
+      if (isGuest) {
+        validatedPassword = validatePassword(guestPassword, false);
+      }
+
       const updatedPost: Post = {
         ...post,
         title: title.trim(),
         content: plainContent,
-        password: isGuest ? Number(guestPassword) : undefined,
+        password: validatedPassword,
       };
 
       const response = await postCommand.update(updatedPost);
@@ -127,7 +126,6 @@ export function useEditForm() {
         showSuccess("수정 완료", "게시글이 성공적으로 수정되었습니다!");
         router.push(`/board/post/${postId}`);
       } else {
-        // 서버 응답의 에러 메시지 확인
         if (
           response.error &&
           response.error.includes("게시글 비밀번호가 일치하지 않습니다")
@@ -141,9 +139,8 @@ export function useEditForm() {
         }
       }
     } catch (error) {
-      // HTTP 상태 코드 기반 에러 처리
-      if (error instanceof Error && error.message.includes("403")) {
-        showError("비밀번호 오류", "비밀번호가 일치하지 않습니다.");
+      if (error instanceof Error) {
+        showError("수정 실패", error.message);
       } else {
         showError("수정 실패", "게시글 수정 중 오류가 발생했습니다.");
       }

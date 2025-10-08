@@ -14,7 +14,7 @@ export const postCommand = {
     }
 
     if (post.password !== undefined) {
-      payload.password = post.password.toString().padStart(4, '0')
+      payload.password = post.password.toString();
     }
 
     return apiClient.post<{ id: number }>("/api/post", payload).then(response => {
@@ -32,14 +32,19 @@ export const postCommand = {
     }
 
     if (post.password !== undefined) {
-      payload.password = post.password.toString().padStart(4, '0')
+      payload.password = post.password.toString();
     }
 
     return apiClient.put(`/api/post/${post.id}`, payload)
   },
   
-  delete: (postId: number): Promise<ApiResponse<void>> =>
-    apiClient.delete(`/api/post/${postId}`),
+  delete: (postId: number, password?: number): Promise<ApiResponse<void>> => {
+    let payload = undefined;
+    if (password !== undefined) {
+      payload = { password: password.toString() };
+    }
+    return apiClient.delete(`/api/post/${postId}`, payload);
+  },
 
   like: (postId: number): Promise<ApiResponse<void>> =>
     apiClient.post(`/api/post/${postId}/like`, {}),

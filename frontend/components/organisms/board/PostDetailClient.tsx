@@ -228,7 +228,7 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
   // 삭제 확인 후 실제 삭제 실행
   const handleConfirmDelete = async () => {
     setShowDeleteModal(false);
-    deletePost(Number(postId));
+    deletePost({ postId: Number(postId) });
   };
 
   // 댓글 삭제 핸들러
@@ -265,19 +265,32 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
   // 비밀번호 모달 제출 - 게시글/댓글 삭제 모드에 따라 분기 처리
   const handlePasswordSubmit = async () => {
     if (deleteMode === "post") {
-      deletePost(Number(postId));
+      deletePost({
+        postId: Number(postId),
+        password: modalPassword ? Number(modalPassword) : undefined,
+      }, {
+        onSuccess: () => {
+          // 삭제 성공 시 모달 상태 초기화
+          setShowPasswordModal(false);
+          setModalPassword("");
+          setDeleteMode(null);
+          setTargetComment(null);
+        },
+      });
     } else if (deleteMode === "comment" && targetComment) {
       deleteComment({
         commentId: targetComment.id,
         password: modalPassword ? Number(modalPassword) : undefined,
+      }, {
+        onSuccess: () => {
+          // 삭제 성공 시 모달 상태 초기화
+          setShowPasswordModal(false);
+          setModalPassword("");
+          setDeleteMode(null);
+          setTargetComment(null);
+        },
       });
     }
-
-    // 삭제 작업 완료 후 모든 모달 상태 초기화
-    setShowPasswordModal(false);
-    setModalPassword("");
-    setDeleteMode(null);
-    setTargetComment(null);
   };
 
   // 로딩 상태

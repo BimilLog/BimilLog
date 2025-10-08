@@ -67,8 +67,9 @@ export const useDeletePost = () => {
 
   return useMutation({
     mutationKey: mutationKeys.post.delete,
-    mutationFn: postCommand.delete,
-    onSuccess: (response, postId) => {
+    mutationFn: ({ postId, password }: { postId: number; password?: number }) =>
+      postCommand.delete(postId, password),
+    onSuccess: (response, { postId }) => {
       if (response.success) {
         // 캐시에서 게시글 제거 - 삭제된 게시글은 더 이상 필요 없음
         queryClient.removeQueries({ queryKey: queryKeys.post.detail(postId) });

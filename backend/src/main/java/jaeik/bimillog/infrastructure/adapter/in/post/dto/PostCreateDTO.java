@@ -29,7 +29,7 @@ public class PostCreateDTO {
     @Size(min = 10, max = 3000, message = "게시글 내용은 1000자 이하여야 합니다")
     private String content;
 
-    @Pattern(regexp = "^\\d{4}$", message = "비밀번호는 4자리 숫자여야 합니다")
+    @Pattern(regexp = "^[1-9]\\d{3}$", message = "비밀번호는 1000-9999 범위의 4자리 숫자여야 합니다")
     private String password;
 
     private Long memberId;

@@ -180,6 +180,84 @@ class PostCommandControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
+    @DisplayName("게시글 삭제 성공 - 익명 게시글 (비밀번호 일치)")
+    void deletePost_Success_Anonymous() throws Exception {
+        Post anonymousPost = Post.createPost(
+                null,  // 익명 게시글 (member = null)
+                "익명 게시글",
+                "익명 게시글 내용",
+                1234
+        );
+        Post savedPost = postRepository.save(anonymousPost);
+
+        String requestBody = """
+                {
+                    "password": "1234"
+                }
+                """;
+
+        mockMvc.perform(delete("/api/post/{postId}", savedPost.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody)
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isNoContent());
+
+        Optional<Post> deletedPost = postRepository.findById(savedPost.getId());
+        assertThat(deletedPost).isEmpty();
+    }
+
+    @Test
+    @DisplayName("게시글 삭제 실패 - 익명 게시글 (비밀번호 불일치)")
+    void deletePost_Fail_Anonymous_WrongPassword() throws Exception {
+        Post anonymousPost = Post.createPost(
+                null,  // 익명 게시글 (member = null)
+                "익명 게시글",
+                "익명 게시글 내용",
+                1234
+        );
+        Post savedPost = postRepository.save(anonymousPost);
+
+        String requestBody = """
+                {
+                    "password": "9999"
+                }
+                """;
+
+        mockMvc.perform(delete("/api/post/{postId}", savedPost.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestBody)
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isForbidden());
+
+        // 게시글이 삭제되지 않아야 함
+        Optional<Post> post = postRepository.findById(savedPost.getId());
+        assertThat(post).isPresent();
+    }
+
+    @Test
+    @DisplayName("게시글 삭제 실패 - 익명 게시글 (비밀번호 누락)")
+    void deletePost_Fail_Anonymous_NoPassword() throws Exception {
+        Post anonymousPost = Post.createPost(
+                null,  // 익명 게시글 (member = null)
+                "익명 게시글",
+                "익명 게시글 내용",
+                1234
+        );
+        Post savedPost = postRepository.save(anonymousPost);
+
+        mockMvc.perform(delete("/api/post/{postId}", savedPost.getId())
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+
+        // 게시글이 삭제되지 않아야 함
+        Optional<Post> post = postRepository.findById(savedPost.getId());
+        assertThat(post).isPresent();
+    }
+
+    @Test
     @DisplayName("게시글 삭제 실패 - 존재하지 않는 게시글")
     void deletePost_Fail_NotFound() throws Exception {
         mockMvc.perform(delete("/api/post/{postId}", 99999L)

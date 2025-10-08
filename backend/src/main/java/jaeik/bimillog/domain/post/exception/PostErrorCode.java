@@ -25,8 +25,6 @@ public enum PostErrorCode {
     /**
      * <h3>게시글 입력값 검증 관련 에러 코드</h3>
      */
-    INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "유효하지 않은 입력 값입니다.", ErrorCode.LogLevel.WARN),
-    INVALID_SEARCH_TYPE(HttpStatus.BAD_REQUEST, "유효하지 않은 검색 타입입니다.", ErrorCode.LogLevel.WARN),
     BLANK_PASSWORD(HttpStatus.BAD_REQUEST, "비회원은 글을 수정/삭제 할 시 비밀번호를 입력해야 합니다.", ErrorCode.LogLevel.WARN),
     
     /**
