@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { adminQuery, type Report, type PageResponse } from "@/lib/api";
 import { logger } from '@/lib/utils/logger';
 
@@ -20,6 +20,9 @@ export function useReports(options: UseReportsOptions = {}) {
   const [error, setError] = useState<string | null>(null);
   const [filterType, setFilterType] = useState(initialFilterType);
   const [page, setPage] = useState(0);
+
+  // 이전 filterType을 추적하여 중복 API 호출 방지
+  const prevFilterType = useRef(filterType);
 
   // 신고 목록 조회: 필터 타입, 페이지, 페이지 크기에 따른 신고 데이터 가져오기
   const fetchReports = useCallback(async () => {
@@ -43,14 +46,21 @@ export function useReports(options: UseReportsOptions = {}) {
     }
   }, [filterType, page, pageSize]);
 
+  // 필터 타입 변경 시 페이지를 0으로 리셋 (중복 호출 방지)
+  useEffect(() => {
+    if (prevFilterType.current !== filterType) {
+      prevFilterType.current = filterType;
+      setPage(0);
+    }
+  }, [filterType]);
+
+  // 페이지 또는 페이지 크기 변경 시 데이터 fetch
   useEffect(() => {
     fetchReports();
   }, [fetchReports]);
 
   const totalElements = reports?.totalElements || 0;
   const totalPages = reports?.totalPages || 0;
-  const hasNextPage = page < totalPages - 1;
-  const hasPreviousPage = page > 0;
 
   return {
     reports: reports?.content || [],
@@ -62,8 +72,6 @@ export function useReports(options: UseReportsOptions = {}) {
     setPage,
     totalElements,
     totalPages,
-    hasNextPage,
-    hasPreviousPage,
     refetch: fetchReports,
   };
 }

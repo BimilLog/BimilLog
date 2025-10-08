@@ -1,6 +1,7 @@
 import React from "react";
 import { Card, CardContent } from "@/components";
 import { TrendingUp } from "lucide-react";
+import { formatNumber } from "@/lib/utils";
 
 interface StatCardProps {
   icon: React.ReactNode;
@@ -37,7 +38,7 @@ export const StatCard = React.memo<StatCardProps>(({
         <p
           className={`text-3xl font-bold ${color} mb-1 group-hover:scale-110 transition-transform duration-300`}
         >
-          {value.toLocaleString()}
+          {formatNumber(value)}
         </p>
         <p className="text-sm font-medium text-brand-primary mb-2">{label}</p>
         <p className="text-xs text-brand-secondary">{description}</p>

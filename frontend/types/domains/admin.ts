@@ -3,7 +3,7 @@ export interface Report {
   reporterId: number | null
   reporterName: string
   reportType: "POST" | "COMMENT" | "ERROR" | "IMPROVEMENT"
-  targetId: number
+  targetId: number | null
   content: string
   createdAt: string
 }

@@ -6,32 +6,52 @@
 /**
  * 상대 시간 표시 (방금 전, 5분 전, 3시간 전 등)
  */
-export function formatRelativeDate(dateString: string): string {
-  const date = new Date(dateString);
-  const now = new Date();
-  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+export function formatRelativeDate(dateString: string | null | undefined): string {
+  if (!dateString) {
+    return '날짜 정보 없음';
+  }
 
-  if (seconds < 60) return "방금 전";
-  
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}분 전`;
-  
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}시간 전`;
-  
-  const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}일 전`;
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return '날짜 오류';
+    }
 
-  // 1주일 이상이면 절대 날짜로 표시
-  return formatKoreanDate(dateString);
+    const now = new Date();
+    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    if (seconds < 60) return "방금 전";
+
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}분 전`;
+
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}시간 전`;
+
+    const days = Math.floor(hours / 24);
+    if (days < 7) return `${days}일 전`;
+
+    // 1주일 이상이면 절대 날짜로 표시
+    return formatKoreanDate(dateString);
+  } catch {
+    return '날짜 오류';
+  }
 }
 
 /**
  * 절대 시간 표시 (YYYY-MM-DD HH:mm)
  */
-export function formatDateTime(dateTimeString: string): string {
+export function formatDateTime(dateTimeString: string | null | undefined): string {
+  if (!dateTimeString) {
+    return '날짜 정보 없음';
+  }
+
   try {
     const date = new Date(dateTimeString);
+    if (isNaN(date.getTime())) {
+      return '날짜 오류';
+    }
+
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
@@ -40,35 +60,57 @@ export function formatDateTime(dateTimeString: string): string {
 
     return `${year}-${month}-${day} ${hours}:${minutes}`;
   } catch {
-    return dateTimeString; // 포맷팅 실패 시 원본 반환
+    return '날짜 오류';
   }
 }
 
 /**
  * 한국식 날짜 표시 (YYYY.MM.DD)
  */
-export function formatKoreanDate(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).replace(/\. /g, '.').slice(0, -1);
+export function formatKoreanDate(dateString: string | null | undefined): string {
+  if (!dateString) {
+    return '날짜 정보 없음';
+  }
+
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return '날짜 오류';
+    }
+    return date.toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).replace(/\. /g, '.').slice(0, -1);
+  } catch {
+    return '날짜 오류';
+  }
 }
 
 /**
  * 한국식 날짜 + 시간 표시 (YYYY.MM.DD HH:mm)
  */
-export function formatKoreanDateTime(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleString('ko-KR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false
-  }).replace(/\. /g, '.').slice(0, -3);
+export function formatKoreanDateTime(dateString: string | null | undefined): string {
+  if (!dateString) {
+    return '날짜 정보 없음';
+  }
+
+  try {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return '날짜 오류';
+    }
+    return date.toLocaleString('ko-KR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    }).replace(/\. /g, '.').slice(0, -3);
+  } catch {
+    return '날짜 오류';
+  }
 }
 
 /**
@@ -104,7 +146,7 @@ export function addDays(date: Date, days: number): Date {
 /**
  * 기본 날짜 포맷 (YYYY.MM.DD) - formatKoreanDate의 별칭
  */
-export function formatDate(dateString: string): string {
+export function formatDate(dateString: string | null | undefined): string {
   return formatKoreanDate(dateString);
 }
 

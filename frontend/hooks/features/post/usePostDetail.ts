@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useQuery } from '@tanstack/react-query';
 import { postQuery, commentQuery } from '@/lib/api';
 import { queryKeys } from '@/lib/tanstack-query/keys';
-import { useAuth, useToast } from '@/hooks';
+import { useAuth, useToast, usePasswordModal } from '@/hooks';
 import { usePopularComments } from '@/hooks/api/useCommentQueries';
 import type { Post } from '@/types/domains/post';
 import type { Comment } from '@/types/domains/comment';
@@ -33,7 +33,7 @@ export function usePostDetail(id: string | null, initialPost?: Post) {
 
   // TanStack Query - 인기 댓글 조회
   const { data: popularCommentsData } = usePopularComments(Number(id) || 0);
-  const popularComments = popularCommentsData || [];
+  const popularComments = popularCommentsData?.data || [];
 
   // Post 상태
   const [post, setPost] = useState<Post | null>(initialPost || null);
@@ -47,12 +47,8 @@ export function usePostDetail(id: string | null, initialPost?: Post) {
   const [hasMoreComments, setHasMoreComments] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
-  // Modal 상태
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [modalPassword, setModalPassword] = useState("");
-  const [passwordModalTitle, setPasswordModalTitle] = useState("");
-  const [deleteMode, setDeleteMode] = useState<"post" | "comment" | null>(null);
-  const [targetComment, setTargetComment] = useState<Comment | null>(null);
+  // usePasswordModal 훅으로 모달 상태 관리 통합
+  const passwordModal = usePasswordModal();
 
   // Data fetching
   const fetchPost = useCallback(async () => {
@@ -236,12 +232,12 @@ export function usePostDetail(id: string | null, initialPost?: Post) {
     hasMoreComments,
     isLoadingMore,
 
-    // Modal state
-    showPasswordModal,
-    modalPassword,
-    passwordModalTitle,
-    deleteMode,
-    targetComment,
+    // Modal state (새로운 API + Legacy 호환성)
+    showPasswordModal: passwordModal.showPasswordModal,
+    modalPassword: passwordModal.modalPassword,
+    passwordModalTitle: passwordModal.passwordModalTitle,
+    deleteMode: passwordModal.deleteMode,
+    targetComment: passwordModal.targetComment,
 
     // Actions
     fetchPost,
@@ -252,11 +248,16 @@ export function usePostDetail(id: string | null, initialPost?: Post) {
     isMyComment,
     canModifyComment,
 
-    // Modal actions
-    setShowPasswordModal,
-    setModalPassword,
-    setPasswordModalTitle,
-    setDeleteMode,
-    setTargetComment,
+    // Modal actions - 새로운 API
+    openPasswordModal: passwordModal.openModal,
+    closePasswordModal: passwordModal.closeModal,
+    resetPasswordModal: passwordModal.resetModal,
+    setModalPassword: passwordModal.setModalPassword,
+
+    // Legacy compatibility - 기존 코드와의 호환성을 위해 유지
+    setShowPasswordModal: passwordModal.setShowPasswordModal,
+    setPasswordModalTitle: passwordModal.setPasswordModalTitle,
+    setDeleteMode: passwordModal.setDeleteMode,
+    setTargetComment: passwordModal.setTargetComment,
   };
 }

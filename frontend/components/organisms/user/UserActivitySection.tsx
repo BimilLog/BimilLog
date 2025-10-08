@@ -13,7 +13,7 @@ import { useActivityData } from "@/hooks";
 import { userQuery } from "@/lib/api";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import { Pagination, Spinner as FlowbiteSpinner } from "flowbite-react";
-import { logger } from "@/lib/utils";
+import { logger, formatNumber } from "@/lib/utils";
 import type { Post, SimplePost } from "@/types/domains/post";
 import type { Comment, SimpleComment } from "@/types/domains/comment";
 
@@ -104,7 +104,7 @@ const ActivityTabContent: React.FC<ActivityTabContentProps> = memo(({
       <div className="flex items-center justify-between pb-4 border-b border-gray-200">
         <div className="flex items-center space-x-2">
           <span className="text-lg font-semibold text-brand-primary">
-            총 {totalElements.toLocaleString()}개
+            총 {formatNumber(totalElements)}개
           </span>
           {contentConfig.badge}
         </div>

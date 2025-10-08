@@ -11,6 +11,7 @@ import {
   type Draft
 } from '@/lib/utils/draft';
 import { useToast } from '@/hooks';
+import { formatKoreanDateTime } from '@/lib/utils';
 
 interface UseDraftOptions {
   postId?: number; // 수정 모드일 때 사용
@@ -48,7 +49,7 @@ export function useDraft(options: UseDraftOptions = {}) {
     if (draft) {
       showInfo(
         '임시저장 복구',
-        `${new Date(draft.updatedAt).toLocaleString()}에 저장된 내용이 있습니다.`
+        `${formatKoreanDateTime(draft.updatedAt)}에 저장된 내용이 있습니다.`
       );
 
       if (onRestore) {

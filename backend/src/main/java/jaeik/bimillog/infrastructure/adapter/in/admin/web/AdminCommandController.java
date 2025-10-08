@@ -1,8 +1,8 @@
 package jaeik.bimillog.infrastructure.adapter.in.admin.web;
 
 import jaeik.bimillog.domain.admin.application.port.in.AdminCommandUseCase;
+import jaeik.bimillog.infrastructure.adapter.in.admin.dto.BanUserDTO;
 import jaeik.bimillog.infrastructure.adapter.in.admin.dto.ForceWithdrawDTO;
-import jaeik.bimillog.infrastructure.adapter.in.admin.dto.ReportDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -34,15 +34,15 @@ public class AdminCommandController {
      * <p>AdminCommandUseCase.banUser를 호출하여 도메인 계층에서 제재 로직을 실행하고 UserBannedEvent를 발행합니다.</p>
      * <p>성공적으로 제재 처리되면 200 OK와 함께 완료 메시지를 반환합니다.</p>
      *
-     * @param reportDTO 신고 정보 DTO (신고 유형, 대상 ID 포함)
+     * @param banUserDTO 사용자 제재 DTO (신고 유형, 대상 ID 포함)
      * @return ResponseEntity<String> 제재 완료 응답 메시지
      * @author Jaeik
      * @since 2.0.0
      */
     @PostMapping("/ban")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> banUser(@RequestBody ReportDTO reportDTO) {
-        adminCommandUseCase.banUser(reportDTO.getReportType(), reportDTO.getTargetId());
+    public ResponseEntity<String> banUser(@RequestBody BanUserDTO banUserDTO) {
+        adminCommandUseCase.banUser(banUserDTO.getReportType(), banUserDTO.getTargetId());
         return ResponseEntity.ok("유저를 성공적으로 차단했습니다.");
     }
 

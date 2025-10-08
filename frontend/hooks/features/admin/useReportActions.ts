@@ -26,11 +26,8 @@ export function useReportActions(onSuccess?: () => void) {
     try {
       // 신고 정보를 바탕으로 사용자 제재 처리
       const response = await adminCommand.banUser({
-        reporterId: report.reporterId,
-        reporterName: report.reporterName,
         reportType: report.reportType,
         targetId: report.targetId,
-        content: report.content,
       });
 
       if (response.success) {
@@ -69,7 +66,6 @@ export function useReportActions(onSuccess?: () => void) {
       const response = await adminCommand.forceWithdrawUser({
         targetId: report.targetId,
         reportType: report.reportType,
-        content: report.content,
       });
 
       if (response.success) {

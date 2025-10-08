@@ -58,15 +58,18 @@ export function AdminClient() {
   
   const initialTab = searchParams.get("tab") || "reports";
   const initialFilterType = searchParams.get("filter") || "all";
-  const initialSearchTerm = searchParams.get("search") || "";
-  
+
   const [activeTab, setActiveTab] = useState(initialTab);
   
   const {
     reports,
     isLoading: isReportsLoading,
+    error: reportsError,
     filterType,
     setFilterType,
+    page,
+    setPage,
+    totalPages,
     refetch
   } = useReports({
     initialFilterType: initialFilterType
@@ -127,10 +130,13 @@ export function AdminClient() {
               <ReportListContainer
                 reports={reports}
                 isLoading={isReportsLoading}
+                error={reportsError}
                 refetch={refetch}
                 filterType={filterType}
                 setFilterType={setFilterType}
-                initialSearchTerm={initialSearchTerm}
+                page={page}
+                setPage={setPage}
+                totalPages={totalPages}
               />
             </TabsContent>
 

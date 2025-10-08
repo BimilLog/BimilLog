@@ -34,7 +34,6 @@ import {
   useDeleteComment,
   useLikeCommentOptimized,
 } from "@/hooks/api/useCommentMutations";
-import { useRouter } from "next/navigation";
 
 interface Props {
   initialPost: Post;
@@ -44,7 +43,6 @@ interface Props {
 export default function PostDetailClient({ initialPost, postId }: Props) {
   // 인증 상태 가져오기
   const { isAuthenticated } = useAuth();
-  const router = useRouter();
   const { showToast } = useToast();
 
   // 읽기 진행률 트래킹
@@ -66,27 +64,23 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
     passwordModalTitle,
     deleteMode,
     targetComment,
-    fetchPost,
-    fetchComments,
     loadMoreComments,
     getTotalCommentCount,
     canModify,
     isMyComment,
     canModifyComment,
-    setShowPasswordModal,
+    openPasswordModal,
+    resetPasswordModal,
     setModalPassword,
-    setPasswordModalTitle,
-    setDeleteMode,
-    setTargetComment,
   } = usePostDetail(postId, initialPost);
 
   // TanStack Query mutation hooks
-  const { mutate: likePost, isPending: isLikingPost } = useLikePost();
-  const { mutate: deletePost, isPending: isDeletingPost } = useDeletePost();
+  const { mutate: likePost } = useLikePost();
+  const { mutate: deletePost } = useDeletePost();
   const { mutate: createComment, isPending: isCreatingComment } = useCreateComment();
-  const { mutate: updateComment, isPending: isUpdatingComment } = useUpdateComment();
-  const { mutate: deleteComment, isPending: isDeletingComment } = useDeleteComment();
-  const { mutate: likeComment, isPending: isLikingComment } = useLikeCommentOptimized(Number(postId));
+  const { mutate: updateComment } = useUpdateComment();
+  const { mutate: deleteComment } = useDeleteComment();
+  const { mutate: likeComment } = useLikeCommentOptimized(Number(postId));
 
   // 댓글 편집 및 답글 상태 관리
   const [editingComment, setEditingComment] = useState<Comment | null>(null);
@@ -218,10 +212,7 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
 
     if (post?.memberName === "익명" || post?.memberName === null) {
       // 익명 게시글의 경우 비밀번호 모달
-      setPasswordModalTitle("게시글 삭제");
-      setDeleteMode("post");
-      setShowPasswordModal(true);
-      setModalPassword("");
+      openPasswordModal("게시글 삭제", "post");
     } else {
       // 로그인 사용자의 경우 삭제 확인 모달
       setShowDeleteModal(true);
@@ -243,11 +234,7 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
 
     if (comment.memberName === "익명" || comment.memberName === null) {
       // 익명 댓글의 경우 비밀번호 모달
-      setPasswordModalTitle("댓글 삭제");
-      setDeleteMode("comment");
-      setTargetComment(comment);
-      setShowPasswordModal(true);
-      setModalPassword("");
+      openPasswordModal("댓글 삭제", "comment", comment);
     } else {
       // 로그인 사용자 댓글은 바로 삭제
       deleteComment({
@@ -274,10 +261,7 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
       }, {
         onSuccess: () => {
           // 삭제 성공 시 모달 상태 초기화
-          setShowPasswordModal(false);
-          setModalPassword("");
-          setDeleteMode(null);
-          setTargetComment(null);
+          resetPasswordModal();
         },
       });
     } else if (deleteMode === "comment" && targetComment) {
@@ -287,10 +271,7 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
       }, {
         onSuccess: () => {
           // 삭제 성공 시 모달 상태 초기화
-          setShowPasswordModal(false);
-          setModalPassword("");
-          setDeleteMode(null);
-          setTargetComment(null);
+          resetPasswordModal();
         },
       });
     }
@@ -441,12 +422,7 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
           password={modalPassword}
           onPasswordChange={setModalPassword}
           onConfirm={handlePasswordSubmit}
-          onCancel={() => {
-            setShowPasswordModal(false);
-            setModalPassword("");
-            setDeleteMode(null);
-            setTargetComment(null);
-          }}
+          onCancel={resetPasswordModal}
           title={passwordModalTitle}
         />
 

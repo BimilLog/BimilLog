@@ -3,6 +3,7 @@
 import React from "react";
 import { Badge, Button } from "@/components";
 import { Calendar, User, FileText, Eye } from "lucide-react";
+import { formatDate } from "@/lib/utils";
 import type { Report } from "@/types/domains/admin";
 
 interface ReportCardProps {
@@ -67,7 +68,7 @@ export const ReportCard = React.memo<ReportCardProps>(({ report, onView }) => {
       <td className="px-6 py-4 whitespace-nowrap">
         <div className="flex items-center gap-2 text-sm text-brand-secondary">
           <Calendar className="w-4 h-4 stroke-indigo-600 fill-indigo-100" />
-          {new Date(report.createdAt).toLocaleDateString('ko-KR')}
+          {formatDate(report.createdAt)}
         </div>
       </td>
       <td className="px-6 py-4 text-right">

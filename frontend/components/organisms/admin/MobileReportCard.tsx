@@ -3,6 +3,7 @@
 import React from "react";
 import { Card, Badge, Button } from "@/components";
 import { Calendar, User, FileText, Eye } from "lucide-react";
+import { formatDate } from "@/lib/utils";
 import type { Report } from "@/types/domains/admin";
 
 interface MobileReportCardProps {
@@ -46,7 +47,7 @@ export const MobileReportCard = React.memo<MobileReportCardProps>(({ report, onV
           </div>
           <div className="text-xs text-brand-secondary flex items-center gap-1">
             <Calendar className="w-3 h-3 stroke-indigo-600 fill-indigo-100" />
-            {new Date(report.createdAt).toLocaleDateString('ko-KR')}
+            {formatDate(report.createdAt)}
           </div>
         </div>
 

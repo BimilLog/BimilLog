@@ -1,26 +1,20 @@
 import { apiClient } from '../client'
 
 export const adminCommand = {
-  banUser: (reportData: { 
-    reporterId?: number
-    reporterName?: string
+  banUser: (reportData: {
     reportType: string
     targetId: number
-    content: string 
   }) => apiClient.post("/api/admin/ban", {
     reportType: reportData.reportType,
-    targetId: reportData.targetId,
-    content: reportData.content
+    targetId: reportData.targetId
   }),
   
   forceWithdrawUser: (reportData: {
     targetId: number
     reportType: string
-    content: string
   }) => apiClient.post("/api/admin/withdraw", {
     targetId: reportData.targetId,
-    reportType: reportData.reportType,
-    content: reportData.content
+    reportType: reportData.reportType
   }),
   
   deleteContent: (contentId: number, contentType: "POST" | "COMMENT") =>

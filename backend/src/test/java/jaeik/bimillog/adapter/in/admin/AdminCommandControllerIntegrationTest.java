@@ -3,7 +3,8 @@ package jaeik.bimillog.adapter.in.admin;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.infrastructure.adapter.in.admin.dto.ReportDTO;
+import jaeik.bimillog.infrastructure.adapter.in.admin.dto.BanUserDTO;
+import jaeik.bimillog.infrastructure.adapter.in.admin.dto.ForceWithdrawDTO;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostRepository;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.H2TestConfiguration;
@@ -53,14 +54,13 @@ class AdminCommandControllerIntegrationTest extends BaseIntegrationTest {
         Post testPost = PostTestDataBuilder.createPost(testTargetMember, "테스트 게시글", "테스트 내용");
         Post savedPost = postRepository.save(testPost);
 
-        ReportDTO reportDTO = ReportDTO.builder()
+        BanUserDTO banUserDTO = BanUserDTO.builder()
                 .reportType(ReportType.POST)
                 .targetId(savedPost.getId())
-                .content("부적절한 게시글 신고")
                 .build();
 
         // When & Then
-        performPost("/api/admin/ban", reportDTO, adminUserDetails)
+        performPost("/api/admin/ban", banUserDTO, adminUserDetails)
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string("유저를 성공적으로 차단했습니다."));
@@ -75,14 +75,13 @@ class AdminCommandControllerIntegrationTest extends BaseIntegrationTest {
         Post testPost = PostTestDataBuilder.createPost(targetMember, "테스트 게시글", "테스트 내용");
         Post savedPost = postRepository.save(testPost);
 
-        ReportDTO reportDTO = ReportDTO.builder()
+        ForceWithdrawDTO forceWithdrawDTO = ForceWithdrawDTO.builder()
                 .reportType(ReportType.POST)
                 .targetId(savedPost.getId())
-                .content("강제 탈퇴 사유 게시글")
                 .build();
 
         // When & Then
-        performPost("/api/admin/withdraw", reportDTO, adminUserDetails)
+        performPost("/api/admin/withdraw", forceWithdrawDTO, adminUserDetails)
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string("관리자 권한으로 사용자 탈퇴가 완료되었습니다."));
@@ -94,14 +93,13 @@ class AdminCommandControllerIntegrationTest extends BaseIntegrationTest {
         // Given
         Long nonExistentPostId = 99999L;
 
-        ReportDTO reportDTO = ReportDTO.builder()
+        ForceWithdrawDTO forceWithdrawDTO = ForceWithdrawDTO.builder()
                 .reportType(ReportType.POST)
                 .targetId(nonExistentPostId)
-                .content("존재하지 않는 게시글 신고")
                 .build();
 
         // When & Then
-        performPost("/api/admin/withdraw", reportDTO, adminUserDetails)
+        performPost("/api/admin/withdraw", forceWithdrawDTO, adminUserDetails)
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }

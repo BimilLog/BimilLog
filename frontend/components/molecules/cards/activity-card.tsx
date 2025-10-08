@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { SimplePost, SimpleComment } from "@/lib/api";
 import { formatKoreanDate } from "@/lib/utils/date";
+import { formatNumber } from "@/lib/utils";
 
 interface ActivityCardProps {
   item: SimplePost | SimpleComment;
@@ -57,7 +58,7 @@ const PostCard: React.FC<{ post: SimplePost; isLiked: boolean }> = React.memo(({
               <div className="text-base md:text-sm">
                 <span className="text-brand-muted">조회수</span>
                 <span className="font-semibold text-brand-primary ml-1">
-                  {post.viewCount.toLocaleString()}
+                  {formatNumber(post.viewCount)}
                 </span>
               </div>
             </div>
@@ -67,7 +68,7 @@ const PostCard: React.FC<{ post: SimplePost; isLiked: boolean }> = React.memo(({
               <div className="text-base md:text-sm">
                 <span className="text-brand-muted">추천</span>
                 <span className="font-semibold text-brand-primary ml-1">
-                  {post.likeCount.toLocaleString()}
+                  {formatNumber(post.likeCount)}
                 </span>
               </div>
             </div>
@@ -77,7 +78,7 @@ const PostCard: React.FC<{ post: SimplePost; isLiked: boolean }> = React.memo(({
               <div className="text-base md:text-sm">
                 <span className="text-brand-muted">댓글</span>
                 <span className="font-semibold text-brand-primary ml-1">
-                  {post.commentCount.toLocaleString()}
+                  {formatNumber(post.commentCount)}
                 </span>
               </div>
             </div>
@@ -136,7 +137,7 @@ const CommentCard: React.FC<{ comment: SimpleComment; isLiked: boolean }> = Reac
               <div className="flex items-center space-x-2">
                 <ThumbsUp className="w-4 h-4 text-blue-500" />
                 <span className="text-base md:text-sm font-semibold text-brand-primary">
-                  {comment.likeCount.toLocaleString()}
+                  {formatNumber(comment.likeCount)}
                 </span>
                 <span className="text-sm md:text-xs text-brand-muted">추천</span>
               </div>

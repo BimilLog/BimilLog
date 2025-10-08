@@ -133,12 +133,13 @@ public class AdminCommandService implements AdminCommandUseCase {
      * <h3>신고 대상 사용자 조회</h3>
      * <p>제재할 사용자를 식별하고 조회합니다.</p>
      * <p>POST 신고: Post 도메인에서 게시글 작성자 조회, COMMENT 신고: Comment 도메인에서 댓글 작성자 조회</p>
+     * <p>익명 게시글/댓글인 경우 member가 null이므로 제재 불가능합니다.</p>
      * <p>banUser, forceWithdrawUser에서 사용자 식별 단계에서 사용됩니다.</p>
      *
      * @param reportType 신고 유형 (POST, COMMENT만 허용)
      * @param targetId 신고 대상 ID (게시글 ID 또는 댓글 ID)
      * @return Member 신고 대상 사용자 엔티티
-     * @throws AdminCustomException 대상 사용자를 찾을 수 없는 경우
+     * @throws AdminCustomException 대상 사용자를 찾을 수 없거나 익명 사용자인 경우
      * @author Jaeik
      * @since 2.0.0
      */

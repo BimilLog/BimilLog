@@ -5,9 +5,6 @@
 export * from './useUserQueries';
 export * from './useUserMutations';
 
-// Board hooks (Post와 통합) - deprecated, use usePostMutations instead
-// export * from './useBoardMutations';  // 파일 삭제됨
-
 // Comment hooks
 export * from './useCommentQueries';
 export * from './useCommentMutations';

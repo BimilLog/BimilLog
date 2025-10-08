@@ -70,13 +70,3 @@ export interface AuthLoadingProps {
   message?: string;
   subMessage?: string;
 }
-
-// Legacy User type (for compatibility)
-// 이전 버전 호환성을 위해 유지되는 타입 (새로운 개발에서는 AuthSession.user 사용 권장)
-export interface LegacyUser {
-  id: number;
-  memberName: string;
-  email: string;
-  createdAt: string;
-  updatedAt: string;
-}
