@@ -155,6 +155,21 @@ export class ApiClient {
       // Content-Length 체크로 빈 응답 먼저 처리
       const contentLength = response.headers.get('content-length')
       if (contentLength === '0') {
+        // 201 Created + Location 헤더 처리 (게시글 작성 등)
+        if (response.status === 201) {
+          const location = response.headers.get('location')
+          if (location) {
+            // Location: /post/123 → id: 123 추출
+            const match = location.match(/\/post\/(\d+)$/)
+            if (match) {
+              return {
+                success: true,
+                data: { id: parseInt(match[1]) } as T,
+              }
+            }
+          }
+        }
+
         return {
           success: true,
           data: null as T,

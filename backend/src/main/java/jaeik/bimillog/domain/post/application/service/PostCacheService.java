@@ -15,7 +15,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * <h2>PostCacheService</h2>
@@ -57,8 +59,8 @@ public class PostCacheService implements PostCacheUseCase {
         List<PostSimpleDetail> cachedList = redisPostQueryPort.getCachedPostList(PostCacheFlag.REALTIME);
 
         // 3. 캐시된 데이터를 Map으로 변환 (빠른 조회)
-        java.util.Map<Long, PostSimpleDetail> cachedMap = cachedList.stream()
-                .collect(java.util.stream.Collectors.toMap(PostSimpleDetail::getId, detail -> detail));
+        Map<Long, PostSimpleDetail> cachedMap = cachedList.stream()
+                .collect(Collectors.toMap(PostSimpleDetail::getId, detail -> detail));
 
         // 4. postId 순서대로 조회하며 캐시 미스 시 DB 조회 후 추가
         return realtimePostIds.stream()
@@ -135,7 +137,8 @@ public class PostCacheService implements PostCacheUseCase {
     /**
      * <h3>공지사항 목록 조회</h3>
      * <p>Redis에 캐시된 공지사항 목록을 조회합니다.</p>
-     * <p>캐시 미스 시 postIds 저장소에서 ID 목록을 가져와 DB 조회 후 반환합니다.</p>
+     * <p>postIds 저장소 ID 개수와 캐시 목록 개수를 비교하여 정합성을 검증합니다.</p>
+     * <p>개수 불일치 시 캐시 미스로 판단하고 postIds 저장소에서 ID 목록을 가져와 DB 조회 후 반환합니다.</p>
      *
      * @return 공지사항 목록
      * @author Jaeik
@@ -143,10 +146,14 @@ public class PostCacheService implements PostCacheUseCase {
      */
     @Override
     public List<PostSimpleDetail> getNoticePosts() {
+        // 1. postIds:notice Set에서 실제 공지 ID 목록 조회
+        List<Long> storedPostIds = redisPostQueryPort.getStoredPostIds(PostCacheFlag.NOTICE);
+
+        // 2. posts:notice Hash에서 캐시된 목록 조회
         List<PostSimpleDetail> cachedList = redisPostQueryPort.getCachedPostList(PostCacheFlag.NOTICE);
 
-        // 캐시 미스 시 postIds 저장소에서 복구
-        if (cachedList.isEmpty()) {
+        // 3. 개수 비교: 저장소 ID 개수 != 캐시 목록 개수 → 캐시 미스
+        if (cachedList.size() != storedPostIds.size()) {
             return recoverFromStoredPostIds(PostCacheFlag.NOTICE);
         }
 

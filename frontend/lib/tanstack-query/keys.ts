@@ -33,6 +33,7 @@ export const queryKeys = {
     realtimePopular: () => [...queryKeys.post.all, 'popular', 'realtime'] as const,
     weeklyPopular: () => [...queryKeys.post.all, 'popular', 'weekly'] as const,
     legend: (filters?: Record<string, string | number | boolean | null | undefined>) => [...queryKeys.post.all, 'legend', filters] as const,
+    notices: () => [...queryKeys.post.all, 'notices'] as const,
   },
 
   // Comment
@@ -87,6 +88,7 @@ export const mutationKeys = {
     update: ['post', 'update'] as const,
     delete: ['post', 'delete'] as const,
     like: ['post', 'like'] as const,
+    toggleNotice: ['post', 'toggleNotice'] as const,
   },
 
   // Comment

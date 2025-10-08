@@ -25,6 +25,6 @@ public class PostUpdateDTO {
     private String title;
 
     @NotBlank(message = "게시글 내용은 필수입니다")
-    @Size(min = 10, max = 1000, message = "게시글 내용은 10자 이상 1000자 이하여야 합니다")
+    @Size(min = 10, max = 3000, message = "게시글 내용은 1000자 이하여야 합니다")
     private String content;
 }

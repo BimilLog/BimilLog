@@ -23,15 +23,6 @@ export const adminCommand = {
     content: reportData.content
   }),
   
-  deleteContent: (contentId: number, contentType: "POST" | "COMMENT") => 
+  deleteContent: (contentId: number, contentType: "POST" | "COMMENT") =>
     apiClient.delete(`/api/admin/content/${contentType.toLowerCase()}/${contentId}`),
-  
-  createNotice: (post: { title: string; content: string }) => 
-    apiClient.post("/api/admin/notice/create", post),
-  
-  updateNotice: (postId: number, post: { title: string; content: string }) => 
-    apiClient.put(`/api/admin/notice/update/${postId}`, post),
-  
-  deleteNotice: (postId: number) => 
-    apiClient.delete(`/api/admin/notice/delete/${postId}`),
 }

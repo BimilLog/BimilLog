@@ -59,7 +59,7 @@ public class PostCommandController {
         validatePostRequest(postCreateDTO);
 
         Long postId = postCommandUseCase.writePost(memberId, postCreateDTO.getTitle(), postCreateDTO.getContent(), postCreateDTO.getParsedPassword());
-        return ResponseEntity.created(URI.create("/api/posts/" + postId)).build();
+        return ResponseEntity.created(URI.create("/post/" + postId)).build();
     }
 
     private void validatePostRequest(PostCreateDTO postCreateDTO) {

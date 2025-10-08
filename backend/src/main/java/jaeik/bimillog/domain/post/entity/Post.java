@@ -65,7 +65,7 @@ public class Post extends BaseEntity {
      *
      * @param member       작성자 정보
      * @param title      게시글 제목 (1-30자)
-     * @param content    게시글 내용 (1-1000자)
+     * @param content    게시글 내용 (HTML 형식, 순수 텍스트 기준 1-1000자, HTML 태그 포함 최대 3000자)
      * @param password   게시글 비밀번호 (선택적)
      * @return 생성된 Post 엔티티
      * @throws IllegalArgumentException 제목이나 내용이 null이거나 빈 문자열인 경우
@@ -96,7 +96,7 @@ public class Post extends BaseEntity {
      * <p>{@link PostCommandService}에서 게시글 수정 시 권한 검증 후 호출됩니다.</p>
      *
      * @param title   새로운 게시글 제목 (1-30자)
-     * @param content 새로운 게시글 내용 (1-1000자)
+     * @param content 새로운 게시글 내용 (HTML 형식, 순수 텍스트 기준 1-1000자, HTML 태그 포함 최대 3000자)
      * @throws IllegalArgumentException 제목이나 내용이 null이거나 빈 문자열인 경우
      * @author Jaeik
      * @since 2.0.0

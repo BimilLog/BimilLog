@@ -38,7 +38,6 @@ public class PostCacheController {
      *
      * <p>
      * 실시간 인기글로 선정된 게시글 목록을 조회한다.
-     * Redis Sorted Set에서 postId 목록 조회 후 캐시 어사이드 패턴으로 상세 정보 획득
      * </p>
      *
      * @since 2.0.0
@@ -59,7 +58,6 @@ public class PostCacheController {
      *
      * <p>
      * 주간 인기글로 선정된 게시글 목록을 조회한다.
-     * Redis 캐시에서 미리 계산된 주간 인기글 데이터 조회
      * </p>
      *
      * @since 2.0.0

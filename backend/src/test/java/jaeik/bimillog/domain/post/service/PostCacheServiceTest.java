@@ -190,6 +190,7 @@ class PostCacheServiceTest {
         PostSimpleDetail noticePost = PostTestDataBuilder.createPostSearchResult(1L, "공지사항");
         List<PostSimpleDetail> noticePosts = List.of(noticePost);
 
+        given(redisPostQueryPort.getStoredPostIds(PostCacheFlag.NOTICE)).willReturn(List.of(1L));
         given(redisPostQueryPort.getCachedPostList(PostCacheFlag.NOTICE)).willReturn(noticePosts);
 
         // When
@@ -199,6 +200,7 @@ class PostCacheServiceTest {
         assertThat(result).isEqualTo(noticePosts);
         assertThat(result).hasSize(1);
 
+        verify(redisPostQueryPort).getStoredPostIds(PostCacheFlag.NOTICE);
         verify(redisPostQueryPort).getCachedPostList(PostCacheFlag.NOTICE);
     }
 
@@ -234,8 +236,8 @@ class PostCacheServiceTest {
         // Given
         PostDetail postDetail1 = createPostDetail(1L, "공지사항 1");
 
-        given(redisPostQueryPort.getCachedPostList(PostCacheFlag.NOTICE)).willReturn(List.of());  // 캐시 미스
         given(redisPostQueryPort.getStoredPostIds(PostCacheFlag.NOTICE)).willReturn(List.of(1L));
+        given(redisPostQueryPort.getCachedPostList(PostCacheFlag.NOTICE)).willReturn(List.of());  // 캐시 미스 (size 불일치)
         given(postQueryPort.findPostDetailWithCounts(1L, null)).willReturn(Optional.of(postDetail1));
 
         // When
@@ -245,8 +247,8 @@ class PostCacheServiceTest {
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getTitle()).isEqualTo("공지사항 1");
 
+        verify(redisPostQueryPort, times(2)).getStoredPostIds(PostCacheFlag.NOTICE);  // 1번: size 비교, 2번: recoverFromStoredPostIds
         verify(redisPostQueryPort).getCachedPostList(PostCacheFlag.NOTICE);
-        verify(redisPostQueryPort).getStoredPostIds(PostCacheFlag.NOTICE);
         verify(postQueryPort).findPostDetailWithCounts(1L, null);
     }
 

@@ -131,3 +131,30 @@ export const useLikePost = () => {
     },
   });
 };
+
+/**
+ * 공지사항 토글 (관리자 전용)
+ */
+export const useToggleNotice = () => {
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+
+  return useMutation({
+    mutationKey: mutationKeys.post.toggleNotice,
+    mutationFn: postCommand.toggleNotice,
+    onSuccess: (response, postId) => {
+      if (response.success) {
+        // 게시글 상세 캐시 무효화
+        queryClient.invalidateQueries({ queryKey: queryKeys.post.detail(postId) });
+        // 게시글 목록 캐시 무효화
+        queryClient.invalidateQueries({ queryKey: queryKeys.post.lists() });
+        // 공지사항 목록 캐시 무효화
+        queryClient.invalidateQueries({ queryKey: queryKeys.post.notices() });
+        showToast({ type: 'success', message: '공지사항이 변경되었습니다.' });
+      }
+    },
+    onError: (error) => {
+      showToast({ type: 'error', message: '공지사항 변경에 실패했습니다.' });
+    },
+  });
+};

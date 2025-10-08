@@ -1,6 +1,8 @@
 import { memo } from "react";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, Pin, PinOff } from "lucide-react";
 import { Button } from "@/components";
+import { useAdmin } from "@/hooks";
+import { useToggleNotice } from "@/hooks/api/usePostMutations";
 import type { Post } from "@/lib/api";
 
 interface PostActionsProps {
@@ -10,7 +12,7 @@ interface PostActionsProps {
 }
 
 /**
- * 게시글 액션 컴포넌트 (수정/삭제)
+ * 게시글 액션 컴포넌트 (수정/삭제/공지토글)
  * PostDetailClient에서 분리된 액션 관련 컴포넌트
  */
 const PostActions = memo(({
@@ -18,8 +20,35 @@ const PostActions = memo(({
   canModify,
   onDeletePost,
 }: PostActionsProps) => {
+  const { isAdmin } = useAdmin();
+  const { mutate: toggleNotice, isPending: isTogglingNotice } = useToggleNotice();
+
+  const handleToggleNotice = () => {
+    if (isTogglingNotice) return;
+    toggleNotice(post.id);
+  };
+
+  const isNotice = post.postCacheFlag === 'NOTICE';
+
   return (
-    <div className="flex items-center justify-end px-6 pb-6">
+    <div className="flex items-center justify-between px-6 pb-6">
+      {/* 관리자 전용: 공지사항 토글 버튼 */}
+      {isAdmin && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleToggleNotice}
+          disabled={isTogglingNotice}
+          className={`flex items-center space-x-1 ${
+            isNotice
+              ? 'text-purple-600 hover:text-purple-700 hover:bg-purple-50 border-purple-200'
+              : 'text-gray-600 hover:text-gray-700 hover:bg-gray-50'
+          }`}
+        >
+          {isNotice ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
+          <span>{isNotice ? '공지 해제' : '공지 설정'}</span>
+        </Button>
+      )}
 
       {/* 수정/삭제 버튼 - 작성자 본인이거나 관리자인 경우만 표시 */}
       {canModify && (
@@ -30,13 +59,13 @@ const PostActions = memo(({
             asChild
             className="flex items-center space-x-1"
           >
-            {/* 수정 페이지로 이돔 - 기존 내용을 불러와서 수정 가능 */}
+            {/* 수정 페이지로 이동 - 기존 내용을 불러와서 수정 가능 */}
             <a href={`/board/post/${post.id}/edit`}>
               <Edit className="w-4 h-4" />
               <span>수정</span>
             </a>
           </Button>
-          
+
           <Button
             variant="outline"
             size="sm"

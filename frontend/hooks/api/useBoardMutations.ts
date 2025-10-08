@@ -4,7 +4,7 @@ import { postCommand } from '@/lib/api';
 import { useToast, useAuth } from '@/hooks';
 import { useGlobalToast } from '@/stores/toastStore';
 import { useRouter } from 'next/navigation';
-import { stripHtml, validatePassword } from '@/lib/utils';
+import { validatePassword, stripHtml } from '@/lib/utils';
 import type { ApiResponse, Post } from '@/types';
 
 /**
@@ -28,10 +28,17 @@ export const useCreateBoardPost = () => {
       content: string;
       password?: string;
     }) => {
-      const plainContent = stripHtml(data.content).trim();
+      const htmlContent = data.content.trim();
+      const plainTextContent = stripHtml(htmlContent).trim();
 
-      if (!data.title.trim() || !plainContent) {
+      // 입력 검증
+      if (!data.title.trim() || !plainTextContent) {
         throw new Error('제목과 내용을 모두 입력해주세요.');
+      }
+
+      // 순수 텍스트 기준 1000자 제한 (Frontend 검증)
+      if (plainTextContent.length > 1000) {
+        throw new Error('게시글 내용은 1000자 이하여야 합니다.');
       }
 
       let validatedPassword: number | undefined;
@@ -42,9 +49,8 @@ export const useCreateBoardPost = () => {
       }
 
       const postData = {
-        userName: isAuthenticated ? user!.memberName : null,
         title: data.title.trim(),
-        content: plainContent,
+        content: htmlContent,  // HTML 그대로 전송 (Backend는 3000자 제한)
         password: validatedPassword,
       };
 
