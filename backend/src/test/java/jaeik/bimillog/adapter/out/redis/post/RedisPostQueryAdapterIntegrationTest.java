@@ -3,6 +3,7 @@ package jaeik.bimillog.adapter.out.redis.post;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
+import jaeik.bimillog.infrastructure.adapter.out.redis.post.RedisPostKeys;
 import jaeik.bimillog.infrastructure.adapter.out.redis.post.RedisPostQueryAdapter;
 import jaeik.bimillog.testutil.RedisTestHelper;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
@@ -51,6 +52,22 @@ class RedisPostQueryAdapterIntegrationTest {
     private PostDetail testPostDetail1;
     private PostDetail testPostDetail2;
     private PostDetail testPostDetail3;
+
+    /**
+     * <h3>PostDetail을 PostSimpleDetail로 변환</h3>
+     */
+    private PostSimpleDetail toSimpleDetail(PostDetail detail) {
+        return PostSimpleDetail.builder()
+                .id(detail.getId())
+                .title(detail.getTitle())
+                .viewCount(detail.getViewCount())
+                .likeCount(detail.getLikeCount())
+                .commentCount(detail.getCommentCount())
+                .createdAt(detail.getCreatedAt())
+                .memberId(detail.getMemberId())
+                .memberName(detail.getMemberName())
+                .build();
+    }
 
     @BeforeEach
     void setUp() {
@@ -124,18 +141,24 @@ class RedisPostQueryAdapterIntegrationTest {
     void shouldReturnPostList_WhenCachedListExists() {
         // Given: RedisTemplate로 직접 저장 (CommandAdapter 의존성 제거)
         PostCacheFlag cacheType = PostCacheFlag.REALTIME;
-        String listKey = RedisTestHelper.RedisKeys.postList(cacheType);
+        String hashKey = RedisPostKeys.CACHE_METADATA_MAP.get(cacheType).key();
+        String postIdsKey = RedisPostKeys.getPostIdsStorageKey(cacheType);
 
-        // ID 목록 저장 - List에 직접 저장 (순서대로)
-        redisTemplate.opsForList().rightPush(listKey, "1");
-        redisTemplate.opsForList().rightPush(listKey, "2");
-        redisTemplate.opsForList().rightPush(listKey, "3");
-        redisTemplate.expire(listKey, java.time.Duration.ofMinutes(5));
+        // PostSimpleDetail 생성 (PostDetail에서 변환)
+        PostSimpleDetail simple1 = toSimpleDetail(testPostDetail1);
+        PostSimpleDetail simple2 = toSimpleDetail(testPostDetail2);
+        PostSimpleDetail simple3 = toSimpleDetail(testPostDetail3);
 
-        // 상세 정보 저장
-        redisTemplate.opsForValue().set(RedisTestHelper.RedisKeys.postDetail(1L), testPostDetail1, java.time.Duration.ofMinutes(5));
-        redisTemplate.opsForValue().set(RedisTestHelper.RedisKeys.postDetail(2L), testPostDetail2, java.time.Duration.ofMinutes(5));
-        redisTemplate.opsForValue().set(RedisTestHelper.RedisKeys.postDetail(3L), testPostDetail3, java.time.Duration.ofMinutes(5));
+        // Hash에 PostSimpleDetail 저장 (Field: postId, Value: PostSimpleDetail)
+        redisTemplate.opsForHash().put(hashKey, "1", simple1);
+        redisTemplate.opsForHash().put(hashKey, "2", simple2);
+        redisTemplate.opsForHash().put(hashKey, "3", simple3);
+        redisTemplate.expire(hashKey, java.time.Duration.ofMinutes(5));
+
+        // postIds 저장소에 순서 저장 (REALTIME은 Sorted Set 사용 - NOTICE가 아니므로)
+        redisTemplate.opsForZSet().add(postIdsKey, "1", 1.0);
+        redisTemplate.opsForZSet().add(postIdsKey, "2", 2.0);
+        redisTemplate.opsForZSet().add(postIdsKey, "3", 3.0);
 
         // When: 목록 조회
         List<PostSimpleDetail> result = redisPostQueryAdapter.getCachedPostList(cacheType);
@@ -156,9 +179,11 @@ class RedisPostQueryAdapterIntegrationTest {
     void shouldReturnTrue_WhenCacheKeyExists() {
         // Given: RedisTemplate로 직접 저장 (CommandAdapter 의존성 제거)
         PostCacheFlag cacheType = PostCacheFlag.WEEKLY;
-        String listKey = RedisTestHelper.RedisKeys.postList(cacheType);
-        redisTemplate.opsForList().rightPush(listKey, "1");
-        redisTemplate.expire(listKey, java.time.Duration.ofMinutes(5));
+        String hashKey = RedisPostKeys.CACHE_METADATA_MAP.get(cacheType).key();
+
+        // Hash에 데이터 저장 (hasPopularPostsCache는 Hash 키 존재 여부만 확인)
+        redisTemplate.opsForHash().put(hashKey, "1", toSimpleDetail(testPostDetail1));
+        redisTemplate.expire(hashKey, java.time.Duration.ofMinutes(5));
 
         // When: 캐시 존재 여부 확인
         boolean result = redisPostQueryAdapter.hasPopularPostsCache(cacheType);
@@ -209,24 +234,25 @@ class RedisPostQueryAdapterIntegrationTest {
     @Test
     @DisplayName("정상 케이스 - 일부 게시글만 캐시된 경우 존재하는 것만 조회")
     void shouldReturnOnlyCachedPosts_WhenSomePostsAreMissing() {
-        // Given: RedisTemplate로 직접 저장 (ID 목록은 3개, 상세는 2개만)
+        // Given: RedisTemplate로 직접 저장 (postIds는 3개, Hash에는 2개만 저장)
         PostCacheFlag cacheType = PostCacheFlag.WEEKLY;
-        String listKey = RedisTestHelper.RedisKeys.postList(cacheType);
+        String hashKey = RedisPostKeys.CACHE_METADATA_MAP.get(cacheType).key();
+        String postIdsKey = RedisPostKeys.getPostIdsStorageKey(cacheType);
 
-        // ID 목록 3개 저장
-        redisTemplate.opsForList().rightPush(listKey, "1");
-        redisTemplate.opsForList().rightPush(listKey, "2");
-        redisTemplate.opsForList().rightPush(listKey, "3");
-        redisTemplate.expire(listKey, java.time.Duration.ofMinutes(5));
+        // Hash에 PostSimpleDetail 2개만 저장 (3번은 저장하지 않음)
+        redisTemplate.opsForHash().put(hashKey, "1", toSimpleDetail(testPostDetail1));
+        redisTemplate.opsForHash().put(hashKey, "2", toSimpleDetail(testPostDetail2));
+        redisTemplate.expire(hashKey, java.time.Duration.ofMinutes(5));
 
-        // 상세 정보는 2개만 저장 (testPostDetail3은 저장하지 않음)
-        redisTemplate.opsForValue().set(RedisTestHelper.RedisKeys.postDetail(1L), testPostDetail1, java.time.Duration.ofMinutes(5));
-        redisTemplate.opsForValue().set(RedisTestHelper.RedisKeys.postDetail(2L), testPostDetail2, java.time.Duration.ofMinutes(5));
+        // postIds 저장소에는 3개 모두 저장 (WEEKLY는 Sorted Set)
+        redisTemplate.opsForZSet().add(postIdsKey, "1", 1.0);
+        redisTemplate.opsForZSet().add(postIdsKey, "2", 2.0);
+        redisTemplate.opsForZSet().add(postIdsKey, "3", 3.0);
 
         // When: 목록 조회
         List<PostSimpleDetail> result = redisPostQueryAdapter.getCachedPostList(cacheType);
 
-        // Then: 상세 정보가 있는 2개만 반환
+        // Then: Hash에 있는 2개만 반환 (필터링됨)
         assertThat(result).hasSize(2);
         assertThat(result).extracting("id").containsExactly(1L, 2L);
     }
@@ -235,13 +261,11 @@ class RedisPostQueryAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 레전드 게시글 목록 페이지네이션 조회 (첫 페이지)")
     void shouldReturnPagedList_WhenPageableProvided() {
         // Given: RedisTemplate로 직접 20개의 레전드 게시글 저장 (CommandAdapter 의존성 제거)
-        String listKey = RedisTestHelper.RedisKeys.postList(PostCacheFlag.LEGEND);
+        String hashKey = RedisPostKeys.CACHE_METADATA_MAP.get(PostCacheFlag.LEGEND).key();
+        String postIdsKey = RedisPostKeys.getPostIdsStorageKey(PostCacheFlag.LEGEND);
 
         for (long i = 1; i <= 20; i++) {
-            // List에 postId 저장 (순서대로)
-            redisTemplate.opsForList().rightPush(listKey, String.valueOf(i));
-
-            // PostDetail 생성 및 저장
+            // PostDetail 생성
             PostDetail detail = PostDetail.builder()
                     .id(i)
                     .title("게시글 " + i)
@@ -255,9 +279,13 @@ class RedisPostQueryAdapterIntegrationTest {
                     .memberName("member" + i)
                     .build();
 
-            redisTemplate.opsForValue().set(RedisTestHelper.RedisKeys.postDetail(i), detail, java.time.Duration.ofMinutes(5));
+            // Hash에 PostSimpleDetail 저장
+            redisTemplate.opsForHash().put(hashKey, String.valueOf(i), toSimpleDetail(detail));
+
+            // postIds 저장소에 순서 저장 (LEGEND는 Sorted Set)
+            redisTemplate.opsForZSet().add(postIdsKey, String.valueOf(i), (double) i);
         }
-        redisTemplate.expire(listKey, java.time.Duration.ofMinutes(5));
+        redisTemplate.expire(hashKey, java.time.Duration.ofMinutes(5));
 
         // When: 첫 페이지 조회 (페이지 0, 사이즈 10)
         Pageable pageable = PageRequest.of(0, 10);
@@ -278,13 +306,11 @@ class RedisPostQueryAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 레전드 게시글 목록 페이지네이션 조회 (두 번째 페이지)")
     void shouldReturnSecondPage_WhenPageTwoRequested() {
         // Given: RedisTemplate로 직접 20개의 레전드 게시글 저장 (CommandAdapter 의존성 제거)
-        String listKey = RedisTestHelper.RedisKeys.postList(PostCacheFlag.LEGEND);
+        String hashKey = RedisPostKeys.CACHE_METADATA_MAP.get(PostCacheFlag.LEGEND).key();
+        String postIdsKey = RedisPostKeys.getPostIdsStorageKey(PostCacheFlag.LEGEND);
 
         for (long i = 1; i <= 20; i++) {
-            // List에 postId 저장 (순서대로)
-            redisTemplate.opsForList().rightPush(listKey, String.valueOf(i));
-
-            // PostDetail 생성 및 저장
+            // PostDetail 생성
             PostDetail detail = PostDetail.builder()
                     .id(i)
                     .title("게시글 " + i)
@@ -298,9 +324,13 @@ class RedisPostQueryAdapterIntegrationTest {
                     .memberName("member" + i)
                     .build();
 
-            redisTemplate.opsForValue().set(RedisTestHelper.RedisKeys.postDetail(i), detail, java.time.Duration.ofMinutes(5));
+            // Hash에 PostSimpleDetail 저장
+            redisTemplate.opsForHash().put(hashKey, String.valueOf(i), toSimpleDetail(detail));
+
+            // postIds 저장소에 순서 저장 (LEGEND는 Sorted Set)
+            redisTemplate.opsForZSet().add(postIdsKey, String.valueOf(i), (double) i);
         }
-        redisTemplate.expire(listKey, java.time.Duration.ofMinutes(5));
+        redisTemplate.expire(hashKey, java.time.Duration.ofMinutes(5));
 
         // When: 두 번째 페이지 조회 (페이지 1, 사이즈 10)
         Pageable pageable = PageRequest.of(1, 10);
@@ -335,7 +365,7 @@ class RedisPostQueryAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 실시간 인기글 ID 목록 조회 (상위 5개)")
     void shouldReturnTop5PostIds_WhenRealtimeScoresExist() {
         // Given: 10개의 게시글에 점수 설정 (높은 점수부터)
-        String scoreKey = "cache:realtime:scores";
+        String scoreKey = RedisPostKeys.REALTIME_POPULAR_SCORE_KEY;
         for (long i = 1; i <= 10; i++) {
             double score = 11.0 - i; // 10, 9, 8, 7, 6, 5, 4, 3, 2, 1
             redisTemplate.opsForZSet().add(scoreKey, String.valueOf(i), score);
@@ -353,7 +383,7 @@ class RedisPostQueryAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 실시간 인기글 ID 목록 내림차순 정렬 확인")
     void shouldReturnInDescendingOrder_ByScore() {
         // Given: 랜덤 순서로 점수 설정
-        String scoreKey = "cache:realtime:scores";
+        String scoreKey = RedisPostKeys.REALTIME_POPULAR_SCORE_KEY;
         redisTemplate.opsForZSet().add(scoreKey, "100", 15.0);
         redisTemplate.opsForZSet().add(scoreKey, "200", 25.0);
         redisTemplate.opsForZSet().add(scoreKey, "300", 10.0);
@@ -371,7 +401,7 @@ class RedisPostQueryAdapterIntegrationTest {
     @DisplayName("경계값 - 실시간 인기글이 5개 미만인 경우")
     void shouldReturnLessThan5_WhenFewerPostsExist() {
         // Given: 3개의 게시글만 점수 설정
-        String scoreKey = "cache:realtime:scores";
+        String scoreKey = RedisPostKeys.REALTIME_POPULAR_SCORE_KEY;
         redisTemplate.opsForZSet().add(scoreKey, "1", 10.0);
         redisTemplate.opsForZSet().add(scoreKey, "2", 8.0);
         redisTemplate.opsForZSet().add(scoreKey, "3", 6.0);

@@ -3,6 +3,7 @@ package jaeik.bimillog.adapter.out.redis.post;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.infrastructure.adapter.out.redis.post.RedisPostDeleteAdapter;
+import jaeik.bimillog.infrastructure.adapter.out.redis.post.RedisPostKeys;
 import jaeik.bimillog.infrastructure.adapter.out.redis.post.RedisPostSaveAdapter;
 import jaeik.bimillog.testutil.RedisTestHelper;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
@@ -88,9 +89,9 @@ class RedisPostDeleteAdapterIntegrationTest {
     @Test
     @DisplayName("정상 케이스 - 실시간 인기글 점수 저장소에서 게시글 제거")
     void shouldRemovePostIdFromRealtimeScore() {
-        // Given: score:realtime에 postId 추가
+        // Given: post:realtime:score에 postId 추가
         Long postId = 1L;
-        String scoreKey = "score:realtime";
+        String scoreKey = RedisPostKeys.REALTIME_POPULAR_SCORE_KEY;
 
         redisTemplate.opsForZSet().add(scoreKey, postId.toString(), 100.0);
 
@@ -109,9 +110,9 @@ class RedisPostDeleteAdapterIntegrationTest {
     @Test
     @DisplayName("정상 케이스 - 게시글 목록 캐시 전체 삭제")
     void shouldClearPostListCache() {
-        // Given: posts:weekly Hash에 여러 게시글 추가
+        // Given: post:weekly:list Hash에 여러 게시글 추가
         PostCacheFlag type = PostCacheFlag.WEEKLY;
-        String hashKey = "posts:weekly";
+        String hashKey = RedisPostKeys.CACHE_METADATA_MAP.get(type).key();
 
         redisTemplate.opsForHash().put(hashKey, "1", testPostDetail);
         redisTemplate.opsForHash().put(hashKey, "2", testPostDetail);
@@ -134,23 +135,28 @@ class RedisPostDeleteAdapterIntegrationTest {
         Long postId = 1L;
 
         // 모든 캐시 타입에 게시글 추가
-        redisTemplate.opsForHash().put("posts:realtime", postId.toString(), testPostDetail);
-        redisTemplate.opsForHash().put("posts:weekly", postId.toString(), testPostDetail);
-        redisTemplate.opsForHash().put("posts:legend", postId.toString(), testPostDetail);
-        redisTemplate.opsForHash().put("posts:notice", postId.toString(), testPostDetail);
+        String realtimeKey = RedisPostKeys.CACHE_METADATA_MAP.get(PostCacheFlag.REALTIME).key();
+        String weeklyKey = RedisPostKeys.CACHE_METADATA_MAP.get(PostCacheFlag.WEEKLY).key();
+        String legendKey = RedisPostKeys.CACHE_METADATA_MAP.get(PostCacheFlag.LEGEND).key();
+        String noticeKey = RedisPostKeys.CACHE_METADATA_MAP.get(PostCacheFlag.NOTICE).key();
+
+        redisTemplate.opsForHash().put(realtimeKey, postId.toString(), testPostDetail);
+        redisTemplate.opsForHash().put(weeklyKey, postId.toString(), testPostDetail);
+        redisTemplate.opsForHash().put(legendKey, postId.toString(), testPostDetail);
+        redisTemplate.opsForHash().put(noticeKey, postId.toString(), testPostDetail);
 
         // 저장 확인
-        assertThat(redisTemplate.opsForHash().hasKey("posts:realtime", postId.toString())).isTrue();
-        assertThat(redisTemplate.opsForHash().hasKey("posts:weekly", postId.toString())).isTrue();
+        assertThat(redisTemplate.opsForHash().hasKey(realtimeKey, postId.toString())).isTrue();
+        assertThat(redisTemplate.opsForHash().hasKey(weeklyKey, postId.toString())).isTrue();
 
         // When: removePostFromListCache() 호출 (모든 타입에서 제거)
         redisPostDeleteAdapter.removePostFromListCache(postId);
 
         // Then: 모든 Hash에서 필드가 삭제됨 확인
-        assertThat(redisTemplate.opsForHash().hasKey("posts:realtime", postId.toString())).isFalse();
-        assertThat(redisTemplate.opsForHash().hasKey("posts:weekly", postId.toString())).isFalse();
-        assertThat(redisTemplate.opsForHash().hasKey("posts:legend", postId.toString())).isFalse();
-        assertThat(redisTemplate.opsForHash().hasKey("posts:notice", postId.toString())).isFalse();
+        assertThat(redisTemplate.opsForHash().hasKey(realtimeKey, postId.toString())).isFalse();
+        assertThat(redisTemplate.opsForHash().hasKey(weeklyKey, postId.toString())).isFalse();
+        assertThat(redisTemplate.opsForHash().hasKey(legendKey, postId.toString())).isFalse();
+        assertThat(redisTemplate.opsForHash().hasKey(noticeKey, postId.toString())).isFalse();
     }
 
     @Test
@@ -159,23 +165,27 @@ class RedisPostDeleteAdapterIntegrationTest {
         // Given: 모든 저장소에 postId 추가
         Long postId = 1L;
 
+        String noticeStorageKey = RedisPostKeys.getPostIdsStorageKey(PostCacheFlag.NOTICE);
+        String weeklyStorageKey = RedisPostKeys.getPostIdsStorageKey(PostCacheFlag.WEEKLY);
+        String legendStorageKey = RedisPostKeys.getPostIdsStorageKey(PostCacheFlag.LEGEND);
+
         // NOTICE: Set
-        redisTemplate.opsForSet().add("postids:notice", postId.toString());
+        redisTemplate.opsForSet().add(noticeStorageKey, postId.toString());
         // WEEKLY, LEGEND: Sorted Set
-        redisTemplate.opsForZSet().add("postids:weekly", postId.toString(), 100.0);
-        redisTemplate.opsForZSet().add("postids:legend", postId.toString(), 200.0);
+        redisTemplate.opsForZSet().add(weeklyStorageKey, postId.toString(), 100.0);
+        redisTemplate.opsForZSet().add(legendStorageKey, postId.toString(), 200.0);
 
         // 저장 확인
-        assertThat(redisTemplate.opsForSet().isMember("postids:notice", postId.toString())).isTrue();
-        assertThat(redisTemplate.opsForZSet().score("postids:weekly", postId.toString())).isNotNull();
-        assertThat(redisTemplate.opsForZSet().score("postids:legend", postId.toString())).isNotNull();
+        assertThat(redisTemplate.opsForSet().isMember(noticeStorageKey, postId.toString())).isTrue();
+        assertThat(redisTemplate.opsForZSet().score(weeklyStorageKey, postId.toString())).isNotNull();
+        assertThat(redisTemplate.opsForZSet().score(legendStorageKey, postId.toString())).isNotNull();
 
         // When: removePostIdFromStorage() 호출 (REALTIME 제외한 모든 타입에서 제거)
         redisPostDeleteAdapter.removePostIdFromStorage(postId);
 
         // Then: 모든 저장소에서 제거됨 확인
-        assertThat(redisTemplate.opsForSet().isMember("postids:notice", postId.toString())).isFalse();
-        assertThat(redisTemplate.opsForZSet().score("postids:weekly", postId.toString())).isNull();
-        assertThat(redisTemplate.opsForZSet().score("postids:legend", postId.toString())).isNull();
+        assertThat(redisTemplate.opsForSet().isMember(noticeStorageKey, postId.toString())).isFalse();
+        assertThat(redisTemplate.opsForZSet().score(weeklyStorageKey, postId.toString())).isNull();
+        assertThat(redisTemplate.opsForZSet().score(legendStorageKey, postId.toString())).isNull();
     }
 }

@@ -1,5 +1,6 @@
 package jaeik.bimillog.adapter.out.redis.post;
 
+import jaeik.bimillog.infrastructure.adapter.out.redis.post.RedisPostKeys;
 import jaeik.bimillog.infrastructure.adapter.out.redis.post.RedisPostUpdateAdapter;
 import jaeik.bimillog.testutil.RedisTestHelper;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
@@ -53,7 +54,7 @@ class RedisPostUpdateAdapterIntegrationTest {
         // Given
         Long postId = 1L;
         double score = 4.0; // 추천 점수
-        String scoreKey = "cache:realtime:scores";
+        String scoreKey = RedisPostKeys.REALTIME_POPULAR_SCORE_KEY;
 
         // When: 점수 증가
         redisPostUpdateAdapter.incrementRealtimePopularScore(postId, score);
@@ -68,7 +69,7 @@ class RedisPostUpdateAdapterIntegrationTest {
     void shouldAccumulateScore_WhenMultipleIncrementsOccur() {
         // Given
         Long postId = 1L;
-        String scoreKey = "cache:realtime:scores";
+        String scoreKey = RedisPostKeys.REALTIME_POPULAR_SCORE_KEY;
 
         // When: 여러 번 점수 증가 (조회 2점 + 댓글 3점 + 추천 4점)
         redisPostUpdateAdapter.incrementRealtimePopularScore(postId, 2.0); // 조회
@@ -84,7 +85,7 @@ class RedisPostUpdateAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 실시간 인기글 점수 감쇠 적용 (Lua 스크립트)")
     void shouldApplyDecay_WhenScoreDecayInvoked() {
         // Given: 여러 게시글에 초기 점수 설정
-        String scoreKey = "cache:realtime:scores";
+        String scoreKey = RedisPostKeys.REALTIME_POPULAR_SCORE_KEY;
         redisTemplate.opsForZSet().add(scoreKey, "1", 10.0);
         redisTemplate.opsForZSet().add(scoreKey, "2", 5.0);
         redisTemplate.opsForZSet().add(scoreKey, "3", 2.0);
@@ -106,7 +107,7 @@ class RedisPostUpdateAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 실시간 인기글 점수 감쇠 시 임계값 이하 제거")
     void shouldRemovePostsBelowThreshold_WhenScoreDecayApplied() {
         // Given: 임계값(1.0) 근처의 점수 설정
-        String scoreKey = "cache:realtime:scores";
+        String scoreKey = RedisPostKeys.REALTIME_POPULAR_SCORE_KEY;
         redisTemplate.opsForZSet().add(scoreKey, "1", 10.0);
         redisTemplate.opsForZSet().add(scoreKey, "2", 1.5);  // 감쇠 후 1.35 (유지)
         redisTemplate.opsForZSet().add(scoreKey, "3", 1.1);  // 감쇠 후 0.99 (제거)

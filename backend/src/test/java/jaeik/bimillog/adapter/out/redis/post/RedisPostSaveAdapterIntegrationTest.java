@@ -2,6 +2,7 @@ package jaeik.bimillog.adapter.out.redis.post;
 
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
+import jaeik.bimillog.infrastructure.adapter.out.redis.post.RedisPostKeys;
 import jaeik.bimillog.infrastructure.adapter.out.redis.post.RedisPostSaveAdapter;
 import jaeik.bimillog.testutil.RedisTestHelper;
 import jaeik.bimillog.testutil.TestContainersConfiguration;
@@ -68,12 +69,12 @@ class RedisPostSaveAdapterIntegrationTest {
     }
 
     @Test
-    @DisplayName("정상 케이스 - 인기글 postId 영구 저장소 저장 (postids:weekly)")
+    @DisplayName("정상 케이스 - 인기글 postId 영구 저장소 저장 (post:weekly:postids)")
     void shouldCachePostIdsOnly_WhenValidPostsProvided() {
         // Given
         List<Long> postIds = List.of(1L, 2L, 3L);
         PostCacheFlag cacheType = PostCacheFlag.WEEKLY;
-        String storageKey = "postids:weekly";  // postId 영구 저장소 (Sorted Set)
+        String storageKey = RedisPostKeys.getPostIdsStorageKey(cacheType);  // postId 영구 저장소 (Sorted Set)
 
         // When
         redisPostSaveAdapter.cachePostIdsOnly(cacheType, postIds);
@@ -126,7 +127,7 @@ class RedisPostSaveAdapterIntegrationTest {
         // Given
         List<Long> emptyPostIds = List.of();
         PostCacheFlag cacheType = PostCacheFlag.WEEKLY;
-        String storageKey = "postids:weekly";
+        String storageKey = RedisPostKeys.getPostIdsStorageKey(cacheType);
 
         // When: 빈 목록으로 저장 (아무 동작도 하지 않아야 함)
         redisPostSaveAdapter.cachePostIdsOnly(cacheType, emptyPostIds);
