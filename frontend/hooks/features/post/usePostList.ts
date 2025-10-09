@@ -87,7 +87,7 @@ export function usePopularPostsTabs() {
     queryKey: queryKeys.post.realtimePopular(),
     queryFn: postQuery.getRealtimePosts,
     enabled: activeTab === 'realtime',
-    staleTime: 5 * 60 * 1000,
+    staleTime: 2 * 60 * 1000, // 2분 (실시간성 강화)
     gcTime: 10 * 60 * 1000,
   });
 
@@ -96,7 +96,7 @@ export function usePopularPostsTabs() {
     queryKey: queryKeys.post.weeklyPopular(),
     queryFn: postQuery.getWeeklyPosts,
     enabled: activeTab === 'weekly',
-    staleTime: 5 * 60 * 1000,
+    staleTime: 5 * 60 * 1000, // 5분
     gcTime: 10 * 60 * 1000,
   });
 
@@ -108,7 +108,7 @@ export function usePopularPostsTabs() {
     }),
     queryFn: () => postQuery.getLegend(legendPagination.currentPage, legendPagination.pageSize),
     enabled: activeTab === 'legend',
-    staleTime: 5 * 60 * 1000,
+    staleTime: 10 * 60 * 1000, // 10분 (레전드는 자주 변경되지 않음)
     gcTime: 10 * 60 * 1000,
   });
 

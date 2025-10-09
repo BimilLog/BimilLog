@@ -121,7 +121,7 @@ public class PostCommandController {
     }
 
     /**
-     * <h3>게시글 추천 토글 API</h3>
+     * <h3>게시글 추천/추천 취소 API</h3>
      * <p>게시글 추천/추천 취소를 토글 방식으로 처리합니다.</p>
      *
      * @param postId      추천 토글할 게시글 ID

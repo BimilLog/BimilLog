@@ -12,7 +12,7 @@ import lombok.experimental.SuperBuilder;
 /**
  * <h2>댓글 엔티티</h2>
  * <p>게시글에 대한 댓글 정보를 저장하는 엔티티입니다.</p>
- * <p>댓글 내용은 255자까지 허용합니다.</p>
+ * <p>사용자 입력은 최대 255자까지 허용하며, 서버는 줄바꿈 등 특수문자 처리를 위해 1000자까지 저장합니다.</p>
  * <p>익명 댓글과 회원 댓글을 모두 지원하며, 계층 구조를 가집니다.</p>
  *
  * @author Jaeik
@@ -47,7 +47,7 @@ public class Comment extends BaseEntity {
     private Member member;
 
     @NotNull
-    @Column(nullable = false) // 255자 허용
+    @Column(nullable = false, length = 1000)
     private String content;
 
     @NotNull

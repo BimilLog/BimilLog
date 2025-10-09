@@ -71,28 +71,43 @@ export const CommentForm: React.FC<CommentFormProps> = ({
               )}
             </div>
           )}
-          <div className="flex space-x-4">
-            <Textarea
-              placeholder="댓글을 입력하세요..."
-              {...register("comment", {
-                required: "댓글을 입력해주세요",
-                minLength: {
-                  value: 1,
-                  message: "댓글을 입력해주세요",
-                },
-              })}
-              className="flex-1"
-            />
-            <Button
-              type="submit"
-              disabled={
-                isSubmittingComment ||
-                !comment.trim() ||
-                (!isAuthenticated && (!password || !/^[1-9]\d{3}$/.test(password)))
-              }
-            >
-              <Send className="w-4 h-4 stroke-blue-600 fill-blue-100" />
-            </Button>
+          <div className="space-y-2">
+            <div className="flex space-x-4">
+              <Textarea
+                placeholder="댓글을 입력하세요..."
+                {...register("comment", {
+                  required: "댓글을 입력해주세요",
+                  minLength: {
+                    value: 1,
+                    message: "댓글을 입력해주세요",
+                  },
+                  maxLength: {
+                    value: 255,
+                    message: "댓글은 최대 255자까지 입력 가능합니다"
+                  }
+                })}
+                maxLength={255}
+                className="flex-1"
+              />
+              <Button
+                type="submit"
+                disabled={
+                  isSubmittingComment ||
+                  !comment.trim() ||
+                  (!isAuthenticated && (!password || !/^[1-9]\d{3}$/.test(password)))
+                }
+              >
+                <Send className="w-4 h-4 stroke-blue-600 fill-blue-100" />
+              </Button>
+            </div>
+            {comment && comment.length > 0 && (
+              <div className="text-sm text-gray-500 text-right">
+                {comment.length} / 255자
+              </div>
+            )}
+            {errors.comment && (
+              <p className="text-red-500 text-sm">{errors.comment.message}</p>
+            )}
           </div>
         </form>
       </CardContent>

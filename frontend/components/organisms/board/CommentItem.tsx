@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useRef, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { Button, Input, Textarea, SafeHTML, Spinner, TimeBadge } from "@/components";
 import { Button as FlowbiteButton } from "flowbite-react";
@@ -13,7 +13,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/molecules/dropdown-menu";
-import { useState } from "react";
 import Link from "next/link";
 import { useToast } from "@/hooks";
 import { Popover } from "flowbite-react";
@@ -45,6 +44,7 @@ interface CommentItemProps {
   replyPassword: string;
   isAuthenticated: boolean;
   isSubmittingReply: boolean;
+  isUpdatingComment: boolean;
   postId: number;
   onEditComment: (comment: Comment) => void;
   onUpdateComment: () => void;
@@ -74,6 +74,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
   replyPassword,
   isAuthenticated,
   isSubmittingReply,
+  isUpdatingComment,
   postId,
   onEditComment,
   onUpdateComment,
@@ -93,6 +94,9 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
   const { user } = useAuth();
   const { showFeedback, showError } = useToast();
 
+  // Textarea 자동 포커스를 위한 ref
+  const editTextareaRef = useRef<HTMLTextAreaElement>(null);
+
   // 댓글 계층구조 처리: 최대 3단계까지만 지원하여 모바일에서도 읽기 편하도록 제한
   const maxDepth = 3; // 최대 들여쓰기 레벨
   const actualDepth = Math.min(depth, maxDepth); // depth가 3을 초과하면 3으로 제한
@@ -111,6 +115,13 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
       setIsRepliesExpanded(true);
     }
   }, [comment.replies]);
+
+  // 수정 모드 진입 시 Textarea로 자동 포커스
+  useEffect(() => {
+    if (editingComment?.id === comment.id && editTextareaRef.current) {
+      editTextareaRef.current.focus();
+    }
+  }, [editingComment, comment.id]);
 
   // 댓글 신고 처리 함수: 비로그인 사용자도 신고 가능
   // v2 API를 사용하여 신고 타입과 대상 ID, 사유를 전송
@@ -163,18 +174,22 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
         {editingComment?.id === comment.id ? (
           <div className="p-3 sm:p-4 bg-gray-100 rounded-lg">
             <Textarea
+              ref={editTextareaRef}
               value={editContent}
               onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setEditContent(e.target.value)}
               className="min-h-[80px]"
+              maxLength={255}
+              disabled={isUpdatingComment}
             />
             {/* 익명 댓글 수정 시에만 비밀번호 입력 필요 */}
-            {!isMyComment(comment) && (
+            {(comment.memberName === "익명" || comment.memberName === null) && (
               <Input
                 type="password"
                 placeholder="비밀번호 (1000~9999)"
                 className="mt-2"
                 value={editPassword}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditPassword(e.target.value)}
+                disabled={isUpdatingComment}
               />
             )}
             <div className="flex flex-col sm:flex-row gap-2 sm:justify-end mt-3">
@@ -182,14 +197,23 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
                 onClick={onUpdateComment}
                 size="sm"
                 className="w-full sm:w-auto"
+                disabled={isUpdatingComment}
               >
-                수정완료
+                {isUpdatingComment ? (
+                  <>
+                    <Spinner size="sm" className="mr-2" />
+                    수정 중...
+                  </>
+                ) : (
+                  "수정완료"
+                )}
               </Button>
               <Button
                 variant="ghost"
                 onClick={onCancelEdit}
                 size="sm"
                 className="w-full sm:w-auto"
+                disabled={isUpdatingComment}
               >
                 취소
               </Button>
@@ -348,6 +372,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
                     value={replyContent}
                     onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setReplyContent(e.target.value)}
                     className="min-h-[80px] resize-none"
+                    maxLength={255}
                   />
                   <div className="flex gap-2">
                     <Button
@@ -392,6 +417,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
               replyPassword={replyPassword}
               isAuthenticated={isAuthenticated}
               isSubmittingReply={isSubmittingReply}
+              isUpdatingComment={isUpdatingComment}
               postId={postId}
               onEditComment={onEditComment}
               onUpdateComment={onUpdateComment}
@@ -447,6 +473,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
               replyPassword={replyPassword}
               isAuthenticated={isAuthenticated}
               isSubmittingReply={isSubmittingReply}
+              isUpdatingComment={isUpdatingComment}
               postId={postId}
               onEditComment={onEditComment}
               onUpdateComment={onUpdateComment}
@@ -499,6 +526,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
   if (prevProps.replyPassword !== nextProps.replyPassword) return false;
   if (prevProps.isAuthenticated !== nextProps.isAuthenticated) return false;
   if (prevProps.isSubmittingReply !== nextProps.isSubmittingReply) return false;
+  if (prevProps.isUpdatingComment !== nextProps.isUpdatingComment) return false;
 
   // 답글 개수 비교
   if ((prevProps.comment.replies?.length || 0) !== (nextProps.comment.replies?.length || 0)) return false;

@@ -408,9 +408,18 @@ export const BoardTable = memo<BoardTableProps>(({
               <TableRow>
                 <TableCell
                   colSpan={6}
-                  className="text-center py-12 text-gray-500"
+                  className="text-center py-12"
                 >
-                  {isSearching ? "검색 결과가 없습니다." : (variant === "all" ? "게시글이 없습니다." : "인기글이 없습니다.")}
+                  {isSearching ? (
+                    <span className="text-gray-500">검색 결과가 없습니다.</span>
+                  ) : variant === "all" ? (
+                    <span className="text-gray-500">게시글이 없습니다.</span>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2">
+                      <span className="text-gray-700 font-medium">아직 인기글이 없어요 😊</span>
+                      <span className="text-sm text-gray-500">게시글을 작성하고 좋아요를 받아보세요!</span>
+                    </div>
+                  )}
                 </TableCell>
               </TableRow>
             )}
@@ -434,8 +443,17 @@ export const BoardTable = memo<BoardTableProps>(({
           ))
         ) : (
           <Card variant="elevated">
-            <div className="p-8 text-center text-brand-secondary">
-              {isSearching ? "검색 결과가 없습니다." : (variant === "all" ? "게시글이 없습니다." : "인기글이 없습니다.")}
+            <div className="p-8 text-center">
+              {isSearching ? (
+                <span className="text-brand-secondary">검색 결과가 없습니다.</span>
+              ) : variant === "all" ? (
+                <span className="text-brand-secondary">게시글이 없습니다.</span>
+              ) : (
+                <div className="flex flex-col items-center gap-2">
+                  <span className="text-gray-700 font-medium">아직 인기글이 없어요 😊</span>
+                  <span className="text-sm text-gray-500">게시글을 작성하고 좋아요를 받아보세요!</span>
+                </div>
+              )}
             </div>
           </Card>
         )}

@@ -142,6 +142,8 @@ const ActivityTabContent: React.FC<ActivityTabContentProps> = memo(({
         actionHref: "/board"
       },
       "liked-comments": {
+        title: "아직 추천한 댓글이 없어요",
+        description: "마음에 드는 댓글에 추천을 눌러보세요!",
         actionLabel: "커뮤니티 둘러보기",
         actionHref: "/board"
       }

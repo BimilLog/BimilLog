@@ -28,6 +28,7 @@ interface CommentSectionProps {
   replyContent: string;
   replyPassword: string;
   isSubmittingReply: boolean;
+  isUpdatingComment: boolean;
 
   onEditComment: (comment: Comment) => void;
   onUpdateComment: () => void;
@@ -79,6 +80,7 @@ const CommentSection = memo(({
   replyContent,
   replyPassword,
   isSubmittingReply,
+  isUpdatingComment,
 
   onEditComment,
   onUpdateComment,
@@ -133,6 +135,7 @@ const CommentSection = memo(({
         replyPassword={replyPassword}
         isAuthenticated={isAuthenticated}
         isSubmittingReply={isSubmittingReply}
+        isUpdatingComment={isUpdatingComment}
         hasMoreComments={hasMoreComments}
         isLoadingMore={isLoadingMore}
         onEditComment={onEditComment}

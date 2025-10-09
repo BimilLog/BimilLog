@@ -44,7 +44,7 @@ public class Post extends BaseEntity {
     private String title;
 
     @NotNull
-    @Column(columnDefinition = "TEXT", nullable = false) // 내용 1000자 허용
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 
     @NotNull

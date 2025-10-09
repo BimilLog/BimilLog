@@ -26,8 +26,9 @@ public class PostCreateDTO {
     @Size(min = 2, max = 30, message = "게시글 제목은 2자 이상 30자 이하여야 합니다")
     private String title;
 
+    // 실제로는 3000자까지 허용하지만 이는 Html등을 저장하기 위해서고 사용자에게 안내는 1000자로 함 프론트에도 1000자로 안내
     @NotBlank(message = "게시글 내용은 필수입니다")
-    @Size(min = 10, max = 3000, message = "게시글 내용은 10자 이상 3000자 이하여야 합니다")
+    @Size(min = 10, max = 3000, message = "게시글 내용은 10자 이상 1000자 이하여야 합니다")
     private String content;
 
     @Min(value = 1000, message = "비밀번호는 4자리 숫자여야 합니다")

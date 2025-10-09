@@ -108,6 +108,7 @@ public class CommentQueryController {
     /**
      * <h3>사용자가 추천한 댓글 목록 조회 API</h3>
      * <p>현재 로그인한 사용자가 추천한 댓글 목록을 페이지네이션으로 조회합니다.</p>
+     * <p>정렬 순서는 QueryAdapter에서 하드코딩됨 (comment.createdAt DESC)</p>
      *
      * @param page        페이지 번호
      * @param size        페이지 크기
@@ -120,7 +121,7 @@ public class CommentQueryController {
     public ResponseEntity<Page<SimpleCommentDTO>> getUserLikedComments(@RequestParam(defaultValue = "0") int page,
                                                                        @RequestParam(defaultValue = "10") int size,
                                                                        @AuthenticationPrincipal CustomUserDetails userDetails) {
-        PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        PageRequest pageable = PageRequest.of(page, size);
         Page<SimpleCommentInfo> likedCommentsInfo = commentQueryUseCase.getMemberLikedComments(userDetails.getMemberId(), pageable);
         Page<SimpleCommentDTO> likedComments = likedCommentsInfo.map(this::convertToSimpleCommentDTO);
         return ResponseEntity.ok(likedComments);

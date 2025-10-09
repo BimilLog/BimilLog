@@ -36,6 +36,7 @@ describe("WriteForm", () => {
     user: null,
     isAuthenticated: false,
     isPreview: false,
+    plainTextLength: 0,
   };
 
   beforeEach(() => {

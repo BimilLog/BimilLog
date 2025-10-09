@@ -57,11 +57,15 @@ export const useUpdateComment = () => {
         queryClient.invalidateQueries({ queryKey: queryKeys.post.detail(variables.postId) });
 
         showToast({ type: 'success', message: '댓글이 수정되었습니다.' });
+      } else {
+        // response.success가 false인 경우 백엔드 에러 메시지 표시
+        showToast({ type: 'error', message: response.error || '댓글 수정에 실패했습니다.' });
       }
     },
-    onError: (error) => {
-      const errorMessage = error instanceof Error ? error.message : '댓글 수정에 실패했습니다.';
-      showToast({ type: 'error', message: errorMessage });
+    onError: (error: any) => {
+      // 네트워크 에러 및 백엔드 에러 처리
+      const message = error?.error || error?.message || '댓글 수정에 실패했습니다.';
+      showToast({ type: 'error', message });
     },
   });
 };
@@ -91,9 +95,10 @@ export const useDeleteComment = () => {
         showToast({ type: 'success', message: '댓글이 삭제되었습니다.' });
       }
     },
-    onError: (error) => {
-      const errorMessage = error instanceof Error ? error.message : '댓글 삭제에 실패했습니다.';
-      showToast({ type: 'error', message: errorMessage });
+    onError: (error: any) => {
+      // 네트워크 에러 및 백엔드 에러 처리
+      const message = error?.error || error?.message || '댓글 삭제에 실패했습니다.';
+      showToast({ type: 'error', message });
     },
   });
 };

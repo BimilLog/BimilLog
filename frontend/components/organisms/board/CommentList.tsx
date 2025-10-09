@@ -21,6 +21,7 @@ interface CommentListProps {
   replyPassword: string;
   isAuthenticated: boolean;
   isSubmittingReply: boolean;
+  isUpdatingComment: boolean;
   hasMoreComments: boolean;
   isLoadingMore: boolean;
   onEditComment: (comment: Comment) => void;
@@ -53,6 +54,7 @@ export const CommentList = React.memo<CommentListProps>(({
   replyPassword,
   isAuthenticated,
   isSubmittingReply,
+  isUpdatingComment,
   hasMoreComments,
   isLoadingMore,
   onEditComment,
@@ -102,6 +104,7 @@ export const CommentList = React.memo<CommentListProps>(({
                   replyPassword={replyPassword}
                   isAuthenticated={isAuthenticated}
                   isSubmittingReply={isSubmittingReply}
+                  isUpdatingComment={isUpdatingComment}
                   onEditComment={onEditComment}
                   onUpdateComment={onUpdateComment}
                   onCancelEdit={onCancelEdit}

@@ -1,6 +1,7 @@
 import { memo } from "react";
-import { Edit, Trash2, Megaphone } from "lucide-react";
+import { Edit, Trash2, Megaphone, Loader2 } from "lucide-react";
 import { Button } from "@/components";
+import { Tooltip } from "flowbite-react";
 import type { Post } from "@/lib/api";
 import { useAuth } from "@/hooks";
 import { useToggleNotice } from "@/hooks/api/usePostMutations";
@@ -21,10 +22,11 @@ const PostActions = memo(({
   onDeletePost,
 }: PostActionsProps) => {
   const { user } = useAuth();
-  const { mutate: toggleNotice } = useToggleNotice();
+  const { mutate: toggleNotice, isPending: isTogglingNotice } = useToggleNotice();
   const isAdmin = user?.role === 'ADMIN';
 
   const handleToggleNotice = () => {
+    if (isTogglingNotice) return; // 이중 클릭 방지
     toggleNotice(post.id);
   };
 
@@ -33,15 +35,27 @@ const PostActions = memo(({
       <div className="flex items-center space-x-2">
         {/* 공지사항 토글 버튼 - 관리자 전용 */}
         {isAdmin && (
-          <Button
-            variant={post.isNotice ? "default" : "outline"}
-            size="sm"
-            onClick={handleToggleNotice}
-            className="flex items-center space-x-1"
+          <Tooltip
+            content={post.isNotice ? "공지사항을 일반 게시글로 변경합니다" : "게시글을 공지사항으로 등록합니다"}
+            placement="top"
           >
-            <Megaphone className="w-4 h-4" />
-            <span>{post.isNotice ? "공지 해제" : "공지 설정"}</span>
-          </Button>
+            <Button
+              variant={post.isNotice ? "default" : "outline"}
+              size="sm"
+              onClick={handleToggleNotice}
+              disabled={isTogglingNotice}
+              className="flex items-center space-x-1"
+              aria-label={post.isNotice ? "공지사항 해제" : "공지사항으로 설정"}
+              role="button"
+            >
+              {isTogglingNotice ? (
+                <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+              ) : (
+                <Megaphone className="w-4 h-4" aria-hidden="true" />
+              )}
+              <span>{post.isNotice ? "공지 해제" : "공지 설정"}</span>
+            </Button>
+          </Tooltip>
         )}
 
         {/* 수정/삭제 버튼 - 작성자 본인이거나 관리자인 경우만 표시 */}

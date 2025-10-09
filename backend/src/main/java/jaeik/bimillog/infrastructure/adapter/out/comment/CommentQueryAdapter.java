@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 
 import static jaeik.bimillog.infrastructure.adapter.out.comment.CommentProjection.getCommentInfoProjectionWithUserLike;
 import static jaeik.bimillog.infrastructure.adapter.out.comment.CommentProjection.getSimpleCommentInfoProjection;
+import static jaeik.bimillog.infrastructure.adapter.out.comment.CommentProjection.getSimpleCommentInfoProjectionWithAllLikes;
 
 /**
  * <h2>댓글 쿼리 어댑터</h2>
@@ -91,6 +92,13 @@ public class CommentQueryAdapter implements CommentQueryPort {
      * <p>최신 추천 댓글부터 과거 순서로 정렬하여 반환합니다.</p>
      * <p>{@link CommentQueryService}에서 사용자 추천한 댓글 목록 조회 시 호출됩니다.</p>
      *
+     * <h4>중요: likeCount 정확성을 위한 JOIN 구조</h4>
+     * <ul>
+     *   <li>userLike: WHERE 조건 대신 JOIN ON에서 필터링 (현재 사용자가 추천한 댓글만)</li>
+     *   <li>allLikes: LEFT JOIN으로 전체 좋아요 수 카운트 (모든 사용자의 좋아요)</li>
+     *   <li>userCommentLike: Projection용 (사용자 추천 여부 확인)</li>
+     * </ul>
+     *
      * @param memberId   사용자 ID
      * @param pageable 페이지 정보
      * @return Page<SimpleCommentInfo> 추천한 댓글 목록 페이지
@@ -99,20 +107,28 @@ public class CommentQueryAdapter implements CommentQueryPort {
      */
     @Override
     public Page<SimpleCommentInfo> findLikedCommentsByMemberId(Long memberId, Pageable pageable) {
-        // N+1 문제 해결을 위한 별도 Q타입 생성
-        QCommentLike userCommentLike = new QCommentLike("userCommentLike");
+        // N+1 문제 해결 및 정확한 likeCount를 위한 별도 Q타입 생성
+        QCommentLike userLike = new QCommentLike("userLike");  // 필터링용
+        QCommentLike allLikes = new QCommentLike("allLikes");  // 전체 좋아요 카운트용
+        QCommentLike userCommentLike = new QCommentLike("userCommentLike");  // Projection용
 
-        // 쿼리 빌딩 - memberId가 있으므로 항상 userLike 조인
+        // 쿼리 빌딩 - JOIN ON 절에서 필터링하여 WHERE 절 사용 방지
         List<SimpleCommentInfo> content = jpaQueryFactory
-                .select(getSimpleCommentInfoProjection(userCommentLike))
+                .select(getSimpleCommentInfoProjectionWithAllLikes(allLikes, userCommentLike))
                 .from(comment)
-                .join(commentLike).on(comment.id.eq(commentLike.comment.id))
+                // 필터링용: 현재 사용자가 추천한 댓글만 (WHERE 대신 JOIN ON 사용)
+                .join(userLike).on(
+                        userLike.comment.id.eq(comment.id)
+                        .and(userLike.member.id.eq(memberId))
+                )
+                // 전체 좋아요 카운트용: 모든 사용자의 좋아요
+                .leftJoin(allLikes).on(allLikes.comment.id.eq(comment.id))
                 .leftJoin(comment.member, member)
+                // Projection용: 사용자 추천 여부 확인
                 .leftJoin(userCommentLike).on(
                         userCommentLike.comment.id.eq(comment.id)
                         .and(userCommentLike.member.id.eq(memberId))
                 )
-                .where(commentLike.member.id.eq(memberId))
                 .groupBy(comment.id, member.memberName, comment.createdAt, userCommentLike.id)
                 .orderBy(comment.createdAt.desc())
                 .offset(pageable.getOffset())

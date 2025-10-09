@@ -77,10 +77,10 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
 
   // TanStack Query mutation hooks
   const { mutate: likePost } = useLikePost();
-  const { mutate: deletePost } = useDeletePost();
+  const { mutate: deletePost, isPending: isDeletingPost } = useDeletePost();
   const { mutate: createComment, isPending: isCreatingComment } = useCreateComment();
-  const { mutate: updateComment } = useUpdateComment();
-  const { mutate: deleteComment } = useDeleteComment();
+  const { mutate: updateComment, isPending: isUpdatingComment } = useUpdateComment();
+  const { mutate: deleteComment, isPending: isDeletingComment } = useDeleteComment();
   const { mutate: likeComment } = useLikeCommentOptimized(Number(postId));
 
   // 댓글 편집 및 답글 상태 관리
@@ -93,6 +93,11 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
 
   // 삭제 확인 모달 상태 관리
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showCommentDeleteModal, setShowCommentDeleteModal] = useState(false);
+  const [targetDeleteComment, setTargetDeleteComment] = useState<Comment | null>(null);
+
+  // 비밀번호 모달 에러 상태
+  const [passwordError, setPasswordError] = useState("");
 
   // 댓글 작성 핸들러
   const handleCommentSubmitForSection = (content: string, password: string) => {
@@ -121,11 +126,36 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
   const handleUpdateComment = async () => {
     if (!editingComment) return;
 
+    // 내용 검증
+    const trimmedContent = editContent.trim();
+    if (!trimmedContent) {
+      showToast({ type: 'error', message: '댓글 내용을 입력해주세요.' });
+      return;
+    }
+    if (trimmedContent.length > 255) {
+      showToast({ type: 'error', message: '댓글은 최대 255자까지 입력 가능합니다.' });
+      return;
+    }
+
+    // 익명 댓글 수정 시 비밀번호 검증
+    const isAnonymous = editingComment.memberName === "익명" || editingComment.memberName === null;
+    if (isAnonymous) {
+      if (!editPassword) {
+        showToast({ type: 'error', message: '비밀번호를 입력해주세요.' });
+        return;
+      }
+      const passwordNum = Number(editPassword);
+      if (isNaN(passwordNum) || passwordNum < 1000 || passwordNum > 9999) {
+        showToast({ type: 'error', message: '비밀번호는 4자리 숫자여야 합니다.' });
+        return;
+      }
+    }
+
     updateComment(
       {
         commentId: editingComment.id,
         postId: Number(postId),
-        content: editContent,
+        content: trimmedContent,
         password: editPassword ? Number(editPassword) : undefined,
       },
       {
@@ -135,11 +165,22 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
           setEditContent("");
           setEditPassword("");
         },
+        onError: () => {
+          // 에러 발생 시에도 상태 초기화하지 않음 (사용자가 다시 시도할 수 있도록)
+          // 토스트 메시지는 mutation hook에서 처리됨
+        },
       }
     );
   };
 
   const handleCancelEdit = () => {
+    // 내용이 변경되었으면 확인
+    if (editingComment && editContent !== editingComment.content) {
+      const confirmed = window.confirm("수정 중인 내용이 있습니다. 취소하시겠습니까?");
+      if (!confirmed) {
+        return;
+      }
+    }
     setEditingComment(null);
     setEditContent("");
     setEditPassword("");
@@ -223,8 +264,15 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
 
   // 삭제 확인 후 실제 삭제 실행
   const handleConfirmDelete = async () => {
-    setShowDeleteModal(false);
-    deletePost({ postId: Number(postId) });
+    deletePost({ postId: Number(postId) }, {
+      onSuccess: () => {
+        setShowDeleteModal(false);
+      },
+      onError: () => {
+        // 에러 발생 시 모달 닫기 (토스트는 mutation hook에서 처리)
+        setShowDeleteModal(false);
+      },
+    });
   };
 
   // 댓글 삭제 핸들러
@@ -238,12 +286,30 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
       // 익명 댓글의 경우 비밀번호 모달
       openPasswordModal("댓글 삭제", "comment", comment);
     } else {
-      // 로그인 사용자 댓글은 바로 삭제
-      deleteComment({
-        commentId: comment.id,
-        postId: Number(postId),
-      });
+      // 로그인 사용자 댓글: 확인 모달 표시
+      setTargetDeleteComment(comment);
+      setShowCommentDeleteModal(true);
     }
+  };
+
+  // 댓글 삭제 확인 후 실제 삭제 실행
+  const handleConfirmCommentDelete = async () => {
+    if (!targetDeleteComment) return;
+
+    deleteComment({
+      commentId: targetDeleteComment.id,
+      postId: Number(postId),
+    }, {
+      onSuccess: () => {
+        setShowCommentDeleteModal(false);
+        setTargetDeleteComment(null);
+      },
+      onError: () => {
+        // 에러 발생 시 모달 닫기 (토스트는 mutation hook에서 처리)
+        setShowCommentDeleteModal(false);
+        setTargetDeleteComment(null);
+      },
+    });
   };
 
   // 댓글 좋아요 핸들러
@@ -257,6 +323,9 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
 
   // 비밀번호 모달 제출 - 게시글/댓글 삭제 모드에 따라 분기 처리
   const handlePasswordSubmit = async () => {
+    // 에러 초기화
+    setPasswordError("");
+
     if (deleteMode === "post") {
       deletePost({
         postId: Number(postId),
@@ -265,6 +334,17 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
         onSuccess: () => {
           // 삭제 성공 시 모달 상태 초기화
           resetPasswordModal();
+          setPasswordError("");
+        },
+        onError: (error: unknown) => {
+          // 에러 발생 시 에러 메시지 표시 (모달은 닫지 않음)
+          const errorMessage =
+            (error && typeof error === 'object' && 'error' in error && typeof error.error === 'string')
+              ? error.error
+              : (error instanceof Error)
+                ? error.message
+                : "비밀번호가 올바르지 않습니다.";
+          setPasswordError(errorMessage);
         },
       });
     } else if (deleteMode === "comment" && targetComment) {
@@ -276,6 +356,17 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
         onSuccess: () => {
           // 삭제 성공 시 모달 상태 초기화
           resetPasswordModal();
+          setPasswordError("");
+        },
+        onError: (error: unknown) => {
+          // 에러 발생 시 에러 메시지 표시 (모달은 닫지 않음)
+          const errorMessage =
+            (error && typeof error === 'object' && 'error' in error && typeof error.error === 'string')
+              ? error.error
+              : (error instanceof Error)
+                ? error.message
+                : "비밀번호가 올바르지 않습니다.";
+          setPasswordError(errorMessage);
         },
       });
     }
@@ -376,6 +467,7 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
           replyContent={replyContent}
           replyPassword={replyPassword}
           isSubmittingReply={isCreatingComment}
+          isUpdatingComment={isUpdatingComment}
 
           onEditComment={handleEditComment}
           onUpdateComment={handleUpdateComment}
@@ -399,12 +491,10 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
             const element = document.getElementById(`comment-${commentId}`);
             if (element) {
               // 부모 댓글 자동 펼치기 (대댓글인 경우)
-              const parentComment = comments.find(c =>
-                c.replies?.some(r => r.id === commentId)
-              );
-              if (parentComment) {
-                // 부모 댓글 내부의 "답글 더보기" 버튼 클릭 (접혀있는 경우)
-                const toggleButton = document.querySelector(`#comment-${parentComment.id} button[class*="답글"]`);
+              const clickedComment = comments.find(c => c.id === commentId);
+              if (clickedComment?.parentId) {
+                // 답글인 경우, 부모 댓글 내부의 "답글 더보기" 버튼 클릭 (접혀있는 경우)
+                const toggleButton = document.querySelector(`#comment-${clickedComment.parentId} button[class*="답글"]`);
                 if (toggleButton && toggleButton.textContent?.includes('더보기')) {
                   (toggleButton as HTMLButtonElement).click();
                 }
@@ -446,8 +536,13 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
           password={modalPassword}
           onPasswordChange={setModalPassword}
           onConfirm={handlePasswordSubmit}
-          onCancel={resetPasswordModal}
+          onCancel={() => {
+            resetPasswordModal();
+            setPasswordError("");
+          }}
           title={passwordModalTitle}
+          error={passwordError}
+          isLoading={deleteMode === "post" ? isDeletingPost : isDeletingComment}
         />
 
         {/* 게시글 삭제 확인 모달 */}
@@ -459,6 +554,22 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
           message="이 작업은 되돌릴 수 없습니다. 게시글과 모든 댓글이 삭제됩니다."
           confirmText="삭제"
           cancelText="취소"
+          isLoading={isDeletingPost}
+        />
+
+        {/* 댓글 삭제 확인 모달 */}
+        <DeleteConfirmModal
+          isOpen={showCommentDeleteModal}
+          onClose={() => {
+            setShowCommentDeleteModal(false);
+            setTargetDeleteComment(null);
+          }}
+          onConfirm={handleConfirmCommentDelete}
+          title="댓글을 삭제하시겠습니까?"
+          message="이 작업은 되돌릴 수 없습니다."
+          confirmText="삭제"
+          cancelText="취소"
+          isLoading={isDeletingComment}
         />
       </div>
     </div>

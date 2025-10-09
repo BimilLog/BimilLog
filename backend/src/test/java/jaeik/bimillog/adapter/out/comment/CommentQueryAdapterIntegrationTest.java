@@ -479,4 +479,151 @@ class CommentQueryAdapterIntegrationTest {
         assertThat(memberComments).extracting(Comment::getContent)
                 .containsExactlyInAnyOrder("사용자 댓글 1", "사용자 댓글 2");
     }
+
+    @Test
+    @DisplayName("버그 수정 검증 - 추천한 댓글의 likeCount 정확성 확인")
+    void shouldReturnCorrectLikeCount_WhenUserLikedComments() {
+        // Given: 댓글 3개 생성, 각각 다른 추천 수
+        Comment comment1 = CommentTestDataBuilder.createComment(testPost, testMember, "댓글1");
+        Comment comment2 = CommentTestDataBuilder.createComment(testPost, testMember, "댓글2");
+        Comment comment3 = CommentTestDataBuilder.createComment(testPost, testMember, "댓글3");
+
+        comment1 = commentRepository.save(comment1);
+        comment2 = commentRepository.save(comment2);
+        comment3 = commentRepository.save(comment3);
+
+        // 다른 사용자들이 각 댓글에 추천
+        // comment1: 99명 추천
+        for (int i = 0; i < 99; i++) {
+            Member tempMember = TestMembers.createUniqueWithPrefix("user" + i);
+            jaeik.bimillog.domain.member.entity.Setting setting = settingRepository.save(tempMember.getSetting());
+            jaeik.bimillog.domain.auth.entity.KakaoToken kakaoToken = kakaoTokenRepository.save(tempMember.getKakaoToken());
+
+            Member likeMember = Member.createMember(
+                    tempMember.getSocialId(),
+                    tempMember.getProvider(),
+                    tempMember.getSocialNickname(),
+                    tempMember.getThumbnailImage(),
+                    tempMember.getMemberName(),
+                    setting,
+                    kakaoToken
+            );
+            memberRepository.save(likeMember);
+
+            CommentLike like = CommentLike.builder()
+                    .comment(comment1)
+                    .member(likeMember)
+                    .build();
+            commentLikeRepository.save(like);
+        }
+
+        // comment2: 49명 추천
+        for (int i = 100; i < 149; i++) {
+            Member tempMember = TestMembers.createUniqueWithPrefix("user" + i);
+            jaeik.bimillog.domain.member.entity.Setting setting = settingRepository.save(tempMember.getSetting());
+            jaeik.bimillog.domain.auth.entity.KakaoToken kakaoToken = kakaoTokenRepository.save(tempMember.getKakaoToken());
+
+            Member likeMember = Member.createMember(
+                    tempMember.getSocialId(),
+                    tempMember.getProvider(),
+                    tempMember.getSocialNickname(),
+                    tempMember.getThumbnailImage(),
+                    tempMember.getMemberName(),
+                    setting,
+                    kakaoToken
+            );
+            memberRepository.save(likeMember);
+
+            CommentLike like = CommentLike.builder()
+                    .comment(comment2)
+                    .member(likeMember)
+                    .build();
+            commentLikeRepository.save(like);
+        }
+
+        // comment3: 4명 추천
+        for (int i = 150; i < 154; i++) {
+            Member tempMember = TestMembers.createUniqueWithPrefix("user" + i);
+            jaeik.bimillog.domain.member.entity.Setting setting = settingRepository.save(tempMember.getSetting());
+            jaeik.bimillog.domain.auth.entity.KakaoToken kakaoToken = kakaoTokenRepository.save(tempMember.getKakaoToken());
+
+            Member likeMember = Member.createMember(
+                    tempMember.getSocialId(),
+                    tempMember.getProvider(),
+                    tempMember.getSocialNickname(),
+                    tempMember.getThumbnailImage(),
+                    tempMember.getMemberName(),
+                    setting,
+                    kakaoToken
+            );
+            memberRepository.save(likeMember);
+
+            CommentLike like = CommentLike.builder()
+                    .comment(comment3)
+                    .member(likeMember)
+                    .build();
+            commentLikeRepository.save(like);
+        }
+
+        // 현재 사용자(otherMember)가 3개 모두 추천
+        CommentLike like1 = CommentLike.builder().comment(comment1).member(otherMember).build();
+        CommentLike like2 = CommentLike.builder().comment(comment2).member(otherMember).build();
+        CommentLike like3 = CommentLike.builder().comment(comment3).member(otherMember).build();
+
+        commentLikeRepository.save(like1);
+        commentLikeRepository.save(like2);
+        commentLikeRepository.save(like3);
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When: otherMember가 추천한 댓글 조회
+        Page<SimpleCommentInfo> likedComments = commentQueryAdapter
+                .findLikedCommentsByMemberId(otherMember.getId(), pageable);
+
+        // Then: 실제 전체 추천 수가 정확히 표시되어야 함 (본인 포함)
+        assertThat(likedComments).isNotNull();
+        assertThat(likedComments.getContent()).hasSize(3);
+
+        // 각 댓글의 likeCount 검증 (버그 수정 전에는 모두 1로 표시됨)
+        Map<String, Integer> likeCountsByContent = likedComments.getContent().stream()
+                .collect(java.util.stream.Collectors.toMap(
+                        SimpleCommentInfo::getContent,
+                        SimpleCommentInfo::getLikeCount
+                ));
+
+        assertThat(likeCountsByContent.get("댓글1")).isEqualTo(100); // 99 + otherMember
+        assertThat(likeCountsByContent.get("댓글2")).isEqualTo(50);  // 49 + otherMember
+        assertThat(likeCountsByContent.get("댓글3")).isEqualTo(5);   // 4 + otherMember
+
+        // userLike는 모두 true여야 함
+        assertThat(likedComments.getContent())
+                .extracting(SimpleCommentInfo::isUserLike)
+                .containsOnly(true);
+    }
+
+    @Test
+    @DisplayName("버그 수정 검증 - 추천한 댓글이 0개일 때")
+    void shouldReturnEmptyList_WhenUserHasNoLikedComments() {
+        // Given: 댓글은 있지만 otherMember는 추천하지 않음
+        Comment comment1 = CommentTestDataBuilder.createComment(testPost, testMember, "댓글1");
+        commentRepository.save(comment1);
+
+        // testMember만 추천
+        CommentLike like = CommentLike.builder()
+                .comment(comment1)
+                .member(testMember)
+                .build();
+        commentLikeRepository.save(like);
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When: otherMember가 추천한 댓글 조회 (0개)
+        Page<SimpleCommentInfo> likedComments = commentQueryAdapter
+                .findLikedCommentsByMemberId(otherMember.getId(), pageable);
+
+        // Then: 빈 목록 반환
+        assertThat(likedComments).isNotNull();
+        assertThat(likedComments.getContent()).isEmpty();
+        assertThat(likedComments.getTotalElements()).isEqualTo(0);
+    }
 }

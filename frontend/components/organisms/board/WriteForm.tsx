@@ -21,6 +21,9 @@ interface WriteFormProps {
 
   // Preview - 미리보기 모드 여부
   isPreview: boolean;
+
+  // Content length - 순수 텍스트 길이 (HTML 태그 제외)
+  plainTextLength: number;
 }
 
 /**
@@ -43,6 +46,7 @@ export const WriteForm: React.FC<WriteFormProps> = ({
   user,
   isAuthenticated,
   isPreview,
+  plainTextLength,
 }) => {
   // HTML 컨텐츠를 안전하게 렌더링하는 함수
   const formatPreviewContent = (htmlContent: string) => {
@@ -93,10 +97,23 @@ export const WriteForm: React.FC<WriteFormProps> = ({
                 내용
               </Label>
               <LazyEditor value={content} onChange={setContent} />
-              <p className="text-xs text-brand-secondary flex items-center space-x-1">
-                <Lightbulb className="w-3 h-3 stroke-indigo-600 fill-indigo-100" />
-                <span>다양한 스타일로 내용을 꾸며보세요.</span>
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-brand-secondary flex items-center space-x-1">
+                  <Lightbulb className="w-3 h-3 stroke-indigo-600 fill-indigo-100" />
+                  <span>다양한 스타일로 내용을 꾸며보세요.</span>
+                </p>
+                {content && (
+                  <p className={`text-xs ${
+                    plainTextLength >= 1000
+                      ? 'text-red-600 font-semibold'
+                      : plainTextLength >= 900
+                      ? 'text-orange-500 font-medium'
+                      : 'text-brand-muted'
+                  }`}>
+                    {plainTextLength}/1000자
+                  </p>
+                )}
+              </div>
             </div>
 
             {/* 비로그인 사용자용 비밀번호 입력 필드 (조건부 렌더링) */}

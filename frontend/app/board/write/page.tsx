@@ -51,6 +51,9 @@ export default function WritePostPage() {
     formatLastSaved,
     saveDraftManual,
     removeDraft,
+
+    // Content length
+    plainTextLength,
   } = useWriteForm();
 
   if (isLoading) {
@@ -120,6 +123,7 @@ export default function WritePostPage() {
           user={user} // 사용자 정보 (회원일 때만 존재)
           isAuthenticated={isAuthenticated} // 로그인 여부로 폼 UI 조건부 렌더링
           isPreview={isPreview}
+          plainTextLength={plainTextLength} // 순수 텍스트 길이 (HTML 태그 제외)
         />
 
         {/* 임시저장 관리 버튼 */}

@@ -175,6 +175,7 @@ export const PostHeader = React.memo<PostHeaderProps>(({
     prevProps.post.title === nextProps.post.title &&
     prevProps.post.viewCount === nextProps.post.viewCount &&
     prevProps.post.likeCount === nextProps.post.likeCount &&
+    prevProps.post.isNotice === nextProps.post.isNotice &&
     prevProps.commentCount === nextProps.commentCount
   );
 });

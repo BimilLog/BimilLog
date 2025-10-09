@@ -177,12 +177,25 @@ export const useToggleNotice = () => {
 
       return { previousPost, postId };
     },
-    onError: (err, postId, context) => {
+    onError: (err: any, postId, context) => {
       // 에러 시 이전 값으로 롤백 - 낙관적 업데이트 취소
       if (context?.previousPost) {
         queryClient.setQueryData(queryKeys.post.detail(postId), context.previousPost);
       }
-      showToast({ type: 'error', message: '공지사항 변경에 실패했습니다.' });
+
+      // HTTP 상태 코드에 따른 구체적인 에러 메시지 표시
+      let errorMessage = '공지사항 변경에 실패했습니다.';
+
+      if (err?.response?.status === 403) {
+        errorMessage = '권한이 없습니다. 관리자만 공지사항을 설정할 수 있습니다.';
+      } else if (err?.response?.status === 404) {
+        errorMessage = '게시글을 찾을 수 없습니다.';
+      } else if (err?.error || err?.message) {
+        // 백엔드에서 제공하는 에러 메시지가 있으면 사용
+        errorMessage = err.error || err.message;
+      }
+
+      showToast({ type: 'error', message: errorMessage });
     },
     onSuccess: (response, postId, context) => {
       if (response.success) {
@@ -202,6 +215,8 @@ export const useToggleNotice = () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.post.detail(postId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.post.lists() });
       queryClient.invalidateQueries({ queryKey: queryKeys.post.notices() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.post.realtimePopular() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.post.weeklyPopular() });
     },
   });
 };

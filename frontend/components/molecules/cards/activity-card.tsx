@@ -142,7 +142,7 @@ const CommentCard: React.FC<{ comment: SimpleComment; isLiked: boolean }> = Reac
                 <span className="text-sm md:text-xs text-brand-muted">추천</span>
               </div>
 
-              {comment.userLike && (
+              {comment.userLike && !isLiked && (
                 <Badge className="bg-blue-100 text-blue-700 border-blue-200 text-sm md:text-xs">
                   내가 추천한 댓글
                 </Badge>

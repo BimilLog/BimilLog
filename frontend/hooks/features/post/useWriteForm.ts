@@ -1,9 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAuth, useToast } from "@/hooks";
 import { useCreatePost } from '@/hooks/api/usePostMutations';
 import { useDraft } from '@/hooks/features/useDraft';
+
+/**
+ * HTML 태그를 제거하여 순수 텍스트 길이 계산
+ */
+const stripHtmlTags = (html: string): string => {
+  return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+};
 
 /**
  * 게시글 작성 폼을 위한 통합 훅
@@ -77,6 +84,17 @@ export function useWriteForm() {
       return;
     }
 
+    // 순수 텍스트 길이 검증 (HTML 태그 제외)
+    const plainTextContent = stripHtmlTags(content);
+    if (plainTextContent.length < 10) {
+      showWarning("입력 확인", "게시글 내용은 10자 이상이어야 합니다.");
+      return;
+    }
+    if (plainTextContent.length > 1000) {
+      showWarning("입력 확인", "게시글 내용은 1000자 이하여야 합니다.");
+      return;
+    }
+
     // 비회원일 경우 비밀번호 검증
     if (!isAuthenticated) {
       if (!password) {
@@ -106,10 +124,16 @@ export function useWriteForm() {
     }
   }, [createPostMutation.isSuccess, removeDraft]);
 
+  // 순수 텍스트 길이 계산 (memoization으로 최적화)
+  const plainTextLength = useMemo(() => {
+    return stripHtmlTags(content).length;
+  }, [content]);
+
   // 폼 유효성 및 제출 상태 계산
   const isFormValid = Boolean(
     title.trim() &&
-    content.trim() &&
+    plainTextLength >= 10 &&
+    plainTextLength <= 1000 &&
     (isAuthenticated || (password && password.length === 4 && parseInt(password) >= 1000 && parseInt(password) <= 9999))
   );
   const isSubmitting = createPostMutation.isPending; // TanStack Query mutation 진행 상태
@@ -141,5 +165,8 @@ export function useWriteForm() {
     saveDraftManual,
     removeDraft,
     formatLastSaved,
+
+    // Content length
+    plainTextLength,
   };
 }
