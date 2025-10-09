@@ -165,7 +165,7 @@ const ReportListContainerComponent: React.FC<ReportListContainerProps> = ({
                           신고 정보
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-brand-secondary uppercase tracking-wider">
-                          신고 대상
+                          사용자 정보
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-brand-secondary uppercase tracking-wider">
                           신고 사유

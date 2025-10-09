@@ -27,7 +27,7 @@ public class NotificationDTO {
     private String content;
     private String url;
     private NotificationType notificationType;
-    private boolean isRead;
+    private boolean read;
     private Instant createdAt;
 
 }

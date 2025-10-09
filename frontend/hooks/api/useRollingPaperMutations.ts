@@ -29,6 +29,11 @@ export const useCreateRollingPaperMessage = () => {
         queryKey: queryKeys.paper.detail(variables.userName)
       });
 
+      // 내 롤링페이퍼 캐시도 무효화 (자신에게 메시지 작성 시 마이페이지 통계 실시간 업데이트)
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.paper.my
+      });
+
       showToast({
         type: 'success',
         message: '메시지가 작성되었습니다.'

@@ -27,6 +27,11 @@ interface BoardTableProps {
   posts: SimplePost[];
   variant: "all" | "popular" | "legend";
 
+  // 로딩/에러 상태
+  isLoading?: boolean;
+  error?: Error | null;
+  isSearching?: boolean;
+
   // 페이징
   currentPage?: number;
   totalPages?: number;
@@ -276,12 +281,98 @@ BoardMobileCard.displayName = "BoardMobileCard";
 export const BoardTable = memo<BoardTableProps>(({
   posts,
   variant,
+  isLoading = false,
+  error = null,
+  isSearching = false,
   showRanking = variant !== "all",
   enablePopover = variant !== "all"
 }) => {
   // 읽음 상태 추적 - 모든 variant에서 사용
   const postIds = posts.map(post => post.id);
   const { readStatus } = usePostReadStatus(postIds);
+
+  // 에러 상태 처리
+  if (error) {
+    return (
+      <Card variant="elevated">
+        <div className="p-8 text-center text-red-500">
+          게시글을 불러오는 중 오류가 발생했습니다.
+          <br />
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 text-sm text-blue-600 hover:underline"
+          >
+            새로고침
+          </button>
+        </div>
+      </Card>
+    );
+  }
+
+  // 로딩 상태 처리
+  if (isLoading) {
+    return (
+      <>
+        {/* 데스크톱 로딩 스켈레톤 */}
+        <div className="hidden sm:block overflow-x-auto">
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableHeadCell className="w-20 text-center">
+                  {showRanking ? "순위" : "번호"}
+                </TableHeadCell>
+                <TableHeadCell>제목</TableHeadCell>
+                <TableHeadCell className="w-24">작성자</TableHeadCell>
+                <TableHeadCell className="w-28 hidden sm:table-cell">작성일</TableHeadCell>
+                <TableHeadCell className="w-20 text-center">추천</TableHeadCell>
+                <TableHeadCell className="w-20 text-center">조회</TableHeadCell>
+              </TableRow>
+            </TableHead>
+            <TableBody className="divide-y">
+              {[...Array(5)].map((_, idx) => (
+                <TableRow key={idx}>
+                  <TableCell className="text-center">
+                    <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                  </TableCell>
+                  <TableCell>
+                    <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                  </TableCell>
+                  <TableCell>
+                    <div className="h-4 bg-gray-200 rounded animate-pulse w-16" />
+                  </TableCell>
+                  <TableCell className="hidden sm:table-cell">
+                    <div className="h-4 bg-gray-200 rounded animate-pulse w-20" />
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <div className="h-4 bg-gray-200 rounded animate-pulse w-8 mx-auto" />
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <div className="h-4 bg-gray-200 rounded animate-pulse w-8 mx-auto" />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* 모바일 로딩 스켈레톤 */}
+        <div className="sm:hidden space-y-3">
+          {[...Array(5)].map((_, idx) => (
+            <Card key={idx} variant="elevated">
+              <div className="p-4 space-y-3">
+                <div className="h-4 bg-gray-200 rounded animate-pulse" />
+                <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
+                <div className="flex justify-between">
+                  <div className="h-3 bg-gray-200 rounded animate-pulse w-20" />
+                  <div className="h-3 bg-gray-200 rounded animate-pulse w-16" />
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -319,7 +410,7 @@ export const BoardTable = memo<BoardTableProps>(({
                   colSpan={6}
                   className="text-center py-12 text-gray-500"
                 >
-                  {variant === "all" ? "게시글이 없습니다." : "인기글이 없습니다."}
+                  {isSearching ? "검색 결과가 없습니다." : (variant === "all" ? "게시글이 없습니다." : "인기글이 없습니다.")}
                 </TableCell>
               </TableRow>
             )}
@@ -344,7 +435,7 @@ export const BoardTable = memo<BoardTableProps>(({
         ) : (
           <Card variant="elevated">
             <div className="p-8 text-center text-brand-secondary">
-              {variant === "all" ? "게시글이 없습니다." : "인기글이 없습니다."}
+              {isSearching ? "검색 결과가 없습니다." : (variant === "all" ? "게시글이 없습니다." : "인기글이 없습니다.")}
             </div>
           </Card>
         )}

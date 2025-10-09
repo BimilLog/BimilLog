@@ -15,9 +15,14 @@ export function useReportActions(onSuccess?: () => void) {
       return false;
     }
 
+    if (!report.targetAuthorName) {
+      showError("제재 실패", "신고 대상이 존재하지 않아 제재할 수 없습니다.");
+      return false;
+    }
+
     // 제재 확인창: 되돌릴 수 없는 작업이므로 2중 확인
     const confirmBan = window.confirm(
-      "정말로 이 사용자를 제재하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+      `정말로 '${report.targetAuthorName}'님을 제재하시겠습니까?\n\n이 작업은 되돌릴 수 없으며, 24시간 동안 서비스 이용이 제한됩니다.`
     );
 
     if (!confirmBan) return false;
@@ -53,9 +58,14 @@ export function useReportActions(onSuccess?: () => void) {
       return false;
     }
 
+    if (!report.targetAuthorName) {
+      showError("탈퇴 실패", "신고 대상이 존재하지 않아 탈퇴 처리할 수 없습니다.");
+      return false;
+    }
+
     // 강제 탈퇴 확인창: 계정 완전 삭제 작업이므로 2중 확인
     const confirmWithdraw = window.confirm(
-      "정말로 이 사용자를 강제 탈퇴시키시겠습니까? 이 작업은 되돌릴 수 없습니다."
+      `정말로 '${report.targetAuthorName}'님을 강제 탈퇴시키시겠습니까?\n\n⚠️ 경고: 이 작업은 되돌릴 수 없으며, 사용자 계정과 모든 데이터가 영구적으로 삭제됩니다.`
     );
 
     if (!confirmWithdraw) return false;

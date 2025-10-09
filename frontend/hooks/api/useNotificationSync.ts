@@ -10,13 +10,15 @@ import {
 } from '@/lib/utils/notification-sync';
 import { logger } from '@/lib/utils/logger';
 import { useAuth } from '@/hooks';
+import { useToastStore } from '@/stores';
 
 /**
  * 알림 동기화 훅
- * 5분마다 로컬스토리지의 대기 중인 알림 업데이트를 서버로 일괄 전송
+ * 30초마다 로컬스토리지의 대기 중인 알림 업데이트를 서버로 일괄 전송
  */
 export const useNotificationSync = () => {
   const { isAuthenticated } = useAuth();
+  const { showToast } = useToastStore();
   const intervalRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   // 일괄 업데이트 뮤테이션
@@ -40,8 +42,19 @@ export const useNotificationSync = () => {
 
       return response;
     },
+    onSuccess: (response) => {
+      if (!response) return; // 동기화할 내용이 없었던 경우
+
+      if (response.success) {
+        logger.log('✅ 알림 동기화 성공');
+      }
+    },
     onError: (error) => {
       logger.error('알림 동기화 실패:', error);
+      showToast({
+        type: 'error',
+        message: '알림 동기화에 실패했습니다. 잠시 후 다시 시도됩니다.',
+      });
       // 실패해도 로컬스토리지는 유지하여 다음 동기화 시 재시도
     }
   });
@@ -67,12 +80,12 @@ export const useNotificationSync = () => {
       syncMutation.mutate();
     }
 
-    // 5분 간격 타이머 설정
+    // 30초 간격 타이머 설정
     intervalRef.current = setInterval(() => {
       if (hasPendingUpdates()) {
         syncMutation.mutate();
       }
-    }, 5 * 60 * 1000); // 5분
+    }, 30 * 1000); // 30초
 
     // 클린업
     return () => {

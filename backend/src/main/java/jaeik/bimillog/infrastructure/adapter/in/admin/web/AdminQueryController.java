@@ -3,8 +3,14 @@ package jaeik.bimillog.infrastructure.adapter.in.admin.web;
 import jaeik.bimillog.domain.admin.application.port.in.AdminQueryUseCase;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
+import jaeik.bimillog.domain.comment.exception.CommentCustomException;
+import jaeik.bimillog.domain.global.application.port.out.GlobalCommentQueryPort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
+import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.infrastructure.adapter.in.admin.dto.ReportDTO;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,16 +28,18 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Jaeik
  * @version 2.0.0
  */
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/admin")
 public class AdminQueryController {
 
     private final AdminQueryUseCase adminQueryUseCase;
+    private final GlobalPostQueryPort globalPostQueryPort;
+    private final GlobalCommentQueryPort globalCommentQueryPort;
 
     /**
-     * <h3>신고 목록 페이지네이션 조회 API</h3>
-     * <p>관리자 대시보드에서 신고 관리 화면을 표시하기 위한 신고 목록 조회 REST API입니다.</p>
+     * <h3>신고 목록 조회 API</h3>
      * <p>최신순으로 정렬된 데이터를 제공합니다.</p>
      *
      * @param page 페이지 번호 (0부터 시작, 기본값: 0)
@@ -47,7 +55,22 @@ public class AdminQueryController {
                                                          @RequestParam(defaultValue = "20") int size,
                                                          @RequestParam(required = false) ReportType reportType) {
         Page<Report> reports = adminQueryUseCase.getReportList(page, size, reportType);
-        Page<ReportDTO> reportList = reports.map(ReportDTO::from);
+        Page<ReportDTO> reportList = reports.map(report -> {
+            Member targetAuthor = null;
+            if (report.getTargetId() != null) {
+                try {
+                    if (report.getReportType() == ReportType.POST) {
+                        targetAuthor = globalPostQueryPort.findById(report.getTargetId()).getMember();
+                    } else if (report.getReportType() == ReportType.COMMENT) {
+                        targetAuthor = globalCommentQueryPort.findById(report.getTargetId()).getMember();
+                    }
+                } catch (PostCustomException | CommentCustomException e) {
+                    // targetId가 유효하지 않은 경우 (삭제된 게시글/댓글) targetAuthor는 null
+                    log.debug("Failed to resolve target author for report {}: {}", report.getId(), e.getMessage());
+                }
+            }
+            return ReportDTO.from(report, targetAuthor);
+        });
         return ResponseEntity.ok(reportList);
     }
 }

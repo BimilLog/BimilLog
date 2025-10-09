@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { userQuery, paperQuery, Member } from "@/lib/api";
+import { userQuery, Member } from "@/lib/api";
+import { useMyRollingPaper } from "@/hooks/api/useMyRollingPaper";
 import { logger } from '@/lib/utils/logger';
 
 // ===== USER STATS =====
@@ -25,6 +26,9 @@ export function useUserStats(user: Member | null) {
   const [statsError, setStatsError] = useState<string | null>(null);
   const [partialErrors, setPartialErrors] = useState<string[]>([]);
 
+  // useMyRollingPaper 훅 사용하여 롤링페이퍼 메시지 데이터 가져오기
+  const { data: myPaperData, isLoading: isLoadingPaper, isError: isPaperError } = useMyRollingPaper();
+
   const fetchUserStats = useCallback(async () => {
     if (!user) return;
 
@@ -34,13 +38,12 @@ export function useUserStats(user: Member | null) {
 
     try {
       // 사용자 통계를 위한 병렬 API 호출: Promise.allSettled로 일부 실패해도 다른 데이터는 가져올 수 있음
-      const [postsRes, commentsRes, likedPostsRes, likedCommentsRes, messagesRes] =
+      const [postsRes, commentsRes, likedPostsRes, likedCommentsRes] =
         await Promise.allSettled([
           userQuery.getUserPosts(0, 1),
           userQuery.getUserComments(0, 1),
           userQuery.getUserLikedPosts(0, 1),
           userQuery.getUserLikedComments(0, 1),
-          paperQuery.getMy(),
         ]);
 
       const errors: string[] = [];
@@ -78,13 +81,11 @@ export function useUserStats(user: Member | null) {
               return 0;
             })();
 
-      const totalMessages =
-        messagesRes.status === "fulfilled" && messagesRes.value.success
-          ? messagesRes.value.data?.length || 0
-          : (() => {
-              errors.push("롤링페이퍼 메시지 정보를 불러오지 못했습니다");
-              return 0;
-            })();
+      // useMyRollingPaper 훅에서 가져온 데이터 사용
+      const totalMessages = myPaperData?.success ? myPaperData.data?.length || 0 : 0;
+      if (isPaperError) {
+        errors.push("롤링페이퍼 메시지 정보를 불러오지 못했습니다");
+      }
 
       const newStats = {
         totalPosts,
@@ -102,9 +103,10 @@ export function useUserStats(user: Member | null) {
       }
 
       // 모든 API가 실패한 경우에만 전체 오류로 처리
-      const allFailed = [postsRes, commentsRes, likedPostsRes, likedCommentsRes, messagesRes].every(
+      // Promise.allSettled 4개 API + useMyRollingPaper 모두 실패 시에만 전체 에러
+      const allFailed = [postsRes, commentsRes, likedPostsRes, likedCommentsRes].every(
         (res) => res.status === "rejected"
-      );
+      ) && isPaperError;
 
       if (allFailed) {
         setStatsError("통계 정보를 불러오는데 실패했습니다. 새로고침 후 다시 시도해주세요.");
@@ -115,11 +117,14 @@ export function useUserStats(user: Member | null) {
     } finally {
       setIsLoadingStats(false);
     }
-  }, [user]);
+  }, [user, myPaperData, isPaperError]);
+
+  // 롤링페이퍼 로딩 상태 반영
+  const combinedIsLoading = isLoadingStats || isLoadingPaper;
 
   return {
     userStats,
-    isLoadingStats,
+    isLoadingStats: combinedIsLoading,
     statsError,
     partialErrors,
     fetchUserStats,

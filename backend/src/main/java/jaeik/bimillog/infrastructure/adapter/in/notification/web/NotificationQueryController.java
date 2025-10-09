@@ -65,7 +65,7 @@ public class NotificationQueryController {
                 .content(notification.getContent())
                 .url(notification.getUrl())
                 .notificationType(notification.getNotificationType())
-                .isRead(notification.isRead())
+                .read(notification.isRead())
                 .createdAt(notification.getCreatedAt())
                 .build();
     }

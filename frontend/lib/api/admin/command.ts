@@ -16,7 +16,4 @@ export const adminCommand = {
     targetId: reportData.targetId,
     reportType: reportData.reportType
   }),
-  
-  deleteContent: (contentId: number, contentType: "POST" | "COMMENT") =>
-    apiClient.delete(`/api/admin/content/${contentType.toLowerCase()}/${contentId}`),
 }

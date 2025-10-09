@@ -22,7 +22,6 @@ import {
   Ban,
   UserX,
   MessageSquare,
-  Hash,
   Clock,
   ChevronRight
 } from "lucide-react";
@@ -155,33 +154,40 @@ function ReportDetailModalContent({
                   </div>
                 </Card>
 
-                {/* 신고 대상 ID (게시글/댓글 ID) */}
-                <Card className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
-                      <Hash className="w-5 h-5 stroke-slate-600" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-brand-secondary mb-1">대상 ID</p>
-                      <p className="font-semibold text-brand-primary">{report.targetId}</p>
-                    </div>
-                  </div>
-                </Card>
-
-                {/* 신고를 당한 사용자 */}
+                {/* 신고자 (신고를 한 사람) */}
                 <Card className="p-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center">
                       <User className="w-5 h-5 stroke-slate-600 fill-slate-100" />
                     </div>
                     <div>
-                      <p className="text-xs text-brand-secondary mb-1">신고 대상</p>
+                      <p className="text-xs text-brand-secondary mb-1">신고자</p>
                       <p className="font-semibold text-brand-primary">
                         {report.reporterName || "익명"}
                       </p>
                     </div>
                   </div>
                 </Card>
+
+                {/* 신고 대상 (POST/COMMENT인 경우 작성자) */}
+                {(report.reportType === "POST" || report.reportType === "COMMENT") && (
+                  <Card className="p-4 bg-red-50 border-red-200">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
+                        <User className="w-5 h-5 stroke-red-600 fill-red-100" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-red-700 mb-1 font-medium">신고 대상</p>
+                        <p className="font-bold text-red-900">
+                          {report.targetAuthorName || "삭제됨"}
+                        </p>
+                        <p className="text-xs text-red-600 mt-1">
+                          ID: {report.targetId}
+                        </p>
+                      </div>
+                    </div>
+                  </Card>
+                )}
 
                 {/* 신고 접수일 */}
                 <Card className="p-4">
@@ -248,64 +254,73 @@ function ReportDetailModalContent({
                 </div>
               </div>
 
-              {/* 관리자 액션 버튼들 */}
-              <div className="space-y-3">
-                {/* 사용자 차단 액션 */}
-                <Card className="p-4 hover:shadow-brand-md transition-shadow">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
-                        <Ban className="w-5 h-5 stroke-orange-600" />
+              {/* 관리자 액션 버튼들 - POST/COMMENT 타입만 표시 */}
+              {(report.reportType === "POST" || report.reportType === "COMMENT") && (
+                <div className="space-y-3">
+                  {/* 사용자 차단 액션 */}
+                  <Card className="p-4 hover:shadow-brand-md transition-shadow">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
+                          <Ban className="w-5 h-5 stroke-orange-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-brand-primary">사용자 차단</p>
+                          <p className="text-sm text-brand-secondary">24시간 동안 서비스 이용 제한</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium text-brand-primary">사용자 차단</p>
-                        <p className="text-sm text-brand-secondary">24시간 동안 서비스 이용 제한</p>
-                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleBanClick}
+                        disabled={isProcessing || !report.targetAuthorName}
+                        className="text-orange-600 border-orange-200 hover:bg-orange-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        차단
+                        <ChevronRight className="w-4 h-4 ml-1 stroke-slate-600" />
+                      </Button>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleBanClick}
-                      disabled={isProcessing || !report.reporterName} // 익명 사용자는 차단 불가
-                      className="text-orange-600 border-orange-200 hover:bg-orange-50"
-                    >
-                      차단
-                      <ChevronRight className="w-4 h-4 ml-1 stroke-slate-600" />
-                    </Button>
-                  </div>
-                </Card>
+                  </Card>
 
-                {/* 사용자 강제탈퇴 액션 */}
-                <Card className="p-4 hover:shadow-brand-md transition-shadow">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
-                        <UserX className="w-5 h-5 stroke-red-600" />
+                  {/* 사용자 강제탈퇴 액션 */}
+                  <Card className="p-4 hover:shadow-brand-md transition-shadow">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center">
+                          <UserX className="w-5 h-5 stroke-red-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-brand-primary">강제 탈퇴</p>
+                          <p className="text-sm text-brand-secondary">사용자 계정 영구 삭제</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium text-brand-primary">강제 탈퇴</p>
-                        <p className="text-sm text-brand-secondary">사용자 계정 영구 삭제</p>
-                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleWithdrawClick}
+                        disabled={isProcessing || !report.targetAuthorName}
+                        className="text-red-600 border-red-200 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        탈퇴
+                        <ChevronRight className="w-4 h-4 ml-1 stroke-slate-600" />
+                      </Button>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleWithdrawClick}
-                      disabled={isProcessing || !report.reporterName} // 익명 사용자는 탈퇴 처리 불가
-                      className="text-red-600 border-red-200 hover:bg-red-50"
-                    >
-                      탈퇴
-                      <ChevronRight className="w-4 h-4 ml-1 stroke-slate-600" />
-                    </Button>
-                  </div>
-                </Card>
-              </div>
+                  </Card>
+                </div>
+              )}
 
-              {/* 익명 사용자일 경우 액션 불가 알림 (조건부 렌더링) */}
-              {!report.reporterName && (
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                  <p className="text-sm text-brand-muted text-center">
-                    익명 사용자는 차단 또는 강제 탈퇴할 수 없습니다.
+              {/* 제재 불가 알림 */}
+              {!report.targetAuthorName && (report.reportType === "POST" || report.reportType === "COMMENT") && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                  <p className="text-sm text-amber-800 text-center font-medium">
+                    신고 대상이 삭제되었거나 존재하지 않아 제재할 수 없습니다.
+                  </p>
+                </div>
+              )}
+              {(report.reportType === "ERROR" || report.reportType === "IMPROVEMENT") && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <p className="text-sm text-blue-800 text-center font-medium">
+                    오류 신고 및 개선 제안은 사용자 제재 대상이 아닙니다.
                   </p>
                 </div>
               )}

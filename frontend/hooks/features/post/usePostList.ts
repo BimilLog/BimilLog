@@ -18,7 +18,7 @@ export function usePostList(pageSize = 30) {
   const pagination = usePagination({ pageSize });
 
   // TanStack Query로 게시글 목록/검색 통합 처리: 검색어가 있으면 검색, 없으면 일반 목록 조회
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: debouncedSearchTerm.trim()
       ? queryKeys.post.search(debouncedSearchTerm, pagination.currentPage)
       : queryKeys.post.list({ page: pagination.currentPage, size: pagination.pageSize }),
@@ -44,16 +44,30 @@ export function usePostList(pageSize = 30) {
     }
   }, [data?.data?.totalElements]);
 
+  // 검색어 변경 시 페이지를 0으로 리셋
+  useEffect(() => {
+    if (debouncedSearchTerm.trim()) {
+      pagination.setCurrentPage(0);
+    }
+  }, [debouncedSearchTerm]);
+
+  // 즉시 검색 함수 (debounce 무시)
+  const immediateSearch = useCallback(() => {
+    pagination.setCurrentPage(0);
+    refetch();
+  }, [pagination, refetch]);
+
   return {
     posts: data?.data?.content || [],
     isLoading,
+    error,
     refetch,
     pagination,
     searchTerm,
     setSearchTerm,
     searchType,
     setSearchType,
-    search: refetch
+    search: immediateSearch
   };
 }
 
@@ -65,7 +79,7 @@ export function usePopularPostsTabs() {
   const legendPagination = usePagination({ pageSize: 10 });
 
   // 실시간 인기글 조회
-  const { data: realtimeData, refetch: refetchRealtime } = useQuery({
+  const { data: realtimeData, isLoading: realtimeLoading, error: realtimeError, refetch: refetchRealtime } = useQuery({
     queryKey: queryKeys.post.realtimePopular(),
     queryFn: postQuery.getRealtimePosts,
     enabled: activeTab === 'realtime',
@@ -74,7 +88,7 @@ export function usePopularPostsTabs() {
   });
 
   // 주간 인기글 조회
-  const { data: weeklyData, refetch: refetchWeekly } = useQuery({
+  const { data: weeklyData, isLoading: weeklyLoading, error: weeklyError, refetch: refetchWeekly } = useQuery({
     queryKey: queryKeys.post.weeklyPopular(),
     queryFn: postQuery.getWeeklyPosts,
     enabled: activeTab === 'weekly',
@@ -83,7 +97,7 @@ export function usePopularPostsTabs() {
   });
 
   // 레전드 글 조회 (페이징 지원)
-  const { data: legendData, refetch: refetchLegend } = useQuery({
+  const { data: legendData, isLoading: legendLoading, error: legendError, refetch: refetchLegend } = useQuery({
     queryKey: queryKeys.post.legend({
       page: legendPagination.currentPage,
       size: legendPagination.pageSize
@@ -116,13 +130,31 @@ export function usePopularPostsTabs() {
     return refetchLegend();
   }, [activeTab, refetchRealtime, refetchWeekly, refetchLegend]);
 
+  // 현재 활성 탭의 로딩 상태 선택
+  const isLoading = useMemo(() => {
+    if (activeTab === 'realtime') return realtimeLoading;
+    if (activeTab === 'weekly') return weeklyLoading;
+    if (activeTab === 'legend') return legendLoading;
+    return false;
+  }, [activeTab, realtimeLoading, weeklyLoading, legendLoading]);
+
+  // 현재 활성 탭의 에러 상태 선택
+  const error = useMemo(() => {
+    if (activeTab === 'realtime') return realtimeError;
+    if (activeTab === 'weekly') return weeklyError;
+    if (activeTab === 'legend') return legendError;
+    return null;
+  }, [activeTab, realtimeError, weeklyError, legendError]);
+
   return {
     posts,
     activeTab,
     setActiveTab,
     refetch,
     // 레전드 탭 전용 페이지네이션
-    legendPagination: activeTab === 'legend' ? legendPagination : null
+    legendPagination: activeTab === 'legend' ? legendPagination : null,
+    isLoading,
+    error
   };
 }
 

@@ -87,7 +87,7 @@ export default function LogoutPage() {
       clearTimeout(timeoutId);
       isProcessingRef.current = false;
     };
-  }, [logout, router, consentParam]);
+  }, [logout, router, consentParam, showError]);
 
   return (
     <AuthLoadingScreen 

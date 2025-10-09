@@ -31,13 +31,15 @@ public class ReportDTO {
 
     @NotNull(message = "신고 유형은 필수입니다")
     private ReportType reportType;
-    
+
     private Long targetId;
-    
+    private Long targetAuthorId;
+    private String targetAuthorName;
+
     @NotBlank(message = "신고 내용은 필수입니다")
     @Size(min = 10, max = 500, message = "신고 내용은 10-500자 사이여야 합니다")
     private String content;
-    
+
     private Instant createdAt;
 
     /**
@@ -91,6 +93,31 @@ public class ReportDTO {
                 .reporterName(reporter != null ? reporter.getMemberName() : "익명")
                 .reportType(report.getReportType())
                 .targetId(report.getTargetId())
+                .content(report.getContent())
+                .createdAt(report.getCreatedAt())
+                .build();
+    }
+
+    /**
+     * <h3>Report 엔티티와 신고 대상 작성자 정보로부터 ReportDTO 생성</h3>
+     * <p>도메인 엔티티와 신고 대상 작성자 정보를 포함한 DTO로 변환합니다.</p>
+     *
+     * @param report 신고 엔티티
+     * @param targetAuthor 신고 대상 작성자 (게시글 또는 댓글 작성자)
+     * @return ReportDTO 변환된 DTO 객체
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public static ReportDTO from(Report report, Member targetAuthor) {
+        Member reporter = report.getReporter();
+        return ReportDTO.builder()
+                .id(report.getId())
+                .reporterId(reporter != null ? reporter.getId() : null)
+                .reporterName(reporter != null ? reporter.getMemberName() : "익명")
+                .reportType(report.getReportType())
+                .targetId(report.getTargetId())
+                .targetAuthorId(targetAuthor != null ? targetAuthor.getId() : null)
+                .targetAuthorName(targetAuthor != null ? targetAuthor.getMemberName() : null)
                 .content(report.getContent())
                 .createdAt(report.getCreatedAt())
                 .build();

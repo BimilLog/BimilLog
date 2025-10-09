@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Card, Badge, Button } from "@/components";
-import { Calendar, User, FileText, Eye } from "lucide-react";
+import { Calendar, FileText, Eye } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import type { Report } from "@/types/domains/admin";
 
@@ -51,17 +51,22 @@ export const MobileReportCard = React.memo<MobileReportCardProps>(({ report, onV
           </div>
         </div>
 
-        {/* 신고 대상 */}
-        <div className="space-y-1">
+        {/* 사용자 정보 */}
+        <div className="space-y-2">
           <div className="flex items-center gap-2 text-sm">
-            <User className="w-4 h-4 stroke-slate-600 fill-slate-100" />
+            <span className="text-xs text-brand-secondary font-medium">신고자:</span>
             <span className="text-brand-primary">
               {report.reporterName || "익명"}
             </span>
-            <span className="text-xs text-brand-secondary">
-              (ID: {report.targetId})
-            </span>
           </div>
+          {(report.reportType === "POST" || report.reportType === "COMMENT") && (
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-xs text-brand-secondary font-medium">대상:</span>
+              <span className="text-brand-primary font-medium">
+                {report.targetAuthorName || "삭제됨"}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* 신고 사유 */}

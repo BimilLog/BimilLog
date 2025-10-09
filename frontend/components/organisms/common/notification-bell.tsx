@@ -127,6 +127,9 @@ export function NotificationBell() {
     if (open && canConnectSSE()) {
       syncNow();
       handleFetchNotifications();
+    } else if (!open) {
+      // 알림 패널 닫을 때 즉시 동기화
+      syncNow();
     }
   };
 

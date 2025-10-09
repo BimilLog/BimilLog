@@ -16,6 +16,9 @@ interface BoardTabsProps {
 
   // 전체글 탭 데이터
   posts: SimplePost[];
+  isLoading?: boolean;
+  error?: Error | null;
+  isSearching?: boolean;
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
@@ -25,6 +28,8 @@ interface BoardTabsProps {
   weeklyPosts: SimplePost[];
   legendPosts: SimplePost[];
   legendPagination?: PaginationState | null;
+  popularLoading?: boolean;
+  popularError?: Error | null;
 
   // 공지사항 데이터
   noticePosts: SimplePost[];
@@ -34,6 +39,9 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
   activeTab,
   onTabChange,
   posts,
+  isLoading = false,
+  error = null,
+  isSearching = false,
   currentPage,
   totalPages,
   onPageChange,
@@ -41,6 +49,8 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
   weeklyPosts,
   legendPosts,
   legendPagination,
+  popularLoading = false,
+  popularError = null,
   noticePosts,
 }) => {
   // 탭 값 매핑
@@ -142,6 +152,9 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
                 <BoardTable
                   posts={posts}
                   variant="all"
+                  isLoading={isLoading}
+                  error={error}
+                  isSearching={isSearching}
                 />
               </div>
             </CardContent>
@@ -162,6 +175,8 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
               <BoardTable
                 posts={realtimePosts}
                 variant="popular"
+                isLoading={popularLoading}
+                error={popularError}
               />
             </CardContent>
           </Card>
@@ -181,6 +196,8 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
               <BoardTable
                 posts={weeklyPosts}
                 variant="popular"
+                isLoading={popularLoading}
+                error={popularError}
               />
             </CardContent>
           </Card>
@@ -200,6 +217,8 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
               <BoardTable
                 posts={legendPosts}
                 variant="legend"
+                isLoading={popularLoading}
+                error={popularError}
               />
             </CardContent>
           </Card>

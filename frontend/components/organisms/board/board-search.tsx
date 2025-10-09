@@ -2,7 +2,7 @@
 
 import { Input, Button, Card } from "@/components";
 import { Dropdown, DropdownItem } from "flowbite-react";
-import { Search, ListFilter, ChevronDown } from "lucide-react";
+import { Search, ListFilter, ChevronDown, X } from "lucide-react";
 
 interface BoardSearchProps {
   searchTerm: string;
@@ -67,6 +67,17 @@ export const BoardSearch = ({
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyPress={(e) => e.key === "Enter" && executeSearch()}
             />
+            {searchTerm && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setSearchTerm("")}
+                className="border-0 rounded-none hover:bg-gray-100"
+                title="검색어 지우기"
+              >
+                <X className="w-4 h-4 stroke-gray-500" />
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="icon"

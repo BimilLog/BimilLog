@@ -24,6 +24,8 @@ function BoardClient() {
   // 게시판 데이터 관리
   const {
     posts,
+    isLoading,
+    error,
     refetch: fetchPostsAndSearch,
     pagination,
     searchTerm,
@@ -39,6 +41,8 @@ function BoardClient() {
     activeTab: popularTab,
     setActiveTab: setPopularTab,
     legendPagination,
+    isLoading: popularLoading,
+    error: popularError,
   } = usePopularPostsTabs();
 
   // 공지사항 데이터 관리 - '전체' 탭에서만 조회
@@ -111,6 +115,9 @@ function BoardClient() {
           activeTab={activeTab}
           onTabChange={handleTabChange}
           posts={posts}
+          isLoading={isLoading}
+          error={error}
+          isSearching={!!searchTerm.trim()}
           currentPage={pagination.currentPage}
           totalPages={pagination.totalPages}
           onPageChange={pagination.setCurrentPage}
@@ -119,6 +126,8 @@ function BoardClient() {
           legendPosts={legendPosts}
           legendPagination={legendPagination}
           noticePosts={noticePosts}
+          popularLoading={popularLoading}
+          popularError={popularError}
         />
 
         {/* Mobile Advertisement - 게시판 아래로 이동 */}

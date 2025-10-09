@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Badge, Button } from "@/components";
-import { Calendar, User, FileText, Eye } from "lucide-react";
+import { Calendar, FileText, Eye } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import type { Report } from "@/types/domains/admin";
 
@@ -47,14 +47,21 @@ export const ReportCard = React.memo<ReportCardProps>(({ report, onView }) => {
         </div>
       </td>
       <td className="px-6 py-4">
-        <div className="flex items-center gap-2">
-          <User className="w-4 h-4 stroke-slate-600 fill-slate-100" />
-          <span className="text-sm text-brand-primary">
-            {report.reporterName || "익명"}
-          </span>
-        </div>
-        <div className="text-xs text-brand-secondary mt-1">
-          ID: {report.targetId}
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-brand-secondary">신고자:</span>
+            <span className="text-sm text-brand-primary">
+              {report.reporterName || "익명"}
+            </span>
+          </div>
+          {(report.reportType === "POST" || report.reportType === "COMMENT") && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-brand-secondary">대상:</span>
+              <span className="text-sm text-brand-primary font-medium">
+                {report.targetAuthorName || "삭제됨"}
+              </span>
+            </div>
+          )}
         </div>
       </td>
       <td className="px-6 py-4">
