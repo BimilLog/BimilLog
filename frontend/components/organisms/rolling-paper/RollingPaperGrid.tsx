@@ -9,6 +9,7 @@ import { MessageForm } from "@/components/organisms/rolling-paper/MessageForm";
 import { MessageView } from "@/components/organisms/rolling-paper/MessageView";
 import { Button } from "@/components";
 import { DecoIcon } from "@/components";
+import { getPageAndGridPosition, findNearestEmptyPositions } from "@/lib/utils/rolling-paper";
 
 interface RollingPaperGridProps {
   messages: (RollingPaperMessage | VisitMessage)[];
@@ -57,6 +58,7 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
   // 모달 상태 관리
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedCell, setSelectedCell] = useState<{ x: number; y: number } | null>(null);
+  const [recommendedPositions, setRecommendedPositions] = useState<{ x: number; y: number }[]>([]);
 
   // 페이지 네비게이션 핸들러 최적화
   const handlePreviousPage = useCallback(() => {
@@ -72,7 +74,7 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
     const pageWidth = isMobile ? 4 : 6; // 모바일: 4열, PC: 6열
     const pageHeight = 10; // 고정 10행
     const totalSlots = pageWidth * pageHeight; // 한 페이지에 표시할 총 셀 개수
-    return { pageWidth, pageHeight, totalSlots };
+    return { pageWidth, totalSlots };
   }, [isMobile]);
 
 
@@ -82,21 +84,11 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
 
   // 메시지 제출 핸들러 - 비동기 처리 및 에러 핸들링
   const handleMessageSubmit = useCallback(async (actualX: number, actualY: number, data: unknown) => {
-    console.log('[RollingPaperGrid] 메시지 제출:', {
-      actualX,
-      actualY,
-      currentPage,
-      isMobile,
-      pageWidth
-    });
-
     try {
       await onMessageSubmit?.({ x: actualX, y: actualY }, data);
       setModalOpen(false); // 성공 시에만 모달 닫기
       // 성공 메시지는 useRollingPaperMutations에서 처리하므로 제거
     } catch (error) {
-      console.error('[RollingPaperGrid] 메시지 제출 실패:', error);
-
       // 에러 메시지 분석
       const requestError = error as {
         response?: { data?: { message?: string } };
@@ -104,26 +96,36 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
       };
       const errorMessage = requestError.response?.data?.message || requestError.message || '';
 
-      if (errorMessage.includes('unique_user_x_y') || errorMessage.includes('중복')) {
-        onError?.("이미 메시지가 있는 위치입니다. 다른 위치를 선택해주세요.");
+      // 위치 정보 계산
+      const { page, gridX, gridY } = getPageAndGridPosition(actualX, actualY, isMobile);
+      const positionInfo = `페이지 ${page}, ${gridY + 1}번째 줄 ${gridX + 1}번째 칸`;
+
+      if (errorMessage.includes('unique_member_x_y') || errorMessage.includes('중복')) {
+        // 가장 가까운 빈 위치 찾기
+        const nearestEmpty = findNearestEmptyPositions(
+          messages,
+          { x: actualX, y: actualY },
+          3
+        );
+        setRecommendedPositions(nearestEmpty);
+
+        if (nearestEmpty.length === 0) {
+          onError?.(`이미 메시지가 있는 위치입니다 (${positionInfo}). 모든 위치가 가득 찼습니다.`);
+        } else {
+          onError?.(`이미 메시지가 있는 위치입니다 (${positionInfo}). 아래에서 가까운 빈 위치를 선택해주세요.`);
+        }
       } else if (errorMessage.includes('x는 0~11') || errorMessage.includes('y는 0~9')) {
-        onError?.(`잘못된 위치입니다. (x: ${actualX}, y: ${actualY})`);
+        onError?.(`잘못된 위치입니다 (${positionInfo}, x: ${actualX}, y: ${actualY})`);
       } else {
         onError?.("메시지 추가에 실패했습니다. 다시 시도해주세요.");
       }
-      // 에러 시에도 모달은 열어둠 (재시도 가능)
+      // 에러를 다시 throw하여 MessageForm이 제대로 catch할 수 있게 함
+      throw error;
     }
-  }, [onMessageSubmit, onError, currentPage, isMobile, pageWidth]);
+  }, [onMessageSubmit, onError, isMobile, messages]);
 
   // 셀 클릭 핸들러
   const handleCellClick = useCallback((actualX: number, actualY: number) => {
-    console.log('[RollingPaperGrid] 셀 클릭:', {
-      actualX,
-      actualY,
-      currentPage,
-      isMobile
-    });
-
     if (highlightedPosition && highlightedPosition.x === actualX && highlightedPosition.y === actualY) {
       onHighlightClear?.();
       return;
@@ -135,8 +137,25 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
     if (isOwner && !messageAtPosition) return;
 
     setSelectedCell({ x: actualX, y: actualY });
+    setRecommendedPositions([]); // 새로운 셀 클릭 시 추천 위치 초기화
     setModalOpen(true);
-  }, [highlightedPosition, onHighlightClear, getMessageAt, isOwner, currentPage, isMobile]);
+  }, [highlightedPosition, onHighlightClear, getMessageAt, isOwner]);
+
+  // 추천 위치로 이동
+  const handleMoveToRecommended = useCallback((position: { x: number; y: number }) => {
+    setModalOpen(false);
+    setRecommendedPositions([]);
+
+    // 해당 페이지로 이동
+    const { page } = getPageAndGridPosition(position.x, position.y, isMobile);
+    setCurrentPage(page);
+
+    // 약간의 지연 후 모달 열기 (페이지 전환 후)
+    setTimeout(() => {
+      setSelectedCell({ x: position.x, y: position.y });
+      setModalOpen(true);
+    }, 100);
+  }, [isMobile, setCurrentPage]);
 
   return (
     <div className={`relative max-w-5xl mx-auto mb-6 md:mb-8 ${className}`}>
@@ -230,19 +249,6 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
                 gridY
               );
 
-              // 디버깅: 2페이지의 첫 번째 셀일 때 좌표 확인
-              if (currentPage === 2 && i === 0) {
-                console.log('[RollingPaperGrid] 2페이지 첫 셀 좌표:', {
-                  page: currentPage,
-                  gridX,
-                  gridY,
-                  actualX,
-                  actualY,
-                  isMobile,
-                  pageWidth
-                });
-              }
-
               // 해당 좌표에 메시지가 있는지 확인
               const messageAtPosition = getMessageAt(actualX, actualY);
               // 메시지가 있으면 데코레이션 정보 가져오기
@@ -317,24 +323,41 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
       {selectedCell && (
         <Modal
           show={modalOpen}
-          onClose={() => setModalOpen(false)}
+          onClose={() => {
+            setModalOpen(false);
+            setRecommendedPositions([]);
+          }}
           dismissible
           size="md"
           className="modal-container"
         >
           <ModalHeader>
-            <div className="flex items-center space-x-2">
-              {getMessageAt(selectedCell.x, selectedCell.y) ? (
-                <>
-                  <Mail className="w-4 h-4 stroke-blue-500 fill-blue-200" />
-                  <span>메시지 보기</span>
-                </>
-              ) : (
-                <>
-                  <MessageSquare className="w-4 h-4 stroke-green-500 fill-green-200" />
-                  <span>메시지 작성</span>
-                </>
-              )}
+            <div className="flex flex-col space-y-1">
+              <div className="flex items-center space-x-2">
+                {getMessageAt(selectedCell.x, selectedCell.y) ? (
+                  <>
+                    <Mail className="w-4 h-4 stroke-blue-500 fill-blue-200" />
+                    <span>메시지 보기</span>
+                  </>
+                ) : (
+                  <>
+                    <MessageSquare className="w-4 h-4 stroke-green-500 fill-green-200" />
+                    <span>메시지 작성</span>
+                  </>
+                )}
+              </div>
+              {(() => {
+                const { page, gridX, gridY } = getPageAndGridPosition(
+                  selectedCell.x,
+                  selectedCell.y,
+                  isMobile
+                );
+                return (
+                  <p className="text-xs text-gray-500">
+                    페이지 {page}, {gridY + 1}번째 줄 {gridX + 1}번째 칸
+                  </p>
+                );
+              })()}
             </div>
           </ModalHeader>
 
@@ -359,19 +382,41 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
                 } else if (!isOwner && onMessageSubmit) {
                   // 새 메시지 작성 폼
                   return (
-                    <MessageForm
-                      nickname={nickname}
-                      position={{ x: selectedCell.x, y: selectedCell.y }}
-                      onSubmit={async (data) => {
-                        console.log('[RollingPaperGrid] 메시지 폼 제출:', {
-                          selectedCell,
-                          data
-                        });
-                        await handleMessageSubmit(selectedCell.x, selectedCell.y, data);
-                      }}
-                      onSuccess={onSuccess}
-                      onError={onError}
-                    />
+                    <>
+                      <MessageForm
+                        onSubmit={async (data) => {
+                          await handleMessageSubmit(selectedCell.x, selectedCell.y, data);
+                        }}
+                        onSuccess={onSuccess}
+                        onError={onError}
+                      />
+
+                      {/* 추천 위치 표시 */}
+                      {recommendedPositions.length > 0 && (
+                        <div className="mt-4 p-4 bg-blue-50 rounded-xl border-2 border-blue-200">
+                          <p className="text-sm font-semibold text-blue-800 mb-3 flex items-center gap-2">
+                            <Sparkles className="w-4 h-4" />
+                            가까운 빈 위치
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {recommendedPositions.map((pos) => {
+                              const { page, gridX, gridY } = getPageAndGridPosition(pos.x, pos.y, isMobile);
+                              return (
+                                <Button
+                                  key={`${pos.x}-${pos.y}`}
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleMoveToRecommended(pos)}
+                                  className="bg-white hover:bg-blue-100 border-blue-300 text-blue-700 font-medium"
+                                >
+                                  페이지 {page}, {gridY + 1}줄 {gridX + 1}번째
+                                </Button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </>
                   );
                 }
                 return null;

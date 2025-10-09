@@ -11,7 +11,6 @@ export { ConfirmModal, useConfirmModal } from './modals/confirm-modal';
 
 // Form components
 export { default as Editor } from './forms/editor';
-export { SearchBox } from './forms/search-box';
 
 // Feedback components
 export { Alert, AlertDescription, AlertTitle, SuccessAlert, ErrorAlert, WarningAlert, InfoAlert } from './feedback/alert';

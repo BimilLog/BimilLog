@@ -4,7 +4,7 @@ import React from "react";
 import dynamic from "next/dynamic";
 import { Button, Input, Textarea, SafeHTML, Spinner, TimeBadge } from "@/components";
 import { Button as FlowbiteButton } from "flowbite-react";
-import { ThumbsUp, Reply, MoreHorizontal, User, ExternalLink, CornerDownRight } from "lucide-react";
+import { ThumbsUp, Reply, MoreHorizontal, User, ExternalLink, CornerDownRight, ChevronDown, ChevronUp } from "lucide-react";
 import { Comment, userCommand } from "@/lib/api";
 import { useAuth } from "@/hooks";
 import {
@@ -98,6 +98,19 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
   const actualDepth = Math.min(depth, maxDepth); // depth가 3을 초과하면 3으로 제한
   const marginLeft = actualDepth * 16; // 16px씩 들여쓰기 (모바일 최적화)
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+
+  // 답글 접기/펼치기 상태: 답글 2개 이하는 기본 펼침, 3개 이상은 접힘
+  const [isRepliesExpanded, setIsRepliesExpanded] = useState(() => {
+    if (!comment.replies || comment.replies.length === 0) return false;
+    return comment.replies.length <= 2;
+  });
+
+  // 인기 답글이 있으면 자동으로 펼침
+  React.useEffect(() => {
+    if (comment.replies && comment.replies.some(reply => reply.popular)) {
+      setIsRepliesExpanded(true);
+    }
+  }, [comment.replies]);
 
   // 댓글 신고 처리 함수: 비로그인 사용자도 신고 가능
   // v2 API를 사용하여 신고 타입과 대상 ID, 사유를 전송
@@ -361,15 +374,71 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
         )}
       </div>
 
-      {/* 대댓글 재귀 렌더링: 답글이 있으면 동일한 CommentItem으로 중첩 표시 */}
+      {/* 대댓글 섹션: 접기/펼치기 기능 포함 */}
       {comment.replies && comment.replies.length > 0 && (
-        <div className="space-y-2">
-          {comment.replies.map((reply) => (
+        <div className="mt-3 space-y-2">
+          {/* 미리보기: 접혀있을 때 최대 2개까지만 표시 */}
+          {!isRepliesExpanded && comment.replies.slice(0, 2).map((reply) => (
             <CommentItem
               key={reply.id}
               comment={reply}
               depth={depth + 1}
-              parentUserName={comment.memberName || "익명"} // 부모 댓글 작성자명 전달
+              parentUserName={comment.memberName || "익명"}
+              editingComment={editingComment}
+              editContent={editContent}
+              editPassword={editPassword}
+              replyingTo={replyingTo}
+              replyContent={replyContent}
+              replyPassword={replyPassword}
+              isAuthenticated={isAuthenticated}
+              isSubmittingReply={isSubmittingReply}
+              postId={postId}
+              onEditComment={onEditComment}
+              onUpdateComment={onUpdateComment}
+              onCancelEdit={onCancelEdit}
+              onDeleteComment={onDeleteComment}
+              onReplyTo={onReplyTo}
+              onReplySubmit={onReplySubmit}
+              onCancelReply={onCancelReply}
+              setEditContent={setEditContent}
+              setEditPassword={setEditPassword}
+              setReplyContent={setReplyContent}
+              setReplyPassword={setReplyPassword}
+              isMyComment={isMyComment}
+              onLikeComment={onLikeComment}
+              canModifyComment={canModifyComment}
+            />
+          ))}
+
+          {/* 답글 토글 버튼: 3개 이상일 때만 표시 */}
+          {comment.replies.length > 2 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsRepliesExpanded(!isRepliesExpanded)}
+              className="w-full text-purple-600 hover:text-purple-700 hover:bg-purple-50 flex items-center justify-center gap-2"
+            >
+              {isRepliesExpanded ? (
+                <>
+                  <ChevronUp className="w-4 h-4" />
+                  답글 숨기기
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="w-4 h-4" />
+                  답글 {comment.replies.length - 2}개 더보기
+                </>
+              )}
+            </Button>
+          )}
+
+          {/* 전체 답글: 펼쳐있을 때 모든 답글 표시 */}
+          {isRepliesExpanded && comment.replies.map((reply) => (
+            <CommentItem
+              key={reply.id}
+              comment={reply}
+              depth={depth + 1}
+              parentUserName={comment.memberName || "익명"}
               editingComment={editingComment}
               editContent={editContent}
               editPassword={editPassword}

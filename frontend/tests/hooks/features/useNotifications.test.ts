@@ -347,36 +347,6 @@ describe("useNotifications", () => {
     });
   });
 
-  it("브라우저 알림 권한을 요청한다", async () => {
-    vi.mocked(useAuth).mockReturnValue({
-      isAuthenticated: true,
-      user: {
-        memberId: 1,
-        settingId: 1,
-        socialNickname: "test",
-        thumbnailImage: "",
-        memberName: "테스트사용자",
-        role: "USER",
-      },
-      isLoading: false,
-      login: vi.fn(),
-      logout: vi.fn(),
-      signUp: vi.fn(),
-      updateUserName: vi.fn(),
-      refreshUser: vi.fn(),
-    });
-
-    const { result } = renderHook(() => useNotifications(), {
-      wrapper: createWrapper(),
-    });
-
-    // requestNotificationPermission 호출
-    const permission = await result.current.requestNotificationPermission();
-
-    expect(global.Notification.requestPermission).toHaveBeenCalled();
-    expect(permission).toBe("granted");
-  });
-
   it("알림 권한이 거부된 경우 브라우저 알림을 표시하지 않는다", () => {
     Object.defineProperty(global.Notification, 'permission', {
       writable: true,

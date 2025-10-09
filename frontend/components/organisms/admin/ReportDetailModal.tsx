@@ -81,7 +81,7 @@ export function ReportDetailModal({
   const handleBanClick = async () => {
     const confirmed = await confirm({
       title: "사용자 차단",
-      message: `정말로 '${report.targetAuthorName}'님을 제재하시겠습니까?\n\n이 작업은 되돌릴 수 없으며, 24시간 동안 서비스 이용이 제한됩니다.`,
+      message: `정말로 '${report.targetAuthorName}'님을 제재하시겠습니까?\n\n⚠️ 제재 내용:\n• 24시간 동안 서비스 이용 제한\n• 모든 세션 및 토큰 무효화\n• 블랙리스트 등록\n\n이 작업은 되돌릴 수 없습니다.`,
       confirmText: "차단",
       cancelText: "취소",
       confirmButtonVariant: "destructive",
@@ -101,7 +101,7 @@ export function ReportDetailModal({
   const handleWithdrawClick = async () => {
     const confirmed = await confirm({
       title: "강제 탈퇴",
-      message: `정말로 '${report.targetAuthorName}'님을 강제 탈퇴시키시겠습니까?\n\n⚠️ 경고: 이 작업은 되돌릴 수 없으며, 사용자 계정과 모든 데이터가 영구적으로 삭제됩니다.`,
+      message: `정말로 '${report.targetAuthorName}'님을 강제 탈퇴시키시겠습니까?\n\n⚠️ 경고: 이 작업은 되돌릴 수 없으며, 다음 데이터가 영구적으로 삭제됩니다:\n\n삭제 예정 항목:\n• 사용자 계정 정보\n• 작성한 모든 게시글 및 댓글\n• 받은 롤링페이퍼 메시지\n• 알림 및 FCM 토큰\n• 소셜 계정 연동 (카카오)\n• 인증 토큰 및 세션\n\n⏱️ 데이터 정리는 백그라운드에서 약 10초 소요됩니다.`,
       confirmText: "탈퇴",
       cancelText: "취소",
       confirmButtonVariant: "destructive",

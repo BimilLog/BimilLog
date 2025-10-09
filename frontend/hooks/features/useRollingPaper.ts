@@ -37,8 +37,6 @@ export function useRollingPaperActions(userName: string) {
     y: number;
   }): Promise<void> => {
     return new Promise((resolve, reject) => {
-      console.log('[useRollingPaper] 메시지 작성 요청:', messageData);
-
       createMessageMutation.mutate({
         userName: messageData.userName,
         message: {
@@ -50,11 +48,9 @@ export function useRollingPaperActions(userName: string) {
         }
       }, {
         onSuccess: () => {
-          console.log('[useRollingPaper] 메시지 작성 성공');
           resolve();
         },
         onError: (error) => {
-          console.error('[useRollingPaper] 메시지 작성 실패:', error);
           reject(error);
         }
       });

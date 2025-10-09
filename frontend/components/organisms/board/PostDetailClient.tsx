@@ -66,6 +66,7 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
     targetComment,
     loadMoreComments,
     getTotalCommentCount,
+    getRootCommentCount,
     canModify,
     isMyComment,
     canModifyComment,
@@ -292,6 +293,7 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
   }
 
   const commentCount = getTotalCommentCount(comments);
+  const rootCommentCount = getRootCommentCount(comments);
 
   return (
     <div className="min-h-screen bg-brand-gradient">
@@ -355,6 +357,7 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
           comments={comments}
           popularComments={popularComments}
           commentCount={commentCount}
+          rootCommentCount={rootCommentCount}
           isAuthenticated={isAuthenticated}
 
           hasMoreComments={hasMoreComments}

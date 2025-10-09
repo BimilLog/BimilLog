@@ -105,29 +105,6 @@ export function usePostDetail(id: string | null, initialPost?: Post) {
     return rootComments;
   }, []);
 
-  const fetchComments = useCallback(async () => {
-    if (!id) return;
-
-    try {
-      const commentsResponse = await commentQuery.getByPostId(Number(id), 0);
-
-      if (commentsResponse.success && commentsResponse.data) {
-        const treeComments = buildCommentTree(commentsResponse.data.content);
-        setComments(treeComments);
-
-        // 페이지네이션 상태 초기화 - PageResponse.last 활용
-        setCurrentPage(0);
-        setHasMoreComments(!commentsResponse.data.last);
-      } else {
-        setComments([]);
-        setHasMoreComments(false);
-      }
-    } catch (error) {
-      setComments([]);
-      setHasMoreComments(false);
-      showError("댓글 로딩 실패", "잠시 후 다시 시도해주세요.");
-    }
-  }, [id, buildCommentTree, showError]);
 
   const loadMoreComments = useCallback(async () => {
     if (!id || isLoadingMore || !hasMoreComments) return;
@@ -186,6 +163,13 @@ export function usePostDetail(id: string | null, initialPost?: Post) {
     return count;
   };
 
+  // 루트 댓글 수만 계산 (답글 제외)
+  const getRootCommentCount = (
+    comments: (Comment & { replies?: Comment[] })[]
+  ): number => {
+    return comments.length;
+  };
+
   // 권한 체크: 익명 게시글은 비로그인 사용자만 수정 가능, 로그인 게시글은 작성자만 수정 가능
   const canModify = () => {
     if (!post || isLoading) return false;
@@ -210,8 +194,31 @@ export function usePostDetail(id: string | null, initialPost?: Post) {
   // Effects
   useEffect(() => {
     if (!id) return;
-    fetchComments();
-  }, [id, fetchComments]);
+
+    const loadComments = async () => {
+      try {
+        const commentsResponse = await commentQuery.getByPostId(Number(id), 0);
+
+        if (commentsResponse.success && commentsResponse.data) {
+          const treeComments = buildCommentTree(commentsResponse.data.content);
+          setComments(treeComments);
+
+          // 페이지네이션 상태 초기화 - PageResponse.last 활용
+          setCurrentPage(0);
+          setHasMoreComments(!commentsResponse.data.last);
+        } else {
+          setComments([]);
+          setHasMoreComments(false);
+        }
+      } catch (error) {
+        setComments([]);
+        setHasMoreComments(false);
+        showError("댓글 로딩 실패", "잠시 후 다시 시도해주세요.");
+      }
+    };
+
+    loadComments();
+  }, [id, buildCommentTree, showError]);
 
   return {
     // Data
@@ -232,9 +239,9 @@ export function usePostDetail(id: string | null, initialPost?: Post) {
     targetComment: passwordModal.targetComment,
 
     // Actions
-    fetchComments,
     loadMoreComments,
     getTotalCommentCount,
+    getRootCommentCount,
     canModify,
     isMyComment,
     canModifyComment,

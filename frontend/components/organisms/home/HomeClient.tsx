@@ -37,10 +37,12 @@ export default function HomeClient() {
 
   // 알림 권한 요청 모달 표시 로직
   useEffect(() => {
-    // 로그인되어 있고, 모바일/태블릿이고, 아직 알림 권한을 물어보지 않았을 때만 표시
+    // 로그인되어 있고, 모바일/태블릿이고, 스킵하지 않았을 때만 표시
     if (isAuthenticated && user && isMobileOrTablet()) {
-      const hasAsked = localStorage.getItem("notification_permission_asked");
-      if (!hasAsked) {
+      const skipUntil = localStorage.getItem("notification_permission_skipped");
+      const shouldShow = !skipUntil || Date.now() > parseInt(skipUntil);
+
+      if (shouldShow) {
         // 1초 후에 모달 표시 (페이지 로드 직후 바로 뜨는 것 방지)
         const timer = setTimeout(() => {
           setIsNotificationModalOpen(true);
@@ -60,7 +62,8 @@ export default function HomeClient() {
 
     // FCM 토큰을 localStorage에 저장하여 다음 로그인 시 사용
     localStorage.setItem("fcm_token", token);
-    localStorage.setItem("notification_permission_asked", "true");
+    // 스킵 기록 제거 (권한 허용했으므로 다시 물어보지 않음)
+    localStorage.removeItem("notification_permission_skipped");
 
     // 참고: 현재 백엔드에는 FCM 토큰 등록 전용 API가 없습니다.
     // 토큰은 다음 로그인 시 auth/login API에 함께 전달됩니다.
@@ -68,7 +71,9 @@ export default function HomeClient() {
   };
 
   const handleNotificationSkip = () => {
-    localStorage.setItem("notification_permission_asked", "true");
+    // 7일 후 다시 표시
+    const skipUntil = Date.now() + 7 * 24 * 60 * 60 * 1000;
+    localStorage.setItem("notification_permission_skipped", skipUntil.toString());
   };
 
   return (

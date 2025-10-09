@@ -45,7 +45,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
           <h3 className="mb-5 text-lg font-bold text-gray-900">
             {title}
           </h3>
-          <p className="mb-5 text-sm text-gray-500">
+          <p className="mb-5 text-sm text-gray-500 whitespace-pre-line">
             {message}
           </p>
           <div className="flex justify-center gap-4">

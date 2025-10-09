@@ -2,7 +2,6 @@
 
 // ============ COMMENT QUERY HOOKS ============
 export {
-  useCommentList,
   usePopularComments,
 } from '@/hooks/api/useCommentQueries';
 

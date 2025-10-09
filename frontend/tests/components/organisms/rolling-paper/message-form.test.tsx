@@ -77,7 +77,7 @@ describe("MessageForm", () => {
       render(<MessageForm {...defaultProps} />);
 
       expect(screen.getByText("0 / 8")).toBeInTheDocument(); // 닉네임
-      expect(screen.getByText("0 / 500")).toBeInTheDocument(); // 메시지
+      expect(screen.getByText("0 / 255")).toBeInTheDocument(); // 메시지
     });
   });
 
@@ -142,14 +142,14 @@ describe("MessageForm", () => {
       const messageInput = screen.getByPlaceholderText(/마음을 담은 메시지를 남겨주세요/);
       await user.type(messageInput, "테스트 메시지입니다");
 
-      expect(screen.getByText("10 / 500")).toBeInTheDocument();
+      expect(screen.getByText("10 / 255")).toBeInTheDocument();
     });
 
-    it("메시지가 500자를 초과할 수 없다", () => {
+    it("메시지가 255자를 초과할 수 없다", () => {
       render(<MessageForm {...defaultProps} />);
 
       const messageInput = screen.getByPlaceholderText(/마음을 담은 메시지를 남겨주세요/);
-      expect(messageInput).toHaveAttribute("maxLength", "500");
+      expect(messageInput).toHaveAttribute("maxLength", "255");
     });
 
     it("메시지가 비어있으면 제출할 수 없다", async () => {

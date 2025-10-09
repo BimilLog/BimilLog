@@ -43,6 +43,13 @@ export default function LogoutPage() {
         // FCM 토큰 캐시 정리
         fcmManager.clearCache();
 
+        // localStorage FCM 관련 데이터 완전 삭제 (보안: 다음 사용자가 이전 토큰 사용 방지)
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("fcm_token");
+          localStorage.removeItem("notification_permission_asked");
+          localStorage.removeItem("notification_permission_skipped");
+        }
+
         // 컴포넌트가 아직 마운트되어 있을 때만 라우팅 실행 (메모리 누수 방지)
         if (isMountedRef.current) {
           // 카카오 친구 동의 플로우 확인

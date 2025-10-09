@@ -9,6 +9,7 @@ interface CommentSectionProps {
   comments: (Comment & { replies?: Comment[] })[];
   popularComments: Comment[];
   commentCount: number;
+  rootCommentCount: number;
   isAuthenticated: boolean;
 
   // Pagination props
@@ -59,6 +60,7 @@ const CommentSection = memo(({
   comments,
   popularComments,
   commentCount,
+  rootCommentCount,
   isAuthenticated,
 
   // Pagination
@@ -121,6 +123,7 @@ const CommentSection = memo(({
       <CommentList
         comments={comments} // replies 필드를 포함한 계층 구조 데이터
         commentCount={commentCount}
+        rootCommentCount={rootCommentCount}
         postId={postId}
         editingComment={editingComment}
         editContent={editContent}

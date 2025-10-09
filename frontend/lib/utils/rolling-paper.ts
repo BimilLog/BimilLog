@@ -169,6 +169,49 @@ export function findEmptyPositions<T extends { x: number; y: number }>(
 }
 
 /**
+ * 맨해튼 거리 계산 (그리드 기반 거리)
+ */
+function calculateManhattanDistance(pos1: GridPosition, pos2: GridPosition): number {
+  return Math.abs(pos1.x - pos2.x) + Math.abs(pos1.y - pos2.y);
+}
+
+/**
+ * 특정 위치에서 가장 가까운 빈 위치 찾기
+ * 맨해튼 거리 기준으로 정렬하여 반환
+ */
+export function findNearestEmptyPositions<T extends { x: number; y: number }>(
+  messages: T[],
+  fromPosition: GridPosition,
+  count: number = 3
+): GridPosition[] {
+  const allEmptyPositions: GridPosition[] = [];
+  const maxCols = 12; // 전체 좌표 범위 (0~11)
+  const rows = GRID_CONFIG.ROWS;
+
+  // 전체 좌표 범위에서 빈 위치 찾기
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < maxCols; x++) {
+      const position = { x, y };
+      if (!isPositionOccupied(messages, position)) {
+        allEmptyPositions.push(position);
+      }
+    }
+  }
+
+  // 맨해튼 거리 기준으로 정렬
+  const sortedPositions = allEmptyPositions
+    .map(pos => ({
+      position: pos,
+      distance: calculateManhattanDistance(fromPosition, pos)
+    }))
+    .sort((a, b) => a.distance - b.distance)
+    .slice(0, count)
+    .map(item => item.position);
+
+  return sortedPositions;
+}
+
+/**
  * 롤링페이퍼 공유 URL 생성
  */
 export function getRollingPaperShareUrl(nickname: string): string {

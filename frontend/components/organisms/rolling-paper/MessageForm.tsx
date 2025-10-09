@@ -16,8 +16,6 @@ interface MessageFormData {
 }
 
 interface MessageFormProps {
-  nickname?: string;
-  position?: { x: number; y: number };
   onSubmit: (data: MessageFormData) => Promise<void>;
   onSuccess?: (message: string) => void;
   onError?: (message: string) => void;

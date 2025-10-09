@@ -8,21 +8,6 @@ import { commentQuery } from '@/lib/api';
  */
 
 /**
- * 댓글 목록 조회
- * 게시글의 모든 댓글을 계층구조로 조회
- */
-export const useCommentList = (postId: number) => {
-  return useQuery({
-    queryKey: queryKeys.comment.list(postId),
-    queryFn: () => commentQuery.getByPostId(postId),
-    enabled: !!postId && postId > 0,
-    staleTime: 5 * 60 * 1000, // 5분
-    gcTime: 10 * 60 * 1000, // 10분
-    refetchInterval: 30000, // 30초마다 자동 갱신
-  });
-};
-
-/**
  * 인기 댓글 목록 조회
  * 게시글의 좋아요 수가 많은 댓글들을 우선적으로 조회
  */

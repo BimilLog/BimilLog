@@ -19,6 +19,7 @@ interface BoardTabsProps {
   isLoading?: boolean;
   error?: Error | null;
   isSearching?: boolean;
+  searchTerm?: string;
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
@@ -42,6 +43,7 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
   isLoading = false,
   error = null,
   isSearching = false,
+  searchTerm = "",
   currentPage,
   totalPages,
   onPageChange,
@@ -143,7 +145,9 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <HiClipboardList className="w-5 h-5 text-blue-500" />
-                <span>전체 게시판</span>
+                <span>
+                  {isSearching && searchTerm ? `'${searchTerm}' 검색 결과` : "전체 게시판"}
+                </span>
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">

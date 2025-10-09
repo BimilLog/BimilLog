@@ -118,6 +118,7 @@ function BoardClient() {
           isLoading={isLoading}
           error={error}
           isSearching={!!searchTerm.trim()}
+          searchTerm={searchTerm}
           currentPage={pagination.currentPage}
           totalPages={pagination.totalPages}
           onPageChange={pagination.setCurrentPage}

@@ -30,6 +30,20 @@ export const BoardSearch = ({
     }
   };
 
+  // 검색 타입별 동적 placeholder
+  const getPlaceholder = () => {
+    switch (searchType) {
+      case "TITLE":
+        return "제목을 입력하세요...";
+      case "TITLE_CONTENT":
+        return "제목 또는 내용을 입력하세요...";
+      case "WRITER":
+        return "작성자명을 입력하세요...";
+      default:
+        return "검색어를 입력하세요...";
+    }
+  };
+
   return (
     <Card variant="default" className="mb-6 p-4 bg-white backdrop-blur-none">
       <div className="flex flex-col sm:flex-row gap-4">
@@ -61,7 +75,7 @@ export const BoardSearch = ({
             </Dropdown>
             <Input
               type="text"
-              placeholder="검색어를 입력하세요..."
+              placeholder={getPlaceholder()}
               className="flex-1 border-0 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -71,7 +85,10 @@ export const BoardSearch = ({
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setSearchTerm("")}
+                onClick={() => {
+                  setSearchTerm("");
+                  handleSearch(); // 즉시 목록으로 복귀
+                }}
                 className="border-0 rounded-none hover:bg-gray-100"
                 title="검색어 지우기"
               >

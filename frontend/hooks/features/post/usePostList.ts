@@ -15,15 +15,19 @@ export function usePostList(pageSize = 30) {
   const [searchType, setSearchType] = useState<'TITLE' | 'TITLE_CONTENT' | 'WRITER'>('TITLE');
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
+  // X 버튼 클릭 시 즉시 목록으로 복귀하기 위해 실제 searchTerm도 체크
+  const actualSearch = searchTerm.trim();
+
   const pagination = usePagination({ pageSize });
 
   // TanStack Query로 게시글 목록/검색 통합 처리: 검색어가 있으면 검색, 없으면 일반 목록 조회
+  // actualSearch가 비어있으면 디바운스 무시하고 즉시 일반 목록 조회
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: debouncedSearchTerm.trim()
+    queryKey: actualSearch && debouncedSearchTerm.trim()
       ? queryKeys.post.search(debouncedSearchTerm, pagination.currentPage)
       : queryKeys.post.list({ page: pagination.currentPage, size: pagination.pageSize }),
     queryFn: async () => {
-      if (debouncedSearchTerm.trim()) {
+      if (actualSearch && debouncedSearchTerm.trim()) {
         return await postQuery.search(
           searchType,
           debouncedSearchTerm.trim(),

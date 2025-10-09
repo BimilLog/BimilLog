@@ -27,11 +27,13 @@ import {
 } from "@/hooks/features";
 import { useAuth } from "@/hooks";
 import { Spinner as FlowbiteSpinner, Badge, Drawer } from "flowbite-react";
+import { NotificationPermissionModal } from "@/components/organisms/notification";
 
 export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
+  const [showPermissionModal, setShowPermissionModal] = useState(false);
   const { isAuthenticated } = useAuth();
 
   const { data: notificationResponse, isLoading, refetch } = useNotificationList();
@@ -42,8 +44,8 @@ export function NotificationBell() {
 
   const {
     isSSEConnected,
+    connectionState,
     canConnectSSE,
-    requestNotificationPermission,
   } = useNotifications();
 
   useEffect(() => {
@@ -159,6 +161,37 @@ export function NotificationBell() {
     }
   };
 
+  // SSE 연결 상태에 따른 벨 아이콘 및 클래스 결정
+  const getBellIconAndClass = () => {
+    if (connectionState === "CONNECTING") {
+      return {
+        icon: <Bell className="w-5 h-5 text-gray-400 animate-pulse" />,
+        tooltip: "실시간 알림 연결 중...",
+        className: "opacity-60"
+      }
+    } else if (connectionState === "DISCONNECTED" || connectionState === "CLOSED") {
+      return {
+        icon: <BellOff className="w-5 h-5 text-red-500" />,
+        tooltip: "실시간 알림 연결 실패 (클릭하여 새로고침)",
+        className: ""
+      }
+    } else if (isSSEConnected) {
+      return {
+        icon: <Bell className="w-5 h-5 text-purple-500 animate-pulse" />,
+        tooltip: `실시간 알림 활성화 ${unreadCount > 0 ? `(${unreadCount}개 읽지 않음)` : ""}`,
+        className: ""
+      }
+    } else {
+      return {
+        icon: <BellOff className="w-5 h-5 text-brand-secondary" />,
+        tooltip: "실시간 알림 비활성화",
+        className: ""
+      }
+    }
+  }
+
+  const bellInfo = getBellIconAndClass();
+
 
   const NotificationContent = () => (
     <div className="w-full h-full flex flex-col">
@@ -187,7 +220,7 @@ export function NotificationBell() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={requestNotificationPermission}
+            onClick={() => setShowPermissionModal(true)}
             className="text-sm min-h-[44px] min-w-[44px] touch-manipulation"
             title="브라우저 알림 허용"
           >
@@ -313,14 +346,10 @@ export function NotificationBell() {
             variant="ghost"
             size="sm"
             onClick={() => handleOpen(!isOpen)}
-            className="flex items-center gap-1 min-h-[44px] px-2 touch-manipulation"
-            title={`알림 ${unreadCount > 0 ? `(${unreadCount}개 읽지 않음)` : ""}`}
+            className={`flex items-center gap-1 min-h-[44px] px-2 touch-manipulation ${bellInfo.className}`}
+            title={bellInfo.tooltip}
           >
-            {isSSEConnected ? (
-              <Bell className="w-5 h-5 text-brand-primary" />
-            ) : (
-              <BellOff className="w-5 h-5 text-brand-secondary" />
-            )}
+            {bellInfo.icon}
             {unreadCount > 0 && (
               <Badge color="failure" size="xs" className="px-1.5">
                 {unreadCount > 99 ? "99+" : unreadCount}
@@ -348,14 +377,10 @@ export function NotificationBell() {
             variant="ghost"
             size="sm"
             onClick={() => handleOpen(!isOpen)}
-            className="flex items-center gap-1 min-h-[44px] px-2 touch-manipulation notification-button"
-            title={`알림 ${unreadCount > 0 ? `(${unreadCount}개 읽지 않음)` : ""}`}
+            className={`flex items-center gap-1 min-h-[44px] px-2 touch-manipulation notification-button ${bellInfo.className}`}
+            title={bellInfo.tooltip}
           >
-            {isSSEConnected ? (
-              <Bell className="w-5 h-5 text-purple-500" />
-            ) : (
-              <BellOff className="w-5 h-5 text-brand-secondary" />
-            )}
+            {bellInfo.icon}
             {unreadCount > 0 && (
               <Badge color="failure" size="xs" className="px-1.5">
                 {unreadCount > 99 ? "99+" : unreadCount}
@@ -372,6 +397,22 @@ export function NotificationBell() {
           )}
         </>
       )}
+
+      {/* 알림 권한 요청 모달 */}
+      <NotificationPermissionModal
+        show={showPermissionModal}
+        onClose={() => setShowPermissionModal(false)}
+        onSuccess={(token) => {
+          localStorage.setItem("fcm_token", token);
+          localStorage.removeItem("notification_permission_skipped");
+          setShowPermissionModal(false);
+        }}
+        onSkip={() => {
+          const skipUntil = Date.now() + 7 * 24 * 60 * 60 * 1000;
+          localStorage.setItem("notification_permission_skipped", skipUntil.toString());
+          setShowPermissionModal(false);
+        }}
+      />
     </div>
   );
 }

@@ -11,6 +11,7 @@ interface CommentWithReplies extends Comment {
 interface CommentListProps {
   comments: CommentWithReplies[];
   commentCount: number;
+  rootCommentCount: number;
   postId: number;
   editingComment: Comment | null;
   editContent: string;
@@ -42,6 +43,7 @@ interface CommentListProps {
 export const CommentList = React.memo<CommentListProps>(({
   comments,
   commentCount,
+  rootCommentCount,
   postId,
   editingComment,
   editContent,
@@ -69,12 +71,17 @@ export const CommentList = React.memo<CommentListProps>(({
   onLikeComment,
   canModifyComment,
 }) => {
+  const replyCount = commentCount - rootCommentCount;
+
   return (
     <Card variant="elevated">
       <CardHeader>
         <CardTitle className="flex items-center space-x-2">
           <MessageSquare className="w-5 h-5 stroke-blue-600 fill-blue-100" />
-          <span>댓글 {commentCount}개</span>
+          <span>
+            댓글 {rootCommentCount}개
+            {replyCount > 0 && <span className="text-brand-secondary"> (답글 {replyCount}개)</span>}
+          </span>
         </CardTitle>
       </CardHeader>
       <CardContent>

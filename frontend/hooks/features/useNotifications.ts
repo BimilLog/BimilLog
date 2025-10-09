@@ -4,6 +4,9 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react"
 import { sseManager, type Notification } from "@/lib/api"
 import { useAuth } from "@/hooks"
 import { logger } from "@/lib/utils"
+import { useToastStore } from "@/stores/toast.store"
+import { useQueryClient } from "@tanstack/react-query"
+import { queryKeys } from "@/lib/tanstack-query/keys"
 
 // TanStack Query Hooks re-exports
 export { useNotificationList } from '@/hooks/api/useNotificationQueries';
@@ -19,8 +22,11 @@ export {
  */
 export function useNotifications() {
   const { isAuthenticated, user } = useAuth()
+  const { showSuccess, showError, showInfo } = useToastStore()
+  const queryClient = useQueryClient()
   const [isSSEConnected, setIsSSEConnected] = useState(false)
   const [connectionState, setConnectionState] = useState<string>("DISCONNECTED")
+  const hasShownConnectedToastRef = useRef(false)
 
   // SSE 연결 가능 여부 확인: 사용자 인증 및 닉네임 설정 완료 상태 체크
   const canConnectSSE = useCallback(() => {
@@ -46,15 +52,44 @@ export function useNotifications() {
     setIsSSEConnected(connected)
   }, [])
 
-  // 브라우저 알림 권한 요청: 사용자 승인 후에만 푸시 알림 표시 가능
-  const requestNotificationPermission = useCallback(async () => {
-    if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
-      const permission = await Notification.requestPermission()
-      logger.log("브라우저 알림 권한:", permission)
-      return permission
+  // SSE 상태 변경 리스너: 연결 상태에 따라 토스트 알림 표시
+  useEffect(() => {
+    if (!canConnectSSE()) return
+
+    const statusListener = (status: 'connecting' | 'connected' | 'disconnected' | 'error' | 'reconnecting') => {
+      logger.log(`SSE 상태 변경: ${status}`)
+
+      switch (status) {
+        case 'connecting':
+          logger.log("SSE 연결 시도 중...")
+          break
+        case 'connected':
+          // 최초 연결 시에만 토스트 표시 (재연결 시에는 표시하지 않음)
+          if (!hasShownConnectedToastRef.current) {
+            showSuccess("실시간 알림 활성화", "새로운 알림을 실시간으로 받을 수 있습니다", 3000)
+            hasShownConnectedToastRef.current = true
+          } else {
+            showInfo("실시간 알림 복구", "알림 연결이 복구되었습니다", 2000)
+          }
+          break
+        case 'reconnecting':
+          showInfo("재연결 중", "실시간 알림 연결을 복구하고 있습니다...", 2000)
+          break
+        case 'error':
+          showError("연결 실패", "실시간 알림 연결에 실패했습니다. 재시도 중...", 3000)
+          break
+        case 'disconnected':
+          hasShownConnectedToastRef.current = false
+          break
+      }
     }
-    return Notification.permission
-  }, [])
+
+    sseManager.addStatusListener(statusListener)
+
+    return () => {
+      sseManager.removeStatusListener(statusListener)
+    }
+  }, [canConnectSSE, showSuccess, showError, showInfo])
 
   // SSE 이벤트 리스너 등록/해제: 실시간 알림 처리와 연결 상태 관리
   useEffect(() => {
@@ -67,6 +102,10 @@ export function useNotifications() {
       // 새 알림 수신 리스너 등록
       sseManager.addEventListener("notification", (data) => {
         logger.log("새 알림 수신:", data)
+
+        // 알림 목록 자동 갱신 (TanStack Query invalidation)
+        queryClient.invalidateQueries({ queryKey: queryKeys.notification.list() })
+        logger.log("알림 목록 자동 갱신 완료")
 
         // 브라우저 알림 권한 확인 후 푸시 알림 표시
         if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
@@ -92,6 +131,7 @@ export function useNotifications() {
       sseManager.removeEventListener("notification")
       setIsSSEConnected(false)
       setConnectionState("DISCONNECTED")
+      hasShownConnectedToastRef.current = false
     }
   }, [canConnectSSE, user, updateConnectionState])
 
@@ -99,6 +139,5 @@ export function useNotifications() {
     isSSEConnected,
     connectionState,
     canConnectSSE,
-    requestNotificationPermission,
   }
 }

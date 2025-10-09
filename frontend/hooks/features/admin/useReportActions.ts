@@ -22,17 +22,20 @@ export function useReportActions() {
 
     setIsProcessing(true);
     try {
-      // 신고 정보를 바탕으로 사용자 제재 처리
       const response = await adminCommand.banUser({
         reportType: report.reportType,
         targetId: report.targetId,
       });
 
       if (response.success) {
-        showSuccess("사용자 제재 완료", "사용자가 성공적으로 제재되었습니다.");
+        showSuccess(
+          "사용자 제재 완료",
+          "사용자가 24시간 동안 서비스 이용이 제한됩니다."
+        );
         return true;
       } else {
-        showError("제재 실패", response.error || "사용자 제재에 실패했습니다.");
+        const errorMessage = response.error || "사용자 제재에 실패했습니다.";
+        showError("제재 실패", errorMessage);
         return false;
       }
     } catch (error) {
@@ -57,17 +60,20 @@ export function useReportActions() {
 
     setIsProcessing(true);
     try {
-      // 강제 탈퇴 처리: 사용자 계정 및 관련 데이터 완전 삭제
       const response = await adminCommand.forceWithdrawUser({
         targetId: report.targetId,
         reportType: report.reportType,
       });
 
       if (response.success) {
-        showSuccess("강제 탈퇴 완료", "사용자가 성공적으로 탈퇴 처리되었습니다.");
+        showSuccess(
+          "강제 탈퇴 처리 시작",
+          "사용자 데이터 정리를 시작했습니다. 백그라운드에서 처리됩니다. (약 10초 소요)"
+        );
         return true;
       } else {
-        showError("탈퇴 실패", response.error || "사용자 탈퇴에 실패했습니다.");
+        const errorMessage = response.error || "사용자 탈퇴에 실패했습니다.";
+        showError("탈퇴 실패", errorMessage);
         return false;
       }
     } catch (error) {
