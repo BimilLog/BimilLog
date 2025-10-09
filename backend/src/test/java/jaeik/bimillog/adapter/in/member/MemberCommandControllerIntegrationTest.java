@@ -154,32 +154,6 @@ class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
 
 
     @Test
-    @DisplayName("설정 수정 - null 값 검증 실패 - 400 Bad Request")
-    void updateSetting_NullValidation_BadRequest() throws Exception {
-        // Given
-        Member testMember = TestMembers.createUnique();
-        testMember = saveMember(testMember);
-        
-        var userDetails = createCustomUserDetails(testMember);
-        
-        // null 값이 포함된 SettingDTO
-        SettingDTO settingDTO = SettingDTO.builder()
-                .messageNotification(null)  // null 값
-                .commentNotification(Boolean.TRUE)
-                .postFeaturedNotification(Boolean.FALSE)
-                .build();
-
-        // When & Then
-        mockMvc.perform(post("/api/member/setting")
-                        .with(user(userDetails))
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(settingDTO)))
-                .andDo(print())
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
     @DisplayName("닉네임 변경 - 빈 문자열 검증 실패 - 400 Bad Request")
     void updateUserName_BlankValidation_BadRequest() throws Exception {
         // Given

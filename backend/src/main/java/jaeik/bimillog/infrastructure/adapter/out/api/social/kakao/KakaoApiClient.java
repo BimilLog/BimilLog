@@ -38,13 +38,25 @@ public interface KakaoApiClient {
      * <p>사용자를 카카오에서 로그아웃 처리합니다.</p>
      *
      * @param authorization Bearer 토큰 (형식: "Bearer {accessToken}")
-     * @param contentType Content-Type 헤더
      * @author Jaeik
      * @since 2.0.0
      */
-    @PostMapping("/v1/user/socialLogout")
-    void logout(@RequestHeader("Authorization") String authorization,
-                @RequestHeader("Content-Type") String contentType);
+    @PostMapping("/v1/user/logout")
+    void logout(@RequestHeader("Authorization") String authorization);
+
+    /**
+     * <h3>카카오 강제 로그아웃</h3>
+     * <p>관리자 키를 사용하여 특정 사용자를 카카오에서 강제 로그아웃 처리합니다.</p>
+     * <p>사용자 차단 등의 관리 작업 시 호출됩니다.</p>
+     *
+     * @param authorization KakaoAK 토큰 (형식: "KakaoAK {adminKey}")
+     * @param params 로그아웃 파라미터 (target_id_type, target_id)
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @PostMapping(value = "/v1/user/logout", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    void forceLogout(@RequestHeader("Authorization") String authorization,
+                     @RequestParam Map<String, String> params);
 
     /**
      * <h3>카카오 계정 연결 해제</h3>
@@ -74,4 +86,6 @@ public interface KakaoApiClient {
     KakaoFriendsDTO getFriends(@RequestHeader("Authorization") String authorization,
                                @RequestParam("offset") Integer offset,
                                @RequestParam("limit") Integer limit);
+
+
 }

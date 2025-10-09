@@ -49,7 +49,7 @@ public class MemberBannedListener {
         SocialProvider provider = memberBannedEvent.provider();
 
         sseUseCase.deleteEmitters(memberId, null);
-        socialLogoutUseCase.forceLogout(memberId, provider, socialId); // 구현 필요
+        socialLogoutUseCase.forceLogout(socialId, provider);
         fcmUseCase.deleteFcmTokens(memberId, null);
         authTokenUseCase.deleteTokens(memberId, null);
         kakaoTokenUseCase.deleteByMemberId(memberId);

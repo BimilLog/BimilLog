@@ -154,12 +154,29 @@ public class KakaoAuthStrategy implements SocialAuthStrategy {
      */
     @Override
     public void logout(String accessToken) throws Exception {
-        kakaoApiClient.logout("Bearer " + accessToken, "application/x-www-form-urlencoded;charset=utf-8");
+        kakaoApiClient.logout("Bearer " + accessToken);
     }
 
+    /**
+     * <h3>카카오 강제 로그아웃</h3>
+     * <p>관리자 키를 사용하여 특정 사용자를 카카오에서 강제 로그아웃 처리합니다.</p>
+     * <p>사용자 차단 등의 관리 작업 시 호출되며, 카카오 API를 통해 해당 사용자의 세션을 강제 종료합니다.</p>
+     *
+     * @param socialId 카카오 사용자 고유 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
     @Override
     public void forceLogout(String socialId) {
+        Map<String, String> params = new HashMap<>();
+        params.put("target_id_type", "user_id");
+        params.put("target_id", socialId);
 
+        try {
+            kakaoApiClient.forceLogout("KakaoAK " + kakaoKeyVO.getADMIN_KEY(), params);
+        } catch (Exception e) {
+            throw new RuntimeException("카카오 강제 로그아웃 실패: " + e.getMessage(), e);
+        }
     }
 
     /**

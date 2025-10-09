@@ -57,7 +57,7 @@ public class MemberBannedEventIntegrationTest extends BaseEventIntegrationTest {
             // SSE 연결 정리
             verify(sseUseCase).deleteEmitters(eq(memberId), eq(null));
             // 소셜 플랫폼 강제 로그아웃
-            verify(socialLogoutUseCase).forceLogout(eq(memberId), eq(provider), eq(socialId));
+            verify(socialLogoutUseCase).forceLogout(eq(socialId), eq(provider));
             // FCM 토큰 삭제
             verify(fcmUseCase).deleteFcmTokens(eq(memberId), eq(null));
             // JWT 토큰 무효화
@@ -83,9 +83,9 @@ public class MemberBannedEventIntegrationTest extends BaseEventIntegrationTest {
             verify(sseUseCase).deleteEmitters(eq(3L), eq(null));
 
             // 소셜 플랫폼 강제 로그아웃
-            verify(socialLogoutUseCase).forceLogout(eq(1L), eq(SocialProvider.KAKAO), eq("kakao123"));
-            verify(socialLogoutUseCase).forceLogout(eq(2L), eq(SocialProvider.KAKAO), eq("kakao456"));
-            verify(socialLogoutUseCase).forceLogout(eq(3L), eq(SocialProvider.KAKAO), eq("kakao789"));
+            verify(socialLogoutUseCase).forceLogout(eq("kakao123"), eq(SocialProvider.KAKAO));
+            verify(socialLogoutUseCase).forceLogout(eq("kakao456"), eq(SocialProvider.KAKAO));
+            verify(socialLogoutUseCase).forceLogout(eq("kakao789"), eq(SocialProvider.KAKAO));
 
             // FCM 토큰 삭제
             verify(fcmUseCase).deleteFcmTokens(eq(1L), eq(null));
@@ -114,7 +114,7 @@ public class MemberBannedEventIntegrationTest extends BaseEventIntegrationTest {
         // When & Then - 모든 제공자별로 적절히 처리되어야 함
         publishAndVerify(kakaoEvent, () -> {
             verify(sseUseCase).deleteEmitters(eq(1L), eq(null));
-            verify(socialLogoutUseCase).forceLogout(eq(1L), eq(SocialProvider.KAKAO), eq("kakaoUser"));
+            verify(socialLogoutUseCase).forceLogout(eq("kakaoUser"), eq(SocialProvider.KAKAO));
             verify(fcmUseCase).deleteFcmTokens(eq(1L), eq(null));
             verify(authTokenUseCase).deleteTokens(eq(1L), eq(null));
             verify(kakaoTokenUseCase).deleteByMemberId(eq(1L));

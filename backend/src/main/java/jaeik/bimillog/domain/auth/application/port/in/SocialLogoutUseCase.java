@@ -30,13 +30,11 @@ public interface SocialLogoutUseCase {
      * <h3>강제 로그아웃</h3>
      * <p>관리자에 의한 강제 로그아웃 처리입니다.</p>
      * <p>사용자 차단 등의 관리 작업 시 소셜 세션을 강제로 종료합니다.</p>
-     * <p>현재 미구현 상태입니다.</p>
      *
-     * @param memberId 회원 ID
      * @param provider 소셜 플랫폼 제공자 (KAKAO 등)
      * @param socialId 소셜 플랫폼 사용자 고유 ID
      * @author Jaeik
      * @since 2.0.0
      */
-    void forceLogout(Long memberId, SocialProvider provider, String socialId);
+    void forceLogout(String socialId, SocialProvider provider);
 }

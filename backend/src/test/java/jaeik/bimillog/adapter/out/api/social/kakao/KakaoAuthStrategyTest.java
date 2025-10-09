@@ -158,14 +158,11 @@ class KakaoAuthStrategyTest extends BaseUnitTest {
     @DisplayName("socialLogout 성공")
     void shouldLogoutSuccessfully() throws Exception {
         // Given
-        doNothing().when(kakaoApiClient).logout(anyString(), anyString());
+        doNothing().when(kakaoApiClient).logout(anyString());
 
         kakaoAuthStrategy.logout(TEST_ACCESS_TOKEN);
 
-        verify(kakaoApiClient).logout(
-            eq("Bearer " + TEST_ACCESS_TOKEN),
-            eq("application/x-www-form-urlencoded;charset=utf-8")
-        );
+        verify(kakaoApiClient).logout(eq("Bearer " + TEST_ACCESS_TOKEN));
     }
 
     @Test
@@ -174,12 +171,45 @@ class KakaoAuthStrategyTest extends BaseUnitTest {
         // Given
         RuntimeException expectedException = new RuntimeException("Logout failed");
         doThrow(expectedException)
-            .when(kakaoApiClient).logout(anyString(), anyString());
+            .when(kakaoApiClient).logout(anyString());
 
         assertThatThrownBy(() -> kakaoAuthStrategy.logout(TEST_ACCESS_TOKEN))
             .isInstanceOf(RuntimeException.class)
             .hasMessage("Logout failed");
 
-        verify(kakaoApiClient).logout(anyString(), anyString());
+        verify(kakaoApiClient).logout(anyString());
+    }
+
+    @Test
+    @DisplayName("forceLogout 성공 - 카카오 강제 로그아웃")
+    void shouldForceLogoutSuccessfully() {
+        // Given
+        doNothing().when(kakaoApiClient).forceLogout(anyString(), any(Map.class));
+
+        // When
+        kakaoAuthStrategy.forceLogout(TEST_SOCIAL_ID);
+
+        // Then
+        verify(kakaoApiClient).forceLogout(
+            eq("KakaoAK " + KAKAO_ADMIN_KEY),
+            argThat(params -> {
+                Map<String, String> expectedParams = (Map<String, String>) params;
+                return expectedParams.get("target_id_type").equals("user_id") &&
+                       expectedParams.get("target_id").equals(TEST_SOCIAL_ID);
+            })
+        );
+    }
+
+    @Test
+    @DisplayName("forceLogout 실패 시 예외 발생")
+    void shouldThrowExceptionWhenForceLogoutFails() {
+        // Given
+        doThrow(new RuntimeException("Force logout failed"))
+            .when(kakaoApiClient).forceLogout(anyString(), any(Map.class));
+
+        // When & Then
+        assertThatThrownBy(() -> kakaoAuthStrategy.forceLogout(TEST_SOCIAL_ID))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("카카오 강제 로그아웃 실패");
     }
 }

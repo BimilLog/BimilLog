@@ -54,16 +54,13 @@ public class SocialLogoutService implements SocialLogoutUseCase {
      * <p>관리자에 의한 강제 로그아웃 처리입니다.</p>
      * <p>현재 미구현 상태이며, 향후 사용자 차단 시 소셜 세션 강제 종료를 위해 사용될 예정입니다.</p>
      *
-     * @param memberId 회원 ID
-     * @param provider 소셜 플랫폼 제공자
      * @param socialId 소셜 플랫폼 사용자 ID
+     * @param provider 소셜 플랫폼 제공자
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void forceLogout(Long memberId, SocialProvider provider, String socialId) {
-        KakaoToken kakaoToken = globalKakaoTokenQueryPort.findByMemberId(memberId)
-                .orElseThrow(() -> new AuthCustomException(AuthErrorCode.NOT_FIND_TOKEN));
+    public void forceLogout(String socialId, SocialProvider provider) {
         SocialPlatformStrategy strategy = strategyRegistry.getStrategy(provider);
         strategy.auth().forceLogout(socialId);
     }
