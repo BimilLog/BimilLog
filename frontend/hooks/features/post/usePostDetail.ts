@@ -246,16 +246,10 @@ export function usePostDetail(id: string | null, initialPost?: Post) {
     isMyComment,
     canModifyComment,
 
-    // Modal actions - 새로운 API
+    // Modal actions
     openPasswordModal: passwordModal.openModal,
     closePasswordModal: passwordModal.closeModal,
     resetPasswordModal: passwordModal.resetModal,
     setModalPassword: passwordModal.setModalPassword,
-
-    // Legacy compatibility - 기존 코드와의 호환성을 위해 유지
-    setShowPasswordModal: passwordModal.setShowPasswordModal,
-    setPasswordModalTitle: passwordModal.setPasswordModalTitle,
-    setDeleteMode: passwordModal.setDeleteMode,
-    setTargetComment: passwordModal.setTargetComment,
   };
 }

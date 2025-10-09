@@ -26,12 +26,6 @@ export interface UsePasswordModalReturn {
   closeModal: () => void;
   setModalPassword: (password: string) => void;
   resetModal: () => void;
-
-  // For legacy compatibility
-  setShowPasswordModal: (show: boolean) => void;
-  setPasswordModalTitle: (title: string) => void;
-  setDeleteMode: (mode: PasswordModalMode | null) => void;
-  setTargetComment: (comment: Comment | null) => void;
 }
 
 /**
@@ -81,37 +75,8 @@ export const usePasswordModal = (): UsePasswordModalReturn => {
     });
   };
 
-  // Legacy compatibility methods
-  const setShowPasswordModal = (show: boolean) => {
-    setModalState(prev => ({
-      ...prev,
-      isOpen: show,
-    }));
-  };
-
-  const setPasswordModalTitle = (title: string) => {
-    setModalState(prev => ({
-      ...prev,
-      title,
-    }));
-  };
-
-  const setDeleteMode = (mode: PasswordModalMode | null) => {
-    setModalState(prev => ({
-      ...prev,
-      mode,
-    }));
-  };
-
-  const setTargetComment = (comment: Comment | null) => {
-    setModalState(prev => ({
-      ...prev,
-      targetComment: comment,
-    }));
-  };
-
   return {
-    // State (legacy naming for compatibility)
+    // State
     showPasswordModal: modalState.isOpen,
     modalPassword: modalState.password,
     passwordModalTitle: modalState.title,
@@ -123,11 +88,5 @@ export const usePasswordModal = (): UsePasswordModalReturn => {
     closeModal,
     setModalPassword,
     resetModal,
-
-    // Legacy compatibility
-    setShowPasswordModal,
-    setPasswordModalTitle,
-    setDeleteMode,
-    setTargetComment,
   };
 };

@@ -10,6 +10,7 @@ import jaeik.bimillog.domain.post.application.port.out.PostLikeQueryPort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
 import jaeik.bimillog.domain.post.event.PostLikeEvent;
+import jaeik.bimillog.domain.post.event.PostUnlikeEvent;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -70,6 +71,9 @@ public class PostInteractionService implements PostInteractionUseCase {
 
         if (isAlreadyLiked) {
             postLikeCommandPort.deletePostLike(member, post);
+
+            // 실시간 인기글 점수 감소 이벤트 발행
+            eventPublisher.publishEvent(new PostUnlikeEvent(postId));
         } else {
             PostLike postLike = PostLike.builder().member(member).post(post).build();
             postLikeCommandPort.savePostLike(postLike);

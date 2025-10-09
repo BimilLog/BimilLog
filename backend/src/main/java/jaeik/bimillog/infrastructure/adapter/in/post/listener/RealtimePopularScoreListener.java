@@ -1,8 +1,10 @@
 package jaeik.bimillog.infrastructure.adapter.in.post.listener;
 
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
+import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostUpdatePort;
 import jaeik.bimillog.domain.post.event.PostLikeEvent;
+import jaeik.bimillog.domain.post.event.PostUnlikeEvent;
 import jaeik.bimillog.domain.post.event.PostViewedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -87,6 +89,46 @@ public class RealtimePopularScoreListener {
             log.debug("실시간 인기글 점수 증가 (추천): postId={}, score=+{}", event.postId(), LIKE_SCORE);
         } catch (Exception e) {
             log.error("실시간 인기글 점수 증가 실패 (추천): postId={}", event.postId(), e);
+        }
+    }
+
+    /**
+     * <h3>게시글 추천 취소 이벤트 처리</h3>
+     * <p>게시글 추천 취소 시 실시간 인기글 점수를 4점 감소시킵니다.</p>
+     * <p>PostUnlikeEvent 발행 시 비동기로 호출됩니다.</p>
+     *
+     * @param event 게시글 추천 취소 이벤트
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @EventListener
+    @Async
+    public void handlePostUnliked(PostUnlikeEvent event) {
+        try {
+            redisPostUpdatePort.incrementRealtimePopularScore(event.postId(), -LIKE_SCORE);
+            log.debug("실시간 인기글 점수 감소 (추천 취소): postId={}, score=-{}", event.postId(), LIKE_SCORE);
+        } catch (Exception e) {
+            log.error("실시간 인기글 점수 감소 실패 (추천 취소): postId={}", event.postId(), e);
+        }
+    }
+
+    /**
+     * <h3>댓글 삭제 이벤트 처리</h3>
+     * <p>댓글 삭제 시 해당 게시글의 실시간 인기글 점수를 3점 감소시킵니다.</p>
+     * <p>CommentDeletedEvent 발행 시 비동기로 호출됩니다.</p>
+     *
+     * @param event 댓글 삭제 이벤트
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @EventListener
+    @Async
+    public void handleCommentDeleted(CommentDeletedEvent event) {
+        try {
+            redisPostUpdatePort.incrementRealtimePopularScore(event.postId(), -COMMENT_SCORE);
+            log.debug("실시간 인기글 점수 감소 (댓글 삭제): postId={}, score=-{}", event.postId(), COMMENT_SCORE);
+        } catch (Exception e) {
+            log.error("실시간 인기글 점수 감소 실패 (댓글 삭제): postId={}", event.postId(), e);
         }
     }
 }

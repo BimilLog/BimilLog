@@ -1,9 +1,8 @@
 "use client";
 
 import React, { memo, useMemo } from "react";
-import { Tabs, TabItem, Popover } from "flowbite-react";
+import { Tabs, TabItem } from "flowbite-react";
 import { HiClipboardList, HiTrendingUp, HiSparkles, HiFire } from "react-icons/hi";
-import { Info } from "lucide-react";
 import { NoticeList } from "./notice-list";
 import { BoardTable } from "./BoardTable";
 import { BoardPagination } from "./board-pagination";
@@ -174,39 +173,6 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
               <CardTitle className="flex items-center space-x-2">
                 <HiFire className="w-5 h-5 text-red-500" />
                 <span>실시간 인기글</span>
-                <Popover
-                  trigger="hover"
-                  placement="right"
-                  content={
-                    <div className="p-3 max-w-xs">
-                      <div className="flex items-start gap-2 mb-2">
-                        <Info className="w-4 h-4 text-purple-600 flex-shrink-0 mt-0.5" />
-                        <span className="font-semibold text-sm">선정 기준</span>
-                      </div>
-                      <div className="space-y-1 text-xs text-gray-600">
-                        <div className="flex justify-between">
-                          <span>조회수:</span>
-                          <span className="font-medium">+2점</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>댓글:</span>
-                          <span className="font-medium">+3점</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>좋아요:</span>
-                          <span className="font-medium">+4점</span>
-                        </div>
-                        <div className="mt-2 pt-2 border-t text-gray-500">
-                          5분마다 점수가 감소하여 최신 인기글이 상위에 노출됩니다
-                        </div>
-                      </div>
-                    </div>
-                  }
-                >
-                  <button className="text-gray-400 hover:text-purple-600 transition-colors">
-                    <Info className="w-4 h-4" />
-                  </button>
-                </Popover>
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
@@ -228,28 +194,6 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
               <CardTitle className="flex items-center space-x-2">
                 <HiTrendingUp className="w-5 h-5 text-orange-500" />
                 <span>주간 인기글</span>
-                <Popover
-                  trigger="hover"
-                  placement="right"
-                  content={
-                    <div className="p-3 max-w-xs">
-                      <div className="flex items-start gap-2 mb-2">
-                        <Info className="w-4 h-4 text-purple-600 flex-shrink-0 mt-0.5" />
-                        <span className="font-semibold text-sm">선정 기준</span>
-                      </div>
-                      <div className="space-y-1 text-xs text-gray-600">
-                        <p>최근 7일간 조회수와 좋아요를 종합하여 선정됩니다</p>
-                        <div className="mt-2 pt-2 border-t text-gray-500">
-                          매일 자동으로 업데이트됩니다
-                        </div>
-                      </div>
-                    </div>
-                  }
-                >
-                  <button className="text-gray-400 hover:text-purple-600 transition-colors">
-                    <Info className="w-4 h-4" />
-                  </button>
-                </Popover>
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
@@ -271,28 +215,6 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
               <CardTitle className="flex items-center space-x-2">
                 <HiSparkles className="w-5 h-5 text-purple-500" />
                 <span>레전드 글</span>
-                <Popover
-                  trigger="hover"
-                  placement="right"
-                  content={
-                    <div className="p-3 max-w-xs">
-                      <div className="flex items-start gap-2 mb-2">
-                        <Info className="w-4 h-4 text-purple-600 flex-shrink-0 mt-0.5" />
-                        <span className="font-semibold text-sm">선정 기준</span>
-                      </div>
-                      <div className="space-y-1 text-xs text-gray-600">
-                        <p>역대 최고 인기 게시글을 모아둔 명예의 전당입니다</p>
-                        <div className="mt-2 pt-2 border-t text-gray-500">
-                          매일 자동으로 업데이트됩니다
-                        </div>
-                      </div>
-                    </div>
-                  }
-                >
-                  <button className="text-gray-400 hover:text-purple-600 transition-colors">
-                    <Info className="w-4 h-4" />
-                  </button>
-                </Popover>
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">

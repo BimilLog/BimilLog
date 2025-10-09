@@ -10,6 +10,7 @@ interface PasswordModalProps {
   onConfirm: () => void;
   onCancel: () => void;
   title: string;
+  description?: string;
   error?: string;
   isLoading?: boolean;
 }
@@ -21,6 +22,7 @@ export const PasswordModal = React.memo<PasswordModalProps>(({
   onConfirm,
   onCancel,
   title,
+  description,
   error,
   isLoading = false,
 }) => {
@@ -29,6 +31,11 @@ export const PasswordModal = React.memo<PasswordModalProps>(({
       <ModalHeader>{title}</ModalHeader>
       <ModalBody>
         <div className="space-y-4">
+          {description && (
+            <p className="text-sm text-gray-600">
+              {description}
+            </p>
+          )}
           <Input
             type="password"
             placeholder="비밀번호 (1000~9999)"

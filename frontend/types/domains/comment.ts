@@ -13,6 +13,7 @@ export interface Comment {
   likeCount: number       // v2: likes → likeCount (총 좋아요 수)
   createdAt: string
   userLike: boolean       // 현재 사용자가 이 댓글에 좋아요를 눌렀는지 여부
+  replies?: Comment[]     // 계층 구조를 위한 대댓글 목록 (프론트엔드에서 추가)
 }
 
 // 간단한 댓글 타입 (목록용) - v2 백엔드 호환

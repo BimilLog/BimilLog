@@ -9,6 +9,7 @@ import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentClosure;
 import jaeik.bimillog.domain.comment.entity.CommentLike;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
+import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
 import jaeik.bimillog.domain.comment.exception.CommentCustomException;
 import jaeik.bimillog.domain.comment.exception.CommentErrorCode;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCommentQueryPort;
@@ -132,12 +133,16 @@ public class CommentCommandService implements CommentCommandUseCase {
     @Transactional
     public void deleteComment(Long commentId, Long memberId, Integer password) {
         Comment comment = validateComment(commentId, memberId, password);
+        Long postId = comment.getPost().getId();
 
         if (commentQueryPort.hasDescendants(commentId)) {
             comment.softDelete(); // 더티 체킹으로 자동 업데이트
         } else {
             commentDeletePort.deleteComment(commentId); // 하드 삭제는 Port 사용
         }
+
+        // 실시간 인기글 점수 감소 이벤트 발행
+        eventPublisher.publishEvent(new CommentDeletedEvent(postId));
     }
 
     /**

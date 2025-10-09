@@ -541,6 +541,11 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
             setPasswordError("");
           }}
           title={passwordModalTitle}
+          description={
+            deleteMode === "comment" && targetComment?.replies && targetComment.replies.length > 0
+              ? `이 댓글에는 ${targetComment.replies.length}개의 답글이 있습니다. 삭제하면 '삭제된 댓글입니다'로 표시됩니다.`
+              : undefined
+          }
           error={passwordError}
           isLoading={deleteMode === "post" ? isDeletingPost : isDeletingComment}
         />
@@ -566,7 +571,11 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
           }}
           onConfirm={handleConfirmCommentDelete}
           title="댓글을 삭제하시겠습니까?"
-          message="이 작업은 되돌릴 수 없습니다."
+          message={
+            targetDeleteComment?.replies && targetDeleteComment.replies.length > 0
+              ? `이 댓글에는 ${targetDeleteComment.replies.length}개의 답글이 있습니다. 삭제하면 '삭제된 댓글입니다'로 표시됩니다.`
+              : "이 작업은 되돌릴 수 없습니다. 댓글이 완전히 삭제됩니다."
+          }
           confirmText="삭제"
           cancelText="취소"
           isLoading={isDeletingComment}
