@@ -17,7 +17,21 @@ export const PopularComments: React.FC<PopularCommentsProps> = ({
   onCommentClick,
 }) => {
   if (!comments || comments.length === 0) {
-    return null;
+    return (
+      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200 shadow-brand-sm mb-6">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-blue-700">
+            <MessageSquare className="w-5 h-5 stroke-blue-600 fill-blue-100" />
+            <span className="text-base sm:text-lg">인기 댓글</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-gray-600 text-center py-4">
+            아직 인기 댓글이 없습니다. 좋아요 3개 이상 받은 댓글이 여기에 표시됩니다.
+          </p>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (

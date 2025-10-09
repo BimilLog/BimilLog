@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useMemo, memo } from "react";
+import React, { useCallback, useMemo, memo, useState, useEffect } from "react";
 import { Card, CardContent } from "@/components";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components";
 import { Badge } from "@/components";
@@ -10,6 +10,7 @@ import { LoadingSpinner } from "@/components/atoms";
 import { EmptyState } from "@/components/molecules";
 import { ActivityCard } from "@/components/molecules";
 import { useActivityData } from "@/hooks";
+import { useDebouncedCallback } from "@/hooks/common/useDebounce";
 import { userQuery } from "@/lib/api";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import { Pagination, Spinner as FlowbiteSpinner } from "flowbite-react";
@@ -36,6 +37,10 @@ const ActivityTabContent: React.FC<ActivityTabContentProps> = memo(({
   fetchData,
   contentType,
 }) => {
+  // 반응형 페이지네이션: 모바일(768px 미만)은 무한 스크롤, 데스크톱은 페이지네이션
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  // useActivityData를 먼저 호출하여 currentPage, loadAllPagesForMobile 획득
   const {
     items,
     isLoading,
@@ -47,7 +52,33 @@ const ActivityTabContent: React.FC<ActivityTabContentProps> = memo(({
     handleLoadMore,
     handlePageChange,
     retry,
+    loadAllPagesForMobile,
   } = useActivityData({ fetchData });
+
+  // debounce를 적용한 resize 핸들러로 성능 최적화
+  // 데스크톱→모바일 전환 시 데이터 불연속 방지: 0페이지부터 현재 페이지까지 모두 로드
+  const handleResize = useDebouncedCallback(
+    () => {
+      const newIsDesktop = window.innerWidth >= 768;
+      const wasDesktop = isDesktop;
+
+      // 데스크톱→모바일 전환 + 현재 페이지가 0이 아닐 때만 리셋
+      if (wasDesktop && !newIsDesktop && currentPage > 0) {
+        // 무한 스크롤을 위해 페이지 0부터 currentPage까지 모두 로드
+        loadAllPagesForMobile(currentPage);
+      }
+
+      setIsDesktop(newIsDesktop);
+    },
+    200,
+    [isDesktop, currentPage, loadAllPagesForMobile]
+  );
+
+  useEffect(() => {
+    setIsDesktop(window.innerWidth >= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [handleResize]);
 
   // Flowbite React Pagination 핸들러: 0-based에서 1-based로 변환
   const handleFlowbitePagination = useCallback((page: number) => {
@@ -96,7 +127,29 @@ const ActivityTabContent: React.FC<ActivityTabContentProps> = memo(({
   }
 
   if (items.length === 0) {
-    return <EmptyState type={contentType} />;
+    // contentType별로 적절한 CTA 제공
+    const emptyStateProps = {
+      posts: {
+        actionLabel: "글쓰기",
+        actionHref: "/board/write"
+      },
+      comments: {
+        actionLabel: "커뮤니티 둘러보기",
+        actionHref: "/board"
+      },
+      "liked-posts": {
+        actionLabel: "커뮤니티 둘러보기",
+        actionHref: "/board"
+      },
+      "liked-comments": {
+        actionLabel: "커뮤니티 둘러보기",
+        actionHref: "/board"
+      }
+    };
+
+    const ctaProps = emptyStateProps[contentType] || {};
+
+    return <EmptyState type={contentType} {...ctaProps} />;
   }
 
   return (
@@ -110,7 +163,10 @@ const ActivityTabContent: React.FC<ActivityTabContentProps> = memo(({
         </div>
         {totalPages > 1 && (
           <div className="text-sm text-brand-muted">
-            페이지 {currentPage + 1} / {totalPages}
+            {isDesktop
+              ? `페이지 ${currentPage + 1} / ${totalPages}`
+              : `${items.length}개 로드됨`
+            }
           </div>
         )}
       </div>
@@ -126,7 +182,8 @@ const ActivityTabContent: React.FC<ActivityTabContentProps> = memo(({
         ))}
       </div>
 
-      {totalPages > 1 && (
+      {/* 반응형 페이지네이션: 데스크톱은 Pagination, 모바일은 더보기 버튼 */}
+      {totalPages > 1 && isDesktop && (
         <div className="flex items-center justify-center pt-6 border-t border-gray-200">
           <Pagination
             currentPage={currentPage + 1} // Convert 0-based to 1-based
@@ -157,7 +214,8 @@ const ActivityTabContent: React.FC<ActivityTabContentProps> = memo(({
         </div>
       )}
 
-      {currentPage < totalPages - 1 && (
+      {/* 모바일 무한 스크롤: 더보기 버튼 */}
+      {currentPage < totalPages - 1 && !isDesktop && (
         <div className="text-center pt-4">
           <Button
             variant="outline"

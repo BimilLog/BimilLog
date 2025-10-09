@@ -35,6 +35,7 @@ public class PostDetail implements Serializable {
     private String memberName;
     private Integer commentCount;
     private boolean isLiked;
+    private boolean isNotice;
 
     /**
      * <h3>생성자 - QueryDSL Projection용</h3>
@@ -48,7 +49,7 @@ public class PostDetail implements Serializable {
     @QueryProjection
     public PostDetail(Long id, String title, String content, Integer viewCount,
                      Integer likeCount, Instant createdAt, Long memberId,
-                     String memberName, Integer commentCount, boolean isLiked) {
+                     String memberName, Integer commentCount, boolean isLiked, boolean isNotice) {
         this.id = id;
         this.title = title;
         this.content = content;
@@ -59,6 +60,7 @@ public class PostDetail implements Serializable {
         this.memberName = memberName;
         this.commentCount = commentCount;
         this.isLiked = isLiked;
+        this.isNotice = isNotice;
     }
 
     /**
@@ -84,6 +86,7 @@ public class PostDetail implements Serializable {
                 .memberName(this.memberName)
                 .commentCount(this.commentCount)
                 .isLiked(isLiked)
+                .isNotice(this.isNotice)
                 .build();
     }
 

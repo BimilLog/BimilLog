@@ -47,12 +47,14 @@ export const useUpdateComment = () => {
 
   return useMutation({
     mutationKey: mutationKeys.comment.update,
-    mutationFn: commentCommand.update,
+    mutationFn: ({ commentId, content, password }: { commentId: number; postId: number; content: string; password?: number }) =>
+      commentCommand.update({ commentId, content, password }),
     onSuccess: (response, variables) => {
       if (response.success) {
-        // 모든 댓글 관련 캐시 무효화 (postId를 정확히 알 수 없으므로)
-        queryClient.invalidateQueries({ queryKey: queryKeys.comment.all });
-        queryClient.invalidateQueries({ queryKey: queryKeys.post.details() });
+        // 특정 게시글의 댓글 캐시만 무효화
+        queryClient.invalidateQueries({ queryKey: queryKeys.comment.list(variables.postId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.comment.popular(variables.postId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.post.detail(variables.postId) });
 
         showToast({ type: 'success', message: '댓글이 수정되었습니다.' });
       }
@@ -73,19 +75,18 @@ export const useDeleteComment = () => {
 
   return useMutation({
     mutationKey: mutationKeys.comment.delete,
-    mutationFn: commentCommand.delete,
+    mutationFn: ({ commentId, password }: { commentId: number; postId: number; password?: number }) =>
+      commentCommand.delete({ commentId, password }),
     onMutate: async ({ commentId }) => {
       // 낙관적 업데이트를 위한 현재 댓글 데이터 확인
-      // 실제 구현에서는 postId를 알아야 하므로 사용 시점에서 전달받아야 함
       return { commentId };
     },
     onSuccess: (response, variables, context) => {
       if (response.success) {
-        // 모든 댓글 관련 캐시 무효화 (postId를 정확히 알 수 없으므로)
-        queryClient.invalidateQueries({ queryKey: queryKeys.comment.all });
-
-        // 게시글 상세 정보도 갱신 (댓글 수 반영)
-        queryClient.invalidateQueries({ queryKey: queryKeys.post.details() });
+        // 특정 게시글의 댓글 캐시만 무효화
+        queryClient.invalidateQueries({ queryKey: queryKeys.comment.list(variables.postId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.comment.popular(variables.postId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.post.detail(variables.postId) });
 
         showToast({ type: 'success', message: '댓글이 삭제되었습니다.' });
       }
@@ -98,39 +99,7 @@ export const useDeleteComment = () => {
 };
 
 /**
- * 댓글 좋아요 토글 (낙관적 업데이트)
- */
-export const useLikeComment = () => {
-  const queryClient = useQueryClient();
-  const { showToast } = useToast();
-
-  return useMutation({
-    mutationKey: mutationKeys.comment.like,
-    mutationFn: commentCommand.like,
-    onMutate: async (commentId: number) => {
-      // 현재 댓글 목록에서 해당 댓글을 찾아 낙관적 업데이트 수행
-      // 하지만 댓글의 postId를 정확히 알기 어려우므로 간단한 처리만 수행
-      return { commentId };
-    },
-    onSuccess: (response, commentId) => {
-      if (response.success) {
-        // 모든 댓글 관련 캐시 무효화
-        queryClient.invalidateQueries({ queryKey: queryKeys.comment.all });
-      }
-    },
-    onError: (error, commentId) => {
-      // 좋아요는 일반적으로 조용히 실패 (토스트 없음)
-      // Silent fail for like operations
-    },
-    onSettled: (data, error, commentId) => {
-      // 성공/실패 여부와 관계없이 해당 댓글의 캐시 갱신
-      queryClient.invalidateQueries({ queryKey: queryKeys.comment.all });
-    },
-  });
-};
-
-/**
- * 특정 게시글의 댓글 좋아요 (postId를 알고 있는 경우)
+ * 특정 게시글의 댓글 좋아요 (낙관적 업데이트)
  */
 export const useLikeCommentOptimized = (postId: number) => {
   const queryClient = useQueryClient();
@@ -141,9 +110,11 @@ export const useLikeCommentOptimized = (postId: number) => {
     onMutate: async (commentId: number) => {
       // 진행 중인 refetch 취소 - 경합 상태(race condition) 방지
       await queryClient.cancelQueries({ queryKey: queryKeys.comment.list(postId) });
+      await queryClient.cancelQueries({ queryKey: queryKeys.comment.popular(postId) });
 
       // 이전 값 스냅샷 - 에러 시 롤백용
       const previousComments = queryClient.getQueryData(queryKeys.comment.list(postId));
+      const previousPopularComments = queryClient.getQueryData(queryKeys.comment.popular(postId));
 
       // 낙관적 업데이트: 서버 응답 전에 UI를 먼저 업데이트하여 반응성 향상
       queryClient.setQueryData(queryKeys.comment.list(postId), (old: ApiResponse<Comment[]>) => {
@@ -166,12 +137,36 @@ export const useLikeCommentOptimized = (postId: number) => {
         };
       });
 
-      return { previousComments };
+      // 인기 댓글도 낙관적 업데이트 - 일반 댓글과 동일한 반응성 제공
+      queryClient.setQueryData(queryKeys.comment.popular(postId), (old: ApiResponse<Comment[]>) => {
+        if (!old?.success || !old?.data) return old;
+
+        const updatedPopularComments = old.data.map(comment => {
+          if (comment.id === commentId) {
+            return {
+              ...comment,
+              userLike: !comment.userLike,
+              likeCount: comment.userLike ? comment.likeCount - 1 : comment.likeCount + 1,
+            };
+          }
+          return comment;
+        });
+
+        return {
+          ...old,
+          data: updatedPopularComments,
+        };
+      });
+
+      return { previousComments, previousPopularComments };
     },
     onError: (err, commentId, context) => {
       // 에러 시 이전 값으로 롤백 - 낙관적 업데이트 취소
       if (context?.previousComments) {
         queryClient.setQueryData(queryKeys.comment.list(postId), context.previousComments);
+      }
+      if (context?.previousPopularComments) {
+        queryClient.setQueryData(queryKeys.comment.popular(postId), context.previousPopularComments);
       }
     },
     onSettled: (data, error, commentId) => {

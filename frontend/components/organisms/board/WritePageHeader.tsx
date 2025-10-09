@@ -68,14 +68,21 @@ export const WritePageHeader: React.FC<WritePageHeaderProps> = ({
               <Eye className="w-4 h-4 mr-2 stroke-purple-600 fill-purple-100" />
               {isPreview ? "편집" : "미리보기"}
             </Button>
-            <Button
-              onClick={onSubmit}
-              disabled={isSubmitting || !isFormValid}
-              className="bg-gradient-to-r from-pink-500 to-purple-600"
-            >
-              <Save className="w-4 h-4 mr-2 stroke-green-600 fill-green-100" />
-              {isSubmitting ? "작성 중..." : "작성완료"}
-            </Button>
+            <div className="flex flex-col items-end gap-1">
+              <Button
+                onClick={onSubmit}
+                disabled={isSubmitting || !isFormValid}
+                className="bg-gradient-to-r from-pink-500 to-purple-600"
+              >
+                <Save className="w-4 h-4 mr-2 stroke-green-600 fill-green-100" />
+                {isSubmitting ? "작성 중..." : "작성완료"}
+              </Button>
+              {!isFormValid && !isSubmitting && (
+                <p className="text-xs text-red-600">
+                  제목과 내용을 모두 입력하세요
+                </p>
+              )}
+            </div>
           </div>
         </div>
       </div>

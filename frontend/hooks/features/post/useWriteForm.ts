@@ -55,18 +55,41 @@ export function useWriteForm() {
     }
   }, [title, content, handleAutoSave]);
 
-  // 폼 유효성 검사: 제목과 내용의 공백 제거 후 빈 값 체크
-  const validateForm = () => {
-    if (!title.trim() || !content.trim()) {
-      showWarning("입력 확인", "제목과 내용을 모두 입력해주세요.");
-      return false;
-    }
-    return true;
-  };
+  // 작성 중 이탈 방지 - 사용자가 실수로 페이지를 벗어나는 것을 방지
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // 제목이나 내용이 있고, 제출 중이 아닐 때만 경고
+      if ((title.trim() || content.trim()) && !createPostMutation.isPending) {
+        e.preventDefault();
+        e.returnValue = ''; // Chrome requires returnValue
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [title, content, createPostMutation.isPending]);
 
   // 폼 제출 핸들러 - 유효성 검사 후 TanStack Query mutation 실행
   const handleSubmit = async () => {
-    if (!validateForm()) return;
+    // 제목과 내용 유효성 검사
+    if (!title.trim() || !content.trim()) {
+      showWarning("입력 확인", "제목과 내용을 모두 입력해주세요.");
+      return;
+    }
+
+    // 비회원일 경우 비밀번호 검증
+    if (!isAuthenticated) {
+      if (!password) {
+        showWarning("입력 확인", "비밀번호를 입력해주세요.");
+        return;
+      }
+
+      const passwordNum = parseInt(password, 10);
+      if (isNaN(passwordNum) || passwordNum < 1000 || passwordNum > 9999) {
+        showWarning("입력 확인", "비밀번호는 1000~9999 범위의 4자리 숫자여야 합니다.");
+        return;
+      }
+    }
 
     // mutation 실행 - API 호출, 캐시 무효화, 성공/실패 처리 모두 자동
     createPostMutation.mutate({
@@ -74,21 +97,22 @@ export function useWriteForm() {
       content,
       password: password ? parseInt(password, 10) : undefined, // 회원은 undefined, 비회원은 숫자로 변환
     });
-
-    // 게시글 작성 성공 시 임시저장 삭제
-    removeDraft();
   };
+
+  // 게시글 작성 성공 시 임시저장 삭제
+  useEffect(() => {
+    if (createPostMutation.isSuccess) {
+      removeDraft();
+    }
+  }, [createPostMutation.isSuccess, removeDraft]);
 
   // 폼 유효성 및 제출 상태 계산
-  const isFormValid = Boolean(title.trim() && content.trim()); // 제목, 내용 모두 입력되어야 유효
+  const isFormValid = Boolean(
+    title.trim() &&
+    content.trim() &&
+    (isAuthenticated || (password && password.length === 4 && parseInt(password) >= 1000 && parseInt(password) <= 9999))
+  );
   const isSubmitting = createPostMutation.isPending; // TanStack Query mutation 진행 상태
-
-  const resetForm = () => {
-    setTitle("");
-    setContent("");
-    setPassword("");
-    setIsPreview(false);
-  };
 
   return {
     // Form fields
@@ -104,9 +128,7 @@ export function useWriteForm() {
     // Form actions
     handleSubmit,
     isSubmitting,
-    validateForm,
     isFormValid,
-    resetForm,
 
     // User info
     user,

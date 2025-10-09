@@ -17,14 +17,14 @@ import {
 import { Button } from "@/components";
 import { Card } from "@/components";
 import { TimeBadge } from "@/components";
+import { useNotifications } from "@/hooks/features";
 import {
-  useNotifications,
   useNotificationList,
   useMarkNotificationAsRead,
   useDeleteNotification,
   useMarkAllNotificationsAsRead,
   useDeleteAllNotifications
-} from "@/hooks/features";
+} from "@/hooks/api";
 import { useAuth } from "@/hooks";
 import { Spinner as FlowbiteSpinner, Badge, Drawer } from "flowbite-react";
 import { NotificationPermissionModal } from "@/components/organisms/notification";

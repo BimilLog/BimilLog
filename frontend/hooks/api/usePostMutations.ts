@@ -1,3 +1,5 @@
+"use client";
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { mutationKeys, queryKeys } from '@/lib/tanstack-query/keys';
 import { postCommand } from '@/lib/api';
@@ -24,8 +26,10 @@ export const useCreatePost = () => {
         router.push(`/board/post/${response.data.id}`);
       }
     },
-    onError: (error) => {
-      showToast({ type: 'error', message: '게시글 작성에 실패했습니다.' });
+    onError: (error: any) => {
+      // 백엔드 에러 메시지를 파싱하여 사용자에게 표시
+      const message = error?.error || error?.message || '게시글 작성에 실패했습니다.';
+      showToast({ type: 'error', message });
     },
   });
 };
@@ -51,8 +55,9 @@ export const useUpdatePost = () => {
         router.push(`/board/post/${variables.postId}`);
       }
     },
-    onError: (error) => {
-      showToast({ type: 'error', message: '게시글 수정에 실패했습니다.' });
+    onError: (error: any) => {
+      const message = error?.error || error?.message || '게시글 수정에 실패했습니다.';
+      showToast({ type: 'error', message });
     },
   });
 };
@@ -79,8 +84,9 @@ export const useDeletePost = () => {
         router.push('/board');
       }
     },
-    onError: (error) => {
-      showToast({ type: 'error', message: '게시글 삭제에 실패했습니다.' });
+    onError: (error: any) => {
+      const message = error?.error || error?.message || '게시글 삭제에 실패했습니다.';
+      showToast({ type: 'error', message });
     },
   });
 };
@@ -129,12 +135,15 @@ export const useLikePost = () => {
     onSettled: (data, error, postId) => {
       // 성공/실패 여부와 관계없이 서버 데이터로 동기화 - 최종 일관성 보장
       queryClient.invalidateQueries({ queryKey: queryKeys.post.detail(postId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.post.lists() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.post.realtimePopular() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.post.weeklyPopular() });
     },
   });
 };
 
 /**
- * 공지사항 토글 (관리자 전용)
+ * 공지사항 토글 (관리자 전용, 낙관적 업데이트)
  */
 export const useToggleNotice = () => {
   const queryClient = useQueryClient();
@@ -143,19 +152,56 @@ export const useToggleNotice = () => {
   return useMutation({
     mutationKey: mutationKeys.post.toggleNotice,
     mutationFn: postCommand.toggleNotice,
-    onSuccess: (response, postId) => {
+    onMutate: async (postId: number) => {
+      // 진행 중인 refetch 취소 - 경합 상태(race condition) 방지
+      await queryClient.cancelQueries({ queryKey: queryKeys.post.detail(postId) });
+
+      // 이전 값 스냅샷 - 에러 시 롤백용
+      const previousPost = queryClient.getQueryData(queryKeys.post.detail(postId));
+
+      // 낙관적 업데이트: 서버 응답 전에 UI를 먼저 업데이트하여 반응성 향상
+      queryClient.setQueryData(queryKeys.post.detail(postId), (old: ApiResponse<Post>) => {
+        if (!old?.success || !old?.data) return old;
+
+        const post = old.data;
+        const newIsNotice = !post.isNotice;
+
+        return {
+          ...old,
+          data: {
+            ...post,
+            isNotice: newIsNotice,
+          },
+        };
+      });
+
+      return { previousPost, postId };
+    },
+    onError: (err, postId, context) => {
+      // 에러 시 이전 값으로 롤백 - 낙관적 업데이트 취소
+      if (context?.previousPost) {
+        queryClient.setQueryData(queryKeys.post.detail(postId), context.previousPost);
+      }
+      showToast({ type: 'error', message: '공지사항 변경에 실패했습니다.' });
+    },
+    onSuccess: (response, postId, context) => {
       if (response.success) {
-        // 게시글 상세 캐시 무효화
-        queryClient.invalidateQueries({ queryKey: queryKeys.post.detail(postId) });
-        // 게시글 목록 캐시 무효화
-        queryClient.invalidateQueries({ queryKey: queryKeys.post.lists() });
-        // 공지사항 목록 캐시 무효화
-        queryClient.invalidateQueries({ queryKey: queryKeys.post.notices() });
-        showToast({ type: 'success', message: '공지사항이 변경되었습니다.' });
+        // 성공 시 변경 전 상태를 기반으로 구체적인 메시지 표시
+        const previousPost = context?.previousPost as ApiResponse<Post> | undefined;
+        const wasNotice = previousPost?.data?.isNotice ?? false;
+
+        const message = wasNotice
+          ? '공지사항이 해제되었습니다.'
+          : '공지사항으로 등록되었습니다.';
+
+        showToast({ type: 'success', message });
       }
     },
-    onError: (error) => {
-      showToast({ type: 'error', message: '공지사항 변경에 실패했습니다.' });
+    onSettled: (data, error, postId) => {
+      // 성공/실패 여부와 관계없이 서버 데이터로 동기화 - 최종 일관성 보장
+      queryClient.invalidateQueries({ queryKey: queryKeys.post.detail(postId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.post.lists() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.post.notices() });
     },
   });
 };

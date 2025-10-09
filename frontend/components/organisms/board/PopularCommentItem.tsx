@@ -113,7 +113,7 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
             </span>
           )}
           <span className="bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs px-2 py-1 rounded-full font-semibold flex-shrink-0">
-            인기
+            인기 추천 {comment.likeCount}
           </span>
           <TimeBadge dateString={comment.createdAt} size="xs" />
         </div>
@@ -124,7 +124,10 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
           <FlowbiteButton
             size="xs"
             color={comment.userLike ? "blue" : "light"}
-            onClick={() => onLikeComment(comment)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onLikeComment(comment);
+            }}
           >
             <ThumbsUp className={`w-4 h-4 mr-2 ${comment.userLike ? "fill-current" : ""}`} />
             추천 {comment.likeCount}
@@ -134,7 +137,10 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
           <FlowbiteButton
             size="xs"
             className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:bg-gradient-to-l"
-            onClick={() => onReplyTo(comment)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onReplyTo(comment);
+            }}
           >
             <MessageSquare className="w-4 h-4 mr-2" />
             답글
@@ -145,7 +151,10 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
             <FlowbiteButton
               size="xs"
               color="red"
-              onClick={handleReport}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleReport();
+              }}
             >
               <Flag className="w-4 h-4 mr-2" />
               신고

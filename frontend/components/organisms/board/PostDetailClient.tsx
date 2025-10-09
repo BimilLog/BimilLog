@@ -124,6 +124,7 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
     updateComment(
       {
         commentId: editingComment.id,
+        postId: Number(postId),
         content: editContent,
         password: editPassword ? Number(editPassword) : undefined,
       },
@@ -240,6 +241,7 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
       // 로그인 사용자 댓글은 바로 삭제
       deleteComment({
         commentId: comment.id,
+        postId: Number(postId),
       });
     }
   };
@@ -268,6 +270,7 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
     } else if (deleteMode === "comment" && targetComment) {
       deleteComment({
         commentId: targetComment.id,
+        postId: Number(postId),
         password: modalPassword ? Number(modalPassword) : undefined,
       }, {
         onSuccess: () => {
@@ -395,7 +398,31 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
             // 인기 댓글에서 원본 댓글로 이동 - 댓글 ID로 DOM 요소를 찾아 스크롤 이동
             const element = document.getElementById(`comment-${commentId}`);
             if (element) {
+              // 부모 댓글 자동 펼치기 (대댓글인 경우)
+              const parentComment = comments.find(c =>
+                c.replies?.some(r => r.id === commentId)
+              );
+              if (parentComment) {
+                // 부모 댓글 내부의 "답글 더보기" 버튼 클릭 (접혀있는 경우)
+                const toggleButton = document.querySelector(`#comment-${parentComment.id} button[class*="답글"]`);
+                if (toggleButton && toggleButton.textContent?.includes('더보기')) {
+                  (toggleButton as HTMLButtonElement).click();
+                }
+              }
+
+              // 스크롤 이동
               element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+              // 하이라이트 효과 추가
+              const commentContent = element.querySelector('.comment-content');
+              if (commentContent) {
+                commentContent.classList.add('bg-yellow-100', 'ring-2', 'ring-yellow-400');
+
+                // 2.5초 후 하이라이트 제거
+                setTimeout(() => {
+                  commentContent.classList.remove('bg-yellow-100', 'ring-2', 'ring-yellow-400');
+                }, 2500);
+              }
             }
           }}
         />

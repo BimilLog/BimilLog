@@ -8,14 +8,7 @@ import { useToastStore } from "@/stores/toast.store"
 import { useQueryClient } from "@tanstack/react-query"
 import { queryKeys } from "@/lib/tanstack-query/keys"
 
-// TanStack Query Hooks re-exports
-export { useNotificationList } from '@/hooks/api/useNotificationQueries';
-export {
-  useMarkNotificationAsRead,
-  useDeleteNotification,
-  useMarkAllNotificationsAsRead,
-  useDeleteAllNotifications
-} from '@/hooks/api/useNotificationMutations';
+// Notification-related TanStack Query hooks are exported from hooks/api
 
 /**
  * SSE 연결과 실시간 알림 처리를 통합한 Hook (TanStack Query + SSE)

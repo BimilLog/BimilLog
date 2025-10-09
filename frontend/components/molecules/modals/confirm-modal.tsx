@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Modal, ModalHeader, ModalBody } from "flowbite-react";
-import { Button } from "@/components";
+import { Button, Spinner } from "@/components";
 import { AlertCircle } from "lucide-react";
 
 interface ConfirmModalProps {
@@ -15,6 +15,7 @@ interface ConfirmModalProps {
   cancelText?: string;
   confirmButtonVariant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
   icon?: React.ReactNode;
+  isLoading?: boolean;
 }
 
 export const ConfirmModal: React.FC<ConfirmModalProps> = ({
@@ -27,14 +28,15 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   cancelText = "취소",
   confirmButtonVariant = "default",
   icon,
+  isLoading = false,
 }) => {
   return (
     <Modal
       show={isOpen}
-      onClose={onClose}
+      onClose={isLoading ? undefined : onClose}
       size="md"
       popup
-      dismissible
+      dismissible={!isLoading}
     >
       <ModalHeader />
       <ModalBody>
@@ -52,17 +54,23 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
             <Button
               variant="outline"
               onClick={onClose}
+              disabled={isLoading}
             >
               {cancelText}
             </Button>
             <Button
               variant={confirmButtonVariant}
-              onClick={() => {
-                onConfirm();
-                onClose();
-              }}
+              onClick={onConfirm}
+              disabled={isLoading}
             >
-              {confirmText}
+              {isLoading ? (
+                <span className="flex items-center gap-2">
+                  <Spinner size="sm" />
+                  처리 중...
+                </span>
+              ) : (
+                confirmText
+              )}
             </Button>
           </div>
         </div>

@@ -8,14 +8,7 @@ import { ErrorHandler } from "@/lib/api/helpers";
 import { logger } from '@/lib/utils/logger';
 import type { DecoType } from '@/types/domains/paper';
 
-// TanStack Query Hooks re-exports
-export { useRollingPaper } from '@/hooks/api/useRollingPaperQueries';
-export {
-  useCreateRollingPaperMessage,
-  useDeleteRollingPaperMessage
-} from '@/hooks/api/useRollingPaperMutations';
-
-// Import for local usage
+// Import TanStack Query hooks for local usage
 import {
   useCreateRollingPaperMessage,
   useDeleteRollingPaperMessage

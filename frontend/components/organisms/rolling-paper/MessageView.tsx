@@ -4,12 +4,13 @@ import { useState } from "react";
 import { Button } from "@/components";
 import { Badge } from "@/components";
 import { ConfirmModal } from "@/components";
+import { Spinner } from "@/components";
 import { Lock, Trash2 } from "lucide-react";
-import { getDecoInfo, paperCommand } from "@/lib/api";
+import { getDecoInfo } from "@/lib/api";
 import type { RollingPaperMessage, VisitMessage } from "@/types/domains/paper";
 import { DecoIcon } from "@/components";
 import { ErrorHandler } from "@/lib/api/helpers";
-import { logger } from '@/lib/utils/logger';
+import { useDeleteRollingPaperMessage } from "@/hooks/api/useRollingPaperMutations";
 
 interface MessageViewProps {
   message: RollingPaperMessage | VisitMessage;
@@ -27,6 +28,7 @@ export const MessageView: React.FC<MessageViewProps> = ({
   onDeleteError,
 }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const deleteMutation = useDeleteRollingPaperMessage();
   const decoInfo = getDecoInfo(message.decoType);
 
   // RollingPaperMessage 타입 가드: content와 anonymity 필드 존재로 구분
@@ -43,22 +45,21 @@ export const MessageView: React.FC<MessageViewProps> = ({
     setShowDeleteConfirm(true);
   };
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = () => {
     if (!isRollingPaperMessage(message)) return;
 
-    try {
-      const response = await paperCommand.deleteMessage(message.id);
-      if (response.success) {
+    deleteMutation.mutate(message.id, {
+      onSuccess: () => {
+        setShowDeleteConfirm(false);
         onDelete?.(); // 상위 컴포넌트에 삭제 완료 알림 (목록 새로고침 등)
         onDeleteSuccess?.("메시지가 성공적으로 삭제되었습니다.");
-      } else {
-        onDeleteError?.("메시지 삭제에 실패했습니다.");
+      },
+      onError: (error) => {
+        setShowDeleteConfirm(false);
+        const appError = ErrorHandler.mapApiError(error);
+        onDeleteError?.(appError.message);
       }
-    } catch (error) {
-      logger.error("Failed to delete message:", error);
-      const appError = ErrorHandler.mapApiError(error);
-      onDeleteError?.(appError.message);
-    }
+    });
   };
 
   return (
@@ -118,9 +119,17 @@ export const MessageView: React.FC<MessageViewProps> = ({
               variant="destructive"
               size="sm"
               onClick={handleDeleteClick}
-              className="bg-red-500/80 hover:bg-red-600/80 text-white border-0 min-h-[44px] touch-manipulation text-sm"
+              disabled={deleteMutation.isPending}
+              className="bg-red-500/80 hover:bg-red-600/80 text-white border-0 min-h-[44px] touch-manipulation text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              메시지 삭제
+              {deleteMutation.isPending ? (
+                <span className="flex items-center gap-2">
+                  <Spinner size="sm" />
+                  삭제 중...
+                </span>
+              ) : (
+                "메시지 삭제"
+              )}
             </Button>
           </div>
         )}
@@ -137,6 +146,7 @@ export const MessageView: React.FC<MessageViewProps> = ({
         cancelText="취소"
         confirmButtonVariant="destructive"
         icon={<Trash2 className="h-8 w-8 text-red-500" />}
+        isLoading={deleteMutation.isPending}
       />
     </>
   );

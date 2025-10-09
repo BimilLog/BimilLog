@@ -67,6 +67,30 @@ export class ErrorHandler {
 
       // 에러 메시지 패턴 매칭을 통한 에러 타입 분류
       // includes() 검사로 한국어 에러 메시지에서 핵심 키워드를 추출하여 적절한 에러 타입 결정
+
+      // 롤링페이퍼 삭제 권한 에러 (명시적 매칭)
+      if (errorMessage.includes('본인 롤링페이퍼') ||
+          errorMessage.includes('메시지만 삭제')) {
+        return {
+          type: 'PERMISSION_DENIED',
+          title: '권한 없음',
+          message: error.error,
+          userMessage: error.error,
+          originalError: error
+        };
+      }
+
+      // 메시지를 찾을 수 없음 (롤링페이퍼 관련)
+      if (errorMessage.includes('메시지를 찾을 수 없')) {
+        return {
+          type: 'NOT_FOUND',
+          title: '메시지 없음',
+          message: error.error,
+          userMessage: error.error,
+          originalError: error
+        };
+      }
+
       if (errorMessage.includes('인증') || errorMessage.includes('로그인')) {
         return {
           type: 'AUTH_ERROR',

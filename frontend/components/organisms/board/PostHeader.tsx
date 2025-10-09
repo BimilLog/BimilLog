@@ -2,7 +2,7 @@
 
 import React, { useCallback } from "react";
 import { useToast } from "@/hooks";
-import { Button, CardHeader, CardTitle } from "@/components";
+import { Button, CardHeader, CardTitle, Badge } from "@/components";
 import {
   Eye,
   ThumbsUp,
@@ -11,6 +11,7 @@ import {
   User,
   ExternalLink,
   Share2,
+  Megaphone,
 } from "lucide-react";
 import { Post } from "@/lib/api";
 import Link from "next/link";
@@ -63,11 +64,14 @@ export const PostHeader = React.memo<PostHeaderProps>(({
     <CardHeader className="border-b p-4 md:p-6">
       {/* 제목 */}
       <div className="mb-4">
-        {post.password && (
-          <div className="mb-3">
+        <div className="flex items-center gap-3 mb-3">
+          {post.password && (
             <Lock className="w-4 h-4 stroke-red-500 fill-red-100" />
-          </div>
-        )}
+          )}
+          {post.isNotice && (
+            <Badge variant="info" icon={Megaphone}>공지</Badge>
+          )}
+        </div>
         <CardTitle className="text-xl md:text-2xl font-bold text-brand-primary leading-tight">
           {post.title}
         </CardTitle>

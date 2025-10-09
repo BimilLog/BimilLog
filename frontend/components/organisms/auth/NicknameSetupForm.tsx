@@ -7,7 +7,7 @@ import { Label } from "@/components";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components";
 import { AlertCircle } from "lucide-react";
 import { useAuth } from "@/hooks";
-import { useNotificationList } from "@/hooks/features";
+import { useNotificationList } from "@/hooks/api";
 import { useRouter } from "next/navigation";
 import { userQuery } from "@/lib/api";
 import { validationRules } from "@/lib/utils/validation-helpers";

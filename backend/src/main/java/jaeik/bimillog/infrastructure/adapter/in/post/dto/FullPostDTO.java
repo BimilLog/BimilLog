@@ -37,4 +37,5 @@ public class FullPostDTO {
     private Integer commentCount;
     private Instant createdAt;
     private boolean liked;
+    private boolean isNotice;
 }

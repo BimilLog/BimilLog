@@ -15,7 +15,4 @@ export {
   useDeletePost,
 } from '@/hooks/api/usePostMutations';
 
-// ============ BOARD FORM HOOKS ============
-// Re-export from post folder for backward compatibility
-export { useWriteForm } from './post/useWriteForm';
-export { useEditForm } from './post/useEditForm';
+// Note: useWriteForm and useEditForm are now exported from hooks/features/post

@@ -197,7 +197,8 @@ public class PostQueryAdapter implements PostQueryPort {
                         new CaseBuilder()
                                 .when(userPostLike.id.isNotNull())
                                 .then(true)
-                                .otherwise(false)
+                                .otherwise(false),
+                        post.isNotice
                 ))
                 .from(post)
                 .leftJoin(post.member, member)
@@ -209,7 +210,7 @@ public class PostQueryAdapter implements PostQueryPort {
                 )
                 .where(post.id.eq(postId))
                 .groupBy(post.id, post.title, post.content, post.views, post.createdAt,
-                        member.id, member.memberName, userPostLike.id)
+                        member.id, member.memberName, post.isNotice, userPostLike.id)
                 .fetchOne();
 
         return Optional.ofNullable(result);

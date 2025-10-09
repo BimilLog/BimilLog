@@ -71,11 +71,17 @@ export const WriteForm: React.FC<WriteFormProps> = ({
               </Label>
               <Input
                 id="title"
-                placeholder="제목을 입력하세요"
+                placeholder="제목을 입력하세요 (2~30자)"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
+                maxLength={30}
                 className="text-lg font-medium border-2 border-gray-200 focus:border-purple-400"
               />
+              {title.length > 0 && (
+                <p className={`text-xs ${title.length >= 30 ? 'text-red-600' : 'text-brand-muted'}`}>
+                  {title.length}/30자
+                </p>
+              )}
             </div>
 
             {/* 내용 입력 필드 - LazyEditor로 지연 로딩 */}
@@ -101,15 +107,33 @@ export const WriteForm: React.FC<WriteFormProps> = ({
                   className="text-sm font-medium text-brand-primary"
                 >
                   비밀번호 (1000~9999)
+                  <span className="text-xs text-brand-secondary ml-2 font-normal">
+                    게시글 수정/삭제 시 필요합니다
+                  </span>
                 </Label>
                 <Input
                   id="password"
-                  type="password"
-                  placeholder="게시글 수정/삭제 시 필요합니다 (1000~9999)"
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={4}
+                  placeholder="4자리 숫자 (1000~9999)"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="border-2 border-gray-200 focus:border-purple-400"
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, '');
+                    setPassword(value);
+                  }}
+                  className={`border-2 focus:border-purple-400 ${
+                    password && (password.length < 4 || isNaN(parseInt(password)) || parseInt(password) < 1000 || parseInt(password) > 9999)
+                      ? 'border-red-300 focus:border-red-400'
+                      : 'border-gray-200'
+                  }`}
                 />
+                {password && (password.length < 4 || isNaN(parseInt(password)) || parseInt(password) < 1000 || parseInt(password) > 9999) && (
+                  <p className="text-xs text-red-600 flex items-center gap-1">
+                    <span>⚠️</span>
+                    <span>비밀번호는 1000~9999 범위의 4자리 숫자여야 합니다</span>
+                  </p>
+                )}
               </div>
             )}
 

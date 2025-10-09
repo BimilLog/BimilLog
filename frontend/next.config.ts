@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import withPWA from "next-pwa";
+import path from "path";
 
 const pwaConfig = {
     dest: "public",
@@ -37,6 +38,7 @@ const pwaConfig = {
 
 const nextConfig = withPWA(pwaConfig)({
     output: 'standalone',
+    outputFileTracingRoot: path.join(__dirname, '../'),
     webpack: (config, { dev, isServer }) => {
         if (dev && !isServer) {
             // HMR 관련 파일 시스템 감시 설정 개선
