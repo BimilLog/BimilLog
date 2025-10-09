@@ -104,11 +104,17 @@ export const useLikePost = () => {
     onMutate: async (postId: number) => {
       // 진행 중인 refetch 취소 - 경합 상태(race condition) 방지
       await queryClient.cancelQueries({ queryKey: queryKeys.post.detail(postId) });
+      await queryClient.cancelQueries({ queryKey: queryKeys.post.lists() });
+      await queryClient.cancelQueries({ queryKey: queryKeys.post.realtimePopular() });
+      await queryClient.cancelQueries({ queryKey: queryKeys.post.weeklyPopular() });
 
-      // 이전 값 스냅샷 - 에러 시 롤백용
-      const previousPost = queryClient.getQueryData(queryKeys.post.detail(postId));
+      // 이전 값 스냅샷 - 에러 시 롤백용 및 성공 메시지 판단용
+      const previousPost = queryClient.getQueryData(queryKeys.post.detail(postId)) as ApiResponse<Post> | undefined;
 
-      // 낙관적 업데이트: 서버 응답 전에 UI를 먼저 업데이트하여 반응성 향상
+      // 이전 좋아요 상태 저장 (성공 메시지 표시용)
+      const wasLiked = previousPost?.data?.liked ?? false;
+
+      // 낙관적 업데이트 1: 게시글 상세 캐시 업데이트
       queryClient.setQueryData(queryKeys.post.detail(postId), (old: ApiResponse<Post>) => {
         if (!old?.success || !old?.data) return old;
 
@@ -123,7 +129,69 @@ export const useLikePost = () => {
         };
       });
 
-      return { previousPost };
+      // 낙관적 업데이트 2: 게시글 목록 캐시들도 업데이트 (모든 페이지, 모든 variant)
+      queryClient.setQueriesData(
+        { queryKey: queryKeys.post.lists() },
+        (old: any) => {
+          if (!old?.success || !old?.data?.content) return old;
+
+          return {
+            ...old,
+            data: {
+              ...old.data,
+              content: old.data.content.map((post: any) =>
+                post.id === postId
+                  ? { ...post, likeCount: wasLiked ? post.likeCount - 1 : post.likeCount + 1 }
+                  : post
+              ),
+            },
+          };
+        }
+      );
+
+      // 낙관적 업데이트 3: 실시간 인기글 캐시 업데이트
+      queryClient.setQueriesData(
+        { queryKey: queryKeys.post.realtimePopular() },
+        (old: any) => {
+          if (!old?.success || !old?.data) return old;
+
+          return {
+            ...old,
+            data: old.data.map((post: any) =>
+              post.id === postId
+                ? { ...post, likeCount: wasLiked ? post.likeCount - 1 : post.likeCount + 1 }
+                : post
+            ),
+          };
+        }
+      );
+
+      // 낙관적 업데이트 4: 주간 인기글 캐시 업데이트
+      queryClient.setQueriesData(
+        { queryKey: queryKeys.post.weeklyPopular() },
+        (old: any) => {
+          if (!old?.success || !old?.data) return old;
+
+          return {
+            ...old,
+            data: old.data.map((post: any) =>
+              post.id === postId
+                ? { ...post, likeCount: wasLiked ? post.likeCount - 1 : post.likeCount + 1 }
+                : post
+            ),
+          };
+        }
+      );
+
+      return { previousPost, wasLiked };
+    },
+    onSuccess: (data, postId, context) => {
+      // 성공 시 추천/취소 여부에 따라 구체적인 메시지 표시
+      if (context?.wasLiked) {
+        showToast({ type: 'info', message: '추천을 취소했습니다.' });
+      } else {
+        showToast({ type: 'success', message: '게시글을 추천했습니다.' });
+      }
     },
     onError: (err, postId, context) => {
       // 에러 시 이전 값으로 롤백 - 낙관적 업데이트 취소

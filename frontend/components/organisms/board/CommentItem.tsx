@@ -274,11 +274,14 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
 
               {/* 액션 버튼들: 모바일에서는 핵심 기능만 노출, 나머지는 드롭다운으로 처리 */}
               <div className="flex items-center gap-1">
-                {/* 추천 버튼: 로그인/비로그인 상관없이 항상 표시 */}
+                {/* 추천 버튼: 비로그인 사용자에게는 비활성화 + 툴팁 표시 */}
                 <FlowbiteButton
                   size="xs"
                   color={comment.userLike ? "blue" : "light"}
                   onClick={() => onLikeComment(comment)}
+                  disabled={!isAuthenticated}
+                  title={!isAuthenticated ? "로그인 후 추천할 수 있습니다" : undefined}
+                  className={!isAuthenticated ? "cursor-not-allowed opacity-60" : ""}
                 >
                   <ThumbsUp className={`w-4 h-4 mr-2 ${comment.userLike ? "fill-current" : ""}`} />
                   추천 {comment.likeCount}

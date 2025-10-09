@@ -1,8 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.in.comment.web;
 
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
-import jaeik.bimillog.domain.member.exception.MemberCustomException;
-import jaeik.bimillog.domain.member.exception.MemberErrorCode;
 import jaeik.bimillog.infrastructure.adapter.in.comment.dto.CommentLikeReqDTO;
 import jaeik.bimillog.infrastructure.adapter.in.comment.dto.CommentReqDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
@@ -105,11 +103,11 @@ public class CommentCommandController {
     /**
      * <h3>댓글 추천/추천 취소 API</h3>
      * <p>로그인한 사용자만 접근 가능하며, 이미 추천한 댓글은 추천 취소, 추천하지 않은 댓글은 추천으로 토글됩니다.</p>
+     * <p>Spring Security에 의해 인증이 보장되므로 userDetails는 null이 아닙니다.</p>
      *
      * @param commentLikeReqDto  댓글 좋아요 요청 DTO (댓글 ID 포함)
      * @param userDetails 현재 로그인한 사용자 정보 (추천자 식별용, 필수)
      * @return HTTP 응답 엔티티 (추천 처리 완료 메시지)
-     * @throws MemberCustomException 인증되지 않은 사용자가 접근할 경우 발생
      * @author Jaeik
      * @since 2.0.0
      */
@@ -117,9 +115,6 @@ public class CommentCommandController {
     public ResponseEntity<String> likeComment(
             @RequestBody @Valid CommentLikeReqDTO commentLikeReqDto,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        if (userDetails == null) {
-            throw new MemberCustomException(MemberErrorCode.USER_NOT_FOUND);
-        }
         Long memberId = userDetails.getMemberId();
         commentCommandUseCase.likeComment(memberId, commentLikeReqDto.getCommentId());
         return ResponseEntity.ok("추천 처리 완료");

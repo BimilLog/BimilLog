@@ -20,6 +20,7 @@ import { BoardTabs } from "@/components/organisms/board/BoardTabs";
 function BoardClient() {
   const [activeTab, setActiveTab] = useState("all");
   const [postsPerPage, setPostsPerPage] = useState("30");
+  const [isTabChanging, setIsTabChanging] = useState(false);
 
   // 게시판 데이터 관리
   const {
@@ -35,10 +36,11 @@ function BoardClient() {
     search: handleSearch,
   } = usePostList(Number(postsPerPage));
 
-  // 인기글 데이터 관리
+  // 인기글 데이터 관리 - 각 탭 데이터 개별 제공
   const {
-    posts: popularPostsData,
-    activeTab: popularTab,
+    realtimePosts,
+    weeklyPosts,
+    legendPosts,
     setActiveTab: setPopularTab,
     legendPagination,
     isLoading: popularLoading,
@@ -48,24 +50,23 @@ function BoardClient() {
   // 공지사항 데이터 관리 - '전체' 탭에서만 조회
   const { noticePosts } = useNoticePosts(activeTab === "all");
 
-  // 탭별 데이터 매핑
-  // popularPostsData는 현재 활성화된 탭의 데이터만 포함 (usePopularPostsTabs가 enabled 옵션으로 조건부 조회)
-  // BoardTabs에 각 탭별 props를 전달하기 위해 현재 탭 데이터를 해당 변수에 할당
-  const realtimePosts = popularTab === 'realtime' ? popularPostsData : [];
-  const weeklyPosts = popularTab === 'weekly' ? popularPostsData : [];
-  const legendPosts = popularTab === 'legend' ? popularPostsData : [];
   const { currentPage, setPageSize, setCurrentPage } = pagination;
 
-  // 탭 변경 핸들러 메모이제이션
+  // 탭 변경 핸들러 메모이제이션 - 로딩 상태 즉시 표시
   // 메인 탭(all/realtime/popular/legend)과 인기글 탭(realtime/weekly/legend) 동기화
   const handleTabChange = useCallback((tab: string) => {
+    setIsTabChanging(true); // 탭 전환 시 즉시 로딩 표시
     setActiveTab(tab);
+
     // 메인 탭에 따라 인기글 데이터 API 호출 타입 변경
     if (tab === 'realtime' || tab === 'popular') {
       setPopularTab(tab === 'popular' ? 'weekly' : 'realtime');
     } else if (tab === 'legend') {
       setPopularTab('legend');
     }
+
+    // 다음 틱에서 로딩 플래그 해제
+    setTimeout(() => setIsTabChanging(false), 100);
   }, [setPopularTab]);
 
   // 탭 변경 시 메인 데이터 조회 - '전체' 탭일 때만 일반 게시글 API 호출
@@ -127,7 +128,7 @@ function BoardClient() {
           legendPosts={legendPosts}
           legendPagination={legendPagination}
           noticePosts={noticePosts}
-          popularLoading={popularLoading}
+          popularLoading={popularLoading || isTabChanging}
           popularError={popularError}
         />
 

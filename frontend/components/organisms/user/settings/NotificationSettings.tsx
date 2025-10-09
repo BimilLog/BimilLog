@@ -90,7 +90,7 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
         <SettingToggle
           icon={<TrendingUp className="w-4 h-4 stroke-green-600 fill-green-100" />}
           label="인기글 알림"
-          description="내 게시글이 인기글로 선정되었을 때"
+          description="내 게시글이 인기글이 되었을 때"
           checked={settings?.postFeaturedNotification === true}
           onChange={(value) => onSingleToggle("postFeaturedNotification", value)}
           disabled={saving}

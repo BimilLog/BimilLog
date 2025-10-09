@@ -128,6 +128,9 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
               e.stopPropagation();
               onLikeComment(comment);
             }}
+            disabled={!isAuthenticated}
+            title={!isAuthenticated ? "로그인 후 추천할 수 있습니다" : undefined}
+            className={!isAuthenticated ? "cursor-not-allowed opacity-60" : ""}
           >
             <ThumbsUp className={`w-4 h-4 mr-2 ${comment.userLike ? "fill-current" : ""}`} />
             추천 {comment.likeCount}

@@ -229,13 +229,17 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
         </TabItem>
       </Tabs>
 
-      {showPagination && (
+      <div
+        className={`transition-opacity duration-200 ${
+          showPagination ? 'opacity-100' : 'opacity-0 pointer-events-none invisible'
+        }`}
+      >
         <BoardPagination
           currentPage={activeTab === "legend" && legendPagination ? legendPagination.currentPage : currentPage}
           totalPages={activeTab === "legend" && legendPagination ? legendPagination.totalPages : totalPages}
           setCurrentPage={activeTab === "legend" && legendPagination ? legendPagination.setCurrentPage : onPageChange}
         />
-      )}
+      </div>
     </div>
   );
 };

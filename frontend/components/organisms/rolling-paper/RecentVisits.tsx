@@ -102,7 +102,7 @@ export const RecentVisits: React.FC = () => {
         <div className="mt-4 pt-3 border-t border-gray-200">
           <p className="text-xs text-brand-secondary text-center flex items-center justify-center space-x-1">
             <Lightbulb className="w-3 h-3 stroke-yellow-500 fill-yellow-100" />
-            <span>최근 {recentVisits.length}개의 방문 기록 (최대 5개까지 저장됩니다)</span>
+            <span>최근 방문한 롤링페이퍼</span>
           </p>
         </div>
       </CardContent>

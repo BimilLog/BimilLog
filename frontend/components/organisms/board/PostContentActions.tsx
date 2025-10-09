@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Button } from "flowbite-react";
+import { Button, Tooltip } from "flowbite-react";
 import { Spinner } from "@/components";
 import { ThumbsUp, Flag } from "lucide-react";
 import { Post, userCommand } from "@/lib/api";
@@ -78,17 +78,30 @@ export const PostContentActions: React.FC<PostContentActionsProps> = ({
     <>
       {/* 추천 및 신고 버튼 */}
       <div className="flex items-center justify-center gap-4 mt-8 pt-6 border-t">
-        <Button
-          onClick={onLike}
-          color={post.liked ? "blue" : "light"}
-          disabled={!isAuthenticated}
-          className={`transition-colors duration-200 ${post.liked ? 'ring-0 border-0' : ''}`}
-        >
-          <ThumbsUp
-            className={`w-4 h-4 mr-2 ${post.liked ? "stroke-blue-500 fill-blue-500" : "stroke-blue-500 fill-blue-100"}`}
-          />
-          추천 {post.likeCount}
-        </Button>
+        {!isAuthenticated ? (
+          <Tooltip content="로그인이 필요합니다" placement="top">
+            <Button
+              onClick={onLike}
+              color="light"
+              disabled
+              className="transition-colors duration-200 cursor-not-allowed"
+            >
+              <ThumbsUp className="w-4 h-4 mr-2 stroke-blue-500 fill-blue-100" />
+              추천 {post.likeCount}
+            </Button>
+          </Tooltip>
+        ) : (
+          <Button
+            onClick={onLike}
+            color={post.liked ? "blue" : "light"}
+            className={`transition-colors duration-200 ${post.liked ? 'ring-0 border-0' : ''}`}
+          >
+            <ThumbsUp
+              className={`w-4 h-4 mr-2 ${post.liked ? "stroke-blue-500 fill-blue-500" : "stroke-blue-500 fill-blue-100"}`}
+            />
+            추천 {post.likeCount}
+          </Button>
+        )}
 
         {/* 신고 버튼 (자신의 글이 아닌 경우에만 표시) */}
         {!isOwnPost && (

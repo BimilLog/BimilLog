@@ -75,39 +75,42 @@ export function usePostList(pageSize = 30) {
   };
 }
 
-// 인기 게시글 조회 - TanStack Query 통합
+// 인기 게시글 조회 - TanStack Query 통합 (탭 데이터 캐싱 개선)
 export function usePopularPostsTabs() {
   const [activeTab, setActiveTab] = useState<'realtime' | 'weekly' | 'legend'>('realtime');
 
   // 레전드 탭용 페이지네이션
   const legendPagination = usePagination({ pageSize: 10 });
 
-  // 실시간 인기글 조회
-  const { data: realtimeData, isLoading: realtimeLoading, error: realtimeError, refetch: refetchRealtime } = useQuery({
+  // 실시간 인기글 조회 - 이전 데이터 유지
+  const { data: realtimeData, isLoading: realtimeLoading, error: realtimeError } = useQuery({
     queryKey: queryKeys.post.realtimePopular(),
     queryFn: postQuery.getRealtimePosts,
     enabled: activeTab === 'realtime',
+    placeholderData: (previousData) => previousData, // 탭 전환 시 이전 데이터 유지
     staleTime: 2 * 60 * 1000, // 2분 (실시간성 강화)
     gcTime: 10 * 60 * 1000,
   });
 
-  // 주간 인기글 조회
-  const { data: weeklyData, isLoading: weeklyLoading, error: weeklyError, refetch: refetchWeekly } = useQuery({
+  // 주간 인기글 조회 - 이전 데이터 유지
+  const { data: weeklyData, isLoading: weeklyLoading, error: weeklyError } = useQuery({
     queryKey: queryKeys.post.weeklyPopular(),
     queryFn: postQuery.getWeeklyPosts,
     enabled: activeTab === 'weekly',
+    placeholderData: (previousData) => previousData, // 탭 전환 시 이전 데이터 유지
     staleTime: 5 * 60 * 1000, // 5분
     gcTime: 10 * 60 * 1000,
   });
 
-  // 레전드 글 조회 (페이징 지원)
-  const { data: legendData, isLoading: legendLoading, error: legendError, refetch: refetchLegend } = useQuery({
+  // 레전드 글 조회 (페이징 지원) - 이전 데이터 유지
+  const { data: legendData, isLoading: legendLoading, error: legendError } = useQuery({
     queryKey: queryKeys.post.legend({
       page: legendPagination.currentPage,
       size: legendPagination.pageSize
     }),
     queryFn: () => postQuery.getLegend(legendPagination.currentPage, legendPagination.pageSize),
     enabled: activeTab === 'legend',
+    placeholderData: (previousData) => previousData, // 탭 전환 시 이전 데이터 유지
     staleTime: 10 * 60 * 1000, // 10분 (레전드는 자주 변경되지 않음)
     gcTime: 10 * 60 * 1000,
   });
@@ -117,24 +120,14 @@ export function usePopularPostsTabs() {
     if (legendData?.data?.totalElements !== undefined) {
       legendPagination.setTotalItems(legendData.data.totalElements);
     }
-  }, [legendData?.data?.totalElements]);
+  }, [legendData?.data?.totalElements, legendPagination.setTotalItems]);
 
-  // 현재 활성 탭에 따라 표시할 게시글 데이터 선택
-  const posts = useMemo(() => {
-    if (activeTab === 'realtime') return realtimeData?.data || [];
-    if (activeTab === 'weekly') return weeklyData?.data || [];
-    if (activeTab === 'legend') return legendData?.data?.content || [];
-    return [];
-  }, [activeTab, realtimeData, weeklyData, legendData]);
+  // 각 탭의 실제 데이터 반환 (빈 배열 대신 캐시된 데이터 유지)
+  const realtimePosts = useMemo(() => realtimeData?.data || [], [realtimeData]);
+  const weeklyPosts = useMemo(() => weeklyData?.data || [], [weeklyData]);
+  const legendPosts = useMemo(() => legendData?.data?.content || [], [legendData]);
 
-  // 현재 탭에 맞는 refetch 함수 선택
-  const refetch = useCallback(() => {
-    if (activeTab === 'realtime') return refetchRealtime();
-    if (activeTab === 'weekly') return refetchWeekly();
-    return refetchLegend();
-  }, [activeTab, refetchRealtime, refetchWeekly, refetchLegend]);
-
-  // 현재 활성 탭의 로딩 상태 선택
+  // 현재 활성 탭의 로딩/에러 상태 반환
   const isLoading = useMemo(() => {
     if (activeTab === 'realtime') return realtimeLoading;
     if (activeTab === 'weekly') return weeklyLoading;
@@ -142,7 +135,6 @@ export function usePopularPostsTabs() {
     return false;
   }, [activeTab, realtimeLoading, weeklyLoading, legendLoading]);
 
-  // 현재 활성 탭의 에러 상태 선택
   const error = useMemo(() => {
     if (activeTab === 'realtime') return realtimeError;
     if (activeTab === 'weekly') return weeklyError;
@@ -151,14 +143,14 @@ export function usePopularPostsTabs() {
   }, [activeTab, realtimeError, weeklyError, legendError]);
 
   return {
-    posts,
+    realtimePosts,
+    weeklyPosts,
+    legendPosts,
     activeTab,
     setActiveTab,
-    refetch,
-    // 레전드 탭 전용 페이지네이션
     legendPagination: activeTab === 'legend' ? legendPagination : null,
     isLoading,
-    error
+    error,
   };
 }
 

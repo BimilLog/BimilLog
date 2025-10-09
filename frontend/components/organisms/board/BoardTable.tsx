@@ -23,6 +23,15 @@ import {
   Popover
 } from "flowbite-react";
 
+/**
+ * 게시글 목록 테이블 컴포넌트
+ *
+ * 디자인 결정: 좋아요 기능은 읽기 전용 표시만 제공
+ * - 목록 화면: likeCount 정보 표시 (Popover로 상세 정보)
+ * - 실제 좋아요 액션: 상세 페이지(PostDetailClient.tsx)에서만 가능
+ *
+ * 이유: 목록 화면에서의 상호작용 최소화 및 UX 단순화
+ */
 interface BoardTableProps {
   posts: SimplePost[];
   variant: "all" | "popular" | "legend";
@@ -59,7 +68,6 @@ const BoardTableRow = memo<TableRowProps>(({
   showRanking,
   enablePopover
 }) => {
-
   return (
     <TableRow className="bg-white hover:bg-gray-50">
       {/* 순위 또는 번호 */}
@@ -159,13 +167,16 @@ const BoardTableRow = memo<TableRowProps>(({
               </div>
             }
           >
-            <span className="flex items-center justify-center cursor-help">
-              <ThumbsUp className="w-3 h-3 mr-1" />
+            <div className="flex items-center justify-center gap-1 px-2 py-1 text-xs text-gray-600">
+              <ThumbsUp className="w-3 h-3" />
               {post.likeCount}
-            </span>
+            </div>
           </Popover>
         ) : (
-          <span>{post.likeCount}</span>
+          <div className="flex items-center justify-center gap-1 text-xs text-gray-600">
+            <ThumbsUp className="w-3 h-3" />
+            {post.likeCount}
+          </div>
         )}
       </TableCell>
 
@@ -184,7 +195,6 @@ const BoardMobileCard = memo<TableRowProps>(({
   isRead,
   showRanking
 }) => {
-
   return (
     <Card variant="elevated" className="hover:shadow-brand-md transition-all">
       <div className="p-4">
@@ -414,6 +424,11 @@ export const BoardTable = memo<BoardTableProps>(({
                     <span className="text-gray-500">검색 결과가 없습니다.</span>
                   ) : variant === "all" ? (
                     <span className="text-gray-500">게시글이 없습니다.</span>
+                  ) : variant === "legend" ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <span className="text-gray-700 font-medium">아직 등록된 레전드 글이 없습니다</span>
+                      <span className="text-sm text-gray-500">역대 최고 인기글이 선정되면 여기에 표시됩니다</span>
+                    </div>
                   ) : (
                     <div className="flex flex-col items-center gap-2">
                       <span className="text-gray-700 font-medium">아직 인기글이 없어요 😊</span>
@@ -448,6 +463,11 @@ export const BoardTable = memo<BoardTableProps>(({
                 <span className="text-brand-secondary">검색 결과가 없습니다.</span>
               ) : variant === "all" ? (
                 <span className="text-brand-secondary">게시글이 없습니다.</span>
+              ) : variant === "legend" ? (
+                <div className="flex flex-col items-center gap-2">
+                  <span className="text-gray-700 font-medium">아직 등록된 레전드 글이 없습니다</span>
+                  <span className="text-sm text-gray-500">역대 최고 인기글이 선정되면 여기에 표시됩니다</span>
+                </div>
               ) : (
                 <div className="flex flex-col items-center gap-2">
                   <span className="text-gray-700 font-medium">아직 인기글이 없어요 😊</span>

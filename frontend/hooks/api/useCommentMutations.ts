@@ -160,6 +160,7 @@ export const useDeleteComment = () => {
  */
 export const useLikeCommentOptimized = (postId: number) => {
   const queryClient = useQueryClient();
+  const { showToast } = useToast();
 
   return useMutation({
     mutationKey: [...mutationKeys.comment.like, postId],
@@ -223,7 +224,7 @@ export const useLikeCommentOptimized = (postId: number) => {
 
       return { previousComments, previousPopularComments };
     },
-    onError: (err, commentId, context) => {
+    onError: (err: any, commentId, context) => {
       // 에러 시 이전 값으로 롤백 - 낙관적 업데이트 취소
       if (context?.previousComments) {
         queryClient.setQueryData(queryKeys.comment.list(postId), context.previousComments);
@@ -231,9 +232,13 @@ export const useLikeCommentOptimized = (postId: number) => {
       if (context?.previousPopularComments) {
         queryClient.setQueryData(queryKeys.comment.popular(postId), context.previousPopularComments);
       }
+
+      // 사용자에게 에러 메시지 표시
+      const errorMessage = err?.error || err?.message || '추천 처리 중 오류가 발생했습니다.';
+      showToast({ type: 'error', message: errorMessage });
     },
-    onSettled: (data, error, commentId) => {
-      // 성공/실패 여부와 관계없이 서버 데이터로 동기화 - 최종 일관성 보장
+    onSuccess: (data, commentId) => {
+      // 성공 시에만 서버 데이터로 동기화 - 최종 일관성 보장 및 불필요한 재조회 방지
       queryClient.invalidateQueries({ queryKey: queryKeys.comment.list(postId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.comment.popular(postId) });
     },
