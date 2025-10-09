@@ -15,8 +15,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   try {
     // 서버사이드에서 게시글 데이터 조회하여 SEO 메타데이터 동적 생성
+    // Next.js의 fetch deduplication을 활용하여 중복 요청 방지
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/post/${postId}`, {
-      cache: 'no-store'
+      next: { revalidate: 0 }
     });
 
     if (!response.ok) {
@@ -88,9 +89,10 @@ export default async function PostDetailPage({ params }: Props) {
   const { id: postId } = await params;
 
   // 서버 컴포넌트에서 초기 데이터 페칭 - 클라이언트 하이드레이션 전에 데이터 확보
+  // Next.js가 동일한 fetch 요청을 자동으로 dedupe하므로 generateMetadata와 중복 요청되지 않음
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/post/${postId}`, {
-      cache: 'no-store'
+      next: { revalidate: 0 }
     });
 
     if (!response.ok) {

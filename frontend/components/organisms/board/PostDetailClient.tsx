@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Card } from "@/components";
-import { Spinner as FlowbiteSpinner } from "flowbite-react";
 import { AuthHeader } from "@/components/organisms/common";
 import {
   ResponsiveAdFitBanner,
@@ -19,6 +18,7 @@ import { PostContent } from "./PostContent";
 import { PostActions } from "./PostActions";
 import { CommentSection } from "./CommentSection";
 import { PasswordModal } from "./PasswordModal";
+import { PostDetailSkeleton } from "./PostDetailSkeleton";
 import { DeleteConfirmModal } from "@/components/molecules/modals/DeleteConfirmModal";
 
 // 분리된 훅들 import
@@ -279,11 +279,7 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
 
   // 로딩 상태
   if (loading) {
-    return (
-      <div className="min-h-screen bg-brand-gradient flex items-center justify-center">
-        <FlowbiteSpinner color="pink" size="xl" aria-label="Loading..." />
-      </div>
-    );
+    return <PostDetailSkeleton />;
   }
 
   // 게시글이 없는 경우
@@ -340,8 +336,6 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
           <PostHeader
             post={post}
             commentCount={commentCount}
-            canModify={canModify}
-            onDeleteClick={handleDeletePostClick}
           />
           <PostContent
             post={post}

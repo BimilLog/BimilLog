@@ -18,6 +18,7 @@ export { PopularCommentItem } from './PopularCommentItem';
 export { PostActions } from './PostActions';
 export { PostContent } from './PostContent';
 export { default as PostDetailClient } from './PostDetailClient';
+export { PostDetailSkeleton } from './PostDetailSkeleton';
 export { PostHeader } from './PostHeader';
 
 // Write Components

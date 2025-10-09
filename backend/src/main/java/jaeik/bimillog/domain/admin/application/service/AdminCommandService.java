@@ -139,19 +139,31 @@ public class AdminCommandService implements AdminCommandUseCase {
      * @param reportType 신고 유형 (POST, COMMENT만 허용)
      * @param targetId 신고 대상 ID (게시글 ID 또는 댓글 ID)
      * @return Member 신고 대상 사용자 엔티티
-     * @throws AdminCustomException 대상 사용자를 찾을 수 없거나 익명 사용자인 경우
+     * @throws AdminCustomException 대상 게시글/댓글이 삭제되었거나 익명 사용자인 경우
      * @author Jaeik
      * @since 2.0.0
      */
     private Member resolveUser(ReportType reportType, Long targetId) {
         Member member = switch (reportType) {
-            case POST -> globalPostQueryPort.findById(targetId).getMember();
-            case COMMENT -> globalCommentQueryPort.findById(targetId).getMember();
+            case POST -> {
+                try {
+                    yield globalPostQueryPort.findById(targetId).getMember();
+                } catch (Exception e) {
+                    throw new AdminCustomException(AdminErrorCode.POST_ALREADY_DELETED);
+                }
+            }
+            case COMMENT -> {
+                try {
+                    yield globalCommentQueryPort.findById(targetId).getMember();
+                } catch (Exception e) {
+                    throw new AdminCustomException(AdminErrorCode.COMMENT_ALREADY_DELETED);
+                }
+            }
             default -> throw new AdminCustomException(AdminErrorCode.INVALID_REPORT_TARGET);
         };
 
         if (member == null) {
-            throw new AdminCustomException(AdminErrorCode.USER_NOT_FOUND);
+            throw new AdminCustomException(AdminErrorCode.ANONYMOUS_USER_CANNOT_BE_BANNED);
         }
 
         return member;

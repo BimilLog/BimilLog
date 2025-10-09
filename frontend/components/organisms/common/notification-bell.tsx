@@ -20,7 +20,6 @@ import { TimeBadge } from "@/components";
 import {
   useNotifications,
   useNotificationList,
-  useNotificationSync,
   useMarkNotificationAsRead,
   useDeleteNotification,
   useMarkAllNotificationsAsRead,
@@ -40,7 +39,6 @@ export function NotificationBell() {
   const deleteNotificationMutation = useDeleteNotification();
   const markAllAsReadMutation = useMarkAllNotificationsAsRead();
   const deleteAllNotificationsMutation = useDeleteAllNotifications();
-  const { syncNow } = useNotificationSync();
 
   const {
     isSSEConnected,
@@ -82,8 +80,8 @@ export function NotificationBell() {
   const notifications = notificationResponse?.success ? (notificationResponse.data || []) : [];
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  const handleMarkAsRead = (notificationId: number) => {
-    markAsReadMutation.mutate(notificationId);
+  const handleMarkAsRead = async (notificationId: number) => {
+    await markAsReadMutation.mutateAsync(notificationId);
   };
 
   const handleDeleteNotification = (notificationId: number) => {
@@ -125,24 +123,19 @@ export function NotificationBell() {
   const handleOpen = (open: boolean) => {
     setIsOpen(open);
     if (open && canConnectSSE()) {
-      syncNow();
       handleFetchNotifications();
-    } else if (!open) {
-      // 알림 패널 닫을 때 즉시 동기화
-      syncNow();
     }
   };
 
   const handleRefresh = () => {
     if (canConnectSSE()) {
-      syncNow();
       handleFetchNotifications();
     }
   };
 
   const handleNotificationClick = async (notification: { id: number; read: boolean; url?: string }) => {
     if (!notification.read) {
-      handleMarkAsRead(notification.id);
+      await handleMarkAsRead(notification.id);
     }
     if (notification.url) {
       window.location.href = notification.url;

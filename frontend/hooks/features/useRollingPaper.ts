@@ -97,8 +97,9 @@ interface UseRollingPaperSearchReturn {
   isSearching: boolean;
   searchError: string;
   handleSearch: () => Promise<void>;
-  handleKeyPress: (e: React.KeyboardEvent) => void;
-  clearError: () => void;
+  isOwnNickname: boolean;
+  confirmOwnNicknameSearch: () => void;
+  cancelOwnNicknameSearch: () => void;
 }
 
 /**
@@ -110,9 +111,17 @@ export function useRollingPaperSearch(): UseRollingPaperSearchReturn {
   const [searchNickname, setSearchNickname] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState("");
+  const [isOwnNickname, setIsOwnNickname] = useState(false);
 
-  const clearError = useCallback(() => {
-    setSearchError("");
+  // 자신의 닉네임 검색 확인 후 리다이렉트
+  const confirmOwnNicknameSearch = useCallback(() => {
+    setIsOwnNickname(false);
+    router.push("/rolling-paper");
+  }, [router]);
+
+  // 자신의 닉네임 검색 취소 (다른 롤링페이퍼 찾기)
+  const cancelOwnNicknameSearch = useCallback(() => {
+    setIsOwnNickname(false);
   }, []);
 
   const handleSearch = useCallback(async () => {
@@ -122,12 +131,12 @@ export function useRollingPaperSearch(): UseRollingPaperSearchReturn {
     const trimmedNickname = searchNickname.trim();
     setIsSearching(true); // 검색 상태 활성화 (UI에서 로딩 표시)
     setSearchError(""); // 기존 에러 메시지 초기화
+    setIsOwnNickname(false); // 이전 상태 초기화
 
     try {
-      // 자신의 롤링페이퍼 검색 시 API 호출 없이 직접 리다이렉트 (성능 최적화)
+      // 자신의 롤링페이퍼 검색 시 확인 다이얼로그 표시
       if (user && user.memberName === trimmedNickname) {
-        // 자신의 롤링페이퍼로 리다이렉트
-        router.push("/rolling-paper");
+        setIsOwnNickname(true);
         setIsSearching(false);
         return;
       }
@@ -156,13 +165,6 @@ export function useRollingPaperSearch(): UseRollingPaperSearchReturn {
     }
   }, [searchNickname, user, router]);
 
-  // Enter 키 누를 시 검색 실행 (사용성 개선)
-  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleSearch();
-    }
-  }, [handleSearch]);
-
   // 닉네임 입력 시 기존 에러 메시지 자동 제거 (사용자 경험 개선)
   const setSearchNicknameWithClear = useCallback((nickname: string) => {
     setSearchNickname(nickname);
@@ -178,9 +180,10 @@ export function useRollingPaperSearch(): UseRollingPaperSearchReturn {
     isSearching,
     searchError,
     handleSearch,
-    handleKeyPress,
-    clearError,
-  }), [searchNickname, setSearchNicknameWithClear, isSearching, searchError, handleSearch, handleKeyPress, clearError]);
+    isOwnNickname,
+    confirmOwnNicknameSearch,
+    cancelOwnNicknameSearch,
+  }), [searchNickname, setSearchNicknameWithClear, isSearching, searchError, handleSearch, isOwnNickname, confirmOwnNicknameSearch, cancelOwnNicknameSearch]);
 
   return memoizedReturn;
 }

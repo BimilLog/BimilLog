@@ -21,8 +21,6 @@ import { formatDateTime } from "@/lib/utils/date";
 interface PostHeaderProps {
   post: Post;
   commentCount: number;
-  canModify: () => boolean;
-  onDeleteClick: () => void;
 }
 
 export const PostHeader = React.memo<PostHeaderProps>(({

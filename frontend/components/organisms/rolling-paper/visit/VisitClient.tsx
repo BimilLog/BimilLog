@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Heart, Mail, Share2 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { Button as FlowbiteButton } from "flowbite-react";
 import { useRollingPaperSearch, useToast } from "@/hooks";
 import { KakaoShareButton } from "@/components";
@@ -41,7 +40,6 @@ const ConfirmDialog = dynamic(
 export function VisitClient() {
   // 사용자가 자신의 롤링페이퍼를 검색했을 때 표시할 확인 다이얼로그 상태
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const router = useRouter();
   const { showSuccess, showError } = useToast();
 
   // 롤링페이퍼 검색 관련 상태와 핸들러들
@@ -51,12 +49,26 @@ export function VisitClient() {
     isSearching,
     searchError,
     handleSearch,
+    isOwnNickname,
+    confirmOwnNicknameSearch,
+    cancelOwnNicknameSearch,
   } = useRollingPaperSearch();
+
+  // 자신의 닉네임 검색 시 다이얼로그 표시
+  useEffect(() => {
+    setShowConfirmDialog(isOwnNickname);
+  }, [isOwnNickname]);
 
   // 확인 다이얼로그에서 "내 롤링페이퍼 보기" 클릭 시 처리
   const handleGoToMyRollingPaper = () => {
     setShowConfirmDialog(false);
-    router.push("/rolling-paper");
+    confirmOwnNicknameSearch();
+  };
+
+  // 확인 다이얼로그에서 "다른 롤링페이퍼 찾기" 클릭 시 처리
+  const handleCloseDialog = () => {
+    setShowConfirmDialog(false);
+    cancelOwnNicknameSearch();
   };
 
   // 링크 공유 핸들러 (게시글 페이지와 동일한 로직)
@@ -162,7 +174,7 @@ export function VisitClient() {
 
       <ConfirmDialog
         isOpen={showConfirmDialog}
-        onClose={() => setShowConfirmDialog(false)}
+        onClose={handleCloseDialog}
         onGoToMyRollingPaper={handleGoToMyRollingPaper}
       />
 

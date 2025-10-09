@@ -15,13 +15,14 @@ export interface CommentWithReplies extends Comment {
 }
 
 // 게시글 상세 조회 (간단한 버전) - TanStack Query 통합
-export function usePostDetailQuery(postId: number) {
+export function usePostDetailQuery(postId: number, initialPost?: Post) {
   return useQuery({
     queryKey: queryKeys.post.detail(postId),
     queryFn: () => postQuery.getById(postId),
     enabled: postId > 0,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
+    initialData: initialPost ? { success: true, data: initialPost } : undefined,
   });
 }
 
@@ -31,13 +32,14 @@ export function usePostDetail(id: string | null, initialPost?: Post) {
   const { user, isAuthenticated } = useAuth();
   const { showError } = useToast();
 
-  // TanStack Query - 인기 댓글 조회
-  const { data: popularCommentsData } = usePopularComments(Number(id) || 0);
-  const popularComments = popularCommentsData?.data || [];
+  // TanStack Query - 게시글 상세 조회
+  const postId = Number(id) || 0;
+  const { data: postData, isLoading, error } = usePostDetailQuery(postId, initialPost);
+  const post = postData?.data || null;
 
-  // Post 상태
-  const [post, setPost] = useState<Post | null>(initialPost || null);
-  const [loading, setLoading] = useState(!initialPost);
+  // TanStack Query - 인기 댓글 조회
+  const { data: popularCommentsData } = usePopularComments(postId);
+  const popularComments = popularCommentsData?.data || [];
 
   // Comment 상태
   const [comments, setComments] = useState<CommentWithReplies[]>([]);
@@ -50,23 +52,16 @@ export function usePostDetail(id: string | null, initialPost?: Post) {
   // usePasswordModal 훅으로 모달 상태 관리 통합
   const passwordModal = usePasswordModal();
 
-  // Data fetching
-  const fetchPost = useCallback(async () => {
-    if (!id) return;
-
-    try {
-      const response = await postQuery.getById(Number(id));
-      if (response.success && response.data) {
-        setPost(response.data);
-      } else {
-        throw new Error("게시글을 불러올 수 없습니다");
-      }
-    } catch (error) {
+  // 게시글 조회 에러 처리
+  useEffect(() => {
+    if (error && !isLoading) {
+      showError(
+        "게시글 조회 실패",
+        "게시글을 불러오는 중 오류가 발생했습니다."
+      );
       router.push("/board");
-    } finally {
-      setLoading(false);
     }
-  }, [id, router]);
+  }, [error, isLoading, showError, router]);
 
   // 트리 구조를 평면 배열로 변환: 페이지네이션 시 기존 댓글 보존을 위해 필요
   const flattenComments = useCallback((comments: CommentWithReplies[]): Comment[] => {
@@ -193,7 +188,7 @@ export function usePostDetail(id: string | null, initialPost?: Post) {
 
   // 권한 체크: 익명 게시글은 비로그인 사용자만 수정 가능, 로그인 게시글은 작성자만 수정 가능
   const canModify = () => {
-    if (!post || loading) return false;
+    if (!post || isLoading) return false;
     if (post.memberName === "익명" || post.memberName === null) {
       return !isAuthenticated;  // 익명 게시글은 로그인하지 않은 사용자만 수정 가능
     }
@@ -215,18 +210,15 @@ export function usePostDetail(id: string | null, initialPost?: Post) {
   // Effects
   useEffect(() => {
     if (!id) return;
-    if (!initialPost) {
-      fetchPost();
-    }
     fetchComments();
-  }, [id, initialPost, fetchPost, fetchComments]);
+  }, [id, fetchComments]);
 
   return {
     // Data
     post,
     comments,
     popularComments,
-    loading,
+    loading: isLoading,
 
     // Pagination state
     hasMoreComments,
@@ -240,7 +232,6 @@ export function usePostDetail(id: string | null, initialPost?: Post) {
     targetComment: passwordModal.targetComment,
 
     // Actions
-    fetchPost,
     fetchComments,
     loadMoreComments,
     getTotalCommentCount,

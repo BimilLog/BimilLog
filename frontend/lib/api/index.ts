@@ -84,5 +84,6 @@ export type {
 } from '@/types/domains/notification'
 
 export type {
-  Report
+  Report,
+  ReportType
 } from '@/types/domains/admin'

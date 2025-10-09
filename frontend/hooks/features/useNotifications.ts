@@ -7,7 +7,6 @@ import { logger } from "@/lib/utils"
 
 // TanStack Query Hooks re-exports
 export { useNotificationList } from '@/hooks/api/useNotificationQueries';
-export { useNotificationSync } from '@/hooks/api/useNotificationSync';
 export {
   useMarkNotificationAsRead,
   useDeleteNotification,

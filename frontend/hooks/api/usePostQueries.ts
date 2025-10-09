@@ -32,18 +32,6 @@ export const useInfinitePostList = (size: number = 10) => {
 };
 
 /**
- * 게시글 상세 조회
- */
-export const usePostDetail = (postId: number) => {
-  return useQuery({
-    queryKey: queryKeys.post.detail(postId),
-    queryFn: () => postQuery.getById(postId),
-    enabled: !!postId && postId > 0,
-    staleTime: 5 * 60 * 1000, // 5분
-  });
-};
-
-/**
  * 게시글 검색
  */
 export const usePostSearch = (query: string, page: number = 0, size: number = 10) => {

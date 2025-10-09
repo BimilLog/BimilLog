@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { useAuth } from '@/hooks';
 import { useMyRollingPaper } from '@/hooks/api/useMyRollingPaper';
 import { useRollingPaper } from '@/hooks/api/useRollingPaperQueries';
+import { localStorage } from '@/lib/utils/storage';
 import type { RollingPaperMessage, VisitMessage } from '@/types/domains/paper';
 
 /**
@@ -37,6 +38,13 @@ export function useRollingPaperData(targetNickname?: string) {
     if (!activeQuery.data?.data) return [];
     return activeQuery.data.data;
   }, [activeQuery.data]);
+
+  // 타인의 롤링페이퍼 방문 성공 시 최근 방문 기록에 저장
+  useEffect(() => {
+    if (!isOwner && targetNickname && visitPaperQuery.isSuccess && visitPaperQuery.data?.success) {
+      localStorage.addRecentVisit(targetNickname);
+    }
+  }, [isOwner, targetNickname, visitPaperQuery.isSuccess, visitPaperQuery.data?.success]);
 
   return {
     messages,

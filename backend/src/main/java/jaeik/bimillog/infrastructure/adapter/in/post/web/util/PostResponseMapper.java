@@ -66,7 +66,7 @@ public class PostResponseMapper {
                 .memberId(postDetail.getMemberId())
                 .memberName(postDetail.getMemberName())
                 .commentCount(postDetail.getCommentCount())
-                .isLiked(postDetail.isLiked())
+                .liked(postDetail.isLiked())
                 .build();
     }
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import dynamic from "next/dynamic";
 import { Modal, ModalHeader, ModalBody } from "flowbite-react";
 import {
   Card,
@@ -11,9 +10,11 @@ import {
   Tabs,
   TabsContent,
   TabsList,
-  TabsTrigger
+  TabsTrigger,
+  Alert,
+  AlertTitle,
+  AlertDescription
 } from "@/components";
-import { Spinner as FlowbiteSpinner } from "flowbite-react";
 import {
   User,
   Calendar,
@@ -26,6 +27,7 @@ import {
   ChevronRight
 } from "lucide-react";
 import { useReportActions } from "@/hooks/features/admin";
+import { useConfirmModal } from "@/components/molecules/modals/confirm-modal";
 import type { Report } from "@/types/domains/admin";
 
 /**
@@ -42,22 +44,7 @@ interface ReportDetailModalProps {
   onAction: () => void;
 }
 
-// 로딩 컴포넌트
-const ReportDetailModalLoading = () => (
-  <Modal show onClose={() => {}} size="2xl">
-    <ModalBody>
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="flex flex-col items-center gap-3">
-          <FlowbiteSpinner color="pink" size="xl" aria-label="신고 상세 정보 로딩 중..." />
-          <p className="text-sm text-brand-secondary">신고 상세 정보 로딩 중...</p>
-        </div>
-      </div>
-    </ModalBody>
-  </Modal>
-);
-
-// 실제 모달 컴포넌트
-function ReportDetailModalContent({
+export function ReportDetailModal({
   report,
   isOpen,
   onClose,
@@ -65,6 +52,7 @@ function ReportDetailModalContent({
 }: ReportDetailModalProps) {
   const [activeTab, setActiveTab] = useState("details");
   const { banUser, forceWithdrawUser, isProcessing } = useReportActions();
+  const { confirm, ConfirmModalComponent } = useConfirmModal();
 
   // 신고 타입별 UI 스타일과 아이콘 매핑
   // 각 신고 유형에 맞는 시각적 표현을 동적으로 생성
@@ -91,16 +79,42 @@ function ReportDetailModalContent({
 
   // 사용자 차단 처리 (24시간 제한)
   const handleBanClick = async () => {
-    await banUser(report);
-    onAction(); // 부모 컴포넌트에 처리 완료 알림
-    onClose();
+    const confirmed = await confirm({
+      title: "사용자 차단",
+      message: `정말로 '${report.targetAuthorName}'님을 제재하시겠습니까?\n\n이 작업은 되돌릴 수 없으며, 24시간 동안 서비스 이용이 제한됩니다.`,
+      confirmText: "차단",
+      cancelText: "취소",
+      confirmButtonVariant: "destructive",
+      icon: <Ban className="h-8 w-8 stroke-orange-600 fill-orange-100" />
+    });
+
+    if (!confirmed) return;
+
+    const success = await banUser(report);
+    if (success) {
+      onAction(); // 부모 컴포넌트에 처리 완료 알림
+      onClose();
+    }
   };
 
   // 사용자 강제 탈퇴 처리 (영구 삭제)
   const handleWithdrawClick = async () => {
-    await forceWithdrawUser(report);
-    onAction(); // 부모 컴포넌트에 처리 완료 알림
-    onClose();
+    const confirmed = await confirm({
+      title: "강제 탈퇴",
+      message: `정말로 '${report.targetAuthorName}'님을 강제 탈퇴시키시겠습니까?\n\n⚠️ 경고: 이 작업은 되돌릴 수 없으며, 사용자 계정과 모든 데이터가 영구적으로 삭제됩니다.`,
+      confirmText: "탈퇴",
+      cancelText: "취소",
+      confirmButtonVariant: "destructive",
+      icon: <UserX className="h-8 w-8 stroke-red-600 fill-red-100" />
+    });
+
+    if (!confirmed) return;
+
+    const success = await forceWithdrawUser(report);
+    if (success) {
+      onAction(); // 부모 컴포넌트에 처리 완료 알림
+      onClose();
+    }
   };
 
   return (
@@ -311,35 +325,29 @@ function ReportDetailModalContent({
 
               {/* 제재 불가 알림 */}
               {!report.targetAuthorName && (report.reportType === "POST" || report.reportType === "COMMENT") && (
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                  <p className="text-sm text-amber-800 text-center font-medium">
-                    신고 대상이 삭제되었거나 존재하지 않아 제재할 수 없습니다.
-                  </p>
-                </div>
+                <Alert variant="warning">
+                  <AlertTitle>제재 불가</AlertTitle>
+                  <AlertDescription>
+                    신고 대상 {report.reportType === "POST" ? "게시글" : "댓글"}이 삭제되었거나
+                    익명 사용자로 제재할 수 없습니다.
+                  </AlertDescription>
+                </Alert>
               )}
               {(report.reportType === "ERROR" || report.reportType === "IMPROVEMENT") && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <p className="text-sm text-blue-800 text-center font-medium">
+                <Alert variant="info">
+                  <AlertTitle>안내</AlertTitle>
+                  <AlertDescription>
                     오류 신고 및 개선 제안은 사용자 제재 대상이 아닙니다.
-                  </p>
-                </div>
+                  </AlertDescription>
+                </Alert>
               )}
             </TabsContent>
           </ScrollArea>
         </Tabs>
       </ModalBody>
+
+      {/* 확인 다이얼로그 */}
+      <ConfirmModalComponent />
     </Modal>
   );
 }
-
-// Dynamic import로 컴포넌트 래핑 (번들 크기 최적화)
-// SSR 비활성화로 클라이언트 전용 렌더링, 로딩 상태 제공
-const ReportDetailModal = dynamic(
-  () => Promise.resolve(ReportDetailModalContent),
-  {
-    ssr: false,
-    loading: () => <ReportDetailModalLoading />,
-  }
-);
-
-export { ReportDetailModal };
