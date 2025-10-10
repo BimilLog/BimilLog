@@ -7,7 +7,7 @@ import jaeik.bimillog.domain.member.application.service.HandleMemberLoginService
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.testutil.BaseUnitTest;
-import jaeik.bimillog.testutil.TestFixtures;
+import jaeik.bimillog.testutil.fixtures.TestFixtures;
 import jaeik.bimillog.testutil.TestMembers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;

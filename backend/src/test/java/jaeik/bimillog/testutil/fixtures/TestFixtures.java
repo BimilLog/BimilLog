@@ -1,4 +1,4 @@
-package jaeik.bimillog.testutil;
+package jaeik.bimillog.testutil.fixtures;
 
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.infrastructure.adapter.in.paper.dto.MessageDTO;

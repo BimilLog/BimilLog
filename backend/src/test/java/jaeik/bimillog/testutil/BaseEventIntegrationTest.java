@@ -1,5 +1,6 @@
 package jaeik.bimillog.testutil;
 
+import jaeik.bimillog.testutil.config.H2TestConfiguration;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;

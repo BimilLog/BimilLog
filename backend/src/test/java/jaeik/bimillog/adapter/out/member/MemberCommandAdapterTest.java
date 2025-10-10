@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.adapter.out.member.MemberCommandAdapter;
-import jaeik.bimillog.testutil.H2TestConfiguration;
+import jaeik.bimillog.testutil.config.H2TestConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;

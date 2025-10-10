@@ -5,7 +5,7 @@ import jaeik.bimillog.infrastructure.adapter.out.api.dto.KakaoFriendsDTO;
 import jaeik.bimillog.infrastructure.adapter.out.api.social.kakao.KakaoApiClient;
 import jaeik.bimillog.infrastructure.adapter.out.api.social.kakao.KakaoFriendStrategy;
 import jaeik.bimillog.testutil.BaseUnitTest;
-import jaeik.bimillog.testutil.KakaoTestDataBuilder;
+import jaeik.bimillog.testutil.builder.KakaoTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;

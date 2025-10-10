@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.MemberRole;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
+import jaeik.bimillog.testutil.fixtures.TestFixtures;
 
 /**
  * <h2>미리 정의된 테스트 회원 인스턴스</h2>

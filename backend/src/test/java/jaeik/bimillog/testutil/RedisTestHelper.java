@@ -2,7 +2,6 @@ package jaeik.bimillog.testutil;
 
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
-import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.infrastructure.adapter.out.redis.post.RedisPostKeys;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -71,15 +70,6 @@ public class RedisTestHelper {
          */
         public static String postDetail(Long postId) {
             return RedisPostKeys.getPostDetailKey(postId);
-        }
-
-        /**
-         * 게시글 목록 캐시 키 생성
-         * @param cacheType 캐시 타입
-         * @return Redis 키
-         */
-        public static String postList(PostCacheFlag cacheType) {
-            return RedisPostKeys.CACHE_METADATA_MAP.get(cacheType).key();
         }
 
         /**

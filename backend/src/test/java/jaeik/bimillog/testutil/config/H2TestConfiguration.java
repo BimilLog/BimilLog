@@ -1,4 +1,4 @@
-package jaeik.bimillog.testutil;
+package jaeik.bimillog.testutil.config;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.infrastructure.security.EncryptionUtil;

@@ -1,9 +1,10 @@
-package jaeik.bimillog.testutil;
+package jaeik.bimillog.testutil.builder;
 
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.infrastructure.adapter.in.comment.dto.CommentReqDTO;
+import jaeik.bimillog.testutil.fixtures.TestFixtures;
 
 /**
  * <h2>댓글 테스트 데이터 빌더</h2>

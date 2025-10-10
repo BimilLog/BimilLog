@@ -1,8 +1,10 @@
-package jaeik.bimillog.testutil;
+package jaeik.bimillog.testutil.builder;
 
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
+import jaeik.bimillog.testutil.fixtures.TestFixtures;
+import jaeik.bimillog.testutil.TestMembers;
 
 import java.time.LocalDateTime;
 /**
