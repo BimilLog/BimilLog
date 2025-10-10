@@ -156,7 +156,7 @@ export default function InstallPage() {
   return (
     <div className={`min-h-screen ${GRADIENTS.primary}`}>
       {/* Header */}
-      <header className="bg-white/90 backdrop-blur-lg border-b border-cyan-200 sticky top-0 z-50 shadow-brand-sm">
+      <header data-toast-anchor className="bg-white/90 backdrop-blur-lg border-b border-cyan-200 sticky top-0 z-50 shadow-brand-sm">
         <div className="container mx-auto px-4 py-4 flex items-center gap-4">
           <Button variant="ghost" size="sm" asChild className="hover:bg-cyan-100 text-cyan-700 transition-colors">
             <Link href="/" className="flex items-center gap-2">

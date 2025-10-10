@@ -112,9 +112,6 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
               <span className="truncate">{comment.memberName || "익명"}</span>
             </span>
           )}
-          <span className="bg-gradient-to-r from-pink-500 to-purple-600 text-white text-xs px-2 py-1 rounded-full font-semibold flex-shrink-0">
-            인기 추천 {comment.likeCount}
-          </span>
           <TimeBadge dateString={comment.createdAt} size="xs" />
         </div>
 

@@ -70,7 +70,7 @@ export default function EditPostPage() {
         <AuthHeader />
         
         {/* Header (모바일 최적화) */}
-        <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
+        <header data-toast-anchor className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
           <div className="container mx-auto px-4 py-3">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               {/* 좌측: 뒤로가기 및 제목 */}

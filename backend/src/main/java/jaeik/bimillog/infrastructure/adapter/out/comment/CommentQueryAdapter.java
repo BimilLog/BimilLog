@@ -190,7 +190,7 @@ public class CommentQueryAdapter implements CommentQueryPort {
                          parentClosure.ancestor.id, userCommentLike.id)
                 .having(commentLike.countDistinct().goe(3)) // 추천 3개 이상
                 .orderBy(commentLike.countDistinct().desc())
-                .limit(5)
+                .limit(3)
                 .fetch();
 
         popularComments.forEach(info -> info.setPopular(true));

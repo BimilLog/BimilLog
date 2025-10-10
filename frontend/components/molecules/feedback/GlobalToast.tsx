@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Toast, ToastToggle } from 'flowbite-react';
 import { HiCheck, HiX, HiExclamation, HiInformationCircle } from 'react-icons/hi';
 import { useToastStore } from '@/stores/toast.store';
@@ -8,6 +8,26 @@ import type { ToastType } from '@/components/molecules/feedback/toast';
 
 export function GlobalToast() {
   const { toasts, removeToast } = useToastStore();
+  const [offsetTop, setOffsetTop] = useState<number>(96);
+
+  const updateOffsetTop = useCallback(() => {
+    if (typeof window === 'undefined') return;
+
+    const anchors = Array.from(
+      document.querySelectorAll<HTMLElement>('[data-toast-anchor]')
+    );
+
+    let maxBottom = 0;
+    anchors.forEach((anchor) => {
+      const rect = anchor.getBoundingClientRect();
+      if (rect.bottom > maxBottom) {
+        maxBottom = rect.bottom;
+      }
+    });
+
+    const baseOffset = maxBottom > 0 ? maxBottom + 16 : 96;
+    setOffsetTop(baseOffset);
+  }, []);
 
   // 자동 제거 타이머 설정
   useEffect(() => {
@@ -26,6 +46,21 @@ export function GlobalToast() {
       });
     };
   }, [toasts, removeToast]);
+
+  useEffect(() => {
+    updateOffsetTop();
+    window.addEventListener('resize', updateOffsetTop);
+    window.addEventListener('scroll', updateOffsetTop, true);
+
+    return () => {
+      window.removeEventListener('resize', updateOffsetTop);
+      window.removeEventListener('scroll', updateOffsetTop, true);
+    };
+  }, [updateOffsetTop]);
+
+  useEffect(() => {
+    updateOffsetTop();
+  }, [toasts.length, updateOffsetTop]);
 
   const getIcon = (type: ToastType) => {
     switch (type) {
@@ -60,7 +95,10 @@ export function GlobalToast() {
   if (toasts.length === 0) return null;
 
   return (
-    <div className="fixed top-20 right-4 z-50 space-y-2 max-w-md">
+    <div
+      className="fixed right-4 z-50 space-y-2 max-w-md"
+      style={{ top: offsetTop }}
+    >
       {toasts.map((toast) => (
         <Toast key={toast.id} className="shadow-lg">
           <div className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${getColorClass(toast.type)}`}>

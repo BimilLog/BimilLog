@@ -84,6 +84,24 @@ export const escapeHtml = (text: string): string => {
     "'": '&#39;',
     '/': '&#x2F;',
   };
-  
+
   return text.replace(/[&<>"'/]/g, (match) => htmlEntities[match]);
+};
+
+/**
+ * HTML 문자열에서 태그를 제거하고 순수 텍스트만 반환합니다.
+ * SSR 안전: 서버 렌더링 환경에서도 동작합니다.
+ */
+export const stripHtmlTags = (html: string): string => {
+  if (!html) return '';
+
+  return html
+    .replace(/<[^>]*>/g, '') // HTML 태그 제거
+    .replace(/&nbsp;/g, ' ') // &nbsp; 공백 변환
+    .replace(/&lt;/g, '<')   // HTML 엔티티 디코딩
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .trim();
 }; 

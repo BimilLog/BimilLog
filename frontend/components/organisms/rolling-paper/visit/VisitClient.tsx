@@ -107,7 +107,7 @@ export function VisitClient() {
       <AuthHeader />
 
       {/* Page Header - 모바일 최적화 */}
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b">
+      <header data-toast-anchor className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">

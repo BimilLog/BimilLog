@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import {
   Bell,
@@ -34,6 +34,8 @@ export function NotificationBell() {
   const [isMobile, setIsMobile] = useState(false);
   const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
   const [showPermissionModal, setShowPermissionModal] = useState(false);
+  const [popoverPosition, setPopoverPosition] = useState({ top: 0, left: 0 });
+  const triggerRef = useRef<HTMLDivElement | null>(null);
   const { isAuthenticated } = useAuth();
 
   const { data: notificationResponse, isLoading, refetch } = useNotificationList();
@@ -78,6 +80,29 @@ export function NotificationBell() {
       };
     }
   }, [isOpen, isMobile]);
+
+  const updateDesktopPopoverPosition = useCallback(() => {
+    if (typeof window === "undefined") return;
+    const triggerEl = triggerRef.current;
+    if (!triggerEl) return;
+    const rect = triggerEl.getBoundingClientRect();
+    setPopoverPosition({
+      top: rect.bottom + 12,
+      left: rect.right,
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen || isMobile) return;
+    updateDesktopPopoverPosition();
+    const handleWindowChange = () => updateDesktopPopoverPosition();
+    window.addEventListener("resize", handleWindowChange);
+    window.addEventListener("scroll", handleWindowChange, true);
+    return () => {
+      window.removeEventListener("resize", handleWindowChange);
+      window.removeEventListener("scroll", handleWindowChange, true);
+    };
+  }, [isOpen, isMobile, updateDesktopPopoverPosition]);
 
   const notifications = notificationResponse?.success ? (notificationResponse.data || []) : [];
   const unreadCount = notifications.filter(n => !n.read).length;
@@ -125,6 +150,9 @@ export function NotificationBell() {
   const handleOpen = (open: boolean) => {
     setIsOpen(open);
     if (open && canConnectSSE()) {
+      if (!isMobile) {
+        updateDesktopPopoverPosition();
+      }
       handleFetchNotifications();
     }
   };
@@ -339,7 +367,7 @@ export function NotificationBell() {
   );
 
   return (
-    <div className="relative">
+    <div className="relative" ref={triggerRef}>
       {isMobile ? (
         <>
           <Button
@@ -389,11 +417,23 @@ export function NotificationBell() {
           </Button>
 
           {isOpen && (
-            <div className="absolute right-0 top-full mt-2 z-50 notification-popover">
-              <Card className="w-80 shadow-brand-xl border-0 bg-white/90 backdrop-blur-sm">
-                <NotificationContent />
-              </Card>
-            </div>
+            portalContainer &&
+            createPortal(
+              <div
+                className="notification-popover z-[70]"
+                style={{
+                  position: "fixed",
+                  top: popoverPosition.top,
+                  left: popoverPosition.left,
+                  transform: "translateX(-100%)",
+                }}
+              >
+                <Card className="w-80 shadow-brand-xl border-0 bg-white/90 backdrop-blur-sm">
+                  <NotificationContent />
+                </Card>
+              </div>,
+              portalContainer
+            )
           )}
         </>
       )}

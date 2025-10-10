@@ -4,6 +4,7 @@ import React, { useState, useMemo } from "react";
 import { Button, Card, CardContent, CardHeader, CardTitle, Input } from "@/components";
 import { Send, Lightbulb } from "lucide-react";
 import { LazyEditor } from "@/lib/utils/lazy-components";
+import { stripHtmlTags } from "@/lib/utils/sanitize";
 
 interface CommentFormProps {
   isAuthenticated: boolean;
@@ -21,9 +22,7 @@ export const CommentForm: React.FC<CommentFormProps> = ({
 
   // HTML 태그를 제거하고 순수 텍스트 길이 계산
   const plainTextLength = useMemo(() => {
-    const div = document.createElement("div");
-    div.innerHTML = comment;
-    return (div.textContent || div.innerText || "").length;
+    return stripHtmlTags(comment).length;
   }, [comment]);
 
   // 폼 제출 핸들러
@@ -64,28 +63,10 @@ export const CommentForm: React.FC<CommentFormProps> = ({
         <CardTitle className="text-lg">댓글 작성</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <form onSubmit={handleSubmit}>
-          {/* 비로그인 사용자용 비밀번호 입력 */}
-          {!isAuthenticated && (
-            <div className="mb-4">
-              <Input
-                type="password"
-                placeholder="비밀번호 (1000~9999)"
-                value={password}
-                onChange={(e) => setPassword(e.target.value.replace(/\D/g, ""))}
-                maxLength={4}
-              />
-              {password && !/^[1-9]\d{3}$/.test(password) && (
-                <p className="text-red-500 text-sm mt-1">
-                  1000~9999 사이의 숫자를 입력해주세요
-                </p>
-              )}
-            </div>
-          )}
-
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* 댓글 내용 입력 */}
           <div className="space-y-2">
-            <LazyEditor value={comment} onChange={setComment} />
+            <LazyEditor value={comment} onChange={setComment} height={200} />
 
             <div className="flex items-center justify-between">
               <p className="text-xs text-brand-secondary flex items-center space-x-1">
@@ -112,18 +93,32 @@ export const CommentForm: React.FC<CommentFormProps> = ({
                 댓글은 최대 255자까지 입력 가능합니다
               </p>
             )}
+          </div>
 
-            {/* 제출 버튼 */}
-            <div className="flex justify-end">
-              <Button
-                type="submit"
-                disabled={!canSubmit}
-                className="mt-2"
-              >
-                <Send className="w-4 h-4 mr-2 stroke-blue-600 fill-blue-100" />
-                작성
-              </Button>
+          {/* 비로그인 사용자용 비밀번호 입력 */}
+          {!isAuthenticated && (
+            <div>
+              <Input
+                type="password"
+                placeholder="비밀번호 (1000~9999)"
+                value={password}
+                onChange={(e) => setPassword(e.target.value.replace(/\D/g, ""))}
+                maxLength={4}
+              />
+              {password && !/^[1-9]\d{3}$/.test(password) && (
+                <p className="text-red-500 text-sm mt-1">
+                  1000~9999 사이의 숫자를 입력해주세요
+                </p>
+              )}
             </div>
+          )}
+
+          {/* 제출 버튼 */}
+          <div className="flex justify-end">
+            <Button type="submit" disabled={!canSubmit} className="mt-2">
+              <Send className="w-4 h-4 mr-2 stroke-blue-600 fill-blue-100" />
+              작성
+            </Button>
           </div>
         </form>
       </CardContent>
