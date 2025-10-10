@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import dynamic from "next/dynamic";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks";
 import { useTheme } from "@/hooks/features/useTheme";
 import {
@@ -41,6 +41,8 @@ const NotificationBell = dynamic(
 
 export const AuthHeader = React.memo(() => {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { user, isAuthenticated, isLoading } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
@@ -215,7 +217,16 @@ export const AuthHeader = React.memo(() => {
                 </>
               )}
               <DropdownDivider />
-              <DropdownItem onClick={() => router.push('/logout')} className="text-red-600">
+              <DropdownItem
+                onClick={() => {
+                  const currentPath = pathname || "/";
+                  const queryString = searchParams?.toString();
+                  const redirectTarget = queryString ? `${currentPath}?${queryString}` : currentPath;
+                  const encodedRedirect = encodeURIComponent(redirectTarget);
+                  router.push(`/logout?redirect=${encodedRedirect}`);
+                }}
+                className="text-red-600"
+              >
                 <LogOut className="mr-2 h-4 w-4 stroke-red-600 fill-red-100" />
                 로그아웃
               </DropdownItem>

@@ -7,6 +7,7 @@ interface AuthState {
   user: Member | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  isLoggingOut: boolean;
 
   // Actions
   setUser: (user: Member | null) => void;
@@ -31,6 +32,7 @@ export const useAuthStore = create<AuthState>()(
         user: null,
         isLoading: true,
         isAuthenticated: false,
+        isLoggingOut: false,
         
         setUser: (user) => 
           set({ 
@@ -94,6 +96,13 @@ export const useAuthStore = create<AuthState>()(
         },
         
         logout: async () => {
+          if (get().isLoggingOut) {
+            logger.warn("이미 로그아웃 처리 중입니다. 추가 요청을 무시합니다.");
+            return;
+          }
+
+          set({ isLoggingOut: true });
+
           try {
             logger.log("로그아웃 시작...");
 
@@ -109,7 +118,9 @@ export const useAuthStore = create<AuthState>()(
             sseManager.disconnect();
             set({
               user: null,
-              isAuthenticated: false
+              isAuthenticated: false,
+              isLoading: false,
+              isLoggingOut: false
             });
           }
         },
@@ -159,7 +170,8 @@ export const useAuthStore = create<AuthState>()(
           sseManager.disconnect();
           set({ 
             user: null, 
-            isAuthenticated: false 
+            isAuthenticated: false,
+            isLoggingOut: false
           });
           
           // 바로 로그인 페이지로 리다이렉트

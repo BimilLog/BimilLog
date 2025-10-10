@@ -34,6 +34,7 @@ const resetStoreState = () => {
     user: null,
     isLoading: true,
     isAuthenticated: false,
+    isLoggingOut: false,
   });
   if ("localStorage" in globalThis) {
     localStorage.clear();
