@@ -11,6 +11,7 @@ SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 -- 사용자 설정 데이터 (3개)
 INSERT INTO setting (setting_id, message_notification, comment_notification, post_featured_notification)
 VALUES
+    (1, 1, 1, 1)
     (2, 1, 1, 1),
     (3, 1, 0, 1),
     (4, 0, 1, 0);
@@ -18,6 +19,7 @@ VALUES
 -- 카카오 토큰 데이터 (3개)
 INSERT INTO kakao_token (kakao_token_id, kakao_access_token, kakao_refresh_token, created_at, modified_at)
 VALUES
+    (1, 'kakao_access_token_user1_sample123456', 'kakao_refresh_token_user1_sample789012', DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 6 HOUR)),
     (2, 'kakao_access_token_user2_sample123456', 'kakao_refresh_token_user2_sample789012', DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 6 HOUR)),
     (3, 'kakao_access_token_user3_sample234567', 'kakao_refresh_token_user3_sample890123', DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 8 HOUR)),
     (4, 'kakao_access_token_user4_sample345678', 'kakao_refresh_token_user4_sample901234', DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 12 HOUR));
@@ -25,6 +27,7 @@ VALUES
 -- 사용자 데이터 (3명) - member 테이블 사용
 INSERT INTO member (member_id, setting_id, kakao_token_id, social_id, provider, member_name, role, social_nickname, thumbnail_image, created_at, modified_at)
 VALUES
+    (1, 1, 1, '3973639063', 'KAKAO', '비밀로그개발자', 'ADMIN', '정재익', 'http://k.kakaocdn.net/dn/bIks3d/btsMMBlpal1/dPX58KruRPDmnFO8LcauM0/img_110x110.jpg', NOW(6), NOW(6)),
     (2, 2, 2, '1234561111', 'KAKAO', '비밀농부1', 'USER', '카카오닉네임1', 'https://example.com/thumb1.jpg', NOW(6), NOW(6)),
     (3, 3, 3, '7890121111', 'KAKAO', '익명작가', 'USER', '카카오닉네임2', 'https://example.com/thumb2.jpg', NOW(6), NOW(6)),
     (4, 4, 4, '4456781111', 'KAKAO', '롤링메신저', 'ADMIN', '카카오닉네임3', 'https://example.com/thumb3.jpg', NOW(6), NOW(6));
