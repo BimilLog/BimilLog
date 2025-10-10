@@ -76,11 +76,6 @@ dependencies {
     testImplementation 'org.springframework.security:spring-security-test' // Spring Security 테스트 지원
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher' // JUnit 플랫폼 런처 (Gradle 경고 방지)
 
-    // ==== TestContainers (실제 DB 테스트) ====
-    testImplementation 'org.testcontainers:junit-jupiter:1.19.3' // TestContainers JUnit 지원
-    testImplementation 'org.testcontainers:mysql:1.19.3' // MySQL TestContainer
-    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-
     // ==== H2 인메모리 데이터베이스 (빠른 테스트용) ====
     testImplementation 'com.h2database:h2' // H2 Database
     
@@ -146,7 +141,7 @@ tasks.register('unitTest', Test) {
 
     useJUnitPlatform {
         includeTags 'unit'
-        excludeTags 'integration', 'tc'
+        excludeTags 'integration', 'local-integration'
     }
 
     def cpuCount = Runtime.runtime.availableProcessors()
@@ -167,22 +162,22 @@ tasks.register('integrationTest', Test) {
 
     useJUnitPlatform {
         includeTags 'integration'
-        excludeTags 'tc'
+        excludeTags 'local-integration'
     }
 
     maxParallelForks = 1
     shouldRunAfter tasks.named('unitTest')
 }
 
-tasks.register('tcTest', Test) {
+tasks.register('localIntegrationTest', Test) {
     group = 'verification'
-    description = 'Testcontainers 기반 통합 테스트를 실행합니다.'
+    description = '로컬 MySQL/Redis 기반 통합 테스트를 실행합니다.'
 
     testClassesDirs = sourceSets.test.output.classesDirs
     classpath = sourceSets.test.runtimeClasspath
 
     useJUnitPlatform {
-        includeTags 'tc'
+        includeTags 'local-integration'
     }
 
     maxParallelForks = 1
@@ -192,7 +187,7 @@ tasks.register('tcTest', Test) {
 
 tasks.named('check') {
     dependsOn tasks.named('integrationTest')
-    dependsOn tasks.named('tcTest')
+    dependsOn tasks.named('localIntegrationTest')
 }
 
 ext {

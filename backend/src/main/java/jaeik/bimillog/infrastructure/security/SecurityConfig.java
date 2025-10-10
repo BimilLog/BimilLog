@@ -98,7 +98,6 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/paper/{userName}").permitAll()
                         .requestMatchers("/api/member/suggestion", "/api/member/username/check", "/api/member/report").permitAll()
-                        .requestMatchers("/data/**").permitAll() // 개발용 임시 데이터 API
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(LogFilter, UsernamePasswordAuthenticationFilter.class)

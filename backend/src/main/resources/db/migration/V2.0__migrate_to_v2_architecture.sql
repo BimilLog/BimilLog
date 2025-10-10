@@ -1,6 +1,20 @@
--- V1에서 V2 아키텍처로 전체 마이그레이션
--- 날짜: 2025-09-14
--- 이 마이그레이션은 운영 데이터베이스를 V2 JPA 엔티티와 일치하도록 업데이트합니다
+-- ================================================================================================
+-- Complete V2 Architecture Migration: V2.0~V2.4 Consolidated
+-- Date: 2025-10-10
+-- Version: 2.0 (consolidates V2.0, V2.1, V2.2, V2.3, V2.4)
+-- ================================================================================================
+-- Description:
+--   V1에서 V2 아키텍처로의 전체 마이그레이션 (V2.0~V2.4 통합본)
+--   - V2.0: 소셜 로그인 멀티 프로바이더 지원, 테이블/컬럼명 변경
+--   - V2.1: comment_closure AUTO_INCREMENT, token 분리, user→member 리네이밍
+--   - V2.2: post_cache_flag 제거 (캐싱 전략 변경)
+--   - V2.3: message 제약조건명 변경
+--   - V2.4: comment.content 길이 변경 (VARCHAR(1000))
+--
+--   ⚠️ 주의: 이 마이그레이션은 V1.0 베이스라인에서 실행됩니다
+--   - V1.0의 `users` 테이블이 존재해야 합니다
+--   - 최종적으로 `member` 테이블로 변경됩니다
+-- ================================================================================================
 
 -- ============================================
 -- 파트 1: 소셜 로그인 마이그레이션 (카카오 → 멀티 프로바이더)
@@ -47,36 +61,7 @@ ALTER TABLE `black_list`
   MODIFY COLUMN `provider` VARCHAR(20) NOT NULL;
 
 -- ============================================
--- 파트 2: 게시글 캐시 플래그 마이그레이션
--- ============================================
-
--- 새로운 캐시 플래그 컬럼 추가 (ENUM 타입으로 정의)
-ALTER TABLE `post`
-  ADD COLUMN `post_cache_flag` ENUM('REALTIME', 'WEEKLY', 'LEGEND', 'NOTICE') AFTER `popular_flag`;
-
--- 기존 데이터 마이그레이션
-UPDATE `post`
-SET `post_cache_flag` =
-  CASE `popular_flag`
-    WHEN 'LEGEND' THEN 'LEGEND'
-    WHEN 'REALTIME' THEN 'REALTIME'
-    WHEN 'WEEKLY' THEN 'WEEKLY'
-    ELSE NULL
-  END
-WHERE `popular_flag` IS NOT NULL;
-
--- 기존 인덱스 삭제
-ALTER TABLE `post`
-  DROP INDEX `idx_post_created_at_popular`,
-  DROP INDEX `idx_post_popular_flag`;
-
--- post_cache_flag를 사용한 새 인덱스 생성
-ALTER TABLE `post`
-  ADD INDEX `idx_post_created_at_popular` (`created_at`, `post_cache_flag`),
-  ADD INDEX `idx_post_popular_flag` (`post_cache_flag`);
-
--- ============================================
--- 파트 3: 메시지 테이블 컬럼 수정
+-- 파트 2: 메시지 테이블 컬럼 수정
 -- ============================================
 
 -- JPA 엔티티와 일치하도록 컬럼명 변경 (width/height → x/y)
@@ -90,7 +75,7 @@ ALTER TABLE `message`
   ADD UNIQUE INDEX `unique_user_x_y` (`user_id`, `x`, `y`);
 
 -- ============================================
--- 파트 4: 알림 테이블 컬럼 수정
+-- 파트 3: 알림 테이블 컬럼 수정
 -- ============================================
 
 -- JPA 엔티티와 일치하도록 컬럼명 변경 (data → content)
@@ -107,19 +92,10 @@ ALTER TABLE `notification`
   MODIFY COLUMN `notification_type` ENUM('COMMENT','COMMENT_FEATURED','MESSAGE','POST_FEATURED','ADMIN','INITIATE') NOT NULL;
 
 -- ============================================
--- 파트 5: FCM 토큰 테이블 수정
--- ============================================
-
--- JPA 엔티티에 유니크 제약조건이 없으므로 추가하지 않음
--- fcm_registration_token 컬럼은 이미 NOT NULL 상태
-
--- ============================================
--- 파트 6: 토큰 테이블 구조 수정
+-- 파트 4: 토큰 테이블 구조 수정
 -- ============================================
 
 -- JPA 엔티티와 일치하도록 컬럼명 변경
--- Token 엔티티는 실제로 accessToken, refreshToken 필드를 가지고 있음
--- 이는 카카오 토큰을 저장하는 용도임 (JWT는 별도 관리)
 ALTER TABLE `token`
   CHANGE COLUMN `kakao_access_token` `access_token` VARCHAR(255) NOT NULL,
   CHANGE COLUMN `kakao_refresh_token` `refresh_token` VARCHAR(255) NOT NULL,
@@ -131,21 +107,7 @@ ALTER TABLE `token`
   ADD INDEX `idx_token_refresh` (`refresh_token`);
 
 -- ============================================
--- 파트 7: 좋아요 테이블 PK 컬럼명 수정
--- ============================================
-
--- comment_like 테이블 PK 컬럼명은 변경하지 않음 (엔티티가 comment_like_id를 기대)
--- ALTER TABLE `comment_like`
---   CHANGE COLUMN `comment_like_id` `CommentLike_id` BIGINT NOT NULL AUTO_INCREMENT;
-
--- 유니크 제약조건은 이미 V1에 존재하므로 추가하지 않음
-
--- post_like 테이블 PK 컬럼명은 변경하지 않음 (엔티티가 post_like_id를 기대)
--- ALTER TABLE `post_like`
---   CHANGE COLUMN `post_like_id` `postLike_id` BIGINT NOT NULL AUTO_INCREMENT;
-
--- ============================================
--- 파트 8: 구 컬럼 정리
+-- 파트 5: 구 컬럼 정리
 -- ============================================
 
 -- users 테이블에서 기존 카카오 전용 컬럼 제거
@@ -167,7 +129,7 @@ ALTER TABLE `black_list`
   ADD UNIQUE KEY (`provider`, `social_id`);
 
 -- ============================================
--- 파트 9: 테이블명 변경 (JPA 엔티티명과 일치)
+-- 파트 6: 테이블명 변경 (JPA 엔티티명과 일치)
 -- ============================================
 
 -- users → user 테이블명 변경
@@ -177,16 +139,7 @@ RENAME TABLE `users` TO `user`;
 RENAME TABLE `black_list` TO `blacklist`;
 
 -- ============================================
--- 파트 10: 인덱스 확인
--- ============================================
-
--- 필요한 인덱스들은 이미 V1에서 생성되어 있음
--- comment_closure: idx_comment_closure_ancestor_depth
--- post_like: idx_postlike_user_post
--- comment_like: uk_comment_like_user_comment (인덱스 역할도 수행)
-
--- ============================================
--- 파트 11: Full-text 인덱스 재생성 (ngram parser)
+-- 파트 7: Full-text 인덱스 재생성 (ngram parser)
 -- ============================================
 
 -- 기존 풀텍스트 인덱스 삭제 (존재하는 경우)
@@ -219,110 +172,245 @@ EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
 -- 풀텍스트 인덱스 재생성 (ngram_token_size=2 사용)
--- 제목 전용 인덱스
 ALTER TABLE `post` ADD FULLTEXT INDEX `post_title_IDX` (`title`) WITH PARSER ngram;
-
--- 제목+내용 복합 인덱스
 ALTER TABLE `post` ADD FULLTEXT INDEX `post_title_content_IDX` (`title`, `content`) WITH PARSER ngram;
 
--- 풀텍스트 인덱스 생성 확인
-SELECT
-    CASE
-        WHEN COUNT(*) = 2 THEN 'Fulltext indexes created successfully'
-        ELSE CONCAT('ERROR: Expected 2 fulltext indexes, found ', COUNT(*))
-    END AS fulltext_status,
-    GROUP_CONCAT(INDEX_NAME ORDER BY INDEX_NAME) AS index_names
-FROM information_schema.STATISTICS
-WHERE TABLE_SCHEMA = DATABASE()
-    AND TABLE_NAME = 'post'
-    AND INDEX_TYPE = 'FULLTEXT';
-
 -- ============================================
--- 파트 12: 마이그레이션 검증
+-- 파트 8: V2.1 통합 - Comment Closure Table Update
 -- ============================================
 
--- 테이블 이름 변경 확인
-SELECT
-    CASE
-        WHEN COUNT(*) = 1 THEN 'SUCCESS: user table exists'
-        ELSE 'ERROR: user table not found'
-    END AS user_table_status
-FROM information_schema.TABLES
-WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'user';
+-- comment_closure_seq 테이블 삭제
+DROP TABLE IF EXISTS `comment_closure_seq`;
 
-SELECT
-    CASE
-        WHEN COUNT(*) = 1 THEN 'SUCCESS: blacklist table exists'
-        ELSE 'ERROR: blacklist table not found'
-    END AS blacklist_table_status
-FROM information_schema.TABLES
-WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'blacklist';
-
--- 주요 컬럼 변경 확인
-SELECT
-    CASE
-        WHEN COUNT(*) = 2 THEN 'SUCCESS: social_id and provider columns exist in user table'
-        ELSE 'ERROR: social columns not found in user table'
-    END AS social_columns_status
-FROM information_schema.COLUMNS
-WHERE TABLE_SCHEMA = DATABASE()
-    AND TABLE_NAME = 'user'
-    AND COLUMN_NAME IN ('social_id', 'provider');
-
-SELECT
-    CASE
-        WHEN COUNT(*) = 1 THEN 'SUCCESS: post_cache_flag column exists'
-        ELSE 'ERROR: post_cache_flag column not found'
-    END AS cache_flag_status
-FROM information_schema.COLUMNS
-WHERE TABLE_SCHEMA = DATABASE()
-    AND TABLE_NAME = 'post'
-    AND COLUMN_NAME = 'post_cache_flag';
-
--- 좋아요 테이블 PK 컬럼명 변경 확인 (변경하지 않았으므로 원래 이름 확인)
-SELECT
-    CASE
-        WHEN COUNT(*) = 1 THEN 'SUCCESS: comment_like_id column exists'
-        ELSE 'ERROR: comment_like_id column not found'
-    END AS comment_like_pk_status
-FROM information_schema.COLUMNS
-WHERE TABLE_SCHEMA = DATABASE()
-    AND TABLE_NAME = 'comment_like'
-    AND COLUMN_NAME = 'comment_like_id';
-
-SELECT
-    CASE
-        WHEN COUNT(*) = 1 THEN 'SUCCESS: post_like_id column exists'
-        ELSE 'ERROR: post_like_id column not found'
-    END AS post_like_pk_status
-FROM information_schema.COLUMNS
-WHERE TABLE_SCHEMA = DATABASE()
-    AND TABLE_NAME = 'post_like'
-    AND COLUMN_NAME = 'post_like_id';
-
--- 메시지 테이블 x, y 컬럼 확인
-SELECT
-    CASE
-        WHEN COUNT(*) = 2 THEN 'SUCCESS: x and y columns exist in message table'
-        ELSE 'ERROR: x/y columns not found in message table'
-    END AS message_coordinates_status
-FROM information_schema.COLUMNS
-WHERE TABLE_SCHEMA = DATABASE()
-    AND TABLE_NAME = 'message'
-    AND COLUMN_NAME IN ('x', 'y');
-
--- 알림 테이블 content 컬럼 확인
-SELECT
-    CASE
-        WHEN COUNT(*) = 1 THEN 'SUCCESS: content column exists in notification table'
-        ELSE 'ERROR: content column not found in notification table'
-    END AS notification_content_status
-FROM information_schema.COLUMNS
-WHERE TABLE_SCHEMA = DATABASE()
-    AND TABLE_NAME = 'notification'
-    AND COLUMN_NAME = 'content';
+-- comment_closure.id를 AUTO_INCREMENT로 변경
+ALTER TABLE `comment_closure`
+  MODIFY COLUMN `id` BIGINT NOT NULL AUTO_INCREMENT;
 
 -- ============================================
+-- 파트 9: V2.1 통합 - Token Table Split
+-- ============================================
+
+-- 9-1. kakao_token 테이블 생성 (User와 1:1 관계)
+CREATE TABLE IF NOT EXISTS `kakao_token` (
+  `kakao_token_id` BIGINT NOT NULL AUTO_INCREMENT COMMENT 'Kakao 토큰 ID (PK)',
+  `kakao_access_token` VARCHAR(500) NOT NULL COMMENT 'Kakao OAuth 액세스 토큰',
+  `kakao_refresh_token` VARCHAR(500) NOT NULL COMMENT 'Kakao OAuth 리프레시 토큰',
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '생성 시각',
+  `modified_at` TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '수정 시각',
+  PRIMARY KEY (`kakao_token_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+COMMENT='카카오 OAuth 토큰 테이블 (User 1:1)';
+
+-- 9-2. jwt_token 테이블 생성 (User와 1:N 관계)
+CREATE TABLE IF NOT EXISTS `jwt_token` (
+  `jwt_token_id` BIGINT NOT NULL AUTO_INCREMENT COMMENT 'JWT 토큰 ID (PK)',
+  `user_id` BIGINT NOT NULL COMMENT '사용자 ID (FK)',
+  `jwt_refresh_token` VARCHAR(500) COMMENT 'JWT 리프레시 토큰',
+  `last_used_at` DATETIME COMMENT '토큰 마지막 사용 시각',
+  `use_count` INT DEFAULT 0 COMMENT '토큰 사용 횟수',
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '생성 시각',
+  `modified_at` TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP COMMENT '수정 시각',
+  PRIMARY KEY (`jwt_token_id`),
+  INDEX `idx_jwt_token_user` (`user_id`),
+  INDEX `idx_jwt_token_refresh` (`jwt_refresh_token`(255))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+COMMENT='JWT 리프레시 토큰 테이블 (User 1:N)';
+
+-- 9-3. 기존 token 데이터 마이그레이션
+INSERT INTO `kakao_token` (`kakao_access_token`, `kakao_refresh_token`, `created_at`, `modified_at`)
+SELECT
+  t.access_token,
+  t.refresh_token,
+  t.created_at,
+  t.modified_at
+FROM `token` t
+INNER JOIN (
+  SELECT user_id, MAX(token_id) as latest_token_id
+  FROM `token`
+  GROUP BY user_id
+) latest ON t.token_id = latest.latest_token_id
+ORDER BY t.user_id;
+
+-- 9-4. user 테이블에 kakao_token_id 컬럼 추가
+ALTER TABLE `user`
+  ADD COLUMN `kakao_token_id` BIGINT COMMENT 'Kakao 토큰 ID (1:1)' AFTER `setting_id`;
+
+-- 9-5. user와 kakao_token 매핑
+UPDATE `user` u
+INNER JOIN `token` t ON u.user_id = t.user_id
+INNER JOIN (
+  SELECT user_id, MAX(token_id) as latest_token_id
+  FROM `token`
+  GROUP BY user_id
+) latest ON t.user_id = latest.user_id AND t.token_id = latest.latest_token_id
+INNER JOIN `kakao_token` kt ON
+  kt.kakao_access_token COLLATE utf8mb4_0900_ai_ci = t.access_token COLLATE utf8mb4_0900_ai_ci AND
+  kt.kakao_refresh_token COLLATE utf8mb4_0900_ai_ci = t.refresh_token COLLATE utf8mb4_0900_ai_ci
+SET u.kakao_token_id = kt.kakao_token_id;
+
+-- 9-6. kakao_token_id를 NOT NULL로 변경
+ALTER TABLE `user`
+  MODIFY COLUMN `kakao_token_id` BIGINT NOT NULL COMMENT 'Kakao 토큰 ID (1:1)';
+
+-- 9-7. jwt_token 데이터 마이그레이션
+INSERT INTO `jwt_token` (`user_id`, `jwt_refresh_token`, `last_used_at`, `use_count`, `created_at`, `modified_at`)
+SELECT
+  user_id,
+  '' as jwt_refresh_token,
+  NULL as last_used_at,
+  0 as use_count,
+  created_at,
+  modified_at
+FROM `token`
+ORDER BY token_id;
+
+-- 9-8. 기존 token 테이블 삭제
+DROP TABLE IF EXISTS `token`;
+
+-- 9-9. 인덱스 추가
+ALTER TABLE `user`
+  ADD INDEX `idx_user_kakao_token` (`kakao_token_id`);
+
+-- ============================================
+-- 파트 10: V2.1 통합 - User to Member Renaming
+-- ============================================
+
+-- 10-1. 모든 FK Constraint 제거 (동적 감지)
+DELIMITER $$
+
+DROP PROCEDURE IF EXISTS drop_all_user_fks$$
+CREATE PROCEDURE drop_all_user_fks()
+BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE fk_name VARCHAR(64);
+    DECLARE tbl_name VARCHAR(64);
+    DECLARE cur CURSOR FOR
+        SELECT CONSTRAINT_NAME, TABLE_NAME
+        FROM information_schema.REFERENTIAL_CONSTRAINTS
+        WHERE CONSTRAINT_SCHEMA = DATABASE()
+          AND (TABLE_NAME IN ('jwt_token', 'post', 'comment', 'comment_like', 'post_like', 'message', 'notification', 'fcm_token', 'report', 'user')
+               AND REFERENCED_TABLE_NAME = 'user')
+           OR (TABLE_NAME = 'user' AND REFERENCED_TABLE_NAME IN ('setting', 'kakao_token'));
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    OPEN cur;
+    read_loop: LOOP
+        FETCH cur INTO fk_name, tbl_name;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        SET @drop_sql = CONCAT('ALTER TABLE `', tbl_name, '` DROP FOREIGN KEY `', fk_name, '`');
+        PREPARE stmt FROM @drop_sql;
+        EXECUTE stmt;
+        DEALLOCATE PREPARE stmt;
+    END LOOP;
+    CLOSE cur;
+END$$
+
+CALL drop_all_user_fks()$$
+DROP PROCEDURE drop_all_user_fks$$
+
+DELIMITER ;
+
+-- 10-2. user 테이블 변경
+ALTER TABLE `user` CHANGE COLUMN `user_id` `member_id` BIGINT NOT NULL AUTO_INCREMENT;
+ALTER TABLE `user` RENAME TO `member`;
+ALTER TABLE `member` CHANGE COLUMN `user_name` `member_name` VARCHAR(255) NOT NULL;
+
+-- 10-3. jwt_token 테이블 변경 및 리네이밍
+ALTER TABLE `jwt_token`
+  CHANGE COLUMN `jwt_token_id` `auth_token_id` BIGINT NOT NULL AUTO_INCREMENT,
+  CHANGE COLUMN `user_id` `member_id` BIGINT NOT NULL,
+  CHANGE COLUMN `jwt_refresh_token` `refresh_token` VARCHAR(500);
+
+ALTER TABLE `jwt_token` RENAME TO `auth_token`;
+
+-- 10-4. FK 컬럼명 변경 (user_id → member_id)
+ALTER TABLE `post` CHANGE COLUMN `user_id` `member_id` BIGINT;
+ALTER TABLE `comment` CHANGE COLUMN `user_id` `member_id` BIGINT;
+ALTER TABLE `comment_like` CHANGE COLUMN `user_id` `member_id` BIGINT;
+ALTER TABLE `post_like` CHANGE COLUMN `user_id` `member_id` BIGINT;
+ALTER TABLE `message` CHANGE COLUMN `user_id` `member_id` BIGINT;
+ALTER TABLE `notification` CHANGE COLUMN `user_id` `member_id` BIGINT;
+ALTER TABLE `fcm_token` CHANGE COLUMN `user_id` `member_id` BIGINT;
+ALTER TABLE `report` CHANGE COLUMN `user_id` `member_id` BIGINT;
+
+-- ============================================
+-- 파트 11: V2.1 통합 - Final CASCADE and FK Configuration
+-- ============================================
+
+-- CASCADE 추가 및 FK 재생성
+ALTER TABLE `comment_like`
+  ADD CONSTRAINT `fk_comment_like_comment`
+  FOREIGN KEY (`comment_id`) REFERENCES `comment` (`comment_id`)
+  ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_comment_like_member`
+  FOREIGN KEY (`member_id`) REFERENCES `member` (`member_id`)
+  ON DELETE CASCADE;
+
+ALTER TABLE `comment`
+  ADD CONSTRAINT `fk_comment_post`
+  FOREIGN KEY (`post_id`) REFERENCES `post` (`post_id`)
+  ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_comment_member`
+  FOREIGN KEY (`member_id`) REFERENCES `member` (`member_id`);
+
+ALTER TABLE `post_like`
+  ADD CONSTRAINT `fk_post_like_post`
+  FOREIGN KEY (`post_id`) REFERENCES `post` (`post_id`)
+  ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_post_like_member`
+  FOREIGN KEY (`member_id`) REFERENCES `member` (`member_id`)
+  ON DELETE CASCADE;
+
+ALTER TABLE `post`
+  ADD CONSTRAINT `fk_post_member`
+  FOREIGN KEY (`member_id`) REFERENCES `member` (`member_id`);
+
+ALTER TABLE `message`
+  ADD CONSTRAINT `fk_message_member`
+  FOREIGN KEY (`member_id`) REFERENCES `member` (`member_id`);
+
+ALTER TABLE `notification`
+  ADD CONSTRAINT `fk_notification_member`
+  FOREIGN KEY (`member_id`) REFERENCES `member` (`member_id`);
+
+ALTER TABLE `fcm_token`
+  ADD CONSTRAINT `fk_fcm_token_member`
+  FOREIGN KEY (`member_id`) REFERENCES `member` (`member_id`)
+  ON DELETE CASCADE;
+
+ALTER TABLE `member`
+  ADD CONSTRAINT `fk_member_setting`
+  FOREIGN KEY (`setting_id`) REFERENCES `setting` (`setting_id`)
+  ON DELETE CASCADE;
+
+-- member.kakao_token_id를 nullable로 변경 (FK 제거)
+ALTER TABLE `member`
+  MODIFY COLUMN `kakao_token_id` BIGINT NULL;
+
+-- auth_token.member_id FK는 추가하지 않음 (보안 감사용)
+-- report.member_id FK는 추가하지 않음 (법적 보관용)
+-- member.kakao_token_id FK는 추가하지 않음 (독립 라이프사이클)
+
+-- ============================================
+-- 파트 12: V2.3 통합 - Message 테이블 유니크 제약조건명 변경
+-- ============================================
+
+-- message 테이블의 유니크 제약조건명 변경
+ALTER TABLE `message`
+  DROP INDEX `unique_user_x_y`,
+  ADD UNIQUE INDEX `unique_member_x_y` (`member_id`, `x`, `y`);
+
+-- ============================================
+-- 파트 13: V2.4 통합 - Comment Content Length Update
+-- ============================================
+
+-- comment.content 컬럼 길이 변경
+ALTER TABLE `comment`
+  MODIFY COLUMN `content` VARCHAR(1000) NOT NULL COMMENT '댓글 내용 (사용자 입력 기준 255자, 서버 저장 기준 1000자)';
+
+-- ================================================================================================
 -- 마이그레이션 완료
--- ============================================
-SELECT '마이그레이션 V2.0이 성공적으로 완료되었습니다. 데이터베이스 스키마가 이제 V2 JPA 엔티티와 일치합니다.' AS status;
+-- ================================================================================================
+SELECT '통합 마이그레이션 V2.0이 성공적으로 완료되었습니다. (V2.0~V2.4 통합)' AS status;

@@ -44,7 +44,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
  * <h3>DB 환경 선택:</h3>
  * <p>테스트 클래스에서 필요에 따라 DB 환경을 선택:</p>
  * <ul>
- *   <li>TestContainers: @IntegrationTest 메타 어노테이션 사용</li>
+ *   <li>로컬 MySQL/Redis: @IntegrationTest 메타 어노테이션 사용</li>
  *   <li>H2 Database: @ActiveProfiles("h2test") @Import(H2TestConfiguration.class) 사용</li>
  * </ul>
  *

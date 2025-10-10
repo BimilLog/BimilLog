@@ -39,9 +39,18 @@ services:
       - "6379:6379"
     networks:
       - bimillog-network
-    command: redis-server --requirepass ${REDIS_PASSWORD}
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD}
+      --appendonly yes
+      --appendfsync everysec
+    volumes:
+      - redis-data:/data
     restart: unless-stopped
 
 networks:
   bimillog-network:
     driver: bridge
+
+volumes:
+  redis-data:

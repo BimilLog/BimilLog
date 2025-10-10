@@ -3,7 +3,6 @@ package jaeik.bimillog.adapter.out.redis.post;
 import jaeik.bimillog.infrastructure.adapter.out.redis.post.RedisPostKeys;
 import jaeik.bimillog.infrastructure.adapter.out.redis.post.RedisPostUpdateAdapter;
 import jaeik.bimillog.testutil.RedisTestHelper;
-import jaeik.bimillog.testutil.TestContainersConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -11,10 +10,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.Set;
 
@@ -22,18 +19,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * <h2>RedisPostUpdateAdapter 통합 테스트</h2>
- * <p>Redis TestContainers를 사용한 실제 Redis 환경에서의 테스트</p>
- * <p>게시글 캐시 수정 어댑터의 핵심 기능을 검증합니다.</p>
+ * <p>로컬 Redis 환경에서 게시글 캐시 수정 어댑터의 핵심 기능을 검증합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-@ActiveProfiles("tc")
-@Testcontainers
-@Import(TestContainersConfiguration.class)
+@ActiveProfiles("local-integration")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Tag("tc")
+@Tag("local-integration")
 class RedisPostUpdateAdapterIntegrationTest {
 
     @Autowired

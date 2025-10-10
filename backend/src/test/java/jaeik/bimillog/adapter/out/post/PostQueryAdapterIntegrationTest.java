@@ -9,8 +9,9 @@ import jaeik.bimillog.domain.post.entity.PostSearchType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostQueryAdapter;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostQueryHelper;
-import jaeik.bimillog.testutil.TestContainersConfiguration;
+import jaeik.bimillog.infrastructure.config.QueryDSLConfig;
 import jaeik.bimillog.testutil.TestMembers;
+import jaeik.bimillog.testutil.config.LocalIntegrationTestSupportConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -27,7 +28,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.HashMap;
 import java.util.List;
@@ -51,11 +51,10 @@ import static org.mockito.BDDMockito.given;
                 classes = {PostQueryAdapter.class, PostQueryHelper.class}
         )
 )
-@Testcontainers
-@ActiveProfiles("tc")
+@ActiveProfiles("local-integration")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({PostQueryAdapter.class, PostQueryHelper.class, TestContainersConfiguration.class})
-@Tag("tc")
+@Import({PostQueryAdapter.class, PostQueryHelper.class, QueryDSLConfig.class, LocalIntegrationTestSupportConfig.class})
+@Tag("local-integration")
 class PostQueryAdapterIntegrationTest {
 
     @Autowired

@@ -6,7 +6,6 @@ import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostLikeRepository;
 import jaeik.bimillog.infrastructure.adapter.out.post.PostRepository;
 import jaeik.bimillog.testutil.RedisTestHelper;
-import jaeik.bimillog.testutil.TestContainersConfiguration;
 import jaeik.bimillog.testutil.TestFixtures;
 import jaeik.bimillog.testutil.TestMembers;
 import jakarta.persistence.EntityManager;
@@ -18,11 +17,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -34,18 +31,16 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 /**
  * <h2>PostQueryAdapter 인기 게시글 조회 통합 테스트</h2>
  * <p>주간/전설 인기 게시글 DB 조회 기능을 정확히 수행하는지 테스트합니다.</p>
- * <p>TestContainers를 사용하여 MySQL과 Redis 컨테이너와 함께 통합 테스트를 수행합니다.</p>
+ * <p>로컬 MySQL과 Redis 환경에서 통합 테스트를 수행합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-@ActiveProfiles("tc")
-@Testcontainers
-@Import(TestContainersConfiguration.class)
+@ActiveProfiles("local-integration")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Transactional
-@Tag("tc")
+@Tag("local-integration")
 class PopularPostQueryAdapterIntegrationTest {
 
     @Autowired

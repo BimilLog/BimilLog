@@ -15,23 +15,23 @@ VALUES
     (3, 1, 0, 1),
     (4, 0, 1, 0);
 
--- 사용자 데이터 (3명) - 테이블명 "user" 사용
-INSERT INTO user (user_id, setting_id, social_id, provider, user_name, role, social_nickname, thumbnail_image, created_at, modified_at)
+-- 카카오 토큰 데이터 (3개)
+INSERT INTO kakao_token (kakao_token_id, kakao_access_token, kakao_refresh_token, created_at, modified_at)
 VALUES
-    (2, 2, '1234561111', 'KAKAO', '비밀농부1', 'USER', '카카오닉네임1', 'https://example.com/thumb1.jpg', NOW(6), NOW(6)),
-    (3, 3, '7890121111', 'KAKAO', '익명작가', 'USER', '카카오닉네임2', 'https://example.com/thumb2.jpg', NOW(6), NOW(6)),
-    (4, 4, '4456781111', 'KAKAO', '롤링메신저', 'ADMIN', '카카오닉네임3', 'https://example.com/thumb3.jpg', NOW(6), NOW(6));
+    (2, 'kakao_access_token_user2_sample123456', 'kakao_refresh_token_user2_sample789012', DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 6 HOUR)),
+    (3, 'kakao_access_token_user3_sample234567', 'kakao_refresh_token_user3_sample890123', DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 8 HOUR)),
+    (4, 'kakao_access_token_user4_sample345678', 'kakao_refresh_token_user4_sample901234', DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 12 HOUR));
 
--- 토큰 데이터 (사용자 2, 3, 4)
-INSERT INTO token (token_id, user_id, access_token, refresh_token, created_at, modified_at)
+-- 사용자 데이터 (3명) - member 테이블 사용
+INSERT INTO member (member_id, setting_id, kakao_token_id, social_id, provider, member_name, role, social_nickname, thumbnail_image, created_at, modified_at)
 VALUES
-    (2, 2, 'kakao_access_token_user2_sample123456', 'kakao_refresh_token_user2_sample789012', DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 6 HOUR)),
-    (3, 3, 'kakao_access_token_user3_sample234567', 'kakao_refresh_token_user3_sample890123', DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 8 HOUR)),
-    (4, 4, 'kakao_access_token_user4_sample345678', 'kakao_refresh_token_user4_sample901234', DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 12 HOUR));
+    (2, 2, 2, '1234561111', 'KAKAO', '비밀농부1', 'USER', '카카오닉네임1', 'https://example.com/thumb1.jpg', NOW(6), NOW(6)),
+    (3, 3, 3, '7890121111', 'KAKAO', '익명작가', 'USER', '카카오닉네임2', 'https://example.com/thumb2.jpg', NOW(6), NOW(6)),
+    (4, 4, 4, '4456781111', 'KAKAO', '롤링메신저', 'ADMIN', '카카오닉네임3', 'https://example.com/thumb3.jpg', NOW(6), NOW(6));
 
 -- 게시글 데이터 (로그인/비로그인 사용자 혼합, 총 30개)
 -- 사용자2의 게시글 (ERROR 유형 8개) + 익명 게시글 2개
-INSERT INTO post (post_id, user_id, title, content, views, is_notice, password, created_at, modified_at)
+INSERT INTO post (post_id, member_id, title, content, views, is_notice, password, created_at, modified_at)
 VALUES
     (1, 2, '로그인 버그 발견', '카카오 로그인 시 무한 로딩이 발생합니다.', 15, 0, null, DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
     (2, null, '댓글 작성 오류', '댓글 작성 후 새로고침하면 댓글이 사라져요.', 23, 0, '1234', DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
@@ -45,7 +45,7 @@ VALUES
     (10, 2, '로그아웃 오류', '로그아웃 후에도 로그인 상태가 유지돼요.', 21, 0, null, DATE_SUB(NOW(6), INTERVAL 2 HOUR), DATE_SUB(NOW(6), INTERVAL 2 HOUR));
 
 -- 사용자3의 게시글 (IMPROVEMENT 유형 7개) + 익명 게시글 3개
-INSERT INTO post (post_id, user_id, title, content, views, is_notice, password, created_at, modified_at)
+INSERT INTO post (post_id, member_id, title, content, views, is_notice, password, created_at, modified_at)
 VALUES
     (11, 3, '다크모드 기능 요청', '밤에 사용할 때 다크모드가 있으면 좋겠어요.', 45, 0, null, DATE_SUB(NOW(6), INTERVAL 7 DAY), DATE_SUB(NOW(6), INTERVAL 7 DAY)),
     (12, null, '태그 기능 추가', '게시글에 태그를 달 수 있으면 좋을 것 같아요.', 33, 0, '9999', DATE_SUB(NOW(6), INTERVAL 6 DAY), DATE_SUB(NOW(6), INTERVAL 6 DAY)),
@@ -59,7 +59,7 @@ VALUES
     (20, 3, '테마 변경 기능', '다양한 테마를 선택할 수 있으면 좋겠습니다.', 34, 0, null, DATE_SUB(NOW(6), INTERVAL 6 HOUR), DATE_SUB(NOW(6), INTERVAL 6 HOUR));
 
 -- 사용자4의 게시글 (POST, COMMENT 유형 6개) + 익명 게시글 4개
-INSERT INTO post (post_id, user_id, title, content, views, is_notice, password, created_at, modified_at)
+INSERT INTO post (post_id, member_id, title, content, views, is_notice, password, created_at, modified_at)
 VALUES
     (21, 4, '부적절한 게시글 신고', '욕설이 포함된 게시글을 발견했습니다.', 18, 0, null, DATE_SUB(NOW(6), INTERVAL 8 DAY), DATE_SUB(NOW(6), INTERVAL 8 DAY)),
     (22, null, '스팸 댓글 신고', '같은 내용의 댓글을 반복해서 작성하는 사용자가 있어요.', 29, 0, '3333', DATE_SUB(NOW(6), INTERVAL 7 DAY), DATE_SUB(NOW(6), INTERVAL 7 DAY)),
@@ -74,14 +74,14 @@ VALUES
 
 -- 댓글 데이터 (각 게시글당 3-4개씩, 총 22개)
 -- 게시글 1번의 댓글들
-INSERT INTO comment (comment_id, post_id, user_id, content, deleted, password, created_at, modified_at)
+INSERT INTO comment (comment_id, post_id, member_id, content, deleted, password, created_at, modified_at)
 VALUES
     (1, 1, 3, '저도 같은 문제를 겪었어요. 브라우저 캐시를 지우니까 해결됐어요!', 0, null, DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
     (2, 1, 4, '이 버그는 개발팀에서 확인했습니다. 곧 수정될 예정이에요.', 0, null, DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
     (3, 1, null, '익명 사용자도 같은 문제입니다.', 0, '1234', DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY));
 
 -- 게시글 2번의 댓글들
-INSERT INTO comment (comment_id, post_id, user_id, content, deleted, password, created_at, modified_at)
+INSERT INTO comment (comment_id, post_id, member_id, content, deleted, password, created_at, modified_at)
 VALUES
     (4, 2, 4, '댓글 작성 후 페이지 새로고침 대신 F5를 눌러보세요.', 0, null, DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
     (5, 2, 2, '네, 시도해봤는데도 계속 문제가 발생해요.', 0, null, DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
@@ -89,7 +89,7 @@ VALUES
     (7, 2, 3, '저는 크롬에서만 문제가 발생하고 파이어폭스에서는 정상이에요.', 0, null, DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY));
 
 -- 계속해서 각 게시글마다 댓글 추가
-INSERT INTO comment (comment_id, post_id, user_id, content, deleted, password, created_at, modified_at)
+INSERT INTO comment (comment_id, post_id, member_id, content, deleted, password, created_at, modified_at)
 VALUES
     (8, 3, 3, '이미지 용량이 너무 큰 건 아닐까요?', 0, null, DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
     (9, 3, 4, 'jpg, png 파일만 지원됩니다.', 0, null, DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
@@ -104,7 +104,7 @@ VALUES
     (16, 5, null, '감사합니다! 해결됐어요.', 0, '2222', DATE_SUB(NOW(6), INTERVAL 12 HOUR), DATE_SUB(NOW(6), INTERVAL 12 HOUR));
 
 -- 더 많은 댓글들 (나머지 게시글들)
-INSERT INTO comment (comment_id, post_id, user_id, content, deleted, password, created_at, modified_at)
+INSERT INTO comment (comment_id, post_id, member_id, content, deleted, password, created_at, modified_at)
 VALUES
     (17, 11, 2, '다크모드 정말 필요해요! 찬성합니다.', 0, null, DATE_SUB(NOW(6), INTERVAL 7 DAY), DATE_SUB(NOW(6), INTERVAL 7 DAY)),
     (18, 11, 4, '다크모드 개발 검토 중입니다.', 0, null, DATE_SUB(NOW(6), INTERVAL 6 DAY), DATE_SUB(NOW(6), INTERVAL 6 DAY)),
@@ -145,7 +145,7 @@ VALUES
     (17, 19, 2);
 
 -- 게시글 추천 데이터
-INSERT INTO post_like (post_like_id, user_id, post_id)
+INSERT INTO post_like (post_like_id, member_id, post_id)
 VALUES
     (1, 2, 11), (2, 2, 15), (3, 2, 17), (4, 2, 19),  -- 사용자2가 추천한 글들
     (5, 3, 1), (6, 3, 5), (7, 3, 21), (8, 3, 25),   -- 사용자3이 추천한 글들
@@ -153,7 +153,7 @@ VALUES
     (13, 2, 22), (14, 3, 3), (15, 4, 13);           -- 추가 추천들
 
 -- 댓글 추천 데이터
-INSERT INTO comment_like (comment_like_id, comment_id, user_id)
+INSERT INTO comment_like (comment_like_id, comment_id, member_id)
 VALUES
     (1, 1, 3), (2, 1, 4),          -- 1번 댓글 추천
     (3, 2, 2), (4, 2, 3),          -- 2번 댓글 추천
@@ -165,7 +165,7 @@ VALUES
     (12, 20, 2), (13, 20, 3);        -- 20번 댓글 추천
 
 -- 롤링페이퍼 메시지 데이터 (x, y 컬럼 사용) - 암호화된 content
-INSERT INTO message (message_id, user_id, x, y, anonymity, content, deco_type, created_at, modified_at)
+INSERT INTO message (message_id, member_id, x, y, anonymity, content, deco_type, created_at, modified_at)
 VALUES
     (1, 2, 0, 0, '농부', 'oXEYvoqn1bXQDWiwZS1b8/P9chdaVGVoQa+OqGOwmyULLxy4/ROg8QjvoWhKN6cUKu2G5VlguEY0nPMhUjDLmhZMUxvgSRkWfoIqmQ+pTPIHOzUe6pcs7eB8JDdmdypEjCRHVvZy/UImwbxaTTm8vA==', 'STRAWBERRY', DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
     (2, 2, 0, 1, '당근', 'dMY54tYCdd1lRuE2dzKWebeFNIYAaDQNLLg6N9F+txgutn/bTc4Hh9tB6+pkilUxrQc24WmYq1PnHC5pothjG2j6l+50GKLcF2l1P+M2i2nOdUJoEPEWCrHWIMFfQJfp', 'CARROT', DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
@@ -186,7 +186,7 @@ VALUES
     (15, 4, 2, 4, '무지개', 'H98D1yYWvFAmnJBHJ8xP5DsoulerLLZErer4DxM1XBFQbLkRZaYsqMb08bZXZ+HJfjnzJ4fMa/9/N+FJrV52aQ==', 'RAINBOW', DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY));
 
 -- 신고 데이터 (각 신고 유형별로)
-INSERT INTO report (report_id, user_id, report_type, target_id, content, created_at, modified_at)
+INSERT INTO report (report_id, member_id, report_type, target_id, content, created_at, modified_at)
 VALUES
     /* ERROR 유형 신고 - target_id는 NULL */
     (1, 2, 'ERROR', NULL, '카카오 로그인 시 무한 로딩 문제', DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),

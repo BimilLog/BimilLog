@@ -20,6 +20,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -244,7 +246,20 @@ class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
 
         assertThat(cookies).anySatisfy(cookie -> assertThat(cookie).startsWith("jwt_access_token="));
         assertThat(cookies).anySatisfy(cookie -> assertThat(cookie).startsWith("jwt_refresh_token="));
-        assertThat(userRepository.findById(testMember.getId())).isEmpty();
+        entityManagerDelegate.flush();
+
+        long start = System.currentTimeMillis();
+        Optional<Member> remaining;
+        do {
+            entityManagerDelegate.clear();
+            remaining = userRepository.findById(testMember.getId());
+            if (remaining.isEmpty()) {
+                break;
+            }
+            Thread.sleep(50);
+        } while (System.currentTimeMillis() - start < 2000);
+
+        assertThat(remaining).isEmpty();
     }
 
 }

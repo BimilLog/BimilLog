@@ -83,7 +83,9 @@ public class PostQueryHelper {
         // Count 쿼리 빌딩
         JPAQuery<Long> countQuery = jpaQueryFactory
                 .select(post.countDistinct())
-                .from(post);
+                .from(post)
+                .leftJoin(post.member, member);
+
 
         // 커스터마이징 적용 (JOIN, WHERE 등)
         countQueryCustomizer.accept(countQuery);

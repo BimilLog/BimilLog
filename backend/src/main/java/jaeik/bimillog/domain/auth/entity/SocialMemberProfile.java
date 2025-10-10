@@ -1,9 +1,11 @@
 package jaeik.bimillog.domain.auth.entity;
 
 import jaeik.bimillog.domain.member.entity.SocialProvider;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.NoArgsConstructor;
 
 /**
  * <h2>소셜 사용자 프로필</h2>
@@ -18,6 +20,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class SocialMemberProfile {
     String socialId;
     String email;
