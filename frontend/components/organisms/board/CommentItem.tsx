@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useMemo } from "react";
 import dynamic from "next/dynamic";
-import { Button, Input, Textarea, SafeHTML, Spinner, TimeBadge } from "@/components";
+import { Button, Input, SafeHTML, Spinner, TimeBadge } from "@/components";
+import { LazyEditor } from "@/lib/utils/lazy-components";
 import { Button as FlowbiteButton } from "flowbite-react";
 import { ThumbsUp, Reply, MoreHorizontal, User, ExternalLink, CornerDownRight, ChevronDown, ChevronUp } from "lucide-react";
 import { Comment, userCommand } from "@/lib/api";
@@ -94,9 +95,6 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
   const { user } = useAuth();
   const { showFeedback, showError } = useToast();
 
-  // Textarea 자동 포커스를 위한 ref
-  const editTextareaRef = useRef<HTMLTextAreaElement>(null);
-
   // 댓글 계층구조 처리: 최대 3단계까지만 지원하여 모바일에서도 읽기 편하도록 제한
   const maxDepth = 3; // 최대 들여쓰기 레벨
   const actualDepth = Math.min(depth, maxDepth); // depth가 3을 초과하면 3으로 제한
@@ -116,12 +114,21 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
     }
   }, [comment.replies]);
 
-  // 수정 모드 진입 시 Textarea로 자동 포커스
-  useEffect(() => {
-    if (editingComment?.id === comment.id && editTextareaRef.current) {
-      editTextareaRef.current.focus();
-    }
-  }, [editingComment, comment.id]);
+  // HTML 태그를 제거하고 순수 텍스트 길이 계산 (수정 모드)
+  const editPlainTextLength = useMemo(() => {
+    if (typeof window === "undefined") return 0;
+    const div = document.createElement("div");
+    div.innerHTML = editContent;
+    return (div.textContent || div.innerText || "").length;
+  }, [editContent]);
+
+  // HTML 태그를 제거하고 순수 텍스트 길이 계산 (답글 모드)
+  const replyPlainTextLength = useMemo(() => {
+    if (typeof window === "undefined") return 0;
+    const div = document.createElement("div");
+    div.innerHTML = replyContent;
+    return (div.textContent || div.innerText || "").length;
+  }, [replyContent]);
 
   // 댓글 신고 처리 함수: 비로그인 사용자도 신고 가능
   // v2 API를 사용하여 신고 타입과 대상 ID, 사유를 전송
@@ -172,32 +179,48 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
       <div className={`p-3 sm:p-4 ${depth > 0 ? "bg-gray-100" : "bg-gray-50"} rounded-lg mb-3 comment-content`}>
         {/* 댓글 수정 모드: 현재 수정 중인 댓글과 일치할 때 수정 폼 표시 */}
         {editingComment?.id === comment.id ? (
-          <div className="p-3 sm:p-4 bg-gray-100 rounded-lg">
-            <Textarea
-              ref={editTextareaRef}
+          <div className="p-3 sm:p-4 bg-gray-100 rounded-lg space-y-3">
+            <LazyEditor
               value={editContent}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setEditContent(e.target.value)}
-              className="min-h-[80px]"
-              maxLength={255}
-              disabled={isUpdatingComment}
+              onChange={setEditContent}
             />
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-brand-secondary">HTML 형식 지원</p>
+              {editContent && (
+                <p
+                  className={`text-xs ${
+                    editPlainTextLength >= 255
+                      ? "text-red-600 font-semibold"
+                      : editPlainTextLength >= 230
+                      ? "text-orange-500 font-medium"
+                      : "text-brand-muted"
+                  }`}
+                >
+                  {editPlainTextLength}/255자
+                </p>
+              )}
+            </div>
+            {editPlainTextLength > 255 && (
+              <p className="text-red-500 text-sm">
+                댓글은 최대 255자까지 입력 가능합니다
+              </p>
+            )}
             {/* 익명 댓글 수정 시에만 비밀번호 입력 필요 */}
             {(comment.memberName === "익명" || comment.memberName === null) && (
               <Input
                 type="password"
                 placeholder="비밀번호 (1000~9999)"
-                className="mt-2"
                 value={editPassword}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditPassword(e.target.value)}
                 disabled={isUpdatingComment}
               />
             )}
-            <div className="flex flex-col sm:flex-row gap-2 sm:justify-end mt-3">
+            <div className="flex flex-col sm:flex-row gap-2 sm:justify-end">
               <Button
                 onClick={onUpdateComment}
                 size="sm"
                 className="w-full sm:w-auto"
-                disabled={isUpdatingComment}
+                disabled={isUpdatingComment || editPlainTextLength > 255}
               >
                 {isUpdatingComment ? (
                   <>
@@ -354,47 +377,61 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
 
             {/* 답글 작성 폼: 해당 댓글에 답글을 작성 중일 때만 표시 */}
             {replyingTo?.id === comment.id && (
-              <div className="mt-4 p-3 sm:p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <h4 className="text-sm font-semibold mb-3 text-blue-700">
+              <div className="mt-4 p-3 sm:p-4 bg-blue-50 rounded-lg border border-blue-200 space-y-3">
+                <h4 className="text-sm font-semibold text-blue-700">
                   {comment.memberName}님에게 답글 작성
                 </h4>
                 {/* 비로그인 사용자는 비밀번호 입력 필요 */}
                 {!isAuthenticated && (
-                  <div className="mb-3">
-                    <Input
-                      type="password"
-                      placeholder="비밀번호 (1000~9999)"
-                      value={replyPassword}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setReplyPassword(e.target.value)}
-                    />
-                  </div>
-                )}
-                <div className="space-y-3">
-                  <Textarea
-                    placeholder="답글을 입력하세요..."
-                    value={replyContent}
-                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setReplyContent(e.target.value)}
-                    className="min-h-[80px] resize-none"
-                    maxLength={255}
+                  <Input
+                    type="password"
+                    placeholder="비밀번호 (1000~9999)"
+                    value={replyPassword}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setReplyPassword(e.target.value)}
                   />
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      onClick={onReplySubmit}
-                      disabled={isSubmittingReply}
-                      className="flex-1 sm:flex-none"
+                )}
+                <LazyEditor
+                  value={replyContent}
+                  onChange={setReplyContent}
+                />
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-brand-secondary">HTML 형식 지원</p>
+                  {replyContent && (
+                    <p
+                      className={`text-xs ${
+                        replyPlainTextLength >= 255
+                          ? "text-red-600 font-semibold"
+                          : replyPlainTextLength >= 230
+                          ? "text-orange-500 font-medium"
+                          : "text-brand-muted"
+                      }`}
                     >
-                      작성
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={onCancelReply}
-                      className="flex-1 sm:flex-none"
-                    >
-                      취소
-                    </Button>
-                  </div>
+                      {replyPlainTextLength}/255자
+                    </p>
+                  )}
+                </div>
+                {replyPlainTextLength > 255 && (
+                  <p className="text-red-500 text-sm">
+                    댓글은 최대 255자까지 입력 가능합니다
+                  </p>
+                )}
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    onClick={onReplySubmit}
+                    disabled={isSubmittingReply || replyPlainTextLength > 255}
+                    className="flex-1 sm:flex-none"
+                  >
+                    작성
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={onCancelReply}
+                    className="flex-1 sm:flex-none"
+                  >
+                    취소
+                  </Button>
                 </div>
               </div>
             )}

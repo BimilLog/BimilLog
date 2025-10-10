@@ -36,159 +36,159 @@ VALUES
 -- 사용자2의 게시글 (ERROR 유형 8개) + 익명 게시글 2개
 INSERT INTO post (post_id, member_id, title, content, views, is_notice, password, created_at, modified_at)
 VALUES
-    (1, 2, '로그인 버그 발견', '카카오 로그인 시 무한 로딩이 발생합니다.', 15, 0, null, DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
-    (2, null, '댓글 작성 오류', '댓글 작성 후 새로고침하면 댓글이 사라져요.', 23, 0, '1234', DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
-    (3, 2, '이미지 업로드 실패', '프로필 이미지 변경이 되지 않습니다.', 8, 0, null, DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
-    (4, 2, '알림 설정 버그', '알림 설정을 변경해도 적용이 안 돼요.', 12, 0, null, DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
-    (5, 2, '롤링페이퍼 오류', '메시지 작성 후 위치가 겹쳐서 보입니다.', 31, 0, null, DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY)),
-    (6, null, '검색 기능 버그', '한글 검색이 제대로 작동하지 않아요.', 19, 0, '5678', DATE_SUB(NOW(6), INTERVAL 6 HOUR), DATE_SUB(NOW(6), INTERVAL 6 HOUR)),
-    (7, 2, '모바일 화면 깨짐', '스마트폰에서 레이아웃이 깨져 보여요.', 27, 0, null, DATE_SUB(NOW(6), INTERVAL 5 HOUR), DATE_SUB(NOW(6), INTERVAL 5 HOUR)),
-    (8, 2, '추천 기능 오류', '글 추천을 눌러도 반응이 없습니다.', 14, 0, null, DATE_SUB(NOW(6), INTERVAL 4 HOUR), DATE_SUB(NOW(6), INTERVAL 4 HOUR)),
-    (9, 2, '페이지네이션 버그', '다음 페이지로 넘어가지 않아요.', 9, 0, null, DATE_SUB(NOW(6), INTERVAL 3 HOUR), DATE_SUB(NOW(6), INTERVAL 3 HOUR)),
-    (10, 2, '로그아웃 오류', '로그아웃 후에도 로그인 상태가 유지돼요.', 21, 0, null, DATE_SUB(NOW(6), INTERVAL 2 HOUR), DATE_SUB(NOW(6), INTERVAL 2 HOUR));
+    (1, 2, '로그인 버그 발견', '<p><strong style="color: rgb(230, 0, 0);">카카오 로그인 시 무한 로딩이 발생합니다.</strong></p><p>로그인 버튼을 눌렀는데 <em>계속 로딩</em>만 돌아가요...</p>', 15, 0, null, DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
+    (2, null, '댓글 작성 오류', '<p><u>댓글 작성 후 새로고침하면 댓글이 사라져요.</u></p><p>정말 <strong style="color: rgb(204, 0, 0);">불편</strong>합니다.</p>', 23, 0, '1234', DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
+    (3, 2, '이미지 업로드 실패', '<h2>프로필 이미지 변경 불가</h2><p>프로필 이미지 변경이 <strong>되지 않습니다</strong>. 계속 <em>실패</em>한다고 나와요.</p>', 8, 0, null, DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
+    (4, 2, '알림 설정 버그', '<p>알림 설정을 변경해도 <span style="color: rgb(230, 0, 0);">적용이 안 돼요</span>.</p><p>설정에서 알림을 <strong>꺼놨는데</strong> 계속 알림이 와요.</p>', 12, 0, null, DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
+    (5, 2, '롤링페이퍼 오류', '<p><strong style="color: rgb(0, 102, 204);">롤링페이퍼 메시지 위치 겹침 현상</strong></p><p>메시지 작성 후 위치가 <em>겹쳐서</em> 보입니다. 다른 메시지와 겹쳐요...</p>', 31, 0, null, DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY)),
+    (6, null, '검색 기능 버그', '<p>한글 검색이 <u>제대로 작동하지 않아요</u>.</p><p><strong>영어는 되는데</strong> 한글만 안 돼요.</p>', 19, 0, '5678', DATE_SUB(NOW(6), INTERVAL 6 HOUR), DATE_SUB(NOW(6), INTERVAL 6 HOUR)),
+    (7, 2, '모바일 화면 깨짐', '<h3>모바일 레이아웃 버그</h3><p>스마트폰에서 레이아웃이 <span style="color: rgb(230, 0, 0);">깨져 보여요</span>.</p><ul><li>메뉴가 겹침</li><li>글자가 잘림</li><li>버튼이 화면 밖으로</li></ul>', 27, 0, null, DATE_SUB(NOW(6), INTERVAL 5 HOUR), DATE_SUB(NOW(6), INTERVAL 5 HOUR)),
+    (8, 2, '추천 기능 오류', '<p>글 추천을 눌러도 <strong style="color: rgb(204, 0, 0);">반응이 없습니다</strong>.</p><p>버튼을 <em>여러 번 눌러봤는데</em> 소용없어요.</p>', 14, 0, null, DATE_SUB(NOW(6), INTERVAL 4 HOUR), DATE_SUB(NOW(6), INTERVAL 4 HOUR)),
+    (9, 2, '페이지네이션 버그', '<p><u>다음 페이지로 넘어가지 않아요</u>.</p><p>페이지 번호를 눌러도 <strong>계속 첫 페이지</strong>만 보입니다.</p>', 9, 0, null, DATE_SUB(NOW(6), INTERVAL 3 HOUR), DATE_SUB(NOW(6), INTERVAL 3 HOUR)),
+    (10, 2, '로그아웃 오류', '<p><strong style="color: rgb(230, 0, 0);">로그아웃 후에도 로그인 상태가 유지돼요</strong>.</p><p>로그아웃 버튼을 눌렀는데 <em>여전히 로그인</em> 되어있어요.</p>', 21, 0, null, DATE_SUB(NOW(6), INTERVAL 2 HOUR), DATE_SUB(NOW(6), INTERVAL 2 HOUR));
 
 -- 사용자3의 게시글 (IMPROVEMENT 유형 7개) + 익명 게시글 3개
 INSERT INTO post (post_id, member_id, title, content, views, is_notice, password, created_at, modified_at)
 VALUES
-    (11, 3, '다크모드 기능 요청', '밤에 사용할 때 다크모드가 있으면 좋겠어요.', 45, 0, null, DATE_SUB(NOW(6), INTERVAL 7 DAY), DATE_SUB(NOW(6), INTERVAL 7 DAY)),
-    (12, null, '태그 기능 추가', '게시글에 태그를 달 수 있으면 좋을 것 같아요.', 33, 0, '9999', DATE_SUB(NOW(6), INTERVAL 6 DAY), DATE_SUB(NOW(6), INTERVAL 6 DAY)),
-    (13, 3, '북마크 기능', '마음에 드는 글을 저장할 수 있는 기능이 있으면 좋겠어요.', 28, 0, null, DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
-    (14, null, '글자 크기 조절', '글자 크기를 조절할 수 있는 옵션이 있으면 좋겠습니다.', 17, 0, '1111', DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
-    (15, 3, '이모티콘 추가', '댓글에 이모티콘을 사용할 수 있으면 더 재미있을 것 같아요.', 52, 0, null, DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
-    (16, 3, '검색 필터 기능', '날짜, 작성자별로 검색할 수 있는 필터가 있으면 좋겠어요.', 26, 0, null, DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
-    (17, 3, '알림 소리 설정', '알림 소리를 선택할 수 있는 기능을 추가해주세요.', 39, 0, null, DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY)),
-    (18, null, '게시글 임시저장', '작성 중인 글을 임시저장할 수 있으면 좋겠어요.', 22, 0, '2222', DATE_SUB(NOW(6), INTERVAL 8 HOUR), DATE_SUB(NOW(6), INTERVAL 8 HOUR)),
-    (19, 3, '사용자 차단 기능', '특정 사용자를 차단할 수 있는 기능이 필요해요.', 41, 0, null, DATE_SUB(NOW(6), INTERVAL 7 HOUR), DATE_SUB(NOW(6), INTERVAL 7 HOUR)),
-    (20, 3, '테마 변경 기능', '다양한 테마를 선택할 수 있으면 좋겠습니다.', 34, 0, null, DATE_SUB(NOW(6), INTERVAL 6 HOUR), DATE_SUB(NOW(6), INTERVAL 6 HOUR));
+    (11, 3, '다크모드 기능 요청', '<h2 style="color: rgb(102, 60, 187);">다크모드 추가 요청</h2><p>밤에 사용할 때 <strong>다크모드</strong>가 있으면 좋겠어요.</p><p>눈이 <em>너무 부셔서</em> 불편해요.</p>', 45, 0, null, DATE_SUB(NOW(6), INTERVAL 7 DAY), DATE_SUB(NOW(6), INTERVAL 7 DAY)),
+    (12, null, '태그 기능 추가', '<p>게시글에 <strong style="color: rgb(0, 138, 0);">#태그</strong>를 달 수 있으면 좋을 것 같아요.</p><p>글 분류가 <em>훨씬 편할</em> 것 같습니다.</p>', 33, 0, '9999', DATE_SUB(NOW(6), INTERVAL 6 DAY), DATE_SUB(NOW(6), INTERVAL 6 DAY)),
+    (13, 3, '북마크 기능', '<p><u>마음에 드는 글을 저장할 수 있는 기능</u>이 있으면 좋겠어요.</p><p>나중에 <strong>다시 보기</strong> 편하게요!</p>', 28, 0, null, DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
+    (14, null, '글자 크기 조절', '<h3>글자 크기 조절 옵션</h3><p>글자 크기를 <span style="color: rgb(0, 102, 204);">조절할 수 있는 옵션</span>이 있으면 좋겠습니다.</p><ol><li>작게</li><li>보통</li><li>크게</li></ol>', 17, 0, '1111', DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
+    (15, 3, '이모티콘 추가', '<p>댓글에 <strong style="color: rgb(250, 197, 28);">이모티콘</strong>을 사용할 수 있으면 더 재미있을 것 같아요.</p><p>감정 표현이 <em>훨씬 풍부</em>해질 거예요.</p>', 52, 0, null, DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
+    (16, 3, '검색 필터 기능', '<p><strong>검색 필터 기능</strong> 제안드립니다.</p><ul><li>날짜별 검색</li><li>작성자별 검색</li><li>태그별 검색</li></ul><p>이렇게 있으면 <span style="color: rgb(0, 138, 0);">훨씬 편할</span> 것 같아요.</p>', 26, 0, null, DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
+    (17, 3, '알림 소리 설정', '<h2>알림 소리 커스터마이징</h2><p>알림 소리를 <strong style="color: rgb(147, 101, 184);">선택</strong>할 수 있는 기능을 추가해주세요.</p><p>기본 소리가 <em>너무 단조로워요</em>.</p>', 39, 0, null, DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY)),
+    (18, null, '게시글 임시저장', '<p>작성 중인 글을 <u>임시저장</u>할 수 있으면 좋겠어요.</p><p>실수로 나갔을 때 <strong style="color: rgb(230, 0, 0);">내용이 다 사라져서</strong> 속상했어요.</p>', 22, 0, '2222', DATE_SUB(NOW(6), INTERVAL 8 HOUR), DATE_SUB(NOW(6), INTERVAL 8 HOUR)),
+    (19, 3, '사용자 차단 기능', '<p>특정 사용자를 <strong>차단</strong>할 수 있는 기능이 필요해요.</p><p><span style="color: rgb(230, 0, 0);">불쾌한 댓글</span>을 다는 사람을 안 보고 싶어요.</p>', 41, 0, null, DATE_SUB(NOW(6), INTERVAL 7 HOUR), DATE_SUB(NOW(6), INTERVAL 7 HOUR)),
+    (20, 3, '테마 변경 기능', '<h3 style="color: rgb(147, 101, 184);">다양한 테마 제공</h3><p>다양한 <strong>테마</strong>를 선택할 수 있으면 좋겠습니다.</p><p>기본, 다크, <em>파스텔</em> 등 여러 가지로요!</p>', 34, 0, null, DATE_SUB(NOW(6), INTERVAL 6 HOUR), DATE_SUB(NOW(6), INTERVAL 6 HOUR));
 
 -- 사용자4의 게시글 (POST, COMMENT 유형 6개) + 익명 게시글 4개
 INSERT INTO post (post_id, member_id, title, content, views, is_notice, password, created_at, modified_at)
 VALUES
-    (21, 4, '부적절한 게시글 신고', '욕설이 포함된 게시글을 발견했습니다.', 18, 0, null, DATE_SUB(NOW(6), INTERVAL 8 DAY), DATE_SUB(NOW(6), INTERVAL 8 DAY)),
-    (22, null, '스팸 댓글 신고', '같은 내용의 댓글을 반복해서 작성하는 사용자가 있어요.', 29, 0, '3333', DATE_SUB(NOW(6), INTERVAL 7 DAY), DATE_SUB(NOW(6), INTERVAL 7 DAY)),
-    (23, 4, '광고성 게시글', '상업적 목적의 게시글이 올라왔어요.', 16, 0, null, DATE_SUB(NOW(6), INTERVAL 6 DAY), DATE_SUB(NOW(6), INTERVAL 6 DAY)),
-    (24, null, '악성 댓글 신고', '개인 공격성 댓글을 신고합니다.', 24, 0, '4444', DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
-    (25, 4, '도배성 게시글', '의미없는 글을 반복해서 작성하고 있어요.', 13, 0, null, DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
-    (26, null, '비방 댓글', '특정인을 비방하는 댓글이 있습니다.', 31, 0, '5555', DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
-    (27, 4, '허위정보 게시글', '잘못된 정보를 퍼뜨리는 글이 있어요.', 27, 0, null, DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
-    (28, null, '음란성 내용', '부적절한 내용이 포함된 게시글입니다.', 19, 0, '6666', DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY)),
-    (29, 4, '혐오 발언', '특정 집단을 혐오하는 발언이 담긴 댓글이에요.', 22, 0, null, DATE_SUB(NOW(6), INTERVAL 10 HOUR), DATE_SUB(NOW(6), INTERVAL 10 HOUR)),
-    (30, 4, '개인정보 노출', '타인의 개인정보가 노출된 글이 있습니다.', 35, 0, null, DATE_SUB(NOW(6), INTERVAL 9 HOUR), DATE_SUB(NOW(6), INTERVAL 9 HOUR));
+    (21, 4, '부적절한 게시글 신고', '<p><strong style="color: rgb(230, 0, 0);">욕설이 포함된 게시글</strong>을 발견했습니다.</p><p>커뮤니티 규칙을 <em>위반</em>하는 내용이에요.</p>', 18, 0, null, DATE_SUB(NOW(6), INTERVAL 8 DAY), DATE_SUB(NOW(6), INTERVAL 8 DAY)),
+    (22, null, '스팸 댓글 신고', '<p>같은 내용의 댓글을 <u>반복해서 작성</u>하는 사용자가 있어요.</p><p><strong>도배성 댓글</strong>이 너무 많습니다.</p>', 29, 0, '3333', DATE_SUB(NOW(6), INTERVAL 7 DAY), DATE_SUB(NOW(6), INTERVAL 7 DAY)),
+    (23, 4, '광고성 게시글', '<h3>상업적 광고 게시글 신고</h3><p><span style="color: rgb(230, 0, 0);">상업적 목적</span>의 게시글이 올라왔어요.</p><p>계속 <strong>제품 홍보</strong>를 하고 있습니다.</p>', 16, 0, null, DATE_SUB(NOW(6), INTERVAL 6 DAY), DATE_SUB(NOW(6), INTERVAL 6 DAY)),
+    (24, null, '악성 댓글 신고', '<p><strong style="color: rgb(204, 0, 0);">개인 공격성 댓글</strong>을 신고합니다.</p><p>특정 사용자를 <em>지속적으로 비난</em>하고 있어요.</p>', 24, 0, '4444', DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
+    (25, 4, '도배성 게시글', '<p>의미없는 글을 <u>반복해서 작성</u>하고 있어요.</p><p>게시판이 <strong style="color: rgb(230, 0, 0);">도배</strong>되고 있습니다.</p>', 13, 0, null, DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
+    (26, null, '비방 댓글', '<p>특정인을 <strong>비방</strong>하는 댓글이 있습니다.</p><p><span style="color: rgb(230, 0, 0);">인신공격성 내용</span>이 포함되어 있어요.</p>', 31, 0, '5555', DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
+    (27, 4, '허위정보 게시글', '<h2 style="color: rgb(204, 0, 0);">허위 정보 유포</h2><p><strong>잘못된 정보</strong>를 퍼뜨리는 글이 있어요.</p><p>많은 사람들이 <em>오해</em>할 수 있습니다.</p>', 27, 0, null, DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
+    (28, null, '음란성 내용', '<p><span style="color: rgb(230, 0, 0);">부적절한 내용</span>이 포함된 게시글입니다.</p><p>청소년에게 <strong>유해한 내용</strong>이에요.</p>', 19, 0, '6666', DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY)),
+    (29, 4, '혐오 발언', '<p>특정 집단을 <strong style="color: rgb(204, 0, 0);">혐오</strong>하는 발언이 담긴 댓글이에요.</p><p><u>차별적인 표현</u>이 사용되었습니다.</p>', 22, 0, null, DATE_SUB(NOW(6), INTERVAL 10 HOUR), DATE_SUB(NOW(6), INTERVAL 10 HOUR)),
+    (30, 4, '개인정보 노출', '<h3 style="color: rgb(230, 0, 0);">개인정보 유출 신고</h3><p>타인의 <strong>개인정보</strong>가 노출된 글이 있습니다.</p><p>전화번호와 주소가 <em>공개</em>되어 있어요.</p>', 35, 0, null, DATE_SUB(NOW(6), INTERVAL 9 HOUR), DATE_SUB(NOW(6), INTERVAL 9 HOUR));
 
 -- 사용자1(비밀로그개발자) 작성 게시글 (7개) - 다양한 주제와 높은 조회수
 INSERT INTO post (post_id, member_id, title, content, views, is_notice, password, created_at, modified_at)
 VALUES
-    (31, 1, '비밀로그 2.0 업데이트 안내', '안녕하세요! 비밀로그 개발자입니다. 이번 2.0 업데이트에서는 실시간 인기글 기능, 롤링페이퍼 개선, 알림 기능 강화 등 다양한 기능이 추가되었습니다. 많은 이용 부탁드립니다!', 187, 1, null, DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
-    (32, 1, 'React Query 최적화 팁', 'TanStack Query를 사용하면서 배운 최적화 팁을 공유합니다. staleTime과 cacheTime을 적절히 설정하면 불필요한 API 호출을 크게 줄일 수 있어요. 특히 optimistic update를 활용하면 UX가 크게 개선됩니다.', 142, 0, null, DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
-    (33, 1, 'Spring Boot 3.4 마이그레이션 후기', 'Spring Boot 3.4로 업그레이드하면서 겪은 이슈들과 해결 방법을 정리했습니다. 특히 Spring Security 설정이 많이 바뀌어서 주의가 필요합니다.', 98, 0, null, DATE_SUB(NOW(6), INTERVAL 8 DAY), DATE_SUB(NOW(6), INTERVAL 8 DAY)),
-    (34, 1, '개발자의 일상', '오늘도 버그와 싸우는 하루였습니다... 하지만 여러분의 피드백 덕분에 더 나은 서비스를 만들 수 있어서 행복합니다. 앞으로도 열심히 개발하겠습니다!', 156, 0, null, DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
-    (35, 1, 'QueryDSL vs JPQL 성능 비교', '실제 프로젝트에서 QueryDSL과 JPQL의 성능을 비교해봤습니다. 복잡한 쿼리에서는 QueryDSL이 가독성과 타입 안정성 면에서 훨씬 우수했습니다.', 123, 0, null, DATE_SUB(NOW(6), INTERVAL 6 DAY), DATE_SUB(NOW(6), INTERVAL 6 DAY)),
-    (36, 1, '다음 업데이트 계획', '커뮤니티에서 요청하신 다크모드 기능을 다음 업데이트에서 추가할 예정입니다. 또한 태그 기능과 북마크 기능도 검토 중입니다. 기대해주세요!', 201, 1, null, DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY)),
-    (37, 1, 'Redis 캐싱 전략 소개', '비밀로그에서 사용하는 Redis 캐싱 전략을 소개합니다. 실시간 인기글 점수 계산에 Sorted Set을 활용하고, 지수 감쇠 알고리즘을 적용했습니다.', 89, 0, null, DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY));
+    (31, 1, '비밀로그 2.0 업데이트 안내', '<h1 style="color: rgb(0, 102, 204);">비밀로그 2.0 업데이트 안내</h1><p>안녕하세요! <strong>비밀로그 개발자</strong>입니다.</p><p>이번 2.0 업데이트에서는 다음과 같은 기능이 추가되었습니다:</p><ul><li><strong style="color: rgb(0, 138, 0);">실시간 인기글 기능</strong></li><li>롤링페이퍼 개선</li><li>알림 기능 강화</li></ul><p>많은 이용 부탁드립니다!</p>', 187, 1, null, DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
+    (32, 1, 'React Query 최적화 팁', '<h2 style="color: rgb(102, 60, 187);">TanStack Query 최적화 팁</h2><p>TanStack Query를 사용하면서 배운 최적화 팁을 공유합니다.</p><blockquote><strong>staleTime</strong>과 <strong>cacheTime</strong>을 적절히 설정하면 불필요한 API 호출을 크게 줄일 수 있어요.</blockquote><p>특히 <code>optimistic update</code>를 활용하면 UX가 <em>크게 개선</em>됩니다.</p>', 142, 0, null, DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
+    (33, 1, 'Spring Boot 3.4 마이그레이션 후기', '<h2>Spring Boot 3.4 마이그레이션</h2><p>Spring Boot 3.4로 업그레이드하면서 겪은 이슈들과 해결 방법을 정리했습니다.</p><p><strong style="color: rgb(230, 0, 0);">주의!</strong> Spring Security 설정이 많이 바뀌어서 주의가 필요합니다.</p><p>주요 변경사항:</p><ol><li>Security 설정 방식</li><li>필터 체인 구조</li><li>권한 검증 로직</li></ol>', 98, 0, null, DATE_SUB(NOW(6), INTERVAL 8 DAY), DATE_SUB(NOW(6), INTERVAL 8 DAY)),
+    (34, 1, '개발자의 일상', '<p><em>오늘도 버그와 싸우는 하루였습니다...</em></p><p>하지만 <strong style="color: rgb(0, 138, 0);">여러분의 피드백</strong> 덕분에 더 나은 서비스를 만들 수 있어서 행복합니다.</p><p>앞으로도 <u>열심히 개발</u>하겠습니다!</p>', 156, 0, null, DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
+    (35, 1, 'QueryDSL vs JPQL 성능 비교', '<h2 style="color: rgb(0, 102, 204);">QueryDSL vs JPQL</h2><p>실제 프로젝트에서 <strong>QueryDSL</strong>과 <strong>JPQL</strong>의 성능을 비교해봤습니다.</p><p>복잡한 쿼리에서는 QueryDSL이 다음 면에서 <em>훨씬 우수</em>했습니다:</p><ul><li>가독성 향상</li><li>타입 안정성</li><li>컴파일 타임 체크</li></ul>', 123, 0, null, DATE_SUB(NOW(6), INTERVAL 6 DAY), DATE_SUB(NOW(6), INTERVAL 6 DAY)),
+    (36, 1, '다음 업데이트 계획', '<h1 style="color: rgb(147, 101, 184);">다음 업데이트 계획</h1><p>커뮤니티에서 요청하신 <strong style="color: rgb(0, 138, 0);">다크모드 기능</strong>을 다음 업데이트에서 추가할 예정입니다.</p><p>또한 다음 기능들도 검토 중입니다:</p><ul><li>태그 기능</li><li>북마크 기능</li><li>검색 필터</li></ul><p><em>기대해주세요!</em></p>', 201, 1, null, DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY)),
+    (37, 1, 'Redis 캐싱 전략 소개', '<h2 style="color: rgb(230, 0, 0);">Redis 캐싱 전략</h2><p>비밀로그에서 사용하는 <strong>Redis 캐싱 전략</strong>을 소개합니다.</p><blockquote>실시간 인기글 점수 계산에 <code>Sorted Set</code>을 활용하고, <strong>지수 감쇠 알고리즘</strong>을 적용했습니다.</blockquote><p>이를 통해 <em>실시간</em>으로 인기글을 추적할 수 있습니다.</p>', 89, 0, null, DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY));
 
 -- 주간 인기글 후보 (최근 7일 이내 작성, 조회수 높음, 추천 많이 받을 예정) (3개)
 INSERT INTO post (post_id, member_id, title, content, views, is_notice, password, created_at, modified_at)
 VALUES
-    (38, 2, '비밀로그 사용 꿀팁 모음', '비밀로그를 1년 넘게 사용하면서 발견한 숨겨진 기능들을 정리해봤어요! 롤링페이퍼 꾸미기, 게시글 검색 활용법, 알림 설정 등 유용한 팁들이 가득합니다.', 165, 0, null, DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
-    (39, 3, '감동적인 롤링페이퍼 이야기', '친구 생일에 롤링페이퍼를 만들어줬는데 정말 감동받았다고 하더라고요. 익명으로 진심을 전할 수 있는 게 이렇게 좋은 건지 처음 알았어요.', 189, 0, null, DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
-    (40, 2, '커뮤니티 활성화 제안', '비밀로그 커뮤니티가 더 활발해지려면 어떤 기능이 필요할까요? 여러분의 의견을 듣고 싶습니다. 카테고리별 게시판, 이벤트 기능 등을 제안해봅니다.', 147, 0, null, DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY));
+    (38, 2, '비밀로그 사용 꿀팁 모음', '<h1 style="color: rgb(250, 197, 28);">비밀로그 사용 꿀팁 모음</h1><p>비밀로그를 <strong>1년 넘게</strong> 사용하면서 발견한 숨겨진 기능들을 정리해봤어요!</p><h3>주요 팁:</h3><ul><li>롤링페이퍼 꾸미기</li><li>게시글 검색 활용법</li><li>알림 설정 최적화</li></ul><p><em>유용한 팁들이 가득합니다!</em></p>', 165, 0, null, DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
+    (39, 3, '감동적인 롤링페이퍼 이야기', '<h2 style="color: rgb(230, 126, 197);">롤링페이퍼로 친구 감동시킨 썰</h2><p>친구 생일에 <strong>롤링페이퍼</strong>를 만들어줬는데 정말 감동받았다고 하더라고요.</p><blockquote>익명으로 진심을 전할 수 있는 게 이렇게 좋은 건지 처음 알았어요.</blockquote><p>여러분도 <span style="color: rgb(0, 138, 0);">소중한 사람</span>에게 만들어주세요!</p>', 189, 0, null, DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
+    (40, 2, '커뮤니티 활성화 제안', '<h2 style="color: rgb(0, 102, 204);">커뮤니티 활성화 제안</h2><p>비밀로그 커뮤니티가 더 <strong>활발</strong>해지려면 어떤 기능이 필요할까요?</p><p>여러분의 <u>의견</u>을 듣고 싶습니다.</p><p>제안 사항:</p><ol><li>카테고리별 게시판</li><li>이벤트 기능</li><li>뱃지 시스템</li></ol>', 147, 0, null, DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY));
 
 -- 레전드 후보 (추천 20개 이상 받을 예정, 조회수 매우 높음) (3개)
 INSERT INTO post (post_id, member_id, title, content, views, is_notice, password, created_at, modified_at)
 VALUES
-    (41, 3, '인생 롤링페이퍼 만들기 가이드', '지금까지 50개 이상의 롤링페이퍼를 만들면서 터득한 모든 노하우를 공유합니다. 디자인 선택부터 메시지 배치, 감동적인 문구 작성법까지 완벽 가이드입니다!', 542, 0, null, DATE_SUB(NOW(6), INTERVAL 25 DAY), DATE_SUB(NOW(6), INTERVAL 25 DAY)),
-    (42, 2, '비밀로그로 고백 성공한 썰', '익명으로 고백할 수 있는 롤링페이퍼 기능 덕분에 용기를 내서 고백했고, 결국 사귀게 되었습니다! 제 인생을 바꿔준 비밀로그에게 감사를 전하고 싶어요.', 687, 0, null, DATE_SUB(NOW(6), INTERVAL 30 DAY), DATE_SUB(NOW(6), INTERVAL 30 DAY)),
-    (43, 1, '비밀로그 개발 비하인드 스토리', '비밀로그를 처음 기획하고 개발하기까지의 과정을 공유합니다. 익명 소통의 가치, 기술 스택 선택 이유, 겪었던 어려움과 보람 등을 솔직하게 담았습니다.', 723, 0, null, DATE_SUB(NOW(6), INTERVAL 20 DAY), DATE_SUB(NOW(6), INTERVAL 20 DAY));
+    (41, 3, '인생 롤링페이퍼 만들기 가이드', '<h1 style="color: rgb(147, 101, 184);">인생 롤링페이퍼 만들기 완벽 가이드</h1><p>지금까지 <strong style="color: rgb(230, 0, 0);">50개 이상</strong>의 롤링페이퍼를 만들면서 터득한 모든 노하우를 공유합니다.</p><h2>목차:</h2><ol><li><strong>디자인 선택</strong> - 테마별 추천</li><li><strong>메시지 배치</strong> - 레이아웃 팁</li><li><strong>감동적인 문구</strong> - 작성법</li><li><strong>타이밍</strong> - 최적의 전달 시기</li></ol><blockquote>완벽한 롤링페이퍼를 위한 <em>모든 것</em>을 담았습니다!</blockquote>', 542, 0, null, DATE_SUB(NOW(6), INTERVAL 25 DAY), DATE_SUB(NOW(6), INTERVAL 25 DAY)),
+    (42, 2, '비밀로그로 고백 성공한 썰', '<h1 style="color: rgb(230, 126, 197);">비밀로그로 고백 성공!</h1><p>익명으로 고백할 수 있는 <strong>롤링페이퍼 기능</strong> 덕분에 용기를 내서 고백했고...</p><p><span style="color: rgb(0, 138, 0); font-size: 18px;"><strong>결국 사귀게 되었습니다!</strong></span></p><blockquote>제 인생을 바꿔준 비밀로그에게 감사를 전하고 싶어요.</blockquote><p>여러분도 <em>용기내세요</em>!</p>', 687, 0, null, DATE_SUB(NOW(6), INTERVAL 30 DAY), DATE_SUB(NOW(6), INTERVAL 30 DAY)),
+    (43, 1, '비밀로그 개발 비하인드 스토리', '<h1 style="color: rgb(0, 102, 204);">비밀로그 개발 비하인드 스토리</h1><p>비밀로그를 처음 기획하고 개발하기까지의 과정을 공유합니다.</p><h2>주요 내용:</h2><ul><li><strong style="color: rgb(102, 60, 187);">익명 소통의 가치</strong> - 왜 익명인가?</li><li><strong style="color: rgb(0, 138, 0);">기술 스택 선택</strong> - Spring Boot + Next.js</li><li><strong style="color: rgb(230, 0, 0);">겪었던 어려움</strong> - 실시간 알림, 보안</li><li><strong>보람</strong> - 여러분의 피드백</li></ul><blockquote>솔직하게 담았습니다. 긴 글 읽어주셔서 감사합니다!</blockquote>', 723, 1, null, DATE_SUB(NOW(6), INTERVAL 20 DAY), DATE_SUB(NOW(6), INTERVAL 20 DAY));
 
 -- 인기댓글이 달릴 게시글 (댓글 추천 3개 이상 받을 예정) (2개)
 INSERT INTO post (post_id, member_id, title, content, views, is_notice, password, created_at, modified_at)
 VALUES
-    (44, 2, '여러분의 개발 동기는 무엇인가요?', '개발을 시작하게 된 계기가 궁금합니다. 저는 뭔가를 만들어내는 과정이 너무 재미있어서 시작했는데, 여러분은 어떤가요?', 134, 0, null, DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
-    (45, 3, '인생 최고의 조언', '지금까지 받았던 조언 중에서 가장 도움이 되었던 말을 공유해주세요. 저는 "실패는 성공의 어머니"라는 말이 가장 위로가 되었어요.', 178, 0, null, DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY));
+    (44, 2, '여러분의 개발 동기는 무엇인가요?', '<h2 style="color: rgb(102, 60, 187);">여러분의 개발 동기는?</h2><p>개발을 시작하게 된 <strong>계기</strong>가 궁금합니다.</p><p>저는 뭔가를 <span style="color: rgb(0, 138, 0);">만들어내는 과정</span>이 너무 재미있어서 시작했는데, 여러분은 어떤가요?</p><p><em>댓글로 공유해주세요!</em></p>', 134, 0, null, DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
+    (45, 3, '인생 최고의 조언', '<h2 style="color: rgb(250, 197, 28);">인생 최고의 조언</h2><p>지금까지 받았던 조언 중에서 <strong>가장 도움이 되었던 말</strong>을 공유해주세요.</p><p>저는 <blockquote>"실패는 성공의 어머니"</blockquote>라는 말이 가장 위로가 되었어요.</p><p>여러분의 <span style="color: rgb(0, 102, 204);">인생 명언</span>이 궁금합니다!</p>', 178, 0, null, DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY));
 
 -- 댓글 데이터 (각 게시글당 3-4개씩, 총 22개)
 -- 게시글 1번의 댓글들
 INSERT INTO comment (comment_id, post_id, member_id, content, deleted, password, created_at, modified_at)
 VALUES
-    (1, 1, 3, '저도 같은 문제를 겪었어요. 브라우저 캐시를 지우니까 해결됐어요!', 0, null, DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
-    (2, 1, 4, '이 버그는 개발팀에서 확인했습니다. 곧 수정될 예정이에요.', 0, null, DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
-    (3, 1, null, '익명 사용자도 같은 문제입니다.', 0, '1234', DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY));
+    (1, 1, 3, '<p>저도 같은 문제를 겪었어요. <strong>브라우저 캐시</strong>를 지우니까 해결됐어요!</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
+    (2, 1, 4, '<p>이 버그는 <span style="color: rgb(0, 102, 204);">개발팀</span>에서 확인했습니다. <em>곧 수정될 예정</em>이에요.</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
+    (3, 1, null, '<p>익명 사용자도 <u>같은 문제</u>입니다.</p>', 0, '1234', DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY));
 
 -- 게시글 2번의 댓글들
 INSERT INTO comment (comment_id, post_id, member_id, content, deleted, password, created_at, modified_at)
 VALUES
-    (4, 2, 4, '댓글 작성 후 페이지 새로고침 대신 F5를 눌러보세요.', 0, null, DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
-    (5, 2, 2, '네, 시도해봤는데도 계속 문제가 발생해요.', 0, null, DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
-    (6, 2, null, '모바일에서도 같은 증상이 있어요.', 0, '5678', DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
-    (7, 2, 3, '저는 크롬에서만 문제가 발생하고 파이어폭스에서는 정상이에요.', 0, null, DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY));
+    (4, 2, 4, '<p>댓글 작성 후 <strong>페이지 새로고침</strong> 대신 <code>F5</code>를 눌러보세요.</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
+    (5, 2, 2, '<p>네, 시도해봤는데도 <span style="color: rgb(230, 0, 0);">계속 문제가 발생</span>해요.</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
+    (6, 2, null, '<p><strong>모바일</strong>에서도 같은 증상이 있어요.</p>', 0, '5678', DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
+    (7, 2, 3, '<p>저는 <em>크롬에서만</em> 문제가 발생하고 <strong style="color: rgb(0, 138, 0);">파이어폭스에서는 정상</strong>이에요.</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY));
 
 -- 계속해서 각 게시글마다 댓글 추가
 INSERT INTO comment (comment_id, post_id, member_id, content, deleted, password, created_at, modified_at)
 VALUES
-    (8, 3, 3, '이미지 용량이 너무 큰 건 아닐까요?', 0, null, DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
-    (9, 3, 4, 'jpg, png 파일만 지원됩니다.', 0, null, DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
-    (10, 3, null, '저도 같은 문제예요.', 0, '9999', DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY)),
+    (8, 3, 3, '<p>이미지 <strong>용량</strong>이 너무 큰 건 아닐까요?</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
+    (9, 3, 4, '<p><span style="color: rgb(0, 102, 204);">jpg, png</span> 파일만 지원됩니다.</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
+    (10, 3, null, '<p>저도 <em>같은 문제</em>예요.</p>', 0, '9999', DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY)),
 
-    (11, 4, 2, '알림 설정을 변경한 후 로그아웃 후 재로그인해보세요.', 0, null, DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
-    (12, 4, 3, '저는 정상 작동해요.', 0, null, DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY)),
-    (13, 4, null, '브라우저 문제일 수도 있어요.', 0, '1111', DATE_SUB(NOW(6), INTERVAL 12 HOUR), DATE_SUB(NOW(6), INTERVAL 12 HOUR)),
+    (11, 4, 2, '<p>알림 설정을 변경한 후 <strong>로그아웃 후 재로그인</strong>해보세요.</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
+    (12, 4, 3, '<p>저는 <span style="color: rgb(0, 138, 0);">정상 작동</span>해요.</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY)),
+    (13, 4, null, '<p><u>브라우저 문제</u>일 수도 있어요.</p>', 0, '1111', DATE_SUB(NOW(6), INTERVAL 12 HOUR), DATE_SUB(NOW(6), INTERVAL 12 HOUR)),
 
-    (14, 5, 3, '롤링페이퍼 메시지 위치는 자동으로 배치됩니다.', 0, null, DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY)),
-    (15, 5, 4, '새로고침하면 정상 위치로 표시될 거예요.', 0, null, DATE_SUB(NOW(6), INTERVAL 18 HOUR), DATE_SUB(NOW(6), INTERVAL 18 HOUR)),
-    (16, 5, null, '감사합니다! 해결됐어요.', 0, '2222', DATE_SUB(NOW(6), INTERVAL 12 HOUR), DATE_SUB(NOW(6), INTERVAL 12 HOUR));
+    (14, 5, 3, '<p>롤링페이퍼 메시지 위치는 <strong>자동으로 배치</strong>됩니다.</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY)),
+    (15, 5, 4, '<p><em>새로고침</em>하면 정상 위치로 표시될 거예요.</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 18 HOUR), DATE_SUB(NOW(6), INTERVAL 18 HOUR)),
+    (16, 5, null, '<p><span style="color: rgb(0, 138, 0);">감사합니다!</span> 해결됐어요.</p>', 0, '2222', DATE_SUB(NOW(6), INTERVAL 12 HOUR), DATE_SUB(NOW(6), INTERVAL 12 HOUR));
 
 -- 더 많은 댓글들 (나머지 게시글들)
 INSERT INTO comment (comment_id, post_id, member_id, content, deleted, password, created_at, modified_at)
 VALUES
-    (17, 11, 2, '다크모드 정말 필요해요! 찬성합니다.', 0, null, DATE_SUB(NOW(6), INTERVAL 7 DAY), DATE_SUB(NOW(6), INTERVAL 7 DAY)),
-    (18, 11, 4, '다크모드 개발 검토 중입니다.', 0, null, DATE_SUB(NOW(6), INTERVAL 6 DAY), DATE_SUB(NOW(6), INTERVAL 6 DAY)),
-    (19, 11, null, '빨리 추가되길 바라요!', 0, '3333', DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
+    (17, 11, 2, '<p>다크모드 <strong style="color: rgb(102, 60, 187);">정말 필요</strong>해요! 찬성합니다.</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 7 DAY), DATE_SUB(NOW(6), INTERVAL 7 DAY)),
+    (18, 11, 4, '<p>다크모드 개발 <span style="color: rgb(0, 102, 204);">검토 중</span>입니다.</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 6 DAY), DATE_SUB(NOW(6), INTERVAL 6 DAY)),
+    (19, 11, null, '<p><em>빨리 추가되길</em> 바라요!</p>', 0, '3333', DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
 
-    (20, 12, 4, '태그 기능은 좋은 아이디어네요.', 0, null, DATE_SUB(NOW(6), INTERVAL 6 DAY), DATE_SUB(NOW(6), INTERVAL 6 DAY)),
-    (21, 12, 2, '카테고리 기능도 함께 추가되면 좋을 것 같아요.', 0, null, DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
-    (22, 12, null, '해시태그 형태면 더 좋겠어요.', 0, '4444', DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY));
+    (20, 12, 4, '<p>태그 기능은 <strong>좋은 아이디어</strong>네요.</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 6 DAY), DATE_SUB(NOW(6), INTERVAL 6 DAY)),
+    (21, 12, 2, '<p><u>카테고리 기능</u>도 함께 추가되면 좋을 것 같아요.</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
+    (22, 12, null, '<p><span style="color: rgb(0, 138, 0);">#해시태그</span> 형태면 더 좋겠어요.</p>', 0, '4444', DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY));
 
 -- 사용자1 작성 댓글 (다양한 게시글에) (12개)
 INSERT INTO comment (comment_id, post_id, member_id, content, deleted, password, created_at, modified_at)
 VALUES
-    (23, 11, 1, '다크모드 정말 좋은 아이디어네요! 다음 업데이트에서 꼭 추가하겠습니다.', 0, null, DATE_SUB(NOW(6), INTERVAL 6 DAY), DATE_SUB(NOW(6), INTERVAL 6 DAY)),
-    (24, 15, 1, '이모티콘 기능도 검토하고 있습니다. 조금만 기다려주세요!', 0, null, DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
-    (25, 2, 1, '댓글 작성 오류는 다음 패치에서 수정될 예정입니다. 불편을 드려 죄송합니다.', 0, null, DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
-    (26, 5, 1, '롤링페이퍼 위치 겹침 문제는 이미 해결되었습니다. 새로고침 해보세요!', 0, null, DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY)),
-    (27, 38, 1, '꿀팁 정리 감사합니다! 공식 가이드에 반영하겠습니다.', 0, null, DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
-    (28, 39, 1, '이런 따뜻한 이야기를 들으면 개발 보람을 느낍니다. 감사합니다!', 0, null, DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
-    (29, 40, 1, '커뮤니티 활성화 아이디어 좋네요. 내부 회의에서 검토해보겠습니다.', 0, null, DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY)),
-    (30, 41, 1, '정말 대단한 노하우네요! 많은 분들에게 도움이 될 것 같습니다.', 0, null, DATE_SUB(NOW(6), INTERVAL 24 DAY), DATE_SUB(NOW(6), INTERVAL 24 DAY)),
-    (31, 42, 1, '축하드립니다! 비밀로그가 행복에 작은 도움이 되어 기쁩니다.', 0, null, DATE_SUB(NOW(6), INTERVAL 29 DAY), DATE_SUB(NOW(6), INTERVAL 29 DAY)),
-    (32, 44, 1, '저는 누군가의 문제를 해결해주는 과정이 즐거워서 개발을 시작했어요.', 0, null, DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
-    (33, 45, 1, '"완벽을 추구하지 말고, 완성을 추구하라"는 말이 제게 큰 도움이 되었습니다.', 0, null, DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
-    (34, 20, 1, '테마 변경 기능은 다크모드와 함께 개발 예정입니다!', 0, null, DATE_SUB(NOW(6), INTERVAL 6 HOUR), DATE_SUB(NOW(6), INTERVAL 6 HOUR));
+    (23, 11, 1, '<p>다크모드 정말 <strong style="color: rgb(102, 60, 187);">좋은 아이디어</strong>네요! 다음 업데이트에서 꼭 추가하겠습니다.</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 6 DAY), DATE_SUB(NOW(6), INTERVAL 6 DAY)),
+    (24, 15, 1, '<p>이모티콘 기능도 <span style="color: rgb(0, 102, 204);">검토하고 있습니다</span>. 조금만 기다려주세요!</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
+    (25, 2, 1, '<p>댓글 작성 오류는 <strong>다음 패치</strong>에서 수정될 예정입니다. <em>불편을 드려 죄송합니다.</em></p>', 0, null, DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
+    (26, 5, 1, '<p>롤링페이퍼 위치 겹침 문제는 이미 <span style="color: rgb(0, 138, 0);">해결되었습니다</span>. 새로고침 해보세요!</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY)),
+    (27, 38, 1, '<p>꿀팁 정리 <strong>감사합니다!</strong> 공식 가이드에 반영하겠습니다.</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
+    (28, 39, 1, '<p>이런 <span style="color: rgb(230, 126, 197);">따뜻한 이야기</span>를 들으면 개발 보람을 느낍니다. <em>감사합니다!</em></p>', 0, null, DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
+    (29, 40, 1, '<p>커뮤니티 활성화 아이디어 <strong>좋네요</strong>. 내부 회의에서 검토해보겠습니다.</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY)),
+    (30, 41, 1, '<p>정말 <strong style="color: rgb(147, 101, 184);">대단한 노하우</strong>네요! 많은 분들에게 도움이 될 것 같습니다.</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 24 DAY), DATE_SUB(NOW(6), INTERVAL 24 DAY)),
+    (31, 42, 1, '<p><span style="color: rgb(0, 138, 0);">축하드립니다!</span> 비밀로그가 행복에 작은 도움이 되어 기쁩니다.</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 29 DAY), DATE_SUB(NOW(6), INTERVAL 29 DAY)),
+    (32, 44, 1, '<p>저는 <strong>누군가의 문제를 해결해주는 과정</strong>이 즐거워서 개발을 시작했어요.</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
+    (33, 45, 1, '<p><em>"완벽을 추구하지 말고, <strong style="color: rgb(0, 102, 204);">완성을 추구하라</strong>"</em>는 말이 제게 큰 도움이 되었습니다.</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
+    (34, 20, 1, '<p>테마 변경 기능은 <span style="color: rgb(147, 101, 184);">다크모드</span>와 함께 개발 예정입니다!</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 6 HOUR), DATE_SUB(NOW(6), INTERVAL 6 HOUR));
 
 -- 사용자1 게시글에 달린 댓글 (다른 사용자들이 작성) (10개)
 INSERT INTO comment (comment_id, post_id, member_id, content, deleted, password, created_at, modified_at)
 VALUES
-    (35, 31, 2, '업데이트 기대됩니다! 특히 실시간 인기글 기능이 유용할 것 같아요.', 0, null, DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
-    (36, 31, 3, '롤링페이퍼 개선 감사합니다. 더 사용하기 편해졌어요!', 0, null, DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
-    (37, 32, 2, 'React Query 팁 정말 도움됐어요. 제 프로젝트에도 적용해봐야겠습니다.', 0, null, DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
-    (38, 32, 4, 'optimistic update 예제 코드도 공유해주시면 좋을 것 같아요!', 0, null, DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
-    (39, 34, 3, '개발자님 항상 감사합니다! 덕분에 좋은 서비스 사용하고 있어요.', 0, null, DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
-    (40, 36, 2, '다크모드 기다리고 있었습니다! 빨리 나왔으면 좋겠어요.', 0, null, DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY)),
-    (41, 36, 3, '태그 기능도 추가되면 게시글 찾기가 훨씬 편할 것 같네요.', 0, null, DATE_SUB(NOW(6), INTERVAL 20 HOUR), DATE_SUB(NOW(6), INTERVAL 20 HOUR)),
-    (42, 37, 4, 'Redis 캐싱 전략 정말 흥미롭네요. 지수 감쇠 알고리즘은 어떻게 구현하셨나요?', 0, null, DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
-    (43, 43, 2, '비밀로그 개발 스토리 정말 감동적이에요. 앞으로도 응원합니다!', 0, null, DATE_SUB(NOW(6), INTERVAL 20 DAY), DATE_SUB(NOW(6), INTERVAL 20 DAY)),
-    (44, 43, 3, '기술 스택 선택 이유가 궁금했는데 자세히 알려주셔서 감사합니다.', 0, null, DATE_SUB(NOW(6), INTERVAL 19 DAY), DATE_SUB(NOW(6), INTERVAL 19 DAY));
+    (35, 31, 2, '<p>업데이트 <strong>기대됩니다!</strong> 특히 <span style="color: rgb(0, 102, 204);">실시간 인기글 기능</span>이 유용할 것 같아요.</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
+    (36, 31, 3, '<p>롤링페이퍼 개선 <em>감사합니다</em>. 더 사용하기 편해졌어요!</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
+    (37, 32, 2, '<p>React Query 팁 <strong style="color: rgb(102, 60, 187);">정말 도움됐어요</strong>. 제 프로젝트에도 적용해봐야겠습니다.</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
+    (38, 32, 4, '<p><code>optimistic update</code> 예제 코드도 공유해주시면 좋을 것 같아요!</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
+    (39, 34, 3, '<p>개발자님 <strong style="color: rgb(0, 138, 0);">항상 감사합니다!</strong> 덕분에 좋은 서비스 사용하고 있어요.</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
+    (40, 36, 2, '<p><span style="color: rgb(147, 101, 184);">다크모드</span> 기다리고 있었습니다! 빨리 나왔으면 좋겠어요.</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY)),
+    (41, 36, 3, '<p>태그 기능도 추가되면 게시글 찾기가 <em>훨씬 편할</em> 것 같네요.</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 20 HOUR), DATE_SUB(NOW(6), INTERVAL 20 HOUR)),
+    (42, 37, 4, '<p>Redis 캐싱 전략 <strong>정말 흥미롭네요</strong>. 지수 감쇠 알고리즘은 어떻게 구현하셨나요?</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
+    (43, 43, 2, '<p>비밀로그 개발 스토리 <span style="color: rgb(230, 126, 197);">정말 감동적</span>이에요. 앞으로도 응원합니다!</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 20 DAY), DATE_SUB(NOW(6), INTERVAL 20 DAY)),
+    (44, 43, 3, '<p>기술 스택 선택 이유가 궁금했는데 <strong>자세히 알려주셔서 감사</strong>합니다.</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 19 DAY), DATE_SUB(NOW(6), INTERVAL 19 DAY));
 
 -- 인기댓글 (추천 3개 이상 받을 예정) (8개)
 INSERT INTO comment (comment_id, post_id, member_id, content, deleted, password, created_at, modified_at)
 VALUES
-    (45, 44, 2, '저는 어릴 때부터 컴퓨터 게임을 좋아했고, "이걸 내가 만들 수 있다면 얼마나 멋질까?"라는 생각에서 시작했어요. 지금은 게임보다 웹 개발이 더 재밌습니다!', 0, null, DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
-    (46, 44, 3, '문제 해결하는 걸 좋아해서 개발을 시작했습니다. 코드 한 줄로 수백 명의 시간을 절약해줄 수 있다는 게 정말 매력적이에요.', 0, null, DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
-    (47, 44, 4, '처음에는 돈 때문에 시작했지만, 지금은 순수하게 개발 자체가 즐거워서 하고 있습니다. 무언가를 창조하는 과정이 정말 매력적이에요!', 0, null, DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
-    (48, 45, 2, '"실패는 그냥 실패일 뿐, 성공의 어머니가 되려면 거기서 배워야 한다"는 말을 들었을 때 큰 깨달음을 얻었어요.', 0, null, DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
-    (49, 45, 3, '"완벽을 추구하지 말고 완성을 추구하라" 이 말 덕분에 미루던 프로젝트를 완성할 수 있었습니다.', 0, null, DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
-    (50, 45, 4, '"비교는 진보의 적이다" 남과 비교하지 않고 어제의 나와 비교하면서 성장하라는 조언이 가장 도움됐어요.', 0, null, DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
-    (51, 41, 2, '이 가이드 정말 최고예요! 특히 메시지 배치 팁이 정말 유용했습니다. 덕분에 친구 롤링페이퍼를 멋지게 만들었어요.', 0, null, DATE_SUB(NOW(6), INTERVAL 24 DAY), DATE_SUB(NOW(6), INTERVAL 24 DAY)),
-    (52, 42, 3, '진짜 감동적인 스토리네요... 저도 용기내서 고백해봐야겠어요. 비밀로그 최고!', 0, null, DATE_SUB(NOW(6), INTERVAL 29 DAY), DATE_SUB(NOW(6), INTERVAL 29 DAY));
+    (45, 44, 2, '<p>저는 어릴 때부터 <strong style="color: rgb(0, 102, 204);">컴퓨터 게임</strong>을 좋아했고, <em>"이걸 내가 만들 수 있다면 얼마나 멋질까?"</em>라는 생각에서 시작했어요.</p><p>지금은 게임보다 <span style="color: rgb(0, 138, 0);">웹 개발</span>이 더 재밌습니다!</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
+    (46, 44, 3, '<p><strong>문제 해결</strong>하는 걸 좋아해서 개발을 시작했습니다.</p><p><span style="color: rgb(230, 0, 0);">코드 한 줄</span>로 수백 명의 시간을 절약해줄 수 있다는 게 <em>정말 매력적</em>이에요.</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
+    (47, 44, 4, '<p>처음에는 <u>돈 때문에</u> 시작했지만, 지금은 순수하게 <strong style="color: rgb(102, 60, 187);">개발 자체가 즐거워서</strong> 하고 있습니다.</p><p>무언가를 <em>창조하는 과정</em>이 정말 매력적이에요!</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
+    (48, 45, 2, '<p><em>"실패는 그냥 실패일 뿐, <strong style="color: rgb(230, 0, 0);">성공의 어머니가 되려면 거기서 배워야 한다</strong>"</em>는 말을 들었을 때 큰 깨달음을 얻었어요.</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
+    (49, 45, 3, '<p><em>"<strong style="color: rgb(0, 102, 204);">완벽을 추구하지 말고 완성을 추구하라</strong>"</em></p><p>이 말 덕분에 미루던 프로젝트를 <span style="color: rgb(0, 138, 0);">완성</span>할 수 있었습니다.</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
+    (50, 45, 4, '<p><em>"<strong style="color: rgb(147, 101, 184);">비교는 진보의 적이다</strong>"</em></p><p>남과 비교하지 않고 <u>어제의 나</u>와 비교하면서 성장하라는 조언이 가장 도움됐어요.</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
+    (51, 41, 2, '<p>이 가이드 <strong style="color: rgb(250, 197, 28);">정말 최고예요!</strong></p><p>특히 <span style="color: rgb(0, 102, 204);">메시지 배치 팁</span>이 정말 유용했습니다. 덕분에 친구 롤링페이퍼를 <em>멋지게</em> 만들었어요.</p>', 0, null, DATE_SUB(NOW(6), INTERVAL 24 DAY), DATE_SUB(NOW(6), INTERVAL 24 DAY)),
+    (52, 42, 3, '<p><span style="color: rgb(230, 126, 197);">진짜 감동적인 스토리</span>네요...</p><p>저도 <strong>용기내서 고백</strong>해봐야겠어요. <em>비밀로그 최고!</em></p>', 0, null, DATE_SUB(NOW(6), INTERVAL 29 DAY), DATE_SUB(NOW(6), INTERVAL 29 DAY));
 
 -- 댓글 클로저 테이블 (계층형 댓글 구조)
 INSERT INTO comment_closure (ancestor_id, descendant_id, depth)
@@ -424,6 +424,29 @@ VALUES
     (13, 4, 2, 2, '불새', 'aLWa04MllNYa9DIO2TvO34SDVUF5/q0dGLubE19h4CjVV3UqrNh8i5xSu5TWmCY5dIuuKzR7KbJ10/tbILx+ywwtHvORBnDLnDwE2ftq7Wc=', 'PHOENIX', DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
     (14, 4, 2, 3, '왕관', 'LVoSznMzfeX7KTRfNOxYbR2hyAm4/Y1FDQwWy7AkTz9lfCzayutPyO2OiSq98incGpUdGqfLmx94tjhhzIZml6S0Ua1akFrJa5JQGs/Ck1Q=', 'STAR', DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
     (15, 4, 2, 4, '무지개', 'H98D1yYWvFAmnJBHJ8xP5DsoulerLLZErer4DxM1XBFQbLkRZaYsqMb08bZXZ+HJfjnzJ4fMa/9/N+FJrV52aQ==', 'RAINBOW', DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY));
+
+-- 사용자1(비밀로그개발자)의 롤링페이퍼 메시지 (다른 사용자들이 작성) (10개)
+INSERT INTO message (message_id, member_id, x, y, anonymity, content, deco_type, created_at, modified_at)
+VALUES
+    (16, 2, 0, 5, '감사하는사람', 'oXEYvoqn1bXQDWiwZS1b8/P9chdaVGVoQa+OqGOwmyX8YWQy7KQKYbDGRYHfQi2+LLg6N9F+txgutn/bTc4Hh9tB6+pkilUx3B6QYQQ7yMjvoWhKN6cUKu2G5VlguEY0', 'STRAWBERRY', DATE_SUB(NOW(6), INTERVAL 10 DAY), DATE_SUB(NOW(6), INTERVAL 10 DAY)),
+    (17, 3, 0, 6, '응원합니다', 'dMY54tYCdd1lRuE2dzKWebeFNIYAaDQNLLg6N9F+txhKKic4HXjKBb4FoI+0QI+PNpCQbpL7MYpmJoDGeUayzutn/bTc4Hh9tB6+pkilUxrQc24WmYq1PnHC5pothjGw==', 'CARROT', DATE_SUB(NOW(6), INTERVAL 9 DAY), DATE_SUB(NOW(6), INTERVAL 9 DAY)),
+    (18, 4, 0, 7, '팬입니다', 'Wp/swJel1cUa0JZmYKCGxdY8q3/vI3uf+Lvj83nJVzaT1Dol/XG4MvCmdvwfF+LyCvXwMjl+vpbat9nDsk7AuWPdnf2Mb20fYf2dFI2dcMvFA702Hp3S8xaK7BOQT/h8=', 'COFFEE', DATE_SUB(NOW(6), INTERVAL 8 DAY), DATE_SUB(NOW(6), INTERVAL 8 DAY)),
+    (19, 2, 1, 8, '최고개발자', '+UPgH81T8oH/JdM5yBAZ8J9d/XYaS5zFa9W+Qb+S0KxOQ0aMCr9FyOvFlo7k+y5xfLAgxie6KxkJLjBNjDdWdVjaPzRq8n/QkR0ItXO11k+Z9yn2pt9smF10er2QXnNS', 'CAT', DATE_SUB(NOW(6), INTERVAL 7 DAY), DATE_SUB(NOW(6), INTERVAL 7 DAY)),
+    (20, 3, 2, 9, '고마워요', 'vpk43LiTn33AZIahk/Bkdrfeikmj4HFNy5/PYX03rtCOQ0aMCr9FyOvFlo7k+y5xfLAgxie6KxkJLjBNjDdWdQ==', 'STAR', DATE_SUB(NOW(6), INTERVAL 6 DAY), DATE_SUB(NOW(6), INTERVAL 6 DAY)),
+    (21, 4, 3, 5, '존경합니다', 'vct16trR+lcKu6WZe3fKUQDhBrIvv3IaNj9arbyMw3yxaK7BOQT/h8T1Dol/XG4MvCmdvwfF+LyCvXwMjl+vpbat9nDsk7AuaJWtWsXVjczIGrwnr4txAvEhBOr7IDyH', 'APPLE', DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
+    (22, 2, 4, 6, '항상응원', 'C8MLY30ITER+6kNL62vAQ9Zcohv8RNjTnIDcK2Hl448Q0aMCr9FyOvFlo7k+y5xfLAgxie6KxkJCmv1Rc/EYZc0giVee3vpZwui84PvPiBpWU+b/7P1AdZ+rCCgPIgsA', 'DOG', DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
+    (23, 3, 5, 7, '멋진개발자', 'DEi6y1BYrryfJVYYi2pLPE+dV8/pXm+ksR0dSmQl6m/FA702Hp3S8xaK7BOQT/h8+OQ0aMCr9FyOvFlo7k+y5xfLAgxie6KxkJLjBNjDdWdbwwR42BDNZN7G4ri4amv2s=', 'MOON', DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
+    (24, 4, 6, 8, '건강하세요', 'yc3c9B4g3dChnsK/NxW8sPOfyzG5QTuFMIpO45wiD8hT1Dol/XG4MvCmdvwfF+LyCvXwMjl+vpbat9nDhKKic4HXjKBb4FoI+0QI+PNpCQbpL7MYpmJoDGeUayzqS0Ua', 'BALLOON', DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
+    (25, 2, 6, 9, '감사드려요', 'oogDmwzcTYhe9B+tEb/4wvYWmKf9WF2Nf8WV3wf1D1dY8q3/vI3uf+Lvj83nJVzcjIYSBxr6PZkJVgm/xjRTLukJuBod6DCKzh2V0mNOLMw==', 'SUNFLOWER', DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY));
+
+-- 비회원이 사용자1에게 남긴 롤링페이퍼 메시지 (5개)
+INSERT INTO message (message_id, member_id, x, y, anonymity, content, deco_type, created_at, modified_at)
+VALUES
+    (26, null, 7, 5, '익명의친구', 'kPqh+eGx/xXCZebRvMQSmsXYcyog/aX0lHH54i6KmgQQ0aMCr9FyOvFlo7k+y5xfLAgxie6KxkJR4EUv1nuHxKpZGRmY7uxaP0taL9I0lYyB4IJ7GESDN3dQ84+RHlQ2e', 'DRAGON', DATE_SUB(NOW(6), INTERVAL 12 DAY), DATE_SUB(NOW(6), INTERVAL 12 DAY)),
+    (27, null, 8, 6, '지나가는사람', 'Swc6933Sj9qA1x4vlm5RZLp1FEpbeQlUfkL2DoGUWU6xaK7BOQT/h8q7YblWWC4RjSc8yFSMMua7nrN0brJeAN/YLBokRKrjXNTMoGwpG9vCNnssGurFaw==', 'ANGEL', DATE_SUB(NOW(6), INTERVAL 11 DAY), DATE_SUB(NOW(6), INTERVAL 11 DAY)),
+    (28, null, 9, 7, '비밀사용자', 'aLWa04MllNYa9DIO2TvO34SDVUF5/q0dGLubE19h4CjT1Dol/XG4MvCmdvwfF+LyCvXwMjl+vpbat9nDVV3UqrNh8i5xSu5TWmCY5dIuuKzR7KbJ10/tbILx+ywwtHvO', 'PHOENIX', DATE_SUB(NOW(6), INTERVAL 10 DAY), DATE_SUB(NOW(6), INTERVAL 10 DAY)),
+    (29, null, 10, 8, '익명응원단', 'LVoSznMzfeX7KTRfNOxYbR2hyAm4/Y1FDQwWy7AkTz+OQ0aMCr9FyOvFlo7k+y5xfLAgxie6KxkJ9lfCzayutPyO2OiSq98incGpUdGqfLmx94tjhhzIZml6S0Ua1akFr', 'STAR', DATE_SUB(NOW(6), INTERVAL 9 DAY), DATE_SUB(NOW(6), INTERVAL 9 DAY)),
+    (30, null, 11, 9, '감사합니다', 'H98D1yYWvFAmnJBHJ8xP5DsoulerLLZErer4DxM1XBFQbLkRZaYsqMb08bZXZ+HJY8q3/vI3uf+Lvj83nJVzfjnzJ4fMa/9/N+FJrV52aQ==', 'RAINBOW', DATE_SUB(NOW(6), INTERVAL 8 DAY), DATE_SUB(NOW(6), INTERVAL 8 DAY));
 
 -- 신고 데이터 (각 신고 유형별로)
 INSERT INTO report (report_id, member_id, report_type, target_id, content, created_at, modified_at)

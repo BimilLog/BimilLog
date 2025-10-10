@@ -12,7 +12,8 @@ import lombok.experimental.SuperBuilder;
 /**
  * <h2>댓글 엔티티</h2>
  * <p>게시글에 대한 댓글 정보를 저장하는 엔티티입니다.</p>
- * <p>사용자 입력은 최대 255자까지 허용하며, 서버는 줄바꿈 등 특수문자 처리를 위해 1000자까지 저장합니다.</p>
+ * <p>HTML 형식을 지원하며, 사용자 입력은 순수 텍스트 기준 최대 255자까지 허용합니다.</p>
+ * <p>HTML 태그 포함 시 최대 1000자까지 저장됩니다.</p>
  * <p>익명 댓글과 회원 댓글을 모두 지원하며, 계층 구조를 가집니다.</p>
  *
  * @author Jaeik
@@ -48,7 +49,7 @@ public class Comment extends BaseEntity {
 
     @NotNull
     @Column(nullable = false, length = 1000)
-    private String content;
+    private String content; // HTML 형식 지원 (순수 텍스트 255자, HTML 태그 포함 최대 1000자)
 
     @NotNull
     @Column(nullable = false)
@@ -63,7 +64,7 @@ public class Comment extends BaseEntity {
      *
      * @param post     댓글이 달릴 게시글
      * @param member     댓글 작성자 (익명 댓글인 경우 null)
-     * @param content  댓글 내용
+     * @param content  댓글 내용 (HTML 형식, 순수 텍스트 기준 최대 255자, HTML 태그 포함 최대 1000자)
      * @param password 댓글 비밀번호 (회원 댓글인 경우 null)
      * @return 생성된 댓글 엔티티
      * @author Jaeik
@@ -83,7 +84,7 @@ public class Comment extends BaseEntity {
      * <h3>댓글 수정</h3>
      * <p>댓글 내용을 수정합니다.</p>
      *
-     * @param content 수정할 댓글 내용
+     * @param content 수정할 댓글 내용 (HTML 형식, 순수 텍스트 기준 최대 255자, HTML 태그 포함 최대 1000자)
      * @author Jaeik
      * @since 2.0.0
      */
