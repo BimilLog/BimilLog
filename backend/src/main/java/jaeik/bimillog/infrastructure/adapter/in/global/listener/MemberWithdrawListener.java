@@ -86,9 +86,7 @@ public class MemberWithdrawListener {
         // 알림 삭제
         notificationCommandUseCase.deleteAllNotification(memberId);
 
-        // 모든 FCM 토큰 제거
-        fcmUseCase.deleteFcmTokens(memberId, null);
-
+        // 모든 FCM 토큰은 DB레벨 CasCade로 member 삭제 시 동시 삭제
         // 모든 AuthToken 제거
         authTokenUseCase.deleteTokens(memberId, null);
 
