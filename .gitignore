@@ -85,37 +85,6 @@ replay_pid*
 /commits.txt
 /.mcp.json
 
-### Terraform ###
-# State files (contains secrets, passwords, API keys)
-**/*.tfstate
-**/*.tfstate.*
-**/*.tfstate.backup
-
-# Terraform directory (binary, cache)
-**/.terraform/
-**/.terraform.lock.hcl
-
-# Variable files (may contain sensitive data)
-**/*.tfvars
-**/*.tfvars.json
-
-# Override files
-**/override.tf
-**/override.tf.json
-**/*_override.tf
-**/*_override.tf.json
-
-# CLI configuration files
-**/.terraformrc
-**/terraform.rc
-
-# Crash log files
-**/crash.log
-**/crash.*.log
-
-# Ignore Terraform plan output files
-**/*.tfplan
-
 # Ignore CLI configuration files
 **/.terraform.d/
 /terraform/

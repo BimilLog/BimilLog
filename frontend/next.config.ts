@@ -152,7 +152,20 @@ const nextConfig = withPWA(pwaConfig)({
         ];
     },
     images: {
-        domains: ['k.kakaocdn.net', 'p.kakaocdn.net', 't1.kakaocdn.net'],
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'k.kakaocdn.net',
+            },
+            {
+                protocol: 'https',
+                hostname: 'p.kakaocdn.net',
+            },
+            {
+                protocol: 'https',
+                hostname: 't1.kakaocdn.net',
+            },
+        ],
         formats: ['image/avif', 'image/webp'],
         deviceSizes: [640, 768, 1024, 1280, 1536],
         imageSizes: [16, 32, 48, 64, 96, 128, 256],

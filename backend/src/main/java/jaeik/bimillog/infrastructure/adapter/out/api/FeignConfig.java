@@ -2,9 +2,14 @@ package jaeik.bimillog.infrastructure.adapter.out.api;
 
 import feign.Logger;
 import feign.codec.ErrorDecoder;
+import feign.Util;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * <h2>OpenFeign 설정 클래스</h2>
@@ -14,6 +19,7 @@ import org.springframework.context.annotation.Configuration;
  * @author Jaeik
  * @version 2.0.0
  */
+@Slf4j
 @Configuration
 @EnableFeignClients(basePackages = "jaeik.bimillog.infrastructure.adapter.out.api")
 public class FeignConfig {
@@ -42,6 +48,14 @@ public class FeignConfig {
     @Bean
     public ErrorDecoder errorDecoder() {
         return (methodKey, response) -> {
+            String responseBody = extractBody(response);
+            log.warn("Feign 호출 실패 - methodKey: {}, status: {}, reason: {}, url: {}, body: {}",
+                    methodKey,
+                    response.status(),
+                    response.reason(),
+                    response.request() != null ? response.request().url() : "unknown",
+                    responseBody);
+
             return switch (response.status()) {
                 case 400 -> new RuntimeException("Bad Request: " + methodKey);
                 case 401 -> new RuntimeException("Unauthorized: " + methodKey);
@@ -51,5 +65,20 @@ public class FeignConfig {
                 default -> new RuntimeException("HTTP Error " + response.status() + ": " + methodKey);
             };
         };
+    }
+
+    private String extractBody(feign.Response response) {
+        if (response.body() == null) {
+            return "no response body";
+        }
+
+        try (var reader = response.body().asReader(StandardCharsets.UTF_8)) {
+            return Util.toString(reader);
+        } catch (IOException ioException) {
+            log.warn("Feign 응답 본문 읽기 실패 - url: {}, message: {}",
+                    response.request() != null ? response.request().url() : "unknown",
+                    ioException.getMessage());
+            return "failed to read response body";
+        }
     }
 }

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components";
 import { Button } from "@/components";
 import { TimeBadge } from "@/components";
-import { Clock, Heart, X, Trash2, Lightbulb } from "lucide-react";
+import { X, Trash2} from "lucide-react";
 import Link from "next/link";
 import {
   getRecentVisits,
@@ -46,7 +46,6 @@ export const RecentVisits: React.FC = () => {
       <CardHeader className="text-center pb-4">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center space-x-2 text-lg bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-            <Clock className="w-5 h-5 stroke-indigo-600 fill-indigo-100" />
             <span className="font-bold">최근 방문한 롤링페이퍼</span>
           </CardTitle>
           <Button
@@ -58,7 +57,6 @@ export const RecentVisits: React.FC = () => {
             <Trash2 className="w-4 h-4" />
           </Button>
         </div>
-        <p className="text-brand-muted text-xs mt-2">클릭하여 다시 방문하세요</p>
       </CardHeader>
       <CardContent className="p-4 space-y-4">
         <div className="space-y-3">
@@ -69,19 +67,12 @@ export const RecentVisits: React.FC = () => {
             >
               <Link
                 href={`/rolling-paper/${visit.nickname}`}
-                className="flex items-center space-x-3 flex-1 min-w-0 hover:text-blue-600 transition-colors"
+                className="flex items-center justify-between flex-1 min-w-0 hover:text-blue-600 transition-colors"
               >
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-full flex items-center justify-center flex-shrink-0">
-                  <Heart className="w-5 h-5 stroke-red-500 fill-red-100" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-brand-primary text-sm truncate">
-                    {visit.displayName}님의 롤링페이퍼
-                  </p>
-                  <div className="mt-1">
-                    <TimeBadge dateString={visit.visitedAt} size="xs" />
-                  </div>
-                </div>
+                <p className="font-semibold text-brand-primary text-sm truncate">
+                  {visit.displayName}님의 롤링페이퍼
+                </p>
+                <TimeBadge dateString={visit.visitedAt} size="xs" />
               </Link>
               <Button
                 variant="ghost"
@@ -101,8 +92,7 @@ export const RecentVisits: React.FC = () => {
         {/* 로컬스토리지 저장 정책 안내 메시지 */}
         <div className="mt-4 pt-3 border-t border-gray-200">
           <p className="text-xs text-brand-secondary text-center flex items-center justify-center space-x-1">
-            <Lightbulb className="w-3 h-3 stroke-yellow-500 fill-yellow-100" />
-            <span>최근 방문한 롤링페이퍼</span>
+            <span>클릭하여 다시 방문하세요</span>
           </p>
         </div>
       </CardContent>
