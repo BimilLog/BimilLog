@@ -21,7 +21,7 @@ const TabsList = React.memo(({ className, ...props }: React.ComponentProps<typeo
     <TabsPrimitive.List
       data-slot="tabs-list"
       className={cn(
-        "flex h-10 items-center justify-center rounded-lg p-1 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700",
+        "flex h-10 items-center justify-center rounded-lg p-0.5 sm:p-1 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700",
         className
       )}
       {...props}
@@ -35,11 +35,11 @@ const TabsTrigger = React.memo(({ className, ...props }: React.ComponentProps<ty
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
       className={cn(
-        "inline-flex h-8 flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "inline-flex h-8 flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-1.5 sm:px-3 py-1.5 text-[10px] sm:text-sm font-medium transition-all focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         "text-gray-700 hover:text-gray-900",
-        "data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm data-[state=active]:border-gray-200",
+        "data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:font-bold data-[state=active]:shadow-md data-[state=active]:border-purple-200 data-[state=active]:ring-1 data-[state=active]:ring-purple-300 data-[state=active]:scale-[1.02]",
         "dark:text-gray-300 dark:hover:text-gray-100",
-        "dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white dark:data-[state=active]:border-gray-600",
+        "dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white dark:data-[state=active]:font-bold dark:data-[state=active]:border-purple-600 dark:data-[state=active]:ring-purple-500",
         className
       )}
       {...props}

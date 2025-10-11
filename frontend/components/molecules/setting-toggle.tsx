@@ -10,7 +10,6 @@ interface SettingToggleProps {
   onChange: (checked: boolean) => void;
   disabled?: boolean;
   saving?: boolean;
-  saved?: boolean;
   gradient?: string;
   className?: string;
 }
@@ -23,7 +22,6 @@ export const SettingToggle: React.FC<SettingToggleProps> = ({
   onChange,
   disabled = false,
   saving = false,
-  saved = false,
   gradient = "from-gray-500 to-gray-600",
   className,
 }) => (

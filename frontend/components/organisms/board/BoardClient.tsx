@@ -20,7 +20,6 @@ import { BoardTabs } from "@/components/organisms/board/BoardTabs";
 function BoardClient() {
   const [activeTab, setActiveTab] = useState("all");
   const [postsPerPage, setPostsPerPage] = useState("30");
-  const [isTabChanging, setIsTabChanging] = useState(false);
 
   // 게시판 데이터 관리
   const {
@@ -52,10 +51,9 @@ function BoardClient() {
 
   const { currentPage, setPageSize, setCurrentPage } = pagination;
 
-  // 탭 변경 핸들러 메모이제이션 - 로딩 상태 즉시 표시
+  // 탭 변경 핸들러 메모이제이션
   // 메인 탭(all/realtime/popular/legend)과 인기글 탭(realtime/weekly/legend) 동기화
   const handleTabChange = useCallback((tab: string) => {
-    setIsTabChanging(true); // 탭 전환 시 즉시 로딩 표시
     setActiveTab(tab);
 
     // 메인 탭에 따라 인기글 데이터 API 호출 타입 변경
@@ -64,9 +62,6 @@ function BoardClient() {
     } else if (tab === 'legend') {
       setPopularTab('legend');
     }
-
-    // 다음 틱에서 로딩 플래그 해제
-    setTimeout(() => setIsTabChanging(false), 100);
   }, [setPopularTab]);
 
   // 탭 변경 시 메인 데이터 조회 - '전체' 탭일 때만 일반 게시글 API 호출
@@ -128,7 +123,7 @@ function BoardClient() {
           legendPosts={legendPosts}
           legendPagination={legendPagination}
           noticePosts={noticePosts}
-          popularLoading={popularLoading || isTabChanging}
+          popularLoading={popularLoading}
           popularError={popularError}
         />
 

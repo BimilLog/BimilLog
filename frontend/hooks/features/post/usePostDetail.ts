@@ -1,18 +1,14 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from "next/navigation";
 import { useQuery } from '@tanstack/react-query';
-import { postQuery, commentQuery } from '@/lib/api';
+import { postQuery } from '@/lib/api';
 import { queryKeys } from '@/lib/tanstack-query/keys';
 import { useAuth, useToast, usePasswordModal } from '@/hooks';
-import { usePopularComments } from '@/hooks/api/useCommentQueries';
+import { usePopularComments, useCommentsQuery, type CommentWithReplies } from '@/hooks/api/useCommentQueries';
 import type { Post } from '@/types/domains/post';
 import type { Comment } from '@/types/domains/comment';
-
-export interface CommentWithReplies extends Comment {
-  replies?: CommentWithReplies[];
-}
 
 // 게시글 상세 조회 (간단한 버전) - TanStack Query 통합
 export function usePostDetailQuery(postId: number, initialPost?: Post) {
@@ -41,13 +37,13 @@ export function usePostDetail(id: string | null, initialPost?: Post) {
   const { data: popularCommentsData } = usePopularComments(postId);
   const popularComments = popularCommentsData?.data || [];
 
-  // Comment 상태
-  const [comments, setComments] = useState<CommentWithReplies[]>([]);
-
-  // Pagination 상태
-  const [currentPage, setCurrentPage] = useState(0);
-  const [hasMoreComments, setHasMoreComments] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  // TanStack Query - 댓글 목록 조회 (무한 스크롤)
+  const {
+    comments,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useCommentsQuery(postId);
 
   // usePasswordModal 훅으로 모달 상태 관리 통합
   const passwordModal = usePasswordModal();
@@ -63,92 +59,12 @@ export function usePostDetail(id: string | null, initialPost?: Post) {
     }
   }, [error, isLoading, showError, router]);
 
-  // 트리 구조를 평면 배열로 변환: 페이지네이션 시 기존 댓글 보존을 위해 필요
-  const flattenComments = useCallback((comments: CommentWithReplies[]): Comment[] => {
-    const result: Comment[] = [];
-
-    const flatten = (comment: CommentWithReplies) => {
-      result.push(comment);
-      if (comment.replies && comment.replies.length > 0) {
-        comment.replies.forEach(flatten);
-      }
-    };
-
-    comments.forEach(flatten);
-    return result;
-  }, []);
-
-  // 댓글 트리 구조 빌드: parentId를 기반으로 평면 배열을 계층 구조로 변환
-  const buildCommentTree = useCallback((comments: Comment[]): CommentWithReplies[] => {
-    const commentMap = new Map<number, CommentWithReplies>();
-    const rootComments: CommentWithReplies[] = [];
-
-    // 모든 댓글을 Map에 저장하여 빠른 조회가 가능하도록 함
-    comments.forEach((comment) => {
-      commentMap.set(comment.id, { ...comment, replies: [] });
-    });
-
-    // 부모-자식 관계 설정: parentId가 있으면 해당 부모의 replies에 추가
-    comments.forEach((comment) => {
-      // 클로저 테이블에서 루트 댓글은 parentId가 자기 자신을 가리키거나 null
-      if (!comment.parentId || comment.parentId === comment.id) {
-        // parentId가 없거나 자기 자신을 가리키는 경우만 루트로 처리
-        rootComments.push(commentMap.get(comment.id)!);
-      } else if (commentMap.has(comment.parentId)) {
-        // parentId가 존재하고 부모 댓글이 Map에 있는 경우 자식으로 추가
-        const parent = commentMap.get(comment.parentId)!;
-        const child = commentMap.get(comment.id)!;
-        parent.replies!.push(child);
-      }
-    });
-
-    return rootComments;
-  }, []);
-
-
-  const loadMoreComments = useCallback(async () => {
-    if (!id || isLoadingMore || !hasMoreComments) return;
-
-    setIsLoadingMore(true);
-    const nextPage = currentPage + 1;
-
-    try {
-      const commentsResponse = await commentQuery.getByPostId(Number(id), nextPage);
-
-      if (commentsResponse.success && commentsResponse.data) {
-        const newComments = commentsResponse.data.content;
-
-        if (newComments.length > 0) {
-          // 1. 기존 트리를 평면 배열로 변환 (replies 보존)
-          const existingFlat = flattenComments(comments);
-
-          // 2. 기존 + 새 댓글 합치기 (중복 제거)
-          const allComments = [...existingFlat, ...newComments].reduce((acc, comment) => {
-            const exists = acc.find((c) => c.id === comment.id);
-            if (!exists) acc.push(comment);
-            return acc;
-          }, [] as Comment[]);
-
-          // 3. 평면 배열을 트리 구조로 재구성
-          const treeComments = buildCommentTree(allComments);
-          setComments(treeComments);
-          setCurrentPage(nextPage);
-
-          // PageResponse.last 속성으로 종료 조건 판단
-          setHasMoreComments(!commentsResponse.data.last);
-        } else {
-          setHasMoreComments(false);
-        }
-      } else {
-        setHasMoreComments(false);
-      }
-    } catch (error) {
-      setHasMoreComments(false);
-      showError("댓글 로딩 실패", "잠시 후 다시 시도해주세요.");
-    } finally {
-      setIsLoadingMore(false);
+  // 댓글 더보기 핸들러
+  const loadMoreComments = () => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
     }
-  }, [id, currentPage, hasMoreComments, isLoadingMore, comments, flattenComments, buildCommentTree, showError]);
+  };
 
   const getTotalCommentCount = (
     comments: (Comment & { replies?: Comment[] })[]
@@ -191,34 +107,7 @@ export function usePostDetail(id: string | null, initialPost?: Post) {
     return isAuthenticated && user?.memberName === comment.memberName;
   };
 
-  // Effects
-  useEffect(() => {
-    if (!id) return;
-
-    const loadComments = async () => {
-      try {
-        const commentsResponse = await commentQuery.getByPostId(Number(id), 0);
-
-        if (commentsResponse.success && commentsResponse.data) {
-          const treeComments = buildCommentTree(commentsResponse.data.content);
-          setComments(treeComments);
-
-          // 페이지네이션 상태 초기화 - PageResponse.last 활용
-          setCurrentPage(0);
-          setHasMoreComments(!commentsResponse.data.last);
-        } else {
-          setComments([]);
-          setHasMoreComments(false);
-        }
-      } catch (error) {
-        setComments([]);
-        setHasMoreComments(false);
-        showError("댓글 로딩 실패", "잠시 후 다시 시도해주세요.");
-      }
-    };
-
-    loadComments();
-  }, [id, buildCommentTree, showError]);
+  // 게시글 조회 에러만 처리 (댓글은 useCommentsQuery에서 자동 관리)
 
   return {
     // Data
@@ -228,8 +117,8 @@ export function usePostDetail(id: string | null, initialPost?: Post) {
     loading: isLoading,
 
     // Pagination state
-    hasMoreComments,
-    isLoadingMore,
+    hasMoreComments: hasNextPage,
+    isLoadingMore: isFetchingNextPage,
 
     // Modal state (새로운 API + Legacy 호환성)
     showPasswordModal: passwordModal.showPasswordModal,

@@ -137,21 +137,6 @@ export const EmptyState = React.memo<EmptyStateProps>(({
 
   const icon = getIconWithColors();
 
-  // 장식용 이모지들
-  const decorativeEmojis = {
-    posts: ["✨", "📝", "💭"],
-    comments: ["💬", "🎈", "✨"],
-    "liked-posts": ["💖", "✨", "🌟"],
-    "liked-comments": ["👍", "💫", "✨"],
-    messages: ["💌", "💖", "🌸"],
-    search: ["🔍", "🌟", "✨"],
-    error: ["😅", "🔧", "⚡"],
-    offline: ["📡", "🌐", "💫"],
-    custom: ["✨", "💫", "🌟"],
-  };
-
-  const emojis = decorativeEmojis[type] || decorativeEmojis.custom;
-
   if (variant === "cute" || variant === "playful") {
     return (
       <div
@@ -161,17 +146,6 @@ export const EmptyState = React.memo<EmptyStateProps>(({
           className
         )}
       >
-        {/* 떠다니는 장식 요소들 */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-8 left-8 text-2xl opacity-30 animate-float">{emojis[0]}</div>
-          <div className="absolute top-16 right-12 text-xl opacity-25 animate-bounce-cute" style={{ animationDelay: "0.5s" }}>
-            {emojis[1]}
-          </div>
-          <div className="absolute bottom-16 left-12 text-lg opacity-20 animate-pulse-cute" style={{ animationDelay: "1s" }}>
-            {emojis[2]}
-          </div>
-        </div>
-
         {/* 메인 일러스트레이션 */}
         <div className="mb-8 relative">
           <div className="w-24 h-24 mx-auto mb-6 bg-brand-button rounded-3xl flex items-center justify-center shadow-brand-lg animate-pulse-cute">

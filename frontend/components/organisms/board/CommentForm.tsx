@@ -66,7 +66,7 @@ export const CommentForm: React.FC<CommentFormProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* 댓글 내용 입력 */}
           <div className="space-y-2">
-            <LazyEditor value={comment} onChange={setComment} height={200} />
+            <LazyEditor value={comment} onChange={setComment} />
 
             <div className="flex items-center justify-between">
               <p className="text-xs text-brand-secondary flex items-center space-x-1">

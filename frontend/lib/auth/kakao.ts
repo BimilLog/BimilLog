@@ -99,7 +99,8 @@ export const generateKakaoConsentUrl = (): string => {
 };
 
 /**
- * 카카오 친구 동의를 위한 로그아웃 후 리다이렉트
+ * 카카오 친구 동의를 위한 로그아웃 후 리다이렉트 (레거시)
+ * @deprecated 로그아웃 없이 redirectToKakaoConsentOnly() 사용 권장
  */
 // 친구 동의 처리의 복잡한 플로우: 로그아웃 → 카카오 동의 → 로그인 → 원래 페이지 복귀
 export const logoutAndRedirectToConsent = (): void => {
@@ -115,6 +116,29 @@ export const logoutAndRedirectToConsent = (): void => {
     // 3단계: 특별한 로그아웃 처리 (consent=true 플래그로 일반 로그아웃과 구분)
     // 이 플래그로 로그아웃 페이지에서 일반적인 홈 리다이렉트가 아닌 동의 플로우를 진행
     window.location.href = '/logout?consent=true';
+
+  } catch (error) {
+    logger.error('카카오 동의 처리 실패:', error);
+    throw error;
+  }
+};
+
+/**
+ * 카카오 친구 동의를 위한 직접 리다이렉트 (로그아웃 없이)
+ * 이미 로그인된 상태에서 추가 scope만 동의받는 간소화된 플로우
+ */
+export const redirectToKakaoConsentOnly = (): void => {
+  try {
+    const consentUrl = generateKakaoConsentUrl();
+
+    // 1단계: 친구 동의 플로우임을 표시 (콜백에서 구분하기 위함)
+    sessionStorage.setItem('friendsConsentFlow', 'true');
+
+    // 2단계: 현재 페이지 저장 (동의 완료 후 돌아올 위치)
+    sessionStorage.setItem('returnUrl', window.location.pathname);
+
+    // 3단계: 로그아웃 없이 바로 카카오 동의 페이지로 이동
+    window.location.href = consentUrl;
 
   } catch (error) {
     logger.error('카카오 동의 처리 실패:', error);

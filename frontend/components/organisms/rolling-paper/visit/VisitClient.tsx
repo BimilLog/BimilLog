@@ -47,7 +47,6 @@ export function VisitClient() {
     searchNickname,
     setSearchNickname,
     isSearching,
-    searchError,
     handleSearch,
     isOwnNickname,
     confirmOwnNicknameSearch,
@@ -143,7 +142,6 @@ export function VisitClient() {
           searchNickname={searchNickname}
           setSearchNickname={setSearchNickname}
           isSearching={isSearching}
-          searchError={searchError}
           onSearch={handleSearch}
         />
 

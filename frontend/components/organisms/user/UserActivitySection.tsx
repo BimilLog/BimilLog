@@ -2,7 +2,7 @@
 
 import React, { useCallback, useMemo, memo, useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { Card, CardContent } from "@/components";
+import { Card, CardContent, SafeHTML } from "@/components";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components";
 import { Badge } from "@/components";
 import { Button } from "@/components";
@@ -25,17 +25,15 @@ import {
 } from "flowbite-react";
 import { logger, formatNumber } from "@/lib/utils";
 import { formatKoreanDate } from "@/lib/utils/date";
-import type { Post, SimplePost } from "@/types/domains/post";
-import type { Comment, SimpleComment } from "@/types/domains/comment";
-
-type ActivityItem = Post | SimplePost | Comment | SimpleComment;
+import type { SimplePost } from "@/types/domains/post";
+import type { SimpleComment } from "@/types/domains/comment";
 
 const DEFAULT_PAGE = 0;
 const DEFAULT_PAGE_SIZE = 10;
 
 interface ActivityTabContentProps {
   fetchData: (page?: number, size?: number) => Promise<{
-    content: unknown[];
+    content: Array<{ id: string | number }>;
     totalElements: number;
     totalPages: number;
     currentPage: number;
@@ -279,7 +277,7 @@ const ActivityTabContent: React.FC<ActivityTabContentProps> = memo(({
                     className="bg-white dark:border-gray-700 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
                   >
                     <TableCell className="w-[50%] whitespace-normal font-medium text-gray-900 dark:text-white">
-                      <div className="line-clamp-2">{comment.content}</div>
+                      <SafeHTML html={comment.content} className="line-clamp-2" />
                       <div className="md:hidden mt-1 text-xs text-gray-500">
                         {formatKoreanDate(comment.createdAt)}
                       </div>
@@ -378,22 +376,22 @@ const UserActivitySectionComponent: React.FC<UserActivitySectionProps> = ({ clas
   const tabConfig = useMemo(() => ([
     {
       value: "my-posts",
-      label: { desktop: "작성한 글", mobile: "글" },
+      label: { desktop: "작성글", mobile: "글" },
       contentType: "posts" as const
     },
     {
       value: "my-comments",
-      label: { desktop: "작성한 댓글", mobile: "댓글" },
+      label: { desktop: "작성댓글", mobile: "댓글" },
       contentType: "comments" as const
     },
     {
       value: "liked-posts",
-      label: { desktop: "추천한 글", mobile: "추천글" },
+      label: { desktop: "추천글", mobile: "추천글" },
       contentType: "liked-posts" as const
     },
     {
       value: "liked-comments",
-      label: { desktop: "추천한 댓글", mobile: "추천댓글" },
+      label: { desktop: "추천댓글", mobile: "추천댓글" },
       contentType: "liked-comments" as const
     }
   ]), []);
@@ -497,14 +495,14 @@ const UserActivitySectionComponent: React.FC<UserActivitySectionProps> = ({ clas
     <Card variant="elevated" className={className || ""}>
       <CardContent className="p-6">
         <Tabs defaultValue="my-posts" className="w-full">
-          <TabsList className="w-full">
+          <TabsList className="w-full gap-0.5 sm:gap-1 flex-nowrap overflow-x-auto">
             {tabConfig.map(({ value, label }) => (
               <TabsTrigger
                 key={value}
                 value={value}
-                className="flex-1"
+                className="flex-1 whitespace-nowrap"
               >
-                <span className="max-sm:hidden">{label.desktop}</span>
+                <span className="hidden sm:inline">{label.desktop}</span>
                 <span className="sm:hidden">{label.mobile}</span>
               </TabsTrigger>
             ))}

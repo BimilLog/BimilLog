@@ -2,14 +2,13 @@
 
 import React from "react";
 import { Button, Card, Input } from "@/components";
-import { Search, AlertCircle } from "lucide-react";
+import { Search } from "lucide-react";
 import { Spinner as FlowbiteSpinner } from "flowbite-react";
 
 interface SearchSectionProps {
   searchNickname: string;
   setSearchNickname: (nickname: string) => void;
   isSearching: boolean;
-  searchError: string;
   onSearch: () => void;
 }
 
@@ -17,7 +16,6 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
   searchNickname,
   setSearchNickname,
   isSearching,
-  searchError,
   onSearch,
 }) => {
   // 검색 실행 핸들러
@@ -67,16 +65,6 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
             </Button>
           </div>
         </div>
-
-        {/* 검색 에러 메시지 표시 (닉네임을 찾을 수 없거나 네트워크 오류 시) */}
-        {searchError && (
-          <div className="flex items-start space-x-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-            <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
-            <div className="text-sm text-red-800">
-              <p>{searchError}</p>
-            </div>
-          </div>
-        )}
 
         <Button
           onClick={executeSearch}

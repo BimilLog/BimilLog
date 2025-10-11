@@ -325,8 +325,8 @@ export const BoardTable = memo<BoardTableProps>(({
     );
   }
 
-  // 로딩 상태 처리
-  if (isLoading) {
+  // 로딩 상태 처리 - 이전 데이터가 없을 때만 스켈레톤 표시
+  if (isLoading && posts.length === 0) {
     return (
       <>
         {/* 데스크톱 로딩 스켈레톤 */}

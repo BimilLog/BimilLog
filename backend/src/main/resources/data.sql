@@ -404,41 +404,6 @@ VALUES
     (102, 43, 1), (103, 43, 3), (104, 43, 4),  -- 댓글 43번
     (105, 44, 1), (106, 44, 2);             -- 댓글 44번
 
--- 롤링페이퍼 메시지 데이터 (x, y 컬럼 사용) - 암호화된 content
-INSERT INTO message (message_id, member_id, x, y, anonymity, content, deco_type, created_at, modified_at)
-VALUES
-    (1, 2, 0, 0, '농부', 'oXEYvoqn1bXQDWiwZS1b8/P9chdaVGVoQa+OqGOwmyULLxy4/ROg8QjvoWhKN6cUKu2G5VlguEY0nPMhUjDLmhZMUxvgSRkWfoIqmQ+pTPIHOzUe6pcs7eB8JDdmdypEjCRHVvZy/UImwbxaTTm8vA==', 'STRAWBERRY', DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
-    (2, 2, 0, 1, '당근', 'dMY54tYCdd1lRuE2dzKWebeFNIYAaDQNLLg6N9F+txgutn/bTc4Hh9tB6+pkilUxrQc24WmYq1PnHC5pothjG2j6l+50GKLcF2l1P+M2i2nOdUJoEPEWCrHWIMFfQJfp', 'CARROT', DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
-    (3, 2, 0, 2, '커피', 'Wp/swJel1cUa0JZmYKCGxdY8q3/vI3uf+Lvj83nJVza5kjuKR7nAR2gWVW6QW2neWPdnf2Mb20fYf2dFI2dcMvFA702Hp3S8xaK7BOQT/h8=', 'COFFEE', DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY)),
-    (4, 2, 1, 0, '고양이', '+UPgH81T8oH/JdM5yBAZ8J9d/XYaS5zFa9W+Qb+S0KwH88UGS5XvnVjaPzRq8n/QkR0ItXO11k+Z9yn2pt9smF10er2QXnNSw8Qn3idqujlJ2gwBv+UHnOue07MpsCY8', 'CAT', DATE_SUB(NOW(6), INTERVAL 12 HOUR), DATE_SUB(NOW(6), INTERVAL 12 HOUR)),
-    (5, 2, 1, 1, '별빛', 'vpk43LiTn33AZIahk/Bkdrfeikmj4HFNy5/PYX03rtD2xIuGlazREeJ4ZP14EicJCIzhFTbyBt9/skvFDpb9WQ==', 'STAR', DATE_SUB(NOW(6), INTERVAL 6 HOUR), DATE_SUB(NOW(6), INTERVAL 6 HOUR)),
-
-    (6, 3, 0, 3, '사과', 'vct16trR+lcKu6WZe3fKUQDhBrIvv3IaNj9arbyMw3yT1Dol/XG4MvCmdvwfF+LyCvXwMjl+vpbat9nDsk7AuaJWtWsXVjczIGrwnr4txAvEhBOr7IDyHl5IQlYDctTi', 'APPLE', DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
-    (7, 3, 0, 4, '멍멍', 'C8MLY30ITER+6kNL62vAQ9Zcohv8RNjTnIDcK2Hl448Cmv1Rc/EYZc0giVee3vpZwui84PvPiBpWU+b/7P1AdZ+rCCgPIgsA9lCGVdv3+T4=', 'DOG', DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
-    (8, 3, 0, 5, '달빛', 'DEi6y1BYrryfJVYYi2pLPE+dV8/pXm+ksR0dSmQl6m+OQ0aMCr9FyOvFlo7k+y5xfLAgxie6KxkJLjBNjDdWdbwwR42BDNZN7G4ri4amv2s=', 'MOON', DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
-    (9, 3, 1, 3, '풍선', 'yc3c9B4g3dChnsK/NxW8sPOfyzG5QTuFMIpO45wiD8hKKic4HXjKBb4FoI+0QI+PNpCQbpL7MYpmJoDGeUayzqS0Ua1akFrJa5JQGs/Ck1Q=', 'BALLOON', DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY)),
-    (10, 3, 1, 4, '해바라', 'oogDmwzcTYhe9B+tEb/4wvYWmKf9WF2Nf8WV3wf1D1cjIYSBxr6PZkJVgm/xjRTLukJuBod6DCKzh2V0mNOLMw==', 'SUNFLOWER', DATE_SUB(NOW(6), INTERVAL 8 HOUR), DATE_SUB(NOW(6), INTERVAL 8 HOUR)),
-
-    (11, 4, 2, 0, '용용', 'kPqh+eGx/xXCZebRvMQSmsXYcyog/aX0lHH54i6KmgR4EUv1nuHxKpZGRmY7uxaP0taL9I0lYyB4IJ7GESDN3dQ84+RHlQ2ezdjRg4KMUDlfFYhX4ZTj6wqJfw8j5amDIoioijAStHWw1PFwqQlzgA==', 'DRAGON', DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
-    (12, 4, 2, 1, '천사', 'Swc6933Sj9qA1x4vlm5RZLp1FEpbeQlUfkL2DoGUWU4q7YblWWC4RjSc8yFSMMua7nrN0brJeAN/YLBokRKrjXNTMoGwpG9vCNnssGurFaw=', 'ANGEL', DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
-    (13, 4, 2, 2, '불새', 'aLWa04MllNYa9DIO2TvO34SDVUF5/q0dGLubE19h4CjVV3UqrNh8i5xSu5TWmCY5dIuuKzR7KbJ10/tbILx+ywwtHvORBnDLnDwE2ftq7Wc=', 'PHOENIX', DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
-    (14, 4, 2, 3, '왕관', 'LVoSznMzfeX7KTRfNOxYbR2hyAm4/Y1FDQwWy7AkTz9lfCzayutPyO2OiSq98incGpUdGqfLmx94tjhhzIZml6S0Ua1akFrJa5JQGs/Ck1Q=', 'STAR', DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
-    (15, 4, 2, 4, '무지개', 'H98D1yYWvFAmnJBHJ8xP5DsoulerLLZErer4DxM1XBFQbLkRZaYsqMb08bZXZ+HJfjnzJ4fMa/9/N+FJrV52aQ==', 'RAINBOW', DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY));
-
--- 사용자1(비밀로그개발자)의 롤링페이퍼 메시지 (다른 사용자들이 작성) (10개)
-INSERT INTO message (message_id, member_id, x, y, anonymity, content, deco_type, created_at, modified_at)
-VALUES
-    (16, 1, 0, 5, '감사하는사람', 'oXEYvoqn1bXQDWiwZS1b8/P9chdaVGVoQa+OqGOwmyX8YWQy7KQKYbDGRYHfQi2+LLg6N9F+txgutn/bTc4Hh9tB6+pkilUx3B6QYQQ7yMjvoWhKN6cUKu2G5VlguEY0', 'STRAWBERRY', DATE_SUB(NOW(6), INTERVAL 10 DAY), DATE_SUB(NOW(6), INTERVAL 10 DAY)),
-    (17, 1, 0, 6, '응원합니다', 'dMY54tYCdd1lRuE2dzKWebeFNIYAaDQNLLg6N9F+txhKKic4HXjKBb4FoI+0QI+PNpCQbpL7MYpmJoDGeUayzutn/bTc4Hh9tB6+pkilUxrQc24WmYq1PnHC5pothjGw==', 'CARROT', DATE_SUB(NOW(6), INTERVAL 9 DAY), DATE_SUB(NOW(6), INTERVAL 9 DAY)),
-    (18, 1, 0, 7, '팬입니다', 'Wp/swJel1cUa0JZmYKCGxdY8q3/vI3uf+Lvj83nJVzaT1Dol/XG4MvCmdvwfF+LyCvXwMjl+vpbat9nDsk7AuWPdnf2Mb20fYf2dFI2dcMvFA702Hp3S8xaK7BOQT/h8=', 'COFFEE', DATE_SUB(NOW(6), INTERVAL 8 DAY), DATE_SUB(NOW(6), INTERVAL 8 DAY)),
-    (19, 1, 1, 8, '최고개발자', '+UPgH81T8oH/JdM5yBAZ8J9d/XYaS5zFa9W+Qb+S0KxOQ0aMCr9FyOvFlo7k+y5xfLAgxie6KxkJLjBNjDdWdVjaPzRq8n/QkR0ItXO11k+Z9yn2pt9smF10er2QXnNS', 'CAT', DATE_SUB(NOW(6), INTERVAL 7 DAY), DATE_SUB(NOW(6), INTERVAL 7 DAY)),
-    (20, 1, 2, 9, '고마워요', 'vpk43LiTn33AZIahk/Bkdrfeikmj4HFNy5/PYX03rtCOQ0aMCr9FyOvFlo7k+y5xfLAgxie6KxkJLjBNjDdWdQ==', 'STAR', DATE_SUB(NOW(6), INTERVAL 6 DAY), DATE_SUB(NOW(6), INTERVAL 6 DAY)),
-    (21, 1, 3, 5, '존경합니다', 'vct16trR+lcKu6WZe3fKUQDhBrIvv3IaNj9arbyMw3yxaK7BOQT/h8T1Dol/XG4MvCmdvwfF+LyCvXwMjl+vpbat9nDsk7AuaJWtWsXVjczIGrwnr4txAvEhBOr7IDyH', 'APPLE', DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
-    (22, 1, 4, 6, '항상응원', 'C8MLY30ITER+6kNL62vAQ9Zcohv8RNjTnIDcK2Hl448Q0aMCr9FyOvFlo7k+y5xfLAgxie6KxkJCmv1Rc/EYZc0giVee3vpZwui84PvPiBpWU+b/7P1AdZ+rCCgPIgsA', 'DOG', DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
-    (23, 1, 5, 7, '멋진개발자', 'DEi6y1BYrryfJVYYi2pLPE+dV8/pXm+ksR0dSmQl6m/FA702Hp3S8xaK7BOQT/h8+OQ0aMCr9FyOvFlo7k+y5xfLAgxie6KxkJLjBNjDdWdbwwR42BDNZN7G4ri4amv2s=', 'MOON', DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
-    (24, 1, 6, 8, '건강하세요', 'yc3c9B4g3dChnsK/NxW8sPOfyzG5QTuFMIpO45wiD8hT1Dol/XG4MvCmdvwfF+LyCvXwMjl+vpbat9nDhKKic4HXjKBb4FoI+0QI+PNpCQbpL7MYpmJoDGeUayzqS0Ua', 'BALLOON', DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
-    (25, 1, 6, 9, '감사드려요', 'oogDmwzcTYhe9B+tEb/4wvYWmKf9WF2Nf8WV3wf1D1dY8q3/vI3uf+Lvj83nJVzcjIYSBxr6PZkJVgm/xjRTLukJuBod6DCKzh2V0mNOLMw==', 'SUNFLOWER', DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY));
-
 -- 신고 데이터 (각 신고 유형별로)
 INSERT INTO report (report_id, member_id, report_type, target_id, content, created_at, modified_at)
 VALUES

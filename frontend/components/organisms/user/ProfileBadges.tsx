@@ -405,7 +405,7 @@ export const ProfileBadges = React.memo(({ userStats }: ProfileBadgesProps) => {
           <Button
             onClick={handleLoadMore}
             variant="outline"
-            size="md"
+            size="default"
             className="w-full md:w-auto"
           >
             <ChevronDown className="w-4 h-4 mr-2" />

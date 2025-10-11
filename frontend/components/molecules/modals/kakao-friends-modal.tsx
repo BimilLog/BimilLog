@@ -22,7 +22,7 @@ import {
 } from "@/components";
 import { KakaoFriend } from "@/types/domains/user";
 import { logger } from '@/lib/utils/logger';
-import { logoutAndRedirectToConsent } from "@/lib/auth/kakao";
+import { redirectToKakaoConsentOnly } from "@/lib/auth/kakao";
 import { Users, MessageCircle, RefreshCw, AlertCircle, Loader2, Search, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useInfiniteUserFriendList } from "@/hooks/api/useUserQueries";
@@ -148,20 +148,19 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
 
   /**
    * 카카오 친구 목록 동의 처리 함수
-   * 사용자 확인 후 로그아웃 → 카카오 동의 페이지로 리다이렉트
-   * 동의 완료 후 자동으로 다시 로그인되는 플로우
+   * 사용자 확인 후 카카오 동의 페이지로 리다이렉트 (로그아웃 없음)
+   * 동의 완료 후 자동으로 원래 페이지로 복귀
    */
   const handleConsentClick = () => {
     try {
       // 사용자에게 동의 프로세스 안내
       const confirmed = window.confirm(
-        "카카오 친구 목록 접근 권한을 받기 위해 잠시 로그아웃됩니다.\n" +
-          "로그아웃 후 카카오 동의 페이지로 이동하시겠습니까?\n\n" +
-          "동의 완료 후 자동으로 다시 로그인됩니다."
+        "카카오 친구 목록 접근 권한을 받기 위해 카카오 동의 페이지로 이동합니다.\n\n" +
+          "동의 완료 후 자동으로 이 페이지로 돌아옵니다."
       );
 
       if (confirmed) {
-        logoutAndRedirectToConsent();
+        redirectToKakaoConsentOnly();
       }
     } catch (err) {
       logger.error("카카오 동의 처리 실패:", err);

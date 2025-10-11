@@ -1,5 +1,4 @@
 import React from "react";
-import Link from "next/link";
 import { Card, CardContent } from "@/components";
 import { Button } from "@/components";
 import { Alert, AlertDescription } from "@/components";
@@ -18,7 +17,6 @@ import {
   AlertTriangle,
   RefreshCw,
   Info,
-  ScrollText,
 } from "lucide-react";
 import { calculateActivityScore, getActivityLevel, getNextLevelThreshold } from "@/lib/utils/format";
 
@@ -227,18 +225,6 @@ export const UserStatsSection: React.FC<UserStatsProps> = ({
           </CardContent>
         </Card>
       </div>
-
-      {stats.totalMessages > 0 && (
-        <div className="mt-6 flex justify-center">
-          <Link
-            href="/rolling-paper"
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium h-11 px-8 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white transition-all duration-200 shadow-md hover:shadow-lg active:scale-[0.98]"
-          >
-            <ScrollText className="w-5 h-5 mr-2" />
-            내 롤링페이퍼 보기 ({stats.totalMessages}개)
-          </Link>
-        </div>
-      )}
     </div>
   );
 };

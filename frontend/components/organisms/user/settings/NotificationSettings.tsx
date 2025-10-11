@@ -12,6 +12,7 @@ interface NotificationSettingsProps {
   savingFields: Record<SettingField, boolean>;
   savedFields: Record<SettingField, boolean>;
   allEnabled: boolean;
+  isIndeterminate?: boolean;
   onSingleToggle: (
     field: keyof Pick<Setting, "messageNotification" | "commentNotification" | "postFeaturedNotification">,
     value: boolean
@@ -64,7 +65,6 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
           onChange={(value) => onSingleToggle("messageNotification", value)}
           disabled={saving}
           saving={savingFields.messageNotification}
-          saved={savedFields.messageNotification}
           gradient="from-pink-500 to-red-500"
         />
 
@@ -76,7 +76,6 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
           onChange={(value) => onSingleToggle("commentNotification", value)}
           disabled={saving}
           saving={savingFields.commentNotification}
-          saved={savedFields.commentNotification}
           gradient="from-green-500 to-teal-500"
         />
 
@@ -88,7 +87,6 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
           onChange={(value) => onSingleToggle("postFeaturedNotification", value)}
           disabled={saving}
           saving={savingFields.postFeaturedNotification}
-          saved={savedFields.postFeaturedNotification}
           gradient="from-orange-500 to-yellow-500"
         />
       </div>

@@ -3,7 +3,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useRouter } from "next/navigation";
 import { paperQuery } from '@/lib/api';
-import { useAuth } from '@/hooks';
+import { useAuth, useToast } from '@/hooks';
 import { ErrorHandler } from "@/lib/api/helpers";
 import { logger } from '@/lib/utils/logger';
 import type { DecoType } from '@/types/domains/paper';
@@ -84,7 +84,6 @@ interface UseRollingPaperSearchReturn {
   searchNickname: string;
   setSearchNickname: (nickname: string) => void;
   isSearching: boolean;
-  searchError: string;
   handleSearch: () => Promise<void>;
   isOwnNickname: boolean;
   confirmOwnNicknameSearch: () => void;
@@ -97,9 +96,9 @@ interface UseRollingPaperSearchReturn {
 export function useRollingPaperSearch(): UseRollingPaperSearchReturn {
   const { user } = useAuth();
   const router = useRouter();
+  const { showError } = useToast();
   const [searchNickname, setSearchNickname] = useState("");
   const [isSearching, setIsSearching] = useState(false);
-  const [searchError, setSearchError] = useState("");
   const [isOwnNickname, setIsOwnNickname] = useState(false);
 
   // 자신의 닉네임 검색 확인 후 리다이렉트
@@ -119,7 +118,6 @@ export function useRollingPaperSearch(): UseRollingPaperSearchReturn {
 
     const trimmedNickname = searchNickname.trim();
     setIsSearching(true); // 검색 상태 활성화 (UI에서 로딩 표시)
-    setSearchError(""); // 기존 에러 메시지 초기화
     setIsOwnNickname(false); // 이전 상태 초기화
 
     try {
@@ -137,42 +135,31 @@ export function useRollingPaperSearch(): UseRollingPaperSearchReturn {
         // 성공 시 해당 사용자의 롤링페이지 페이지로 라우팅
         router.push(`/rolling-paper/${trimmedNickname}`);
       } else {
-        // 사용자를 찾을 수 없는 경우: 에러 메시지 표시
-        const appError = ErrorHandler.mapApiError(new Error(response.error || "사용자를 찾을 수 없습니다"));
-        setSearchError(
-          appError.userMessage ||
+        // 사용자를 찾을 수 없는 경우: 토스트 메시지 표시
+        showError(
+          "닉네임이 존재하지 않습니다",
           "해당 닉네임의 롤링페이퍼를 찾을 수 없어요. 회원가입한 사용자의 롤링페이퍼만 존재합니다."
         );
       }
     } catch (error) {
       // 네트워크 에러 등 예상치 못한 에러 발생 시 처리
       logger.error("Search error:", error);
-      const appError = ErrorHandler.mapApiError(error);
-      setSearchError(appError.userMessage || "롤링페이퍼를 찾을 수 없어요.");
+      showError("롤링페이퍼 조회 실패", "롤링페이퍼를 찾을 수 없어요. 잠시 후 다시 시도해주세요.");
     } finally {
       setIsSearching(false); // 성공/실패 여부와 관계없이 로딩 상태 해제
     }
-  }, [searchNickname, user, router]);
-
-  // 닉네임 입력 시 기존 에러 메시지 자동 제거 (사용자 경험 개선)
-  const setSearchNicknameWithClear = useCallback((nickname: string) => {
-    setSearchNickname(nickname);
-    if (searchError) {
-      setSearchError(""); // 새로 입력할 때 에러 메시지 자동 제거
-    }
-  }, [searchError]);
+  }, [searchNickname, user, router, showError]);
 
   // 훅 반환값 메모이제이션 (불필요한 리렌더링 방지)
   const memoizedReturn = useMemo(() => ({
     searchNickname,
-    setSearchNickname: setSearchNicknameWithClear,
+    setSearchNickname,
     isSearching,
-    searchError,
     handleSearch,
     isOwnNickname,
     confirmOwnNicknameSearch,
     cancelOwnNicknameSearch,
-  }), [searchNickname, setSearchNicknameWithClear, isSearching, searchError, handleSearch, isOwnNickname, confirmOwnNicknameSearch, cancelOwnNicknameSearch]);
+  }), [searchNickname, isSearching, handleSearch, isOwnNickname, confirmOwnNicknameSearch, cancelOwnNicknameSearch]);
 
   return memoizedReturn;
 }

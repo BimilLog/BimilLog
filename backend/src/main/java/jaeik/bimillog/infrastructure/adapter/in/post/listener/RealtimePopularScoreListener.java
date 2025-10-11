@@ -2,6 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.in.post.listener;
 
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
+import jaeik.bimillog.domain.post.application.port.out.RedisPostDeletePort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostUpdatePort;
 import jaeik.bimillog.domain.post.event.PostLikeEvent;
 import jaeik.bimillog.domain.post.event.PostUnlikeEvent;
@@ -27,6 +28,7 @@ import org.springframework.stereotype.Component;
 public class RealtimePopularScoreListener {
 
     private final RedisPostUpdatePort redisPostUpdatePort;
+    private final RedisPostDeletePort redisPostDeletePort;
 
     private static final double VIEW_SCORE = 2.0;
     private static final double COMMENT_SCORE = 3.0;
@@ -74,7 +76,7 @@ public class RealtimePopularScoreListener {
 
     /**
      * <h3>게시글 추천 이벤트 처리</h3>
-     * <p>게시글 추천 시 실시간 인기글 점수를 4점 증가시킵니다.</p>
+     * <p>게시글 추천 시 실시간 인기글 점수를 4점 증가시키고 캐시를 무효화합니다.</p>
      * <p>PostLikeEvent 발행 시 비동기로 호출됩니다.</p>
      *
      * @param event 게시글 추천 이벤트
@@ -86,7 +88,8 @@ public class RealtimePopularScoreListener {
     public void handlePostLiked(PostLikeEvent event) {
         try {
             redisPostUpdatePort.incrementRealtimePopularScore(event.postId(), LIKE_SCORE);
-            log.debug("실시간 인기글 점수 증가 (추천): postId={}, score=+{}", event.postId(), LIKE_SCORE);
+            redisPostDeletePort.deleteSinglePostCache(event.postId());
+            log.debug("실시간 인기글 점수 증가 및 캐시 무효화 (추천): postId={}, score=+{}", event.postId(), LIKE_SCORE);
         } catch (Exception e) {
             log.error("실시간 인기글 점수 증가 실패 (추천): postId={}", event.postId(), e);
         }
@@ -94,7 +97,7 @@ public class RealtimePopularScoreListener {
 
     /**
      * <h3>게시글 추천 취소 이벤트 처리</h3>
-     * <p>게시글 추천 취소 시 실시간 인기글 점수를 4점 감소시킵니다.</p>
+     * <p>게시글 추천 취소 시 실시간 인기글 점수를 4점 감소시키고 캐시를 무효화합니다.</p>
      * <p>PostUnlikeEvent 발행 시 비동기로 호출됩니다.</p>
      *
      * @param event 게시글 추천 취소 이벤트
@@ -106,7 +109,8 @@ public class RealtimePopularScoreListener {
     public void handlePostUnliked(PostUnlikeEvent event) {
         try {
             redisPostUpdatePort.incrementRealtimePopularScore(event.postId(), -LIKE_SCORE);
-            log.debug("실시간 인기글 점수 감소 (추천 취소): postId={}, score=-{}", event.postId(), LIKE_SCORE);
+            redisPostDeletePort.deleteSinglePostCache(event.postId());
+            log.debug("실시간 인기글 점수 감소 및 캐시 무효화 (추천 취소): postId={}, score=-{}", event.postId(), LIKE_SCORE);
         } catch (Exception e) {
             log.error("실시간 인기글 점수 감소 실패 (추천 취소): postId={}", event.postId(), e);
         }
