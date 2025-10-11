@@ -86,9 +86,9 @@ jobs:
 
               # Deploy using docker-compose with environment variables
               cd /home/ubuntu
-              docker-compose down || true
-              docker-compose pull
-              docker-compose up -d
+              docker compose down || true
+              docker compose pull
+              docker compose up -d
             ENDSSH
 
       - name: Build and push frontend image
@@ -116,4 +116,3 @@ jobs:
             docker rm bimillog-frontend || true
             docker run -d --name bimillog-frontend -p 3000:3000 jaeikjeong/bimillog:frontend
             ENDSSH
-
