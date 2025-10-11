@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle, Input, Label, SafeHTML } from "@/components";
-import { Save, Lightbulb } from "lucide-react";
+import { Save } from "lucide-react";
 import { LazyEditor } from "@/lib/utils/lazy-components";
 import type { Member } from "@/types/domains/user";
 

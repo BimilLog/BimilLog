@@ -3,14 +3,15 @@
  * 사용자 활동에 따른 업적 뱃지 관리
  */
 
-import type { ActivityStats } from './activity-insights';
+import type { UserStats } from '@/hooks/features/user/useUserStats';
+import { calculateActivityScore } from './format';
 
 export interface Badge {
   id: string;
   name: string;
   description: string;
   icon: string; // Lucide icon name
-  category: 'activity' | 'social' | 'content' | 'special' | 'milestone';
+  category: 'post' | 'comment' | 'like' | 'paper' | 'milestone';
   tier: 'bronze' | 'silver' | 'gold' | 'platinum' | 'diamond';
   unlockedAt?: string;
   progress?: number; // 0-100
@@ -36,13 +37,13 @@ const BADGE_PROGRESS_KEY = 'bimillog_badge_progress';
  * 모든 가능한 뱃지 정의
  */
 export const ALL_BADGES: Badge[] = [
-  // 활동 뱃지
+  // 게시글 작성 뱃지
   {
     id: 'first_step',
     name: '첫 발걸음',
     description: '첫 게시글 작성',
     icon: 'Footprints',
-    category: 'activity',
+    category: 'post',
     tier: 'bronze',
     requirement: { type: 'posts_created', target: 1 },
   },
@@ -51,7 +52,7 @@ export const ALL_BADGES: Badge[] = [
     name: '초보 작가',
     description: '게시글 5개 작성',
     icon: 'PenTool',
-    category: 'content',
+    category: 'post',
     tier: 'bronze',
     requirement: { type: 'posts_created', target: 5 },
   },
@@ -60,7 +61,7 @@ export const ALL_BADGES: Badge[] = [
     name: '열정 작가',
     description: '게시글 20개 작성',
     icon: 'PenTool',
-    category: 'content',
+    category: 'post',
     tier: 'silver',
     requirement: { type: 'posts_created', target: 20 },
   },
@@ -69,9 +70,27 @@ export const ALL_BADGES: Badge[] = [
     name: '프로 작가',
     description: '게시글 50개 작성',
     icon: 'PenTool',
-    category: 'content',
+    category: 'post',
     tier: 'gold',
     requirement: { type: 'posts_created', target: 50 },
+  },
+  {
+    id: 'writer_platinum',
+    name: '베테랑 작가',
+    description: '게시글 100개 작성',
+    icon: 'PenTool',
+    category: 'post',
+    tier: 'platinum',
+    requirement: { type: 'posts_created', target: 100 },
+  },
+  {
+    id: 'writer_diamond',
+    name: '전설의 작가',
+    description: '게시글 200개 작성',
+    icon: 'PenTool',
+    category: 'post',
+    tier: 'diamond',
+    requirement: { type: 'posts_created', target: 200 },
   },
 
   // 댓글 뱃지
@@ -80,7 +99,7 @@ export const ALL_BADGES: Badge[] = [
     name: '대화 시작',
     description: '댓글 10개 작성',
     icon: 'MessageCircle',
-    category: 'social',
+    category: 'comment',
     tier: 'bronze',
     requirement: { type: 'comments_created', target: 10 },
   },
@@ -89,7 +108,7 @@ export const ALL_BADGES: Badge[] = [
     name: '활발한 토론가',
     description: '댓글 50개 작성',
     icon: 'MessageCircle',
-    category: 'social',
+    category: 'comment',
     tier: 'silver',
     requirement: { type: 'comments_created', target: 50 },
   },
@@ -98,176 +117,244 @@ export const ALL_BADGES: Badge[] = [
     name: '토론 마스터',
     description: '댓글 200개 작성',
     icon: 'MessageCircle',
-    category: 'social',
+    category: 'comment',
     tier: 'gold',
     requirement: { type: 'comments_created', target: 200 },
   },
-
-  // 좋아요 뱃지
   {
-    id: 'liker_bronze',
-    name: '응원 시작',
-    description: '좋아요 30개 누르기',
-    icon: 'Heart',
-    category: 'social',
-    tier: 'bronze',
-    requirement: { type: 'likes_given', target: 30 },
-  },
-  {
-    id: 'popular_bronze',
-    name: '인기 상승',
-    description: '좋아요 50개 받기',
-    icon: 'TrendingUp',
-    category: 'social',
-    tier: 'bronze',
-    requirement: { type: 'likes_received', target: 50 },
-  },
-  {
-    id: 'popular_silver',
-    name: '인기 스타',
-    description: '좋아요 200개 받기',
-    icon: 'Star',
-    category: 'social',
-    tier: 'silver',
-    requirement: { type: 'likes_received', target: 200 },
-  },
-  {
-    id: 'popular_gold',
-    name: '인플루언서',
-    description: '좋아요 1000개 받기',
-    icon: 'Award',
-    category: 'social',
-    tier: 'gold',
-    requirement: { type: 'likes_received', target: 1000 },
-  },
-
-  // 연속 활동 뱃지
-  {
-    id: 'streak_week',
-    name: '주간 러너',
-    description: '7일 연속 활동',
-    icon: 'Flame',
-    category: 'activity',
-    tier: 'bronze',
-    requirement: { type: 'active_streak', target: 7 },
-  },
-  {
-    id: 'streak_month',
-    name: '월간 챔피언',
-    description: '30일 연속 활동',
-    icon: 'Flame',
-    category: 'activity',
-    tier: 'silver',
-    requirement: { type: 'active_streak', target: 30 },
-  },
-  {
-    id: 'streak_100',
-    name: '100일의 약속',
-    description: '100일 연속 활동',
-    icon: 'Flame',
-    category: 'activity',
-    tier: 'gold',
-    requirement: { type: 'active_streak', target: 100 },
-  },
-  {
-    id: 'streak_year',
-    name: '연간 마스터',
-    description: '365일 연속 활동',
-    icon: 'Flame',
-    category: 'activity',
+    id: 'commenter_platinum',
+    name: '토론의 달인',
+    description: '댓글 500개 작성',
+    icon: 'MessageCircle',
+    category: 'comment',
     tier: 'platinum',
-    requirement: { type: 'active_streak', target: 365 },
+    requirement: { type: 'comments_created', target: 500 },
+  },
+  {
+    id: 'commenter_diamond',
+    name: '전설의 토론가',
+    description: '댓글 1000개 작성',
+    icon: 'MessageCircle',
+    category: 'comment',
+    tier: 'diamond',
+    requirement: { type: 'comments_created', target: 1000 },
   },
 
-  // 롤링페이퍼 뱃지
+  // 추천 뱃지 - 총 추천 (글+댓글)
   {
-    id: 'paper_writer',
-    name: '편지 작가',
-    description: '롤링페이퍼 10개 작성',
-    icon: 'Mail',
-    category: 'social',
+    id: 'total_liker_bronze',
+    name: '응원 시작',
+    description: '추천 30개 누르기',
+    icon: 'Heart',
+    category: 'like',
     tier: 'bronze',
-    requirement: { type: 'papers_written', target: 10 },
+    requirement: { type: 'total_likes_given', target: 30 },
   },
   {
-    id: 'paper_receiver',
-    name: '인기 우체통',
-    description: '롤링페이퍼 20개 받기',
-    icon: 'Inbox',
-    category: 'social',
+    id: 'total_liker_silver',
+    name: '열정 추천러',
+    description: '총 추천 100개',
+    icon: 'Heart',
+    category: 'like',
     tier: 'silver',
+    requirement: { type: 'total_likes_given', target: 100 },
+  },
+  {
+    id: 'total_liker_gold',
+    name: '응원의 아이콘',
+    description: '총 추천 300개',
+    icon: 'Heart',
+    category: 'like',
+    tier: 'gold',
+    requirement: { type: 'total_likes_given', target: 300 },
+  },
+  {
+    id: 'total_liker_platinum',
+    name: '추천의 달인',
+    description: '총 추천 600개',
+    icon: 'Heart',
+    category: 'like',
+    tier: 'platinum',
+    requirement: { type: 'total_likes_given', target: 600 },
+  },
+  {
+    id: 'total_liker_diamond',
+    name: '전설의 서포터',
+    description: '총 추천 1000개',
+    icon: 'Heart',
+    category: 'like',
+    tier: 'diamond',
+    requirement: { type: 'total_likes_given', target: 1000 },
+  },
+
+  // 추천 뱃지 - 글 추천
+  {
+    id: 'post_liker_bronze',
+    name: '글 추천 입문',
+    description: '게시글 추천 10개',
+    icon: 'ThumbsUp',
+    category: 'like',
+    tier: 'bronze',
+    requirement: { type: 'posts_liked', target: 10 },
+  },
+  {
+    id: 'post_liker_silver',
+    name: '글 추천러',
+    description: '게시글 추천 30개',
+    icon: 'ThumbsUp',
+    category: 'like',
+    tier: 'silver',
+    requirement: { type: 'posts_liked', target: 30 },
+  },
+  {
+    id: 'post_liker_gold',
+    name: '글 추천 마스터',
+    description: '게시글 추천 100개',
+    icon: 'ThumbsUp',
+    category: 'like',
+    tier: 'gold',
+    requirement: { type: 'posts_liked', target: 100 },
+  },
+  {
+    id: 'post_liker_platinum',
+    name: '글 추천의 달인',
+    description: '게시글 추천 200개',
+    icon: 'ThumbsUp',
+    category: 'like',
+    tier: 'platinum',
+    requirement: { type: 'posts_liked', target: 200 },
+  },
+  {
+    id: 'post_liker_diamond',
+    name: '전설의 글 추천러',
+    description: '게시글 추천 500개',
+    icon: 'ThumbsUp',
+    category: 'like',
+    tier: 'diamond',
+    requirement: { type: 'posts_liked', target: 500 },
+  },
+
+  // 추천 뱃지 - 댓글 추천
+  {
+    id: 'comment_liker_bronze',
+    name: '댓글 추천 입문',
+    description: '댓글 추천 20개',
+    icon: 'MessageCircle',
+    category: 'like',
+    tier: 'bronze',
+    requirement: { type: 'comments_liked', target: 20 },
+  },
+  {
+    id: 'comment_liker_silver',
+    name: '댓글 추천러',
+    description: '댓글 추천 50개',
+    icon: 'MessageCircle',
+    category: 'like',
+    tier: 'silver',
+    requirement: { type: 'comments_liked', target: 50 },
+  },
+  {
+    id: 'comment_liker_gold',
+    name: '댓글 추천 마스터',
+    description: '댓글 추천 150개',
+    icon: 'MessageCircle',
+    category: 'like',
+    tier: 'gold',
+    requirement: { type: 'comments_liked', target: 150 },
+  },
+  {
+    id: 'comment_liker_platinum',
+    name: '댓글 추천의 달인',
+    description: '댓글 추천 300개',
+    icon: 'MessageCircle',
+    category: 'like',
+    tier: 'platinum',
+    requirement: { type: 'comments_liked', target: 300 },
+  },
+  {
+    id: 'comment_liker_diamond',
+    name: '전설의 댓글 추천러',
+    description: '댓글 추천 600개',
+    icon: 'MessageCircle',
+    category: 'like',
+    tier: 'diamond',
+    requirement: { type: 'comments_liked', target: 600 },
+  },
+
+  // 롤링페이퍼 받기 뱃지
+  {
+    id: 'paper_receiver_bronze',
+    name: '편지함',
+    description: '롤링페이퍼 20개 받기',
+    icon: 'Mail',
+    category: 'paper',
+    tier: 'bronze',
     requirement: { type: 'papers_received', target: 20 },
   },
-
-  // 검색 뱃지
   {
-    id: 'explorer',
-    name: '탐험가',
-    description: '검색 100회 수행',
-    icon: 'Search',
-    category: 'activity',
-    tier: 'bronze',
-    requirement: { type: 'searches', target: 100 },
-  },
-
-  // 북마크 뱃지
-  {
-    id: 'collector',
-    name: '수집가',
-    description: '북마크 50개 수집',
-    icon: 'Bookmark',
-    category: 'activity',
-    tier: 'bronze',
-    requirement: { type: 'bookmarks_added', target: 50 },
-  },
-
-  // 특별 뱃지
-  {
-    id: 'early_bird',
-    name: '얼리버드',
-    description: '오전 6시 이전 활동',
-    icon: 'Sunrise',
-    category: 'special',
-    tier: 'bronze',
-    requirement: { type: 'special_time', target: 1 },
-  },
-  {
-    id: 'night_owl',
-    name: '올빼미',
-    description: '새벽 2-4시 활동',
-    icon: 'Moon',
-    category: 'special',
-    tier: 'bronze',
-    requirement: { type: 'special_time', target: 1 },
-  },
-  {
-    id: 'weekend_warrior',
-    name: '주말 전사',
-    description: '주말 연속 4주 활동',
-    icon: 'Calendar',
-    category: 'special',
+    id: 'paper_receiver_silver_1',
+    name: '인기 우체통',
+    description: '롤링페이퍼 40개 받기',
+    icon: 'Inbox',
+    category: 'paper',
     tier: 'silver',
-    requirement: { type: 'weekend_streak', target: 4 },
+    requirement: { type: 'papers_received', target: 40 },
+  },
+  {
+    id: 'paper_receiver_silver_2',
+    name: '사랑받는 편지함',
+    description: '롤링페이퍼 60개 받기',
+    icon: 'Mail',
+    category: 'paper',
+    tier: 'gold',
+    requirement: { type: 'papers_received', target: 60 },
+  },
+  {
+    id: 'paper_receiver_gold_1',
+    name: '편지 왕',
+    description: '롤링페이퍼 80개 받기',
+    icon: 'Inbox',
+    category: 'paper',
+    tier: 'platinum',
+    requirement: { type: 'papers_received', target: 80 },
+  },
+  {
+    id: 'paper_receiver_gold_2',
+    name: '편지 대왕',
+    description: '롤링페이퍼 100개 받기',
+    icon: 'Mail',
+    category: 'paper',
+    tier: 'platinum',
+    requirement: { type: 'papers_received', target: 100 },
+  },
+  {
+    id: 'paper_receiver_platinum',
+    name: '전설의 편지함',
+    description: '롤링페이퍼 120개 받기',
+    icon: 'Inbox',
+    category: 'paper',
+    tier: 'diamond',
+    requirement: { type: 'papers_received', target: 120 },
   },
 
   // 마일스톤 뱃지
   {
-    id: 'veteran_100',
-    name: '100일 베테랑',
-    description: '가입 후 100일',
-    icon: 'Shield',
+    id: 'activity_100',
+    name: '시작의 발걸음',
+    description: '총 활동 100회',
+    icon: 'Footprints',
     category: 'milestone',
-    tier: 'silver',
-    requirement: { type: 'days_since_join', target: 100 },
+    tier: 'bronze',
+    requirement: { type: 'total_events', target: 100 },
   },
   {
-    id: 'veteran_365',
-    name: '1년 베테랑',
-    description: '가입 후 1년',
-    icon: 'Shield',
+    id: 'activity_500',
+    name: '활동의 빛',
+    description: '총 활동 500회',
+    icon: 'Star',
     category: 'milestone',
-    tier: 'gold',
-    requirement: { type: 'days_since_join', target: 365 },
+    tier: 'silver',
+    requirement: { type: 'total_events', target: 500 },
   },
   {
     id: 'activity_1000',
@@ -277,6 +364,15 @@ export const ALL_BADGES: Badge[] = [
     category: 'milestone',
     tier: 'gold',
     requirement: { type: 'total_events', target: 1000 },
+  },
+  {
+    id: 'activity_5000',
+    name: '오천의 기록',
+    description: '총 활동 5000회',
+    icon: 'TrendingUp',
+    category: 'milestone',
+    tier: 'platinum',
+    requirement: { type: 'total_events', target: 5000 },
   },
   {
     id: 'activity_10000',
@@ -476,35 +572,6 @@ export function getBadgeStats() {
 }
 
 /**
- * 활동 데이터로부터 뱃지 진행도 동기화
- */
-export function syncBadgeProgressFromActivity(stats: ActivityStats | null | undefined): void {
-  if (!stats) return;
-
-  // 각 통계 타입에 대해 진행도 업데이트
-  updateBadgeProgress('posts_created', stats.postsCreated || 0);
-  updateBadgeProgress('comments_created', stats.commentsCreated || 0);
-  updateBadgeProgress('likes_given', stats.likesGiven || 0);
-  updateBadgeProgress('likes_received', stats.likesReceived || 0);
-  updateBadgeProgress('papers_written', stats.papersWritten || 0);
-  updateBadgeProgress('papers_received', stats.papersReceived || 0);
-  updateBadgeProgress('bookmarks_added', stats.bookmarksAdded || 0);
-  updateBadgeProgress('searches', stats.searches || 0);
-  updateBadgeProgress('active_streak', stats.activeStreak || 0);
-  updateBadgeProgress('total_events', stats.totalEvents || 0);
-
-  // 특별 시간대 체크
-  if (stats.mostActiveHour !== undefined) {
-    if (stats.mostActiveHour < 6) {
-      updateBadgeProgress('special_time', 1); // 얼리버드
-    }
-    if (stats.mostActiveHour >= 2 && stats.mostActiveHour <= 4) {
-      updateBadgeProgress('special_time', 1); // 올빼미
-    }
-  }
-}
-
-/**
  * 뱃지 데이터 초기화
  */
 export function clearBadgeData(): void {
@@ -512,4 +579,40 @@ export function clearBadgeData(): void {
 
   localStorage.removeItem(BADGES_KEY);
   localStorage.removeItem(BADGE_PROGRESS_KEY);
+}
+
+/**
+ * 백엔드 통계로부터 뱃지 진행도 동기화
+ * 추가 API 호출 없이 이미 가져온 UserStats를 활용
+ */
+export function syncBadgeProgressFromBackendStats(
+  stats: UserStats | null | undefined,
+  receivedPaperCount?: number
+): void {
+  if (!stats) return;
+
+  // 게시글 작성 뱃지
+  updateBadgeProgress('posts_created', stats.totalPosts || 0);
+
+  // 댓글 작성 뱃지
+  updateBadgeProgress('comments_created', stats.totalComments || 0);
+
+  // 추천한 게시글
+  updateBadgeProgress('posts_liked', stats.totalLikedPosts || 0);
+
+  // 추천한 댓글
+  updateBadgeProgress('comments_liked', stats.totalLikedComments || 0);
+
+  // 총 추천 (글+댓글)
+  const totalLikesGiven = (stats.totalLikedPosts || 0) + (stats.totalLikedComments || 0);
+  updateBadgeProgress('total_likes_given', totalLikesGiven);
+
+  // 받은 롤링페이퍼 (다른 사람이 내게 쓴 메시지)
+  if (receivedPaperCount !== undefined) {
+    updateBadgeProgress('papers_received', receivedPaperCount);
+  }
+
+  // 총 활동 점수 (프론트엔드에서 계산)
+  const totalActivityScore = calculateActivityScore(stats);
+  updateBadgeProgress('total_events', totalActivityScore);
 }

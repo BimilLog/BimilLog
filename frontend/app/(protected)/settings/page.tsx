@@ -78,20 +78,19 @@ export default function SettingsPage() {
       className="bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 dark:from-[#121327] dark:via-[#1a1030] dark:to-[#0b0c1c]"
       containerClassName="container mx-auto px-4"
     >
-      <header className="py-6">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-brand-button rounded-full flex items-center justify-center shadow-brand-lg">
-            <SettingsIcon className="w-6 h-6 stroke-white fill-white/20" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-brand-primary inline-block">설정</h1>
-            <p className="text-brand-secondary">알림 설정과 계정을 관리하세요</p>
-          </div>
-        </div>
-      </header>
-
-      <div className="pb-8">
-        <div className="max-w-3xl mx-auto space-y-6">
+      <div className="py-6 pb-8">
+        <div className="max-w-4xl mx-auto space-y-6">
+          <header>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-brand-button rounded-full flex items-center justify-center shadow-brand-lg">
+                <SettingsIcon className="w-6 h-6 stroke-white fill-white/20" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-brand-primary inline-block">설정</h1>
+                <p className="text-brand-secondary">알림 설정과 계정을 관리하세요</p>
+              </div>
+            </div>
+          </header>
           {error && (
             <ErrorAlert>
               <div className="flex items-center justify-between">

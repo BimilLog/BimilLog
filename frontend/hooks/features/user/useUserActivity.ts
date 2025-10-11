@@ -3,6 +3,18 @@
 import { useState, useEffect } from "react";
 import { logger } from '@/lib/utils/logger';
 
+// ID 기반 중복 제거 헬퍼 함수
+function deduplicateById<T extends { id: number | string }>(items: T[]): T[] {
+  const seen = new Set<number | string>();
+  return items.filter(item => {
+    if (seen.has(item.id)) {
+      return false;
+    }
+    seen.add(item.id);
+    return true;
+  });
+}
+
 // ===== ACTIVITY DATA =====
 interface PaginatedData<T> {
   content: T[];
@@ -11,11 +23,11 @@ interface PaginatedData<T> {
   currentPage: number;
 }
 
-interface UseActivityDataOptions<T> {
+interface UseActivityDataOptions<T extends { id: number | string }> {
   fetchData: (page?: number, size?: number) => Promise<PaginatedData<T>>;
 }
 
-export function useActivityData<T>({ fetchData }: UseActivityDataOptions<T>) {
+export function useActivityData<T extends { id: number | string }>({ fetchData }: UseActivityDataOptions<T>) {
   const [items, setItems] = useState<T[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,9 +48,9 @@ export function useActivityData<T>({ fetchData }: UseActivityDataOptions<T>) {
 
       const result = await fetchData(page, 10);
 
-      // append가 true면 기존 데이터에 추가, false면 새로 교체
+      // append가 true면 기존 데이터에 추가 (중복 제거), false면 새로 교체
       if (append) {
-        setItems((prev) => [...prev, ...result.content]);
+        setItems((prev) => deduplicateById([...prev, ...result.content]));
       } else {
         setItems(result.content);
       }
@@ -123,8 +135,8 @@ export function useActivityData<T>({ fetchData }: UseActivityDataOptions<T>) {
         lastResult = result;
       }
 
-      // 모든 페이지 데이터를 한 번에 설정
-      setItems(allContent);
+      // 중복 제거 후 모든 페이지 데이터를 한 번에 설정
+      setItems(deduplicateById(allContent));
       setCurrentPage(targetPage);
 
       // totalPages와 totalElements는 마지막 응답 기준

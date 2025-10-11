@@ -11,6 +11,7 @@ export { default as SafeHTML } from './display/safe-html';
 export { Input } from './forms/input';
 export { Textarea } from './forms/textarea';
 export { Label } from './forms/label';
+export { Switch } from './forms/switch';
 
 // Feedback components
 export { Spinner, LoadingSpinner, CuteLoadingSpinner, BrandLoadingSpinner, QuickSpinner } from './feedback/spinner';

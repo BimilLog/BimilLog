@@ -7,15 +7,15 @@ import {
   getNextAchievableBadges,
   getBadgeStats,
   groupBadgesByCategory,
-  syncBadgeProgressFromActivity,
+  syncBadgeProgressFromBackendStats,
   clearBadgeData,
   ALL_BADGES,
   type Badge,
   type BadgeProgress,
 } from '@/lib/utils/badges';
-import { getActivityStats } from '@/lib/utils/activity-insights';
+import type { UserStats } from './user/useUserStats';
 
-export function useBadges() {
+export function useBadges(userStats?: UserStats | null, receivedPaperCount?: number) {
   const [unlockedBadges, setUnlockedBadges] = useState<Badge[]>([]);
   const [allBadges, setAllBadges] = useState<Badge[]>(ALL_BADGES);
   const [badgeProgress, setBadgeProgress] = useState<BadgeProgress[]>([]);
@@ -27,10 +27,9 @@ export function useBadges() {
   const loadBadgeData = useCallback(() => {
     setIsLoading(true);
     try {
-      // 활동 통계로부터 진행도 동기화
-      const activityStats = getActivityStats();
-      if (activityStats) {
-        syncBadgeProgressFromActivity(activityStats);
+      // 백엔드 통계로부터 진행도 동기화
+      if (userStats) {
+        syncBadgeProgressFromBackendStats(userStats, receivedPaperCount);
       }
 
       // 뱃지 데이터 로드
@@ -65,7 +64,7 @@ export function useBadges() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [userStats, receivedPaperCount]);
 
   // 카테고리별 그룹화된 뱃지
   const groupedBadges = useCallback(() => {
@@ -120,19 +119,6 @@ export function useBadges() {
   // 초기 로드
   useEffect(() => {
     loadBadgeData();
-  }, [loadBadgeData]);
-
-  // 주기적으로 진행도 동기화 (30초마다)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const activityStats = getActivityStats();
-      if (activityStats) {
-        syncBadgeProgressFromActivity(activityStats);
-        loadBadgeData();
-      }
-    }, 30000);
-
-    return () => clearInterval(interval);
   }, [loadBadgeData]);
 
   return {

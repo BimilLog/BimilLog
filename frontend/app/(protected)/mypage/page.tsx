@@ -2,7 +2,7 @@
 
 import { useMyPage } from "@/hooks";
 import { ProfileCard } from "@/components/molecules";
-import { UserStatsSection, UserActivitySection, BookmarkSection, ActivityInsights, ProfileBadges } from "@/components/organisms/user";
+import { UserStatsSection, UserActivitySection, ProfileBadges } from "@/components/organisms/user";
 import { CuteLoadingSpinner } from "@/components";
 import { MainLayout } from "@/components/organisms/layout/BaseLayout";
 
@@ -52,11 +52,7 @@ export default function MyPage() {
           onRetry={fetchUserStats}
         />
 
-        <BookmarkSection />
-
-        <ProfileBadges />
-
-        <ActivityInsights />
+        <ProfileBadges userStats={userStats} />
 
         <UserActivitySection />
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useMemo, memo, useState, useEffect } from "react";
+import Link from "next/link";
 import { Card, CardContent } from "@/components";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components";
 import { Badge } from "@/components";
@@ -8,13 +9,22 @@ import { Button } from "@/components";
 import { Alert, AlertDescription } from "@/components";
 import { LoadingSpinner } from "@/components/atoms";
 import { EmptyState } from "@/components/molecules";
-import { ActivityCard } from "@/components/molecules";
 import { useActivityData } from "@/hooks";
 import { useDebouncedCallback } from "@/hooks/common/useDebounce";
 import { userQuery } from "@/lib/api";
-import { AlertTriangle, RefreshCw } from "lucide-react";
-import { Pagination, Spinner as FlowbiteSpinner } from "flowbite-react";
+import { AlertTriangle, RefreshCw, Eye, Heart, MessageCircle, ExternalLink } from "lucide-react";
+import {
+  Pagination,
+  Spinner as FlowbiteSpinner,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeadCell,
+  TableRow
+} from "flowbite-react";
 import { logger, formatNumber } from "@/lib/utils";
+import { formatKoreanDate } from "@/lib/utils/date";
 import type { Post, SimplePost } from "@/types/domains/post";
 import type { Comment, SimpleComment } from "@/types/domains/comment";
 
@@ -173,15 +183,116 @@ const ActivityTabContent: React.FC<ActivityTabContentProps> = memo(({
         )}
       </div>
 
-      <div className="grid gap-6">
-        {(items as ActivityItem[]).map((item) => (
-          <ActivityCard
-            key={`${contentType}-${item.id}`}
-            item={item}
-            type={contentConfig.isPost ? "post" : "comment"}
-            isLiked={contentConfig.isLiked}
-          />
-        ))}
+      <div className="overflow-x-auto">
+        <Table hoverable>
+          <TableHead>
+            <TableRow>
+              {contentConfig.isPost ? (
+                <>
+                  <TableHeadCell>제목</TableHeadCell>
+                  <TableHeadCell className="hidden md:table-cell">작성일</TableHeadCell>
+                  <TableHeadCell className="hidden lg:table-cell">조회수</TableHeadCell>
+                  <TableHeadCell className="hidden sm:table-cell">추천</TableHeadCell>
+                  <TableHeadCell className="hidden lg:table-cell">댓글</TableHeadCell>
+                  <TableHeadCell>
+                    <span className="sr-only">상세보기</span>
+                  </TableHeadCell>
+                </>
+              ) : (
+                <>
+                  <TableHeadCell>댓글 내용</TableHeadCell>
+                  <TableHeadCell className="hidden md:table-cell">작성일</TableHeadCell>
+                  <TableHeadCell className="hidden sm:table-cell">추천</TableHeadCell>
+                  <TableHeadCell>
+                    <span className="sr-only">게시글 보기</span>
+                  </TableHeadCell>
+                </>
+              )}
+            </TableRow>
+          </TableHead>
+          <TableBody className="divide-y">
+            {contentConfig.isPost
+              ? (items as SimplePost[]).map((post) => (
+                  <TableRow
+                    key={`post-${post.id}`}
+                    className="bg-white dark:border-gray-700 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  >
+                    <TableCell className="whitespace-normal font-medium text-gray-900 dark:text-white">
+                      <Link
+                        href={`/board/post/${post.id}`}
+                        className="hover:text-purple-600 transition-colors line-clamp-2"
+                      >
+                        {post.title}
+                      </Link>
+                      <div className="md:hidden mt-1 text-xs text-gray-500">
+                        {formatKoreanDate(post.createdAt)}
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell whitespace-nowrap text-gray-700 dark:text-gray-300">
+                      {formatKoreanDate(post.createdAt)}
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      <div className="flex items-center space-x-1">
+                        <Eye className="w-4 h-4 text-blue-500" />
+                        <span>{formatNumber(post.viewCount)}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      <div className="flex items-center space-x-1">
+                        <Heart className={`w-4 h-4 ${contentConfig.isLiked ? 'text-red-500 fill-current' : 'text-red-500'}`} />
+                        <span>{formatNumber(post.likeCount)}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      <div className="flex items-center space-x-1">
+                        <MessageCircle className="w-4 h-4 text-green-500" />
+                        <span>{formatNumber(post.commentCount)}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Link
+                        href={`/board/post/${post.id}`}
+                        className="font-medium text-purple-600 hover:underline dark:text-purple-500 flex items-center space-x-1"
+                      >
+                        <span className="hidden sm:inline">보기</span>
+                        <ExternalLink className="w-4 h-4" />
+                      </Link>
+                    </TableCell>
+                  </TableRow>
+                ))
+              : (items as SimpleComment[]).map((comment) => (
+                  <TableRow
+                    key={`comment-${comment.id}`}
+                    className="bg-white dark:border-gray-700 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
+                  >
+                    <TableCell className="whitespace-normal font-medium text-gray-900 dark:text-white max-w-md">
+                      <div className="line-clamp-2">{comment.content}</div>
+                      <div className="md:hidden mt-1 text-xs text-gray-500">
+                        {formatKoreanDate(comment.createdAt)}
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell whitespace-nowrap text-gray-700 dark:text-gray-300">
+                      {formatKoreanDate(comment.createdAt)}
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      <div className="flex items-center space-x-1">
+                        <Heart className={`w-4 h-4 ${contentConfig.isLiked ? 'text-red-500 fill-current' : 'text-red-500'}`} />
+                        <span>{formatNumber(comment.likeCount)}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Link
+                        href={`/board/post/${comment.postId}#comment-${comment.id}`}
+                        className="font-medium text-purple-600 hover:underline dark:text-purple-500 flex items-center space-x-1"
+                      >
+                        <span className="hidden sm:inline">보기</span>
+                        <ExternalLink className="w-4 h-4" />
+                      </Link>
+                    </TableCell>
+                  </TableRow>
+                ))}
+          </TableBody>
+        </Table>
       </div>
 
       {/* 반응형 페이지네이션: 데스크톱은 Pagination, 모바일은 더보기 버튼 */}
@@ -371,14 +482,14 @@ const UserActivitySectionComponent: React.FC<UserActivitySectionProps> = ({ clas
     <Card variant="elevated" className={className || ""}>
       <CardContent className="p-6">
         <Tabs defaultValue="my-posts" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 bg-gray-100 h-12 md:h-10 p-1">
+          <TabsList className="w-full">
             {tabConfig.map(({ value, label }) => (
               <TabsTrigger
                 key={value}
                 value={value}
-                className="flex items-center justify-center h-full px-2 py-2 text-xs"
+                className="flex-1"
               >
-                <span className="hidden sm:inline">{label.desktop}</span>
+                <span className="max-sm:hidden">{label.desktop}</span>
                 <span className="sm:hidden">{label.mobile}</span>
               </TabsTrigger>
             ))}

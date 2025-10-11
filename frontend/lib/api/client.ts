@@ -158,13 +158,17 @@ export class ApiClient {
         // 201 Created + Location 헤더 처리 (게시글 작성 등)
         if (response.status === 201) {
           const location = response.headers.get('location')
+          logger.log('[apiClient] 201 응답 - Location 헤더:', location);
           if (location) {
             // Location: /post/123 → id: 123 추출
             const match = location.match(/\/post\/(\d+)$/)
+            logger.log('[apiClient] Location 매칭 결과:', match);
             if (match) {
+              const extractedId = parseInt(match[1]);
+              logger.log('[apiClient] 추출된 ID:', extractedId);
               return {
                 success: true,
-                data: { id: parseInt(match[1]) } as T,
+                data: { id: extractedId } as T,
               }
             }
           }

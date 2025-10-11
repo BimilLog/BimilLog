@@ -1,7 +1,6 @@
 import React from "react";
-import { ToggleSwitch, Spinner } from "flowbite-react";
-import { Label } from "@/components";
-import { Check } from "lucide-react";
+import { Spinner } from "flowbite-react";
+import { Label, Switch } from "@/components";
 
 interface SettingToggleProps {
   icon: React.ReactNode;
@@ -44,12 +43,9 @@ export const SettingToggle: React.FC<SettingToggleProps> = ({
       {saving && (
         <Spinner size="sm" color="purple" aria-label="저장 중..." />
       )}
-      {saved && !saving && (
-        <Check className="w-5 h-5 text-green-600 animate-in fade-in zoom-in duration-200" />
-      )}
-      <ToggleSwitch
+      <Switch
         checked={checked}
-        onChange={onChange}
+        onCheckedChange={onChange}
         disabled={disabled || saving}
       />
     </div>

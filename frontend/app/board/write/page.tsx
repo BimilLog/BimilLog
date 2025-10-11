@@ -49,8 +49,6 @@ export default function WritePostPage() {
     // 임시저장 기능
     isAutoSaving,
     formatLastSaved,
-    saveDraftManual,
-    removeDraft,
 
     // Content length
     plainTextLength,

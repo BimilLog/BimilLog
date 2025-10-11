@@ -3,8 +3,10 @@
 import React, { useState } from 'react';
 import { Card } from '@/components';
 import { useBadges } from '@/hooks/features/useBadges';
+import { useMyRollingPaper } from '@/hooks/api/useMyRollingPaper';
 import { getBadgeColor, type Badge } from '@/lib/utils/badges';
 import { Popover } from 'flowbite-react';
+import type { UserStats } from '@/hooks/features/user/useUserStats';
 import {
   Award,
   Trophy,
@@ -28,6 +30,7 @@ import {
   TrendingUp,
   Footprints,
   Inbox,
+  ThumbsUp,
 } from 'lucide-react';
 
 // 아이콘 매핑
@@ -42,6 +45,7 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
   Heart,
   MessageCircle,
   PenTool,
+  ThumbsUp,
   Search,
   Bookmark,
   Mail,
@@ -55,10 +59,10 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
 };
 
 const CATEGORY_NAMES: Record<Badge['category'], string> = {
-  activity: '활동',
-  social: '소셜',
-  content: '콘텐츠',
-  special: '특별',
+  post: '글',
+  comment: '댓글',
+  like: '추천',
+  paper: '롤링페이퍼',
   milestone: '마일스톤',
 };
 
@@ -193,7 +197,15 @@ const BadgeCard = React.memo(({ badge, isUnlocked, progress = 0, onClick }: Badg
 
 BadgeCard.displayName = 'BadgeCard';
 
-export const ProfileBadges = React.memo(() => {
+interface ProfileBadgesProps {
+  userStats?: UserStats | null;
+}
+
+export const ProfileBadges = React.memo(({ userStats }: ProfileBadgesProps) => {
+  // 받은 롤링페이퍼 조회
+  const { data: myPaperData } = useMyRollingPaper();
+  const receivedPaperCount = myPaperData?.success ? myPaperData.data?.length || 0 : 0;
+
   const {
     allBadges,
     unlockedBadges,
@@ -202,7 +214,7 @@ export const ProfileBadges = React.memo(() => {
     recentBadges,
     completionRate,
     isLoading,
-  } = useBadges();
+  } = useBadges(userStats, receivedPaperCount);
 
   const [selectedBadge, setSelectedBadge] = useState<Badge | null>(null);
   const [activeCategory, setActiveCategory] = useState<Badge['category'] | 'all'>('all');
@@ -242,7 +254,7 @@ export const ProfileBadges = React.memo(() => {
       </div>
 
       {/* 통계 카드 */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         <Card className="p-4 bg-gradient-to-br from-yellow-50 to-orange-50">
           <div className="flex items-center justify-between mb-2">
             <Trophy className="w-5 h-5 stroke-yellow-500 fill-yellow-100" />
@@ -257,16 +269,6 @@ export const ProfileBadges = React.memo(() => {
             <span className="text-2xl font-bold">{completionRate}%</span>
           </div>
           <p className="text-sm text-gray-600">달성률</p>
-        </Card>
-
-        <Card className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50">
-          <div className="flex items-center justify-between mb-2">
-            <Star className="w-5 h-5 stroke-blue-600 fill-blue-100" />
-            <span className="text-2xl font-bold">
-              {tierCounts.find(t => t.tier === 'gold')?.unlocked || 0}
-            </span>
-          </div>
-          <p className="text-sm text-gray-600">골드 뱃지</p>
         </Card>
 
         <Card className="p-4 bg-gradient-to-br from-green-50 to-emerald-50">

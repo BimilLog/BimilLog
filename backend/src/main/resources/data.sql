@@ -428,25 +428,16 @@ VALUES
 -- 사용자1(비밀로그개발자)의 롤링페이퍼 메시지 (다른 사용자들이 작성) (10개)
 INSERT INTO message (message_id, member_id, x, y, anonymity, content, deco_type, created_at, modified_at)
 VALUES
-    (16, 2, 0, 5, '감사하는사람', 'oXEYvoqn1bXQDWiwZS1b8/P9chdaVGVoQa+OqGOwmyX8YWQy7KQKYbDGRYHfQi2+LLg6N9F+txgutn/bTc4Hh9tB6+pkilUx3B6QYQQ7yMjvoWhKN6cUKu2G5VlguEY0', 'STRAWBERRY', DATE_SUB(NOW(6), INTERVAL 10 DAY), DATE_SUB(NOW(6), INTERVAL 10 DAY)),
-    (17, 3, 0, 6, '응원합니다', 'dMY54tYCdd1lRuE2dzKWebeFNIYAaDQNLLg6N9F+txhKKic4HXjKBb4FoI+0QI+PNpCQbpL7MYpmJoDGeUayzutn/bTc4Hh9tB6+pkilUxrQc24WmYq1PnHC5pothjGw==', 'CARROT', DATE_SUB(NOW(6), INTERVAL 9 DAY), DATE_SUB(NOW(6), INTERVAL 9 DAY)),
-    (18, 4, 0, 7, '팬입니다', 'Wp/swJel1cUa0JZmYKCGxdY8q3/vI3uf+Lvj83nJVzaT1Dol/XG4MvCmdvwfF+LyCvXwMjl+vpbat9nDsk7AuWPdnf2Mb20fYf2dFI2dcMvFA702Hp3S8xaK7BOQT/h8=', 'COFFEE', DATE_SUB(NOW(6), INTERVAL 8 DAY), DATE_SUB(NOW(6), INTERVAL 8 DAY)),
-    (19, 2, 1, 8, '최고개발자', '+UPgH81T8oH/JdM5yBAZ8J9d/XYaS5zFa9W+Qb+S0KxOQ0aMCr9FyOvFlo7k+y5xfLAgxie6KxkJLjBNjDdWdVjaPzRq8n/QkR0ItXO11k+Z9yn2pt9smF10er2QXnNS', 'CAT', DATE_SUB(NOW(6), INTERVAL 7 DAY), DATE_SUB(NOW(6), INTERVAL 7 DAY)),
-    (20, 3, 2, 9, '고마워요', 'vpk43LiTn33AZIahk/Bkdrfeikmj4HFNy5/PYX03rtCOQ0aMCr9FyOvFlo7k+y5xfLAgxie6KxkJLjBNjDdWdQ==', 'STAR', DATE_SUB(NOW(6), INTERVAL 6 DAY), DATE_SUB(NOW(6), INTERVAL 6 DAY)),
-    (21, 4, 3, 5, '존경합니다', 'vct16trR+lcKu6WZe3fKUQDhBrIvv3IaNj9arbyMw3yxaK7BOQT/h8T1Dol/XG4MvCmdvwfF+LyCvXwMjl+vpbat9nDsk7AuaJWtWsXVjczIGrwnr4txAvEhBOr7IDyH', 'APPLE', DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
-    (22, 2, 4, 6, '항상응원', 'C8MLY30ITER+6kNL62vAQ9Zcohv8RNjTnIDcK2Hl448Q0aMCr9FyOvFlo7k+y5xfLAgxie6KxkJCmv1Rc/EYZc0giVee3vpZwui84PvPiBpWU+b/7P1AdZ+rCCgPIgsA', 'DOG', DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
-    (23, 3, 5, 7, '멋진개발자', 'DEi6y1BYrryfJVYYi2pLPE+dV8/pXm+ksR0dSmQl6m/FA702Hp3S8xaK7BOQT/h8+OQ0aMCr9FyOvFlo7k+y5xfLAgxie6KxkJLjBNjDdWdbwwR42BDNZN7G4ri4amv2s=', 'MOON', DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
-    (24, 4, 6, 8, '건강하세요', 'yc3c9B4g3dChnsK/NxW8sPOfyzG5QTuFMIpO45wiD8hT1Dol/XG4MvCmdvwfF+LyCvXwMjl+vpbat9nDhKKic4HXjKBb4FoI+0QI+PNpCQbpL7MYpmJoDGeUayzqS0Ua', 'BALLOON', DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
-    (25, 2, 6, 9, '감사드려요', 'oogDmwzcTYhe9B+tEb/4wvYWmKf9WF2Nf8WV3wf1D1dY8q3/vI3uf+Lvj83nJVzcjIYSBxr6PZkJVgm/xjRTLukJuBod6DCKzh2V0mNOLMw==', 'SUNFLOWER', DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY));
-
--- 비회원이 사용자1에게 남긴 롤링페이퍼 메시지 (5개)
-INSERT INTO message (message_id, member_id, x, y, anonymity, content, deco_type, created_at, modified_at)
-VALUES
-    (26, null, 7, 5, '익명의친구', 'kPqh+eGx/xXCZebRvMQSmsXYcyog/aX0lHH54i6KmgQQ0aMCr9FyOvFlo7k+y5xfLAgxie6KxkJR4EUv1nuHxKpZGRmY7uxaP0taL9I0lYyB4IJ7GESDN3dQ84+RHlQ2e', 'DRAGON', DATE_SUB(NOW(6), INTERVAL 12 DAY), DATE_SUB(NOW(6), INTERVAL 12 DAY)),
-    (27, null, 8, 6, '지나가는사람', 'Swc6933Sj9qA1x4vlm5RZLp1FEpbeQlUfkL2DoGUWU6xaK7BOQT/h8q7YblWWC4RjSc8yFSMMua7nrN0brJeAN/YLBokRKrjXNTMoGwpG9vCNnssGurFaw==', 'ANGEL', DATE_SUB(NOW(6), INTERVAL 11 DAY), DATE_SUB(NOW(6), INTERVAL 11 DAY)),
-    (28, null, 9, 7, '비밀사용자', 'aLWa04MllNYa9DIO2TvO34SDVUF5/q0dGLubE19h4CjT1Dol/XG4MvCmdvwfF+LyCvXwMjl+vpbat9nDVV3UqrNh8i5xSu5TWmCY5dIuuKzR7KbJ10/tbILx+ywwtHvO', 'PHOENIX', DATE_SUB(NOW(6), INTERVAL 10 DAY), DATE_SUB(NOW(6), INTERVAL 10 DAY)),
-    (29, null, 10, 8, '익명응원단', 'LVoSznMzfeX7KTRfNOxYbR2hyAm4/Y1FDQwWy7AkTz+OQ0aMCr9FyOvFlo7k+y5xfLAgxie6KxkJ9lfCzayutPyO2OiSq98incGpUdGqfLmx94tjhhzIZml6S0Ua1akFr', 'STAR', DATE_SUB(NOW(6), INTERVAL 9 DAY), DATE_SUB(NOW(6), INTERVAL 9 DAY)),
-    (30, null, 11, 9, '감사합니다', 'H98D1yYWvFAmnJBHJ8xP5DsoulerLLZErer4DxM1XBFQbLkRZaYsqMb08bZXZ+HJY8q3/vI3uf+Lvj83nJVzfjnzJ4fMa/9/N+FJrV52aQ==', 'RAINBOW', DATE_SUB(NOW(6), INTERVAL 8 DAY), DATE_SUB(NOW(6), INTERVAL 8 DAY));
+    (16, 1, 0, 5, '감사하는사람', 'oXEYvoqn1bXQDWiwZS1b8/P9chdaVGVoQa+OqGOwmyX8YWQy7KQKYbDGRYHfQi2+LLg6N9F+txgutn/bTc4Hh9tB6+pkilUx3B6QYQQ7yMjvoWhKN6cUKu2G5VlguEY0', 'STRAWBERRY', DATE_SUB(NOW(6), INTERVAL 10 DAY), DATE_SUB(NOW(6), INTERVAL 10 DAY)),
+    (17, 1, 0, 6, '응원합니다', 'dMY54tYCdd1lRuE2dzKWebeFNIYAaDQNLLg6N9F+txhKKic4HXjKBb4FoI+0QI+PNpCQbpL7MYpmJoDGeUayzutn/bTc4Hh9tB6+pkilUxrQc24WmYq1PnHC5pothjGw==', 'CARROT', DATE_SUB(NOW(6), INTERVAL 9 DAY), DATE_SUB(NOW(6), INTERVAL 9 DAY)),
+    (18, 1, 0, 7, '팬입니다', 'Wp/swJel1cUa0JZmYKCGxdY8q3/vI3uf+Lvj83nJVzaT1Dol/XG4MvCmdvwfF+LyCvXwMjl+vpbat9nDsk7AuWPdnf2Mb20fYf2dFI2dcMvFA702Hp3S8xaK7BOQT/h8=', 'COFFEE', DATE_SUB(NOW(6), INTERVAL 8 DAY), DATE_SUB(NOW(6), INTERVAL 8 DAY)),
+    (19, 1, 1, 8, '최고개발자', '+UPgH81T8oH/JdM5yBAZ8J9d/XYaS5zFa9W+Qb+S0KxOQ0aMCr9FyOvFlo7k+y5xfLAgxie6KxkJLjBNjDdWdVjaPzRq8n/QkR0ItXO11k+Z9yn2pt9smF10er2QXnNS', 'CAT', DATE_SUB(NOW(6), INTERVAL 7 DAY), DATE_SUB(NOW(6), INTERVAL 7 DAY)),
+    (20, 1, 2, 9, '고마워요', 'vpk43LiTn33AZIahk/Bkdrfeikmj4HFNy5/PYX03rtCOQ0aMCr9FyOvFlo7k+y5xfLAgxie6KxkJLjBNjDdWdQ==', 'STAR', DATE_SUB(NOW(6), INTERVAL 6 DAY), DATE_SUB(NOW(6), INTERVAL 6 DAY)),
+    (21, 1, 3, 5, '존경합니다', 'vct16trR+lcKu6WZe3fKUQDhBrIvv3IaNj9arbyMw3yxaK7BOQT/h8T1Dol/XG4MvCmdvwfF+LyCvXwMjl+vpbat9nDsk7AuaJWtWsXVjczIGrwnr4txAvEhBOr7IDyH', 'APPLE', DATE_SUB(NOW(6), INTERVAL 5 DAY), DATE_SUB(NOW(6), INTERVAL 5 DAY)),
+    (22, 1, 4, 6, '항상응원', 'C8MLY30ITER+6kNL62vAQ9Zcohv8RNjTnIDcK2Hl448Q0aMCr9FyOvFlo7k+y5xfLAgxie6KxkJCmv1Rc/EYZc0giVee3vpZwui84PvPiBpWU+b/7P1AdZ+rCCgPIgsA', 'DOG', DATE_SUB(NOW(6), INTERVAL 4 DAY), DATE_SUB(NOW(6), INTERVAL 4 DAY)),
+    (23, 1, 5, 7, '멋진개발자', 'DEi6y1BYrryfJVYYi2pLPE+dV8/pXm+ksR0dSmQl6m/FA702Hp3S8xaK7BOQT/h8+OQ0aMCr9FyOvFlo7k+y5xfLAgxie6KxkJLjBNjDdWdbwwR42BDNZN7G4ri4amv2s=', 'MOON', DATE_SUB(NOW(6), INTERVAL 3 DAY), DATE_SUB(NOW(6), INTERVAL 3 DAY)),
+    (24, 1, 6, 8, '건강하세요', 'yc3c9B4g3dChnsK/NxW8sPOfyzG5QTuFMIpO45wiD8hT1Dol/XG4MvCmdvwfF+LyCvXwMjl+vpbat9nDhKKic4HXjKBb4FoI+0QI+PNpCQbpL7MYpmJoDGeUayzqS0Ua', 'BALLOON', DATE_SUB(NOW(6), INTERVAL 2 DAY), DATE_SUB(NOW(6), INTERVAL 2 DAY)),
+    (25, 1, 6, 9, '감사드려요', 'oogDmwzcTYhe9B+tEb/4wvYWmKf9WF2Nf8WV3wf1D1dY8q3/vI3uf+Lvj83nJVzcjIYSBxr6PZkJVgm/xjRTLukJuBod6DCKzh2V0mNOLMw==', 'SUNFLOWER', DATE_SUB(NOW(6), INTERVAL 1 DAY), DATE_SUB(NOW(6), INTERVAL 1 DAY));
 
 -- 신고 데이터 (각 신고 유형별로)
 INSERT INTO report (report_id, member_id, report_type, target_id, content, created_at, modified_at)

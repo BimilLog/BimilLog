@@ -19,12 +19,15 @@ export const postCommand = {
 
     return apiClient.post<{ id: number }>("/api/post", payload).then(response => {
       // apiClient가 Location 헤더에서 추출한 { id: 56 } 형태의 데이터를 그대로 사용
+      console.log('[postCommand.create] API 응답:', response);
       if (response.success && response.data?.id) {
+        console.log('[postCommand.create] 게시글 ID:', response.data.id);
         return {
           success: true,
           data: { id: response.data.id } as unknown as Post
         }
       }
+      console.warn('[postCommand.create] 응답에 ID가 없음:', response);
       return response as ApiResponse<Post>
     })
   },

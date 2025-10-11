@@ -1,6 +1,5 @@
 import React from "react";
-import { ToggleSwitch } from "flowbite-react";
-import { Label } from "@/components";
+import { Label, Switch } from "@/components";
 import { SettingsSection, SettingToggle } from "@/components/molecules";
 import { Bell, Heart, MessageCircle, TrendingUp } from "lucide-react";
 import { Setting } from "@/lib/api";
@@ -13,7 +12,6 @@ interface NotificationSettingsProps {
   savingFields: Record<SettingField, boolean>;
   savedFields: Record<SettingField, boolean>;
   allEnabled: boolean;
-  isIndeterminate?: boolean;
   onSingleToggle: (
     field: keyof Pick<Setting, "messageNotification" | "commentNotification" | "postFeaturedNotification">,
     value: boolean
@@ -28,7 +26,6 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
   savingFields,
   savedFields,
   allEnabled,
-  isIndeterminate,
   onSingleToggle,
   onAllToggle,
   className,
@@ -45,18 +42,14 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
           <div className="space-y-1">
             <Label className="font-medium text-brand-primary">
               전체 알림 설정
-              {isIndeterminate && (
-                <span className="ml-2 text-xs text-purple-600 font-normal">(일부만 활성화됨)</span>
-              )}
             </Label>
             <p className="text-sm text-brand-muted">모든 알림을 한번에 켜거나 끌 수 있습니다.</p>
           </div>
           <div className="relative">
-            <ToggleSwitch
+            <Switch
               checked={allEnabled === true}
-              onChange={onAllToggle}
+              onCheckedChange={onAllToggle}
               disabled={saving}
-              className={isIndeterminate ? "opacity-70" : ""}
             />
           </div>
         </div>
