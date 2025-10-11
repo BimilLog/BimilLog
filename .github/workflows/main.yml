@@ -36,6 +36,33 @@ jobs:
       - name: Log in to Docker Hub
         run: echo "${DOCKERHUB_PASSWORD}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
 
+      - name: Build and push frontend image
+        run: |
+              cd frontend
+              docker build -t bimillog-frontend .
+              docker tag bimillog-frontend:latest $IMAGE_REPO:frontend
+              docker push $IMAGE_REPO:frontend
+
+          - name: Clean up Firebase messaging service worker
+            if: always()
+            run: rm -f frontend/public/firebase-messaging-sw.js
+
+          - name: Deploy Frontend via Bastion Host
+            uses: appleboy/ssh-action@v1.0.3
+            with:
+              host: ${{ secrets.BASTION_HOST }}
+              username: ${{ secrets.BASTION_USER }}
+              key: ${{ secrets.BASTION_SSH_KEY }}
+              script: |
+                ssh -i ~/growfarm-frontend-server-key.pem -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.FRONTEND_SERVER_IP }} << 'ENDSSH'
+                echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+                docker pull jaeikjeong/bimillog:frontend
+                docker stop bimillog-frontend || true
+                docker rm bimillog-frontend || true
+                echo "${{ secrets.FRONTEND_ENV }}" | base64 -d > /home/ubuntu/bimillog-frontend.env
+                docker run -d --name bimillog-frontend --env-file /home/ubuntu/bimillog-frontend.env -p 3000:3000 jaeikjeong/bimillog:frontend
+                ENDSSH
+
       - name: Build and push backend image
         run: |
           cd backend
@@ -91,28 +118,4 @@ jobs:
               docker compose up -d
             ENDSSH
 
-      - name: Build and push frontend image
-        run: |
-          cd frontend
-          docker build -t bimillog-frontend .
-          docker tag bimillog-frontend:latest $IMAGE_REPO:frontend
-          docker push $IMAGE_REPO:frontend
 
-      - name: Clean up Firebase messaging service worker
-        if: always()
-        run: rm -f frontend/public/firebase-messaging-sw.js
-
-      - name: Deploy Frontend via Bastion Host
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.BASTION_HOST }}
-          username: ${{ secrets.BASTION_USER }}
-          key: ${{ secrets.BASTION_SSH_KEY }}
-          script: |
-            ssh -i ~/growfarm-frontend-server-key.pem -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.FRONTEND_SERVER_IP }} << 'ENDSSH'
-            echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-            docker pull jaeikjeong/bimillog:frontend
-            docker stop bimillog-frontend || true
-            docker rm bimillog-frontend || true
-            docker run -d --name bimillog-frontend -p 3000:3000 jaeikjeong/bimillog:frontend
-            ENDSSH
