@@ -57,5 +57,4 @@ docker-compose*.yml
 .editorconfig
 .eslintrc*
 .prettierrc*
-tsconfig*.json
 vitest.config.ts
