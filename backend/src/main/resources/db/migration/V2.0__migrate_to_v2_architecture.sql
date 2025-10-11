@@ -82,6 +82,10 @@ ALTER TABLE `message`
 ALTER TABLE `notification`
   CHANGE COLUMN `data` `content` VARCHAR(255) NOT NULL;
 
+-- enum 목록을 확장해 새로운 타입(MESSAGE)을 미리 허용
+ALTER TABLE `notification`
+  MODIFY COLUMN `notification_type` ENUM('COMMENT','COMMENT_FEATURED','FARM','POST_FEATURED','ADMIN','INITIATE','MESSAGE') NOT NULL;
+
 -- notification_type enum 값 변경 (FARM → MESSAGE)
 UPDATE `notification`
 SET `notification_type` = 'MESSAGE'
