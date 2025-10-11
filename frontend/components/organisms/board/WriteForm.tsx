@@ -97,22 +97,16 @@ export const WriteForm: React.FC<WriteFormProps> = ({
                 내용
               </Label>
               <LazyEditor value={content} onChange={setContent} />
-              <div className="flex items-center justify-between">
-                <p className="text-xs text-brand-secondary flex items-center space-x-1">
-                  <Lightbulb className="w-3 h-3 stroke-indigo-600 fill-indigo-100" />
-                  <span>다양한 스타일로 내용을 꾸며보세요.</span>
+              <div className="flex justify-end">
+                <p className={`text-xs ${
+                  plainTextLength >= 1000
+                    ? 'text-red-600 font-semibold'
+                    : plainTextLength >= 900
+                    ? 'text-orange-500 font-medium'
+                    : 'text-brand-muted'
+                }`}>
+                  {plainTextLength}/1000자
                 </p>
-                {content && (
-                  <p className={`text-xs ${
-                    plainTextLength >= 1000
-                      ? 'text-red-600 font-semibold'
-                      : plainTextLength >= 900
-                      ? 'text-orange-500 font-medium'
-                      : 'text-brand-muted'
-                  }`}>
-                    {plainTextLength}/1000자
-                  </p>
-                )}
               </div>
             </div>
 

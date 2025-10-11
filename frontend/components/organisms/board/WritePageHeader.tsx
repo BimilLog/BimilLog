@@ -20,7 +20,7 @@ export const WritePageHeader: React.FC<WritePageHeaderProps> = ({
   isFormValid,
 }) => {
   return (
-    <div className="bg-white/60 backdrop-blur-sm border-b sticky top-16 z-40">
+    <div className="sticky top-16 z-40 border-b bg-white/60 backdrop-blur-sm transition-colors duration-300 dark:border-slate-800 dark:bg-slate-900/70">
       <div className="container mx-auto px-4 py-3">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           {/* 좌측: 뒤로가기 및 제목 */}
@@ -32,18 +32,18 @@ export const WritePageHeader: React.FC<WritePageHeaderProps> = ({
                   <span className="hidden sm:inline">게시판</span>
                 </Button>
               </Link>
-              <h1 className="text-lg sm:text-xl font-bold text-brand-primary whitespace-nowrap">
+              <h1 className="text-lg font-bold text-brand-primary whitespace-nowrap sm:text-xl dark:text-gray-100">
                 새 글 작성
               </h1>
             </div>
 
             {/* 모바일에서만 보이는 버튼 그룹 */}
-            <div className="sm:hidden flex items-center gap-2">
+            <div className="flex items-center gap-2 sm:hidden">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={onTogglePreview}
-                className="bg-white"
+                className="bg-white dark:bg-slate-900/80"
               >
                 <Eye className="w-4 h-4 stroke-purple-600 fill-purple-100" />
               </Button>
@@ -59,30 +59,23 @@ export const WritePageHeader: React.FC<WritePageHeaderProps> = ({
           </div>
 
           {/* 우측: 버튼 그룹 (데스크톱) */}
-          <div className="hidden sm:flex items-center gap-2">
+          <div className="hidden items-center gap-2 sm:flex">
             <Button
               variant="outline"
               onClick={onTogglePreview}
-              className="bg-white"
+              className="bg-white dark:bg-slate-900/80"
             >
               <Eye className="w-4 h-4 mr-2 stroke-purple-600 fill-purple-100" />
               {isPreview ? "편집" : "미리보기"}
             </Button>
-            <div className="flex flex-col items-end gap-1">
-              <Button
-                onClick={onSubmit}
-                disabled={isSubmitting || !isFormValid}
-                className="bg-gradient-to-r from-pink-500 to-purple-600"
-              >
-                <Save className="w-4 h-4 mr-2 stroke-green-600 fill-green-100" />
-                {isSubmitting ? "작성 중..." : "작성완료"}
-              </Button>
-              {!isFormValid && !isSubmitting && (
-                <p className="text-xs text-red-600">
-                  제목과 내용을 모두 입력하세요
-                </p>
-              )}
-            </div>
+            <Button
+              onClick={onSubmit}
+              disabled={isSubmitting || !isFormValid}
+              className="bg-gradient-to-r from-pink-500 to-purple-600"
+            >
+              <Save className="w-4 h-4 mr-2 stroke-green-600 fill-green-100" />
+              {isSubmitting ? "작성 중..." : "작성완료"}
+            </Button>
           </div>
         </div>
       </div>

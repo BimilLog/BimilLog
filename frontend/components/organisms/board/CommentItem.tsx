@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import dynamic from "next/dynamic";
 import { Button, Input, SafeHTML, Spinner, TimeBadge } from "@/components";
-import { LazyEditor } from "@/lib/utils/lazy-components";
+import { LazyEditor, LazyReportModal } from "@/lib/utils/lazy-components";
 import { Button as FlowbiteButton } from "flowbite-react";
 import { ThumbsUp, Reply, MoreHorizontal, User, ExternalLink, CornerDownRight, ChevronDown, ChevronUp } from "lucide-react";
 import { Comment, userCommand } from "@/lib/api";
@@ -17,21 +16,6 @@ import {
 import Link from "next/link";
 import { useToast } from "@/hooks";
 import { Popover } from "flowbite-react";
-
-const ReportModal = dynamic(
-  () => import("@/components/organisms/common/ReportModal").then(mod => ({ default: mod.ReportModal })),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
-        <div className="bg-white rounded-lg p-6 flex flex-col items-center gap-3">
-          <Spinner size="md" />
-          <p className="text-sm text-brand-secondary">신고 모달 로딩 중...</p>
-        </div>
-      </div>
-    ),
-  }
-);
 
 interface CommentItemProps {
   comment: Comment & { replies?: Comment[] };
@@ -530,7 +514,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
       )}
 
       {/* 신고 모달 */}
-      <ReportModal
+      <LazyReportModal
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
         onSubmit={handleReport}

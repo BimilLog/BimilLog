@@ -125,27 +125,6 @@ export default function WritePostPage() {
           isPreview={isPreview}
           plainTextLength={plainTextLength} // 순수 텍스트 길이 (HTML 태그 제외)
         />
-
-        {/* 임시저장 관리 버튼 */}
-        {(title || content) && (
-          <div className="mt-4 flex gap-2">
-            <button
-              onClick={() => saveDraftManual(title, content)}
-              className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-            >
-              <Save className="w-4 h-4 inline mr-1 stroke-green-600 fill-green-100" />
-              수동 저장
-            </button>
-            {formatLastSaved && (
-              <button
-                onClick={removeDraft}
-                className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-              >
-                임시저장 삭제
-              </button>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );

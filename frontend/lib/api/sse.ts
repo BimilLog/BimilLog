@@ -11,6 +11,7 @@ export class SSEManager {
   private maxReconnectDelay = 10000
   private wasConnected = false
   private networkListenersAdded = false
+  private connectedToastShown = false
 
   constructor() {
     this.setupNetworkListeners()
@@ -37,6 +38,16 @@ export class SSEManager {
 
   connect() {
     if (this.eventSource) {
+      const readyState = this.eventSource.readyState
+      if (readyState === EventSource.OPEN) {
+        logger.log("기존 SSE 연결이 활성화되어 있어 재연결을 생략합니다.")
+        return
+      }
+      if (readyState === EventSource.CONNECTING) {
+        logger.log("SSE가 연결 중이므로 재연결을 생략합니다.")
+        return
+      }
+
       this.disconnect()
     }
 
@@ -139,7 +150,7 @@ export class SSEManager {
     }
   }
   
-  disconnect() {
+  disconnect({ resetToast = false }: { resetToast?: boolean } = {}) {
     if (this.eventSource) {
       logger.log("SSE 연결을 종료합니다.")
       this.eventSource.close()
@@ -147,6 +158,9 @@ export class SSEManager {
       this.reconnectAttempts = 0
       this.wasConnected = false
       this.notifyStatusListeners('disconnected')
+    }
+    if (resetToast) {
+      this.resetConnectedToastFlag()
     }
   }
 
@@ -191,6 +205,18 @@ export class SSEManager {
       case EventSource.CLOSED: return "CLOSED"
       default: return "UNKNOWN"
     }
+  }
+
+  hasShownConnectedToast(): boolean {
+    return this.connectedToastShown
+  }
+
+  markConnectedToastShown() {
+    this.connectedToastShown = true
+  }
+
+  resetConnectedToastFlag() {
+    this.connectedToastShown = false
   }
 }
 

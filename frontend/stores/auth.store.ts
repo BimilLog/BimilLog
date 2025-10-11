@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { authQuery, authCommand, userCommand, sseManager, type Member } from '@/lib/api';
 import { logger } from '@/lib/utils';
+import { fcmManager } from '@/lib/auth/fcm';
 
 interface AuthState {
   user: Member | null;
@@ -60,23 +61,23 @@ export const useAuthStore = create<AuthState>()(
                 sseManager.connect();
               }
             } else {
-              set({
-                user: null,
-                isAuthenticated: false
-              });
-              sseManager.disconnect();
-            }
-          } catch (error) {
-            logger.error("Failed to fetch user:", error);
             set({
               user: null,
               isAuthenticated: false
             });
-            sseManager.disconnect();
-          } finally {
-            set({ isLoading: false });
+            sseManager.disconnect({ resetToast: true });
           }
-        },
+        } catch (error) {
+          logger.error("Failed to fetch user:", error);
+          set({
+            user: null,
+            isAuthenticated: false
+          });
+          sseManager.disconnect({ resetToast: true });
+        } finally {
+          set({ isLoading: false });
+        }
+      },
         
         login: (postAuthRedirectUrl?: string) => {
           // 카카오 OAuth URL 생성을 위한 환경변수들
@@ -113,15 +114,32 @@ export const useAuthStore = create<AuthState>()(
             logger.error("Logout failed:", error);
             throw error; // 에러를 다시 throw하여 호출자가 처리할 수 있도록
           } finally {
-            // API 호출 성공/실패 관계없이 항상 상태 초기화
-            // SSE 연결 해제하고 사용자 정보를 모두 제거
-            sseManager.disconnect();
+            logger.log("로그아웃 정리 작업 시작");
+
+            // 1. FCM 캐시 정리
+            fcmManager.clearCache();
+            logger.log("FCM 캐시 정리 완료");
+
+            // 2. localStorage FCM 관련 데이터 완전 삭제
+            if (typeof window !== "undefined") {
+              localStorage.removeItem("fcm_token");
+              localStorage.removeItem("notification_permission_asked");
+              localStorage.removeItem("notification_permission_skipped");
+              logger.log("FCM localStorage 정리 완료");
+            }
+
+            // 3. SSE 연결 해제
+            sseManager.disconnect({ resetToast: true });
+            logger.log("SSE 연결 해제 완료");
+
+            // 4. 사용자 상태 초기화 (Zustand persist가 이를 localStorage에 저장)
             set({
               user: null,
               isAuthenticated: false,
               isLoading: false,
               isLoggingOut: false
             });
+            logger.log("사용자 상태 초기화 완료");
           }
         },
         
@@ -167,7 +185,7 @@ export const useAuthStore = create<AuthState>()(
         
         handleNeedsRelogin: (title: string, message: string) => {
           // SSE 연결 해제하고 사용자 상태 초기화
-          sseManager.disconnect();
+          sseManager.disconnect({ resetToast: true });
           set({ 
             user: null, 
             isAuthenticated: false,

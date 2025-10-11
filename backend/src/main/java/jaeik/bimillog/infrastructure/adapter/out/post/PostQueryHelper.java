@@ -62,7 +62,7 @@ public class PostQueryHelper {
                         Expressions.constant(0),
                         post.createdAt,
                         member.id,
-                        Expressions.stringTemplate("COALESCE({0}, {1})", member.memberName, "비회원"),
+                        Expressions.stringTemplate("COALESCE({0}, {1})", member.memberName, "익명"),
                         Expressions.constant(0)))
                 .from(post)
                 .leftJoin(post.member, member);

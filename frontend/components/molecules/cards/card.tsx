@@ -3,33 +3,33 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const cardVariants = cva(
-  "flex flex-col rounded-lg border-0 backdrop-blur-sm transition-all duration-300 text-brand-primary",
+  "flex flex-col rounded-lg border-0 backdrop-blur-sm transition-all duration-300 text-brand-primary dark:text-brand-primary",
   {
     variants: {
       variant: {
         // 기본 브랜드 카드 (가장 자주 사용)
         default:
-          "bg-white/80 shadow-brand-lg hover:shadow-brand-xl",
+          "bg-white/80 shadow-brand-lg hover:shadow-brand-xl dark:bg-slate-900/70 dark:shadow-brand-md dark:hover:shadow-brand-xl",
 
         // 강조 카드 (중요한 정보)
         elevated:
-          "bg-white/90 shadow-brand-xl hover:shadow-brand-2xl",
+          "bg-white/90 shadow-brand-xl hover:shadow-brand-2xl dark:bg-slate-900/80 dark:shadow-brand-xl dark:hover:shadow-brand-2xl",
 
         // 부드러운 카드 (배경에 잘 어우러짐)
         soft:
-          "bg-white/60 shadow-brand-sm hover:shadow-brand-md",
+          "bg-white/60 shadow-brand-sm hover:shadow-brand-md dark:bg-slate-900/60 dark:hover:shadow-brand-md",
 
         // 그라디언트 배경 카드 (특별한 경우)
         gradient:
-          "bg-brand-gradient shadow-brand-lg hover:shadow-brand-xl",
+          "bg-brand-gradient shadow-brand-lg hover:shadow-brand-xl dark:bg-brand-gradient",
 
         // 보더 카드 (구분이 필요한 경우)
         outlined:
-          "bg-white/80 border border-gray-100 shadow-brand-sm hover:shadow-brand-md",
+          "bg-white/80 border border-gray-100 shadow-brand-sm hover:shadow-brand-md dark:border-slate-800 dark:bg-slate-900/70",
 
         // 투명 카드 (오버레이)
         ghost:
-          "bg-white/40 shadow-brand-sm hover:bg-white/60 hover:shadow-brand-md",
+          "bg-white/40 shadow-brand-sm hover:bg-white/60 hover:shadow-brand-md dark:bg-white/10 dark:hover:bg-white/20",
       },
       size: {
         sm: "p-4 gap-3",
@@ -87,7 +87,7 @@ const CardHeader = React.memo(({ className, ...props }: React.ComponentProps<"di
     <div
       data-slot="card-header"
       className={cn(
-        "@container/card-header items-start gap-3 [.border-b]:pb-4 [.border-b]:border-gray-200",
+        "@container/card-header items-start gap-3 [.border-b]:pb-4 [.border-b]:border-gray-200 dark:[.border-b]:border-slate-700",
         className
       )}
       {...props}
@@ -152,7 +152,7 @@ const CardFooter = React.memo(({ className, ...props }: React.ComponentProps<"di
     <div
       data-slot="card-footer"
       className={cn(
-        "flex items-center gap-3 [.border-t]:pt-4 [.border-t]:border-gray-200",
+        "flex items-center gap-3 [.border-t]:pt-4 [.border-t]:border-gray-200 dark:[.border-t]:border-slate-700",
         className
       )}
       {...props}

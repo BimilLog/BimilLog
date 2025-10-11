@@ -114,8 +114,9 @@ export const PostHeader = React.memo<PostHeaderProps>(({
                   </button>
                 </Popover>
               ) : (
-                <span className="truncate max-w-[120px] md:max-w-none text-brand-secondary">
-                  {post.memberName || "익명"}
+                <span className="truncate max-w-[120px] md:max-w-none text-brand-secondary inline-flex items-center space-x-1">
+                  <User className="w-3 h-3 stroke-slate-600 fill-slate-100" />
+                  <span>{post.memberName || "익명"}</span>
                 </span>
               )}
             </div>

@@ -69,9 +69,9 @@ const BoardTableRow = memo<TableRowProps>(({
   enablePopover
 }) => {
   return (
-    <TableRow className="bg-white hover:bg-gray-50">
+    <TableRow className="bg-white transition-colors hover:bg-gray-50 dark:bg-slate-900/70 dark:hover:bg-slate-800/80">
       {/* 순위 또는 번호 */}
-      <TableCell className="text-center font-medium">
+      <TableCell className="text-center font-medium text-brand-primary dark:text-gray-100">
         {showRanking ? (
           <span className="text-lg font-bold text-purple-600">
             {index + 1}
@@ -85,8 +85,10 @@ const BoardTableRow = memo<TableRowProps>(({
       <TableCell>
         <Link
           href={`/board/post/${post.id}`}
-          className={`font-semibold transition-colors line-clamp-2 block ${
-            isRead ? 'text-gray-500' : 'text-gray-900 hover:text-purple-600'
+          className={`block line-clamp-2 font-semibold transition-colors ${
+            isRead
+              ? 'text-gray-500 dark:text-gray-400'
+              : 'text-gray-900 hover:text-purple-600 dark:text-gray-100 dark:hover:text-purple-300'
           }`}
         >
           {post.title}
@@ -99,7 +101,7 @@ const BoardTableRow = memo<TableRowProps>(({
       </TableCell>
 
       {/* 작성자 */}
-      <TableCell>
+      <TableCell className="text-brand-primary dark:text-gray-100">
         {post.memberName && post.memberName !== "익명" ? (
           <Popover
             trigger="click"
@@ -123,57 +125,58 @@ const BoardTableRow = memo<TableRowProps>(({
               </div>
             }
           >
-            <button className="truncate max-w-20 hover:text-purple-600 hover:underline transition-colors cursor-pointer inline-flex items-center space-x-1">
+            <button className="inline-flex max-w-20 items-center space-x-1 truncate transition-colors hover:text-purple-600 hover:underline dark:text-gray-200 dark:hover:text-purple-300">
               <User className="w-3 h-3" />
               <span>{post.memberName}</span>
             </button>
           </Popover>
         ) : (
-          <span className="truncate max-w-20 text-gray-500">
-            {post.memberName || "익명"}
+          <span className="inline-flex max-w-20 items-center space-x-1 truncate text-gray-500 dark:text-gray-400">
+            <User className="w-3 h-3" />
+            <span>{post.memberName || "익명"}</span>
           </span>
         )}
       </TableCell>
 
       {/* 작성일 */}
-      <TableCell className="text-sm hidden sm:table-cell">
+      <TableCell className="hidden text-sm text-brand-secondary dark:text-gray-300 sm:table-cell">
         {formatDate(post.createdAt)}
       </TableCell>
 
       {/* 추천 */}
-      <TableCell className="text-center">
+      <TableCell className="text-center text-brand-secondary dark:text-gray-300">
         {enablePopover ? (
           <Popover
             trigger="hover"
             placement="top"
             content={
               <div className="p-3 min-w-[180px]">
-                <div className="flex items-center gap-2 mb-2">
-                  <ThumbsUp className="w-4 h-4 text-purple-600" />
-                  <span className="font-semibold text-sm">좋아요 통계</span>
+                <div className="mb-2 flex items-center gap-2">
+                  <ThumbsUp className="w-4 h-4 text-purple-600 dark:text-purple-300" />
+                  <span className="text-sm font-semibold text-brand-primary dark:text-gray-100">좋아요 통계</span>
                 </div>
-                <div className="space-y-1 text-xs">
+                <div className="space-y-1 text-xs text-brand-secondary dark:text-gray-300">
                   <div className="flex justify-between">
-                    <span className="text-gray-500">현재 좋아요:</span>
-                    <span className="font-medium">{post.likeCount}개</span>
+                    <span className="text-gray-500 dark:text-gray-400">현재 좋아요:</span>
+                    <span className="font-medium text-brand-primary dark:text-gray-100">{post.likeCount}개</span>
                   </div>
                   {showRanking && (
                     <div className="flex justify-between">
-                      <span className="text-gray-500">순위:</span>
-                      <span className="font-medium text-purple-600">#{index + 1}</span>
+                      <span className="text-gray-500 dark:text-gray-400">순위:</span>
+                      <span className="font-medium text-purple-600 dark:text-purple-300">#{index + 1}</span>
                     </div>
                   )}
                 </div>
               </div>
             }
           >
-            <div className="flex items-center justify-center gap-1 px-2 py-1 text-xs text-gray-600">
+            <div className="flex items-center justify-center gap-1 px-2 py-1 text-xs text-gray-600 dark:text-gray-300">
               <ThumbsUp className="w-3 h-3" />
               {post.likeCount}
             </div>
           </Popover>
         ) : (
-          <div className="flex items-center justify-center gap-1 text-xs text-gray-600">
+          <div className="flex items-center justify-center gap-1 text-xs text-gray-600 dark:text-gray-300">
             <ThumbsUp className="w-3 h-3" />
             {post.likeCount}
           </div>
@@ -181,7 +184,7 @@ const BoardTableRow = memo<TableRowProps>(({
       </TableCell>
 
       {/* 조회수 */}
-      <TableCell className="text-center">
+      <TableCell className="text-center text-brand-secondary dark:text-gray-300">
         {post.viewCount}
       </TableCell>
     </TableRow>
@@ -196,19 +199,19 @@ const BoardMobileCard = memo<TableRowProps>(({
   showRanking
 }) => {
   return (
-    <Card variant="elevated" className="hover:shadow-brand-md transition-all">
+    <Card variant="elevated" className="transition-all hover:shadow-brand-md">
       <div className="p-4">
-        <div className="flex items-start justify-between mb-2">
+        <div className="mb-2 flex items-start justify-between">
           <div className="flex-1">
             {/* 번호/순위 표시 */}
-            <div className="flex items-center gap-2 mb-2">
+            <div className="mb-2 flex items-center gap-2">
               {/* 순위 또는 번호 */}
               {showRanking ? (
-                <span className="text-xl font-bold text-purple-600">
+                <span className="text-xl font-bold text-purple-600 dark:text-purple-300">
                   #{index + 1}
                 </span>
               ) : (
-                <span className="text-xs text-gray-600">
+                <span className="text-xs text-gray-600 dark:text-gray-400">
                   번호: {post.id}
                 </span>
               )}
@@ -217,8 +220,10 @@ const BoardMobileCard = memo<TableRowProps>(({
             {/* 제목 */}
             <Link
               href={`/board/post/${post.id}`}
-              className={`font-semibold transition-colors line-clamp-2 block text-base ${
-                isRead ? 'text-gray-500' : 'text-brand-primary hover:text-purple-600'
+              className={`block text-base font-semibold transition-colors line-clamp-2 ${
+                isRead
+                  ? 'text-gray-500 dark:text-gray-400'
+                  : 'text-brand-primary hover:text-purple-600 dark:text-gray-100 dark:hover:text-purple-300'
               }`}
             >
               {post.title}
@@ -232,7 +237,7 @@ const BoardMobileCard = memo<TableRowProps>(({
         </div>
 
         {/* 하단 정보 */}
-        <div className="flex items-center justify-between text-sm text-brand-secondary">
+        <div className="flex items-center justify-between text-sm text-brand-secondary dark:text-gray-300">
           <div className="flex items-center gap-3">
             {post.memberName && post.memberName !== "익명" ? (
               <Popover
@@ -257,14 +262,15 @@ const BoardMobileCard = memo<TableRowProps>(({
                   </div>
                 }
               >
-                <button className="hover:text-purple-600 transition-colors truncate max-w-20 cursor-pointer inline-flex items-center space-x-1">
+                <button className="inline-flex max-w-20 cursor-pointer items-center space-x-1 truncate transition-colors hover:text-purple-600 hover:underline dark:text-gray-200 dark:hover:text-purple-300">
                   <User className="w-3 h-3" />
                   <span>{post.memberName}</span>
                 </button>
               </Popover>
             ) : (
-              <span className="truncate max-w-20 text-gray-500">
-                {post.memberName || "익명"}
+              <span className="inline-flex max-w-20 items-center space-x-1 truncate text-gray-500 dark:text-gray-400">
+                <User className="w-3 h-3" />
+                <span>{post.memberName || "익명"}</span>
               </span>
             )}
             <span>{formatDate(post.createdAt)}</span>
@@ -387,21 +393,21 @@ export const BoardTable = memo<BoardTableProps>(({
   return (
     <>
       {/* 데스크톱 테이블 */}
-      <div className="hidden sm:block overflow-x-auto">
-        <Table hoverable>
-          <TableHead>
+      <div className="hidden overflow-x-auto sm:block">
+        <Table hoverable className="min-w-full text-brand-primary dark:text-gray-100">
+          <TableHead className="bg-gray-50 text-brand-secondary dark:bg-slate-900/80 dark:text-gray-300">
             <TableRow>
               <TableHeadCell className="w-20 text-center">
                 {showRanking ? "순위" : "번호"}
               </TableHeadCell>
-              <TableHeadCell>제목</TableHeadCell>
-              <TableHeadCell className="w-24">작성자</TableHeadCell>
-              <TableHeadCell className="w-28 hidden sm:table-cell">작성일</TableHeadCell>
+              <TableHeadCell className="text-left">제목</TableHeadCell>
+              <TableHeadCell className="w-24 text-left">작성자</TableHeadCell>
+              <TableHeadCell className="hidden w-28 text-left sm:table-cell">작성일</TableHeadCell>
               <TableHeadCell className="w-20 text-center">추천</TableHeadCell>
               <TableHeadCell className="w-20 text-center">조회</TableHeadCell>
             </TableRow>
           </TableHead>
-          <TableBody className="divide-y">
+          <TableBody className="divide-y divide-gray-100 dark:divide-slate-800">
             {posts.length > 0 ? (
               posts.map((post, index) => (
                 <BoardTableRow
@@ -415,24 +421,24 @@ export const BoardTable = memo<BoardTableProps>(({
                 />
               ))
             ) : (
-              <TableRow>
+              <TableRow className="bg-white dark:bg-slate-900/70">
                 <TableCell
                   colSpan={6}
-                  className="text-center py-12"
+                  className="py-12 text-center"
                 >
                   {isSearching ? (
-                    <span className="text-gray-500">검색 결과가 없습니다.</span>
+                    <span className="text-gray-500 dark:text-gray-400">검색 결과가 없습니다.</span>
                   ) : variant === "all" ? (
-                    <span className="text-gray-500">게시글이 없습니다.</span>
+                    <span className="text-gray-500 dark:text-gray-400">게시글이 없습니다.</span>
                   ) : variant === "legend" ? (
-                    <div className="flex flex-col items-center gap-2">
-                      <span className="text-gray-700 font-medium">아직 등록된 레전드 글이 없습니다</span>
-                      <span className="text-sm text-gray-500">역대 최고 인기글이 선정되면 여기에 표시됩니다</span>
+                    <div className="flex flex-col items-center gap-2 text-brand-secondary dark:text-gray-300">
+                      <span className="font-medium text-gray-700 dark:text-gray-200">아직 등록된 레전드 글이 없습니다</span>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">역대 최고 인기글이 선정되면 여기에 표시됩니다</span>
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center gap-2">
-                      <span className="text-gray-700 font-medium">아직 인기글이 없어요 😊</span>
-                      <span className="text-sm text-gray-500">게시글을 작성하고 좋아요를 받아보세요!</span>
+                    <div className="flex flex-col items-center gap-2 text-brand-secondary dark:text-gray-300">
+                      <span className="font-medium text-gray-700 dark:text-gray-200">아직 인기글이 없어요 😊</span>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">게시글을 작성하고 좋아요를 받아보세요!</span>
                     </div>
                   )}
                 </TableCell>
@@ -443,7 +449,7 @@ export const BoardTable = memo<BoardTableProps>(({
       </div>
 
       {/* 모바일 카드 */}
-      <div className="sm:hidden space-y-3">
+      <div className="space-y-3 sm:hidden">
         {posts.length > 0 ? (
           posts.map((post, index) => (
             <BoardMobileCard
@@ -458,20 +464,20 @@ export const BoardTable = memo<BoardTableProps>(({
           ))
         ) : (
           <Card variant="elevated">
-            <div className="p-8 text-center">
+            <div className="p-8 text-center text-brand-secondary dark:text-gray-300">
               {isSearching ? (
-                <span className="text-brand-secondary">검색 결과가 없습니다.</span>
+                <span>검색 결과가 없습니다.</span>
               ) : variant === "all" ? (
-                <span className="text-brand-secondary">게시글이 없습니다.</span>
+                <span>게시글이 없습니다.</span>
               ) : variant === "legend" ? (
                 <div className="flex flex-col items-center gap-2">
-                  <span className="text-gray-700 font-medium">아직 등록된 레전드 글이 없습니다</span>
-                  <span className="text-sm text-gray-500">역대 최고 인기글이 선정되면 여기에 표시됩니다</span>
+                  <span className="font-medium text-gray-700 dark:text-gray-200">아직 등록된 레전드 글이 없습니다</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">역대 최고 인기글이 선정되면 여기에 표시됩니다</span>
                 </div>
               ) : (
                 <div className="flex flex-col items-center gap-2">
-                  <span className="text-gray-700 font-medium">아직 인기글이 없어요 😊</span>
-                  <span className="text-sm text-gray-500">게시글을 작성하고 좋아요를 받아보세요!</span>
+                  <span className="font-medium text-gray-700 dark:text-gray-200">아직 인기글이 없어요 😊</span>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">게시글을 작성하고 좋아요를 받아보세요!</span>
                 </div>
               )}
             </div>

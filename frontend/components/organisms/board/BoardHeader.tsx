@@ -21,7 +21,7 @@ export const BoardHeader = React.memo(() => {
         <Link href="/board/write">
           <Button
             size="lg"
-            className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 inline-flex items-center"
+            className="inline-flex items-center"
           >
             <Edit className="w-5 h-5 mr-2 stroke-slate-600 fill-slate-100" />
             <span>글쓰기</span>

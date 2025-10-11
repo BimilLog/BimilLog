@@ -63,7 +63,7 @@ export const AuthHeader = React.memo(() => {
     <Navbar
       data-toast-anchor
       fluid
-      className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50"
+      className="sticky top-0 z-50 border-b border-gray-200 bg-white/80 backdrop-blur-sm transition-colors duration-300 dark:border-slate-800 dark:bg-slate-900/80"
       theme={{
         root: {
           base: "px-4 sm:px-6 lg:px-8 py-3 sm:py-4",
@@ -122,11 +122,11 @@ export const AuthHeader = React.memo(() => {
         />
       </NavbarBrand>
 
-      <div className="flex md:order-2 items-center gap-2 sm:gap-3">
+      <div className="flex items-center gap-2 sm:gap-3 md:order-2">
         {/* 테마 토글 버튼 - 모든 사용자에게 표시 */}
         <button
           onClick={toggleTheme}
-          className="p-2 text-brand-muted hover:text-brand-primary hover:bg-gray-100 rounded-lg transition-colors min-h-[44px] min-w-[44px] touch-manipulation"
+          className="min-h-[44px] min-w-[44px] touch-manipulation rounded-lg p-2 text-brand-muted transition-colors hover:bg-gray-100 hover:text-brand-primary dark:text-gray-300 dark:hover:bg-slate-800"
           title={mounted ? `테마 변경 (현재: ${theme === 'dark' ? '다크' : theme === 'light' ? '라이트' : '시스템'})` : '테마 변경'}
         >
           {getThemeIcon()}
@@ -237,7 +237,7 @@ export const AuthHeader = React.memo(() => {
         <NavbarToggle className="md:hidden" />
       </div>
 
-      <NavbarCollapse>
+      <NavbarCollapse className="md:order-1 md:ml-auto md:mr-3 md:flex md:items-center md:gap-6">
         <NavbarLink as={Link} href="/board" className="text-sm lg:text-base">
           게시판
         </NavbarLink>

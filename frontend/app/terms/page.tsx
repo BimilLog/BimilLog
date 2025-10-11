@@ -1,31 +1,30 @@
-import { AuthHeader } from "@/components/organisms/common";
-import { HomeFooter } from "@/components/organisms/home";
+"use client";
+
+import { CleanLayout } from "@/components/organisms/layout/BaseLayout";
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-indigo-50">
-      <AuthHeader />
-
+    <CleanLayout className="bg-gradient-to-br from-green-50 via-blue-50 to-indigo-50 dark:from-[#0b0c1c] dark:via-[#121327] dark:to-[#1a1030]">
       <main className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="bg-white rounded-2xl shadow-brand-xl border border-gray-100 overflow-hidden">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-brand-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
           <div className="bg-gradient-to-r from-green-600 to-blue-600 px-8 py-6">
             <h1 className="text-3xl font-bold text-white text-center">
               이용약관
             </h1>
           </div>
 
-          <div className="px-8 py-6">
-            <div className="prose prose-lg max-w-none">
+          <div className="px-8 py-6 dark:text-gray-100">
+            <div className="prose prose-lg max-w-none dark:prose-invert">
               <p className="text-brand-primary leading-relaxed mb-6">
                 본 약관은 익명 메시지 서비스 &ldquo;비밀로그&rdquo;(이하
                 &ldquo;서비스&rdquo;)의 이용과 관련하여 회사와 이용자 간의 권리,
                 의무 및 책임사항 등을 규정함을 목적으로 합니다.
               </p>
 
-              <hr className="border-gray-200 mb-6" />
+              <hr className="border-gray-200 dark:border-gray-700 mb-6" />
 
               <section className="mb-8">
-                <h2 className="text-xl font-semibold text-brand-primary mb-4 border-b border-gray-200 pb-2">
+                <h2 className="text-xl font-semibold text-brand-primary dark:text-gray-100 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
                   제1조 (목적)
                 </h2>
                 <p className="text-brand-primary leading-relaxed">
@@ -35,10 +34,10 @@ export default function TermsPage() {
                 </p>
               </section>
 
-              <hr className="border-gray-200 mb-6" />
+              <hr className="border-gray-200 dark:border-gray-700 mb-6" />
 
               <section className="mb-8">
-                <h2 className="text-xl font-semibold text-brand-primary mb-4 border-b border-gray-200 pb-2">
+                <h2 className="text-xl font-semibold text-brand-primary dark:text-gray-100 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
                   제2조 (정의)
                 </h2>
                 <ol className="list-decimal pl-6 text-brand-primary space-y-3">
@@ -58,10 +57,10 @@ export default function TermsPage() {
                 </ol>
               </section>
 
-              <hr className="border-gray-200 mb-6" />
+              <hr className="border-gray-200 dark:border-gray-700 mb-6" />
 
               <section className="mb-8">
-                <h2 className="text-xl font-semibold text-brand-primary mb-4 border-b border-gray-200 pb-2">
+                <h2 className="text-xl font-semibold text-brand-primary dark:text-gray-100 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
                   제3조 (이용 조건)
                 </h2>
                 <ol className="list-decimal pl-6 text-brand-primary space-y-3">
@@ -81,10 +80,10 @@ export default function TermsPage() {
                 </ol>
               </section>
 
-              <hr className="border-gray-200 mb-6" />
+              <hr className="border-gray-200 dark:border-gray-700 mb-6" />
 
               <section className="mb-8">
-                <h2 className="text-xl font-semibold text-brand-primary mb-4 border-b border-gray-200 pb-2">
+                <h2 className="text-xl font-semibold text-brand-primary dark:text-gray-100 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
                   제4조 (메시지 저장 및 관리)
                 </h2>
                 <ol className="list-decimal pl-6 text-brand-primary space-y-3">
@@ -99,10 +98,10 @@ export default function TermsPage() {
                 </ol>
               </section>
 
-              <hr className="border-gray-200 mb-6" />
+              <hr className="border-gray-200 dark:border-gray-700 mb-6" />
 
               <section className="mb-8">
-                <h2 className="text-xl font-semibold text-brand-primary mb-4 border-b border-gray-200 pb-2">
+                <h2 className="text-xl font-semibold text-brand-primary dark:text-gray-100 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
                   제5조 (서비스 이용 제한)
                 </h2>
                 <p className="text-brand-primary leading-relaxed mb-4">
@@ -115,10 +114,10 @@ export default function TermsPage() {
                 </ul>
               </section>
 
-              <hr className="border-gray-200 mb-6" />
+              <hr className="border-gray-200 dark:border-gray-700 mb-6" />
 
               <section className="mb-8">
-                <h2 className="text-xl font-semibold text-brand-primary mb-4 border-b border-gray-200 pb-2">
+                <h2 className="text-xl font-semibold text-brand-primary dark:text-gray-100 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
                   제6조 (지적재산권)
                 </h2>
                 <p className="text-brand-primary leading-relaxed">
@@ -128,10 +127,10 @@ export default function TermsPage() {
                 </p>
               </section>
 
-              <hr className="border-gray-200 mb-6" />
+              <hr className="border-gray-200 dark:border-gray-700 mb-6" />
 
               <section className="mb-8">
-                <h2 className="text-xl font-semibold text-brand-primary mb-4 border-b border-gray-200 pb-2">
+                <h2 className="text-xl font-semibold text-brand-primary dark:text-gray-100 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
                   제7조 (면책조항)
                 </h2>
                 <ol className="list-decimal pl-6 text-brand-primary space-y-3">
@@ -146,10 +145,10 @@ export default function TermsPage() {
                 </ol>
               </section>
 
-              <hr className="border-gray-200 mb-6" />
+              <hr className="border-gray-200 dark:border-gray-700 mb-6" />
 
               <section className="mb-8">
-                <h2 className="text-xl font-semibold text-brand-primary mb-4 border-b border-gray-200 pb-2">
+                <h2 className="text-xl font-semibold text-brand-primary dark:text-gray-100 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
                   제8조 (약관의 변경)
                 </h2>
                 <p className="text-brand-primary leading-relaxed">
@@ -159,7 +158,7 @@ export default function TermsPage() {
                 </p>
               </section>
 
-              <hr className="border-gray-200 mb-6" />
+              <hr className="border-gray-200 dark:border-gray-700 mb-6" />
 
               <div className="text-right">
                 <div className="bg-gray-50 rounded-lg p-4 border inline-block">
@@ -172,8 +171,6 @@ export default function TermsPage() {
           </div>
         </div>
       </main>
-
-      <HomeFooter />
-    </div>
+    </CleanLayout>
   );
 }

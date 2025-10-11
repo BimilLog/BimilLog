@@ -17,6 +17,7 @@ import { PWAInstallButton } from "@/components/molecules/pwa-install-button";
 import { useBrowserGuide } from "@/hooks";
 import { useState, useEffect } from "react";
 import { isIOS } from "@/lib/utils";
+import { CleanLayout } from "@/components/organisms/layout/BaseLayout";
 
 // Style constants
 const GRADIENTS = {
@@ -63,10 +64,10 @@ interface InstallStepProps {
 function InstallStep({ step, children, bgColor = "bg-blue-100" }: InstallStepProps) {
   return (
     <li className="flex gap-4 items-start">
-      <span className={`font-bold text-lg ${bgColor} w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0`}>
+      <span className={`font-bold text-base ${bgColor} min-w-[2rem] w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0`}>
         {step}
       </span>
-      <span className="text-base">{children}</span>
+      <span className="text-base leading-relaxed flex-1">{children}</span>
     </li>
   );
 }
@@ -90,8 +91,8 @@ function InstallGuideCard({
   children
 }: InstallGuideCardProps) {
   return (
-    <Card className={`${bgGradient} ${borderColor} max-w-2xl mx-auto shadow-brand-xl`}>
-      <CardContent className="p-8">
+    <Card className={`${bgGradient} ${borderColor} w-full max-w-4xl mx-auto shadow-brand-xl`}>
+      <CardContent className="p-6 sm:p-8 md:p-10">
         <h3 className={`font-bold ${textColor} mb-6 flex items-center justify-center gap-3 text-xl`}>
           <Icon className="w-6 h-6" />
           {title}
@@ -115,8 +116,8 @@ function FeatureCard({ icon: Icon, title, description, gradient }: FeatureCardPr
   return (
     <Card className="border-0 shadow-brand-xl hover:shadow-brand-2xl transition-all duration-300 bg-white/90 backdrop-blur-sm hover:scale-105 group">
       <CardContent className="p-8 text-center">
-        <div className={`w-16 h-16 bg-gradient-to-r ${gradient} rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300`}>
-          <Icon className="w-8 h-8 text-white" />
+        <div className={`w-20 h-20 bg-gradient-to-r ${gradient} rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+          <Icon className="w-10 h-10 text-white stroke-[2.5]" />
         </div>
         <h3 className="text-xl font-bold mb-4 text-brand-primary">{title}</h3>
         <p className="text-brand-muted leading-relaxed">{description}</p>
@@ -139,7 +140,7 @@ export default function InstallPage() {
   // Loading state for SSR
   if (!isClient) {
     return (
-      <div className={`min-h-screen ${GRADIENTS.primary}`}>
+      <CleanLayout className={GRADIENTS.primary}>
         <div className="container mx-auto px-4 py-16 text-center">
           <Smartphone className="w-16 h-16 mb-6 animate-pulse stroke-purple-600 fill-purple-100 mx-auto" />
           <h1 className={`text-4xl md:text-6xl font-bold mb-6 ${GRADIENTS.titleText}`}>
@@ -149,12 +150,12 @@ export default function InstallPage() {
             <FlowbiteSpinner color="pink" size="xl" aria-label="로딩 중..." />
           </div>
         </div>
-      </div>
+      </CleanLayout>
     );
   }
 
   return (
-    <div className={`min-h-screen ${GRADIENTS.primary}`}>
+    <CleanLayout className={GRADIENTS.primary}>
       {/* Header */}
       <header data-toast-anchor className="bg-white/90 backdrop-blur-lg border-b border-cyan-200 sticky top-0 z-50 shadow-brand-sm">
         <div className="container mx-auto px-4 py-4 flex items-center gap-4">
@@ -182,10 +183,8 @@ export default function InstallPage() {
             <br className="md:hidden" />
             <span className="block">앱으로 설치하세요</span>
           </h1>
-          <p className="text-xl md:text-2xl text-brand-muted mb-12 leading-relaxed max-w-2xl mx-auto">
-            더 빠르고 편리한 앱 경험으로
-            <br />
-            언제 어디서나 마음을 전해보세요
+          <p className="text-xl md:text-2xl text-brand-muted mb-12 leading-relaxed max-w-5xl mx-auto whitespace-nowrap">
+            더 빠르고 편리한 앱 경험으로 언제 어디서나 마음을 전해보세요
           </p>
 
           {/* PWA Install Button */}
@@ -265,30 +264,6 @@ export default function InstallPage() {
         </div>
       </section>
 
-      {/* Preview Section */}
-      <section className="container mx-auto px-4 py-20">
-        <h2 className="text-4xl md:text-5xl font-bold text-center mb-4 text-brand-primary">앱 미리보기</h2>
-        <p className="text-center text-brand-muted mb-16 text-lg max-w-2xl mx-auto">
-          실제 앱처럼 동작하는 비밀로그의 모습을 확인해보세요
-        </p>
-        <div className="max-w-4xl mx-auto">
-          <Card className="overflow-hidden shadow-brand-2xl hover:shadow-3xl transition-shadow duration-300">
-            <div className="bg-gradient-to-r from-cyan-500 via-blue-500 to-teal-500 p-12 text-center relative overflow-hidden">
-              <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
-              <div className="relative z-10">
-                <div className="w-32 h-32 bg-white/20 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                  <Smartphone className="w-16 h-16 stroke-white fill-white/20" />
-                </div>
-                <h3 className="text-3xl font-bold text-white mb-2 inline-block">비밀로그</h3>
-                <p className="text-cyan-100 text-lg">익명으로 마음을 전하는 특별한 공간</p>
-              </div>
-              <div className="absolute top-4 right-4 w-6 h-6 bg-white/30 rounded-full"></div>
-              <div className="absolute bottom-8 left-8 w-4 h-4 bg-white/20 rounded-full"></div>
-            </div>
-          </Card>
-        </div>
-      </section>
-
       {/* Call to Action */}
       <section className="container mx-auto px-4 py-20 text-center">
         <div className="max-w-2xl mx-auto">
@@ -304,27 +279,6 @@ export default function InstallPage() {
           />
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-16">
-        <div className="container mx-auto px-4 text-center">
-          <div className="flex items-center justify-center mb-6">
-            <h2 className="text-3xl font-bold text-white inline-block">비밀로그</h2>
-          </div>
-          <p className="text-brand-secondary mb-8 text-lg">익명으로 마음을 전하는 특별한 공간</p>
-          <div className="flex justify-center gap-8 text-base mb-8">
-            <Link href="/privacy" className="text-brand-secondary hover:text-white transition-colors hover:underline">
-              개인정보처리방침
-            </Link>
-            <Link href="/terms" className="text-brand-secondary hover:text-white transition-colors hover:underline">
-              이용약관
-            </Link>
-          </div>
-          <div className="border-t border-gray-800 pt-8">
-            <p className="text-brand-secondary text-sm">&copy; 2025 비밀로그. All rights reserved. v2.0.0</p>
-          </div>
-        </div>
-      </footer>
-    </div>
+    </CleanLayout>
   );
 }

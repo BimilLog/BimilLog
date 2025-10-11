@@ -1,27 +1,11 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { Button, Tooltip } from "flowbite-react";
-import { Spinner } from "@/components";
 import { ThumbsUp, Flag } from "lucide-react";
 import { Post, userCommand } from "@/lib/api";
 import { useAuth, useToast } from "@/hooks";
 import { useState } from "react";
-
-const ReportModal = dynamic(
-  () => import("@/components/organisms/common/ReportModal").then(mod => ({ default: mod.ReportModal })),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
-        <div className="bg-white rounded-lg p-6 flex flex-col items-center gap-3">
-          <Spinner size="md" />
-          <p className="text-sm text-brand-secondary">신고 모달 로딩 중...</p>
-        </div>
-      </div>
-    ),
-  }
-);
+import { LazyReportModal } from "@/lib/utils/lazy-components";
 
 interface PostContentActionsProps {
   post: Post;
@@ -117,7 +101,7 @@ export const PostContentActions: React.FC<PostContentActionsProps> = ({
       </div>
 
       {/* 신고 모달 */}
-      <ReportModal
+      <LazyReportModal
         isOpen={isReportModalOpen}
         onClose={() => setIsReportModalOpen(false)}
         onSubmit={handleReport}

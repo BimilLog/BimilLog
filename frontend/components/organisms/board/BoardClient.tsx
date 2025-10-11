@@ -85,7 +85,7 @@ function BoardClient() {
 
   return (
     <MainLayout
-      className="bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50"
+      className="bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 dark:from-[#121327] dark:via-[#1a1030] dark:to-[#0b0c1c]"
       containerClassName="container mx-auto px-4"
     >
       {/* 게시판 헤더 */}

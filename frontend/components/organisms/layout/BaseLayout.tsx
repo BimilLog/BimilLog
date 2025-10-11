@@ -30,7 +30,9 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({
   containerClassName = "",
 }) => {
   return (
-    <div className={`min-h-screen bg-brand-gradient ${className}`}>
+    <div
+      className={`min-h-screen bg-brand-gradient text-brand-primary transition-colors duration-300 dark:bg-gradient-to-br dark:from-[#0d0f1a] dark:via-[#121327] dark:to-[#0b0c1c] dark:text-brand-primary ${className}`}
+    >
       {/* Header */}
       {showHeader && <AuthHeader />}
 

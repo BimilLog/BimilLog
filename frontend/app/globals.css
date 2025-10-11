@@ -262,9 +262,9 @@
   --color-gray-800: #e5e7eb;
 
   /* 배경 그라디언트 (다크모드) */
-  --gradient-brand: linear-gradient(135deg, oklch(0.25 0.08 336), oklch(0.25 0.08 280), oklch(0.25 0.08 250));
-  --gradient-brand-button: linear-gradient(135deg, oklch(0.55 0.15 336), oklch(0.48 0.17 280));
-  --gradient-brand-hover: linear-gradient(135deg, oklch(0.50 0.17 336), oklch(0.43 0.19 280));
+  --gradient-brand: linear-gradient(135deg, #1b1030 0%, #221a47 50%, #090f1e 100%);
+  --gradient-brand-button: linear-gradient(135deg, #7c3aed 0%, #4338ca 100%);
+  --gradient-brand-hover: linear-gradient(135deg, #6d28d9 0%, #3730a3 100%);
 }
 
 /* 귀여운 로딩 스피너 애니메이션 */

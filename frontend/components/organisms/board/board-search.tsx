@@ -45,15 +45,15 @@ export const BoardSearch = ({
   };
 
   return (
-    <Card variant="default" className="mb-6 p-4 bg-white backdrop-blur-none">
+    <Card variant="default" className="mb-6 p-4 bg-white backdrop-blur-none dark:bg-slate-900/70 dark:text-gray-100">
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1">
-          <div className="flex items-center border border-gray-300 rounded-lg bg-white overflow-hidden hover:border-brand-secondary/50 focus-within:border-brand-secondary focus-within:ring-2 focus-within:ring-brand-secondary/20 transition-all">
+          <div className="flex items-center border border-gray-300 rounded-lg bg-white overflow-hidden transition-all hover:border-brand-secondary/50 focus-within:border-brand-secondary focus-within:ring-2 focus-within:ring-brand-secondary/20 dark:border-slate-700 dark:bg-slate-900/80 dark:hover:border-brand-secondary/40">
             <Dropdown
               label=""
               dismissOnClick={true}
               renderTrigger={() => (
-                <button className="w-[120px] px-3 py-2 border-0 rounded-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-gray-50 hover:bg-gray-100 border-r border-gray-200 flex items-center justify-between text-sm">
+                <button className="flex items-center justify-between w-[120px] px-3 py-2 border-0 rounded-none focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-gray-50 hover:bg-gray-100 border-r border-gray-200 text-sm dark:bg-slate-900 dark:hover:bg-slate-800 dark:border-slate-700">
                   <span>
                     {searchType === "TITLE" ? "제목" :
                      searchType === "TITLE_CONTENT" ? "제목+내용" :
@@ -76,7 +76,7 @@ export const BoardSearch = ({
             <Input
               type="text"
               placeholder={getPlaceholder()}
-              className="flex-1 border-0 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent"
+              className="flex-1 border-0 rounded-none bg-transparent text-brand-primary focus-visible:ring-0 focus-visible:ring-offset-0 dark:text-gray-100"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyPress={(e) => e.key === "Enter" && executeSearch()}
@@ -89,7 +89,7 @@ export const BoardSearch = ({
                   setSearchTerm("");
                   handleSearch(); // 즉시 목록으로 복귀
                 }}
-                className="border-0 rounded-none hover:bg-gray-100"
+                className="border-0 rounded-none hover:bg-gray-100 dark:hover:bg-slate-800"
                 title="검색어 지우기"
               >
                 <X className="w-4 h-4 stroke-gray-500" />
@@ -99,20 +99,20 @@ export const BoardSearch = ({
               variant="ghost"
               size="icon"
               onClick={executeSearch}
-              className="border-0 rounded-none hover:bg-brand-secondary/10 border-l border-gray-200"
+              className="border-0 rounded-none border-l border-gray-200 hover:bg-brand-secondary/10 dark:border-slate-700 dark:hover:bg-brand-secondary/20"
             >
               <Search className="w-5 h-5 stroke-blue-600 fill-blue-100" />
             </Button>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 text-brand-muted dark:text-gray-300">
           <ListFilter className="w-5 h-5 stroke-blue-600 fill-blue-100" />
           <Dropdown
             label=""
             dismissOnClick={true}
             renderTrigger={() => (
-              <button className="w-[120px] px-3 py-2 bg-white border border-gray-300 rounded-lg hover:border-brand-secondary/50 focus:ring-2 focus:ring-brand-secondary/20 flex items-center justify-between text-sm">
+              <button className="flex items-center justify-between w-[120px] px-3 py-2 bg-white border border-gray-300 rounded-lg hover:border-brand-secondary/50 focus:ring-2 focus:ring-brand-secondary/20 text-sm dark:bg-slate-900/80 dark:border-slate-700 dark:hover:border-brand-secondary/40">
                 <span>{postsPerPage}개씩</span>
                 <ChevronDown className="w-4 h-4 stroke-slate-600 fill-slate-100" />
               </button>

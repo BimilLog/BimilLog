@@ -30,9 +30,13 @@ export default function SuggestPage() {
               건의하기
             </h1>
           </div>
-          <p className="text-lg text-brand-muted max-w-2xl mx-auto">
-            비밀로그를 더 좋은 서비스로 만들어가는데 도움을 주세요. 여러분의
-            소중한 의견을 기다립니다.
+          <p className="text-lg text-brand-muted max-w-4xl mx-auto">
+            <span className="block whitespace-nowrap">
+              비밀로그를 더 좋은 서비스로 만들어 가는 데 도움을 주세요.
+            </span>
+            <span className="block whitespace-nowrap mt-2">
+              여러분의 소중한 의견을 기다립니다.
+            </span>
           </p>
         </div>
       </header>

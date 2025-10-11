@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, useMemo } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { sseManager, type Notification } from "@/lib/api"
 import { useAuth } from "@/hooks"
 import { logger } from "@/lib/utils"
@@ -19,7 +19,6 @@ export function useNotifications() {
   const queryClient = useQueryClient()
   const [isSSEConnected, setIsSSEConnected] = useState(false)
   const [connectionState, setConnectionState] = useState<string>("DISCONNECTED")
-  const hasShownConnectedToastRef = useRef(false)
 
   // SSE 연결 가능 여부 확인: 사용자 인증 및 닉네임 설정 완료 상태 체크
   const canConnectSSE = useCallback(() => {
@@ -58,9 +57,9 @@ export function useNotifications() {
           break
         case 'connected':
           // 최초 연결 시에만 토스트 표시 (재연결 시에는 표시하지 않음)
-          if (!hasShownConnectedToastRef.current) {
+          if (!sseManager.hasShownConnectedToast()) {
             showSuccess("실시간 알림 활성화", "새로운 알림을 실시간으로 받을 수 있습니다", 3000)
-            hasShownConnectedToastRef.current = true
+            sseManager.markConnectedToastShown()
           } else {
             showInfo("실시간 알림 복구", "알림 연결이 복구되었습니다", 2000)
           }
@@ -72,7 +71,6 @@ export function useNotifications() {
           showError("연결 실패", "실시간 알림 연결에 실패했습니다. 재시도 중...", 3000)
           break
         case 'disconnected':
-          hasShownConnectedToastRef.current = false
           break
       }
     }
@@ -124,7 +122,6 @@ export function useNotifications() {
       sseManager.removeEventListener("notification")
       setIsSSEConnected(false)
       setConnectionState("DISCONNECTED")
-      hasShownConnectedToastRef.current = false
     }
   }, [canConnectSSE, user, updateConnectionState])
 

@@ -87,6 +87,7 @@ describe("useAuthStore", () => {
     expect(state.isAuthenticated).toBe(false);
     expect(state.isLoading).toBe(false);
     expect(vi.mocked(sseManager.disconnect)).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(sseManager.disconnect)).toHaveBeenCalledWith({ resetToast: true });
     expect(vi.mocked(sseManager.connect)).not.toHaveBeenCalled();
   });
 });

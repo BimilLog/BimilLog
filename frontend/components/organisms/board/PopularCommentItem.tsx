@@ -70,7 +70,7 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
 
   return (
     <div
-      className="p-3 sm:p-4 bg-white/70 backdrop-blur-sm rounded-lg border border-blue-100 shadow-brand-sm cursor-pointer hover:bg-white/90 transition-all duration-200 hover:shadow-brand-md"
+      className="p-3 sm:p-4 rounded-lg border border-blue-100 bg-white/70 backdrop-blur-sm transition-all duration-200 cursor-pointer hover:bg-white/90 hover:shadow-brand-md dark:border-blue-900/40 dark:bg-slate-900/70 dark:hover:bg-slate-900/90"
       onClick={() => onCommentClick(comment.id)}
     >
       {/* 헤더: 닉네임, 날짜, 액션 버튼들 */}
@@ -101,13 +101,13 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
                 </div>
               }
             >
-              <button className="font-semibold text-sm sm:text-base text-blue-800 hover:text-purple-600 hover:underline transition-colors cursor-pointer inline-flex items-center space-x-1 truncate">
+              <button className="inline-flex items-center space-x-1 truncate text-sm font-semibold text-blue-800 transition-colors hover:text-purple-600 hover:underline sm:text-base dark:text-blue-300 dark:hover:text-purple-300">
                 <User className="w-3 h-3 flex-shrink-0" />
                 <span className="truncate">{comment.memberName}</span>
               </button>
             </Popover>
           ) : (
-            <span className="font-semibold text-sm sm:text-base inline-flex items-center space-x-1 truncate text-brand-secondary">
+            <span className="inline-flex items-center space-x-1 truncate text-sm font-semibold text-brand-secondary sm:text-base dark:text-gray-300">
               <User className="w-3 h-3 flex-shrink-0 stroke-slate-600 fill-slate-100" />
               <span className="truncate">{comment.memberName || "익명"}</span>
             </span>
@@ -166,12 +166,12 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
       {/* 댓글 내용 */}
       <SafeHTML
         html={comment.content}
-        className="prose max-w-none prose-sm text-sm sm:text-base leading-relaxed text-brand-primary"
+        className="prose max-w-none prose-sm text-sm leading-relaxed text-brand-primary sm:text-base dark:text-gray-100"
       />
 
       {/* 클릭 안내 */}
-      <div className="mt-3 pt-2 border-t border-blue-100">
-        <p className="text-xs text-blue-600 font-medium flex items-center gap-1">
+      <div className="mt-3 border-t border-blue-100 pt-2 dark:border-blue-900/40">
+        <p className="flex items-center gap-1 text-xs font-medium text-blue-600 dark:text-blue-300">
           원본 댓글로 이동하기
         </p>
       </div>

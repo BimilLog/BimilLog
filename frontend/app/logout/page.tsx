@@ -4,7 +4,6 @@ import { useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth, useToast } from "@/hooks";
 import { AuthLoadingScreen } from "@/components";
-import { fcmManager } from "@/lib/auth/fcm";
 import { logger } from '@/lib/utils/logger';
 
 export default function LogoutPage() {
@@ -58,15 +57,6 @@ export default function LogoutPage() {
 
   // 중복 실행 방지를 위한 플래그 (logout 로직이 여러 번 실행되는 것을 막음)
   const isProcessingRef = useRef(false);
-  // 컴포넌트가 언마운트된 후 setState 호출을 방지하는 플래그
-  const isMountedRef = useRef(true);
-
-  // 컴포넌트 언마운트 시 상태 플래그 업데이트
-  useEffect(() => {
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
 
   useEffect(() => {
     // 이미 로그아웃 처리 중인 경우 중복 실행 방지
@@ -77,43 +67,44 @@ export default function LogoutPage() {
 
     const performLogout = async () => {
       try {
-        // 서버에 로그아웃 요청 전송
+        logger.log("로그아웃 API 호출 시작");
+        // 서버에 로그아웃 요청 전송 (auth.store.ts에서 모든 정리 작업 수행)
         await logoutRef.current?.();
+        logger.log("로그아웃 API 호출 완료");
       } catch (error) {
-        logger.error("Logout failed:", error);
+        logger.error("Logout API failed:", error);
         showErrorRef.current?.("로그아웃 중 오류가 발생했습니다. 홈페이지로 이동합니다.");
       } finally {
-        // FCM 토큰 캐시 정리
-        fcmManager.clearCache();
+        logger.log("LogoutPage finally 블록 진입");
 
-        // localStorage FCM 관련 데이터 완전 삭제 (보안: 다음 사용자가 이전 토큰 사용 방지)
-        if (typeof window !== "undefined") {
-          localStorage.removeItem("fcm_token");
-          localStorage.removeItem("notification_permission_asked");
-          localStorage.removeItem("notification_permission_skipped");
+        // 카카오 친구 동의 플로우 확인
+        const isConsentFlow = consentParamRef.current === 'true';
+        logger.log("Consent flow:", isConsentFlow);
+
+        if (isConsentFlow) {
+          // sessionStorage에서 동의 URL 가져오기
+          const consentUrl = sessionStorage.getItem('kakaoConsentUrl');
+          if (consentUrl) {
+            logger.log("카카오 동의 URL로 리다이렉트:", consentUrl);
+            window.location.href = consentUrl;
+            return;
+          }
         }
 
-        // 컴포넌트가 아직 마운트되어 있을 때만 라우팅 실행 (메모리 누수 방지)
-        if (isMountedRef.current) {
-          // 카카오 친구 동의 플로우 확인
-          const isConsentFlow = consentParamRef.current === 'true';
+        // 일반 로그아웃의 경우 홈페이지로 이동
+        const redirectPath = redirectTargetRef.current || "/";
+        logger.log("페이지 리다이렉트 시작:", redirectPath);
 
-          if (isConsentFlow) {
-            // sessionStorage에서 동의 URL 가져오기
-            const consentUrl = sessionStorage.getItem('kakaoConsentUrl');
-            if (consentUrl) {
-              window.location.href = consentUrl;
-              return;
-            }
-          }
-
-          // 일반 로그아웃의 경우 홈페이지로 이동
-          const redirectPath = redirectTargetRef.current || "/";
+        // window.location.replace를 우선적으로 사용 (더 확실한 페이지 이동)
+        try {
+          logger.log("window.location.replace 실행");
+          window.location.replace(redirectPath);
+        } catch (error) {
+          logger.error("window.location.replace 실패, router.replace 시도:", error);
           try {
             routerRef.current.replace(redirectPath);
-          } catch (error) {
-            logger.error("라우터 이동 중 오류 발생, window.location 으로 대체합니다:", error);
-            window.location.replace(redirectPath);
+          } catch (routerError) {
+            logger.error("router.replace도 실패:", routerError);
           }
         }
       }
@@ -121,23 +112,31 @@ export default function LogoutPage() {
 
     // 로그아웃이 5초 이상 걸릴 경우 강제로 이동 (fallback 처리)
     const timeoutId = setTimeout(() => {
-      if (isMountedRef.current) {
-        const isConsentFlow = consentParamRef.current === 'true';
+      logger.warn("로그아웃 타임아웃 (5초) - 강제 리다이렉트 시작");
 
-        if (isConsentFlow) {
-          const consentUrl = sessionStorage.getItem('kakaoConsentUrl');
-          if (consentUrl) {
-            window.location.href = consentUrl;
-            return;
-          }
+      const isConsentFlow = consentParamRef.current === 'true';
+      logger.log("Timeout - Consent flow:", isConsentFlow);
+
+      if (isConsentFlow) {
+        const consentUrl = sessionStorage.getItem('kakaoConsentUrl');
+        if (consentUrl) {
+          logger.log("Timeout - 카카오 동의 URL로 강제 리다이렉트:", consentUrl);
+          window.location.href = consentUrl;
+          return;
         }
+      }
 
-        const redirectPath = redirectTargetRef.current || "/";
+      const redirectPath = redirectTargetRef.current || "/";
+      logger.log("Timeout - 홈으로 강제 리다이렉트:", redirectPath);
+
+      try {
+        window.location.replace(redirectPath);
+      } catch (error) {
+        logger.error("Timeout - window.location.replace 실패:", error);
         try {
           routerRef.current.replace(redirectPath);
-        } catch (error) {
-          logger.error("라우터 이동 중 오류 발생(타임아웃), window.location 으로 대체합니다:", error);
-          window.location.replace(redirectPath);
+        } catch (routerError) {
+          logger.error("Timeout - router.replace도 실패:", routerError);
         }
       }
     }, 5000);

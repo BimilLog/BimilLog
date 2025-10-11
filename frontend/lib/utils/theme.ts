@@ -84,7 +84,11 @@ export function applyTheme(config: ThemeConfig): void {
   const resolvedTheme = getResolvedTheme(config.theme);
 
   // 다크모드 적용
+  root.classList.toggle('dark', resolvedTheme === 'dark');
+  root.classList.toggle('light', resolvedTheme === 'light');
+  root.setAttribute('data-mode', resolvedTheme);
   root.setAttribute('data-theme', resolvedTheme);
+  root.style.colorScheme = resolvedTheme;
 
   // 색상 스킴 적용
   root.setAttribute('data-color-scheme', config.colorScheme);
