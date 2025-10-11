@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import withPWA from "next-pwa";
+import path from "path";
 
 const pwaConfig = {
     dest: "public",
@@ -8,6 +9,7 @@ const pwaConfig = {
     disable: process.env.NODE_ENV === "development",
     // @ts-ignore
     importScripts: ["/firebase-messaging-sw.js"],
+    buildExcludes: [/app-build-manifest\.json$/],
     runtimeCaching: [
         {
             urlPattern: /^https:\/\/grow-farm\.com\/api\//,
@@ -35,6 +37,25 @@ const pwaConfig = {
 };
 
 const nextConfig = withPWA(pwaConfig)({
+    output: 'standalone',
+    outputFileTracingRoot: path.join(__dirname, '../'),
+    webpack: (config, { dev, isServer }) => {
+        if (dev && !isServer) {
+            // HMR 관련 파일 시스템 감시 설정 개선
+            config.watchOptions = {
+                poll: 1000,
+                aggregateTimeout: 300,
+                ignored: /node_modules/,
+            };
+
+            // 파일 시스템 접근 오류 방지를 위한 설정
+            config.optimization = {
+                ...config.optimization,
+                runtimeChunk: 'single',
+            };
+        }
+        return config;
+    },
     async redirects() {
         return [
             {
@@ -84,7 +105,7 @@ const nextConfig = withPWA(pwaConfig)({
                             // 스타일시트 허용
                             "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
                             // 이미지 소스 허용 (구체적 도메인만 명시)
-                            "img-src 'self' data: https://p.kakaocdn.net http://k.kakaocdn.net http://t1.kakaocdn.net https://t1.kakaocdn.net https://postfiles.pstatic.net https://t1.daumcdn.net https://display.ad.daum.net https://kaat.daum.net https://serv.ds.kakao.com https://tr.ad.daum.net",
+                            "img-src 'self' data: https://p.kakaocdn.net http://k.kakaocdn.net http://t1.kakaocdn.net https://t1.kakaocdn.net https://chat.kakaocdn.net https://postfiles.pstatic.net https://t1.daumcdn.net https://display.ad.daum.net https://kaat.daum.net https://serv.ds.kakao.com https://tr.ad.daum.net",
                             // 폰트 소스 허용
                             "font-src 'self' data: https://cdn.jsdelivr.net",
                             // API 연결 허용 (개발환경에서는 localhost 포함)
@@ -95,7 +116,7 @@ const nextConfig = withPWA(pwaConfig)({
                             "frame-src 'self' https://accounts.kakao.com https://postfiles.pstatic.net https://t1.daumcdn.net https://analytics.ad.daum.net https://display.ad.daum.net about: chrome-extension:",
                             "object-src 'none'",
                             "base-uri 'self'",
-                            "form-action 'self' https://accounts.kakao.com",
+                            "form-action 'self' https://accounts.kakao.com https://sharer.kakao.com",
                             // 클릭재킹 방지 (X-Frame-Options와 중복이지만 더 정확한 제어)
                             "frame-ancestors 'self'",
                             // 미디어 소스 허용
@@ -131,7 +152,31 @@ const nextConfig = withPWA(pwaConfig)({
         ];
     },
     images: {
-        domains: ['k.kakaocdn.net', 'p.kakaocdn.net', 't1.kakaocdn.net'],
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'k.kakaocdn.net',
+            },
+            {
+                protocol: 'https',
+                hostname: 'p.kakaocdn.net',
+            },
+            {
+                protocol: 'https',
+                hostname: 't1.kakaocdn.net',
+            },
+            {
+                protocol: 'https',
+                hostname: 'chat.kakaocdn.net',
+            },
+        ],
+        formats: ['image/avif', 'image/webp'],
+        deviceSizes: [640, 768, 1024, 1280, 1536],
+        imageSizes: [16, 32, 48, 64, 96, 128, 256],
+        minimumCacheTTL: 60 * 60 * 24 * 365, // 1년 캐싱
+        dangerouslyAllowSVG: false,
+        contentDispositionType: 'attachment',
+        contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     },
     eslint: {
         ignoreDuringBuilds: true,

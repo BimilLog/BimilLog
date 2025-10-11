@@ -1,9 +1,8 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Heart, UserCheck } from "lucide-react";
-import Link from "next/link";
-import { KakaoShareButton } from "@/components/atoms/kakao-share-button";
+import { Button } from "flowbite-react";
+import { UserCheck } from "lucide-react";
+import { KakaoShareButton } from "@/components";
 
 interface HomeHeroProps {
   isAuthenticated: boolean;
@@ -20,7 +19,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
         <h1 className="text-3xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
           익명으로 마음을 전해보세요
         </h1>
-        <p className="text-lg md:text-xl text-gray-600 mb-6 leading-relaxed">
+        <p className="text-lg md:text-xl text-brand-secondary mb-6 leading-relaxed">
           비밀로그에서 소중한 사람에게 익명의 따뜻한 메시지를 남겨보세요
         </p>
 
@@ -28,11 +27,11 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
           {/* 비로그인 상태 */}
           {!isAuthenticated && (
             <Button
+              color="purple"
               size="lg"
-              asChild
-              className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 px-8 py-3 text-lg"
+              onClick={() => window.location.href = '/login'}
             >
-              <Link href="/login">내 롤링페이퍼 만들기</Link>
+              내 롤링페이퍼 만들기
             </Button>
           )}
 
@@ -44,9 +43,9 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
                 <Button
                   size="lg"
                   onClick={onOpenFriendsModal}
-                  className="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 px-8 py-3 text-lg text-yellow-900 font-bold shadow-lg"
+                  className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:bg-gradient-to-l focus:ring-purple-200 dark:focus:ring-purple-800"
                 >
-                  <UserCheck className="w-5 h-5 mr-2" />
+                  <UserCheck className="w-5 h-5 mr-2 stroke-slate-600 fill-slate-100" />
                   카카오 친구 확인하기
                 </Button>
               </div>
@@ -56,18 +55,17 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
                 <Button
                   size="lg"
                   onClick={onOpenFriendsModal}
-                  className="bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 px-8 py-3 text-lg text-yellow-900 font-bold shadow-lg"
+                  className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:bg-gradient-to-l focus:ring-purple-200 dark:focus:ring-purple-800"
                 >
-                  <UserCheck className="w-5 h-5 mr-2" />
+                  <UserCheck className="w-5 h-5 mr-2 stroke-slate-600 fill-slate-100" />
                   카카오 친구 확인하기
                 </Button>
                 <Button
                   size="lg"
-                  variant="outline"
-                  asChild
-                  className="border-purple-200 text-purple-600 hover:bg-purple-50 px-8 py-3 text-lg"
+                  onClick={() => window.location.href = '/visit'}
+                  className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:bg-gradient-to-bl focus:ring-cyan-300 dark:focus:ring-cyan-800"
                 >
-                  <Link href="/visit">다른 롤링페이퍼 방문하기</Link>
+                  다른 롤링페이퍼 방문하기
                 </Button>
               </div>
 
@@ -75,9 +73,8 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
               <div className="hidden sm:block">
                 <KakaoShareButton
                   type="service"
-                  variant="outline"
                   size="lg"
-                  className="px-8 py-3 text-lg font-semibold border-purple-200 text-purple-600 hover:bg-purple-50"
+                  className="px-8 py-3 text-lg font-semibold"
                 />
               </div>
             </>
@@ -87,11 +84,10 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
           <div className={isAuthenticated ? "sm:hidden" : ""}>
             <Button
               size="lg"
-              variant="outline"
-              asChild
-              className="border-purple-200 text-purple-600 hover:bg-purple-50 px-8 py-3 text-lg"
+              onClick={() => window.location.href = '/visit'}
+              className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:bg-gradient-to-bl focus:ring-cyan-300 dark:focus:ring-cyan-800"
             >
-              <Link href="/visit">다른 롤링페이퍼 방문하기</Link>
+              다른 롤링페이퍼 방문하기
             </Button>
           </div>
 
@@ -100,9 +96,8 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
             <div className="sm:hidden">
               <KakaoShareButton
                 type="service"
-                variant="outline"
                 size="lg"
-                className="px-8 py-3 text-lg font-semibold border-purple-200 text-purple-600 hover:bg-purple-50"
+                className="px-8 py-3 text-lg font-semibold"
               />
             </div>
           )}

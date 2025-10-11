@@ -1,19 +1,24 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
+import { ThemeModeScript } from "flowbite-react";
 import "./globals.css";
-import { AuthProvider } from "@/hooks/useAuth";
-import { BrowserGuideWrapper } from "@/components/organisms/browser-guide-wrapper";
-import { ToastProvider } from "@/hooks/useToast";
+import { ClientProviders } from "@/providers/client-providers";
+import { QueryProvider } from "@/providers/query-provider";
+import { WebVitalsReporter } from "@/components/analytics/web-vitals";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: 'swap',
+  preload: true,
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: 'swap',
+  preload: true,
 });
 
 export const viewport: Viewport = {
@@ -111,8 +116,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko">
+    <html lang="ko" suppressHydrationWarning>
       <head>
+        <ThemeModeScript />
+        {/* Preconnect & DNS Prefetch */}
+        <link rel="preconnect" href="https://grow-farm.com" />
+        <link rel="dns-prefetch" href="https://grow-farm.com" />
+        <link rel="preconnect" href="https://accounts.kakao.com" />
+        <link rel="dns-prefetch" href="https://accounts.kakao.com" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+
+        {/* Favicons */}
         <link rel="icon" href="/favicon48.png" sizes="48x48" type="image/png" />
         <link rel="icon" href="/favicon96.png" sizes="96x96" type="image/png" />
         <link
@@ -151,11 +166,12 @@ export default function RootLayout({
           `}
         </Script>
 
-        <ToastProvider>
-          <AuthProvider>
-            <BrowserGuideWrapper>{children}</BrowserGuideWrapper>
-          </AuthProvider>
-        </ToastProvider>
+        {/* Web Vitals 모니터링 */}
+        <WebVitalsReporter />
+
+        <QueryProvider>
+          <ClientProviders>{children}</ClientProviders>
+        </QueryProvider>
       </body>
     </html>
   );

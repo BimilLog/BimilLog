@@ -2,8 +2,8 @@
 <configuration>
     <!-- 프로파일별 CloudWatch 설정 (운영환경만) -->
     <springProfile name="prod | production">
-        <property name="LOG_GROUP" value="/growfarm/application"/>
-        <property name="LOG_STREAM" value="growfarm-${HOSTNAME:-localhost}-${PID:-unknown}"/>
+        <property name="LOG_GROUP" value="/bimillog/application"/>
+        <property name="LOG_STREAM" value="bimillog-${HOSTNAME:-localhost}-${PID:-unknown}"/>
         <property name="AWS_REGION" value="ap-northeast-2"/>
     </springProfile>
 
@@ -64,13 +64,13 @@
     <!-- 🟢 개발환경 로거 설정 -->
     <springProfile name="!prod &amp; !production">
         <!-- 애플리케이션 로거 (DEBUG) -->
-        <logger name="jaeik.growfarm" level="INFO" additivity="false">
+        <logger name="jaeik.bimillog" level="INFO" additivity="false">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="FILE"/>
         </logger>
 
         <!-- HTTP 요청 로거 (DEBUG) -->
-        <logger name="jaeik.growfarm.global.filter.LogFilter" level="DEBUG" additivity="false">
+        <logger name="jaeik.bimillog.global.filter.LogFilter" level="DEBUG" additivity="false">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="FILE"/>
         </logger>
@@ -81,9 +81,13 @@
         <logger name="org.springframework.web" level="DEBUG"/>
         
         <!-- JPA 쿼리 로그 (개발환경에서만) -->
-        <logger name="org.hibernate.SQL" level="INFO"/>
+        <logger name="org.hibernate.SQL" level="DEBUG"/>
         <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
         <logger name="org.springframework.orm.jpa" level="DEBUG"/>
+
+        <!-- JdbcTemplate SQL 로그 -->
+        <logger name="org.springframework.jdbc.core.JdbcTemplate" level="DEBUG"/>
+        <logger name="org.springframework.jdbc.core.StatementCreatorUtils" level="TRACE"/>
 
         <!-- 루트 로거  -->
         <root level="INFO">
@@ -92,17 +96,17 @@
         </root>
     </springProfile>
 
-    <!-- 🔴 운영환경 로거 설정 (INFO 레벨) -->
+    <!-- 운영환경 로거 설정 (INFO 레벨) -->
     <springProfile name="prod | production">
         <!-- 애플리케이션 로거 (INFO) -->
-        <logger name="jaeik.growfarm" level="INFO" additivity="false">
+        <logger name="jaeik.bimillog" level="INFO" additivity="false">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="FILE"/>
             <appender-ref ref="ASYNC_CLOUDWATCH"/>
         </logger>
 
         <!-- HTTP 요청 로거 (INFO) -->
-        <logger name="jaeik.growfarm.global.filter.LogFilter" level="INFO" additivity="false">
+        <logger name="jaeik.bimillog.global.filter.LogFilter" level="INFO" additivity="false">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="FILE"/>
             <appender-ref ref="ASYNC_CLOUDWATCH"/>
@@ -117,6 +121,10 @@
         <logger name="org.hibernate.SQL" level="WARN"/>
         <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="WARN"/>
         <logger name="org.springframework.orm.jpa" level="WARN"/>
+
+        <!-- JdbcTemplate SQL 로그 비활성화 -->
+        <logger name="org.springframework.jdbc.core.JdbcTemplate" level="WARN"/>
+        <logger name="org.springframework.jdbc.core.StatementCreatorUtils" level="WARN"/>
 
         <!-- 루트 로거 (운영환경: INFO) -->
         <root level="INFO">

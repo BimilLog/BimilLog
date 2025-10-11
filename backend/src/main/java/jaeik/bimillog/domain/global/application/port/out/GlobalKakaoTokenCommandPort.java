@@ -1,0 +1,35 @@
+package jaeik.bimillog.domain.global.application.port.out;
+
+import jaeik.bimillog.domain.auth.entity.KakaoToken;
+
+/**
+ * <h2>카카오 토큰 명령 포트</h2>
+ * <p>카카오 OAuth 토큰 저장, 업데이트, 삭제</p>
+ *
+ * @author Jaeik
+ * @version 2.0.0
+ */
+public interface GlobalKakaoTokenCommandPort {
+
+    /**
+     * <h3>카카오 토큰 저장</h3>
+     * <p>새로운 카카오 토큰을 저장합니다.</p>
+     * <p>회원가입 또는 첫 로그인 시 호출됩니다.</p>
+     *
+     * @param kakaoToken 저장할 카카오 토큰 엔티티
+     * @return KakaoToken 저장된 카카오 토큰 엔티티
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    KakaoToken save(KakaoToken kakaoToken);
+
+    /**
+     * <h3>카카오 토큰 삭제</h3>
+     * <p>회원 탈퇴 시 카카오 토큰을 삭제합니다.</p>
+     *
+     * @param memberId 사용자 ID
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    void deleteByMemberId(Long memberId);
+}

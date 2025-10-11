@@ -1,0 +1,96 @@
+"use client";
+
+import React from "react";
+import { Card, Badge, Button } from "@/components";
+import { Calendar, FileText, Eye } from "lucide-react";
+import { formatDate } from "@/lib/utils";
+import type { Report } from "@/types/domains/admin";
+
+interface MobileReportCardProps {
+  report: Report;
+  onView: () => void;
+}
+
+export const MobileReportCard = React.memo<MobileReportCardProps>(({ report, onView }) => {
+  const getReportTypeLabel = (type: string) => {
+    switch(type) {
+      case "POST": return "게시글";
+      case "COMMENT": return "댓글";
+      case "ERROR": return "오류";
+      case "IMPROVEMENT": return "개선";
+      default: return type;
+    }
+  };
+
+  const getReportTypeColor = (type: string) => {
+    switch(type) {
+      case "POST": return "bg-yellow-100 text-yellow-700";
+      case "COMMENT": return "bg-green-100 text-green-700";
+      case "ERROR": return "bg-red-100 text-red-700";
+      case "IMPROVEMENT": return "bg-blue-100 text-blue-700";
+      default: return "bg-gray-100 text-brand-primary";
+    }
+  };
+
+  return (
+    <Card className="p-4 hover:shadow-brand-lg transition-shadow">
+      <div className="space-y-3">
+        {/* 헤더 */}
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-brand-primary">
+              #{report.id}
+            </span>
+            <Badge className={`text-xs ${getReportTypeColor(report.reportType)}`}>
+              {getReportTypeLabel(report.reportType)}
+            </Badge>
+          </div>
+          <div className="text-xs text-brand-secondary flex items-center gap-1">
+            <Calendar className="w-3 h-3 stroke-indigo-600 fill-indigo-100" />
+            {formatDate(report.createdAt)}
+          </div>
+        </div>
+
+        {/* 사용자 정보 */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-xs text-brand-secondary font-medium">신고자:</span>
+            <span className="text-brand-primary">
+              {report.reporterName || "익명"}
+            </span>
+          </div>
+          {(report.reportType === "POST" || report.reportType === "COMMENT") && (
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-xs text-brand-secondary font-medium">대상:</span>
+              <span className="text-brand-primary font-medium">
+                {report.targetAuthorName || "삭제됨"}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* 신고 사유 */}
+        <div className="space-y-1">
+          <div className="flex items-start gap-2">
+            <FileText className="w-4 h-4 stroke-blue-600 fill-blue-100 mt-0.5" />
+            <p className="text-sm text-brand-muted line-clamp-2 flex-1">
+              {report.content}
+            </p>
+          </div>
+        </div>
+
+        {/* 액션 버튼 */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onView}
+          className="w-full text-purple-600 border-purple-200 hover:bg-purple-50"
+        >
+          <Eye className="w-4 h-4 mr-2 stroke-purple-600 fill-purple-100" />
+          상세보기
+        </Button>
+      </div>
+    </Card>
+  );
+});
+MobileReportCard.displayName = "MobileReportCard";

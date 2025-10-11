@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React from "react";
 import { AdFitBanner, AD_SIZES, getAdUnit } from "./adfit-banner";
+import { logger } from '@/lib/utils/logger';
 
 interface ResponsiveAdFitBannerProps {
   /**
@@ -23,25 +24,10 @@ export function ResponsiveAdFitBanner({
   onAdFail,
   position = "unknown",
 }: ResponsiveAdFitBannerProps) {
-  const [isMobile, setIsMobile] = useState(true); // 기본값을 mobile로 설정 (SSR 고려)
-
-  useEffect(() => {
-    const checkIsMobile = () => {
-      setIsMobile(window.innerWidth < 768); // Tailwind의 md breakpoint
-    };
-
-    // 초기 확인
-    checkIsMobile();
-
-    // 리사이즈 이벤트 리스너 추가
-    window.addEventListener("resize", checkIsMobile);
-
-    return () => window.removeEventListener("resize", checkIsMobile);
-  }, []);
 
   const handleAdFail = (type: "mobile" | "pc") => {
     if (process.env.NODE_ENV === 'development') {
-      console.log(`${position} ${type} 광고 로딩 실패`);
+      logger.log(`${position} ${type} 광고 로딩 실패`);
     }
     onAdFail?.(type);
   };

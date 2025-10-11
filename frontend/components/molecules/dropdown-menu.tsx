@@ -6,11 +6,12 @@ import { CheckIcon, ChevronRightIcon, CircleIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
-function DropdownMenu({
+const DropdownMenu = React.memo(({
   ...props
-}: React.ComponentProps<typeof DropdownMenuPrimitive.Root>) {
+}: React.ComponentProps<typeof DropdownMenuPrimitive.Root>) => {
   return <DropdownMenuPrimitive.Root data-slot="dropdown-menu" {...props} />;
-}
+});
+DropdownMenu.displayName = "DropdownMenu";
 
 function DropdownMenuPortal({
   ...props
@@ -43,7 +44,7 @@ function DropdownMenuContent({
         sideOffset={sideOffset}
         className={cn(
           // 완전히 불투명한 배경 적용 (100% 불투명도)
-          "bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100",
+          "bg-white text-brand-primary dark:bg-gray-800 dark:text-brand-secondary",
           // 확실한 테두리와 그림자
           "border border-gray-300 dark:border-gray-600",
           // 부드러운 애니메이션
@@ -51,7 +52,7 @@ function DropdownMenuContent({
           // 레이아웃 및 스타일링
           "z-50 max-h-(--radix-dropdown-menu-content-available-height) min-w-[8rem] origin-(--radix-dropdown-menu-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-lg p-1",
           // 강력한 그림자로 배경과 확실히 구분
-          "shadow-xl drop-shadow-lg",
+          "shadow-brand-xl drop-shadow-brand-lg",
           className
         )}
         {...props}
@@ -109,7 +110,7 @@ function DropdownMenuCheckboxItem({
     >
       <span className="pointer-events-none absolute left-2 flex size-3.5 items-center justify-center">
         <DropdownMenuPrimitive.ItemIndicator>
-          <CheckIcon className="size-4" />
+          <CheckIcon className="size-4 stroke-green-600" />
         </DropdownMenuPrimitive.ItemIndicator>
       </span>
       {children}
@@ -144,7 +145,7 @@ function DropdownMenuRadioItem({
     >
       <span className="pointer-events-none absolute left-2 flex size-3.5 items-center justify-center">
         <DropdownMenuPrimitive.ItemIndicator>
-          <CircleIcon className="size-2 fill-current" />
+          <CircleIcon className="size-2 fill-current stroke-blue-600" />
         </DropdownMenuPrimitive.ItemIndicator>
       </span>
       {children}
@@ -226,7 +227,7 @@ function DropdownMenuSubTrigger({
       {...props}
     >
       {children}
-      <ChevronRightIcon className="ml-auto size-4" />
+      <ChevronRightIcon className="ml-auto size-4 stroke-slate-600" />
     </DropdownMenuPrimitive.SubTrigger>
   );
 }
@@ -240,7 +241,7 @@ function DropdownMenuSubContent({
       data-slot="dropdown-menu-sub-content"
       className={cn(
         // 완전히 불투명한 배경 적용 (서브 메뉴도 100% 불투명도)
-        "bg-white text-gray-900 dark:bg-gray-800 dark:text-gray-100",
+        "bg-white text-brand-primary dark:bg-gray-800 dark:text-brand-secondary",
         // 확실한 테두리와 그림자
         "border border-gray-300 dark:border-gray-600",
         // 부드러운 애니메이션
@@ -248,7 +249,7 @@ function DropdownMenuSubContent({
         // 레이아웃 및 스타일링
         "z-50 min-w-[8rem] origin-(--radix-dropdown-menu-content-transform-origin) overflow-hidden rounded-lg p-1",
         // 강력한 그림자로 배경과 확실히 구분
-        "shadow-xl drop-shadow-lg",
+        "shadow-brand-xl drop-shadow-brand-lg",
         className
       )}
       {...props}

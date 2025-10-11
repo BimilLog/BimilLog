@@ -1,11 +1,11 @@
 import { Metadata } from "next";
 import { generateKeywords } from "@/lib/seo";
-import VisitClient from "./visit-client";
+import { VisitClient } from "@/components/organisms/rolling-paper/visit";
 
 export const metadata: Metadata = {
   title: "롤링페이퍼 방문",
   description:
-    "친구의 롤링페이퍼를 방문하여 따뜻한 익명 메시지를 남겨보세요. 닉네임을 검색하여 롤링페이퍼를 찾고 다양한 디자인으로 메시지를 꾸며보세요.",
+    "친구의 롤링페이퍼를 방문하여 따뜻한 익명 메시지를 남겨보세요. 닉네임을 검색하여 롤링페이퍼를 찾고 다양한 디자인으로 메시지를 꾸미세요.",
   keywords: generateKeywords([
       "롤링페이퍼",
 "생일축하메시지",

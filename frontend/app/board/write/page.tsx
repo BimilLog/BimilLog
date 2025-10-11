@@ -1,18 +1,33 @@
 "use client";
 
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks";
 import { Save } from "lucide-react";
-import { AuthHeader } from "@/components/organisms/auth-header";
+import dynamic from "next/dynamic";
 
 // 분리된 훅과 컴포넌트들 import
-import { useWriteForm } from "./hooks/useWriteForm";
-import { WritePageHeader, WriteForm, Breadcrumb } from "@/components";
+import { useWriteForm } from "@/hooks/features";
+import { AuthHeader, WritePageHeader, Breadcrumb, Spinner } from "@/components";
+
+// WriteForm을 동적 import로 변경하여 Editor 컴포넌트 최적화
+// Quill Editor는 무거운 라이브러리이므로 필요할 때만 로드하여 초기 번들 크기 감소
+const WriteForm = dynamic(() => import("@/components").then(mod => ({ default: mod.WriteForm })), {
+  // 컴포넌트 로딩 중 표시할 스피너
+  loading: () => (
+    <div className="flex items-center justify-center p-8">
+      <Spinner size="xl" />
+    </div>
+  ),
+  // Quill Editor는 window 객체를 사용하므로 서버사이드 렌더링 비활성화
+  ssr: false,
+});
 
 export default function WritePostPage() {
   const { isLoading } = useAuth();
 
+  // useWriteForm 훅에서 폼 상태와 액션들을 한 번에 가져옴
+  // TanStack Query mutation과 로컬 상태가 결합된 통합 훅
   const {
-    // Form states
+    // 폼 입력 상태들
     title,
     setTitle,
     content,
@@ -23,25 +38,32 @@ export default function WritePostPage() {
     isPreview,
     setIsPreview,
 
-    // Form actions
+    // 폼 액션들
     handleSubmit,
     isFormValid,
 
-    // User info
+    // 사용자 정보 (회원/비회원 구분용)
     user,
     isAuthenticated,
+
+    // 임시저장 기능
+    isAutoSaving,
+    formatLastSaved,
+
+    // Content length
+    plainTextLength,
   } = useWriteForm();
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
+      <div className="min-h-screen bg-brand-gradient">
         <AuthHeader />
         <div className="flex items-center justify-center flex-1 min-h-[calc(100vh-80px)]">
-          <div className="text-center">
-            <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <Save className="w-7 h-7 text-white animate-pulse" />
-            </div>
-            <p className="text-gray-600">로딩 중...</p>
+          <div className="flex flex-col items-center">
+            <Spinner
+              size="xl"
+              message="로딩 중..."
+            />
           </div>
         </div>
       </div>
@@ -49,7 +71,7 @@ export default function WritePostPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
+    <div className="min-h-screen bg-brand-gradient">
       <AuthHeader />
 
       {/* 페이지 전용 서브 헤더 (모바일 최적화) */}
@@ -62,7 +84,7 @@ export default function WritePostPage() {
       />
 
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="mb-4">
+        <div className="mb-4 flex items-center justify-between">
           <Breadcrumb
             items={[
               { title: "홈", href: "/" },
@@ -70,7 +92,25 @@ export default function WritePostPage() {
               { title: "글쓰기" },
             ]}
           />
+          {/* 임시저장 상태 표시 */}
+          {formatLastSaved && (
+            <div className="flex items-center gap-2 text-sm text-brand-muted">
+              {isAutoSaving ? (
+                <span className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                  자동 저장 중...
+                </span>
+              ) : (
+                <span className="flex items-center gap-1">
+                  <Save className="w-3.5 h-3.5 stroke-green-600 fill-green-100" />
+                  {formatLastSaved}
+                </span>
+              )}
+            </div>
+          )}
         </div>
+        {/* WriteForm에 필요한 모든 상태와 핸들러를 props로 전달 */}
+        {/* 회원/비회원에 따라 다른 폼 필드가 렌더링됨 */}
         <WriteForm
           title={title}
           setTitle={setTitle}
@@ -78,9 +118,10 @@ export default function WritePostPage() {
           setContent={setContent}
           password={password}
           setPassword={setPassword}
-          user={user}
-          isAuthenticated={isAuthenticated}
+          user={user} // 사용자 정보 (회원일 때만 존재)
+          isAuthenticated={isAuthenticated} // 로그인 여부로 폼 UI 조건부 렌더링
           isPreview={isPreview}
+          plainTextLength={plainTextLength} // 순수 텍스트 길이 (HTML 태그 제외)
         />
       </div>
     </div>

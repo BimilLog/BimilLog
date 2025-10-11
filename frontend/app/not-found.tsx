@@ -1,10 +1,27 @@
-"use client";
-
+import { Metadata } from "next";
 import Link from "next/link";
-import { Button } from "@/components/atoms/button";
+import Image from "next/image";
+import { Button } from "@/components";
 import { Heart, Home, Search, ArrowLeft } from "lucide-react";
-import { AuthHeader } from "@/components/organisms/auth-header";
-import { HomeFooter } from "@/components/organisms/home/HomeFooter";
+import { AuthHeader } from "@/components/organisms/common";
+import { HomeFooter } from "@/components/organisms/home";
+import { BackButton } from "@/components/atoms/actions/back-button";
+
+export const metadata: Metadata = {
+  title: "404 - 페이지를 찾을 수 없습니다",
+  description: "요청하신 페이지가 삭제되었거나 주소가 변경되었을 수 있어요. 비밀로그 홈으로 돌아가보세요.",
+  robots: {
+    index: false,
+    follow: true,
+  },
+  openGraph: {
+    title: "404 - 페이지를 찾을 수 없습니다 | 비밀로그",
+    description: "요청하신 페이지가 삭제되었거나 주소가 변경되었을 수 있어요.",
+    siteName: "비밀로그",
+    locale: "ko_KR",
+    type: "website",
+  },
+};
 
 export default function NotFoundPage() {
   return (
@@ -18,10 +35,15 @@ export default function NotFoundPage() {
             <div className="relative">
               {/* 메인 아이콘 */}
               <div className="w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-                <img
+                <Image
                   src="/log.png"
                   alt="비밀로그"
-                  className="h-24 object-contain"
+                  width={96}
+                  height={96}
+                  className="h-24 w-auto object-contain"
+                  priority
+                  placeholder="blur"
+                  blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCA5NiA5NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9Ijk2IiBoZWlnaHQ9Ijk2IiBmaWxsPSIjRjNGNEY2Ii8+Cjwvc3ZnPgo="
                 />
               </div>
 
@@ -48,10 +70,10 @@ export default function NotFoundPage() {
 
           {/* 텍스트 영역 */}
           <div className="mb-8">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-4">
+            <h1 className="text-2xl md:text-3xl font-bold text-brand-primary mb-4">
               페이지를 찾을 수 없어요
             </h1>
-            <p className="text-gray-600 leading-relaxed">
+            <p className="text-brand-muted leading-relaxed">
               요청하신 페이지가 삭제되었거나 주소가 변경되었을 수 있어요.
               <br />
               다른 페이지를 둘러보시거나 홈으로 돌아가보세요.
@@ -62,7 +84,7 @@ export default function NotFoundPage() {
           <div className="space-y-3">
             <Button asChild size="lg" className="w-full">
               <Link href="/">
-                <Home className="w-5 h-5 mr-2" />
+                <Home className="w-5 h-5 mr-2 stroke-indigo-600 fill-indigo-100" />
                 홈으로 돌아가기
               </Link>
             </Button>
@@ -70,33 +92,32 @@ export default function NotFoundPage() {
             <div className="grid grid-cols-2 gap-3">
               <Button asChild variant="outline" size="lg">
                 <Link href="/board">
-                  <Search className="w-4 h-4 mr-2" />
+                  <Search className="w-4 h-4 mr-2 stroke-slate-600" />
                   게시판
                 </Link>
               </Button>
 
               <Button asChild variant="outline" size="lg">
                 <Link href="/visit">
-                  <Heart className="w-4 h-4 mr-2" />
+                  <Heart className="w-4 h-4 mr-2 stroke-red-500 fill-red-100" />
                   롤링페이퍼
                 </Link>
               </Button>
             </div>
 
-            <Button
+            <BackButton
               variant="ghost"
               size="lg"
-              onClick={() => window.history.back()}
               className="w-full"
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
+              <ArrowLeft className="w-4 h-4 mr-2 stroke-slate-600" />
               이전 페이지로
-            </Button>
+            </BackButton>
           </div>
 
           {/* 하단 링크들 */}
           <div className="mt-12 pt-8 border-t border-gray-200">
-            <p className="text-sm text-gray-500 mb-4">도움이 필요하신가요?</p>
+            <p className="text-sm text-brand-secondary mb-4">도움이 필요하신가요?</p>
             <div className="flex justify-center space-x-6 text-sm">
               <Link
                 href="/suggest"

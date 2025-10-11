@@ -1,0 +1,196 @@
+"use client";
+
+import { useState } from "react";
+import dynamic from "next/dynamic";
+import { Modal, ModalHeader, ModalBody, ModalFooter } from "flowbite-react";
+import { Button, Spinner } from "@/components";
+import { useBrowserGuide } from "@/hooks";
+import { CheckCircle, Link, Smartphone, Globe } from "lucide-react";
+import { copyToClipboard } from "@/lib/utils/clipboard";
+
+// PWA 설치 버튼을 Dynamic import로 로딩 (번들 크기 최적화)
+const PWAInstallButton = dynamic(
+  () => import("@/components/molecules/pwa-install-button").then((mod) => ({ default: mod.PWAInstallButton })),
+  {
+    ssr: false, // 클라이언트에서만 렌더링 (브라우저 API 사용)
+    loading: () => (
+      <div className="w-full h-10 bg-gray-100 rounded-lg animate-pulse flex items-center justify-center">
+        <Spinner size="sm" />
+      </div>
+    )
+  }
+);
+
+interface BrowserGuideModalProps {
+  isOpen: boolean;
+  onOpenChange: (isOpen: boolean) => void;
+}
+
+// 로딩 컴포넌트
+const BrowserGuideModalLoading = () => (
+  <Modal show onClose={() => {}} size="md">
+    <ModalBody>
+      <div className="flex items-center justify-center min-h-[300px]">
+        <div className="flex flex-col items-center gap-3">
+          <Spinner size="lg" />
+          <p className="text-sm text-brand-secondary">브라우저 가이드 로딩 중...</p>
+        </div>
+      </div>
+    </ModalBody>
+  </Modal>
+);
+
+// 실제 모달 컴포넌트
+function BrowserGuideModalContent({
+  isOpen,
+  onOpenChange,
+}: BrowserGuideModalProps) {
+  const { showGuide, hideGuide, getBrowserInfo } = useBrowserGuide();
+  const [copiedToClipboard, setCopiedToClipboard] = useState(false);
+
+  // 브라우저 정보 가져오기
+  const browserInfo = getBrowserInfo();
+
+  // iOS 기기 감지: iPad, iPhone, iPod 확인 (MSStream은 IE 구분용)
+  const isIOS =
+    typeof navigator !== "undefined" &&
+    /iPad|iPhone|iPod/.test(navigator.userAgent) &&
+    !(window as unknown as { MSStream?: unknown }).MSStream;
+
+  // 설치 링크 클립보드 복사 처리
+  const handleCopyToClipboard = async () => {
+    const success = await copyToClipboard("https://grow-farm.com/install", {
+      showToast: false,
+      toastTitle: "설치 링크 복사 완료",
+      toastDescription: "설치 링크가 클립보드에 복사되었습니다!"
+    });
+
+    if (success) {
+      setCopiedToClipboard(true);
+      // 2초 후 복사 상태 초기화
+      setTimeout(() => setCopiedToClipboard(false), 2000);
+    }
+  };
+
+  // 모달 표시 조건: props로 받은 isOpen 또는 hook의 showGuide
+  const effectiveShow = isOpen || showGuide;
+
+  if (!effectiveShow) return null;
+
+  // 모달 닫기: 외부에서 제어하는 경우와 hook으로 제어하는 경우 분기 처리
+  const handleClose = () => {
+    if (isOpen) {
+      onOpenChange(false);
+    } else {
+      hideGuide();
+    }
+  };
+
+  return (
+    <Modal show={effectiveShow} onClose={handleClose} size="md">
+      <ModalHeader className="text-center">
+        <div className="flex flex-col items-center">
+          <Smartphone className="w-10 h-10 mb-3 text-indigo-600" />
+          <span className="text-xl font-bold text-brand-primary">
+            더 나은 이용을 위해 앱으로 설치해보세요!
+          </span>
+        </div>
+      </ModalHeader>
+      <ModalBody>
+        <p className="text-sm text-brand-muted leading-relaxed text-center mb-6">
+          비밀로그를 앱으로 설치하면 더 빠르고 편리하게 이용할 수 있어요.
+        </p>
+
+        <div className="space-y-4 mb-6">
+          {/* 플랫폼별 설치 가이드 분기 처리 */}
+          {isIOS ? (
+            // iOS: Safari 브라우저에서 "홈 화면에 추가" 방법 안내
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-blue-800 mb-2 flex items-center">
+                iPhone/iPad에서 홈 화면에 추가하기
+              </h3>
+              <ol className="text-sm text-blue-700 space-y-1">
+                <li>1. Safari 브라우저에서 이 페이지를 여세요.</li>
+                <li>
+                  2. 하단 메뉴의 <span className="font-bold">[공유]</span>{" "}
+                  버튼을 누르세요.
+                </li>
+                <li>
+                  3. <span className="font-bold">[홈 화면에 추가]</span>를
+                  선택하면 설치 완료!
+                </li>
+              </ol>
+            </div>
+          ) : (
+            // 안드로이드/데스크톱: PWA 설치 버튼 또는 링크 복사 방법 제공
+            <>
+              {/* PWA 설치 버튼 (지원 브라우저에서만 표시) */}
+              <div className="text-center">
+                <PWAInstallButton className="w-full" />
+              </div>
+
+              {/* 브라우저 여는 방법 안내 */}
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-blue-800 mb-2 flex items-center">
+                  <span className="flex items-center gap-2"><Globe className="w-4 h-4 text-purple-500" /> 브라우저에서 열기</span>
+                </h3>
+                <ol className="text-sm text-blue-700 space-y-1">
+                  <li>1. 아래 버튼으로 링크를 복사하세요</li>
+                  <li>2. Chrome, Edge 등 브라우저 앱에서 붙여넣기</li>
+                  <li>3. 주소창의 설치 버튼을 눌러 설치하세요!</li>
+                </ol>
+              </div>
+
+              {/* 링크 복사 버튼: 복사 상태에 따라 UI 변경 */}
+              <Button
+                onClick={handleCopyToClipboard}
+                variant="outline"
+                className="w-full"
+              >
+                {copiedToClipboard ? (
+                  <div className="flex items-center space-x-2">
+                    <CheckCircle className="w-4 h-4" />
+                    <span>링크 복사됨!</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-2">
+                    <Link className="w-4 h-4" />
+                    <span>링크 복사하기</span>
+                  </div>
+                )}
+              </Button>
+            </>
+          )}
+        </div>
+
+        {/* 디버깅 정보 (개발 환경에서만) */}
+        {process.env.NODE_ENV === "development" && (
+          <div className="mt-4 p-3 bg-gray-100 rounded text-xs">
+            <p>브라우저: {browserInfo.name}</p>
+            <p>iOS: {isIOS ? "Yes" : "No"}</p>
+            <p>
+              User Agent:{" "}
+              {typeof navigator !== "undefined" ? navigator.userAgent : "N/A"}
+            </p>
+          </div>
+        )}
+      </ModalBody>
+      <ModalFooter>
+        <Button onClick={handleClose} variant="outline" className="w-full">
+          닫기
+        </Button>
+      </ModalFooter>
+    </Modal>
+  );
+}
+
+// 전체 모달을 Dynamic import로 래핑 (클라이언트 전용, 초기 번들 크기 감소)
+const BrowserGuideModal = dynamic(
+  () => Promise.resolve(BrowserGuideModalContent),
+  {
+    ssr: false, // 브라우저 감지 로직으로 인해 서버 렌더링 비활성화
+    loading: () => <BrowserGuideModalLoading />, // 로딩 중 스켈레톤 UI 표시
+  }
+);
+
+export { BrowserGuideModal };

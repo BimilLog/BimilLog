@@ -1,0 +1,290 @@
+"use client";
+
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { mutationKeys, queryKeys } from '@/lib/tanstack-query/keys';
+import { postCommand } from '@/lib/api';
+import { useToast } from '@/hooks';
+import { useRouter } from 'next/navigation';
+import type { Post, ApiResponse } from '@/types';
+
+/**
+ * 게시글 작성
+ */
+export const useCreatePost = () => {
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+  const router = useRouter();
+
+  return useMutation({
+    mutationKey: mutationKeys.post.create,
+    mutationFn: postCommand.create,
+    onSuccess: (response) => {
+      if (response.success && response.data) {
+        // 게시글 목록 캐시 무효화
+        queryClient.invalidateQueries({ queryKey: queryKeys.post.lists() });
+        showToast({ type: 'success', message: '게시글이 작성되었습니다.' });
+        router.push(`/board/post/${response.data.id}`);
+      }
+    },
+    onError: (error: any) => {
+      // 백엔드 에러 메시지를 파싱하여 사용자에게 표시
+      const message = error?.error || error?.message || '게시글 작성에 실패했습니다.';
+      showToast({ type: 'error', message });
+    },
+  });
+};
+
+/**
+ * 게시글 수정
+ */
+export const useUpdatePost = () => {
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+  const router = useRouter();
+
+  return useMutation({
+    mutationKey: mutationKeys.post.update,
+    mutationFn: ({ postId, ...data }: { postId: number } & Parameters<typeof postCommand.update>[0]) =>
+      postCommand.update(data),
+    onSuccess: (response, variables) => {
+      if (response.success) {
+        // 특정 게시글 캐시 무효화
+        queryClient.invalidateQueries({ queryKey: queryKeys.post.detail(variables.postId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.post.lists() });
+        showToast({ type: 'success', message: '게시글이 수정되었습니다.' });
+        router.push(`/board/post/${variables.postId}`);
+      }
+    },
+    onError: (error: any) => {
+      const message = error?.error || error?.message || '게시글 수정에 실패했습니다.';
+      showToast({ type: 'error', message });
+    },
+  });
+};
+
+/**
+ * 게시글 삭제
+ */
+export const useDeletePost = () => {
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+  const router = useRouter();
+
+  return useMutation({
+    mutationKey: mutationKeys.post.delete,
+    mutationFn: ({ postId, password }: { postId: number; password?: number }) =>
+      postCommand.delete(postId, password),
+    onSuccess: (response, { postId }) => {
+      if (response.success) {
+        // 캐시에서 게시글 제거 - 삭제된 게시글은 더 이상 필요 없음
+        queryClient.removeQueries({ queryKey: queryKeys.post.detail(postId) });
+        // 게시글 목록 캐시 무효화 - 목록에서도 제거 반영
+        queryClient.invalidateQueries({ queryKey: queryKeys.post.lists() });
+        showToast({ type: 'success', message: '게시글이 삭제되었습니다.' });
+        router.push('/board');
+      }
+    },
+    onError: (error: any) => {
+      const message = error?.error || error?.message || '게시글 삭제에 실패했습니다.';
+      showToast({ type: 'error', message });
+    },
+  });
+};
+
+/**
+ * 게시글 좋아요 토글 (낙관적 업데이트)
+ */
+export const useLikePost = () => {
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+
+  return useMutation({
+    mutationKey: mutationKeys.post.like,
+    mutationFn: postCommand.like,
+    onMutate: async (postId: number) => {
+      // 진행 중인 refetch 취소 - 경합 상태(race condition) 방지
+      await queryClient.cancelQueries({ queryKey: queryKeys.post.detail(postId) });
+      await queryClient.cancelQueries({ queryKey: queryKeys.post.lists() });
+      await queryClient.cancelQueries({ queryKey: queryKeys.post.realtimePopular() });
+      await queryClient.cancelQueries({ queryKey: queryKeys.post.weeklyPopular() });
+
+      // 이전 값 스냅샷 - 에러 시 롤백용 및 성공 메시지 판단용
+      const previousPost = queryClient.getQueryData(queryKeys.post.detail(postId)) as ApiResponse<Post> | undefined;
+
+      // 이전 좋아요 상태 저장 (성공 메시지 표시용)
+      const wasLiked = previousPost?.data?.liked ?? false;
+
+      // 낙관적 업데이트 1: 게시글 상세 캐시 업데이트
+      queryClient.setQueryData(queryKeys.post.detail(postId), (old: ApiResponse<Post>) => {
+        if (!old?.success || !old?.data) return old;
+
+        const post = old.data;
+        return {
+          ...old,
+          data: {
+            ...post,
+            liked: !post.liked,
+            likeCount: post.liked ? post.likeCount - 1 : post.likeCount + 1,
+          },
+        };
+      });
+
+      // 낙관적 업데이트 2: 게시글 목록 캐시들도 업데이트 (모든 페이지, 모든 variant)
+      queryClient.setQueriesData(
+        { queryKey: queryKeys.post.lists() },
+        (old: any) => {
+          if (!old?.success || !old?.data?.content) return old;
+
+          return {
+            ...old,
+            data: {
+              ...old.data,
+              content: old.data.content.map((post: any) =>
+                post.id === postId
+                  ? { ...post, likeCount: wasLiked ? post.likeCount - 1 : post.likeCount + 1 }
+                  : post
+              ),
+            },
+          };
+        }
+      );
+
+      // 낙관적 업데이트 3: 실시간 인기글 캐시 업데이트
+      queryClient.setQueriesData(
+        { queryKey: queryKeys.post.realtimePopular() },
+        (old: any) => {
+          if (!old?.success || !old?.data) return old;
+
+          return {
+            ...old,
+            data: old.data.map((post: any) =>
+              post.id === postId
+                ? { ...post, likeCount: wasLiked ? post.likeCount - 1 : post.likeCount + 1 }
+                : post
+            ),
+          };
+        }
+      );
+
+      // 낙관적 업데이트 4: 주간 인기글 캐시 업데이트
+      queryClient.setQueriesData(
+        { queryKey: queryKeys.post.weeklyPopular() },
+        (old: any) => {
+          if (!old?.success || !old?.data) return old;
+
+          return {
+            ...old,
+            data: old.data.map((post: any) =>
+              post.id === postId
+                ? { ...post, likeCount: wasLiked ? post.likeCount - 1 : post.likeCount + 1 }
+                : post
+            ),
+          };
+        }
+      );
+
+      return { previousPost, wasLiked };
+    },
+    onSuccess: (data, postId, context) => {
+      // 성공 시 추천/취소 여부에 따라 구체적인 메시지 표시
+      if (context?.wasLiked) {
+        showToast({ type: 'info', message: '추천을 취소했습니다.' });
+      } else {
+        showToast({ type: 'success', message: '게시글을 추천했습니다.' });
+      }
+    },
+    onError: (err, postId, context) => {
+      // 에러 시 이전 값으로 롤백 - 낙관적 업데이트 취소
+      if (context?.previousPost) {
+        queryClient.setQueryData(queryKeys.post.detail(postId), context.previousPost);
+      }
+      showToast({ type: 'error', message: '좋아요 처리에 실패했습니다.' });
+    },
+    onSettled: (data, error, postId) => {
+      // 성공/실패 여부와 관계없이 서버 데이터로 동기화 - 최종 일관성 보장
+      queryClient.invalidateQueries({ queryKey: queryKeys.post.detail(postId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.post.lists() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.post.realtimePopular() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.post.weeklyPopular() });
+    },
+  });
+};
+
+/**
+ * 공지사항 토글 (관리자 전용, 낙관적 업데이트)
+ */
+export const useToggleNotice = () => {
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+
+  return useMutation({
+    mutationKey: mutationKeys.post.toggleNotice,
+    mutationFn: postCommand.toggleNotice,
+    onMutate: async (postId: number) => {
+      // 진행 중인 refetch 취소 - 경합 상태(race condition) 방지
+      await queryClient.cancelQueries({ queryKey: queryKeys.post.detail(postId) });
+
+      // 이전 값 스냅샷 - 에러 시 롤백용
+      const previousPost = queryClient.getQueryData(queryKeys.post.detail(postId));
+
+      // 낙관적 업데이트: 서버 응답 전에 UI를 먼저 업데이트하여 반응성 향상
+      queryClient.setQueryData(queryKeys.post.detail(postId), (old: ApiResponse<Post>) => {
+        if (!old?.success || !old?.data) return old;
+
+        const post = old.data;
+        const newIsNotice = !post.isNotice;
+
+        return {
+          ...old,
+          data: {
+            ...post,
+            isNotice: newIsNotice,
+          },
+        };
+      });
+
+      return { previousPost, postId };
+    },
+    onError: (err: any, postId, context) => {
+      // 에러 시 이전 값으로 롤백 - 낙관적 업데이트 취소
+      if (context?.previousPost) {
+        queryClient.setQueryData(queryKeys.post.detail(postId), context.previousPost);
+      }
+
+      // HTTP 상태 코드에 따른 구체적인 에러 메시지 표시
+      let errorMessage = '공지사항 변경에 실패했습니다.';
+
+      if (err?.response?.status === 403) {
+        errorMessage = '권한이 없습니다. 관리자만 공지사항을 설정할 수 있습니다.';
+      } else if (err?.response?.status === 404) {
+        errorMessage = '게시글을 찾을 수 없습니다.';
+      } else if (err?.error || err?.message) {
+        // 백엔드에서 제공하는 에러 메시지가 있으면 사용
+        errorMessage = err.error || err.message;
+      }
+
+      showToast({ type: 'error', message: errorMessage });
+    },
+    onSuccess: (response, postId, context) => {
+      if (response.success) {
+        // 성공 시 변경 전 상태를 기반으로 구체적인 메시지 표시
+        const previousPost = context?.previousPost as ApiResponse<Post> | undefined;
+        const wasNotice = previousPost?.data?.isNotice ?? false;
+
+        const message = wasNotice
+          ? '공지사항이 해제되었습니다.'
+          : '공지사항으로 등록되었습니다.';
+
+        showToast({ type: 'success', message });
+      }
+    },
+    onSettled: (data, error, postId) => {
+      // 성공/실패 여부와 관계없이 서버 데이터로 동기화 - 최종 일관성 보장
+      queryClient.invalidateQueries({ queryKey: queryKeys.post.detail(postId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.post.lists() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.post.notices() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.post.realtimePopular() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.post.weeklyPopular() });
+    },
+  });
+};

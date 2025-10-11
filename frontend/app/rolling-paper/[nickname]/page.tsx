@@ -1,6 +1,6 @@
 import { Metadata, ResolvingMetadata } from "next";
-import { generateKeywords } from "@/lib/seo";
-import PublicRollingPaperClient from "./public-rolling-paper-client";
+import { generateKeywords, generateDynamicOgImage } from "@/lib/seo";
+import { RollingPaperClient } from "@/components/organisms/rolling-paper";
 
 type Props = {
   params: Promise<{ nickname: string }>;
@@ -15,9 +15,16 @@ export async function generateMetadata(
 
   const previousImages = (await parent).openGraph?.images || [];
 
+  // 동적 OG 이미지 생성
+  const ogImageUrl = generateDynamicOgImage({
+    title: `${decodedNickname}님의 롤링페이퍼`,
+    author: decodedNickname,
+    type: 'paper'
+  });
+
   return {
     title: `${decodedNickname}님의 롤링페이퍼`,
-    description: `${decodedNickname}님에게 익명으로 따뜻한 메시지를 남겨보세요. 로그인 없이도 다양한 디자인으로 메시지를 꾸며서 보낼 수 있습니다.`,
+    description: `${decodedNickname}님에게 익명으로 따뜻한 메시지를 남겨보세요. 로그인 없이도 다양한 디자인으로 메시지를 꾸며 보낼 수 있습니다.`,
     keywords: generateKeywords([
       `${decodedNickname}님의 롤링페이퍼`,
       `${decodedNickname} 롤링페이퍼`,
@@ -34,6 +41,9 @@ export async function generateMetadata(
       "익명 롤링페이퍼",
       "카톡 친구 익명메시지",
     ]),
+    alternates: {
+      canonical: `https://grow-farm.com/rolling-paper/${nickname}`,
+    },
     openGraph: {
       title: `${decodedNickname}님의 비밀로그 롤링페이퍼`,
       description: `친구 ${decodedNickname}님에게 익명으로 메시지를 남겨보세요!`,
@@ -41,9 +51,9 @@ export async function generateMetadata(
       siteName: "비밀로그",
       images: [
         {
-          url: "https://grow-farm.com/log.png",
-          width: 326,
-          height: 105,
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
           alt: `${decodedNickname}님의 롤링페이퍼`,
         },
         ...previousImages,
@@ -55,7 +65,7 @@ export async function generateMetadata(
       card: "summary_large_image",
       title: `${decodedNickname}님의 비밀로그 롤링페이퍼`,
       description: `친구 ${decodedNickname}님에게 익명으로 메시지를 남겨보세요!`,
-      images: ["https://grow-farm.com/log.png"],
+      images: [ogImageUrl],
     },
   };
 }
@@ -69,7 +79,7 @@ export default async function PublicRollingPaperPage({
   const decodedNickname = decodeURIComponent(nickname);
 
   // 구조화된 데이터
-  const jsonLd = {
+  const pageJsonLd = {
     "@context": "https://schema.org",
     "@type": "WebPage",
     name: `${decodedNickname}님의 롤링페이퍼`,
@@ -114,10 +124,10 @@ export default async function PublicRollingPaperPage({
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(jsonLd),
+          __html: JSON.stringify(pageJsonLd),
         }}
       />
-      <PublicRollingPaperClient nickname={nickname} />
+      <RollingPaperClient nickname={nickname} />
     </>
   );
 }

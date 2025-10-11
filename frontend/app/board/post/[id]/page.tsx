@@ -1,8 +1,7 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { boardApi } from "@/lib/api";
 import { generateStructuredData, generateKeywords } from "@/lib/seo";
-import PostDetailClient from "./components/PostDetailClient";
+import { PostDetailClient } from "@/components/organisms/board";
 
 interface Props {
   params: Promise<{
@@ -15,29 +14,43 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id: postId } = await params;
 
   try {
-    const response = await boardApi.getPost(parseInt(postId));
+    // 서버사이드에서 게시글 데이터 조회하여 SEO 메타데이터 동적 생성
+    // Next.js의 fetch deduplication을 활용하여 중복 요청 방지
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/post/${postId}`, {
+      next: { revalidate: 0 }
+    });
 
-    if (!response.success || !response.data) {
+    if (!response.ok) {
+      throw new Error('Failed to fetch post');
+    }
+
+    const post = await response.json();
+
+    if (!post || !post.id) {
       return {
         title: "게시글을 찾을 수 없습니다 | 비밀로그",
         description: "요청하신 게시글을 찾을 수 없습니다.",
       };
     }
-
-    const post = response.data;
+    // HTML 태그 제거 후 160자로 잘라서 meta description 생성
     const truncatedContent = post.content
       .replace(/<[^>]*>/g, "")
       .substring(0, 160);
 
-        const ogImageUrl = new URL(`/api/og`, "https://grow-farm.com");
-        ogImageUrl.searchParams.set("title", post.title);
-        ogImageUrl.searchParams.set("author", post.userName);
+    // 동적 OG 이미지 생성을 위한 API 엔드포인트 URL 구성
+    const ogImageUrl = new URL(`/api/og`, "https://grow-farm.com");
+    ogImageUrl.searchParams.set("title", post.title);
+    ogImageUrl.searchParams.set("author", post.memberName);
+    ogImageUrl.searchParams.set("type", "post");
 
         return {
             title: `${post.title} | 비밀로그`,
             description: truncatedContent || "비밀로그 커뮤니티의 게시글입니다.",
-            keywords: generateKeywords(["게시글", post.title, post.userName]),
-            authors: [{ name: post.userName }],
+            keywords: generateKeywords(["게시글", post.title, post.memberName]),
+            authors: [{ name: post.memberName }],
+            alternates: {
+                canonical: `https://grow-farm.com/board/post/${postId}`,
+            },
             openGraph: {
                 title: `${post.title} | 비밀로그`,
                 description: truncatedContent || "비밀로그 커뮤니티의 게시글입니다.",
@@ -54,7 +67,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
                 locale: "ko_KR",
                 type: "article",
                 publishedTime: post.createdAt,
-                authors: [post.userName],
+                authors: [post.memberName],
             },
             twitter: {
                 card: "summary_large_image",
@@ -63,7 +76,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
                 images: [ogImageUrl.toString()],
             },
         };
-  } catch (error) {
+  } catch {
     return {
       title: "게시글을 찾을 수 없습니다 | 비밀로그",
       description: "요청하신 게시글을 찾을 수 없습니다.",
@@ -75,34 +88,55 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function PostDetailPage({ params }: Props) {
   const { id: postId } = await params;
 
-  // 서버에서 초기 데이터 가져오기
+  // 서버 컴포넌트에서 초기 데이터 페칭 - 클라이언트 하이드레이션 전에 데이터 확보
+  // Next.js가 동일한 fetch 요청을 자동으로 dedupe하므로 generateMetadata와 중복 요청되지 않음
   try {
-    const response = await boardApi.getPost(parseInt(postId));
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}/api/post/${postId}`, {
+      next: { revalidate: 0 }
+    });
 
-    if (!response.success || !response.data) {
+    if (!response.ok) {
       notFound();
     }
 
-    // 구조화된 데이터 생성
-    const post = response.data;
-    const jsonLd = generateStructuredData.article(
+    const post = await response.json();
+
+    if (!post || !post.id) {
+      notFound();
+    }
+
+    // SEO를 위한 구조화된 데이터(JSON-LD) 생성 - 검색엔진이 콘텐츠를 이해할 수 있도록 함
+    const articleJsonLd = generateStructuredData.article(
       post.title,
       post.content,
-      post.userName,
+      post.memberName,
       post.createdAt,
       `https://grow-farm.com/board/post/${postId}`
     );
 
+    // Breadcrumb 구조화 데이터 추가
+    const breadcrumbJsonLd = generateStructuredData.breadcrumb([
+      { title: "홈", href: "/" },
+      { title: "커뮤니티", href: "/board" },
+      { title: post.title }
+    ]);
+
     return (
       <>
+        {/* JSON-LD 스크립트를 head에 삽입하여 구조화된 데이터 제공 */}
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
         />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        />
+        {/* 서버에서 가져온 초기 데이터를 클라이언트 컴포넌트에 전달 */}
         <PostDetailClient initialPost={post} postId={postId} />
       </>
     );
-  } catch (error) {
+  } catch {
     notFound();
   }
 }

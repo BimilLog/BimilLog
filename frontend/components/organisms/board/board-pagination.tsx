@@ -1,12 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import {
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-} from "lucide-react";
+import { Pagination } from "flowbite-react";
 
 interface BoardPaginationProps {
   currentPage: number;
@@ -21,85 +15,44 @@ export const BoardPagination = ({
 }: BoardPaginationProps) => {
   if (totalPages <= 1) return null;
 
-  const pageNumbers = [];
-  const maxPagesToShow = 5;
-  let startPage = Math.max(0, currentPage - Math.floor(maxPagesToShow / 2));
-  const endPage = Math.min(totalPages - 1, startPage + maxPagesToShow - 1);
+  // Convert from 0-based to 1-based page numbering for Flowbite
+  const flowbiteCurrentPage = currentPage + 1;
 
-  if (endPage - startPage + 1 < maxPagesToShow) {
-    startPage = Math.max(0, endPage - maxPagesToShow + 1);
-  }
-
-  for (let i = startPage; i <= endPage; i++) {
-    pageNumbers.push(i);
-  }
+  const handlePageChange = (page: number) => {
+    // Convert back to 0-based for your internal state
+    setCurrentPage(page - 1);
+  };
 
   return (
-    <div className="flex items-center justify-center space-x-2 mt-8">
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={() => setCurrentPage(0)}
-        disabled={currentPage === 0}
-        className="bg-white"
-      >
-        <ChevronsLeft className="h-4 w-4" />
-      </Button>
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={() => setCurrentPage(currentPage - 1)}
-        disabled={currentPage === 0}
-        className="bg-white"
-      >
-        <ChevronLeft className="h-4 w-4" />
-      </Button>
-
-      {startPage > 0 && (
-        <>
-          <Button variant="ghost" size="icon" disabled>
-            ...
-          </Button>
-        </>
-      )}
-
-      {pageNumbers.map((number) => (
-        <Button
-          key={number}
-          variant={currentPage === number ? "default" : "outline"}
-          onClick={() => setCurrentPage(number)}
-          className={currentPage === number ? "bg-purple-600" : "bg-white"}
-        >
-          {number + 1}
-        </Button>
-      ))}
-
-      {endPage < totalPages - 1 && (
-        <>
-          <Button variant="ghost" size="icon" disabled>
-            ...
-          </Button>
-        </>
-      )}
-
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={() => setCurrentPage(currentPage + 1)}
-        disabled={currentPage === totalPages - 1}
-        className="bg-white"
-      >
-        <ChevronRight className="h-4 w-4" />
-      </Button>
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={() => setCurrentPage(totalPages - 1)}
-        disabled={currentPage === totalPages - 1}
-        className="bg-white"
-      >
-        <ChevronsRight className="h-4 w-4" />
-      </Button>
+    <div className="flex items-center justify-center mt-8">
+      <Pagination
+        currentPage={flowbiteCurrentPage}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+        showIcons
+        previousLabel="이전"
+        nextLabel="다음"
+        className="text-sm"
+        theme={{
+          pages: {
+            base: "xs:mt-0 mt-2 inline-flex items-center -space-x-px",
+            showIcon: "inline-flex",
+            previous: {
+              base: "ml-0 flex min-w-[3rem] items-center justify-center gap-1 rounded-l-lg border border-gray-300 bg-white px-3 py-2 text-gray-500 leading-tight hover:bg-gray-100 hover:text-gray-700 dark:border-slate-700 dark:bg-slate-900/80 dark:text-gray-300 dark:hover:bg-slate-800 dark:hover:text-gray-100",
+              icon: "h-5 w-5"
+            },
+            next: {
+              base: "flex min-w-[3rem] items-center justify-center gap-1 rounded-r-lg border border-gray-300 bg-white px-3 py-2 text-gray-500 leading-tight hover:bg-gray-100 hover:text-gray-700 dark:border-slate-700 dark:bg-slate-900/80 dark:text-gray-300 dark:hover:bg-slate-800 dark:hover:text-gray-100",
+              icon: "h-5 w-5"
+            },
+            selector: {
+              base: "flex min-w-[3rem] items-center justify-center border border-gray-300 bg-white px-3 py-2 text-gray-500 leading-tight hover:bg-gray-100 hover:text-gray-700 dark:border-slate-700 dark:bg-slate-900/80 dark:text-gray-300 dark:hover:bg-slate-800 dark:hover:text-gray-100",
+              active: "border-blue-500 bg-blue-500 text-white hover:bg-blue-500 hover:text-white dark:border-blue-400 dark:bg-blue-500",
+              disabled: "cursor-not-allowed text-gray-400 dark:text-gray-600"
+            }
+          }
+        }}
+      />
     </div>
   );
 };

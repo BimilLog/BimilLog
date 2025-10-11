@@ -1,9 +1,10 @@
 "use client";
 
-import { Button } from "@/components/atoms/button";
-import { useBrowserGuide } from "@/hooks/useBrowserGuide";
+import { Button } from "@/components";
+import { useBrowserGuide } from "@/hooks";
 import { useState } from "react";
-import { BrowserGuideModal } from "./browser-guide-modal";
+import { LazyBrowserGuideModal } from "@/lib/utils/lazy-components";
+import { isIOS } from "@/lib/utils";
 
 interface PWAInstallButtonProps {
   className?: string;
@@ -19,8 +20,7 @@ export function PWAInstallButton({
   const { isPWAInstallable, installPWA, getBrowserInfo } = useBrowserGuide();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const browserInfo = getBrowserInfo();
-  const isIOS =
-    /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+  const isIOSDevice = isIOS();
 
   const handleButtonClick = () => {
     if (isPWAInstallable) {
@@ -42,11 +42,11 @@ export function PWAInstallButton({
       >
         {isPWAInstallable
           ? "앱 설치"
-          : isIOS
+          : isIOSDevice
           ? "홈 화면에 추가"
           : "앱 설치 안내"}
       </Button>
-      <BrowserGuideModal isOpen={isModalOpen} onOpenChange={setIsModalOpen} />
+      <LazyBrowserGuideModal isOpen={isModalOpen} onOpenChange={setIsModalOpen} />
     </>
   );
 }
