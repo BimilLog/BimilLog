@@ -23,10 +23,17 @@ RUN adduser --system --uid 1001 nextjs
 
 # Standalone 출력만 복사 (필수 의존성만 포함, ~100-200MB)
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+# Next.js 15에서 outputFileTracingRoot를 사용하면 standalone 디렉터리 내에
+# 프로젝트명이 한 번 더 중첩될 수 있으므로 실행 파일의 심볼릭 링크를 맞춰준다.
+RUN if [ -f "./frontend/server.js" ]; then ln -sf frontend/server.js server.js; fi
 # 정적 파일 복사
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# Nested 구조에서 static 경로 싱크
+RUN if [ -d "./frontend" ]; then mkdir -p frontend/.next && cp -R .next/static frontend/.next/; fi
 # Public 파일 복사
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+# Nested 구조에서 public 경로 싱크
+RUN if [ -d "./frontend" ]; then mkdir -p frontend/public && cp -R public/. frontend/public/; fi
 
 USER nextjs
 
