@@ -10,6 +10,7 @@ interface StatCardProps {
   color: string;
   gradient: string;
   description: string;
+  emoji?: string;
   className?: string;
 }
 
@@ -20,6 +21,7 @@ export const StatCard = React.memo<StatCardProps>(({
   color,
   gradient,
   description,
+  emoji,
   className,
 }) => (
   <Card variant="elevated" interactive={true} className={`group hover:scale-105 cursor-pointer ${className || ""}`}>
@@ -29,16 +31,19 @@ export const StatCard = React.memo<StatCardProps>(({
       />
 
       <div
-        className={`w-14 h-14 bg-gradient-to-r ${gradient} rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300`}
+        className={`w-14 h-14 bg-gradient-to-r ${gradient} rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300 relative`}
       >
         <div className="text-white">{icon}</div>
+        {emoji && (
+          <span className="absolute -top-1 -right-1 text-2xl">{emoji}</span>
+        )}
       </div>
 
       <div className="relative z-10">
         <p
           className={`text-3xl font-bold ${color} mb-1 group-hover:scale-110 transition-transform duration-300`}
         >
-          {formatNumber(value)}
+          <span className="inline-block">{formatNumber(value)}</span>
         </p>
         <p className="text-sm font-medium text-brand-primary mb-2">{label}</p>
         <p className="text-xs text-brand-secondary">{description}</p>

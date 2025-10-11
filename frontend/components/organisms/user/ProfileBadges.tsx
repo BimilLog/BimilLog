@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '@/components';
+import { Button } from '@/components';
 import { useBadges } from '@/hooks/features/useBadges';
 import { useMyRollingPaper } from '@/hooks/api/useMyRollingPaper';
 import { getBadgeColor, type Badge } from '@/lib/utils/badges';
@@ -31,6 +32,7 @@ import {
   Footprints,
   Inbox,
   ThumbsUp,
+  ChevronDown,
 } from 'lucide-react';
 
 // 아이콘 매핑
@@ -218,6 +220,23 @@ export const ProfileBadges = React.memo(({ userStats }: ProfileBadgesProps) => {
 
   const [selectedBadge, setSelectedBadge] = useState<Badge | null>(null);
   const [activeCategory, setActiveCategory] = useState<Badge['category'] | 'all'>('all');
+  const [visibleCount, setVisibleCount] = useState(10);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  useEffect(() => {
+    setVisibleCount(10);
+  }, [activeCategory]);
 
   if (isLoading) {
     return (
@@ -240,6 +259,13 @@ export const ProfileBadges = React.memo(({ userStats }: ProfileBadgesProps) => {
   const filteredBadges = activeCategory === 'all'
     ? allBadges
     : allBadges.filter(b => b.category === activeCategory);
+
+  const displayedBadges = isMobile ? filteredBadges.slice(0, visibleCount) : filteredBadges;
+  const hasMore = isMobile && visibleCount < filteredBadges.length;
+
+  const handleLoadMore = () => {
+    setVisibleCount(prev => prev + 10);
+  };
 
   return (
     <div className="space-y-6">
@@ -358,7 +384,7 @@ export const ProfileBadges = React.memo(({ userStats }: ProfileBadgesProps) => {
 
       {/* 뱃지 그리드 */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        {filteredBadges.map(badge => {
+        {displayedBadges.map(badge => {
           const isUnlocked = unlockedBadges.some(u => u.id === badge.id);
 
           return (
@@ -372,6 +398,21 @@ export const ProfileBadges = React.memo(({ userStats }: ProfileBadgesProps) => {
           );
         })}
       </div>
+
+      {/* 더보기 버튼 (모바일) */}
+      {hasMore && (
+        <div className="flex justify-center">
+          <Button
+            onClick={handleLoadMore}
+            variant="outline"
+            size="md"
+            className="w-full md:w-auto"
+          >
+            <ChevronDown className="w-4 h-4 mr-2" />
+            더보기 ({filteredBadges.length - visibleCount}개 남음)
+          </Button>
+        </div>
+      )}
 
       {/* 티어별 진행도 */}
       <Card className="p-4">

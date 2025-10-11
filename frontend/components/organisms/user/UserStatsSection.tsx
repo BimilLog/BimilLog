@@ -1,7 +1,6 @@
 import React from "react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components";
-import { Badge } from "@/components";
 import { Button } from "@/components";
 import { Alert, AlertDescription } from "@/components";
 import { StatCard, LoadingSpinner } from "@/components/atoms";
@@ -16,7 +15,6 @@ import {
   Star,
   TreePine,
   Leaf,
-  Award,
   AlertTriangle,
   RefreshCw,
   Info,
@@ -142,19 +140,11 @@ export const UserStatsSection: React.FC<UserStatsProps> = ({
                 {activityLevel.badge}
               </div>
               <div>
-                <h3 className="text-xl font-bold text-brand-primary mb-1">
+                <h3 className="text-xl font-bold text-brand-primary mb-1 whitespace-nowrap">
                   활동 레벨: {activityLevel.level}
                 </h3>
                 <p className="text-brand-muted">총 {totalScore}점의 활동 점수가 있습니다</p>
               </div>
-            </div>
-            <div className="text-right">
-              <Badge
-                className={`bg-gradient-to-r ${activityLevel.color} text-white border-0 px-3 py-1`}
-              >
-                <Award className="w-4 h-4 mr-1 stroke-yellow-500 fill-yellow-100" />
-                {activityLevel.level}
-              </Badge>
             </div>
           </div>
 

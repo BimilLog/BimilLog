@@ -18,7 +18,6 @@ import { getInitials } from "@/lib/utils/format";
 import {
   AlertCircle,
   Check,
-  Clock,
   Crown,
   Edit,
   Settings,
@@ -168,7 +167,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
               </div>
 
               {user.role === "ADMIN" && (
-                <div className="absolute -top-1 -right-1 w-10 h-10 bg-gradient-to-r from-blue-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
+                <div className="absolute top-0 left-0 w-10 h-10 bg-gradient-to-r from-blue-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
                   <Crown className="w-5 h-5 text-white" />
                 </div>
               )}
@@ -178,13 +177,13 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
             <div className="flex-1 w-full">
               <div className="flex flex-col space-y-4">
                 {/* 닉네임 & 관리자 뱃지 */}
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                  <div className="flex items-center justify-center md:justify-start gap-3">
-                    <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 via-pink-500 to-blue-600 bg-clip-text text-transparent">
+                <div className="flex flex-col items-center md:flex-row md:items-center md:justify-between gap-4">
+                  <div className="flex flex-nowrap items-center justify-center md:justify-start gap-3">
+                    <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 via-pink-500 to-blue-600 bg-clip-text text-transparent whitespace-nowrap">
                       {user.memberName}
                     </h2>
                     {user.role === "ADMIN" && (
-                      <Badge className="bg-gradient-to-r from-blue-500 to-pink-500 text-white border-0 shadow-md">
+                      <Badge className="bg-gradient-to-r from-blue-500 to-pink-500 text-white border-0 shadow-md whitespace-nowrap">
                         <Shield className="w-3 h-3 mr-1" />
                         관리자
                       </Badge>
@@ -192,18 +191,19 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
                   </div>
 
                   {/* 닉네임 변경 버튼 */}
-                  <Dialog open={isNicknameDialogOpen} onOpenChange={handleDialogOpenChange}>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="border-blue-300 text-blue-600 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-950/30"
-                      >
-                        <Edit className="w-4 h-4 mr-2" />
-                        닉네임 변경
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent popup size="md">
+                  <div className="w-full md:w-auto">
+                    <Dialog open={isNicknameDialogOpen} onOpenChange={handleDialogOpenChange}>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full md:w-auto border-blue-300 text-blue-600 hover:bg-blue-50 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-950/30"
+                        >
+                          <Edit className="w-4 h-4 mr-2" />
+                          닉네임 변경
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent popup size="md">
                       <DialogHeader>
                         <DialogTitle>닉네임 변경</DialogTitle>
                       </DialogHeader>
@@ -277,12 +277,13 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
                           {isNicknameChangeSubmitting ? "변경 중..." : "닉네임 변경"}
                         </Button>
                       </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
                 </div>
 
                 {/* 사용자 정보 - 가로로 배치 */}
-                <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
+                <div className="flex flex-wrap items-center justify-center gap-4">
                   {user.socialNickname && (
                     <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-gradient-to-r from-blue-100 to-pink-100 dark:from-blue-900/30 dark:to-pink-900/30">
                       <Star className="w-4 h-4 text-blue-600 dark:text-blue-400" />
@@ -295,10 +296,6 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
                       <span className="text-sm font-medium text-pink-700 dark:text-pink-300">알림 ON</span>
                     </div>
                   )}
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-gradient-to-r from-blue-100 to-pink-100 dark:from-blue-900/30 dark:to-pink-900/30">
-                    <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                    <span className="text-sm font-medium text-blue-700 dark:text-blue-300">활성</span>
-                  </div>
                 </div>
               </div>
             </div>

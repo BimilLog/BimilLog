@@ -184,26 +184,26 @@ const ActivityTabContent: React.FC<ActivityTabContentProps> = memo(({
       </div>
 
       <div className="overflow-x-auto">
-        <Table hoverable>
+        <Table hoverable className="table-fixed">
           <TableHead>
             <TableRow>
               {contentConfig.isPost ? (
                 <>
-                  <TableHeadCell>제목</TableHeadCell>
-                  <TableHeadCell className="hidden md:table-cell">작성일</TableHeadCell>
-                  <TableHeadCell className="hidden lg:table-cell">조회수</TableHeadCell>
-                  <TableHeadCell className="hidden sm:table-cell">추천</TableHeadCell>
-                  <TableHeadCell className="hidden lg:table-cell">댓글</TableHeadCell>
-                  <TableHeadCell>
+                  <TableHeadCell className="w-[40%]">제목</TableHeadCell>
+                  <TableHeadCell className="hidden md:table-cell w-[15%]">작성일</TableHeadCell>
+                  <TableHeadCell className="hidden lg:table-cell w-[12%]">조회수</TableHeadCell>
+                  <TableHeadCell className="hidden sm:table-cell w-[12%]">추천</TableHeadCell>
+                  <TableHeadCell className="hidden lg:table-cell w-[12%]">댓글</TableHeadCell>
+                  <TableHeadCell className="w-[9%]">
                     <span className="sr-only">상세보기</span>
                   </TableHeadCell>
                 </>
               ) : (
                 <>
-                  <TableHeadCell>댓글 내용</TableHeadCell>
-                  <TableHeadCell className="hidden md:table-cell">작성일</TableHeadCell>
-                  <TableHeadCell className="hidden sm:table-cell">추천</TableHeadCell>
-                  <TableHeadCell>
+                  <TableHeadCell className="w-[50%]">댓글 내용</TableHeadCell>
+                  <TableHeadCell className="hidden md:table-cell w-[20%]">작성일</TableHeadCell>
+                  <TableHeadCell className="hidden sm:table-cell w-[15%]">추천</TableHeadCell>
+                  <TableHeadCell className="w-[15%]">
                     <span className="sr-only">게시글 보기</span>
                   </TableHeadCell>
                 </>
@@ -217,7 +217,7 @@ const ActivityTabContent: React.FC<ActivityTabContentProps> = memo(({
                     key={`post-${post.id}`}
                     className="bg-white dark:border-gray-700 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
                   >
-                    <TableCell className="whitespace-normal font-medium text-gray-900 dark:text-white">
+                    <TableCell className="w-[40%] whitespace-normal font-medium text-gray-900 dark:text-white">
                       <Link
                         href={`/board/post/${post.id}`}
                         className="hover:text-purple-600 transition-colors line-clamp-2"
@@ -228,28 +228,28 @@ const ActivityTabContent: React.FC<ActivityTabContentProps> = memo(({
                         {formatKoreanDate(post.createdAt)}
                       </div>
                     </TableCell>
-                    <TableCell className="hidden md:table-cell whitespace-nowrap text-gray-700 dark:text-gray-300">
+                    <TableCell className="hidden md:table-cell w-[15%] whitespace-nowrap text-gray-700 dark:text-gray-300">
                       {formatKoreanDate(post.createdAt)}
                     </TableCell>
-                    <TableCell className="hidden lg:table-cell">
+                    <TableCell className="hidden lg:table-cell w-[12%]">
                       <div className="flex items-center space-x-1">
                         <Eye className="w-4 h-4 text-blue-500" />
                         <span>{formatNumber(post.viewCount)}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="hidden sm:table-cell">
+                    <TableCell className="hidden sm:table-cell w-[12%]">
                       <div className="flex items-center space-x-1">
                         <Heart className={`w-4 h-4 ${contentConfig.isLiked ? 'text-red-500 fill-current' : 'text-red-500'}`} />
                         <span>{formatNumber(post.likeCount)}</span>
                       </div>
                     </TableCell>
-                    <TableCell className="hidden lg:table-cell">
+                    <TableCell className="hidden lg:table-cell w-[12%]">
                       <div className="flex items-center space-x-1">
                         <MessageCircle className="w-4 h-4 text-green-500" />
                         <span>{formatNumber(post.commentCount)}</span>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="w-[9%]">
                       <Link
                         href={`/board/post/${post.id}`}
                         className="font-medium text-purple-600 hover:underline dark:text-purple-500 flex items-center space-x-1"
@@ -265,22 +265,22 @@ const ActivityTabContent: React.FC<ActivityTabContentProps> = memo(({
                     key={`comment-${comment.id}`}
                     className="bg-white dark:border-gray-700 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
                   >
-                    <TableCell className="whitespace-normal font-medium text-gray-900 dark:text-white max-w-md">
+                    <TableCell className="w-[50%] whitespace-normal font-medium text-gray-900 dark:text-white">
                       <div className="line-clamp-2">{comment.content}</div>
                       <div className="md:hidden mt-1 text-xs text-gray-500">
                         {formatKoreanDate(comment.createdAt)}
                       </div>
                     </TableCell>
-                    <TableCell className="hidden md:table-cell whitespace-nowrap text-gray-700 dark:text-gray-300">
+                    <TableCell className="hidden md:table-cell w-[20%] whitespace-nowrap text-gray-700 dark:text-gray-300">
                       {formatKoreanDate(comment.createdAt)}
                     </TableCell>
-                    <TableCell className="hidden sm:table-cell">
+                    <TableCell className="hidden sm:table-cell w-[15%]">
                       <div className="flex items-center space-x-1">
                         <Heart className={`w-4 h-4 ${contentConfig.isLiked ? 'text-red-500 fill-current' : 'text-red-500'}`} />
                         <span>{formatNumber(comment.likeCount)}</span>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="w-[15%]">
                       <Link
                         href={`/board/post/${comment.postId}#comment-${comment.id}`}
                         className="font-medium text-purple-600 hover:underline dark:text-purple-500 flex items-center space-x-1"
