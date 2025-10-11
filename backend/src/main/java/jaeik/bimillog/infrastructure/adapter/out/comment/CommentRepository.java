@@ -20,15 +20,16 @@ import org.springframework.stereotype.Repository;
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     /**
-     * <h3>클로저 테이블에서 자손 관계 삭제</h3>
-     * <p>자손이 없는 댓글의 모든 클로저 관계를 삭제합니다.</p>
+     * <h3>클로저 테이블에서 댓글 관련 모든 관계 삭제</h3>
+     * <p>댓글과 관련된 모든 클로저 관계를 삭제합니다.</p>
+     * <p>descendant_id와 ancestor_id 양방향으로 참조하는 레코드를 모두 삭제하여 FK 제약 조건 위반을 방지합니다.</p>
      *
      * @param commentId 삭제할 댓글 ID
      * @author Jaeik
      * @since 2.0.0
      */
     @Modifying
-    @Query(value = "DELETE FROM comment_closure WHERE descendant_id = :commentId", nativeQuery = true)
+    @Query(value = "DELETE FROM comment_closure WHERE descendant_id = :commentId OR ancestor_id = :commentId", nativeQuery = true)
     void deleteClosuresByDescendantId(@Param("commentId") Long commentId);
 
     /**

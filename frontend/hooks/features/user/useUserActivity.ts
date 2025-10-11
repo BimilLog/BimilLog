@@ -106,11 +106,10 @@ export function useActivityData<T extends { id: number | string }>({ fetchData }
     }
   };
 
-  // 페이지 직접 변경: 스크롤을 맨 위로 이동하여 UX 개선
+  // 페이지 직접 변경
   const handlePageChange = (page: number) => {
     if (page >= 0 && page < totalPages) {
       loadData(page);
-      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 

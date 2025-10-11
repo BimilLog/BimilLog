@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.post.application.service;
 
+import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.bimillog.domain.global.application.port.out.GlobalMemberQueryPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.member.entity.Member;
@@ -39,6 +40,7 @@ public class PostCommandService implements PostCommandUseCase {
     private final GlobalMemberQueryPort globalUserQueryPort;
     private final RedisPostDeletePort redisPostDeletePort;
     private final PostQueryPort postQueryPort;
+    private final CommentCommandUseCase commentCommandUseCase;
 
 
     /**
@@ -134,6 +136,8 @@ public class PostCommandService implements PostCommandUseCase {
     /**
      * <h3>회원 작성 게시글 일괄 삭제 (라이트 어라운드 패턴)</h3>
      * <p>회원 탈퇴 시 사용자가 작성한 모든 게시글을 삭제하고 캐시를 무효화합니다.</p>
+     * <p>FK 제약 조건 위반 방지를 위해 각 게시글의 댓글을 먼저 삭제합니다.</p>
+     * <p>삭제 순서: 댓글 삭제 → 캐시 무효화 → 게시글 삭제</p>
      *
      * @param memberId 게시글을 삭제할 사용자 ID
      * @author Jaeik
@@ -144,8 +148,12 @@ public class PostCommandService implements PostCommandUseCase {
     public void deleteAllPostsByMemberId(Long memberId) {
         List<Long> postIds = postQueryPort.findPostIdsMemberId(memberId);
         for (Long postId : postIds) {
+            // FK 제약 조건 위반 방지: 게시글의 모든 댓글 먼저 삭제 (CommentClosure 포함)
+            commentCommandUseCase.deleteCommentsByPost(postId);
+            // 캐시 무효화
             redisPostDeletePort.deleteSinglePostCache(postId);
         }
+        // 게시글 일괄 삭제
         postCommandPort.deleteAllByMemberId(memberId);
     }
 }

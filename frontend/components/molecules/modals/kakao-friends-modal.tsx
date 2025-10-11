@@ -130,10 +130,14 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
       const errMsg = err.message || "친구 목록을 가져올 수 없습니다.";
 
       // 카카오 친구 목록 접근 동의가 필요한 경우 감지
-      const normalizedMessage = errMsg.replace(/\s/g, "");
-      const consentKeywords = ["카카오친구추가동의를해야합니다"];
+      const normalizedMessage = errMsg.replace(/[\s.]/g, "");
+      const consentKeywords = [
+        "카카오친구추가동의를해야합니다",   // 마침표/공백 제거 후 매칭
+        "insufficientscopes",              // 백엔드 원본 Kakao API 에러
+        "friendsconsent"                   // 추가 패턴
+      ];
 
-      if (consentKeywords.some((keyword) => normalizedMessage.includes(keyword))) {
+      if (consentKeywords.some((keyword) => normalizedMessage.toLowerCase().includes(keyword))) {
         setNeedsConsent(true);
         setErrorMessage("카카오 친구 목록 접근을 위해 추가 동의가 필요합니다.");
       } else {
@@ -296,7 +300,12 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
                     카카오톡 친구 목록을 확인하려면 추가 동의가 필요합니다. 동의 페이지로 이동하여 &lsquo;친구 목록 제공&rsquo;을 허용해주세요.
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    <FlowbiteButton type="button" gradientDuoTone="purpleToPink" size="sm" onClick={handleConsentClick}>
+                    <FlowbiteButton
+                      type="button"
+                      size="sm"
+                      onClick={handleConsentClick}
+                      className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
+                    >
                       동의하러 가기
                     </FlowbiteButton>
                     <FlowbiteButton type="button" color="light" size="sm" onClick={() => refetch()}>
@@ -373,9 +382,9 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
                       {friend.memberName ? (
                         <FlowbiteButton
                           type="button"
-                          gradientDuoTone="purpleToPink"
                           size="sm"
                           onClick={() => handleVisitRollingPaper(friend.memberName)}
+                          className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
                         >
                           <MessageCircle className="h-4 w-4" />
                           <span className="ml-1 text-sm">롤링페이퍼</span>

@@ -127,11 +127,8 @@ export class ApiClient {
             window.dispatchEvent(event)
           }
 
-          return {
-            success: false,
-            error: extractedMessage,
-            needsRelogin,
-          }
+          // Promise를 reject하여 TanStack Query가 에러로 인식하도록 함
+          throw new Error(extractedMessage)
         } catch (jsonError) {
           logger.warn('Failed to parse error response as JSON:', jsonError)
 
@@ -145,10 +142,8 @@ export class ApiClient {
             logger.error('Failed to parse error response as text:', textError)
           }
 
-          return {
-            success: false,
-            error: errorMessage,
-          }
+          // Promise를 reject하여 TanStack Query가 에러로 인식하도록 함
+          throw new Error(errorMessage)
         }
       }
 

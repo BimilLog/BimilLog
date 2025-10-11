@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useMemo, memo, useState, useEffect } from "react";
+import React, { useCallback, useMemo, memo, useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components";
@@ -50,6 +50,9 @@ const ActivityTabContent: React.FC<ActivityTabContentProps> = memo(({
   // 반응형 페이지네이션: 모바일(768px 미만)은 무한 스크롤, 데스크톱은 페이지네이션
   const [isDesktop, setIsDesktop] = useState(false);
 
+  // 테이블 컨테이너 ref: 페이지 변경 시 스크롤 타겟
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+
   // useActivityData를 먼저 호출하여 currentPage, loadAllPagesForMobile 획득
   const {
     items,
@@ -91,8 +94,18 @@ const ActivityTabContent: React.FC<ActivityTabContentProps> = memo(({
   }, [handleResize]);
 
   // Flowbite React Pagination 핸들러: 0-based에서 1-based로 변환
+  // 페이지 변경 후 테이블 상단으로 스크롤하여 사용자가 새 데이터를 바로 볼 수 있도록 함
   const handleFlowbitePagination = useCallback((page: number) => {
     handlePageChange(page - 1); // Convert 1-based to 0-based
+
+    // 페이지 변경 후 테이블 상단으로 스크롤 (약간의 지연을 두어 렌더링 후 스크롤)
+    setTimeout(() => {
+      tableContainerRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+        inline: 'nearest'
+      });
+    }, 100);
   }, [handlePageChange]);
 
   // 컨텐츠 타입별 UI 설정: "posts"/"comments", "liked" 여부에 따라 배지와 플래그 설정
@@ -165,7 +178,7 @@ const ActivityTabContent: React.FC<ActivityTabContentProps> = memo(({
   }
 
   return (
-    <div className="space-y-6 mt-6">
+    <div ref={tableContainerRef} className="space-y-6 mt-6">
       <div className="flex items-center justify-between pb-4 border-b border-gray-200">
         <div className="flex items-center space-x-2">
           <span className="text-lg font-semibold text-brand-primary">
@@ -303,23 +316,25 @@ const ActivityTabContent: React.FC<ActivityTabContentProps> = memo(({
             totalPages={totalPages}
             onPageChange={handleFlowbitePagination}
             showIcons
+            previousLabel="이전"
+            nextLabel="다음"
             className="text-sm"
             theme={{
               pages: {
                 base: "xs:mt-0 mt-2 inline-flex items-center -space-x-px",
                 showIcon: "inline-flex",
                 previous: {
-                  base: "ml-0 rounded-l-lg border border-gray-300 bg-white py-2 px-3 leading-tight text-gray-500 hover:bg-gray-100 hover:text-gray-700",
-                  icon: "h-4 w-4"
+                  base: "ml-0 flex min-w-[3rem] items-center justify-center gap-1 rounded-l-lg border border-gray-300 bg-white px-3 py-2 text-gray-500 leading-tight hover:bg-gray-100 hover:text-gray-700 dark:border-slate-700 dark:bg-slate-900/80 dark:text-gray-300 dark:hover:bg-slate-800 dark:hover:text-gray-100",
+                  icon: "h-5 w-5"
                 },
                 next: {
-                  base: "rounded-r-lg border border-gray-300 bg-white py-2 px-3 leading-tight text-gray-500 hover:bg-gray-100 hover:text-gray-700",
-                  icon: "h-4 w-4"
+                  base: "flex min-w-[3rem] items-center justify-center gap-1 rounded-r-lg border border-gray-300 bg-white px-3 py-2 text-gray-500 leading-tight hover:bg-gray-100 hover:text-gray-700 dark:border-slate-700 dark:bg-slate-900/80 dark:text-gray-300 dark:hover:bg-slate-800 dark:hover:text-gray-100",
+                  icon: "h-5 w-5"
                 },
                 selector: {
-                  base: "w-12 border border-gray-300 bg-white py-2 px-3 leading-tight text-gray-500 hover:bg-gray-100 hover:text-gray-700",
-                  active: "bg-brand-primary border-brand-primary text-white hover:bg-brand-primary hover:text-white",
-                  disabled: "cursor-not-allowed opacity-50"
+                  base: "flex min-w-[3rem] items-center justify-center border border-gray-300 bg-white px-3 py-2 text-gray-500 leading-tight hover:bg-gray-100 hover:text-gray-700 dark:border-slate-700 dark:bg-slate-900/80 dark:text-gray-300 dark:hover:bg-slate-800 dark:hover:text-gray-100",
+                  active: "border-blue-500 bg-blue-500 text-white hover:bg-blue-500 hover:text-white dark:border-blue-400 dark:bg-blue-500",
+                  disabled: "cursor-not-allowed text-gray-400 dark:text-gray-600"
                 }
               }
             }}
