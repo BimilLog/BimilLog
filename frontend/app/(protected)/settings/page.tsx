@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { Settings as SettingsIcon } from "lucide-react";
 import { CuteLoadingSpinner, ErrorAlert, Button } from "@/components";
 import { useSettings } from "@/hooks";
+import { MainLayout } from "@/components/organisms/layout/BaseLayout";
 
 // Dynamic imports for heavy settings components
 const NotificationSettings = dynamic(
@@ -59,16 +60,24 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto">
-          <CuteLoadingSpinner message="설정을 불러오는 중..." />
+      <MainLayout
+        className="bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 dark:from-[#121327] dark:via-[#1a1030] dark:to-[#0b0c1c]"
+        containerClassName="container mx-auto px-4"
+      >
+        <div className="py-8">
+          <div className="max-w-3xl mx-auto">
+            <CuteLoadingSpinner message="설정을 불러오는 중..." />
+          </div>
         </div>
-      </div>
+      </MainLayout>
     );
   }
 
   return (
-    <div className="container mx-auto px-4">
+    <MainLayout
+      className="bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 dark:from-[#121327] dark:via-[#1a1030] dark:to-[#0b0c1c]"
+      containerClassName="container mx-auto px-4"
+    >
       <header className="py-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-brand-button rounded-full flex items-center justify-center shadow-brand-lg">
@@ -82,7 +91,7 @@ export default function SettingsPage() {
       </header>
 
       <div className="pb-8">
-        <div className="max-w-2xl mx-auto space-y-6">
+        <div className="max-w-3xl mx-auto space-y-6">
           {error && (
             <ErrorAlert>
               <div className="flex items-center justify-between">
@@ -113,6 +122,6 @@ export default function SettingsPage() {
           />
         </div>
       </div>
-    </div>
+    </MainLayout>
   );
 }

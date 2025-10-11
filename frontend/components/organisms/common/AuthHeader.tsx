@@ -122,7 +122,7 @@ export const AuthHeader = React.memo(() => {
         />
       </NavbarBrand>
 
-      <div className="flex items-center gap-2 sm:gap-3 md:order-2">
+      <div className="flex items-center gap-2 sm:gap-3 md:ml-auto md:order-2">
         {/* 테마 토글 버튼 - 모든 사용자에게 표시 */}
         <button
           onClick={toggleTheme}
@@ -237,7 +237,7 @@ export const AuthHeader = React.memo(() => {
         <NavbarToggle className="md:hidden" />
       </div>
 
-      <NavbarCollapse className="md:order-1 md:ml-auto md:mr-3 md:flex md:items-center md:gap-6">
+      <NavbarCollapse className="basis-full md:basis-auto md:order-1 md:mr-3 md:flex md:items-center md:gap-6">
         <NavbarLink as={Link} href="/board" className="text-sm lg:text-base">
           게시판
         </NavbarLink>

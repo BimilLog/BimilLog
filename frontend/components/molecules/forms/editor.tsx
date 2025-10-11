@@ -28,9 +28,20 @@ const QuillEditor: React.FC<EditorProps> = ({
   // 중복 초기화 방지를 위한 플래그
   const isInitializing = useRef(false);
 
+  // 초기 value 설정 여부 추적
+  const isInitialValueSet = useRef(false);
+
+  // onChange를 ref로 관리하여 클로저 문제 방지
+  const onChangeRef = useRef(onChange);
+
   // 에디터 상태 관리
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // onChange가 변경될 때마다 ref 업데이트
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
 
   useEffect(() => {
     /**
@@ -192,23 +203,31 @@ const QuillEditor: React.FC<EditorProps> = ({
             const content = quill.getSemanticHTML
               ? quill.getSemanticHTML()
               : quill.root.innerHTML;
-            onChange(content);
+            onChangeRef.current(content);
+            // 사용자가 타이핑을 시작하면 초기 value 설정 완료로 표시 (이후 외부 동기화 방지)
+            isInitialValueSet.current = true;
           } catch (err) {
             logger.error("Error getting content:", err);
-            onChange(quill.root.innerHTML);
+            onChangeRef.current(quill.root.innerHTML);
+            isInitialValueSet.current = true;
           }
         });
 
-        // 기존 내용이 있는 경우 에디터에 설정
+        // 기존 내용이 있는 경우 에디터에 설정 (초기화 시 한 번만)
         if (value) {
           try {
             const delta = quill.clipboard.convert({ html: value });
             quill.setContents(delta, "silent");
+            // 초기 value 설정 완료 플래그
+            isInitialValueSet.current = true;
           } catch (err) {
             logger.error("Error setting initial content:", err);
             quill.root.innerHTML = value;
+            // 초기 value 설정 완료 플래그
+            isInitialValueSet.current = true;
           }
         }
+        // value가 비어있으면 isInitialValueSet을 false로 유지하여 두 번째 useEffect에서 처리
 
         /**
          * SVG 아이콘 렌더링 문제 해결
@@ -262,29 +281,31 @@ const QuillEditor: React.FC<EditorProps> = ({
         }
       }
     };
-  }, [onChange, placeholder, value]);
+    // 초기 마운트 시에만 Quill을 초기화하고, 이후에는 재초기화하지 않음
+  }, []);
 
   /**
    * 외부에서 value prop이 변경되었을 때 에디터 내용 동기화
-   * 무한 루프 방지를 위해 실제 내용이 다를 때만 업데이트
+   * 초기 value 설정 이후에는 사용자 입력만 반영하기 위해 동기화하지 않음
+   * 임시저장 복원 등 외부 변경은 컴포넌트 재마운트로 처리
    */
   useEffect(() => {
-    if (quillRef.current && isReady && !error) {
+    // 초기 value 설정이 완료된 경우에는 동기화하지 않음 (사용자 입력 우선)
+    if (!quillRef.current || !isReady || error || isInitialValueSet.current) {
+      return;
+    }
+
+    // 초기 value가 있고 아직 설정되지 않은 경우에만 동기화 (임시저장 복원 등)
+    if (value) {
       try {
         const quill = quillRef.current as {
-          getSemanticHTML?: () => string;
-          root: { innerHTML: string };
           clipboard: { convert: (options: { html: string }) => unknown };
           setContents: (delta: unknown, source: string) => void;
         };
-        const currentContent = quill.getSemanticHTML
-          ? quill.getSemanticHTML()
-          : quill.root.innerHTML;
-
-        if (value !== currentContent) {
-          const delta = quill.clipboard.convert({ html: value });
-          quill.setContents(delta, "silent");
-        }
+        const delta = quill.clipboard.convert({ html: value });
+        quill.setContents(delta, "silent");
+        isInitialValueSet.current = true;
+        logger.log("외부에서 value가 변경되어 에디터 내용을 동기화했습니다.");
       } catch (err) {
         logger.error("Error updating content:", err);
       }

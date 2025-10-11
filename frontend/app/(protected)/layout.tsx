@@ -3,8 +3,6 @@
 import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks";
-import { AuthHeader } from "@/components/organisms/common";
-import { HomeFooter } from "@/components/organisms/home";
 import { LoadingSpinner } from "@/components/atoms";
 import type { AuthLayoutProps } from "@/types/domains/auth";
 
@@ -22,7 +20,7 @@ export default function AuthenticatedLayout({ children }: AuthLayoutProps) {
   const shouldShowContent = !isLoading && isAuthenticated;
 
   const loadingScreen = useMemo(() => (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 dark:from-[#121327] dark:via-[#1a1030] dark:to-[#0b0c1c]">
       <LoadingSpinner
         variant="gradient"
         message="로그인 상태를 확인하는 중..."
@@ -38,11 +36,5 @@ export default function AuthenticatedLayout({ children }: AuthLayoutProps) {
     return null;
   }
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
-      <AuthHeader />
-      <main>{children}</main>
-      <HomeFooter />
-    </div>
-  );
+  return <>{children}</>;
 }

@@ -18,8 +18,12 @@ export const postCommand = {
     }
 
     return apiClient.post<{ id: number }>("/api/post", payload).then(response => {
-      if (response.success && response.data) {
-        return { ...response, data: { id: response.data.id } as unknown as Post }
+      // apiClient가 Location 헤더에서 추출한 { id: 56 } 형태의 데이터를 그대로 사용
+      if (response.success && response.data?.id) {
+        return {
+          success: true,
+          data: { id: response.data.id } as unknown as Post
+        }
       }
       return response as ApiResponse<Post>
     })
