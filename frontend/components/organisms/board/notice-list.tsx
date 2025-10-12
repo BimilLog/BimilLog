@@ -113,18 +113,22 @@ export const NoticeList = ({ posts }: NoticeListProps) => {
           </div>
         </CardContent>
       </Card>
-      <div className="sm:hidden space-y-3">
-      {posts.map((notice) => {
+      <div className="sm:hidden space-y-3 overflow-visible">
+      {posts.map((notice, index) => {
         const trimmedName = notice.memberName?.trim();
         const authorName =
           trimmedName && trimmedName.length > 0 ? trimmedName : "익명";
         const hasAuthorLink = authorName !== "익명";
 
         return (
-          <Card
+          <div
             key={notice.id}
+            style={{ zIndex: posts.length - index }}
+            className="relative"
+          >
+          <Card
             variant="elevated"
-            className="p-3 gap-1 shadow-sm dark:shadow-none"
+            className="relative p-3 gap-1 overflow-visible shadow-sm isolation-auto dark:shadow-none"
           >
             <div className="flex items-center justify-between text-xs text-purple-500 dark:text-purple-300">
               <Badge variant="info" icon={Megaphone}>
@@ -195,6 +199,7 @@ export const NoticeList = ({ posts }: NoticeListProps) => {
               </div>
             </div>
           </Card>
+          </div>
         );
       })}
       </div>
