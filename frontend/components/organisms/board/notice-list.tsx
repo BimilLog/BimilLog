@@ -1,8 +1,9 @@
-import { Card, CardContent, Badge } from "@/components";
-import { Eye, Megaphone, ThumbsUp, User } from "lucide-react";
+import { Card, CardContent, Badge, Button } from "@/components";
+import { Eye, Megaphone, ThumbsUp, User, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import type { SimplePost } from "@/lib/api";
 import { formatKoreanDate } from "@/lib/utils/date";
+import { Popover } from "flowbite-react";
 
 interface NoticeListProps {
   posts: SimplePost[];
@@ -120,7 +121,11 @@ export const NoticeList = ({ posts }: NoticeListProps) => {
         const hasAuthorLink = authorName !== "익명";
 
         return (
-          <Card key={notice.id} variant="elevated" className="shadow-sm dark:shadow-none">
+          <Card
+            key={notice.id}
+            variant="elevated"
+            className="p-3 gap-1 shadow-sm dark:shadow-none"
+          >
             <div className="flex items-center justify-between text-xs text-purple-500 dark:text-purple-300">
               <Badge variant="info" icon={Megaphone}>
                 공지
@@ -140,14 +145,38 @@ export const NoticeList = ({ posts }: NoticeListProps) => {
             </Link>
             <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-slate-600 dark:text-gray-300">
               {hasAuthorLink ? (
-                <Link
-                  href={`/rolling-paper/${encodeURIComponent(authorName)}`}
-                  className="inline-flex items-center gap-1 hover:text-purple-600 hover:underline"
-                  title={`${authorName}님의 롤링페이퍼 보기`}
+                <Popover
+                  trigger="click"
+                  placement="bottom"
+                  theme={{
+                    base: "z-[9999] absolute",
+                  }}
+                  content={
+                    <div className="w-56 p-3">
+                      <div className="flex flex-col space-y-2">
+                        <div className="flex items-center space-x-2">
+                          <User className="h-4 w-4" />
+                          <span className="font-medium">{authorName}</span>
+                        </div>
+                        <Link href={`/rolling-paper/${encodeURIComponent(authorName)}`}>
+                          <Button size="sm" className="w-full justify-start">
+                            <ExternalLink className="mr-2 h-4 w-4" />
+                            롤링페이퍼 보기
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
+                  }
                 >
-                  <User className="h-4 w-4" />
-                  {authorName}
-                </Link>
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-1 text-left transition-colors hover:text-purple-600 hover:underline dark:text-gray-200 dark:hover:text-purple-300"
+                    title={`${authorName}님의 롤링페이퍼 보기`}
+                  >
+                    <User className="h-4 w-4" />
+                    <span>{authorName}</span>
+                  </button>
+                </Popover>
               ) : (
                 <span className="inline-flex items-center gap-1 text-slate-500 dark:text-gray-400">
                   <User className="h-4 w-4" />
