@@ -203,19 +203,14 @@ const BoardMobileCard = memo<TableRowProps>(({
       <div className="p-4">
         <div className="mb-2 flex items-start justify-between">
           <div className="flex-1">
-            {/* 번호/순위 표시 */}
-            <div className="mb-2 flex items-center gap-2">
-              {/* 순위 또는 번호 */}
-              {showRanking ? (
+            {/* 순위 표시 (인기글 탭에서만) */}
+            {showRanking && (
+              <div className="mb-2">
                 <span className="text-xl font-bold text-purple-600 dark:text-purple-300">
                   #{index + 1}
                 </span>
-              ) : (
-                <span className="text-xs text-gray-600 dark:text-gray-400">
-                  번호: {post.id}
-                </span>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* 제목 */}
             <Link
