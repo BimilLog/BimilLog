@@ -177,9 +177,9 @@ export const ProfileCard: React.FC<ProfileCardProps> = React.memo(({
             <div className="flex-1 w-full">
               <div className="flex flex-col space-y-4">
                 {/* 닉네임 & 관리자 뱃지 */}
-                <div className="flex flex-col items-center md:flex-row md:items-center md:justify-between gap-4">
+                <div className="flex flex-col md:flex-row items-center md:items-start md:space-x-6 px-6 gap-4">
                   <div className="flex flex-nowrap items-center justify-center md:justify-start gap-3">
-                    <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 via-pink-500 to-blue-600 bg-clip-text text-transparent whitespace-nowrap">
+                    <h2 className="text-3xl md:text-4xl font-bold text-blue-600 whitespace-nowrap">
                       {user.memberName}
                     </h2>
                     {user.role === "ADMIN" && (

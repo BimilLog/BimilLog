@@ -43,11 +43,11 @@ export const RecentVisits: React.FC = () => {
 
   return (
     <Card variant="elevated">
-      <CardHeader className="text-center pb-4">
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center space-x-2 text-lg bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-            <span className="font-bold">최근 방문한 롤링페이퍼</span>
-          </CardTitle>
+      <CardHeader className="text-center">
+          <div className="flex items-center justify-center">
+            <CardTitle className="flex items-center space-x-2 text-lg text-blue-600">
+              <span className="font-bold">최근 방문한 롤링페이퍼</span>
+            </CardTitle>
           <Button
             variant="ghost"
             size="sm"
