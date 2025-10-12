@@ -1,17 +1,14 @@
 "use client";
 
 import { CleanLayout } from "@/components/organisms/layout/BaseLayout";
+import { LegalDocumentHeader } from "@/components/organisms/common/LegalDocumentHeader";
 
 export default function TermsPage() {
   return (
     <CleanLayout className="bg-gradient-to-br from-green-50 via-blue-50 to-indigo-50 dark:from-[#0b0c1c] dark:via-[#121327] dark:to-[#1a1030]">
       <main className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-brand-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
-          <div className="bg-gradient-to-r from-green-600 to-blue-600 px-8 py-6">
-            <h1 className="text-3xl font-bold text-white text-center">
-              이용약관
-            </h1>
-          </div>
+          <LegalDocumentHeader title="이용약관" />
 
           <div className="px-8 py-6 dark:text-gray-100">
             <div className="prose prose-lg max-w-none dark:prose-invert">
