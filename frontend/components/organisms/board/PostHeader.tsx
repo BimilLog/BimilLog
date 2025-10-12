@@ -29,6 +29,7 @@ export const PostHeader = React.memo<PostHeaderProps>(({
   commentCount,
 }) => {
   const { showSuccess, showError } = useToast();
+  const isNotice = Boolean(post.isNotice ?? post.notice);
 
   // 링크 공유 기능 (롤링페이퍼와 동일한 로직)
   const handleWebShare = useCallback(async () => {
@@ -68,7 +69,7 @@ export const PostHeader = React.memo<PostHeaderProps>(({
           {post.password && (
             <Lock className="w-4 h-4 stroke-red-500 fill-red-100" />
           )}
-          {post.isNotice && (
+          {isNotice && (
             <Badge variant="info" icon={Megaphone}>공지</Badge>
           )}
         </div>
@@ -176,7 +177,8 @@ export const PostHeader = React.memo<PostHeaderProps>(({
     prevProps.post.title === nextProps.post.title &&
     prevProps.post.viewCount === nextProps.post.viewCount &&
     prevProps.post.likeCount === nextProps.post.likeCount &&
-    prevProps.post.isNotice === nextProps.post.isNotice &&
+    Boolean(prevProps.post.isNotice ?? prevProps.post.notice) ===
+      Boolean(nextProps.post.isNotice ?? nextProps.post.notice) &&
     prevProps.commentCount === nextProps.commentCount
   );
 });

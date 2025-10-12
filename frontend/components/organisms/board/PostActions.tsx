@@ -24,6 +24,7 @@ const PostActions = memo(({
   const { user } = useAuth();
   const { mutate: toggleNotice, isPending: isTogglingNotice } = useToggleNotice();
   const isAdmin = user?.role === 'ADMIN';
+  const isNotice = Boolean(post.isNotice ?? post.notice);
 
   const handleToggleNotice = () => {
     if (isTogglingNotice) return; // 이중 클릭 방지
@@ -36,16 +37,16 @@ const PostActions = memo(({
         {/* 공지사항 토글 버튼 - 관리자 전용 */}
         {isAdmin && (
           <Tooltip
-            content={post.isNotice ? "공지사항을 일반 게시글로 변경합니다" : "게시글을 공지사항으로 등록합니다"}
+            content={isNotice ? "공지사항을 일반 게시글로 변경합니다" : "게시글을 공지사항으로 등록합니다"}
             placement="top"
           >
             <Button
-              variant={post.isNotice ? "default" : "outline"}
+              variant={isNotice ? "default" : "outline"}
               size="sm"
               onClick={handleToggleNotice}
               disabled={isTogglingNotice}
               className="flex items-center space-x-1"
-              aria-label={post.isNotice ? "공지사항 해제" : "공지사항으로 설정"}
+              aria-label={isNotice ? "공지사항 해제" : "공지사항으로 설정"}
               role="button"
             >
               {isTogglingNotice ? (
@@ -53,7 +54,7 @@ const PostActions = memo(({
               ) : (
                 <Megaphone className="w-4 h-4" aria-hidden="true" />
               )}
-              <span>{post.isNotice ? "공지 해제" : "공지 설정"}</span>
+              <span>{isNotice ? "공지 해제" : "공지 설정"}</span>
             </Button>
           </Tooltip>
         )}

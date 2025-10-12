@@ -2,12 +2,29 @@ import { apiClient } from '../client'
 import { Post, SimplePost } from '@/types/domains/post'
 import { ApiResponse, PageResponse } from '@/types/common'
 
+const normalizePostNotice = (post: Post): Post => {
+  const notice = Boolean(post.isNotice ?? post.notice);
+  return {
+    ...post,
+    isNotice: notice,
+    notice,
+  };
+};
+
 export const postQuery = {
   getAll: (page = 0, size = 10): Promise<ApiResponse<PageResponse<SimplePost>>> => 
     apiClient.get(`/api/post?page=${page}&size=${size}`),
   
-  getById: (postId: number): Promise<ApiResponse<Post>> => 
-    apiClient.get(`/api/post/${postId}`),
+  getById: (postId: number): Promise<ApiResponse<Post>> =>
+    apiClient.get<Post>(`/api/post/${postId}`).then(response => {
+      if (response.success && response.data) {
+        return {
+          ...response,
+          data: normalizePostNotice(response.data),
+        };
+      }
+      return response;
+    }),
   
   search: (type: "TITLE" | "TITLE_CONTENT" | "WRITER", query: string, page = 0, size = 10): Promise<ApiResponse<PageResponse<SimplePost>>> => {
     return apiClient.get(
