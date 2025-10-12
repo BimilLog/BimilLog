@@ -69,8 +69,8 @@
             <appender-ref ref="FILE"/>
         </logger>
 
-        <!-- HTTP 요청 로거 (DEBUG) -->
-        <logger name="jaeik.bimillog.global.filter.LogFilter" level="DEBUG" additivity="false">
+        <!-- HTTP 요청 로거 -->
+        <logger name="jaeik.bimillog.global.filter.LogFilter" level="INFO" additivity="false">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="FILE"/>
         </logger>

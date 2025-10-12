@@ -40,7 +40,7 @@ export function useEditForm() {
 
   // 게시글 정보 조회
   const fetchPost = useCallback(async () => {
-    if (!postId) return;
+    if (!postId || authLoading) return;
 
     try {
       const response = await postQuery.getById(postId);
@@ -76,7 +76,7 @@ export function useEditForm() {
     } finally {
       setIsLoading(false);
     }
-  }, [postId, router, isAuthenticated, user, showError]);
+  }, [postId, router, isAuthenticated, user, showError, authLoading]);
 
   // 초기 로드
   useEffect(() => {
