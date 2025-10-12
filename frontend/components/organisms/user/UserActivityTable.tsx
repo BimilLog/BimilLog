@@ -25,6 +25,7 @@ import {
 interface UserActivityTableProps {
   items: (SimplePost | SimpleComment)[];
   contentType: "posts" | "comments";
+  tabType: "my-posts" | "my-comments" | "liked-posts" | "liked-comments";
   isLoading?: boolean;
   error?: Error | null;
 }
@@ -241,6 +242,7 @@ UserActivityMobileCard.displayName = "UserActivityMobileCard";
 export const UserActivityTable = memo<UserActivityTableProps>(({
   items,
   contentType,
+  tabType,
   isLoading = false,
   error = null
 }) => {
@@ -370,7 +372,7 @@ export const UserActivityTable = memo<UserActivityTableProps>(({
             {items.length > 0 ? (
               items.map((item, index) => (
                 <UserActivityTableRow
-                  key={`${contentType}-${item.id}`}
+                  key={`${tabType}-${item.id}`}
                   item={item}
                   index={index}
                   contentType={contentType}
@@ -398,7 +400,7 @@ export const UserActivityTable = memo<UserActivityTableProps>(({
         {items.length > 0 ? (
           items.map((item, index) => (
             <UserActivityMobileCard
-              key={`${contentType}-${item.id}`}
+              key={`${tabType}-${item.id}`}
               item={item}
               index={index}
               contentType={contentType}

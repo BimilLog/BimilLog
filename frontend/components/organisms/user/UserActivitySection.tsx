@@ -17,7 +17,10 @@ const UserActivitySectionComponent: React.FC<UserActivitySectionProps> = ({ clas
 
   // 사용자 활동 데이터 관리
   const {
-    items,
+    myPosts,
+    myComments,
+    likedPosts,
+    likedComments,
     isLoading,
     error,
     activeTab,
@@ -49,13 +52,19 @@ const UserActivitySectionComponent: React.FC<UserActivitySectionProps> = ({ clas
     pagination.setCurrentPage(0);
   }, [pagination]);
 
-  // 현재 탭의 contentType 결정
-  const contentType = useMemo(() => {
-    return activeTab === "my-posts" || activeTab === "liked-posts" ? "posts" : "comments";
-  }, [activeTab]);
-
   // 페이지네이션 표시 조건
   const showPagination = pagination.totalPages > 0;
+
+  // 현재 탭에 따른 로딩/에러 상태
+  const myPostsLoading = activeTab === "my-posts" && isLoading;
+  const myCommentsLoading = activeTab === "my-comments" && isLoading;
+  const likedPostsLoading = activeTab === "liked-posts" && isLoading;
+  const likedCommentsLoading = activeTab === "liked-comments" && isLoading;
+
+  const myPostsError = activeTab === "my-posts" ? error : null;
+  const myCommentsError = activeTab === "my-comments" ? error : null;
+  const likedPostsError = activeTab === "liked-posts" ? error : null;
+  const likedCommentsError = activeTab === "liked-comments" ? error : null;
 
   // 탭 스타일 커스터마이징
   const tabsTheme = {
@@ -151,10 +160,11 @@ const UserActivitySectionComponent: React.FC<UserActivitySectionProps> = ({ clas
                 </CardHeader>
                 <CardContent className="p-0">
                   <UserActivityTable
-                    items={items}
+                    items={myPosts}
                     contentType="posts"
-                    isLoading={isLoading}
-                    error={error}
+                    tabType="my-posts"
+                    isLoading={myPostsLoading}
+                    error={myPostsError}
                   />
                 </CardContent>
               </Card>
@@ -171,10 +181,11 @@ const UserActivitySectionComponent: React.FC<UserActivitySectionProps> = ({ clas
                 </CardHeader>
                 <CardContent className="p-0">
                   <UserActivityTable
-                    items={items}
+                    items={myComments}
                     contentType="comments"
-                    isLoading={isLoading}
-                    error={error}
+                    tabType="my-comments"
+                    isLoading={myCommentsLoading}
+                    error={myCommentsError}
                   />
                 </CardContent>
               </Card>
@@ -191,10 +202,11 @@ const UserActivitySectionComponent: React.FC<UserActivitySectionProps> = ({ clas
                 </CardHeader>
                 <CardContent className="p-0">
                   <UserActivityTable
-                    items={items}
+                    items={likedPosts}
                     contentType="posts"
-                    isLoading={isLoading}
-                    error={error}
+                    tabType="liked-posts"
+                    isLoading={likedPostsLoading}
+                    error={likedPostsError}
                   />
                 </CardContent>
               </Card>
@@ -211,10 +223,11 @@ const UserActivitySectionComponent: React.FC<UserActivitySectionProps> = ({ clas
                 </CardHeader>
                 <CardContent className="p-0">
                   <UserActivityTable
-                    items={items}
+                    items={likedComments}
                     contentType="comments"
-                    isLoading={isLoading}
-                    error={error}
+                    tabType="liked-comments"
+                    isLoading={likedCommentsLoading}
+                    error={likedCommentsError}
                   />
                 </CardContent>
               </Card>
