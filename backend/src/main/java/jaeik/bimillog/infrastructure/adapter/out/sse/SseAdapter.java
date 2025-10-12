@@ -75,7 +75,7 @@ public class SseAdapter implements SsePort {
     @Override
     public SseEmitter subscribe(Long memberId, Long tokenId) {
         String emitterId = makeTimeIncludeId(memberId, tokenId);
-        SseEmitter emitter = save(emitterId, new SseEmitter(Long.MAX_VALUE));
+        SseEmitter emitter = save(emitterId, new SseEmitter(1800000L));
 
         emitter.onCompletion(() -> deleteById(emitterId));
         emitter.onTimeout(() -> deleteById(emitterId));

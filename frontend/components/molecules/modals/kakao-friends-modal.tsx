@@ -85,7 +85,7 @@ function KakaoFriendsModalContent({ isOpen, onClose }: KakaoFriendsModalProps) {
     hasNextPage,
     isFetchingNextPage,
     refetch
-  } = useInfiniteUserFriendList(20);
+  } = useInfiniteUserFriendList(20, isOpen);
 
   // 카카오 친구 목록 접근 동의가 필요한 상태 (scope 추가 필요)
   const [needsConsent, setNeedsConsent] = useState(false);

@@ -44,7 +44,7 @@ export function useNotifications() {
     setIsSSEConnected(connected)
   }, [])
 
-  // SSE 상태 변경 리스너: 연결 상태에 따라 토스트 알림 표시
+  // SSE 상태 변경 리스너: 연결 상태 로깅
   useEffect(() => {
     if (!canConnectSSE()) return
 
@@ -56,21 +56,19 @@ export function useNotifications() {
           logger.log("SSE 연결 시도 중...")
           break
         case 'connected':
-          // 최초 연결 시에만 토스트 표시 (재연결 시에는 표시하지 않음)
+          logger.log("SSE 연결 완료")
           if (!sseManager.hasShownConnectedToast()) {
-            showSuccess("실시간 알림 활성화", "새로운 알림을 실시간으로 받을 수 있습니다", 3000)
             sseManager.markConnectedToastShown()
-          } else {
-            showInfo("실시간 알림 복구", "알림 연결이 복구되었습니다", 2000)
           }
           break
         case 'reconnecting':
-          showInfo("재연결 중", "실시간 알림 연결을 복구하고 있습니다...", 2000)
+          logger.log("SSE 재연결 중...")
           break
         case 'error':
-          showError("연결 실패", "실시간 알림 연결에 실패했습니다. 재시도 중...", 3000)
+          logger.log("SSE 연결 실패 - 재시도 중...")
           break
         case 'disconnected':
+          logger.log("SSE 연결 종료")
           break
       }
     }
@@ -80,7 +78,7 @@ export function useNotifications() {
     return () => {
       sseManager.removeStatusListener(statusListener)
     }
-  }, [canConnectSSE, showSuccess, showError, showInfo])
+  }, [canConnectSSE])
 
   // SSE 이벤트 리스너 등록/해제: 실시간 알림 처리와 연결 상태 관리
   useEffect(() => {

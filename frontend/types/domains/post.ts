@@ -14,7 +14,8 @@ export interface Post {
   createdAt: string  // v2: Instant → ISO string
   updatedAt: string  // v2: Instant → ISO string
   liked: boolean     // v2: Jackson이 isLiked를 liked로 직렬화
-  isNotice: boolean  // 공지사항 여부
+  isNotice?: boolean // 공지사항 여부 (Jackson boolean prefix 대응)
+  notice?: boolean   // 백엔드 Boolean 직렬화 보정 (notice → isNotice 매핑용)
   password?: number
 }
 

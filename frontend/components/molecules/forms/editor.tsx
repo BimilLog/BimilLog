@@ -141,7 +141,7 @@ const QuillEditor: React.FC<EditorProps> = ({
         await new Promise((resolve) => setTimeout(resolve, 300));
 
         // 기존 툴바가 있으면 제거 (중복 방지)
-        const existingToolbar = editorRef.current.querySelector('.ql-toolbar');
+        const existingToolbar = editorRef.current?.querySelector('.ql-toolbar');
         if (existingToolbar) {
           logger.log("기존 툴바 제거 중...");
           existingToolbar.remove();

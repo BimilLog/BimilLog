@@ -1,17 +1,14 @@
 "use client";
 
 import { CleanLayout } from "@/components/organisms/layout/BaseLayout";
+import { LegalDocumentHeader } from "@/components/organisms/common/LegalDocumentHeader";
 
 export default function PrivacyPage() {
   return (
     <CleanLayout className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-[#121327] dark:via-[#1a1030] dark:to-[#0b0c1c]">
       <main className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-brand-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-6">
-            <h1 className="text-3xl font-bold text-white text-center">
-              개인정보 처리방침
-            </h1>
-          </div>
+          <LegalDocumentHeader title="개인정보 처리방침" />
 
           <div className="px-8 py-6 dark:text-gray-100">
             <div className="prose prose-lg max-w-none dark:prose-invert">

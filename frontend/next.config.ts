@@ -109,9 +109,9 @@ const nextConfig = withPWA(pwaConfig)({
                             // 폰트 소스 허용
                             "font-src 'self' data: https://cdn.jsdelivr.net",
                             // API 연결 허용 (개발환경에서는 localhost 포함)
-                            "connect-src 'self' https://grow-farm.com ws://grow-farm.com" + 
+                            "connect-src 'self' https://grow-farm.com ws://grow-farm.com" +
                             (process.env.NODE_ENV === "development" ? " http://localhost:* ws://localhost:*" : "") +
-                            " https://accounts.kakao.com https://dapi.kakao.com https://analytics.ad.daum.net https://display.ad.daum.net https://kaat.daum.net https://kuid-provider.ds.kakao.com https://t1.daumcdn.net https://aem-kakao-collector.onkakao.net https://www.google-analytics.com https://analytics.google.com https://accounts.google.com",
+                            " https://cdn.jsdelivr.net https://accounts.kakao.com https://dapi.kakao.com https://analytics.ad.daum.net https://display.ad.daum.net https://kaat.daum.net https://kuid-provider.ds.kakao.com https://t1.daumcdn.net https://aem-kakao-collector.onkakao.net https://www.google-analytics.com https://analytics.google.com https://accounts.google.com",
                             // 프레임 허용 (구체적 도메인만 명시)
                             "frame-src 'self' https://accounts.kakao.com https://postfiles.pstatic.net https://t1.daumcdn.net https://analytics.ad.daum.net https://display.ad.daum.net about: chrome-extension:",
                             "object-src 'none'",

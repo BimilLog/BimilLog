@@ -232,13 +232,15 @@ export const useToggleNotice = () => {
         if (!old?.success || !old?.data) return old;
 
         const post = old.data;
-        const newIsNotice = !post.isNotice;
+        const currentIsNotice = Boolean(post.isNotice ?? post.notice);
+        const newIsNotice = !currentIsNotice;
 
         return {
           ...old,
           data: {
             ...post,
             isNotice: newIsNotice,
+            notice: newIsNotice,
           },
         };
       });
@@ -269,7 +271,7 @@ export const useToggleNotice = () => {
       if (response.success) {
         // 성공 시 변경 전 상태를 기반으로 구체적인 메시지 표시
         const previousPost = context?.previousPost as ApiResponse<Post> | undefined;
-        const wasNotice = previousPost?.data?.isNotice ?? false;
+        const wasNotice = Boolean(previousPost?.data?.isNotice ?? previousPost?.data?.notice);
 
         const message = wasNotice
           ? '공지사항이 해제되었습니다.'
