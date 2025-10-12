@@ -199,14 +199,14 @@ const BoardMobileCard = memo<TableRowProps>(({
   showRanking
 }) => {
   return (
-    <Card variant="elevated" className="transition-all hover:shadow-brand-md">
-      <div className="p-4">
-        <div className="mb-2 flex items-start justify-between">
+    <Card variant="elevated" className="transition-all hover:shadow-brand-md overflow-visible relative isolation-auto">
+      <div className="p-3">
+        <div className="mb-1.5 flex items-start justify-between">
           <div className="flex-1">
             {/* 순위 표시 (인기글 탭에서만) */}
             {showRanking && (
-              <div className="mb-2">
-                <span className="text-xl font-bold text-purple-600 dark:text-purple-300">
+              <div className="mb-1.5">
+                <span className="text-lg font-bold text-purple-600 dark:text-purple-300">
                   #{index + 1}
                 </span>
               </div>
@@ -215,7 +215,7 @@ const BoardMobileCard = memo<TableRowProps>(({
             {/* 제목 */}
             <Link
               href={`/board/post/${post.id}`}
-              className={`block text-base font-semibold transition-colors line-clamp-2 ${
+              className={`block text-sm font-semibold transition-colors line-clamp-2 ${
                 isRead
                   ? 'text-gray-500 dark:text-gray-400'
                   : 'text-brand-primary hover:text-purple-600 dark:text-gray-100 dark:hover:text-purple-300'
@@ -232,12 +232,15 @@ const BoardMobileCard = memo<TableRowProps>(({
         </div>
 
         {/* 하단 정보 */}
-        <div className="flex items-center justify-between text-sm text-brand-secondary dark:text-gray-300">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between text-xs text-brand-secondary dark:text-gray-300">
+          <div className="flex items-center gap-2">
             {post.memberName && post.memberName !== "익명" ? (
               <Popover
                 trigger="click"
                 placement="bottom"
+                theme={{
+                  base: "z-[9999] absolute"
+                }}
                 content={
                   <div className="p-3 w-56">
                     <div className="flex flex-col space-y-2">
@@ -270,7 +273,7 @@ const BoardMobileCard = memo<TableRowProps>(({
             )}
             <span>{formatDate(post.createdAt)}</span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <span className="flex items-center gap-1">
               <ThumbsUp className="w-3 h-3" />
               {post.likeCount}
@@ -370,7 +373,7 @@ export const BoardTable = memo<BoardTableProps>(({
         <div className="sm:hidden space-y-3">
           {[...Array(5)].map((_, idx) => (
             <Card key={idx} variant="elevated">
-              <div className="p-4 space-y-3">
+              <div className="p-3 space-y-2">
                 <div className="h-4 bg-gray-200 rounded animate-pulse" />
                 <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
                 <div className="flex justify-between">
@@ -444,18 +447,19 @@ export const BoardTable = memo<BoardTableProps>(({
       </div>
 
       {/* 모바일 카드 */}
-      <div className="space-y-3 sm:hidden">
+      <div className="space-y-3 sm:hidden overflow-visible">
         {posts.length > 0 ? (
           posts.map((post, index) => (
-            <BoardMobileCard
-              key={post.id}
-              post={post}
-              index={index}
-              variant={variant}
-              isRead={readStatus[post.id] || false}
-              showRanking={showRanking}
-              enablePopover={enablePopover}
-            />
+            <div key={post.id} style={{ zIndex: posts.length - index }} className="relative">
+              <BoardMobileCard
+                post={post}
+                index={index}
+                variant={variant}
+                isRead={readStatus[post.id] || false}
+                showRanking={showRanking}
+                enablePopover={enablePopover}
+              />
+            </div>
           ))
         ) : (
           <Card variant="elevated">

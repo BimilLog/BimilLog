@@ -33,7 +33,7 @@ const cardVariants = cva(
       },
       size: {
         sm: "p-4 gap-3",
-        default: "p-6 gap-4",
+        default: "p-3 gap-4",
         lg: "p-8 gap-6",
       },
       interactive: {
