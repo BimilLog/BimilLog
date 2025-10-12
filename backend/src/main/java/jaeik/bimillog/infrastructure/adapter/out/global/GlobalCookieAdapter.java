@@ -41,7 +41,7 @@ public class GlobalCookieAdapter implements GlobalCookiePort {
                 .maxAge(600) // 10분
                 .httpOnly(true)
                 .sameSite("Lax")
-                .secure(true)
+                .secure(false)
                 .build();
     }
 
@@ -77,7 +77,7 @@ public class GlobalCookieAdapter implements GlobalCookiePort {
                 .maxAge(0)
                 .httpOnly(true)
                 .sameSite("Lax")
-                .secure(true)
+                .secure(false)
                 .build();
 
         ResponseCookie refreshTokenCookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE, "")
@@ -85,7 +85,7 @@ public class GlobalCookieAdapter implements GlobalCookiePort {
                 .maxAge(0)
                 .httpOnly(true)
                 .sameSite("Lax")
-                .secure(true)
+                .secure(false)
                 .build();
 
         return List.of(accessTokenCookie, refreshTokenCookie);
@@ -107,7 +107,7 @@ public class GlobalCookieAdapter implements GlobalCookiePort {
                 .maxAge(MAX_AGE)
                 .httpOnly(true)
                 .sameSite("Lax")
-                .secure(true)
+                .secure(false)
                 .build();
     }
 
@@ -127,7 +127,7 @@ public class GlobalCookieAdapter implements GlobalCookiePort {
                 .maxAge(MAX_AGE * 720L)
                 .httpOnly(true)
                 .sameSite("Lax")
-                .secure(true)
+                .secure(false)
                 .build();
     }
 
@@ -144,7 +144,7 @@ public class GlobalCookieAdapter implements GlobalCookiePort {
                 .maxAge(0)
                 .httpOnly(true)
                 .sameSite("Lax")
-                .secure(true)
+                .secure(false)
                 .build();
     }
 }
