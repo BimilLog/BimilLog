@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.post.entity;
 
+import jaeik.bimillog.domain.global.entity.BaseEntity;
 import jaeik.bimillog.domain.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -24,7 +25,7 @@ import lombok.NoArgsConstructor;
 @Table(indexes = {
         @Index(name = "idx_postlike_member_post", columnList = "member_id, post_id")
 })
-public class PostLike {
+public class PostLike extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

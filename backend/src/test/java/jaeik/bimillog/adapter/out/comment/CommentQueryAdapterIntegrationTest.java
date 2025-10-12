@@ -626,4 +626,61 @@ class CommentQueryAdapterIntegrationTest {
         assertThat(likedComments.getContent()).isEmpty();
         assertThat(likedComments.getTotalElements()).isEqualTo(0);
     }
+
+    @Test
+    @DisplayName("정렬 검증 - 추천한 댓글이 추천 날짜 기준 최신순으로 정렬됨")
+    void shouldSortLikedCommentsByLikeDateDesc_WhenMultipleLikesExist() {
+        // Given: 3개의 댓글 생성
+        Comment comment1 = CommentTestDataBuilder.createComment(testPost, testMember, "첫번째 댓글");
+        Comment comment2 = CommentTestDataBuilder.createComment(testPost, testMember, "두번째 댓글");
+        Comment comment3 = CommentTestDataBuilder.createComment(testPost, testMember, "세번째 댓글");
+
+        comment1 = commentRepository.save(comment1);
+        comment2 = commentRepository.save(comment2);
+        comment3 = commentRepository.save(comment3);
+
+        // otherMember가 시간 간격을 두고 순차적으로 추천 (comment1 → comment2 → comment3)
+        CommentLike like1 = CommentLike.builder()
+                .comment(comment1)
+                .member(otherMember)
+                .build();
+        commentLikeRepository.save(like1);
+        commentLikeRepository.flush();
+
+        try { Thread.sleep(200); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+
+        CommentLike like2 = CommentLike.builder()
+                .comment(comment2)
+                .member(otherMember)
+                .build();
+        commentLikeRepository.save(like2);
+        commentLikeRepository.flush();
+
+        try { Thread.sleep(200); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+
+        CommentLike like3 = CommentLike.builder()
+                .comment(comment3)
+                .member(otherMember)
+                .build();
+        commentLikeRepository.save(like3);
+        commentLikeRepository.flush();
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When: otherMember가 추천한 댓글 조회
+        Page<SimpleCommentInfo> likedComments = commentQueryAdapter
+                .findLikedCommentsByMemberId(otherMember.getId(), pageable);
+
+        // Then: 추천 날짜 기준 최신순으로 정렬됨 (comment3 → comment2 → comment1)
+        assertThat(likedComments).isNotNull();
+        assertThat(likedComments.getContent()).hasSize(3);
+
+        List<String> commentContents = likedComments.getContent().stream()
+                .map(SimpleCommentInfo::getContent)
+                .toList();
+
+        assertThat(commentContents.get(0)).isEqualTo("세번째 댓글"); // 가장 최근 추천
+        assertThat(commentContents.get(1)).isEqualTo("두번째 댓글");
+        assertThat(commentContents.get(2)).isEqualTo("첫번째 댓글"); // 가장 오래된 추천
+    }
 }
