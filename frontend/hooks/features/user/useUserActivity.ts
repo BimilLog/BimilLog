@@ -17,49 +17,57 @@ export function useUserActivityTabs(pageSize = 10) {
 
   // 작성한 게시글 조회
   const { data: myPostsData, isLoading: myPostsLoading, error: myPostsError } = useQuery({
-    queryKey: queryKeys.user.posts(pagination.currentPage),
+    queryKey: queryKeys.user.posts(pagination.currentPage, pagination.pageSize),
     queryFn: () => userQuery.getUserPosts(pagination.currentPage, pagination.pageSize),
     enabled: activeTab === 'my-posts',
-    placeholderData: (previousData) => previousData, // 탭 전환 시 이전 데이터 유지
     staleTime: 5 * 60 * 1000, // 5분
     gcTime: 10 * 60 * 1000,
   });
 
   // 작성한 댓글 조회
   const { data: myCommentsData, isLoading: myCommentsLoading, error: myCommentsError } = useQuery({
-    queryKey: queryKeys.user.comments(pagination.currentPage),
+    queryKey: queryKeys.user.comments(pagination.currentPage, pagination.pageSize),
     queryFn: () => userQuery.getUserComments(pagination.currentPage, pagination.pageSize),
     enabled: activeTab === 'my-comments',
-    placeholderData: (previousData) => previousData,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
   });
 
   // 추천한 게시글 조회
   const { data: likedPostsData, isLoading: likedPostsLoading, error: likedPostsError } = useQuery({
-    queryKey: queryKeys.user.likePosts(pagination.currentPage),
+    queryKey: queryKeys.user.likePosts(pagination.currentPage, pagination.pageSize),
     queryFn: () => userQuery.getUserLikedPosts(pagination.currentPage, pagination.pageSize),
     enabled: activeTab === 'liked-posts',
-    placeholderData: (previousData) => previousData,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
   });
 
   // 추천한 댓글 조회
   const { data: likedCommentsData, isLoading: likedCommentsLoading, error: likedCommentsError } = useQuery({
-    queryKey: queryKeys.user.likeComments(pagination.currentPage),
+    queryKey: queryKeys.user.likeComments(pagination.currentPage, pagination.pageSize),
     queryFn: () => userQuery.getUserLikedComments(pagination.currentPage, pagination.pageSize),
     enabled: activeTab === 'liked-comments',
-    placeholderData: (previousData) => previousData,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
   });
 
-  // 각 탭의 실제 데이터 반환 (빈 배열 대신 캐시된 데이터 유지)
-  const myPosts = useMemo(() => myPostsData?.data?.content || [], [myPostsData]);
-  const myComments = useMemo(() => myCommentsData?.data?.content || [], [myCommentsData]);
-  const likedPosts = useMemo(() => likedPostsData?.data?.content || [], [likedPostsData]);
-  const likedComments = useMemo(() => likedCommentsData?.data?.content || [], [likedCommentsData]);
+  // 각 탭의 실제 데이터 반환 (활성 탭만 데이터 반환, 비활성 탭은 빈 배열)
+  const myPosts = useMemo(() =>
+    activeTab === 'my-posts' ? (myPostsData?.data?.content || []) : [],
+    [activeTab, myPostsData]
+  );
+  const myComments = useMemo(() =>
+    activeTab === 'my-comments' ? (myCommentsData?.data?.content || []) : [],
+    [activeTab, myCommentsData]
+  );
+  const likedPosts = useMemo(() =>
+    activeTab === 'liked-posts' ? (likedPostsData?.data?.content || []) : [],
+    [activeTab, likedPostsData]
+  );
+  const likedComments = useMemo(() =>
+    activeTab === 'liked-comments' ? (likedCommentsData?.data?.content || []) : [],
+    [activeTab, likedCommentsData]
+  );
 
   // 현재 활성 탭의 데이터 반환
   const currentData = useMemo(() => {
