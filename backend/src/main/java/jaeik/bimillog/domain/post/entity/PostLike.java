@@ -22,9 +22,14 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(indexes = {
+@Table(
+    indexes = {
         @Index(name = "idx_postlike_member_post", columnList = "member_id, post_id")
-})
+    },
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uk_postlike_member_post", columnNames = {"member_id", "post_id"})
+    }
+)
 public class PostLike extends BaseEntity {
 
     @Id

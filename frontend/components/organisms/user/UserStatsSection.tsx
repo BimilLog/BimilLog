@@ -107,7 +107,7 @@ export const UserStatsSection: React.FC<UserStatsProps> = ({
   return (
     <div className={`space-y-6 mb-8 ${className || ""}`}>
       {partialErrors.length > 0 && (
-        <Alert className="border-yellow-200 bg-yellow-50">
+        <Alert className="border-yellow-200 bg-yellow-50" icon={false}>
           <Info className="h-4 w-4 stroke-yellow-500 fill-yellow-100" />
           <AlertDescription>
             <div className="text-yellow-800">
