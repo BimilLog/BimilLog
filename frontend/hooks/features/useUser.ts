@@ -8,7 +8,3 @@ export * from './user/useMyPage';
 
 // Re-export types for backward compatibility
 export type { UserStats } from './user/useUserStats';
-export type {
-  PaginatedData,
-  UseActivityDataOptions
-} from './user/useUserActivity';
