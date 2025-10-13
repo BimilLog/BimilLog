@@ -10,8 +10,8 @@ interface Props {
   }>;
 }
 
-function getAuthHeaders(): HeadersInit {
-  const cookieStore = cookies();
+async function getAuthHeaders(): Promise<HeadersInit> {
+  const cookieStore = await cookies();
   const cookieList = cookieStore.getAll();
 
   if (cookieList.length === 0) {
@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"}/api/post/${postId}`,
       {
         next: { revalidate: 0 },
-        headers: getAuthHeaders(),
+        headers: await getAuthHeaders(),
       }
     );
 
@@ -117,7 +117,7 @@ export default async function PostDetailPage({ params }: Props) {
       `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"}/api/post/${postId}`,
       {
         next: { revalidate: 0 },
-        headers: getAuthHeaders(),
+        headers: await getAuthHeaders(),
       }
     );
 
