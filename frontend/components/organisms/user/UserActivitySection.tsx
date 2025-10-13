@@ -1,522 +1,248 @@
 "use client";
 
-import React, { useCallback, useMemo, memo, useState, useEffect, useRef } from "react";
-import Link from "next/link";
-import { Card, CardContent, SafeHTML } from "@/components";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components";
-import { Badge } from "@/components";
-import { Button } from "@/components";
-import { Alert, AlertDescription } from "@/components";
-import { LoadingSpinner } from "@/components/atoms";
-import { EmptyState } from "@/components/molecules";
-import { useActivityData } from "@/hooks";
-import { useDebouncedCallback } from "@/hooks/common/useDebounce";
-import { userQuery } from "@/lib/api";
-import { AlertTriangle, RefreshCw, Eye, Heart, MessageCircle, ExternalLink } from "lucide-react";
-import {
-  Pagination,
-  Spinner as FlowbiteSpinner,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeadCell,
-  TableRow
-} from "flowbite-react";
-import { logger, formatNumber } from "@/lib/utils";
-import { formatKoreanDate } from "@/lib/utils/date";
-import type { SimplePost } from "@/types/domains/post";
-import type { SimpleComment } from "@/types/domains/comment";
-
-const DEFAULT_PAGE = 0;
-const DEFAULT_PAGE_SIZE = 10;
-
-interface ActivityTabContentProps {
-  fetchData: (page?: number, size?: number) => Promise<{
-    content: Array<{ id: string | number }>;
-    totalElements: number;
-    totalPages: number;
-    currentPage: number;
-  }>;
-  contentType: "posts" | "comments" | "liked-posts" | "liked-comments";
-}
-
-const ActivityTabContent: React.FC<ActivityTabContentProps> = memo(({
-  fetchData,
-  contentType,
-}) => {
-  // 반응형 페이지네이션: 모바일(768px 미만)은 무한 스크롤, 데스크톱은 페이지네이션
-  const [isDesktop, setIsDesktop] = useState(false);
-
-  // 테이블 컨테이너 ref: 페이지 변경 시 스크롤 타겟
-  const tableContainerRef = useRef<HTMLDivElement>(null);
-
-  // useActivityData를 먼저 호출하여 currentPage, loadAllPagesForMobile 획득
-  const {
-    items,
-    isLoading,
-    error,
-    currentPage,
-    totalPages,
-    totalElements,
-    isLoadingMore,
-    handleLoadMore,
-    handlePageChange,
-    retry,
-    loadAllPagesForMobile,
-  } = useActivityData({ fetchData });
-
-  // debounce를 적용한 resize 핸들러로 성능 최적화
-  // 데스크톱→모바일 전환 시 데이터 불연속 방지: 0페이지부터 현재 페이지까지 모두 로드
-  const handleResize = useDebouncedCallback(
-    () => {
-      const newIsDesktop = window.innerWidth >= 768;
-      const wasDesktop = isDesktop;
-
-      // 데스크톱→모바일 전환 + 현재 페이지가 0이 아닐 때만 리셋
-      if (wasDesktop && !newIsDesktop && currentPage > 0) {
-        // 무한 스크롤을 위해 페이지 0부터 currentPage까지 모두 로드
-        loadAllPagesForMobile(currentPage);
-      }
-
-      setIsDesktop(newIsDesktop);
-    },
-    200,
-    [isDesktop, currentPage, loadAllPagesForMobile]
-  );
-
-  useEffect(() => {
-    setIsDesktop(window.innerWidth >= 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [handleResize]);
-
-  // Flowbite React Pagination 핸들러: 0-based에서 1-based로 변환
-  // 페이지 변경 후 테이블 상단으로 스크롤하여 사용자가 새 데이터를 바로 볼 수 있도록 함
-  const handleFlowbitePagination = useCallback((page: number) => {
-    handlePageChange(page - 1); // Convert 1-based to 0-based
-
-    // 페이지 변경 후 테이블 상단으로 스크롤 (약간의 지연을 두어 렌더링 후 스크롤)
-    setTimeout(() => {
-      tableContainerRef.current?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-        inline: 'nearest'
-      });
-    }, 100);
-  }, [handlePageChange]);
-
-  // 컨텐츠 타입별 UI 설정: "posts"/"comments", "liked" 여부에 따라 배지와 플래그 설정
-  // 문자열 분석을 통해 게시글/댓글, 좋아요 여부 판단하여 적절한 배지 색상 적용
-  const contentConfig = useMemo(() => {
-    const isPost = contentType.includes("posts");
-    const isLiked = contentType.includes("liked");
-    return {
-      isPost,
-      isLiked,
-      badge: isPost
-        ? <Badge className="bg-blue-100 text-blue-700 border-blue-200">게시글</Badge>
-        : <Badge className="bg-green-100 text-green-700 border-green-200">댓글</Badge>
-    };
-  }, [contentType]);
-
-  if (isLoading) {
-    return (
-      <LoadingSpinner
-        variant="gradient" 
-        message="데이터를 불러오는 중..."
-        className="py-16"
-      />
-    );
-  }
-
-  if (error) {
-    return (
-      <Alert className="border-red-200 bg-red-50 mt-6">
-        <AlertTriangle className="h-4 w-4" />
-        <AlertDescription className="text-red-800">
-          <div className="flex items-center justify-between">
-            <span>{error}</span>
-            <Button onClick={retry} variant="outline" size="sm" className="ml-4">
-              <RefreshCw className="w-4 h-4 mr-2" />
-              다시 시도
-            </Button>
-          </div>
-        </AlertDescription>
-      </Alert>
-    );
-  }
-
-  if (items.length === 0) {
-    // contentType별로 적절한 CTA 제공
-    const emptyStateProps = {
-      posts: {
-        actionLabel: "글쓰기",
-        actionHref: "/board/write"
-      },
-      comments: {
-        actionLabel: "커뮤니티 둘러보기",
-        actionHref: "/board"
-      },
-      "liked-posts": {
-        actionLabel: "커뮤니티 둘러보기",
-        actionHref: "/board"
-      },
-      "liked-comments": {
-        title: "아직 추천한 댓글이 없어요",
-        description: "마음에 드는 댓글에 추천을 눌러보세요!",
-        actionLabel: "커뮤니티 둘러보기",
-        actionHref: "/board"
-      }
-    };
-
-    const ctaProps = emptyStateProps[contentType] || {};
-
-    return <EmptyState type={contentType} {...ctaProps} />;
-  }
-
-  return (
-    <div ref={tableContainerRef} className="space-y-6 mt-6">
-      <div className="flex items-center justify-between pb-4 border-b border-gray-200">
-        <div className="flex items-center space-x-2">
-          <span className="text-lg font-semibold text-brand-primary">
-            총 {formatNumber(totalElements)}개
-          </span>
-          {contentConfig.badge}
-        </div>
-        {totalPages > 1 && (
-          <div className="text-sm text-brand-muted">
-            {isDesktop
-              ? `페이지 ${currentPage + 1} / ${totalPages}`
-              : `${items.length}개 로드됨`
-            }
-          </div>
-        )}
-      </div>
-
-      <div className="overflow-x-auto">
-        <Table hoverable className="table-fixed">
-          <TableHead>
-            <TableRow>
-              {contentConfig.isPost ? (
-                <>
-                  <TableHeadCell className="w-[40%]">제목</TableHeadCell>
-                  <TableHeadCell className="hidden md:table-cell w-[15%]">작성일</TableHeadCell>
-                  <TableHeadCell className="hidden lg:table-cell w-[12%]">조회수</TableHeadCell>
-                  <TableHeadCell className="hidden sm:table-cell w-[12%]">추천</TableHeadCell>
-                  <TableHeadCell className="hidden lg:table-cell w-[12%]">댓글</TableHeadCell>
-                  <TableHeadCell className="w-[9%]">
-                    <span className="sr-only">상세보기</span>
-                  </TableHeadCell>
-                </>
-              ) : (
-                <>
-                  <TableHeadCell className="w-[50%]">댓글 내용</TableHeadCell>
-                  <TableHeadCell className="hidden md:table-cell w-[20%]">작성일</TableHeadCell>
-                  <TableHeadCell className="hidden sm:table-cell w-[15%]">추천</TableHeadCell>
-                  <TableHeadCell className="w-[15%]">
-                    <span className="sr-only">게시글 보기</span>
-                  </TableHeadCell>
-                </>
-              )}
-            </TableRow>
-          </TableHead>
-          <TableBody className="divide-y">
-            {contentConfig.isPost
-              ? (items as SimplePost[]).map((post) => (
-                  <TableRow
-                    key={`post-${post.id}`}
-                    className="bg-white dark:border-gray-700 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
-                  >
-                    <TableCell className="w-[40%] whitespace-normal font-medium text-gray-900 dark:text-white">
-                      <Link
-                        href={`/board/post/${post.id}`}
-                        className="hover:text-purple-600 transition-colors line-clamp-2"
-                      >
-                        {post.title}
-                      </Link>
-                      <div className="md:hidden mt-1 text-xs text-gray-500">
-                        {formatKoreanDate(post.createdAt)}
-                      </div>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell w-[15%] whitespace-nowrap text-gray-700 dark:text-gray-300">
-                      {formatKoreanDate(post.createdAt)}
-                    </TableCell>
-                    <TableCell className="hidden lg:table-cell w-[12%]">
-                      <div className="flex items-center space-x-1">
-                        <Eye className="w-4 h-4 text-blue-500" />
-                        <span>{formatNumber(post.viewCount)}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell w-[12%]">
-                      <div className="flex items-center space-x-1">
-                        <Heart className={`w-4 h-4 ${contentConfig.isLiked ? 'text-red-500 fill-current' : 'text-red-500'}`} />
-                        <span>{formatNumber(post.likeCount)}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="hidden lg:table-cell w-[12%]">
-                      <div className="flex items-center space-x-1">
-                        <MessageCircle className="w-4 h-4 text-green-500" />
-                        <span>{formatNumber(post.commentCount)}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="w-[9%]">
-                      <Link
-                        href={`/board/post/${post.id}`}
-                        className="font-medium text-purple-600 hover:underline dark:text-purple-500 flex items-center space-x-1"
-                      >
-                        <span className="hidden sm:inline">보기</span>
-                        <ExternalLink className="w-4 h-4" />
-                      </Link>
-                    </TableCell>
-                  </TableRow>
-                ))
-              : (items as SimpleComment[]).map((comment) => (
-                  <TableRow
-                    key={`comment-${comment.id}`}
-                    className="bg-white dark:border-gray-700 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
-                  >
-                    <TableCell className="w-[50%] whitespace-normal font-medium text-gray-900 dark:text-white">
-                      <SafeHTML html={comment.content} className="line-clamp-2" />
-                      <div className="md:hidden mt-1 text-xs text-gray-500">
-                        {formatKoreanDate(comment.createdAt)}
-                      </div>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell w-[20%] whitespace-nowrap text-gray-700 dark:text-gray-300">
-                      {formatKoreanDate(comment.createdAt)}
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell w-[15%]">
-                      <div className="flex items-center space-x-1">
-                        <Heart className={`w-4 h-4 ${contentConfig.isLiked ? 'text-red-500 fill-current' : 'text-red-500'}`} />
-                        <span>{formatNumber(comment.likeCount)}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="w-[15%]">
-                      <Link
-                        href={`/board/post/${comment.postId}#comment-${comment.id}`}
-                        className="font-medium text-purple-600 hover:underline dark:text-purple-500 flex items-center space-x-1"
-                      >
-                        <span className="hidden sm:inline">보기</span>
-                        <ExternalLink className="w-4 h-4" />
-                      </Link>
-                    </TableCell>
-                  </TableRow>
-                ))}
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* 반응형 페이지네이션: 데스크톱은 Pagination, 모바일은 더보기 버튼 */}
-      {totalPages > 1 && isDesktop && (
-        <div className="flex items-center justify-center pt-6 border-t border-gray-200">
-          <Pagination
-            currentPage={currentPage + 1} // Convert 0-based to 1-based
-            totalPages={totalPages}
-            onPageChange={handleFlowbitePagination}
-            showIcons
-            previousLabel="이전"
-            nextLabel="다음"
-            className="text-sm"
-            theme={{
-              pages: {
-                base: "xs:mt-0 mt-2 inline-flex items-center -space-x-px",
-                showIcon: "inline-flex",
-                previous: {
-                  base: "ml-0 flex min-w-[3rem] items-center justify-center gap-1 rounded-l-lg border border-gray-300 bg-white px-3 py-2 text-gray-500 leading-tight hover:bg-gray-100 hover:text-gray-700 dark:border-slate-700 dark:bg-slate-900/80 dark:text-gray-300 dark:hover:bg-slate-800 dark:hover:text-gray-100",
-                  icon: "h-5 w-5"
-                },
-                next: {
-                  base: "flex min-w-[3rem] items-center justify-center gap-1 rounded-r-lg border border-gray-300 bg-white px-3 py-2 text-gray-500 leading-tight hover:bg-gray-100 hover:text-gray-700 dark:border-slate-700 dark:bg-slate-900/80 dark:text-gray-300 dark:hover:bg-slate-800 dark:hover:text-gray-100",
-                  icon: "h-5 w-5"
-                },
-                selector: {
-                  base: "flex min-w-[3rem] items-center justify-center border border-gray-300 bg-white px-3 py-2 text-gray-500 leading-tight hover:bg-gray-100 hover:text-gray-700 dark:border-slate-700 dark:bg-slate-900/80 dark:text-gray-300 dark:hover:bg-slate-800 dark:hover:text-gray-100",
-                  active: "border-blue-500 bg-blue-500 text-white hover:bg-blue-500 hover:text-white dark:border-blue-400 dark:bg-blue-500",
-                  disabled: "cursor-not-allowed text-gray-400 dark:text-gray-600"
-                }
-              }
-            }}
-          />
-        </div>
-      )}
-
-      {/* 모바일 무한 스크롤: 더보기 버튼 */}
-      {currentPage < totalPages - 1 && !isDesktop && (
-        <div className="text-center pt-4">
-          <Button
-            variant="outline"
-            onClick={handleLoadMore}
-            disabled={isLoadingMore}
-            className="w-full max-w-xs"
-          >
-            {isLoadingMore ? (
-              <div className="flex items-center justify-center">
-                <FlowbiteSpinner color="pink" size="sm" aria-label="불러오는 중..." className="mr-2" />
-                <span>불러오는 중...</span>
-              </div>
-            ) : (
-              <>더보기 ({items.length} / {totalElements})</>
-            )}
-          </Button>
-        </div>
-      )}
-    </div>
-  );
-});
-
-ActivityTabContent.displayName = "ActivityTabContent";
+import React, { useState, useCallback, useMemo, memo } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components";
+import { Tabs, TabItem } from "flowbite-react";
+import { UserActivityTable } from "./UserActivityTable";
+import { BoardPagination } from "@/components/organisms/board/board-pagination";
+import { useUserActivityTabs } from "@/hooks/features/user/useUserActivity";
+import { Select } from "flowbite-react";
 
 interface UserActivitySectionProps {
   className?: string;
 }
 
 const UserActivitySectionComponent: React.FC<UserActivitySectionProps> = ({ className }) => {
-  // 탭 설정 메모화: 4개 탭의 설정을 한 번만 계산하여 리렌더링 최적화
-  // desktop/mobile 라벨을 분리하여 반응형 UI 지원
-  const tabConfig = useMemo(() => ([
-    {
-      value: "my-posts",
-      label: { desktop: "작성글", mobile: "글" },
-      contentType: "posts" as const
-    },
-    {
-      value: "my-comments",
-      label: { desktop: "작성댓글", mobile: "댓글" },
-      contentType: "comments" as const
-    },
-    {
-      value: "liked-posts",
-      label: { desktop: "추천글", mobile: "추천글" },
-      contentType: "liked-posts" as const
-    },
-    {
-      value: "liked-comments",
-      label: { desktop: "추천댓글", mobile: "추천댓글" },
-      contentType: "liked-comments" as const
+  const [postsPerPage, setPostsPerPage] = useState("10");
+
+  // 사용자 활동 데이터 관리
+  const {
+    myPosts,
+    myComments,
+    likedPosts,
+    likedComments,
+    isLoading,
+    error,
+    activeTab,
+    setActiveTab,
+    pagination,
+  } = useUserActivityTabs(Number(postsPerPage));
+
+  // 탭 값 매핑
+  const getTabValue = (index: number) => {
+    switch (index) {
+      case 0: return "my-posts";
+      case 1: return "my-comments";
+      case 2: return "liked-posts";
+      case 3: return "liked-comments";
+      default: return "my-posts";
     }
-  ]), []);
+  };
 
-  // API 호출 함수들: 각 탭에서 사용할 데이터 fetch 함수를 메모화
-  // 공통 응답 형태로 정규화하여 ActivityTabContent에서 일관되게 처리
-  const fetchMyPosts = useCallback(
-    async (page = DEFAULT_PAGE, size = DEFAULT_PAGE_SIZE) => {
-      try {
-        const response = await userQuery.getUserPosts(page, size);
-        if (response.success && response.data) {
-          return {
-            content: response.data.content || [],
-            totalElements: response.data.totalElements || 0,
-            totalPages: response.data.totalPages || 0,
-            currentPage: response.data.number || 0,
-          };
-        }
-        return { content: [], totalElements: 0, totalPages: 0, currentPage: 0 };
-      } catch (error) {
-        logger.error("Failed to fetch user posts:", error);
-        throw error;
+  // 탭 변경 핸들러
+  const handleTabChange = useCallback((index: number) => {
+    const value = getTabValue(index);
+    setActiveTab(value as typeof activeTab);
+  }, [setActiveTab]);
+
+  // 페이지 크기 변경 시 처리
+  const handlePostsPerPageChange = useCallback((value: string) => {
+    setPostsPerPage(value);
+    pagination.setPageSize(Number(value));
+    pagination.setCurrentPage(0);
+  }, [pagination]);
+
+  // 페이지네이션 표시 조건
+  const showPagination = pagination.totalPages > 0;
+
+  // 현재 탭에 따른 로딩/에러 상태
+  const myPostsLoading = activeTab === "my-posts" && isLoading;
+  const myCommentsLoading = activeTab === "my-comments" && isLoading;
+  const likedPostsLoading = activeTab === "liked-posts" && isLoading;
+  const likedCommentsLoading = activeTab === "liked-comments" && isLoading;
+
+  const myPostsError = activeTab === "my-posts" ? error : null;
+  const myCommentsError = activeTab === "my-comments" ? error : null;
+  const likedPostsError = activeTab === "liked-posts" ? error : null;
+  const likedCommentsError = activeTab === "liked-comments" ? error : null;
+
+  // 탭 스타일 커스터마이징
+  const tabsTheme = {
+    base: "flex flex-col gap-2",
+    tablist: {
+      base: "flex text-center",
+      variant: {
+        default: "flex-wrap border-b border-gray-200 dark:border-gray-700",
+        underline: "-mb-px flex-wrap border-b border-gray-200 dark:border-gray-700",
+        pills: "flex-wrap space-x-2 text-sm font-medium text-gray-500 dark:text-gray-400",
+        fullWidth: "grid w-full grid-cols-4 divide-x divide-gray-200 rounded-lg shadow-sm border border-gray-200 dark:divide-gray-700 dark:border-gray-700"
+      },
+      tabitem: {
+        base: "flex items-center justify-center p-4 text-sm font-medium first:ml-0 focus:outline-none disabled:cursor-not-allowed disabled:text-gray-400 disabled:dark:text-gray-500",
+        variant: {
+          default: {
+            base: "rounded-t-lg",
+            active: {
+              on: "bg-gray-100 text-primary-600 dark:bg-gray-800 dark:text-primary-500",
+              off: "text-gray-500 hover:bg-gray-50 hover:text-gray-600 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+            }
+          },
+          underline: {
+            base: "rounded-t-lg",
+            active: {
+              on: "rounded-t-lg border-b-2 border-primary-600 text-primary-600 dark:border-primary-500 dark:text-primary-500",
+              off: "border-b-2 border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-600 dark:text-gray-400 dark:hover:text-gray-300"
+            }
+          },
+          pills: {
+            base: "",
+            active: {
+              on: "rounded-lg bg-primary-600 text-white",
+              off: "rounded-lg hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-gray-800 dark:hover:text-white"
+            }
+          },
+          fullWidth: {
+            base: "flex-1 rounded-none first:rounded-l-lg last:rounded-r-lg",
+            active: {
+              on: "bg-white text-purple-600 dark:bg-gray-700 dark:text-purple-400",
+              off: "bg-gray-50 text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+            }
+          }
+        },
+        icon: "mr-2 h-5 w-5"
       }
     },
-    []
-  );
-
-  const fetchMyComments = useCallback(
-    async (page = DEFAULT_PAGE, size = DEFAULT_PAGE_SIZE) => {
-      try {
-        const response = await userQuery.getUserComments(page, size);
-        if (response.success && response.data) {
-          return {
-            content: response.data.content || [],
-            totalElements: response.data.totalElements || 0,
-            totalPages: response.data.totalPages || 0,
-            currentPage: response.data.number || 0,
-          };
-        }
-        return { content: [], totalElements: 0, totalPages: 0, currentPage: 0 };
-      } catch (error) {
-        logger.error("Failed to fetch user comments:", error);
-        throw error;
-      }
-    },
-    []
-  );
-
-  const fetchLikedPosts = useCallback(
-    async (page = DEFAULT_PAGE, size = DEFAULT_PAGE_SIZE) => {
-      try {
-        const response = await userQuery.getUserLikedPosts(page, size);
-        if (response.success && response.data) {
-          return {
-            content: response.data.content || [],
-            totalElements: response.data.totalElements || 0,
-            totalPages: response.data.totalPages || 0,
-            currentPage: response.data.number || 0,
-          };
-        }
-        return { content: [], totalElements: 0, totalPages: 0, currentPage: 0 };
-      } catch (error) {
-        logger.error("Failed to fetch liked posts:", error);
-        throw error;
-      }
-    },
-    []
-  );
-
-  const fetchLikedComments = useCallback(
-    async (page = DEFAULT_PAGE, size = DEFAULT_PAGE_SIZE) => {
-      try {
-        const response = await userQuery.getUserLikedComments(page, size);
-        if (response.success && response.data) {
-          return {
-            content: response.data.content || [],
-            totalElements: response.data.totalElements || 0,
-            totalPages: response.data.totalPages || 0,
-            currentPage: response.data.number || 0,
-          };
-        }
-        return { content: [], totalElements: 0, totalPages: 0, currentPage: 0 };
-      } catch (error) {
-        logger.error("Failed to fetch liked comments:", error);
-        throw error;
-      }
-    },
-    []
-  );
-
-  // 탭별 fetch 함수 매핑: 각 탭의 value와 해당하는 API 함수를 연결
-  // ActivityTabContent에서 동적으로 적절한 fetch 함수를 선택하여 사용
-  const fetchFunctions = useMemo(() => ({
-    "my-posts": fetchMyPosts,
-    "my-comments": fetchMyComments,
-    "liked-posts": fetchLikedPosts,
-    "liked-comments": fetchLikedComments,
-  }), [fetchMyPosts, fetchMyComments, fetchLikedPosts, fetchLikedComments]);
+    tabpanel: "py-3"
+  };
 
   return (
     <Card variant="elevated" className={className || ""}>
-      <CardContent className="p-6">
-        <Tabs defaultValue="my-posts" className="w-full">
-          <TabsList className="w-full gap-0.5 sm:gap-1 flex-nowrap overflow-x-auto">
-            {tabConfig.map(({ value, label }) => (
-              <TabsTrigger
-                key={value}
-                value={value}
-                className="flex-1 whitespace-nowrap"
-              >
-                <span className="hidden sm:inline">{label.desktop}</span>
-                <span className="sm:hidden">{label.mobile}</span>
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          
-          {tabConfig.map(({ value, contentType }) => (
-            <TabsContent key={value} value={value}>
-              <ActivityTabContent 
-                fetchData={fetchFunctions[value as keyof typeof fetchFunctions]} 
-                contentType={contentType} 
-              />
-            </TabsContent>
-          ))}
-        </Tabs>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle>활동 내역</CardTitle>
+          <div className="flex items-center gap-2">
+            <label htmlFor="posts-per-page" className="text-sm text-gray-600 dark:text-gray-400">
+              페이지당
+            </label>
+            <Select
+              id="posts-per-page"
+              value={postsPerPage}
+              onChange={(e) => handlePostsPerPageChange(e.target.value)}
+              sizing="sm"
+              className="w-20"
+            >
+              <option value="10">10</option>
+              <option value="15">15</option>
+              <option value="30">30</option>
+            </Select>
+            <span className="text-sm text-gray-600 dark:text-gray-400">개씩 보기</span>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="p-0">
+        <div className="space-y-6 px-6 pb-6">
+          <Tabs
+            aria-label="User activity tabs"
+            variant="fullWidth"
+            onActiveTabChange={handleTabChange}
+            theme={tabsTheme}
+            className="w-full"
+          >
+            <TabItem
+              active={activeTab === "my-posts"}
+              title="작성글"
+            >
+              <Card variant="elevated">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <span>작성한 게시글</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <UserActivityTable
+                    items={myPosts}
+                    contentType="posts"
+                    tabType="my-posts"
+                    isLoading={myPostsLoading}
+                    error={myPostsError}
+                  />
+                </CardContent>
+              </Card>
+            </TabItem>
+            <TabItem
+              active={activeTab === "my-comments"}
+              title="작성댓글"
+            >
+              <Card variant="elevated">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <span>작성한 댓글</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <UserActivityTable
+                    items={myComments}
+                    contentType="comments"
+                    tabType="my-comments"
+                    isLoading={myCommentsLoading}
+                    error={myCommentsError}
+                  />
+                </CardContent>
+              </Card>
+            </TabItem>
+            <TabItem
+              active={activeTab === "liked-posts"}
+              title="추천글"
+            >
+              <Card variant="elevated">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <span>추천한 게시글</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <UserActivityTable
+                    items={likedPosts}
+                    contentType="posts"
+                    tabType="liked-posts"
+                    isLoading={likedPostsLoading}
+                    error={likedPostsError}
+                  />
+                </CardContent>
+              </Card>
+            </TabItem>
+            <TabItem
+              active={activeTab === "liked-comments"}
+              title="추천댓글"
+            >
+              <Card variant="elevated">
+                <CardHeader>
+                  <CardTitle className="flex items-center space-x-2">
+                    <span>추천한 댓글</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <UserActivityTable
+                    items={likedComments}
+                    contentType="comments"
+                    tabType="liked-comments"
+                    isLoading={likedCommentsLoading}
+                    error={likedCommentsError}
+                  />
+                </CardContent>
+              </Card>
+            </TabItem>
+          </Tabs>
+
+          {/* 페이지네이션 */}
+          {showPagination && (
+            <BoardPagination
+              currentPage={pagination.currentPage}
+              totalPages={pagination.totalPages}
+              setCurrentPage={pagination.setCurrentPage}
+            />
+          )}
+        </div>
       </CardContent>
     </Card>
   );

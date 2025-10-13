@@ -317,6 +317,64 @@ class PostQueryAdapterIntegrationTest {
         }
     }
 
+    @Test
+    @DisplayName("정렬 검증 - 추천한 게시글이 추천 날짜 기준 최신순으로 정렬됨")
+    void shouldSortLikedPostsByLikeDateDesc_WhenMultipleLikesExist() {
+        // Given: 사용자가 여러 게시글에 시간 간격을 두고 추천
+        Member likeMember = TestMembers.copyWithId(TestMembers.MEMBER_2, null);
+        if (likeMember.getSetting() != null) {
+            entityManager.persist(likeMember.getSetting());
+        }
+        if (likeMember.getKakaoToken() != null) {
+            entityManager.persist(likeMember.getKakaoToken());
+        }
+        entityManager.persistAndFlush(likeMember);
+
+        // 첫 번째 게시글에 추천 (가장 오래된 추천)
+        PostLike postLike1 = PostLike.builder()
+                .post(testPost1)
+                .member(likeMember)
+                .build();
+        entityManager.persist(postLike1);
+        entityManager.flush();
+
+        try { Thread.sleep(200); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+
+        // 두 번째 게시글에 추천
+        PostLike postLike2 = PostLike.builder()
+                .post(testPost2)
+                .member(likeMember)
+                .build();
+        entityManager.persist(postLike2);
+        entityManager.flush();
+
+        try { Thread.sleep(200); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+
+        // 세 번째 게시글에 추천 (가장 최근 추천)
+        PostLike postLike3 = PostLike.builder()
+                .post(testPost3)
+                .member(likeMember)
+                .build();
+        entityManager.persist(postLike3);
+        entityManager.flush();
+
+        Pageable pageable = PageRequest.of(0, 10);
+
+        // When: 사용자 추천 게시글 조회
+        Page<PostSimpleDetail> result = postQueryAdapter.findLikedPostsByMemberId(likeMember.getId(), pageable);
+
+        // Then: 추천 날짜 기준 최신순으로 정렬됨 (testPost3 → testPost2 → testPost1)
+        assertThat(result).isNotNull();
+        assertThat(result.getContent()).hasSize(3);
+
+        List<String> likedPostTitles = result.getContent().stream()
+                .map(PostSimpleDetail::getTitle)
+                .toList();
+
+        assertThat(likedPostTitles.get(0)).isEqualTo("세 번째 게시글"); // 가장 최근 추천
+        assertThat(likedPostTitles.get(1)).isEqualTo("두 번째 게시글");
+        assertThat(likedPostTitles.get(2)).isEqualTo("첫 번째 게시글"); // 가장 오래된 추천
+    }
 
 
 }

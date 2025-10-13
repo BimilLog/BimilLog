@@ -98,20 +98,49 @@ public class PostQueryAdapter implements PostQueryPort {
 
     /**
      * <h3>사용자 추천 게시글 목록 조회</h3>
-     * <p>특정 사용자가 추천한 게시글 목록을 페이지네이션으로 조회합니다.</p>
+     * <p>특정 사용자가 추천한 게시글 목록을 추천일 기준 최신순으로 페이지네이션 조회합니다.</p>
      * <p>{@link PostQueryService}에서 사용자 추천 게시글 내역 조회 시 호출됩니다.</p>
+     * <p>PostQueryHelper 사용하지 않고 직접 QueryDSL 구현 (postLike.createdAt DESC 정렬)</p>
      *
      * @param memberId 사용자 ID
      * @param pageable 페이지 정보
-     * @return 추천한 게시글 목록 페이지
+     * @return 추천한 게시글 목록 페이지 (추천일 기준 최신순)
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     public Page<PostSimpleDetail> findLikedPostsByMemberId(Long memberId, Pageable pageable) {
-        Consumer<JPAQuery<?>> customizer = query ->
-                query.join(postLike).on(post.id.eq(postLike.post.id).and(postLike.member.id.eq(memberId)));
-        return postQueryHelper.findPostsWithQuery(customizer, customizer, pageable);
+        // Content 쿼리: 추천한 게시글 조회 (postLike.createdAt 기준 정렬)
+        List<PostSimpleDetail> content = jpaQueryFactory
+            .select(new QPostSimpleDetail(
+                post.id,
+                post.title,
+                post.views,
+                Expressions.constant(0),  // likeCount는 배치 조회로 채움
+                post.createdAt,
+                member.id,
+                Expressions.stringTemplate("COALESCE({0}, {1})", member.memberName, "익명"),
+                Expressions.constant(0)  // commentCount는 배치 조회로 채움
+            ))
+            .from(post)
+            .join(postLike).on(post.id.eq(postLike.post.id).and(postLike.member.id.eq(memberId)))
+            .leftJoin(post.member, member)
+            .orderBy(postLike.createdAt.desc())  // 추천일 기준 정렬
+            .offset(pageable.getOffset())
+            .limit(pageable.getPageSize())
+            .fetch();
+
+        // 배치 조회로 댓글 수와 추천 수 설정
+        postQueryHelper.batchLikeAndCommentCount(content);
+
+        // Count 쿼리
+        Long total = jpaQueryFactory
+            .select(post.countDistinct())
+            .from(post)
+            .join(postLike).on(post.id.eq(postLike.post.id).and(postLike.member.id.eq(memberId)))
+            .fetchOne();
+
+        return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
 
     /**

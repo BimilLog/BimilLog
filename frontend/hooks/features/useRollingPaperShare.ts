@@ -5,6 +5,7 @@ import { useToast } from '@/hooks';
 import { logger } from '@/lib/utils/logger';
 import { copyRollingPaperLink } from '@/lib/utils/clipboard';
 import { getRollingPaperShareData, getRollingPaperShareUrl } from '@/lib/utils/rolling-paper';
+import { shareRollingPaper, fallbackShare } from '@/lib/auth/kakao';
 
 interface UseRollingPaperShareProps {
   nickname: string;
@@ -34,7 +35,6 @@ export function useRollingPaperShare({
     if (!nickname) return;
 
     try {
-      const { shareRollingPaper, fallbackShare } = await import('@/lib/auth/kakao');
       const success = await shareRollingPaper(nickname, messageCount);
 
       if (!success) {

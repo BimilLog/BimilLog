@@ -240,7 +240,7 @@ export const ProfileBadges = React.memo(({ userStats }: ProfileBadgesProps) => {
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 mb-8">
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
           <Trophy className="w-5 h-5 stroke-yellow-500 fill-yellow-100" />
           프로필 뱃지
@@ -268,7 +268,7 @@ export const ProfileBadges = React.memo(({ userStats }: ProfileBadgesProps) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 mb-8">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold flex items-center gap-2">
           <Trophy className="w-5 h-5 stroke-yellow-500 fill-yellow-100" />

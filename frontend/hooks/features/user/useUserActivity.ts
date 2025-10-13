@@ -1,172 +1,167 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { logger } from '@/lib/utils/logger';
+import { useState, useEffect, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { userQuery } from '@/lib/api';
+import { usePagination } from '@/hooks/common/usePagination';
+import { queryKeys } from '@/lib/tanstack-query/keys';
 
-// ID 기반 중복 제거 헬퍼 함수
-function deduplicateById<T extends { id: number | string }>(items: T[]): T[] {
-  const seen = new Set<number | string>();
-  return items.filter(item => {
-    if (seen.has(item.id)) {
-      return false;
-    }
-    seen.add(item.id);
-    return true;
+// ============ USER ACTIVITY HOOKS ============
+
+// 사용자 활동 탭 조회 - TanStack Query 통합
+export function useUserActivityTabs(pageSize = 10) {
+  const [activeTab, setActiveTab] = useState<'my-posts' | 'my-comments' | 'liked-posts' | 'liked-comments'>('my-posts');
+
+  // 페이지네이션
+  const pagination = usePagination({ pageSize });
+
+  // 작성한 게시글 조회
+  const { data: myPostsData, isLoading: myPostsLoading, error: myPostsError } = useQuery({
+    queryKey: queryKeys.user.posts(pagination.currentPage, pagination.pageSize),
+    queryFn: () => userQuery.getUserPosts(pagination.currentPage, pagination.pageSize),
+    enabled: activeTab === 'my-posts',
+    staleTime: 5 * 60 * 1000, // 5분
+    gcTime: 10 * 60 * 1000,
   });
-}
 
-// ===== ACTIVITY DATA =====
-interface PaginatedData<T> {
-  content: T[];
-  totalElements: number;
-  totalPages: number;
-  currentPage: number;
-}
+  // 작성한 댓글 조회
+  const { data: myCommentsData, isLoading: myCommentsLoading, error: myCommentsError } = useQuery({
+    queryKey: queryKeys.user.comments(pagination.currentPage, pagination.pageSize),
+    queryFn: () => userQuery.getUserComments(pagination.currentPage, pagination.pageSize),
+    enabled: activeTab === 'my-comments',
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
 
-interface UseActivityDataOptions<T extends { id: number | string }> {
-  fetchData: (page?: number, size?: number) => Promise<PaginatedData<T>>;
-}
+  // 추천한 게시글 조회
+  const { data: likedPostsData, isLoading: likedPostsLoading, error: likedPostsError } = useQuery({
+    queryKey: queryKeys.user.likePosts(pagination.currentPage, pagination.pageSize),
+    queryFn: () => userQuery.getUserLikedPosts(pagination.currentPage, pagination.pageSize),
+    enabled: activeTab === 'liked-posts',
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
 
-export function useActivityData<T extends { id: number | string }>({ fetchData }: UseActivityDataOptions<T>) {
-  const [items, setItems] = useState<T[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [currentPage, setCurrentPage] = useState(0);
-  const [totalPages, setTotalPages] = useState(0);
-  const [totalElements, setTotalElements] = useState(0);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  // 추천한 댓글 조회
+  const { data: likedCommentsData, isLoading: likedCommentsLoading, error: likedCommentsError } = useQuery({
+    queryKey: queryKeys.user.likeComments(pagination.currentPage, pagination.pageSize),
+    queryFn: () => userQuery.getUserLikedComments(pagination.currentPage, pagination.pageSize),
+    enabled: activeTab === 'liked-comments',
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+  });
 
-  // 활동 데이터 로드: 일반 로드와 더보기(무한 스크롤) 로드를 구분하여 처리
-  const loadData = async (page = 0, append = false) => {
-    try {
-      if (!append) {
-        setIsLoading(true);  // 첫 로드 시 전체 로딩 상태
-      } else {
-        setIsLoadingMore(true);  // 더보기 시 추가 로딩 상태
-      }
-      setError(null);
+  // 각 탭의 실제 데이터 반환 (활성 탭만 데이터 반환, 비활성 탭은 빈 배열)
+  const myPosts = useMemo(() =>
+    activeTab === 'my-posts' ? (myPostsData?.data?.content || []) : [],
+    [activeTab, myPostsData]
+  );
+  const myComments = useMemo(() =>
+    activeTab === 'my-comments' ? (myCommentsData?.data?.content || []) : [],
+    [activeTab, myCommentsData]
+  );
+  const likedPosts = useMemo(() =>
+    activeTab === 'liked-posts' ? (likedPostsData?.data?.content || []) : [],
+    [activeTab, likedPostsData]
+  );
+  const likedComments = useMemo(() =>
+    activeTab === 'liked-comments' ? (likedCommentsData?.data?.content || []) : [],
+    [activeTab, likedCommentsData]
+  );
 
-      const result = await fetchData(page, 10);
-
-      // append가 true면 기존 데이터에 추가 (중복 제거), false면 새로 교체
-      if (append) {
-        setItems((prev) => deduplicateById([...prev, ...result.content]));
-      } else {
-        setItems(result.content);
-      }
-
-      setCurrentPage(result.currentPage);
-      setTotalPages(result.totalPages);
-      setTotalElements(result.totalElements);
-    } catch (err: unknown) {
-      logger.error("Failed to fetch activity data:", err);
-
-      // 에러 타입별로 구체적인 메시지 제공
-      let errorMessage = "데이터를 불러오는 중 오류가 발생했습니다.";
-
-      if (err instanceof Error) {
-        // 네트워크 에러
-        if (err.message.includes("Network") || err.message.includes("fetch")) {
-          errorMessage = "인터넷 연결을 확인해주세요.";
-        }
-        // 타임아웃 에러
-        else if (err.message.includes("timeout")) {
-          errorMessage = "요청 시간이 초과되었습니다. 다시 시도해주세요.";
-        }
-        // 서버 에러
-        else if (err.message.includes("500") || err.message.includes("Internal Server Error")) {
-          errorMessage = "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
-        }
-        // 권한 에러
-        else if (err.message.includes("401") || err.message.includes("Unauthorized")) {
-          errorMessage = "로그인이 필요합니다. 다시 로그인해주세요.";
-        }
-        else if (err.message.includes("403") || err.message.includes("Forbidden")) {
-          errorMessage = "접근 권한이 없습니다.";
-        }
-      }
-
-      setError(errorMessage);
-    } finally {
-      setIsLoading(false);
-      setIsLoadingMore(false);
+  // 현재 활성 탭의 데이터 반환
+  const currentData = useMemo(() => {
+    switch (activeTab) {
+      case 'my-posts':
+        return myPosts;
+      case 'my-comments':
+        return myComments;
+      case 'liked-posts':
+        return likedPosts;
+      case 'liked-comments':
+        return likedComments;
+      default:
+        return [];
     }
-  };
+  }, [activeTab, myPosts, myComments, likedPosts, likedComments]);
 
+  // 현재 활성 탭의 로딩/에러 상태 반환
+  const isLoading = useMemo(() => {
+    switch (activeTab) {
+      case 'my-posts':
+        return myPostsLoading;
+      case 'my-comments':
+        return myCommentsLoading;
+      case 'liked-posts':
+        return likedPostsLoading;
+      case 'liked-comments':
+        return likedCommentsLoading;
+      default:
+        return false;
+    }
+  }, [activeTab, myPostsLoading, myCommentsLoading, likedPostsLoading, likedCommentsLoading]);
+
+  const error = useMemo(() => {
+    switch (activeTab) {
+      case 'my-posts':
+        return myPostsError;
+      case 'my-comments':
+        return myCommentsError;
+      case 'liked-posts':
+        return likedPostsError;
+      case 'liked-comments':
+        return likedCommentsError;
+      default:
+        return null;
+    }
+  }, [activeTab, myPostsError, myCommentsError, likedPostsError, likedCommentsError]);
+
+  // 현재 탭의 totalElements 가져오기
+  const currentTotalElements = useMemo(() => {
+    switch (activeTab) {
+      case 'my-posts':
+        return myPostsData?.data?.totalElements || 0;
+      case 'my-comments':
+        return myCommentsData?.data?.totalElements || 0;
+      case 'liked-posts':
+        return likedPostsData?.data?.totalElements || 0;
+      case 'liked-comments':
+        return likedCommentsData?.data?.totalElements || 0;
+      default:
+        return 0;
+    }
+  }, [activeTab, myPostsData, myCommentsData, likedPostsData, likedCommentsData]);
+
+  // 데이터 변경 시 페이지네이션 업데이트
   useEffect(() => {
-    loadData(0);
-    // fetchData는 useCallback으로 메모화되어 있어 안전함
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // 무한 스크롤을 위한 더보기 처리: 다음 페이지가 있을 때만 실행
-  const handleLoadMore = () => {
-    if (currentPage < totalPages - 1) {
-      loadData(currentPage + 1, true);
+    if (currentTotalElements !== undefined) {
+      pagination.setTotalItems(currentTotalElements);
     }
-  };
+  }, [currentTotalElements, pagination.setTotalItems]);
 
-  // 페이지 직접 변경
-  const handlePageChange = (page: number) => {
-    if (page >= 0 && page < totalPages) {
-      loadData(page);
-    }
-  };
-
-  const retry = () => {
-    loadData(currentPage);
-  };
-
-  // 데스크톱→모바일 전환 시 0페이지부터 현재 페이지까지 모두 로드
-  // 무한 스크롤 모드로 전환 시 데이터 불연속 방지
-  const loadAllPagesForMobile = async (targetPage: number) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const allContent: T[] = [];
-      let lastResult: PaginatedData<T> | null = null;
-
-      // 0페이지부터 targetPage까지 순차적으로 로드
-      for (let page = 0; page <= targetPage; page++) {
-        const result = await fetchData(page, 10);
-        allContent.push(...result.content);
-        lastResult = result;
-      }
-
-      // 중복 제거 후 모든 페이지 데이터를 한 번에 설정
-      setItems(deduplicateById(allContent));
-      setCurrentPage(targetPage);
-
-      // totalPages와 totalElements는 마지막 응답 기준
-      if (lastResult) {
-        setTotalPages(lastResult.totalPages);
-        setTotalElements(lastResult.totalElements);
-      }
-    } catch (err: unknown) {
-      logger.error("Failed to load all pages for mobile:", err);
-
-      // 실패 시 0페이지로 리셋
-      setError("데이터를 불러오는 중 오류가 발생했습니다. 페이지를 새로고침합니다.");
-      loadData(0);
-    } finally {
-      setIsLoading(false);
-    }
+  // 탭 변경 시 페이지를 0으로 리셋
+  const handleTabChange = (tab: typeof activeTab) => {
+    setActiveTab(tab);
+    pagination.setCurrentPage(0);
   };
 
   return {
-    items,
+    // 현재 탭 데이터
+    items: currentData,
     isLoading,
     error,
-    currentPage,
-    totalPages,
-    totalElements,
-    isLoadingMore,
-    handleLoadMore,
-    handlePageChange,
-    retry,
-    loadAllPagesForMobile,
+
+    // 탭 상태
+    activeTab,
+    setActiveTab: handleTabChange,
+
+    // 페이지네이션
+    pagination,
+
+    // 각 탭별 개별 데이터 (필요시 사용)
+    myPosts,
+    myComments,
+    likedPosts,
+    likedComments,
   };
 }
-
-export type { PaginatedData, UseActivityDataOptions };

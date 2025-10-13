@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.post.entity;
 
+import jaeik.bimillog.domain.global.entity.BaseEntity;
 import jaeik.bimillog.domain.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -21,10 +22,15 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(indexes = {
+@Table(
+    indexes = {
         @Index(name = "idx_postlike_member_post", columnList = "member_id, post_id")
-})
-public class PostLike {
+    },
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uk_postlike_member_post", columnNames = {"member_id", "post_id"})
+    }
+)
+public class PostLike extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

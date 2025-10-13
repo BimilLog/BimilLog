@@ -121,7 +121,7 @@ public class CommentQueryController {
     public ResponseEntity<Page<SimpleCommentDTO>> getUserLikedComments(@RequestParam(defaultValue = "0") int page,
                                                                        @RequestParam(defaultValue = "10") int size,
                                                                        @AuthenticationPrincipal CustomUserDetails userDetails) {
-        PageRequest pageable = PageRequest.of(page, size);
+        PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<SimpleCommentInfo> likedCommentsInfo = commentQueryUseCase.getMemberLikedComments(userDetails.getMemberId(), pageable);
         Page<SimpleCommentDTO> likedComments = likedCommentsInfo.map(this::convertToSimpleCommentDTO);
         return ResponseEntity.ok(likedComments);

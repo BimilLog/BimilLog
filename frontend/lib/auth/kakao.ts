@@ -221,8 +221,8 @@ export const initializeKakao = (): Promise<boolean> => {
 
     // 4단계: SDK가 없는 상태 - 동적 스크립트 로드 후 초기화
     const script = document.createElement('script');
-    script.src = 'https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js';
-    script.integrity = 'sha384-TiCUE00h649CAMonG018J2ujOgDKW/kVWlChEuu4jK2vxfAAD0eZxzCKakxg55G4';
+    script.src = 'https://t1.kakaocdn.net/kakao_js_sdk/2.7.6/kakao.min.js';
+    script.integrity = 'sha384-WAtVcQYcmTO/N+C1N+1m6Gp8qxh+3NlnP7X1U7qP6P5dQY/MsRBNTh+e1ahJrkEm';
     script.crossOrigin = 'anonymous';
 
     // 로드 성공 시: SDK 로드 → 초기화 → 완료 신호 전송

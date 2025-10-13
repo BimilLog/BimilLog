@@ -35,7 +35,7 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
   return (
     <Card variant="elevated" className="mb-8">
       <div className="text-center pb-4 p-6">
-        <h2 className="text-2xl bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent font-bold whitespace-nowrap">
+        <h2 className="text-2xl text-blue-600 font-bold whitespace-nowrap">
           누구의 롤링페이퍼를 방문할까요?
         </h2>
         <p className="text-brand-muted text-sm mt-2">

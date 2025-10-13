@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.comment.entity;
 
+import jaeik.bimillog.domain.global.entity.BaseEntity;
 import jaeik.bimillog.domain.member.entity.Member;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -28,7 +29,7 @@ import lombok.NoArgsConstructor;
                 @UniqueConstraint(name = "uk_comment_like_member_comment", columnNames = {"comment_id", "member_id"})
         }
 )
-public class CommentLike {
+public class CommentLike extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

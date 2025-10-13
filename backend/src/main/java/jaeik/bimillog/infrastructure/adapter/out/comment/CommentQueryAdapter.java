@@ -88,8 +88,8 @@ public class CommentQueryAdapter implements CommentQueryPort {
 
     /**
      * <h3>사용자 추천한 댓글 목록 조회</h3>
-     * <p>특정 사용자가 추천한 댓글 목록을 페이지네이션으로 조회합니다.</p>
-     * <p>최신 추천 댓글부터 과거 순서로 정렬하여 반환합니다.</p>
+     * <p>특정 사용자가 추천한 댓글 목록을 추천일 기준 최신순으로 페이지네이션 조회합니다.</p>
+     * <p>최신 추천 댓글부터 과거 순서로 정렬하여 반환합니다 (userLike.createdAt DESC).</p>
      * <p>{@link CommentQueryService}에서 사용자 추천한 댓글 목록 조회 시 호출됩니다.</p>
      *
      * <h4>중요: likeCount 정확성을 위한 JOIN 구조</h4>
@@ -101,7 +101,7 @@ public class CommentQueryAdapter implements CommentQueryPort {
      *
      * @param memberId   사용자 ID
      * @param pageable 페이지 정보
-     * @return Page<SimpleCommentInfo> 추천한 댓글 목록 페이지
+     * @return Page<SimpleCommentInfo> 추천한 댓글 목록 페이지 (추천일 기준 최신순)
      * @author Jaeik
      * @since 2.0.0
      */
@@ -129,8 +129,8 @@ public class CommentQueryAdapter implements CommentQueryPort {
                         userCommentLike.comment.id.eq(comment.id)
                         .and(userCommentLike.member.id.eq(memberId))
                 )
-                .groupBy(comment.id, member.memberName, comment.createdAt, userCommentLike.id)
-                .orderBy(comment.createdAt.desc())
+                .groupBy(comment.id, member.memberName, comment.createdAt, userCommentLike.id, userLike.createdAt)
+                .orderBy(userLike.createdAt.desc())  // 추천일 기준 정렬
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
