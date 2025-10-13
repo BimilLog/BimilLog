@@ -169,6 +169,10 @@ const nextConfig = withPWA(pwaConfig)({
                 protocol: 'https',
                 hostname: 'chat.kakaocdn.net',
             },
+            {
+                protocol: 'https',
+                hostname: '*.kakao.com',
+            },
         ],
         formats: ['image/avif', 'image/webp'],
         deviceSizes: [640, 768, 1024, 1280, 1536],
