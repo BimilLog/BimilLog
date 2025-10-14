@@ -265,14 +265,14 @@ export const shareRollingPaper = async (
   }
 
   try {
-    const shareUrl = `${window.location.origin}/rolling-paper/${encodeURIComponent(userName)}`;
+    const shareUrl = `https://grow-farm.com/rolling-paper/${encodeURIComponent(userName)}`;
 
     window.Kakao.Share.sendDefault({
       objectType: 'feed',
       content: {
         title: `${userName}님의 롤링페이퍼`,
         description: `${userName}님에게 따뜻한 메시지를 남겨보세요! 현재 ${messageCount}개의 메시지가 있어요.`,
-        imageUrl: `${window.location.origin}/bigLog.png`,
+        imageUrl: `https://grow-farm.com/bigLog.png`,
         link: {
           mobileWebUrl: shareUrl,
           webUrl: shareUrl,
@@ -311,7 +311,7 @@ export const sharePost = async (
   }
 
   try {
-    const shareUrl = `${window.location.origin}/board/post/${postId}`;
+    const shareUrl = `https://grow-farm.com/board/post/${postId}`;
     const description = content.length > 100 ? content.substring(0, 100) + '...' : content;
 
     window.Kakao.Share.sendDefault({
@@ -319,7 +319,7 @@ export const sharePost = async (
       content: {
         title: `${title}`,
         description: `${author}님이 작성한 글입니다.\n\n${description}\n\n${likes}개의 추천`,
-        imageUrl: `${window.location.origin}/bigLog.png`,
+        imageUrl: `https://grow-farm.com/bigLog.png`,
         link: {
           mobileWebUrl: shareUrl,
           webUrl: shareUrl,
@@ -352,14 +352,14 @@ export const shareService = async (): Promise<boolean> => {
   }
 
   try {
-    const shareUrl = window.location.origin;
+    const shareUrl = 'https://grow-farm.com';
 
     window.Kakao.Share.sendDefault({
       objectType: 'feed',
       content: {
         title: '비밀로그 - 익명 롤링페이퍼 서비스',
         description: '친구들에게 익명으로 따뜻한 메시지를 받아보세요! 나만의 롤링페이퍼를 만들고 소중한 추억을 남겨보세요.',
-        imageUrl: `${window.location.origin}/bigLog.png`,
+        imageUrl: `https://grow-farm.com/bigLog.png`,
         link: {
           mobileWebUrl: shareUrl,
           webUrl: shareUrl,
