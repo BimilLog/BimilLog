@@ -16,14 +16,16 @@ public interface RedisPaperQueryPort {
 
     /**
      * <h3>실시간 인기 롤링페이퍼 조회 (Rank, Score 포함)</h3>
-     * <p>Redis Sorted Set에서 점수가 높은 상위 10개의 롤링페이퍼 정보를 조회합니다.</p>
+     * <p>Redis Sorted Set에서 점수가 높은 롤링페이퍼 정보를 지정된 범위로 조회합니다.</p>
      * <p>memberId, rank, popularityScore가 채워진 PopularPaperInfo 리스트를 반환합니다.</p>
      * <p>PaperCacheService에서 실시간 인기 롤링페이퍼 목록 조회 시 호출됩니다.</p>
      *
-     * @return List&lt;PopularPaperInfo&gt; 상위 10개 롤링페이퍼 정보 (memberId, rank, popularityScore만 설정됨)
+     * @param start 시작 인덱스 (0부터 시작)
+     * @param end 종료 인덱스 (포함)
+     * @return List&lt;PopularPaperInfo&gt; 지정된 범위의 롤링페이퍼 정보 (memberId, rank, popularityScore만 설정됨)
      * @author Jaeik
      * @since 2.0.0
      */
-    List<PopularPaperInfo> getRealtimePopularPapersWithRankAndScore();
+    List<PopularPaperInfo> getRealtimePopularPapersWithRankAndScore(int start, int end);
 
 }

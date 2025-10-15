@@ -8,6 +8,7 @@ import jaeik.bimillog.domain.paper.application.port.out.PaperQueryPort;
 import jaeik.bimillog.domain.paper.application.port.out.RedisPaperDeletePort;
 import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.entity.Message;
+import jaeik.bimillog.domain.paper.event.MessageDeletedEvent;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.paper.exception.PaperCustomException;
 import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
@@ -43,6 +44,7 @@ public class PaperCommandService implements PaperCommandUseCase {
      * <p>messageId가 null인 경우: 해당 사용자의 모든 메시지를 삭제합니다 (회원탈퇴 시).</p>
      * <p>messageId가 있는 경우: 특정 메시지를 삭제합니다 (단건 삭제).</p>
      * <p>- 다른 사용자의 messageId를 전송할 수 있으므로 소유권 검증 필요</p>
+     * <p>메시지 삭제 성공 시 MessageDeletedEvent를 발행하여 실시간 인기 점수를 감소시킵니다.</p>
      * <p>{@link PaperCommandController}에서 메시지 삭제 요청 시 호출되거나,</p>
      * <p>{@link MemberWithdrawListener}에서 회원탈퇴 시 호출됩니다.</p>
      *
@@ -65,6 +67,11 @@ public class PaperCommandService implements PaperCommandUseCase {
         }
 
         paperCommandPort.deleteMessage(memberId, messageId);
+
+        // 메시지 삭제 성공 시 이벤트 발행 (실시간 인기 점수 감소, 단건 삭제만)
+        if (messageId != null) {
+            eventPublisher.publishEvent(new MessageDeletedEvent(memberId));
+        }
     }
 
     /**

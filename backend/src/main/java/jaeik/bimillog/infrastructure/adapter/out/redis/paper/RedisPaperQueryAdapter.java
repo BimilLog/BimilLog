@@ -33,27 +33,29 @@ public class RedisPaperQueryAdapter implements RedisPaperQueryPort {
 
     /**
      * <h3>실시간 인기 롤링페이퍼 조회 (Rank, Score 포함)</h3>
-     * <p>Redis Sorted Set에서 점수가 높은 상위 10개의 롤링페이퍼 정보를 조회합니다.</p>
+     * <p>Redis Sorted Set에서 점수가 높은 롤링페이퍼 정보를 지정된 범위로 조회합니다.</p>
      * <p>memberId, rank, popularityScore가 채워진 PopularPaperInfo 리스트를 반환합니다.</p>
      *
-     * @return List&lt;PopularPaperInfo&gt; 상위 10개 롤링페이퍼 정보 (memberId, rank, popularityScore만 설정됨)
+     * @param start 시작 인덱스 (0부터 시작)
+     * @param end 종료 인덱스 (포함)
+     * @return List<PopularPaperInfo> 지정된 범위의 롤링페이퍼 정보 (memberId, rank, popularityScore만 설정됨)
      * @throws PaperCustomException Redis 읽기 중 오류가 발생한 경우
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public List<PopularPaperInfo> getRealtimePopularPapersWithRankAndScore() {
+    public List<PopularPaperInfo> getRealtimePopularPapersWithRankAndScore(int start, int end) {
         try {
-            // Sorted Set에서 점수와 함께 상위 10개 조회
+            // Sorted Set에서 점수와 함께 지정된 범위 조회
             Set<ZSetOperations.TypedTuple<Object>> tuples =
-                    redisTemplate.opsForZSet().reverseRangeWithScores(REALTIME_PAPER_SCORE_KEY, 0, 9);
+                    redisTemplate.opsForZSet().reverseRangeWithScores(REALTIME_PAPER_SCORE_KEY, start, end);
 
             if (tuples == null || tuples.isEmpty()) {
                 return Collections.emptyList();
             }
 
             List<PopularPaperInfo> result = new ArrayList<>();
-            int rank = 1;
+            int rank = start + 1; // 시작 인덱스 기준으로 랭킹 계산
 
             for (ZSetOperations.TypedTuple<Object> tuple : tuples) {
                 if (tuple.getValue() == null || tuple.getScore() == null) {
