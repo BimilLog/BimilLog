@@ -331,37 +331,31 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
           size="md"
           className="modal-container"
         >
-          <ModalHeader>
-            <div className="flex flex-col space-y-1">
-              <div className="flex items-center space-x-2">
-                {getMessageAt(selectedCell.x, selectedCell.y) ? (
-                  <>
-                    <Mail className="w-4 h-4 stroke-blue-500 fill-blue-200" />
-                    <span>메시지 보기</span>
-                  </>
-                ) : (
-                  <>
-                    <MessageSquare className="w-4 h-4 stroke-green-500 fill-green-200" />
-                    <span>메시지 작성</span>
-                  </>
-                )}
-              </div>
-              {(() => {
-                const { page, gridX, gridY } = getPageAndGridPosition(
-                  selectedCell.x,
-                  selectedCell.y,
-                  isMobile
-                );
-                return (
-                  <p className="text-xs text-gray-500">
-                    페이지 {page}, {gridY + 1}번째 줄 {gridX + 1}번째 칸
-                  </p>
-                );
-              })()}
+          <ModalHeader
+            theme={{
+              base: "flex items-center justify-between p-5 rounded-t bg-gradient-to-br from-pink-50 to-pink-100 border-b border-pink-200"
+            }}
+          >
+            <div className="flex items-center space-x-2 ">
+              {getMessageAt(selectedCell.x, selectedCell.y) ? (
+                <>
+                  <Mail className="w-4 h-4 stroke-blue-500 fill-blue-200" />
+                  <span>메시지 보기</span>
+                </>
+              ) : (
+                <>
+                  <MessageSquare className="w-4 h-4 stroke-green-500 fill-green-200" />
+                  <span>메시지 작성</span>
+                </>
+              )}
             </div>
           </ModalHeader>
 
-          <ModalBody>
+          <ModalBody
+            theme={{
+              base: "p-6 bg-gradient-to-br from-pink-50 to-pink-100"
+            }}
+          >
             <div className="p-0">
               {(() => {
                 const messageAtPosition = getMessageAt(selectedCell.x, selectedCell.y);
