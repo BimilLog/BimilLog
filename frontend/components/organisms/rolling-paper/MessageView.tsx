@@ -6,7 +6,6 @@ import { Badge } from "@/components";
 import { ConfirmModal } from "@/components";
 import { Spinner } from "@/components";
 import { Lock, Trash2 } from "lucide-react";
-import { getDecoInfo } from "@/lib/api";
 import type { RollingPaperMessage, VisitMessage } from "@/types/domains/paper";
 import { DecoIcon } from "@/components";
 import { ErrorHandler } from "@/lib/api/helpers";
@@ -29,7 +28,6 @@ export const MessageView: React.FC<MessageViewProps> = ({
 }) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const deleteMutation = useDeleteRollingPaperMessage();
-  const decoInfo = getDecoInfo(message.decoType);
 
   // RollingPaperMessage 타입 가드: content와 anonymity 필드 존재로 구분
   // VisitMessage는 작성자만 볼 수 있는 메시지이므로 구조가 다름
@@ -65,34 +63,32 @@ export const MessageView: React.FC<MessageViewProps> = ({
   return (
     <>
       <div
-        className={`p-4 sm:p-6 bg-gradient-to-br ${decoInfo.color} rounded-2xl border-2 border-white shadow-brand-lg relative overflow-hidden`}
+        className="p-4 sm:p-6 rounded-2xl border-2 border-white shadow-brand-lg relative overflow-hidden"
         style={{
-          backgroundImage: `
+          background: `
             radial-gradient(circle at 8px 8px, rgba(255,255,255,0.3) 1px, transparent 1px),
-            radial-gradient(circle at 24px 24px, rgba(255,255,255,0.2) 1px, transparent 1px)
+            radial-gradient(circle at 24px 24px, rgba(255,255,255,0.2) 1px, transparent 1px),
+            linear-gradient(to bottom right, #fce7f3, #fbcfe8)
           `,
-          backgroundSize: "16px 16px, 48px 48px",
+          backgroundSize: "16px 16px, 48px 48px, 100% 100%",
         }}
       >
         <div className="flex items-center gap-3 mb-4">
           <DecoIcon decoType={message.decoType} size="xl" showBackground={false} animate="bounce" />
           <div className="flex flex-col gap-1 flex-1 min-w-0">
-            <Badge
-              variant="secondary"
-              className="bg-white/80 text-pink-800 border-pink-300 font-semibold text-sm w-fit"
-            >
-              {decoInfo.name}
-            </Badge>
             {/* 익명 닉네임 배지: RollingPaperMessage만 표시, 비어있으면 '익명' 기본값 */}
             {isRollingPaperMessage(message) && (
-              <Badge
-                variant="outline"
-                className="bg-white/60 text-brand-primary border-gray-300 text-xs w-fit"
-              >
-                {message.anonymity && message.anonymity !== ""
-                  ? message.anonymity
-                  : "익명"}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-brand-primary">작성자 :</span>
+                <Badge
+                  variant="outline"
+                  className="bg-white/60 text-brand-primary border-gray-300 font-semibold text-sm w-fit"
+                >
+                  {message.anonymity && message.anonymity !== ""
+                    ? message.anonymity
+                    : "익명"}
+                </Badge>
+              </div>
             )}
           </div>
         </div>
@@ -116,11 +112,10 @@ export const MessageView: React.FC<MessageViewProps> = ({
         {isOwner && (
           <div className="flex justify-end pt-4 border-t border-white/30">
             <Button
-              variant="destructive"
               size="sm"
               onClick={handleDeleteClick}
               disabled={deleteMutation.isPending}
-              className="bg-red-500/80 hover:bg-red-600/80 text-white border-0 min-h-[44px] touch-manipulation text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-red-600 hover:bg-red-700 text-white border-0 min-h-[44px] touch-manipulation text-sm disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl active:scale-[0.98] transition-all"
             >
               {deleteMutation.isPending ? (
                 <span className="flex items-center gap-2">

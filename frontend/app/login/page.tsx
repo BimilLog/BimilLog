@@ -195,16 +195,16 @@ export default function LoginPage() {
             alt="카카오 로그인"
             width={300}
             height={45}
-            className="hidden sm:block h-auto touch-manipulation"
+            className="hidden sm:block w-full h-auto touch-manipulation"
             priority
           />
           {/* 모바일: narrow 버전 사용 */}
           <Image
-            src="/kakao_login_medium_narrow.png"
+            src="/kakao_login_medium_wide.png"
             alt="카카오 로그인"
             width={183}
             height={45}
-            className="sm:hidden h-auto touch-manipulation"
+            className="sm:hidden w-full h-auto touch-manipulation"
             priority
           />
         </button>
