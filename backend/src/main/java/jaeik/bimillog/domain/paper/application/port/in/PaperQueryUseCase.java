@@ -43,6 +43,4 @@ public interface PaperQueryUseCase {
      * @since 2.0.0
      */
     List<VisitMessageDetail> visitPaper(String memberName);
-
-    void getPopularPaper();
 }
