@@ -1,5 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.out.redis.paper;
 
+import jaeik.bimillog.domain.paper.application.port.out.RedisPaperDeletePort;
 import jaeik.bimillog.domain.paper.exception.PaperCustomException;
 import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +19,7 @@ import static jaeik.bimillog.infrastructure.adapter.out.redis.paper.RedisPaperKe
  */
 @Component
 @RequiredArgsConstructor
-public class RedisPaperDeleteAdapter {
+public class RedisPaperDeleteAdapter implements RedisPaperDeletePort {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -32,6 +33,7 @@ public class RedisPaperDeleteAdapter {
      * @author Jaeik
      * @since 2.0.0
      */
+    @Override
     public void removeMemberIdFromRealtimeScore(Long memberId) {
         try {
             redisTemplate.opsForZSet().remove(REALTIME_PAPER_SCORE_KEY, memberId.toString());

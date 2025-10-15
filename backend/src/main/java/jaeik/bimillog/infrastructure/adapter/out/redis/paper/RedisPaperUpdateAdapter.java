@@ -1,5 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.out.redis.paper;
 
+import jaeik.bimillog.domain.paper.application.port.out.RedisPaperUpdatePort;
 import jaeik.bimillog.domain.paper.exception.PaperCustomException;
 import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,7 @@ import static jaeik.bimillog.infrastructure.adapter.out.redis.paper.RedisPaperKe
  */
 @Component
 @RequiredArgsConstructor
-public class RedisPaperUpdateAdapter {
+public class RedisPaperUpdateAdapter implements RedisPaperUpdatePort {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -35,6 +36,7 @@ public class RedisPaperUpdateAdapter {
      * @author Jaeik
      * @since 2.0.0
      */
+    @Override
     public void incrementRealtimePopularPaperScore(Long memberId, double score) {
         try {
             redisTemplate.opsForZSet().incrementScore(REALTIME_PAPER_SCORE_KEY, memberId.toString(), score);
@@ -52,6 +54,7 @@ public class RedisPaperUpdateAdapter {
      * @author Jaeik
      * @since 2.0.0
      */
+    @Override
     public void applyRealtimePopularPaperScoreDecay() {
         try {
             // 1. 모든 항목의 점수에 0.95 곱하기 (Lua 스크립트 사용)

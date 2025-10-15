@@ -1,5 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.out.redis.paper;
 
+import jaeik.bimillog.domain.paper.application.port.out.RedisPaperQueryPort;
 import jaeik.bimillog.domain.paper.exception.PaperCustomException;
 import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +23,7 @@ import static jaeik.bimillog.infrastructure.adapter.out.redis.paper.RedisPaperKe
  */
 @Component
 @RequiredArgsConstructor
-public class RedisPaperQueryAdapter {
+public class RedisPaperQueryAdapter implements RedisPaperQueryPort {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -36,6 +37,7 @@ public class RedisPaperQueryAdapter {
      * @author Jaeik
      * @since 2.0.0
      */
+    @Override
     public List<Long> getRealtimePopularMemberIds() {
         try {
             // Sorted Set에서 점수 높은 순으로 상위 10개 조회
