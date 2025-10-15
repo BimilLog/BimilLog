@@ -56,21 +56,23 @@ public class PaperCommandService implements PaperCommandUseCase {
     @Override
     @Transactional
     public void deleteMessageInMyPaper(Long memberId, Long messageId) {
-        if (messageId != null) {
+        if (messageId != null) { // 메시지 삭제의 경우
             Long ownerId = paperQueryPort.findOwnerIdByMessageId(messageId)
                     .orElseThrow(() -> new PaperCustomException(PaperErrorCode.MESSAGE_NOT_FOUND));
-            redisPaperDeletePort.removeMemberIdFromRealtimeScore(memberId);
 
             if (!ownerId.equals(memberId)) {
                 throw new PaperCustomException(PaperErrorCode.MESSAGE_DELETE_FORBIDDEN);
             }
         }
 
+        // 메시지 삭제
         paperCommandPort.deleteMessage(memberId, messageId);
 
         // 메시지 삭제 성공 시 이벤트 발행 (실시간 인기 점수 감소, 단건 삭제만)
         if (messageId != null) {
             eventPublisher.publishEvent(new MessageDeletedEvent(memberId));
+        } else { // 회원 탈퇴시 Redis저장소에서 memberId 삭제
+            redisPaperDeletePort.removeMemberIdFromRealtimeScore(memberId);
         }
     }
 

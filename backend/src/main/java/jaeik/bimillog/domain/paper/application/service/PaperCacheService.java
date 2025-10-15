@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.paper.application.service;
 
 import jaeik.bimillog.domain.paper.application.port.in.PaperCacheUseCase;
 import jaeik.bimillog.domain.paper.application.port.out.PaperQueryPort;
+import jaeik.bimillog.domain.paper.application.port.out.PaperToMemberPort;
 import jaeik.bimillog.domain.paper.application.port.out.RedisPaperQueryPort;
 import jaeik.bimillog.domain.paper.entity.PopularPaperInfo;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static jaeik.bimillog.infrastructure.adapter.out.redis.paper.RedisPaperKeys.REALTIME_PAPER_SCORE_KEY;
 
@@ -32,6 +35,7 @@ public class PaperCacheService implements PaperCacheUseCase{
 
     private final RedisPaperQueryPort redisPaperQueryPort;
     private final PaperQueryPort paperQueryPort;
+    private final PaperToMemberPort paperToMemberPort;
     private final RedisTemplate<String, Object> redisTemplate;
 
     /**
@@ -65,10 +69,21 @@ public class PaperCacheService implements PaperCacheUseCase{
             return Page.empty(pageable);
         }
 
-        // 4. DB에서 memberName과 24시간 이내 메시지 수 조회 후 채우기
+        // 4. memberIds 추출 및 memberName 주입
+        List<Long> memberIds = popularPapers.stream()
+                .map(PopularPaperInfo::getMemberId)
+                .collect(Collectors.toList());
+
+        Map<Long, String> memberNameMap = paperToMemberPort.findMemberNamesByIds(memberIds);
+
+        popularPapers.forEach(info ->
+                info.setMemberName(memberNameMap.getOrDefault(info.getMemberId(), ""))
+        );
+
+        // 5. DB에서 24시간 이내 메시지 수 조회 후 채우기
         paperQueryPort.enrichPopularPaperInfos(popularPapers);
 
-        // 5. 페이징 정보와 함께 Page로 변환하여 반환
+        // 6. 페이징 정보와 함께 Page로 변환하여 반환
         return new PageImpl<>(popularPapers, pageable, total);
     }
 }
