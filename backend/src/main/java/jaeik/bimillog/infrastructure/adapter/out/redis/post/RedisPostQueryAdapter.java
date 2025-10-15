@@ -245,7 +245,7 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
     public List<Long> getRealtimePopularPostIds() {
         try {
             // Sorted Set에서 점수 높은 순으로 상위 5개 조회
-            Set<Object> postIds = redisTemplate.opsForZSet().reverseRange(REALTIME_POPULAR_SCORE_KEY, 0, 4);
+            Set<Object> postIds = redisTemplate.opsForZSet().reverseRange(REALTIME_POST_SCORE_KEY, 0, 4);
             if (postIds == null || postIds.isEmpty()) {
                 return Collections.emptyList();
             }

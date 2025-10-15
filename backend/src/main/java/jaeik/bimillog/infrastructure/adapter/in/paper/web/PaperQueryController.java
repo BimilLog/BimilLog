@@ -4,9 +4,11 @@ import jaeik.bimillog.domain.paper.application.port.in.PaperQueryUseCase;
 import jaeik.bimillog.domain.paper.entity.MessageDetail;
 import jaeik.bimillog.domain.paper.entity.VisitMessageDetail;
 import jaeik.bimillog.infrastructure.adapter.in.paper.dto.MessageDTO;
+import jaeik.bimillog.infrastructure.adapter.in.paper.dto.PopularPaperDTO;
 import jaeik.bimillog.infrastructure.adapter.in.paper.dto.VisitMessageDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,8 +20,10 @@ import java.util.List;
 
 /**
  * <h2>롤링페이퍼 조회 컨트롤러</h2>
- * <p>롤링페이퍼 도메인의 조회 작업을 처리하는 REST API 컨트롤러입니다.</p>
- * <p>내 롤링페이퍼 조회, 타인 롤링페이퍼 방문</p>
+ * <p>롤링페이퍼 도메인의 조회 작업을 처리하는 컨트롤러입니다.</p>
+ * <p>내 롤링페이퍼 조회</p>
+ * <p>타인 롤링페이퍼 방문</p>
+ * <p>실시간 인기 롤링페이퍼 조회</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -68,5 +72,19 @@ public class PaperQueryController {
                 .map(VisitMessageDTO::from)
                 .toList();
         return ResponseEntity.ok(visitMessageDTOs);
+    }
+
+    /**
+     * <h3>실시간 인기 롤링페이퍼 조회 API</h3>
+     * <p>실시간 인기 롤링페이퍼 목록을 조회합니다.</p>
+     *
+     * @return HTTP 응답 엔티티
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @GetMapping("/popular")
+    public ResponseEntity<Page<PopularPaperDTO>> popularPaper() {
+        // TODO: 구현 필요
+        return ResponseEntity.ok(Page.empty());
     }
 }

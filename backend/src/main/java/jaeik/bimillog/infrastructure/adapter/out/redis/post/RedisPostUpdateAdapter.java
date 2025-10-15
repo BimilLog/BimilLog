@@ -14,8 +14,8 @@ import static jaeik.bimillog.infrastructure.adapter.out.redis.post.RedisPostKeys
 @Component
 @RequiredArgsConstructor
 public class RedisPostUpdateAdapter implements RedisPostUpdatePort {
-    private final RedisTemplate<String, Object> redisTemplate;
 
+    private final RedisTemplate<String, Object> redisTemplate;
 
     /**
      * <h3>실시간 인기글 점수 증가</h3>
@@ -30,7 +30,7 @@ public class RedisPostUpdateAdapter implements RedisPostUpdatePort {
     @Override
     public void incrementRealtimePopularScore(Long postId, double score) {
         try {
-            redisTemplate.opsForZSet().incrementScore(REALTIME_POPULAR_SCORE_KEY, postId.toString(), score);
+            redisTemplate.opsForZSet().incrementScore(REALTIME_POST_SCORE_KEY, postId.toString(), score);
         } catch (Exception e) {
             throw new PostCustomException(PostErrorCode.REDIS_WRITE_ERROR, e);
         }
@@ -50,12 +50,12 @@ public class RedisPostUpdateAdapter implements RedisPostUpdatePort {
             // 1. 모든 항목의 점수에 0.9 곱하기 (Lua 스크립트 사용)
             redisTemplate.execute(
                     SCORE_DECAY_SCRIPT,
-                    List.of(REALTIME_POPULAR_SCORE_KEY),
-                    SCORE_DECAY_RATE
+                    List.of(REALTIME_POST_SCORE_KEY),
+                    REALTIME_POST_SCORE_DECAY_RATE
             );
 
             // 2. 임계값(1점) 이하의 게시글 제거
-            redisTemplate.opsForZSet().removeRangeByScore(REALTIME_POPULAR_SCORE_KEY, 0, SCORE_THRESHOLD);
+            redisTemplate.opsForZSet().removeRangeByScore(REALTIME_POST_SCORE_KEY, 0, REALTIME_POST_SCORE_THRESHOLD);
 
         } catch (Exception e) {
             throw new PostCustomException(PostErrorCode.REDIS_WRITE_ERROR, e);

@@ -79,4 +79,9 @@ public class PaperQueryService implements PaperQueryUseCase {
                 .map(VisitMessageDetail::from)
                 .toList();
     }
+
+    @Override
+    public void getPopularPaper() {
+
+    }
 }

@@ -34,4 +34,10 @@ public class PaperCustomException extends RuntimeException {
         super(paperErrorCode.getMessage());
         this.paperErrorCode = paperErrorCode;
     }
+
+
+    public PaperCustomException(PaperErrorCode paperErrorCode, Throwable cause) {
+        super(paperErrorCode.getMessage(), cause);
+        this.paperErrorCode = paperErrorCode;
+    }
 }

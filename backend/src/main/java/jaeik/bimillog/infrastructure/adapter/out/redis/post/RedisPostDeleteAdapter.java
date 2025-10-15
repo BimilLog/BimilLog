@@ -98,7 +98,7 @@ public class RedisPostDeleteAdapter implements RedisPostDeletePort {
     @Override
     public void removePostIdFromRealtimeScore(Long postId) {
         try {
-            redisTemplate.opsForZSet().remove(REALTIME_POPULAR_SCORE_KEY, postId.toString());
+            redisTemplate.opsForZSet().remove(REALTIME_POST_SCORE_KEY, postId.toString());
         } catch (Exception e) {
             throw new PostCustomException(PostErrorCode.REDIS_DELETE_ERROR, e);
         }

@@ -359,7 +359,7 @@ class RedisPostQueryAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 실시간 인기글 ID 목록 조회 (상위 5개)")
     void shouldReturnTop5PostIds_WhenRealtimeScoresExist() {
         // Given: 10개의 게시글에 점수 설정 (높은 점수부터)
-        String scoreKey = RedisPostKeys.REALTIME_POPULAR_SCORE_KEY;
+        String scoreKey = RedisPostKeys.REALTIME_POST_SCORE_KEY;
         for (long i = 1; i <= 10; i++) {
             double score = 11.0 - i; // 10, 9, 8, 7, 6, 5, 4, 3, 2, 1
             redisTemplate.opsForZSet().add(scoreKey, String.valueOf(i), score);
@@ -377,7 +377,7 @@ class RedisPostQueryAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 실시간 인기글 ID 목록 내림차순 정렬 확인")
     void shouldReturnInDescendingOrder_ByScore() {
         // Given: 랜덤 순서로 점수 설정
-        String scoreKey = RedisPostKeys.REALTIME_POPULAR_SCORE_KEY;
+        String scoreKey = RedisPostKeys.REALTIME_POST_SCORE_KEY;
         redisTemplate.opsForZSet().add(scoreKey, "100", 15.0);
         redisTemplate.opsForZSet().add(scoreKey, "200", 25.0);
         redisTemplate.opsForZSet().add(scoreKey, "300", 10.0);
@@ -395,7 +395,7 @@ class RedisPostQueryAdapterIntegrationTest {
     @DisplayName("경계값 - 실시간 인기글이 5개 미만인 경우")
     void shouldReturnLessThan5_WhenFewerPostsExist() {
         // Given: 3개의 게시글만 점수 설정
-        String scoreKey = RedisPostKeys.REALTIME_POPULAR_SCORE_KEY;
+        String scoreKey = RedisPostKeys.REALTIME_POST_SCORE_KEY;
         redisTemplate.opsForZSet().add(scoreKey, "1", 10.0);
         redisTemplate.opsForZSet().add(scoreKey, "2", 8.0);
         redisTemplate.opsForZSet().add(scoreKey, "3", 6.0);
