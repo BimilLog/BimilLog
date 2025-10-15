@@ -3,6 +3,7 @@ package jaeik.bimillog.domain.paper.application.port.out;
 import jaeik.bimillog.domain.paper.application.service.PaperCommandService;
 import jaeik.bimillog.domain.paper.application.service.PaperQueryService;
 import jaeik.bimillog.domain.paper.entity.Message;
+import jaeik.bimillog.domain.paper.entity.PopularPaperInfo;
 
 import java.util.List;
 import java.util.Optional;
@@ -47,7 +48,6 @@ public interface PaperQueryPort {
      * <h3>메시지 소유자 ID 조회</h3>
      * <p>특정 메시지가 속한 롤링페이퍼의 소유자 ID를 조회합니다.</p>
      * <p>메시지 삭제 권한 검증 시 사용됩니다.</p>
-     * <p>memberId만 조회하여 효율적입니다.</p>
      * <p>{@link PaperCommandService#deleteMessageInMyPaper}에서 권한 검증 시 호출됩니다.</p>
      *
      * @param messageId 조회할 메시지의 ID
@@ -56,4 +56,17 @@ public interface PaperQueryPort {
      * @since 2.0.0
      */
     Optional<Long> findOwnerIdByMessageId(Long messageId);
+
+    /**
+     * <h3>인기 롤링페이퍼 정보 보강</h3>
+     * <p>memberId가 채워진 PopularPaperInfo 리스트에 memberName과 24시간 이내 메시지 수를 채웁니다.</p>
+     * <p>각 memberId에 대해 Member 테이블에서 memberName을 조회하고,</p>
+     * <p>Message 테이블에서 최근 24시간 이내에 작성된 메시지 수를 계산하여 recentMessageCount를 설정합니다.</p>
+     *
+     * @param infos memberId, rank, popularityScore가 채워진 PopularPaperInfo 리스트
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    void enrichPopularPaperInfos(List<PopularPaperInfo> infos);
+
 }

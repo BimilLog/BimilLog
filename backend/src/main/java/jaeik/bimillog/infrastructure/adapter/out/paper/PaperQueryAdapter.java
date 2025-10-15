@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.paper.application.port.out.PaperQueryPort;
 import jaeik.bimillog.domain.paper.application.service.PaperCommandService;
 import jaeik.bimillog.domain.paper.application.service.PaperQueryService;
 import jaeik.bimillog.domain.paper.entity.Message;
+import jaeik.bimillog.domain.paper.entity.PopularPaperInfo;
 import jaeik.bimillog.domain.paper.entity.QMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -82,13 +83,34 @@ public class PaperQueryAdapter implements PaperQueryPort {
     @Override
     public Optional<Long> findOwnerIdByMessageId(Long messageId) {
         QMessage message = QMessage.message;
-        
+
         Long ownerId = jpaQueryFactory
                 .select(message.member.id)
                 .from(message)
                 .where(message.id.eq(messageId))
                 .fetchOne();
-                
+
         return Optional.ofNullable(ownerId);
+    }
+
+    /**
+     * <h3>인기 롤링페이퍼 정보 보강</h3>
+     * <p>memberId가 채워진 PopularPaperInfo 리스트에 memberName과 24시간 이내 메시지 수를 채웁니다.</p>
+     * <p>각 memberId에 대해 Member 테이블에서 memberName을 조회하고,</p>
+     * <p>Message 테이블에서 최근 24시간 이내에 작성된 메시지 수를 계산하여 recentMessageCount를 설정합니다.</p>
+     *
+     * @param infos memberId, rank, popularityScore가 채워진 PopularPaperInfo 리스트
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public void enrichPopularPaperInfos(List<PopularPaperInfo> infos) {
+        // TODO: QueryDSL을 사용하여 구현
+        // 1. infos에서 memberIds 추출
+        // 2. Member 테이블에서 memberIds로 memberName 조회 (Map<Long, String> 형태로 저장)
+        // 3. Message 테이블에서 memberIds별 24시간 이내 메시지 수 조회 (Map<Long, Integer> 형태로 저장)
+        //    - LocalDateTime.now().minusHours(24)를 기준으로 createdAt 필터링
+        //    - groupBy memberId, count()
+        // 4. infos를 순회하며 memberName과 recentMessageCount 설정
     }
 }

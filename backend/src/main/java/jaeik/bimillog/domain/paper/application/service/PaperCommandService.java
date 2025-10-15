@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.paper.application.port.in.PaperCommandUseCase;
 import jaeik.bimillog.domain.paper.application.port.out.PaperCommandPort;
 import jaeik.bimillog.domain.paper.application.port.out.PaperQueryPort;
+import jaeik.bimillog.domain.paper.application.port.out.RedisPaperDeletePort;
 import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
@@ -33,6 +34,7 @@ public class PaperCommandService implements PaperCommandUseCase {
     private final PaperQueryPort paperQueryPort;
     private final GlobalMemberQueryPort globalUserQueryPort;
     private final ApplicationEventPublisher eventPublisher;
+    private final RedisPaperDeletePort redisPaperDeletePort;
 
 
     /**
@@ -55,6 +57,7 @@ public class PaperCommandService implements PaperCommandUseCase {
         if (messageId != null) {
             Long ownerId = paperQueryPort.findOwnerIdByMessageId(messageId)
                     .orElseThrow(() -> new PaperCustomException(PaperErrorCode.MESSAGE_NOT_FOUND));
+            redisPaperDeletePort.removeMemberIdFromRealtimeScore(memberId);
 
             if (!ownerId.equals(memberId)) {
                 throw new PaperCustomException(PaperErrorCode.MESSAGE_DELETE_FORBIDDEN);

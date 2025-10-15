@@ -1,9 +1,10 @@
 package jaeik.bimillog.infrastructure.adapter.in.paper.web;
 
 import jaeik.bimillog.domain.paper.application.port.in.PaperCacheUseCase;
-import jaeik.bimillog.infrastructure.adapter.in.paper.dto.PopularPaperDTO;
+import jaeik.bimillog.domain.paper.entity.PopularPaperInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,9 +26,8 @@ public class PaperCacheController {
      * @since 2.0.0
      */
     @GetMapping("/popular")
-    public ResponseEntity<Page<PopularPaperDTO>> popularPaper() {
-        paperCacheUseCase.getPopularPaper();
-        // TODO: 구현 필요
-        return ResponseEntity.ok(Page.empty());
+    public ResponseEntity<Page<PopularPaperInfo>> popularPaper(Pageable pageable) {
+        Page<PopularPaperInfo> paperInfos = paperCacheUseCase.getRealtimePapers(pageable);
+        return ResponseEntity.ok(paperInfos);
     }
 }
