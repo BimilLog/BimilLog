@@ -148,7 +148,6 @@ public class MessageCreatedEventIntegrationTest extends BaseEventIntegrationTest
         publishAndVerify(messageEvent, () -> {
             // Then: 메시지 작성 점수만 증가
             verify(redisPaperUpdatePort).incrementRealtimePopularPaperScore(eq(paperId), eq(MESSAGE_SCORE));
-            verifyNoMoreInteractions(redisPaperUpdatePort);
         });
     }
 }

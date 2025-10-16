@@ -71,7 +71,7 @@ public class PaperCommandService implements PaperCommandUseCase {
         // 메시지 삭제 성공 시 이벤트 발행 (실시간 인기 점수 감소, 단건 삭제만)
         if (messageId != null) {
             eventPublisher.publishEvent(new MessageDeletedEvent(memberId));
-        } else { // 회원 탈퇴시 Redis저장소에서 memberId 삭제
+        } else { // 회원 탈퇴시 Redis 저장소에서 memberId 삭제
             redisPaperDeletePort.removeMemberIdFromRealtimeScore(memberId);
         }
     }

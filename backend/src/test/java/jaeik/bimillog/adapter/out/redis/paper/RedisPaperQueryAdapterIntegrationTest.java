@@ -183,7 +183,7 @@ class RedisPaperQueryAdapterIntegrationTest {
         assertThat(result).hasSize(2);
         assertThat(result).allMatch(info ->
                 info.getMemberId() != null &&
-                info.getPopularityScore() != null
+                info.getPopularityScore() > 0
         );
     }
 }

@@ -11,7 +11,8 @@ import jaeik.bimillog.domain.paper.entity.QMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -120,7 +121,7 @@ public class PaperQueryAdapter implements PaperQueryPort {
                 .collect(Collectors.toList());
 
         // 2. 24시간 이내 메시지 수 조회
-        LocalDateTime twentyFourHoursAgo = LocalDateTime.now().minusHours(24);
+        Instant twentyFourHoursAgo = Instant.now().minus(24, ChronoUnit.HOURS);
 
         List<Tuple> results = jpaQueryFactory
                 .select(message.member.id, message.count())
