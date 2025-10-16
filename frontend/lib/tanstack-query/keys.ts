@@ -48,6 +48,7 @@ export const queryKeys = {
     all: ['paper'] as const,
     my: ['paper', 'my'] as const,
     detail: (userName: string) => [...queryKeys.paper.all, 'detail', userName] as const,
+    popular: (page?: number, size?: number) => [...queryKeys.paper.all, 'popular', page, size] as const,
   },
 
   // Notification

@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.paper.application.port.out.RedisPaperUpdatePort;
 import jaeik.bimillog.domain.paper.exception.PaperCustomException;
 import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -21,6 +22,7 @@ import static jaeik.bimillog.infrastructure.adapter.out.redis.paper.RedisPaperKe
  */
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class RedisPaperUpdateAdapter implements RedisPaperUpdatePort {
 
     private final RedisTemplate<String, Object> redisTemplate;
@@ -40,7 +42,9 @@ public class RedisPaperUpdateAdapter implements RedisPaperUpdatePort {
     public void incrementRealtimePopularPaperScore(Long memberId, double score) {
         try {
             redisTemplate.opsForZSet().incrementScore(REALTIME_PAPER_SCORE_KEY, memberId.toString(), score);
+            log.info("{}의 롤링 페이퍼{}점 증가", memberId, score);
         } catch (Exception e) {
+            log.warn("{}의 롤링 페이퍼 레디스 작업 실패", memberId);
             throw new PaperCustomException(PaperErrorCode.REDIS_WRITE_ERROR, e);
         }
     }
