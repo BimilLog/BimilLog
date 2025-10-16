@@ -52,4 +52,6 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
      * @since 2.0.0
      */
     boolean existsByMemberName(String memberName);
+
+
 }

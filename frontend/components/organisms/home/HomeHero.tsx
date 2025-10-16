@@ -14,7 +14,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
   onOpenFriendsModal,
 }) => {
   return (
-    <section className="container mx-auto px-4 py-8 md:py-12 text-center">
+    <div className="text-center">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
           익명으로 마음을 전해보세요
@@ -103,6 +103,6 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
           )}
         </div>
       </div>
-    </section>
+    </div>
   );
 };

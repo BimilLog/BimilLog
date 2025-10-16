@@ -32,8 +32,14 @@ public enum PaperErrorCode {
     /**
      * <h3>입력값 검증 에러</h3>
      */
-    INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "유효하지 않은 입력 값입니다.", ErrorCode.LogLevel.WARN);
+    INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "유효하지 않은 입력 값입니다.", ErrorCode.LogLevel.WARN),
 
+    /**
+     * <h3>페이퍼 캐시 에러</h3>
+     */
+    REDIS_READ_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "레디스 읽기 중 오류가 발생했습니다.", ErrorCode.LogLevel.ERROR),
+    REDIS_WRITE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "레디스 쓰기 중 오류가 발생했습니다.", ErrorCode.LogLevel.ERROR),
+    REDIS_DELETE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "레디스 삭제 중 오류가 발생했습니다.", ErrorCode.LogLevel.ERROR);
 
     private final HttpStatus status;
     private final String message;

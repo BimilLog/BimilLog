@@ -13,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -129,5 +131,20 @@ public class MemberQueryService implements MemberQueryUseCase {
     @Override
     public Optional<Member> findByProviderAndSocialId(SocialProvider provider, String socialId) {
         return memberQueryPort.findByProviderAndSocialId(provider, socialId);
+    }
+
+    /**
+     * <h3>여러 사용자 ID로 사용자명 배치 조회</h3>
+     * <p>여러 사용자 ID에 해당하는 사용자명을 한 번에 조회합니다.</p>
+     *
+     * @param memberIds 조회할 사용자 ID 목록
+     * @return Map<Long, String> 사용자 ID를 키로, 사용자명을 값으로 하는 맵
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Map<Long, String> findMemberNamesByIds(List<Long> memberIds) {
+        return memberQueryPort.findMemberNamesByIds(memberIds);
     }
 }

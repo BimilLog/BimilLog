@@ -18,8 +18,9 @@ import java.util.List;
 
 /**
  * <h2>롤링페이퍼 조회 컨트롤러</h2>
- * <p>롤링페이퍼 도메인의 조회 작업을 처리하는 REST API 컨트롤러입니다.</p>
- * <p>내 롤링페이퍼 조회, 타인 롤링페이퍼 방문</p>
+ * <p>롤링페이퍼 도메인의 조회 작업을 처리하는 컨트롤러입니다.</p>
+ * <p>내 롤링페이퍼 조회</p>
+ * <p>타인 롤링페이퍼 방문</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -69,4 +70,6 @@ public class PaperQueryController {
                 .toList();
         return ResponseEntity.ok(visitMessageDTOs);
     }
+
+
 }

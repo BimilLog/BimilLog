@@ -47,7 +47,7 @@ public final class RedisPostKeys {
      * 실시간 인기글 점수 Sorted Set 키
      * <p>Value Type: ZSet (postId, score)</p>
      */
-    public static final String REALTIME_POPULAR_SCORE_KEY = "post:realtime:score";
+    public static final String REALTIME_POST_SCORE_KEY = "post:realtime:score";
 
     // ===================== 2. TTL (Time To Live, 만료 시간) =====================
 
@@ -64,16 +64,16 @@ public final class RedisPostKeys {
     // ===================== 3. SCORE CONSTANTS (점수 관련 상수) =====================
 
     /**
-     * 실시간 인기글 점수 감쇠율 (0.9)
+     * 실시간 인기글 점수 감쇠율 (0.95)
      * <p>5분마다 모든 게시글 점수에 곱해져 시간 경과에 따른 인기도 감소를 반영합니다.</p>
      */
-    public static final double SCORE_DECAY_RATE = 0.9;
+    public static final double REALTIME_POST_SCORE_DECAY_RATE = 0.95;
 
     /**
      * 실시간 인기글 제거 임계값 (1.0)
      * <p>이 값 이하의 점수를 가진 게시글은 실시간 인기글 목록에서 제거됩니다.</p>
      */
-    public static final double SCORE_THRESHOLD = 1.0;
+    public static final double REALTIME_POST_SCORE_THRESHOLD = 1.0;
 
     // ===================== 4. METADATA STRUCTURE (메타데이터 구조) =====================
 

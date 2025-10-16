@@ -96,7 +96,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/post/{postId}/like").authenticated()
                         .requestMatchers("/api/post/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/paper/{userName}").permitAll()
+                        .requestMatchers("/api/paper/{userName}", "/api/paper/popular").permitAll()
                         .requestMatchers("/api/member/suggestion", "/api/member/username/check", "/api/member/report").permitAll()
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)

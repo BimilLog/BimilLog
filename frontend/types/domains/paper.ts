@@ -53,6 +53,15 @@ export interface VisitMessage {
   y: number  // 그리드 Y 좌표 (0-based, 0부터 시작)
 }
 
+// 실시간 인기 롤링페이퍼 정보 타입 - v2 백엔드 PopularPaperInfo 완전 호환
+export interface PopularPaperInfo {
+  memberId: number
+  memberName: string
+  rank: number  // 실시간 등수
+  popularityScore: number  // 실시간 점수
+  recentMessageCount: number  // 24시간 이내 메시지 수
+}
+
 // 데코레이션 타입 매핑 - UI에 표시할 한글 이름과 Tailwind 그라데이션 색상
 export const decoTypeMap = {
   // 과일 카테고리 - 따뜻하고 밝은 색상

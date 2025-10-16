@@ -20,3 +20,22 @@ export const useRollingPaper = (userName: string, enabled: boolean = true) => {
     gcTime: 10 * 60 * 1000, // 10분
   });
 };
+
+/**
+ * 실시간 인기 롤링페이퍼 조회
+ */
+export const usePopularPapers = (page: number = 0, size: number = 10) => {
+  return useQuery({
+    queryKey: queryKeys.paper.popular(page, size),
+    queryFn: async () => {
+      const response = await paperQuery.getPopularPapers(page, size);
+      if (!response.success) {
+        throw new Error(response.error || '인기 롤링페이퍼를 불러올 수 없습니다');
+      }
+      return response.data;
+    },
+    staleTime: 60 * 1000, // 1분
+    gcTime: 5 * 60 * 1000, // 5분
+    refetchInterval: 60 * 1000, // 1분마다 자동 새로고침
+  });
+};

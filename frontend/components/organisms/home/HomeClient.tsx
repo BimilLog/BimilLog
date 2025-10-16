@@ -11,6 +11,7 @@ import { NotificationPermissionModal } from "@/components/organisms/notification
 // 분리된 컴포넌트들 import - 직접 파일에서 import하여 circular dependency 방지
 import { HomeHero } from "./HomeHero";
 import { HomeFeatures } from "./HomeFeatures";
+import { PopularPapersSection } from "./PopularPapersSection";
 
 export default function HomeClient() {
   const { isAuthenticated, user } = useAuth();
@@ -78,11 +79,28 @@ export default function HomeClient() {
 
   return (
     <MainLayout className="bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
-      {/* Hero Section */}
-      <HomeHero
-        isAuthenticated={isAuthenticated}
-        onOpenFriendsModal={handleOpenFriendsModal}
-      />
+      {/* Hero Section with Popular Papers */}
+      <div className="container mx-auto px-4 py-8 md:py-12">
+ <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+           {/* Hero Section */}
+         <div className="flex-1">
+            <HomeHero
+              isAuthenticated={isAuthenticated}
+              onOpenFriendsModal={handleOpenFriendsModal}
+            />
+          </div>
+
+          {/* Popular Papers Section - Hidden on mobile */}
+          <div className="hidden lg:block">
+            <PopularPapersSection />
+          </div>
+        </div>
+
+        {/* Popular Papers Section - Visible on mobile only */}
+        <div className="lg:hidden mt-8">
+          <PopularPapersSection />
+        </div>
+      </div>
 
       {/* Features Section */}
       <HomeFeatures />

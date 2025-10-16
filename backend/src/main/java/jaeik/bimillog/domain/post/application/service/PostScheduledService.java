@@ -37,7 +37,7 @@ public class PostScheduledService {
 
     /**
      * <h3>실시간 인기 게시글 점수 지수감쇠 적용</h3>
-     * <p>스프링 스케줄러를 통해 5분마다 실시간 인기글 점수에 0.9를 곱하고, 1점 이하 게시글을 제거합니다.</p>
+     * <p>스프링 스케줄러를 통해 5분마다 실시간 인기글 점수에 0.95를 곱하고, 1점 이하 게시글을 제거합니다.</p>
      * <p>이벤트 기반 점수 시스템으로 전환됨에 따라 RDB 조회 대신 Redis 점수 감쇠만 수행합니다.</p>
      *
      * @author Jaeik
@@ -47,7 +47,7 @@ public class PostScheduledService {
     public void applyRealtimeScoreDecay() {
         try {
             redisPostUpdatePort.applyRealtimePopularScoreDecay();
-            log.info("실시간 인기글 점수 지수감쇠 적용 완료 (0.9 곱하기, 1점 이하 제거)");
+            log.info("실시간 인기글 점수 지수감쇠 적용 완료 (0.95 곱하기, 1점 이하 제거)");
         } catch (Exception e) {
             log.error("실시간 인기글 점수 지수감쇠 적용 실패", e);
         }

@@ -86,7 +86,7 @@ class RedisPostDeleteAdapterIntegrationTest {
     void shouldRemovePostIdFromRealtimeScore() {
         // Given: post:realtime:score에 postId 추가
         Long postId = 1L;
-        String scoreKey = RedisPostKeys.REALTIME_POPULAR_SCORE_KEY;
+        String scoreKey = RedisPostKeys.REALTIME_POST_SCORE_KEY;
 
         redisTemplate.opsForZSet().add(scoreKey, postId.toString(), 100.0);
 

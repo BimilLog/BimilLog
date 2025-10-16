@@ -190,4 +190,34 @@ public class MemberQueryAdapter implements MemberQueryPort {
     public Member getReferenceById(Long memberId) {
         return userRepository.getReferenceById(memberId);
     }
+
+    /**
+     * <h3>여러 사용자 ID로 사용자명 배치 조회</h3>
+     * <p>{@link MemberQueryService}에서 인기 롤링페이퍼 정보 보강 시 호출됩니다.</p>
+     *
+     * @param memberIds 조회할 사용자 ID 목록
+     * @return Map<Long, String> 사용자 ID를 키로, 사용자명을 값으로 하는 맵
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Map<Long, String> findMemberNamesByIds(List<Long> memberIds) {
+        if (memberIds == null || memberIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        List<Tuple> results = jpaQueryFactory
+                .select(member.id, member.memberName)
+                .from(member)
+                .where(member.id.in(memberIds))
+                .fetch();
+
+        return results.stream()
+                .collect(Collectors.toMap(
+                        tuple -> tuple.get(member.id),
+                        tuple -> Optional.ofNullable(tuple.get(member.memberName)).orElse(""),
+                        (existing, replacement) -> existing
+                ));
+    }
 }

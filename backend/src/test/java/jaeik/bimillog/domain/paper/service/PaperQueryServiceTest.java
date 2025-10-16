@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.paper.service;
 
+import jaeik.bimillog.domain.global.application.port.out.GlobalMemberQueryPort;
 import jaeik.bimillog.domain.paper.application.port.out.PaperQueryPort;
 import jaeik.bimillog.domain.paper.application.service.PaperQueryService;
 import jaeik.bimillog.domain.paper.entity.Message;
@@ -13,10 +14,12 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -37,6 +40,12 @@ class PaperQueryServiceTest extends BaseUnitTest {
     @Mock
     private PaperQueryPort paperQueryPort;
 
+    @Mock
+    private GlobalMemberQueryPort globalMemberQueryPort;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
     @InjectMocks
     private PaperQueryService paperQueryService;
 
@@ -51,6 +60,7 @@ class PaperQueryServiceTest extends BaseUnitTest {
                 PaperTestDataBuilder.createRollingPaper(getOtherMember(), "메시지2", 10, 10)
         );
 
+        given(globalMemberQueryPort.findByMemberName(memberName)).willReturn(Optional.of(getTestMember()));
         given(paperQueryPort.findMessagesByMemberName(memberName)).willReturn(messages);
 
         // When
@@ -62,8 +72,8 @@ class PaperQueryServiceTest extends BaseUnitTest {
         assertThat(result.get(0).memberId()).isEqualTo(getTestMember().getId());
         assertThat(result.get(1).memberId()).isEqualTo(getOtherMember().getId());
 
+        verify(globalMemberQueryPort, times(1)).findByMemberName(memberName);
         verify(paperQueryPort, times(1)).findMessagesByMemberName(memberName);
-        verifyNoMoreInteractions(paperQueryPort);
     }
 
     @Test
@@ -72,6 +82,7 @@ class PaperQueryServiceTest extends BaseUnitTest {
         // Given
         String memberName = "userWithNoMessages";
 
+        given(globalMemberQueryPort.findByMemberName(memberName)).willReturn(Optional.of(getTestMember()));
         given(paperQueryPort.findMessagesByMemberName(memberName)).willReturn(Collections.emptyList());
 
         // When
@@ -81,8 +92,8 @@ class PaperQueryServiceTest extends BaseUnitTest {
         assertThat(result).isNotNull();
         assertThat(result).isEmpty();
 
+        verify(globalMemberQueryPort, times(1)).findByMemberName(memberName);
         verify(paperQueryPort, times(1)).findMessagesByMemberName(memberName);
-        verifyNoMoreInteractions(paperQueryPort);
     }
 
 
