@@ -118,9 +118,9 @@ export const MessageForm = React.memo<MessageFormProps>(({
             </label>
             {/* 익명 닉네임 입력: 1-8자 제한, 메시지 작성자 표시용 */}
             <Input
-              placeholder="시원한 마음의 친구"
+              placeholder="익명 닉네임"
               {...register("anonymousNickname", {
-                required: "닉네임을 입력해주세요",
+                required: "익명 닉네임을 입력해주세요",
                 maxLength: {
                   value: 8,
                   message: "닉네임은 8자 이하로 입력해주세요",

@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.paper.application.port.out.PaperQueryPort;
 import jaeik.bimillog.domain.paper.application.port.out.PaperToMemberPort;
 import jaeik.bimillog.domain.paper.application.port.out.RedisPaperQueryPort;
 import jaeik.bimillog.domain.paper.entity.PopularPaperInfo;
+import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -58,16 +59,20 @@ public class PaperCacheService implements PaperCacheUseCase{
         // 2. Redis Sorted Set 전체 크기 조회 (total)
         Long total = redisTemplate.opsForZSet().zCard(REALTIME_PAPER_SCORE_KEY);
         if (total == null || total == 0) {
+            CacheMetricsLogger.miss(log, "paper:realtime:zcard", REALTIME_PAPER_SCORE_KEY, "zcard_empty");
             return Page.empty(pageable);
         }
+        CacheMetricsLogger.hit(log, "paper:realtime:zcard", REALTIME_PAPER_SCORE_KEY, total);
 
         // 3. Redis에서 지정된 범위로 조회 (memberId, rank, popularityScore)
         List<PopularPaperInfo> popularPapers = redisPaperQueryPort
                 .getRealtimePopularPapersWithRankAndScore(start, end);
 
         if (popularPapers.isEmpty()) {
+            CacheMetricsLogger.miss(log, "paper:realtime:payload", REALTIME_PAPER_SCORE_KEY, "tuples_empty");
             return Page.empty(pageable);
         }
+        CacheMetricsLogger.hit(log, "paper:realtime:payload", REALTIME_PAPER_SCORE_KEY, popularPapers.size());
 
         // 4. memberIds 추출 및 memberName 주입
         List<Long> memberIds = popularPapers.stream()
