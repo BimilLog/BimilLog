@@ -6,6 +6,7 @@ import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.member.application.port.out.RedisMemberDataPort;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -227,11 +228,13 @@ public class RedisMemberDataAdapter implements RedisMemberDataPort {
     private Optional<SocialMemberProfile> convertRedisDataToDomain(String uuid, Object data) {
         if (data == null) {
             log.debug("UUID {}에 대한 임시 데이터가 Redis에서 발견되지 않음", uuid);
+            CacheMetricsLogger.miss(log, "auth:temp-member", uuid, "value_not_found");
             return Optional.empty();
         }
 
         try {
             SocialMemberProfile socialUserProfile = convertToSocialUserProfile(uuid, data);
+            CacheMetricsLogger.hit(log, "auth:temp-member", uuid);
             return Optional.of(socialUserProfile);
         } catch (Exception e) {
             log.error("UUID {}에 대한 임시 데이터 변환 실패: {}", uuid, e.getMessage(), e);

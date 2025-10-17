@@ -6,6 +6,9 @@ import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
+import jaeik.bimillog.infrastructure.adapter.out.redis.post.RedisPostKeys.CacheMetadata;
+import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -29,10 +32,11 @@ import static jaeik.bimillog.infrastructure.adapter.out.redis.post.RedisPostKeys
  * @version 2.0.0
  */
 @Component
+@Slf4j
 public class RedisPostQueryAdapter implements RedisPostQueryPort {
 
     private final RedisTemplate<String, Object> redisTemplate;
-    private final Map<PostCacheFlag, RedisPostKeys.CacheMetadata> cacheMetadataMap;
+    private final Map<PostCacheFlag, CacheMetadata> cacheMetadataMap;
 
     /**
      * <h3>RedisPostQueryAdapter 생성자</h3>
@@ -57,8 +61,8 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    private RedisPostKeys.CacheMetadata getCacheMetadata(PostCacheFlag type) {
-        RedisPostKeys.CacheMetadata metadata = cacheMetadataMap.get(type);
+    private CacheMetadata getCacheMetadata(PostCacheFlag type) {
+        CacheMetadata metadata = cacheMetadataMap.get(type);
         if (metadata == null) {
             throw new PostCustomException(PostErrorCode.REDIS_READ_ERROR, "Unknown PostCacheFlag type: " + type);
         }
@@ -78,7 +82,14 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
     public boolean hasPopularPostsCache(PostCacheFlag type) {
         CacheMetadata metadata = getCacheMetadata(type);
         try {
-            return redisTemplate.hasKey(metadata.key());
+            boolean exists = redisTemplate.hasKey(metadata.key());
+            String cacheName = "post:popular:" + type.name().toLowerCase();
+            if (exists) {
+                CacheMetricsLogger.hit(log, cacheName, metadata.key());
+            } else {
+                CacheMetricsLogger.miss(log, cacheName, metadata.key(), "key_not_found");
+            }
+            return exists;
         } catch (Exception e) {
             throw new PostCustomException(PostErrorCode.REDIS_READ_ERROR, e);
         }
@@ -104,20 +115,32 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
 
             // 2. 목록 캐시 미스 시 빈 리스트 반환 (복구는 서비스 레이어에서 처리)
             if (hashEntries.isEmpty()) {
+                CacheMetricsLogger.miss(log, "post:list:" + type.name().toLowerCase(),
+                        metadata.key(), "hash_empty");
                 return Collections.emptyList();
             }
 
             // 3. postIds 저장소에서 순서 가져오기
             List<Long> orderedIds = getStoredPostIds(type);
             if (orderedIds.isEmpty()) {
+                CacheMetricsLogger.miss(log, "post:list:" + type.name().toLowerCase(),
+                        metadata.key(), "ordered_ids_empty");
                 return Collections.emptyList();
             }
 
             // 4. 순서대로 정렬하여 반환
-            return orderedIds.stream()
+            List<PostSimpleDetail> cachedPosts = orderedIds.stream()
                     .map(id -> (PostSimpleDetail) hashEntries.get(id.toString()))
                     .filter(java.util.Objects::nonNull)
                     .toList();
+            if (cachedPosts.isEmpty()) {
+                CacheMetricsLogger.miss(log, "post:list:" + type.name().toLowerCase(),
+                        metadata.key(), "resolved_entries_empty");
+            } else {
+                CacheMetricsLogger.hit(log, "post:list:" + type.name().toLowerCase(),
+                        metadata.key(), cachedPosts.size());
+            }
+            return cachedPosts;
         } catch (Exception e) {
             throw new PostCustomException(PostErrorCode.REDIS_READ_ERROR, e);
         }
@@ -148,13 +171,18 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
             }
 
             if (postIds == null || postIds.isEmpty()) {
+                CacheMetricsLogger.miss(log, "post:ids:" + type.name().toLowerCase(),
+                        postIdsKey, "post_ids_empty");
                 return Collections.emptyList();
             }
 
-            return postIds.stream()
+            List<Long> ids = postIds.stream()
                     .map(Object::toString)
                     .map(Long::valueOf)
                     .toList();
+            CacheMetricsLogger.hit(log, "post:ids:" + type.name().toLowerCase(),
+                    postIdsKey, ids.size());
+            return ids;
         } catch (Exception e) {
             throw new PostCustomException(PostErrorCode.REDIS_READ_ERROR, e);
         }
@@ -175,8 +203,10 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
         try {
             Object cached = redisTemplate.opsForValue().get(key);
             if (cached instanceof PostDetail postDetail) {
+                CacheMetricsLogger.hit(log, "post:detail", postId);
                 return postDetail;
             }
+            CacheMetricsLogger.miss(log, "post:detail", postId, "value_not_found");
         } catch (Exception e) {
             throw new PostCustomException(PostErrorCode.REDIS_READ_ERROR, e);
         }
@@ -200,12 +230,14 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
             // 1. Hash에서 모든 PostSimpleDetail 조회
             Map<Object, Object> hashEntries = redisTemplate.opsForHash().entries(metadata.key());
             if (hashEntries.isEmpty()) {
+                CacheMetricsLogger.miss(log, "post:legend:list", metadata.key(), "hash_empty");
                 return new PageImpl<>(Collections.emptyList(), pageable, 0);
             }
 
             // 2. postIds 저장소에서 전체 순서 가져오기
             List<Long> orderedIds = getStoredPostIds(PostCacheFlag.LEGEND);
             if (orderedIds.isEmpty()) {
+                CacheMetricsLogger.miss(log, "post:legend:list", metadata.key(), "ordered_ids_empty");
                 return new PageImpl<>(Collections.emptyList(), pageable, 0);
             }
 
@@ -216,6 +248,7 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
             int end = Math.min(start + size, orderedIds.size());
 
             if (start >= orderedIds.size()) {
+                CacheMetricsLogger.miss(log, "post:legend:list", metadata.key(), "page_out_of_range");
                 return new PageImpl<>(Collections.emptyList(), pageable, orderedIds.size());
             }
 
@@ -224,6 +257,12 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
                     .map(id -> (PostSimpleDetail) hashEntries.get(id.toString()))
                     .filter(java.util.Objects::nonNull)
                     .toList();
+
+            if (pagedPosts.isEmpty()) {
+                CacheMetricsLogger.miss(log, "post:legend:list", metadata.key(), "resolved_entries_empty");
+            } else {
+                CacheMetricsLogger.hit(log, "post:legend:list", metadata.key(), pagedPosts.size());
+            }
 
             return new PageImpl<>(pagedPosts, pageable, orderedIds.size());
 
@@ -247,13 +286,16 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
             // Sorted Set에서 점수 높은 순으로 상위 5개 조회
             Set<Object> postIds = redisTemplate.opsForZSet().reverseRange(REALTIME_POST_SCORE_KEY, 0, 4);
             if (postIds == null || postIds.isEmpty()) {
+                CacheMetricsLogger.miss(log, "post:realtime", REALTIME_POST_SCORE_KEY, "sorted_set_empty");
                 return Collections.emptyList();
             }
 
-            return postIds.stream()
+            List<Long> ids = postIds.stream()
                     .map(Object::toString)
                     .map(Long::valueOf)
                     .toList();
+            CacheMetricsLogger.hit(log, "post:realtime", REALTIME_POST_SCORE_KEY, ids.size());
+            return ids;
         } catch (Exception e) {
             throw new PostCustomException(PostErrorCode.REDIS_READ_ERROR, e);
         }

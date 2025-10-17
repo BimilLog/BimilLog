@@ -1,6 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.out.redis;
 
 import jaeik.bimillog.domain.auth.application.port.out.RedisJwtBlacklistPort;
+import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -43,11 +44,18 @@ public class RedisJwtBlacklistAdapter implements RedisJwtBlacklistPort {
         try {
             String key = BLACKLIST_KEY_PREFIX + tokenHash;
 
-            return redisTemplate.hasKey(key);
+            boolean blacklisted = redisTemplate.hasKey(key);
+            String maskedHash = maskTokenHash(tokenHash);
+            if (blacklisted) {
+                CacheMetricsLogger.hit(log, "auth:blacklist", maskedHash);
+            } else {
+                CacheMetricsLogger.miss(log, "auth:blacklist", maskedHash, "key_not_found");
+            }
+            return blacklisted;
 
         } catch (Exception e) {
             log.error("Redis에서 토큰 블랙리스트 확인 실패: tokenHash={}, error={}",
-                    tokenHash.substring(0, 8) + "...", e.getMessage(), e);
+                    maskTokenHash(tokenHash), e.getMessage(), e);
             // Redis 장애 시 안전하게 블랙리스트로 간주
             return true;
         }
@@ -94,5 +102,12 @@ public class RedisJwtBlacklistAdapter implements RedisJwtBlacklistPort {
      * <h3>토큰 블랙리스트 정보 저장용 내부 클래스</h3>
      */
     private record TokenBlacklistInfo(long timestamp) {
+    }
+
+    private String maskTokenHash(String tokenHash) {
+        if (tokenHash == null || tokenHash.isEmpty()) {
+            return "unknown";
+        }
+        return tokenHash.length() <= 8 ? tokenHash : tokenHash.substring(0, 8) + "...";
     }
 }

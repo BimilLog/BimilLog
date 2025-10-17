@@ -4,7 +4,9 @@ import jaeik.bimillog.domain.paper.application.port.out.RedisPaperQueryPort;
 import jaeik.bimillog.domain.paper.entity.PopularPaperInfo;
 import jaeik.bimillog.domain.paper.exception.PaperCustomException;
 import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
+import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Component;
@@ -26,6 +28,7 @@ import static jaeik.bimillog.infrastructure.adapter.out.redis.paper.RedisPaperKe
  */
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class RedisPaperQueryAdapter implements RedisPaperQueryPort {
 
     private final RedisTemplate<String, Object> redisTemplate;
@@ -51,6 +54,7 @@ public class RedisPaperQueryAdapter implements RedisPaperQueryPort {
                     redisTemplate.opsForZSet().reverseRangeWithScores(REALTIME_PAPER_SCORE_KEY, start, end);
 
             if (tuples == null || tuples.isEmpty()) {
+                CacheMetricsLogger.miss(log, "paper:realtime", REALTIME_PAPER_SCORE_KEY, "sorted_set_empty");
                 return Collections.emptyList();
             }
 
@@ -69,6 +73,7 @@ public class RedisPaperQueryAdapter implements RedisPaperQueryPort {
                 result.add(info);
             }
 
+            CacheMetricsLogger.hit(log, "paper:realtime", REALTIME_PAPER_SCORE_KEY, result.size());
             return result;
         } catch (Exception e) {
             throw new PaperCustomException(PaperErrorCode.REDIS_READ_ERROR, e);
