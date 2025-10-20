@@ -80,9 +80,9 @@
         <logger name="org.springframework.security" level="DEBUG"/>
         <logger name="org.springframework.web" level="DEBUG"/>
         
-        <!-- JPA 쿼리 로그 (개발환경에서만) -->
+        <!-- JPA 쿼리 로그 (개발환경에서만, Hibernate 6.x) -->
         <logger name="org.hibernate.SQL" level="DEBUG"/>
-        <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE"/>
+        <logger name="org.hibernate.orm.jdbc.bind" level="TRACE"/>
         <logger name="org.springframework.orm.jpa" level="DEBUG"/>
 
         <!-- JdbcTemplate SQL 로그 -->
@@ -117,9 +117,9 @@
         <logger name="org.springframework.security" level="WARN"/>
         <logger name="org.springframework.web" level="WARN"/>
         
-        <!-- JPA 쿼리 로그 비활성화 (운영환경) -->
+        <!-- JPA 쿼리 로그 비활성화 (운영환경, Hibernate 6.x) -->
         <logger name="org.hibernate.SQL" level="WARN"/>
-        <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="WARN"/>
+        <logger name="org.hibernate.orm.jdbc.bind" level="WARN"/>
         <logger name="org.springframework.orm.jpa" level="WARN"/>
 
         <!-- JdbcTemplate SQL 로그 비활성화 -->
