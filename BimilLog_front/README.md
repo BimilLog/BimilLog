@@ -9,14 +9,6 @@
 
 Pink-Purple-Indigo 그라디언트 시스템
 
-```css
-/* 메인 그라디언트 */
-bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600
-
-/* 배경 그라디언트 */
-bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50
-```
-
 ### UI/UX 디자인
 
 - **모바일 퍼스트**: 모바일 화면에 최적화된 레이아웃 (320px~)
@@ -52,4 +44,4 @@ bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50
 
 - **메인 프로젝트**: [BimilLog Repository](../)
 - **웹사이트**: [grow-farm.com](https://grow-farm.com)
-- **백엔드**: Spring Boot 3.4.4 (포트 8080)
+- **백엔드**: Spring Boot 3.4.4

@@ -1,4 +1,4 @@
-# BimilLog
+# BimilLog v2.0
 
 > 익명으로 마음을 전하는 롤링페이퍼 플랫폼
 
@@ -32,7 +32,6 @@ BimilLog/
 ## 모듈 설명
 
 ### BimilLog_core (메인 백엔드)
-- **포트**: 8080
 - **기술 스택**:
   - Spring Boot 3.4.4, Java 21
   - MySQL, Redis
@@ -46,7 +45,6 @@ BimilLog/
 - **아키텍처**: Hexagonal Architecture (포트 & 어댑터 패턴)
 
 ### BimilLog_front (프론트엔드)
-- **포트**: 3000
 - **기술 스택**:
   - Next.js 15.5.3, React 19, TypeScript
   - TanStack Query, Zustand
@@ -57,7 +55,6 @@ BimilLog/
   - PWA 지원
 
 ### BimilLog_chat (채팅 서비스)
-- **포트**: 8081
 - **기술 스택**:
   - 백엔드: Spring Boot 3.4.4, Java 21
   - 데이터베이스: MySQL
