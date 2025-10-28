@@ -1,4 +1,4 @@
-package jaeik.bimillog.chat;
+package jaeik.bimillog;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
