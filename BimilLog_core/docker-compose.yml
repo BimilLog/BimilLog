@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  backend:
+    image: jaeikjeong/bimillog:backend
+    container_name: bimillog-backend
+    ports:
+      - "8080:8080"
+    networks:
+      - bimillog-network
+    volumes:
+      - /home/ubuntu/logs:/app/logs
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - PROD_MYSQL_URL=${PROD_MYSQL_URL}
+      - PROD_MYSQL_USERNAME=${PROD_MYSQL_USERNAME}
+      - PROD_MYSQL_PASSWORD=${PROD_MYSQL_PASSWORD}
+      - PROD_REDIS_HOST=${PROD_REDIS_HOST}
+      - PROD_REDIS_PORT=${PROD_REDIS_PORT}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - KAKAO_CLIENT_ID=${KAKAO_CLIENT_ID}
+      - KAKAO_CLIENT_SECRET=${KAKAO_CLIENT_SECRET}
+      - KAKAO_ADMIN_KEY=${KAKAO_ADMIN_KEY}
+      - JWT_SECRET=${JWT_SECRET}
+      - MESSAGE_SECRET=${MESSAGE_SECRET}
+      - PROD_KAKAO_REDIRECT_URL=${PROD_KAKAO_REDIRECT_URL}
+      - PROD_SERVER_SSE_URL=${PROD_SERVER_SSE_URL}
+      - PROD_SERVER_PORT=${PROD_SERVER_PORT}
+      - PROD_FLYWAY_LOCATIONS=${PROD_FLYWAY_LOCATIONS}
+
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  redis:
+    image: redis:8.2.2-alpine3.22
+    container_name: bimillog-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - bimillog-network
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD}
+      --appendonly yes
+      --appendfsync everysec
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+
+networks:
+  bimillog-network:
+    driver: bridge
+
+volumes:
+  redis-data:

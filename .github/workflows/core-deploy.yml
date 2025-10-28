@@ -1,0 +1,87 @@
+name: BimilLog Core (Backend) CI/CD
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'BimilLog_core/**'
+      - '.github/workflows/core-deploy.yml'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
+      IMAGE_REPO: jaeikjeong/bimillog
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v2
+
+      - name: Restore firebase-adminsdk json
+        run: |
+          mkdir -p BimilLog_core/src/main/resources/firebase
+          echo "${{ secrets.FIREBASE_ADMIN_JSON }}" | base64 -d > BimilLog_core/src/main/resources/firebase/growfarm-6cd79-firebase-adminsdk-fbsvc-ad2bc92194.json
+
+      - name: Log in to Docker Hub
+        run: echo "${DOCKERHUB_PASSWORD}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
+
+      - name: Build and push backend image
+        run: |
+          cd BimilLog_core
+          docker build -f backend.Dockerfile -t bimillog-backend .
+          docker tag bimillog-backend:latest $IMAGE_REPO:backend
+          docker push $IMAGE_REPO:backend
+
+      - name: Copy docker-compose.yml to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.BASTION_HOST }}
+          username: ${{ secrets.BASTION_USER }}
+          key: ${{ secrets.BASTION_SSH_KEY }}
+          source: "BimilLog_core/docker-compose.yml"
+          target: "/tmp/"
+
+      - name: Deploy Backend and Redis via Bastion Host
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.BASTION_HOST }}
+          username: ${{ secrets.BASTION_USER }}
+          key: ${{ secrets.BASTION_SSH_KEY }}
+          script: |
+            # Copy docker-compose.yml to backend server via bastion
+            scp -i ~/growfarm-backend-server-key.pem -o StrictHostKeyChecking=no /tmp/BimilLog_core/docker-compose.yml ${{ secrets.SERVER_USER }}@${{ secrets.BACKEND_SERVER_IP }}:/home/ubuntu/
+
+            # SSH to backend server and deploy
+            ssh -i ~/growfarm-backend-server-key.pem -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.BACKEND_SERVER_IP }} << 'ENDSSH'
+              # Export all required environment variables
+              export PROD_MYSQL_URL="${{ secrets.PROD_MYSQL_URL }}"
+              export PROD_MYSQL_USERNAME="${{ secrets.PROD_MYSQL_USERNAME }}"
+              export PROD_MYSQL_PASSWORD="${{ secrets.PROD_MYSQL_PASSWORD }}"
+              export PROD_REDIS_HOST="${{ secrets.PROD_REDIS_HOST }}"
+              export PROD_REDIS_PORT="${{ secrets.PROD_REDIS_PORT }}"
+              export REDIS_PASSWORD="${{ secrets.REDIS_PASSWORD }}"
+              export KAKAO_CLIENT_ID="${{ secrets.KAKAO_CLIENT_ID }}"
+              export KAKAO_CLIENT_SECRET="${{ secrets.KAKAO_CLIENT_SECRET }}"
+              export KAKAO_ADMIN_KEY="${{ secrets.KAKAO_ADMIN_KEY }}"
+              export JWT_SECRET="${{ secrets.JWT_SECRET }}"
+              export MESSAGE_SECRET="${{ secrets.MESSAGE_SECRET }}"
+              export PROD_KAKAO_REDIRECT_URL="${{ secrets.PROD_KAKAO_REDIRECT_URL }}"
+              export PROD_SERVER_SSE_URL="${{ secrets.PROD_SERVER_SSE_URL }}"
+              export PROD_SERVER_PORT="${{ secrets.PROD_SERVER_PORT }}"
+              export PROD_FLYWAY_LOCATIONS="${{ secrets.PROD_FLYWAY_LOCATIONS }}"
+
+              # Login to Docker Hub
+              echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+              # Deploy using docker-compose with environment variables
+              cd /home/ubuntu
+              docker compose down || true
+              docker compose pull
+              docker compose up -d
+            ENDSSH

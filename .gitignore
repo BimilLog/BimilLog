@@ -1,13 +1,138 @@
-HELP.md
+# ====================
+# BimilLog Monorepo
+# ====================
+
+# ====================
+# Common
+# ====================
 
 # Environment files (contains secrets)
 .env
-.gradle
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
+.env*
 
-### STS ###
+# IDE
+.idea/
+.vscode/
+*.iws
+*.iml
+*.ipr
+
+# OS
+.DS_Store
+*.pem
+*.backup
+*.bak
+*~
+
+# ====================
+# BimilLog_core (Backend)
+# ====================
+
+# Backend (Spring Boot)
+BimilLog_core/.gradle
+BimilLog_core/build/
+!BimilLog_core/**/src/main/**/build/
+!BimilLog_core/**/src/test/**/build/
+BimilLog_core/bin/
+!BimilLog_core/**/src/main/**/bin/
+!BimilLog_core/**/src/test/**/bin/
+BimilLog_core/out/
+!BimilLog_core/**/src/main/**/out/
+!BimilLog_core/**/src/test/**/out/
+BimilLog_core/.gradle-tmp
+
+# QueryDSL generated
+BimilLog_core/src/main/generated/
+
+# Secret config files
+BimilLog_core/src/main/resources/application-secret.yml
+BimilLog_core/src/main/resources/application-prod.yml
+BimilLog_core/src/main/resources/application-local.yml
+BimilLog_core/src/main/resources/firebase/*.json
+BimilLog_core/src/main/resources/dump/
+BimilLog_core/src/main/resources/growfarm-6cd79-firebase-adminsdk-fbsvc-ad2bc92194.json
+# Flyway
+BimilLog_core/*.user.toml
+BimilLog_core/*.artifact
+BimilLog_core/report.html
+BimilLog_core/report.json
+BimilLog_core/flyway.toml
+
+# ====================
+# BimilLog_front (Frontend)
+# ====================
+
+# Frontend (Next.js)
+BimilLog_front/node_modules/
+BimilLog_front/.next/
+BimilLog_front/out/
+BimilLog_front/build/
+BimilLog_front/.vercel/
+BimilLog_front/*.tsbuildinfo
+BimilLog_front/next-env.d.ts
+BimilLog_front/public/firebase/
+BimilLog_front/public/firebase-messaging-sw.js
+
+# PWA files
+BimilLog_front/public/sw.js
+BimilLog_front/public/sw.js.map
+BimilLog_front/public/workbox-*.js
+BimilLog_front/public/workbox-*.js.map
+BimilLog_front/public/worker-*.js
+BimilLog_front/public/worker-*.js.map
+
+# Frontend logs
+BimilLog_front/npm-debug.log*
+BimilLog_front/yarn-debug.log*
+BimilLog_front/yarn-error.log*
+BimilLog_front/.pnpm-debug.log*
+
+# Documentation (auto-generated)
+BimilLog_core/AOP_LOGGING_GUIDE.md
+BimilLog_core/SOCIAL_LOGIN_STRATEGY_PATTERN.md
+BimilLog_main/docs/
+BimilLog_main/docs/LOGBACK_ANALYSIS.md
+BimilLog_main/commits.txt
+
+# Claude/Cursor/MCP
+BimilLog/.claude/
+BimilLog_main/.cursor/
+BimilLog_core/.claude/
+.mcp.json
+CLAUDE.md
+/.claude
+
+# Terraform
+BimilLog_main/terraform/
+
+# ====================
+# BimilLog_chat
+# ====================
+
+# Backend (Spring Boot)
+BimilLog_chat/.gradle
+BimilLog_chat/build/
+!BimilLog_chat/**/src/main/**/build/
+!BimilLog_chat/**/src/test/**/build/
+BimilLog_chat/bin/
+!BimilLog_chat/**/src/main/**/bin/
+!BimilLog_chat/**/src/test/**/bin/
+BimilLog_chat/out/
+!BimilLog_chat/**/src/main/**/out/
+!BimilLog_chat/**/src/test/**/out/
+
+# Secret config files
+BimilLog_chat/src/main/resources/application-secret.yml
+BimilLog_chat/src/main/resources/application-prod.yml
+BimilLog_chat/src/main/resources/application-local.yml
+
+# ====================
+# General Java/Spring
+# ====================
+
+HELP.md
+
+# STS
 .apt_generated
 .classpath
 .factorypath
@@ -15,28 +140,13 @@ build/
 .settings
 .springBeans
 .sts4-cache
-bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
 
-### IntelliJ IDEA ###
-.idea
-*.iws
-*.iml
-*.ipr
-out/
-!**/src/main/**/out/
-!**/src/test/**/out/
-
-### NetBeans ###
+# NetBeans
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
-
-### VS Code ###
-.vscode/
 
 # Compiled class file
 *.class
@@ -50,7 +160,7 @@ out/
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
-# Package Files #
+# Package Files
 *.jar
 *.war
 *.nar
@@ -59,32 +169,6 @@ out/
 *.tar.gz
 *.rar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+# virtual machine crash logs
 hs_err_pid*
 replay_pid*
-/backend/src/main/generated
-/backend/src/main/resources/application-secret.yml
-/backend/src/main/generated/
-/backend/src/main/resources/application-prod.yml
-/backend/src/main/resources/firebase/growfarm-6cd79-firebase-adminsdk-fbsvc-7d4ebe98d2.json
-/frontend/node_modules/
-/frontend/public/firebase-messaging-sw.js
-/backend/src/main/resources/application-local.yml
-/backend/src/main/resources/growfarm-6cd79-firebase-adminsdk-fbsvc-ad2bc92194.json
-/CLAUDE.md
-/backend/.claude/
-/.claude/
-/.cursor/
-/backend/AOP_LOGGING_GUIDE.md
-/backend/src/main/resources/dump/
-/docs/LOGBACK_ANALYSIS.md
-/backend/SOCIAL_LOGIN_STRATEGY_PATTERN.md
-/AGENTS.md
-/backend/flyway.toml
-/docs/
-/commits.txt
-/.mcp.json
-
-# Ignore CLI configuration files
-**/.terraform.d/
-/terraform/
