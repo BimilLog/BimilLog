@@ -15,11 +15,6 @@ export async function getFCMToken(): Promise<string | null> {
     return null;
   }
 
-  if (Notification.permission === 'denied') {
-    logger.log('알림 권한 거부 - FCM 토큰 생략');
-    return null;
-  }
-
   try {
     const { getMessaging, getToken, isSupported } = await import('firebase/messaging');
     const messagingSupported = await isSupported();
@@ -51,6 +46,9 @@ export async function getFCMToken(): Promise<string | null> {
 
     const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
 
+    // 서비스 워커가 active 상태가 될 때까지 대기
+    await navigator.serviceWorker.ready;
+
     const token = await getToken(messaging, {
       serviceWorkerRegistration: registration
     });
@@ -60,10 +58,10 @@ export async function getFCMToken(): Promise<string | null> {
       return token;
     }
 
-    logger.log('FCM 토큰 획득 실패 - 브라우저 알림 권한을 확인해주세요.');
+    logger.log('FCM 토큰을 가져올 수 없습니다. 브라우저 알림 권한을 확인해주세요.');
     return null;
   } catch (error) {
-    logger.error('FCM 토큰 가져오기 실패:', error);
+    logger.error('FCM 토큰 발급 실패:', error);
     return null;
   }
 }
@@ -122,11 +120,11 @@ export class FCMManager {
         isSupported: true
       };
     } catch (error) {
-      logger.error("Failed to get FCM token:", error);
+      logger.error("FCM 토큰 획득 중 오류 발생:", error);
       return {
         token: null,
         isSupported: true,
-        error: error instanceof Error ? error : new Error("Unknown FCM error")
+        error: error instanceof Error ? error : new Error("FCM 토큰 획득 실패")
       };
     }
   }
@@ -140,7 +138,7 @@ export class FCMManager {
       const result = await this.getToken();
       return result.token;
     } catch (error) {
-      logger.error("FCM token acquisition failed:", error);
+      logger.error("FCM 토큰 획득 실패:", error);
       return null;
     }
   }
@@ -165,7 +163,7 @@ export class FCMManager {
       const permission = await Notification.requestPermission();
       return permission;
     } catch (error) {
-      logger.error("Failed to request notification permission:", error);
+      logger.error("알림 권한 요청 실패:", error);
       return "denied";
     }
   }
@@ -196,6 +194,7 @@ export class FCMManager {
 
     // 2단계: 권한이 승인되지 않으면 토큰 발급 중단
     if (permission !== "granted") {
+      logger.log(`알림 권한이 거부되었습니다 (상태: ${permission})`);
       return null;
     }
 
