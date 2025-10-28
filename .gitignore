@@ -120,6 +120,7 @@ BimilLog_chat/bin/
 BimilLog_chat/out/
 !BimilLog_chat/**/src/main/**/out/
 !BimilLog_chat/**/src/test/**/out/
+/BimilLog_chat/docs/
 
 # Secret config files
 BimilLog_chat/src/main/resources/application-secret.yml
