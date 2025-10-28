@@ -62,7 +62,7 @@ jobs:
               # Export all required environment variables
               export PROD_MYSQL_URL="${{ secrets.PROD_MYSQL_URL }}"
               export PROD_MYSQL_USERNAME="${{ secrets.PROD_MYSQL_USERNAME }}"
-              export MYSQL_PASSWORD="${{ secrets.MYSQL_PASSWORD }}"
+              export PROD_MYSQL_PASSWORD="${{ secrets.PROD_MYSQL_PASSWORD }}"
               export PROD_REDIS_HOST="${{ secrets.PROD_REDIS_HOST }}"
               export PROD_REDIS_PORT="${{ secrets.PROD_REDIS_PORT }}"
               export REDIS_PASSWORD="${{ secrets.REDIS_PASSWORD }}"

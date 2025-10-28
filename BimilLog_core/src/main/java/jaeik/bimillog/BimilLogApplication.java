@@ -27,9 +27,7 @@ public class BimilLogApplication {
     /**
      * <h3>애플리케이션 시작점</h3>
      *
-     * <p>
-     * Spring Boot 애플리케이션을 시작한다.
-     * </p>
+     * <p>Spring Boot 애플리케이션을 시작한다.</p>
      * 
      * @since 2.0.0
      * @author Jaeik
