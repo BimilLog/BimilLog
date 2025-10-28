@@ -8,23 +8,23 @@
 
 ```
 BimilLog/
-├── BimilLog_main/     # 메인 애플리케이션
-│   ├── backend/       # Spring Boot 백엔드
-│   └── frontend/      # Next.js 프론트엔드
-│
-└── bimilLog_chat/     # 채팅 서비스
-    └── src/           # Spring Boot 백엔드
+├── BimilLog_core/     # 메인 백엔드 (Spring Boot)
+├── BimilLog_front/    # 프론트엔드 (Next.js)
+├── BimilLog_chat/     # 채팅 서비스 (Spring Boot)
+├── .github/           # CI/CD workflows
+└── BimilLog_main/     # Docs & Terraform
+    ├── docs/          # 문서
+    └── terraform/     # 인프라 코드
 ```
 
 ## 모듈 설명
 
-### BimilLog_main (메인 서비스)
+### BimilLog_core (메인 백엔드)
 - **포트**: 8080
 - **기술 스택**:
-  - 백엔드: Spring Boot 3.4.4, Java 21
-  - 프론트엔드: Next.js 15
-  - 데이터베이스: MySQL, Redis
-  - 인증: OAuth 2.0 (Kakao), JWT
+  - Spring Boot 3.4.4, Java 21
+  - MySQL, Redis
+  - OAuth 2.0 (Kakao), JWT
 - **주요 기능**:
   - 회원 관리 (카카오 로그인)
   - 익명 게시판 (post, comment)
@@ -33,7 +33,18 @@ BimilLog/
   - 관리자 기능
 - **아키텍처**: Hexagonal Architecture (포트 & 어댑터 패턴)
 
-### bimilLog_chat (채팅 서비스)
+### BimilLog_front (프론트엔드)
+- **포트**: 3000
+- **기술 스택**:
+  - Next.js 15.5.3, React 19, TypeScript
+  - TanStack Query, Zustand
+  - Atomic Design 패턴
+- **주요 기능**:
+  - 반응형 UI/UX
+  - 실시간 알림 (FCM, SSE)
+  - PWA 지원
+
+### BimilLog_chat (채팅 서비스)
 - **포트**: 8081
 - **기술 스택**:
   - 백엔드: Spring Boot 3.4.4, Java 21
