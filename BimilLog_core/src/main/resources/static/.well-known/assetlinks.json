@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.growfarm.bimillog",
+    "sha256_cert_fingerprints": [
+      "EB:D9:AF:56:74:31:FE:7C:2A:83:65:3F:67:DC:80:0A:D2:C8:11:19:33:FD:45:6A:96:FB:D0:DA:E6:52:B0:FE"
+    ]
+  }
+}]

@@ -1,0 +1,12 @@
+## This file is a template for local.properties
+# Copy this file to 'local.properties' and fill in your actual values
+# local.properties is .gitignored and will not be committed
+
+# Location of the Android SDK
+# Android Studio will automatically set this
+sdk.dir=/path/to/android/sdk
+
+# Keystore passwords for release signing
+# Replace these with your actual keystore passwords
+RELEASE_STORE_PASSWORD=your_keystore_password_here
+RELEASE_KEY_PASSWORD=your_key_password_here

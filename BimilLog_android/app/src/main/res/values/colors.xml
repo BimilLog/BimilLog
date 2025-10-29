@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- manifest.json의 theme_color (#000000)와 동일하게 설정 -->
+    <color name="colorPrimary">#000000</color>
+    <color name="colorPrimaryDark">#000000</color>
+    <color name="colorAccent">#000000</color>
+
+    <!-- 기타 색상 -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+</resources>

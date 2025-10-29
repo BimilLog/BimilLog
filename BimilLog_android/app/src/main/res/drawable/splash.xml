@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 배경색 (검정색) -->
+    <item android:drawable="@color/colorPrimary" />
+
+    <!-- 중앙 로고 이미지 -->
+    <!-- 실제 앱 아이콘(ic_launcher)을 사용하거나, 별도의 splash 이미지를 추가하세요 -->
+    <item>
+        <bitmap
+            android:gravity="center"
+            android:src="@mipmap/ic_launcher" />
+    </item>
+</layer-list>
