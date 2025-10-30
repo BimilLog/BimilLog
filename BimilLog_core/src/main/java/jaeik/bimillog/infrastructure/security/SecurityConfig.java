@@ -99,6 +99,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/paper/{userName}", "/api/paper/popular").permitAll()
                         .requestMatchers("/api/member/suggestion", "/api/member/username/check", "/api/member/report").permitAll()
+                        .requestMatchers("/actuator/**").permitAll()  // ALB에서 외부 접근 차단됨
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(LogFilter, UsernamePasswordAuthenticationFilter.class)
