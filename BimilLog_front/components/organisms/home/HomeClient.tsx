@@ -40,6 +40,21 @@ export default function HomeClient() {
   useEffect(() => {
     // 로그인되어 있고, 모바일/태블릿이고, 스킵하지 않았을 때만 표시
     if (isAuthenticated && user && isMobileOrTablet()) {
+      // ✅ FIX: 이미 권한이 허용/거부된 경우 모달 표시 안 함
+      if (typeof window !== 'undefined' && 'Notification' in window) {
+        const currentPermission = Notification.permission;
+
+        // 이미 허용됨 → 모달 표시 안 함
+        if (currentPermission === 'granted') {
+          return;
+        }
+
+        // 명시적으로 거부됨 → 모달 표시 안 함
+        if (currentPermission === 'denied') {
+          return;
+        }
+      }
+
       const skipUntil = localStorage.getItem("notification_permission_skipped");
       const shouldShow = !skipUntil || Date.now() > parseInt(skipUntil);
 
