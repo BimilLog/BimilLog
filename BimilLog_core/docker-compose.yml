@@ -48,9 +48,28 @@ services:
       - redis-data:/data
     restart: unless-stopped
 
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: bimillog-prometheus
+    ports:
+      - "127.0.0.1:9090:9090"  # localhost만 바인딩 (SSH 터널용)
+    networks:
+      - bimillog-network
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+    restart: unless-stopped
+
 networks:
   bimillog-network:
     driver: bridge
 
 volumes:
   redis-data:
+  prometheus-data:

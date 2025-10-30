@@ -38,13 +38,13 @@ jobs:
           docker tag bimillog-backend:latest $IMAGE_REPO:backend
           docker push $IMAGE_REPO:backend
 
-      - name: Copy docker-compose.yml to EC2
+      - name: Copy docker-compose.yml and prometheus config to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.BASTION_HOST }}
           username: ${{ secrets.BASTION_USER }}
           key: ${{ secrets.BASTION_SSH_KEY }}
-          source: "BimilLog_core/docker-compose.yml"
+          source: "BimilLog_core/docker-compose.yml,BimilLog_core/prometheus"
           target: "/tmp/"
 
       - name: Deploy Backend and Redis via Bastion Host
@@ -54,8 +54,9 @@ jobs:
           username: ${{ secrets.BASTION_USER }}
           key: ${{ secrets.BASTION_SSH_KEY }}
           script: |
-            # Copy docker-compose.yml to backend server via bastion
+            # Copy docker-compose.yml and prometheus config to backend server via bastion
             scp -i ~/growfarm-backend-server-key.pem -o StrictHostKeyChecking=no /tmp/BimilLog_core/docker-compose.yml ${{ secrets.SERVER_USER }}@${{ secrets.BACKEND_SERVER_IP }}:/home/ubuntu/
+            scp -r -i ~/growfarm-backend-server-key.pem -o StrictHostKeyChecking=no /tmp/BimilLog_core/prometheus ${{ secrets.SERVER_USER }}@${{ secrets.BACKEND_SERVER_IP }}:/home/ubuntu/
 
             # SSH to backend server and deploy
             ssh -i ~/growfarm-backend-server-key.pem -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.BACKEND_SERVER_IP }} << 'ENDSSH'
