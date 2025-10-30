@@ -87,6 +87,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, "/").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/.well-known/**").permitAll() // TWA Digital Asset Links
                         .requestMatchers("/api/auth/login", "/api/global/health", "/api/auth/me", "/api/member/signup").permitAll()
                         .requestMatchers("/api/comment/me", "/api/comment/me/liked").authenticated()
                         .requestMatchers("/api/comment/like").authenticated()

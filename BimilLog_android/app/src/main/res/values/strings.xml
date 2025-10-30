@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">비밀로그</string>
+
+    <!-- TWA 관련 문자열 -->
+    <string name="host_url">grow-farm.com</string>
+    <string name="launch_url">https://grow-farm.com</string>
+</resources>

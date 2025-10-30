@@ -6,6 +6,7 @@ import jaeik.bimillog.domain.notification.application.port.out.NotificationUtilP
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
+import jaeik.bimillog.infrastructure.adapter.in.notification.listener.NotificationGenerateListener;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -98,12 +99,11 @@ public class FcmService implements FcmUseCase {
     /**
      * <h3>인기글 등극 알림 FCM 전송</h3>
      * <p>게시글이 인기글로 선정되었을 때 게시글 작성자에게 FCM 푸시 알림을 전송합니다.</p>
-     * <p>알림 수신 자격 검증을 거쳐 유효한 FCM 토큰에만 알림을 발송하며, 전송 실패 시에도 예외를 발생시키지 않습니다.</p>
-     * <p>PostFeaturedListener에서 인기글 등극 이벤트 발생 시 호출됩니다.</p>
      *
      * @param memberId 사용자 ID
      * @param title  알림 제목
      * @param body   알림 내용
+     * @see NotificationGenerateListener
      * @author Jaeik
      * @since 2.0.0
      */
@@ -122,7 +122,7 @@ public class FcmService implements FcmUseCase {
 
 
     /**
-     * <h3>FCM 알림 전송 도우미 메서드</h3>
+     * <h3>FCM 알림 전송 헬퍼 메서드</h3>
      * <p>FCM 토큰 목록을 순회하며 개별 푸시 메시지를 전송하는 내부 유틸리티 메서드입니다.</p>
      * <p>개별 메시지 전송 실패 시에도 전체 전송을 중단하지 않고 계속 진행하여 가용성을 보장합니다.</p>
      * <p>비어있는 토큰 목록에 대해서는 알림 전송을 건너뜁니다.</p>

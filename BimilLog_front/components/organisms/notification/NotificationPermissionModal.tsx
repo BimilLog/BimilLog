@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from "flowbite-react";
 import { Bell, BellOff, AlertCircle } from "lucide-react";
 import { fcmManager } from "@/lib/auth/fcm";

@@ -9,6 +9,7 @@
 # Environment files (contains secrets)
 .env
 .env*
+local.properties
 
 # IDE
 .idea/
@@ -100,6 +101,7 @@ BimilLog_main/.cursor/
 BimilLog_core/.claude/
 .mcp.json
 CLAUDE.md
+PlayStore.md
 /.claude
 
 # Terraform

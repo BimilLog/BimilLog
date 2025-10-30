@@ -35,11 +35,9 @@ public class Member extends BaseEntity {
     @Column(name = "member_id")
     private Long id;
 
-    /**
-     * JPA CASCADE (V2.5): Member 저장 시 Setting 자동 저장, 삭제 시 자동 삭제
-     * DB CASCADE (V2.5): Member 삭제 시 Setting 자동 삭제
-     * 생명주기 일치: Member와 Setting은 항상 함께 생성/삭제
-     */
+    // JPA CASCADE (V2.5): Member 저장 시 Setting 자동 저장, 삭제 시 자동 삭제
+    // DB CASCADE (V2.5): Member 삭제 시 Setting 자동 삭제
+    // 생명주기 일치: Member와 Setting은 항상 함께 생성/삭제
     @NotNull
     @OneToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
     @JoinColumn(name = "setting_id")

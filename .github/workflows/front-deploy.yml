@@ -59,4 +59,5 @@ jobs:
             docker rm bimillog-frontend || true
             echo "${{ secrets.FRONTEND_ENV }}" | base64 -d > /home/ubuntu/bimillog-frontend.env
             docker run -d --name bimillog-frontend --env-file /home/ubuntu/bimillog-frontend.env -p 3000:3000 jaeikjeong/bimillog:frontend
+            docker image prune -f
             ENDSSH
