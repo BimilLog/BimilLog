@@ -1,0 +1,26 @@
+global:
+  scrape_interval: 15s      # 15초마다 메트릭 수집
+  evaluation_interval: 15s  # 15초마다 규칙 평가
+  scrape_timeout: 10s       # 스크래핑 타임아웃
+
+# 스크래핑 대상 설정
+scrape_configs:
+  # BimilLog Backend 모니터링
+  - job_name: 'bimillog-backend'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['backend:8081']  # Docker 컨테이너 이름으로 접근
+        labels:
+          application: 'bimillog'
+          environment: 'prod'
+          service: 'backend'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+
+  # Prometheus 자체 모니터링
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          application: 'prometheus'
+          environment: 'prod'

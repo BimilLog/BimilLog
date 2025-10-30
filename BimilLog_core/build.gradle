@@ -5,6 +5,7 @@ buildscript {
     }
 }
 
+
 plugins {
     id 'java'
     id 'org.springframework.boot' version '3.4.4'
@@ -30,6 +31,10 @@ configurations {
     }
 }
 
+springBoot {
+    buildInfo()
+}
+
 repositories {
     mavenCentral()
 }
@@ -53,8 +58,6 @@ dependencies {
     implementation 'org.flywaydb:flyway-core' // DB 마이그레이션 관리
     implementation 'org.flywaydb:flyway-mysql' // MySQL 전용 Flyway 지원
 
-
-
     // ==== JWT (토큰 인증) 관련 ====
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5' // JWT API
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5' // JWT 구현체
@@ -75,12 +78,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test' // 테스트용 스타터
     testImplementation 'org.springframework.security:spring-security-test' // Spring Security 테스트 지원
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher' // JUnit 플랫폼 런처 (Gradle 경고 방지)
-
-    // ==== H2 인메모리 데이터베이스 (빠른 테스트용) ====
     testImplementation 'com.h2database:h2' // H2 Database
-    
-    // ==== E2E 테스트 (Playwright) ====
-    testImplementation 'com.microsoft.playwright:playwright:1.49.0' // Playwright 브라우저 자동화
     testImplementation 'org.assertj:assertj-core:3.26.3' // AssertJ 테스트 검증
 
     // ==== 알림 관련 ====
@@ -97,7 +95,9 @@ dependencies {
     // ==== 네트워크 ====
     implementation 'org.apache.httpcomponents:httpclient:4.5.13'
 
-
+    // ==== 모니터링 ====
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
 
 
     // ==== Commons Logging 충돌 해결 ====
