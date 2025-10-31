@@ -8,6 +8,7 @@ import { Home, RefreshCw, AlertTriangle, ArrowLeft } from "lucide-react";
 import { AuthHeader } from "@/components/organisms/common";
 import { HomeFooter } from "@/components/organisms/home";
 import { BackButton } from "@/components/atoms/actions/back-button";
+import { errorLogger } from "@/lib/error-logger";
 
 export default function ErrorPage({
   error,
@@ -17,8 +18,9 @@ export default function ErrorPage({
   reset: () => void;
 }) {
   useEffect(() => {
-    // 에러 로깅 (선택사항: 에러 추적 서비스에 전송)
+    // 에러 로깅: 백엔드로 전송
     console.error("Error occurred:", error);
+    errorLogger.logError(error, { digest: error.digest });
   }, [error]);
 
   return (

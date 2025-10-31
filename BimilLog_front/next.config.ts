@@ -12,7 +12,14 @@ const pwaConfig = {
     buildExcludes: [/app-build-manifest\.json$/],
     runtimeCaching: [
         {
-            urlPattern: /^https:\/\/grow-farm\.com\/api\//,
+            urlPattern: /^https:\/\/grow-farm\.com\/api\/notification\/subscribe$/,
+            handler: "NetworkOnly",
+            options: {
+                cacheName: "sse-bypass",
+            },
+        },
+        {
+            urlPattern: /^https:\/\/grow-farm\.com\/api\/(?!notification\/subscribe(?:\/|$))/,
             handler: "NetworkFirst",
             options: {
                 cacheName: "api-cache",
