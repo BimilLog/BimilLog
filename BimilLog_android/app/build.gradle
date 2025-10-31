@@ -20,8 +20,8 @@ android {
         applicationId "com.growfarm.bimillog"
         minSdk 23  // Firebase Crashlytics requires API 23+
         targetSdk 35
-        versionCode 3
-        versionName "1.1.0"
+        versionCode 4
+        versionName "1.1.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -63,7 +63,7 @@ dependencies {
     implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0'
 
     // Firebase BoM (Bill of Materials) - 모든 Firebase 라이브러리 버전 관리
-    implementation platform('com.google.firebase:firebase-bom:34.4.0')
+    implementation platform('com.google.firebase:firebase-bom:33.8.0')
 
     // Firebase Crashlytics - 크래시 리포팅
     implementation 'com.google.firebase:firebase-crashlytics'
