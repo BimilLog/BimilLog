@@ -11,6 +11,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.nio.charset.StandardCharsets;
+
+import jakarta.servlet.http.HttpServletResponse;
+
 /**
  * <h2>SSE 실시간 알림 구독 컨트롤러</h2>
  * <p>SSE 실시간 알림 구독을 담당하는 REST API 컨트롤러입니다.</p>
@@ -40,7 +44,16 @@ public class NotificationSseController {
      * @since 2.0.0
      */
     @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter subscribe(@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public SseEmitter subscribe(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                HttpServletResponse response) {
+        // SSE 스트림은 중간 프록시가 버퍼링하거나 압축할 경우 HTTP/2 프로토콜 오류가 발생할 수 있으므로 명시적으로 비활성화
+        response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+        response.setHeader("Pragma", "no-cache");
+        response.setHeader("X-Accel-Buffering", "no"); // Nginx 계열 버퍼링 비활성화
+        response.setHeader("Connection", "keep-alive");
+        response.setHeader("Content-Type", MediaType.TEXT_EVENT_STREAM_VALUE + ";charset=UTF-8");
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+
         return sseUseCase.subscribe(userDetails.getMemberId(), userDetails.getTokenId());
     }
 }
