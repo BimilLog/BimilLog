@@ -38,7 +38,5 @@ ENTRYPOINT ["java", \
     "-Dfile.encoding=UTF-8", \
     "-Duser.timezone=Asia/Seoul", \
     "-XX:+HeapDumpOnOutOfMemoryError", \
-    "-XX:HeapDumpPath=/app/logs/heapdump.hprof", \
-    "-Xlog:gc*:file=/app/logs/gc.log:time,uptime,level,tags", \
     "-Dspring.profiles.active=${SPRING_PROFILES_ACTIVE}", \
     "-jar", "app.jar"]

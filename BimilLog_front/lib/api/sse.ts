@@ -74,6 +74,13 @@ export class SSEManager {
       }
 
       const handleSSEEvent = (event: MessageEvent) => {
+        // Heartbeat 메시지 필터링 (서버의 연결 유지용 메시지)
+        if (event.data === "heartbeat") {
+          // Heartbeat는 30초마다 전송되므로 로그 생략 (필요시 디버깅용으로 활성화)
+          // logger.log("Heartbeat received - connection alive")
+          return
+        }
+
         logger.log(`SSE ${event.type} event received:`, event.data)
 
         try {
@@ -120,28 +127,39 @@ export class SSEManager {
 
       this.eventSource.onerror = (error) => {
         logger.error("SSE connection error:", error)
-        logger.log("EventSource readyState:", this.eventSource?.readyState)
+        const readyState = this.eventSource?.readyState
+        logger.log("EventSource readyState:", readyState)
 
         this.notifyStatusListeners('error')
 
-        if (this.reconnectAttempts < this.maxReconnectAttempts) {
-          this.reconnectAttempts++
+        // EventSource.CLOSED (2): 서버가 명시적으로 연결 종료 시
+        // EventSource.CONNECTING (0): 브라우저가 자동 재연결 중 (서버의 reconnectTime 5초 사용)
+        if (readyState === EventSource.CLOSED) {
+          // 서버 명시적 종료 시에만 수동 재연결 시도
+          if (this.reconnectAttempts < this.maxReconnectAttempts) {
+            this.reconnectAttempts++
 
-          // Exponential backoff: 1s, 2s, 4s, 8s, 10s (max)
-          const delay = Math.min(
-            this.baseReconnectDelay * Math.pow(2, this.reconnectAttempts - 1),
-            this.maxReconnectDelay
-          )
+            // Exponential backoff: 1s, 2s, 4s, 8s, 10s (max)
+            const delay = Math.min(
+              this.baseReconnectDelay * Math.pow(2, this.reconnectAttempts - 1),
+              this.maxReconnectDelay
+            )
 
-          logger.log(`SSE 재연결 시도 ${this.reconnectAttempts}/${this.maxReconnectAttempts} (${delay}ms 후)`)
+            logger.log(`SSE 재연결 시도 ${this.reconnectAttempts}/${this.maxReconnectAttempts} (${delay}ms 후)`)
+            this.notifyStatusListeners('reconnecting')
+
+            setTimeout(() => {
+              this.connect()
+            }, delay)
+          } else {
+            logger.error("SSE 재연결 시도 초과됨")
+            this.notifyStatusListeners('disconnected')
+            this.disconnect()
+          }
+        } else if (readyState === EventSource.CONNECTING) {
+          // 브라우저가 자동으로 재연결 중 (서버의 reconnectTime=5000ms 사용)
+          logger.log("브라우저가 자동으로 재연결 중입니다 (5초 간격)")
           this.notifyStatusListeners('reconnecting')
-
-          setTimeout(() => {
-            this.connect()
-          }, delay)
-        } else {
-          logger.error("SSE 재연결 시도 초과됨")
-          this.notifyStatusListeners('disconnected')
         }
       }
     } catch (error) {

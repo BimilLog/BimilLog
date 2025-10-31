@@ -177,8 +177,7 @@ public class JwtFilter extends OncePerRequestFilter {
             } catch (CustomException e) {
                 // 보안 예외 발생 시 필터 체인 중단
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                filterChain.doFilter(request, response);
-                return;
+                response.getWriter().write("{\"error\": \"" + e.getErrorCode().name() + "\"}");
             }
         }
         filterChain.doFilter(request, response);

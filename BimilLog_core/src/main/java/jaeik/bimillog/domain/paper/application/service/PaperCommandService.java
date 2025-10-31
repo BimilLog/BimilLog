@@ -108,7 +108,7 @@ public class PaperCommandService implements PaperCommandUseCase {
 
         eventPublisher.publishEvent(new RollingPaperEvent(
                 member.getId(),
-                memberName
+                member.getMemberName()
         ));
     }
 }

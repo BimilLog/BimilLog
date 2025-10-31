@@ -13,6 +13,7 @@ import jaeik.bimillog.infrastructure.adapter.in.notification.listener.Notificati
 import jaeik.bimillog.infrastructure.adapter.in.notification.web.NotificationSseController;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -78,7 +79,7 @@ public class SseAdapter implements SsePort {
     public SseEmitter subscribe(Long memberId, Long tokenId) {
         String emitterId = makeTimeIncludeId(memberId, tokenId);
         log.info("SSE subscribe requested - memberId={}, tokenId={}, emitterId={}", memberId, tokenId, emitterId);
-        SseEmitter emitter = save(emitterId, new SseEmitter(1800000L));
+        SseEmitter emitter = save(emitterId, new SseEmitter(0L));
 
         emitter.onCompletion(() -> {
             log.info("SSE connection completed - emitterId={}", emitterId);
@@ -96,7 +97,18 @@ public class SseAdapter implements SsePort {
 
         SseMessage initMessage = SseMessage.of(memberId, NotificationType.INITIATE,
                 "이벤트 스트림이 생성되었습니다. [emitterId=%s]".formatted(emitterId), "");
-        sendNotification(emitter, emitterId, initMessage);
+
+        // 초기 메시지는 retry 간격을 포함하여 전송 (클라이언트 재연결 간격 5초)
+        try {
+            emitter.send(SseEmitter.event()
+                    .id(emitterId)
+                    .name(initMessage.type().toString())
+                    .data(initMessage.toJsonData())
+                    .reconnectTime(5000L)); // 5초 후 재연결 시도
+        } catch (IOException e) {
+            log.warn("Failed to send initial SSE message - emitterId={}, reason={}", emitterId, e.getMessage(), e);
+            deleteById(emitterId);
+        }
 
         return emitter;
     }
@@ -296,5 +308,43 @@ public class SseAdapter implements SsePort {
     private void deleteEmitterByUserIdAndTokenId(Long memberId, Long tokenId) {
         String memberTokenPrefix = memberId + "_" + tokenId + "_";
         emitters.entrySet().removeIf(entry -> entry.getKey().startsWith(memberTokenPrefix));
+    }
+
+    /**
+     * <h3>Heartbeat 전송 - 연결 활성 유지</h3>
+     * <p>주기적으로 모든 활성 SSE 연결에 Heartbeat 메시지를 전송합니다.</p>
+     *
+     * <p>주요 목적:</p>
+     * <ul>
+     *   <li>프록시/로드밸런서의 Idle Timeout 방지 (대부분 60초 기본값)</li>
+     *   <li>클라이언트 연결 끊김 조기 감지 (전송 실패 시 자동 정리)</li>
+     *   <li>장기 연결 안정성 향상</li>
+     * </ul>
+     *
+     * <p>Heartbeat는 SSE comment 형태로 전송되며, 클라이언트에서 별도 처리 불필요합니다.</p>
+     * <p>전송 실패 시 해당 Emitter를 자동으로 정리하여 메모리 누수를 방지합니다.</p>
+     *
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Scheduled(fixedDelay = 30000L)
+    public void sendHeartbeat() {
+        if (emitters.isEmpty()) {
+            return; // 활성 연결이 없으면 로깅 생략
+        }
+
+        log.debug("SSE Heartbeat 전송 시작. 활성 Emitter 수: {}", emitters.size());
+
+        emitters.forEach((emitterId, emitter) -> {
+            try {
+                emitter.send(SseEmitter.event().comment("heartbeat"));
+            } catch (IOException e) {
+                log.warn("Heartbeat 전송 실패, Emitter 정리: {}", emitterId);
+                deleteById(emitterId);
+            } catch (Exception e) {
+                log.error("Heartbeat 전송 중 알 수 없는 오류: {}", emitterId, e);
+                deleteById(emitterId);
+            }
+        });
     }
 }
