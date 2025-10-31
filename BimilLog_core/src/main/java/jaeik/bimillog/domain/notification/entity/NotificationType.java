@@ -10,7 +10,7 @@ package jaeik.bimillog.domain.notification.entity;
  * @version 2.0.0
  */
 public enum NotificationType {
-    PAPER, // 롤링페이퍼에 메시지가 달렸을 때 (Setting.messageNotification과 연결)
+    MESSAGE, // 롤링페이퍼에 메시지가 달렸을 때 (Setting.messageNotification과 연결)
     COMMENT, // 게시글에 댓글이 달렸을 때 (Setting.commentNotification과 연결)
     POST_FEATURED, // 주간, 전설 인기글이 되었을 때 (Setting.postFeaturedNotification과 연결)
     ADMIN, // 관리자 알림 (설정 연동 없음)

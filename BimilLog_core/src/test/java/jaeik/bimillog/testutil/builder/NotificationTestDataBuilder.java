@@ -82,7 +82,7 @@ public class NotificationTestDataBuilder {
     public static NotificationTestDataBuilder aPaperMessageNotification(Member receiver) {
         return new NotificationTestDataBuilder()
                 .withReceiver(receiver)
-                .withType(NotificationType.PAPER)
+                .withType(NotificationType.MESSAGE)
                 .withMessage("새로운 롤링페이퍼 메시지가 도착했습니다.");
     }
 
