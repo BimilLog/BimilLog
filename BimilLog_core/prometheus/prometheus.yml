@@ -24,3 +24,15 @@ scrape_configs:
         labels:
           application: 'prometheus'
           environment: 'prod'
+
+  # 서버 시스템 메트릭 모니터링 (Node Exporter)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']  # Docker 컨테이너 이름으로 접근
+        labels:
+          application: 'bimillog'
+          environment: 'prod'
+          service: 'node-exporter'
+          instance: 'backend-server'
+    scrape_interval: 15s
+    scrape_timeout: 10s
