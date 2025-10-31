@@ -94,7 +94,7 @@ public class SseService implements SseUseCase {
     public void sendPaperPlantNotification(Long farmOwnerId, String memberName) {
         String message = "롤링페이퍼에 메시지가 작성되었어요!";
         String url = urlGeneratorPort.generateRollingPaperUrl(memberName);
-        SseMessage sseMessage = SseMessage.of(farmOwnerId, NotificationType.PAPER, message, url);
+        SseMessage sseMessage = SseMessage.of(farmOwnerId, NotificationType.MESSAGE, message, url);
         ssePort.send(sseMessage);
     }
 

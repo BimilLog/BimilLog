@@ -98,7 +98,7 @@ public class NotificationUtilAdapter implements NotificationUtilPort {
         }
         
         return switch (type) {
-            case PAPER -> qSetting.messageNotification.isTrue();
+            case MESSAGE -> qSetting.messageNotification.isTrue();
             case COMMENT -> qSetting.commentNotification.isTrue();
             case POST_FEATURED -> qSetting.postFeaturedNotification.isTrue();
             default -> Expressions.FALSE;

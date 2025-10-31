@@ -111,7 +111,7 @@ class NotificationQueryAdapterIntegrationTest {
         assertThat(notifications)
                 .extracting(Notification::getNotificationType)
                 .containsExactly(
-                        NotificationType.PAPER,
+                        NotificationType.MESSAGE,
                         NotificationType.POST_FEATURED,
                         NotificationType.COMMENT
                 );

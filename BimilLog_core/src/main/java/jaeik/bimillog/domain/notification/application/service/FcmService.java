@@ -84,7 +84,7 @@ public class FcmService implements FcmUseCase {
     @Override
     public void sendPaperPlantNotification(Long farmOwnerId) {
         try {
-            List<FcmToken> tokens = notificationUtilPort.FcmEligibleFcmTokens(farmOwnerId, NotificationType.PAPER);
+            List<FcmToken> tokens = notificationUtilPort.FcmEligibleFcmTokens(farmOwnerId, NotificationType.MESSAGE);
             String title = "롤링페이퍼에 메시지가 작성되었어요!";
             String body = "지금 확인해보세요!";
             boolean sent = sendNotifications(tokens, title, body);

@@ -41,7 +41,7 @@ class SseMessageTest {
     void shouldCreateSseMessage_WhenUsingConstructor() {
         // Given
         Long memberId = 2L;
-        NotificationType type = NotificationType.PAPER;
+        NotificationType type = NotificationType.MESSAGE;
         String message = "롤링페이퍼에 메시지가 작성되었어요!";
         String url = "/rolling-paper/testuser";
 
@@ -126,8 +126,8 @@ class SseMessageTest {
         SseMessage commentMessage = SseMessage.of(1L, NotificationType.COMMENT, "댓글 알림", "/post/1");
         assertThat(commentMessage.type()).isEqualTo(NotificationType.COMMENT);
 
-        SseMessage paperMessage = SseMessage.of(2L, NotificationType.PAPER, "페이퍼 알림", "/paper/member");
-        assertThat(paperMessage.type()).isEqualTo(NotificationType.PAPER);
+        SseMessage paperMessage = SseMessage.of(2L, NotificationType.MESSAGE, "페이퍼 알림", "/paper/member");
+        assertThat(paperMessage.type()).isEqualTo(NotificationType.MESSAGE);
 
         SseMessage featuredMessage = SseMessage.of(3L, NotificationType.POST_FEATURED, "인기글 알림", "/post/3");
         assertThat(featuredMessage.type()).isEqualTo(NotificationType.POST_FEATURED);

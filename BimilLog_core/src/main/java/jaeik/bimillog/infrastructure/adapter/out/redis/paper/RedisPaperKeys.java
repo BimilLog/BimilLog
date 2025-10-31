@@ -23,10 +23,10 @@ public final class RedisPaperKeys {
     // ===================== 2. SCORE CONSTANTS (점수 관련 상수) =====================
 
     /**
-     * 실시간 인기 롤링페이퍼 점수 감쇠율 (0.95)
+     * 실시간 인기 롤링페이퍼 점수 감쇠율 (0.97)
      * <p>주기적으로 모든 롤링페이퍼 점수에 곱해져 시간 경과에 따른 인기도 감소를 반영합니다.</p>
      */
-    public static final double REALTIME_PAPER_SCORE_DECAY_RATE = 0.95;
+    public static final double REALTIME_PAPER_SCORE_DECAY_RATE = 0.97;
 
     /**
      * 실시간 인기 롤링페이퍼 제거 임계값 (1.0)

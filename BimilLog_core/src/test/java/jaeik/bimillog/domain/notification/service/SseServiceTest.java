@@ -117,7 +117,7 @@ class SseServiceTest {
         // Then
         verify(urlGeneratorPort).generateRollingPaperUrl(userName);
         verify(ssePort).send(argThat(message ->
-                matchesMessage(message, farmOwnerId, NotificationType.PAPER,
+                matchesMessage(message, farmOwnerId, NotificationType.MESSAGE,
                         "롤링페이퍼에 메시지가 작성되었어요!", expectedUrl)
         ));
     }

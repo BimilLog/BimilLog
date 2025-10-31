@@ -64,10 +64,10 @@ public final class RedisPostKeys {
     // ===================== 3. SCORE CONSTANTS (점수 관련 상수) =====================
 
     /**
-     * 실시간 인기글 점수 감쇠율 (0.95)
+     * 실시간 인기글 점수 감쇠율 (0.97)
      * <p>5분마다 모든 게시글 점수에 곱해져 시간 경과에 따른 인기도 감소를 반영합니다.</p>
      */
-    public static final double REALTIME_POST_SCORE_DECAY_RATE = 0.95;
+    public static final double REALTIME_POST_SCORE_DECAY_RATE = 0.97;
 
     /**
      * 실시간 인기글 제거 임계값 (1.0)
