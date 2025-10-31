@@ -12,6 +12,7 @@ import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import jaeik.bimillog.infrastructure.adapter.in.notification.listener.NotificationGenerateListener;
 import jaeik.bimillog.infrastructure.adapter.in.notification.web.NotificationSseController;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -42,6 +43,7 @@ import java.util.stream.Collectors;
  * @author Jaeik
  * @version 2.0.0
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class SseAdapter implements SsePort {
@@ -75,10 +77,22 @@ public class SseAdapter implements SsePort {
     @Override
     public SseEmitter subscribe(Long memberId, Long tokenId) {
         String emitterId = makeTimeIncludeId(memberId, tokenId);
+        log.info("SSE subscribe requested - memberId={}, tokenId={}, emitterId={}", memberId, tokenId, emitterId);
         SseEmitter emitter = save(emitterId, new SseEmitter(1800000L));
 
-        emitter.onCompletion(() -> deleteById(emitterId));
-        emitter.onTimeout(() -> deleteById(emitterId));
+        emitter.onCompletion(() -> {
+            log.info("SSE connection completed - emitterId={}", emitterId);
+            deleteById(emitterId);
+        });
+        emitter.onTimeout(() -> {
+            log.warn("SSE connection timed out - emitterId={}", emitterId);
+            deleteById(emitterId);
+        });
+        emitter.onError(throwable -> {
+            log.warn("SSE connection error - emitterId={}, message={}", emitterId,
+                    throwable != null ? throwable.getMessage() : "unknown", throwable);
+            deleteById(emitterId);
+        });
 
         SseMessage initMessage = SseMessage.of(memberId, NotificationType.INITIATE,
                 "이벤트 스트림이 생성되었습니다. [emitterId=%s]".formatted(emitterId), "");
@@ -151,6 +165,8 @@ public class SseAdapter implements SsePort {
                     .name(sseMessage.type().toString())
                     .data(sseMessage.toJsonData()));
         } catch (IOException e) {
+            log.warn("Failed to send SSE message - emitterId={}, type={}, reason={}", emitterId,
+                    sseMessage.type(), e.getMessage(), e);
             deleteById(emitterId);
         }
     }
