@@ -1,7 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.out.redis;
 
 import jaeik.bimillog.domain.auth.application.port.out.RedisJwtBlacklistPort;
-import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -44,14 +43,7 @@ public class RedisJwtBlacklistAdapter implements RedisJwtBlacklistPort {
         try {
             String key = BLACKLIST_KEY_PREFIX + tokenHash;
 
-            boolean blacklisted = redisTemplate.hasKey(key);
-            String maskedHash = maskTokenHash(tokenHash);
-            if (blacklisted) {
-                CacheMetricsLogger.hit(log, "auth:blacklist", maskedHash);
-            } else {
-                CacheMetricsLogger.miss(log, "auth:blacklist", maskedHash, "key_not_found");
-            }
-            return blacklisted;
+            return redisTemplate.hasKey(key);
 
         } catch (Exception e) {
             log.error("Redis에서 토큰 블랙리스트 확인 실패: tokenHash={}, error={}",

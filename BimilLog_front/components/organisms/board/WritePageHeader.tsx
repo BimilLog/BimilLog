@@ -50,8 +50,11 @@ export const WritePageHeader: React.FC<WritePageHeaderProps> = ({
               <Button
                 size="sm"
                 onClick={onSubmit}
-                disabled={isSubmitting || !isFormValid}
-                className="bg-gradient-to-r from-pink-500 to-purple-600"
+                disabled={isSubmitting}
+                aria-disabled={!isFormValid}
+                className={`bg-gradient-to-r from-pink-500 to-purple-600 ${
+                  !isFormValid ? 'opacity-80' : ''
+                }`}
               >
                 <Save className="w-4 h-4 stroke-green-600 fill-green-100" />
               </Button>
@@ -70,8 +73,11 @@ export const WritePageHeader: React.FC<WritePageHeaderProps> = ({
             </Button>
             <Button
               onClick={onSubmit}
-              disabled={isSubmitting || !isFormValid}
-              className="bg-gradient-to-r from-pink-500 to-purple-600"
+              disabled={isSubmitting}
+              aria-disabled={!isFormValid}
+              className={`bg-gradient-to-r from-pink-500 to-purple-600 ${
+                !isFormValid ? 'opacity-80' : ''
+              }`}
             >
               <Save className="w-4 h-4 mr-2 stroke-green-600 fill-green-100" />
               {isSubmitting ? "작성 중..." : "작성완료"}

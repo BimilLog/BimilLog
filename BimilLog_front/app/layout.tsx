@@ -6,6 +6,8 @@ import "./globals.css";
 import { ClientProviders } from "@/providers/client-providers";
 import { QueryProvider } from "@/providers/query-provider";
 import { WebVitalsReporter } from "@/components/analytics/web-vitals";
+import { ErrorInitializer } from "@/components/error-initializer";
+import { TestCrashButton } from "@/components/test-crash-button";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -169,9 +171,15 @@ export default function RootLayout({
         {/* Web Vitals 모니터링 */}
         <WebVitalsReporter />
 
+        {/* 전역 에러 핸들러 초기화 */}
+        <ErrorInitializer />
+
         <QueryProvider>
           <ClientProviders>{children}</ClientProviders>
         </QueryProvider>
+
+        {/* 개발 모드 전용 테스트 크래시 버튼 */}
+        <TestCrashButton />
       </body>
     </html>
   );
