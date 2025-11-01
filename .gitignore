@@ -10,7 +10,7 @@
 .env
 .env*
 local.properties
-
+/performance
 # IDE
 .idea/
 .vscode/

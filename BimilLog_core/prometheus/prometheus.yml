@@ -36,3 +36,14 @@ scrape_configs:
           instance: 'backend-server'
     scrape_interval: 15s
     scrape_timeout: 10s
+
+  # Redis 모니터링 (Redis Exporter)
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+        labels:
+          application: 'bimillog'
+          environment: 'local'
+          service: 'redis'
+    scrape_interval: 15s
+    scrape_timeout: 10s
