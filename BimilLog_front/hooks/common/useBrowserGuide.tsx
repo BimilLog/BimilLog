@@ -1,50 +1,79 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { storage, logger } from "@/lib/utils";
 
-export function useBrowserGuide() {
+type HideDuration = "session" | "1h" | "24h" | "7d" | "forever";
+
+interface BrowserInfo {
+  name: string;
+  isInApp: boolean;
+}
+
+interface BrowserGuideContextValue {
+  isKakaoInApp: boolean;
+  showGuide: boolean;
+  isPWAInstallable: boolean;
+  installPWA: () => Promise<void>;
+  hideGuide: (duration?: HideDuration) => void;
+  getBrowserInfo: () => BrowserInfo;
+}
+
+const BrowserGuideContext = createContext<BrowserGuideContextValue | null>(
+  null
+);
+
+const isBrowserEnvironment = () =>
+  typeof window !== "undefined" && typeof navigator !== "undefined";
+
+interface BrowserGuideProviderProps {
+  children: ReactNode;
+}
+
+export function BrowserGuideProvider({ children }: BrowserGuideProviderProps) {
   const [isKakaoInApp, setIsKakaoInApp] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const [isPWAInstallable, setIsPWAInstallable] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   useEffect(() => {
-    // 클라이언트 환경에서만 실행
-    if (typeof window === "undefined" || typeof navigator === "undefined") {
+    if (!isBrowserEnvironment()) {
       return;
     }
 
-      // 카카오톡 인앱 브라우저 감지
-  const detectKakaoInApp = () => {
-    const userAgent = navigator.userAgent;
-    logger.log("User Agent:", userAgent);
+    const detectKakaoInApp = () => {
+      const userAgent = navigator.userAgent;
+      logger.log("User Agent:", userAgent);
 
-      // 더 정확한 카카오톡 인앱 브라우저 감지
       const isKakao =
         /KAKAOTALK/i.test(userAgent) ||
         /KAKAO/i.test(userAgent) ||
         userAgent.includes("KAKAO");
 
-      // 개발 환경에서 테스트를 위한 강제 표시 (URL 파라미터 확인)
       const urlParams = new URLSearchParams(window.location.search);
       const forceShow = urlParams.get("show-guide") === "true";
 
       setIsKakaoInApp(isKakao);
 
-      // 로컬 스토리지에서 가이드 숨김 상태 확인
       const guideHidden = storage.local.getBrowserGuideHidden();
       const hideUntil = storage.local.getBrowserGuideHideUntil();
 
-    logger.log("Browser detection:", {
-      isKakao,
-      forceShow,
-      guideHidden,
-      hideUntil,
-    });
+      logger.log("Browser detection:", {
+        isKakao,
+        forceShow,
+        guideHidden,
+        hideUntil,
+      });
 
       if ((isKakao || forceShow) && !guideHidden) {
-        // 숨김 기간 확인
         if (hideUntil && new Date().getTime() < hideUntil) {
           logger.log("Guide hidden until:", new Date(hideUntil));
           return;
@@ -53,18 +82,16 @@ export function useBrowserGuide() {
       }
     };
 
-    // PWA 설치 가능 여부 감지
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
+    const handleBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      setDeferredPrompt(event);
       setIsPWAInstallable(true);
     };
 
-    // PWA 설치 완료 감지
     const handleAppInstalled = () => {
       setIsPWAInstallable(false);
       setDeferredPrompt(null);
-      logger.log("PWA가 설치되었습니다!");
+      logger.log("PWA가 설치되었어요.");
     };
 
     detectKakaoInApp();
@@ -81,50 +108,50 @@ export function useBrowserGuide() {
     };
   }, []);
 
-  const installPWA = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      logger.log(`User response to the install prompt: ${outcome}`);
-      setDeferredPrompt(null);
-      setIsPWAInstallable(false);
+  const installPWA = useCallback(async () => {
+    if (!deferredPrompt) {
+      return;
     }
-  };
 
-  const hideGuide = (
-    duration: "session" | "1h" | "24h" | "7d" | "forever" = "24h"
-  ) => {
-    setShowGuide(false);
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    logger.log(`User response to the install prompt: ${outcome}`);
+    setDeferredPrompt(null);
+    setIsPWAInstallable(false);
+  }, [deferredPrompt]);
 
-    switch (duration) {
-      case "session":
-        // 세션 동안만 숨김 (새로고침 시 다시 표시)
-        break;
-      case "1h":
-        // 1시간 동안 숨김
-        const hideUntil1h = new Date().getTime() + 1 * 60 * 60 * 1000;
-        storage.local.setBrowserGuideHideUntil(hideUntil1h);
-        break;
-      case "24h":
-        // 24시간 동안 숨김
-        const hideUntil24h = new Date().getTime() + 24 * 60 * 60 * 1000;
-        storage.local.setBrowserGuideHideUntil(hideUntil24h);
-        break;
-      case "7d":
-        // 7일 동안 숨김
-        const hideUntil7d = new Date().getTime() + 7 * 24 * 60 * 60 * 1000;
-        storage.local.setBrowserGuideHideUntil(hideUntil7d);
-        break;
-      case "forever":
-        // 영원히 숨김
-        storage.local.setBrowserGuideHidden(true);
-        break;
-    }
-  };
+  const hideGuide = useCallback(
+    (duration: HideDuration = "24h") => {
+      setShowGuide(false);
 
-  const getBrowserInfo = () => {
-    // SSR 환경에서는 기본값 반환
-    if (typeof window === "undefined" || typeof navigator === "undefined") {
+      switch (duration) {
+        case "session":
+          break;
+        case "1h": {
+          const hideUntil1h = new Date().getTime() + 1 * 60 * 60 * 1000;
+          storage.local.setBrowserGuideHideUntil(hideUntil1h);
+          break;
+        }
+        case "24h": {
+          const hideUntil24h = new Date().getTime() + 24 * 60 * 60 * 1000;
+          storage.local.setBrowserGuideHideUntil(hideUntil24h);
+          break;
+        }
+        case "7d": {
+          const hideUntil7d = new Date().getTime() + 7 * 24 * 60 * 60 * 1000;
+          storage.local.setBrowserGuideHideUntil(hideUntil7d);
+          break;
+        }
+        case "forever":
+          storage.local.setBrowserGuideHidden(true);
+          break;
+      }
+    },
+    []
+  );
+
+  const getBrowserInfo = useCallback((): BrowserInfo => {
+    if (!isBrowserEnvironment()) {
       return { name: "브라우저", isInApp: false };
     }
 
@@ -149,18 +176,37 @@ export function useBrowserGuide() {
       return { name: "Chrome", isInApp: false };
     }
     if (/Samsung/i.test(userAgent)) {
-      return { name: "삼성 인터넷", isInApp: false };
+      return { name: "Samsung Internet", isInApp: false };
     }
 
     return { name: "알 수 없는 브라우저", isInApp: false };
-  };
+  }, []);
 
-  return {
-    isKakaoInApp,
-    showGuide,
-    isPWAInstallable,
-    installPWA,
-    hideGuide,
-    getBrowserInfo,
-  };
+  const contextValue = useMemo(
+    () => ({
+      isKakaoInApp,
+      showGuide,
+      isPWAInstallable,
+      installPWA,
+      hideGuide,
+      getBrowserInfo,
+    }),
+    [getBrowserInfo, hideGuide, installPWA, isKakaoInApp, isPWAInstallable, showGuide]
+  );
+
+  return (
+    <BrowserGuideContext.Provider value={contextValue}>
+      {children}
+    </BrowserGuideContext.Provider>
+  );
+}
+
+export function useBrowserGuide(): BrowserGuideContextValue {
+  const context = useContext(BrowserGuideContext);
+
+  if (context === null) {
+    throw new Error("useBrowserGuide must be used within a BrowserGuideProvider");
+  }
+
+  return context;
 }

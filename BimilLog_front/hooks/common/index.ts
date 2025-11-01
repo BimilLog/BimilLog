@@ -11,4 +11,4 @@ export { useAdmin } from './useAdmin';
 export { usePasswordModal } from './usePasswordModal';
 export type { PasswordModalMode, PasswordModalState, UsePasswordModalReturn } from './usePasswordModal';
 export { useToast } from './useToast';
-export { useBrowserGuide } from './useBrowserGuide';
+export { useBrowserGuide, BrowserGuideProvider } from './useBrowserGuide';
