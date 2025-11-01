@@ -2,8 +2,8 @@ package jaeik.bimillog.infrastructure.adapter.in.post.web;
 
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
-import jaeik.bimillog.domain.global.annotation.Log;
-import jaeik.bimillog.domain.global.annotation.Log.LogLevel;
+import jaeik.bimillog.infrastructure.log.Log;
+import jaeik.bimillog.infrastructure.log.Log.LogLevel;
 import jaeik.bimillog.domain.post.application.port.in.PostCommandUseCase;
 import jaeik.bimillog.domain.post.application.port.in.PostInteractionUseCase;
 import jaeik.bimillog.domain.post.exception.PostCustomException;

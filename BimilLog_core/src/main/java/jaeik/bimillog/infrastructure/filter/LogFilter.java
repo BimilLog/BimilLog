@@ -18,9 +18,7 @@ import java.util.List;
 
 /**
  * <h2>로그 필터</h2>
- * <p>
- * HTTP 요청에 대한 로그를 기록하는 필터 클래스
- * </p>
+ * <p>HTTP 요청에 대한 로그를 기록하는 필터 클래스</p>
  *
  * @author Jaeik
  * @since 2.0.0
@@ -31,12 +29,19 @@ public class LogFilter extends OncePerRequestFilter {
     private static final Logger log = LoggerFactory.getLogger(LogFilter.class);
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
-    private static final List<String> WHITELIST = List.of("/api/auth/me", "/api/auth/health", "/api/comment/{postId}",
+    private static final List<String> WHITELIST = List.of(
+            "/api/auth/me",
+            "/api/global/health",
+            "/api/comment/{postId}",
             "/api/notification/subscribe",
-            "/api/paper", "/api/post/query", "api/post/query/{postId}", "/api/post/search", "api/post/manage/write",
-            "/api/post/manage/update", "/api/post/manage/delete",
-            "/api/post/cache/realtime", "/api/post/cache/weekly", "/api/post/cache/legend", "/api/post/cache/notice",
-            "/api/post/me", "/api/post/me/liked", "/api/comment/me", "/api/comment/me/liked",
+            "/api/paper",
+            "/api/post/search",
+            "/api/post/cache/realtime",
+            "/api/post/cache/weekly",
+            "/api/post/me",
+            "/api/post/me/liked",
+            "/api/comment/me",
+            "/api/comment/me/liked",
             "/api/member/username/check");
 
     /**

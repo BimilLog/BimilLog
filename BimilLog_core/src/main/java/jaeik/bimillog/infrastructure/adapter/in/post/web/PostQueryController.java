@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.in.post.web;
 
-import jaeik.bimillog.domain.global.annotation.Log;
-import jaeik.bimillog.domain.global.annotation.Log.LogLevel;
+import jaeik.bimillog.infrastructure.log.Log;
+import jaeik.bimillog.infrastructure.log.Log.LogLevel;
 import jaeik.bimillog.domain.post.application.port.in.PostQueryUseCase;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;

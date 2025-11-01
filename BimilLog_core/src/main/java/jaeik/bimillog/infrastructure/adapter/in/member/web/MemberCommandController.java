@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.in.member.web;
 
-import jaeik.bimillog.domain.global.annotation.Log;
+import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.member.application.port.in.MemberCommandUseCase;
 import jaeik.bimillog.domain.member.application.port.in.MemberSignupUseCase;

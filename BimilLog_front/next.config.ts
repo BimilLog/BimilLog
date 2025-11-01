@@ -75,6 +75,19 @@ const nextConfig = withPWA(pwaConfig)({
     headers: async () => {
         return [
             {
+                source: '/.well-known/assetlinks.json',
+                headers: [
+                    {
+                        key: 'Content-Type',
+                        value: 'application/json',
+                    },
+                    {
+                        key: 'Cache-Control',
+                        value: 'public, max-age=3600',
+                    },
+                ],
+            },
+            {
                 source: '/firebase-messaging-sw.js',
                 headers: [
                     {
