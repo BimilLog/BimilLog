@@ -7,6 +7,7 @@ import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -26,6 +27,7 @@ import static jaeik.bimillog.infrastructure.adapter.out.redis.post.RedisPostKeys
  */
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class RedisPostSaveAdapter implements RedisPostSavePort {
     private final RedisTemplate<String, Object> redisTemplate;
     private final Map<PostCacheFlag, RedisPostKeys.CacheMetadata> cacheMetadataMap = RedisPostKeys.CACHE_METADATA_MAP;
@@ -113,6 +115,8 @@ public class RedisPostSaveAdapter implements RedisPostSavePort {
         }
 
         RedisPostKeys.CacheMetadata metadata = getCacheMetadata(type);
+        log.warn("[CACHE_WRITE] START - type={}, count={}, key={}, thread={}",
+            type, posts.size(), metadata.key(), Thread.currentThread().getName());
 
         try {
             // Hash에 PostSimpleDetail 저장 (HSET)
@@ -123,7 +127,12 @@ public class RedisPostSaveAdapter implements RedisPostSavePort {
             // TTL 설정
             redisTemplate.expire(hashKey, metadata.ttl());
 
+            log.warn("[CACHE_WRITE] SUCCESS - type={}, key={}, ttl={}min",
+                type, metadata.key(), metadata.ttl().toMinutes());
+
         } catch (Exception e) {
+            log.error("[CACHE_WRITE] FAIL - type={}, key={}, error={}",
+                type, metadata.key(), e.getMessage());
             throw new PostCustomException(PostErrorCode.REDIS_WRITE_ERROR, e);
         }
     }

@@ -97,9 +97,13 @@ public class PostCacheService implements PostCacheUseCase {
     public List<PostSimpleDetail> getWeeklyPosts() {
         List<PostSimpleDetail> cachedList = redisPostQueryPort.getCachedPostList(PostCacheFlag.WEEKLY);
 
-        // 캐시 미스 시 postIds 저장소에서 복구
+        // 캐시 미스 시 postIds 저장소에서 복구 후 재캐싱
         if (cachedList.isEmpty()) {
-            return recoverFromStoredPostIds(PostCacheFlag.WEEKLY);
+            List<PostSimpleDetail> recovered = recoverFromStoredPostIds(PostCacheFlag.WEEKLY);
+            if (!recovered.isEmpty()) {
+                redisPostSavePort.cachePostList(PostCacheFlag.WEEKLY, recovered);
+            }
+            return recovered;
         }
 
         return cachedList;
@@ -170,16 +174,24 @@ public class PostCacheService implements PostCacheUseCase {
      * @since 2.0.0
      */
     private List<PostSimpleDetail> recoverFromStoredPostIds(PostCacheFlag type) {
+        log.warn("[CACHE_RECOVERY] START - type={}, thread={}", type, Thread.currentThread().getName());
+
         List<Long> storedPostIds = redisPostQueryPort.getStoredPostIds(type);
         if (storedPostIds.isEmpty()) {
+            log.warn("[CACHE_RECOVERY] FAIL - type={}, reason=postIds_empty", type);
             return List.of();
         }
 
+        log.warn("[CACHE_RECOVERY] DB_QUERY - type={}, postIds={}, count={}", type, storedPostIds, storedPostIds.size());
+
         // DB에서 PostDetail 조회 후 PostSimpleDetail 변환
-        return storedPostIds.stream()
+        List<PostSimpleDetail> result = storedPostIds.stream()
                 .map(postId -> postQueryPort.findPostDetailWithCounts(postId, null).orElse(null))
                 .filter(Objects::nonNull)
                 .map(PostDetail::toSimpleDetail)
                 .toList();
+
+        log.warn("[CACHE_RECOVERY] END - type={}, recovered={}, thread={}", type, result.size(), Thread.currentThread().getName());
+        return result;
     }
 }

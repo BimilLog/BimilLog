@@ -7,11 +7,9 @@ import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import java.util.List;
 
 /**
- * <h2>게시글 캐시 명령 포트</h2>
- * <p>Post 도메인의 Redis 캐시 데이터 생성, 수정, 삭제 작업을 담당하는 포트입니다.</p>
- * <p>인기글 캐시 데이터 생성 및 업데이트</p>
- * <p>게시글 상태 변경에 따른 캐시 동기화</p>
- * <p>인기 플래그 설정 및 배치 처리</p>
+ * <h2>게시글 캐시 저장 포트</h2>
+ * <p>Post 도메인의 Redis 캐시 데이터 저장 작업을 담당하는 포트입니다.</p>
+
  *
  * @author Jaeik
  * @version 2.0.0
@@ -19,7 +17,7 @@ import java.util.List;
 public interface RedisPostSavePort {
 
     /**
-     * <h3>인기글 postId 영구 저장</h3>
+     * <h3>캐시 글 postId 저장</h3>
      * <p>인기글 postId 목록만 Redis List에 영구 또는 긴 TTL로 저장합니다.</p>
      * <p>목록 캐시 TTL 만료 시 복구용으로 사용됩니다.</p>
      * <p>PostScheduledService에서 주기적인 인기글 데이터 업데이트 시 호출됩니다.</p>
@@ -33,7 +31,7 @@ public interface RedisPostSavePort {
     void cachePostIdsOnly(PostCacheFlag type, List<Long> postIds);
 
     /**
-     * <h3>인기글 목록 캐싱 (Hash 구조)</h3>
+     * <h3>인기글 목록 캐싱</h3>
      * <p>인기글 목록을 Redis Hash에 저장합니다 (TTL 5분)</p>
      * <p>Hash 구조: Field는 postId, Value는 PostSimpleDetail 객체</p>
      * <p>PostScheduledService에서 주기적인 인기글 데이터 업데이트 시 호출됩니다.</p>

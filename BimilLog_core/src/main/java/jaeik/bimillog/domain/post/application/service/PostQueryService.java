@@ -76,10 +76,10 @@ public class PostQueryService implements PostQueryUseCase {
         PostDetail cachedPost = redisPostQueryPort.getCachedPostIfExists(postId);
         if (cachedPost != null) {
             // 캐시 히트: 사용자 좋아요 정보만 추가 확인
-            if (memberId != null) {
-                boolean isLiked = postLikeQueryPort.existsByPostIdAndUserId(postId, memberId);
-                return cachedPost.withIsLiked(isLiked);
-            }
+            // if (memberId != null) {
+                // boolean isLiked = postLikeQueryPort.existsByPostIdAndUserId(postId, memberId);
+                // return cachedPost.withIsLiked(isLiked);
+            // }
             return cachedPost;
         }
 

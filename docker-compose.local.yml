@@ -149,6 +149,8 @@ services:
   jmeter:
     image: justb4/jmeter:latest
     container_name: bimillog-jmeter-local
+    profiles:
+      - loadtest
     volumes:
       - ./performance/jmeter:/tests
       - ./performance/results:/results
@@ -157,10 +159,7 @@ services:
     depends_on:
       - backend
     command: >
-      -n -t /tests/cache-load-test.jmx
-      -l /results/results.jtl
-      -j /results/jmeter.log
-      -e -o /results/html-report
+      -n -t /tests/cache-load-test.jmx -l /results/cache-load.jtl -e -o /results/report
 
 networks:
   bimillog-local:

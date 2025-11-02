@@ -110,17 +110,29 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
     public List<PostSimpleDetail> getCachedPostList(PostCacheFlag type) {
         CacheMetadata metadata = getCacheMetadata(type);
         try {
-            // 1. Hash에서 모든 PostSimpleDetail 조회
             Map<Object, Object> hashEntries = redisTemplate.opsForHash().entries(metadata.key());
 
-            // 2. 목록 캐시 미스 시 빈 리스트 반환 (복구는 서비스 레이어에서 처리)
             if (hashEntries.isEmpty()) {
                 CacheMetricsLogger.miss(log, "post:list:" + type.name().toLowerCase(),
                         metadata.key(), "hash_empty");
                 return Collections.emptyList();
             }
 
-            // 3. postIds 저장소에서 순서 가져오기
+            if (type == PostCacheFlag.REALTIME) {
+                List<PostSimpleDetail> cachedPosts = hashEntries.values().stream()
+                        .filter(PostSimpleDetail.class::isInstance)
+                        .map(PostSimpleDetail.class::cast)
+                        .toList();
+                if (cachedPosts.isEmpty()) {
+                    CacheMetricsLogger.miss(log, "post:list:realtime",
+                            metadata.key(), "realtime_entries_empty");
+                } else {
+                    CacheMetricsLogger.hit(log, "post:list:realtime",
+                            metadata.key(), cachedPosts.size());
+                }
+                return cachedPosts;
+            }
+
             List<Long> orderedIds = getStoredPostIds(type);
             if (orderedIds.isEmpty()) {
                 CacheMetricsLogger.miss(log, "post:list:" + type.name().toLowerCase(),
@@ -128,7 +140,6 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
                 return Collections.emptyList();
             }
 
-            // 4. 순서대로 정렬하여 반환
             List<PostSimpleDetail> cachedPosts = orderedIds.stream()
                     .map(id -> (PostSimpleDetail) hashEntries.get(id.toString()))
                     .filter(java.util.Objects::nonNull)
@@ -145,6 +156,7 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
             throw new PostCustomException(PostErrorCode.REDIS_READ_ERROR, e);
         }
     }
+
 
     /**
      * <h3>postIds 영구 저장소에서 ID 목록 조회</h3>
