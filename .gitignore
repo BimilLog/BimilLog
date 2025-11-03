@@ -17,7 +17,7 @@ local.properties
 *.iws
 *.iml
 *.ipr
-
+REDIS_CACHE_ARCHITECTURE.md
 # OS
 .DS_Store
 *.pem

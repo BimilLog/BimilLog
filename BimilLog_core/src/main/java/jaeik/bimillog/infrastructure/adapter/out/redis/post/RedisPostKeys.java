@@ -168,4 +168,17 @@ public final class RedisPostKeys {
     public static String getPostIdsStorageKey(PostCacheFlag type) {
         return POSTIDS_PREFIX + type.name().toLowerCase() + POSTIDS_SUFFIX;
     }
+
+    /**
+     * <h3>캐시 갱신 분산 락 키 생성</h3>
+     * <p>캐시 갱신 시 중복 실행을 방지하기 위한 분산 락 키를 생성합니다.</p>
+     *
+     * @param type 게시글 캐시 유형 (REALTIME, WEEKLY, LEGEND, NOTICE)
+     * @return 생성된 Redis 키 (형식: lock:cache:refresh:{type})
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public static String getCacheRefreshLockKey(PostCacheFlag type) {
+        return String.format("lock:cache:refresh:%s", type.name().toLowerCase());
+    }
 }

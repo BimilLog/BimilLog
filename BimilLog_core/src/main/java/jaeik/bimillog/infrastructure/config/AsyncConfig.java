@@ -6,6 +6,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.concurrent.Executor;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * <h2>비동기 처리 설정</h2>
@@ -48,6 +49,22 @@ public class AsyncConfig {
         executor.setThreadNamePrefix("fcm-notification-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(60); // FCM은 시간이 오래 걸릴 수 있으므로 길게
+        executor.initialize();
+        return executor;
+    }
+
+    /**
+     * 캐시 갱신 전용 스레드 풀
+     * <p>확률적 선계산(Probabilistic Early Expiration) 기법에서 비동기 캐시 갱신에 사용됩니다.</p>
+     */
+    @Bean(name = "cacheRefreshExecutor")
+    public Executor cacheRefreshExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(2); // 기본 스레드 수
+        executor.setMaxPoolSize(4); // 최대 스레드 수
+        executor.setQueueCapacity(50); // 대기열 크기
+        executor.setThreadNamePrefix("cache-refresh-");
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy()); // 대기열 가득 차면 호출 스레드에서 실행
         executor.initialize();
         return executor;
     }

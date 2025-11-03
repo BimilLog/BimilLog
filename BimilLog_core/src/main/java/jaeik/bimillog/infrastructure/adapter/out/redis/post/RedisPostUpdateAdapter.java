@@ -1,12 +1,14 @@
 package jaeik.bimillog.infrastructure.adapter.out.redis.post;
 
 import jaeik.bimillog.domain.post.application.port.out.RedisPostUpdatePort;
+import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.util.List;
 
 import static jaeik.bimillog.infrastructure.adapter.out.redis.post.RedisPostKeys.*;
@@ -57,6 +59,45 @@ public class RedisPostUpdateAdapter implements RedisPostUpdatePort {
             // 2. 임계값(1점) 이하의 게시글 제거
             redisTemplate.opsForZSet().removeRangeByScore(REALTIME_POST_SCORE_KEY, 0, REALTIME_POST_SCORE_THRESHOLD);
 
+        } catch (Exception e) {
+            throw new PostCustomException(PostErrorCode.REDIS_WRITE_ERROR, e);
+        }
+    }
+
+    /**
+     * <h3>캐시 갱신 분산 락 획득</h3>
+     * <p>캐시 갱신 시 중복 실행을 방지하기 위한 분산 락을 획득합니다.</p>
+     * <p>Redis SETNX를 사용하여 원자적 락 획득을 보장합니다.</p>
+     *
+     * @param type    게시글 캐시 유형 (REALTIME, WEEKLY, LEGEND, NOTICE)
+     * @param timeout 락 타임아웃 (자동 해제 시간)
+     * @return Boolean 락 획득 성공 여부 (true: 획득 성공, false: 이미 다른 스레드가 보유 중)
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public Boolean acquireCacheRefreshLock(PostCacheFlag type, Duration timeout) {
+        String lockKey = getCacheRefreshLockKey(type);
+        try {
+            return redisTemplate.opsForValue().setIfAbsent(lockKey, "1", timeout);
+        } catch (Exception e) {
+            throw new PostCustomException(PostErrorCode.REDIS_WRITE_ERROR, e);
+        }
+    }
+
+    /**
+     * <h3>캐시 갱신 분산 락 해제</h3>
+     * <p>캐시 갱신 완료 후 분산 락을 해제합니다.</p>
+     *
+     * @param type 게시글 캐시 유형 (REALTIME, WEEKLY, LEGEND, NOTICE)
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public void releaseCacheRefreshLock(PostCacheFlag type) {
+        String lockKey = getCacheRefreshLockKey(type);
+        try {
+            redisTemplate.delete(lockKey);
         } catch (Exception e) {
             throw new PostCustomException(PostErrorCode.REDIS_WRITE_ERROR, e);
         }
