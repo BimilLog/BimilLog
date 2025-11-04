@@ -8,6 +8,8 @@ import jaeik.bimillog.domain.post.application.service.PostCommandService;
 import jaeik.bimillog.domain.post.application.service.PostInteractionService;
 import jaeik.bimillog.infrastructure.adapter.in.member.web.MemberQueryController;
 import jaeik.bimillog.infrastructure.exception.CustomException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Map;
@@ -96,5 +98,17 @@ public interface MemberQueryUseCase {
      * @since 2.0.0
      */
     Map<Long, String> findMemberNamesByIds(List<Long> memberIds);
+
+    /**
+     * <h3>모든 사용자 목록 조회 (페이징)</h3>
+     * <p>시스템에 가입된 모든 사용자를 페이징하여 조회합니다.</p>
+     * <p>{@link MemberQueryController}에서 사용자 목록 조회 API 시 호출됩니다.</p>
+     *
+     * @param pageable 페이징 정보 (페이지 번호, 크기, 정렬)
+     * @return Page<Member> 페이징된 사용자 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    Page<Member> getAllMembers(Pageable pageable);
 
 }

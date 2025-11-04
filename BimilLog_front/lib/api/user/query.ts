@@ -1,5 +1,5 @@
 import { apiClient } from '../client'
-import { Setting, KakaoFriendList } from '@/types/domains/user'
+import { Setting, KakaoFriendList, SimpleMember } from '@/types/domains/user'
 import { SimplePost, SimpleComment } from '@/types'
 import { PageResponse } from '@/types/common'
 
@@ -31,4 +31,7 @@ export const userQuery = {
 
   getUserLikedComments: (page = 0, size = 10) =>
     apiClient.get<PageResponse<SimpleComment>>(`/api/comment/me/liked?page=${page}&size=${size}`),
+
+  getAllMembers: (page = 0, size = 20) =>
+    apiClient.get<PageResponse<SimpleMember>>(`/api/member/all?page=${page}&size=${size}`),
 }

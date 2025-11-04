@@ -51,6 +51,7 @@ services:
       - KAKAO_ADMIN_KEY=${KAKAO_ADMIN_KEY}
       - JWT_SECRET=${JWT_SECRET}
       - MESSAGE_SECRET=${MESSAGE_SECRET}
+      - URL=${url}
     depends_on:
       redis:
         condition: service_healthy

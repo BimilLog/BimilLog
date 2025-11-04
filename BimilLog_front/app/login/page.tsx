@@ -105,7 +105,7 @@ export default function LoginPage() {
                 clipRule="evenodd"
               />
             </svg>
-            <span className="text-base font-normal leading-tight text-gray-500 dark:text-gray-400">나만의 롤링페이퍼 만들기 가능</span>
+            <span className="text-base font-normal leading-tight text-gray-500 dark:text-gray-400">롤링페이퍼 개설하기</span>
           </li>
           <li className="flex space-x-3">
             <svg
@@ -135,7 +135,7 @@ export default function LoginPage() {
                 clipRule="evenodd"
               />
             </svg>
-            <span className="text-base font-normal leading-tight text-gray-500 dark:text-gray-400">자주가는 롤링페이퍼의 북마크 기능</span>
+            <span className="text-base font-normal leading-tight text-gray-500 dark:text-gray-400">마이페이지에서 활동점수를 확인</span>
           </li>
           <li className="flex space-x-3">
             <svg
@@ -150,7 +150,7 @@ export default function LoginPage() {
                 clipRule="evenodd"
               />
             </svg>
-            <span className="text-base font-normal leading-tight text-gray-500 dark:text-gray-400">마이페이지 이용 가능</span>
+            <span className="text-base font-normal leading-tight text-gray-500 dark:text-gray-400">실시간 알림 받기</span>
           </li>
           <li className="flex space-x-3">
             <svg
@@ -165,22 +165,7 @@ export default function LoginPage() {
                 clipRule="evenodd"
               />
             </svg>
-            <span className="text-base font-normal leading-tight text-gray-500 dark:text-gray-400">실시간 알림 받기 가능</span>
-          </li>
-          <li className="flex space-x-3">
-            <svg
-              className="h-5 w-5 shrink-0 text-pink-600 dark:text-pink-500"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                clipRule="evenodd"
-              />
-            </svg>
-            <span className="text-base font-normal leading-tight text-gray-500 dark:text-gray-400">글과 댓글 추천 가능</span>
+            <span className="text-base font-normal leading-tight text-gray-500 dark:text-gray-400">글과 댓글에 추천</span>
           </li>
         </ul>
 

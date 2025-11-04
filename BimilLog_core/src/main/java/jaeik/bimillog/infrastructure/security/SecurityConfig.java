@@ -79,7 +79,12 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(createCsrfTokenRepository())
                         .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler())
-                        .ignoringRequestMatchers("/api/log/client-error")) // 클라이언트 에러 로깅은 CSRF 제외
+                        .ignoringRequestMatchers("/api/log/client-error",
+                                "/api/member/all",
+                                "/api/popular/realtime", // 클라이언트 에러 로깅은 CSRF 제외
+                                "/api/popular/weekly",
+                                "/api/popular/legend",
+                                "/api/paper/popular")) // 클라이언트 에러 로깅은 CSRF 제외
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
@@ -89,6 +94,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/.well-known/**").permitAll() // TWA Digital Asset Links
+                        .requestMatchers("/api/member/all").permitAll()
                         .requestMatchers("/api/auth/login", "/api/global/health", "/api/auth/me", "/api/member/signup").permitAll()
                         .requestMatchers("/api/log/client-error").permitAll() // 클라이언트 에러 로깅
                         .requestMatchers("/api/comment/me", "/api/comment/me/liked").authenticated()
@@ -140,7 +146,7 @@ public class SecurityConfig {
         CookieCsrfTokenRepository repository = CookieCsrfTokenRepository.withHttpOnlyFalse();
         repository.setCookieName("XSRF-TOKEN");
         repository.setCookiePath("/");
-        repository.setCookieCustomizer(cookie -> cookie.secure(false).sameSite("LAX"));
+        repository.setCookieCustomizer(cookie -> cookie.secure(true).sameSite("LAX"));
         return repository;
     }
 
@@ -163,12 +169,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of( // 로컬개발용 임시허용
-                url,
-                "http://localhost:3001",
-                "http://localhost:3002",
-                "http://localhost:3003",
-                "http://localhost:3004",
-                "http://localhost:3005"
+                url
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));

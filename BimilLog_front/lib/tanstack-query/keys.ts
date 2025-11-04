@@ -14,6 +14,7 @@ export const queryKeys = {
   user: {
     all: ['user'] as const,
     detail: (userId: number) => [...queryKeys.user.all, 'detail', userId] as const,
+    list: (page?: number, size?: number) => [...queryKeys.user.all, 'list', page, size] as const,
     posts: (page?: number, pageSize?: number) => [...queryKeys.user.all, 'posts', page, pageSize] as const,
     comments: (page?: number, pageSize?: number) => [...queryKeys.user.all, 'comments', page, pageSize] as const,
     likePosts: (page?: number, pageSize?: number) => [...queryKeys.user.all, 'likePosts', page, pageSize] as const,

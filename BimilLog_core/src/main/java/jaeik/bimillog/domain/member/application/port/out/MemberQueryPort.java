@@ -4,6 +4,8 @@ import jaeik.bimillog.domain.member.application.service.MemberQueryService;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Map;
@@ -128,4 +130,16 @@ public interface MemberQueryPort {
      * @since 2.0.0
      */
     Map<Long, String> findMemberNamesByIds(List<Long> memberIds);
+
+    /**
+     * <h3>모든 사용자 페이징 조회</h3>
+     * <p>시스템에 가입된 모든 사용자를 페이징하여 조회합니다.</p>
+     * <p>{@link MemberQueryService}에서 전체 사용자 목록 조회 시 호출됩니다.</p>
+     *
+     * @param pageable 페이징 및 정렬 정보
+     * @return Page<Member> 페이징된 사용자 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    Page<Member> findAll(Pageable pageable);
 }
