@@ -1,13 +1,18 @@
 -- ====================================================================================
--- bimillogTest DB 시드 스크립트 (고성능 버전)
+-- bimillogTest DB 시드 스크립트 (고성능 버전 + 인기글 부하 테스트용)
 --  - 회원 5,000명
---  - 게시글 10,000개
+--  - 게시글 10,060개 (일반 10,000 + 주간 인기글 10 + 레전드 인기글 50)
 --  - 댓글 100,000개 (모두 루트 댓글)
 --  - 댓글 클로저 100,000행 (depth=0)
 --  - 댓글 추천 500,000개 (일반 분배 480,000개 + 타겟 회원 20,000개)
+--  - 게시글 추천 1,830개 (주간 인기글 80개 + 레전드 인기글 1,750개)
+--
+-- 부하 테스트용 특별 데이터:
+--  - 주간 인기글 (ID 10001~10010): 최근 3일 이내 작성, 추천 5~10개
+--  - 레전드 인기글 (ID 10011~10060): 추천 20~50개, 조회수 높음
 --
 -- 실행 방법:
---   mysql -u <user> -p < backend/src/test/resources/bimillogTest-seed.sql
+--   mysql -u <user> -p bimillogTest < backend/src/test/resources/bimillogTest-seed.sql
 --
 -- ⚠️ 주의: 스크립트는 대상 테이블을 TRUNCATE 하므로 실행 전에 백업을 권장합니다.
 -- ====================================================================================
@@ -20,6 +25,7 @@ SET autocommit = 0;
 SET UNIQUE_CHECKS = 0;
 SET FOREIGN_KEY_CHECKS = 0;
 
+TRUNCATE TABLE post_like;
 TRUNCATE TABLE comment_like;
 TRUNCATE TABLE comment_closure;
 TRUNCATE TABLE comment;
@@ -108,6 +114,56 @@ SELECT
 FROM tmp_seq ts
 WHERE ts.n <= @post_cnt;
 
+-- 3-1. 주간 인기글 (ID 10001~10010) - 최근 3일 이내, 조회수 높음
+INSERT INTO post (
+    post_id,
+    member_id,
+    title,
+    content,
+    views,
+    is_notice,
+    password,
+    created_at,
+    modified_at
+)
+SELECT
+    ts.n,
+    1 + FLOOR(RAND(ts.n * 41) * @member_cnt),
+    CONCAT('🔥 주간 인기글 테스트 ', ts.n - 10000),
+    CONCAT('주간 인기글 콘텐츠 ', ts.n - 10000, ' - 부하 테스트용 주간 인기 게시글입니다. 최근 3일 이내 작성, 추천 5개 이상'),
+    1000 + FLOOR(RAND(ts.n * 43) * 4000),
+    0,
+    NULL,
+    DATE_SUB(@base_now, INTERVAL FLOOR(RAND(ts.n * 47) * 3) DAY),
+    DATE_SUB(@base_now, INTERVAL FLOOR(RAND(ts.n * 53) * 2) DAY)
+FROM tmp_seq ts
+WHERE ts.n BETWEEN 10001 AND 10010;
+
+-- 3-2. 레전드 인기글 (ID 10011~10060) - 추천 20개 이상, 조회수 매우 높음
+INSERT INTO post (
+    post_id,
+    member_id,
+    title,
+    content,
+    views,
+    is_notice,
+    password,
+    created_at,
+    modified_at
+)
+SELECT
+    ts.n,
+    1 + FLOOR(RAND(ts.n * 59) * @member_cnt),
+    CONCAT('⭐ 레전드 인기글 테스트 ', ts.n - 10010),
+    CONCAT('레전드 인기글 콘텐츠 ', ts.n - 10010, ' - 부하 테스트용 레전드 게시글입니다. 추천 20개 이상의 명예의 전당 게시글'),
+    5000 + FLOOR(RAND(ts.n * 61) * 45000),
+    0,
+    NULL,
+    DATE_SUB(@base_now, INTERVAL FLOOR(RAND(ts.n * 67) * 365) DAY),
+    DATE_SUB(@base_now, INTERVAL FLOOR(RAND(ts.n * 71) * 180) DAY)
+FROM tmp_seq ts
+WHERE ts.n BETWEEN 10011 AND 10060;
+
 -- 4. Comment
 INSERT INTO comment (
     post_id,
@@ -180,6 +236,36 @@ SELECT
     DATE_SUB(@base_now, INTERVAL FLOOR(RAND(c.comment_id * 79) * 90) DAY)
 FROM comment c
 WHERE c.comment_id BETWEEN 1 AND 20000;
+
+-- 9. Post Like - 주간 인기글 (10001~10010, 각 8개 추천)
+INSERT INTO post_like (
+    post_id,
+    member_id,
+    created_at,
+    modified_at
+)
+SELECT
+    10000 + FLOOR((ts.n - 1) / 8) + 1,
+    1 + (ts.n - 1) MOD @member_cnt,
+    DATE_SUB(@base_now, INTERVAL FLOOR(RAND(ts.n * 83) * 3) DAY),
+    DATE_SUB(@base_now, INTERVAL FLOOR(RAND(ts.n * 89) * 2) DAY)
+FROM tmp_seq ts
+WHERE ts.n BETWEEN 1 AND 80;
+
+-- 10. Post Like - 레전드 인기글 (10011~10060, 각 35개 추천)
+INSERT INTO post_like (
+    post_id,
+    member_id,
+    created_at,
+    modified_at
+)
+SELECT
+    10010 + FLOOR((ts.n - 1) / 35) + 1,
+    1 + (80 + ts.n - 1) MOD @member_cnt,
+    DATE_SUB(@base_now, INTERVAL FLOOR(RAND(ts.n * 97) * 180) DAY),
+    DATE_SUB(@base_now, INTERVAL FLOOR(RAND(ts.n * 101) * 90) DAY)
+FROM tmp_seq ts
+WHERE ts.n BETWEEN 1 AND 1750;
 
 COMMIT;
 

@@ -22,6 +22,7 @@ public class GlobalCookieAdapter implements GlobalCookiePort {
     public static final String ACCESS_TOKEN_COOKIE = "jwt_access_token";
     public static final String REFRESH_TOKEN_COOKIE = "jwt_refresh_token";
     public static final String TEMP_USER_ID_COOKIE = "temp_user_id";
+    public static final boolean SECURE = true;
     private static final int MAX_AGE = 3600;
 
     /**
@@ -41,7 +42,7 @@ public class GlobalCookieAdapter implements GlobalCookiePort {
                 .maxAge(600) // 10분
                 .httpOnly(true)
                 .sameSite("Lax")
-                .secure(true)
+                .secure(SECURE)
                 .build();
     }
 
@@ -77,7 +78,7 @@ public class GlobalCookieAdapter implements GlobalCookiePort {
                 .maxAge(0)
                 .httpOnly(true)
                 .sameSite("Lax")
-                .secure(true)
+                .secure(SECURE)
                 .build();
 
         ResponseCookie refreshTokenCookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE, "")
@@ -85,7 +86,7 @@ public class GlobalCookieAdapter implements GlobalCookiePort {
                 .maxAge(0)
                 .httpOnly(true)
                 .sameSite("Lax")
-                .secure(true)
+                .secure(SECURE)
                 .build();
 
         return List.of(accessTokenCookie, refreshTokenCookie);
@@ -107,7 +108,7 @@ public class GlobalCookieAdapter implements GlobalCookiePort {
                 .maxAge(MAX_AGE)
                 .httpOnly(true)
                 .sameSite("Lax")
-                .secure(true)
+                .secure(SECURE)
                 .build();
     }
 
@@ -127,7 +128,7 @@ public class GlobalCookieAdapter implements GlobalCookiePort {
                 .maxAge(MAX_AGE * 720L)
                 .httpOnly(true)
                 .sameSite("Lax")
-                .secure(true)
+                .secure(SECURE)
                 .build();
     }
 
@@ -144,7 +145,7 @@ public class GlobalCookieAdapter implements GlobalCookiePort {
                 .maxAge(0)
                 .httpOnly(true)
                 .sameSite("Lax")
-                .secure(true)
+                .secure(SECURE)
                 .build();
     }
 }

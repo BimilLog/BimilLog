@@ -10,14 +10,14 @@
 .env
 .env*
 local.properties
-
+/performance
 # IDE
 .idea/
 .vscode/
 *.iws
 *.iml
 *.ipr
-
+REDIS_CACHE_ARCHITECTURE.md
 # OS
 .DS_Store
 *.pem

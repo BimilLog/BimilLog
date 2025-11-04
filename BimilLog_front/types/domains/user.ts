@@ -10,6 +10,15 @@ export interface Member {
   role: "USER" | "ADMIN"      // 사용자 권한 레벨
 }
 
+// 간단한 사용자 정보 타입 (백엔드 SimpleMemberDTO와 일치)
+// 사용자 목록 조회 시 사용
+export interface SimpleMember {
+  memberId: number            // 사용자 고유 ID
+  memberName: string          // 서비스 내에서 사용하는 사용자명
+  socialNickname: string      // 카카오에서 가져온 원본 닉네임
+  thumbnailImage: string      // 카카오 프로필 이미지 URL
+}
+
 // 설정 타입 - v2 백엔드 SettingDTO 호환
 // 사용자별 알림 설정 (기본값: 모두 true)
 export interface Setting {

@@ -242,7 +242,7 @@ export const AuthHeader = React.memo(() => {
           게시판
         </NavbarLink>
         <NavbarLink as={Link} href="/visit" className="text-sm lg:text-base">
-          다른 롤링페이퍼 방문
+          롤링페이퍼 둘러보기
         </NavbarLink>
         <NavbarLink as={Link} href="/suggest" className="text-sm lg:text-base">
           건의하기

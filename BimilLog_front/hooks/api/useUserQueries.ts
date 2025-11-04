@@ -96,3 +96,14 @@ export const useCheckUsername = (username: string) => {
     staleTime: 60 * 1000, // 1분
   });
 };
+
+/**
+ * 모든 사용자 목록 조회 (페이징)
+ */
+export const useAllMembers = (page: number = 0, size: number = 20) => {
+  return useQuery({
+    queryKey: queryKeys.user.list(page, size),
+    queryFn: () => userQuery.getAllMembers(page, size),
+    staleTime: 5 * 60 * 1000, // 5분
+  });
+};

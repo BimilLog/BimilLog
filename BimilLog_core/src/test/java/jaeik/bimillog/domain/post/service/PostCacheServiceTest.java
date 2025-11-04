@@ -228,6 +228,7 @@ class PostCacheServiceTest {
         verify(redisPostQueryPort).getStoredPostIds(PostCacheFlag.WEEKLY);
         verify(postQueryPort).findPostDetailWithCounts(1L, null);
         verify(postQueryPort).findPostDetailWithCounts(2L, null);
+        verify(redisPostSavePort).cachePostList(eq(PostCacheFlag.WEEKLY), any());  // 재캐싱 검증
     }
 
     @Test

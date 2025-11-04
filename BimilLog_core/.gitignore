@@ -4,3 +4,4 @@
 *.artifact
 report.html
 report.json
+/grafana/dashboards/loki-cache-metrics.json

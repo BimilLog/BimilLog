@@ -17,10 +17,10 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
     <div className="text-center">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
-          익명으로 마음을 전해보세요
+          익명으로 메시지를 남겨보세요
         </h1>
         <p className="text-lg md:text-xl text-brand-secondary mb-6 leading-relaxed">
-          비밀로그에서 소중한 사람에게 익명의 따뜻한 메시지를 남겨보세요
+          비밀로그에서 친구들에게 익명으로 따뜻한 메시지를 남겨보세요
         </p>
 
         <div className="flex flex-col gap-4 justify-center items-center">
@@ -31,7 +31,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
               size="lg"
               onClick={() => window.location.href = '/login'}
             >
-              내 롤링페이퍼 만들기
+              롤링페이퍼 만들기
             </Button>
           )}
 
@@ -65,7 +65,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
                   onClick={() => window.location.href = '/visit'}
                   className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:bg-gradient-to-bl focus:ring-cyan-300 dark:focus:ring-cyan-800"
                 >
-                  다른 롤링페이퍼 방문하기
+                  롤링페이퍼 둘러보기
                 </Button>
               </div>
 
@@ -87,7 +87,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
               onClick={() => window.location.href = '/visit'}
               className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:bg-gradient-to-bl focus:ring-cyan-300 dark:focus:ring-cyan-800"
             >
-              다른 롤링페이퍼 방문하기
+              롤링페이퍼 둘러보기
             </Button>
           </div>
 

@@ -10,6 +10,8 @@ import jaeik.bimillog.domain.member.exception.MemberCustomException;
 import jaeik.bimillog.domain.member.exception.MemberErrorCode;
 import jaeik.bimillog.infrastructure.adapter.in.member.web.MemberQueryController;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -146,5 +148,21 @@ public class MemberQueryService implements MemberQueryUseCase {
     @Transactional(readOnly = true)
     public Map<Long, String> findMemberNamesByIds(List<Long> memberIds) {
         return memberQueryPort.findMemberNamesByIds(memberIds);
+    }
+
+    /**
+     * <h3>모든 사용자 목록 조회 (페이징)</h3>
+     * <p>시스템에 가입된 모든 사용자를 페이징하여 조회합니다.</p>
+     * <p>{@link MemberQueryController}에서 사용자 목록 조회 API 시 호출됩니다.</p>
+     *
+     * @param pageable 페이징 및 정렬 정보
+     * @return Page<Member> 페이징된 사용자 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Member> getAllMembers(Pageable pageable) {
+        return memberQueryPort.findAll(pageable);
     }
 }

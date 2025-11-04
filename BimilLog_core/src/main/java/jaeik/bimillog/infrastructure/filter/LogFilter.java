@@ -42,7 +42,8 @@ public class LogFilter extends OncePerRequestFilter {
             "/api/post/me/liked",
             "/api/comment/me",
             "/api/comment/me/liked",
-            "/api/member/username/check");
+            "/api/member/username/check",
+            "/actuator/prometheus");
 
     /**
      * <h3>필터 내부 처리</h3>

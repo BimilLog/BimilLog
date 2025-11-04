@@ -28,6 +28,24 @@ const RecentVisits = dynamic(
   }
 );
 
+// 모든 사용자 목록 컴포넌트 동적 임포트
+const AllUsersList = dynamic(
+  () => import("./AllUsersList").then(mod => ({ default: mod.AllUsersList })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="bg-white rounded-xl shadow-brand-sm border border-gray-100 p-6 animate-pulse">
+        <div className="h-6 bg-gray-200 rounded-lg mb-4 w-32"></div>
+        <div className="space-y-3">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="h-16 bg-gray-200 rounded-lg"></div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+);
+
 // 확인 다이얼로그를 동적 임포트 (사용자가 자신의 롤링페이퍼를 검색했을 때만 표시)
 const ConfirmDialog = dynamic(
   () => import("./ConfirmDialog").then(mod => ({ default: mod.ConfirmDialog })),
@@ -148,6 +166,11 @@ export function VisitClient() {
         {/* 최근 방문한 롤링페이퍼 */}
         <div className="mb-8">
           <RecentVisits />
+        </div>
+
+        {/* 모든 유저 목록 */}
+        <div className="mb-8">
+          <AllUsersList />
         </div>
 
         {/* Info Section */}

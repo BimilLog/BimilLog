@@ -105,7 +105,7 @@ export const localStorage = {
 
     const current = this.getRecentVisits();
     const filtered = current.filter(v => v.nickname !== nickname);
-    const updated = [newVisit, ...filtered].slice(0, 5); // 최대 5개
+    const updated = [newVisit, ...filtered].slice(0, 2); // 최대 2개
     this.setRecentVisits(updated);
   },
 

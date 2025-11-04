@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import static jaeik.bimillog.infrastructure.adapter.out.redis.post.RedisPostKeys.*;
 
@@ -110,17 +111,29 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
     public List<PostSimpleDetail> getCachedPostList(PostCacheFlag type) {
         CacheMetadata metadata = getCacheMetadata(type);
         try {
-            // 1. Hash에서 모든 PostSimpleDetail 조회
             Map<Object, Object> hashEntries = redisTemplate.opsForHash().entries(metadata.key());
 
-            // 2. 목록 캐시 미스 시 빈 리스트 반환 (복구는 서비스 레이어에서 처리)
             if (hashEntries.isEmpty()) {
                 CacheMetricsLogger.miss(log, "post:list:" + type.name().toLowerCase(),
                         metadata.key(), "hash_empty");
                 return Collections.emptyList();
             }
 
-            // 3. postIds 저장소에서 순서 가져오기
+            if (type == PostCacheFlag.REALTIME) {
+                List<PostSimpleDetail> cachedPosts = hashEntries.values().stream()
+                        .filter(PostSimpleDetail.class::isInstance)
+                        .map(PostSimpleDetail.class::cast)
+                        .toList();
+                if (cachedPosts.isEmpty()) {
+                    CacheMetricsLogger.miss(log, "post:list:realtime",
+                            metadata.key(), "realtime_entries_empty");
+                } else {
+                    CacheMetricsLogger.hit(log, "post:list:realtime",
+                            metadata.key(), cachedPosts.size());
+                }
+                return cachedPosts;
+            }
+
             List<Long> orderedIds = getStoredPostIds(type);
             if (orderedIds.isEmpty()) {
                 CacheMetricsLogger.miss(log, "post:list:" + type.name().toLowerCase(),
@@ -128,7 +141,6 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
                 return Collections.emptyList();
             }
 
-            // 4. 순서대로 정렬하여 반환
             List<PostSimpleDetail> cachedPosts = orderedIds.stream()
                     .map(id -> (PostSimpleDetail) hashEntries.get(id.toString()))
                     .filter(java.util.Objects::nonNull)
@@ -145,6 +157,7 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
             throw new PostCustomException(PostErrorCode.REDIS_READ_ERROR, e);
         }
     }
+
 
     /**
      * <h3>postIds 영구 저장소에서 ID 목록 조회</h3>
@@ -296,6 +309,26 @@ public class RedisPostQueryAdapter implements RedisPostQueryPort {
                     .toList();
             CacheMetricsLogger.hit(log, "post:realtime", REALTIME_POST_SCORE_KEY, ids.size());
             return ids;
+        } catch (Exception e) {
+            throw new PostCustomException(PostErrorCode.REDIS_READ_ERROR, e);
+        }
+    }
+
+    /**
+     * <h3>게시글 목록 캐시 TTL 조회</h3>
+     * <p>특정 캐시 유형의 남은 TTL(Time To Live)을 초 단위로 조회합니다.</p>
+     * <p>확률적 선계산(Probabilistic Early Expiration) 기법에 사용됩니다.</p>
+     *
+     * @param type 조회할 인기글 캐시 유형 (REALTIME, WEEKLY, LEGEND, NOTICE)
+     * @return Long 남은 TTL (초 단위), 키가 없으면 -2, 만료 시간이 없으면 -1
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public Long getPostListCacheTTL(PostCacheFlag type) {
+        CacheMetadata metadata = getCacheMetadata(type);
+        try {
+            return redisTemplate.getExpire(metadata.key(), TimeUnit.SECONDS);
         } catch (Exception e) {
             throw new PostCustomException(PostErrorCode.REDIS_READ_ERROR, e);
         }

@@ -3,11 +3,17 @@ package jaeik.bimillog.infrastructure.adapter.in.member.web;
 import jaeik.bimillog.domain.member.application.port.in.MemberFriendUseCase;
 import jaeik.bimillog.domain.member.application.port.in.MemberQueryUseCase;
 import jaeik.bimillog.domain.member.entity.KakaoFriends;
+import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.infrastructure.adapter.in.member.dto.SettingDTO;
+import jaeik.bimillog.infrastructure.adapter.in.member.dto.SimpleMemberDTO;
 import jaeik.bimillog.infrastructure.adapter.out.api.dto.KakaoFriendsDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -82,8 +88,31 @@ public class MemberQueryController {
                 offset,
                 limit
         );
-        
+
         KakaoFriendsDTO friendsResponse = KakaoFriendsDTO.fromVO(friendsResponseVO);
         return ResponseEntity.ok(friendsResponse);
+    }
+
+    /**
+     * <h3>모든 사용자 목록 조회 API (페이징)</h3>
+     * <p>시스템에 가입된 모든 사용자를 페이징하여 조회합니다.</p>
+     * <p>닉네임(memberName) 기준 오름차순으로 정렬됩니다.</p>
+     *
+     * @param page 페이지 번호 (기본값: 0)
+     * @param size 페이지 크기 (기본값: 20)
+     * @return Page<SimpleMemberDTO> 페이징된 사용자 목록
+     * @since 2.0.0
+     * @author Jaeik
+     */
+    @GetMapping("/all")
+    public ResponseEntity<Page<SimpleMemberDTO>> getAllMembers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "memberName"));
+        Page<Member> members = memberQueryUseCase.getAllMembers(pageable);
+        Page<SimpleMemberDTO> memberDTOs = members.map(SimpleMemberDTO::fromMember);
+
+        return ResponseEntity.ok(memberDTOs);
     }
 }

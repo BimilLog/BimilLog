@@ -91,4 +91,16 @@ public interface RedisPostQueryPort {
      */
     List<Long> getStoredPostIds(PostCacheFlag type);
 
+    /**
+     * <h3>게시글 목록 캐시 TTL 조회</h3>
+     * <p>특정 캐시 유형의 남은 TTL(Time To Live)을 초 단위로 조회합니다.</p>
+     * <p>확률적 선계산(Probabilistic Early Expiration) 기법에 사용됩니다.</p>
+     *
+     * @param type 조회할 인기글 캐시 유형 (REALTIME, WEEKLY, LEGEND, NOTICE)
+     * @return Long 남은 TTL (초 단위), 키가 없으면 -2, 만료 시간이 없으면 -1
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    Long getPostListCacheTTL(PostCacheFlag type);
+
 }
