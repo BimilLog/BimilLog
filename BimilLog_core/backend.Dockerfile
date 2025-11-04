@@ -1,5 +1,5 @@
 # 1. 빌드 단계 (Build Stage)
-FROM openjdk:21-jdk-slim AS builder
+FROM openjdk:26-ea-21-slim AS builder
 WORKDIR /app
 
 # Gradle 파일 먼저 복사 (의존성 캐싱 활용)
