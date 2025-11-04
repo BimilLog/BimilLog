@@ -1,5 +1,5 @@
 # 1. 빌드 단계 (Build Stage)
-FROM gcr.io/distroless/java21-debian12 AS builder
+FROM eclipse-temurin:21-jdk AS builder
 WORKDIR /app
 
 # Gradle 파일 먼저 복사 (의존성 캐싱 활용)
