@@ -1,117 +1,155 @@
 "use client";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components";
+import { Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow } from "flowbite-react";
 import { Button } from "@/components";
-import { useAllMembers } from "@/hooks/api/useUserQueries";
+import { useAllMembers, useSearchMembers } from "@/hooks/api/useUserQueries";
 import { BoardPagination } from "@/components/organisms/board/board-pagination";
-
+interface AllUsersListProps {
+  searchKeyword?: string;
+}
 /**
- * 모든 사용자 목록 컴포넌트
- * 페이징과 페이지 크기 선택 기능 제공
+ * Renders visit-page member listings, switching between search results and the full list.
+ * Rendered inside the SearchSection card so no additional card wrapper is needed here.
  */
-export const AllUsersList = () => {
+export const AllUsersList = ({ searchKeyword = "" }: AllUsersListProps) => {
   const [currentPage, setCurrentPage] = useState(0);
-  const [pageSize, setPageSize] = useState(20);
-
-  const { data, isLoading, error } = useAllMembers(currentPage, pageSize);
-
+  const [pageSize, setPageSize] = useState(10);
+  // Determine whether we are currently showing filtered results
+  const isSearchMode = searchKeyword.trim().length > 0;
+  // Choose the query result set based on the current mode
+  const allMembersQuery = useAllMembers(currentPage, pageSize);
+  const searchQuery = useSearchMembers(searchKeyword, currentPage, pageSize);
+  const activeQuery = isSearchMode ? searchQuery : allMembersQuery;
+  // Reset pagination when the keyword changes
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [searchKeyword]);
   const handlePageSizeChange = (newSize: number) => {
     setPageSize(newSize);
-    setCurrentPage(0); // 페이지 크기 변경 시 첫 페이지로 리셋
+    setCurrentPage(0); // reset pagination when the page size changes
   };
-
-  if (error) {
+  // Error handling
+  if (activeQuery.error) {
     return (
-      <Card className="border border-gray-200 dark:border-slate-700 shadow-md">
-        <CardContent className="p-6">
-          <p className="text-red-500 dark:text-red-400 text-center">
-            사용자 목록을 불러올 수 없습니다.
-          </p>
-        </CardContent>
-      </Card>
+      <div className="p-6">
+        <p className="text-red-500 dark:text-red-400 text-center">
+          {isSearchMode ? "Search failed." : "Unable to load member list."}
+        </p>
+      </div>
     );
   }
+  // Prepare table rows
+  type MemberRow = {
+    key: string;
+    memberName: string;
+  };
 
-  const users = data?.data?.content || [];
-  const totalPages = data?.data?.totalPages || 0;
-  const totalElements = data?.data?.totalElements || 0;
+  let memberRows: MemberRow[] = [];
+  let totalPages = 0;
+  if (isSearchMode) {
+    const searchData = searchQuery.data?.data;
+    const names = searchData?.content || [];
+    memberRows = names.map((name, index) => ({
+      key: `${name}-${index}`,
+      memberName: name,
+    }));
+    totalPages = searchData?.totalPages || 0;
+  } else {
+    const allData = allMembersQuery.data?.data;
+    const users = allData?.content || [];
+    memberRows = users.map((user) => ({
+      key: String(user.memberId),
+      memberName: user.memberName,
+    }));
+    totalPages = allData?.totalPages || 0;
+  }
 
   return (
-    <Card className="border border-gray-200 dark:border-slate-700 shadow-md">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-bold text-gray-900 dark:text-gray-100">
-            롤링페이퍼 보기
-          </CardTitle>
-          <div className="flex items-center gap-2">
-
-            <select
-              value={pageSize}
-              onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-              className="text-sm border border-gray-300 dark:border-slate-600 rounded-md px-2 py-1 bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    <>
+      <div className="flex justify-end mb-4">
+        <select
+          value={pageSize}
+          onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+          className="text-sm border border-gray-300 dark:border-slate-600 rounded-md px-3 py-2 pr-10 bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer appearance-none"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
+            backgroundPosition: 'right 0.5rem center',
+            backgroundRepeat: 'no-repeat',
+            backgroundSize: '1.5em 1.5em',
+          }}
+        >
+          <option value={10}>10개씩</option>
+          <option value={20}>20개씩</option>
+          <option value={30}>30개씩</option>
+        </select>
+      </div>
+      {/* Table */}
+      {activeQuery.isLoading ? (
+        <div className="space-y-2">
+          {[...Array(5)].map((_, i) => (
+            <div
+              key={i}
+              className="animate-pulse flex items-center justify-between p-3 bg-gray-100 dark:bg-slate-800 rounded"
             >
-              <option value={10}>10개씩</option>
-              <option value={20}>20개씩</option>
-              <option value={30}>30개씩</option>
-            </select>
-          </div>
+              <div className="h-4 w-32 bg-gray-300 dark:bg-slate-700 rounded" />
+              <div className="h-9 w-20 bg-gray-300 dark:bg-slate-700 rounded" />
+            </div>
+          ))}
         </div>
-      </CardHeader>
-
-      <CardContent className="p-4">
-        {isLoading ? (
-          <div className="space-y-3">
-            {[...Array(5)].map((_, i) => (
-              <div
-                key={i}
-                className="animate-pulse flex items-center justify-between p-3 bg-gray-100 dark:bg-slate-800 rounded-lg"
-              >
-                <div className="h-4 w-32 bg-gray-300 dark:bg-slate-700 rounded" />
-                <div className="h-9 w-20 bg-gray-300 dark:bg-slate-700 rounded" />
-              </div>
-            ))}
-          </div>
-        ) : users.length === 0 ? (
-          <p className="text-center text-gray-500 dark:text-gray-400 py-8">
-            등록된 사용자가 없습니다.
-          </p>
-        ) : (
-          <div className="space-y-2">
-            {users.map((user) => (
-              <div
-                key={user.memberId}
-                className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-slate-800/50 rounded-lg transition-colors border border-transparent hover:border-gray-200 dark:hover:border-slate-700"
-              >
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900 dark:text-gray-100 truncate">
-                    {user.memberName}
-                  </p>
-                </div>
-                <Link href={`/rolling-paper/${user.memberName}`}>
-                  <Button
-                    size="sm"
-                    variant="link"
-                    className="flex-shrink-0 ml-3"
-                  >
-                    바로가기
-                  </Button>
-                </Link>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* 페이지네이션 */}
-        {!isLoading && users.length > 0 && (
+      ) : memberRows.length === 0 ? (
+        <p className="text-center text-gray-500 dark:text-gray-400 py-8">
+          {isSearchMode ? "No search results." : "No members available."}
+        </p>
+      ) : (
+        <div className="overflow-x-auto">
+          <Table hoverable className="w-full">
+            <TableHead>
+              <TableRow className="border-b-2 border-gray-300 dark:border-slate-600">
+                <TableHeadCell className="py-3 font-semibold text-gray-700 dark:text-gray-300 text-sm">
+                  닉네임
+                </TableHeadCell>
+                <TableHeadCell className="py-3 text-center font-semibold text-gray-700 dark:text-gray-300 text-sm w-40">
+                  롤링페이퍼
+                </TableHeadCell>
+              </TableRow>
+            </TableHead>
+            <TableBody className="divide-y divide-gray-200 dark:divide-slate-700">
+              {memberRows.map((member, index) => (
+                <TableRow
+                  key={member.key}
+                  className={index % 2 === 0 ? "bg-white dark:bg-slate-900" : "bg-gray-50 dark:bg-slate-800/50"}
+                >
+                  <TableCell className="py-3 text-gray-900 dark:text-gray-100">
+                    <span className="font-medium">{member.memberName}</span>
+                  </TableCell>
+                  <TableCell className="py-3 text-center">
+                    <Link href={`/rolling-paper/${encodeURIComponent(member.memberName)}`}>
+                      <Button
+                        size="sm"
+                        variant="link"
+                        className="inline-flex items-center justify-center"
+                      >
+                        롤링페이퍼
+                      </Button>
+                    </Link>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+      {/* Pagination */}
+      {!activeQuery.isLoading && memberRows.length > 0 && (
+        <div className="mt-6">
           <BoardPagination
             currentPage={currentPage}
             totalPages={totalPages}
             setCurrentPage={setCurrentPage}
           />
-        )}
-      </CardContent>
-    </Card>
+        </div>
+      )}
+    </>
   );
 };

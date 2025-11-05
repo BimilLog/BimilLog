@@ -132,34 +132,22 @@ public class JwtFilter extends OncePerRequestFilter {
                 AuthToken authToken = globalAuthTokenQueryPort.findById(tokenId)
                         .orElseThrow(() -> new CustomException(ErrorCode.TOKEN_NOT_FOUND));
 
-                // 2-5. 탈취 감지: 이미 사용된 리프레시 토큰 재사용 시도
-                if (authToken.getUseCount() != null && authToken.getUseCount() > 0) {
-                    // 모든 토큰 무효화 (보안 조치)
-                    authTokenPort.deleteAllByMemberId(authToken.getMember().getId());
-                    throw new CustomException(ErrorCode.SUSPICIOUS_ACTIVITY);
-                }
-
-                // 2-6. DB 저장 토큰과 클라이언트 토큰 비교 검증
+                // 2-5. DB 저장 토큰과 클라이언트 토큰 비교 검증
                 if (!refreshToken.equals(authToken.getRefreshToken())) {
-                    // 토큰 불일치 → 탈취 의심
-                    authTokenPort.deleteAllByMemberId(authToken.getMember().getId());
                     throw new CustomException(ErrorCode.TOKEN_MISMATCH);
                 }
 
-                // 2-7. 사용 표시 (트랜잭션 내에서 DB 저장)
-                authTokenPort.markTokenAsUsed(tokenId);
-
-                // 2-8. 유저 정보 조회
+                // 2-6. 유저 정보 조회
                 Member member = memberQueryPort.findByIdWithSetting(authToken.getMember().getId())
                         .orElseThrow(() -> new CustomException(ErrorCode.TOKEN_NOT_FOUND));
                 MemberDetail userDetail = MemberDetail.ofExisting(member, tokenId, null);
 
-                // 2-9. 새 액세스 토큰 발급
+                // 2-7. 새 액세스 토큰 발급
                 String newAccessToken = globalJwtPort.generateAccessToken(userDetail);
                 ResponseCookie accessCookie = globalCookiePort.generateJwtAccessCookie(newAccessToken);
-                response.addHeader("Set-Cookie", accessCookie.toString());
+                response.setHeader("Set-Cookie", accessCookie.toString());
 
-                // 2-10. Refresh AuthToken Rotation (15일 이하 남았을 때)
+                // 2-8. Refresh AuthToken Rotation (15일 이하 남았을 때)
                 if (globalJwtPort.shouldRefreshToken(refreshToken, 15)) {
                     String newRefreshToken = globalJwtPort.generateRefreshToken(userDetail);
 
@@ -171,13 +159,16 @@ public class JwtFilter extends OncePerRequestFilter {
                     response.addHeader("Set-Cookie", refreshCookie.toString());
                 }
 
-                // 2-11. 인증 정보 설정
+                // 2-9. 인증 정보 설정
                 setAuthentication(newAccessToken);
 
             } catch (CustomException e) {
                 // 보안 예외 발생 시 필터 체인 중단
+                SecurityContextHolder.clearContext(); // 인증 정보 초기화
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json;charset=UTF-8");
                 response.getWriter().write("{\"error\": \"" + e.getErrorCode().name() + "\"}");
+                return;
             }
         }
         filterChain.doFilter(request, response);

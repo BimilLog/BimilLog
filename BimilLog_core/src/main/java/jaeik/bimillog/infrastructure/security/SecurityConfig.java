@@ -20,6 +20,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.*;
 import org.springframework.security.web.header.writers.XXssProtectionHeaderWriter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -77,24 +78,19 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf
+                        .ignoringRequestMatchers(new AntPathRequestMatcher("/**", "GET")) // GET요청 CSRF 제외
                         .csrfTokenRepository(createCsrfTokenRepository())
-                        .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler())
-                        .ignoringRequestMatchers("/api/log/client-error",
-                                "/api/member/all",
-                                "/api/popular/realtime", // 클라이언트 에러 로깅은 CSRF 제외
-                                "/api/popular/weekly",
-                                "/api/popular/legend",
-                                "/api/paper/popular")) // 클라이언트 에러 로깅은 CSRF 제외
+                        .csrfTokenRequestHandler(new SpaCsrfTokenRequestHandler()))
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.GET, "/").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/").permitAll()
                         .requestMatchers("/.well-known/**").permitAll() // TWA Digital Asset Links
-                        .requestMatchers("/api/member/all").permitAll()
+                        .requestMatchers("/api/member/search", "api/member/all").permitAll()
                         .requestMatchers("/api/auth/login", "/api/global/health", "/api/auth/me", "/api/member/signup").permitAll()
                         .requestMatchers("/api/log/client-error").permitAll() // 클라이언트 에러 로깅
                         .requestMatchers("/api/comment/me", "/api/comment/me/liked").authenticated()

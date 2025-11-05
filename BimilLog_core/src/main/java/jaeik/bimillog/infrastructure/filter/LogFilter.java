@@ -43,6 +43,8 @@ public class LogFilter extends OncePerRequestFilter {
             "/api/comment/me",
             "/api/comment/me/liked",
             "/api/member/username/check",
+            "/api/member/search",
+            "/api/member/all",
             "/actuator/prometheus");
 
     /**

@@ -3,13 +3,13 @@
 import React from "react";
 import { Button, Card, Input } from "@/components";
 import { Search } from "lucide-react";
-import { Spinner as FlowbiteSpinner } from "flowbite-react";
 
 interface SearchSectionProps {
   searchNickname: string;
   setSearchNickname: (nickname: string) => void;
   isSearching: boolean;
   onSearch: () => void;
+  children?: React.ReactNode;
 }
 
 export const SearchSection: React.FC<SearchSectionProps> = ({
@@ -17,6 +17,7 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
   setSearchNickname,
   isSearching,
   onSearch,
+  children,
 }) => {
   // 검색 실행 핸들러
   const executeSearch = () => {
@@ -39,7 +40,7 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
           누구의 롤링페이퍼를 방문할까요?
         </h2>
         <p className="text-brand-muted text-sm mt-2">
-          닉네임을 입력하여 롤링페이퍼를 찾아보세요
+          닉네임을 입력하여 검색하거나 아래 목록에서 선택하세요
         </p>
       </div>
       <div className="space-y-4 p-6 pt-0">
@@ -66,22 +67,12 @@ export const SearchSection: React.FC<SearchSectionProps> = ({
           </div>
         </div>
 
-        <Button
-          onClick={executeSearch}
-          className="w-full h-12 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-lg font-semibold disabled:opacity-50"
-          // 닉네임이 비어있거나 검색 중일 때 버튼 비활성화
-          disabled={!searchNickname.trim() || isSearching}
-        >
-          {/* 검색 중일 때 로딩 스피너와 텍스트 표시 */}
-          {isSearching ? (
-            <div className="flex items-center justify-center space-x-2">
-              <FlowbiteSpinner color="white" size="sm" aria-label="검색 중..." />
-              <span>검색 중...</span>
-            </div>
-          ) : (
-            "롤링페이퍼 방문하기"
-          )}
-        </Button>
+        {/* AllUsersList가 여기에 렌더링됩니다 */}
+        {children && (
+          <div className="mt-6">
+            {children}
+          </div>
+        )}
       </div>
     </Card>
   );

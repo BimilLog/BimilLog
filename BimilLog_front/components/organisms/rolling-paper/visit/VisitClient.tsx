@@ -1,6 +1,4 @@
 "use client";
-
-import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Heart, Mail, Share2 } from "lucide-react";
 import { Button as FlowbiteButton } from "flowbite-react";
@@ -46,49 +44,16 @@ const AllUsersList = dynamic(
   }
 );
 
-// 확인 다이얼로그를 동적 임포트 (사용자가 자신의 롤링페이퍼를 검색했을 때만 표시)
-const ConfirmDialog = dynamic(
-  () => import("./ConfirmDialog").then(mod => ({ default: mod.ConfirmDialog })),
-  {
-    ssr: false,
-    loading: () => null // 다이얼로그는 로딩 상태 불필요
-  }
-);
 
 export function VisitClient() {
-  // 사용자가 자신의 롤링페이퍼를 검색했을 때 표시할 확인 다이얼로그 상태
-  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const { showSuccess, showError } = useToast();
-
-  // 롤링페이퍼 검색 관련 상태와 핸들러들
   const {
     searchNickname,
     setSearchNickname,
     isSearching,
     handleSearch,
-    isOwnNickname,
-    confirmOwnNicknameSearch,
-    cancelOwnNicknameSearch,
   } = useRollingPaperSearch();
 
-  // 자신의 닉네임 검색 시 다이얼로그 표시
-  useEffect(() => {
-    setShowConfirmDialog(isOwnNickname);
-  }, [isOwnNickname]);
-
-  // 확인 다이얼로그에서 "내 롤링페이퍼 보기" 클릭 시 처리
-  const handleGoToMyRollingPaper = () => {
-    setShowConfirmDialog(false);
-    confirmOwnNicknameSearch();
-  };
-
-  // 확인 다이얼로그에서 "다른 롤링페이퍼 찾기" 클릭 시 처리
-  const handleCloseDialog = () => {
-    setShowConfirmDialog(false);
-    cancelOwnNicknameSearch();
-  };
-
-  // 링크 공유 핸들러 (게시글 페이지와 동일한 로직)
   const handleWebShare = async () => {
     const shareData = {
       title: '롤링페이퍼 방문 | 비밀로그',
@@ -156,22 +121,20 @@ export function VisitClient() {
       </header>
 
       <div className="container mx-auto px-4 py-8 max-w-md">
-        <SearchSection
-          searchNickname={searchNickname}
-          setSearchNickname={setSearchNickname}
-          isSearching={isSearching}
-          onSearch={handleSearch}
-        />
-
         {/* 최근 방문한 롤링페이퍼 */}
         <div className="mb-8">
           <RecentVisits />
         </div>
 
-        {/* 모든 유저 목록 */}
-        <div className="mb-8">
-          <AllUsersList />
-        </div>
+        {/* 통합 검색 섹션 (검색창 + 멤버 목록) */}
+        <SearchSection
+          searchNickname={searchNickname}
+          setSearchNickname={setSearchNickname}
+          isSearching={isSearching}
+          onSearch={handleSearch}
+        >
+          <AllUsersList searchKeyword={searchNickname} />
+        </SearchSection>
 
         {/* Info Section */}
         <div className="mt-8 text-center">
@@ -192,12 +155,6 @@ export function VisitClient() {
           </div>
         </div>
       </div>
-
-      <ConfirmDialog
-        isOpen={showConfirmDialog}
-        onClose={handleCloseDialog}
-        onGoToMyRollingPaper={handleGoToMyRollingPaper}
-      />
 
       {/* Footer */}
       <HomeFooter />

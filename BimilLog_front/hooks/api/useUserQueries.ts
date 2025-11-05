@@ -107,3 +107,17 @@ export const useAllMembers = (page: number = 0, size: number = 20) => {
     staleTime: 5 * 60 * 1000, // 5분
   });
 };
+
+/**
+ * 사용자명 검색 (빈 검색어는 전체 목록 반환)
+ */
+export const useSearchMembers = (keyword: string, page: number = 0, size: number = 10) => {
+  const normalized = keyword?.trim() ?? '';
+
+  return useQuery({
+    queryKey: queryKeys.user.search(normalized, page, size),
+    queryFn: () => userQuery.searchMembers(normalized, page, size),
+    enabled: normalized.length > 0,
+    staleTime: 3 * 60 * 1000,
+  });
+};
