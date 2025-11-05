@@ -151,18 +151,26 @@ public class MemberQueryService implements MemberQueryUseCase {
     }
 
     /**
-     * <h3>모든 사용자 목록 조회 (페이징)</h3>
-     * <p>시스템에 가입된 모든 사용자를 페이징하여 조회합니다.</p>
-     * <p>{@link MemberQueryController}에서 사용자 목록 조회 API 시 호출됩니다.</p>
+     * <h3>사용자명 검색</h3>
+     * <p>검색어로 사용자명을 검색합니다.</p>
+     * <p>검색 전략: 4글자 이상이면 접두사 검색, 그 외에는 부분 검색을 사용합니다.</p>
+     * <p>{@link MemberQueryController}에서 사용자 검색 API 시 호출됩니다.</p>
      *
-     * @param pageable 페이징 및 정렬 정보
-     * @return Page<Member> 페이징된 사용자 목록
+     * @param query    검색어
+     * @param pageable 페이징 정보
+     * @return Page<String> 검색된 사용자명 페이지
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     @Transactional(readOnly = true)
-    public Page<Member> getAllMembers(Pageable pageable) {
-        return memberQueryPort.findAll(pageable);
+    public Page<String> searchMembers(String query, Pageable pageable) {
+        // 전략: 4글자 이상 → 접두사 검색 (인덱스 활용)
+        if (query.length() >= 4) {
+            return memberQueryPort.findByPrefixMatch(query, pageable);
+        }
+
+        // 그 외 → 부분 검색
+        return memberQueryPort.findByPartialMatch(query, pageable);
     }
 }

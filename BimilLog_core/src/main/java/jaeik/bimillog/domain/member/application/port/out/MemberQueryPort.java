@@ -132,14 +132,28 @@ public interface MemberQueryPort {
     Map<Long, String> findMemberNamesByIds(List<Long> memberIds);
 
     /**
-     * <h3>모든 사용자 페이징 조회</h3>
-     * <p>시스템에 가입된 모든 사용자를 페이징하여 조회합니다.</p>
-     * <p>{@link MemberQueryService}에서 전체 사용자 목록 조회 시 호출됩니다.</p>
+     * <h3>접두사 검색 (인덱스 활용)</h3>
+     * <p>LIKE 'query%' 조건으로 멤버명을 검색하여 인덱스를 활용합니다.</p>
+     * <p>{@link MemberQueryService}에서 검색 전략에 따라 호출됩니다.</p>
      *
-     * @param pageable 페이징 및 정렬 정보
-     * @return Page<Member> 페이징된 사용자 목록
+     * @param query    검색어
+     * @param pageable 페이지 정보
+     * @return 검색된 멤버명 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    Page<Member> findAll(Pageable pageable);
+    Page<String> findByPrefixMatch(String query, Pageable pageable);
+
+    /**
+     * <h3>부분 문자열 검색 (인덱스 미활용)</h3>
+     * <p>LIKE '%query%' 조건으로 멤버명 부분 검색을 수행합니다.</p>
+     * <p>{@link MemberQueryService}에서 검색 전략에 따라 호출됩니다.</p>
+     *
+     * @param query    검색어
+     * @param pageable 페이지 정보
+     * @return 검색된 멤버명 페이지
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    Page<String> findByPartialMatch(String query, Pageable pageable);
 }

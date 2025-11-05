@@ -156,22 +156,20 @@ export function VisitClient() {
       </header>
 
       <div className="container mx-auto px-4 py-8 max-w-md">
-        <SearchSection
-          searchNickname={searchNickname}
-          setSearchNickname={setSearchNickname}
-          isSearching={isSearching}
-          onSearch={handleSearch}
-        />
-
         {/* 최근 방문한 롤링페이퍼 */}
         <div className="mb-8">
           <RecentVisits />
         </div>
 
-        {/* 모든 유저 목록 */}
-        <div className="mb-8">
-          <AllUsersList />
-        </div>
+        {/* 통합 검색 섹션 (검색창 + 멤버 목록) */}
+        <SearchSection
+          searchNickname={searchNickname}
+          setSearchNickname={setSearchNickname}
+          isSearching={isSearching}
+          onSearch={handleSearch}
+        >
+          <AllUsersList searchKeyword={searchNickname} />
+        </SearchSection>
 
         {/* Info Section */}
         <div className="mt-8 text-center">

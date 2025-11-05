@@ -42,37 +42,4 @@ public class AuthTokenAdapter implements AuthTokenPort {
             authTokenRepository.deleteAllByMemberId(memberId);
         }
     }
-
-    /**
-     * <h3>회원의 모든 토큰 삭제</h3>
-     * <p>보안 위협 감지 시 특정 회원의 모든 활성 토큰을 무효화합니다.</p>
-     * <p>리프레시 토큰 탈취 또는 재사용 공격 감지 시 사용됩니다.</p>
-     *
-     * @param memberId 회원 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    @Transactional
-    public void deleteAllByMemberId(Long memberId) {
-        authTokenRepository.deleteAllByMemberId(memberId);
-    }
-
-    /**
-     * <h3>토큰 사용 기록</h3>
-     * <p>리프레시 토큰이 사용될 때마다 호출되어 사용 이력을 기록합니다.</p>
-     * <p>재사용 공격 감지를 위해 사용 횟수를 증가시키고 마지막 사용 시각을 업데이트합니다.</p>
-     * <p>트랜잭션 내에서 실행되어 DB에 즉시 반영됩니다.</p>
-     *
-     * @param tokenId 토큰 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    @Transactional
-    public void markTokenAsUsed(Long tokenId) {
-        AuthToken authToken = authTokenRepository.findById(tokenId)
-                .orElseThrow(() -> new RuntimeException("AuthToken not found"));
-        authToken.markAsUsed();
-    }
 }

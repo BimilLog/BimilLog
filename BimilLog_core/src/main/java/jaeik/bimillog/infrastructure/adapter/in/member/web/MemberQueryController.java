@@ -5,10 +5,12 @@ import jaeik.bimillog.domain.member.application.port.in.MemberQueryUseCase;
 import jaeik.bimillog.domain.member.entity.KakaoFriends;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.Setting;
+import jaeik.bimillog.infrastructure.adapter.in.member.dto.MemberSearchDTO;
 import jaeik.bimillog.infrastructure.adapter.in.member.dto.SettingDTO;
 import jaeik.bimillog.infrastructure.adapter.in.member.dto.SimpleMemberDTO;
 import jaeik.bimillog.infrastructure.adapter.out.api.dto.KakaoFriendsDTO;
 import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,6 +19,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -94,25 +97,26 @@ public class MemberQueryController {
     }
 
     /**
-     * <h3>모든 사용자 목록 조회 API (페이징)</h3>
-     * <p>시스템에 가입된 모든 사용자를 페이징하여 조회합니다.</p>
-     * <p>닉네임(memberName) 기준 오름차순으로 정렬됩니다.</p>
+     * <h3>사용자 검색 API</h3>
+     * <p>검색어로 사용자명을 검색합니다.</p>
+     * <p>검색 전략: 4글자 이상이면 접두사 검색, 그 외에는 부분 검색</p>
      *
-     * @param page 페이지 번호 (기본값: 0)
-     * @param size 페이지 크기 (기본값: 20)
-     * @return Page<SimpleMemberDTO> 페이징된 사용자 목록
+     * @param searchDTO 검색 요청 DTO (query 포함)
+     * @param pageable  페이징 정보
+     * @return Page<String> 검색된 사용자명 페이지
      * @since 2.0.0
      * @author Jaeik
      */
-    @GetMapping("/all")
-    public ResponseEntity<Page<SimpleMemberDTO>> getAllMembers(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+    @GetMapping("/search")
+    public ResponseEntity<Page<String>> searchMembers(
+            @Valid @ModelAttribute MemberSearchDTO searchDTO,
+            Pageable pageable) {
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "memberName"));
-        Page<Member> members = memberQueryUseCase.getAllMembers(pageable);
-        Page<SimpleMemberDTO> memberDTOs = members.map(SimpleMemberDTO::fromMember);
+        Page<String> memberNames = memberQueryUseCase.searchMembers(
+                searchDTO.getTrimmedQuery(),
+                pageable
+        );
 
-        return ResponseEntity.ok(memberDTOs);
+        return ResponseEntity.ok(memberNames);
     }
 }

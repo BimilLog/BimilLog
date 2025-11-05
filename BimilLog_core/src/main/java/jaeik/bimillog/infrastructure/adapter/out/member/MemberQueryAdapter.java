@@ -1,6 +1,7 @@
 package jaeik.bimillog.infrastructure.adapter.out.member;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
 import jaeik.bimillog.domain.member.application.service.MemberQueryService;
@@ -10,6 +11,7 @@ import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -224,18 +226,70 @@ public class MemberQueryAdapter implements MemberQueryPort {
     }
 
     /**
-     * <h3>모든 사용자 페이징 조회</h3>
-     * <p>시스템에 가입된 모든 사용자를 페이징하여 조회합니다.</p>
-     * <p>{@link MemberQueryService}에서 전체 사용자 목록 조회 시 호출됩니다.</p>
+     * <h3>접두사 검색 (인덱스 활용)</h3>
+     * <p>LIKE 'query%' 조건으로 멤버명을 검색하여 인덱스를 활용합니다.</p>
+     * <p>{@link MemberQueryService}에서 검색 전략에 따라 호출됩니다.</p>
      *
-     * @param pageable 페이징 및 정렬 정보
-     * @return Page<Member> 페이징된 사용자 목록
+     * @param query    검색어
+     * @param pageable 페이지 정보
+     * @return 검색된 멤버명 페이지
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
     @Transactional(readOnly = true)
-    public Page<Member> findAll(Pageable pageable) {
-        return userRepository.findAll(pageable);
+    public Page<String> findByPrefixMatch(String query, Pageable pageable) {
+        BooleanExpression condition = member.memberName.startsWith(query);
+
+        List<String> content = jpaQueryFactory
+                .select(member.memberName)
+                .from(member)
+                .where(condition)
+                .orderBy(member.memberName.asc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        Long total = jpaQueryFactory
+                .select(member.count())
+                .from(member)
+                .where(condition)
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, total != null ? total : 0L);
+    }
+
+    /**
+     * <h3>부분 문자열 검색 (인덱스 미활용)</h3>
+     * <p>LIKE '%query%' 조건으로 멤버명 부분 검색을 수행합니다.</p>
+     * <p>{@link MemberQueryService}에서 검색 전략에 따라 호출됩니다.</p>
+     *
+     * @param query    검색어
+     * @param pageable 페이지 정보
+     * @return 검색된 멤버명 페이지
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Page<String> findByPartialMatch(String query, Pageable pageable) {
+        BooleanExpression condition = member.memberName.contains(query);
+
+        List<String> content = jpaQueryFactory
+                .select(member.memberName)
+                .from(member)
+                .where(condition)
+                .orderBy(member.memberName.asc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        Long total = jpaQueryFactory
+                .select(member.count())
+                .from(member)
+                .where(condition)
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
 }

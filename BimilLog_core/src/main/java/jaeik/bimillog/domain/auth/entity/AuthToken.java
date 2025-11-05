@@ -77,17 +77,4 @@ public class AuthToken extends BaseEntity {
         this.lastUsedAt = LocalDateTime.now();
         this.useCount = 0;
     }
-
-    /**
-     * <h3>토큰 사용 기록</h3>
-     * <p>리프레시 토큰이 사용될 때마다 호출되어 사용 이력을 기록합니다.</p>
-     * <p>재사용 공격 감지를 위해 사용 횟수를 증가시킵니다.</p>
-     *
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public void markAsUsed() {
-        this.lastUsedAt = LocalDateTime.now();
-        this.useCount = (this.useCount == null ? 0 : this.useCount) + 1;
-    }
 }

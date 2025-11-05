@@ -15,20 +15,4 @@ public interface AuthTokenPort {
      */
     void deleteTokens(Long memberId, Long tokenId);
 
-    /**
-     * <h3>전 토큰 무효화</h3>
-     * <p>보안 위협 감지 등 치명적인 상황에서 해당 회원의 모든 리프레시 토큰을 한 번에 삭제합니다.</p>
-     *
-     * @param memberId 회원 ID
-     */
-    void deleteAllByMemberId(Long memberId);
-
-    /**
-     * <h3>토큰 사용 이력 업데이트</h3>
-     * <p>리프레시 토큰이 사용될 때 호출하여 마지막 사용 시각과 사용 횟수를 기록합니다.</p>
-     *
-     * @param tokenId 토큰 ID
-     */
-    void markTokenAsUsed(Long tokenId);
-
 }

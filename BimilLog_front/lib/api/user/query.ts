@@ -32,6 +32,9 @@ export const userQuery = {
   getUserLikedComments: (page = 0, size = 10) =>
     apiClient.get<PageResponse<SimpleComment>>(`/api/comment/me/liked?page=${page}&size=${size}`),
 
-  getAllMembers: (page = 0, size = 20) =>
-    apiClient.get<PageResponse<SimpleMember>>(`/api/member/all?page=${page}&size=${size}`),
+  getAllMembers: (page = 0, size = 10) =>
+    apiClient.get<PageResponse<SimpleMember>>(`/api/member/search?page=${page}&size=${size}`),
+
+  searchMembers: (keyword: string, page = 0, size = 10) =>
+    apiClient.get<PageResponse<string>>(`/api/member/search?query=${encodeURIComponent(keyword)}&page=${page}&size=${size}`),
 }
