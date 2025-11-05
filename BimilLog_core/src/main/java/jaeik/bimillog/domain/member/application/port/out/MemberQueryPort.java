@@ -156,4 +156,15 @@ public interface MemberQueryPort {
      * @since 2.0.0
      */
     Page<String> findByPartialMatch(String query, Pageable pageable);
+
+    /**
+     * <h3>모든 회원 페이지 조회</h3>
+     * <p>페이지 정보에 따라 전체 회원 목록을 반환합니다.</p>
+     * <p>{@link MemberQueryService}에서 방문 페이지 회원 목록 API에 사용됩니다.</p>
+     *
+     * @param pageable 페이지 정보
+     * @return Page<Member> 조회된 회원 페이지
+     * @since 2.1.0
+     */
+    Page<Member> findAllMembers(Pageable pageable);
 }

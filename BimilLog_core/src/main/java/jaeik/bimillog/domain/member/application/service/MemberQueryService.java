@@ -151,6 +151,20 @@ public class MemberQueryService implements MemberQueryUseCase {
     }
 
     /**
+     * <h3>모든 회원 페이지 조회</h3>
+     * <p>페이지 정보에 따라 전체 회원 목록을 조회합니다.</p>
+     *
+     * @param pageable 페이지 정보
+     * @return Page<Member> 조회된 회원 페이지
+     * @since 2.1.0
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Member> findAllMembers(Pageable pageable) {
+        return memberQueryPort.findAllMembers(pageable);
+    }
+
+    /**
      * <h3>사용자명 검색</h3>
      * <p>검색어로 사용자명을 검색합니다.</p>
      * <p>검색 전략: 4글자 이상이면 접두사 검색, 그 외에는 부분 검색을 사용합니다.</p>

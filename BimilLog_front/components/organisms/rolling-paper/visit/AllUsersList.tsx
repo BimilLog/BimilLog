@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow } from "flowbite-react";
 import { Button } from "@/components";
 import { useAllMembers, useSearchMembers } from "@/hooks/api/useUserQueries";
 import { BoardPagination } from "@/components/organisms/board/board-pagination";
@@ -8,55 +9,64 @@ interface AllUsersListProps {
   searchKeyword?: string;
 }
 /**
- * 모든 사용자 목록 컴포넌트
- * 검색어가 있으면 검색 API를 호출하고, 없으면 전체 목록을 가져옵니다.
- * SearchSection Card 내부에 렌더링되므로 Card wrapper 없이 구성됩니다.
+ * Renders visit-page member listings, switching between search results and the full list.
+ * Rendered inside the SearchSection card so no additional card wrapper is needed here.
  */
 export const AllUsersList = ({ searchKeyword = "" }: AllUsersListProps) => {
   const [currentPage, setCurrentPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
-  // 검색 모드 여부
+  // Determine whether we are currently showing filtered results
   const isSearchMode = searchKeyword.trim().length > 0;
-  // 조건부 쿼리 선택
+  // Choose the query result set based on the current mode
   const allMembersQuery = useAllMembers(currentPage, pageSize);
   const searchQuery = useSearchMembers(searchKeyword, currentPage, pageSize);
   const activeQuery = isSearchMode ? searchQuery : allMembersQuery;
-  // 검색어 변경 시 페이지를 0으로 리셋
+  // Reset pagination when the keyword changes
   useEffect(() => {
     setCurrentPage(0);
   }, [searchKeyword]);
   const handlePageSizeChange = (newSize: number) => {
     setPageSize(newSize);
-    setCurrentPage(0); // 페이지 크기 변경 시 첫 페이지로 리셋
+    setCurrentPage(0); // reset pagination when the page size changes
   };
-  // 에러 처리
+  // Error handling
   if (activeQuery.error) {
     return (
       <div className="p-6">
         <p className="text-red-500 dark:text-red-400 text-center">
-          {isSearchMode ? "검색 중 오류가 발생했습니다." : "사용자 목록을 불러올 수 없습니다."}
+          {isSearchMode ? "Search failed." : "Unable to load member list."}
         </p>
       </div>
     );
   }
-  // 데이터 추출
-  let memberNames: string[] = [];
+  // Prepare table rows
+  type MemberRow = {
+    key: string;
+    memberName: string;
+  };
+
+  let memberRows: MemberRow[] = [];
   let totalPages = 0;
   if (isSearchMode) {
-    // 검색 API는 Page<String> 반환
     const searchData = searchQuery.data?.data;
-    memberNames = searchData?.content || [];
+    const names = searchData?.content || [];
+    memberRows = names.map((name, index) => ({
+      key: `${name}-${index}`,
+      memberName: name,
+    }));
     totalPages = searchData?.totalPages || 0;
   } else {
-    // 전체 목록 API는 Page<SimpleMember> 반환
     const allData = allMembersQuery.data?.data;
     const users = allData?.content || [];
-    memberNames = users.map((user) => user.memberName);
+    memberRows = users.map((user) => ({
+      key: String(user.memberId),
+      memberName: user.memberName,
+    }));
     totalPages = allData?.totalPages || 0;
   }
+
   return (
     <>
-      {/* 페이지 크기 선택 드롭다운 (우측 정렬) */}
       <div className="flex justify-end mb-4">
         <select
           value={pageSize}
@@ -74,7 +84,7 @@ export const AllUsersList = ({ searchKeyword = "" }: AllUsersListProps) => {
           <option value={30}>30개씩</option>
         </select>
       </div>
-      {/* 테이블 */}
+      {/* Table */}
       {activeQuery.isLoading ? (
         <div className="space-y-2">
           {[...Array(5)].map((_, i) => (
@@ -87,60 +97,51 @@ export const AllUsersList = ({ searchKeyword = "" }: AllUsersListProps) => {
             </div>
           ))}
         </div>
-      ) : memberNames.length === 0 ? (
+      ) : memberRows.length === 0 ? (
         <p className="text-center text-gray-500 dark:text-gray-400 py-8">
-          {isSearchMode ? "검색 결과가 없습니다." : "등록된 사용자가 없습니다."}
+          {isSearchMode ? "No search results." : "No members available."}
         </p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="border-b-2 border-gray-300 dark:border-slate-600">
-                <th className="text-left py-3 px-4 font-semibold text-gray-700 dark:text-gray-300 text-sm">
-                  사용자 이름
-                </th>
-                <th className="text-center py-3 px-4 font-semibold text-gray-700 dark:text-gray-300 text-sm w-32">
+          <Table hoverable className="w-full">
+            <TableHead>
+              <TableRow className="border-b-2 border-gray-300 dark:border-slate-600">
+                <TableHeadCell className="py-3 font-semibold text-gray-700 dark:text-gray-300 text-sm">
+                  닉네임
+                </TableHeadCell>
+                <TableHeadCell className="py-3 text-center font-semibold text-gray-700 dark:text-gray-300 text-sm w-40">
                   롤링페이퍼
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {memberNames.map((memberName, index) => (
-                <tr
-                  key={`${memberName}-${index}`}
-                  className={`
-                    border-b border-gray-200 dark:border-slate-700
-                    transition-colors
-                    ${
-                      index % 2 === 0
-                        ? 'bg-white dark:bg-slate-900'
-                        : 'bg-gray-50 dark:bg-slate-800/50'
-                    }
-                    hover:bg-blue-50 dark:hover:bg-slate-700/50
-                  `}
+                </TableHeadCell>
+              </TableRow>
+            </TableHead>
+            <TableBody className="divide-y divide-gray-200 dark:divide-slate-700">
+              {memberRows.map((member, index) => (
+                <TableRow
+                  key={member.key}
+                  className={index % 2 === 0 ? "bg-white dark:bg-slate-900" : "bg-gray-50 dark:bg-slate-800/50"}
                 >
-                  <td className="py-3 px-4 text-gray-900 dark:text-gray-100">
-                    <span className="font-medium">{memberName}</span>
-                  </td>
-                  <td className="py-3 px-4 text-center">
-                    <Link href={`/rolling-paper/${encodeURIComponent(memberName)}`}>
+                  <TableCell className="py-3 text-gray-900 dark:text-gray-100">
+                    <span className="font-medium">{member.memberName}</span>
+                  </TableCell>
+                  <TableCell className="py-3 text-center">
+                    <Link href={`/rolling-paper/${encodeURIComponent(member.memberName)}`}>
                       <Button
                         size="sm"
                         variant="link"
                         className="inline-flex items-center justify-center"
                       >
-                        바로가기
+                        롤링페이퍼
                       </Button>
                     </Link>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       )}
-      {/* 페이지네이션 */}
-      {!activeQuery.isLoading && memberNames.length > 0 && (
+      {/* Pagination */}
+      {!activeQuery.isLoading && memberRows.length > 0 && (
         <div className="mt-6">
           <BoardPagination
             currentPage={currentPage}

@@ -21,10 +21,7 @@ import lombok.Setter;
 @Builder
 public class SimpleMemberDTO {
 
-    private Long memberId;
     private String memberName;
-    private String socialNickname;
-    private String thumbnailImage;
 
     /**
      * <h3>Member 엔티티로부터 SimpleMemberDTO 생성</h3>
@@ -37,10 +34,7 @@ public class SimpleMemberDTO {
      */
     public static SimpleMemberDTO fromMember(Member member) {
         return SimpleMemberDTO.builder()
-                .memberId(member.getId())
                 .memberName(member.getMemberName())
-                .socialNickname(member.getSocialNickname())
-                .thumbnailImage(member.getThumbnailImage())
                 .build();
     }
 }

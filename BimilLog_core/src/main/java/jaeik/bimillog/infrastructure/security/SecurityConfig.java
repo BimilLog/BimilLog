@@ -90,7 +90,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/").permitAll()
                         .requestMatchers("/.well-known/**").permitAll() // TWA Digital Asset Links
-                        .requestMatchers("/api/member/search").permitAll()
+                        .requestMatchers("/api/member/search", "api/member/all").permitAll()
                         .requestMatchers("/api/auth/login", "/api/global/health", "/api/auth/me", "/api/member/signup").permitAll()
                         .requestMatchers("/api/log/client-error").permitAll() // 클라이언트 에러 로깅
                         .requestMatchers("/api/comment/me", "/api/comment/me/liked").authenticated()
@@ -142,7 +142,7 @@ public class SecurityConfig {
         CookieCsrfTokenRepository repository = CookieCsrfTokenRepository.withHttpOnlyFalse();
         repository.setCookieName("XSRF-TOKEN");
         repository.setCookiePath("/");
-        repository.setCookieCustomizer(cookie -> cookie.secure(false).sameSite("LAX"));
+        repository.setCookieCustomizer(cookie -> cookie.secure(true).sameSite("LAX"));
         return repository;
     }
 

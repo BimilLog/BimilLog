@@ -25,9 +25,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * <h2>사용자 조회 컨트롤러</h2>
- * <p>사용자 관련 조회 REST API 요청을 처리하는 인바운드 어댑터입니다.</p>
- * <p>닉네임 중복 확인, 사용자 설정 조회, 카카오 친구 목록 조회</p>
+ * <h2>?�용??조회 컨트롤러</h2>
+ * <p>?�용??관??조회 REST API ?�청??처리?�는 ?�바?�드 ?�댑?�입?�다.</p>
+ * <p>?�네??중복 ?�인, ?�용???�정 조회, 카카??친구 목록 조회</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -41,11 +41,11 @@ public class MemberQueryController {
     private final MemberFriendUseCase memberFriendUseCase;
 
     /**
-     * <h3>닉네임 중복 확인 API</h3>
-     * <p>사용자의 닉네임이 이미 사용 중인지 확인하는 요청을 처리</p>
+     * <h3>?�네??중복 ?�인 API</h3>
+     * <p>?�용?�의 ?�네?�이 ?��? ?�용 중인지 ?�인?�는 ?�청??처리</p>
      *
-     * @param memberName 닉네임
-     * @return 닉네임 사용 가능 여부
+     * @param memberName ?�네??
+     * @return ?�네???�용 가???��?
      * @since 2.0.0
      * @author Jaeik
      */
@@ -56,10 +56,10 @@ public class MemberQueryController {
     }
 
     /**
-     * <h3>사용자 설정 조회 API</h3>
+     * <h3>?�용???�정 조회 API</h3>
      *
-     * @param userDetails 사용자 인증 정보 (JWT에서 settingId 포함)
-     * @return 사용자 설정 DTO
+     * @param userDetails ?�용???�증 ?�보 (JWT?�서 settingId ?�함)
+     * @return ?�용???�정 DTO
      * @since 2.0.0
      * @author Jaeik
      */
@@ -70,13 +70,13 @@ public class MemberQueryController {
     }
 
     /**
-     * <h3>카카오 친구 목록 조회 API</h3>
-     * <p>현재 로그인한 사용자의 카카오 친구 목록을 조회하고 비밀로그 가입 여부를 포함하여 반환합니다.</p>
+     * <h3>카카??친구 목록 조회 API</h3>
+     * <p>?�재 로그?�한 ?�용?�의 카카??친구 목록??조회?�고 비�?로그 가???��?�??�함?�여 반환?�니??</p>
      *
-     * @param offset      조회 시작 위치 (기본값: 0)
-     * @param limit       조회할 친구 수 (기본값: 10, 최대: 100)
-     * @param userDetails 현재 로그인한 사용자 정보
-     * @return Mono<ResponseEntity<KakaoFriendsDTO>> 카카오 친구 목록 (비밀로그 가입 여부 포함)
+     * @param offset      조회 ?�작 ?�치 (기본�? 0)
+     * @param limit       조회??친구 ??(기본�? 10, 최�?: 100)
+     * @param userDetails ?�재 로그?�한 ?�용???�보
+     * @return Mono<ResponseEntity<KakaoFriendsDTO>> 카카??친구 목록 (비�?로그 가???��? ?�함)
      * @since 2.0.0
      * @author Jaeik
      */
@@ -97,16 +97,24 @@ public class MemberQueryController {
     }
 
     /**
-     * <h3>사용자 검색 API</h3>
-     * <p>검색어로 사용자명을 검색합니다.</p>
-     * <p>검색 전략: 4글자 이상이면 접두사 검색, 그 외에는 부분 검색</p>
+     * <h3>?�체 ?�원 목록 조회 API</h3>
+     * <p>방문 ?�이지?�서 ?�용???�체 ?�원 목록???�이지 ?�태�?반환?�니??</p>
      *
-     * @param searchDTO 검색 요청 DTO (query 포함)
-     * @param pageable  페이징 정보
-     * @return Page<String> 검색된 사용자명 페이지
-     * @since 2.0.0
-     * @author Jaeik
+     * @param page ?�이지 번호 (0부???�작)
+     * @param size ?�이지 ?�기
+     * @return Page<SimpleMemberDTO> ?�원 목록 ?�이지
+     * @since 2.1.0
      */
+    @GetMapping("/all")
+    public ResponseEntity<Page<SimpleMemberDTO>> getAllMembers(
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "20") Integer size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<SimpleMemberDTO> members = memberQueryUseCase.findAllMembers(pageable)
+                .map(SimpleMemberDTO::fromMember);
+        return ResponseEntity.ok(members);
+    }
+
     @GetMapping("/search")
     public ResponseEntity<Page<String>> searchMembers(
             @Valid @ModelAttribute MemberSearchDTO searchDTO,

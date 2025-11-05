@@ -113,4 +113,16 @@ public interface MemberQueryUseCase {
      */
     Page<String> searchMembers(String query, Pageable pageable);
 
+    /**
+     * <h3>모든 회원 페이지 조회</h3>
+     * <p>페이지 정보에 따라 전체 회원 목록을 조회합니다.</p>
+     * <p>{@link MemberQueryController}에서 방문 페이지 회원 목록 API 호출 시 사용됩니다.</p>
+     *
+     * @param pageable 페이지 정보 (페이지 번호, 크기, 정렬)
+     * @return Page<Member> 조회된 회원 페이지
+     * @since 2.1.0
+     * @author
+     */
+    Page<Member> findAllMembers(Pageable pageable);
+
 }

@@ -196,6 +196,21 @@ public class MemberQueryAdapter implements MemberQueryPort {
     }
 
     /**
+     * <h3>모든 회원 페이지 조회</h3>
+     * <p>페이지 정보에 따라 전체 회원 목록을 조회합니다.</p>
+     *
+     * @param pageable 페이지 정보
+     * @return Page<Member> 조회된 회원 페이지
+     * @since 2.1.0
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Member> findAllMembers(Pageable pageable) {
+        return userRepository.findAll(pageable);
+    }
+
+
+    /**
      * <h3>여러 사용자 ID로 사용자명 배치 조회</h3>
      * <p>{@link MemberQueryService}에서 인기 롤링페이퍼 정보 보강 시 호출됩니다.</p>
      *
