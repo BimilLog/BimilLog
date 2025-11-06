@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static jaeik.bimillog.out.redis.paper.RedisPaperKeys.REALTIME_PAPER_SCORE_KEY;
+import static jaeik.bimillog.infrastructure.out.redis.paper.RedisPaperKeys.REALTIME_PAPER_SCORE_KEY;
 
 /**
  * <h2>롤링페이퍼 캐시 서비스</h2>

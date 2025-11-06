@@ -3,7 +3,7 @@ package jaeik.bimillog.adapter.out.post;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
-import jaeik.bimillog.out.post.PostLikeQueryAdapter;
+import jaeik.bimillog.domain.post.out.PostLikeQueryAdapter;
 import jaeik.bimillog.testutil.config.H2TestConfiguration;
 import jaeik.bimillog.testutil.TestMembers;
 import org.junit.jupiter.api.BeforeEach;

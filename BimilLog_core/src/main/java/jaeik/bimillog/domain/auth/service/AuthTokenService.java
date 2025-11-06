@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.auth.service;
 
-import jaeik.bimillog.out.auth.AuthTokenAdapter;
+import jaeik.bimillog.domain.auth.out.AuthTokenAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

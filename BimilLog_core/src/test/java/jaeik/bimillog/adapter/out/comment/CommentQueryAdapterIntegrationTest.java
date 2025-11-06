@@ -6,11 +6,11 @@ import jaeik.bimillog.domain.comment.entity.CommentLike;
 import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.out.comment.CommentLikeRepository;
-import jaeik.bimillog.out.comment.CommentQueryAdapter;
-import jaeik.bimillog.out.comment.CommentRepository;
-import jaeik.bimillog.out.member.MemberRepository;
-import jaeik.bimillog.out.post.PostRepository;
+import jaeik.bimillog.domain.comment.out.CommentLikeRepository;
+import jaeik.bimillog.domain.comment.out.CommentQueryAdapter;
+import jaeik.bimillog.domain.comment.out.CommentRepository;
+import jaeik.bimillog.domain.member.out.MemberRepository;
+import jaeik.bimillog.domain.post.out.PostRepository;
 import jaeik.bimillog.testutil.builder.CommentTestDataBuilder;
 import jaeik.bimillog.testutil.config.H2TestConfiguration;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
@@ -68,10 +68,10 @@ class CommentQueryAdapterIntegrationTest {
     private EntityManager entityManager;
 
     @Autowired
-    private jaeik.bimillog.out.member.SettingRepository settingRepository;
+    private jaeik.bimillog.domain.member.out.SettingRepository settingRepository;
 
     @Autowired
-    private jaeik.bimillog.out.auth.KakaoTokenRepository kakaoTokenRepository;
+    private jaeik.bimillog.domain.auth.out.KakaoTokenRepository kakaoTokenRepository;
 
     private Member testMember;
     private Member otherMember;

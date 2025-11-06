@@ -1,8 +1,8 @@
 package jaeik.bimillog.adapter.out.member;
 
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.out.member.MemberRepository;
-import jaeik.bimillog.out.member.SaveMemberAdapter;
+import jaeik.bimillog.domain.member.out.MemberRepository;
+import jaeik.bimillog.domain.member.out.SaveMemberAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.TestMembers;
 import org.junit.jupiter.api.DisplayName;

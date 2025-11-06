@@ -1,6 +1,6 @@
 package jaeik.bimillog.adapter.in.comment.dto;
 
-import jaeik.bimillog.in.comment.dto.CommentReqDTO;
+import jaeik.bimillog.domain.comment.in.dto.CommentReqDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;

@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.global.entity;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.MemberRole;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
-import jaeik.bimillog.in.auth.dto.MemberInfoResponseDTO;
+import jaeik.bimillog.domain.auth.in.dto.MemberInfoResponseDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

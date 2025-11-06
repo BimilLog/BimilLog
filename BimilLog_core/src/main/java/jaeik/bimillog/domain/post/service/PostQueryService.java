@@ -13,7 +13,7 @@ import jaeik.bimillog.domain.post.entity.PostSearchType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
-import jaeik.bimillog.in.post.web.PostQueryController;
+import jaeik.bimillog.domain.post.in.web.PostQueryController;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

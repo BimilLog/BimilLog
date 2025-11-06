@@ -2,8 +2,8 @@ package jaeik.bimillog.adapter.in.comment;
 
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.out.comment.CommentRepository;
-import jaeik.bimillog.out.post.PostRepository;
+import jaeik.bimillog.domain.comment.out.CommentRepository;
+import jaeik.bimillog.domain.post.out.PostRepository;
 import jaeik.bimillog.testutil.*;
 import jaeik.bimillog.testutil.builder.CommentTestDataBuilder;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;

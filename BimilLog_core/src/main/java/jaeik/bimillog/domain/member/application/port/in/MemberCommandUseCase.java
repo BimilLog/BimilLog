@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.member.application.port.in;
 
 import jaeik.bimillog.domain.member.entity.Setting;
-import jaeik.bimillog.in.member.web.MemberCommandController;
+import jaeik.bimillog.domain.member.in.web.MemberCommandController;
 
 /**
  * <h2>사용자 명령 유스케이스</h2>

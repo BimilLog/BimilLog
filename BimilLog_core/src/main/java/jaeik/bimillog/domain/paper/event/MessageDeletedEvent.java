@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.paper.event;
 
-import jaeik.bimillog.in.paper.listener.RealtimePaperPopularScoreListener;
+import jaeik.bimillog.domain.paper.in.listener.RealtimePaperPopularScoreListener;
 
 /**
  * <h2>롤링페이퍼 메시지 삭제 이벤트</h2>

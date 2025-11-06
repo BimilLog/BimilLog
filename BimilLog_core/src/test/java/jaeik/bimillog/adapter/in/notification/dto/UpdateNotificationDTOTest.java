@@ -1,7 +1,7 @@
 package jaeik.bimillog.adapter.in.notification.dto;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jaeik.bimillog.in.notification.dto.UpdateNotificationDTO;
+import jaeik.bimillog.domain.notification.in.dto.UpdateNotificationDTO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;

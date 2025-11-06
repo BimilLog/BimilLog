@@ -14,8 +14,8 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalKakaoTokenCommand
 import jaeik.bimillog.domain.global.entity.MemberDetail;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
-import jaeik.bimillog.out.auth.AuthToMemberAdapter;
-import jaeik.bimillog.out.auth.BlacklistAdapter;
+import jaeik.bimillog.domain.auth.out.AuthToMemberAdapter;
+import jaeik.bimillog.domain.auth.out.BlacklistAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;

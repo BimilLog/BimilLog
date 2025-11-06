@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.comment.event;
 
-import jaeik.bimillog.in.notification.listener.NotificationGenerateListener;
+import jaeik.bimillog.domain.notification.in.listener.NotificationGenerateListener;
 
 /**
  * <h2>댓글 작성 이벤트</h2>

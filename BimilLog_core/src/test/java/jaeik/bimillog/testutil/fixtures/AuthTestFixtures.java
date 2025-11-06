@@ -3,7 +3,7 @@ package jaeik.bimillog.testutil.fixtures;
 import jaeik.bimillog.domain.global.entity.MemberDetail;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
-import jaeik.bimillog.out.auth.CustomUserDetails;
+import jaeik.bimillog.domain.auth.out.CustomUserDetails;
 
 /**
  * <h2>인증 도메인 테스트 유틸리티</h2>

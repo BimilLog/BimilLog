@@ -2,7 +2,7 @@ package jaeik.bimillog.adapter.in.paper;
 
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.paper.entity.Message;
-import jaeik.bimillog.out.paper.MessageRepository;
+import jaeik.bimillog.domain.paper.out.MessageRepository;
 import jaeik.bimillog.testutil.*;
 import jaeik.bimillog.testutil.builder.PaperTestDataBuilder;
 import jaeik.bimillog.testutil.config.H2TestConfiguration;

@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.post.application.port.in;
 
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.in.post.web.PostCacheController;
+import jaeik.bimillog.domain.post.in.web.PostCacheController;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

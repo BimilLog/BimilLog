@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.auth.service;
 
-import jaeik.bimillog.out.auth.AuthToMemberAdapter;
+import jaeik.bimillog.domain.auth.out.AuthToMemberAdapter;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
@@ -14,7 +14,7 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalKakaoTokenCommandPort;
 import jaeik.bimillog.domain.global.entity.MemberDetail;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.out.auth.BlacklistAdapter;
+import jaeik.bimillog.domain.auth.out.BlacklistAdapter;
 import jaeik.bimillog.testutil.fixtures.AuthTestFixtures;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.fixtures.TestFixtures;

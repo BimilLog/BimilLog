@@ -2,8 +2,8 @@ package jaeik.bimillog.adapter.in.notification;
 
 import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.in.notification.dto.UpdateNotificationDTO;
-import jaeik.bimillog.out.notification.NotificationRepository;
+import jaeik.bimillog.domain.notification.in.dto.UpdateNotificationDTO;
+import jaeik.bimillog.domain.notification.out.NotificationRepository;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.config.H2TestConfiguration;
 import jaeik.bimillog.testutil.builder.NotificationTestDataBuilder;

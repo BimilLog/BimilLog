@@ -11,7 +11,7 @@ import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.out.auth.CustomUserDetails;
+import jaeik.bimillog.domain.auth.out.CustomUserDetails;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;

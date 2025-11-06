@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.notification.application.port.in;
 
 import jaeik.bimillog.domain.notification.entity.Notification;
-import jaeik.bimillog.in.notification.web.NotificationQueryController;
-import jaeik.bimillog.out.auth.CustomUserDetails;
+import jaeik.bimillog.domain.notification.in.web.NotificationQueryController;
+import jaeik.bimillog.domain.auth.out.CustomUserDetails;
 
 import java.util.List;
 

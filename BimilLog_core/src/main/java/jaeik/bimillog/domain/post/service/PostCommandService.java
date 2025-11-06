@@ -11,7 +11,7 @@ import jaeik.bimillog.domain.post.application.port.out.RedisPostDeletePort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
-import jaeik.bimillog.in.post.web.PostCommandController;
+import jaeik.bimillog.domain.post.in.web.PostCommandController;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

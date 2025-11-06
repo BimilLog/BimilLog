@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.post.application.port.in;
 
-import jaeik.bimillog.in.global.listener.MemberWithdrawListener;
-import jaeik.bimillog.in.post.web.PostCommandController;
+import jaeik.bimillog.domain.global.in.listener.MemberWithdrawListener;
+import jaeik.bimillog.domain.post.in.web.PostCommandController;
 
 
 /**
