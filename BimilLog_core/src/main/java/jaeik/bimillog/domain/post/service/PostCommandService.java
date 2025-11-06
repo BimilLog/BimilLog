@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.post.service;
 
-import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
+import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.global.application.port.out.GlobalMemberQueryPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.member.entity.Member;
@@ -40,7 +40,7 @@ public class PostCommandService implements PostCommandUseCase {
     private final GlobalMemberQueryPort globalUserQueryPort;
     private final RedisPostDeletePort redisPostDeletePort;
     private final PostQueryPort postQueryPort;
-    private final CommentCommandUseCase commentCommandUseCase;
+    private final CommentCommandService commentCommandService;
 
 
     /**
@@ -149,7 +149,7 @@ public class PostCommandService implements PostCommandUseCase {
         List<Long> postIds = postQueryPort.findPostIdsMemberId(memberId);
         for (Long postId : postIds) {
             // FK 제약 조건 위반 방지: 게시글의 모든 댓글 먼저 삭제 (CommentClosure 포함)
-            commentCommandUseCase.deleteCommentsByPost(postId);
+            commentCommandService.deleteCommentsByPost(postId);
             // 캐시 무효화
             redisPostDeletePort.deleteSinglePostCache(postId);
         }

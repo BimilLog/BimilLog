@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.service.AuthTokenService;
 import jaeik.bimillog.domain.auth.service.KakaoTokenService;
 import jaeik.bimillog.domain.auth.service.SocialWithdrawService;
-import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
+import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPort;
 import jaeik.bimillog.domain.global.application.strategy.SocialAuthStrategy;
 import jaeik.bimillog.domain.global.application.strategy.SocialPlatformStrategy;
@@ -51,7 +51,7 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
     private SocialWithdrawService socialWithdrawService;
 
     @MockitoBean
-    private CommentCommandUseCase commentCommandUseCase;
+    private CommentCommandService CommentCommandService;
 
     @MockitoBean
     private PostCommandUseCase postCommandUseCase;
@@ -134,7 +134,7 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
             // 2. 소셜 계정 연동 해제 전략 조회
             verify(globalSocialStrategyPort).getStrategy(eq(SocialProvider.KAKAO));
             // 3. 댓글 처리
-            verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(memberId));
+            verify(CommentCommandService).processUserCommentsOnWithdrawal(eq(memberId));
             // 4. 게시글 삭제
             verify(postCommandUseCase).deleteAllPostsByMemberId(eq(memberId));
             // 5. JWT 토큰 무효화
@@ -173,9 +173,9 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
             verify(globalSocialStrategyPort, times(3)).getStrategy(eq(SocialProvider.KAKAO));
 
             // 댓글 처리
-            verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(1L));
-            verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(2L));
-            verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(3L));
+            verify(CommentCommandService).processUserCommentsOnWithdrawal(eq(1L));
+            verify(CommentCommandService).processUserCommentsOnWithdrawal(eq(2L));
+            verify(CommentCommandService).processUserCommentsOnWithdrawal(eq(3L));
 
             // 게시글 삭제
             verify(postCommandUseCase).deleteAllPostsByMemberId(eq(1L));
@@ -270,7 +270,7 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
         publishAndVerify(event, () -> {
             verify(sseUseCase).deleteEmitters(eq(memberId), eq(null));
             verify(globalSocialStrategyPort).getStrategy(eq(SocialProvider.KAKAO));
-            verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(memberId));
+            verify(CommentCommandService).processUserCommentsOnWithdrawal(eq(memberId));
             verify(postCommandUseCase).deleteAllPostsByMemberId(eq(memberId));
             verify(authTokenService).deleteTokens(eq(memberId), eq(null));
             verify(fcmUseCase).deleteFcmTokens(eq(memberId), eq(null));
@@ -291,7 +291,7 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
         MemberWithdrawnEvent event = new MemberWithdrawnEvent(1L, "testSocialId1", SocialProvider.KAKAO);
 
         // 댓글 처리 실패 시뮬레이션
-        doThrow(new RuntimeException("댓글 처리 실패")).when(commentCommandUseCase).processUserCommentsOnWithdrawal(1L);
+        doThrow(new RuntimeException("댓글 처리 실패")).when(CommentCommandService).processUserCommentsOnWithdrawal(1L);
 
         // When & Then - 예외 발생 시 해당 시점 이전까지만 처리됨 (순차 처리)
         publishAndExpectException(event, () -> {
@@ -300,7 +300,7 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
             // 소셜 계정 연동 해제 전략 조회도 실행됨
             verify(globalSocialStrategyPort).getStrategy(eq(SocialProvider.KAKAO));
             // 댓글 처리에서 예외 발생
-            verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(1L));
+            verify(CommentCommandService).processUserCommentsOnWithdrawal(eq(1L));
         });
     }
 }

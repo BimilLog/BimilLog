@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.comment.service;
 
-import jaeik.bimillog.domain.comment.application.port.in.CommentQueryUseCase;
 import jaeik.bimillog.domain.comment.application.port.out.CommentQueryPort;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentInfo;
@@ -31,7 +30,7 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class CommentQueryService implements CommentQueryUseCase {
+public class CommentQueryService {
 
     private final CommentQueryPort commentQueryPort;
     private final GlobalCommentQueryPort globalCommentQueryPort;
@@ -48,7 +47,6 @@ public class CommentQueryService implements CommentQueryUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public List<CommentInfo> getPopularComments(Long postId, CustomUserDetails userDetails) {
         Long memberId = userDetails != null ? userDetails.getMemberId() : null;
         return commentQueryPort.findPopularComments(postId, memberId);
@@ -67,7 +65,6 @@ public class CommentQueryService implements CommentQueryUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public Page<CommentInfo> getCommentsOldestOrder(Long postId, Pageable pageable, CustomUserDetails userDetails) {
         Long memberId = userDetails != null ? userDetails.getMemberId() : null;
         return commentQueryPort.findCommentsWithOldestOrder(postId, pageable, memberId);
@@ -84,7 +81,6 @@ public class CommentQueryService implements CommentQueryUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public Comment findById(Long commentId) {
         return globalCommentQueryPort.findById(commentId);
     }
@@ -93,7 +89,6 @@ public class CommentQueryService implements CommentQueryUseCase {
      * <h3>사용자 작성 댓글 목록 조회</h3>
      * <p>특정 사용자가 작성한 댓글 목록을 페이지네이션으로 조회합니다.</p>
      * <p>최신 작성 댓글부터 과거 순서로 정렬하여 반환합니다.</p>
-     * <p>{@link MemberActivityAdapter}에서 사용자 활동 조회 시 호출됩니다.</p>
      *
      * @param memberId   사용자 ID
      * @param pageable 페이지 정보
@@ -101,7 +96,6 @@ public class CommentQueryService implements CommentQueryUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public Page<SimpleCommentInfo> getMemberComments(Long memberId, Pageable pageable) {
         return commentQueryPort.findCommentsByMemberId(memberId, pageable);
     }
@@ -110,7 +104,6 @@ public class CommentQueryService implements CommentQueryUseCase {
      * <h3>사용자 추천한 댓글 목록 조회</h3>
      * <p>특정 사용자가 추천한 댓글 목록을 페이지네이션으로 조회합니다.</p>
      * <p>최신 추천 댓글부터 과거 순서로 정렬하여 반환합니다.</p>
-     * <p>{@link MemberActivityAdapter}에서 사용자 추천 댓글 조회 시 호출됩니다.</p>
      *
      * @param memberId   사용자 ID
      * @param pageable 페이지 정보
@@ -118,7 +111,6 @@ public class CommentQueryService implements CommentQueryUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public Page<SimpleCommentInfo> getMemberLikedComments(Long memberId, Pageable pageable) {
         return commentQueryPort.findLikedCommentsByMemberId(memberId, pageable);
     }
@@ -134,7 +126,6 @@ public class CommentQueryService implements CommentQueryUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public Map<Long, Integer> findCommentCountsByPostIds(List<Long> postIds) {
         return commentQueryPort.findCommentCountsByPostIds(postIds);
     }

@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.comment.service;
 
-import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.bimillog.domain.comment.application.port.out.CommentDeletePort;
 import jaeik.bimillog.domain.comment.application.port.out.CommentLikePort;
 import jaeik.bimillog.domain.comment.application.port.out.CommentQueryPort;
@@ -45,7 +44,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class CommentCommandService implements CommentCommandUseCase {
+public class CommentCommandService {
 
     private final ApplicationEventPublisher eventPublisher;
     private final GlobalPostQueryPort globalPostQueryPort;
@@ -72,7 +71,6 @@ public class CommentCommandService implements CommentCommandUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional
     public void writeComment(Long memberId, Long postId, Long parentId, String content, Integer password) {
         try {
@@ -110,7 +108,6 @@ public class CommentCommandService implements CommentCommandUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional
     public void updateComment(Long commentId, Long memberId, String content, Integer password) {
         Comment comment = validateComment(commentId, memberId, password);
@@ -129,7 +126,6 @@ public class CommentCommandService implements CommentCommandUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional
     public void deleteComment(Long commentId, Long memberId, Integer password) {
         Comment comment = validateComment(commentId, memberId, password);
@@ -156,7 +152,6 @@ public class CommentCommandService implements CommentCommandUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional
     public void likeComment(Long memberId, Long commentId) {
         Comment comment = globalCommentQueryPort.findById(commentId);
@@ -184,7 +179,6 @@ public class CommentCommandService implements CommentCommandUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional
     public void processUserCommentsOnWithdrawal(Long memberId) {
         List<Comment> userComments = commentQueryPort.findAllByMemberId(memberId);
@@ -209,7 +203,6 @@ public class CommentCommandService implements CommentCommandUseCase {
      * @since 2.0.0
      */
     @Transactional
-    @Override
     public void deleteCommentsByPost(Long postId) {
         List<Comment> userComments = commentQueryPort.findAllByPostId(postId);
 

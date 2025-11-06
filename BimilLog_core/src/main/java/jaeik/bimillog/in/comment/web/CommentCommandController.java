@@ -1,6 +1,6 @@
 package jaeik.bimillog.in.comment.web;
 
-import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
+import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.in.comment.dto.CommentLikeReqDTO;
 import jaeik.bimillog.in.comment.dto.CommentReqDTO;
 import jaeik.bimillog.out.auth.CustomUserDetails;
@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/comment")
 public class CommentCommandController {
 
-    private final CommentCommandUseCase commentCommandUseCase;
+    private final CommentCommandService commentCommandService;
 
     /**
      * <h3>댓글 작성 API</h3>
@@ -42,7 +42,7 @@ public class CommentCommandController {
             @Valid @RequestBody CommentReqDTO commentReqDto,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         commentReqDto.setMemberId(userDetails != null ? userDetails.getMemberId() : null);
-        commentCommandUseCase.writeComment(
+        commentCommandService.writeComment(
                 commentReqDto.getMemberId(),
                 commentReqDto.getPostId(),
                 commentReqDto.getParentId(),
@@ -67,7 +67,7 @@ public class CommentCommandController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody @Valid CommentReqDTO commentReqDto) {
         commentReqDto.setMemberId(userDetails != null ? userDetails.getMemberId() : null);
-        commentCommandUseCase.updateComment(
+        commentCommandService.updateComment(
                 commentReqDto.getId(),
                 commentReqDto.getMemberId(),
                 commentReqDto.getContent(),
@@ -92,7 +92,7 @@ public class CommentCommandController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestBody @Valid CommentReqDTO commentReqDto) {
         commentReqDto.setMemberId(userDetails != null ? userDetails.getMemberId() : null);
-        commentCommandUseCase.deleteComment(
+        commentCommandService.deleteComment(
                 commentReqDto.getId(),
                 commentReqDto.getMemberId(),
                 commentReqDto.getPassword()
@@ -116,7 +116,7 @@ public class CommentCommandController {
             @RequestBody @Valid CommentLikeReqDTO commentLikeReqDto,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long memberId = userDetails.getMemberId();
-        commentCommandUseCase.likeComment(memberId, commentLikeReqDto.getCommentId());
+        commentCommandService.likeComment(memberId, commentLikeReqDto.getCommentId());
         return ResponseEntity.ok("추천 처리 완료");
     }
 

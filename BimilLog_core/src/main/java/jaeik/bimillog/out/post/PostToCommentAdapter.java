@@ -1,7 +1,7 @@
 package jaeik.bimillog.out.post;
 
-import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
-import jaeik.bimillog.domain.comment.application.port.in.CommentQueryUseCase;
+import jaeik.bimillog.domain.comment.service.CommentCommandService;
+import jaeik.bimillog.domain.comment.service.CommentQueryService;
 import jaeik.bimillog.domain.post.application.port.out.PostToCommentPort;
 import jaeik.bimillog.domain.post.service.PostCommandService;
 import lombok.RequiredArgsConstructor;
@@ -23,8 +23,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class PostToCommentAdapter implements PostToCommentPort {
 
-    private final CommentQueryUseCase commentQueryUseCase;
-    private final CommentCommandUseCase commentCommandUseCase;
+    private final CommentQueryService commentQueryService;
+    private final CommentCommandService commentCommandService;
 
 
     /**
@@ -37,7 +37,7 @@ public class PostToCommentAdapter implements PostToCommentPort {
      */
     @Override
     public Map<Long, Integer> findCommentCountsByPostIds(List<Long> postIds) {
-        return commentQueryUseCase.findCommentCountsByPostIds(postIds);
+        return commentQueryService.findCommentCountsByPostIds(postIds);
     }
 
     /**
@@ -51,6 +51,6 @@ public class PostToCommentAdapter implements PostToCommentPort {
      */
     @Override
     public void deleteCommentInPost(Long postId) {
-        commentCommandUseCase.deleteCommentsByPost(postId);
+        commentCommandService.deleteCommentsByPost(postId);
     }
 }

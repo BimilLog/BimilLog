@@ -1,6 +1,6 @@
 package jaeik.bimillog.in.comment.web;
 
-import jaeik.bimillog.domain.comment.application.port.in.CommentQueryUseCase;
+import jaeik.bimillog.domain.comment.service.CommentQueryService;
 import jaeik.bimillog.domain.comment.entity.CommentInfo;
 import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
 import jaeik.bimillog.in.comment.dto.CommentDTO;
@@ -23,7 +23,7 @@ import java.util.List;
  * 댓글 도메인의 읽기 작업을 처리하는 REST API 어댑터입니다.
  * </p>
  * <p>
- * 클라이언트로부터 댓글 조회 요청을 받아 도메인 계층의 CommentQueryUseCase에서 데이터를 가져오고,
+ * 클라이언트로부터 댓글 조회 요청을 받아 도메인 계층의 CommentQueryService에서 데이터를 가져오고,
  * CQRS 패턴에서 Query 책임을 담당하며 읽기 전용 최적화된 응답을 제공합니다.
  * </p>
  * <p>
@@ -38,7 +38,7 @@ import java.util.List;
 @RequestMapping("/api/comment")
 public class CommentQueryController {
 
-    private final CommentQueryUseCase commentQueryUseCase;
+    private final CommentQueryService CommentQueryService;
 
     /**
      * <h3>댓글 조회 API</h3>
@@ -57,7 +57,7 @@ public class CommentQueryController {
             @PathVariable Long postId,
             @RequestParam(defaultValue = "0") int page) {
         Pageable pageable = Pageable.ofSize(20).withPage(page);
-        Page<CommentInfo> commentInfoPage = commentQueryUseCase.getCommentsOldestOrder(postId, pageable, userDetails);
+        Page<CommentInfo> commentInfoPage = CommentQueryService.getCommentsOldestOrder(postId, pageable, userDetails);
         Page<CommentDTO> commentDtoPage = commentInfoPage.map(this::convertToCommentDTO);
         return ResponseEntity.ok(commentDtoPage);
     }
@@ -77,7 +77,7 @@ public class CommentQueryController {
     public ResponseEntity<List<CommentDTO>> getPopularComments(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long postId) {
-        List<CommentInfo> commentInfoList = commentQueryUseCase.getPopularComments(postId, userDetails);
+        List<CommentInfo> commentInfoList = CommentQueryService.getPopularComments(postId, userDetails);
         List<CommentDTO> commentDtoList = commentInfoList.stream()
                 .map(this::convertToCommentDTO)
                 .toList();
@@ -100,7 +100,7 @@ public class CommentQueryController {
                                                                   @RequestParam(defaultValue = "10") int size,
                                                                   @AuthenticationPrincipal CustomUserDetails userDetails) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<SimpleCommentInfo> commentInfoList = commentQueryUseCase.getMemberComments(userDetails.getMemberId(), pageable);
+        Page<SimpleCommentInfo> commentInfoList = CommentQueryService.getMemberComments(userDetails.getMemberId(), pageable);
         Page<SimpleCommentDTO> commentList = commentInfoList.map(this::convertToSimpleCommentDTO);
         return ResponseEntity.ok(commentList);
     }
@@ -122,7 +122,7 @@ public class CommentQueryController {
                                                                        @RequestParam(defaultValue = "10") int size,
                                                                        @AuthenticationPrincipal CustomUserDetails userDetails) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<SimpleCommentInfo> likedCommentsInfo = commentQueryUseCase.getMemberLikedComments(userDetails.getMemberId(), pageable);
+        Page<SimpleCommentInfo> likedCommentsInfo = CommentQueryService.getMemberLikedComments(userDetails.getMemberId(), pageable);
         Page<SimpleCommentDTO> likedComments = likedCommentsInfo.map(this::convertToSimpleCommentDTO);
         return ResponseEntity.ok(likedComments);
     }

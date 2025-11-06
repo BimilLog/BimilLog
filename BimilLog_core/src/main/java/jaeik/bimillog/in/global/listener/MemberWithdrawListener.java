@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.admin.service.AdminCommandService;
 import jaeik.bimillog.domain.auth.service.AuthTokenService;
 import jaeik.bimillog.domain.auth.service.KakaoTokenService;
 import jaeik.bimillog.domain.auth.service.SocialWithdrawService;
-import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
+import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.member.application.port.in.MemberCommandUseCase;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
@@ -37,7 +37,7 @@ public class MemberWithdrawListener {
     private final SseUseCase sseUseCase;
     private final FcmUseCase fcmUseCase;
     private final NotificationCommandUseCase notificationCommandUseCase;
-    private final CommentCommandUseCase commentCommandUseCase;
+    private final CommentCommandService commentCommandService;
     private final PostCommandUseCase postCommandUseCase;
     private final AuthTokenService authTokenService;
     private final PaperCommandUseCase paperCommandUseCase;
@@ -78,7 +78,7 @@ public class MemberWithdrawListener {
         postCommandUseCase.deleteAllPostsByMemberId(memberId);
 
         // 타 게시글의 댓글 삭제 및 익명화
-        commentCommandUseCase.processUserCommentsOnWithdrawal(memberId);
+        commentCommandService.processUserCommentsOnWithdrawal(memberId);
 
         // 롤링페이퍼 메시지 삭제
         paperCommandUseCase.deleteMessageInMyPaper(memberId, null);

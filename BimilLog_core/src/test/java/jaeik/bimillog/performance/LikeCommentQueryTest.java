@@ -1,6 +1,6 @@
 package jaeik.bimillog.performance;
 
-import jaeik.bimillog.domain.comment.application.port.in.CommentQueryUseCase;
+import jaeik.bimillog.domain.comment.service.CommentQueryService;
 import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -40,7 +40,7 @@ class LikeCommentQueryTest {
     private static final long GENERAL_THRESHOLD_MS = 700L;
 
     @Autowired
-    private CommentQueryUseCase commentQueryUseCase;
+    private CommentQueryService CommentQueryService;
 
     @MockitoBean
     private ScheduledAnnotationBeanPostProcessor scheduledAnnotationBeanPostProcessor;
@@ -48,7 +48,7 @@ class LikeCommentQueryTest {
     @BeforeAll
     void warmup() {
         log.info("DB 캐시 워밍업 시작");
-        commentQueryUseCase.getMemberLikedComments(TARGET_MEMBER_ID, PAGE_REQUEST);
+        CommentQueryService.getMemberLikedComments(TARGET_MEMBER_ID, PAGE_REQUEST);
         log.info("DB 캐시 워밍업 완료");
     }
 
@@ -57,7 +57,7 @@ class LikeCommentQueryTest {
     void likedCommentsQueryForTargetMember() {
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
-        Page<SimpleCommentInfo> result = commentQueryUseCase.getMemberLikedComments(TARGET_MEMBER_ID, PAGE_REQUEST);
+        Page<SimpleCommentInfo> result = CommentQueryService.getMemberLikedComments(TARGET_MEMBER_ID, PAGE_REQUEST);
         stopWatch.stop();
 
         long elapsedMs = stopWatch.getTotalTimeMillis();
@@ -70,7 +70,7 @@ class LikeCommentQueryTest {
     void likedCommentsQueryForTargetMemberMiddlePage() {
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
-        Page<SimpleCommentInfo> result = commentQueryUseCase.getMemberLikedComments(TARGET_MEMBER_ID, MIDDLE_PAGE_REQUEST);
+        Page<SimpleCommentInfo> result = CommentQueryService.getMemberLikedComments(TARGET_MEMBER_ID, MIDDLE_PAGE_REQUEST);
         stopWatch.stop();
 
         long elapsedMs = stopWatch.getTotalTimeMillis();
@@ -87,7 +87,7 @@ class LikeCommentQueryTest {
     void likedCommentsQueryForTargetMemberLastPage() {
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
-        Page<SimpleCommentInfo> result = commentQueryUseCase.getMemberLikedComments(TARGET_MEMBER_ID, LAST_PAGE_REQUEST);
+        Page<SimpleCommentInfo> result = CommentQueryService.getMemberLikedComments(TARGET_MEMBER_ID, LAST_PAGE_REQUEST);
         stopWatch.stop();
 
         long elapsedMs = stopWatch.getTotalTimeMillis();
@@ -104,7 +104,7 @@ class LikeCommentQueryTest {
     void likedCommentsQueryForGeneralMember() {
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
-        Page<SimpleCommentInfo> result = commentQueryUseCase.getMemberLikedComments(GENERAL_MEMBER_ID, PAGE_REQUEST);
+        Page<SimpleCommentInfo> result = CommentQueryService.getMemberLikedComments(GENERAL_MEMBER_ID, PAGE_REQUEST);
         stopWatch.stop();
 
         long elapsedMs = stopWatch.getTotalTimeMillis();
