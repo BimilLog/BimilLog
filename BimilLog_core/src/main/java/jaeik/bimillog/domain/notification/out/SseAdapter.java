@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.out.sse;
+package jaeik.bimillog.domain.notification.out;
 
 import jaeik.bimillog.domain.member.application.port.in.MemberQueryUseCase;
 import jaeik.bimillog.domain.member.entity.Member;

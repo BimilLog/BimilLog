@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.out.redis;
+package jaeik.bimillog.infrastructure.config;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
