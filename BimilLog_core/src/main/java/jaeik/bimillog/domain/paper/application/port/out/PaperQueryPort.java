@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.paper.application.port.out;
 
-import jaeik.bimillog.domain.paper.application.service.PaperCommandService;
-import jaeik.bimillog.domain.paper.application.service.PaperQueryService;
+import jaeik.bimillog.domain.paper.service.PaperCommandService;
+import jaeik.bimillog.domain.paper.service.PaperQueryService;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.entity.PopularPaperInfo;
 

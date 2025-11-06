@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.comment.application.port.out;
 
-import jaeik.bimillog.domain.comment.application.service.CommentCommandService;
+import jaeik.bimillog.domain.comment.service.CommentCommandService;
 
 /**
  * <h2>댓글 삭제 포트</h2>

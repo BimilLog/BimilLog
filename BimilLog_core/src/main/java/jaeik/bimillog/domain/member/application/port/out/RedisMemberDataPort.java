@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.member.application.port.out;
 
-import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
+import jaeik.bimillog.domain.auth.service.SocialLoginService;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.member.application.service.MemberSignupService;
+import jaeik.bimillog.domain.member.service.MemberSignupService;
 
 import java.util.Optional;
 

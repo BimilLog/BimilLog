@@ -4,7 +4,6 @@ import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostDeletePort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostSavePort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostUpdatePort;
-import jaeik.bimillog.domain.post.application.service.PostScheduledService;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;

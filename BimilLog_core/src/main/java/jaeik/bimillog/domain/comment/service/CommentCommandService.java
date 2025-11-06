@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.comment.application.service;
+package jaeik.bimillog.domain.comment.service;
 
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.bimillog.domain.comment.application.port.out.CommentDeletePort;

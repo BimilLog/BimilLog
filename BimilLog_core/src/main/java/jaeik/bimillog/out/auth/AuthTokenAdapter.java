@@ -1,7 +1,7 @@
 package jaeik.bimillog.out.auth;
 
 import jaeik.bimillog.domain.auth.application.port.out.AuthTokenPort;
-import jaeik.bimillog.domain.auth.application.service.SocialWithdrawService;
+import jaeik.bimillog.domain.auth.service.SocialWithdrawService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;

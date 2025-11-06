@@ -4,7 +4,6 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalMemberQueryPort;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.paper.application.port.out.PaperCommandPort;
 import jaeik.bimillog.domain.paper.application.port.out.PaperQueryPort;
-import jaeik.bimillog.domain.paper.application.service.PaperCommandService;
 import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;

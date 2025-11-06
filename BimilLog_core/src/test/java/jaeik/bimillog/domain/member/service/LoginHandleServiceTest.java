@@ -3,7 +3,6 @@ package jaeik.bimillog.domain.member.service;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.member.application.port.out.RedisMemberDataPort;
-import jaeik.bimillog.domain.member.application.service.HandleMemberLoginService;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.testutil.BaseUnitTest;

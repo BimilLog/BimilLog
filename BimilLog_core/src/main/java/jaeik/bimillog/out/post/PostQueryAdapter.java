@@ -8,7 +8,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.comment.entity.QComment;
 import jaeik.bimillog.domain.member.entity.QMember;
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
-import jaeik.bimillog.domain.post.application.service.PostQueryService;
+import jaeik.bimillog.domain.post.service.PostQueryService;
 import jaeik.bimillog.domain.post.entity.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -4,7 +4,7 @@ import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
-import jaeik.bimillog.domain.member.application.service.MemberQueryService;
+import jaeik.bimillog.domain.member.service.MemberQueryService;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.QMember;
 import jaeik.bimillog.domain.member.entity.Setting;

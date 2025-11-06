@@ -1,7 +1,7 @@
 package jaeik.bimillog.out.comment;
 
 import jaeik.bimillog.domain.comment.application.port.out.CommentLikePort;
-import jaeik.bimillog.domain.comment.application.service.CommentCommandService;
+import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.comment.entity.CommentLike;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;

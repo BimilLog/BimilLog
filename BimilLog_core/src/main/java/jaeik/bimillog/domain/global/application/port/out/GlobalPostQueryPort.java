@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.global.application.port.out;
 
-import jaeik.bimillog.domain.post.application.service.PostQueryService;
+import jaeik.bimillog.domain.post.service.PostQueryService;
 import jaeik.bimillog.domain.post.entity.Post;
 
 public interface GlobalPostQueryPort {

@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.paper.application.port.out;
 
-import jaeik.bimillog.domain.paper.application.service.PaperCommandService;
+import jaeik.bimillog.domain.paper.service.PaperCommandService;
 import jaeik.bimillog.domain.paper.entity.Message;
 
 /**

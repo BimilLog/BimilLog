@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.notification.service;
 
 import jaeik.bimillog.domain.notification.application.port.out.NotificationCommandPort;
-import jaeik.bimillog.domain.notification.application.service.NotificationCommandService;
 import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;

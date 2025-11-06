@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.member.application.port.out;
 
-import jaeik.bimillog.domain.member.application.service.MemberCommandService;
+import jaeik.bimillog.domain.member.service.MemberCommandService;
 
 /**
  * <h2>사용자 명령 포트</h2>

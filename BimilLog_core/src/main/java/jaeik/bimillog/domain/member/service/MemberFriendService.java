@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.member.application.service;
+package jaeik.bimillog.domain.member.service;
 
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;

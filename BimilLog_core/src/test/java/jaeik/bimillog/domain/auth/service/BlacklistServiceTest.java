@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.application.port.out.RedisJwtBlacklistPort;
-import jaeik.bimillog.domain.auth.application.service.BlacklistService;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.BlackList;
 import jaeik.bimillog.domain.global.application.port.out.GlobalAuthTokenQueryPort;

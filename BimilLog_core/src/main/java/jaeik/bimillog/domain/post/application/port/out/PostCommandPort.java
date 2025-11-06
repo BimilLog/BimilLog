@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.post.application.port.out;
 
-import jaeik.bimillog.domain.post.application.service.PostCommandService;
+import jaeik.bimillog.domain.post.service.PostCommandService;
 import jaeik.bimillog.domain.post.entity.Post;
 
 /**

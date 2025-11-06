@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.notification.service;
 
 import jaeik.bimillog.domain.notification.application.port.out.NotificationQueryPort;
-import jaeik.bimillog.domain.notification.application.service.NotificationQueryService;
 import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.out.auth.CustomUserDetails;
 import org.junit.jupiter.api.DisplayName;

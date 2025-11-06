@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.notification.application.service;
+package jaeik.bimillog.domain.notification.service;
 
 import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
 import jaeik.bimillog.domain.notification.application.port.out.FcmPort;

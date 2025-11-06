@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.auth.service;
 
-import jaeik.bimillog.domain.auth.application.service.SocialLogoutService;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;

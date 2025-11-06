@@ -1,11 +1,11 @@
 package jaeik.bimillog.domain.comment.application.port.out;
 
-import jaeik.bimillog.domain.comment.application.service.CommentCommandService;
-import jaeik.bimillog.domain.comment.application.service.CommentQueryService;
+import jaeik.bimillog.domain.comment.service.CommentCommandService;
+import jaeik.bimillog.domain.comment.service.CommentQueryService;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentInfo;
 import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
-import jaeik.bimillog.domain.post.application.service.PostQueryService;
+import jaeik.bimillog.domain.post.service.PostQueryService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

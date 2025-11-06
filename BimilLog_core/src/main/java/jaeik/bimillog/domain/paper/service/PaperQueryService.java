@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.paper.application.service;
+package jaeik.bimillog.domain.paper.service;
 
 import jaeik.bimillog.domain.global.application.port.out.GlobalMemberQueryPort;
 import jaeik.bimillog.domain.member.entity.Member;

@@ -1,7 +1,7 @@
 package jaeik.bimillog.out.paper;
 
 import jaeik.bimillog.domain.paper.application.port.out.PaperCommandPort;
-import jaeik.bimillog.domain.paper.application.service.PaperCommandService;
+import jaeik.bimillog.domain.paper.service.PaperCommandService;
 import jaeik.bimillog.domain.paper.entity.Message;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

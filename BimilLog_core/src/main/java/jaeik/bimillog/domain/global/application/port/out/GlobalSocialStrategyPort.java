@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.global.application.port.out;
 
-import jaeik.bimillog.domain.auth.application.service.SocialLoginService;
+import jaeik.bimillog.domain.auth.service.SocialLoginService;
 import jaeik.bimillog.domain.global.application.strategy.SocialPlatformStrategy;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 

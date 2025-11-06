@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.auth.application.service;
+package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
 import jaeik.bimillog.domain.auth.application.port.in.BlacklistUseCase;

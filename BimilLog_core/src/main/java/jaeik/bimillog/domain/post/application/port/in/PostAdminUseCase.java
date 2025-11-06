@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.post.application.port.in;
 
-import jaeik.bimillog.domain.post.application.service.PostAdminService;
+import jaeik.bimillog.domain.post.service.PostAdminService;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 
 /**

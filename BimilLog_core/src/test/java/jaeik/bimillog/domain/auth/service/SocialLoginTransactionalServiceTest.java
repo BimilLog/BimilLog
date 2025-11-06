@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.application.port.out.AuthToMemberPort;
 import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
-import jaeik.bimillog.domain.auth.application.service.SocialLoginTransactionalService;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.LoginResult;

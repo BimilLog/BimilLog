@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.auth.application.port.in;
 
-import jaeik.bimillog.domain.auth.application.service.SocialWithdrawService;
+import jaeik.bimillog.domain.auth.service.SocialWithdrawService;
 
 public interface AuthTokenUseCase {
 

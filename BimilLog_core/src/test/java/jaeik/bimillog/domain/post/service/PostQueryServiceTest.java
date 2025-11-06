@@ -5,7 +5,6 @@ import jaeik.bimillog.domain.post.application.port.out.PostLikeQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostSavePort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostQueryPort;
-import jaeik.bimillog.domain.post.application.service.PostQueryService;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchType;

@@ -3,7 +3,7 @@ package jaeik.bimillog.out.post;
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.bimillog.domain.comment.application.port.in.CommentQueryUseCase;
 import jaeik.bimillog.domain.post.application.port.out.PostToCommentPort;
-import jaeik.bimillog.domain.post.application.service.PostCommandService;
+import jaeik.bimillog.domain.post.service.PostCommandService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.notification.application.port.out;
 
-import jaeik.bimillog.domain.notification.application.service.NotificationCommandService;
+import jaeik.bimillog.domain.notification.service.NotificationCommandService;
 
 /**
  * <h2>알림 URL 생성 포트</h2>

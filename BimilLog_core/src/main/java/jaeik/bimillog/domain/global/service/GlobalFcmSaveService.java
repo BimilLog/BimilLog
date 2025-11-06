@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.global.application.service;
+package jaeik.bimillog.domain.global.service;
 
 import jaeik.bimillog.domain.global.application.port.in.GlobalFcmSaveUseCase;
 import jaeik.bimillog.domain.global.application.port.out.GlobalFcmSavePort;

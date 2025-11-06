@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.auth.application.port.out;
 
-import jaeik.bimillog.domain.auth.application.service.BlacklistService;
+import jaeik.bimillog.domain.auth.service.BlacklistService;
 import jaeik.bimillog.infrastructure.filter.JwtFilter;
 
 import java.time.Duration;

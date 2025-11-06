@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.paper.application.service;
+package jaeik.bimillog.domain.paper.service;
 
 import jaeik.bimillog.domain.paper.application.port.out.RedisPaperUpdatePort;
 import lombok.RequiredArgsConstructor;

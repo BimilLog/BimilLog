@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.post.application.port.out;
 
-import jaeik.bimillog.domain.post.application.service.PostQueryService;
+import jaeik.bimillog.domain.post.service.PostQueryService;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;

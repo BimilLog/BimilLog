@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.member.application.service;
+package jaeik.bimillog.domain.member.service;
 
 import jaeik.bimillog.domain.member.application.port.in.MemberCommandUseCase;
 import jaeik.bimillog.domain.member.application.port.out.MemberCommandPort;

@@ -13,7 +13,6 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalKakaoTokenCommand
 import jaeik.bimillog.domain.global.entity.MemberDetail;
 import jaeik.bimillog.domain.member.application.port.out.RedisMemberDataPort;
 import jaeik.bimillog.domain.member.application.port.out.SaveMemberPort;
-import jaeik.bimillog.domain.member.application.service.MemberSignupService;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.testutil.BaseUnitTest;

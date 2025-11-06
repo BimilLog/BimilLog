@@ -6,7 +6,6 @@ import jaeik.bimillog.domain.post.application.port.out.PostCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.PostLikeCommandPort;
 import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostDeletePort;
-import jaeik.bimillog.domain.post.application.service.PostCommandService;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;

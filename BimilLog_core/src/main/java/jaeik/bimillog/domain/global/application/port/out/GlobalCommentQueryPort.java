@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.global.application.port.out;
 
-import jaeik.bimillog.domain.comment.application.service.CommentCommandService;
+import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.comment.entity.Comment;
 
 public interface GlobalCommentQueryPort {

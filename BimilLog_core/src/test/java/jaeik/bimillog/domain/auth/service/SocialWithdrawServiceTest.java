@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.auth.service;
 
-import jaeik.bimillog.domain.auth.application.service.SocialWithdrawService;
 import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPort;
 import jaeik.bimillog.domain.global.application.strategy.SocialAuthStrategy;
 import jaeik.bimillog.domain.global.application.strategy.SocialPlatformStrategy;

@@ -1,7 +1,7 @@
 package jaeik.bimillog.out.comment;
 
 import jaeik.bimillog.domain.comment.application.port.out.CommentDeletePort;
-import jaeik.bimillog.domain.comment.application.service.CommentCommandService;
+import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 

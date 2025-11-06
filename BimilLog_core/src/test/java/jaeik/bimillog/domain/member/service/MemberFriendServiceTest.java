@@ -8,7 +8,6 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPor
 import jaeik.bimillog.domain.global.application.strategy.SocialFriendStrategy;
 import jaeik.bimillog.domain.global.application.strategy.SocialPlatformStrategy;
 import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
-import jaeik.bimillog.domain.member.application.service.MemberFriendService;
 import jaeik.bimillog.domain.member.entity.KakaoFriends;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;

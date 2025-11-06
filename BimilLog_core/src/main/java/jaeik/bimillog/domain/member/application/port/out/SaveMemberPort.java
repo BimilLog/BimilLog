@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.member.application.port.out;
 
-import jaeik.bimillog.domain.member.application.service.MemberSignupService;
+import jaeik.bimillog.domain.member.service.MemberSignupService;
 import jaeik.bimillog.domain.member.entity.Member;
 
 /**

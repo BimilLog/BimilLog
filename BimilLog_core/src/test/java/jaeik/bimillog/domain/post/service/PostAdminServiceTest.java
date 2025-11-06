@@ -3,7 +3,6 @@ package jaeik.bimillog.domain.post.service;
 import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostSavePort;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostDeletePort;
-import jaeik.bimillog.domain.post.application.service.PostAdminService;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
@@ -14,8 +13,6 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;

@@ -1,7 +1,7 @@
 package jaeik.bimillog.out.comment;
 
 import jaeik.bimillog.domain.comment.application.port.out.CommentSavePort;
-import jaeik.bimillog.domain.comment.application.service.CommentCommandService;
+import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentClosure;
 import lombok.RequiredArgsConstructor;

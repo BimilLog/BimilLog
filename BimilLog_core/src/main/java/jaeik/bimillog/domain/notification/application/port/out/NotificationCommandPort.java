@@ -1,8 +1,7 @@
 package jaeik.bimillog.domain.notification.application.port.out;
 
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.notification.application.service.NotificationCommandService;
-import jaeik.bimillog.domain.notification.entity.Notification;
+import jaeik.bimillog.domain.notification.service.NotificationCommandService;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
 

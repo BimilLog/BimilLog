@@ -1,7 +1,7 @@
 package jaeik.bimillog.out.post;
 
 import jaeik.bimillog.domain.post.application.port.out.PostCommandPort;
-import jaeik.bimillog.domain.post.application.service.PostCommandService;
+import jaeik.bimillog.domain.post.service.PostCommandService;
 import jaeik.bimillog.domain.post.entity.Post;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;

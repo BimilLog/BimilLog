@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.notification.service;
 
 import jaeik.bimillog.domain.notification.application.port.out.FcmPort;
 import jaeik.bimillog.domain.notification.application.port.out.NotificationUtilPort;
-import jaeik.bimillog.domain.notification.application.service.FcmService;
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.domain.notification.entity.NotificationType;

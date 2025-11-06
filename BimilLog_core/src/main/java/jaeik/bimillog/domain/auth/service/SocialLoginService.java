@@ -1,5 +1,5 @@
 
-package jaeik.bimillog.domain.auth.application.service;
+package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.application.port.in.SocialLoginUseCase;
 import jaeik.bimillog.domain.auth.entity.LoginResult;

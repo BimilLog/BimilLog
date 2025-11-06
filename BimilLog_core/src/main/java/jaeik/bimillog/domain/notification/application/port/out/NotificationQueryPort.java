@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.notification.application.port.out;
 
-import jaeik.bimillog.domain.notification.application.service.NotificationQueryService;
+import jaeik.bimillog.domain.notification.service.NotificationQueryService;
 import jaeik.bimillog.domain.notification.entity.Notification;
 
 import java.util.List;
