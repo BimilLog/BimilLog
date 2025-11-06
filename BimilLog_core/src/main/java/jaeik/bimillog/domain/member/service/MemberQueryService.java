@@ -1,7 +1,5 @@
-
 package jaeik.bimillog.domain.member.service;
 
-import jaeik.bimillog.domain.member.application.port.in.MemberQueryUseCase;
 import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.Setting;
@@ -30,7 +28,7 @@ import java.util.Optional;
  */
 @Service
 @RequiredArgsConstructor
-public class MemberQueryService implements MemberQueryUseCase {
+public class MemberQueryService {
 
     private final MemberQueryPort memberQueryPort;
 
@@ -44,7 +42,6 @@ public class MemberQueryService implements MemberQueryUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional(readOnly = true)
     public Optional<Member> findById(Long id) {
         return memberQueryPort.findById(id);
@@ -60,7 +57,6 @@ public class MemberQueryService implements MemberQueryUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional(readOnly = true)
     public boolean existsByMemberName(String memberName) {
         return memberQueryPort.existsByMemberName(memberName);
@@ -76,7 +72,6 @@ public class MemberQueryService implements MemberQueryUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional(readOnly = true)
     public Optional<Member> findByMemberName(String memberName) {
         return memberQueryPort.findByMemberName(memberName);
@@ -94,7 +89,6 @@ public class MemberQueryService implements MemberQueryUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional(readOnly = true)
     public Member getReferenceById(Long memberId) {
         return memberQueryPort.getReferenceById(memberId);
@@ -112,7 +106,6 @@ public class MemberQueryService implements MemberQueryUseCase {
      * @since 2.0.0
      * @author Jaeik
      */
-    @Override
     @Transactional(readOnly = true)
     public Setting findBySettingId(Long settingId) {
         return memberQueryPort.findSettingById(settingId)
@@ -130,7 +123,6 @@ public class MemberQueryService implements MemberQueryUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public Optional<Member> findByProviderAndSocialId(SocialProvider provider, String socialId) {
         return memberQueryPort.findByProviderAndSocialId(provider, socialId);
     }
@@ -144,7 +136,6 @@ public class MemberQueryService implements MemberQueryUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional(readOnly = true)
     public Map<Long, String> findMemberNamesByIds(List<Long> memberIds) {
         return memberQueryPort.findMemberNamesByIds(memberIds);
@@ -158,7 +149,6 @@ public class MemberQueryService implements MemberQueryUseCase {
      * @return Page<Member> 조회된 회원 페이지
      * @since 2.1.0
      */
-    @Override
     @Transactional(readOnly = true)
     public Page<Member> findAllMembers(Pageable pageable) {
         return memberQueryPort.findAllMembers(pageable);
@@ -176,7 +166,6 @@ public class MemberQueryService implements MemberQueryUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional(readOnly = true)
     public Page<String> searchMembers(String query, Pageable pageable) {
         // 전략: 4글자 이상 → 접두사 검색 (인덱스 활용)

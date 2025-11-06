@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.member.in.web;
 
-import jaeik.bimillog.domain.member.application.port.in.MemberFriendUseCase;
-import jaeik.bimillog.domain.member.application.port.in.MemberQueryUseCase;
+import jaeik.bimillog.domain.member.service.MemberFriendService;
+import jaeik.bimillog.domain.member.service.MemberQueryService;
 import jaeik.bimillog.domain.member.entity.KakaoFriends;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.in.dto.MemberSearchDTO;
@@ -36,8 +36,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/member")
 public class MemberQueryController {
 
-    private final MemberQueryUseCase memberQueryUseCase;
-    private final MemberFriendUseCase memberFriendUseCase;
+    private final MemberQueryService memberQueryService;
+    private final MemberFriendService memberFriendService;
 
     /**
      * <h3>?�네??중복 ?�인 API</h3>
@@ -50,7 +50,7 @@ public class MemberQueryController {
      */
     @GetMapping("/username/check")
     public ResponseEntity<Boolean> checkUserName(@RequestParam String memberName) {
-        boolean isAvailable = !memberQueryUseCase.existsByMemberName(memberName);
+        boolean isAvailable = !memberQueryService.existsByMemberName(memberName);
         return ResponseEntity.ok(isAvailable);
     }
 
@@ -64,7 +64,7 @@ public class MemberQueryController {
      */
     @GetMapping("/setting")
     public ResponseEntity<SettingDTO> getSetting(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        Setting setting = memberQueryUseCase.findBySettingId(userDetails.getSettingId());
+        Setting setting = memberQueryService.findBySettingId(userDetails.getSettingId());
         return ResponseEntity.ok(SettingDTO.fromSetting(setting));
     }
 
@@ -83,7 +83,7 @@ public class MemberQueryController {
     public ResponseEntity<KakaoFriendsDTO> getKakaoFriendList(@RequestParam(defaultValue = "0") Integer offset,
                                                                @RequestParam(defaultValue = "10") Integer limit,
                                                                @AuthenticationPrincipal CustomUserDetails userDetails) {
-        KakaoFriends friendsResponseVO = memberFriendUseCase.getKakaoFriendList(
+        KakaoFriends friendsResponseVO = memberFriendService.getKakaoFriendList(
                 userDetails.getMemberId(),
                 userDetails.getTokenId(),
                 userDetails.getSocialProvider(),
@@ -109,7 +109,7 @@ public class MemberQueryController {
             @RequestParam(defaultValue = "0") Integer page,
             @RequestParam(defaultValue = "20") Integer size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<SimpleMemberDTO> members = memberQueryUseCase.findAllMembers(pageable)
+        Page<SimpleMemberDTO> members = memberQueryService.findAllMembers(pageable)
                 .map(SimpleMemberDTO::fromMember);
         return ResponseEntity.ok(members);
     }
@@ -119,7 +119,7 @@ public class MemberQueryController {
             @Valid @ModelAttribute MemberSearchDTO searchDTO,
             Pageable pageable) {
 
-        Page<String> memberNames = memberQueryUseCase.searchMembers(
+        Page<String> memberNames = memberQueryService.searchMembers(
                 searchDTO.getTrimmedQuery(),
                 pageable
         );

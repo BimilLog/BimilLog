@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.notification.out;
 
-import jaeik.bimillog.domain.member.application.port.in.MemberQueryUseCase;
+import jaeik.bimillog.domain.member.service.MemberQueryService;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.notification.application.port.out.NotificationCommandPort;
 import jaeik.bimillog.domain.notification.application.port.out.NotificationUtilPort;
@@ -56,7 +56,7 @@ public class SseAdapter implements SsePort {
     private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
 
     private final NotificationUtilPort notificationUtilPort;
-    private final MemberQueryUseCase memberQueryUseCase;
+    private final MemberQueryService memberQueryService;
     private final NotificationCommandPort notificationCommandPort;
 
     /**
@@ -138,7 +138,7 @@ public class SseAdapter implements SsePort {
                 return; // 알림 수신이 비활성화된 경우 전송하지 않음
             }
 
-            Member member = memberQueryUseCase.findById(sseMessage.memberId())
+            Member member = memberQueryService.findById(sseMessage.memberId())
                     .orElseThrow(() -> new NotificationCustomException(NotificationErrorCode.INVALID_USER_CONTEXT));
 
             // DB에 저장 (알림 히스토리용)

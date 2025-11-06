@@ -13,7 +13,6 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalKakaoTokenCommandPort;
 import jaeik.bimillog.domain.global.entity.MemberDetail;
-import jaeik.bimillog.domain.member.application.port.in.MemberSignupUseCase;
 import jaeik.bimillog.domain.member.application.port.out.RedisMemberDataPort;
 import jaeik.bimillog.domain.member.application.port.out.SaveMemberPort;
 import jaeik.bimillog.domain.member.entity.Member;
@@ -37,7 +36,7 @@ import java.util.Optional;
  */
 @Service
 @RequiredArgsConstructor
-public class MemberSignupService implements MemberSignupUseCase {
+public class MemberSignupService {
 
     private final RedisMemberDataPort redisMemberDataPort;
     private final SaveMemberPort saveMemberPort;
@@ -61,7 +60,6 @@ public class MemberSignupService implements MemberSignupUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional
     public List<ResponseCookie> signup(String memberName, String uuid) {
         try {

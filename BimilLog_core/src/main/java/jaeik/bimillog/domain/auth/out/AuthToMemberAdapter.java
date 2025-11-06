@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.auth.out;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.member.service.HandleMemberLoginService;
-import jaeik.bimillog.domain.member.application.port.in.MemberQueryUseCase;
+import jaeik.bimillog.domain.member.service.MemberQueryService;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +34,7 @@ import java.util.Optional;
 public class AuthToMemberAdapter {
 
     private final HandleMemberLoginService handleMemberLoginService;
-    private final MemberQueryUseCase memberQueryUseCase;
+    private final MemberQueryService memberQueryService;
 
     /**
      * <h3>기존 회원 정보 갱신</h3>
@@ -79,7 +79,7 @@ public class AuthToMemberAdapter {
      * @since 2.0.0
      */
     public Optional<Member> checkMember(SocialProvider provider, String socialId) {
-        return memberQueryUseCase.findByProviderAndSocialId(provider, socialId);
+        return memberQueryService.findByProviderAndSocialId(provider, socialId);
     }
 
 

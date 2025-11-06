@@ -7,7 +7,6 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalKakaoTokenQueryPo
 import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPort;
 import jaeik.bimillog.domain.global.application.strategy.SocialFriendStrategy;
 import jaeik.bimillog.domain.global.application.strategy.SocialPlatformStrategy;
-import jaeik.bimillog.domain.member.application.port.in.MemberFriendUseCase;
 import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
 import jaeik.bimillog.domain.member.entity.KakaoFriends;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
@@ -32,7 +31,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class MemberFriendService implements MemberFriendUseCase {
+public class MemberFriendService {
 
     private final MemberQueryPort memberQueryPort;
     private final GlobalKakaoTokenQueryPort globalKakaoTokenQueryPort;
@@ -51,7 +50,6 @@ public class MemberFriendService implements MemberFriendUseCase {
      * @since 2.0.0
      * @author Jaeik
      */
-    @Override
     @Transactional(readOnly = true)
     public KakaoFriends getKakaoFriendList(Long memberId, Long tokenId, SocialProvider provider, Integer offset, Integer limit) {
         // 기본값 설정

@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.paper.out;
 
-import jaeik.bimillog.domain.member.application.port.in.MemberQueryUseCase;
+import jaeik.bimillog.domain.member.service.MemberQueryService;
 import jaeik.bimillog.domain.paper.application.port.out.PaperToMemberPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -21,7 +21,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class PaperToMemberAdapter implements PaperToMemberPort {
 
-    private final MemberQueryUseCase memberQueryUseCase;
+    private final MemberQueryService memberQueryService;
 
     /**
      * <h3>여러 사용자 ID로 사용자명 배치 조회</h3>
@@ -34,6 +34,6 @@ public class PaperToMemberAdapter implements PaperToMemberPort {
      */
     @Override
     public Map<Long, String> findMemberNamesByIds(List<Long> memberIds) {
-        return memberQueryUseCase.findMemberNamesByIds(memberIds);
+        return memberQueryService.findMemberNamesByIds(memberIds);
     }
 }

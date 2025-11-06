@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.member.in.web;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.member.service.MemberCommandService;
-import jaeik.bimillog.domain.member.application.port.in.MemberSignupUseCase;
+import jaeik.bimillog.domain.member.service.MemberSignupService;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.domain.member.event.ReportSubmittedEvent;
 import jaeik.bimillog.domain.admin.in.dto.ReportDTO;
@@ -34,7 +34,7 @@ import java.util.List;
 public class MemberCommandController {
 
     private final MemberCommandService memberCommandService;
-    private final MemberSignupUseCase memberSignUpUseCase;
+    private final MemberSignupService memberSignUpService;
     private final ApplicationEventPublisher eventPublisher;
     private final GlobalCookiePort globalCookiePort;
 
@@ -59,7 +59,7 @@ public class MemberCommandController {
             @CookieValue(name = "temp_user_id") String uuid) {
 
         // 회원가입 로직 실행 후 쿠키 리스트 받기
-        List<ResponseCookie> cookies = memberSignUpUseCase.signup(request.getMemberName(), uuid);
+        List<ResponseCookie> cookies = memberSignUpService.signup(request.getMemberName(), uuid);
 
         // ResponseEntity builder 생성
         ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.ok();

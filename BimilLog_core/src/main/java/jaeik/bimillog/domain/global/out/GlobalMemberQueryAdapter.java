@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.global.out;
 
 import jaeik.bimillog.domain.global.application.port.out.GlobalMemberQueryPort;
-import jaeik.bimillog.domain.member.application.port.in.MemberQueryUseCase;
+import jaeik.bimillog.domain.member.service.MemberQueryService;
 import jaeik.bimillog.domain.member.entity.Member;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -21,7 +21,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class GlobalMemberQueryAdapter implements GlobalMemberQueryPort {
 
-    private final MemberQueryUseCase memberQueryUseCase;
+    private final MemberQueryService memberQueryService;
 
     /**
      * <h3>사용자 ID로 사용자 조회</h3>
@@ -35,7 +35,7 @@ public class GlobalMemberQueryAdapter implements GlobalMemberQueryPort {
      */
     @Override
     public Optional<Member> findById(Long memberId) {
-        return memberQueryUseCase.findById(memberId);
+        return memberQueryService.findById(memberId);
     }
 
     /**
@@ -50,7 +50,7 @@ public class GlobalMemberQueryAdapter implements GlobalMemberQueryPort {
      */
     @Override
     public Optional<Member> findByMemberName(String memberName) {
-        return memberQueryUseCase.findByMemberName(memberName);
+        return memberQueryService.findByMemberName(memberName);
     }
 
     /**
@@ -65,7 +65,7 @@ public class GlobalMemberQueryAdapter implements GlobalMemberQueryPort {
      */
     @Override
     public boolean existsByMemberName(String memberName) {
-        return memberQueryUseCase.existsByMemberName(memberName);
+        return memberQueryService.existsByMemberName(memberName);
     }
 
     /**
@@ -80,6 +80,6 @@ public class GlobalMemberQueryAdapter implements GlobalMemberQueryPort {
      */
     @Override
     public Member getReferenceById(Long memberId) {
-        return memberQueryUseCase.getReferenceById(memberId);
+        return memberQueryService.getReferenceById(memberId);
     }
 }
