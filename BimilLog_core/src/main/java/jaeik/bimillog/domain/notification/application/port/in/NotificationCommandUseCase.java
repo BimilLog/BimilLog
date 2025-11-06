@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.notification.application.port.in;
 
 import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
-import jaeik.bimillog.infrastructure.adapter.in.notification.web.NotificationCommandController;
+import jaeik.bimillog.in.notification.web.NotificationCommandController;
 
 /**
  * <h2>알림 명령 유스케이스</h2>

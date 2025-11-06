@@ -2,7 +2,7 @@ package jaeik.bimillog.adapter.in.auth;
 
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.MemberRole;
-import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
+import jaeik.bimillog.out.auth.CustomUserDetails;
 import jaeik.bimillog.testutil.*;
 import jaeik.bimillog.testutil.config.H2TestConfiguration;
 import jaeik.bimillog.testutil.config.TestSocialLoginPortConfig;

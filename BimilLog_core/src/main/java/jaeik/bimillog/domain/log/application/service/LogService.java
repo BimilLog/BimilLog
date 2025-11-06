@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.log.application.service;
 
 import jaeik.bimillog.domain.log.application.port.in.LogClientErrorUseCase;
-import jaeik.bimillog.infrastructure.adapter.in.log.web.dto.ClientErrorLogDTO;
+import jaeik.bimillog.in.log.web.dto.ClientErrorLogDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

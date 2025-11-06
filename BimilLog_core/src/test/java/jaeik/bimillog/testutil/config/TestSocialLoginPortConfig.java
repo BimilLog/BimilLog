@@ -13,7 +13,7 @@ import jaeik.bimillog.domain.member.entity.KakaoFriends;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.exception.MemberCustomException;
 import jaeik.bimillog.domain.member.exception.MemberErrorCode;
-import jaeik.bimillog.infrastructure.adapter.out.global.GlobalCookieAdapter;
+import jaeik.bimillog.out.global.GlobalCookieAdapter;
 import jaeik.bimillog.testutil.TestMembers;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;

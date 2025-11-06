@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.auth.application.port.in;
 import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
-import jaeik.bimillog.infrastructure.adapter.in.global.listener.MemberWithdrawListener;
+import jaeik.bimillog.in.global.listener.MemberWithdrawListener;
 
 /**
  * <h2>소셜 탈퇴 유스케이스</h2>

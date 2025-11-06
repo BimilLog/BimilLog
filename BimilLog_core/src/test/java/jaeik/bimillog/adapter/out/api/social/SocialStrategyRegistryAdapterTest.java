@@ -2,7 +2,7 @@ package jaeik.bimillog.adapter.out.api.social;
 
 import jaeik.bimillog.domain.global.application.strategy.SocialPlatformStrategy;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
-import jaeik.bimillog.infrastructure.adapter.out.global.GlobalSocialStrategyAdapter;
+import jaeik.bimillog.out.global.GlobalSocialStrategyAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;

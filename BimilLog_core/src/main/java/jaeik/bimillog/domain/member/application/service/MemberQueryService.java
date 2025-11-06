@@ -8,7 +8,7 @@ import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.exception.MemberCustomException;
 import jaeik.bimillog.domain.member.exception.MemberErrorCode;
-import jaeik.bimillog.infrastructure.adapter.in.member.web.MemberQueryController;
+import jaeik.bimillog.in.member.web.MemberQueryController;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

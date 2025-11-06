@@ -6,7 +6,7 @@ import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.paper.application.service.PaperQueryService;
 import jaeik.bimillog.domain.post.application.service.PostCommandService;
 import jaeik.bimillog.domain.post.application.service.PostInteractionService;
-import jaeik.bimillog.infrastructure.adapter.in.member.web.MemberQueryController;
+import jaeik.bimillog.in.member.web.MemberQueryController;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

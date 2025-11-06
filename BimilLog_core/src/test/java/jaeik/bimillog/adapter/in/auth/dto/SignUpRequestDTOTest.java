@@ -1,6 +1,6 @@
 package jaeik.bimillog.adapter.in.auth.dto;
 
-import jaeik.bimillog.infrastructure.adapter.in.member.dto.SignUpRequestDTO;
+import jaeik.bimillog.in.member.dto.SignUpRequestDTO;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;

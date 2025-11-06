@@ -4,8 +4,8 @@ import jaeik.bimillog.domain.notification.application.port.in.NotificationComman
 import jaeik.bimillog.domain.notification.application.port.out.NotificationCommandPort;
 import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
 import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
-import jaeik.bimillog.infrastructure.adapter.in.global.listener.MemberWithdrawListener;
-import jaeik.bimillog.infrastructure.adapter.in.notification.web.NotificationCommandController;
+import jaeik.bimillog.in.global.listener.MemberWithdrawListener;
+import jaeik.bimillog.in.notification.web.NotificationCommandController;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

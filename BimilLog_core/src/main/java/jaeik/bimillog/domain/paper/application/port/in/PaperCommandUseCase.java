@@ -2,8 +2,8 @@ package jaeik.bimillog.domain.paper.application.port.in;
 
 import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.exception.PaperCustomException;
-import jaeik.bimillog.infrastructure.adapter.in.global.listener.MemberWithdrawListener;
-import jaeik.bimillog.infrastructure.adapter.in.paper.web.PaperCommandController;
+import jaeik.bimillog.in.global.listener.MemberWithdrawListener;
+import jaeik.bimillog.in.paper.web.PaperCommandController;
 
 /**
  * <h2>롤링페이퍼 명령 유스케이스</h2>

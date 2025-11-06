@@ -1,7 +1,7 @@
 
 package jaeik.bimillog.domain.member.application.port.in;
 
-import jaeik.bimillog.infrastructure.adapter.in.member.web.MemberCommandController;
+import jaeik.bimillog.in.member.web.MemberCommandController;
 import org.springframework.http.ResponseCookie;
 
 import java.util.List;

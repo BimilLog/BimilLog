@@ -6,7 +6,7 @@ import jaeik.bimillog.domain.notification.application.port.out.NotificationUtilP
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.infrastructure.adapter.in.notification.listener.NotificationGenerateListener;
+import jaeik.bimillog.in.notification.listener.NotificationGenerateListener;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

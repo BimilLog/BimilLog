@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.member.event;
 
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.infrastructure.adapter.in.admin.listener.ReportSaveListener;
+import jaeik.bimillog.in.admin.listener.ReportSaveListener;
 
 /**
  * <h2>신고 제출 이벤트</h2>

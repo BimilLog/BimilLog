@@ -2,10 +2,10 @@ package jaeik.bimillog.adapter.in.post;
 
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.infrastructure.adapter.in.post.dto.PostCreateDTO;
-import jaeik.bimillog.infrastructure.adapter.in.post.dto.PostUpdateDTO;
-import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
-import jaeik.bimillog.infrastructure.adapter.out.post.PostRepository;
+import jaeik.bimillog.in.post.dto.PostCreateDTO;
+import jaeik.bimillog.in.post.dto.PostUpdateDTO;
+import jaeik.bimillog.out.auth.CustomUserDetails;
+import jaeik.bimillog.out.post.PostRepository;
 import jaeik.bimillog.testutil.*;
 import jaeik.bimillog.testutil.annotation.IntegrationTest;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;

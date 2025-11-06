@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.global.application.port.in;
 
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.infrastructure.adapter.in.notification.web.NotificationSseController;
+import jaeik.bimillog.in.notification.web.NotificationSseController;
 
 public interface GlobalFcmSaveUseCase {
 

@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.log.application.port.in;
 
-import jaeik.bimillog.infrastructure.adapter.in.log.web.dto.ClientErrorLogDTO;
+import jaeik.bimillog.in.log.web.dto.ClientErrorLogDTO;
 
 /**
  * <h2>클라이언트 에러 로깅 유스케이스</h2>

@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.comment.service;
 import jaeik.bimillog.domain.comment.application.port.out.CommentQueryPort;
 import jaeik.bimillog.domain.comment.application.service.CommentQueryService;
 import jaeik.bimillog.domain.comment.entity.CommentInfo;
-import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
+import jaeik.bimillog.out.auth.CustomUserDetails;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
