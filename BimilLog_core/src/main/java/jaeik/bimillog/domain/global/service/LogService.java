@@ -1,7 +1,6 @@
-package jaeik.bimillog.domain.log.service;
+package jaeik.bimillog.domain.global.service;
 
-import jaeik.bimillog.domain.log.port.in.LogClientErrorUseCase;
-import jaeik.bimillog.domain.log.in.dto.ClientErrorLogDTO;
+import jaeik.bimillog.domain.global.in.dto.ClientErrorLogDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,7 +15,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class LogService implements LogClientErrorUseCase {
+public class LogService {
 
     /**
      * <h3>클라이언트 에러 로깅</h3>
@@ -27,7 +26,6 @@ public class LogService implements LogClientErrorUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public void logClientError(ClientErrorLogDTO errorLog) {
         // 구조화된 로그 메시지 생성
         StringBuilder logMessage = new StringBuilder();

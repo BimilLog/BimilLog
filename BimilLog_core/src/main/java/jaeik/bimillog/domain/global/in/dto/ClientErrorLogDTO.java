@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.log.in.dto;
+package jaeik.bimillog.domain.global.in.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

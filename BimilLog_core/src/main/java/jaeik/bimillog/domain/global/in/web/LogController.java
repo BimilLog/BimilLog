@@ -1,6 +1,6 @@
-package jaeik.bimillog.domain.log.in;
+package jaeik.bimillog.domain.global.in.web;
 
-import jaeik.bimillog.domain.log.port.in.LogClientErrorUseCase;
+import jaeik.bimillog.domain.global.service.LogService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,10 +21,10 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/log")
+@RequestMapping("/api/global")
 public class LogController {
 
-    private final LogClientErrorUseCase logClientErrorUseCase;
+    private final LogService logService;
 
     /**
      * <h3>클라이언트 에러 로깅</h3>
@@ -37,11 +37,11 @@ public class LogController {
      * @since 2.0.0
      */
     @PostMapping("/client-error")
-    public ResponseEntity<Void> logClientError(@Valid @RequestBody jaeik.bimillog.domain.log.in.dto.ClientErrorLogDTO errorLog) {
+    public ResponseEntity<Void> logClientError(@Valid @RequestBody jaeik.bimillog.domain.global.in.dto.ClientErrorLogDTO errorLog) {
         log.info("클라이언트 에러 로그 수신: platform={}, message={}",
             errorLog.getPlatform(), errorLog.getErrorMessage());
 
-        logClientErrorUseCase.logClientError(errorLog);
+        logService.logClientError(errorLog);
 
         return ResponseEntity.ok().build();
     }

@@ -45,7 +45,9 @@ public class LogFilter extends OncePerRequestFilter {
             "/api/member/username/check",
             "/api/member/search",
             "/api/member/all",
-            "/actuator/prometheus");
+            "/api/global/client-error",
+            "/actuator/prometheus"
+    );
 
     /**
      * <h3>필터 내부 처리</h3>
