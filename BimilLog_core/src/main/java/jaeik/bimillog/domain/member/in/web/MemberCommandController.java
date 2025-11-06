@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.member.in.web;
 
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
-import jaeik.bimillog.domain.member.application.port.in.MemberCommandUseCase;
+import jaeik.bimillog.domain.member.service.MemberCommandService;
 import jaeik.bimillog.domain.member.application.port.in.MemberSignupUseCase;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.domain.member.event.ReportSubmittedEvent;
@@ -33,7 +33,7 @@ import java.util.List;
 @RequestMapping("/api/member")
 public class MemberCommandController {
 
-    private final MemberCommandUseCase memberCommandUseCase;
+    private final MemberCommandService memberCommandService;
     private final MemberSignupUseCase memberSignUpUseCase;
     private final ApplicationEventPublisher eventPublisher;
     private final GlobalCookiePort globalCookiePort;
@@ -89,7 +89,7 @@ public class MemberCommandController {
     @PostMapping("/username")
     public ResponseEntity<String> updateUserName(@AuthenticationPrincipal CustomUserDetails userDetails,
                                                  @RequestBody @Valid MemberNameDTO memberNameDTO) {
-        memberCommandUseCase.updateMemberName(userDetails.getMemberId(), memberNameDTO.getMemberName());
+        memberCommandService.updateMemberName(userDetails.getMemberId(), memberNameDTO.getMemberName());
         return ResponseEntity.ok("닉네임이 변경되었습니다.");
     }
 
@@ -107,7 +107,7 @@ public class MemberCommandController {
     @PostMapping("/setting")
     public ResponseEntity<String> updateSetting(@RequestBody @Valid SettingDTO settingDTO,
                                                 @AuthenticationPrincipal CustomUserDetails userDetails) {
-        memberCommandUseCase.updateMemberSettings(userDetails.getMemberId(), settingDTO.toSettingEntity());
+        memberCommandService.updateMemberSettings(userDetails.getMemberId(), settingDTO.toSettingEntity());
         return ResponseEntity.ok("설정 수정 완료");
     }
 

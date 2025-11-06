@@ -9,7 +9,7 @@ import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPort;
 import jaeik.bimillog.domain.global.application.strategy.SocialAuthStrategy;
 import jaeik.bimillog.domain.global.application.strategy.SocialPlatformStrategy;
-import jaeik.bimillog.domain.member.application.port.in.MemberCommandUseCase;
+import jaeik.bimillog.domain.member.service.MemberCommandService;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
@@ -75,7 +75,7 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
     private KakaoTokenService kakaoTokenService;
 
     @MockitoBean
-    private MemberCommandUseCase memberCommandUseCase;
+    private MemberCommandService memberCommandService;
 
     @MockitoBean
     private GlobalSocialStrategyPort globalSocialStrategyPort;
@@ -150,7 +150,7 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
             // 10. 카카오 토큰 삭제
             verify(kakaoTokenService).deleteByMemberId(eq(memberId));
             // 11. 계정 정보 삭제
-            verify(memberCommandUseCase).removeMemberAccount(eq(memberId));
+            verify(memberCommandService).removeMemberAccount(eq(memberId));
         });
     }
 
@@ -213,9 +213,9 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
             verify(kakaoTokenService).deleteByMemberId(eq(3L));
 
             // 계정 정보 삭제
-            verify(memberCommandUseCase).removeMemberAccount(eq(1L));
-            verify(memberCommandUseCase).removeMemberAccount(eq(2L));
-            verify(memberCommandUseCase).removeMemberAccount(eq(3L));
+            verify(memberCommandService).removeMemberAccount(eq(1L));
+            verify(memberCommandService).removeMemberAccount(eq(2L));
+            verify(memberCommandService).removeMemberAccount(eq(3L));
         });
     }
 
@@ -278,7 +278,7 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
             verify(paperCommandUseCase).deleteMessageInMyPaper(eq(memberId), eq(null));
             verify(adminCommandService).anonymizeReporterByUserId(eq(memberId));
             verify(kakaoTokenService).deleteByMemberId(eq(memberId));
-            verify(memberCommandUseCase).removeMemberAccount(eq(memberId));
+            verify(memberCommandService).removeMemberAccount(eq(memberId));
         });
 
         assertThat(unlinkAttempted).isTrue();

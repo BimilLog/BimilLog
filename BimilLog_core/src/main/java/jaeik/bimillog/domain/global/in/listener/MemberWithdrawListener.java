@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.auth.service.AuthTokenService;
 import jaeik.bimillog.domain.auth.service.KakaoTokenService;
 import jaeik.bimillog.domain.auth.service.SocialWithdrawService;
 import jaeik.bimillog.domain.comment.service.CommentCommandService;
-import jaeik.bimillog.domain.member.application.port.in.MemberCommandUseCase;
+import jaeik.bimillog.domain.member.service.MemberCommandService;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
@@ -42,7 +42,7 @@ public class MemberWithdrawListener {
     private final AuthTokenService authTokenService;
     private final PaperCommandUseCase paperCommandUseCase;
     private final AdminCommandService adminCommandService;
-    private final MemberCommandUseCase memberCommandUseCase;
+    private final MemberCommandService memberCommandService;
     private final KakaoTokenService kakaoTokenService;
 
     /**
@@ -97,6 +97,6 @@ public class MemberWithdrawListener {
         kakaoTokenService.deleteByMemberId(memberId);
 
         // 사용자 정보 삭제 Cascade로 설정도 함께 삭제
-        memberCommandUseCase.removeMemberAccount(memberId);
+        memberCommandService.removeMemberAccount(memberId);
     }
 }

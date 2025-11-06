@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.auth.out;
 
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.member.application.port.in.HandleMemberLoginUseCase;
+import jaeik.bimillog.domain.member.service.HandleMemberLoginService;
 import jaeik.bimillog.domain.member.application.port.in.MemberQueryUseCase;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
@@ -33,7 +33,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AuthToMemberAdapter {
 
-    private final HandleMemberLoginUseCase handleMemberLoginUseCase;
+    private final HandleMemberLoginService handleMemberLoginService;
     private final MemberQueryUseCase memberQueryUseCase;
 
     /**
@@ -50,7 +50,7 @@ public class AuthToMemberAdapter {
      * @since 2.0.0
      */
     public Member handleExistingMember(Member member, String newNickname, String newProfileImage, KakaoToken savedKakaoToken) {
-        return handleMemberLoginUseCase.handleExistingMember(member, newNickname, newProfileImage, savedKakaoToken);
+        return handleMemberLoginService.handleExistingMember(member, newNickname, newProfileImage, savedKakaoToken);
     }
 
     /**
@@ -64,7 +64,7 @@ public class AuthToMemberAdapter {
      * @since 2.0.0
      */
     public void handleNewUser(SocialMemberProfile memberProfile, String uuid) {
-        handleMemberLoginUseCase.handleNewMember(memberProfile, uuid);
+        handleMemberLoginService.handleNewMember(memberProfile, uuid);
     }
 
     /**

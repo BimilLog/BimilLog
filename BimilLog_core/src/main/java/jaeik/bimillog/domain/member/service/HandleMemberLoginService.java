@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.member.service;
 
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.member.application.port.in.HandleMemberLoginUseCase;
 import jaeik.bimillog.domain.member.application.port.out.RedisMemberDataPort;
 import jaeik.bimillog.domain.member.entity.Member;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
-public class HandleMemberLoginService implements HandleMemberLoginUseCase {
+public class HandleMemberLoginService {
 
     private final RedisMemberDataPort redisMemberDataPort;
 
@@ -43,7 +42,6 @@ public class HandleMemberLoginService implements HandleMemberLoginUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional
     public Member handleExistingMember(Member member, String newNickname, String newProfileImage, KakaoToken savedKakaoToken) {
         member.updateKakaoToken(savedKakaoToken);
@@ -61,7 +59,6 @@ public class HandleMemberLoginService implements HandleMemberLoginUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional
     public void handleNewMember(SocialMemberProfile memberProfile, String uuid) {
         redisMemberDataPort.saveTempData(uuid, memberProfile);

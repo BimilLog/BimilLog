@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.member.service;
 
-import jaeik.bimillog.domain.member.application.port.in.MemberCommandUseCase;
 import jaeik.bimillog.domain.member.application.port.out.MemberCommandPort;
 import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
 import jaeik.bimillog.domain.member.entity.Member;
@@ -26,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class MemberCommandService implements MemberCommandUseCase {
+public class MemberCommandService {
 
     private final MemberQueryPort memberQueryPort;
     private final MemberCommandPort memberCommandPort;
@@ -41,7 +40,6 @@ public class MemberCommandService implements MemberCommandUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional
     public void updateMemberSettings(Long memberId, Setting newSetting) {
         Member member = memberQueryPort.findById(memberId)
@@ -67,7 +65,6 @@ public class MemberCommandService implements MemberCommandUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional
     public void updateMemberName(Long memberId, String newMemberName) {
         try {
@@ -92,7 +89,6 @@ public class MemberCommandService implements MemberCommandUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional
     public void removeMemberAccount(Long memberId) {
         log.info("사용자 계정 삭제 시작 - memberId: {}", memberId);
