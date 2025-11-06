@@ -1,6 +1,6 @@
 package jaeik.bimillog.event.member;
 
-import jaeik.bimillog.domain.admin.application.port.in.AdminCommandUseCase;
+import jaeik.bimillog.domain.admin.application.service.AdminCommandService;
 import jaeik.bimillog.domain.auth.application.port.in.AuthTokenUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.KakaoTokenUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.SocialWithdrawUseCase;
@@ -69,7 +69,7 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
     private PaperCommandUseCase paperCommandUseCase;
 
     @MockitoBean
-    private AdminCommandUseCase adminCommandUseCase;
+    private AdminCommandService adminCommandService;
 
     @MockitoBean
     private KakaoTokenUseCase kakaoTokenUseCase;
@@ -146,7 +146,7 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
             // 8. 롤링페이퍼 메시지 삭제
             verify(paperCommandUseCase).deleteMessageInMyPaper(eq(memberId), eq(null));
             // 9. 신고자 익명화
-            verify(adminCommandUseCase).anonymizeReporterByUserId(eq(memberId));
+            verify(adminCommandService).anonymizeReporterByUserId(eq(memberId));
             // 10. 카카오 토큰 삭제
             verify(kakaoTokenUseCase).deleteByMemberId(eq(memberId));
             // 11. 계정 정보 삭제
@@ -203,9 +203,9 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
             verify(paperCommandUseCase).deleteMessageInMyPaper(eq(3L), eq(null));
 
             // 신고자 익명화
-            verify(adminCommandUseCase).anonymizeReporterByUserId(eq(1L));
-            verify(adminCommandUseCase).anonymizeReporterByUserId(eq(2L));
-            verify(adminCommandUseCase).anonymizeReporterByUserId(eq(3L));
+            verify(adminCommandService).anonymizeReporterByUserId(eq(1L));
+            verify(adminCommandService).anonymizeReporterByUserId(eq(2L));
+            verify(adminCommandService).anonymizeReporterByUserId(eq(3L));
 
             // 카카오 토큰 삭제
             verify(kakaoTokenUseCase).deleteByMemberId(eq(1L));
@@ -276,7 +276,7 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
             verify(fcmUseCase).deleteFcmTokens(eq(memberId), eq(null));
             verify(notificationCommandUseCase).deleteAllNotification(eq(memberId));
             verify(paperCommandUseCase).deleteMessageInMyPaper(eq(memberId), eq(null));
-            verify(adminCommandUseCase).anonymizeReporterByUserId(eq(memberId));
+            verify(adminCommandService).anonymizeReporterByUserId(eq(memberId));
             verify(kakaoTokenUseCase).deleteByMemberId(eq(memberId));
             verify(memberCommandUseCase).removeMemberAccount(eq(memberId));
         });

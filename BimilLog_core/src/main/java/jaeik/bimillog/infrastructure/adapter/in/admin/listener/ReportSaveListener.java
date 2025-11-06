@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.in.admin.listener;
 
-import jaeik.bimillog.domain.admin.application.port.in.AdminCommandUseCase;
+import jaeik.bimillog.domain.admin.application.service.AdminCommandService;
 import jaeik.bimillog.domain.member.event.ReportSubmittedEvent;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ReportSaveListener {
 
-    private final AdminCommandUseCase adminCommandUseCase;
+    private final AdminCommandService adminCommandService;
 
     /**
      * <h3>신고 제출 이벤트 비동기 처리</h3>
@@ -39,7 +39,7 @@ public class ReportSaveListener {
     @EventListener
     public void handleReportSubmitted(ReportSubmittedEvent event) {
         try {
-            adminCommandUseCase.createReport(event.reporterId(), event.reportType(), event.targetId(), event.content());
+            adminCommandService.createReport(event.reporterId(), event.reportType(), event.targetId(), event.content());
             log.info("신고/건의사항 처리 완료 - 신고자: {}, 유형: {}, targetId: {}", 
                     event.reporterName(), event.reportType(), event.targetId());
             

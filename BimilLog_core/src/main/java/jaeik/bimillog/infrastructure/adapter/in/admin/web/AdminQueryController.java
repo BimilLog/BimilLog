@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.in.admin.web;
 
-import jaeik.bimillog.domain.admin.application.port.in.AdminQueryUseCase;
+import jaeik.bimillog.domain.admin.application.service.AdminQueryService;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.comment.exception.CommentCustomException;
@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/admin")
 public class AdminQueryController {
 
-    private final AdminQueryUseCase adminQueryUseCase;
+    private final AdminQueryService adminQueryService;
     private final GlobalPostQueryPort globalPostQueryPort;
     private final GlobalCommentQueryPort globalCommentQueryPort;
 
@@ -54,7 +54,7 @@ public class AdminQueryController {
     public ResponseEntity<Page<ReportDTO>> getReportList(@RequestParam(defaultValue = "0") int page,
                                                          @RequestParam(defaultValue = "20") int size,
                                                          @RequestParam(required = false) ReportType reportType) {
-        Page<Report> reports = adminQueryUseCase.getReportList(page, size, reportType);
+        Page<Report> reports = adminQueryService.getReportList(page, size, reportType);
         Page<ReportDTO> reportList = reports.map(report -> {
             Member targetAuthor = null;
             if (report.getTargetId() != null) {

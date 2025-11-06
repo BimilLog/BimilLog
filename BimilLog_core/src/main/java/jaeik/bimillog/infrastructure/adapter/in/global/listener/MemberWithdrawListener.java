@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.in.global.listener;
 
-import jaeik.bimillog.domain.admin.application.port.in.AdminCommandUseCase;
+import jaeik.bimillog.domain.admin.application.service.AdminCommandService;
 import jaeik.bimillog.domain.auth.application.port.in.AuthTokenUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.KakaoTokenUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.SocialWithdrawUseCase;
@@ -41,7 +41,7 @@ public class MemberWithdrawListener {
     private final PostCommandUseCase postCommandUseCase;
     private final AuthTokenUseCase authTokenUseCase;
     private final PaperCommandUseCase paperCommandUseCase;
-    private final AdminCommandUseCase adminCommandUseCase;
+    private final AdminCommandService adminCommandService;
     private final MemberCommandUseCase memberCommandUseCase;
     private final KakaoTokenUseCase kakaoTokenUseCase;
 
@@ -91,7 +91,7 @@ public class MemberWithdrawListener {
         authTokenUseCase.deleteTokens(memberId, null);
 
         // 신고자 익명화
-        adminCommandUseCase.anonymizeReporterByUserId(memberId);
+        adminCommandService.anonymizeReporterByUserId(memberId);
 
         // 카카오 토큰 제거
         kakaoTokenUseCase.deleteByMemberId(memberId);

@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.in.admin.web;
 
-import jaeik.bimillog.domain.admin.application.port.in.AdminCommandUseCase;
+import jaeik.bimillog.domain.admin.application.service.AdminCommandService;
 import jaeik.bimillog.infrastructure.adapter.in.admin.dto.BanUserDTO;
 import jaeik.bimillog.infrastructure.adapter.in.admin.dto.ForceWithdrawDTO;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/admin")
 public class AdminCommandController {
 
-    private final AdminCommandUseCase adminCommandUseCase;
+    private final AdminCommandService adminCommandService;
 
     /**
      * <h3>사용자 제재 API</h3>
@@ -42,7 +42,7 @@ public class AdminCommandController {
     @PostMapping("/ban")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> banUser(@RequestBody BanUserDTO banUserDTO) {
-        adminCommandUseCase.banUser(banUserDTO.getReportType(), banUserDTO.getTargetId());
+        adminCommandService.banUser(banUserDTO.getReportType(), banUserDTO.getTargetId());
         return ResponseEntity.ok("유저를 성공적으로 차단했습니다.");
     }
 
@@ -60,7 +60,7 @@ public class AdminCommandController {
     @PostMapping("/withdraw")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> forceWithdrawUser(@RequestBody ForceWithdrawDTO forceWithdrawDTO) {
-        adminCommandUseCase.forceWithdrawUser(forceWithdrawDTO.getReportType(), forceWithdrawDTO.getTargetId());
+        adminCommandService.forceWithdrawUser(forceWithdrawDTO.getReportType(), forceWithdrawDTO.getTargetId());
         return ResponseEntity.ok("사용자 탈퇴 처리를 시작했습니다. 백그라운드에서 처리됩니다.");
     }
 }

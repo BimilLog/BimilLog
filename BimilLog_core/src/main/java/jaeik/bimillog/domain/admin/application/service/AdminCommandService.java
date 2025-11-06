@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.admin.application.service;
 
-import jaeik.bimillog.domain.admin.application.port.in.AdminCommandUseCase;
 import jaeik.bimillog.domain.admin.application.port.out.AdminCommandPort;
 import jaeik.bimillog.domain.admin.application.port.out.AdminQueryPort;
 import jaeik.bimillog.domain.admin.entity.Report;
@@ -35,7 +34,7 @@ import java.util.Optional;
  */
 @Service
 @RequiredArgsConstructor
-public class AdminCommandService implements AdminCommandUseCase {
+public class AdminCommandService {
 
     private final ApplicationEventPublisher eventPublisher;
     private final AdminCommandPort adminCommandPort;
@@ -46,10 +45,8 @@ public class AdminCommandService implements AdminCommandUseCase {
     private final BlacklistUseCase blacklistUseCase; // 어댑터에서 의존으로 해야함
 
     /**
-     * <h3>신고 및 건의사항 접수 처리</h3>
-     * <p>사용자와 관리자의 신고 요청을 처리합니다.</p>
+     * <h3>신고 및 건의사항 접수</h3>
      * <p>익명/로그인 사용자 구분 처리, POST/COMMENT 대상 유효성 검증</p>
-     * <p>{@link AdminCommandController}에서 신고 접수 시 호출됩니다.</p>
      *
      * @param memberId 신고자 사용자 ID (null이면 익명 신고로 처리)
      * @param reportType 신고 유형 (POST, COMMENT, ERROR, IMPROVEMENT)
@@ -59,7 +56,6 @@ public class AdminCommandService implements AdminCommandUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional
     public void createReport(Long memberId, ReportType reportType, Long targetId, String content) {
         Member reporter = Optional.ofNullable(memberId)
@@ -82,7 +78,6 @@ public class AdminCommandService implements AdminCommandUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional
     public void banUser(ReportType reportType, Long targetId) {
         Member member = resolveUser(reportType, targetId);
@@ -93,7 +88,6 @@ public class AdminCommandService implements AdminCommandUseCase {
 
     /**
      * <h3>사용자 강제 탈퇴 처리</h3>
-     * <p>관리자의 최종 제재 결정을 실행합니다.</p>
      * <p>POST/COMMENT 작성자 조회 후 UserForcedWithdrawalEvent 발행으로 탈퇴 및 데이터 정리 처리</p>
      * <p>{@link AdminCommandController}에서 관리자 강제 탈퇴 결정 시 호출됩니다.</p>
      *
@@ -103,7 +97,6 @@ public class AdminCommandService implements AdminCommandUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional
     public void forceWithdrawUser(ReportType reportType, Long targetId) {
         Member member = resolveUser(reportType, targetId);
@@ -120,7 +113,6 @@ public class AdminCommandService implements AdminCommandUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional
     public void anonymizeReporterByUserId(Long memberId) {
         List<Report> reports = adminQueryPort.findAllReportsByUserId(memberId);
