@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.post.application.service;
+package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.bimillog.domain.global.application.port.out.GlobalMemberQueryPort;

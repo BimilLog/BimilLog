@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
-import jaeik.bimillog.domain.auth.application.port.in.SocialWithdrawUseCase;
 import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPort;
 import jaeik.bimillog.domain.global.application.strategy.SocialPlatformStrategy;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
@@ -13,7 +12,7 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class SocialWithdrawService implements SocialWithdrawUseCase {
+public class SocialWithdrawService {
 
     private final GlobalSocialStrategyPort strategyRegistryPort;
 
@@ -29,7 +28,6 @@ public class SocialWithdrawService implements SocialWithdrawUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public void unlinkSocialAccount(SocialProvider provider, String socialId) {
         log.info("소셜 연결 해제 시작 - 제공자: {}, 소셜 ID: {}", provider, socialId);
 

@@ -21,7 +21,7 @@ import java.nio.charset.StandardCharsets;
  */
 @Slf4j
 @Configuration
-@EnableFeignClients(basePackages = "jaeik.bimillog.infrastructure.adapter.out.api")
+@EnableFeignClients(basePackages = "jaeik.bimillog.out.api")
 public class FeignConfig {
 
     /**

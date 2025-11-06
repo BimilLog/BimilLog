@@ -1,6 +1,5 @@
 package jaeik.bimillog.out.redis;
 
-import jaeik.bimillog.domain.auth.application.port.out.RedisJwtBlacklistPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -20,7 +19,7 @@ import java.util.List;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class RedisJwtBlacklistAdapter implements RedisJwtBlacklistPort {
+public class RedisJwtBlacklistAdapter {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -38,7 +37,6 @@ public class RedisJwtBlacklistAdapter implements RedisJwtBlacklistPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public boolean isBlacklisted(String tokenHash) {
         try {
             String key = BLACKLIST_KEY_PREFIX + tokenHash;
@@ -64,7 +62,6 @@ public class RedisJwtBlacklistAdapter implements RedisJwtBlacklistPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public void blacklistTokenHashes(List<String> tokenHashes, Duration ttl) {
         try {
             if (tokenHashes == null || tokenHashes.isEmpty()) {

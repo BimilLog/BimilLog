@@ -1,9 +1,9 @@
 package jaeik.bimillog.in.global.listener;
 
 import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
-import jaeik.bimillog.domain.auth.application.port.in.AuthTokenUseCase;
-import jaeik.bimillog.domain.auth.application.port.in.KakaoTokenUseCase;
-import jaeik.bimillog.domain.auth.application.port.in.SocialLogoutUseCase;
+import jaeik.bimillog.domain.auth.service.AuthTokenService;
+import jaeik.bimillog.domain.auth.service.KakaoTokenService;
+import jaeik.bimillog.domain.auth.service.SocialLogoutService;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
 import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
@@ -25,11 +25,11 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class MemberBannedListener {
 
-    private final SocialLogoutUseCase socialLogoutUseCase;
+    private final SocialLogoutService socialLogoutService;
     private final FcmUseCase fcmUseCase;
-    private final AuthTokenUseCase authTokenUseCase;
+    private final AuthTokenService authTokenService;
     private final SseUseCase sseUseCase;
-    private final KakaoTokenUseCase kakaoTokenUseCase;
+    private final KakaoTokenService kakaoTokenService;
 
     /**
      * <h3>사용자 차단 이벤트 처리</h3>
@@ -49,9 +49,9 @@ public class MemberBannedListener {
         SocialProvider provider = memberBannedEvent.provider();
 
         sseUseCase.deleteEmitters(memberId, null);
-        socialLogoutUseCase.forceLogout(socialId, provider);
+        socialLogoutService.forceLogout(socialId, provider);
         fcmUseCase.deleteFcmTokens(memberId, null);
-        authTokenUseCase.deleteTokens(memberId, null);
-        kakaoTokenUseCase.deleteByMemberId(memberId);
+        authTokenService.deleteTokens(memberId, null);
+        kakaoTokenService.deleteByMemberId(memberId);
     }
 }

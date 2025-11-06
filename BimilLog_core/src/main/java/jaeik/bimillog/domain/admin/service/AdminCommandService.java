@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
 import jaeik.bimillog.domain.admin.exception.AdminCustomException;
 import jaeik.bimillog.domain.admin.exception.AdminErrorCode;
-import jaeik.bimillog.domain.auth.application.port.in.BlacklistUseCase;
+import jaeik.bimillog.domain.auth.service.BlacklistService;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCommentQueryPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
@@ -42,7 +42,7 @@ public class AdminCommandService {
     private final MemberQueryPort memberQueryPort;
     private final GlobalPostQueryPort globalPostQueryPort;
     private final GlobalCommentQueryPort globalCommentQueryPort;
-    private final BlacklistUseCase blacklistUseCase; // 어댑터에서 의존으로 해야함
+    private final BlacklistService blacklistService;
 
     /**
      * <h3>신고 및 건의사항 접수</h3>
@@ -81,8 +81,8 @@ public class AdminCommandService {
     @Transactional
     public void banUser(ReportType reportType, Long targetId) {
         Member member = resolveUser(reportType, targetId);
-        blacklistUseCase.addToBlacklist(member.getId(), member.getSocialId(), member.getProvider());
-        blacklistUseCase.blacklistAllUserTokens(member.getId());
+        blacklistService.addToBlacklist(member.getId(), member.getSocialId(), member.getProvider());
+        blacklistService.blacklistAllUserTokens(member.getId());
         eventPublisher.publishEvent(new MemberBannedEvent(member.getId(), member.getSocialId(), member.getProvider()));
     }
 
@@ -100,8 +100,8 @@ public class AdminCommandService {
     @Transactional
     public void forceWithdrawUser(ReportType reportType, Long targetId) {
         Member member = resolveUser(reportType, targetId);
-        blacklistUseCase.addToBlacklist(member.getId(), member.getSocialId(), member.getProvider());
-        blacklistUseCase.blacklistAllUserTokens(member.getId());
+        blacklistService.addToBlacklist(member.getId(), member.getSocialId(), member.getProvider());
+        blacklistService.blacklistAllUserTokens(member.getId());
         eventPublisher.publishEvent(new MemberWithdrawnEvent(member.getId(), member.getSocialId(), member.getProvider()));
     }
 

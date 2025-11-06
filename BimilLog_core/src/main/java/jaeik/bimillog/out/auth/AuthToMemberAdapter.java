@@ -1,6 +1,5 @@
 package jaeik.bimillog.out.auth;
 
-import jaeik.bimillog.domain.auth.application.port.out.AuthToMemberPort;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.member.application.port.in.HandleMemberLoginUseCase;
@@ -32,7 +31,7 @@ import java.util.Optional;
  */
 @Component
 @RequiredArgsConstructor
-public class AuthToMemberAdapter implements AuthToMemberPort {
+public class AuthToMemberAdapter {
 
     private final HandleMemberLoginUseCase handleMemberLoginUseCase;
     private final MemberQueryUseCase memberQueryUseCase;
@@ -50,7 +49,6 @@ public class AuthToMemberAdapter implements AuthToMemberPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public Member handleExistingMember(Member member, String newNickname, String newProfileImage, KakaoToken savedKakaoToken) {
         return handleMemberLoginUseCase.handleExistingMember(member, newNickname, newProfileImage, savedKakaoToken);
     }
@@ -65,7 +63,6 @@ public class AuthToMemberAdapter implements AuthToMemberPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public void handleNewUser(SocialMemberProfile memberProfile, String uuid) {
         handleMemberLoginUseCase.handleNewMember(memberProfile, uuid);
     }
@@ -81,7 +78,6 @@ public class AuthToMemberAdapter implements AuthToMemberPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public Optional<Member> checkMember(SocialProvider provider, String socialId) {
         return memberQueryUseCase.findByProviderAndSocialId(provider, socialId);
     }

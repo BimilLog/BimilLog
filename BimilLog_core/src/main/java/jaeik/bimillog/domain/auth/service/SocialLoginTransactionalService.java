@@ -1,7 +1,5 @@
 package jaeik.bimillog.domain.auth.service;
 
-import jaeik.bimillog.domain.auth.application.port.out.AuthToMemberPort;
-import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
@@ -16,6 +14,8 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalKakaoTokenCommand
 import jaeik.bimillog.domain.global.entity.MemberDetail;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
+import jaeik.bimillog.out.auth.AuthToMemberAdapter;
+import jaeik.bimillog.out.auth.BlacklistAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
@@ -38,8 +38,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class SocialLoginTransactionalService {
 
-    private final AuthToMemberPort authToMemberPort;
-    private final BlacklistPort blacklistPort;
+    private final AuthToMemberAdapter authToMemberAdapter;
+    private final BlacklistAdapter blacklistAdapter;
     private final GlobalCookiePort globalCookiePort;
     private final GlobalJwtPort globalJwtPort;
     private final GlobalAuthTokenSavePort globalAuthTokenSavePort;
@@ -61,12 +61,12 @@ public class SocialLoginTransactionalService {
     public LoginResult finishLogin(SocialProvider provider, SocialMemberProfile socialMemberProfile) {
 
         // 블랙리스트 사용자 확인
-        if (blacklistPort.existsByProviderAndSocialId(provider, socialMemberProfile.getSocialId())) {
+        if (blacklistAdapter.existsByProviderAndSocialId(provider, socialMemberProfile.getSocialId())) {
             throw new AuthCustomException(AuthErrorCode.BLACKLIST_USER);
         }
 
         // 기존 유저 유무 조회
-        Optional<Member> member = authToMemberPort.checkMember(provider, socialMemberProfile.getSocialId());
+        Optional<Member> member = authToMemberAdapter.checkMember(provider, socialMemberProfile.getSocialId());
         return member.map(value ->
                 handleExistingMember(value, socialMemberProfile))
                 .orElseGet(() -> handleNewMember(socialMemberProfile));
@@ -103,7 +103,7 @@ public class SocialLoginTransactionalService {
         KakaoToken persistedKakaoToken = globalKakaoTokenCommandPort.save(initialKakaoToken);
 
         // 2. 멤버 정보 업데이트
-        Member updateMember = authToMemberPort.handleExistingMember(existingMember, nickname, profileImageUrl, persistedKakaoToken);
+        Member updateMember = authToMemberAdapter.handleExistingMember(existingMember, nickname, profileImageUrl, persistedKakaoToken);
 
         // 3. AuthToken 생성
         AuthToken initialAuthToken = AuthToken.createToken("", updateMember);
@@ -137,7 +137,7 @@ public class SocialLoginTransactionalService {
      */
     private LoginResult handleNewMember(SocialMemberProfile socialMemberProfile) {
         String uuid = UUID.randomUUID().toString();
-        authToMemberPort.handleNewUser(socialMemberProfile, uuid);
+        authToMemberAdapter.handleNewUser(socialMemberProfile, uuid);
         ResponseCookie tempCookie = globalCookiePort.createTempCookie(uuid);
         return new LoginResult.NewUser(tempCookie);
     }

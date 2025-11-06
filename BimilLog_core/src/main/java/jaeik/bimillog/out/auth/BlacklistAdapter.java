@@ -1,6 +1,5 @@
 package jaeik.bimillog.out.auth;
 
-import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.service.SocialLoginService;
 import jaeik.bimillog.domain.auth.service.SocialWithdrawService;
 import jaeik.bimillog.domain.auth.entity.BlackList;
@@ -10,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class BlacklistAdapter implements BlacklistPort {
+public class BlacklistAdapter {
 
     private final BlackListRepository blackListRepository;
 
@@ -26,7 +25,6 @@ public class BlacklistAdapter implements BlacklistPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public boolean existsByProviderAndSocialId(SocialProvider provider, String socialId) {
         return blackListRepository.existsByProviderAndSocialId(provider, socialId);
     }
@@ -40,7 +38,6 @@ public class BlacklistAdapter implements BlacklistPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public void saveBlackList(BlackList blackList) {
         blackListRepository.save(blackList);
     }

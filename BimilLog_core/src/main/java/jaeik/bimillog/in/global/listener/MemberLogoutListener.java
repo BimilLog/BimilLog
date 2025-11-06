@@ -1,9 +1,9 @@
 package jaeik.bimillog.in.global.listener;
 
-import jaeik.bimillog.domain.auth.application.port.in.AuthTokenUseCase;
-import jaeik.bimillog.domain.auth.application.port.in.KakaoTokenUseCase;
-import jaeik.bimillog.domain.auth.application.port.in.SocialLogoutUseCase;
 import jaeik.bimillog.domain.auth.event.MemberLoggedOutEvent;
+import jaeik.bimillog.domain.auth.service.AuthTokenService;
+import jaeik.bimillog.domain.auth.service.KakaoTokenService;
+import jaeik.bimillog.domain.auth.service.SocialLogoutService;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
 import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
@@ -28,11 +28,11 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class MemberLogoutListener {
 
-    private final SocialLogoutUseCase socialLogoutUseCase;
+    private final SocialLogoutService socialLogoutService;
     private final SseUseCase sseUseCase;
     private final FcmUseCase fcmUseCase;
-    private final AuthTokenUseCase authTokenUseCase;
-    private final KakaoTokenUseCase kakaoTokenUseCase;
+    private final AuthTokenService authTokenService;
+    private final KakaoTokenService kakaoTokenService;
 
     /**
      * <h3>사용자 로그아웃 이벤트 처리</h3>
@@ -54,13 +54,13 @@ public class MemberLogoutListener {
 
         sseUseCase.deleteEmitters(memberId, AuthTokenId);
         try {
-            socialLogoutUseCase.socialLogout(memberId, provider);
+            socialLogoutService.socialLogout(memberId, provider);
         } catch (Exception ex) {
             log.warn("소셜 로그아웃 실패 - provider: {}, memberId: {}. 이후 정리 작업은 계속 진행합니다.", provider, memberId, ex);
         }
         fcmUseCase.deleteFcmTokens(memberId, fcmTokenId);
-        authTokenUseCase.deleteTokens(memberId, AuthTokenId);
-        kakaoTokenUseCase.deleteByMemberId(memberId);
+        authTokenService.deleteTokens(memberId, AuthTokenId);
+        kakaoTokenService.deleteByMemberId(memberId);
         SecurityContextHolder.clearContext();
 
     }

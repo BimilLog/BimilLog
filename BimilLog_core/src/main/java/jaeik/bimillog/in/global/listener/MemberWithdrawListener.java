@@ -1,9 +1,9 @@
 package jaeik.bimillog.in.global.listener;
 
 import jaeik.bimillog.domain.admin.service.AdminCommandService;
-import jaeik.bimillog.domain.auth.application.port.in.AuthTokenUseCase;
-import jaeik.bimillog.domain.auth.application.port.in.KakaoTokenUseCase;
-import jaeik.bimillog.domain.auth.application.port.in.SocialWithdrawUseCase;
+import jaeik.bimillog.domain.auth.service.AuthTokenService;
+import jaeik.bimillog.domain.auth.service.KakaoTokenService;
+import jaeik.bimillog.domain.auth.service.SocialWithdrawService;
 import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
 import jaeik.bimillog.domain.member.application.port.in.MemberCommandUseCase;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
@@ -33,17 +33,17 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class MemberWithdrawListener {
 
-    private final SocialWithdrawUseCase socialWithdrawUseCase;
+    private final SocialWithdrawService socialWithdrawService;
     private final SseUseCase sseUseCase;
     private final FcmUseCase fcmUseCase;
     private final NotificationCommandUseCase notificationCommandUseCase;
     private final CommentCommandUseCase commentCommandUseCase;
     private final PostCommandUseCase postCommandUseCase;
-    private final AuthTokenUseCase authTokenUseCase;
+    private final AuthTokenService authTokenService;
     private final PaperCommandUseCase paperCommandUseCase;
     private final AdminCommandService adminCommandService;
     private final MemberCommandUseCase memberCommandUseCase;
-    private final KakaoTokenUseCase kakaoTokenUseCase;
+    private final KakaoTokenService kakaoTokenService;
 
     /**
      * <h3>사용자 탈퇴 이벤트 처리</h3>
@@ -68,7 +68,7 @@ public class MemberWithdrawListener {
 
         // 카카오 연결해제
         try {
-            socialWithdrawUseCase.unlinkSocialAccount(provider, socialId);
+            socialWithdrawService.unlinkSocialAccount(provider, socialId);
         } catch (Exception ex) {
             log.warn("소셜 계정 연동 해제 실패 - provider: {}, socialId: {}. 탈퇴 후속 처리를 계속 진행합니다.", provider, socialId, ex);
         }
@@ -88,13 +88,13 @@ public class MemberWithdrawListener {
 
         // 모든 FCM 토큰은 DB레벨 CasCade로 member 삭제 시 동시 삭제
         // 모든 AuthToken 제거
-        authTokenUseCase.deleteTokens(memberId, null);
+        authTokenService.deleteTokens(memberId, null);
 
         // 신고자 익명화
         adminCommandService.anonymizeReporterByUserId(memberId);
 
         // 카카오 토큰 제거
-        kakaoTokenUseCase.deleteByMemberId(memberId);
+        kakaoTokenService.deleteByMemberId(memberId);
 
         // 사용자 정보 삭제 Cascade로 설정도 함께 삭제
         memberCommandUseCase.removeMemberAccount(memberId);

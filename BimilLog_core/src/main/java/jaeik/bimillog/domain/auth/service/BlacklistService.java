@@ -1,9 +1,6 @@
 package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
-import jaeik.bimillog.domain.auth.application.port.in.BlacklistUseCase;
-import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
-import jaeik.bimillog.domain.auth.application.port.out.RedisJwtBlacklistPort;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.BlackList;
 import jaeik.bimillog.domain.global.application.port.out.GlobalAuthTokenQueryPort;
@@ -11,6 +8,8 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.infrastructure.filter.JwtFilter;
+import jaeik.bimillog.out.auth.BlacklistAdapter;
+import jaeik.bimillog.out.redis.RedisJwtBlacklistAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -33,14 +32,14 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class BlacklistService implements BlacklistUseCase {
+public class BlacklistService {
 
     private static final Duration DEFAULT_TTL = Duration.ofHours(1);
 
     private final GlobalJwtPort globalJwtPort;
-    private final RedisJwtBlacklistPort redisJwtBlacklistPort;
+    private final RedisJwtBlacklistAdapter redisJwtBlacklistAdapter;
     private final GlobalAuthTokenQueryPort globalAuthTokenQueryPort;
-    private final BlacklistPort blacklistPort;
+    private final BlacklistAdapter blacklistPort;
 
     /**
      * <h3>JWT 토큰 블랙리스트 검증</h3>
@@ -53,11 +52,10 @@ public class BlacklistService implements BlacklistUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public boolean isBlacklisted(String token) {
         try {
             String tokenHash = globalJwtPort.generateTokenHash(token);
-            boolean isBlacklisted = redisJwtBlacklistPort.isBlacklisted(tokenHash);
+            boolean isBlacklisted = redisJwtBlacklistAdapter.isBlacklisted(tokenHash);
 
             if (isBlacklisted) {
                 log.debug("토큰이 블랙리스트에서 발견됨: hash={}", tokenHash.substring(0, 8) + "...");
@@ -80,7 +78,6 @@ public class BlacklistService implements BlacklistUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public void blacklistAllUserTokens(Long memberId) {
         try {
             List<AuthToken> userAuthTokens = globalAuthTokenQueryPort.findAllByMemberId(memberId);
@@ -105,7 +102,7 @@ public class BlacklistService implements BlacklistUseCase {
                     .collect(Collectors.toList());
 
             if (!tokenHashes.isEmpty()) {
-                redisJwtBlacklistPort.blacklistTokenHashes(tokenHashes, DEFAULT_TTL);
+                redisJwtBlacklistAdapter.blacklistTokenHashes(tokenHashes, DEFAULT_TTL);
                 log.info("사용자 {}의 토큰 {}개가 블랙리스트에 추가됨", memberId, tokenHashes.size());
             } else {
                 log.warn("사용자 {}에 대해 블랙리스트에 추가할 유효한 토큰 해시가 없음", memberId);
@@ -124,7 +121,6 @@ public class BlacklistService implements BlacklistUseCase {
      * @since 2.0.0
      * @author Jaeik
      */
-    @Override
     @Transactional
     public void addToBlacklist(Long memberId, String socialId, SocialProvider provider) {
         BlackList blackList = BlackList.createBlackList(socialId, provider);

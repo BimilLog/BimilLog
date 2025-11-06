@@ -1,7 +1,6 @@
 
 package jaeik.bimillog.domain.auth.service;
 
-import jaeik.bimillog.domain.auth.application.port.in.SocialLoginUseCase;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
@@ -28,7 +27,7 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class SocialLoginService implements SocialLoginUseCase {
+public class SocialLoginService {
 
     private final GlobalSocialStrategyPort strategyRegistryPort;
     private final SocialLoginTransactionalService socialLoginTransactionalService;
@@ -46,14 +45,12 @@ public class SocialLoginService implements SocialLoginUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public LoginResult processSocialLogin(SocialProvider provider, String code, String fcmToken) {
         validateLogin();
 
         SocialPlatformStrategy strategy = strategyRegistryPort.getStrategy(provider);
         SocialMemberProfile socialUserProfile = strategy.auth().getSocialToken(code);
         socialUserProfile.setFcmToken(fcmToken);
-
         return socialLoginTransactionalService.finishLogin(provider, socialUserProfile);
     }
 

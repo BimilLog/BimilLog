@@ -1,8 +1,8 @@
 package jaeik.bimillog.in.auth.web;
 
-import jaeik.bimillog.domain.auth.application.port.in.SocialLoginUseCase;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.event.MemberLoggedOutEvent;
+import jaeik.bimillog.domain.auth.service.SocialLoginService;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.log.Log.LogLevel;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 public class AuthCommandController {
 
-    private final SocialLoginUseCase socialLoginUseCase;
+    private final SocialLoginService socialLoginService;
     private final GlobalCookiePort globalCookiePort;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -53,7 +53,7 @@ public class AuthCommandController {
          excludeParams = {"code", "fcmToken"},
          message = "소셜 로그인 요청")
     public ResponseEntity<String> socialLogin(@Valid @RequestBody SocialLoginRequestDTO request) {
-        LoginResult loginResult = socialLoginUseCase.processSocialLogin(
+        LoginResult loginResult = socialLoginService.processSocialLogin(
                 request.getSocialProvider(),
                 request.getCode(),
                 request.getFcmToken());

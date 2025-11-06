@@ -1,8 +1,7 @@
 package jaeik.bimillog.infrastructure.filter;
 
-import jaeik.bimillog.domain.auth.application.port.in.BlacklistUseCase;
-import jaeik.bimillog.domain.auth.application.port.out.AuthTokenPort;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
+import jaeik.bimillog.domain.auth.service.BlacklistService;
 import jaeik.bimillog.domain.global.application.port.out.GlobalAuthTokenQueryPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalAuthTokenSavePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
@@ -10,9 +9,9 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.global.entity.MemberDetail;
 import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.out.auth.CustomUserDetails;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.out.auth.CustomUserDetails;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -44,8 +43,7 @@ public class JwtFilter extends OncePerRequestFilter {
     private final MemberQueryPort memberQueryPort;
     private final GlobalJwtPort globalJwtPort;
     private final GlobalCookiePort globalCookiePort;
-    private final BlacklistUseCase blacklistUseCase;
-    private final AuthTokenPort authTokenPort;
+    private final BlacklistService blacklistService;
     private final GlobalAuthTokenSavePort globalAuthTokenSavePort;
 
     /**
@@ -106,7 +104,7 @@ public class JwtFilter extends OncePerRequestFilter {
         String accessToken = extractTokenFromCookie(request, "jwt_access_token");
 
         // 1. Access Token이 유효하고 블랙리스트에 없을 때
-        if (accessToken != null && globalJwtPort.validateToken(accessToken) && !blacklistUseCase.isBlacklisted(accessToken)) {
+        if (accessToken != null && globalJwtPort.validateToken(accessToken) && !blacklistService.isBlacklisted(accessToken)) {
             setAuthentication(accessToken);
         } else {
             // 2. Access Token이 만료되었을 때 리프레시 플로우
@@ -119,7 +117,7 @@ public class JwtFilter extends OncePerRequestFilter {
             }
 
             // 2-2. 블랙리스트 확인
-            if (blacklistUseCase.isBlacklisted(refreshToken)) {
+            if (blacklistService.isBlacklisted(refreshToken)) {
                 filterChain.doFilter(request, response);
                 return;
             }

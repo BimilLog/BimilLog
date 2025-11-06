@@ -1,6 +1,5 @@
 package jaeik.bimillog.out.auth;
 
-import jaeik.bimillog.domain.auth.application.port.out.AuthTokenPort;
 import jaeik.bimillog.domain.auth.service.SocialWithdrawService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -17,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Component
 @RequiredArgsConstructor
-public class AuthTokenAdapter implements AuthTokenPort {
+public class AuthTokenAdapter {
 
     private final AuthTokenRepository authTokenRepository;
 
@@ -32,7 +31,6 @@ public class AuthTokenAdapter implements AuthTokenPort {
      * @since 2.0.0
      * @author Jaeik
      */
-    @Override
     @Transactional
     public void deleteTokens(Long memberId, Long tokenId) {
         if (tokenId != null) {

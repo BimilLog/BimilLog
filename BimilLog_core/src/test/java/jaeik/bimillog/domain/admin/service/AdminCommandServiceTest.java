@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
 import jaeik.bimillog.domain.admin.exception.AdminCustomException;
 import jaeik.bimillog.domain.admin.exception.AdminErrorCode;
-import jaeik.bimillog.domain.auth.application.port.in.BlacklistUseCase;
+import jaeik.bimillog.domain.auth.service.BlacklistService;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCommentQueryPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
@@ -67,7 +67,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
     private GlobalCommentQueryPort globalCommentQueryPort;
 
     @Mock
-    private BlacklistUseCase blacklistUseCase;
+    private BlacklistService blacklistService;
 
     @InjectMocks
     private AdminCommandService adminCommandService;
@@ -85,7 +85,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
                 memberQueryPort,
                 globalPostQueryPort,
                 globalCommentQueryPort,
-                blacklistUseCase
+                blacklistService
         );
     }
 

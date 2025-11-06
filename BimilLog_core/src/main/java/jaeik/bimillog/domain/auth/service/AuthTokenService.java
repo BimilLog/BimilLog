@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.auth.service;
 
-import jaeik.bimillog.domain.auth.application.port.in.AuthTokenUseCase;
-import jaeik.bimillog.domain.auth.application.port.out.AuthTokenPort;
+import jaeik.bimillog.out.auth.AuthTokenAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,9 +14,9 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @RequiredArgsConstructor
-public class AuthTokenService implements AuthTokenUseCase {
+public class AuthTokenService {
 
-    private final AuthTokenPort authTokenPort;
+    private final AuthTokenAdapter authTokenAdapter;
 
     /**
      * <h3>토큰 삭제</h3>
@@ -30,6 +29,6 @@ public class AuthTokenService implements AuthTokenUseCase {
      * @author Jaeik
      */
     public void deleteTokens(Long memberId, Long tokenId) {
-        authTokenPort.deleteTokens(memberId, tokenId);
+        authTokenAdapter.deleteTokens(memberId, tokenId);
     }
 }
