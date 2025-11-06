@@ -1,7 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.out.admin;
 
-import jaeik.bimillog.domain.admin.application.port.out.AdminCommandPort;
-import jaeik.bimillog.domain.admin.application.service.AdminCommandService;
+import jaeik.bimillog.domain.admin.service.AdminCommandService;
 import jaeik.bimillog.domain.admin.entity.Report;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -11,14 +10,13 @@ import org.springframework.stereotype.Component;
  * <p>관리자 도메인의 명령 작업을 담당하는 어댑터입니다.</p>
  * <p>신고 데이터 영속화</p>
  * <p>JPA Repository를 통한 데이터베이스 연동</p>
- * <p>AdminCommandPort 구현체</p>
  *
  * @author Jaeik
  * @version 2.0.0
  */
 @Component
 @RequiredArgsConstructor
-public class AdminCommandAdapter implements AdminCommandPort {
+public class AdminCommandAdapter {
 
     private final ReportRepository reportRepository;
 
@@ -33,7 +31,6 @@ public class AdminCommandAdapter implements AdminCommandPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public Report save(Report report) {
         return reportRepository.save(report);
     }

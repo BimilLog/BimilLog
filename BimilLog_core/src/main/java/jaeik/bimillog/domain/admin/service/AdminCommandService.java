@@ -1,7 +1,5 @@
-package jaeik.bimillog.domain.admin.application.service;
+package jaeik.bimillog.domain.admin.service;
 
-import jaeik.bimillog.domain.admin.application.port.out.AdminCommandPort;
-import jaeik.bimillog.domain.admin.application.port.out.AdminQueryPort;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
@@ -14,6 +12,8 @@ import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.infrastructure.adapter.in.admin.web.AdminCommandController;
+import jaeik.bimillog.infrastructure.adapter.out.admin.AdminCommandAdapter;
+import jaeik.bimillog.infrastructure.adapter.out.admin.AdminQueryAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -37,8 +37,8 @@ import java.util.Optional;
 public class AdminCommandService {
 
     private final ApplicationEventPublisher eventPublisher;
-    private final AdminCommandPort adminCommandPort;
-    private final AdminQueryPort adminQueryPort;
+    private final AdminCommandAdapter adminCommandAdapter;
+    private final AdminQueryAdapter adminQueryAdapter;
     private final MemberQueryPort memberQueryPort;
     private final GlobalPostQueryPort globalPostQueryPort;
     private final GlobalCommentQueryPort globalCommentQueryPort;
@@ -63,7 +63,7 @@ public class AdminCommandService {
                 .orElse(null);
 
         Report report = Report.createReport(reportType, targetId, content, reporter);
-        adminCommandPort.save(report);
+        adminCommandAdapter.save(report);
     }
 
     /**
@@ -115,7 +115,7 @@ public class AdminCommandService {
      */
     @Transactional
     public void anonymizeReporterByUserId(Long memberId) {
-        List<Report> reports = adminQueryPort.findAllReportsByUserId(memberId);
+        List<Report> reports = adminQueryAdapter.findAllReportsByUserId(memberId);
         for (Report report : reports) {
             report.anonymizeReporter();
         }

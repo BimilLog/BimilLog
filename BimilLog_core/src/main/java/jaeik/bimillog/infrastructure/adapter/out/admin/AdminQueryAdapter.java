@@ -2,8 +2,7 @@ package jaeik.bimillog.infrastructure.adapter.out.admin;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jaeik.bimillog.domain.admin.application.port.out.AdminQueryPort;
-import jaeik.bimillog.domain.admin.application.service.AdminQueryService;
+import jaeik.bimillog.domain.admin.service.AdminQueryService;
 import jaeik.bimillog.domain.admin.entity.QReport;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
@@ -20,14 +19,13 @@ import java.util.List;
 /**
  * <h2>관리자 조회 어댑터</h2>
  * <p>관리자 도메인의 조회 작업을 담당하는 어댑터입니다.</p>
- * <p>AdminQueryPort 구현체</p>
  *
  * @author Jaeik
  * @version 2.0.0
  */
 @Repository
 @RequiredArgsConstructor
-public class AdminQueryAdapter implements AdminQueryPort {
+public class AdminQueryAdapter {
 
     private final JPAQueryFactory queryFactory;
     private final ReportRepository reportRepository;
@@ -43,7 +41,6 @@ public class AdminQueryAdapter implements AdminQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional(readOnly = true)
     public Page<Report> findReportsWithPaging(ReportType reportType, Pageable pageable) {
         QReport report = QReport.report;
@@ -69,7 +66,6 @@ public class AdminQueryAdapter implements AdminQueryPort {
         return new PageImpl<>(reports, pageable, count == null ? 0 : count);
     }
 
-    @Override
     public List<Report> findAllReportsByUserId(Long memberId) {
         return reportRepository.findAllByReporterId(memberId);
     }

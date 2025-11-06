@@ -1,8 +1,5 @@
 package jaeik.bimillog.domain.admin.service;
 
-import jaeik.bimillog.domain.admin.application.port.out.AdminCommandPort;
-import jaeik.bimillog.domain.admin.application.port.out.AdminQueryPort;
-import jaeik.bimillog.domain.admin.application.service.AdminCommandService;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
@@ -18,6 +15,8 @@ import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
+import jaeik.bimillog.infrastructure.adapter.out.admin.AdminCommandAdapter;
+import jaeik.bimillog.infrastructure.adapter.out.admin.AdminQueryAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,10 +52,10 @@ class AdminCommandServiceTest extends BaseUnitTest {
     private ApplicationEventPublisher eventPublisher;
 
     @Mock
-    private AdminCommandPort adminCommandPort;
+    private AdminCommandAdapter adminCommandAdapter;
 
     @Mock
-    private AdminQueryPort adminQueryPort;
+    private AdminQueryAdapter adminQueryAdapter;
 
     @Mock
     private MemberQueryPort memberQueryPort;
@@ -81,8 +80,8 @@ class AdminCommandServiceTest extends BaseUnitTest {
     void setUp() {
         adminCommandService = new AdminCommandService(
                 eventPublisher,
-                adminCommandPort,
-                adminQueryPort,
+                adminCommandAdapter,
+                adminQueryAdapter,
                 memberQueryPort,
                 globalPostQueryPort,
                 globalCommentQueryPort,
@@ -234,20 +233,20 @@ class AdminCommandServiceTest extends BaseUnitTest {
         ReportType reportType = ReportType.COMMENT;
         Long targetId = 123L;
         String content = "부적절한 댓글입니다";
-        
+
         Member reporter = createTestMemberWithId(memberId);
 
         Report expectedReport = Report.createReport(reportType, targetId, content, reporter);
 
         given(memberQueryPort.findById(memberId)).willReturn(Optional.of(reporter));
-        given(adminCommandPort.save(any(Report.class))).willReturn(expectedReport);
+        given(adminCommandAdapter.save(any(Report.class))).willReturn(expectedReport);
 
         // When
         adminCommandService.createReport(memberId, reportType, targetId, content);
 
         // Then
         verify(memberQueryPort, times(1)).findById(memberId);
-        verify(adminCommandPort, times(1)).save(any(Report.class));
+        verify(adminCommandAdapter, times(1)).save(any(Report.class));
     }
 
     @Test
@@ -258,16 +257,16 @@ class AdminCommandServiceTest extends BaseUnitTest {
         ReportType reportType = ReportType.POST;
         Long targetId = 456L;
         String content = "스팸 게시글입니다";
-        
+
         Report expectedReport = Report.createReport(reportType, targetId, content, null);
-        given(adminCommandPort.save(any(Report.class))).willReturn(expectedReport);
+        given(adminCommandAdapter.save(any(Report.class))).willReturn(expectedReport);
 
         // When
         adminCommandService.createReport(memberId, reportType, targetId, content);
 
         // Then
         verify(memberQueryPort, never()).findById(any()); // 익명 사용자는 조회하지 않음
-        verify(adminCommandPort, times(1)).save(any(Report.class));
+        verify(adminCommandAdapter, times(1)).save(any(Report.class));
     }
 
     @Test
@@ -278,20 +277,20 @@ class AdminCommandServiceTest extends BaseUnitTest {
         ReportType reportType = ReportType.IMPROVEMENT;
         Long targetId = null;
         String content = "새로운 기능을 건의합니다";
-        
+
         Member reporter = createTestMemberWithId(memberId);
 
         Report expectedReport = Report.createReport(reportType, targetId, content, reporter);
 
         given(memberQueryPort.findById(memberId)).willReturn(Optional.of(reporter));
-        given(adminCommandPort.save(any(Report.class))).willReturn(expectedReport);
+        given(adminCommandAdapter.save(any(Report.class))).willReturn(expectedReport);
 
         // When
         adminCommandService.createReport(memberId, reportType, targetId, content);
 
         // Then
         verify(memberQueryPort, times(1)).findById(memberId);
-        verify(adminCommandPort, times(1)).save(any(Report.class));
+        verify(adminCommandAdapter, times(1)).save(any(Report.class));
     }
 
 
@@ -303,7 +302,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
         ReportType reportType = ReportType.COMMENT;
         Long targetId = 123L;
         String content = "부적절한 댓글입니다";
-        
+
         given(memberQueryPort.findById(memberId)).willReturn(Optional.empty());
 
         // When & Then - 예외가 발생하지 않고 정상적으로 처리되어야 함
@@ -311,7 +310,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
                 .doesNotThrowAnyException();
 
         verify(memberQueryPort, times(1)).findById(memberId);
-        verify(adminCommandPort, times(1)).save(any(Report.class));
+        verify(adminCommandAdapter, times(1)).save(any(Report.class));
     }
 
     @Test
@@ -321,13 +320,13 @@ class AdminCommandServiceTest extends BaseUnitTest {
         Long memberId = 10L;
         Member reporter = createTestMemberWithId(memberId);
         Report report = Report.createReport(ReportType.POST, 1L, "신고 내용", reporter);
-        given(adminQueryPort.findAllReportsByUserId(memberId)).willReturn(List.of(report));
+        given(adminQueryAdapter.findAllReportsByUserId(memberId)).willReturn(List.of(report));
 
         // When
         adminCommandService.anonymizeReporterByUserId(memberId);
 
         // Then
-        verify(adminQueryPort, times(1)).findAllReportsByUserId(memberId);
+        verify(adminQueryAdapter, times(1)).findAllReportsByUserId(memberId);
         assertThat(report.getReporter()).isNull();
     }
 

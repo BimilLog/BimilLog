@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.in.global.listener;
 
-import jaeik.bimillog.domain.admin.application.service.AdminCommandService;
+import jaeik.bimillog.domain.admin.service.AdminCommandService;
 import jaeik.bimillog.domain.auth.application.port.in.AuthTokenUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.KakaoTokenUseCase;
 import jaeik.bimillog.domain.auth.application.port.in.SocialWithdrawUseCase;

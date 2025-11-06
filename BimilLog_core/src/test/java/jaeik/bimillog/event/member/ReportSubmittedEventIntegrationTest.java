@@ -1,6 +1,6 @@
 package jaeik.bimillog.event.member;
 
-import jaeik.bimillog.domain.admin.application.service.AdminCommandService;
+import jaeik.bimillog.domain.admin.service.AdminCommandService;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.member.event.ReportSubmittedEvent;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;

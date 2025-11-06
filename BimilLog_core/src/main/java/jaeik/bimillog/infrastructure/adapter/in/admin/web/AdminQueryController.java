@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.adapter.in.admin.web;
 
-import jaeik.bimillog.domain.admin.application.service.AdminQueryService;
+import jaeik.bimillog.domain.admin.service.AdminQueryService;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.comment.exception.CommentCustomException;
