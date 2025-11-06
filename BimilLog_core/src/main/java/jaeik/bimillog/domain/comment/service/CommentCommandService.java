@@ -1,9 +1,9 @@
 package jaeik.bimillog.domain.comment.service;
 
-import jaeik.bimillog.domain.comment.application.port.out.CommentDeletePort;
-import jaeik.bimillog.domain.comment.application.port.out.CommentLikePort;
-import jaeik.bimillog.domain.comment.application.port.out.CommentQueryPort;
-import jaeik.bimillog.domain.comment.application.port.out.CommentSavePort;
+import jaeik.bimillog.domain.comment.out.CommentDeleteAdapter;
+import jaeik.bimillog.domain.comment.out.CommentLikeAdapter;
+import jaeik.bimillog.domain.comment.out.CommentQueryAdapter;
+import jaeik.bimillog.domain.comment.out.CommentSaveAdapter;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentClosure;
 import jaeik.bimillog.domain.comment.entity.CommentLike;
@@ -50,10 +50,10 @@ public class CommentCommandService {
     private final GlobalPostQueryPort globalPostQueryPort;
     private final GlobalMemberQueryPort globalUserQueryPort;
     private final GlobalCommentQueryPort globalCommentQueryPort;
-    private final CommentSavePort commentSavePort;
-    private final CommentDeletePort commentDeletePort;
-    private final CommentQueryPort commentQueryPort;
-    private final CommentLikePort commentLikePort;
+    private final CommentSaveAdapter commentSaveAdapter;
+    private final CommentDeleteAdapter commentDeleteAdapter;
+    private final CommentQueryAdapter commentQueryAdapter;
+    private final CommentLikeAdapter commentLikeAdapter;
 
 
     /**
@@ -131,10 +131,10 @@ public class CommentCommandService {
         Comment comment = validateComment(commentId, memberId, password);
         Long postId = comment.getPost().getId();
 
-        if (commentQueryPort.hasDescendants(commentId)) {
+        if (commentQueryAdapter.hasDescendants(commentId)) {
             comment.softDelete(); // 더티 체킹으로 자동 업데이트
         } else {
-            commentDeletePort.deleteComment(commentId); // 하드 삭제는 Port 사용
+            commentDeleteAdapter.deleteComment(commentId); // 어댑터 직접 호출로 하드 삭제
         }
 
         // 실시간 인기글 점수 감소 이벤트 발행
@@ -158,14 +158,14 @@ public class CommentCommandService {
         Member member = globalUserQueryPort.findById(memberId)
                 .orElseThrow(() -> new MemberCustomException(MemberErrorCode.USER_NOT_FOUND));
 
-        if (commentLikePort.isLikedByUser(commentId, memberId)) {
-            commentLikePort.deleteLikeByIds(commentId, memberId);
+        if (commentLikeAdapter.isLikedByUser(commentId, memberId)) {
+            commentLikeAdapter.deleteLikeByIds(commentId, memberId);
         } else {
             CommentLike commentLike = CommentLike.builder()
                     .comment(comment)
                     .member(member)
                     .build();
-            commentLikePort.save(commentLike);
+            commentLikeAdapter.save(commentLike);
         }
     }
 
@@ -181,13 +181,13 @@ public class CommentCommandService {
      */
     @Transactional
     public void processUserCommentsOnWithdrawal(Long memberId) {
-        List<Comment> userComments = commentQueryPort.findAllByMemberId(memberId);
+        List<Comment> userComments = commentQueryAdapter.findAllByMemberId(memberId);
 
         for (Comment comment : userComments) {
-            if (commentQueryPort.hasDescendants(comment.getId())) {
+            if (commentQueryAdapter.hasDescendants(comment.getId())) {
                 comment.anonymize(); // 더티 체킹으로 자동 업데이트
             } else {
-                commentDeletePort.deleteComment(comment.getId()); // 하드 삭제는 Port 사용
+                commentDeleteAdapter.deleteComment(comment.getId()); // 어댑터 직접 호출로 하드 삭제
             }
         }
     }
@@ -204,10 +204,10 @@ public class CommentCommandService {
      */
     @Transactional
     public void deleteCommentsByPost(Long postId) {
-        List<Comment> userComments = commentQueryPort.findAllByPostId(postId);
+        List<Comment> userComments = commentQueryAdapter.findAllByPostId(postId);
 
         for (Comment comment : userComments) {
-            commentDeletePort.deleteComment(comment.getId());
+            commentDeleteAdapter.deleteComment(comment.getId()); // 어댑터 직접 호출로 하드 삭제
         }
     }
 
@@ -250,13 +250,13 @@ public class CommentCommandService {
      */
     private void saveCommentWithClosure(Post post, Member member, String content, Integer password, Long parentId) {
         Comment comment = Comment.createComment(post, member, content, password);
-        Comment savedComment = commentSavePort.save(comment);
+        Comment savedComment = commentSaveAdapter.save(comment);
 
         List<CommentClosure> closuresToSave = new ArrayList<>();
         closuresToSave.add(CommentClosure.createCommentClosure(savedComment, savedComment, 0));
 
         if (parentId != null) {
-            List<CommentClosure> parentClosures = commentSavePort.getParentClosures(parentId)
+            List<CommentClosure> parentClosures = commentSaveAdapter.getParentClosures(parentId)
                     .orElseThrow(() -> new RuntimeException("부모 댓글을 찾을 수 없습니다."));
 
             for (CommentClosure parentClosure : parentClosures) {
@@ -266,7 +266,7 @@ public class CommentCommandService {
                         parentClosure.getDepth() + 1));
             }
         }
-        commentSavePort.saveAll(closuresToSave);
+        commentSaveAdapter.saveAll(closuresToSave);
     }
 
 }

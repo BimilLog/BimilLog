@@ -3,7 +3,6 @@ package jaeik.bimillog.domain.comment.out;
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jaeik.bimillog.domain.comment.application.port.out.CommentQueryPort;
 import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.comment.service.CommentQueryService;
 import jaeik.bimillog.domain.comment.entity.*;
@@ -35,7 +34,7 @@ import static jaeik.bimillog.domain.comment.out.CommentProjection.getSimpleComme
  */
 @Repository
 @RequiredArgsConstructor
-public class CommentQueryAdapter implements CommentQueryPort {
+public class CommentQueryAdapter {
 
     private final JPAQueryFactory jpaQueryFactory;
     private static final QComment comment = QComment.comment;
@@ -55,8 +54,7 @@ public class CommentQueryAdapter implements CommentQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
-    public Page<SimpleCommentInfo> findCommentsByMemberId(Long memberId, Pageable pageable) {
+        public Page<SimpleCommentInfo> findCommentsByMemberId(Long memberId, Pageable pageable) {
         // N+1 문제 해결을 위한 별도 Q타입 생성
         QCommentLike userCommentLike = new QCommentLike("userCommentLike");
 
@@ -105,8 +103,7 @@ public class CommentQueryAdapter implements CommentQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
-    public Page<SimpleCommentInfo> findLikedCommentsByMemberId(Long memberId, Pageable pageable) {
+        public Page<SimpleCommentInfo> findLikedCommentsByMemberId(Long memberId, Pageable pageable) {
         // N+1 문제 해결 및 정확한 likeCount를 위한 별도 Q타입 생성
         QCommentLike userLike = new QCommentLike("userLike");  // 필터링용
         QCommentLike allLikes = new QCommentLike("allLikes");  // 전체 좋아요 카운트용
@@ -157,8 +154,7 @@ public class CommentQueryAdapter implements CommentQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
-    public List<CommentInfo> findPopularComments(Long postId, Long memberId) {
+        public List<CommentInfo> findPopularComments(Long postId, Long memberId) {
         // N+1 문제 해결을 위한 별도 Q타입 생성
         QCommentClosure parentClosure = new QCommentClosure("parentClosure");
         QCommentLike userCommentLike = new QCommentLike("userCommentLike");
@@ -208,8 +204,7 @@ public class CommentQueryAdapter implements CommentQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
-    public Map<Long, Integer> findCommentCountsByPostIds(List<Long> postIds) {
+        public Map<Long, Integer> findCommentCountsByPostIds(List<Long> postIds) {
 
         List<Tuple> results = jpaQueryFactory
                 .select(comment.post.id, comment.count())
@@ -238,8 +233,7 @@ public class CommentQueryAdapter implements CommentQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
-    public Page<CommentInfo> findCommentsWithOldestOrder(Long postId, Pageable pageable, Long memberId) {
+        public Page<CommentInfo> findCommentsWithOldestOrder(Long postId, Pageable pageable, Long memberId) {
         // N+1 문제 해결을 위한 별도 Q타입 생성
         QCommentClosure parentClosure = new QCommentClosure("parentClosure");
         QCommentLike userCommentLike = new QCommentLike("userCommentLike");
@@ -289,8 +283,7 @@ public class CommentQueryAdapter implements CommentQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
-    public List<Comment> findAllByMemberId(Long memberId) {
+        public List<Comment> findAllByMemberId(Long memberId) {
         return jpaQueryFactory
                 .selectFrom(comment)
                 .where(comment.member.id.eq(memberId))
@@ -308,8 +301,7 @@ public class CommentQueryAdapter implements CommentQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
-    public List<Comment> findAllByPostId(Long postId) {
+        public List<Comment> findAllByPostId(Long postId) {
         return jpaQueryFactory
                 .selectFrom(comment)
                 .where(comment.post.id.eq(postId))
@@ -327,8 +319,7 @@ public class CommentQueryAdapter implements CommentQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
-    public boolean hasDescendants(Long commentId) {
+        public boolean hasDescendants(Long commentId) {
         Long count = jpaQueryFactory
                 .select(closure.count())
                 .from(closure)

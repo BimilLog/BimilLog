@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.comment.out;
 
-import jaeik.bimillog.domain.comment.application.port.out.CommentSavePort;
 import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentClosure;
@@ -22,7 +21,7 @@ import java.util.Optional;
  */
 @Repository
 @RequiredArgsConstructor
-public class CommentSaveAdapter implements CommentSavePort {
+public class CommentSaveAdapter {
 
     private final CommentClosureRepository commentClosureRepository;
     private final CommentRepository commentRepository;
@@ -37,7 +36,6 @@ public class CommentSaveAdapter implements CommentSavePort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public Comment save(Comment comment) {
         return commentRepository.save(comment);
     }
@@ -52,7 +50,6 @@ public class CommentSaveAdapter implements CommentSavePort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public void save(CommentClosure commentClosure) {
         commentClosureRepository.save(commentClosure);
     }
@@ -66,7 +63,6 @@ public class CommentSaveAdapter implements CommentSavePort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public void saveAll(List<CommentClosure> commentClosures) {
         commentClosureRepository.saveAll(commentClosures);
     }
@@ -83,7 +79,6 @@ public class CommentSaveAdapter implements CommentSavePort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public Optional<List<CommentClosure>> getParentClosures(Long parentId) {
         return commentClosureRepository.findByDescendantId(parentId);
     }

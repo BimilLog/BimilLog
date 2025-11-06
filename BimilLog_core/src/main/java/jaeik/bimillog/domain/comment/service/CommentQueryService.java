@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.comment.service;
 
-import jaeik.bimillog.domain.comment.application.port.out.CommentQueryPort;
+import jaeik.bimillog.domain.comment.out.CommentQueryAdapter;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentInfo;
 import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
@@ -32,7 +32,7 @@ import java.util.Map;
 @Slf4j
 public class CommentQueryService {
 
-    private final CommentQueryPort commentQueryPort;
+    private final CommentQueryAdapter commentQueryAdapter;
     private final GlobalCommentQueryPort globalCommentQueryPort;
 
     /**
@@ -49,7 +49,7 @@ public class CommentQueryService {
      */
     public List<CommentInfo> getPopularComments(Long postId, CustomUserDetails userDetails) {
         Long memberId = userDetails != null ? userDetails.getMemberId() : null;
-        return commentQueryPort.findPopularComments(postId, memberId);
+        return commentQueryAdapter.findPopularComments(postId, memberId);
     }
 
     /**
@@ -67,7 +67,7 @@ public class CommentQueryService {
      */
     public Page<CommentInfo> getCommentsOldestOrder(Long postId, Pageable pageable, CustomUserDetails userDetails) {
         Long memberId = userDetails != null ? userDetails.getMemberId() : null;
-        return commentQueryPort.findCommentsWithOldestOrder(postId, pageable, memberId);
+        return commentQueryAdapter.findCommentsWithOldestOrder(postId, pageable, memberId);
     }
 
     /**
@@ -97,7 +97,7 @@ public class CommentQueryService {
      * @since 2.0.0
      */
     public Page<SimpleCommentInfo> getMemberComments(Long memberId, Pageable pageable) {
-        return commentQueryPort.findCommentsByMemberId(memberId, pageable);
+        return commentQueryAdapter.findCommentsByMemberId(memberId, pageable);
     }
 
     /**
@@ -112,7 +112,7 @@ public class CommentQueryService {
      * @since 2.0.0
      */
     public Page<SimpleCommentInfo> getMemberLikedComments(Long memberId, Pageable pageable) {
-        return commentQueryPort.findLikedCommentsByMemberId(memberId, pageable);
+        return commentQueryAdapter.findLikedCommentsByMemberId(memberId, pageable);
     }
 
     /**
@@ -127,6 +127,6 @@ public class CommentQueryService {
      * @since 2.0.0
      */
     public Map<Long, Integer> findCommentCountsByPostIds(List<Long> postIds) {
-        return commentQueryPort.findCommentCountsByPostIds(postIds);
+        return commentQueryAdapter.findCommentCountsByPostIds(postIds);
     }
 }
