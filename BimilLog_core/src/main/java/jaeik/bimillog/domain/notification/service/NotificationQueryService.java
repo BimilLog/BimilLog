@@ -1,15 +1,16 @@
 package jaeik.bimillog.domain.notification.service;
 
-import jaeik.bimillog.domain.notification.application.port.out.NotificationQueryPort;
-import jaeik.bimillog.domain.notification.entity.Notification;
-import jaeik.bimillog.domain.notification.in.web.NotificationQueryController;
-import jaeik.bimillog.domain.auth.out.CustomUserDetails;
-import lombok.RequiredArgsConstructor;
+import java.util.Collections;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.List;
+import jaeik.bimillog.domain.auth.out.CustomUserDetails;
+import jaeik.bimillog.domain.notification.entity.Notification;
+import jaeik.bimillog.domain.notification.in.web.NotificationQueryController;
+import jaeik.bimillog.domain.notification.out.NotificationQueryAdapter;
+import lombok.RequiredArgsConstructor;
 
 /**
  * <h2>알림 조회 서비스</h2>
@@ -23,7 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class NotificationQueryService {
 
-    private final NotificationQueryPort notificationQueryPort;
+    private final NotificationQueryAdapter notificationQueryAdapter;
 
     /**
      * <h3>알림 목록 조회</h3>
@@ -42,7 +43,7 @@ public class NotificationQueryService {
             return Collections.emptyList();
         }
 
-        List<Notification> notifications = notificationQueryPort.getNotificationList(userDetails.getMemberId());
+        List<Notification> notifications = notificationQueryAdapter.getNotificationList(userDetails.getMemberId());
 
         return notifications != null ? notifications : Collections.emptyList();
     }

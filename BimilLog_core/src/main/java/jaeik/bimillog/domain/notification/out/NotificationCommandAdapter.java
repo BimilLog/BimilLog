@@ -1,14 +1,14 @@
 package jaeik.bimillog.domain.notification.out;
 
+import java.util.List;
+
+import org.springframework.stereotype.Repository;
+
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.notification.application.port.out.NotificationCommandPort;
 import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
-
-import java.util.List;
 
 /**
  * <h2>알림 명령 어댑터</h2>
@@ -20,7 +20,7 @@ import java.util.List;
  */
 @Repository
 @RequiredArgsConstructor
-public class NotificationCommandAdapter implements NotificationCommandPort {
+public class NotificationCommandAdapter {
 
     private final NotificationRepository notificationRepository;
 
@@ -35,7 +35,6 @@ public class NotificationCommandAdapter implements NotificationCommandPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public void batchUpdate(Long memberId, NotificationUpdateVO updateCommand) {
         List<Long> deleteIds = updateCommand.deletedIds();
         List<Long> readIds = updateCommand.readIds();
@@ -61,7 +60,6 @@ public class NotificationCommandAdapter implements NotificationCommandPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public void save(Member member, NotificationType type, String content, String url) {
         notificationRepository.save(Notification.create(member, type, content, url));
     }
@@ -75,7 +73,6 @@ public class NotificationCommandAdapter implements NotificationCommandPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public void deleteAllByMemberId(Long memberId) {
         notificationRepository.deleteAllByMemberId(memberId);
     }

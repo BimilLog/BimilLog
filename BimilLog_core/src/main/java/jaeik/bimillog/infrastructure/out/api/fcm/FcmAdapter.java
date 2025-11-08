@@ -1,17 +1,18 @@
 package jaeik.bimillog.infrastructure.out.api.fcm;
 
-import com.google.auth.oauth2.GoogleCredentials;
-import jaeik.bimillog.domain.notification.application.port.out.FcmPort;
-import jaeik.bimillog.domain.notification.entity.FcmMessage;
-import jaeik.bimillog.infrastructure.out.api.dto.FcmMessageDTO;
-import jaeik.bimillog.domain.notification.out.FcmTokenRepository;
-import lombok.RequiredArgsConstructor;
+import java.io.IOException;
+import java.util.List;
+
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Repository;
 
-import java.io.IOException;
-import java.util.List;
+import com.google.auth.oauth2.GoogleCredentials;
+
+import jaeik.bimillog.domain.notification.entity.FcmMessage;
+import jaeik.bimillog.domain.notification.out.FcmTokenRepository;
+import jaeik.bimillog.infrastructure.out.api.dto.FcmMessageDTO;
+import lombok.RequiredArgsConstructor;
 
 /**
  * <h2>FCM 어댑터</h2>
@@ -23,7 +24,7 @@ import java.util.List;
  */
 @Repository
 @RequiredArgsConstructor
-public class FcmAdapter implements FcmPort {
+public class FcmAdapter {
 
     private final FcmTokenRepository fcmTokenRepository;
     private final FcmApiClient fcmApiClient;
@@ -42,7 +43,6 @@ public class FcmAdapter implements FcmPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public void sendMessageTo(FcmMessage fcmMessage) throws IOException {
         FcmMessageDTO fcmMessageDto = createFcmMessageDTO(fcmMessage);
         String accessToken = getAccessToken();
@@ -65,7 +65,6 @@ public class FcmAdapter implements FcmPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public void deleteFcmTokens(Long memberId, Long fcmTokenId) {
         if (fcmTokenId != null) {
             fcmTokenRepository.deleteByMember_IdAndId(memberId, fcmTokenId);

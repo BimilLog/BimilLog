@@ -1,14 +1,15 @@
 package jaeik.bimillog.domain.notification.service;
 
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import jaeik.bimillog.domain.global.in.listener.MemberWithdrawListener;
-import jaeik.bimillog.domain.notification.application.port.out.NotificationCommandPort;
 import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
 import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
 import jaeik.bimillog.domain.notification.in.web.NotificationCommandController;
+import jaeik.bimillog.domain.notification.out.NotificationCommandAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <h2>알림 명령 서비스</h2>
@@ -23,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class NotificationCommandService {
 
-    private final NotificationCommandPort notificationCommandPort;
+    private final NotificationCommandAdapter notificationCommandAdapter;
 
     /**
      * <h3>알림 일괄 업데이트</h3>
@@ -40,11 +41,11 @@ public class NotificationCommandService {
      */
     @Transactional
     public void batchUpdate(Long memberId, NotificationUpdateVO updateCommand) {
-        
-        notificationCommandPort.batchUpdate(memberId, updateCommand);
+
+        notificationCommandAdapter.batchUpdate(memberId, updateCommand);
 
         log.info("사용자 {}의 알림 업데이트 완료: {} 개 읽음 처리, {} 개 삭제",
-                memberId, 
+                memberId,
                 updateCommand.readIds().size(),
                 updateCommand.deletedIds().size());
     }
@@ -61,7 +62,7 @@ public class NotificationCommandService {
      */
     @Transactional
     public void deleteAllNotification(Long memberId) {
-        notificationCommandPort.deleteAllByMemberId(memberId);
+        notificationCommandAdapter.deleteAllByMemberId(memberId);
     }
 
 }

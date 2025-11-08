@@ -1,10 +1,16 @@
 package jaeik.bimillog.domain.notification.out;
 
-import jaeik.bimillog.domain.member.service.MemberQueryService;
+import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.notification.application.port.out.NotificationCommandPort;
-import jaeik.bimillog.domain.notification.application.port.out.NotificationUtilPort;
-import jaeik.bimillog.domain.notification.application.port.out.SsePort;
+import jaeik.bimillog.domain.member.service.MemberQueryService;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.SseMessage;
 import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
@@ -13,14 +19,6 @@ import jaeik.bimillog.domain.notification.in.listener.NotificationGenerateListen
 import jaeik.bimillog.domain.notification.in.web.NotificationSseController;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-
-import java.io.IOException;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 /**
  * <h2>SSE 어댑터</h2>
@@ -47,7 +45,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class SseAdapter implements SsePort {
+public class SseAdapter {
 
     /**
      * SSE Emitter 저장소
@@ -55,9 +53,9 @@ public class SseAdapter implements SsePort {
      */
     private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
 
-    private final NotificationUtilPort notificationUtilPort;
+    private final NotificationUtilAdapter notificationUtilAdapter;
     private final MemberQueryService memberQueryService;
-    private final NotificationCommandPort notificationCommandPort;
+    private final NotificationCommandAdapter notificationCommandAdapter;
 
     /**
      * <h3>SSE 구독 - 실시간 알림 채널 생성</h3>
@@ -75,7 +73,6 @@ public class SseAdapter implements SsePort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public SseEmitter subscribe(Long memberId, Long tokenId) {
         String emitterId = makeTimeIncludeId(memberId, tokenId);
         log.info("SSE subscribe requested - memberId={}, tokenId={}, emitterId={}", memberId, tokenId, emitterId);
@@ -130,11 +127,10 @@ public class SseAdapter implements SsePort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public void send(SseMessage sseMessage) {
         try {
             // 알림 설정 확인
-            if (!notificationUtilPort.SseEligibleForNotification(sseMessage.memberId(), sseMessage.type())) {
+            if (!notificationUtilAdapter.SseEligibleForNotification(sseMessage.memberId(), sseMessage.type())) {
                 return; // 알림 수신이 비활성화된 경우 전송하지 않음
             }
 
@@ -142,7 +138,7 @@ public class SseAdapter implements SsePort {
                     .orElseThrow(() -> new NotificationCustomException(NotificationErrorCode.INVALID_USER_CONTEXT));
 
             // DB에 저장 (알림 히스토리용)
-            notificationCommandPort.save(member, sseMessage.type(), sseMessage.message(), sseMessage.url());
+            notificationCommandAdapter.save(member, sseMessage.type(), sseMessage.message(), sseMessage.url());
 
             Map<String, SseEmitter> emitters = findAllEmitterByMemberId(sseMessage.memberId());
 
@@ -201,7 +197,6 @@ public class SseAdapter implements SsePort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public void deleteEmitters(Long memberId, Long tokenId) {
         if (tokenId != null) {
             deleteEmitterByUserIdAndTokenId(memberId, tokenId);

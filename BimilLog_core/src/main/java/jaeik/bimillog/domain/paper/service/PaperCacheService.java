@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.paper.service;
 
-import jaeik.bimillog.domain.paper.application.port.in.PaperCacheUseCase;
 import jaeik.bimillog.domain.paper.application.port.out.PaperQueryPort;
 import jaeik.bimillog.domain.paper.application.port.out.PaperToMemberPort;
 import jaeik.bimillog.domain.paper.application.port.out.RedisPaperQueryPort;
@@ -22,7 +21,7 @@ import static jaeik.bimillog.infrastructure.out.redis.paper.RedisPaperKeys.REALT
 
 /**
  * <h2>롤링페이퍼 캐시 서비스</h2>
- * <p>롤링페이퍼 캐시 관리 관련 UseCase 인터페이스의 구현체로서 캐시 조회 비즈니스 로직을 오케스트레이션합니다.</p>
+ * <p>롤링페이퍼 캐시 관리 관련 비즈니스 로직을 오케스트레이션합니다.</p>
  * <p>실시간 인기 롤링페이퍼 조회</p>
  * <p>Redis Sorted Set에서 점수 기반 순위 조회 후 DB 데이터를 결합하여 제공</p>
  *
@@ -32,7 +31,7 @@ import static jaeik.bimillog.infrastructure.out.redis.paper.RedisPaperKeys.REALT
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class PaperCacheService implements PaperCacheUseCase{
+public class PaperCacheService {
 
     private final RedisPaperQueryPort redisPaperQueryPort;
     private final PaperQueryPort paperQueryPort;
@@ -48,7 +47,6 @@ public class PaperCacheService implements PaperCacheUseCase{
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public Page<PopularPaperInfo> getRealtimePapers(Pageable pageable) {
         // 1. Pageable에서 페이징 정보 추출
         int page = pageable.getPageNumber();

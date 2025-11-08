@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.paper.service;
 
 import jaeik.bimillog.domain.global.application.port.out.GlobalMemberQueryPort;
+import jaeik.bimillog.domain.global.in.listener.MemberWithdrawListener;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.paper.application.port.in.PaperCommandUseCase;
 import jaeik.bimillog.domain.paper.application.port.out.PaperCommandPort;
 import jaeik.bimillog.domain.paper.application.port.out.PaperQueryPort;
 import jaeik.bimillog.domain.paper.application.port.out.RedisPaperDeletePort;
@@ -12,7 +12,6 @@ import jaeik.bimillog.domain.paper.event.MessageDeletedEvent;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.paper.exception.PaperCustomException;
 import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
-import jaeik.bimillog.domain.global.in.listener.MemberWithdrawListener;
 import jaeik.bimillog.domain.paper.in.web.PaperCommandController;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -29,7 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
-public class PaperCommandService implements PaperCommandUseCase {
+public class PaperCommandService {
 
     private final PaperCommandPort paperCommandPort;
     private final PaperQueryPort paperQueryPort;
@@ -53,7 +52,6 @@ public class PaperCommandService implements PaperCommandUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional
     public void deleteMessageInMyPaper(Long memberId, Long messageId) {
         if (messageId != null) { // 메시지 삭제의 경우
@@ -92,7 +90,6 @@ public class PaperCommandService implements PaperCommandUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional
     public void writeMessage(String memberName, DecoType decoType, String anonymity,
                              String content, int x, int y) {

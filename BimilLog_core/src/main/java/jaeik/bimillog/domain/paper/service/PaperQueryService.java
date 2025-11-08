@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.paper.service;
 
 import jaeik.bimillog.domain.global.application.port.out.GlobalMemberQueryPort;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.paper.application.port.in.PaperQueryUseCase;
 import jaeik.bimillog.domain.paper.application.port.out.PaperQueryPort;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.entity.MessageDetail;
@@ -27,7 +26,7 @@ import java.util.List;
  */
 @Service
 @RequiredArgsConstructor
-public class PaperQueryService implements PaperQueryUseCase {
+public class PaperQueryService {
 
     private final PaperQueryPort paperQueryPort;
     private final GlobalMemberQueryPort globalMemberQueryPort;
@@ -45,7 +44,6 @@ public class PaperQueryService implements PaperQueryUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public List<MessageDetail> getMyPaper(Long memberId) {
         List<Message> messages = paperQueryPort.findMessagesByUserId(memberId);
         return messages.stream()
@@ -68,7 +66,6 @@ public class PaperQueryService implements PaperQueryUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public List<VisitMessageDetail> visitPaper(String memberName) {
         if (memberName == null || memberName.trim().isEmpty()) {
             throw new PaperCustomException(PaperErrorCode.INVALID_INPUT_VALUE);

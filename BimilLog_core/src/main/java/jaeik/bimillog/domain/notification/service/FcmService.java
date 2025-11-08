@@ -1,16 +1,17 @@
 package jaeik.bimillog.domain.notification.service;
 
-import jaeik.bimillog.domain.notification.application.port.out.FcmPort;
-import jaeik.bimillog.domain.notification.application.port.out.NotificationUtilPort;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.in.listener.NotificationGenerateListener;
+import jaeik.bimillog.domain.notification.out.NotificationUtilAdapter;
+import jaeik.bimillog.infrastructure.out.api.fcm.FcmAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 /**
  * <h2>FCM 푸시 알림 서비스</h2>
@@ -25,8 +26,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FcmService {
 
-    private final FcmPort fcmPort;
-    private final NotificationUtilPort notificationUtilPort;
+    private final FcmAdapter fcmAdapter;
+    private final NotificationUtilAdapter notificationUtilAdapter;
 
     /**
      * <h3>FCM 토큰 삭제</h3>
@@ -40,7 +41,7 @@ public class FcmService {
      * @since 2.0.0
      */
     public void deleteFcmTokens(Long memberId, Long fcmTokenId) {
-        fcmPort.deleteFcmTokens(memberId, fcmTokenId);
+        fcmAdapter.deleteFcmTokens(memberId, fcmTokenId);
     }
 
     /**
@@ -56,7 +57,7 @@ public class FcmService {
      */
     public void sendCommentNotification(Long postUserId, String commenterName) {
         try {
-            List<FcmToken> tokens = notificationUtilPort.FcmEligibleFcmTokens(postUserId, NotificationType.COMMENT);
+            List<FcmToken> tokens = notificationUtilAdapter.FcmEligibleFcmTokens(postUserId, NotificationType.COMMENT);
             String title = commenterName + "님이 댓글을 남겼습니다!";
             String body = "지금 확인해보세요!";
             boolean sent = sendNotifications(tokens, title, body);
@@ -80,7 +81,7 @@ public class FcmService {
      */
     public void sendPaperPlantNotification(Long farmOwnerId) {
         try {
-            List<FcmToken> tokens = notificationUtilPort.FcmEligibleFcmTokens(farmOwnerId, NotificationType.MESSAGE);
+            List<FcmToken> tokens = notificationUtilAdapter.FcmEligibleFcmTokens(farmOwnerId, NotificationType.MESSAGE);
             String title = "롤링페이퍼에 메시지가 작성되었어요!";
             String body = "지금 확인해보세요!";
             boolean sent = sendNotifications(tokens, title, body);
@@ -105,7 +106,7 @@ public class FcmService {
      */
     public void sendPostFeaturedNotification(Long memberId, String title, String body) {
         try {
-            List<FcmToken> tokens = notificationUtilPort.FcmEligibleFcmTokens(memberId, NotificationType.POST_FEATURED);
+            List<FcmToken> tokens = notificationUtilAdapter.FcmEligibleFcmTokens(memberId, NotificationType.POST_FEATURED);
             boolean sent = sendNotifications(tokens, title, body);
             if (sent) {
                 log.info("인기글 등극 알림 FCM 전송 완료: 사용자 ID={}, 토큰 수={}", memberId, tokens.size());
@@ -135,7 +136,7 @@ public class FcmService {
 
         for (FcmToken token : tokens) {
             try {
-                fcmPort.sendMessageTo(FcmMessage.of(token.getFcmRegistrationToken(), title, body));
+                fcmAdapter.sendMessageTo(FcmMessage.of(token.getFcmRegistrationToken(), title, body));
             } catch (Exception e) {
                 // 개별 메시지 전송 실패 시에도 전체 전송을 중단하지 않도록 함
                 log.warn("FCM 메시지 전송 중 일부 실패: 토큰={}", token.getFcmRegistrationToken(), e);

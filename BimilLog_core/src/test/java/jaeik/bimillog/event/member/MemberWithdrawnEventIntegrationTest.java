@@ -15,7 +15,7 @@ import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.domain.notification.service.FcmService;
 import jaeik.bimillog.domain.notification.service.NotificationCommandService;
 import jaeik.bimillog.domain.notification.service.SseService;
-import jaeik.bimillog.domain.paper.application.port.in.PaperCommandUseCase;
+import jaeik.bimillog.domain.paper.service.PaperCommandService;
 import jaeik.bimillog.domain.post.application.port.in.PostCommandUseCase;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
@@ -66,7 +66,7 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
     private NotificationCommandService notificationCommandService;
 
     @MockitoBean
-    private PaperCommandUseCase paperCommandUseCase;
+    private PaperCommandService paperCommandService;
 
     @MockitoBean
     private AdminCommandService adminCommandService;
@@ -144,7 +144,7 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
             // 7. 알림 삭제
             verify(notificationCommandService).deleteAllNotification(eq(memberId));
             // 8. 롤링페이퍼 메시지 삭제
-            verify(paperCommandUseCase).deleteMessageInMyPaper(eq(memberId), eq(null));
+            verify(paperCommandService).deleteMessageInMyPaper(eq(memberId), eq(null));
             // 9. 신고자 익명화
             verify(adminCommandService).anonymizeReporterByUserId(eq(memberId));
             // 10. 카카오 토큰 삭제
@@ -198,9 +198,9 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
             verify(notificationCommandService).deleteAllNotification(eq(3L));
 
             // 롤링페이퍼 메시지 삭제
-            verify(paperCommandUseCase).deleteMessageInMyPaper(eq(1L), eq(null));
-            verify(paperCommandUseCase).deleteMessageInMyPaper(eq(2L), eq(null));
-            verify(paperCommandUseCase).deleteMessageInMyPaper(eq(3L), eq(null));
+            verify(paperCommandService).deleteMessageInMyPaper(eq(1L), eq(null));
+            verify(paperCommandService).deleteMessageInMyPaper(eq(2L), eq(null));
+            verify(paperCommandService).deleteMessageInMyPaper(eq(3L), eq(null));
 
             // 신고자 익명화
             verify(adminCommandService).anonymizeReporterByUserId(eq(1L));
@@ -275,7 +275,7 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
             verify(authTokenService).deleteTokens(eq(memberId), eq(null));
             verify(fcmService).deleteFcmTokens(eq(memberId), eq(null));
             verify(notificationCommandService).deleteAllNotification(eq(memberId));
-            verify(paperCommandUseCase).deleteMessageInMyPaper(eq(memberId), eq(null));
+            verify(paperCommandService).deleteMessageInMyPaper(eq(memberId), eq(null));
             verify(adminCommandService).anonymizeReporterByUserId(eq(memberId));
             verify(kakaoTokenService).deleteByMemberId(eq(memberId));
             verify(memberCommandService).removeMemberAccount(eq(memberId));

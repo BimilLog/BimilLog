@@ -8,10 +8,10 @@ import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.domain.member.service.MemberCommandService;
-import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.domain.notification.service.FcmService;
 import jaeik.bimillog.domain.notification.service.NotificationCommandService;
-import jaeik.bimillog.domain.paper.application.port.in.PaperCommandUseCase;
+import jaeik.bimillog.domain.notification.service.SseService;
+import jaeik.bimillog.domain.paper.service.PaperCommandService;
 import jaeik.bimillog.domain.post.application.port.in.PostCommandUseCase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -40,7 +40,7 @@ public class MemberWithdrawListener {
     private final CommentCommandService commentCommandService;
     private final PostCommandUseCase postCommandUseCase;
     private final AuthTokenService authTokenService;
-    private final PaperCommandUseCase paperCommandUseCase;
+    private final PaperCommandService paperCommandService;
     private final AdminCommandService adminCommandService;
     private final MemberCommandService memberCommandService;
     private final KakaoTokenService kakaoTokenService;
@@ -81,7 +81,7 @@ public class MemberWithdrawListener {
         commentCommandService.processUserCommentsOnWithdrawal(memberId);
 
         // 롤링페이퍼 메시지 삭제
-        paperCommandUseCase.deleteMessageInMyPaper(memberId, null);
+        paperCommandService.deleteMessageInMyPaper(memberId, null);
 
         // 알림 삭제
         notificationCommandUseCase.deleteAllNotification(memberId);

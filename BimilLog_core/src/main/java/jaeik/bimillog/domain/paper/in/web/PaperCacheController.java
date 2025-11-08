@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.paper.in.web;
 
-import jaeik.bimillog.domain.paper.application.port.in.PaperCacheUseCase;
 import jaeik.bimillog.domain.paper.entity.PopularPaperInfo;
+import jaeik.bimillog.domain.paper.service.PaperCacheService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/paper")
 public class PaperCacheController {
 
-    private final PaperCacheUseCase paperCacheUseCase;
+    private final PaperCacheService paperCacheService;
 
     /**
      * <h3>실시간 인기 롤링페이퍼 조회 API</h3>
@@ -36,7 +36,7 @@ public class PaperCacheController {
      */
     @GetMapping("/popular")
     public ResponseEntity<Page<PopularPaperInfo>> popularPaper(Pageable pageable) {
-        Page<PopularPaperInfo> paperInfos = paperCacheUseCase.getRealtimePapers(pageable);
+        Page<PopularPaperInfo> paperInfos = paperCacheService.getRealtimePapers(pageable);
         return ResponseEntity.ok(paperInfos);
     }
 }

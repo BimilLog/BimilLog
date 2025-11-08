@@ -1,18 +1,19 @@
 package jaeik.bimillog.domain.notification.out;
 
+import java.util.List;
+
+import org.springframework.stereotype.Component;
+
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+
 import jaeik.bimillog.domain.member.entity.QMember;
 import jaeik.bimillog.domain.member.entity.QSetting;
-import jaeik.bimillog.domain.notification.application.port.out.NotificationUtilPort;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.QFcmToken;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 /**
  * <h2>알림 유틸리티 어댑터</h2>
@@ -24,7 +25,7 @@ import java.util.List;
  */
 @Component
 @RequiredArgsConstructor
-public class NotificationUtilAdapter implements NotificationUtilPort {
+public class NotificationUtilAdapter {
 
     private final JPAQueryFactory queryFactory;
 
@@ -38,7 +39,6 @@ public class NotificationUtilAdapter implements NotificationUtilPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public boolean SseEligibleForNotification(Long memberId, NotificationType type) {
         QMember qMember = QMember.member;
         QSetting qSetting = QSetting.setting;
@@ -64,7 +64,6 @@ public class NotificationUtilAdapter implements NotificationUtilPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public List<FcmToken> FcmEligibleFcmTokens(Long memberId, NotificationType type) {
         QMember qMember = QMember.member;
         QSetting qSetting = QSetting.setting;

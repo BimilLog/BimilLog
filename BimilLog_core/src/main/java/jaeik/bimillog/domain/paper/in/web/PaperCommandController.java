@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.paper.in.web;
 
-import jaeik.bimillog.domain.paper.application.port.in.PaperCommandUseCase;
-import jaeik.bimillog.domain.paper.in.dto.MessageDTO;
 import jaeik.bimillog.domain.auth.out.CustomUserDetails;
+import jaeik.bimillog.domain.paper.in.dto.MessageDTO;
+import jaeik.bimillog.domain.paper.service.PaperCommandService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/paper")
 public class PaperCommandController {
 
-    private final PaperCommandUseCase paperCommandUseCase;
+    private final PaperCommandService paperCommandService;
 
     /**
      * <h3>롤링페이퍼 메시지 작성 API</h3>
@@ -38,8 +38,8 @@ public class PaperCommandController {
     public ResponseEntity<String> writeMessage(
             @PathVariable String memberName,
             @RequestBody @Valid MessageDTO messageDTO) {
-        paperCommandUseCase.writeMessage(memberName, messageDTO.getDecoType(), 
-                messageDTO.getAnonymity(), messageDTO.getContent(), 
+        paperCommandService.writeMessage(memberName, messageDTO.getDecoType(),
+                messageDTO.getAnonymity(), messageDTO.getContent(),
                 messageDTO.getX(), messageDTO.getY());
         return ResponseEntity.ok("메시지가 작성되었습니다.");
     }
@@ -58,7 +58,7 @@ public class PaperCommandController {
     public ResponseEntity<String> deleteMessage(@AuthenticationPrincipal CustomUserDetails userDetails,
                                                 @RequestBody @Valid MessageDTO messageDTO) {
         Long memberId = userDetails.getMemberId();
-        paperCommandUseCase.deleteMessageInMyPaper(memberId, messageDTO.getId());
+        paperCommandService.deleteMessageInMyPaper(memberId, messageDTO.getId());
         return ResponseEntity.ok("메시지가 삭제되었습니다.");
     }
 }

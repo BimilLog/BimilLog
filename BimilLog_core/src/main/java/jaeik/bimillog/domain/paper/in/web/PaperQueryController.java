@@ -1,11 +1,11 @@
 package jaeik.bimillog.domain.paper.in.web;
 
-import jaeik.bimillog.domain.paper.application.port.in.PaperQueryUseCase;
+import jaeik.bimillog.domain.auth.out.CustomUserDetails;
 import jaeik.bimillog.domain.paper.entity.MessageDetail;
 import jaeik.bimillog.domain.paper.entity.VisitMessageDetail;
 import jaeik.bimillog.domain.paper.in.dto.MessageDTO;
 import jaeik.bimillog.domain.paper.in.dto.VisitMessageDTO;
-import jaeik.bimillog.domain.auth.out.CustomUserDetails;
+import jaeik.bimillog.domain.paper.service.PaperQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -30,7 +30,7 @@ import java.util.List;
 @RequestMapping("/api/paper")
 public class PaperQueryController {
 
-    private final PaperQueryUseCase paperQueryUseCase;
+    private final PaperQueryService paperQueryService;
 
     /**
      * <h3>내 롤링페이퍼 조회 API</h3>
@@ -45,7 +45,7 @@ public class PaperQueryController {
     @GetMapping
     public ResponseEntity<List<MessageDTO>> myPaper(@AuthenticationPrincipal CustomUserDetails userDetails) {
         Long memberId = userDetails.getMemberId();
-        List<MessageDetail> messageDetails = paperQueryUseCase.getMyPaper(memberId);
+        List<MessageDetail> messageDetails = paperQueryService.getMyPaper(memberId);
         List<MessageDTO> messageDTOs = messageDetails.stream()
                 .map(MessageDTO::from)
                 .toList();
@@ -64,7 +64,7 @@ public class PaperQueryController {
      */
     @GetMapping("/{memberName}")
     public ResponseEntity<List<VisitMessageDTO>> visitPaper(@PathVariable String memberName) {
-        List<VisitMessageDetail> visitMessageDetails = paperQueryUseCase.visitPaper(memberName);
+        List<VisitMessageDetail> visitMessageDetails = paperQueryService.visitPaper(memberName);
         List<VisitMessageDTO> visitMessageDTOs = visitMessageDetails.stream()
                 .map(VisitMessageDTO::from)
                 .toList();

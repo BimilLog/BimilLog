@@ -1,15 +1,16 @@
 package jaeik.bimillog.domain.notification.out;
 
-import com.querydsl.jpa.impl.JPAQueryFactory;
-import jaeik.bimillog.domain.member.entity.QMember;
-import jaeik.bimillog.domain.notification.application.port.out.NotificationQueryPort;
-import jaeik.bimillog.domain.notification.entity.Notification;
-import jaeik.bimillog.domain.notification.entity.QNotification;
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+
+import jaeik.bimillog.domain.member.entity.QMember;
+import jaeik.bimillog.domain.notification.entity.Notification;
+import jaeik.bimillog.domain.notification.entity.QNotification;
+import lombok.RequiredArgsConstructor;
 
 /**
  * <h2>알림 조회 어댑터</h2>
@@ -21,7 +22,7 @@ import java.util.List;
  */
 @Repository
 @RequiredArgsConstructor
-public class NotificationQueryAdapter implements NotificationQueryPort {
+public class NotificationQueryAdapter {
 
     private final JPAQueryFactory jpaQueryFactory;
     private final QNotification notification = QNotification.notification;
@@ -36,7 +37,6 @@ public class NotificationQueryAdapter implements NotificationQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional(readOnly = true)
     public List<Notification> getNotificationList(Long memberId) {
 

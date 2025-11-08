@@ -1,7 +1,5 @@
-
 package jaeik.bimillog.domain.notification.out;
 
-import jaeik.bimillog.domain.notification.application.port.out.UrlGeneratorPort;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -14,7 +12,7 @@ import org.springframework.stereotype.Component;
  * @version 2.0.0
  */
 @Component
-public class UrlGeneratorAdapter implements UrlGeneratorPort {
+public class UrlGeneratorAdapter {
 
     private final String baseUrl;
 
@@ -31,7 +29,6 @@ public class UrlGeneratorAdapter implements UrlGeneratorPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public String generatePostUrl(Long postId) {
         return baseUrl + "/board/post/" + postId;
     }
@@ -45,7 +42,6 @@ public class UrlGeneratorAdapter implements UrlGeneratorPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public String generateRollingPaperUrl(String memberName) {
         return baseUrl + "/rolling-paper/" + memberName;
     }
