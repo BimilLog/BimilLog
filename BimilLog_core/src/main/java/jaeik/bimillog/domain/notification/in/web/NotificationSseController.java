@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.notification.in.web;
 
-import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
+import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.domain.auth.out.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +29,7 @@ import jakarta.servlet.http.HttpServletResponse;
 @RequestMapping("/api/notification")
 public class NotificationSseController {
 
-    private final SseUseCase sseUseCase;
+    private final SseService sseService;
 
     /**
      * <h3>SSE 구독</h3>
@@ -54,6 +54,6 @@ public class NotificationSseController {
         response.setHeader("Content-Type", MediaType.TEXT_EVENT_STREAM_VALUE + ";charset=UTF-8");
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
-        return sseUseCase.subscribe(userDetails.getMemberId(), userDetails.getTokenId());
+        return sseService.subscribe(userDetails.getMemberId(), userDetails.getTokenId());
     }
 }

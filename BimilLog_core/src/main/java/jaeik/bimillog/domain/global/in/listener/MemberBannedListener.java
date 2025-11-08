@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.auth.service.AuthTokenService;
 import jaeik.bimillog.domain.auth.service.KakaoTokenService;
 import jaeik.bimillog.domain.auth.service.SocialLogoutService;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
-import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
+import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.domain.notification.service.FcmService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.event.EventListener;
@@ -28,7 +28,7 @@ public class MemberBannedListener {
     private final SocialLogoutService socialLogoutService;
     private final FcmService fcmUseCase;
     private final AuthTokenService authTokenService;
-    private final SseUseCase sseUseCase;
+    private final SseService sseService;
     private final KakaoTokenService kakaoTokenService;
 
     /**
@@ -48,7 +48,7 @@ public class MemberBannedListener {
         String socialId = memberBannedEvent.socialId();
         SocialProvider provider = memberBannedEvent.provider();
 
-        sseUseCase.deleteEmitters(memberId, null);
+        sseService.deleteEmitters(memberId, null);
         socialLogoutService.forceLogout(socialId, provider);
         fcmUseCase.deleteFcmTokens(memberId, null);
         authTokenService.deleteTokens(memberId, null);

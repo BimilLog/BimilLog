@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.notification.service;
 
-import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
 import jaeik.bimillog.domain.notification.application.port.out.SsePort;
 import jaeik.bimillog.domain.notification.application.port.out.UrlGeneratorPort;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
@@ -21,7 +20,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
  */
 @Service
 @RequiredArgsConstructor
-public class SseService implements SseUseCase {
+public class SseService {
 
     private final SsePort ssePort;
     private final UrlGeneratorPort urlGeneratorPort;
@@ -38,7 +37,6 @@ public class SseService implements SseUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public SseEmitter subscribe(Long memberId, Long tokenId) {
         return ssePort.subscribe(memberId, tokenId);
     }
@@ -54,7 +52,6 @@ public class SseService implements SseUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public void deleteEmitters(Long memberId, Long tokenId) {
         ssePort.deleteEmitters(memberId, tokenId);
     }
@@ -71,7 +68,6 @@ public class SseService implements SseUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public void sendCommentNotification(Long postUserId, String commenterName, Long postId) {
         String message = commenterName + "님이 댓글을 남겼습니다!";
         String url = urlGeneratorPort.generatePostUrl(postId);
@@ -90,7 +86,6 @@ public class SseService implements SseUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public void sendPaperPlantNotification(Long farmOwnerId, String memberName) {
         String message = "롤링페이퍼에 메시지가 작성되었어요!";
         String url = urlGeneratorPort.generateRollingPaperUrl(memberName);
@@ -110,7 +105,6 @@ public class SseService implements SseUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public void sendPostFeaturedNotification(Long memberId, String message, Long postId) {
         String url = urlGeneratorPort.generatePostUrl(postId);
         SseMessage sseMessage = SseMessage.of(memberId, NotificationType.POST_FEATURED, message, url);

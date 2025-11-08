@@ -8,7 +8,7 @@ import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.domain.member.service.MemberCommandService;
-import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
+import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.domain.notification.service.FcmService;
 import jaeik.bimillog.domain.notification.service.NotificationCommandService;
 import jaeik.bimillog.domain.paper.application.port.in.PaperCommandUseCase;
@@ -34,7 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberWithdrawListener {
 
     private final SocialWithdrawService socialWithdrawService;
-    private final SseUseCase sseUseCase;
+    private final SseService sseService;
     private final FcmService fcmUseCase;
     private final NotificationCommandService notificationCommandUseCase;
     private final CommentCommandService commentCommandService;
@@ -64,7 +64,7 @@ public class MemberWithdrawListener {
         SocialProvider provider = userWithdrawnEvent.provider();
 
         // SSE 연결해제
-        sseUseCase.deleteEmitters(memberId, null);
+        sseService.deleteEmitters(memberId, null);
 
         // 카카오 연결해제
         try {

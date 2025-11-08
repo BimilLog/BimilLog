@@ -6,7 +6,7 @@ import jaeik.bimillog.domain.auth.service.KakaoTokenService;
 import jaeik.bimillog.domain.auth.service.SocialLogoutService;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.notification.service.FcmService;
-import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
+import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -29,7 +29,7 @@ import static org.mockito.Mockito.verify;
 public class MemberBannedEventIntegrationTest extends BaseEventIntegrationTest {
 
     @MockitoBean
-    private SseUseCase sseUseCase;
+    private SseService sseService;
 
     @MockitoBean
     private SocialLogoutService socialLogoutService;
@@ -55,7 +55,7 @@ public class MemberBannedEventIntegrationTest extends BaseEventIntegrationTest {
         // When & Then
         publishAndVerify(event, () -> {
             // SSE 연결 정리
-            verify(sseUseCase).deleteEmitters(eq(memberId), eq(null));
+            verify(sseService).deleteEmitters(eq(memberId), eq(null));
             // 소셜 플랫폼 강제 로그아웃
             verify(socialLogoutService).forceLogout(eq(socialId), eq(provider));
             // FCM 토큰 삭제
@@ -78,9 +78,9 @@ public class MemberBannedEventIntegrationTest extends BaseEventIntegrationTest {
         // When & Then - 동시에 여러 사용자 차단 이벤트 발행
         publishEventsAndVerify(new Object[]{event1, event2, event3}, () -> {
             // SSE 연결 정리
-            verify(sseUseCase).deleteEmitters(eq(1L), eq(null));
-            verify(sseUseCase).deleteEmitters(eq(2L), eq(null));
-            verify(sseUseCase).deleteEmitters(eq(3L), eq(null));
+            verify(sseService).deleteEmitters(eq(1L), eq(null));
+            verify(sseService).deleteEmitters(eq(2L), eq(null));
+            verify(sseService).deleteEmitters(eq(3L), eq(null));
 
             // 소셜 플랫폼 강제 로그아웃
             verify(socialLogoutService).forceLogout(eq("kakao123"), eq(SocialProvider.KAKAO));
@@ -113,7 +113,7 @@ public class MemberBannedEventIntegrationTest extends BaseEventIntegrationTest {
 
         // When & Then - 모든 제공자별로 적절히 처리되어야 함
         publishAndVerify(kakaoEvent, () -> {
-            verify(sseUseCase).deleteEmitters(eq(1L), eq(null));
+            verify(sseService).deleteEmitters(eq(1L), eq(null));
             verify(socialLogoutService).forceLogout(eq("kakaoUser"), eq(SocialProvider.KAKAO));
             verify(fcmService).deleteFcmTokens(eq(1L), eq(null));
             verify(authTokenService).deleteTokens(eq(1L), eq(null));

@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.notification.service;
 
-import jaeik.bimillog.domain.notification.application.port.in.NotificationQueryUseCase;
 import jaeik.bimillog.domain.notification.application.port.out.NotificationQueryPort;
 import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.in.web.NotificationQueryController;
@@ -22,7 +21,7 @@ import java.util.List;
  */
 @Service
 @RequiredArgsConstructor
-public class NotificationQueryService implements NotificationQueryUseCase {
+public class NotificationQueryService {
 
     private final NotificationQueryPort notificationQueryPort;
 
@@ -37,7 +36,6 @@ public class NotificationQueryService implements NotificationQueryUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional(readOnly = true)
     public List<Notification> getNotificationList(CustomUserDetails userDetails) {
         if (userDetails == null || userDetails.getMemberId() == null) {

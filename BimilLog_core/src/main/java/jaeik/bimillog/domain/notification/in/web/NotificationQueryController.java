@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.notification.in.web;
 
-import jaeik.bimillog.domain.notification.application.port.in.NotificationQueryUseCase;
+import jaeik.bimillog.domain.notification.service.NotificationQueryService;
 import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.in.dto.NotificationDTO;
 import jaeik.bimillog.domain.auth.out.CustomUserDetails;
@@ -28,7 +28,7 @@ import java.util.List;
 @RequestMapping("/api/notification")
 public class NotificationQueryController {
 
-    private final NotificationQueryUseCase notificationQueryUseCase;
+    private final NotificationQueryService notificationQueryService;
 
     /**
      * <h3>알림 리스트 조회</h3>
@@ -43,7 +43,7 @@ public class NotificationQueryController {
     @GetMapping("/list")
     public ResponseEntity<List<NotificationDTO>> getNotifications(
             @AuthenticationPrincipal CustomUserDetails userDetails) {
-        List<Notification> notifications = notificationQueryUseCase.getNotificationList(userDetails);
+        List<Notification> notifications = notificationQueryService.getNotificationList(userDetails);
         List<NotificationDTO> notificationDTOS = notifications.stream()
                 .map(this::toDto)
                 .toList();

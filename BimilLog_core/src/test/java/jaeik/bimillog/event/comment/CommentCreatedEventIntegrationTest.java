@@ -2,7 +2,7 @@ package jaeik.bimillog.event.comment;
 
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.notification.service.FcmService;
-import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
+import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostUpdatePort;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
@@ -27,7 +27,7 @@ import static org.mockito.Mockito.verify;
 class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
 
     @MockitoBean
-    private SseUseCase sseUseCase;
+    private SseService sseService;
 
     @MockitoBean
     private FcmService fcmService;
@@ -45,7 +45,7 @@ class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
 
         // When & Then
         publishAndVerify(event, () -> {
-            verify(sseUseCase).sendCommentNotification(
+            verify(sseService).sendCommentNotification(
                     eq(1L), eq("댓글작성자"), eq(100L));
             verify(fcmService).sendCommentNotification(
                     eq(1L), eq("댓글작성자"));
@@ -67,19 +67,19 @@ class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
         publishEvents(events);
         verifyAsyncSlow(() -> {
             // 첫 번째 이벤트
-            verify(sseUseCase).sendCommentNotification(
+            verify(sseService).sendCommentNotification(
                     eq(1L), eq("댓글작성자1"), eq(100L));
             verify(fcmService).sendCommentNotification(
                     eq(1L), eq("댓글작성자1"));
 
             // 두 번째 이벤트
-            verify(sseUseCase).sendCommentNotification(
+            verify(sseService).sendCommentNotification(
                     eq(1L), eq("댓글작성자2"), eq(100L));
             verify(fcmService).sendCommentNotification(
                     eq(1L), eq("댓글작성자2"));
 
             // 세 번째 이벤트
-            verify(sseUseCase).sendCommentNotification(
+            verify(sseService).sendCommentNotification(
                     eq(2L), eq("댓글작성자3"), eq(101L));
             verify(fcmService).sendCommentNotification(
                     eq(2L), eq("댓글작성자3"));

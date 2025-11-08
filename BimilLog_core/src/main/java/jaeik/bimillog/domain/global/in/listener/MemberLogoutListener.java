@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.auth.service.AuthTokenService;
 import jaeik.bimillog.domain.auth.service.KakaoTokenService;
 import jaeik.bimillog.domain.auth.service.SocialLogoutService;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
-import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
+import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.domain.notification.service.FcmService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class MemberLogoutListener {
 
     private final SocialLogoutService socialLogoutService;
-    private final SseUseCase sseUseCase;
+    private final SseService sseService;
     private final FcmService fcmUseCase;
     private final AuthTokenService authTokenService;
     private final KakaoTokenService kakaoTokenService;
@@ -52,7 +52,7 @@ public class MemberLogoutListener {
         Long fcmTokenId = memberLoggedOutEvent.fcmTokenId();
         SocialProvider provider = memberLoggedOutEvent.provider();
 
-        sseUseCase.deleteEmitters(memberId, AuthTokenId);
+        sseService.deleteEmitters(memberId, AuthTokenId);
         try {
             socialLogoutService.socialLogout(memberId, provider);
         } catch (Exception ex) {

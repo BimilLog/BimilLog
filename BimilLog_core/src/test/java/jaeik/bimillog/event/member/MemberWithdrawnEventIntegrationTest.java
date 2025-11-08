@@ -14,7 +14,7 @@ import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.domain.notification.service.FcmService;
 import jaeik.bimillog.domain.notification.service.NotificationCommandService;
-import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
+import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.domain.paper.application.port.in.PaperCommandUseCase;
 import jaeik.bimillog.domain.post.application.port.in.PostCommandUseCase;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
@@ -45,7 +45,7 @@ import static org.mockito.Mockito.*;
 class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
 
     @MockitoBean
-    private SseUseCase sseUseCase;
+    private SseService sseService;
 
     @MockitoSpyBean
     private SocialWithdrawService socialWithdrawService;
@@ -130,7 +130,7 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
         // When & Then
         publishAndVerify(event, () -> {
             // 1. SSE 연결 정리
-            verify(sseUseCase).deleteEmitters(eq(memberId), eq(null));
+            verify(sseService).deleteEmitters(eq(memberId), eq(null));
             // 2. 소셜 계정 연동 해제 전략 조회
             verify(globalSocialStrategyPort).getStrategy(eq(SocialProvider.KAKAO));
             // 3. 댓글 처리
@@ -165,9 +165,9 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
         // When & Then - 여러 사용자 탈퇴 이벤트 발행
         publishEventsAndVerify(new Object[]{event1, event2, event3}, () -> {
             // SSE 연결 정리
-            verify(sseUseCase).deleteEmitters(eq(1L), eq(null));
-            verify(sseUseCase).deleteEmitters(eq(2L), eq(null));
-            verify(sseUseCase).deleteEmitters(eq(3L), eq(null));
+            verify(sseService).deleteEmitters(eq(1L), eq(null));
+            verify(sseService).deleteEmitters(eq(2L), eq(null));
+            verify(sseService).deleteEmitters(eq(3L), eq(null));
 
             // 소셜 계정 연동 해제 전략 조회
             verify(globalSocialStrategyPort, times(3)).getStrategy(eq(SocialProvider.KAKAO));
@@ -268,7 +268,7 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
 
         // When & Then
         publishAndVerify(event, () -> {
-            verify(sseUseCase).deleteEmitters(eq(memberId), eq(null));
+            verify(sseService).deleteEmitters(eq(memberId), eq(null));
             verify(globalSocialStrategyPort).getStrategy(eq(SocialProvider.KAKAO));
             verify(CommentCommandService).processUserCommentsOnWithdrawal(eq(memberId));
             verify(postCommandUseCase).deleteAllPostsByMemberId(eq(memberId));
@@ -296,7 +296,7 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
         // When & Then - 예외 발생 시 해당 시점 이전까지만 처리됨 (순차 처리)
         publishAndExpectException(event, () -> {
             // SSE 연결 정리는 먼저 실행됨
-            verify(sseUseCase).deleteEmitters(eq(1L), eq(null));
+            verify(sseService).deleteEmitters(eq(1L), eq(null));
             // 소셜 계정 연동 해제 전략 조회도 실행됨
             verify(globalSocialStrategyPort).getStrategy(eq(SocialProvider.KAKAO));
             // 댓글 처리에서 예외 발생

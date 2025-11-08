@@ -1,7 +1,7 @@
 package jaeik.bimillog.event.post;
 
 import jaeik.bimillog.domain.notification.service.FcmService;
-import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
+import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
@@ -26,7 +26,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 public class PostFeaturedEventIntegrationTest extends BaseEventIntegrationTest {
 
     @MockitoBean
-    private SseUseCase sseUseCase;
+    private SseService sseService;
 
     @MockitoBean
     private FcmService fcmService;
@@ -45,11 +45,11 @@ public class PostFeaturedEventIntegrationTest extends BaseEventIntegrationTest {
 
         // When & Then
         publishAndVerify(event, () -> {
-            verify(sseUseCase).sendPostFeaturedNotification(
+            verify(sseService).sendPostFeaturedNotification(
                     eq(memberId), eq(sseMessage), eq(postId));
             verify(fcmService).sendPostFeaturedNotification(
                     eq(memberId), eq(fcmTitle), eq(fcmBody));
-            verifyNoMoreInteractions(sseUseCase, fcmService);
+            verifyNoMoreInteractions(sseService, fcmService);
         });
     }
 
@@ -66,11 +66,11 @@ public class PostFeaturedEventIntegrationTest extends BaseEventIntegrationTest {
 
         // When & Then - 모든 이벤트가 독립적으로 처리되어야 함
         publishEventsAndVerify(new Object[]{event1, event2, event3}, () -> {
-            verify(sseUseCase).sendPostFeaturedNotification(
+            verify(sseService).sendPostFeaturedNotification(
                     eq(1L), eq("게시글 1이 인기글에 선정되었습니다!"), eq(101L));
-            verify(sseUseCase).sendPostFeaturedNotification(
+            verify(sseService).sendPostFeaturedNotification(
                     eq(2L), eq("게시글 2가 명예의 전당에 등록되었습니다!"), eq(102L));
-            verify(sseUseCase).sendPostFeaturedNotification(
+            verify(sseService).sendPostFeaturedNotification(
                     eq(3L), eq("게시글 3이 주간 베스트에 선정되었습니다!"), eq(103L));
 
             verify(fcmService).sendPostFeaturedNotification(
@@ -79,7 +79,7 @@ public class PostFeaturedEventIntegrationTest extends BaseEventIntegrationTest {
                     eq(2L), eq("명예의 전당"), eq("대단합니다!"));
             verify(fcmService).sendPostFeaturedNotification(
                     eq(3L), eq("주간 베스트"), eq("훌륭합니다!"));
-            verifyNoMoreInteractions(sseUseCase, fcmService);
+            verifyNoMoreInteractions(sseService, fcmService);
         });
     }
 
@@ -97,11 +97,11 @@ public class PostFeaturedEventIntegrationTest extends BaseEventIntegrationTest {
 
         // When & Then - 동일 사용자라도 각 게시글에 대해 개별 알림이 발송되어야 함
         publishEventsAndVerify(new Object[]{event1, event2, event3}, () -> {
-            verify(sseUseCase).sendPostFeaturedNotification(
+            verify(sseService).sendPostFeaturedNotification(
                     eq(memberId), eq("첫 번째 게시글이 인기글에 선정!"), eq(101L));
-            verify(sseUseCase).sendPostFeaturedNotification(
+            verify(sseService).sendPostFeaturedNotification(
                     eq(memberId), eq("두 번째 게시글도 인기글에 선정!"), eq(102L));
-            verify(sseUseCase).sendPostFeaturedNotification(
+            verify(sseService).sendPostFeaturedNotification(
                     eq(memberId), eq("세 번째 게시글까지 인기글 선정!"), eq(103L));
 
             verify(fcmService).sendPostFeaturedNotification(
@@ -110,7 +110,7 @@ public class PostFeaturedEventIntegrationTest extends BaseEventIntegrationTest {
                     eq(memberId), eq("인기글 2"), eq("대단해요!"));
             verify(fcmService).sendPostFeaturedNotification(
                     eq(memberId), eq("인기글 3"), eq("놀라워요!"));
-            verifyNoMoreInteractions(sseUseCase, fcmService);
+            verifyNoMoreInteractions(sseService, fcmService);
         });
     }
 

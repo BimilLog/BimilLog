@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.notification.in.listener;
 
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
-import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
+import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.domain.notification.service.FcmService;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
@@ -25,7 +25,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class NotificationGenerateListener {
 
-    private final SseUseCase sseUseCase;
+    private final SseService sseService;
     private final FcmService fcmUseCase;
 
     /**
@@ -41,7 +41,7 @@ public class NotificationGenerateListener {
     @Async("sseNotificationExecutor")
     public void handleCommentCreatedEvent(CommentCreatedEvent event) {
         // SSE 알림 전송
-        sseUseCase.sendCommentNotification(
+        sseService.sendCommentNotification(
                 event.postUserId(),
                 event.commenterName(),
                 event.postId());
@@ -65,7 +65,7 @@ public class NotificationGenerateListener {
     @Async("sseNotificationExecutor")
     public void handleRollingPaperEvent(RollingPaperEvent event) {
         // SSE 알림 전송
-        sseUseCase.sendPaperPlantNotification(
+        sseService.sendPaperPlantNotification(
                 event.paperOwnerId(),
                 event.memberName());
         
@@ -87,7 +87,7 @@ public class NotificationGenerateListener {
     @Async("sseNotificationExecutor")
     public void handlePostFeaturedEvent(PostFeaturedEvent event) {
         // SSE 알림 전송
-        sseUseCase.sendPostFeaturedNotification(
+        sseService.sendPostFeaturedNotification(
                 event.memberId(),
                 event.sseMessage(),
                 event.postId());
