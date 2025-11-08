@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.member.out;
 
-import jaeik.bimillog.domain.member.application.port.out.SaveMemberPort;
 import jaeik.bimillog.domain.member.entity.Member;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -16,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Component
 @RequiredArgsConstructor
-public class SaveMemberAdapter implements SaveMemberPort {
+public class SaveMemberAdapter {
 
     private final MemberRepository userRepository;
 
@@ -29,7 +28,6 @@ public class SaveMemberAdapter implements SaveMemberPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional
     public Member saveNewMember(Member member) {
         return userRepository.save(member);

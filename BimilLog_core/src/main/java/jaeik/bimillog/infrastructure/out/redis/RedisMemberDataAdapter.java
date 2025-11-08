@@ -3,7 +3,6 @@ package jaeik.bimillog.infrastructure.out.redis;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
-import jaeik.bimillog.domain.member.application.port.out.RedisMemberDataPort;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
@@ -28,7 +27,7 @@ import java.util.Optional;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class RedisMemberDataAdapter implements RedisMemberDataPort {
+public class RedisMemberDataAdapter {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -57,7 +56,6 @@ public class RedisMemberDataAdapter implements RedisMemberDataPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public void saveTempData(String uuid, SocialMemberProfile userProfile) {
         validateTempDataInputs(uuid, userProfile);
 
@@ -78,7 +76,6 @@ public class RedisMemberDataAdapter implements RedisMemberDataPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public Optional<SocialMemberProfile> getTempData(String uuid) {
         if (uuid == null) {
             log.debug("임시 데이터 조회에 null UUID 제공됨, 빈 결과 반환");

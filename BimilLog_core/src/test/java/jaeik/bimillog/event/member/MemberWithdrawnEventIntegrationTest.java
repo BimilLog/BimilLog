@@ -12,8 +12,8 @@ import jaeik.bimillog.domain.global.application.strategy.SocialPlatformStrategy;
 import jaeik.bimillog.domain.member.service.MemberCommandService;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
-import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
-import jaeik.bimillog.domain.notification.application.port.in.NotificationCommandUseCase;
+import jaeik.bimillog.domain.notification.service.FcmService;
+import jaeik.bimillog.domain.notification.service.NotificationCommandService;
 import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
 import jaeik.bimillog.domain.paper.application.port.in.PaperCommandUseCase;
 import jaeik.bimillog.domain.post.application.port.in.PostCommandUseCase;
@@ -60,10 +60,10 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
     private AuthTokenService authTokenService;
 
     @MockitoBean
-    private FcmUseCase fcmUseCase;
+    private FcmService fcmService;
 
     @MockitoBean
-    private NotificationCommandUseCase notificationCommandUseCase;
+    private NotificationCommandService notificationCommandService;
 
     @MockitoBean
     private PaperCommandUseCase paperCommandUseCase;
@@ -140,9 +140,9 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
             // 5. JWT 토큰 무효화
             verify(authTokenService).deleteTokens(eq(memberId), eq(null));
             // 6. FCM 토큰 삭제
-            verify(fcmUseCase).deleteFcmTokens(eq(memberId), eq(null));
+            verify(fcmService).deleteFcmTokens(eq(memberId), eq(null));
             // 7. 알림 삭제
-            verify(notificationCommandUseCase).deleteAllNotification(eq(memberId));
+            verify(notificationCommandService).deleteAllNotification(eq(memberId));
             // 8. 롤링페이퍼 메시지 삭제
             verify(paperCommandUseCase).deleteMessageInMyPaper(eq(memberId), eq(null));
             // 9. 신고자 익명화
@@ -188,14 +188,14 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
             verify(authTokenService).deleteTokens(eq(3L), eq(null));
 
             // FCM 토큰 삭제
-            verify(fcmUseCase).deleteFcmTokens(eq(1L), eq(null));
-            verify(fcmUseCase).deleteFcmTokens(eq(2L), eq(null));
-            verify(fcmUseCase).deleteFcmTokens(eq(3L), eq(null));
+            verify(fcmService).deleteFcmTokens(eq(1L), eq(null));
+            verify(fcmService).deleteFcmTokens(eq(2L), eq(null));
+            verify(fcmService).deleteFcmTokens(eq(3L), eq(null));
 
             // 알림 삭제
-            verify(notificationCommandUseCase).deleteAllNotification(eq(1L));
-            verify(notificationCommandUseCase).deleteAllNotification(eq(2L));
-            verify(notificationCommandUseCase).deleteAllNotification(eq(3L));
+            verify(notificationCommandService).deleteAllNotification(eq(1L));
+            verify(notificationCommandService).deleteAllNotification(eq(2L));
+            verify(notificationCommandService).deleteAllNotification(eq(3L));
 
             // 롤링페이퍼 메시지 삭제
             verify(paperCommandUseCase).deleteMessageInMyPaper(eq(1L), eq(null));
@@ -273,8 +273,8 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
             verify(CommentCommandService).processUserCommentsOnWithdrawal(eq(memberId));
             verify(postCommandUseCase).deleteAllPostsByMemberId(eq(memberId));
             verify(authTokenService).deleteTokens(eq(memberId), eq(null));
-            verify(fcmUseCase).deleteFcmTokens(eq(memberId), eq(null));
-            verify(notificationCommandUseCase).deleteAllNotification(eq(memberId));
+            verify(fcmService).deleteFcmTokens(eq(memberId), eq(null));
+            verify(notificationCommandService).deleteAllNotification(eq(memberId));
             verify(paperCommandUseCase).deleteMessageInMyPaper(eq(memberId), eq(null));
             verify(adminCommandService).anonymizeReporterByUserId(eq(memberId));
             verify(kakaoTokenService).deleteByMemberId(eq(memberId));

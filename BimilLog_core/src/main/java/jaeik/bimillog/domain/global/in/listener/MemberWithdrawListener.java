@@ -5,12 +5,12 @@ import jaeik.bimillog.domain.auth.service.AuthTokenService;
 import jaeik.bimillog.domain.auth.service.KakaoTokenService;
 import jaeik.bimillog.domain.auth.service.SocialWithdrawService;
 import jaeik.bimillog.domain.comment.service.CommentCommandService;
-import jaeik.bimillog.domain.member.service.MemberCommandService;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
-import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
-import jaeik.bimillog.domain.notification.application.port.in.NotificationCommandUseCase;
+import jaeik.bimillog.domain.member.service.MemberCommandService;
 import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
+import jaeik.bimillog.domain.notification.service.FcmService;
+import jaeik.bimillog.domain.notification.service.NotificationCommandService;
 import jaeik.bimillog.domain.paper.application.port.in.PaperCommandUseCase;
 import jaeik.bimillog.domain.post.application.port.in.PostCommandUseCase;
 import lombok.RequiredArgsConstructor;
@@ -35,8 +35,8 @@ public class MemberWithdrawListener {
 
     private final SocialWithdrawService socialWithdrawService;
     private final SseUseCase sseUseCase;
-    private final FcmUseCase fcmUseCase;
-    private final NotificationCommandUseCase notificationCommandUseCase;
+    private final FcmService fcmUseCase;
+    private final NotificationCommandService notificationCommandUseCase;
     private final CommentCommandService commentCommandService;
     private final PostCommandUseCase postCommandUseCase;
     private final AuthTokenService authTokenService;

@@ -9,7 +9,7 @@ import jaeik.bimillog.domain.auth.service.BlacklistService;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCommentQueryPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
-import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
+import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.domain.post.entity.Post;
@@ -58,7 +58,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
     private AdminQueryAdapter adminQueryAdapter;
 
     @Mock
-    private MemberQueryPort memberQueryPort;
+    private MemberQueryAdapter memberQueryAdapter;
 
     @Mock
     private GlobalPostQueryPort globalPostQueryPort;
@@ -82,7 +82,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
                 eventPublisher,
                 adminCommandAdapter,
                 adminQueryAdapter,
-                memberQueryPort,
+                memberQueryAdapter,
                 globalPostQueryPort,
                 globalCommentQueryPort,
                 blacklistService
@@ -238,14 +238,14 @@ class AdminCommandServiceTest extends BaseUnitTest {
 
         Report expectedReport = Report.createReport(reportType, targetId, content, reporter);
 
-        given(memberQueryPort.findById(memberId)).willReturn(Optional.of(reporter));
+        given(memberQueryAdapter.findById(memberId)).willReturn(Optional.of(reporter));
         given(adminCommandAdapter.save(any(Report.class))).willReturn(expectedReport);
 
         // When
         adminCommandService.createReport(memberId, reportType, targetId, content);
 
         // Then
-        verify(memberQueryPort, times(1)).findById(memberId);
+        verify(memberQueryAdapter, times(1)).findById(memberId);
         verify(adminCommandAdapter, times(1)).save(any(Report.class));
     }
 
@@ -265,7 +265,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
         adminCommandService.createReport(memberId, reportType, targetId, content);
 
         // Then
-        verify(memberQueryPort, never()).findById(any()); // 익명 사용자는 조회하지 않음
+        verify(memberQueryAdapter, never()).findById(any()); // 익명 사용자는 조회하지 않음
         verify(adminCommandAdapter, times(1)).save(any(Report.class));
     }
 
@@ -282,14 +282,14 @@ class AdminCommandServiceTest extends BaseUnitTest {
 
         Report expectedReport = Report.createReport(reportType, targetId, content, reporter);
 
-        given(memberQueryPort.findById(memberId)).willReturn(Optional.of(reporter));
+        given(memberQueryAdapter.findById(memberId)).willReturn(Optional.of(reporter));
         given(adminCommandAdapter.save(any(Report.class))).willReturn(expectedReport);
 
         // When
         adminCommandService.createReport(memberId, reportType, targetId, content);
 
         // Then
-        verify(memberQueryPort, times(1)).findById(memberId);
+        verify(memberQueryAdapter, times(1)).findById(memberId);
         verify(adminCommandAdapter, times(1)).save(any(Report.class));
     }
 
@@ -303,13 +303,13 @@ class AdminCommandServiceTest extends BaseUnitTest {
         Long targetId = 123L;
         String content = "부적절한 댓글입니다";
 
-        given(memberQueryPort.findById(memberId)).willReturn(Optional.empty());
+        given(memberQueryAdapter.findById(memberId)).willReturn(Optional.empty());
 
         // When & Then - 예외가 발생하지 않고 정상적으로 처리되어야 함
         assertThatCode(() -> adminCommandService.createReport(memberId, reportType, targetId, content))
                 .doesNotThrowAnyException();
 
-        verify(memberQueryPort, times(1)).findById(memberId);
+        verify(memberQueryAdapter, times(1)).findById(memberId);
         verify(adminCommandAdapter, times(1)).save(any(Report.class));
     }
 

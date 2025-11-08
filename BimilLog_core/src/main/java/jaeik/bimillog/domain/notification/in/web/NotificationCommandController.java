@@ -1,9 +1,9 @@
 package jaeik.bimillog.domain.notification.in.web;
 
-import jaeik.bimillog.domain.notification.application.port.in.NotificationCommandUseCase;
+import jaeik.bimillog.domain.auth.out.CustomUserDetails;
 import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
 import jaeik.bimillog.domain.notification.in.dto.UpdateNotificationDTO;
-import jaeik.bimillog.domain.auth.out.CustomUserDetails;
+import jaeik.bimillog.domain.notification.service.NotificationCommandService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/notification")
 public class NotificationCommandController {
 
-    private final NotificationCommandUseCase notificationCommandUseCase;
+    private final NotificationCommandService notificationCommandUseCase;
 
     /**
      * <h3>알림 읽음/삭제 처리</h3>

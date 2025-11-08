@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.notification.service;
 
-import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
 import jaeik.bimillog.domain.notification.application.port.out.FcmPort;
 import jaeik.bimillog.domain.notification.application.port.out.NotificationUtilPort;
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
@@ -24,7 +23,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class FcmService implements FcmUseCase {
+public class FcmService {
 
     private final FcmPort fcmPort;
     private final NotificationUtilPort notificationUtilPort;
@@ -40,7 +39,6 @@ public class FcmService implements FcmUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public void deleteFcmTokens(Long memberId, Long fcmTokenId) {
         fcmPort.deleteFcmTokens(memberId, fcmTokenId);
     }
@@ -56,7 +54,6 @@ public class FcmService implements FcmUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public void sendCommentNotification(Long postUserId, String commenterName) {
         try {
             List<FcmToken> tokens = notificationUtilPort.FcmEligibleFcmTokens(postUserId, NotificationType.COMMENT);
@@ -81,7 +78,6 @@ public class FcmService implements FcmUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public void sendPaperPlantNotification(Long farmOwnerId) {
         try {
             List<FcmToken> tokens = notificationUtilPort.FcmEligibleFcmTokens(farmOwnerId, NotificationType.MESSAGE);
@@ -107,7 +103,6 @@ public class FcmService implements FcmUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public void sendPostFeaturedNotification(Long memberId, String title, String body) {
         try {
             List<FcmToken> tokens = notificationUtilPort.FcmEligibleFcmTokens(memberId, NotificationType.POST_FEATURED);

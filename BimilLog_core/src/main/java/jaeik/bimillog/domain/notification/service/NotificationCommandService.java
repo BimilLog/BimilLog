@@ -1,10 +1,9 @@
 package jaeik.bimillog.domain.notification.service;
 
-import jaeik.bimillog.domain.notification.application.port.in.NotificationCommandUseCase;
+import jaeik.bimillog.domain.global.in.listener.MemberWithdrawListener;
 import jaeik.bimillog.domain.notification.application.port.out.NotificationCommandPort;
 import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
 import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
-import jaeik.bimillog.domain.global.in.listener.MemberWithdrawListener;
 import jaeik.bimillog.domain.notification.in.web.NotificationCommandController;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class NotificationCommandService implements NotificationCommandUseCase {
+public class NotificationCommandService {
 
     private final NotificationCommandPort notificationCommandPort;
 
@@ -39,7 +38,6 @@ public class NotificationCommandService implements NotificationCommandUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional
     public void batchUpdate(Long memberId, NotificationUpdateVO updateCommand) {
         
@@ -61,7 +59,6 @@ public class NotificationCommandService implements NotificationCommandUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional
     public void deleteAllNotification(Long memberId) {
         notificationCommandPort.deleteAllByMemberId(memberId);

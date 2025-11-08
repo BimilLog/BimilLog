@@ -5,15 +5,15 @@ import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
 import jaeik.bimillog.domain.admin.exception.AdminCustomException;
 import jaeik.bimillog.domain.admin.exception.AdminErrorCode;
-import jaeik.bimillog.domain.auth.service.BlacklistService;
-import jaeik.bimillog.domain.global.application.port.out.GlobalCommentQueryPort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
-import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
-import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.domain.admin.in.web.AdminCommandController;
 import jaeik.bimillog.domain.admin.out.AdminCommandAdapter;
 import jaeik.bimillog.domain.admin.out.AdminQueryAdapter;
+import jaeik.bimillog.domain.auth.service.BlacklistService;
+import jaeik.bimillog.domain.global.application.port.out.GlobalCommentQueryPort;
+import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
+import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
+import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -39,7 +39,7 @@ public class AdminCommandService {
     private final ApplicationEventPublisher eventPublisher;
     private final AdminCommandAdapter adminCommandAdapter;
     private final AdminQueryAdapter adminQueryAdapter;
-    private final MemberQueryPort memberQueryPort;
+    private final MemberQueryAdapter memberQueryAdapter;
     private final GlobalPostQueryPort globalPostQueryPort;
     private final GlobalCommentQueryPort globalCommentQueryPort;
     private final BlacklistService blacklistService;
@@ -59,7 +59,7 @@ public class AdminCommandService {
     @Transactional
     public void createReport(Long memberId, ReportType reportType, Long targetId, String content) {
         Member reporter = Optional.ofNullable(memberId)
-                .flatMap(memberQueryPort::findById)
+                .flatMap(memberQueryAdapter::findById)
                 .orElse(null);
 
         Report report = Report.createReport(reportType, targetId, content, reporter);

@@ -7,8 +7,8 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalAuthTokenSavePort
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.global.entity.MemberDetail;
-import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
 import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.auth.out.CustomUserDetails;
@@ -40,7 +40,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
     private final GlobalAuthTokenQueryPort globalAuthTokenQueryPort;
-    private final MemberQueryPort memberQueryPort;
+    private final MemberQueryAdapter memberQueryAdapter;
     private final GlobalJwtPort globalJwtPort;
     private final GlobalCookiePort globalCookiePort;
     private final BlacklistService blacklistService;
@@ -136,7 +136,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 }
 
                 // 2-6. 유저 정보 조회
-                Member member = memberQueryPort.findByIdWithSetting(authToken.getMember().getId())
+                Member member = memberQueryAdapter.findByIdWithSetting(authToken.getMember().getId())
                         .orElseThrow(() -> new CustomException(ErrorCode.TOKEN_NOT_FOUND));
                 MemberDetail userDetail = MemberDetail.ofExisting(member, tokenId, null);
 

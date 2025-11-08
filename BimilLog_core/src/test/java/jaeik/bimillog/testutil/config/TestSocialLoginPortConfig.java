@@ -1,6 +1,5 @@
 package jaeik.bimillog.testutil.config;
 
-import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
@@ -135,21 +134,7 @@ public class TestSocialLoginPortConfig {
         }
     }
 
-    @Bean
-    @Primary
-    public BlacklistPort testBlacklistPort() {
-        return new BlacklistPort() {
-            @Override
-            public boolean existsByProviderAndSocialId(SocialProvider provider, String socialId) {
-                return false;
-            }
-
-            @Override
-            public void saveBlackList(jaeik.bimillog.domain.auth.entity.BlackList blackList) {
-                // no-op
-            }
-        };
-    }
+    // BlacklistAdapter is now a concrete class, tests should use @MockitoBean to mock it directly
 
     @Bean
     @Primary

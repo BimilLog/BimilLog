@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.auth.service.AuthTokenService;
 import jaeik.bimillog.domain.auth.service.KakaoTokenService;
 import jaeik.bimillog.domain.auth.service.SocialLogoutService;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
-import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
+import jaeik.bimillog.domain.notification.service.FcmService;
 import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
@@ -38,7 +38,7 @@ public class MemberLoggedOutEventIntegrationTest extends BaseEventIntegrationTes
     private SseUseCase sseUseCase;
 
     @MockitoBean
-    private FcmUseCase fcmUseCase;
+    private FcmService fcmService;
 
     @MockitoBean
     private KakaoTokenService kakaoTokenService;
@@ -59,7 +59,7 @@ public class MemberLoggedOutEventIntegrationTest extends BaseEventIntegrationTes
             // 소셜 플랫폼 로그아웃
             verifySocialLogout(memberId, tokenId);
             // FCM 토큰 삭제
-            verify(fcmUseCase).deleteFcmTokens(eq(memberId), eq(fcmTokenId));
+            verify(fcmService).deleteFcmTokens(eq(memberId), eq(fcmTokenId));
             // JWT 토큰 무효화
             verify(authTokenService).deleteTokens(eq(memberId), eq(tokenId));
             // 카카오 토큰 삭제
@@ -96,9 +96,9 @@ public class MemberLoggedOutEventIntegrationTest extends BaseEventIntegrationTes
             verifySocialLogout(3L, 103L);
 
             // FCM 토큰 삭제
-            verify(fcmUseCase).deleteFcmTokens(eq(1L), eq(201L));
-            verify(fcmUseCase).deleteFcmTokens(eq(2L), eq(202L));
-            verify(fcmUseCase).deleteFcmTokens(eq(3L), eq(203L));
+            verify(fcmService).deleteFcmTokens(eq(1L), eq(201L));
+            verify(fcmService).deleteFcmTokens(eq(2L), eq(202L));
+            verify(fcmService).deleteFcmTokens(eq(3L), eq(203L));
 
             // JWT 토큰 무효화
             verify(authTokenService).deleteTokens(eq(1L), eq(101L));

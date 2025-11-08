@@ -3,12 +3,11 @@ package jaeik.bimillog.domain.member.out;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
-import jaeik.bimillog.domain.member.service.MemberQueryService;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.QMember;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
+import jaeik.bimillog.domain.member.service.MemberQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -33,7 +32,7 @@ import java.util.stream.Collectors;
  */
 @Component
 @RequiredArgsConstructor
-public class MemberQueryAdapter implements MemberQueryPort {
+public class MemberQueryAdapter {
 
     private final MemberRepository userRepository;
     private final SettingRepository settingRepository;
@@ -50,7 +49,6 @@ public class MemberQueryAdapter implements MemberQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional(readOnly = true)
     public Optional<Member> findById(Long id) {
         return userRepository.findById(id);
@@ -66,7 +64,6 @@ public class MemberQueryAdapter implements MemberQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional(readOnly = true)
     public Optional<Member> findByIdWithSetting(Long id) {
         Member result = jpaQueryFactory
@@ -88,7 +85,6 @@ public class MemberQueryAdapter implements MemberQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional(readOnly = true)
     public Optional<Member> findByProviderAndSocialId(SocialProvider provider, String socialId) {
         return userRepository.findByProviderAndSocialId(provider, socialId);
@@ -104,7 +100,6 @@ public class MemberQueryAdapter implements MemberQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional(readOnly = true)
     public boolean existsByMemberName(String memberName) {
         return userRepository.existsByMemberName(memberName);
@@ -120,7 +115,6 @@ public class MemberQueryAdapter implements MemberQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional(readOnly = true)
     public Optional<Member> findByMemberName(String memberName) {
         return userRepository.findByMemberName(memberName);
@@ -136,7 +130,6 @@ public class MemberQueryAdapter implements MemberQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional(readOnly = true)
     public Optional<Setting> findSettingById(Long settingId) {
         return settingRepository.findById(settingId);
@@ -153,7 +146,6 @@ public class MemberQueryAdapter implements MemberQueryPort {
      * @author jaeik
      * @since  2.0.0
      */
-    @Override
     @Transactional(readOnly = true)
     public List<String> findMemberNamesInOrder(List<String> socialIds) {
         if (socialIds == null || socialIds.isEmpty()) {
@@ -189,7 +181,6 @@ public class MemberQueryAdapter implements MemberQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional(readOnly = true)
     public Member getReferenceById(Long memberId) {
         return userRepository.getReferenceById(memberId);
@@ -203,7 +194,6 @@ public class MemberQueryAdapter implements MemberQueryPort {
      * @return Page<Member> 조회된 회원 페이지
      * @since 2.1.0
      */
-    @Override
     @Transactional(readOnly = true)
     public Page<Member> findAllMembers(Pageable pageable) {
         return userRepository.findAll(pageable);
@@ -219,7 +209,6 @@ public class MemberQueryAdapter implements MemberQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional(readOnly = true)
     public Map<Long, String> findMemberNamesByIds(List<Long> memberIds) {
         if (memberIds == null || memberIds.isEmpty()) {
@@ -251,7 +240,6 @@ public class MemberQueryAdapter implements MemberQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional(readOnly = true)
     public Page<String> findByPrefixMatch(String query, Pageable pageable) {
         BooleanExpression condition = member.memberName.startsWith(query);
@@ -285,7 +273,6 @@ public class MemberQueryAdapter implements MemberQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional(readOnly = true)
     public Page<String> findByPartialMatch(String query, Pageable pageable) {
         BooleanExpression condition = member.memberName.contains(query);
