@@ -1,12 +1,12 @@
 package jaeik.bimillog.domain.member.service;
 
-import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.exception.MemberCustomException;
 import jaeik.bimillog.domain.member.exception.MemberErrorCode;
 import jaeik.bimillog.domain.member.in.web.MemberQueryController;
+import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,12 +30,11 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class MemberQueryService {
 
-    private final MemberQueryPort memberQueryPort;
+    private final MemberQueryAdapter memberQueryPort;
 
     /**
      * <h3>ID로 사용자 조회</h3>
      * <p>사용자 ID를 사용하여 사용자를 조회합니다.</p>
-     * <p>{@link MemberQueryUseCase}에서 기본 사용자 조회 시 호출됩니다.</p>
      *
      * @param id 사용자의 고유 ID
      * @return Optional<Member> 조회된 사용자 객체. 존재하지 않으면 Optional.empty()
@@ -65,7 +64,6 @@ public class MemberQueryService {
     /**
      * <h3>닉네임으로 사용자 조회</h3>
      * <p>닉네임을 사용하여 사용자를 조회합니다.</p>
-     * <p>{@link MemberQueryUseCase}에서 닉네임 기반 사용자 조회 시 호출됩니다.</p>
      *
      * @param memberName 사용자 닉네임
      * @return Optional<Member> 조회된 사용자 객체. 존재하지 않으면 Optional.empty()
@@ -82,7 +80,6 @@ public class MemberQueryService {
      * <h3>ID로 사용자 프록시 조회</h3>
      * <p>실제 쿼리 없이 ID를 가진 사용자의 프록시(참조) 객체를 반환합니다.</p>
      * <p>JPA 연관 관계 설정 시 사용됩니다.</p>
-     * <p>{@link MemberQueryUseCase}에서 사용자 엔티티 참조 생성 시 호출됩니다.</p>
      *
      * @param memberId 사용자 ID
      * @return Member 프록시 객체

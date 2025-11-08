@@ -1,12 +1,12 @@
 package jaeik.bimillog.domain.member.service;
 
-import jaeik.bimillog.domain.member.application.port.out.MemberCommandPort;
-import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.exception.MemberCustomException;
 import jaeik.bimillog.domain.member.exception.MemberErrorCode;
 import jaeik.bimillog.domain.member.in.web.MemberCommandController;
+import jaeik.bimillog.domain.member.out.MemberCommandAdapter;
+import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -27,8 +27,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class MemberCommandService {
 
-    private final MemberQueryPort memberQueryPort;
-    private final MemberCommandPort memberCommandPort;
+    private final MemberQueryAdapter memberQueryPort;
+    private final MemberCommandAdapter memberCommandPort;
 
     /**
      * <h3>사용자 설정 수정</h3>

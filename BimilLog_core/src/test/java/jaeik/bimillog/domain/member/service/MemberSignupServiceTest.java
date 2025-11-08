@@ -11,13 +11,13 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalKakaoTokenCommandPort;
 import jaeik.bimillog.domain.global.entity.MemberDetail;
-import jaeik.bimillog.domain.member.application.port.out.RedisMemberDataPort;
-import jaeik.bimillog.domain.member.application.port.out.SaveMemberPort;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
+import jaeik.bimillog.domain.member.out.SaveMemberAdapter;
+import jaeik.bimillog.infrastructure.out.redis.RedisMemberDataAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
-import jaeik.bimillog.testutil.fixtures.TestFixtures;
 import jaeik.bimillog.testutil.TestMembers;
+import jaeik.bimillog.testutil.fixtures.TestFixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -45,8 +45,8 @@ import static org.mockito.Mockito.verify;
 @Tag("unit")
 class MemberSignupServiceTest extends BaseUnitTest {
 
-    @Mock private RedisMemberDataPort redisMemberDataPort;
-    @Mock private SaveMemberPort saveMemberPort;
+    @Mock private RedisMemberDataAdapter redisMemberDataPort;
+    @Mock private SaveMemberAdapter saveMemberPort;
     @Mock private GlobalCookiePort globalCookiePort;
     @Mock private GlobalJwtPort globalJwtPort;
     @Mock private GlobalAuthTokenSavePort globalAuthTokenSavePort;

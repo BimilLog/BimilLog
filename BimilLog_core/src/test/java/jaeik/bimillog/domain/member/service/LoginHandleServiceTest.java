@@ -2,12 +2,12 @@ package jaeik.bimillog.domain.member.service;
 
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.member.application.port.out.RedisMemberDataPort;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
+import jaeik.bimillog.infrastructure.out.redis.RedisMemberDataAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
-import jaeik.bimillog.testutil.fixtures.TestFixtures;
 import jaeik.bimillog.testutil.TestMembers;
+import jaeik.bimillog.testutil.fixtures.TestFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -27,7 +27,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 class LoginHandleServiceTest extends BaseUnitTest {
 
     @Mock
-    private RedisMemberDataPort redisMemberDataPort;
+    private RedisMemberDataAdapter redisMemberDataPort;
 
     @InjectMocks
     private HandleMemberLoginService loginHandleService;

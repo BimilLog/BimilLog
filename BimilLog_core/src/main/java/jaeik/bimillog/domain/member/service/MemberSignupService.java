@@ -5,18 +5,18 @@ import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
-import jaeik.bimillog.domain.member.exception.MemberCustomException;
-import jaeik.bimillog.domain.member.exception.MemberErrorCode;
 import jaeik.bimillog.domain.global.application.port.in.GlobalFcmSaveUseCase;
 import jaeik.bimillog.domain.global.application.port.out.GlobalAuthTokenSavePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalKakaoTokenCommandPort;
 import jaeik.bimillog.domain.global.entity.MemberDetail;
-import jaeik.bimillog.domain.member.application.port.out.RedisMemberDataPort;
-import jaeik.bimillog.domain.member.application.port.out.SaveMemberPort;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.Setting;
+import jaeik.bimillog.domain.member.exception.MemberCustomException;
+import jaeik.bimillog.domain.member.exception.MemberErrorCode;
+import jaeik.bimillog.domain.member.out.SaveMemberAdapter;
+import jaeik.bimillog.infrastructure.out.redis.RedisMemberDataAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseCookie;
@@ -38,8 +38,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class MemberSignupService {
 
-    private final RedisMemberDataPort redisMemberDataPort;
-    private final SaveMemberPort saveMemberPort;
+    private final RedisMemberDataAdapter redisMemberDataPort;
+    private final SaveMemberAdapter saveMemberPort;
     private final GlobalCookiePort globalCookiePort;
     private final GlobalJwtPort globalJwtPort;
     private final GlobalAuthTokenSavePort globalAuthTokenSavePort;

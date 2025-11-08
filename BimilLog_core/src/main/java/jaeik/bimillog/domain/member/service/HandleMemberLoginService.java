@@ -2,8 +2,8 @@ package jaeik.bimillog.domain.member.service;
 
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.member.application.port.out.RedisMemberDataPort;
 import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.infrastructure.out.redis.RedisMemberDataAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,7 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class HandleMemberLoginService {
 
-    private final RedisMemberDataPort redisMemberDataPort;
+    private final RedisMemberDataAdapter redisMemberDataPort;
 
     /**
      * <h3>기존 회원 정보 갱신</h3>

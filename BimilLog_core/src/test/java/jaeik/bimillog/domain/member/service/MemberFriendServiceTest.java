@@ -7,12 +7,12 @@ import jaeik.bimillog.domain.global.application.port.out.GlobalKakaoTokenQueryPo
 import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPort;
 import jaeik.bimillog.domain.global.application.strategy.SocialFriendStrategy;
 import jaeik.bimillog.domain.global.application.strategy.SocialPlatformStrategy;
-import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
 import jaeik.bimillog.domain.member.entity.KakaoFriends;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.exception.MemberCustomException;
 import jaeik.bimillog.domain.member.exception.MemberErrorCode;
+import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.TestMembers;
 import org.junit.jupiter.api.DisplayName;
@@ -41,7 +41,7 @@ class MemberFriendServiceTest extends BaseUnitTest {
     private static final Integer DEFAULT_LIMIT = 10;
 
     @Mock
-    private MemberQueryPort memberQueryPort;
+    private MemberQueryAdapter memberQueryPort;
 
     @Mock
     private GlobalKakaoTokenQueryPort globalKakaoTokenQueryPort;
