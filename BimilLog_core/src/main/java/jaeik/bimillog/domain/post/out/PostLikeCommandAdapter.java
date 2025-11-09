@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.post.out;
 
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.post.application.port.out.PostLikeCommandPort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +17,7 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 @RequiredArgsConstructor
-public class PostLikeCommandAdapter implements PostLikeCommandPort {
+public class PostLikeCommandAdapter {
     private final PostLikeRepository postLikeRepository;
 
     /**
@@ -30,7 +29,6 @@ public class PostLikeCommandAdapter implements PostLikeCommandPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public void savePostLike(PostLike postLike) {
         postLikeRepository.save(postLike);
     }
@@ -45,7 +43,6 @@ public class PostLikeCommandAdapter implements PostLikeCommandPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public void deletePostLike(Member member, Post post) {
         postLikeRepository.deleteByMemberAndPost(member, post);
     }
@@ -59,7 +56,6 @@ public class PostLikeCommandAdapter implements PostLikeCommandPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public void deletePostLikeByPostId(Long postId) {
         postLikeRepository.deleteAllByPostId(postId);
     }

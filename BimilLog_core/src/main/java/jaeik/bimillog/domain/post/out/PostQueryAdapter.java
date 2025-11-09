@@ -7,7 +7,6 @@ import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.comment.entity.QComment;
 import jaeik.bimillog.domain.member.entity.QMember;
-import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.service.PostQueryService;
 import jaeik.bimillog.domain.post.entity.*;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +38,7 @@ import java.util.function.Consumer;
 @Slf4j
 @Repository
 @RequiredArgsConstructor
-public class PostQueryAdapter implements PostQueryPort {
+public class PostQueryAdapter {
     private final JPAQueryFactory jpaQueryFactory;
     private final PostFulltextRepository postFullTextRepository;
     private final PostQueryHelper postQueryHelper;
@@ -57,7 +56,6 @@ public class PostQueryAdapter implements PostQueryPort {
      * @param memberId 게시글을 조회할 사용자 ID
      * @return List<Long> 사용자의 게시글 ID 목록
      */
-    @Override
     public List<Long> findPostIdsMemberId(Long memberId) {
         return postRepository.findIdsWithCacheFlagByMemberId(memberId);
     }
@@ -73,7 +71,6 @@ public class PostQueryAdapter implements PostQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public Page<PostSimpleDetail> findByPage(Pageable pageable) {
         Consumer<JPAQuery<?>> customizer = query -> query.where(post.isNotice.isFalse());
         return postQueryHelper.findPostsWithQuery(customizer, customizer, pageable);
@@ -90,7 +87,6 @@ public class PostQueryAdapter implements PostQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public Page<PostSimpleDetail> findPostsByMemberId(Long memberId, Pageable pageable) {
         Consumer<JPAQuery<?>> customizer = query -> query.where(member.id.eq(memberId));
         return postQueryHelper.findPostsWithQuery(customizer, customizer, pageable);
@@ -108,7 +104,6 @@ public class PostQueryAdapter implements PostQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public Page<PostSimpleDetail> findLikedPostsByMemberId(Long memberId, Pageable pageable) {
         // Content 쿼리: 추천한 게시글 조회 (postLike.createdAt 기준 정렬)
         List<PostSimpleDetail> content = jpaQueryFactory
@@ -151,7 +146,6 @@ public class PostQueryAdapter implements PostQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional(readOnly = true)
     public List<PostSimpleDetail> findWeeklyPopularPosts() {
         BooleanExpression weeklyCondition = post.createdAt.after(Instant.now().minus(7, ChronoUnit.DAYS));
@@ -181,7 +175,6 @@ public class PostQueryAdapter implements PostQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional(readOnly = true)
     public List<PostSimpleDetail> findLegendaryPosts() {
         Consumer<JPAQuery<?>> contentCustomizer = query -> query
@@ -209,7 +202,6 @@ public class PostQueryAdapter implements PostQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public Optional<PostDetail> findPostDetailWithCounts(Long postId, Long memberId) {
         QPostLike userPostLike = new QPostLike("userPostLike");
 
@@ -258,7 +250,6 @@ public class PostQueryAdapter implements PostQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public Page<PostSimpleDetail> findByFullTextSearch(PostSearchType type, String query, Pageable pageable) {
         String searchTerm = query + "*";
         try {
@@ -303,7 +294,6 @@ public class PostQueryAdapter implements PostQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public Page<PostSimpleDetail> findByPrefixMatch(PostSearchType type, String query, Pageable pageable) {
         BooleanExpression condition = switch (type) {
             case WRITER -> member.memberName.startsWith(query);
@@ -328,7 +318,6 @@ public class PostQueryAdapter implements PostQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public Page<PostSimpleDetail> findByPartialMatch(PostSearchType type, String query, Pageable pageable) {
         BooleanExpression condition = switch (type) {
             case TITLE -> post.title.contains(query);

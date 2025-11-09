@@ -1,12 +1,17 @@
 package jaeik.bimillog.domain.global.service;
 
-import jaeik.bimillog.domain.global.application.port.in.GlobalFcmSaveUseCase;
-import jaeik.bimillog.domain.global.application.port.out.GlobalFcmSavePort;
+import jaeik.bimillog.domain.global.out.GlobalFcmSaveAdapter;
+import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
+import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
+import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 /**
  * <h2>전역 FCM 토큰 저장 서비스</h2>
@@ -18,28 +23,34 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Service
 @RequiredArgsConstructor
-public class GlobalFcmSaveService implements GlobalFcmSaveUseCase {
+@Slf4j
+public class GlobalFcmSaveService {
 
-    private final GlobalFcmSavePort globalFcmSavePort;
+    private final GlobalFcmSaveAdapter globalFcmSaveAdapter;
+    private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
 
     /**
      * <h3>FCM 토큰 등록 처리</h3>
      * <p>클라이언트에서 전송한 FCM 토큰을 서버에 등록하여 푸시 알림 수신을 준비합니다.</p>
      * <p>소셜 로그인(기존 회원)·회원가입 완료 시 자동 등록에도 재사용되며, 중복 토큰은 무시합니다.</p>
      *
-     * @param member   사용자
      * @param fcmToken FCM 토큰 문자열 (Firebase SDK에서 생성)
-     * @return 저장된 FCM 토큰 엔티티의 ID (토큰이 없거나 빈 값인 경우 null)
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional
-    public Long registerFcmToken(Member member, String fcmToken) {
+    public void registerFcmToken(Long memberId, String fcmToken) {
+
         if (fcmToken == null || fcmToken.isEmpty()) {
-            return null;
+            throw new NotificationCustomException(NotificationErrorCode.NO_SEND_FCM_TOKEN);
         }
-        FcmToken savedToken = globalFcmSavePort.save(FcmToken.create(member, fcmToken));
-        return savedToken.getId();
+
+        Optional<Member> member = globalMemberQueryAdapter.findById(memberId);
+        if (member.isPresent()) {
+            FcmToken fcmTokenBuild = FcmToken.create(member.get(), fcmToken);
+            globalFcmSaveAdapter.save(fcmTokenBuild);
+        } else {
+            throw new NotificationCustomException(NotificationErrorCode.NO_MEMBER_FCM_TOKEN);
+        }
     }
 }

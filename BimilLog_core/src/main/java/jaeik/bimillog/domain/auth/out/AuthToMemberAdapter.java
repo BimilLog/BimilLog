@@ -66,22 +66,4 @@ public class AuthToMemberAdapter {
     public void handleNewUser(SocialMemberProfile memberProfile, String uuid) {
         handleMemberLoginService.handleNewMember(memberProfile, uuid);
     }
-
-    /**
-     * <h3>회원 존재 여부 조회</h3>
-     * <p>소셜 제공자와 소셜 ID로 기존 회원이 있는지 확인합니다.</p>
-     * <p>Member 도메인의 MemberQueryUseCase로 위임하여 처리합니다.</p>
-     *
-     * @param provider 소셜 플랫폼 제공자 (KAKAO 등)
-     * @param socialId 소셜 플랫폼에서 제공하는 고유 ID
-     * @return Optional&lt;Member&gt; 조회된 사용자 (존재하지 않으면 Optional.empty())
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public Optional<Member> checkMember(SocialProvider provider, String socialId) {
-        return memberQueryService.findByProviderAndSocialId(provider, socialId);
-    }
-
-
-
 }

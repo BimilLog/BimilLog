@@ -11,14 +11,14 @@ import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
 import jaeik.bimillog.domain.comment.exception.CommentCustomException;
 import jaeik.bimillog.domain.comment.exception.CommentErrorCode;
-import jaeik.bimillog.domain.global.application.port.out.GlobalCommentQueryPort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalMemberQueryPort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
+import jaeik.bimillog.domain.global.out.GlobalCommentQueryAdapter;
+import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
+import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.exception.MemberCustomException;
 import jaeik.bimillog.domain.member.exception.MemberErrorCode;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.comment.in.web.CommentCommandController;
+import jaeik.bimillog.domain.comment.controller.CommentCommandController;
 import jaeik.bimillog.domain.post.out.PostToCommentAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import lombok.RequiredArgsConstructor;
@@ -47,9 +47,9 @@ import java.util.List;
 public class CommentCommandService {
 
     private final ApplicationEventPublisher eventPublisher;
-    private final GlobalPostQueryPort globalPostQueryPort;
-    private final GlobalMemberQueryPort globalUserQueryPort;
-    private final GlobalCommentQueryPort globalCommentQueryPort;
+    private final GlobalPostQueryAdapter globalPostQueryAdapter;
+    private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
+    private final GlobalCommentQueryAdapter globalCommentQueryAdapter;
     private final CommentSaveAdapter commentSaveAdapter;
     private final CommentDeleteAdapter commentDeleteAdapter;
     private final CommentQueryAdapter commentQueryAdapter;
@@ -74,9 +74,9 @@ public class CommentCommandService {
     @Transactional
     public void writeComment(Long memberId, Long postId, Long parentId, String content, Integer password) {
         try {
-            Post post = globalPostQueryPort.findById(postId);
+            Post post = globalPostQueryAdapter.findById(postId);
 
-            Member member = memberId != null ? globalUserQueryPort.findById(memberId).orElse(null) : null;
+            Member member = memberId != null ? globalMemberQueryAdapter.findById(memberId).orElse(null) : null;
             String memberName = member != null ? member.getMemberName() : "익명";
 
             saveCommentWithClosure(post, member, content, password, parentId);
@@ -154,8 +154,8 @@ public class CommentCommandService {
      */
     @Transactional
     public void likeComment(Long memberId, Long commentId) {
-        Comment comment = globalCommentQueryPort.findById(commentId);
-        Member member = globalUserQueryPort.findById(memberId)
+        Comment comment = globalCommentQueryAdapter.findById(commentId);
+        Member member = globalMemberQueryAdapter.findById(memberId)
                 .orElseThrow(() -> new MemberCustomException(MemberErrorCode.USER_NOT_FOUND));
 
         if (commentLikeAdapter.isLikedByUser(commentId, memberId)) {
@@ -225,7 +225,7 @@ public class CommentCommandService {
      * @since 2.0.0
      */
     private Comment validateComment(Long commentId, Long memberId, Integer password) {
-        Comment comment = globalCommentQueryPort.findById(commentId);
+        Comment comment = globalCommentQueryAdapter.findById(commentId);
 
         if (!comment.canModify(memberId, password)) {
             throw new CommentCustomException(CommentErrorCode.COMMENT_UNAUTHORIZED);

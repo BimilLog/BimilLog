@@ -5,8 +5,8 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.SseMessage;
-import jaeik.bimillog.domain.notification.in.listener.NotificationGenerateListener;
-import jaeik.bimillog.domain.notification.in.web.NotificationSseController;
+import jaeik.bimillog.domain.notification.listener.NotificationGenerateListener;
+import jaeik.bimillog.domain.notification.controller.NotificationSseController;
 import jaeik.bimillog.domain.notification.out.SseAdapter;
 import jaeik.bimillog.domain.notification.out.UrlGeneratorAdapter;
 import lombok.RequiredArgsConstructor;

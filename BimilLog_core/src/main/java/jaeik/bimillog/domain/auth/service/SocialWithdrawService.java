@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
-import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPort;
-import jaeik.bimillog.domain.global.application.strategy.SocialPlatformStrategy;
+import jaeik.bimillog.domain.global.out.GlobalSocialStrategyAdapter;
+import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class SocialWithdrawService {
 
-    private final GlobalSocialStrategyPort strategyRegistryPort;
+    private final GlobalSocialStrategyAdapter globalSocialStrategyAdapter;
 
 
     /**
@@ -31,7 +31,7 @@ public class SocialWithdrawService {
     public void unlinkSocialAccount(SocialProvider provider, String socialId) {
         log.info("소셜 연결 해제 시작 - 제공자: {}, 소셜 ID: {}", provider, socialId);
 
-        SocialPlatformStrategy strategy = strategyRegistryPort.getStrategy(provider);
+        SocialPlatformStrategy strategy = globalSocialStrategyAdapter.getStrategy(provider);
         strategy.auth().unlink(socialId);
 
         log.info("소셜 연결 해제 완료 - 제공자: {}, 소셜 ID: {}", provider, socialId);

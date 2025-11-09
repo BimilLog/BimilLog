@@ -3,10 +3,10 @@ package jaeik.bimillog.domain.member.service;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
-import jaeik.bimillog.domain.global.application.port.out.GlobalKakaoTokenQueryPort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPort;
-import jaeik.bimillog.domain.global.application.strategy.SocialFriendStrategy;
-import jaeik.bimillog.domain.global.application.strategy.SocialPlatformStrategy;
+import jaeik.bimillog.domain.global.out.GlobalSocialStrategyAdapter;
+import jaeik.bimillog.domain.global.strategy.SocialFriendStrategy;
+import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
+import jaeik.bimillog.domain.global.out.GlobalKakaoTokenQueryAdapter;
 import jaeik.bimillog.domain.member.entity.KakaoFriends;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.exception.MemberCustomException;
@@ -34,8 +34,8 @@ import java.util.List;
 public class MemberFriendService {
 
     private final MemberQueryAdapter memberQueryPort;
-    private final GlobalKakaoTokenQueryPort globalKakaoTokenQueryPort;
-    private final GlobalSocialStrategyPort globalSocialStrategyPort;
+    private final GlobalKakaoTokenQueryAdapter globalKakaoTokenQueryAdapter;
+    private final GlobalSocialStrategyAdapter globalSocialStrategyAdapter;
 
     /**
      * <h3>카카오 친구 목록 조회</h3>
@@ -58,11 +58,11 @@ public class MemberFriendService {
 
         try {
             // 카카오 토큰 조회
-            KakaoToken kakaoToken = globalKakaoTokenQueryPort.findByMemberId(memberId)
+            KakaoToken kakaoToken = globalKakaoTokenQueryAdapter.findByMemberId(memberId)
                     .orElseThrow(() -> new AuthCustomException(AuthErrorCode.NOT_FIND_TOKEN));
 
             // 전략 조회
-            SocialPlatformStrategy platformStrategy = globalSocialStrategyPort.getStrategy(provider);
+            SocialPlatformStrategy platformStrategy = globalSocialStrategyAdapter.getStrategy(provider);
             SocialFriendStrategy friendStrategy = platformStrategy.friend()
                     .orElseThrow(() -> new MemberCustomException(MemberErrorCode.UNSUPPORTED_SOCIAL_FRIEND));
 

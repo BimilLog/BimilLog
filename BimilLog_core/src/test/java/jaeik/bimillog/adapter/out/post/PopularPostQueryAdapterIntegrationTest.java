@@ -1,7 +1,6 @@
 package jaeik.bimillog.adapter.out.post;
 
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.out.PostLikeRepository;
 import jaeik.bimillog.domain.post.out.PostRepository;

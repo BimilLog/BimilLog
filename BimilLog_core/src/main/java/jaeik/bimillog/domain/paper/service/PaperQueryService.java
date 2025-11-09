@@ -1,15 +1,15 @@
 package jaeik.bimillog.domain.paper.service;
 
-import jaeik.bimillog.domain.global.application.port.out.GlobalMemberQueryPort;
+import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.paper.application.port.out.PaperQueryPort;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.entity.MessageDetail;
 import jaeik.bimillog.domain.paper.entity.VisitMessageDetail;
 import jaeik.bimillog.domain.paper.event.PaperViewedEvent;
 import jaeik.bimillog.domain.paper.exception.PaperCustomException;
 import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
-import jaeik.bimillog.domain.paper.in.web.PaperQueryController;
+import jaeik.bimillog.domain.paper.controller.PaperQueryController;
+import jaeik.bimillog.domain.paper.out.PaperQueryAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -28,8 +28,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PaperQueryService {
 
-    private final PaperQueryPort paperQueryPort;
-    private final GlobalMemberQueryPort globalMemberQueryPort;
+    private final PaperQueryAdapter paperQueryAdapter;
+    private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
     private final ApplicationEventPublisher eventPublisher;
 
 
@@ -45,7 +45,7 @@ public class PaperQueryService {
      * @since 2.0.0
      */
     public List<MessageDetail> getMyPaper(Long memberId) {
-        List<Message> messages = paperQueryPort.findMessagesByUserId(memberId);
+        List<Message> messages = paperQueryAdapter.findMessagesByUserId(memberId);
         return messages.stream()
                 .map(MessageDetail::from)
                 .toList();
@@ -72,10 +72,10 @@ public class PaperQueryService {
         }
 
         // 사용자 존재 여부 확인 (존재하지 않으면 USERNAME_NOT_FOUND 예외 발생)
-        Member member = globalMemberQueryPort.findByMemberName(memberName)
+        Member member = globalMemberQueryAdapter.findByMemberName(memberName)
                 .orElseThrow(() -> new PaperCustomException(PaperErrorCode.USERNAME_NOT_FOUND));
 
-        List<Message> messages = paperQueryPort.findMessagesByMemberName(memberName);
+        List<Message> messages = paperQueryAdapter.findMessagesByMemberName(memberName);
 
         // 롤링페이퍼 조회 이벤트 발행 (실시간 인기 점수 증가)
         eventPublisher.publishEvent(new PaperViewedEvent(member.getId()));

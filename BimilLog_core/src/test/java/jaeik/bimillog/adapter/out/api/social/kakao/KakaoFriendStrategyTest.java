@@ -1,9 +1,9 @@
 package jaeik.bimillog.adapter.out.api.social.kakao;
 
 import jaeik.bimillog.domain.member.entity.KakaoFriends;
-import jaeik.bimillog.infrastructure.out.api.dto.KakaoFriendsDTO;
-import jaeik.bimillog.infrastructure.out.api.social.kakao.KakaoApiClient;
-import jaeik.bimillog.infrastructure.out.api.social.kakao.KakaoFriendStrategy;
+import jaeik.bimillog.infrastructure.api.dto.KakaoFriendsDTO;
+import jaeik.bimillog.infrastructure.api.social.kakao.KakaoApiClient;
+import jaeik.bimillog.infrastructure.api.social.kakao.KakaoFriendStrategy;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.builder.KakaoTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;

@@ -7,9 +7,9 @@ import org.springframework.stereotype.Service;
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.notification.in.listener.NotificationGenerateListener;
+import jaeik.bimillog.domain.notification.listener.NotificationGenerateListener;
 import jaeik.bimillog.domain.notification.out.NotificationUtilAdapter;
-import jaeik.bimillog.infrastructure.out.api.fcm.FcmAdapter;
+import jaeik.bimillog.infrastructure.api.fcm.FcmAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

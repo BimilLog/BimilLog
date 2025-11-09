@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.global.out;
 
 import jaeik.bimillog.domain.auth.entity.AuthToken;
-import jaeik.bimillog.domain.global.application.port.out.GlobalAuthTokenSavePort;
 import jaeik.bimillog.domain.auth.out.AuthTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -9,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * <h2>글로벌 AuthToken 저장 어댑터</h2>
- * <p>{@link GlobalAuthTokenSavePort}를 구현하여 JpaRepository에 저장/갱신을 위임합니다.</p>
  * <p>소셜 로그인, 회원가입, JWT 회전 등 다양한 진입점에서 동일 저장 로직을 재사용합니다.</p>
  *
  * @author Jaeik
@@ -17,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Component
 @RequiredArgsConstructor
-public class GlobalAuthTokenSaveAdapter implements GlobalAuthTokenSavePort {
+public class GlobalAuthTokenSaveAdapter {
 
     private final AuthTokenRepository authTokenRepository;
 
@@ -31,7 +29,6 @@ public class GlobalAuthTokenSaveAdapter implements GlobalAuthTokenSavePort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public AuthToken save(AuthToken authToken) {
         return authTokenRepository.save(authToken);
     }
@@ -46,7 +43,6 @@ public class GlobalAuthTokenSaveAdapter implements GlobalAuthTokenSavePort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional
     public void updateJwtRefreshToken(Long tokenId, String newJwtRefreshToken) {
         AuthToken authToken = authTokenRepository.findById(tokenId)

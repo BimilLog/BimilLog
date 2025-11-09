@@ -1,8 +1,7 @@
 package jaeik.bimillog.domain.global.out;
 
 import jaeik.bimillog.domain.auth.service.SocialLoginService;
-import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPort;
-import jaeik.bimillog.domain.global.application.strategy.SocialPlatformStrategy;
+import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -22,7 +21,7 @@ import java.util.Optional;
  */
 @Component
 @Slf4j
-public class GlobalSocialStrategyAdapter implements GlobalSocialStrategyPort {
+public class GlobalSocialStrategyAdapter {
 
     private final Map<SocialProvider, SocialPlatformStrategy> strategies;
 
@@ -54,7 +53,6 @@ public class GlobalSocialStrategyAdapter implements GlobalSocialStrategyPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public SocialPlatformStrategy getStrategy(SocialProvider provider) {
         return Optional.ofNullable(strategies.get(provider))
             .orElseThrow(() -> new IllegalArgumentException(

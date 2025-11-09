@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.paper.out;
 
-import jaeik.bimillog.domain.paper.application.port.out.PaperCommandPort;
 import jaeik.bimillog.domain.paper.service.PaperCommandService;
 import jaeik.bimillog.domain.paper.entity.Message;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +15,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class PaperCommandAdapter implements PaperCommandPort {
+public class PaperCommandAdapter {
 
     private final MessageRepository messageRepository;
 
@@ -31,7 +30,6 @@ public class PaperCommandAdapter implements PaperCommandPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public Message save(Message message) {
         return messageRepository.save(message);
     }
@@ -48,7 +46,6 @@ public class PaperCommandAdapter implements PaperCommandPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public void deleteMessage(Long memberId, Long messageId) {
         if (messageId != null) {
             messageRepository.deleteById(messageId);

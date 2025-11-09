@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.exception.MemberCustomException;
 import jaeik.bimillog.domain.member.exception.MemberErrorCode;
-import jaeik.bimillog.domain.member.in.web.MemberCommandController;
+import jaeik.bimillog.domain.member.controller.MemberCommandController;
 import jaeik.bimillog.domain.member.out.MemberCommandAdapter;
 import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
 import lombok.RequiredArgsConstructor;

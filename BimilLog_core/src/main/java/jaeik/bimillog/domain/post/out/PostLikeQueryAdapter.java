@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.post.out;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jaeik.bimillog.domain.post.application.port.out.PostLikeQueryPort;
 import jaeik.bimillog.domain.post.entity.QPostLike;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -22,7 +21,7 @@ import java.util.stream.Collectors;
  */
 @Repository
 @RequiredArgsConstructor
-public class PostLikeQueryAdapter implements PostLikeQueryPort {
+public class PostLikeQueryAdapter {
     private final JPAQueryFactory jpaQueryFactory;
     
     private static final QPostLike postLike = QPostLike.postLike;
@@ -37,7 +36,6 @@ public class PostLikeQueryAdapter implements PostLikeQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public Map<Long, Integer> findLikeCountsByPostIds(List<Long> postIds) {
         if (postIds == null || postIds.isEmpty()) {
             return Map.of();
@@ -76,7 +74,6 @@ public class PostLikeQueryAdapter implements PostLikeQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public boolean existsByPostIdAndUserId(Long postId, Long memberId) {
         Integer count = jpaQueryFactory
                 .selectOne()

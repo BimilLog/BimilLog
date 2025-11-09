@@ -1,12 +1,11 @@
 package jaeik.bimillog.domain.post.service;
 
-import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
-import jaeik.bimillog.domain.post.application.port.in.PostAdminUseCase;
-import jaeik.bimillog.domain.post.application.port.out.RedisPostDeletePort;
-import jaeik.bimillog.domain.post.application.port.out.RedisPostSavePort;
+import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostDeleteAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostSaveAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,11 +23,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class PostAdminService implements PostAdminUseCase {
+public class PostAdminService {
 
-    private final GlobalPostQueryPort globalPostQueryPort;
-    private final RedisPostSavePort redisPostSavePort;
-    private final RedisPostDeletePort redisPostDeletePort;
+    private final GlobalPostQueryAdapter globalPostQueryAdapter;
+    private final RedisPostSaveAdapter redisPostSaveAdapter;
+    private final RedisPostDeleteAdapter redisPostDeleteAdapter;
 
     /**
      * <h3>게시글 공지사항 상태 토글</h3>
@@ -40,19 +39,18 @@ public class PostAdminService implements PostAdminUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional
     public void togglePostNotice(Long postId) {
-        Post post = globalPostQueryPort.findById(postId);
+        Post post = globalPostQueryAdapter.findById(postId);
 
         if (post.isNotice()) {
             post.unsetAsNotice();
-            redisPostDeletePort.removePostIdFromStorage(postId);
-            redisPostDeletePort.removePostFromListCache(postId);
+            redisPostDeleteAdapter.removePostIdFromStorage(postId);
+            redisPostDeleteAdapter.removePostFromListCache(postId);
             log.info("공지사항 해제: postId={}, title={}", postId, post.getTitle());
         } else {
             post.setAsNotice();
-            redisPostSavePort.addPostIdToStorage(PostCacheFlag.NOTICE, postId);
+            redisPostSaveAdapter.addPostIdToStorage(PostCacheFlag.NOTICE, postId);
             log.info("공지사항 설정: postId={}, title={}", postId, post.getTitle());
         }
     }

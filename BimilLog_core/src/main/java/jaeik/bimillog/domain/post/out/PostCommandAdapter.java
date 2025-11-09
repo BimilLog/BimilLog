@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.post.out;
 
-import jaeik.bimillog.domain.post.application.port.out.PostCommandPort;
 import jaeik.bimillog.domain.post.service.PostCommandService;
 import jaeik.bimillog.domain.post.entity.Post;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +16,7 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 @RequiredArgsConstructor
-public class PostCommandAdapter implements PostCommandPort {
+public class PostCommandAdapter {
     private final PostRepository postRepository;
 
     /**
@@ -30,7 +29,6 @@ public class PostCommandAdapter implements PostCommandPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public Post create(Post post) {
         return postRepository.save(post);
     }
@@ -44,7 +42,6 @@ public class PostCommandAdapter implements PostCommandPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public void delete(Post post) {
         postRepository.delete(post);
     }
@@ -58,7 +55,6 @@ public class PostCommandAdapter implements PostCommandPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public void deleteAllByMemberId(Long memberId) {
         postRepository.deleteAllByMemberId(memberId);
     }
@@ -73,7 +69,6 @@ public class PostCommandAdapter implements PostCommandPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public void incrementViewByPostId(Long postId) {
         postRepository.incrementViewsByPostId(postId);
     }

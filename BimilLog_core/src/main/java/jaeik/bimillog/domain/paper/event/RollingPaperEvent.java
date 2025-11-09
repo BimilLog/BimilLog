@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.paper.event;
 
-import jaeik.bimillog.domain.notification.in.listener.NotificationGenerateListener;
+import jaeik.bimillog.domain.notification.listener.NotificationGenerateListener;
 
 /**
  * <h2>롤링페이퍼 메시지 작성 이벤트</h2>

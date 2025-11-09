@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.global.out;
 
-import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
@@ -19,7 +18,7 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 @RequiredArgsConstructor
-public class GlobalPostQueryAdapter implements GlobalPostQueryPort {
+public class GlobalPostQueryAdapter {
 
     private final PostRepository postRepository;
 
@@ -36,7 +35,6 @@ public class GlobalPostQueryAdapter implements GlobalPostQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public Post findById(Long id) {
         return postRepository.findById(id)
                 .orElseThrow(() -> new PostCustomException(PostErrorCode.POST_NOT_FOUND));

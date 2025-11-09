@@ -3,9 +3,9 @@ package jaeik.bimillog.domain.auth.service;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
-import jaeik.bimillog.domain.global.application.port.out.GlobalKakaoTokenQueryPort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPort;
-import jaeik.bimillog.domain.global.application.strategy.SocialPlatformStrategy;
+import jaeik.bimillog.domain.global.out.GlobalSocialStrategyAdapter;
+import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
+import jaeik.bimillog.domain.global.out.GlobalKakaoTokenQueryAdapter;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,8 +24,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class SocialLogoutService {
 
-    private final GlobalSocialStrategyPort strategyRegistry;
-    private final GlobalKakaoTokenQueryPort globalKakaoTokenQueryPort;
+    private final GlobalSocialStrategyAdapter globalSocialStrategyAdapter;
+    private final GlobalKakaoTokenQueryAdapter globalKakaoTokenQueryAdapter;
 
 
     /**
@@ -40,9 +40,9 @@ public class SocialLogoutService {
      * @since 2.0.0
      */
     public void socialLogout(Long memberId, SocialProvider provider) throws Exception {
-        KakaoToken kakaoToken = globalKakaoTokenQueryPort.findByMemberId(memberId)
+        KakaoToken kakaoToken = globalKakaoTokenQueryAdapter.findByMemberId(memberId)
                 .orElseThrow(() -> new AuthCustomException(AuthErrorCode.NOT_FIND_TOKEN));
-        SocialPlatformStrategy strategy = strategyRegistry.getStrategy(provider);
+        SocialPlatformStrategy strategy = globalSocialStrategyAdapter.getStrategy(provider);
         strategy.auth().logout(kakaoToken.getKakaoAccessToken());
     }
 
@@ -56,7 +56,7 @@ public class SocialLogoutService {
      * @since 2.0.0
      */
     public void forceLogout(String socialId, SocialProvider provider) {
-        SocialPlatformStrategy strategy = strategyRegistry.getStrategy(provider);
+        SocialPlatformStrategy strategy = globalSocialStrategyAdapter.getStrategy(provider);
         strategy.auth().forceLogout(socialId);
     }
 }

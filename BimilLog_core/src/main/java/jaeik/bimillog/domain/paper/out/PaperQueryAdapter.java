@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.paper.out;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jaeik.bimillog.domain.paper.application.port.out.PaperQueryPort;
 import jaeik.bimillog.domain.paper.service.PaperCommandService;
 import jaeik.bimillog.domain.paper.service.PaperQueryService;
 import jaeik.bimillog.domain.paper.entity.Message;
@@ -28,7 +27,7 @@ import java.util.stream.Collectors;
  */
 @Repository
 @RequiredArgsConstructor
-public class PaperQueryAdapter implements PaperQueryPort {
+public class PaperQueryAdapter {
 
     private final JPAQueryFactory jpaQueryFactory;
 
@@ -42,7 +41,6 @@ public class PaperQueryAdapter implements PaperQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public List<Message> findMessagesByUserId(Long memberId) {
         QMessage message = QMessage.message;
 
@@ -63,7 +61,6 @@ public class PaperQueryAdapter implements PaperQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public List<Message> findMessagesByMemberName(String memberName) {
         QMessage message = QMessage.message;
 
@@ -85,7 +82,6 @@ public class PaperQueryAdapter implements PaperQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public Optional<Long> findOwnerIdByMessageId(Long messageId) {
         QMessage message = QMessage.message;
 
@@ -107,7 +103,6 @@ public class PaperQueryAdapter implements PaperQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public void enrichPopularPaperInfos(List<PopularPaperInfo> infos) {
         if (infos == null || infos.isEmpty()) {
             return;

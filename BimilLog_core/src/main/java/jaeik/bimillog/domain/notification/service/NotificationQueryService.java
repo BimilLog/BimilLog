@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import jaeik.bimillog.domain.auth.out.CustomUserDetails;
 import jaeik.bimillog.domain.notification.entity.Notification;
-import jaeik.bimillog.domain.notification.in.web.NotificationQueryController;
+import jaeik.bimillog.domain.notification.controller.NotificationQueryController;
 import jaeik.bimillog.domain.notification.out.NotificationQueryAdapter;
 import lombok.RequiredArgsConstructor;
 

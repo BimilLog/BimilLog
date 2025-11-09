@@ -3,13 +3,13 @@ package jaeik.bimillog.domain.auth.service;
 import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.BlackList;
-import jaeik.bimillog.domain.global.application.port.out.GlobalAuthTokenQueryPort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
+import jaeik.bimillog.domain.global.out.GlobalAuthTokenQueryAdapter;
+import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.infrastructure.filter.JwtFilter;
-import jaeik.bimillog.domain.auth.out.BlacklistAdapter;
-import jaeik.bimillog.infrastructure.out.redis.RedisJwtBlacklistAdapter;
+import jaeik.bimillog.domain.global.out.GlobalBlacklistAdapter;
+import jaeik.bimillog.infrastructure.redis.RedisJwtBlacklistAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -36,10 +36,10 @@ public class BlacklistService {
 
     private static final Duration DEFAULT_TTL = Duration.ofHours(1);
 
-    private final GlobalJwtPort globalJwtPort;
+    private final GlobalJwtAdapter globalJwtAdapter;
     private final RedisJwtBlacklistAdapter redisJwtBlacklistAdapter;
-    private final GlobalAuthTokenQueryPort globalAuthTokenQueryPort;
-    private final BlacklistAdapter blacklistPort;
+    private final GlobalAuthTokenQueryAdapter globalAuthTokenQueryAdapter;
+    private final GlobalBlacklistAdapter blacklistPort;
 
     /**
      * <h3>JWT 토큰 블랙리스트 검증</h3>
@@ -54,7 +54,7 @@ public class BlacklistService {
      */
     public boolean isBlacklisted(String token) {
         try {
-            String tokenHash = globalJwtPort.generateTokenHash(token);
+            String tokenHash = globalJwtAdapter.generateTokenHash(token);
             boolean isBlacklisted = redisJwtBlacklistAdapter.isBlacklisted(tokenHash);
 
             if (isBlacklisted) {
@@ -80,7 +80,7 @@ public class BlacklistService {
      */
     public void blacklistAllUserTokens(Long memberId) {
         try {
-            List<AuthToken> userAuthTokens = globalAuthTokenQueryPort.findAllByMemberId(memberId);
+            List<AuthToken> userAuthTokens = globalAuthTokenQueryAdapter.findAllByMemberId(memberId);
 
             if (userAuthTokens.isEmpty()) {
                 log.info("사용자 {}의 활성 토큰을 찾을 수 없음", memberId);
@@ -92,7 +92,7 @@ public class BlacklistService {
                     .filter(token -> token.getRefreshToken() != null && !token.getRefreshToken().isEmpty())
                     .map(token -> {
                         try {
-                            return globalJwtPort.generateTokenHash(token.getRefreshToken());
+                            return globalJwtAdapter.generateTokenHash(token.getRefreshToken());
                         } catch (Exception e) {
                             log.warn("토큰 ID {}의 해시 생성 실패: {}", token.getId(), e.getMessage());
                             return null;

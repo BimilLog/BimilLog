@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.auth.service;
 
-import jaeik.bimillog.domain.global.application.port.out.GlobalKakaoTokenCommandPort;
+import jaeik.bimillog.domain.global.out.GlobalKakaoTokenCommandAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class KakaoTokenService {
 
-    private final GlobalKakaoTokenCommandPort globalKakaoTokenCommandPort;
+    private final GlobalKakaoTokenCommandAdapter globalKakaoTokenCommandAdapter;
 
     /**
      * <h3>사용자 ID로 카카오 토큰 삭제</h3>
@@ -28,6 +28,6 @@ public class KakaoTokenService {
      * @since 2.0.0
      */
     public void deleteByMemberId(Long memberId) {
-        globalKakaoTokenCommandPort.deleteByMemberId(memberId);
+        globalKakaoTokenCommandAdapter.deleteByMemberId(memberId);
     }
 }

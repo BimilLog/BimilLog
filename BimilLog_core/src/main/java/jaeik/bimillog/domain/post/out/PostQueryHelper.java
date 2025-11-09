@@ -4,8 +4,6 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.member.entity.QMember;
-import jaeik.bimillog.domain.post.application.port.out.PostLikeQueryPort;
-import jaeik.bimillog.domain.post.application.port.out.PostToCommentPort;
 import jaeik.bimillog.domain.post.entity.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -34,8 +32,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PostQueryHelper {
     private final JPAQueryFactory jpaQueryFactory;
-    private final PostToCommentPort postToCommentPort;
-    private final PostLikeQueryPort postLikeQueryPort;
+    private final PostToCommentAdapter postToCommentAdapter;
+    private final PostLikeQueryAdapter postLikeQueryAdapter;
 
     private static final QPost post = QPost.post;
     private static final QMember member = QMember.member;
@@ -112,8 +110,8 @@ public class PostQueryHelper {
                 .map(PostSimpleDetail::getId)
                 .toList();
 
-        Map<Long, Integer> commentCounts = postToCommentPort.findCommentCountsByPostIds(postIds);
-        Map<Long, Integer> likeCounts = postLikeQueryPort.findLikeCountsByPostIds(postIds);
+        Map<Long, Integer> commentCounts = postToCommentAdapter.findCommentCountsByPostIds(postIds);
+        Map<Long, Integer> likeCounts = postLikeQueryAdapter.findLikeCountsByPostIds(postIds);
 
         posts.forEach(post -> {
             post.setCommentCount(commentCounts.getOrDefault(post.getId(), 0));

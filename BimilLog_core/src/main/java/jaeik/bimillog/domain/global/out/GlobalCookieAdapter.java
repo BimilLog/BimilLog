@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.global.out;
 
-import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
@@ -18,7 +17,7 @@ import java.util.List;
  */
 @Component
 @RequiredArgsConstructor
-public class GlobalCookieAdapter implements GlobalCookiePort {
+public class GlobalCookieAdapter {
     public static final String ACCESS_TOKEN_COOKIE = "jwt_access_token";
     public static final String REFRESH_TOKEN_COOKIE = "jwt_refresh_token";
     public static final String TEMP_USER_ID_COOKIE = "temp_user_id";
@@ -35,7 +34,6 @@ public class GlobalCookieAdapter implements GlobalCookiePort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public ResponseCookie createTempCookie(String uuid) {
         return ResponseCookie.from(TEMP_USER_ID_COOKIE, uuid)
                 .path("/")
@@ -57,7 +55,6 @@ public class GlobalCookieAdapter implements GlobalCookiePort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public List<ResponseCookie> generateJwtCookie(String accessToken, String refreshToken) {
         return List.of(generateJwtAccessCookie(accessToken), generateJwtRefreshCookie(refreshToken));
     }
@@ -71,7 +68,6 @@ public class GlobalCookieAdapter implements GlobalCookiePort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public List<ResponseCookie> getLogoutCookies() {
         ResponseCookie accessTokenCookie = ResponseCookie.from(ACCESS_TOKEN_COOKIE, "")
                 .path("/")
@@ -101,7 +97,6 @@ public class GlobalCookieAdapter implements GlobalCookiePort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public ResponseCookie generateJwtAccessCookie(String accessToken) {
         return ResponseCookie.from(ACCESS_TOKEN_COOKIE, accessToken)
                 .path("/")
@@ -121,7 +116,6 @@ public class GlobalCookieAdapter implements GlobalCookiePort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public ResponseCookie generateJwtRefreshCookie(String refreshToken) {
         return ResponseCookie.from(REFRESH_TOKEN_COOKIE, refreshToken)
                 .path("/")
@@ -138,7 +132,6 @@ public class GlobalCookieAdapter implements GlobalCookiePort {
      *
      * @return 만료 처리된 임시 쿠키 ResponseCookie
      */
-    @Override
     public ResponseCookie expireTempCookie() {
         return ResponseCookie.from(TEMP_USER_ID_COOKIE, "")
                 .path("/")

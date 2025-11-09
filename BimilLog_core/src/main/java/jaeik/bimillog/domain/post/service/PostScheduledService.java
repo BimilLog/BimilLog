@@ -1,12 +1,12 @@
 package jaeik.bimillog.domain.post.service;
 
-import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
-import jaeik.bimillog.domain.post.application.port.out.RedisPostDeletePort;
-import jaeik.bimillog.domain.post.application.port.out.RedisPostSavePort;
-import jaeik.bimillog.domain.post.application.port.out.RedisPostUpdatePort;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
+import jaeik.bimillog.domain.post.out.PostQueryAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostDeleteAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostSaveAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -29,11 +29,11 @@ import java.util.List;
 @Slf4j
 public class PostScheduledService {
 
-    private final RedisPostSavePort redisPostSavePort;
-    private final RedisPostUpdatePort redisPostUpdatePort;
-    private final RedisPostDeletePort redisPostDeletePort;
+    private final RedisPostSaveAdapter redisPostSaveAdapter;
+    private final RedisPostUpdateAdapter redisPostUpdateAdapter;
+    private final RedisPostDeleteAdapter redisPostDeleteAdapter;
     private final ApplicationEventPublisher eventPublisher;
-    private final PostQueryPort postQueryPort;
+    private final PostQueryAdapter postQueryAdapter;
 
     /**
      * <h3>실시간 인기 게시글 점수 지수감쇠 적용</h3>
@@ -46,7 +46,7 @@ public class PostScheduledService {
     @Scheduled(fixedRate = 60000 * 5) // 5분마다
     public void applyRealtimeScoreDecay() {
         try {
-            redisPostUpdatePort.applyRealtimePopularScoreDecay();
+            redisPostUpdateAdapter.applyRealtimePopularScoreDecay();
             log.info("실시간 인기글 점수 지수감쇠 적용 완료 (0.97 곱하기, 1점 이하 제거)");
         } catch (Exception e) {
             log.error("실시간 인기글 점수 지수감쇠 적용 실패", e);
@@ -65,7 +65,7 @@ public class PostScheduledService {
     @Scheduled(fixedRate = 60000 * 1440) // 1일마다
     @Transactional
     public void updateWeeklyPopularPosts() {
-        List<PostSimpleDetail> posts = postQueryPort.findWeeklyPopularPosts();
+        List<PostSimpleDetail> posts = postQueryAdapter.findWeeklyPopularPosts();
 
         if (posts.isEmpty()) {
             log.info("WEEKLY에 대한 인기 게시글이 없어 캐시 업데이트를 건너뜁니다.");
@@ -74,9 +74,9 @@ public class PostScheduledService {
 
         List<Long> postIds = posts.stream().map(PostSimpleDetail::getId).toList();
 
-        redisPostDeletePort.clearPostListCache(PostCacheFlag.WEEKLY);
-        redisPostSavePort.cachePostIdsOnly(PostCacheFlag.WEEKLY, postIds);
-        redisPostSavePort.cachePostList(PostCacheFlag.WEEKLY, posts);
+        redisPostDeleteAdapter.clearPostListCache(PostCacheFlag.WEEKLY);
+        redisPostSaveAdapter.cachePostIdsOnly(PostCacheFlag.WEEKLY, postIds);
+        redisPostSaveAdapter.cachePostList(PostCacheFlag.WEEKLY, posts);
 
         log.info("WEEKLY 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
 
@@ -97,7 +97,7 @@ public class PostScheduledService {
     @Scheduled(fixedRate = 60000 * 1440) // 1일마다
     @Transactional
     public void updateLegendaryPosts() {
-        List<PostSimpleDetail> posts = postQueryPort.findLegendaryPosts();
+        List<PostSimpleDetail> posts = postQueryAdapter.findLegendaryPosts();
 
         if (posts.isEmpty()) {
             log.info("LEGEND에 대한 인기 게시글이 없어 캐시 업데이트를 건너뜁니다.");
@@ -106,9 +106,9 @@ public class PostScheduledService {
 
         List<Long> postIds = posts.stream().map(PostSimpleDetail::getId).toList();
 
-        redisPostDeletePort.clearPostListCache(PostCacheFlag.LEGEND);
-        redisPostSavePort.cachePostIdsOnly(PostCacheFlag.LEGEND, postIds);
-        redisPostSavePort.cachePostList(PostCacheFlag.LEGEND, posts);
+        redisPostDeleteAdapter.clearPostListCache(PostCacheFlag.LEGEND);
+        redisPostSaveAdapter.cachePostIdsOnly(PostCacheFlag.LEGEND, postIds);
+        redisPostSaveAdapter.cachePostList(PostCacheFlag.LEGEND, posts);
 
         log.info("LEGEND 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
 

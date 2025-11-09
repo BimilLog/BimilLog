@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
-import jaeik.bimillog.infrastructure.out.redis.RedisMemberDataAdapter;
+import jaeik.bimillog.infrastructure.redis.RedisMemberDataAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.fixtures.TestFixtures;

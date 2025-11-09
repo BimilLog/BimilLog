@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { authCommand } from "@/lib/api";
+import { authCommand, notificationCommand } from "@/lib/api";
 import { logger } from "@/lib/utils/logger";
 
 /**
@@ -56,9 +56,19 @@ export const useKakaoCallback = () => {
 
         // Authorization Code를 백엔드로 전송하여 JWT 토큰 받기
         // 저장된 FCM 토큰이 있으면 함께 전달
-        const response = await authCommand.kakaoLogin(code, savedFcmToken || undefined);
+        const response = await authCommand.kakaoLogin(code);
 
         if (response.success && response.data) {
+          if (savedFcmToken) {
+            try {
+              const registerResult = await notificationCommand.registerFcmToken(savedFcmToken);
+              if (!registerResult.success) {
+                logger.warn("FCM 토큰 등록 실패:", registerResult.error);
+              }
+            } catch (registerError) {
+              logger.warn("FCM 토큰 등록 중 오류:", registerError);
+            }
+          }
           setLoadingStep(isFriendsConsentFlow ? "권한 업데이트 완료!" : "로그인 완료!");
 
           // 친구 동의 플로우인 경우

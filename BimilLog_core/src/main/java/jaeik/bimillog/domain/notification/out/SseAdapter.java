@@ -15,8 +15,8 @@ import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.SseMessage;
 import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
 import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
-import jaeik.bimillog.domain.notification.in.listener.NotificationGenerateListener;
-import jaeik.bimillog.domain.notification.in.web.NotificationSseController;
+import jaeik.bimillog.domain.notification.listener.NotificationGenerateListener;
+import jaeik.bimillog.domain.notification.controller.NotificationSseController;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 

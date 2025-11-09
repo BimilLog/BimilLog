@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.paper.out;
 
 import jaeik.bimillog.domain.member.service.MemberQueryService;
-import jaeik.bimillog.domain.paper.application.port.out.PaperToMemberPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +18,7 @@ import java.util.Map;
  */
 @Component
 @RequiredArgsConstructor
-public class PaperToMemberAdapter implements PaperToMemberPort {
+public class PaperToMemberAdapter {
 
     private final MemberQueryService memberQueryService;
 
@@ -32,7 +31,6 @@ public class PaperToMemberAdapter implements PaperToMemberPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public Map<Long, String> findMemberNamesByIds(List<Long> memberIds) {
         return memberQueryService.findMemberNamesByIds(memberIds);
     }

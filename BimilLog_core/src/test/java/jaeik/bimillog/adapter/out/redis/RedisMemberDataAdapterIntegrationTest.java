@@ -2,7 +2,7 @@ package jaeik.bimillog.adapter.out.redis;
 
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
-import jaeik.bimillog.infrastructure.out.redis.RedisMemberDataAdapter;
+import jaeik.bimillog.infrastructure.redis.RedisMemberDataAdapter;
 import jaeik.bimillog.testutil.RedisTestHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

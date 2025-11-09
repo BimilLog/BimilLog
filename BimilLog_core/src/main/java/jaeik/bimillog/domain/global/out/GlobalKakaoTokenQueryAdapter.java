@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.global.out;
 
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
-import jaeik.bimillog.domain.global.application.port.out.GlobalKakaoTokenQueryPort;
 import jaeik.bimillog.domain.auth.out.KakaoTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -19,7 +18,7 @@ import java.util.Optional;
  */
 @Component
 @RequiredArgsConstructor
-public class GlobalKakaoTokenQueryAdapter implements GlobalKakaoTokenQueryPort {
+public class GlobalKakaoTokenQueryAdapter {
 
     private final KakaoTokenRepository kakaoTokenRepository;
 
@@ -33,7 +32,6 @@ public class GlobalKakaoTokenQueryAdapter implements GlobalKakaoTokenQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public Optional<KakaoToken> findByMemberId(Long memberId) {
         return kakaoTokenRepository.findByMemberId(memberId);
     }

@@ -11,7 +11,6 @@ export type SocialProvider = "KAKAO" | "GOOGLE" | "NAVER";
 export interface SocialLoginRequest {
   provider: SocialProvider;
   code: string;
-  fcmToken?: string;
   redirectUri?: string;
 }
 

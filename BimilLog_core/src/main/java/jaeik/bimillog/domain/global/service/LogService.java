@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.global.service;
 
-import jaeik.bimillog.domain.global.in.dto.ClientErrorLogDTO;
+import jaeik.bimillog.domain.global.dto.ClientErrorLogDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

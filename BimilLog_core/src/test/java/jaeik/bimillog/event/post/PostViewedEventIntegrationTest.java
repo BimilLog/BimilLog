@@ -1,6 +1,5 @@
 package jaeik.bimillog.event.post;
 
-import jaeik.bimillog.domain.post.application.port.in.PostInteractionUseCase;
 import jaeik.bimillog.domain.post.application.port.out.RedisPostUpdatePort;
 import jaeik.bimillog.domain.post.event.PostViewedEvent;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;

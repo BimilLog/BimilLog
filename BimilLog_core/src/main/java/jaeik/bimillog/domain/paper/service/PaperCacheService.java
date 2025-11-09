@@ -1,10 +1,10 @@
 package jaeik.bimillog.domain.paper.service;
 
-import jaeik.bimillog.domain.paper.application.port.out.PaperQueryPort;
-import jaeik.bimillog.domain.paper.application.port.out.PaperToMemberPort;
-import jaeik.bimillog.domain.paper.application.port.out.RedisPaperQueryPort;
 import jaeik.bimillog.domain.paper.entity.PopularPaperInfo;
+import jaeik.bimillog.domain.paper.out.PaperQueryAdapter;
+import jaeik.bimillog.domain.paper.out.PaperToMemberAdapter;
 import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
+import jaeik.bimillog.infrastructure.redis.paper.RedisPaperQueryAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static jaeik.bimillog.infrastructure.out.redis.paper.RedisPaperKeys.REALTIME_PAPER_SCORE_KEY;
+import static jaeik.bimillog.infrastructure.redis.paper.RedisPaperKeys.REALTIME_PAPER_SCORE_KEY;
 
 /**
  * <h2>롤링페이퍼 캐시 서비스</h2>
@@ -33,9 +33,9 @@ import static jaeik.bimillog.infrastructure.out.redis.paper.RedisPaperKeys.REALT
 @Slf4j
 public class PaperCacheService {
 
-    private final RedisPaperQueryPort redisPaperQueryPort;
-    private final PaperQueryPort paperQueryPort;
-    private final PaperToMemberPort paperToMemberPort;
+    private final RedisPaperQueryAdapter redisPaperQueryAdapter;
+    private final PaperQueryAdapter paperQueryAdapter;
+    private final PaperToMemberAdapter paperToMemberAdapter;
     private final RedisTemplate<String, Object> redisTemplate;
 
     /**
@@ -63,7 +63,7 @@ public class PaperCacheService {
         CacheMetricsLogger.hit(log, "paper:realtime:zcard", REALTIME_PAPER_SCORE_KEY, total);
 
         // 3. Redis에서 지정된 범위로 조회 (memberId, rank, popularityScore)
-        List<PopularPaperInfo> popularPapers = redisPaperQueryPort
+        List<PopularPaperInfo> popularPapers = redisPaperQueryAdapter
                 .getRealtimePopularPapersWithRankAndScore(start, end);
 
         if (popularPapers.isEmpty()) {
@@ -77,14 +77,14 @@ public class PaperCacheService {
                 .map(PopularPaperInfo::getMemberId)
                 .collect(Collectors.toList());
 
-        Map<Long, String> memberNameMap = paperToMemberPort.findMemberNamesByIds(memberIds);
+        Map<Long, String> memberNameMap = paperToMemberAdapter.findMemberNamesByIds(memberIds);
 
         popularPapers.forEach(info ->
                 info.setMemberName(memberNameMap.getOrDefault(info.getMemberId(), ""))
         );
 
         // 5. DB에서 24시간 이내 메시지 수 조회 후 채우기
-        paperQueryPort.enrichPopularPaperInfos(popularPapers);
+        paperQueryAdapter.enrichPopularPaperInfos(popularPapers);
 
         // 6. 페이징 정보와 함께 Page로 변환하여 반환
         return new PageImpl<>(popularPapers, pageable, total);

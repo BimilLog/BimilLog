@@ -2,7 +2,7 @@ package jaeik.bimillog.adapter.in.paper;
 
 import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.entity.Message;
-import jaeik.bimillog.domain.paper.in.dto.MessageDTO;
+import jaeik.bimillog.domain.paper.dto.MessageDTO;
 import jaeik.bimillog.domain.paper.out.MessageRepository;
 import jaeik.bimillog.testutil.*;
 import jaeik.bimillog.testutil.builder.PaperTestDataBuilder;

@@ -1,12 +1,10 @@
 package jaeik.bimillog.testutil.config;
 
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPort;
-import jaeik.bimillog.domain.global.application.strategy.SocialAuthStrategy;
-import jaeik.bimillog.domain.global.application.strategy.SocialFriendStrategy;
-import jaeik.bimillog.domain.global.application.strategy.SocialPlatformStrategy;
+import jaeik.bimillog.domain.global.strategy.SocialAuthStrategy;
+import jaeik.bimillog.domain.global.strategy.SocialFriendStrategy;
+import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
 import jaeik.bimillog.domain.global.entity.MemberDetail;
 import jaeik.bimillog.domain.member.entity.KakaoFriends;
 import jaeik.bimillog.domain.member.entity.SocialProvider;

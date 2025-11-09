@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from "flowbite-react";
 import { Bell, BellOff, AlertCircle } from "lucide-react";
 import { fcmManager } from "@/lib/auth/fcm";
@@ -10,8 +10,8 @@ import { useToastStore } from "@/stores/toast.store";
 interface NotificationPermissionModalProps {
   show: boolean;
   onClose: () => void;
-  onSuccess?: (token: string) => void;
-  onSkip?: () => void;
+  onSuccess?: (token: string) => void | Promise<void>;
+  onSkip?: () => void | Promise<void>;
 }
 
 const NOTIFICATION_SKIP_KEY = "notification_permission_skipped";
@@ -27,6 +27,9 @@ export function NotificationPermissionModal({
   const { showInfo, showError } = useToastStore();
 
   const handleEnableNotifications = async () => {
+    if (isRequesting) {
+      return;
+    }
     setIsRequesting(true);
     try {
       const result = await fcmManager.getToken();
@@ -37,7 +40,8 @@ export function NotificationPermissionModal({
         if (typeof window !== "undefined") {
           localStorage.removeItem(NOTIFICATION_SKIP_KEY);
         }
-        onSuccess?.(result.token);
+        Promise.resolve(onSuccess?.(result.token))
+          .catch(error => logger.error("알림 토큰 후속 처리 오류:", error));
         onClose();
       } else {
         logger.error("FCM 토큰 획득 실패:", result.error);
@@ -56,14 +60,16 @@ export function NotificationPermissionModal({
     }
   };
 
-  const handleSkip = () => {
+  const handleSkip = async () => {
     // localStorage에 스킵 기록 저장 (7일 후 다시 표시)
     if (typeof window !== "undefined") {
       const skipUntil = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7일
       localStorage.setItem(NOTIFICATION_SKIP_KEY, skipUntil.toString());
     }
     showInfo("나중에 설정", "설정 페이지에서 언제든 알림을 활성화할 수 있습니다", 3000);
-    onSkip?.();
+    if (onSkip) {
+      await onSkip();
+    }
     onClose();
   };
 

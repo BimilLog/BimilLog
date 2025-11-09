@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.global.out;
 
 import jaeik.bimillog.domain.auth.entity.AuthToken;
-import jaeik.bimillog.domain.global.application.port.out.GlobalAuthTokenQueryPort;
 import jaeik.bimillog.domain.auth.out.AuthTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -20,7 +19,7 @@ import java.util.Optional;
  */
 @Component
 @RequiredArgsConstructor
-public class GlobalAuthTokenQueryAdapter implements GlobalAuthTokenQueryPort {
+public class GlobalAuthTokenQueryAdapter {
 
     private final AuthTokenRepository authTokenRepository;
 
@@ -34,7 +33,6 @@ public class GlobalAuthTokenQueryAdapter implements GlobalAuthTokenQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public Optional<AuthToken> findById(Long tokenId) {
         return authTokenRepository.findById(tokenId);
     }
@@ -49,7 +47,6 @@ public class GlobalAuthTokenQueryAdapter implements GlobalAuthTokenQueryPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public List<AuthToken> findAllByMemberId(Long memberId) {
         return authTokenRepository.findByMemberId(memberId);
     }

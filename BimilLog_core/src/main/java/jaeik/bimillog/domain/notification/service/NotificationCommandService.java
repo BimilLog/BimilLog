@@ -3,10 +3,10 @@ package jaeik.bimillog.domain.notification.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import jaeik.bimillog.domain.global.in.listener.MemberWithdrawListener;
+import jaeik.bimillog.domain.global.listener.MemberWithdrawListener;
 import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
 import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
-import jaeik.bimillog.domain.notification.in.web.NotificationCommandController;
+import jaeik.bimillog.domain.notification.controller.NotificationCommandController;
 import jaeik.bimillog.domain.notification.out.NotificationCommandAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

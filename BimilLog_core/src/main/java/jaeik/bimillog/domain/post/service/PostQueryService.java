@@ -1,19 +1,18 @@
 package jaeik.bimillog.domain.post.service;
 
 
-import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
-import jaeik.bimillog.domain.post.application.port.in.PostQueryUseCase;
-import jaeik.bimillog.domain.post.application.port.out.PostLikeQueryPort;
-import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
-import jaeik.bimillog.domain.post.application.port.out.RedisPostSavePort;
-import jaeik.bimillog.domain.post.application.port.out.RedisPostQueryPort;
+import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
-import jaeik.bimillog.domain.post.in.web.PostQueryController;
+import jaeik.bimillog.domain.post.controller.PostQueryController;
+import jaeik.bimillog.domain.post.out.PostLikeQueryAdapter;
+import jaeik.bimillog.domain.post.out.PostQueryAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostQueryAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostSaveAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,13 +30,13 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @RequiredArgsConstructor
-public class PostQueryService implements PostQueryUseCase {
+public class PostQueryService {
 
-    private final PostQueryPort postQueryPort;
-    private final GlobalPostQueryPort globalPostQueryPort;
-    private final PostLikeQueryPort postLikeQueryPort;
-    private final RedisPostQueryPort redisPostQueryPort;
-    private final RedisPostSavePort redisPostSavePort;
+    private final PostQueryAdapter postQueryAdapter;
+    private final GlobalPostQueryAdapter globalPostQueryAdapter;
+    private final PostLikeQueryAdapter postLikeQueryAdapter;
+    private final RedisPostQueryAdapter redisPostQueryAdapter;
+    private final RedisPostSaveAdapter redisPostSaveAdapter;
 
     /**
      * <h3>게시판 목록 조회</h3>
@@ -50,9 +49,8 @@ public class PostQueryService implements PostQueryUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public Page<PostSimpleDetail> getBoard(Pageable pageable) {
-        return postQueryPort.findByPage(pageable);
+        return postQueryAdapter.findByPage(pageable);
     }
 
 
@@ -70,23 +68,22 @@ public class PostQueryService implements PostQueryUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public PostDetail getPost(Long postId, Long memberId) {
         // 1. 캐시 확인 (Cache-Aside Read)
-        PostDetail cachedPost = redisPostQueryPort.getCachedPostIfExists(postId);
+        PostDetail cachedPost = redisPostQueryAdapter.getCachedPostIfExists(postId);
         if (cachedPost != null) {
              // 캐시 히트: 사용자 좋아요 정보만 추가 확인
              if (memberId != null) {
-                 boolean isLiked = postLikeQueryPort.existsByPostIdAndUserId(postId, memberId);
+                 boolean isLiked = postLikeQueryAdapter.existsByPostIdAndUserId(postId, memberId);
                  return cachedPost.withIsLiked(isLiked);
              }
             return cachedPost;
         }
 
         // 2. 캐시 미스: DB 조회 후 캐시 저장
-        PostDetail postDetail = postQueryPort.findPostDetailWithCounts(postId, memberId)
+        PostDetail postDetail = postQueryAdapter.findPostDetailWithCounts(postId, memberId)
                 .orElseThrow(() -> new PostCustomException(PostErrorCode.POST_NOT_FOUND));
-        redisPostSavePort.cachePostDetail(postDetail);
+        redisPostSaveAdapter.cachePostDetail(postDetail);
         return postDetail;
     }
 
@@ -99,9 +96,8 @@ public class PostQueryService implements PostQueryUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public Post findById(Long postId) {
-        return globalPostQueryPort.findById(postId);
+        return globalPostQueryAdapter.findById(postId);
     }
 
     /**
@@ -114,9 +110,8 @@ public class PostQueryService implements PostQueryUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public Page<PostSimpleDetail> getMemberPosts(Long memberId, Pageable pageable) {
-        return postQueryPort.findPostsByMemberId(memberId, pageable);
+        return postQueryAdapter.findPostsByMemberId(memberId, pageable);
     }
 
     /**
@@ -129,9 +124,8 @@ public class PostQueryService implements PostQueryUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public Page<PostSimpleDetail> getMemberLikedPosts(Long memberId, Pageable pageable) {
-        return postQueryPort.findLikedPostsByMemberId(memberId, pageable);
+        return postQueryAdapter.findLikedPostsByMemberId(memberId, pageable);
     }
 
     /**
@@ -152,19 +146,18 @@ public class PostQueryService implements PostQueryUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public Page<PostSimpleDetail> searchPost(PostSearchType type, String query, Pageable pageable) {
         // 전략 1: 3글자 이상 + 작성자 검색 아님 → 전문 검색 시도
         if (query.length() >= 3 && type != PostSearchType.WRITER) {
-            return postQueryPort.findByFullTextSearch(type, query, pageable);
+            return postQueryAdapter.findByFullTextSearch(type, query, pageable);
         }
 
         // 전략 2: 작성자 검색 + 4글자 이상 → 접두사 검색 (인덱스 활용)
         if (type == PostSearchType.WRITER && query.length() >= 4) {
-            return postQueryPort.findByPrefixMatch(type, query, pageable);
+            return postQueryAdapter.findByPrefixMatch(type, query, pageable);
         }
 
         // 전략 3: 그 외 → 부분 검색
-        return postQueryPort.findByPartialMatch(type, query, pageable);
+        return postQueryAdapter.findByPartialMatch(type, query, pageable);
     }
 }

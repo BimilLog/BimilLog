@@ -3,7 +3,6 @@ package jaeik.bimillog.domain.global.out;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.global.entity.MemberDetail;
 import jaeik.bimillog.domain.member.entity.MemberRole;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
@@ -27,7 +26,7 @@ import java.util.Date;
  */
 @Component
 @RequiredArgsConstructor
-public class GlobalJwtAdapter implements GlobalJwtPort {
+public class GlobalJwtAdapter {
 
     @Value("${jwt.secret}")
     private String secretKey;
@@ -205,7 +204,6 @@ public class GlobalJwtAdapter implements GlobalJwtPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public String generateTokenHash(String token) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");

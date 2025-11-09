@@ -1,14 +1,13 @@
 package jaeik.bimillog.domain.post.service;
 
-import jaeik.bimillog.domain.post.application.port.in.PostCacheUseCase;
-import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
-import jaeik.bimillog.domain.post.application.port.out.RedisPostSavePort;
-import jaeik.bimillog.domain.post.application.port.out.RedisPostQueryPort;
-import jaeik.bimillog.domain.post.application.port.out.RedisPostUpdatePort;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
+import jaeik.bimillog.domain.post.out.PostQueryAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostQueryAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostSaveAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -35,7 +34,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class PostCacheService implements PostCacheUseCase {
+public class PostCacheService {
 
     // ===================== 상수 =====================
 
@@ -53,10 +52,10 @@ public class PostCacheService implements PostCacheUseCase {
 
     // ===================== 의존성 =====================
 
-    private final RedisPostSavePort redisPostSavePort;
-    private final PostQueryPort postQueryPort;
-    private final RedisPostQueryPort redisPostQueryPort;
-    private final RedisPostUpdatePort redisPostUpdatePort;
+    private final RedisPostSaveAdapter redisPostSaveAdapter;
+    private final PostQueryAdapter postQueryAdapter;
+    private final RedisPostQueryAdapter redisPostQueryAdapter;
+    private final RedisPostUpdateAdapter redisPostUpdateAdapter;
 
     /**
      * <h3>실시간 인기 게시글 조회 (확률적 선계산 적용)</h3>
@@ -68,16 +67,15 @@ public class PostCacheService implements PostCacheUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public List<PostSimpleDetail> getRealtimePosts() {
         // 1. score:realtime에서 상위 5개 postId 조회
-        List<Long> realtimePostIds = redisPostQueryPort.getRealtimePopularPostIds();
+        List<Long> realtimePostIds = redisPostQueryAdapter.getRealtimePopularPostIds();
         if (realtimePostIds.isEmpty()) {
             return List.of();
         }
 
         // 2. TTL 조회 및 확률적 조기 만료 체크
-        Long ttl = redisPostQueryPort.getPostListCacheTTL(PostCacheFlag.REALTIME);
+        Long ttl = redisPostQueryAdapter.getPostListCacheTTL(PostCacheFlag.REALTIME);
         boolean shouldRefresh = false;
 
         if (ttl != null && ttl > 0) {
@@ -88,7 +86,7 @@ public class PostCacheService implements PostCacheUseCase {
         }
 
         // 3. posts:realtime Hash에서 PostSimpleDetail 조회
-        List<PostSimpleDetail> cachedList = redisPostQueryPort.getCachedPostList(PostCacheFlag.REALTIME);
+        List<PostSimpleDetail> cachedList = redisPostQueryAdapter.getCachedPostList(PostCacheFlag.REALTIME);
 
         // 4. 비동기 갱신 트리거 (TTL 임계값 이하이고 캐시가 있을 때)
         if (shouldRefresh && !cachedList.isEmpty()) {
@@ -108,13 +106,13 @@ public class PostCacheService implements PostCacheUseCase {
                     }
 
                     // 캐시 미스: DB 조회 후 posts:realtime에 추가
-                    PostDetail postDetail = postQueryPort.findPostDetailWithCounts(postId, null).orElse(null);
+                    PostDetail postDetail = postQueryAdapter.findPostDetailWithCounts(postId, null).orElse(null);
                     if (postDetail == null) {
                         return null;
                     }
 
                     PostSimpleDetail simpleDetail = postDetail.toSimpleDetail();
-                    redisPostSavePort.cachePostList(PostCacheFlag.REALTIME, List.of(simpleDetail));
+                    redisPostSaveAdapter.cachePostList(PostCacheFlag.REALTIME, List.of(simpleDetail));
                     return simpleDetail;
                 })
                 .filter(Objects::nonNull)
@@ -131,22 +129,21 @@ public class PostCacheService implements PostCacheUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public List<PostSimpleDetail> getWeeklyPosts() {
         // Step 1: TTL 조회
-        Long ttl = redisPostQueryPort.getPostListCacheTTL(PostCacheFlag.WEEKLY);
+        Long ttl = redisPostQueryAdapter.getPostListCacheTTL(PostCacheFlag.WEEKLY);
 
         // Step 2: 확률적 조기 만료 체크 (TTL - random * EXPIRY_GAP)
         if (ttl != null && ttl > 0) {
             double randomFactor = ThreadLocalRandom.current().nextDouble();
             if (ttl - (randomFactor * EXPIRY_GAP_SECONDS) > 0) {
                 // TTL 충분: 캐시 반환
-                return redisPostQueryPort.getCachedPostList(PostCacheFlag.WEEKLY);
+                return redisPostQueryAdapter.getCachedPostList(PostCacheFlag.WEEKLY);
             }
         }
 
         // Step 3: TTL 임계값 이하 or 캐시 없음
-        List<PostSimpleDetail> currentCache = redisPostQueryPort.getCachedPostList(PostCacheFlag.WEEKLY);
+        List<PostSimpleDetail> currentCache = redisPostQueryAdapter.getCachedPostList(PostCacheFlag.WEEKLY);
 
         if (!currentCache.isEmpty()) {
             // 기존 캐시 있음: 비동기 갱신 트리거 + 즉시 반환
@@ -156,7 +153,7 @@ public class PostCacheService implements PostCacheUseCase {
             // 캐시 완전 없음 (cold start): 동기 복구
             List<PostSimpleDetail> recovered = recoverFromStoredPostIds(PostCacheFlag.WEEKLY);
             if (!recovered.isEmpty()) {
-                redisPostSavePort.cachePostList(PostCacheFlag.WEEKLY, recovered);
+                redisPostSaveAdapter.cachePostList(PostCacheFlag.WEEKLY, recovered);
             }
             return recovered;
         }
@@ -175,10 +172,9 @@ public class PostCacheService implements PostCacheUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public Page<PostSimpleDetail> getPopularPostLegend(PostCacheFlag type, Pageable pageable) {
         // Step 1: TTL 조회 및 확률적 조기 만료 체크
-        Long ttl = redisPostQueryPort.getPostListCacheTTL(PostCacheFlag.LEGEND);
+        Long ttl = redisPostQueryAdapter.getPostListCacheTTL(PostCacheFlag.LEGEND);
         boolean shouldRefresh = false;
 
         if (ttl != null && ttl > 0) {
@@ -189,7 +185,7 @@ public class PostCacheService implements PostCacheUseCase {
         }
 
         // Step 2: 캐시된 페이지 조회
-        Page<PostSimpleDetail> cachedPage = redisPostQueryPort.getCachedPostListPaged(pageable);
+        Page<PostSimpleDetail> cachedPage = redisPostQueryAdapter.getCachedPostListPaged(pageable);
 
         // Step 3: 비동기 갱신 트리거 (TTL 임계값 이하이고 캐시가 있을 때)
         if (shouldRefresh && !cachedPage.isEmpty()) {
@@ -200,8 +196,8 @@ public class PostCacheService implements PostCacheUseCase {
         if (cachedPage.isEmpty()) {
             List<PostSimpleDetail> recovered = recoverFromStoredPostIds(PostCacheFlag.LEGEND);
             if (!recovered.isEmpty()) {
-                redisPostSavePort.cachePostList(PostCacheFlag.LEGEND, recovered);
-                cachedPage = redisPostQueryPort.getCachedPostListPaged(pageable);
+                redisPostSaveAdapter.cachePostList(PostCacheFlag.LEGEND, recovered);
+                cachedPage = redisPostQueryAdapter.getCachedPostListPaged(pageable);
             }
         }
 
@@ -218,13 +214,12 @@ public class PostCacheService implements PostCacheUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public List<PostSimpleDetail> getNoticePosts() {
         // 1. postIds:notice Set에서 실제 공지 ID 목록 조회
-        List<Long> storedPostIds = redisPostQueryPort.getStoredPostIds(PostCacheFlag.NOTICE);
+        List<Long> storedPostIds = redisPostQueryAdapter.getStoredPostIds(PostCacheFlag.NOTICE);
 
         // 2. posts:notice Hash에서 캐시된 목록 조회
-        List<PostSimpleDetail> cachedList = redisPostQueryPort.getCachedPostList(PostCacheFlag.NOTICE);
+        List<PostSimpleDetail> cachedList = redisPostQueryAdapter.getCachedPostList(PostCacheFlag.NOTICE);
 
         // 3. 개수 비교: 저장소 ID 개수 != 캐시 목록 개수 → 캐시 미스
         if (cachedList.size() != storedPostIds.size()) {
@@ -246,7 +241,7 @@ public class PostCacheService implements PostCacheUseCase {
     private List<PostSimpleDetail> recoverFromStoredPostIds(PostCacheFlag type) {
         log.warn("[CACHE_RECOVERY] START - type={}, thread={}", type, Thread.currentThread().getName());
 
-        List<Long> storedPostIds = redisPostQueryPort.getStoredPostIds(type);
+        List<Long> storedPostIds = redisPostQueryAdapter.getStoredPostIds(type);
         if (storedPostIds.isEmpty()) {
             log.warn("[CACHE_RECOVERY] FAIL - type={}, reason=postIds_empty", type);
             return List.of();
@@ -256,7 +251,7 @@ public class PostCacheService implements PostCacheUseCase {
 
         // DB에서 PostDetail 조회 후 PostSimpleDetail 변환
         List<PostSimpleDetail> result = storedPostIds.stream()
-                .map(postId -> postQueryPort.findPostDetailWithCounts(postId, null).orElse(null))
+                .map(postId -> postQueryAdapter.findPostDetailWithCounts(postId, null).orElse(null))
                 .filter(Objects::nonNull)
                 .map(PostDetail::toSimpleDetail)
                 .toList();
@@ -278,7 +273,7 @@ public class PostCacheService implements PostCacheUseCase {
     @Async("cacheRefreshExecutor")
     public void asyncRefreshCache(PostCacheFlag type) {
         // Step 1: 분산 락 획득 시도 (10초 타임아웃)
-        Boolean acquired = redisPostUpdatePort.acquireCacheRefreshLock(type, LOCK_TIMEOUT);
+        Boolean acquired = redisPostUpdateAdapter.acquireCacheRefreshLock(type, LOCK_TIMEOUT);
 
         if (Boolean.FALSE.equals(acquired)) {
             log.debug("[CACHE_REFRESH] 다른 스레드가 갱신 중: type={}", type);
@@ -293,7 +288,7 @@ public class PostCacheService implements PostCacheUseCase {
 
             if (!refreshed.isEmpty()) {
                 // Step 3: 캐시 갱신
-                redisPostSavePort.cachePostList(type, refreshed);
+                redisPostSaveAdapter.cachePostList(type, refreshed);
                 log.info("[CACHE_REFRESH] 완료: type={}, count={}", type, refreshed.size());
             } else {
                 log.warn("[CACHE_REFRESH] 복구 실패: type={} (Tier 2 PostIds 없음)", type);
@@ -303,7 +298,7 @@ public class PostCacheService implements PostCacheUseCase {
             log.error("[CACHE_REFRESH] 에러: type={}", type, e);
         } finally {
             // Step 4: 락 해제
-            redisPostUpdatePort.releaseCacheRefreshLock(type);
+            redisPostUpdateAdapter.releaseCacheRefreshLock(type);
         }
     }
 }

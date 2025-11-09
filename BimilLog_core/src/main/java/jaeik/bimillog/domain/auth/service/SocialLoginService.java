@@ -3,16 +3,11 @@ package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.auth.exception.AuthCustomException;
-import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
-import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPort;
-import jaeik.bimillog.domain.global.application.strategy.SocialPlatformStrategy;
+import jaeik.bimillog.domain.global.out.GlobalSocialStrategyAdapter;
+import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 /**
@@ -29,7 +24,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class SocialLoginService {
 
-    private final GlobalSocialStrategyPort strategyRegistryPort;
+    private final GlobalSocialStrategyAdapter globalSocialStrategyAdapter;
     private final SocialLoginTransactionalService socialLoginTransactionalService;
 
     /**
@@ -46,27 +41,9 @@ public class SocialLoginService {
      * @since 2.0.0
      */
     public LoginResult processSocialLogin(SocialProvider provider, String code, String fcmToken) {
-        validateLogin();
-
-        SocialPlatformStrategy strategy = strategyRegistryPort.getStrategy(provider);
+        SocialPlatformStrategy strategy = globalSocialStrategyAdapter.getStrategy(provider);
         SocialMemberProfile socialUserProfile = strategy.auth().getSocialToken(code);
         socialUserProfile.setFcmToken(fcmToken);
         return socialLoginTransactionalService.finishLogin(provider, socialUserProfile);
-    }
-
-    /**
-     * <h3>중복 로그인 방지 검증</h3>
-     * <p>현재 사용자의 인증 상태를 확인하여 중복 로그인을 방지합니다.</p>
-     * <p>이미 인증된 사용자가 다시 소셜 로그인을 시도하는 것을 차단합니다.</p>
-     * <p>{@link #processSocialLogin} 메서드 시작 시점에서 보안 검증을 위해 호출됩니다.</p>
-     *
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private void validateLogin() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && !(authentication instanceof AnonymousAuthenticationToken) && authentication.isAuthenticated()) {
-            throw new AuthCustomException(AuthErrorCode.ALREADY_LOGIN);
-        }
     }
 }

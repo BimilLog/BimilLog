@@ -1,17 +1,16 @@
 package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.comment.service.CommentCommandService;
-import jaeik.bimillog.domain.global.application.port.out.GlobalMemberQueryPort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
+import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
+import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.post.application.port.in.PostCommandUseCase;
-import jaeik.bimillog.domain.post.application.port.out.PostCommandPort;
-import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
-import jaeik.bimillog.domain.post.application.port.out.RedisPostDeletePort;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
-import jaeik.bimillog.domain.post.in.web.PostCommandController;
+import jaeik.bimillog.domain.post.controller.PostCommandController;
+import jaeik.bimillog.domain.post.out.PostCommandAdapter;
+import jaeik.bimillog.domain.post.out.PostQueryAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostDeleteAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,13 +32,13 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class PostCommandService implements PostCommandUseCase {
+public class PostCommandService {
 
-    private final PostCommandPort postCommandPort;
-    private final GlobalPostQueryPort globalPostQueryPort;
-    private final GlobalMemberQueryPort globalUserQueryPort;
-    private final RedisPostDeletePort redisPostDeletePort;
-    private final PostQueryPort postQueryPort;
+    private final PostCommandAdapter postCommandAdapter;
+    private final GlobalPostQueryAdapter globalPostQueryAdapter;
+    private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
+    private final RedisPostDeleteAdapter redisPostDeleteAdapter;
+    private final PostQueryAdapter postQueryAdapter;
     private final CommentCommandService commentCommandService;
 
 
@@ -57,12 +56,11 @@ public class PostCommandService implements PostCommandUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional
     public Long writePost(Long memberId, String title, String content, Integer password) {
-        Member member = (memberId != null) ? globalUserQueryPort.getReferenceById(memberId) : null;
+        Member member = (memberId != null) ? globalMemberQueryAdapter.getReferenceById(memberId) : null;
         Post newPost = Post.createPost(member, title, content, password);
-        Post savedPost = postCommandPort.create(newPost);
+        Post savedPost = postCommandAdapter.create(newPost);
         return savedPost.getId();
     }
 
@@ -80,10 +78,9 @@ public class PostCommandService implements PostCommandUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional
     public void updatePost(Long memberId, Long postId, String title, String content, Integer password) {
-        Post post = globalPostQueryPort.findById(postId);
+        Post post = globalPostQueryAdapter.findById(postId);
 
         if (!post.isAuthor(memberId, password)) {
             throw new PostCustomException(PostErrorCode.FORBIDDEN);
@@ -92,8 +89,8 @@ public class PostCommandService implements PostCommandUseCase {
         post.updatePost(title, content);
 
         // 모든 관련 캐시 무효화
-        redisPostDeletePort.deleteSinglePostCache(postId);
-        redisPostDeletePort.removePostFromListCache(postId);
+        redisPostDeleteAdapter.deleteSinglePostCache(postId);
+        redisPostDeleteAdapter.removePostFromListCache(postId);
 
         log.info("게시글 수정 완료: postId={}, memberId={}, title={}", postId, memberId, title);
     }
@@ -110,10 +107,9 @@ public class PostCommandService implements PostCommandUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional
     public void deletePost(Long memberId, Long postId, Integer password) {
-        Post post = globalPostQueryPort.findById(postId);
+        Post post = globalPostQueryAdapter.findById(postId);
 
         if (!post.isAuthor(memberId, password)) {
             throw new PostCustomException(PostErrorCode.FORBIDDEN);
@@ -122,13 +118,13 @@ public class PostCommandService implements PostCommandUseCase {
         String postTitle = post.getTitle();
 
         // CASCADE로 Comment와 PostLike 자동 삭제
-        postCommandPort.delete(post);
+        postCommandAdapter.delete(post);
 
         // 모든 관련 캐시 무효화
-        redisPostDeletePort.deleteSinglePostCache(postId);
-        redisPostDeletePort.removePostIdFromRealtimeScore(postId);
-        redisPostDeletePort.removePostFromListCache(postId);
-        redisPostDeletePort.removePostIdFromStorage(postId);
+        redisPostDeleteAdapter.deleteSinglePostCache(postId);
+        redisPostDeleteAdapter.removePostIdFromRealtimeScore(postId);
+        redisPostDeleteAdapter.removePostFromListCache(postId);
+        redisPostDeleteAdapter.removePostIdFromStorage(postId);
 
         log.info("게시글 삭제 완료: postId={}, memberId={}, title={}", postId, memberId, postTitle);
     }
@@ -143,17 +139,16 @@ public class PostCommandService implements PostCommandUseCase {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional
     public void deleteAllPostsByMemberId(Long memberId) {
-        List<Long> postIds = postQueryPort.findPostIdsMemberId(memberId);
+        List<Long> postIds = postQueryAdapter.findPostIdsMemberId(memberId);
         for (Long postId : postIds) {
             // FK 제약 조건 위반 방지: 게시글의 모든 댓글 먼저 삭제 (CommentClosure 포함)
             commentCommandService.deleteCommentsByPost(postId);
             // 캐시 무효화
-            redisPostDeletePort.deleteSinglePostCache(postId);
+            redisPostDeleteAdapter.deleteSinglePostCache(postId);
         }
         // 게시글 일괄 삭제
-        postCommandPort.deleteAllByMemberId(memberId);
+        postCommandAdapter.deleteAllByMemberId(memberId);
     }
 }

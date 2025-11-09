@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.global.out;
 
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
-import jaeik.bimillog.domain.global.application.port.out.GlobalKakaoTokenCommandPort;
 import jaeik.bimillog.domain.auth.out.KakaoTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -18,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Component
 @RequiredArgsConstructor
-public class GlobalKakaoTokenCommandAdapter implements GlobalKakaoTokenCommandPort {
+public class GlobalKakaoTokenCommandAdapter {
 
     private final KakaoTokenRepository kakaoTokenRepository;
 
@@ -32,7 +31,6 @@ public class GlobalKakaoTokenCommandAdapter implements GlobalKakaoTokenCommandPo
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public KakaoToken save(KakaoToken kakaoToken) {
         return kakaoTokenRepository.save(kakaoToken);
     }
@@ -45,7 +43,6 @@ public class GlobalKakaoTokenCommandAdapter implements GlobalKakaoTokenCommandPo
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     @Transactional
     public void deleteByMemberId(Long memberId) {
         kakaoTokenRepository.deleteByMemberId(memberId);

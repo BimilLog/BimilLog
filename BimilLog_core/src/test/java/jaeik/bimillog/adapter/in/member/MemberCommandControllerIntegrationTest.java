@@ -2,11 +2,11 @@ package jaeik.bimillog.adapter.in.member;
 
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.admin.in.dto.ReportDTO;
-import jaeik.bimillog.domain.auth.in.dto.SocialLoginRequestDTO;
-import jaeik.bimillog.domain.member.in.dto.MemberNameDTO;
-import jaeik.bimillog.domain.member.in.dto.SettingDTO;
-import jaeik.bimillog.domain.member.in.dto.SignUpRequestDTO;
+import jaeik.bimillog.domain.admin.dto.ReportDTO;
+import jaeik.bimillog.domain.auth.dto.SocialLoginRequestDTO;
+import jaeik.bimillog.domain.member.dto.MemberNameDTO;
+import jaeik.bimillog.domain.member.dto.SettingDTO;
+import jaeik.bimillog.domain.member.dto.SignUpRequestDTO;
 import jaeik.bimillog.domain.auth.out.CustomUserDetails;
 import jaeik.bimillog.domain.member.out.MemberRepository;
 import jaeik.bimillog.testutil.fixtures.AuthTestFixtures;

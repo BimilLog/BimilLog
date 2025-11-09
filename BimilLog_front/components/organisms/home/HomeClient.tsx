@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { MainLayout } from "@/components/organisms/layout/BaseLayout";
 import { useAuth } from "@/hooks";
+import { notificationCommand } from "@/lib/api";
 import { logger, isMobileOrTablet } from '@/lib/utils';
 import { LazyKakaoFriendsModal } from "@/lib/utils/lazy-components";
 import { NotificationPermissionModal } from "@/components/organisms/notification";
@@ -73,17 +74,21 @@ export default function HomeClient() {
     setIsFriendsModalOpen(true);
   };
 
-  const handleNotificationSuccess = async (token: string) => {
+  const handleNotificationSuccess = (token: string) => {
     logger.log("FCM 토큰 획득 성공:", token.substring(0, 20) + "...");
 
-    // FCM 토큰을 localStorage에 저장하여 다음 로그인 시 사용
     localStorage.setItem("fcm_token", token);
-    // 스킵 기록 제거 (권한 허용했으므로 다시 물어보지 않음)
     localStorage.removeItem("notification_permission_skipped");
 
-    // 참고: 현재 백엔드에는 FCM 토큰 등록 전용 API가 없습니다.
-    // 토큰은 다음 로그인 시 auth/login API에 함께 전달됩니다.
-    // 향후 실시간 토큰 등록을 위해서는 백엔드에 FCM 토큰 등록 API를 추가해야 합니다.
+    if (isAuthenticated) {
+      notificationCommand.registerFcmToken(token).then(result => {
+        if (!result.success) {
+          logger.warn("FCM 토큰 서버 등록 실패:", result.error);
+        }
+      }).catch(error => {
+        logger.error("FCM 토큰 서버 등록 중 오류:", error);
+      });
+    }
   };
 
   const handleNotificationSkip = () => {
@@ -96,9 +101,9 @@ export default function HomeClient() {
     <MainLayout className="bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
       {/* Hero Section with Popular Papers */}
       <div className="container mx-auto px-4 py-8 md:py-12">
- <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
-           {/* Hero Section */}
-         <div className="flex-1">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+          {/* Hero Section */}
+          <div className="flex-1">
             <HomeHero
               isAuthenticated={isAuthenticated}
               onOpenFriendsModal={handleOpenFriendsModal}

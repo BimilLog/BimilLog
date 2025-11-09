@@ -6,16 +6,11 @@ import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
-import jaeik.bimillog.domain.global.application.port.in.GlobalFcmSaveUseCase;
-import jaeik.bimillog.domain.global.application.port.out.GlobalAuthTokenSavePort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalKakaoTokenCommandPort;
 import jaeik.bimillog.domain.global.entity.MemberDetail;
+import jaeik.bimillog.domain.global.out.*;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.auth.out.AuthToMemberAdapter;
-import jaeik.bimillog.domain.auth.out.BlacklistAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
@@ -38,13 +33,13 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class SocialLoginTransactionalService {
 
+    private final GlobalLoginAdapter globalLoginAdapter;
     private final AuthToMemberAdapter authToMemberAdapter;
-    private final BlacklistAdapter blacklistAdapter;
-    private final GlobalCookiePort globalCookiePort;
-    private final GlobalJwtPort globalJwtPort;
-    private final GlobalAuthTokenSavePort globalAuthTokenSavePort;
-    private final GlobalKakaoTokenCommandPort globalKakaoTokenCommandPort;
-    private final GlobalFcmSaveUseCase globalFcmSaveUseCase;
+    private final GlobalBlacklistAdapter globalBlacklistAdapter;
+    private final GlobalCookieAdapter globalCookieAdapter;
+    private final GlobalJwtAdapter globalJwtAdapter;
+    private final GlobalAuthTokenSaveAdapter globalAuthTokenSaveAdapter;
+    private final GlobalKakaoTokenCommandAdapter globalKakaoTokenCommandAdapter;
 
     /**
      * <h3>소셜 로그인 최종 처리</h3>
@@ -61,12 +56,12 @@ public class SocialLoginTransactionalService {
     public LoginResult finishLogin(SocialProvider provider, SocialMemberProfile socialMemberProfile) {
 
         // 블랙리스트 사용자 확인
-        if (blacklistAdapter.existsByProviderAndSocialId(provider, socialMemberProfile.getSocialId())) {
+        if (globalBlacklistAdapter.existsByProviderAndSocialId(provider, socialMemberProfile.getSocialId())) {
             throw new AuthCustomException(AuthErrorCode.BLACKLIST_USER);
         }
 
         // 기존 유저 유무 조회
-        Optional<Member> member = authToMemberAdapter.checkMember(provider, socialMemberProfile.getSocialId());
+        Optional<Member> member = globalLoginAdapter.findByProviderAndSocialId(provider, socialMemberProfile.getSocialId());
         return member.map(value ->
                 handleExistingMember(value, socialMemberProfile))
                 .orElseGet(() -> handleNewMember(socialMemberProfile));
@@ -100,28 +95,25 @@ public class SocialLoginTransactionalService {
 
         // 1. 카카오 토큰 생성
         KakaoToken initialKakaoToken = KakaoToken.createKakaoToken(kakaoAccessToken, kakaoRefreshToken);
-        KakaoToken persistedKakaoToken = globalKakaoTokenCommandPort.save(initialKakaoToken);
+        KakaoToken persistedKakaoToken = globalKakaoTokenCommandAdapter.save(initialKakaoToken);
 
         // 2. 멤버 정보 업데이트
         Member updateMember = authToMemberAdapter.handleExistingMember(existingMember, nickname, profileImageUrl, persistedKakaoToken);
 
         // 3. AuthToken 생성
         AuthToken initialAuthToken = AuthToken.createToken("", updateMember);
-        AuthToken persistedAuthToken = globalAuthTokenSavePort.save(initialAuthToken);
-
-        // 4. FCM 토큰 생성
-        Long fcmTokenId = globalFcmSaveUseCase.registerFcmToken(updateMember, fcmToken);
+        AuthToken persistedAuthToken = globalAuthTokenSaveAdapter.save(initialAuthToken);
 
         // 5. MemberDetail 생성
-        MemberDetail memberDetail = MemberDetail.ofExisting(updateMember, persistedAuthToken.getId(), fcmTokenId);
+        MemberDetail memberDetail = MemberDetail.ofExisting(updateMember, persistedAuthToken.getId());
 
         // 6. 액세스 토큰 및 리프레시 토큰 생성 및 업데이트
-        String accessToken = globalJwtPort.generateAccessToken(memberDetail);
-        String refreshToken = globalJwtPort.generateRefreshToken(memberDetail);
-        globalAuthTokenSavePort.updateJwtRefreshToken(persistedAuthToken.getId(), refreshToken);
+        String accessToken = globalJwtAdapter.generateAccessToken(memberDetail);
+        String refreshToken = globalJwtAdapter.generateRefreshToken(memberDetail);
+        globalAuthTokenSaveAdapter.updateJwtRefreshToken(persistedAuthToken.getId(), refreshToken);
 
         // 7. JWT 쿠키 생성 및 반환
-        List<ResponseCookie> cookies = globalCookiePort.generateJwtCookie(accessToken, refreshToken);
+        List<ResponseCookie> cookies = globalCookieAdapter.generateJwtCookie(accessToken, refreshToken);
         return new LoginResult.ExistingUser(cookies);
     }
 
@@ -138,7 +130,7 @@ public class SocialLoginTransactionalService {
     private LoginResult handleNewMember(SocialMemberProfile socialMemberProfile) {
         String uuid = UUID.randomUUID().toString();
         authToMemberAdapter.handleNewUser(socialMemberProfile, uuid);
-        ResponseCookie tempCookie = globalCookiePort.createTempCookie(uuid);
+        ResponseCookie tempCookie = globalCookieAdapter.createTempCookie(uuid);
         return new LoginResult.NewUser(tempCookie);
     }
 }

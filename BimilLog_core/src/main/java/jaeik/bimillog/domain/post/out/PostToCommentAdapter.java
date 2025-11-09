@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.post.out;
 
 import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.comment.service.CommentQueryService;
-import jaeik.bimillog.domain.post.application.port.out.PostToCommentPort;
 import jaeik.bimillog.domain.post.service.PostCommandService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -21,7 +20,7 @@ import java.util.Map;
  */
 @Component
 @RequiredArgsConstructor
-public class PostToCommentAdapter implements PostToCommentPort {
+public class PostToCommentAdapter {
 
     private final CommentQueryService commentQueryService;
     private final CommentCommandService commentCommandService;
@@ -35,7 +34,6 @@ public class PostToCommentAdapter implements PostToCommentPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public Map<Long, Integer> findCommentCountsByPostIds(List<Long> postIds) {
         return commentQueryService.findCommentCountsByPostIds(postIds);
     }
@@ -49,7 +47,6 @@ public class PostToCommentAdapter implements PostToCommentPort {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Override
     public void deleteCommentInPost(Long postId) {
         commentCommandService.deleteCommentsByPost(postId);
     }

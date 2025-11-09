@@ -25,7 +25,7 @@ import jaeik.bimillog.domain.notification.entity.FcmMessage;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.out.NotificationUtilAdapter;
-import jaeik.bimillog.infrastructure.out.api.fcm.FcmAdapter;
+import jaeik.bimillog.infrastructure.api.fcm.FcmAdapter;
 import jaeik.bimillog.testutil.TestMembers;
 
 /**

@@ -1,18 +1,18 @@
 package jaeik.bimillog.domain.paper.service;
 
-import jaeik.bimillog.domain.global.application.port.out.GlobalMemberQueryPort;
-import jaeik.bimillog.domain.global.in.listener.MemberWithdrawListener;
+import jaeik.bimillog.domain.global.listener.MemberWithdrawListener;
+import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.paper.application.port.out.PaperCommandPort;
-import jaeik.bimillog.domain.paper.application.port.out.PaperQueryPort;
-import jaeik.bimillog.domain.paper.application.port.out.RedisPaperDeletePort;
 import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.event.MessageDeletedEvent;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.paper.exception.PaperCustomException;
 import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
-import jaeik.bimillog.domain.paper.in.web.PaperCommandController;
+import jaeik.bimillog.domain.paper.controller.PaperCommandController;
+import jaeik.bimillog.domain.paper.out.PaperCommandAdapter;
+import jaeik.bimillog.domain.paper.out.PaperQueryAdapter;
+import jaeik.bimillog.infrastructure.redis.paper.RedisPaperDeleteAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -30,11 +30,11 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PaperCommandService {
 
-    private final PaperCommandPort paperCommandPort;
-    private final PaperQueryPort paperQueryPort;
-    private final GlobalMemberQueryPort globalUserQueryPort;
+    private final PaperCommandAdapter paperCommandAdapter;
+    private final PaperQueryAdapter paperQueryAdapter;
+    private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
     private final ApplicationEventPublisher eventPublisher;
-    private final RedisPaperDeletePort redisPaperDeletePort;
+    private final RedisPaperDeleteAdapter redisPaperDeleteAdapter;
 
 
     /**
@@ -55,7 +55,7 @@ public class PaperCommandService {
     @Transactional
     public void deleteMessageInMyPaper(Long memberId, Long messageId) {
         if (messageId != null) { // 메시지 삭제의 경우
-            Long ownerId = paperQueryPort.findOwnerIdByMessageId(messageId)
+            Long ownerId = paperQueryAdapter.findOwnerIdByMessageId(messageId)
                     .orElseThrow(() -> new PaperCustomException(PaperErrorCode.MESSAGE_NOT_FOUND));
 
             if (!ownerId.equals(memberId)) {
@@ -64,13 +64,13 @@ public class PaperCommandService {
         }
 
         // 메시지 삭제
-        paperCommandPort.deleteMessage(memberId, messageId);
+        paperCommandAdapter.deleteMessage(memberId, messageId);
 
         // 메시지 삭제 성공 시 이벤트 발행 (실시간 인기 점수 감소, 단건 삭제만)
         if (messageId != null) {
             eventPublisher.publishEvent(new MessageDeletedEvent(memberId));
         } else { // 회원 탈퇴시 Redis 저장소에서 memberId 삭제
-            redisPaperDeletePort.removeMemberIdFromRealtimeScore(memberId);
+            redisPaperDeleteAdapter.removeMemberIdFromRealtimeScore(memberId);
         }
     }
 
@@ -97,11 +97,11 @@ public class PaperCommandService {
             throw new PaperCustomException(PaperErrorCode.INVALID_INPUT_VALUE);
         }
 
-        Member member = globalUserQueryPort.findByMemberName(memberName)
+        Member member = globalMemberQueryAdapter.findByMemberName(memberName)
                 .orElseThrow(() -> new PaperCustomException(PaperErrorCode.USERNAME_NOT_FOUND));
 
         Message message = Message.createMessage(member, decoType, anonymity, content, x, y);
-        paperCommandPort.save(message);
+        paperCommandAdapter.save(message);
 
         eventPublisher.publishEvent(new RollingPaperEvent(
                 member.getId(),

@@ -5,12 +5,12 @@ import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
 import jaeik.bimillog.domain.admin.exception.AdminCustomException;
 import jaeik.bimillog.domain.admin.exception.AdminErrorCode;
-import jaeik.bimillog.domain.admin.in.web.AdminCommandController;
+import jaeik.bimillog.domain.admin.controller.AdminCommandController;
 import jaeik.bimillog.domain.admin.out.AdminCommandAdapter;
 import jaeik.bimillog.domain.admin.out.AdminQueryAdapter;
 import jaeik.bimillog.domain.auth.service.BlacklistService;
-import jaeik.bimillog.domain.global.application.port.out.GlobalCommentQueryPort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
+import jaeik.bimillog.domain.global.out.GlobalCommentQueryAdapter;
+import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
@@ -40,8 +40,8 @@ public class AdminCommandService {
     private final AdminCommandAdapter adminCommandAdapter;
     private final AdminQueryAdapter adminQueryAdapter;
     private final MemberQueryAdapter memberQueryAdapter;
-    private final GlobalPostQueryPort globalPostQueryPort;
-    private final GlobalCommentQueryPort globalCommentQueryPort;
+    private final GlobalPostQueryAdapter globalPostQueryAdapter;
+    private final GlobalCommentQueryAdapter globalCommentQueryAdapter;
     private final BlacklistService blacklistService;
 
     /**
@@ -139,14 +139,14 @@ public class AdminCommandService {
         Member member = switch (reportType) {
             case POST -> {
                 try {
-                    yield globalPostQueryPort.findById(targetId).getMember();
+                    yield globalPostQueryAdapter.findById(targetId).getMember();
                 } catch (Exception e) {
                     throw new AdminCustomException(AdminErrorCode.POST_ALREADY_DELETED);
                 }
             }
             case COMMENT -> {
                 try {
-                    yield globalCommentQueryPort.findById(targetId).getMember();
+                    yield globalCommentQueryAdapter.findById(targetId).getMember();
                 } catch (Exception e) {
                     throw new AdminCustomException(AdminErrorCode.COMMENT_ALREADY_DELETED);
                 }

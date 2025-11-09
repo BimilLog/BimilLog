@@ -2,9 +2,9 @@ package jaeik.bimillog.adapter.out.redis.post;
 
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
-import jaeik.bimillog.infrastructure.out.redis.post.RedisPostDeleteAdapter;
-import jaeik.bimillog.infrastructure.out.redis.post.RedisPostKeys;
-import jaeik.bimillog.infrastructure.out.redis.post.RedisPostSaveAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostDeleteAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostKeys;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostSaveAdapter;
 import jaeik.bimillog.testutil.RedisTestHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
