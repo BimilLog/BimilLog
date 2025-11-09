@@ -154,6 +154,7 @@ public class MemberCommandController {
     @DeleteMapping("/withdraw")
     public ResponseEntity<Void> withdraw(@AuthenticationPrincipal CustomUserDetails userDetails) {
         eventPublisher.publishEvent(new MemberWithdrawnEvent(userDetails.getMemberId(), userDetails.getSocialId(), userDetails.getSocialProvider()));
+
         return ResponseEntity.ok()
                 .headers(headers -> globalCookieAdapter.getLogoutCookies().forEach(cookie ->
                         headers.add("Set-Cookie", cookie.toString())))
