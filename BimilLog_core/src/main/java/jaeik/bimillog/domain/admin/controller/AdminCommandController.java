@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * <h2>관리자 명령 컨트롤러</h2>
- * <p>관리자 도메인의 명령 작업을 담당하는 컨트롤러입니다.</p>
+ * <p>관리자 도메인의 명령 작업을 담당하는 컨트롤러</p>
  * <p>사용자 제재, 강제 탈퇴 처리</p>
  * <p>ADMIN 권한 필요</p>
  *
@@ -32,7 +32,6 @@ public class AdminCommandController {
      * <h3>사용자 제재 API</h3>
      * <p>ADMIN 권한이 있는 관리자만 접근할 수 있으며, 신고 유형과 대상 ID를 기반으로 사용자를 식별합니다.</p>
      * <p>AdminCommandUseCase.banUser를 호출하여 도메인 계층에서 제재 로직을 실행하고 UserBannedEvent를 발행합니다.</p>
-     * <p>성공적으로 제재 처리되면 200 OK와 함께 완료 메시지를 반환합니다.</p>
      *
      * @param banUserDTO 사용자 제재 DTO (신고 유형, 대상 ID 포함)
      * @return ResponseEntity<String> 제재 완료 응답 메시지
@@ -48,9 +47,7 @@ public class AdminCommandController {
 
     /**
      * <h3>사용자 강제 탈퇴 API</h3>
-     * <p>관리자 대시보드에서 심각한 위반으로 판단하여 사용자를 영구적으로 시스템에서 제거하는 REST API입니다.</p>
-     * <p>단순 제재보다 강력한 최종 조치입니다.</p>
-     * <p>AdminCommandUseCase.forceWithdrawUser를 호출하여 MemberWithdrawnEvent를 발행하고 탈퇴 처리를 위임합니다.</p>
+     * <p>MemberWithdrawnEvent를 발행하고 탈퇴 처리를 위임합니다.</p>
      *
      * @param forceWithdrawDTO 강제 탈퇴 DTO (신고 유형, 대상 ID 포함)
      * @return ResponseEntity<String> 강제 탈퇴 완료 응답 메시지

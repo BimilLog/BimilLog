@@ -1,9 +1,11 @@
 package jaeik.bimillog.domain.paper.service;
 
+import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.entity.VisitMessageDetail;
 import jaeik.bimillog.domain.paper.exception.PaperCustomException;
 import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
+import jaeik.bimillog.domain.paper.out.PaperQueryAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.builder.PaperTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
@@ -35,10 +37,10 @@ import static org.mockito.Mockito.*;
 class PaperQueryServiceTest extends BaseUnitTest {
 
     @Mock
-    private PaperQueryPort paperQueryPort;
+    private PaperQueryAdapter paperQueryAdapter;
 
     @Mock
-    private GlobalMemberQueryPort globalMemberQueryPort;
+    private GlobalMemberQueryAdapter globalMemberQueryAdapter;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -57,8 +59,8 @@ class PaperQueryServiceTest extends BaseUnitTest {
                 PaperTestDataBuilder.createRollingPaper(getOtherMember(), "메시지2", 10, 10)
         );
 
-        given(globalMemberQueryPort.findByMemberName(memberName)).willReturn(Optional.of(getTestMember()));
-        given(paperQueryPort.findMessagesByMemberName(memberName)).willReturn(messages);
+        given(globalMemberQueryAdapter.findByMemberName(memberName)).willReturn(Optional.of(getTestMember()));
+        given(paperQueryAdapter.findMessagesByMemberName(memberName)).willReturn(messages);
 
         // When
         List<VisitMessageDetail> result = paperQueryService.visitPaper(memberName);
@@ -69,8 +71,8 @@ class PaperQueryServiceTest extends BaseUnitTest {
         assertThat(result.get(0).memberId()).isEqualTo(getTestMember().getId());
         assertThat(result.get(1).memberId()).isEqualTo(getOtherMember().getId());
 
-        verify(globalMemberQueryPort, times(1)).findByMemberName(memberName);
-        verify(paperQueryPort, times(1)).findMessagesByMemberName(memberName);
+        verify(globalMemberQueryAdapter, times(1)).findByMemberName(memberName);
+        verify(paperQueryAdapter, times(1)).findMessagesByMemberName(memberName);
     }
 
     @Test
@@ -79,8 +81,8 @@ class PaperQueryServiceTest extends BaseUnitTest {
         // Given
         String memberName = "userWithNoMessages";
 
-        given(globalMemberQueryPort.findByMemberName(memberName)).willReturn(Optional.of(getTestMember()));
-        given(paperQueryPort.findMessagesByMemberName(memberName)).willReturn(Collections.emptyList());
+        given(globalMemberQueryAdapter.findByMemberName(memberName)).willReturn(Optional.of(getTestMember()));
+        given(paperQueryAdapter.findMessagesByMemberName(memberName)).willReturn(Collections.emptyList());
 
         // When
         List<VisitMessageDetail> result = paperQueryService.visitPaper(memberName);
@@ -89,8 +91,8 @@ class PaperQueryServiceTest extends BaseUnitTest {
         assertThat(result).isNotNull();
         assertThat(result).isEmpty();
 
-        verify(globalMemberQueryPort, times(1)).findByMemberName(memberName);
-        verify(paperQueryPort, times(1)).findMessagesByMemberName(memberName);
+        verify(globalMemberQueryAdapter, times(1)).findByMemberName(memberName);
+        verify(paperQueryAdapter, times(1)).findMessagesByMemberName(memberName);
     }
 
 
@@ -114,7 +116,7 @@ class PaperQueryServiceTest extends BaseUnitTest {
                 .isInstanceOf(PaperCustomException.class)
                 .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.INVALID_INPUT_VALUE);
 
-        verify(paperQueryPort, never()).findMessagesByMemberName(any());
+        verify(paperQueryAdapter, never()).findMessagesByMemberName(any());
     }
 
 }

@@ -3,7 +3,8 @@ package jaeik.bimillog.domain.auth.service;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
-import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPort;
+import jaeik.bimillog.domain.global.out.GlobalSocialStrategyAdapter;
+import jaeik.bimillog.domain.global.out.GlobalKakaoTokenQueryAdapter;
 import jaeik.bimillog.domain.global.strategy.SocialAuthStrategy;
 import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
 import jaeik.bimillog.testutil.BaseUnitTest;
@@ -31,7 +32,7 @@ import static org.mockito.Mockito.*;
 class SocialLogoutServiceTest extends BaseUnitTest {
 
     @Mock
-    private GlobalSocialStrategyPort strategyRegistry;
+    private GlobalSocialStrategyAdapter strategyRegistry;
 
     @Mock
     private SocialPlatformStrategy kakaoPlatformStrategy;
@@ -40,7 +41,7 @@ class SocialLogoutServiceTest extends BaseUnitTest {
     private SocialAuthStrategy kakaoAuthStrategy;
 
     @Mock
-    private GlobalKakaoTokenQueryPort globalKakaoTokenQueryPort;
+    private GlobalKakaoTokenQueryAdapter globalKakaoTokenQueryAdapter;
 
     @InjectMocks
     private SocialLogoutService socialLogoutService;
@@ -52,7 +53,7 @@ class SocialLogoutServiceTest extends BaseUnitTest {
         Long memberId = 100L;
         KakaoToken kakaoToken = KakaoToken.createKakaoToken(TEST_ACCESS_TOKEN, "kakao-refresh-token");
 
-        given(globalKakaoTokenQueryPort.findByMemberId(memberId)).willReturn(Optional.of(kakaoToken));
+        given(globalKakaoTokenQueryAdapter.findByMemberId(memberId)).willReturn(Optional.of(kakaoToken));
         given(strategyRegistry.getStrategy(TEST_PROVIDER)).willReturn(kakaoPlatformStrategy);
         given(kakaoPlatformStrategy.auth()).willReturn(kakaoAuthStrategy);
 
@@ -71,7 +72,7 @@ class SocialLogoutServiceTest extends BaseUnitTest {
     @DisplayName("토큰이 존재하지 않는 경우 예외 발생")
     void shouldThrowException_WhenTokenNotFound() {
         // given
-        given(globalKakaoTokenQueryPort.findByMemberId(100L)).willReturn(Optional.empty());
+        given(globalKakaoTokenQueryAdapter.findByMemberId(100L)).willReturn(Optional.empty());
 
         // expect
         assertThatThrownBy(() -> socialLogoutService.socialLogout(100L, TEST_PROVIDER))
@@ -88,7 +89,7 @@ class SocialLogoutServiceTest extends BaseUnitTest {
         Long memberId = 100L;
         KakaoToken kakaoToken = KakaoToken.createKakaoToken(TEST_ACCESS_TOKEN, "kakao-refresh-token");
 
-        given(globalKakaoTokenQueryPort.findByMemberId(memberId)).willReturn(Optional.of(kakaoToken));
+        given(globalKakaoTokenQueryAdapter.findByMemberId(memberId)).willReturn(Optional.of(kakaoToken));
         given(strategyRegistry.getStrategy(TEST_PROVIDER)).willReturn(kakaoPlatformStrategy);
         given(kakaoPlatformStrategy.auth()).willReturn(kakaoAuthStrategy);
         doThrow(new RuntimeException("logout failed")).when(kakaoAuthStrategy).logout(TEST_ACCESS_TOKEN);
@@ -110,7 +111,7 @@ class SocialLogoutServiceTest extends BaseUnitTest {
         Long adminMemberId = 999L;
         KakaoToken kakaoToken = KakaoToken.createKakaoToken(TEST_ACCESS_TOKEN, "kakao-refresh-token");
 
-        given(globalKakaoTokenQueryPort.findByMemberId(adminMemberId)).willReturn(Optional.of(kakaoToken));
+        given(globalKakaoTokenQueryAdapter.findByMemberId(adminMemberId)).willReturn(Optional.of(kakaoToken));
         given(strategyRegistry.getStrategy(TEST_PROVIDER)).willReturn(kakaoPlatformStrategy);
         given(kakaoPlatformStrategy.auth()).willReturn(kakaoAuthStrategy);
 

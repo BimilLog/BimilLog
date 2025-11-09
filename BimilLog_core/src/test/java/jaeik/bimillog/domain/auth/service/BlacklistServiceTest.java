@@ -1,7 +1,9 @@
 package jaeik.bimillog.domain.auth.service;
 
-import jaeik.bimillog.domain.auth.out.BlacklistAdapter;
+import jaeik.bimillog.domain.global.out.GlobalBlacklistAdapter;
 import jaeik.bimillog.infrastructure.redis.RedisJwtBlacklistAdapter;
+import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
+import jaeik.bimillog.domain.global.out.GlobalAuthTokenQueryAdapter;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.BlackList;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
@@ -38,16 +40,16 @@ import static org.mockito.Mockito.*;
 class BlacklistServiceTest extends BaseUnitTest {
 
     @Mock
-    private GlobalJwtPort globalJwtPort;
+    private GlobalJwtAdapter globalJwtAdapter;
 
     @Mock
     private RedisJwtBlacklistAdapter redisJwtBlacklistAdapter;
 
     @Mock
-    private GlobalAuthTokenQueryPort globalAuthTokenQueryPort;
+    private GlobalAuthTokenQueryAdapter globalAuthTokenQueryAdapter;
 
     @Mock
-    private BlacklistAdapter blacklistPort;
+    private GlobalBlacklistAdapter blacklistPort;
 
     @InjectMocks
     private BlacklistService blacklistService;
@@ -69,7 +71,7 @@ class BlacklistServiceTest extends BaseUnitTest {
     @DisplayName("토큰이 블랙리스트에 있는 경우 true 반환")
     void shouldReturnTrue_WhenTokenIsBlacklisted() {
         // Given
-        given(globalJwtPort.generateTokenHash(testTokenString)).willReturn(testTokenHash);
+        given(globalJwtAdapter.generateTokenHash(testTokenString)).willReturn(testTokenHash);
         given(redisJwtBlacklistAdapter.isBlacklisted(testTokenHash)).willReturn(true);
 
         // When
@@ -77,7 +79,7 @@ class BlacklistServiceTest extends BaseUnitTest {
 
         // Then
         assertThat(result).isTrue();
-        verify(globalJwtPort).generateTokenHash(testTokenString);
+        verify(globalJwtAdapter).generateTokenHash(testTokenString);
         verify(redisJwtBlacklistAdapter).isBlacklisted(testTokenHash);
     }
 
@@ -85,7 +87,7 @@ class BlacklistServiceTest extends BaseUnitTest {
     @DisplayName("토큰이 블랙리스트에 없는 경우 false 반환")
     void shouldReturnFalse_WhenTokenIsNotBlacklisted() {
         // Given
-        given(globalJwtPort.generateTokenHash(testTokenString)).willReturn(testTokenHash);
+        given(globalJwtAdapter.generateTokenHash(testTokenString)).willReturn(testTokenHash);
         given(redisJwtBlacklistAdapter.isBlacklisted(testTokenHash)).willReturn(false);
 
         // When
@@ -93,7 +95,7 @@ class BlacklistServiceTest extends BaseUnitTest {
 
         // Then
         assertThat(result).isFalse();
-        verify(globalJwtPort).generateTokenHash(testTokenString);
+        verify(globalJwtAdapter).generateTokenHash(testTokenString);
         verify(redisJwtBlacklistAdapter).isBlacklisted(testTokenHash);
     }
 
@@ -102,14 +104,14 @@ class BlacklistServiceTest extends BaseUnitTest {
     void shouldReturnFalse_WhenTokenHashGenerationFails() {
         // Given
         doThrow(new RuntimeException("Hash generation failed"))
-                .when(globalJwtPort).generateTokenHash(testTokenString);
+                .when(globalJwtAdapter).generateTokenHash(testTokenString);
 
         // When
         boolean result = blacklistService.isBlacklisted(testTokenString);
 
         // Then
         assertThat(result).isFalse();
-        verify(globalJwtPort).generateTokenHash(testTokenString);
+        verify(globalJwtAdapter).generateTokenHash(testTokenString);
         verify(redisJwtBlacklistAdapter, never()).isBlacklisted(anyString());
     }
 
@@ -117,7 +119,7 @@ class BlacklistServiceTest extends BaseUnitTest {
     @DisplayName("블랙리스트 확인 실패 시 안전하게 false 반환")
     void shouldReturnFalse_WhenBlacklistCheckFails() {
         // Given
-        given(globalJwtPort.generateTokenHash(testTokenString)).willReturn(testTokenHash);
+        given(globalJwtAdapter.generateTokenHash(testTokenString)).willReturn(testTokenHash);
         doThrow(new RuntimeException("Cache check failed"))
                 .when(redisJwtBlacklistAdapter).isBlacklisted(testTokenHash);
 
@@ -126,7 +128,7 @@ class BlacklistServiceTest extends BaseUnitTest {
 
         // Then
         assertThat(result).isFalse();
-        verify(globalJwtPort).generateTokenHash(testTokenString);
+        verify(globalJwtAdapter).generateTokenHash(testTokenString);
         verify(redisJwtBlacklistAdapter).isBlacklisted(testTokenHash);
     }
 
@@ -137,17 +139,17 @@ class BlacklistServiceTest extends BaseUnitTest {
         Long memberId = getTestMember().getId() != null ? getTestMember().getId() : 100L;
         String reason = "Security violation";
 
-        given(globalAuthTokenQueryPort.findAllByMemberId(memberId)).willReturn(testAuthTokenList);
-        given(globalJwtPort.generateTokenHash("refresh-token-0")).willReturn("hash0");
-        given(globalJwtPort.generateTokenHash("refresh-token-1")).willReturn("hash1");
+        given(globalAuthTokenQueryAdapter.findAllByMemberId(memberId)).willReturn(testAuthTokenList);
+        given(globalJwtAdapter.generateTokenHash("refresh-token-0")).willReturn("hash0");
+        given(globalJwtAdapter.generateTokenHash("refresh-token-1")).willReturn("hash1");
 
         // When
         blacklistService.blacklistAllUserTokens(memberId);
 
         // Then
-        verify(globalAuthTokenQueryPort).findAllByMemberId(memberId);
-        verify(globalJwtPort).generateTokenHash("refresh-token-0");
-        verify(globalJwtPort).generateTokenHash("refresh-token-1");
+        verify(globalAuthTokenQueryAdapter).findAllByMemberId(memberId);
+        verify(globalJwtAdapter).generateTokenHash("refresh-token-0");
+        verify(globalJwtAdapter).generateTokenHash("refresh-token-1");
 
         ArgumentCaptor<List<String>> hashesCaptor = ArgumentCaptor.forClass(List.class);
         ArgumentCaptor<Duration> durationCaptor = ArgumentCaptor.forClass(Duration.class);
@@ -168,14 +170,14 @@ class BlacklistServiceTest extends BaseUnitTest {
         // Given
         Long memberId = 100L;
         String reason = "Security violation";
-        given(globalAuthTokenQueryPort.findAllByMemberId(memberId)).willReturn(List.of());
+        given(globalAuthTokenQueryAdapter.findAllByMemberId(memberId)).willReturn(List.of());
 
         // When
         blacklistService.blacklistAllUserTokens(memberId);
 
         // Then
-        verify(globalAuthTokenQueryPort).findAllByMemberId(memberId);
-        verify(globalJwtPort, never()).generateTokenHash(anyString());
+        verify(globalAuthTokenQueryAdapter).findAllByMemberId(memberId);
+        verify(globalJwtAdapter, never()).generateTokenHash(anyString());
         verify(redisJwtBlacklistAdapter, never()).blacklistTokenHashes(any(), any());
     }
 
@@ -186,10 +188,10 @@ class BlacklistServiceTest extends BaseUnitTest {
         Long memberId = 100L;
         String reason = "Partial failure test";
 
-        given(globalAuthTokenQueryPort.findAllByMemberId(memberId)).willReturn(testAuthTokenList);
-        given(globalJwtPort.generateTokenHash("refresh-token-0")).willReturn("hash0");
+        given(globalAuthTokenQueryAdapter.findAllByMemberId(memberId)).willReturn(testAuthTokenList);
+        given(globalJwtAdapter.generateTokenHash("refresh-token-0")).willReturn("hash0");
         doThrow(new RuntimeException("Hash generation failed"))
-                .when(globalJwtPort).generateTokenHash("refresh-token-1");
+                .when(globalJwtAdapter).generateTokenHash("refresh-token-1");
 
         // When
         blacklistService.blacklistAllUserTokens(memberId);
@@ -212,17 +214,17 @@ class BlacklistServiceTest extends BaseUnitTest {
         Long memberId = 100L;
         String reason = "Complete failure test";
 
-        given(globalAuthTokenQueryPort.findAllByMemberId(memberId)).willReturn(testAuthTokenList);
+        given(globalAuthTokenQueryAdapter.findAllByMemberId(memberId)).willReturn(testAuthTokenList);
         doThrow(new RuntimeException("Hash generation failed"))
-                .when(globalJwtPort).generateTokenHash(anyString());
+                .when(globalJwtAdapter).generateTokenHash(anyString());
 
         // When
         blacklistService.blacklistAllUserTokens(memberId);
 
         // Then
-        verify(globalAuthTokenQueryPort).findAllByMemberId(memberId);
-        verify(globalJwtPort).generateTokenHash("refresh-token-0");
-        verify(globalJwtPort).generateTokenHash("refresh-token-1");
+        verify(globalAuthTokenQueryAdapter).findAllByMemberId(memberId);
+        verify(globalJwtAdapter).generateTokenHash("refresh-token-0");
+        verify(globalJwtAdapter).generateTokenHash("refresh-token-1");
         verify(redisJwtBlacklistAdapter, never()).blacklistTokenHashes(any(), any());
     }
 
@@ -233,14 +235,14 @@ class BlacklistServiceTest extends BaseUnitTest {
         Long memberId = 100L;
         String reason = "Load failure test";
         doThrow(new RuntimeException("AuthToken loading failed"))
-                .when(globalAuthTokenQueryPort).findAllByMemberId(memberId);
+                .when(globalAuthTokenQueryAdapter).findAllByMemberId(memberId);
 
         // When
         blacklistService.blacklistAllUserTokens(memberId);
 
         // Then
-        verify(globalAuthTokenQueryPort).findAllByMemberId(memberId);
-        verify(globalJwtPort, never()).generateTokenHash(anyString());
+        verify(globalAuthTokenQueryAdapter).findAllByMemberId(memberId);
+        verify(globalJwtAdapter, never()).generateTokenHash(anyString());
         verify(redisJwtBlacklistAdapter, never()).blacklistTokenHashes(any(), any());
     }
 
@@ -254,18 +256,18 @@ class BlacklistServiceTest extends BaseUnitTest {
         String reason = "Many tokens test";
         List<AuthToken> manyAuthTokens = createMultipleTokens(10);
 
-        given(globalAuthTokenQueryPort.findAllByMemberId(memberId)).willReturn(manyAuthTokens);
+        given(globalAuthTokenQueryAdapter.findAllByMemberId(memberId)).willReturn(manyAuthTokens);
         for (int i = 0; i < 10; i++) {
-            given(globalJwtPort.generateTokenHash("refresh-token-" + i)).willReturn("hash" + i);
+            given(globalJwtAdapter.generateTokenHash("refresh-token-" + i)).willReturn("hash" + i);
         }
 
         // When
         blacklistService.blacklistAllUserTokens(memberId);
 
         // Then
-        verify(globalAuthTokenQueryPort).findAllByMemberId(memberId);
+        verify(globalAuthTokenQueryAdapter).findAllByMemberId(memberId);
         for (int i = 0; i < 10; i++) {
-            verify(globalJwtPort).generateTokenHash("refresh-token-" + i);
+            verify(globalJwtAdapter).generateTokenHash("refresh-token-" + i);
         }
 
         ArgumentCaptor<List<String>> hashesCaptor = ArgumentCaptor.forClass(List.class);

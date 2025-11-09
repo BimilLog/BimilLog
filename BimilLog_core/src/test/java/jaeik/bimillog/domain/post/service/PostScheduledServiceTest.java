@@ -1,9 +1,12 @@
 package jaeik.bimillog.domain.post.service;
 
-import jaeik.bimillog.domain.post.application.port.out.RedisPostUpdatePort;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
+import jaeik.bimillog.domain.post.out.PostQueryAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostDeleteAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostSaveAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -37,16 +40,16 @@ import static org.mockito.Mockito.*;
 class PostScheduledServiceTest {
 
     @Mock
-    private RedisPostSavePort redisPostSavePort;
+    private RedisPostSaveAdapter redisPostSaveAdapter;
 
     @Mock
-    private RedisPostUpdatePort redisPostUpdatePort;
+    private RedisPostUpdateAdapter redisPostUpdateAdapter;
 
     @Mock
-    private RedisPostDeletePort redisPostDeletePort;
+    private RedisPostDeleteAdapter redisPostDeleteAdapter;
 
     @Mock
-    private PostQueryPort postQueryPort;
+    private PostQueryAdapter postQueryAdapter;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -58,14 +61,14 @@ class PostScheduledServiceTest {
     @DisplayName("실시간 인기글 점수 지수감쇠 적용 - applyRealtimeScoreDecay")
     void shouldApplyRealtimeScoreDecay() {
         // Given
-        doNothing().when(redisPostUpdatePort).applyRealtimePopularScoreDecay();
+        doNothing().when(redisPostUpdateAdapter).applyRealtimePopularScoreDecay();
 
         // When
         postScheduledService.applyRealtimeScoreDecay();
 
         // Then
-        verify(redisPostUpdatePort, times(1)).applyRealtimePopularScoreDecay();
-        verifyNoMoreInteractions(redisPostUpdatePort);
+        verify(redisPostUpdateAdapter, times(1)).applyRealtimePopularScoreDecay();
+        verifyNoMoreInteractions(redisPostUpdateAdapter);
         verifyNoInteractions(eventPublisher); // 실시간 감쇠는 이벤트 발행 안함
     }
 
@@ -77,15 +80,15 @@ class PostScheduledServiceTest {
         PostSimpleDetail post2 = createPostSimpleDetail(2L, "주간인기글2", 2L);
         List<PostSimpleDetail> posts = List.of(post1, post2);
 
-        given(postQueryPort.findWeeklyPopularPosts()).willReturn(posts);
+        given(postQueryAdapter.findWeeklyPopularPosts()).willReturn(posts);
 
         // When
         postScheduledService.updateWeeklyPopularPosts();
 
         // Then
-        verify(redisPostDeletePort).clearPostListCache(PostCacheFlag.WEEKLY);
-        verify(redisPostSavePort).cachePostIdsOnly(eq(PostCacheFlag.WEEKLY), eq(List.of(1L, 2L)));
-        verify(redisPostSavePort).cachePostList(eq(PostCacheFlag.WEEKLY), any());
+        verify(redisPostDeleteAdapter).clearPostListCache(PostCacheFlag.WEEKLY);
+        verify(redisPostSaveAdapter).cachePostIdsOnly(eq(PostCacheFlag.WEEKLY), eq(List.of(1L, 2L)));
+        verify(redisPostSaveAdapter).cachePostList(eq(PostCacheFlag.WEEKLY), any());
 
         // 이벤트 발행 검증
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -107,15 +110,15 @@ class PostScheduledServiceTest {
         PostSimpleDetail userPost = createPostSimpleDetail(2L, "회원글", 2L);
         List<PostSimpleDetail> posts = List.of(anonymousPost, userPost);
 
-        given(postQueryPort.findWeeklyPopularPosts()).willReturn(posts);
+        given(postQueryAdapter.findWeeklyPopularPosts()).willReturn(posts);
 
         // When
         postScheduledService.updateWeeklyPopularPosts();
 
         // Then
-        verify(redisPostDeletePort).clearPostListCache(PostCacheFlag.WEEKLY);
-        verify(redisPostSavePort).cachePostIdsOnly(eq(PostCacheFlag.WEEKLY), any());
-        verify(redisPostSavePort).cachePostList(eq(PostCacheFlag.WEEKLY), any());
+        verify(redisPostDeleteAdapter).clearPostListCache(PostCacheFlag.WEEKLY);
+        verify(redisPostSaveAdapter).cachePostIdsOnly(eq(PostCacheFlag.WEEKLY), any());
+        verify(redisPostSaveAdapter).cachePostList(eq(PostCacheFlag.WEEKLY), any());
 
         // 익명 게시글은 이벤트 발행 안함, 회원 게시글만 이벤트 발행
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -133,15 +136,15 @@ class PostScheduledServiceTest {
         PostSimpleDetail legendPost = createPostSimpleDetail(1L, "전설의글", 1L);
         List<PostSimpleDetail> posts = List.of(legendPost);
 
-        given(postQueryPort.findLegendaryPosts()).willReturn(posts);
+        given(postQueryAdapter.findLegendaryPosts()).willReturn(posts);
 
         // When
         postScheduledService.updateLegendaryPosts();
 
         // Then
-        verify(redisPostDeletePort).clearPostListCache(PostCacheFlag.LEGEND);
-        verify(redisPostSavePort).cachePostIdsOnly(eq(PostCacheFlag.LEGEND), eq(List.of(1L)));
-        verify(redisPostSavePort).cachePostList(eq(PostCacheFlag.LEGEND), any());
+        verify(redisPostDeleteAdapter).clearPostListCache(PostCacheFlag.LEGEND);
+        verify(redisPostSaveAdapter).cachePostIdsOnly(eq(PostCacheFlag.LEGEND), eq(List.of(1L)));
+        verify(redisPostSaveAdapter).cachePostList(eq(PostCacheFlag.LEGEND), any());
 
         // 명예의 전당 이벤트 검증
         ArgumentCaptor<PostFeaturedEvent> eventCaptor = ArgumentCaptor.forClass(PostFeaturedEvent.class);
@@ -158,18 +161,18 @@ class PostScheduledServiceTest {
     @DisplayName("전설의 게시글 업데이트 - 게시글 목록 비어있는 경우")
     void shouldUpdateLegendaryPosts_WhenPostListIsEmpty() {
         // Given
-        given(postQueryPort.findLegendaryPosts()).willReturn(Collections.emptyList());
+        given(postQueryAdapter.findLegendaryPosts()).willReturn(Collections.emptyList());
 
         // When
         postScheduledService.updateLegendaryPosts();
 
         // Then
-        verify(postQueryPort).findLegendaryPosts();
+        verify(postQueryAdapter).findLegendaryPosts();
 
         // 게시글이 없으면 캐시 및 이벤트 발행 안함
-        verify(redisPostDeletePort, never()).clearPostListCache(any());
-        verify(redisPostSavePort, never()).cachePostIdsOnly(any(), any());
-        verify(redisPostSavePort, never()).cachePostList(any(), any());
+        verify(redisPostDeleteAdapter, never()).clearPostListCache(any());
+        verify(redisPostSaveAdapter, never()).cachePostIdsOnly(any(), any());
+        verify(redisPostSaveAdapter, never()).cachePostList(any(), any());
         verify(eventPublisher, never()).publishEvent(any());
     }
 
@@ -178,8 +181,8 @@ class PostScheduledServiceTest {
     @DisplayName("스케줄링 메서드들의 트랜잭션 동작 검증")
     void shouldVerifyTransactionalBehavior() {
         // Given
-        given(postQueryPort.findWeeklyPopularPosts()).willReturn(Collections.emptyList());
-        given(postQueryPort.findLegendaryPosts()).willReturn(Collections.emptyList());
+        given(postQueryAdapter.findWeeklyPopularPosts()).willReturn(Collections.emptyList());
+        given(postQueryAdapter.findLegendaryPosts()).willReturn(Collections.emptyList());
 
         // When - 모든 스케줄링 메서드 호출
         postScheduledService.applyRealtimeScoreDecay();
@@ -187,9 +190,9 @@ class PostScheduledServiceTest {
         postScheduledService.updateLegendaryPosts();
 
         // Then - @Transactional 동작을 위한 port 호출 검증
-        verify(redisPostUpdatePort).applyRealtimePopularScoreDecay();
-        verify(postQueryPort).findWeeklyPopularPosts();
-        verify(postQueryPort).findLegendaryPosts();
+        verify(redisPostUpdateAdapter).applyRealtimePopularScoreDecay();
+        verify(postQueryAdapter).findWeeklyPopularPosts();
+        verify(postQueryAdapter).findLegendaryPosts();
     }
 
     @Test
@@ -198,15 +201,15 @@ class PostScheduledServiceTest {
         // Given - 대량의 게시글 생성 (100개)
         List<PostSimpleDetail> largePosts = createLargePostList(100);
 
-        given(postQueryPort.findWeeklyPopularPosts()).willReturn(largePosts);
+        given(postQueryAdapter.findWeeklyPopularPosts()).willReturn(largePosts);
 
         // When
         postScheduledService.updateWeeklyPopularPosts();
 
         // Then
-        verify(redisPostDeletePort).clearPostListCache(PostCacheFlag.WEEKLY);
-        verify(redisPostSavePort).cachePostIdsOnly(eq(PostCacheFlag.WEEKLY), any());
-        verify(redisPostSavePort).cachePostList(eq(PostCacheFlag.WEEKLY), any());
+        verify(redisPostDeleteAdapter).clearPostListCache(PostCacheFlag.WEEKLY);
+        verify(redisPostSaveAdapter).cachePostIdsOnly(eq(PostCacheFlag.WEEKLY), any());
+        verify(redisPostSaveAdapter).cachePostList(eq(PostCacheFlag.WEEKLY), any());
 
         // 100개 게시글 중 userId가 있는 것들만 이벤트 발행 (50개)
         verify(eventPublisher, times(50)).publishEvent(any(PostFeaturedEvent.class));

@@ -22,7 +22,6 @@ public class CommentProjection {
 
     private static final QComment comment = QComment.comment;
     private static final QCommentLike commentLike = QCommentLike.commentLike;
-    private static final QCommentClosure closure = QCommentClosure.commentClosure;
     private static final QMember member = QMember.member;
 
     /**

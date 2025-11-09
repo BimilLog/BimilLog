@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.auth.service;
 
-import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPort;
+import jaeik.bimillog.domain.global.out.GlobalSocialStrategyAdapter;
 import jaeik.bimillog.domain.global.strategy.SocialAuthStrategy;
 import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
@@ -25,7 +25,7 @@ import static org.mockito.Mockito.verify;
 class SocialWithdrawServiceTest {
 
     @Mock
-    private GlobalSocialStrategyPort strategyRegistryPort;
+    private GlobalSocialStrategyAdapter strategyRegistryAdapter;
 
     @Mock
     private SocialPlatformStrategy socialPlatformStrategy;
@@ -42,14 +42,14 @@ class SocialWithdrawServiceTest {
         // Given
         SocialProvider provider = SocialProvider.KAKAO;
         String socialId = "12345";
-        given(strategyRegistryPort.getStrategy(provider)).willReturn(socialPlatformStrategy);
+        given(strategyRegistryAdapter.getStrategy(provider)).willReturn(socialPlatformStrategy);
         given(socialPlatformStrategy.auth()).willReturn(socialAuthStrategy);
 
         // When
         socialWithdrawService.unlinkSocialAccount(provider, socialId);
 
         // Then
-        verify(strategyRegistryPort).getStrategy(provider);
+        verify(strategyRegistryAdapter).getStrategy(provider);
         verify(socialPlatformStrategy).auth();
         verify(socialAuthStrategy).unlink(socialId);
     }

@@ -32,7 +32,7 @@ import static org.mockito.Mockito.verify;
 class MemberQueryServiceTest extends BaseUnitTest {
 
     @Mock
-    private MemberQueryAdapter memberQueryPort;
+    private MemberQueryAdapter memberQueryAdapter;
 
     @InjectMocks
     private MemberQueryService userQueryService;
@@ -44,13 +44,13 @@ class MemberQueryServiceTest extends BaseUnitTest {
         Long settingId = 1L;
         Setting expectedSetting = createSettingWithId(createCustomSetting(true, false, true), settingId);
 
-        given(memberQueryPort.findSettingById(settingId)).willReturn(Optional.of(expectedSetting));
+        given(memberQueryAdapter.findSettingById(settingId)).willReturn(Optional.of(expectedSetting));
 
         // When
         Setting result = userQueryService.findBySettingId(settingId);
 
         // Then
-        verify(memberQueryPort).findSettingById(settingId);
+        verify(memberQueryAdapter).findSettingById(settingId);
         assertThat(result).isEqualTo(expectedSetting);
         assertThat(result.getId()).isEqualTo(settingId);
         assertThat(result.isMessageNotification()).isTrue();
@@ -64,14 +64,14 @@ class MemberQueryServiceTest extends BaseUnitTest {
         // Given
         Long settingId = 999L;
 
-        given(memberQueryPort.findSettingById(settingId)).willReturn(Optional.empty());
+        given(memberQueryAdapter.findSettingById(settingId)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> userQueryService.findBySettingId(settingId))
                 .isInstanceOf(MemberCustomException.class)
                 .hasMessage(MemberErrorCode.SETTINGS_NOT_FOUND.getMessage());
 
-        verify(memberQueryPort).findSettingById(settingId);
+        verify(memberQueryAdapter).findSettingById(settingId);
     }
 
     /*

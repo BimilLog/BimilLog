@@ -1,9 +1,14 @@
 package jaeik.bimillog.domain.post.service;
 
+import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
+import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
+import jaeik.bimillog.domain.post.out.PostCommandAdapter;
+import jaeik.bimillog.domain.post.out.PostLikeCommandAdapter;
+import jaeik.bimillog.domain.post.out.PostLikeQueryAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
@@ -34,19 +39,19 @@ import static org.mockito.Mockito.verify;
 class PostInteractionServiceTest extends BaseUnitTest {
 
     @Mock
-    private PostCommandPort postCommandPort;
+    private PostCommandAdapter postCommandAdapter;
 
     @Mock
-    private GlobalPostQueryPort globalPostQueryPort;
+    private GlobalPostQueryAdapter globalPostQueryAdapter;
 
     @Mock
-    private PostLikeCommandPort postLikeCommandPort;
+    private PostLikeCommandAdapter postLikeCommandAdapter;
 
     @Mock
-    private PostLikeQueryPort postLikeQueryPort;
+    private PostLikeQueryAdapter postLikeQueryAdapter;
 
     @Mock
-    private GlobalMemberQueryPort globalMemberQueryPort;
+    private GlobalMemberQueryAdapter globalMemberQueryAdapter;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -62,26 +67,26 @@ class PostInteractionServiceTest extends BaseUnitTest {
         Long postId = 123L;
         Post post = PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestMember(), "테스트 게시글", "내용"));
 
-        given(postLikeQueryPort.existsByPostIdAndUserId(postId, memberId)).willReturn(false);
-        given(globalMemberQueryPort.getReferenceById(memberId)).willReturn(getTestMember());
-        given(globalPostQueryPort.findById(postId)).willReturn(post);
+        given(postLikeQueryAdapter.existsByPostIdAndUserId(postId, memberId)).willReturn(false);
+        given(globalMemberQueryAdapter.getReferenceById(memberId)).willReturn(getTestMember());
+        given(globalPostQueryAdapter.findById(postId)).willReturn(post);
 
         // When
         postInteractionService.likePost(memberId, postId);
 
         // Then
-        verify(postLikeQueryPort).existsByPostIdAndUserId(postId, memberId);
-        verify(globalMemberQueryPort).getReferenceById(memberId);
-        verify(globalPostQueryPort).findById(postId);
+        verify(postLikeQueryAdapter).existsByPostIdAndUserId(postId, memberId);
+        verify(globalMemberQueryAdapter).getReferenceById(memberId);
+        verify(globalPostQueryAdapter).findById(postId);
 
         // ArgumentCaptor로 PostLike 객체 검증
         ArgumentCaptor<PostLike> postLikeCaptor = ArgumentCaptor.forClass(PostLike.class);
-        verify(postLikeCommandPort).savePostLike(postLikeCaptor.capture());
+        verify(postLikeCommandAdapter).savePostLike(postLikeCaptor.capture());
         PostLike savedPostLike = postLikeCaptor.getValue();
         assertThat(savedPostLike.getMember()).isEqualTo(getTestMember());
         assertThat(savedPostLike.getPost()).isEqualTo(post);
 
-        verify(postLikeCommandPort, never()).deletePostLike(any(), any());
+        verify(postLikeCommandAdapter, never()).deletePostLike(any(), any());
     }
 
     @Test
@@ -92,19 +97,19 @@ class PostInteractionServiceTest extends BaseUnitTest {
         Long postId = 123L;
         Post post = PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestMember(), "테스트 게시글", "내용"));
 
-        given(postLikeQueryPort.existsByPostIdAndUserId(postId, memberId)).willReturn(true);
-        given(globalMemberQueryPort.getReferenceById(memberId)).willReturn(getTestMember());
-        given(globalPostQueryPort.findById(postId)).willReturn(post);
+        given(postLikeQueryAdapter.existsByPostIdAndUserId(postId, memberId)).willReturn(true);
+        given(globalMemberQueryAdapter.getReferenceById(memberId)).willReturn(getTestMember());
+        given(globalPostQueryAdapter.findById(postId)).willReturn(post);
 
         // When
         postInteractionService.likePost(memberId, postId);
 
         // Then
-        verify(postLikeQueryPort).existsByPostIdAndUserId(postId, memberId);
-        verify(globalMemberQueryPort).getReferenceById(memberId);
-        verify(globalPostQueryPort).findById(postId);
-        verify(postLikeCommandPort).deletePostLike(getTestMember(), post);
-        verify(postLikeCommandPort, never()).savePostLike(any());
+        verify(postLikeQueryAdapter).existsByPostIdAndUserId(postId, memberId);
+        verify(globalMemberQueryAdapter).getReferenceById(memberId);
+        verify(globalPostQueryAdapter).findById(postId);
+        verify(postLikeCommandAdapter).deletePostLike(getTestMember(), post);
+        verify(postLikeCommandAdapter, never()).savePostLike(any());
     }
 
     @Test
@@ -114,20 +119,20 @@ class PostInteractionServiceTest extends BaseUnitTest {
         Long memberId = 1L;
         Long postId = 999L;
 
-        given(postLikeQueryPort.existsByPostIdAndUserId(postId, memberId)).willReturn(false);
-        given(globalMemberQueryPort.getReferenceById(memberId)).willReturn(getTestMember());
-        given(globalPostQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
+        given(postLikeQueryAdapter.existsByPostIdAndUserId(postId, memberId)).willReturn(false);
+        given(globalMemberQueryAdapter.getReferenceById(memberId)).willReturn(getTestMember());
+        given(globalPostQueryAdapter.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> postInteractionService.likePost(memberId, postId))
                 .isInstanceOf(PostCustomException.class)
                 .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.POST_NOT_FOUND);
 
-        verify(postLikeQueryPort).existsByPostIdAndUserId(postId, memberId);
-        verify(globalMemberQueryPort).getReferenceById(memberId);
-        verify(globalPostQueryPort).findById(postId);
-        verify(postLikeCommandPort, never()).savePostLike(any());
-        verify(postLikeCommandPort, never()).deletePostLike(any(), any());
+        verify(postLikeQueryAdapter).existsByPostIdAndUserId(postId, memberId);
+        verify(globalMemberQueryAdapter).getReferenceById(memberId);
+        verify(globalPostQueryAdapter).findById(postId);
+        verify(postLikeCommandAdapter, never()).savePostLike(any());
+        verify(postLikeCommandAdapter, never()).deletePostLike(any(), any());
     }
 
     @Test
@@ -140,7 +145,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
         postInteractionService.incrementViewCount(postId);
 
         // Then
-        verify(postCommandPort).incrementViewByPostId(postId);
+        verify(postCommandAdapter).incrementViewByPostId(postId);
     }
 
 }

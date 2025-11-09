@@ -6,8 +6,8 @@ import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
 import jaeik.bimillog.domain.admin.exception.AdminCustomException;
 import jaeik.bimillog.domain.admin.exception.AdminErrorCode;
 import jaeik.bimillog.domain.admin.controller.AdminCommandController;
-import jaeik.bimillog.domain.admin.out.AdminCommandAdapter;
-import jaeik.bimillog.domain.admin.out.AdminQueryAdapter;
+import jaeik.bimillog.domain.admin.out.AdminQueryRepository;
+import jaeik.bimillog.domain.admin.out.ReportRepository;
 import jaeik.bimillog.domain.auth.service.BlacklistService;
 import jaeik.bimillog.domain.global.out.GlobalCommentQueryAdapter;
 import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
@@ -37,8 +37,8 @@ import java.util.Optional;
 public class AdminCommandService {
 
     private final ApplicationEventPublisher eventPublisher;
-    private final AdminCommandAdapter adminCommandAdapter;
-    private final AdminQueryAdapter adminQueryAdapter;
+    private final ReportRepository reportRepository;
+    private final AdminQueryRepository adminQueryRepository;
     private final MemberQueryAdapter memberQueryAdapter;
     private final GlobalPostQueryAdapter globalPostQueryAdapter;
     private final GlobalCommentQueryAdapter globalCommentQueryAdapter;
@@ -63,7 +63,7 @@ public class AdminCommandService {
                 .orElse(null);
 
         Report report = Report.createReport(reportType, targetId, content, reporter);
-        adminCommandAdapter.save(report);
+        reportRepository.save(report);
     }
 
     /**
@@ -115,7 +115,7 @@ public class AdminCommandService {
      */
     @Transactional
     public void anonymizeReporterByUserId(Long memberId) {
-        List<Report> reports = adminQueryAdapter.findAllReportsByUserId(memberId);
+        List<Report> reports = adminQueryRepository.findAllReportsByUserId(memberId);
         for (Report report : reports) {
             report.anonymizeReporter();
         }

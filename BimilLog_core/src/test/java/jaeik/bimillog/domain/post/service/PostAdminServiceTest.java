@@ -1,9 +1,12 @@
 package jaeik.bimillog.domain.post.service;
 
+import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostDeleteAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostSaveAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -29,13 +32,13 @@ import static org.mockito.Mockito.verify;
 class PostAdminServiceTest extends BaseUnitTest {
 
     @Mock
-    private GlobalPostQueryPort globalPostQueryPort;
+    private GlobalPostQueryAdapter globalPostQueryAdapter;
 
     @Mock
-    private RedisPostSavePort redisPostSavePort;
+    private RedisPostSaveAdapter redisPostSaveAdapter;
 
     @Mock
-    private RedisPostDeletePort redisPostDeletePort;
+    private RedisPostDeleteAdapter redisPostDeleteAdapter;
 
     @Mock
     private Post post;
@@ -50,7 +53,7 @@ class PostAdminServiceTest extends BaseUnitTest {
         Long postId = 123L;
         String postTitle = "중요한 공지사항";
 
-        given(globalPostQueryPort.findById(postId)).willReturn(post);
+        given(globalPostQueryAdapter.findById(postId)).willReturn(post);
         given(post.getTitle()).willReturn(postTitle);
         given(post.isNotice()).willReturn(false); // 현재 공지 아님
 
@@ -58,10 +61,10 @@ class PostAdminServiceTest extends BaseUnitTest {
         postAdminService.togglePostNotice(postId);
 
         // Then
-        verify(globalPostQueryPort).findById(postId);
+        verify(globalPostQueryAdapter).findById(postId);
         verify(post).isNotice(); // 상태 확인 (if문)
         verify(post).setAsNotice();
-        verify(redisPostSavePort).addPostIdToStorage(PostCacheFlag.NOTICE, postId);
+        verify(redisPostSaveAdapter).addPostIdToStorage(PostCacheFlag.NOTICE, postId);
     }
 
     @Test
@@ -70,14 +73,14 @@ class PostAdminServiceTest extends BaseUnitTest {
         // Given
         Long postId = 999L;
 
-        given(globalPostQueryPort.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
+        given(globalPostQueryAdapter.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> postAdminService.togglePostNotice(postId))
                 .isInstanceOf(PostCustomException.class)
                 .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.POST_NOT_FOUND);
 
-        verify(globalPostQueryPort).findById(postId);
+        verify(globalPostQueryAdapter).findById(postId);
         verify(post, never()).isNotice();
         verify(post, never()).setAsNotice();
         verify(post, never()).unsetAsNotice();
@@ -93,7 +96,7 @@ class PostAdminServiceTest extends BaseUnitTest {
         assertThatThrownBy(() -> postAdminService.togglePostNotice(postId))
                 .isInstanceOf(Exception.class);
 
-        verify(globalPostQueryPort).findById(postId);
+        verify(globalPostQueryAdapter).findById(postId);
         verify(post, never()).isNotice();
         verify(post, never()).setAsNotice();
         verify(post, never()).unsetAsNotice();
@@ -106,7 +109,7 @@ class PostAdminServiceTest extends BaseUnitTest {
         Long postId = 123L;
         String postTitle = "공지 해제될 게시글";
 
-        given(globalPostQueryPort.findById(postId)).willReturn(post);
+        given(globalPostQueryAdapter.findById(postId)).willReturn(post);
         given(post.getTitle()).willReturn(postTitle);
         given(post.isNotice()).willReturn(true); // 현재 공지임
 
@@ -114,11 +117,11 @@ class PostAdminServiceTest extends BaseUnitTest {
         postAdminService.togglePostNotice(postId);
 
         // Then
-        verify(globalPostQueryPort).findById(postId);
+        verify(globalPostQueryAdapter).findById(postId);
         verify(post).isNotice(); // 상태 확인 (if문)
         verify(post).unsetAsNotice();
-        verify(redisPostDeletePort).removePostIdFromStorage(postId);
-        verify(redisPostDeletePort).removePostFromListCache(postId);
+        verify(redisPostDeleteAdapter).removePostIdFromStorage(postId);
+        verify(redisPostDeleteAdapter).removePostFromListCache(postId);
     }
 
 

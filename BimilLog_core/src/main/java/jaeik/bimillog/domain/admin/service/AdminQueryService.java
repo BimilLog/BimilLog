@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.admin.service;
 
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.domain.admin.out.AdminQueryAdapter;
+import jaeik.bimillog.domain.admin.out.AdminQueryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,7 +24,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AdminQueryService {
 
-    private final AdminQueryAdapter adminQueryAdapter;
+    private final AdminQueryRepository adminQueryRepository;
 
     /**
      * <h3>신고 목록 조회</h3>
@@ -38,6 +38,6 @@ public class AdminQueryService {
      */
     public Page<Report> getReportList(int page, int size, ReportType reportType) {
         Pageable pageable = PageRequest.of(page, size);
-        return adminQueryAdapter.findReportsWithPaging(reportType, pageable);
+        return adminQueryRepository.findReportsWithPaging(reportType, pageable);
     }
 }

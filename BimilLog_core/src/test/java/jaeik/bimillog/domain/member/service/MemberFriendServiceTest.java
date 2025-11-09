@@ -3,7 +3,8 @@ package jaeik.bimillog.domain.member.service;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
-import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPort;
+import jaeik.bimillog.domain.global.out.GlobalKakaoTokenQueryAdapter;
+import jaeik.bimillog.domain.global.out.GlobalSocialStrategyAdapter;
 import jaeik.bimillog.domain.global.strategy.SocialFriendStrategy;
 import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
 import jaeik.bimillog.domain.member.entity.KakaoFriends;
@@ -40,13 +41,13 @@ class MemberFriendServiceTest extends BaseUnitTest {
     private static final Integer DEFAULT_LIMIT = 10;
 
     @Mock
-    private MemberQueryAdapter memberQueryPort;
+    private MemberQueryAdapter memberQueryAdapter;
 
     @Mock
-    private GlobalKakaoTokenQueryPort globalKakaoTokenQueryPort;
+    private GlobalKakaoTokenQueryAdapter globalKakaoTokenQueryAdapter;
 
     @Mock
-    private GlobalSocialStrategyPort globalSocialStrategyPort;
+    private GlobalSocialStrategyAdapter globalSocialStrategyAdapter;
 
     @Mock
     private SocialPlatformStrategy socialPlatformStrategy;
@@ -69,17 +70,17 @@ class MemberFriendServiceTest extends BaseUnitTest {
         );
         KakaoFriends response = KakaoFriends.of(friends, 2, null, null, 1);
 
-        given(globalKakaoTokenQueryPort.findByMemberId(MEMBER_ID)).willReturn(Optional.of(kakaoToken));
-        given(globalSocialStrategyPort.getStrategy(SocialProvider.KAKAO)).willReturn(socialPlatformStrategy);
+        given(globalKakaoTokenQueryAdapter.findByMemberId(MEMBER_ID)).willReturn(Optional.of(kakaoToken));
+        given(globalSocialStrategyAdapter.getStrategy(SocialProvider.KAKAO)).willReturn(socialPlatformStrategy);
         given(socialPlatformStrategy.friend()).willReturn(Optional.of(socialFriendStrategy));
         given(socialFriendStrategy.getFriendList("access-token", DEFAULT_OFFSET, DEFAULT_LIMIT)).willReturn(response);
-        given(memberQueryPort.findMemberNamesInOrder(Arrays.asList("1", "2"))).willReturn(Arrays.asList("user1", "user2"));
+        given(memberQueryAdapter.findMemberNamesInOrder(Arrays.asList("1", "2"))).willReturn(Arrays.asList("user1", "user2"));
 
         KakaoFriends result = memberFriendService.getKakaoFriendList(MEMBER_ID, 99L, SocialProvider.KAKAO, DEFAULT_OFFSET, DEFAULT_LIMIT);
 
         assertThat(result.elements()).extracting(KakaoFriends.Friend::memberName)
                 .containsExactly("user1", "user2");
-        verify(memberQueryPort).findMemberNamesInOrder(Arrays.asList("1", "2"));
+        verify(memberQueryAdapter).findMemberNamesInOrder(Arrays.asList("1", "2"));
     }
 
     @Test
@@ -88,15 +89,15 @@ class MemberFriendServiceTest extends BaseUnitTest {
         KakaoToken kakaoToken = KakaoToken.createKakaoToken("access-token", "refresh");
         KakaoFriends emptyResponse = KakaoFriends.of(Collections.emptyList(), 0, null, null, 0);
 
-        given(globalKakaoTokenQueryPort.findByMemberId(MEMBER_ID)).willReturn(Optional.of(kakaoToken));
-        given(globalSocialStrategyPort.getStrategy(SocialProvider.KAKAO)).willReturn(socialPlatformStrategy);
+        given(globalKakaoTokenQueryAdapter.findByMemberId(MEMBER_ID)).willReturn(Optional.of(kakaoToken));
+        given(globalSocialStrategyAdapter.getStrategy(SocialProvider.KAKAO)).willReturn(socialPlatformStrategy);
         given(socialPlatformStrategy.friend()).willReturn(Optional.of(socialFriendStrategy));
         given(socialFriendStrategy.getFriendList("access-token", DEFAULT_OFFSET, DEFAULT_LIMIT)).willReturn(emptyResponse);
 
         KakaoFriends result = memberFriendService.getKakaoFriendList(MEMBER_ID, 1L, SocialProvider.KAKAO, DEFAULT_OFFSET, DEFAULT_LIMIT);
 
         assertThat(result.elements()).isEmpty();
-        verify(memberQueryPort, never()).findMemberNamesInOrder(anyList());
+        verify(memberQueryAdapter, never()).findMemberNamesInOrder(anyList());
     }
 
     @Test
@@ -105,8 +106,8 @@ class MemberFriendServiceTest extends BaseUnitTest {
         KakaoToken kakaoToken = KakaoToken.createKakaoToken("access-token", "refresh");
         KakaoFriends response = KakaoFriends.of(Collections.emptyList(), 0, null, null, 0);
 
-        given(globalKakaoTokenQueryPort.findByMemberId(MEMBER_ID)).willReturn(Optional.of(kakaoToken));
-        given(globalSocialStrategyPort.getStrategy(SocialProvider.KAKAO)).willReturn(socialPlatformStrategy);
+        given(globalKakaoTokenQueryAdapter.findByMemberId(MEMBER_ID)).willReturn(Optional.of(kakaoToken));
+        given(globalSocialStrategyAdapter.getStrategy(SocialProvider.KAKAO)).willReturn(socialPlatformStrategy);
         given(socialPlatformStrategy.friend()).willReturn(Optional.of(socialFriendStrategy));
         given(socialFriendStrategy.getFriendList("access-token", DEFAULT_OFFSET, DEFAULT_LIMIT)).willReturn(response);
 
@@ -121,8 +122,8 @@ class MemberFriendServiceTest extends BaseUnitTest {
     void shouldThrowWhenFriendStrategyMissing() {
         KakaoToken kakaoToken = KakaoToken.createKakaoToken("access-token", "refresh");
 
-        given(globalKakaoTokenQueryPort.findByMemberId(MEMBER_ID)).willReturn(Optional.of(kakaoToken));
-        given(globalSocialStrategyPort.getStrategy(SocialProvider.KAKAO)).willReturn(socialPlatformStrategy);
+        given(globalKakaoTokenQueryAdapter.findByMemberId(MEMBER_ID)).willReturn(Optional.of(kakaoToken));
+        given(globalSocialStrategyAdapter.getStrategy(SocialProvider.KAKAO)).willReturn(socialPlatformStrategy);
         given(socialPlatformStrategy.friend()).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> memberFriendService.getKakaoFriendList(MEMBER_ID, 1L, SocialProvider.KAKAO, DEFAULT_OFFSET, DEFAULT_LIMIT))
@@ -133,7 +134,7 @@ class MemberFriendServiceTest extends BaseUnitTest {
     @Test
     @DisplayName("카카오 토큰이 존재하지 않으면 공통 에러로 변환한다")
     void shouldWrapWhenKakaoTokenMissing() {
-        given(globalKakaoTokenQueryPort.findByMemberId(MEMBER_ID)).willReturn(Optional.empty());
+        given(globalKakaoTokenQueryAdapter.findByMemberId(MEMBER_ID)).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> memberFriendService.getKakaoFriendList(MEMBER_ID, 1L, SocialProvider.KAKAO, DEFAULT_OFFSET, DEFAULT_LIMIT))
                 .isInstanceOf(MemberCustomException.class)
@@ -148,8 +149,8 @@ class MemberFriendServiceTest extends BaseUnitTest {
     void shouldConvertConsentError() {
         KakaoToken kakaoToken = KakaoToken.createKakaoToken("access-token", "refresh");
 
-        given(globalKakaoTokenQueryPort.findByMemberId(MEMBER_ID)).willReturn(Optional.of(kakaoToken));
-        given(globalSocialStrategyPort.getStrategy(SocialProvider.KAKAO)).willReturn(socialPlatformStrategy);
+        given(globalKakaoTokenQueryAdapter.findByMemberId(MEMBER_ID)).willReturn(Optional.of(kakaoToken));
+        given(globalSocialStrategyAdapter.getStrategy(SocialProvider.KAKAO)).willReturn(socialPlatformStrategy);
         given(socialPlatformStrategy.friend()).willReturn(Optional.of(socialFriendStrategy));
         given(socialFriendStrategy.getFriendList("access-token", DEFAULT_OFFSET, DEFAULT_LIMIT))
                 .willThrow(new MemberCustomException(MemberErrorCode.KAKAO_FRIEND_API_ERROR));

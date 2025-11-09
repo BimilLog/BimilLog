@@ -27,7 +27,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 class LoginHandleServiceTest extends BaseUnitTest {
 
     @Mock
-    private RedisMemberDataAdapter redisMemberDataPort;
+    private RedisMemberDataAdapter redisMemberDataAdapter;
 
     @InjectMocks
     private HandleMemberLoginService loginHandleService;
@@ -50,7 +50,7 @@ class LoginHandleServiceTest extends BaseUnitTest {
         assertThat(member.getThumbnailImage()).isEqualTo("http://image/new.jpg");
         assertThat(member.getKakaoToken()).isEqualTo(kakaoToken);
 
-        verifyNoInteractions(redisMemberDataPort);
+        verifyNoInteractions(redisMemberDataAdapter);
     }
 
     @Test
@@ -70,6 +70,6 @@ class LoginHandleServiceTest extends BaseUnitTest {
 
         loginHandleService.handleNewMember(profile, uuid);
 
-        verify(redisMemberDataPort).saveTempData(uuid, profile);
+        verify(redisMemberDataAdapter).saveTempData(uuid, profile);
     }
 }
