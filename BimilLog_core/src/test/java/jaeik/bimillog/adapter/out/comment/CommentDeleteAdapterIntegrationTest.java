@@ -3,10 +3,10 @@ package jaeik.bimillog.adapter.out.comment;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.infrastructure.adapter.out.comment.CommentDeleteAdapter;
-import jaeik.bimillog.infrastructure.adapter.out.comment.CommentRepository;
-import jaeik.bimillog.infrastructure.adapter.out.member.MemberRepository;
-import jaeik.bimillog.infrastructure.adapter.out.post.PostRepository;
+import jaeik.bimillog.domain.comment.out.CommentDeleteAdapter;
+import jaeik.bimillog.domain.comment.out.CommentRepository;
+import jaeik.bimillog.domain.member.out.MemberRepository;
+import jaeik.bimillog.domain.post.out.PostRepository;
 import jaeik.bimillog.testutil.config.H2TestConfiguration;
 import jaeik.bimillog.testutil.TestMembers;
 import jakarta.persistence.EntityManager;
@@ -56,10 +56,10 @@ class CommentDeleteAdapterIntegrationTest {
     private MemberRepository memberRepository;
 
     @Autowired
-    private jaeik.bimillog.infrastructure.adapter.out.member.SettingRepository settingRepository;
+    private jaeik.bimillog.domain.member.out.SettingRepository settingRepository;
 
     @Autowired
-    private jaeik.bimillog.infrastructure.adapter.out.auth.KakaoTokenRepository kakaoTokenRepository;
+    private jaeik.bimillog.domain.auth.out.KakaoTokenRepository kakaoTokenRepository;
 
     private Member testMember;
     private Post testPost;

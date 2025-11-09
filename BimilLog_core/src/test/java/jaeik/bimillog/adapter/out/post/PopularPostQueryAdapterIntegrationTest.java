@@ -1,10 +1,9 @@
 package jaeik.bimillog.adapter.out.post;
 
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.post.application.port.out.PostQueryPort;
 import jaeik.bimillog.domain.post.entity.*;
-import jaeik.bimillog.infrastructure.adapter.out.post.PostLikeRepository;
-import jaeik.bimillog.infrastructure.adapter.out.post.PostRepository;
+import jaeik.bimillog.domain.post.out.PostLikeRepository;
+import jaeik.bimillog.domain.post.out.PostRepository;
 import jaeik.bimillog.testutil.RedisTestHelper;
 import jaeik.bimillog.testutil.fixtures.TestFixtures;
 import jaeik.bimillog.testutil.TestMembers;

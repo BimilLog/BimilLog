@@ -1,19 +1,16 @@
 package jaeik.bimillog.testutil.config;
 
-import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPort;
-import jaeik.bimillog.domain.global.application.strategy.SocialAuthStrategy;
-import jaeik.bimillog.domain.global.application.strategy.SocialFriendStrategy;
-import jaeik.bimillog.domain.global.application.strategy.SocialPlatformStrategy;
+import jaeik.bimillog.domain.global.strategy.SocialAuthStrategy;
+import jaeik.bimillog.domain.global.strategy.SocialFriendStrategy;
+import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
 import jaeik.bimillog.domain.global.entity.MemberDetail;
 import jaeik.bimillog.domain.member.entity.KakaoFriends;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.exception.MemberCustomException;
 import jaeik.bimillog.domain.member.exception.MemberErrorCode;
-import jaeik.bimillog.infrastructure.adapter.out.global.GlobalCookieAdapter;
+import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
 import jaeik.bimillog.testutil.TestMembers;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -135,21 +132,7 @@ public class TestSocialLoginPortConfig {
         }
     }
 
-    @Bean
-    @Primary
-    public BlacklistPort testBlacklistPort() {
-        return new BlacklistPort() {
-            @Override
-            public boolean existsByProviderAndSocialId(SocialProvider provider, String socialId) {
-                return false;
-            }
-
-            @Override
-            public void saveBlackList(jaeik.bimillog.domain.auth.entity.BlackList blackList) {
-                // no-op
-            }
-        };
-    }
+    // BlacklistAdapter is now a concrete class, tests should use @MockitoBean to mock it directly
 
     @Bean
     @Primary

@@ -25,11 +25,8 @@ public enum NotificationErrorCode {
      * <h3>알림 입력값 관련 에러 코드</h3>
      */
     INVALID_USER_CONTEXT(HttpStatus.BAD_REQUEST, "유효하지 않은 사용자 컨텍스트입니다.", ErrorCode.LogLevel.WARN),
-    
-    /**
-     * <h3>사용자 조회 관련 에러 코드</h3>
-     */
-    NOTIFICATION_USER_NOT_FOUND(HttpStatus.NOT_FOUND, "알림 대상 사용자를 찾을 수 없습니다.", ErrorCode.LogLevel.WARN);
+    NO_SEND_FCM_TOKEN(HttpStatus.BAD_REQUEST, "fcm토큰이 없습니다.", ErrorCode.LogLevel.WARN),
+    NO_MEMBER_FCM_TOKEN(HttpStatus.INTERNAL_SERVER_ERROR, "사용자가 존재하지 않습니다.", ErrorCode.LogLevel.WARN);
 
     private final HttpStatus status;
     private final String message;

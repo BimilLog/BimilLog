@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.global.entity;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.MemberRole;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
-import jaeik.bimillog.infrastructure.adapter.in.auth.dto.MemberInfoResponseDTO;
+import jaeik.bimillog.domain.auth.dto.MemberInfoResponseDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -61,10 +61,9 @@ public class MemberDetail {
      *
      * @param member Member 엔티티
      * @param authTokenId AuthToken ID
-     * @param fcmTokenId FCM 토큰 ID (nullable)
      * @return MemberDetail 객체
      */
-    public static MemberDetail ofExisting(Member member, Long authTokenId, @Nullable Long fcmTokenId) {
+    public static MemberDetail ofExisting(Member member, Long authTokenId) {
         Long settingId = (member.getSetting() != null) ? member.getSetting().getId() : null;
 
         return MemberDetail.builder()
@@ -77,7 +76,6 @@ public class MemberDetail {
                 .memberName(member.getMemberName())
                 .role(member.getRole())
                 .authTokenId(authTokenId)
-                .fcmTokenId(fcmTokenId)
                 .build();
     }
 }

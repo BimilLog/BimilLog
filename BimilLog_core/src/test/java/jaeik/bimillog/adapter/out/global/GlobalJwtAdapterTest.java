@@ -5,7 +5,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import jaeik.bimillog.domain.global.entity.MemberDetail;
 import jaeik.bimillog.domain.member.entity.MemberRole;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
-import jaeik.bimillog.infrastructure.adapter.out.global.GlobalJwtAdapter;
+import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;

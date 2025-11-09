@@ -1,6 +1,6 @@
 package jaeik.bimillog.adapter.in.post;
 
-import jaeik.bimillog.infrastructure.adapter.in.post.web.util.PostViewCookieUtil;
+import jaeik.bimillog.domain.post.controller.util.PostViewCookieUtil;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.paper.event;
 
-import jaeik.bimillog.infrastructure.adapter.in.paper.listener.RealtimePaperPopularScoreListener;
+import jaeik.bimillog.domain.paper.listener.RealtimePaperPopularScoreListener;
 
 /**
  * <h2>롤링페이퍼 조회 이벤트</h2>

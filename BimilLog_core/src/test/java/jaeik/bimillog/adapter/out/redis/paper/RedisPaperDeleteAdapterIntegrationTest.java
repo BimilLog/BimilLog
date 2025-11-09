@@ -1,7 +1,7 @@
 package jaeik.bimillog.adapter.out.redis.paper;
 
-import jaeik.bimillog.infrastructure.adapter.out.redis.paper.RedisPaperDeleteAdapter;
-import jaeik.bimillog.infrastructure.adapter.out.redis.paper.RedisPaperKeys;
+import jaeik.bimillog.infrastructure.redis.paper.RedisPaperDeleteAdapter;
+import jaeik.bimillog.infrastructure.redis.paper.RedisPaperKeys;
 import jaeik.bimillog.testutil.RedisTestHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

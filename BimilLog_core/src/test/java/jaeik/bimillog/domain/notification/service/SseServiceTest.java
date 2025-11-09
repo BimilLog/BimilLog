@@ -1,10 +1,10 @@
 package jaeik.bimillog.domain.notification.service;
 
-import jaeik.bimillog.domain.notification.application.port.out.SsePort;
-import jaeik.bimillog.domain.notification.application.port.out.UrlGeneratorPort;
-import jaeik.bimillog.domain.notification.application.service.SseService;
-import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.notification.entity.SseMessage;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -14,10 +14,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
+import jaeik.bimillog.domain.notification.entity.NotificationType;
+import jaeik.bimillog.domain.notification.entity.SseMessage;
+import jaeik.bimillog.domain.notification.out.SseAdapter;
+import jaeik.bimillog.domain.notification.out.UrlGeneratorAdapter;
 
 /**
  * <h2>SseService 테스트</h2>
@@ -29,10 +29,10 @@ import static org.mockito.Mockito.verify;
 class SseServiceTest {
 
     @Mock
-    private SsePort ssePort;
+    private SseAdapter sseAdapter;
 
     @Mock
-    private UrlGeneratorPort urlGeneratorPort;
+    private UrlGeneratorAdapter urlGeneratorAdapter;
 
     @InjectMocks
     private SseService notificationSseService;
@@ -44,14 +44,14 @@ class SseServiceTest {
         Long memberId = 1L;
         Long tokenId = 2L;
         SseEmitter emitter = new SseEmitter(1000L);
-        given(ssePort.subscribe(memberId, tokenId)).willReturn(emitter);
+        given(sseAdapter.subscribe(memberId, tokenId)).willReturn(emitter);
 
         // When
         SseEmitter result = notificationSseService.subscribe(memberId, tokenId);
 
         // Then
         assertThat(result).isEqualTo(emitter);
-        verify(ssePort).subscribe(memberId, tokenId);
+        verify(sseAdapter).subscribe(memberId, tokenId);
     }
 
     @Test
@@ -64,7 +64,7 @@ class SseServiceTest {
         notificationSseService.deleteEmitters(memberId, null);
 
         // Then
-        verify(ssePort).deleteEmitters(memberId, null);
+        verify(sseAdapter).deleteEmitters(memberId, null);
     }
 
     @Test
@@ -78,7 +78,7 @@ class SseServiceTest {
         notificationSseService.deleteEmitters(memberId, tokenId);
 
         // Then
-        verify(ssePort).deleteEmitters(memberId, tokenId);
+        verify(sseAdapter).deleteEmitters(memberId, tokenId);
     }
 
     @Test
@@ -89,14 +89,14 @@ class SseServiceTest {
         Long postId = 77L;
         String commenterName = "댓글러";
         String expectedUrl = "/posts/" + postId;
-        given(urlGeneratorPort.generatePostUrl(postId)).willReturn(expectedUrl);
+        given(urlGeneratorAdapter.generatePostUrl(postId)).willReturn(expectedUrl);
 
         // When
         notificationSseService.sendCommentNotification(postUserId, commenterName, postId);
 
         // Then
-        verify(urlGeneratorPort).generatePostUrl(postId);
-        verify(ssePort).send(argThat(message ->
+        verify(urlGeneratorAdapter).generatePostUrl(postId);
+        verify(sseAdapter).send(argThat(message ->
                 matchesMessage(message, postUserId, NotificationType.COMMENT,
                         commenterName + "님이 댓글을 남겼습니다!", expectedUrl)
         ));
@@ -109,14 +109,14 @@ class SseServiceTest {
         Long farmOwnerId = 99L;
         String userName = "롤링페이퍼";
         String expectedUrl = "/paper/" + userName;
-        given(urlGeneratorPort.generateRollingPaperUrl(userName)).willReturn(expectedUrl);
+        given(urlGeneratorAdapter.generateRollingPaperUrl(userName)).willReturn(expectedUrl);
 
         // When
         notificationSseService.sendPaperPlantNotification(farmOwnerId, userName);
 
         // Then
-        verify(urlGeneratorPort).generateRollingPaperUrl(userName);
-        verify(ssePort).send(argThat(message ->
+        verify(urlGeneratorAdapter).generateRollingPaperUrl(userName);
+        verify(sseAdapter).send(argThat(message ->
                 matchesMessage(message, farmOwnerId, NotificationType.MESSAGE,
                         "롤링페이퍼에 메시지가 작성되었어요!", expectedUrl)
         ));
@@ -130,14 +130,14 @@ class SseServiceTest {
         Long postId = 31L;
         String message = "인기글 축하";
         String expectedUrl = "/posts/" + postId;
-        given(urlGeneratorPort.generatePostUrl(postId)).willReturn(expectedUrl);
+        given(urlGeneratorAdapter.generatePostUrl(postId)).willReturn(expectedUrl);
 
         // When
         notificationSseService.sendPostFeaturedNotification(memberId, message, postId);
 
         // Then
-        verify(urlGeneratorPort).generatePostUrl(postId);
-        verify(ssePort).send(argThat(sseMessage ->
+        verify(urlGeneratorAdapter).generatePostUrl(postId);
+        verify(sseAdapter).send(argThat(sseMessage ->
                 matchesMessage(sseMessage, memberId, NotificationType.POST_FEATURED, message, expectedUrl)
         ));
     }

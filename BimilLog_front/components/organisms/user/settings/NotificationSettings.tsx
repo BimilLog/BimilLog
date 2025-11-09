@@ -10,7 +10,6 @@ interface NotificationSettingsProps {
   settings: Setting | null;
   saving: boolean;
   savingFields: Record<SettingField, boolean>;
-  savedFields: Record<SettingField, boolean>;
   allEnabled: boolean;
   isIndeterminate?: boolean;
   onSingleToggle: (
@@ -25,7 +24,6 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
   settings,
   saving,
   savingFields,
-  savedFields,
   allEnabled,
   onSingleToggle,
   onAllToggle,

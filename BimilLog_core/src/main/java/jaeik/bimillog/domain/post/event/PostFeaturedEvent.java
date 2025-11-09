@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.post.event;
 
-import jaeik.bimillog.infrastructure.adapter.in.notification.listener.NotificationGenerateListener;
+import jaeik.bimillog.domain.notification.listener.NotificationGenerateListener;
 
 /**
  * <h2>인기글 등극 이벤트</h2>

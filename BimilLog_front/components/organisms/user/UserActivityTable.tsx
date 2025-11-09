@@ -32,7 +32,6 @@ interface UserActivityTableProps {
 
 interface TableRowProps {
   item: SimplePost | SimpleComment;
-  index: number;
   contentType: "posts" | "comments";
   isRead?: boolean;
 }
@@ -45,7 +44,6 @@ function isPost(item: SimplePost | SimpleComment): item is SimplePost {
 // 데스크톱용 테이블 행 컴포넌트
 const UserActivityTableRow = memo<TableRowProps>(({
   item,
-  index,
   contentType,
   isRead = false
 }) => {
@@ -153,7 +151,6 @@ const UserActivityTableRow = memo<TableRowProps>(({
 // 모바일용 카드 컴포넌트
 const UserActivityMobileCard = memo<TableRowProps>(({
   item,
-  index,
   contentType,
   isRead = false
 }) => {
@@ -248,7 +245,8 @@ export const UserActivityTable = memo<UserActivityTableProps>(({
 }) => {
   // 읽음 상태 추적 - 게시글만
   const postIds = contentType === "posts" ? items.map(item => item.id) : [];
-  const { readStatus } = contentType === "posts" ? usePostReadStatus(postIds) : { readStatus: {} };
+  const { readStatus } = usePostReadStatus(postIds);
+  const effectiveReadStatus: Record<number, boolean> = contentType === "posts" ? readStatus : {};
 
   // 에러 상태 처리
   if (error) {
@@ -370,13 +368,12 @@ export const UserActivityTable = memo<UserActivityTableProps>(({
           </TableHead>
           <TableBody className="divide-y divide-gray-100 dark:divide-slate-800">
             {items.length > 0 ? (
-              items.map((item, index) => (
+              items.map((item) => (
                 <UserActivityTableRow
                   key={`${tabType}-${item.id}`}
                   item={item}
-                  index={index}
                   contentType={contentType}
-                  isRead={contentType === "posts" ? readStatus[item.id] || false : false}
+                  isRead={effectiveReadStatus[item.id] || false}
                 />
               ))
             ) : (
@@ -398,13 +395,12 @@ export const UserActivityTable = memo<UserActivityTableProps>(({
       {/* 모바일 카드 */}
       <div className="space-y-3 sm:hidden">
         {items.length > 0 ? (
-          items.map((item, index) => (
+          items.map((item) => (
             <UserActivityMobileCard
               key={`${tabType}-${item.id}`}
               item={item}
-              index={index}
               contentType={contentType}
-              isRead={contentType === "posts" ? readStatus[item.id] || false : false}
+              isRead={effectiveReadStatus[item.id] || false}
             />
           ))
         ) : (

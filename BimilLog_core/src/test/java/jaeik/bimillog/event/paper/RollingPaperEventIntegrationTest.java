@@ -1,7 +1,7 @@
 package jaeik.bimillog.event.paper;
 
-import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
-import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
+import jaeik.bimillog.domain.notification.service.FcmService;
+import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
@@ -26,10 +26,10 @@ import static org.mockito.Mockito.verify;
 public class RollingPaperEventIntegrationTest extends BaseEventIntegrationTest {
 
     @MockitoBean
-    private SseUseCase sseUseCase;
+    private SseService sseService;
 
     @MockitoBean
-    private FcmUseCase fcmUseCase;
+    private FcmService fcmService;
 
     @Test
     @DisplayName("롤링페이퍼 메시지 이벤트 워크플로우 - SSE와 FCM 알림까지 완료")
@@ -41,8 +41,8 @@ public class RollingPaperEventIntegrationTest extends BaseEventIntegrationTest {
 
         // When & Then
         publishAndVerify(event, () -> {
-            verify(sseUseCase).sendPaperPlantNotification(eq(paperOwnerId), eq(memberName));
-            verify(fcmUseCase).sendPaperPlantNotification(eq(paperOwnerId));
+            verify(sseService).sendPaperPlantNotification(eq(paperOwnerId), eq(memberName));
+            verify(fcmService).sendPaperPlantNotification(eq(paperOwnerId));
         });
     }
 
@@ -55,10 +55,10 @@ public class RollingPaperEventIntegrationTest extends BaseEventIntegrationTest {
         RollingPaperEvent event = new RollingPaperEvent(paperOwnerId, memberName);
 
         // SSE 알림 실패 시뮬레이션
-        doThrow(new RuntimeException("SSE 알림 실패")).when(sseUseCase).sendPaperPlantNotification(paperOwnerId, memberName);
+        doThrow(new RuntimeException("SSE 알림 실패")).when(sseService).sendPaperPlantNotification(paperOwnerId, memberName);
 
         // When & Then - SSE 실패 시 FCM은 호출되지 않음 (순차 실행이므로)
-        publishAndExpectException(event, () -> verify(sseUseCase).sendPaperPlantNotification(eq(paperOwnerId), eq(memberName)));
+        publishAndExpectException(event, () -> verify(sseService).sendPaperPlantNotification(eq(paperOwnerId), eq(memberName)));
     }
 
     @Test
@@ -70,12 +70,12 @@ public class RollingPaperEventIntegrationTest extends BaseEventIntegrationTest {
         RollingPaperEvent event = new RollingPaperEvent(paperOwnerId, memberName);
 
         // FCM 알림 실패 시뮬레이션
-        doThrow(new RuntimeException("FCM 알림 실패")).when(fcmUseCase).sendPaperPlantNotification(paperOwnerId);
+        doThrow(new RuntimeException("FCM 알림 실패")).when(fcmService).sendPaperPlantNotification(paperOwnerId);
 
         // When & Then - SSE는 성공하고 FCM 실패 시에도 둘 다 호출됨
         publishAndExpectException(event, () -> {
-            verify(sseUseCase).sendPaperPlantNotification(eq(paperOwnerId), eq(memberName));
-            verify(fcmUseCase).sendPaperPlantNotification(eq(paperOwnerId));
+            verify(sseService).sendPaperPlantNotification(eq(paperOwnerId), eq(memberName));
+            verify(fcmService).sendPaperPlantNotification(eq(paperOwnerId));
         });
     }
 

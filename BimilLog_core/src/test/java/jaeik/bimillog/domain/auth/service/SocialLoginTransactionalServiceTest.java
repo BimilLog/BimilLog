@@ -1,8 +1,6 @@
 package jaeik.bimillog.domain.auth.service;
 
-import jaeik.bimillog.domain.auth.application.port.out.AuthToMemberPort;
-import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
-import jaeik.bimillog.domain.auth.application.service.SocialLoginTransactionalService;
+import jaeik.bimillog.domain.auth.out.AuthToMemberAdapter;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
@@ -10,12 +8,9 @@ import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.global.application.port.in.GlobalFcmSaveUseCase;
-import jaeik.bimillog.domain.global.application.port.out.GlobalAuthTokenSavePort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalCookiePort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalKakaoTokenCommandPort;
 import jaeik.bimillog.domain.global.entity.MemberDetail;
 import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.global.out.GlobalBlacklistAdapter;
 import jaeik.bimillog.testutil.fixtures.AuthTestFixtures;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.fixtures.TestFixtures;
@@ -50,8 +45,8 @@ import static org.mockito.Mockito.verify;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class SocialLoginTransactionalServiceTest extends BaseUnitTest {
 
-    @Mock private AuthToMemberPort authToMemberPort;
-    @Mock private BlacklistPort blacklistPort;
+    @Mock private AuthToMemberAdapter authToMemberAdapter;
+    @Mock private GlobalBlacklistAdapter globalBlacklistAdapter;
     @Mock private GlobalCookiePort globalCookiePort;
     @Mock private GlobalJwtPort globalJwtPort;
     @Mock private GlobalAuthTokenSavePort globalAuthTokenSavePort;
@@ -72,15 +67,15 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
             TestFixtures.setFieldValue(existingMember.getSetting(), "id", 10L);
         }
 
-        MemberDetail memberDetail = MemberDetail.ofExisting(existingMember, 99L, 200L);
+        MemberDetail memberDetail = MemberDetail.ofExisting(existingMember, 99L);
         List<ResponseCookie> jwtCookies = getJwtCookies();
 
-        given(blacklistPort.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
-        given(authToMemberPort.checkMember(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(Optional.of(existingMember));
+        given(globalBlacklistAdapter.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
+        given(authToMemberAdapter.checkMember(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(Optional.of(existingMember));
 
         KakaoToken persistedKakaoToken = KakaoToken.createKakaoToken(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
         given(globalKakaoTokenCommandPort.save(any(KakaoToken.class))).willReturn(persistedKakaoToken);
-        given(authToMemberPort.handleExistingMember(eq(existingMember), anyString(), anyString(), eq(persistedKakaoToken)))
+        given(authToMemberAdapter.handleExistingMember(eq(existingMember), anyString(), anyString(), eq(persistedKakaoToken)))
                 .willReturn(existingMember);
 
         AuthToken persistedAuthToken = AuthToken.builder()
@@ -104,10 +99,10 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
         LoginResult.ExistingUser existingUser = (LoginResult.ExistingUser) result;
         assertThat(existingUser.cookies()).isEqualTo(jwtCookies);
 
-        verify(blacklistPort).existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID);
-        verify(authToMemberPort).checkMember(TEST_PROVIDER, TEST_SOCIAL_ID);
+        verify(globalBlacklistAdapter).existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID);
+        verify(authToMemberAdapter).checkMember(TEST_PROVIDER, TEST_SOCIAL_ID);
         verify(globalKakaoTokenCommandPort).save(any(KakaoToken.class));
-        verify(authToMemberPort).handleExistingMember(eq(existingMember), eq(profile.getNickname()), eq(profile.getProfileImageUrl()), eq(persistedKakaoToken));
+        verify(authToMemberAdapter).handleExistingMember(eq(existingMember), eq(profile.getNickname()), eq(profile.getProfileImageUrl()), eq(persistedKakaoToken));
         verify(globalFcmSaveUseCase).registerFcmToken(existingMember, TEST_FCM_TOKEN);
         verify(globalAuthTokenSavePort).updateJwtRefreshToken(memberDetail.getAuthTokenId(), "generated-refresh-token");
         verify(globalCookiePort).generateJwtCookie("generated-access-token", "generated-refresh-token");
@@ -119,8 +114,8 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
         // Given
         SocialMemberProfile profile = getTestMemberProfile();
 
-        given(blacklistPort.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
-        given(authToMemberPort.checkMember(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(Optional.empty());
+        given(globalBlacklistAdapter.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
+        given(authToMemberAdapter.checkMember(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(Optional.empty());
         given(globalCookiePort.createTempCookie(anyString())).willAnswer(invocation -> {
             String generatedUuid = invocation.getArgument(0);
             return ResponseCookie.from("temp", generatedUuid)
@@ -141,7 +136,7 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
         assertThat(newUser.tempCookie()).isNotNull();
         assertThat(newUser.tempCookie().getValue()).isNotBlank();
 
-        verify(authToMemberPort).handleNewUser(eq(profile), eq(newUser.tempCookie().getValue()));
+        verify(authToMemberAdapter).handleNewUser(eq(profile), eq(newUser.tempCookie().getValue()));
         verify(globalCookiePort).createTempCookie(newUser.tempCookie().getValue());
     }
 
@@ -150,7 +145,7 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
     void shouldThrowExceptionForBlacklistedUser() {
         // Given
         SocialMemberProfile profile = getTestMemberProfile();
-        given(blacklistPort.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(true);
+        given(globalBlacklistAdapter.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(true);
 
         // When & Then
         assertThatThrownBy(() -> socialLoginTransactionalService.finishLogin(TEST_PROVIDER, profile))

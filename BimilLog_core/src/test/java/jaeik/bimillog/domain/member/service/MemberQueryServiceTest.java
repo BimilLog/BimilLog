@@ -1,10 +1,9 @@
 package jaeik.bimillog.domain.member.service;
 
-import jaeik.bimillog.domain.member.application.port.out.MemberQueryPort;
-import jaeik.bimillog.domain.member.application.service.MemberQueryService;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.exception.MemberCustomException;
 import jaeik.bimillog.domain.member.exception.MemberErrorCode;
+import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -33,7 +32,7 @@ import static org.mockito.Mockito.verify;
 class MemberQueryServiceTest extends BaseUnitTest {
 
     @Mock
-    private MemberQueryPort memberQueryPort;
+    private MemberQueryAdapter memberQueryPort;
 
     @InjectMocks
     private MemberQueryService userQueryService;

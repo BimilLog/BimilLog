@@ -1,392 +1,798 @@
-"use client";
+﻿"use client";
+
+
 
 import React, { useEffect, useRef, useState } from "react";
+
 import dynamic from "next/dynamic";
+
 import { Spinner } from "@/components";
+
 import { logger } from "@/lib/utils";
 
+
+
 interface EditorProps {
+
   value: string;
+
   onChange: (value: string) => void;
+
   placeholder?: string;
+
 }
 
+
+
 /**
- * Quill 에디터 컴포넌트 - 게시글 작성 시 사용되는 리치 텍스트 에디터
- * SSR 이슈 방지를 위해 dynamic import 사용
- * Quill 2.0 호환성 및 안정성을 위한 복합적 초기화 로직 포함
+
+ * Quill ?먮뵒??而댄룷?뚰듃 - 寃뚯떆湲 ?묒꽦 ???ъ슜?섎뒗 由ъ튂 ?띿뒪???먮뵒?? * SSR ?댁뒋 諛⑹?瑜??꾪빐 dynamic import ?ъ슜
+
+ * Quill 2.0 ?명솚??諛??덉젙?깆쓣 ?꾪븳 蹂듯빀??珥덇린??濡쒖쭅 ?ы븿
+
  */
+
 const QuillEditor: React.FC<EditorProps> = ({
+
   value,
+
   onChange,
-  placeholder = "내용을 입력하세요...",
+
+  placeholder = "?댁슜???낅젰?섏꽭??..",
+
 }) => {
-  // DOM 요소 및 Quill 인스턴스 참조
+
+  // DOM ?붿냼 諛?Quill ?몄뒪?댁뒪 李몄“
+
   const editorRef = useRef<HTMLDivElement>(null);
+
   const quillRef = useRef<unknown>(null);
 
-  // 중복 초기화 방지를 위한 플래그
+
+
+  // 以묐났 珥덇린??諛⑹?瑜??꾪븳 ?뚮옒洹?
   const isInitializing = useRef(false);
 
-  // 초기 value 설정 여부 추적
+
+
+  // 珥덇린 value ?ㅼ젙 ?щ? 異붿쟻
+
   const isInitialValueSet = useRef(false);
 
-  // onChange를 ref로 관리하여 클로저 문제 방지
+
+
+  // onChange瑜?ref濡?愿由ы븯???대줈? 臾몄젣 諛⑹?
+
   const onChangeRef = useRef(onChange);
 
-  // 에디터 상태 관리
+  const placeholderRef = useRef(placeholder);
+
+  const initialValueRef = useRef(value);
+
+
+
+  // ?먮뵒???곹깭 愿由?
   const [isReady, setIsReady] = useState(false);
+
   const [error, setError] = useState<string | null>(null);
 
-  // onChange가 변경될 때마다 ref 업데이트
+
+
+  // onChange媛 蹂寃쎈맆 ?뚮쭏??ref ?낅뜲?댄듃
+
   useEffect(() => {
+
     onChangeRef.current = onChange;
+
   }, [onChange]);
 
+
+
   useEffect(() => {
+
+    placeholderRef.current = placeholder;
+
+  }, [placeholder]);
+
+
+
+  useEffect(() => {
+
+    initialValueRef.current = value;
+
+  }, [value]);
+
+
+
+  useEffect(() => {
+
     /**
-     * Quill 에디터 초기화 함수
-     * 복잡한 초기화 과정이 필요한 이유:
-     * 1. SSR 환경에서 window 객체 접근 방지
-     * 2. 중복 초기화 방지
-     * 3. Quill 2.0 버전의 CSS 동적 로딩
-     * 4. 브라우저 호환성 문제 해결
+
+     * Quill ?먮뵒??珥덇린???⑥닔
+
+     * 蹂듭옟??珥덇린??怨쇱젙???꾩슂???댁쑀:
+
+     * 1. SSR ?섍꼍?먯꽌 window 媛앹껜 ?묎렐 諛⑹?
+
+     * 2. 以묐났 珥덇린??諛⑹?
+
+     * 3. Quill 2.0 踰꾩쟾??CSS ?숈쟻 濡쒕뵫
+
+     * 4. 釉뚮씪?곗? ?명솚??臾몄젣 ?닿껐
+
      */
+
     const initQuill = async () => {
-      // 초기화 조건 체크: 서버사이드/DOM 미준비/중복 초기화 방지
+
+      // 珥덇린??議곌굔 泥댄겕: ?쒕쾭?ъ씠??DOM 誘몄?鍮?以묐났 珥덇린??諛⑹?
+
       if (
+
         typeof window === "undefined" ||
+
         !editorRef.current ||
+
         quillRef.current ||
+
         isInitializing.current
+
       ) {
+
         return;
+
       }
+
+
 
       try {
-        isInitializing.current = true;
-        logger.log("Quill 에디터 초기화를 시작합니다...");
 
-        // Quill 라이브러리를 동적으로 import (번들 크기 최적화)
+        isInitializing.current = true;
+
+        logger.log("Quill ?먮뵒??珥덇린?붾? ?쒖옉?⑸땲??..");
+
+
+
+        // Quill ?쇱씠釉뚮윭由щ? ?숈쟻?쇰줈 import (踰덈뱾 ?ш린 理쒖쟻??
+
         const { default: Quill } = await import("quill");
 
+
+
         /**
-         * CSS 동적 로딩 함수
-         * Quill 2.0은 CSS가 별도 로딩되어야 하므로 수동 로딩
-         * 중복 로딩 방지 및 에러 핸들링 포함
+
+         * CSS ?숈쟻 濡쒕뵫 ?⑥닔
+
+         * Quill 2.0? CSS媛 蹂꾨룄 濡쒕뵫?섏뼱???섎?濡??섎룞 濡쒕뵫
+
+         * 以묐났 濡쒕뵫 諛⑹? 諛??먮윭 ?몃뱾留??ы븿
+
          */
+
         const loadCSS = (href: string, id: string) => {
+
           return new Promise<void>((resolve, reject) => {
+
             if (document.querySelector(`#${id}`)) {
+
               resolve();
+
               return;
+
             }
+
+
 
             const link = document.createElement("link");
+
             link.id = id;
+
             link.rel = "stylesheet";
+
             link.href = href;
+
             link.onload = () => resolve();
+
             link.onerror = () =>
+
               reject(new Error(`Failed to load CSS: ${href}`));
+
             document.head.appendChild(link);
+
           });
+
         };
 
-        // Quill CSS 파일들을 병렬로 로드
+
+
+        // Quill CSS ?뚯씪?ㅼ쓣 蹂묐젹濡?濡쒕뱶
+
         await Promise.all([
+
           loadCSS(
+
             "https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.core.css",
+
             "quill-core-css"
+
           ),
+
           loadCSS(
+
             "https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css",
+
             "quill-snow-css"
+
           ),
+
         ]);
 
-        // 에디터 높이 고정을 위한 커스텀 CSS 추가
+
+
+        // ?먮뵒???믪씠 怨좎젙???꾪븳 而ㅼ뒪? CSS 異붽?
+
         const styleId = "quill-editor-height-fix";
+
         if (!document.querySelector(`#${styleId}`)) {
+
           const style = document.createElement("style");
+
           style.id = styleId;
+
           style.textContent = `
+
             .ql-container {
+
               font-size: 14px;
+
             }
+
             .ql-editor {
+
               max-height: 300px;
+
               overflow-y: auto;
+
               min-height: 200px;
+
             }
+
             .ql-editor::-webkit-scrollbar {
+
               width: 8px;
+
             }
+
             .ql-editor::-webkit-scrollbar-track {
+
               background: #f1f1f1;
+
               border-radius: 4px;
+
             }
+
             .ql-editor::-webkit-scrollbar-thumb {
+
               background: #888;
+
               border-radius: 4px;
+
             }
+
             .ql-editor::-webkit-scrollbar-thumb:hover {
+
               background: #555;
+
             }
+
           `;
+
           document.head.appendChild(style);
+
         }
 
-        // CSS 스타일 적용 대기 (렌더링 완료 보장)
+
+
+        // CSS ?ㅽ????곸슜 ?湲?(?뚮뜑留??꾨즺 蹂댁옣)
+
         await new Promise((resolve) => setTimeout(resolve, 300));
 
-        // 기존 툴바가 있으면 제거 (중복 방지)
+
+
+        // 湲곗〈 ?대컮媛 ?덉쑝硫??쒓굅 (以묐났 諛⑹?)
+
         const existingToolbar = editorRef.current?.querySelector('.ql-toolbar');
+
         if (existingToolbar) {
-          logger.log("기존 툴바 제거 중...");
+
+          logger.log("湲곗〈 ?대컮 ?쒓굅 以?..");
+
           existingToolbar.remove();
+
         }
 
+
+
         /**
-         * Quill 인스턴스 생성
-         * toolbar와 formats를 Quill 2.0에 맞게 안전하게 설정
-         * 커뮤니티 게시글 작성에 필요한 기본적인 서식만 포함
+
+         * Quill ?몄뒪?댁뒪 ?앹꽦
+
+         * toolbar? formats瑜?Quill 2.0??留욊쾶 ?덉쟾?섍쾶 ?ㅼ젙
+
+         * 而ㅻ??덊떚 寃뚯떆湲 ?묒꽦???꾩슂??湲곕낯?곸씤 ?쒖떇留??ы븿
+
          */
+
         quillRef.current = new Quill(editorRef.current, {
+
           theme: "snow",
-          placeholder: placeholder,
+
+          placeholder: placeholderRef.current,
+
           modules: {
+
             toolbar: [
+
               [{ header: [1, 2, false] }],
+
               ["bold", "italic", "underline", "strike"],
+
               [{ color: [] }, { background: [] }],
+
               [{ list: "ordered" }, { list: "bullet" }],
+
               [{ align: [] }],
+
               ["blockquote", "code-block"],
+
               ["link"],
+
               ["clean"],
+
             ],
+
           },
-          // XSS 방지를 위해 안전한 포맷들만 허용
+
+          // XSS 諛⑹?瑜??꾪빐 ?덉쟾???щ㎎?ㅻ쭔 ?덉슜
+
           formats: [
+
             "header",
+
             "bold",
+
             "italic",
+
             "underline",
+
             "strike",
+
             "color",
+
             "background",
+
             "list",
+
             "align",
+
             "blockquote",
+
             "code-block",
+
             "link",
+
           ],
+
         });
+
+
 
         const quill = quillRef.current as {
+
           on: (event: string, handler: () => void) => void;
+
           getSemanticHTML?: () => string;
+
           root: { innerHTML: string };
+
           clipboard: { convert: (options: { html: string }) => unknown };
+
           setContents: (delta: unknown, source: string) => void;
+
           off?: (event: string, handler?: () => void) => void;
+
         };
 
+
+
         /**
-         * 텍스트 변경 이벤트 리스너 설정
-         * getSemanticHTML() 메서드 사용을 우선하되,
-         * 없을 경우 innerHTML로 폴백 (Quill 버전 호환성)
+
+         * ?띿뒪??蹂寃??대깽??由ъ뒪???ㅼ젙
+
+         * getSemanticHTML() 硫붿꽌???ъ슜???곗꽑?섎릺,
+
+         * ?놁쓣 寃쎌슦 innerHTML濡??대갚 (Quill 踰꾩쟾 ?명솚??
+
          */
+
         quill.on("text-change", () => {
+
           try {
+
             const content = quill.getSemanticHTML
+
               ? quill.getSemanticHTML()
+
               : quill.root.innerHTML;
+
             onChangeRef.current(content);
-            // 사용자가 타이핑을 시작하면 초기 value 설정 완료로 표시 (이후 외부 동기화 방지)
+
+            // ?ъ슜?먭? ??댄븨???쒖옉?섎㈃ 珥덇린 value ?ㅼ젙 ?꾨즺濡??쒖떆 (?댄썑 ?몃? ?숆린??諛⑹?)
+
             isInitialValueSet.current = true;
+
           } catch (err) {
+
             logger.error("Error getting content:", err);
+
             onChangeRef.current(quill.root.innerHTML);
+
             isInitialValueSet.current = true;
+
           }
+
         });
 
-        // 기존 내용이 있는 경우 에디터에 설정 (초기화 시 한 번만)
-        if (value) {
+
+
+        // 湲곗〈 ?댁슜???덈뒗 寃쎌슦 ?먮뵒?곗뿉 ?ㅼ젙 (珥덇린??????踰덈쭔)
+
+        const initialValue = initialValueRef.current;
+
+        if (initialValue) {
+
           try {
-            const delta = quill.clipboard.convert({ html: value });
+
+            const delta = quill.clipboard.convert({ html: initialValue });
+
             quill.setContents(delta, "silent");
-            // 초기 value 설정 완료 플래그
+
+            // 초기 value 적용 완료 표시
+
             isInitialValueSet.current = true;
+
           } catch (err) {
+
             logger.error("Error setting initial content:", err);
-            quill.root.innerHTML = value;
-            // 초기 value 설정 완료 플래그
+
+            quill.root.innerHTML = initialValue;
+
+            // 초기 value 적용 완료 표시
+
             isInitialValueSet.current = true;
+
           }
+
         }
-        // value가 비어있으면 isInitialValueSet을 false로 유지하여 두 번째 useEffect에서 처리
+
+
+
+        // value媛 鍮꾩뼱?덉쑝硫?isInitialValueSet??false濡??좎??섏뿬 ??踰덉㎏ useEffect?먯꽌 泥섎━
+
+
 
         /**
-         * SVG 아이콘 렌더링 문제 해결
-         * Quill이 SVG 아이콘을 텍스트로 잘못 렌더링하는 경우가 있어
-         * 툴바 버튼에서 잘못된 텍스트 노드를 제거
+
+         * SVG ?꾩씠肄??뚮뜑留?臾몄젣 ?닿껐
+
+         * Quill??SVG ?꾩씠肄섏쓣 ?띿뒪?몃줈 ?섎せ ?뚮뜑留곹븯??寃쎌슦媛 ?덉뼱
+
+         * ?대컮 踰꾪듉?먯꽌 ?섎せ???띿뒪???몃뱶瑜??쒓굅
+
          */
+
         setTimeout(() => {
+
           const toolbar = editorRef.current?.querySelector(".ql-toolbar");
+
           if (toolbar) {
+
             const buttons = toolbar.querySelectorAll("button");
+
             buttons.forEach((button) => {
+
               const textNodes = Array.from(button.childNodes).filter(
+
                 (node) =>
+
                   node.nodeType === Node.TEXT_NODE &&
+
                   node.textContent?.includes("viewBox")
+
               );
+
               textNodes.forEach((node) => node.remove());
+
             });
+
           }
+
         }, 100);
 
+
+
         setIsReady(true);
+
         setError(null);
-        logger.log("Quill 에디터가 성공적으로 초기화되었습니다.");
+
+        logger.log("Quill ?먮뵒?곌? ?깃났?곸쑝濡?珥덇린?붾릺?덉뒿?덈떎.");
+
       } catch (error) {
-        logger.error("Quill 로드 실패:", error);
+
+        logger.error("Quill 濡쒕뱶 ?ㅽ뙣:", error);
+
         setError(
-          error instanceof Error ? error.message : "에디터 로드에 실패했습니다."
+
+          error instanceof Error ? error.message : "?먮뵒??濡쒕뱶???ㅽ뙣?덉뒿?덈떎."
+
         );
+
         setIsReady(true);
+
       } finally {
+
         isInitializing.current = false;
+
       }
+
     };
+
+
 
     initQuill();
 
+
+
     const quillInstance = quillRef.current;
+
     const editorElement = editorRef.current;
 
-    // 컴포넌트 언마운트 시 메모리 누수 방지를 위한 정리
+
+
+    // 而댄룷?뚰듃 ?몃쭏?댄듃 ??硫붾え由??꾩닔 諛⑹?瑜??꾪븳 ?뺣━
+
     return () => {
+
       if (quillInstance) {
+
         try {
+
           (quillInstance as { off: (event: string) => void }).off("text-change");
-          // DOM 정리 - 툴바 제거
+
+          // DOM ?뺣━ - ?대컮 ?쒓굅
+
           const toolbar = editorElement?.querySelector('.ql-toolbar');
+
           toolbar?.remove();
+
         } catch (err) {
+
           logger.error("Error cleaning up Quill:", err);
+
         }
+
       }
+
     };
-    // 초기 마운트 시에만 Quill을 초기화하고, 이후에는 재초기화하지 않음
+
+    // 珥덇린 留덉슫???쒖뿉留?Quill??珥덇린?뷀븯怨? ?댄썑?먮뒗 ?ъ큹湲고솕?섏? ?딆쓬
+
   }, []);
 
+
+
   /**
-   * 외부에서 value prop이 변경되었을 때 에디터 내용 동기화
-   * 초기 value 설정 이후에는 사용자 입력만 반영하기 위해 동기화하지 않음
-   * 임시저장 복원 등 외부 변경은 컴포넌트 재마운트로 처리
+
+   * ?몃??먯꽌 value prop??蹂寃쎈릺?덉쓣 ???먮뵒???댁슜 ?숆린??   * 珥덇린 value ?ㅼ젙 ?댄썑?먮뒗 ?ъ슜???낅젰留?諛섏쁺?섍린 ?꾪빐 ?숆린?뷀븯吏 ?딆쓬
+
+   * ?꾩떆???蹂듭썝 ???몃? 蹂寃쎌? 而댄룷?뚰듃 ?щ쭏?댄듃濡?泥섎━
+
    */
+
   useEffect(() => {
-    // 초기 value 설정이 완료된 경우에는 동기화하지 않음 (사용자 입력 우선)
+
+    // 珥덇린 value ?ㅼ젙???꾨즺??寃쎌슦?먮뒗 ?숆린?뷀븯吏 ?딆쓬 (?ъ슜???낅젰 ?곗꽑)
+
     if (!quillRef.current || !isReady || error || isInitialValueSet.current) {
+
       return;
+
     }
 
-    // 초기 value가 있고 아직 설정되지 않은 경우에만 동기화 (임시저장 복원 등)
+
+
+    // 珥덇린 value媛 ?덇퀬 ?꾩쭅 ?ㅼ젙?섏? ?딆? 寃쎌슦?먮쭔 ?숆린??(?꾩떆???蹂듭썝 ??
+
     if (value) {
+
       try {
+
         const quill = quillRef.current as {
+
           clipboard: { convert: (options: { html: string }) => unknown };
+
           setContents: (delta: unknown, source: string) => void;
+
         };
+
         const delta = quill.clipboard.convert({ html: value });
+
         quill.setContents(delta, "silent");
+
         isInitialValueSet.current = true;
-        logger.log("외부에서 value가 변경되어 에디터 내용을 동기화했습니다.");
+
+        logger.log("?몃??먯꽌 value媛 蹂寃쎈릺???먮뵒???댁슜???숆린?뷀뻽?듬땲??");
+
       } catch (err) {
+
         logger.error("Error updating content:", err);
+
       }
+
     }
+
   }, [value, isReady, error]);
 
+
+
   /**
-   * 에러 발생 시 폴백 에디터 렌더링
-   * Quill 로드 실패 시에도 기본 텍스트 입력이 가능하도록 함
-   * HTML 태그는 제거하여 플레인 텍스트로 편집
+
+   * ?먮윭 諛쒖깮 ???대갚 ?먮뵒???뚮뜑留?   * Quill 濡쒕뱶 ?ㅽ뙣 ?쒖뿉??湲곕낯 ?띿뒪???낅젰??媛?ν븯?꾨줉 ??   * HTML ?쒓렇???쒓굅?섏뿬 ?뚮젅???띿뒪?몃줈 ?몄쭛
+
    */
+
   if (error) {
+
     return (
+
       <div className="w-full">
+
         <div className="h-[400px] border border-gray-200 rounded-lg bg-white flex flex-col">
+
           <div className="p-3 bg-gray-50 border-b rounded-t-lg">
+
             <p className="text-sm text-brand-muted">
-              간단 편집기 (에디터 로드 실패)
+
+              媛꾨떒 ?몄쭛湲?(?먮뵒??濡쒕뱶 ?ㅽ뙣)
+
             </p>
+
           </div>
+
           <textarea
+
             className="w-full flex-1 p-4 border-0 resize-none focus:outline-none"
+
             placeholder={placeholder}
-            value={value.replace(/<[^>]*>/g, "")} // HTML 태그 제거
+
+            value={value.replace(/<[^>]*>/g, "")} // HTML ?쒓렇 ?쒓굅
+
             onChange={(e) => onChange(e.target.value)}
+
           />
+
         </div>
+
         <p className="text-xs text-red-500 mt-1">
-          고급 편집기를 로드할 수 없어 간단 편집기로 전환되었습니다.
+
+          怨좉툒 ?몄쭛湲곕? 濡쒕뱶?????놁뼱 媛꾨떒 ?몄쭛湲곕줈 ?꾪솚?섏뿀?듬땲??
+
         </p>
+
       </div>
+
     );
+
   }
 
+
+
   return (
+
     <div className="w-full relative">
-      {/* Quill 에디터가 마운트될 DOM 요소 */}
+
+      {/* Quill ?먮뵒?곌? 留덉슫?몃맆 DOM ?붿냼 */}
+
       <div
+
         ref={editorRef}
+
         className="bg-white h-[400px] rounded-lg border border-gray-200"
+
         style={{
+
           fontSize: "14px",
+
           lineHeight: "1.5",
+
           display: "flex",
+
           flexDirection: "column",
+
         }}
+
       />
-      {/* 에디터 초기화 중 로딩 오버레이 */}
+
+      {/* ?먮뵒??珥덇린??以?濡쒕뵫 ?ㅻ쾭?덉씠 */}
+
       {!isReady && (
+
         <div className="absolute inset-0 bg-white bg-opacity-90 flex items-center justify-center rounded-lg z-10">
+
           <div className="flex flex-col items-center gap-2">
+
             <Spinner size="md" />
-            <p className="text-sm text-brand-secondary">에디터 준비 중...</p>
+
+            <p className="text-sm text-brand-secondary">?먮뵒??以鍮?以?..</p>
+
           </div>
+
         </div>
+
       )}
+
     </div>
+
   );
+
 };
 
+
+
 /**
- * 에디터 로딩 중 표시되는 컴포넌트
- * dynamic import 대기 시간 동안 사용자에게 로딩 상태를 보여줌
- */
+
+ * ?먮뵒??濡쒕뵫 以??쒖떆?섎뒗 而댄룷?뚰듃
+
+ * dynamic import ?湲??쒓컙 ?숈븞 ?ъ슜?먯뿉寃?濡쒕뵫 ?곹깭瑜?蹂댁뿬以? */
+
 const EditorLoading = () => (
+
   <div className="relative h-[400px] bg-white rounded-lg border border-gray-200 flex items-center justify-center">
+
     <div className="flex flex-col items-center gap-2">
+
       <Spinner size="md" />
-      <p className="text-sm text-brand-secondary">에디터 로딩 중...</p>
+
+      <p className="text-sm text-brand-secondary">?먮뵒??濡쒕뵫 以?..</p>
+
     </div>
+
   </div>
+
 );
 
+
+
 /**
- * 메인 에디터 컴포넌트 (Dynamic Import)
- * SSR 환경에서 window 객체 접근 문제를 방지하기 위해
- * 클라이언트 사이드에서만 로드되도록 설정
+
+ * 硫붿씤 ?먮뵒??而댄룷?뚰듃 (Dynamic Import)
+
+ * SSR ?섍꼍?먯꽌 window 媛앹껜 ?묎렐 臾몄젣瑜?諛⑹??섍린 ?꾪빐
+
+ * ?대씪?댁뼵???ъ씠?쒖뿉?쒕쭔 濡쒕뱶?섎룄濡??ㅼ젙
+
  */
+
 const Editor = dynamic(() => Promise.resolve(QuillEditor), {
+
   ssr: false,
+
   loading: () => <EditorLoading />,
+
 });
 
+
+
 export default Editor;
+
+
+

@@ -1,8 +1,10 @@
 package jaeik.bimillog.domain.notification.service;
 
-import jaeik.bimillog.domain.notification.application.port.out.NotificationCommandPort;
-import jaeik.bimillog.domain.notification.application.service.NotificationCommandService;
-import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
+import static org.mockito.Mockito.verify;
+
+import java.util.Arrays;
+import java.util.List;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -11,10 +13,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Arrays;
-import java.util.List;
-
-import static org.mockito.Mockito.verify;
+import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
+import jaeik.bimillog.domain.notification.out.NotificationCommandAdapter;
 
 /**
  * <h2>NotificationCommandService 테스트</h2>
@@ -30,7 +30,7 @@ import static org.mockito.Mockito.verify;
 class NotificationCommandServiceTest {
 
     @Mock
-    private NotificationCommandPort notificationCommandPort;
+    private NotificationCommandAdapter notificationCommandAdapter;
 
     @InjectMocks
     private NotificationCommandService notificationCommandService;
@@ -46,7 +46,7 @@ class NotificationCommandServiceTest {
         notificationCommandService.batchUpdate(nullUserId, updateCommand);
 
         // Then
-        verify(notificationCommandPort).batchUpdate(nullUserId, updateCommand);
+        verify(notificationCommandAdapter).batchUpdate(nullUserId, updateCommand);
     }
 
     @Test
@@ -60,6 +60,6 @@ class NotificationCommandServiceTest {
         notificationCommandService.batchUpdate(memberId, updateCommand);
 
         // Then
-        verify(notificationCommandPort).batchUpdate(memberId, updateCommand);
+        verify(notificationCommandAdapter).batchUpdate(memberId, updateCommand);
     }
 }

@@ -43,7 +43,6 @@ export default function SettingsPage() {
     loading,
     saving,
     savingFields,
-    savedFields,
     withdrawing,
     showWithdrawModal,
     allEnabled,
@@ -106,7 +105,6 @@ export default function SettingsPage() {
             settings={settings}
             saving={saving}
             savingFields={savingFields}
-            savedFields={savedFields}
             allEnabled={allEnabled}
             isIndeterminate={isIndeterminate}
             onSingleToggle={handleSingleToggle}

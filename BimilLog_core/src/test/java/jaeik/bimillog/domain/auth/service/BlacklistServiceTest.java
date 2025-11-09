@@ -1,12 +1,9 @@
 package jaeik.bimillog.domain.auth.service;
 
-import jaeik.bimillog.domain.auth.application.port.out.BlacklistPort;
-import jaeik.bimillog.domain.auth.application.port.out.RedisJwtBlacklistPort;
-import jaeik.bimillog.domain.auth.application.service.BlacklistService;
+import jaeik.bimillog.domain.auth.out.BlacklistAdapter;
+import jaeik.bimillog.infrastructure.redis.RedisJwtBlacklistAdapter;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.BlackList;
-import jaeik.bimillog.domain.global.application.port.out.GlobalAuthTokenQueryPort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalJwtPort;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,13 +41,13 @@ class BlacklistServiceTest extends BaseUnitTest {
     private GlobalJwtPort globalJwtPort;
 
     @Mock
-    private RedisJwtBlacklistPort redisJwtBlacklistPort;
+    private RedisJwtBlacklistAdapter redisJwtBlacklistAdapter;
 
     @Mock
     private GlobalAuthTokenQueryPort globalAuthTokenQueryPort;
 
     @Mock
-    private BlacklistPort blacklistPort;
+    private BlacklistAdapter blacklistPort;
 
     @InjectMocks
     private BlacklistService blacklistService;
@@ -73,7 +70,7 @@ class BlacklistServiceTest extends BaseUnitTest {
     void shouldReturnTrue_WhenTokenIsBlacklisted() {
         // Given
         given(globalJwtPort.generateTokenHash(testTokenString)).willReturn(testTokenHash);
-        given(redisJwtBlacklistPort.isBlacklisted(testTokenHash)).willReturn(true);
+        given(redisJwtBlacklistAdapter.isBlacklisted(testTokenHash)).willReturn(true);
 
         // When
         boolean result = blacklistService.isBlacklisted(testTokenString);
@@ -81,7 +78,7 @@ class BlacklistServiceTest extends BaseUnitTest {
         // Then
         assertThat(result).isTrue();
         verify(globalJwtPort).generateTokenHash(testTokenString);
-        verify(redisJwtBlacklistPort).isBlacklisted(testTokenHash);
+        verify(redisJwtBlacklistAdapter).isBlacklisted(testTokenHash);
     }
 
     @Test
@@ -89,7 +86,7 @@ class BlacklistServiceTest extends BaseUnitTest {
     void shouldReturnFalse_WhenTokenIsNotBlacklisted() {
         // Given
         given(globalJwtPort.generateTokenHash(testTokenString)).willReturn(testTokenHash);
-        given(redisJwtBlacklistPort.isBlacklisted(testTokenHash)).willReturn(false);
+        given(redisJwtBlacklistAdapter.isBlacklisted(testTokenHash)).willReturn(false);
 
         // When
         boolean result = blacklistService.isBlacklisted(testTokenString);
@@ -97,7 +94,7 @@ class BlacklistServiceTest extends BaseUnitTest {
         // Then
         assertThat(result).isFalse();
         verify(globalJwtPort).generateTokenHash(testTokenString);
-        verify(redisJwtBlacklistPort).isBlacklisted(testTokenHash);
+        verify(redisJwtBlacklistAdapter).isBlacklisted(testTokenHash);
     }
 
     @Test
@@ -113,7 +110,7 @@ class BlacklistServiceTest extends BaseUnitTest {
         // Then
         assertThat(result).isFalse();
         verify(globalJwtPort).generateTokenHash(testTokenString);
-        verify(redisJwtBlacklistPort, never()).isBlacklisted(anyString());
+        verify(redisJwtBlacklistAdapter, never()).isBlacklisted(anyString());
     }
 
     @Test
@@ -122,7 +119,7 @@ class BlacklistServiceTest extends BaseUnitTest {
         // Given
         given(globalJwtPort.generateTokenHash(testTokenString)).willReturn(testTokenHash);
         doThrow(new RuntimeException("Cache check failed"))
-                .when(redisJwtBlacklistPort).isBlacklisted(testTokenHash);
+                .when(redisJwtBlacklistAdapter).isBlacklisted(testTokenHash);
 
         // When
         boolean result = blacklistService.isBlacklisted(testTokenString);
@@ -130,7 +127,7 @@ class BlacklistServiceTest extends BaseUnitTest {
         // Then
         assertThat(result).isFalse();
         verify(globalJwtPort).generateTokenHash(testTokenString);
-        verify(redisJwtBlacklistPort).isBlacklisted(testTokenHash);
+        verify(redisJwtBlacklistAdapter).isBlacklisted(testTokenHash);
     }
 
     @Test
@@ -155,7 +152,7 @@ class BlacklistServiceTest extends BaseUnitTest {
         ArgumentCaptor<List<String>> hashesCaptor = ArgumentCaptor.forClass(List.class);
         ArgumentCaptor<Duration> durationCaptor = ArgumentCaptor.forClass(Duration.class);
 
-        verify(redisJwtBlacklistPort).blacklistTokenHashes(
+        verify(redisJwtBlacklistAdapter).blacklistTokenHashes(
                 hashesCaptor.capture(),
                 durationCaptor.capture()
         );
@@ -179,7 +176,7 @@ class BlacklistServiceTest extends BaseUnitTest {
         // Then
         verify(globalAuthTokenQueryPort).findAllByMemberId(memberId);
         verify(globalJwtPort, never()).generateTokenHash(anyString());
-        verify(redisJwtBlacklistPort, never()).blacklistTokenHashes(any(), any());
+        verify(redisJwtBlacklistAdapter, never()).blacklistTokenHashes(any(), any());
     }
 
     @Test
@@ -199,7 +196,7 @@ class BlacklistServiceTest extends BaseUnitTest {
 
         // Then
         ArgumentCaptor<List<String>> hashesCaptor = ArgumentCaptor.forClass(List.class);
-        verify(redisJwtBlacklistPort).blacklistTokenHashes(
+        verify(redisJwtBlacklistAdapter).blacklistTokenHashes(
                 hashesCaptor.capture(),
                 any(Duration.class)
         );
@@ -226,7 +223,7 @@ class BlacklistServiceTest extends BaseUnitTest {
         verify(globalAuthTokenQueryPort).findAllByMemberId(memberId);
         verify(globalJwtPort).generateTokenHash("refresh-token-0");
         verify(globalJwtPort).generateTokenHash("refresh-token-1");
-        verify(redisJwtBlacklistPort, never()).blacklistTokenHashes(any(), any());
+        verify(redisJwtBlacklistAdapter, never()).blacklistTokenHashes(any(), any());
     }
 
     @Test
@@ -244,7 +241,7 @@ class BlacklistServiceTest extends BaseUnitTest {
         // Then
         verify(globalAuthTokenQueryPort).findAllByMemberId(memberId);
         verify(globalJwtPort, never()).generateTokenHash(anyString());
-        verify(redisJwtBlacklistPort, never()).blacklistTokenHashes(any(), any());
+        verify(redisJwtBlacklistAdapter, never()).blacklistTokenHashes(any(), any());
     }
 
 
@@ -272,7 +269,7 @@ class BlacklistServiceTest extends BaseUnitTest {
         }
 
         ArgumentCaptor<List<String>> hashesCaptor = ArgumentCaptor.forClass(List.class);
-        verify(redisJwtBlacklistPort).blacklistTokenHashes(
+        verify(redisJwtBlacklistAdapter).blacklistTokenHashes(
                 hashesCaptor.capture(),
                 any(Duration.class)
         );

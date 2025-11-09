@@ -1,22 +1,21 @@
 package jaeik.bimillog.event.member;
 
-import jaeik.bimillog.domain.admin.application.port.in.AdminCommandUseCase;
-import jaeik.bimillog.domain.auth.application.port.in.AuthTokenUseCase;
-import jaeik.bimillog.domain.auth.application.port.in.KakaoTokenUseCase;
-import jaeik.bimillog.domain.auth.application.port.in.SocialWithdrawUseCase;
+import jaeik.bimillog.domain.admin.service.AdminCommandService;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
+import jaeik.bimillog.domain.auth.service.AuthTokenService;
+import jaeik.bimillog.domain.auth.service.KakaoTokenService;
+import jaeik.bimillog.domain.auth.service.SocialWithdrawService;
+import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPort;
-import jaeik.bimillog.domain.global.application.strategy.SocialAuthStrategy;
-import jaeik.bimillog.domain.global.application.strategy.SocialPlatformStrategy;
-import jaeik.bimillog.domain.member.application.port.in.MemberCommandUseCase;
+import jaeik.bimillog.domain.global.strategy.SocialAuthStrategy;
+import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
+import jaeik.bimillog.domain.member.service.MemberCommandService;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
-import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
-import jaeik.bimillog.domain.notification.application.port.in.NotificationCommandUseCase;
-import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
-import jaeik.bimillog.domain.paper.application.port.in.PaperCommandUseCase;
-import jaeik.bimillog.domain.post.application.port.in.PostCommandUseCase;
+import jaeik.bimillog.domain.notification.service.FcmService;
+import jaeik.bimillog.domain.notification.service.NotificationCommandService;
+import jaeik.bimillog.domain.notification.service.SseService;
+import jaeik.bimillog.domain.paper.service.PaperCommandService;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -45,37 +44,37 @@ import static org.mockito.Mockito.*;
 class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
 
     @MockitoBean
-    private SseUseCase sseUseCase;
+    private SseService sseService;
 
     @MockitoSpyBean
-    private SocialWithdrawUseCase socialWithdrawUseCase;
+    private SocialWithdrawService socialWithdrawService;
 
     @MockitoBean
-    private CommentCommandUseCase commentCommandUseCase;
+    private CommentCommandService CommentCommandService;
 
     @MockitoBean
     private PostCommandUseCase postCommandUseCase;
 
     @MockitoBean
-    private AuthTokenUseCase authTokenUseCase;
+    private AuthTokenService authTokenService;
 
     @MockitoBean
-    private FcmUseCase fcmUseCase;
+    private FcmService fcmService;
 
     @MockitoBean
-    private NotificationCommandUseCase notificationCommandUseCase;
+    private NotificationCommandService notificationCommandService;
 
     @MockitoBean
-    private PaperCommandUseCase paperCommandUseCase;
+    private PaperCommandService paperCommandService;
 
     @MockitoBean
-    private AdminCommandUseCase adminCommandUseCase;
+    private AdminCommandService adminCommandService;
 
     @MockitoBean
-    private KakaoTokenUseCase kakaoTokenUseCase;
+    private KakaoTokenService kakaoTokenService;
 
     @MockitoBean
-    private MemberCommandUseCase memberCommandUseCase;
+    private MemberCommandService memberCommandService;
 
     @MockitoBean
     private GlobalSocialStrategyPort globalSocialStrategyPort;
@@ -130,27 +129,27 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
         // When & Then
         publishAndVerify(event, () -> {
             // 1. SSE 연결 정리
-            verify(sseUseCase).deleteEmitters(eq(memberId), eq(null));
+            verify(sseService).deleteEmitters(eq(memberId), eq(null));
             // 2. 소셜 계정 연동 해제 전략 조회
             verify(globalSocialStrategyPort).getStrategy(eq(SocialProvider.KAKAO));
             // 3. 댓글 처리
-            verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(memberId));
+            verify(CommentCommandService).processUserCommentsOnWithdrawal(eq(memberId));
             // 4. 게시글 삭제
             verify(postCommandUseCase).deleteAllPostsByMemberId(eq(memberId));
             // 5. JWT 토큰 무효화
-            verify(authTokenUseCase).deleteTokens(eq(memberId), eq(null));
+            verify(authTokenService).deleteTokens(eq(memberId), eq(null));
             // 6. FCM 토큰 삭제
-            verify(fcmUseCase).deleteFcmTokens(eq(memberId), eq(null));
+            verify(fcmService).deleteFcmTokens(eq(memberId), eq(null));
             // 7. 알림 삭제
-            verify(notificationCommandUseCase).deleteAllNotification(eq(memberId));
+            verify(notificationCommandService).deleteAllNotification(eq(memberId));
             // 8. 롤링페이퍼 메시지 삭제
-            verify(paperCommandUseCase).deleteMessageInMyPaper(eq(memberId), eq(null));
+            verify(paperCommandService).deleteMessageInMyPaper(eq(memberId), eq(null));
             // 9. 신고자 익명화
-            verify(adminCommandUseCase).anonymizeReporterByUserId(eq(memberId));
+            verify(adminCommandService).anonymizeReporterByUserId(eq(memberId));
             // 10. 카카오 토큰 삭제
-            verify(kakaoTokenUseCase).deleteByMemberId(eq(memberId));
+            verify(kakaoTokenService).deleteByMemberId(eq(memberId));
             // 11. 계정 정보 삭제
-            verify(memberCommandUseCase).removeMemberAccount(eq(memberId));
+            verify(memberCommandService).removeMemberAccount(eq(memberId));
         });
     }
 
@@ -165,17 +164,17 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
         // When & Then - 여러 사용자 탈퇴 이벤트 발행
         publishEventsAndVerify(new Object[]{event1, event2, event3}, () -> {
             // SSE 연결 정리
-            verify(sseUseCase).deleteEmitters(eq(1L), eq(null));
-            verify(sseUseCase).deleteEmitters(eq(2L), eq(null));
-            verify(sseUseCase).deleteEmitters(eq(3L), eq(null));
+            verify(sseService).deleteEmitters(eq(1L), eq(null));
+            verify(sseService).deleteEmitters(eq(2L), eq(null));
+            verify(sseService).deleteEmitters(eq(3L), eq(null));
 
             // 소셜 계정 연동 해제 전략 조회
             verify(globalSocialStrategyPort, times(3)).getStrategy(eq(SocialProvider.KAKAO));
 
             // 댓글 처리
-            verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(1L));
-            verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(2L));
-            verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(3L));
+            verify(CommentCommandService).processUserCommentsOnWithdrawal(eq(1L));
+            verify(CommentCommandService).processUserCommentsOnWithdrawal(eq(2L));
+            verify(CommentCommandService).processUserCommentsOnWithdrawal(eq(3L));
 
             // 게시글 삭제
             verify(postCommandUseCase).deleteAllPostsByMemberId(eq(1L));
@@ -183,39 +182,39 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
             verify(postCommandUseCase).deleteAllPostsByMemberId(eq(3L));
 
             // JWT 토큰 무효화
-            verify(authTokenUseCase).deleteTokens(eq(1L), eq(null));
-            verify(authTokenUseCase).deleteTokens(eq(2L), eq(null));
-            verify(authTokenUseCase).deleteTokens(eq(3L), eq(null));
+            verify(authTokenService).deleteTokens(eq(1L), eq(null));
+            verify(authTokenService).deleteTokens(eq(2L), eq(null));
+            verify(authTokenService).deleteTokens(eq(3L), eq(null));
 
             // FCM 토큰 삭제
-            verify(fcmUseCase).deleteFcmTokens(eq(1L), eq(null));
-            verify(fcmUseCase).deleteFcmTokens(eq(2L), eq(null));
-            verify(fcmUseCase).deleteFcmTokens(eq(3L), eq(null));
+            verify(fcmService).deleteFcmTokens(eq(1L), eq(null));
+            verify(fcmService).deleteFcmTokens(eq(2L), eq(null));
+            verify(fcmService).deleteFcmTokens(eq(3L), eq(null));
 
             // 알림 삭제
-            verify(notificationCommandUseCase).deleteAllNotification(eq(1L));
-            verify(notificationCommandUseCase).deleteAllNotification(eq(2L));
-            verify(notificationCommandUseCase).deleteAllNotification(eq(3L));
+            verify(notificationCommandService).deleteAllNotification(eq(1L));
+            verify(notificationCommandService).deleteAllNotification(eq(2L));
+            verify(notificationCommandService).deleteAllNotification(eq(3L));
 
             // 롤링페이퍼 메시지 삭제
-            verify(paperCommandUseCase).deleteMessageInMyPaper(eq(1L), eq(null));
-            verify(paperCommandUseCase).deleteMessageInMyPaper(eq(2L), eq(null));
-            verify(paperCommandUseCase).deleteMessageInMyPaper(eq(3L), eq(null));
+            verify(paperCommandService).deleteMessageInMyPaper(eq(1L), eq(null));
+            verify(paperCommandService).deleteMessageInMyPaper(eq(2L), eq(null));
+            verify(paperCommandService).deleteMessageInMyPaper(eq(3L), eq(null));
 
             // 신고자 익명화
-            verify(adminCommandUseCase).anonymizeReporterByUserId(eq(1L));
-            verify(adminCommandUseCase).anonymizeReporterByUserId(eq(2L));
-            verify(adminCommandUseCase).anonymizeReporterByUserId(eq(3L));
+            verify(adminCommandService).anonymizeReporterByUserId(eq(1L));
+            verify(adminCommandService).anonymizeReporterByUserId(eq(2L));
+            verify(adminCommandService).anonymizeReporterByUserId(eq(3L));
 
             // 카카오 토큰 삭제
-            verify(kakaoTokenUseCase).deleteByMemberId(eq(1L));
-            verify(kakaoTokenUseCase).deleteByMemberId(eq(2L));
-            verify(kakaoTokenUseCase).deleteByMemberId(eq(3L));
+            verify(kakaoTokenService).deleteByMemberId(eq(1L));
+            verify(kakaoTokenService).deleteByMemberId(eq(2L));
+            verify(kakaoTokenService).deleteByMemberId(eq(3L));
 
             // 계정 정보 삭제
-            verify(memberCommandUseCase).removeMemberAccount(eq(1L));
-            verify(memberCommandUseCase).removeMemberAccount(eq(2L));
-            verify(memberCommandUseCase).removeMemberAccount(eq(3L));
+            verify(memberCommandService).removeMemberAccount(eq(1L));
+            verify(memberCommandService).removeMemberAccount(eq(2L));
+            verify(memberCommandService).removeMemberAccount(eq(3L));
         });
     }
 
@@ -268,17 +267,17 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
 
         // When & Then
         publishAndVerify(event, () -> {
-            verify(sseUseCase).deleteEmitters(eq(memberId), eq(null));
+            verify(sseService).deleteEmitters(eq(memberId), eq(null));
             verify(globalSocialStrategyPort).getStrategy(eq(SocialProvider.KAKAO));
-            verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(memberId));
+            verify(CommentCommandService).processUserCommentsOnWithdrawal(eq(memberId));
             verify(postCommandUseCase).deleteAllPostsByMemberId(eq(memberId));
-            verify(authTokenUseCase).deleteTokens(eq(memberId), eq(null));
-            verify(fcmUseCase).deleteFcmTokens(eq(memberId), eq(null));
-            verify(notificationCommandUseCase).deleteAllNotification(eq(memberId));
-            verify(paperCommandUseCase).deleteMessageInMyPaper(eq(memberId), eq(null));
-            verify(adminCommandUseCase).anonymizeReporterByUserId(eq(memberId));
-            verify(kakaoTokenUseCase).deleteByMemberId(eq(memberId));
-            verify(memberCommandUseCase).removeMemberAccount(eq(memberId));
+            verify(authTokenService).deleteTokens(eq(memberId), eq(null));
+            verify(fcmService).deleteFcmTokens(eq(memberId), eq(null));
+            verify(notificationCommandService).deleteAllNotification(eq(memberId));
+            verify(paperCommandService).deleteMessageInMyPaper(eq(memberId), eq(null));
+            verify(adminCommandService).anonymizeReporterByUserId(eq(memberId));
+            verify(kakaoTokenService).deleteByMemberId(eq(memberId));
+            verify(memberCommandService).removeMemberAccount(eq(memberId));
         });
 
         assertThat(unlinkAttempted).isTrue();
@@ -291,16 +290,16 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
         MemberWithdrawnEvent event = new MemberWithdrawnEvent(1L, "testSocialId1", SocialProvider.KAKAO);
 
         // 댓글 처리 실패 시뮬레이션
-        doThrow(new RuntimeException("댓글 처리 실패")).when(commentCommandUseCase).processUserCommentsOnWithdrawal(1L);
+        doThrow(new RuntimeException("댓글 처리 실패")).when(CommentCommandService).processUserCommentsOnWithdrawal(1L);
 
         // When & Then - 예외 발생 시 해당 시점 이전까지만 처리됨 (순차 처리)
         publishAndExpectException(event, () -> {
             // SSE 연결 정리는 먼저 실행됨
-            verify(sseUseCase).deleteEmitters(eq(1L), eq(null));
+            verify(sseService).deleteEmitters(eq(1L), eq(null));
             // 소셜 계정 연동 해제 전략 조회도 실행됨
             verify(globalSocialStrategyPort).getStrategy(eq(SocialProvider.KAKAO));
             // 댓글 처리에서 예외 발생
-            verify(commentCommandUseCase).processUserCommentsOnWithdrawal(eq(1L));
+            verify(CommentCommandService).processUserCommentsOnWithdrawal(eq(1L));
         });
     }
 }

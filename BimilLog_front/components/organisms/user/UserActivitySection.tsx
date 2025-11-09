@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useMemo, memo } from "react";
+import React, { useState, useCallback, memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components";
 import { Tabs, TabItem } from "flowbite-react";
 import { UserActivityTable } from "./UserActivityTable";

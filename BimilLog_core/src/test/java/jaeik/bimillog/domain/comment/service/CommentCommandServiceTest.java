@@ -1,19 +1,15 @@
 package jaeik.bimillog.domain.comment.service;
 
-import jaeik.bimillog.domain.comment.application.port.out.CommentDeletePort;
-import jaeik.bimillog.domain.comment.application.port.out.CommentLikePort;
-import jaeik.bimillog.domain.comment.application.port.out.CommentQueryPort;
-import jaeik.bimillog.domain.comment.application.port.out.CommentSavePort;
-import jaeik.bimillog.domain.comment.application.service.CommentCommandService;
+import jaeik.bimillog.domain.comment.out.CommentDeleteAdapter;
+import jaeik.bimillog.domain.comment.out.CommentLikeAdapter;
+import jaeik.bimillog.domain.comment.out.CommentQueryAdapter;
+import jaeik.bimillog.domain.comment.out.CommentSaveAdapter;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentClosure;
 import jaeik.bimillog.domain.comment.entity.CommentLike;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.exception.CommentCustomException;
 import jaeik.bimillog.domain.comment.exception.CommentErrorCode;
-import jaeik.bimillog.domain.global.application.port.out.GlobalCommentQueryPort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalMemberQueryPort;
-import jaeik.bimillog.domain.global.application.port.out.GlobalPostQueryPort;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.exception.MemberCustomException;
 import jaeik.bimillog.domain.member.exception.MemberErrorCode;
@@ -57,10 +53,10 @@ class CommentCommandServiceTest extends BaseUnitTest {
     private static final String TEST_UPDATED_CONTENT = "수정된 댓글";
     private static final Integer TEST_PASSWORD = 1234;
 
-    @Mock private CommentSavePort commentSavePort;
-    @Mock private CommentDeletePort commentDeletePort;
-    @Mock private CommentQueryPort commentQueryPort;
-    @Mock private CommentLikePort commentLikePort;
+    @Mock private CommentSaveAdapter commentSaveAdapter;
+    @Mock private CommentDeleteAdapter commentDeleteAdapter;
+    @Mock private CommentQueryAdapter commentQueryAdapter;
+    @Mock private CommentLikeAdapter commentLikeAdapter;
     @Mock private GlobalMemberQueryPort globalMemberQueryPort;
     @Mock private GlobalPostQueryPort globalPostQueryPort;
     @Mock private GlobalCommentQueryPort globalCommentQueryPort;
@@ -87,20 +83,20 @@ class CommentCommandServiceTest extends BaseUnitTest {
         // Given
         given(globalCommentQueryPort.findById(TEST_COMMENT_ID)).willReturn(testComment);
         given(globalMemberQueryPort.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
-        given(commentLikePort.isLikedByUser(TEST_COMMENT_ID, getTestMember().getId())).willReturn(false);
+        given(commentLikeAdapter.isLikedByUser(TEST_COMMENT_ID, getTestMember().getId())).willReturn(false);
 
         // When
         commentCommandService.likeComment(getTestMember().getId(), TEST_COMMENT_ID);
 
         // Then
         ArgumentCaptor<CommentLike> likeCaptor = ArgumentCaptor.forClass(CommentLike.class);
-        verify(commentLikePort).save(likeCaptor.capture());
+        verify(commentLikeAdapter).save(likeCaptor.capture());
 
         CommentLike capturedLike = likeCaptor.getValue();
         assertThat(capturedLike.getComment()).isEqualTo(testComment);
         assertThat(capturedLike.getMember()).isEqualTo(getTestMember());
 
-        verify(commentLikePort, never()).deleteLikeByIds(anyLong(), anyLong());
+        verify(commentLikeAdapter, never()).deleteLikeByIds(anyLong(), anyLong());
     }
 
     @Test
@@ -109,14 +105,14 @@ class CommentCommandServiceTest extends BaseUnitTest {
         // Given
         given(globalCommentQueryPort.findById(TEST_COMMENT_ID)).willReturn(testComment);
         given(globalMemberQueryPort.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
-        given(commentLikePort.isLikedByUser(TEST_COMMENT_ID, getTestMember().getId())).willReturn(true);
+        given(commentLikeAdapter.isLikedByUser(TEST_COMMENT_ID, getTestMember().getId())).willReturn(true);
 
         // When
         commentCommandService.likeComment(getTestMember().getId(), TEST_COMMENT_ID);
 
         // Then
-        verify(commentLikePort).deleteLikeByIds(TEST_COMMENT_ID, getTestMember().getId());
-        verify(commentLikePort, never()).save(any());
+        verify(commentLikeAdapter).deleteLikeByIds(TEST_COMMENT_ID, getTestMember().getId());
+        verify(commentLikeAdapter, never()).save(any());
     }
 
     @Test
@@ -132,9 +128,9 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         verify(globalCommentQueryPort).findById(TEST_COMMENT_ID);
         verify(globalMemberQueryPort, never()).findById(any());
-        verify(commentLikePort, never()).isLikedByUser(any(), any());
-        verify(commentLikePort, never()).save(any());
-        verify(commentLikePort, never()).deleteLikeByIds(anyLong(), anyLong());
+        verify(commentLikeAdapter, never()).isLikedByUser(any(), any());
+        verify(commentLikeAdapter, never()).save(any());
+        verify(commentLikeAdapter, never()).deleteLikeByIds(anyLong(), anyLong());
     }
 
     @Test
@@ -151,9 +147,9 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         verify(globalCommentQueryPort).findById(TEST_COMMENT_ID);
         verify(globalMemberQueryPort).findById(getTestMember().getId());
-        verify(commentLikePort, never()).isLikedByUser(any(), any());
-        verify(commentLikePort, never()).save(any());
-        verify(commentLikePort, never()).deleteLikeByIds(anyLong(), anyLong());
+        verify(commentLikeAdapter, never()).isLikedByUser(any(), any());
+        verify(commentLikeAdapter, never()).save(any());
+        verify(commentLikeAdapter, never()).deleteLikeByIds(anyLong(), anyLong());
     }
 
     @Test
@@ -170,9 +166,9 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         verify(globalCommentQueryPort).findById(TEST_COMMENT_ID);
         verify(globalMemberQueryPort).findById(null);
-        verify(commentLikePort, never()).isLikedByUser(any(), any());
-        verify(commentLikePort, never()).save(any());
-        verify(commentLikePort, never()).deleteLikeByIds(anyLong(), anyLong());
+        verify(commentLikeAdapter, never()).isLikedByUser(any(), any());
+        verify(commentLikeAdapter, never()).save(any());
+        verify(commentLikeAdapter, never()).deleteLikeByIds(anyLong(), anyLong());
     }
 
     @Test
@@ -184,14 +180,14 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         given(globalCommentQueryPort.findById(TEST_COMMENT_ID)).willReturn(ownComment);
         given(globalMemberQueryPort.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
-        given(commentLikePort.isLikedByUser(TEST_COMMENT_ID, getTestMember().getId())).willReturn(false);
+        given(commentLikeAdapter.isLikedByUser(TEST_COMMENT_ID, getTestMember().getId())).willReturn(false);
 
         // When
         commentCommandService.likeComment(getTestMember().getId(), TEST_COMMENT_ID);
 
         // Then
         ArgumentCaptor<CommentLike> likeCaptor = ArgumentCaptor.forClass(CommentLike.class);
-        verify(commentLikePort).save(likeCaptor.capture());
+        verify(commentLikeAdapter).save(likeCaptor.capture());
 
         CommentLike capturedLike = likeCaptor.getValue();
         assertThat(capturedLike.getComment()).isEqualTo(ownComment);
@@ -284,14 +280,14 @@ class CommentCommandServiceTest extends BaseUnitTest {
         // Given
         Long memberId = 100L;
         given(globalCommentQueryPort.findById(200L)).willReturn(testComment);
-        given(commentQueryPort.hasDescendants(200L)).willReturn(false);
+        given(commentQueryAdapter.hasDescendants(200L)).willReturn(false);
 
         // When
         commentCommandService.deleteComment(200L, memberId, null);
 
         // Then
         verify(globalCommentQueryPort).findById(200L);
-        verify(commentDeletePort).deleteComment(200L);
+        verify(commentDeleteAdapter).deleteComment(200L);
     }
 
     @Test
@@ -300,15 +296,15 @@ class CommentCommandServiceTest extends BaseUnitTest {
         // Given
         Long memberId = 100L;
         given(globalCommentQueryPort.findById(200L)).willReturn(testComment);
-        given(commentQueryPort.hasDescendants(200L)).willReturn(true);
+        given(commentQueryAdapter.hasDescendants(200L)).willReturn(true);
 
         // When
         commentCommandService.deleteComment(200L, memberId, null);
 
         // Then
         verify(globalCommentQueryPort).findById(200L);
-        verify(commentQueryPort).hasDescendants(200L);
-        verify(commentDeletePort, never()).deleteComment(any());
+        verify(commentQueryAdapter).hasDescendants(200L);
+        verify(commentDeleteAdapter, never()).deleteComment(any());
     }
 
 
@@ -371,14 +367,14 @@ class CommentCommandServiceTest extends BaseUnitTest {
         TestFixtures.setFieldValue(anonymousComment, "id", 300L);
 
         given(globalCommentQueryPort.findById(300L)).willReturn(anonymousComment);
-        given(commentQueryPort.hasDescendants(300L)).willReturn(false);
+        given(commentQueryAdapter.hasDescendants(300L)).willReturn(false);
 
         // When
         commentCommandService.deleteComment(300L, null, 1234);
 
         // Then
         verify(globalCommentQueryPort).findById(300L);
-        verify(commentDeletePort).deleteComment(300L);
+        verify(commentDeleteAdapter).deleteComment(300L);
     }
 
     @Test
@@ -396,7 +392,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_UNAUTHORIZED);
 
         verify(globalCommentQueryPort).findById(300L);
-        verify(commentDeletePort, never()).deleteComment(any());
+        verify(commentDeleteAdapter, never()).deleteComment(any());
     }
 
     @Test
@@ -408,15 +404,15 @@ class CommentCommandServiceTest extends BaseUnitTest {
         TestFixtures.setFieldValue(parentComment, "id", 400L);
 
         given(globalCommentQueryPort.findById(400L)).willReturn(parentComment);
-        given(commentQueryPort.hasDescendants(400L)).willReturn(true);
+        given(commentQueryAdapter.hasDescendants(400L)).willReturn(true);
 
         // When
         commentCommandService.deleteComment(400L, memberId, null);
 
         // Then
         verify(globalCommentQueryPort).findById(400L);
-        verify(commentQueryPort).hasDescendants(400L);
-        verify(commentDeletePort, never()).deleteComment(any());
+        verify(commentQueryAdapter).hasDescendants(400L);
+        verify(commentDeleteAdapter, never()).deleteComment(any());
     }
 
     @Test
@@ -427,15 +423,15 @@ class CommentCommandServiceTest extends BaseUnitTest {
         TestFixtures.setFieldValue(anonymousParentComment, "id", 500L);
 
         given(globalCommentQueryPort.findById(500L)).willReturn(anonymousParentComment);
-        given(commentQueryPort.hasDescendants(500L)).willReturn(true);
+        given(commentQueryAdapter.hasDescendants(500L)).willReturn(true);
 
         // When
         commentCommandService.deleteComment(500L, null, 5678);
 
         // Then
         verify(globalCommentQueryPort).findById(500L);
-        verify(commentQueryPort).hasDescendants(500L);
-        verify(commentDeletePort, never()).deleteComment(any());
+        verify(commentQueryAdapter).hasDescendants(500L);
+        verify(commentDeleteAdapter, never()).deleteComment(any());
     }
 
     @Test
@@ -456,7 +452,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_UNAUTHORIZED);
 
         verify(globalCommentQueryPort).findById(600L);
-        verify(commentDeletePort, never()).deleteComment(any());
+        verify(commentDeleteAdapter, never()).deleteComment(any());
     }
 
     // === 누락된 댓글 작성 테스트 케이스들 ===
@@ -472,14 +468,14 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         given(globalPostQueryPort.findById(postId)).willReturn(testPost);
         given(globalMemberQueryPort.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
-        given(commentSavePort.save(any(Comment.class))).willReturn(savedComment);
+        given(commentSaveAdapter.save(any(Comment.class))).willReturn(savedComment);
 
         // When
         commentCommandService.writeComment(getTestMember().getId(), postId, null, content, null);
 
         // Then
         ArgumentCaptor<Comment> commentCaptor = ArgumentCaptor.forClass(Comment.class);
-        verify(commentSavePort).save(commentCaptor.capture());
+        verify(commentSaveAdapter).save(commentCaptor.capture());
 
         Comment capturedComment = commentCaptor.getValue();
         assertThat(capturedComment.getContent()).isEqualTo(content);
@@ -487,7 +483,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         assertThat(capturedComment.getPost()).isEqualTo(testPost);
         assertThat(capturedComment.isDeleted()).isFalse();
 
-        verify(commentSavePort).saveAll(any());
+        verify(commentSaveAdapter).saveAll(any());
         verify(eventPublisher).publishEvent(any(CommentCreatedEvent.class));
     }
 
@@ -502,14 +498,14 @@ class CommentCommandServiceTest extends BaseUnitTest {
         TestFixtures.setFieldValue(savedComment, "id", TEST_COMMENT_ID);
 
         given(globalPostQueryPort.findById(postId)).willReturn(testPost);
-        given(commentSavePort.save(any(Comment.class))).willReturn(savedComment);
+        given(commentSaveAdapter.save(any(Comment.class))).willReturn(savedComment);
 
         // When
         commentCommandService.writeComment(null, postId, null, content, password);
 
         // Then
         ArgumentCaptor<Comment> commentCaptor = ArgumentCaptor.forClass(Comment.class);
-        verify(commentSavePort).save(commentCaptor.capture());
+        verify(commentSaveAdapter).save(commentCaptor.capture());
 
         Comment capturedComment = commentCaptor.getValue();
         assertThat(capturedComment.getContent()).isEqualTo(content);
@@ -518,7 +514,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         assertThat(capturedComment.getPost()).isEqualTo(testPost);
         assertThat(capturedComment.isDeleted()).isFalse();
 
-        verify(commentSavePort).saveAll(any());
+        verify(commentSaveAdapter).saveAll(any());
         // testPost에 user가 있으므로 이벤트가 발행되어야 함
         verify(eventPublisher).publishEvent(any(CommentCreatedEvent.class));
     }
@@ -541,15 +537,15 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         given(globalPostQueryPort.findById(postId)).willReturn(testPost);
         given(globalMemberQueryPort.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
-        given(commentSavePort.save(any(Comment.class))).willReturn(savedComment);
-        given(commentSavePort.getParentClosures(parentId)).willReturn(Optional.of(parentClosures));
+        given(commentSaveAdapter.save(any(Comment.class))).willReturn(savedComment);
+        given(commentSaveAdapter.getParentClosures(parentId)).willReturn(Optional.of(parentClosures));
 
         // When
         commentCommandService.writeComment(getTestMember().getId(), postId, parentId, content, null);
 
         // Then
         ArgumentCaptor<List<CommentClosure>> closureCaptor = ArgumentCaptor.forClass(List.class);
-        verify(commentSavePort).saveAll(closureCaptor.capture());
+        verify(commentSaveAdapter).saveAll(closureCaptor.capture());
 
         List<CommentClosure> capturedClosures = closureCaptor.getValue();
         assertThat(capturedClosures).hasSize(2); // 자기 자신 + 부모와의 관계
@@ -570,7 +566,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_WRITE_FAILED);
 
         verify(globalPostQueryPort).findById(postId);
-        verify(commentSavePort, never()).save(any(Comment.class));
+        verify(commentSaveAdapter, never()).save(any(Comment.class));
         verify(eventPublisher, never()).publishEvent(any());
     }
 
@@ -585,8 +581,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         given(globalPostQueryPort.findById(postId)).willReturn(testPost);
         given(globalMemberQueryPort.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
-        given(commentSavePort.save(any(Comment.class))).willReturn(savedComment);
-        given(commentSavePort.getParentClosures(parentId)).willReturn(Optional.empty());
+        given(commentSaveAdapter.save(any(Comment.class))).willReturn(savedComment);
+        given(commentSaveAdapter.getParentClosures(parentId)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.writeComment(getTestMember().getId(), postId, parentId, "대댓글", null))
@@ -594,8 +590,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_WRITE_FAILED);
 
         verify(globalPostQueryPort).findById(postId);
-        verify(commentSavePort).save(any(Comment.class));
-        verify(commentSavePort).getParentClosures(parentId);
+        verify(commentSaveAdapter).save(any(Comment.class));
+        verify(commentSaveAdapter).getParentClosures(parentId);
         verify(eventPublisher, never()).publishEvent(any());
     }
 
@@ -628,15 +624,15 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         given(globalPostQueryPort.findById(postId)).willReturn(testPost);
         given(globalMemberQueryPort.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
-        given(commentSavePort.save(any(Comment.class))).willReturn(savedComment);
-        given(commentSavePort.getParentClosures(parentId)).willReturn(Optional.of(parentClosures));
+        given(commentSaveAdapter.save(any(Comment.class))).willReturn(savedComment);
+        given(commentSaveAdapter.getParentClosures(parentId)).willReturn(Optional.of(parentClosures));
 
         // When
         commentCommandService.writeComment(getTestMember().getId(), postId, parentId, content, null);
 
         // Then
         ArgumentCaptor<List<CommentClosure>> closureCaptor = ArgumentCaptor.forClass(List.class);
-        verify(commentSavePort).saveAll(closureCaptor.capture());
+        verify(commentSaveAdapter).saveAll(closureCaptor.capture());
 
         List<CommentClosure> capturedClosures = closureCaptor.getValue();
         // depth가 2인 관계가 포함되어야 함 (조부모와의 관계)

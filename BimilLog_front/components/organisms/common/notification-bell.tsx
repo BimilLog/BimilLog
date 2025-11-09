@@ -18,6 +18,7 @@ import { Button } from "@/components";
 import { Card } from "@/components";
 import { TimeBadge } from "@/components";
 import { useNotifications } from "@/hooks/features";
+import { notificationCommand } from "@/lib/api";
 import {
   useNotificationList,
   useMarkNotificationAsRead,
@@ -445,6 +446,17 @@ export function NotificationBell() {
         onSuccess={(token) => {
           localStorage.setItem("fcm_token", token);
           localStorage.removeItem("notification_permission_skipped");
+
+          if (isAuthenticated) {
+            notificationCommand.registerFcmToken(token).then(result => {
+              if (!result.success) {
+                console.warn("FCM 토큰 서버 등록 실패:", result.error);
+              }
+            }).catch(error => {
+              console.error("FCM 토큰 서버 등록 중 오류:", error);
+            });
+          }
+
           setShowPermissionModal(false);
         }}
         onSkip={() => {

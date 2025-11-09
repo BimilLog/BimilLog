@@ -2,9 +2,9 @@ package jaeik.bimillog.adapter.in.auth;
 
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.infrastructure.adapter.in.auth.dto.SocialLoginRequestDTO;
-import jaeik.bimillog.infrastructure.adapter.out.auth.AuthTokenRepository;
-import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
+import jaeik.bimillog.domain.auth.dto.SocialLoginRequestDTO;
+import jaeik.bimillog.domain.auth.out.AuthTokenRepository;
+import jaeik.bimillog.domain.auth.out.CustomUserDetails;
 import jaeik.bimillog.testutil.fixtures.AuthTestFixtures;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.TestMembers;

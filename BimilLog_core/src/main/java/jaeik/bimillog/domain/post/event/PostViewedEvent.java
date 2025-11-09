@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.post.event;
 
-import jaeik.bimillog.infrastructure.adapter.in.post.listener.PostViewIncreaseListener;
+import jaeik.bimillog.domain.post.listener.PostViewIncreaseListener;
 
 /**
  * <h2>게시글 조회 이벤트</h2>

@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components";
-import { Heart, MessageSquare, Users, Sparkles } from "lucide-react";
+import { Heart, MessageSquare, Users } from "lucide-react";
 
 export const HomeFeatures: React.FC = () => {
   const features = [

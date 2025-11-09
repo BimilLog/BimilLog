@@ -1,6 +1,6 @@
 package jaeik.bimillog.event.member;
 
-import jaeik.bimillog.domain.admin.application.port.in.AdminCommandUseCase;
+import jaeik.bimillog.domain.admin.service.AdminCommandService;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.member.event.ReportSubmittedEvent;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
@@ -25,7 +25,7 @@ import static org.mockito.Mockito.*;
 class ReportSubmittedEventIntegrationTest extends BaseEventIntegrationTest {
 
     @MockitoBean
-    private AdminCommandUseCase adminCommandUseCase;
+    private AdminCommandService adminCommandService;
 
     @Test
     @DisplayName("인증된 사용자 신고 이벤트 워크플로우 - 댓글 신고")
@@ -35,8 +35,8 @@ class ReportSubmittedEventIntegrationTest extends BaseEventIntegrationTest {
 
         // When & Then
         publishAndVerify(event, () -> {
-            verify(adminCommandUseCase).createReport(eq(1L), eq(ReportType.COMMENT), eq(123L), eq("부적절한 댓글입니다"));
-            verifyNoMoreInteractions(adminCommandUseCase);
+            verify(adminCommandService).createReport(eq(1L), eq(ReportType.COMMENT), eq(123L), eq("부적절한 댓글입니다"));
+            verifyNoMoreInteractions(adminCommandService);
         });
     }
 
@@ -48,8 +48,8 @@ class ReportSubmittedEventIntegrationTest extends BaseEventIntegrationTest {
 
         // When & Then
         publishAndVerify(event, () -> {
-            verify(adminCommandUseCase).createReport(eq(null), eq(ReportType.POST), eq(456L), eq("스팸 게시글입니다"));
-            verifyNoMoreInteractions(adminCommandUseCase);
+            verify(adminCommandService).createReport(eq(null), eq(ReportType.POST), eq(456L), eq("스팸 게시글입니다"));
+            verifyNoMoreInteractions(adminCommandService);
         });
     }
 
@@ -61,8 +61,8 @@ class ReportSubmittedEventIntegrationTest extends BaseEventIntegrationTest {
 
         // When & Then
         publishAndVerify(event, () -> {
-            verify(adminCommandUseCase).createReport(eq(2L), eq(ReportType.IMPROVEMENT), eq(null), eq("새로운 기능을 건의합니다"));
-            verifyNoMoreInteractions(adminCommandUseCase);
+            verify(adminCommandService).createReport(eq(2L), eq(ReportType.IMPROVEMENT), eq(null), eq("새로운 기능을 건의합니다"));
+            verifyNoMoreInteractions(adminCommandService);
         });
     }
 
@@ -78,10 +78,10 @@ class ReportSubmittedEventIntegrationTest extends BaseEventIntegrationTest {
 
         // When & Then
         publishEventsAndVerify(events.toArray(), () -> {
-            verify(adminCommandUseCase).createReport(eq(1L), eq(ReportType.COMMENT), eq(100L), eq("부적절한 댓글입니다"));
-            verify(adminCommandUseCase).createReport(eq(null), eq(ReportType.POST), eq(200L), eq("스팸 게시글입니다"));
-            verify(adminCommandUseCase).createReport(eq(3L), eq(ReportType.IMPROVEMENT), eq(null), eq("새로운 기능을 건의합니다"));
-            verifyNoMoreInteractions(adminCommandUseCase);
+            verify(adminCommandService).createReport(eq(1L), eq(ReportType.COMMENT), eq(100L), eq("부적절한 댓글입니다"));
+            verify(adminCommandService).createReport(eq(null), eq(ReportType.POST), eq(200L), eq("스팸 게시글입니다"));
+            verify(adminCommandService).createReport(eq(3L), eq(ReportType.IMPROVEMENT), eq(null), eq("새로운 기능을 건의합니다"));
+            verifyNoMoreInteractions(adminCommandService);
         });
     }
 
@@ -93,12 +93,12 @@ class ReportSubmittedEventIntegrationTest extends BaseEventIntegrationTest {
 
         // 비즈니스 예외 발생 시뮬레이션 (예: 중복 신고)
         doThrow(new IllegalStateException("이미 처리된 신고입니다"))
-                .when(adminCommandUseCase).createReport(eq(1L), eq(ReportType.COMMENT), eq(100L), eq("중복 신고"));
+                .when(adminCommandService).createReport(eq(1L), eq(ReportType.COMMENT), eq(100L), eq("중복 신고"));
 
         // When & Then
         publishAndExpectException(event, () -> {
-            verify(adminCommandUseCase).createReport(eq(1L), eq(ReportType.COMMENT), eq(100L), eq("중복 신고"));
-            verifyNoMoreInteractions(adminCommandUseCase);
+            verify(adminCommandService).createReport(eq(1L), eq(ReportType.COMMENT), eq(100L), eq("중복 신고"));
+            verifyNoMoreInteractions(adminCommandService);
         });
     }
 
@@ -111,14 +111,14 @@ class ReportSubmittedEventIntegrationTest extends BaseEventIntegrationTest {
 
         // failureEvent는 예외 발생하도록 설정
         doThrow(new RuntimeException("Database connection failed"))
-                .when(adminCommandUseCase).createReport(eq(999L), eq(ReportType.POST), eq(200L), eq("실패할 신고"));
+                .when(adminCommandService).createReport(eq(999L), eq(ReportType.POST), eq(200L), eq("실패할 신고"));
 
         // When & Then
         publishEvents(successEvent, failureEvent);
         verifyAsync(() -> {
-            verify(adminCommandUseCase).createReport(eq(1L), eq(ReportType.COMMENT), eq(100L), eq("정상 신고"));
-            verify(adminCommandUseCase).createReport(eq(999L), eq(ReportType.POST), eq(200L), eq("실패할 신고"));
-            verifyNoMoreInteractions(adminCommandUseCase);
+            verify(adminCommandService).createReport(eq(1L), eq(ReportType.COMMENT), eq(100L), eq("정상 신고"));
+            verify(adminCommandService).createReport(eq(999L), eq(ReportType.POST), eq(200L), eq("실패할 신고"));
+            verifyNoMoreInteractions(adminCommandService);
         });
     }
 }

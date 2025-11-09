@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.filter;
 
-import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
+import jaeik.bimillog.domain.auth.out.CustomUserDetails;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -45,7 +45,9 @@ public class LogFilter extends OncePerRequestFilter {
             "/api/member/username/check",
             "/api/member/search",
             "/api/member/all",
-            "/actuator/prometheus");
+            "/api/global/client-error",
+            "/actuator/prometheus"
+    );
 
     /**
      * <h3>필터 내부 처리</h3>

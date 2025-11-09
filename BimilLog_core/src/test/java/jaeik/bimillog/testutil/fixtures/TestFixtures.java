@@ -1,8 +1,8 @@
 package jaeik.bimillog.testutil.fixtures;
 
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.infrastructure.adapter.in.paper.dto.MessageDTO;
-import jaeik.bimillog.infrastructure.adapter.in.post.dto.PostCreateDTO;
+import jaeik.bimillog.domain.paper.dto.MessageDTO;
+import jaeik.bimillog.domain.post.dto.PostCreateDTO;
 import jakarta.persistence.EntityManager;
 import org.springframework.test.util.ReflectionTestUtils;
 

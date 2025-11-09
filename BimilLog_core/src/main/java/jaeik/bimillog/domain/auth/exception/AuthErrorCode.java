@@ -28,11 +28,6 @@ public enum AuthErrorCode {
      * <h3>소셜 로그인 관련 에러 코드</h3>
      */
     BLACKLIST_USER(HttpStatus.FORBIDDEN, "차단된 회원은 회원가입이 불가능합니다", ErrorCode.LogLevel.INFO),
-
-    /**
-     * <h3>로그아웃 관련 에러 코드</h3>
-     */
-    LOGOUT_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "로그아웃 실패", ErrorCode.LogLevel.ERROR),
     
     /**
      * <h3>토큰 관련 에러 코드</h3>
@@ -45,12 +40,7 @@ public enum AuthErrorCode {
     INVALID_TEMP_DATA(HttpStatus.BAD_REQUEST, "시간이 초과 되었습니다. 다시 카카오 로그인을 진행해주세요.", ErrorCode.LogLevel.WARN),
     INVALID_TEMP_UUID(HttpStatus.BAD_REQUEST, "임시 사용자 UUID가 유효하지 않습니다.", ErrorCode.LogLevel.WARN),
     INVALID_USER_DATA(HttpStatus.BAD_REQUEST, "사용자 데이터가 유효하지 않습니다.", ErrorCode.LogLevel.WARN),
-    INVALID_TOKEN_DATA(HttpStatus.BAD_REQUEST, "토큰 데이터가 유효하지 않습니다.", ErrorCode.LogLevel.WARN),
-    
-    /**
-     * <h3>입력값 관련 에러 코드</h3>
-     */
-    INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "유효하지 않은 입력 값입니다.", ErrorCode.LogLevel.WARN);
+    INVALID_TOKEN_DATA(HttpStatus.BAD_REQUEST, "토큰 데이터가 유효하지 않습니다.", ErrorCode.LogLevel.WARN);
 
     private final HttpStatus status;
     private final String message;

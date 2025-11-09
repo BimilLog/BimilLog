@@ -1,9 +1,13 @@
 package jaeik.bimillog.domain.notification.service;
 
-import jaeik.bimillog.domain.notification.application.port.out.NotificationQueryPort;
-import jaeik.bimillog.domain.notification.application.service.NotificationQueryService;
-import jaeik.bimillog.domain.notification.entity.Notification;
-import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+
+import java.util.List;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -12,11 +16,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.*;
+import jaeik.bimillog.domain.auth.out.CustomUserDetails;
+import jaeik.bimillog.domain.notification.entity.Notification;
+import jaeik.bimillog.domain.notification.out.NotificationQueryAdapter;
 
 /**
  * <h2>NotificationQueryService 테스트</h2>
@@ -32,7 +34,7 @@ import static org.mockito.Mockito.*;
 class NotificationQueryServiceTest {
 
     @Mock
-    private NotificationQueryPort notificationQueryPort;
+    private NotificationQueryAdapter notificationQueryAdapter;
 
     @InjectMocks
     private NotificationQueryService notificationQueryService;
@@ -49,7 +51,7 @@ class NotificationQueryServiceTest {
         // Then
         assertThat(result).isNotNull();
         assertThat(result).isEmpty();
-        verifyNoInteractions(notificationQueryPort);
+        verifyNoInteractions(notificationQueryAdapter);
     }
 
     @Test
@@ -58,7 +60,7 @@ class NotificationQueryServiceTest {
         // Given
         CustomUserDetails userDetails = mock(CustomUserDetails.class);
         given(userDetails.getMemberId()).willReturn(1L);
-        given(notificationQueryPort.getNotificationList(1L)).willReturn(null);
+        given(notificationQueryAdapter.getNotificationList(1L)).willReturn(null);
 
         // When
         List<Notification> result = notificationQueryService.getNotificationList(userDetails);
@@ -66,6 +68,6 @@ class NotificationQueryServiceTest {
         // Then
         assertThat(result).isNotNull();
         assertThat(result).isEmpty();
-        verify(notificationQueryPort).getNotificationList(1L);
+        verify(notificationQueryAdapter).getNotificationList(1L);
     }
 }

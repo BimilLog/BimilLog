@@ -1,14 +1,14 @@
 package jaeik.bimillog.adapter.in.comment;
 
-import jaeik.bimillog.domain.comment.application.port.in.CommentCommandUseCase;
+import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.infrastructure.adapter.in.comment.dto.CommentLikeReqDTO;
-import jaeik.bimillog.infrastructure.adapter.in.comment.dto.CommentReqDTO;
-import jaeik.bimillog.infrastructure.adapter.out.auth.CustomUserDetails;
-import jaeik.bimillog.infrastructure.adapter.out.comment.CommentRepository;
-import jaeik.bimillog.infrastructure.adapter.out.post.PostRepository;
+import jaeik.bimillog.domain.comment.dto.CommentLikeReqDTO;
+import jaeik.bimillog.domain.comment.dto.CommentReqDTO;
+import jaeik.bimillog.domain.auth.out.CustomUserDetails;
+import jaeik.bimillog.domain.comment.out.CommentRepository;
+import jaeik.bimillog.domain.post.out.PostRepository;
 import jaeik.bimillog.testutil.*;
 import jaeik.bimillog.testutil.builder.CommentTestDataBuilder;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
@@ -56,7 +56,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
     private CommentRepository commentRepository;
 
     @Autowired
-    private CommentCommandUseCase commentCommandUseCase;
+    private CommentCommandService CommentCommandService;
 
     private Post testPost;
 
@@ -114,7 +114,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("대댓글 작성 통합 테스트")
     void writeReplyComment_IntegrationTest() throws Exception {
         // Given - 부모 댓글 생성
-        commentCommandUseCase.writeComment(testMember.getId(), testPost.getId(), null, "부모 댓글입니다.", null);
+        CommentCommandService.writeComment(testMember.getId(), testPost.getId(), null, "부모 댓글입니다.", null);
         
         // 생성된 부모 댓글 조회
         Comment parentComment = commentRepository.findAll()
@@ -182,7 +182,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("댓글 삭제 통합 테스트")
     void deleteComment_IntegrationTest() throws Exception {
         // Given - 댓글 생성
-        commentCommandUseCase.writeComment(testMember.getId(), testPost.getId(), null, "테스트 댓글입니다.", null);
+        CommentCommandService.writeComment(testMember.getId(), testPost.getId(), null, "테스트 댓글입니다.", null);
         
         // 생성된 댓글 조회
         Comment existingComment = commentRepository.findAll()
@@ -260,7 +260,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("익명 댓글 삭제 통합 테스트 - 패스워드 인증")
     void deleteAnonymousComment_IntegrationTest() throws Exception {
         // Given: 익명 댓글 생성
-        commentCommandUseCase.writeComment(null, testPost.getId(), null, "익명 댓글입니다", 1234);
+        CommentCommandService.writeComment(null, testPost.getId(), null, "익명 댓글입니다", 1234);
         
         // 생성된 익명 댓글 조회
         Comment anonymousComment = commentRepository.findAll()
@@ -293,7 +293,7 @@ class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("익명 댓글 삭제 실패 - 잘못된 패스워드")
     void deleteAnonymousComment_WrongPassword_IntegrationTest() throws Exception {
         // Given: 익명 댓글 생성
-        commentCommandUseCase.writeComment(null, testPost.getId(), null, "익명 댓글입니다", 1234);
+        CommentCommandService.writeComment(null, testPost.getId(), null, "익명 댓글입니다", 1234);
         
         // 생성된 익명 댓글 조회
         Comment anonymousComment = commentRepository.findAll()

@@ -1,11 +1,12 @@
 package jaeik.bimillog.event.auth;
 
-import jaeik.bimillog.domain.auth.application.port.in.AuthTokenUseCase;
-import jaeik.bimillog.domain.auth.application.port.in.KakaoTokenUseCase;
 import jaeik.bimillog.domain.auth.event.MemberLoggedOutEvent;
+import jaeik.bimillog.domain.auth.service.AuthTokenService;
+import jaeik.bimillog.domain.auth.service.KakaoTokenService;
+import jaeik.bimillog.domain.auth.service.SocialLogoutService;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
-import jaeik.bimillog.domain.notification.application.port.in.FcmUseCase;
-import jaeik.bimillog.domain.notification.application.port.in.SseUseCase;
+import jaeik.bimillog.domain.notification.service.FcmService;
+import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -28,19 +29,19 @@ import static org.mockito.Mockito.verify;
 public class MemberLoggedOutEventIntegrationTest extends BaseEventIntegrationTest {
 
     @MockitoBean
-    private jaeik.bimillog.domain.auth.application.port.in.SocialLogoutUseCase socialLogoutUseCase;
+    private SocialLogoutService socialLogoutService;
 
     @MockitoBean
-    private AuthTokenUseCase authTokenUseCase;
+    private AuthTokenService authTokenService;
 
     @MockitoBean
-    private SseUseCase sseUseCase;
+    private SseService sseService;
 
     @MockitoBean
-    private FcmUseCase fcmUseCase;
+    private FcmService fcmService;
 
     @MockitoBean
-    private KakaoTokenUseCase kakaoTokenUseCase;
+    private KakaoTokenService kakaoTokenService;
 
     @Test
     @DisplayName("사용자 로그아웃 이벤트 워크플로우 - 토큰 정리와 SSE 정리까지 완료")
@@ -54,21 +55,21 @@ public class MemberLoggedOutEventIntegrationTest extends BaseEventIntegrationTes
         // When & Then
         publishAndVerify(event, () -> {
             // SSE 연결 정리
-            verify(sseUseCase).deleteEmitters(eq(memberId), eq(tokenId));
+            verify(sseService).deleteEmitters(eq(memberId), eq(tokenId));
             // 소셜 플랫폼 로그아웃
             verifySocialLogout(memberId, tokenId);
             // FCM 토큰 삭제
-            verify(fcmUseCase).deleteFcmTokens(eq(memberId), eq(fcmTokenId));
+            verify(fcmService).deleteFcmTokens(eq(memberId), eq(fcmTokenId));
             // JWT 토큰 무효화
-            verify(authTokenUseCase).deleteTokens(eq(memberId), eq(tokenId));
+            verify(authTokenService).deleteTokens(eq(memberId), eq(tokenId));
             // 카카오 토큰 삭제
-            verify(kakaoTokenUseCase).deleteByMemberId(eq(memberId));
+            verify(kakaoTokenService).deleteByMemberId(eq(memberId));
         });
     }
 
     private void verifySocialLogout(Long memberId, Long tokenId) {
         try {
-            verify(socialLogoutUseCase).socialLogout(eq(memberId), eq(SocialProvider.KAKAO));
+            verify(socialLogoutService).socialLogout(eq(memberId), eq(SocialProvider.KAKAO));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -85,9 +86,9 @@ public class MemberLoggedOutEventIntegrationTest extends BaseEventIntegrationTes
         // When & Then - 동시에 여러 로그아웃 이벤트 발행
         publishEventsAndVerify(new Object[]{event1, event2, event3}, () -> {
             // SSE 연결 정리
-            verify(sseUseCase).deleteEmitters(eq(1L), eq(101L));
-            verify(sseUseCase).deleteEmitters(eq(2L), eq(102L));
-            verify(sseUseCase).deleteEmitters(eq(3L), eq(103L));
+            verify(sseService).deleteEmitters(eq(1L), eq(101L));
+            verify(sseService).deleteEmitters(eq(2L), eq(102L));
+            verify(sseService).deleteEmitters(eq(3L), eq(103L));
 
             // 소셜 플랫폼 로그아웃
             verifySocialLogout(1L, 101L);
@@ -95,19 +96,19 @@ public class MemberLoggedOutEventIntegrationTest extends BaseEventIntegrationTes
             verifySocialLogout(3L, 103L);
 
             // FCM 토큰 삭제
-            verify(fcmUseCase).deleteFcmTokens(eq(1L), eq(201L));
-            verify(fcmUseCase).deleteFcmTokens(eq(2L), eq(202L));
-            verify(fcmUseCase).deleteFcmTokens(eq(3L), eq(203L));
+            verify(fcmService).deleteFcmTokens(eq(1L), eq(201L));
+            verify(fcmService).deleteFcmTokens(eq(2L), eq(202L));
+            verify(fcmService).deleteFcmTokens(eq(3L), eq(203L));
 
             // JWT 토큰 무효화
-            verify(authTokenUseCase).deleteTokens(eq(1L), eq(101L));
-            verify(authTokenUseCase).deleteTokens(eq(2L), eq(102L));
-            verify(authTokenUseCase).deleteTokens(eq(3L), eq(103L));
+            verify(authTokenService).deleteTokens(eq(1L), eq(101L));
+            verify(authTokenService).deleteTokens(eq(2L), eq(102L));
+            verify(authTokenService).deleteTokens(eq(3L), eq(103L));
 
             // 카카오 토큰 삭제
-            verify(kakaoTokenUseCase).deleteByMemberId(eq(1L));
-            verify(kakaoTokenUseCase).deleteByMemberId(eq(2L));
-            verify(kakaoTokenUseCase).deleteByMemberId(eq(3L));
+            verify(kakaoTokenService).deleteByMemberId(eq(1L));
+            verify(kakaoTokenService).deleteByMemberId(eq(2L));
+            verify(kakaoTokenService).deleteByMemberId(eq(3L));
         });
     }
 
