@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     "카톡 친구 익명",
     "친구에게 익명 메시지",
     "익명 롤링페이퍼",
-    "카톡 친구 익명메시지",
+    "카톡 친구 익명 메시지",
   ]),
   robots: "index, follow",
   alternates: {
