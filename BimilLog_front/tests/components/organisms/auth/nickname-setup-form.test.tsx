@@ -11,11 +11,15 @@ const mockRefetchNotifications = vi.fn();
 const mockRouterPush = vi.fn();
 
 // Mock API
-vi.mock("@/lib/api", () => ({
-  userQuery: {
-    checkUserName: vi.fn(),
-  },
-}));
+vi.mock("@/lib/api", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/api")>("@/lib/api");
+  return {
+    ...actual,
+    userQuery: {
+      checkUserName: vi.fn(),
+    },
+  };
+});
 
 vi.mock("@/hooks", () => ({
   useAuth: vi.fn(() => ({
@@ -23,7 +27,7 @@ vi.mock("@/hooks", () => ({
   })),
 }));
 
-vi.mock("@/hooks/features", () => ({
+vi.mock("@/hooks/api", () => ({
   useNotificationList: vi.fn(() => ({
     refetch: mockRefetchNotifications,
   })),

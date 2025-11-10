@@ -5,16 +5,16 @@ import {
   setThemeConfig,
   initializeTheme,
   getResolvedTheme,
+  subscribeToSystemThemeChanges,
+  applyTheme,
   type Theme,
   type ColorScheme,
   type ThemeConfig,
 } from '@/lib/utils/theme';
 
 interface ThemeState extends ThemeConfig {
-  // 실제 적용된 테마 (system일 경우 resolved된 값)
   resolvedTheme: 'light' | 'dark';
 
-  // Actions
   setTheme: (theme: Theme) => void;
   setColorScheme: (colorScheme: ColorScheme) => void;
   setFontSize: (fontSize: 'small' | 'medium' | 'large') => void;
@@ -23,19 +23,55 @@ interface ThemeState extends ThemeConfig {
   initialize: () => void;
 }
 
+let systemThemeCleanup: (() => void) | null = null;
+let hasThemeInitialized = false;
+
+const detachSystemThemeListener = () => {
+  if (systemThemeCleanup) {
+    systemThemeCleanup();
+    systemThemeCleanup = null;
+  }
+};
+
 export const useThemeStore = create<ThemeState>()(
   devtools(
     persist(
       (set, get) => {
         const config = getThemeConfig();
+        const resolvedTheme = getResolvedTheme(config.theme);
+
+        const attachSystemThemeListener = () => {
+          if (systemThemeCleanup || typeof window === 'undefined') return;
+
+          systemThemeCleanup = subscribeToSystemThemeChanges(() => {
+            if (get().theme !== 'system') {
+              detachSystemThemeListener();
+              return;
+            }
+
+            const updatedConfig = getThemeConfig();
+            const nextResolved = getResolvedTheme('system');
+
+            set({ resolvedTheme: nextResolved });
+            applyTheme({ ...updatedConfig, theme: 'system' });
+          });
+        };
+
+        const ensureSystemListenerState = (theme: Theme) => {
+          if (theme === 'system') {
+            attachSystemThemeListener();
+          } else {
+            detachSystemThemeListener();
+          }
+        };
 
         return {
           ...config,
-          resolvedTheme: getResolvedTheme(config.theme),
+          resolvedTheme,
 
           setTheme: (theme) => {
-            const newConfig = { theme };
-            setThemeConfig(newConfig);
+            setThemeConfig({ theme });
+            ensureSystemListenerState(theme);
             set({
               theme,
               resolvedTheme: getResolvedTheme(theme),
@@ -43,20 +79,17 @@ export const useThemeStore = create<ThemeState>()(
           },
 
           setColorScheme: (colorScheme) => {
-            const newConfig = { colorScheme };
-            setThemeConfig(newConfig);
+            setThemeConfig({ colorScheme });
             set({ colorScheme });
           },
 
           setFontSize: (fontSize) => {
-            const newConfig = { fontSize };
-            setThemeConfig(newConfig);
+            setThemeConfig({ fontSize });
             set({ fontSize });
           },
 
           setReduceMotion: (reduceMotion) => {
-            const newConfig = { reduceMotion };
-            setThemeConfig(newConfig);
+            setThemeConfig({ reduceMotion });
             set({ reduceMotion });
           },
 
@@ -69,7 +102,6 @@ export const useThemeStore = create<ThemeState>()(
             } else if (currentTheme === 'dark') {
               newTheme = 'light';
             } else {
-              // system인 경우 현재 resolved 테마의 반대로
               newTheme = get().resolvedTheme === 'light' ? 'dark' : 'light';
             }
 
@@ -77,24 +109,21 @@ export const useThemeStore = create<ThemeState>()(
           },
 
           initialize: () => {
-            initializeTheme();
+            if (typeof window === 'undefined') return;
 
-            // 시스템 테마 변경 감지
-            if (typeof window !== 'undefined' && get().theme === 'system') {
-              const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-
-              const handleChange = () => {
-                set({
-                  resolvedTheme: getResolvedTheme('system'),
-                });
-              };
-
-              if (mediaQuery.addEventListener) {
-                mediaQuery.addEventListener('change', handleChange);
-              } else {
-                mediaQuery.addListener(handleChange);
-              }
+            if (!hasThemeInitialized) {
+              initializeTheme();
+              hasThemeInitialized = true;
+            } else {
+              applyTheme(getThemeConfig());
             }
+
+            const currentTheme = get().theme;
+            ensureSystemListenerState(currentTheme);
+
+            set({
+              resolvedTheme: getResolvedTheme(currentTheme),
+            });
           },
         };
       },

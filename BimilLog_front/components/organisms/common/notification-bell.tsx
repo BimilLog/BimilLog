@@ -39,7 +39,13 @@ export function NotificationBell() {
   const triggerRef = useRef<HTMLDivElement | null>(null);
   const { isAuthenticated } = useAuth();
 
-  const { data: notificationResponse, isLoading, refetch } = useNotificationList();
+  const {
+    data: notificationResponse,
+    status,
+    isFetching,
+    isRefetching,
+    refetch,
+  } = useNotificationList();
   const markAsReadMutation = useMarkNotificationAsRead();
   const deleteNotificationMutation = useDeleteNotification();
   const markAllAsReadMutation = useMarkAllNotificationsAsRead();
@@ -106,6 +112,8 @@ export function NotificationBell() {
   }, [isOpen, isMobile, updateDesktopPopoverPosition]);
 
   const notifications = notificationResponse?.success ? (notificationResponse.data || []) : [];
+  const isFetchingList = isFetching || isRefetching;
+  const isInitialLoading = status === "pending" && isFetchingList;
   const unreadCount = notifications.filter(n => !n.read).length;
 
   const handleMarkAsRead = async (notificationId: number) => {
@@ -236,11 +244,11 @@ export function NotificationBell() {
             variant="ghost"
             size="sm"
             onClick={handleRefresh}
-            disabled={isLoading}
+            disabled={isFetchingList}
             className="text-sm min-h-[44px] min-w-[44px] touch-manipulation"
             title="알림 목록 새로고침"
           >
-            {isLoading ? (
+            {isFetchingList ? (
               <FlowbiteSpinner color="pink" size="sm" aria-label="새로고침 중..." />
             ) : (
               <RefreshCw className="w-4 h-4" />
@@ -287,7 +295,7 @@ export function NotificationBell() {
       )}
 
       <div className="flex-1 overflow-y-auto">
-        {isLoading ? (
+        {isInitialLoading ? (
           <div className="p-8 flex flex-col items-center">
             <FlowbiteSpinner color="pink" size="xl" aria-label="알림을 불러오는 중..." />
             <p className="mt-2 text-sm text-brand-secondary">알림을 불러오는 중...</p>

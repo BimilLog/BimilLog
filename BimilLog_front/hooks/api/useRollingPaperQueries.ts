@@ -36,6 +36,7 @@ export const usePopularPapers = (page: number = 0, size: number = 10) => {
     },
     staleTime: 60 * 1000, // 1분
     gcTime: 5 * 60 * 1000, // 5분
-    refetchInterval: 60 * 1000, // 1분마다 자동 새로고침
+    retry: 1,
+    refetchInterval: (data) => (data ? 60 * 1000 : false), // refetch every minute only after first success
   });
 };

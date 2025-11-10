@@ -33,17 +33,21 @@ vi.mock("flowbite-react", () => ({
 }));
 
 // decoTypeMap과 getDecoInfo 모킹
-vi.mock("@/lib/api", () => ({
-  getDecoInfo: vi.fn((type: string) => ({
-    name: type === "POTATO" ? "감자" : type === "WATERMELON" ? "수박" : "딸기",
-    color: "from-yellow-100 to-yellow-200",
-  })),
-  decoTypeMap: {
-    POTATO: { name: "감자", color: "from-yellow-100 to-yellow-200" },
-    WATERMELON: { name: "수박", color: "from-green-100 to-green-200" },
-    STRAWBERRY: { name: "딸기", color: "from-pink-100 to-pink-200" },
-  },
-}));
+vi.mock("@/lib/api", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/api")>("@/lib/api");
+  return {
+    ...actual,
+    getDecoInfo: vi.fn((type: string) => ({
+      name: type === "POTATO" ? "????" : type === "WATERMELON" ? "????" : "????",
+      color: "from-yellow-100 to-yellow-200",
+    })),
+    decoTypeMap: {
+      POTATO: { name: "????", color: "from-yellow-100 to-yellow-200" },
+      WATERMELON: { name: "????", color: "from-green-100 to-green-200" },
+      STRAWBERRY: { name: "????", color: "from-pink-100 to-pink-200" },
+    },
+  };
+});
 
 describe("MessageForm", () => {
   const defaultProps = {
