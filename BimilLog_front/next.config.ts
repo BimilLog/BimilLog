@@ -125,7 +125,7 @@ const nextConfig = withPWA(pwaConfig)({
                             // 스타일시트 허용
                             "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
                             // 이미지 소스 허용 (구체적 도메인만 명시)
-                            "img-src 'self' data: https://p.kakaocdn.net http://k.kakaocdn.net http://t1.kakaocdn.net https://t1.kakaocdn.net https://chat.kakaocdn.net https://postfiles.pstatic.net https://t1.daumcdn.net https://display.ad.daum.net https://kaat.daum.net https://serv.ds.kakao.com https://tr.ad.daum.net",
+                            "img-src 'self' data: https://p.kakaocdn.net https://k.kakaocdn.net https://t1.kakaocdn.net https://chat.kakaocdn.net https://postfiles.pstatic.net https://t1.daumcdn.net https://display.ad.daum.net https://kaat.daum.net https://serv.ds.kakao.com https://tr.ad.daum.net",
                             // 폰트 소스 허용
                             "font-src 'self' data: https://cdn.jsdelivr.net",
                             // API 연결 허용 (개발환경에서는 localhost 포함)
@@ -175,10 +175,6 @@ const nextConfig = withPWA(pwaConfig)({
         remotePatterns: [
             {
                 protocol: 'https',
-                hostname: 'k.kakaocdn.net',
-            },
-            {
-                protocol: 'http',
                 hostname: 'k.kakaocdn.net',
             },
             {
