@@ -1,6 +1,5 @@
 /**
- * 테마 관리 유틸리티
- * 다크모드 및 테마 설정 관리
+ * Theme utilities: handles dark mode, accent colors, and related preferences.
  */
 
 export type Theme = 'light' | 'dark' | 'system';
@@ -21,27 +20,25 @@ const DEFAULT_CONFIG: ThemeConfig = {
   reduceMotion: false,
 };
 
+type SystemThemeListener = (theme: 'light' | 'dark') => void;
+
 /**
- * 시스템 다크모드 설정 감지
+ * Detects the OS-level color scheme.
  */
 export function getSystemTheme(): 'light' | 'dark' {
   if (typeof window === 'undefined') return 'light';
-
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
 /**
- * 실제 적용될 테마 계산
+ * Resolves the runtime theme, expanding "system" to the actual value.
  */
 export function getResolvedTheme(theme: Theme): 'light' | 'dark' {
-  if (theme === 'system') {
-    return getSystemTheme();
-  }
-  return theme;
+  return theme === 'system' ? getSystemTheme() : theme;
 }
 
 /**
- * 테마 설정 가져오기
+ * Reads the saved theme configuration.
  */
 export function getThemeConfig(): ThemeConfig {
   if (typeof window === 'undefined') return DEFAULT_CONFIG;
@@ -59,7 +56,7 @@ export function getThemeConfig(): ThemeConfig {
 }
 
 /**
- * 테마 설정 저장
+ * Persists theme configuration and applies it immediately.
  */
 export function setThemeConfig(config: Partial<ThemeConfig>): void {
   if (typeof window === 'undefined') return;
@@ -75,7 +72,7 @@ export function setThemeConfig(config: Partial<ThemeConfig>): void {
 }
 
 /**
- * 테마 적용
+ * Applies a config to the DOM (classes, attributes, meta theme-color).
  */
 export function applyTheme(config: ThemeConfig): void {
   if (typeof window === 'undefined') return;
@@ -83,32 +80,26 @@ export function applyTheme(config: ThemeConfig): void {
   const root = document.documentElement;
   const resolvedTheme = getResolvedTheme(config.theme);
 
-  // 다크모드 적용
   root.classList.toggle('dark', resolvedTheme === 'dark');
   root.classList.toggle('light', resolvedTheme === 'light');
   root.setAttribute('data-mode', resolvedTheme);
   root.setAttribute('data-theme', resolvedTheme);
   root.style.colorScheme = resolvedTheme;
 
-  // 색상 스킴 적용
   root.setAttribute('data-color-scheme', config.colorScheme);
-
-  // 폰트 크기 적용
   root.setAttribute('data-font-size', config.fontSize);
 
-  // 애니메이션 감소 적용
   if (config.reduceMotion) {
     root.classList.add('reduce-motion');
   } else {
     root.classList.remove('reduce-motion');
   }
 
-  // 메타 테마 색상 업데이트
   updateMetaThemeColor(resolvedTheme);
 }
 
 /**
- * 메타 테마 색상 업데이트
+ * Updates browser chrome color.
  */
 function updateMetaThemeColor(theme: 'light' | 'dark'): void {
   const metaThemeColor = document.querySelector('meta[name="theme-color"]');
@@ -118,7 +109,7 @@ function updateMetaThemeColor(theme: 'light' | 'dark'): void {
 }
 
 /**
- * 테마 토글
+ * Convenience toggler between light/dark (ignores system preference).
  */
 export function toggleTheme(): void {
   const config = getThemeConfig();
@@ -127,40 +118,46 @@ export function toggleTheme(): void {
 }
 
 /**
- * 초기 테마 설정
+ * Applies the persisted theme once the client hydrates.
  */
 export function initializeTheme(): void {
   if (typeof window === 'undefined') return;
-
   const config = getThemeConfig();
   applyTheme(config);
-
-  // 시스템 테마 변경 감지
-  if (config.theme === 'system') {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-
-    const handleChange = () => {
-      applyTheme(config);
-    };
-
-    // 이벤트 리스너 추가 (최신 브라우저)
-    if (mediaQuery.addEventListener) {
-      mediaQuery.addEventListener('change', handleChange);
-    } else {
-      // 구형 브라우저 대응
-      mediaQuery.addListener(handleChange);
-    }
-  }
 }
 
 /**
- * 색상 스킴별 CSS 변수 정의
+ * Subscribes to system theme changes and returns an unsubscribe function.
+ */
+export function subscribeToSystemThemeChanges(listener: SystemThemeListener): () => void {
+  if (typeof window === 'undefined') return () => {};
+
+  const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+  const handler = () => listener(getSystemTheme());
+
+  if (mediaQuery.addEventListener) {
+    mediaQuery.addEventListener('change', handler);
+  } else {
+    mediaQuery.addListener(handler);
+  }
+
+  return () => {
+    if (mediaQuery.addEventListener) {
+      mediaQuery.removeEventListener('change', handler);
+    } else {
+      mediaQuery.removeListener(handler);
+    }
+  };
+}
+
+/**
+ * Accent color presets.
  */
 export const COLOR_SCHEMES = {
   default: {
-    primary: 'rgb(236 72 153)', // pink-500
-    secondary: 'rgb(168 85 247)', // purple-500
-    accent: 'rgb(99 102 241)', // indigo-500
+    primary: 'rgb(236 72 153)',
+    secondary: 'rgb(168 85 247)',
+    accent: 'rgb(99 102 241)',
   },
   pink: {
     primary: 'rgb(236 72 153)',
@@ -190,7 +187,7 @@ export const COLOR_SCHEMES = {
 };
 
 /**
- * 폰트 크기 설정
+ * Font-size presets so we can keep CSS tokens simple.
  */
 export const FONT_SIZES = {
   small: {

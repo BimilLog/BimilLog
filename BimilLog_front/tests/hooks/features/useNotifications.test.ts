@@ -1,20 +1,28 @@
-import { renderHook, waitFor } from "@testing-library/react";
+import { renderHook, waitFor, act } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { useNotifications } from "@/hooks/features/useNotifications";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from "react";
 
 // Mock modules first
-vi.mock("@/lib/api", () => ({
-  sseManager: {
-    isConnected: vi.fn(() => false),
-    connect: vi.fn(),
-    disconnect: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    getConnectionState: vi.fn(() => "DISCONNECTED"),
-  },
-}));
+vi.mock("@/lib/api", async () => {
+  const actual = await vi.importActual<typeof import("@/lib/api")>("@/lib/api");
+  return {
+    ...actual,
+    sseManager: {
+      isConnected: vi.fn(() => false),
+      getConnectionState: vi.fn(() => "DISCONNECTED"),
+      connect: vi.fn(),
+      disconnect: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addStatusListener: vi.fn(),
+      removeStatusListener: vi.fn(),
+      hasShownConnectedToast: vi.fn(() => false),
+      markConnectedToastShown: vi.fn(),
+    },
+  };
+});
 
 vi.mock("@/hooks", () => ({
   useAuth: vi.fn(() => ({
@@ -136,9 +144,6 @@ describe("useNotifications", () => {
       refreshUser: vi.fn(),
     });
 
-    vi.mocked(sseManager).isConnected.mockReturnValue(true);
-    vi.mocked(sseManager).getConnectionState.mockReturnValue("CONNECTED");
-
     const { result } = renderHook(() => useNotifications(), {
       wrapper: createWrapper(),
     });
@@ -152,13 +157,14 @@ describe("useNotifications", () => {
       expect.any(Function)
     );
 
-    // 1초 후 연결 상태 업데이트
-    vi.advanceTimersByTime(1000);
-
-    await waitFor(() => {
-      expect(result.current.isSSEConnected).toBe(true);
-      expect(result.current.connectionState).toBe("CONNECTED");
+    const statusListener = vi.mocked(sseManager).addStatusListener.mock.calls.at(-1)?.[0];
+    expect(statusListener).toBeDefined();
+    act(() => {
+      statusListener?.("connected");
     });
+
+    expect(result.current.isSSEConnected).toBe(true);
+    expect(result.current.connectionState).toBe("CONNECTED");
   });
 
   it("알림을 수신하면 브라우저 알림을 표시한다", async () => {
@@ -241,22 +247,23 @@ describe("useNotifications", () => {
       wrapper: createWrapper(),
     });
 
-    // 1초 후 첫 상태 확인
-    vi.advanceTimersByTime(1000);
-    await waitFor(() => {
-      expect(result.current.connectionState).toBe("DISCONNECTED");
+    const initialCalls = vi.mocked(sseManager).getConnectionState.mock.calls.length;
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
     });
+    const afterFirstTick = vi.mocked(sseManager).getConnectionState.mock.calls.length;
+    expect(afterFirstTick).toBeGreaterThan(initialCalls);
 
     // 연결 상태 변경 시뮬레이션
     vi.mocked(sseManager).isConnected.mockReturnValue(true);
     vi.mocked(sseManager).getConnectionState.mockReturnValue("CONNECTED");
 
-    // 30초 후 상태 재확인
-    vi.advanceTimersByTime(30000);
-    await waitFor(() => {
-      expect(result.current.isSSEConnected).toBe(true);
-      expect(result.current.connectionState).toBe("CONNECTED");
+    act(() => {
+      vi.advanceTimersByTime(30000);
     });
+    const afterSecondTick = vi.mocked(sseManager).getConnectionState.mock.calls.length;
+    expect(afterSecondTick).toBeGreaterThan(afterFirstTick);
   });
 
   it("컴포넌트 언마운트 시 리스너와 인터벌을 정리한다", () => {
@@ -316,14 +323,12 @@ describe("useNotifications", () => {
       updateUserName: vi.fn(),
       refreshUser: vi.fn(),
     });
-    vi.mocked(sseManager).isConnected.mockReturnValue(true);
-    vi.mocked(sseManager).getConnectionState.mockReturnValue("CONNECTED");
-
     rerender();
-    vi.advanceTimersByTime(1000);
 
-    await waitFor(() => {
-      expect(result.current.isSSEConnected).toBe(true);
+    const statusListener = vi.mocked(sseManager).addStatusListener.mock.calls.at(-1)?.[0];
+    expect(statusListener).toBeDefined();
+    act(() => {
+      statusListener?.("connected");
     });
 
     // 로그아웃 시뮬레이션
@@ -340,11 +345,15 @@ describe("useNotifications", () => {
 
     rerender();
 
-    await waitFor(() => {
-      expect(result.current.isSSEConnected).toBe(false);
-      expect(result.current.connectionState).toBe("DISCONNECTED");
-      expect(vi.mocked(sseManager).removeEventListener).toHaveBeenCalledWith("notification");
+    const latestStatusListener = vi.mocked(sseManager).addStatusListener.mock.calls.at(-1)?.[0];
+    expect(latestStatusListener).toBeDefined();
+    act(() => {
+      latestStatusListener?.("disconnected");
     });
+
+    expect(result.current.isSSEConnected).toBe(false);
+    expect(result.current.connectionState).toBe("DISCONNECTED");
+    expect(vi.mocked(sseManager).removeEventListener).toHaveBeenCalledWith("notification");
   });
 
   it("알림 권한이 거부된 경우 브라우저 알림을 표시하지 않는다", () => {

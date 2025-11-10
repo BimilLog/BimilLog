@@ -16,6 +16,8 @@ function getCookie(name: string): string | null {
   return null
 }
 
+const DEFAULT_REQUEST_TIMEOUT_MS = 8000
+
 function logCsrfTokenUpdate(method: string, endpoint: string): void {
   if (process.env.NODE_ENV !== 'development') return
   
@@ -45,7 +47,7 @@ export class ApiClient {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`
     const csrfToken = getCookie("XSRF-TOKEN")
-    
+
     const defaultHeaders: Record<string, string> = {
       "Content-Type": "application/json",
     }
@@ -55,6 +57,10 @@ export class ApiClient {
       logger.log(`[${options.method || 'GET'}] ${endpoint} - Using CSRF token:`, csrfToken.substring(0, 8) + '...')
     }
 
+    const controller = new AbortController()
+    const timeoutMs = DEFAULT_REQUEST_TIMEOUT_MS
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
+
     const config: RequestInit = {
       ...options,
       headers: {
@@ -62,10 +68,12 @@ export class ApiClient {
         ...options.headers,
       },
       credentials: "include",
+      signal: controller.signal,
     }
 
     try {
       const response = await fetch(url, config)
+      clearTimeout(timeoutId)
       
       const requiredAuthEndpoints = [
         '/user',
@@ -221,10 +229,20 @@ export class ApiClient {
         }
       }
     } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        logger.warn(`[apiClient] Request timed out (${timeoutMs}ms): ${endpoint}`)
+        return {
+          success: false,
+          error: 'Request timed out',
+        }
+      }
+
       return {
         success: false,
         error: error instanceof Error ? error.message : "Network error",
       }
+    } finally {
+      clearTimeout(timeoutId)
     }
   }
 
