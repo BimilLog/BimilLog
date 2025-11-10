@@ -7,10 +7,14 @@ import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
-import jaeik.bimillog.domain.global.application.port.in.GlobalFcmSaveUseCase;
 import jaeik.bimillog.domain.global.entity.MemberDetail;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.global.out.GlobalBlacklistAdapter;
+import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
+import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
+import jaeik.bimillog.domain.global.out.GlobalAuthTokenSaveAdapter;
+import jaeik.bimillog.domain.global.out.GlobalKakaoTokenCommandAdapter;
+import jaeik.bimillog.domain.global.out.GlobalLoginAdapter;
 import jaeik.bimillog.testutil.fixtures.AuthTestFixtures;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.fixtures.TestFixtures;
@@ -46,12 +50,12 @@ import static org.mockito.Mockito.verify;
 class SocialLoginTransactionalServiceTest extends BaseUnitTest {
 
     @Mock private AuthToMemberAdapter authToMemberAdapter;
+    @Mock private GlobalLoginAdapter globalLoginAdapter;
     @Mock private GlobalBlacklistAdapter globalBlacklistAdapter;
-    @Mock private GlobalCookiePort globalCookiePort;
-    @Mock private GlobalJwtPort globalJwtPort;
-    @Mock private GlobalAuthTokenSavePort globalAuthTokenSavePort;
-    @Mock private GlobalKakaoTokenCommandPort globalKakaoTokenCommandPort;
-    @Mock private GlobalFcmSaveUseCase globalFcmSaveUseCase;
+    @Mock private GlobalCookieAdapter globalCookieAdapter;
+    @Mock private GlobalJwtAdapter globalJwtAdapter;
+    @Mock private GlobalAuthTokenSaveAdapter globalAuthTokenSaveAdapter;
+    @Mock private GlobalKakaoTokenCommandAdapter globalKakaoTokenCommandAdapter;
 
     @InjectMocks
     private SocialLoginTransactionalService socialLoginTransactionalService;
@@ -71,10 +75,10 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
         List<ResponseCookie> jwtCookies = getJwtCookies();
 
         given(globalBlacklistAdapter.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
-        given(authToMemberAdapter.checkMember(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(Optional.of(existingMember));
+        given(globalLoginAdapter.findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(Optional.of(existingMember));
 
         KakaoToken persistedKakaoToken = KakaoToken.createKakaoToken(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
-        given(globalKakaoTokenCommandPort.save(any(KakaoToken.class))).willReturn(persistedKakaoToken);
+        given(globalKakaoTokenCommandAdapter.save(any(KakaoToken.class))).willReturn(persistedKakaoToken);
         given(authToMemberAdapter.handleExistingMember(eq(existingMember), anyString(), anyString(), eq(persistedKakaoToken)))
                 .willReturn(existingMember);
 
@@ -84,12 +88,11 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
                 .member(existingMember)
                 .useCount(0)
                 .build();
-        given(globalAuthTokenSavePort.save(any(AuthToken.class))).willReturn(persistedAuthToken);
-        given(globalFcmSaveUseCase.registerFcmToken(existingMember, TEST_FCM_TOKEN)).willReturn(memberDetail.getFcmTokenId());
+        given(globalAuthTokenSaveAdapter.save(any(AuthToken.class))).willReturn(persistedAuthToken);
 
-        given(globalJwtPort.generateAccessToken(any(MemberDetail.class))).willReturn("generated-access-token");
-        given(globalJwtPort.generateRefreshToken(any(MemberDetail.class))).willReturn("generated-refresh-token");
-        given(globalCookiePort.generateJwtCookie(anyString(), anyString())).willReturn(jwtCookies);
+        given(globalJwtAdapter.generateAccessToken(any(MemberDetail.class))).willReturn("generated-access-token");
+        given(globalJwtAdapter.generateRefreshToken(any(MemberDetail.class))).willReturn("generated-refresh-token");
+        given(globalCookieAdapter.generateJwtCookie(anyString(), anyString())).willReturn(jwtCookies);
 
         // When
         LoginResult result = socialLoginTransactionalService.finishLogin(TEST_PROVIDER, profile);
@@ -100,12 +103,11 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
         assertThat(existingUser.cookies()).isEqualTo(jwtCookies);
 
         verify(globalBlacklistAdapter).existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID);
-        verify(authToMemberAdapter).checkMember(TEST_PROVIDER, TEST_SOCIAL_ID);
-        verify(globalKakaoTokenCommandPort).save(any(KakaoToken.class));
+        verify(globalLoginAdapter).findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID);
+        verify(globalKakaoTokenCommandAdapter).save(any(KakaoToken.class));
         verify(authToMemberAdapter).handleExistingMember(eq(existingMember), eq(profile.getNickname()), eq(profile.getProfileImageUrl()), eq(persistedKakaoToken));
-        verify(globalFcmSaveUseCase).registerFcmToken(existingMember, TEST_FCM_TOKEN);
-        verify(globalAuthTokenSavePort).updateJwtRefreshToken(memberDetail.getAuthTokenId(), "generated-refresh-token");
-        verify(globalCookiePort).generateJwtCookie("generated-access-token", "generated-refresh-token");
+        verify(globalAuthTokenSaveAdapter).updateJwtRefreshToken(memberDetail.getAuthTokenId(), "generated-refresh-token");
+        verify(globalCookieAdapter).generateJwtCookie("generated-access-token", "generated-refresh-token");
     }
 
     @Test
@@ -115,8 +117,8 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
         SocialMemberProfile profile = getTestMemberProfile();
 
         given(globalBlacklistAdapter.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
-        given(authToMemberAdapter.checkMember(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(Optional.empty());
-        given(globalCookiePort.createTempCookie(anyString())).willAnswer(invocation -> {
+        given(globalLoginAdapter.findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(Optional.empty());
+        given(globalCookieAdapter.createTempCookie(anyString())).willAnswer(invocation -> {
             String generatedUuid = invocation.getArgument(0);
             return ResponseCookie.from("temp", generatedUuid)
                     .path("/")
@@ -137,7 +139,7 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
         assertThat(newUser.tempCookie().getValue()).isNotBlank();
 
         verify(authToMemberAdapter).handleNewUser(eq(profile), eq(newUser.tempCookie().getValue()));
-        verify(globalCookiePort).createTempCookie(newUser.tempCookie().getValue());
+        verify(globalCookieAdapter).createTempCookie(newUser.tempCookie().getValue());
     }
 
     @Test
@@ -180,8 +182,7 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
                 AuthTestFixtures.TEST_SOCIAL_NICKNAME,
                 AuthTestFixtures.TEST_PROFILE_IMAGE,
                 AuthTestFixtures.TEST_ACCESS_TOKEN,
-                AuthTestFixtures.TEST_REFRESH_TOKEN,
-                TEST_FCM_TOKEN
+                AuthTestFixtures.TEST_REFRESH_TOKEN
         );
     }
 }

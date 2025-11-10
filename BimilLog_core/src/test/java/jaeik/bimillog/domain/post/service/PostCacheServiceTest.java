@@ -3,6 +3,9 @@ package jaeik.bimillog.domain.post.service;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
+import jaeik.bimillog.domain.post.out.PostQueryAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostQueryAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostSaveAdapter;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -37,13 +40,13 @@ import static org.mockito.Mockito.verify;
 class PostCacheServiceTest {
 
     @Mock
-    private RedisPostSavePort redisPostSavePort;
+    private RedisPostSaveAdapter redisPostSaveAdapter;
 
     @Mock
-    private PostQueryPort postQueryPort;
+    private PostQueryAdapter postQueryAdapter;
 
     @Mock
-    private RedisPostQueryPort redisPostQueryPort;
+    private RedisPostQueryAdapter redisPostQueryAdapter;
 
     @InjectMocks
     private PostCacheService postCacheService;
@@ -55,8 +58,8 @@ class PostCacheServiceTest {
         PostSimpleDetail simpleDetail1 = PostTestDataBuilder.createPostSearchResult(1L, "실시간 인기글 1");
         PostSimpleDetail simpleDetail2 = PostTestDataBuilder.createPostSearchResult(2L, "실시간 인기글 2");
 
-        given(redisPostQueryPort.getRealtimePopularPostIds()).willReturn(List.of(1L, 2L));
-        given(redisPostQueryPort.getCachedPostList(PostCacheFlag.REALTIME)).willReturn(List.of(simpleDetail1, simpleDetail2));
+        given(redisPostQueryAdapter.getRealtimePopularPostIds()).willReturn(List.of(1L, 2L));
+        given(redisPostQueryAdapter.getCachedPostList(PostCacheFlag.REALTIME)).willReturn(List.of(simpleDetail1, simpleDetail2));
 
         // When
         List<PostSimpleDetail> result = postCacheService.getRealtimePosts();
@@ -66,8 +69,8 @@ class PostCacheServiceTest {
         assertThat(result.get(0).getTitle()).isEqualTo("실시간 인기글 1");
         assertThat(result.get(1).getTitle()).isEqualTo("실시간 인기글 2");
 
-        verify(redisPostQueryPort).getRealtimePopularPostIds();
-        verify(redisPostQueryPort).getCachedPostList(PostCacheFlag.REALTIME);
+        verify(redisPostQueryAdapter).getRealtimePopularPostIds();
+        verify(redisPostQueryAdapter).getCachedPostList(PostCacheFlag.REALTIME);
     }
 
     @Test
@@ -77,9 +80,9 @@ class PostCacheServiceTest {
         PostSimpleDetail simpleDetail2 = PostTestDataBuilder.createPostSearchResult(2L, "캐시된 게시글");
         PostDetail realtimePost1 = createPostDetail(1L, "DB에서 조회된 게시글");
 
-        given(redisPostQueryPort.getRealtimePopularPostIds()).willReturn(List.of(1L, 2L));
-        given(redisPostQueryPort.getCachedPostList(PostCacheFlag.REALTIME)).willReturn(List.of(simpleDetail2)); // postId=1은 캐시 미스
-        given(postQueryPort.findPostDetailWithCounts(1L, null)).willReturn(Optional.of(realtimePost1)); // DB fallback
+        given(redisPostQueryAdapter.getRealtimePopularPostIds()).willReturn(List.of(1L, 2L));
+        given(redisPostQueryAdapter.getCachedPostList(PostCacheFlag.REALTIME)).willReturn(List.of(simpleDetail2)); // postId=1은 캐시 미스
+        given(postQueryAdapter.findPostDetailWithCounts(1L, null)).willReturn(Optional.of(realtimePost1)); // DB fallback
 
         // When
         List<PostSimpleDetail> result = postCacheService.getRealtimePosts();
@@ -89,10 +92,10 @@ class PostCacheServiceTest {
         assertThat(result.get(0).getTitle()).isEqualTo("DB에서 조회된 게시글");
         assertThat(result.get(1).getTitle()).isEqualTo("캐시된 게시글");
 
-        verify(redisPostQueryPort).getRealtimePopularPostIds();
-        verify(redisPostQueryPort).getCachedPostList(PostCacheFlag.REALTIME);
-        verify(postQueryPort).findPostDetailWithCounts(1L, null);
-        verify(redisPostSavePort).cachePostList(eq(PostCacheFlag.REALTIME), any());
+        verify(redisPostQueryAdapter).getRealtimePopularPostIds();
+        verify(redisPostQueryAdapter).getCachedPostList(PostCacheFlag.REALTIME);
+        verify(postQueryAdapter).findPostDetailWithCounts(1L, null);
+        verify(redisPostSaveAdapter).cachePostList(eq(PostCacheFlag.REALTIME), any());
     }
 
     @Test
@@ -104,7 +107,7 @@ class PostCacheServiceTest {
             PostTestDataBuilder.createPostSearchResult(2L, "주간 인기글 2")
         );
 
-        given(redisPostQueryPort.getCachedPostList(PostCacheFlag.WEEKLY)).willReturn(weeklyPosts);
+        given(redisPostQueryAdapter.getCachedPostList(PostCacheFlag.WEEKLY)).willReturn(weeklyPosts);
 
         // When
         List<PostSimpleDetail> result = postCacheService.getWeeklyPosts();
@@ -114,7 +117,7 @@ class PostCacheServiceTest {
         assertThat(result.get(0).getTitle()).isEqualTo("주간 인기글 1");
         assertThat(result.get(1).getTitle()).isEqualTo("주간 인기글 2");
 
-        verify(redisPostQueryPort).getCachedPostList(PostCacheFlag.WEEKLY);
+        verify(redisPostQueryAdapter).getCachedPostList(PostCacheFlag.WEEKLY);
     }
 
     @Test
@@ -128,7 +131,7 @@ class PostCacheServiceTest {
         PostSimpleDetail legendPost2 = PostTestDataBuilder.createPostSearchResult(2L, "레전드 게시글 2");
         Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(legendPost1, legendPost2), pageable, 2);
 
-        given(redisPostQueryPort.getCachedPostListPaged(pageable)).willReturn(expectedPage);
+        given(redisPostQueryAdapter.getCachedPostListPaged(pageable)).willReturn(expectedPage);
 
         // When
         Page<PostSimpleDetail> result = postCacheService.getPopularPostLegend(type, pageable);
@@ -139,7 +142,7 @@ class PostCacheServiceTest {
         assertThat(result.getContent().get(0).getTitle()).isEqualTo("레전드 게시글 1");
         assertThat(result.getContent().get(1).getTitle()).isEqualTo("레전드 게시글 2");
 
-        verify(redisPostQueryPort).getCachedPostListPaged(pageable);
+        verify(redisPostQueryAdapter).getCachedPostListPaged(pageable);
     }
 
     @Test
@@ -158,12 +161,12 @@ class PostCacheServiceTest {
         PostSimpleDetail simpleDetail2 = PostTestDataBuilder.createPostSearchResult(2L, "레전드 게시글 2");
         Page<PostSimpleDetail> recoveredPage = new PageImpl<>(List.of(simpleDetail1, simpleDetail2), pageable, 2);
 
-        given(redisPostQueryPort.getCachedPostListPaged(pageable))
+        given(redisPostQueryAdapter.getCachedPostListPaged(pageable))
                 .willReturn(emptyPage)  // 첫 번째 호출: 캐시 미스
                 .willReturn(recoveredPage); // 두 번째 호출: 복구 후
-        given(redisPostQueryPort.getStoredPostIds(PostCacheFlag.LEGEND)).willReturn(List.of(1L, 2L));
-        given(postQueryPort.findPostDetailWithCounts(1L, null)).willReturn(Optional.of(postDetail1));
-        given(postQueryPort.findPostDetailWithCounts(2L, null)).willReturn(Optional.of(postDetail2));
+        given(redisPostQueryAdapter.getStoredPostIds(PostCacheFlag.LEGEND)).willReturn(List.of(1L, 2L));
+        given(postQueryAdapter.findPostDetailWithCounts(1L, null)).willReturn(Optional.of(postDetail1));
+        given(postQueryAdapter.findPostDetailWithCounts(2L, null)).willReturn(Optional.of(postDetail2));
 
         // When
         Page<PostSimpleDetail> result = postCacheService.getPopularPostLegend(type, pageable);
@@ -172,11 +175,11 @@ class PostCacheServiceTest {
         assertThat(result.getContent()).hasSize(2);
         assertThat(result.getContent().get(0).getTitle()).isEqualTo("레전드 게시글 1");
 
-        verify(redisPostQueryPort, times(2)).getCachedPostListPaged(pageable);
-        verify(redisPostQueryPort).getStoredPostIds(PostCacheFlag.LEGEND);
-        verify(postQueryPort).findPostDetailWithCounts(1L, null);
-        verify(postQueryPort).findPostDetailWithCounts(2L, null);
-        verify(redisPostSavePort).cachePostList(eq(PostCacheFlag.LEGEND), any());
+        verify(redisPostQueryAdapter, times(2)).getCachedPostListPaged(pageable);
+        verify(redisPostQueryAdapter).getStoredPostIds(PostCacheFlag.LEGEND);
+        verify(postQueryAdapter).findPostDetailWithCounts(1L, null);
+        verify(postQueryAdapter).findPostDetailWithCounts(2L, null);
+        verify(redisPostSaveAdapter).cachePostList(eq(PostCacheFlag.LEGEND), any());
     }
 
     @Test
@@ -186,8 +189,8 @@ class PostCacheServiceTest {
         PostSimpleDetail noticePost = PostTestDataBuilder.createPostSearchResult(1L, "공지사항");
         List<PostSimpleDetail> noticePosts = List.of(noticePost);
 
-        given(redisPostQueryPort.getStoredPostIds(PostCacheFlag.NOTICE)).willReturn(List.of(1L));
-        given(redisPostQueryPort.getCachedPostList(PostCacheFlag.NOTICE)).willReturn(noticePosts);
+        given(redisPostQueryAdapter.getStoredPostIds(PostCacheFlag.NOTICE)).willReturn(List.of(1L));
+        given(redisPostQueryAdapter.getCachedPostList(PostCacheFlag.NOTICE)).willReturn(noticePosts);
 
         // When
         List<PostSimpleDetail> result = postCacheService.getNoticePosts();
@@ -196,8 +199,8 @@ class PostCacheServiceTest {
         assertThat(result).isEqualTo(noticePosts);
         assertThat(result).hasSize(1);
 
-        verify(redisPostQueryPort).getStoredPostIds(PostCacheFlag.NOTICE);
-        verify(redisPostQueryPort).getCachedPostList(PostCacheFlag.NOTICE);
+        verify(redisPostQueryAdapter).getStoredPostIds(PostCacheFlag.NOTICE);
+        verify(redisPostQueryAdapter).getCachedPostList(PostCacheFlag.NOTICE);
     }
 
     @Test
@@ -207,10 +210,10 @@ class PostCacheServiceTest {
         PostDetail postDetail1 = createPostDetail(1L, "주간 인기글 1");
         PostDetail postDetail2 = createPostDetail(2L, "주간 인기글 2");
 
-        given(redisPostQueryPort.getCachedPostList(PostCacheFlag.WEEKLY)).willReturn(List.of());  // 캐시 미스
-        given(redisPostQueryPort.getStoredPostIds(PostCacheFlag.WEEKLY)).willReturn(List.of(1L, 2L));
-        given(postQueryPort.findPostDetailWithCounts(1L, null)).willReturn(Optional.of(postDetail1));
-        given(postQueryPort.findPostDetailWithCounts(2L, null)).willReturn(Optional.of(postDetail2));
+        given(redisPostQueryAdapter.getCachedPostList(PostCacheFlag.WEEKLY)).willReturn(List.of());  // 캐시 미스
+        given(redisPostQueryAdapter.getStoredPostIds(PostCacheFlag.WEEKLY)).willReturn(List.of(1L, 2L));
+        given(postQueryAdapter.findPostDetailWithCounts(1L, null)).willReturn(Optional.of(postDetail1));
+        given(postQueryAdapter.findPostDetailWithCounts(2L, null)).willReturn(Optional.of(postDetail2));
 
         // When
         List<PostSimpleDetail> result = postCacheService.getWeeklyPosts();
@@ -220,11 +223,11 @@ class PostCacheServiceTest {
         assertThat(result.get(0).getTitle()).isEqualTo("주간 인기글 1");
         assertThat(result.get(1).getTitle()).isEqualTo("주간 인기글 2");
 
-        verify(redisPostQueryPort).getCachedPostList(PostCacheFlag.WEEKLY);
-        verify(redisPostQueryPort).getStoredPostIds(PostCacheFlag.WEEKLY);
-        verify(postQueryPort).findPostDetailWithCounts(1L, null);
-        verify(postQueryPort).findPostDetailWithCounts(2L, null);
-        verify(redisPostSavePort).cachePostList(eq(PostCacheFlag.WEEKLY), any());  // 재캐싱 검증
+        verify(redisPostQueryAdapter).getCachedPostList(PostCacheFlag.WEEKLY);
+        verify(redisPostQueryAdapter).getStoredPostIds(PostCacheFlag.WEEKLY);
+        verify(postQueryAdapter).findPostDetailWithCounts(1L, null);
+        verify(postQueryAdapter).findPostDetailWithCounts(2L, null);
+        verify(redisPostSaveAdapter).cachePostList(eq(PostCacheFlag.WEEKLY), any());  // 재캐싱 검증
     }
 
     @Test
@@ -233,9 +236,9 @@ class PostCacheServiceTest {
         // Given
         PostDetail postDetail1 = createPostDetail(1L, "공지사항 1");
 
-        given(redisPostQueryPort.getStoredPostIds(PostCacheFlag.NOTICE)).willReturn(List.of(1L));
-        given(redisPostQueryPort.getCachedPostList(PostCacheFlag.NOTICE)).willReturn(List.of());  // 캐시 미스 (size 불일치)
-        given(postQueryPort.findPostDetailWithCounts(1L, null)).willReturn(Optional.of(postDetail1));
+        given(redisPostQueryAdapter.getStoredPostIds(PostCacheFlag.NOTICE)).willReturn(List.of(1L));
+        given(redisPostQueryAdapter.getCachedPostList(PostCacheFlag.NOTICE)).willReturn(List.of());  // 캐시 미스 (size 불일치)
+        given(postQueryAdapter.findPostDetailWithCounts(1L, null)).willReturn(Optional.of(postDetail1));
 
         // When
         List<PostSimpleDetail> result = postCacheService.getNoticePosts();
@@ -244,9 +247,9 @@ class PostCacheServiceTest {
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getTitle()).isEqualTo("공지사항 1");
 
-        verify(redisPostQueryPort, times(2)).getStoredPostIds(PostCacheFlag.NOTICE);  // 1번: size 비교, 2번: recoverFromStoredPostIds
-        verify(redisPostQueryPort).getCachedPostList(PostCacheFlag.NOTICE);
-        verify(postQueryPort).findPostDetailWithCounts(1L, null);
+        verify(redisPostQueryAdapter, times(2)).getStoredPostIds(PostCacheFlag.NOTICE);  // 1번: size 비교, 2번: recoverFromStoredPostIds
+        verify(redisPostQueryAdapter).getCachedPostList(PostCacheFlag.NOTICE);
+        verify(postQueryAdapter).findPostDetailWithCounts(1L, null);
     }
 
     // Helper method for creating PostDetail test data

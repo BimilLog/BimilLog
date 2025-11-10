@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.auth.out.CustomUserDetails;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.config.H2TestConfiguration;
 import jaeik.bimillog.testutil.TestMembers;
-import jaeik.bimillog.testutil.config.TestSocialLoginPortConfig;
+import jaeik.bimillog.testutil.config.TestSocialLoginAdapterConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @since 2.0.0
  */
 @ActiveProfiles("h2test")
-@Import({H2TestConfiguration.class, TestSocialLoginPortConfig.class})
+@Import({H2TestConfiguration.class, TestSocialLoginAdapterConfig.class})
 @DisplayName("알림 SSE 컨트롤러 통합 테스트")
 @Tag("integration")
 class NotificationSseControllerIntegrationTest extends BaseIntegrationTest {

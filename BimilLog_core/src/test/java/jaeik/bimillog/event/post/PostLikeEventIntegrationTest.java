@@ -1,6 +1,6 @@
 package jaeik.bimillog.event.post;
 
-import jaeik.bimillog.domain.post.application.port.out.RedisPostUpdatePort;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
 import jaeik.bimillog.domain.post.event.PostLikeEvent;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
@@ -24,7 +24,7 @@ import static org.mockito.Mockito.*;
 public class PostLikeEventIntegrationTest extends BaseEventIntegrationTest {
 
     @MockitoBean
-    private RedisPostUpdatePort redisPostUpdatePort;
+    private RedisPostUpdateAdapter redisPostUpdateAdapter;
 
     private static final double LIKE_SCORE = 4.0;
 
@@ -36,8 +36,8 @@ public class PostLikeEventIntegrationTest extends BaseEventIntegrationTest {
 
         // When & Then
         publishAndVerify(event, () -> {
-            verify(redisPostUpdatePort).incrementRealtimePopularScore(eq(1L), eq(LIKE_SCORE));
-            verifyNoMoreInteractions(redisPostUpdatePort);
+            verify(redisPostUpdateAdapter).incrementRealtimePopularScore(eq(1L), eq(LIKE_SCORE));
+            verifyNoMoreInteractions(redisPostUpdateAdapter);
         });
     }
 
@@ -54,10 +54,10 @@ public class PostLikeEventIntegrationTest extends BaseEventIntegrationTest {
         // When & Then
         publishEvents(events);
         verifyAsync(() -> {
-            verify(redisPostUpdatePort).incrementRealtimePopularScore(eq(1L), eq(LIKE_SCORE));
-            verify(redisPostUpdatePort).incrementRealtimePopularScore(eq(2L), eq(LIKE_SCORE));
-            verify(redisPostUpdatePort).incrementRealtimePopularScore(eq(3L), eq(LIKE_SCORE));
-            verifyNoMoreInteractions(redisPostUpdatePort);
+            verify(redisPostUpdateAdapter).incrementRealtimePopularScore(eq(1L), eq(LIKE_SCORE));
+            verify(redisPostUpdateAdapter).incrementRealtimePopularScore(eq(2L), eq(LIKE_SCORE));
+            verify(redisPostUpdateAdapter).incrementRealtimePopularScore(eq(3L), eq(LIKE_SCORE));
+            verifyNoMoreInteractions(redisPostUpdateAdapter);
         });
     }
 
@@ -73,8 +73,8 @@ public class PostLikeEventIntegrationTest extends BaseEventIntegrationTest {
         // When & Then
         publishEvents(events);
         verifyAsync(() -> {
-            verify(redisPostUpdatePort, times(3)).incrementRealtimePopularScore(eq(1L), eq(LIKE_SCORE));
-            verifyNoMoreInteractions(redisPostUpdatePort);
+            verify(redisPostUpdateAdapter, times(3)).incrementRealtimePopularScore(eq(1L), eq(LIKE_SCORE));
+            verifyNoMoreInteractions(redisPostUpdateAdapter);
         });
     }
 
@@ -86,11 +86,11 @@ public class PostLikeEventIntegrationTest extends BaseEventIntegrationTest {
 
         // 점수 증가 실패 시뮬레이션 - 리스너가 예외를 catch하여 로그 처리
         doThrow(new RuntimeException("Redis 점수 증가 실패"))
-                .when(redisPostUpdatePort).incrementRealtimePopularScore(1L, LIKE_SCORE);
+                .when(redisPostUpdateAdapter).incrementRealtimePopularScore(1L, LIKE_SCORE);
 
         // When & Then - 예외가 발생해도 시스템은 정상 작동
         publishAndVerify(event, () -> {
-            verify(redisPostUpdatePort).incrementRealtimePopularScore(eq(1L), eq(LIKE_SCORE));
+            verify(redisPostUpdateAdapter).incrementRealtimePopularScore(eq(1L), eq(LIKE_SCORE));
         });
     }
 

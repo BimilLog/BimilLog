@@ -34,7 +34,6 @@ import java.util.Optional;
 public class AuthToMemberAdapter {
 
     private final HandleMemberLoginService handleMemberLoginService;
-    private final MemberQueryService memberQueryService;
 
     /**
      * <h3>기존 회원 정보 갱신</h3>

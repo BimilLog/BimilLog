@@ -5,8 +5,11 @@ import jaeik.bimillog.domain.auth.entity.KakaoToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
-import jaeik.bimillog.domain.global.application.port.in.GlobalFcmSaveUseCase;
 import jaeik.bimillog.domain.global.entity.MemberDetail;
+import jaeik.bimillog.domain.global.out.GlobalAuthTokenSaveAdapter;
+import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
+import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
+import jaeik.bimillog.domain.global.out.GlobalKakaoTokenCommandAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.out.SaveMemberAdapter;
@@ -41,13 +44,12 @@ import static org.mockito.Mockito.verify;
 @Tag("unit")
 class MemberSignupServiceTest extends BaseUnitTest {
 
-    @Mock private RedisMemberDataAdapter redisMemberDataPort;
-    @Mock private SaveMemberAdapter saveMemberPort;
-    @Mock private GlobalCookiePort globalCookiePort;
-    @Mock private GlobalJwtPort globalJwtPort;
-    @Mock private GlobalAuthTokenSavePort globalAuthTokenSavePort;
-    @Mock private GlobalKakaoTokenCommandPort globalKakaoTokenCommandPort;
-    @Mock private GlobalFcmSaveUseCase globalFcmSaveUseCase;
+    @Mock private RedisMemberDataAdapter redisMemberDataAdapter;
+    @Mock private SaveMemberAdapter saveMemberAdapter;
+    @Mock private GlobalCookieAdapter globalCookieAdapter;
+    @Mock private GlobalJwtAdapter globalJwtAdapter;
+    @Mock private GlobalAuthTokenSaveAdapter globalAuthTokenSaveAdapter;
+    @Mock private GlobalKakaoTokenCommandAdapter globalKakaoTokenCommandAdapter;
 
     @InjectMocks private MemberSignupService signUpService;
 
@@ -65,8 +67,7 @@ class MemberSignupServiceTest extends BaseUnitTest {
                 "signupNickname",
                 "profile.jpg",
                 "access-token",
-                "refresh-token",
-                "fcm-token"
+                "refresh-token"
         );
 
         persistedMember = TestMembers.createMember("kakao123", "tester", "signupNickname");
@@ -99,85 +100,70 @@ class MemberSignupServiceTest extends BaseUnitTest {
     @Test
     @DisplayName("유효한 임시 데이터로 회원 가입을 완료한다")
     void shouldSignupWithValidTemporaryData() {
-        given(redisMemberDataPort.getTempData("uuid-123")).willReturn(Optional.of(socialProfile));
-        given(globalKakaoTokenCommandPort.save(any(KakaoToken.class)))
+        given(redisMemberDataAdapter.getTempData("uuid-123")).willReturn(Optional.of(socialProfile));
+        given(globalKakaoTokenCommandAdapter.save(any(KakaoToken.class)))
                 .willReturn(KakaoToken.createKakaoToken("access-token", "refresh-token"));
-        given(saveMemberPort.saveNewMember(any(Member.class))).willReturn(persistedMember);
-        given(globalAuthTokenSavePort.save(any(AuthToken.class))).willReturn(persistedAuthToken);
-        given(globalFcmSaveUseCase.registerFcmToken(persistedMember, socialProfile.getFcmToken())).willReturn(123L);
-        given(globalJwtPort.generateAccessToken(any(MemberDetail.class))).willReturn("access-jwt");
-        given(globalJwtPort.generateRefreshToken(any(MemberDetail.class))).willReturn("refresh-jwt");
-        given(globalCookiePort.generateJwtCookie("access-jwt", "refresh-jwt")).willReturn(jwtCookies);
+        given(saveMemberAdapter.saveNewMember(any(Member.class))).willReturn(persistedMember);
+        given(globalAuthTokenSaveAdapter.save(any(AuthToken.class))).willReturn(persistedAuthToken);
+        given(globalJwtAdapter.generateAccessToken(any(MemberDetail.class))).willReturn("access-jwt");
+        given(globalJwtAdapter.generateRefreshToken(any(MemberDetail.class))).willReturn("refresh-jwt");
+        given(globalCookieAdapter.generateJwtCookie("access-jwt", "refresh-jwt")).willReturn(jwtCookies);
 
         List<ResponseCookie> result = signUpService.signup("tester", "uuid-123");
 
         assertThat(result).isEqualTo(jwtCookies);
-        verify(redisMemberDataPort).getTempData("uuid-123");
-        verify(globalKakaoTokenCommandPort).save(any(KakaoToken.class));
-        verify(saveMemberPort).saveNewMember(any(Member.class));
-        verify(globalAuthTokenSavePort).save(any(AuthToken.class));
-        verify(globalFcmSaveUseCase).registerFcmToken(persistedMember, socialProfile.getFcmToken());
+        verify(redisMemberDataAdapter).getTempData("uuid-123");
+        verify(globalKakaoTokenCommandAdapter).save(any(KakaoToken.class));
+        verify(saveMemberAdapter).saveNewMember(any(Member.class));
+        verify(globalAuthTokenSaveAdapter).save(any(AuthToken.class));
 
         ArgumentCaptor<MemberDetail> detailCaptor = ArgumentCaptor.forClass(MemberDetail.class);
-        verify(globalJwtPort).generateAccessToken(detailCaptor.capture());
-        verify(globalJwtPort).generateRefreshToken(detailCaptor.getValue());
+        verify(globalJwtAdapter).generateAccessToken(detailCaptor.capture());
+        verify(globalJwtAdapter).generateRefreshToken(detailCaptor.getValue());
 
-        verify(globalAuthTokenSavePort).updateJwtRefreshToken(persistedAuthToken.getId(), "refresh-jwt");
-        verify(globalCookiePort).generateJwtCookie("access-jwt", "refresh-jwt");
-        verify(redisMemberDataPort).removeTempData("uuid-123");
+        verify(globalAuthTokenSaveAdapter).updateJwtRefreshToken(persistedAuthToken.getId(), "refresh-jwt");
+        verify(globalCookieAdapter).generateJwtCookie("access-jwt", "refresh-jwt");
+        verify(redisMemberDataAdapter).removeTempData("uuid-123");
 
         MemberDetail capturedDetail = detailCaptor.getValue();
         assertThat(capturedDetail.getAuthTokenId()).isEqualTo(persistedAuthToken.getId());
-        assertThat(capturedDetail.getFcmTokenId()).isEqualTo(123L);
     }
 
     @Test
     @DisplayName("임시 데이터가 없으면 INVALID_TEMP_DATA 예외를 던진다")
     void shouldThrowExceptionWhenTempDataMissing() {
-        given(redisMemberDataPort.getTempData("missing-uuid")).willReturn(Optional.empty());
+        given(redisMemberDataAdapter.getTempData("missing-uuid")).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> signUpService.signup("tester", "missing-uuid"))
                 .isInstanceOf(AuthCustomException.class)
                 .hasFieldOrPropertyWithValue("authErrorCode", AuthErrorCode.INVALID_TEMP_DATA);
 
-        verify(redisMemberDataPort).getTempData("missing-uuid");
-        verify(saveMemberPort, never()).saveNewMember(any(Member.class));
+        verify(redisMemberDataAdapter).getTempData("missing-uuid");
+        verify(saveMemberAdapter, never()).saveNewMember(any(Member.class));
     }
 
     @Test
-    @DisplayName("FCM 토큰이 없어도 회원 가입은 정상 진행된다")
-    void shouldSignupWithoutFcmToken() {
-        SocialMemberProfile profileWithoutFcm = new SocialMemberProfile(
-                "kakao123",
-                "signup@example.com",
-                SocialProvider.KAKAO,
-                "signupNickname",
-                "profile.jpg",
-                "access-token",
-                "refresh-token",
-                null
-        );
-
-        given(redisMemberDataPort.getTempData("uuid-123")).willReturn(Optional.of(profileWithoutFcm));
-        given(globalKakaoTokenCommandPort.save(any(KakaoToken.class)))
+    @DisplayName("회원 가입 시 JWT 토큰과 쿠키가 정상적으로 생성된다")
+    void shouldGenerateJwtTokensAndCookiesOnSignup() {
+        // 회원가입 시점에 JWT 토큰과 쿠키가 생성되는지 검증
+        given(redisMemberDataAdapter.getTempData("uuid-123")).willReturn(Optional.of(socialProfile));
+        given(globalKakaoTokenCommandAdapter.save(any(KakaoToken.class)))
                 .willReturn(KakaoToken.createKakaoToken("access-token", "refresh-token"));
-        given(saveMemberPort.saveNewMember(any(Member.class))).willReturn(persistedMember);
-        given(globalAuthTokenSavePort.save(any(AuthToken.class))).willReturn(persistedAuthToken);
-        given(globalFcmSaveUseCase.registerFcmToken(persistedMember, null)).willReturn(null);
-        given(globalJwtPort.generateAccessToken(any(MemberDetail.class))).willReturn("access-jwt");
-        given(globalJwtPort.generateRefreshToken(any(MemberDetail.class))).willReturn("refresh-jwt");
-        given(globalCookiePort.generateJwtCookie("access-jwt", "refresh-jwt")).willReturn(jwtCookies);
+        given(saveMemberAdapter.saveNewMember(any(Member.class))).willReturn(persistedMember);
+        given(globalAuthTokenSaveAdapter.save(any(AuthToken.class))).willReturn(persistedAuthToken);
+        given(globalJwtAdapter.generateAccessToken(any(MemberDetail.class))).willReturn("access-jwt");
+        given(globalJwtAdapter.generateRefreshToken(any(MemberDetail.class))).willReturn("refresh-jwt");
+        given(globalCookieAdapter.generateJwtCookie("access-jwt", "refresh-jwt")).willReturn(jwtCookies);
 
         List<ResponseCookie> result = signUpService.signup("tester", "uuid-123");
 
         assertThat(result).isEqualTo(jwtCookies);
-        verify(globalFcmSaveUseCase).registerFcmToken(persistedMember, null);
 
         ArgumentCaptor<MemberDetail> detailCaptor = ArgumentCaptor.forClass(MemberDetail.class);
-        verify(globalJwtPort).generateAccessToken(detailCaptor.capture());
-        verify(globalJwtPort).generateRefreshToken(detailCaptor.getValue());
+        verify(globalJwtAdapter).generateAccessToken(detailCaptor.capture());
+        verify(globalJwtAdapter).generateRefreshToken(detailCaptor.getValue());
 
         MemberDetail capturedDetail = detailCaptor.getValue();
-        assertThat(capturedDetail.getFcmTokenId()).isNull();
+        assertThat(capturedDetail.getAuthTokenId()).isEqualTo(persistedAuthToken.getId());
     }
 }

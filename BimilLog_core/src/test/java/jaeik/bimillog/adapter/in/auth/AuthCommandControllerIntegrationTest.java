@@ -8,7 +8,7 @@ import jaeik.bimillog.domain.auth.out.CustomUserDetails;
 import jaeik.bimillog.testutil.fixtures.AuthTestFixtures;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.TestMembers;
-import jaeik.bimillog.testutil.config.TestSocialLoginPortConfig;
+import jaeik.bimillog.testutil.config.TestSocialLoginAdapterConfig;
 import jaeik.bimillog.testutil.annotation.IntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @version 2.0.0
  */
 @IntegrationTest
-@Import(TestSocialLoginPortConfig.class)
+@Import(TestSocialLoginAdapterConfig.class)
 @DisplayName("인증 명령 컨트롤러 통합 테스트")
 class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
 
@@ -45,8 +45,7 @@ class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
     void socialLogin_NewUser_IntegrationTest() throws Exception {
         SocialLoginRequestDTO request = new SocialLoginRequestDTO(
                 "KAKAO",
-                "new_user_code",
-                "integration-test-fcm-TemporaryToken"
+                "new_user_code"
         );
 
         mockMvc.perform(post("/api/auth/login")
@@ -69,7 +68,7 @@ class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
         );
         saveMember(existingMember);
 
-        SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "existing-member-code", null);
+        SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "existing-member-code");
 
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)

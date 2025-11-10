@@ -1,17 +1,14 @@
 package jaeik.bimillog.testutil.config;
 
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.global.application.port.out.GlobalSocialStrategyPort;
+import jaeik.bimillog.domain.global.out.GlobalSocialStrategyAdapter;
 import jaeik.bimillog.domain.global.strategy.SocialAuthStrategy;
 import jaeik.bimillog.domain.global.strategy.SocialFriendStrategy;
 import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
-import jaeik.bimillog.domain.global.entity.MemberDetail;
 import jaeik.bimillog.domain.member.entity.KakaoFriends;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.exception.MemberCustomException;
 import jaeik.bimillog.domain.member.exception.MemberErrorCode;
-import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
-import jaeik.bimillog.testutil.TestMembers;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -23,20 +20,15 @@ import java.util.Collections;
  * <p>통합 테스트에서 외부 소셜 연동을 대체하는 전략을 제공합니다.</p>
  */
 @TestConfiguration
-public class TestSocialLoginPortConfig {
+public class TestSocialLoginAdapterConfig {
 
     private static final TestSocialFriendStrategy TEST_FRIEND_STRATEGY = new TestSocialFriendStrategy();
     private static final TestSocialPlatformStrategy TEST_PLATFORM_STRATEGY = new TestSocialPlatformStrategy(TEST_FRIEND_STRATEGY);
 
     @Bean
     @Primary
-    public GlobalSocialStrategyPort testGlobalSocialStrategyPort() {
-        return provider -> {
-            if (provider == SocialProvider.KAKAO) {
-                return TEST_PLATFORM_STRATEGY;
-            }
-            throw new IllegalArgumentException("지원하지 않는 테스트 소셜 제공자: " + provider);
-        };
+    public GlobalSocialStrategyAdapter testGlobalSocialStrategyAdapter() {
+        return new GlobalSocialStrategyAdapter(Collections.singletonList(TEST_PLATFORM_STRATEGY));
     }
 
     public static void setFriendConsentRequired(boolean required) {
@@ -78,8 +70,7 @@ public class TestSocialLoginPortConfig {
                 "Test Member",
                 "https://example.com/profile.jpg",
                 accessToken,
-                refreshToken,
-                null
+                refreshToken
             );
         }
 
@@ -132,52 +123,6 @@ public class TestSocialLoginPortConfig {
         }
     }
 
-    // BlacklistAdapter is now a concrete class, tests should use @MockitoBean to mock it directly
-
-    @Bean
-    @Primary
-    public GlobalJwtPort testGlobalJwtPort() {
-        return new GlobalJwtPort() {
-            @Override
-            public String generateAccessToken(MemberDetail userDetail) {
-                return "test-access-TemporaryToken";
-            }
-
-            @Override
-            public String generateRefreshToken(MemberDetail userDetail) {
-                return "test-refresh-TemporaryToken";
-            }
-
-            @Override
-            public boolean validateToken(String token) {
-                return true;
-            }
-
-            @Override
-            public MemberDetail getUserInfoFromToken(String jwtAccessToken) {
-                return MemberDetail.ofExisting(TestMembers.MEMBER_1, 1L, 1L);
-            }
-
-            @Override
-            public Long getTokenIdFromToken(String jwtRefreshToken) {
-                return 1L;
-            }
-
-            @Override
-            public boolean shouldRefreshToken(String token, long thresholdDays) {
-                return false;
-            }
-
-            @Override
-            public String generateTokenHash(String token) {
-                return "test-TemporaryToken-hash";
-            }
-        };
-    }
-
-    @Bean
-    @Primary
-    public GlobalCookiePort testGlobalCookiePort() {
-        return new GlobalCookieAdapter();
-    }
+    // Note: GlobalJwtAdapter, GlobalCookieAdapter, and BlacklistAdapter are now concrete classes.
+    // Tests should use @MockitoBean to mock them directly when needed.
 }

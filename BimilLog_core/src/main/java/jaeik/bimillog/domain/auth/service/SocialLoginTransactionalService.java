@@ -91,7 +91,6 @@ public class SocialLoginTransactionalService {
         String kakaoRefreshToken = socialMemberProfile.getKakaoRefreshToken();
         String nickname = socialMemberProfile.getNickname();
         String profileImageUrl = socialMemberProfile.getProfileImageUrl();
-        String fcmToken = socialMemberProfile.getFcmToken();
 
         // 1. 카카오 토큰 생성
         KakaoToken initialKakaoToken = KakaoToken.createKakaoToken(kakaoAccessToken, kakaoRefreshToken);

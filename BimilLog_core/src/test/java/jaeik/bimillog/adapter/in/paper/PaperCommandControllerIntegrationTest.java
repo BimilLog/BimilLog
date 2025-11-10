@@ -7,7 +7,7 @@ import jaeik.bimillog.domain.paper.out.MessageRepository;
 import jaeik.bimillog.testutil.*;
 import jaeik.bimillog.testutil.builder.PaperTestDataBuilder;
 import jaeik.bimillog.testutil.config.H2TestConfiguration;
-import jaeik.bimillog.testutil.config.TestSocialLoginPortConfig;
+import jaeik.bimillog.testutil.config.TestSocialLoginAdapterConfig;
 import jaeik.bimillog.testutil.fixtures.TestFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @since 2.0.0
  */
 @ActiveProfiles("h2test")
-@Import({H2TestConfiguration.class, TestSocialLoginPortConfig.class})
+@Import({H2TestConfiguration.class, TestSocialLoginAdapterConfig.class})
 @Tag("integration")
 class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
 

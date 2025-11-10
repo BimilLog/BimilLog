@@ -7,14 +7,16 @@ import jaeik.bimillog.domain.admin.exception.AdminCustomException;
 import jaeik.bimillog.domain.admin.exception.AdminErrorCode;
 import jaeik.bimillog.domain.auth.service.BlacklistService;
 import jaeik.bimillog.domain.comment.entity.Comment;
+import jaeik.bimillog.domain.global.out.GlobalCommentQueryAdapter;
+import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.exception.PostCustomException;
 import jaeik.bimillog.domain.post.exception.PostErrorCode;
-import jaeik.bimillog.domain.admin.out.AdminCommandAdapter;
-import jaeik.bimillog.domain.admin.out.AdminQueryAdapter;
+import jaeik.bimillog.domain.admin.out.AdminQueryRepository;
+import jaeik.bimillog.domain.admin.out.ReportRepository;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,19 +52,19 @@ class AdminCommandServiceTest extends BaseUnitTest {
     private ApplicationEventPublisher eventPublisher;
 
     @Mock
-    private AdminCommandAdapter adminCommandAdapter;
+    private ReportRepository reportRepository;
 
     @Mock
-    private AdminQueryAdapter adminQueryAdapter;
+    private AdminQueryRepository adminQueryRepository;
 
     @Mock
     private MemberQueryAdapter memberQueryAdapter;
 
     @Mock
-    private GlobalPostQueryPort globalPostQueryPort;
+    private GlobalPostQueryAdapter globalPostQueryAdapter;
 
     @Mock
-    private GlobalCommentQueryPort globalCommentQueryPort;
+    private GlobalCommentQueryAdapter globalCommentQueryAdapter;
 
     @Mock
     private BlacklistService blacklistService;
@@ -78,11 +80,11 @@ class AdminCommandServiceTest extends BaseUnitTest {
     void setUp() {
         adminCommandService = new AdminCommandService(
                 eventPublisher,
-                adminCommandAdapter,
-                adminQueryAdapter,
+                reportRepository,
+                adminQueryRepository,
                 memberQueryAdapter,
-                globalPostQueryPort,
-                globalCommentQueryPort,
+                globalPostQueryAdapter,
+                globalCommentQueryAdapter,
                 blacklistService
         );
     }
@@ -93,7 +95,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
         // Given
         Member memberWithId = createTestMemberWithId(200L);
         Post testPost = PostTestDataBuilder.withId(200L, PostTestDataBuilder.createPost(memberWithId, "테스트 제목", "테스트 내용"));
-        given(globalPostQueryPort.findById(200L)).willReturn(testPost);
+        given(globalPostQueryAdapter.findById(200L)).willReturn(testPost);
 
         // When
         adminCommandService.banUser(testReportType, testTargetId);
@@ -126,7 +128,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
     @DisplayName("게시글이 존재하지 않는 경우 POST_NOT_FOUND 예외 발생")
     void shouldThrowException_WhenPostNotFound() {
         // Given
-        given(globalPostQueryPort.findById(200L)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
+        given(globalPostQueryAdapter.findById(200L)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> adminCommandService.banUser(testReportType, testTargetId))
@@ -148,7 +150,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
                 .id(300L)
                 .member(memberWithId)
                 .build();
-        given(globalCommentQueryPort.findById(300L)).willReturn(testComment);
+        given(globalCommentQueryAdapter.findById(300L)).willReturn(testComment);
 
         // When
         adminCommandService.banUser(commentReportType, commentTargetId);
@@ -177,7 +179,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
                 .member(mockMember)
                 .build();
         
-        given(globalCommentQueryPort.findById(commentId)).willReturn(mockComment);
+        given(globalCommentQueryAdapter.findById(commentId)).willReturn(mockComment);
 
         // When
         adminCommandService.forceWithdrawUser(reportType, commentId);
@@ -237,14 +239,14 @@ class AdminCommandServiceTest extends BaseUnitTest {
         Report expectedReport = Report.createReport(reportType, targetId, content, reporter);
 
         given(memberQueryAdapter.findById(memberId)).willReturn(Optional.of(reporter));
-        given(adminCommandAdapter.save(any(Report.class))).willReturn(expectedReport);
+        given(reportRepository.save(any(Report.class))).willReturn(expectedReport);
 
         // When
         adminCommandService.createReport(memberId, reportType, targetId, content);
 
         // Then
         verify(memberQueryAdapter, times(1)).findById(memberId);
-        verify(adminCommandAdapter, times(1)).save(any(Report.class));
+        verify(reportRepository, times(1)).save(any(Report.class));
     }
 
     @Test
@@ -257,14 +259,14 @@ class AdminCommandServiceTest extends BaseUnitTest {
         String content = "스팸 게시글입니다";
 
         Report expectedReport = Report.createReport(reportType, targetId, content, null);
-        given(adminCommandAdapter.save(any(Report.class))).willReturn(expectedReport);
+        given(reportRepository.save(any(Report.class))).willReturn(expectedReport);
 
         // When
         adminCommandService.createReport(memberId, reportType, targetId, content);
 
         // Then
         verify(memberQueryAdapter, never()).findById(any()); // 익명 사용자는 조회하지 않음
-        verify(adminCommandAdapter, times(1)).save(any(Report.class));
+        verify(reportRepository, times(1)).save(any(Report.class));
     }
 
     @Test
@@ -281,14 +283,14 @@ class AdminCommandServiceTest extends BaseUnitTest {
         Report expectedReport = Report.createReport(reportType, targetId, content, reporter);
 
         given(memberQueryAdapter.findById(memberId)).willReturn(Optional.of(reporter));
-        given(adminCommandAdapter.save(any(Report.class))).willReturn(expectedReport);
+        given(reportRepository.save(any(Report.class))).willReturn(expectedReport);
 
         // When
         adminCommandService.createReport(memberId, reportType, targetId, content);
 
         // Then
         verify(memberQueryAdapter, times(1)).findById(memberId);
-        verify(adminCommandAdapter, times(1)).save(any(Report.class));
+        verify(reportRepository, times(1)).save(any(Report.class));
     }
 
 
@@ -308,7 +310,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
                 .doesNotThrowAnyException();
 
         verify(memberQueryAdapter, times(1)).findById(memberId);
-        verify(adminCommandAdapter, times(1)).save(any(Report.class));
+        verify(reportRepository, times(1)).save(any(Report.class));
     }
 
     @Test
@@ -318,13 +320,13 @@ class AdminCommandServiceTest extends BaseUnitTest {
         Long memberId = 10L;
         Member reporter = createTestMemberWithId(memberId);
         Report report = Report.createReport(ReportType.POST, 1L, "신고 내용", reporter);
-        given(adminQueryAdapter.findAllReportsByUserId(memberId)).willReturn(List.of(report));
+        given(adminQueryRepository.findAllReportsByUserId(memberId)).willReturn(List.of(report));
 
         // When
         adminCommandService.anonymizeReporterByUserId(memberId);
 
         // Then
-        verify(adminQueryAdapter, times(1)).findAllReportsByUserId(memberId);
+        verify(adminQueryRepository, times(1)).findAllReportsByUserId(memberId);
         assertThat(report.getReporter()).isNull();
     }
 

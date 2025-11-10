@@ -33,7 +33,7 @@ import static org.mockito.Mockito.verify;
 class MemberCommandServiceTest extends BaseUnitTest {
 
     @Mock
-    private MemberQueryAdapter memberQueryPort;
+    private MemberQueryAdapter memberQueryAdapter;
 
     @InjectMocks
     private MemberCommandService memberCommandService;
@@ -49,13 +49,13 @@ class MemberCommandServiceTest extends BaseUnitTest {
 
         Setting newSetting = createCustomSetting(false, false, true);
 
-        given(memberQueryPort.findById(memberId)).willReturn(Optional.of(member));
+        given(memberQueryAdapter.findById(memberId)).willReturn(Optional.of(member));
 
         // When
         memberCommandService.updateMemberSettings(memberId, newSetting);
 
         // Then
-        verify(memberQueryPort).findById(memberId);
+        verify(memberQueryAdapter).findById(memberId);
         
         // Setting이 업데이트되었는지 확인
         assertThat(member.getSetting().isMessageNotification()).isFalse();
@@ -70,14 +70,14 @@ class MemberCommandServiceTest extends BaseUnitTest {
         Long memberId = 999L;
         Setting newSetting = getDefaultSetting();
 
-        given(memberQueryPort.findById(memberId)).willReturn(Optional.empty());
+        given(memberQueryAdapter.findById(memberId)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> memberCommandService.updateMemberSettings(memberId, newSetting))
                 .isInstanceOf(MemberCustomException.class)
                 .hasMessage(MemberErrorCode.USER_NOT_FOUND.getMessage());
 
-        verify(memberQueryPort).findById(memberId);
+        verify(memberQueryAdapter).findById(memberId);
     }
 
     @Test
@@ -89,13 +89,13 @@ class MemberCommandServiceTest extends BaseUnitTest {
 
         Member member = createTestMemberWithId(memberId);
 
-        given(memberQueryPort.findById(memberId)).willReturn(Optional.of(member));
+        given(memberQueryAdapter.findById(memberId)).willReturn(Optional.of(member));
 
         // When
         memberCommandService.updateMemberName(memberId, newUserName);
 
         // Then
-        verify(memberQueryPort).findById(memberId);
+        verify(memberQueryAdapter).findById(memberId);
         // JPA 변경 감지를 사용하므로 명시적 savePostLike() 호출 없음
         
         assertThat(member.getMemberName()).isEqualTo(newUserName);
@@ -109,14 +109,14 @@ class MemberCommandServiceTest extends BaseUnitTest {
         String existingUserName = "existingUser";
         Member member = createTestMemberWithId(memberId);
 
-        given(memberQueryPort.findById(memberId)).willReturn(Optional.of(member));
+        given(memberQueryAdapter.findById(memberId)).willReturn(Optional.of(member));
 
         // When & Then
         // 실제 구현에서는 member.changeUserName()에서 중복 검사 후 변경
         // 단위 테스트에서는 정상 케이스만 테스트하고 중복 검사는 통합 테스트에서
         memberCommandService.updateMemberName(memberId, existingUserName);
         
-        verify(memberQueryPort).findById(memberId);
+        verify(memberQueryAdapter).findById(memberId);
         assertThat(member.getMemberName()).isEqualTo(existingUserName);
     }
 
@@ -127,14 +127,14 @@ class MemberCommandServiceTest extends BaseUnitTest {
         Long memberId = 999L;
         String newUserName = "newUserName";
 
-        given(memberQueryPort.findById(memberId)).willReturn(Optional.empty());
+        given(memberQueryAdapter.findById(memberId)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> memberCommandService.updateMemberName(memberId, newUserName))
                 .isInstanceOf(MemberCustomException.class)
                 .hasMessage(MemberErrorCode.USER_NOT_FOUND.getMessage());
 
-        verify(memberQueryPort).findById(memberId);
+        verify(memberQueryAdapter).findById(memberId);
     }
 
 
@@ -148,13 +148,13 @@ class MemberCommandServiceTest extends BaseUnitTest {
 
         Member member = createTestMemberWithId(memberId);
 
-        given(memberQueryPort.findById(memberId)).willReturn(Optional.of(member));
+        given(memberQueryAdapter.findById(memberId)).willReturn(Optional.of(member));
 
         // When
         memberCommandService.updateMemberName(memberId, validUserName);
 
         // Then
-        verify(memberQueryPort).findById(memberId);
+        verify(memberQueryAdapter).findById(memberId);
         assertThat(member.getMemberName()).isEqualTo(validUserName);
     }
 
@@ -168,13 +168,13 @@ class MemberCommandServiceTest extends BaseUnitTest {
 
         Member member = createTestMemberWithId(memberId);
 
-        given(memberQueryPort.findById(memberId)).willReturn(Optional.of(member));
+        given(memberQueryAdapter.findById(memberId)).willReturn(Optional.of(member));
 
         // When
         memberCommandService.updateMemberName(memberId, validUserName);
 
         // Then
-        verify(memberQueryPort).findById(memberId);
+        verify(memberQueryAdapter).findById(memberId);
         assertThat(member.getMemberName()).isEqualTo(validUserName);
     }
 
@@ -191,13 +191,13 @@ class MemberCommandServiceTest extends BaseUnitTest {
         // 부분적 설정만 포함된 Setting
         Setting partialSetting = createCustomSetting(true, false, false);
 
-        given(memberQueryPort.findById(memberId)).willReturn(Optional.of(member));
+        given(memberQueryAdapter.findById(memberId)).willReturn(Optional.of(member));
 
         // When
         memberCommandService.updateMemberSettings(memberId, partialSetting);
 
         // Then
-        verify(memberQueryPort).findById(memberId);
+        verify(memberQueryAdapter).findById(memberId);
         // 부분적 업데이트 동작은 JPA 변경 감지에 의존
     }
 
@@ -210,13 +210,13 @@ class MemberCommandServiceTest extends BaseUnitTest {
 
         Member member = TestMembers.copyWithId(getTestMember(), memberId);
 
-        given(memberQueryPort.findById(memberId)).willReturn(Optional.of(member));
+        given(memberQueryAdapter.findById(memberId)).willReturn(Optional.of(member));
 
         // When & Then: 정상 케이스로 단순화
         // DataIntegrityViolationException 처리는 통합 테스트에서 확인
         memberCommandService.updateMemberName(memberId, racedUserName);
         
-        verify(memberQueryPort).findById(memberId);
+        verify(memberQueryAdapter).findById(memberId);
         assertThat(member.getMemberName()).isEqualTo(racedUserName);
     }
 

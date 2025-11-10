@@ -25,7 +25,7 @@ import java.util.List;
  */
 @Repository
 @RequiredArgsConstructor
-public class AdminQueryAdapter {
+public class AdminQueryRepository {
 
     private final JPAQueryFactory queryFactory;
     private final ReportRepository reportRepository;

@@ -1,6 +1,6 @@
 package jaeik.bimillog.event.paper;
 
-import jaeik.bimillog.domain.paper.application.port.out.RedisPaperUpdatePort;
+import jaeik.bimillog.infrastructure.redis.paper.RedisPaperUpdateAdapter;
 import jaeik.bimillog.domain.paper.event.PaperViewedEvent;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
@@ -24,7 +24,7 @@ import static org.mockito.Mockito.*;
 public class PaperViewedEventIntegrationTest extends BaseEventIntegrationTest {
 
     @MockitoBean
-    private RedisPaperUpdatePort redisPaperUpdatePort;
+    private RedisPaperUpdateAdapter redisPaperUpdateAdapter;
 
     private static final double VIEW_SCORE = 2.0;
 
@@ -37,8 +37,8 @@ public class PaperViewedEventIntegrationTest extends BaseEventIntegrationTest {
 
         // When & Then
         publishAndVerify(event, () -> {
-            verify(redisPaperUpdatePort).incrementRealtimePopularPaperScore(eq(memberId), eq(VIEW_SCORE));
-            verifyNoMoreInteractions(redisPaperUpdatePort);
+            verify(redisPaperUpdateAdapter).incrementRealtimePopularPaperScore(eq(memberId), eq(VIEW_SCORE));
+            verifyNoMoreInteractions(redisPaperUpdateAdapter);
         });
     }
 
@@ -55,10 +55,10 @@ public class PaperViewedEventIntegrationTest extends BaseEventIntegrationTest {
         // When & Then
         publishEvents(events);
         verifyAsync(() -> {
-            verify(redisPaperUpdatePort).incrementRealtimePopularPaperScore(eq(1L), eq(VIEW_SCORE));
-            verify(redisPaperUpdatePort).incrementRealtimePopularPaperScore(eq(2L), eq(VIEW_SCORE));
-            verify(redisPaperUpdatePort).incrementRealtimePopularPaperScore(eq(3L), eq(VIEW_SCORE));
-            verifyNoMoreInteractions(redisPaperUpdatePort);
+            verify(redisPaperUpdateAdapter).incrementRealtimePopularPaperScore(eq(1L), eq(VIEW_SCORE));
+            verify(redisPaperUpdateAdapter).incrementRealtimePopularPaperScore(eq(2L), eq(VIEW_SCORE));
+            verify(redisPaperUpdateAdapter).incrementRealtimePopularPaperScore(eq(3L), eq(VIEW_SCORE));
+            verifyNoMoreInteractions(redisPaperUpdateAdapter);
         });
     }
 
@@ -74,8 +74,8 @@ public class PaperViewedEventIntegrationTest extends BaseEventIntegrationTest {
         // When & Then
         publishEvents(events);
         verifyAsync(() -> {
-            verify(redisPaperUpdatePort, times(3)).incrementRealtimePopularPaperScore(eq(1L), eq(VIEW_SCORE));
-            verifyNoMoreInteractions(redisPaperUpdatePort);
+            verify(redisPaperUpdateAdapter, times(3)).incrementRealtimePopularPaperScore(eq(1L), eq(VIEW_SCORE));
+            verifyNoMoreInteractions(redisPaperUpdateAdapter);
         });
     }
 
@@ -88,12 +88,12 @@ public class PaperViewedEventIntegrationTest extends BaseEventIntegrationTest {
 
         // 점수 증가 실패 시뮬레이션 - 리스너가 예외를 catch하여 로그 처리
         doThrow(new RuntimeException("Redis 점수 증가 실패"))
-                .when(redisPaperUpdatePort).incrementRealtimePopularPaperScore(memberId, VIEW_SCORE);
+                .when(redisPaperUpdateAdapter).incrementRealtimePopularPaperScore(memberId, VIEW_SCORE);
 
         // When & Then - 예외가 발생해도 시스템은 정상 작동
         publishAndVerify(event, () -> {
-            verify(redisPaperUpdatePort).incrementRealtimePopularPaperScore(eq(memberId), eq(VIEW_SCORE));
-            verifyNoMoreInteractions(redisPaperUpdatePort);
+            verify(redisPaperUpdateAdapter).incrementRealtimePopularPaperScore(eq(memberId), eq(VIEW_SCORE));
+            verifyNoMoreInteractions(redisPaperUpdateAdapter);
         });
     }
 
@@ -110,9 +110,9 @@ public class PaperViewedEventIntegrationTest extends BaseEventIntegrationTest {
         publishEvents(events);
         verifyAsync(() -> {
             for (int i = 1; i <= 10; i++) {
-                verify(redisPaperUpdatePort).incrementRealtimePopularPaperScore(eq((long) i), eq(VIEW_SCORE));
+                verify(redisPaperUpdateAdapter).incrementRealtimePopularPaperScore(eq((long) i), eq(VIEW_SCORE));
             }
-            verifyNoMoreInteractions(redisPaperUpdatePort);
+            verifyNoMoreInteractions(redisPaperUpdateAdapter);
         });
     }
 
@@ -129,9 +129,9 @@ public class PaperViewedEventIntegrationTest extends BaseEventIntegrationTest {
 
         // Then: 두 이벤트 모두 처리됨
         verifyAsync(() -> {
-            verify(redisPaperUpdatePort).incrementRealtimePopularPaperScore(eq(1L), eq(VIEW_SCORE));
-            verify(redisPaperUpdatePort).incrementRealtimePopularPaperScore(eq(2L), eq(VIEW_SCORE));
-            verifyNoMoreInteractions(redisPaperUpdatePort);
+            verify(redisPaperUpdateAdapter).incrementRealtimePopularPaperScore(eq(1L), eq(VIEW_SCORE));
+            verify(redisPaperUpdateAdapter).incrementRealtimePopularPaperScore(eq(2L), eq(VIEW_SCORE));
+            verifyNoMoreInteractions(redisPaperUpdateAdapter);
         });
     }
 }

@@ -38,7 +38,7 @@ public class SignUpRequestDTO {
     public boolean isMemberNameValidAfterTrim() {
         if (memberName == null) return false;
         String trimmed = memberName.trim();
-        return !trimmed.isEmpty() && trimmed.length() >= 1 && trimmed.length() <= 8;
+        return !trimmed.isEmpty() && trimmed.length() <= 8;
     }
 
     /**

@@ -8,7 +8,7 @@ import jaeik.bimillog.domain.post.out.PostRepository;
 import jaeik.bimillog.testutil.fixtures.AuthTestFixtures;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.TestMembers;
-import jaeik.bimillog.testutil.config.TestSocialLoginPortConfig;
+import jaeik.bimillog.testutil.config.TestSocialLoginAdapterConfig;
 import jaeik.bimillog.testutil.annotation.IntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @version 2.0.0
  */
 @IntegrationTest
-@Import(TestSocialLoginPortConfig.class)
+@Import(TestSocialLoginAdapterConfig.class)
 @DisplayName("게시글 Query 컨트롤러 통합 테스트")
 class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
 

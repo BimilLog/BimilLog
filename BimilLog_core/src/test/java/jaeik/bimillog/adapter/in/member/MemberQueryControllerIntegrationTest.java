@@ -8,7 +8,7 @@ import jaeik.bimillog.domain.auth.out.CustomUserDetails;
 import jaeik.bimillog.domain.member.out.MemberRepository;
 import jaeik.bimillog.testutil.*;
 import jaeik.bimillog.testutil.config.H2TestConfiguration;
-import jaeik.bimillog.testutil.config.TestSocialLoginPortConfig;
+import jaeik.bimillog.testutil.config.TestSocialLoginAdapterConfig;
 import jaeik.bimillog.testutil.fixtures.AuthTestFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @version 2.0.0
  */
 @ActiveProfiles("h2test")
-@Import({H2TestConfiguration.class, TestSocialLoginPortConfig.class})
+@Import({H2TestConfiguration.class, TestSocialLoginAdapterConfig.class})
 @DisplayName("사용자 조회 컨트롤러 통합 테스트")
 @Tag("integration")
 class MemberQueryControllerIntegrationTest extends BaseIntegrationTest {
@@ -125,7 +125,7 @@ class MemberQueryControllerIntegrationTest extends BaseIntegrationTest {
         AuthToken savedAuthToken = authTokenRepository.save(authToken);
         CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(savedMember, savedAuthToken.getId(), null);
 
-        TestSocialLoginPortConfig.setFriendConsentRequired(true);
+        TestSocialLoginAdapterConfig.setFriendConsentRequired(true);
         try {
             mockMvc.perform(get("/api/member/friendlist")
                             .param("offset", "0")
@@ -135,7 +135,7 @@ class MemberQueryControllerIntegrationTest extends BaseIntegrationTest {
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.message").value(MemberErrorCode.KAKAO_FRIEND_CONSENT_FAIL.getMessage()));
         } finally {
-            TestSocialLoginPortConfig.setFriendConsentRequired(false);
+            TestSocialLoginAdapterConfig.setFriendConsentRequired(false);
         }
     }
 }

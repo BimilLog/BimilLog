@@ -42,7 +42,7 @@ public class AuthCommandController {
      * <h3>소셜 로그인</h3>
      * <p>소셜 로그인 요청을 처리하고, 새로운 사용자라면 임시 UUID를 반환합니다.</p>
      *
-     * @param request 소셜 로그인 요청 DTO (provider, code, fcmToken)
+     * @param request 소셜 로그인 요청 DTO (provider, code)
      * @return 로그인 응답
      * @author Jaeik
      * @since 2.0.0
@@ -50,13 +50,12 @@ public class AuthCommandController {
     @PostMapping("/login")
     @Log(level = LogLevel.INFO,
          logExecutionTime = true,
-         excludeParams = {"code", "fcmToken"},
+         excludeParams = {"code"},
          message = "소셜 로그인 요청")
     public ResponseEntity<String> socialLogin(@Valid @RequestBody SocialLoginRequestDTO request) {
         LoginResult loginResult = socialLoginService.processSocialLogin(
                 request.getSocialProvider(),
-                request.getCode(),
-                request.getFcmToken());
+                request.getCode());
 
         return switch (loginResult) {
             case LoginResult.NewUser(var tempCookie) -> ResponseEntity.ok()

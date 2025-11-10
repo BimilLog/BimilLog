@@ -69,7 +69,6 @@ class RedisMemberDataAdapterIntegrationTest {
         assertThat(savedData.get().getSocialId()).isEqualTo("123456789");
         assertThat(savedData.get().getEmail()).isEqualTo("test@example.com");
         assertThat(savedData.get().getKakaoAccessToken()).isEqualTo("access-token");
-        assertThat(savedData.get().getFcmToken()).isNull(); // RedisTestHelper는 기본적으로 null FCM 토큰 생성
 
         // Redis에서 직접 확인
         String key = RedisTestHelper.RedisKeys.tempMemberData(testUuid);
@@ -157,27 +156,26 @@ class RedisMemberDataAdapterIntegrationTest {
 
 
     @Test
-    @DisplayName("FCM 토큰 - FCM 토큰 포함하여 저장 및 조회")
-    void shouldHandleFcmToken_WhenFcmTokenIsProvided() {
-        // Given: FCM 토큰을 포함한 프로필
-        SocialMemberProfile profileWithFcm = new SocialMemberProfile(
+    @DisplayName("FCM 토큰 제거 후 - 기본 프로필 저장 및 조회")
+    void shouldHandleProfileWithoutFcmToken() {
+        // Given: FCM 토큰이 없는 프로필
+        SocialMemberProfile profileWithoutFcm = new SocialMemberProfile(
             "123456789",
             "test@example.com",
             testMemberProfile.getProvider(),
             "testMember",
             "https://example.com/profile.jpg",
             "access-token",
-            "refresh-token",
-            "test-fcm-token-12345"
+            "refresh-token"
         );
 
-        // When: FCM 토큰과 함께 저장
-        redisTempDataAdapter.saveTempData(testUuid, profileWithFcm);
+        // When: 프로필 저장
+        redisTempDataAdapter.saveTempData(testUuid, profileWithoutFcm);
 
-        // Then: FCM 토큰이 저장됨
+        // Then: 프로필이 정상적으로 저장됨
         Optional<SocialMemberProfile> result = redisTempDataAdapter.getTempData(testUuid);
         assertThat(result).isPresent();
-        assertThat(result.get().getFcmToken()).isEqualTo("test-fcm-token-12345");
         assertThat(result.get().getNickname()).isEqualTo("testMember");
+        assertThat(result.get().getSocialId()).isEqualTo("123456789");
     }
 }

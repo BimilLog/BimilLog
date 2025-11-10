@@ -19,7 +19,6 @@ public enum AdminErrorCode {
      * <h3>신고 관련 에러 코드</h3>
      */
     INVALID_REPORT_TARGET(HttpStatus.BAD_REQUEST, "신고 대상이 유효하지 않습니다.", ErrorCode.LogLevel.WARN),
-    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "유저가 존재하지 않습니다.", ErrorCode.LogLevel.WARN),
 
     /**
      * <h3>제재 관련 에러 코드</h3>

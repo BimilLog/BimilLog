@@ -4,8 +4,10 @@ import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostSearchType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
+import jaeik.bimillog.domain.post.out.PostLikeQueryAdapter;
 import jaeik.bimillog.domain.post.out.PostQueryAdapter;
 import jaeik.bimillog.domain.post.out.PostQueryHelper;
+import jaeik.bimillog.domain.post.out.PostToCommentAdapter;
 import jaeik.bimillog.infrastructure.config.QueryDSLConfig;
 import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.config.LocalIntegrationTestSupportConfig;
@@ -61,10 +63,10 @@ class PostFulltextSearchIntegrationTest {
     private TestEntityManager entityManager;
 
     @MockitoBean
-    private PostToCommentPort postToCommentPort;
+    private PostToCommentAdapter postToCommentAdapter;
 
     @MockitoBean
-    private PostLikeQueryPort postLikeQueryPort;
+    private PostLikeQueryAdapter postLikeQueryAdapter;
 
     private Member testMember;
     private Post koreanPost1, koreanPost2, koreanPost3, noticePost, englishPost;
@@ -100,9 +102,9 @@ class PostFulltextSearchIntegrationTest {
         likeCounts.put(noticePost.getId(), 8);
         likeCounts.put(englishPost.getId(), 2);
 
-        given(postToCommentPort.findCommentCountsByPostIds(any(List.class)))
+        given(postToCommentAdapter.findCommentCountsByPostIds(any(List.class)))
                 .willReturn(commentCounts);
-        given(postLikeQueryPort.findLikeCountsByPostIds(any(List.class)))
+        given(postLikeQueryAdapter.findLikeCountsByPostIds(any(List.class)))
                 .willReturn(likeCounts);
     }
 

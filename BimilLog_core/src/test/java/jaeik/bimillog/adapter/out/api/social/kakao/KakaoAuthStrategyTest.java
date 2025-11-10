@@ -89,7 +89,6 @@ class KakaoAuthStrategyTest extends BaseUnitTest {
         assertThat(result.getProfileImageUrl()).isEqualTo("https://example.com/profile.jpg");
         assertThat(result.getKakaoAccessToken()).isEqualTo(TEST_ACCESS_TOKEN);
         assertThat(result.getKakaoRefreshToken()).isEqualTo(TEST_REFRESH_TOKEN);
-        assertThat(result.getFcmToken()).isNull();
 
         verify(kakaoAuthClient).getToken(anyString(), argThat(params -> {
             Map<String, String> expectedParams = (Map<String, String>) params;

@@ -45,13 +45,13 @@ public class RedisMemberDataAdapter {
      * <p>비즈니스 규칙:</p>
      * <ul>
      *   <li>UUID는 필수 (null, 빈 문자열 불허)</li>
-     *   <li>userProfile는 필수 (null 불허, OAuth 토큰 및 FCM 토큰 포함)</li>
+     *   <li>userProfile는 필수 (null 불허, OAuth 토큰 포함)</li>
      *   <li>동일 UUID 재저장 시 덮어쓰기</li>
      *   <li>Redis TTL로 자동 만료 (5분)</li>
      * </ul>
      *
      * @param uuid 임시 사용자 식별 UUID 키
-     * @param userProfile 소셜 사용자 프로필 (OAuth 액세스/리프레시 토큰, FCM 토큰 포함)
+     * @param userProfile 소셜 사용자 프로필 (OAuth 액세스/리프레시 토큰 포함)
      * @throws CustomException UUID, userProfile이 유효하지 않은 경우
      * @author Jaeik
      * @since 2.0.0
@@ -286,7 +286,6 @@ public class RedisMemberDataAdapter {
             String profileImageUrl = (String) map.get("profileImageUrl");
             String kakaoAccessToken = (String) map.get("kakaoAccessToken");
             String kakaoRefreshToken = (String) map.get("kakaoRefreshToken");
-            String fcmToken = (String) map.get("fcmToken");
 
             return new SocialMemberProfile(
                     socialId,
@@ -295,8 +294,7 @@ public class RedisMemberDataAdapter {
                     nickname,
                     profileImageUrl,
                     kakaoAccessToken,
-                    kakaoRefreshToken,
-                    fcmToken
+                    kakaoRefreshToken
             );
         } catch (Exception e) {
             log.error("LinkedHashMap -> SocialMemberProfile 변환 실패: {}", e.getMessage(), e);

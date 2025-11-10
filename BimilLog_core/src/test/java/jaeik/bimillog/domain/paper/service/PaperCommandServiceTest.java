@@ -1,11 +1,14 @@
 package jaeik.bimillog.domain.paper.service;
 
+import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.paper.exception.PaperCustomException;
 import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
+import jaeik.bimillog.domain.paper.out.PaperCommandAdapter;
+import jaeik.bimillog.domain.paper.out.PaperQueryAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -33,13 +36,13 @@ import static org.mockito.Mockito.*;
 class PaperCommandServiceTest extends BaseUnitTest {
 
     @Mock
-    private PaperCommandPort paperCommandPort;
+    private PaperCommandAdapter paperCommandAdapter;
 
     @Mock
-    private PaperQueryPort paperQueryPort;
+    private PaperQueryAdapter paperQueryAdapter;
 
     @Mock
-    private GlobalMemberQueryPort globalMemberQueryPort;
+    private GlobalMemberQueryAdapter globalMemberQueryAdapter;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -54,15 +57,15 @@ class PaperCommandServiceTest extends BaseUnitTest {
         Long memberId = 1L;
         Long messageId = 123L;
 
-        given(paperQueryPort.findOwnerIdByMessageId(messageId)).willReturn(Optional.of(memberId));
+        given(paperQueryAdapter.findOwnerIdByMessageId(messageId)).willReturn(Optional.of(memberId));
 
         // When
         paperCommandService.deleteMessageInMyPaper(memberId, messageId);
 
         // Then
-        verify(paperQueryPort, times(1)).findOwnerIdByMessageId(messageId);
-        verify(paperCommandPort, times(1)).deleteMessage(memberId, messageId);
-        verifyNoMoreInteractions(paperQueryPort, paperCommandPort);
+        verify(paperQueryAdapter, times(1)).findOwnerIdByMessageId(messageId);
+        verify(paperCommandAdapter, times(1)).deleteMessage(memberId, messageId);
+        verifyNoMoreInteractions(paperQueryAdapter, paperCommandAdapter);
     }
 
     @Test
@@ -72,15 +75,15 @@ class PaperCommandServiceTest extends BaseUnitTest {
         Long memberId = 999L;
         Long messageId = 999L;
 
-        given(paperQueryPort.findOwnerIdByMessageId(messageId)).willReturn(Optional.empty());
+        given(paperQueryAdapter.findOwnerIdByMessageId(messageId)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(memberId, messageId))
                 .isInstanceOf(PaperCustomException.class)
                 .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.MESSAGE_NOT_FOUND);
 
-        verify(paperQueryPort, times(1)).findOwnerIdByMessageId(messageId);
-        verify(paperCommandPort, never()).deleteMessage(any(), any());
+        verify(paperQueryAdapter, times(1)).findOwnerIdByMessageId(messageId);
+        verify(paperCommandAdapter, never()).deleteMessage(any(), any());
     }
 
     @Test
@@ -91,15 +94,15 @@ class PaperCommandServiceTest extends BaseUnitTest {
         Long ownerId = 2L; // 다른 사용자
         Long messageId = 123L;
 
-        given(paperQueryPort.findOwnerIdByMessageId(messageId)).willReturn(Optional.of(ownerId));
+        given(paperQueryAdapter.findOwnerIdByMessageId(messageId)).willReturn(Optional.of(ownerId));
 
         // When & Then
         assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(memberId, messageId))
                 .isInstanceOf(PaperCustomException.class)
                 .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.MESSAGE_DELETE_FORBIDDEN);
 
-        verify(paperQueryPort, times(1)).findOwnerIdByMessageId(messageId);
-        verify(paperCommandPort, never()).deleteMessage(any(), any());
+        verify(paperQueryAdapter, times(1)).findOwnerIdByMessageId(messageId);
+        verify(paperCommandAdapter, never()).deleteMessage(any(), any());
     }
 
     @Test
@@ -115,16 +118,16 @@ class PaperCommandServiceTest extends BaseUnitTest {
         int x = 2;
         int y = 2;
 
-        given(globalMemberQueryPort.findByMemberName(memberName)).willReturn(Optional.of(memberWithId));
+        given(globalMemberQueryAdapter.findByMemberName(memberName)).willReturn(Optional.of(memberWithId));
 
         // When
         paperCommandService.writeMessage(memberName, decoType, anonymity, content, x, y);
 
         // Then
-        verify(globalMemberQueryPort, times(1)).findByMemberName(memberName);
-        verify(paperCommandPort, times(1)).save(any(Message.class));
+        verify(globalMemberQueryAdapter, times(1)).findByMemberName(memberName);
+        verify(paperCommandAdapter, times(1)).save(any(Message.class));
         verify(eventPublisher, times(1)).publishEvent(any(RollingPaperEvent.class));
-        verifyNoMoreInteractions(globalMemberQueryPort, paperCommandPort, eventPublisher);
+        verifyNoMoreInteractions(globalMemberQueryAdapter, paperCommandAdapter, eventPublisher);
     }
 
     @Test
@@ -138,15 +141,15 @@ class PaperCommandServiceTest extends BaseUnitTest {
         int x = 2;
         int y = 2;
 
-        given(globalMemberQueryPort.findByMemberName(memberName)).willReturn(Optional.empty());
+        given(globalMemberQueryAdapter.findByMemberName(memberName)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> paperCommandService.writeMessage(memberName, decoType, anonymity, content, x, y))
                 .isInstanceOf(PaperCustomException.class)
                 .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.USERNAME_NOT_FOUND);
 
-        verify(globalMemberQueryPort, times(1)).findByMemberName(memberName);
-        verify(paperCommandPort, never()).save(any());
+        verify(globalMemberQueryAdapter, times(1)).findByMemberName(memberName);
+        verify(paperCommandAdapter, never()).save(any());
         verify(eventPublisher, never()).publishEvent(any());
     }
 
@@ -174,8 +177,8 @@ class PaperCommandServiceTest extends BaseUnitTest {
                 .isInstanceOf(PaperCustomException.class)
                 .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.INVALID_INPUT_VALUE);
 
-        verify(globalMemberQueryPort, never()).findByMemberName(any());
-        verify(paperCommandPort, never()).save(any());
+        verify(globalMemberQueryAdapter, never()).findByMemberName(any());
+        verify(paperCommandAdapter, never()).save(any());
         verify(eventPublisher, never()).publishEvent(any());
     }
 
@@ -192,7 +195,7 @@ class PaperCommandServiceTest extends BaseUnitTest {
         int x = 2;
         int y = 2;
 
-        given(globalMemberQueryPort.findByMemberName(memberName)).willReturn(Optional.of(memberWithId));
+        given(globalMemberQueryAdapter.findByMemberName(memberName)).willReturn(Optional.of(memberWithId));
 
         // When
         paperCommandService.writeMessage(memberName, decoType, anonymity, content, x, y);
