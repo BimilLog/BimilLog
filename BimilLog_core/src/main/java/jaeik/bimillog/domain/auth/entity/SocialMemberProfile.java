@@ -29,7 +29,6 @@ public class SocialMemberProfile {
     String profileImageUrl;
     String kakaoAccessToken;
     String kakaoRefreshToken;
-    String fcmToken;
 
     /**
      * <h3>소셜 회원 프로필 생성</h3>
@@ -43,12 +42,11 @@ public class SocialMemberProfile {
      * @param profileImageUrl 소셜 플랫폼 프로필 이미지 URL
      * @param kakaoAccessToken 카카오 액세스 토큰
      * @param kakaoRefreshToken 카카오 리프레시 토큰
-     * @param fcmToken FCM 푸시 알림 토큰
      * @return 생성된 소셜 회원 프로필 객체
      * @author Jaeik
      * @since 2.0.0
      */
-    public static SocialMemberProfile of(String socialId, String email, SocialProvider provider, String nickname, String profileImageUrl, String kakaoAccessToken, String kakaoRefreshToken, String fcmToken) {
-        return new SocialMemberProfile(socialId, email, provider, nickname, profileImageUrl, kakaoAccessToken, kakaoRefreshToken, fcmToken);
+    public static SocialMemberProfile of(String socialId, String email, SocialProvider provider, String nickname, String profileImageUrl, String kakaoAccessToken, String kakaoRefreshToken) {
+        return new SocialMemberProfile(socialId, email, provider, nickname, profileImageUrl, kakaoAccessToken, kakaoRefreshToken);
     }
 }

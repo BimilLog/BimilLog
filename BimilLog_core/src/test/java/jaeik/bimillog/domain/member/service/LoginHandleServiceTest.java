@@ -63,8 +63,7 @@ class LoginHandleServiceTest extends BaseUnitTest {
                 "testNickname",
                 "profile.jpg",
                 "access-token",
-                "refresh-token",
-                "fcm-token"
+                "refresh-token"
         );
         String uuid = "uuid-123";
 

@@ -3,6 +3,7 @@ package jaeik.bimillog.adapter.out.post;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.out.PostLikeRepository;
+import jaeik.bimillog.domain.post.out.PostQueryAdapter;
 import jaeik.bimillog.domain.post.out.PostRepository;
 import jaeik.bimillog.testutil.RedisTestHelper;
 import jaeik.bimillog.testutil.fixtures.TestFixtures;
@@ -43,7 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 class PopularPostQueryAdapterIntegrationTest {
 
     @Autowired
-    private PostQueryPort postQueryPort;
+    private PostQueryAdapter postQueryAdapter;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -140,7 +141,7 @@ class PopularPostQueryAdapterIntegrationTest {
         entityManager.clear();
 
         // When
-        List<PostSimpleDetail> popularPosts = postQueryPort.findWeeklyPopularPosts();
+        List<PostSimpleDetail> popularPosts = postQueryAdapter.findWeeklyPopularPosts();
 
         // Then
         assertThat(popularPosts).hasSize(2);
@@ -168,7 +169,7 @@ class PopularPostQueryAdapterIntegrationTest {
         entityManager.clear();
 
         // When
-        List<PostSimpleDetail> legendaryPosts = postQueryPort.findLegendaryPosts();
+        List<PostSimpleDetail> legendaryPosts = postQueryAdapter.findLegendaryPosts();
 
         // Then
         assertThat(legendaryPosts).hasSize(2);
@@ -191,7 +192,7 @@ class PopularPostQueryAdapterIntegrationTest {
         entityManager.clear();
 
         // When
-        PostDetail postDetail = postQueryPort.findPostDetailWithCounts(post.getId(), null).orElse(null);
+        PostDetail postDetail = postQueryAdapter.findPostDetailWithCounts(post.getId(), null).orElse(null);
 
         // Then
         assertThat(postDetail).isNotNull();
@@ -208,7 +209,7 @@ class PopularPostQueryAdapterIntegrationTest {
         Long nonExistentPostId = 999L;
 
         // When
-        PostDetail postDetail = postQueryPort.findPostDetailWithCounts(nonExistentPostId, null).orElse(null);
+        PostDetail postDetail = postQueryAdapter.findPostDetailWithCounts(nonExistentPostId, null).orElse(null);
 
         // Then
         assertNull(postDetail);

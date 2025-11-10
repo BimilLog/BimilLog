@@ -13,7 +13,7 @@ import jaeik.bimillog.testutil.*;
 import jaeik.bimillog.testutil.builder.CommentTestDataBuilder;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import jaeik.bimillog.testutil.config.H2TestConfiguration;
-import jaeik.bimillog.testutil.config.TestSocialLoginPortConfig;
+import jaeik.bimillog.testutil.config.TestSocialLoginAdapterConfig;
 import jaeik.bimillog.testutil.fixtures.AuthTestFixtures;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -44,7 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @version 2.0.0
  */
 @ActiveProfiles("h2test")
-@Import({H2TestConfiguration.class, TestSocialLoginPortConfig.class})
+@Import({H2TestConfiguration.class, TestSocialLoginAdapterConfig.class})
 @DisplayName("댓글 Command 컨트롤러 통합 테스트 (H2)")
 @Tag("integration")
 class CommentCommandControllerIntegrationTest extends BaseIntegrationTest {

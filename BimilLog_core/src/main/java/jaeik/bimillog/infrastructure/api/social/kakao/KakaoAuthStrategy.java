@@ -80,8 +80,7 @@ public class KakaoAuthStrategy implements SocialAuthStrategy {
                     nickname,
                     profileImageUrl,
                     accessToken,
-                    refreshToken,
-                    null
+                    refreshToken
             );
         } catch (Exception e) {
             throw new RuntimeException("Kakao token request failed: " + e.getMessage(), e);

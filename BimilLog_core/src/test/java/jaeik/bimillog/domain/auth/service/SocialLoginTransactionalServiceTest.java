@@ -182,8 +182,7 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
                 AuthTestFixtures.TEST_SOCIAL_NICKNAME,
                 AuthTestFixtures.TEST_PROFILE_IMAGE,
                 AuthTestFixtures.TEST_ACCESS_TOKEN,
-                AuthTestFixtures.TEST_REFRESH_TOKEN,
-                TEST_FCM_TOKEN
+                AuthTestFixtures.TEST_REFRESH_TOKEN
         );
     }
 }

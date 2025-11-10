@@ -46,5 +46,9 @@ public interface SocialAuthStrategy {
      */
     void logout(String accessToken) throws Exception;
 
+    /**
+     * 강제 로그아웃
+     * @param socialId 소셜 플랫폼 사용자 식별자
+     */
     void forceLogout(String socialId);
 }

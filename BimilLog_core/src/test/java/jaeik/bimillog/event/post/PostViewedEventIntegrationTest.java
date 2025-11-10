@@ -1,6 +1,7 @@
 package jaeik.bimillog.event.post;
 
-import jaeik.bimillog.domain.post.application.port.out.RedisPostUpdatePort;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
+import jaeik.bimillog.domain.post.service.PostInteractionService;
 import jaeik.bimillog.domain.post.event.PostViewedEvent;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
@@ -24,10 +25,10 @@ import static org.mockito.Mockito.*;
 public class PostViewedEventIntegrationTest extends BaseEventIntegrationTest {
 
     @MockitoBean
-    private PostInteractionUseCase postInteractionUseCase;
+    private PostInteractionService postInteractionService;
 
     @MockitoBean
-    private RedisPostUpdatePort redisPostUpdatePort;
+    private RedisPostUpdateAdapter redisPostUpdateAdapter;
 
     private static final double VIEW_SCORE = 2.0;
 
@@ -39,9 +40,9 @@ public class PostViewedEventIntegrationTest extends BaseEventIntegrationTest {
 
         // When & Then
         publishAndVerify(event, () -> {
-            verify(postInteractionUseCase).incrementViewCount(eq(1L));
-            verify(redisPostUpdatePort).incrementRealtimePopularScore(eq(1L), eq(VIEW_SCORE));
-            verifyNoMoreInteractions(postInteractionUseCase);
+            verify(postInteractionService).incrementViewCount(eq(1L));
+            verify(redisPostUpdateAdapter).incrementRealtimePopularScore(eq(1L), eq(VIEW_SCORE));
+            verifyNoMoreInteractions(postInteractionService);
         });
     }
 
@@ -58,13 +59,13 @@ public class PostViewedEventIntegrationTest extends BaseEventIntegrationTest {
         // When & Then
         publishEvents(events);
         verifyAsync(() -> {
-            verify(postInteractionUseCase).incrementViewCount(eq(1L));
-            verify(postInteractionUseCase).incrementViewCount(eq(2L));
-            verify(postInteractionUseCase).incrementViewCount(eq(3L));
-            verify(redisPostUpdatePort).incrementRealtimePopularScore(eq(1L), eq(VIEW_SCORE));
-            verify(redisPostUpdatePort).incrementRealtimePopularScore(eq(2L), eq(VIEW_SCORE));
-            verify(redisPostUpdatePort).incrementRealtimePopularScore(eq(3L), eq(VIEW_SCORE));
-            verifyNoMoreInteractions(postInteractionUseCase);
+            verify(postInteractionService).incrementViewCount(eq(1L));
+            verify(postInteractionService).incrementViewCount(eq(2L));
+            verify(postInteractionService).incrementViewCount(eq(3L));
+            verify(redisPostUpdateAdapter).incrementRealtimePopularScore(eq(1L), eq(VIEW_SCORE));
+            verify(redisPostUpdateAdapter).incrementRealtimePopularScore(eq(2L), eq(VIEW_SCORE));
+            verify(redisPostUpdateAdapter).incrementRealtimePopularScore(eq(3L), eq(VIEW_SCORE));
+            verifyNoMoreInteractions(postInteractionService);
         });
     }
 
@@ -80,9 +81,9 @@ public class PostViewedEventIntegrationTest extends BaseEventIntegrationTest {
         // When & Then
         publishEvents(events);
         verifyAsync(() -> {
-            verify(postInteractionUseCase, times(3)).incrementViewCount(eq(1L));
-            verify(redisPostUpdatePort, times(3)).incrementRealtimePopularScore(eq(1L), eq(VIEW_SCORE));
-            verifyNoMoreInteractions(postInteractionUseCase);
+            verify(postInteractionService, times(3)).incrementViewCount(eq(1L));
+            verify(redisPostUpdateAdapter, times(3)).incrementRealtimePopularScore(eq(1L), eq(VIEW_SCORE));
+            verifyNoMoreInteractions(postInteractionService);
         });
     }
 
@@ -94,13 +95,13 @@ public class PostViewedEventIntegrationTest extends BaseEventIntegrationTest {
 
         // 조회수 증가 실패 시뮬레이션 - 리스너가 예외를 catch하여 로그 처리
         doThrow(new RuntimeException("조회수 증가 실패"))
-                .when(postInteractionUseCase).incrementViewCount(1L);
+                .when(postInteractionService).incrementViewCount(1L);
 
         // When & Then - 예외가 발생해도 시스템은 정상 작동
         publishAndVerify(event, () -> {
-            verify(postInteractionUseCase).incrementViewCount(eq(1L));
-            verify(redisPostUpdatePort).incrementRealtimePopularScore(eq(1L), eq(VIEW_SCORE));
-            verifyNoMoreInteractions(postInteractionUseCase);
+            verify(postInteractionService).incrementViewCount(eq(1L));
+            verify(redisPostUpdateAdapter).incrementRealtimePopularScore(eq(1L), eq(VIEW_SCORE));
+            verifyNoMoreInteractions(postInteractionService);
         });
     }
 

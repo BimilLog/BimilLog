@@ -41,33 +41,7 @@ class SocialLoginRequestDTOTest {
         @DisplayName("모든 필드가 유효한 경우 - 검증 통과")
         void shouldPass_WhenAllFieldsValid() {
             // Given
-            SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "valid-code", "fcm-TemporaryToken-123");
-
-            // When
-            Set<ConstraintViolation<SocialLoginRequestDTO>> violations = validator.validate(request);
-
-            // Then
-            assertThat(violations).isEmpty();
-        }
-
-        @Test
-        @DisplayName("FCM 토큰이 null인 경우 - 검증 통과")
-        void shouldPass_WhenFcmTokenIsNull() {
-            // Given
-            SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "valid-code", null);
-
-            // When
-            Set<ConstraintViolation<SocialLoginRequestDTO>> violations = validator.validate(request);
-
-            // Then
-            assertThat(violations).isEmpty();
-        }
-
-        @Test
-        @DisplayName("FCM 토큰이 빈 문자열인 경우 - 검증 통과")
-        void shouldPass_WhenFcmTokenIsEmpty() {
-            // Given
-            SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "valid-code", "");
+            SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "valid-code");
 
             // When
             Set<ConstraintViolation<SocialLoginRequestDTO>> violations = validator.validate(request);
@@ -85,7 +59,7 @@ class SocialLoginRequestDTOTest {
         @DisplayName("provider가 null인 경우 - @NotBlank 검증 실패")
         void shouldFail_WhenProviderIsNull() {
             // Given
-            SocialLoginRequestDTO request = new SocialLoginRequestDTO(null, "valid-code", "fcm-TemporaryToken");
+            SocialLoginRequestDTO request = new SocialLoginRequestDTO(null, "valid-code");
 
             // When
             Set<ConstraintViolation<SocialLoginRequestDTO>> violations = validator.validate(request);
@@ -101,7 +75,7 @@ class SocialLoginRequestDTOTest {
         @DisplayName("provider가 빈 문자열인 경우 - @NotBlank 검증 실패")
         void shouldFail_WhenProviderIsEmpty() {
             // Given
-            SocialLoginRequestDTO request = new SocialLoginRequestDTO("", "valid-code", "fcm-TemporaryToken");
+            SocialLoginRequestDTO request = new SocialLoginRequestDTO("", "valid-code");
 
             // When
             Set<ConstraintViolation<SocialLoginRequestDTO>> violations = validator.validate(request);
@@ -117,7 +91,7 @@ class SocialLoginRequestDTOTest {
         @DisplayName("유효하지 않은 provider인 경우 - @AssertTrue 검증 실패")
         void shouldFail_WhenProviderIsInvalid() {
             // Given
-            SocialLoginRequestDTO request = new SocialLoginRequestDTO("INVALID_PROVIDER", "valid-code", "fcm-TemporaryToken");
+            SocialLoginRequestDTO request = new SocialLoginRequestDTO("INVALID_PROVIDER", "valid-code");
 
             // When
             Set<ConstraintViolation<SocialLoginRequestDTO>> violations = validator.validate(request);
@@ -133,9 +107,9 @@ class SocialLoginRequestDTOTest {
         @DisplayName("provider 대소문자 무관하게 검증 - KAKAO")
         void shouldPass_WhenProviderIsCaseInsensitive_KAKAO() {
             // Given
-            SocialLoginRequestDTO request1 = new SocialLoginRequestDTO("kakao", "valid-code", "fcm-TemporaryToken");
-            SocialLoginRequestDTO request2 = new SocialLoginRequestDTO("Kakao", "valid-code", "fcm-TemporaryToken");
-            SocialLoginRequestDTO request3 = new SocialLoginRequestDTO("KAKAO", "valid-code", "fcm-TemporaryToken");
+            SocialLoginRequestDTO request1 = new SocialLoginRequestDTO("kakao", "valid-code");
+            SocialLoginRequestDTO request2 = new SocialLoginRequestDTO("Kakao", "valid-code");
+            SocialLoginRequestDTO request3 = new SocialLoginRequestDTO("KAKAO", "valid-code");
 
             // When
             Set<ConstraintViolation<SocialLoginRequestDTO>> violations1 = validator.validate(request1);
@@ -157,7 +131,7 @@ class SocialLoginRequestDTOTest {
         @DisplayName("code가 null인 경우 - @NotBlank 검증 실패")
         void shouldFail_WhenCodeIsNull() {
             // Given
-            SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", null, "fcm-TemporaryToken");
+            SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", null);
 
             // When
             Set<ConstraintViolation<SocialLoginRequestDTO>> violations = validator.validate(request);
@@ -173,7 +147,7 @@ class SocialLoginRequestDTOTest {
         @DisplayName("code가 빈 문자열인 경우 - @NotBlank 검증 실패")
         void shouldFail_WhenCodeIsEmpty() {
             // Given
-            SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "", "fcm-TemporaryToken");
+            SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "");
 
             // When
             Set<ConstraintViolation<SocialLoginRequestDTO>> violations = validator.validate(request);
@@ -189,7 +163,7 @@ class SocialLoginRequestDTOTest {
         @DisplayName("code가 공백으로만 구성된 경우 - @NotBlank 검증 실패")
         void shouldFail_WhenCodeIsBlank() {
             // Given
-            SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "   ", "fcm-TemporaryToken");
+            SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "   ");
 
             // When
             Set<ConstraintViolation<SocialLoginRequestDTO>> violations = validator.validate(request);
@@ -203,53 +177,6 @@ class SocialLoginRequestDTOTest {
     }
 
     @Nested
-    @DisplayName("FCM 토큰 검증 테스트")
-    class FcmAuthTokenValidationTests {
-
-        @Test
-        @DisplayName("유효한 FCM 토큰 형식 - 검증 통과")
-        void shouldPass_WhenFcmTokenIsValidFormat() {
-            // Given
-            String validFcmToken = "eKpF_Sz6RkuAia7gFMsq8Q:APA91bGHrB9UdPEqFkdBxJ8w7bGXxkgH_UzZ5pMCMvQt9YhJqVb2";
-            SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "valid-code", validFcmToken);
-
-            // When
-            Set<ConstraintViolation<SocialLoginRequestDTO>> violations = validator.validate(request);
-
-            // Then
-            assertThat(violations).isEmpty();
-        }
-
-        @Test
-        @DisplayName("FCM 토큰에 허용되지 않은 문자가 포함된 경우 - 검증 통과")
-        void shouldPass_WhenFcmTokenContainsInvalidCharacters() {
-            // Given
-            String invalidFcmToken = "invalid@TemporaryToken#with$special%chars";
-            SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "valid-code", invalidFcmToken);
-
-            // When
-            Set<ConstraintViolation<SocialLoginRequestDTO>> violations = validator.validate(request);
-
-            // Then
-            assertThat(violations).isEmpty(); // 현재 DTO에서는 형식 검증을 수행하지 않음
-        }
-
-        @Test
-        @DisplayName("FCM 토큰이 너무 짧은 경우 - 검증 통과")
-        void shouldPass_WhenFcmTokenIsTooShort() {
-            // Given
-            String shortFcmToken = "short";
-            SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "valid-code", shortFcmToken);
-
-            // When
-            Set<ConstraintViolation<SocialLoginRequestDTO>> violations = validator.validate(request);
-
-            // Then
-            assertThat(violations).isEmpty(); // 현재 DTO에서는 길이 검증을 수행하지 않음
-        }
-    }
-
-    @Nested
     @DisplayName("getSocialProvider() 메서드 테스트")
     class GetSocialProviderTests {
 
@@ -257,7 +184,7 @@ class SocialLoginRequestDTOTest {
         @DisplayName("유효한 provider로 SocialProvider 열거형 반환 - KAKAO")
         void shouldReturnSocialProvider_WhenProviderIsKAKAO() {
             // Given
-            SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "valid-code", "fcm-TemporaryToken");
+            SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "valid-code");
 
             // When
             SocialProvider result = request.getSocialProvider();
@@ -270,7 +197,7 @@ class SocialLoginRequestDTOTest {
         @DisplayName("대소문자 구분 없이 SocialProvider 반환 - kakao")
         void shouldReturnSocialProvider_WhenProviderIsLowerCase() {
             // Given
-            SocialLoginRequestDTO request = new SocialLoginRequestDTO("kakao", "valid-code", "fcm-TemporaryToken");
+            SocialLoginRequestDTO request = new SocialLoginRequestDTO("kakao", "valid-code");
 
             // When
             SocialProvider result = request.getSocialProvider();
@@ -283,7 +210,7 @@ class SocialLoginRequestDTOTest {
         @DisplayName("유효하지 않은 provider로 호출 시 IllegalArgumentException 발생")
         void shouldThrowException_WhenProviderIsInvalid() {
             // Given
-            SocialLoginRequestDTO request = new SocialLoginRequestDTO("INVALID_PROVIDER", "valid-code", "fcm-TemporaryToken");
+            SocialLoginRequestDTO request = new SocialLoginRequestDTO("INVALID_PROVIDER", "valid-code");
 
             // When & Then
             assertThatThrownBy(request::getSocialProvider)
@@ -294,7 +221,7 @@ class SocialLoginRequestDTOTest {
         @DisplayName("null provider로 호출 시 NullPointerException 발생")
         void shouldThrowException_WhenProviderIsNull() {
             // Given
-            SocialLoginRequestDTO request = new SocialLoginRequestDTO(null, "valid-code", "fcm-TemporaryToken");
+            SocialLoginRequestDTO request = new SocialLoginRequestDTO(null, "valid-code");
 
             // When & Then
             assertThatThrownBy(request::getSocialProvider)

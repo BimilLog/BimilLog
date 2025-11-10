@@ -67,8 +67,7 @@ class MemberSignupServiceTest extends BaseUnitTest {
                 "signupNickname",
                 "profile.jpg",
                 "access-token",
-                "refresh-token",
-                "fcm-token"
+                "refresh-token"
         );
 
         persistedMember = TestMembers.createMember("kakao123", "tester", "signupNickname");
@@ -144,10 +143,9 @@ class MemberSignupServiceTest extends BaseUnitTest {
     }
 
     @Test
-    @DisplayName("FCM 토큰이 포함되어도 회원 가입은 정상 진행된다 (FCM 등록은 별도 처리)")
-    void shouldSignupWithFcmTokenInProfile() {
-        // FCM 토큰이 프로필에 포함되어 있어도, 회원가입 시점에는 FCM 등록을 하지 않음
-        // FCM 등록은 별도 API를 통해 처리됨
+    @DisplayName("회원 가입 시 JWT 토큰과 쿠키가 정상적으로 생성된다")
+    void shouldGenerateJwtTokensAndCookiesOnSignup() {
+        // 회원가입 시점에 JWT 토큰과 쿠키가 생성되는지 검증
         given(redisMemberDataAdapter.getTempData("uuid-123")).willReturn(Optional.of(socialProfile));
         given(globalKakaoTokenCommandAdapter.save(any(KakaoToken.class)))
                 .willReturn(KakaoToken.createKakaoToken("access-token", "refresh-token"));

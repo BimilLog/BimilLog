@@ -6,13 +6,13 @@ interface BatchUpdateRequest {
 }
 
 export const notificationCommand = {
-  // ?�괄 ?�데?�트 (?�음/??�� ?�번??처리)
+  // 일괄 업데이트 (읽음/삭제를 한번에 처리)
   batchUpdate: (updates: BatchUpdateRequest) => {
     return apiClient.post("/api/notification/update", updates);
   },
 
   registerFcmToken: (fcmToken: string) => {
-    const params = new URLSearchParams({ fcmToken });
-    return apiClient.post(`/api/notification/fcm?${params.toString()}`);
+    const requestBody = { fcmToken };
+    return apiClient.post('/api/notification/fcm', requestBody);
   },
 }

@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.member.entity.MemberRole;
 import jaeik.bimillog.domain.auth.out.CustomUserDetails;
 import jaeik.bimillog.testutil.*;
 import jaeik.bimillog.testutil.config.H2TestConfiguration;
-import jaeik.bimillog.testutil.config.TestSocialLoginPortConfig;
+import jaeik.bimillog.testutil.config.TestSocialLoginAdapterConfig;
 import jaeik.bimillog.testutil.fixtures.AuthTestFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -27,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @version 2.0.0
  */
 @ActiveProfiles("h2test")
-@Import({H2TestConfiguration.class, TestSocialLoginPortConfig.class})
+@Import({H2TestConfiguration.class, TestSocialLoginAdapterConfig.class})
 @DisplayName("인증 조회 컨트롤러 통합 테스트")
 @Tag("integration")
 class AuthQueryControllerIntegrationTest extends BaseIntegrationTest {

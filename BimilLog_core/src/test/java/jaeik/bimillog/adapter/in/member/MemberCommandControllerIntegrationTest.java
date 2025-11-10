@@ -12,7 +12,7 @@ import jaeik.bimillog.domain.member.out.MemberRepository;
 import jaeik.bimillog.testutil.fixtures.AuthTestFixtures;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.TestMembers;
-import jaeik.bimillog.testutil.config.TestSocialLoginPortConfig;
+import jaeik.bimillog.testutil.config.TestSocialLoginAdapterConfig;
 import jaeik.bimillog.testutil.annotation.IntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -39,7 +39,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * @version 2.0.0
  */
 @IntegrationTest
-@Import(TestSocialLoginPortConfig.class)
+@Import(TestSocialLoginAdapterConfig.class)
 @DisplayName("사용자 명령 컨트롤러 통합 테스트")
 class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
 
@@ -50,7 +50,7 @@ class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("회원가입 통합 테스트 - 성공")
     void signUp_IntegrationTest_Success() throws Exception {
         // Given - 먼저 소셜 로그인으로 temp 데이터를 생성
-        SocialLoginRequestDTO socialRequest = new SocialLoginRequestDTO("KAKAO", "new_user_code", "integration-test-fcm-TemporaryToken");
+        SocialLoginRequestDTO socialRequest = new SocialLoginRequestDTO("KAKAO", "new_user_code");
 
         // 1. 소셜 로그인으로 임시 데이터 생성
         var loginResult = mockMvc.perform(post("/api/auth/login")

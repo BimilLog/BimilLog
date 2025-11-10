@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 /**
  * <h2>소셜 로그인 요청 DTO</h2>
  * <p>소셜 로그인 API 요청을 위한 DTO입니다.</p>
- * <p>provider, code 유효성 검증, FCM 토큰 형식 검증</p>
+ * <p>provider, code 유효성 검증</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -25,8 +25,6 @@ public class SocialLoginRequestDTO {
 
     @NotBlank(message = "인증 코드는 필수입니다.")
     private String code;
-
-    private String fcmToken;
 
     /**
      * <h3>소셜 제공자 유효성 검증</h3>
