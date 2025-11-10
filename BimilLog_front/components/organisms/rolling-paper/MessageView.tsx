@@ -100,7 +100,7 @@ export const MessageView: React.FC<MessageViewProps> = ({
         ) : (
           <p className="text-brand-muted leading-relaxed font-medium italic flex items-center gap-2 text-sm sm:text-base">
             <Lock className="w-4 h-4 flex-shrink-0" />
-            <span className="break-words">메시지 내용은 작성자만 볼 수 있습니다</span>
+            <span className="break-words">메시지 내용은 롤링페이퍼 주인만 볼 수 있습니다</span>
           </p>
         )}
 
