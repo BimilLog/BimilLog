@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+import { create, type StoreApi } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { authQuery, authCommand, userCommand, sseManager, type Member } from '@/lib/api';
 import { logger } from '@/lib/utils';
@@ -25,6 +25,7 @@ interface AuthState {
 const REFRESH_TTL_MS = 10_000;
 let lastSuccessfulRefreshAt = 0;
 let refreshPromise: Promise<void> | null = null;
+let rehydrateStoreSet: StoreApi<AuthState>['setState'] | null = null;
 
 const resetRefreshCache = () => {
   lastSuccessfulRefreshAt = 0;
@@ -68,6 +69,8 @@ export const useAuthStore = create<AuthState>()(
           if (!get().user) return false;
           return Date.now() - lastSuccessfulRefreshAt < REFRESH_TTL_MS;
         };
+
+        rehydrateStoreSet = set;
 
         return {
           user: null,
@@ -223,7 +226,7 @@ export const useAuthStore = create<AuthState>()(
           user: state.user,
         }),
         onRehydrateStorage: () => (state) => {
-          set({
+          rehydrateStoreSet?.({
             isAuthenticated: !!state?.user,
             isLoading: false,
           });
