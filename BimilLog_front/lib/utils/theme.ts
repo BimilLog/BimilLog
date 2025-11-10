@@ -135,14 +135,16 @@ export function subscribeToSystemThemeChanges(listener: SystemThemeListener): ()
   const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
   const handler = () => listener(getSystemTheme());
 
-  if (mediaQuery.addEventListener) {
+  const supportsModernListener = typeof mediaQuery.addEventListener === 'function';
+
+  if (supportsModernListener) {
     mediaQuery.addEventListener('change', handler);
   } else {
     mediaQuery.addListener(handler);
   }
 
   return () => {
-    if (mediaQuery.addEventListener) {
+    if (supportsModernListener && typeof mediaQuery.removeEventListener === 'function') {
       mediaQuery.removeEventListener('change', handler);
     } else {
       mediaQuery.removeListener(handler);
