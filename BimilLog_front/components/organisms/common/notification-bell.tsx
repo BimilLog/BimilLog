@@ -27,6 +27,7 @@ import {
   useDeleteAllNotifications
 } from "@/hooks/api";
 import { useAuth } from "@/hooks";
+import { isKakaoInAppBrowser } from "@/lib/utils";
 import { Spinner as FlowbiteSpinner, Badge, Drawer } from "flowbite-react";
 import { NotificationPermissionModal } from "@/components/organisms/notification";
 
@@ -38,6 +39,7 @@ export function NotificationBell() {
   const [popoverPosition, setPopoverPosition] = useState({ top: 0, left: 0 });
   const triggerRef = useRef<HTMLDivElement | null>(null);
   const { isAuthenticated } = useAuth();
+  const allowBrowserPermissionPrompt = !isKakaoInAppBrowser();
 
   const {
     data: notificationResponse,
@@ -249,20 +251,22 @@ export function NotificationBell() {
             title="알림 목록 새로고침"
           >
             {isFetchingList ? (
-              <FlowbiteSpinner color="pink" size="sm" aria-label="새로고침 중..." />
+              <FlowbiteSpinner color="pink" size="sm" aria-label="새로고침 중.." />
             ) : (
               <RefreshCw className="w-4 h-4" />
             )}
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowPermissionModal(true)}
-            className="text-sm min-h-[44px] min-w-[44px] touch-manipulation"
-            title="브라우저 알림 허용"
-          >
-            <Bell className="w-4 h-4" />
-          </Button>
+          {allowBrowserPermissionPrompt && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowPermissionModal(true)}
+              className="text-sm min-h-[44px] min-w-[44px] touch-manipulation"
+              title="브라우저 알림 허용"
+            >
+              <Bell className="w-4 h-4" />
+            </Button>
+          )}
         </div>
       </div>
       {notifications.length > 0 && (
@@ -448,31 +452,33 @@ export function NotificationBell() {
       )}
 
       {/* 알림 권한 요청 모달 */}
-      <NotificationPermissionModal
-        show={showPermissionModal}
-        onClose={() => setShowPermissionModal(false)}
-        onSuccess={(token) => {
-          localStorage.setItem("fcm_token", token);
-          localStorage.removeItem("notification_permission_skipped");
+      {allowBrowserPermissionPrompt && (
+        <NotificationPermissionModal
+          show={showPermissionModal}
+          onClose={() => setShowPermissionModal(false)}
+          onSuccess={(token) => {
+            localStorage.setItem("fcm_token", token);
+            localStorage.removeItem("notification_permission_skipped");
 
-          if (isAuthenticated) {
-            notificationCommand.registerFcmToken(token).then(result => {
-              if (!result.success) {
-                console.warn("FCM 토큰 서버 등록 실패:", result.error);
-              }
-            }).catch(error => {
-              console.error("FCM 토큰 서버 등록 중 오류:", error);
-            });
-          }
+            if (isAuthenticated) {
+              notificationCommand.registerFcmToken(token).then(result => {
+                if (!result.success) {
+                  console.warn("FCM 토큰 서버 등록 실패:", result.error);
+                }
+              }).catch(error => {
+                console.error("FCM 토큰 서버 등록 중 오류:", error);
+              });
+            }
 
-          setShowPermissionModal(false);
-        }}
-        onSkip={() => {
-          const skipUntil = Date.now() + 7 * 24 * 60 * 60 * 1000;
-          localStorage.setItem("notification_permission_skipped", skipUntil.toString());
-          setShowPermissionModal(false);
-        }}
-      />
+            setShowPermissionModal(false);
+          }}
+          onSkip={() => {
+            const skipUntil = Date.now() + 7 * 24 * 60 * 60 * 1000;
+            localStorage.setItem("notification_permission_skipped", skipUntil.toString());
+            setShowPermissionModal(false);
+          }}
+        />
+      )}
     </div>
   );
 }
