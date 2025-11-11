@@ -38,3 +38,25 @@ export function isMobileOrTablet(): boolean {
 
   return mobileKeywords.some(keyword => userAgent.includes(keyword));
 }
+
+/**
+ * Detect Kakao in-app browsers (KakaoTalk, KakaoStory, KakaoBrowser)
+ */
+export function isKakaoInAppBrowser(): boolean {
+  if (typeof navigator === "undefined") return false;
+
+  const userAgent = navigator.userAgent.toLowerCase();
+  return (
+    userAgent.includes("kakaotalk") ||
+    userAgent.includes("kakaostory") ||
+    userAgent.includes("kakaobrowser")
+  );
+}
+
+/**
+ * Detect Android devices (used when triggering Chrome intents)
+ */
+export function isAndroid(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return /android/i.test(navigator.userAgent);
+}

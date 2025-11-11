@@ -1,4 +1,4 @@
-import { isMobileOrTablet, logger } from "@/lib/utils";
+import { isMobileOrTablet, isKakaoInAppBrowser, logger } from "@/lib/utils";
 
 /**
  * FCM 토큰 가져오기 (모바일/태블릿에서만)
@@ -151,7 +151,7 @@ export class FCMManager {
     }
 
     // 모바일/태블릿 환경이면서 브라우저가 알림 API를 지원하는 경우만 FCM 지원
-    return isMobileOrTablet() && "Notification" in window;
+    return isMobileOrTablet() && "Notification" in window && !isKakaoInAppBrowser();
   }
 
   async requestPermission(): Promise<NotificationPermission> {

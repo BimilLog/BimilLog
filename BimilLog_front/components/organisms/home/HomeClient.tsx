@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { MainLayout } from "@/components/organisms/layout/BaseLayout";
 import { useAuth } from "@/hooks";
 import { notificationCommand } from "@/lib/api";
-import { logger, isMobileOrTablet } from '@/lib/utils';
+import { logger, isMobileOrTablet, isKakaoInAppBrowser } from '@/lib/utils';
 import { LazyKakaoFriendsModal } from "@/lib/utils/lazy-components";
 import { NotificationPermissionModal } from "@/components/organisms/notification";
 
@@ -40,7 +40,7 @@ export default function HomeClient() {
   // 알림 권한 요청 모달 표시 로직
   useEffect(() => {
     // 로그인되어 있고, 모바일/태블릿이고, 스킵하지 않았을 때만 표시
-    if (isAuthenticated && user && isMobileOrTablet()) {
+    if (isAuthenticated && user && isMobileOrTablet() && !isKakaoInAppBrowser()) {
       // ✅ FIX: 이미 권한이 허용/거부된 경우 모달 표시 안 함
       if (typeof window !== 'undefined' && 'Notification' in window) {
         const currentPermission = Notification.permission;
