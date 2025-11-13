@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authCommand, notificationCommand } from "@/lib/api";
 import { logger } from "@/lib/utils/logger";
+import { useAuthStore } from "@/stores/auth.store";
 
 /**
  * Kakao OAuth callback 처리 훅
@@ -16,6 +17,7 @@ export const useKakaoCallback = () => {
   const [loadingStep, setLoadingStep] = useState<string>("카카오 인증 처리 중...");
   const router = useRouter();
   const searchParams = useSearchParams();
+  const setProvider = useAuthStore((state) => state.setProvider);
 
   useEffect(() => {
     const processCallback = async () => {
@@ -59,6 +61,9 @@ export const useKakaoCallback = () => {
         const response = await authCommand.kakaoLogin(code);
 
         if (response.success && response.data) {
+          // 카카오 로그인 성공 시 provider 설정
+          setProvider('KAKAO');
+
           if (savedFcmToken) {
             try {
               const registerResult = await notificationCommand.registerFcmToken(savedFcmToken);
