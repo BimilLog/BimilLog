@@ -11,6 +11,7 @@ import jaeik.bimillog.domain.global.out.*;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.auth.out.AuthToMemberAdapter;
+import jaeik.bimillog.domain.member.out.MemberSearchAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
@@ -33,7 +34,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class SocialLoginTransactionalService {
 
-    private final GlobalLoginAdapter globalLoginAdapter;
     private final AuthToMemberAdapter authToMemberAdapter;
     private final GlobalBlacklistAdapter globalBlacklistAdapter;
     private final GlobalCookieAdapter globalCookieAdapter;
@@ -61,7 +61,7 @@ public class SocialLoginTransactionalService {
         }
 
         // 기존 유저 유무 조회
-        Optional<Member> member = globalLoginAdapter.findByProviderAndSocialId(provider, socialMemberProfile.getSocialId());
+        Optional<Member> member = authToMemberAdapter.findByProviderAndSocialId(provider, socialMemberProfile.getSocialId());
         return member.map(value ->
                 handleExistingMember(value, socialMemberProfile))
                 .orElseGet(() -> handleNewMember(socialMemberProfile));

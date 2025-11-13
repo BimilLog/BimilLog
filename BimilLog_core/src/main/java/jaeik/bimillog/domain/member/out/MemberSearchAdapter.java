@@ -1,8 +1,7 @@
-package jaeik.bimillog.domain.global.out;
+package jaeik.bimillog.domain.member.out;
 
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
-import jaeik.bimillog.domain.member.out.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,7 +10,7 @@ import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
-public class GlobalLoginAdapter {
+public class MemberSearchAdapter {
 
     private final MemberRepository memberRepository;
 

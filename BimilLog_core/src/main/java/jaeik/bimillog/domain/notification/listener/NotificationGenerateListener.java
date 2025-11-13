@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.notification.listener;
 
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.notification.service.SseService;
-import jaeik.bimillog.domain.notification.service.FcmService;
+import jaeik.bimillog.domain.notification.service.FcmCommandService;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
 public class NotificationGenerateListener {
 
     private final SseService sseService;
-    private final FcmService fcmUseCase;
+    private final FcmCommandService fcmUseCase;
 
     /**
      * <h3>댓글 작성 알림 전송</h3>

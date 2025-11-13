@@ -1,7 +1,6 @@
-package jaeik.bimillog.domain.global.out;
+package jaeik.bimillog.domain.notification.out;
 
 import jaeik.bimillog.domain.notification.entity.FcmToken;
-import jaeik.bimillog.domain.notification.out.FcmTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 

@@ -6,7 +6,7 @@ import jaeik.bimillog.domain.auth.service.SocialLogoutService;
 import jaeik.bimillog.domain.global.out.GlobalSocialTokenCommandAdapter;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.notification.service.SseService;
-import jaeik.bimillog.domain.notification.service.FcmService;
+import jaeik.bimillog.domain.notification.service.FcmCommandService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -30,7 +30,7 @@ public class MemberLogoutListener {
 
     private final SocialLogoutService socialLogoutService;
     private final SseService sseService;
-    private final FcmService fcmUseCase;
+    private final FcmCommandService fcmUseCase;
     private final AuthTokenService authTokenService;
     private final GlobalSocialTokenCommandAdapter globalSocialTokenCommandAdapter;
 

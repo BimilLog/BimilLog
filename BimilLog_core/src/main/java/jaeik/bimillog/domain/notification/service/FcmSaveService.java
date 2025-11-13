@@ -1,6 +1,6 @@
-package jaeik.bimillog.domain.global.service;
+package jaeik.bimillog.domain.notification.service;
 
-import jaeik.bimillog.domain.global.out.GlobalFcmSaveAdapter;
+import jaeik.bimillog.domain.notification.out.GlobalFcmSaveAdapter;
 import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.notification.entity.FcmToken;
@@ -24,7 +24,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class GlobalFcmSaveService {
+public class FcmSaveService {
 
     private final GlobalFcmSaveAdapter globalFcmSaveAdapter;
     private final GlobalMemberQueryAdapter globalMemberQueryAdapter;

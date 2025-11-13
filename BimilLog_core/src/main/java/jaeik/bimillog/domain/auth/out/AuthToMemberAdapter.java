@@ -34,6 +34,7 @@ import java.util.Optional;
 public class AuthToMemberAdapter {
 
     private final HandleMemberLoginService handleMemberLoginService;
+    private final MemberQueryService memberQueryService;
 
     /**
      * <h3>기존 회원 정보 갱신</h3>
@@ -64,5 +65,12 @@ public class AuthToMemberAdapter {
      */
     public void handleNewUser(SocialMemberProfile memberProfile, String uuid) {
         handleMemberLoginService.handleNewMember(memberProfile, uuid);
+    }
+
+    /**
+     * 소셜 제공자와 ID로 사용자 조회
+     */
+    public Optional<Member> findByProviderAndSocialId(SocialProvider provider, String socialId) {
+        return memberQueryService.findByProviderAndSocialId(provider, socialId);
     }
 }

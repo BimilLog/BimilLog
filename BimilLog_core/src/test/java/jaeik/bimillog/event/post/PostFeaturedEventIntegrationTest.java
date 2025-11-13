@@ -1,6 +1,6 @@
 package jaeik.bimillog.event.post;
 
-import jaeik.bimillog.domain.notification.service.FcmService;
+import jaeik.bimillog.domain.notification.service.FcmCommandService;
 import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
@@ -29,7 +29,7 @@ public class PostFeaturedEventIntegrationTest extends BaseEventIntegrationTest {
     private SseService sseService;
 
     @MockitoBean
-    private FcmService fcmService;
+    private FcmCommandService fcmCommandService;
 
     @Test
     @DisplayName("인기글 등극 이벤트 워크플로우 - SSE와 FCM 알림까지 완료")
@@ -47,9 +47,9 @@ public class PostFeaturedEventIntegrationTest extends BaseEventIntegrationTest {
         publishAndVerify(event, () -> {
             verify(sseService).sendPostFeaturedNotification(
                     eq(memberId), eq(sseMessage), eq(postId));
-            verify(fcmService).sendPostFeaturedNotification(
+            verify(fcmCommandService).sendPostFeaturedNotification(
                     eq(memberId), eq(fcmTitle), eq(fcmBody));
-            verifyNoMoreInteractions(sseService, fcmService);
+            verifyNoMoreInteractions(sseService, fcmCommandService);
         });
     }
 
@@ -73,13 +73,13 @@ public class PostFeaturedEventIntegrationTest extends BaseEventIntegrationTest {
             verify(sseService).sendPostFeaturedNotification(
                     eq(3L), eq("게시글 3이 주간 베스트에 선정되었습니다!"), eq(103L));
 
-            verify(fcmService).sendPostFeaturedNotification(
+            verify(fcmCommandService).sendPostFeaturedNotification(
                     eq(1L), eq("인기글 선정"), eq("축하합니다!"));
-            verify(fcmService).sendPostFeaturedNotification(
+            verify(fcmCommandService).sendPostFeaturedNotification(
                     eq(2L), eq("명예의 전당"), eq("대단합니다!"));
-            verify(fcmService).sendPostFeaturedNotification(
+            verify(fcmCommandService).sendPostFeaturedNotification(
                     eq(3L), eq("주간 베스트"), eq("훌륭합니다!"));
-            verifyNoMoreInteractions(sseService, fcmService);
+            verifyNoMoreInteractions(sseService, fcmCommandService);
         });
     }
 
@@ -104,13 +104,13 @@ public class PostFeaturedEventIntegrationTest extends BaseEventIntegrationTest {
             verify(sseService).sendPostFeaturedNotification(
                     eq(memberId), eq("세 번째 게시글까지 인기글 선정!"), eq(103L));
 
-            verify(fcmService).sendPostFeaturedNotification(
+            verify(fcmCommandService).sendPostFeaturedNotification(
                     eq(memberId), eq("인기글 1"), eq("축하해요!"));
-            verify(fcmService).sendPostFeaturedNotification(
+            verify(fcmCommandService).sendPostFeaturedNotification(
                     eq(memberId), eq("인기글 2"), eq("대단해요!"));
-            verify(fcmService).sendPostFeaturedNotification(
+            verify(fcmCommandService).sendPostFeaturedNotification(
                     eq(memberId), eq("인기글 3"), eq("놀라워요!"));
-            verifyNoMoreInteractions(sseService, fcmService);
+            verifyNoMoreInteractions(sseService, fcmCommandService);
         });
     }
 

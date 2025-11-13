@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.auth.service.AuthTokenService;
 import jaeik.bimillog.domain.auth.service.SocialLogoutService;
 import jaeik.bimillog.domain.global.out.GlobalSocialTokenCommandAdapter;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
-import jaeik.bimillog.domain.notification.service.FcmService;
+import jaeik.bimillog.domain.notification.service.FcmCommandService;
 import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
@@ -38,7 +38,7 @@ public class MemberLoggedOutEventIntegrationTest extends BaseEventIntegrationTes
     private SseService sseService;
 
     @MockitoBean
-    private FcmService fcmService;
+    private FcmCommandService fcmCommandService;
 
     @MockitoBean
     private GlobalSocialTokenCommandAdapter globalSocialTokenCommandAdapter;
@@ -59,7 +59,7 @@ public class MemberLoggedOutEventIntegrationTest extends BaseEventIntegrationTes
             // 소셜 플랫폼 로그아웃
             verifySocialLogout(memberId, tokenId);
             // FCM 토큰 삭제
-            verify(fcmService).deleteFcmTokens(eq(memberId), eq(fcmTokenId));
+            verify(fcmCommandService).deleteFcmTokens(eq(memberId), eq(fcmTokenId));
             // JWT 토큰 무효화
             verify(authTokenService).deleteTokens(eq(memberId), eq(tokenId));
             // 소셜 토큰 삭제
@@ -96,9 +96,9 @@ public class MemberLoggedOutEventIntegrationTest extends BaseEventIntegrationTes
             verifySocialLogout(3L, 103L);
 
             // FCM 토큰 삭제
-            verify(fcmService).deleteFcmTokens(eq(1L), eq(201L));
-            verify(fcmService).deleteFcmTokens(eq(2L), eq(202L));
-            verify(fcmService).deleteFcmTokens(eq(3L), eq(203L));
+            verify(fcmCommandService).deleteFcmTokens(eq(1L), eq(201L));
+            verify(fcmCommandService).deleteFcmTokens(eq(2L), eq(202L));
+            verify(fcmCommandService).deleteFcmTokens(eq(3L), eq(203L));
 
             // JWT 토큰 무효화
             verify(authTokenService).deleteTokens(eq(1L), eq(101L));

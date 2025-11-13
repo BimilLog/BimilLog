@@ -34,24 +34,24 @@ import jaeik.bimillog.testutil.TestMembers;
  */
 @ExtendWith(MockitoExtension.class)
 @Tag("unit")
-class FcmServiceTest {
+class FcmCommandServiceTest {
 
     @Mock private FcmAdapter fcmAdapter;
     @Mock private NotificationUtilAdapter notificationUtilAdapter;
 
-    @InjectMocks private FcmService fcmService;
+    @InjectMocks private FcmCommandService fcmCommandService;
 
     @Test
     @DisplayName("토큰 삭제 - 특정 토큰 ID")
     void shouldDeleteSpecificToken() {
-        fcmService.deleteFcmTokens(1L, 10L);
+        fcmCommandService.deleteFcmTokens(1L, 10L);
         verify(fcmAdapter).deleteFcmTokens(1L, 10L);
     }
 
     @Test
     @DisplayName("토큰 삭제 - 전체 토큰")
     void shouldDeleteAllTokens() {
-        fcmService.deleteFcmTokens(1L, null);
+        fcmCommandService.deleteFcmTokens(1L, null);
         verify(fcmAdapter).deleteFcmTokens(1L, null);
     }
 
@@ -64,7 +64,7 @@ class FcmServiceTest {
         );
         when(notificationUtilAdapter.FcmEligibleFcmTokens(1L, NotificationType.COMMENT)).thenReturn(tokens);
 
-        fcmService.sendCommentNotification(1L, "commenter");
+        fcmCommandService.sendCommentNotification(1L, "commenter");
 
         verify(notificationUtilAdapter).FcmEligibleFcmTokens(1L, NotificationType.COMMENT);
         verify(fcmAdapter, times(2)).sendMessageTo(any(FcmMessage.class));
@@ -75,7 +75,7 @@ class FcmServiceTest {
     void shouldSkipCommentNotificationWhenNoTokens() throws IOException {
         when(notificationUtilAdapter.FcmEligibleFcmTokens(1L, NotificationType.COMMENT)).thenReturn(Collections.emptyList());
 
-        fcmService.sendCommentNotification(1L, "commenter");
+        fcmCommandService.sendCommentNotification(1L, "commenter");
 
         verify(notificationUtilAdapter).FcmEligibleFcmTokens(1L, NotificationType.COMMENT);
         verify(fcmAdapter, never()).sendMessageTo(any());
@@ -89,7 +89,7 @@ class FcmServiceTest {
         doThrow(new IOException("fail"))
                 .when(fcmAdapter).sendMessageTo(any(FcmMessage.class));
 
-        fcmService.sendCommentNotification(1L, "commenter");
+        fcmCommandService.sendCommentNotification(1L, "commenter");
 
         verify(notificationUtilAdapter).FcmEligibleFcmTokens(1L, NotificationType.COMMENT);
         verify(fcmAdapter).sendMessageTo(any(FcmMessage.class));
@@ -103,7 +103,7 @@ class FcmServiceTest {
 
         ArgumentCaptor<FcmMessage> messageCaptor = ArgumentCaptor.forClass(FcmMessage.class);
 
-        fcmService.sendPostFeaturedNotification(1L, "title", "body");
+        fcmCommandService.sendPostFeaturedNotification(1L, "title", "body");
 
         verify(fcmAdapter).sendMessageTo(messageCaptor.capture());
         FcmMessage captured = messageCaptor.getValue();

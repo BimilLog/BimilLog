@@ -1,4 +1,4 @@
-package jaeik.bimillog.infrastructure.advice;
+package jaeik.bimillog.infrastructure.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

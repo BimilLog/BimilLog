@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.notification.controller;
 
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.domain.global.service.GlobalFcmSaveService;
+import jaeik.bimillog.domain.notification.service.FcmSaveService;
 import jaeik.bimillog.domain.notification.dto.FcmTokenRegisterRequestDTO;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.log.Log.LogLevel;
@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/notification")
 public class NotificationFcmController {
 
-    private final GlobalFcmSaveService globalFcmSaveService;
+    private final FcmSaveService fcmSaveService;
 
     /**
      * <h3>FCM 토큰 등록</h3>
@@ -47,7 +47,7 @@ public class NotificationFcmController {
          excludeParams = {"fcmToken"})
     public ResponseEntity<Void> registerFcmToken(@AuthenticationPrincipal CustomUserDetails userDetails,
                                                   @Valid @RequestBody FcmTokenRegisterRequestDTO request) {
-        globalFcmSaveService.registerFcmToken(userDetails.getMemberId(), request.getFcmToken());
+        fcmSaveService.registerFcmToken(userDetails.getMemberId(), request.getFcmToken());
         return ResponseEntity.ok().build();
     }
 }
