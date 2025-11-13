@@ -22,15 +22,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
-import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.out.NotificationUtilAdapter;
 import jaeik.bimillog.infrastructure.api.fcm.FcmAdapter;
-import jaeik.bimillog.testutil.TestMembers;
 
 /**
  * <h2>FcmService 단위 테스트</h2>
- * <p>FCM 토큰 삭제와 알림 전송 위임 로직을 검증합니다.</p>
+ * <p>FCM 알림 전송 위임 로직을 검증합니다.</p>
  */
 @ExtendWith(MockitoExtension.class)
 @Tag("unit")
@@ -42,26 +40,9 @@ class FcmCommandServiceTest {
     @InjectMocks private FcmCommandService fcmCommandService;
 
     @Test
-    @DisplayName("토큰 삭제 - 특정 토큰 ID")
-    void shouldDeleteSpecificToken() {
-        fcmCommandService.deleteFcmTokens(1L, 10L);
-        verify(fcmAdapter).deleteFcmTokens(1L, 10L);
-    }
-
-    @Test
-    @DisplayName("토큰 삭제 - 전체 토큰")
-    void shouldDeleteAllTokens() {
-        fcmCommandService.deleteFcmTokens(1L, null);
-        verify(fcmAdapter).deleteFcmTokens(1L, null);
-    }
-
-    @Test
     @DisplayName("댓글 알림 전송 - 토큰 있음")
     void shouldSendCommentNotificationWhenTokensPresent() throws IOException {
-        List<FcmToken> tokens = List.of(
-                FcmToken.create(TestMembers.MEMBER_1, "token-1"),
-                FcmToken.create(TestMembers.MEMBER_1, "token-2")
-        );
+        List<String> tokens = List.of("token-1", "token-2");
         when(notificationUtilAdapter.FcmEligibleFcmTokens(1L, NotificationType.COMMENT)).thenReturn(tokens);
 
         fcmCommandService.sendCommentNotification(1L, "commenter");
@@ -84,8 +65,7 @@ class FcmCommandServiceTest {
     @Test
     @DisplayName("FCM 전송 실패 시 로깅 후 계속 진행")
     void shouldLogWhenSendFails() throws IOException {
-        FcmToken failingToken = FcmToken.create(TestMembers.MEMBER_1, "token-1");
-        when(notificationUtilAdapter.FcmEligibleFcmTokens(1L, NotificationType.COMMENT)).thenReturn(List.of(failingToken));
+        when(notificationUtilAdapter.FcmEligibleFcmTokens(1L, NotificationType.COMMENT)).thenReturn(List.of("token-1"));
         doThrow(new IOException("fail"))
                 .when(fcmAdapter).sendMessageTo(any(FcmMessage.class));
 
@@ -98,8 +78,7 @@ class FcmCommandServiceTest {
     @Test
     @DisplayName("알림 전송 시 메시지 내용 구성 검증")
     void shouldBuildMessageWithTitleAndBody() throws IOException {
-        FcmToken token = FcmToken.create(TestMembers.MEMBER_1, "token-1");
-        when(notificationUtilAdapter.FcmEligibleFcmTokens(1L, NotificationType.POST_FEATURED)).thenReturn(List.of(token));
+        when(notificationUtilAdapter.FcmEligibleFcmTokens(1L, NotificationType.POST_FEATURED)).thenReturn(List.of("token-1"));
 
         ArgumentCaptor<FcmMessage> messageCaptor = ArgumentCaptor.forClass(FcmMessage.class);
 

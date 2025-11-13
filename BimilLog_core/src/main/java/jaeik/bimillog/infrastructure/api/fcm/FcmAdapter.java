@@ -10,23 +10,21 @@ import org.springframework.stereotype.Repository;
 import com.google.auth.oauth2.GoogleCredentials;
 
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
-import jaeik.bimillog.domain.notification.out.FcmTokenRepository;
 import jaeik.bimillog.infrastructure.api.dto.FcmMessageDTO;
 import lombok.RequiredArgsConstructor;
 
 /**
  * <h2>FCM 어댑터</h2>
  * <p>Firebase Cloud Messaging 연동을 담당하는 어댑터입니다.</p>
- * <p>FCM 토큰 저장/삭제, FCM 메시지 전송</p>
+ * <p>FCM 메시지 전송</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.1.0
  */
 @Repository
 @RequiredArgsConstructor
 public class FcmAdapter {
 
-    private final FcmTokenRepository fcmTokenRepository;
     private final FcmApiClient fcmApiClient;
 
     private static final String FIREBASE_CONFIG_PATH = "growfarm-6cd79-firebase-adminsdk-fbsvc-ad2bc92194.json";
@@ -53,26 +51,6 @@ public class FcmAdapter {
                 fcmMessageDto
         );
     }
-
-
-    /**
-     * <h3>FCM 토큰 삭제</h3>
-     * <p>로그아웃시 특정 토큰만 삭제하거나 회원탈퇴시 모든 토큰을 삭제합니다.</p>
-     * <p>fcmTokenId가 null인 경우 모든 토큰 삭제, 값이 있늘 경우 특정 토큰만 삭제합니다.</p>
-     *
-     * @param memberId 사용자 ID
-     * @param fcmTokenId 삭제할 토큰 ID (null인 경우 모든 토큰 삭제)
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public void deleteFcmTokens(Long memberId, Long fcmTokenId) {
-        if (fcmTokenId != null) {
-            fcmTokenRepository.deleteByMember_IdAndId(memberId, fcmTokenId);
-        } else {
-            fcmTokenRepository.deleteByMember_Id(memberId);
-        }
-    }
-
 
     /**
      * <h3>액세스 토큰 획득</h3>
