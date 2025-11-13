@@ -42,8 +42,6 @@ public class CustomUserDetails implements UserDetails {
     private final String memberName;
     private final MemberRole role;
     private final Long authTokenId;
-    @Nullable
-    private final Long fcmTokenId;
     private final Collection<? extends GrantedAuthority> authorities;
 
     /**
@@ -72,7 +70,6 @@ public class CustomUserDetails implements UserDetails {
                 .memberName(member.getMemberName())
                 .role(member.getRole())
                 .authTokenId(authTokenId)
-                .fcmTokenId(null)  // FCM token is not directly linked to Member entity
                 .authorities(createAuthorities(member.getRole()))
                 .build();
     }

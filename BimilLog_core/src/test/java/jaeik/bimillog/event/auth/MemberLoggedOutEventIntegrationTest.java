@@ -49,8 +49,7 @@ public class MemberLoggedOutEventIntegrationTest extends BaseEventIntegrationTes
         // Given
         Long memberId = 1L;
         Long tokenId = 100L;
-        Long fcmTokenId = 200L;
-        MemberLoggedOutEvent event = new MemberLoggedOutEvent(memberId, tokenId, fcmTokenId, SocialProvider.KAKAO);
+        MemberLoggedOutEvent event = new MemberLoggedOutEvent(memberId, tokenId, SocialProvider.KAKAO);
 
         // When & Then
         publishAndVerify(event, () -> {
@@ -58,9 +57,7 @@ public class MemberLoggedOutEventIntegrationTest extends BaseEventIntegrationTes
             verify(sseService).deleteEmitters(eq(memberId), eq(tokenId));
             // 소셜 플랫폼 로그아웃
             verifySocialLogout(memberId, tokenId);
-            // FCM 토큰 삭제
-            verify(fcmCommandService).deleteFcmTokens(eq(memberId), eq(fcmTokenId));
-            // JWT 토큰 무효화
+            // AuthToken 삭제 (FCM 토큰도 함께 삭제됨)
             verify(authTokenService).deleteTokens(eq(memberId), eq(tokenId));
             // 소셜 토큰 삭제
             verify(globalSocialTokenCommandAdapter).deleteByMemberId(eq(memberId));
@@ -79,9 +76,9 @@ public class MemberLoggedOutEventIntegrationTest extends BaseEventIntegrationTes
     @DisplayName("여러 사용자 로그아웃 이벤트 동시 처리")
     void multipleUserLoggedOutEvents_ShouldProcessConcurrently() {
         // Given
-        MemberLoggedOutEvent event1 = new MemberLoggedOutEvent(1L, 101L, 201L, SocialProvider.KAKAO);
-        MemberLoggedOutEvent event2 = new MemberLoggedOutEvent(2L, 102L, 202L, SocialProvider.KAKAO);
-        MemberLoggedOutEvent event3 = new MemberLoggedOutEvent(3L, 103L, 203L, SocialProvider.KAKAO);
+        MemberLoggedOutEvent event1 = new MemberLoggedOutEvent(1L, 101L, SocialProvider.KAKAO);
+        MemberLoggedOutEvent event2 = new MemberLoggedOutEvent(2L, 102L, SocialProvider.KAKAO);
+        MemberLoggedOutEvent event3 = new MemberLoggedOutEvent(3L, 103L, SocialProvider.KAKAO);
 
         // When & Then - 동시에 여러 로그아웃 이벤트 발행
         publishEventsAndVerify(new Object[]{event1, event2, event3}, () -> {
@@ -95,12 +92,7 @@ public class MemberLoggedOutEventIntegrationTest extends BaseEventIntegrationTes
             verifySocialLogout(2L, 102L);
             verifySocialLogout(3L, 103L);
 
-            // FCM 토큰 삭제
-            verify(fcmCommandService).deleteFcmTokens(eq(1L), eq(201L));
-            verify(fcmCommandService).deleteFcmTokens(eq(2L), eq(202L));
-            verify(fcmCommandService).deleteFcmTokens(eq(3L), eq(203L));
-
-            // JWT 토큰 무효화
+            // AuthToken 삭제 (FCM 토큰도 함께 삭제됨)
             verify(authTokenService).deleteTokens(eq(1L), eq(101L));
             verify(authTokenService).deleteTokens(eq(2L), eq(102L));
             verify(authTokenService).deleteTokens(eq(3L), eq(103L));
