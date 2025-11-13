@@ -8,11 +8,10 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
+import jaeik.bimillog.domain.auth.entity.QAuthToken;
 import jaeik.bimillog.domain.member.entity.QMember;
 import jaeik.bimillog.domain.member.entity.QSetting;
-import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.notification.entity.QFcmToken;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -56,25 +55,28 @@ public class NotificationUtilAdapter {
 
     /**
      * <h3>알림 수신 자격이 있는 FCM 토큰 조회</h3>
-     * <p>사용자가 특정 타입의 알림을 받을 수 있는 경우 해당 사용자의 모든 FCM 토큰을 조회합니다.</p>
+     * <p>사용자가 특정 타입의 알림을 받을 수 있는 경우 해당 사용자의 모든 FCM 토큰 문자열을 조회합니다.</p>
+     * <p>v2.4: AuthToken 테이블에서 fcmRegistrationToken 컬럼 조회 (fcm_token 테이블 통합)</p>
      *
      * @param memberId 사용자 ID
      * @param type   알림 타입
-     * @return 알림 수신 자격이 있는 경우 FCM 토큰 목록, 없는 경우 빈 목록
+     * @return 알림 수신 자격이 있는 경우 FCM 토큰 문자열 목록, 없는 경우 빈 목록
      * @author Jaeik
-     * @since 2.0.0
+     * @since 2.1.0
      */
-    public List<FcmToken> FcmEligibleFcmTokens(Long memberId, NotificationType type) {
+    public List<String> FcmEligibleFcmTokens(Long memberId, NotificationType type) {
         QMember qMember = QMember.member;
         QSetting qSetting = QSetting.setting;
-        QFcmToken qFcmToken = QFcmToken.fcmToken;
-        
+        QAuthToken qAuthToken = QAuthToken.authToken;
+
         return queryFactory
-            .selectFrom(qFcmToken)
-            .join(qFcmToken.member, qMember)
+            .select(qAuthToken.fcmRegistrationToken)
+            .from(qAuthToken)
+            .join(qAuthToken.member, qMember)
             .join(qMember.setting, qSetting)
             .where(
                 qMember.id.eq(memberId),
+                qAuthToken.fcmRegistrationToken.isNotNull(),
                 notificationTypeCondition(type, qSetting)
             )
             .fetch();

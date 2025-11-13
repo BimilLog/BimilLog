@@ -140,7 +140,6 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
             // 5. JWT 토큰 무효화
             verify(authTokenService).deleteTokens(eq(memberId), eq(null));
             // 6. FCM 토큰 삭제
-            verify(fcmCommandService).deleteFcmTokens(eq(memberId), eq(null));
             // 7. 알림 삭제
             verify(notificationCommandService).deleteAllNotification(eq(memberId));
             // 8. 롤링페이퍼 메시지 삭제
@@ -188,9 +187,6 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
             verify(authTokenService).deleteTokens(eq(3L), eq(null));
 
             // FCM 토큰 삭제
-            verify(fcmCommandService).deleteFcmTokens(eq(1L), eq(null));
-            verify(fcmCommandService).deleteFcmTokens(eq(2L), eq(null));
-            verify(fcmCommandService).deleteFcmTokens(eq(3L), eq(null));
 
             // 알림 삭제
             verify(notificationCommandService).deleteAllNotification(eq(1L));
@@ -273,7 +269,6 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
             verify(CommentCommandService).processUserCommentsOnWithdrawal(eq(memberId));
             verify(postCommandService).deleteAllPostsByMemberId(eq(memberId));
             verify(authTokenService).deleteTokens(eq(memberId), eq(null));
-            verify(fcmCommandService).deleteFcmTokens(eq(memberId), eq(null));
             verify(notificationCommandService).deleteAllNotification(eq(memberId));
             verify(paperCommandService).deleteMessageInMyPaper(eq(memberId), eq(null));
             verify(adminCommandService).anonymizeReporterByUserId(eq(memberId));

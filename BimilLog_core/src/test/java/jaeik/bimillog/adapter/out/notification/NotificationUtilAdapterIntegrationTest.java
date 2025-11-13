@@ -1,9 +1,9 @@
 package jaeik.bimillog.adapter.out.notification;
 
 import jaeik.bimillog.BimilLogApplication;
+import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.Setting;
-import jaeik.bimillog.domain.notification.entity.FcmToken;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.out.NotificationUtilAdapter;
 import jaeik.bimillog.testutil.config.H2TestConfiguration;
@@ -170,37 +170,50 @@ class NotificationUtilAdapterIntegrationTest {
     @DisplayName("정상 케이스 - FCM 토큰 조회 (수신 자격이 있는 사용자)")
     @Transactional
     void shouldReturnFcmTokens_WhenMemberEligibleForNotification() {
-        // Given: FCM 토큰 생성
-        FcmToken fcmToken1 = FcmToken.create(enabledMember, "fcm-TemporaryToken-1");
-        FcmToken fcmToken2 = FcmToken.create(enabledMember, "fcm-TemporaryToken-2");
+        // Given: AuthToken에 FCM 토큰 등록
+        AuthToken authToken1 = AuthToken.builder()
+                .refreshToken("refresh-token-1")
+                .member(enabledMember)
+                .useCount(0)
+                .fcmRegistrationToken("fcm-TemporaryToken-1")
+                .build();
+        AuthToken authToken2 = AuthToken.builder()
+                .refreshToken("refresh-token-2")
+                .member(enabledMember)
+                .useCount(0)
+                .fcmRegistrationToken("fcm-TemporaryToken-2")
+                .build();
 
-        testEntityManager.persistAndFlush(fcmToken1);
-        testEntityManager.persistAndFlush(fcmToken2);
+        testEntityManager.persistAndFlush(authToken1);
+        testEntityManager.persistAndFlush(authToken2);
         testEntityManager.flush();
         testEntityManager.clear();
 
         // When: FCM 토큰 조회 (PAPER 알림 타입)
-        List<FcmToken> result = notificationUtilAdapter.FcmEligibleFcmTokens(enabledMemberId, NotificationType.MESSAGE);
+        List<String> result = notificationUtilAdapter.FcmEligibleFcmTokens(enabledMemberId, NotificationType.MESSAGE);
 
         // Then: FCM 토큰들이 조회되어야 함
         assertThat(result).hasSize(2);
-        assertThat(result)
-                .extracting(FcmToken::getFcmRegistrationToken)
-                .containsExactlyInAnyOrder("fcm-TemporaryToken-1", "fcm-TemporaryToken-2");
+        assertThat(result).containsExactlyInAnyOrder("fcm-TemporaryToken-1", "fcm-TemporaryToken-2");
     }
 
     @Test
     @DisplayName("정상 케이스 - FCM 토큰 조회 (수신 자격이 없는 사용자)")
     @Transactional
     void shouldReturnEmptyList_WhenMemberNotEligibleForNotification() {
-        // Given: 비활성화된 사용자의 FCM 토큰 생성
-        FcmToken fcmToken = FcmToken.create(disabledMember, "fcm-TemporaryToken-disabled");
-        testEntityManager.persistAndFlush(fcmToken);
+        // Given: 비활성화된 사용자의 AuthToken에 FCM 토큰 등록
+        AuthToken authToken = AuthToken.builder()
+                .refreshToken("refresh-token-disabled")
+                .member(disabledMember)
+                .useCount(0)
+                .fcmRegistrationToken("fcm-TemporaryToken-disabled")
+                .build();
+        testEntityManager.persistAndFlush(authToken);
         testEntityManager.flush();
         testEntityManager.clear();
 
         // When: FCM 토큰 조회 (PAPER 알림 타입)
-        List<FcmToken> result = notificationUtilAdapter.FcmEligibleFcmTokens(disabledMemberId, NotificationType.MESSAGE);
+        List<String> result = notificationUtilAdapter.FcmEligibleFcmTokens(disabledMemberId, NotificationType.MESSAGE);
 
         // Then: 빈 목록이 반환되어야 함 (알림 설정이 비활성화됨)
         assertThat(result).isEmpty();
@@ -225,7 +238,7 @@ class NotificationUtilAdapterIntegrationTest {
     @Transactional
     void shouldReturnEmptyList_WhenMemberHasNoFcmTokens() {
         // When: FCM 토큰 조회 (토큰이 없는 활성화된 사용자)
-        List<FcmToken> result = notificationUtilAdapter.FcmEligibleFcmTokens(enabledMemberId, NotificationType.MESSAGE);
+        List<String> result = notificationUtilAdapter.FcmEligibleFcmTokens(enabledMemberId, NotificationType.MESSAGE);
 
         // Then: 빈 목록이 반환되어야 함
         assertThat(result).isEmpty();
