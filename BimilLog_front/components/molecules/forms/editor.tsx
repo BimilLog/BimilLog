@@ -662,7 +662,7 @@ const QuillEditor: React.FC<EditorProps> = ({
 
             <p className="text-sm text-brand-muted">
 
-              媛꾨떒 ?몄쭛湲?(?먮뵒??濡쒕뱶 ?ㅽ뙣)
+              간단 작성기 (에디터 로드 실패)
 
             </p>
 
@@ -684,7 +684,7 @@ const QuillEditor: React.FC<EditorProps> = ({
 
         <p className="text-xs text-red-500 mt-1">
 
-          怨좉툒 ?몄쭛湲곕? 濡쒕뱶?????놁뼱 媛꾨떒 ?몄쭛湲곕줈 ?꾪솚?섏뿀?듬땲??
+          고급 작성기를 로드할 수 없어 간단 작성기로 전환하였습니다
 
         </p>
 
@@ -732,7 +732,7 @@ const QuillEditor: React.FC<EditorProps> = ({
 
             <Spinner size="md" />
 
-            <p className="text-sm text-brand-secondary">?먮뵒??以鍮?以?..</p>
+            <p className="text-sm text-brand-secondary">에디터 준비 중..</p>
 
           </div>
 
@@ -762,7 +762,7 @@ const EditorLoading = () => (
 
       <Spinner size="md" />
 
-      <p className="text-sm text-brand-secondary">?먮뵒??濡쒕뵫 以?..</p>
+      <p className="text-sm text-brand-secondary">에디터 로딩 중..</p>
 
     </div>
 
