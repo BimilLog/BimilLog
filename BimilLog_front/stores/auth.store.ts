@@ -1,6 +1,6 @@
 import { create, type StoreApi } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import { authQuery, authCommand, userCommand, sseManager, type Member, type SocialProvider } from '@/lib/api';
+import { authQuery, authCommand, userCommand, sseManager, notificationCommand, type Member, type SocialProvider } from '@/lib/api';
 import { logger } from '@/lib/utils';
 import { fcmManager } from '@/lib/auth/fcm';
 
@@ -28,9 +28,63 @@ const REFRESH_TTL_MS = 10_000;
 let lastSuccessfulRefreshAt = 0;
 let refreshPromise: Promise<void> | null = null;
 let rehydrateStoreSet: StoreApi<AuthState>['setState'] | null = null;
+let fcmAutoRegisterPromise: Promise<void> | null = null;
+let lastRegisteredFcmToken: string | null = null;
 
 const resetRefreshCache = () => {
   lastSuccessfulRefreshAt = 0;
+};
+
+const autoRegisterFcmToken = async () => {
+  if (typeof window === 'undefined') return;
+  if (!fcmManager.isSupported()) return;
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+  let token = window.localStorage.getItem('fcm_token');
+
+  if (!token) {
+    try {
+      token = (await fcmManager.ensureTokenForLogin()) ?? null;
+    } catch (error) {
+      logger.warn('Failed to fetch FCM token for auto-registration:', error);
+      return;
+    }
+
+    if (!token) {
+      logger.log('FCM auto-registration skipped: unable to retrieve token');
+      return;
+    }
+
+    window.localStorage.setItem('fcm_token', token);
+  }
+
+  if (token === lastRegisteredFcmToken) {
+    return;
+  }
+
+  try {
+    const result = await notificationCommand.registerFcmToken(token);
+    if (result.success) {
+      lastRegisteredFcmToken = token;
+      logger.log('FCM token automatically registered with server');
+    } else {
+      logger.warn('FCM token auto-registration failed:', result.error);
+    }
+  } catch (error) {
+    logger.warn('FCM token auto-registration error:', error);
+  }
+};
+
+const scheduleFcmAutoRegister = () => {
+  if (fcmAutoRegisterPromise) {
+    return fcmAutoRegisterPromise;
+  }
+
+  fcmAutoRegisterPromise = autoRegisterFcmToken().finally(() => {
+    fcmAutoRegisterPromise = null;
+  });
+
+  return fcmAutoRegisterPromise;
 };
 
 export const useAuthStore = create<AuthState>()(
@@ -44,6 +98,7 @@ export const useAuthStore = create<AuthState>()(
           }: { resetToast?: boolean; preserveLogoutState?: boolean } = {}
         ) => {
           fcmManager.clearCache();
+          lastRegisteredFcmToken = null;
 
           if (typeof window !== 'undefined') {
             localStorage.removeItem('fcm_token');
@@ -126,6 +181,8 @@ export const useAuthStore = create<AuthState>()(
                     logger.log(`User authenticated (${response.data.memberName}) - opening SSE connection`);
                     sseManager.connect();
                   }
+
+                  scheduleFcmAutoRegister();
                 } else {
                   performSessionCleanup({ resetToast: true, preserveLogoutState: true });
                 }
