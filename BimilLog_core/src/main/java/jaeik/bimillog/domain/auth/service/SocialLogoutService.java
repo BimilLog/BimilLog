@@ -1,11 +1,12 @@
 package jaeik.bimillog.domain.auth.service;
 
-import jaeik.bimillog.domain.auth.entity.KakaoToken;
+import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
+import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.global.out.GlobalSocialStrategyAdapter;
 import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
-import jaeik.bimillog.domain.global.out.GlobalKakaoTokenQueryAdapter;
+import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,13 +26,13 @@ import org.springframework.stereotype.Service;
 public class SocialLogoutService {
 
     private final GlobalSocialStrategyAdapter globalSocialStrategyAdapter;
-    private final GlobalKakaoTokenQueryAdapter globalKakaoTokenQueryAdapter;
+    private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
 
 
     /**
      * <h3>소셜 플랫폼 로그아웃</h3>
      * <p>사용자의 소셜 플랫폼 세션을 로그아웃 처리합니다.</p>
-     * <p>카카오 토큰을 조회하여 소셜 플랫폼 API를 호출합니다.</p>
+     * <p>Member를 통해 소셜 토큰을 조회하여 소셜 플랫폼 API를 호출합니다.</p>
      *
      * @param memberId 회원 ID
      * @param provider 소셜 플랫폼 제공자
@@ -40,10 +41,14 @@ public class SocialLogoutService {
      * @since 2.0.0
      */
     public void socialLogout(Long memberId, SocialProvider provider) throws Exception {
-        KakaoToken kakaoToken = globalKakaoTokenQueryAdapter.findByMemberId(memberId)
+        Member member = globalMemberQueryAdapter.findById(memberId)
                 .orElseThrow(() -> new AuthCustomException(AuthErrorCode.NOT_FIND_TOKEN));
+        SocialToken socialToken = member.getSocialToken();
+        if (socialToken == null) {
+            throw new AuthCustomException(AuthErrorCode.NOT_FIND_TOKEN);
+        }
         SocialPlatformStrategy strategy = globalSocialStrategyAdapter.getStrategy(provider);
-        strategy.auth().logout(kakaoToken.getKakaoAccessToken());
+        strategy.auth().logout(socialToken.getAccessToken());
     }
 
     /**

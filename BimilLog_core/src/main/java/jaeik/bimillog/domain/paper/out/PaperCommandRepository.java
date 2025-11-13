@@ -6,8 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
- * <h2>롤링페이퍼 명령 어댑터</h2>
- * <p>롤링페이퍼 도메인의 명령 작업을 담당하는 어댑터입니다.</p>
+ * <h2>롤링페이퍼 명령 리포지터리</h2>
+ * <p>롤링페이퍼 도메인의 명령 작업을 담당하는 리포지터리.</p>
  * <p>메시지 저장, 메시지 삭제</p>
  *
  * @author Jaeik
@@ -15,15 +15,11 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class PaperCommandAdapter {
-
+public class PaperCommandRepository {
     private final MessageRepository messageRepository;
 
     /**
      * <h3>롤링페이퍼 메시지 저장</h3>
-     * <p>새로운 메시지 엔티티를 데이터베이스에 저장합니다.</p>
-     * <p>메시지 내용과 그리드 레이아웃 정보를 포함하여 저장하고 ID를 반환합니다.</p>
-     * <p>{@link PaperCommandService#writeMessage}에서 호출됩니다.</p>
      *
      * @param message 저장할 메시지 엔티티
      * @return Message 저장된 메시지 엔티티
@@ -47,10 +43,10 @@ public class PaperCommandAdapter {
      * @since 2.0.0
      */
     public void deleteMessage(Long memberId, Long messageId) {
-        if (messageId != null) {
-            messageRepository.deleteById(messageId);
-        } else {
+        if (messageId == null) {
             messageRepository.deleteAllByMember_Id(memberId);
+            return;
         }
+        messageRepository.deleteById(messageId);
     }
 }

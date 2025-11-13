@@ -67,7 +67,7 @@ class NotificationCommandAdapterIntegrationTest {
         // Given: 테스트용 회원 설정 및 저장 (연관 엔티티 먼저 저장)
         Member tempMember = TestMembers.copyWithId(TestMembers.MEMBER_1, null);
         testEntityManager.persistAndFlush(tempMember.getSetting());
-        testEntityManager.persistAndFlush(tempMember.getKakaoToken());
+        testEntityManager.persistAndFlush(tempMember.getSocialToken());
         testMember = Member.createMember(
             tempMember.getSocialId(),
             tempMember.getProvider(),
@@ -75,7 +75,7 @@ class NotificationCommandAdapterIntegrationTest {
             tempMember.getThumbnailImage(),
             tempMember.getMemberName(),
             tempMember.getSetting(),
-            tempMember.getKakaoToken()
+            tempMember.getSocialToken()
         );
         testMember = testEntityManager.persistAndFlush(testMember);
         testMemberId = testMember.getId();
@@ -256,7 +256,7 @@ class NotificationCommandAdapterIntegrationTest {
         // Given: 다른 사용자와 그의 알림 생성
         Member tempOtherMember = TestMembers.copyWithId(TestMembers.MEMBER_2, null);
         testEntityManager.persistAndFlush(tempOtherMember.getSetting());
-        testEntityManager.persistAndFlush(tempOtherMember.getKakaoToken());
+        testEntityManager.persistAndFlush(tempOtherMember.getSocialToken());
 
         Member otherMember = Member.createMember(
             tempOtherMember.getSocialId(),
@@ -265,7 +265,7 @@ class NotificationCommandAdapterIntegrationTest {
             tempOtherMember.getThumbnailImage(),
             tempOtherMember.getMemberName(),
             tempOtherMember.getSetting(),
-            tempOtherMember.getKakaoToken()
+            tempOtherMember.getSocialToken()
         );
         otherMember = testEntityManager.persistAndFlush(otherMember);
 

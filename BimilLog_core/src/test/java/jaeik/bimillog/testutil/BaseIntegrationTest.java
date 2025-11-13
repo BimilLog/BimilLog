@@ -155,7 +155,7 @@ public abstract class BaseIntegrationTest {
             Member adminMemberToSave = TestMembers.withRole(MemberRole.ADMIN);
             Member otherMemberToSave = TestMembers.createUniqueWithPrefix("other");
 
-            // Member를 저장하기 전에 연관된 Setting과 KakaoToken을 먼저 persist
+            // Member를 저장하기 전에 연관된 Setting과 SocialToken을 먼저 persist
             persistMemberDependencies(testMemberToSave);
             persistMemberDependencies(adminMemberToSave);
             persistMemberDependencies(otherMemberToSave);
@@ -173,21 +173,21 @@ public abstract class BaseIntegrationTest {
     }
 
     /**
-     * Member의 연관 엔티티(Setting, KakaoToken)만 먼저 persist (Member는 제외)
+     * Member의 연관 엔티티(Setting, SocialToken)만 먼저 persist (Member는 제외)
      * Member는 이후 memberRepository.save()로 저장됩니다.
      */
     private void persistMemberDependencies(Member member) {
         if (member.getSetting() != null) {
             entityManagerDelegate.persist(member.getSetting());
         }
-        if (member.getKakaoToken() != null) {
-            entityManagerDelegate.persist(member.getKakaoToken());
+        if (member.getSocialToken() != null) {
+            entityManagerDelegate.persist(member.getSocialToken());
         }
     }
 
     /**
      * Member를 안전하게 저장하는 헬퍼 메서드
-     * Member의 연관 엔티티(Setting, KakaoToken)를 자동으로 persist한 후 Member를 저장
+     * Member의 연관 엔티티(Setting, SocialToken)를 자동으로 persist한 후 Member를 저장
      *
      * @param member 저장할 Member 엔티티
      * @return 저장된 Member 엔티티
@@ -199,7 +199,7 @@ public abstract class BaseIntegrationTest {
 
     /**
      * 여러 Member를 안전하게 저장하는 헬퍼 메서드
-     * 각 Member의 연관 엔티티(Setting, KakaoToken)를 자동으로 persist한 후 Member들을 저장
+     * 각 Member의 연관 엔티티(Setting, SocialToken)를 자동으로 persist한 후 Member들을 저장
      *
      * @param members 저장할 Member 엔티티들
      * @return 저장된 Member 엔티티들

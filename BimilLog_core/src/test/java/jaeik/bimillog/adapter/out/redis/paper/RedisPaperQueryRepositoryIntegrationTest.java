@@ -30,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @ActiveProfiles("local-integration")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Tag("local-integration")
-class RedisPaperQueryAdapterIntegrationTest {
+class RedisPaperQueryRepositoryIntegrationTest {
 
     @Autowired
     private RedisPaperQueryAdapter redisPaperQueryAdapter;

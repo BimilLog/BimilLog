@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.admin.service;
 
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.domain.admin.out.AdminQueryRepository;
+import jaeik.bimillog.domain.admin.repository.AdminQueryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

@@ -1,3 +1,6 @@
+// Auth hooks
+export * from './auth';
+
 // Board & Post hooks
 export * from './useBoard';
 export * from './post'; // Post domain specific hooks (useWriteForm, useEditForm, etc.)

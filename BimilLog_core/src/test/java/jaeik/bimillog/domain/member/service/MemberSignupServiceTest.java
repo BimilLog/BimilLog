@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.member.service;
 
 import jaeik.bimillog.domain.auth.entity.AuthToken;
-import jaeik.bimillog.domain.auth.entity.KakaoToken;
+import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
@@ -9,7 +9,7 @@ import jaeik.bimillog.domain.global.entity.MemberDetail;
 import jaeik.bimillog.domain.global.out.GlobalAuthTokenSaveAdapter;
 import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
 import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
-import jaeik.bimillog.domain.global.out.GlobalKakaoTokenCommandAdapter;
+import jaeik.bimillog.domain.global.out.GlobalSocialTokenCommandAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.out.SaveMemberAdapter;
@@ -49,7 +49,7 @@ class MemberSignupServiceTest extends BaseUnitTest {
     @Mock private GlobalCookieAdapter globalCookieAdapter;
     @Mock private GlobalJwtAdapter globalJwtAdapter;
     @Mock private GlobalAuthTokenSaveAdapter globalAuthTokenSaveAdapter;
-    @Mock private GlobalKakaoTokenCommandAdapter globalKakaoTokenCommandAdapter;
+    @Mock private GlobalSocialTokenCommandAdapter globalSocialTokenCommandAdapter;
 
     @InjectMocks private MemberSignupService signUpService;
 
@@ -101,8 +101,8 @@ class MemberSignupServiceTest extends BaseUnitTest {
     @DisplayName("유효한 임시 데이터로 회원 가입을 완료한다")
     void shouldSignupWithValidTemporaryData() {
         given(redisMemberDataAdapter.getTempData("uuid-123")).willReturn(Optional.of(socialProfile));
-        given(globalKakaoTokenCommandAdapter.save(any(KakaoToken.class)))
-                .willReturn(KakaoToken.createKakaoToken("access-token", "refresh-token"));
+        given(globalSocialTokenCommandAdapter.save(any(SocialToken.class)))
+                .willReturn(SocialToken.createSocialToken("access-token", "refresh-token"));
         given(saveMemberAdapter.saveNewMember(any(Member.class))).willReturn(persistedMember);
         given(globalAuthTokenSaveAdapter.save(any(AuthToken.class))).willReturn(persistedAuthToken);
         given(globalJwtAdapter.generateAccessToken(any(MemberDetail.class))).willReturn("access-jwt");
@@ -113,7 +113,7 @@ class MemberSignupServiceTest extends BaseUnitTest {
 
         assertThat(result).isEqualTo(jwtCookies);
         verify(redisMemberDataAdapter).getTempData("uuid-123");
-        verify(globalKakaoTokenCommandAdapter).save(any(KakaoToken.class));
+        verify(globalSocialTokenCommandAdapter).save(any(SocialToken.class));
         verify(saveMemberAdapter).saveNewMember(any(Member.class));
         verify(globalAuthTokenSaveAdapter).save(any(AuthToken.class));
 
@@ -147,8 +147,8 @@ class MemberSignupServiceTest extends BaseUnitTest {
     void shouldGenerateJwtTokensAndCookiesOnSignup() {
         // 회원가입 시점에 JWT 토큰과 쿠키가 생성되는지 검증
         given(redisMemberDataAdapter.getTempData("uuid-123")).willReturn(Optional.of(socialProfile));
-        given(globalKakaoTokenCommandAdapter.save(any(KakaoToken.class)))
-                .willReturn(KakaoToken.createKakaoToken("access-token", "refresh-token"));
+        given(globalSocialTokenCommandAdapter.save(any(SocialToken.class)))
+                .willReturn(SocialToken.createSocialToken("access-token", "refresh-token"));
         given(saveMemberAdapter.saveNewMember(any(Member.class))).willReturn(persistedMember);
         given(globalAuthTokenSaveAdapter.save(any(AuthToken.class))).willReturn(persistedAuthToken);
         given(globalJwtAdapter.generateAccessToken(any(MemberDetail.class))).willReturn("access-jwt");

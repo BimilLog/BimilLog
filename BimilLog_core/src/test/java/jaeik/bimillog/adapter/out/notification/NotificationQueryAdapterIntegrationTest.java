@@ -55,7 +55,7 @@ class NotificationQueryAdapterIntegrationTest {
     void setUp() {
         Member tempTargetMember = TestMembers.copyWithId(TestMembers.MEMBER_1, null);
         testEntityManager.persistAndFlush(tempTargetMember.getSetting());
-        testEntityManager.persistAndFlush(tempTargetMember.getKakaoToken());
+        testEntityManager.persistAndFlush(tempTargetMember.getSocialToken());
         targetMember = Member.createMember(
             tempTargetMember.getSocialId(),
             tempTargetMember.getProvider(),
@@ -63,13 +63,13 @@ class NotificationQueryAdapterIntegrationTest {
             tempTargetMember.getThumbnailImage(),
             tempTargetMember.getMemberName(),
             tempTargetMember.getSetting(),
-            tempTargetMember.getKakaoToken()
+            tempTargetMember.getSocialToken()
         );
         targetMember = testEntityManager.persistAndFlush(targetMember);
 
         Member tempOtherMember = TestMembers.copyWithId(TestMembers.MEMBER_2, null);
         testEntityManager.persistAndFlush(tempOtherMember.getSetting());
-        testEntityManager.persistAndFlush(tempOtherMember.getKakaoToken());
+        testEntityManager.persistAndFlush(tempOtherMember.getSocialToken());
         otherMember = Member.createMember(
             tempOtherMember.getSocialId(),
             tempOtherMember.getProvider(),
@@ -77,7 +77,7 @@ class NotificationQueryAdapterIntegrationTest {
             tempOtherMember.getThumbnailImage(),
             tempOtherMember.getMemberName(),
             tempOtherMember.getSetting(),
-            tempOtherMember.getKakaoToken()
+            tempOtherMember.getSocialToken()
         );
         otherMember = testEntityManager.persistAndFlush(otherMember);
     }

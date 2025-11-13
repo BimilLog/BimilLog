@@ -56,8 +56,8 @@ class MemberCommandAdapterTest {
         testSetting = Setting.createSetting();
         testEntityManager.persist(testSetting);
 
-        jaeik.bimillog.domain.auth.entity.KakaoToken testKakaoToken = jaeik.bimillog.domain.auth.entity.KakaoToken.createKakaoToken("test-access-token", "test-refresh-token");
-        testEntityManager.persist(testKakaoToken);
+        jaeik.bimillog.domain.auth.entity.SocialToken testSocialToken = jaeik.bimillog.domain.auth.entity.SocialToken.createSocialToken("test-access-token", "test-refresh-token");
+        testEntityManager.persist(testSocialToken);
 
         testMember = Member.createMember(
                 "12345678",
@@ -66,7 +66,7 @@ class MemberCommandAdapterTest {
                 "https://test.com/profile.jpg",
                 "testUser123",
                 testSetting,
-                testKakaoToken
+                testSocialToken
         );
         testEntityManager.persist(testMember);
         testEntityManager.flush();
@@ -133,8 +133,8 @@ class MemberCommandAdapterTest {
         Setting otherSetting = Setting.createSetting();
         testEntityManager.persist(otherSetting);
 
-        jaeik.bimillog.domain.auth.entity.KakaoToken otherKakaoToken = jaeik.bimillog.domain.auth.entity.KakaoToken.createKakaoToken("other-access", "other-refresh");
-        testEntityManager.persist(otherKakaoToken);
+        jaeik.bimillog.domain.auth.entity.SocialToken otherSocialToken = jaeik.bimillog.domain.auth.entity.SocialToken.createSocialToken("other-access", "other-refresh");
+        testEntityManager.persist(otherSocialToken);
 
         Member otherMember = Member.createMember(
                 "87654321",
@@ -143,7 +143,7 @@ class MemberCommandAdapterTest {
                 "https://test.com/other.jpg",
                 "otherUser456",
                 otherSetting,
-                otherKakaoToken
+                otherSocialToken
         );
         testEntityManager.persist(otherMember);
         testEntityManager.flush();

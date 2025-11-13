@@ -79,8 +79,8 @@ class PostQueryAdapterIntegrationTest {
         if (testMember.getSetting() != null) {
             entityManager.persist(testMember.getSetting());
         }
-        if (testMember.getKakaoToken() != null) {
-            entityManager.persist(testMember.getKakaoToken());
+        if (testMember.getSocialToken() != null) {
+            entityManager.persist(testMember.getSocialToken());
         }
         entityManager.persistAndFlush(testMember);
 
@@ -189,8 +189,8 @@ class PostQueryAdapterIntegrationTest {
         if (likeMember.getSetting() != null) {
             entityManager.persist(likeMember.getSetting());
         }
-        if (likeMember.getKakaoToken() != null) {
-            entityManager.persist(likeMember.getKakaoToken());
+        if (likeMember.getSocialToken() != null) {
+            entityManager.persist(likeMember.getSocialToken());
         }
         entityManager.persistAndFlush(likeMember);
 
@@ -325,8 +325,8 @@ class PostQueryAdapterIntegrationTest {
         if (likeMember.getSetting() != null) {
             entityManager.persist(likeMember.getSetting());
         }
-        if (likeMember.getKakaoToken() != null) {
-            entityManager.persist(likeMember.getKakaoToken());
+        if (likeMember.getSocialToken() != null) {
+            entityManager.persist(likeMember.getSocialToken());
         }
         entityManager.persistAndFlush(likeMember);
 

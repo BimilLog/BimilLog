@@ -33,15 +33,16 @@ public class SocialLoginService {
      * <p>처리 순서: 중복 로그인 검증 → 소셜 전략 실행 → 사용자 프로필 획득 → 트랜잭션 서비스 위임</p>
      * <p>실제 DB 작업 및 토큰 발급은 {@link SocialLoginTransactionalService#finishLogin}에서 수행됩니다.</p>
      *
-     * @param provider 소셜 플랫폼 제공자 (KAKAO 등)
+     * @param provider 소셜 플랫폼 제공자 (KAKAO, NAVER 등)
      * @param code     OAuth 인가 코드
+     * @param state    OAuth state 파라미터 (CSRF 방지용, 일부 제공자에서 필수)
      * @return 기존 회원은 {@link LoginResult.ExistingUser}, 신규 회원은 {@link LoginResult.NewUser}
      * @author Jaeik
      * @since 2.0.0
      */
-    public LoginResult processSocialLogin(SocialProvider provider, String code) {
+    public LoginResult processSocialLogin(SocialProvider provider, String code, String state) {
         SocialPlatformStrategy strategy = globalSocialStrategyAdapter.getStrategy(provider);
-        SocialMemberProfile socialUserProfile = strategy.auth().getSocialToken(code);
+        SocialMemberProfile socialUserProfile = strategy.auth().getSocialToken(code, state);
         return socialLoginTransactionalService.finishLogin(provider, socialUserProfile);
     }
 }

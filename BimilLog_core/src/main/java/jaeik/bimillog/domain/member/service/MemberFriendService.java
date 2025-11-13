@@ -1,13 +1,13 @@
 package jaeik.bimillog.domain.member.service;
 
-import jaeik.bimillog.domain.auth.entity.KakaoToken;
+import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.global.out.GlobalSocialStrategyAdapter;
 import jaeik.bimillog.domain.global.strategy.SocialFriendStrategy;
 import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
-import jaeik.bimillog.domain.global.out.GlobalKakaoTokenQueryAdapter;
 import jaeik.bimillog.domain.member.entity.KakaoFriends;
+import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.exception.MemberCustomException;
 import jaeik.bimillog.domain.member.exception.MemberErrorCode;
@@ -34,7 +34,6 @@ import java.util.List;
 public class MemberFriendService {
 
     private final MemberQueryAdapter memberQueryPort;
-    private final GlobalKakaoTokenQueryAdapter globalKakaoTokenQueryAdapter;
     private final GlobalSocialStrategyAdapter globalSocialStrategyAdapter;
 
     /**
@@ -57,9 +56,13 @@ public class MemberFriendService {
         int actualLimit = limit != null ? Math.min(limit, 100) : 10;
 
         try {
-            // 카카오 토큰 조회
-            KakaoToken kakaoToken = globalKakaoTokenQueryAdapter.findByMemberId(memberId)
+            // Member를 통해 소셜 토큰 조회
+            Member member = memberQueryPort.findById(memberId)
                     .orElseThrow(() -> new AuthCustomException(AuthErrorCode.NOT_FIND_TOKEN));
+            SocialToken socialToken = member.getSocialToken();
+            if (socialToken == null) {
+                throw new AuthCustomException(AuthErrorCode.NOT_FIND_TOKEN);
+            }
 
             // 전략 조회
             SocialPlatformStrategy platformStrategy = globalSocialStrategyAdapter.getStrategy(provider);
@@ -67,7 +70,7 @@ public class MemberFriendService {
                     .orElseThrow(() -> new MemberCustomException(MemberErrorCode.UNSUPPORTED_SOCIAL_FRIEND));
 
             KakaoFriends response = friendStrategy.getFriendList(
-                    kakaoToken.getKakaoAccessToken(), actualOffset, actualLimit);
+                    socialToken.getAccessToken(), actualOffset, actualLimit);
 
             return processFriendList(response);
             

@@ -50,7 +50,7 @@ class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("회원가입 통합 테스트 - 성공")
     void signUp_IntegrationTest_Success() throws Exception {
         // Given - 먼저 소셜 로그인으로 temp 데이터를 생성
-        SocialLoginRequestDTO socialRequest = new SocialLoginRequestDTO("KAKAO", "new_user_code");
+        SocialLoginRequestDTO socialRequest = new SocialLoginRequestDTO("KAKAO", "new_user_code", null);
 
         // 1. 소셜 로그인으로 임시 데이터 생성
         var loginResult = mockMvc.perform(post("/api/auth/login")

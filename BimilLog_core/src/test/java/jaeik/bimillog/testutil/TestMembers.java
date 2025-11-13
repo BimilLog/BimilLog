@@ -1,6 +1,6 @@
 package jaeik.bimillog.testutil;
 
-import jaeik.bimillog.domain.auth.entity.KakaoToken;
+import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.MemberRole;
 import jaeik.bimillog.domain.member.entity.Setting;
@@ -31,7 +31,7 @@ public class TestMembers {
                 "http://example.com/profile1.jpg",
                 "testUser1",
                 createAllEnabledSetting(),
-                createTestKakaoToken()
+                createTestSocialToken()
         );
 
         MEMBER_2 = Member.createMember(
@@ -41,7 +41,7 @@ public class TestMembers {
                 "http://example.com/profile2.jpg",
                 "testUser2",
                 createAllEnabledSetting(),
-                createTestKakaoToken()
+                createTestSocialToken()
         );
 
         MEMBER_3 = Member.createMember(
@@ -51,7 +51,7 @@ public class TestMembers {
                 "http://example.com/profile3.jpg",
                 "testUser3",
                 createAllEnabledSetting(),
-                createTestKakaoToken()
+                createTestSocialToken()
         );
     }
 
@@ -66,7 +66,7 @@ public class TestMembers {
                 "http://example.com/profile.jpg",
                 memberName,
                 createAllEnabledSetting(),
-                createTestKakaoToken()
+                createTestSocialToken()
         );
     }
 
@@ -81,7 +81,7 @@ public class TestMembers {
                 member.getThumbnailImage(),
                 member.getMemberName(),
                 cloneSetting(member.getSetting()),
-                createTestKakaoToken()
+                createTestSocialToken()
         );
         TestFixtures.setFieldValue(copied, "id", id);
         return copied;
@@ -112,7 +112,7 @@ public class TestMembers {
                     "http://example.com/admin.jpg",
                     "adminMember_" + timestamp,
                     createAllDisabledSetting(),
-                    createTestKakaoToken()
+                    createTestSocialToken()
             );
             TestFixtures.setFieldValue(admin, "role", MemberRole.ADMIN);
             return admin;
@@ -186,10 +186,10 @@ public class TestMembers {
     }
 
     /**
-     * 테스트용 KakaoToken 생성
+     * 테스트용 SocialToken 생성
      */
-    private static KakaoToken createTestKakaoToken() {
-        return KakaoToken.createKakaoToken(
+    private static SocialToken createTestSocialToken() {
+        return SocialToken.createSocialToken(
                 "test-kakao-access-token",
                 "test-kakao-refresh-token"
         );

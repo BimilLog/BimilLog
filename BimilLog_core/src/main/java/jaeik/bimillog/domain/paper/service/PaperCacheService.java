@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.paper.service;
 
 import jaeik.bimillog.domain.paper.entity.PopularPaperInfo;
-import jaeik.bimillog.domain.paper.out.PaperQueryAdapter;
+import jaeik.bimillog.domain.paper.out.PaperQueryRepository;
 import jaeik.bimillog.domain.paper.out.PaperToMemberAdapter;
 import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
 import jaeik.bimillog.infrastructure.redis.paper.RedisPaperQueryAdapter;
@@ -32,9 +32,8 @@ import static jaeik.bimillog.infrastructure.redis.paper.RedisPaperKeys.REALTIME_
 @RequiredArgsConstructor
 @Slf4j
 public class PaperCacheService {
-
     private final RedisPaperQueryAdapter redisPaperQueryAdapter;
-    private final PaperQueryAdapter paperQueryAdapter;
+    private final PaperQueryRepository paperQueryRepository;
     private final PaperToMemberAdapter paperToMemberAdapter;
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -84,7 +83,7 @@ public class PaperCacheService {
         );
 
         // 5. DB에서 24시간 이내 메시지 수 조회 후 채우기
-        paperQueryAdapter.enrichPopularPaperInfos(popularPapers);
+        paperQueryRepository.enrichPopularPaperInfos(popularPapers);
 
         // 6. 페이징 정보와 함께 Page로 변환하여 반환
         return new PageImpl<>(popularPapers, pageable, total);

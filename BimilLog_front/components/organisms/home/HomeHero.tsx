@@ -4,13 +4,17 @@ import { Button } from "flowbite-react";
 import { UserCheck } from "lucide-react";
 import { KakaoShareButton } from "@/components";
 
+import { SocialProvider } from "@/types/domains/auth";
+
 interface HomeHeroProps {
   isAuthenticated: boolean;
+  provider: SocialProvider | null;
   onOpenFriendsModal: () => void;
 }
 
 export const HomeHero: React.FC<HomeHeroProps> = ({
   isAuthenticated,
+  provider,
   onOpenFriendsModal,
 }) => {
   return (
@@ -38,28 +42,32 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
           {/* 로그인 상태 */}
           {isAuthenticated && (
             <>
-              {/* 모바일: 카카오 친구 확인하기 */}
-              <div className="sm:hidden">
-                <Button
-                  size="lg"
-                  onClick={onOpenFriendsModal}
-                  className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:bg-gradient-to-l focus:ring-purple-200 dark:focus:ring-purple-800"
-                >
-                  <UserCheck className="w-5 h-5 mr-2 stroke-slate-600 fill-slate-100" />
-                  카카오 친구 확인하기
-                </Button>
-              </div>
+              {/* 모바일: 카카오 친구 확인하기 (카카오 사용자만) */}
+              {provider === 'KAKAO' && (
+                <div className="sm:hidden">
+                  <Button
+                    size="lg"
+                    onClick={onOpenFriendsModal}
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:bg-gradient-to-l focus:ring-purple-200 dark:focus:ring-purple-800"
+                  >
+                    <UserCheck className="w-5 h-5 mr-2 stroke-slate-600 fill-slate-100" />
+                    카카오 친구 확인하기
+                  </Button>
+                </div>
+              )}
 
               {/* PC: 카카오 친구 확인하기와 다른 롤링페이퍼 방문하기를 한 줄로 */}
               <div className="hidden sm:flex flex-row gap-4 justify-center items-center">
-                <Button
-                  size="lg"
-                  onClick={onOpenFriendsModal}
-                  className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:bg-gradient-to-l focus:ring-purple-200 dark:focus:ring-purple-800"
-                >
-                  <UserCheck className="w-5 h-5 mr-2 stroke-slate-600 fill-slate-100" />
-                  카카오 친구 확인하기
-                </Button>
+                {provider === 'KAKAO' && (
+                  <Button
+                    size="lg"
+                    onClick={onOpenFriendsModal}
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:bg-gradient-to-l focus:ring-purple-200 dark:focus:ring-purple-800"
+                  >
+                    <UserCheck className="w-5 h-5 mr-2 stroke-slate-600 fill-slate-100" />
+                    카카오 친구 확인하기
+                  </Button>
+                )}
                 <Button
                   size="lg"
                   onClick={() => window.location.href = '/visit'}

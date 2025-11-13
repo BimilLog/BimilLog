@@ -54,7 +54,7 @@ class PostLikeQueryAdapterIntegrationTest {
     void setUp() {
         Member tempAuthor = TestMembers.copyWithId(TestMembers.MEMBER_1, null);
         testEntityManager.persistAndFlush(tempAuthor.getSetting());
-        testEntityManager.persistAndFlush(tempAuthor.getKakaoToken());
+        testEntityManager.persistAndFlush(tempAuthor.getSocialToken());
         author = Member.createMember(
             tempAuthor.getSocialId(),
             tempAuthor.getProvider(),
@@ -62,13 +62,13 @@ class PostLikeQueryAdapterIntegrationTest {
             tempAuthor.getThumbnailImage(),
             tempAuthor.getMemberName(),
             tempAuthor.getSetting(),
-            tempAuthor.getKakaoToken()
+            tempAuthor.getSocialToken()
         );
         author = testEntityManager.persistAndFlush(author);
 
         Member tempLikerOne = TestMembers.copyWithId(TestMembers.MEMBER_2, null);
         testEntityManager.persistAndFlush(tempLikerOne.getSetting());
-        testEntityManager.persistAndFlush(tempLikerOne.getKakaoToken());
+        testEntityManager.persistAndFlush(tempLikerOne.getSocialToken());
         likerOne = Member.createMember(
             tempLikerOne.getSocialId(),
             tempLikerOne.getProvider(),
@@ -76,13 +76,13 @@ class PostLikeQueryAdapterIntegrationTest {
             tempLikerOne.getThumbnailImage(),
             tempLikerOne.getMemberName(),
             tempLikerOne.getSetting(),
-            tempLikerOne.getKakaoToken()
+            tempLikerOne.getSocialToken()
         );
         likerOne = testEntityManager.persistAndFlush(likerOne);
 
         Member tempLikerTwo = TestMembers.copyWithId(TestMembers.MEMBER_3, null);
         testEntityManager.persistAndFlush(tempLikerTwo.getSetting());
-        testEntityManager.persistAndFlush(tempLikerTwo.getKakaoToken());
+        testEntityManager.persistAndFlush(tempLikerTwo.getSocialToken());
         likerTwo = Member.createMember(
             tempLikerTwo.getSocialId(),
             tempLikerTwo.getProvider(),
@@ -90,7 +90,7 @@ class PostLikeQueryAdapterIntegrationTest {
             tempLikerTwo.getThumbnailImage(),
             tempLikerTwo.getMemberName(),
             tempLikerTwo.getSetting(),
-            tempLikerTwo.getKakaoToken()
+            tempLikerTwo.getSocialToken()
         );
         likerTwo = testEntityManager.persistAndFlush(likerTwo);
     }

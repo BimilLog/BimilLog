@@ -41,7 +41,7 @@ class SocialLoginRequestDTOTest {
         @DisplayName("모든 필드가 유효한 경우 - 검증 통과")
         void shouldPass_WhenAllFieldsValid() {
             // Given
-            SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "valid-code");
+            SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "valid-code", null);
 
             // When
             Set<ConstraintViolation<SocialLoginRequestDTO>> violations = validator.validate(request);
@@ -59,7 +59,7 @@ class SocialLoginRequestDTOTest {
         @DisplayName("provider가 null인 경우 - @NotBlank 검증 실패")
         void shouldFail_WhenProviderIsNull() {
             // Given
-            SocialLoginRequestDTO request = new SocialLoginRequestDTO(null, "valid-code");
+            SocialLoginRequestDTO request = new SocialLoginRequestDTO(null, "valid-code", null);
 
             // When
             Set<ConstraintViolation<SocialLoginRequestDTO>> violations = validator.validate(request);
@@ -75,7 +75,7 @@ class SocialLoginRequestDTOTest {
         @DisplayName("provider가 빈 문자열인 경우 - @NotBlank 검증 실패")
         void shouldFail_WhenProviderIsEmpty() {
             // Given
-            SocialLoginRequestDTO request = new SocialLoginRequestDTO("", "valid-code");
+            SocialLoginRequestDTO request = new SocialLoginRequestDTO("", "valid-code", null);
 
             // When
             Set<ConstraintViolation<SocialLoginRequestDTO>> violations = validator.validate(request);
@@ -91,7 +91,7 @@ class SocialLoginRequestDTOTest {
         @DisplayName("유효하지 않은 provider인 경우 - @AssertTrue 검증 실패")
         void shouldFail_WhenProviderIsInvalid() {
             // Given
-            SocialLoginRequestDTO request = new SocialLoginRequestDTO("INVALID_PROVIDER", "valid-code");
+            SocialLoginRequestDTO request = new SocialLoginRequestDTO("INVALID_PROVIDER", "valid-code", null);
 
             // When
             Set<ConstraintViolation<SocialLoginRequestDTO>> violations = validator.validate(request);
@@ -107,9 +107,9 @@ class SocialLoginRequestDTOTest {
         @DisplayName("provider 대소문자 무관하게 검증 - KAKAO")
         void shouldPass_WhenProviderIsCaseInsensitive_KAKAO() {
             // Given
-            SocialLoginRequestDTO request1 = new SocialLoginRequestDTO("kakao", "valid-code");
-            SocialLoginRequestDTO request2 = new SocialLoginRequestDTO("Kakao", "valid-code");
-            SocialLoginRequestDTO request3 = new SocialLoginRequestDTO("KAKAO", "valid-code");
+            SocialLoginRequestDTO request1 = new SocialLoginRequestDTO("kakao", "valid-code", null);
+            SocialLoginRequestDTO request2 = new SocialLoginRequestDTO("Kakao", "valid-code", null);
+            SocialLoginRequestDTO request3 = new SocialLoginRequestDTO("KAKAO", "valid-code", null);
 
             // When
             Set<ConstraintViolation<SocialLoginRequestDTO>> violations1 = validator.validate(request1);
@@ -131,7 +131,7 @@ class SocialLoginRequestDTOTest {
         @DisplayName("code가 null인 경우 - @NotBlank 검증 실패")
         void shouldFail_WhenCodeIsNull() {
             // Given
-            SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", null);
+            SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", null, null);
 
             // When
             Set<ConstraintViolation<SocialLoginRequestDTO>> violations = validator.validate(request);
@@ -147,7 +147,7 @@ class SocialLoginRequestDTOTest {
         @DisplayName("code가 빈 문자열인 경우 - @NotBlank 검증 실패")
         void shouldFail_WhenCodeIsEmpty() {
             // Given
-            SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "");
+            SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "", null);
 
             // When
             Set<ConstraintViolation<SocialLoginRequestDTO>> violations = validator.validate(request);
@@ -163,7 +163,7 @@ class SocialLoginRequestDTOTest {
         @DisplayName("code가 공백으로만 구성된 경우 - @NotBlank 검증 실패")
         void shouldFail_WhenCodeIsBlank() {
             // Given
-            SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "   ");
+            SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "   ", null);
 
             // When
             Set<ConstraintViolation<SocialLoginRequestDTO>> violations = validator.validate(request);
@@ -184,7 +184,7 @@ class SocialLoginRequestDTOTest {
         @DisplayName("유효한 provider로 SocialProvider 열거형 반환 - KAKAO")
         void shouldReturnSocialProvider_WhenProviderIsKAKAO() {
             // Given
-            SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "valid-code");
+            SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "valid-code", null);
 
             // When
             SocialProvider result = request.getSocialProvider();
@@ -197,7 +197,7 @@ class SocialLoginRequestDTOTest {
         @DisplayName("대소문자 구분 없이 SocialProvider 반환 - kakao")
         void shouldReturnSocialProvider_WhenProviderIsLowerCase() {
             // Given
-            SocialLoginRequestDTO request = new SocialLoginRequestDTO("kakao", "valid-code");
+            SocialLoginRequestDTO request = new SocialLoginRequestDTO("kakao", "valid-code", null);
 
             // When
             SocialProvider result = request.getSocialProvider();
@@ -210,7 +210,7 @@ class SocialLoginRequestDTOTest {
         @DisplayName("유효하지 않은 provider로 호출 시 IllegalArgumentException 발생")
         void shouldThrowException_WhenProviderIsInvalid() {
             // Given
-            SocialLoginRequestDTO request = new SocialLoginRequestDTO("INVALID_PROVIDER", "valid-code");
+            SocialLoginRequestDTO request = new SocialLoginRequestDTO("INVALID_PROVIDER", "valid-code", null);
 
             // When & Then
             assertThatThrownBy(request::getSocialProvider)
@@ -221,7 +221,7 @@ class SocialLoginRequestDTOTest {
         @DisplayName("null provider로 호출 시 NullPointerException 발생")
         void shouldThrowException_WhenProviderIsNull() {
             // Given
-            SocialLoginRequestDTO request = new SocialLoginRequestDTO(null, "valid-code");
+            SocialLoginRequestDTO request = new SocialLoginRequestDTO(null, "valid-code", null);
 
             // When & Then
             assertThatThrownBy(request::getSocialProvider)

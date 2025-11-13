@@ -3,9 +3,12 @@ package jaeik.bimillog.infrastructure.api.social.kakao;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
+import jaeik.bimillog.domain.auth.exception.AuthCustomException;
+import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.global.strategy.SocialAuthStrategy;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.Base64;
@@ -16,6 +19,7 @@ import java.util.Map;
  * <h2>카카오 인증 전략</h2>
  * <p>카카오 OAuth 플로우를 처리하는 인증 전략 구현체입니다.</p>
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class KakaoAuthStrategy implements SocialAuthStrategy {
@@ -44,12 +48,14 @@ public class KakaoAuthStrategy implements SocialAuthStrategy {
      * <p>ID 토큰을 파싱하여 사용자 프로필 정보를 추출합니다.</p>
      *
      * @param code OAuth 2.0 인증 코드
+     * @param state OAuth 2.0 state 파라미터 (카카오는 사용 안 함, 무시됨)
      * @return 소셜 토큰 및 사용자 프로필 정보
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public SocialMemberProfile getSocialToken(String code) {
+    public SocialMemberProfile getSocialToken(String code, String state) {
+        // 카카오는 state 파라미터를 사용하지 않으므로 무시
         Map<String, String> params = new HashMap<>();
         params.put("grant_type", "authorization_code");
         params.put("client_id", kakaoKeyVO.getCLIENT_ID());
@@ -83,40 +89,8 @@ public class KakaoAuthStrategy implements SocialAuthStrategy {
                     refreshToken
             );
         } catch (Exception e) {
-            throw new RuntimeException("Kakao token request failed: " + e.getMessage(), e);
-        }
-    }
-
-    /**
-     * <h3>카카오 사용자 정보 조회</h3>
-     * <p>액세스 토큰을 사용하여 카카오 사용자 정보를 조회합니다.</p>
-     * <p>현재는 정보 조회만 수행하며, 반환값은 사용되지 않습니다.</p>
-     *
-     * @param accessToken 카카오 액세스 토큰
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Override
-    public void getUserInfo(String accessToken) {
-        try {
-            Map<String, Object> responseBody = kakaoApiClient.getUserInfo("Bearer " + accessToken);
-
-            Map<String, Object> kakaoAccount = (Map<String, Object>) responseBody.get("kakao_account");
-            Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
-
-            String socialId = String.valueOf(responseBody.get("id"));
-            String nickname = (String) profile.get("nickname");
-            String thumbnailImage = (String) profile.get("thumbnail_image_url");
-
-//            KakaoMemberInfo.of(
-//                    socialId,
-//                    null, // 이메일이 필요없어서 받지 않고 있음
-//                    SocialProvider.KAKAO,
-//                    nickname,
-//                    thumbnailImage
-//            );
-        } catch (Exception e) {
-            throw new RuntimeException("Kakao member info request failed: " + e.getMessage(), e);
+            log.error("카카오 토큰 요청 실패: {}", e.getMessage(), e);
+            throw new AuthCustomException(AuthErrorCode.SOCIAL_TOKEN_REQUEST_FAILED);
         }
     }
 
@@ -124,13 +98,15 @@ public class KakaoAuthStrategy implements SocialAuthStrategy {
      * <h3>카카오 계정 연결 해제</h3>
      * <p>관리자 키를 사용하여 사용자의 카카오 계정 연결을 해제합니다.</p>
      * <p>회원 탈퇴 또는 사용자 차단 시 호출됩니다.</p>
+     * <p>카카오는 관리자 키로 연결 해제가 가능하므로 accessToken은 사용하지 않습니다.</p>
      *
      * @param socialId 카카오 사용자 고유 ID
+     * @param accessToken 소셜 플랫폼 액세스 토큰 (카카오는 사용하지 않음)
      * @author Jaeik
      * @since 2.0.0
      */
     @Override
-    public void unlink(String socialId) {
+    public void unlink(String socialId, String accessToken) {
         Map<String, String> params = new HashMap<>();
         params.put("target_id_type", "user_id");
         params.put("target_id", socialId);
@@ -138,7 +114,8 @@ public class KakaoAuthStrategy implements SocialAuthStrategy {
         try {
             kakaoApiClient.unlink("KakaoAK " + kakaoKeyVO.getADMIN_KEY(), params);
         } catch (Exception e) {
-            throw new RuntimeException("Kakao unlink failed: " + e.getMessage(), e);
+            log.error("카카오 연결 해제 실패: {}", e.getMessage(), e);
+            throw new AuthCustomException(AuthErrorCode.SOCIAL_TOKEN_DELETE_FAILED);
         }
     }
 
@@ -174,8 +151,28 @@ public class KakaoAuthStrategy implements SocialAuthStrategy {
         try {
             kakaoApiClient.forceLogout("KakaoAK " + kakaoKeyVO.getADMIN_KEY(), params);
         } catch (Exception e) {
-            throw new RuntimeException("카카오 강제 로그아웃 실패: " + e.getMessage(), e);
+            log.error("카카오 강제 로그아웃 실패: {}", e.getMessage(), e);
+            throw new AuthCustomException(AuthErrorCode.SOCIAL_TOKEN_DELETE_FAILED);
         }
+    }
+
+    /**
+     * <h3>카카오 액세스 토큰 갱신</h3>
+     * <p>리프레시 토큰을 사용하여 새로운 액세스 토큰을 발급받습니다.</p>
+     * <p>TODO: 카카오 토큰 갱신 API 구현 필요</p>
+     *
+     * @param refreshToken 카카오 리프레시 토큰
+     * @return 갱신된 액세스 토큰
+     * @throws Exception 토큰 갱신 실패 시
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Override
+    public String refreshAccessToken(String refreshToken) throws Exception {
+        // TODO: 카카오 토큰 갱신 API 구현 필요
+        // https://kauth.kakao.com/oauth/token
+        // grant_type=refresh_token
+        throw new UnsupportedOperationException("카카오 토큰 갱신 기능은 아직 구현되지 않았습니다.");
     }
 
     /**

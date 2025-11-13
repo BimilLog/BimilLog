@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { MainLayout } from "@/components/organisms/layout/BaseLayout";
 import { useAuth } from "@/hooks";
+import { useAuthStore } from "@/stores/auth.store";
 import { notificationCommand } from "@/lib/api";
 import { logger, isMobileOrTablet, isKakaoInAppBrowser } from '@/lib/utils';
 import { LazyKakaoFriendsModal } from "@/lib/utils/lazy-components";
@@ -16,6 +17,7 @@ import { PopularPapersSection } from "./PopularPapersSection";
 
 export default function HomeClient() {
   const { isAuthenticated, user } = useAuth();
+  const provider = useAuthStore((state) => state.provider);
   const [isFriendsModalOpen, setIsFriendsModalOpen] = useState(false);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const router = useRouter();
@@ -106,6 +108,7 @@ export default function HomeClient() {
           <div className="flex-1">
             <HomeHero
               isAuthenticated={isAuthenticated}
+              provider={provider}
               onOpenFriendsModal={handleOpenFriendsModal}
             />
           </div>
@@ -125,11 +128,13 @@ export default function HomeClient() {
       {/* Features Section */}
       <HomeFeatures />
 
-      {/* 카카오 친구 모달 */}
-      <LazyKakaoFriendsModal
-        isOpen={isFriendsModalOpen}
-        onClose={() => setIsFriendsModalOpen(false)}
-      />
+      {/* 카카오 친구 모달 - 카카오 로그인 사용자만 */}
+      {provider === 'KAKAO' && (
+        <LazyKakaoFriendsModal
+          isOpen={isFriendsModalOpen}
+          onClose={() => setIsFriendsModalOpen(false)}
+        />
+      )}
 
       {/* 알림 권한 요청 모달 */}
       <NotificationPermissionModal

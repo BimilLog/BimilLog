@@ -1,8 +1,11 @@
 package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
+import jaeik.bimillog.domain.auth.entity.SocialToken;
+import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.global.out.GlobalSocialStrategyAdapter;
 import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
+import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +18,7 @@ import org.springframework.stereotype.Service;
 public class SocialWithdrawService {
 
     private final GlobalSocialStrategyAdapter globalSocialStrategyAdapter;
+    private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
 
 
     /**
@@ -25,14 +29,21 @@ public class SocialWithdrawService {
      *
      * @param provider 연동 해제할 소셜 플랫폼 제공자
      * @param socialId 소셜 플랫폼에서의 사용자 고유 ID
+     * @param memberId 사용자 ID (소셜 토큰 조회용)
      * @author Jaeik
      * @since 2.0.0
      */
-    public void unlinkSocialAccount(SocialProvider provider, String socialId) {
-        log.info("소셜 연결 해제 시작 - 제공자: {}, 소셜 ID: {}", provider, socialId);
+    public void unlinkSocialAccount(SocialProvider provider, String socialId, Long memberId) {
+        log.info("소셜 연결 해제 시작 - 제공자: {}, 소셜 ID: {}, 회원 ID: {}", provider, socialId, memberId);
+
+        // Member 조회 및 accessToken 추출
+        Member member = globalMemberQueryAdapter.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다: " + memberId));
+        SocialToken socialToken = member.getSocialToken();
+        String accessToken = socialToken != null ? socialToken.getAccessToken() : null;
 
         SocialPlatformStrategy strategy = globalSocialStrategyAdapter.getStrategy(provider);
-        strategy.auth().unlink(socialId);
+        strategy.auth().unlink(socialId, accessToken);
 
         log.info("소셜 연결 해제 완료 - 제공자: {}, 소셜 ID: {}", provider, socialId);
     }

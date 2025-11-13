@@ -9,7 +9,7 @@ import java.util.Map;
 
 /**
  * <h2>롤링페이퍼-사용자 도메인 연결 어댑터</h2>
- * <p>Paper 도메인과 Member 도메인을 연결하는 아웃바운드 어댑터입니다.</p>
+ * <p>Paper 도메인과 Member 도메인을 연결하는 어댑터입니다.</p>
  * <p>롤링페이퍼 도메인에서 사용자 도메인의 기능을 호출하는 중개 역할을 수행합니다.</p>
  *
  *
@@ -19,7 +19,6 @@ import java.util.Map;
 @Component
 @RequiredArgsConstructor
 public class PaperToMemberAdapter {
-
     private final MemberQueryService memberQueryService;
 
     /**

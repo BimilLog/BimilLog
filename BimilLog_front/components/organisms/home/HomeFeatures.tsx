@@ -12,8 +12,8 @@ export const HomeFeatures: React.FC = () => {
     },
     {
       icon: Users,
-      title: "카카오 로그인",
-      description: "자신의 롤링페이퍼를 만들어 친구들에게 메시지를 받아보세요",
+      title: "간단한 소셜 로그인",
+      description: "간단하게 가입해서 롤링페이퍼에 친구들의 메시지를 받아보세요",
       gradient: "bg-orange-500",
     },
     {

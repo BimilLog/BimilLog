@@ -9,13 +9,21 @@ export const authCommand = {
     }
     return apiClient.post<AuthResponse>("/api/auth/login", requestBody)
   },
-  
+
+  naverLogin: (code: string) => {
+    const requestBody: SocialLoginRequest = {
+      provider: 'NAVER',
+      code,
+    }
+    return apiClient.post<AuthResponse>("/api/auth/login", requestBody)
+  },
+
   signUp: (memberName: string) => {
     const requestBody: SignUpRequest = {
       memberName
     }
     return apiClient.post<AuthResponse>("/api/member/signup", requestBody)
   },
-  
+
   logout: () => apiClient.post("/api/auth/logout"),
 }
