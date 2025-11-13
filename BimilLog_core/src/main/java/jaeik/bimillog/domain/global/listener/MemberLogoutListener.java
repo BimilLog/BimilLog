@@ -30,16 +30,16 @@ public class MemberLogoutListener {
 
     private final SocialLogoutService socialLogoutService;
     private final SseService sseService;
-    private final FcmCommandService fcmUseCase;
     private final AuthTokenService authTokenService;
     private final GlobalSocialTokenCommandAdapter globalSocialTokenCommandAdapter;
 
     /**
      * <h3>사용자 로그아웃 이벤트 처리</h3>
      * <p>사용자가 로그아웃할 때 발생하는 이벤트를 비동기로 처리합니다.</p>
-     * <p>SSE 연결 종료, 소셜 플랫폼 로그아웃, FCM 토큰 삭제, JWT 토큰 무효화, 카카오 토큰 삭제를 순차적으로 수행합니다.</p>
+     * <p>SSE 연결 종료, 소셜 플랫폼 로그아웃, AuthToken 삭제(FCM 토큰 포함), 소셜 토큰 삭제를 순차적으로 수행합니다.</p>
+     * <p>주의: AuthToken 삭제 시 기기별 FCM 토큰도 함께 삭제됩니다 (CASCADE)</p>
      *
-     * @param memberLoggedOutEvent 로그아웃 이벤트 (memberId, authTokenId, fcmTokenId, provider 포함)
+     * @param memberLoggedOutEvent 로그아웃 이벤트 (memberId, authTokenId, provider 포함)
      * @author Jaeik
      * @since 2.0.0
      */
@@ -49,7 +49,6 @@ public class MemberLogoutListener {
     public void memberLogout(MemberLoggedOutEvent memberLoggedOutEvent) throws Exception {
         Long memberId = memberLoggedOutEvent.memberId();
         Long AuthTokenId = memberLoggedOutEvent.authTokenId();
-        Long fcmTokenId = memberLoggedOutEvent.fcmTokenId();
         SocialProvider provider = memberLoggedOutEvent.provider();
 
         sseService.deleteEmitters(memberId, AuthTokenId);
@@ -58,7 +57,7 @@ public class MemberLogoutListener {
         } catch (Exception ex) {
             log.warn("소셜 로그아웃 실패 - provider: {}, memberId: {}. 이후 정리 작업은 계속 진행합니다.", provider, memberId, ex);
         }
-        fcmUseCase.deleteFcmTokens(memberId, fcmTokenId);
+        // AuthToken 삭제 시 fcmRegistrationToken도 함께 삭제됨 (테이블 통합)
         authTokenService.deleteTokens(memberId, AuthTokenId);
         globalSocialTokenCommandAdapter.deleteByMemberId(memberId);
         SecurityContextHolder.clearContext();

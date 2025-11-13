@@ -56,7 +56,6 @@ class GlobalJwtAdapterTest {
                 .memberName("tester")
                 .role(MemberRole.USER)
                 .authTokenId(99L)
-                .fcmTokenId(777L)
                 .authorities(authorities)
                 .build();
     }
@@ -75,7 +74,6 @@ class GlobalJwtAdapterTest {
         assertThat(parsed.getAuthTokenId()).isEqualTo(userDetails.getAuthTokenId());
         assertThat(parsed.getMemberName()).isEqualTo(userDetails.getMemberName());
         assertThat(parsed.getProvider()).isEqualTo(userDetails.getProvider());
-        assertThat(parsed.getFcmTokenId()).isEqualTo(userDetails.getFcmTokenId());
     }
 
     @Test

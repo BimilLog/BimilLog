@@ -26,7 +26,13 @@ public enum NotificationErrorCode {
      */
     INVALID_USER_CONTEXT(HttpStatus.BAD_REQUEST, "유효하지 않은 사용자 컨텍스트입니다.", ErrorCode.LogLevel.WARN),
     NO_SEND_FCM_TOKEN(HttpStatus.BAD_REQUEST, "fcm토큰이 없습니다.", ErrorCode.LogLevel.WARN),
-    NO_MEMBER_FCM_TOKEN(HttpStatus.INTERNAL_SERVER_ERROR, "사용자가 존재하지 않습니다.", ErrorCode.LogLevel.WARN);
+    NO_MEMBER_FCM_TOKEN(HttpStatus.INTERNAL_SERVER_ERROR, "사용자가 존재하지 않습니다.", ErrorCode.LogLevel.WARN),
+
+    /**
+     * <h3>FCM 토큰 인증 관련 에러 코드 (v2.4)</h3>
+     */
+    FCM_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "FCM 토큰을 등록할 AuthToken을 찾을 수 없습니다.", ErrorCode.LogLevel.WARN),
+    INVALID_AUTH_TOKEN(HttpStatus.FORBIDDEN, "본인의 AuthToken에만 FCM 토큰을 등록할 수 있습니다.", ErrorCode.LogLevel.WARN);
 
     private final HttpStatus status;
     private final String message;

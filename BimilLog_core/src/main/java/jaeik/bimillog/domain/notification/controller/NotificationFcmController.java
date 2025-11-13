@@ -32,14 +32,14 @@ public class NotificationFcmController {
 
     /**
      * <h3>FCM 토큰 등록</h3>
-     * <p>사용자의 FCM 푸시 알림 토큰을 서버에 등록합니다.</p>
+     * <p>사용자의 FCM 푸시 알림 토큰을 해당 기기의 AuthToken에 등록합니다.</p>
      * <p>로그인 또는 회원가입 완료 후 클라이언트가 별도로 호출합니다.</p>
      *
-     * @param userDetails 인증된 사용자 정보
+     * @param userDetails 인증된 사용자 정보 (memberId, authTokenId 포함)
      * @param request     FCM 토큰 등록 요청 DTO
      * @return 등록 성공 응답
      * @author Jaeik
-     * @since 2.0.0
+     * @since 2.1.0
      */
     @PostMapping("/fcm")
     @Log(level = LogLevel.INFO,
@@ -47,7 +47,11 @@ public class NotificationFcmController {
          excludeParams = {"fcmToken"})
     public ResponseEntity<Void> registerFcmToken(@AuthenticationPrincipal CustomUserDetails userDetails,
                                                   @Valid @RequestBody FcmTokenRegisterRequestDTO request) {
-        fcmSaveService.registerFcmToken(userDetails.getMemberId(), request.getFcmToken());
+        fcmSaveService.registerFcmToken(
+            userDetails.getMemberId(),
+            userDetails.getAuthTokenId(),
+            request.getFcmToken()
+        );
         return ResponseEntity.ok().build();
     }
 }

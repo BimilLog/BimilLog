@@ -74,7 +74,6 @@ public class GlobalJwtAdapter {
                 .claim("role", userDetails.getRole() != null ? userDetails.getRole().name() : null)
                 .claim("socialNickname", userDetails.getSocialNickname())
                 .claim("thumbnailImage", userDetails.getThumbnailImage())
-                .claim("fcmTokenId", userDetails.getFcmTokenId())
                 .setIssuedAt(new Date(now))
                 .setExpiration(validity)
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -152,7 +151,6 @@ public class GlobalJwtAdapter {
                 .memberName(claims.get("memberName", String.class))
                 .role(memberRole)
                 .authTokenId(claims.get("AuthTokenId", Long.class))
-                .fcmTokenId(claims.get("fcmTokenId", Long.class))
                 .settingId(claims.get("settingId", Long.class))
                 .authorities(createAuthorities(memberRole))
                 .build();

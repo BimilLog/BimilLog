@@ -11,12 +11,13 @@ import lombok.experimental.SuperBuilder;
 import java.time.LocalDateTime;
 
 /**
- * <h2>JWT 토큰 엔티티</h2>
- * <p>사용자의 JWT 리프레시 토큰 정보를 저장하는 엔티티</p>
- * <p>Token Rotation과 재사용 공격 감지를 위한 사용 이력을 추적합니다</p>
+ * <h2>기기별 세션 정보 엔티티 (Auth Token)</h2>
+ * <p>기기별 인증 및 알림 세션 정보를 저장하는 엔티티</p>
+ * <p>한 사용자가 여러 기기에서 로그인할 수 있으며, 각 기기마다 독립적인 AuthToken을 가집니다.</p>
+ *
  *
  * @author Jaeik
- * @since 2.0.0
+ * @since 2.1.0
  */
 @Entity
 @SuperBuilder
@@ -43,6 +44,14 @@ public class AuthToken extends BaseEntity {
 
     @Column(name = "use_count", columnDefinition = "INT DEFAULT 0")
     private Integer useCount;
+
+    /**
+     * <h3>FCM Registration Token</h3>
+     * <p>기기별 Firebase Cloud Messaging 토큰 (Push 알림용)</p>
+     * <p>NULL 허용: FCM 미지원 환경(PC, 카카오 인앱 브라우저) 또는 알림 거부 시 NULL</p>
+     */
+    @Column(name = "fcm_registration_token")
+    private String fcmRegistrationToken;
 
     /**
      * <h3>JWT 토큰 생성</h3>
@@ -76,5 +85,18 @@ public class AuthToken extends BaseEntity {
         this.refreshToken = newJwtRefreshToken;
         this.lastUsedAt = LocalDateTime.now();
         this.useCount = 0;
+    }
+
+    /**
+     * <h3>FCM Registration Token 업데이트</h3>
+     * <p>사용자가 알림 권한을 허용한 후 FCM 토큰을 등록할 때 호출됩니다.</p>
+     * <p>NULL 설정 가능: 알림 권한 거부 또는 FCM 미지원 환경에서 NULL로 설정 가능</p>
+     *
+     * @param fcmToken Firebase Cloud Messaging Registration Token (NULL 허용)
+     * @author Jaeik
+     * @since 2.1.0
+     */
+    public void updateFcmToken(String fcmToken) {
+        this.fcmRegistrationToken = fcmToken;
     }
 }
