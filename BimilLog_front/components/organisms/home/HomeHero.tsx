@@ -76,15 +76,6 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
                   롤링페이퍼 둘러보기
                 </Button>
               </div>
-
-              {/* PC: 카카오톡 공유 버튼을 한 칸 아래에 */}
-              <div className="hidden sm:block">
-                <KakaoShareButton
-                  type="service"
-                  size="lg"
-                  className="px-8 py-3 text-lg font-semibold"
-                />
-              </div>
             </>
           )}
 
@@ -99,16 +90,23 @@ export const HomeHero: React.FC<HomeHeroProps> = ({
             </Button>
           </div>
 
-          {/* 모바일: 카카오톡 공유 버튼을 맨 아래에 */}
-          {isAuthenticated && (
-            <div className="sm:hidden">
-              <KakaoShareButton
-                type="service"
-                size="lg"
-                className="px-8 py-3 text-lg font-semibold"
-              />
-            </div>
-          )}
+          {/* PC: 카카오톡 공유 버튼 - 로그인 여부 관계없이 항상 표시 */}
+          <div className="hidden sm:block">
+            <KakaoShareButton
+              type="service"
+              size="lg"
+              className="px-8 py-3 text-lg font-semibold"
+            />
+          </div>
+
+          {/* 모바일: 카카오톡 공유 버튼 - 로그인 여부 관계없이 항상 표시 */}
+          <div className="sm:hidden">
+            <KakaoShareButton
+              type="service"
+              size="lg"
+              className="px-8 py-3 text-lg font-semibold"
+            />
+          </div>
         </div>
       </div>
     </div>
