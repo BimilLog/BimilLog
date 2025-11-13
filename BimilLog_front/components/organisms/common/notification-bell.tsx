@@ -42,22 +42,23 @@ export function NotificationBell() {
   const allowBrowserPermissionPrompt = !isKakaoInAppBrowser();
 
   const {
+    isSSEConnected,
+    connectionState,
+    canConnectSSE,
+  } = useNotifications();
+  const canUseNotifications = isAuthenticated && canConnectSSE();
+
+  const {
     data: notificationResponse,
     status,
     isFetching,
     isRefetching,
     refetch,
-  } = useNotificationList();
+  } = useNotificationList({ enabled: canUseNotifications });
   const markAsReadMutation = useMarkNotificationAsRead();
   const deleteNotificationMutation = useDeleteNotification();
   const markAllAsReadMutation = useMarkAllNotificationsAsRead();
   const deleteAllNotificationsMutation = useDeleteAllNotifications();
-
-  const {
-    isSSEConnected,
-    connectionState,
-    canConnectSSE,
-  } = useNotifications();
 
   useEffect(() => {
     const checkIsMobile = () => {
@@ -156,11 +157,11 @@ export function NotificationBell() {
     refetch();
   };
 
-  if (!isAuthenticated || !canConnectSSE()) return null;
+  if (!canUseNotifications) return null;
 
   const handleOpen = (open: boolean) => {
     setIsOpen(open);
-    if (open && canConnectSSE()) {
+    if (open && canUseNotifications) {
       if (!isMobile) {
         updateDesktopPopoverPosition();
       }
@@ -169,7 +170,7 @@ export function NotificationBell() {
   };
 
   const handleRefresh = () => {
-    if (canConnectSSE()) {
+    if (canUseNotifications) {
       handleFetchNotifications();
     }
   };
