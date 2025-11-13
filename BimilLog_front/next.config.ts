@@ -48,7 +48,7 @@ const nextConfig = withPWA(pwaConfig)({
     outputFileTracingRoot: path.join(__dirname, '../'),
     webpack: (config, { dev, isServer }) => {
         if (dev && !isServer) {
-            // HMR 관련 파일 시스템 감시 설정 개선
+            // HMR 관련 파일 시스템 감시 설정 개선.
             config.watchOptions = {
                 poll: 1000,
                 aggregateTimeout: 300,
