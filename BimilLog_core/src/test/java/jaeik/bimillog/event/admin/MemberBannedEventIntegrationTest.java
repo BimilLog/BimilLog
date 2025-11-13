@@ -2,8 +2,8 @@ package jaeik.bimillog.event.admin;
 
 import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
 import jaeik.bimillog.domain.auth.service.AuthTokenService;
-import jaeik.bimillog.domain.auth.service.KakaoTokenService;
 import jaeik.bimillog.domain.auth.service.SocialLogoutService;
+import jaeik.bimillog.domain.global.out.GlobalSocialTokenCommandAdapter;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.notification.service.FcmService;
 import jaeik.bimillog.domain.notification.service.SseService;
@@ -41,7 +41,7 @@ public class MemberBannedEventIntegrationTest extends BaseEventIntegrationTest {
     private AuthTokenService authTokenService;
 
     @MockitoBean
-    private KakaoTokenService kakaoTokenService;
+    private GlobalSocialTokenCommandAdapter globalSocialTokenCommandAdapter;
 
     @Test
     @DisplayName("사용자 차단 이벤트 워크플로우 - 강제 로그아웃 및 정리 완료")
@@ -62,8 +62,8 @@ public class MemberBannedEventIntegrationTest extends BaseEventIntegrationTest {
             verify(fcmService).deleteFcmTokens(eq(memberId), eq(null));
             // JWT 토큰 무효화
             verify(authTokenService).deleteTokens(eq(memberId), eq(null));
-            // 카카오 토큰 삭제
-            verify(kakaoTokenService).deleteByMemberId(eq(memberId));
+            // 소셜 토큰 삭제
+            verify(globalSocialTokenCommandAdapter).deleteByMemberId(eq(memberId));
         });
     }
 
@@ -97,10 +97,10 @@ public class MemberBannedEventIntegrationTest extends BaseEventIntegrationTest {
             verify(authTokenService).deleteTokens(eq(2L), eq(null));
             verify(authTokenService).deleteTokens(eq(3L), eq(null));
 
-            // 카카오 토큰 삭제
-            verify(kakaoTokenService).deleteByMemberId(eq(1L));
-            verify(kakaoTokenService).deleteByMemberId(eq(2L));
-            verify(kakaoTokenService).deleteByMemberId(eq(3L));
+            // 소셜 토큰 삭제
+            verify(globalSocialTokenCommandAdapter).deleteByMemberId(eq(1L));
+            verify(globalSocialTokenCommandAdapter).deleteByMemberId(eq(2L));
+            verify(globalSocialTokenCommandAdapter).deleteByMemberId(eq(3L));
         });
     }
 
@@ -117,7 +117,7 @@ public class MemberBannedEventIntegrationTest extends BaseEventIntegrationTest {
             verify(socialLogoutService).forceLogout(eq("kakaoUser"), eq(SocialProvider.KAKAO));
             verify(fcmService).deleteFcmTokens(eq(1L), eq(null));
             verify(authTokenService).deleteTokens(eq(1L), eq(null));
-            verify(kakaoTokenService).deleteByMemberId(eq(1L));
+            verify(globalSocialTokenCommandAdapter).deleteByMemberId(eq(1L));
         });
     }
 }

@@ -1,16 +1,18 @@
 import { create, type StoreApi } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import { authQuery, authCommand, userCommand, sseManager, type Member } from '@/lib/api';
+import { authQuery, authCommand, userCommand, sseManager, type Member, type SocialProvider } from '@/lib/api';
 import { logger } from '@/lib/utils';
 import { fcmManager } from '@/lib/auth/fcm';
 
 interface AuthState {
   user: Member | null;
+  provider: SocialProvider | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   isLoggingOut: boolean;
 
   setUser: (user: Member | null) => void;
+  setProvider: (provider: SocialProvider | null) => void;
   setLoading: (loading: boolean) => void;
 
   refreshUser: () => Promise<void>;
@@ -54,6 +56,7 @@ export const useAuthStore = create<AuthState>()(
 
           const nextState: Partial<AuthState> = {
             user: null,
+            provider: null,
             isAuthenticated: false,
             isLoading: false,
           };
@@ -74,6 +77,7 @@ export const useAuthStore = create<AuthState>()(
 
         return {
           user: null,
+          provider: null,
           isLoading: true,
           isAuthenticated: false,
           isLoggingOut: false,
@@ -83,6 +87,8 @@ export const useAuthStore = create<AuthState>()(
               user,
               isAuthenticated: !!user,
             }),
+
+          setProvider: (provider) => set({ provider }),
 
           setLoading: (isLoading) => set({ isLoading }),
 
@@ -224,6 +230,7 @@ export const useAuthStore = create<AuthState>()(
         name: 'auth-storage',
         partialize: (state) => ({
           user: state.user,
+          provider: state.provider,
         }),
         onRehydrateStorage: () => (state) => {
           rehydrateStoreSet?.({

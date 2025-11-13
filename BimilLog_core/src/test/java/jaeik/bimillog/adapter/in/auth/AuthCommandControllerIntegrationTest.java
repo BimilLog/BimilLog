@@ -45,7 +45,8 @@ class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
     void socialLogin_NewUser_IntegrationTest() throws Exception {
         SocialLoginRequestDTO request = new SocialLoginRequestDTO(
                 "KAKAO",
-                "new_user_code"
+                "new_user_code",
+                "test-state"
         );
 
         mockMvc.perform(post("/api/auth/login")
@@ -68,7 +69,7 @@ class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
         );
         saveMember(existingMember);
 
-        SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "existing-member-code");
+        SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "existing-member-code", "test-state");
 
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)

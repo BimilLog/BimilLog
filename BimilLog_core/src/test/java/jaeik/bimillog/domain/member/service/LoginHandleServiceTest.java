@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.member.service;
 
-import jaeik.bimillog.domain.auth.entity.KakaoToken;
+import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
@@ -41,14 +41,14 @@ class LoginHandleServiceTest extends BaseUnitTest {
             TestFixtures.setFieldValue(member.getSetting(), "id", 10L);
         }
 
-        KakaoToken kakaoToken = KakaoToken.createKakaoToken("new-access", "new-refresh");
+        SocialToken socialToken = SocialToken.createSocialToken("new-access", "new-refresh");
 
-        Member updated = loginHandleService.handleExistingMember(member, "신규닉네임", "http://image/new.jpg", kakaoToken);
+        Member updated = loginHandleService.handleExistingMember(member, "신규닉네임", "http://image/new.jpg", socialToken);
 
         assertThat(updated).isSameAs(member);
         assertThat(member.getSocialNickname()).isEqualTo("신규닉네임");
         assertThat(member.getThumbnailImage()).isEqualTo("http://image/new.jpg");
-        assertThat(member.getKakaoToken()).isEqualTo(kakaoToken);
+        assertThat(member.getSocialToken()).isEqualTo(socialToken);
 
         verifyNoInteractions(redisMemberDataAdapter);
     }

@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.admin.out;
+package jaeik.bimillog.domain.admin.repository;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;

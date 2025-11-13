@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.out.AuthToMemberAdapter;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
-import jaeik.bimillog.domain.auth.entity.KakaoToken;
+import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
@@ -13,7 +13,7 @@ import jaeik.bimillog.domain.global.out.GlobalBlacklistAdapter;
 import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
 import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
 import jaeik.bimillog.domain.global.out.GlobalAuthTokenSaveAdapter;
-import jaeik.bimillog.domain.global.out.GlobalKakaoTokenCommandAdapter;
+import jaeik.bimillog.domain.global.out.GlobalSocialTokenCommandAdapter;
 import jaeik.bimillog.domain.global.out.GlobalLoginAdapter;
 import jaeik.bimillog.testutil.fixtures.AuthTestFixtures;
 import jaeik.bimillog.testutil.BaseUnitTest;
@@ -55,7 +55,7 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
     @Mock private GlobalCookieAdapter globalCookieAdapter;
     @Mock private GlobalJwtAdapter globalJwtAdapter;
     @Mock private GlobalAuthTokenSaveAdapter globalAuthTokenSaveAdapter;
-    @Mock private GlobalKakaoTokenCommandAdapter globalKakaoTokenCommandAdapter;
+    @Mock private GlobalSocialTokenCommandAdapter globalSocialTokenCommandAdapter;
 
     @InjectMocks
     private SocialLoginTransactionalService socialLoginTransactionalService;
@@ -77,9 +77,9 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
         given(globalBlacklistAdapter.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
         given(globalLoginAdapter.findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(Optional.of(existingMember));
 
-        KakaoToken persistedKakaoToken = KakaoToken.createKakaoToken(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
-        given(globalKakaoTokenCommandAdapter.save(any(KakaoToken.class))).willReturn(persistedKakaoToken);
-        given(authToMemberAdapter.handleExistingMember(eq(existingMember), anyString(), anyString(), eq(persistedKakaoToken)))
+        SocialToken persistedSocialToken = SocialToken.createSocialToken(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
+        given(globalSocialTokenCommandAdapter.save(any(SocialToken.class))).willReturn(persistedSocialToken);
+        given(authToMemberAdapter.handleExistingMember(eq(existingMember), anyString(), anyString(), eq(persistedSocialToken)))
                 .willReturn(existingMember);
 
         AuthToken persistedAuthToken = AuthToken.builder()
@@ -104,8 +104,8 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
 
         verify(globalBlacklistAdapter).existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID);
         verify(globalLoginAdapter).findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID);
-        verify(globalKakaoTokenCommandAdapter).save(any(KakaoToken.class));
-        verify(authToMemberAdapter).handleExistingMember(eq(existingMember), eq(profile.getNickname()), eq(profile.getProfileImageUrl()), eq(persistedKakaoToken));
+        verify(globalSocialTokenCommandAdapter).save(any(SocialToken.class));
+        verify(authToMemberAdapter).handleExistingMember(eq(existingMember), eq(profile.getNickname()), eq(profile.getProfileImageUrl()), eq(persistedSocialToken));
         verify(globalAuthTokenSaveAdapter).updateJwtRefreshToken(memberDetail.getAuthTokenId(), "generated-refresh-token");
         verify(globalCookieAdapter).generateJwtCookie("generated-access-token", "generated-refresh-token");
     }

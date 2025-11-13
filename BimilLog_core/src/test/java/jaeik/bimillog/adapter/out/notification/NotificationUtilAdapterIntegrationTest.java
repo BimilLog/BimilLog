@@ -62,7 +62,7 @@ class NotificationUtilAdapterIntegrationTest {
         // Given: 알림이 활성화된 사용자 설정 (연관 엔티티 먼저 저장)
         Member tempEnabledMember = TestMembers.copyWithId(TestMembers.MEMBER_1, null);
         testEntityManager.persistAndFlush(tempEnabledMember.getSetting());
-        testEntityManager.persistAndFlush(tempEnabledMember.getKakaoToken());
+        testEntityManager.persistAndFlush(tempEnabledMember.getSocialToken());
         enabledMember = Member.createMember(
             tempEnabledMember.getSocialId(),
             tempEnabledMember.getProvider(),
@@ -70,7 +70,7 @@ class NotificationUtilAdapterIntegrationTest {
             tempEnabledMember.getThumbnailImage(),
             tempEnabledMember.getMemberName(),
             tempEnabledMember.getSetting(),
-            tempEnabledMember.getKakaoToken()
+            tempEnabledMember.getSocialToken()
         );
         enabledMember = testEntityManager.persistAndFlush(enabledMember);
         enabledMemberId = enabledMember.getId();
@@ -80,8 +80,8 @@ class NotificationUtilAdapterIntegrationTest {
         disabledSetting = testEntityManager.persistAndFlush(disabledSetting);
 
         Member sourceMember = TestMembers.MEMBER_2;
-        jaeik.bimillog.domain.auth.entity.KakaoToken disabledKakaoToken = jaeik.bimillog.domain.auth.entity.KakaoToken.createKakaoToken("test-access", "test-refresh");
-        disabledKakaoToken = testEntityManager.persistAndFlush(disabledKakaoToken);
+        jaeik.bimillog.domain.auth.entity.SocialToken disabledSocialToken = jaeik.bimillog.domain.auth.entity.SocialToken.createSocialToken("test-access", "test-refresh");
+        disabledSocialToken = testEntityManager.persistAndFlush(disabledSocialToken);
 
         disabledMember = Member.createMember(
             sourceMember.getSocialId(),
@@ -90,7 +90,7 @@ class NotificationUtilAdapterIntegrationTest {
             sourceMember.getThumbnailImage(),
             sourceMember.getMemberName(),
             disabledSetting,
-            disabledKakaoToken
+            disabledSocialToken
         );
         disabledMember = testEntityManager.persistAndFlush(disabledMember);
         disabledMemberId = disabledMember.getId();

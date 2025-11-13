@@ -68,7 +68,7 @@ class RedisMemberDataAdapterIntegrationTest {
         assertThat(savedData).isPresent();
         assertThat(savedData.get().getSocialId()).isEqualTo("123456789");
         assertThat(savedData.get().getEmail()).isEqualTo("test@example.com");
-        assertThat(savedData.get().getKakaoAccessToken()).isEqualTo("access-token");
+        assertThat(savedData.get().getAccessToken()).isEqualTo("access-token");
 
         // Redis에서 직접 확인
         String key = RedisTestHelper.RedisKeys.tempMemberData(testUuid);

@@ -2,8 +2,8 @@ package jaeik.bimillog.domain.global.listener;
 
 import jaeik.bimillog.domain.auth.event.MemberLoggedOutEvent;
 import jaeik.bimillog.domain.auth.service.AuthTokenService;
-import jaeik.bimillog.domain.auth.service.KakaoTokenService;
 import jaeik.bimillog.domain.auth.service.SocialLogoutService;
+import jaeik.bimillog.domain.global.out.GlobalSocialTokenCommandAdapter;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.domain.notification.service.FcmService;
@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * <h2>사용자 로그아웃 이벤트 리스너</h2>
  * <p>사용자 로그아웃 시 발생하는 {@link MemberLoggedOutEvent}를 비동기로 처리합니다.</p>
- * <p>SSE 연결 종료, 소셜 플랫폼 로그아웃, FCM/JWT 토큰 삭제, 카카오 토큰 삭제를 수행합니다.</p>
+ * <p>SSE 연결 종료, 소셜 플랫폼 로그아웃, FCM/JWT 토큰 삭제, 소셜 토큰 삭제를 수행합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -32,7 +32,7 @@ public class MemberLogoutListener {
     private final SseService sseService;
     private final FcmService fcmUseCase;
     private final AuthTokenService authTokenService;
-    private final KakaoTokenService kakaoTokenService;
+    private final GlobalSocialTokenCommandAdapter globalSocialTokenCommandAdapter;
 
     /**
      * <h3>사용자 로그아웃 이벤트 처리</h3>
@@ -60,7 +60,7 @@ public class MemberLogoutListener {
         }
         fcmUseCase.deleteFcmTokens(memberId, fcmTokenId);
         authTokenService.deleteTokens(memberId, AuthTokenId);
-        kakaoTokenService.deleteByMemberId(memberId);
+        globalSocialTokenCommandAdapter.deleteByMemberId(memberId);
         SecurityContextHolder.clearContext();
 
     }

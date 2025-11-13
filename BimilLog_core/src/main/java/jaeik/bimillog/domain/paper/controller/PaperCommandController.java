@@ -38,9 +38,8 @@ public class PaperCommandController {
     public ResponseEntity<String> writeMessage(
             @PathVariable String memberName,
             @RequestBody @Valid MessageDTO messageDTO) {
-        paperCommandService.writeMessage(memberName, messageDTO.getDecoType(),
-                messageDTO.getAnonymity(), messageDTO.getContent(),
-                messageDTO.getX(), messageDTO.getY());
+        paperCommandService.writeMessage(memberName, messageDTO.getDecoType(), messageDTO.getAnonymity(),
+                messageDTO.getContent(), messageDTO.getX(), messageDTO.getY());
         return ResponseEntity.ok("메시지가 작성되었습니다.");
     }
 
@@ -57,8 +56,7 @@ public class PaperCommandController {
     @PostMapping("/delete")
     public ResponseEntity<String> deleteMessage(@AuthenticationPrincipal CustomUserDetails userDetails,
                                                 @RequestBody @Valid MessageDTO messageDTO) {
-        Long memberId = userDetails.getMemberId();
-        paperCommandService.deleteMessageInMyPaper(memberId, messageDTO.getId());
+        paperCommandService.deleteMessageInMyPaper(userDetails.getMemberId(), messageDTO.getId());
         return ResponseEntity.ok("메시지가 삭제되었습니다.");
     }
 }

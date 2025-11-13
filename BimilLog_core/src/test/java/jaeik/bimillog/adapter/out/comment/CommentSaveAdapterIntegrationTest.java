@@ -77,7 +77,7 @@ class CommentSaveAdapterIntegrationTest {
         // 테스트용 사용자 생성 - TestMembers 활용 (연관 엔티티 먼저 저장)
         Member tempMember = TestMembers.createUnique();
         entityManager.persistAndFlush(tempMember.getSetting());
-        entityManager.persistAndFlush(tempMember.getKakaoToken());
+        entityManager.persistAndFlush(tempMember.getSocialToken());
 
         testMember = Member.createMember(
             tempMember.getSocialId(),
@@ -86,7 +86,7 @@ class CommentSaveAdapterIntegrationTest {
             tempMember.getThumbnailImage(),
             tempMember.getMemberName(),
             tempMember.getSetting(),
-            tempMember.getKakaoToken()
+            tempMember.getSocialToken()
         );
         entityManager.persistAndFlush(testMember);
 

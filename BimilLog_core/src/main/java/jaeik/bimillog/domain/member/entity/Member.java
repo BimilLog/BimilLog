@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.member.entity;
 
-import jaeik.bimillog.domain.auth.entity.KakaoToken;
+import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -9,10 +9,10 @@ import lombok.*;
 /**
  * <h2>사용자 엔티티</h2>
  * <p>
- * 카카오 로그인을 통한 사용자 정보를 저장하는 엔티티
+ * 소셜 로그인(카카오, 네이버 등)을 통한 사용자 정보를 저장하는 엔티티
  * </p>
  * <p>
- * 닉네임, 카카오 정보, 설정 정보 등을 포함
+ * 닉네임, 소셜 정보, 설정 정보 등을 포함
  * </p>
  *
  * @author Jaeik
@@ -44,10 +44,10 @@ public class Member extends BaseEntity {
     private Setting setting;
 
     // Null + FK 제거 + Cascade 없음
-    // 카카오 토큰이 없는 순간도 있음 + 고아 객체의 생성 가능성 낮음 + FK 필요성 없음
+    // 소셜 토큰이 없는 순간도 있음 + 고아 객체의 생성 가능성 낮음 + FK 필요성 없음
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "kakao_token_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
-    private KakaoToken kakaoToken;
+    @JoinColumn(name = "social_token_id", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    private SocialToken socialToken;
 
     @NotNull
     @Column(name = "social_id", nullable = false)
@@ -91,16 +91,16 @@ public class Member extends BaseEntity {
     }
 
     /**
-     * <h3>카카오 토큰 갱신</h3>
-     * <p>소셜 로그인 시 카카오 토큰을 최신 토큰으로 갱신합니다.</p>
+     * <h3>소셜 토큰 갱신</h3>
+     * <p>소셜 로그인 시 토큰을 최신 토큰으로 갱신합니다.</p>
      * <p>기존 토큰이 만료되거나 갱신이 필요할 때 호출됩니다.</p>
      *
-     * @param kakaoToken 갱신할 카카오 토큰 엔티티
+     * @param socialToken 갱신할 소셜 토큰 엔티티
      * @author Jaeik
      * @since 2.0.0
      */
-    public void updateKakaoToken(KakaoToken kakaoToken) {
-        this.kakaoToken = kakaoToken;
+    public void updateSocialToken(SocialToken socialToken) {
+        this.socialToken = socialToken;
     }
 
     /**
@@ -143,7 +143,7 @@ public class Member extends BaseEntity {
      *
      * <p>
      * 소셜 사용자 프로필과 사용자 이름을 기반으로 새로운 사용자 엔티티를 생성한다.
-     * Setting과 KakaoToken은 명시적으로 전달되어야 한다.
+     * Setting과 SocialToken은 명시적으로 전달되어야 한다.
      * </p>
      * @param socialId 소셜 id
      * @param provider 소셜 제공자
@@ -151,10 +151,10 @@ public class Member extends BaseEntity {
      * @param profileImageUrl 소셜 프로필 사진 url
      * @param memberName 사용자 이름
      * @param setting 사용자 설정
-     * @param kakaoToken 카카오 OAuth 토큰
+     * @param socialToken 소셜 OAuth 토큰
      * @return 생성된 사용자 엔티티
      */
-    public static Member createMember(String socialId, SocialProvider provider, String nickname, String profileImageUrl, String memberName, Setting setting, KakaoToken kakaoToken) {
+    public static Member createMember(String socialId, SocialProvider provider, String nickname, String profileImageUrl, String memberName, Setting setting, SocialToken socialToken) {
         return Member.builder()
                 .socialId(socialId)
                 .provider(provider)
@@ -163,7 +163,7 @@ public class Member extends BaseEntity {
                 .memberName(memberName)
                 .role(MemberRole.USER)
                 .setting(setting)
-                .kakaoToken(kakaoToken)
+                .socialToken(socialToken)
                 .build();
     }
 }

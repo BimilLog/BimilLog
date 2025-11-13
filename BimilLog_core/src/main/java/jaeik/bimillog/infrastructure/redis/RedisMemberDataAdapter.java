@@ -190,7 +190,7 @@ public class RedisMemberDataAdapter {
             log.warn(NULL_PROFILE_MESSAGE, uuid);
             throw new AuthCustomException(AuthErrorCode.INVALID_USER_DATA);
         }
-        if (userProfile.getKakaoAccessToken() == null || userProfile.getKakaoRefreshToken() == null) {
+        if (userProfile.getAccessToken() == null || userProfile.getRefreshToken() == null) {
             log.warn(NULL_TOKEN_MESSAGE, uuid);
             throw new AuthCustomException(AuthErrorCode.INVALID_TOKEN_DATA);
         }

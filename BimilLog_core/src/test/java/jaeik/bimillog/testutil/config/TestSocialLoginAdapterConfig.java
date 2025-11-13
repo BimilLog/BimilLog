@@ -50,7 +50,8 @@ public class TestSocialLoginAdapterConfig {
         }
 
         @Override
-        public SocialMemberProfile getSocialToken(String code) {
+        public SocialMemberProfile getSocialToken(String code, String state) {
+            // state parameter is ignored in tests
             String socialId;
             String accessToken = "dummy-access-token";
             String refreshToken = "dummy-refresh-token";
@@ -75,12 +76,7 @@ public class TestSocialLoginAdapterConfig {
         }
 
         @Override
-        public void getUserInfo(String accessToken) {
-            // no-op
-        }
-
-        @Override
-        public void unlink(String socialId) {
+        public void unlink(String socialId, String accessToken) {
             // no-op
         }
 
@@ -92,6 +88,11 @@ public class TestSocialLoginAdapterConfig {
         @Override
         public void forceLogout(String socialId) {
             // no-op
+        }
+
+        @Override
+        public String refreshAccessToken(String refreshToken) throws Exception {
+            return "refreshed-access-token";
         }
     }
 

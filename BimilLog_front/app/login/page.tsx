@@ -10,6 +10,7 @@ import { AuthLayout } from "@/components/organisms/auth";
 import { AuthLoadingScreen } from "@/components";
 import { useAuthError } from "@/hooks";
 import { kakaoAuthManager } from "@/lib/auth/kakao";
+import { naverAuthManager } from "@/lib/auth/naver";
 
 export default function LoginPage() {
   const { isAuthenticated, isLoading } = useAuth({ skipRefresh: true });
@@ -57,6 +58,10 @@ export default function LoginPage() {
     kakaoAuthManager.redirectToKakaoAuth();
   };
 
+  const handleNaverLogin = () => {
+    naverAuthManager.redirectToNaverAuth();
+  };
+
   // 로그인 상태 확인 중일 때 로딩 스크린 표시
   if (isLoading) {
     return <AuthLoadingScreen message="로딩 중..." />;
@@ -88,8 +93,12 @@ export default function LoginPage() {
           </div>
         )}
 
-        <h5 className="mb-4 text-xl font-medium text-center text-gray-900 dark:text-white">비밀로그 시작하기</h5>
-        <p className="mb-6 text-center text-gray-500 dark:text-gray-400">나만의 롤링페이퍼를 만들어 보세요</p>
+        <div className="mb-6 text-center">
+          <div className="inline-flex items-center justify-center rounded-2xl border border-cyan-100 bg-white/90 px-6 py-3 text-xl font-semibold text-gray-900 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+            비밀로그 시작하기
+          </div>
+          <p className="mt-3 text-gray-500 dark:text-gray-400">나만의 롤링페이퍼를 만들어 보세요</p>
+        </div>
 
         <ul className="my-7 space-y-5">
           <li className="flex space-x-3">
@@ -193,6 +202,36 @@ export default function LoginPage() {
             priority
           />
         </button>
+
+        {/* 네이버 로그인 버튼 */}
+        {/* 네이버 로그인 버튼 */}
+        <button
+          onClick={handleNaverLogin}
+          className="w-full transition-all duration-200 hover:scale-[0.98] active:scale-[0.96]
+                     focus:outline-none focus:ring-4 focus:ring-green-200 dark:focus:ring-green-900
+                     rounded-lg overflow-hidden origin-center"
+          aria-label="네이버로 로그인하기"
+          style={{ transform: 'scaleY(0.95)', transformOrigin: 'center' }} // ✅ 버튼 자체도 세로 줄임
+        >
+          <Image
+            src="/naver_login_button.png"
+            alt="네이버 로그인"
+            width={300}
+            height={45}
+            className="hidden sm:block w-full h-auto touch-manipulation"
+            priority
+          />
+          <Image
+            src="/naver_login_button.png"
+            alt="네이버 로그인"
+            width={183}
+            height={45}
+            className="sm:hidden w-full h-auto touch-manipulation"
+            priority
+          />
+        </button>
+
+
 
         <div className="mt-6">
           <InfoAlert icon={false}>

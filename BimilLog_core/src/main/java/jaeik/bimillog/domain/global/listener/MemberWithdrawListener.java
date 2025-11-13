@@ -2,9 +2,9 @@ package jaeik.bimillog.domain.global.listener;
 
 import jaeik.bimillog.domain.admin.service.AdminCommandService;
 import jaeik.bimillog.domain.auth.service.AuthTokenService;
-import jaeik.bimillog.domain.auth.service.KakaoTokenService;
 import jaeik.bimillog.domain.auth.service.SocialWithdrawService;
 import jaeik.bimillog.domain.comment.service.CommentCommandService;
+import jaeik.bimillog.domain.global.out.GlobalSocialTokenCommandAdapter;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.domain.member.service.MemberCommandService;
@@ -41,13 +41,13 @@ public class MemberWithdrawListener {
     private final PaperCommandService paperCommandService;
     private final AdminCommandService adminCommandService;
     private final MemberCommandService memberCommandService;
-    private final KakaoTokenService kakaoTokenService;
+    private final GlobalSocialTokenCommandAdapter globalSocialTokenCommandAdapter;
 
     /**
      * <h3>사용자 탈퇴 이벤트 처리</h3>
      * <p>사용자가 회원 탈퇴하거나 관리자에 의해 강제 탈퇴될 때 발생하는 이벤트를 처리합니다.</p>
      * <p>모든 관련 데이터를 순차적으로 정리합니다: SSE 연결, 소셜 계정 연동 해제, 댓글 처리, 게시글 삭제,
-     * 토큰 무효화, FCM 토큰 삭제, 알림 삭제, 롤링페이퍼 메시지 삭제,카카오 토큰 삭제, 계정 정보 삭제</p>
+     * 토큰 무효화, FCM 토큰 삭제, 알림 삭제, 롤링페이퍼 메시지 삭제, 소셜 토큰 삭제, 계정 정보 삭제</p>
      * <p>신고 기록은 익명화</p>
      * @param userWithdrawnEvent 회원 탈퇴 이벤트 (memberId, socialId, provider 포함)
      * @author Jaeik
@@ -64,9 +64,9 @@ public class MemberWithdrawListener {
         // SSE 연결해제
         sseService.deleteEmitters(memberId, null);
 
-        // 카카오 연결해제
+        // 소셜 계정 연결해제
         try {
-            socialWithdrawService.unlinkSocialAccount(provider, socialId);
+            socialWithdrawService.unlinkSocialAccount(provider, socialId, memberId);
         } catch (Exception ex) {
             log.warn("소셜 계정 연동 해제 실패 - provider: {}, socialId: {}. 탈퇴 후속 처리를 계속 진행합니다.", provider, socialId, ex);
         }
@@ -91,8 +91,8 @@ public class MemberWithdrawListener {
         // 신고자 익명화
         adminCommandService.anonymizeReporterByUserId(memberId);
 
-        // 카카오 토큰 제거
-        kakaoTokenService.deleteByMemberId(memberId);
+        // 소셜 토큰 제거
+        globalSocialTokenCommandAdapter.deleteByMemberId(memberId);
 
         // 사용자 정보 삭제 Cascade로 설정도 함께 삭제
         memberCommandService.removeMemberAccount(memberId);

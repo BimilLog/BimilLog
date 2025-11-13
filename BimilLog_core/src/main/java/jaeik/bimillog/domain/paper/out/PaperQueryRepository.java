@@ -3,7 +3,6 @@ package jaeik.bimillog.domain.paper.out;
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.paper.service.PaperCommandService;
-import jaeik.bimillog.domain.paper.service.PaperQueryService;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.entity.PopularPaperInfo;
 import jaeik.bimillog.domain.paper.entity.QMessage;
@@ -18,8 +17,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * <h2>롤링페이퍼 조회 어댑터</h2>
- * <p>롤링페이퍼 도메인의 조회 작업을 담당하는 어댑터입니다.</p>
+ * <h2>롤링페이퍼 조회 리포지터리</h2>
+ * <p>롤링페이퍼 도메인의 조회 작업을 담당하는 리포지터리.</p>
  * <p>사용자 ID로 조회, 사용자명으로 조회, 소유자 ID 조회</p>
  *
  * @author Jaeik
@@ -27,14 +26,12 @@ import java.util.stream.Collectors;
  */
 @Repository
 @RequiredArgsConstructor
-public class PaperQueryAdapter {
-
+public class PaperQueryRepository {
     private final JPAQueryFactory jpaQueryFactory;
 
     /**
      * <h3>사용자 ID로 내 롤링페이퍼 메시지 목록 조회</h3>
      * <p>특정 사용자가 소유한 롤링페이퍼의 모든 메시지를 최신순으로 조회합니다.</p>
-     * <p>{@link PaperQueryService#getMyPaper}에서 호출됩니다.</p>
      *
      * @param memberId 롤링페이퍼 소유자의 사용자 ID
      * @return List<Message> 해당 사용자의 메시지 목록
@@ -53,11 +50,12 @@ public class PaperQueryAdapter {
 
     /**
      * <h3>사용자명으로 방문 메시지 목록 조회</h3>
-     * <p>특정 사용자명의 롤링페이퍼에 있는 모든 메시지를 최신순으로 조회합니다.</p>
-     * <p>{@link PaperQueryService#visitPaper}에서 호출됩니다.</p>
+     * <p>특정 사용자명의 롤링페이퍼에 있는 모든 메시지 조회.</p>
+     * <p>최신순으로 정렬할 필요는 없음 왜냐하면 최신순은 메시지 목록을 보기위한 것</p>
+     * <p>롤링페이퍼 주인이 아니면 장식과 그리드 정보만 제공됨</p>
      *
      * @param memberName 방문할 롤링페이퍼 소유자의 사용자명
-     * @return List<Message> 해당 사용자의 메시지 목록 (최신순 정렬)
+     * @return List<Message> 해당 사용자의 메시지 목록
      * @author Jaeik
      * @since 2.0.0
      */
@@ -67,7 +65,6 @@ public class PaperQueryAdapter {
         return jpaQueryFactory
                 .selectFrom(message)
                 .where(message.member.memberName.eq(memberName))
-                .orderBy(message.createdAt.desc())
                 .fetch();
     }
 

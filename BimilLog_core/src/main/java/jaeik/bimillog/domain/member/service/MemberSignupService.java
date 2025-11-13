@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.member.service;
 
 import jaeik.bimillog.domain.auth.entity.AuthToken;
-import jaeik.bimillog.domain.auth.entity.KakaoToken;
+import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
@@ -9,7 +9,7 @@ import jaeik.bimillog.domain.global.entity.MemberDetail;
 import jaeik.bimillog.domain.global.out.GlobalAuthTokenSaveAdapter;
 import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
 import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
-import jaeik.bimillog.domain.global.out.GlobalKakaoTokenCommandAdapter;
+import jaeik.bimillog.domain.global.out.GlobalSocialTokenCommandAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.exception.MemberCustomException;
@@ -28,7 +28,7 @@ import java.util.Optional;
 /**
  * <h2>회원가입 서비스</h2>
  * <p>소셜 로그인 이후 Redis에 저장된 임시 프로필을 정식 회원으로 승격시키는 업무를 담당합니다.</p>
- * <p>임시 데이터 조회 → Member/Setting 생성 → KakaoToken · AuthToken · FCM 저장 → JWT 쿠키 발급 흐름을 묶습니다.</p>
+ * <p>임시 데이터 조회 → Member/Setting 생성 → SocialToken · AuthToken · FCM 저장 → JWT 쿠키 발급 흐름을 묶습니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -42,12 +42,12 @@ public class MemberSignupService {
     private final GlobalCookieAdapter globalCookieAdapter;
     private final GlobalJwtAdapter globalJwtAdapter;
     private final GlobalAuthTokenSaveAdapter globalAuthTokenSaveAdapter;
-    private final GlobalKakaoTokenCommandAdapter globalKakaoTokenCommandAdapter;
+    private final GlobalSocialTokenCommandAdapter globalSocialTokenCommandAdapter;
 
     /**
      * <h3>신규 회원 가입 처리</h3>
      * <p>Redis에 저장된 소셜 프로필과 사용자가 입력한 표시 이름으로 정식 회원을 생성합니다.</p>
-     * <p>카카오 토큰/회원/인증 토큰/FCM 토큰을 순차적으로 저장하고 최종 JWT 쿠키를 발급합니다.</p>
+     * <p>소셜 토큰/회원/인증 토큰/FCM 토큰을 순차적으로 저장하고 최종 JWT 쿠키를 발급합니다.</p>
      * <p>Race Condition 방지를 위해 데이터베이스 UNIQUE 제약조건 위반 예외를 처리합니다.</p>
      *
      * @param memberName 사용자가 입력한 표시 이름
@@ -69,9 +69,9 @@ public class MemberSignupService {
 
             SocialMemberProfile memberProfile = socialMemberProfile.get();
 
-            // 카카오 토큰 생성 및 영속화
-            KakaoToken initialKakaoToken = KakaoToken.createKakaoToken(memberProfile.getKakaoAccessToken(), memberProfile.getKakaoRefreshToken());
-            KakaoToken persistedKakaoToken = globalKakaoTokenCommandAdapter.save(initialKakaoToken);
+            // 소셜 토큰 생성 및 영속화
+            SocialToken initialSocialToken = SocialToken.createSocialToken(memberProfile.getAccessToken(), memberProfile.getRefreshToken());
+            SocialToken persistedSocialToken = globalSocialTokenCommandAdapter.save(initialSocialToken);
 
             // 멤버 생성 및 저장 (Setting은 생성 Cascade로 영속화 필요 없음)
             Setting setting = Setting.createSetting();
@@ -82,7 +82,7 @@ public class MemberSignupService {
                     memberProfile.getProfileImageUrl(),
                     memberName,
                     setting,
-                    persistedKakaoToken);
+                    persistedSocialToken);
 
             Member persistedMember = saveMemberPort.saveNewMember(member);
 

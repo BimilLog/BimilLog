@@ -3,10 +3,10 @@ package jaeik.bimillog.event.member;
 import jaeik.bimillog.domain.admin.service.AdminCommandService;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.service.AuthTokenService;
-import jaeik.bimillog.domain.auth.service.KakaoTokenService;
 import jaeik.bimillog.domain.auth.service.SocialWithdrawService;
 import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.global.out.GlobalSocialStrategyAdapter;
+import jaeik.bimillog.domain.global.out.GlobalSocialTokenCommandAdapter;
 import jaeik.bimillog.domain.global.strategy.SocialAuthStrategy;
 import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
 import jaeik.bimillog.domain.member.service.MemberCommandService;
@@ -72,7 +72,7 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
     private AdminCommandService adminCommandService;
 
     @MockitoBean
-    private KakaoTokenService kakaoTokenService;
+    private GlobalSocialTokenCommandAdapter globalSocialTokenCommandAdapter;
 
     @MockitoBean
     private MemberCommandService memberCommandService;
@@ -89,17 +89,12 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
                 }
 
                 @Override
-                public SocialMemberProfile getSocialToken(String code) {
+                public SocialMemberProfile getSocialToken(String code, String state) {
                     throw new UnsupportedOperationException("테스트 전략에서는 소셜 토큰 발급을 지원하지 않습니다.");
                 }
 
                 @Override
-                public void getUserInfo(String accessToken) {
-                    // no-op
-                }
-
-                @Override
-                public void unlink(String socialId) {
+                public void unlink(String socialId, String accessToken) {
                     // no-op
                 }
 
@@ -111,6 +106,11 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
                 @Override
                 public void forceLogout(String socialId) {
                     // no-op
+                }
+
+                @Override
+                public String refreshAccessToken(String refreshToken) throws Exception {
+                    return "test-refreshed-token";
                 }
             }
     ) {};
@@ -147,8 +147,8 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
             verify(paperCommandService).deleteMessageInMyPaper(eq(memberId), eq(null));
             // 9. 신고자 익명화
             verify(adminCommandService).anonymizeReporterByUserId(eq(memberId));
-            // 10. 카카오 토큰 삭제
-            verify(kakaoTokenService).deleteByMemberId(eq(memberId));
+            // 10. 소셜 토큰 삭제
+            verify(globalSocialTokenCommandAdapter).deleteByMemberId(eq(memberId));
             // 11. 계정 정보 삭제
             verify(memberCommandService).removeMemberAccount(eq(memberId));
         });
@@ -207,10 +207,10 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
             verify(adminCommandService).anonymizeReporterByUserId(eq(2L));
             verify(adminCommandService).anonymizeReporterByUserId(eq(3L));
 
-            // 카카오 토큰 삭제
-            verify(kakaoTokenService).deleteByMemberId(eq(1L));
-            verify(kakaoTokenService).deleteByMemberId(eq(2L));
-            verify(kakaoTokenService).deleteByMemberId(eq(3L));
+            // 소셜 토큰 삭제
+            verify(globalSocialTokenCommandAdapter).deleteByMemberId(eq(1L));
+            verify(globalSocialTokenCommandAdapter).deleteByMemberId(eq(2L));
+            verify(globalSocialTokenCommandAdapter).deleteByMemberId(eq(3L));
 
             // 계정 정보 삭제
             verify(memberCommandService).removeMemberAccount(eq(1L));
@@ -237,17 +237,12 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
                     }
 
                     @Override
-                    public SocialMemberProfile getSocialToken(String code) {
+                    public SocialMemberProfile getSocialToken(String code, String state) {
                         throw new UnsupportedOperationException();
                     }
 
                     @Override
-                    public void getUserInfo(String accessToken) {
-                        // no-op
-                    }
-
-                    @Override
-                    public void unlink(String socialId) {
+                    public void unlink(String socialId, String accessToken) {
                         unlinkAttempted.set(true);
                         throw new RuntimeException("소셜 해제 실패");
                     }
@@ -260,6 +255,11 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
                     @Override
                     public void forceLogout(String socialId) {
                         // no-op
+                    }
+
+                    @Override
+                    public String refreshAccessToken(String refreshToken) throws Exception {
+                        return "test-refreshed-token";
                     }
                 }
         ) {};
@@ -277,7 +277,7 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
             verify(notificationCommandService).deleteAllNotification(eq(memberId));
             verify(paperCommandService).deleteMessageInMyPaper(eq(memberId), eq(null));
             verify(adminCommandService).anonymizeReporterByUserId(eq(memberId));
-            verify(kakaoTokenService).deleteByMemberId(eq(memberId));
+            verify(globalSocialTokenCommandAdapter).deleteByMemberId(eq(memberId));
             verify(memberCommandService).removeMemberAccount(eq(memberId));
         });
 

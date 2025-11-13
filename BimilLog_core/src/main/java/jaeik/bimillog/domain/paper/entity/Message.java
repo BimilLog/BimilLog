@@ -65,19 +65,7 @@ public class Message extends BaseEntity {
      * <h3>메시지 생성 팩토리 메소드</h3>
      * <p>새로운 롤링페이퍼 메시지 엔티티를 생성합니다.</p>
      * <p>유효성 검증은 DTO 레벨에서 수행되므로 이미 검증된 데이터로 엔티티를 생성합니다.</p>
-     * <p>
-     * 사용자가 롤링페이퍼에 메시지를 작성하여 제출 버튼을 누른 상황에서,
-     * PaperCommandService가 메시지 데이터를 받아 엔티티로 변환하기 위해 호출하는 메서드입니다.
-     * 생성된 엔티티는 AES-256 암호화를 통해 content가 자동으로 암호화되어 저장됩니다.
-     * </p>
      *
-     * @param member 롤링페이퍼 소유자 사용자 엔티티
-     * @param decoType 메시지 장식 스타일
-     * @param anonymity 익명 작성자 이름
-     * @param content 메시지 내용 (자동 암호화됨)
-     * @param x 그리드 레이아웃에서의 x 좌표
-     * @param y 그리드 레이아웃에서의 y 좌표
-     * @return 생성된 메시지 엔티티
      * @author Jaeik
      * @since 2.0.0
      */

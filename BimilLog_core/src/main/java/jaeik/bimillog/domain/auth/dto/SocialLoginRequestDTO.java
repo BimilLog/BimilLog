@@ -27,6 +27,12 @@ public class SocialLoginRequestDTO {
     private String code;
 
     /**
+     * OAuth state 파라미터 (CSRF 방지용)
+     * 일부 제공자(네이버 등)에서 필수, 카카오는 선택
+     */
+    private String state;
+
+    /**
      * <h3>소셜 제공자 유효성 검증</h3>
      * <p>provider가 유효한 SocialProvider 열거형 값인지 검증합니다.</p>
      *

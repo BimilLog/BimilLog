@@ -28,7 +28,10 @@ public enum AuthErrorCode {
      * <h3>소셜 로그인 관련 에러 코드</h3>
      */
     BLACKLIST_USER(HttpStatus.FORBIDDEN, "차단된 회원은 회원가입이 불가능합니다", ErrorCode.LogLevel.INFO),
-    
+    SOCIAL_TOKEN_REQUEST_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "소셜 로그인 토큰 발급에 실패했습니다. 다시 시도해주세요.", ErrorCode.LogLevel.ERROR),
+    SOCIAL_TOKEN_REFRESH_FAILED(HttpStatus.UNAUTHORIZED, "소셜 로그인 토큰 갱신에 실패했습니다. 다시 로그인해주세요.", ErrorCode.LogLevel.WARN),
+    SOCIAL_TOKEN_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "소셜 로그인 연결 해제에 실패했습니다.", ErrorCode.LogLevel.ERROR),
+
     /**
      * <h3>토큰 관련 에러 코드</h3>
      */

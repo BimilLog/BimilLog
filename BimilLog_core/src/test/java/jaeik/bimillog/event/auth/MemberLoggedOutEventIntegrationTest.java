@@ -2,8 +2,8 @@ package jaeik.bimillog.event.auth;
 
 import jaeik.bimillog.domain.auth.event.MemberLoggedOutEvent;
 import jaeik.bimillog.domain.auth.service.AuthTokenService;
-import jaeik.bimillog.domain.auth.service.KakaoTokenService;
 import jaeik.bimillog.domain.auth.service.SocialLogoutService;
+import jaeik.bimillog.domain.global.out.GlobalSocialTokenCommandAdapter;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.notification.service.FcmService;
 import jaeik.bimillog.domain.notification.service.SseService;
@@ -41,7 +41,7 @@ public class MemberLoggedOutEventIntegrationTest extends BaseEventIntegrationTes
     private FcmService fcmService;
 
     @MockitoBean
-    private KakaoTokenService kakaoTokenService;
+    private GlobalSocialTokenCommandAdapter globalSocialTokenCommandAdapter;
 
     @Test
     @DisplayName("사용자 로그아웃 이벤트 워크플로우 - 토큰 정리와 SSE 정리까지 완료")
@@ -62,8 +62,8 @@ public class MemberLoggedOutEventIntegrationTest extends BaseEventIntegrationTes
             verify(fcmService).deleteFcmTokens(eq(memberId), eq(fcmTokenId));
             // JWT 토큰 무효화
             verify(authTokenService).deleteTokens(eq(memberId), eq(tokenId));
-            // 카카오 토큰 삭제
-            verify(kakaoTokenService).deleteByMemberId(eq(memberId));
+            // 소셜 토큰 삭제
+            verify(globalSocialTokenCommandAdapter).deleteByMemberId(eq(memberId));
         });
     }
 
@@ -105,10 +105,10 @@ public class MemberLoggedOutEventIntegrationTest extends BaseEventIntegrationTes
             verify(authTokenService).deleteTokens(eq(2L), eq(102L));
             verify(authTokenService).deleteTokens(eq(3L), eq(103L));
 
-            // 카카오 토큰 삭제
-            verify(kakaoTokenService).deleteByMemberId(eq(1L));
-            verify(kakaoTokenService).deleteByMemberId(eq(2L));
-            verify(kakaoTokenService).deleteByMemberId(eq(3L));
+            // 소셜 토큰 삭제
+            verify(globalSocialTokenCommandAdapter).deleteByMemberId(eq(1L));
+            verify(globalSocialTokenCommandAdapter).deleteByMemberId(eq(2L));
+            verify(globalSocialTokenCommandAdapter).deleteByMemberId(eq(3L));
         });
     }
 

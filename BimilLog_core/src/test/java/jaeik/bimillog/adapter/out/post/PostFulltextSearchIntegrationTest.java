@@ -78,8 +78,8 @@ class PostFulltextSearchIntegrationTest {
         if (testMember.getSetting() != null) {
             entityManager.persist(testMember.getSetting());
         }
-        if (testMember.getKakaoToken() != null) {
-            entityManager.persist(testMember.getKakaoToken());
+        if (testMember.getSocialToken() != null) {
+            entityManager.persist(testMember.getSocialToken());
         }
         entityManager.persistAndFlush(testMember);
 

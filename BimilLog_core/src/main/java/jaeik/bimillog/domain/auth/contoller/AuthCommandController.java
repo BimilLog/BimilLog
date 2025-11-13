@@ -50,12 +50,13 @@ public class AuthCommandController {
     @PostMapping("/login")
     @Log(level = LogLevel.INFO,
          logExecutionTime = true,
-         excludeParams = {"code"},
+         excludeParams = {"code", "state"},
          message = "소셜 로그인 요청")
     public ResponseEntity<String> socialLogin(@Valid @RequestBody SocialLoginRequestDTO request) {
         LoginResult loginResult = socialLoginService.processSocialLogin(
                 request.getSocialProvider(),
-                request.getCode());
+                request.getCode(),
+                request.getState());
 
         return switch (loginResult) {
             case LoginResult.NewUser(var tempCookie) -> ResponseEntity.ok()

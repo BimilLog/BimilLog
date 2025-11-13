@@ -59,7 +59,7 @@ class CommentDeleteAdapterIntegrationTest {
     private jaeik.bimillog.domain.member.out.SettingRepository settingRepository;
 
     @Autowired
-    private jaeik.bimillog.domain.auth.out.KakaoTokenRepository kakaoTokenRepository;
+    private jaeik.bimillog.domain.auth.out.SocialTokenRepository socialTokenRepository;
 
     private Member testMember;
     private Post testPost;
@@ -70,13 +70,13 @@ class CommentDeleteAdapterIntegrationTest {
         commentRepository.deleteAll();
         postRepository.deleteAll();
         memberRepository.deleteAll();
-        kakaoTokenRepository.deleteAll();
+        socialTokenRepository.deleteAll();
         settingRepository.deleteAll();
 
         // 테스트용 사용자 생성 (연관 엔티티 먼저 저장)
         Member tempTestMember = TestMembers.createUniqueWithPrefix("test");
         jaeik.bimillog.domain.member.entity.Setting testSetting = settingRepository.save(tempTestMember.getSetting());
-        jaeik.bimillog.domain.auth.entity.KakaoToken testKakaoToken = kakaoTokenRepository.save(tempTestMember.getKakaoToken());
+        jaeik.bimillog.domain.auth.entity.SocialToken testSocialToken = socialTokenRepository.save(tempTestMember.getSocialToken());
 
         testMember = memberRepository.save(
             Member.createMember(
@@ -86,7 +86,7 @@ class CommentDeleteAdapterIntegrationTest {
                 tempTestMember.getThumbnailImage(),
                 tempTestMember.getMemberName(),
                 testSetting,
-                testKakaoToken
+                testSocialToken
             )
         );
 

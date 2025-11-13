@@ -10,8 +10,8 @@ import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.paper.exception.PaperCustomException;
 import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
 import jaeik.bimillog.domain.paper.controller.PaperCommandController;
-import jaeik.bimillog.domain.paper.out.PaperCommandAdapter;
-import jaeik.bimillog.domain.paper.out.PaperQueryAdapter;
+import jaeik.bimillog.domain.paper.out.PaperCommandRepository;
+import jaeik.bimillog.domain.paper.out.PaperQueryRepository;
 import jaeik.bimillog.infrastructure.redis.paper.RedisPaperDeleteAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -29,21 +29,45 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class PaperCommandService {
-
-    private final PaperCommandAdapter paperCommandAdapter;
-    private final PaperQueryAdapter paperQueryAdapter;
+    private final PaperCommandRepository paperCommandRepository;
+    private final PaperQueryRepository paperQueryRepository;
     private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
     private final ApplicationEventPublisher eventPublisher;
     private final RedisPaperDeleteAdapter redisPaperDeleteAdapter;
 
+    /**
+     * <h3>롤링페이퍼 메시지 작성</h3>
+     * <p>특정 사용자의 롤링페이퍼에 메시지를 작성.</p>
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Transactional
+    public void writeMessage(String memberName, DecoType decoType, String anonymity,
+                             String content, int x, int y) {
+
+        if (memberName == null || memberName.trim().isEmpty()) { // 입력 닉네임 검증
+            throw new PaperCustomException(PaperErrorCode.INVALID_INPUT_VALUE);
+        }
+
+        Member member = globalMemberQueryAdapter.findByMemberName(memberName) // 입력 닉네임 존재 검증
+                .orElseThrow(() -> new PaperCustomException(PaperErrorCode.USERNAME_NOT_FOUND));
+
+        Message message = Message.createMessage(member, decoType, anonymity, content, x, y);
+        paperCommandRepository.save(message);
+
+        eventPublisher.publishEvent(new RollingPaperEvent(
+                member.getId(),
+                member.getMemberName()
+        ));
+    }
 
     /**
      * <h3>내 롤링페이퍼 메시지 삭제</h3>
      * <p>사용자의 롤링페이퍼 메시지를 삭제합니다.</p>
      * <p>messageId가 null인 경우: 해당 사용자의 모든 메시지를 삭제합니다 (회원탈퇴 시).</p>
      * <p>messageId가 있는 경우: 특정 메시지를 삭제합니다 (단건 삭제).</p>
-     * <p>- 다른 사용자의 messageId를 전송할 수 있으므로 소유권 검증 필요</p>
-     * <p>메시지 삭제 성공 시 MessageDeletedEvent를 발행하여 실시간 인기 점수를 감소시킵니다.</p>
+     * <p>다른 사용자의 messageId를 전송할 수 있으므로 소유권 검증 필요</p>
+     * <p>메시지 삭제 성공 시 MessageDeletedEvent를 발행하여 실시간 인기 점수를 감소.</p>
      * <p>{@link PaperCommandController}에서 메시지 삭제 요청 시 호출되거나,</p>
      * <p>{@link MemberWithdrawListener}에서 회원탈퇴 시 호출됩니다.</p>
      *
@@ -54,58 +78,24 @@ public class PaperCommandService {
      */
     @Transactional
     public void deleteMessageInMyPaper(Long memberId, Long messageId) {
-        if (messageId != null) { // 메시지 삭제의 경우
-            Long ownerId = paperQueryAdapter.findOwnerIdByMessageId(messageId)
-                    .orElseThrow(() -> new PaperCustomException(PaperErrorCode.MESSAGE_NOT_FOUND));
+        if (messageId == null) {
+            paperCommandRepository.deleteMessage(memberId, null);
+            redisPaperDeleteAdapter.removeMemberIdFromRealtimeScore(memberId);
+            return;
+        }
 
-            if (!ownerId.equals(memberId)) {
-                throw new PaperCustomException(PaperErrorCode.MESSAGE_DELETE_FORBIDDEN);
-            }
+        // 메시지 삭제의 경우
+        Long ownerId = paperQueryRepository.findOwnerIdByMessageId(messageId)
+                .orElseThrow(() -> new PaperCustomException(PaperErrorCode.MESSAGE_NOT_FOUND));
+
+        if (!ownerId.equals(memberId)) {
+            throw new PaperCustomException(PaperErrorCode.MESSAGE_DELETE_FORBIDDEN);
         }
 
         // 메시지 삭제
-        paperCommandAdapter.deleteMessage(memberId, messageId);
+        paperCommandRepository.deleteMessage(memberId, messageId);
 
         // 메시지 삭제 성공 시 이벤트 발행 (실시간 인기 점수 감소, 단건 삭제만)
-        if (messageId != null) {
-            eventPublisher.publishEvent(new MessageDeletedEvent(memberId));
-        } else { // 회원 탈퇴시 Redis 저장소에서 memberId 삭제
-            redisPaperDeleteAdapter.removeMemberIdFromRealtimeScore(memberId);
-        }
-    }
-
-    /**
-     * <h3>롤링페이퍼 메시지 작성</h3>
-     * <p>특정 사용자의 롤링페이퍼에 익명 메시지를 작성합니다.</p>
-     * <p>사용자 존재성을 검증하고 메시지를 저장한 뒤 알림 이벤트를 발행합니다.</p>
-     * <p>{@link PaperCommandController}에서 메시지 작성 요청 시 호출됩니다.</p>
-     *
-     * @param memberName  롤링페이퍼 소유자의 사용자명
-     * @param decoType  메시지 장식 스타일
-     * @param anonymity 익명 작성자 이름
-     * @param content   메시지 내용
-     * @param x         그리드 레이아웃에서의 메시지 x좌표
-     * @param y         그리드 레이아웃에서의 메시지 y좌표
-     * @throws PaperCustomException 대상 사용자가 존재하지 않거나 입력값이 유효하지 않은 경우
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Transactional
-    public void writeMessage(String memberName, DecoType decoType, String anonymity,
-                             String content, int x, int y) {
-        if (memberName == null || memberName.trim().isEmpty()) {
-            throw new PaperCustomException(PaperErrorCode.INVALID_INPUT_VALUE);
-        }
-
-        Member member = globalMemberQueryAdapter.findByMemberName(memberName)
-                .orElseThrow(() -> new PaperCustomException(PaperErrorCode.USERNAME_NOT_FOUND));
-
-        Message message = Message.createMessage(member, decoType, anonymity, content, x, y);
-        paperCommandAdapter.save(message);
-
-        eventPublisher.publishEvent(new RollingPaperEvent(
-                member.getId(),
-                member.getMemberName()
-        ));
+        eventPublisher.publishEvent(new MessageDeletedEvent(memberId));
     }
 }

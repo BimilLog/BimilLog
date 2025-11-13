@@ -58,12 +58,12 @@ class SocialLoginServiceTest extends BaseUnitTest {
 
             given(strategyRegistryAdapter.getStrategy(TEST_PROVIDER)).willReturn(kakaoPlatformStrategy);
             given(kakaoPlatformStrategy.auth()).willReturn(kakaoAuthStrategy);
-            given(kakaoAuthStrategy.getSocialToken(TEST_AUTH_CODE)).willReturn(testMemberProfile);
+            given(kakaoAuthStrategy.getSocialToken(TEST_AUTH_CODE, null)).willReturn(testMemberProfile);
             given(socialLoginTransactionalService.finishLogin(eq(TEST_PROVIDER), any(SocialMemberProfile.class)))
                     .willReturn(expectedResult);
 
             // When
-            LoginResult result = socialLoginService.processSocialLogin(TEST_PROVIDER, TEST_AUTH_CODE);
+            LoginResult result = socialLoginService.processSocialLogin(TEST_PROVIDER, TEST_AUTH_CODE, null);
 
             // Then
             assertThat(result).isSameAs(expectedResult);
@@ -71,7 +71,7 @@ class SocialLoginServiceTest extends BaseUnitTest {
             verify(socialLoginTransactionalService).finishLogin(eq(TEST_PROVIDER), any(SocialMemberProfile.class));
             verify(strategyRegistryAdapter).getStrategy(TEST_PROVIDER);
             verify(kakaoPlatformStrategy).auth();
-            verify(kakaoAuthStrategy).getSocialToken(TEST_AUTH_CODE);
+            verify(kakaoAuthStrategy).getSocialToken(TEST_AUTH_CODE, null);
         }
     }
 
@@ -87,17 +87,17 @@ class SocialLoginServiceTest extends BaseUnitTest {
 
             given(strategyRegistryAdapter.getStrategy(TEST_PROVIDER)).willReturn(kakaoPlatformStrategy);
             given(kakaoPlatformStrategy.auth()).willReturn(kakaoAuthStrategy);
-            given(kakaoAuthStrategy.getSocialToken(TEST_AUTH_CODE)).willReturn(testMemberProfile);
+            given(kakaoAuthStrategy.getSocialToken(TEST_AUTH_CODE, null)).willReturn(testMemberProfile);
             given(socialLoginTransactionalService.finishLogin(TEST_PROVIDER, testMemberProfile))
                     .willThrow(expectedException);
 
             // When & Then
-            assertThatThrownBy(() -> socialLoginService.processSocialLogin(TEST_PROVIDER, TEST_AUTH_CODE))
+            assertThatThrownBy(() -> socialLoginService.processSocialLogin(TEST_PROVIDER, TEST_AUTH_CODE, null))
                     .isSameAs(expectedException);
 
             verify(strategyRegistryAdapter).getStrategy(TEST_PROVIDER);
             verify(kakaoPlatformStrategy).auth();
-            verify(kakaoAuthStrategy).getSocialToken(TEST_AUTH_CODE);
+            verify(kakaoAuthStrategy).getSocialToken(TEST_AUTH_CODE, null);
             verify(socialLoginTransactionalService).finishLogin(TEST_PROVIDER, testMemberProfile);
         }
     }
@@ -114,15 +114,15 @@ class SocialLoginServiceTest extends BaseUnitTest {
 
             given(strategyRegistryAdapter.getStrategy(TEST_PROVIDER)).willReturn(kakaoPlatformStrategy);
             given(kakaoPlatformStrategy.auth()).willReturn(kakaoAuthStrategy);
-            given(kakaoAuthStrategy.getSocialToken(TEST_AUTH_CODE)).willThrow(authException);
+            given(kakaoAuthStrategy.getSocialToken(TEST_AUTH_CODE, null)).willThrow(authException);
 
             // When & Then
-            assertThatThrownBy(() -> socialLoginService.processSocialLogin(TEST_PROVIDER, TEST_AUTH_CODE))
+            assertThatThrownBy(() -> socialLoginService.processSocialLogin(TEST_PROVIDER, TEST_AUTH_CODE, null))
                     .isSameAs(authException);
 
             verify(strategyRegistryAdapter).getStrategy(TEST_PROVIDER);
             verify(kakaoPlatformStrategy).auth();
-            verify(kakaoAuthStrategy).getSocialToken(TEST_AUTH_CODE);
+            verify(kakaoAuthStrategy).getSocialToken(TEST_AUTH_CODE, null);
             verify(socialLoginTransactionalService, never()).finishLogin(any(), any());
         }
     }
