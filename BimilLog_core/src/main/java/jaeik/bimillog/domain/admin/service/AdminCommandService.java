@@ -3,8 +3,8 @@ package jaeik.bimillog.domain.admin.service;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
-import jaeik.bimillog.domain.admin.exception.AdminCustomException;
-import jaeik.bimillog.domain.admin.exception.AdminErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.admin.controller.AdminCommandController;
 import jaeik.bimillog.domain.admin.repository.AdminQueryRepository;
 import jaeik.bimillog.domain.admin.repository.ReportRepository;
@@ -141,21 +141,21 @@ public class AdminCommandService {
                 try {
                     yield globalPostQueryAdapter.findById(targetId).getMember();
                 } catch (Exception e) {
-                    throw new AdminCustomException(AdminErrorCode.POST_ALREADY_DELETED);
+                    throw new CustomException(ErrorCode.ADMIN_POST_ALREADY_DELETED);
                 }
             }
             case COMMENT -> {
                 try {
                     yield globalCommentQueryAdapter.findById(targetId).getMember();
                 } catch (Exception e) {
-                    throw new AdminCustomException(AdminErrorCode.COMMENT_ALREADY_DELETED);
+                    throw new CustomException(ErrorCode.ADMIN_COMMENT_ALREADY_DELETED);
                 }
             }
-            default -> throw new AdminCustomException(AdminErrorCode.INVALID_REPORT_TARGET);
+            default -> throw new CustomException(ErrorCode.ADMIN_INVALID_REPORT_TARGET);
         };
 
         if (member == null) {
-            throw new AdminCustomException(AdminErrorCode.ANONYMOUS_USER_CANNOT_BE_BANNED);
+            throw new CustomException(ErrorCode.ADMIN_ANONYMOUS_USER_CANNOT_BE_BANNED);
         }
 
         return member;

@@ -5,8 +5,8 @@ import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.post.exception.PostCustomException;
-import jaeik.bimillog.domain.post.exception.PostErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.post.controller.PostCommandController;
 import jaeik.bimillog.domain.post.out.PostCommandAdapter;
 import jaeik.bimillog.domain.post.out.PostQueryAdapter;
@@ -83,7 +83,7 @@ public class PostCommandService {
         Post post = globalPostQueryAdapter.findById(postId);
 
         if (!post.isAuthor(memberId, password)) {
-            throw new PostCustomException(PostErrorCode.FORBIDDEN);
+            throw new CustomException(ErrorCode.POST_FORBIDDEN);
         }
 
         post.updatePost(title, content);
@@ -112,7 +112,7 @@ public class PostCommandService {
         Post post = globalPostQueryAdapter.findById(postId);
 
         if (!post.isAuthor(memberId, password)) {
-            throw new PostCustomException(PostErrorCode.FORBIDDEN);
+            throw new CustomException(ErrorCode.POST_FORBIDDEN);
         }
 
         String postTitle = post.getTitle();

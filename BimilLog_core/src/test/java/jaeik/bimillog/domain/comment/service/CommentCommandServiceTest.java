@@ -8,14 +8,18 @@ import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentClosure;
 import jaeik.bimillog.domain.comment.entity.CommentLike;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
-import jaeik.bimillog.domain.comment.exception.CommentCustomException;
-import jaeik.bimillog.domain.comment.exception.CommentErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.global.out.GlobalCommentQueryAdapter;
 import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.member.exception.MemberCustomException;
-import jaeik.bimillog.domain.member.exception.MemberErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.testutil.*;
 import jaeik.bimillog.testutil.builder.CommentTestDataBuilder;
@@ -122,12 +126,12 @@ class CommentCommandServiceTest extends BaseUnitTest {
     @DisplayName("존재하지 않는 댓글에 좋아요 시 COMMENT_NOT_FOUND 예외 발생")
     void shouldThrowException_WhenCommentNotFound() {
         // Given
-        given(globalCommentQueryAdapter.findById(TEST_COMMENT_ID)).willThrow(new CommentCustomException(CommentErrorCode.COMMENT_NOT_FOUND));
+        given(globalCommentQueryAdapter.findById(TEST_COMMENT_ID)).willThrow(new CustomException(ErrorCode.COMMENT_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.likeComment(getTestMember().getId(), TEST_COMMENT_ID))
-                .isInstanceOf(CommentCustomException.class)
-                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_NOT_FOUND);
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_NOT_FOUND);
 
         verify(globalCommentQueryAdapter).findById(TEST_COMMENT_ID);
         verify(globalMemberQueryAdapter, never()).findById(any());
@@ -145,8 +149,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.likeComment(getTestMember().getId(), TEST_COMMENT_ID))
-                .isInstanceOf(MemberCustomException.class)
-                .hasFieldOrPropertyWithValue("memberErrorCode", MemberErrorCode.USER_NOT_FOUND);
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MEMBER_USER_NOT_FOUND);
 
         verify(globalCommentQueryAdapter).findById(TEST_COMMENT_ID);
         verify(globalMemberQueryAdapter).findById(getTestMember().getId());
@@ -164,8 +168,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.likeComment(null, TEST_COMMENT_ID))
-                .isInstanceOf(MemberCustomException.class)
-                .hasFieldOrPropertyWithValue("memberErrorCode", MemberErrorCode.USER_NOT_FOUND);
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MEMBER_USER_NOT_FOUND);
 
         verify(globalCommentQueryAdapter).findById(TEST_COMMENT_ID);
         verify(globalMemberQueryAdapter).findById(null);
@@ -230,12 +234,12 @@ class CommentCommandServiceTest extends BaseUnitTest {
     @DisplayName("존재하지 않는 댓글 수정 시 COMMENT_NOT_FOUND 예외 발생")
     void shouldThrowException_WhenCommentNotFoundForUpdate() {
         // Given
-        given(globalCommentQueryAdapter.findById(TEST_COMMENT_ID)).willThrow(new CommentCustomException(CommentErrorCode.COMMENT_NOT_FOUND));
+        given(globalCommentQueryAdapter.findById(TEST_COMMENT_ID)).willThrow(new CustomException(ErrorCode.COMMENT_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.updateComment(TEST_COMMENT_ID, getTestMember().getId(), TEST_UPDATED_CONTENT, null))
-                .isInstanceOf(CommentCustomException.class)
-                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_NOT_FOUND);
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_NOT_FOUND);
 
         verify(globalCommentQueryAdapter).findById(TEST_COMMENT_ID);
     }
@@ -251,8 +255,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.updateComment(TEST_COMMENT_ID, null, TEST_UPDATED_CONTENT, 9999))
-                .isInstanceOf(CommentCustomException.class)
-                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_UNAUTHORIZED);
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_UNAUTHORIZED);
 
         verify(globalCommentQueryAdapter).findById(TEST_COMMENT_ID);
     }
@@ -271,8 +275,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.updateComment(200L, memberId, TEST_UPDATED_CONTENT, null))
-                .isInstanceOf(CommentCustomException.class)
-                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_UNAUTHORIZED);
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_UNAUTHORIZED);
 
         verify(globalCommentQueryAdapter).findById(200L);
     }
@@ -319,8 +323,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.updateComment(200L, null, TEST_UPDATED_CONTENT, null))
-                .isInstanceOf(CommentCustomException.class)
-                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_UNAUTHORIZED);
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_UNAUTHORIZED);
 
         verify(globalCommentQueryAdapter).findById(200L);
     }
@@ -354,8 +358,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.updateComment(200L, null, "수정된 댓글", null))
-                .isInstanceOf(CommentCustomException.class)
-                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_UNAUTHORIZED);
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_UNAUTHORIZED);
 
         verify(globalCommentQueryAdapter).findById(200L);
     }
@@ -391,8 +395,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.deleteComment(300L, null, 9999))
-                .isInstanceOf(CommentCustomException.class)
-                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_UNAUTHORIZED);
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_UNAUTHORIZED);
 
         verify(globalCommentQueryAdapter).findById(300L);
         verify(commentDeleteAdapter, never()).deleteComment(any());
@@ -451,8 +455,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.deleteComment(600L, requestMemberId, null))
-                .isInstanceOf(CommentCustomException.class)
-                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_UNAUTHORIZED);
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_UNAUTHORIZED);
 
         verify(globalCommentQueryAdapter).findById(600L);
         verify(commentDeleteAdapter, never()).deleteComment(any());
@@ -565,8 +569,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.writeComment(getTestMember().getId(), postId, null, "댓글", null))
-                .isInstanceOf(CommentCustomException.class)
-                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_WRITE_FAILED);
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_WRITE_FAILED);
 
         verify(globalPostQueryAdapter).findById(postId);
         verify(commentSaveAdapter, never()).save(any(Comment.class));
@@ -589,8 +593,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.writeComment(getTestMember().getId(), postId, parentId, "대댓글", null))
-                .isInstanceOf(CommentCustomException.class)
-                .hasFieldOrPropertyWithValue("commentErrorCode", CommentErrorCode.COMMENT_WRITE_FAILED);
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_WRITE_FAILED);
 
         verify(globalPostQueryAdapter).findById(postId);
         verify(commentSaveAdapter).save(any(Comment.class));

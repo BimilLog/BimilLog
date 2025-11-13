@@ -4,8 +4,8 @@ import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.event.PaperViewedEvent;
-import jaeik.bimillog.domain.paper.exception.PaperCustomException;
-import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.paper.out.PaperQueryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -49,12 +49,12 @@ public class PaperQueryService {
      */
     public List<Message> visitPaper(String memberName) {
         if (memberName == null || memberName.trim().isEmpty()) {
-            throw new PaperCustomException(PaperErrorCode.INVALID_INPUT_VALUE);
+            throw new CustomException(ErrorCode.PAPER_INVALID_INPUT_VALUE);
         }
 
         // 사용자 존재 여부 확인 (존재하지 않으면 USERNAME_NOT_FOUND 예외 발생)
         Member member = globalMemberQueryAdapter.findByMemberName(memberName)
-                .orElseThrow(() -> new PaperCustomException(PaperErrorCode.USERNAME_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorCode.PAPER_USERNAME_NOT_FOUND));
 
         List<Message> messages = paperQueryRepository.findMessagesByMemberName(memberName);
 

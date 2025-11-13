@@ -1,8 +1,8 @@
 package jaeik.bimillog.infrastructure.api.social.naver;
 
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.auth.exception.AuthCustomException;
-import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.global.strategy.SocialAuthStrategy;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import lombok.RequiredArgsConstructor;
@@ -91,7 +91,7 @@ public class NaverAuthStrategy implements SocialAuthStrategy {
             );
         } catch (Exception e) {
             log.error("네이버 토큰 요청 실패: {}", e.getMessage(), e);
-            throw new AuthCustomException(AuthErrorCode.SOCIAL_TOKEN_REQUEST_FAILED);
+            throw new CustomException(ErrorCode.AUTH_SOCIAL_TOKEN_REQUEST_FAILED);
         }
     }
 
@@ -170,7 +170,7 @@ public class NaverAuthStrategy implements SocialAuthStrategy {
             return newAccessToken;
         } catch (Exception e) {
             log.error("네이버 토큰 갱신 실패: {}", e.getMessage(), e);
-            throw new AuthCustomException(AuthErrorCode.SOCIAL_TOKEN_REFRESH_FAILED);
+            throw new CustomException(ErrorCode.AUTH_SOCIAL_TOKEN_REFRESH_FAILED);
         }
     }
 
@@ -196,7 +196,7 @@ public class NaverAuthStrategy implements SocialAuthStrategy {
             log.info("네이버 액세스 토큰 삭제 완료");
         } catch (Exception e) {
             log.error("네이버 토큰 삭제 실패: {}", e.getMessage(), e);
-            throw new AuthCustomException(AuthErrorCode.SOCIAL_TOKEN_DELETE_FAILED);
+            throw new CustomException(ErrorCode.AUTH_SOCIAL_TOKEN_DELETE_FAILED);
         }
     }
 }

@@ -1,7 +1,8 @@
 package jaeik.bimillog.adapter.out.redis;
 
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.auth.exception.AuthCustomException;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.RedisMemberDataAdapter;
 import jaeik.bimillog.testutil.RedisTestHelper;
 import org.junit.jupiter.api.BeforeEach;
@@ -97,11 +98,11 @@ class RedisMemberDataAdapterIntegrationTest {
     void shouldThrowException_WhenInvalidDataProvided() {
         // When & Then: null UUID로 저장 시도 시 예외 발생
         assertThatThrownBy(() -> redisTempDataAdapter.saveTempData(null, testMemberProfile))
-                .isInstanceOf(AuthCustomException.class);
+                .isInstanceOf(CustomException.class);
 
         // null memberProfile로 저장 시도 시 예외 발생
         assertThatThrownBy(() -> redisTempDataAdapter.saveTempData(testUuid, null))
-                .isInstanceOf(AuthCustomException.class);
+                .isInstanceOf(CustomException.class);
     }
 
     @Test

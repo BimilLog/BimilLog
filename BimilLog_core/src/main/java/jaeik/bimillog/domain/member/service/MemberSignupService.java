@@ -3,8 +3,8 @@ package jaeik.bimillog.domain.member.service;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.auth.exception.AuthCustomException;
-import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.global.out.GlobalAuthTokenSaveAdapter;
 import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
@@ -12,8 +12,8 @@ import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
 import jaeik.bimillog.domain.global.out.GlobalSocialTokenCommandAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.Setting;
-import jaeik.bimillog.domain.member.exception.MemberCustomException;
-import jaeik.bimillog.domain.member.exception.MemberErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.member.out.SaveMemberAdapter;
 import jaeik.bimillog.infrastructure.redis.RedisMemberDataAdapter;
 import lombok.RequiredArgsConstructor;
@@ -64,7 +64,7 @@ public class MemberSignupService {
             Optional<SocialMemberProfile> socialMemberProfile = redisMemberDataPort.getTempData(uuid);
 
             if (socialMemberProfile.isEmpty()) {
-                throw new AuthCustomException(AuthErrorCode.INVALID_TEMP_DATA);
+                throw new CustomException(ErrorCode.AUTH_INVALID_TEMP_DATA);
             }
 
             SocialMemberProfile memberProfile = socialMemberProfile.get();
@@ -105,7 +105,7 @@ public class MemberSignupService {
             return globalCookieAdapter.generateJwtCookie(accessToken, refreshToken);
         } catch (DataIntegrityViolationException e) {
             if (e.getMessage() != null && e.getMessage().contains("member_name")) {
-                throw new MemberCustomException(MemberErrorCode.EXISTED_NICKNAME);
+                throw new CustomException(ErrorCode.MEMBER_EXISTED_NICKNAME);
             }
             throw e;
         }

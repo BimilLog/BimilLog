@@ -4,8 +4,10 @@ import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
-import jaeik.bimillog.domain.post.exception.PostCustomException;
-import jaeik.bimillog.domain.post.exception.PostErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.post.out.PostCommandAdapter;
 import jaeik.bimillog.domain.post.out.PostLikeCommandAdapter;
 import jaeik.bimillog.domain.post.out.PostLikeQueryAdapter;
@@ -121,12 +123,12 @@ class PostInteractionServiceTest extends BaseUnitTest {
 
         given(postLikeQueryAdapter.existsByPostIdAndUserId(postId, memberId)).willReturn(false);
         given(globalMemberQueryAdapter.getReferenceById(memberId)).willReturn(getTestMember());
-        given(globalPostQueryAdapter.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
+        given(globalPostQueryAdapter.findById(postId)).willThrow(new CustomException(ErrorCode.POST_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> postInteractionService.likePost(memberId, postId))
-                .isInstanceOf(PostCustomException.class)
-                .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.POST_NOT_FOUND);
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
         verify(postLikeQueryAdapter).existsByPostIdAndUserId(postId, memberId);
         verify(globalMemberQueryAdapter).getReferenceById(memberId);

@@ -2,8 +2,10 @@ package jaeik.bimillog.domain.member.service;
 
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.Setting;
-import jaeik.bimillog.domain.member.exception.MemberCustomException;
-import jaeik.bimillog.domain.member.exception.MemberErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.TestMembers;
@@ -74,8 +76,8 @@ class MemberCommandServiceTest extends BaseUnitTest {
 
         // When & Then
         assertThatThrownBy(() -> memberCommandService.updateMemberSettings(memberId, newSetting))
-                .isInstanceOf(MemberCustomException.class)
-                .hasMessage(MemberErrorCode.USER_NOT_FOUND.getMessage());
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.MEMBER_USER_NOT_FOUND.getMessage());
 
         verify(memberQueryAdapter).findById(memberId);
     }
@@ -131,8 +133,8 @@ class MemberCommandServiceTest extends BaseUnitTest {
 
         // When & Then
         assertThatThrownBy(() -> memberCommandService.updateMemberName(memberId, newUserName))
-                .isInstanceOf(MemberCustomException.class)
-                .hasMessage(MemberErrorCode.USER_NOT_FOUND.getMessage());
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.MEMBER_USER_NOT_FOUND.getMessage());
 
         verify(memberQueryAdapter).findById(memberId);
     }

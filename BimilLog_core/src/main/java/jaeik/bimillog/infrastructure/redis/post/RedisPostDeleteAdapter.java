@@ -1,8 +1,8 @@
 package jaeik.bimillog.infrastructure.redis.post;
 
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
-import jaeik.bimillog.domain.post.exception.PostCustomException;
-import jaeik.bimillog.domain.post.exception.PostErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -40,7 +40,7 @@ public class RedisPostDeleteAdapter {
                 }
             }
         } catch (Exception e) {
-            throw new PostCustomException(PostErrorCode.REDIS_WRITE_ERROR, e);
+            throw new CustomException(ErrorCode.POST_REDIS_WRITE_ERROR, e);
         }
     }
 
@@ -57,7 +57,7 @@ public class RedisPostDeleteAdapter {
         try {
             redisTemplate.delete(detailKey);
         } catch (Exception e) {
-            throw new PostCustomException(PostErrorCode.REDIS_DELETE_ERROR, e);
+            throw new CustomException(ErrorCode.POST_REDIS_DELETE_ERROR, e);
         }
     }
 
@@ -78,7 +78,7 @@ public class RedisPostDeleteAdapter {
                 redisTemplate.opsForHash().delete(hashKey, postId.toString());
             }
         } catch (Exception e) {
-            throw new PostCustomException(PostErrorCode.REDIS_DELETE_ERROR, e);
+            throw new CustomException(ErrorCode.POST_REDIS_DELETE_ERROR, e);
         }
     }
 
@@ -95,7 +95,7 @@ public class RedisPostDeleteAdapter {
         try {
             redisTemplate.opsForZSet().remove(REALTIME_POST_SCORE_KEY, postId.toString());
         } catch (Exception e) {
-            throw new PostCustomException(PostErrorCode.REDIS_DELETE_ERROR, e);
+            throw new CustomException(ErrorCode.POST_REDIS_DELETE_ERROR, e);
         }
     }
 
@@ -113,7 +113,7 @@ public class RedisPostDeleteAdapter {
         try {
             redisTemplate.delete(hashKey);
         } catch (Exception e) {
-            throw new PostCustomException(PostErrorCode.REDIS_DELETE_ERROR, e);
+            throw new CustomException(ErrorCode.POST_REDIS_DELETE_ERROR, e);
         }
     }
 }

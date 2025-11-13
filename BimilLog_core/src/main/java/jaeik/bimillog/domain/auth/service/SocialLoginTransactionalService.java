@@ -4,8 +4,8 @@ import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.auth.exception.AuthCustomException;
-import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.global.out.*;
 import jaeik.bimillog.domain.member.entity.Member;
@@ -57,7 +57,7 @@ public class SocialLoginTransactionalService {
 
         // 블랙리스트 사용자 확인
         if (globalBlacklistAdapter.existsByProviderAndSocialId(provider, socialMemberProfile.getSocialId())) {
-            throw new AuthCustomException(AuthErrorCode.BLACKLIST_USER);
+            throw new CustomException(ErrorCode.AUTH_BLACKLIST_USER);
         }
 
         // 기존 유저 유무 조회

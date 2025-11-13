@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.global.out;
 
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.post.exception.PostCustomException;
-import jaeik.bimillog.domain.post.exception.PostErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.post.out.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -37,6 +37,6 @@ public class GlobalPostQueryAdapter {
      */
     public Post findById(Long id) {
         return postRepository.findById(id)
-                .orElseThrow(() -> new PostCustomException(PostErrorCode.POST_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
     }
 }

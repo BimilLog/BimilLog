@@ -6,8 +6,8 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.exception.PostCustomException;
-import jaeik.bimillog.domain.post.exception.PostErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.post.controller.PostQueryController;
 import jaeik.bimillog.domain.post.out.PostLikeQueryAdapter;
 import jaeik.bimillog.domain.post.out.PostQueryAdapter;
@@ -82,7 +82,7 @@ public class PostQueryService {
 
         // 2. 캐시 미스: DB 조회 후 캐시 저장
         PostDetail postDetail = postQueryAdapter.findPostDetailWithCounts(postId, memberId)
-                .orElseThrow(() -> new PostCustomException(PostErrorCode.POST_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
         redisPostSaveAdapter.cachePostDetail(postDetail);
         return postDetail;
     }

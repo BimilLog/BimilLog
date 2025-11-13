@@ -1,8 +1,8 @@
 package jaeik.bimillog.infrastructure.redis;
 
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.auth.exception.AuthCustomException;
-import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
@@ -148,7 +148,7 @@ public class RedisMemberDataAdapter {
             operation.run();
         } catch (Exception e) {
             log.error("UUID {}에 대한 임시 데이터 Redis {} 실패: {}", uuid, "저장", e.getMessage(), e);
-            throw new AuthCustomException(AuthErrorCode.INVALID_USER_DATA);
+            throw new CustomException(ErrorCode.AUTH_INVALID_USER_DATA);
         }
     }
 
@@ -184,15 +184,15 @@ public class RedisMemberDataAdapter {
     private void validateTempDataInputs(String uuid, SocialMemberProfile userProfile) {
         if (isInvalidUuid(uuid)) {
             log.warn(NULL_UUID_MESSAGE, uuid);
-            throw new AuthCustomException(AuthErrorCode.INVALID_TEMP_UUID);
+            throw new CustomException(ErrorCode.AUTH_INVALID_TEMP_UUID);
         }
         if (userProfile == null) {
             log.warn(NULL_PROFILE_MESSAGE, uuid);
-            throw new AuthCustomException(AuthErrorCode.INVALID_USER_DATA);
+            throw new CustomException(ErrorCode.AUTH_INVALID_USER_DATA);
         }
         if (userProfile.getAccessToken() == null || userProfile.getRefreshToken() == null) {
             log.warn(NULL_TOKEN_MESSAGE, uuid);
-            throw new AuthCustomException(AuthErrorCode.INVALID_TOKEN_DATA);
+            throw new CustomException(ErrorCode.AUTH_INVALID_TOKEN_DATA);
         }
     }
 
@@ -235,7 +235,7 @@ public class RedisMemberDataAdapter {
             return Optional.of(socialUserProfile);
         } catch (Exception e) {
             log.error("UUID {}에 대한 임시 데이터 변환 실패: {}", uuid, e.getMessage(), e);
-            throw new AuthCustomException(AuthErrorCode.INVALID_TEMP_DATA);
+            throw new CustomException(ErrorCode.AUTH_INVALID_TEMP_DATA);
         }
     }
 
@@ -260,7 +260,7 @@ public class RedisMemberDataAdapter {
             }
             default -> {
                 log.warn("UUID {}에 대해 조회된 데이터가 예상 타입이 아님, 실제: {}", uuid, data.getClass().getSimpleName());
-                throw new AuthCustomException(AuthErrorCode.INVALID_TEMP_DATA);
+                throw new CustomException(ErrorCode.AUTH_INVALID_TEMP_DATA);
             }
         };
     }
@@ -298,7 +298,7 @@ public class RedisMemberDataAdapter {
             );
         } catch (Exception e) {
             log.error("LinkedHashMap -> SocialMemberProfile 변환 실패: {}", e.getMessage(), e);
-            throw new AuthCustomException(AuthErrorCode.INVALID_TEMP_DATA);
+            throw new CustomException(ErrorCode.AUTH_INVALID_TEMP_DATA);
         }
     }
 

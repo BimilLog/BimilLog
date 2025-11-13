@@ -3,8 +3,8 @@ package jaeik.bimillog.infrastructure.redis.post;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.exception.PostCustomException;
-import jaeik.bimillog.domain.post.exception.PostErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -37,14 +37,14 @@ public class RedisPostSaveAdapter {
      *
      * @param type 게시글 캐시 유형
      * @return 캐시 메타데이터
-     * @throws PostCustomException 알 수 없는 PostCacheFlag 유형인 경우
+     * @throws CustomException 알 수 없는 PostCacheFlag 유형인 경우
      * @author Jaeik
      * @since 2.0.0
      */
     private RedisPostKeys.CacheMetadata getCacheMetadata(PostCacheFlag type) {
         RedisPostKeys.CacheMetadata metadata = cacheMetadataMap.get(type);
         if (metadata == null) {
-            throw new PostCustomException(PostErrorCode.REDIS_READ_ERROR, "Unknown PostCacheFlag type: " + type);
+            throw new CustomException(ErrorCode.POST_REDIS_READ_ERROR, "Unknown PostCacheFlag type: " + type);
         }
         return metadata;
     }
@@ -56,7 +56,7 @@ public class RedisPostSaveAdapter {
      *
      * @param type  캐시할 게시글 유형 (WEEKLY, LEGEND, NOTICE)
      * @param postIds 캐시할 게시글 ID 목록 (이미 인기도 순으로 정렬됨)
-     * @throws PostCustomException Redis 쓰기 오류 발생 시
+     * @throws CustomException Redis 쓰기 오류 발생 시
      * @author Jaeik
      * @since 2.0.0
      */
@@ -90,7 +90,7 @@ public class RedisPostSaveAdapter {
             }
 
         } catch (Exception e) {
-            throw new PostCustomException(PostErrorCode.REDIS_WRITE_ERROR, e);
+            throw new CustomException(ErrorCode.POST_REDIS_WRITE_ERROR, e);
         }
     }
 
@@ -102,7 +102,7 @@ public class RedisPostSaveAdapter {
      *
      * @param type  캐시할 게시글 유형 (REALTIME, WEEKLY, LEGEND, NOTICE)
      * @param posts 캐시할 게시글 목록 (PostSimpleDetail)
-     * @throws PostCustomException Redis 쓰기 오류 발생 시
+     * @throws CustomException Redis 쓰기 오류 발생 시
      * @author Jaeik
      * @since 2.0.0
      */
@@ -130,7 +130,7 @@ public class RedisPostSaveAdapter {
         } catch (Exception e) {
             log.error("[CACHE_WRITE] FAIL - type={}, key={}, error={}",
                 type, metadata.key(), e.getMessage());
-            throw new PostCustomException(PostErrorCode.REDIS_WRITE_ERROR, e);
+            throw new CustomException(ErrorCode.POST_REDIS_WRITE_ERROR, e);
         }
     }
 
@@ -147,7 +147,7 @@ public class RedisPostSaveAdapter {
         try {
             redisTemplate.opsForValue().set(key, postDetail, FULL_POST_CACHE_TTL);
         } catch (Exception e) {
-            throw new PostCustomException(PostErrorCode.REDIS_WRITE_ERROR, e);
+            throw new CustomException(ErrorCode.POST_REDIS_WRITE_ERROR, e);
         }
     }
 
@@ -166,7 +166,7 @@ public class RedisPostSaveAdapter {
         try {
             redisTemplate.opsForSet().add(postIdsKey, postId.toString());
         } catch (Exception e) {
-            throw new PostCustomException(PostErrorCode.REDIS_WRITE_ERROR, e);
+            throw new CustomException(ErrorCode.POST_REDIS_WRITE_ERROR, e);
         }
     }
 }

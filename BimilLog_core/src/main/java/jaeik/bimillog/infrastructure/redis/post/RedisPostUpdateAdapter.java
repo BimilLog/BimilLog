@@ -1,8 +1,8 @@
 package jaeik.bimillog.infrastructure.redis.post;
 
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
-import jaeik.bimillog.domain.post.exception.PostCustomException;
-import jaeik.bimillog.domain.post.exception.PostErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -35,7 +35,7 @@ public class RedisPostUpdateAdapter {
         try {
             redisTemplate.opsForZSet().incrementScore(REALTIME_POST_SCORE_KEY, postId.toString(), score);
         } catch (Exception e) {
-            throw new PostCustomException(PostErrorCode.REDIS_WRITE_ERROR, e);
+            throw new CustomException(ErrorCode.POST_REDIS_WRITE_ERROR, e);
         }
     }
 
@@ -60,7 +60,7 @@ public class RedisPostUpdateAdapter {
             redisTemplate.opsForZSet().removeRangeByScore(REALTIME_POST_SCORE_KEY, 0, REALTIME_POST_SCORE_THRESHOLD);
 
         } catch (Exception e) {
-            throw new PostCustomException(PostErrorCode.REDIS_WRITE_ERROR, e);
+            throw new CustomException(ErrorCode.POST_REDIS_WRITE_ERROR, e);
         }
     }
 

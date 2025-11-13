@@ -3,8 +3,10 @@ package jaeik.bimillog.domain.member.service;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.auth.exception.AuthCustomException;
-import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.global.out.GlobalAuthTokenSaveAdapter;
 import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
@@ -135,8 +137,8 @@ class MemberSignupServiceTest extends BaseUnitTest {
         given(redisMemberDataAdapter.getTempData("missing-uuid")).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> signUpService.signup("tester", "missing-uuid"))
-                .isInstanceOf(AuthCustomException.class)
-                .hasFieldOrPropertyWithValue("authErrorCode", AuthErrorCode.INVALID_TEMP_DATA);
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.AUTH_INVALID_TEMP_DATA);
 
         verify(redisMemberDataAdapter).getTempData("missing-uuid");
         verify(saveMemberAdapter, never()).saveNewMember(any(Member.class));

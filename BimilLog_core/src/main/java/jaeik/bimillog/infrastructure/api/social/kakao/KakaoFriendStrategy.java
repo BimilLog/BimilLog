@@ -3,8 +3,8 @@ package jaeik.bimillog.infrastructure.api.social.kakao;
 import jaeik.bimillog.domain.global.strategy.SocialFriendStrategy;
 import jaeik.bimillog.domain.member.entity.KakaoFriends;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
-import jaeik.bimillog.domain.member.exception.MemberCustomException;
-import jaeik.bimillog.domain.member.exception.MemberErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.api.dto.KakaoFriendsDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -50,7 +50,7 @@ public class KakaoFriendStrategy implements SocialFriendStrategy {
             KakaoFriendsDTO response = kakaoApiClient.getFriends("Bearer " + accessToken, offset, limit);
             return response != null ? response.toVO() : null;
         } catch (Exception e) {
-            throw new MemberCustomException(MemberErrorCode.KAKAO_FRIEND_API_ERROR, e);
+            throw new CustomException(ErrorCode.MEMBER_KAKAO_FRIEND_API_ERROR, e);
         }
     }
 }

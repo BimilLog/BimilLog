@@ -2,8 +2,8 @@ package jaeik.bimillog.domain.member.service;
 
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.Setting;
-import jaeik.bimillog.domain.member.exception.MemberCustomException;
-import jaeik.bimillog.domain.member.exception.MemberErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.member.controller.MemberCommandController;
 import jaeik.bimillog.domain.member.out.MemberCommandAdapter;
 import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
@@ -43,7 +43,7 @@ public class MemberCommandService {
     @Transactional
     public void updateMemberSettings(Long memberId, Setting newSetting) {
         Member member = memberQueryPort.findById(memberId)
-                .orElseThrow(() -> new MemberCustomException(MemberErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_USER_NOT_FOUND));
 
         member.updateSettings(
                 newSetting.isMessageNotification(),
@@ -69,11 +69,11 @@ public class MemberCommandService {
     public void updateMemberName(Long memberId, String newMemberName) {
         try {
             Member member = memberQueryPort.findById(memberId)
-                    .orElseThrow(() -> new MemberCustomException(MemberErrorCode.USER_NOT_FOUND));
+                    .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_USER_NOT_FOUND));
             member.changeMemberName(newMemberName);
         } catch (DataIntegrityViolationException e) {
             if (e.getMessage() != null && e.getMessage().contains("member_name")) {
-                throw new MemberCustomException(MemberErrorCode.EXISTED_NICKNAME);
+                throw new CustomException(ErrorCode.MEMBER_EXISTED_NICKNAME);
             }
             throw e;
         }

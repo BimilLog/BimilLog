@@ -2,8 +2,10 @@ package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.auth.exception.AuthCustomException;
-import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.global.out.GlobalSocialStrategyAdapter;
 import jaeik.bimillog.domain.global.strategy.SocialAuthStrategy;
 import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
@@ -80,7 +82,7 @@ class SocialLoginServiceTest extends BaseUnitTest {
     void shouldPropagateExceptionFromTransactionalService() {
         // Given
         SocialMemberProfile testMemberProfile = getTestMemberProfile();
-        AuthCustomException expectedException = new AuthCustomException(AuthErrorCode.BLACKLIST_USER);
+        CustomException expectedException = new CustomException(ErrorCode.AUTH_BLACKLIST_USER);
 
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             mockAnonymousAuthentication(mockedSecurityContext);

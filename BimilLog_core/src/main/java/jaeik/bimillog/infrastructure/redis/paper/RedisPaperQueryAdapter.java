@@ -1,8 +1,8 @@
 package jaeik.bimillog.infrastructure.redis.paper;
 
 import jaeik.bimillog.domain.paper.entity.PopularPaperInfo;
-import jaeik.bimillog.domain.paper.exception.PaperCustomException;
-import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -74,7 +74,7 @@ public class RedisPaperQueryAdapter {
             CacheMetricsLogger.hit(log, "paper:realtime", REALTIME_PAPER_SCORE_KEY, result.size());
             return result;
         } catch (Exception e) {
-            throw new PaperCustomException(PaperErrorCode.REDIS_READ_ERROR, e);
+            throw new CustomException(ErrorCode.PAPER_REDIS_READ_ERROR, e);
         }
     }
 }

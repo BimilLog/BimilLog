@@ -7,8 +7,10 @@ import jaeik.bimillog.domain.global.strategy.SocialFriendStrategy;
 import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
 import jaeik.bimillog.domain.member.entity.KakaoFriends;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
-import jaeik.bimillog.domain.member.exception.MemberCustomException;
-import jaeik.bimillog.domain.member.exception.MemberErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -112,7 +114,7 @@ public class TestSocialLoginAdapterConfig {
         @Override
         public KakaoFriends getFriendList(String accessToken, Integer offset, Integer limit) {
             if (consentRequired) {
-                throw new MemberCustomException(MemberErrorCode.KAKAO_FRIEND_API_ERROR);
+                throw new CustomException(ErrorCode.MEMBER_KAKAO_FRIEND_API_ERROR);
             }
             return KakaoFriends.of(
                 Collections.emptyList(),

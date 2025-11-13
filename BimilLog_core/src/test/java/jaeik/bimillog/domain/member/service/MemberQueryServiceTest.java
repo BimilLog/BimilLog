@@ -1,8 +1,10 @@
 package jaeik.bimillog.domain.member.service;
 
 import jaeik.bimillog.domain.member.entity.Setting;
-import jaeik.bimillog.domain.member.exception.MemberCustomException;
-import jaeik.bimillog.domain.member.exception.MemberErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.DisplayName;
@@ -68,8 +70,8 @@ class MemberQueryServiceTest extends BaseUnitTest {
 
         // When & Then
         assertThatThrownBy(() -> userQueryService.findBySettingId(settingId))
-                .isInstanceOf(MemberCustomException.class)
-                .hasMessage(MemberErrorCode.SETTINGS_NOT_FOUND.getMessage());
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.MEMBER_SETTINGS_NOT_FOUND.getMessage());
 
         verify(memberQueryAdapter).findSettingById(settingId);
     }

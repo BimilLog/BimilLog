@@ -3,8 +3,8 @@ package jaeik.bimillog.infrastructure.redis.post;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.exception.PostCustomException;
-import jaeik.bimillog.domain.post.exception.PostErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.CacheMetadata;
 import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
 import lombok.extern.slf4j.Slf4j;
@@ -57,14 +57,14 @@ public class RedisPostQueryAdapter {
      *
      * @param type 게시글 캐시 유형
      * @return 캐시 메타데이터
-     * @throws PostCustomException 알 수 없는 PostCacheFlag 유형인 경우
+     * @throws CustomException 알 수 없는 PostCacheFlag 유형인 경우
      * @author Jaeik
      * @since 2.0.0
      */
     private CacheMetadata getCacheMetadata(PostCacheFlag type) {
         CacheMetadata metadata = cacheMetadataMap.get(type);
         if (metadata == null) {
-            throw new PostCustomException(PostErrorCode.REDIS_READ_ERROR, "Unknown PostCacheFlag type: " + type);
+            throw new CustomException(ErrorCode.POST_REDIS_READ_ERROR, "Unknown PostCacheFlag type: " + type);
         }
         return metadata;
     }
@@ -90,7 +90,7 @@ public class RedisPostQueryAdapter {
             }
             return exists;
         } catch (Exception e) {
-            throw new PostCustomException(PostErrorCode.REDIS_READ_ERROR, e);
+            throw new CustomException(ErrorCode.POST_REDIS_READ_ERROR, e);
         }
     }
 
@@ -151,7 +151,7 @@ public class RedisPostQueryAdapter {
             }
             return cachedPosts;
         } catch (Exception e) {
-            throw new PostCustomException(PostErrorCode.REDIS_READ_ERROR, e);
+            throw new CustomException(ErrorCode.POST_REDIS_READ_ERROR, e);
         }
     }
 
@@ -193,7 +193,7 @@ public class RedisPostQueryAdapter {
                     postIdsKey, ids.size());
             return ids;
         } catch (Exception e) {
-            throw new PostCustomException(PostErrorCode.REDIS_READ_ERROR, e);
+            throw new CustomException(ErrorCode.POST_REDIS_READ_ERROR, e);
         }
     }
 
@@ -216,7 +216,7 @@ public class RedisPostQueryAdapter {
             }
             CacheMetricsLogger.miss(log, "post:detail", postId, "value_not_found");
         } catch (Exception e) {
-            throw new PostCustomException(PostErrorCode.REDIS_READ_ERROR, e);
+            throw new CustomException(ErrorCode.POST_REDIS_READ_ERROR, e);
         }
         return null;
     }
@@ -274,7 +274,7 @@ public class RedisPostQueryAdapter {
             return new PageImpl<>(pagedPosts, pageable, orderedIds.size());
 
         } catch (Exception e) {
-            throw new PostCustomException(PostErrorCode.REDIS_READ_ERROR, e);
+            throw new CustomException(ErrorCode.POST_REDIS_READ_ERROR, e);
         }
     }
 
@@ -303,7 +303,7 @@ public class RedisPostQueryAdapter {
             CacheMetricsLogger.hit(log, "post:realtime", REALTIME_POST_SCORE_KEY, ids.size());
             return ids;
         } catch (Exception e) {
-            throw new PostCustomException(PostErrorCode.REDIS_READ_ERROR, e);
+            throw new CustomException(ErrorCode.POST_REDIS_READ_ERROR, e);
         }
     }
 
@@ -322,7 +322,7 @@ public class RedisPostQueryAdapter {
         try {
             return redisTemplate.getExpire(metadata.key(), TimeUnit.SECONDS);
         } catch (Exception e) {
-            throw new PostCustomException(PostErrorCode.REDIS_READ_ERROR, e);
+            throw new CustomException(ErrorCode.POST_REDIS_READ_ERROR, e);
         }
     }
 }

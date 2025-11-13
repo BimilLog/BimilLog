@@ -7,8 +7,8 @@ import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.event.MessageDeletedEvent;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
-import jaeik.bimillog.domain.paper.exception.PaperCustomException;
-import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.paper.controller.PaperCommandController;
 import jaeik.bimillog.domain.paper.out.PaperCommandRepository;
 import jaeik.bimillog.domain.paper.out.PaperQueryRepository;
@@ -46,11 +46,11 @@ public class PaperCommandService {
                              String content, int x, int y) {
 
         if (memberName == null || memberName.trim().isEmpty()) { // 입력 닉네임 검증
-            throw new PaperCustomException(PaperErrorCode.INVALID_INPUT_VALUE);
+            throw new CustomException(ErrorCode.PAPER_INVALID_INPUT_VALUE);
         }
 
         Member member = globalMemberQueryAdapter.findByMemberName(memberName) // 입력 닉네임 존재 검증
-                .orElseThrow(() -> new PaperCustomException(PaperErrorCode.USERNAME_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorCode.PAPER_USERNAME_NOT_FOUND));
 
         Message message = Message.createMessage(member, decoType, anonymity, content, x, y);
         paperCommandRepository.save(message);
@@ -86,10 +86,10 @@ public class PaperCommandService {
 
         // 메시지 삭제의 경우
         Long ownerId = paperQueryRepository.findOwnerIdByMessageId(messageId)
-                .orElseThrow(() -> new PaperCustomException(PaperErrorCode.MESSAGE_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorCode.PAPER_MESSAGE_NOT_FOUND));
 
         if (!ownerId.equals(memberId)) {
-            throw new PaperCustomException(PaperErrorCode.MESSAGE_DELETE_FORBIDDEN);
+            throw new CustomException(ErrorCode.PAPER_MESSAGE_DELETE_FORBIDDEN);
         }
 
         // 메시지 삭제
