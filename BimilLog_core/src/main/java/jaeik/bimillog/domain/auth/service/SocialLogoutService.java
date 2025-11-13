@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.entity.SocialToken;
-import jaeik.bimillog.domain.auth.exception.AuthCustomException;
-import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.global.out.GlobalSocialStrategyAdapter;
 import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
@@ -42,10 +42,10 @@ public class SocialLogoutService {
      */
     public void socialLogout(Long memberId, SocialProvider provider) throws Exception {
         Member member = globalMemberQueryAdapter.findById(memberId)
-                .orElseThrow(() -> new AuthCustomException(AuthErrorCode.NOT_FIND_TOKEN));
+                .orElseThrow(() -> new CustomException(ErrorCode.AUTH_NOT_FIND_TOKEN));
         SocialToken socialToken = member.getSocialToken();
         if (socialToken == null) {
-            throw new AuthCustomException(AuthErrorCode.NOT_FIND_TOKEN);
+            throw new CustomException(ErrorCode.AUTH_NOT_FIND_TOKEN);
         }
         SocialPlatformStrategy strategy = globalSocialStrategyAdapter.getStrategy(provider);
         strategy.auth().logout(socialToken.getAccessToken());

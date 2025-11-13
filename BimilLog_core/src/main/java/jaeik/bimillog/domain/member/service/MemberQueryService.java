@@ -3,8 +3,8 @@ package jaeik.bimillog.domain.member.service;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
-import jaeik.bimillog.domain.member.exception.MemberCustomException;
-import jaeik.bimillog.domain.member.exception.MemberErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.member.controller.MemberQueryController;
 import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
 import jaeik.bimillog.domain.member.out.MemberSearchAdapter;
@@ -107,7 +107,7 @@ public class MemberQueryService {
     @Transactional(readOnly = true)
     public Setting findBySettingId(Long settingId) {
         return memberQueryPort.findSettingById(settingId)
-                .orElseThrow(() -> new MemberCustomException(MemberErrorCode.SETTINGS_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_SETTINGS_NOT_FOUND));
     }
 
     /**

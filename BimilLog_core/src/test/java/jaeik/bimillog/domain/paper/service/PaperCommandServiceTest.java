@@ -5,8 +5,10 @@ import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
-import jaeik.bimillog.domain.paper.exception.PaperCustomException;
-import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.paper.out.PaperCommandRepository;
 import jaeik.bimillog.domain.paper.out.PaperQueryRepository;
 import jaeik.bimillog.testutil.BaseUnitTest;
@@ -79,8 +81,8 @@ class PaperCommandServiceTest extends BaseUnitTest {
 
         // When & Then
         assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(memberId, messageId))
-                .isInstanceOf(PaperCustomException.class)
-                .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.MESSAGE_NOT_FOUND);
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PAPER_MESSAGE_NOT_FOUND);
 
         verify(paperQueryRepository, times(1)).findOwnerIdByMessageId(messageId);
         verify(paperCommandRepository, never()).deleteMessage(any(), any());
@@ -98,8 +100,8 @@ class PaperCommandServiceTest extends BaseUnitTest {
 
         // When & Then
         assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(memberId, messageId))
-                .isInstanceOf(PaperCustomException.class)
-                .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.MESSAGE_DELETE_FORBIDDEN);
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PAPER_MESSAGE_DELETE_FORBIDDEN);
 
         verify(paperQueryRepository, times(1)).findOwnerIdByMessageId(messageId);
         verify(paperCommandRepository, never()).deleteMessage(any(), any());
@@ -145,8 +147,8 @@ class PaperCommandServiceTest extends BaseUnitTest {
 
         // When & Then
         assertThatThrownBy(() -> paperCommandService.writeMessage(memberName, decoType, anonymity, content, x, y))
-                .isInstanceOf(PaperCustomException.class)
-                .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.USERNAME_NOT_FOUND);
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PAPER_USERNAME_NOT_FOUND);
 
         verify(globalMemberQueryAdapter, times(1)).findByMemberName(memberName);
         verify(paperCommandRepository, never()).save(any());
@@ -166,16 +168,16 @@ class PaperCommandServiceTest extends BaseUnitTest {
 
         // When & Then - null case
         assertThatThrownBy(() -> paperCommandService.writeMessage(memberName, decoType, anonymity, content, x, y))
-                .isInstanceOf(PaperCustomException.class)
-                .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.INVALID_INPUT_VALUE);
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PAPER_INVALID_INPUT_VALUE);
 
         // Given - empty memberName
         String emptyUserName = "   ";
 
         // When & Then - empty case
         assertThatThrownBy(() -> paperCommandService.writeMessage(emptyUserName, decoType, anonymity, content, x, y))
-                .isInstanceOf(PaperCustomException.class)
-                .hasFieldOrPropertyWithValue("paperErrorCode", PaperErrorCode.INVALID_INPUT_VALUE);
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PAPER_INVALID_INPUT_VALUE);
 
         verify(globalMemberQueryAdapter, never()).findByMemberName(any());
         verify(paperCommandRepository, never()).save(any());

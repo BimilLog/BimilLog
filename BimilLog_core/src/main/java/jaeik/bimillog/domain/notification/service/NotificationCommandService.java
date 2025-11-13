@@ -5,7 +5,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import jaeik.bimillog.domain.global.listener.MemberWithdrawListener;
 import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
-import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
+import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.domain.notification.controller.NotificationCommandController;
 import jaeik.bimillog.domain.notification.out.NotificationCommandAdapter;
 import lombok.RequiredArgsConstructor;

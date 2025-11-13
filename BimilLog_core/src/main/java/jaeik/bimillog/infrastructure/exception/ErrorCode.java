@@ -15,11 +15,69 @@ import org.springframework.http.HttpStatus;
 @Getter
 public enum ErrorCode {
 
-    /**
-     * <h3>인증 관련 에러 코드</h3>
-     */
+    // ===== 기존 글로벌 에러 코드 =====
     TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "토큰을 찾을 수 없습니다", LogLevel.WARN),
-    TOKEN_MISMATCH(HttpStatus.UNAUTHORIZED, "토큰 불일치 - 보안 위협 감지", LogLevel.ERROR);
+    TOKEN_MISMATCH(HttpStatus.UNAUTHORIZED, "토큰 불일치 - 보안 위협 감지", LogLevel.ERROR),
+
+    // ===== Admin 도메인 에러 코드 =====
+    ADMIN_INVALID_REPORT_TARGET(HttpStatus.BAD_REQUEST, "신고 대상이 유효하지 않습니다.", LogLevel.WARN),
+    ADMIN_POST_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "신고 대상 게시글이 이미 삭제되었습니다.", LogLevel.WARN),
+    ADMIN_COMMENT_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "신고 대상 댓글이 이미 삭제되었습니다.", LogLevel.WARN),
+    ADMIN_ANONYMOUS_USER_CANNOT_BE_BANNED(HttpStatus.BAD_REQUEST, "익명 사용자는 제재할 수 없습니다.", LogLevel.WARN),
+
+    // ===== Auth 도메인 에러 코드 =====
+    AUTH_NULL_SECURITY_CONTEXT(HttpStatus.UNAUTHORIZED, "유저 인증 정보가 없습니다. 다시 로그인 해주세요", LogLevel.WARN),
+    AUTH_ALREADY_LOGIN(HttpStatus.FORBIDDEN, "이미 로그인 된 유저 입니다.", LogLevel.WARN),
+    AUTH_BLACKLIST_USER(HttpStatus.FORBIDDEN, "차단된 회원은 회원가입이 불가능합니다", LogLevel.INFO),
+    AUTH_SOCIAL_TOKEN_REQUEST_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "소셜 로그인 토큰 발급에 실패했습니다. 다시 시도해주세요.", LogLevel.ERROR),
+    AUTH_SOCIAL_TOKEN_REFRESH_FAILED(HttpStatus.UNAUTHORIZED, "소셜 로그인 토큰 갱신에 실패했습니다. 다시 로그인해주세요.", LogLevel.WARN),
+    AUTH_SOCIAL_TOKEN_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "소셜 로그인 연결 해제에 실패했습니다.", LogLevel.ERROR),
+    AUTH_NOT_FIND_TOKEN(HttpStatus.FORBIDDEN, "토큰을 찾을 수 없습니다. 다시 로그인 해주세요 ", LogLevel.WARN),
+    AUTH_INVALID_TEMP_DATA(HttpStatus.BAD_REQUEST, "시간이 초과 되었습니다. 다시 카카오 로그인을 진행해주세요.", LogLevel.WARN),
+    AUTH_INVALID_TEMP_UUID(HttpStatus.BAD_REQUEST, "임시 사용자 UUID가 유효하지 않습니다.", LogLevel.WARN),
+    AUTH_INVALID_USER_DATA(HttpStatus.BAD_REQUEST, "사용자 데이터가 유효하지 않습니다.", LogLevel.WARN),
+    AUTH_INVALID_TOKEN_DATA(HttpStatus.BAD_REQUEST, "토큰 데이터가 유효하지 않습니다.", LogLevel.WARN),
+
+    // ===== Comment 도메인 에러 코드 =====
+    COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 댓글을 찾을 수 없습니다.", LogLevel.INFO),
+    COMMENT_PARENT_NOT_FOUND(HttpStatus.NOT_FOUND, "부모 댓글이 존재하지 않습니다.", LogLevel.INFO),
+    COMMENT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 조회에 실패했습니다.", LogLevel.ERROR),
+    COMMENT_WRITE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 작성에 실패했습니다.", LogLevel.ERROR),
+    COMMENT_UNAUTHORIZED(HttpStatus.FORBIDDEN, "댓글 수정/삭제 권한이 없습니다.", LogLevel.INFO),
+
+    // ===== Member 도메인 에러 코드 =====
+    MEMBER_USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다.", LogLevel.INFO),
+    MEMBER_SETTINGS_NOT_FOUND(HttpStatus.NOT_FOUND, "설정 정보를 찾을 수 없습니다.", LogLevel.INFO),
+    MEMBER_INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "유효하지 않은 입력 값입니다.", LogLevel.WARN),
+    MEMBER_EXISTED_NICKNAME(HttpStatus.BAD_REQUEST, "이미 존재하는 닉네임입니다.", LogLevel.INFO),
+    MEMBER_KAKAO_FRIEND_CONSENT_FAIL(HttpStatus.UNAUTHORIZED, "카카오 친구 추가 동의를 해야 합니다.", LogLevel.INFO),
+    MEMBER_KAKAO_FRIEND_API_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "카카오 친구 API 호출 실패", LogLevel.ERROR),
+    MEMBER_UNSUPPORTED_SOCIAL_FRIEND(HttpStatus.BAD_REQUEST, "지원하지 않는 소셜 친구 조회 기능입니다.", LogLevel.WARN),
+
+    // ===== Notification 도메인 에러 코드 =====
+    NOTIFICATION_SEND_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "알림 전송 중 오류가 발생했습니다.", LogLevel.ERROR),
+    NOTIFICATION_INVALID_USER_CONTEXT(HttpStatus.BAD_REQUEST, "유효하지 않은 사용자 컨텍스트입니다.", LogLevel.WARN),
+    NOTIFICATION_NO_SEND_FCM_TOKEN(HttpStatus.BAD_REQUEST, "fcm토큰이 없습니다.", LogLevel.WARN),
+    NOTIFICATION_NO_MEMBER_FCM_TOKEN(HttpStatus.INTERNAL_SERVER_ERROR, "사용자가 존재하지 않습니다.", LogLevel.WARN),
+    NOTIFICATION_FCM_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "FCM 토큰을 등록할 AuthToken을 찾을 수 없습니다.", LogLevel.WARN),
+    NOTIFICATION_INVALID_AUTH_TOKEN(HttpStatus.FORBIDDEN, "본인의 AuthToken에만 FCM 토큰을 등록할 수 있습니다.", LogLevel.WARN),
+
+    // ===== Paper 도메인 에러 코드 =====
+    PAPER_USERNAME_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 닉네임의 롤링페이퍼를 찾을 수 없습니다.", LogLevel.INFO),
+    PAPER_MESSAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "메시지를 찾을 수 없습니다.", LogLevel.INFO),
+    PAPER_MESSAGE_DELETE_FORBIDDEN(HttpStatus.FORBIDDEN, "본인 롤링페이퍼의 메시지만 삭제할 수 있습니다.", LogLevel.INFO),
+    PAPER_INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "유효하지 않은 입력 값입니다.", LogLevel.WARN),
+    PAPER_REDIS_READ_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "레디스 읽기 중 오류가 발생했습니다.", LogLevel.ERROR),
+    PAPER_REDIS_WRITE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "레디스 쓰기 중 오류가 발생했습니다.", LogLevel.ERROR),
+    PAPER_REDIS_DELETE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "레디스 삭제 중 오류가 발생했습니다.", LogLevel.ERROR),
+
+    // ===== Post 도메인 에러 코드 =====
+    POST_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 게시글이 존재하지 않습니다.", LogLevel.INFO),
+    POST_BLANK_PASSWORD(HttpStatus.BAD_REQUEST, "비회원은 글을 수정/삭제 할 시 비밀번호를 입력해야 합니다.", LogLevel.WARN),
+    POST_FORBIDDEN(HttpStatus.FORBIDDEN, "권한이 없습니다.", LogLevel.WARN),
+    POST_REDIS_WRITE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "레디스 작성 중 오류가 발생했습니다.", LogLevel.ERROR),
+    POST_REDIS_READ_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "레디스 읽기 중 오류가 발생했습니다.", LogLevel.ERROR),
+    POST_REDIS_DELETE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "레디스 삭제 중 오류가 발생했습니다.", LogLevel.ERROR);
 
     private final HttpStatus status;
     private final String message;

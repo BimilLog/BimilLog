@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.post.service;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.exception.PostCustomException;
+import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.domain.post.out.PostQueryAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostQueryAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostSaveAdapter;

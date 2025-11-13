@@ -28,8 +28,10 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import jaeik.bimillog.domain.member.service.MemberQueryService;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.SseMessage;
-import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
-import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.notification.out.NotificationCommandAdapter;
 import jaeik.bimillog.domain.notification.out.NotificationUtilAdapter;
 import jaeik.bimillog.domain.notification.out.SseAdapter;
@@ -139,8 +141,8 @@ class SseAdapterTest extends BaseUnitTest {
         // When & Then
         SseMessage sseMessage = SseMessage.of(memberId, NotificationType.COMMENT, "테스트 메시지", "/test/url");
         assertThatThrownBy(() -> sseAdapter.send(sseMessage))
-                .isInstanceOf(NotificationCustomException.class)
-                .hasFieldOrPropertyWithValue("notificationErrorCode", NotificationErrorCode.INVALID_USER_CONTEXT);
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.NOTIFICATION_INVALID_USER_CONTEXT);
 
         verify(notificationUtilAdapter).SseEligibleForNotification(memberId, NotificationType.COMMENT);
         verify(memberQueryService).findById(memberId);
@@ -159,8 +161,8 @@ class SseAdapterTest extends BaseUnitTest {
         // When & Then
         SseMessage sseMessage = SseMessage.of(memberId, NotificationType.COMMENT, "테스트 메시지", "/test/url");
         assertThatThrownBy(() -> sseAdapter.send(sseMessage))
-                .isInstanceOf(NotificationCustomException.class)
-                .hasFieldOrPropertyWithValue("notificationErrorCode", NotificationErrorCode.NOTIFICATION_SEND_ERROR);
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.NOTIFICATION_SEND_ERROR);
 
         verify(notificationUtilAdapter).SseEligibleForNotification(memberId, NotificationType.COMMENT);
         verify(memberQueryService).findById(memberId);

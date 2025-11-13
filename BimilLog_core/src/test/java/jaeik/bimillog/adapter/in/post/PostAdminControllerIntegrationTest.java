@@ -109,7 +109,7 @@ class PostAdminControllerIntegrationTest extends BaseIntegrationTest {
         // Given
         Long nonExistentPostId = 99999L;
 
-        // When & Then - 404 Not Found 예상 (PostCustomException -> PostExceptionHandler)
+        // When & Then - 404 Not Found 예상 (CustomException -> PostExceptionHandler)
         performPost("/api/post/" + nonExistentPostId + "/notice", null, adminUserDetails)
                 .andDo(print())
                 .andExpect(status().isNotFound());

@@ -2,7 +2,8 @@ package jaeik.bimillog.adapter.in.member;
 
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.member.exception.MemberErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.auth.out.AuthTokenRepository;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.member.out.MemberRepository;
@@ -133,7 +134,7 @@ class MemberQueryControllerIntegrationTest extends BaseIntegrationTest {
                             .with(user(userDetails)))
                     .andDo(print())
                     .andExpect(status().isUnauthorized())
-                    .andExpect(jsonPath("$.message").value(MemberErrorCode.KAKAO_FRIEND_CONSENT_FAIL.getMessage()));
+                    .andExpect(jsonPath("$.message").value(ErrorCode.MEMBER_KAKAO_FRIEND_CONSENT_FAIL.getMessage()));
         } finally {
             TestSocialLoginAdapterConfig.setFriendConsentRequired(false);
         }

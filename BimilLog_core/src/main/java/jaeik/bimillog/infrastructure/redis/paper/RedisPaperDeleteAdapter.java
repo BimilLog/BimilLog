@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.redis.paper;
 
-import jaeik.bimillog.domain.paper.exception.PaperCustomException;
-import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -36,7 +36,7 @@ public class RedisPaperDeleteAdapter {
         try {
             redisTemplate.opsForZSet().remove(REALTIME_PAPER_SCORE_KEY, memberId.toString());
         } catch (Exception e) {
-            throw new PaperCustomException(PaperErrorCode.REDIS_DELETE_ERROR, e);
+            throw new CustomException(ErrorCode.PAPER_REDIS_DELETE_ERROR, e);
         }
     }
 }

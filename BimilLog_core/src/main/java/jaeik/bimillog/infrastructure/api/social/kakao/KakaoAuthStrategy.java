@@ -3,8 +3,8 @@ package jaeik.bimillog.infrastructure.api.social.kakao;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.auth.exception.AuthCustomException;
-import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.global.strategy.SocialAuthStrategy;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import lombok.RequiredArgsConstructor;
@@ -90,7 +90,7 @@ public class KakaoAuthStrategy implements SocialAuthStrategy {
             );
         } catch (Exception e) {
             log.error("카카오 토큰 요청 실패: {}", e.getMessage(), e);
-            throw new AuthCustomException(AuthErrorCode.SOCIAL_TOKEN_REQUEST_FAILED);
+            throw new CustomException(ErrorCode.AUTH_SOCIAL_TOKEN_REQUEST_FAILED);
         }
     }
 
@@ -115,7 +115,7 @@ public class KakaoAuthStrategy implements SocialAuthStrategy {
             kakaoApiClient.unlink("KakaoAK " + kakaoKeyVO.getADMIN_KEY(), params);
         } catch (Exception e) {
             log.error("카카오 연결 해제 실패: {}", e.getMessage(), e);
-            throw new AuthCustomException(AuthErrorCode.SOCIAL_TOKEN_DELETE_FAILED);
+            throw new CustomException(ErrorCode.AUTH_SOCIAL_TOKEN_DELETE_FAILED);
         }
     }
 
@@ -152,7 +152,7 @@ public class KakaoAuthStrategy implements SocialAuthStrategy {
             kakaoApiClient.forceLogout("KakaoAK " + kakaoKeyVO.getADMIN_KEY(), params);
         } catch (Exception e) {
             log.error("카카오 강제 로그아웃 실패: {}", e.getMessage(), e);
-            throw new AuthCustomException(AuthErrorCode.SOCIAL_TOKEN_DELETE_FAILED);
+            throw new CustomException(ErrorCode.AUTH_SOCIAL_TOKEN_DELETE_FAILED);
         }
     }
 

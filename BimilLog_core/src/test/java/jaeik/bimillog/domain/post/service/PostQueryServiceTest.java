@@ -5,8 +5,10 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.exception.PostCustomException;
-import jaeik.bimillog.domain.post.exception.PostErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.post.out.PostLikeQueryAdapter;
 import jaeik.bimillog.domain.post.out.PostQueryAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostQueryAdapter;
@@ -255,8 +257,8 @@ class PostQueryServiceTest extends BaseUnitTest {
 
         // When & Then
         assertThatThrownBy(() -> postQueryService.getPost(postId, memberId))
-                .isInstanceOf(PostCustomException.class)
-                .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.POST_NOT_FOUND);
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
         verify(redisPostQueryAdapter).getCachedPostIfExists(postId);
         verify(postQueryAdapter).findPostDetailWithCounts(postId, memberId);
@@ -416,12 +418,12 @@ class PostQueryServiceTest extends BaseUnitTest {
         // Given
         Long postId = 999L;
 
-        given(globalPostQueryAdapter.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
+        given(globalPostQueryAdapter.findById(postId)).willThrow(new CustomException(ErrorCode.POST_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> postQueryService.findById(postId))
-                .isInstanceOf(PostCustomException.class)
-                .hasMessage(PostErrorCode.POST_NOT_FOUND.getMessage());
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.POST_NOT_FOUND.getMessage());
 
         verify(globalPostQueryAdapter).findById(postId);
     }

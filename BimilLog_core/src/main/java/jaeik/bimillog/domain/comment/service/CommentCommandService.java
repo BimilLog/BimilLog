@@ -9,14 +9,14 @@ import jaeik.bimillog.domain.comment.entity.CommentClosure;
 import jaeik.bimillog.domain.comment.entity.CommentLike;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
-import jaeik.bimillog.domain.comment.exception.CommentCustomException;
-import jaeik.bimillog.domain.comment.exception.CommentErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.global.out.GlobalCommentQueryAdapter;
 import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.member.exception.MemberCustomException;
-import jaeik.bimillog.domain.member.exception.MemberErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.comment.controller.CommentCommandController;
 import jaeik.bimillog.domain.post.out.PostToCommentAdapter;
@@ -91,7 +91,7 @@ public class CommentCommandService {
             throw e;
         } catch (Exception e) {
             log.error("댓글 작성 중 예상치 못한 오류 발생", e);
-            throw new CommentCustomException(CommentErrorCode.COMMENT_WRITE_FAILED, e);
+            throw new CustomException(ErrorCode.COMMENT_WRITE_FAILED, e);
         }
     }
 
@@ -156,7 +156,7 @@ public class CommentCommandService {
     public void likeComment(Long memberId, Long commentId) {
         Comment comment = globalCommentQueryAdapter.findById(commentId);
         Member member = globalMemberQueryAdapter.findById(memberId)
-                .orElseThrow(() -> new MemberCustomException(MemberErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_USER_NOT_FOUND));
 
         if (commentLikeAdapter.isLikedByUser(commentId, memberId)) {
             commentLikeAdapter.deleteLikeByIds(commentId, memberId);
@@ -228,7 +228,7 @@ public class CommentCommandService {
         Comment comment = globalCommentQueryAdapter.findById(commentId);
 
         if (!comment.canModify(memberId, password)) {
-            throw new CommentCustomException(CommentErrorCode.COMMENT_UNAUTHORIZED);
+            throw new CustomException(ErrorCode.COMMENT_UNAUTHORIZED);
         }
 
         return comment;

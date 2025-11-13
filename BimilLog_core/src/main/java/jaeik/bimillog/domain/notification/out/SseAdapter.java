@@ -13,8 +13,8 @@ import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.service.MemberQueryService;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.SseMessage;
-import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
-import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.notification.listener.NotificationGenerateListener;
 import jaeik.bimillog.domain.notification.controller.NotificationSseController;
 import lombok.RequiredArgsConstructor;
@@ -135,7 +135,7 @@ public class SseAdapter {
             }
 
             Member member = memberQueryService.findById(sseMessage.memberId())
-                    .orElseThrow(() -> new NotificationCustomException(NotificationErrorCode.INVALID_USER_CONTEXT));
+                    .orElseThrow(() -> new CustomException(ErrorCode.NOTIFICATION_INVALID_USER_CONTEXT));
 
             // DB에 저장 (알림 히스토리용)
             notificationCommandAdapter.save(member, sseMessage.type(), sseMessage.message(), sseMessage.url());
@@ -146,10 +146,10 @@ public class SseAdapter {
                     (emitterId, emitter) -> {
                         sendNotification(emitter, emitterId, sseMessage);
                     });
-        } catch (NotificationCustomException e) {
+        } catch (CustomException e) {
             throw e; // 비즈니스 예외는 그대로 전파
         } catch (Exception e) {
-            throw new NotificationCustomException(NotificationErrorCode.NOTIFICATION_SEND_ERROR, e);
+            throw new CustomException(ErrorCode.NOTIFICATION_SEND_ERROR, e);
         }
     }
 

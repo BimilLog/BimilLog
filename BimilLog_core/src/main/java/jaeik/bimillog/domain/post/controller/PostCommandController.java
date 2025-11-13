@@ -1,13 +1,11 @@
 package jaeik.bimillog.domain.post.controller;
 
-import jaeik.bimillog.domain.auth.exception.AuthCustomException;
-import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.post.service.PostCommandService;
 import jaeik.bimillog.domain.post.service.PostInteractionService;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.log.Log.LogLevel;
-import jaeik.bimillog.domain.post.exception.PostCustomException;
-import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import jaeik.bimillog.domain.post.dto.PostCreateDTO;
 import jaeik.bimillog.domain.post.dto.PostDeleteDTO;
 import jaeik.bimillog.domain.post.dto.PostUpdateDTO;
@@ -59,7 +57,7 @@ public class PostCommandController {
         Integer password = postCreateDTO.getPassword();
 
         if (memberId == null && password == null) {
-            throw new PostCustomException(PostErrorCode.BLANK_PASSWORD);
+            throw new CustomException(ErrorCode.POST_BLANK_PASSWORD);
         }
 
         Long postId = postCommandService.writePost(memberId, postCreateDTO.getTitle(), postCreateDTO.getContent(), password);
@@ -86,7 +84,7 @@ public class PostCommandController {
         Integer password = postUpdateDTO.getPassword();
 
         if (memberId == null && password == null) {
-            throw new PostCustomException(PostErrorCode.BLANK_PASSWORD);
+            throw new CustomException(ErrorCode.POST_BLANK_PASSWORD);
         }
 
         postCommandService.updatePost(memberId, postId, postUpdateDTO.getTitle(), postUpdateDTO.getContent(), password);
@@ -113,7 +111,7 @@ public class PostCommandController {
         Integer password = (postDeleteDTO != null) ? postDeleteDTO.getPassword() : null;
 
         if (memberId == null && password == null) {
-            throw new PostCustomException(PostErrorCode.BLANK_PASSWORD);
+            throw new CustomException(ErrorCode.POST_BLANK_PASSWORD);
         }
 
         postCommandService.deletePost(memberId, postId, password);
@@ -134,7 +132,7 @@ public class PostCommandController {
     public ResponseEntity<Void> likePost(@PathVariable Long postId,
                                          @AuthenticationPrincipal CustomUserDetails userDetails) {
         if (userDetails == null) {
-            throw new AuthCustomException(AuthErrorCode.NULL_SECURITY_CONTEXT);
+            throw new CustomException(ErrorCode.AUTH_NULL_SECURITY_CONTEXT);
         }
         postInteractionService.likePost(userDetails.getMemberId(), postId);
         return ResponseEntity.ok().build();

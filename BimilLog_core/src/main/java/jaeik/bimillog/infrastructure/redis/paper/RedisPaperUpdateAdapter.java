@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.redis.paper;
 
-import jaeik.bimillog.domain.paper.exception.PaperCustomException;
-import jaeik.bimillog.domain.paper.exception.PaperErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -43,7 +43,7 @@ public class RedisPaperUpdateAdapter {
             log.info("{}의 롤링 페이퍼{}점 증가", memberId, score);
         } catch (Exception e) {
             log.warn("{}의 롤링 페이퍼 레디스 작업 실패", memberId);
-            throw new PaperCustomException(PaperErrorCode.REDIS_WRITE_ERROR, e);
+            throw new CustomException(ErrorCode.PAPER_REDIS_WRITE_ERROR, e);
         }
     }
 
@@ -69,7 +69,7 @@ public class RedisPaperUpdateAdapter {
             redisTemplate.opsForZSet().removeRangeByScore(REALTIME_PAPER_SCORE_KEY, 0, REALTIME_PAPER_SCORE_THRESHOLD);
 
         } catch (Exception e) {
-            throw new PaperCustomException(PaperErrorCode.REDIS_WRITE_ERROR, e);
+            throw new CustomException(ErrorCode.PAPER_REDIS_WRITE_ERROR, e);
         }
     }
 }

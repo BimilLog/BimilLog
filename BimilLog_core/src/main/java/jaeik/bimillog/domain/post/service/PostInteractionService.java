@@ -7,7 +7,7 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
 import jaeik.bimillog.domain.post.event.PostLikeEvent;
 import jaeik.bimillog.domain.post.event.PostUnlikeEvent;
-import jaeik.bimillog.domain.post.exception.PostCustomException;
+import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.domain.post.out.PostCommandAdapter;
 import jaeik.bimillog.domain.post.out.PostLikeCommandAdapter;
 import jaeik.bimillog.domain.post.out.PostLikeQueryAdapter;

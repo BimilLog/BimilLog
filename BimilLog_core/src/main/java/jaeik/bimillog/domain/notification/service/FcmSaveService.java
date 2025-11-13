@@ -2,8 +2,8 @@ package jaeik.bimillog.domain.notification.service;
 
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.global.out.GlobalAuthTokenSaveAdapter;
-import jaeik.bimillog.domain.notification.exception.NotificationCustomException;
-import jaeik.bimillog.domain.notification.exception.NotificationErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.auth.out.AuthTokenRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,15 +41,15 @@ public class FcmSaveService {
     public void registerFcmToken(Long memberId, Long authTokenId, String fcmToken) {
 
         if (fcmToken == null || fcmToken.isEmpty()) {
-            throw new NotificationCustomException(NotificationErrorCode.NO_SEND_FCM_TOKEN);
+            throw new CustomException(ErrorCode.NOTIFICATION_NO_SEND_FCM_TOKEN);
         }
 
         AuthToken authToken = authTokenRepository.findById(authTokenId)
-                .orElseThrow(() -> new NotificationCustomException(NotificationErrorCode.FCM_TOKEN_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorCode.NOTIFICATION_FCM_TOKEN_NOT_FOUND));
 
         // 보안 검증: AuthToken의 member_id와 요청한 memberId가 일치하는지 확인
         if (!authToken.getMember().getId().equals(memberId)) {
-            throw new NotificationCustomException(NotificationErrorCode.INVALID_AUTH_TOKEN);
+            throw new CustomException(ErrorCode.NOTIFICATION_INVALID_AUTH_TOKEN);
         }
 
         authToken.updateFcmToken(fcmToken);

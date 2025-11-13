@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.global.out;
 
 import jaeik.bimillog.domain.comment.entity.Comment;
-import jaeik.bimillog.domain.comment.exception.CommentCustomException;
-import jaeik.bimillog.domain.comment.exception.CommentErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.comment.out.CommentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -36,6 +36,6 @@ public class GlobalCommentQueryAdapter {
      * @since 2.0.0
      */
     public Comment findById(Long commentId) {
-        return commentRepository.findById(commentId).orElseThrow(() -> new CommentCustomException(CommentErrorCode.COMMENT_NOT_FOUND));
+        return commentRepository.findById(commentId).orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
     }
 }

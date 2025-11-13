@@ -3,11 +3,11 @@ package jaeik.bimillog.domain.admin.controller;
 import jaeik.bimillog.domain.admin.service.AdminQueryService;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.domain.comment.exception.CommentCustomException;
+import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.domain.global.out.GlobalCommentQueryAdapter;
 import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.post.exception.PostCustomException;
+import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.domain.admin.dto.ReportDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -64,7 +64,7 @@ public class AdminQueryController {
                     } else if (report.getReportType() == ReportType.COMMENT) {
                         targetAuthor = globalCommentQueryAdapter.findById(report.getTargetId()).getMember();
                     }
-                } catch (PostCustomException | CommentCustomException e) {
+                } catch (CustomException e) {
                     // targetId가 유효하지 않은 경우 (삭제된 게시글/댓글) targetAuthor는 null
                     log.debug("Failed to resolve target author for report {}: {}", report.getId(), e.getMessage());
                 }

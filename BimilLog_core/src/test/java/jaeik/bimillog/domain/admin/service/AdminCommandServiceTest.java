@@ -3,8 +3,10 @@ package jaeik.bimillog.domain.admin.service;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
-import jaeik.bimillog.domain.admin.exception.AdminCustomException;
-import jaeik.bimillog.domain.admin.exception.AdminErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.auth.service.BlacklistService;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.global.out.GlobalCommentQueryAdapter;
@@ -13,8 +15,10 @@ import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.post.exception.PostCustomException;
-import jaeik.bimillog.domain.post.exception.PostErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.admin.repository.AdminQueryRepository;
 import jaeik.bimillog.domain.admin.repository.ReportRepository;
 import jaeik.bimillog.testutil.BaseUnitTest;
@@ -128,12 +132,12 @@ class AdminCommandServiceTest extends BaseUnitTest {
     @DisplayName("게시글이 존재하지 않는 경우 POST_NOT_FOUND 예외 발생")
     void shouldThrowException_WhenPostNotFound() {
         // Given
-        given(globalPostQueryAdapter.findById(200L)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
+        given(globalPostQueryAdapter.findById(200L)).willThrow(new CustomException(ErrorCode.POST_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> adminCommandService.banUser(testReportType, testTargetId))
-                .isInstanceOf(PostCustomException.class)
-                .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.POST_NOT_FOUND);
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
         verify(eventPublisher, never()).publishEvent(any());
     }
@@ -204,21 +208,21 @@ class AdminCommandServiceTest extends BaseUnitTest {
 
         // When & Then - banUser 테스트
         assertThatThrownBy(() -> adminCommandService.banUser(errorReportType, null))
-                .isInstanceOf(AdminCustomException.class)
-                .hasFieldOrPropertyWithValue("adminErrorCode", AdminErrorCode.INVALID_REPORT_TARGET);
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_INVALID_REPORT_TARGET);
 
         assertThatThrownBy(() -> adminCommandService.banUser(improvementReportType, null))
-                .isInstanceOf(AdminCustomException.class)
-                .hasFieldOrPropertyWithValue("adminErrorCode", AdminErrorCode.INVALID_REPORT_TARGET);
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_INVALID_REPORT_TARGET);
 
         // When & Then - forceWithdrawUser 테스트
         assertThatThrownBy(() -> adminCommandService.forceWithdrawUser(errorReportType, null))
-                .isInstanceOf(AdminCustomException.class)
-                .hasFieldOrPropertyWithValue("adminErrorCode", AdminErrorCode.INVALID_REPORT_TARGET);
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_INVALID_REPORT_TARGET);
 
         assertThatThrownBy(() -> adminCommandService.forceWithdrawUser(improvementReportType, null))
-                .isInstanceOf(AdminCustomException.class)
-                .hasFieldOrPropertyWithValue("adminErrorCode", AdminErrorCode.INVALID_REPORT_TARGET);
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_INVALID_REPORT_TARGET);
 
         verify(eventPublisher, never()).publishEvent(any());
     }

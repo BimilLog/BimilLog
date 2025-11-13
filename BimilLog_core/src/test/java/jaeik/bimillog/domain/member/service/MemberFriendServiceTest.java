@@ -1,16 +1,20 @@
 package jaeik.bimillog.domain.member.service;
 
 import jaeik.bimillog.domain.auth.entity.SocialToken;
-import jaeik.bimillog.domain.auth.exception.AuthCustomException;
-import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.global.out.GlobalSocialStrategyAdapter;
 import jaeik.bimillog.domain.global.strategy.SocialFriendStrategy;
 import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
 import jaeik.bimillog.domain.member.entity.KakaoFriends;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
-import jaeik.bimillog.domain.member.exception.MemberCustomException;
-import jaeik.bimillog.domain.member.exception.MemberErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.TestMembers;
@@ -118,8 +122,8 @@ class MemberFriendServiceTest extends BaseUnitTest {
         given(socialPlatformStrategy.friend()).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> memberFriendService.getKakaoFriendList(MEMBER_ID, 1L, SocialProvider.KAKAO, DEFAULT_OFFSET, DEFAULT_LIMIT))
-                .isInstanceOf(MemberCustomException.class)
-                .hasMessage(MemberErrorCode.UNSUPPORTED_SOCIAL_FRIEND.getMessage());
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.MEMBER_UNSUPPORTED_SOCIAL_FRIEND.getMessage());
     }
 
     @Test
@@ -128,11 +132,11 @@ class MemberFriendServiceTest extends BaseUnitTest {
         given(memberQueryAdapter.findById(MEMBER_ID)).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> memberFriendService.getKakaoFriendList(MEMBER_ID, 1L, SocialProvider.KAKAO, DEFAULT_OFFSET, DEFAULT_LIMIT))
-                .isInstanceOf(MemberCustomException.class)
-                .hasMessage(MemberErrorCode.KAKAO_FRIEND_API_ERROR.getMessage())
-                .hasCauseInstanceOf(AuthCustomException.class)
-                .satisfies(ex -> assertThat(((MemberCustomException) ex).getCause())
-                        .hasFieldOrPropertyWithValue("authErrorCode", AuthErrorCode.NOT_FIND_TOKEN));
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.MEMBER_KAKAO_FRIEND_API_ERROR.getMessage())
+                .hasCauseInstanceOf(CustomException.class)
+                .satisfies(ex -> assertThat(((CustomException) ex).getCause())
+                        .hasFieldOrPropertyWithValue("errorCode", ErrorCode.AUTH_NOT_FIND_TOKEN));
     }
 
     @Test
@@ -142,10 +146,10 @@ class MemberFriendServiceTest extends BaseUnitTest {
         given(globalSocialStrategyAdapter.getStrategy(SocialProvider.KAKAO)).willReturn(socialPlatformStrategy);
         given(socialPlatformStrategy.friend()).willReturn(Optional.of(socialFriendStrategy));
         given(socialFriendStrategy.getFriendList(testMember.getSocialToken().getAccessToken(), DEFAULT_OFFSET, DEFAULT_LIMIT))
-                .willThrow(new MemberCustomException(MemberErrorCode.KAKAO_FRIEND_API_ERROR));
+                .willThrow(new CustomException(ErrorCode.MEMBER_KAKAO_FRIEND_API_ERROR));
 
         assertThatThrownBy(() -> memberFriendService.getKakaoFriendList(MEMBER_ID, 1L, SocialProvider.KAKAO, DEFAULT_OFFSET, DEFAULT_LIMIT))
-                .isInstanceOf(MemberCustomException.class)
-                .hasMessage(MemberErrorCode.KAKAO_FRIEND_CONSENT_FAIL.getMessage());
+                .isInstanceOf(CustomException.class)
+                .hasMessage(ErrorCode.MEMBER_KAKAO_FRIEND_CONSENT_FAIL.getMessage());
     }
 }

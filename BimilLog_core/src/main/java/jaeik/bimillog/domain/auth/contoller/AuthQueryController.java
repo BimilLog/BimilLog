@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.auth.contoller;
 
-import jaeik.bimillog.domain.auth.exception.AuthCustomException;
-import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.auth.dto.MemberInfoResponseDTO;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +36,7 @@ public class AuthQueryController {
     @GetMapping("/me")
     public ResponseEntity<MemberInfoResponseDTO> getCurrentUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
         if (userDetails == null) {
-            throw new AuthCustomException(AuthErrorCode.NULL_SECURITY_CONTEXT);
+            throw new CustomException(ErrorCode.AUTH_NULL_SECURITY_CONTEXT);
         }
 
         MemberInfoResponseDTO response = MemberInfoResponseDTO.from(userDetails);

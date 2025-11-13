@@ -3,8 +3,10 @@ package jaeik.bimillog.domain.post.service;
 import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.post.exception.PostCustomException;
-import jaeik.bimillog.domain.post.exception.PostErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.post.out.PostCommandAdapter;
 import jaeik.bimillog.domain.post.out.PostLikeCommandAdapter;
 import jaeik.bimillog.domain.post.out.PostQueryAdapter;
@@ -116,12 +118,12 @@ class PostCommandServiceTest extends BaseUnitTest {
         Long memberId = 1L;
         Long postId = 999L;
 
-        given(globalPostQueryAdapter.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
+        given(globalPostQueryAdapter.findById(postId)).willThrow(new CustomException(ErrorCode.POST_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.updatePost(memberId, postId, "title", "content", null))
-                .isInstanceOf(PostCustomException.class)
-                .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.POST_NOT_FOUND);
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
         verify(globalPostQueryAdapter, times(1)).findById(postId);
         verify(redisPostDeleteAdapter, never()).deleteSinglePostCache(any());
@@ -141,8 +143,8 @@ class PostCommandServiceTest extends BaseUnitTest {
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.updatePost(memberId, postId, "title", "content", null))
-                .isInstanceOf(PostCustomException.class)
-                .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.FORBIDDEN);
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_FORBIDDEN);
 
         verify(globalPostQueryAdapter, times(1)).findById(postId);
         verify(otherUserPost, times(1)).isAuthor(memberId, null);
@@ -186,12 +188,12 @@ class PostCommandServiceTest extends BaseUnitTest {
         Long memberId = 1L;
         Long postId = 999L;
 
-        given(globalPostQueryAdapter.findById(postId)).willThrow(new PostCustomException(PostErrorCode.POST_NOT_FOUND));
+        given(globalPostQueryAdapter.findById(postId)).willThrow(new CustomException(ErrorCode.POST_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.deletePost(memberId, postId, null))
-                .isInstanceOf(PostCustomException.class)
-                .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.POST_NOT_FOUND);
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
         verify(globalPostQueryAdapter, times(1)).findById(postId);
         verify(postCommandAdapter, never()).delete(any());
@@ -212,8 +214,8 @@ class PostCommandServiceTest extends BaseUnitTest {
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.deletePost(memberId, postId, null))
-                .isInstanceOf(PostCustomException.class)
-                .hasFieldOrPropertyWithValue("postErrorCode", PostErrorCode.FORBIDDEN);
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_FORBIDDEN);
 
         verify(globalPostQueryAdapter, times(1)).findById(postId);
         verify(otherUserPost, times(1)).isAuthor(memberId, null);

@@ -1,16 +1,16 @@
 package jaeik.bimillog.domain.member.service;
 
 import jaeik.bimillog.domain.auth.entity.SocialToken;
-import jaeik.bimillog.domain.auth.exception.AuthCustomException;
-import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.global.out.GlobalSocialStrategyAdapter;
 import jaeik.bimillog.domain.global.strategy.SocialFriendStrategy;
 import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
 import jaeik.bimillog.domain.member.entity.KakaoFriends;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
-import jaeik.bimillog.domain.member.exception.MemberCustomException;
-import jaeik.bimillog.domain.member.exception.MemberErrorCode;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import lombok.RequiredArgsConstructor;
@@ -58,31 +58,31 @@ public class MemberFriendService {
         try {
             // Member를 통해 소셜 토큰 조회
             Member member = memberQueryPort.findById(memberId)
-                    .orElseThrow(() -> new AuthCustomException(AuthErrorCode.NOT_FIND_TOKEN));
+                    .orElseThrow(() -> new CustomException(ErrorCode.AUTH_NOT_FIND_TOKEN));
             SocialToken socialToken = member.getSocialToken();
             if (socialToken == null) {
-                throw new AuthCustomException(AuthErrorCode.NOT_FIND_TOKEN);
+                throw new CustomException(ErrorCode.AUTH_NOT_FIND_TOKEN);
             }
 
             // 전략 조회
             SocialPlatformStrategy platformStrategy = globalSocialStrategyAdapter.getStrategy(provider);
             SocialFriendStrategy friendStrategy = platformStrategy.friend()
-                    .orElseThrow(() -> new MemberCustomException(MemberErrorCode.UNSUPPORTED_SOCIAL_FRIEND));
+                    .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_UNSUPPORTED_SOCIAL_FRIEND));
 
             KakaoFriends response = friendStrategy.getFriendList(
                     socialToken.getAccessToken(), actualOffset, actualLimit);
 
             return processFriendList(response);
             
-        } catch (MemberCustomException e) {
+        } catch (CustomException e) {
             // 카카오 친구 동의 필요한 경우
-            if (e.getMemberErrorCode() == MemberErrorCode.KAKAO_FRIEND_API_ERROR) {
-                throw new MemberCustomException(MemberErrorCode.KAKAO_FRIEND_CONSENT_FAIL);
+            if (e.getErrorCode() == ErrorCode.MEMBER_KAKAO_FRIEND_API_ERROR) {
+                throw new CustomException(ErrorCode.MEMBER_KAKAO_FRIEND_CONSENT_FAIL);
             }
             throw e;
         } catch (Exception e) {
             log.error("카카오 API 호출 중 예상치 못한 오류 발생: {}", e.getMessage(), e);
-            throw new MemberCustomException(MemberErrorCode.KAKAO_FRIEND_API_ERROR, e);
+            throw new CustomException(ErrorCode.MEMBER_KAKAO_FRIEND_API_ERROR, e);
         }
     }
 
