@@ -57,6 +57,10 @@ export type {
 } from '@/types/domains/auth'
 
 export type {
+  SocialProvider
+} from '@/types/domains/auth'
+
+export type {
   Member,
   Setting,
   KakaoFriend,
