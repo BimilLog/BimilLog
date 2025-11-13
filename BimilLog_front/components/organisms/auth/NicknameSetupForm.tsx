@@ -20,7 +20,7 @@ interface NicknameSetupFormProps {
 
 export function NicknameSetupForm({ onSuccess, onError }: NicknameSetupFormProps) {
   const { signUp } = useAuth();
-  const { refetch: refetchNotifications } = useNotificationList();
+  const { refetch: refetchNotifications } = useNotificationList({ enabled: false });
   const router = useRouter();
   
   const [nickname, setNickname] = useState("");
