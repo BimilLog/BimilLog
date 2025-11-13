@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.exception.MemberErrorCode;
 import jaeik.bimillog.domain.auth.out.AuthTokenRepository;
-import jaeik.bimillog.domain.auth.out.CustomUserDetails;
+import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.member.out.MemberRepository;
 import jaeik.bimillog.testutil.*;
 import jaeik.bimillog.testutil.config.H2TestConfiguration;

@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.notification.controller;
 
 import jaeik.bimillog.domain.notification.service.SseService;
-import jaeik.bimillog.domain.auth.out.CustomUserDetails;
+import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;

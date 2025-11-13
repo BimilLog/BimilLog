@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.filter;
 
-import jaeik.bimillog.domain.auth.out.CustomUserDetails;
+import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -79,10 +79,10 @@ public class LogFilter extends OncePerRequestFilter {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null) {
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-            Long userId = userDetails.getMemberDetail().getMemberId();
-            String socialId = userDetails.getMemberDetail().getSocialId();
-            String socialNickname = userDetails.getMemberDetail().getSocialNickname();
-            String provider = userDetails.getMemberDetail().getProvider().name();
+            Long userId = userDetails.getMemberId();
+            String socialId = userDetails.getSocialId();
+            String socialNickname = userDetails.getSocialNickname();
+            String provider = userDetails.getProvider().name();
 
             if (uri.startsWith("/dto")) {
                 log.error(

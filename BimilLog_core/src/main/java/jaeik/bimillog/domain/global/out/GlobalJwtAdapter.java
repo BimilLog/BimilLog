@@ -3,18 +3,23 @@ package jaeik.bimillog.domain.global.out;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import jaeik.bimillog.domain.global.entity.MemberDetail;
+import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.member.entity.MemberRole;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 
 /**
  * <h2>JWT 처리 핸들러</h2>
@@ -50,26 +55,26 @@ public class GlobalJwtAdapter {
      *
      * <p>사용자 정보를 포함한 JWT 액세스 토큰을 생성한다. 유효기간은 1시간이다</p>
      *
-     * @param userDetail 클라이언트용 DTO
+     * @param userDetails 사용자 상세 정보
      * @return JWT 액세스 토큰
      * @author Jaeik
-     * @since 2.0.0
+     * @since 3.0.0
      */
-    public String generateAccessToken(MemberDetail userDetail) {
+    public String generateAccessToken(CustomUserDetails userDetails) {
         long now = (new Date()).getTime();
         Date validity = new Date(now + 3600000);
 
         return Jwts.builder()
-                .setSubject(String.valueOf(userDetail.getMemberId()))
-                .claim("AuthTokenId", userDetail.getAuthTokenId())
-                .claim("socialId", userDetail.getSocialId())
-                .claim("provider", userDetail.getProvider() != null ? userDetail.getProvider().name() : null)
-                .claim("settingId", userDetail.getSettingId())
-                .claim("memberName", userDetail.getMemberName())
-                .claim("role", userDetail.getRole() != null ? userDetail.getRole().name() : null)
-                .claim("socialNickname", userDetail.getSocialNickname())
-                .claim("thumbnailImage", userDetail.getThumbnailImage())
-                .claim("fcmTokenId", userDetail.getFcmTokenId())
+                .setSubject(String.valueOf(userDetails.getMemberId()))
+                .claim("AuthTokenId", userDetails.getAuthTokenId())
+                .claim("socialId", userDetails.getSocialId())
+                .claim("provider", userDetails.getProvider() != null ? userDetails.getProvider().name() : null)
+                .claim("settingId", userDetails.getSettingId())
+                .claim("memberName", userDetails.getMemberName())
+                .claim("role", userDetails.getRole() != null ? userDetails.getRole().name() : null)
+                .claim("socialNickname", userDetails.getSocialNickname())
+                .claim("thumbnailImage", userDetails.getThumbnailImage())
+                .claim("fcmTokenId", userDetails.getFcmTokenId())
                 .setIssuedAt(new Date(now))
                 .setExpiration(validity)
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -81,17 +86,17 @@ public class GlobalJwtAdapter {
      *
      * <p>사용자 ID와 토큰 ID를 포함한 JWT 리프레시 토큰을 생성한다. 유효기간은 30일이다.</p>
      *
-     * @param userDetail 클라이언트용 DTO
+     * @param userDetails 사용자 상세 정보
      * @return JWT 리프레시 토큰
      * @author Jaeik
-     * @since 2.0.0
+     * @since 3.0.0
      */
-    public String generateRefreshToken(MemberDetail userDetail) {
+    public String generateRefreshToken(CustomUserDetails userDetails) {
         long now = (new Date()).getTime();
         Date validity = new Date(now + (3600000L * 720));
 
         return Jwts.builder()
-                .setSubject(String.valueOf(userDetail.getAuthTokenId()))
+                .setSubject(String.valueOf(userDetails.getAuthTokenId()))
                 .setIssuedAt(new Date(now))
                 .setExpiration(validity)
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -124,31 +129,51 @@ public class GlobalJwtAdapter {
     /**
      * <h3>JWT 엑세스 토큰에서 사용자 정보 추출</h3>
      *
-     * <p>JWT 엑세스 토큰에서 사용자 정보를 추출하여 ClientDTO로 변환합니다.</p>
+     * <p>JWT 엑세스 토큰에서 사용자 정보를 추출하여 CustomUserDetails로 변환합니다.</p>
      *
      * @param jwtAccessToken JWT 엑세스 토큰
-     * @return 클라이언트 DTO
+     * @return CustomUserDetails 사용자 상세 정보
      * @author Jaeik
-     * @since 2.0.0
+     * @since 3.0.0
      */
-    public MemberDetail getUserInfoFromToken(String jwtAccessToken) {
+    public CustomUserDetails getUserInfoFromToken(String jwtAccessToken) {
         Claims claims = getClaims(jwtAccessToken);
 
         String provider = claims.get("provider", String.class);
         String role = claims.get("role", String.class);
+        MemberRole memberRole = role != null ? MemberRole.valueOf(role) : null;
 
-        return MemberDetail.builder()
+        return CustomUserDetails.builder()
                 .memberId(Long.parseLong(claims.getSubject()))
                 .socialId(claims.get("socialId", String.class))
                 .provider(provider != null ? SocialProvider.valueOf(provider) : null)
                 .socialNickname(claims.get("socialNickname", String.class))
                 .thumbnailImage(claims.get("thumbnailImage", String.class))
                 .memberName(claims.get("memberName", String.class))
-                .role(role != null ? MemberRole.valueOf(role) : null)
+                .role(memberRole)
                 .authTokenId(claims.get("AuthTokenId", Long.class))
                 .fcmTokenId(claims.get("fcmTokenId", Long.class))
                 .settingId(claims.get("settingId", Long.class))
+                .authorities(createAuthorities(memberRole))
                 .build();
+    }
+
+    /**
+     * <h3>권한 생성 헬퍼 메서드</h3>
+     *
+     * <p>사용자 역할을 기반으로 Spring Security 권한을 생성합니다.</p>
+     *
+     * @param role 사용자 역할
+     * @return 권한 컬렉션
+     * @author Jaeik
+     * @since 3.0.0
+     */
+    private Collection<? extends GrantedAuthority> createAuthorities(MemberRole role) {
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        if (role != null) {
+            authorities.add(new SimpleGrantedAuthority("ROLE_" + role.name()));
+        }
+        return authorities;
     }
 
     /**

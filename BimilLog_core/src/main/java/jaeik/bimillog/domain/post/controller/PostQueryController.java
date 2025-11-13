@@ -11,7 +11,7 @@ import jaeik.bimillog.domain.post.dto.PostSearchDTO;
 import jaeik.bimillog.domain.post.dto.SimplePostDTO;
 import jaeik.bimillog.domain.post.controller.util.PostResponseMapper;
 import jaeik.bimillog.domain.post.controller.util.PostViewCookieUtil;
-import jaeik.bimillog.domain.auth.out.CustomUserDetails;
+import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;

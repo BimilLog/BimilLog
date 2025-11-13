@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.paper.controller;
 
-import jaeik.bimillog.domain.auth.out.CustomUserDetails;
+import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.paper.dto.MessageDTO;
 import jaeik.bimillog.domain.paper.service.PaperCommandService;
 import jakarta.validation.Valid;

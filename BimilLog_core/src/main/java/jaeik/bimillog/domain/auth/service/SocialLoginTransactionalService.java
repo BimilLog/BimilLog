@@ -6,7 +6,7 @@ import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
-import jaeik.bimillog.domain.global.entity.MemberDetail;
+import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.global.out.*;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
@@ -103,12 +103,12 @@ public class SocialLoginTransactionalService {
         AuthToken initialAuthToken = AuthToken.createToken("", updateMember);
         AuthToken persistedAuthToken = globalAuthTokenSaveAdapter.save(initialAuthToken);
 
-        // 5. MemberDetail 생성
-        MemberDetail memberDetail = MemberDetail.ofExisting(updateMember, persistedAuthToken.getId());
+        // 5. CustomUserDetails 생성
+        CustomUserDetails userDetails = CustomUserDetails.ofExisting(updateMember, persistedAuthToken.getId());
 
         // 6. 액세스 토큰 및 리프레시 토큰 생성 및 업데이트
-        String jwtAccessToken = globalJwtAdapter.generateAccessToken(memberDetail);
-        String jwtRefreshToken = globalJwtAdapter.generateRefreshToken(memberDetail);
+        String jwtAccessToken = globalJwtAdapter.generateAccessToken(userDetails);
+        String jwtRefreshToken = globalJwtAdapter.generateRefreshToken(userDetails);
         globalAuthTokenSaveAdapter.updateJwtRefreshToken(persistedAuthToken.getId(), jwtRefreshToken);
 
         // 7. JWT 쿠키 생성 및 반환

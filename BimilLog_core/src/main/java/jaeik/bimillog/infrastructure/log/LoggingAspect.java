@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.log;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jaeik.bimillog.domain.auth.out.CustomUserDetails;
+import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;

@@ -47,13 +47,16 @@ public class TestFixtures {
      * @return MessageDTO
      */
     public static MessageDTO createPaperMessageRequest(String content, int positionX, int positionY) {
-        MessageDTO dto = new MessageDTO();
-        dto.setDecoType(jaeik.bimillog.domain.paper.entity.DecoType.POTATO);
-        dto.setContent(content);
-        dto.setAnonymity("테스트회원");
-        dto.setX(positionX);
-        dto.setY(positionY);
-        return dto;
+        return new MessageDTO(
+                null,  // id
+                null,  // memberId
+                jaeik.bimillog.domain.paper.entity.DecoType.POTATO,  // decoType
+                "테스트회원",  // anonymity
+                content,  // content
+                positionX,  // x
+                positionY,  // y
+                null  // createdAt
+        );
     }
 
 

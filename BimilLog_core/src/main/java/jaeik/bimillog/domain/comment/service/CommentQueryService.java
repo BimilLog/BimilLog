@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentInfo;
 import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
 import jaeik.bimillog.domain.comment.controller.CommentQueryController;
-import jaeik.bimillog.domain.auth.out.CustomUserDetails;
+import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.global.out.GlobalCommentQueryAdapter;
 import jaeik.bimillog.domain.post.out.PostToCommentAdapter;
 import lombok.RequiredArgsConstructor;

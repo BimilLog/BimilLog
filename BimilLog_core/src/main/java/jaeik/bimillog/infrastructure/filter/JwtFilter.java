@@ -2,7 +2,7 @@ package jaeik.bimillog.infrastructure.filter;
 
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.service.BlacklistService;
-import jaeik.bimillog.domain.global.entity.MemberDetail;
+import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.global.out.GlobalAuthTokenQueryAdapter;
 import jaeik.bimillog.domain.global.out.GlobalAuthTokenSaveAdapter;
 import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
@@ -11,7 +11,6 @@ import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.domain.auth.out.CustomUserDetails;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -138,16 +137,16 @@ public class JwtFilter extends OncePerRequestFilter {
                 // 2-6. 유저 정보 조회
                 Member member = memberQueryAdapter.findByIdWithSetting(authToken.getMember().getId())
                         .orElseThrow(() -> new CustomException(ErrorCode.TOKEN_NOT_FOUND));
-                MemberDetail userDetail = MemberDetail.ofExisting(member, tokenId);
+                CustomUserDetails userDetails = CustomUserDetails.ofExisting(member, tokenId);
 
                 // 2-7. 새 액세스 토큰 발급
-                String newAccessToken = globalJwtAdapter.generateAccessToken(userDetail);
+                String newAccessToken = globalJwtAdapter.generateAccessToken(userDetails);
                 ResponseCookie accessCookie = globalCookieAdapter.generateJwtAccessCookie(newAccessToken);
                 response.setHeader("Set-Cookie", accessCookie.toString());
 
                 // 2-8. Refresh AuthToken Rotation (15일 이하 남았을 때)
                 if (globalJwtAdapter.shouldRefreshToken(refreshToken, 15)) {
-                    String newRefreshToken = globalJwtAdapter.generateRefreshToken(userDetail);
+                    String newRefreshToken = globalJwtAdapter.generateRefreshToken(userDetails);
 
                     // DB 업데이트
                     globalAuthTokenSaveAdapter.updateJwtRefreshToken(tokenId, newRefreshToken);
@@ -181,12 +180,11 @@ public class JwtFilter extends OncePerRequestFilter {
      * @param jwtAccessToken JWT 엑세스 토큰
      */
     private void setAuthentication(String jwtAccessToken) {
-        MemberDetail userDetail = globalJwtAdapter.getUserInfoFromToken(jwtAccessToken);
-        CustomUserDetails customUserDetails = new CustomUserDetails(userDetail);
+        CustomUserDetails userDetails = globalJwtAdapter.getUserInfoFromToken(jwtAccessToken);
         Authentication authentication = new UsernamePasswordAuthenticationToken(
-                customUserDetails,
+                userDetails,
                 null,
-                customUserDetails.getAuthorities());
+                userDetails.getAuthorities());
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }

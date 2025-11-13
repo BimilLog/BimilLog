@@ -7,7 +7,7 @@ import jaeik.bimillog.domain.auth.dto.SocialLoginRequestDTO;
 import jaeik.bimillog.domain.member.dto.MemberNameDTO;
 import jaeik.bimillog.domain.member.dto.SettingDTO;
 import jaeik.bimillog.domain.member.dto.SignUpRequestDTO;
-import jaeik.bimillog.domain.auth.out.CustomUserDetails;
+import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.member.out.MemberRepository;
 import jaeik.bimillog.testutil.fixtures.AuthTestFixtures;
 import jaeik.bimillog.testutil.BaseIntegrationTest;

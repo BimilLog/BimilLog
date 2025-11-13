@@ -2,7 +2,7 @@ package jaeik.bimillog.adapter.out.global;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import jaeik.bimillog.domain.global.entity.MemberDetail;
+import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.member.entity.MemberRole;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
@@ -10,12 +10,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,7 +34,7 @@ class GlobalJwtAdapterTest {
     private static final String RAW_SECRET = "0123456789abcdef0123456789abcdef";
 
     private GlobalJwtAdapter globalJwtAdapter;
-    private MemberDetail memberDetail;
+    private CustomUserDetails userDetails;
 
     @BeforeEach
     void setUp() {
@@ -39,7 +43,10 @@ class GlobalJwtAdapterTest {
         ReflectionTestUtils.setField(globalJwtAdapter, "secretKey", secret);
         globalJwtAdapter.init();
 
-        memberDetail = MemberDetail.builder()
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+
+        userDetails = CustomUserDetails.builder()
                 .memberId(1L)
                 .socialId("social-1")
                 .provider(SocialProvider.KAKAO)
@@ -50,33 +57,34 @@ class GlobalJwtAdapterTest {
                 .role(MemberRole.USER)
                 .authTokenId(99L)
                 .fcmTokenId(777L)
+                .authorities(authorities)
                 .build();
     }
 
     @Test
     @DisplayName("액세스 토큰 생성 후 사용자 정보를 역직렬화한다")
     void shouldGenerateAndParseAccessToken() {
-        String accessToken = globalJwtAdapter.generateAccessToken(memberDetail);
+        String accessToken = globalJwtAdapter.generateAccessToken(userDetails);
 
         assertThat(accessToken).isNotBlank();
         assertThat(globalJwtAdapter.validateToken(accessToken)).isTrue();
 
-        MemberDetail parsed = globalJwtAdapter.getUserInfoFromToken(accessToken);
+        CustomUserDetails parsed = globalJwtAdapter.getUserInfoFromToken(accessToken);
 
-        assertThat(parsed.getMemberId()).isEqualTo(memberDetail.getMemberId());
-        assertThat(parsed.getAuthTokenId()).isEqualTo(memberDetail.getAuthTokenId());
-        assertThat(parsed.getMemberName()).isEqualTo(memberDetail.getMemberName());
-        assertThat(parsed.getProvider()).isEqualTo(memberDetail.getProvider());
-        assertThat(parsed.getFcmTokenId()).isEqualTo(memberDetail.getFcmTokenId());
+        assertThat(parsed.getMemberId()).isEqualTo(userDetails.getMemberId());
+        assertThat(parsed.getAuthTokenId()).isEqualTo(userDetails.getAuthTokenId());
+        assertThat(parsed.getMemberName()).isEqualTo(userDetails.getMemberName());
+        assertThat(parsed.getProvider()).isEqualTo(userDetails.getProvider());
+        assertThat(parsed.getFcmTokenId()).isEqualTo(userDetails.getFcmTokenId());
     }
 
     @Test
     @DisplayName("리프레시 토큰에서 토큰 ID를 추출한다")
     void shouldGenerateRefreshTokenAndExtractTokenId() {
-        String refreshToken = globalJwtAdapter.generateRefreshToken(memberDetail);
+        String refreshToken = globalJwtAdapter.generateRefreshToken(userDetails);
 
         assertThat(refreshToken).isNotBlank();
-        assertThat(globalJwtAdapter.getTokenIdFromToken(refreshToken)).isEqualTo(memberDetail.getAuthTokenId());
+        assertThat(globalJwtAdapter.getTokenIdFromToken(refreshToken)).isEqualTo(userDetails.getAuthTokenId());
     }
 
     @Test
