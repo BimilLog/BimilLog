@@ -47,6 +47,7 @@ export const metadata: Metadata = {
     "카카오톡",
     "친구",
     "소통",
+    "익명 SNS"
   ],
   authors: [{ name: "비밀로그 Team", url: "https://grow-farm.com" }],
   creator: "비밀로그 Team",
