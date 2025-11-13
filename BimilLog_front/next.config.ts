@@ -101,13 +101,19 @@ const nextConfig = withPWA(pwaConfig)({
                 ],
             },
             {
-                // 모든 HTML 페이지에 Content-Type 헤더 명시적 설정
-                source: '/:path*',
+                // admin 페이지에 Content-Type 헤더 명시적 설정
+                source: '/admin/:path*',
                 headers: [
                     {
                         key: 'Content-Type',
                         value: 'text/html; charset=utf-8',
                     },
+                ],
+            },
+            {
+                // 모든 페이지에 보안 헤더 적용
+                source: '/:path*',
+                headers: [
                     {
                         key: 'Content-Security-Policy',
                         value: [

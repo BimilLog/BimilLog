@@ -120,7 +120,6 @@ export default function RootLayout({
   return (
     <html lang="ko" suppressHydrationWarning>
       <head>
-        <meta charSet="utf-8" />
         <ThemeModeScript />
         {/* Preconnect & DNS Prefetch */}
         <link rel="preconnect" href="https://grow-farm.com" />
