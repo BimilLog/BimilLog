@@ -1,7 +1,7 @@
 package jaeik.bimillog.event.comment;
 
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
-import jaeik.bimillog.domain.notification.service.FcmService;
+import jaeik.bimillog.domain.notification.service.FcmCommandService;
 import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
@@ -30,7 +30,7 @@ class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
     private SseService sseService;
 
     @MockitoBean
-    private FcmService fcmService;
+    private FcmCommandService fcmCommandService;
 
     @MockitoBean
     private RedisPostUpdateAdapter redisPostUpdateAdapter;
@@ -47,7 +47,7 @@ class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
         publishAndVerify(event, () -> {
             verify(sseService).sendCommentNotification(
                     eq(1L), eq("댓글작성자"), eq(100L));
-            verify(fcmService).sendCommentNotification(
+            verify(fcmCommandService).sendCommentNotification(
                     eq(1L), eq("댓글작성자"));
             verify(redisPostUpdateAdapter).incrementRealtimePopularScore(
                     eq(100L), eq(COMMENT_SCORE));
@@ -69,19 +69,19 @@ class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
             // 첫 번째 이벤트
             verify(sseService).sendCommentNotification(
                     eq(1L), eq("댓글작성자1"), eq(100L));
-            verify(fcmService).sendCommentNotification(
+            verify(fcmCommandService).sendCommentNotification(
                     eq(1L), eq("댓글작성자1"));
 
             // 두 번째 이벤트
             verify(sseService).sendCommentNotification(
                     eq(1L), eq("댓글작성자2"), eq(100L));
-            verify(fcmService).sendCommentNotification(
+            verify(fcmCommandService).sendCommentNotification(
                     eq(1L), eq("댓글작성자2"));
 
             // 세 번째 이벤트
             verify(sseService).sendCommentNotification(
                     eq(2L), eq("댓글작성자3"), eq(101L));
-            verify(fcmService).sendCommentNotification(
+            verify(fcmCommandService).sendCommentNotification(
                     eq(2L), eq("댓글작성자3"));
 
             // 실시간 인기글 점수 증가 검증

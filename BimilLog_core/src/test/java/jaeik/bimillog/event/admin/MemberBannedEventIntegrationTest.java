@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.auth.service.AuthTokenService;
 import jaeik.bimillog.domain.auth.service.SocialLogoutService;
 import jaeik.bimillog.domain.global.out.GlobalSocialTokenCommandAdapter;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
-import jaeik.bimillog.domain.notification.service.FcmService;
+import jaeik.bimillog.domain.notification.service.FcmCommandService;
 import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
@@ -35,7 +35,7 @@ public class MemberBannedEventIntegrationTest extends BaseEventIntegrationTest {
     private SocialLogoutService socialLogoutService;
 
     @MockitoBean
-    private FcmService fcmService;
+    private FcmCommandService fcmCommandService;
 
     @MockitoBean
     private AuthTokenService authTokenService;
@@ -59,7 +59,7 @@ public class MemberBannedEventIntegrationTest extends BaseEventIntegrationTest {
             // 소셜 플랫폼 강제 로그아웃
             verify(socialLogoutService).forceLogout(eq(socialId), eq(provider));
             // FCM 토큰 삭제
-            verify(fcmService).deleteFcmTokens(eq(memberId), eq(null));
+            verify(fcmCommandService).deleteFcmTokens(eq(memberId), eq(null));
             // JWT 토큰 무효화
             verify(authTokenService).deleteTokens(eq(memberId), eq(null));
             // 소셜 토큰 삭제
@@ -88,9 +88,9 @@ public class MemberBannedEventIntegrationTest extends BaseEventIntegrationTest {
             verify(socialLogoutService).forceLogout(eq("kakao789"), eq(SocialProvider.KAKAO));
 
             // FCM 토큰 삭제
-            verify(fcmService).deleteFcmTokens(eq(1L), eq(null));
-            verify(fcmService).deleteFcmTokens(eq(2L), eq(null));
-            verify(fcmService).deleteFcmTokens(eq(3L), eq(null));
+            verify(fcmCommandService).deleteFcmTokens(eq(1L), eq(null));
+            verify(fcmCommandService).deleteFcmTokens(eq(2L), eq(null));
+            verify(fcmCommandService).deleteFcmTokens(eq(3L), eq(null));
 
             // JWT 토큰 무효화
             verify(authTokenService).deleteTokens(eq(1L), eq(null));
@@ -115,7 +115,7 @@ public class MemberBannedEventIntegrationTest extends BaseEventIntegrationTest {
         publishAndVerify(kakaoEvent, () -> {
             verify(sseService).deleteEmitters(eq(1L), eq(null));
             verify(socialLogoutService).forceLogout(eq("kakaoUser"), eq(SocialProvider.KAKAO));
-            verify(fcmService).deleteFcmTokens(eq(1L), eq(null));
+            verify(fcmCommandService).deleteFcmTokens(eq(1L), eq(null));
             verify(authTokenService).deleteTokens(eq(1L), eq(null));
             verify(globalSocialTokenCommandAdapter).deleteByMemberId(eq(1L));
         });

@@ -1,7 +1,5 @@
-package jaeik.bimillog.infrastructure.advice;
+package jaeik.bimillog.infrastructure.exception;
 
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;

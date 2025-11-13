@@ -2,10 +2,12 @@ package jaeik.bimillog.domain.member.service;
 
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.Setting;
+import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.exception.MemberCustomException;
 import jaeik.bimillog.domain.member.exception.MemberErrorCode;
 import jaeik.bimillog.domain.member.controller.MemberQueryController;
 import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
+import jaeik.bimillog.domain.member.out.MemberSearchAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -30,6 +32,7 @@ import java.util.Optional;
 public class MemberQueryService {
 
     private final MemberQueryAdapter memberQueryPort;
+    private final MemberSearchAdapter memberSearchAdapter;
 
     /**
      * <h3>ID로 사용자 조회</h3>
@@ -155,5 +158,12 @@ public class MemberQueryService {
 
         // 그 외 → 부분 검색
         return memberQueryPort.findByPartialMatch(query, pageable);
+    }
+
+    /**
+     * 소셜 제공자와 ID로 사용자 조회
+     */
+    public Optional<Member> findByProviderAndSocialId(SocialProvider provider, String socialId) {
+        return memberSearchAdapter.findByProviderAndSocialId(provider, socialId);
     }
 }
