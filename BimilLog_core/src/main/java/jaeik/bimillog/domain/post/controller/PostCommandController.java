@@ -11,7 +11,7 @@ import jaeik.bimillog.domain.post.exception.PostErrorCode;
 import jaeik.bimillog.domain.post.dto.PostCreateDTO;
 import jaeik.bimillog.domain.post.dto.PostDeleteDTO;
 import jaeik.bimillog.domain.post.dto.PostUpdateDTO;
-import jaeik.bimillog.domain.auth.out.CustomUserDetails;
+import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

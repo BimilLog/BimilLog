@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
-import jaeik.bimillog.domain.global.entity.MemberDetail;
+import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.global.out.GlobalAuthTokenSaveAdapter;
 import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
 import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
@@ -105,8 +105,8 @@ class MemberSignupServiceTest extends BaseUnitTest {
                 .willReturn(SocialToken.createSocialToken("access-token", "refresh-token"));
         given(saveMemberAdapter.saveNewMember(any(Member.class))).willReturn(persistedMember);
         given(globalAuthTokenSaveAdapter.save(any(AuthToken.class))).willReturn(persistedAuthToken);
-        given(globalJwtAdapter.generateAccessToken(any(MemberDetail.class))).willReturn("access-jwt");
-        given(globalJwtAdapter.generateRefreshToken(any(MemberDetail.class))).willReturn("refresh-jwt");
+        given(globalJwtAdapter.generateAccessToken(any(CustomUserDetails.class))).willReturn("access-jwt");
+        given(globalJwtAdapter.generateRefreshToken(any(CustomUserDetails.class))).willReturn("refresh-jwt");
         given(globalCookieAdapter.generateJwtCookie("access-jwt", "refresh-jwt")).willReturn(jwtCookies);
 
         List<ResponseCookie> result = signUpService.signup("tester", "uuid-123");
@@ -117,7 +117,7 @@ class MemberSignupServiceTest extends BaseUnitTest {
         verify(saveMemberAdapter).saveNewMember(any(Member.class));
         verify(globalAuthTokenSaveAdapter).save(any(AuthToken.class));
 
-        ArgumentCaptor<MemberDetail> detailCaptor = ArgumentCaptor.forClass(MemberDetail.class);
+        ArgumentCaptor<CustomUserDetails> detailCaptor = ArgumentCaptor.forClass(CustomUserDetails.class);
         verify(globalJwtAdapter).generateAccessToken(detailCaptor.capture());
         verify(globalJwtAdapter).generateRefreshToken(detailCaptor.getValue());
 
@@ -125,7 +125,7 @@ class MemberSignupServiceTest extends BaseUnitTest {
         verify(globalCookieAdapter).generateJwtCookie("access-jwt", "refresh-jwt");
         verify(redisMemberDataAdapter).removeTempData("uuid-123");
 
-        MemberDetail capturedDetail = detailCaptor.getValue();
+        CustomUserDetails capturedDetail = detailCaptor.getValue();
         assertThat(capturedDetail.getAuthTokenId()).isEqualTo(persistedAuthToken.getId());
     }
 
@@ -151,19 +151,19 @@ class MemberSignupServiceTest extends BaseUnitTest {
                 .willReturn(SocialToken.createSocialToken("access-token", "refresh-token"));
         given(saveMemberAdapter.saveNewMember(any(Member.class))).willReturn(persistedMember);
         given(globalAuthTokenSaveAdapter.save(any(AuthToken.class))).willReturn(persistedAuthToken);
-        given(globalJwtAdapter.generateAccessToken(any(MemberDetail.class))).willReturn("access-jwt");
-        given(globalJwtAdapter.generateRefreshToken(any(MemberDetail.class))).willReturn("refresh-jwt");
+        given(globalJwtAdapter.generateAccessToken(any(CustomUserDetails.class))).willReturn("access-jwt");
+        given(globalJwtAdapter.generateRefreshToken(any(CustomUserDetails.class))).willReturn("refresh-jwt");
         given(globalCookieAdapter.generateJwtCookie("access-jwt", "refresh-jwt")).willReturn(jwtCookies);
 
         List<ResponseCookie> result = signUpService.signup("tester", "uuid-123");
 
         assertThat(result).isEqualTo(jwtCookies);
 
-        ArgumentCaptor<MemberDetail> detailCaptor = ArgumentCaptor.forClass(MemberDetail.class);
+        ArgumentCaptor<CustomUserDetails> detailCaptor = ArgumentCaptor.forClass(CustomUserDetails.class);
         verify(globalJwtAdapter).generateAccessToken(detailCaptor.capture());
         verify(globalJwtAdapter).generateRefreshToken(detailCaptor.getValue());
 
-        MemberDetail capturedDetail = detailCaptor.getValue();
+        CustomUserDetails capturedDetail = detailCaptor.getValue();
         assertThat(capturedDetail.getAuthTokenId()).isEqualTo(persistedAuthToken.getId());
     }
 }

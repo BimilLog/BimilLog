@@ -38,7 +38,7 @@ const QuillEditor: React.FC<EditorProps> = ({
 
   onChange,
 
-  placeholder = "?댁슜???낅젰?섏꽭??..",
+  placeholder = "내용을 입력하세요",
 
 }) => {
 

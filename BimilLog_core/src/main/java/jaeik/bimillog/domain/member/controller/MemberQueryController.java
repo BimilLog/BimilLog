@@ -8,7 +8,7 @@ import jaeik.bimillog.domain.member.dto.MemberSearchDTO;
 import jaeik.bimillog.domain.member.dto.SettingDTO;
 import jaeik.bimillog.domain.member.dto.SimpleMemberDTO;
 import jaeik.bimillog.infrastructure.api.dto.KakaoFriendsDTO;
-import jaeik.bimillog.domain.auth.out.CustomUserDetails;
+import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

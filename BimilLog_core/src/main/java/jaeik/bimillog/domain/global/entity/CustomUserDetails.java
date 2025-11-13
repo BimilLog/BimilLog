@@ -1,9 +1,12 @@
-package jaeik.bimillog.domain.auth.out;
+package jaeik.bimillog.domain.global.entity;
 
-import jaeik.bimillog.domain.global.entity.MemberDetail;
+import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.MemberRole;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import org.springframework.lang.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,33 +21,60 @@ import java.util.List;
  * UserDetails 인터페이스를 구현하여 Spring Security에서 사용자 정보를 처리하는 클래스
  * </p>
  * <p>
- * ClientDTO 객체를 사용하여 사용자 정보를 저장하고, 권한을 설정하는 기능을 제공
+ * JWT 토큰 생성/파싱과 Spring Security 인증에 모두 사용되는 통합 사용자 정보 객체
  * </p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 3.0.0
  * @since 2.0.0
  */
 @Getter
+@Builder
+@AllArgsConstructor
 public class CustomUserDetails implements UserDetails {
 
-    private final MemberDetail memberDetail;
+    private final Long memberId;
+    private final String socialId;
+    private final SocialProvider provider;
+    private final Long settingId;
+    private final String socialNickname;
+    private final String thumbnailImage;
+    private final String memberName;
+    private final MemberRole role;
+    private final Long authTokenId;
+    @Nullable
+    private final Long fcmTokenId;
     private final Collection<? extends GrantedAuthority> authorities;
 
     /**
-     * <h3>CustomUserDetails 생성자</h3>
-     *
+     * <h3>기존 회원용 정적 팩토리 메서드</h3>
      * <p>
-     * ClientDTO를 받아서 CustomUserDetails 객체를 생성한다.
+     * Member 엔티티로부터 CustomUserDetails 객체를 생성합니다.
+     * JWT 토큰 생성 및 인증에 필요한 정보를 포함합니다.
      * </p>
      *
-     * @param memberDetail 사용자 정보 DTO
+     * @param member Member 엔티티
+     * @param authTokenId AuthToken ID
+     * @return CustomUserDetails 객체
      * @author Jaeik
-     * @since 2.0.0
+     * @since 3.0.0
      */
-    public CustomUserDetails(MemberDetail memberDetail) {
-        this.memberDetail = memberDetail;
-        this.authorities = createAuthorities(memberDetail.getRole());
+    public static CustomUserDetails ofExisting(Member member, Long authTokenId) {
+        Long settingId = (member.getSetting() != null) ? member.getSetting().getId() : null;
+
+        return CustomUserDetails.builder()
+                .memberId(member.getId())
+                .socialId(member.getSocialId())
+                .provider(member.getProvider())
+                .settingId(settingId)
+                .socialNickname(member.getSocialNickname())
+                .thumbnailImage(member.getThumbnailImage())
+                .memberName(member.getMemberName())
+                .role(member.getRole())
+                .authTokenId(authTokenId)
+                .fcmTokenId(null)  // FCM token is not directly linked to Member entity
+                .authorities(createAuthorities(member.getRole()))
+                .build();
     }
 
     /**
@@ -59,90 +89,36 @@ public class CustomUserDetails implements UserDetails {
      * @author Jaeik
      * @since 2.0.0
      */
-    private Collection<? extends GrantedAuthority> createAuthorities(MemberRole role) {
+    private static Collection<? extends GrantedAuthority> createAuthorities(MemberRole role) {
         List<GrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_" + role.name()));
         return authorities;
     }
 
     /**
-     * <h3>사용자 ID 조회</h3>
+     * <h3>사용자 토큰 ID 조회 (별칭 메서드)</h3>
      *
-     * <p>
-     * 사용자의 유저 ID를 반환한다.
-     * </p>
-     *
-     * @return 유저 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public Long getMemberId() {
-        return memberDetail.getMemberId();
-    }
-
-    /**
-     * <h3>사용자 jwt ID 조회</h3>
-     *
-     * <p>사용자의 JWT ID를 반환한다.</p>
+     * <p>authTokenId를 반환하는 편의 메서드</p>
      *
      * @return 토큰 ID
      * @author Jaeik
      * @since 2.0.0
      */
     public Long getTokenId() {
-        return memberDetail.getAuthTokenId();
+        return authTokenId;
     }
 
     /**
-     * <h3>사용자 FCM 토큰 ID 조회</h3>
+     * <h3>사용자 소셜 제공자 조회 (별칭 메서드)</h3>
      *
-     * <p>사용자의 FCM 토큰 ID를 반환한다.</p>
-     *
-     * @return FCM 토큰 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public Long getFcmTokenId() {
-        return memberDetail.getFcmTokenId();
-    }
-
-    /**
-     * <h3>사용자 설정 ID 조회</h3>
-     *
-     * <p>사용자의 설정 ID를 반환한다. JWT 토큰에서 직접 설정 조회를 한다.</p>
-     *
-     * @return 설정 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public Long getSettingId() {
-        return memberDetail.getSettingId();
-    }
-
-    /**
-     * <h3>사용자 소셜 제공자 조회</h3>
-     *
-     * <p>사용자의 소셜 제공자를 반환한다.</p>
+     * <p>provider를 반환하는 편의 메서드</p>
      *
      * @return 소셜 제공자
      * @author Jaeik
      * @since 2.0.0
      */
     public SocialProvider getSocialProvider() {
-        return memberDetail.getProvider();
-    }
-
-    /**
-     * <h3>사용자 소셜 ID 조회</h3>
-     *
-     * <p>사용자의 소셜 ID를 반환한다.</p>
-     *
-     * @return 소셜 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public String getSocialId() {
-        return memberDetail.getSocialId();
+        return provider;
     }
 
     /**
@@ -156,7 +132,7 @@ public class CustomUserDetails implements UserDetails {
      */
     @Override
     public String getUsername() {
-        return memberDetail.getMemberName();
+        return memberName;
     }
 
     /**

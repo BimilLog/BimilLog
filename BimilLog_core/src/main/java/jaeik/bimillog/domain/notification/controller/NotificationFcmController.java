@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.notification.controller;
 
-import jaeik.bimillog.domain.auth.out.CustomUserDetails;
+import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.global.service.GlobalFcmSaveService;
 import jaeik.bimillog.domain.notification.dto.FcmTokenRegisterRequestDTO;
 import jaeik.bimillog.infrastructure.log.Log;

@@ -10,7 +10,7 @@ import jaeik.bimillog.domain.admin.dto.ReportDTO;
 import jaeik.bimillog.domain.member.dto.MemberNameDTO;
 import jaeik.bimillog.domain.member.dto.SettingDTO;
 import jaeik.bimillog.domain.member.dto.SignUpRequestDTO;
-import jaeik.bimillog.domain.auth.out.CustomUserDetails;
+import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;

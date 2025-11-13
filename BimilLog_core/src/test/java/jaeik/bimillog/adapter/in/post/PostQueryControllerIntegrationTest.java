@@ -2,7 +2,7 @@ package jaeik.bimillog.adapter.in.post;
 
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.auth.out.CustomUserDetails;
+import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.member.out.MemberRepository;
 import jaeik.bimillog.domain.post.out.PostRepository;
 import jaeik.bimillog.testutil.fixtures.AuthTestFixtures;

@@ -1,7 +1,7 @@
 package jaeik.bimillog.adapter.in.notification;
 
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.auth.out.CustomUserDetails;
+import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.config.H2TestConfiguration;
 import jaeik.bimillog.testutil.TestMembers;

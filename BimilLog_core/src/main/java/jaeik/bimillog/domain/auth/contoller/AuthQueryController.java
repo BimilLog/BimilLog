@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.auth.contoller;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
 import jaeik.bimillog.domain.auth.dto.MemberInfoResponseDTO;
-import jaeik.bimillog.domain.auth.out.CustomUserDetails;
+import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -31,7 +31,7 @@ public class AuthQueryController {
      * @param userDetails 인증된 사용자 정보
      * @return 현재 로그인한 사용자 정보
      * @author Jaeik
-     * @since 2.0.0
+     * @since 3.0.0
      */
     @GetMapping("/me")
     public ResponseEntity<MemberInfoResponseDTO> getCurrentUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -39,7 +39,7 @@ public class AuthQueryController {
             throw new AuthCustomException(AuthErrorCode.NULL_SECURITY_CONTEXT);
         }
 
-        MemberInfoResponseDTO response = MemberInfoResponseDTO.from(userDetails.getMemberDetail());
+        MemberInfoResponseDTO response = MemberInfoResponseDTO.from(userDetails);
         return ResponseEntity.ok(response);
     }
 }

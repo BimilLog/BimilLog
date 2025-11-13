@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.exception.AuthCustomException;
 import jaeik.bimillog.domain.auth.exception.AuthErrorCode;
-import jaeik.bimillog.domain.global.entity.MemberDetail;
+import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.global.out.GlobalAuthTokenSaveAdapter;
 import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
 import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
@@ -90,12 +90,12 @@ public class MemberSignupService {
             AuthToken initialAuthToken = AuthToken.createToken("", persistedMember);
             AuthToken persistedAuthToken = globalAuthTokenSaveAdapter.save(initialAuthToken);
 
-            // MemberDetail 생성
-            MemberDetail memberDetail = MemberDetail.ofExisting(persistedMember, persistedAuthToken.getId());
+            // CustomUserDetails 생성
+            CustomUserDetails userDetails = CustomUserDetails.ofExisting(persistedMember, persistedAuthToken.getId());
 
             // 액세스 토큰 및 리프레시 토큰 생성 및 업데이트
-            String accessToken = globalJwtAdapter.generateAccessToken(memberDetail);
-            String refreshToken = globalJwtAdapter.generateRefreshToken(memberDetail);
+            String accessToken = globalJwtAdapter.generateAccessToken(userDetails);
+            String refreshToken = globalJwtAdapter.generateRefreshToken(userDetails);
             globalAuthTokenSaveAdapter.updateJwtRefreshToken(persistedAuthToken.getId(), refreshToken);
 
             // 레디스 정보 삭제
