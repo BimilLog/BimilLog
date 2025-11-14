@@ -349,4 +349,14 @@ public class CommentQueryAdapter {
                 .where(comment.post.id.eq(postId).and(closure.depth.eq(0)))
                 .fetchOne();
     }
+
+    // CommentIds로 댓글 리스트 조회
+    public List<Comment> findAllByIds(List<Long> commentIds) {
+        return jpaQueryFactory
+                .select(comment)
+                .from(comment)
+                .leftJoin(comment.member, member).fetchJoin()
+                .where(comment.id.in(commentIds))
+                .fetch();
+    }
 }

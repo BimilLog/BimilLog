@@ -1,26 +1,19 @@
 package jaeik.bimillog.domain.comment.service;
 
-import jaeik.bimillog.domain.comment.out.CommentDeleteAdapter;
-import jaeik.bimillog.domain.comment.out.CommentLikeAdapter;
-import jaeik.bimillog.domain.comment.out.CommentQueryAdapter;
-import jaeik.bimillog.domain.comment.out.CommentSaveAdapter;
+import jaeik.bimillog.domain.comment.out.*;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentClosure;
 import jaeik.bimillog.domain.comment.entity.CommentLike;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
+import jaeik.bimillog.domain.post.out.PostRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.domain.global.out.GlobalCommentQueryAdapter;
 import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
-import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.comment.controller.CommentCommandController;
 import jaeik.bimillog.domain.post.out.PostToCommentAdapter;
-import jaeik.bimillog.infrastructure.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -47,9 +40,9 @@ import java.util.List;
 public class CommentCommandService {
 
     private final ApplicationEventPublisher eventPublisher;
-    private final GlobalPostQueryAdapter globalPostQueryAdapter;
+    private final PostRepository postRepository;
     private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
-    private final GlobalCommentQueryAdapter globalCommentQueryAdapter;
+    private final CommentRepository commentRepository;
     private final CommentSaveAdapter commentSaveAdapter;
     private final CommentDeleteAdapter commentDeleteAdapter;
     private final CommentQueryAdapter commentQueryAdapter;
@@ -74,7 +67,7 @@ public class CommentCommandService {
     @Transactional
     public void writeComment(Long memberId, Long postId, Long parentId, String content, Integer password) {
         try {
-            Post post = globalPostQueryAdapter.findById(postId);
+            Post post = postRepository.findById(postId).orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
             Member member = memberId != null ? globalMemberQueryAdapter.findById(memberId).orElse(null) : null;
             String memberName = member != null ? member.getMemberName() : "익명";
@@ -154,7 +147,8 @@ public class CommentCommandService {
      */
     @Transactional
     public void likeComment(Long memberId, Long commentId) {
-        Comment comment = globalCommentQueryAdapter.findById(commentId);
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
         Member member = globalMemberQueryAdapter.findById(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_USER_NOT_FOUND));
 
@@ -225,14 +219,15 @@ public class CommentCommandService {
      * @since 2.0.0
      */
     private Comment validateComment(Long commentId, Long memberId, Integer password) {
-        Comment comment = globalCommentQueryAdapter.findById(commentId);
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
 
-        if (!comment.canModify(memberId, password)) {
-            throw new CustomException(ErrorCode.COMMENT_UNAUTHORIZED);
+            if (!comment.canModify(memberId, password)) {
+                throw new CustomException(ErrorCode.COMMENT_UNAUTHORIZED);
+            }
+
+            return comment;
         }
-
-        return comment;
-    }
 
     /**
      * <h3>댓글과 클로저 관계 저장</h3>

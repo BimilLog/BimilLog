@@ -3,7 +3,6 @@ package jaeik.bimillog.domain.post.service;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
-import jaeik.bimillog.domain.post.out.PostQueryAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostDeleteAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostSaveAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
@@ -33,7 +32,7 @@ public class PostScheduledService {
     private final RedisPostUpdateAdapter redisPostUpdateAdapter;
     private final RedisPostDeleteAdapter redisPostDeleteAdapter;
     private final ApplicationEventPublisher eventPublisher;
-    private final PostQueryAdapter postQueryAdapter;
+    private final PostQueryService postQueryService;
 
     /**
      * <h3>실시간 인기 게시글 점수 지수감쇠 적용</h3>
@@ -65,7 +64,7 @@ public class PostScheduledService {
     @Scheduled(fixedRate = 60000 * 1440) // 1일마다
     @Transactional
     public void updateWeeklyPopularPosts() {
-        List<PostSimpleDetail> posts = postQueryAdapter.findWeeklyPopularPosts();
+        List<PostSimpleDetail> posts = postQueryService.getWeeklyPopularPosts();
 
         if (posts.isEmpty()) {
             log.info("WEEKLY에 대한 인기 게시글이 없어 캐시 업데이트를 건너뜁니다.");
@@ -97,7 +96,7 @@ public class PostScheduledService {
     @Scheduled(fixedRate = 60000 * 1440) // 1일마다
     @Transactional
     public void updateLegendaryPosts() {
-        List<PostSimpleDetail> posts = postQueryAdapter.findLegendaryPosts();
+        List<PostSimpleDetail> posts = postQueryService.getLegendaryPosts();
 
         if (posts.isEmpty()) {
             log.info("LEGEND에 대한 인기 게시글이 없어 캐시 업데이트를 건너뜁니다.");

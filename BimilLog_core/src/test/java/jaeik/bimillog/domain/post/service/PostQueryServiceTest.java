@@ -1,20 +1,20 @@
 package jaeik.bimillog.domain.post.service;
 
-import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.post.out.PostLikeQueryAdapter;
 import jaeik.bimillog.domain.post.out.PostQueryAdapter;
+import jaeik.bimillog.domain.post.out.PostRepository;
+import jaeik.bimillog.domain.post.out.PostToCommentAdapter;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostQueryAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostSaveAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -26,13 +26,17 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
@@ -52,9 +56,6 @@ class PostQueryServiceTest extends BaseUnitTest {
     private PostQueryAdapter postQueryAdapter;
 
     @Mock
-    private GlobalPostQueryAdapter globalPostQueryAdapter;
-
-    @Mock
     private PostLikeQueryAdapter postLikeQueryAdapter;
 
     @Mock
@@ -63,8 +64,20 @@ class PostQueryServiceTest extends BaseUnitTest {
     @Mock
     private RedisPostSaveAdapter redisPostSaveAdapter;
 
+    @Mock
+    private PostRepository postRepository;
+
+    @Mock
+    private PostToCommentAdapter postToCommentAdapter;
+
     @InjectMocks
     private PostQueryService postQueryService;
+
+    @BeforeEach
+    void setUp() {
+        lenient().when(postToCommentAdapter.findCommentCountsByPostIds(anyList()))
+                .thenReturn(Collections.emptyMap());
+    }
 
     @Test
     @DisplayName("게시판 조회 - 성공")
@@ -121,7 +134,6 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result).isNotNull();
         verify(redisPostQueryAdapter).getCachedPostIfExists(postId); // 1회 Redis 호출
         verify(postQueryAdapter).findPostDetailWithCounts(postId, memberId); // 1회 DB 쿼리
-        verify(globalPostQueryAdapter, never()).findById(any()); // 기존 개별 쿼리 호출 안함
         verify(postLikeQueryAdapter, never()).existsByPostIdAndUserId(any(), any());
     }
 
@@ -160,7 +172,6 @@ class PostQueryServiceTest extends BaseUnitTest {
 
         verify(redisPostQueryAdapter).getCachedPostIfExists(postId); // 1회 Redis 호출 (최적화)
         verify(postLikeQueryAdapter).existsByPostIdAndUserId(postId, memberId);
-        verify(globalPostQueryAdapter, never()).findById(any()); // 캐시 히트 시 DB 조회 안함
         verify(postQueryAdapter, never()).findPostDetailWithCounts(any(), any()); // JOIN 쿼리도 호출 안함
     }
 
@@ -199,7 +210,6 @@ class PostQueryServiceTest extends BaseUnitTest {
         verify(postQueryAdapter).findPostDetailWithCounts(postId, memberId); // 1회 DB JOIN 쿼리 (최적화)
 
         // 기존 개별 쿼리들은 호출되지 않음을 검증
-        verify(globalPostQueryAdapter, never()).findById(any());
         verify(postLikeQueryAdapter, never()).existsByPostIdAndUserId(any(), any());
     }
 
@@ -240,7 +250,6 @@ class PostQueryServiceTest extends BaseUnitTest {
         verify(postQueryAdapter).findPostDetailWithCounts(postId, memberId); // 1회 JOIN 쿼리
 
         // 기존 개별 쿼리들은 호출되지 않음
-        verify(globalPostQueryAdapter, never()).findById(any());
         verify(postLikeQueryAdapter, never()).existsByPostIdAndUserId(any(), any());
     }
 
@@ -263,7 +272,6 @@ class PostQueryServiceTest extends BaseUnitTest {
         verify(redisPostQueryAdapter).getCachedPostIfExists(postId);
         verify(postQueryAdapter).findPostDetailWithCounts(postId, memberId);
         // 기존 개별 쿼리는 호출되지 않음
-        verify(globalPostQueryAdapter, never()).findById(any());
     }
 
     @Test
@@ -292,29 +300,25 @@ class PostQueryServiceTest extends BaseUnitTest {
     }
 
     @Test
-    @DisplayName("게시글 검색 - 전문검색 실패 시 부분검색 폴백")
-    void shouldSearchPost_FallbackToPartialMatch_WhenFullTextSearchFails() {
+    @DisplayName("게시글 검색 - 전문검색 조건 충족 시 결과 그대로 반환")
+    void shouldNotFallback_WhenFullTextSearchSelected() {
         // Given
         PostSearchType type = PostSearchType.TITLE_CONTENT;
         String query = "검색어"; // 3글자
         Pageable pageable = PageRequest.of(0, 10);
 
-        PostSimpleDetail searchResult = PostTestDataBuilder.createPostSearchResult(1L, "폴백 결과");
         Page<PostSimpleDetail> emptyPage = Page.empty(pageable);
-        Page<PostSimpleDetail> fallbackPage = new PageImpl<>(List.of(searchResult), pageable, 1);
 
         given(postQueryAdapter.findByFullTextSearch(type, query, pageable)).willReturn(emptyPage);
-        given(postQueryAdapter.findByPartialMatch(type, query, pageable)).willReturn(fallbackPage);
 
         // When
         Page<PostSimpleDetail> result = postQueryService.searchPost(type, query, pageable);
 
         // Then
-        assertThat(result).isEqualTo(fallbackPage);
-        assertThat(result.getContent()).hasSize(1);
+        assertThat(result).isEqualTo(emptyPage);
 
         verify(postQueryAdapter).findByFullTextSearch(type, query, pageable);
-        verify(postQueryAdapter).findByPartialMatch(type, query, pageable);
+        verify(postQueryAdapter, never()).findByPartialMatch(type, query, pageable);
     }
 
     @Test
@@ -400,16 +404,16 @@ class PostQueryServiceTest extends BaseUnitTest {
         Long postId = 1L;
 
         Post mockPost = PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestMember(), "Test Post", "Content"));
-        given(globalPostQueryAdapter.findById(postId)).willReturn(mockPost);
+        given(postRepository.findById(postId)).willReturn(Optional.of(mockPost));
 
         // When
-        Post result = postQueryService.findById(postId);
+        Optional<Post> result = postQueryService.findById(postId);
 
         // Then
-        assertThat(result).isNotNull();
-        assertThat(result.getId()).isEqualTo(postId);
+        assertThat(result).isPresent();
+        assertThat(result.get().getId()).isEqualTo(postId);
 
-        verify(globalPostQueryAdapter).findById(postId);
+        verify(postRepository).findById(postId);
     }
 
     @Test
@@ -418,14 +422,14 @@ class PostQueryServiceTest extends BaseUnitTest {
         // Given
         Long postId = 999L;
 
-        given(globalPostQueryAdapter.findById(postId)).willThrow(new CustomException(ErrorCode.POST_NOT_FOUND));
+        given(postRepository.findById(postId)).willReturn(Optional.empty());
 
-        // When & Then
-        assertThatThrownBy(() -> postQueryService.findById(postId))
-                .isInstanceOf(CustomException.class)
-                .hasMessage(ErrorCode.POST_NOT_FOUND.getMessage());
+        // When
+        Optional<Post> result = postQueryService.findById(postId);
 
-        verify(globalPostQueryAdapter).findById(postId);
+        // Then
+        assertThat(result).isEmpty();
+        verify(postRepository).findById(postId);
     }
 
     @Test
@@ -468,6 +472,42 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.getContent()).hasSize(1);
 
         verify(postQueryAdapter).findLikedPostsByMemberId(memberId, pageable);
+    }
+
+    @Test
+    @DisplayName("주간 인기 게시글 조회 시 댓글 수가 주입된다")
+    void shouldInjectCommentCountsForWeeklyPosts() {
+        // Given
+        PostSimpleDetail weeklyPost = PostTestDataBuilder.createPostSearchResult(1L, "주간 인기");
+        given(postQueryAdapter.findWeeklyPopularPosts()).willReturn(List.of(weeklyPost));
+        given(postToCommentAdapter.findCommentCountsByPostIds(List.of(1L)))
+                .willReturn(Map.of(1L, 7));
+
+        // When
+        List<PostSimpleDetail> result = postQueryService.getWeeklyPopularPosts();
+
+        // Then
+        assertThat(result).hasSize(1);
+        assertThat(result.getFirst().getCommentCount()).isEqualTo(7);
+        verify(postToCommentAdapter).findCommentCountsByPostIds(List.of(1L));
+    }
+
+    @Test
+    @DisplayName("레전드 게시글 조회 시 댓글 수가 주입된다")
+    void shouldInjectCommentCountsForLegendaryPosts() {
+        // Given
+        PostSimpleDetail legendaryPost = PostTestDataBuilder.createPostSearchResult(10L, "레전드");
+        given(postQueryAdapter.findLegendaryPosts()).willReturn(List.of(legendaryPost));
+        given(postToCommentAdapter.findCommentCountsByPostIds(List.of(10L)))
+                .willReturn(Map.of(10L, 3));
+
+        // When
+        List<PostSimpleDetail> result = postQueryService.getLegendaryPosts();
+
+        // Then
+        assertThat(result).hasSize(1);
+        assertThat(result.getFirst().getCommentCount()).isEqualTo(3);
+        verify(postToCommentAdapter).findCommentCountsByPostIds(List.of(10L));
     }
 
 }

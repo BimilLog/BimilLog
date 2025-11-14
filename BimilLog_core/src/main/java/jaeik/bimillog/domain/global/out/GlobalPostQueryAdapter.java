@@ -1,11 +1,14 @@
 package jaeik.bimillog.domain.global.out;
 
 import jaeik.bimillog.domain.post.entity.Post;
+import jaeik.bimillog.domain.post.out.PostQueryAdapter;
+import jaeik.bimillog.domain.post.service.PostQueryService;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.domain.post.out.PostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 /**
  * <h2>전역 게시글 조회 어댑터</h2>
@@ -19,9 +22,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 @RequiredArgsConstructor
 public class GlobalPostQueryAdapter {
-
-    private final PostRepository postRepository;
-
+    private final PostQueryService postQueryService;
 
     /**
      * <h3>ID로 게시글 조회</h3>
@@ -36,7 +37,13 @@ public class GlobalPostQueryAdapter {
      * @since 2.0.0
      */
     public Post findById(Long id) {
-        return postRepository.findById(id)
+        return postQueryService.findById(id)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+    }
+
+
+    // PostId 목록으로 Post 리스트 반환
+    public List<Post> findAllByIds(List<Long> postIds) {
+        return postQueryService.findAllByIds(postIds);
     }
 }

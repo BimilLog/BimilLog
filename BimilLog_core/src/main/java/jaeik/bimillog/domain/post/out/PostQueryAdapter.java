@@ -125,8 +125,8 @@ public class PostQueryAdapter {
             .limit(pageable.getPageSize())
             .fetch();
 
-        // 배치 조회로 댓글 수와 추천 수 설정
-        postQueryHelper.batchLikeAndCommentCount(content);
+        // 배치 조회로 추천 수 설정
+        postQueryHelper.batchLikeCount(content);
 
         // Count 쿼리
         Long total = jpaQueryFactory
@@ -237,6 +237,17 @@ public class PostQueryAdapter {
         return Optional.ofNullable(result);
     }
 
+    // PostId 목록으로 Post 리스트 반환
+    public List<Post> findAllByIds(List<Long> postIds) {
+
+        return jpaQueryFactory
+                .select(post)
+                .from(post)
+                .leftJoin(post.member, member).fetchJoin()
+                .where(post.id.in(postIds))
+                .fetch();
+    }
+
     /**
      * <h3>MySQL FULLTEXT 전문 검색</h3>
      * <p>MySQL FULLTEXT 인덱스를 사용하여 게시글을 검색합니다.</p>
@@ -270,7 +281,7 @@ public class PostQueryAdapter {
             }
 
             List<PostSimpleDetail> content = postQueryHelper.mapFullTextRows(rows);
-            postQueryHelper.batchLikeAndCommentCount(content);
+            postQueryHelper.batchLikeCount(content);
 
             return new PageImpl<>(content, pageable, total);
         } catch (DataAccessException e) {
@@ -329,4 +340,6 @@ public class PostQueryAdapter {
         Consumer<JPAQuery<?>> customizer = q -> q.where(finalCondition);
         return postQueryHelper.findPostsWithQuery(customizer, customizer, pageable);
     }
+
+
 }

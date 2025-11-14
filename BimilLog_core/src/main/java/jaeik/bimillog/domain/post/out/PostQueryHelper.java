@@ -32,7 +32,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PostQueryHelper {
     private final JPAQueryFactory jpaQueryFactory;
-    private final PostToCommentAdapter postToCommentAdapter;
     private final PostLikeQueryAdapter postLikeQueryAdapter;
 
     private static final QPost post = QPost.post;
@@ -75,8 +74,8 @@ public class PostQueryHelper {
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        // 배치 조회로 댓글 수와 추천 수 설정
-        batchLikeAndCommentCount(content);
+        // 배치 조회로 추천 수 설정
+        batchLikeCount(content);
 
         // Count 쿼리 빌딩
         JPAQuery<Long> countQuery = jpaQueryFactory
@@ -94,14 +93,14 @@ public class PostQueryHelper {
     }
 
     /**
-     * <h3>게시글 목록에 추천 수와 댓글 수 주입</h3>
-     * <p>게시글 목록의 좋아요 수와 댓글 수를 배치로 조회하여 주입.</p>
+     * <h3>게시글 목록에 추천 수 주입</h3>
+     * <p>게시글 목록의 좋아요 수를 배치로 조회하여 주입.</p>
      *
-     * @param posts 좋아요 수와 댓글 수를 채울 게시글 목록
+     * @param posts 좋아요 수를 채울 게시글 목록
      * @author Jaeik
      * @since 2.0.0
      */
-    public void batchLikeAndCommentCount(List<PostSimpleDetail> posts) {
+    public void batchLikeCount(List<PostSimpleDetail> posts) {
         if (posts.isEmpty()) {
             return;
         }
@@ -110,11 +109,9 @@ public class PostQueryHelper {
                 .map(PostSimpleDetail::getId)
                 .toList();
 
-        Map<Long, Integer> commentCounts = postToCommentAdapter.findCommentCountsByPostIds(postIds);
         Map<Long, Integer> likeCounts = postLikeQueryAdapter.findLikeCountsByPostIds(postIds);
 
         posts.forEach(post -> {
-            post.setCommentCount(commentCounts.getOrDefault(post.getId(), 0));
             post.setLikeCount(likeCounts.getOrDefault(post.getId(), 0));
         });
     }

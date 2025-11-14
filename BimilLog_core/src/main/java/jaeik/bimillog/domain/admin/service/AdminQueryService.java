@@ -1,14 +1,24 @@
 
 package jaeik.bimillog.domain.admin.service;
 
+import jaeik.bimillog.domain.admin.dto.ReportDTO;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.admin.repository.AdminQueryRepository;
+import jaeik.bimillog.domain.comment.entity.Comment;
+import jaeik.bimillog.domain.global.out.GlobalCommentQueryAdapter;
+import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
+import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.post.entity.Post;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * <h2>관리자 조회 서비스</h2>
@@ -25,6 +35,8 @@ import org.springframework.stereotype.Service;
 public class AdminQueryService {
 
     private final AdminQueryRepository adminQueryRepository;
+    private final GlobalPostQueryAdapter globalPostQueryAdapter;
+    private final GlobalCommentQueryAdapter globalCommentQueryAdapter;
 
     /**
      * <h3>신고 목록 조회</h3>
@@ -36,8 +48,44 @@ public class AdminQueryService {
      * @author Jaeik
      * @since 2.0.0
      */
-    public Page<Report> getReportList(int page, int size, ReportType reportType) {
+    public Page<ReportDTO> getReportList(int page, int size, ReportType reportType) {
         Pageable pageable = PageRequest.of(page, size);
-        return adminQueryRepository.findReportsWithPaging(reportType, pageable);
+        Page<Report> reports = adminQueryRepository.findReportsWithPaging(reportType, pageable);
+
+        List<Long> postIds = reports.stream()
+                .filter(r -> r.getReportType() == ReportType.POST)
+                .map(Report::getTargetId).toList();
+
+        List<Long> commentIds = reports.stream()
+                .filter(r -> r.getReportType() == ReportType.COMMENT)
+                .map(Report::getTargetId).toList();
+
+        List<Post> posts = globalPostQueryAdapter.findAllByIds(postIds);
+        List<Comment> comments = globalCommentQueryAdapter.findAllByIds(commentIds);
+
+        Map<Long, Member> postMaps = posts.stream().collect(Collectors.toMap(
+                Post::getId,
+                Post::getMember
+        ));
+
+        Map<Long, Member> commentMaps = comments.stream().collect(Collectors.toMap(
+                Comment::getId,
+                Comment::getMember
+        ));
+
+        return mappingReports(reports, postMaps, commentMaps);
+    }
+
+    // 신고 DTO 매핑
+    private Page<ReportDTO> mappingReports(Page<Report> reports, Map<Long, Member> postMaps, Map<Long, Member> commentMaps) {
+        return reports.map(report -> {
+            Member targetAuthor = null;
+            if (report.getReportType() == ReportType.POST) {
+                targetAuthor = postMaps.get(report.getTargetId());
+            } else if (report.getReportType() == ReportType.COMMENT) {
+                targetAuthor = commentMaps.get(report.getTargetId());
+            }
+            return ReportDTO.from(report, targetAuthor);
+        });
     }
 }
