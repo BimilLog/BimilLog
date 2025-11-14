@@ -209,14 +209,13 @@ export default function LoginPage() {
         </button>
 
         {/* 네이버 로그인 버튼 */}
-        {/* 네이버 로그인 버튼 */}
         <button
           onClick={handleNaverLogin}
           className="w-full transition-all duration-200 hover:scale-[0.98] active:scale-[0.96]
                      focus:outline-none focus:ring-4 focus:ring-green-200 dark:focus:ring-green-900
                      rounded-lg overflow-hidden origin-center"
           aria-label="네이버로 로그인하기"
-          style={{ transform: 'scaleY(0.95)', transformOrigin: 'center' }} // ✅ 버튼 자체도 세로 줄임
+          style={{ transform: 'scaleY(0.8)', transformOrigin: 'center' }} // ✅ 버튼 자체도 세로 줄임
         >
           <Image
             src="/naver_login_button.png"
@@ -240,7 +239,7 @@ export default function LoginPage() {
         <button
           onClick={handleGoogleLogin}
           aria-label="구글 계정으로 로그인"
-          className="mt-2 flex w-full items-center justify-center gap-3 rounded-lg border border-[#dadce0] bg-white px-4 py-3 text-sm font-semibold text-[#3c4043] transition hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a73e8] dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700"
+          className="flex w-full items-center justify-center gap-3 rounded-lg border border-[#dadce0] bg-white px-4 py-3 text-sm font-semibold text-[#3c4043] transition hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a73e8] dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700"
         >
           <span className="flex h-6 w-6 items-center justify-center rounded-md bg-transparent">
             <Image
