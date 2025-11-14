@@ -3,7 +3,6 @@ package jaeik.bimillog.domain.post.service;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
-import jaeik.bimillog.domain.post.out.PostQueryAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostDeleteAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostSaveAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
@@ -49,7 +48,7 @@ class PostScheduledServiceTest {
     private RedisPostDeleteAdapter redisPostDeleteAdapter;
 
     @Mock
-    private PostQueryAdapter postQueryAdapter;
+    private PostQueryService postQueryService;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -80,7 +79,7 @@ class PostScheduledServiceTest {
         PostSimpleDetail post2 = createPostSimpleDetail(2L, "주간인기글2", 2L);
         List<PostSimpleDetail> posts = List.of(post1, post2);
 
-        given(postQueryAdapter.findWeeklyPopularPosts()).willReturn(posts);
+        given(postQueryService.getWeeklyPopularPosts()).willReturn(posts);
 
         // When
         postScheduledService.updateWeeklyPopularPosts();
@@ -110,7 +109,7 @@ class PostScheduledServiceTest {
         PostSimpleDetail userPost = createPostSimpleDetail(2L, "회원글", 2L);
         List<PostSimpleDetail> posts = List.of(anonymousPost, userPost);
 
-        given(postQueryAdapter.findWeeklyPopularPosts()).willReturn(posts);
+        given(postQueryService.getWeeklyPopularPosts()).willReturn(posts);
 
         // When
         postScheduledService.updateWeeklyPopularPosts();
@@ -136,7 +135,7 @@ class PostScheduledServiceTest {
         PostSimpleDetail legendPost = createPostSimpleDetail(1L, "전설의글", 1L);
         List<PostSimpleDetail> posts = List.of(legendPost);
 
-        given(postQueryAdapter.findLegendaryPosts()).willReturn(posts);
+        given(postQueryService.getLegendaryPosts()).willReturn(posts);
 
         // When
         postScheduledService.updateLegendaryPosts();
@@ -161,13 +160,13 @@ class PostScheduledServiceTest {
     @DisplayName("전설의 게시글 업데이트 - 게시글 목록 비어있는 경우")
     void shouldUpdateLegendaryPosts_WhenPostListIsEmpty() {
         // Given
-        given(postQueryAdapter.findLegendaryPosts()).willReturn(Collections.emptyList());
+        given(postQueryService.getLegendaryPosts()).willReturn(Collections.emptyList());
 
         // When
         postScheduledService.updateLegendaryPosts();
 
         // Then
-        verify(postQueryAdapter).findLegendaryPosts();
+        verify(postQueryService).getLegendaryPosts();
 
         // 게시글이 없으면 캐시 및 이벤트 발행 안함
         verify(redisPostDeleteAdapter, never()).clearPostListCache(any());
@@ -181,8 +180,8 @@ class PostScheduledServiceTest {
     @DisplayName("스케줄링 메서드들의 트랜잭션 동작 검증")
     void shouldVerifyTransactionalBehavior() {
         // Given
-        given(postQueryAdapter.findWeeklyPopularPosts()).willReturn(Collections.emptyList());
-        given(postQueryAdapter.findLegendaryPosts()).willReturn(Collections.emptyList());
+        given(postQueryService.getWeeklyPopularPosts()).willReturn(Collections.emptyList());
+        given(postQueryService.getLegendaryPosts()).willReturn(Collections.emptyList());
 
         // When - 모든 스케줄링 메서드 호출
         postScheduledService.applyRealtimeScoreDecay();
@@ -191,8 +190,8 @@ class PostScheduledServiceTest {
 
         // Then - @Transactional 동작을 위한 port 호출 검증
         verify(redisPostUpdateAdapter).applyRealtimePopularScoreDecay();
-        verify(postQueryAdapter).findWeeklyPopularPosts();
-        verify(postQueryAdapter).findLegendaryPosts();
+        verify(postQueryService).getWeeklyPopularPosts();
+        verify(postQueryService).getLegendaryPosts();
     }
 
     @Test
@@ -201,7 +200,7 @@ class PostScheduledServiceTest {
         // Given - 대량의 게시글 생성 (100개)
         List<PostSimpleDetail> largePosts = createLargePostList(100);
 
-        given(postQueryAdapter.findWeeklyPopularPosts()).willReturn(largePosts);
+        given(postQueryService.getWeeklyPopularPosts()).willReturn(largePosts);
 
         // When
         postScheduledService.updateWeeklyPopularPosts();

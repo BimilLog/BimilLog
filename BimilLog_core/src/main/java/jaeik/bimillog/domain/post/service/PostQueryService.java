@@ -145,6 +145,32 @@ public class PostQueryService {
     }
 
     /**
+     * <h3>주간 인기 게시글 조회</h3>
+     * <p>어댑터에서 조회한 인기글 목록에 댓글 수를 주입합니다.</p>
+     *
+     * @return List<PostSimpleDetail> 주간 인기 게시글 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public List<PostSimpleDetail> getWeeklyPopularPosts() {
+        List<PostSimpleDetail> posts = postQueryAdapter.findWeeklyPopularPosts();
+        enrichPostsWithCounts(posts);
+        return posts;
+    }
+
+    /**
+     * <h3>레전드 게시글 조회</h3>
+     * <p>어댑터에서 조회한 레전드 글 목록에 댓글 수를 주입합니다.</p>
+     *
+     * @return List<PostSimpleDetail> 레전드 게시글 목록
+     */
+    public List<PostSimpleDetail> getLegendaryPosts() {
+        List<PostSimpleDetail> posts = postQueryAdapter.findLegendaryPosts();
+        enrichPostsWithCounts(posts);
+        return posts;
+    }
+
+    /**
      * <h3>게시글 검색 전략 선택</h3>
      * <p>검색 조건에 따라 최적의 검색 전략을 선택하여 게시글을 검색합니다.</p>
      * <p>검색 전략:</p>

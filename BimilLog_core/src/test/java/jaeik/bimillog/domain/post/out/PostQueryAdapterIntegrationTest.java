@@ -62,9 +62,6 @@ class PostQueryAdapterIntegrationTest {
     private TestEntityManager entityManager;
 
     @MockitoBean
-    private PostToCommentAdapter postToCommentAdapter;
-
-    @MockitoBean
     private PostLikeQueryAdapter postLikeQueryAdapter;
 
     private Member testMember;
@@ -84,14 +81,6 @@ class PostQueryAdapterIntegrationTest {
 
         // 테스트용 게시글들 생성
         createTestPosts();
-        
-        // 댓글 수 Mock 설정 (기본값)
-        Map<Long, Integer> commentCounts = new HashMap<>();
-        commentCounts.put(testPost1.getId(), 2);
-        commentCounts.put(testPost2.getId(), 1);
-        commentCounts.put(testPost3.getId(), 0);
-        commentCounts.put(noticePost.getId(), 3);
-        
         // 추천 수 Mock 설정 (기본값)
         Map<Long, Integer> likeCounts = new HashMap<>();
         likeCounts.put(testPost1.getId(), 5);
@@ -99,8 +88,6 @@ class PostQueryAdapterIntegrationTest {
         likeCounts.put(testPost3.getId(), 1);
         likeCounts.put(noticePost.getId(), 8);
         
-        given(postToCommentAdapter.findCommentCountsByPostIds(any(List.class)))
-                .willReturn(commentCounts);
         given(postLikeQueryAdapter.findLikeCountsByPostIds(any(List.class)))
                 .willReturn(likeCounts);
     }

@@ -73,6 +73,11 @@ public class AdminQueryService {
                 Comment::getMember
         ));
 
+        return mappingReports(reports, postMaps, commentMaps);
+    }
+
+    // 신고 DTO 매핑
+    private Page<ReportDTO> mappingReports(Page<Report> reports, Map<Long, Member> postMaps, Map<Long, Member> commentMaps) {
         return reports.map(report -> {
             Member targetAuthor = null;
             if (report.getReportType() == ReportType.POST) {
