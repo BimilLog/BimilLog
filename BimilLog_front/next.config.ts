@@ -125,7 +125,7 @@ const nextConfig = withPWA(pwaConfig)({
                             // 스타일시트 허용
                             "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
                             // 이미지 소스 허용 (구체적 도메인만 명시)
-                            "img-src 'self' data: https://p.kakaocdn.net https://k.kakaocdn.net https://t1.kakaocdn.net https://chat.kakaocdn.net https://postfiles.pstatic.net https://t1.daumcdn.net https://display.ad.daum.net https://kaat.daum.net https://serv.ds.kakao.com https://tr.ad.daum.net https://ssl.pstatic.net" +
+                            "img-src 'self' data: https://p.kakaocdn.net https://k.kakaocdn.net https://t1.kakaocdn.net https://chat.kakaocdn.net https://postfiles.pstatic.net https://t1.daumcdn.net https://display.ad.daum.net https://kaat.daum.net https://serv.ds.kakao.com https://tr.ad.daum.net https://ssl.pstatic.net https://lh3.googleusercontent.com" +
                             (process.env.NODE_ENV === "development"
                                 ? " http://p.kakaocdn.net http://k.kakaocdn.net http://t1.kakaocdn.net http://chat.kakaocdn.net"
                                 : ""),
@@ -195,6 +195,10 @@ const nextConfig = withPWA(pwaConfig)({
             {
                 protocol: 'https',
                 hostname: '*.kakao.com',
+            },
+            {
+                protocol: 'https',
+                hostname: 'lh3.googleusercontent.com',
             },
         ],
         formats: ['image/avif', 'image/webp'],
