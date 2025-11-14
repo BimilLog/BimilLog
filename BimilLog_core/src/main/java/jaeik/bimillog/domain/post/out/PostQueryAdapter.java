@@ -125,8 +125,8 @@ public class PostQueryAdapter {
             .limit(pageable.getPageSize())
             .fetch();
 
-        // 배치 조회로 댓글 수와 추천 수 설정
-        postQueryHelper.batchLikeAndCommentCount(content);
+        // 배치 조회로 추천 수 설정
+        postQueryHelper.batchLikeCount(content);
 
         // Count 쿼리
         Long total = jpaQueryFactory
@@ -281,7 +281,7 @@ public class PostQueryAdapter {
             }
 
             List<PostSimpleDetail> content = postQueryHelper.mapFullTextRows(rows);
-            postQueryHelper.batchLikeAndCommentCount(content);
+            postQueryHelper.batchLikeCount(content);
 
             return new PageImpl<>(content, pageable, total);
         } catch (DataAccessException e) {

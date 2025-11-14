@@ -6,24 +6,22 @@ import jaeik.bimillog.domain.comment.entity.CommentClosure;
 import jaeik.bimillog.domain.comment.entity.CommentLike;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
+import jaeik.bimillog.domain.post.out.PostRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
-import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.comment.controller.CommentCommandController;
 import jaeik.bimillog.domain.post.out.PostToCommentAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.units.qual.C;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * <h2>댓글 명령 서비스</h2>
@@ -42,7 +40,7 @@ import java.util.Optional;
 public class CommentCommandService {
 
     private final ApplicationEventPublisher eventPublisher;
-    private final GlobalPostQueryAdapter globalPostQueryAdapter;
+    private final PostRepository postRepository;
     private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
     private final CommentRepository commentRepository;
     private final CommentSaveAdapter commentSaveAdapter;
@@ -69,7 +67,7 @@ public class CommentCommandService {
     @Transactional
     public void writeComment(Long memberId, Long postId, Long parentId, String content, Integer password) {
         try {
-            Post post = globalPostQueryAdapter.findById(postId);
+            Post post = postRepository.findById(postId).orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
             Member member = memberId != null ? globalMemberQueryAdapter.findById(memberId).orElse(null) : null;
             String memberName = member != null ? member.getMemberName() : "익명";
