@@ -5,9 +5,11 @@ import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentInfo;
 import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
 import jaeik.bimillog.domain.comment.controller.CommentQueryController;
+import jaeik.bimillog.domain.comment.out.CommentRepository;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.domain.global.out.GlobalCommentQueryAdapter;
 import jaeik.bimillog.domain.post.out.PostToCommentAdapter;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -33,7 +35,7 @@ import java.util.Map;
 public class CommentQueryService {
 
     private final CommentQueryAdapter commentQueryAdapter;
-    private final GlobalCommentQueryAdapter globalCommentQueryAdapter;
+    private final CommentRepository commentRepository;
 
     /**
      * <h3>인기 댓글 조회</h3>
@@ -82,7 +84,7 @@ public class CommentQueryService {
      * @since 2.0.0
      */
     public Comment findById(Long commentId) {
-        return globalCommentQueryAdapter.findById(commentId);
+        return commentRepository.findById(commentId).orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
     }
 
     /**

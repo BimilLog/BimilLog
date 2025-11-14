@@ -51,20 +51,6 @@ public class GlobalMemberQueryAdapter {
     }
 
     /**
-     * <h3>사용자명 존재 여부 확인</h3>
-     * <p>특정 사용자명을 가진 사용자가 시스템에 존재하는지 확인합니다.</p>
-     * <p>Member 도메인의 UserQueryUseCase를 통해 존재 여부를 확인합니다.</p>
-     *
-     * @param memberName 확인할 사용자명
-     * @return boolean 사용자명이 존재하면 true, 그렇지 않으면 false
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public boolean existsByMemberName(String memberName) {
-        return memberQueryService.existsByMemberName(memberName);
-    }
-
-    /**
      * <h3>사용자 ID로 JPA 프록시 참조 조회</h3>
      * <p>실제 데이터베이스 조회 없이 사용자 ID를 가진 Member 프록시 객체를 반환합니다.</p>
      * <p>Member 도메인의 UserQueryUseCase를 통해 프록시 객체를 생성합니다.</p>

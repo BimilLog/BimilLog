@@ -95,7 +95,7 @@ public class ReportDTO {
                 .reportType(report.getReportType())
                 .targetId(report.getTargetId())
                 .targetAuthorId(targetAuthor != null ? targetAuthor.getId() : null)
-                .targetAuthorName(targetAuthor != null ? targetAuthor.getMemberName() : null)
+                .targetAuthorName(targetAuthor != null ? targetAuthor.getMemberName() : "익명")
                 .content(report.getContent())
                 .createdAt(report.getCreatedAt())
                 .build();

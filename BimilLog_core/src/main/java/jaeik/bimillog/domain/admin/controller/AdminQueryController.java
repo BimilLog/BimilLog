@@ -33,10 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/api/admin")
 public class AdminQueryController {
-
     private final AdminQueryService adminQueryService;
-    private final GlobalPostQueryAdapter globalPostQueryAdapter;
-    private final GlobalCommentQueryAdapter globalCommentQueryAdapter;
 
     /**
      * <h3>신고 목록 조회 API</h3>
@@ -54,23 +51,7 @@ public class AdminQueryController {
     public ResponseEntity<Page<ReportDTO>> getReportList(@RequestParam(defaultValue = "0") int page,
                                                          @RequestParam(defaultValue = "20") int size,
                                                          @RequestParam(required = false) ReportType reportType) {
-        Page<Report> reports = adminQueryService.getReportList(page, size, reportType);
-        Page<ReportDTO> reportList = reports.map(report -> {
-            Member targetAuthor = null;
-            if (report.getTargetId() != null) {
-                try {
-                    if (report.getReportType() == ReportType.POST) {
-                        targetAuthor = globalPostQueryAdapter.findById(report.getTargetId()).getMember();
-                    } else if (report.getReportType() == ReportType.COMMENT) {
-                        targetAuthor = globalCommentQueryAdapter.findById(report.getTargetId()).getMember();
-                    }
-                } catch (CustomException e) {
-                    // targetId가 유효하지 않은 경우 (삭제된 게시글/댓글) targetAuthor는 null
-                    log.debug("Failed to resolve target author for report {}: {}", report.getId(), e.getMessage());
-                }
-            }
-            return ReportDTO.from(report, targetAuthor);
-        });
+        Page<ReportDTO> reportList = adminQueryService.getReportList(page, size, reportType);
         return ResponseEntity.ok(reportList);
     }
 }

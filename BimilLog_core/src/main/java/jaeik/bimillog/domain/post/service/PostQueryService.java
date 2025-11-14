@@ -1,11 +1,11 @@
 package jaeik.bimillog.domain.post.service;
 
 
-import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
+import jaeik.bimillog.domain.post.out.PostRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.post.controller.PostQueryController;
@@ -17,6 +17,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
 
 /**
  * <h2>게시글 조회 서비스</h2>
@@ -33,10 +36,10 @@ import org.springframework.stereotype.Service;
 public class PostQueryService {
 
     private final PostQueryAdapter postQueryAdapter;
-    private final GlobalPostQueryAdapter globalPostQueryAdapter;
     private final PostLikeQueryAdapter postLikeQueryAdapter;
     private final RedisPostQueryAdapter redisPostQueryAdapter;
     private final RedisPostSaveAdapter redisPostSaveAdapter;
+    private final PostRepository postRepository;
 
     /**
      * <h3>게시판 목록 조회</h3>
@@ -64,7 +67,6 @@ public class PostQueryService {
      * @param postId 게시글 ID
      * @param memberId 현재 로그인한 사용자 ID (추천 여부 확인용, null 허용)
      * @return PostDetail 게시글 상세 정보 (좋아요 수, 댓글 수, 사용자 좋아요 여부 포함)
-     * @throws PostCustomException 게시글을 찾을 수 없는 경우
      * @author Jaeik
      * @since 2.0.0
      */
@@ -96,8 +98,13 @@ public class PostQueryService {
      * @author Jaeik
      * @since 2.0.0
      */
-    public Post findById(Long postId) {
-        return globalPostQueryAdapter.findById(postId);
+    public Optional<Post> findById(Long postId) {
+        return postRepository.findById(postId);
+    }
+
+    // PostId 목록으로 Post 리스트 반환
+    public List<Post> findAllByIds(List<Long> postIds) {
+        return postQueryAdapter.findAllByIds(postIds);
     }
 
     /**
