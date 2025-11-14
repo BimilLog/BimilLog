@@ -239,10 +239,10 @@ export default function LoginPage() {
         {/* 구글 로그인 버튼 */}
         <button
           onClick={handleGoogleLogin}
-          aria-label="Google 계정으로 로그인"
-          className="mt-2 flex w-full items-center justify-center gap-3 rounded-full border border-[#dadce0] bg-white px-4 py-3 text-sm font-semibold text-[#3c4043] transition hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a73e8] dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700"
+          aria-label="구글 계정으로 로그인"
+          className="mt-2 flex w-full items-center justify-center gap-3 rounded-lg border border-[#dadce0] bg-white px-4 py-3 text-sm font-semibold text-[#3c4043] transition hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a73e8] dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700"
         >
-          <span className="flex size-6 items-center justify-center rounded-full bg-transparent">
+          <span className="flex h-6 w-6 items-center justify-center rounded-md bg-transparent">
             <Image
               src="/icons/google-g.svg"
               alt="Google G 로고"
@@ -251,7 +251,7 @@ export default function LoginPage() {
               priority
             />
           </span>
-          <span className="tracking-tight">Google 계정으로 로그인</span>
+          <span className="tracking-tight">구글 계정으로 로그인</span>
         </button>
 
         <div className="mt-6">
