@@ -131,11 +131,14 @@ public class AdminCommandService {
      * @param reportType 신고 유형 (POST, COMMENT만 허용)
      * @param targetId 신고 대상 ID (게시글 ID 또는 댓글 ID)
      * @return Member 신고 대상 사용자 엔티티
-     * @throws AdminCustomException 대상 게시글/댓글이 삭제되었거나 익명 사용자인 경우
      * @author Jaeik
      * @since 2.0.0
      */
     private Member resolveUser(ReportType reportType, Long targetId) {
+        if (targetId == null) {
+            throw new CustomException(ErrorCode.ADMIN_INVALID_REPORT_TARGET);
+        }
+
         Member member = switch (reportType) {
             case POST -> {
                 try {

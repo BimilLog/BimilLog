@@ -3,7 +3,6 @@ package jaeik.bimillog.testutil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.MemberRole;
-import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.member.out.MemberRepository;
 import jaeik.bimillog.testutil.fixtures.AuthTestFixtures;
@@ -38,7 +37,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
  *   <li>MockMvc 자동 설정 및 헬퍼 메서드</li>
  *   <li>Spring Security 통합</li>
  *   <li>트랜잭션 롤백</li>
- *   <li>공통 테스트 회원 및 설정</li>
+ *   <li>공통 테스트 회원</li>
  *   <li>CustomUserDetails 생성 유틸리티</li>
  * </ul>
  * 
@@ -109,16 +108,6 @@ public abstract class BaseIntegrationTest {
     protected CustomUserDetails otherUserDetails;
 
     /**
-     * 기본 설정 객체
-     */
-    protected Setting defaultSetting;
-
-    /**
-     * 커스텀 설정 객체
-     */
-    protected Setting customSetting;
-
-    /**
      * 각 테스트 메서드 실행 전 설정 초기화
      */
     @BeforeEach
@@ -128,10 +117,6 @@ public abstract class BaseIntegrationTest {
                 .webAppContextSetup(context)
                 .apply(springSecurity())
                 .build();
-
-        // 설정 초기화
-        this.defaultSetting = TestMembers.createAllEnabledSetting();
-        this.customSetting = TestMembers.createAllDisabledSetting();
 
         // 회원 생성 및 저장
         setupTestMembers();

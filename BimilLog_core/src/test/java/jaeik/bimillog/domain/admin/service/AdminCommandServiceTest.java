@@ -123,7 +123,8 @@ class AdminCommandServiceTest extends BaseUnitTest {
 
         // When & Then
         assertThatThrownBy(() -> adminCommandService.banUser(invalidReportType, invalidTargetId))
-                .isInstanceOf(NullPointerException.class);
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_INVALID_REPORT_TARGET);
 
         verify(eventPublisher, never()).publishEvent(any());
     }
@@ -137,7 +138,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
         // When & Then
         assertThatThrownBy(() -> adminCommandService.banUser(testReportType, testTargetId))
                 .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_POST_ALREADY_DELETED);
 
         verify(eventPublisher, never()).publishEvent(any());
     }

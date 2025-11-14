@@ -17,7 +17,6 @@ public final class AuthTestFixtures {
     public static final String TEST_ACCESS_TOKEN = "access-test-token";
     public static final String TEST_REFRESH_TOKEN = "refresh-test-token";
     public static final String TEST_AUTH_CODE = "auth-code-123";
-    public static final String TEST_FCM_TOKEN = "fcm-token-123";
     public static final SocialProvider TEST_PROVIDER = SocialProvider.KAKAO;
 
     public static CustomUserDetails createCustomUserDetails(Member member) {

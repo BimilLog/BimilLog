@@ -1,15 +1,11 @@
 package jaeik.bimillog.testutil;
 
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.member.entity.MemberRole;
 import jaeik.bimillog.domain.member.entity.Setting;
-import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.testutil.fixtures.AuthTestFixtures;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
@@ -28,7 +24,7 @@ import static org.mockito.Mockito.mock;
  * <h3>제공되는 기능:</h3>
  * <ul>
  *   <li>MockitoExtension 자동 적용</li>
- *   <li>공통 테스트 회원 (testMember, adminMember, otherMember) - lazy 초기화</li>
+ *   <li>공통 테스트 회원 (testMember, otherMember) - lazy 초기화</li>
  *   <li>공통 테스트 설정 (defaultSetting, customSetting) - lazy 초기화</li>
  *   <li>필요한 데이터만 생성하여 테스트 성능 향상</li>
  * </ul>
@@ -41,9 +37,7 @@ public abstract class BaseUnitTest {
 
     // Lazy 초기화를 위한 필드들 (실제 사용 시점에 초기화)
     private Member cachedTestMember;
-    private Member cachedAdminMember;
     private Member cachedOtherMember;
-    private Member cachedThirdMember;
     private Setting cachedDefaultSetting;
 
     /**
@@ -58,17 +52,6 @@ public abstract class BaseUnitTest {
     }
 
     /**
-     * 관리자 권한 테스트 회원 획득
-     * 첫 호출 시 생성, 이후 캐시된 인스턴스 반환
-     */
-    protected Member getAdminMember() {
-        if (cachedAdminMember == null) {
-            cachedAdminMember = TestMembers.copyWithId(TestMembers.withRole(MemberRole.ADMIN), 999L);
-        }
-        return cachedAdminMember;
-    }
-
-    /**
      * 추가 테스트 회원 획득 (다른 회원 시나리오용)
      * 첫 호출 시 생성, 이후 캐시된 인스턴스 반환
      */
@@ -77,17 +60,6 @@ public abstract class BaseUnitTest {
             cachedOtherMember = TestMembers.copyWithId(TestMembers.MEMBER_2, 2L);
         }
         return cachedOtherMember;
-    }
-
-    /**
-     * 세 번째 테스트 회원 획득 (복잡한 시나리오용)
-     * 첫 호출 시 생성, 이후 캐시된 인스턴스 반환
-     */
-    protected Member getThirdMember() {
-        if (cachedThirdMember == null) {
-            cachedThirdMember = TestMembers.copyWithId(TestMembers.MEMBER_3, 3L);
-        }
-        return cachedThirdMember;
     }
 
     /**
@@ -151,37 +123,6 @@ public abstract class BaseUnitTest {
             "anonymous",
             "anonymous",
             List.of(new SimpleGrantedAuthority("ROLE_ANONYMOUS"))
-        );
-
-        mockedSecurityContext.when(SecurityContextHolder::getContext).thenReturn(securityContext);
-        given(securityContext.getAuthentication()).willReturn(authentication);
-    }
-
-    /**
-     * 인증된 회원으로 SecurityContext를 Mock 설정 (기본 테스트 회원)
-     * <p>기본 테스트 회원과 USER 권한으로 설정</p>
-     * @param mockedSecurityContext MockedStatic SecurityContextHolder
-     */
-    protected void mockAuthenticatedMember(MockedStatic<SecurityContextHolder> mockedSecurityContext) {
-        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(getTestMember());
-        mockAuthenticatedMember(mockedSecurityContext, userDetails, MemberRole.USER);
-    }
-
-    /**
-     * 특정 회원과 권한으로 SecurityContext를 Mock 설정
-     * <p>가장 유연한 SecurityContext Mock 메서드</p>
-     * @param mockedSecurityContext MockedStatic SecurityContextHolder
-     * @param userDetails CustomUserDetails
-     * @param role 회원 권한
-     */
-    protected void mockAuthenticatedMember(MockedStatic<SecurityContextHolder> mockedSecurityContext,
-                                        CustomUserDetails userDetails,
-                                        MemberRole role) {
-        SecurityContext securityContext = mock(SecurityContext.class);
-        Authentication authentication = new UsernamePasswordAuthenticationToken(
-            userDetails,
-            null,
-            List.of(new SimpleGrantedAuthority("ROLE_" + role.name()))
         );
 
         mockedSecurityContext.when(SecurityContextHolder::getContext).thenReturn(securityContext);
