@@ -77,28 +77,6 @@ public class ReportDTO {
     }
 
     /**
-     * <h3>Report 엔티티로부터 ReportDTO 생성</h3>
-     * <p>도메인 엔티티를 DTO로 변환합니다.</p>
-     *
-     * @param report 신고 엔티티
-     * @return ReportDTO 변환된 DTO 객체
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public static ReportDTO from(Report report) {
-        Member reporter = report.getReporter();
-        return ReportDTO.builder()
-                .id(report.getId())
-                .reporterId(reporter != null ? reporter.getId() : null)
-                .reporterName(reporter != null ? reporter.getMemberName() : "익명")
-                .reportType(report.getReportType())
-                .targetId(report.getTargetId())
-                .content(report.getContent())
-                .createdAt(report.getCreatedAt())
-                .build();
-    }
-
-    /**
      * <h3>Report 엔티티와 신고 대상 작성자 정보로부터 ReportDTO 생성</h3>
      * <p>도메인 엔티티와 신고 대상 작성자 정보를 포함한 DTO로 변환합니다.</p>
      *
