@@ -14,13 +14,14 @@ import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.config.TestSocialLoginAdapterConfig;
 import jaeik.bimillog.testutil.annotation.IntegrationTest;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 
-import java.util.Optional;
+import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -248,18 +249,13 @@ class MemberCommandControllerIntegrationTest extends BaseIntegrationTest {
         assertThat(cookies).anySatisfy(cookie -> assertThat(cookie).startsWith("jwt_refresh_token="));
         entityManagerDelegate.flush();
 
-        long start = System.currentTimeMillis();
-        Optional<Member> remaining;
-        do {
-            entityManagerDelegate.clear();
-            remaining = userRepository.findById(testMember.getId());
-            if (remaining.isEmpty()) {
-                break;
-            }
-            Thread.sleep(50);
-        } while (System.currentTimeMillis() - start < 2000);
-
-        assertThat(remaining).isEmpty();
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(2))
+                .pollInterval(Duration.ofMillis(50))
+                .untilAsserted(() -> {
+                    entityManagerDelegate.clear();
+                    assertThat(userRepository.findById(testMember.getId())).isEmpty();
+                });
     }
 
 }

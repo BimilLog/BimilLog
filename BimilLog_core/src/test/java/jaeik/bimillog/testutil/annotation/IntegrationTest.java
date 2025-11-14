@@ -6,6 +6,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebM
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.lang.annotation.*;
@@ -60,6 +61,7 @@ import java.lang.annotation.*;
 @Transactional
 @Tag("local-integration")
 @ActiveProfiles("local-integration")
+@TestPropertySource(properties = "spring.task.scheduling.enabled=false")
 public @interface IntegrationTest {
     /**
      * 테스트 설명 (선택적)

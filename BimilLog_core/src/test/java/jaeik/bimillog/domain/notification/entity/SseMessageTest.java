@@ -1,5 +1,7 @@
 package jaeik.bimillog.domain.notification.entity;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -16,6 +18,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DisplayName("SseMessage 도메인 값 객체 테스트")
 @Tag("unit")
 class SseMessageTest {
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
     @DisplayName("SSE 메시지 생성 - of 팩터리 메서드")
@@ -57,7 +61,7 @@ class SseMessageTest {
 
     @Test
     @DisplayName("JSON 데이터 변환 - toJsonData 메서드")
-    void shouldConvertToJsonData_WhenCalled() {
+    void shouldConvertToJsonData_WhenCalled() throws Exception {
         // Given
         SseMessage sseMessage = SseMessage.of(
                 1L,
@@ -68,11 +72,11 @@ class SseMessageTest {
 
         // When
         String jsonData = sseMessage.toJsonData();
+        JsonNode node = objectMapper.readTree(jsonData);
 
         // Then
-        assertThat(jsonData).isEqualTo(
-                "{\"message\": \"축하합니다! 인기글에 선정되었습니다!\", \"url\": \"/board/post/456\"}"
-        );
+        assertThat(node.get("message").asText()).isEqualTo("축하합니다! 인기글에 선정되었습니다!");
+        assertThat(node.get("url").asText()).isEqualTo("/board/post/456");
     }
 
     @Test
@@ -138,7 +142,7 @@ class SseMessageTest {
 
     @Test
     @DisplayName("특수 문자가 포함된 메시지 처리")
-    void shouldHandleSpecialCharactersInMessage() {
+    void shouldHandleSpecialCharactersInMessage() throws Exception {
         // Given
         String messageWithSpecialChars = "🎉 축하합니다! <게시글>이 \"인기글\"에 선정되었습니다! & 더 많은 혜택을...";
         String urlWithSpecialChars = "/board/post/123?ref=notification&type=featured";
@@ -155,14 +159,14 @@ class SseMessageTest {
         assertThat(sseMessage.message()).isEqualTo(messageWithSpecialChars);
         assertThat(sseMessage.url()).isEqualTo(urlWithSpecialChars);
         
-        String jsonData = sseMessage.toJsonData();
-        assertThat(jsonData).contains(messageWithSpecialChars);
-        assertThat(jsonData).contains(urlWithSpecialChars);
+        JsonNode node = objectMapper.readTree(sseMessage.toJsonData());
+        assertThat(node.get("message").asText()).isEqualTo(messageWithSpecialChars);
+        assertThat(node.get("url").asText()).isEqualTo(urlWithSpecialChars);
     }
 
     @Test
     @DisplayName("빈 URL 처리")
-    void shouldHandleEmptyUrl() {
+    void shouldHandleEmptyUrl() throws Exception {
         // Given
         SseMessage sseMessage = SseMessage.of(
                 1L,
@@ -172,10 +176,10 @@ class SseMessageTest {
         );
 
         // When
-        String jsonData = sseMessage.toJsonData();
+        JsonNode node = objectMapper.readTree(sseMessage.toJsonData());
 
         // Then
         assertThat(sseMessage.url()).isEmpty();
-        assertThat(jsonData).contains("\"url\": \"\"");
+        assertThat(node.get("url").asText()).isEqualTo("");
     }
 }

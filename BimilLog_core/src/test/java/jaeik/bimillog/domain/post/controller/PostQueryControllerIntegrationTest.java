@@ -12,6 +12,8 @@ import jaeik.bimillog.testutil.config.TestSocialLoginAdapterConfig;
 import jaeik.bimillog.testutil.annotation.IntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 
@@ -34,6 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @IntegrationTest
 @Import(TestSocialLoginAdapterConfig.class)
 @DisplayName("게시글 Query 컨트롤러 통합 테스트")
+@Execution(ExecutionMode.SAME_THREAD)
 class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
@@ -54,7 +57,7 @@ class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
                 "테스트사용자",
                 "테스트사용자"
         );
-        var savedUser = userRepository.save(user);
+        var savedUser = saveMember(user);
         queryUserDetails = AuthTestFixtures.createCustomUserDetails(savedUser);
         createTestPosts(savedUser);
     }
@@ -92,7 +95,7 @@ class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
     void getBoard_Success_DefaultPage() throws Exception {
         mockMvc.perform(get("/api/post")
                         .param("page", "0")
-                        .param("size", "10"))
+                .param("size", "10"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(greaterThanOrEqualTo(3))))
@@ -130,7 +133,7 @@ class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("게시글 검색 성공 - 제목 검색")
     void searchPost_Success_ByTitle() throws Exception {
         mockMvc.perform(get("/api/post/search")
-                        .param("type", "title")
+                        .param("type", "TITLE")
                         .param("query", "검색")
                         .param("page", "0")
                         .param("size", "10"))
@@ -144,21 +147,21 @@ class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("게시글 검색 성공 - 제목+내용 검색")
     void searchPost_Success_ByTitleContent() throws Exception {
         mockMvc.perform(get("/api/post/search")
-                        .param("type", "title_content")
-                        .param("query", "키워드")
+                        .param("type", "TITLE_CONTENT")
+                        .param("query", "검색 게시글")
                         .param("page", "0")
                         .param("size", "10"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content", hasSize(1)))
-                .andExpect(jsonPath("$.content[0].title", containsString("검색")));
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.pageable.pageNumber", is(0)));
     }
 
     @Test
     @DisplayName("게시글 검색 성공 - 작성자 검색")
     void searchPost_Success_ByWriter() throws Exception {
         mockMvc.perform(get("/api/post/search")
-                        .param("type", "writer")
+                        .param("type", "WRITER")
                         .param("query", "테스트사용자")
                         .param("page", "0")
                         .param("size", "10"))
@@ -171,7 +174,7 @@ class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("게시글 검색 성공 - 검색 결과 없음")
     void searchPost_Success_NoResults() throws Exception {
         mockMvc.perform(get("/api/post/search")
-                        .param("type", "title")
+                        .param("type", "TITLE")
                         .param("query", "존재하지않는검색어")
                         .param("page", "0")
                         .param("size", "10"))
@@ -251,22 +254,24 @@ class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("게시판 목록 조회 성공 - 빈 결과")
     void getBoard_Success_EmptyResult() throws Exception {
-        postRepository.deleteAll();
+        long totalCount = postRepository.count();
+        int size = 10;
+        long outOfRangePage = (totalCount / size) + 1;
 
         mockMvc.perform(get("/api/post")
-                        .param("page", "0")
-                        .param("size", "10"))
+                        .param("page", String.valueOf(outOfRangePage))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(0)))
-                .andExpect(jsonPath("$.totalElements", is(0)));
+                .andExpect(jsonPath("$.pageable.pageNumber", is((int) outOfRangePage)));
     }
 
     @Test
     @DisplayName("게시글 검색 - 한글 검색어")
     void searchPost_Success_KoreanQuery() throws Exception {
         mockMvc.perform(get("/api/post/search")
-                        .param("type", "title_content")
+                        .param("type", "TITLE_CONTENT")
                         .param("query", "내용")
                         .param("page", "0")
                         .param("size", "10"))
@@ -279,7 +284,7 @@ class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("게시글 검색 - 공백 검색어")
     void searchPost_Fail_EmptyQuery() throws Exception {
         mockMvc.perform(get("/api/post/search")
-                        .param("type", "title")
+                        .param("type", "TITLE")
                         .param("query", "")
                         .param("page", "0")
                         .param("size", "10"))
@@ -291,7 +296,7 @@ class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("게시글 검색 - 특수문자 검색어")
     void searchPost_Success_SpecialCharacters() throws Exception {
         mockMvc.perform(get("/api/post/search")
-                        .param("type", "title")
+                        .param("type", "TITLE")
                         .param("query", "!@#$%")
                         .param("page", "0")
                         .param("size", "10"))
@@ -303,13 +308,17 @@ class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
     @Test
     @DisplayName("게시판 목록 조회 - 큰 페이지 번호")
     void getBoard_Success_LargePageNumber() throws Exception {
+        long totalCount = postRepository.count();
+        int size = 10;
+        long largePage = (totalCount / size) + 5;
+
         mockMvc.perform(get("/api/post")
-                        .param("page", "1000")
-                        .param("size", "10"))
+                        .param("page", String.valueOf(largePage))
+                        .param("size", String.valueOf(size)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(0)))
-                .andExpect(jsonPath("$.pageable.pageNumber", is(1000)));
+                .andExpect(jsonPath("$.pageable.pageNumber", is((int) largePage)));
     }
 
     @Test

@@ -1,5 +1,11 @@
 package jaeik.bimillog.domain.notification.entity;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 /**
  * <h2>SSE 메시지 값 객체</h2>
  * <p>
@@ -20,6 +26,8 @@ public record SseMessage(
         String message,
         String url
 ) {
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     /**
      * <h3>SSE 메시지 생성</h3>
@@ -48,6 +56,13 @@ public record SseMessage(
      * @since 2.0.0
      */
     public String toJsonData() {
-        return String.format("{\"message\": \"%s\", \"url\": \"%s\"}", message, url);
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("message", message);
+        payload.put("url", url);
+        try {
+            return OBJECT_MAPPER.writeValueAsString(payload);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("SSE 직렬화 실패", e);
+        }
     }
 }

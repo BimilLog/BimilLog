@@ -7,6 +7,7 @@ import jaeik.bimillog.domain.post.entity.PostSearchType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.infrastructure.config.QueryDSLConfig;
 import jaeik.bimillog.testutil.TestMembers;
+import jaeik.bimillog.testutil.fixtures.TestFixtures;
 import jaeik.bimillog.testutil.config.LocalIntegrationTestSupportConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -25,6 +26,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -326,31 +328,32 @@ class PostQueryAdapterIntegrationTest {
         }
         entityManager.persistAndFlush(likeMember);
 
+        Instant baseTime = Instant.parse("2024-02-01T00:00:00Z");
+
         // 첫 번째 게시글에 추천 (가장 오래된 추천)
         PostLike postLike1 = PostLike.builder()
                 .post(testPost1)
                 .member(likeMember)
                 .build();
+        setCreatedAt(postLike1, baseTime);
         entityManager.persist(postLike1);
         entityManager.flush();
-
-        try { Thread.sleep(200); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
 
         // 두 번째 게시글에 추천
         PostLike postLike2 = PostLike.builder()
                 .post(testPost2)
                 .member(likeMember)
                 .build();
+        setCreatedAt(postLike2, baseTime.plusSeconds(1));
         entityManager.persist(postLike2);
         entityManager.flush();
-
-        try { Thread.sleep(200); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
 
         // 세 번째 게시글에 추천 (가장 최근 추천)
         PostLike postLike3 = PostLike.builder()
                 .post(testPost3)
                 .member(likeMember)
                 .build();
+        setCreatedAt(postLike3, baseTime.plusSeconds(2));
         entityManager.persist(postLike3);
         entityManager.flush();
 
@@ -373,4 +376,7 @@ class PostQueryAdapterIntegrationTest {
     }
 
 
+    private void setCreatedAt(Object entity, Instant instant) {
+        TestFixtures.setFieldValue(entity, "createdAt", instant);
+    }
 }

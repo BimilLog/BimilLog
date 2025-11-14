@@ -12,6 +12,7 @@ import jaeik.bimillog.testutil.builder.CommentTestDataBuilder;
 import jaeik.bimillog.testutil.config.H2TestConfiguration;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import jaeik.bimillog.testutil.TestMembers;
+import jaeik.bimillog.testutil.fixtures.TestFixtures;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,6 +27,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
@@ -286,18 +288,22 @@ class CommentQueryAdapterIntegrationTest {
         Comment comment2 = CommentTestDataBuilder.createComment(testPost, testMember, "두번째 댓글");
         Comment comment3 = CommentTestDataBuilder.createComment(testPost, otherMember, "세번째 댓글");
 
-        commentRepository.save(comment1);
-        try { Thread.sleep(100); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
-        commentRepository.save(comment2);
-        try { Thread.sleep(100); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
-        commentRepository.save(comment3);
+        Instant baseTime = Instant.parse("2024-01-01T00:00:00Z");
+        setCreatedAt(comment1, baseTime);
+        setCreatedAt(comment2, baseTime.plusSeconds(1));
+        setCreatedAt(comment3, baseTime.plusSeconds(2));
+
+        commentRepository.saveAll(List.of(comment1, comment2, comment3));
+        commentRepository.flush();
 
         // otherMember가 comment2에만 추천 - 사용자 추천 여부 테스트용
         CommentLike memberLike = CommentLike.builder()
                 .comment(comment2)
                 .member(otherMember)
                 .build();
+        setCreatedAt(memberLike, baseTime.plusSeconds(3));
         commentLikeRepository.save(memberLike);
+        commentLikeRepository.flush();
 
         Pageable pageable = PageRequest.of(0, 10);
 
@@ -641,25 +647,21 @@ class CommentQueryAdapterIntegrationTest {
                 .comment(comment1)
                 .member(otherMember)
                 .build();
-        commentLikeRepository.save(like1);
-        commentLikeRepository.flush();
-
-        try { Thread.sleep(200); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
-
         CommentLike like2 = CommentLike.builder()
                 .comment(comment2)
                 .member(otherMember)
                 .build();
-        commentLikeRepository.save(like2);
-        commentLikeRepository.flush();
-
-        try { Thread.sleep(200); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
-
         CommentLike like3 = CommentLike.builder()
                 .comment(comment3)
                 .member(otherMember)
                 .build();
-        commentLikeRepository.save(like3);
+
+        Instant baseTime = Instant.parse("2024-01-02T00:00:00Z");
+        setCreatedAt(like1, baseTime);
+        setCreatedAt(like2, baseTime.plusSeconds(1));
+        setCreatedAt(like3, baseTime.plusSeconds(2));
+
+        commentLikeRepository.saveAll(List.of(like1, like2, like3));
         commentLikeRepository.flush();
 
         Pageable pageable = PageRequest.of(0, 10);
@@ -679,5 +681,9 @@ class CommentQueryAdapterIntegrationTest {
         assertThat(commentContents.get(0)).isEqualTo("세번째 댓글"); // 가장 최근 추천
         assertThat(commentContents.get(1)).isEqualTo("두번째 댓글");
         assertThat(commentContents.get(2)).isEqualTo("첫번째 댓글"); // 가장 오래된 추천
+    }
+
+    private void setCreatedAt(Object entity, Instant instant) {
+        TestFixtures.setFieldValue(entity, "createdAt", instant);
     }
 }

@@ -16,7 +16,6 @@ import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
 import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
 import jaeik.bimillog.domain.global.out.GlobalAuthTokenSaveAdapter;
 import jaeik.bimillog.domain.global.out.GlobalSocialTokenCommandAdapter;
-import jaeik.bimillog.domain.member.out.MemberSearchAdapter;
 import jaeik.bimillog.testutil.fixtures.AuthTestFixtures;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.fixtures.TestFixtures;
@@ -52,7 +51,6 @@ import static org.mockito.Mockito.verify;
 class SocialLoginTransactionalServiceTest extends BaseUnitTest {
 
     @Mock private AuthToMemberAdapter authToMemberAdapter;
-    @Mock private MemberSearchAdapter memberSearchAdapter;
     @Mock private GlobalBlacklistAdapter globalBlacklistAdapter;
     @Mock private GlobalCookieAdapter globalCookieAdapter;
     @Mock private GlobalJwtAdapter globalJwtAdapter;
@@ -77,7 +75,7 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
         List<ResponseCookie> jwtCookies = getJwtCookies();
 
         given(globalBlacklistAdapter.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
-        given(memberSearchAdapter.findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(Optional.of(existingMember));
+        given(authToMemberAdapter.findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(Optional.of(existingMember));
 
         SocialToken persistedSocialToken = SocialToken.createSocialToken(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
         given(globalSocialTokenCommandAdapter.save(any(SocialToken.class))).willReturn(persistedSocialToken);
@@ -105,7 +103,7 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
         assertThat(existingUser.cookies()).isEqualTo(jwtCookies);
 
         verify(globalBlacklistAdapter).existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID);
-        verify(memberSearchAdapter).findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID);
+        verify(authToMemberAdapter).findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID);
         verify(globalSocialTokenCommandAdapter).save(any(SocialToken.class));
         verify(authToMemberAdapter).handleExistingMember(eq(existingMember), eq(profile.getNickname()), eq(profile.getProfileImageUrl()), eq(persistedSocialToken));
         verify(globalAuthTokenSaveAdapter).updateJwtRefreshToken(userDetails.getAuthTokenId(), "generated-refresh-token");
@@ -119,7 +117,7 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
         SocialMemberProfile profile = getTestMemberProfile();
 
         given(globalBlacklistAdapter.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
-        given(memberSearchAdapter.findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(Optional.empty());
+        given(authToMemberAdapter.findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(Optional.empty());
         given(globalCookieAdapter.createTempCookie(anyString())).willAnswer(invocation -> {
             String generatedUuid = invocation.getArgument(0);
             return ResponseCookie.from("temp", generatedUuid)
