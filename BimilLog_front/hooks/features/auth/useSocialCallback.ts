@@ -12,9 +12,15 @@ import { logger } from "@/lib/utils/logger";
  *
  * @param provider - 소셜 로그인 제공자 (KAKAO 또는 NAVER)
  */
+const providerDisplayName: Record<SocialProvider, string> = {
+  KAKAO: "카카오",
+  NAVER: "네이버",
+  GOOGLE: "구글",
+};
+
 export const useSocialCallback = (provider: SocialProvider) => {
   const [isProcessing, setIsProcessing] = useState(true);
-  const [loadingStep, setLoadingStep] = useState<string>(`${provider} 인증 처리 중...`);
+  const [loadingStep, setLoadingStep] = useState<string>(`${providerDisplayName[provider]} 인증 처리 중...`);
   const router = useRouter();
   const searchParams = useSearchParams();
   const setProvider = useAuthStore((state) => state.setProvider);
@@ -63,6 +69,8 @@ export const useSocialCallback = (provider: SocialProvider) => {
           response = await authCommand.kakaoLogin(code);
         } else if (provider === 'NAVER') {
           response = await authCommand.naverLogin(code);
+        } else if (provider === 'GOOGLE') {
+          response = await authCommand.googleLogin(code);
         } else {
           throw new Error(`Unsupported provider: ${provider}`);
         }

@@ -18,6 +18,14 @@ export const authCommand = {
     return apiClient.post<AuthResponse>("/api/auth/login", requestBody)
   },
 
+  googleLogin: (code: string) => {
+    const requestBody: SocialLoginRequest = {
+      provider: 'GOOGLE',
+      code,
+    }
+    return apiClient.post<AuthResponse>("/api/auth/login", requestBody)
+  },
+
   signUp: (memberName: string) => {
     const requestBody: SignUpRequest = {
       memberName

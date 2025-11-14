@@ -11,6 +11,7 @@ import { AuthLoadingScreen } from "@/components";
 import { useAuthError } from "@/hooks";
 import { kakaoAuthManager } from "@/lib/auth/kakao";
 import { naverAuthManager } from "@/lib/auth/naver";
+import { googleAuthManager } from "@/lib/auth/google";
 
 export default function LoginPage() {
   const { isAuthenticated, isLoading } = useAuth({ skipRefresh: true });
@@ -60,6 +61,10 @@ export default function LoginPage() {
 
   const handleNaverLogin = () => {
     naverAuthManager.redirectToNaverAuth();
+  };
+
+  const handleGoogleLogin = () => {
+    googleAuthManager.redirectToGoogleAuth();
   };
 
   // 로그인 상태 확인 중일 때 로딩 스크린 표시
@@ -231,7 +236,23 @@ export default function LoginPage() {
           />
         </button>
 
-
+        {/* 구글 로그인 버튼 */}
+        <button
+          onClick={handleGoogleLogin}
+          aria-label="Google 계정으로 로그인"
+          className="mt-2 flex w-full items-center justify-center gap-3 rounded-full border border-[#dadce0] bg-white px-4 py-3 text-sm font-semibold text-[#3c4043] transition hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1a73e8] dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700"
+        >
+          <span className="flex size-6 items-center justify-center rounded-full bg-transparent">
+            <Image
+              src="/icons/google-g.svg"
+              alt="Google G 로고"
+              width={20}
+              height={20}
+              priority
+            />
+          </span>
+          <span className="tracking-tight">Google 계정으로 로그인</span>
+        </button>
 
         <div className="mt-6">
           <InfoAlert icon={false}>

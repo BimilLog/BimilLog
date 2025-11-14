@@ -52,6 +52,9 @@ services:
       - NAVER_CLIENT_ID=${NAVER_CLIENT_ID}
       - NAVER_CLIENT_SECRET=${NAVER_CLIENT_SECRET}
       - NAVER_REDIRECT_URI=http://localhost:3000/auth/callback/naver
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_REDIRECT_URI=http://localhost:3000/auth/callback/google
       - JWT_SECRET=${JWT_SECRET}
       - MESSAGE_SECRET=${MESSAGE_SECRET}
       - URL=${url}
