@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.admin.dto;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.admin.dto.ReportDTO;
+import org.junit.jupiter.api.*;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;

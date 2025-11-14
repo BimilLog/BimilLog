@@ -65,11 +65,6 @@ public abstract class BaseEventIntegrationTest extends BaseIntegrationTest {
     protected static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(5);
 
     /**
-     * 빠른 비동기 처리 타임아웃 (3초)
-     */
-    protected static final Duration FAST_TIMEOUT = Duration.ofSeconds(3);
-
-    /**
      * 느린 비동기 처리 타임아웃 (10초)
      */
     protected static final Duration SLOW_TIMEOUT = Duration.ofSeconds(10);
@@ -79,18 +74,7 @@ public abstract class BaseEventIntegrationTest extends BaseIntegrationTest {
      */
     @BeforeEach
     protected void setUpEventTest() {
-        // 상위 클래스의 설정 실행
         super.setUpBase();
-
-        // 하위 클래스의 추가 설정
-        setUpChildEvent();
-    }
-
-    /**
-     * 하위 클래스에서 추가 설정이 필요한 경우 오버라이드
-     */
-    protected void setUpChildEvent() {
-        // 하위 클래스에서 필요시 오버라이드
     }
 
     /**
@@ -134,14 +118,6 @@ public abstract class BaseEventIntegrationTest extends BaseIntegrationTest {
         Awaitility.await()
                 .atMost(timeout)
                 .untilAsserted(verification::run);
-    }
-
-    /**
-     * 빠른 비동기 검증 (3초 타임아웃)
-     * @param verification 검증 로직
-     */
-    protected void verifyAsyncFast(Runnable verification) {
-        verifyAsync(verification, FAST_TIMEOUT);
     }
 
     /**

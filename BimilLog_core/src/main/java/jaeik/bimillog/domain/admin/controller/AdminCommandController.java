@@ -30,8 +30,7 @@ public class AdminCommandController {
 
     /**
      * <h3>사용자 제재 API</h3>
-     * <p>ADMIN 권한이 있는 관리자만 접근할 수 있으며, 신고 유형과 대상 ID를 기반으로 사용자를 식별합니다.</p>
-     * <p>AdminCommandUseCase.banUser를 호출하여 도메인 계층에서 제재 로직을 실행하고 UserBannedEvent를 발행합니다.</p>
+     * <p>관리자만 접근할 수 있으며, 신고 유형과 대상 ID를 기반으로 사용자를 식별합니다.</p>
      *
      * @param banUserDTO 사용자 제재 DTO (신고 유형, 대상 ID 포함)
      * @return ResponseEntity<String> 제재 완료 응답 메시지
