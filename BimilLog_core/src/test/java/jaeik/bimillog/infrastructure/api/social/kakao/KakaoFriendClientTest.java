@@ -1,7 +1,6 @@
 package jaeik.bimillog.infrastructure.api.social.kakao;
 
-import jaeik.bimillog.domain.member.entity.KakaoFriends;
-import jaeik.bimillog.infrastructure.api.dto.KakaoFriendsDTO;
+import jaeik.bimillog.domain.member.dto.KakaoFriendsDTO;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.builder.KakaoTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
@@ -51,22 +50,22 @@ class KakaoFriendClientTest extends BaseUnitTest {
         when(kakaoApiClient.getFriends(eq(AUTHORIZATION_PREFIX + accessToken), eq(offset), eq(limit)))
             .thenReturn(expectedResponse);
 
-        KakaoFriends result = kakaoFriendClient.getFriendList(accessToken, offset, limit);
+        KakaoFriendsDTO result = kakaoFriendClient.getFriendList(accessToken, offset, limit);
 
         assertThat(result).isNotNull();
-        assertThat(result.elements()).hasSize(2);
-        assertThat(result.totalCount()).isEqualTo(2);
-        assertThat(result.favoriteCount()).isEqualTo(1);
+        assertThat(result.getElements()).hasSize(2);
+        assertThat(result.getTotalCount()).isEqualTo(2);
+        assertThat(result.getFavoriteCount()).isEqualTo(1);
 
-        KakaoFriends.Friend friend1 = result.elements().getFirst();
-        assertThat(friend1.id()).isEqualTo(1L);
-        assertThat(friend1.profileNickname()).isEqualTo("친구1");
-        assertThat(friend1.favorite()).isFalse();
+        KakaoFriendsDTO.Friend friend1 = result.getElements().getFirst();
+        assertThat(friend1.getId()).isEqualTo(1L);
+        assertThat(friend1.getProfileNickname()).isEqualTo("친구1");
+        assertThat(friend1.getFavorite()).isFalse();
 
-        KakaoFriends.Friend friend2 = result.elements().get(1);
-        assertThat(friend2.id()).isEqualTo(2L);
-        assertThat(friend2.profileNickname()).isEqualTo("친구2");
-        assertThat(friend2.favorite()).isTrue();
+        KakaoFriendsDTO.Friend friend2 = result.getElements().get(1);
+        assertThat(friend2.getId()).isEqualTo(2L);
+        assertThat(friend2.getProfileNickname()).isEqualTo("친구2");
+        assertThat(friend2.getFavorite()).isTrue();
 
         verify(kakaoApiClient).getFriends(eq(AUTHORIZATION_PREFIX + accessToken), eq(offset), eq(limit));
     }
@@ -85,12 +84,12 @@ class KakaoFriendClientTest extends BaseUnitTest {
         when(kakaoApiClient.getFriends(eq(AUTHORIZATION_PREFIX + accessToken), eq(offset), eq(limit)))
             .thenReturn(emptyResponse);
 
-        KakaoFriends result = kakaoFriendClient.getFriendList(accessToken, offset, limit);
+        KakaoFriendsDTO result = kakaoFriendClient.getFriendList(accessToken, offset, limit);
 
         assertThat(result).isNotNull();
-        assertThat(result.elements()).isEmpty();
-        assertThat(result.totalCount()).isEqualTo(0);
-        assertThat(result.favoriteCount()).isEqualTo(0);
+        assertThat(result.getElements()).isEmpty();
+        assertThat(result.getTotalCount()).isEqualTo(0);
+        assertThat(result.getFavoriteCount()).isEqualTo(0);
 
         verify(kakaoApiClient).getFriends(eq(AUTHORIZATION_PREFIX + accessToken), eq(offset), eq(limit));
     }
@@ -113,13 +112,13 @@ class KakaoFriendClientTest extends BaseUnitTest {
         when(kakaoApiClient.getFriends(eq(AUTHORIZATION_PREFIX + accessToken), eq(offset), eq(limit)))
             .thenReturn(paginatedResponse);
 
-        KakaoFriends result = kakaoFriendClient.getFriendList(accessToken, offset, limit);
+        KakaoFriendsDTO result = kakaoFriendClient.getFriendList(accessToken, offset, limit);
 
         assertThat(result).isNotNull();
-        assertThat(result.elements()).hasSize(2);
-        assertThat(result.beforeUrl()).isEqualTo("before_url");
-        assertThat(result.afterUrl()).isEqualTo("after_url");
-        assertThat(result.favoriteCount()).isEqualTo(1);
+        assertThat(result.getElements()).hasSize(2);
+        assertThat(result.getBeforeUrl()).isEqualTo("before_url");
+        assertThat(result.getAfterUrl()).isEqualTo("after_url");
+        assertThat(result.getFavoriteCount()).isEqualTo(1);
 
         verify(kakaoApiClient).getFriends(eq(AUTHORIZATION_PREFIX + accessToken), eq(offset), eq(limit));
     }

@@ -1,16 +1,17 @@
 package jaeik.bimillog.domain.member.service;
 
 import jaeik.bimillog.domain.auth.entity.SocialToken;
-import jaeik.bimillog.domain.member.entity.KakaoFriends;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
 import jaeik.bimillog.domain.member.out.MemberToAuthAdapter;
+import jaeik.bimillog.domain.member.dto.KakaoFriendsDTO;
 import jaeik.bimillog.infrastructure.api.social.kakao.KakaoFriendClient;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.TestMembers;
+import jaeik.bimillog.testutil.builder.KakaoTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -55,20 +56,20 @@ class MemberFriendServiceTest extends BaseUnitTest {
     @Test
     @DisplayName("카카오 친구 목록 조회 시 가입자 이름을 매핑한다")
     void shouldMapMemberNamesFromStrategyResult() {
-        List<KakaoFriends.Friend> friends = Arrays.asList(
-                KakaoFriends.Friend.of(1L, "uuid-1", "친구1", "img1", false, null),
-                KakaoFriends.Friend.of(2L, "uuid-2", "친구2", "img2", true, null)
+        List<KakaoFriendsDTO.Friend> friends = Arrays.asList(
+                KakaoTestDataBuilder.createKakaoFriend(1L, "uuid-1", "친구1", "img1", false),
+                KakaoTestDataBuilder.createKakaoFriend(2L, "uuid-2", "친구2", "img2", true)
         );
-        KakaoFriends response = KakaoFriends.of(friends, 2, null, null, 1);
+        KakaoFriendsDTO response = KakaoTestDataBuilder.createKakaoFriendsResponse(friends, 2, null, null, 1);
         SocialToken socialToken = testMember.getSocialToken();
 
         given(memberToAuthAdapter.getSocialToken(MEMBER_ID)).willReturn(Optional.of(socialToken));
         given(kakaoFriendClient.getFriendList(socialToken.getAccessToken(), (int) DEFAULT_OFFSET, DEFAULT_LIMIT_VALUE)).willReturn(response);
         given(memberQueryAdapter.findMemberNamesInOrder(Arrays.asList("1", "2"))).willReturn(Arrays.asList("user1", "user2"));
 
-        KakaoFriends result = memberFriendService.getKakaoFriendList(MEMBER_ID, SocialProvider.KAKAO, DEFAULT_OFFSET, DEFAULT_LIMIT);
+        KakaoFriendsDTO result = memberFriendService.getKakaoFriendList(MEMBER_ID, SocialProvider.KAKAO, DEFAULT_OFFSET, DEFAULT_LIMIT);
 
-        assertThat(result.elements()).extracting(KakaoFriends.Friend::memberName)
+        assertThat(result.getElements()).extracting(KakaoFriendsDTO.Friend::getMemberName)
                 .containsExactly("user1", "user2");
         verify(memberQueryAdapter).findMemberNamesInOrder(Arrays.asList("1", "2"));
     }
@@ -76,28 +77,28 @@ class MemberFriendServiceTest extends BaseUnitTest {
     @Test
     @DisplayName("친구 목록이 비어 있으면 이름 조회를 생략한다")
     void shouldSkipMemberLookupWhenNoFriends() {
-        KakaoFriends emptyResponse = KakaoFriends.of(Collections.emptyList(), 0, null, null, 0);
+        KakaoFriendsDTO emptyResponse = KakaoTestDataBuilder.createKakaoFriendsResponse(Collections.emptyList(), 0, null, null, 0);
         SocialToken socialToken = testMember.getSocialToken();
 
         given(memberToAuthAdapter.getSocialToken(MEMBER_ID)).willReturn(Optional.of(socialToken));
         given(kakaoFriendClient.getFriendList(socialToken.getAccessToken(), (int) DEFAULT_OFFSET, DEFAULT_LIMIT_VALUE)).willReturn(emptyResponse);
 
-        KakaoFriends result = memberFriendService.getKakaoFriendList(MEMBER_ID, SocialProvider.KAKAO, DEFAULT_OFFSET, DEFAULT_LIMIT);
+        KakaoFriendsDTO result = memberFriendService.getKakaoFriendList(MEMBER_ID, SocialProvider.KAKAO, DEFAULT_OFFSET, DEFAULT_LIMIT);
 
-        assertThat(result.elements()).isEmpty();
+        assertThat(result.getElements()).isEmpty();
         verify(memberQueryAdapter, never()).findMemberNamesInOrder(anyList());
     }
 
     @Test
     @DisplayName("limit이 null이면 기본값 10을 사용한다")
     void shouldUseDefaultPaginationWhenNull() {
-        KakaoFriends response = KakaoFriends.of(Collections.emptyList(), 0, null, null, 0);
+        KakaoFriendsDTO response = KakaoTestDataBuilder.createKakaoFriendsResponse(Collections.emptyList(), 0, null, null, 0);
         SocialToken socialToken = testMember.getSocialToken();
 
         given(memberToAuthAdapter.getSocialToken(MEMBER_ID)).willReturn(Optional.of(socialToken));
         given(kakaoFriendClient.getFriendList(socialToken.getAccessToken(), (int) DEFAULT_OFFSET, DEFAULT_LIMIT_VALUE)).willReturn(response);
 
-        KakaoFriends result = memberFriendService.getKakaoFriendList(MEMBER_ID, SocialProvider.KAKAO, DEFAULT_OFFSET, null);
+        KakaoFriendsDTO result = memberFriendService.getKakaoFriendList(MEMBER_ID, SocialProvider.KAKAO, DEFAULT_OFFSET, null);
 
         assertThat(result).isSameAs(response);
         verify(kakaoFriendClient).getFriendList(socialToken.getAccessToken(), (int) DEFAULT_OFFSET, DEFAULT_LIMIT_VALUE);
