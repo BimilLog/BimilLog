@@ -3,13 +3,12 @@ package jaeik.bimillog.domain.member.controller;
 import jaeik.bimillog.domain.member.service.MemberFriendService;
 import jaeik.bimillog.domain.member.service.MemberQueryService;
 import jaeik.bimillog.domain.member.entity.Setting;
-import jaeik.bimillog.domain.member.dto.MemberSearchDTO;
 import jaeik.bimillog.domain.member.dto.SettingDTO;
 import jaeik.bimillog.domain.member.dto.SimpleMemberDTO;
 import jaeik.bimillog.domain.member.dto.KakaoFriendsDTO;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.infrastructure.log.Log;
-import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,10 +17,10 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
 
 /**
  * <h2>멤버 조회 컨트롤러</h2>
@@ -35,6 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
         logParams = false,
         logResult = false)
 @RestController
+@Validated
 @RequiredArgsConstructor
 @RequestMapping("/api/member")
 public class MemberQueryController {
@@ -95,17 +95,12 @@ public class MemberQueryController {
     /**
      * <h3>멤버 목록 조회 API</h3>
      *
-     * @param page 페이지
-     * @param size 크기
      * @return Page<SimpleMemberDTO> 멤버 목록
      * @since 2.1.0
      * @author Jaeik
      */
     @GetMapping("/all")
-    public ResponseEntity<Page<SimpleMemberDTO>> getAllMembers(
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "20") Integer size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+    public ResponseEntity<Page<SimpleMemberDTO>> getAllMembers(Pageable pageable) {
         Page<SimpleMemberDTO> members = memberQueryService.findAllMembers(pageable)
                 .map(SimpleMemberDTO::fromMember);
         return ResponseEntity.ok(members);
@@ -113,22 +108,14 @@ public class MemberQueryController {
 
     /**
      * <h3>멤버 검색 API</h3>
-     * @param searchDTO 멤버 검색 DTO
      * @param pageable 페이지
      * @return Page<String> 멤버이름
      * @since 2.1.0
      * @author Jaeik
      */
     @GetMapping("/search")
-    public ResponseEntity<Page<String>> searchMembers(
-            @Valid @ModelAttribute MemberSearchDTO searchDTO,
-            Pageable pageable) {
-
-        Page<String> memberNames = memberQueryService.searchMembers(
-                searchDTO.getTrimmedQuery(),
-                pageable
-        );
-
+    public ResponseEntity<Page<String>> searchMembers(@RequestParam @NotBlank(message = "검색어는 필수입니다") String query, Pageable pageable) {
+        Page<String> memberNames = memberQueryService.searchMembers(query.trim(), pageable);
         return ResponseEntity.ok(memberNames);
     }
 }

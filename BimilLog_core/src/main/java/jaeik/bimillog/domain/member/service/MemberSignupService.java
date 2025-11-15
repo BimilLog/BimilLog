@@ -3,6 +3,7 @@ package jaeik.bimillog.domain.member.service;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
+import jaeik.bimillog.domain.member.out.MemberRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
@@ -12,9 +13,6 @@ import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
 import jaeik.bimillog.domain.global.out.GlobalSocialTokenCommandAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.Setting;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.domain.member.out.SaveMemberAdapter;
 import jaeik.bimillog.infrastructure.redis.RedisMemberDataAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -38,7 +36,7 @@ import java.util.Optional;
 public class MemberSignupService {
 
     private final RedisMemberDataAdapter redisMemberDataPort;
-    private final SaveMemberAdapter saveMemberPort;
+    private final MemberRepository memberRepository;
     private final GlobalCookieAdapter globalCookieAdapter;
     private final GlobalJwtAdapter globalJwtAdapter;
     private final GlobalAuthTokenSaveAdapter globalAuthTokenSaveAdapter;
@@ -84,7 +82,7 @@ public class MemberSignupService {
                     setting,
                     persistedSocialToken);
 
-            Member persistedMember = saveMemberPort.saveNewMember(member);
+            Member persistedMember = memberRepository.save(member);
 
             // AuthToken 생성 및 저장
             AuthToken initialAuthToken = AuthToken.createToken("", persistedMember);
