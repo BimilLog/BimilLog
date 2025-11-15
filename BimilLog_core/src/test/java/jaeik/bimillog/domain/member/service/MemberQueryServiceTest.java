@@ -6,6 +6,8 @@ import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
+import jaeik.bimillog.domain.member.out.MemberRepository;
+import jaeik.bimillog.domain.member.out.SettingRepository;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -36,6 +38,12 @@ class MemberQueryServiceTest extends BaseUnitTest {
     @Mock
     private MemberQueryAdapter memberQueryAdapter;
 
+    @Mock
+    private MemberRepository memberRepository;
+
+    @Mock
+    private SettingRepository settingRepository;
+
     @InjectMocks
     private MemberQueryService userQueryService;
 
@@ -46,13 +54,13 @@ class MemberQueryServiceTest extends BaseUnitTest {
         Long settingId = 1L;
         Setting expectedSetting = createSettingWithId(createCustomSetting(true, false, true), settingId);
 
-        given(memberQueryAdapter.findSettingById(settingId)).willReturn(Optional.of(expectedSetting));
+        given(settingRepository.findById(settingId)).willReturn(Optional.of(expectedSetting));
 
         // When
         Setting result = userQueryService.findBySettingId(settingId);
 
         // Then
-        verify(memberQueryAdapter).findSettingById(settingId);
+        verify(settingRepository).findById(settingId);
         assertThat(result).isEqualTo(expectedSetting);
         assertThat(result.getId()).isEqualTo(settingId);
         assertThat(result.isMessageNotification()).isTrue();
@@ -66,14 +74,14 @@ class MemberQueryServiceTest extends BaseUnitTest {
         // Given
         Long settingId = 999L;
 
-        given(memberQueryAdapter.findSettingById(settingId)).willReturn(Optional.empty());
+        given(settingRepository.findById(settingId)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> userQueryService.findBySettingId(settingId))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.MEMBER_SETTINGS_NOT_FOUND.getMessage());
 
-        verify(memberQueryAdapter).findSettingById(settingId);
+        verify(settingRepository).findById(settingId);
     }
 
     /*

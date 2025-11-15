@@ -60,10 +60,10 @@ export const useUserLikedComments = (page: number = 0, size: number = 10) => {
 /**
  * 친구 목록 무한 스크롤 조회
  */
-export const useInfiniteUserFriendList = (limit: number = 20, enabled: boolean = true) => {
+export const useInfiniteUserFriendList = (size: number = 20, enabled: boolean = true) => {
   return useInfiniteQuery({
     queryKey: queryKeys.user.friendList(),
-    queryFn: ({ pageParam = 0 }) => userQuery.getFriendList(pageParam, limit),
+    queryFn: ({ pageParam = 0 }) => userQuery.getFriendList(pageParam, size),
     getNextPageParam: (lastPage, allPages) => {
       if (!lastPage.success || !lastPage.data) return undefined;
 
@@ -75,7 +75,7 @@ export const useInfiniteUserFriendList = (limit: number = 20, enabled: boolean =
         return undefined;
       }
 
-      return loadedCount;
+      return allPages.length;
     },
     initialPageParam: 0,
     enabled,

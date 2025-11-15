@@ -19,11 +19,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * <h2>KakaoFriendStrategy 테스트</h2>
- * <p>카카오 친구 전략이 API 호출 결과를 올바르게 매핑하는지 검증합니다.</p>
+ * <h2>KakaoFriendClient 테스트</h2>
+ * <p>카카오 친구 API 호출 결과 매핑을 검증합니다.</p>
  */
 @Tag("unit")
-class KakaoFriendStrategyTest extends BaseUnitTest {
+class KakaoFriendClientTest extends BaseUnitTest {
 
     private static final String AUTHORIZATION_PREFIX = "Bearer ";
 
@@ -31,7 +31,7 @@ class KakaoFriendStrategyTest extends BaseUnitTest {
     private KakaoApiClient kakaoApiClient;
 
     @InjectMocks
-    private KakaoFriendStrategy kakaoFriendStrategy;
+    private KakaoFriendClient kakaoFriendClient;
 
     @Test
     @DisplayName("정상 케이스 - 카카오 친구 목록 조회 성공")
@@ -51,7 +51,7 @@ class KakaoFriendStrategyTest extends BaseUnitTest {
         when(kakaoApiClient.getFriends(eq(AUTHORIZATION_PREFIX + accessToken), eq(offset), eq(limit)))
             .thenReturn(expectedResponse);
 
-        KakaoFriends result = kakaoFriendStrategy.getFriendList(accessToken, offset, limit);
+        KakaoFriends result = kakaoFriendClient.getFriendList(accessToken, offset, limit);
 
         assertThat(result).isNotNull();
         assertThat(result.elements()).hasSize(2);
@@ -85,7 +85,7 @@ class KakaoFriendStrategyTest extends BaseUnitTest {
         when(kakaoApiClient.getFriends(eq(AUTHORIZATION_PREFIX + accessToken), eq(offset), eq(limit)))
             .thenReturn(emptyResponse);
 
-        KakaoFriends result = kakaoFriendStrategy.getFriendList(accessToken, offset, limit);
+        KakaoFriends result = kakaoFriendClient.getFriendList(accessToken, offset, limit);
 
         assertThat(result).isNotNull();
         assertThat(result.elements()).isEmpty();
@@ -113,7 +113,7 @@ class KakaoFriendStrategyTest extends BaseUnitTest {
         when(kakaoApiClient.getFriends(eq(AUTHORIZATION_PREFIX + accessToken), eq(offset), eq(limit)))
             .thenReturn(paginatedResponse);
 
-        KakaoFriends result = kakaoFriendStrategy.getFriendList(accessToken, offset, limit);
+        KakaoFriends result = kakaoFriendClient.getFriendList(accessToken, offset, limit);
 
         assertThat(result).isNotNull();
         assertThat(result.elements()).hasSize(2);

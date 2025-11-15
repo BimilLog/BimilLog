@@ -106,8 +106,8 @@ class MemberQueryControllerIntegrationTest extends BaseIntegrationTest {
 
         // When & Then
         mockMvc.perform(get("/api/member/friendlist")
-                        .param("offset", "0")
-                        .param("limit", "10")
+                        .param("page", "0")
+                        .param("size", "10")
                         .with(user(userDetails)))
                 .andDo(print())
                 .andExpect(status().isOk());
@@ -115,7 +115,7 @@ class MemberQueryControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("카카오 친구 목록 조회 - 동의 필요 시 401 응답")
+    @DisplayName("카카오 친구 목록 조회 - 동의 필요 시 500 응답")
     void getKakaoFriendList_ConsentRequired() throws Exception {
         // Given
         Member member = TestMembers.createUnique();
@@ -128,11 +128,11 @@ class MemberQueryControllerIntegrationTest extends BaseIntegrationTest {
         TestSocialLoginAdapterConfig.setFriendConsentRequired(true);
         try {
             mockMvc.perform(get("/api/member/friendlist")
-                            .param("offset", "0")
-                            .param("limit", "10")
+                            .param("page", "0")
+                            .param("size", "10")
                             .with(user(userDetails)))
                     .andDo(print())
-                    .andExpect(status().isUnauthorized())
+                    .andExpect(status().isInternalServerError())
                     .andExpect(jsonPath("$.message").value(ErrorCode.MEMBER_KAKAO_FRIEND_CONSENT_FAIL.getMessage()));
         } finally {
             TestSocialLoginAdapterConfig.setFriendConsentRequired(false);

@@ -7,6 +7,7 @@ import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
+import jaeik.bimillog.domain.member.out.MemberRepository;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.TestMembers;
 import org.junit.jupiter.api.DisplayName;
@@ -37,6 +38,9 @@ class MemberCommandServiceTest extends BaseUnitTest {
     @Mock
     private MemberQueryAdapter memberQueryAdapter;
 
+    @Mock
+    private MemberRepository memberRepository;
+
     @InjectMocks
     private MemberCommandService memberCommandService;
 
@@ -51,13 +55,13 @@ class MemberCommandServiceTest extends BaseUnitTest {
 
         Setting newSetting = createCustomSetting(false, false, true);
 
-        given(memberQueryAdapter.findById(memberId)).willReturn(Optional.of(member));
+        given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
 
         // When
         memberCommandService.updateMemberSettings(memberId, newSetting);
 
         // Then
-        verify(memberQueryAdapter).findById(memberId);
+        verify(memberRepository).findById(memberId);
         
         // Setting이 업데이트되었는지 확인
         assertThat(member.getSetting().isMessageNotification()).isFalse();
@@ -72,14 +76,14 @@ class MemberCommandServiceTest extends BaseUnitTest {
         Long memberId = 999L;
         Setting newSetting = getDefaultSetting();
 
-        given(memberQueryAdapter.findById(memberId)).willReturn(Optional.empty());
+        given(memberRepository.findById(memberId)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> memberCommandService.updateMemberSettings(memberId, newSetting))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.MEMBER_USER_NOT_FOUND.getMessage());
 
-        verify(memberQueryAdapter).findById(memberId);
+        verify(memberRepository).findById(memberId);
     }
 
     @Test
@@ -91,13 +95,13 @@ class MemberCommandServiceTest extends BaseUnitTest {
 
         Member member = createTestMemberWithId(memberId);
 
-        given(memberQueryAdapter.findById(memberId)).willReturn(Optional.of(member));
+        given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
 
         // When
         memberCommandService.updateMemberName(memberId, newUserName);
 
         // Then
-        verify(memberQueryAdapter).findById(memberId);
+        verify(memberRepository).findById(memberId);
         // JPA 변경 감지를 사용하므로 명시적 savePostLike() 호출 없음
         
         assertThat(member.getMemberName()).isEqualTo(newUserName);
@@ -111,14 +115,14 @@ class MemberCommandServiceTest extends BaseUnitTest {
         String existingUserName = "existingUser";
         Member member = createTestMemberWithId(memberId);
 
-        given(memberQueryAdapter.findById(memberId)).willReturn(Optional.of(member));
+        given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
 
         // When & Then
         // 실제 구현에서는 member.changeUserName()에서 중복 검사 후 변경
         // 단위 테스트에서는 정상 케이스만 테스트하고 중복 검사는 통합 테스트에서
         memberCommandService.updateMemberName(memberId, existingUserName);
         
-        verify(memberQueryAdapter).findById(memberId);
+        verify(memberRepository).findById(memberId);
         assertThat(member.getMemberName()).isEqualTo(existingUserName);
     }
 
@@ -129,14 +133,14 @@ class MemberCommandServiceTest extends BaseUnitTest {
         Long memberId = 999L;
         String newUserName = "newUserName";
 
-        given(memberQueryAdapter.findById(memberId)).willReturn(Optional.empty());
+        given(memberRepository.findById(memberId)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> memberCommandService.updateMemberName(memberId, newUserName))
                 .isInstanceOf(CustomException.class)
                 .hasMessage(ErrorCode.MEMBER_USER_NOT_FOUND.getMessage());
 
-        verify(memberQueryAdapter).findById(memberId);
+        verify(memberRepository).findById(memberId);
     }
 
 
@@ -150,13 +154,13 @@ class MemberCommandServiceTest extends BaseUnitTest {
 
         Member member = createTestMemberWithId(memberId);
 
-        given(memberQueryAdapter.findById(memberId)).willReturn(Optional.of(member));
+        given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
 
         // When
         memberCommandService.updateMemberName(memberId, validUserName);
 
         // Then
-        verify(memberQueryAdapter).findById(memberId);
+        verify(memberRepository).findById(memberId);
         assertThat(member.getMemberName()).isEqualTo(validUserName);
     }
 
@@ -170,13 +174,13 @@ class MemberCommandServiceTest extends BaseUnitTest {
 
         Member member = createTestMemberWithId(memberId);
 
-        given(memberQueryAdapter.findById(memberId)).willReturn(Optional.of(member));
+        given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
 
         // When
         memberCommandService.updateMemberName(memberId, validUserName);
 
         // Then
-        verify(memberQueryAdapter).findById(memberId);
+        verify(memberRepository).findById(memberId);
         assertThat(member.getMemberName()).isEqualTo(validUserName);
     }
 
@@ -193,13 +197,13 @@ class MemberCommandServiceTest extends BaseUnitTest {
         // 부분적 설정만 포함된 Setting
         Setting partialSetting = createCustomSetting(true, false, false);
 
-        given(memberQueryAdapter.findById(memberId)).willReturn(Optional.of(member));
+        given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
 
         // When
         memberCommandService.updateMemberSettings(memberId, partialSetting);
 
         // Then
-        verify(memberQueryAdapter).findById(memberId);
+        verify(memberRepository).findById(memberId);
         // 부분적 업데이트 동작은 JPA 변경 감지에 의존
     }
 
@@ -212,13 +216,13 @@ class MemberCommandServiceTest extends BaseUnitTest {
 
         Member member = TestMembers.copyWithId(getTestMember(), memberId);
 
-        given(memberQueryAdapter.findById(memberId)).willReturn(Optional.of(member));
+        given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
 
         // When & Then: 정상 케이스로 단순화
         // DataIntegrityViolationException 처리는 통합 테스트에서 확인
         memberCommandService.updateMemberName(memberId, racedUserName);
         
-        verify(memberQueryAdapter).findById(memberId);
+        verify(memberRepository).findById(memberId);
         assertThat(member.getMemberName()).isEqualTo(racedUserName);
     }
 

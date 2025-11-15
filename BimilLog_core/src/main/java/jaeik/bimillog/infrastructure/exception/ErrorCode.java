@@ -51,7 +51,7 @@ public enum ErrorCode {
     MEMBER_SETTINGS_NOT_FOUND(HttpStatus.NOT_FOUND, "설정 정보를 찾을 수 없습니다.", LogLevel.INFO),
     MEMBER_INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "유효하지 않은 입력 값입니다.", LogLevel.WARN),
     MEMBER_EXISTED_NICKNAME(HttpStatus.BAD_REQUEST, "이미 존재하는 닉네임입니다.", LogLevel.INFO),
-    MEMBER_KAKAO_FRIEND_CONSENT_FAIL(HttpStatus.UNAUTHORIZED, "카카오 친구 추가 동의를 해야 합니다.", LogLevel.INFO),
+    MEMBER_KAKAO_FRIEND_CONSENT_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "카카오 친구 추가 동의를 해야 합니다.", LogLevel.INFO),
     MEMBER_KAKAO_FRIEND_API_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "카카오 친구 API 호출 실패", LogLevel.ERROR),
     MEMBER_UNSUPPORTED_SOCIAL_FRIEND(HttpStatus.BAD_REQUEST, "지원하지 않는 소셜 친구 조회 기능입니다.", LogLevel.WARN),
 
