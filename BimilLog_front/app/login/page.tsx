@@ -185,54 +185,25 @@ export default function LoginPage() {
 
         <button
           onClick={handleLogin}
-          className="w-full transition-all duration-200 hover:scale-[0.98] active:scale-[0.96] focus:outline-none focus:ring-4 focus:ring-cyan-200 dark:focus:ring-cyan-900 rounded-lg overflow-hidden"
-          aria-label="카카오로 로그인하기"
+          aria-label="카카오 로그인"
+          className="flex w-full items-center justify-center gap-3 rounded-lg border border-[#FAE100] bg-[#FAE100] px-4 py-3 text-sm font-semibold text-[#381e1f] transition hover:bg-[#fddf00] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c6a400]"
         >
-          {/* 데스크탑: wide 버전 사용 */}
-          <Image
-            src="/kakao_login_medium_wide.png"
-            alt="카카오 로그인"
-            width={300}
-            height={45}
-            className="hidden sm:block w-full h-auto touch-manipulation"
-            priority
-          />
-          {/* 모바일: narrow 버전 사용 */}
-          <Image
-            src="/kakao_login_medium_wide.png"
-            alt="카카오 로그인"
-            width={183}
-            height={45}
-            className="sm:hidden w-full h-auto touch-manipulation"
-            priority
-          />
+          <span className="flex items-center justify-center rounded-md bg-white/70">
+            <Image src="/icons/kakao_lcon.png" alt="카카오톡 로고" width={18} height={18} priority />
+          </span>
+          <span className="tracking-tight">카카오 로그인</span>
         </button>
 
         {/* 네이버 로그인 버튼 */}
         <button
           onClick={handleNaverLogin}
-          className="w-full transition-all duration-200 hover:scale-[0.98] active:scale-[0.96]
-                     focus:outline-none focus:ring-4 focus:ring-green-200 dark:focus:ring-green-900
-                     rounded-lg overflow-hidden origin-center"
-          aria-label="네이버로 로그인하기"
-          style={{ transform: 'scaleY(0.8)', transformOrigin: 'center' }} // ✅ 버튼 자체도 세로 줄임
+          aria-label="네이버 로그인"
+          className="flex w-full items-center justify-center gap-3 rounded-lg border border-[#03c75a] bg-[#03c75a] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#02b150] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#03c75a]"
         >
-          <Image
-            src="/naver_login_button.png"
-            alt="네이버 로그인"
-            width={300}
-            height={45}
-            className="hidden sm:block w-full h-auto touch-manipulation"
-            priority
-          />
-          <Image
-            src="/naver_login_button.png"
-            alt="네이버 로그인"
-            width={183}
-            height={45}
-            className="sm:hidden w-full h-auto touch-manipulation"
-            priority
-          />
+          <span className="flex items-center justify-center rounded-md bg-white">
+            <Image src="/icons/naver-n.png" alt="네이버 N 로고" width={20} height={20} priority />
+          </span>
+          <span className="tracking-tight">네이버 로그인</span>
         </button>
 
         {/* 구글 로그인 버튼 */}
