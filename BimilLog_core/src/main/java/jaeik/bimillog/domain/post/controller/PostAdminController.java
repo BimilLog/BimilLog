@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.post.controller;
 
 import jaeik.bimillog.domain.post.service.PostAdminService;
+import jaeik.bimillog.infrastructure.log.Log;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,9 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Jaeik
  * @version 2.0.0
  */
+@Log(level = Log.LogLevel.INFO,
+        logExecutionTime = true,
+        logParams = false)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/post")

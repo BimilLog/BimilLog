@@ -1,16 +1,12 @@
 package jaeik.bimillog.infrastructure.log;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StopWatch;
 
@@ -56,10 +52,7 @@ public class LoggingAspect {
     public Object logMethod(ProceedingJoinPoint joinPoint, Log logAnnotation) throws Throwable {
         Logger logger = LoggerFactory.getLogger(joinPoint.getTarget().getClass());
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();
-        Method method = signature.getMethod();
-        
-        setupMDC();
-        
+
         String className = signature.getDeclaringType().getSimpleName();
         String methodName = signature.getName();
         
@@ -88,8 +81,6 @@ public class LoggingAspect {
             }
             throw e;
             
-        } finally {
-            MDC.clear();
         }
     }
     
@@ -108,24 +99,6 @@ public class LoggingAspect {
         }
         
         return logMethod(joinPoint, logAnnotation);
-    }
-    
-    /**
-     * <h3>MDC 컨텍스트 설정</h3>
-     * <p>현재 인증된 사용자 정보를 MDC에 추가합니다.</p>
-     * <p>userId, username, traceId를 MDC에 설정하여 로그 추적을 가능하게 합니다.</p>
-     * <p>{@link #logMethod}에서 메서드 실행 전에 호출됩니다.</p>
-     *
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private void setupMDC() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getPrincipal() instanceof CustomUserDetails userDetails) {
-            MDC.put("userId", String.valueOf(userDetails.getMemberId()));
-            MDC.put("username", userDetails.getUsername());
-        }
-        MDC.put("traceId", generateTraceId());
     }
     
     /**
@@ -348,17 +321,4 @@ public class LoggingAspect {
         };
     }
     
-    /**
-     * <h3>추적 ID 생성</h3>
-     * <p>요청 추적을 위한 고유 ID를 생성합니다.</p>
-     * <p>UUID의 앞 8자리를 사용하여 간결한 추적 ID를 만듭니다.</p>
-     * <p>{@link #setupMDC}에서 MDC 설정 시 호출됩니다.</p>
-     *
-     * @return 8자리 추적 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private String generateTraceId() {
-        return java.util.UUID.randomUUID().toString().substring(0, 8);
-    }
 }

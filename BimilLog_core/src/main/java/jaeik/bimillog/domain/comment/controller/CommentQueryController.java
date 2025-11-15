@@ -6,6 +6,7 @@ import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
 import jaeik.bimillog.domain.comment.dto.CommentDTO;
 import jaeik.bimillog.domain.comment.dto.SimpleCommentDTO;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
+import jaeik.bimillog.infrastructure.log.Log;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -33,6 +34,10 @@ import java.util.List;
  * @author Jaeik
  * @version 2.0.0
  */
+@Log(level = Log.LogLevel.INFO,
+        logExecutionTime = true,
+        logParams = false,
+        logResult = false)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/comment")

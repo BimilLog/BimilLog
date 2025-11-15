@@ -9,6 +9,7 @@ import jaeik.bimillog.domain.member.dto.SettingDTO;
 import jaeik.bimillog.domain.member.dto.SimpleMemberDTO;
 import jaeik.bimillog.infrastructure.api.dto.KakaoFriendsDTO;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
+import jaeik.bimillog.infrastructure.log.Log;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -31,6 +32,10 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Jaeik
  * @version 2.0.0
  */
+@Log(level = Log.LogLevel.INFO,
+        logExecutionTime = true,
+        logParams = false,
+        logResult = false)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/member")

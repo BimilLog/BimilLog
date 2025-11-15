@@ -28,6 +28,9 @@ import java.util.List;
  * @author Jaeik
  * @version 2.0.0
  */
+@Log(level = Log.LogLevel.INFO,
+        logExecutionTime = true,
+        logParams = false)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/member")

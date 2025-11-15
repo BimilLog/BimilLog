@@ -10,7 +10,7 @@
     <!-- 콘솔 출력 appender -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{40} - %msg%n%xException</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{40} [trace=%X{traceId:-none} user=%X{userId:-anonymous} ip=%X{clientIp:-}] - %msg%n%xException</pattern>
         </encoder>
     </appender>
 
@@ -18,7 +18,7 @@
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>logs/application.log</file>
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{40} - %msg%n%xException</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{40} [trace=%X{traceId:-none} user=%X{userId:-anonymous} ip=%X{clientIp:-}] - %msg%n%xException</pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>logs/application-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
@@ -36,7 +36,7 @@
             <logRegion>${AWS_REGION}</logRegion>
             
             <layout>
-                <pattern>[%thread] %-5level %logger{40} - %msg%n%xException</pattern>
+                <pattern>[%thread] %-5level %logger{40} [trace=%X{traceId:-none} user=%X{userId:-anonymous} ip=%X{clientIp:-}] - %msg%n%xException</pattern>
             </layout>
             
             <maxBatchLogEvents>50</maxBatchLogEvents>
@@ -70,7 +70,7 @@
         </logger>
 
         <!-- HTTP 요청 로거 -->
-        <logger name="jaeik.bimillog.global.filter.LogFilter" level="INFO" additivity="false">
+        <logger name="jaeik.bimillog.infrastructure.filter.LogFilter" level="INFO" additivity="false">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="FILE"/>
         </logger>
@@ -106,7 +106,7 @@
         </logger>
 
         <!-- HTTP 요청 로거 (INFO) -->
-        <logger name="jaeik.bimillog.global.filter.LogFilter" level="INFO" additivity="false">
+        <logger name="jaeik.bimillog.infrastructure.filter.LogFilter" level="INFO" additivity="false">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="FILE"/>
             <appender-ref ref="ASYNC_CLOUDWATCH"/>

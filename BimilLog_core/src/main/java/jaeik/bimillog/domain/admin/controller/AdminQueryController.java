@@ -1,16 +1,10 @@
 package jaeik.bimillog.domain.admin.controller;
 
 import jaeik.bimillog.domain.admin.service.AdminQueryService;
-import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.domain.global.out.GlobalCommentQueryAdapter;
-import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
-import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.domain.admin.dto.ReportDTO;
+import jaeik.bimillog.infrastructure.log.Log;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,7 +22,9 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Jaeik
  * @version 2.0.0
  */
-@Slf4j
+@Log(level = Log.LogLevel.INFO,
+        logExecutionTime = true,
+        message = "관리자 API 요청")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/admin")

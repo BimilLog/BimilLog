@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.notification.controller;
 
 import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
+import jaeik.bimillog.infrastructure.log.Log;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -23,6 +24,10 @@ import jakarta.servlet.http.HttpServletResponse;
  * @author Jaeik
  * @version 2.0.0
  */
+@Log(level = Log.LogLevel.INFO,
+        logExecutionTime = true,
+        logParams = false,
+        logResult = false)
 @Slf4j
 @RestController
 @RequiredArgsConstructor
