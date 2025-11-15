@@ -3,6 +3,7 @@ package jaeik.bimillog.domain.paper.controller;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.paper.dto.MessageDTO;
 import jaeik.bimillog.domain.paper.service.PaperCommandService;
+import jaeik.bimillog.infrastructure.log.Log;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,10 @@ import org.springframework.web.bind.annotation.*;
  * @author Jaeik
  * @version 2.0.0
  */
+@Log(level = Log.LogLevel.INFO,
+        logExecutionTime = true,
+        excludeParams = {"messageDTO"},
+        message = "롤링페이퍼 메시지 작성 요청")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/paper")

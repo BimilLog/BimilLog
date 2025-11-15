@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.dto.MessageDTO;
 import jaeik.bimillog.domain.paper.dto.VisitMessageDTO;
 import jaeik.bimillog.domain.paper.service.PaperQueryService;
+import jaeik.bimillog.infrastructure.log.Log;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -24,6 +25,10 @@ import java.util.List;
  * @author Jaeik
  * @version 2.0.0
  */
+@Log(level = Log.LogLevel.INFO,
+        logExecutionTime = true,
+        logParams = false,
+        logResult = false)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/paper")

@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.paper.controller;
 
 import jaeik.bimillog.domain.paper.entity.PopularPaperInfo;
 import jaeik.bimillog.domain.paper.service.PaperCacheService;
+import jaeik.bimillog.infrastructure.log.Log;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,6 +19,10 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Jaeik
  * @version 2.0.0
  */
+@Log(level = Log.LogLevel.INFO,
+        logExecutionTime = true,
+        logParams = false,
+        logResult = false)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/paper")

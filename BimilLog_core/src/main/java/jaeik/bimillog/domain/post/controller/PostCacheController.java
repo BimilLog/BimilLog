@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.dto.SimplePostDTO;
 import jaeik.bimillog.domain.post.controller.util.PostResponseMapper;
 import jaeik.bimillog.domain.post.service.PostCacheService;
+import jaeik.bimillog.infrastructure.log.Log;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +27,10 @@ import java.util.List;
  * @author Jaeik
  * @version 2.0.0
  */
+@Log(level = Log.LogLevel.INFO,
+        logExecutionTime = true,
+        logParams = false,
+        logResult = false)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/post")

@@ -27,6 +27,9 @@ import java.net.URI;
  * @author Jaeik
  * @version 2.0.0
  */
+@Log(level = LogLevel.INFO,
+        logExecutionTime = true,
+        logParams = false)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/post")
@@ -138,4 +141,3 @@ public class PostCommandController {
         return ResponseEntity.ok().build();
     }
 }
-

@@ -22,6 +22,9 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Jaeik
  * @version 2.0.0
  */
+@Log(level = LogLevel.INFO,
+        logExecutionTime = true,
+        logParams = false)
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -55,4 +58,3 @@ public class NotificationFcmController {
         return ResponseEntity.ok().build();
     }
 }
-

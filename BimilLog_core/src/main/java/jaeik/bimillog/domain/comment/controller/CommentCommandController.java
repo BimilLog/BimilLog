@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.comment.dto.CommentLikeReqDTO;
 import jaeik.bimillog.domain.comment.dto.CommentReqDTO;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
+import jaeik.bimillog.infrastructure.log.Log;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,9 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Jaeik
  * @version 2.0.0
  */
+@Log(level = Log.LogLevel.INFO,
+        logExecutionTime = true,
+        message = "댓글 작성 요청")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/comment")

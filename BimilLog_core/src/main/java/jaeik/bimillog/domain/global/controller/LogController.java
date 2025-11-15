@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.global.controller;
 
 import jaeik.bimillog.domain.global.dto.ClientErrorLogDTO;
 import jaeik.bimillog.domain.global.service.LogService;
+import jaeik.bimillog.infrastructure.log.Log;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +20,9 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Jaeik
  * @version 2.0.0
  */
+@Log(level = Log.LogLevel.INFO,
+        logExecutionTime = true,
+        logParams = false)
 @Slf4j
 @RestController
 @RequiredArgsConstructor

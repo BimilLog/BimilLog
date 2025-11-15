@@ -4,6 +4,7 @@ import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.auth.dto.MemberInfoResponseDTO;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
+import jaeik.bimillog.infrastructure.log.Log;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -19,6 +20,9 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Jaeik
  * @version 2.0.0
  */
+@Log(level = Log.LogLevel.INFO,
+        logExecutionTime = true,
+        message = "사용자 정보 조회 요청")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/auth")

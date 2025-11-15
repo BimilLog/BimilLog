@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
 import jaeik.bimillog.domain.notification.dto.UpdateNotificationDTO;
 import jaeik.bimillog.domain.notification.service.NotificationCommandService;
+import jaeik.bimillog.infrastructure.log.Log;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,9 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Jaeik
  * @version 2.0.0
  */
+@Log(level = Log.LogLevel.INFO,
+        logExecutionTime = true,
+        logParams = false)
 @Slf4j
 @RestController
 @RequiredArgsConstructor

@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -15,6 +16,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * <h2>로그 필터</h2>
@@ -28,26 +30,6 @@ public class LogFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(LogFilter.class);
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
-
-    private static final List<String> WHITELIST = List.of(
-            "/api/auth/me",
-            "/api/global/health",
-            "/api/comment/{postId}",
-            "/api/notification/subscribe",
-            "/api/paper",
-            "/api/post/search",
-            "/api/post/cache/realtime",
-            "/api/post/cache/weekly",
-            "/api/post/me",
-            "/api/post/me/liked",
-            "/api/comment/me",
-            "/api/comment/me/liked",
-            "/api/member/username/check",
-            "/api/member/search",
-            "/api/member/all",
-            "/api/global/client-error",
-            "/actuator/prometheus"
-    );
 
     /**
      * <h3>필터 내부 처리</h3>
@@ -66,52 +48,48 @@ public class LogFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String uri = request.getRequestURI();
+        boolean isAdminAttempt = uri.startsWith("/dto");
 
-        if (isWhitelisted(uri)) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
+        long startTime = System.currentTimeMillis();
         String referer = request.getHeader("Referer");
         String ip = getClientIp(request);
         String method = request.getMethod();
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null) {
-            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-            Long userId = userDetails.getMemberId();
-            String socialId = userDetails.getSocialId();
-            String socialNickname = userDetails.getSocialNickname();
-            String provider = userDetails.getProvider().name();
+        UserContext userContext = resolveUserContext(authentication);
+        setMdcContext(userContext, ip);
 
-            if (uri.startsWith("/dto")) {
-                log.error(
-                        "회원 관리자 페이지 접근 시도 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}, 유저 ID: {}, 제공자: {}, 소셜 ID: {}, 소셜 닉네임: {}",
-                        ip, referer, uri, method, userId, provider, socialId, socialNickname);
-            }
-            log.info("회원 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}, 유저 ID: {}, 제공자: {}, 소셜 ID: {}, 소셜 닉네임: {}", ip,
-                    referer, uri, method, userId, provider, socialId, socialNickname);
-        } else {
-            if (uri.startsWith("/dto")) {
-                log.error("비회원 - 관리자 페이지 접근 시도 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}", ip, referer, uri,
-                        method);
-            }
-            log.info("비회원 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}", ip, referer, uri, method);
+        try {
+            filterChain.doFilter(request, response);
+        } finally {
+                logRequest(isAdminAttempt, userContext, method, uri, referer, ip, response.getStatus(),
+                        System.currentTimeMillis() - startTime);
+            MDC.clear();
         }
-        filterChain.doFilter(request, response);
     }
 
-    /**
-     * <h3>화이트리스트 경로 확인</h3>
-     * <p>주어진 URI가 로그 필터 화이트리스트에 포함되는지 확인합니다.</p>
-     *
-     * @param uri 확인할 URI 문자열
-     * @return 화이트리스트에 포함되면 true, 아니면 false
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private boolean isWhitelisted(String uri) {
-        return WHITELIST.stream().anyMatch(pattern -> pathMatcher.match(pattern, uri));
+    private void logRequest(boolean adminAttempt, UserContext userContext, String method, String uri, String referer,
+                            String ip, int status, long durationMs) {
+        String safeReferer = referer != null ? referer : "-";
+
+        if (adminAttempt) {
+            if (userContext.authenticated()) {
+                log.error(
+                        "회원 관리자 페이지 접근 시도 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}, 유저 ID: {}, 제공자: {}",
+                        ip, safeReferer, uri, method, userContext.userId(), userContext.provider());
+            } else {
+                log.error("비회원 - 관리자 페이지 접근 시도 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}", ip, safeReferer, uri,
+                        method);
+            }
+        }
+
+        if (userContext.authenticated()) {
+            log.info("회원 요청 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}, Status: {}, Duration: {}ms, 유저 ID: {}, 제공자: {}",
+                    ip, safeReferer, uri, method, status, durationMs, userContext.userId(), userContext.provider());
+        } else {
+            log.info("비회원 요청 - IP: {}, 오리진 URI: {}, 타겟 URI: {}, Method: {}, Status: {}, Duration: {}ms",
+                    ip, safeReferer, uri, method, status, durationMs);
+        }
     }
 
     /**
@@ -131,5 +109,36 @@ public class LogFilter extends OncePerRequestFilter {
             ip = ip.split(",")[0];
         }
         return ip;
+    }
+
+    private void setMdcContext(UserContext userContext, String clientIp) {
+        String existingTraceId = MDC.get("traceId");
+        MDC.put("traceId", existingTraceId != null ? existingTraceId : generateTraceId());
+        MDC.put("clientIp", clientIp);
+        if (userContext.authenticated()) {
+            MDC.put("userId", String.valueOf(userContext.userId()));
+            MDC.put("username", userContext.username());
+        } else {
+            MDC.put("userId", "anonymous");
+            MDC.put("username", "anonymous");
+        }
+    }
+
+    private UserContext resolveUserContext(Authentication authentication) {
+        if (authentication != null && authentication.getPrincipal() instanceof CustomUserDetails userDetails) {
+            return new UserContext(true, userDetails.getMemberId(), userDetails.getUsername(),
+                    userDetails.getProvider().name());
+        }
+        return UserContext.anonymous();
+    }
+
+    private String generateTraceId() {
+        return UUID.randomUUID().toString().substring(0, 8);
+    }
+
+    private record UserContext(boolean authenticated, Long userId, String username, String provider) {
+        private static UserContext anonymous() {
+            return new UserContext(false, null, "anonymous", null);
+        }
     }
 }
