@@ -4,13 +4,13 @@ import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.global.out.GlobalSocialStrategyAdapter;
 import jaeik.bimillog.domain.global.strategy.SocialAuthStrategy;
 import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
-import jaeik.bimillog.domain.member.entity.KakaoFriends;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
-import jaeik.bimillog.infrastructure.api.dto.KakaoFriendsDTO;
+import jaeik.bimillog.domain.member.dto.KakaoFriendsDTO;
 import jaeik.bimillog.infrastructure.api.social.kakao.KakaoApiClient;
 import jaeik.bimillog.infrastructure.api.social.kakao.KakaoFriendClient;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.testutil.builder.KakaoTestDataBuilder;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -139,14 +139,13 @@ public class TestSocialLoginAdapterConfig {
             if (consentRequired) {
                 throw new CustomException(ErrorCode.MEMBER_KAKAO_FRIEND_API_ERROR);
             }
-            KakaoFriends response = KakaoFriends.of(
+            return KakaoTestDataBuilder.createKakaoFriendsResponse(
                     Collections.emptyList(),
                     0,
                     null,
                     null,
                     0
             );
-            return KakaoFriendsDTO.fromVO(response);
         }
     }
 

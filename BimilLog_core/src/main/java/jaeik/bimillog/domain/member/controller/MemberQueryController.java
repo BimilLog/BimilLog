@@ -2,12 +2,11 @@ package jaeik.bimillog.domain.member.controller;
 
 import jaeik.bimillog.domain.member.service.MemberFriendService;
 import jaeik.bimillog.domain.member.service.MemberQueryService;
-import jaeik.bimillog.domain.member.entity.KakaoFriends;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.dto.MemberSearchDTO;
 import jaeik.bimillog.domain.member.dto.SettingDTO;
 import jaeik.bimillog.domain.member.dto.SimpleMemberDTO;
-import jaeik.bimillog.infrastructure.api.dto.KakaoFriendsDTO;
+import jaeik.bimillog.domain.member.dto.KakaoFriendsDTO;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.infrastructure.log.Log;
 import jakarta.validation.Valid;
@@ -75,8 +74,6 @@ public class MemberQueryController {
      * <h3>카카오 친구 목록 조회 API</h3>
      * <p>현재 로그인한 사용자의 카카오 친구 목록을 조회하고 비밀로그 가입 여부를 포함하여 반환합니다.</p>
      *
-     * @param offset      조회 시작 위치 (기본값: 0)
-     * @param limit       조회할 친구 수 (기본값: 10, 최대: 100)
      * @param userDetails 현재 로그인한 사용자 정보
      * @return Mono<ResponseEntity<KakaoFriendsDTO>> 카카오 친구 목록 (비밀로그 가입 여부 포함)
      * @since 2.0.0
@@ -85,14 +82,13 @@ public class MemberQueryController {
     @GetMapping("/friendlist")
     public ResponseEntity<KakaoFriendsDTO> getKakaoFriendList(@AuthenticationPrincipal CustomUserDetails userDetails,
                                                               Pageable pageable) {
-        KakaoFriends friendsResponseVO = memberFriendService.getKakaoFriendList(
+        KakaoFriendsDTO friendsResponse = memberFriendService.getKakaoFriendList(
                 userDetails.getMemberId(),
                 userDetails.getSocialProvider(),
                 pageable.getOffset(),
                 pageable.toLimit()
         );
 
-        KakaoFriendsDTO friendsResponse = KakaoFriendsDTO.fromVO(friendsResponseVO);
         return ResponseEntity.ok(friendsResponse);
     }
 

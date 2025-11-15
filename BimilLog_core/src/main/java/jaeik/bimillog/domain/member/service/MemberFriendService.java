@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.member.out.MemberToAuthAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.domain.member.entity.KakaoFriends;
+import jaeik.bimillog.domain.member.dto.KakaoFriendsDTO;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
 import jaeik.bimillog.infrastructure.api.social.kakao.KakaoFriendClient;
@@ -14,7 +14,6 @@ import org.springframework.data.domain.Limit;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -39,13 +38,13 @@ public class MemberFriendService {
      * @param memberId   사용자 ID
      * @param offset   조회 시작 위치 (기본값: 0)
      * @param limit    조회할 친구 수 (기본값: 10, 최대: 100)
-     * @return KakaoFriends 카카오 친구 목록 응답 (비밀로그 가입 여부 포함)
+     * @return KakaoFriendsDTO 카카오 친구 목록 응답 (비밀로그 가입 여부 포함)
      * @throws CustomException 사용자를 찾을 수 없거나 카카오 API 오류 시
      * @since 2.0.0
      * @author Jaeik
      */
     @Transactional(readOnly = true)
-    public KakaoFriends getKakaoFriendList(Long memberId, SocialProvider provider, long offset, Limit limit) {
+    public KakaoFriendsDTO getKakaoFriendList(Long memberId, SocialProvider provider, long offset, Limit limit) {
         // 기본값 설정
         int actualLimit = limit != null ? Math.min(limit.max(), 100) : 10;
 
@@ -58,7 +57,7 @@ public class MemberFriendService {
             SocialToken socialToken = memberToAuthAdapter.getSocialToken(memberId)
                     .orElseThrow(() -> new CustomException(ErrorCode.SOCIAL_TOKEN_NOT_FOUNT));
 
-            KakaoFriends response = kakaoFriendClient.getFriendList(
+            KakaoFriendsDTO response = kakaoFriendClient.getFriendList(
                     socialToken.getAccessToken(), (int) offset, actualLimit);
 
             return processFriendList(response);
@@ -82,46 +81,35 @@ public class MemberFriendService {
      * @param friendsResponse 카카오 API에서 받은 친구 목록 응답
      * @return 비밀로그 가입 정보가 추가된 새로운 응답 객체
      */
-    private KakaoFriends processFriendList(KakaoFriends friendsResponse) {
-        List<KakaoFriends.Friend> elements = friendsResponse.elements();
+    private KakaoFriendsDTO processFriendList(KakaoFriendsDTO friendsResponse) {
+        if (friendsResponse == null) {
+            return null;
+        }
+
+        List<KakaoFriendsDTO.Friend> elements = friendsResponse.getElements();
         if (elements == null || elements.isEmpty()) {
             return friendsResponse;
         }
 
         List<String> socialIds = elements.stream()
-                .map(friend -> String.valueOf(friend.id()))
+                .map(friend -> String.valueOf(friend.getId()))
                 .toList();
 
         List<String> memberNames = memberQueryAdapter.findMemberNamesInOrder(socialIds);
 
-        List<KakaoFriends.Friend> updatedElements = new ArrayList<>(elements.size());
         for (int index = 0; index < elements.size(); index++) {
-            KakaoFriends.Friend originalFriend = elements.get(index);
+            KakaoFriendsDTO.Friend originalFriend = elements.get(index);
             String memberName = (memberNames != null && memberNames.size() > index)
                     ? memberNames.get(index)
                     : "";
 
             if (memberName == null || memberName.isEmpty()) {
-                updatedElements.add(originalFriend);
                 continue;
             }
 
-            updatedElements.add(KakaoFriends.Friend.of(
-                    originalFriend.id(),
-                    originalFriend.uuid(),
-                    originalFriend.profileNickname(),
-                    originalFriend.profileThumbnailImage(),
-                    originalFriend.favorite(),
-                    memberName
-            ));
+            originalFriend.setMemberName(memberName);
         }
 
-        return KakaoFriends.of(
-                updatedElements,
-                friendsResponse.totalCount(),
-                friendsResponse.beforeUrl(),
-                friendsResponse.afterUrl(),
-                friendsResponse.favoriteCount()
-        );
+        return friendsResponse;
     }
 }
