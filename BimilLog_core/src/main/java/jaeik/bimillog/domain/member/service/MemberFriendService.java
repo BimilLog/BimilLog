@@ -1,20 +1,16 @@
 package jaeik.bimillog.domain.member.service;
 
 import jaeik.bimillog.domain.auth.entity.SocialToken;
+import jaeik.bimillog.domain.member.out.MemberToAuthAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.domain.global.out.GlobalSocialStrategyAdapter;
-import jaeik.bimillog.domain.global.strategy.SocialFriendStrategy;
-import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
 import jaeik.bimillog.domain.member.entity.KakaoFriends;
-import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
-import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.api.social.kakao.KakaoFriendClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Limit;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,9 +28,9 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class MemberFriendService {
-
-    private final MemberQueryAdapter memberQueryPort;
-    private final GlobalSocialStrategyAdapter globalSocialStrategyAdapter;
+    private final MemberQueryAdapter memberQueryAdapter;
+    private final MemberToAuthAdapter memberToAuthAdapter;
+    private final KakaoFriendClient kakaoFriendClient;
 
     /**
      * <h3>카카오 친구 목록 조회</h3>
@@ -43,34 +39,27 @@ public class MemberFriendService {
      * @param memberId   사용자 ID
      * @param offset   조회 시작 위치 (기본값: 0)
      * @param limit    조회할 친구 수 (기본값: 10, 최대: 100)
-     * @param tokenId  현재 요청 기기 토큰 ID
      * @return KakaoFriends 카카오 친구 목록 응답 (비밀로그 가입 여부 포함)
      * @throws CustomException 사용자를 찾을 수 없거나 카카오 API 오류 시
      * @since 2.0.0
      * @author Jaeik
      */
     @Transactional(readOnly = true)
-    public KakaoFriends getKakaoFriendList(Long memberId, Long tokenId, SocialProvider provider, Integer offset, Integer limit) {
+    public KakaoFriends getKakaoFriendList(Long memberId, SocialProvider provider, long offset, Limit limit) {
         // 기본값 설정
-        int actualOffset = offset != null ? offset : 0;
-        int actualLimit = limit != null ? Math.min(limit, 100) : 10;
+        int actualLimit = limit != null ? Math.min(limit.max(), 100) : 10;
 
         try {
-            // Member를 통해 소셜 토큰 조회
-            Member member = memberQueryPort.findById(memberId)
-                    .orElseThrow(() -> new CustomException(ErrorCode.AUTH_NOT_FIND_TOKEN));
-            SocialToken socialToken = member.getSocialToken();
-            if (socialToken == null) {
-                throw new CustomException(ErrorCode.AUTH_NOT_FIND_TOKEN);
+            if (provider != SocialProvider.KAKAO) {
+                throw new CustomException(ErrorCode.MEMBER_UNSUPPORTED_SOCIAL_FRIEND);
             }
 
-            // 전략 조회
-            SocialPlatformStrategy platformStrategy = globalSocialStrategyAdapter.getStrategy(provider);
-            SocialFriendStrategy friendStrategy = platformStrategy.friend()
-                    .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_UNSUPPORTED_SOCIAL_FRIEND));
+            // 소셜 토큰 조회
+            SocialToken socialToken = memberToAuthAdapter.getSocialToken(memberId)
+                    .orElseThrow(() -> new CustomException(ErrorCode.SOCIAL_TOKEN_NOT_FOUNT));
 
-            KakaoFriends response = friendStrategy.getFriendList(
-                    socialToken.getAccessToken(), actualOffset, actualLimit);
+            KakaoFriends response = kakaoFriendClient.getFriendList(
+                    socialToken.getAccessToken(), (int) offset, actualLimit);
 
             return processFriendList(response);
             
@@ -103,7 +92,7 @@ public class MemberFriendService {
                 .map(friend -> String.valueOf(friend.id()))
                 .toList();
 
-        List<String> memberNames = memberQueryPort.findMemberNamesInOrder(socialIds);
+        List<String> memberNames = memberQueryAdapter.findMemberNamesInOrder(socialIds);
 
         List<KakaoFriends.Friend> updatedElements = new ArrayList<>(elements.size());
         for (int index = 0; index < elements.size(); index++) {

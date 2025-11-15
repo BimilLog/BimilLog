@@ -10,8 +10,8 @@ export const userQuery = {
   getSettings: () =>
     apiClient.get<Setting>("/api/member/setting"),
 
-  getFriendList: async (offset = 0, limit = 10) => {
-    const response = await apiClient.get<KakaoFriendList>(`/api/member/friendlist?offset=${offset}&limit=${limit}`)
+  getFriendList: async (page = 0, size = 10) => {
+    const response = await apiClient.get<KakaoFriendList>(`/api/member/friendlist?page=${page}&size=${size}`)
 
     if (!response.success) {
       throw new Error(response.error || '친구 목록을 불러올 수 없습니다.')

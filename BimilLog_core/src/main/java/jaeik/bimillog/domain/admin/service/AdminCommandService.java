@@ -3,6 +3,7 @@ package jaeik.bimillog.domain.admin.service;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
+import jaeik.bimillog.domain.member.out.MemberRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.admin.controller.AdminCommandController;
@@ -39,7 +40,7 @@ public class AdminCommandService {
     private final ApplicationEventPublisher eventPublisher;
     private final ReportRepository reportRepository;
     private final AdminQueryRepository adminQueryRepository;
-    private final MemberQueryAdapter memberQueryAdapter;
+    private final MemberRepository memberRepository;
     private final GlobalPostQueryAdapter globalPostQueryAdapter;
     private final GlobalCommentQueryAdapter globalCommentQueryAdapter;
     private final BlacklistService blacklistService;
@@ -52,14 +53,13 @@ public class AdminCommandService {
      * @param reportType 신고 유형 (POST, COMMENT, ERROR, IMPROVEMENT)
      * @param targetId 신고 대상 ID (POST/COMMENT 신고 시 필수, ERROR/IMPROVEMENT 시 null 허용)
      * @param content 신고 내용 및 상세 설명
-     * @throws AdminCustomException 필수 파라미터 누락이나 잘못된 신고 대상인 경우
      * @author Jaeik
      * @since 2.0.0
      */
     @Transactional
     public void createReport(Long memberId, ReportType reportType, Long targetId, String content) {
         Member reporter = Optional.ofNullable(memberId)
-                .flatMap(memberQueryAdapter::findById)
+                .flatMap(memberRepository::findById)
                 .orElse(null);
 
         Report report = Report.createReport(reportType, targetId, content, reporter);
@@ -74,7 +74,6 @@ public class AdminCommandService {
      *
      * @param reportType 신고 유형 (POST, COMMENT만 허용, ERROR/IMPROVEMENT는 예외 발생)
      * @param targetId 신고 대상 ID (게시글 ID 또는 댓글 ID)
-     * @throws AdminCustomException 잘못된 신고 대상이거나 대상 사용자를 찾을 수 없는 경우
      * @author Jaeik
      * @since 2.0.0
      */
@@ -93,7 +92,6 @@ public class AdminCommandService {
      *
      * @param reportType 신고 유형 (POST, COMMENT만 허용, ERROR/IMPROVEMENT는 예외 발생)
      * @param targetId 신고 대상 ID (게시글 ID 또는 댓글 ID)
-     * @throws AdminCustomException 잘못된 신고 대상이거나 대상 사용자를 찾을 수 없는 경우
      * @author Jaeik
      * @since 2.0.0
      */

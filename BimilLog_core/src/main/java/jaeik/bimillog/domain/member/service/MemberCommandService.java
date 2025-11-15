@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.member.service;
 
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.Setting;
+import jaeik.bimillog.domain.member.out.MemberRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.member.controller.MemberCommandController;
@@ -27,7 +28,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class MemberCommandService {
 
-    private final MemberQueryAdapter memberQueryPort;
+    private final MemberQueryAdapter memberQueryAdapter;
+    private final MemberRepository memberRepository;
     private final MemberCommandAdapter memberCommandPort;
 
     /**
@@ -42,7 +44,7 @@ public class MemberCommandService {
      */
     @Transactional
     public void updateMemberSettings(Long memberId, Setting newSetting) {
-        Member member = memberQueryPort.findById(memberId)
+        Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_USER_NOT_FOUND));
 
         member.updateSettings(
@@ -68,7 +70,7 @@ public class MemberCommandService {
     @Transactional
     public void updateMemberName(Long memberId, String newMemberName) {
         try {
-            Member member = memberQueryPort.findById(memberId)
+            Member member = memberRepository.findById(memberId)
                     .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_USER_NOT_FOUND));
             member.changeMemberName(newMemberName);
         } catch (DataIntegrityViolationException e) {

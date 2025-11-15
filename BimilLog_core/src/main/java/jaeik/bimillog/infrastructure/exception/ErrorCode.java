@@ -37,6 +37,7 @@ public enum ErrorCode {
     AUTH_INVALID_TEMP_UUID(HttpStatus.BAD_REQUEST, "임시 사용자 UUID가 유효하지 않습니다.", LogLevel.WARN),
     AUTH_INVALID_USER_DATA(HttpStatus.BAD_REQUEST, "사용자 데이터가 유효하지 않습니다.", LogLevel.WARN),
     AUTH_INVALID_TOKEN_DATA(HttpStatus.BAD_REQUEST, "토큰 데이터가 유효하지 않습니다.", LogLevel.WARN),
+    SOCIAL_TOKEN_NOT_FOUNT(HttpStatus.INTERNAL_SERVER_ERROR, "소셜 토큰을 찾을 수 없습니다", LogLevel.ERROR),
 
     // ===== Comment 도메인 에러 코드 =====
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 댓글을 찾을 수 없습니다.", LogLevel.INFO),
@@ -50,7 +51,7 @@ public enum ErrorCode {
     MEMBER_SETTINGS_NOT_FOUND(HttpStatus.NOT_FOUND, "설정 정보를 찾을 수 없습니다.", LogLevel.INFO),
     MEMBER_INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "유효하지 않은 입력 값입니다.", LogLevel.WARN),
     MEMBER_EXISTED_NICKNAME(HttpStatus.BAD_REQUEST, "이미 존재하는 닉네임입니다.", LogLevel.INFO),
-    MEMBER_KAKAO_FRIEND_CONSENT_FAIL(HttpStatus.UNAUTHORIZED, "카카오 친구 추가 동의를 해야 합니다.", LogLevel.INFO),
+    MEMBER_KAKAO_FRIEND_CONSENT_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "카카오 친구 추가 동의를 해야 합니다.", LogLevel.INFO),
     MEMBER_KAKAO_FRIEND_API_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "카카오 친구 API 호출 실패", LogLevel.ERROR),
     MEMBER_UNSUPPORTED_SOCIAL_FRIEND(HttpStatus.BAD_REQUEST, "지원하지 않는 소셜 친구 조회 기능입니다.", LogLevel.WARN),
 

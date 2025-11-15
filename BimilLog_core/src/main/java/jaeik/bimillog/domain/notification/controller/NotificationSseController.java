@@ -59,6 +59,6 @@ public class NotificationSseController {
         response.setHeader("Content-Type", MediaType.TEXT_EVENT_STREAM_VALUE + ";charset=UTF-8");
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
 
-        return sseService.subscribe(userDetails.getMemberId(), userDetails.getTokenId());
+        return sseService.subscribe(userDetails.getMemberId(), userDetails.getAuthTokenId());
     }
 }

@@ -3,12 +3,12 @@ package jaeik.bimillog.testutil.config;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.global.out.GlobalSocialStrategyAdapter;
 import jaeik.bimillog.domain.global.strategy.SocialAuthStrategy;
-import jaeik.bimillog.domain.global.strategy.SocialFriendStrategy;
 import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
 import jaeik.bimillog.domain.member.entity.KakaoFriends;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.api.dto.KakaoFriendsDTO;
+import jaeik.bimillog.infrastructure.api.social.kakao.KakaoApiClient;
+import jaeik.bimillog.infrastructure.api.social.kakao.KakaoFriendClient;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 
 import java.util.Collections;
+import java.util.Map;
 
 /**
  * <h2>테스트용 소셜 로그인 설정</h2>
@@ -24,8 +25,9 @@ import java.util.Collections;
 @TestConfiguration
 public class TestSocialLoginAdapterConfig {
 
-    private static final TestSocialFriendStrategy TEST_FRIEND_STRATEGY = new TestSocialFriendStrategy();
-    private static final TestSocialPlatformStrategy TEST_PLATFORM_STRATEGY = new TestSocialPlatformStrategy(TEST_FRIEND_STRATEGY);
+    private static final TestSocialPlatformStrategy TEST_PLATFORM_STRATEGY =
+            new TestSocialPlatformStrategy();
+    private static final TestKakaoApiClient TEST_KAKAO_API_CLIENT = new TestKakaoApiClient();
 
     @Bean
     @Primary
@@ -33,14 +35,20 @@ public class TestSocialLoginAdapterConfig {
         return new GlobalSocialStrategyAdapter(Collections.singletonList(TEST_PLATFORM_STRATEGY));
     }
 
+    @Bean
+    @Primary
+    public KakaoFriendClient testKakaoFriendClient() {
+        return new KakaoFriendClient(TEST_KAKAO_API_CLIENT);
+    }
+
     public static void setFriendConsentRequired(boolean required) {
-        TEST_FRIEND_STRATEGY.setConsentRequired(required);
+        TEST_KAKAO_API_CLIENT.setConsentRequired(required);
     }
 
     private static final class TestSocialPlatformStrategy extends SocialPlatformStrategy {
 
-        TestSocialPlatformStrategy(TestSocialFriendStrategy friendStrategy) {
-            super(SocialProvider.KAKAO, new TestSocialAuthStrategy(), friendStrategy);
+        TestSocialPlatformStrategy() {
+            super(SocialProvider.KAKAO, new TestSocialAuthStrategy());
         }
     }
 
@@ -98,7 +106,7 @@ public class TestSocialLoginAdapterConfig {
         }
     }
 
-    private static final class TestSocialFriendStrategy implements SocialFriendStrategy {
+    private static final class TestKakaoApiClient implements KakaoApiClient {
 
         private boolean consentRequired;
 
@@ -107,22 +115,38 @@ public class TestSocialLoginAdapterConfig {
         }
 
         @Override
-        public SocialProvider getProvider() {
-            return SocialProvider.KAKAO;
+        public Map<String, Object> getUserInfo(String authorization) {
+            return Collections.emptyMap();
         }
 
         @Override
-        public KakaoFriends getFriendList(String accessToken, Integer offset, Integer limit) {
+        public void logout(String authorization) {
+            // no-op
+        }
+
+        @Override
+        public void forceLogout(String authorization, Map<String, String> params) {
+            // no-op
+        }
+
+        @Override
+        public void unlink(String authorization, Map<String, String> params) {
+            // no-op
+        }
+
+        @Override
+        public KakaoFriendsDTO getFriends(String authorization, Integer offset, Integer limit) {
             if (consentRequired) {
                 throw new CustomException(ErrorCode.MEMBER_KAKAO_FRIEND_API_ERROR);
             }
-            return KakaoFriends.of(
-                Collections.emptyList(),
-                0,
-                null,
-                null,
-                0
+            KakaoFriends response = KakaoFriends.of(
+                    Collections.emptyList(),
+                    0,
+                    null,
+                    null,
+                    0
             );
+            return KakaoFriendsDTO.fromVO(response);
         }
     }
 
