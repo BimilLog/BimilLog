@@ -9,7 +9,7 @@ import jaeik.bimillog.domain.global.out.GlobalSocialStrategyAdapter;
 import jaeik.bimillog.domain.global.out.GlobalSocialTokenCommandAdapter;
 import jaeik.bimillog.domain.global.strategy.SocialAuthStrategy;
 import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
-import jaeik.bimillog.domain.member.service.MemberCommandService;
+import jaeik.bimillog.domain.member.service.MemberAccountService;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.notification.service.FcmCommandService;
 import jaeik.bimillog.domain.notification.service.NotificationCommandService;
@@ -74,7 +74,7 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
     private GlobalSocialTokenCommandAdapter globalSocialTokenCommandAdapter;
 
     @MockitoBean
-    private MemberCommandService memberCommandService;
+    private MemberAccountService memberAccountService;
 
     @MockitoBean
     private GlobalSocialStrategyAdapter globalSocialStrategyAdapter;
@@ -148,7 +148,7 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
             // 10. 소셜 토큰 삭제
             verify(globalSocialTokenCommandAdapter).deleteByMemberId(eq(memberId));
             // 11. 계정 정보 삭제
-            verify(memberCommandService).removeMemberAccount(eq(memberId));
+            verify(memberAccountService).removeMemberAccount(eq(memberId));
         });
     }
 
@@ -208,9 +208,9 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
             verify(globalSocialTokenCommandAdapter).deleteByMemberId(eq(3L));
 
             // 계정 정보 삭제
-            verify(memberCommandService).removeMemberAccount(eq(1L));
-            verify(memberCommandService).removeMemberAccount(eq(2L));
-            verify(memberCommandService).removeMemberAccount(eq(3L));
+            verify(memberAccountService).removeMemberAccount(eq(1L));
+            verify(memberAccountService).removeMemberAccount(eq(2L));
+            verify(memberAccountService).removeMemberAccount(eq(3L));
         });
     }
 
@@ -272,7 +272,7 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
             verify(paperCommandService).deleteMessageInMyPaper(eq(memberId), eq(null));
             verify(adminCommandService).anonymizeReporterByUserId(eq(memberId));
             verify(globalSocialTokenCommandAdapter).deleteByMemberId(eq(memberId));
-            verify(memberCommandService).removeMemberAccount(eq(memberId));
+            verify(memberAccountService).removeMemberAccount(eq(memberId));
         });
 
         assertThat(unlinkAttempted).isTrue();
@@ -285,7 +285,7 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
         MemberWithdrawnEvent event = new MemberWithdrawnEvent(1L, "testSocialId1", SocialProvider.KAKAO);
 
         // 댓글 처리 실패 시뮬레이션
-        doThrow(new RuntimeException("댓글 처리 실패")).when(CommentCommandService).processUserCommentsOnWithdrawal(1L);
+        doThrow(new RuntimeException("댓글 정리 중 예외가 발생했습니다.")).when(CommentCommandService).processUserCommentsOnWithdrawal(1L);
 
         // When & Then - 예외 발생 시 해당 시점 이전까지만 처리됨 (순차 처리)
         publishAndExpectException(event, () -> {

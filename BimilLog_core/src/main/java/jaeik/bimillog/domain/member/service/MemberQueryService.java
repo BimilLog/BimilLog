@@ -148,12 +148,9 @@ public class MemberQueryService {
      */
     @Transactional(readOnly = true)
     public Page<String> searchMembers(String query, Pageable pageable) {
-        // 전략: 4글자 이상 → 접두사 검색 (인덱스 활용)
         if (query.length() >= 4) {
             return memberQueryAdapter.findByPrefixMatch(query, pageable);
         }
-
-        // 그 외 → 부분 검색
         return memberQueryAdapter.findByPartialMatch(query, pageable);
     }
 

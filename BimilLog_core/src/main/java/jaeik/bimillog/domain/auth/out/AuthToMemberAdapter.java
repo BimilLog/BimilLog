@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.auth.out;
 
 import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.member.service.HandleMemberLoginService;
+import jaeik.bimillog.domain.member.service.MemberOnboardingService;
 import jaeik.bimillog.domain.member.service.MemberQueryService;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
@@ -33,7 +33,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AuthToMemberAdapter {
 
-    private final HandleMemberLoginService handleMemberLoginService;
+    private final MemberOnboardingService memberOnboardingService;
     private final MemberQueryService memberQueryService;
 
     /**
@@ -50,7 +50,7 @@ public class AuthToMemberAdapter {
      * @since 2.0.0
      */
     public Member handleExistingMember(Member member, String newNickname, String newProfileImage, SocialToken savedSocialToken) {
-        return handleMemberLoginService.handleExistingMember(member, newNickname, newProfileImage, savedSocialToken);
+        return memberOnboardingService.syncExistingMember(member, newNickname, newProfileImage, savedSocialToken);
     }
 
     /**
@@ -64,7 +64,7 @@ public class AuthToMemberAdapter {
      * @since 2.0.0
      */
     public void handleNewUser(SocialMemberProfile memberProfile, String uuid) {
-        handleMemberLoginService.handleNewMember(memberProfile, uuid);
+        memberOnboardingService.storePendingMember(memberProfile, uuid);
     }
 
     /**

@@ -1,9 +1,13 @@
 package jaeik.bimillog.domain.member.service;
 
-import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
+import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
+import jaeik.bimillog.domain.global.out.GlobalAuthTokenSaveAdapter;
+import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
+import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
+import jaeik.bimillog.domain.global.out.GlobalSocialTokenCommandAdapter;
 import jaeik.bimillog.infrastructure.redis.RedisMemberDataAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.TestMembers;
@@ -18,22 +22,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
-/**
- * <h2>HandleMemberLoginService 단위 테스트</h2>
- * <p>소셜 로그인 시 기존 회원 갱신과 신규 회원 임시 저장 로직을 검증합니다.</p>
- */
-@DisplayName("HandleMemberLoginService 단위 테스트")
+@DisplayName("회원 온보딩 서비스 로그인 헬퍼")
 @Tag("unit")
-class LoginHandleServiceTest extends BaseUnitTest {
+class MemberOnboardingServiceLoginTest extends BaseUnitTest {
 
-    @Mock
-    private RedisMemberDataAdapter redisMemberDataAdapter;
+    @Mock private RedisMemberDataAdapter redisMemberDataAdapter;
+    @Mock private GlobalCookieAdapter globalCookieAdapter;
+    @Mock private GlobalJwtAdapter globalJwtAdapter;
+    @Mock private GlobalAuthTokenSaveAdapter globalAuthTokenSaveAdapter;
+    @Mock private GlobalSocialTokenCommandAdapter globalSocialTokenCommandAdapter;
 
-    @InjectMocks
-    private HandleMemberLoginService loginHandleService;
+    @InjectMocks private MemberOnboardingService onboardingService;
 
     @Test
-    @DisplayName("기존 회원 프로필과 카카오 토큰을 갱신한다")
+    @DisplayName("기존 회원 동기화는 닉네임, 프로필 이미지, 토큰을 업데이트한다")
     void shouldUpdateExistingMember() {
         Member member = TestMembers.createMember("kakao-1", "tester", "oldNickname");
         TestFixtures.setFieldValue(member, "id", 1L);
@@ -43,18 +45,19 @@ class LoginHandleServiceTest extends BaseUnitTest {
 
         SocialToken socialToken = SocialToken.createSocialToken("new-access", "new-refresh");
 
-        Member updated = loginHandleService.handleExistingMember(member, "신규닉네임", "http://image/new.jpg", socialToken);
+        Member updated = onboardingService.syncExistingMember(member, "newNickname", "http://image/new.jpg", socialToken);
 
         assertThat(updated).isSameAs(member);
-        assertThat(member.getSocialNickname()).isEqualTo("신규닉네임");
+        assertThat(member.getSocialNickname()).isEqualTo("newNickname");
         assertThat(member.getThumbnailImage()).isEqualTo("http://image/new.jpg");
         assertThat(member.getSocialToken()).isEqualTo(socialToken);
 
-        verifyNoInteractions(redisMemberDataAdapter);
+        verifyNoInteractions(redisMemberDataAdapter, globalCookieAdapter,
+                globalJwtAdapter, globalAuthTokenSaveAdapter, globalSocialTokenCommandAdapter);
     }
 
     @Test
-    @DisplayName("신규 회원 임시 데이터를 Redis에 저장한다")
+    @DisplayName("대기 중인 회원 저장은 임시 데이터를 레디스에 저장한다")
     void shouldStoreNewMemberInRedis() {
         SocialMemberProfile profile = new SocialMemberProfile(
                 "kakao123",
@@ -65,10 +68,9 @@ class LoginHandleServiceTest extends BaseUnitTest {
                 "access-token",
                 "refresh-token"
         );
-        String uuid = "uuid-123";
 
-        loginHandleService.handleNewMember(profile, uuid);
+        onboardingService.storePendingMember(profile, "uuid-123");
 
-        verify(redisMemberDataAdapter).saveTempData(uuid, profile);
+        verify(redisMemberDataAdapter).saveTempData("uuid-123", profile);
     }
 }
