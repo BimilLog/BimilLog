@@ -2,8 +2,8 @@ package jaeik.bimillog.domain.member.controller;
 
 import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
 import jaeik.bimillog.infrastructure.log.Log;
-import jaeik.bimillog.domain.member.service.MemberCommandService;
-import jaeik.bimillog.domain.member.service.MemberSignupService;
+import jaeik.bimillog.domain.member.service.MemberProfileCommandService;
+import jaeik.bimillog.domain.member.service.MemberOnboardingService;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.domain.member.event.ReportSubmittedEvent;
 import jaeik.bimillog.domain.admin.dto.ReportDTO;
@@ -36,8 +36,8 @@ import java.util.List;
 @RequestMapping("/api/member")
 public class MemberCommandController {
 
-    private final MemberCommandService memberCommandService;
-    private final MemberSignupService memberSignUpService;
+    private final MemberProfileCommandService memberProfileCommandService;
+    private final MemberOnboardingService memberOnboardingService;
     private final ApplicationEventPublisher eventPublisher;
     private final GlobalCookieAdapter globalCookieAdapter;
 
@@ -62,7 +62,7 @@ public class MemberCommandController {
             @CookieValue(name = "temp_user_id") String uuid) {
 
         // 회원가입 로직 실행 후 쿠키 리스트 받기
-        List<ResponseCookie> cookies = memberSignUpService.signup(request.getMemberName(), uuid);
+        List<ResponseCookie> cookies = memberOnboardingService.signup(request.getMemberName(), uuid);
 
         // ResponseEntity builder 생성
         ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.ok();
@@ -92,7 +92,7 @@ public class MemberCommandController {
     @PostMapping("/username")
     public ResponseEntity<String> updateUserName(@AuthenticationPrincipal CustomUserDetails userDetails,
                                                  @RequestBody @Valid MemberNameDTO memberNameDTO) {
-        memberCommandService.updateMemberName(userDetails.getMemberId(), memberNameDTO.getMemberName());
+        memberProfileCommandService.updateMemberName(userDetails.getMemberId(), memberNameDTO.getMemberName());
         return ResponseEntity.ok("닉네임이 변경되었습니다.");
     }
 
@@ -110,7 +110,7 @@ public class MemberCommandController {
     @PostMapping("/setting")
     public ResponseEntity<String> updateSetting(@RequestBody @Valid SettingDTO settingDTO,
                                                 @AuthenticationPrincipal CustomUserDetails userDetails) {
-        memberCommandService.updateMemberSettings(userDetails.getMemberId(), settingDTO.toSettingEntity());
+        memberProfileCommandService.updateMemberSettings(userDetails.getMemberId(), settingDTO.toSettingEntity());
         return ResponseEntity.ok("설정 수정 완료");
     }
 
