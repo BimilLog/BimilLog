@@ -30,6 +30,10 @@ public class LogFilter extends OncePerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(LogFilter.class);
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
+    private static final List<String> WHITELIST = List.of(
+            "/api/global/health",
+            "/actuator/**"
+    );
 
     /**
      * <h3>필터 내부 처리</h3>
@@ -48,6 +52,10 @@ public class LogFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String uri = request.getRequestURI();
+        if (isWhitelisted(uri)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
         boolean isAdminAttempt = uri.startsWith("/dto");
 
         long startTime = System.currentTimeMillis();
@@ -109,6 +117,10 @@ public class LogFilter extends OncePerRequestFilter {
             ip = ip.split(",")[0];
         }
         return ip;
+    }
+
+    private boolean isWhitelisted(String uri) {
+        return WHITELIST.stream().anyMatch(pattern -> pathMatcher.match(pattern, uri));
     }
 
     private void setMdcContext(UserContext userContext, String clientIp) {

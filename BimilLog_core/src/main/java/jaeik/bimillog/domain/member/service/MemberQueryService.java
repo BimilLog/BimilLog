@@ -3,11 +3,12 @@ package jaeik.bimillog.domain.member.service;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
+import jaeik.bimillog.domain.member.out.MemberRepository;
+import jaeik.bimillog.domain.member.out.SettingRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.member.controller.MemberQueryController;
 import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
-import jaeik.bimillog.domain.member.out.MemberSearchAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,9 +21,6 @@ import java.util.Optional;
 
 /**
  * <h2>사용자 조회 서비스</h2>
- * <p>UserQueryUseCase의 구현체로 사용자 정보 조회 로직을 담당합니다.</p>
- * <p>사용자 엔티티 조회, 설정 조회, 닉네임 검증</p>
- * <p>소셜 로그인 사용자 조회, 토큰 기반 인증</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -30,9 +28,9 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class MemberQueryService {
-
-    private final MemberQueryAdapter memberQueryPort;
-    private final MemberSearchAdapter memberSearchAdapter;
+    private final MemberQueryAdapter memberQueryAdapter;
+    private final MemberRepository memberRepository;
+    private final SettingRepository settingRepository;
 
     /**
      * <h3>ID로 사용자 조회</h3>
@@ -45,7 +43,7 @@ public class MemberQueryService {
      */
     @Transactional(readOnly = true)
     public Optional<Member> findById(Long id) {
-        return memberQueryPort.findById(id);
+        return memberRepository.findById(id);
     }
 
     /**
@@ -60,7 +58,7 @@ public class MemberQueryService {
      */
     @Transactional(readOnly = true)
     public boolean existsByMemberName(String memberName) {
-        return memberQueryPort.existsByMemberName(memberName);
+        return memberRepository.existsByMemberName(memberName);
     }
 
     /**
@@ -74,7 +72,7 @@ public class MemberQueryService {
      */
     @Transactional(readOnly = true)
     public Optional<Member> findByMemberName(String memberName) {
-        return memberQueryPort.findByMemberName(memberName);
+        return memberRepository.findByMemberName(memberName);
     }
 
     /**
@@ -89,24 +87,22 @@ public class MemberQueryService {
      */
     @Transactional(readOnly = true)
     public Member getReferenceById(Long memberId) {
-        return memberQueryPort.getReferenceById(memberId);
+        return memberRepository.getReferenceById(memberId);
     }
 
     /**
      * <h3>설정 ID로 설정 조회</h3>
-     * <p>JWT 토큰의 settingId를 활용하여 설정 정보를 조회합니다.</p>
      * <p>Member 엔티티 전체 조회 없이 Setting만 직접 조회합니다.</p>
      * <p>{@link MemberQueryController}에서 사용자 설정 조회 API 시 호출됩니다.</p>
      *
      * @param settingId 설정 ID
      * @return 설정 엔티티
-     * @throws MemberCustomException 설정을 찾을 수 없는 경우
      * @since 2.0.0
      * @author Jaeik
      */
     @Transactional(readOnly = true)
     public Setting findBySettingId(Long settingId) {
-        return memberQueryPort.findSettingById(settingId)
+        return settingRepository.findById(settingId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_SETTINGS_NOT_FOUND));
     }
 
@@ -121,7 +117,7 @@ public class MemberQueryService {
      */
     @Transactional(readOnly = true)
     public Map<Long, String> findMemberNamesByIds(List<Long> memberIds) {
-        return memberQueryPort.findMemberNamesByIds(memberIds);
+        return memberQueryAdapter.findMemberNamesByIds(memberIds);
     }
 
     /**
@@ -131,10 +127,11 @@ public class MemberQueryService {
      * @param pageable 페이지 정보
      * @return Page<Member> 조회된 회원 페이지
      * @since 2.1.0
+     * @author Jaeik
      */
     @Transactional(readOnly = true)
     public Page<Member> findAllMembers(Pageable pageable) {
-        return memberQueryPort.findAllMembers(pageable);
+        return memberRepository.findAll(pageable);
     }
 
     /**
@@ -153,17 +150,22 @@ public class MemberQueryService {
     public Page<String> searchMembers(String query, Pageable pageable) {
         // 전략: 4글자 이상 → 접두사 검색 (인덱스 활용)
         if (query.length() >= 4) {
-            return memberQueryPort.findByPrefixMatch(query, pageable);
+            return memberQueryAdapter.findByPrefixMatch(query, pageable);
         }
 
         // 그 외 → 부분 검색
-        return memberQueryPort.findByPartialMatch(query, pageable);
+        return memberQueryAdapter.findByPartialMatch(query, pageable);
     }
 
     /**
-     * 소셜 제공자와 ID로 사용자 조회
+     * <h3>SocialId와 Provider로 사용자 조회</h3>
+     *
+     * @param provider 제공자
+     * @param socialId 소셜Id
+     * @return Optional<Member> 사용자
+     * @since 2.1.0
      */
     public Optional<Member> findByProviderAndSocialId(SocialProvider provider, String socialId) {
-        return memberSearchAdapter.findByProviderAndSocialId(provider, socialId);
+        return memberRepository.findByProviderAndSocialId(provider, socialId);
     }
 }

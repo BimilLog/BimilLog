@@ -37,6 +37,7 @@ public enum ErrorCode {
     AUTH_INVALID_TEMP_UUID(HttpStatus.BAD_REQUEST, "임시 사용자 UUID가 유효하지 않습니다.", LogLevel.WARN),
     AUTH_INVALID_USER_DATA(HttpStatus.BAD_REQUEST, "사용자 데이터가 유효하지 않습니다.", LogLevel.WARN),
     AUTH_INVALID_TOKEN_DATA(HttpStatus.BAD_REQUEST, "토큰 데이터가 유효하지 않습니다.", LogLevel.WARN),
+    SOCIAL_TOKEN_NOT_FOUNT(HttpStatus.INTERNAL_SERVER_ERROR, "소셜 토큰을 찾을 수 없습니다", LogLevel.ERROR),
 
     // ===== Comment 도메인 에러 코드 =====
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 댓글을 찾을 수 없습니다.", LogLevel.INFO),

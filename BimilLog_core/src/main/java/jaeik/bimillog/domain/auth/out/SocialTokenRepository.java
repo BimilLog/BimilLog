@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 /**
  * <h2>소셜 토큰 JPA Repository</h2>
  * <p>JpaRepository를 상속받은 인터페이스입니다.</p>
@@ -30,4 +32,9 @@ public interface SocialTokenRepository extends JpaRepository<SocialToken, Long> 
     @Modifying
     @Query("DELETE FROM SocialToken st WHERE st.id IN (SELECT m.socialToken.id FROM Member m WHERE m.id = :memberId)")
     void deleteByMemberId(@Param("memberId") Long memberId);
+
+    /**
+     * 멤버Id로 소셜 토큰 조회
+     */
+    Optional<SocialToken> findByMemberId(Long memberId);
 }
