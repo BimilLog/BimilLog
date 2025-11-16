@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.member.entity;
+package jaeik.bimillog.domain.friend.entity;
 
 import java.time.Instant;
 import java.util.List;
