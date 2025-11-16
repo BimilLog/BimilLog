@@ -1,6 +1,8 @@
 package jaeik.bimillog.domain.member.out;
 
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import jaeik.bimillog.domain.member.dto.BlacklistDTO;
 import jaeik.bimillog.domain.member.entity.QMember;
 import jaeik.bimillog.domain.member.entity.QMemberBlacklist;
 import lombok.RequiredArgsConstructor;
@@ -18,11 +20,14 @@ public class MemberBlacklistQueryRepository {
     private final QMember member = QMember.member;
     private final QMemberBlacklist memberBlacklist = QMemberBlacklist.memberBlacklist;
 
-    public Page<String> getMyBlacklist(Long memberId, Pageable pageable) {
-        List<String> content = jpaQueryFactory
-                .select(member.memberName)
+    public Page<BlacklistDTO> getMyBlacklist(Long memberId, Pageable pageable) {
+        List<BlacklistDTO> content = jpaQueryFactory
+                .select(Projections.constructor(BlacklistDTO.class,
+                        memberBlacklist.id,
+                        member.memberName,
+                        memberBlacklist.createdAt))
                 .from(memberBlacklist)
-                .join(member, memberBlacklist.blackMember)
+                .join(memberBlacklist.blackMember, member)
                 .where(memberBlacklist.requestMember.id.eq(memberId))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
