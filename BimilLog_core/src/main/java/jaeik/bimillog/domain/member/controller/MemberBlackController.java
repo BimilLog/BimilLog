@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.member.controller;
 
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.domain.member.dto.BlacklistAddDTO;
 import jaeik.bimillog.domain.member.dto.BlacklistDTO;
 import jaeik.bimillog.domain.member.service.MemberBlacklistService;
 import jaeik.bimillog.infrastructure.log.Log;
@@ -11,10 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 사용자 블랙리스트 컨트롤러
@@ -45,8 +41,20 @@ public class MemberBlackController {
      */
     @PostMapping("/blacklist")
     public ResponseEntity<String> addBlacklist(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                               @Valid BlacklistAddDTO blacklistAddDTO) {
-        memberBlacklistService.addMyBlacklist(userDetails.getMemberId(), blacklistAddDTO.getMemberName());
+                                               @Valid BlacklistDTO blacklistDTO) {
+        memberBlacklistService.addMyBlacklist(userDetails.getMemberId(), blacklistDTO.getMemberName());
         return ResponseEntity.ok().build();
+    }
+
+    /**
+     * 특정 사람을 블랙리스트에서 삭제
+     */
+    @DeleteMapping("/blacklist")
+    public ResponseEntity<Page<BlacklistDTO>> deleteMemberFromBlacklist(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                                                        @Valid BlacklistDTO blacklistDTO,
+                                                                        Pageable pageable) {
+        memberBlacklistService.deleteMemberFromMyBlacklist(blacklistDTO.getId(), userDetails.getMemberId(), pageable);
+        Page<BlacklistDTO> myBlacklist = memberBlacklistService.getMyBlacklist(userDetails.getMemberId(), pageable);
+        return ResponseEntity.ok(myBlacklist);
     }
 }

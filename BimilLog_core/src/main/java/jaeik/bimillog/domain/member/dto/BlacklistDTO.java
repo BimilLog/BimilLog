@@ -1,5 +1,7 @@
 package jaeik.bimillog.domain.member.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,8 +28,9 @@ public class BlacklistDTO {
     /**
      * 차단한 사용자의 이름
      */
+    @NotBlank(message = "사용자 이름은 필수입니다.")
+    @Size(min = 1, max = 8, message = "사용자 이름은 1자 이상 8자 이하여야 합니다.")
     private String memberName;
-
     /**
      * 차단한 날짜
      */

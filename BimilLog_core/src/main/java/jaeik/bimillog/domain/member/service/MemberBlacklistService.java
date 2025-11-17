@@ -14,6 +14,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -34,5 +36,19 @@ public class MemberBlacklistService {
 
         MemberBlacklist blacklist = MemberBlacklist.createMemberBlacklist(requestMember, blackMember);
         memberBlacklistRepository.save(blacklist);
+    }
+
+    public void deleteMemberFromMyBlacklist(Long blacklistId, Long memberId, Pageable pageable) {
+        // 블랙리스트 존재 확인
+        MemberBlacklist memberBlacklist = memberBlacklistRepository.findById(blacklistId)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_BLACKLIST_NOT_FOUND));
+
+        // DTO의 블랙리스트 ID가 MemberDetail의 memberId의 소속이 맞는지 확인
+        if (!Objects.equals(memberBlacklist.getBlackMember().getId(), memberId)) {
+            throw new CustomException(ErrorCode.MEMBER_BLACKLIST_FORBIDDEN);
+        }
+
+        // 블랙리스트 삭제
+        memberBlacklistRepository.deleteById(blacklistId);
     }
 }
