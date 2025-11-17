@@ -6,6 +6,7 @@ import jaeik.bimillog.domain.comment.entity.CommentClosure;
 import jaeik.bimillog.domain.comment.entity.CommentLike;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
+import jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter;
 import jaeik.bimillog.domain.post.out.PostRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
@@ -42,6 +43,7 @@ public class CommentCommandService {
     private final ApplicationEventPublisher eventPublisher;
     private final PostRepository postRepository;
     private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
+    private final GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
     private final CommentRepository commentRepository;
     private final CommentSaveAdapter commentSaveAdapter;
     private final CommentDeleteAdapter commentDeleteAdapter;
@@ -68,6 +70,12 @@ public class CommentCommandService {
     public void writeComment(Long memberId, Long postId, Long parentId, String content, Integer password) {
         try {
             Post post = postRepository.findById(postId).orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+
+            // 비회원 확인
+            if (memberId != null) {
+                // 블랙리스트 확인
+                globalMemberBlacklistAdapter.checkMemberBlacklist(memberId, post.getMember().getId());
+            }
 
             Member member = memberId != null ? globalMemberQueryAdapter.findById(memberId).orElse(null) : null;
             String memberName = member != null ? member.getMemberName() : "익명";
@@ -151,6 +159,12 @@ public class CommentCommandService {
                 .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
         Member member = globalMemberQueryAdapter.findById(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_USER_NOT_FOUND));
+
+        // 비회원 확인
+        if (memberId != null) {
+            // 블랙리스트 확인
+            globalMemberBlacklistAdapter.checkMemberBlacklist(memberId, comment.getMember().getId());
+        }
 
         if (commentLikeAdapter.isLikedByUser(commentId, memberId)) {
             commentLikeAdapter.deleteLikeByIds(commentId, memberId);
