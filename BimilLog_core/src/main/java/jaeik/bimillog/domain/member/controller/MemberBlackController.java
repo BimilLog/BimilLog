@@ -1,15 +1,18 @@
 package jaeik.bimillog.domain.member.controller;
 
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
+import jaeik.bimillog.domain.member.dto.BlacklistAddDTO;
 import jaeik.bimillog.domain.member.dto.BlacklistDTO;
 import jaeik.bimillog.domain.member.service.MemberBlacklistService;
 import jaeik.bimillog.infrastructure.log.Log;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -35,5 +38,15 @@ public class MemberBlackController {
     public ResponseEntity<Page<BlacklistDTO>> getBlacklist(@AuthenticationPrincipal CustomUserDetails userDetails, Pageable pageable) {
         Page<BlacklistDTO> myBlacklist = memberBlacklistService.getMyBlacklist(userDetails.getMemberId(), pageable);
         return ResponseEntity.ok(myBlacklist);
+    }
+
+    /**
+     * 특정사람을 블랙리스트에 추가
+     */
+    @PostMapping("/blacklist")
+    public ResponseEntity<String> addBlacklist(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                               @Valid BlacklistAddDTO blacklistAddDTO) {
+        memberBlacklistService.addMyBlacklist(userDetails.getMemberId(), blacklistAddDTO.getMemberName());
+        return ResponseEntity.ok().build();
     }
 }
