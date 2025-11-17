@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.paper.service;
 
 import jaeik.bimillog.domain.global.listener.MemberWithdrawListener;
+import jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter;
 import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.paper.entity.DecoType;
@@ -34,6 +35,7 @@ public class PaperCommandService {
     private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
     private final ApplicationEventPublisher eventPublisher;
     private final RedisPaperDeleteAdapter redisPaperDeleteAdapter;
+    private final GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
 
     /**
      * <h3>롤링페이퍼 메시지 작성</h3>
@@ -42,7 +44,7 @@ public class PaperCommandService {
      * @since 2.0.0
      */
     @Transactional
-    public void writeMessage(String memberName, DecoType decoType, String anonymity,
+    public void writeMessage(Long memberId, String memberName, DecoType decoType, String anonymity,
                              String content, int x, int y) {
 
         if (memberName == null || memberName.trim().isEmpty()) { // 입력 닉네임 검증
@@ -51,6 +53,12 @@ public class PaperCommandService {
 
         Member member = globalMemberQueryAdapter.findByMemberName(memberName) // 입력 닉네임 존재 검증
                 .orElseThrow(() -> new CustomException(ErrorCode.PAPER_USERNAME_NOT_FOUND));
+
+        // 비회원 확인
+        if (memberId != null) {
+            // 블랙리스트 확인
+            globalMemberBlacklistAdapter.checkMemberBlacklist(memberId, member.getId());
+        }
 
         Message message = Message.createMessage(member, decoType, anonymity, content, x, y);
         paperCommandRepository.save(message);

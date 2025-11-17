@@ -40,10 +40,11 @@ public class PaperCommandController {
      * @since 2.0.0
      */
     @PostMapping("/{memberName}")
-    public ResponseEntity<String> writeMessage(
-            @PathVariable String memberName,
-            @RequestBody @Valid MessageDTO messageDTO) {
-        paperCommandService.writeMessage(memberName, messageDTO.getDecoType(), messageDTO.getAnonymity(),
+    public ResponseEntity<String> writeMessage(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                               @PathVariable String memberName,
+                                               @RequestBody @Valid MessageDTO messageDTO) {
+        Long memberId = userDetails == null ? null : userDetails.getMemberId();
+        paperCommandService.writeMessage(memberId, memberName, messageDTO.getDecoType(), messageDTO.getAnonymity(),
                 messageDTO.getContent(), messageDTO.getX(), messageDTO.getY());
         return ResponseEntity.ok("메시지가 작성되었습니다.");
     }

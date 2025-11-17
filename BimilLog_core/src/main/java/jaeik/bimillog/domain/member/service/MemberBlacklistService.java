@@ -42,7 +42,7 @@ public class MemberBlacklistService {
     }
 
     @Transactional
-    public void deleteMemberFromMyBlacklist(Long blacklistId, Long memberId, Pageable pageable) {
+    public void deleteMemberFromMyBlacklist(Long blacklistId, Long memberId) {
         // 블랙리스트 존재 확인
         MemberBlacklist memberBlacklist = memberBlacklistRepository.findById(blacklistId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_BLACKLIST_NOT_FOUND));
@@ -54,5 +54,13 @@ public class MemberBlacklistService {
 
         // 블랙리스트 삭제
         memberBlacklistRepository.deleteById(blacklistId);
+    }
+
+    public boolean checkMemberBlacklist(Long memberId, Long targetMemberId) {
+        boolean aBlockedB = memberBlacklistRepository.existsByRequestMemberIdAndBlackMemberId(memberId, targetMemberId);
+
+        boolean bBlockedA = memberBlacklistRepository.existsByRequestMemberIdAndBlackMemberId(targetMemberId, memberId);
+
+        return aBlockedB || bBlockedA;
     }
 }

@@ -66,8 +66,10 @@ public class PaperQueryController {
      * @since 2.0.0
      */
     @GetMapping("/{memberName}")
-    public ResponseEntity<List<VisitMessageDTO>> visitPaper(@PathVariable String memberName) {
-        List<Message> messages = paperQueryService.visitPaper(memberName);
+    public ResponseEntity<List<VisitMessageDTO>> visitPaper(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                                            @PathVariable String memberName) {
+        Long memberId = userDetails == null ? null : userDetails.getMemberId();
+        List<Message> messages = paperQueryService.visitPaper(memberId, memberName);
         List<VisitMessageDTO> visitMessageDTOs = messages.stream()
                 .map(VisitMessageDTO::from)
                 .toList();

@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.paper.service;
 
+import jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter;
 import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.paper.entity.Message;
@@ -27,6 +28,7 @@ public class PaperQueryService {
     private final PaperQueryRepository paperQueryRepository;
     private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
     private final ApplicationEventPublisher eventPublisher;
+    private final GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
 
     /**
      * <h3>내 롤링페이퍼 조회</h3>
@@ -47,7 +49,7 @@ public class PaperQueryService {
      * @author Jaeik
      * @since 2.0.0
      */
-    public List<Message> visitPaper(String memberName) {
+    public List<Message> visitPaper(Long memberId, String memberName) {
         if (memberName == null || memberName.trim().isEmpty()) {
             throw new CustomException(ErrorCode.PAPER_INVALID_INPUT_VALUE);
         }
@@ -55,6 +57,12 @@ public class PaperQueryService {
         // 사용자 존재 여부 확인 (존재하지 않으면 USERNAME_NOT_FOUND 예외 발생)
         Member member = globalMemberQueryAdapter.findByMemberName(memberName)
                 .orElseThrow(() -> new CustomException(ErrorCode.PAPER_USERNAME_NOT_FOUND));
+
+        // 비회원 확인
+        if (memberId != null) {
+            // 블랙리스트 확인
+            globalMemberBlacklistAdapter.checkMemberBlacklist(memberId, member.getId());
+        }
 
         List<Message> messages = paperQueryRepository.findMessagesByMemberName(memberName);
 

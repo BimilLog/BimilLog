@@ -73,6 +73,7 @@ public enum ErrorCode {
     PAPER_REDIS_READ_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "레디스 읽기 중 오류가 발생했습니다.", LogLevel.ERROR),
     PAPER_REDIS_WRITE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "레디스 쓰기 중 오류가 발생했습니다.", LogLevel.ERROR),
     PAPER_REDIS_DELETE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "레디스 삭제 중 오류가 발생했습니다.", LogLevel.ERROR),
+    BLACKLIST_MEMBER_PAPER_FORBIDDEN(HttpStatus.FORBIDDEN, "차단되거나 차단한 회원의 롤링페이퍼는 조회할 수 없습니다.", LogLevel.WARN),
 
     // ===== Post 도메인 에러 코드 =====
     POST_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 게시글이 존재하지 않습니다.", LogLevel.INFO),
