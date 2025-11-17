@@ -51,8 +51,7 @@ public class MemberBlackController {
      */
     @DeleteMapping("/blacklist")
     public ResponseEntity<Page<BlacklistDTO>> deleteMemberFromBlacklist(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                                                        @Valid BlacklistDTO blacklistDTO,
-                                                                        Pageable pageable) {
+                                                                        @Valid BlacklistDTO blacklistDTO, Pageable pageable) {
         memberBlacklistService.deleteMemberFromMyBlacklist(blacklistDTO.getId(), userDetails.getMemberId(), pageable);
         Page<BlacklistDTO> myBlacklist = memberBlacklistService.getMyBlacklist(userDetails.getMemberId(), pageable);
         return ResponseEntity.ok(myBlacklist);

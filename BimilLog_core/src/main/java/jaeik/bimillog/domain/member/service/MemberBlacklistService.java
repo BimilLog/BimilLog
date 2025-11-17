@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
 
@@ -25,10 +26,12 @@ public class MemberBlacklistService {
     private final MemberBlacklistRepository memberBlacklistRepository;
     private final MemberRepository memberRepository;
 
+    @Transactional(readOnly = true)
     public Page<BlacklistDTO> getMyBlacklist(Long memberId, Pageable pageable) {
         return memberBlacklistQueryRepository.getMyBlacklist(memberId, pageable);
     }
 
+    @Transactional
     public void addMyBlacklist(Long memberId, String memberName) {
         Member requestMember = memberRepository.getReferenceById(memberId);
         Member blackMember = memberRepository.findByMemberName(memberName)
@@ -38,13 +41,14 @@ public class MemberBlacklistService {
         memberBlacklistRepository.save(blacklist);
     }
 
+    @Transactional
     public void deleteMemberFromMyBlacklist(Long blacklistId, Long memberId, Pageable pageable) {
         // 블랙리스트 존재 확인
         MemberBlacklist memberBlacklist = memberBlacklistRepository.findById(blacklistId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_BLACKLIST_NOT_FOUND));
 
-        // DTO의 블랙리스트 ID가 MemberDetail의 memberId의 소속이 맞는지 확인
-        if (!Objects.equals(memberBlacklist.getBlackMember().getId(), memberId)) {
+        // DTO의 블랙리스트 ID가 UserDetail의 memberId의 소속이 맞는지 확인 (본인 인증)
+        if (!Objects.equals(memberBlacklist.getRequestMember().getId(), memberId)) {
             throw new CustomException(ErrorCode.MEMBER_BLACKLIST_FORBIDDEN);
         }
 

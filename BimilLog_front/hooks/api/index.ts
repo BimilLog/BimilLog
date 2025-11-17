@@ -5,6 +5,10 @@
 export * from './useUserQueries';
 export * from './useUserMutations';
 
+// Blacklist hooks
+export * from './useBlacklistQueries';
+export * from './useBlacklistMutations';
+
 // Comment hooks
 export * from './useCommentQueries';
 export * from './useCommentMutations';

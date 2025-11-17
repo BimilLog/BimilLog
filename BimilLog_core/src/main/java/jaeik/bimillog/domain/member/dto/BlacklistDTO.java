@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 /**
@@ -16,7 +17,6 @@ import java.time.LocalDateTime;
  * @since 2.1.0
  */
 @Getter
-@NoArgsConstructor
 @AllArgsConstructor
 public class BlacklistDTO {
 
@@ -28,11 +28,10 @@ public class BlacklistDTO {
     /**
      * 차단한 사용자의 이름
      */
-    @NotBlank(message = "사용자 이름은 필수입니다.")
     @Size(min = 1, max = 8, message = "사용자 이름은 1자 이상 8자 이하여야 합니다.")
     private String memberName;
     /**
      * 차단한 날짜
      */
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 }

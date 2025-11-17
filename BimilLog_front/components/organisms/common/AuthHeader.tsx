@@ -15,7 +15,8 @@ import {
   LogOut,
   Shield,
   ScrollText,
-  UserCircle
+  UserCircle,
+  UserX
 } from "lucide-react";
 import {
   Navbar,
@@ -206,6 +207,10 @@ export const AuthHeader = React.memo(() => {
               <DropdownItem as={Link} href="/settings">
                 <Settings className="mr-2 h-4 w-4 stroke-slate-600 fill-slate-100" />
                 설정
+              </DropdownItem>
+              <DropdownItem as={Link} href="/blacklist">
+                <UserX className="mr-2 h-4 w-4 stroke-slate-600 fill-slate-100" />
+                블랙리스트
               </DropdownItem>
               {user.role === "ADMIN" && (
                 <>
