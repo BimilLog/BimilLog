@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "friend_request",
-        uniqueConstraints = {@UniqueConstraint(name = "unique_friend_request", columnNames = {"sender", "receiver"})})
+        uniqueConstraints = {@UniqueConstraint(name = "unique_friend_request", columnNames = {"sender_id", "receiver_id"})})
 public class FriendRequest extends BaseEntity {
 
     @Id
@@ -27,13 +27,13 @@ public class FriendRequest extends BaseEntity {
 
     // DB레벨 CasCade설정 member 삭제시 FriendRequest삭제
     @NotNull
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id")
     private Member sender;
 
     // DB레벨 CasCade설정 member 삭제시 FriendRequest삭제
     @NotNull
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "receiver_id")
     private Member receiver;
 }
