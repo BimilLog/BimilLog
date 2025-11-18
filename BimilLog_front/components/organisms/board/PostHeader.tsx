@@ -9,7 +9,6 @@ import {
   MessageSquare,
   Lock,
   User,
-  ExternalLink,
   Share2,
   Megaphone,
 } from "lucide-react";
@@ -17,6 +16,7 @@ import { Post } from "@/lib/api";
 import Link from "next/link";
 import { KakaoShareButton } from "@/components";
 import { Popover, Button as FlowbiteButton } from "flowbite-react";
+import { UserActionPopover } from "@/components/molecules/UserActionPopover";
 import { formatDateTime } from "@/lib/utils/date";
 
 interface PostHeaderProps {
@@ -85,35 +85,16 @@ export const PostHeader = React.memo<PostHeaderProps>(({
           <div className="flex items-center space-x-3 text-sm text-brand-muted">
             <div className="flex items-center space-x-2 min-w-0">
               {post.memberName && post.memberName !== "익명" ? (
-                <Popover
-                  trigger="click"
-                  placement="bottom"
-                  content={
-                    <div className="p-3 w-56">
-                      <div className="flex flex-col space-y-2">
-                        <div className="flex items-center space-x-2">
-                          <User className="w-4 h-4 stroke-slate-600 fill-slate-100" />
-                          <span className="font-medium">{post.memberName}</span>
-                        </div>
-                        <Link
-                          href={`/rolling-paper/${encodeURIComponent(
-                            post.memberName
-                          )}`}
-                        >
-                          <Button size="sm" className="w-full justify-start">
-                            <ExternalLink className="w-4 h-4 mr-2 stroke-blue-600 fill-blue-100" />
-                            롤링페이퍼 보기
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
+                <UserActionPopover
+                  memberName={post.memberName}
+                  trigger={
+                    <button className="truncate max-w-[120px] md:max-w-none hover:text-purple-600 hover:underline transition-colors cursor-pointer inline-flex items-center space-x-1">
+                      <User className="w-3 h-3 stroke-slate-600 fill-slate-100" />
+                      <span>{post.memberName}</span>
+                    </button>
                   }
-                >
-                  <button className="truncate max-w-[120px] md:max-w-none hover:text-purple-600 hover:underline transition-colors cursor-pointer inline-flex items-center space-x-1">
-                    <User className="w-3 h-3 stroke-slate-600 fill-slate-100" />
-                    <span>{post.memberName}</span>
-                  </button>
-                </Popover>
+                  placement="bottom"
+                />
               ) : (
                 <span className="truncate max-w-[120px] md:max-w-none text-brand-secondary inline-flex items-center space-x-1">
                   <User className="w-3 h-3 stroke-slate-600 fill-slate-100" />

@@ -16,7 +16,7 @@ export const blacklistCommand = {
 
   /**
    * 블랙리스트에서 사용자 삭제
-   * @param id - 블랙리스트 ID
+   * @param id - 블랙리스트 ID (Path Variable)
    * @param page - 현재 페이지 번호 (삭제 후 업데이트된 목록 조회)
    * @param size - 페이지 크기
    * @returns 업데이트된 블랙리스트 목록
@@ -27,7 +27,6 @@ export const blacklistCommand = {
     size = 20
   ): Promise<ApiResponse<PageResponse<BlacklistDTO>>> =>
     apiClient.delete(
-      `/api/member/blacklist?page=${page}&size=${size}&sort=createdAt,desc`,
-      { id }
+      `/api/member/blacklist/${id}?page=${page}&size=${size}&sort=createdAt,desc`
     ),
 }

@@ -38,21 +38,29 @@ public class MemberBlackController {
 
     /**
      * 특정사람을 블랙리스트에 추가
+     * @param userDetails 인증된 사용자 정보
+     * @param blacklistDTO 블랙리스트 추가 정보 (memberName 필수)
+     * @return 성공 응답
      */
     @PostMapping("/blacklist")
     public ResponseEntity<String> addBlacklist(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                               @Valid BlacklistDTO blacklistDTO) {
+                                               @Valid @RequestBody BlacklistDTO blacklistDTO) {
         memberBlacklistService.addMyBlacklist(userDetails.getMemberId(), blacklistDTO.getMemberName());
         return ResponseEntity.ok().build();
     }
 
     /**
      * 특정 사람을 블랙리스트에서 삭제
+     * @param id 블랙리스트 ID (Path Variable)
+     * @param userDetails 인증된 사용자 정보
+     * @param pageable 페이징 정보
+     * @return Page<BlacklistDTO> 삭제 후 블랙리스트 목록
      */
-    @DeleteMapping("/blacklist")
-    public ResponseEntity<Page<BlacklistDTO>> deleteMemberFromBlacklist(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                                                        @Valid BlacklistDTO blacklistDTO, Pageable pageable) {
-        memberBlacklistService.deleteMemberFromMyBlacklist(blacklistDTO.getId(), userDetails.getMemberId());
+    @DeleteMapping("/blacklist/{id}")
+    public ResponseEntity<Page<BlacklistDTO>> deleteMemberFromBlacklist(@PathVariable Long id,
+                                                                        @AuthenticationPrincipal CustomUserDetails userDetails,
+                                                                        Pageable pageable) {
+        memberBlacklistService.deleteMemberFromMyBlacklist(id, userDetails.getMemberId());
         Page<BlacklistDTO> myBlacklist = memberBlacklistService.getMyBlacklist(userDetails.getMemberId(), pageable);
         return ResponseEntity.ok(myBlacklist);
     }

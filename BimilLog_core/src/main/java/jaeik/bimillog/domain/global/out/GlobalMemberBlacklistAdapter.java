@@ -12,11 +12,11 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class GlobalMemberBlacklistAdapter {
-    private MemberBlacklistService memberBlacklistService;
+    private final MemberBlacklistService memberBlacklistService;
 
     public void checkMemberBlacklist(Long memberId, Long targetMemberId) {
-        boolean BlacklistCheck = memberBlacklistService.checkMemberBlacklist(memberId, targetMemberId);
-        if (BlacklistCheck) {
+        boolean isBlacklisted = memberBlacklistService.checkMemberBlacklist(memberId, targetMemberId);
+        if (isBlacklisted) {
             throw new CustomException(ErrorCode.BLACKLIST_MEMBER_PAPER_FORBIDDEN);
         }
     }

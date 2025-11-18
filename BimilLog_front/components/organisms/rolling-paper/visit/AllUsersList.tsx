@@ -2,7 +2,9 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow } from "flowbite-react";
+import { User } from "lucide-react";
 import { Button } from "@/components";
+import { UserActionPopover } from "@/components/molecules/UserActionPopover";
 import { useAllMembers, useSearchMembers } from "@/hooks/api/useUserQueries";
 import { BoardPagination } from "@/components/organisms/board/board-pagination";
 interface AllUsersListProps {
@@ -124,8 +126,24 @@ export const AllUsersList = ({ searchKeyword = "" }: AllUsersListProps) => {
                   key={member.key}
                   className={index % 2 === 0 ? "bg-white dark:bg-slate-900" : "bg-gray-50 dark:bg-slate-800/50"}
                 >
-                  <TableCell className="py-3 text-gray-900 dark:text-gray-100">
-                    <span className="font-medium">{member.memberName}</span>
+                                    <TableCell className="py-3 text-gray-900 dark:text-gray-100">
+                    {member.memberName && member.memberName !== "익명" ? (
+                      <UserActionPopover
+                        memberName={member.memberName}
+                        trigger={
+                          <button className="font-medium hover:text-purple-600 hover:underline transition-colors inline-flex items-center space-x-1">
+                            <User className="w-3 h-3" />
+                            <span>{member.memberName}</span>
+                          </button>
+                        }
+                        placement="bottom"
+                      />
+                    ) : (
+                      <span className="font-medium inline-flex items-center space-x-1 text-gray-500 dark:text-gray-400">
+                        <User className="w-3 h-3" />
+                        <span>{member.memberName || "익명"}</span>
+                      </span>
+                    )}
                   </TableCell>
                   <TableCell className="py-3 text-center">
                     <Link href={`/rolling-paper/${encodeURIComponent(member.memberName)}`}>

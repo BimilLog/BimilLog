@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.post.service;
 
 
+import jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchType;
@@ -43,6 +44,7 @@ public class PostQueryService {
     private final RedisPostSaveAdapter redisPostSaveAdapter;
     private final PostRepository postRepository;
     private final PostToCommentAdapter postToCommentAdapter;
+    private final GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
 
     /**
      * <h3>게시판 목록 조회</h3>
@@ -79,6 +81,11 @@ public class PostQueryService {
         // 1. 캐시 확인 (Cache-Aside Read)
         PostDetail cachedPost = redisPostQueryAdapter.getCachedPostIfExists(postId);
         if (cachedPost != null) {
+            // 비회원 확인
+            if (memberId != null) {
+                // 블랙리스트 확인
+                globalMemberBlacklistAdapter.checkMemberBlacklist(memberId, cachedPost.getMemberId());
+            }
              // 캐시 히트: 사용자 좋아요 정보만 추가 확인
              if (memberId != null) {
                  boolean isLiked = postLikeQueryAdapter.existsByPostIdAndUserId(postId, memberId);
@@ -90,6 +97,11 @@ public class PostQueryService {
         // 2. 캐시 미스: DB 조회 후 캐시 저장
         PostDetail postDetail = postQueryAdapter.findPostDetailWithCounts(postId, memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+        // 비회원 확인
+        if (memberId != null) {
+            // 블랙리스트 확인
+            globalMemberBlacklistAdapter.checkMemberBlacklist(memberId, postDetail.getMemberId());
+        }
         redisPostSaveAdapter.cachePostDetail(postDetail);
         return postDetail;
     }

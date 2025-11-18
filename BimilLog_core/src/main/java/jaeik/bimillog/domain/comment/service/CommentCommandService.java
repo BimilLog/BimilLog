@@ -70,11 +70,20 @@ public class CommentCommandService {
     public void writeComment(Long memberId, Long postId, Long parentId, String content, Integer password) {
         try {
             Post post = postRepository.findById(postId).orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+            Comment parentComment = parentId != null
+                    ? commentRepository.findById(parentId).orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND))
+                    : null;
 
             // 비회원 확인
             if (memberId != null) {
                 // 블랙리스트 확인
-                globalMemberBlacklistAdapter.checkMemberBlacklist(memberId, post.getMember().getId());
+                if (post.getMember() != null) {
+                    globalMemberBlacklistAdapter.checkMemberBlacklist(memberId, post.getMember().getId());
+                }
+
+                if (parentComment != null && parentComment.getMember() != null) {
+                    globalMemberBlacklistAdapter.checkMemberBlacklist(memberId, parentComment.getMember().getId());
+                }
             }
 
             Member member = memberId != null ? globalMemberQueryAdapter.findById(memberId).orElse(null) : null;
@@ -160,9 +169,8 @@ public class CommentCommandService {
         Member member = globalMemberQueryAdapter.findById(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_USER_NOT_FOUND));
 
-        // 비회원 확인
-        if (memberId != null) {
-            // 블랙리스트 확인
+        // 블랙리스트 확인 (익명 댓글이 아닌 경우에만)
+        if (comment.getMember() != null) {
             globalMemberBlacklistAdapter.checkMemberBlacklist(memberId, comment.getMember().getId());
         }
 

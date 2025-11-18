@@ -4,7 +4,7 @@ import React, { useState, useMemo } from "react";
 import { Button, Input, SafeHTML, Spinner, TimeBadge } from "@/components";
 import { LazyEditor, LazyReportModal } from "@/lib/utils/lazy-components";
 import { Button as FlowbiteButton } from "flowbite-react";
-import { ThumbsUp, Reply, MoreHorizontal, User, ExternalLink, CornerDownRight, ChevronDown, ChevronUp } from "lucide-react";
+import { ThumbsUp, Reply, MoreHorizontal, User, CornerDownRight, ChevronDown, ChevronUp } from "lucide-react";
 import { Comment, userCommand } from "@/lib/api";
 import { useAuth } from "@/hooks";
 import {
@@ -16,6 +16,7 @@ import {
 import Link from "next/link";
 import { useToast } from "@/hooks";
 import { Popover } from "flowbite-react";
+import { UserActionPopover } from "@/components/molecules/UserActionPopover";
 
 interface CommentItemProps {
   comment: Comment & { replies?: Comment[] };
@@ -236,35 +237,16 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
                   <CornerDownRight className="w-4 h-4 text-purple-500 flex-shrink-0" />
                 )}
                 {comment.memberName && comment.memberName !== "익명" ? (
-                  <Popover
-                    trigger="click"
-                    placement="bottom"
-                    content={
-                      <div className="p-3 w-56">
-                        <div className="flex flex-col space-y-2">
-                          <div className="flex items-center space-x-2">
-                            <User className="w-4 h-4" />
-                            <span className="font-medium">{comment.memberName}</span>
-                          </div>
-                          <Link
-                            href={`/rolling-paper/${encodeURIComponent(
-                              comment.memberName
-                            )}`}
-                          >
-                            <Button size="sm" className="w-full justify-start">
-                              <ExternalLink className="w-4 h-4 mr-2" />
-                              롤링페이퍼 보기
-                            </Button>
-                          </Link>
-                        </div>
-                      </div>
+                  <UserActionPopover
+                    memberName={comment.memberName}
+                    trigger={
+                      <button className="font-semibold text-sm sm:text-base hover:text-purple-600 hover:underline transition-colors cursor-pointer inline-flex items-center space-x-1 truncate">
+                        <User className="w-3 h-3 flex-shrink-0" />
+                        <span className="truncate">{comment.memberName}</span>
+                      </button>
                     }
-                  >
-                    <button className="font-semibold text-sm sm:text-base hover:text-purple-600 hover:underline transition-colors cursor-pointer inline-flex items-center space-x-1 truncate">
-                      <User className="w-3 h-3 flex-shrink-0" />
-                      <span className="truncate">{comment.memberName}</span>
-                    </button>
-                  </Popover>
+                    placement="bottom"
+                  />
                 ) : (
                   <span className="font-semibold text-sm sm:text-base inline-flex items-center space-x-1 truncate text-brand-secondary">
                     <User className="w-3 h-3 flex-shrink-0 stroke-slate-600 fill-slate-100" />

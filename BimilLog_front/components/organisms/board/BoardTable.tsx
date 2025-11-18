@@ -10,8 +10,7 @@ import { usePostReadStatus } from "@/hooks/features/useReadingProgress";
 import {
   ThumbsUp,
   Eye,
-  User,
-  ExternalLink
+  User
 } from "lucide-react";
 import {
   Table,
@@ -22,6 +21,7 @@ import {
   TableRow,
   Popover
 } from "flowbite-react";
+import { UserActionPopover } from "@/components/molecules/UserActionPopover";
 
 /**
  * 게시글 목록 테이블 컴포넌트
@@ -103,33 +103,16 @@ const BoardTableRow = memo<TableRowProps>(({
       {/* 작성자 */}
       <TableCell className="text-brand-primary dark:text-gray-100">
         {post.memberName && post.memberName !== "익명" ? (
-          <Popover
-            trigger="click"
-            placement="bottom"
-            content={
-              <div className="p-3 w-56">
-                <div className="flex flex-col space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <User className="w-4 h-4" />
-                    <span className="font-medium">{post.memberName}</span>
-                  </div>
-                  <Link
-                    href={`/rolling-paper/${encodeURIComponent(post.memberName)}`}
-                  >
-                    <Button size="sm" className="w-full justify-start">
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      롤링페이퍼 보기
-                    </Button>
-                  </Link>
-                </div>
-              </div>
+          <UserActionPopover
+            memberName={post.memberName}
+            trigger={
+              <button className="inline-flex max-w-20 items-center space-x-1 truncate transition-colors hover:text-purple-600 hover:underline dark:text-gray-200 dark:hover:text-purple-300">
+                <User className="w-3 h-3" />
+                <span>{post.memberName}</span>
+              </button>
             }
-          >
-            <button className="inline-flex max-w-20 items-center space-x-1 truncate transition-colors hover:text-purple-600 hover:underline dark:text-gray-200 dark:hover:text-purple-300">
-              <User className="w-3 h-3" />
-              <span>{post.memberName}</span>
-            </button>
-          </Popover>
+            placement="bottom"
+          />
         ) : (
           <span className="inline-flex max-w-20 items-center space-x-1 truncate text-gray-500 dark:text-gray-400">
             <User className="w-3 h-3" />
@@ -235,36 +218,16 @@ const BoardMobileCard = memo<TableRowProps>(({
         <div className="flex items-center justify-between text-xs text-brand-secondary dark:text-gray-300">
           <div className="flex items-center gap-2">
             {post.memberName && post.memberName !== "익명" ? (
-              <Popover
-                trigger="click"
-                placement="bottom"
-                theme={{
-                  base: "z-[9999] absolute"
-                }}
-                content={
-                  <div className="p-3 w-56">
-                    <div className="flex flex-col space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <User className="w-4 h-4" />
-                        <span className="font-medium">{post.memberName}</span>
-                      </div>
-                      <Link
-                        href={`/rolling-paper/${encodeURIComponent(post.memberName)}`}
-                      >
-                        <Button size="sm" className="w-full justify-start">
-                          <ExternalLink className="w-4 h-4 mr-2" />
-                          롤링페이퍼 보기
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
+              <UserActionPopover
+                memberName={post.memberName}
+                trigger={
+                  <button className="inline-flex max-w-20 cursor-pointer items-center space-x-1 truncate transition-colors hover:text-purple-600 hover:underline dark:text-gray-200 dark:hover:text-purple-300">
+                    <User className="w-3 h-3" />
+                    <span>{post.memberName}</span>
+                  </button>
                 }
-              >
-                <button className="inline-flex max-w-20 cursor-pointer items-center space-x-1 truncate transition-colors hover:text-purple-600 hover:underline dark:text-gray-200 dark:hover:text-purple-300">
-                  <User className="w-3 h-3" />
-                  <span>{post.memberName}</span>
-                </button>
-              </Popover>
+                placement="bottom"
+              />
             ) : (
               <span className="inline-flex max-w-20 items-center space-x-1 truncate text-gray-500 dark:text-gray-400">
                 <User className="w-3 h-3" />

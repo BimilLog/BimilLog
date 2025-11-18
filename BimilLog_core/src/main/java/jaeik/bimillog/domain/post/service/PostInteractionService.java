@@ -66,9 +66,8 @@ public class PostInteractionService {
         Member member = globalMemberQueryAdapter.getReferenceById(memberId);
         Post post = globalPostQueryAdapter.findById(postId);
 
-        // 비회원 확인
-        if (memberId != null) {
-            // 블랙리스트 확인
+        // 블랙리스트 확인 (익명 게시글이 아닌 경우에만)
+        if (post.getMember() != null) {
             globalMemberBlacklistAdapter.checkMemberBlacklist(memberId, post.getMember().getId());
         }
 

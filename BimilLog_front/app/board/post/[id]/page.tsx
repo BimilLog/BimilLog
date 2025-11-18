@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import { generateStructuredData, generateKeywords } from "@/lib/seo";
 import { PostDetailClient } from "@/components/organisms/board";
+import { BlockedToastRedirect } from "@/components/molecules/alerts/BlockedToastRedirect";
 
 interface Props {
   params: Promise<{
@@ -110,6 +111,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function PostDetailPage({ params }: Props) {
   const { id: postId } = await params;
 
+  const buildBlockedResponse = (message?: string) => (
+    <BlockedToastRedirect
+      message={message}
+      redirectTo="/board"
+      fallbackText="차단된 사용자와는 상호작용할 수 없습니다. 게시판으로 이동합니다."
+    />
+  );
+
   // 서버 컴포넌트에서 초기 데이터 페칭 - 클라이언트 하이드레이션 전에 데이터 확보
   // Next.js가 동일한 fetch 요청을 자동으로 dedupe하므로 generateMetadata와 중복 요청되지 않음
   try {
@@ -121,8 +130,16 @@ export default async function PostDetailPage({ params }: Props) {
       }
     );
 
-    if (!response.ok) {
+    if (response.status === 404) {
       notFound();
+    }
+
+    if (!response.ok) {
+      const errorPayload = await response.json().catch(() => null);
+      const message =
+        (errorPayload && (errorPayload.errorMessage || errorPayload.error)) ||
+        undefined;
+      return buildBlockedResponse(message);
     }
 
     const post = await response.json();
