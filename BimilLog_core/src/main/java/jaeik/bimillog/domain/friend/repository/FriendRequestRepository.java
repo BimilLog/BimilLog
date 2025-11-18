@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.friend.repository;
 
-import jaeik.bimillog.domain.friend.entity.FriendRequest;
+import jaeik.bimillog.domain.friend.entity.jpa.FriendRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

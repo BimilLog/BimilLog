@@ -100,6 +100,21 @@ public class FcmCommandService {
         }
     }
 
+    /**
+     * <h3>친구 요청 FCM 전송</h3>
+     */
+    public void sendFriendNotification(Long memberId, String title, String body) {
+        try {
+            List<String> tokens = notificationUtilAdapter.FcmEligibleFcmTokens(memberId, NotificationType.POST_FEATURED);
+            boolean sent = sendNotifications(tokens, title, body);
+            if (sent) {
+                log.info("친구 요청 알림 FCM 전송 완료: 사용자 ID={}, 토큰 수={}", memberId, tokens.size());
+            }
+        } catch (Exception e) {
+            log.error("친구 요청 등극 알림 전송 실패: 사용자 ID={}, 제목={}", memberId, title, e);
+        }
+    }
+
 
     /**
      * <h3>FCM 알림 전송 헬퍼 메서드</h3>

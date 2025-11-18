@@ -1,12 +1,11 @@
-package jaeik.bimillog.domain.friend.entity;
+package jaeik.bimillog.domain.friend.entity.jpa;
 
 import jaeik.bimillog.domain.global.entity.BaseEntity;
 import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.member.entity.MemberBlacklist;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 /**
  * 친구 요청테이블
@@ -16,6 +15,8 @@ import lombok.NoArgsConstructor;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 @Table(name = "friend_request",
         uniqueConstraints = {@UniqueConstraint(name = "unique_friend_request", columnNames = {"sender_id", "receiver_id"})})
 public class FriendRequest extends BaseEntity {
@@ -36,4 +37,11 @@ public class FriendRequest extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "receiver_id")
     private Member receiver;
+
+    public static FriendRequest createFriendRequest(Member sender, Member receiver) {
+        return FriendRequest.builder()
+                .sender(sender)
+                .receiver(receiver)
+                .build();
+    }
 }

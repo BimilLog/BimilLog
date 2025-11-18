@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.friend.entity;
+package jaeik.bimillog.domain.friend.entity.jpa;
 
 import jaeik.bimillog.domain.global.entity.BaseEntity;
 import jaeik.bimillog.domain.member.entity.Member;

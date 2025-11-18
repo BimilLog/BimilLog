@@ -111,4 +111,13 @@ public class SseService {
         SseMessage sseMessage = SseMessage.of(memberId, NotificationType.POST_FEATURED, message, url);
         sseAdapter.send(sseMessage);
     }
+
+    /**
+     * 친구 요청 SSE 전송
+     */
+    public void sendFriendNotification(Long receiveMemberId, String message) {
+        String url = urlGeneratorAdapter.generateFriendRequestUrl(receiveMemberId);
+        SseMessage sseMessage = SseMessage.of(receiveMemberId, NotificationType.FRIEND, message, url);
+        sseAdapter.send(sseMessage);
+    }
 }

@@ -50,4 +50,16 @@ public class FriendRequestCommandController {
         return ResponseEntity.ok(friendSenderRequests);
     }
 
+    /**
+     * 친구 요청 전송 API
+     */
+    @PostMapping("/send")
+    public ResponseEntity<Page<FriendSenderRequest>> sendFriendRequest(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                                                       @RequestBody FriendSenderRequest friendSenderRequest,
+                                                                       Pageable pageable) {
+
+        friendRequestCommand.sendFriendRequest(userDetails.getMemberId(), friendSenderRequest.getReceiverMemberId());
+        Page<FriendSenderRequest> friendSenderRequests = friendRequestQuery.getFriendSendRequest(userDetails.getMemberId(), pageable);
+        return ResponseEntity.ok(friendSenderRequests);
+    }
 }

@@ -45,4 +45,11 @@ public class UrlGeneratorAdapter {
     public String generateRollingPaperUrl(String memberName) {
         return baseUrl + "/rolling-paper/" + memberName;
     }
+
+    /**
+     * 받은 친구 요청 url 생성
+     */
+    public String generateFriendRequestUrl(Long memberId) {
+        return baseUrl + "/friend/send/" + memberId;
+    }
 }
