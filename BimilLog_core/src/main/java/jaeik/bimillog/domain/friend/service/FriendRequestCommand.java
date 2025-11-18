@@ -62,7 +62,13 @@ public class FriendRequestCommand {
     /**
      * 친구 요청 전송
      */
+    @Transactional
     public void sendFriendRequest(Long memberId, Long receiveMemberId) {
+        // 자기 자신에게 요청 금지
+        if (Objects.equals(memberId, receiveMemberId)) {
+            throw new CustomException(ErrorCode.SELF_FRIEND_REQUEST_FORBIDDEN);
+        }
+
         // 요청 받는 사람이 실존하는지 확인
         Member receiver = globalMemberQueryAdapter.findById(receiveMemberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_USER_NOT_FOUND));
@@ -70,20 +76,38 @@ public class FriendRequestCommand {
         // 요청 받는 사람과 블랙리스트 관계인지 확인
         globalMemberBlacklistAdapter.checkMemberBlacklist(memberId, receiveMemberId);
 
+        // 이미 요청이 존재 하는지 확인 (1,10)이 있으면 (10,1)도 있으면 안된다.
+        checkFriendRequest(memberId, receiveMemberId);
+
         Member sender = globalMemberQueryAdapter.findById(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_USER_NOT_FOUND));
 
         FriendRequest friendRequest = FriendRequest.createFriendRequest(sender, receiver);
 
-        // 이미 요청이 존재 하는지 확인하지 않고 바로 저장 오류시 존재하는 것
         friendRequestRepository.save(friendRequest);
 
         // 비동기로 SSE와 FCM 발송, 알림DB 저장
         eventPublisher.publishEvent(new FriendEvent(
                 receiveMemberId,
-                receiver.getMemberName() + "님 에게서 친구 요청이 도착했습니다.",
-                receiver.getMemberName() + "님 에게서 친구 요청이 도착했습니다.",
+                sender.getMemberName() + "님 에게서 친구 요청이 도착했습니다.",
+                sender.getMemberName() + "님 에게서 친구 요청이 도착했습니다.",
                 "비밀로그에서 확인해보세요!"
         ));
+    }
+
+    private void checkFriendRequest(Long memberId, Long receiveMemberId) {
+        // 이미 요청이 존재한다.
+        boolean aSendB = friendRequestRepository.existsBySenderIdAndReceiverId(memberId, receiveMemberId);
+
+        if (aSendB) {
+            throw new CustomException(ErrorCode.FRIEND_REQUEST_ALREADY_SEND);
+        }
+
+        // 이미 상대가 요청을 보냈다.
+        boolean bSendA = friendRequestRepository.existsBySenderIdAndReceiverId(receiveMemberId, memberId);
+
+        if (bSendA) {
+            throw new CustomException(ErrorCode.FRIEND_REQUEST_ALREADY_RECEIVE);
+        }
     }
 }
