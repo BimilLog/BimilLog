@@ -85,7 +85,8 @@ public enum ErrorCode {
 
     // ===== Friend 도메인 에러 코드 =====
     FRIEND_REQUEST_NOT_FOUND(HttpStatus.BAD_REQUEST, "존재하지 않는 친구 요청입니다.", LogLevel.ERROR),
-    FRIEND_REQUEST_CANCEL_FORBIDDEN(HttpStatus.FORBIDDEN, "자신의 친구 요청만 취소할 수 있습니다", LogLevel.WARN);
+    FRIEND_REQUEST_CANCEL_FORBIDDEN(HttpStatus.FORBIDDEN, "자신의 친구 요청만 취소할 수 있습니다", LogLevel.WARN),
+    FRIEND_REQUEST_REJECT_FORBIDDEN(HttpStatus.FORBIDDEN, "자신의 친구 요청만 거절할 수 있습니다", LogLevel.WARN);
 
     private final HttpStatus status;
     private final String message;

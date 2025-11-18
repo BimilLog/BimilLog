@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.friend.controller;
 
+import jaeik.bimillog.domain.friend.entity.FriendReceiverRequest;
 import jaeik.bimillog.domain.friend.entity.FriendSenderRequest;
 import jaeik.bimillog.domain.friend.service.FriendRequestCommand;
 import jaeik.bimillog.domain.friend.service.FriendRequestQuery;
@@ -33,6 +34,19 @@ public class FriendRequestCommandController {
 
         friendRequestCommand.cancelFriendRequest(userDetails.getMemberId(), friendRequestId);
         Page<FriendSenderRequest> friendSenderRequests = friendRequestQuery.getFriendSendRequest(userDetails.getMemberId(), pageable);
+        return ResponseEntity.ok(friendSenderRequests);
+    }
+
+    /**
+     * 받은 친구 요청 거절 API
+     */
+    @DeleteMapping("/receive/{friendRequestId}")
+    public ResponseEntity<Page<FriendReceiverRequest>> rejectReceiveFriendRequest(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                                                           @PathVariable Long friendRequestId,
+                                                                           Pageable pageable) {
+
+        friendRequestCommand.rejectFriendRequest(userDetails.getMemberId(), friendRequestId);
+        Page<FriendReceiverRequest> friendSenderRequests = friendRequestQuery.getFriendReceiveRequest(userDetails.getMemberId(), pageable);
         return ResponseEntity.ok(friendSenderRequests);
     }
 
