@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.friend.controller;
 
+import jaeik.bimillog.domain.friend.entity.FriendReceiverRequest;
 import jaeik.bimillog.domain.friend.entity.FriendSenderRequest;
 import jaeik.bimillog.domain.friend.service.FriendRequestQuery;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
@@ -21,7 +22,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/friend")
 public class FriendRequestController {
-
     private final FriendRequestQuery friendRequestQuery;
 
     /**
@@ -31,6 +31,16 @@ public class FriendRequestController {
     public ResponseEntity<Page<FriendSenderRequest>> getFriendSendRequest(@AuthenticationPrincipal CustomUserDetails userDetails,
                                                                          Pageable pageable) {
         Page<FriendSenderRequest> friendSenderRequests = friendRequestQuery.getFriendSendRequest(userDetails.getMemberId(), pageable);
+        return ResponseEntity.ok(friendSenderRequests);
+    }
+
+    /**
+     * 받은 친구 요청 조회 API
+     */
+    @GetMapping("/receive")
+    public ResponseEntity<Page<FriendReceiverRequest>> getFriendReceiveRequest(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                                                            Pageable pageable) {
+        Page<FriendReceiverRequest> friendSenderRequests = friendRequestQuery.getFriendReceiveRequest(userDetails.getMemberId(), pageable);
         return ResponseEntity.ok(friendSenderRequests);
     }
 }

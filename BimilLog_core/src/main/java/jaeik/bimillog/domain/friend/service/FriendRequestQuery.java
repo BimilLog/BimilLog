@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.friend.service;
 
+import jaeik.bimillog.domain.friend.entity.FriendReceiverRequest;
 import jaeik.bimillog.domain.friend.entity.FriendSenderRequest;
 import jaeik.bimillog.domain.friend.repository.FriendRequestQueryRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,5 +16,10 @@ public class FriendRequestQuery {
     // 보낸 친구 요청 조회
     public Page<FriendSenderRequest> getFriendSendRequest(Long memberId, Pageable pageable) {
         return friendRequestQueryRepository.findAllBySenderId(memberId, pageable);
+    }
+
+    // 받은 친구 요청 조회
+    public Page<FriendReceiverRequest> getFriendReceiveRequest(Long memberId, Pageable pageable) {
+        return friendRequestQueryRepository.findAllByReceiveId(memberId, pageable);
     }
 }

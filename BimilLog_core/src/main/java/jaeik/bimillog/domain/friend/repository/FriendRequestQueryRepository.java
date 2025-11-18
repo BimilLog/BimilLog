@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.friend.repository;
 
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import jaeik.bimillog.domain.friend.entity.FriendReceiverRequest;
 import jaeik.bimillog.domain.friend.entity.FriendSenderRequest;
 import jaeik.bimillog.domain.friend.entity.QFriendRequest;
 import jaeik.bimillog.domain.member.entity.QMember;
@@ -38,6 +39,29 @@ public class FriendRequestQueryRepository {
                 .select(friendRequest.count())
                 .from(friendRequest)
                 .where(friendRequest.sender.id.eq(memberId))
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, total != null ? total : 0);
+    }
+
+    // 받은 친구 요청 조회
+    public Page<FriendReceiverRequest> findAllByReceiveId(Long memberId, Pageable pageable) {
+        List<FriendReceiverRequest> content =  jpaQueryFactory
+                .select(Projections.constructor(FriendReceiverRequest.class,
+                        friendRequest.id,
+                        member.id,
+                        member.memberName))
+                .from(friendRequest)
+                .join(friendRequest.sender, member)
+                .where(friendRequest.receiver.id.eq(memberId))
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        Long total = jpaQueryFactory
+                .select(friendRequest.count())
+                .from(friendRequest)
+                .where(friendRequest.receiver.id.eq(memberId))
                 .fetchOne();
 
         return new PageImpl<>(content, pageable, total != null ? total : 0);
