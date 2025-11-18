@@ -1,12 +1,15 @@
 package jaeik.bimillog.domain.comment.out;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.comment.service.CommentQueryService;
 import jaeik.bimillog.domain.comment.entity.*;
 import jaeik.bimillog.domain.member.entity.QMember;
+import jaeik.bimillog.domain.member.entity.QMemberBlacklist;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -41,6 +44,7 @@ public class CommentQueryAdapter {
     private static final QCommentLike commentLike = QCommentLike.commentLike;
     private static final QCommentClosure closure = QCommentClosure.commentClosure;
     private static final QMember member = QMember.member;
+    private static final QMemberBlacklist memberBlacklist = QMemberBlacklist.memberBlacklist;
 
     /**
      * <h3>사용자 작성 댓글 목록 조회</h3>
@@ -181,7 +185,7 @@ public class CommentQueryAdapter {
 
         // 쿼리 실행
         List<CommentInfo> popularComments = query
-                .where(comment.post.id.eq(postId))
+                .where(applyBlacklistFilter(comment.post.id.eq(postId), memberId))
                 .groupBy(comment.id, member.memberName, comment.createdAt,
                          parentClosure.ancestor.id, userCommentLike.id)
                 .having(commentLike.countDistinct().goe(3)) // 추천 3개 이상
@@ -261,7 +265,7 @@ public class CommentQueryAdapter {
 
         // 쿼리 실행
         List<CommentInfo> content = query
-                .where(comment.post.id.eq(postId))
+                .where(applyBlacklistFilter(comment.post.id.eq(postId), memberId))
                 .groupBy(comment.id, member.memberName, comment.createdAt,
                          parentClosure.ancestor.id, userCommentLike.id)
                 .orderBy(comment.createdAt.asc())
@@ -269,7 +273,7 @@ public class CommentQueryAdapter {
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        Long total = countRootCommentsByPostId(postId);
+        Long total = countRootCommentsByPostId(postId, memberId);
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
 
@@ -341,12 +345,14 @@ public class CommentQueryAdapter {
      * @author Jaeik
      * @since 2.0.0
      */
-    private Long countRootCommentsByPostId(Long postId) {
+    private Long countRootCommentsByPostId(Long postId, Long memberId) {
+        BooleanExpression blacklistFilter = applyBlacklistFilter(comment.post.id.eq(postId), memberId);
         return jpaQueryFactory
                 .select(comment.countDistinct())
                 .from(comment)
+                .leftJoin(comment.member, member)
                 .join(closure).on(comment.id.eq(closure.descendant.id))
-                .where(comment.post.id.eq(postId).and(closure.depth.eq(0)))
+                .where(blacklistFilter.and(closure.depth.eq(0)))
                 .fetchOne();
     }
 
@@ -358,5 +364,22 @@ public class CommentQueryAdapter {
                 .leftJoin(comment.member, member).fetchJoin()
                 .where(comment.id.in(commentIds))
                 .fetch();
+    }
+
+    private BooleanExpression applyBlacklistFilter(BooleanExpression baseCondition, Long viewerId) {
+        if (viewerId == null) {
+            return baseCondition;
+        }
+
+        BooleanExpression blacklistBlock = JPAExpressions
+                .selectOne()
+                .from(memberBlacklist)
+                .where(
+                        memberBlacklist.requestMember.id.eq(viewerId).and(memberBlacklist.blackMember.id.eq(member.id))
+                                .or(memberBlacklist.requestMember.id.eq(member.id).and(memberBlacklist.blackMember.id.eq(viewerId)))
+                )
+                .notExists();
+
+        return baseCondition.and(blacklistBlock);
     }
 }

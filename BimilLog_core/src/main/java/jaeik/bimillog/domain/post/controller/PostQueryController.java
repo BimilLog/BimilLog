@@ -61,8 +61,10 @@ public class PostQueryController {
     @Log(level = LogLevel.DEBUG,
          message = "게시판 목록 조회",
          logResult = false)
-    public ResponseEntity<Page<SimplePostDTO>> getBoard(Pageable pageable) {
-        Page<PostSimpleDetail> postList = postQueryService.getBoard(pageable);
+    public ResponseEntity<Page<SimplePostDTO>> getBoard(Pageable pageable,
+                                                        @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long memberId = userDetails != null ? userDetails.getMemberId() : null;
+        Page<PostSimpleDetail> postList = postQueryService.getBoard(pageable, memberId);
         Page<SimplePostDTO> dtoList = postList.map(postResponseMapper::convertToSimplePostResDTO);
         return ResponseEntity.ok(dtoList);
     }
@@ -121,8 +123,10 @@ public class PostQueryController {
          logExecutionTime = true,
          logResult = false)
     public ResponseEntity<Page<SimplePostDTO>> searchPost(@Valid @ModelAttribute PostSearchDTO searchDTO,
-                                                          Pageable pageable) {
-        Page<PostSimpleDetail> postList = postQueryService.searchPost(searchDTO.getType(), searchDTO.getTrimmedQuery(), pageable);
+                                                          Pageable pageable,
+                                                          @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long memberId = userDetails != null ? userDetails.getMemberId() : null;
+        Page<PostSimpleDetail> postList = postQueryService.searchPost(searchDTO.getType(), searchDTO.getTrimmedQuery(), pageable, memberId);
         Page<SimplePostDTO> dtoList = postList.map(postResponseMapper::convertToSimplePostResDTO);
         return ResponseEntity.ok(dtoList);
     }

@@ -87,17 +87,17 @@ class PostQueryServiceTest extends BaseUnitTest {
         PostSimpleDetail postResult = PostTestDataBuilder.createPostSearchResult(1L, "제목1");
         Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(postResult), pageable, 1);
 
-        given(postQueryAdapter.findByPage(pageable)).willReturn(expectedPage);
+        given(postQueryAdapter.findByPage(pageable, null)).willReturn(expectedPage);
 
         // When
-        Page<PostSimpleDetail> result = postQueryService.getBoard(pageable);
+        Page<PostSimpleDetail> result = postQueryService.getBoard(pageable, null);
 
         // Then
         assertThat(result).isEqualTo(expectedPage);
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().getFirst().getTitle()).isEqualTo("제목1");
 
-        verify(postQueryAdapter).findByPage(pageable);
+        verify(postQueryAdapter).findByPage(pageable, null);
     }
 
 
@@ -285,18 +285,18 @@ class PostQueryServiceTest extends BaseUnitTest {
         PostSimpleDetail searchResult = PostTestDataBuilder.createPostSearchResult(1L, "검색 결과");
         Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(searchResult), pageable, 1);
 
-        given(postQueryAdapter.findByFullTextSearch(type, query, pageable)).willReturn(expectedPage);
+        given(postQueryAdapter.findByFullTextSearch(type, query, pageable, null)).willReturn(expectedPage);
 
         // When
-        Page<PostSimpleDetail> result = postQueryService.searchPost(type, query, pageable);
+        Page<PostSimpleDetail> result = postQueryService.searchPost(type, query, pageable, null);
 
         // Then
         assertThat(result).isEqualTo(expectedPage);
         assertThat(result.getContent()).hasSize(1);
 
-        verify(postQueryAdapter).findByFullTextSearch(type, query, pageable);
-        verify(postQueryAdapter, never()).findByPartialMatch(any(), any(), any());
-        verify(postQueryAdapter, never()).findByPrefixMatch(any(), any(), any());
+        verify(postQueryAdapter).findByFullTextSearch(type, query, pageable, null);
+        verify(postQueryAdapter, never()).findByPartialMatch(any(), any(), any(), any());
+        verify(postQueryAdapter, never()).findByPrefixMatch(any(), any(), any(), any());
     }
 
     @Test
@@ -309,16 +309,16 @@ class PostQueryServiceTest extends BaseUnitTest {
 
         Page<PostSimpleDetail> emptyPage = Page.empty(pageable);
 
-        given(postQueryAdapter.findByFullTextSearch(type, query, pageable)).willReturn(emptyPage);
+        given(postQueryAdapter.findByFullTextSearch(type, query, pageable, null)).willReturn(emptyPage);
 
         // When
-        Page<PostSimpleDetail> result = postQueryService.searchPost(type, query, pageable);
+        Page<PostSimpleDetail> result = postQueryService.searchPost(type, query, pageable, null);
 
         // Then
         assertThat(result).isEqualTo(emptyPage);
 
-        verify(postQueryAdapter).findByFullTextSearch(type, query, pageable);
-        verify(postQueryAdapter, never()).findByPartialMatch(type, query, pageable);
+        verify(postQueryAdapter).findByFullTextSearch(type, query, pageable, null);
+        verify(postQueryAdapter, never()).findByPartialMatch(type, query, pageable, null);
     }
 
     @Test
@@ -332,18 +332,18 @@ class PostQueryServiceTest extends BaseUnitTest {
         PostSimpleDetail searchResult = PostTestDataBuilder.createPostSearchResult(1L, "작성자 검색 결과");
         Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(searchResult), pageable, 1);
 
-        given(postQueryAdapter.findByPrefixMatch(type, query, pageable)).willReturn(expectedPage);
+        given(postQueryAdapter.findByPrefixMatch(type, query, pageable, null)).willReturn(expectedPage);
 
         // When
-        Page<PostSimpleDetail> result = postQueryService.searchPost(type, query, pageable);
+        Page<PostSimpleDetail> result = postQueryService.searchPost(type, query, pageable, null);
 
         // Then
         assertThat(result).isEqualTo(expectedPage);
         assertThat(result.getContent()).hasSize(1);
 
-        verify(postQueryAdapter).findByPrefixMatch(type, query, pageable);
-        verify(postQueryAdapter, never()).findByFullTextSearch(any(), any(), any());
-        verify(postQueryAdapter, never()).findByPartialMatch(any(), any(), any());
+        verify(postQueryAdapter).findByPrefixMatch(type, query, pageable, null);
+        verify(postQueryAdapter, never()).findByFullTextSearch(any(), any(), any(), any());
+        verify(postQueryAdapter, never()).findByPartialMatch(any(), any(), any(), any());
     }
 
     @Test
@@ -357,18 +357,18 @@ class PostQueryServiceTest extends BaseUnitTest {
         PostSimpleDetail searchResult = PostTestDataBuilder.createPostSearchResult(1L, "부분 검색 결과");
         Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(searchResult), pageable, 1);
 
-        given(postQueryAdapter.findByPartialMatch(type, query, pageable)).willReturn(expectedPage);
+        given(postQueryAdapter.findByPartialMatch(type, query, pageable, null)).willReturn(expectedPage);
 
         // When
-        Page<PostSimpleDetail> result = postQueryService.searchPost(type, query, pageable);
+        Page<PostSimpleDetail> result = postQueryService.searchPost(type, query, pageable, null);
 
         // Then
         assertThat(result).isEqualTo(expectedPage);
         assertThat(result.getContent()).hasSize(1);
 
-        verify(postQueryAdapter).findByPartialMatch(type, query, pageable);
-        verify(postQueryAdapter, never()).findByFullTextSearch(any(), any(), any());
-        verify(postQueryAdapter, never()).findByPrefixMatch(any(), any(), any());
+        verify(postQueryAdapter).findByPartialMatch(type, query, pageable, null);
+        verify(postQueryAdapter, never()).findByFullTextSearch(any(), any(), any(), any());
+        verify(postQueryAdapter, never()).findByPrefixMatch(any(), any(), any(), any());
     }
 
     @Test
@@ -382,18 +382,18 @@ class PostQueryServiceTest extends BaseUnitTest {
         PostSimpleDetail searchResult = PostTestDataBuilder.createPostSearchResult(1L, "부분 검색 결과");
         Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(searchResult), pageable, 1);
 
-        given(postQueryAdapter.findByPartialMatch(type, query, pageable)).willReturn(expectedPage);
+        given(postQueryAdapter.findByPartialMatch(type, query, pageable, null)).willReturn(expectedPage);
 
         // When
-        Page<PostSimpleDetail> result = postQueryService.searchPost(type, query, pageable);
+        Page<PostSimpleDetail> result = postQueryService.searchPost(type, query, pageable, null);
 
         // Then
         assertThat(result).isEqualTo(expectedPage);
         assertThat(result.getContent()).hasSize(1);
 
-        verify(postQueryAdapter).findByPartialMatch(type, query, pageable);
-        verify(postQueryAdapter, never()).findByFullTextSearch(any(), any(), any());
-        verify(postQueryAdapter, never()).findByPrefixMatch(any(), any(), any());
+        verify(postQueryAdapter).findByPartialMatch(type, query, pageable, null);
+        verify(postQueryAdapter, never()).findByFullTextSearch(any(), any(), any(), any());
+        verify(postQueryAdapter, never()).findByPrefixMatch(any(), any(), any(), any());
     }
 
 
@@ -441,7 +441,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         PostSimpleDetail userPost = PostTestDataBuilder.createPostSearchResult(1L, "사용자 게시글");
         Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(userPost), pageable, 1);
 
-        given(postQueryAdapter.findPostsByMemberId(memberId, pageable)).willReturn(expectedPage);
+        given(postQueryAdapter.findPostsByMemberId(memberId, pageable, memberId)).willReturn(expectedPage);
 
         // When
         Page<PostSimpleDetail> result = postQueryService.getMemberPosts(memberId, pageable);
@@ -450,7 +450,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result).isEqualTo(expectedPage);
         assertThat(result.getContent()).hasSize(1);
 
-        verify(postQueryAdapter).findPostsByMemberId(memberId, pageable);
+        verify(postQueryAdapter).findPostsByMemberId(memberId, pageable, memberId);
     }
 
     @Test

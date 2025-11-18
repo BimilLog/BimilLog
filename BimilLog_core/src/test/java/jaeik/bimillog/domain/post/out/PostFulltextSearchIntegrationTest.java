@@ -138,7 +138,7 @@ class PostFulltextSearchIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 제목 전문 검색
-        Page<PostSimpleDetail> result = postQueryAdapter.findByFullTextSearch(searchType, query, pageable);
+        Page<PostSimpleDetail> result = postQueryAdapter.findByFullTextSearch(searchType, query, pageable, null);
 
         // Then: "프로그래밍"이 제목에 포함된 게시글 조회 (공지사항 제외)
         assertThat(result).isNotNull();
@@ -163,7 +163,7 @@ class PostFulltextSearchIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 제목+내용 전문 검색
-        Page<PostSimpleDetail> result = postQueryAdapter.findByFullTextSearch(searchType, query, pageable);
+        Page<PostSimpleDetail> result = postQueryAdapter.findByFullTextSearch(searchType, query, pageable, null);
 
         // Then: 제목 또는 내용에 "스프링"이 포함된 게시글 조회
         assertThat(result).isNotNull();
@@ -186,7 +186,7 @@ class PostFulltextSearchIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 제목+내용 전문 검색
-        Page<PostSimpleDetail> result = postQueryAdapter.findByFullTextSearch(searchType, query, pageable);
+        Page<PostSimpleDetail> result = postQueryAdapter.findByFullTextSearch(searchType, query, pageable, null);
 
         // Then: 내용에 "데이터베이스"가 포함된 게시글 조회
         assertThat(result).isNotNull();
@@ -208,7 +208,7 @@ class PostFulltextSearchIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 제목 전문 검색
-        Page<PostSimpleDetail> result = postQueryAdapter.findByFullTextSearch(searchType, query, pageable);
+        Page<PostSimpleDetail> result = postQueryAdapter.findByFullTextSearch(searchType, query, pageable, null);
 
         // Then: "Java"가 제목에 포함된 게시글 조회
         assertThat(result).isNotNull();
@@ -232,7 +232,7 @@ class PostFulltextSearchIntegrationTest {
         Pageable firstPage = PageRequest.of(0, 1);
 
         // When: 첫 페이지 조회
-        Page<PostSimpleDetail> result = postQueryAdapter.findByFullTextSearch(searchType, query, firstPage);
+        Page<PostSimpleDetail> result = postQueryAdapter.findByFullTextSearch(searchType, query, firstPage, null);
 
         // Then: 페이징 정보가 올바르게 설정됨
         assertThat(result).isNotNull();
@@ -252,7 +252,7 @@ class PostFulltextSearchIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 전문 검색
-        Page<PostSimpleDetail> result = postQueryAdapter.findByFullTextSearch(searchType, query, pageable);
+        Page<PostSimpleDetail> result = postQueryAdapter.findByFullTextSearch(searchType, query, pageable, null);
 
         // Then: 공지사항은 결과에서 제외됨
         assertThat(result).isNotNull();
@@ -274,7 +274,7 @@ class PostFulltextSearchIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 전문 검색
-        Page<PostSimpleDetail> result = postQueryAdapter.findByFullTextSearch(searchType, query, pageable);
+        Page<PostSimpleDetail> result = postQueryAdapter.findByFullTextSearch(searchType, query, pageable, null);
 
         // Then: 빈 페이지 반환
         assertThat(result).isNotNull();
@@ -291,7 +291,7 @@ class PostFulltextSearchIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 전문 검색 시도
-        Page<PostSimpleDetail> result = postQueryAdapter.findByFullTextSearch(searchType, query, pageable);
+        Page<PostSimpleDetail> result = postQueryAdapter.findByFullTextSearch(searchType, query, pageable, null);
 
         // Then: ngram 파서가 1글자를 토큰화하지 않으므로 빈 결과 반환
         assertThat(result).isNotNull();
@@ -308,7 +308,7 @@ class PostFulltextSearchIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 전문 검색
-        Page<PostSimpleDetail> result = postQueryAdapter.findByFullTextSearch(searchType, query, pageable);
+        Page<PostSimpleDetail> result = postQueryAdapter.findByFullTextSearch(searchType, query, pageable, null);
 
         // Then: 최신 게시글부터 정렬됨
         if (result.getContent().size() > 1) {
@@ -331,7 +331,7 @@ class PostFulltextSearchIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 전문 검색
-        Page<PostSimpleDetail> result = postQueryAdapter.findByFullTextSearch(searchType, query, pageable);
+        Page<PostSimpleDetail> result = postQueryAdapter.findByFullTextSearch(searchType, query, pageable, null);
 
         // Then: 댓글 수와 추천 수가 설정되어 있음
         if (!result.isEmpty()) {
@@ -349,7 +349,7 @@ class PostFulltextSearchIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 전문 검색
-        Page<PostSimpleDetail> result = postQueryAdapter.findByFullTextSearch(searchType, query, pageable);
+        Page<PostSimpleDetail> result = postQueryAdapter.findByFullTextSearch(searchType, query, pageable, null);
 
         // Then: "스프링"이 포함된 게시글 조회
         assertThat(result).isNotNull();

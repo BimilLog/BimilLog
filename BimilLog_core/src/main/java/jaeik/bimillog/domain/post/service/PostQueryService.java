@@ -57,8 +57,8 @@ public class PostQueryService {
      * @author Jaeik
      * @since 2.0.0
      */
-    public Page<PostSimpleDetail> getBoard(Pageable pageable) {
-        Page<PostSimpleDetail> posts = postQueryAdapter.findByPage(pageable);
+    public Page<PostSimpleDetail> getBoard(Pageable pageable, Long memberId) {
+        Page<PostSimpleDetail> posts = postQueryAdapter.findByPage(pageable, memberId);
         enrichPostsWithCounts(posts.getContent());
         return posts;
     }
@@ -135,7 +135,7 @@ public class PostQueryService {
      * @since 2.0.0
      */
     public Page<PostSimpleDetail> getMemberPosts(Long memberId, Pageable pageable) {
-        Page<PostSimpleDetail> posts = postQueryAdapter.findPostsByMemberId(memberId, pageable);
+        Page<PostSimpleDetail> posts = postQueryAdapter.findPostsByMemberId(memberId, pageable, memberId);
         enrichPostsWithCounts(posts.getContent());
         return posts;
     }
@@ -200,20 +200,20 @@ public class PostQueryService {
      * @author Jaeik
      * @since 2.0.0
      */
-    public Page<PostSimpleDetail> searchPost(PostSearchType type, String query, Pageable pageable) {
+    public Page<PostSimpleDetail> searchPost(PostSearchType type, String query, Pageable pageable, Long memberId) {
         Page<PostSimpleDetail> posts;
 
         // 전략 1: 3글자 이상 + 작성자 검색 아님 → 전문 검색 시도
         if (query.length() >= 3 && type != PostSearchType.WRITER) {
-            posts = postQueryAdapter.findByFullTextSearch(type, query, pageable);
+            posts = postQueryAdapter.findByFullTextSearch(type, query, pageable, memberId);
         }
         // 전략 2: 작성자 검색 + 4글자 이상 → 접두사 검색 (인덱스 활용)
         else if (type == PostSearchType.WRITER && query.length() >= 4) {
-            posts = postQueryAdapter.findByPrefixMatch(type, query, pageable);
+            posts = postQueryAdapter.findByPrefixMatch(type, query, pageable, memberId);
         }
         // 전략 3: 그 외 → 부분 검색
         else {
-            posts = postQueryAdapter.findByPartialMatch(type, query, pageable);
+            posts = postQueryAdapter.findByPartialMatch(type, query, pageable, memberId);
         }
 
         enrichPostsWithCounts(posts.getContent());
