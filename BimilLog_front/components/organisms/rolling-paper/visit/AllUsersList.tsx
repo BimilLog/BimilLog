@@ -51,11 +51,15 @@ export const AllUsersList = ({ searchKeyword = "" }: AllUsersListProps) => {
   let totalPages = 0;
   if (isSearchMode) {
     const searchData = searchQuery.data?.data;
-    const names = searchData?.content || [];
-    memberRows = names.map((name, index) => ({
-      key: name ? `search-${name}-${index}` : `search-index-${index}`,
-      memberName: name ?? "익명",
-    }));
+    const users = searchData?.content || [];
+    memberRows = users.map((user, index) => {
+      const idPart = user.memberId ? `member-${user.memberId}` : null;
+      const namePart = user.memberName ? `name-${user.memberName}-${index}` : null;
+      return {
+        key: idPart ?? namePart ?? `member-index-${index}`,
+        memberName: user.memberName ?? "익명",
+      };
+    });
     totalPages = searchData?.totalPages || 0;
   } else {
     const allData = allMembersQuery.data?.data;

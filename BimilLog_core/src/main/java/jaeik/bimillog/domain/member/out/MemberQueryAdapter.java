@@ -1,8 +1,10 @@
 package jaeik.bimillog.domain.member.out;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import jaeik.bimillog.domain.member.dto.SimpleMemberDTO;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.QMember;
 import jaeik.bimillog.domain.member.entity.Setting;
@@ -132,11 +134,13 @@ public class MemberQueryAdapter {
      * @since 2.0.0
      */
     @Transactional(readOnly = true)
-    public Page<String> findByPrefixMatch(String query, Pageable pageable) {
+    public Page<SimpleMemberDTO> findByPrefixMatch(String query, Pageable pageable) {
         BooleanExpression condition = member.memberName.startsWith(query);
 
-        List<String> content = jpaQueryFactory
-                .select(member.memberName)
+        List<SimpleMemberDTO> content = jpaQueryFactory
+                .select(Projections.constructor(SimpleMemberDTO.class,
+                        member.id,
+                        member.memberName))
                 .from(member)
                 .where(condition)
                 .orderBy(member.memberName.asc())
@@ -165,11 +169,13 @@ public class MemberQueryAdapter {
      * @since 2.0.0
      */
     @Transactional(readOnly = true)
-    public Page<String> findByPartialMatch(String query, Pageable pageable) {
+    public Page<SimpleMemberDTO> findByPartialMatch(String query, Pageable pageable) {
         BooleanExpression condition = member.memberName.contains(query);
 
-        List<String> content = jpaQueryFactory
-                .select(member.memberName)
+        List<SimpleMemberDTO> content = jpaQueryFactory
+                .select(Projections.constructor(SimpleMemberDTO.class,
+                        member.id,
+                        member.memberName))
                 .from(member)
                 .where(condition)
                 .orderBy(member.memberName.asc())
