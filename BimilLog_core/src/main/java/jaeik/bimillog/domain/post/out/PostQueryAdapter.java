@@ -3,10 +3,12 @@ package jaeik.bimillog.domain.post.out;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.comment.entity.QComment;
 import jaeik.bimillog.domain.member.entity.QMember;
+import jaeik.bimillog.domain.member.entity.QMemberBlacklist;
 import jaeik.bimillog.domain.post.service.PostQueryService;
 import jaeik.bimillog.domain.post.entity.*;
 import lombok.RequiredArgsConstructor;
@@ -48,6 +50,7 @@ public class PostQueryAdapter {
     private static final QMember member = QMember.member;
     private static final QPostLike postLike = QPostLike.postLike;
     private static final QComment comment = QComment.comment;
+    private static final QMemberBlacklist memberBlacklist = QMemberBlacklist.memberBlacklist;
 
     /**
      * <h3>사용자가 작성한 글의 postId 목록 조회</h3>
@@ -71,8 +74,8 @@ public class PostQueryAdapter {
      * @author Jaeik
      * @since 2.0.0
      */
-    public Page<PostSimpleDetail> findByPage(Pageable pageable) {
-        Consumer<JPAQuery<?>> customizer = query -> query.where(post.isNotice.isFalse());
+    public Page<PostSimpleDetail> findByPage(Pageable pageable, Long viewerId) {
+        Consumer<JPAQuery<?>> customizer = query -> query.where(applyBlacklistFilter(post.isNotice.isFalse(), viewerId));
         return postQueryHelper.findPostsWithQuery(customizer, customizer, pageable);
     }
 
@@ -87,8 +90,8 @@ public class PostQueryAdapter {
      * @author Jaeik
      * @since 2.0.0
      */
-    public Page<PostSimpleDetail> findPostsByMemberId(Long memberId, Pageable pageable) {
-        Consumer<JPAQuery<?>> customizer = query -> query.where(member.id.eq(memberId));
+    public Page<PostSimpleDetail> findPostsByMemberId(Long memberId, Pageable pageable, Long viewerId) {
+        Consumer<JPAQuery<?>> customizer = query -> query.where(applyBlacklistFilter(member.id.eq(memberId), viewerId));
         return postQueryHelper.findPostsWithQuery(customizer, customizer, pageable);
     }
 
@@ -261,18 +264,18 @@ public class PostQueryAdapter {
      * @author Jaeik
      * @since 2.0.0
      */
-    public Page<PostSimpleDetail> findByFullTextSearch(PostSearchType type, String query, Pageable pageable) {
+    public Page<PostSimpleDetail> findByFullTextSearch(PostSearchType type, String query, Pageable pageable, Long viewerId) {
         String searchTerm = query + "*";
         try {
             List<Object[]> rows = switch (type) {
-                case TITLE -> postFullTextRepository.findByTitleFullText(searchTerm, pageable);
-                case TITLE_CONTENT -> postFullTextRepository.findByTitleContentFullText(searchTerm, pageable);
+                case TITLE -> postFullTextRepository.findByTitleFullText(searchTerm, pageable, viewerId);
+                case TITLE_CONTENT -> postFullTextRepository.findByTitleContentFullText(searchTerm, pageable, viewerId);
                 case WRITER -> List.of();
             };
 
             long total = switch (type) {
-                case TITLE -> postFullTextRepository.countByTitleFullText(searchTerm);
-                case TITLE_CONTENT -> postFullTextRepository.countByTitleContentFullText(searchTerm);
+                case TITLE -> postFullTextRepository.countByTitleFullText(searchTerm, viewerId);
+                case TITLE_CONTENT -> postFullTextRepository.countByTitleContentFullText(searchTerm, viewerId);
                 case WRITER -> 0L;
             };
 
@@ -305,14 +308,14 @@ public class PostQueryAdapter {
      * @author Jaeik
      * @since 2.0.0
      */
-    public Page<PostSimpleDetail> findByPrefixMatch(PostSearchType type, String query, Pageable pageable) {
+    public Page<PostSimpleDetail> findByPrefixMatch(PostSearchType type, String query, Pageable pageable, Long viewerId) {
         BooleanExpression condition = switch (type) {
             case WRITER -> member.memberName.startsWith(query);
             case TITLE -> post.title.startsWith(query);
             case TITLE_CONTENT -> post.title.startsWith(query).or(post.content.startsWith(query));
         };
 
-        BooleanExpression finalCondition = condition.and(post.isNotice.isFalse());
+        BooleanExpression finalCondition = applyBlacklistFilter(condition.and(post.isNotice.isFalse()), viewerId);
         Consumer<JPAQuery<?>> customizer = q -> q.where(finalCondition);
         return postQueryHelper.findPostsWithQuery(customizer, customizer, pageable);
     }
@@ -329,17 +332,33 @@ public class PostQueryAdapter {
      * @author Jaeik
      * @since 2.0.0
      */
-    public Page<PostSimpleDetail> findByPartialMatch(PostSearchType type, String query, Pageable pageable) {
+    public Page<PostSimpleDetail> findByPartialMatch(PostSearchType type, String query, Pageable pageable, Long viewerId) {
         BooleanExpression condition = switch (type) {
             case TITLE -> post.title.contains(query);
             case WRITER -> member.memberName.contains(query);
             case TITLE_CONTENT -> post.title.contains(query).or(post.content.contains(query));
         };
 
-        BooleanExpression finalCondition = condition.and(post.isNotice.isFalse());
+        BooleanExpression finalCondition = applyBlacklistFilter(condition.and(post.isNotice.isFalse()), viewerId);
         Consumer<JPAQuery<?>> customizer = q -> q.where(finalCondition);
         return postQueryHelper.findPostsWithQuery(customizer, customizer, pageable);
     }
 
+    private BooleanExpression applyBlacklistFilter(BooleanExpression baseCondition, Long viewerId) {
+        if (viewerId == null) {
+            return baseCondition;
+        }
+
+        BooleanExpression blacklistBlock = JPAExpressions
+                .selectOne()
+                .from(memberBlacklist)
+                .where(
+                        memberBlacklist.requestMember.id.eq(viewerId).and(memberBlacklist.blackMember.id.eq(member.id))
+                                .or(memberBlacklist.requestMember.id.eq(member.id).and(memberBlacklist.blackMember.id.eq(viewerId)))
+                )
+                .notExists();
+
+        return baseCondition.and(blacklistBlock);
+    }
 
 }

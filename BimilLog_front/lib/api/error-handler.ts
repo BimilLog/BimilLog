@@ -48,6 +48,16 @@ function isErrorWithMessage(error: unknown): error is { message: string } {
   );
 }
 
+// message/status 형태의 에러 객체 가드 (백엔드 원본 payload 그대로 노출될 때)
+function isApiErrorObject(error: unknown): error is { status?: number; message: string; target?: string } {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'message' in error &&
+    typeof (error as Record<string, unknown>).message === 'string'
+  );
+}
+
 export class ErrorHandler {
   static mapApiError(error: unknown): AppError {
     // 네트워크 오류
@@ -67,6 +77,29 @@ export class ErrorHandler {
 
       // 에러 메시지 패턴 매칭을 통한 에러 타입 분류
       // includes() 검사로 한국어 에러 메시지에서 핵심 키워드를 추출하여 적절한 에러 타입 결정
+
+      // 블랙리스트 차단 에러
+      if (errorMessage.includes('차단')) {
+        // 원본 메시지에서 더 사용자 친화적인 메시지로 변환
+        let userFriendlyMessage = error.error;
+
+        // "롤링페이퍼" 키워드가 있으면 다른 컨텍스트일 수 있으므로 적절히 변환
+        if (errorMessage.includes('롤링페이퍼')) {
+          // 롤링페이퍼 관련은 원본 메시지 유지하거나 약간 수정
+          userFriendlyMessage = '차단되거나 차단한 회원의 콘텐츠는 조회할 수 없습니다.';
+        } else {
+          // 일반적인 차단 메시지
+          userFriendlyMessage = '차단되거나 차단한 회원과는 상호작용할 수 없습니다.';
+        }
+
+        return {
+          type: 'PERMISSION_DENIED',
+          title: '차단된 사용자',
+          message: error.error,
+          userMessage: userFriendlyMessage,
+          originalError: error
+        };
+      }
 
       // 롤링페이퍼 삭제 권한 에러 (명시적 매칭)
       if (errorMessage.includes('본인 롤링페이퍼') ||
@@ -130,6 +163,79 @@ export class ErrorHandler {
           originalError: error
         };
       }
+    }
+
+    // JSON 문자열 형태의 Error 메시지 디코딩 (예: "{...message: '댓글 작성에 실패...'}")
+    if (isErrorWithMessage(error)) {
+      const raw = error.message.trim();
+      if (raw.startsWith('{') && raw.endsWith('}')) {
+        try {
+          const parsed = JSON.parse(raw) as { message?: string };
+          if (parsed.message) {
+            return this.mapApiError(parsed);
+          }
+        } catch {
+          // ignore parse failure
+        }
+      }
+    }
+
+    // 일반 Error 객체에서 차단 키워드 감지 (예: fetch wrapper가 Error로 던질 때)
+    if (isErrorWithMessage(error) && error.message.toLowerCase().includes('차단')) {
+      const lower = error.message.toLowerCase();
+      const userFriendlyMessage = lower.includes('롤링페이퍼')
+        ? '차단된 상대의 롤링페이퍼는 볼 수 없습니다.'
+        : '차단된 사용자와는 상호작용할 수 없습니다.';
+
+      return {
+        type: 'PERMISSION_DENIED',
+        title: '차단된 사용자',
+        message: error.message,
+        userMessage: userFriendlyMessage,
+        originalError: error
+      };
+    }
+
+    // 일반 Error 객체에서 댓글 작성 실패 메시지 정제
+    if (isErrorWithMessage(error) && error.message.includes('댓글 작성에 실패')) {
+      return {
+        type: 'SERVER_ERROR',
+        title: '댓글 작성 오류',
+        message: '댓글 작성에 실패했습니다.',
+        userMessage: '댓글 작성 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.',
+        originalError: error
+      };
+    }
+
+    // message/status 형태의 에러 객체 처리
+    if (isApiErrorObject(error)) {
+      const lowerMsg = error.message.toLowerCase();
+
+      if (lowerMsg.includes('차단')) {
+        const userFriendlyMessage = lowerMsg.includes('롤링페이퍼')
+          ? '차단된 상대의 롤링페이퍼는 볼 수 없습니다.'
+          : '차단된 사용자와는 상호작용할 수 없습니다.';
+
+        return {
+          type: 'PERMISSION_DENIED',
+          title: '차단된 사용자',
+          message: error.message,
+          userMessage: userFriendlyMessage,
+          originalError: error
+        };
+      }
+
+      if (typeof error.status === 'number') {
+        return this.mapApiError({ status: error.status });
+      }
+
+      return {
+        type: 'UNKNOWN_ERROR',
+        title: '오류 발생',
+        message: error.message,
+        userMessage: error.message,
+        originalError: error
+      };
     }
 
     // HTTP 상태 코드 기반 에러

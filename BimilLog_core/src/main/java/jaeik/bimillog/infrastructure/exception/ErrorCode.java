@@ -54,6 +54,8 @@ public enum ErrorCode {
     MEMBER_KAKAO_FRIEND_CONSENT_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "카카오 친구 추가 동의를 해야 합니다.", LogLevel.INFO),
     MEMBER_KAKAO_FRIEND_API_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "카카오 친구 API 호출 실패", LogLevel.ERROR),
     MEMBER_UNSUPPORTED_SOCIAL_FRIEND(HttpStatus.BAD_REQUEST, "지원하지 않는 소셜 친구 조회 기능입니다.", LogLevel.WARN),
+    MEMBER_BLACKLIST_NOT_FOUND(HttpStatus.BAD_REQUEST, "블랙리스트에 해당 유저가 존재하지 않습니다.", LogLevel.WARN),
+    MEMBER_BLACKLIST_FORBIDDEN(HttpStatus.FORBIDDEN, "자신의 블랙리스트만 삭제할 수 있습니다.", LogLevel.WARN),
 
     // ===== Notification 도메인 에러 코드 =====
     NOTIFICATION_SEND_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "알림 전송 중 오류가 발생했습니다.", LogLevel.ERROR),
@@ -71,6 +73,7 @@ public enum ErrorCode {
     PAPER_REDIS_READ_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "레디스 읽기 중 오류가 발생했습니다.", LogLevel.ERROR),
     PAPER_REDIS_WRITE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "레디스 쓰기 중 오류가 발생했습니다.", LogLevel.ERROR),
     PAPER_REDIS_DELETE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "레디스 삭제 중 오류가 발생했습니다.", LogLevel.ERROR),
+    BLACKLIST_MEMBER_PAPER_FORBIDDEN(HttpStatus.FORBIDDEN, "차단되거나 차단한 회원의 롤링페이퍼는 조회할 수 없습니다.", LogLevel.WARN),
 
     // ===== Post 도메인 에러 코드 =====
     POST_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 게시글이 존재하지 않습니다.", LogLevel.INFO),

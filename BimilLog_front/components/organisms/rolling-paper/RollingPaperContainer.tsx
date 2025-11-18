@@ -8,6 +8,7 @@ import { useRollingPaperGrid } from "@/hooks/features/useRollingPaperGrid";
 import { useToast } from "@/hooks";
 import { RollingPaperView } from "@/components/organisms/rolling-paper/RollingPaperView";
 import type { RollingPaperMessage, VisitMessage, DecoType } from "@/types/domains/paper";
+import { BlockedToastRedirect } from "@/components/molecules/alerts/BlockedToastRedirect";
 
 interface RollingPaperContainerProps {
   nickname?: string;
@@ -24,6 +25,7 @@ export const RollingPaperContainer: React.FC<RollingPaperContainerProps> = ({
     messages,
     isLoading,
     isError,
+    blockedMessage,
     isOwner,
     refetch
   } = useRollingPaperData(nickname);
@@ -97,6 +99,16 @@ export const RollingPaperContainer: React.FC<RollingPaperContainerProps> = ({
   }
 
   // 에러 상태 (존재하지 않는 사용자 등)
+  if (blockedMessage) {
+    return (
+      <BlockedToastRedirect
+        message={blockedMessage}
+        redirectTo="/visit"
+        fallbackText="차단 상태로 인해 롤링페이퍼를 볼 수 없습니다. 방문 페이지로 이동합니다."
+      />
+    );
+  }
+
   if (isError) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 flex items-center justify-center px-4">

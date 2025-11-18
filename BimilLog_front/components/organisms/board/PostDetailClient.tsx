@@ -11,6 +11,7 @@ import {
   Breadcrumb,
 } from "@/components";
 import { Post, Comment } from "@/lib/api";
+import { ErrorHandler } from "@/lib/api/helpers";
 
 // 분리된 컴포넌트들 import
 import { PostHeader } from "./PostHeader";
@@ -216,6 +217,14 @@ export default function PostDetailClient({ initialPost, postId }: Props) {
           setReplyingTo(null);
           setReplyContent("");
           setReplyPassword("");
+        },
+        onError: (err) => {
+          const appError = ErrorHandler.mapApiError(err);
+          showToast({
+            type: 'error',
+            message: appError.userMessage || appError.message || '답글 작성에 실패했습니다.',
+          });
+          // 상태는 유지해 사용자가 수정 후 재시도 가능
         },
       }
     );

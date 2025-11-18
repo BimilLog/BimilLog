@@ -14,6 +14,6 @@ export const logCommand = {
    * 클라이언트 에러를 백엔드로 전송
    */
   logClientError: (errorLog: ClientErrorLog) => {
-    return apiClient.post<void>("/api/log/client-error", errorLog)
+    return apiClient.post<void>("/api/global/client-error", errorLog)
   },
 }

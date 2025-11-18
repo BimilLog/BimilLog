@@ -5,6 +5,7 @@ import { mutationKeys, queryKeys } from '@/lib/tanstack-query/keys';
 import { postCommand } from '@/lib/api';
 import { useToast } from '@/hooks';
 import { useRouter } from 'next/navigation';
+import { ErrorHandler } from '@/lib/api/helpers';
 import type { Post, ApiResponse } from '@/types';
 
 /**
@@ -92,7 +93,7 @@ export const useDeletePost = () => {
 };
 
 /**
- * 게시글 좋아요 토글 (낙관적 업데이트)
+ * 게시글 좋아요 토글
  */
 export const useLikePost = () => {
   const queryClient = useQueryClient();
@@ -101,111 +102,19 @@ export const useLikePost = () => {
   return useMutation({
     mutationKey: mutationKeys.post.like,
     mutationFn: postCommand.like,
-    onMutate: async (postId: number) => {
-      // 진행 중인 refetch 취소 - 경합 상태(race condition) 방지
-      await queryClient.cancelQueries({ queryKey: queryKeys.post.detail(postId) });
-      await queryClient.cancelQueries({ queryKey: queryKeys.post.lists() });
-      await queryClient.cancelQueries({ queryKey: queryKeys.post.realtimePopular() });
-      await queryClient.cancelQueries({ queryKey: queryKeys.post.weeklyPopular() });
-
-      // 이전 값 스냅샷 - 에러 시 롤백용 및 성공 메시지 판단용
-      const previousPost = queryClient.getQueryData(queryKeys.post.detail(postId)) as ApiResponse<Post> | undefined;
-
-      // 이전 좋아요 상태 저장 (성공 메시지 표시용)
-      const wasLiked = previousPost?.data?.liked ?? false;
-
-      // 낙관적 업데이트 1: 게시글 상세 캐시 업데이트
-      queryClient.setQueryData(queryKeys.post.detail(postId), (old: ApiResponse<Post>) => {
-        if (!old?.success || !old?.data) return old;
-
-        const post = old.data;
-        return {
-          ...old,
-          data: {
-            ...post,
-            liked: !post.liked,
-            likeCount: post.liked ? post.likeCount - 1 : post.likeCount + 1,
-          },
-        };
-      });
-
-      // 낙관적 업데이트 2: 게시글 목록 캐시들도 업데이트 (모든 페이지, 모든 variant)
-      queryClient.setQueriesData(
-        { queryKey: queryKeys.post.lists() },
-        (old: any) => {
-          if (!old?.success || !old?.data?.content) return old;
-
-          return {
-            ...old,
-            data: {
-              ...old.data,
-              content: old.data.content.map((post: any) =>
-                post.id === postId
-                  ? { ...post, likeCount: wasLiked ? post.likeCount - 1 : post.likeCount + 1 }
-                  : post
-              ),
-            },
-          };
-        }
-      );
-
-      // 낙관적 업데이트 3: 실시간 인기글 캐시 업데이트
-      queryClient.setQueriesData(
-        { queryKey: queryKeys.post.realtimePopular() },
-        (old: any) => {
-          if (!old?.success || !old?.data) return old;
-
-          return {
-            ...old,
-            data: old.data.map((post: any) =>
-              post.id === postId
-                ? { ...post, likeCount: wasLiked ? post.likeCount - 1 : post.likeCount + 1 }
-                : post
-            ),
-          };
-        }
-      );
-
-      // 낙관적 업데이트 4: 주간 인기글 캐시 업데이트
-      queryClient.setQueriesData(
-        { queryKey: queryKeys.post.weeklyPopular() },
-        (old: any) => {
-          if (!old?.success || !old?.data) return old;
-
-          return {
-            ...old,
-            data: old.data.map((post: any) =>
-              post.id === postId
-                ? { ...post, likeCount: wasLiked ? post.likeCount - 1 : post.likeCount + 1 }
-                : post
-            ),
-          };
-        }
-      );
-
-      return { previousPost, wasLiked };
-    },
-    onSuccess: (data, postId, context) => {
-      // 성공 시 추천/취소 여부에 따라 구체적인 메시지 표시
-      if (context?.wasLiked) {
-        showToast({ type: 'info', message: '추천을 취소했습니다.' });
-      } else {
-        showToast({ type: 'success', message: '게시글을 추천했습니다.' });
-      }
-    },
-    onError: (err, postId, context) => {
-      // 에러 시 이전 값으로 롤백 - 낙관적 업데이트 취소
-      if (context?.previousPost) {
-        queryClient.setQueryData(queryKeys.post.detail(postId), context.previousPost);
-      }
-      showToast({ type: 'error', message: '좋아요 처리에 실패했습니다.' });
-    },
-    onSettled: (data, error, postId) => {
-      // 성공/실패 여부와 관계없이 서버 데이터로 동기화 - 최종 일관성 보장
+    onSuccess: (data, postId) => {
+      // 서버 응답 후 캐시 무효화하여 최신 데이터 가져오기
       queryClient.invalidateQueries({ queryKey: queryKeys.post.detail(postId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.post.lists() });
       queryClient.invalidateQueries({ queryKey: queryKeys.post.realtimePopular() });
       queryClient.invalidateQueries({ queryKey: queryKeys.post.weeklyPopular() });
+
+      showToast({ type: 'success', message: '추천 처리가 완료되었습니다.' });
+    },
+    onError: (err: any) => {
+      const appError = ErrorHandler.mapApiError(err);
+      const errorMessage = appError.userMessage || appError.message || '추천 처리 중 오류가 발생했습니다.';
+      showToast({ type: 'error', message: errorMessage });
     },
   });
 };

@@ -33,6 +33,21 @@ export function useRollingPaperData(targetNickname?: string) {
   // 적절한 쿼리 선택
   const activeQuery = isOwner ? myPaperQuery : visitPaperQuery;
 
+  const blockedMessage = (() => {
+    const rawMessage =
+      (activeQuery.error as Error | undefined)?.message ||
+      (activeQuery.data && !activeQuery.data.success ? activeQuery.data.error : '');
+
+    if (!rawMessage) return null;
+    const lower = rawMessage.toLowerCase();
+    if (!lower.includes('차단')) return null;
+
+    if (lower.includes('롤링페이퍼')) {
+      return '차단된 상대의 롤링페이퍼는 볼 수 없습니다.';
+    }
+    return '차단된 사용자와는 상호작용할 수 없습니다.';
+  })();
+
   // 메시지 타입 정규화
   const messages: (RollingPaperMessage | VisitMessage)[] = useMemo(() => {
     if (!activeQuery.data?.data) return [];
@@ -50,6 +65,7 @@ export function useRollingPaperData(targetNickname?: string) {
     messages,
     isLoading: activeQuery.isLoading,
     isError: activeQuery.isError,
+    blockedMessage,
     error: activeQuery.error,
     refetch: activeQuery.refetch,
     isOwner,

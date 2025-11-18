@@ -1,9 +1,13 @@
-//package jaeik.bimillog.domain.member.entity;
+//package jaeik.bimillog.domain.friend.entity;
 //
 //import jaeik.bimillog.domain.global.entity.BaseEntity;
+//import jaeik.bimillog.domain.member.entity.Member;
 //import jakarta.persistence.*;
 //import jakarta.validation.constraints.NotNull;
-//import lombok.Getter;
+//import lombok.*;
+//
+//
+//// 친구 요청은 양방향이다 1, 100이면 100, 1이 존재하면 저장되지말아야함
 //
 ///**
 // * 친구관계 설정테이블
@@ -11,8 +15,9 @@
 // */
 //@Entity
 //@Getter
-//@Table(name = "friendship", uniqueConstraints =
-//        {@UniqueConstraint(name = "unique_member_friend", columnNames = {"friendship_id, member_id, friend_id"})})
+//@NoArgsConstructor(access = AccessLevel.PROTECTED)
+//@Table(name = "friendship",
+//        uniqueConstraints = {@UniqueConstraint(name = "unique_friend_pair", columnNames = {"member_id", "friend_id"})})
 //public class Friendship extends BaseEntity {
 //
 //    @Id
@@ -20,19 +25,15 @@
 //    @Column(name = "friendship_id")
 //    private Long id;
 //
-//    // DB레벨 CasCade설정 member 삭제시 Friend삭제
+//    // DB레벨 CasCade설정 member 삭제시 Friendship삭제
 //    @NotNull
 //    @ManyToOne(fetch = FetchType.LAZY)
 //    @JoinColumn(name = "member_id")
 //    private Member member;
 //
-//    // DB레벨 CasCade설정 member 삭제시 Friend삭제
+//    // DB레벨 CasCade설정 member 삭제시 Friendship삭제
 //    @NotNull
 //    @ManyToOne(fetch = FetchType.LAZY)
 //    @JoinColumn(name = "friend_id")
 //    private Member friend;
-//
-//    @NotNull
-//    @Column(name = "friend_status")
-//    private FriendStatus status;
 //}
