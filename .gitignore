@@ -24,7 +24,7 @@ REDIS_CACHE_ARCHITECTURE.md
 *.backup
 *.bak
 *~
-
+/docs
 # ====================
 # BimilLog_core (Backend)
 # ====================
