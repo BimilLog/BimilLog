@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/friend")
-public class FriendRequestController {
+public class FriendRequestQueryController {
     private final FriendRequestQuery friendRequestQuery;
 
     /**
