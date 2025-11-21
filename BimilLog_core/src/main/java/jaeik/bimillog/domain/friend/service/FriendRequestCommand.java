@@ -43,14 +43,15 @@ public class FriendRequestCommand {
     }
 
     /**
-     * 받은 요청 거절
+     * 받은 요청 삭제
      */
     @Transactional
-    public void rejectFriendRequest(Long memberId, Long friendRequestId) {
-        // 요청ID가 실제하는지 확인 && 요청ID가 수신자의ID 소속이 맞는지 확인
+    public void deleteFriendRequest(Long memberId, Long friendRequestId) {
+        // 친구 요청이 실제하는지 확인
         FriendRequest friendRequest = friendRequestRepository.findById(friendRequestId)
                 .orElseThrow(() -> new CustomException(ErrorCode.FRIEND_REQUEST_NOT_FOUND));
 
+        // 친구 요청이 수신자에게 온 것이 맞는지 확인
         if (!Objects.equals(friendRequest.getReceiver().getId(), memberId)) {
             throw new CustomException(ErrorCode.FRIEND_REQUEST_REJECT_FORBIDDEN);
         }
@@ -97,14 +98,14 @@ public class FriendRequestCommand {
 
     private void checkFriendRequest(Long memberId, Long receiveMemberId) {
         // 이미 요청이 존재한다.
-        boolean aSendB = friendRequestRepository.existsBySenderIdAndReceiverId(memberId, receiveMemberId);
+        boolean aSendB = friendRequestRepository.existsByMemberIdAndFriendId(memberId, receiveMemberId);
 
         if (aSendB) {
             throw new CustomException(ErrorCode.FRIEND_REQUEST_ALREADY_SEND);
         }
 
         // 이미 상대가 요청을 보냈다.
-        boolean bSendA = friendRequestRepository.existsBySenderIdAndReceiverId(receiveMemberId, memberId);
+        boolean bSendA = friendRequestRepository.existsByMemberIdAndFriendId(receiveMemberId, memberId);
 
         if (bSendA) {
             throw new CustomException(ErrorCode.FRIEND_REQUEST_ALREADY_RECEIVE);

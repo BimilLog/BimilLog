@@ -16,6 +16,8 @@ import lombok.*;
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 @Table(name = "friendship",
         uniqueConstraints = {@UniqueConstraint(name = "unique_friend_pair", columnNames = {"member_id", "friend_id"})})
 public class Friendship extends BaseEntity {
@@ -36,4 +38,11 @@ public class Friendship extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "friend_id")
     private Member friend;
+
+    public static Friendship createFriendship(Member member, Member friend) {
+        return Friendship.builder()
+                .member(member)
+                .friend(friend)
+                .build();
+    }
 }

@@ -73,7 +73,7 @@ public enum ErrorCode {
     PAPER_REDIS_READ_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "레디스 읽기 중 오류가 발생했습니다.", LogLevel.ERROR),
     PAPER_REDIS_WRITE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "레디스 쓰기 중 오류가 발생했습니다.", LogLevel.ERROR),
     PAPER_REDIS_DELETE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "레디스 삭제 중 오류가 발생했습니다.", LogLevel.ERROR),
-    BLACKLIST_MEMBER_PAPER_FORBIDDEN(HttpStatus.FORBIDDEN, "차단되거나 차단한 회원의 롤링페이퍼는 조회할 수 없습니다.", LogLevel.WARN),
+    BLACKLIST_MEMBER_PAPER_FORBIDDEN(HttpStatus.FORBIDDEN, "차단되거나 차단한 회원과 상호작용할 수 없습니다.", LogLevel.WARN),
 
     // ===== Post 도메인 에러 코드 =====
     POST_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 게시글이 존재하지 않습니다.", LogLevel.INFO),
@@ -89,7 +89,8 @@ public enum ErrorCode {
     FRIEND_REQUEST_REJECT_FORBIDDEN(HttpStatus.FORBIDDEN, "자신의 친구 요청만 거절할 수 있습니다", LogLevel.WARN),
     SELF_FRIEND_REQUEST_FORBIDDEN(HttpStatus.FORBIDDEN, "자신에게 친구 요청을 보낼 수 없습니다", LogLevel.WARN),
     FRIEND_REQUEST_ALREADY_SEND(HttpStatus.FORBIDDEN, "이미 친구 요청을 보냈습니다.", LogLevel.WARN),
-    FRIEND_REQUEST_ALREADY_RECEIVE(HttpStatus.FORBIDDEN, "이미 친구 요청을 수신한 상대입니다.", LogLevel.WARN);
+    FRIEND_REQUEST_ALREADY_RECEIVE(HttpStatus.FORBIDDEN, "이미 상대가 친구 요청을 보냈습니다.", LogLevel.WARN),
+    FRIEND_SHIP_ALREADY_EXIST(HttpStatus.FORBIDDEN, "이미 친구입니다.", LogLevel.WARN);
 
     private final HttpStatus status;
     private final String message;
