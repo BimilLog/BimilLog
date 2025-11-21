@@ -32,7 +32,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 @Tag("unit")
-class MemberFriendServiceTest extends BaseUnitTest {
+class MemberKakaoFriendServiceTest extends BaseUnitTest {
 
     private static final Long MEMBER_ID = 1L;
     private static final long DEFAULT_OFFSET = 0L;
@@ -56,11 +56,11 @@ class MemberFriendServiceTest extends BaseUnitTest {
     @Test
     @DisplayName("카카오 친구 목록 조회 시 가입자 이름을 매핑한다")
     void shouldMapMemberNamesFromStrategyResult() {
-        List<KakaoFriendsDTO.Friend> friends = Arrays.asList(
+        List<KakaoFriendsDTO.KakaoFriend> kakaoFriends = Arrays.asList(
                 KakaoTestDataBuilder.createKakaoFriend(1L, "uuid-1", "친구1", "img1", false),
                 KakaoTestDataBuilder.createKakaoFriend(2L, "uuid-2", "친구2", "img2", true)
         );
-        KakaoFriendsDTO response = KakaoTestDataBuilder.createKakaoFriendsResponse(friends, 2, null, null, 1);
+        KakaoFriendsDTO response = KakaoTestDataBuilder.createKakaoFriendsResponse(kakaoFriends, 2, null, null, 1);
         SocialToken socialToken = testMember.getSocialToken();
 
         given(memberToAuthAdapter.getSocialToken(MEMBER_ID)).willReturn(Optional.of(socialToken));
@@ -69,7 +69,7 @@ class MemberFriendServiceTest extends BaseUnitTest {
 
         KakaoFriendsDTO result = memberFriendService.getKakaoFriendList(MEMBER_ID, SocialProvider.KAKAO, DEFAULT_OFFSET, DEFAULT_LIMIT);
 
-        assertThat(result.getElements()).extracting(KakaoFriendsDTO.Friend::getMemberName)
+        assertThat(result.getElements()).extracting(KakaoFriendsDTO.KakaoFriend::getMemberName)
                 .containsExactly("user1", "user2");
         verify(memberQueryAdapter).findMemberNamesInOrder(Arrays.asList("1", "2"));
     }

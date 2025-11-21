@@ -39,8 +39,7 @@ public class GlobalMemberQueryAdapter {
     /**
      * <h3>사용자명으로 사용자 조회</h3>
      * <p>특정 사용자명에 해당하는 사용자 엔티티를 조회합니다.</p>
-     * <p>Member 도메인의 UserQueryUseCase를 통해 사용자 정보를 조회합니다.</p>
-     *
+\     *
      * @param memberName 조회할 사용자명
      * @return Optional&lt;Member&gt; 조회된 사용자 객체 (존재하지 않으면 Optional.empty())
      * @author Jaeik

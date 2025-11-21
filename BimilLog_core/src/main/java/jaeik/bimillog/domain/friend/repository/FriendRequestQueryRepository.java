@@ -4,7 +4,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.friend.entity.FriendReceiverRequest;
 import jaeik.bimillog.domain.friend.entity.FriendSenderRequest;
-import jaeik.bimillog.domain.friend.entity.QFriendRequest;
+import jaeik.bimillog.domain.friend.entity.jpa.QFriendRequest;
 import jaeik.bimillog.domain.member.entity.QMember;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

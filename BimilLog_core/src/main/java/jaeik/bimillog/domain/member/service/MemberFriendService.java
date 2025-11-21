@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.member.service;
 
 import jaeik.bimillog.domain.auth.entity.SocialToken;
+import jaeik.bimillog.domain.friend.entity.Friend;
 import jaeik.bimillog.domain.member.dto.KakaoFriendsDTO;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
@@ -11,10 +12,14 @@ import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Limit;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * <h2>회원 친구 서비스</h2>
@@ -28,6 +33,14 @@ public class MemberFriendService {
     private final MemberQueryAdapter memberQueryAdapter;
     private final MemberToAuthAdapter memberToAuthAdapter;
     private final KakaoFriendClient kakaoFriendClient;
+
+    /**
+     * 친구 추가 정보 조회
+     */
+    public List<Friend.FriendInfo> addMyFriendInfo(List<Long> friendIds) {
+        return memberQueryAdapter.getMyFriendPages(friendIds);
+    }
+
 
     /**
      * <h3>카카오 친구 목록 조회</h3>
@@ -66,7 +79,7 @@ public class MemberFriendService {
             return null;
         }
 
-        List<KakaoFriendsDTO.Friend> elements = friendsResponse.getElements();
+        List<KakaoFriendsDTO.KakaoFriend> elements = friendsResponse.getElements();
         if (elements == null || elements.isEmpty()) {
             return friendsResponse;
         }
@@ -78,7 +91,7 @@ public class MemberFriendService {
         List<String> memberNames = memberQueryAdapter.findMemberNamesInOrder(socialIds);
 
         for (int index = 0; index < elements.size(); index++) {
-            KakaoFriendsDTO.Friend originalFriend = elements.get(index);
+            KakaoFriendsDTO.KakaoFriend originalKakaoFriend = elements.get(index);
             String memberName = (memberNames != null && memberNames.size() > index)
                     ? memberNames.get(index)
                     : "";
@@ -87,7 +100,7 @@ public class MemberFriendService {
                 continue;
             }
 
-            originalFriend.setMemberName(memberName);
+            originalKakaoFriend.setMemberName(memberName);
         }
 
         return friendsResponse;
