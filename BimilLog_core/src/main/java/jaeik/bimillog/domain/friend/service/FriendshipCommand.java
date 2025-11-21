@@ -58,12 +58,12 @@ public class FriendshipCommand {
         Friendship friendship = friendshipRepository.findById(friendshipId)
                 .orElseThrow(() -> new CustomException(ErrorCode.FRIEND_SHIP_NOT_FOUND));
 
-        if (!Objects.equals(friendship.getMember().getId(), memberId)) {
-            if (!Objects.equals(friendship.getFriend().getId(), memberId)) {
-                throw new CustomException(ErrorCode.FRIEND_SHIP_DELETE_FORBIDDEN);
-            }
+        boolean isParticipant = Objects.equals(friendship.getMember().getId(), memberId) ||
+                Objects.equals(friendship.getFriend().getId(), memberId);
+        if (!isParticipant) {
+            throw new CustomException(ErrorCode.FRIEND_SHIP_DELETE_FORBIDDEN);
         }
-
+        
         friendshipRepository.delete(friendship);
     }
 
