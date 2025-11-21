@@ -3,12 +3,7 @@
 import { useState, useEffect, useCallback, memo } from "react";
 import { MainLayout } from "@/components/organisms/layout/BaseLayout";
 import { BoardSearch } from "@/components/organisms/board";
-import {
-  AdFitBanner,
-  AD_SIZES,
-  getAdUnit,
-  Breadcrumb,
-} from "@/components";
+import { Breadcrumb } from "@/components";
 
 // 분리된 훅들 import
 import { usePostList, usePopularPostsTabs, useNoticePosts } from "@/hooks/features";
@@ -127,31 +122,6 @@ function BoardClient() {
           popularError={popularError}
         />
 
-        {/* Mobile Advertisement - 게시판 아래로 이동 */}
-        <div className="mt-6 mb-6">
-          <div className="flex justify-center px-2">
-            {getAdUnit("MOBILE_BANNER") && (
-              <AdFitBanner
-                adUnit={getAdUnit("MOBILE_BANNER")!}
-                width={AD_SIZES.BANNER_320x50.width}
-                height={AD_SIZES.BANNER_320x50.height}
-              />
-            )}
-          </div>
-        </div>
-
-        {/* Bottom Mobile Advertisement */}
-        <div className="mt-8 pt-6">
-          <div className="flex justify-center px-2">
-            {getAdUnit("MOBILE_BANNER") && (
-              <AdFitBanner
-                adUnit={getAdUnit("MOBILE_BANNER")!}
-                width={AD_SIZES.BANNER_320x50.width}
-                height={AD_SIZES.BANNER_320x50.height}
-              />
-            )}
-          </div>
-        </div>
       </main>
     </MainLayout>
   );
