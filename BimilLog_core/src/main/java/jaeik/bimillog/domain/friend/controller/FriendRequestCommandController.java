@@ -63,8 +63,7 @@ public class FriendRequestCommandController {
                                                                                   @PathVariable Long friendRequestId) {
 
         Long senderId = friendRequestQuery.getSenderId(userDetails.getMemberId(), friendRequestId);
-        friendshipCommand.createFriendship(userDetails.getMemberId(), senderId);
-        friendRequestCommand.deleteFriendRequest(userDetails.getMemberId(), friendRequestId);
+        friendshipCommand.createFriendship(userDetails.getMemberId(), senderId, friendRequestId);
         return ResponseEntity.ok("친구가 등록되었습니다.");
     }
     /**

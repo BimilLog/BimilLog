@@ -98,14 +98,14 @@ public class FriendRequestCommand {
 
     private void checkFriendRequest(Long memberId, Long receiveMemberId) {
         // 이미 요청이 존재한다.
-        boolean aSendB = friendRequestRepository.existsByMemberIdAndFriendId(memberId, receiveMemberId);
+        boolean aSendB = friendRequestRepository.existsBySenderIdAndReceiverId(memberId, receiveMemberId);
 
         if (aSendB) {
             throw new CustomException(ErrorCode.FRIEND_REQUEST_ALREADY_SEND);
         }
 
         // 이미 상대가 요청을 보냈다.
-        boolean bSendA = friendRequestRepository.existsByMemberIdAndFriendId(receiveMemberId, memberId);
+        boolean bSendA = friendRequestRepository.existsBySenderIdAndReceiverId(receiveMemberId, memberId);
 
         if (bSendA) {
             throw new CustomException(ErrorCode.FRIEND_REQUEST_ALREADY_RECEIVE);

@@ -1,6 +1,8 @@
 package jaeik.bimillog.domain.friend.service;
 
+import jaeik.bimillog.domain.friend.entity.jpa.FriendRequest;
 import jaeik.bimillog.domain.friend.entity.jpa.Friendship;
+import jaeik.bimillog.domain.friend.repository.FriendRequestRepository;
 import jaeik.bimillog.domain.friend.repository.FriendshipRepository;
 import jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter;
 import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
@@ -19,12 +21,13 @@ public class FriendshipCommand {
     private final GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
     private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
     private final FriendshipRepository friendshipRepository;
+    private final FriendRequestRepository friendRequestRepository;
 
     /**
      * 친구 생성
      */
     @Transactional
-    public void createFriendship(Long memberId, Long friendId) {
+    public void createFriendship(Long memberId, Long friendId, Long friendRequestId) {
 
         // 친구가 실존하는지 확인
         Member friend = globalMemberQueryAdapter.findById(friendId)
@@ -41,6 +44,9 @@ public class FriendshipCommand {
 
         Friendship friendship = Friendship.createFriendship(member, friend);
         friendshipRepository.save(friendship);
+
+        // 요청 삭제
+        friendRequestRepository.deleteById(friendRequestId);
     }
 
     /**
@@ -63,14 +69,14 @@ public class FriendshipCommand {
 
     private void checkFriendship(Long memberId, Long friendId) {
         // 이미 친구가 되어있다.
-        boolean aSendB = friendshipRepository.existsBySenderIdAndReceiverId(memberId, friendId);
+        boolean aSendB = friendshipRepository.existsByMemberIdAndFriendId(memberId, friendId);
 
         if (aSendB) {
             throw new CustomException(ErrorCode.FRIEND_SHIP_ALREADY_EXIST);
         }
 
         // 이미 상대의 친구가 되어있다.
-        boolean bSendA = friendshipRepository.existsBySenderIdAndReceiverId(friendId, memberId);
+        boolean bSendA = friendshipRepository.existsByMemberIdAndFriendId(friendId, memberId);
 
         if (bSendA) {
             throw new CustomException(ErrorCode.FRIEND_SHIP_ALREADY_EXIST);
