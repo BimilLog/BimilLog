@@ -6,6 +6,13 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- TWA Notification Delegation 검색 허용 (Android 12+) -->
+    <queries>
+        <intent>
+            <action android:name="androidx.browser.trusted.permission.DELEGATION_SERVICE" />
+        </intent>
+    </queries>
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -78,6 +85,16 @@
                 android:name="android.support.customtabs.trusted.FALLBACK_STRATEGY"
                 android:value="customtabs" />
         </activity>
+
+        <!-- TWA Notification Delegation Service (웹 푸시 → 앱으로 전달) -->
+        <service
+            android:name="com.google.androidbrowserhelper.trusted.NotificationDelegationService"
+            android:exported="true"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="androidx.browser.trusted.DELEGATION_SERVICE" />
+            </intent-filter>
+        </service>
 
         <!-- FileProvider for file uploads -->
         <provider
