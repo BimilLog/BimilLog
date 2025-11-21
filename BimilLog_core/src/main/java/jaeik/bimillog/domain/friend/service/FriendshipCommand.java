@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Objects;
+
 @Service
 @RequiredArgsConstructor
 public class FriendshipCommand {
@@ -39,6 +41,24 @@ public class FriendshipCommand {
 
         Friendship friendship = Friendship.createFriendship(member, friend);
         friendshipRepository.save(friendship);
+    }
+
+    /**
+     * 친구 삭제
+     */
+    @Transactional
+    public void deleteFriendship(Long memberId, Long friendshipId) {
+        // 친구가 자신의 친구인지 확인한다.
+        Friendship friendship = friendshipRepository.findById(friendshipId)
+                .orElseThrow(() -> new CustomException(ErrorCode.FRIEND_SHIP_NOT_FOUND));
+
+        if (!Objects.equals(friendship.getMember().getId(), memberId)) {
+            if (!Objects.equals(friendship.getFriend().getId(), memberId)) {
+                throw new CustomException(ErrorCode.FRIEND_SHIP_DELETE_FORBIDDEN);
+            }
+        }
+
+        friendshipRepository.delete(friendship);
     }
 
     private void checkFriendship(Long memberId, Long friendId) {

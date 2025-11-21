@@ -60,8 +60,7 @@ public class FriendRequestCommandController {
      */
     @PostMapping("/receive/{friendRequestId}")
     public ResponseEntity<String> acceptReceiveFriendRequest(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                                                                  @PathVariable Long friendRequestId,
-                                                                                  Pageable pageable) {
+                                                                                  @PathVariable Long friendRequestId) {
 
         Long senderId = friendRequestQuery.getSenderId(userDetails.getMemberId(), friendRequestId);
         friendshipCommand.createFriendship(userDetails.getMemberId(), senderId);
