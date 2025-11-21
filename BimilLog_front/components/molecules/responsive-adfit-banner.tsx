@@ -1,8 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { AdFitBanner, AD_SIZES, getAdUnit } from "./adfit-banner";
 import { logger } from '@/lib/utils/logger';
+import { useMediaQuery } from '@/hooks/common/useMediaQuery';
 
 interface ResponsiveAdFitBannerProps {
   /**
@@ -24,6 +25,14 @@ export function ResponsiveAdFitBanner({
   onAdFail,
   position = "unknown",
 }: ResponsiveAdFitBannerProps) {
+  // 모바일 화면 감지 (Tailwind의 md 브레이크포인트: 768px)
+  const isMobile = useMediaQuery('(max-width: 767px)');
+  const [mounted, setMounted] = useState(false);
+
+  // SSR 불일치 방지
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleAdFail = (type: "mobile" | "pc") => {
     if (process.env.NODE_ENV === 'development') {
@@ -36,31 +45,35 @@ export function ResponsiveAdFitBanner({
   const mobileAdUnit = getAdUnit("MOBILE_BANNER");
   const pcAdUnit = getAdUnit("PC_BANNER");
 
-  if (!mobileAdUnit || !pcAdUnit) {
+  // 마운트 전에는 렌더링하지 않음 (SSR 불일치 방지)
+  if (!mounted) {
+    return null;
+  }
+
+  if (!mobileAdUnit && !pcAdUnit) {
     return null;
   }
 
   return (
     <div className={`responsive-adfit-banner ${className}`}>
-      {/* Mobile Banner (320x50) */}
-      <div className="block md:hidden">
+      {/* 조건부 렌더링: 모바일 또는 PC 광고 중 하나만 DOM에 렌더링 */}
+      {isMobile && mobileAdUnit ? (
         <AdFitBanner
           adUnit={mobileAdUnit}
           width={AD_SIZES.BANNER_320x50.width}
           height={AD_SIZES.BANNER_320x50.height}
           onAdFail={() => handleAdFail("mobile")}
         />
-      </div>
-
-      {/* PC Banner (728x90) */}
-      <div className="hidden md:block">
-        <AdFitBanner
-          adUnit={pcAdUnit}
-          width={AD_SIZES.BANNER_728x90.width}
-          height={AD_SIZES.BANNER_728x90.height}
-          onAdFail={() => handleAdFail("pc")}
-        />
-      </div>
+      ) : (
+        pcAdUnit && (
+          <AdFitBanner
+            adUnit={pcAdUnit}
+            width={AD_SIZES.BANNER_728x90.width}
+            height={AD_SIZES.BANNER_728x90.height}
+            onAdFail={() => handleAdFail("pc")}
+          />
+        )
+      )}
     </div>
   );
 }
