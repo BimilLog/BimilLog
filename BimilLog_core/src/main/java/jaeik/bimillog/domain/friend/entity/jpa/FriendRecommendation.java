@@ -36,7 +36,9 @@ public class FriendRecommendation extends BaseEntity {
     @JoinColumn(name = "recommend_member_id", nullable = false)
     private Member recommendMember;
 
-    private List<Long> acquaintance; // 3촌 이상은 null이다.
+    private Long acquaintanceId; // 3촌 이상은 null이다.
+
+    private boolean manyAcquaintance; // 아는 사람이 여러명인지 구분하는 플래그
 
     // 점수
     @NotNull

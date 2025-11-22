@@ -9,8 +9,6 @@ import jaeik.bimillog.domain.friend.entity.RecommendedFriend;
 import jaeik.bimillog.domain.member.dto.SimpleMemberDTO;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.QMember;
-import jaeik.bimillog.domain.member.entity.Setting;
-import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.service.MemberQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -151,6 +149,21 @@ public class MemberQueryAdapter {
                 ))
                 .from(member)
                 .where(member.id.in(friendIds))
+                .fetch();
+    }
+
+    /**
+     * 여러 사용자 ID로 추천 친구 아는 사람 추가 정보 조회
+     */
+    // 추천 친구 아는 사람 추가 정보 조회
+    public List<RecommendedFriend.RecommendedFriendInfo> addAcquaintanceInfo(List<Long> acquaintanceIds) {
+        return jpaQueryFactory
+                .select(Projections.constructor(RecommendedFriend.RecommendedFriendInfo.class,
+                        member.id,
+                        member.memberName
+                ))
+                .from(member)
+                .where(member.id.in(acquaintanceIds))
                 .fetch();
     }
 

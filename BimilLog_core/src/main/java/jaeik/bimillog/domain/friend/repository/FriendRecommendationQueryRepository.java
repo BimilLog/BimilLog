@@ -22,12 +22,15 @@ public class FriendRecommendationQueryRepository {
         List<RecommendedFriend> recommendedFriends = jpaQueryFactory
                 .select(Projections.constructor(RecommendedFriend.class,
                         friendRecommendation.recommendMember.id,
-                        friendRecommendation.depth,
-                        friendRecommendation.acquaintance))
+                        friendRecommendation.acquaintanceId,
+                        friendRecommendation.manyAcquaintance,
+                        friendRecommendation.depth
+                        ))
                 .from(friendRecommendation)
                 .where(friendRecommendation.member.id.eq(memberId))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
+                .orderBy(friendRecommendation.score.desc())
                 .fetch();
 
         Long total = jpaQueryFactory
