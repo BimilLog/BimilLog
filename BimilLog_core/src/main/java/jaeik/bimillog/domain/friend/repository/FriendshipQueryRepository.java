@@ -3,8 +3,10 @@ package jaeik.bimillog.domain.friend.repository;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.friend.entity.Friend;
+import jaeik.bimillog.domain.friend.entity.FriendRelation;
 import jaeik.bimillog.domain.friend.entity.jpa.QFriendship;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -47,5 +49,19 @@ public class FriendshipQueryRepository {
 
         return new PageImpl<>(friendPage, pageable, total != null ? total : 0);
 
+    }
+
+    // 모든 멤버의 본인, 1촌, 2촌 연결관계를 가지고 온다.
+    public List<Tuple> findAllTwoDegreeRelations() {
+        QFriendship f1 = QFriendship.friendship;
+        QFriendship f2 = new QFriendship("f2");
+
+        return jpaQueryFactory
+                .select(f1.member.id, f1.friend.id, f2.friend.id)
+                .from(f1)
+                .join(f2).on(f1.friend.id.eq(f2.member.id))
+                .where(f2.friend.id.ne(f1.member.id),
+                        f2.friend.id.ne(f1.friend.id))
+                .fetch();
     }
 }
