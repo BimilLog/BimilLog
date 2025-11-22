@@ -29,4 +29,9 @@ public class FriendToMemberAdapter {
     public List<RecommendedFriend.AcquaintanceInfo> addAcquaintanceInfo(List<Long> acquaintanceIds) {
         return memberFriendService.addAcquaintanceInfo(acquaintanceIds);
     }
+
+    // 추천 친구 저장 스케줄링
+    public void friendRecommendUpdate() {
+        memberFriendService.friendRecommendUpdate();
+    }
 }

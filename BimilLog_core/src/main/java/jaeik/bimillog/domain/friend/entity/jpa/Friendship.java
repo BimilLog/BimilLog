@@ -27,13 +27,13 @@ public class Friendship extends BaseEntity {
     @Column(name = "friendship_id")
     private Long id;
 
-    // DB레벨 CasCade설정 member 삭제시 Friendship삭제
+    // DB레벨 CasCade설정 member 삭제시 Friendship 삭제
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     private Member member;
 
-    // DB레벨 CasCade설정 member 삭제시 Friendship삭제
+    // DB레벨 CasCade설정 member 삭제시 Friendship 삭제
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "friend_id")

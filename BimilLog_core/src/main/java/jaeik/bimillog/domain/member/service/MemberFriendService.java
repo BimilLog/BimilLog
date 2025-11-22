@@ -49,11 +49,19 @@ public class MemberFriendService {
         return memberQueryAdapter.addRecommendedFriendInfo(friendIds);
     }
 
-    // 추천 친구 아는 사람 추가 정보 조회
+    /**
+     * 추천 친구 아는 사람 추가 정보 조회
+     */
     public List<RecommendedFriend.AcquaintanceInfo> addAcquaintanceInfo(List<Long> acquaintanceIds) {
         return memberQueryAdapter.addAcquaintanceInfo(acquaintanceIds);
     }
 
+    /**
+     * 추천 친구 저장 스케줄링
+     */
+    public void friendRecommendUpdate() {
+        memberQueryAdapter.friendRecommendUpdate();
+    }
 
     /**
      * <h3>카카오 친구 목록 조회</h3>

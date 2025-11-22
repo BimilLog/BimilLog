@@ -167,6 +167,13 @@ public class MemberQueryAdapter {
     }
 
     /**
+     * 추천 친구 업데이트
+     */
+    public void friendRecommendUpdate() {
+
+    }
+
+    /**
      * <h3>접두사 검색 (인덱스 활용)</h3>
      * <p>LIKE 'query%' 조건으로 멤버명을 검색하여 인덱스를 활용합니다.</p>
      * <p>{@link MemberQueryService}에서 검색 전략에 따라 호출됩니다.</p>

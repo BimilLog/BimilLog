@@ -41,7 +41,7 @@ public class RecommendedFriend {
         }
 
         if (manyAcquaintance) {
-            return acquaintance + " 외 다수의 친구";
+            return acquaintance + " 외 다수의 공통 친구";
         }
 
         return acquaintance + "의 친구";
