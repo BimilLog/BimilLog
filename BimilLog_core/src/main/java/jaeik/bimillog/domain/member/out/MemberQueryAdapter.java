@@ -141,7 +141,7 @@ public class MemberQueryAdapter {
     /**
      * 여러 사용자 ID로 추천 친구 추가 정보 조회
      */
-    public List<RecommendedFriend.RecommendedFriendInfo> addRecommendedMyFriendInfo(List<Long> friendIds) {
+    public List<RecommendedFriend.RecommendedFriendInfo> addRecommendedFriendInfo(List<Long> friendIds) {
         return jpaQueryFactory
                 .select(Projections.constructor(RecommendedFriend.RecommendedFriendInfo.class,
                         member.id,
@@ -155,10 +155,9 @@ public class MemberQueryAdapter {
     /**
      * 여러 사용자 ID로 추천 친구 아는 사람 추가 정보 조회
      */
-    // 추천 친구 아는 사람 추가 정보 조회
-    public List<RecommendedFriend.RecommendedFriendInfo> addAcquaintanceInfo(List<Long> acquaintanceIds) {
+    public List<RecommendedFriend.AcquaintanceInfo> addAcquaintanceInfo(List<Long> acquaintanceIds) {
         return jpaQueryFactory
-                .select(Projections.constructor(RecommendedFriend.RecommendedFriendInfo.class,
+                .select(Projections.constructor(RecommendedFriend.AcquaintanceInfo.class,
                         member.id,
                         member.memberName
                 ))

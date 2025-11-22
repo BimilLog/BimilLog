@@ -26,7 +26,7 @@ public class FriendToMemberAdapter {
     }
 
     // 추천 친구 아는 사람 추가 정보 조회
-    public List<RecommendedFriend.RecommendedFriendInfo> addAcquaintanceInfo(List<Long> acquaintanceIds) {
+    public List<RecommendedFriend.AcquaintanceInfo> addAcquaintanceInfo(List<Long> acquaintanceIds) {
         return memberFriendService.addAcquaintanceInfo(acquaintanceIds);
     }
 }

@@ -31,7 +31,7 @@ public class FriendshipQueryService {
         Map<Long, Friend.FriendInfo> infoMap = friendInfos.stream()
                 .collect(Collectors.toMap(Friend.FriendInfo::memberId, info -> info));
 
-        // 3. 기존 Page<Friend> 내부 객체에 FriendInfo 주입
+        // 기존 Page<Friend> 내부 객체에 FriendInfo 주입
         myFriendPages.getContent().forEach(friend -> {
             Friend.FriendInfo info = infoMap.get(friend.getFriendMemberId());
             if (info != null) {

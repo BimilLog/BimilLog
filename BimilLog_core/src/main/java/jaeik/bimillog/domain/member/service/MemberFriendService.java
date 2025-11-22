@@ -46,11 +46,11 @@ public class MemberFriendService {
      * 추천 친구 추가 정보 조회
      */
     public List<RecommendedFriend.RecommendedFriendInfo> addRecommendedFriendInfo(List<Long> friendIds) {
-        return memberQueryAdapter.addRecommendedMyFriendInfo(friendIds);
+        return memberQueryAdapter.addRecommendedFriendInfo(friendIds);
     }
 
     // 추천 친구 아는 사람 추가 정보 조회
-    public List<RecommendedFriend.RecommendedFriendInfo> addAcquaintanceInfo(List<Long> acquaintanceIds) {
+    public List<RecommendedFriend.AcquaintanceInfo> addAcquaintanceInfo(List<Long> acquaintanceIds) {
         return memberQueryAdapter.addAcquaintanceInfo(acquaintanceIds);
     }
 

@@ -13,8 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static java.awt.SystemColor.info;
-
 @Service
 @RequiredArgsConstructor
 public class FriendRecommendService {
@@ -29,20 +27,17 @@ public class FriendRecommendService {
         List<Long> acquaintanceIds = recommendedFriendPages.getContent().stream().map(RecommendedFriend::getAcquaintanceId).toList();
 
         List<RecommendedFriend.RecommendedFriendInfo> friendInfos = friendToMemberAdapter.addRecommendedFriendInfo(friendIds);
-        List<RecommendedFriend.RecommendedFriendInfo> acquaintanceInfos = friendToMemberAdapter.addAcquaintanceInfo(acquaintanceIds);
+        List<RecommendedFriend.AcquaintanceInfo> acquaintanceInfos = friendToMemberAdapter.addAcquaintanceInfo(acquaintanceIds);
 
         Map<Long, RecommendedFriend.RecommendedFriendInfo> friendInfoMap = friendInfos.stream()
                 .collect(Collectors.toMap(RecommendedFriend.RecommendedFriendInfo::friendMemberId, info -> info));
-        Map<Long, RecommendedFriend.RecommendedFriendInfo> acquaintanceInfoMap = acquaintanceInfos.stream()
-                .collect(Collectors.toMap(RecommendedFriend.RecommendedFriendInfo::acquaintanceId, info -> info));
-
-        // RecommendedFriendInfo 통합
-
+        Map<Long, RecommendedFriend.AcquaintanceInfo> acquaintanceInfoMap = acquaintanceInfos.stream()
+                .collect(Collectors.toMap(RecommendedFriend.AcquaintanceInfo::acquaintanceId, info -> info));
 
         // 기존 Page<RecommendedFriend> 내부 객체에 FriendInfo 주입
         recommendedFriendPages.getContent().forEach(recommendedFriends -> {
             RecommendedFriend.RecommendedFriendInfo friendInfo = friendInfoMap.get(recommendedFriends.getFriendMemberId());
-            RecommendedFriend.RecommendedFriendInfo acquaintanceInfo = acquaintanceInfoMap.get(recommendedFriends.getAcquaintanceId());
+            RecommendedFriend.AcquaintanceInfo acquaintanceInfo = acquaintanceInfoMap.get(recommendedFriends.getAcquaintanceId());
             recommendedFriends.setRecommendedFriendName(friendInfo);
             recommendedFriends.setAcquaintanceFriendName(acquaintanceInfo);
         });
