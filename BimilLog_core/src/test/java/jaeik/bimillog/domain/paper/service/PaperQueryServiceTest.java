@@ -64,7 +64,7 @@ class PaperQueryServiceTest extends BaseUnitTest {
         given(paperQueryRepository.findMessagesByMemberName(memberName)).willReturn(messages);
 
         // When
-        List<Message> result = paperQueryService.visitPaper(memberName);
+        List<Message> result = paperQueryService.visitPaper(getTestMember().getId(), memberName);
 
         // Then
         assertThat(result).isNotNull();
@@ -86,7 +86,7 @@ class PaperQueryServiceTest extends BaseUnitTest {
         given(paperQueryRepository.findMessagesByMemberName(memberName)).willReturn(Collections.emptyList());
 
         // When
-        List<Message> result = paperQueryService.visitPaper(memberName);
+        List<Message> result = paperQueryService.visitPaper(getTestMember().getId(), memberName);
 
         // Then
         assertThat(result).isNotNull();
@@ -105,7 +105,7 @@ class PaperQueryServiceTest extends BaseUnitTest {
         String memberName = null;
 
         // When & Then - null case
-        assertThatThrownBy(() -> paperQueryService.visitPaper(memberName))
+        assertThatThrownBy(() -> paperQueryService.visitPaper(getTestMember().getId(), memberName))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PAPER_INVALID_INPUT_VALUE);
 
@@ -113,7 +113,7 @@ class PaperQueryServiceTest extends BaseUnitTest {
         String emptyUserName = "   ";
 
         // When & Then - empty case
-        assertThatThrownBy(() -> paperQueryService.visitPaper(emptyUserName))
+        assertThatThrownBy(() -> paperQueryService.visitPaper(1L, emptyUserName))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PAPER_INVALID_INPUT_VALUE);
 
