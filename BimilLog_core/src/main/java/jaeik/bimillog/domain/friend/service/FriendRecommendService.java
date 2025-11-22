@@ -27,7 +27,7 @@ public class FriendRecommendService {
         Map<Long, RecommendedFriend.RecommendedFriendInfo> infoMap = friendInfos.stream()
                 .collect(Collectors.toMap(RecommendedFriend.RecommendedFriendInfo::friendMemberId, info -> info));
 
-        // 3. 기존 Page<Friend> 내부 객체에 FriendInfo 주입
+        // 3. 기존 Page<RecommendedFriend> 내부 객체에 FriendInfo 주입
         recommendedFriendPages.getContent().forEach(recommendedFriends -> {
             RecommendedFriend.RecommendedFriendInfo info = infoMap.get(recommendedFriends.getFriendMemberId());
             if (info != null) {
