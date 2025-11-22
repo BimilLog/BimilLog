@@ -64,6 +64,15 @@ export const queryKeys = {
     all: ['admin'] as const,
     reports: (page?: number) => [...queryKeys.admin.all, 'reports', page] as const,
   },
+
+  // Friend
+  friend: {
+    all: ['friend'] as const,
+    lists: () => [...queryKeys.friend.all, 'list'] as const,
+    sentRequests: (page: number, size: number) => [...queryKeys.friend.all, 'sent', page, size] as const,
+    receivedRequests: (page: number, size: number) => [...queryKeys.friend.all, 'received', page, size] as const,
+    recommended: (page: number, size: number) => [...queryKeys.friend.all, 'recommended', page, size] as const,
+  },
 } as const;
 
 /**
@@ -120,5 +129,14 @@ export const mutationKeys = {
   admin: {
     ban: ['admin', 'ban'] as const,
     withdraw: ['admin', 'withdraw'] as const,
+  },
+
+  // Friend
+  friend: {
+    sendRequest: ['friend', 'sendRequest'] as const,
+    cancelRequest: ['friend', 'cancelRequest'] as const,
+    acceptRequest: ['friend', 'acceptRequest'] as const,
+    rejectRequest: ['friend', 'rejectRequest'] as const,
+    removeFriend: ['friend', 'removeFriend'] as const,
   },
 } as const;
