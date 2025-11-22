@@ -7,6 +7,9 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.lang.Nullable;
+
+import java.util.List;
 
 // 친구추천은 양방향이 아니다 서로가 친구추천 목록에 뜰 수 있다.
 @Entity
@@ -32,6 +35,8 @@ public class FriendRecommendation extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "recommend_member_id", nullable = false)
     private Member recommendMember;
+
+    private List<Long> acquaintance; // 3촌 이상은 null이다.
 
     // 점수
     @NotNull

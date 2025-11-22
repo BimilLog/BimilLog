@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class FriendshipQuery {
+public class FriendshipQueryService {
     private final FriendshipQueryRepository friendshipQueryRepository;
     private final FriendToMemberAdapter friendToMemberAdapter;
 

@@ -3,10 +3,10 @@ package jaeik.bimillog.domain.friend.controller;
 import jaeik.bimillog.domain.friend.entity.Friend;
 import jaeik.bimillog.domain.friend.entity.FriendReceiverRequest;
 import jaeik.bimillog.domain.friend.entity.FriendSenderRequest;
-import jaeik.bimillog.domain.friend.service.FriendRequestCommand;
-import jaeik.bimillog.domain.friend.service.FriendRequestQuery;
-import jaeik.bimillog.domain.friend.service.FriendshipCommand;
-import jaeik.bimillog.domain.friend.service.FriendshipQuery;
+import jaeik.bimillog.domain.friend.service.FriendRequestCommandService;
+import jaeik.bimillog.domain.friend.service.FriendRequestQueryService;
+import jaeik.bimillog.domain.friend.service.FriendshipCommandService;
+import jaeik.bimillog.domain.friend.service.FriendshipQueryService;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.infrastructure.log.Log;
 import lombok.RequiredArgsConstructor;
@@ -24,10 +24,10 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/friend")
 public class FriendRequestCommandController {
-    private final FriendRequestQuery friendRequestQuery;
-    private final FriendRequestCommand friendRequestCommand;
-    private final FriendshipCommand friendshipCommand;
-    private final FriendshipQuery friendshipQuery;
+    private final FriendRequestQueryService friendRequestQueryService;
+    private final FriendRequestCommandService friendRequestCommandService;
+    private final FriendshipCommandService friendshipCommandService;
+    private final FriendshipQueryService friendshipQueryService;
 
     /**
      * 보낸 친구 요청 취소 API<br>
@@ -38,8 +38,8 @@ public class FriendRequestCommandController {
                                                                            @PathVariable Long friendRequestId,
                                                                            Pageable pageable) {
 
-        friendRequestCommand.cancelFriendRequest(userDetails.getMemberId(), friendRequestId);
-        Page<FriendSenderRequest> friendSenderRequests = friendRequestQuery.getFriendSendRequest(userDetails.getMemberId(), pageable);
+        friendRequestCommandService.cancelFriendRequest(userDetails.getMemberId(), friendRequestId);
+        Page<FriendSenderRequest> friendSenderRequests = friendRequestQueryService.getFriendSendRequest(userDetails.getMemberId(), pageable);
         return ResponseEntity.ok(friendSenderRequests);
     }
 
@@ -52,8 +52,8 @@ public class FriendRequestCommandController {
                                                                            @PathVariable Long friendRequestId,
                                                                            Pageable pageable) {
 
-        friendRequestCommand.deleteFriendRequest(userDetails.getMemberId(), friendRequestId);
-        Page<FriendReceiverRequest> friendSenderRequests = friendRequestQuery.getFriendReceiveRequest(userDetails.getMemberId(), pageable);
+        friendRequestCommandService.deleteFriendRequest(userDetails.getMemberId(), friendRequestId);
+        Page<FriendReceiverRequest> friendSenderRequests = friendRequestQueryService.getFriendReceiveRequest(userDetails.getMemberId(), pageable);
         return ResponseEntity.ok(friendSenderRequests);
     }
 
@@ -65,9 +65,9 @@ public class FriendRequestCommandController {
     public ResponseEntity<Page<Friend>> acceptReceiveFriendRequest(@AuthenticationPrincipal CustomUserDetails userDetails,
                                                              @PathVariable Long friendRequestId,
                                                              Pageable pageable) {
-        Long senderId = friendRequestQuery.getSenderId(userDetails.getMemberId(), friendRequestId);
-        friendshipCommand.createFriendship(userDetails.getMemberId(), senderId, friendRequestId);
-        Page<Friend> myFriendPages = friendshipQuery.getMyFriendList(userDetails.getMemberId(), pageable);
+        Long senderId = friendRequestQueryService.getSenderId(userDetails.getMemberId(), friendRequestId);
+        friendshipCommandService.createFriendship(userDetails.getMemberId(), senderId, friendRequestId);
+        Page<Friend> myFriendPages = friendshipQueryService.getMyFriendList(userDetails.getMemberId(), pageable);
         return ResponseEntity.ok(myFriendPages);
     }
     /**
@@ -79,8 +79,8 @@ public class FriendRequestCommandController {
                                                                        @RequestBody FriendSenderRequest friendSenderRequest,
                                                                        Pageable pageable) {
 
-        friendRequestCommand.sendFriendRequest(userDetails.getMemberId(), friendSenderRequest.getReceiverMemberId());
-        Page<FriendSenderRequest> friendSenderRequests = friendRequestQuery.getFriendSendRequest(userDetails.getMemberId(), pageable);
+        friendRequestCommandService.sendFriendRequest(userDetails.getMemberId(), friendSenderRequest.getReceiverMemberId());
+        Page<FriendSenderRequest> friendSenderRequests = friendRequestQueryService.getFriendSendRequest(userDetails.getMemberId(), pageable);
         return ResponseEntity.ok(friendSenderRequests);
     }
 }

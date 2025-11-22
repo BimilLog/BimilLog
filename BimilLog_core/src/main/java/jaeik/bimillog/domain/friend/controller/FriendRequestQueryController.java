@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.friend.controller;
 
 import jaeik.bimillog.domain.friend.entity.FriendReceiverRequest;
 import jaeik.bimillog.domain.friend.entity.FriendSenderRequest;
-import jaeik.bimillog.domain.friend.service.FriendRequestQuery;
+import jaeik.bimillog.domain.friend.service.FriendRequestQueryService;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.infrastructure.log.Log;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/friend")
 public class FriendRequestQueryController {
-    private final FriendRequestQuery friendRequestQuery;
+    private final FriendRequestQueryService friendRequestQueryService;
 
     /**
      * 보낸 친구 요청 조회 API
@@ -30,7 +30,7 @@ public class FriendRequestQueryController {
     @GetMapping("/send")
     public ResponseEntity<Page<FriendSenderRequest>> getFriendSendRequest(@AuthenticationPrincipal CustomUserDetails userDetails,
                                                                          Pageable pageable) {
-        Page<FriendSenderRequest> friendSenderRequests = friendRequestQuery.getFriendSendRequest(userDetails.getMemberId(), pageable);
+        Page<FriendSenderRequest> friendSenderRequests = friendRequestQueryService.getFriendSendRequest(userDetails.getMemberId(), pageable);
         return ResponseEntity.ok(friendSenderRequests);
     }
 
@@ -40,7 +40,7 @@ public class FriendRequestQueryController {
     @GetMapping("/receive")
     public ResponseEntity<Page<FriendReceiverRequest>> getFriendReceiveRequest(@AuthenticationPrincipal CustomUserDetails userDetails,
                                                                             Pageable pageable) {
-        Page<FriendReceiverRequest> friendSenderRequests = friendRequestQuery.getFriendReceiveRequest(userDetails.getMemberId(), pageable);
+        Page<FriendReceiverRequest> friendSenderRequests = friendRequestQueryService.getFriendReceiveRequest(userDetails.getMemberId(), pageable);
         return ResponseEntity.ok(friendSenderRequests);
     }
 }

@@ -17,7 +17,7 @@ import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
-public class FriendRequestQuery {
+public class FriendRequestQueryService {
     private final FriendRequestQueryRepository friendRequestQueryRepository;
     private final FriendRequestRepository friendRequestRepository;
 

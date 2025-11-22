@@ -5,6 +5,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.friend.entity.Friend;
+import jaeik.bimillog.domain.friend.entity.RecommendedFriend;
 import jaeik.bimillog.domain.member.dto.SimpleMemberDTO;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.QMember;
@@ -133,6 +134,20 @@ public class MemberQueryAdapter {
                         member.id,
                         member.memberName,
                         member.thumbnailImage
+                ))
+                .from(member)
+                .where(member.id.in(friendIds))
+                .fetch();
+    }
+
+    /**
+     * 여러 사용자 ID로 추천 친구 추가 정보 조회
+     */
+    public List<RecommendedFriend.RecommendedFriendInfo> addRecommendedMyFriendInfo(List<Long> friendIds) {
+        return jpaQueryFactory
+                .select(Projections.constructor(RecommendedFriend.RecommendedFriendInfo.class,
+                        member.id,
+                        member.memberName
                 ))
                 .from(member)
                 .where(member.id.in(friendIds))

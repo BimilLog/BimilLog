@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.friend.repository;
 
 import jaeik.bimillog.domain.friend.entity.Friend;
+import jaeik.bimillog.domain.friend.entity.RecommendedFriend;
 import jaeik.bimillog.domain.member.service.MemberFriendService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -17,6 +18,11 @@ public class FriendToMemberAdapter {
     // 친구 추가 정보 조회
     public List<Friend.FriendInfo> addMyFriendInfo(List<Long> friendIds) {
         return memberFriendService.addMyFriendInfo(friendIds);
+    }
+
+    // 추천 친구 추가 정보 조회
+    public List<RecommendedFriend.RecommendedFriendInfo> addRecommendedFriendInfo(List<Long> friendIds) {
+        return memberFriendService.addRecommendedFriendInfo(friendIds);
     }
 
 

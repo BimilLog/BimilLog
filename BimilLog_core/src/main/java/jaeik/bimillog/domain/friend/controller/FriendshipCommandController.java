@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.friend.controller;
 
 import jaeik.bimillog.domain.friend.entity.Friend;
-import jaeik.bimillog.domain.friend.service.FriendshipCommand;
-import jaeik.bimillog.domain.friend.service.FriendshipQuery;
+import jaeik.bimillog.domain.friend.service.FriendshipCommandService;
+import jaeik.bimillog.domain.friend.service.FriendshipQueryService;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.infrastructure.log.Log;
 import lombok.RequiredArgsConstructor;
@@ -23,8 +23,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/friend")
 public class FriendshipCommandController {
-    private final FriendshipCommand friendshipCommand;
-    private final FriendshipQuery friendshipQuery;
+    private final FriendshipCommandService friendshipCommandService;
+    private final FriendshipQueryService friendshipQueryService;
 
     /**
      * 친구 삭제 API</br>
@@ -34,8 +34,8 @@ public class FriendshipCommandController {
     public ResponseEntity<Page<Friend>> deleteFriendship(@AuthenticationPrincipal CustomUserDetails userDetails,
                                                    @PathVariable Long friendshipId,
                                                    Pageable pageable) {
-        friendshipCommand.deleteFriendship(userDetails.getMemberId(), friendshipId);
-        Page<Friend> myFriendPages = friendshipQuery.getMyFriendList(userDetails.getMemberId(), pageable);
+        friendshipCommandService.deleteFriendship(userDetails.getMemberId(), friendshipId);
+        Page<Friend> myFriendPages = friendshipQueryService.getMyFriendList(userDetails.getMemberId(), pageable);
         return ResponseEntity.ok(myFriendPages);
     }
 }

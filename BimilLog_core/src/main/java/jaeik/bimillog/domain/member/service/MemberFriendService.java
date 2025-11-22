@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.member.service;
 
 import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.friend.entity.Friend;
+import jaeik.bimillog.domain.friend.entity.RecommendedFriend;
 import jaeik.bimillog.domain.member.dto.KakaoFriendsDTO;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
@@ -39,6 +40,13 @@ public class MemberFriendService {
      */
     public List<Friend.FriendInfo> addMyFriendInfo(List<Long> friendIds) {
         return memberQueryAdapter.getMyFriendPages(friendIds);
+    }
+
+    /**
+     * 추천 친구 추가 정보 조회
+     */
+    public List<RecommendedFriend.RecommendedFriendInfo> addRecommendedFriendInfo(List<Long> friendIds) {
+        return memberQueryAdapter.addRecommendedMyFriendInfo(friendIds);
     }
 
 

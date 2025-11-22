@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.friend.service;
 
-import jaeik.bimillog.domain.friend.entity.jpa.FriendRequest;
 import jaeik.bimillog.domain.friend.entity.jpa.Friendship;
 import jaeik.bimillog.domain.friend.repository.FriendRequestRepository;
 import jaeik.bimillog.domain.friend.repository.FriendshipRepository;
@@ -17,7 +16,7 @@ import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
-public class FriendshipCommand {
+public class FriendshipCommandService {
     private final GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
     private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
     private final FriendshipRepository friendshipRepository;
@@ -63,7 +62,7 @@ public class FriendshipCommand {
         if (!isParticipant) {
             throw new CustomException(ErrorCode.FRIEND_SHIP_DELETE_FORBIDDEN);
         }
-        
+
         friendshipRepository.delete(friendship);
     }
 

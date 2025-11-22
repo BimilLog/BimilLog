@@ -17,7 +17,7 @@ import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
-public class FriendRequestCommand {
+public class FriendRequestCommandService {
     private final FriendRequestRepository friendRequestRepository;
     private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
     private final GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
