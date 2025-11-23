@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.member.entity.Member;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.lang.Nullable;
@@ -49,4 +50,25 @@ public class FriendRecommendation extends BaseEntity {
     @NotNull
     @Column(name = "depth", nullable = false)
     private Integer depth;
+
+    /**
+     * FriendRecommendation 생성자
+     *
+     * @param member 추천을 보는 사람
+     * @param recommendMember 추천된 대상
+     * @param acquaintanceId 아는 사람 ID (3촌 이상은 null)
+     * @param manyAcquaintance 아는 사람이 여러명인지 구분하는 플래그
+     * @param score 점수
+     * @param depth 촌수
+     */
+    @Builder
+    public FriendRecommendation(Member member, Member recommendMember, Long acquaintanceId,
+                                 boolean manyAcquaintance, Integer score, Integer depth) {
+        this.member = member;
+        this.recommendMember = recommendMember;
+        this.acquaintanceId = acquaintanceId;
+        this.manyAcquaintance = manyAcquaintance;
+        this.score = score;
+        this.depth = depth;
+    }
 }

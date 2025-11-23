@@ -2,8 +2,12 @@ package jaeik.bimillog.domain.friend.service;
 
 import com.querydsl.core.Tuple;
 import jaeik.bimillog.domain.friend.entity.FriendRelation;
+import jaeik.bimillog.domain.friend.entity.jpa.FriendRecommendation;
+import jaeik.bimillog.domain.friend.repository.FriendRecommendationQueryRepository;
+import jaeik.bimillog.domain.friend.repository.FriendRecommendationRepository;
 import jaeik.bimillog.domain.friend.repository.FriendToMemberAdapter;
 import jaeik.bimillog.domain.friend.repository.FriendshipQueryRepository;
+import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -18,6 +22,9 @@ public class FriendRecommendScheduledService {
     private final FriendToMemberAdapter friendToMemberAdapter;
     private final FriendshipQueryRepository friendshipQueryRepository;
     private final FriendRecommendUnionFindService friendRecommendUnionFindService;
+    private final FriendRecommendationQueryRepository friendRecommendationQueryRepository;
+    private final FriendRecommendationRepository friendRecommendationRepository;
+    private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
 
     /**
      * 추천친구는 depth3 까지 탐색한다.<br>
@@ -112,16 +119,18 @@ public class FriendRecommendScheduledService {
                 finalRecommendationList = new ArrayList<>(topCandidates);
 
                 if (finalRecommendationList.size() < 10) {
-                    // TODO: 최종적으로 10명이 되도록 랜덤 멤버를 채우는 로직 구현 필요
-                    // finalRecommendationList.addAll(fillRandomMembers(memberId, 10 - finalRecommendationList.size(), relation));
+                    int needed = 10 - finalRecommendationList.size();
+                    List<FriendRecommendUnionFindService.FriendUnion> filledMembers =
+                            fillRandomMembers(memberId, needed, relation, finalRecommendationList);
+                    finalRecommendationList.addAll(filledMembers);
                 }
 
                 // 3. 상위 10명만 최종 추천 목록으로 선정
                 finalRecommendationList = finalRecommendationList.stream().limit(10).toList();
             }
 
-            // 5. 멤버 채우기 : 멤버ID Max를 범위로 랜덤값을 뽑아 10명을 채우고 저장한다.
-            // saveRecommendationList(memberId, finalRecommendationList); // TODO: 최종 저장 로직 필요
+            // 6. 최종 저장
+            saveRecommendationList(memberId, finalRecommendationList, relation, memberToSecondDegreePaths);
             // ----------------------------------------------------
 
         }
@@ -275,7 +284,7 @@ public class FriendRecommendScheduledService {
     }
 
     /**
-     * 상호작용 점수를 계산하고 최종 점수를 기준으로 후보를 정렬합니다. (Placeholder)
+     * 상호작용 점수를 계산하고 최종 점수를 기준으로 후보를 정렬합니다.
      * @param isExtendedSearch 전체 멤버(테이블)를 대상으로 검색했는지 여부 (4-2단계)
      */
     private List<FriendRecommendUnionFindService.FriendUnion> applyInteractionScoreAndSort(
@@ -283,12 +292,19 @@ public class FriendRecommendScheduledService {
             List<FriendRecommendUnionFindService.FriendUnion> candidates,
             boolean isExtendedSearch) {
 
-        // TODO: 같은 유니온 내의 ID끼리의 상호작용(글, 댓글 등) 상호작용 점수 추가 로직 필요
-        // TODO: 예시: 랜덤으로 0~10점 추가 (실제 로직 대체 필요)
-        Random random = new Random();
+        // 후보 멤버 ID 목록 추출
+        Set<Long> candidateIds = candidates.stream()
+                .map(FriendRecommendUnionFindService.FriendUnion::getId)
+                .collect(Collectors.toSet());
+
+        // 상호작용 점수 계산
+        // isExtendedSearch가 true면 candidateIds에 없는 멤버도 포함될 수 있으므로 null 전달
+        Map<Long, Integer> interactionScores = friendRecommendationQueryRepository
+                .findInteractionScores(memberId, isExtendedSearch ? null : candidateIds);
+
+        // 각 후보에 상호작용 점수 부여
         for (FriendRecommendUnionFindService.FriendUnion candidate : candidates) {
-            // isExtendedSearch 여부에 따라 점수 계산 범위가 달라질 수 있습니다.
-            int interactionScore = random.nextInt(11); // 0 to 10
+            int interactionScore = interactionScores.getOrDefault(candidate.getId(), 0);
             candidate.addScore(interactionScore);
 
             // isExtendedSearch가 true일 때, 2, 3촌이 아닌 멤버는 기본 점수가 0이므로,
@@ -302,18 +318,138 @@ public class FriendRecommendScheduledService {
     }
 
     /**
-     * 4-2 단계에서 10명 미만인 경우, 전체 멤버 중 상호작용이 있는 멤버를 추가로 가져오는 Placeholder.
+     * 4-2 단계에서 10명 미만인 경우, 전체 멤버 중 상호작용이 있는 멤버를 추가로 가져옵니다.
      */
     private List<FriendRecommendUnionFindService.FriendUnion> extendCandidatesWithAllMembersForInteraction(
             Long memberId,
             List<FriendRecommendUnionFindService.FriendUnion> currentCandidates,
             FriendRelation relation) {
 
-        // TODO: 특정 memberId와 상호작용 점수가 있는 모든 멤버를 가져와야 합니다.
-        // 이때, 이미 친구인 (1촌) 및 이미 2/3촌으로 등록된 멤버는 제외해야 합니다.
+        // 전체 멤버를 대상으로 상호작용 점수 계산
+        Map<Long, Integer> allInteractionScores = friendRecommendationQueryRepository
+                .findInteractionScores(memberId, null);
 
-        // 현재는 Placeholder로, 현재 후보만 반환합니다. (실제 4-2 로직을 위해 이 부분을 구현해야 합니다.)
-        return new ArrayList<>(currentCandidates);
+        // 제외할 멤버 ID 수집
+        Set<Long> excludeIds = new HashSet<>();
+        excludeIds.add(memberId); // 본인 제외
+        excludeIds.addAll(relation.getFirstDegreeIds()); // 1촌 (이미 친구) 제외
+        excludeIds.addAll(relation.getSecondDegreeIds()); // 2촌 (이미 후보) 제외
+        excludeIds.addAll(relation.getThirdDegreeIds()); // 3촌 (이미 후보) 제외
+
+        // 상호작용이 있는 멤버만 필터링하여 FriendUnion으로 생성
+        List<FriendRecommendUnionFindService.FriendUnion> extendedCandidates = new ArrayList<>(currentCandidates);
+
+        for (Map.Entry<Long, Integer> entry : allInteractionScores.entrySet()) {
+            Long candidateMemberId = entry.getKey();
+            Integer interactionScore = entry.getValue();
+
+            // 제외 대상이 아니고, 상호작용 점수가 0보다 큰 경우만 추가
+            if (!excludeIds.contains(candidateMemberId) && interactionScore > 0) {
+                // 기본 점수 0, depth 0 (2/3촌이 아님)으로 FriendUnion 생성
+                FriendRecommendUnionFindService.FriendUnion newCandidate =
+                        new FriendRecommendUnionFindService.FriendUnion(candidateMemberId, 0, 0);
+                extendedCandidates.add(newCandidate);
+            }
+        }
+
+        return extendedCandidates;
+    }
+
+    /**
+     * 10명 미달 시 최근 가입자로 추천 목록을 채웁니다.
+     *
+     * @param memberId 대상 멤버 ID
+     * @param needed 필요한 멤버 수
+     * @param relation 현재 멤버의 친구 관계 데이터
+     * @param currentCandidates 현재까지의 추천 후보 목록
+     * @return List&lt;FriendUnion&gt; 채워진 멤버 목록
+     */
+    private List<FriendRecommendUnionFindService.FriendUnion> fillRandomMembers(
+            Long memberId,
+            int needed,
+            FriendRelation relation,
+            List<FriendRecommendUnionFindService.FriendUnion> currentCandidates) {
+
+        // 제외할 멤버 ID 수집
+        Set<Long> excludeIds = new HashSet<>();
+        excludeIds.add(memberId); // 본인 제외
+        excludeIds.addAll(relation.getFirstDegreeIds()); // 1촌 제외
+        excludeIds.addAll(relation.getSecondDegreeIds()); // 2촌 제외 (이미 후보)
+        excludeIds.addAll(relation.getThirdDegreeIds()); // 3촌 제외 (이미 후보)
+
+        // 현재 후보 목록에 있는 멤버도 제외
+        for (FriendRecommendUnionFindService.FriendUnion candidate : currentCandidates) {
+            excludeIds.add(candidate.getId());
+        }
+
+        // 최근 가입자 조회
+        List<Long> recentMemberIds = globalMemberQueryAdapter.findRecentMemberIds(excludeIds, needed);
+
+        // FriendUnion으로 변환 (기본 점수 0, depth 0)
+        return recentMemberIds.stream()
+                .map(id -> new FriendRecommendUnionFindService.FriendUnion(id, 0, 0))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 최종 추천친구 목록을 데이터베이스에 저장합니다.
+     * 기존 추천친구 데이터를 삭제하고 새로운 데이터를 저장합니다.
+     *
+     * @param memberId 대상 멤버 ID
+     * @param recommendations 추천친구 목록
+     * @param relation 친구 관계 데이터
+     * @param memberToSecondDegreePaths 2촌 경로 데이터 (acquaintanceId 계산용)
+     */
+    private void saveRecommendationList(
+            Long memberId,
+            List<FriendRecommendUnionFindService.FriendUnion> recommendations,
+            FriendRelation relation,
+            Map<Long, Map<Long, List<Long>>> memberToSecondDegreePaths) {
+
+        // 1. 기존 추천친구 전체 삭제
+        friendRecommendationRepository.deleteAllByMemberId(memberId);
+
+        // 2. 새로운 추천친구 엔티티 생성
+        List<FriendRecommendation> entities = new ArrayList<>();
+
+        // 현재 멤버의 2촌 경로 정보 가져오기
+        Map<Long, List<Long>> secondPaths = memberToSecondDegreePaths.getOrDefault(memberId, Collections.emptyMap());
+
+        for (FriendRecommendUnionFindService.FriendUnion union : recommendations) {
+            Long recommendMemberId = union.getId();
+
+            // acquaintanceId와 manyAcquaintance 계산
+            Long acquaintanceId = null;
+            boolean manyAcquaintance = false;
+
+            // 2촌인 경우에만 acquaintanceId 설정
+            if (union.getDegree() == 2) {
+                List<Long> pathIds = secondPaths.get(recommendMemberId);
+                if (pathIds != null && !pathIds.isEmpty()) {
+                    // 첫 번째 1촌을 대표 acquaintanceId로 설정
+                    acquaintanceId = pathIds.get(0);
+                    // 연결된 1촌이 2명 이상이면 manyAcquaintance = true
+                    manyAcquaintance = pathIds.size() >= 2;
+                }
+            }
+
+            // FriendRecommendation 엔티티 생성
+            FriendRecommendation recommendation = FriendRecommendation.builder()
+                    .member(globalMemberQueryAdapter.getReferenceById(memberId))
+                    .recommendMember(globalMemberQueryAdapter.getReferenceById(recommendMemberId))
+                    .acquaintanceId(acquaintanceId)
+                    .manyAcquaintance(manyAcquaintance)
+                    .score(union.getScore())
+                    .depth(union.getDegree())
+                    .build();
+
+            entities.add(recommendation);
+        }
+
+        // 3. 배치 저장
+        if (!entities.isEmpty()) {
+            friendRecommendationRepository.saveAll(entities);
+        }
     }
 
 }

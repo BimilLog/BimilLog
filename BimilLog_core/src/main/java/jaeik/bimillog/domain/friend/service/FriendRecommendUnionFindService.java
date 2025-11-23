@@ -124,6 +124,20 @@ public class FriendRecommendUnionFindService {
             this.degree = degree;
         }
 
+        /**
+         * 점수와 촌수를 직접 지정하는 생성자
+         * @param id 멤버 ID
+         * @param degree 촌수
+         * @param score 초기 점수
+         */
+        public FriendUnion(Long id, int degree, int score) {
+            this.id = id;
+            this.parent = id.intValue();
+            this.rank = 0;
+            this.score = score;
+            this.degree = degree;
+        }
+
         public FriendUnion() {
             // 기본 생성자
         }
