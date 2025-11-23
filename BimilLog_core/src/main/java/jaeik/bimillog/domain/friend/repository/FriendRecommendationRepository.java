@@ -16,7 +16,7 @@ public interface FriendRecommendationRepository extends JpaRepository<FriendReco
      *
      * @param memberId 삭제할 멤버 ID
      */
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("DELETE FROM FriendRecommendation fr WHERE fr.member.id = :memberId")
     void deleteAllByMemberId(@Param("memberId") Long memberId);
 }

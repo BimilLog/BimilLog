@@ -8,6 +8,7 @@ import jaeik.bimillog.domain.friend.repository.FriendRecommendationRepository;
 import jaeik.bimillog.domain.friend.repository.FriendToMemberAdapter;
 import jaeik.bimillog.domain.friend.repository.FriendshipQueryRepository;
 import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ public class FriendRecommendScheduledService {
     private final FriendRecommendationQueryRepository friendRecommendationQueryRepository;
     private final FriendRecommendationRepository friendRecommendationRepository;
     private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
+    private final EntityManager entityManager;
 
     /**
      * 추천친구는 depth3 까지 탐색한다.<br>
@@ -48,6 +50,10 @@ public class FriendRecommendScheduledService {
     @Scheduled(fixedRate = 60000 * 60) // 1시간 마다
     @Transactional
     public void friendRecommendUpdate() {
+        // 0. 기존 추천 친구 데이터 전체 삭제 (스케줄러 실행 시마다 새로 생성)
+        friendRecommendationRepository.deleteAllInBatch();
+        entityManager.clear(); // 영속성 컨텍스트 클리어 (삭제된 엔티티 제거)
+
         // 1. 2촌계산 : 각 멤버의 2촌을 가져왔을때 10명이 이상이면 3으로간다. 되지않으면 2로간다. 아무도 없으면 4로 간다. (3촌의 경우 최대점수가 35점으로 2촌을 넘을 수 없다)
         List<Tuple> results = friendshipQueryRepository.findAllTwoDegreeRelations(); // 2촌까지 조회
         List<FriendRelation> friendRelationList = buildFriendRelations(results); // FriendRelation으로 매핑
@@ -393,7 +399,7 @@ public class FriendRecommendScheduledService {
 
     /**
      * 최종 추천친구 목록을 데이터베이스에 저장합니다.
-     * 기존 추천친구 데이터를 삭제하고 새로운 데이터를 저장합니다.
+     * (전체 삭제는 스케줄러 시작 시 한 번만 수행됨)
      *
      * @param memberId 대상 멤버 ID
      * @param recommendations 추천친구 목록
@@ -406,10 +412,7 @@ public class FriendRecommendScheduledService {
             FriendRelation relation,
             Map<Long, Map<Long, List<Long>>> memberToSecondDegreePaths) {
 
-        // 1. 기존 추천친구 전체 삭제
-        friendRecommendationRepository.deleteAllByMemberId(memberId);
-
-        // 2. 새로운 추천친구 엔티티 생성
+        // 1. 새로운 추천친구 엔티티 생성
         List<FriendRecommendation> entities = new ArrayList<>();
 
         // 현재 멤버의 2촌 경로 정보 가져오기
@@ -446,7 +449,7 @@ public class FriendRecommendScheduledService {
             entities.add(recommendation);
         }
 
-        // 3. 배치 저장
+        // 2. 배치 저장
         if (!entities.isEmpty()) {
             friendRecommendationRepository.saveAll(entities);
         }

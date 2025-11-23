@@ -1,8 +1,10 @@
 package jaeik.bimillog.domain.friend.service;
 
+import jaeik.bimillog.domain.friend.entity.RecommendedFriend;
 import jaeik.bimillog.domain.friend.entity.jpa.FriendRecommendation;
 import jaeik.bimillog.domain.friend.repository.FriendRecommendationRepository;
 import jaeik.bimillog.domain.friend.repository.FriendshipRepository;
+import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.out.MemberRepository;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jakarta.persistence.EntityManager;
@@ -12,6 +14,9 @@ import org.hibernate.stat.Statistics;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.StopWatch;
 
@@ -65,6 +70,9 @@ class FriendRecommendScheduledServicePerformanceTest extends BaseIntegrationTest
 
     @Autowired
     private FriendRecommendScheduledService scheduledService;
+
+    @Autowired
+    private FriendRecommendService friendRecommendService;
 
     @Autowired
     private FriendshipRepository friendshipRepository;
@@ -213,5 +221,75 @@ class FriendRecommendScheduledServicePerformanceTest extends BaseIntegrationTest
         boolean hasSelfRecommendation = allRecommendations.stream()
                 .anyMatch(r -> r.getMember().getId().equals(r.getRecommendMember().getId()));
         assertThat(hasSelfRecommendation).isFalse();
+    }
+
+    /**
+     * 추천친구 조회 API 성능 측정
+     * <p>
+     * - 추천친구 데이터가 저장된 상태에서 조회 API 성능 측정
+     * - 10명의 샘플 회원에 대해 페이징 조회 수행
+     * - 자바 애플리케이션 실행 시간 측정 (StopWatch)
+     * - DB 쿼리 수와 시간 측정 (Hibernate Statistics)
+     * </p>
+     */
+    @Test
+    @Order(3)
+    @DisplayName("추천친구 조회 API 성능 측정 (10명 샘플)")
+    void shouldMeasureRecommendFriendListQueryPerformance() {
+        // given
+        long totalMemberCount = memberRepository.count();
+        long recommendationCount = friendRecommendationRepository.count();
+        List<Member> sampleMembers = memberRepository.findAll().stream()
+                .limit(10) // 10명만 샘플링
+                .toList();
+
+        System.out.println("\n========== 추천친구 조회 API 성능 측정 시작 ==========");
+        System.out.println("전체 회원 수: " + totalMemberCount + "명");
+        System.out.println("조회 대상 회원: " + sampleMembers.size() + "명 (샘플)");
+        System.out.println("저장된 추천 친구 수: " + recommendationCount + "개");
+        System.out.println("======================================================\n");
+
+        // when - StopWatch로 시간 측정
+        StopWatch stopWatch = new StopWatch("RecommendFriendListQuery");
+        stopWatch.start("샘플 회원 조회");
+
+        Pageable pageable = PageRequest.of(0, 10); // 페이지당 10개씩 조회
+        int totalRetrievedCount = 0;
+
+        // 샘플 멤버별로 조회 API 호출
+        for (Member member : sampleMembers) {
+            Page<RecommendedFriend> recommendedFriendPage =
+                friendRecommendService.getRecommendFriendList(member.getId(), pageable);
+            totalRetrievedCount += recommendedFriendPage.getContent().size();
+        }
+
+        stopWatch.stop();
+
+        // Hibernate Statistics 수집
+        long queryCount = hibernateStatistics.getQueryExecutionCount();
+        long queryTime = hibernateStatistics.getQueryExecutionMaxTime();
+        long entityLoadCount = hibernateStatistics.getEntityLoadCount();
+
+        // 결과 출력
+        System.out.println("\n========== 추천친구 조회 API 성능 측정 결과 ==========");
+        System.out.println("=== 실행 시간 ===");
+        System.out.printf("총 실행 시간: %.3f초%n", stopWatch.getTotalTimeSeconds());
+        System.out.printf("회원당 평균 조회 시간: %.2f밀리초%n",
+                (stopWatch.getTotalTimeMillis() / (double) sampleMembers.size()));
+
+        System.out.println("\n=== DB 쿼리 통계 (Hibernate Statistics) ===");
+        System.out.println("총 쿼리 수: " + queryCount + "개");
+        System.out.println("쿼리 최대 실행 시간: " + queryTime + "ms");
+        System.out.println("엔티티 로드 횟수: " + entityLoadCount + "개");
+
+        System.out.println("\n=== 조회 결과 ===");
+        System.out.println("총 조회된 추천친구 수: " + totalRetrievedCount + "개");
+        System.out.printf("회원당 평균 조회 수: %.2f개%n",
+                (totalRetrievedCount / (double) sampleMembers.size()));
+        System.out.println("======================================================\n");
+
+        // 검증
+        assertThat(totalRetrievedCount).isGreaterThan(0);
+        assertThat((long) totalRetrievedCount).isLessThanOrEqualTo(sampleMembers.size() * 10); // 페이징 크기 10
     }
 }
