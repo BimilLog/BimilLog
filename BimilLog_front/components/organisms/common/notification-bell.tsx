@@ -30,6 +30,7 @@ import { useAuth } from "@/hooks";
 import { isKakaoInAppBrowser } from "@/lib/utils";
 import { Spinner as FlowbiteSpinner, Badge, Drawer } from "flowbite-react";
 import { NotificationPermissionModal } from "@/components/organisms/notification";
+import { usePathname } from "next/navigation";
 
 export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
@@ -37,6 +38,7 @@ export function NotificationBell() {
   const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
   const [showPermissionModal, setShowPermissionModal] = useState(false);
   const [popoverPosition, setPopoverPosition] = useState({ top: 0, left: 0 });
+  const pathname = usePathname();
   const triggerRef = useRef<HTMLDivElement | null>(null);
   const { isAuthenticated } = useAuth();
   const allowBrowserPermissionPrompt = !isKakaoInAppBrowser();
@@ -74,6 +76,12 @@ export function NotificationBell() {
   useEffect(() => {
     setPortalContainer(document.body);
   }, []);
+
+  useEffect(() => {
+    if (canUseNotifications) {
+      refetch();
+    }
+  }, [canUseNotifications, refetch, pathname]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
