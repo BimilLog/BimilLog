@@ -27,7 +27,7 @@ public class FcmAdapter {
 
     private final FcmApiClient fcmApiClient;
 
-    private static final String FIREBASE_CONFIG_PATH = "growfarm-6cd79-firebase-adminsdk-fbsvc-ad2bc92194.json";
+    private static final String FIREBASE_CONFIG_PATH = "firebase/growfarm-6cd79-firebase-adminsdk-fbsvc-ad2bc92194.json";
     private static final String FCM_SCOPE = "https://www.googleapis.com/auth/firebase.messaging";
     private static final String BEARER_PREFIX = "Bearer ";
 
