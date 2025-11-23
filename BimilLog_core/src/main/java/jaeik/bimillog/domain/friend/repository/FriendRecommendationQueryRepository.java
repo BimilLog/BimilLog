@@ -147,4 +147,121 @@ public class FriendRecommendationQueryRepository {
 
         return scoreMap;
     }
+
+    /**
+     * 모든 멤버의 상호작용 점수를 한 번에 계산합니다.
+     * 기존 findInteractionScores()가 멤버별로 3번씩 쿼리를 실행하는 것과 달리,
+     * 이 메서드는 전체 멤버에 대해 단 3번의 쿼리로 모든 상호작용 점수를 계산합니다.
+     *
+     * @param allMemberIds 모든 대상 멤버 ID 목록
+     * @return Map<대상멤버ID, Map<상호작용멤버ID, 점수>>
+     */
+    public Map<Long, Map<Long, Integer>> findAllInteractionScores(List<Long> allMemberIds) {
+        QPost post = QPost.post;
+        QPostLike postLike = QPostLike.postLike;
+        QComment comment = QComment.comment;
+        QCommentLike commentLike = QCommentLike.commentLike;
+
+        // 최종 결과: Map<대상멤버ID, Map<상호작용멤버ID, 점수>>
+        Map<Long, Map<Long, Integer>> allScores = new HashMap<>();
+
+        // 1. 게시글 추천: 대상 멤버의 게시글을 추천한 사람들
+        // SELECT p.member_id AS target, pl.member_id AS interactor, COUNT(*) AS score
+        // FROM post_like pl
+        // JOIN post p ON pl.post_id = p.post_id
+        // WHERE p.member_id IN (:allMemberIds) AND pl.member_id != p.member_id
+        // GROUP BY p.member_id, pl.member_id
+        List<Tuple> postLikeResults = jpaQueryFactory
+                .select(
+                        post.member.id,           // 대상 멤버 (게시글 작성자)
+                        postLike.member.id,       // 상호작용 멤버 (좋아요 누른 사람)
+                        postLike.count()          // 상호작용 횟수
+                )
+                .from(postLike)
+                .join(postLike.post, post)
+                .where(
+                        post.member.id.in(allMemberIds),
+                        postLike.member.id.ne(post.member.id) // 본인 제외
+                )
+                .groupBy(post.member.id, postLike.member.id)
+                .fetch();
+
+        // 결과를 Map에 누적
+        for (Tuple result : postLikeResults) {
+            Long targetMemberId = result.get(0, Long.class);
+            Long interactorMemberId = result.get(1, Long.class);
+            Long count = result.get(2, Long.class);
+
+            allScores.computeIfAbsent(targetMemberId, k -> new HashMap<>())
+                    .merge(interactorMemberId, count.intValue(), Integer::sum);
+        }
+
+        // 2. 댓글 추천: 대상 멤버의 댓글을 추천한 사람들
+        // SELECT c.member_id AS target, cl.member_id AS interactor, COUNT(*) AS score
+        // FROM comment_like cl
+        // JOIN comment c ON cl.comment_id = c.comment_id
+        // WHERE c.member_id IN (:allMemberIds) AND cl.member_id != c.member_id
+        // GROUP BY c.member_id, cl.member_id
+        List<Tuple> commentLikeResults = jpaQueryFactory
+                .select(
+                        comment.member.id,
+                        commentLike.member.id,
+                        commentLike.count()
+                )
+                .from(commentLike)
+                .join(commentLike.comment, comment)
+                .where(
+                        comment.member.id.in(allMemberIds),
+                        commentLike.member.id.ne(comment.member.id) // 본인 제외
+                )
+                .groupBy(comment.member.id, commentLike.member.id)
+                .fetch();
+
+        for (Tuple result : commentLikeResults) {
+            Long targetMemberId = result.get(0, Long.class);
+            Long interactorMemberId = result.get(1, Long.class);
+            Long count = result.get(2, Long.class);
+
+            allScores.computeIfAbsent(targetMemberId, k -> new HashMap<>())
+                    .merge(interactorMemberId, count.intValue(), Integer::sum);
+        }
+
+        // 3. 댓글 작성: 대상 멤버의 게시글에 댓글을 단 사람들
+        // SELECT p.member_id AS target, c.member_id AS interactor, COUNT(*) AS score
+        // FROM comment c
+        // JOIN post p ON c.post_id = p.post_id
+        // WHERE p.member_id IN (:allMemberIds) AND c.member_id IS NOT NULL AND c.member_id != p.member_id
+        // GROUP BY p.member_id, c.member_id
+        List<Tuple> commentResults = jpaQueryFactory
+                .select(
+                        post.member.id,
+                        comment.member.id,
+                        comment.count()
+                )
+                .from(comment)
+                .join(comment.post, post)
+                .where(
+                        post.member.id.in(allMemberIds),
+                        comment.member.id.isNotNull(), // 익명 댓글 제외
+                        comment.member.id.ne(post.member.id) // 본인 제외
+                )
+                .groupBy(post.member.id, comment.member.id)
+                .fetch();
+
+        for (Tuple result : commentResults) {
+            Long targetMemberId = result.get(0, Long.class);
+            Long interactorMemberId = result.get(1, Long.class);
+            Long count = result.get(2, Long.class);
+
+            allScores.computeIfAbsent(targetMemberId, k -> new HashMap<>())
+                    .merge(interactorMemberId, count.intValue(), Integer::sum);
+        }
+
+        // 상한 10점 적용
+        allScores.forEach((targetId, scoreMap) ->
+                scoreMap.replaceAll((interactorId, score) -> Math.min(score, 10))
+        );
+
+        return allScores;
+    }
 }

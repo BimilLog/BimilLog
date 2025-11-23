@@ -265,7 +265,7 @@ class FriendRecommendScheduledServicePerformanceTest extends BaseIntegrationTest
 
         stopWatch.stop();
 
-        // Hibernate Statistics 수집
+        // Hibernate Statistics 수집c
         long queryCount = hibernateStatistics.getQueryExecutionCount();
         long queryTime = hibernateStatistics.getQueryExecutionMaxTime();
         long entityLoadCount = hibernateStatistics.getEntityLoadCount();

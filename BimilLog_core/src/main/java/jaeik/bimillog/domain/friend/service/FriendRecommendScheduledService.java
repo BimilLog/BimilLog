@@ -8,6 +8,8 @@ import jaeik.bimillog.domain.friend.repository.FriendRecommendationRepository;
 import jaeik.bimillog.domain.friend.repository.FriendToMemberAdapter;
 import jaeik.bimillog.domain.friend.repository.FriendshipQueryRepository;
 import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
+import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.member.out.MemberRepository;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -16,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +29,7 @@ public class FriendRecommendScheduledService {
     private final FriendRecommendationQueryRepository friendRecommendationQueryRepository;
     private final FriendRecommendationRepository friendRecommendationRepository;
     private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
+    private final MemberRepository memberRepository;
     private final EntityManager entityManager;
 
     /**
@@ -83,6 +87,30 @@ public class FriendRecommendScheduledService {
         // 1단계에서 조회한 튜플 정보를 사용하여 (나의 1촌 친구 수)와 (2촌 친구) 간의 연결 경로를 다시 구성합니다.
         Map<Long, Map<Long, List<Long>>> memberToSecondDegreePaths = mapSecondDegreePaths(results);
 
+        // ========== 최적화: 모든 Member 엔티티를 배치 조회 (N+1 방지) ==========
+        // 추천 저장 시 필요한 모든 member ID를 미리 수집합니다.
+        Set<Long> allMemberIds = friendRelationList.stream()
+                .flatMap(r -> Stream.concat(
+                        Stream.of(r.getMemberId()),
+                        Stream.concat(
+                                r.getSecondDegreeIds().stream(),
+                                r.getThirdDegreeIds().stream()
+                        )
+                ))
+                .collect(Collectors.toSet());
+
+        // 단일 쿼리로 모든 Member 엔티티 배치 조회 (IN 절 사용)
+        Map<Long, Member> memberMap = memberRepository.findAllById(allMemberIds).stream()
+                .collect(Collectors.toMap(Member::getId, m -> m));
+
+        // ========== 최적화: 모든 상호작용 점수를 배치 계산 (N+1 방지) ==========
+        // 기존: 각 멤버마다 findInteractionScores() 호출 → 150명 × 3쿼리 = 450쿼리
+        // 최적화: findAllInteractionScores() 한 번 호출 → 3쿼리
+        List<Long> allMemberIdsList = new ArrayList<>(allMemberIds);
+        Map<Long, Map<Long, Integer>> allInteractionScores =
+                friendRecommendationQueryRepository.findAllInteractionScores(allMemberIdsList);
+        // ===================================================================
+
         // 모든 멤버의 추천 관계에 대해 Union-Find를 초기화하고 점수를 부여합니다.
         for (FriendRelation relation : friendRelationList) {
             Long memberId = relation.getMemberId();
@@ -106,7 +134,7 @@ public class FriendRecommendScheduledService {
 
                 // 1. 상호작용 점수 부여 및 최종 정렬
                 List<FriendRecommendUnionFindService.FriendUnion> topCandidates =
-                        applyInteractionScoreAndSort(memberId, currentCandidates, false); // false: 전체 테이블 미참조
+                        applyInteractionScoreAndSort(memberId, currentCandidates, false, allInteractionScores); // false: 전체 테이블 미참조
 
                 // 2. 상위 10명만 최종 추천 목록으로 선정 및 저장
                 finalRecommendationList = topCandidates.stream().limit(10).toList();
@@ -116,10 +144,10 @@ public class FriendRecommendScheduledService {
 
                 // 1. 전체 멤버 중 상호작용 점수를 부여할 후보를 추가하고, 상호작용 점수 부여 및 최종 정렬
                 List<FriendRecommendUnionFindService.FriendUnion> extendedCandidates =
-                        extendCandidatesWithAllMembersForInteraction(memberId, currentCandidates, relation); // Placeholder
+                        extendCandidatesWithAllMembersForInteraction(memberId, currentCandidates, relation, allInteractionScores); // Placeholder
 
                 List<FriendRecommendUnionFindService.FriendUnion> topCandidates =
-                        applyInteractionScoreAndSort(memberId, extendedCandidates, true); // true: 전체 테이블 참조
+                        applyInteractionScoreAndSort(memberId, extendedCandidates, true, allInteractionScores); // true: 전체 테이블 참조
 
                 // 5. 10명 미달 시 랜덤 멤버 채우기
                 finalRecommendationList = new ArrayList<>(topCandidates);
@@ -136,7 +164,7 @@ public class FriendRecommendScheduledService {
             }
 
             // 6. 최종 저장
-            saveRecommendationList(memberId, finalRecommendationList, relation, memberToSecondDegreePaths);
+            saveRecommendationList(memberId, finalRecommendationList, relation, memberToSecondDegreePaths, memberMap);
             // ----------------------------------------------------
 
         }
@@ -292,21 +320,16 @@ public class FriendRecommendScheduledService {
     /**
      * 상호작용 점수를 계산하고 최종 점수를 기준으로 후보를 정렬합니다.
      * @param isExtendedSearch 전체 멤버(테이블)를 대상으로 검색했는지 여부 (4-2단계)
+     * @param allInteractionScores 미리 계산된 모든 상호작용 점수 맵
      */
     private List<FriendRecommendUnionFindService.FriendUnion> applyInteractionScoreAndSort(
             Long memberId,
             List<FriendRecommendUnionFindService.FriendUnion> candidates,
-            boolean isExtendedSearch) {
+            boolean isExtendedSearch,
+            Map<Long, Map<Long, Integer>> allInteractionScores) {
 
-        // 후보 멤버 ID 목록 추출
-        Set<Long> candidateIds = candidates.stream()
-                .map(FriendRecommendUnionFindService.FriendUnion::getId)
-                .collect(Collectors.toSet());
-
-        // 상호작용 점수 계산
-        // isExtendedSearch가 true면 candidateIds에 없는 멤버도 포함될 수 있으므로 null 전달
-        Map<Long, Integer> interactionScores = friendRecommendationQueryRepository
-                .findInteractionScores(memberId, isExtendedSearch ? null : candidateIds);
+        // 현재 멤버의 상호작용 점수 맵 가져오기
+        Map<Long, Integer> interactionScores = allInteractionScores.getOrDefault(memberId, Collections.emptyMap());
 
         // 각 후보에 상호작용 점수 부여
         for (FriendRecommendUnionFindService.FriendUnion candidate : candidates) {
@@ -329,11 +352,11 @@ public class FriendRecommendScheduledService {
     private List<FriendRecommendUnionFindService.FriendUnion> extendCandidatesWithAllMembersForInteraction(
             Long memberId,
             List<FriendRecommendUnionFindService.FriendUnion> currentCandidates,
-            FriendRelation relation) {
+            FriendRelation relation,
+            Map<Long, Map<Long, Integer>> allInteractionScoresMap) {
 
-        // 전체 멤버를 대상으로 상호작용 점수 계산
-        Map<Long, Integer> allInteractionScores = friendRecommendationQueryRepository
-                .findInteractionScores(memberId, null);
+        // 현재 멤버의 상호작용 점수 맵 가져오기
+        Map<Long, Integer> interactionScores = allInteractionScoresMap.getOrDefault(memberId, Collections.emptyMap());
 
         // 제외할 멤버 ID 수집
         Set<Long> excludeIds = new HashSet<>();
@@ -345,7 +368,7 @@ public class FriendRecommendScheduledService {
         // 상호작용이 있는 멤버만 필터링하여 FriendUnion으로 생성
         List<FriendRecommendUnionFindService.FriendUnion> extendedCandidates = new ArrayList<>(currentCandidates);
 
-        for (Map.Entry<Long, Integer> entry : allInteractionScores.entrySet()) {
+        for (Map.Entry<Long, Integer> entry : interactionScores.entrySet()) {
             Long candidateMemberId = entry.getKey();
             Integer interactionScore = entry.getValue();
 
@@ -405,12 +428,14 @@ public class FriendRecommendScheduledService {
      * @param recommendations 추천친구 목록
      * @param relation 친구 관계 데이터
      * @param memberToSecondDegreePaths 2촌 경로 데이터 (acquaintanceId 계산용)
+     * @param memberMap 배치 조회한 Member 엔티티 맵 (memberId -> Member)
      */
     private void saveRecommendationList(
             Long memberId,
             List<FriendRecommendUnionFindService.FriendUnion> recommendations,
             FriendRelation relation,
-            Map<Long, Map<Long, List<Long>>> memberToSecondDegreePaths) {
+            Map<Long, Map<Long, List<Long>>> memberToSecondDegreePaths,
+            Map<Long, Member> memberMap) {
 
         // 1. 새로운 추천친구 엔티티 생성
         List<FriendRecommendation> entities = new ArrayList<>();
@@ -436,10 +461,19 @@ public class FriendRecommendScheduledService {
                 }
             }
 
-            // FriendRecommendation 엔티티 생성
+            // FriendRecommendation 엔티티 생성 (Map에서 O(1) 조회)
+            Member memberEntity = memberMap.get(memberId);
+            Member recommendMemberEntity = memberMap.get(recommendMemberId);
+
+            // fillRandomMembers()로 추가된 회원은 memberMap에 없을 수 있으므로, 없으면 조회
+            if (recommendMemberEntity == null) {
+                recommendMemberEntity = globalMemberQueryAdapter.getReferenceById(recommendMemberId);
+                memberMap.put(recommendMemberId, recommendMemberEntity); // 캐시에 추가 (재사용을 위해)
+            }
+
             FriendRecommendation recommendation = FriendRecommendation.builder()
-                    .member(globalMemberQueryAdapter.getReferenceById(memberId))
-                    .recommendMember(globalMemberQueryAdapter.getReferenceById(recommendMemberId))
+                    .member(memberEntity)
+                    .recommendMember(recommendMemberEntity)
                     .acquaintanceId(acquaintanceId)
                     .manyAcquaintance(manyAcquaintance)
                     .score(union.getScore())
