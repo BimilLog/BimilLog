@@ -13,7 +13,7 @@ import static jaeik.bimillog.infrastructure.redis.friend.RedisFriendKeys.*;
 
 @Repository
 @RequiredArgsConstructor
-public class RedisFriendInteractionAdapter {
+public class RedisInteractionScoreRepository {
 
     private final RedisTemplate<String, Object> redisTemplate;
 

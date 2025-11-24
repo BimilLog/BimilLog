@@ -5,10 +5,11 @@ import jaeik.bimillog.domain.notification.listener.NotificationGenerateListener;
 /**
  * <h2>댓글 작성 이벤트</h2>
  * <p>댓글이 작성되었을 때 발생하는 이벤트</p>
- * <p>SSE와 FCM 알림을 트리거합니다</p>
+ * <p>SSE와 FCM 알림을 트리거하고 상호작용 점수를 증가시킵니다</p>
  *
  * @param postUserId 게시글 작성자 ID (알림을 받을 사용자)
  * @param commenterName 댓글 작성자 이름
+ * @param commenterId 댓글 작성자 ID (익명인 경우 null, 상호작용 점수 증가에 사용)
  * @param postId 게시글 ID
  * @author Jaeik
  * @version 2.0.0
@@ -17,6 +18,7 @@ import jaeik.bimillog.domain.notification.listener.NotificationGenerateListener;
 public record CommentCreatedEvent(
         Long postUserId,
         String commenterName,
+        Long commenterId,
         Long postId
 ) {
     public CommentCreatedEvent {
@@ -29,5 +31,6 @@ public record CommentCreatedEvent(
         if (postId == null) {
             throw new IllegalArgumentException("게시글 ID는 null일 수 없습니다.");
         }
+        // commenterId는 익명 댓글의 경우 null일 수 있음
     }
 }

@@ -94,7 +94,9 @@ public enum ErrorCode {
     FRIEND_SHIP_NOT_FOUND(HttpStatus.FORBIDDEN, "친구를 조회할 수 없습니다.", LogLevel.WARN),
     FRIEND_SHIP_DELETE_FORBIDDEN(HttpStatus.FORBIDDEN, "자신의 친구만 삭제할 수 있습니다", LogLevel.WARN),
     FRIEND_REDIS_INTERACTION_WRITE_ERROR(HttpStatus.FORBIDDEN, "레디스 상호작용 점수 적용이 실패했습니다.", LogLevel.WARN),
-    FRIEND_REDIS_INTERACTION_DELETE_ERROR(HttpStatus.FORBIDDEN, "레디스 상호작용 삭제가 실패했습니다.", LogLevel.WARN);
+    FRIEND_REDIS_INTERACTION_DELETE_ERROR(HttpStatus.FORBIDDEN, "레디스 상호작용 삭제가 실패했습니다.", LogLevel.WARN),
+    FRIEND_REDIS_SHIP_WRITE_ERROR(HttpStatus.FORBIDDEN, "레디스 친구 증가가 실패했습니다.", LogLevel.WARN),
+    FRIEND_REDIS_SHIP_DELETE_ERROR(HttpStatus.FORBIDDEN, "레디스 친구 삭제가 실패했습니다.", LogLevel.WARN);
 
 
     private final HttpStatus status;

@@ -6,6 +6,7 @@ import jaeik.bimillog.domain.comment.entity.CommentClosure;
 import jaeik.bimillog.domain.comment.entity.CommentLike;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
+import jaeik.bimillog.domain.comment.event.CommentLikeEvent;
 import jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter;
 import jaeik.bimillog.domain.post.out.PostRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -95,6 +96,7 @@ public class CommentCommandService {
                 eventPublisher.publishEvent(new CommentCreatedEvent(
                         post.getMember().getId(),
                         memberName,
+                        memberId,
                         postId));
             }
         } catch (CustomException e) {
@@ -175,12 +177,17 @@ public class CommentCommandService {
 
         if (commentLikeAdapter.isLikedByUser(commentId, memberId)) {
             commentLikeAdapter.deleteLikeByIds(commentId, memberId);
+            // 좋아요 취소 시에는 이벤트를 발행하지 않음 (상호작용 점수 유지)
         } else {
             CommentLike commentLike = CommentLike.builder()
                     .comment(comment)
                     .member(member)
                     .build();
             commentLikeAdapter.save(commentLike);
+
+            // 댓글 좋아요 이벤트 발행 (상호작용 점수 증가)
+            Long commentAuthorId = comment.getMember() != null ? comment.getMember().getId() : null;
+            eventPublisher.publishEvent(new CommentLikeEvent(commentId, commentAuthorId, memberId));
         }
     }
 

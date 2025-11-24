@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.admin.service.AdminCommandService;
 import jaeik.bimillog.domain.auth.service.AuthTokenService;
 import jaeik.bimillog.domain.auth.service.SocialWithdrawService;
 import jaeik.bimillog.domain.comment.service.CommentCommandService;
+import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.global.out.GlobalSocialTokenCommandAdapter;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
@@ -12,12 +13,15 @@ import jaeik.bimillog.domain.notification.service.NotificationCommandService;
 import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.domain.paper.service.PaperCommandService;
 import jaeik.bimillog.domain.post.service.PostCommandService;
+import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * <h2>사용자 탈퇴 이벤트 리스너</h2>
@@ -42,6 +46,8 @@ public class MemberWithdrawListener {
     private final AdminCommandService adminCommandService;
     private final MemberAccountService memberAccountService;
     private final GlobalSocialTokenCommandAdapter globalSocialTokenCommandAdapter;
+    private final RedisInteractionScoreRepository redisInteractionScoreRepository;
+    private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
 
     /**
      * <h3>사용자 탈퇴 이벤트 처리</h3>
@@ -93,6 +99,15 @@ public class MemberWithdrawListener {
 
         // 소셜 토큰 제거
         globalSocialTokenCommandAdapter.deleteByMemberId(memberId);
+
+        // Redis 상호작용 테이블 정리
+        try {
+            List<Long> allMemberIds = globalMemberQueryAdapter.findAllIds();
+            redisInteractionScoreRepository.deleteInteractionKey(allMemberIds, memberId);
+            log.debug("Redis 상호작용 테이블 정리 완료: memberId={}", memberId);
+        } catch (Exception e) {
+            log.error("Redis 상호작용 테이블 정리 실패: memberId={}. 탈퇴 후속 처리를 계속 진행합니다.", memberId, e);
+        }
 
         // 사용자 정보 삭제 Cascade로 설정도 함께 삭제
         memberAccountService.removeMemberAccount(memberId);
