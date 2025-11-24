@@ -1,5 +1,6 @@
 package jaeik.bimillog.infrastructure.redis.friend;
 
+import jaeik.bimillog.domain.friend.repository.InteractionScoreCacheRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -12,9 +13,16 @@ import java.util.*;
 
 import static jaeik.bimillog.infrastructure.redis.friend.RedisFriendKeys.*;
 
+/**
+ * <h2>상호작용 점수 Redis 캐시 구현체</h2>
+ * <p>{@link InteractionScoreCacheRepository} 인터페이스의 Redis 기반 구현체입니다.</p>
+ *
+ * @author Jaeik
+ * @version 2.1.0
+ */
 @Repository
 @RequiredArgsConstructor
-public class RedisInteractionScoreRepository {
+public class RedisInteractionScoreRepository implements InteractionScoreCacheRepository {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -25,6 +33,7 @@ public class RedisInteractionScoreRepository {
      * @param targetIds 점수를 조회할 대상(후보자) ID 목록
      * @return Map<대상ID, 점수>
      */
+    @Override
     public Map<Long, Double> getInteractionScoresBatch(Long memberId, Set<Long> targetIds) {
         if (targetIds.isEmpty()) {
             return new HashMap<>();
@@ -61,6 +70,7 @@ public class RedisInteractionScoreRepository {
     // 상호작용 점수 추가
     // ZSCORE로 기존 점수가 10점이상인지 확인 후 아닌 경우에만 작동
     // Lua 스크립트로 원자적 진행
+    @Override
     public void addInteractionScore(Long memberId, Long interactionMemberId) {
         String key1 = INTERACTION_PREFIX + memberId;
         String key2 = INTERACTION_PREFIX + interactionMemberId;
@@ -81,16 +91,31 @@ public class RedisInteractionScoreRepository {
     }
 
     // 상호작용 삭제
-    // 회원탈퇴시 호출 파이프라이닝으로 상호작용 값 삭제
-    public void deleteInteractionKey(List<Long> memberIds, Long interactionMemberId) {
+    // 회원탈퇴시 호출 SCAN 패턴 매칭으로 상호작용 값 삭제
+    @Override
+    public void deleteInteractionKeyByWithdraw(Long withdrawMemberId) {
         try {
-            redisTemplate.executePipelined((RedisConnection connection) -> {
-                connection.keyCommands().del((INTERACTION_PREFIX + interactionMemberId).getBytes());
-                String deleteValue = INTERACTION_SUFFIX + interactionMemberId;
+            // 1. 탈퇴 회원의 상호작용 테이블 삭제
+            String withdrawKey = INTERACTION_PREFIX + withdrawMemberId;
+            redisTemplate.delete(withdrawKey);
 
-                for (Long memberId : memberIds) {
-                    connection.zSetCommands().zRem((INTERACTION_PREFIX + memberId).getBytes(), deleteValue.getBytes());
-                }
+            // 2. SCAN으로 모든 interaction 키 조회 후, 탈퇴 회원 데이터 제거
+            String pattern = INTERACTION_PREFIX + "*";
+            String deleteMember = INTERACTION_SUFFIX + withdrawMemberId;
+
+            redisTemplate.execute((RedisConnection connection) -> {
+                byte[] patternBytes = pattern.getBytes(StandardCharsets.UTF_8);
+                byte[] deleteMemberBytes = deleteMember.getBytes(StandardCharsets.UTF_8);
+
+                // SCAN으로 패턴 매칭 키 조회
+                connection.scan(org.springframework.data.redis.core.ScanOptions.scanOptions()
+                        .match(pattern)
+                        .count(100)
+                        .build())
+                        .forEachRemaining(key -> {
+                            // 각 키에서 탈퇴 회원 제거
+                            connection.zSetCommands().zRem(key, deleteMemberBytes);
+                        });
                 return null;
             });
         } catch (Exception e) {

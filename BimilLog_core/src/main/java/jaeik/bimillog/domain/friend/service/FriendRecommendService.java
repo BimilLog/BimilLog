@@ -1,11 +1,11 @@
 package jaeik.bimillog.domain.friend.service;
 
 import jaeik.bimillog.domain.friend.algorithm.*;
+import jaeik.bimillog.domain.friend.entity.FriendRelation;
 import jaeik.bimillog.domain.friend.entity.RecommendedFriend;
-import jaeik.bimillog.domain.member.out.MemberBlacklistRepository;
+import jaeik.bimillog.domain.friend.repository.FriendshipCacheRepository;
+import jaeik.bimillog.domain.friend.repository.InteractionScoreCacheRepository;
 import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
-import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
-import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -28,9 +28,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class FriendRecommendService {
-    private final RedisFriendshipRepository redisFriendshipRepository;
-    private final RedisInteractionScoreRepository redisInteractionScoreRepository;
-    private final MemberBlacklistRepository memberBlacklistRepository;
+    private final FriendshipCacheRepository friendshipCacheRepository;
+    private final InteractionScoreCacheRepository interactionScoreCacheRepository;
     private final MemberQueryAdapter memberQueryAdapter;
     private final BreadthFirstSearch breadthFirstSearch;
     private final UnionFind unionFind;
@@ -44,31 +43,30 @@ public class FriendRecommendService {
     public Page<RecommendedFriend> getRecommendFriendList(Long memberId, Pageable pageable) {
         log.info("친구 추천 시작: memberId={}", memberId);
 
-        // 1. 초기 데이터 수집 (1촌 및 블랙리스트만)
-        Set<Long> firstDegree = redisFriendshipRepository.getFriends(memberId);
+        // 1. 초기 데이터 수집 (1촌 및 블랙리스트)
+        Set<Long> firstDegree = friendshipCacheRepository.getFriends(memberId);
         Set<Long> blacklist = getBlacklistIds(memberId);
 
-        // 2. BFS로 2촌 탐색 (Batch 적용)
-        Map<Long, Set<Long>> secondDegreeMap = breadthFirstSearch.findSecondDegree(memberId, firstDegree);
+        // 2. BFS로 친구 관계 탐색 (FriendRelation 사용)
+        FriendRelation relation = breadthFirstSearch.findFriendRelation(memberId, firstDegree);
 
         // 3. 3촌 탐색 결정
-        boolean shouldFindThirdDegree = secondDegreeMap.size() < RECOMMEND_LIMIT;
-        Map<Long, Set<Long>> thirdDegreeMap = new HashMap<>();
+        boolean shouldFindThirdDegree = relation.getSecondDegreeIds().size() < RECOMMEND_LIMIT;
 
         if (shouldFindThirdDegree) {
-            thirdDegreeMap = breadthFirstSearch.findThirdDegree(memberId, firstDegree, secondDegreeMap);
+            relation = breadthFirstSearch.addThirdDegreeRelation(relation);
         }
 
         // 4. 후보자 ID 수집 (점수 조회를 위해)
         Set<Long> allCandidateIds = new HashSet<>();
-        allCandidateIds.addAll(secondDegreeMap.keySet());
-        allCandidateIds.addAll(thirdDegreeMap.keySet());
+        allCandidateIds.addAll(relation.getSecondDegreeIds());
+        allCandidateIds.addAll(relation.getThirdDegreeIds());
 
         // 블랙리스트 제거
         allCandidateIds.removeAll(blacklist);
 
         // 5. 필요한 후보자들에 대해서만 상호작용 점수 조회 (Batch)
-        Map<Long, Double> interactionScores = redisInteractionScoreRepository
+        Map<Long, Double> interactionScores = interactionScoreCacheRepository
                 .getInteractionScoresBatch(memberId, allCandidateIds);
 
         log.debug("후보자 선정 완료: 후보 {}명, 점수 조회 완료", allCandidateIds.size());
@@ -76,57 +74,26 @@ public class FriendRecommendService {
         List<RecommendCandidate> candidates = new ArrayList<>();
 
         // 6. UnionFind 및 점수 계산
-        Map<Long, Set<Long>> commonFriendGroups = unionFind.buildCommonFriendGroups(secondDegreeMap);
+        Map<Long, Set<Long>> commonFriendGroups = unionFind.buildCommonFriendGroups(relation.getSecondDegreeConnections());
 
         // 6-1. 2촌 점수 계산
-        for (Map.Entry<Long, Set<Long>> entry : secondDegreeMap.entrySet()) {
-            Long candidateId = entry.getKey();
-            if (blacklist.contains(candidateId)) continue;
-
-            Set<Long> commonFriends = commonFriendGroups.getOrDefault(candidateId, new HashSet<>());
-            Double score = interactionScores.getOrDefault(candidateId, 0.0);
-
-            RecommendCandidate candidate = RecommendCandidate.builder()
-                    .memberId(candidateId)
-                    .depth(DEPTH_SECOND)
-                    .commonFriends(commonFriends)
-                    .interactionScore(score)
-                    .build();
-
-            commonFriends.forEach(candidate::addCommonFriend);
-            scorer.calculateAndSetScore(candidate);
-            candidates.add(candidate);
-        }
+        buildCandidatesFromSecondDegree(
+                relation.getSecondDegreeConnections(),
+                blacklist,
+                commonFriendGroups,
+                interactionScores,
+                candidates
+        );
 
         // 6-2. 3촌 점수 계산 (필요시)
         if (shouldFindThirdDegree) {
-            for (Map.Entry<Long, Set<Long>> entry : thirdDegreeMap.entrySet()) {
-                Long candidateId = entry.getKey();
-                if (blacklist.contains(candidateId)) continue;
-
-                Set<Long> connectedSecondDegree = entry.getValue();
-
-                int totalCommonFriendCount = 0;
-                for (Long secondDegreeId : connectedSecondDegree) {
-                    Set<Long> secondsCommons = commonFriendGroups.getOrDefault(secondDegreeId, Collections.emptySet());
-                    totalCommonFriendCount += secondsCommons.size();
-                }
-
-                Set<Long> virtualCommonFriends = new HashSet<>();
-                for (int i = 0; i < totalCommonFriendCount; i++) virtualCommonFriends.add((long) i);
-
-                Double score = interactionScores.getOrDefault(candidateId, 0.0);
-
-                RecommendCandidate candidate = RecommendCandidate.builder()
-                        .memberId(candidateId)
-                        .depth(DEPTH_THIRD)
-                        .commonFriends(virtualCommonFriends)
-                        .interactionScore(score)
-                        .build();
-
-                scorer.calculateAndSetScore(candidate);
-                candidates.add(candidate);
-            }
+            buildCandidatesFromThirdDegree(
+                    relation.getThirdDegreeConnections(),
+                    blacklist,
+                    commonFriendGroups,
+                    interactionScores,
+                    candidates
+            );
         }
 
         // 7. 정렬 및 Top 10 추출
@@ -164,7 +131,7 @@ public class FriendRecommendService {
                 .collect(Collectors.toSet());
 
         if (!newRecentIds.isEmpty()) {
-            Map<Long, Double> recentScores = redisInteractionScoreRepository.getInteractionScoresBatch(memberId, newRecentIds);
+            Map<Long, Double> recentScores = interactionScoreCacheRepository.getInteractionScoresBatch(memberId, newRecentIds);
             interactionScores.putAll(recentScores);
         }
 
@@ -180,15 +147,88 @@ public class FriendRecommendService {
         }
     }
 
-    private Set<Long> getBlacklistIds(Long memberId) {
-        try {
-            return memberBlacklistRepository.findByRequestMemberId(memberId).stream()
-                    .map(blacklist -> blacklist.getBlackMember().getId())
-                    .collect(Collectors.toSet());
-        } catch (Exception e) {
-            log.error("블랙리스트 조회 실패: memberId={}", memberId, e);
-            return new HashSet<>();
+    /**
+     * <h3>2촌 후보 생성</h3>
+     * <p>2촌 관계에서 추천 후보를 생성하고 점수를 계산합니다.</p>
+     */
+    private void buildCandidatesFromSecondDegree(
+            Map<Long, Set<Long>> secondDegreeMap,
+            Set<Long> blacklist,
+            Map<Long, Set<Long>> commonFriendGroups,
+            Map<Long, Double> interactionScores,
+            List<RecommendCandidate> candidates) {
+
+        for (Map.Entry<Long, Set<Long>> entry : secondDegreeMap.entrySet()) {
+            Long candidateId = entry.getKey();
+            if (blacklist.contains(candidateId)) continue;
+
+            Set<Long> commonFriends = commonFriendGroups.getOrDefault(candidateId, new HashSet<>());
+            Double score = interactionScores.getOrDefault(candidateId, 0.0);
+
+            RecommendCandidate candidate = RecommendCandidate.builder()
+                    .memberId(candidateId)
+                    .depth(DEPTH_SECOND)
+                    .commonFriends(commonFriends)
+                    .interactionScore(score)
+                    .build();
+
+            commonFriends.forEach(candidate::addCommonFriend);
+            scorer.calculateAndSetScore(candidate);
+            candidates.add(candidate);
         }
+    }
+
+    /**
+     * <h3>3촌 후보 생성</h3>
+     * <p>3촌 관계에서 추천 후보를 생성하고 점수를 계산합니다.</p>
+     */
+    private void buildCandidatesFromThirdDegree(
+            Map<Long, Set<Long>> thirdDegreeMap,
+            Set<Long> blacklist,
+            Map<Long, Set<Long>> commonFriendGroups,
+            Map<Long, Double> interactionScores,
+            List<RecommendCandidate> candidates) {
+
+        for (Map.Entry<Long, Set<Long>> entry : thirdDegreeMap.entrySet()) {
+            Long candidateId = entry.getKey();
+            if (blacklist.contains(candidateId)) continue;
+
+            Set<Long> connectedSecondDegree = entry.getValue();
+
+            int totalCommonFriendCount = 0;
+            for (Long secondDegreeId : connectedSecondDegree) {
+                Set<Long> secondsCommons = commonFriendGroups.getOrDefault(secondDegreeId, Collections.emptySet());
+                totalCommonFriendCount += secondsCommons.size();
+            }
+
+            Set<Long> virtualCommonFriends = new HashSet<>();
+            for (int i = 0; i < totalCommonFriendCount; i++) virtualCommonFriends.add((long) i);
+
+            Double score = interactionScores.getOrDefault(candidateId, 0.0);
+
+            RecommendCandidate candidate = RecommendCandidate.builder()
+                    .memberId(candidateId)
+                    .depth(DEPTH_THIRD)
+                    .commonFriends(virtualCommonFriends)
+                    .interactionScore(score)
+                    .build();
+
+            scorer.calculateAndSetScore(candidate);
+            candidates.add(candidate);
+        }
+    }
+
+    /**
+     * <h3>블랙리스트 ID 조회 (최적화)</h3>
+     * <p>QueryDSL을 사용하여 ID만 직접 조회하여 N+1 문제를 방지합니다.</p>
+     * <p>데이터베이스 접근 실패 시 예외를 전파하여 안전성을 보장합니다.</p>
+     *
+     * @param memberId 회원 ID
+     * @return 블랙리스트 회원 ID 집합
+     * @throws org.springframework.dao.DataAccessException 데이터베이스 접근 실패 시
+     */
+    private Set<Long> getBlacklistIds(Long memberId) {
+        return memberQueryAdapter.findBlacklistIdsByRequestMemberId(memberId);
     }
 
     private List<RecommendedFriend> convertToRecommendedFriends(List<RecommendCandidate> candidates) {

@@ -100,8 +100,7 @@ public class UnionFind {
      */
     public Map<Long, Set<Long>> buildCommonFriendGroups(Map<Long, Set<Long>> secondDegreeMap) {
         // 모든 노드 수집 (2촌 + 1촌)
-        Set<Long> allNodes = new HashSet<>();
-        allNodes.addAll(secondDegreeMap.keySet()); // 2촌들
+        Set<Long> allNodes = new HashSet<>(secondDegreeMap.keySet()); // 2촌들
         secondDegreeMap.values().forEach(allNodes::addAll); // 1촌들
 
         // Union-Find 초기화
@@ -129,16 +128,5 @@ public class UnionFind {
 
         log.debug("공통 친구 그룹 구축 완료: 2촌 수={}", commonFriendGroups.size());
         return commonFriendGroups;
-    }
-
-    /**
-     * <h3>두 노드가 같은 집합에 속하는지 확인</h3>
-     *
-     * @param x 노드 1
-     * @param y 노드 2
-     * @return 같은 집합 여부
-     */
-    public boolean isConnected(Long x, Long y) {
-        return find(x).equals(find(y));
     }
 }

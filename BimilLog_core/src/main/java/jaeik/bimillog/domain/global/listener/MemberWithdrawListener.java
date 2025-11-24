@@ -102,19 +102,17 @@ public class MemberWithdrawListener {
         // 소셜 토큰 제거
         globalSocialTokenCommandAdapter.deleteByMemberId(memberId);
 
-        // Redis 상호작용 테이블 정리
+        // Redis 상호작용 테이블 정리 (SCAN 패턴 매칭 사용)
         try {
-            List<Long> allMemberIds = globalMemberQueryAdapter.findAllIds();
-            redisInteractionScoreRepository.deleteInteractionKey(allMemberIds, memberId);
+            redisInteractionScoreRepository.deleteInteractionKeyByWithdraw(memberId);
             log.debug("Redis 상호작용 테이블 정리 완료: memberId={}", memberId);
         } catch (Exception e) {
             log.error("Redis 상호작용 테이블 정리 실패: memberId={}. 탈퇴 후속 처리를 계속 진행합니다.", memberId, e);
         }
 
-        // Redis 친구 관계 테이블 정리
+        // Redis 친구 관계 테이블 정리 (SCAN 패턴 매칭 사용)
         try {
-            List<Long> allMemberIds = globalMemberQueryAdapter.findAllIds();
-            redisFriendshipRepository.deleteWithdrawFriend(allMemberIds, memberId);
+            redisFriendshipRepository.deleteWithdrawFriendByScan(memberId);
             log.debug("Redis 친구 관계 테이블 정리 완료: memberId={}", memberId);
         } catch (Exception e) {
             log.error("Redis 친구 관계 테이블 정리 실패: memberId={}. 탈퇴 후속 처리를 계속 진행합니다.", memberId, e);

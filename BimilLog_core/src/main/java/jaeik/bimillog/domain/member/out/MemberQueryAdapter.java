@@ -8,7 +8,9 @@ import jaeik.bimillog.domain.friend.entity.Friend;
 import jaeik.bimillog.domain.friend.entity.RecommendedFriend;
 import jaeik.bimillog.domain.member.dto.SimpleMemberDTO;
 import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.member.entity.MemberBlacklist;
 import jaeik.bimillog.domain.member.entity.QMember;
+import jaeik.bimillog.domain.member.entity.QMemberBlacklist;
 import jaeik.bimillog.domain.member.service.MemberQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -17,10 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -267,5 +266,29 @@ public class MemberQueryAdapter {
                 .orderBy(member.createdAt.desc())
                 .limit(limit)
                 .fetch();
+    }
+
+    /**
+     * <h3>블랙리스트 회원 ID 조회 (최적화)</h3>
+     * <p>특정 회원이 차단한 회원들의 ID만 조회합니다.</p>
+     * <p>N+1 문제를 방지하기 위해 QueryDSL로 ID만 직접 조회합니다.</p>
+     * <p>친구 추천 알고리즘에서 블랙리스트 사용자를 제외할 때 사용됩니다.</p>
+     *
+     * @param requestMemberId 차단을 요청한 회원 ID
+     * @return 차단된 회원 ID 집합
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Transactional(readOnly = true)
+    public Set<Long> findBlacklistIdsByRequestMemberId(Long requestMemberId) {
+        QMemberBlacklist blacklist = QMemberBlacklist.memberBlacklist;
+
+        List<Long> blacklistIds = jpaQueryFactory
+                .select(blacklist.blackMember.id)
+                .from(blacklist)
+                .where(blacklist.requestMember.id.eq(requestMemberId))
+                .fetch();
+
+        return new HashSet<>(blacklistIds);
     }
 }
