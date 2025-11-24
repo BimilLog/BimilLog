@@ -1,6 +1,8 @@
 package jaeik.bimillog.domain.friend.service;
 
 import jaeik.bimillog.domain.friend.entity.jpa.Friendship;
+import jaeik.bimillog.domain.friend.event.FriendshipCreatedEvent;
+import jaeik.bimillog.domain.friend.event.FriendshipDeletedEvent;
 import jaeik.bimillog.domain.friend.repository.FriendRequestRepository;
 import jaeik.bimillog.domain.friend.repository.FriendshipRepository;
 import jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter;
@@ -9,6 +11,7 @@ import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +24,7 @@ public class FriendshipCommandService {
     private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
     private final FriendshipRepository friendshipRepository;
     private final FriendRequestRepository friendRequestRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * 친구 생성
@@ -46,6 +50,9 @@ public class FriendshipCommandService {
 
         // 요청 삭제
         friendRequestRepository.deleteById(friendRequestId);
+
+        // Redis 친구 관계 추가 이벤트 발행
+        eventPublisher.publishEvent(new FriendshipCreatedEvent(memberId, friendId));
     }
 
     /**
@@ -63,7 +70,14 @@ public class FriendshipCommandService {
             throw new CustomException(ErrorCode.FRIEND_SHIP_DELETE_FORBIDDEN);
         }
 
+        // Redis 친구 관계 삭제를 위해 memberId와 friendId 추출
+        Long member1Id = friendship.getMember().getId();
+        Long member2Id = friendship.getFriend().getId();
+
         friendshipRepository.delete(friendship);
+
+        // Redis 친구 관계 삭제 이벤트 발행
+        eventPublisher.publishEvent(new FriendshipDeletedEvent(member1Id, member2Id));
     }
 
     private void checkFriendship(Long memberId, Long friendId) {

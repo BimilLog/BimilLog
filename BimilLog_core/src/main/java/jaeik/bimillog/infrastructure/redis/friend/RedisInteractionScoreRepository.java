@@ -45,7 +45,6 @@ public class RedisInteractionScoreRepository {
         try {
             redisTemplate.executePipelined((RedisConnection connection) -> {
                 connection.keyCommands().del((INTERACTION_PREFIX + interactionMemberId).getBytes());
-
                 String deleteValue = INTERACTION_SUFFIX + interactionMemberId;
 
                 for (Long memberId : memberIds) {

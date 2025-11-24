@@ -14,6 +14,7 @@ import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.domain.paper.service.PaperCommandService;
 import jaeik.bimillog.domain.post.service.PostCommandService;
 import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository;
+import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -47,6 +48,7 @@ public class MemberWithdrawListener {
     private final MemberAccountService memberAccountService;
     private final GlobalSocialTokenCommandAdapter globalSocialTokenCommandAdapter;
     private final RedisInteractionScoreRepository redisInteractionScoreRepository;
+    private final RedisFriendshipRepository redisFriendshipRepository;
     private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
 
     /**
@@ -107,6 +109,15 @@ public class MemberWithdrawListener {
             log.debug("Redis 상호작용 테이블 정리 완료: memberId={}", memberId);
         } catch (Exception e) {
             log.error("Redis 상호작용 테이블 정리 실패: memberId={}. 탈퇴 후속 처리를 계속 진행합니다.", memberId, e);
+        }
+
+        // Redis 친구 관계 테이블 정리
+        try {
+            List<Long> allMemberIds = globalMemberQueryAdapter.findAllIds();
+            redisFriendshipRepository.deleteWithdrawFriend(allMemberIds, memberId);
+            log.debug("Redis 친구 관계 테이블 정리 완료: memberId={}", memberId);
+        } catch (Exception e) {
+            log.error("Redis 친구 관계 테이블 정리 실패: memberId={}. 탈퇴 후속 처리를 계속 진행합니다.", memberId, e);
         }
 
         // 사용자 정보 삭제 Cascade로 설정도 함께 삭제
