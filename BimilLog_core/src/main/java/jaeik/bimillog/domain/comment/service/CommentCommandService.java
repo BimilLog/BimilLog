@@ -100,7 +100,6 @@ public class CommentCommandService {
         } catch (CustomException e) {
             throw e;
         } catch (Exception e) {
-            log.error("댓글 작성 중 예상치 못한 오류 발생", e);
             throw new CustomException(ErrorCode.COMMENT_WRITE_FAILED, e);
         }
     }

@@ -69,29 +69,4 @@ public class GlobalMemberQueryAdapter {
     public Member getReferenceById(Long memberId) {
         return memberQueryService.getReferenceById(memberId);
     }
-
-    /**
-     * <h3>최근 가입한 사용자 ID 목록 조회</h3>
-     * <p>최근 가입한 순서로 사용자 ID 목록을 조회합니다.</p>
-     * <p>특정 사용자 ID를 제외하고 조회할 수 있습니다.</p>
-     *
-     * @param excludeIds 제외할 사용자 ID 목록
-     * @param limit 조회할 최대 개수
-     * @return List&lt;Long&gt; 최근 가입한 사용자 ID 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public List<Long> findRecentMemberIds(Set<Long> excludeIds, int limit) {
-        // 제외할 ID를 고려하여 더 많은 데이터를 조회 (최대 limit * 2)
-        int fetchSize = Math.min(limit * 2, 100);
-
-        PageRequest pageRequest = PageRequest.of(0, fetchSize, Sort.by(Sort.Direction.DESC, "createdAt"));
-        List<Member> recentMembers = memberRepository.findAll(pageRequest).getContent();
-
-        return recentMembers.stream()
-                .map(Member::getId)
-                .filter(id -> !excludeIds.contains(id))
-                .limit(limit)
-                .collect(Collectors.toList());
-    }
 }
