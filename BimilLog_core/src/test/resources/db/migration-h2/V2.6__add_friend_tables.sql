@@ -81,42 +81,7 @@ CREATE INDEX idx_friendship_member ON friendship (member_id);
 CREATE INDEX idx_friendship_friend ON friendship (friend_id);
 
 -- ================================================================================================
--- Step 3: friend_recommendation 테이블 생성 (친구 추천)
+-- Step 3: friend_recommendation 테이블은 Redis로 관리
 -- ================================================================================================
-CREATE TABLE IF NOT EXISTS friend_recommendation (
-    friend_recommend_id BIGINT NOT NULL AUTO_INCREMENT,
-    member_id BIGINT NOT NULL,
-    recommend_member_id BIGINT NOT NULL,
-    acquaintance_id BIGINT NULL,
-    many_acquaintance BOOLEAN NOT NULL DEFAULT FALSE,
-    score INT NOT NULL,
-    depth INT NOT NULL,
-    created_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
-    modified_at TIMESTAMP(6) NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP(6),
-
-    PRIMARY KEY (friend_recommend_id),
-
-    -- 외래키 제약조건 (CASCADE 삭제)
-    CONSTRAINT fk_friend_recommendation_member
-        FOREIGN KEY (member_id)
-        REFERENCES member (member_id)
-        ON DELETE CASCADE
-        ON UPDATE RESTRICT,
-
-    CONSTRAINT fk_friend_recommendation_recommend_member
-        FOREIGN KEY (recommend_member_id)
-        REFERENCES member (member_id)
-        ON DELETE CASCADE
-        ON UPDATE RESTRICT,
-
-    CONSTRAINT fk_friend_recommendation_acquaintance
-        FOREIGN KEY (acquaintance_id)
-        REFERENCES member (member_id)
-        ON DELETE CASCADE
-        ON UPDATE RESTRICT
-);
-
--- 인덱스 (조회 성능 최적화)
-CREATE INDEX idx_friend_recommendation_member ON friend_recommendation (member_id);
-CREATE INDEX idx_friend_recommendation_recommend ON friend_recommendation (recommend_member_id);
-CREATE INDEX idx_friend_recommendation_member_score ON friend_recommendation (member_id, score DESC);
+-- dev_friend_cache 브랜치에서는 추천친구를 Redis로 관리합니다.
+-- DB 테이블은 생성하지 않습니다.
