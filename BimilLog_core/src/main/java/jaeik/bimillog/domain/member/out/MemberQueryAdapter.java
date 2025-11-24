@@ -242,4 +242,30 @@ public class MemberQueryAdapter {
 
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
+
+    /**
+     * <h3>최근 가입자 조회</h3>
+     * <p>생성 날짜(createdAt) 기준으로 최근 가입한 회원들의 ID를 조회합니다.</p>
+     * <p>친구 추천 알고리즘에서 추천 인원이 부족할 때 사용됩니다.</p>
+     *
+     * @param excludeIds 제외할 회원 ID 집합 (본인, 친구, 블랙리스트 등)
+     * @param limit      조회할 최대 인원
+     * @return 최근 가입자 ID 리스트
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Transactional(readOnly = true)
+    public List<Long> findRecentMembers(java.util.Set<Long> excludeIds, int limit) {
+        BooleanExpression condition = excludeIds != null && !excludeIds.isEmpty()
+                ? member.id.notIn(excludeIds)
+                : null;
+
+        return jpaQueryFactory
+                .select(member.id)
+                .from(member)
+                .where(condition)
+                .orderBy(member.createdAt.desc())
+                .limit(limit)
+                .fetch();
+    }
 }
