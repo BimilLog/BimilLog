@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.global.out.GlobalBlacklistAdapter;
-import jaeik.bimillog.infrastructure.redis.RedisJwtBlacklistAdapter;
+import jaeik.bimillog.infrastructure.redis.blacklist.RedisJwtBlacklistAdapter;
 import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
 import jaeik.bimillog.domain.global.out.GlobalAuthTokenQueryAdapter;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
