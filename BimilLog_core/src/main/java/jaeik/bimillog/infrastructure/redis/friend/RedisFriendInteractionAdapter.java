@@ -35,22 +35,26 @@ public class RedisFriendInteractionAdapter {
                     INTERACTION_SCORE_LIMIT.toString()
             );
         } catch (Exception e) {
-            throw new CustomException(ErrorCode.FRIEND_REDIS_INTERACTION_ERROR, e);
+            throw new CustomException(ErrorCode.FRIEND_REDIS_INTERACTION_WRITE_ERROR, e);
         }
     }
 
     // 상호작용 삭제
     // 회원탈퇴시 호출 파이프라이닝으로 상호작용 값 삭제
     public void deleteInteractionKey(List<Long> memberIds, Long interactionMemberId) {
-        redisTemplate.executePipelined((RedisConnection connection) -> {
-            connection.keyCommands().del((INTERACTION_PREFIX + interactionMemberId).getBytes());
+        try {
+            redisTemplate.executePipelined((RedisConnection connection) -> {
+                connection.keyCommands().del((INTERACTION_PREFIX + interactionMemberId).getBytes());
 
-            String deleteValue = INTERACTION_SUFFIX + interactionMemberId;
+                String deleteValue = INTERACTION_SUFFIX + interactionMemberId;
 
-            for (Long memberId : memberIds) {
-               connection.zSetCommands().zRem((INTERACTION_PREFIX + memberId).getBytes(), deleteValue.getBytes());
-            }
-            return null;
-        });
+                for (Long memberId : memberIds) {
+                    connection.zSetCommands().zRem((INTERACTION_PREFIX + memberId).getBytes(), deleteValue.getBytes());
+                }
+                return null;
+            });
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.FRIEND_REDIS_INTERACTION_DELETE_ERROR, e);
+        }
     }
 }
