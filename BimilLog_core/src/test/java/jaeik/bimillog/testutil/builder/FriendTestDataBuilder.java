@@ -1,6 +1,5 @@
 package jaeik.bimillog.testutil.builder;
 
-import jaeik.bimillog.domain.friend.entity.jpa.FriendRecommendation;
 import jaeik.bimillog.domain.friend.entity.jpa.FriendRequest;
 import jaeik.bimillog.domain.friend.entity.jpa.Friendship;
 import jaeik.bimillog.domain.member.entity.Member;
@@ -95,94 +94,6 @@ public class FriendTestDataBuilder {
         return friendship;
     }
 
-    // ==================== FriendRecommendation ====================
-
-    /**
-     * 추천 친구 엔티티 생성 (기본)
-     * @param member 추천을 보는 사람
-     * @param recommendMember 추천된 대상
-     * @param score 점수
-     * @param depth 촌수 (2촌, 3촌)
-     * @return FriendRecommendation
-     */
-    public static FriendRecommendation createRecommendation(
-            Member member,
-            Member recommendMember,
-            Integer score,
-            Integer depth
-    ) {
-        return createRecommendation(member, recommendMember, score, depth, null, false);
-    }
-
-    /**
-     * 추천 친구 엔티티 생성 (전체)
-     * @param member 추천을 보는 사람
-     * @param recommendMember 추천된 대상
-     * @param score 점수
-     * @param depth 촌수 (2촌, 3촌)
-     * @param acquaintanceId 공통 친구 ID (3촌 이상은 null)
-     * @param manyAcquaintance 공통 친구가 여러 명인지 여부
-     * @return FriendRecommendation
-     */
-    public static FriendRecommendation createRecommendation(
-            Member member,
-            Member recommendMember,
-            Integer score,
-            Integer depth,
-            Long acquaintanceId,
-            boolean manyAcquaintance
-    ) {
-        try {
-            FriendRecommendation recommendation = FriendRecommendation.class.getDeclaredConstructor().newInstance();
-            TestFixtures.setFieldValue(recommendation, "member", member);
-            TestFixtures.setFieldValue(recommendation, "recommendMember", recommendMember);
-            TestFixtures.setFieldValue(recommendation, "score", score);
-            TestFixtures.setFieldValue(recommendation, "depth", depth);
-            TestFixtures.setFieldValue(recommendation, "acquaintanceId", acquaintanceId);
-            TestFixtures.setFieldValue(recommendation, "manyAcquaintance", manyAcquaintance);
-            return recommendation;
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create FriendRecommendation", e);
-        }
-    }
-
-    /**
-     * ID가 설정된 추천 친구 엔티티 생성
-     * @param id 추천 친구 ID
-     * @param member 추천을 보는 사람
-     * @param recommendMember 추천된 대상
-     * @param score 점수
-     * @param depth 촌수
-     * @param acquaintanceId 공통 친구 ID
-     * @param manyAcquaintance 공통 친구가 여러 명인지 여부
-     * @return ID가 설정된 FriendRecommendation
-     */
-    public static FriendRecommendation createRecommendationWithId(
-            Long id,
-            Member member,
-            Member recommendMember,
-            Integer score,
-            Integer depth,
-            Long acquaintanceId,
-            boolean manyAcquaintance
-    ) {
-        FriendRecommendation recommendation = createRecommendation(
-                member, recommendMember, score, depth, acquaintanceId, manyAcquaintance
-        );
-        TestFixtures.setFieldValue(recommendation, "id", id);
-        return recommendation;
-    }
-
-    /**
-     * ID가 설정된 추천 친구 생성 (기존 객체에 ID 추가)
-     * @param id 설정할 ID
-     * @param recommendation 원본 추천 친구
-     * @return ID가 설정된 FriendRecommendation
-     */
-    public static FriendRecommendation withId(Long id, FriendRecommendation recommendation) {
-        TestFixtures.setFieldValue(recommendation, "id", id);
-        return recommendation;
-    }
 
     // ==================== MemberBlacklist ====================
 

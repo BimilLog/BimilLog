@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.friend.service;
 
 import jaeik.bimillog.domain.friend.entity.RecommendedFriend;
-import jaeik.bimillog.domain.friend.repository.FriendRecommendationQueryRepository;
 import jaeik.bimillog.domain.friend.repository.FriendToMemberAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -16,31 +15,10 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class FriendRecommendService {
-    private final FriendRecommendationQueryRepository friendRecommendationQueryRepository;
     private final FriendToMemberAdapter friendToMemberAdapter;
 
     @Transactional(readOnly = true)
     public Page<RecommendedFriend> getRecommendFriendList(Long memberId, Pageable pageable) {
-        Page<RecommendedFriend> recommendedFriendPages = friendRecommendationQueryRepository.getRecommendFriendList(memberId, pageable);
-
-        List<Long> friendIds = recommendedFriendPages.getContent().stream().map(RecommendedFriend::getFriendMemberId).toList();
-        List<Long> acquaintanceIds = recommendedFriendPages.getContent().stream().map(RecommendedFriend::getAcquaintanceId).toList();
-
-        List<RecommendedFriend.RecommendedFriendInfo> friendInfos = friendToMemberAdapter.addRecommendedFriendInfo(friendIds);
-        List<RecommendedFriend.AcquaintanceInfo> acquaintanceInfos = friendToMemberAdapter.addAcquaintanceInfo(acquaintanceIds);
-
-        Map<Long, RecommendedFriend.RecommendedFriendInfo> friendInfoMap = friendInfos.stream()
-                .collect(Collectors.toMap(RecommendedFriend.RecommendedFriendInfo::friendMemberId, info -> info));
-        Map<Long, RecommendedFriend.AcquaintanceInfo> acquaintanceInfoMap = acquaintanceInfos.stream()
-                .collect(Collectors.toMap(RecommendedFriend.AcquaintanceInfo::acquaintanceId, info -> info));
-
-        // 기존 Page<RecommendedFriend> 내부 객체에 FriendInfo 주입
-        recommendedFriendPages.getContent().forEach(recommendedFriends -> {
-            RecommendedFriend.RecommendedFriendInfo friendInfo = friendInfoMap.get(recommendedFriends.getFriendMemberId());
-            RecommendedFriend.AcquaintanceInfo acquaintanceInfo = acquaintanceInfoMap.get(recommendedFriends.getAcquaintanceId());
-            recommendedFriends.setRecommendedFriendName(friendInfo);
-            recommendedFriends.setAcquaintanceFriendName(acquaintanceInfo);
-        });
-        return recommendedFriendPages;
+        return null;
     }
 }
