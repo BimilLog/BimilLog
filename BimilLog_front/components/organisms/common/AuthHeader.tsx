@@ -252,6 +252,11 @@ export const AuthHeader = React.memo(() => {
         <NavbarLink as={Link} href="/suggest" className="text-sm lg:text-base">
           건의하기
         </NavbarLink>
+        {isAuthenticated && (
+          <NavbarLink as={Link} href="/friends" className="text-sm lg:text-base">
+            친구
+          </NavbarLink>
+        )}
         {!isAuthenticated && (
           <NavbarLink as={Link} href="/login" className="text-sm lg:text-base">
             로그인

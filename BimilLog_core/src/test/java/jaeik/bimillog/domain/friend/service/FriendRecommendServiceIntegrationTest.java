@@ -323,9 +323,9 @@ class FriendRecommendServiceIntegrationTest {
         // Then
         assertThat(result.getContent()).isNotEmpty();
 
-        // 최근 가입자가 추천되어야 함 (depth = 0)
+        // 최근 가입자가 추천되어야 함 (depth = null - 2촌/3촌이 아닌 경우)
         RecommendedFriend recentRecommendation = result.getContent().get(0);
-        assertThat(recentRecommendation.getDepth()).isEqualTo(0);
+        assertThat(recentRecommendation.getDepth()).isNull();
     }
 
     @Test

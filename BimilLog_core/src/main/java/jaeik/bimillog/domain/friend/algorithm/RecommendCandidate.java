@@ -26,9 +26,9 @@ public class RecommendCandidate {
     private Long memberId;
 
     /**
-     * 촌수 (2 또는 3)
+     * 촌수 (2, 3, 또는 null - null은 2촌/3촌이 아닌 경우)
      */
-    private int depth;
+    private Integer depth;
 
     /**
      * 공통 친구 ID 집합

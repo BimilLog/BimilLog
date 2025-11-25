@@ -3,8 +3,10 @@ package jaeik.bimillog.domain.friend.entity;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
+@NoArgsConstructor  // Jackson 역직렬화를 위한 기본 생성자
 @AllArgsConstructor
 public class FriendSenderRequest {
     private Long friendRequestId;

@@ -122,7 +122,7 @@ public class FriendRecommendService {
             Double score = recentScores.getOrDefault(recentMemberId, 0.0);
             RecommendCandidate candidate = RecommendCandidate.builder()
                     .memberId(recentMemberId)
-                    .depth(0)
+                    .depth(null)  // 최근 가입자는 2촌/3촌이 아니므로 null
                     .interactionScore(score)
                     .build();
             scorer.calculateAndSetScore(candidate);
@@ -223,7 +223,8 @@ public class FriendRecommendService {
 
         Set<Long> acquaintanceIds = new HashSet<>();
         for (RecommendCandidate candidate : candidates) {
-            if (candidate.getDepth() == DEPTH_SECOND && candidate.getAcquaintanceId() != null) {
+            Integer depth = candidate.getDepth();
+            if (depth != null && depth == DEPTH_SECOND && candidate.getAcquaintanceId() != null) {
                 acquaintanceIds.add(candidate.getAcquaintanceId());
             }
         }
@@ -243,20 +244,21 @@ public class FriendRecommendService {
             RecommendedFriend.RecommendedFriendInfo friendInfo = friendInfoMap.get(candidate.getMemberId());
             if (friendInfo == null) continue;
 
+            Integer depth = candidate.getDepth();
             Long acquaintanceId = null;
             boolean manyAcquaintance = false;
 
-            if (candidate.getDepth() == DEPTH_SECOND && candidate.getAcquaintanceId() != null) {
+            if (depth != null && depth == DEPTH_SECOND && candidate.getAcquaintanceId() != null) {
                 acquaintanceId = candidate.getAcquaintanceId();
                 manyAcquaintance = candidate.isManyAcquaintance();
             }
 
             RecommendedFriend recommendedFriend = new RecommendedFriend(
-                    candidate.getMemberId(), acquaintanceId, manyAcquaintance, candidate.getDepth()
+                    candidate.getMemberId(), acquaintanceId, manyAcquaintance, depth
             );
             recommendedFriend.setRecommendedFriendName(friendInfo);
 
-            if (candidate.getDepth() == DEPTH_SECOND && acquaintanceId != null) {
+            if (depth != null && depth == DEPTH_SECOND && acquaintanceId != null) {
                 RecommendedFriend.AcquaintanceInfo acquaintanceInfo = acquaintanceInfoMap.get(acquaintanceId);
                 if (acquaintanceInfo != null) {
                     recommendedFriend.setAcquaintanceFriendName(acquaintanceInfo);

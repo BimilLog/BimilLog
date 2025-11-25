@@ -2,6 +2,8 @@
 
 import React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/common/useAuth";
 import {
   Footer,
   FooterCopyright,
@@ -13,6 +15,18 @@ import {
 import { Github, Contact } from "lucide-react";
 
 export const HomeFooter: React.FC = () => {
+  const router = useRouter();
+  const { isAuthenticated } = useAuth({ skipRefresh: true });
+
+  const handleFriendClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!isAuthenticated) {
+      router.push('/login?redirect=/friends');
+    } else {
+      router.push('/friends');
+    }
+  };
+
   return (
     <Footer container className="bg-white rounded-none shadow-sm">
       <div className="w-full">
@@ -65,6 +79,12 @@ export const HomeFooter: React.FC = () => {
                   </FooterLink>
                   <FooterLink as={Link} href="/settings" className="text-gray-600 hover:text-gray-900">
                     설정
+                  </FooterLink>
+                  <FooterLink
+                    onClick={handleFriendClick}
+                    className="text-gray-600 hover:text-gray-900 cursor-pointer"
+                  >
+                    친구
                   </FooterLink>
                 </FooterLinkGroup>
               </div>

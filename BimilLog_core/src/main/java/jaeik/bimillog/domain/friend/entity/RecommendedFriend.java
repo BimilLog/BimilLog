@@ -11,8 +11,7 @@ public class RecommendedFriend {
     @NotNull
     private String memberName; // 추천 친구 닉네임
 
-    @NotNull
-    private final Integer depth; // 촌수 2촌 또는 3촌
+    private final Integer depth; // 촌수 2촌 또는 3촌 (3촌보다 멀 경우에는 null) 프론트에서는 null경우 표시하지않음
 
     private final Long acquaintanceId; // 추천친구와 연결된 친구의 Id, 3촌은 null
     private String acquaintanceName; // 추천친구와 연결된 친구의 닉네임, 3촌은 null

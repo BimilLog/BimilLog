@@ -37,17 +37,19 @@ export const RecommendedFriendItem: React.FC<RecommendedFriendItemProps> = ({ fr
         />
 
         <div className="flex-1 min-w-0">
-          {/* 이름 + 촌수 배지 */}
+          {/* 이름 + 촌수 배지 (depth가 null이 아닐 때만 표시) */}
           <div className="flex items-center gap-2 mb-1">
             <h3 className="font-medium text-gray-900 truncate">
               {friend.memberName}
             </h3>
-            <Badge
-              color={friend.depth === 2 ? "info" : "gray"}
-              className="text-xs shrink-0"
-            >
-              {friend.depth}촌
-            </Badge>
+            {friend.depth !== null && (
+              <Badge
+                color={friend.depth === 2 ? "info" : "gray"}
+                className="text-xs shrink-0"
+              >
+                {friend.depth}촌
+              </Badge>
+            )}
           </div>
 
           {/* 소개 문구 (2촌만 - "홍길동의 친구" 또는 "홍길동 외 다수의 친구") */}
@@ -58,8 +60,8 @@ export const RecommendedFriendItem: React.FC<RecommendedFriendItemProps> = ({ fr
             </p>
           )}
 
-          {/* 3촌은 소개 문구 없음 */}
-          {friend.depth === 3 && !friend.introduce && (
+          {/* 3촌 또는 depth null인 경우 */}
+          {(friend.depth === 3 || friend.depth === null) && !friend.introduce && (
             <p className="text-xs text-gray-400">추천 친구</p>
           )}
         </div>
