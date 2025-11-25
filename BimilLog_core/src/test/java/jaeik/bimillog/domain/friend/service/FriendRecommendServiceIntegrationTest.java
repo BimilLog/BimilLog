@@ -1,17 +1,18 @@
 package jaeik.bimillog.domain.friend.service;
 
 import jaeik.bimillog.domain.friend.entity.RecommendedFriend;
+import jaeik.bimillog.domain.friend.event.FriendshipCreatedEvent;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.MemberBlacklist;
 import jaeik.bimillog.domain.member.out.MemberBlacklistRepository;
-import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
-import jaeik.bimillog.domain.member.out.MemberRepository;
+import jaeik.bimillog.domain.post.event.PostLikeEvent;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
 import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository;
 import jaeik.bimillog.testutil.RedisTestHelper;
 import jaeik.bimillog.testutil.TestMembers;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -19,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,7 +28,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -56,19 +60,18 @@ class FriendRecommendServiceIntegrationTest {
     private RedisInteractionScoreRepository redisInteractionScoreRepository;
 
     @Autowired
-    private MemberRepository memberRepository;
-
-    @Autowired
     private MemberBlacklistRepository memberBlacklistRepository;
-
-    @Autowired
-    private MemberQueryAdapter memberQueryAdapter;
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
+
     @PersistenceContext
     private EntityManager entityManager;
+
+    private static final Duration EVENT_TIMEOUT = Duration.ofSeconds(3);
 
     private Member member1; // 본인
     private Member member2; // 1촌
@@ -114,29 +117,60 @@ class FriendRecommendServiceIntegrationTest {
 
     private void setupFriendships() {
         // member1의 1촌: member2, member3
-        redisFriendshipRepository.addFriend(member1.getId(), member2.getId());
-        redisFriendshipRepository.addFriend(member1.getId(), member3.getId());
+        publishFriendshipEvent(member1, member2);
+        publishFriendshipEvent(member1, member3);
 
         // member2의 친구: member1, member4 (member4는 member1의 2촌)
-        redisFriendshipRepository.addFriend(member2.getId(), member4.getId());
+        publishFriendshipEvent(member2, member4);
 
         // member3의 친구: member1, member5 (member5는 member1의 2촌)
-        redisFriendshipRepository.addFriend(member3.getId(), member5.getId());
+        publishFriendshipEvent(member3, member5);
 
         // member4의 친구: member2, member6 (member6은 member1의 3촌)
-        redisFriendshipRepository.addFriend(member4.getId(), member6.getId());
+        publishFriendshipEvent(member4, member6);
 
         // member3의 친구에 member7 추가 (member7은 member1의 2촌, 블랙리스트 테스트용)
-        redisFriendshipRepository.addFriend(member3.getId(), member7.getId());
+        publishFriendshipEvent(member3, member7);
+
+        Awaitility.await()
+                .atMost(EVENT_TIMEOUT)
+                .untilAsserted(() -> {
+                    assertThat(redisFriendshipRepository.getFriends(member1.getId()))
+                            .containsExactlyInAnyOrder(member2.getId(), member3.getId());
+                    assertThat(redisFriendshipRepository.getFriends(member2.getId()))
+                            .containsExactlyInAnyOrder(member1.getId(), member4.getId());
+                    assertThat(redisFriendshipRepository.getFriends(member3.getId()))
+                            .containsExactlyInAnyOrder(member1.getId(), member5.getId(), member7.getId());
+                    assertThat(redisFriendshipRepository.getFriends(member4.getId()))
+                            .containsExactlyInAnyOrder(member2.getId(), member6.getId());
+                });
     }
 
     private void setupInteractionScores() {
-        // member1과 member4 간 상호작용 점수 (2촌)
-        redisInteractionScoreRepository.addInteractionScore(member1.getId(), member4.getId());
-        redisInteractionScoreRepository.addInteractionScore(member1.getId(), member4.getId());
+        // member1과 member4 간 상호작용 점수 (2촌) - 이벤트 2회
+        publishPostLikeEvent(member1, member4, 101L);
+        publishPostLikeEvent(member1, member4, 102L);
 
-        // member1과 member5 간 상호작용 점수 (2촌)
-        redisInteractionScoreRepository.addInteractionScore(member1.getId(), member5.getId());
+        // member1과 member5 간 상호작용 점수 (2촌) - 이벤트 1회
+        publishPostLikeEvent(member1, member5, 201L);
+
+        Awaitility.await()
+                .atMost(EVENT_TIMEOUT)
+                .untilAsserted(() -> {
+                    var scores = redisInteractionScoreRepository.getInteractionScoresBatch(
+                            member1.getId(),
+                            Set.of(member4.getId(), member5.getId())
+                    );
+                    assertThat(scores).containsKeys(member4.getId(), member5.getId());
+                });
+    }
+
+    private void publishFriendshipEvent(Member source, Member target) {
+        eventPublisher.publishEvent(new FriendshipCreatedEvent(source.getId(), target.getId()));
+    }
+
+    private void publishPostLikeEvent(Member author, Member liker, Long postId) {
+        eventPublisher.publishEvent(new PostLikeEvent(postId, author.getId(), liker.getId()));
     }
 
     @Test
