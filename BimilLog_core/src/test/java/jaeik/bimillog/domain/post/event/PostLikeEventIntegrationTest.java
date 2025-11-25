@@ -31,7 +31,7 @@ public class PostLikeEventIntegrationTest extends BaseEventIntegrationTest {
     @DisplayName("게시글 추천 이벤트 워크플로우 - 실시간 인기글 점수 증가")
     void postLikeEventWorkflow_ShouldCompleteScoreIncrement() {
         // Given
-        var event = new PostLikeEvent(1L);
+        var event = new PostLikeEvent(1L, 1L, 1L);
 
         // When & Then
         publishAndVerify(event, () -> {
@@ -45,9 +45,9 @@ public class PostLikeEventIntegrationTest extends BaseEventIntegrationTest {
     void multipleDifferentPostLikeEvents_ShouldProcessIndependently() {
         // Given
         var events = java.util.List.of(
-                new PostLikeEvent(1L),
-                new PostLikeEvent(2L),
-                new PostLikeEvent(3L)
+                new PostLikeEvent(1L, 1L, 1L),
+                new PostLikeEvent(2L, 2L, 2L),
+                new PostLikeEvent(3L, 3L, 3L)
         );
 
         // When & Then
@@ -66,7 +66,7 @@ public class PostLikeEventIntegrationTest extends BaseEventIntegrationTest {
         // Given
         var events = new java.util.ArrayList<PostLikeEvent>();
         for (int i = 0; i < 3; i++) {
-            events.add(new PostLikeEvent(1L));
+            events.add(new PostLikeEvent(1L, 1L, 1L));
         }
 
         // When & Then
@@ -81,7 +81,7 @@ public class PostLikeEventIntegrationTest extends BaseEventIntegrationTest {
     @DisplayName("점수 증가 실패 시에도 시스템 정상 작동")
     void postLikeEventWithException_ShouldContinueWorking() {
         // Given
-        var event = new PostLikeEvent(1L);
+        var event = new PostLikeEvent(1L, 1L, 1L);
 
         // 점수 증가 실패 시뮬레이션 - 리스너가 예외를 catch하여 로그 처리
         doThrow(new RuntimeException("Redis 점수 증가 실패"))

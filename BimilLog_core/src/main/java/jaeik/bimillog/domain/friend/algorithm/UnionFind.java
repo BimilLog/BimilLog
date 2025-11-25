@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.friend.algorithm;
 
+import jaeik.bimillog.domain.friend.entity.FriendRelation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -11,7 +12,7 @@ import java.util.*;
  * <p>경로 압축(Path Compression)과 랭크 기반 합치기(Union by Rank)를 사용합니다.</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.2.0
  */
 @Component
 @Slf4j
@@ -91,42 +92,41 @@ public class UnionFind {
     }
 
     /**
-     * <h3>공통 친구 그룹 구축</h3>
-     * <p>2촌과 1촌 간의 관계를 분석하여 공통 친구 그룹을 만듭니다.</p>
+     * <h3>공통 친구 그룹 구축 (FriendRelation 직접 수정)</h3>
+     * <p>FriendRelation의 2촌 후보자들을 분석하여 각 후보자의 공통 친구를 설정합니다.</p>
      * <p>예: 2촌 A가 1촌 B, C와 연결 → A의 공통 친구는 {B, C}</p>
      *
-     * @param secondDegreeMap BFS에서 얻은 2촌 Map (2촌ID → 연결된 1촌들)
-     * @return Map&lt;2촌ID, 공통 1촌 친구들&gt;
+     * @param relation FriendRelation 객체
      */
-    public Map<Long, Set<Long>> buildCommonFriendGroups(Map<Long, Set<Long>> secondDegreeMap) {
+    public void buildCommonFriendGroups(FriendRelation relation) {
+        List<FriendRelation.CandidateInfo> secondDegreeCandidates = relation.getSecondDegreeCandidates();
+
         // 모든 노드 수집 (2촌 + 1촌)
-        Set<Long> allNodes = new HashSet<>(secondDegreeMap.keySet()); // 2촌들
-        secondDegreeMap.values().forEach(allNodes::addAll); // 1촌들
+        Set<Long> allNodes = new HashSet<>();
+        for (FriendRelation.CandidateInfo candidate : secondDegreeCandidates) {
+            allNodes.add(candidate.getCandidateId());
+            allNodes.addAll(candidate.getConnectedFriendIds());
+        }
 
         // Union-Find 초기화
         init(allNodes);
 
         // 2촌과 연결된 1촌들을 Union
-        for (Map.Entry<Long, Set<Long>> entry : secondDegreeMap.entrySet()) {
-            Long secondDegreeFriendId = entry.getKey();
-            Set<Long> connectedFirstDegree = entry.getValue();
+        for (FriendRelation.CandidateInfo candidate : secondDegreeCandidates) {
+            Long candidateId = candidate.getCandidateId();
+            Set<Long> connectedFirstDegree = candidate.getConnectedFriendIds();
 
             for (Long firstDegreeFriendId : connectedFirstDegree) {
-                union(secondDegreeFriendId, firstDegreeFriendId);
+                union(candidateId, firstDegreeFriendId);
             }
         }
 
-        // 공통 친구 그룹 생성
-        Map<Long, Set<Long>> commonFriendGroups = new HashMap<>();
-        for (Map.Entry<Long, Set<Long>> entry : secondDegreeMap.entrySet()) {
-            Long secondDegreeFriendId = entry.getKey();
-            Set<Long> connectedFirstDegree = entry.getValue();
-
-            // 2촌과 같은 그룹에 속한 1촌들이 공통 친구
-            commonFriendGroups.put(secondDegreeFriendId, new HashSet<>(connectedFirstDegree));
+        // 공통 친구 그룹 설정
+        for (FriendRelation.CandidateInfo candidate : secondDegreeCandidates) {
+            Set<Long> commonFriends = new HashSet<>(candidate.getConnectedFriendIds());
+            candidate.setCommonFriendIds(commonFriends);
         }
 
-        log.debug("공통 친구 그룹 구축 완료: 2촌 수={}", commonFriendGroups.size());
-        return commonFriendGroups;
+        log.debug("공통 친구 그룹 구축 완료: 2촌 수={}", secondDegreeCandidates.size());
     }
 }

@@ -37,7 +37,7 @@ public class RecommendedFriend {
 
     private String createIntroduce(Integer depth, String acquaintance, boolean manyAcquaintance) {
         if (acquaintance == null || depth != 2) {
-            return null; // 3촌은 acquaintance가 Null이다.
+            return null;
         }
 
         if (manyAcquaintance) {
@@ -52,7 +52,6 @@ public class RecommendedFriend {
     }
 
     public record AcquaintanceInfo(Long acquaintanceId, String acquaintanceName) {
+
     }
-
-
 }

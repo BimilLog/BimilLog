@@ -14,7 +14,7 @@ import java.util.*;
  * <p>FriendRelation 도메인 객체를 반환하여 타입 안전성을 보장합니다.</p>
  *
  * @author Jaeik
- * @version 2.1.0
+ * @version 2.2.0
  */
 @Component
 @RequiredArgsConstructor
@@ -32,11 +32,23 @@ public class BreadthFirstSearch {
      * @return FriendRelation 객체 (2촌 정보 포함)
      */
     public FriendRelation findFriendRelation(Long memberId, Set<Long> firstDegree) {
-        Map<Long, Set<Long>> secondDegreeConnections = findSecondDegreeMap(memberId, firstDegree);
+        FriendRelation relation = new FriendRelation(memberId, firstDegree);
 
-        log.debug("2촌 탐색 완료: memberId={}, 2촌 수={}", memberId, secondDegreeConnections.size());
+        // 1. 2촌 Map 생성
+        Map<Long, Set<Long>> secondDegreeMap = findSecondDegreeMap(memberId, firstDegree);
 
-        return FriendRelation.createWithConnections(memberId, firstDegree, secondDegreeConnections);
+        // 2. Map을 CandidateInfo로 변환하여 FriendRelation에 추가
+        for (Map.Entry<Long, Set<Long>> entry : secondDegreeMap.entrySet()) {
+            FriendRelation.CandidateInfo candidate = FriendRelation.CandidateInfo.of(
+                    entry.getKey(),
+                    entry.getValue()
+            );
+            relation.addSecondDegreeCandidate(candidate);
+        }
+
+        log.debug("2촌 탐색 완료: memberId={}, 2촌 수={}", memberId, relation.getSecondDegreeCandidates().size());
+
+        return relation;
     }
 
     /**
@@ -47,27 +59,28 @@ public class BreadthFirstSearch {
      * @return 3촌 정보가 추가된 FriendRelation
      */
     public FriendRelation addThirdDegreeRelation(FriendRelation relation) {
-        Map<Long, Set<Long>> thirdDegreeConnections = findThirdDegreeMap(
+        // 1. 2촌 후보자 ID들 추출
+        Set<Long> secondDegreeIds = relation.getSecondDegreeIds();
+
+        // 2. 3촌 Map 생성
+        Map<Long, Set<Long>> thirdDegreeMap = findThirdDegreeMap(
                 relation.getMemberId(),
                 relation.getFirstDegreeIds(),
-                relation.getSecondDegreeConnections()
+                secondDegreeIds
         );
 
-        log.debug("3촌 탐색 완료: 3촌 수={}", thirdDegreeConnections.size());
+        // 3. Map을 CandidateInfo로 변환하여 FriendRelation에 추가
+        for (Map.Entry<Long, Set<Long>> entry : thirdDegreeMap.entrySet()) {
+            FriendRelation.CandidateInfo candidate = FriendRelation.CandidateInfo.of(
+                    entry.getKey(),
+                    entry.getValue()
+            );
+            relation.addThirdDegreeCandidate(candidate);
+        }
 
-        relation.updateThirdRelation(thirdDegreeConnections);
+        log.debug("3촌 탐색 완료: 3촌 수={}", relation.getThirdDegreeCandidates().size());
+
         return relation;
-    }
-
-    /**
-     * <h3>2촌 탐색 (내부 로직 - Map 반환)</h3>
-     * <p>1촌 목록을 한 번에 전송하여 파이프라인으로 2촌을 탐색합니다.</p>
-     *
-     * @deprecated 외부에서는 {@link #findFriendRelation} 사용 권장
-     */
-    @Deprecated
-    public Map<Long, Set<Long>> findSecondDegree(Long memberId, Set<Long> firstDegree) {
-        return findSecondDegreeMap(memberId, firstDegree);
     }
 
     /**
@@ -102,22 +115,11 @@ public class BreadthFirstSearch {
     }
 
     /**
-     * <h3>3촌 탐색 (하위 호환성)</h3>
-     * <p>2촌 목록을 한 번에 전송하여 파이프라인으로 3촌을 탐색합니다.</p>
-     *
-     * @deprecated 외부에서는 {@link #addThirdDegreeRelation} 사용 권장
-     */
-    @Deprecated
-    public Map<Long, Set<Long>> findThirdDegree(Long memberId, Set<Long> firstDegree, Map<Long, Set<Long>> secondDegree) {
-        return findThirdDegreeMap(memberId, firstDegree, secondDegree);
-    }
-
-    /**
      * <h3>3촌 Map 생성</h3>
      */
-    private Map<Long, Set<Long>> findThirdDegreeMap(Long memberId, Set<Long> firstDegree, Map<Long, Set<Long>> secondDegreeConnections) {
+    private Map<Long, Set<Long>> findThirdDegreeMap(Long memberId, Set<Long> firstDegree, Set<Long> secondDegreeIds) {
         // 1. 2촌들의 친구 목록을 한 번에 조회 (Pipeline)
-        Map<Long, Set<Long>> friendsOfSecondDegreeMap = redisFriendshipRepository.getFriendsBatch(secondDegreeConnections.keySet());
+        Map<Long, Set<Long>> friendsOfSecondDegreeMap = redisFriendshipRepository.getFriendsBatch(secondDegreeIds);
         Map<Long, Set<Long>> thirdDegreeMap = new HashMap<>();
 
         // 2. 결과 처리
@@ -135,7 +137,7 @@ public class BreadthFirstSearch {
                 // 1촌 제외
                 if (firstDegree.contains(candidateId)) continue;
                 // 2촌 제외
-                if (secondDegreeConnections.containsKey(candidateId)) continue;
+                if (secondDegreeIds.contains(candidateId)) continue;
 
                 // 3촌 Map 구성: Candidate -> [연결된 2촌 친구들]
                 thirdDegreeMap.computeIfAbsent(candidateId, k -> new HashSet<>()).add(secondDegreeId);
