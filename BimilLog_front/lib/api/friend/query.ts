@@ -29,7 +29,7 @@ export const friendQuery = {
     page: number,
     size: number = 20
   ): Promise<ApiResponse<PageResponse<FriendRequest>>> => {
-    return apiClient.get(`/api/friend-request/received?page=${page}&size=${size}`);
+    return apiClient.get(`/api/friend/receive?page=${page}&size=${size}`);
   },
 
   /**
@@ -41,7 +41,7 @@ export const friendQuery = {
     page: number,
     size: number = 20
   ): Promise<ApiResponse<PageResponse<FriendRequest>>> => {
-    return apiClient.get(`/api/friend-request/sent?page=${page}&size=${size}`);
+    return apiClient.get(`/api/friend/send?page=${page}&size=${size}`);
   },
 
   /**

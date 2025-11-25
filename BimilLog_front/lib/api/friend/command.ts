@@ -15,7 +15,7 @@ export const friendCommand = {
   sendRequest: async (
     data: SendFriendRequestDTO
   ): Promise<ApiResponse<FriendshipIdResponse>> => {
-    return apiClient.post('/api/friend-request', data);
+    return apiClient.post('/api/friend/send', data);
   },
 
   /**
@@ -23,7 +23,7 @@ export const friendCommand = {
    * @param requestId 친구 요청 ID
    */
   cancelRequest: async (requestId: number): Promise<ApiResponse<void>> => {
-    return apiClient.delete(`/api/friend-request/${requestId}`);
+    return apiClient.delete(`/api/friend/send/${requestId}`);
   },
 
   /**
@@ -31,7 +31,7 @@ export const friendCommand = {
    * @param requestId 친구 요청 ID
    */
   acceptRequest: async (requestId: number): Promise<ApiResponse<void>> => {
-    return apiClient.post(`/api/friend-request/${requestId}/accept`);
+    return apiClient.post(`/api/friend/receive/${requestId}`);
   },
 
   /**
@@ -39,7 +39,7 @@ export const friendCommand = {
    * @param requestId 친구 요청 ID
    */
   rejectRequest: async (requestId: number): Promise<ApiResponse<void>> => {
-    return apiClient.delete(`/api/friend-request/${requestId}/reject`);
+    return apiClient.delete(`/api/friend/receive/${requestId}`);
   },
 
   /**
@@ -47,6 +47,6 @@ export const friendCommand = {
    * @param friendshipId 친구 관계 ID
    */
   removeFriend: async (friendshipId: number): Promise<ApiResponse<void>> => {
-    return apiClient.delete(`/api/friend/${friendshipId}`);
+    return apiClient.delete(`/api/friend/friendship/${friendshipId}`);
   },
 };
