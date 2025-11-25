@@ -113,6 +113,11 @@ class FriendRecommendServiceIntegrationTest {
     }
 
     private void persistAndFlush(Object entity) {
+        if (entity instanceof Member member) {
+            if (member.getSocialToken() != null) {
+                entityManager.persist(member.getSocialToken());
+            }
+        }
         entityManager.persist(entity);
         entityManager.flush();
     }

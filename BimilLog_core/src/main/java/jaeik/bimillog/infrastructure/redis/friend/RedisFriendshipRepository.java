@@ -60,7 +60,7 @@ public class RedisFriendshipRepository {
         Map<Long, Set<Long>> resultMap = new HashMap<>();
 
         try {
-            // Pipeline 실행: 요청은 한 번만 보냄
+            // Pipeline 실행
             List<Object> results = redisTemplate.executePipelined((RedisConnection connection) -> {
                 for (Long memberId : memberIdList) {
                     String key = FRIEND_SHIP_PREFIX + memberId;
@@ -75,21 +75,27 @@ public class RedisFriendshipRepository {
                 Object result = results.get(i);
 
                 Set<Long> friendIds = new HashSet<>();
-                if (result instanceof Set) {
-                    Set<byte[]> bytesSet = (Set<byte[]>) result;
-                    for (byte[] b : bytesSet) {
-                        friendIds.add(Long.valueOf(new String(b, StandardCharsets.UTF_8)));
+
+                if (result instanceof Set<?> setResult) {
+                    // 내부 멤버를 Object로 안전하게 처리
+                    for (Object member : setResult) {
+                        try {
+                            friendIds.add(Long.valueOf(member.toString()));
+                        } catch (NumberFormatException e) {
+                            System.err.println("[WARN] Redis Set 멤버 Long 변환 실패. MemberId: " + memberId + ", Value: " + member);
+                        }
                     }
+                } else if (result != null) {
+                    System.err.println("[ERROR] Redis 조회 결과 예상 타입 아님: " + result.getClass().getName() + ", MemberId: " + memberId);
                 }
                 resultMap.put(memberId, friendIds);
             }
-
             return resultMap;
-
         } catch (Exception e) {
-            throw new CustomException(ErrorCode.FRIEND_REDIS_SHIP_DELETE_ERROR, e);
+            throw new CustomException(ErrorCode.FRIEND_REDIS_SHIP_QUERY_ERROR, e);
         }
     }
+
 
     // 레디스 친구관계 테이블에 친구를 증가시킨다.
     public void addFriend(Long memberId, Long friendId) {
