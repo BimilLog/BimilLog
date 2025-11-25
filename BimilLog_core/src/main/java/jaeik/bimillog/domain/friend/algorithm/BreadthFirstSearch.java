@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.friend.algorithm;
 
 import jaeik.bimillog.domain.friend.entity.FriendRelation;
-import jaeik.bimillog.domain.friend.repository.FriendshipCacheRepository;
+import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -21,7 +21,7 @@ import java.util.*;
 @Slf4j
 public class BreadthFirstSearch {
 
-    private final FriendshipCacheRepository friendshipCacheRepository;
+    private final RedisFriendshipRepository redisFriendshipRepository;
 
     /**
      * <h3>친구 관계 탐색 (FriendRelation 반환)</h3>
@@ -75,7 +75,7 @@ public class BreadthFirstSearch {
      */
     private Map<Long, Set<Long>> findSecondDegreeMap(Long memberId, Set<Long> firstDegree) {
         // 1. 1촌들의 친구 목록을 한 번에 조회 (Pipeline)
-        Map<Long, Set<Long>> friendsOfFirstDegreeMap = friendshipCacheRepository.getFriendsBatch(firstDegree);
+        Map<Long, Set<Long>> friendsOfFirstDegreeMap = redisFriendshipRepository.getFriendsBatch(firstDegree);
         Map<Long, Set<Long>> secondDegreeMap = new HashMap<>();
 
         // 2. 결과 처리 (메모리 연산)
@@ -117,7 +117,7 @@ public class BreadthFirstSearch {
      */
     private Map<Long, Set<Long>> findThirdDegreeMap(Long memberId, Set<Long> firstDegree, Map<Long, Set<Long>> secondDegreeConnections) {
         // 1. 2촌들의 친구 목록을 한 번에 조회 (Pipeline)
-        Map<Long, Set<Long>> friendsOfSecondDegreeMap = friendshipCacheRepository.getFriendsBatch(secondDegreeConnections.keySet());
+        Map<Long, Set<Long>> friendsOfSecondDegreeMap = redisFriendshipRepository.getFriendsBatch(secondDegreeConnections.keySet());
         Map<Long, Set<Long>> thirdDegreeMap = new HashMap<>();
 
         // 2. 결과 처리

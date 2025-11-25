@@ -3,9 +3,9 @@ package jaeik.bimillog.domain.friend.service;
 import jaeik.bimillog.domain.friend.algorithm.*;
 import jaeik.bimillog.domain.friend.entity.FriendRelation;
 import jaeik.bimillog.domain.friend.entity.RecommendedFriend;
-import jaeik.bimillog.domain.friend.repository.FriendshipCacheRepository;
-import jaeik.bimillog.domain.friend.repository.InteractionScoreCacheRepository;
 import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
+import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
+import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -28,8 +28,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class FriendRecommendService {
-    private final FriendshipCacheRepository friendshipCacheRepository;
-    private final InteractionScoreCacheRepository interactionScoreCacheRepository;
+    private final RedisFriendshipRepository redisFriendshipRepository;
+    private final RedisInteractionScoreRepository redisInteractionScoreRepository;
     private final MemberQueryAdapter memberQueryAdapter;
     private final BreadthFirstSearch breadthFirstSearch;
     private final UnionFind unionFind;
@@ -44,7 +44,7 @@ public class FriendRecommendService {
         log.info("친구 추천 시작: memberId={}", memberId);
 
         // 1. 초기 데이터 수집 (1촌 및 블랙리스트)
-        Set<Long> firstDegree = friendshipCacheRepository.getFriends(memberId);
+        Set<Long> firstDegree = redisFriendshipRepository.getFriends(memberId);
         Set<Long> blacklist = getBlacklistIds(memberId);
 
         // 2. BFS로 친구 관계 탐색 (FriendRelation 사용)
@@ -66,7 +66,7 @@ public class FriendRecommendService {
         allCandidateIds.removeAll(blacklist);
 
         // 5. 필요한 후보자들에 대해서만 상호작용 점수 조회 (Batch)
-        Map<Long, Double> interactionScores = interactionScoreCacheRepository
+        Map<Long, Double> interactionScores = redisInteractionScoreRepository
                 .getInteractionScoresBatch(memberId, allCandidateIds);
 
         log.debug("후보자 선정 완료: 후보 {}명, 점수 조회 완료", allCandidateIds.size());
@@ -131,7 +131,7 @@ public class FriendRecommendService {
                 .collect(Collectors.toSet());
 
         if (!newRecentIds.isEmpty()) {
-            Map<Long, Double> recentScores = interactionScoreCacheRepository.getInteractionScoresBatch(memberId, newRecentIds);
+            Map<Long, Double> recentScores = redisInteractionScoreRepository.getInteractionScoresBatch(memberId, newRecentIds);
             interactionScores.putAll(recentScores);
         }
 

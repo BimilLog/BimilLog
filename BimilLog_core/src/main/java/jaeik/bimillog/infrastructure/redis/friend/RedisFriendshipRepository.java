@@ -1,6 +1,5 @@
 package jaeik.bimillog.infrastructure.redis.friend;
 
-import jaeik.bimillog.domain.friend.repository.FriendshipCacheRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -14,22 +13,21 @@ import java.util.*;
 import static jaeik.bimillog.infrastructure.redis.friend.RedisFriendKeys.*;
 
 /**
- * <h2>친구 관계 Redis 캐시 구현체</h2>
- * <p>{@link FriendshipCacheRepository} 인터페이스의 Redis 기반 구현체입니다.</p>
+ * <h2>친구 관계 Redis 캐시 저장소</h2>
+ * <p>Redis를 사용하여 친구 관계를 캐싱합니다.</p>
  *
  * @author Jaeik
  * @version 2.1.0
  */
 @Repository
 @RequiredArgsConstructor
-public class RedisFriendshipRepository implements FriendshipCacheRepository {
+public class RedisFriendshipRepository {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
     /**
      * 특정 회원의 친구 목록 조회
      */
-    @Override
     public Set<Long> getFriends(Long memberId) {
         String key = FRIEND_SHIP_PREFIX + memberId;
         try {
@@ -53,7 +51,6 @@ public class RedisFriendshipRepository implements FriendshipCacheRepository {
      * @param memberIds 조회할 회원 ID 목록
      * @return Map<회원ID, 친구ID_Set>
      */
-    @Override
     public Map<Long, Set<Long>> getFriendsBatch(Set<Long> memberIds) {
         if (memberIds.isEmpty()) {
             return new HashMap<>();
@@ -95,7 +92,6 @@ public class RedisFriendshipRepository implements FriendshipCacheRepository {
     }
 
     // 레디스 친구관계 테이블에 친구를 증가시킨다.
-    @Override
     public void addFriend(Long memberId, Long friendId) {
         String key1 = FRIEND_SHIP_PREFIX + memberId;
         String key2 = FRIEND_SHIP_PREFIX + friendId;
@@ -110,7 +106,6 @@ public class RedisFriendshipRepository implements FriendshipCacheRepository {
 
     // 레디스 친구관계 테이블에서 서로를 삭제한다.
     // 친구삭제 상황에서 발생한다.
-    @Override
     public void deleteFriend(Long memberId, Long friendId) {
         String key1 = FRIEND_SHIP_PREFIX + memberId;
         String key2 = FRIEND_SHIP_PREFIX + friendId;
@@ -126,7 +121,6 @@ public class RedisFriendshipRepository implements FriendshipCacheRepository {
     // 레디스 친구관계 테이블에서 탈퇴한 회원을 삭제한다.
     // 회원탈퇴 상황에서 발생한다.
     // SCAN 패턴 매칭으로 탈퇴한 회원 데이터 삭제
-    @Override
     public void deleteWithdrawFriendByScan(Long withdrawFriendId) {
         try {
             // 1. 탈퇴 회원의 친구 관계 테이블 삭제
