@@ -15,7 +15,8 @@ START TRANSACTION;
 -- ========================================
 -- 1. 시퀀스 테이블 생성 (1~10,000)
 -- ========================================
-CREATE TEMPORARY TABLE IF NOT EXISTS tmp_seq (n INT PRIMARY KEY);
+DROP TABLE IF EXISTS tmp_seq;
+CREATE TABLE tmp_seq (n INT PRIMARY KEY);
 
 INSERT INTO tmp_seq (n)
 WITH RECURSIVE seq AS (
@@ -26,9 +27,17 @@ WITH RECURSIVE seq AS (
 SELECT n FROM seq;
 
 -- ========================================
--- 2. 회원 1,000명 생성
+-- 2. 설정 1,000개 생성 (먼저 생성)
 -- ========================================
-INSERT INTO member (id, social_id, member_name, social_nickname, provider, created_at, modified_at)
+INSERT INTO setting (setting_id)
+SELECT n
+FROM tmp_seq
+WHERE n <= 1000;
+
+-- ========================================
+-- 3. 회원 1,000명 생성
+-- ========================================
+INSERT INTO member (member_id, social_id, member_name, social_nickname, provider, setting_id, role, created_at, modified_at)
 SELECT
     n,
     CONCAT('perf_test_', LPAD(n, 6, '0')),
@@ -39,16 +48,10 @@ SELECT
         WHEN 1 THEN 'NAVER'
         ELSE 'GOOGLE'
     END,
+    n,
+    'USER',
     DATE_SUB(NOW(), INTERVAL FLOOR(RAND(n * 12345) * 365) DAY),
     DATE_SUB(NOW(), INTERVAL FLOOR(RAND(n * 12345) * 365) DAY)
-FROM tmp_seq
-WHERE n <= 1000;
-
--- ========================================
--- 3. 설정 테이블 (1,000개)
--- ========================================
-INSERT INTO setting (id, member_id, created_at)
-SELECT n, n, NOW()
 FROM tmp_seq
 WHERE n <= 1000;
 
@@ -56,7 +59,7 @@ WHERE n <= 1000;
 -- 4. 친구 관계 생성 (15,000건, 양방향)
 -- ========================================
 -- 각 회원당 평균 15명 친구 (클러스터링 적용)
-INSERT INTO friendship (id, member_id, friend_id, created_at)
+INSERT INTO friendship (friendship_id, member_id, friend_id, created_at)
 SELECT
     ROW_NUMBER() OVER () AS id,
     member_id,
@@ -84,19 +87,16 @@ FROM (
 -- ========================================
 -- 5. 게시글 1,000개 생성
 -- ========================================
-INSERT INTO post (id, member_id, title, content, is_notice, is_anonymous, view_count, like_count, comment_count, created_at, modified_at)
+INSERT INTO post (post_id, member_id, title, content, is_notice, views, created_at, modified_at)
 SELECT
     n,
     n,
-    CONCAT('성능 테스트 게시글 제목 ', n, ' - 친구 추천 성능 측정용'),
+    CONCAT('성능 테스트 게시글 ', n),
     CONCAT('이것은 성능 테스트를 위한 게시글입니다. 번호: ', n, '\n\n',
            '내용: 친구 추천 알고리즘의 성능을 측정하기 위해 생성된 테스트 게시글입니다.\n',
            'BFS 알고리즘과 Redis 캐싱 성능을 검증합니다.'),
-    IF(n <= 5, TRUE, FALSE),
-    IF(RAND(n * 789) < 0.3, TRUE, FALSE),
+    IF(n <= 5, 1, 0),
     FLOOR(RAND(n * 456) * 1000),
-    FLOOR(RAND(n * 123) * 50),
-    FLOOR(RAND(n * 999) * 10),
     DATE_SUB(NOW(), INTERVAL FLOOR(RAND(n * 111) * 365) DAY),
     DATE_SUB(NOW(), INTERVAL FLOOR(RAND(n * 222) * 180) DAY)
 FROM tmp_seq
@@ -105,7 +105,7 @@ WHERE n <= 1000;
 -- ========================================
 -- 6. 게시글 추천 1,000개
 -- ========================================
-INSERT INTO post_like (id, member_id, post_id, created_at, modified_at)
+INSERT INTO post_like (post_like_id, member_id, post_id, created_at, modified_at)
 SELECT
     n,
     CASE
@@ -121,14 +121,13 @@ WHERE n <= 1000;
 -- ========================================
 -- 7. 댓글 5,000개 생성 (부모 댓글만, 단순화)
 -- ========================================
-INSERT INTO comment (id, member_id, post_id, content, depth, is_anonymous, created_at, modified_at)
+INSERT INTO comment (comment_id, member_id, post_id, content, deleted, created_at, modified_at)
 SELECT
     t1.n,
     ((t1.n - 1) % 1000) + 1,
     ((t1.n - 1) % 1000) + 1,
     CONCAT('성능 테스트 댓글 내용 ', t1.n, '. 친구 추천 성능 측정을 위한 테스트 댓글입니다.'),
     0,
-    IF(RAND(t1.n * 555) < 0.2, TRUE, FALSE),
     DATE_SUB(NOW(), INTERVAL FLOOR(RAND(t1.n * 666) * 180) DAY),
     DATE_SUB(NOW(), INTERVAL FLOOR(RAND(t1.n * 777) * 180) DAY)
 FROM tmp_seq t1
@@ -137,15 +136,15 @@ WHERE t1.n <= 5000;
 -- ========================================
 -- 8. 댓글 closure table (자기 자신)
 -- ========================================
-INSERT INTO comment_closure (ancestor_id, descendant_id, depth)
-SELECT id, id, 0
+INSERT INTO comment_closure (id, ancestor_id, descendant_id, depth)
+SELECT comment_id, comment_id, comment_id, 0
 FROM comment
-WHERE id <= 5000;
+WHERE comment_id <= 5000;
 
 -- ========================================
 -- 9. 댓글 추천 10,000개
 -- ========================================
-INSERT INTO comment_like (id, member_id, comment_id, created_at, modified_at)
+INSERT INTO comment_like (comment_like_id, member_id, comment_id, created_at, modified_at)
 SELECT
     t1.n,
     ((t1.n - 1) % 1000) + 1,
@@ -158,7 +157,7 @@ WHERE t1.n <= 10000;
 -- ========================================
 -- 10. 블랙리스트 100건 (10% 회원이 평균 1명 차단)
 -- ========================================
-INSERT INTO member_blacklist (id, request_member_id, black_member_id, created_at)
+INSERT INTO member_blacklist (member_black_list_id, request_member_id, black_member_id, created_at, modified_at)
 SELECT
     n,
     n,
@@ -166,6 +165,7 @@ SELECT
         WHEN n + 500 > 1000 THEN n + 500 - 1000
         ELSE n + 500
     END,
+    DATE_SUB(NOW(), INTERVAL FLOOR(RAND(n * 1111) * 180) DAY),
     DATE_SUB(NOW(), INTERVAL FLOOR(RAND(n * 1111) * 180) DAY)
 FROM tmp_seq
 WHERE n <= 100;
@@ -177,7 +177,7 @@ COMMIT;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- 임시 테이블 삭제
-DROP TEMPORARY TABLE IF EXISTS tmp_seq;
+DROP TABLE IF EXISTS tmp_seq;
 
 -- 통계 출력
 SELECT '시드 데이터 로드 완료!' AS status;
