@@ -9,12 +9,26 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 
 /**
- * <h2>BFS 친구 탐색 알고리즘 (최적화)</h2>
- * <p>Redis Pipeline을 사용하여 네트워크 지연을 최소화합니다.</p>
- * <p>FriendRelation 도메인 객체를 반환하여 타입 안전성을 보장합니다.</p>
+ * <h2>너비 우선 탐색 (BFS) 알고리즘</h2>
+ * <p>Redis Pipeline을 활용하여 2촌/3촌 친구 관계를 탐색합니다.</p>
+ *
+ * <h3>알고리즘 흐름</h3>
+ * <ol>
+ *   <li>1촌 친구 목록을 시작점으로 설정</li>
+ *   <li>Redis Pipeline으로 1촌의 친구 목록 일괄 조회 (네트워크 최적화)</li>
+ *   <li>2촌 후보자 필터링 (본인, 1촌 제외)</li>
+ *   <li>필요시 3촌까지 확장 탐색</li>
+ * </ol>
+ *
+ * <h3>성능 특성</h3>
+ * <ul>
+ *   <li><b>시간 복잡도</b>: O(V + E) - V: 노드 수, E: 간선 수</li>
+ *   <li><b>공간 복잡도</b>: O(V) - 방문 노드 저장</li>
+ *   <li><b>Redis Pipeline</b>: N번의 조회를 1번의 네트워크 왕복으로 처리</li>
+ * </ul>
  *
  * @author Jaeik
- * @version 2.2.0
+ * @version 2.3.0
  */
 @Component
 @RequiredArgsConstructor
@@ -106,7 +120,7 @@ public class BreadthFirstSearch {
                 // 이미 친구인 사람 제외 (1촌)
                 if (firstDegree.contains(candidateId)) continue;
 
-                // 2촌 Map 구성: Candidate -> [연결된 1촌 친구들]
+                // 2촌 Map 구성: Candidate -> [중개 역할을 하는 1촌 친구들]
                 secondDegreeMap.computeIfAbsent(candidateId, k -> new HashSet<>()).add(friendId);
             }
         }
@@ -139,7 +153,7 @@ public class BreadthFirstSearch {
                 // 2촌 제외
                 if (secondDegreeIds.contains(candidateId)) continue;
 
-                // 3촌 Map 구성: Candidate -> [연결된 2촌 친구들]
+                // 3촌 Map 구성: Candidate -> [중개 역할을 하는 2촌 친구들]
                 thirdDegreeMap.computeIfAbsent(candidateId, k -> new HashSet<>()).add(secondDegreeId);
             }
         }

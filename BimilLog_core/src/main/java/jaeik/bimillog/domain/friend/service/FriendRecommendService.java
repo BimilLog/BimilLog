@@ -33,7 +33,6 @@ public class FriendRecommendService {
     private final RedisInteractionScoreRepository redisInteractionScoreRepository;
     private final MemberQueryAdapter memberQueryAdapter;
     private final BreadthFirstSearch breadthFirstSearch;
-    private final UnionFind unionFind;
     private final FriendRecommendScorer scorer;
 
     public static final int RECOMMEND_LIMIT = 10;
@@ -44,62 +43,60 @@ public class FriendRecommendService {
     public Page<RecommendedFriend> getRecommendFriendList(Long memberId, Pageable pageable) {
         log.info("친구 추천 시작: memberId={}", memberId);
 
-        // 1. 초기 데이터 수집 (1촌 및 블랙리스트)
+        // 1. Redis에서 1촌 목록 및 블랙리스트 조회
         Set<Long> firstDegree = redisFriendshipRepository.getFriends(memberId);
         Set<Long> blacklist = getBlacklistIds(memberId);
 
-        // 2. BFS로 친구 관계 탐색 (FriendRelation 사용)
+        // 2. BFS로 2촌 관계 탐색 (Redis Pipeline 활용)
         FriendRelation relation = breadthFirstSearch.findFriendRelation(memberId, firstDegree);
 
-        // 3. 3촌 탐색 결정
+        // 3. 2촌이 부족하면 3촌까지 확장 탐색 (목표: 10명 이상)
         boolean shouldFindThirdDegree = relation.getSecondDegreeIds().size() < RECOMMEND_LIMIT;
 
         if (shouldFindThirdDegree) {
             relation = breadthFirstSearch.addThirdDegreeRelation(relation);
         }
 
-        // 4. 후보자 ID 수집 (점수 조회를 위해)
+        // 4. 후보자 ID 수집 및 블랙리스트 제거
         Set<Long> allCandidateIds = relation.getAllCandidateIds();
-
-        // 블랙리스트 제거
         allCandidateIds.removeAll(blacklist);
 
-        // 5. 필요한 후보자들에 대해서만 상호작용 점수 조회 (Batch)
+        // 5. Redis Pipeline으로 상호작용 점수 일괄 조회 (좋아요, 댓글 등)
         Map<Long, Double> interactionScores = redisInteractionScoreRepository
                 .getInteractionScoresBatch(memberId, allCandidateIds);
 
-        // 6. FriendRelation에 상호작용 점수 설정
+        // 6. 각 후보자에게 상호작용 점수 설정
         for (Map.Entry<Long, Double> entry : interactionScores.entrySet()) {
             relation.setInteractionScore(entry.getKey(), entry.getValue());
         }
 
         log.debug("후보자 선정 완료: 후보 {}명, 점수 조회 완료", allCandidateIds.size());
 
-        // 7. UnionFind로 공통 친구 그룹 구축 (FriendRelation 직접 수정)
-        unionFind.buildCommonFriendGroups(relation);
+        // 7. 공통 친구 정보 초기화
+        relation.initializeCommonFriends();
 
         List<RecommendCandidate> candidates = new ArrayList<>();
 
-        // 8. 2촌 점수 계산
+        // 8. 2촌 후보 점수 계산 (기본 50점 + 공통친구 2점 + 상호작용 최대 10점)
         buildCandidatesFromSecondDegree(relation, blacklist, candidates);
 
-        // 9. 3촌 점수 계산 (필요시)
+        // 9. 3촌 후보 점수 계산 (기본 20점 + 공통친구 0.5점 + 상호작용 최대 10점)
         if (shouldFindThirdDegree) {
             buildCandidatesFromThirdDegree(relation, blacklist, candidates);
         }
 
-        // 10. 정렬 및 Top 10 추출
+        // 10. 총점 기준 정렬 후 상위 10명 선택
         List<RecommendCandidate> topCandidates = candidates.stream()
                 .sorted(Comparator.comparing(RecommendCandidate::getTotalScore).reversed())
                 .limit(RECOMMEND_LIMIT)
                 .collect(Collectors.toList());
 
-        // 11. 부족 시 최근 가입자 채우기
+        // 11. 10명 미만일 경우 최근 가입자로 채우기
         if (topCandidates.size() < RECOMMEND_LIMIT) {
             fillWithRecentMembers(memberId, firstDegree, blacklist, topCandidates);
         }
 
-        // 12. 변환 및 반환
+        // 12. DTO 변환 (회원 정보 조회 포함) 및 반환
         List<RecommendedFriend> recommendedFriends = convertToRecommendedFriends(topCandidates);
         log.info("친구 추천 완료: memberId={}, 추천 수={}", memberId, recommendedFriends.size());
 
@@ -184,7 +181,7 @@ public class FriendRecommendService {
             Long candidateId = candidateInfo.getCandidateId();
             if (blacklist.contains(candidateId)) continue;
 
-            Set<Long> connectedSecondDegree = candidateInfo.getConnectedFriendIds();
+            Set<Long> connectedSecondDegree = candidateInfo.getBridgeFriendIds();
 
             int totalCommonFriendCount = 0;
             for (Long secondDegreeId : connectedSecondDegree) {
