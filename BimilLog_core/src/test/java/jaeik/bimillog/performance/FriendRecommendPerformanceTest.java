@@ -83,10 +83,6 @@ public class FriendRecommendPerformanceTest {
 
     @BeforeAll
     void beforeAll() {
-        log.info("========================================");
-        log.info("친구 추천 API 성능 측정 테스트 (10회 조회)");
-        log.info("========================================");
-
         seedRedisCaches();
     }
 
@@ -204,7 +200,7 @@ public class FriendRecommendPerformanceTest {
                 new FriendshipCreatedEvent(friendship.getMember().getId(), friendship.getFriend().getId())
         ));
 
-        Long sampleMemberId = friendships.get(0).getMember().getId();
+        Long sampleMemberId = friendships.getFirst().getMember().getId();
         Awaitility.await()
                 .atMost(SEED_TIMEOUT)
                 .untilAsserted(() -> assertThat(redisFriendshipRepository.getFriends(sampleMemberId)).isNotEmpty());
@@ -216,7 +212,7 @@ public class FriendRecommendPerformanceTest {
                 new PostLikeEvent(postIdSequence.getAndIncrement(), friendship.getMember().getId(), friendship.getFriend().getId())
         ));
 
-        Long sampleMemberId = friendships.get(0).getMember().getId();
+        Long sampleMemberId = friendships.getFirst().getMember().getId();
         Set<Long> sampleTargets = redisFriendshipRepository.getFriends(sampleMemberId);
 
         if (!sampleTargets.isEmpty()) {
