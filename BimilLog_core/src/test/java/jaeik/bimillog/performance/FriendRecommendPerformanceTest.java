@@ -1,8 +1,16 @@
 package jaeik.bimillog.performance;
 
+import jaeik.bimillog.domain.friend.entity.jpa.Friendship;
+import jaeik.bimillog.domain.friend.event.FriendshipCreatedEvent;
+import jaeik.bimillog.domain.friend.repository.FriendshipRepository;
 import jaeik.bimillog.domain.friend.service.FriendRecommendService;
+import jaeik.bimillog.domain.post.event.PostLikeEvent;
+import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
+import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository;
+import jaeik.bimillog.testutil.RedisTestHelper;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import org.awaitility.Awaitility;
 import org.hibernate.SessionFactory;
 import org.hibernate.stat.Statistics;
 import org.junit.jupiter.api.*;
@@ -11,13 +19,20 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.util.StopWatch;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * <h2>친구 추천 API 성능 측정 테스트</h2>
@@ -31,9 +46,11 @@ import java.util.List;
 @SpringBootTest(properties = {
         "spring.task.scheduling.enabled=false",
         "spring.scheduling.enabled=false"
-})@ActiveProfiles("local-integration")
+})
+@ActiveProfiles("local-integration")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Tag("local-integration")
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class FriendRecommendPerformanceTest {
 
     private static final Logger log = LoggerFactory.getLogger(FriendRecommendPerformanceTest.class);
@@ -41,17 +58,36 @@ public class FriendRecommendPerformanceTest {
     @Autowired
     private FriendRecommendService friendRecommendService;
 
+    @Autowired
+    private FriendshipRepository friendshipRepository;
+
+    @Autowired
+    private RedisFriendshipRepository redisFriendshipRepository;
+
+    @Autowired
+    private RedisInteractionScoreRepository redisInteractionScoreRepository;
+
     @PersistenceContext
     private EntityManager entityManager;
+
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
+
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
 
     private Statistics statistics;
     private static final int TEST_COUNT = 10;
 
+    private static final Duration SEED_TIMEOUT = Duration.ofSeconds(10);
+
     @BeforeAll
-    static void beforeAll() {
+    void beforeAll() {
         log.info("========================================");
         log.info("친구 추천 API 성능 측정 테스트 (10회 조회)");
         log.info("========================================");
+
+        seedRedisCaches();
     }
 
     @BeforeEach
@@ -144,5 +180,50 @@ public class FriendRecommendPerformanceTest {
         log.info("트랜잭션 횟수: {}", statistics.getTransactionCount());
         log.info("플러시 횟수: {}", statistics.getFlushCount());
         log.info("==========================================");
+    }
+
+    /**
+     * 로컬 통합 환경 Redis 캐시 시딩
+     * <p>테스트 시작 전 실제 서비스와 동일하게 이벤트를 발행해 친구 관계 및 상호작용 점수를 Redis(6380) 에 적재합니다.</p>
+     */
+    private void seedRedisCaches() {
+        RedisTestHelper.flushRedis(redisTemplate);
+
+        List<Friendship> friendships = friendshipRepository.findAll();
+        if (friendships.isEmpty()) {
+            log.warn("시드할 친구 관계가 없습니다. DB 데이터를 확인하세요.");
+            return;
+        }
+
+        seedFriendships(friendships);
+        seedInteractionScores(friendships);
+    }
+
+    private void seedFriendships(List<Friendship> friendships) {
+        friendships.forEach(friendship -> eventPublisher.publishEvent(
+                new FriendshipCreatedEvent(friendship.getMember().getId(), friendship.getFriend().getId())
+        ));
+
+        Long sampleMemberId = friendships.get(0).getMember().getId();
+        Awaitility.await()
+                .atMost(SEED_TIMEOUT)
+                .untilAsserted(() -> assertThat(redisFriendshipRepository.getFriends(sampleMemberId)).isNotEmpty());
+    }
+
+    private void seedInteractionScores(List<Friendship> friendships) {
+        AtomicLong postIdSequence = new AtomicLong(1L);
+        friendships.forEach(friendship -> eventPublisher.publishEvent(
+                new PostLikeEvent(postIdSequence.getAndIncrement(), friendship.getMember().getId(), friendship.getFriend().getId())
+        ));
+
+        Long sampleMemberId = friendships.get(0).getMember().getId();
+        Set<Long> sampleTargets = redisFriendshipRepository.getFriends(sampleMemberId);
+
+        if (!sampleTargets.isEmpty()) {
+            Awaitility.await()
+                    .atMost(SEED_TIMEOUT)
+                    .untilAsserted(() -> assertThat(redisInteractionScoreRepository
+                            .getInteractionScoresBatch(sampleMemberId, sampleTargets)).isNotEmpty());
+        }
     }
 }
