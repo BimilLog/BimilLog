@@ -81,6 +81,7 @@ export const HomeFooter: React.FC = () => {
                     설정
                   </FooterLink>
                   <FooterLink
+                    href="#"
                     onClick={handleFriendClick}
                     className="text-gray-600 hover:text-gray-900 cursor-pointer"
                   >

@@ -58,13 +58,6 @@ export const RecommendedFriendList: React.FC = () => {
         )}
       </div>
 
-      {/* 설명 */}
-      {!isEmpty && (
-        <p className="text-sm text-gray-600 mb-4">
-          친구의 친구(2촌)와 그들의 친구(3촌)를 추천합니다
-        </p>
-      )}
-
       {/* 리스트 */}
       {isEmpty ? (
         <div className="text-center py-16 bg-gray-50 rounded-lg">

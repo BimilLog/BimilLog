@@ -20,22 +20,11 @@ export const RecommendedFriendItem: React.FC<RecommendedFriendItemProps> = ({ fr
   const { mutate: sendRequest, isPending } = useSendFriendRequest();
 
   const handleAddFriend = () => {
-    sendRequest({ receiverId: friend.friendMemberId });
+    sendRequest({ receiverMemberId: friend.friendMemberId });
   };
 
   return (
     <li className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0">
-      {/* 왼쪽: 프로필 정보 */}
-      <div className="flex items-center gap-3 flex-1 min-w-0">
-        <Avatar
-          img={friend.thumbnailImage}
-          alt={friend.memberName}
-          placeholderInitials={getInitials(friend.memberName)}
-          rounded
-          size="md"
-          className="w-12 h-12 shrink-0"
-        />
-
         <div className="flex-1 min-w-0">
           {/* 이름 + 촌수 배지 (depth가 null이 아닐 때만 표시) */}
           <div className="flex items-center gap-2 mb-1">
@@ -65,9 +54,8 @@ export const RecommendedFriendItem: React.FC<RecommendedFriendItemProps> = ({ fr
             <p className="text-xs text-gray-400">추천 친구</p>
           )}
         </div>
-      </div>
 
-      {/* 오른쪽: 친구 추가 버튼 */}
+      {/* 오른쪽: 친구 요청 버튼 */}
       <Button
         color="purple"
         size="sm"
@@ -80,7 +68,7 @@ export const RecommendedFriendItem: React.FC<RecommendedFriendItemProps> = ({ fr
         ) : (
           <>
             <UserPlus className="w-4 h-4 mr-1" />
-            친구 추가
+            친구 요청
           </>
         )}
       </Button>

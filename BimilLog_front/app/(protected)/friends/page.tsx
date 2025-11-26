@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { FriendTabs } from "@/components/organisms/friend/FriendTabs";
+import { MainLayout } from "@/components/organisms/layout/BaseLayout";
 
 /**
  * 메타데이터
@@ -15,17 +16,22 @@ export const metadata: Metadata = {
  */
 export default function FriendsPage() {
   return (
-    <div className="container max-w-4xl mx-auto px-4 py-8">
-      {/* 페이지 헤더 */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">친구</h1>
-        <p className="text-gray-600 mt-2">
-          친구를 관리하고 새로운 친구를 추천받아보세요
-        </p>
-      </div>
+    <MainLayout
+      className="bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50"
+      containerClassName="container mx-auto px-4"
+    >
+      <div className="py-8 max-w-4xl mx-auto">
+        {/* 페이지 헤더 */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">친구</h1>
+          <p className="text-gray-600 mt-2">
+            친구를 관리하고 새로운 친구를 추천받아보세요
+          </p>
+        </div>
 
-      {/* 탭 컴포넌트 */}
-      <FriendTabs />
-    </div>
+        {/* 탭 컴포넌트 */}
+        <FriendTabs />
+      </div>
+    </MainLayout>
   );
 }

@@ -20,7 +20,7 @@ export interface FriendRequest {
   senderName: string;
   senderThumbnail?: string;
   receiverMemberId: number;
-  receiverName: string;
+  receiverMemberName: string;
   receiverThumbnail?: string;
   status: 'PENDING' | 'REJECTED';
   createdAt: string;
@@ -45,7 +45,7 @@ export interface RecommendedFriend {
  * 친구 요청 보내기 DTO
  */
 export interface SendFriendRequestDTO {
-  receiverId: number;
+  receiverMemberId: number;
 }
 
 /**

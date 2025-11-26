@@ -66,12 +66,16 @@ public class FriendRecommendScorer {
 
     /**
      * <h3>기본 점수 조회</h3>
-     * <p>2촌: 50점, 3촌: 20점</p>
+     * <p>2촌: 50점, 3촌: 20점, null: 0점</p>
      *
-     * @param depth 촌수 (2 또는 3)
+     * @param depth 촌수 (2, 3, 또는 null - null은 2촌/3촌이 아닌 경우)
      * @return 기본 점수
      */
-    public int getBaseScore(int depth) {
+    public int getBaseScore(Integer depth) {
+        if (depth == null) {
+            return 0;  // 최근 가입자 등 2촌/3촌이 아닌 경우
+        }
+
         if (depth == DEPTH_SECOND) {
             return BASE_SCORE_SECOND_DEGREE;
         } else if (depth == DEPTH_THIRD) {
@@ -84,12 +88,17 @@ public class FriendRecommendScorer {
      * <h3>공통 친구 점수 계산</h3>
      * <p><b>2촌</b>: 1명당 2점, 최대 10명 20점</p>
      * <p><b>3촌</b>: 연결된 2촌의 공통친구 수 * 0.5점, 최대 10명 5점</p>
+     * <p><b>null</b>: 0점 (2촌/3촌이 아닌 경우)</p>
      *
      * @param commonCount 공통 친구 수
-     * @param depth       촌수 (2 또는 3)
+     * @param depth       촌수 (2, 3, 또는 null - null은 2촌/3촌이 아닌 경우)
      * @return 공통 친구 점수
      */
-    public double getCommonFriendScore(int commonCount, int depth) {
+    public double getCommonFriendScore(int commonCount, Integer depth) {
+        if (depth == null) {
+            return 0.0;  // 최근 가입자 등 2촌/3촌이 아닌 경우
+        }
+
         if (depth == DEPTH_SECOND) {
             // 2촌: 1명당 2점, 최대 10명 20점
             int count = Math.min(commonCount, COMMON_FRIEND_MAX_COUNT);
