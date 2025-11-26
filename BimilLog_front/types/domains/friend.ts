@@ -5,6 +5,7 @@
  * 백엔드 Friend.FriendInfo와 매핑
  */
 export interface Friend {
+  friendshipId: number;
   friendMemberId: number;
   memberName: string;
   thumbnailImage?: string;

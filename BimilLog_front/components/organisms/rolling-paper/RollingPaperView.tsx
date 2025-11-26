@@ -94,6 +94,7 @@ export const RollingPaperView: React.FC<RollingPaperViewProps> = ({
       <RollingPaperHeader
         nickname={targetNickname}
         messageCount={messageCount}
+        messages={messages}
         isOwner={isOwner}
         onShowMessages={isOwner ? () => setIsMessageListOpen(true) : undefined}
         className="sticky top-[68px] sm:top-[80px] z-40"

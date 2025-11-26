@@ -20,10 +20,8 @@ export const useSendFriendRequest = () => {
     mutationKey: mutationKeys.friend.sendRequest,
     mutationFn: (data: SendFriendRequestDTO) => friendCommand.sendRequest(data),
     onSuccess: () => {
-      // 보낸 요청 목록 갱신
-      queryClient.invalidateQueries({ queryKey: queryKeys.friend.sentRequests(0, 20) });
-      // 추천 친구 목록 갱신 (요청 보낸 친구는 추천에서 제외될 수 있음)
-      queryClient.invalidateQueries({ queryKey: queryKeys.friend.recommended(0, 10) });
+      // 모든 friend 관련 쿼리 무효화 (페이지 사이즈 무관)
+      queryClient.invalidateQueries({ queryKey: queryKeys.friend.all });
 
       showToast({
         type: 'success',
@@ -51,10 +49,8 @@ export const useAcceptFriendRequest = () => {
     mutationKey: mutationKeys.friend.acceptRequest,
     mutationFn: (requestId: number) => friendCommand.acceptRequest(requestId),
     onSuccess: () => {
-      // 받은 요청 목록 갱신
-      queryClient.invalidateQueries({ queryKey: queryKeys.friend.receivedRequests(0, 20) });
-      // 친구 목록 갱신 (새 친구 추가됨)
-      queryClient.invalidateQueries({ queryKey: queryKeys.friend.lists() });
+      // 모든 friend 관련 쿼리 무효화 (페이지 사이즈 무관)
+      queryClient.invalidateQueries({ queryKey: queryKeys.friend.all });
 
       showToast({
         type: 'success',
@@ -82,8 +78,8 @@ export const useRejectFriendRequest = () => {
     mutationKey: mutationKeys.friend.rejectRequest,
     mutationFn: (requestId: number) => friendCommand.rejectRequest(requestId),
     onSuccess: () => {
-      // 받은 요청 목록 갱신
-      queryClient.invalidateQueries({ queryKey: queryKeys.friend.receivedRequests(0, 20) });
+      // 모든 friend 관련 쿼리 무효화 (페이지 사이즈 무관)
+      queryClient.invalidateQueries({ queryKey: queryKeys.friend.all });
 
       showToast({
         type: 'success',
@@ -111,8 +107,8 @@ export const useCancelFriendRequest = () => {
     mutationKey: mutationKeys.friend.cancelRequest,
     mutationFn: (requestId: number) => friendCommand.cancelRequest(requestId),
     onSuccess: () => {
-      // 보낸 요청 목록 갱신
-      queryClient.invalidateQueries({ queryKey: queryKeys.friend.sentRequests(0, 20) });
+      // 모든 friend 관련 쿼리 무효화 (페이지 사이즈 무관)
+      queryClient.invalidateQueries({ queryKey: queryKeys.friend.all });
 
       showToast({
         type: 'success',
@@ -140,8 +136,8 @@ export const useRemoveFriend = () => {
     mutationKey: mutationKeys.friend.removeFriend,
     mutationFn: (friendshipId: number) => friendCommand.removeFriend(friendshipId),
     onSuccess: () => {
-      // 친구 목록 갱신
-      queryClient.invalidateQueries({ queryKey: queryKeys.friend.lists() });
+      // 모든 friend 관련 쿼리 무효화 (페이지 사이즈 무관)
+      queryClient.invalidateQueries({ queryKey: queryKeys.friend.all });
 
       showToast({
         type: 'success',

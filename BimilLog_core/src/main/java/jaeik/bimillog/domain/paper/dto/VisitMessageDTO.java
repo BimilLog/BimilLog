@@ -26,6 +26,8 @@ public class VisitMessageDTO {
 
     private Long memberId;
 
+    private Long ownerId;  // 롤링페이퍼 소유자 ID 추가
+
     private DecoType decoType;
 
     private int x;
@@ -37,14 +39,16 @@ public class VisitMessageDTO {
      * <p>VisitMessageDetail 값 객체를 DTO로 변환합니다.</p>
      *
      * @param message 메시지 엔티티
+     * @param ownerId 롤링페이퍼 소유자 ID
      * @return VisitMessageDTO 변환된 방문 메시지 DTO
      * @author Jaeik
      * @since 2.0.0
      */
-    public static VisitMessageDTO from(Message message) {
+    public static VisitMessageDTO from(Message message, Long ownerId) {
         return new VisitMessageDTO(
                 message.getId(),
                 message.getMemberId(),
+                ownerId,
                 message.getDecoType(),
                 message.getX(),
                 message.getY()

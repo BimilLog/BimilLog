@@ -48,6 +48,7 @@ export interface RollingPaperMessage {
 export interface VisitMessage {
   id: number
   memberId: number
+  ownerId: number  // 롤링페이퍼 소유자 ID
   decoType: DecoType
   x: number  // 그리드 X 좌표 (0-based, 0부터 시작)
   y: number  // 그리드 Y 좌표 (0-based, 0부터 시작)

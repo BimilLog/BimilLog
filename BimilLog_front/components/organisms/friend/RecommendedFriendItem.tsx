@@ -48,11 +48,6 @@ export const RecommendedFriendItem: React.FC<RecommendedFriendItemProps> = ({ fr
               <span className="truncate">{friend.introduce}</span>
             </p>
           )}
-
-          {/* 3촌 또는 depth null인 경우 */}
-          {(friend.depth === 3 || friend.depth === null) && !friend.introduce && (
-            <p className="text-xs text-gray-400">추천 친구</p>
-          )}
         </div>
 
       {/* 오른쪽: 친구 요청 버튼 */}

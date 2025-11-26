@@ -42,6 +42,12 @@ public class PaperQueryService {
     }
 
     /**
+     * <h3>다른 사용자 롤링페이퍼 방문 조회 결과</h3>
+     * <p>메시지 리스트와 소유자 ID를 포함하는 레코드</p>
+     */
+    public record VisitPaperResult(List<Message> messages, Long ownerId) {}
+
+    /**
      * <h3>다른 사용자 롤링페이퍼 방문 조회</h3>
      * <p>메시지가 없는 경우 빈 리스트를 반환</p>
      * <p>롤링페이퍼 조회 성공 시 PaperViewedEvent를 발행하여 실시간 인기 점수를 증가시킵니다.</p>
@@ -49,7 +55,7 @@ public class PaperQueryService {
      * @author Jaeik
      * @since 2.0.0
      */
-    public List<Message> visitPaper(Long memberId, String memberName) {
+    public VisitPaperResult visitPaper(Long memberId, String memberName) {
         if (memberName == null || memberName.trim().isEmpty()) {
             throw new CustomException(ErrorCode.PAPER_INVALID_INPUT_VALUE);
         }
@@ -69,6 +75,6 @@ public class PaperQueryService {
         // 롤링페이퍼 조회 이벤트 발행 (실시간 인기 점수 증가)
         eventPublisher.publishEvent(new PaperViewedEvent(member.getId()));
 
-        return messages;
+        return new VisitPaperResult(messages, member.getId());
     }
 }

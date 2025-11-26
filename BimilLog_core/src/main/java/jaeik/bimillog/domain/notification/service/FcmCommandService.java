@@ -102,16 +102,24 @@ public class FcmCommandService {
 
     /**
      * <h3>친구 요청 FCM 전송</h3>
+     * <p>친구 요청 관련 알림을 FCM으로 전송합니다.</p>
+     * <p>친구 알림은 사용자 설정과 무관하게 항상 전송됩니다.</p>
+     *
+     * @param memberId 알림을 받을 사용자 ID
+     * @param title 알림 제목
+     * @param body 알림 내용
+     * @author Jaeik
+     * @since 2.0.0
      */
     public void sendFriendNotification(Long memberId, String title, String body) {
         try {
-            List<String> tokens = notificationUtilAdapter.FcmEligibleFcmTokens(memberId, NotificationType.POST_FEATURED);
+            List<String> tokens = notificationUtilAdapter.FcmEligibleFcmTokens(memberId, NotificationType.FRIEND);
             boolean sent = sendNotifications(tokens, title, body);
             if (sent) {
                 log.info("친구 요청 알림 FCM 전송 완료: 사용자 ID={}, 토큰 수={}", memberId, tokens.size());
             }
         } catch (Exception e) {
-            log.error("친구 요청 등극 알림 전송 실패: 사용자 ID={}, 제목={}", memberId, title, e);
+            log.error("친구 요청 알림 전송 실패: 사용자 ID={}, 제목={}", memberId, title, e);
         }
     }
 

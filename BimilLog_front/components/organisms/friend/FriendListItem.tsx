@@ -6,6 +6,7 @@ import { Avatar } from "flowbite-react";
 import { Button } from "@/components";
 import { Friend } from "@/types/domains/friend";
 import { useRemoveFriend } from "@/hooks/api/useFriendMutations";
+import { useConfirmModal } from "@/components/molecules/modals/confirm-modal";
 import { getInitials } from "@/lib/utils/format";
 import { useRouter } from "next/navigation";
 
@@ -19,10 +20,20 @@ interface FriendListItemProps {
 export const FriendListItem: React.FC<FriendListItemProps> = ({ friend }) => {
   const router = useRouter();
   const { mutate: removeFriend, isPending } = useRemoveFriend();
+  const { confirm, ConfirmModalComponent } = useConfirmModal();
 
-  const handleRemove = () => {
-    if (confirm(`${friend.memberName}님을 친구 목록에서 삭제하시겠습니까?`)) {
-      removeFriend(friend.friendMemberId);
+  const handleRemove = async () => {
+    const confirmed = await confirm({
+      title: "친구 삭제",
+      message: `${friend.memberName}님을 친구 목록에서 삭제하시겠습니까?`,
+      confirmText: "삭제",
+      cancelText: "취소",
+      confirmButtonVariant: "destructive",
+      icon: <Trash2 className="h-8 w-8 stroke-red-600 fill-red-100" />
+    });
+
+    if (confirmed) {
+      removeFriend(friend.friendshipId);
     }
   };
 
@@ -31,7 +42,8 @@ export const FriendListItem: React.FC<FriendListItemProps> = ({ friend }) => {
   };
 
   return (
-    <li className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0">
+    <>
+      <li className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0">
       {/* 왼쪽: 프로필 정보 */}
       <div className="flex items-center gap-3 flex-1 min-w-0">
         <Avatar
@@ -71,5 +83,7 @@ export const FriendListItem: React.FC<FriendListItemProps> = ({ friend }) => {
         </Button>
       </div>
     </li>
+      <ConfirmModalComponent />
+    </>
   );
 };
