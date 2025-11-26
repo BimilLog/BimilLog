@@ -4,13 +4,13 @@ import React from "react";
 import { Check, X } from "lucide-react";
 import { Avatar } from "flowbite-react";
 import { Button } from "@/components";
-import { FriendRequest } from "@/types/domains/friend";
+import { ReceivedFriendRequest } from "@/types/domains/friend";
 import { useAcceptFriendRequest, useRejectFriendRequest } from "@/hooks/api/useFriendMutations";
+import { useConfirmModal } from "@/components/molecules/modals/confirm-modal";
 import { getInitials } from "@/lib/utils/format";
-import { formatDate } from "@/lib/utils";
 
 interface ReceivedRequestItemProps {
-  request: FriendRequest;
+  request: ReceivedFriendRequest;
 }
 
 /**
@@ -19,65 +19,72 @@ interface ReceivedRequestItemProps {
 export const ReceivedRequestItem: React.FC<ReceivedRequestItemProps> = ({ request }) => {
   const { mutate: acceptRequest, isPending: isAccepting } = useAcceptFriendRequest();
   const { mutate: rejectRequest, isPending: isRejecting } = useRejectFriendRequest();
+  const { confirm, ConfirmModalComponent } = useConfirmModal();
 
   const handleAccept = () => {
-    acceptRequest(request.id);
+    acceptRequest(request.friendRequestId);
   };
 
-  const handleReject = () => {
-    if (confirm(`${request.senderName}님의 친구 요청을 거절하시겠습니까?`)) {
-      rejectRequest(request.id);
+  const handleReject = async () => {
+    const confirmed = await confirm({
+      title: "친구 요청 거절",
+      message: `${request.senderMemberName}님의 친구 요청을 거절하시겠습니까?`,
+      confirmText: "거절",
+      cancelText: "돌아가기",
+      confirmButtonVariant: "destructive",
+      icon: <X className="h-8 w-8 stroke-red-600 fill-red-100" />
+    });
+
+    if (confirmed) {
+      rejectRequest(request.friendRequestId);
     }
   };
 
   const isPending = isAccepting || isRejecting;
 
   return (
-    <li className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0">
-      {/* 왼쪽: 프로필 정보 */}
-      <div className="flex items-center gap-3 flex-1 min-w-0">
-        <Avatar
-          img={request.senderThumbnail}
-          alt={request.senderName}
-          placeholderInitials={getInitials(request.senderName)}
-          rounded
-          size="md"
-          className="w-12 h-12 shrink-0"
-        />
+    <>
+      <li className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0">
+        {/* 왼쪽: 프로필 정보 */}
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <Avatar
+            alt={request.senderMemberName}
+            placeholderInitials={getInitials(request.senderMemberName)}
+            rounded
+            size="md"
+            className="w-12 h-12 shrink-0"
+          />
 
-        <div className="flex-1 min-w-0">
-          <h3 className="font-medium text-gray-900 truncate">
-            {request.senderName}
-          </h3>
-          {request.createdAt && (
-            <p className="text-xs text-gray-500 mt-1">
-              {formatDate(request.createdAt)}
-            </p>
-          )}
+          <div className="flex-1 min-w-0">
+            <h3 className="font-medium text-gray-900 truncate">
+              {request.senderMemberName}
+            </h3>
+          </div>
         </div>
-      </div>
 
-      {/* 오른쪽: 수락/거절 버튼 */}
-      <div className="flex items-center gap-2 ml-4 shrink-0">
-        <Button
-          color="success"
-          size="sm"
-          onClick={handleAccept}
-          disabled={isPending}
-        >
-          <Check className="w-4 h-4 mr-1" />
-          수락
-        </Button>
-        <Button
-          color="failure"
-          size="sm"
-          onClick={handleReject}
-          disabled={isPending}
-        >
-          <X className="w-4 h-4 mr-1" />
-          거절
-        </Button>
-      </div>
-    </li>
+        {/* 오른쪽: 수락/거절 버튼 */}
+        <div className="flex items-center gap-2 ml-4 shrink-0">
+          <Button
+            color="success"
+            size="sm"
+            onClick={handleAccept}
+            disabled={isPending}
+          >
+            <Check className="w-4 h-4 mr-1" />
+            수락
+          </Button>
+          <Button
+            color="failure"
+            size="sm"
+            onClick={handleReject}
+            disabled={isPending}
+          >
+            <X className="w-4 h-4 mr-1" />
+            거절
+          </Button>
+        </div>
+      </li>
+      <ConfirmModalComponent />
+    </>
   );
 };

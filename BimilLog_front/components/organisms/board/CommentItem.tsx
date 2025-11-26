@@ -239,6 +239,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
                 {comment.memberName && comment.memberName !== "익명" ? (
                   <UserActionPopover
                     memberName={comment.memberName}
+                    memberId={comment.memberId}
                     trigger={
                       <button className="font-semibold text-sm sm:text-base hover:text-purple-600 hover:underline transition-colors cursor-pointer inline-flex items-center space-x-1 truncate">
                         <User className="w-3 h-3 flex-shrink-0" />

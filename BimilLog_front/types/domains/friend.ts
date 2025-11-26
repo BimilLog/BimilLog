@@ -11,19 +11,23 @@ export interface Friend {
 }
 
 /**
- * 친구 요청 정보
- * 백엔드 FriendRequest 엔티티와 매핑
+ * 보낸 친구 요청 정보
+ * 백엔드 FriendSenderRequest와 매핑
  */
-export interface FriendRequest {
-  id: number;
-  senderMemberId: number;
-  senderName: string;
-  senderThumbnail?: string;
+export interface SentFriendRequest {
+  friendRequestId: number;
   receiverMemberId: number;
   receiverMemberName: string;
-  receiverThumbnail?: string;
-  status: 'PENDING' | 'REJECTED';
-  createdAt: string;
+}
+
+/**
+ * 받은 친구 요청 정보
+ * 백엔드 FriendReceiverRequest와 매핑
+ */
+export interface ReceivedFriendRequest {
+  friendRequestId: number;
+  senderMemberId: number;
+  senderMemberName: string;
 }
 
 /**

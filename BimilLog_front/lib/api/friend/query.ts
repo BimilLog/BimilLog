@@ -5,7 +5,7 @@
 
 import { apiClient } from '../client';
 import { ApiResponse, PageResponse } from '@/types/common';
-import { Friend, FriendRequest, RecommendedFriend } from '@/types/domains/friend';
+import { Friend, SentFriendRequest, ReceivedFriendRequest, RecommendedFriend } from '@/types/domains/friend';
 
 export const friendQuery = {
   /**
@@ -28,7 +28,7 @@ export const friendQuery = {
   getReceivedRequests: async (
     page: number,
     size: number = 20
-  ): Promise<ApiResponse<PageResponse<FriendRequest>>> => {
+  ): Promise<ApiResponse<PageResponse<ReceivedFriendRequest>>> => {
     return apiClient.get(`/api/friend/receive?page=${page}&size=${size}`);
   },
 
@@ -40,7 +40,7 @@ export const friendQuery = {
   getSentRequests: async (
     page: number,
     size: number = 20
-  ): Promise<ApiResponse<PageResponse<FriendRequest>>> => {
+  ): Promise<ApiResponse<PageResponse<SentFriendRequest>>> => {
     return apiClient.get(`/api/friend/send?page=${page}&size=${size}`);
   },
 

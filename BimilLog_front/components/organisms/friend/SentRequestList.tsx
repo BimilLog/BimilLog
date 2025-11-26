@@ -64,7 +64,7 @@ export const SentRequestList: React.FC = () => {
         <>
           <ul className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm">
             {requests.map((request) => (
-              <SentRequestItem key={request.id} request={request} />
+              <SentRequestItem key={request.friendRequestId} request={request} />
             ))}
           </ul>
 
