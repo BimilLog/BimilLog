@@ -63,7 +63,7 @@ export function useRollingPaperData(targetNickname?: string) {
 
   // ownerId 추출 로직
   const ownerId = useMemo(() => {
-    if (isOwner) return user?.id || null;
+    if (isOwner) return user?.memberId || null;
 
     // 타인의 롤링페이퍼인 경우 - VisitPaperResult.ownerId 사용
     const data = activeQuery.data?.data;
