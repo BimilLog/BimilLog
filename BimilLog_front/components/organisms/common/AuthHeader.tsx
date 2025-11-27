@@ -16,7 +16,8 @@ import {
   Shield,
   ScrollText,
   UserCircle,
-  UserX
+  UserX,
+  Brain
 } from "lucide-react";
 import {
   Navbar,
@@ -31,6 +32,7 @@ import {
   Avatar,
   Spinner as FlowbiteSpinner
 } from "flowbite-react";
+import { useConfirmModal } from "@/components/molecules/modals/confirm-modal";
 
 const NotificationBell = dynamic(
   () => import("@/components/organisms/common/notification-bell").then(mod => ({ default: mod.NotificationBell })),
@@ -47,6 +49,7 @@ export const AuthHeader = React.memo(() => {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
+  const { confirm, ConfirmModalComponent } = useConfirmModal();
 
   React.useEffect(() => {
     setMounted(true);
@@ -60,8 +63,24 @@ export const AuthHeader = React.memo(() => {
     return <Monitor className="w-5 h-5 stroke-slate-600 fill-slate-100" />;
   };
 
+  const handlePsychologyTest = async () => {
+    const confirmed = await confirm({
+      title: "외부 사이트 이동",
+      message: "킬링타임용 심리테스트 사이트로 이동됩니다.",
+      confirmText: "이동",
+      cancelText: "취소",
+      confirmButtonVariant: "default",
+      icon: <Brain className="h-8 w-8 stroke-purple-600 fill-purple-100" />
+    });
+
+    if (confirmed) {
+      window.open('https://liketests.vercel.app/', '_blank', 'noopener,noreferrer');
+    }
+  };
+
   return (
-    <Navbar
+    <>
+      <Navbar
       data-toast-anchor
       fluid
       className="sticky top-0 z-50 border-b border-gray-200 bg-white/80 backdrop-blur-sm transition-colors duration-300 dark:border-slate-800 dark:bg-slate-900/80"
@@ -243,6 +262,14 @@ export const AuthHeader = React.memo(() => {
       </div>
 
       <NavbarCollapse className="basis-full md:basis-auto md:order-1 md:mr-3 md:flex md:items-center md:gap-6">
+        <NavbarLink
+          as="button"
+          onClick={handlePsychologyTest}
+          className="text-sm lg:text-base cursor-pointer"
+          aria-label="심리테스트 사이트로 이동"
+        >
+          심리테스트
+        </NavbarLink>
         <NavbarLink as={Link} href="/board" className="text-sm lg:text-base">
           게시판
         </NavbarLink>
@@ -263,7 +290,10 @@ export const AuthHeader = React.memo(() => {
           </NavbarLink>
         )}
       </NavbarCollapse>
-    </Navbar>
+      </Navbar>
+
+      <ConfirmModalComponent />
+    </>
   );
 });
 
