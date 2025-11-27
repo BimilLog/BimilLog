@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Users, UserPlus, Send, Sparkles } from "lucide-react";
 import { FriendList } from "./FriendList";
 import { ReceivedRequestList } from "./ReceivedRequestList";
@@ -17,11 +18,40 @@ const tabs = [
 type TabId = typeof tabs[number]['id'];
 
 /**
+ * 탭 ID의 유효성 검사 타입 가드
+ */
+const isValidTab = (tab: string | null): tab is TabId => {
+  return tabs.some(t => t.id === tab);
+};
+
+/**
  * 친구 탭 네비게이션 컴포넌트
- * 내 친구, 추천 친구, 받은 요청, 보낸 요청 탭 관리
+ * - URL 쿼리 파라미터 ?tab=friends|recommended|received|sent 지원
+ * - 알림에서 /friends?tab=received로 이동 가능
+ * - 북마크/공유 가능한 URL 구조
  */
 export const FriendTabs: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<TabId>('friends');
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get('tab') as string | null;
+
+  // 초기 상태: URL 파라미터 우선, 그 다음 기본값
+  const [activeTab, setActiveTab] = useState<TabId>(() => {
+    if (isValidTab(tabParam)) {
+      return tabParam;
+    }
+    return 'friends';
+  });
+
+  // URL 파라미터 변경 시 상태 동기화
+  useEffect(() => {
+    if (isValidTab(tabParam)) {
+      setActiveTab(tabParam);
+    } else if (tabParam === null) {
+      // 파라미터가 없으면 기본값 유지
+      setActiveTab('friends');
+    }
+    // 유효하지 않은 파라미터는 무시 (현재 상태 유지)
+  }, [tabParam]);
 
   return (
     <div>

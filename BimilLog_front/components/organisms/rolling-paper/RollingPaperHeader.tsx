@@ -22,6 +22,7 @@ interface RollingPaperHeaderProps {
   nickname: string;
   messageCount: number;
   messages: (RollingPaperMessage | VisitMessage)[];
+  ownerId?: number | null;
   isOwner?: boolean;
   onShowMessages?: () => void;
   className?: string;
@@ -31,6 +32,7 @@ export const RollingPaperHeader: React.FC<RollingPaperHeaderProps> = React.memo(
   nickname,
   messageCount,
   messages,
+  ownerId,
   isOwner = false,
   onShowMessages,
   className = "",
@@ -44,11 +46,6 @@ export const RollingPaperHeader: React.FC<RollingPaperHeaderProps> = React.memo(
     messageCount,
     isOwner,
   });
-
-  // messages 배열에서 ownerId 추출 (모든 메시지는 동일한 ownerId를 가짐)
-  const ownerId = messages.length > 0 && 'ownerId' in messages[0]
-    ? messages[0].ownerId
-    : null;
 
   // 친구 관계 확인
   const {

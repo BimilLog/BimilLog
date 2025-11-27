@@ -11,7 +11,8 @@ export interface Notification {
   // POST_FEATURED: 내가 작성한 게시글이 인기글/레전드글로 선정됨
   // INITIATE: 서비스 초기 안내 메시지 (회원가입 축하 등)
   // ADMIN: 관리자가 보내는 공지사항 또는 경고 메시지
-  notificationType: "PAPER" | "COMMENT" | "POST_FEATURED" | "INITIATE" | "ADMIN"  // v2: type → notificationType, updated enum values
+  // FRIEND: 친구 요청 알림
+  notificationType: "PAPER" | "COMMENT" | "POST_FEATURED" | "INITIATE" | "ADMIN" | "FRIEND"  // v2: type → notificationType, updated enum values
   createdAt: string
   read: boolean    // v2: Jackson이 isRead를 read로 직렬화
 }

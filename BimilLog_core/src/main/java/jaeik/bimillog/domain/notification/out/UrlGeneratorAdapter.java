@@ -47,9 +47,16 @@ public class UrlGeneratorAdapter {
     }
 
     /**
-     * 받은 친구 요청 url 생성
+     * <h3>친구 요청 URL 생성</h3>
+     * <p>친구 요청 알림 클릭 시 /friends 페이지의 "받은 요청" 탭으로 이동하는 URL을 생성합니다.</p>
+     * <p>변경사항 (v2.1.0): 쿼리 파라미터로 탭 지정 (/friends?tab=received)</p>
+     *
+     * @param memberId 친구 요청을 보낸 회원 ID (현재는 사용하지 않음)
+     * @return 친구 페이지 "받은 요청" 탭 URL
+     * @author Jaeik
+     * @since 2.1.0
      */
     public String generateFriendRequestUrl(Long memberId) {
-        return baseUrl + "/friend/send/" + memberId;
+        return baseUrl + "/friends?tab=received";
     }
 }

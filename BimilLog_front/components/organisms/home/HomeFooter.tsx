@@ -12,11 +12,13 @@ import {
   FooterLinkGroup,
   FooterTitle,
 } from "flowbite-react";
-import { Github, Contact } from "lucide-react";
+import { Github, Contact, Brain } from "lucide-react";
+import { useConfirmModal } from "@/components/molecules/modals/confirm-modal";
 
 export const HomeFooter: React.FC = () => {
   const router = useRouter();
   const { isAuthenticated } = useAuth({ skipRefresh: true });
+  const { confirm, ConfirmModalComponent } = useConfirmModal();
 
   const handleFriendClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -24,6 +26,22 @@ export const HomeFooter: React.FC = () => {
       router.push('/login?redirect=/friends');
     } else {
       router.push('/friends');
+    }
+  };
+
+  const handlePsychologyTest = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    const confirmed = await confirm({
+      title: "외부 사이트 이동",
+      message: "개발자가 만든 킬링타임용 심리테스트 사이트로 이동됩니다.",
+      confirmText: "이동",
+      cancelText: "취소",
+      confirmButtonVariant: "default",
+      icon: <Brain className="h-8 w-8 stroke-purple-600 fill-purple-100" />
+    });
+
+    if (confirmed) {
+      window.open('https://liketests.vercel.app/', '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -44,7 +62,7 @@ export const HomeFooter: React.FC = () => {
           <hr data-testid="footer-divider" className="w-full sm:mx-auto lg:my-6 dark:border-gray-700 border-gray-200 my-6" />
 
           {/* Links Grid - All sections in one row */}
-          <div className="grid grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-5 gap-4 sm:gap-6">
             {/* 서비스 */}
             <div className="flex justify-center">
               <div>
@@ -120,6 +138,22 @@ export const HomeFooter: React.FC = () => {
                 </FooterLinkGroup>
               </div>
             </div>
+
+            {/* 킬링타임 */}
+            <div className="flex justify-center">
+              <div>
+                <FooterTitle title="킬링타임" className="text-gray-900 font-semibold mb-4" />
+                <FooterLinkGroup col>
+                  <FooterLink
+                    href="#"
+                    onClick={handlePsychologyTest}
+                    className="text-gray-600 hover:text-gray-900 cursor-pointer"
+                  >
+                    심리테스트
+                  </FooterLink>
+                </FooterLinkGroup>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -154,6 +188,7 @@ export const HomeFooter: React.FC = () => {
           </div>
         </div>
       </div>
+      <ConfirmModalComponent />
     </Footer>
   );
 };

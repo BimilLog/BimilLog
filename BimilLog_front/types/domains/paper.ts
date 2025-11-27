@@ -43,15 +43,20 @@ export interface RollingPaperMessage {
   createdAt: string // ISO 8601 string format - 백엔드 Instant는 ISO string으로 변환됨
 }
 
-// 방문용 메시지 타입 - v2 백엔드 VisitMessageDTO 완전 호환
+// 방문용 메시지 타입 - v2 백엔드 VisitMessage 완전 호환
 // RollingPaperMessage와 차이: content, anonymity, createdAt 필드가 없음 (방문자에게 표시되지 않는 정보)
 export interface VisitMessage {
   id: number
   memberId: number
-  ownerId: number  // 롤링페이퍼 소유자 ID
   decoType: DecoType
   x: number  // 그리드 X 좌표 (0-based, 0부터 시작)
   y: number  // 그리드 Y 좌표 (0-based, 0부터 시작)
+}
+
+// 방문용 롤링페이퍼 결과 타입 - v2 백엔드 VisitPaperResult 완전 호환
+export interface VisitPaperResult {
+  messages: VisitMessage[]
+  ownerId: number  // 롤링페이퍼 소유자 ID
 }
 
 // 실시간 인기 롤링페이퍼 정보 타입 - v2 백엔드 PopularPaperInfo 완전 호환

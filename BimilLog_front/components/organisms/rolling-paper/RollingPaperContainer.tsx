@@ -23,6 +23,7 @@ export const RollingPaperContainer: React.FC<RollingPaperContainerProps> = ({
   // 롤링페이퍼 데이터 조회 (본인/타인 구분)
   const {
     messages,
+    ownerId,
     isLoading,
     isError,
     blockedMessage,
@@ -158,6 +159,7 @@ export const RollingPaperContainer: React.FC<RollingPaperContainerProps> = ({
     isOwner,
     isMobile,
     messages,
+    ownerId,
     messageCount: messages.length,
     totalPages,
     currentPage,
