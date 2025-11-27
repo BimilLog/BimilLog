@@ -35,7 +35,7 @@ class MemberProfileCommandServiceTest extends BaseUnitTest {
     void shouldUpdateSettings() {
         Long memberId = 1L;
         Setting newSetting = Setting.createSetting();
-        newSetting.updateSettings(false, false, true);
+        newSetting.updateSettings(false, false, true, false);
 
         Member member = TestMembers.copyWithId(TestMembers.MEMBER_1, memberId);
         given(memberRepository.findById(memberId)).willReturn(Optional.of(member));
@@ -46,6 +46,7 @@ class MemberProfileCommandServiceTest extends BaseUnitTest {
         assertThat(member.getSetting().isMessageNotification()).isFalse();
         assertThat(member.getSetting().isCommentNotification()).isFalse();
         assertThat(member.getSetting().isPostFeaturedNotification()).isTrue();
+        assertThat(member.getSetting().isFriendSendNotification()).isFalse();
     }
 
     @Test

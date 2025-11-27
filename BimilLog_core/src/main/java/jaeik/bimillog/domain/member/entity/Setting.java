@@ -45,6 +45,11 @@ public class Setting {
     @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 1")
     private boolean postFeaturedNotification = true;
 
+    // 친구 요청이 왔을 때 FCM 알림 여부 SSE는 항상 전송됨
+    @Builder.Default
+    @Column(nullable = false, columnDefinition = "TINYINT(1) DEFAULT 1")
+    private boolean friendSendNotification = true;
+
     /**
      * <h3>설정 업데이트</h3>
      * <p>알림 설정을 직접 업데이트합니다.</p>
@@ -55,10 +60,11 @@ public class Setting {
      * @author Jaeik
      * @since 2.0.0
      */
-    public void updateSettings(boolean messageNotification, boolean commentNotification, boolean postFeaturedNotification) {
+    public void updateSettings(boolean messageNotification, boolean commentNotification, boolean postFeaturedNotification, boolean friendSendNotification) {
         this.messageNotification = messageNotification;
         this.commentNotification = commentNotification;
         this.postFeaturedNotification = postFeaturedNotification;
+        this.friendSendNotification = friendSendNotification;
     }
 
     /**
@@ -74,6 +80,7 @@ public class Setting {
                 .messageNotification(true)
                 .commentNotification(true)
                 .postFeaturedNotification(true)
+                .friendSendNotification(true)
                 .build();
     }
 }

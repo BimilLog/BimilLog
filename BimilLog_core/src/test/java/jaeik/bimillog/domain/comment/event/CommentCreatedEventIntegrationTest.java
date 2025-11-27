@@ -40,7 +40,7 @@ class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
     @DisplayName("댓글 생성 이벤트 발생 시 SSE와 FCM 알림 및 실시간 인기글 점수 증가 검증")
     void commentCreatedEventWorkflow_ShouldCompleteNotificationsAndScoreIncrement() {
         // Given
-        var event = new CommentCreatedEvent(1L, "댓글작성자", 100L);
+        var event = new CommentCreatedEvent(1L, "댓글작성자", 1L, 100L);
 
         // When & Then
         publishAndVerify(event, () -> {
@@ -58,9 +58,9 @@ class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
     void multipleCommentCreatedEvents_ShouldProcessIndependently() {
         // Given - 다양한 댓글 이벤트 생성
         var events = new java.util.ArrayList<CommentCreatedEvent>();
-        events.add(new CommentCreatedEvent(1L, "댓글작성자1", 100L));  // 동일 게시글
-        events.add(new CommentCreatedEvent(1L, "댓글작성자2", 100L));  // 동일 게시글
-        events.add(new CommentCreatedEvent(2L, "댓글작성자3", 101L));  // 다른 게시글
+        events.add(new CommentCreatedEvent(1L, "댓글작성자1", 1L, 100L));  // 동일 게시글
+        events.add(new CommentCreatedEvent(1L, "댓글작성자2", 1L, 100L));  // 동일 게시글
+        events.add(new CommentCreatedEvent(2L, "댓글작성자3", 2L, 101L));  // 다른 게시글
 
         // When & Then - 각 이벤트가 모두 처리되는지 검증
         publishEvents(events);

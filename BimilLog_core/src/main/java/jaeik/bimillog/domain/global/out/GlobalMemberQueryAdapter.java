@@ -1,11 +1,17 @@
 package jaeik.bimillog.domain.global.out;
 
+import jaeik.bimillog.domain.member.out.MemberRepository;
 import jaeik.bimillog.domain.member.service.MemberQueryService;
 import jaeik.bimillog.domain.member.entity.Member;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * <h2>사용자 조회 공용 어댑터</h2>
@@ -21,6 +27,7 @@ import java.util.Optional;
 public class GlobalMemberQueryAdapter {
 
     private final MemberQueryService memberQueryService;
+    private final MemberRepository memberRepository;
 
     /**
      * <h3>사용자 ID로 사용자 조회</h3>
@@ -39,8 +46,7 @@ public class GlobalMemberQueryAdapter {
     /**
      * <h3>사용자명으로 사용자 조회</h3>
      * <p>특정 사용자명에 해당하는 사용자 엔티티를 조회합니다.</p>
-     * <p>Member 도메인의 UserQueryUseCase를 통해 사용자 정보를 조회합니다.</p>
-     *
+\     *
      * @param memberName 조회할 사용자명
      * @return Optional&lt;Member&gt; 조회된 사용자 객체 (존재하지 않으면 Optional.empty())
      * @author Jaeik
@@ -62,5 +68,20 @@ public class GlobalMemberQueryAdapter {
      */
     public Member getReferenceById(Long memberId) {
         return memberQueryService.getReferenceById(memberId);
+    }
+
+    /**
+     * <h3>모든 회원 ID 조회</h3>
+     * <p>데이터베이스에 있는 모든 회원의 ID만 조회합니다.</p>
+     * <p>회원 탈퇴 시 Redis 상호작용 테이블 정리에 사용됩니다.</p>
+     *
+     * @return List&lt;Long&gt; 모든 회원 ID 리스트
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public List<Long> findAllIds() {
+        return memberRepository.findAll().stream()
+                .map(Member::getId)
+                .collect(Collectors.toList());
     }
 }

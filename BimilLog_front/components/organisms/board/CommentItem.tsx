@@ -229,9 +229,9 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
           </div>
         ) : (
           <div>
-            {/* 헤더: 닉네임, 날짜, 액션 버튼들 */}
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2 min-w-0 flex-1">
+            {/* [프로필] 닉네임 · 날짜 (헤더: 액션 버튼 제거) */}
+            <div className="flex items-center gap-2 mb-3">
+              <div className="flex items-center gap-2 min-w-0">
                 {/* 대댓글인 경우 아이콘 표시 */}
                 {depth > 0 && (
                   <CornerDownRight className="w-4 h-4 text-purple-500 flex-shrink-0" />
@@ -239,6 +239,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
                 {comment.memberName && comment.memberName !== "익명" ? (
                   <UserActionPopover
                     memberName={comment.memberName}
+                    memberId={comment.memberId}
                     trigger={
                       <button className="font-semibold text-sm sm:text-base hover:text-purple-600 hover:underline transition-colors cursor-pointer inline-flex items-center space-x-1 truncate">
                         <User className="w-3 h-3 flex-shrink-0" />
@@ -255,72 +256,6 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
                 )}
                 <TimeBadge dateString={comment.createdAt} size="xs" />
               </div>
-
-              {/* 액션 버튼들: 모바일에서는 핵심 기능만 노출, 나머지는 드롭다운으로 처리 */}
-              <div className="flex items-center gap-1">
-                {/* 추천 버튼: 비로그인 사용자에게는 비활성화 + 툴팁 표시 */}
-                <FlowbiteButton
-                  size="xs"
-                  color={comment.userLike ? "blue" : "light"}
-                  onClick={() => onLikeComment(comment)}
-                  disabled={!isAuthenticated}
-                  title={!isAuthenticated ? "로그인 후 추천할 수 있습니다" : undefined}
-                  className={!isAuthenticated ? "cursor-not-allowed opacity-60" : ""}
-                >
-                  <ThumbsUp className={`w-4 h-4 mr-2 ${comment.userLike ? "fill-current" : ""}`} />
-                  추천 {comment.likeCount}
-                </FlowbiteButton>
-
-                {/* 답글 버튼: 모바일에서도 항상 표시하여 접근성 향상 */}
-                <FlowbiteButton
-                  size="xs"
-                  className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:bg-gradient-to-l"
-                  onClick={() => onReplyTo(comment)}
-                >
-                  <Reply className="w-4 h-4 mr-2" />
-                  답글
-                </FlowbiteButton>
-
-                {/* 신고 버튼: 다른 사람의 댓글인 경우만 표시 */}
-                {!isMyComment(comment) && !comment.deleted && (
-                  <FlowbiteButton
-                    size="xs"
-                    color="red"
-                    onClick={() => setIsReportModalOpen(true)}
-                  >
-                    신고
-                  </FlowbiteButton>
-                )}
-
-                {/* 수정/삭제 버튼을 위한 드롭다운 */}
-                {canModifyComment(comment) && !comment.deleted && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-xs px-2 py-1 h-7 text-brand-secondary hover:text-brand-primary"
-                      >
-                        <MoreHorizontal className="w-3 h-3" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-24">
-                      <DropdownMenuItem
-                        onClick={() => onEditComment(comment)}
-                        className="cursor-pointer"
-                      >
-                        수정
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => onDeleteComment(comment)}
-                        className="text-red-600 hover:text-red-700 cursor-pointer"
-                      >
-                        삭제
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-              </div>
             </div>
 
             {/* 부모 댓글 작성자 표시 (대댓글인 경우) */}
@@ -335,6 +270,74 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
               html={comment.content}
               className="prose max-w-none prose-sm text-sm sm:text-base leading-relaxed"
             />
+
+            {/* 추천 2 답글 신고 (액션 버튼을 댓글 내용 아래로 이동) */}
+            <div className="mt-3 flex items-center gap-2 flex-wrap">
+              {/* 추천 버튼: 비로그인 사용자에게는 비활성화 + 툴팁 표시 */}
+              <FlowbiteButton
+                size="xs"
+                color={comment.userLike ? "blue" : "light"}
+                onClick={() => onLikeComment(comment)}
+                disabled={!isAuthenticated}
+                title={!isAuthenticated ? "로그인 후 추천할 수 있습니다" : undefined}
+                className={!isAuthenticated ? "cursor-not-allowed opacity-60" : ""}
+              >
+                <ThumbsUp className={`w-4 h-4 mr-2 ${comment.userLike ? "fill-current" : ""}`} />
+                추천 {comment.likeCount}
+              </FlowbiteButton>
+
+              {/* 답글 버튼: 모바일에서도 항상 표시하여 접근성 향상 */}
+              <FlowbiteButton
+                size="xs"
+                className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:bg-gradient-to-l"
+                onClick={() => onReplyTo(comment)}
+              >
+                <Reply className="w-4 h-4 mr-2" />
+                답글
+              </FlowbiteButton>
+
+              {/* 신고 버튼: 다른 사람의 댓글인 경우만 표시 */}
+              {!isMyComment(comment) && !comment.deleted && (
+                <FlowbiteButton
+                  size="xs"
+                  color="red"
+                  onClick={() => setIsReportModalOpen(true)}
+                >
+                  신고
+                </FlowbiteButton>
+              )}
+
+              {/* 수정/삭제 버튼을 위한 드롭다운 */}
+              {canModifyComment(comment) && !comment.deleted && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-xs px-2 py-1 h-7 text-brand-secondary hover:text-brand-primary"
+                    >
+                      <MoreHorizontal className="w-3 h-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-24">
+                    <DropdownMenuItem
+                      onClick={() => onEditComment(comment)}
+                      className="cursor-pointer"
+                    >
+                      수정
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => onDeleteComment(comment)}
+                      className="text-red-600 hover:text-red-700 cursor-pointer"
+                    >
+                      삭제
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
+            {/* (액션 버튼 이동 끝) */}
+
 
             {/* 답글 작성 폼: 해당 댓글에 답글을 작성 중일 때만 표시 */}
             {replyingTo?.id === comment.id && (

@@ -17,11 +17,13 @@ export function useUserSettings() {
     messageNotification: false,
     commentNotification: false,
     postFeaturedNotification: false,
+    friendSendNotification: false,
   });
   const [savedFields, setSavedFields] = useState<Record<SettingField, boolean>>({
     messageNotification: false,
     commentNotification: false,
     postFeaturedNotification: false,
+    friendSendNotification: false,
   });
   const [withdrawing, setWithdrawing] = useState(false);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
@@ -61,6 +63,7 @@ export function useUserSettings() {
           messageNotification: true,
           commentNotification: true,
           postFeaturedNotification: true,
+          friendSendNotification: true,
         };
         setSettings(defaultSettings);
         previousSettingsRef.current = defaultSettings;
@@ -76,6 +79,7 @@ export function useUserSettings() {
         messageNotification: true,
         commentNotification: true,
         postFeaturedNotification: true,
+        friendSendNotification: true,
       };
       setSettings(defaultSettings);
       previousSettingsRef.current = defaultSettings;
@@ -200,7 +204,7 @@ export function useUserSettings() {
   const handleSingleToggle = (
     field: keyof Pick<
       Setting,
-      "messageNotification" | "commentNotification" | "postFeaturedNotification"
+      "messageNotification" | "commentNotification" | "postFeaturedNotification" | "friendSendNotification"
     >,
     value: boolean
   ) => {
@@ -212,6 +216,7 @@ export function useUserSettings() {
       messageNotification: enabled,
       commentNotification: enabled,
       postFeaturedNotification: enabled,
+      friendSendNotification: enabled,
     });
   };
 
@@ -271,13 +276,15 @@ export function useUserSettings() {
   const allEnabled = settings
     ? settings.messageNotification &&
       settings.commentNotification &&
-      settings.postFeaturedNotification
+      settings.postFeaturedNotification &&
+      settings.friendSendNotification
     : false;
 
   const allDisabled = settings
     ? !settings.messageNotification &&
       !settings.commentNotification &&
-      !settings.postFeaturedNotification
+      !settings.postFeaturedNotification &&
+      !settings.friendSendNotification
     : false;
 
   const isIndeterminate = settings ? !allEnabled && !allDisabled : false;

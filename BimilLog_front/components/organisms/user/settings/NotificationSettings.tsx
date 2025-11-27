@@ -1,7 +1,7 @@
 import React from "react";
 import { Label, Switch } from "@/components";
 import { SettingsSection, SettingToggle } from "@/components/molecules";
-import { Bell, Heart, MessageCircle, TrendingUp } from "lucide-react";
+import { Bell, Heart, MessageCircle, TrendingUp, UserPlus } from "lucide-react";
 import { Setting } from "@/lib/api";
 
 type SettingField = keyof Setting;
@@ -13,7 +13,7 @@ interface NotificationSettingsProps {
   allEnabled: boolean;
   isIndeterminate?: boolean;
   onSingleToggle: (
-    field: keyof Pick<Setting, "messageNotification" | "commentNotification" | "postFeaturedNotification">,
+    field: keyof Pick<Setting, "messageNotification" | "commentNotification" | "postFeaturedNotification" | "friendSendNotification">,
     value: boolean
   ) => void;
   onAllToggle: (enabled: boolean) => void;
@@ -86,6 +86,17 @@ export const NotificationSettings: React.FC<NotificationSettingsProps> = ({
           disabled={saving}
           saving={savingFields.postFeaturedNotification}
           gradient="from-orange-500 to-yellow-500"
+        />
+
+        <SettingToggle
+          icon={<UserPlus className="w-4 h-4 stroke-blue-500 fill-blue-100" />}
+          label="친구 요청 알림"
+          description="새로운 친구 요청이 왔을 때"
+          checked={settings?.friendSendNotification === true}
+          onChange={(value) => onSingleToggle("friendSendNotification", value)}
+          disabled={saving}
+          saving={savingFields.friendSendNotification}
+          gradient="from-blue-500 to-cyan-500"
         />
       </div>
     </div>

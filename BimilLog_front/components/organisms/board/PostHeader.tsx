@@ -87,6 +87,7 @@ export const PostHeader = React.memo<PostHeaderProps>(({
               {post.memberName && post.memberName !== "익명" ? (
                 <UserActionPopover
                   memberName={post.memberName}
+                  memberId={post.memberId}
                   trigger={
                     <button className="truncate max-w-[120px] md:max-w-none hover:text-purple-600 hover:underline transition-colors cursor-pointer inline-flex items-center space-x-1">
                       <User className="w-3 h-3 stroke-slate-600 fill-slate-100" />

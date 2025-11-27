@@ -93,15 +93,16 @@ public class NotificationUtilAdapter {
      * @since 2.0.0
      */
     private BooleanExpression notificationTypeCondition(NotificationType type, QSetting qSetting) {
-        // ADMIN, INITIATE는 항상 true
+        // ADMIN, INITIATE는 항상 true (항상 전송)
         if (type == NotificationType.ADMIN || type == NotificationType.INITIATE) {
             return Expressions.TRUE;
         }
-        
+
         return switch (type) {
             case MESSAGE -> qSetting.messageNotification.isTrue();
             case COMMENT -> qSetting.commentNotification.isTrue();
             case POST_FEATURED -> qSetting.postFeaturedNotification.isTrue();
+            case FRIEND -> qSetting.friendSendNotification.isTrue();
             default -> Expressions.FALSE;
         };
     }

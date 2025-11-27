@@ -6,6 +6,8 @@ import jaeik.bimillog.infrastructure.redis.post.RedisPostKeys;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisTemplate;
 
+import java.util.Objects;
+
 /**
  * <h2>Redis 테스트 헬퍼</h2>
  * <p>Redis 관련 테스트에서 반복되는 보일러플레이트 코드를 제거하기 위한 유틸리티</p>
@@ -22,10 +24,8 @@ public class RedisTestHelper {
      * @param redisTemplate 실제 RedisTemplate
      */
     public static void flushRedis(RedisTemplate<String, Object> redisTemplate) {
-        try (RedisConnection connection = redisTemplate.getConnectionFactory().getConnection()) {
-            if (connection != null) {
-                connection.serverCommands().flushAll();
-            }
+        try (RedisConnection connection = Objects.requireNonNull(redisTemplate.getConnectionFactory()).getConnection()) {
+            connection.serverCommands().flushAll();
         } catch (Exception e) {
             System.err.println("Redis flush warning: " + e.getMessage());
         }

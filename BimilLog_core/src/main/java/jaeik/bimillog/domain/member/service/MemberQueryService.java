@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.member.service;
 
+import jaeik.bimillog.domain.member.dto.SimpleMemberDTO;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
@@ -142,12 +143,12 @@ public class MemberQueryService {
      *
      * @param query    검색어
      * @param pageable 페이징 정보
-     * @return Page<String> 검색된 사용자명 페이지
+     * @return Page<SimpleMemberDTO> 검색된 사용자명 페이지
      * @author Jaeik
      * @since 2.0.0
      */
     @Transactional(readOnly = true)
-    public Page<String> searchMembers(String query, Pageable pageable) {
+    public Page<SimpleMemberDTO> searchMembers(String query, Pageable pageable) {
         if (query.length() >= 4) {
             return memberQueryAdapter.findByPrefixMatch(query, pageable);
         }

@@ -1,13 +1,10 @@
-package jaeik.bimillog.domain.paper.dto;
+package jaeik.bimillog.domain.paper.entity;
 
-import jaeik.bimillog.domain.paper.entity.DecoType;
-import jaeik.bimillog.domain.paper.entity.Message;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
+
 
 /**
  * <h2>롤링페이퍼 방문 메시지 DTO</h2>
@@ -20,7 +17,7 @@ import java.util.List;
 @Getter
 @Setter
 @AllArgsConstructor
-public class VisitMessageDTO {
+public class VisitMessage {
 
     private Long id;
 
@@ -41,8 +38,8 @@ public class VisitMessageDTO {
      * @author Jaeik
      * @since 2.0.0
      */
-    public static VisitMessageDTO from(Message message) {
-        return new VisitMessageDTO(
+    public static VisitMessage from(Message message) {
+        return new VisitMessage(
                 message.getId(),
                 message.getMemberId(),
                 message.getDecoType(),

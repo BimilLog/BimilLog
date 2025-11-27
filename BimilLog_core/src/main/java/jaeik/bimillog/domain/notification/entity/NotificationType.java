@@ -14,7 +14,7 @@ public enum NotificationType {
     COMMENT, // 게시글에 댓글이 달렸을 때 (Setting.commentNotification과 연결)
     POST_FEATURED, // 주간, 전설 인기글이 되었을 때 (Setting.postFeaturedNotification과 연결)
     ADMIN, // 관리자 알림 (설정 연동 없음)
-    INITIATE // SSE 초기화 용도 (설정 연동 없음)
-
+    INITIATE, // SSE 초기화 용도 (설정 연동 없음)
+    FRIEND // 친구 요청
 }
 

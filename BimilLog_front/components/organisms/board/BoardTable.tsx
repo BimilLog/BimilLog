@@ -105,6 +105,7 @@ const BoardTableRow = memo<TableRowProps>(({
         {post.memberName && post.memberName !== "익명" ? (
           <UserActionPopover
             memberName={post.memberName}
+            memberId={post.memberId}
             trigger={
               <button className="inline-flex max-w-20 items-center space-x-1 truncate transition-colors hover:text-purple-600 hover:underline dark:text-gray-200 dark:hover:text-purple-300">
                 <User className="w-3 h-3" />

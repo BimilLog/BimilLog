@@ -23,13 +23,13 @@ public class MemberBlacklist extends BaseEntity {
 
     // DB레벨 CasCade설정 member 삭제시 MemberBlacklist삭제
     @NotNull
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "request_member_id")
     private Member requestMember;
 
     // DB레벨 CasCade설정 member 삭제시 MemberBlacklist삭제
     @NotNull
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "black_member_id")
     private Member blackMember;
 

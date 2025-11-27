@@ -1,12 +1,16 @@
 package jaeik.bimillog.domain.member.out;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import jaeik.bimillog.domain.friend.entity.Friend;
+import jaeik.bimillog.domain.friend.entity.RecommendedFriend;
+import jaeik.bimillog.domain.member.dto.SimpleMemberDTO;
 import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.member.entity.MemberBlacklist;
 import jaeik.bimillog.domain.member.entity.QMember;
-import jaeik.bimillog.domain.member.entity.Setting;
-import jaeik.bimillog.domain.member.entity.SocialProvider;
+import jaeik.bimillog.domain.member.entity.QMemberBlacklist;
 import jaeik.bimillog.domain.member.service.MemberQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -15,10 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -121,6 +122,57 @@ public class MemberQueryAdapter {
     }
 
     /**
+     * 여러 사용자 ID로 친구 추가 정보 조회
+     * 친구 조회시 사용
+     */
+    public List<Friend.FriendInfo> getMyFriendPages (List<Long> friendIds) {
+        return jpaQueryFactory
+                .select(Projections.constructor(Friend.FriendInfo.class,
+                        member.id,
+                        member.memberName,
+                        member.thumbnailImage
+                ))
+                .from(member)
+                .where(member.id.in(friendIds))
+                .fetch();
+    }
+
+    /**
+     * 여러 사용자 ID로 추천 친구 추가 정보 조회
+     */
+    public List<RecommendedFriend.RecommendedFriendInfo> addRecommendedFriendInfo(List<Long> friendIds) {
+        return jpaQueryFactory
+                .select(Projections.constructor(RecommendedFriend.RecommendedFriendInfo.class,
+                        member.id,
+                        member.memberName
+                ))
+                .from(member)
+                .where(member.id.in(friendIds))
+                .fetch();
+    }
+
+    /**
+     * 여러 사용자 ID로 추천 친구 아는 사람 추가 정보 조회
+     */
+    public List<RecommendedFriend.AcquaintanceInfo> addAcquaintanceInfo(List<Long> acquaintanceIds) {
+        return jpaQueryFactory
+                .select(Projections.constructor(RecommendedFriend.AcquaintanceInfo.class,
+                        member.id,
+                        member.memberName
+                ))
+                .from(member)
+                .where(member.id.in(acquaintanceIds))
+                .fetch();
+    }
+
+    /**
+     * 추천 친구 업데이트
+     */
+    public void friendRecommendUpdate() {
+
+    }
+
+    /**
      * <h3>접두사 검색 (인덱스 활용)</h3>
      * <p>LIKE 'query%' 조건으로 멤버명을 검색하여 인덱스를 활용합니다.</p>
      * <p>{@link MemberQueryService}에서 검색 전략에 따라 호출됩니다.</p>
@@ -132,11 +184,13 @@ public class MemberQueryAdapter {
      * @since 2.0.0
      */
     @Transactional(readOnly = true)
-    public Page<String> findByPrefixMatch(String query, Pageable pageable) {
+    public Page<SimpleMemberDTO> findByPrefixMatch(String query, Pageable pageable) {
         BooleanExpression condition = member.memberName.startsWith(query);
 
-        List<String> content = jpaQueryFactory
-                .select(member.memberName)
+        List<SimpleMemberDTO> content = jpaQueryFactory
+                .select(Projections.constructor(SimpleMemberDTO.class,
+                        member.id,
+                        member.memberName))
                 .from(member)
                 .where(condition)
                 .orderBy(member.memberName.asc())
@@ -165,11 +219,13 @@ public class MemberQueryAdapter {
      * @since 2.0.0
      */
     @Transactional(readOnly = true)
-    public Page<String> findByPartialMatch(String query, Pageable pageable) {
+    public Page<SimpleMemberDTO> findByPartialMatch(String query, Pageable pageable) {
         BooleanExpression condition = member.memberName.contains(query);
 
-        List<String> content = jpaQueryFactory
-                .select(member.memberName)
+        List<SimpleMemberDTO> content = jpaQueryFactory
+                .select(Projections.constructor(SimpleMemberDTO.class,
+                        member.id,
+                        member.memberName))
                 .from(member)
                 .where(condition)
                 .orderBy(member.memberName.asc())
@@ -184,5 +240,55 @@ public class MemberQueryAdapter {
                 .fetchOne();
 
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
+    }
+
+    /**
+     * <h3>최근 가입자 조회</h3>
+     * <p>생성 날짜(createdAt) 기준으로 최근 가입한 회원들의 ID를 조회합니다.</p>
+     * <p>친구 추천 알고리즘에서 추천 인원이 부족할 때 사용됩니다.</p>
+     *
+     * @param excludeIds 제외할 회원 ID 집합 (본인, 친구, 블랙리스트 등)
+     * @param limit      조회할 최대 인원
+     * @return 최근 가입자 ID 리스트
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Transactional(readOnly = true)
+    public List<Long> findRecentMembers(java.util.Set<Long> excludeIds, int limit) {
+        BooleanExpression condition = excludeIds != null && !excludeIds.isEmpty()
+                ? member.id.notIn(excludeIds)
+                : null;
+
+        return jpaQueryFactory
+                .select(member.id)
+                .from(member)
+                .where(condition)
+                .orderBy(member.createdAt.desc())
+                .limit(limit)
+                .fetch();
+    }
+
+    /**
+     * <h3>블랙리스트 회원 ID 조회 (최적화)</h3>
+     * <p>특정 회원이 차단한 회원들의 ID만 조회합니다.</p>
+     * <p>N+1 문제를 방지하기 위해 QueryDSL로 ID만 직접 조회합니다.</p>
+     * <p>친구 추천 알고리즘에서 블랙리스트 사용자를 제외할 때 사용됩니다.</p>
+     *
+     * @param requestMemberId 차단을 요청한 회원 ID
+     * @return 차단된 회원 ID 집합
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Transactional(readOnly = true)
+    public Set<Long> findBlacklistIdsByRequestMemberId(Long requestMemberId) {
+        QMemberBlacklist blacklist = QMemberBlacklist.memberBlacklist;
+
+        List<Long> blacklistIds = jpaQueryFactory
+                .select(blacklist.blackMember.id)
+                .from(blacklist)
+                .where(blacklist.requestMember.id.eq(requestMemberId))
+                .fetch();
+
+        return new HashSet<>(blacklistIds);
     }
 }

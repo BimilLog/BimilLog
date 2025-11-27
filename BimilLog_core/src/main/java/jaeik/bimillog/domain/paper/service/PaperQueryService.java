@@ -3,7 +3,9 @@ package jaeik.bimillog.domain.paper.service;
 import jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter;
 import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.paper.entity.VisitMessage;
 import jaeik.bimillog.domain.paper.entity.Message;
+import jaeik.bimillog.domain.paper.entity.VisitPaperResult;
 import jaeik.bimillog.domain.paper.event.PaperViewedEvent;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
@@ -49,7 +51,7 @@ public class PaperQueryService {
      * @author Jaeik
      * @since 2.0.0
      */
-    public List<Message> visitPaper(Long memberId, String memberName) {
+    public VisitPaperResult visitPaper(Long memberId, String memberName) {
         if (memberName == null || memberName.trim().isEmpty()) {
             throw new CustomException(ErrorCode.PAPER_INVALID_INPUT_VALUE);
         }
@@ -66,9 +68,14 @@ public class PaperQueryService {
 
         List<Message> messages = paperQueryRepository.findMessagesByMemberName(memberName);
 
+        //
+        List<VisitMessage> visitMessages = messages.stream()
+                .map(VisitMessage::from)
+                .toList();
+
         // 롤링페이퍼 조회 이벤트 발행 (실시간 인기 점수 증가)
         eventPublisher.publishEvent(new PaperViewedEvent(member.getId()));
 
-        return messages;
+        return new VisitPaperResult(visitMessages, member.getId());
     }
 }

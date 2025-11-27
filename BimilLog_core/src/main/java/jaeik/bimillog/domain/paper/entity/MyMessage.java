@@ -1,7 +1,5 @@
-package jaeik.bimillog.domain.paper.dto;
+package jaeik.bimillog.domain.paper.entity;
 
-import jaeik.bimillog.domain.paper.entity.DecoType;
-import jaeik.bimillog.domain.paper.entity.Message;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -20,7 +18,7 @@ import java.time.Instant;
 @Getter
 @Setter
 @AllArgsConstructor
-public class MessageDTO {
+public class MyMessage {
 
     private Long id;
 
@@ -48,8 +46,8 @@ public class MessageDTO {
      * @author Jaeik
      * @since 2.0.0
      */
-    public static MessageDTO from(Message message) {
-        return new MessageDTO(
+    public static MyMessage from(Message message) {
+        return new MyMessage(
                 message.getId(),
                 message.getMemberId(),
                 message.getDecoType(),

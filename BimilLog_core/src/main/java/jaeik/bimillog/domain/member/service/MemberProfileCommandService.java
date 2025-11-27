@@ -28,7 +28,8 @@ public class MemberProfileCommandService {
         member.updateSettings(
                 newSetting.isMessageNotification(),
                 newSetting.isCommentNotification(),
-                newSetting.isPostFeaturedNotification()
+                newSetting.isPostFeaturedNotification(),
+                newSetting.isFriendSendNotification()
         );
     }
 

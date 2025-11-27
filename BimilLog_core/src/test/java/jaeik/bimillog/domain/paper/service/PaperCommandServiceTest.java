@@ -123,7 +123,7 @@ class PaperCommandServiceTest extends BaseUnitTest {
         given(globalMemberQueryAdapter.findByMemberName(memberName)).willReturn(Optional.of(memberWithId));
 
         // When
-        paperCommandService.writeMessage(memberName, decoType, anonymity, content, x, y);
+        paperCommandService.writeMessage(memberId, memberName, decoType, anonymity, content, x, y);
 
         // Then
         verify(globalMemberQueryAdapter, times(1)).findByMemberName(memberName);
@@ -136,6 +136,7 @@ class PaperCommandServiceTest extends BaseUnitTest {
     @DisplayName("메시지 작성 - 사용자 없음 예외")
     void shouldThrowException_WhenUserNotFound() {
         // Given
+        Long memberId = 1L;
         String memberName = "nonexistentuser";
         DecoType decoType = DecoType.APPLE;
         String anonymity = "익명";
@@ -146,7 +147,7 @@ class PaperCommandServiceTest extends BaseUnitTest {
         given(globalMemberQueryAdapter.findByMemberName(memberName)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> paperCommandService.writeMessage(memberName, decoType, anonymity, content, x, y))
+        assertThatThrownBy(() -> paperCommandService.writeMessage(memberId, memberName, decoType, anonymity, content, x, y))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PAPER_USERNAME_NOT_FOUND);
 
@@ -159,6 +160,7 @@ class PaperCommandServiceTest extends BaseUnitTest {
     @DisplayName("메시지 작성 - null 또는 빈 사용자명 예외")
     void shouldThrowException_WhenInvalidUserName() {
         // Given - null memberName
+        Long memberId = 1L;
         String memberName = null;
         DecoType decoType = DecoType.APPLE;
         String anonymity = "익명";
@@ -167,7 +169,7 @@ class PaperCommandServiceTest extends BaseUnitTest {
         int y = 2;
 
         // When & Then - null case
-        assertThatThrownBy(() -> paperCommandService.writeMessage(memberName, decoType, anonymity, content, x, y))
+        assertThatThrownBy(() -> paperCommandService.writeMessage(memberId, memberName, decoType, anonymity, content, x, y))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PAPER_INVALID_INPUT_VALUE);
 
@@ -175,7 +177,7 @@ class PaperCommandServiceTest extends BaseUnitTest {
         String emptyUserName = "   ";
 
         // When & Then - empty case
-        assertThatThrownBy(() -> paperCommandService.writeMessage(emptyUserName, decoType, anonymity, content, x, y))
+        assertThatThrownBy(() -> paperCommandService.writeMessage(memberId, emptyUserName, decoType, anonymity, content, x, y))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PAPER_INVALID_INPUT_VALUE);
 
@@ -200,7 +202,7 @@ class PaperCommandServiceTest extends BaseUnitTest {
         given(globalMemberQueryAdapter.findByMemberName(memberName)).willReturn(Optional.of(memberWithId));
 
         // When
-        paperCommandService.writeMessage(memberName, decoType, anonymity, content, x, y);
+        paperCommandService.writeMessage(memberId, memberName, decoType, anonymity, content, x, y);
 
         // Then
         verify(eventPublisher, times(1)).publishEvent(argThat((RollingPaperEvent event) ->

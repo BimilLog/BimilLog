@@ -11,7 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 public class KakaoFriendsDTO {
 
-    private List<Friend> elements;
+    private List<KakaoFriend> elements;
 
     @JsonProperty("total_count")
     private Integer totalCount;
@@ -27,7 +27,7 @@ public class KakaoFriendsDTO {
 
     @Getter
     @NoArgsConstructor
-    public static class Friend {
+    public static class KakaoFriend {
 
         private Long id;
 

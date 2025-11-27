@@ -8,7 +8,7 @@ import jaeik.bimillog.domain.global.out.GlobalAuthTokenSaveAdapter;
 import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
 import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
 import jaeik.bimillog.domain.global.out.GlobalSocialTokenCommandAdapter;
-import jaeik.bimillog.infrastructure.redis.RedisMemberDataAdapter;
+import jaeik.bimillog.infrastructure.redis.member.RedisMemberDataAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.fixtures.TestFixtures;
