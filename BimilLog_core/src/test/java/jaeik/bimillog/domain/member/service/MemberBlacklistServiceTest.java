@@ -14,8 +14,6 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 
 import java.util.Optional;
 
@@ -50,7 +48,6 @@ class MemberBlacklistServiceTest extends BaseUnitTest {
         // Given
         Member requestMember = getTestMember();  // ID=1L
         Member blackMember = getOtherMember();   // ID=2L
-        Pageable pageable = PageRequest.of(0, 10);
 
         MemberBlacklist blacklist = MemberBlacklist.createMemberBlacklist(requestMember, blackMember);
         TestFixtures.setFieldValue(blacklist, "id", BLACKLIST_ID);
@@ -58,7 +55,7 @@ class MemberBlacklistServiceTest extends BaseUnitTest {
         given(memberBlacklistRepository.findById(BLACKLIST_ID)).willReturn(Optional.of(blacklist));
 
         // When
-        memberBlacklistService.deleteMemberFromMyBlacklist(BLACKLIST_ID, OWNER_MEMBER_ID, pageable);
+        memberBlacklistService.deleteMemberFromMyBlacklist(BLACKLIST_ID, OWNER_MEMBER_ID);
 
         // Then
         verify(memberBlacklistRepository, times(1)).findById(BLACKLIST_ID);
@@ -71,14 +68,13 @@ class MemberBlacklistServiceTest extends BaseUnitTest {
     void shouldThrowException_WhenBlacklistNotFound() {
         // Given
         Long nonExistentBlacklistId = 999L;
-        Pageable pageable = PageRequest.of(0, 10);
 
         given(memberBlacklistRepository.findById(nonExistentBlacklistId))
                 .willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> memberBlacklistService.deleteMemberFromMyBlacklist(
-                nonExistentBlacklistId, OWNER_MEMBER_ID, pageable))
+                nonExistentBlacklistId, OWNER_MEMBER_ID))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MEMBER_BLACKLIST_NOT_FOUND);
 
@@ -92,7 +88,6 @@ class MemberBlacklistServiceTest extends BaseUnitTest {
         // Given
         Member requestMember = getTestMember();  // ID=1L (블랙리스트 소유자)
         Member blackMember = getOtherMember();   // ID=2L (차단된 회원)
-        Pageable pageable = PageRequest.of(0, 10);
 
         MemberBlacklist blacklist = MemberBlacklist.createMemberBlacklist(requestMember, blackMember);
         TestFixtures.setFieldValue(blacklist, "id", BLACKLIST_ID);
@@ -101,7 +96,7 @@ class MemberBlacklistServiceTest extends BaseUnitTest {
 
         // When & Then - User C(id=3)가 User A(id=1)의 블랙리스트 삭제 시도
         assertThatThrownBy(() -> memberBlacklistService.deleteMemberFromMyBlacklist(
-                BLACKLIST_ID, OTHER_MEMBER_ID, pageable))
+                BLACKLIST_ID, OTHER_MEMBER_ID))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MEMBER_BLACKLIST_FORBIDDEN);
 

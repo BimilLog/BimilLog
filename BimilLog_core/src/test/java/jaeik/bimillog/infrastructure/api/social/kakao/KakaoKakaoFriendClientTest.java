@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
  * <p>카카오 친구 API 호출 결과 매핑을 검증합니다.</p>
  */
 @Tag("unit")
-class KakaoFriendClientTest extends BaseUnitTest {
+class KakaoKakaoFriendClientTest extends BaseUnitTest {
 
     private static final String AUTHORIZATION_PREFIX = "Bearer ";
 
@@ -57,15 +57,15 @@ class KakaoFriendClientTest extends BaseUnitTest {
         assertThat(result.getTotalCount()).isEqualTo(2);
         assertThat(result.getFavoriteCount()).isEqualTo(1);
 
-        KakaoFriendsDTO.Friend friend1 = result.getElements().getFirst();
-        assertThat(friend1.getId()).isEqualTo(1L);
-        assertThat(friend1.getProfileNickname()).isEqualTo("친구1");
-        assertThat(friend1.getFavorite()).isFalse();
+        KakaoFriendsDTO.KakaoFriend kakaoFriend1 = result.getElements().getFirst();
+        assertThat(kakaoFriend1.getId()).isEqualTo(1L);
+        assertThat(kakaoFriend1.getProfileNickname()).isEqualTo("친구1");
+        assertThat(kakaoFriend1.getFavorite()).isFalse();
 
-        KakaoFriendsDTO.Friend friend2 = result.getElements().get(1);
-        assertThat(friend2.getId()).isEqualTo(2L);
-        assertThat(friend2.getProfileNickname()).isEqualTo("친구2");
-        assertThat(friend2.getFavorite()).isTrue();
+        KakaoFriendsDTO.KakaoFriend kakaoFriend2 = result.getElements().get(1);
+        assertThat(kakaoFriend2.getId()).isEqualTo(2L);
+        assertThat(kakaoFriend2.getProfileNickname()).isEqualTo("친구2");
+        assertThat(kakaoFriend2.getFavorite()).isTrue();
 
         verify(kakaoApiClient).getFriends(eq(AUTHORIZATION_PREFIX + accessToken), eq(offset), eq(limit));
     }

@@ -2,8 +2,8 @@ package jaeik.bimillog.domain.paper.controller;
 
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.paper.entity.Message;
-import jaeik.bimillog.domain.paper.dto.MessageDTO;
-import jaeik.bimillog.domain.paper.dto.VisitMessageDTO;
+import jaeik.bimillog.domain.paper.entity.MyMessage;
+import jaeik.bimillog.domain.paper.entity.VisitPaperResult;
 import jaeik.bimillog.domain.paper.service.PaperQueryService;
 import jaeik.bimillog.infrastructure.log.Log;
 import lombok.RequiredArgsConstructor;
@@ -46,13 +46,13 @@ public class PaperQueryController {
      * @since 2.0.0
      */
     @GetMapping
-    public ResponseEntity<List<MessageDTO>> myPaper(@AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<List<MyMessage>> myPaper(@AuthenticationPrincipal CustomUserDetails userDetails) {
         Long memberId = userDetails.getMemberId();
         List<Message> messageDetails = paperQueryService.getMyPaper(memberId);
-        List<MessageDTO> messageDTOs = messageDetails.stream()
-                .map(MessageDTO::from)
+        List<MyMessage> myMessages = messageDetails.stream()
+                .map(MyMessage::from)
                 .toList();
-        return ResponseEntity.ok(messageDTOs);
+        return ResponseEntity.ok(myMessages);
     }
 
     /**
@@ -66,15 +66,10 @@ public class PaperQueryController {
      * @since 2.0.0
      */
     @GetMapping("/{memberName}")
-    public ResponseEntity<List<VisitMessageDTO>> visitPaper(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                                            @PathVariable String memberName) {
+    public ResponseEntity<VisitPaperResult> visitPaper(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                                       @PathVariable String memberName) {
         Long memberId = userDetails == null ? null : userDetails.getMemberId();
-        List<Message> messages = paperQueryService.visitPaper(memberId, memberName);
-        List<VisitMessageDTO> visitMessageDTOs = messages.stream()
-                .map(VisitMessageDTO::from)
-                .toList();
-        return ResponseEntity.ok(visitMessageDTOs);
+        VisitPaperResult result = paperQueryService.visitPaper(memberId, memberName);
+        return ResponseEntity.ok(result);
     }
-
-
 }

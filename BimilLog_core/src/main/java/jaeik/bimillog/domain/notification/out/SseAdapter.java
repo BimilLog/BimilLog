@@ -129,11 +129,6 @@ public class SseAdapter {
      */
     public void send(SseMessage sseMessage) {
         try {
-            // 알림 설정 확인
-            if (!notificationUtilAdapter.SseEligibleForNotification(sseMessage.memberId(), sseMessage.type())) {
-                return; // 알림 수신이 비활성화된 경우 전송하지 않음
-            }
-
             Member member = memberQueryService.findById(sseMessage.memberId())
                     .orElseThrow(() -> new CustomException(ErrorCode.NOTIFICATION_INVALID_USER_CONTEXT));
 

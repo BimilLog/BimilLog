@@ -12,7 +12,7 @@
 --  - 레전드 인기글 (ID 10011~10060): 추천 20~50개, 조회수 높음
 --
 -- 실행 방법:
---   mysql -u <user> -p bimillogTest < backend/src/test/resources/bimillogTest-seed.sql
+--   mysql -u <user> -p bimillogTest < src/test/resources/bimillogTest-seed.sql
 --
 -- ⚠️ 주의: 스크립트는 대상 테이블을 TRUNCATE 하므로 실행 전에 백업을 권장합니다.
 -- ====================================================================================

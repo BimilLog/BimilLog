@@ -1,19 +1,17 @@
 package jaeik.bimillog.domain.member.controller;
 
+import jaeik.bimillog.domain.member.dto.SimpleMemberDTO;
 import jaeik.bimillog.domain.member.service.MemberFriendService;
 import jaeik.bimillog.domain.member.service.MemberQueryService;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.dto.SettingDTO;
-import jaeik.bimillog.domain.member.dto.SimpleMemberDTO;
 import jaeik.bimillog.domain.member.dto.KakaoFriendsDTO;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.infrastructure.log.Log;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -114,8 +112,8 @@ public class MemberQueryController {
      * @author Jaeik
      */
     @GetMapping("/search")
-    public ResponseEntity<Page<String>> searchMembers(@RequestParam @NotBlank(message = "검색어는 필수입니다") String query, Pageable pageable) {
-        Page<String> memberNames = memberQueryService.searchMembers(query.trim(), pageable);
-        return ResponseEntity.ok(memberNames);
+    public ResponseEntity<Page<SimpleMemberDTO>> searchMembers(@RequestParam @NotBlank(message = "검색어는 필수입니다") String query, Pageable pageable) {
+        Page<SimpleMemberDTO> members = memberQueryService.searchMembers(query.trim(), pageable);
+        return ResponseEntity.ok(members);
     }
 }

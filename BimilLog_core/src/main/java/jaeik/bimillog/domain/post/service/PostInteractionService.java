@@ -80,8 +80,9 @@ public class PostInteractionService {
             PostLike postLike = PostLike.builder().member(member).post(post).build();
             postLikeCommandAdapter.savePostLike(postLike);
 
-            // 실시간 인기글 점수 증가 이벤트 발행
-            eventPublisher.publishEvent(new PostLikeEvent(postId));
+            // 실시간 인기글 점수 증가 및 상호작용 점수 증가 이벤트 발행
+            Long postAuthorId = post.getMember() != null ? post.getMember().getId() : null;
+            eventPublisher.publishEvent(new PostLikeEvent(postId, postAuthorId, memberId));
         }
     }
 

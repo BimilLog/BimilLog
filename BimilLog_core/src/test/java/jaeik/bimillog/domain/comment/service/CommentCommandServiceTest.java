@@ -10,16 +10,10 @@ import jaeik.bimillog.domain.comment.entity.CommentLike;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.global.out.GlobalCommentQueryAdapter;
 import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.testutil.*;
 import jaeik.bimillog.testutil.builder.CommentTestDataBuilder;
@@ -551,10 +545,10 @@ class CommentCommandServiceTest extends BaseUnitTest {
         commentCommandService.writeComment(getTestMember().getId(), postId, parentId, content, null);
 
         // Then
-        ArgumentCaptor<List<CommentClosure>> closureCaptor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<List> closureCaptor = ArgumentCaptor.forClass(List.class);
         verify(commentSaveAdapter).saveAll(closureCaptor.capture());
 
-        List<CommentClosure> capturedClosures = closureCaptor.getValue();
+        List capturedClosures = closureCaptor.getValue();
         assertThat(capturedClosures).hasSize(2); // 자기 자신 + 부모와의 관계
 
         verify(eventPublisher).publishEvent(any(CommentCreatedEvent.class));

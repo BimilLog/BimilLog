@@ -51,8 +51,28 @@ export function useRollingPaperData(targetNickname?: string) {
   // 메시지 타입 정규화
   const messages: (RollingPaperMessage | VisitMessage)[] = useMemo(() => {
     if (!activeQuery.data?.data) return [];
-    return activeQuery.data.data;
-  }, [activeQuery.data]);
+
+    // isOwner가 false인 경우 (타인의 롤링페이퍼) - VisitPaperResult
+    if (!isOwner && typeof activeQuery.data.data === 'object' && 'messages' in activeQuery.data.data) {
+      return activeQuery.data.data.messages;
+    }
+
+    // isOwner가 true인 경우 (본인의 롤링페이퍼) - RollingPaperMessage[]
+    return activeQuery.data.data as RollingPaperMessage[];
+  }, [activeQuery.data, isOwner]);
+
+  // ownerId 추출 로직
+  const ownerId = useMemo(() => {
+    if (isOwner) return user?.memberId || null;
+
+    // 타인의 롤링페이퍼인 경우 - VisitPaperResult.ownerId 사용
+    const data = activeQuery.data?.data;
+    if (data && typeof data === 'object' && 'ownerId' in data) {
+      return data.ownerId as number;
+    }
+
+    return null;
+  }, [activeQuery.data, isOwner, user]);
 
   // 타인의 롤링페이퍼 방문 성공 시 최근 방문 기록에 저장
   useEffect(() => {
@@ -63,6 +83,7 @@ export function useRollingPaperData(targetNickname?: string) {
 
   return {
     messages,
+    ownerId,
     isLoading: activeQuery.isLoading,
     isError: activeQuery.isError,
     blockedMessage,

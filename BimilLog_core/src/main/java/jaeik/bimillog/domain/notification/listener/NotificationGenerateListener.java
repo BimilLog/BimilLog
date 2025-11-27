@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.notification.listener;
 
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
+import jaeik.bimillog.domain.friend.event.FriendEvent;
 import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.domain.notification.service.FcmCommandService;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
@@ -26,7 +27,7 @@ import org.springframework.stereotype.Component;
 public class NotificationGenerateListener {
 
     private final SseService sseService;
-    private final FcmCommandService fcmUseCase;
+    private final FcmCommandService fcmCommandService;
 
     /**
      * <h3>댓글 작성 알림 전송</h3>
@@ -47,7 +48,7 @@ public class NotificationGenerateListener {
                 event.postId());
         
         // FCM 알림 전송
-        fcmUseCase.sendCommentNotification(
+        fcmCommandService.sendCommentNotification(
                 event.postUserId(),
                 event.commenterName());
     }
@@ -70,7 +71,7 @@ public class NotificationGenerateListener {
                 event.memberName());
         
         // FCM 알림 전송
-        fcmUseCase.sendPaperPlantNotification(
+        fcmCommandService.sendPaperPlantNotification(
                 event.paperOwnerId());
     }
 
@@ -93,9 +94,31 @@ public class NotificationGenerateListener {
                 event.postId());
         
         // FCM 알림 전송
-        fcmUseCase.sendPostFeaturedNotification(
+        fcmCommandService.sendPostFeaturedNotification(
                 event.memberId(),
                 event.fcmTitle(),
                 event.fcmBody());
+    }
+
+    /**
+     * 친구 요청 받을시 알림 전송
+     */
+    @EventListener(FriendEvent.class)
+    @Async("sseNotificationExecutor")
+    public void handleFriendEvent(FriendEvent event) {
+        // SSE 알림 전송
+        sseService.sendFriendNotification(
+                event.getReceiveMemberId(),
+                event.getSseMessage()
+        );
+
+        // FCM 알림 전송
+        fcmCommandService.sendFriendNotification(
+                event.getReceiveMemberId(),
+                event.getFcmTitle(),
+                event.getFcmBody()
+        );
+
+
     }
 }

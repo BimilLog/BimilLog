@@ -9,7 +9,7 @@ import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.infrastructure.filter.JwtFilter;
 import jaeik.bimillog.domain.global.out.GlobalBlacklistAdapter;
-import jaeik.bimillog.infrastructure.redis.RedisJwtBlacklistAdapter;
+import jaeik.bimillog.infrastructure.redis.blacklist.RedisJwtBlacklistAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;

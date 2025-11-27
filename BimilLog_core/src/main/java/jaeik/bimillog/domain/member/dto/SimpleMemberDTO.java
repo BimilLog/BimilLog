@@ -21,6 +21,7 @@ import lombok.Setter;
 @Builder
 public class SimpleMemberDTO {
 
+    private Long memberId;
     private String memberName;
 
     /**
@@ -34,6 +35,7 @@ public class SimpleMemberDTO {
      */
     public static SimpleMemberDTO fromMember(Member member) {
         return SimpleMemberDTO.builder()
+                .memberId(member.getId())
                 .memberName(member.getMemberName())
                 .build();
     }

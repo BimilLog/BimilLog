@@ -41,6 +41,7 @@ interface RollingPaperViewProps {
   isOwner: boolean;
   isMobile: boolean;
   messages: (RollingPaperMessage | VisitMessage)[];
+  ownerId?: number | null;
   messageCount: number;
   totalPages: number;
   currentPage: number;
@@ -70,6 +71,7 @@ export const RollingPaperView: React.FC<RollingPaperViewProps> = ({
   isOwner,
   isMobile,
   messages,
+  ownerId,
   messageCount,
   totalPages,
   currentPage,
@@ -94,6 +96,8 @@ export const RollingPaperView: React.FC<RollingPaperViewProps> = ({
       <RollingPaperHeader
         nickname={targetNickname}
         messageCount={messageCount}
+        messages={messages}
+        ownerId={ownerId}
         isOwner={isOwner}
         onShowMessages={isOwner ? () => setIsMessageListOpen(true) : undefined}
         className="sticky top-[68px] sm:top-[80px] z-40"

@@ -45,17 +45,23 @@ export const AllUsersList = ({ searchKeyword = "" }: AllUsersListProps) => {
   type MemberRow = {
     key: string;
     memberName: string;
+    memberId?: number;
   };
 
   let memberRows: MemberRow[] = [];
   let totalPages = 0;
   if (isSearchMode) {
     const searchData = searchQuery.data?.data;
-    const names = searchData?.content || [];
-    memberRows = names.map((name, index) => ({
-      key: name ? `search-${name}-${index}` : `search-index-${index}`,
-      memberName: name ?? "익명",
-    }));
+    const users = searchData?.content || [];
+    memberRows = users.map((user, index) => {
+      const idPart = user.memberId ? `member-${user.memberId}` : null;
+      const namePart = user.memberName ? `name-${user.memberName}-${index}` : null;
+      return {
+        key: idPart ?? namePart ?? `member-index-${index}`,
+        memberName: user.memberName ?? "익명",
+        memberId: user.memberId,
+      };
+    });
     totalPages = searchData?.totalPages || 0;
   } else {
     const allData = allMembersQuery.data?.data;
@@ -66,6 +72,7 @@ export const AllUsersList = ({ searchKeyword = "" }: AllUsersListProps) => {
       return {
         key: idPart ?? namePart ?? `member-index-${index}`,
         memberName: user.memberName ?? "익명",
+        memberId: user.memberId,
       };
     });
     totalPages = allData?.totalPages || 0;
@@ -130,6 +137,7 @@ export const AllUsersList = ({ searchKeyword = "" }: AllUsersListProps) => {
                     {member.memberName && member.memberName !== "익명" ? (
                       <UserActionPopover
                         memberName={member.memberName}
+                        memberId={member.memberId}
                         trigger={
                           <button className="font-medium hover:text-purple-600 hover:underline transition-colors inline-flex items-center space-x-1">
                             <User className="w-3 h-3" />

@@ -13,7 +13,7 @@ import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.out.MemberRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.redis.RedisMemberDataAdapter;
+import jaeik.bimillog.infrastructure.redis.member.RedisMemberDataAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.fixtures.TestFixtures;

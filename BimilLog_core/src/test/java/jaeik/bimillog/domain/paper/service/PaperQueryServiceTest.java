@@ -2,10 +2,10 @@ package jaeik.bimillog.domain.paper.service;
 
 import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.paper.entity.Message;
+import jaeik.bimillog.domain.paper.entity.VisitPaperResult;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
+
 import jaeik.bimillog.domain.paper.out.PaperQueryRepository;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.builder.PaperTestDataBuilder;
@@ -64,13 +64,13 @@ class PaperQueryServiceTest extends BaseUnitTest {
         given(paperQueryRepository.findMessagesByMemberName(memberName)).willReturn(messages);
 
         // When
-        List<Message> result = paperQueryService.visitPaper(memberName);
+        VisitPaperResult result = paperQueryService.visitPaper(getTestMember().getId(), memberName);
 
         // Then
         assertThat(result).isNotNull();
-        assertThat(result).hasSize(2);
-        assertThat(result.get(0).getMemberId()).isEqualTo(getTestMember().getId());
-        assertThat(result.get(1).getMemberId()).isEqualTo(getOtherMember().getId());
+        assertThat(result.messages()).hasSize(2);
+        assertThat(result.messages().get(0).getMemberId()).isEqualTo(getTestMember().getId());
+        assertThat(result.messages().get(1).getMemberId()).isEqualTo(getOtherMember().getId());
 
         verify(globalMemberQueryAdapter, times(1)).findByMemberName(memberName);
         verify(paperQueryRepository, times(1)).findMessagesByMemberName(memberName);
@@ -86,11 +86,11 @@ class PaperQueryServiceTest extends BaseUnitTest {
         given(paperQueryRepository.findMessagesByMemberName(memberName)).willReturn(Collections.emptyList());
 
         // When
-        List<Message> result = paperQueryService.visitPaper(memberName);
+        VisitPaperResult result = paperQueryService.visitPaper(getTestMember().getId(), memberName);
 
         // Then
         assertThat(result).isNotNull();
-        assertThat(result).isEmpty();
+        assertThat(result.messages()).isEmpty();
 
         verify(globalMemberQueryAdapter, times(1)).findByMemberName(memberName);
         verify(paperQueryRepository, times(1)).findMessagesByMemberName(memberName);
@@ -105,7 +105,7 @@ class PaperQueryServiceTest extends BaseUnitTest {
         String memberName = null;
 
         // When & Then - null case
-        assertThatThrownBy(() -> paperQueryService.visitPaper(memberName))
+        assertThatThrownBy(() -> paperQueryService.visitPaper(getTestMember().getId(), memberName))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PAPER_INVALID_INPUT_VALUE);
 
@@ -113,7 +113,7 @@ class PaperQueryServiceTest extends BaseUnitTest {
         String emptyUserName = "   ";
 
         // When & Then - empty case
-        assertThatThrownBy(() -> paperQueryService.visitPaper(emptyUserName))
+        assertThatThrownBy(() -> paperQueryService.visitPaper(1L, emptyUserName))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PAPER_INVALID_INPUT_VALUE);
 

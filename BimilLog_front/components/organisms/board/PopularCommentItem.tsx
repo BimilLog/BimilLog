@@ -115,52 +115,7 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
           <TimeBadge dateString={comment.createdAt} size="xs" />
         </div>
 
-        {/* 액션 버튼들 */}
-        <div className="flex items-center gap-1">
-          {/* 추천 버튼 */}
-          <FlowbiteButton
-            size="xs"
-            color={comment.userLike ? "blue" : "light"}
-            onClick={(e) => {
-              e.stopPropagation();
-              onLikeComment(comment);
-            }}
-            disabled={!isAuthenticated}
-            title={!isAuthenticated ? "로그인 후 추천할 수 있습니다" : undefined}
-            className={!isAuthenticated ? "cursor-not-allowed opacity-60" : ""}
-          >
-            <ThumbsUp className={`w-4 h-4 mr-2 ${comment.userLike ? "fill-current" : ""}`} />
-            추천 {comment.likeCount}
-          </FlowbiteButton>
 
-          {/* 답글 버튼 */}
-          <FlowbiteButton
-            size="xs"
-            className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:bg-gradient-to-l"
-            onClick={(e) => {
-              e.stopPropagation();
-              onReplyTo(comment);
-            }}
-          >
-            <MessageSquare className="w-4 h-4 mr-2" />
-            답글
-          </FlowbiteButton>
-
-          {/* 신고 버튼 (본인 댓글이 아닌 경우만) */}
-          {!isMyComment(comment) && !comment.deleted && (
-            <FlowbiteButton
-              size="xs"
-              color="red"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleReport();
-              }}
-            >
-              <Flag className="w-4 h-4 mr-2" />
-              신고
-            </FlowbiteButton>
-          )}
-        </div>
       </div>
 
       {/* 댓글 내용 */}
@@ -168,6 +123,53 @@ export const PopularCommentItem = React.memo<PopularCommentItemProps>(({
         html={comment.content}
         className="prose max-w-none prose-sm text-sm leading-relaxed text-brand-primary sm:text-base dark:text-gray-100"
       />
+
+      {/* 액션 버튼들 */}
+              <div className="flex items-center gap-1">
+                {/* 추천 버튼 */}
+                <FlowbiteButton
+                  size="xs"
+                  color={comment.userLike ? "blue" : "light"}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onLikeComment(comment);
+                  }}
+                  disabled={!isAuthenticated}
+                  title={!isAuthenticated ? "로그인 후 추천할 수 있습니다" : undefined}
+                  className={!isAuthenticated ? "cursor-not-allowed opacity-60" : ""}
+                >
+                  <ThumbsUp className={`w-4 h-4 mr-2 ${comment.userLike ? "fill-current" : ""}`} />
+                  추천 {comment.likeCount}
+                </FlowbiteButton>
+
+                {/* 답글 버튼 */}
+                <FlowbiteButton
+                  size="xs"
+                  className="bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:bg-gradient-to-l"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onReplyTo(comment);
+                  }}
+                >
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  답글
+                </FlowbiteButton>
+
+                {/* 신고 버튼 (본인 댓글이 아닌 경우만) */}
+                {!isMyComment(comment) && !comment.deleted && (
+                  <FlowbiteButton
+                    size="xs"
+                    color="red"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleReport();
+                    }}
+                  >
+                    <Flag className="w-4 h-4 mr-2" />
+                    신고
+                  </FlowbiteButton>
+                )}
+              </div>
 
       {/* 클릭 안내 */}
       <div className="mt-3 border-t border-blue-100 pt-2 dark:border-blue-900/40">
