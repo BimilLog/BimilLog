@@ -1,13 +1,10 @@
-package jaeik.bimillog.domain.paper.dto;
+package jaeik.bimillog.domain.paper.entity;
 
-import jaeik.bimillog.domain.paper.entity.DecoType;
-import jaeik.bimillog.domain.paper.entity.Message;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
+
 
 /**
  * <h2>롤링페이퍼 방문 메시지 DTO</h2>
@@ -20,13 +17,11 @@ import java.util.List;
 @Getter
 @Setter
 @AllArgsConstructor
-public class VisitMessageDTO {
+public class VisitMessage {
 
     private Long id;
 
     private Long memberId;
-
-    private Long ownerId;  // 롤링페이퍼 소유자 ID 추가
 
     private DecoType decoType;
 
@@ -39,16 +34,14 @@ public class VisitMessageDTO {
      * <p>VisitMessageDetail 값 객체를 DTO로 변환합니다.</p>
      *
      * @param message 메시지 엔티티
-     * @param ownerId 롤링페이퍼 소유자 ID
      * @return VisitMessageDTO 변환된 방문 메시지 DTO
      * @author Jaeik
      * @since 2.0.0
      */
-    public static VisitMessageDTO from(Message message, Long ownerId) {
-        return new VisitMessageDTO(
+    public static VisitMessage from(Message message) {
+        return new VisitMessage(
                 message.getId(),
                 message.getMemberId(),
-                ownerId,
                 message.getDecoType(),
                 message.getX(),
                 message.getY()

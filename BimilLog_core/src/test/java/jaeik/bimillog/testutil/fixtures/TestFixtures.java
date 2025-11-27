@@ -1,7 +1,7 @@
 package jaeik.bimillog.testutil.fixtures;
 
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.paper.dto.MessageDTO;
+import jaeik.bimillog.domain.paper.entity.MyMessage;
 import jaeik.bimillog.domain.post.dto.PostCreateDTO;
 import jakarta.persistence.EntityManager;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -46,8 +46,8 @@ public class TestFixtures {
      * @param positionY Y 위치
      * @return MessageDTO
      */
-    public static MessageDTO createPaperMessageRequest(String content, int positionX, int positionY) {
-        return new MessageDTO(
+    public static MyMessage createPaperMessageRequest(String content, int positionX, int positionY) {
+        return new MyMessage(
                 null,  // id
                 null,  // memberId
                 jaeik.bimillog.domain.paper.entity.DecoType.POTATO,  // decoType

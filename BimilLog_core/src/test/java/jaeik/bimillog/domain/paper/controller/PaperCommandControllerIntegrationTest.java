@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.paper.controller;
 
 import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.entity.Message;
-import jaeik.bimillog.domain.paper.dto.MessageDTO;
+import jaeik.bimillog.domain.paper.entity.MyMessage;
 import jaeik.bimillog.domain.paper.out.MessageRepository;
 import jaeik.bimillog.testutil.*;
 import jaeik.bimillog.testutil.builder.PaperTestDataBuilder;
@@ -39,12 +39,12 @@ class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("익명 사용자 메시지 작성 - 성공")
     void writeMessage_AnonymousUser_Success() throws Exception {
         // Given
-        MessageDTO messageDTO = TestFixtures.createPaperMessageRequest(
+        MyMessage myMessage = TestFixtures.createPaperMessageRequest(
                 "따뜻한 메시지입니다.", 1, 1);
-        messageDTO.setAnonymity("익명사용자");
+        myMessage.setAnonymity("익명사용자");
 
         // When & Then
-        performPost("/api/paper/" + testMember.getMemberName(), messageDTO)
+        performPost("/api/paper/" + testMember.getMemberName(), myMessage)
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string("메시지가 작성되었습니다."));
@@ -54,14 +54,14 @@ class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("인증된 사용자 메시지 작성 - 성공")
     void writeMessage_AuthenticatedUser_Success() throws Exception {
         // Given
-        MessageDTO messageDTO = TestFixtures.createPaperMessageRequest(
+        MyMessage myMessage = TestFixtures.createPaperMessageRequest(
                 "생일 축하해!", 2, 2);
-        messageDTO.setDecoType(DecoType.STAR);
-        messageDTO.setAnonymity("친구1");
-        messageDTO.setMemberId(otherMember.getId());
+        myMessage.setDecoType(DecoType.STAR);
+        myMessage.setAnonymity("친구1");
+        myMessage.setMemberId(otherMember.getId());
 
         // When & Then
-        performPost("/api/paper/" + testMember.getMemberName(), messageDTO, otherUserDetails)
+        performPost("/api/paper/" + testMember.getMemberName(), myMessage, otherUserDetails)
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string("메시지가 작성되었습니다."));
@@ -71,11 +71,11 @@ class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("존재하지 않는 사용자에게 메시지 작성 - 실패")
     void writeMessage_NonExistentUser_NotFound() throws Exception {
         // Given
-        MessageDTO messageDTO = TestFixtures.createPaperMessageRequest(
+        MyMessage myMessage = TestFixtures.createPaperMessageRequest(
                 "메시지", 1, 1);
 
         // When & Then
-        performPost("/api/paper/nonexistentuser", messageDTO)
+        performPost("/api/paper/nonexistentuser", myMessage)
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }
@@ -84,12 +84,12 @@ class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("잘못된 MessageDTO로 메시지 작성 - 실패")
     void writeMessage_InvalidMessageDTO_BadRequest() throws Exception {
         // Given
-        MessageDTO messageDTO = TestFixtures.createPaperMessageRequest(
+        MyMessage myMessage = TestFixtures.createPaperMessageRequest(
                 "메시지", 1, 1);
-        messageDTO.setAnonymity("매우긴익명사용자이름입니다"); // 8자 초과
+        myMessage.setAnonymity("매우긴익명사용자이름입니다"); // 8자 초과
 
         // When & Then
-        performPost("/api/paper/" + testMember.getMemberName(), messageDTO)
+        performPost("/api/paper/" + testMember.getMemberName(), myMessage)
                 .andDo(print())
                 .andExpect(status().isBadRequest());
     }
@@ -102,12 +102,12 @@ class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
                 testMember, "삭제될 메시지", 1, 1);
         Message savedMessage = messageRepository.save(message);
 
-        MessageDTO messageDTO = TestFixtures.createPaperMessageRequest(
+        MyMessage myMessage = TestFixtures.createPaperMessageRequest(
                 "삭제될 메시지", 1, 1);
-        messageDTO.setId(savedMessage.getId());
+        myMessage.setId(savedMessage.getId());
 
         // When & Then
-        performPost("/api/paper/delete", messageDTO, testUserDetails)
+        performPost("/api/paper/delete", myMessage, testUserDetails)
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string("메시지가 삭제되었습니다."));
@@ -117,12 +117,12 @@ class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("인증되지 않은 사용자의 메시지 삭제 - 실패")
     void deleteMessage_Unauthenticated_Unauthorized() throws Exception {
         // Given
-        MessageDTO messageDTO = TestFixtures.createPaperMessageRequest(
+        MyMessage myMessage = TestFixtures.createPaperMessageRequest(
                 "메시지", 1, 1);
-        messageDTO.setId(1L);
+        myMessage.setId(1L);
 
         // When & Then
-        performPost("/api/paper/delete", messageDTO)
+        performPost("/api/paper/delete", myMessage)
                 .andDo(print())
                 .andExpect(status().isUnauthorized());
     }
@@ -131,12 +131,12 @@ class PaperCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("존재하지 않는 메시지 삭제 - 실패")
     void deleteMessage_NonExistentMessage_NotFound() throws Exception {
         // Given
-        MessageDTO messageDTO = TestFixtures.createPaperMessageRequest(
+        MyMessage myMessage = TestFixtures.createPaperMessageRequest(
                 "메시지", 1, 1);
-        messageDTO.setId(99999L);
+        myMessage.setId(99999L);
 
         // When & Then
-        performPost("/api/paper/delete", messageDTO, testUserDetails)
+        performPost("/api/paper/delete", myMessage, testUserDetails)
                 .andDo(print())
                 .andExpect(status().isNotFound());
     }

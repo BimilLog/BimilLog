@@ -3,7 +3,9 @@ package jaeik.bimillog.domain.paper.service;
 import jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter;
 import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.paper.entity.VisitMessage;
 import jaeik.bimillog.domain.paper.entity.Message;
+import jaeik.bimillog.domain.paper.entity.VisitPaperResult;
 import jaeik.bimillog.domain.paper.event.PaperViewedEvent;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
@@ -42,12 +44,6 @@ public class PaperQueryService {
     }
 
     /**
-     * <h3>다른 사용자 롤링페이퍼 방문 조회 결과</h3>
-     * <p>메시지 리스트와 소유자 ID를 포함하는 레코드</p>
-     */
-    public record VisitPaperResult(List<Message> messages, Long ownerId) {}
-
-    /**
      * <h3>다른 사용자 롤링페이퍼 방문 조회</h3>
      * <p>메시지가 없는 경우 빈 리스트를 반환</p>
      * <p>롤링페이퍼 조회 성공 시 PaperViewedEvent를 발행하여 실시간 인기 점수를 증가시킵니다.</p>
@@ -72,9 +68,14 @@ public class PaperQueryService {
 
         List<Message> messages = paperQueryRepository.findMessagesByMemberName(memberName);
 
+        //
+        List<VisitMessage> visitMessages = messages.stream()
+                .map(VisitMessage::from)
+                .toList();
+
         // 롤링페이퍼 조회 이벤트 발행 (실시간 인기 점수 증가)
         eventPublisher.publishEvent(new PaperViewedEvent(member.getId()));
 
-        return new VisitPaperResult(messages, member.getId());
+        return new VisitPaperResult(visitMessages, member.getId());
     }
 }
