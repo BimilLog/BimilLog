@@ -66,7 +66,7 @@ export const AuthHeader = React.memo(() => {
   const handlePsychologyTest = async () => {
     const confirmed = await confirm({
       title: "외부 사이트 이동",
-      message: "킬링타임용 심리테스트 사이트로 이동됩니다.",
+      message: "개발자가 만든 킬링타임용 심리테스트 사이트로 이동됩니다.",
       confirmText: "이동",
       cancelText: "취소",
       confirmButtonVariant: "default",
