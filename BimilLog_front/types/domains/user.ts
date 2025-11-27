@@ -25,6 +25,7 @@ export interface Setting {
   messageNotification: boolean      // 롤링페이퍼 메시지 알림
   commentNotification: boolean      // 댓글 알림
   postFeaturedNotification: boolean // 게시글 인기글 선정 알림
+  friendSendNotification: boolean   // 친구 요청 알림
 }
 
 // 카카오 친구 타입

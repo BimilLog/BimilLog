@@ -134,8 +134,8 @@ public class Member extends BaseEntity {
      * @author Jaeik
      * @since 2.0.0
      */
-    public void updateSettings(boolean messageNotification, boolean commentNotification, boolean postFeaturedNotification) {
-        this.setting.updateSettings(messageNotification, commentNotification, postFeaturedNotification);
+    public void updateSettings(boolean messageNotification, boolean commentNotification, boolean postFeaturedNotification, boolean friendSendNotification) {
+        this.setting.updateSettings(messageNotification, commentNotification, postFeaturedNotification, friendSendNotification);
     }
 
     /**
