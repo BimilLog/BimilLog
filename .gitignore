@@ -160,6 +160,10 @@ HELP.md
 # Log file
 *.log
 
+# Log directories
+BimilLog_core/logs/
+/logs/
+
 # BlueJ files
 *.ctxt
 
