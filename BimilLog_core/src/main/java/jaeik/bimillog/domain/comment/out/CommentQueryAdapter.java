@@ -56,7 +56,6 @@ public class CommentQueryAdapter {
      * @since 2.0.0
      */
         public Page<SimpleCommentInfo> findCommentsByMemberId(Long memberId, Pageable pageable) {
-        // N+1 문제 해결을 위한 별도 Q타입 생성
         QCommentLike userCommentLike = new QCommentLike("userCommentLike");
 
         // 쿼리 빌딩 - memberId가 있으므로 항상 userLike 조인
@@ -177,16 +176,13 @@ public class CommentQueryAdapter {
                     comment.content,
                     comment.deleted,
                     comment.createdAt,
-                    // parentId: 조인된 parentClosure에서 ancestor.id 직접 참조 (서브쿼리 제거)
                     parentClosure.ancestor.id.coalesce(comment.id),
                     commentLike.countDistinct().coalesce(0L).intValue(),
-                    // userLike: 조인된 userCommentLike 존재 여부로 판단 (서브쿼리 제거)
                     userCommentLike.id.isNotNull()
             ))
                 .from(comment)
                 .leftJoin(comment.member, member)
                 .leftJoin(commentLike).on(comment.id.eq(commentLike.comment.id))
-                // parentId 조회를 위한 closure 조인 (depth=1)
                 .leftJoin(parentClosure).on(
                         parentClosure.descendant.id.eq(comment.id)
                         .and(parentClosure.depth.eq(1))
