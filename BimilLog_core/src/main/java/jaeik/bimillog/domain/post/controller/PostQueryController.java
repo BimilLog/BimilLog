@@ -140,6 +140,7 @@ public class PostQueryController {
      * @since 2.0.0
      * @author Jaeik
      */
+    @Deprecated
     @GetMapping("/me")
     public ResponseEntity<Page<SimplePostDTO>> getUserPosts(@RequestParam(defaultValue = "0") int page,
                                                             @RequestParam(defaultValue = "10") int size,
@@ -161,6 +162,7 @@ public class PostQueryController {
      * @since 2.0.0
      * @author Jaeik
      */
+    @Deprecated
     @GetMapping("/me/liked")
     public ResponseEntity<Page<SimplePostDTO>> getUserLikedPosts(@RequestParam(defaultValue = "0") int page,
                                                                  @RequestParam(defaultValue = "10") int size,

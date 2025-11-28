@@ -63,7 +63,7 @@ public class CommentQueryController {
             @RequestParam(defaultValue = "0") int page) {
         Pageable pageable = Pageable.ofSize(20).withPage(page);
         Page<CommentInfo> commentInfoPage = CommentQueryService.getCommentsOldestOrder(postId, pageable, userDetails);
-        Page<CommentDTO> commentDtoPage = commentInfoPage.map(this::convertToCommentDTO);
+        Page<CommentDTO> commentDtoPage = commentInfoPage.map(CommentDTO::convertToCommentDTO);
         return ResponseEntity.ok(commentDtoPage);
     }
 
@@ -84,7 +84,7 @@ public class CommentQueryController {
             @PathVariable Long postId) {
         List<CommentInfo> commentInfoList = CommentQueryService.getPopularComments(postId, userDetails);
         List<CommentDTO> commentDtoList = commentInfoList.stream()
-                .map(this::convertToCommentDTO)
+                .map(CommentDTO::convertToCommentDTO)
                 .toList();
         return ResponseEntity.ok(commentDtoList);
     }
@@ -100,13 +100,14 @@ public class CommentQueryController {
      * @since 2.0.0
      * @author Jaeik
      */
+    @Deprecated
     @GetMapping("/me")
     public ResponseEntity<Page<SimpleCommentDTO>> getUserComments(@RequestParam(defaultValue = "0") int page,
                                                                   @RequestParam(defaultValue = "10") int size,
                                                                   @AuthenticationPrincipal CustomUserDetails userDetails) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<SimpleCommentInfo> commentInfoList = CommentQueryService.getMemberComments(userDetails.getMemberId(), pageable);
-        Page<SimpleCommentDTO> commentList = commentInfoList.map(this::convertToSimpleCommentDTO);
+        Page<SimpleCommentDTO> commentList = commentInfoList.map(SimpleCommentDTO::convertToSimpleCommentDTO);
         return ResponseEntity.ok(commentList);
     }
 
@@ -122,58 +123,14 @@ public class CommentQueryController {
      * @since 2.0.0
      * @author Jaeik
      */
+    @Deprecated
     @GetMapping("/me/liked")
     public ResponseEntity<Page<SimpleCommentDTO>> getUserLikedComments(@RequestParam(defaultValue = "0") int page,
                                                                        @RequestParam(defaultValue = "10") int size,
                                                                        @AuthenticationPrincipal CustomUserDetails userDetails) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<SimpleCommentInfo> likedCommentsInfo = CommentQueryService.getMemberLikedComments(userDetails.getMemberId(), pageable);
-        Page<SimpleCommentDTO> likedComments = likedCommentsInfo.map(this::convertToSimpleCommentDTO);
+        Page<SimpleCommentDTO> likedComments = likedCommentsInfo.map(SimpleCommentDTO::convertToSimpleCommentDTO);
         return ResponseEntity.ok(likedComments);
-    }
-
-    /**
-     * <h3>도메인 객체를 DTO로 변환</h3>
-     *
-     * @param commentInfo 도메인 계층 댓글 정보 객체
-     * @return CommentDTO 웹 계층 댓글 응답 DTO
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public CommentDTO convertToCommentDTO(CommentInfo commentInfo) {
-        CommentDTO commentDTO = new CommentDTO(
-                commentInfo.getId(),
-                commentInfo.getPostId(),
-                commentInfo.getMemberId(),
-                commentInfo.getMemberName(),
-                commentInfo.getContent(),
-                commentInfo.isDeleted(),
-                commentInfo.getCreatedAt(),
-                commentInfo.getParentId(),
-                commentInfo.getLikeCount()
-        );
-        commentDTO.setPopular(commentInfo.isPopular());
-        commentDTO.setUserLike(commentInfo.isUserLike());
-        return commentDTO;
-    }
-
-    /**
-     * <h3>SimpleCommentInfo를 SimpleCommentDTO로 변환</h3>
-     *
-     * @param commentInfo 변환할 도메인 객체
-     * @return SimpleCommentDTO 응답 DTO
-     * @author jaeik
-     * @since 2.0.0
-     */
-    public SimpleCommentDTO convertToSimpleCommentDTO(SimpleCommentInfo commentInfo) {
-        return new SimpleCommentDTO(
-                commentInfo.getId(),
-                commentInfo.getPostId(),
-                commentInfo.getMemberName(),
-                commentInfo.getContent(),
-                commentInfo.getCreatedAt(),
-                commentInfo.getLikeCount(),
-                commentInfo.isUserLike()
-        );
     }
 }

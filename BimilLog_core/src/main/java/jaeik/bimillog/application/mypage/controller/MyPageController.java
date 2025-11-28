@@ -12,6 +12,7 @@ import jaeik.bimillog.infrastructure.log.Log;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -33,10 +34,9 @@ public class MyPageController {
     private final PostQueryService postQueryService;
 
     @GetMapping("/")
-    public ResponseEntity<MyPageDTO> getUserComments(@RequestParam(defaultValue = "0") int page,
-                                                     @RequestParam(defaultValue = "10") int size,
-                                                     @AuthenticationPrincipal CustomUserDetails userDetails) {
-        PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+    public ResponseEntity<MyPageDTO> getUserComments(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                                     Pageable pageable) {
+
         Page<SimpleCommentInfo> commentInfoList = commentQueryService.getMemberComments(userDetails.getMemberId(), pageable);
         Page<SimpleCommentInfo> likedCommentsInfo = commentQueryService.getMemberLikedComments(userDetails.getMemberId(), pageable);
         Page<PostSimpleDetail> SimplePostList = postQueryService.getMemberPosts(userDetails.getMemberId(), pageable);

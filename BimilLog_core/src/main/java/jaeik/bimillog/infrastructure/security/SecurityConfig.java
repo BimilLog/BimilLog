@@ -92,10 +92,9 @@ public class SecurityConfig {
                         .requestMatchers("/.well-known/**").permitAll() // TWA Digital Asset Links
                         .requestMatchers("/api/member/search", "api/member/all").permitAll()
                         .requestMatchers("/api/auth/login", "/api/global/health", "/api/auth/me", "/api/member/signup", "/api/global/client-error").permitAll()
-                        .requestMatchers("/api/comment/me", "/api/comment/me/liked").authenticated()
+                        .requestMatchers("/api/mypage").authenticated()
                         .requestMatchers("/api/comment/like").authenticated()
                         .requestMatchers("/api/comment/**").permitAll()
-                        .requestMatchers("/api/post/me", "/api/post/me/liked").authenticated()
                         .requestMatchers("/api/post/{postId}/notice").hasRole("ADMIN")
                         .requestMatchers("/api/post/{postId}/like").authenticated()
                         .requestMatchers("/api/post/**").permitAll()
