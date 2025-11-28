@@ -16,12 +16,14 @@ export const queryKeys = {
     detail: (userId: number) => [...queryKeys.user.all, 'detail', userId] as const,
     list: (page?: number, size?: number) => [...queryKeys.user.all, 'list', page, size] as const,
     search: (keyword: string, page?: number, size?: number) => [...queryKeys.user.all, 'search', keyword, page, size] as const,
-    posts: (page?: number, pageSize?: number) => [...queryKeys.user.all, 'posts', page, pageSize] as const,
-    comments: (page?: number, pageSize?: number) => [...queryKeys.user.all, 'comments', page, pageSize] as const,
-    likePosts: (page?: number, pageSize?: number) => [...queryKeys.user.all, 'likePosts', page, pageSize] as const,
-    likeComments: (page?: number, pageSize?: number) => [...queryKeys.user.all, 'likeComments', page, pageSize] as const,
     settings: () => [...queryKeys.user.all, 'settings'] as const,
     friendList: () => [...queryKeys.user.all, 'friendList'] as const,
+  },
+
+  // MyPage
+  mypage: {
+    all: ['mypage'] as const,
+    info: (page?: number, size?: number) => [...queryKeys.mypage.all, 'info', { page, size }] as const,
   },
 
   // Post

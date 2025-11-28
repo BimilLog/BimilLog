@@ -9,6 +9,9 @@ export { authCommand } from './auth/command'
 export { userQuery } from './user/query'
 export { userCommand } from './user/command'
 
+// MyPage
+export { mypageQuery } from './mypage/query'
+
 // Post
 export { postQuery } from './post/query'
 export { postCommand } from './post/command'
@@ -66,6 +69,12 @@ export type {
   KakaoFriend,
   KakaoFriendList
 } from '@/types/domains/user'
+
+export type {
+  MyPageDTO,
+  MemberActivityComment,
+  MemberActivityPost
+} from '@/types/domains/mypage'
 
 export type {
   Post,

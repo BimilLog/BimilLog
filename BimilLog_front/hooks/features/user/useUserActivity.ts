@@ -1,73 +1,41 @@
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { userQuery } from '@/lib/api';
+import { useMyPageInfo } from '@/hooks/api/useMyPageQueries';
 import { usePagination } from '@/hooks/common/usePagination';
-import { queryKeys } from '@/lib/tanstack-query/keys';
 
 // ============ USER ACTIVITY HOOKS ============
 
-// 사용자 활동 탭 조회 - TanStack Query 통합
+// 사용자 활동 탭 조회 - TanStack Query 통합 (마이페이지 통합 API 사용)
 export function useUserActivityTabs(pageSize = 10) {
   const [activeTab, setActiveTab] = useState<'my-posts' | 'my-comments' | 'liked-posts' | 'liked-comments'>('my-posts');
 
   // 페이지네이션
   const pagination = usePagination({ pageSize });
 
-  // 작성한 게시글 조회
-  const { data: myPostsData, isLoading: myPostsLoading, error: myPostsError } = useQuery({
-    queryKey: queryKeys.user.posts(pagination.currentPage, pagination.pageSize),
-    queryFn: () => userQuery.getUserPosts(pagination.currentPage, pagination.pageSize),
-    enabled: activeTab === 'my-posts',
-    staleTime: 5 * 60 * 1000, // 5분
-    gcTime: 10 * 60 * 1000,
-  });
+  // 마이페이지 통합 API 호출 (1번의 호출로 모든 활동 데이터 조회)
+  const {
+    data: mypageData,
+    isLoading,
+    error,
+  } = useMyPageInfo(pagination.currentPage, pagination.pageSize);
 
-  // 작성한 댓글 조회
-  const { data: myCommentsData, isLoading: myCommentsLoading, error: myCommentsError } = useQuery({
-    queryKey: queryKeys.user.comments(pagination.currentPage, pagination.pageSize),
-    queryFn: () => userQuery.getUserComments(pagination.currentPage, pagination.pageSize),
-    enabled: activeTab === 'my-comments',
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-  });
+  // 각 탭의 실제 데이터 반환
+  const myPosts = useMemo(() => {
+    return mypageData?.data?.memberActivityPost.writePosts.content || [];
+  }, [mypageData]);
 
-  // 추천한 게시글 조회
-  const { data: likedPostsData, isLoading: likedPostsLoading, error: likedPostsError } = useQuery({
-    queryKey: queryKeys.user.likePosts(pagination.currentPage, pagination.pageSize),
-    queryFn: () => userQuery.getUserLikedPosts(pagination.currentPage, pagination.pageSize),
-    enabled: activeTab === 'liked-posts',
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-  });
+  const myComments = useMemo(() => {
+    return mypageData?.data?.memberActivityComment.writeComments.content || [];
+  }, [mypageData]);
 
-  // 추천한 댓글 조회
-  const { data: likedCommentsData, isLoading: likedCommentsLoading, error: likedCommentsError } = useQuery({
-    queryKey: queryKeys.user.likeComments(pagination.currentPage, pagination.pageSize),
-    queryFn: () => userQuery.getUserLikedComments(pagination.currentPage, pagination.pageSize),
-    enabled: activeTab === 'liked-comments',
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
-  });
+  const likedPosts = useMemo(() => {
+    return mypageData?.data?.memberActivityPost.likedPosts.content || [];
+  }, [mypageData]);
 
-  // 각 탭의 실제 데이터 반환 (활성 탭만 데이터 반환, 비활성 탭은 빈 배열)
-  const myPosts = useMemo(() =>
-    activeTab === 'my-posts' ? (myPostsData?.data?.content || []) : [],
-    [activeTab, myPostsData]
-  );
-  const myComments = useMemo(() =>
-    activeTab === 'my-comments' ? (myCommentsData?.data?.content || []) : [],
-    [activeTab, myCommentsData]
-  );
-  const likedPosts = useMemo(() =>
-    activeTab === 'liked-posts' ? (likedPostsData?.data?.content || []) : [],
-    [activeTab, likedPostsData]
-  );
-  const likedComments = useMemo(() =>
-    activeTab === 'liked-comments' ? (likedCommentsData?.data?.content || []) : [],
-    [activeTab, likedCommentsData]
-  );
+  const likedComments = useMemo(() => {
+    return mypageData?.data?.memberActivityComment.likedComments.content || [];
+  }, [mypageData]);
 
   // 현재 활성 탭의 데이터 반환
   const currentData = useMemo(() => {
@@ -85,52 +53,25 @@ export function useUserActivityTabs(pageSize = 10) {
     }
   }, [activeTab, myPosts, myComments, likedPosts, likedComments]);
 
-  // 현재 활성 탭의 로딩/에러 상태 반환
-  const isLoading = useMemo(() => {
-    switch (activeTab) {
-      case 'my-posts':
-        return myPostsLoading;
-      case 'my-comments':
-        return myCommentsLoading;
-      case 'liked-posts':
-        return likedPostsLoading;
-      case 'liked-comments':
-        return likedCommentsLoading;
-      default:
-        return false;
-    }
-  }, [activeTab, myPostsLoading, myCommentsLoading, likedPostsLoading, likedCommentsLoading]);
-
-  const error = useMemo(() => {
-    switch (activeTab) {
-      case 'my-posts':
-        return myPostsError;
-      case 'my-comments':
-        return myCommentsError;
-      case 'liked-posts':
-        return likedPostsError;
-      case 'liked-comments':
-        return likedCommentsError;
-      default:
-        return null;
-    }
-  }, [activeTab, myPostsError, myCommentsError, likedPostsError, likedCommentsError]);
-
   // 현재 탭의 totalElements 가져오기
   const currentTotalElements = useMemo(() => {
+    if (!mypageData?.data) return 0;
+
+    const { memberActivityPost, memberActivityComment } = mypageData.data;
+
     switch (activeTab) {
       case 'my-posts':
-        return myPostsData?.data?.totalElements || 0;
+        return memberActivityPost.writePosts.totalElements;
       case 'my-comments':
-        return myCommentsData?.data?.totalElements || 0;
+        return memberActivityComment.writeComments.totalElements;
       case 'liked-posts':
-        return likedPostsData?.data?.totalElements || 0;
+        return memberActivityPost.likedPosts.totalElements;
       case 'liked-comments':
-        return likedCommentsData?.data?.totalElements || 0;
+        return memberActivityComment.likedComments.totalElements;
       default:
         return 0;
     }
-  }, [activeTab, myPostsData, myCommentsData, likedPostsData, likedCommentsData]);
+  }, [activeTab, mypageData]);
 
   // 데이터 변경 시 페이지네이션 업데이트
   useEffect(() => {
