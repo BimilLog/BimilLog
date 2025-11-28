@@ -3,7 +3,6 @@ package jaeik.bimillog.domain.paper.service;
 import jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter;
 import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.paper.entity.VisitMessage;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.entity.VisitPaperResult;
 import jaeik.bimillog.domain.paper.event.PaperViewedEvent;
@@ -69,8 +68,8 @@ public class PaperQueryService {
         List<Message> messages = paperQueryRepository.findMessagesByMemberName(memberName);
 
         //
-        List<VisitMessage> visitMessages = messages.stream()
-                .map(VisitMessage::from)
+        List<VisitPaperResult.VisitMessage> visitMessages = messages.stream()
+                .map(VisitPaperResult.VisitMessage::from)
                 .toList();
 
         // 롤링페이퍼 조회 이벤트 발행 (실시간 인기 점수 증가)

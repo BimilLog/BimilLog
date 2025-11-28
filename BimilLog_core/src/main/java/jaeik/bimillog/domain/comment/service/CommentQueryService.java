@@ -1,9 +1,9 @@
 package jaeik.bimillog.domain.comment.service;
 
+import jaeik.bimillog.domain.comment.entity.CommentInfo;
 import jaeik.bimillog.domain.comment.entity.MemberActivityComment;
 import jaeik.bimillog.domain.comment.repository.CommentQueryRepository;
 import jaeik.bimillog.domain.comment.entity.Comment;
-import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
 import jaeik.bimillog.domain.comment.controller.CommentQueryController;
 import jaeik.bimillog.domain.comment.repository.CommentRepository;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
@@ -49,7 +49,7 @@ public class CommentQueryService {
      * @author Jaeik
      * @since 2.0.0
      */
-    public List<MemberActivityComment.CommentInfo> getPopularComments(Long postId, CustomUserDetails userDetails) {
+    public List<CommentInfo> getPopularComments(Long postId, CustomUserDetails userDetails) {
         Long memberId = userDetails != null ? userDetails.getMemberId() : null;
         return commentQueryRepository.findPopularComments(postId, memberId);
     }
@@ -67,7 +67,7 @@ public class CommentQueryService {
      * @author Jaeik
      * @since 2.0.0
      */
-    public Page<MemberActivityComment.CommentInfo> getCommentsOldestOrder(Long postId, Pageable pageable, CustomUserDetails userDetails) {
+    public Page<CommentInfo> getCommentsOldestOrder(Long postId, Pageable pageable, CustomUserDetails userDetails) {
         Long memberId = userDetails != null ? userDetails.getMemberId() : null;
         return commentQueryRepository.findCommentsWithOldestOrder(postId, pageable, memberId);
     }
@@ -98,8 +98,8 @@ public class CommentQueryService {
      * @since 2.0.0
      */
     public MemberActivityComment getMemberActivityComments(Long memberId, Pageable pageable) {
-        Page<SimpleCommentInfo> writeComments = commentQueryRepository.findCommentsByMemberId(memberId, pageable);
-        Page<SimpleCommentInfo> likedComments = commentQueryRepository.findLikedCommentsByMemberId(memberId, pageable);
+        Page<MemberActivityComment.SimpleCommentInfo> writeComments = commentQueryRepository.findCommentsByMemberId(memberId, pageable);
+        Page<MemberActivityComment.SimpleCommentInfo> likedComments = commentQueryRepository.findLikedCommentsByMemberId(memberId, pageable);
         return new MemberActivityComment(writeComments, likedComments);
     }
 

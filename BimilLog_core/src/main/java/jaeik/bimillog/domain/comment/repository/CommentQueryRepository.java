@@ -54,13 +54,13 @@ public class CommentQueryRepository {
      * @author Jaeik
      * @since 2.0.0
      */
-    public Page<MemberActivityComment.CommentInfo> findCommentsWithOldestOrder(Long postId, Pageable pageable, Long memberId) {
+    public Page<CommentInfo> findCommentsWithOldestOrder(Long postId, Pageable pageable, Long memberId) {
         QCommentClosure parentClosure = new QCommentClosure("parentClosure");
         QCommentLike userCommentLike = new QCommentLike("userCommentLike");
 
         // 쿼리 빌딩
-        JPAQuery<MemberActivityComment.CommentInfo> query = jpaQueryFactory
-                .select(Projections.constructor(MemberActivityComment.CommentInfo.class,
+        JPAQuery<CommentInfo> query = jpaQueryFactory
+                .select(Projections.constructor(CommentInfo.class,
                         comment.id,
                         comment.post.id,
                         comment.member.id,
@@ -93,7 +93,7 @@ public class CommentQueryRepository {
         }
 
         // 쿼리 실행
-        List<MemberActivityComment.CommentInfo> content = query
+        List<CommentInfo> content = query
                 .where(applyBlacklistFilter(comment.post.id.eq(postId), memberId))
                 .groupBy(comment.id, member.memberName, comment.createdAt,
                         parentClosure.ancestor.id, userCommentLike.id)
@@ -118,12 +118,12 @@ public class CommentQueryRepository {
      * @author Jaeik
      * @since 2.0.0
      */
-    public Page<SimpleCommentInfo> findCommentsByMemberId(Long memberId, Pageable pageable) {
+    public Page<MemberActivityComment.SimpleCommentInfo> findCommentsByMemberId(Long memberId, Pageable pageable) {
         QCommentLike userCommentLike = new QCommentLike("userCommentLike");
 
         // 쿼리 빌딩 - memberId가 있으므로 항상 userLike 조인
-        List<SimpleCommentInfo> content = jpaQueryFactory
-                .select(Projections.constructor(SimpleCommentInfo.class,
+        List<MemberActivityComment.SimpleCommentInfo> content = jpaQueryFactory
+                .select(Projections.constructor(MemberActivityComment.SimpleCommentInfo.class,
                         comment.id,
                         comment.post.id,
                         comment.member.memberName,
@@ -166,14 +166,14 @@ public class CommentQueryRepository {
      * @author Jaeik
      * @since 2.0.0
      */
-    public Page<SimpleCommentInfo> findLikedCommentsByMemberId(Long memberId, Pageable pageable) {
+    public Page<MemberActivityComment.SimpleCommentInfo> findLikedCommentsByMemberId(Long memberId, Pageable pageable) {
         QCommentLike userLike = new QCommentLike("userLike");  // 필터링용
         QCommentLike allLikes = new QCommentLike("allLikes");  // 전체 좋아요 카운트용
         QCommentLike userCommentLike = new QCommentLike("userCommentLike");  // Projection용
 
         // 쿼리 빌딩 - JOIN ON 절에서 필터링하여 WHERE 절 사용 방지
-        List<SimpleCommentInfo> content = jpaQueryFactory
-                .select(Projections.constructor(SimpleCommentInfo.class,
+        List<MemberActivityComment.SimpleCommentInfo> content = jpaQueryFactory
+                .select(Projections.constructor(MemberActivityComment.SimpleCommentInfo.class,
                         comment.id,
                         comment.post.id,
                         member.memberName,
@@ -222,14 +222,14 @@ public class CommentQueryRepository {
      * @author Jaeik
      * @since 2.0.0
      */
-    public List<MemberActivityComment.CommentInfo> findPopularComments(Long postId, Long memberId) {
+    public List<CommentInfo> findPopularComments(Long postId, Long memberId) {
         // N+1 문제 해결을 위한 별도 Q타입 생성
         QCommentClosure parentClosure = new QCommentClosure("parentClosure");
         QCommentLike userCommentLike = new QCommentLike("userCommentLike");
 
         // 쿼리 빌딩
-        JPAQuery<MemberActivityComment.CommentInfo> query = jpaQueryFactory
-                .select(Projections.constructor(MemberActivityComment.CommentInfo.class,
+        JPAQuery<CommentInfo> query = jpaQueryFactory
+                .select(Projections.constructor(CommentInfo.class,
                         comment.id,
                         comment.post.id,
                         comment.member.id,
@@ -258,7 +258,7 @@ public class CommentQueryRepository {
         }
 
         // 쿼리 실행
-        List<MemberActivityComment.CommentInfo> popularComments = query
+        List<CommentInfo> popularComments = query
                 .where(applyBlacklistFilter(comment.post.id.eq(postId), memberId))
                 .groupBy(comment.id, member.memberName, comment.createdAt,
                         parentClosure.ancestor.id, userCommentLike.id)

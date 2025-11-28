@@ -13,18 +13,4 @@ package jaeik.bimillog.domain.post.entity;
  */
 public enum PostCacheFlag {
     REALTIME, WEEKLY, LEGEND, NOTICE;
-
-    /**
-     * <h3>인기글 캐시 타입 목록 반환</h3>
-     * <p>인기글 조회 시 대상이 되는 캐시 타입들을 배열로 반환합니다.</p>
-     * <p>PostQueryController에서 인기글 목록 조회 시 필터링 조건에 사용됩니다.</p>
-     * <p>PostCacheController에서 인기글 대상 게시글 확인 시 사용됩니다.</p>
-     *
-     * @return PostCacheFlag[] 인기글 캐시 타입 배열 (REALTIME, WEEKLY, LEGEND, NOTICE)
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public static PostCacheFlag[] getPopularPostTypes() {
-        return new PostCacheFlag[]{REALTIME, WEEKLY, LEGEND, NOTICE};
-    }
 }
