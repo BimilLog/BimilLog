@@ -1,12 +1,12 @@
 package jaeik.bimillog.domain.auth.service;
 
-import jaeik.bimillog.domain.global.out.GlobalBlacklistAdapter;
-import jaeik.bimillog.infrastructure.redis.blacklist.RedisJwtBlacklistAdapter;
-import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
-import jaeik.bimillog.domain.global.out.GlobalAuthTokenQueryAdapter;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.BlackList;
+import jaeik.bimillog.domain.global.out.GlobalAuthTokenQueryAdapter;
+import jaeik.bimillog.domain.global.out.GlobalBlacklistAdapter;
+import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
+import jaeik.bimillog.infrastructure.redis.blacklist.RedisJwtBlacklistAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

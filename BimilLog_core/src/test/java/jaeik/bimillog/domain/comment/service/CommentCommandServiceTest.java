@@ -1,19 +1,20 @@
 package jaeik.bimillog.domain.comment.service;
 
-import jaeik.bimillog.domain.comment.repository.CommentDeleteRepository;
-import jaeik.bimillog.domain.comment.repository.CommentQueryRepository;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentClosure;
 import jaeik.bimillog.domain.comment.entity.CommentLike;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.domain.comment.repository.CommentDeleteRepository;
+import jaeik.bimillog.domain.comment.repository.CommentQueryRepository;
 import jaeik.bimillog.domain.global.out.GlobalCommentQueryAdapter;
 import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.testutil.*;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.testutil.BaseUnitTest;
+import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.builder.CommentTestDataBuilder;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import jaeik.bimillog.testutil.fixtures.TestFixtures;

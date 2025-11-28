@@ -2,10 +2,10 @@ package jaeik.bimillog.domain.admin.repository;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jaeik.bimillog.domain.admin.service.AdminQueryService;
 import jaeik.bimillog.domain.admin.entity.QReport;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
+import jaeik.bimillog.domain.admin.service.AdminQueryService;
 import jaeik.bimillog.domain.member.entity.QMember;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

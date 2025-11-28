@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.entity.MyMessage;
 import jaeik.bimillog.domain.paper.out.MessageRepository;
-import jaeik.bimillog.testutil.*;
+import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.builder.PaperTestDataBuilder;
 import jaeik.bimillog.testutil.config.H2TestConfiguration;
 import jaeik.bimillog.testutil.config.TestSocialLoginAdapterConfig;

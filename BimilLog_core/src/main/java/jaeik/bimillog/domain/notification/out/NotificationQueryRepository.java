@@ -1,16 +1,14 @@
 package jaeik.bimillog.domain.notification.out;
 
-import java.util.List;
-
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.querydsl.jpa.impl.JPAQueryFactory;
-
 import jaeik.bimillog.domain.member.entity.QMember;
 import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.entity.QNotification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * <h2>알림 조회 어댑터</h2>

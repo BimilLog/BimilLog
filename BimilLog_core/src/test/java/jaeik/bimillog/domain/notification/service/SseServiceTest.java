@@ -1,10 +1,8 @@
 package jaeik.bimillog.domain.notification.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.verify;
-
+import jaeik.bimillog.domain.notification.entity.NotificationType;
+import jaeik.bimillog.domain.notification.entity.SseMessage;
+import jaeik.bimillog.domain.notification.out.SseAdapter;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -14,9 +12,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.notification.entity.SseMessage;
-import jaeik.bimillog.domain.notification.out.SseAdapter;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.verify;
 
 /**
  * <h2>SseService 테스트</h2>

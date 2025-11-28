@@ -5,8 +5,6 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostDeleteAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostSaveAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;

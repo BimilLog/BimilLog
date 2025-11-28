@@ -1,13 +1,10 @@
 package jaeik.bimillog.domain.member.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 
 /**
  * <h3>블랙리스트 조회 DTO</h3>

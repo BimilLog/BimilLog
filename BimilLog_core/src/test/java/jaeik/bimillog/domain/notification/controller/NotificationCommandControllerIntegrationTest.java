@@ -1,12 +1,12 @@
 package jaeik.bimillog.domain.notification.controller;
 
+import jaeik.bimillog.domain.notification.dto.UpdateNotificationDTO;
 import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.notification.dto.UpdateNotificationDTO;
 import jaeik.bimillog.domain.notification.out.NotificationRepository;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
-import jaeik.bimillog.testutil.config.H2TestConfiguration;
 import jaeik.bimillog.testutil.builder.NotificationTestDataBuilder;
+import jaeik.bimillog.testutil.config.H2TestConfiguration;
 import jaeik.bimillog.testutil.config.TestSocialLoginAdapterConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;

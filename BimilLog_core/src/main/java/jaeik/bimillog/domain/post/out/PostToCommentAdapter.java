@@ -1,8 +1,6 @@
 package jaeik.bimillog.domain.post.out;
 
-import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.comment.service.CommentQueryService;
-import jaeik.bimillog.domain.post.service.PostCommandService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

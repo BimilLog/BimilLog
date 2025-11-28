@@ -1,21 +1,21 @@
 package jaeik.bimillog.domain.comment.service;
 
-import jaeik.bimillog.domain.comment.repository.*;
+import jaeik.bimillog.domain.comment.controller.CommentCommandController;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentClosure;
 import jaeik.bimillog.domain.comment.entity.CommentLike;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
 import jaeik.bimillog.domain.comment.event.CommentLikeEvent;
+import jaeik.bimillog.domain.comment.repository.*;
 import jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter;
-import jaeik.bimillog.domain.post.out.PostRepository;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.comment.controller.CommentCommandController;
+import jaeik.bimillog.domain.post.out.PostRepository;
 import jaeik.bimillog.domain.post.out.PostToCommentAdapter;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;

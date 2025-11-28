@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.post.event;
 
-import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
 import jaeik.bimillog.domain.post.service.PostInteractionService;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;

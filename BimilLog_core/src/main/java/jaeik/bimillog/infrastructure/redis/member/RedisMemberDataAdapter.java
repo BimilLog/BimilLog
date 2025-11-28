@@ -1,9 +1,9 @@
 package jaeik.bimillog.infrastructure.redis.member;
 
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
+import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

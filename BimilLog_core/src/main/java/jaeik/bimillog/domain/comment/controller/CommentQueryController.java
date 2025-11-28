@@ -1,9 +1,8 @@
 package jaeik.bimillog.domain.comment.controller;
 
-import jaeik.bimillog.domain.comment.entity.CommentInfo;
-import jaeik.bimillog.domain.comment.entity.MemberActivityComment;
-import jaeik.bimillog.domain.comment.service.CommentQueryService;
 import jaeik.bimillog.domain.comment.dto.CommentDTO;
+import jaeik.bimillog.domain.comment.entity.CommentInfo;
+import jaeik.bimillog.domain.comment.service.CommentQueryService;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.infrastructure.log.Log;
 import lombok.RequiredArgsConstructor;

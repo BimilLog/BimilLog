@@ -2,12 +2,12 @@ package jaeik.bimillog.domain.member.service;
 
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
-import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.global.out.GlobalAuthTokenSaveAdapter;
 import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
 import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
 import jaeik.bimillog.domain.global.out.GlobalSocialTokenCommandAdapter;
+import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.redis.member.RedisMemberDataAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.TestMembers;

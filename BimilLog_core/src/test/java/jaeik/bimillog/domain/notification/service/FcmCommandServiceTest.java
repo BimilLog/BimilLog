@@ -1,17 +1,9 @@
 package jaeik.bimillog.domain.notification.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-
+import jaeik.bimillog.domain.notification.entity.FcmMessage;
+import jaeik.bimillog.domain.notification.entity.NotificationType;
+import jaeik.bimillog.domain.notification.out.NotificationUtilAdapter;
+import jaeik.bimillog.infrastructure.api.fcm.FcmAdapter;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -21,10 +13,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import jaeik.bimillog.domain.notification.entity.FcmMessage;
-import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.notification.out.NotificationUtilAdapter;
-import jaeik.bimillog.infrastructure.api.fcm.FcmAdapter;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 /**
  * <h2>FcmService 단위 테스트</h2>

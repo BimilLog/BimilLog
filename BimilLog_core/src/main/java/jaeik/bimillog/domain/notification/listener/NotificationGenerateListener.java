@@ -2,8 +2,8 @@ package jaeik.bimillog.domain.notification.listener;
 
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.friend.event.FriendEvent;
-import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.domain.notification.service.FcmCommandService;
+import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
 import lombok.RequiredArgsConstructor;

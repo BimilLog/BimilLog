@@ -1,11 +1,11 @@
 package jaeik.bimillog.domain.member.service;
 
 import jaeik.bimillog.domain.auth.entity.SocialToken;
+import jaeik.bimillog.domain.member.dto.KakaoFriendsDTO;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.out.MemberQueryRepository;
 import jaeik.bimillog.domain.member.out.MemberToAuthAdapter;
-import jaeik.bimillog.domain.member.dto.KakaoFriendsDTO;
 import jaeik.bimillog.infrastructure.api.social.kakao.KakaoFriendClient;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;

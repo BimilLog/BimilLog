@@ -1,12 +1,12 @@
 package jaeik.bimillog.domain.member.controller;
 
+import jaeik.bimillog.domain.global.entity.CustomUserDetails;
+import jaeik.bimillog.domain.member.dto.KakaoFriendsDTO;
+import jaeik.bimillog.domain.member.dto.SettingDTO;
 import jaeik.bimillog.domain.member.dto.SimpleMemberDTO;
+import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.service.MemberFriendService;
 import jaeik.bimillog.domain.member.service.MemberQueryService;
-import jaeik.bimillog.domain.member.entity.Setting;
-import jaeik.bimillog.domain.member.dto.SettingDTO;
-import jaeik.bimillog.domain.member.dto.KakaoFriendsDTO;
-import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.infrastructure.log.Log;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
@@ -14,11 +14,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.validation.annotation.Validated;
 
 /**
  * <h2>멤버 조회 컨트롤러</h2>

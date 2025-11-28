@@ -1,11 +1,11 @@
 package jaeik.bimillog.domain.auth.out;
 
-import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.member.service.MemberOnboardingService;
-import jaeik.bimillog.domain.member.service.MemberQueryService;
+import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
+import jaeik.bimillog.domain.member.service.MemberOnboardingService;
+import jaeik.bimillog.domain.member.service.MemberQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

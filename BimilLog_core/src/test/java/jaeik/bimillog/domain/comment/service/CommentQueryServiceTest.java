@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.comment.service;
 
 import jaeik.bimillog.domain.comment.entity.CommentInfo;
-import jaeik.bimillog.domain.comment.entity.MemberActivityComment;
 import jaeik.bimillog.domain.comment.repository.CommentQueryRepository;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import org.junit.jupiter.api.DisplayName;

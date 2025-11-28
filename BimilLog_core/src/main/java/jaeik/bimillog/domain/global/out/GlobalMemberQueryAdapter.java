@@ -1,17 +1,12 @@
 package jaeik.bimillog.domain.global.out;
 
+import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.out.MemberRepository;
 import jaeik.bimillog.domain.member.service.MemberQueryService;
-import jaeik.bimillog.domain.member.entity.Member;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * <h2>사용자 조회 공용 어댑터</h2>

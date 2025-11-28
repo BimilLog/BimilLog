@@ -6,7 +6,6 @@ import jaeik.bimillog.domain.auth.service.SocialLogoutService;
 import jaeik.bimillog.domain.global.out.GlobalSocialTokenCommandAdapter;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.notification.service.SseService;
-import jaeik.bimillog.domain.notification.service.FcmCommandService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;

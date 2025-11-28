@@ -1,11 +1,7 @@
 package jaeik.bimillog.domain.auth.entity;
 
 import jaeik.bimillog.domain.member.entity.SocialProvider;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 /**
  * <h2>소셜 사용자 프로필</h2>

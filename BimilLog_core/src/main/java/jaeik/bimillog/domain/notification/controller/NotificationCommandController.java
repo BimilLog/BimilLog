@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.notification.controller;
 
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
 import jaeik.bimillog.domain.notification.dto.UpdateNotificationDTO;
+import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
 import jaeik.bimillog.domain.notification.service.NotificationCommandService;
 import jaeik.bimillog.infrastructure.log.Log;
 import jakarta.validation.Valid;

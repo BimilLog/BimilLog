@@ -1,9 +1,5 @@
 package jaeik.bimillog.domain.notification.service;
 
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.listener.NotificationGenerateListener;
@@ -11,6 +7,9 @@ import jaeik.bimillog.domain.notification.out.NotificationUtilAdapter;
 import jaeik.bimillog.infrastructure.api.fcm.FcmAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * <h2>FCM 푸시 알림 서비스</h2>

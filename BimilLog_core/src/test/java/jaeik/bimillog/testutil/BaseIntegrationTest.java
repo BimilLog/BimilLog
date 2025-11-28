@@ -1,9 +1,9 @@
 package jaeik.bimillog.testutil;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.MemberRole;
-import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.member.out.MemberRepository;
 import jaeik.bimillog.testutil.fixtures.AuthTestFixtures;
 import jakarta.persistence.EntityManager;

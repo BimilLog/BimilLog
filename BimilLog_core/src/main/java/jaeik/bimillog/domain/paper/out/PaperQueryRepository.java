@@ -2,10 +2,10 @@ package jaeik.bimillog.domain.paper.out;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import jaeik.bimillog.domain.paper.service.PaperCommandService;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.entity.PopularPaperInfo;
 import jaeik.bimillog.domain.paper.entity.QMessage;
+import jaeik.bimillog.domain.paper.service.PaperCommandService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 

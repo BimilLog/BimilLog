@@ -1,15 +1,15 @@
 package jaeik.bimillog.domain.admin.controller;
 
+import jaeik.bimillog.domain.admin.dto.BanUserDTO;
+import jaeik.bimillog.domain.admin.dto.ForceWithdrawDTO;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.admin.dto.BanUserDTO;
-import jaeik.bimillog.domain.admin.dto.ForceWithdrawDTO;
 import jaeik.bimillog.domain.post.out.PostRepository;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
-import jaeik.bimillog.testutil.config.H2TestConfiguration;
-import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import jaeik.bimillog.testutil.TestMembers;
+import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
+import jaeik.bimillog.testutil.config.H2TestConfiguration;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;

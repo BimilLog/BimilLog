@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.friend.entity.jpa;
 
 import jaeik.bimillog.domain.global.entity.BaseEntity;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.member.entity.MemberBlacklist;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;

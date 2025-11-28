@@ -1,14 +1,17 @@
 package jaeik.bimillog.domain.comment.repository;
 
-import jaeik.bimillog.domain.comment.entity.*;
+import jaeik.bimillog.domain.comment.entity.Comment;
+import jaeik.bimillog.domain.comment.entity.CommentInfo;
+import jaeik.bimillog.domain.comment.entity.CommentLike;
+import jaeik.bimillog.domain.comment.entity.MemberActivityComment;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.member.out.MemberRepository;
+import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.out.PostRepository;
-import jaeik.bimillog.testutil.builder.CommentTestDataBuilder;
-import jaeik.bimillog.testutil.config.H2TestConfiguration;
-import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import jaeik.bimillog.testutil.TestMembers;
+import jaeik.bimillog.testutil.builder.CommentTestDataBuilder;
+import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
+import jaeik.bimillog.testutil.config.H2TestConfiguration;
 import jaeik.bimillog.testutil.fixtures.TestFixtures;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;

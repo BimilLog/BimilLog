@@ -1,14 +1,13 @@
 package jaeik.bimillog.domain.notification.service;
 
-import org.springframework.stereotype.Service;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-
+import jaeik.bimillog.domain.notification.controller.NotificationSseController;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.SseMessage;
 import jaeik.bimillog.domain.notification.listener.NotificationGenerateListener;
-import jaeik.bimillog.domain.notification.controller.NotificationSseController;
 import jaeik.bimillog.domain.notification.out.SseAdapter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**
  * <h2>SSE 실시간 알림 서비스</h2>

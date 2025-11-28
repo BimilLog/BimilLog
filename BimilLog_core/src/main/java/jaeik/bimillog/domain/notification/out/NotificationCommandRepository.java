@@ -1,12 +1,11 @@
 package jaeik.bimillog.domain.notification.out;
 
-import java.util.List;
-
-import org.springframework.stereotype.Repository;
-
 import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
 
 /**
  * <h2>알림 명령 어댑터</h2>

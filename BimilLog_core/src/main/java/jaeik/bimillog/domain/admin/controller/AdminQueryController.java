@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.admin.controller;
 
-import jaeik.bimillog.domain.admin.service.AdminQueryService;
-import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.admin.dto.ReportDTO;
+import jaeik.bimillog.domain.admin.entity.ReportType;
+import jaeik.bimillog.domain.admin.service.AdminQueryService;
 import jaeik.bimillog.infrastructure.log.Log;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

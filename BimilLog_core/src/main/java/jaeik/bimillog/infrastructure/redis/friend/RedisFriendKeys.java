@@ -1,8 +1,5 @@
 package jaeik.bimillog.infrastructure.redis.friend;
 
-import org.springframework.data.redis.core.script.DefaultRedisScript;
-import org.springframework.data.redis.core.script.RedisScript;
-
 public class RedisFriendKeys {
 
     // 친구 관계 테이블 (Set) 키
