@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import jaeik.bimillog.domain.notification.entity.Notification;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -53,9 +54,8 @@ public class SseAdapter {
      */
     private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
 
-    private final NotificationUtilAdapter notificationUtilAdapter;
     private final MemberQueryService memberQueryService;
-    private final NotificationCommandAdapter notificationCommandAdapter;
+    private final NotificationRepository notificationRepository;
 
     /**
      * <h3>SSE 구독 - 실시간 알림 채널 생성</h3>
@@ -117,7 +117,7 @@ public class SseAdapter {
      *
      * <p>처리 흐름:</p>
      * <ol>
-     *   <li>알림 설정 확인 ({@link NotificationUtilPort#SseEligibleForNotification})</li>
+     *   <li>알림 설정 확인 ({@link
      *   <li>사용자 정보 조회 및 검증</li>
      *   <li>알림 데이터베이스 저장 (히스토리 관리용)</li>
      *   <li>해당 사용자의 모든 Emitter에 SSE 메시지 브로드캐스팅</li>
@@ -132,8 +132,9 @@ public class SseAdapter {
             Member member = memberQueryService.findById(sseMessage.memberId())
                     .orElseThrow(() -> new CustomException(ErrorCode.NOTIFICATION_INVALID_USER_CONTEXT));
 
+            Notification notification = Notification.create(member, sseMessage.type(), sseMessage.message(), sseMessage.url());
             // DB에 저장 (알림 히스토리용)
-            notificationCommandAdapter.save(member, sseMessage.type(), sseMessage.message(), sseMessage.url());
+            notificationRepository.save(notification);
 
             Map<String, SseEmitter> emitters = findAllEmitterByMemberId(sseMessage.memberId());
 
@@ -168,7 +169,7 @@ public class SseAdapter {
                     .name(sseMessage.type().toString())
                     .data(sseMessage.toJsonData()));
         } catch (IOException e) {
-            log.warn("Failed to send SSE message - emitterId={}, type={}, reason={}", emitterId,
+            log.warn("SSE 전송 실패 - emitterId={}, type={}, reason={}", emitterId,
                     sseMessage.type(), e.getMessage(), e);
             deleteById(emitterId);
         }

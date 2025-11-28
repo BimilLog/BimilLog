@@ -41,14 +41,6 @@ public class CustomUserDetails implements UserDetails {
     private final String thumbnailImage;
     private final String memberName;
     private final MemberRole role;
-    /**
-     * -- GETTER --
-     *  <h3>사용자 토큰 ID 조회 (별칭 메서드)</h3>
-     *  <p>authTokenId를 반환하는 편의 메서드</p>
-     *
-     * @return 토큰 ID
-     *
-     */
     private final Long authTokenId;
     private final Collection<? extends GrantedAuthority> authorities;
 

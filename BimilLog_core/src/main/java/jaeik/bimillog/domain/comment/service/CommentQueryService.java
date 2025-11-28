@@ -1,11 +1,11 @@
 package jaeik.bimillog.domain.comment.service;
 
+import jaeik.bimillog.domain.comment.entity.CommentInfo;
 import jaeik.bimillog.domain.comment.entity.MemberActivityComment;
-import jaeik.bimillog.domain.comment.out.CommentQueryAdapter;
+import jaeik.bimillog.domain.comment.repository.CommentQueryRepository;
 import jaeik.bimillog.domain.comment.entity.Comment;
-import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
 import jaeik.bimillog.domain.comment.controller.CommentQueryController;
-import jaeik.bimillog.domain.comment.out.CommentRepository;
+import jaeik.bimillog.domain.comment.repository.CommentRepository;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.post.out.PostToCommentAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -34,7 +34,7 @@ import java.util.Map;
 @Slf4j
 public class CommentQueryService {
 
-    private final CommentQueryAdapter commentQueryAdapter;
+    private final CommentQueryRepository commentQueryRepository;
     private final CommentRepository commentRepository;
 
     /**
@@ -49,9 +49,9 @@ public class CommentQueryService {
      * @author Jaeik
      * @since 2.0.0
      */
-    public List<MemberActivityComment.CommentInfo> getPopularComments(Long postId, CustomUserDetails userDetails) {
+    public List<CommentInfo> getPopularComments(Long postId, CustomUserDetails userDetails) {
         Long memberId = userDetails != null ? userDetails.getMemberId() : null;
-        return commentQueryAdapter.findPopularComments(postId, memberId);
+        return commentQueryRepository.findPopularComments(postId, memberId);
     }
 
     /**
@@ -67,9 +67,9 @@ public class CommentQueryService {
      * @author Jaeik
      * @since 2.0.0
      */
-    public Page<MemberActivityComment.CommentInfo> getCommentsOldestOrder(Long postId, Pageable pageable, CustomUserDetails userDetails) {
+    public Page<CommentInfo> getCommentsOldestOrder(Long postId, Pageable pageable, CustomUserDetails userDetails) {
         Long memberId = userDetails != null ? userDetails.getMemberId() : null;
-        return commentQueryAdapter.findCommentsWithOldestOrder(postId, pageable, memberId);
+        return commentQueryRepository.findCommentsWithOldestOrder(postId, pageable, memberId);
     }
 
     /**
@@ -98,8 +98,8 @@ public class CommentQueryService {
      * @since 2.0.0
      */
     public MemberActivityComment getMemberActivityComments(Long memberId, Pageable pageable) {
-        Page<SimpleCommentInfo> writeComments = commentQueryAdapter.findCommentsByMemberId(memberId, pageable);
-        Page<SimpleCommentInfo> likedComments = commentQueryAdapter.findLikedCommentsByMemberId(memberId, pageable);
+        Page<MemberActivityComment.SimpleCommentInfo> writeComments = commentQueryRepository.findCommentsByMemberId(memberId, pageable);
+        Page<MemberActivityComment.SimpleCommentInfo> likedComments = commentQueryRepository.findLikedCommentsByMemberId(memberId, pageable);
         return new MemberActivityComment(writeComments, likedComments);
     }
 
@@ -115,6 +115,6 @@ public class CommentQueryService {
      * @since 2.0.0
      */
     public Map<Long, Integer> findCommentCountsByPostIds(List<Long> postIds) {
-        return commentQueryAdapter.findCommentCountsByPostIds(postIds);
+        return commentQueryRepository.findCommentCountsByPostIds(postIds);
     }
 }

@@ -2,10 +2,9 @@ package jaeik.bimillog.domain.member.service;
 
 import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.friend.entity.Friend;
-import jaeik.bimillog.domain.friend.entity.RecommendedFriend;
 import jaeik.bimillog.domain.member.dto.KakaoFriendsDTO;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
-import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
+import jaeik.bimillog.domain.member.out.MemberQueryRepository;
 import jaeik.bimillog.domain.member.out.MemberToAuthAdapter;
 import jaeik.bimillog.infrastructure.api.social.kakao.KakaoFriendClient;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -13,14 +12,10 @@ import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Limit;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * <h2>회원 친구 서비스</h2>
@@ -31,7 +26,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class MemberFriendService {
 
-    private final MemberQueryAdapter memberQueryAdapter;
+    private final MemberQueryRepository memberQueryRepository;
     private final MemberToAuthAdapter memberToAuthAdapter;
     private final KakaoFriendClient kakaoFriendClient;
 
@@ -39,7 +34,7 @@ public class MemberFriendService {
      * 친구 추가 정보 조회
      */
     public List<Friend.FriendInfo> addMyFriendInfo(List<Long> friendIds) {
-        return memberQueryAdapter.getMyFriendPages(friendIds);
+        return memberQueryRepository.getMyFriendPages(friendIds);
     }
 
     /**
@@ -88,7 +83,7 @@ public class MemberFriendService {
                 .map(friend -> String.valueOf(friend.getId()))
                 .toList();
 
-        List<String> memberNames = memberQueryAdapter.findMemberNamesInOrder(socialIds);
+        List<String> memberNames = memberQueryRepository.findMemberNamesInOrder(socialIds);
 
         for (int index = 0; index < elements.size(); index++) {
             KakaoFriendsDTO.KakaoFriend originalKakaoFriend = elements.get(index);

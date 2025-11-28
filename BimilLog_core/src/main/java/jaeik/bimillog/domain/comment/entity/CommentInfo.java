@@ -1,0 +1,121 @@
+package jaeik.bimillog.domain.comment.entity;
+
+import lombok.*;
+
+import java.time.Instant;
+
+@Getter
+@Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class CommentInfo {
+    /**
+     * <h3>댓글 정보 값 객체</h3>
+     * <p>댓글 상세 조회 결과를 담는 객체</p>
+     *
+     * @author Jaeik
+     * @version 2.0.0
+     */
+
+        private Long id;
+        private Long parentId;
+        private Long postId;
+        private Long memberId;
+        private String memberName;
+        private String content;
+        private boolean popular;
+        private boolean deleted;
+        private Integer likeCount;
+        private Instant createdAt;
+        private boolean userLike;
+
+        /**
+         * <h3>댓글 정보 생성</h3>
+         * <p>댓글 엔티티와 메타 정보로부터 댓글 정보를 생성합니다.</p>
+         *
+         * @param comment    댓글 엔티티
+         * @param parentId   부모 댓글 ID
+         * @param likeCount  추천수
+         * @param isUserLike 사용자 추천 여부
+         * @return CommentInfo 값 객체
+         * @author Jaeik
+         * @since 2.0.0
+         */
+        public static CommentInfo of(Comment comment, Long parentId, Integer likeCount, boolean isUserLike) {
+            return CommentInfo.builder()
+                    .id(comment.getId())
+                    .parentId(parentId)
+                    .postId(comment.getPost().getId())
+                    .memberId(comment.getMember() != null ? comment.getMember().getId() : null)
+                    .memberName(comment.getMember() != null ? comment.getMember().getMemberName() : "익명")
+                    .content(comment.getContent())
+                    .popular(false)
+                    .deleted(comment.isDeleted())
+                    .likeCount(likeCount != null ? likeCount : 0)
+                    .createdAt(comment.getCreatedAt())
+                    .userLike(isUserLike)
+                    .build();
+        }
+
+        /**
+         * <h3>추천 여부 없는 댓글 정보 생성</h3>
+         * <p>로그인하지 않은 사용자용 댓글 정보를 생성합니다.</p>
+         *
+         * @param comment   댓글 엔티티
+         * @param parentId  부모 댓글 ID
+         * @param likeCount 추천수
+         * @return CommentInfo 값 객체 (userLike = false)
+         * @author Jaeik
+         * @since 2.0.0
+         */
+        public static CommentInfo of(Comment comment, Long parentId, Integer likeCount) {
+            return of(comment, parentId, likeCount, false);
+        }
+
+        /**
+         * <h3>기본 댓글 정보 생성</h3>
+         * <p>기본값으로 댓글 정보를 생성합니다.</p>
+         *
+         * @param comment 댓글 엔티티
+         * @return CommentInfo 값 객체
+         * @author Jaeik
+         * @since 2.0.0
+         */
+        public static CommentInfo of(Comment comment) {
+            return of(comment, null, 0, false);
+        }
+
+        /**
+         * <h3>QueryDSL Projection용 생성자</h3>
+         * <p>QueryDSL Projection에서 사용하는 파라미터 순서에 맞는 생성자입니다.</p>
+         *
+         * @param id         댓글 ID
+         * @param postId     게시글 ID
+         * @param memberId   사용자 ID
+         * @param memberName 사용자명
+         * @param content    댓글 내용
+         * @param deleted    삭제 여부
+         * @param createdAt  생성 시간
+         * @param parentId   부모 댓글 ID (closure.ancestor.id)
+         * @param likeCount  좋아요 수
+         * @param userLike   사용자 좋아요 여부
+         * @author Jaeik
+         * @since 2.0.0
+         */
+        public CommentInfo(Long id, Long postId, Long memberId, String memberName, String content,
+                           Boolean deleted, Instant createdAt, Long parentId, Integer likeCount, Boolean userLike) {
+            this.id = id;
+            this.parentId = parentId;
+            this.postId = postId;
+            this.memberId = memberId;
+            this.memberName = memberName;
+            this.content = content;
+            this.popular = false; // 기본값
+            this.deleted = deleted != null ? deleted : false;
+            this.likeCount = likeCount != null ? likeCount : 0;
+            this.createdAt = createdAt;
+            this.userLike = userLike != null ? userLike : false;
+        }
+    }
+

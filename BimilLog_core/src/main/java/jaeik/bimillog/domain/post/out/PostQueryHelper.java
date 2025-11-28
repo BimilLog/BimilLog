@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PostQueryHelper {
     private final JPAQueryFactory jpaQueryFactory;
-    private final PostLikeQueryAdapter postLikeQueryAdapter;
+    private final PostLikeQueryRepository postLikeQueryRepository;
 
     private static final QPost post = QPost.post;
     private static final QMember member = QMember.member;
@@ -109,7 +109,7 @@ public class PostQueryHelper {
                 .map(PostSimpleDetail::getId)
                 .toList();
 
-        Map<Long, Integer> likeCounts = postLikeQueryAdapter.findLikeCountsByPostIds(postIds);
+        Map<Long, Integer> likeCounts = postLikeQueryRepository.findLikeCountsByPostIds(postIds);
 
         posts.forEach(post -> {
             post.setLikeCount(likeCounts.getOrDefault(post.getId(), 0));

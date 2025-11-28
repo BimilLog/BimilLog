@@ -35,7 +35,6 @@ public class PostAdminService {
      * <p>postIds 영구 저장소에 단일 게시글만 추가/제거합니다.</p>
      *
      * @param postId 공지 토글할 게시글 ID
-     * @throws PostCustomException 게시글을 찾을 수 없는 경우
      * @author Jaeik
      * @since 2.0.0
      */

@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.friend.service;
 import jaeik.bimillog.domain.friend.algorithm.*;
 import jaeik.bimillog.domain.friend.entity.FriendRelation;
 import jaeik.bimillog.domain.friend.entity.RecommendedFriend;
-import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
+import jaeik.bimillog.domain.member.out.MemberQueryRepository;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
 import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 public class FriendRecommendService {
     private final RedisFriendshipRepository redisFriendshipRepository;
     private final RedisInteractionScoreRepository redisInteractionScoreRepository;
-    private final MemberQueryAdapter memberQueryAdapter;
+    private final MemberQueryRepository memberQueryRepository;
     private final BreadthFirstSearch breadthFirstSearch;
     private final FriendRecommendScorer scorer;
 
@@ -112,7 +112,7 @@ public class FriendRecommendService {
         excludeIds.addAll(blacklist);
         topCandidates.forEach(c -> excludeIds.add(c.getMemberId()));
 
-        List<Long> recentMembers = memberQueryAdapter.findRecentMembers(excludeIds, remaining);
+        List<Long> recentMembers = memberQueryRepository.findRecentMembers(excludeIds, remaining);
 
         // 최근 가입자들에 대해 상호작용 점수 조회
         Set<Long> recentIds = new HashSet<>(recentMembers);
@@ -213,7 +213,7 @@ public class FriendRecommendService {
      * @return 블랙리스트 회원 ID 집합
      */
     private Set<Long> getBlacklistIds(Long memberId) {
-        return memberQueryAdapter.findBlacklistIdsByRequestMemberId(memberId);
+        return memberQueryRepository.findBlacklistIdsByRequestMemberId(memberId);
     }
 
     private List<RecommendedFriend> convertToRecommendedFriends(List<RecommendCandidate> candidates) {
@@ -230,9 +230,9 @@ public class FriendRecommendService {
         }
 
         List<RecommendedFriend.RecommendedFriendInfo> friendInfos =
-                memberQueryAdapter.addRecommendedFriendInfo(candidateIds);
+                memberQueryRepository.addRecommendedFriendInfo(candidateIds);
         List<RecommendedFriend.AcquaintanceInfo> acquaintanceInfos =
-                memberQueryAdapter.addAcquaintanceInfo(new ArrayList<>(acquaintanceIds));
+                memberQueryRepository.addAcquaintanceInfo(new ArrayList<>(acquaintanceIds));
 
         Map<Long, RecommendedFriend.RecommendedFriendInfo> friendInfoMap = friendInfos.stream()
                 .collect(Collectors.toMap(RecommendedFriend.RecommendedFriendInfo::friendMemberId, info -> info));

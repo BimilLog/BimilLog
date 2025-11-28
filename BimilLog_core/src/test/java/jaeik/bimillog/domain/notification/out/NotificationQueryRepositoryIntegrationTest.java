@@ -36,13 +36,13 @@ import static org.assertj.core.api.Assertions.assertThat;
         )
 )
 @ActiveProfiles("h2test")
-@Import({NotificationQueryAdapter.class, H2TestConfiguration.class})
+@Import({NotificationQueryRepository.class, H2TestConfiguration.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Tag("integration")
-class NotificationQueryAdapterIntegrationTest {
+class NotificationQueryRepositoryIntegrationTest {
 
     @Autowired
-    private NotificationQueryAdapter notificationQueryAdapter;
+    private NotificationQueryRepository notificationQueryRepository;
 
     @Autowired
     private TestEntityManager testEntityManager;
@@ -105,7 +105,7 @@ class NotificationQueryAdapterIntegrationTest {
         testEntityManager.flush();
         testEntityManager.clear();
 
-        List<Notification> notifications = notificationQueryAdapter.getNotificationList(targetMember.getId());
+        List<Notification> notifications = notificationQueryRepository.getNotificationList(targetMember.getId());
 
         assertThat(notifications)
                 .extracting(Notification::getNotificationType)
@@ -122,7 +122,7 @@ class NotificationQueryAdapterIntegrationTest {
         testEntityManager.flush();
         testEntityManager.clear();
 
-        List<Notification> notifications = notificationQueryAdapter.getNotificationList(otherMember.getId());
+        List<Notification> notifications = notificationQueryRepository.getNotificationList(otherMember.getId());
 
         assertThat(notifications).isEmpty();
     }

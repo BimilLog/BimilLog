@@ -69,19 +69,4 @@ public class GlobalMemberQueryAdapter {
     public Member getReferenceById(Long memberId) {
         return memberQueryService.getReferenceById(memberId);
     }
-
-    /**
-     * <h3>모든 회원 ID 조회</h3>
-     * <p>데이터베이스에 있는 모든 회원의 ID만 조회합니다.</p>
-     * <p>회원 탈퇴 시 Redis 상호작용 테이블 정리에 사용됩니다.</p>
-     *
-     * @return List&lt;Long&gt; 모든 회원 ID 리스트
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public List<Long> findAllIds() {
-        return memberRepository.findAll().stream()
-                .map(Member::getId)
-                .collect(Collectors.toList());
-    }
 }

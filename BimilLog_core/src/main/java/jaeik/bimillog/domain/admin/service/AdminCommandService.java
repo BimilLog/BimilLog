@@ -14,7 +14,6 @@ import jaeik.bimillog.domain.global.out.GlobalCommentQueryAdapter;
 import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
-import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;

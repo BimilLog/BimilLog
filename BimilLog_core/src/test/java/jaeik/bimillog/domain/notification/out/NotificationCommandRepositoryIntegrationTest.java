@@ -43,13 +43,13 @@ import static org.assertj.core.api.Assertions.assertThat;
         )
 )
 @ActiveProfiles("h2test")
-@Import({NotificationCommandAdapter.class, H2TestConfiguration.class})
+@Import({NotificationCommandRepository.class, H2TestConfiguration.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Tag("integration")
-class NotificationCommandAdapterIntegrationTest {
+class NotificationCommandRepositoryIntegrationTest {
 
     @Autowired
-    private NotificationCommandAdapter notificationCommandAdapter;
+    private NotificationCommandRepository notificationCommandRepository;
 
     @Autowired
     private NotificationRepository notificationRepository;
@@ -88,7 +88,7 @@ class NotificationCommandAdapterIntegrationTest {
         String url = "/post/123";
 
         // When: 알림 저장
-        notificationCommandAdapter.save(testMember, type, content, url);
+        notificationCommandRepository.save(testMember, type, content, url);
 
         // Then: 알림이 정상적으로 저장되었는지 검증
         List<Notification> savedNotifications = notificationRepository.findAll();
@@ -125,7 +125,7 @@ class NotificationCommandAdapterIntegrationTest {
         NotificationUpdateVO updateCommand = NotificationUpdateVO.of(Collections.emptyList(), deleteIds);
 
         // When: 일괄 삭제 실행
-        notificationCommandAdapter.batchUpdate(testMemberId, updateCommand);
+        notificationCommandRepository.batchUpdate(testMemberId, updateCommand);
 
         testEntityManager.flush();
         testEntityManager.clear();
@@ -157,7 +157,7 @@ class NotificationCommandAdapterIntegrationTest {
         NotificationUpdateVO updateCommand = NotificationUpdateVO.of(readIds, Collections.emptyList());
 
         // When: 일괄 읽음 처리 실행
-        notificationCommandAdapter.batchUpdate(testMemberId, updateCommand);
+        notificationCommandRepository.batchUpdate(testMemberId, updateCommand);
 
         testEntityManager.flush();
         testEntityManager.clear();
@@ -201,7 +201,7 @@ class NotificationCommandAdapterIntegrationTest {
         NotificationUpdateVO updateCommand = NotificationUpdateVO.of(readIds, deleteIds);
 
         // When: 일괄 삭제 및 읽음 처리 실행
-        notificationCommandAdapter.batchUpdate(testMemberId, updateCommand);
+        notificationCommandRepository.batchUpdate(testMemberId, updateCommand);
 
         testEntityManager.flush();
         testEntityManager.clear();
@@ -230,11 +230,11 @@ class NotificationCommandAdapterIntegrationTest {
 
         // When: 빈 목록으로 일괄 업데이트 실행
         NotificationUpdateVO emptyCommand = NotificationUpdateVO.of(Collections.emptyList(), Collections.emptyList());
-        notificationCommandAdapter.batchUpdate(testMemberId, emptyCommand);
+        notificationCommandRepository.batchUpdate(testMemberId, emptyCommand);
 
         // When: null 목록으로 일괄 업데이트 실행
         NotificationUpdateVO nullCommand = NotificationUpdateVO.of(null, null);
-        notificationCommandAdapter.batchUpdate(testMemberId, nullCommand);
+        notificationCommandRepository.batchUpdate(testMemberId, nullCommand);
 
         testEntityManager.flush();
 
@@ -283,7 +283,7 @@ class NotificationCommandAdapterIntegrationTest {
         NotificationUpdateVO updateCommand = NotificationUpdateVO.of(Collections.emptyList(), deleteIds);
 
         // When: 현재 사용자가 다른 사용자의 알림까지 포함해서 삭제 시도
-        notificationCommandAdapter.batchUpdate(testMemberId, updateCommand);
+        notificationCommandRepository.batchUpdate(testMemberId, updateCommand);
 
         testEntityManager.flush();
         testEntityManager.clear();

@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.auth.service;
 
-import jaeik.bimillog.domain.auth.out.AuthTokenAdapter;
+import jaeik.bimillog.domain.auth.out.AuthTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthTokenService {
 
-    private final AuthTokenAdapter authTokenAdapter;
+    private final AuthTokenRepository authTokenRepository;
 
     /**
      * <h3>토큰 삭제</h3>
@@ -29,6 +29,10 @@ public class AuthTokenService {
      * @author Jaeik
      */
     public void deleteTokens(Long memberId, Long tokenId) {
-        authTokenAdapter.deleteTokens(memberId, tokenId);
+        if (tokenId != null) {
+            authTokenRepository.deleteById(tokenId);
+        } else {
+            authTokenRepository.deleteAllByMemberId(memberId);
+        }
     }
 }

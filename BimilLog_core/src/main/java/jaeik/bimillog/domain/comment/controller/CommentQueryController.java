@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.comment.controller;
 
+import jaeik.bimillog.domain.comment.entity.CommentInfo;
 import jaeik.bimillog.domain.comment.entity.MemberActivityComment;
 import jaeik.bimillog.domain.comment.service.CommentQueryService;
 import jaeik.bimillog.domain.comment.dto.CommentDTO;
@@ -58,7 +59,7 @@ public class CommentQueryController {
             @PathVariable Long postId,
             @RequestParam(defaultValue = "0") int page) {
         Pageable pageable = Pageable.ofSize(20).withPage(page);
-        Page<MemberActivityComment.CommentInfo> commentInfoPage = CommentQueryService.getCommentsOldestOrder(postId, pageable, userDetails);
+        Page<CommentInfo> commentInfoPage = CommentQueryService.getCommentsOldestOrder(postId, pageable, userDetails);
         Page<CommentDTO> commentDtoPage = commentInfoPage.map(CommentDTO::convertToCommentDTO);
         return ResponseEntity.ok(commentDtoPage);
     }
@@ -78,7 +79,7 @@ public class CommentQueryController {
     public ResponseEntity<List<CommentDTO>> getPopularComments(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long postId) {
-        List<MemberActivityComment.CommentInfo> commentInfoList = CommentQueryService.getPopularComments(postId, userDetails);
+        List<CommentInfo> commentInfoList = CommentQueryService.getPopularComments(postId, userDetails);
         List<CommentDTO> commentDtoList = commentInfoList.stream()
                 .map(CommentDTO::convertToCommentDTO)
                 .toList();

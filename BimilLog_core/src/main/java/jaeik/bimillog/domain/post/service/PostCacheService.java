@@ -3,8 +3,7 @@ package jaeik.bimillog.domain.post.service;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.domain.post.out.PostQueryAdapter;
+import jaeik.bimillog.domain.post.out.PostQueryRepository;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostQueryAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostSaveAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
@@ -36,8 +35,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class PostCacheService {
 
-    // ===================== 상수 =====================
-
     /**
      * 확률적 선계산(Probabilistic Early Expiration) 기법의 expiry gap (초 단위)
      * <p>TTL 마지막 120초(2분) 동안 확률적으로 캐시를 갱신합니다.</p>
@@ -50,10 +47,8 @@ public class PostCacheService {
      */
     private static final Duration LOCK_TIMEOUT = Duration.ofSeconds(10);
 
-    // ===================== 의존성 =====================
-
     private final RedisPostSaveAdapter redisPostSaveAdapter;
-    private final PostQueryAdapter postQueryAdapter;
+    private final PostQueryRepository postQueryRepository;
     private final RedisPostQueryAdapter redisPostQueryAdapter;
     private final RedisPostUpdateAdapter redisPostUpdateAdapter;
 
@@ -106,7 +101,7 @@ public class PostCacheService {
                     }
 
                     // 캐시 미스: DB 조회 후 posts:realtime에 추가
-                    PostDetail postDetail = postQueryAdapter.findPostDetailWithCounts(postId, null).orElse(null);
+                    PostDetail postDetail = postQueryRepository.findPostDetailWithCounts(postId, null).orElse(null);
                     if (postDetail == null) {
                         return null;
                     }
@@ -168,7 +163,6 @@ public class PostCacheService {
      * @param type 조회할 인기 게시글 유형 (PostCacheFlag.LEGEND만 지원)
      * @param pageable 페이지 정보
      * @return 인기 게시글 목록 페이지
-     * @throws PostCustomException 유효하지 않은 캐시 유형인 경우
      * @author Jaeik
      * @since 2.0.0
      */
@@ -251,7 +245,7 @@ public class PostCacheService {
 
         // DB에서 PostDetail 조회 후 PostSimpleDetail 변환
         List<PostSimpleDetail> result = storedPostIds.stream()
-                .map(postId -> postQueryAdapter.findPostDetailWithCounts(postId, null).orElse(null))
+                .map(postId -> postQueryRepository.findPostDetailWithCounts(postId, null).orElse(null))
                 .filter(Objects::nonNull)
                 .map(PostDetail::toSimpleDetail)
                 .toList();

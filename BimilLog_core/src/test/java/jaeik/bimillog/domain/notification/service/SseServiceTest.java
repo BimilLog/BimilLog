@@ -17,7 +17,6 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.SseMessage;
 import jaeik.bimillog.domain.notification.out.SseAdapter;
-import jaeik.bimillog.domain.notification.out.UrlGeneratorAdapter;
 
 /**
  * <h2>SseService 테스트</h2>
@@ -32,7 +31,7 @@ class SseServiceTest {
     private SseAdapter sseAdapter;
 
     @Mock
-    private UrlGeneratorAdapter urlGeneratorAdapter;
+    private UrlGenerator urlGenerator;
 
     @InjectMocks
     private SseService notificationSseService;
@@ -89,13 +88,13 @@ class SseServiceTest {
         Long postId = 77L;
         String commenterName = "댓글러";
         String expectedUrl = "/posts/" + postId;
-        given(urlGeneratorAdapter.generatePostUrl(postId)).willReturn(expectedUrl);
+        given(urlGenerator.generatePostUrl(postId)).willReturn(expectedUrl);
 
         // When
         notificationSseService.sendCommentNotification(postUserId, commenterName, postId);
 
         // Then
-        verify(urlGeneratorAdapter).generatePostUrl(postId);
+        verify(urlGenerator).generatePostUrl(postId);
         verify(sseAdapter).send(argThat(message ->
                 matchesMessage(message, postUserId, NotificationType.COMMENT,
                         commenterName + "님이 댓글을 남겼습니다!", expectedUrl)
@@ -109,13 +108,13 @@ class SseServiceTest {
         Long farmOwnerId = 99L;
         String userName = "롤링페이퍼";
         String expectedUrl = "/paper/" + userName;
-        given(urlGeneratorAdapter.generateRollingPaperUrl(userName)).willReturn(expectedUrl);
+        given(urlGenerator.generateRollingPaperUrl(userName)).willReturn(expectedUrl);
 
         // When
         notificationSseService.sendPaperPlantNotification(farmOwnerId, userName);
 
         // Then
-        verify(urlGeneratorAdapter).generateRollingPaperUrl(userName);
+        verify(urlGenerator).generateRollingPaperUrl(userName);
         verify(sseAdapter).send(argThat(message ->
                 matchesMessage(message, farmOwnerId, NotificationType.MESSAGE,
                         "롤링페이퍼에 메시지가 작성되었어요!", expectedUrl)
@@ -130,13 +129,13 @@ class SseServiceTest {
         Long postId = 31L;
         String message = "인기글 축하";
         String expectedUrl = "/posts/" + postId;
-        given(urlGeneratorAdapter.generatePostUrl(postId)).willReturn(expectedUrl);
+        given(urlGenerator.generatePostUrl(postId)).willReturn(expectedUrl);
 
         // When
         notificationSseService.sendPostFeaturedNotification(memberId, message, postId);
 
         // Then
-        verify(urlGeneratorAdapter).generatePostUrl(postId);
+        verify(urlGenerator).generatePostUrl(postId);
         verify(sseAdapter).send(argThat(sseMessage ->
                 matchesMessage(sseMessage, memberId, NotificationType.POST_FEATURED, message, expectedUrl)
         ));

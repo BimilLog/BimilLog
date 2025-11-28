@@ -38,10 +38,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Transactional
 @Tag("local-integration")
-class PopularPostQueryAdapterIntegrationTest {
+class PopularPostQueryRepositoryIntegrationTest {
 
     @Autowired
-    private PostQueryAdapter postQueryAdapter;
+    private PostQueryRepository postQueryRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -138,7 +138,7 @@ class PopularPostQueryAdapterIntegrationTest {
         entityManager.clear();
 
         // When
-        List<PostSimpleDetail> popularPosts = postQueryAdapter.findWeeklyPopularPosts();
+        List<PostSimpleDetail> popularPosts = postQueryRepository.findWeeklyPopularPosts();
 
         // Then
         assertThat(popularPosts).hasSize(2);
@@ -166,7 +166,7 @@ class PopularPostQueryAdapterIntegrationTest {
         entityManager.clear();
 
         // When
-        List<PostSimpleDetail> legendaryPosts = postQueryAdapter.findLegendaryPosts();
+        List<PostSimpleDetail> legendaryPosts = postQueryRepository.findLegendaryPosts();
 
         // Then
         assertThat(legendaryPosts).hasSize(2);
@@ -189,7 +189,7 @@ class PopularPostQueryAdapterIntegrationTest {
         entityManager.clear();
 
         // When
-        PostDetail postDetail = postQueryAdapter.findPostDetailWithCounts(post.getId(), null).orElse(null);
+        PostDetail postDetail = postQueryRepository.findPostDetailWithCounts(post.getId(), null).orElse(null);
 
         // Then
         assertThat(postDetail).isNotNull();
@@ -206,7 +206,7 @@ class PopularPostQueryAdapterIntegrationTest {
         Long nonExistentPostId = 999L;
 
         // When
-        PostDetail postDetail = postQueryAdapter.findPostDetailWithCounts(nonExistentPostId, null).orElse(null);
+        PostDetail postDetail = postQueryRepository.findPostDetailWithCounts(nonExistentPostId, null).orElse(null);
 
         // Then
         assertNull(postDetail);

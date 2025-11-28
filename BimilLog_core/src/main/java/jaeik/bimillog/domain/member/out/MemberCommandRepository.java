@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class MemberCommandAdapter {
+public class MemberCommandRepository {
 
     private final MemberRepository memberRepository;
 

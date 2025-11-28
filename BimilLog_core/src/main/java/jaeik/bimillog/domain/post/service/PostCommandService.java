@@ -5,11 +5,11 @@ import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.Post;
+import jaeik.bimillog.domain.post.out.PostRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.post.controller.PostCommandController;
-import jaeik.bimillog.domain.post.out.PostCommandAdapter;
-import jaeik.bimillog.domain.post.out.PostQueryAdapter;
+import jaeik.bimillog.domain.post.out.PostQueryRepository;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostDeleteAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,11 +34,11 @@ import java.util.List;
 @Slf4j
 public class PostCommandService {
 
-    private final PostCommandAdapter postCommandAdapter;
+    private final PostRepository postRepository;
     private final GlobalPostQueryAdapter globalPostQueryAdapter;
     private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
     private final RedisPostDeleteAdapter redisPostDeleteAdapter;
-    private final PostQueryAdapter postQueryAdapter;
+    private final PostQueryRepository postQueryRepository;
     private final CommentCommandService commentCommandService;
 
 
@@ -60,7 +60,7 @@ public class PostCommandService {
     public Long writePost(Long memberId, String title, String content, Integer password) {
         Member member = (memberId != null) ? globalMemberQueryAdapter.getReferenceById(memberId) : null;
         Post newPost = Post.createPost(member, title, content, password);
-        Post savedPost = postCommandAdapter.create(newPost);
+        Post savedPost = postRepository.save(newPost);
         return savedPost.getId();
     }
 
@@ -118,7 +118,7 @@ public class PostCommandService {
         String postTitle = post.getTitle();
 
         // CASCADE로 Comment와 PostLike 자동 삭제
-        postCommandAdapter.delete(post);
+        postRepository.delete(post);
 
         // 모든 관련 캐시 무효화
         redisPostDeleteAdapter.deleteSinglePostCache(postId);
@@ -141,7 +141,7 @@ public class PostCommandService {
      */
     @Transactional
     public void deleteAllPostsByMemberId(Long memberId) {
-        List<Long> postIds = postQueryAdapter.findPostIdsMemberId(memberId);
+        List<Long> postIds = postQueryRepository.findPostIdsMemberId(memberId);
         for (Long postId : postIds) {
             // FK 제약 조건 위반 방지: 게시글의 모든 댓글 먼저 삭제 (CommentClosure 포함)
             commentCommandService.deleteCommentsByPost(postId);
@@ -149,6 +149,6 @@ public class PostCommandService {
             redisPostDeleteAdapter.deleteSinglePostCache(postId);
         }
         // 게시글 일괄 삭제
-        postCommandAdapter.deleteAllByMemberId(memberId);
+        postRepository.deleteAllByMemberId(memberId);
     }
 }

@@ -52,7 +52,7 @@ class SseAdapterTest extends BaseUnitTest {
     private MemberQueryService memberQueryService;
 
     @Mock
-    private NotificationCommandAdapter notificationCommandAdapter;
+    private NotificationCommandRepository notificationCommandRepository;
 
     @InjectMocks
     private SseAdapter sseAdapter;
@@ -120,7 +120,7 @@ class SseAdapterTest extends BaseUnitTest {
         // Then
         verify(notificationUtilAdapter).SseEligibleForNotification(memberId, NotificationType.COMMENT);
         verify(memberQueryService).findById(memberId);
-        verify(notificationCommandAdapter).save(eq(getTestMember()), eq(NotificationType.COMMENT), anyString(), anyString());
+        verify(notificationCommandRepository).save(eq(getTestMember()), eq(NotificationType.COMMENT), anyString(), anyString());
 
         // SseEmitter로 실제 전송 시도 확인
         verify(mockEmitter, times(1)).send(any(SseEmitter.SseEventBuilder.class));
@@ -141,7 +141,7 @@ class SseAdapterTest extends BaseUnitTest {
 
         verify(notificationUtilAdapter).SseEligibleForNotification(memberId, NotificationType.COMMENT);
         verify(memberQueryService).findById(memberId);
-        verify(notificationCommandAdapter, never()).save(any(), any(), any(), any());
+        verify(notificationCommandRepository, never()).save(any(), any(), any(), any());
     }
 
     @Test
@@ -151,7 +151,7 @@ class SseAdapterTest extends BaseUnitTest {
         given(notificationUtilAdapter.SseEligibleForNotification(memberId, NotificationType.COMMENT)).willReturn(true);
         given(memberQueryService.findById(memberId)).willReturn(Optional.of(getTestMember()));
         doThrow(new RuntimeException("DB 저장 실패"))
-                .when(notificationCommandAdapter).save(any(), any(), any(), any());
+                .when(notificationCommandRepository).save(any(), any(), any(), any());
 
         // When & Then
         SseMessage sseMessage = SseMessage.of(memberId, NotificationType.COMMENT, "테스트 메시지", "/test/url");
@@ -161,7 +161,7 @@ class SseAdapterTest extends BaseUnitTest {
 
         verify(notificationUtilAdapter).SseEligibleForNotification(memberId, NotificationType.COMMENT);
         verify(memberQueryService).findById(memberId);
-        verify(notificationCommandAdapter).save(eq(getTestMember()), eq(NotificationType.COMMENT), anyString(), anyString());
+        verify(notificationCommandRepository).save(eq(getTestMember()), eq(NotificationType.COMMENT), anyString(), anyString());
     }
 
     @Test
@@ -182,7 +182,7 @@ class SseAdapterTest extends BaseUnitTest {
         // Then
         verify(notificationUtilAdapter).SseEligibleForNotification(memberId, NotificationType.COMMENT);
         verify(memberQueryService).findById(memberId);
-        verify(notificationCommandAdapter).save(eq(getTestMember()), eq(NotificationType.COMMENT), anyString(), anyString());
+        verify(notificationCommandRepository).save(eq(getTestMember()), eq(NotificationType.COMMENT), anyString(), anyString());
         // Emitter가 없어도 예외가 발생하지 않아야 함
     }
 
@@ -243,7 +243,7 @@ class SseAdapterTest extends BaseUnitTest {
         // Then
         verify(notificationUtilAdapter).SseEligibleForNotification(memberId, NotificationType.COMMENT);
         verify(memberQueryService).findById(memberId);
-        verify(notificationCommandAdapter).save(eq(getTestMember()), eq(NotificationType.COMMENT), anyString(), anyString());
+        verify(notificationCommandRepository).save(eq(getTestMember()), eq(NotificationType.COMMENT), anyString(), anyString());
 
         // 두 Emitter 모두에게 전송 확인
         verify(mockEmitter1, times(1)).send(any(SseEmitter.SseEventBuilder.class));
@@ -263,7 +263,7 @@ class SseAdapterTest extends BaseUnitTest {
         // Then: 알림 설정 확인만 하고 나머지는 호출되지 않아야 함
         verify(notificationUtilAdapter).SseEligibleForNotification(memberId, NotificationType.COMMENT);
         verify(memberQueryService, never()).findById(any());
-        verify(notificationCommandAdapter, never()).save(any(), any(), any(), any());
+        verify(notificationCommandRepository, never()).save(any(), any(), any(), any());
     }
 
     @Test
@@ -288,7 +288,7 @@ class SseAdapterTest extends BaseUnitTest {
         sseAdapter.send(sseMessage);
 
         // Then: IOException이 발생해도 전체 프로세스는 정상 완료
-        verify(notificationCommandAdapter).save(eq(getTestMember()), eq(NotificationType.COMMENT), anyString(), anyString());
+        verify(notificationCommandRepository).save(eq(getTestMember()), eq(NotificationType.COMMENT), anyString(), anyString());
 
         // Emitter가 Map에서 제거되었는지 확인
         Map<String, SseEmitter> remainingEmitters = getEmittersMap();

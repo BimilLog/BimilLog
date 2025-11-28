@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.comment.service;
 
-import jaeik.bimillog.domain.comment.out.*;
+import jaeik.bimillog.domain.comment.repository.*;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentClosure;
 import jaeik.bimillog.domain.comment.entity.CommentLike;
@@ -46,11 +46,10 @@ public class CommentCommandService {
     private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
     private final GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
     private final CommentRepository commentRepository;
-    private final CommentSaveAdapter commentSaveAdapter;
-    private final CommentDeleteAdapter commentDeleteAdapter;
-    private final CommentQueryAdapter commentQueryAdapter;
-    private final CommentLikeAdapter commentLikeAdapter;
-
+    private final CommentDeleteRepository commentDeleteRepository;
+    private final CommentQueryRepository commentQueryRepository;
+    private final CommentLikeRepository commentLikeRepository;
+    private final CommentClosureRepository commentClosureRepository;
 
     /**
      * <h3>댓글 작성</h3>
@@ -142,10 +141,10 @@ public class CommentCommandService {
         Comment comment = validateComment(commentId, memberId, password);
         Long postId = comment.getPost().getId();
 
-        if (commentQueryAdapter.hasDescendants(commentId)) {
+        if (commentQueryRepository.hasDescendants(commentId)) {
             comment.softDelete(); // 더티 체킹으로 자동 업데이트
         } else {
-            commentDeleteAdapter.deleteComment(commentId); // 어댑터 직접 호출로 하드 삭제
+            commentDeleteRepository.deleteComment(commentId); // 어댑터 직접 호출로 하드 삭제
         }
 
         // 실시간 인기글 점수 감소 이벤트 발행
@@ -175,15 +174,15 @@ public class CommentCommandService {
             globalMemberBlacklistAdapter.checkMemberBlacklist(memberId, comment.getMember().getId());
         }
 
-        if (commentLikeAdapter.isLikedByUser(commentId, memberId)) {
-            commentLikeAdapter.deleteLikeByIds(commentId, memberId);
+        if (commentLikeRepository.existsByCommentIdAndMemberId(commentId, memberId)) {
+            commentLikeRepository.deleteByCommentIdAndMemberId(commentId, memberId);
             // 좋아요 취소 시에는 이벤트를 발행하지 않음 (상호작용 점수 유지)
         } else {
             CommentLike commentLike = CommentLike.builder()
                     .comment(comment)
                     .member(member)
                     .build();
-            commentLikeAdapter.save(commentLike);
+            commentLikeRepository.save(commentLike);
 
             // 댓글 좋아요 이벤트 발행 (상호작용 점수 증가)
             Long commentAuthorId = comment.getMember() != null ? comment.getMember().getId() : null;
@@ -203,13 +202,13 @@ public class CommentCommandService {
      */
     @Transactional
     public void processUserCommentsOnWithdrawal(Long memberId) {
-        List<Comment> userComments = commentQueryAdapter.findAllByMemberId(memberId);
+        List<Comment> userComments = commentQueryRepository.findAllByMemberId(memberId);
 
         for (Comment comment : userComments) {
-            if (commentQueryAdapter.hasDescendants(comment.getId())) {
+            if (commentQueryRepository.hasDescendants(comment.getId())) {
                 comment.anonymize(); // 더티 체킹으로 자동 업데이트
             } else {
-                commentDeleteAdapter.deleteComment(comment.getId()); // 어댑터 직접 호출로 하드 삭제
+                commentDeleteRepository.deleteComment(comment.getId()); // 어댑터 직접 호출로 하드 삭제
             }
         }
     }
@@ -226,10 +225,10 @@ public class CommentCommandService {
      */
     @Transactional
     public void deleteCommentsByPost(Long postId) {
-        List<Comment> userComments = commentQueryAdapter.findAllByPostId(postId);
+        List<Comment> userComments = commentQueryRepository.findAllByPostId(postId);
 
         for (Comment comment : userComments) {
-            commentDeleteAdapter.deleteComment(comment.getId()); // 어댑터 직접 호출로 하드 삭제
+            commentDeleteRepository.deleteComment(comment.getId()); // 어댑터 직접 호출로 하드 삭제
         }
     }
 
@@ -273,13 +272,14 @@ public class CommentCommandService {
      */
     private void saveCommentWithClosure(Post post, Member member, String content, Integer password, Long parentId) {
         Comment comment = Comment.createComment(post, member, content, password);
-        Comment savedComment = commentSaveAdapter.save(comment);
+        Comment savedComment = commentRepository.save(comment);
+
 
         List<CommentClosure> closuresToSave = new ArrayList<>();
         closuresToSave.add(CommentClosure.createCommentClosure(savedComment, savedComment, 0));
 
         if (parentId != null) {
-            List<CommentClosure> parentClosures = commentSaveAdapter.getParentClosures(parentId)
+            List<CommentClosure> parentClosures = commentClosureRepository.findByDescendantId(parentId)
                     .orElseThrow(() -> new RuntimeException("부모 댓글을 찾을 수 없습니다."));
 
             for (CommentClosure parentClosure : parentClosures) {
@@ -289,7 +289,7 @@ public class CommentCommandService {
                         parentClosure.getDepth() + 1));
             }
         }
-        commentSaveAdapter.saveAll(closuresToSave);
+        commentClosureRepository.saveAll(closuresToSave);
     }
 
 }

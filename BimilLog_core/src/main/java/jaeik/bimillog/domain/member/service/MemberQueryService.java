@@ -9,7 +9,7 @@ import jaeik.bimillog.domain.member.out.SettingRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.member.controller.MemberQueryController;
-import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
+import jaeik.bimillog.domain.member.out.MemberQueryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,7 +29,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class MemberQueryService {
-    private final MemberQueryAdapter memberQueryAdapter;
+    private final MemberQueryRepository memberQueryRepository;
     private final MemberRepository memberRepository;
     private final SettingRepository settingRepository;
 
@@ -118,7 +118,7 @@ public class MemberQueryService {
      */
     @Transactional(readOnly = true)
     public Map<Long, String> findMemberNamesByIds(List<Long> memberIds) {
-        return memberQueryAdapter.findMemberNamesByIds(memberIds);
+        return memberQueryRepository.findMemberNamesByIds(memberIds);
     }
 
     /**
@@ -150,9 +150,9 @@ public class MemberQueryService {
     @Transactional(readOnly = true)
     public Page<SimpleMemberDTO> searchMembers(String query, Pageable pageable) {
         if (query.length() >= 4) {
-            return memberQueryAdapter.findByPrefixMatch(query, pageable);
+            return memberQueryRepository.findByPrefixMatch(query, pageable);
         }
-        return memberQueryAdapter.findByPartialMatch(query, pageable);
+        return memberQueryRepository.findByPartialMatch(query, pageable);
     }
 
     /**

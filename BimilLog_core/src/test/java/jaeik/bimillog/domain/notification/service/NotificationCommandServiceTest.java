@@ -14,7 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
-import jaeik.bimillog.domain.notification.out.NotificationCommandAdapter;
+import jaeik.bimillog.domain.notification.out.NotificationCommandRepository;
 
 /**
  * <h2>NotificationCommandService 테스트</h2>
@@ -30,7 +30,7 @@ import jaeik.bimillog.domain.notification.out.NotificationCommandAdapter;
 class NotificationCommandServiceTest {
 
     @Mock
-    private NotificationCommandAdapter notificationCommandAdapter;
+    private NotificationCommandRepository notificationCommandRepository;
 
     @InjectMocks
     private NotificationCommandService notificationCommandService;
@@ -46,7 +46,7 @@ class NotificationCommandServiceTest {
         notificationCommandService.batchUpdate(nullUserId, updateCommand);
 
         // Then
-        verify(notificationCommandAdapter).batchUpdate(nullUserId, updateCommand);
+        verify(notificationCommandRepository).batchUpdate(nullUserId, updateCommand);
     }
 
     @Test
@@ -60,6 +60,6 @@ class NotificationCommandServiceTest {
         notificationCommandService.batchUpdate(memberId, updateCommand);
 
         // Then
-        verify(notificationCommandAdapter).batchUpdate(memberId, updateCommand);
+        verify(notificationCommandRepository).batchUpdate(memberId, updateCommand);
     }
 }

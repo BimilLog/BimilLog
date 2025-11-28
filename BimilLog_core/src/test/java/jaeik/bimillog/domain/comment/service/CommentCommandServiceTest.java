@@ -1,9 +1,7 @@
 package jaeik.bimillog.domain.comment.service;
 
-import jaeik.bimillog.domain.comment.out.CommentDeleteAdapter;
-import jaeik.bimillog.domain.comment.out.CommentLikeAdapter;
-import jaeik.bimillog.domain.comment.out.CommentQueryAdapter;
-import jaeik.bimillog.domain.comment.out.CommentSaveAdapter;
+import jaeik.bimillog.domain.comment.repository.CommentDeleteRepository;
+import jaeik.bimillog.domain.comment.repository.CommentQueryRepository;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentClosure;
 import jaeik.bimillog.domain.comment.entity.CommentLike;
@@ -55,8 +53,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
     private static final Integer TEST_PASSWORD = 1234;
 
     @Mock private CommentSaveAdapter commentSaveAdapter;
-    @Mock private CommentDeleteAdapter commentDeleteAdapter;
-    @Mock private CommentQueryAdapter commentQueryAdapter;
+    @Mock private CommentDeleteRepository commentDeleteRepository;
+    @Mock private CommentQueryRepository commentQueryRepository;
     @Mock private CommentLikeAdapter commentLikeAdapter;
     @Mock private GlobalMemberQueryAdapter globalMemberQueryAdapter;
     @Mock private GlobalPostQueryAdapter globalPostQueryAdapter;
@@ -281,14 +279,14 @@ class CommentCommandServiceTest extends BaseUnitTest {
         // Given
         Long memberId = 100L;
         given(globalCommentQueryAdapter.findById(200L)).willReturn(testComment);
-        given(commentQueryAdapter.hasDescendants(200L)).willReturn(false);
+        given(commentQueryRepository.hasDescendants(200L)).willReturn(false);
 
         // When
         commentCommandService.deleteComment(200L, memberId, null);
 
         // Then
         verify(globalCommentQueryAdapter).findById(200L);
-        verify(commentDeleteAdapter).deleteComment(200L);
+        verify(commentDeleteRepository).deleteComment(200L);
     }
 
     @Test
@@ -297,15 +295,15 @@ class CommentCommandServiceTest extends BaseUnitTest {
         // Given
         Long memberId = 100L;
         given(globalCommentQueryAdapter.findById(200L)).willReturn(testComment);
-        given(commentQueryAdapter.hasDescendants(200L)).willReturn(true);
+        given(commentQueryRepository.hasDescendants(200L)).willReturn(true);
 
         // When
         commentCommandService.deleteComment(200L, memberId, null);
 
         // Then
         verify(globalCommentQueryAdapter).findById(200L);
-        verify(commentQueryAdapter).hasDescendants(200L);
-        verify(commentDeleteAdapter, never()).deleteComment(any());
+        verify(commentQueryRepository).hasDescendants(200L);
+        verify(commentDeleteRepository, never()).deleteComment(any());
     }
 
 
@@ -368,14 +366,14 @@ class CommentCommandServiceTest extends BaseUnitTest {
         TestFixtures.setFieldValue(anonymousComment, "id", 300L);
 
         given(globalCommentQueryAdapter.findById(300L)).willReturn(anonymousComment);
-        given(commentQueryAdapter.hasDescendants(300L)).willReturn(false);
+        given(commentQueryRepository.hasDescendants(300L)).willReturn(false);
 
         // When
         commentCommandService.deleteComment(300L, null, 1234);
 
         // Then
         verify(globalCommentQueryAdapter).findById(300L);
-        verify(commentDeleteAdapter).deleteComment(300L);
+        verify(commentDeleteRepository).deleteComment(300L);
     }
 
     @Test
@@ -393,7 +391,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_UNAUTHORIZED);
 
         verify(globalCommentQueryAdapter).findById(300L);
-        verify(commentDeleteAdapter, never()).deleteComment(any());
+        verify(commentDeleteRepository, never()).deleteComment(any());
     }
 
     @Test
@@ -405,15 +403,15 @@ class CommentCommandServiceTest extends BaseUnitTest {
         TestFixtures.setFieldValue(parentComment, "id", 400L);
 
         given(globalCommentQueryAdapter.findById(400L)).willReturn(parentComment);
-        given(commentQueryAdapter.hasDescendants(400L)).willReturn(true);
+        given(commentQueryRepository.hasDescendants(400L)).willReturn(true);
 
         // When
         commentCommandService.deleteComment(400L, memberId, null);
 
         // Then
         verify(globalCommentQueryAdapter).findById(400L);
-        verify(commentQueryAdapter).hasDescendants(400L);
-        verify(commentDeleteAdapter, never()).deleteComment(any());
+        verify(commentQueryRepository).hasDescendants(400L);
+        verify(commentDeleteRepository, never()).deleteComment(any());
     }
 
     @Test
@@ -424,15 +422,15 @@ class CommentCommandServiceTest extends BaseUnitTest {
         TestFixtures.setFieldValue(anonymousParentComment, "id", 500L);
 
         given(globalCommentQueryAdapter.findById(500L)).willReturn(anonymousParentComment);
-        given(commentQueryAdapter.hasDescendants(500L)).willReturn(true);
+        given(commentQueryRepository.hasDescendants(500L)).willReturn(true);
 
         // When
         commentCommandService.deleteComment(500L, null, 5678);
 
         // Then
         verify(globalCommentQueryAdapter).findById(500L);
-        verify(commentQueryAdapter).hasDescendants(500L);
-        verify(commentDeleteAdapter, never()).deleteComment(any());
+        verify(commentQueryRepository).hasDescendants(500L);
+        verify(commentDeleteRepository, never()).deleteComment(any());
     }
 
     @Test
@@ -453,7 +451,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_UNAUTHORIZED);
 
         verify(globalCommentQueryAdapter).findById(600L);
-        verify(commentDeleteAdapter, never()).deleteComment(any());
+        verify(commentDeleteRepository, never()).deleteComment(any());
     }
 
     // === 누락된 댓글 작성 테스트 케이스들 ===

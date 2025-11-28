@@ -1,10 +1,10 @@
 package jaeik.bimillog.domain.global.out;
 
 import jaeik.bimillog.domain.comment.entity.Comment;
-import jaeik.bimillog.domain.comment.out.CommentQueryAdapter;
+import jaeik.bimillog.domain.comment.repository.CommentQueryRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.domain.comment.out.CommentRepository;
+import jaeik.bimillog.domain.comment.repository.CommentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -24,7 +24,7 @@ import java.util.List;
 public class GlobalCommentQueryAdapter {
 
     private final CommentRepository commentRepository;
-    private final CommentQueryAdapter commentQueryAdapter;
+    private final CommentQueryRepository commentQueryRepository;
 
 
     /**
@@ -45,6 +45,6 @@ public class GlobalCommentQueryAdapter {
 
     // CommentIds로 댓글 리스트 조회
     public List<Comment> findAllByIds(List<Long> commentIds) {
-        return commentQueryAdapter.findAllByIds(commentIds);
+        return commentQueryRepository.findAllByIds(commentIds);
     }
 }

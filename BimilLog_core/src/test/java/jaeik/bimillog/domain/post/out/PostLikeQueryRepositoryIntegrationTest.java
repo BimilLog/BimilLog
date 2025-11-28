@@ -35,12 +35,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 )
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ActiveProfiles("h2test")
-@Import({PostLikeQueryAdapter.class, H2TestConfiguration.class})
+@Import({PostLikeQueryRepository.class, H2TestConfiguration.class})
 @Tag("integration")
-class PostLikeQueryAdapterIntegrationTest {
+class PostLikeQueryRepositoryIntegrationTest {
 
     @Autowired
-    private PostLikeQueryAdapter postLikeQueryAdapter;
+    private PostLikeQueryRepository postLikeQueryRepository;
 
     @Autowired
     private TestEntityManager testEntityManager;
@@ -109,7 +109,7 @@ class PostLikeQueryAdapterIntegrationTest {
         testEntityManager.flush();
         testEntityManager.clear();
 
-        Map<Long, Integer> likeCounts = postLikeQueryAdapter.findLikeCountsByPostIds(
+        Map<Long, Integer> likeCounts = postLikeQueryRepository.findLikeCountsByPostIds(
                 List.of(postOne.getId(), postTwo.getId(), postThree.getId())
         );
 
@@ -121,7 +121,7 @@ class PostLikeQueryAdapterIntegrationTest {
     @Test
     @DisplayName("비어있는 입력은 빈 결과를 반환한다")
     void shouldReturnEmptyMapWhenPostIdsEmpty() {
-        Map<Long, Integer> likeCounts = postLikeQueryAdapter.findLikeCountsByPostIds(List.of());
+        Map<Long, Integer> likeCounts = postLikeQueryRepository.findLikeCountsByPostIds(List.of());
 
         assertThat(likeCounts).isEmpty();
     }
@@ -135,8 +135,8 @@ class PostLikeQueryAdapterIntegrationTest {
         testEntityManager.flush();
         testEntityManager.clear();
 
-        boolean exists = postLikeQueryAdapter.existsByPostIdAndUserId(post.getId(), likerOne.getId());
-        boolean notExists = postLikeQueryAdapter.existsByPostIdAndUserId(post.getId(), likerTwo.getId());
+        boolean exists = postLikeQueryRepository.existsByPostIdAndUserId(post.getId(), likerOne.getId());
+        boolean notExists = postLikeQueryRepository.existsByPostIdAndUserId(post.getId(), likerTwo.getId());
 
         assertThat(exists).isTrue();
         assertThat(notExists).isFalse();

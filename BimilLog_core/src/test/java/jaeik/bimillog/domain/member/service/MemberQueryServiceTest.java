@@ -3,9 +3,7 @@ package jaeik.bimillog.domain.member.service;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
+import jaeik.bimillog.domain.member.out.MemberQueryRepository;
 import jaeik.bimillog.domain.member.out.MemberRepository;
 import jaeik.bimillog.domain.member.out.SettingRepository;
 import jaeik.bimillog.testutil.BaseUnitTest;
@@ -36,7 +34,7 @@ import static org.mockito.Mockito.verify;
 class MemberQueryServiceTest extends BaseUnitTest {
 
     @Mock
-    private MemberQueryAdapter memberQueryAdapter;
+    private MemberQueryRepository memberQueryRepository;
 
     @Mock
     private MemberRepository memberRepository;
