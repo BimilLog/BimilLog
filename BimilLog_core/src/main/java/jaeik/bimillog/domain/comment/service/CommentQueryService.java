@@ -93,7 +93,7 @@ public class CommentQueryService {
      *
      * @param memberId   사용자 ID
      * @param pageable 페이지 정보
-     * @return Page<SimpleCommentInfo> 작성한 댓글 목록 페이지
+     * @return MemberActivityComment 마이페이지 댓글 정보
      * @author Jaeik
      * @since 2.0.0
      */

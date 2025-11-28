@@ -5,6 +5,9 @@ import org.springframework.data.domain.Page;
 
 import java.time.Instant;
 
+/**
+ * 사용자가 마이페이지에서 보는 댓글 객체
+ */
 @AllArgsConstructor
 public class MemberActivityComment {
     public Page<SimpleCommentInfo> writeComments;

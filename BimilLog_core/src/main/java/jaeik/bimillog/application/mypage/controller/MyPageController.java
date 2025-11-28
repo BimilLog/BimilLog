@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.comment.entity.MemberActivityComment;
 import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
 import jaeik.bimillog.domain.comment.service.CommentQueryService;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
+import jaeik.bimillog.domain.post.entity.MemberActivityPost;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.service.PostQueryService;
 import jaeik.bimillog.infrastructure.log.Log;
@@ -34,11 +35,9 @@ public class MyPageController {
                                                      Pageable pageable) {
 
         MemberActivityComment memberActivityComment = commentQueryService.getMemberActivityComments(userDetails.getMemberId(), pageable);
-        Page<PostSimpleDetail> SimplePostList = postQueryService.getMemberPosts(userDetails.getMemberId(), pageable);
-        Page<PostSimpleDetail> likedPosts = postQueryService.getMemberLikedPosts(userDetails.getMemberId(), pageable);
+        MemberActivityPost memberActivityPost = postQueryService.getMemberActivityPosts(userDetails.getMemberId(), pageable);
 
-        MyPageDTO myPageDTO = MyPageDTO.from(memberActivityComment, SimplePostList, likedPosts);
-
+        MyPageDTO myPageDTO = MyPageDTO.from(memberActivityComment, memberActivityPost);
         return ResponseEntity.ok(myPageDTO);
     }
 }

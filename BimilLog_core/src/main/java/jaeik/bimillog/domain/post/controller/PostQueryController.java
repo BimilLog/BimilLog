@@ -125,48 +125,4 @@ public class PostQueryController {
         Page<PostSimpleDetail> postList = postQueryService.searchPost(searchDTO.getType(), searchDTO.getTrimmedQuery(), pageable, memberId);
         return ResponseEntity.ok(postList);
     }
-
-    /**
-     * <h3>사용자가 작성한 게시글 목록 조회 API</h3>
-     * <p>현재 로그인한 사용자가 작성한 게시글 목록을 페이지네이션으로 조회합니다.</p>
-     *
-     * @param page        페이지 번호
-     * @param size        페이지 크기
-     * @param userDetails 현재 로그인한 사용자 정보
-     * @return 작성 게시글 목록 페이지
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    @Deprecated
-    @GetMapping("/me")
-    public ResponseEntity<Page<PostSimpleDetail>> getUserPosts(@RequestParam(defaultValue = "0") int page,
-                                                            @RequestParam(defaultValue = "10") int size,
-                                                            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<PostSimpleDetail> postList = postQueryService.getMemberPosts(userDetails.getMemberId(), pageable);
-        return ResponseEntity.ok(postList);
-    }
-
-    /**
-     * <h3>사용자가 추천한 게시글 목록 조회 API</h3>
-     * <p>현재 로그인한 사용자가 추천한 게시글 목록을 페이지네이션으로 조회합니다.</p>
-     *
-     * @param page        페이지 번호
-     * @param size        페이지 크기
-     * @param userDetails 현재 로그인한 사용자 정보
-     * @return 추천한 게시글 목록 페이지
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    @Deprecated
-    @GetMapping("/me/liked")
-    public ResponseEntity<Page<PostSimpleDetail>> getUserLikedPosts(@RequestParam(defaultValue = "0") int page,
-                                                                 @RequestParam(defaultValue = "10") int size,
-                                                                 @AuthenticationPrincipal CustomUserDetails userDetails) {
-        PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<PostSimpleDetail> likedPosts = postQueryService.getMemberLikedPosts(userDetails.getMemberId(), pageable);
-        return ResponseEntity.ok(likedPosts);
-    }
-
-
 }

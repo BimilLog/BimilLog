@@ -2,10 +2,7 @@ package jaeik.bimillog.domain.post.service;
 
 
 import jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter;
-import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.post.entity.PostDetail;
-import jaeik.bimillog.domain.post.entity.PostSearchType;
-import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
+import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.out.PostRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
@@ -125,35 +122,21 @@ public class PostQueryService {
     }
 
     /**
-     * <h3>사용자 작성 게시글 목록 조회 </h3>
-     * <p>특정 사용자가 작성한 게시글 목록을 페이지네이션으로 조회합니다.</p>
+     * <h3>사용자 작성, 추천 글 목록 조회</h3>
+     * <p>특정 사용자가 작성, 추천한 글 목록을 페이지네이션으로 조회합니다.</p>
      *
      * @param memberId   사용자 ID
      * @param pageable 페이지 정보
-     * @return 작성한 게시글 목록 페이지
+     * @return MemberActivityPost 마이페이지 글 정보
      * @author Jaeik
      * @since 2.0.0
      */
-    public Page<PostSimpleDetail> getMemberPosts(Long memberId, Pageable pageable) {
-        Page<PostSimpleDetail> posts = postQueryAdapter.findPostsByMemberId(memberId, pageable, memberId);
-        enrichPostsWithCounts(posts.getContent());
-        return posts;
-    }
-
-    /**
-     * <h3>사용자 추천한 게시글 목록 조회 </h3>
-     * <p>특정 사용자가 추천한 게시글 목록을 페이지네이션으로 조회합니다.</p>
-     *
-     * @param memberId   사용자 ID
-     * @param pageable 페이지 정보
-     * @return 추천한 게시글 목록 페이지
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public Page<PostSimpleDetail> getMemberLikedPosts(Long memberId, Pageable pageable) {
-        Page<PostSimpleDetail> posts = postQueryAdapter.findLikedPostsByMemberId(memberId, pageable);
-        enrichPostsWithCounts(posts.getContent());
-        return posts;
+    public MemberActivityPost getMemberActivityPosts(Long memberId, Pageable pageable) {
+        Page<PostSimpleDetail> writePosts = postQueryAdapter.findPostsByMemberId(memberId, pageable, memberId);
+        Page<PostSimpleDetail> likedPosts = postQueryAdapter.findLikedPostsByMemberId(memberId, pageable);
+        enrichPostsWithCounts(writePosts.getContent());
+        enrichPostsWithCounts(likedPosts.getContent());
+        return new MemberActivityPost(writePosts, likedPosts);
     }
 
     /**
