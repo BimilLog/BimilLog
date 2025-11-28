@@ -35,13 +35,13 @@ import static org.assertj.core.api.Assertions.assertThatCode;
         )
 )
 @ActiveProfiles("h2test")
-@Import({MemberCommandAdapter.class, H2TestConfiguration.class})
+@Import({MemberCommandRepository.class, H2TestConfiguration.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Tag("integration")
-class MemberCommandAdapterTest {
+class MemberCommandRepositoryTest {
 
     @Autowired
-    private MemberCommandAdapter memberCommandAdapter;
+    private MemberCommandRepository memberCommandRepository;
 
     @Autowired
     private TestEntityManager testEntityManager;
@@ -84,7 +84,7 @@ class MemberCommandAdapterTest {
         assertThat(testEntityManager.find(Setting.class, settingId)).isNotNull();
 
         // When
-        memberCommandAdapter.deleteMemberAndSetting(memberId);
+        memberCommandRepository.deleteMemberAndSetting(memberId);
         testEntityManager.flush();
         testEntityManager.clear();
 
@@ -100,7 +100,7 @@ class MemberCommandAdapterTest {
         Long nonExistentMemberId = 99999L;
 
         // When & Then
-        assertThatCode(() -> memberCommandAdapter.deleteMemberAndSetting(nonExistentMemberId))
+        assertThatCode(() -> memberCommandRepository.deleteMemberAndSetting(nonExistentMemberId))
                 .doesNotThrowAnyException();
     }
 
@@ -111,13 +111,13 @@ class MemberCommandAdapterTest {
         Long memberId = testMember.getId();
 
         // 첫 번째 삭제
-        memberCommandAdapter.deleteMemberAndSetting(memberId);
+        memberCommandRepository.deleteMemberAndSetting(memberId);
         testEntityManager.flush();
         testEntityManager.clear();
 
         // When & Then - 두 번째 삭제
         assertThatCode(() -> {
-            memberCommandAdapter.deleteMemberAndSetting(memberId);
+            memberCommandRepository.deleteMemberAndSetting(memberId);
             testEntityManager.flush();
         }).doesNotThrowAnyException();
 
@@ -153,7 +153,7 @@ class MemberCommandAdapterTest {
         Long otherSettingId = otherSetting.getId();
 
         // When
-        memberCommandAdapter.deleteMemberAndSetting(targetMemberId);
+        memberCommandRepository.deleteMemberAndSetting(targetMemberId);
         testEntityManager.flush();
         testEntityManager.clear();
 

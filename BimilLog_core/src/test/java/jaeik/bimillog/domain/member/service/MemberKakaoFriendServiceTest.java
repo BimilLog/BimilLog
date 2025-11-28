@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.member.service;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
-import jaeik.bimillog.domain.member.out.MemberQueryAdapter;
+import jaeik.bimillog.domain.member.out.MemberQueryRepository;
 import jaeik.bimillog.domain.member.out.MemberToAuthAdapter;
 import jaeik.bimillog.domain.member.dto.KakaoFriendsDTO;
 import jaeik.bimillog.infrastructure.api.social.kakao.KakaoFriendClient;
@@ -40,7 +40,7 @@ class MemberKakaoFriendServiceTest extends BaseUnitTest {
     private static final Limit DEFAULT_LIMIT = Limit.of(DEFAULT_LIMIT_VALUE);
 
     @Mock
-    private MemberQueryAdapter memberQueryAdapter;
+    private MemberQueryRepository memberQueryRepository;
 
     @Mock
     private MemberToAuthAdapter memberToAuthAdapter;
@@ -65,13 +65,13 @@ class MemberKakaoFriendServiceTest extends BaseUnitTest {
 
         given(memberToAuthAdapter.getSocialToken(MEMBER_ID)).willReturn(Optional.of(socialToken));
         given(kakaoFriendClient.getFriendList(socialToken.getAccessToken(), (int) DEFAULT_OFFSET, DEFAULT_LIMIT_VALUE)).willReturn(response);
-        given(memberQueryAdapter.findMemberNamesInOrder(Arrays.asList("1", "2"))).willReturn(Arrays.asList("user1", "user2"));
+        given(memberQueryRepository.findMemberNamesInOrder(Arrays.asList("1", "2"))).willReturn(Arrays.asList("user1", "user2"));
 
         KakaoFriendsDTO result = memberFriendService.getKakaoFriendList(MEMBER_ID, SocialProvider.KAKAO, DEFAULT_OFFSET, DEFAULT_LIMIT);
 
         assertThat(result.getElements()).extracting(KakaoFriendsDTO.KakaoFriend::getMemberName)
                 .containsExactly("user1", "user2");
-        verify(memberQueryAdapter).findMemberNamesInOrder(Arrays.asList("1", "2"));
+        verify(memberQueryRepository).findMemberNamesInOrder(Arrays.asList("1", "2"));
     }
 
     @Test
@@ -86,7 +86,7 @@ class MemberKakaoFriendServiceTest extends BaseUnitTest {
         KakaoFriendsDTO result = memberFriendService.getKakaoFriendList(MEMBER_ID, SocialProvider.KAKAO, DEFAULT_OFFSET, DEFAULT_LIMIT);
 
         assertThat(result.getElements()).isEmpty();
-        verify(memberQueryAdapter, never()).findMemberNamesInOrder(anyList());
+        verify(memberQueryRepository, never()).findMemberNamesInOrder(anyList());
     }
 
     @Test

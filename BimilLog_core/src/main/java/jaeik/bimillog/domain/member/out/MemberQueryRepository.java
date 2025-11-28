@@ -8,7 +8,6 @@ import jaeik.bimillog.domain.friend.entity.Friend;
 import jaeik.bimillog.domain.friend.entity.RecommendedFriend;
 import jaeik.bimillog.domain.member.dto.SimpleMemberDTO;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.member.entity.MemberBlacklist;
 import jaeik.bimillog.domain.member.entity.QMember;
 import jaeik.bimillog.domain.member.entity.QMemberBlacklist;
 import jaeik.bimillog.domain.member.service.MemberQueryService;
@@ -33,7 +32,7 @@ import java.util.stream.Collectors;
  */
 @Component
 @RequiredArgsConstructor
-public class MemberQueryAdapter {
+public class MemberQueryRepository {
     private final JPAQueryFactory jpaQueryFactory;
     private final QMember member = QMember.member;
 
@@ -163,13 +162,6 @@ public class MemberQueryAdapter {
                 .from(member)
                 .where(member.id.in(acquaintanceIds))
                 .fetch();
-    }
-
-    /**
-     * 추천 친구 업데이트
-     */
-    public void friendRecommendUpdate() {
-
     }
 
     /**

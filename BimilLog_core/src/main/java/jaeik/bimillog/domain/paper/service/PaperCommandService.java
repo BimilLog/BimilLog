@@ -8,10 +8,10 @@ import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.event.MessageDeletedEvent;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
+import jaeik.bimillog.domain.paper.out.MessageRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.paper.controller.PaperCommandController;
-import jaeik.bimillog.domain.paper.out.PaperCommandRepository;
 import jaeik.bimillog.domain.paper.out.PaperQueryRepository;
 import jaeik.bimillog.infrastructure.redis.paper.RedisPaperDeleteAdapter;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class PaperCommandService {
-    private final PaperCommandRepository paperCommandRepository;
+    private final MessageRepository messageRepository;
     private final PaperQueryRepository paperQueryRepository;
     private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
     private final ApplicationEventPublisher eventPublisher;
@@ -61,7 +61,7 @@ public class PaperCommandService {
         }
 
         Message message = Message.createMessage(member, decoType, anonymity, content, x, y);
-        paperCommandRepository.save(message);
+        messageRepository.save(message);
 
         eventPublisher.publishEvent(new RollingPaperEvent(
                 member.getId(),
@@ -87,7 +87,7 @@ public class PaperCommandService {
     @Transactional
     public void deleteMessageInMyPaper(Long memberId, Long messageId) {
         if (messageId == null) {
-            paperCommandRepository.deleteMessage(memberId, null);
+            messageRepository.deleteAllByMember_Id(memberId);
             redisPaperDeleteAdapter.removeMemberIdFromRealtimeScore(memberId);
             return;
         }
@@ -101,7 +101,7 @@ public class PaperCommandService {
         }
 
         // 메시지 삭제
-        paperCommandRepository.deleteMessage(memberId, messageId);
+        messageRepository.deleteById(messageId);
 
         // 메시지 삭제 성공 시 이벤트 발행 (실시간 인기 점수 감소, 단건 삭제만)
         eventPublisher.publishEvent(new MessageDeletedEvent(memberId));

@@ -18,7 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.notification.entity.Notification;
-import jaeik.bimillog.domain.notification.out.NotificationQueryAdapter;
+import jaeik.bimillog.domain.notification.out.NotificationQueryRepository;
 
 /**
  * <h2>NotificationQueryService 테스트</h2>
@@ -34,7 +34,7 @@ import jaeik.bimillog.domain.notification.out.NotificationQueryAdapter;
 class NotificationQueryServiceTest {
 
     @Mock
-    private NotificationQueryAdapter notificationQueryAdapter;
+    private NotificationQueryRepository notificationQueryRepository;
 
     @InjectMocks
     private NotificationQueryService notificationQueryService;
@@ -51,7 +51,7 @@ class NotificationQueryServiceTest {
         // Then
         assertThat(result).isNotNull();
         assertThat(result).isEmpty();
-        verifyNoInteractions(notificationQueryAdapter);
+        verifyNoInteractions(notificationQueryRepository);
     }
 
     @Test
@@ -60,7 +60,7 @@ class NotificationQueryServiceTest {
         // Given
         CustomUserDetails userDetails = mock(CustomUserDetails.class);
         given(userDetails.getMemberId()).willReturn(1L);
-        given(notificationQueryAdapter.getNotificationList(1L)).willReturn(null);
+        given(notificationQueryRepository.getNotificationList(1L)).willReturn(null);
 
         // When
         List<Notification> result = notificationQueryService.getNotificationList(userDetails);
@@ -68,6 +68,6 @@ class NotificationQueryServiceTest {
         // Then
         assertThat(result).isNotNull();
         assertThat(result).isEmpty();
-        verify(notificationQueryAdapter).getNotificationList(1L);
+        verify(notificationQueryRepository).getNotificationList(1L);
     }
 }

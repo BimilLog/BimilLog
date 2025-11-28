@@ -8,7 +8,6 @@ import jaeik.bimillog.domain.notification.entity.SseMessage;
 import jaeik.bimillog.domain.notification.listener.NotificationGenerateListener;
 import jaeik.bimillog.domain.notification.controller.NotificationSseController;
 import jaeik.bimillog.domain.notification.out.SseAdapter;
-import jaeik.bimillog.domain.notification.out.UrlGeneratorAdapter;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -24,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 public class SseService {
 
     private final SseAdapter sseAdapter;
-    private final UrlGeneratorAdapter urlGeneratorAdapter;
+    private final UrlGenerator urlGenerator;
 
     /**
      * <h3>SSE 구독</h3>
@@ -71,7 +70,7 @@ public class SseService {
      */
     public void sendCommentNotification(Long postUserId, String commenterName, Long postId) {
         String message = commenterName + "님이 댓글을 남겼습니다!";
-        String url = urlGeneratorAdapter.generatePostUrl(postId);
+        String url = urlGenerator.generatePostUrl(postId);
         SseMessage sseMessage = SseMessage.of(postUserId, NotificationType.COMMENT, message, url);
         sseAdapter.send(sseMessage);
     }
@@ -89,7 +88,7 @@ public class SseService {
      */
     public void sendPaperPlantNotification(Long farmOwnerId, String memberName) {
         String message = "롤링페이퍼에 메시지가 작성되었어요!";
-        String url = urlGeneratorAdapter.generateRollingPaperUrl(memberName);
+        String url = urlGenerator.generateRollingPaperUrl(memberName);
         SseMessage sseMessage = SseMessage.of(farmOwnerId, NotificationType.MESSAGE, message, url);
         sseAdapter.send(sseMessage);
     }
@@ -107,7 +106,7 @@ public class SseService {
      * @since 2.0.0
      */
     public void sendPostFeaturedNotification(Long memberId, String message, Long postId) {
-        String url = urlGeneratorAdapter.generatePostUrl(postId);
+        String url = urlGenerator.generatePostUrl(postId);
         SseMessage sseMessage = SseMessage.of(memberId, NotificationType.POST_FEATURED, message, url);
         sseAdapter.send(sseMessage);
     }
@@ -116,7 +115,7 @@ public class SseService {
      * 친구 요청 SSE 전송
      */
     public void sendFriendNotification(Long receiveMemberId, String message) {
-        String url = urlGeneratorAdapter.generateFriendRequestUrl(receiveMemberId);
+        String url = urlGenerator.generateFriendRequestUrl();
         SseMessage sseMessage = SseMessage.of(receiveMemberId, NotificationType.FRIEND, message, url);
         sseAdapter.send(sseMessage);
     }

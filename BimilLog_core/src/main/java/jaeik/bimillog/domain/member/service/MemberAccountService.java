@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.member.service;
 
-import jaeik.bimillog.domain.member.out.MemberCommandAdapter;
+import jaeik.bimillog.domain.member.out.MemberCommandRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,12 +15,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class MemberAccountService {
 
-    private final MemberCommandAdapter memberCommandAdapter;
+    private final MemberCommandRepository memberCommandRepository;
 
     @Transactional
     public void removeMemberAccount(Long memberId) {
         log.info("회원 계정 삭제 시작 - memberId: {}", memberId);
-        memberCommandAdapter.deleteMemberAndSetting(memberId);
+        memberCommandRepository.deleteMemberAndSetting(memberId);
         log.info("회원 계정 및 설정 삭제 완료 - memberId: {}", memberId);
     }
 }

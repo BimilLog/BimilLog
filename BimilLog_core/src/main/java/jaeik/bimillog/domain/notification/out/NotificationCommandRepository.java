@@ -4,9 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Repository;
 
-import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.notification.entity.Notification;
-import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
 import lombok.RequiredArgsConstructor;
 
@@ -20,7 +18,7 @@ import lombok.RequiredArgsConstructor;
  */
 @Repository
 @RequiredArgsConstructor
-public class NotificationCommandAdapter {
+public class NotificationCommandRepository {
 
     private final NotificationRepository notificationRepository;
 
@@ -47,33 +45,5 @@ public class NotificationCommandAdapter {
             List<Notification> notifications = notificationRepository.findAllByIdInAndMemberId(readIds, memberId);
             notifications.forEach(Notification::markAsRead);
         }
-    }
-
-    /**
-     * <h3>알림 저장</h3>
-     * <p>새로운 알림을 데이터베이스에 저장합니다.</p>
-     *
-     * @param member    알림을 받을 사용자 엔티티
-     * @param type    알림 유형
-     * @param content 알림 내용
-     * @param url     알림 클릭 시 이동할 URL
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public void save(Member member, NotificationType type, String content, String url) {
-        notificationRepository.save(Notification.create(member, type, content, url));
-    }
-
-    /**
-     * <h3>사용자의 모든 알림 삭제</h3>
-     * <p>특정 사용자의 모든 알림을 데이터베이스에서 삭제합니다.</p>
-     * <p>사용자 탈퇴 시 해당 사용자의 모든 알림 데이터를 정리하는데 사용됩니다.</p>
-     *
-     * @param memberId 알림을 삭제할 대상 사용자 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public void deleteAllByMemberId(Long memberId) {
-        notificationRepository.deleteAllByMemberId(memberId);
     }
 }

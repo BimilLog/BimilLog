@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
  */
 @Repository
 @RequiredArgsConstructor
-public class NotificationQueryAdapter {
+public class NotificationQueryRepository {
 
     private final JPAQueryFactory jpaQueryFactory;
     private final QNotification notification = QNotification.notification;

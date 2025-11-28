@@ -10,7 +10,4 @@ import java.util.List;
 public interface MemberBlacklistRepository extends JpaRepository<MemberBlacklist, Long> {
 
     boolean existsByRequestMemberIdAndBlackMemberId(Long requestMemberId, Long blackMemberId);
-
-    List<MemberBlacklist> findByRequestMemberId(Long requestMemberId);
-
 }

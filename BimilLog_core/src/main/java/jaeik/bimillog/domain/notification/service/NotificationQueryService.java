@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.controller.NotificationQueryController;
-import jaeik.bimillog.domain.notification.out.NotificationQueryAdapter;
+import jaeik.bimillog.domain.notification.out.NotificationQueryRepository;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -24,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class NotificationQueryService {
 
-    private final NotificationQueryAdapter notificationQueryAdapter;
+    private final NotificationQueryRepository notificationQueryRepository;
 
     /**
      * <h3>알림 목록 조회</h3>
@@ -43,7 +43,7 @@ public class NotificationQueryService {
             return Collections.emptyList();
         }
 
-        List<Notification> notifications = notificationQueryAdapter.getNotificationList(userDetails.getMemberId());
+        List<Notification> notifications = notificationQueryRepository.getNotificationList(userDetails.getMemberId());
 
         return notifications != null ? notifications : Collections.emptyList();
     }
