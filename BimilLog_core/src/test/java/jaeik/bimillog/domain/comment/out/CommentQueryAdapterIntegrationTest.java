@@ -1,9 +1,6 @@
 package jaeik.bimillog.domain.comment.out;
 
-import jaeik.bimillog.domain.comment.entity.Comment;
-import jaeik.bimillog.domain.comment.entity.CommentInfo;
-import jaeik.bimillog.domain.comment.entity.CommentLike;
-import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
+import jaeik.bimillog.domain.comment.entity.*;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.member.out.MemberRepository;
@@ -214,14 +211,14 @@ class CommentQueryAdapterIntegrationTest {
         commentLikeRepository.save(memberLike);
 
         // When: 인기 댓글 조회 (otherMember 관점에서)
-        List<CommentInfo> popularComments = commentQueryAdapter
+        List<MemberActivityComment.CommentInfo> popularComments = commentQueryAdapter
                 .findPopularComments(testPost.getId(), otherMember.getId());
 
         // Then: 인기 댓글들이 조회되는지 검증
         assertThat(popularComments).isNotNull();
         assertThat(popularComments).hasSize(1);
 
-        CommentInfo popularComment = popularComments.getFirst();
+        MemberActivityComment.CommentInfo popularComment = popularComments.getFirst();
         assertThat(popularComment.getContent()).isEqualTo("인기댓글1");
         assertThat(popularComment.isPopular()).isTrue();
         assertThat(popularComment.getLikeCount()).isEqualTo(4); // 3 + otherMember의 추천
@@ -260,14 +257,14 @@ class CommentQueryAdapterIntegrationTest {
         }
 
         // When: 인기 댓글 조회 (otherMember는 추천하지 않음)
-        List<CommentInfo> popularComments = commentQueryAdapter
+        List<MemberActivityComment.CommentInfo> popularComments = commentQueryAdapter
                 .findPopularComments(testPost.getId(), otherMember.getId());
 
         // Then: 사용자 추천 여부가 false로 설정되는지 검증
         assertThat(popularComments).isNotNull();
         assertThat(popularComments).hasSize(1);
 
-        CommentInfo popularComment = popularComments.getFirst();
+        MemberActivityComment.CommentInfo popularComment = popularComments.getFirst();
         assertThat(popularComment.getContent()).isEqualTo("인기댓글1");
         assertThat(popularComment.isPopular()).isTrue();
         assertThat(popularComment.getLikeCount()).isEqualTo(4);
@@ -302,14 +299,14 @@ class CommentQueryAdapterIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 과거순 댓글 조회 (otherMember 관점에서)
-        Page<CommentInfo> oldestComments = commentQueryAdapter
+        Page<MemberActivityComment.CommentInfo> oldestComments = commentQueryAdapter
                 .findCommentsWithOldestOrder(testPost.getId(), pageable, otherMember.getId());
 
         // Then: 과거순으로 댓글들이 조회되고 사용자 추천 여부가 올바르게 설정되는지 검증
         assertThat(oldestComments).isNotNull();
         assertThat(oldestComments.getContent()).hasSize(3);
 
-        List<CommentInfo> comments = oldestComments.getContent();
+        List<MemberActivityComment.CommentInfo> comments = oldestComments.getContent();
         // 과거순 정렬 검증 (첫번째 댓글이 가장 먼저)
         assertThat(comments.getFirst().getContent()).isEqualTo("첫번째 댓글");
         assertThat(comments.getFirst().isUserLike()).isFalse(); // otherMember가 추천하지 않음
