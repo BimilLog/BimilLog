@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.comment.service;
 
 import jaeik.bimillog.domain.comment.entity.MemberActivityComment;
-import jaeik.bimillog.domain.comment.out.CommentQueryAdapter;
+import jaeik.bimillog.domain.comment.repository.CommentQueryRepository;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -31,7 +31,7 @@ import static org.mockito.Mockito.verify;
 class CommentQueryServiceTest {
 
     @Mock
-    private CommentQueryAdapter commentQueryAdapter;
+    private CommentQueryRepository commentQueryRepository;
 
     @InjectMocks
     private CommentQueryService commentQueryService;
@@ -44,14 +44,14 @@ class CommentQueryServiceTest {
         Long memberId = 10L;
         CustomUserDetails userDetails = mock(CustomUserDetails.class);
         given(userDetails.getMemberId()).willReturn(memberId);
-        given(commentQueryAdapter.findPopularComments(postId, memberId)).willReturn(List.of());
+        given(commentQueryRepository.findPopularComments(postId, memberId)).willReturn(List.of());
 
         // When
         List<MemberActivityComment.CommentInfo> result = commentQueryService.getPopularComments(postId, userDetails);
 
         // Then
         assertThat(result).isEmpty();
-        verify(commentQueryAdapter).findPopularComments(postId, memberId);
+        verify(commentQueryRepository).findPopularComments(postId, memberId);
     }
 
     @Test
@@ -59,14 +59,14 @@ class CommentQueryServiceTest {
     void shouldPassNullForPopularCommentsWhenAnonymous() {
         // Given
         Long postId = 2L;
-        given(commentQueryAdapter.findPopularComments(postId, null)).willReturn(List.of());
+        given(commentQueryRepository.findPopularComments(postId, null)).willReturn(List.of());
 
         // When
         List<MemberActivityComment.CommentInfo> result = commentQueryService.getPopularComments(postId, null);
 
         // Then
         assertThat(result).isEmpty();
-        verify(commentQueryAdapter).findPopularComments(postId, null);
+        verify(commentQueryRepository).findPopularComments(postId, null);
     }
 
     @Test
@@ -79,14 +79,14 @@ class CommentQueryServiceTest {
         CustomUserDetails userDetails = mock(CustomUserDetails.class);
         given(userDetails.getMemberId()).willReturn(memberId);
         Page<MemberActivityComment.CommentInfo> expected = new PageImpl<>(List.of());
-        given(commentQueryAdapter.findCommentsWithOldestOrder(postId, pageable, memberId)).willReturn(expected);
+        given(commentQueryRepository.findCommentsWithOldestOrder(postId, pageable, memberId)).willReturn(expected);
 
         // When
         Page<MemberActivityComment.CommentInfo> result = commentQueryService.getCommentsOldestOrder(postId, pageable, userDetails);
 
         // Then
         assertThat(result).isEqualTo(expected);
-        verify(commentQueryAdapter).findCommentsWithOldestOrder(postId, pageable, memberId);
+        verify(commentQueryRepository).findCommentsWithOldestOrder(postId, pageable, memberId);
     }
 
     @Test
@@ -96,13 +96,13 @@ class CommentQueryServiceTest {
         Long postId = 4L;
         PageRequest pageable = PageRequest.of(0, 5);
         Page<MemberActivityComment.CommentInfo> expected = Page.empty();
-        given(commentQueryAdapter.findCommentsWithOldestOrder(postId, pageable, null)).willReturn(expected);
+        given(commentQueryRepository.findCommentsWithOldestOrder(postId, pageable, null)).willReturn(expected);
 
         // When
         Page<MemberActivityComment.CommentInfo> result = commentQueryService.getCommentsOldestOrder(postId, pageable, null);
 
         // Then
         assertThat(result).isEqualTo(expected);
-        verify(commentQueryAdapter).findCommentsWithOldestOrder(postId, pageable, null);
+        verify(commentQueryRepository).findCommentsWithOldestOrder(postId, pageable, null);
     }
 }

@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.comment.out;
+package jaeik.bimillog.domain.comment.repository;
 
 import jaeik.bimillog.domain.comment.entity.Comment;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -43,7 +43,5 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Modifying
     @Query(value = "DELETE FROM comment WHERE comment_id = :commentId", nativeQuery = true)
     void hardDeleteComment(@Param("commentId") Long commentId);
-
-
 }
 

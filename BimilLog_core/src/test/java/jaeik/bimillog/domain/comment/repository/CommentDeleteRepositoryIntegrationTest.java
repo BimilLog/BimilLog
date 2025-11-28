@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.comment.out;
+package jaeik.bimillog.domain.comment.repository;
 
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.member.entity.Member;
@@ -33,10 +33,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @DataJpaTest
 @ActiveProfiles("h2test")
-@Import({CommentDeleteAdapter.class, H2TestConfiguration.class})
+@Import({CommentDeleteRepository.class, H2TestConfiguration.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Tag("integration")
-class CommentDeleteAdapterIntegrationTest {
+class CommentDeleteRepositoryIntegrationTest {
 
     @Autowired
     private EntityManager entityManager;
@@ -45,7 +45,7 @@ class CommentDeleteAdapterIntegrationTest {
     private CommentRepository commentRepository;
 
     @Autowired
-    private CommentDeleteAdapter commentDeleteAdapter;
+    private CommentDeleteRepository commentDeleteRepository;
 
     @Autowired
     private PostRepository postRepository;
@@ -118,7 +118,7 @@ class CommentDeleteAdapterIntegrationTest {
         assertThat(commentRepository.findById(commentId)).isPresent();
 
         // When: 댓글 삭제 (내부적으로 자손이 없어 하드 삭제 수행)
-        commentDeleteAdapter.deleteComment(commentId);
+        commentDeleteRepository.deleteComment(commentId);
 
         // EntityManager 초기화로 변경사항 반영
         entityManager.flush();
@@ -141,7 +141,7 @@ class CommentDeleteAdapterIntegrationTest {
         assertThat(commentRepository.findById(commentId)).isPresent();
 
         // When: 댓글 삭제 (클로저 테이블과 함께 삭제)
-        commentDeleteAdapter.deleteComment(commentId);
+        commentDeleteRepository.deleteComment(commentId);
 
         // EntityManager 초기화로 변경사항 반영
         entityManager.flush();
@@ -159,7 +159,7 @@ class CommentDeleteAdapterIntegrationTest {
         Long nonExistentCommentId = 999L;
 
         // When: 존재하지 않는 댓글 삭제 (예외가 발생하지 않아야 함)
-        commentDeleteAdapter.deleteComment(nonExistentCommentId);
+        commentDeleteRepository.deleteComment(nonExistentCommentId);
 
         // Then: 예외가 발생하지 않고 정상적으로 완료되어야 함
         // 통합 테스트에서는 예외 발생 여부만 확인

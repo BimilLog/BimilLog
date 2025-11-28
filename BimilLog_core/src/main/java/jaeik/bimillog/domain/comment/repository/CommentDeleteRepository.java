@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.comment.out;
+package jaeik.bimillog.domain.comment.repository;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 @RequiredArgsConstructor
-public class CommentDeleteAdapter {
+public class CommentDeleteRepository {
 
     private final CommentRepository commentRepository;
 

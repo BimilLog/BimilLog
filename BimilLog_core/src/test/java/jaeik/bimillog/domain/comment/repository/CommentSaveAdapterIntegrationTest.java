@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.comment.out;
+package jaeik.bimillog.domain.comment.repository;
 
 import jaeik.bimillog.BimilLogApplication;
 import jaeik.bimillog.domain.comment.entity.Comment;

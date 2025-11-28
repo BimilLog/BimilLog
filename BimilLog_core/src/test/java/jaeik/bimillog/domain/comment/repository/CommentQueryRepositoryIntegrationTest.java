@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.comment.out;
+package jaeik.bimillog.domain.comment.repository;
 
 import jaeik.bimillog.domain.comment.entity.*;
 import jaeik.bimillog.domain.member.entity.Member;
@@ -40,10 +40,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @DataJpaTest
 @ActiveProfiles("h2test")
-@Import({CommentQueryAdapter.class, H2TestConfiguration.class})
+@Import({CommentQueryRepository.class, H2TestConfiguration.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Tag("integration")
-class CommentQueryAdapterIntegrationTest {
+class CommentQueryRepositoryIntegrationTest {
 
     @Autowired
     private CommentRepository commentRepository;
@@ -52,7 +52,7 @@ class CommentQueryAdapterIntegrationTest {
     private CommentLikeRepository commentLikeRepository;
 
     @Autowired
-    private CommentQueryAdapter commentQueryAdapter;
+    private CommentQueryRepository commentQueryRepository;
 
     @Autowired
     private PostRepository postRepository;
@@ -135,7 +135,7 @@ class CommentQueryAdapterIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 특정 사용자의 댓글 조회
-        Page<SimpleCommentInfo> memberComments = commentQueryAdapter.findCommentsByMemberId(testMember.getId(), pageable);
+        Page<SimpleCommentInfo> memberComments = commentQueryRepository.findCommentsByMemberId(testMember.getId(), pageable);
 
         // Then: 해당 사용자의 댓글만 조회되는지 검증
         assertThat(memberComments).isNotNull();
@@ -163,7 +163,7 @@ class CommentQueryAdapterIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 사용자가 추천한 댓글 조회
-        Page<SimpleCommentInfo> likedComments = commentQueryAdapter
+        Page<SimpleCommentInfo> likedComments = commentQueryRepository
                 .findLikedCommentsByMemberId(otherMember.getId(), pageable);
 
         // Then: 추천한 댓글들이 조회되는지 검증
@@ -211,7 +211,7 @@ class CommentQueryAdapterIntegrationTest {
         commentLikeRepository.save(memberLike);
 
         // When: 인기 댓글 조회 (otherMember 관점에서)
-        List<MemberActivityComment.CommentInfo> popularComments = commentQueryAdapter
+        List<MemberActivityComment.CommentInfo> popularComments = commentQueryRepository
                 .findPopularComments(testPost.getId(), otherMember.getId());
 
         // Then: 인기 댓글들이 조회되는지 검증
@@ -257,7 +257,7 @@ class CommentQueryAdapterIntegrationTest {
         }
 
         // When: 인기 댓글 조회 (otherMember는 추천하지 않음)
-        List<MemberActivityComment.CommentInfo> popularComments = commentQueryAdapter
+        List<MemberActivityComment.CommentInfo> popularComments = commentQueryRepository
                 .findPopularComments(testPost.getId(), otherMember.getId());
 
         // Then: 사용자 추천 여부가 false로 설정되는지 검증
@@ -299,7 +299,7 @@ class CommentQueryAdapterIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 과거순 댓글 조회 (otherMember 관점에서)
-        Page<MemberActivityComment.CommentInfo> oldestComments = commentQueryAdapter
+        Page<MemberActivityComment.CommentInfo> oldestComments = commentQueryRepository
                 .findCommentsWithOldestOrder(testPost.getId(), pageable, otherMember.getId());
 
         // Then: 과거순으로 댓글들이 조회되고 사용자 추천 여부가 올바르게 설정되는지 검증
@@ -333,7 +333,7 @@ class CommentQueryAdapterIntegrationTest {
         Comment comment1 = CommentTestDataBuilder.createComment(testPost, testMember, "첫 번째 게시글 댓글1");
         Comment comment2 = CommentTestDataBuilder.createComment(testPost, otherMember, "첫 번째 게시글 댓글2");
         Comment comment3 = CommentTestDataBuilder.createComment(testPost, testMember, "첫 번째 게시글 댓글3");
-        
+
         commentRepository.save(comment1);
         commentRepository.save(comment2);
         commentRepository.save(comment3);
@@ -341,16 +341,16 @@ class CommentQueryAdapterIntegrationTest {
         // post2에 댓글 2개 생성
         Comment comment4 = CommentTestDataBuilder.createComment(post2, testMember, "두 번째 게시글 댓글1");
         Comment comment5 = CommentTestDataBuilder.createComment(post2, otherMember, "두 번째 게시글 댓글2");
-        
+
         commentRepository.save(comment4);
         commentRepository.save(comment5);
 
         // post3에는 댓글 없음
-        
+
         List<Long> postIds = List.of(testPost.getId(), post2.getId(), post3.getId());
 
         // When: 게시글 ID 목록에 대한 댓글 수 조회
-        Map<Long, Integer> commentCounts = commentQueryAdapter.findCommentCountsByPostIds(postIds);
+        Map<Long, Integer> commentCounts = commentQueryRepository.findCommentCountsByPostIds(postIds);
 
         // Then: 각 게시글별 댓글 수가 올바르게 반환되는지 검증
         assertThat(commentCounts).isNotNull();
@@ -367,7 +367,7 @@ class CommentQueryAdapterIntegrationTest {
         List<Long> emptyPostIds = List.of();
 
         // When: 빈 목록으로 댓글 수 조회
-        Map<Long, Integer> commentCounts = commentQueryAdapter.findCommentCountsByPostIds(emptyPostIds);
+        Map<Long, Integer> commentCounts = commentQueryRepository.findCommentCountsByPostIds(emptyPostIds);
 
         // Then: 빈 맵이 반환되어야 함
         assertThat(commentCounts).isNotNull();
@@ -381,7 +381,7 @@ class CommentQueryAdapterIntegrationTest {
         List<Long> nonExistentPostIds = List.of(999L, 998L, 997L);
 
         // When: 존재하지 않는 게시글 ID로 댓글 수 조회
-        Map<Long, Integer> commentCounts = commentQueryAdapter.findCommentCountsByPostIds(nonExistentPostIds);
+        Map<Long, Integer> commentCounts = commentQueryRepository.findCommentCountsByPostIds(nonExistentPostIds);
 
         // Then: 빈 맵이 반환되어야 함
         assertThat(commentCounts).isNotNull();
@@ -410,16 +410,16 @@ class CommentQueryAdapterIntegrationTest {
         // When & Then: 여러 쿼리 연속 실행
 
         // 1. 댓글 수 조회
-        Map<Long, Integer> commentCounts = commentQueryAdapter.findCommentCountsByPostIds(List.of(testPost.getId()));
+        Map<Long, Integer> commentCounts = commentQueryRepository.findCommentCountsByPostIds(List.of(testPost.getId()));
         assertThat(commentCounts.get(testPost.getId())).isEqualTo(2);
 
         // 2. 사용자별 댓글 조회
-        Page<SimpleCommentInfo> memberComments = commentQueryAdapter.findCommentsByMemberId(testMember.getId(), PageRequest.of(0, 10));
+        Page<SimpleCommentInfo> memberComments = commentQueryRepository.findCommentsByMemberId(testMember.getId(), PageRequest.of(0, 10));
         assertThat(memberComments.getTotalElements()).isEqualTo(1);
         assertThat(memberComments.getContent().get(0).getContent()).isEqualTo("복합쿼리 댓글1");
 
         // 3. 사용자가 추천한 댓글 조회
-        Page<SimpleCommentInfo> likedComments = commentQueryAdapter.findLikedCommentsByMemberId(testMember.getId(), PageRequest.of(0, 10));
+        Page<SimpleCommentInfo> likedComments = commentQueryRepository.findLikedCommentsByMemberId(testMember.getId(), PageRequest.of(0, 10));
         assertThat(likedComments.getTotalElements()).isEqualTo(1);
         assertThat(likedComments.getContent().get(0).getId()).isEqualTo(comment2.getId());
     }
@@ -430,15 +430,15 @@ class CommentQueryAdapterIntegrationTest {
 //        // Given: 부모-자식 댓글 관계 설정
 //        Comment parentComment = CommentTestDataBuilder.createComment(testPost, testMember, "부모 댓글");
 //        parentComment = commentRepository.savePostLike(parentComment);
-//        
+//
 //        Comment childComment = CommentTestDataBuilder.createComment(testPost, testMember, "자식 댓글");
 //        childComment = commentRepository.savePostLike(childComment);
-//        
+//
 //        // 클로저 관계 설정 (자식 댓글이 있음을 나타냄)
 //        CommentClosure parentSelf = CommentClosure.createCommentClosure(parentComment, parentComment, 0);
 //        CommentClosure parentToChild = CommentClosure.createCommentClosure(parentComment, childComment, 1);
 //        CommentClosure childSelf = CommentClosure.createCommentClosure(childComment, childComment, 0);
-//        
+//
 //        commentClosureRepository.savePostLike(parentSelf);
 //        commentClosureRepository.savePostLike(parentToChild);
 //        commentClosureRepository.savePostLike(childSelf);
@@ -465,7 +465,7 @@ class CommentQueryAdapterIntegrationTest {
         commentRepository.save(comment3);
 
         // When: 특정 사용자의 모든 댓글 조회
-        List<Comment> memberComments = commentQueryAdapter.findAllByMemberId(testMember.getId());
+        List<Comment> memberComments = commentQueryRepository.findAllByMemberId(testMember.getId());
 
         // Then: 해당 사용자의 댓글만 조회됨
         assertThat(memberComments).isNotNull();
@@ -571,7 +571,7 @@ class CommentQueryAdapterIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: otherMember가 추천한 댓글 조회
-        Page<SimpleCommentInfo> likedComments = commentQueryAdapter
+        Page<SimpleCommentInfo> likedComments = commentQueryRepository
                 .findLikedCommentsByMemberId(otherMember.getId(), pageable);
 
         // Then: 실제 전체 추천 수가 정확히 표시되어야 함 (본인 포함)
@@ -612,7 +612,7 @@ class CommentQueryAdapterIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: otherMember가 추천한 댓글 조회 (0개)
-        Page<SimpleCommentInfo> likedComments = commentQueryAdapter
+        Page<SimpleCommentInfo> likedComments = commentQueryRepository
                 .findLikedCommentsByMemberId(otherMember.getId(), pageable);
 
         // Then: 빈 목록 반환
@@ -658,7 +658,7 @@ class CommentQueryAdapterIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: otherMember가 추천한 댓글 조회
-        Page<SimpleCommentInfo> likedComments = commentQueryAdapter
+        Page<SimpleCommentInfo> likedComments = commentQueryRepository
                 .findLikedCommentsByMemberId(otherMember.getId(), pageable);
 
         // Then: 추천 날짜 기준 최신순으로 정렬됨 (comment3 → comment2 → comment1)

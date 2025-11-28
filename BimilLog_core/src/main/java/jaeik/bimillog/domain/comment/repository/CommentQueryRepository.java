@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.comment.out;
+package jaeik.bimillog.domain.comment.repository;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
  */
 @Repository
 @RequiredArgsConstructor
-public class CommentQueryAdapter {
+public class CommentQueryRepository {
 
     private final JPAQueryFactory jpaQueryFactory;
     private static final QComment comment = QComment.comment;
