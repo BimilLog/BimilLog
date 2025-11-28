@@ -1,4 +1,4 @@
-import { useQuery, UseQueryResult } from '@tanstack/react-query';
+import { useQuery, UseQueryResult, UseQueryOptions } from '@tanstack/react-query';
 import { mypageQuery } from '@/lib/api';
 import { queryKeys } from '@/lib/tanstack-query/keys';
 import type { MyPageDTO } from '@/types';
@@ -11,16 +11,19 @@ import type { ApiResponse } from '@/types/common';
  *
  * @param page 페이지 번호 (0부터 시작)
  * @param size 페이지 크기
+ * @param options useQuery 추가 옵션
  * @returns UseQueryResult<ApiResponse<MyPageDTO>>
  */
 export const useMyPageInfo = (
   page: number = 0,
-  size: number = 10
+  size: number = 10,
+  options?: Partial<UseQueryOptions<ApiResponse<MyPageDTO>>>
 ): UseQueryResult<ApiResponse<MyPageDTO>> => {
   return useQuery({
     queryKey: queryKeys.mypage.info(page, size),
     queryFn: () => mypageQuery.getMyPageInfo(page, size),
     staleTime: 5 * 60 * 1000, // 5분
     gcTime: 10 * 60 * 1000,   // 10분 (구 cacheTime)
+    ...options, // 추가 옵션 병합
   });
 };
