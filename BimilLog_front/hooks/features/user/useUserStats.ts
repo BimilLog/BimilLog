@@ -15,13 +15,15 @@ interface UserStats {
 }
 
 export function useUserStats(user: Member | null) {
-  // 마이페이지 통합 API 호출 (1번의 호출로 모든 활동 데이터 조회)
+  // 마이페이지 통합 API 호출
+  // size=10으로 통일하여 useUserActivityTabs와 같은 queryKey 사용
+  // TanStack Query가 자동으로 캐시를 공유하여 중복 호출 방지
   const {
     data: mypageData,
     isLoading: isLoadingMypage,
     error: mypageError,
     refetch: fetchUserStats,
-  } = useMyPageInfo(0, 1); // page=0, size=1로 totalElements만 조회
+  } = useMyPageInfo(0, 10);
 
   // 롤링페이퍼 데이터 (마이페이지 API와 별도)
   const { data: myPaperData, isLoading: isLoadingPaper, isError: isPaperError } = useMyRollingPaper();
