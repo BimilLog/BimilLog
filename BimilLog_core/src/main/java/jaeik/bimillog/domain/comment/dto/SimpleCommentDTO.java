@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.comment.dto;
 
 import com.querydsl.core.annotations.QueryProjection;
+import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
@@ -69,5 +70,25 @@ public class SimpleCommentDTO {
         this.createdAt = createdAt;
         this.likeCount = likeCount != null ? likeCount : 0;
         this.userLike = userLike;
+    }
+
+    /**
+     * <h3>SimpleCommentInfo를 SimpleCommentDTO로 변환</h3>
+     *
+     * @param commentInfo 변환할 도메인 객체
+     * @return SimpleCommentDTO 응답 DTO
+     * @author jaeik
+     * @since 2.0.0
+     */
+    public static SimpleCommentDTO convertToSimpleCommentDTO(SimpleCommentInfo commentInfo) {
+        return new SimpleCommentDTO(
+                commentInfo.getId(),
+                commentInfo.getPostId(),
+                commentInfo.getMemberName(),
+                commentInfo.getContent(),
+                commentInfo.getCreatedAt(),
+                commentInfo.getLikeCount(),
+                commentInfo.isUserLike()
+        );
     }
 }

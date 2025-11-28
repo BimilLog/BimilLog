@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.post.dto;
 
+import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -39,5 +40,26 @@ public class SimplePostDTO {
     private Long memberId;
     private String memberName;
     private Integer commentCount;
+
+    /**
+     * <h3>PostSearchResult를 SimplePostResDTO로 변환</h3>
+     *
+     * @param postSimpleDetail 변환할 도메인 객체
+     * @return SimplePostDTO 응답 DTO
+     * @author jaeik
+     * @since 2.0.0
+     */
+    public static SimplePostDTO convertToSimplePostResDTO(PostSimpleDetail postSimpleDetail) {
+        return SimplePostDTO.builder()
+                .id(postSimpleDetail.getId())
+                .title(postSimpleDetail.getTitle())
+                .viewCount(postSimpleDetail.getViewCount())
+                .likeCount(postSimpleDetail.getLikeCount())
+                .createdAt(postSimpleDetail.getCreatedAt())
+                .memberId(postSimpleDetail.getMemberId())
+                .memberName(postSimpleDetail.getMemberName())
+                .commentCount(postSimpleDetail.getCommentCount())
+                .build();
+    }
 
 }
