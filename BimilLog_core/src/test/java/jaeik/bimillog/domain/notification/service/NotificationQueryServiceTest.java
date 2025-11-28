@@ -1,13 +1,8 @@
 package jaeik.bimillog.domain.notification.service;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-
-import java.util.List;
-
+import jaeik.bimillog.domain.global.entity.CustomUserDetails;
+import jaeik.bimillog.domain.notification.entity.Notification;
+import jaeik.bimillog.domain.notification.out.NotificationQueryRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -16,9 +11,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.domain.notification.entity.Notification;
-import jaeik.bimillog.domain.notification.out.NotificationQueryRepository;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
 
 /**
  * <h2>NotificationQueryService 테스트</h2>

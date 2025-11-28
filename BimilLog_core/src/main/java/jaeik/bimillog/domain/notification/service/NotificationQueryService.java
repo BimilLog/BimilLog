@@ -1,16 +1,15 @@
 package jaeik.bimillog.domain.notification.service;
 
-import java.util.Collections;
-import java.util.List;
-
+import jaeik.bimillog.domain.global.entity.CustomUserDetails;
+import jaeik.bimillog.domain.notification.controller.NotificationQueryController;
+import jaeik.bimillog.domain.notification.entity.Notification;
+import jaeik.bimillog.domain.notification.out.NotificationQueryRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.domain.notification.entity.Notification;
-import jaeik.bimillog.domain.notification.controller.NotificationQueryController;
-import jaeik.bimillog.domain.notification.out.NotificationQueryRepository;
-import lombok.RequiredArgsConstructor;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * <h2>알림 조회 서비스</h2>

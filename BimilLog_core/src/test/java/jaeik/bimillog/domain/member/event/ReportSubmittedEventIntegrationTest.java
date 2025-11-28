@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.member.event;
 
-import jaeik.bimillog.domain.admin.service.AdminCommandService;
 import jaeik.bimillog.domain.admin.entity.ReportType;
+import jaeik.bimillog.domain.admin.service.AdminCommandService;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;

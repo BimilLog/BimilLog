@@ -1,12 +1,13 @@
 package jaeik.bimillog.domain.member.controller;
 
 import jaeik.bimillog.domain.auth.entity.AuthToken;
-import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.auth.out.AuthTokenRepository;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
+import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.out.MemberRepository;
-import jaeik.bimillog.testutil.*;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.testutil.BaseIntegrationTest;
+import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.config.H2TestConfiguration;
 import jaeik.bimillog.testutil.config.TestSocialLoginAdapterConfig;
 import jaeik.bimillog.testutil.fixtures.AuthTestFixtures;

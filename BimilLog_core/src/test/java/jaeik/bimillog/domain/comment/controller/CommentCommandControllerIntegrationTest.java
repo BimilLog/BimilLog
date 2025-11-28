@@ -1,15 +1,16 @@
 package jaeik.bimillog.domain.comment.controller;
 
-import jaeik.bimillog.domain.comment.service.CommentCommandService;
-import jaeik.bimillog.domain.comment.entity.Comment;
-import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.comment.dto.CommentLikeReqDTO;
 import jaeik.bimillog.domain.comment.dto.CommentReqDTO;
-import jaeik.bimillog.domain.global.entity.CustomUserDetails;
+import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.repository.CommentRepository;
+import jaeik.bimillog.domain.comment.service.CommentCommandService;
+import jaeik.bimillog.domain.global.entity.CustomUserDetails;
+import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.out.PostRepository;
-import jaeik.bimillog.testutil.*;
+import jaeik.bimillog.testutil.BaseIntegrationTest;
+import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.builder.CommentTestDataBuilder;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import jaeik.bimillog.testutil.config.H2TestConfiguration;

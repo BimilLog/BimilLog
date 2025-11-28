@@ -7,8 +7,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
-
 /**
  * <h2>소셜 토큰 JPA Repository</h2>
  * <p>JpaRepository를 상속받은 인터페이스입니다.</p>

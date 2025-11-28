@@ -1,8 +1,9 @@
 package jaeik.bimillog.domain.notification.controller;
 
-import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
+import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.infrastructure.log.Log;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -13,8 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.nio.charset.StandardCharsets;
-
-import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * <h2>SSE 실시간 알림 구독 컨트롤러</h2>

@@ -1,11 +1,7 @@
 package jaeik.bimillog.domain.member.dto;
 
 import jaeik.bimillog.domain.member.entity.Member;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 /**
  * <h3>간단한 사용자 정보 DTO</h3>

@@ -1,10 +1,7 @@
 package jaeik.bimillog.domain.notification.service;
 
-import static org.mockito.Mockito.verify;
-
-import java.util.Arrays;
-import java.util.List;
-
+import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
+import jaeik.bimillog.domain.notification.out.NotificationCommandRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -13,8 +10,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
-import jaeik.bimillog.domain.notification.out.NotificationCommandRepository;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.mockito.Mockito.verify;
 
 /**
  * <h2>NotificationCommandService 테스트</h2>

@@ -1,15 +1,15 @@
 package jaeik.bimillog.domain.auth.controller;
 
-import jaeik.bimillog.domain.auth.entity.AuthToken;
-import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.auth.dto.SocialLoginRequestDTO;
+import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.out.AuthTokenRepository;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.testutil.fixtures.AuthTestFixtures;
+import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.TestMembers;
-import jaeik.bimillog.testutil.config.TestSocialLoginAdapterConfig;
 import jaeik.bimillog.testutil.annotation.IntegrationTest;
+import jaeik.bimillog.testutil.config.TestSocialLoginAdapterConfig;
+import jaeik.bimillog.testutil.fixtures.AuthTestFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

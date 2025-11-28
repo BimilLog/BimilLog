@@ -1,9 +1,9 @@
 package jaeik.bimillog.domain.global.out;
 
+import jaeik.bimillog.domain.auth.entity.BlackList;
 import jaeik.bimillog.domain.auth.out.BlackListRepository;
 import jaeik.bimillog.domain.auth.service.SocialLoginService;
 import jaeik.bimillog.domain.auth.service.SocialWithdrawService;
-import jaeik.bimillog.domain.auth.entity.BlackList;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

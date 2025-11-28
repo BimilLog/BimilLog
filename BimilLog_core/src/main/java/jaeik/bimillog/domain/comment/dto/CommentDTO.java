@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.comment.dto;
 
 import com.querydsl.core.annotations.QueryProjection;
 import jaeik.bimillog.domain.comment.entity.CommentInfo;
-import jaeik.bimillog.domain.comment.entity.MemberActivityComment;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

@@ -1,6 +1,8 @@
 package jaeik.bimillog.domain.friend.service;
 
-import jaeik.bimillog.domain.friend.algorithm.*;
+import jaeik.bimillog.domain.friend.algorithm.BreadthFirstSearch;
+import jaeik.bimillog.domain.friend.algorithm.FriendRecommendScorer;
+import jaeik.bimillog.domain.friend.algorithm.RecommendCandidate;
 import jaeik.bimillog.domain.friend.entity.FriendRelation;
 import jaeik.bimillog.domain.friend.entity.RecommendedFriend;
 import jaeik.bimillog.domain.member.out.MemberQueryRepository;

@@ -1,10 +1,8 @@
 package jaeik.bimillog.domain.friend.repository;
 
 import jaeik.bimillog.domain.friend.entity.Friend;
-import jaeik.bimillog.domain.friend.entity.RecommendedFriend;
 import jaeik.bimillog.domain.member.service.MemberFriendService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

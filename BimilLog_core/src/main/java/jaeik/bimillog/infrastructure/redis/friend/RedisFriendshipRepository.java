@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-import static jaeik.bimillog.infrastructure.redis.friend.RedisFriendKeys.*;
+import static jaeik.bimillog.infrastructure.redis.friend.RedisFriendKeys.FRIEND_SHIP_PREFIX;
 
 /**
  * <h2>친구 관계 Redis 캐시 저장소</h2>

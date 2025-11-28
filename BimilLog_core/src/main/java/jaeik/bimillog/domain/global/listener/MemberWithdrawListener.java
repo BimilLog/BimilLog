@@ -13,16 +13,14 @@ import jaeik.bimillog.domain.notification.service.NotificationCommandService;
 import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.domain.paper.service.PaperCommandService;
 import jaeik.bimillog.domain.post.service.PostCommandService;
-import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
+import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 /**
  * <h2>사용자 탈퇴 이벤트 리스너</h2>

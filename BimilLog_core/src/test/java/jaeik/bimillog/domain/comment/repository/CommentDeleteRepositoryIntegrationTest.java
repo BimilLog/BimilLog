@@ -2,11 +2,11 @@ package jaeik.bimillog.domain.comment.repository;
 
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.member.out.MemberRepository;
+import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.out.PostRepository;
-import jaeik.bimillog.testutil.config.H2TestConfiguration;
 import jaeik.bimillog.testutil.TestMembers;
+import jaeik.bimillog.testutil.config.H2TestConfiguration;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

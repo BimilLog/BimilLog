@@ -1,13 +1,13 @@
 package jaeik.bimillog.domain.auth.contoller;
 
+import jaeik.bimillog.domain.auth.dto.SocialLoginRequestDTO;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.event.MemberLoggedOutEvent;
 import jaeik.bimillog.domain.auth.service.SocialLoginService;
+import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.log.Log.LogLevel;
-import jaeik.bimillog.domain.auth.dto.SocialLoginRequestDTO;
-import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;

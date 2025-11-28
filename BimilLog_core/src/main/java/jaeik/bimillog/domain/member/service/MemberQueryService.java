@@ -1,15 +1,15 @@
 package jaeik.bimillog.domain.member.service;
 
+import jaeik.bimillog.domain.member.controller.MemberQueryController;
 import jaeik.bimillog.domain.member.dto.SimpleMemberDTO;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
+import jaeik.bimillog.domain.member.out.MemberQueryRepository;
 import jaeik.bimillog.domain.member.out.MemberRepository;
 import jaeik.bimillog.domain.member.out.SettingRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.domain.member.controller.MemberQueryController;
-import jaeik.bimillog.domain.member.out.MemberQueryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.friend.controller;
 
-import jaeik.bimillog.testutil.config.H2TestConfiguration;
 import jaeik.bimillog.domain.friend.entity.FriendSenderRequest;
 import jaeik.bimillog.domain.friend.entity.jpa.FriendRequest;
 import jaeik.bimillog.domain.friend.repository.FriendRequestRepository;
@@ -8,7 +7,7 @@ import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.builder.FriendTestDataBuilder;
-import org.junit.jupiter.api.BeforeEach;
+import jaeik.bimillog.testutil.config.H2TestConfiguration;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -16,9 +15,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * <h2>FriendRequestCommandController 통합 테스트</h2>

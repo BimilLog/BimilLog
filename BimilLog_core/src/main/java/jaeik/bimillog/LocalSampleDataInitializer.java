@@ -1,9 +1,9 @@
 package jaeik.bimillog;
 
 import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.member.out.MemberRepository;
 import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.entity.Message;
-import jaeik.bimillog.domain.member.out.MemberRepository;
 import jaeik.bimillog.domain.paper.out.MessageRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.comment.controller;
 
-import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.comment.dto.CommentLikeReqDTO;
 import jaeik.bimillog.domain.comment.dto.CommentReqDTO;
+import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.infrastructure.log.Log;
 import jakarta.validation.Valid;
