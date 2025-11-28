@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.comment.dto;
 
 import com.querydsl.core.annotations.QueryProjection;
+import jaeik.bimillog.domain.comment.entity.MemberActivityComment;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -80,5 +81,22 @@ public class CommentDTO {
         this.popular = false;
         this.likeCount = likes != null ? likes : 0;
         this.userLike = false;
+    }
+
+    public static CommentDTO convertToCommentDTO(MemberActivityComment.CommentInfo commentInfo) {
+        CommentDTO commentDTO = new CommentDTO(
+                commentInfo.getId(),
+                commentInfo.getPostId(),
+                commentInfo.getMemberId(),
+                commentInfo.getMemberName(),
+                commentInfo.getContent(),
+                commentInfo.isDeleted(),
+                commentInfo.getCreatedAt(),
+                commentInfo.getParentId(),
+                commentInfo.getLikeCount()
+        );
+        commentDTO.setPopular(commentInfo.isPopular());
+        commentDTO.setUserLike(commentInfo.isUserLike());
+        return commentDTO;
     }
 }

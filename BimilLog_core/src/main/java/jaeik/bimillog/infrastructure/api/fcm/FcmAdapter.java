@@ -3,6 +3,7 @@ package jaeik.bimillog.infrastructure.api.fcm;
 import java.io.IOException;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Repository;
@@ -21,6 +22,7 @@ import lombok.RequiredArgsConstructor;
  * @author Jaeik
  * @version 2.1.0
  */
+@Slf4j
 @Repository
 @RequiredArgsConstructor
 public class FcmAdapter {
@@ -50,6 +52,8 @@ public class FcmAdapter {
                 MediaType.APPLICATION_JSON_VALUE,
                 fcmMessageDto
         );
+
+        log.info("fcmMessage.token() = {}, accessToken = {}", fcmMessage.token(), accessToken);
     }
 
     /**

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { userQuery, Member } from "@/lib/api";
+import { useMemo } from "react";
+import { Member } from "@/lib/api";
+import { useMyPageInfo } from "@/hooks/api/useMyPageQueries";
 import { useMyRollingPaper } from "@/hooks/api/useMyRollingPaper";
-import { logger } from '@/lib/utils/logger';
 
 // ===== USER STATS =====
 interface UserStats {
@@ -15,116 +15,55 @@ interface UserStats {
 }
 
 export function useUserStats(user: Member | null) {
-  const [userStats, setUserStats] = useState<UserStats>({
-    totalMessages: 0,
-    totalPosts: 0,
-    totalComments: 0,
-    totalLikedPosts: 0,
-    totalLikedComments: 0,
-  });
-  const [isLoadingStats, setIsLoadingStats] = useState(false);
-  const [statsError, setStatsError] = useState<string | null>(null);
-  const [partialErrors, setPartialErrors] = useState<string[]>([]);
+  // 마이페이지 통합 API 호출 (1번의 호출로 모든 활동 데이터 조회)
+  const {
+    data: mypageData,
+    isLoading: isLoadingMypage,
+    error: mypageError,
+    refetch: fetchUserStats,
+  } = useMyPageInfo(0, 1); // page=0, size=1로 totalElements만 조회
 
-  // useMyRollingPaper 훅 사용하여 롤링페이퍼 메시지 데이터 가져오기
+  // 롤링페이퍼 데이터 (마이페이지 API와 별도)
   const { data: myPaperData, isLoading: isLoadingPaper, isError: isPaperError } = useMyRollingPaper();
 
-  const fetchUserStats = useCallback(async () => {
-    if (!user) return;
-
-    setIsLoadingStats(true);
-    setStatsError(null);
-    setPartialErrors([]);
-
-    try {
-      // 사용자 통계를 위한 병렬 API 호출: Promise.allSettled로 일부 실패해도 다른 데이터는 가져올 수 있음
-      const [postsRes, commentsRes, likedPostsRes, likedCommentsRes] =
-        await Promise.allSettled([
-          userQuery.getUserPosts(0, 1),
-          userQuery.getUserComments(0, 1),
-          userQuery.getUserLikedPosts(0, 1),
-          userQuery.getUserLikedComments(0, 1),
-        ]);
-
-      const errors: string[] = [];
-
-      // 각 API 결과에서 totalElements 추출, 실패 시 0으로 처리하고 오류 메시지 수집
-      const totalPosts =
-        postsRes.status === "fulfilled" && postsRes.value.success
-          ? postsRes.value.data?.totalElements || 0
-          : (() => {
-              errors.push("작성한 글 정보를 불러오지 못했습니다");
-              return 0;
-            })();
-
-      const totalComments =
-        commentsRes.status === "fulfilled" && commentsRes.value.success
-          ? commentsRes.value.data?.totalElements || 0
-          : (() => {
-              errors.push("작성한 댓글 정보를 불러오지 못했습니다");
-              return 0;
-            })();
-
-      const totalLikedPosts =
-        likedPostsRes.status === "fulfilled" && likedPostsRes.value.success
-          ? likedPostsRes.value.data?.totalElements || 0
-          : (() => {
-              errors.push("추천한 글 정보를 불러오지 못했습니다");
-              return 0;
-            })();
-
-      const totalLikedComments =
-        likedCommentsRes.status === "fulfilled" && likedCommentsRes.value.success
-          ? likedCommentsRes.value.data?.totalElements || 0
-          : (() => {
-              errors.push("추천한 댓글 정보를 불러오지 못했습니다");
-              return 0;
-            })();
-
-      // useMyRollingPaper 훅에서 가져온 데이터 사용
-      const totalMessages = myPaperData?.success ? myPaperData.data?.length || 0 : 0;
-      if (isPaperError) {
-        errors.push("롤링페이퍼 메시지 정보를 불러오지 못했습니다");
-      }
-
-      const newStats = {
-        totalPosts,
-        totalComments,
-        totalLikedPosts,
-        totalLikedComments,
-        totalMessages,
+  // 통계 계산 (메모이제이션)
+  const userStats = useMemo<UserStats>(() => {
+    if (!mypageData?.data) {
+      return {
+        totalPosts: 0,
+        totalComments: 0,
+        totalLikedPosts: 0,
+        totalLikedComments: 0,
+        totalMessages: 0,
       };
-
-      setUserStats(newStats);
-
-      // 부분적 오류 처리: 일부 API만 실패한 경우 경고 메시지 표시
-      if (errors.length > 0) {
-        setPartialErrors(errors);
-      }
-
-      // 모든 API가 실패한 경우에만 전체 오류로 처리
-      // Promise.allSettled 4개 API + useMyRollingPaper 모두 실패 시에만 전체 에러
-      const allFailed = [postsRes, commentsRes, likedPostsRes, likedCommentsRes].every(
-        (res) => res.status === "rejected"
-      ) && isPaperError;
-
-      if (allFailed) {
-        setStatsError("통계 정보를 불러오는데 실패했습니다. 새로고침 후 다시 시도해주세요.");
-      }
-    } catch (error) {
-      logger.error("Failed to fetch user stats:", error);
-      setStatsError("통계 정보를 불러오는데 실패했습니다. 새로고침 후 다시 시도해주세요.");
-    } finally {
-      setIsLoadingStats(false);
     }
-  }, [user, myPaperData, isPaperError]);
 
-  // 롤링페이퍼 로딩 상태 반영
-  const combinedIsLoading = isLoadingStats || isLoadingPaper;
+    const { memberActivityPost, memberActivityComment } = mypageData.data;
+
+    return {
+      totalPosts: memberActivityPost.writePosts.totalElements,
+      totalComments: memberActivityComment.writeComments.totalElements,
+      totalLikedPosts: memberActivityPost.likedPosts.totalElements,
+      totalLikedComments: memberActivityComment.likedComments.totalElements,
+      totalMessages: myPaperData?.success ? (myPaperData.data?.length || 0) : 0,
+    };
+  }, [mypageData, myPaperData]);
+
+  // 로딩 상태
+  const isLoadingStats = isLoadingMypage || isLoadingPaper;
+
+  // 에러 상태
+  const statsError = mypageError ? "통계 정보를 불러오는데 실패했습니다. 새로고침 후 다시 시도해주세요." : null;
+
+  // 부분 에러 (롤링페이퍼만 실패한 경우)
+  const partialErrors: string[] = [];
+  if (isPaperError) {
+    partialErrors.push("롤링페이퍼 메시지 정보를 불러오지 못했습니다");
+  }
 
   return {
     userStats,
-    isLoadingStats: combinedIsLoading,
+    isLoadingStats,
     statsError,
     partialErrors,
     fetchUserStats,

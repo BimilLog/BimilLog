@@ -21,10 +21,7 @@ import java.util.Map;
 @Component
 @RequiredArgsConstructor
 public class PostToCommentAdapter {
-
     private final CommentQueryService commentQueryService;
-    private final CommentCommandService commentCommandService;
-
 
     /**
      * <h3>여러 게시글의 댓글 수 배치 조회</h3>
@@ -36,18 +33,5 @@ public class PostToCommentAdapter {
      */
     public Map<Long, Integer> findCommentCountsByPostIds(List<Long> postIds) {
         return commentQueryService.findCommentCountsByPostIds(postIds);
-    }
-
-    /**
-     * <h3>특정 글의 모든 댓글 삭제</h3>
-     * <p>Post 도메인에서 Comment 도메인으로 댓글 삭제를 위임하는 어댑터 메서드입니다.</p>
-     * <p>{@link PostCommandService#deletePost}에서 게시글 삭제 시 호출됩니다.</p>
-     *
-     * @param postId 댓글을 삭제할 게시글 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public void deleteCommentInPost(Long postId) {
-        commentCommandService.deleteCommentsByPost(postId);
     }
 }

@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.comment.service;
 
+import jaeik.bimillog.domain.comment.entity.MemberActivityComment;
 import jaeik.bimillog.domain.comment.out.CommentQueryAdapter;
-import jaeik.bimillog.domain.comment.entity.CommentInfo;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -47,7 +47,7 @@ class CommentQueryServiceTest {
         given(commentQueryAdapter.findPopularComments(postId, memberId)).willReturn(List.of());
 
         // When
-        List<CommentInfo> result = commentQueryService.getPopularComments(postId, userDetails);
+        List<MemberActivityComment.CommentInfo> result = commentQueryService.getPopularComments(postId, userDetails);
 
         // Then
         assertThat(result).isEmpty();
@@ -62,7 +62,7 @@ class CommentQueryServiceTest {
         given(commentQueryAdapter.findPopularComments(postId, null)).willReturn(List.of());
 
         // When
-        List<CommentInfo> result = commentQueryService.getPopularComments(postId, null);
+        List<MemberActivityComment.CommentInfo> result = commentQueryService.getPopularComments(postId, null);
 
         // Then
         assertThat(result).isEmpty();
@@ -78,11 +78,11 @@ class CommentQueryServiceTest {
         Long memberId = 20L;
         CustomUserDetails userDetails = mock(CustomUserDetails.class);
         given(userDetails.getMemberId()).willReturn(memberId);
-        Page<CommentInfo> expected = new PageImpl<>(List.of());
+        Page<MemberActivityComment.CommentInfo> expected = new PageImpl<>(List.of());
         given(commentQueryAdapter.findCommentsWithOldestOrder(postId, pageable, memberId)).willReturn(expected);
 
         // When
-        Page<CommentInfo> result = commentQueryService.getCommentsOldestOrder(postId, pageable, userDetails);
+        Page<MemberActivityComment.CommentInfo> result = commentQueryService.getCommentsOldestOrder(postId, pageable, userDetails);
 
         // Then
         assertThat(result).isEqualTo(expected);
@@ -95,11 +95,11 @@ class CommentQueryServiceTest {
         // Given
         Long postId = 4L;
         PageRequest pageable = PageRequest.of(0, 5);
-        Page<CommentInfo> expected = Page.empty();
+        Page<MemberActivityComment.CommentInfo> expected = Page.empty();
         given(commentQueryAdapter.findCommentsWithOldestOrder(postId, pageable, null)).willReturn(expected);
 
         // When
-        Page<CommentInfo> result = commentQueryService.getCommentsOldestOrder(postId, pageable, null);
+        Page<MemberActivityComment.CommentInfo> result = commentQueryService.getCommentsOldestOrder(postId, pageable, null);
 
         // Then
         assertThat(result).isEqualTo(expected);

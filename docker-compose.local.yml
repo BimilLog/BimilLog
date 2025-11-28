@@ -58,6 +58,9 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - MESSAGE_SECRET=${MESSAGE_SECRET}
       - URL=${url}
+    volumes:
+      # 로그 디렉토리를 로컬과 동기화 (도커와 인텔리제이 모두 동일 위치에 생성)
+      - ./BimilLog_core/logs:/app/logs
     depends_on:
       redis:
         condition: service_healthy

@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.comment.out;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
@@ -20,10 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
-import static jaeik.bimillog.domain.comment.out.CommentProjection.getCommentInfoProjectionWithUserLike;
-import static jaeik.bimillog.domain.comment.out.CommentProjection.getSimpleCommentInfoProjection;
-import static jaeik.bimillog.domain.comment.out.CommentProjection.getSimpleCommentInfoProjectionWithAllLikes;
 
 /**
  * <h2>댓글 쿼리 어댑터</h2>
@@ -59,12 +56,19 @@ public class CommentQueryAdapter {
      * @since 2.0.0
      */
         public Page<SimpleCommentInfo> findCommentsByMemberId(Long memberId, Pageable pageable) {
-        // N+1 문제 해결을 위한 별도 Q타입 생성
         QCommentLike userCommentLike = new QCommentLike("userCommentLike");
 
         // 쿼리 빌딩 - memberId가 있으므로 항상 userLike 조인
         List<SimpleCommentInfo> content = jpaQueryFactory
-                .select(getSimpleCommentInfoProjection(userCommentLike))
+                .select(Projections.constructor(SimpleCommentInfo.class,
+                        comment.id,
+                        comment.post.id,
+                        comment.member.memberName,
+                        comment.content,
+                        comment.createdAt,
+                        commentLike.countDistinct().coalesce(0L).intValue(),
+                        userCommentLike.id.isNotNull()
+                ))
                 .from(comment)
                 .join(comment.member, member)
                 .leftJoin(commentLike).on(comment.id.eq(commentLike.comment.id))
@@ -92,14 +96,6 @@ public class CommentQueryAdapter {
      * <h3>사용자 추천한 댓글 목록 조회</h3>
      * <p>특정 사용자가 추천한 댓글 목록을 추천일 기준 최신순으로 페이지네이션 조회합니다.</p>
      * <p>최신 추천 댓글부터 과거 순서로 정렬하여 반환합니다 (userLike.createdAt DESC).</p>
-     * <p>{@link CommentQueryService}에서 사용자 추천한 댓글 목록 조회 시 호출됩니다.</p>
-     *
-     * <h4>중요: likeCount 정확성을 위한 JOIN 구조</h4>
-     * <ul>
-     *   <li>userLike: WHERE 조건 대신 JOIN ON에서 필터링 (현재 사용자가 추천한 댓글만)</li>
-     *   <li>allLikes: LEFT JOIN으로 전체 좋아요 수 카운트 (모든 사용자의 좋아요)</li>
-     *   <li>userCommentLike: Projection용 (사용자 추천 여부 확인)</li>
-     * </ul>
      *
      * @param memberId   사용자 ID
      * @param pageable 페이지 정보
@@ -108,14 +104,21 @@ public class CommentQueryAdapter {
      * @since 2.0.0
      */
         public Page<SimpleCommentInfo> findLikedCommentsByMemberId(Long memberId, Pageable pageable) {
-        // N+1 문제 해결 및 정확한 likeCount를 위한 별도 Q타입 생성
         QCommentLike userLike = new QCommentLike("userLike");  // 필터링용
         QCommentLike allLikes = new QCommentLike("allLikes");  // 전체 좋아요 카운트용
         QCommentLike userCommentLike = new QCommentLike("userCommentLike");  // Projection용
 
         // 쿼리 빌딩 - JOIN ON 절에서 필터링하여 WHERE 절 사용 방지
         List<SimpleCommentInfo> content = jpaQueryFactory
-                .select(getSimpleCommentInfoProjectionWithAllLikes(allLikes, userCommentLike))
+                .select(Projections.constructor(SimpleCommentInfo.class,
+                        comment.id,
+                        comment.post.id,
+                        member.memberName,
+                        comment.content,
+                        comment.createdAt,
+                        allLikes.countDistinct().coalesce(0L).intValue(), // 전체 좋아요 카운트
+                        userCommentLike.id.isNotNull() // 사용자 추천 여부
+                ))
                 .from(comment)
                 // 필터링용: 현재 사용자가 추천한 댓글만 (WHERE 대신 JOIN ON 사용)
                 .join(userLike).on(
@@ -158,18 +161,28 @@ public class CommentQueryAdapter {
      * @author Jaeik
      * @since 2.0.0
      */
-        public List<CommentInfo> findPopularComments(Long postId, Long memberId) {
+        public List<MemberActivityComment.CommentInfo> findPopularComments(Long postId, Long memberId) {
         // N+1 문제 해결을 위한 별도 Q타입 생성
         QCommentClosure parentClosure = new QCommentClosure("parentClosure");
         QCommentLike userCommentLike = new QCommentLike("userCommentLike");
 
         // 쿼리 빌딩
-        JPAQuery<CommentInfo> query = jpaQueryFactory
-                .select(getCommentInfoProjectionWithUserLike(parentClosure, userCommentLike))
+        JPAQuery<MemberActivityComment.CommentInfo> query = jpaQueryFactory
+                .select(Projections.constructor(MemberActivityComment.CommentInfo.class,
+                    comment.id,
+                    comment.post.id,
+                    comment.member.id,
+                    member.memberName,
+                    comment.content,
+                    comment.deleted,
+                    comment.createdAt,
+                    parentClosure.ancestor.id.coalesce(comment.id),
+                    commentLike.countDistinct().coalesce(0L).intValue(),
+                    userCommentLike.id.isNotNull()
+            ))
                 .from(comment)
                 .leftJoin(comment.member, member)
                 .leftJoin(commentLike).on(comment.id.eq(commentLike.comment.id))
-                // parentId 조회를 위한 closure 조인 (depth=1)
                 .leftJoin(parentClosure).on(
                         parentClosure.descendant.id.eq(comment.id)
                         .and(parentClosure.depth.eq(1))
@@ -184,7 +197,7 @@ public class CommentQueryAdapter {
         }
 
         // 쿼리 실행
-        List<CommentInfo> popularComments = query
+        List<MemberActivityComment.CommentInfo> popularComments = query
                 .where(applyBlacklistFilter(comment.post.id.eq(postId), memberId))
                 .groupBy(comment.id, member.memberName, comment.createdAt,
                          parentClosure.ancestor.id, userCommentLike.id)
@@ -237,14 +250,27 @@ public class CommentQueryAdapter {
      * @author Jaeik
      * @since 2.0.0
      */
-        public Page<CommentInfo> findCommentsWithOldestOrder(Long postId, Pageable pageable, Long memberId) {
+        public Page<MemberActivityComment.CommentInfo> findCommentsWithOldestOrder(Long postId, Pageable pageable, Long memberId) {
         // N+1 문제 해결을 위한 별도 Q타입 생성
         QCommentClosure parentClosure = new QCommentClosure("parentClosure");
         QCommentLike userCommentLike = new QCommentLike("userCommentLike");
 
         // 쿼리 빌딩
-        JPAQuery<CommentInfo> query = jpaQueryFactory
-                .select(getCommentInfoProjectionWithUserLike(parentClosure, userCommentLike))
+        JPAQuery<MemberActivityComment.CommentInfo> query = jpaQueryFactory
+                .select(Projections.constructor(MemberActivityComment.CommentInfo.class,
+                    comment.id,
+                    comment.post.id,
+                    comment.member.id,
+                    member.memberName,
+                    comment.content,
+                    comment.deleted,
+                    comment.createdAt,
+                    // parentId: 조인된 parentClosure에서 ancestor.id 직접 참조 (서브쿼리 제거)
+                    parentClosure.ancestor.id.coalesce(comment.id),
+                    commentLike.countDistinct().coalesce(0L).intValue(),
+                    // userLike: 조인된 userCommentLike 존재 여부로 판단 (서브쿼리 제거)
+                    userCommentLike.id.isNotNull()
+            ))
                 .distinct()
                 .from(comment)
                 .leftJoin(comment.member, member)
@@ -264,7 +290,7 @@ public class CommentQueryAdapter {
         }
 
         // 쿼리 실행
-        List<CommentInfo> content = query
+        List<MemberActivityComment.CommentInfo> content = query
                 .where(applyBlacklistFilter(comment.post.id.eq(postId), memberId))
                 .groupBy(comment.id, member.memberName, comment.createdAt,
                          parentClosure.ancestor.id, userCommentLike.id)

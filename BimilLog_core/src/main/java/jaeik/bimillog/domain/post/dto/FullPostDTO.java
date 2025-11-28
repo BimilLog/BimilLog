@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.post.dto;
 
+import jaeik.bimillog.domain.post.entity.PostDetail;
 import lombok.*;
 
 import java.time.Instant;
@@ -38,4 +39,20 @@ public class FullPostDTO {
     private Instant createdAt;
     private boolean liked;
     private boolean isNotice;
+
+    public static FullPostDTO convertToFullPostResDTO(PostDetail postDetail) {
+        return FullPostDTO.builder()
+                .id(postDetail.getId())
+                .title(postDetail.getTitle())
+                .content(postDetail.getContent())
+                .viewCount(postDetail.getViewCount())
+                .likeCount(postDetail.getLikeCount())
+                .createdAt(postDetail.getCreatedAt())
+                .memberId(postDetail.getMemberId())
+                .memberName(postDetail.getMemberName())
+                .commentCount(postDetail.getCommentCount())
+                .liked(postDetail.isLiked())
+                .isNotice(postDetail.isNotice())
+                .build();
+    }
 }

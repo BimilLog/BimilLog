@@ -1,17 +1,13 @@
 package jaeik.bimillog.domain.comment.controller;
 
+import jaeik.bimillog.domain.comment.entity.MemberActivityComment;
 import jaeik.bimillog.domain.comment.service.CommentQueryService;
-import jaeik.bimillog.domain.comment.entity.CommentInfo;
-import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
 import jaeik.bimillog.domain.comment.dto.CommentDTO;
-import jaeik.bimillog.domain.comment.dto.SimpleCommentDTO;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.infrastructure.log.Log;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -62,8 +58,8 @@ public class CommentQueryController {
             @PathVariable Long postId,
             @RequestParam(defaultValue = "0") int page) {
         Pageable pageable = Pageable.ofSize(20).withPage(page);
-        Page<CommentInfo> commentInfoPage = CommentQueryService.getCommentsOldestOrder(postId, pageable, userDetails);
-        Page<CommentDTO> commentDtoPage = commentInfoPage.map(this::convertToCommentDTO);
+        Page<MemberActivityComment.CommentInfo> commentInfoPage = CommentQueryService.getCommentsOldestOrder(postId, pageable, userDetails);
+        Page<CommentDTO> commentDtoPage = commentInfoPage.map(CommentDTO::convertToCommentDTO);
         return ResponseEntity.ok(commentDtoPage);
     }
 
@@ -82,98 +78,10 @@ public class CommentQueryController {
     public ResponseEntity<List<CommentDTO>> getPopularComments(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long postId) {
-        List<CommentInfo> commentInfoList = CommentQueryService.getPopularComments(postId, userDetails);
+        List<MemberActivityComment.CommentInfo> commentInfoList = CommentQueryService.getPopularComments(postId, userDetails);
         List<CommentDTO> commentDtoList = commentInfoList.stream()
-                .map(this::convertToCommentDTO)
+                .map(CommentDTO::convertToCommentDTO)
                 .toList();
         return ResponseEntity.ok(commentDtoList);
-    }
-
-    /**
-     * <h3>사용자가 작성한 댓글 목록 조회 API</h3>
-     * <p>현재 로그인한 사용자가 작성한 댓글 목록을 페이지네이션으로 조회합니다.</p>
-     *
-     * @param page        페이지 번호
-     * @param size        페이지 크기
-     * @param userDetails 현재 로그인한 사용자 정보
-     * @return 작성 댓글 목록 페이지
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    @GetMapping("/me")
-    public ResponseEntity<Page<SimpleCommentDTO>> getUserComments(@RequestParam(defaultValue = "0") int page,
-                                                                  @RequestParam(defaultValue = "10") int size,
-                                                                  @AuthenticationPrincipal CustomUserDetails userDetails) {
-        PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<SimpleCommentInfo> commentInfoList = CommentQueryService.getMemberComments(userDetails.getMemberId(), pageable);
-        Page<SimpleCommentDTO> commentList = commentInfoList.map(this::convertToSimpleCommentDTO);
-        return ResponseEntity.ok(commentList);
-    }
-
-    /**
-     * <h3>사용자가 추천한 댓글 목록 조회 API</h3>
-     * <p>현재 로그인한 사용자가 추천한 댓글 목록을 페이지네이션으로 조회합니다.</p>
-     * <p>정렬 순서는 QueryAdapter에서 하드코딩됨 (comment.createdAt DESC)</p>
-     *
-     * @param page        페이지 번호
-     * @param size        페이지 크기
-     * @param userDetails 현재 로그인한 사용자 정보
-     * @return 추천한 댓글 목록 페이지
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    @GetMapping("/me/liked")
-    public ResponseEntity<Page<SimpleCommentDTO>> getUserLikedComments(@RequestParam(defaultValue = "0") int page,
-                                                                       @RequestParam(defaultValue = "10") int size,
-                                                                       @AuthenticationPrincipal CustomUserDetails userDetails) {
-        PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<SimpleCommentInfo> likedCommentsInfo = CommentQueryService.getMemberLikedComments(userDetails.getMemberId(), pageable);
-        Page<SimpleCommentDTO> likedComments = likedCommentsInfo.map(this::convertToSimpleCommentDTO);
-        return ResponseEntity.ok(likedComments);
-    }
-
-    /**
-     * <h3>도메인 객체를 DTO로 변환</h3>
-     *
-     * @param commentInfo 도메인 계층 댓글 정보 객체
-     * @return CommentDTO 웹 계층 댓글 응답 DTO
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public CommentDTO convertToCommentDTO(CommentInfo commentInfo) {
-        CommentDTO commentDTO = new CommentDTO(
-                commentInfo.getId(),
-                commentInfo.getPostId(),
-                commentInfo.getMemberId(),
-                commentInfo.getMemberName(),
-                commentInfo.getContent(),
-                commentInfo.isDeleted(),
-                commentInfo.getCreatedAt(),
-                commentInfo.getParentId(),
-                commentInfo.getLikeCount()
-        );
-        commentDTO.setPopular(commentInfo.isPopular());
-        commentDTO.setUserLike(commentInfo.isUserLike());
-        return commentDTO;
-    }
-
-    /**
-     * <h3>SimpleCommentInfo를 SimpleCommentDTO로 변환</h3>
-     *
-     * @param commentInfo 변환할 도메인 객체
-     * @return SimpleCommentDTO 응답 DTO
-     * @author jaeik
-     * @since 2.0.0
-     */
-    public SimpleCommentDTO convertToSimpleCommentDTO(SimpleCommentInfo commentInfo) {
-        return new SimpleCommentDTO(
-                commentInfo.getId(),
-                commentInfo.getPostId(),
-                commentInfo.getMemberName(),
-                commentInfo.getContent(),
-                commentInfo.getCreatedAt(),
-                commentInfo.getLikeCount(),
-                commentInfo.isUserLike()
-        );
     }
 }

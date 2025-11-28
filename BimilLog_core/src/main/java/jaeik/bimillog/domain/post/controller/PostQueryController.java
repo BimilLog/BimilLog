@@ -8,8 +8,6 @@ import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.event.PostViewedEvent;
 import jaeik.bimillog.domain.post.dto.FullPostDTO;
 import jaeik.bimillog.domain.post.dto.PostSearchDTO;
-import jaeik.bimillog.domain.post.dto.SimplePostDTO;
-import jaeik.bimillog.domain.post.controller.util.PostResponseMapper;
 import jaeik.bimillog.domain.post.controller.util.PostViewCookieUtil;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jakarta.servlet.http.HttpServletRequest;
@@ -44,7 +42,6 @@ import org.springframework.web.bind.annotation.*;
 public class PostQueryController {
 
     private final PostQueryService postQueryService;
-    private final PostResponseMapper postResponseMapper;
     private final ApplicationEventPublisher eventPublisher;
     private final PostViewCookieUtil postViewCookieUtil;
 
@@ -61,12 +58,11 @@ public class PostQueryController {
     @Log(level = LogLevel.DEBUG,
          message = "게시판 목록 조회",
          logResult = false)
-    public ResponseEntity<Page<SimplePostDTO>> getBoard(Pageable pageable,
+    public ResponseEntity<Page<PostSimpleDetail>> getBoard(Pageable pageable,
                                                         @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long memberId = userDetails != null ? userDetails.getMemberId() : null;
         Page<PostSimpleDetail> postList = postQueryService.getBoard(pageable, memberId);
-        Page<SimplePostDTO> dtoList = postList.map(postResponseMapper::convertToSimplePostResDTO);
-        return ResponseEntity.ok(dtoList);
+        return ResponseEntity.ok(postList);
     }
 
     /**
@@ -94,7 +90,7 @@ public class PostQueryController {
                                                HttpServletResponse response) {
         Long memberId = (userDetails != null) ? userDetails.getMemberId() : null;
         PostDetail postDetail = postQueryService.getPost(postId, memberId);
-        FullPostDTO fullPostDTO = postResponseMapper.convertToFullPostResDTO(postDetail);
+        FullPostDTO fullPostDTO = FullPostDTO.convertToFullPostResDTO(postDetail);
         
         // 중복 조회 검증 후 조회수 증가 이벤트 발행
          if (!postViewCookieUtil.hasViewed(request.getCookies(), postId)) {
@@ -122,56 +118,11 @@ public class PostQueryController {
          message = "게시글 검색",
          logExecutionTime = true,
          logResult = false)
-    public ResponseEntity<Page<SimplePostDTO>> searchPost(@Valid @ModelAttribute PostSearchDTO searchDTO,
+    public ResponseEntity<Page<PostSimpleDetail>> searchPost(@Valid @ModelAttribute PostSearchDTO searchDTO,
                                                           Pageable pageable,
                                                           @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long memberId = userDetails != null ? userDetails.getMemberId() : null;
         Page<PostSimpleDetail> postList = postQueryService.searchPost(searchDTO.getType(), searchDTO.getTrimmedQuery(), pageable, memberId);
-        Page<SimplePostDTO> dtoList = postList.map(postResponseMapper::convertToSimplePostResDTO);
-        return ResponseEntity.ok(dtoList);
+        return ResponseEntity.ok(postList);
     }
-
-    /**
-     * <h3>사용자가 작성한 게시글 목록 조회 API</h3>
-     * <p>현재 로그인한 사용자가 작성한 게시글 목록을 페이지네이션으로 조회합니다.</p>
-     *
-     * @param page        페이지 번호
-     * @param size        페이지 크기
-     * @param userDetails 현재 로그인한 사용자 정보
-     * @return 작성 게시글 목록 페이지
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    @GetMapping("/me")
-    public ResponseEntity<Page<SimplePostDTO>> getUserPosts(@RequestParam(defaultValue = "0") int page,
-                                                            @RequestParam(defaultValue = "10") int size,
-                                                            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<PostSimpleDetail> postList = postQueryService.getMemberPosts(userDetails.getMemberId(), pageable);
-        Page<SimplePostDTO> dtoList = postList.map(postResponseMapper::convertToSimplePostResDTO);
-        return ResponseEntity.ok(dtoList);
-    }
-
-    /**
-     * <h3>사용자가 추천한 게시글 목록 조회 API</h3>
-     * <p>현재 로그인한 사용자가 추천한 게시글 목록을 페이지네이션으로 조회합니다.</p>
-     *
-     * @param page        페이지 번호
-     * @param size        페이지 크기
-     * @param userDetails 현재 로그인한 사용자 정보
-     * @return 추천한 게시글 목록 페이지
-     * @since 2.0.0
-     * @author Jaeik
-     */
-    @GetMapping("/me/liked")
-    public ResponseEntity<Page<SimplePostDTO>> getUserLikedPosts(@RequestParam(defaultValue = "0") int page,
-                                                                 @RequestParam(defaultValue = "10") int size,
-                                                                 @AuthenticationPrincipal CustomUserDetails userDetails) {
-        PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<PostSimpleDetail> likedPosts = postQueryService.getMemberLikedPosts(userDetails.getMemberId(), pageable);
-        Page<SimplePostDTO> dtoList = likedPosts.map(postResponseMapper::convertToSimplePostResDTO);
-        return ResponseEntity.ok(dtoList);
-    }
-
-
 }

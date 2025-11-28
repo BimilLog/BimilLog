@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.comment.service;
 
+import jaeik.bimillog.domain.comment.entity.MemberActivityComment;
 import jaeik.bimillog.domain.comment.out.CommentQueryAdapter;
 import jaeik.bimillog.domain.comment.entity.Comment;
-import jaeik.bimillog.domain.comment.entity.CommentInfo;
 import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
 import jaeik.bimillog.domain.comment.controller.CommentQueryController;
 import jaeik.bimillog.domain.comment.out.CommentRepository;
@@ -49,7 +49,7 @@ public class CommentQueryService {
      * @author Jaeik
      * @since 2.0.0
      */
-    public List<CommentInfo> getPopularComments(Long postId, CustomUserDetails userDetails) {
+    public List<MemberActivityComment.CommentInfo> getPopularComments(Long postId, CustomUserDetails userDetails) {
         Long memberId = userDetails != null ? userDetails.getMemberId() : null;
         return commentQueryAdapter.findPopularComments(postId, memberId);
     }
@@ -67,7 +67,7 @@ public class CommentQueryService {
      * @author Jaeik
      * @since 2.0.0
      */
-    public Page<CommentInfo> getCommentsOldestOrder(Long postId, Pageable pageable, CustomUserDetails userDetails) {
+    public Page<MemberActivityComment.CommentInfo> getCommentsOldestOrder(Long postId, Pageable pageable, CustomUserDetails userDetails) {
         Long memberId = userDetails != null ? userDetails.getMemberId() : null;
         return commentQueryAdapter.findCommentsWithOldestOrder(postId, pageable, memberId);
     }
@@ -88,33 +88,19 @@ public class CommentQueryService {
     }
 
     /**
-     * <h3>사용자 작성 댓글 목록 조회</h3>
-     * <p>특정 사용자가 작성한 댓글 목록을 페이지네이션으로 조회합니다.</p>
-     * <p>최신 작성 댓글부터 과거 순서로 정렬하여 반환합니다.</p>
+     * <h3>사용자 작성, 추천 댓글 목록 조회</h3>
+     * <p>특정 사용자가 작성, 추천한 댓글 목록을 페이지네이션으로 조회합니다.</p>
      *
      * @param memberId   사용자 ID
      * @param pageable 페이지 정보
-     * @return Page<SimpleCommentInfo> 작성한 댓글 목록 페이지
+     * @return MemberActivityComment 마이페이지 댓글 정보
      * @author Jaeik
      * @since 2.0.0
      */
-    public Page<SimpleCommentInfo> getMemberComments(Long memberId, Pageable pageable) {
-        return commentQueryAdapter.findCommentsByMemberId(memberId, pageable);
-    }
-
-    /**
-     * <h3>사용자 추천한 댓글 목록 조회</h3>
-     * <p>특정 사용자가 추천한 댓글 목록을 페이지네이션으로 조회합니다.</p>
-     * <p>최신 추천 댓글부터 과거 순서로 정렬하여 반환합니다.</p>
-     *
-     * @param memberId   사용자 ID
-     * @param pageable 페이지 정보
-     * @return Page<SimpleCommentInfo> 추천한 댓글 목록 페이지
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public Page<SimpleCommentInfo> getMemberLikedComments(Long memberId, Pageable pageable) {
-        return commentQueryAdapter.findLikedCommentsByMemberId(memberId, pageable);
+    public MemberActivityComment getMemberActivityComments(Long memberId, Pageable pageable) {
+        Page<SimpleCommentInfo> writeComments = commentQueryAdapter.findCommentsByMemberId(memberId, pageable);
+        Page<SimpleCommentInfo> likedComments = commentQueryAdapter.findLikedCommentsByMemberId(memberId, pageable);
+        return new MemberActivityComment(writeComments, likedComments);
     }
 
     /**

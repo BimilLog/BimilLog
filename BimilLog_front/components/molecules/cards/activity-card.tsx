@@ -114,8 +114,8 @@ const CommentCard: React.FC<{ comment: SimpleComment; isLiked: boolean }> = Reac
   const unlikeMutation = useMutation({
     mutationFn: () => commentCommand.like(comment.id),
     onSuccess: () => {
-      // 마이페이지 추천한 댓글 목록 갱신
-      queryClient.invalidateQueries({ queryKey: queryKeys.user.likeComments() });
+      // 마이페이지 전체 캐시 갱신 (통합 API 사용)
+      queryClient.invalidateQueries({ queryKey: queryKeys.mypage.all });
       // 해당 게시글의 댓글 목록도 갱신
       queryClient.invalidateQueries({ queryKey: queryKeys.comment.list(comment.postId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.comment.popular(comment.postId) });

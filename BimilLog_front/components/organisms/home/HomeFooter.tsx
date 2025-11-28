@@ -162,7 +162,7 @@ export const HomeFooter: React.FC = () => {
         {/* Bottom Section with Copyright and Social Icons */}
         <div className="w-full sm:flex sm:items-center sm:justify-between">
           <FooterCopyright
-            by="비밀로그 v2.2.0"
+            by="비밀로그 v2.3.0"
             year={2025}
             className="text-gray-500 text-sm"
           />

@@ -14,50 +14,6 @@ export const useUserSettingsQuery = () => {
 };
 
 /**
- * 사용자가 작성한 게시글 목록
- */
-export const useUserPosts = (page: number = 0, size: number = 10) => {
-  return useQuery({
-    queryKey: queryKeys.user.posts(page),
-    queryFn: () => userQuery.getUserPosts(page, size),
-    staleTime: 3 * 60 * 1000,
-  });
-};
-
-/**
- * 사용자가 작성한 댓글 목록
- */
-export const useUserComments = (page: number = 0, size: number = 10) => {
-  return useQuery({
-    queryKey: queryKeys.user.comments(page),
-    queryFn: () => userQuery.getUserComments(page, size),
-    staleTime: 3 * 60 * 1000,
-  });
-};
-
-/**
- * 사용자가 좋아요한 게시글 목록
- */
-export const useUserLikedPosts = (page: number = 0, size: number = 10) => {
-  return useQuery({
-    queryKey: queryKeys.user.likePosts(page),
-    queryFn: () => userQuery.getUserLikedPosts(page, size),
-    staleTime: 3 * 60 * 1000,
-  });
-};
-
-/**
- * 사용자가 좋아요한 댓글 목록
- */
-export const useUserLikedComments = (page: number = 0, size: number = 10) => {
-  return useQuery({
-    queryKey: queryKeys.user.likeComments(page),
-    queryFn: () => userQuery.getUserLikedComments(page, size),
-    staleTime: 3 * 60 * 1000,
-  });
-};
-
-/**
  * 친구 목록 무한 스크롤 조회
  */
 export const useInfiniteUserFriendList = (size: number = 20, enabled: boolean = true) => {
