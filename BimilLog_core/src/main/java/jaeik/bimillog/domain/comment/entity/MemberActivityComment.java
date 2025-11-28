@@ -8,10 +8,11 @@ import java.time.Instant;
 /**
  * 사용자가 마이페이지에서 보는 댓글 객체
  */
+@Getter
 @AllArgsConstructor
 public class MemberActivityComment {
-    public Page<SimpleCommentInfo> writeComments;
-    public Page<SimpleCommentInfo> likedComments;
+    private Page<SimpleCommentInfo> writeComments;
+    private Page<SimpleCommentInfo> likedComments;
 
     /**
      * <h3>댓글 정보 값 객체</h3>
