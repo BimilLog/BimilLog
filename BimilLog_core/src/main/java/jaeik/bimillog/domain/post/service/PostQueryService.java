@@ -7,8 +7,8 @@ import jaeik.bimillog.domain.post.out.PostRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.domain.post.controller.PostQueryController;
-import jaeik.bimillog.domain.post.out.PostLikeQueryAdapter;
-import jaeik.bimillog.domain.post.out.PostQueryAdapter;
+import jaeik.bimillog.domain.post.out.PostLikeQueryRepository;
+import jaeik.bimillog.domain.post.out.PostQueryRepository;
 import jaeik.bimillog.domain.post.out.PostToCommentAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostQueryAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostSaveAdapter;
@@ -24,9 +24,7 @@ import java.util.Optional;
 /**
  * <h2>게시글 조회 서비스</h2>
  * <p>게시글 도메인의 조회 비즈니스 로직을 처리하는 서비스입니다.</p>
- * <p>게시판 목록 조회, 게시글 상세 조회, 검색 기능</p>
- * <p>인기글 조회, 사용자 활동 내역 조회</p>
- * <p>Redis 캐시와 MySQL 조회를 조합한 성능 최적화</p>
+ * <p>게시판 목록 조회, 게시글 상세 조회, 검색 기능, 인기글 조회</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -35,8 +33,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class PostQueryService {
 
-    private final PostQueryAdapter postQueryAdapter;
-    private final PostLikeQueryAdapter postLikeQueryAdapter;
+    private final PostQueryRepository postQueryRepository;
+    private final PostLikeQueryRepository postLikeQueryRepository;
     private final RedisPostQueryAdapter redisPostQueryAdapter;
     private final RedisPostSaveAdapter redisPostSaveAdapter;
     private final PostRepository postRepository;
@@ -55,7 +53,7 @@ public class PostQueryService {
      * @since 2.0.0
      */
     public Page<PostSimpleDetail> getBoard(Pageable pageable, Long memberId) {
-        Page<PostSimpleDetail> posts = postQueryAdapter.findByPage(pageable, memberId);
+        Page<PostSimpleDetail> posts = postQueryRepository.findByPage(pageable, memberId);
         enrichPostsWithCounts(posts.getContent());
         return posts;
     }
@@ -85,14 +83,14 @@ public class PostQueryService {
             }
              // 캐시 히트: 사용자 좋아요 정보만 추가 확인
              if (memberId != null) {
-                 boolean isLiked = postLikeQueryAdapter.existsByPostIdAndUserId(postId, memberId);
+                 boolean isLiked = postLikeQueryRepository.existsByPostIdAndUserId(postId, memberId);
                  return cachedPost.withIsLiked(isLiked);
              }
             return cachedPost;
         }
 
         // 2. 캐시 미스: DB 조회 후 캐시 저장
-        PostDetail postDetail = postQueryAdapter.findPostDetailWithCounts(postId, memberId)
+        PostDetail postDetail = postQueryRepository.findPostDetailWithCounts(postId, memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
         // 비회원 확인
         if (memberId != null) {
@@ -118,7 +116,7 @@ public class PostQueryService {
 
     // PostId 목록으로 Post 리스트 반환
     public List<Post> findAllByIds(List<Long> postIds) {
-        return postQueryAdapter.findAllByIds(postIds);
+        return postQueryRepository.findAllByIds(postIds);
     }
 
     /**
@@ -132,8 +130,8 @@ public class PostQueryService {
      * @since 2.0.0
      */
     public MemberActivityPost getMemberActivityPosts(Long memberId, Pageable pageable) {
-        Page<PostSimpleDetail> writePosts = postQueryAdapter.findPostsByMemberId(memberId, pageable, memberId);
-        Page<PostSimpleDetail> likedPosts = postQueryAdapter.findLikedPostsByMemberId(memberId, pageable);
+        Page<PostSimpleDetail> writePosts = postQueryRepository.findPostsByMemberId(memberId, pageable, memberId);
+        Page<PostSimpleDetail> likedPosts = postQueryRepository.findLikedPostsByMemberId(memberId, pageable);
         enrichPostsWithCounts(writePosts.getContent());
         enrichPostsWithCounts(likedPosts.getContent());
         return new MemberActivityPost(writePosts, likedPosts);
@@ -148,7 +146,7 @@ public class PostQueryService {
      * @since 2.0.0
      */
     public List<PostSimpleDetail> getWeeklyPopularPosts() {
-        List<PostSimpleDetail> posts = postQueryAdapter.findWeeklyPopularPosts();
+        List<PostSimpleDetail> posts = postQueryRepository.findWeeklyPopularPosts();
         enrichPostsWithCounts(posts);
         return posts;
     }
@@ -160,7 +158,7 @@ public class PostQueryService {
      * @return List<PostSimpleDetail> 레전드 게시글 목록
      */
     public List<PostSimpleDetail> getLegendaryPosts() {
-        List<PostSimpleDetail> posts = postQueryAdapter.findLegendaryPosts();
+        List<PostSimpleDetail> posts = postQueryRepository.findLegendaryPosts();
         enrichPostsWithCounts(posts);
         return posts;
     }
@@ -188,15 +186,15 @@ public class PostQueryService {
 
         // 전략 1: 3글자 이상 + 작성자 검색 아님 → 전문 검색 시도
         if (query.length() >= 3 && type != PostSearchType.WRITER) {
-            posts = postQueryAdapter.findByFullTextSearch(type, query, pageable, memberId);
+            posts = postQueryRepository.findByFullTextSearch(type, query, pageable, memberId);
         }
         // 전략 2: 작성자 검색 + 4글자 이상 → 접두사 검색 (인덱스 활용)
         else if (type == PostSearchType.WRITER && query.length() >= 4) {
-            posts = postQueryAdapter.findByPrefixMatch(type, query, pageable, memberId);
+            posts = postQueryRepository.findByPrefixMatch(type, query, pageable, memberId);
         }
         // 전략 3: 그 외 → 부분 검색
         else {
-            posts = postQueryAdapter.findByPartialMatch(type, query, pageable, memberId);
+            posts = postQueryRepository.findByPartialMatch(type, query, pageable, memberId);
         }
 
         enrichPostsWithCounts(posts.getContent());

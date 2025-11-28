@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
  */
 @Repository
 @RequiredArgsConstructor
-public class PostLikeQueryAdapter {
+public class PostLikeQueryRepository {
     private final JPAQueryFactory jpaQueryFactory;
     
     private static final QPostLike postLike = QPostLike.postLike;

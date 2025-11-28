@@ -5,11 +5,7 @@ import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.domain.post.out.PostCommandAdapter;
-import jaeik.bimillog.domain.post.out.PostLikeCommandAdapter;
-import jaeik.bimillog.domain.post.out.PostQueryAdapter;
+import jaeik.bimillog.domain.post.out.PostQueryRepository;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostDeleteAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
@@ -41,9 +37,6 @@ import static org.mockito.Mockito.*;
 class PostCommandServiceTest extends BaseUnitTest {
 
     @Mock
-    private PostCommandAdapter postCommandAdapter;
-
-    @Mock
     private GlobalPostQueryAdapter globalPostQueryAdapter;
 
     @Mock
@@ -53,10 +46,7 @@ class PostCommandServiceTest extends BaseUnitTest {
     private RedisPostDeleteAdapter redisPostDeleteAdapter;
 
     @Mock
-    private PostLikeCommandAdapter postLikeCommandAdapter;
-
-    @Mock
-    private PostQueryAdapter postQueryAdapter;
+    private PostQueryRepository postQueryRepository;
 
     @InjectMocks
     private PostCommandService postCommandService;
@@ -231,16 +221,16 @@ class PostCommandServiceTest extends BaseUnitTest {
         Long postId1 = 10L;
         Long postId2 = 11L;
 
-        given(postQueryAdapter.findPostIdsMemberId(memberId)).willReturn(List.of(postId1, postId2));
+        given(postQueryRepository.findPostIdsMemberId(memberId)).willReturn(List.of(postId1, postId2));
         // When
         postCommandService.deleteAllPostsByMemberId(memberId);
 
         // Then
-        verify(postQueryAdapter, times(1)).findPostIdsMemberId(memberId);
+        verify(postQueryRepository, times(1)).findPostIdsMemberId(memberId);
         verify(redisPostDeleteAdapter, times(1)).deleteSinglePostCache(postId1);
         verify(redisPostDeleteAdapter, times(1)).deleteSinglePostCache(postId2);
         verify(postCommandAdapter, times(1)).deleteAllByMemberId(memberId);
-        verifyNoMoreInteractions(postQueryAdapter, postCommandAdapter, redisPostDeleteAdapter);
+        verifyNoMoreInteractions(postQueryRepository, postCommandAdapter, redisPostDeleteAdapter);
     }
 
     @Test
@@ -248,16 +238,16 @@ class PostCommandServiceTest extends BaseUnitTest {
     void shouldSkipDeletingPosts_WhenNoPostsExist() {
         // Given
         Long memberId = 1L;
-        given(postQueryAdapter.findPostIdsMemberId(memberId)).willReturn(List.of());
+        given(postQueryRepository.findPostIdsMemberId(memberId)).willReturn(List.of());
 
         // When
         postCommandService.deleteAllPostsByMemberId(memberId);
 
         // Then
-        verify(postQueryAdapter, times(1)).findPostIdsMemberId(memberId);
+        verify(postQueryRepository, times(1)).findPostIdsMemberId(memberId);
         verify(postCommandAdapter, times(1)).deleteAllByMemberId(memberId);
         verify(redisPostDeleteAdapter, never()).deleteSinglePostCache(any());
-        verifyNoMoreInteractions(postQueryAdapter, postCommandAdapter, redisPostDeleteAdapter);
+        verifyNoMoreInteractions(postQueryRepository, postCommandAdapter, redisPostDeleteAdapter);
     }
 
 

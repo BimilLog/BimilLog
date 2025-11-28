@@ -33,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ActiveProfiles("local-integration")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Tag("local-integration")
-class RedisPostQueryAdapterIntegrationTest {
+class RedisPostQueryRepositoryIntegrationTest {
 
     @Autowired
     private RedisPostQueryAdapter redisPostQueryAdapter;

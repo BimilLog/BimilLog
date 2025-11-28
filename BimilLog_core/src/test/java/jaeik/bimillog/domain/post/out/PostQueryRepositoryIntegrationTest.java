@@ -46,23 +46,23 @@ import static org.mockito.BDDMockito.given;
 @DataJpaTest(
         includeFilters = @ComponentScan.Filter(
                 type = FilterType.ASSIGNABLE_TYPE,
-                classes = {PostQueryAdapter.class, PostQueryHelper.class}
+                classes = {PostQueryRepository.class, PostQueryHelper.class}
         )
 )
 @ActiveProfiles("local-integration")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({PostQueryAdapter.class, PostQueryHelper.class, QueryDSLConfig.class, LocalIntegrationTestSupportConfig.class})
+@Import({PostQueryRepository.class, PostQueryHelper.class, QueryDSLConfig.class, LocalIntegrationTestSupportConfig.class})
 @Tag("local-integration")
-class PostQueryAdapterIntegrationTest {
+class PostQueryRepositoryIntegrationTest {
 
     @Autowired
-    private PostQueryAdapter postQueryAdapter;
+    private PostQueryRepository postQueryRepository;
 
     @Autowired
     private TestEntityManager entityManager;
 
     @MockitoBean
-    private PostLikeQueryAdapter postLikeQueryAdapter;
+    private PostLikeQueryRepository postLikeQueryRepository;
 
     private Member testMember;
     private Post testPost1, testPost2, testPost3, noticePost;
@@ -88,7 +88,7 @@ class PostQueryAdapterIntegrationTest {
         likeCounts.put(testPost3.getId(), 1);
         likeCounts.put(noticePost.getId(), 8);
         
-        given(postLikeQueryAdapter.findLikeCountsByPostIds(any(List.class)))
+        given(postLikeQueryRepository.findLikeCountsByPostIds(any(List.class)))
                 .willReturn(likeCounts);
     }
 
@@ -122,7 +122,7 @@ class PostQueryAdapterIntegrationTest {
         Pageable pageable = PageRequest.of(0, 2);
 
         // When: 페이지별 게시글 조회
-        Page<PostSimpleDetail> result = postQueryAdapter.findByPage(pageable, null);
+        Page<PostSimpleDetail> result = postQueryRepository.findByPage(pageable, null);
 
         // Then: 공지사항이 제외된 일반 게시글만 조회됨
         assertThat(result).isNotNull();
@@ -150,7 +150,7 @@ class PostQueryAdapterIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 사용자별 게시글 조회
-        Page<PostSimpleDetail> result = postQueryAdapter.findPostsByMemberId(memberId, pageable, memberId);
+        Page<PostSimpleDetail> result = postQueryRepository.findPostsByMemberId(memberId, pageable, memberId);
 
         // Then: 해당 사용자의 게시글만 조회됨
         assertThat(result).isNotNull();
@@ -196,7 +196,7 @@ class PostQueryAdapterIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 사용자 추천 게시글 조회
-        Page<PostSimpleDetail> result = postQueryAdapter.findLikedPostsByMemberId(likeMember.getId(), pageable);
+        Page<PostSimpleDetail> result = postQueryRepository.findLikedPostsByMemberId(likeMember.getId(), pageable);
 
         // Then: 추천한 게시글들이 조회됨
         assertThat(result).isNotNull();
@@ -226,7 +226,7 @@ class PostQueryAdapterIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 부분 검색
-        Page<PostSimpleDetail> result = postQueryAdapter.findByPartialMatch(searchType, query, pageable, null);
+        Page<PostSimpleDetail> result = postQueryRepository.findByPartialMatch(searchType, query, pageable, null);
 
         // Then: 해당 제목이 포함된 게시글 조회됨
         assertThat(result).isNotNull();
@@ -243,7 +243,7 @@ class PostQueryAdapterIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 접두사 검색
-        Page<PostSimpleDetail> result = postQueryAdapter.findByPrefixMatch(searchType, query, pageable, null);
+        Page<PostSimpleDetail> result = postQueryRepository.findByPrefixMatch(searchType, query, pageable, null);
 
         // Then: 해당 접두사로 시작하는 작성자의 게시글들이 조회됨
         assertThat(result).isNotNull();
@@ -261,7 +261,7 @@ class PostQueryAdapterIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 전문 검색
-        Page<PostSimpleDetail> result = postQueryAdapter.findByFullTextSearch(searchType, query, pageable, null);
+        Page<PostSimpleDetail> result = postQueryRepository.findByFullTextSearch(searchType, query, pageable, null);
 
         // Then: FULLTEXT 인덱스를 사용하여 검색됨
         assertThat(result).isNotNull();
@@ -277,7 +277,7 @@ class PostQueryAdapterIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 일반 게시글 페이지 조회
-        Page<PostSimpleDetail> result = postQueryAdapter.findByPage(pageable, null);
+        Page<PostSimpleDetail> result = postQueryRepository.findByPage(pageable, null);
 
         // Then: 공지사항은 제외되고 일반 게시글만 조회됨
         assertThat(result.getContent()).hasSize(3); // 일반 게시글 3개만 조회 (공지사항 2개 제외)
@@ -290,7 +290,7 @@ class PostQueryAdapterIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 게시글 조회
-        Page<PostSimpleDetail> result = postQueryAdapter.findByPage(pageable, null);
+        Page<PostSimpleDetail> result = postQueryRepository.findByPage(pageable, null);
 
         // Then: 최신 게시글부터 정렬됨 (createdAt 내림차순)
         List<java.time.Instant> createdAts = result.getContent().stream()
@@ -347,7 +347,7 @@ class PostQueryAdapterIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 사용자 추천 게시글 조회
-        Page<PostSimpleDetail> result = postQueryAdapter.findLikedPostsByMemberId(likeMember.getId(), pageable);
+        Page<PostSimpleDetail> result = postQueryRepository.findLikedPostsByMemberId(likeMember.getId(), pageable);
 
         // Then: 추천 날짜 기준 최신순으로 정렬됨 (testPost3 → testPost2 → testPost1)
         assertThat(result).isNotNull();

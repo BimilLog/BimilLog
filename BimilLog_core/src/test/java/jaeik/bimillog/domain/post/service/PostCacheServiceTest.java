@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.post.service;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.out.PostQueryAdapter;
+import jaeik.bimillog.domain.post.out.PostQueryRepository;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostQueryAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostSaveAdapter;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
@@ -43,7 +43,7 @@ class PostCacheServiceTest {
     private RedisPostSaveAdapter redisPostSaveAdapter;
 
     @Mock
-    private PostQueryAdapter postQueryAdapter;
+    private PostQueryRepository postQueryRepository;
 
     @Mock
     private RedisPostQueryAdapter redisPostQueryAdapter;
@@ -82,7 +82,7 @@ class PostCacheServiceTest {
 
         given(redisPostQueryAdapter.getRealtimePopularPostIds()).willReturn(List.of(1L, 2L));
         given(redisPostQueryAdapter.getCachedPostList(PostCacheFlag.REALTIME)).willReturn(List.of(simpleDetail2)); // postId=1은 캐시 미스
-        given(postQueryAdapter.findPostDetailWithCounts(1L, null)).willReturn(Optional.of(realtimePost1)); // DB fallback
+        given(postQueryRepository.findPostDetailWithCounts(1L, null)).willReturn(Optional.of(realtimePost1)); // DB fallback
 
         // When
         List<PostSimpleDetail> result = postCacheService.getRealtimePosts();
@@ -94,7 +94,7 @@ class PostCacheServiceTest {
 
         verify(redisPostQueryAdapter).getRealtimePopularPostIds();
         verify(redisPostQueryAdapter).getCachedPostList(PostCacheFlag.REALTIME);
-        verify(postQueryAdapter).findPostDetailWithCounts(1L, null);
+        verify(postQueryRepository).findPostDetailWithCounts(1L, null);
         verify(redisPostSaveAdapter).cachePostList(eq(PostCacheFlag.REALTIME), any());
     }
 
@@ -165,8 +165,8 @@ class PostCacheServiceTest {
                 .willReturn(emptyPage)  // 첫 번째 호출: 캐시 미스
                 .willReturn(recoveredPage); // 두 번째 호출: 복구 후
         given(redisPostQueryAdapter.getStoredPostIds(PostCacheFlag.LEGEND)).willReturn(List.of(1L, 2L));
-        given(postQueryAdapter.findPostDetailWithCounts(1L, null)).willReturn(Optional.of(postDetail1));
-        given(postQueryAdapter.findPostDetailWithCounts(2L, null)).willReturn(Optional.of(postDetail2));
+        given(postQueryRepository.findPostDetailWithCounts(1L, null)).willReturn(Optional.of(postDetail1));
+        given(postQueryRepository.findPostDetailWithCounts(2L, null)).willReturn(Optional.of(postDetail2));
 
         // When
         Page<PostSimpleDetail> result = postCacheService.getPopularPostLegend(type, pageable);
@@ -177,8 +177,8 @@ class PostCacheServiceTest {
 
         verify(redisPostQueryAdapter, times(2)).getCachedPostListPaged(pageable);
         verify(redisPostQueryAdapter).getStoredPostIds(PostCacheFlag.LEGEND);
-        verify(postQueryAdapter).findPostDetailWithCounts(1L, null);
-        verify(postQueryAdapter).findPostDetailWithCounts(2L, null);
+        verify(postQueryRepository).findPostDetailWithCounts(1L, null);
+        verify(postQueryRepository).findPostDetailWithCounts(2L, null);
         verify(redisPostSaveAdapter).cachePostList(eq(PostCacheFlag.LEGEND), any());
     }
 
@@ -212,8 +212,8 @@ class PostCacheServiceTest {
 
         given(redisPostQueryAdapter.getCachedPostList(PostCacheFlag.WEEKLY)).willReturn(List.of());  // 캐시 미스
         given(redisPostQueryAdapter.getStoredPostIds(PostCacheFlag.WEEKLY)).willReturn(List.of(1L, 2L));
-        given(postQueryAdapter.findPostDetailWithCounts(1L, null)).willReturn(Optional.of(postDetail1));
-        given(postQueryAdapter.findPostDetailWithCounts(2L, null)).willReturn(Optional.of(postDetail2));
+        given(postQueryRepository.findPostDetailWithCounts(1L, null)).willReturn(Optional.of(postDetail1));
+        given(postQueryRepository.findPostDetailWithCounts(2L, null)).willReturn(Optional.of(postDetail2));
 
         // When
         List<PostSimpleDetail> result = postCacheService.getWeeklyPosts();
@@ -225,8 +225,8 @@ class PostCacheServiceTest {
 
         verify(redisPostQueryAdapter).getCachedPostList(PostCacheFlag.WEEKLY);
         verify(redisPostQueryAdapter).getStoredPostIds(PostCacheFlag.WEEKLY);
-        verify(postQueryAdapter).findPostDetailWithCounts(1L, null);
-        verify(postQueryAdapter).findPostDetailWithCounts(2L, null);
+        verify(postQueryRepository).findPostDetailWithCounts(1L, null);
+        verify(postQueryRepository).findPostDetailWithCounts(2L, null);
         verify(redisPostSaveAdapter).cachePostList(eq(PostCacheFlag.WEEKLY), any());  // 재캐싱 검증
     }
 
@@ -238,7 +238,7 @@ class PostCacheServiceTest {
 
         given(redisPostQueryAdapter.getStoredPostIds(PostCacheFlag.NOTICE)).willReturn(List.of(1L));
         given(redisPostQueryAdapter.getCachedPostList(PostCacheFlag.NOTICE)).willReturn(List.of());  // 캐시 미스 (size 불일치)
-        given(postQueryAdapter.findPostDetailWithCounts(1L, null)).willReturn(Optional.of(postDetail1));
+        given(postQueryRepository.findPostDetailWithCounts(1L, null)).willReturn(Optional.of(postDetail1));
 
         // When
         List<PostSimpleDetail> result = postCacheService.getNoticePosts();
@@ -249,7 +249,7 @@ class PostCacheServiceTest {
 
         verify(redisPostQueryAdapter, times(2)).getStoredPostIds(PostCacheFlag.NOTICE);  // 1번: size 비교, 2번: recoverFromStoredPostIds
         verify(redisPostQueryAdapter).getCachedPostList(PostCacheFlag.NOTICE);
-        verify(postQueryAdapter).findPostDetailWithCounts(1L, null);
+        verify(postQueryRepository).findPostDetailWithCounts(1L, null);
     }
 
     // Helper method for creating PostDetail test data

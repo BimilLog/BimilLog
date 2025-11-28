@@ -4,8 +4,8 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.out.PostLikeQueryAdapter;
-import jaeik.bimillog.domain.post.out.PostQueryAdapter;
+import jaeik.bimillog.domain.post.out.PostLikeQueryRepository;
+import jaeik.bimillog.domain.post.out.PostQueryRepository;
 import jaeik.bimillog.domain.post.out.PostRepository;
 import jaeik.bimillog.domain.post.out.PostToCommentAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -53,10 +53,10 @@ import static org.mockito.Mockito.verify;
 class PostQueryServiceTest extends BaseUnitTest {
 
     @Mock
-    private PostQueryAdapter postQueryAdapter;
+    private PostQueryRepository postQueryRepository;
 
     @Mock
-    private PostLikeQueryAdapter postLikeQueryAdapter;
+    private PostLikeQueryRepository postLikeQueryRepository;
 
     @Mock
     private RedisPostQueryAdapter redisPostQueryAdapter;
@@ -87,7 +87,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         PostSimpleDetail postResult = PostTestDataBuilder.createPostSearchResult(1L, "제목1");
         Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(postResult), pageable, 1);
 
-        given(postQueryAdapter.findByPage(pageable, null)).willReturn(expectedPage);
+        given(postQueryRepository.findByPage(pageable, null)).willReturn(expectedPage);
 
         // When
         Page<PostSimpleDetail> result = postQueryService.getBoard(pageable, null);
@@ -97,7 +97,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().getFirst().getTitle()).isEqualTo("제목1");
 
-        verify(postQueryAdapter).findByPage(pageable, null);
+        verify(postQueryRepository).findByPage(pageable, null);
     }
 
 
@@ -124,7 +124,7 @@ class PostQueryServiceTest extends BaseUnitTest {
                 .memberName("testMember")
                 .commentCount(3)
                 .build();
-        given(postQueryAdapter.findPostDetailWithCounts(postId, memberId))
+        given(postQueryRepository.findPostDetailWithCounts(postId, memberId))
                 .willReturn(Optional.of(mockPostDetail));
 
         // When
@@ -133,8 +133,8 @@ class PostQueryServiceTest extends BaseUnitTest {
         // Then
         assertThat(result).isNotNull();
         verify(redisPostQueryAdapter).getCachedPostIfExists(postId); // 1회 Redis 호출
-        verify(postQueryAdapter).findPostDetailWithCounts(postId, memberId); // 1회 DB 쿼리
-        verify(postLikeQueryAdapter, never()).existsByPostIdAndUserId(any(), any());
+        verify(postQueryRepository).findPostDetailWithCounts(postId, memberId); // 1회 DB 쿼리
+        verify(postLikeQueryRepository, never()).existsByPostIdAndUserId(any(), any());
     }
 
     @Test
@@ -161,7 +161,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         given(redisPostQueryAdapter.getCachedPostIfExists(postId)).willReturn(cachedFullPost);
 
         // 좋아요 정보만 추가 확인 (Post 엔티티 로드 없이 ID로만 확인)
-        given(postLikeQueryAdapter.existsByPostIdAndUserId(postId, memberId)).willReturn(false);
+        given(postLikeQueryRepository.existsByPostIdAndUserId(postId, memberId)).willReturn(false);
 
         // When
         PostDetail result = postQueryService.getPost(postId, memberId);
@@ -171,8 +171,8 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.isLiked()).isFalse();
 
         verify(redisPostQueryAdapter).getCachedPostIfExists(postId); // 1회 Redis 호출 (최적화)
-        verify(postLikeQueryAdapter).existsByPostIdAndUserId(postId, memberId);
-        verify(postQueryAdapter, never()).findPostDetailWithCounts(any(), any()); // JOIN 쿼리도 호출 안함
+        verify(postLikeQueryRepository).existsByPostIdAndUserId(postId, memberId);
+        verify(postQueryRepository, never()).findPostDetailWithCounts(any(), any()); // JOIN 쿼리도 호출 안함
     }
 
     @Test
@@ -198,7 +198,7 @@ class PostQueryServiceTest extends BaseUnitTest {
                 .memberName("testMember")
                 .commentCount(3)
                 .build();
-        given(postQueryAdapter.findPostDetailWithCounts(postId, memberId))
+        given(postQueryRepository.findPostDetailWithCounts(postId, memberId))
                 .willReturn(Optional.of(mockPostDetail));
 
         // When
@@ -207,10 +207,10 @@ class PostQueryServiceTest extends BaseUnitTest {
         // Then
         assertThat(result).isNotNull();
         verify(redisPostQueryAdapter).getCachedPostIfExists(postId); // 1회 Redis 호출 (최적화)
-        verify(postQueryAdapter).findPostDetailWithCounts(postId, memberId); // 1회 DB JOIN 쿼리 (최적화)
+        verify(postQueryRepository).findPostDetailWithCounts(postId, memberId); // 1회 DB JOIN 쿼리 (최적화)
 
         // 기존 개별 쿼리들은 호출되지 않음을 검증
-        verify(postLikeQueryAdapter, never()).existsByPostIdAndUserId(any(), any());
+        verify(postLikeQueryRepository, never()).existsByPostIdAndUserId(any(), any());
     }
 
     @Test
@@ -236,7 +236,7 @@ class PostQueryServiceTest extends BaseUnitTest {
                 .memberName("testMember")
                 .commentCount(3)
                 .build();
-        given(postQueryAdapter.findPostDetailWithCounts(postId, memberId))
+        given(postQueryRepository.findPostDetailWithCounts(postId, memberId))
                 .willReturn(Optional.of(mockPostDetail));
 
         // When
@@ -247,10 +247,10 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.isLiked()).isFalse(); // 익명 사용자는 항상 false
 
         verify(redisPostQueryAdapter).getCachedPostIfExists(postId); // 1회 Redis 호출
-        verify(postQueryAdapter).findPostDetailWithCounts(postId, memberId); // 1회 JOIN 쿼리
+        verify(postQueryRepository).findPostDetailWithCounts(postId, memberId); // 1회 JOIN 쿼리
 
         // 기존 개별 쿼리들은 호출되지 않음
-        verify(postLikeQueryAdapter, never()).existsByPostIdAndUserId(any(), any());
+        verify(postLikeQueryRepository, never()).existsByPostIdAndUserId(any(), any());
     }
 
     @Test
@@ -262,7 +262,7 @@ class PostQueryServiceTest extends BaseUnitTest {
 
         // 캐시에도 없고 DB에도 없는 경우
         given(redisPostQueryAdapter.getCachedPostIfExists(postId)).willReturn(null);
-        given(postQueryAdapter.findPostDetailWithCounts(postId, memberId)).willReturn(Optional.empty());
+        given(postQueryRepository.findPostDetailWithCounts(postId, memberId)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> postQueryService.getPost(postId, memberId))
@@ -270,7 +270,7 @@ class PostQueryServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
         verify(redisPostQueryAdapter).getCachedPostIfExists(postId);
-        verify(postQueryAdapter).findPostDetailWithCounts(postId, memberId);
+        verify(postQueryRepository).findPostDetailWithCounts(postId, memberId);
         // 기존 개별 쿼리는 호출되지 않음
     }
 
@@ -285,7 +285,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         PostSimpleDetail searchResult = PostTestDataBuilder.createPostSearchResult(1L, "검색 결과");
         Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(searchResult), pageable, 1);
 
-        given(postQueryAdapter.findByFullTextSearch(type, query, pageable, null)).willReturn(expectedPage);
+        given(postQueryRepository.findByFullTextSearch(type, query, pageable, null)).willReturn(expectedPage);
 
         // When
         Page<PostSimpleDetail> result = postQueryService.searchPost(type, query, pageable, null);
@@ -294,9 +294,9 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result).isEqualTo(expectedPage);
         assertThat(result.getContent()).hasSize(1);
 
-        verify(postQueryAdapter).findByFullTextSearch(type, query, pageable, null);
-        verify(postQueryAdapter, never()).findByPartialMatch(any(), any(), any(), any());
-        verify(postQueryAdapter, never()).findByPrefixMatch(any(), any(), any(), any());
+        verify(postQueryRepository).findByFullTextSearch(type, query, pageable, null);
+        verify(postQueryRepository, never()).findByPartialMatch(any(), any(), any(), any());
+        verify(postQueryRepository, never()).findByPrefixMatch(any(), any(), any(), any());
     }
 
     @Test
@@ -309,7 +309,7 @@ class PostQueryServiceTest extends BaseUnitTest {
 
         Page<PostSimpleDetail> emptyPage = Page.empty(pageable);
 
-        given(postQueryAdapter.findByFullTextSearch(type, query, pageable, null)).willReturn(emptyPage);
+        given(postQueryRepository.findByFullTextSearch(type, query, pageable, null)).willReturn(emptyPage);
 
         // When
         Page<PostSimpleDetail> result = postQueryService.searchPost(type, query, pageable, null);
@@ -317,8 +317,8 @@ class PostQueryServiceTest extends BaseUnitTest {
         // Then
         assertThat(result).isEqualTo(emptyPage);
 
-        verify(postQueryAdapter).findByFullTextSearch(type, query, pageable, null);
-        verify(postQueryAdapter, never()).findByPartialMatch(type, query, pageable, null);
+        verify(postQueryRepository).findByFullTextSearch(type, query, pageable, null);
+        verify(postQueryRepository, never()).findByPartialMatch(type, query, pageable, null);
     }
 
     @Test
@@ -332,7 +332,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         PostSimpleDetail searchResult = PostTestDataBuilder.createPostSearchResult(1L, "작성자 검색 결과");
         Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(searchResult), pageable, 1);
 
-        given(postQueryAdapter.findByPrefixMatch(type, query, pageable, null)).willReturn(expectedPage);
+        given(postQueryRepository.findByPrefixMatch(type, query, pageable, null)).willReturn(expectedPage);
 
         // When
         Page<PostSimpleDetail> result = postQueryService.searchPost(type, query, pageable, null);
@@ -341,9 +341,9 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result).isEqualTo(expectedPage);
         assertThat(result.getContent()).hasSize(1);
 
-        verify(postQueryAdapter).findByPrefixMatch(type, query, pageable, null);
-        verify(postQueryAdapter, never()).findByFullTextSearch(any(), any(), any(), any());
-        verify(postQueryAdapter, never()).findByPartialMatch(any(), any(), any(), any());
+        verify(postQueryRepository).findByPrefixMatch(type, query, pageable, null);
+        verify(postQueryRepository, never()).findByFullTextSearch(any(), any(), any(), any());
+        verify(postQueryRepository, never()).findByPartialMatch(any(), any(), any(), any());
     }
 
     @Test
@@ -357,7 +357,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         PostSimpleDetail searchResult = PostTestDataBuilder.createPostSearchResult(1L, "부분 검색 결과");
         Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(searchResult), pageable, 1);
 
-        given(postQueryAdapter.findByPartialMatch(type, query, pageable, null)).willReturn(expectedPage);
+        given(postQueryRepository.findByPartialMatch(type, query, pageable, null)).willReturn(expectedPage);
 
         // When
         Page<PostSimpleDetail> result = postQueryService.searchPost(type, query, pageable, null);
@@ -366,9 +366,9 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result).isEqualTo(expectedPage);
         assertThat(result.getContent()).hasSize(1);
 
-        verify(postQueryAdapter).findByPartialMatch(type, query, pageable, null);
-        verify(postQueryAdapter, never()).findByFullTextSearch(any(), any(), any(), any());
-        verify(postQueryAdapter, never()).findByPrefixMatch(any(), any(), any(), any());
+        verify(postQueryRepository).findByPartialMatch(type, query, pageable, null);
+        verify(postQueryRepository, never()).findByFullTextSearch(any(), any(), any(), any());
+        verify(postQueryRepository, never()).findByPrefixMatch(any(), any(), any(), any());
     }
 
     @Test
@@ -382,7 +382,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         PostSimpleDetail searchResult = PostTestDataBuilder.createPostSearchResult(1L, "부분 검색 결과");
         Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(searchResult), pageable, 1);
 
-        given(postQueryAdapter.findByPartialMatch(type, query, pageable, null)).willReturn(expectedPage);
+        given(postQueryRepository.findByPartialMatch(type, query, pageable, null)).willReturn(expectedPage);
 
         // When
         Page<PostSimpleDetail> result = postQueryService.searchPost(type, query, pageable, null);
@@ -391,9 +391,9 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result).isEqualTo(expectedPage);
         assertThat(result.getContent()).hasSize(1);
 
-        verify(postQueryAdapter).findByPartialMatch(type, query, pageable, null);
-        verify(postQueryAdapter, never()).findByFullTextSearch(any(), any(), any(), any());
-        verify(postQueryAdapter, never()).findByPrefixMatch(any(), any(), any(), any());
+        verify(postQueryRepository).findByPartialMatch(type, query, pageable, null);
+        verify(postQueryRepository, never()).findByFullTextSearch(any(), any(), any(), any());
+        verify(postQueryRepository, never()).findByPrefixMatch(any(), any(), any(), any());
     }
 
 
@@ -441,7 +441,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         PostSimpleDetail userPost = PostTestDataBuilder.createPostSearchResult(1L, "사용자 게시글");
         Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(userPost), pageable, 1);
 
-        given(postQueryAdapter.findPostsByMemberId(memberId, pageable, memberId)).willReturn(expectedPage);
+        given(postQueryRepository.findPostsByMemberId(memberId, pageable, memberId)).willReturn(expectedPage);
 
         // When
         Page<PostSimpleDetail> result = postQueryService.getMemberPosts(memberId, pageable);
@@ -450,7 +450,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result).isEqualTo(expectedPage);
         assertThat(result.getContent()).hasSize(1);
 
-        verify(postQueryAdapter).findPostsByMemberId(memberId, pageable, memberId);
+        verify(postQueryRepository).findPostsByMemberId(memberId, pageable, memberId);
     }
 
     @Test
@@ -462,7 +462,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         PostSimpleDetail likedPost = PostTestDataBuilder.createPostSearchResult(1L, "추천한 게시글");
         Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(likedPost), pageable, 1);
 
-        given(postQueryAdapter.findLikedPostsByMemberId(memberId, pageable)).willReturn(expectedPage);
+        given(postQueryRepository.findLikedPostsByMemberId(memberId, pageable)).willReturn(expectedPage);
 
         // When
         Page<PostSimpleDetail> result = postQueryService.getMemberLikedPosts(memberId, pageable);
@@ -471,7 +471,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result).isEqualTo(expectedPage);
         assertThat(result.getContent()).hasSize(1);
 
-        verify(postQueryAdapter).findLikedPostsByMemberId(memberId, pageable);
+        verify(postQueryRepository).findLikedPostsByMemberId(memberId, pageable);
     }
 
     @Test
@@ -479,7 +479,7 @@ class PostQueryServiceTest extends BaseUnitTest {
     void shouldInjectCommentCountsForWeeklyPosts() {
         // Given
         PostSimpleDetail weeklyPost = PostTestDataBuilder.createPostSearchResult(1L, "주간 인기");
-        given(postQueryAdapter.findWeeklyPopularPosts()).willReturn(List.of(weeklyPost));
+        given(postQueryRepository.findWeeklyPopularPosts()).willReturn(List.of(weeklyPost));
         given(postToCommentAdapter.findCommentCountsByPostIds(List.of(1L)))
                 .willReturn(Map.of(1L, 7));
 
@@ -497,7 +497,7 @@ class PostQueryServiceTest extends BaseUnitTest {
     void shouldInjectCommentCountsForLegendaryPosts() {
         // Given
         PostSimpleDetail legendaryPost = PostTestDataBuilder.createPostSearchResult(10L, "레전드");
-        given(postQueryAdapter.findLegendaryPosts()).willReturn(List.of(legendaryPost));
+        given(postQueryRepository.findLegendaryPosts()).willReturn(List.of(legendaryPost));
         given(postToCommentAdapter.findCommentCountsByPostIds(List.of(10L)))
                 .willReturn(Map.of(10L, 3));
 

@@ -40,7 +40,7 @@ import java.util.function.Consumer;
 @Slf4j
 @Repository
 @RequiredArgsConstructor
-public class PostQueryAdapter {
+public class PostQueryRepository {
     private final JPAQueryFactory jpaQueryFactory;
     private final PostFulltextRepository postFullTextRepository;
     private final PostQueryHelper postQueryHelper;

@@ -28,17 +28,5 @@ public interface PostLikeRepository extends JpaRepository<PostLike, Long> {
      * @since 2.0.0
      */
     void deleteByMemberAndPost(Member member, Post post);
-
-    /**
-     * <h3>게시글 ID로 모든 추천 삭제</h3>
-     * <p>특정 게시글 ID에 해당하는 모든 추천 기록을 삭제합니다.</p>
-     *
-     * @param postId 삭제할 게시글의 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Modifying
-    @Query("DELETE FROM PostLike pl WHERE pl.post.id = :postId")
-    void deleteAllByPostId(@Param("postId") Long postId);
 }
 

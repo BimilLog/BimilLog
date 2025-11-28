@@ -6,11 +6,7 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.domain.post.out.PostCommandAdapter;
-import jaeik.bimillog.domain.post.out.PostLikeCommandAdapter;
-import jaeik.bimillog.domain.post.out.PostLikeQueryAdapter;
+import jaeik.bimillog.domain.post.out.PostLikeQueryRepository;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
@@ -41,16 +37,10 @@ import static org.mockito.Mockito.verify;
 class PostInteractionServiceTest extends BaseUnitTest {
 
     @Mock
-    private PostCommandAdapter postCommandAdapter;
-
-    @Mock
     private GlobalPostQueryAdapter globalPostQueryAdapter;
 
     @Mock
-    private PostLikeCommandAdapter postLikeCommandAdapter;
-
-    @Mock
-    private PostLikeQueryAdapter postLikeQueryAdapter;
+    private PostLikeQueryRepository postLikeQueryRepository;
 
     @Mock
     private GlobalMemberQueryAdapter globalMemberQueryAdapter;
@@ -69,7 +59,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
         Long postId = 123L;
         Post post = PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestMember(), "테스트 게시글", "내용"));
 
-        given(postLikeQueryAdapter.existsByPostIdAndUserId(postId, memberId)).willReturn(false);
+        given(postLikeQueryRepository.existsByPostIdAndUserId(postId, memberId)).willReturn(false);
         given(globalMemberQueryAdapter.getReferenceById(memberId)).willReturn(getTestMember());
         given(globalPostQueryAdapter.findById(postId)).willReturn(post);
 
@@ -77,7 +67,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
         postInteractionService.likePost(memberId, postId);
 
         // Then
-        verify(postLikeQueryAdapter).existsByPostIdAndUserId(postId, memberId);
+        verify(postLikeQueryRepository).existsByPostIdAndUserId(postId, memberId);
         verify(globalMemberQueryAdapter).getReferenceById(memberId);
         verify(globalPostQueryAdapter).findById(postId);
 
@@ -99,7 +89,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
         Long postId = 123L;
         Post post = PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestMember(), "테스트 게시글", "내용"));
 
-        given(postLikeQueryAdapter.existsByPostIdAndUserId(postId, memberId)).willReturn(true);
+        given(postLikeQueryRepository.existsByPostIdAndUserId(postId, memberId)).willReturn(true);
         given(globalMemberQueryAdapter.getReferenceById(memberId)).willReturn(getTestMember());
         given(globalPostQueryAdapter.findById(postId)).willReturn(post);
 
@@ -107,7 +97,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
         postInteractionService.likePost(memberId, postId);
 
         // Then
-        verify(postLikeQueryAdapter).existsByPostIdAndUserId(postId, memberId);
+        verify(postLikeQueryRepository).existsByPostIdAndUserId(postId, memberId);
         verify(globalMemberQueryAdapter).getReferenceById(memberId);
         verify(globalPostQueryAdapter).findById(postId);
         verify(postLikeCommandAdapter).deletePostLike(getTestMember(), post);
@@ -121,7 +111,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
         Long memberId = 1L;
         Long postId = 999L;
 
-        given(postLikeQueryAdapter.existsByPostIdAndUserId(postId, memberId)).willReturn(false);
+        given(postLikeQueryRepository.existsByPostIdAndUserId(postId, memberId)).willReturn(false);
         given(globalMemberQueryAdapter.getReferenceById(memberId)).willReturn(getTestMember());
         given(globalPostQueryAdapter.findById(postId)).willThrow(new CustomException(ErrorCode.POST_NOT_FOUND));
 
@@ -130,7 +120,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
-        verify(postLikeQueryAdapter).existsByPostIdAndUserId(postId, memberId);
+        verify(postLikeQueryRepository).existsByPostIdAndUserId(postId, memberId);
         verify(globalMemberQueryAdapter).getReferenceById(memberId);
         verify(globalPostQueryAdapter).findById(postId);
         verify(postLikeCommandAdapter, never()).savePostLike(any());
