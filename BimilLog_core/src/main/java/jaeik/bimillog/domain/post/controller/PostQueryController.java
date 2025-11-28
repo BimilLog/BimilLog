@@ -8,7 +8,6 @@ import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.event.PostViewedEvent;
 import jaeik.bimillog.domain.post.dto.FullPostDTO;
 import jaeik.bimillog.domain.post.dto.PostSearchDTO;
-import jaeik.bimillog.domain.post.dto.SimplePostDTO;
 import jaeik.bimillog.domain.post.controller.util.PostViewCookieUtil;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jakarta.servlet.http.HttpServletRequest;
@@ -59,12 +58,11 @@ public class PostQueryController {
     @Log(level = LogLevel.DEBUG,
          message = "게시판 목록 조회",
          logResult = false)
-    public ResponseEntity<Page<SimplePostDTO>> getBoard(Pageable pageable,
+    public ResponseEntity<Page<PostSimpleDetail>> getBoard(Pageable pageable,
                                                         @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long memberId = userDetails != null ? userDetails.getMemberId() : null;
         Page<PostSimpleDetail> postList = postQueryService.getBoard(pageable, memberId);
-        Page<SimplePostDTO> dtoList = postList.map(SimplePostDTO::convertToSimplePostResDTO);
-        return ResponseEntity.ok(dtoList);
+        return ResponseEntity.ok(postList);
     }
 
     /**
@@ -120,13 +118,12 @@ public class PostQueryController {
          message = "게시글 검색",
          logExecutionTime = true,
          logResult = false)
-    public ResponseEntity<Page<SimplePostDTO>> searchPost(@Valid @ModelAttribute PostSearchDTO searchDTO,
+    public ResponseEntity<Page<PostSimpleDetail>> searchPost(@Valid @ModelAttribute PostSearchDTO searchDTO,
                                                           Pageable pageable,
                                                           @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long memberId = userDetails != null ? userDetails.getMemberId() : null;
         Page<PostSimpleDetail> postList = postQueryService.searchPost(searchDTO.getType(), searchDTO.getTrimmedQuery(), pageable, memberId);
-        Page<SimplePostDTO> dtoList = postList.map(SimplePostDTO::convertToSimplePostResDTO);
-        return ResponseEntity.ok(dtoList);
+        return ResponseEntity.ok(postList);
     }
 
     /**
@@ -142,13 +139,12 @@ public class PostQueryController {
      */
     @Deprecated
     @GetMapping("/me")
-    public ResponseEntity<Page<SimplePostDTO>> getUserPosts(@RequestParam(defaultValue = "0") int page,
+    public ResponseEntity<Page<PostSimpleDetail>> getUserPosts(@RequestParam(defaultValue = "0") int page,
                                                             @RequestParam(defaultValue = "10") int size,
                                                             @AuthenticationPrincipal CustomUserDetails userDetails) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<PostSimpleDetail> postList = postQueryService.getMemberPosts(userDetails.getMemberId(), pageable);
-        Page<SimplePostDTO> dtoList = postList.map(SimplePostDTO::convertToSimplePostResDTO);
-        return ResponseEntity.ok(dtoList);
+        return ResponseEntity.ok(postList);
     }
 
     /**
@@ -164,13 +160,12 @@ public class PostQueryController {
      */
     @Deprecated
     @GetMapping("/me/liked")
-    public ResponseEntity<Page<SimplePostDTO>> getUserLikedPosts(@RequestParam(defaultValue = "0") int page,
+    public ResponseEntity<Page<PostSimpleDetail>> getUserLikedPosts(@RequestParam(defaultValue = "0") int page,
                                                                  @RequestParam(defaultValue = "10") int size,
                                                                  @AuthenticationPrincipal CustomUserDetails userDetails) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<PostSimpleDetail> likedPosts = postQueryService.getMemberLikedPosts(userDetails.getMemberId(), pageable);
-        Page<SimplePostDTO> dtoList = likedPosts.map(SimplePostDTO::convertToSimplePostResDTO);
-        return ResponseEntity.ok(dtoList);
+        return ResponseEntity.ok(likedPosts);
     }
 
 

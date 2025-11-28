@@ -1,19 +1,19 @@
 package jaeik.bimillog.application.mypage.dto;
 
-import jaeik.bimillog.domain.comment.dto.SimpleCommentDTO;
-import jaeik.bimillog.domain.post.dto.SimplePostDTO;
+import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
+import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 
 @AllArgsConstructor
 public class MyPageDTO {
-    Page<SimpleCommentDTO> commentList;
-    Page<SimpleCommentDTO> likedComments;
-    Page<SimplePostDTO> postList;
-    Page<SimplePostDTO> likePosts;
+    Page<SimpleCommentInfo> commentInfoList;
+    Page<SimpleCommentInfo> likedCommentsInfo;
+    Page<PostSimpleDetail> SimplePostList;
+    Page<PostSimpleDetail> likedPosts;
 
-    public static MyPageDTO from(Page<SimpleCommentDTO> commentList, Page<SimpleCommentDTO> likedComments,
-                                 Page<SimplePostDTO> PostList, Page<SimplePostDTO> likePosts) {
-        return new MyPageDTO(commentList, likedComments, PostList, likePosts);
+    public static MyPageDTO from(Page<SimpleCommentInfo> commentInfoList, Page<SimpleCommentInfo> likedCommentsInfo,
+                                 Page<PostSimpleDetail> SimplePostList, Page<PostSimpleDetail> likedPosts) {
+        return new MyPageDTO(commentInfoList, likedCommentsInfo, SimplePostList, likedPosts);
     }
 }

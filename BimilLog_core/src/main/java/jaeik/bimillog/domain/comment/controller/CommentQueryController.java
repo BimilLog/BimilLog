@@ -4,7 +4,6 @@ import jaeik.bimillog.domain.comment.service.CommentQueryService;
 import jaeik.bimillog.domain.comment.entity.CommentInfo;
 import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
 import jaeik.bimillog.domain.comment.dto.CommentDTO;
-import jaeik.bimillog.domain.comment.dto.SimpleCommentDTO;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.infrastructure.log.Log;
 import lombok.RequiredArgsConstructor;
@@ -102,13 +101,12 @@ public class CommentQueryController {
      */
     @Deprecated
     @GetMapping("/me")
-    public ResponseEntity<Page<SimpleCommentDTO>> getUserComments(@RequestParam(defaultValue = "0") int page,
+    public ResponseEntity<Page<SimpleCommentInfo>> getUserComments(@RequestParam(defaultValue = "0") int page,
                                                                   @RequestParam(defaultValue = "10") int size,
                                                                   @AuthenticationPrincipal CustomUserDetails userDetails) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<SimpleCommentInfo> commentInfoList = CommentQueryService.getMemberComments(userDetails.getMemberId(), pageable);
-        Page<SimpleCommentDTO> commentList = commentInfoList.map(SimpleCommentDTO::convertToSimpleCommentDTO);
-        return ResponseEntity.ok(commentList);
+        return ResponseEntity.ok(commentInfoList);
     }
 
     /**
@@ -125,12 +123,11 @@ public class CommentQueryController {
      */
     @Deprecated
     @GetMapping("/me/liked")
-    public ResponseEntity<Page<SimpleCommentDTO>> getUserLikedComments(@RequestParam(defaultValue = "0") int page,
+    public ResponseEntity<Page<SimpleCommentInfo>> getUserLikedComments(@RequestParam(defaultValue = "0") int page,
                                                                        @RequestParam(defaultValue = "10") int size,
                                                                        @AuthenticationPrincipal CustomUserDetails userDetails) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<SimpleCommentInfo> likedCommentsInfo = CommentQueryService.getMemberLikedComments(userDetails.getMemberId(), pageable);
-        Page<SimpleCommentDTO> likedComments = likedCommentsInfo.map(SimpleCommentDTO::convertToSimpleCommentDTO);
-        return ResponseEntity.ok(likedComments);
+        return ResponseEntity.ok(likedCommentsInfo);
     }
 }
