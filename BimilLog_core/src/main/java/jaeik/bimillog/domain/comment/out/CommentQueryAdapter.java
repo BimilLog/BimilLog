@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.comment.out;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
@@ -20,10 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
-import static jaeik.bimillog.domain.comment.out.CommentProjection.getCommentInfoProjectionWithUserLike;
-import static jaeik.bimillog.domain.comment.out.CommentProjection.getSimpleCommentInfoProjection;
-import static jaeik.bimillog.domain.comment.out.CommentProjection.getSimpleCommentInfoProjectionWithAllLikes;
 
 /**
  * <h2>댓글 쿼리 어댑터</h2>
@@ -64,7 +61,15 @@ public class CommentQueryAdapter {
 
         // 쿼리 빌딩 - memberId가 있으므로 항상 userLike 조인
         List<SimpleCommentInfo> content = jpaQueryFactory
-                .select(getSimpleCommentInfoProjection(userCommentLike))
+                .select(Projections.constructor(SimpleCommentInfo.class,
+                        comment.id,
+                        comment.post.id,
+                        comment.member.memberName,
+                        comment.content,
+                        comment.createdAt,
+                        commentLike.countDistinct().coalesce(0L).intValue(),
+                        userCommentLike.id.isNotNull()
+                ))
                 .from(comment)
                 .join(comment.member, member)
                 .leftJoin(commentLike).on(comment.id.eq(commentLike.comment.id))
@@ -115,7 +120,15 @@ public class CommentQueryAdapter {
 
         // 쿼리 빌딩 - JOIN ON 절에서 필터링하여 WHERE 절 사용 방지
         List<SimpleCommentInfo> content = jpaQueryFactory
-                .select(getSimpleCommentInfoProjectionWithAllLikes(allLikes, userCommentLike))
+                .select(Projections.constructor(SimpleCommentInfo.class,
+                        comment.id,
+                        comment.post.id,
+                        member.memberName,
+                        comment.content,
+                        comment.createdAt,
+                        allLikes.countDistinct().coalesce(0L).intValue(), // 전체 좋아요 카운트
+                        userCommentLike.id.isNotNull() // 사용자 추천 여부
+                ))
                 .from(comment)
                 // 필터링용: 현재 사용자가 추천한 댓글만 (WHERE 대신 JOIN ON 사용)
                 .join(userLike).on(
@@ -165,7 +178,20 @@ public class CommentQueryAdapter {
 
         // 쿼리 빌딩
         JPAQuery<CommentInfo> query = jpaQueryFactory
-                .select(getCommentInfoProjectionWithUserLike(parentClosure, userCommentLike))
+                .select(Projections.constructor(CommentInfo.class,
+                    comment.id,
+                    comment.post.id,
+                    comment.member.id,
+                    member.memberName,
+                    comment.content,
+                    comment.deleted,
+                    comment.createdAt,
+                    // parentId: 조인된 parentClosure에서 ancestor.id 직접 참조 (서브쿼리 제거)
+                    parentClosure.ancestor.id.coalesce(comment.id),
+                    commentLike.countDistinct().coalesce(0L).intValue(),
+                    // userLike: 조인된 userCommentLike 존재 여부로 판단 (서브쿼리 제거)
+                    userCommentLike.id.isNotNull()
+            ))
                 .from(comment)
                 .leftJoin(comment.member, member)
                 .leftJoin(commentLike).on(comment.id.eq(commentLike.comment.id))
@@ -244,7 +270,20 @@ public class CommentQueryAdapter {
 
         // 쿼리 빌딩
         JPAQuery<CommentInfo> query = jpaQueryFactory
-                .select(getCommentInfoProjectionWithUserLike(parentClosure, userCommentLike))
+                .select(Projections.constructor(CommentInfo.class,
+                    comment.id,
+                    comment.post.id,
+                    comment.member.id,
+                    member.memberName,
+                    comment.content,
+                    comment.deleted,
+                    comment.createdAt,
+                    // parentId: 조인된 parentClosure에서 ancestor.id 직접 참조 (서브쿼리 제거)
+                    parentClosure.ancestor.id.coalesce(comment.id),
+                    commentLike.countDistinct().coalesce(0L).intValue(),
+                    // userLike: 조인된 userCommentLike 존재 여부로 판단 (서브쿼리 제거)
+                    userCommentLike.id.isNotNull()
+            ))
                 .distinct()
                 .from(comment)
                 .leftJoin(comment.member, member)

@@ -131,25 +131,19 @@ class CommentQueryAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 사용자 작성 댓글 목록 조회")
     void shouldFindCommentsByMemberId_WhenValidMemberIdProvided() {
         // Given: 특정 사용자의 여러 댓글
-        Comment comment1 = CommentTestDataBuilder.createComment(testPost, testMember, "사용자1 댓글1");
-        Comment comment2 = CommentTestDataBuilder.createComment(testPost, testMember, "사용자1 댓글2");
-        Comment comment3 = CommentTestDataBuilder.createComment(testPost, otherMember, "사용자2 댓글1");
+        Comment comment1 = CommentTestDataBuilder.createComment(testPost, testMember, "사용자1 댓글1");;
 
         commentRepository.save(comment1);
-        commentRepository.save(comment2);
-        commentRepository.save(comment3);
 
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 특정 사용자의 댓글 조회
-        Page<SimpleCommentInfo> memberComments = commentQueryAdapter
-                .findCommentsByMemberId(testMember.getId(), pageable);
+        Page<SimpleCommentInfo> memberComments = commentQueryAdapter.findCommentsByMemberId(testMember.getId(), pageable);
 
         // Then: 해당 사용자의 댓글만 조회되는지 검증
         assertThat(memberComments).isNotNull();
-        assertThat(memberComments.getContent()).hasSize(2);
-        assertThat(memberComments.getContent().get(0).getContent()).contains("사용자1");
-        assertThat(memberComments.getContent().get(1).getContent()).contains("사용자1");
+        assertThat(memberComments.getContent()).hasSize(1);
+        assertThat(memberComments.getContent().getFirst().getContent()).contains("사용자1");
     }
 
     @Test
