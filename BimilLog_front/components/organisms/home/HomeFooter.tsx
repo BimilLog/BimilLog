@@ -12,7 +12,7 @@ import {
   FooterLinkGroup,
   FooterTitle,
 } from "flowbite-react";
-import { Github, Contact, Brain } from "lucide-react";
+import { Github, Contact, Brain, Music } from "lucide-react";
 import { useConfirmModal } from "@/components/molecules/modals/confirm-modal";
 
 export const HomeFooter: React.FC = () => {
@@ -42,6 +42,22 @@ export const HomeFooter: React.FC = () => {
 
     if (confirmed) {
       window.open('https://liketests.vercel.app/', '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const handleBeatMaker = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    const confirmed = await confirm({
+      title: "외부 사이트 이동",
+      message: "개발자가 만든 비트 만들기 사이트로 이동됩니다.",
+      confirmText: "이동",
+      cancelText: "취소",
+      confirmButtonVariant: "default",
+      icon: <Music className="h-8 w-8 stroke-purple-600 fill-purple-100" />
+    });
+
+    if (confirmed) {
+      window.open('https://v0-drum-machine-with-claude.vercel.app/', '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -150,6 +166,13 @@ export const HomeFooter: React.FC = () => {
                     className="text-gray-600 hover:text-gray-900 cursor-pointer"
                   >
                     심리테스트
+                  </FooterLink>
+                  <FooterLink
+                    href="#"
+                    onClick={handleBeatMaker}
+                    className="text-gray-600 hover:text-gray-900 cursor-pointer"
+                  >
+                    비트 만들기
                   </FooterLink>
                 </FooterLinkGroup>
               </div>
