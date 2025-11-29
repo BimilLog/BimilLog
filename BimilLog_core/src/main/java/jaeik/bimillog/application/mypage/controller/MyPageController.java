@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/api/mypage")
 public class MyPageController {
-
     private final CommentQueryService commentQueryService;
     private final PostQueryService postQueryService;
 
