@@ -64,7 +64,7 @@ public class CommentQueryRepository {
                 .where(applyBlacklistFilter(comment.post.id.eq(postId), memberId))
                 .groupBy(comment.id, member.memberName, comment.createdAt,
                         parentClosure.ancestor.id, userCommentLike.id)
-                .orderBy(comment.createdAt.asc())
+                .orderBy(comment.createdAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -138,10 +138,6 @@ public class CommentQueryRepository {
         }
         return query;
     }
-
-
-
-
 
     /**
      * <h3>사용자 작성 댓글 목록 조회</h3>

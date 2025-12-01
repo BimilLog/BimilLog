@@ -58,7 +58,7 @@ public class CommentQueryController {
             @PathVariable Long postId,
             @RequestParam(defaultValue = "0") int page) {
         Pageable pageable = Pageable.ofSize(20).withPage(page);
-        Page<CommentInfo> commentInfoPage = CommentQueryService.getComments(postId, pageable, userDetails);
+        Page<CommentInfo> commentInfoPage = CommentQueryService.findComments(postId, pageable, userDetails);
         return ResponseEntity.ok(commentInfoPage);
     }
 
