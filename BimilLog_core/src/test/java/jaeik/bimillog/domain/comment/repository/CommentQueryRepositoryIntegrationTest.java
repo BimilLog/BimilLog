@@ -276,7 +276,7 @@ class CommentQueryRepositoryIntegrationTest {
 
     @Test
     @DisplayName("정상 케이스 - 과거순 댓글 목록 조회")
-    void shouldFindCommentsWithOldestOrder_WhenValidPostIdProvided() {
+    void shouldFindComments_WhenValidPostIdProvided() {
         // Given: 게시글의 여러 댓글들
         Comment comment1 = CommentTestDataBuilder.createComment(testPost, testMember, "첫번째 댓글");
         Comment comment2 = CommentTestDataBuilder.createComment(testPost, testMember, "두번째 댓글");
@@ -303,7 +303,7 @@ class CommentQueryRepositoryIntegrationTest {
 
         // When: 과거순 댓글 조회 (otherMember 관점에서)
         Page<CommentInfo> oldestComments = commentQueryRepository
-                .findCommentsWithOldestOrder(testPost.getId(), pageable, otherMember.getId());
+                .findComments(testPost.getId(), pageable, otherMember.getId());
 
         // Then: 과거순으로 댓글들이 조회되고 사용자 추천 여부가 올바르게 설정되는지 검증
         assertThat(oldestComments).isNotNull();

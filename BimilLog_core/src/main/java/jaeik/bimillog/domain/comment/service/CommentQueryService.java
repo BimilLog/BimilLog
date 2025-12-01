@@ -1,9 +1,12 @@
 package jaeik.bimillog.domain.comment.service;
 
+import com.querydsl.core.Tuple;
 import jaeik.bimillog.domain.comment.controller.CommentQueryController;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentInfo;
 import jaeik.bimillog.domain.comment.entity.MemberActivityComment;
+import jaeik.bimillog.domain.comment.repository.CommentLikeQueryRepository;
+import jaeik.bimillog.domain.comment.repository.CommentLikeRepository;
 import jaeik.bimillog.domain.comment.repository.CommentQueryRepository;
 import jaeik.bimillog.domain.comment.repository.CommentRepository;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
@@ -36,23 +39,49 @@ public class CommentQueryService {
 
     private final CommentQueryRepository commentQueryRepository;
     private final CommentRepository commentRepository;
+    private final CommentLikeRepository commentLikeRepository;
+    private final CommentLikeQueryRepository commentLikeQueryRepository;
 
     /**
-     * <h3>댓글 조회</h3>
-     * <p>주어진 게시글의 추천 3개이상 상위 3개는 추천 댓글로 합니다.</p>
-     * <p>일반 댓글은 사용자 요청에 따라 정렬합니다.</p>
-     * <p>{@link CommentQueryController}에서 댓글 목록 조회 API 처리 시 호출됩니다.</p>
+     * <h3>인기 댓글 조회</h3>
+     * <p>주어진 게시글의 인기 댓글 목록을 조회합니다.</p>
+     * <p>추천 수가 높은 댓글들을 우선순위로 정렬하여 반환합니다.</p>
+     * <p>{@link CommentQueryController}에서 인기 댓글 조회 API 처리 시 호출됩니다.</p>
+     *
+     * @param postId      게시글 ID
+     * @param userDetails 사용자 인증 정보
+     * @return List<CommentInfo> 인기 댓글 정보 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public List<CommentInfo> getPopularComments(Long postId, CustomUserDetails userDetails) {
+        Long memberId = userDetails != null ? userDetails.getMemberId() : null;
+        return commentQueryRepository.findPopularComments(postId, memberId);
+    }
+
+    /**
+     * <h3>최신순 댓글 조회</h3>
      *
      * @param postId      게시글 ID
      * @param pageable    페이지 정보
      * @param userDetails 사용자 인증 정보
-     * @return Page<CommentInfo> 과거순 댓글 페이지
+     * @return Page<CommentInfo> 최신순 댓글 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    public Page<CommentInfo> getPostComments(Long postId, Pageable pageable, CustomUserDetails userDetails) {
+    public Page<CommentInfo> getComments(Long postId, Pageable pageable, CustomUserDetails userDetails) {
         Long memberId = userDetails != null ? userDetails.getMemberId() : null;
-        return commentQueryRepository.getCommentsByPost(postId, pageable, memberId);
+        Page<CommentInfo> comments = commentQueryRepository.findComments(postId, pageable, memberId);
+
+        List<Long> commentIds = comments.stream().map(CommentInfo::getId).toList();
+        List<Long> likeCommentIds = commentLikeRepository.findComment_IdByMember_IdAndComment_IdIn(memberId, commentIds);
+        Map<Long, Integer> likeCountMap = commentLikeQueryRepository.findCommentLikeCountsMap(commentIds);
+
+        comments.forEach(commentInfo -> {
+            commentInfo.setUserLike(likeCommentIds.contains(commentInfo.getId()));
+            commentInfo.setLikeCount(likeCountMap.getOrDefault(commentInfo.getId(), 0));
+        });
+        return comments;
     }
 
     /**

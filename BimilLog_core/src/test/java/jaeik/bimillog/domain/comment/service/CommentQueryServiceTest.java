@@ -79,14 +79,14 @@ class CommentQueryServiceTest {
         CustomUserDetails userDetails = mock(CustomUserDetails.class);
         given(userDetails.getMemberId()).willReturn(memberId);
         Page<CommentInfo> expected = new PageImpl<>(List.of());
-        given(commentQueryRepository.findCommentsWithOldestOrder(postId, pageable, memberId)).willReturn(expected);
+        given(commentQueryRepository.findComments(postId, pageable, memberId)).willReturn(expected);
 
         // When
         Page<CommentInfo> result = commentQueryService.getPostComments(postId, pageable, userDetails);
 
         // Then
         assertThat(result).isEqualTo(expected);
-        verify(commentQueryRepository).findCommentsWithOldestOrder(postId, pageable, memberId);
+        verify(commentQueryRepository).findComments(postId, pageable, memberId);
     }
 
     @Test
@@ -96,13 +96,13 @@ class CommentQueryServiceTest {
         Long postId = 4L;
         PageRequest pageable = PageRequest.of(0, 5);
         Page<CommentInfo> expected = Page.empty();
-        given(commentQueryRepository.findCommentsWithOldestOrder(postId, pageable, null)).willReturn(expected);
+        given(commentQueryRepository.findComments(postId, pageable, null)).willReturn(expected);
 
         // When
         Page<CommentInfo> result = commentQueryService.getPostComments(postId, pageable, null);
 
         // Then
         assertThat(result).isEqualTo(expected);
-        verify(commentQueryRepository).findCommentsWithOldestOrder(postId, pageable, null);
+        verify(commentQueryRepository).findComments(postId, pageable, null);
     }
 }

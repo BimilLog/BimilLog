@@ -1,15 +1,12 @@
 package jaeik.bimillog.domain.comment.repository;
 
 import com.querydsl.core.Tuple;
-import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.comment.entity.*;
-import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.comment.service.CommentQueryService;
 import jaeik.bimillog.domain.member.entity.QMember;
 import jaeik.bimillog.domain.member.entity.QMemberBlacklist;
@@ -19,7 +16,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -46,28 +42,51 @@ public class CommentQueryRepository {
     private static final QMemberBlacklist memberBlacklist = QMemberBlacklist.memberBlacklist;
 
     /**
-     * 글의 댓글 조회
+     * <h3>댓글 조회</h3>
+     * <p>주어진 게시글의 댓글을 최신순 페이지네이션하여 조회합니다.</p>
+     *
+     * @param postId   게시글 ID
+     * @param pageable 페이지 정보
+     * @param memberId 사용자 ID (추천 여부 확인용, null 가능)
+     * @return Page<CommentInfo> 최신순 댓글 페이지
+     * @author Jaeik
+     * @since 2.0.0
      */
-    public Page<CommentInfo> getCommentsByPost(Long postId, Pageable pageable, Long memberId) {
-        // 1. 인기 댓글 조회
-        List<CommentInfo> popularComments = findPopularComments(postId, memberId);
+    public Page<CommentInfo> findComments(Long postId, Pageable pageable, Long memberId) {
+        QCommentClosure parentClosure = new QCommentClosure("parentClosure");
 
-        // 2. 제외할 ID 목록 추출
-        List<Long> excludedIds = popularComments.stream()
-                .map(CommentInfo::getId)
-                .collect(Collectors.toList());
+        // 쿼리 빌딩
+        JPAQuery<CommentInfo> query = jpaQueryFactory
+                .select(Projections.constructor(CommentInfo.class,
+                        comment.id,
+                        comment.post.id,
+                        comment.member.id,
+                        member.memberName,
+                        comment.content,
+                        comment.deleted,
+                        comment.createdAt,
+                        parentClosure.ancestor.id.coalesce(comment.id)))
+                .distinct()
+                .from(comment)
+                .leftJoin(comment.member, member)
+                .leftJoin(parentClosure).on(
+                        parentClosure.descendant.id.eq(comment.id)
+                                .and(parentClosure.depth.eq(1))
+                );
 
-        // 3. 나머지 댓글 페이징 조회 (Top 3 제외)
-        Page<CommentInfo> pagedComments = findCommentsWithOldestOrder(postId, pageable, memberId, excludedIds);
+        // 쿼리 실행
+        List<CommentInfo> content = query
+                .where(applyBlacklistFilter(comment.post.id.eq(postId), memberId))
+                .groupBy(comment.id, member.memberName, comment.createdAt, parentClosure.ancestor.id)
+                .orderBy(comment.createdAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
 
-        // 4. 결과 통합 (매 페이지 상단에 인기 댓글 고정)
-        List<CommentInfo> content = new ArrayList<>();
-        // 인기 댓글을 페이지 번호와 상관없이 상단에 고정
-        content.addAll(popularComments);
-        content.addAll(pagedComments.getContent());
-
-        return new PageImpl<>(content, pageable, pagedComments.getTotalElements());
+        Long total = countRootCommentsByPostId(postId, memberId);
+        return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
+
 
     /**
      * <h3>인기 댓글 조회</h3>
@@ -79,13 +98,39 @@ public class CommentQueryRepository {
      * @author Jaeik
      * @since 2.0.0
      */
-    private List<CommentInfo> findPopularComments(Long postId, Long memberId) {
-        // N+1 문제 해결을 위한 별도 Q타입 생성
+    public List<CommentInfo> findPopularComments(Long postId, Long memberId) {
         QCommentClosure parentClosure = new QCommentClosure("parentClosure");
         QCommentLike userCommentLike = new QCommentLike("userCommentLike");
 
+        // 쿼리 빌딩
+        JPAQuery<CommentInfo> query = jpaQueryFactory
+                .select(Projections.constructor(CommentInfo.class,
+                        comment.id,
+                        comment.post.id,
+                        comment.member.id,
+                        member.memberName,
+                        comment.content,
+                        comment.deleted,
+                        comment.createdAt,
+                        parentClosure.ancestor.id.coalesce(comment.id),
+                        commentLike.countDistinct().coalesce(0L).intValue(),
+                        userCommentLike.id.isNotNull()
+                ))
+                .from(comment)
+                .leftJoin(comment.member, member)
+                .leftJoin(commentLike).on(comment.id.eq(commentLike.comment.id))
+                .leftJoin(parentClosure).on(
+                        parentClosure.descendant.id.eq(comment.id)
+                                .and(parentClosure.depth.eq(1))
+                );
 
-        JPAQuery<CommentInfo> query = getCommentInfoJPAQuery(memberId, parentClosure, userCommentLike);
+        // memberId가 있을 때만 userLike 조인
+        if (memberId != null) {
+            query.leftJoin(userCommentLike).on(
+                    userCommentLike.comment.id.eq(comment.id)
+                            .and(userCommentLike.member.id.eq(memberId))
+            );
+        }
 
         // 쿼리 실행
         List<CommentInfo> popularComments = query
@@ -102,72 +147,6 @@ public class CommentQueryRepository {
     }
 
 
-    /**
-     * <h3>일반 댓글 조회</h3>
-     * <p>주어진 게시글의 댓글을 최신 순 조회합니다.</p>
-     *
-     * @param postId   게시글 ID
-     * @param pageable 페이지 정보
-     * @param memberId 사용자 ID (추천 여부 확인용, null 가능)
-     * @return Page<CommentInfo> 최신 순 댓글 페이지
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private Page<CommentInfo> findCommentsWithOldestOrder(Long postId, Pageable pageable, Long memberId, List<Long> excludedCommentIds) {
-        QCommentClosure parentClosure = new QCommentClosure("parentClosure");
-        QCommentLike userCommentLike = new QCommentLike("userCommentLike");
-
-        JPAQuery<CommentInfo> query = getCommentInfoJPAQuery(memberId, parentClosure, userCommentLike);
-
-        // 제외 조건 (NOT IN)
-        BooleanExpression excludeCondition = comment.id.notIn(excludedCommentIds);
-
-        // 쿼리 실행
-        List<CommentInfo> content = query
-                .where(applyBlacklistFilter(comment.post.id.eq(postId), memberId).and(excludeCondition))
-                .groupBy(comment.id, member.memberName, comment.createdAt, parentClosure.ancestor.id, userCommentLike.id)
-                .orderBy(comment.createdAt.desc())
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
-
-        Long total = countRootCommentsByPostId(postId, memberId, excludedCommentIds);
-
-        return new PageImpl<>(content, pageable, total != null ? total : 0L);
-    }
-
-    // 댓글 공통 쿼리 빌딩 메소드
-    private JPAQuery<CommentInfo> getCommentInfoJPAQuery(Long memberId, QCommentClosure parentClosure, QCommentLike userCommentLike) {
-        JPAQuery<CommentInfo> query = jpaQueryFactory
-                .select(Projections.constructor(CommentInfo.class,
-                        comment.id,
-                        comment.post.id,
-                        comment.member.id,
-                        member.memberName,
-                        comment.content,
-                        comment.deleted,
-                        comment.createdAt,
-                        parentClosure.ancestor.id.coalesce(comment.id),
-                        commentLike.countDistinct().coalesce(0L).intValue(),
-                        userCommentLike.id.isNotNull()
-                ))
-                .distinct()
-                .from(comment)
-                .leftJoin(comment.member, member)
-                .leftJoin(commentLike).on(comment.id.eq(commentLike.comment.id))
-                .leftJoin(parentClosure).on(
-                        parentClosure.descendant.id.eq(comment.id)
-                                .and(parentClosure.depth.eq(1))
-                );
-
-        if (memberId != null) {
-            query.leftJoin(userCommentLike).on(
-                    userCommentLike.comment.id.eq(comment.id)
-                            .and(userCommentLike.member.id.eq(memberId))
-            );
-        }
-        return query;
-    }
 
     /**
      * <h3>사용자 작성 댓글 목록 조회</h3>
@@ -217,7 +196,6 @@ public class CommentQueryRepository {
 
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
-
 
     /**
      * <h3>사용자 추천한 댓글 목록 조회</h3>
@@ -275,7 +253,6 @@ public class CommentQueryRepository {
 
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
-
     /**
      * <h3>게시글 ID 목록에 대한 댓글 수 조회</h3>
      * <p>여러 게시글의 댓글 수를 배치로 조회합니다.</p>
@@ -300,20 +277,25 @@ public class CommentQueryRepository {
                 ));
     }
 
-    // 루트 댓글 개수 조회
-    private Long countRootCommentsByPostId(Long postId, Long memberId, List<Long> excludedCommentIds) {
+    /**
+     * <h3>루트 댓글 수 조회</h3>
+     * <p>주어진 게시글 ID에 해당하는 최상위(루트) 댓글의 수를 조회합니다.</p>
+     * <p>depth=0인 댓글(루트 댓글)만 카운트합니다.</p>
+     * <p>findCommentsWithOldestOrder 메서드에서 호출되어 페이지네이션 total 값 계산을 담당합니다.</p>
+     *
+     * @param postId 게시글 ID
+     * @return Long 루트 댓글의 수
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    private Long countRootCommentsByPostId(Long postId, Long memberId) {
         BooleanExpression blacklistFilter = applyBlacklistFilter(comment.post.id.eq(postId), memberId);
-        BooleanExpression excludeCondition = comment.id.notIn(excludedCommentIds); // 제외 조건
-
         return jpaQueryFactory
                 .select(comment.countDistinct())
                 .from(comment)
                 .leftJoin(comment.member, member)
                 .join(closure).on(comment.id.eq(closure.descendant.id))
-                .where(blacklistFilter
-                        .and(closure.depth.eq(0)) // 루트 댓글만
-                        .and(excludeCondition)   // 인기 댓글 제외
-                )
+                .where(blacklistFilter.and(closure.depth.eq(0)))
                 .fetchOne();
     }
 

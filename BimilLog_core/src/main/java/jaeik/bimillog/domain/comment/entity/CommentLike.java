@@ -21,13 +21,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(
-        indexes = {
-                @Index(name = "idx_comment_like_member_comment", columnList = "comment_id, member_id")
-        },
-        uniqueConstraints = {
-                @UniqueConstraint(name = "uk_comment_like_member_comment", columnNames = {"comment_id", "member_id"})
-        }
+@Table(indexes = {@Index(name = "idx_comment_like_member_comment", columnList = "comment_id, member_id")},
+        uniqueConstraints = {@UniqueConstraint(name = "uk_comment_like_member_comment", columnNames = {"comment_id", "member_id"})}
 )
 public class CommentLike extends BaseEntity {
 
@@ -35,7 +30,6 @@ public class CommentLike extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "comment_like_id")
     private Long id;
-
 
     // DB 레벨 CASCADE : Member 삭제 시 CommentLike 자동 삭제
     // JPA cascade 없음: ManyToOne 관계로 Member가 CommentLike 생명주기 관리하지 않음
