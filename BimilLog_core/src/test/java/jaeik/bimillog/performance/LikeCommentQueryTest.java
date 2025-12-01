@@ -1,5 +1,6 @@
 package jaeik.bimillog.performance;
 
+import jaeik.bimillog.domain.comment.entity.MemberActivityComment;
 import jaeik.bimillog.domain.comment.entity.SimpleCommentInfo;
 import jaeik.bimillog.domain.comment.service.CommentQueryService;
 import org.assertj.core.api.Assertions;
@@ -53,7 +54,7 @@ class LikeCommentQueryTest {
     void likedCommentsQueryForTargetMember() {
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
-        Page<SimpleCommentInfo> result = CommentQueryService.getMemberLikedComments(TARGET_MEMBER_ID, PAGE_REQUEST);
+        Page<MemberActivityComment.SimpleCommentInfo> result = CommentQueryService.getMemberLikedComments(TARGET_MEMBER_ID, PAGE_REQUEST);
         stopWatch.stop();
 
         long elapsedMs = stopWatch.getTotalTimeMillis();
@@ -66,7 +67,7 @@ class LikeCommentQueryTest {
     void likedCommentsQueryForTargetMemberMiddlePage() {
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
-        Page<SimpleCommentInfo> result = CommentQueryService.getMemberLikedComments(TARGET_MEMBER_ID, MIDDLE_PAGE_REQUEST);
+        Page<MemberActivityComment.SimpleCommentInfo> result = CommentQueryService.getMemberLikedComments(TARGET_MEMBER_ID, MIDDLE_PAGE_REQUEST);
         stopWatch.stop();
 
         long elapsedMs = stopWatch.getTotalTimeMillis();
@@ -83,7 +84,7 @@ class LikeCommentQueryTest {
     void likedCommentsQueryForTargetMemberLastPage() {
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
-        Page<SimpleCommentInfo> result = CommentQueryService.getMemberLikedComments(TARGET_MEMBER_ID, LAST_PAGE_REQUEST);
+        Page<MemberActivityComment.SimpleCommentInfo> result = CommentQueryService.getMemberLikedComments(TARGET_MEMBER_ID, LAST_PAGE_REQUEST);
         stopWatch.stop();
 
         long elapsedMs = stopWatch.getTotalTimeMillis();
@@ -100,7 +101,7 @@ class LikeCommentQueryTest {
     void likedCommentsQueryForGeneralMember() {
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
-        Page<SimpleCommentInfo> result = CommentQueryService.getMemberLikedComments(GENERAL_MEMBER_ID, PAGE_REQUEST);
+        Page<MemberActivityComment.SimpleCommentInfo> result = CommentQueryService.getMemberLikedComments(GENERAL_MEMBER_ID, PAGE_REQUEST);
         stopWatch.stop();
 
         long elapsedMs = stopWatch.getTotalTimeMillis();
