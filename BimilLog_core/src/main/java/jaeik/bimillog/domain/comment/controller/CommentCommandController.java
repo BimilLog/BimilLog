@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @Log(level = Log.LogLevel.INFO,
         logExecutionTime = true,
-        message = "댓글 작성 요청")
+        message = "댓글 명령 요청")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/comment")

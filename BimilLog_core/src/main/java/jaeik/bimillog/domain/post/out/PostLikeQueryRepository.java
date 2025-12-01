@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -23,7 +24,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PostLikeQueryRepository {
     private final JPAQueryFactory jpaQueryFactory;
-    
     private static final QPostLike postLike = QPostLike.postLike;
 
     /**
@@ -52,7 +52,7 @@ public class PostLikeQueryRepository {
         Map<Long, Integer> likeCounts = results.stream()
                 .collect(Collectors.toMap(
                         tuple -> tuple.get(postLike.post.id),
-                        tuple -> tuple.get(postLike.count()).intValue()
+                        tuple -> Objects.requireNonNull(tuple.get(postLike.count())).intValue()
                 ));
         
         // 조회 결과가 없는 게시글은 0으로 설정

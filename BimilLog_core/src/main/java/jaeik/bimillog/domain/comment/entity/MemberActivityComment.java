@@ -46,8 +46,7 @@ public class MemberActivityComment extends CommentInfo {
         private Instant createdAt;
 
         /**
-         * <h3>QueryDSL Projection용 생성자</h3>
-         * <p>QueryDSL Projections.constructor를 위한 생성자</p>
+         * <h3>생성자</h3>
          *
          * @param id 댓글 ID
          * @param postId 게시글 ID
