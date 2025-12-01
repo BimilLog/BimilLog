@@ -47,7 +47,6 @@ public class CommentCommandService {
     private final GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
     private final CommentRepository commentRepository;
     private final CommentDeleteRepository commentDeleteRepository;
-    private final CommentQueryRepository commentQueryRepository;
     private final CommentLikeRepository commentLikeRepository;
     private final CommentClosureRepository commentClosureRepository;
 
@@ -141,7 +140,7 @@ public class CommentCommandService {
         Comment comment = validateComment(commentId, memberId, password);
         Long postId = comment.getPost().getId();
 
-        if (commentQueryRepository.hasDescendants(commentId)) {
+        if (commentClosureRepository.existsByAncestor_IdAndDepthGreaterThan(commentId)) {
             comment.softDelete(); // 더티 체킹으로 자동 업데이트
         } else {
             commentDeleteRepository.deleteComment(commentId); // 어댑터 직접 호출로 하드 삭제
@@ -202,10 +201,10 @@ public class CommentCommandService {
      */
     @Transactional
     public void processUserCommentsOnWithdrawal(Long memberId) {
-        List<Comment> userComments = commentQueryRepository.findAllByMemberId(memberId);
+        List<Comment> userComments = commentRepository.findByMember_Id(memberId);
 
         for (Comment comment : userComments) {
-            if (commentQueryRepository.hasDescendants(comment.getId())) {
+            if (commentClosureRepository.existsByAncestor_IdAndDepthGreaterThan(comment.getId())) {
                 comment.anonymize(); // 더티 체킹으로 자동 업데이트
             } else {
                 commentDeleteRepository.deleteComment(comment.getId()); // 어댑터 직접 호출로 하드 삭제
@@ -225,7 +224,7 @@ public class CommentCommandService {
      */
     @Transactional
     public void deleteCommentsByPost(Long postId) {
-        List<Comment> userComments = commentQueryRepository.findAllByPostId(postId);
+        List<Comment> userComments = commentRepository.findByPost_Id(postId);
 
         for (Comment comment : userComments) {
             commentDeleteRepository.deleteComment(comment.getId()); // 어댑터 직접 호출로 하드 삭제

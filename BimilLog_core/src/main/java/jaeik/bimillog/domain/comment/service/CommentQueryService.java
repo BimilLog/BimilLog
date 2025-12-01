@@ -38,26 +38,9 @@ public class CommentQueryService {
     private final CommentRepository commentRepository;
 
     /**
-     * <h3>인기 댓글 조회</h3>
-     * <p>주어진 게시글의 인기 댓글 목록을 조회합니다.</p>
-     * <p>추천 수가 높은 댓글들을 우선순위로 정렬하여 반환합니다.</p>
-     * <p>{@link CommentQueryController}에서 인기 댓글 조회 API 처리 시 호출됩니다.</p>
-     *
-     * @param postId      게시글 ID
-     * @param userDetails 사용자 인증 정보
-     * @return List<CommentInfo> 인기 댓글 정보 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public List<CommentInfo> getPopularComments(Long postId, CustomUserDetails userDetails) {
-        Long memberId = userDetails != null ? userDetails.getMemberId() : null;
-        return commentQueryRepository.findPopularComments(postId, memberId);
-    }
-
-    /**
-     * <h3>과거순 댓글 조회</h3>
-     * <p>주어진 게시글의 댓글을 과거순으로 페이지네이션하여 조회합니다.</p>
-     * <p>생성 시간이 오래된 댓글부터 최신 댓글까지 시간 순서대로 정렬합니다.</p>
+     * <h3>댓글 조회</h3>
+     * <p>주어진 게시글의 추천 3개이상 상위 3개는 추천 댓글로 합니다.</p>
+     * <p>일반 댓글은 사용자 요청에 따라 정렬합니다.</p>
      * <p>{@link CommentQueryController}에서 댓글 목록 조회 API 처리 시 호출됩니다.</p>
      *
      * @param postId      게시글 ID
@@ -67,9 +50,9 @@ public class CommentQueryService {
      * @author Jaeik
      * @since 2.0.0
      */
-    public Page<CommentInfo> getCommentsOldestOrder(Long postId, Pageable pageable, CustomUserDetails userDetails) {
+    public Page<CommentInfo> getPostComments(Long postId, Pageable pageable, CustomUserDetails userDetails) {
         Long memberId = userDetails != null ? userDetails.getMemberId() : null;
-        return commentQueryRepository.findCommentsWithOldestOrder(postId, pageable, memberId);
+        return commentQueryRepository.getCommentsByPost(postId, pageable, memberId);
     }
 
     /**

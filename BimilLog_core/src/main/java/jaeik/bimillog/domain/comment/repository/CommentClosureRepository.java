@@ -1,7 +1,11 @@
 package jaeik.bimillog.domain.comment.repository;
 
+import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentClosure;
+import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -29,6 +33,21 @@ public interface CommentClosureRepository extends JpaRepository<CommentClosure, 
      * @since 2.0.0
      */
     Optional<List<CommentClosure>> findByDescendantId(Long descendantId);
+
+    /**
+     * <h3>자손 댓글 존재 여부 확인</h3>
+     * <p>특정 댓글이 자손 댓글을 가지고 있는지 확인합니다.</p>
+     * <p>클로저 테이블에서 depth > 0이고 ancestor가 해당 댓글인 경우가 있는지 확인합니다.</p>
+     * <p>{@link CommentCommandService}에서 댓글 삭제 시 하드/소프트 삭제 결정을 위해 호출됩니다.</p>
+     *
+     * @param commentId 확인할 댓글 ID
+     * @return boolean 자손 댓글이 있으면 true, 없으면 false
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    boolean existsByAncestor_IdAndDepthGreaterThan(Long commentId);
+
+
 }
 
 
