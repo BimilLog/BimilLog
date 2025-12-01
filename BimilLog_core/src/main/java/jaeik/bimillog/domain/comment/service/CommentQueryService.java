@@ -1,12 +1,9 @@
 package jaeik.bimillog.domain.comment.service;
 
-import com.querydsl.core.Tuple;
 import jaeik.bimillog.domain.comment.controller.CommentQueryController;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentInfo;
 import jaeik.bimillog.domain.comment.entity.MemberActivityComment;
-import jaeik.bimillog.domain.comment.repository.CommentLikeQueryRepository;
-import jaeik.bimillog.domain.comment.repository.CommentLikeRepository;
 import jaeik.bimillog.domain.comment.repository.CommentQueryRepository;
 import jaeik.bimillog.domain.comment.repository.CommentRepository;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
@@ -36,11 +33,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Slf4j
 public class CommentQueryService {
-
     private final CommentQueryRepository commentQueryRepository;
     private final CommentRepository commentRepository;
-    private final CommentLikeRepository commentLikeRepository;
-    private final CommentLikeQueryRepository commentLikeQueryRepository;
 
     /**
      * <h3>인기 댓글 조회</h3>
@@ -69,19 +63,9 @@ public class CommentQueryService {
      * @author Jaeik
      * @since 2.0.0
      */
-    public Page<CommentInfo> getComments(Long postId, Pageable pageable, CustomUserDetails userDetails) {
+    public Page<CommentInfo> getCommentsOldestOrder(Long postId, Pageable pageable, CustomUserDetails userDetails) {
         Long memberId = userDetails != null ? userDetails.getMemberId() : null;
-        Page<CommentInfo> comments = commentQueryRepository.findComments(postId, pageable, memberId);
-
-        List<Long> commentIds = comments.stream().map(CommentInfo::getId).toList();
-        List<Long> likeCommentIds = commentLikeRepository.findComment_IdByMember_IdAndComment_IdIn(memberId, commentIds);
-        Map<Long, Integer> likeCountMap = commentLikeQueryRepository.findCommentLikeCountsMap(commentIds);
-
-        comments.forEach(commentInfo -> {
-            commentInfo.setUserLike(likeCommentIds.contains(commentInfo.getId()));
-            commentInfo.setLikeCount(likeCountMap.getOrDefault(commentInfo.getId(), 0));
-        });
-        return comments;
+        return commentQueryRepository.findComments(postId, pageable, memberId);
     }
 
     /**

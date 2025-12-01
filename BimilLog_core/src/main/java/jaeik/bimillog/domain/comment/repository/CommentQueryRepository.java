@@ -54,31 +54,17 @@ public class CommentQueryRepository {
      */
     public Page<CommentInfo> findComments(Long postId, Pageable pageable, Long memberId) {
         QCommentClosure parentClosure = new QCommentClosure("parentClosure");
+        QCommentLike userCommentLike = new QCommentLike("userCommentLike");
 
         // 쿼리 빌딩
-        JPAQuery<CommentInfo> query = jpaQueryFactory
-                .select(Projections.constructor(CommentInfo.class,
-                        comment.id,
-                        comment.post.id,
-                        comment.member.id,
-                        member.memberName,
-                        comment.content,
-                        comment.deleted,
-                        comment.createdAt,
-                        parentClosure.ancestor.id.coalesce(comment.id)))
-                .distinct()
-                .from(comment)
-                .leftJoin(comment.member, member)
-                .leftJoin(parentClosure).on(
-                        parentClosure.descendant.id.eq(comment.id)
-                                .and(parentClosure.depth.eq(1))
-                );
+        JPAQuery<CommentInfo> query = getCommentInfoJPAQuery(memberId, parentClosure, userCommentLike);
 
         // 쿼리 실행
         List<CommentInfo> content = query
                 .where(applyBlacklistFilter(comment.post.id.eq(postId), memberId))
-                .groupBy(comment.id, member.memberName, comment.createdAt, parentClosure.ancestor.id)
-                .orderBy(comment.createdAt.desc())
+                .groupBy(comment.id, member.memberName, comment.createdAt,
+                        parentClosure.ancestor.id, userCommentLike.id)
+                .orderBy(comment.createdAt.asc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -86,7 +72,6 @@ public class CommentQueryRepository {
         Long total = countRootCommentsByPostId(postId, memberId);
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
-
 
     /**
      * <h3>인기 댓글 조회</h3>
@@ -99,10 +84,29 @@ public class CommentQueryRepository {
      * @since 2.0.0
      */
     public List<CommentInfo> findPopularComments(Long postId, Long memberId) {
+        // N+1 문제 해결을 위한 별도 Q타입 생성
         QCommentClosure parentClosure = new QCommentClosure("parentClosure");
         QCommentLike userCommentLike = new QCommentLike("userCommentLike");
 
         // 쿼리 빌딩
+        JPAQuery<CommentInfo> query = getCommentInfoJPAQuery(memberId, parentClosure, userCommentLike);
+
+        // 쿼리 실행
+        List<CommentInfo> popularComments = query
+                .where(applyBlacklistFilter(comment.post.id.eq(postId), memberId))
+                .groupBy(comment.id, member.memberName, comment.createdAt,
+                        parentClosure.ancestor.id, userCommentLike.id)
+                .having(commentLike.countDistinct().goe(3)) // 추천 3개 이상
+                .orderBy(commentLike.countDistinct().desc())
+                .limit(3)
+                .fetch();
+
+        popularComments.forEach(info -> info.setPopular(true));
+        return popularComments;
+    }
+
+    // 공통 댓글 빌딩
+    private JPAQuery<CommentInfo> getCommentInfoJPAQuery(Long memberId, QCommentClosure parentClosure, QCommentLike userCommentLike) {
         JPAQuery<CommentInfo> query = jpaQueryFactory
                 .select(Projections.constructor(CommentInfo.class,
                         comment.id,
@@ -116,6 +120,7 @@ public class CommentQueryRepository {
                         commentLike.countDistinct().coalesce(0L).intValue(),
                         userCommentLike.id.isNotNull()
                 ))
+                .distinct()
                 .from(comment)
                 .leftJoin(comment.member, member)
                 .leftJoin(commentLike).on(comment.id.eq(commentLike.comment.id))
@@ -131,20 +136,10 @@ public class CommentQueryRepository {
                             .and(userCommentLike.member.id.eq(memberId))
             );
         }
-
-        // 쿼리 실행
-        List<CommentInfo> popularComments = query
-                .where(applyBlacklistFilter(comment.post.id.eq(postId), memberId))
-                .groupBy(comment.id, member.memberName, comment.createdAt,
-                        parentClosure.ancestor.id, userCommentLike.id)
-                .having(commentLike.countDistinct().goe(3)) // 추천 3개 이상
-                .orderBy(commentLike.countDistinct().desc())
-                .limit(3)
-                .fetch();
-
-        popularComments.forEach(info -> info.setPopular(true));
-        return popularComments;
+        return query;
     }
+
+
 
 
 
@@ -253,6 +248,9 @@ public class CommentQueryRepository {
 
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
+
+
+
     /**
      * <h3>게시글 ID 목록에 대한 댓글 수 조회</h3>
      * <p>여러 게시글의 댓글 수를 배치로 조회합니다.</p>
