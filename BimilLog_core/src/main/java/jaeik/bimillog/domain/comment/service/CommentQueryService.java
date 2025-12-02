@@ -33,7 +33,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Slf4j
 public class CommentQueryService {
-
     private final CommentQueryRepository commentQueryRepository;
     private final CommentRepository commentRepository;
 
@@ -55,10 +54,7 @@ public class CommentQueryService {
     }
 
     /**
-     * <h3>과거순 댓글 조회</h3>
-     * <p>주어진 게시글의 댓글을 과거순으로 페이지네이션하여 조회합니다.</p>
-     * <p>생성 시간이 오래된 댓글부터 최신 댓글까지 시간 순서대로 정렬합니다.</p>
-     * <p>{@link CommentQueryController}에서 댓글 목록 조회 API 처리 시 호출됩니다.</p>
+     * <h3>댓글 조회</h3>
      *
      * @param postId      게시글 ID
      * @param pageable    페이지 정보
@@ -67,9 +63,9 @@ public class CommentQueryService {
      * @author Jaeik
      * @since 2.0.0
      */
-    public Page<CommentInfo> getCommentsOldestOrder(Long postId, Pageable pageable, CustomUserDetails userDetails) {
+    public Page<CommentInfo> findComments(Long postId, Pageable pageable, CustomUserDetails userDetails) {
         Long memberId = userDetails != null ? userDetails.getMemberId() : null;
-        return commentQueryRepository.findCommentsWithOldestOrder(postId, pageable, memberId);
+        return commentQueryRepository.findComments(postId, pageable, memberId);
     }
 
     /**

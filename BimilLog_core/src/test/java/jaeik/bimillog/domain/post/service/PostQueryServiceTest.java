@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.post.service;
 
+import jaeik.bimillog.domain.post.entity.MemberActivityPost;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchType;
@@ -439,14 +440,17 @@ class PostQueryServiceTest extends BaseUnitTest {
         PostSimpleDetail userPost = PostTestDataBuilder.createPostSearchResult(1L, "사용자 게시글");
         Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(userPost), pageable, 1);
 
+        Page<PostSimpleDetail> emptyLikedPage = Page.empty();
         given(postQueryRepository.findPostsByMemberId(memberId, pageable, memberId)).willReturn(expectedPage);
+        given(postQueryRepository.findLikedPostsByMemberId(memberId, pageable)).willReturn(emptyLikedPage);
+        given(postToCommentAdapter.findCommentCountsByPostIds(List.of(1L))).willReturn(Map.of(1L, 0));
 
         // When
-        Page<PostSimpleDetail> result = postQueryService.getMemberPosts(memberId, pageable);
+        MemberActivityPost result = postQueryService.getMemberActivityPosts(memberId, pageable);
 
         // Then
-        assertThat(result).isEqualTo(expectedPage);
-        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getWritePosts()).isEqualTo(expectedPage);
+        assertThat(result.getWritePosts().getContent()).hasSize(1);
 
         verify(postQueryRepository).findPostsByMemberId(memberId, pageable, memberId);
     }
@@ -460,14 +464,17 @@ class PostQueryServiceTest extends BaseUnitTest {
         PostSimpleDetail likedPost = PostTestDataBuilder.createPostSearchResult(1L, "추천한 게시글");
         Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(likedPost), pageable, 1);
 
+        Page<PostSimpleDetail> emptyWritePage = Page.empty();
+        given(postQueryRepository.findPostsByMemberId(memberId, pageable, memberId)).willReturn(emptyWritePage);
         given(postQueryRepository.findLikedPostsByMemberId(memberId, pageable)).willReturn(expectedPage);
+        given(postToCommentAdapter.findCommentCountsByPostIds(List.of(1L))).willReturn(Map.of(1L, 0));
 
         // When
-        Page<PostSimpleDetail> result = postQueryService.getMemberLikedPosts(memberId, pageable);
+        MemberActivityPost result = postQueryService.getMemberActivityPosts(memberId, pageable);
 
         // Then
-        assertThat(result).isEqualTo(expectedPage);
-        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getLikedPosts()).isEqualTo(expectedPage);
+        assertThat(result.getLikedPosts().getContent()).hasSize(1);
 
         verify(postQueryRepository).findLikedPostsByMemberId(memberId, pageable);
     }

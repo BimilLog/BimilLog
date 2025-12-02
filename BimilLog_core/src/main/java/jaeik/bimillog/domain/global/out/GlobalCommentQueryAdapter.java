@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.global.out;
 
 import jaeik.bimillog.domain.comment.entity.Comment;
+import jaeik.bimillog.domain.comment.repository.CommentClosureRepository;
 import jaeik.bimillog.domain.comment.repository.CommentQueryRepository;
 import jaeik.bimillog.domain.comment.repository.CommentRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -22,10 +23,7 @@ import java.util.List;
 @Repository
 @RequiredArgsConstructor
 public class GlobalCommentQueryAdapter {
-
     private final CommentRepository commentRepository;
-    private final CommentQueryRepository commentQueryRepository;
-
 
     /**
      * <h3>ID로 댓글 조회</h3>
@@ -45,6 +43,6 @@ public class GlobalCommentQueryAdapter {
 
     // CommentIds로 댓글 리스트 조회
     public List<Comment> findAllByIds(List<Long> commentIds) {
-        return commentQueryRepository.findAllByIds(commentIds);
+        return commentRepository.findAllByIdsWithMember(commentIds);
     }
 }

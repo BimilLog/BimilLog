@@ -112,7 +112,7 @@ export const PostHeader = React.memo<PostHeaderProps>(({
           <div className="flex items-center space-x-4 text-sm text-brand-muted">
             <div className="flex items-center space-x-1">
               <Eye className="w-4 h-4 stroke-purple-600 fill-purple-100" />
-              <span>{post.viewCount}</span>
+              <span suppressHydrationWarning>{post.viewCount}</span>
             </div>
             <div className="flex items-center space-x-1">
               <ThumbsUp className="w-4 h-4 stroke-blue-500 fill-blue-100" />

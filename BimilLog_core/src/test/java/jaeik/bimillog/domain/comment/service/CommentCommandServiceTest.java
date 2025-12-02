@@ -4,8 +4,10 @@ import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentClosure;
 import jaeik.bimillog.domain.comment.entity.CommentLike;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
+import jaeik.bimillog.domain.comment.repository.CommentClosureRepository;
 import jaeik.bimillog.domain.comment.repository.CommentDeleteRepository;
-import jaeik.bimillog.domain.comment.repository.CommentQueryRepository;
+import jaeik.bimillog.domain.comment.repository.CommentLikeRepository;
+import jaeik.bimillog.domain.comment.repository.CommentRepository;
 import jaeik.bimillog.domain.global.out.GlobalCommentQueryAdapter;
 import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
@@ -53,10 +55,10 @@ class CommentCommandServiceTest extends BaseUnitTest {
     private static final String TEST_UPDATED_CONTENT = "수정된 댓글";
     private static final Integer TEST_PASSWORD = 1234;
 
-    @Mock private CommentSaveAdapter commentSaveAdapter;
+    @Mock private CommentRepository commentRepository;
     @Mock private CommentDeleteRepository commentDeleteRepository;
-    @Mock private CommentQueryRepository commentQueryRepository;
-    @Mock private CommentLikeAdapter commentLikeAdapter;
+    @Mock private CommentClosureRepository commentClosureRepository;
+    @Mock private CommentLikeRepository commentLikeRepository;
     @Mock private GlobalMemberQueryAdapter globalMemberQueryAdapter;
     @Mock private GlobalPostQueryAdapter globalPostQueryAdapter;
     @Mock private GlobalCommentQueryAdapter globalCommentQueryAdapter;
@@ -83,20 +85,20 @@ class CommentCommandServiceTest extends BaseUnitTest {
         // Given
         given(globalCommentQueryAdapter.findById(TEST_COMMENT_ID)).willReturn(testComment);
         given(globalMemberQueryAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
-        given(commentLikeAdapter.isLikedByUser(TEST_COMMENT_ID, getTestMember().getId())).willReturn(false);
+        given(commentLikeRepository.existsByCommentIdAndMemberId(TEST_COMMENT_ID, getTestMember().getId())).willReturn(false);
 
         // When
         commentCommandService.likeComment(getTestMember().getId(), TEST_COMMENT_ID);
 
         // Then
         ArgumentCaptor<CommentLike> likeCaptor = ArgumentCaptor.forClass(CommentLike.class);
-        verify(commentLikeAdapter).save(likeCaptor.capture());
+        verify(commentLikeRepository).save(likeCaptor.capture());
 
         CommentLike capturedLike = likeCaptor.getValue();
         assertThat(capturedLike.getComment()).isEqualTo(testComment);
         assertThat(capturedLike.getMember()).isEqualTo(getTestMember());
 
-        verify(commentLikeAdapter, never()).deleteLikeByIds(anyLong(), anyLong());
+        verify(commentLikeRepository, never()).deleteByCommentIdAndMemberId(anyLong(), anyLong());
     }
 
     @Test
@@ -105,14 +107,14 @@ class CommentCommandServiceTest extends BaseUnitTest {
         // Given
         given(globalCommentQueryAdapter.findById(TEST_COMMENT_ID)).willReturn(testComment);
         given(globalMemberQueryAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
-        given(commentLikeAdapter.isLikedByUser(TEST_COMMENT_ID, getTestMember().getId())).willReturn(true);
+        given(commentLikeRepository.existsByCommentIdAndMemberId(TEST_COMMENT_ID, getTestMember().getId())).willReturn(true);
 
         // When
         commentCommandService.likeComment(getTestMember().getId(), TEST_COMMENT_ID);
 
         // Then
-        verify(commentLikeAdapter).deleteLikeByIds(TEST_COMMENT_ID, getTestMember().getId());
-        verify(commentLikeAdapter, never()).save(any());
+        verify(commentLikeRepository).deleteByCommentIdAndMemberId(TEST_COMMENT_ID, getTestMember().getId());
+        verify(commentLikeRepository, never()).save(any());
     }
 
     @Test
@@ -128,9 +130,9 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         verify(globalCommentQueryAdapter).findById(TEST_COMMENT_ID);
         verify(globalMemberQueryAdapter, never()).findById(any());
-        verify(commentLikeAdapter, never()).isLikedByUser(any(), any());
-        verify(commentLikeAdapter, never()).save(any());
-        verify(commentLikeAdapter, never()).deleteLikeByIds(anyLong(), anyLong());
+        verify(commentLikeRepository, never()).existsByCommentIdAndMemberId(anyLong(), anyLong());
+        verify(commentLikeRepository, never()).save(any());
+        verify(commentLikeRepository, never()).deleteByCommentIdAndMemberId(anyLong(), anyLong());
     }
 
     @Test
@@ -147,9 +149,9 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         verify(globalCommentQueryAdapter).findById(TEST_COMMENT_ID);
         verify(globalMemberQueryAdapter).findById(getTestMember().getId());
-        verify(commentLikeAdapter, never()).isLikedByUser(any(), any());
-        verify(commentLikeAdapter, never()).save(any());
-        verify(commentLikeAdapter, never()).deleteLikeByIds(anyLong(), anyLong());
+        verify(commentLikeRepository, never()).existsByCommentIdAndMemberId(anyLong(), anyLong());
+        verify(commentLikeRepository, never()).save(any());
+        verify(commentLikeRepository, never()).deleteByCommentIdAndMemberId(anyLong(), anyLong());
     }
 
     @Test
@@ -166,9 +168,9 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         verify(globalCommentQueryAdapter).findById(TEST_COMMENT_ID);
         verify(globalMemberQueryAdapter).findById(null);
-        verify(commentLikeAdapter, never()).isLikedByUser(any(), any());
-        verify(commentLikeAdapter, never()).save(any());
-        verify(commentLikeAdapter, never()).deleteLikeByIds(anyLong(), anyLong());
+        verify(commentLikeRepository, never()).existsByCommentIdAndMemberId(anyLong(), anyLong());
+        verify(commentLikeRepository, never()).save(any());
+        verify(commentLikeRepository, never()).deleteByCommentIdAndMemberId(anyLong(), anyLong());
     }
 
     @Test
@@ -180,14 +182,14 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         given(globalCommentQueryAdapter.findById(TEST_COMMENT_ID)).willReturn(ownComment);
         given(globalMemberQueryAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
-        given(commentLikeAdapter.isLikedByUser(TEST_COMMENT_ID, getTestMember().getId())).willReturn(false);
+        given(commentLikeRepository.existsByCommentIdAndMemberId(TEST_COMMENT_ID, getTestMember().getId())).willReturn(false);
 
         // When
         commentCommandService.likeComment(getTestMember().getId(), TEST_COMMENT_ID);
 
         // Then
         ArgumentCaptor<CommentLike> likeCaptor = ArgumentCaptor.forClass(CommentLike.class);
-        verify(commentLikeAdapter).save(likeCaptor.capture());
+        verify(commentLikeRepository).save(likeCaptor.capture());
 
         CommentLike capturedLike = likeCaptor.getValue();
         assertThat(capturedLike.getComment()).isEqualTo(ownComment);
@@ -280,7 +282,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         // Given
         Long memberId = 100L;
         given(globalCommentQueryAdapter.findById(200L)).willReturn(testComment);
-        given(commentQueryRepository.hasDescendants(200L)).willReturn(false);
+        given(commentClosureRepository.existsByAncestor_IdAndDepthGreaterThan(200L, 0)).willReturn(false);
 
         // When
         commentCommandService.deleteComment(200L, memberId, null);
@@ -296,14 +298,14 @@ class CommentCommandServiceTest extends BaseUnitTest {
         // Given
         Long memberId = 100L;
         given(globalCommentQueryAdapter.findById(200L)).willReturn(testComment);
-        given(commentQueryRepository.hasDescendants(200L)).willReturn(true);
+        given(commentClosureRepository.existsByAncestor_IdAndDepthGreaterThan(200L, 0)).willReturn(true);
 
         // When
         commentCommandService.deleteComment(200L, memberId, null);
 
         // Then
         verify(globalCommentQueryAdapter).findById(200L);
-        verify(commentQueryRepository).hasDescendants(200L);
+        verify(commentClosureRepository).existsByAncestor_IdAndDepthGreaterThan(200L, 0);
         verify(commentDeleteRepository, never()).deleteComment(any());
     }
 
@@ -367,7 +369,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         TestFixtures.setFieldValue(anonymousComment, "id", 300L);
 
         given(globalCommentQueryAdapter.findById(300L)).willReturn(anonymousComment);
-        given(commentQueryRepository.hasDescendants(300L)).willReturn(false);
+        given(commentClosureRepository.existsByAncestor_IdAndDepthGreaterThan(300L, 0)).willReturn(false);
 
         // When
         commentCommandService.deleteComment(300L, null, 1234);
@@ -404,14 +406,14 @@ class CommentCommandServiceTest extends BaseUnitTest {
         TestFixtures.setFieldValue(parentComment, "id", 400L);
 
         given(globalCommentQueryAdapter.findById(400L)).willReturn(parentComment);
-        given(commentQueryRepository.hasDescendants(400L)).willReturn(true);
+        given(commentClosureRepository.existsByAncestor_IdAndDepthGreaterThan(400L, 0)).willReturn(true);
 
         // When
         commentCommandService.deleteComment(400L, memberId, null);
 
         // Then
         verify(globalCommentQueryAdapter).findById(400L);
-        verify(commentQueryRepository).hasDescendants(400L);
+        verify(commentClosureRepository).existsByAncestor_IdAndDepthGreaterThan(400L, 0);
         verify(commentDeleteRepository, never()).deleteComment(any());
     }
 
@@ -423,14 +425,14 @@ class CommentCommandServiceTest extends BaseUnitTest {
         TestFixtures.setFieldValue(anonymousParentComment, "id", 500L);
 
         given(globalCommentQueryAdapter.findById(500L)).willReturn(anonymousParentComment);
-        given(commentQueryRepository.hasDescendants(500L)).willReturn(true);
+        given(commentClosureRepository.existsByAncestor_IdAndDepthGreaterThan(500L, 0)).willReturn(true);
 
         // When
         commentCommandService.deleteComment(500L, null, 5678);
 
         // Then
         verify(globalCommentQueryAdapter).findById(500L);
-        verify(commentQueryRepository).hasDescendants(500L);
+        verify(commentClosureRepository).existsByAncestor_IdAndDepthGreaterThan(500L, 0);
         verify(commentDeleteRepository, never()).deleteComment(any());
     }
 
@@ -468,14 +470,14 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         given(globalPostQueryAdapter.findById(postId)).willReturn(testPost);
         given(globalMemberQueryAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
-        given(commentSaveAdapter.save(any(Comment.class))).willReturn(savedComment);
+        given(commentRepository.save(any(Comment.class))).willReturn(savedComment);
 
         // When
         commentCommandService.writeComment(getTestMember().getId(), postId, null, content, null);
 
         // Then
         ArgumentCaptor<Comment> commentCaptor = ArgumentCaptor.forClass(Comment.class);
-        verify(commentSaveAdapter).save(commentCaptor.capture());
+        verify(commentRepository).save(commentCaptor.capture());
 
         Comment capturedComment = commentCaptor.getValue();
         assertThat(capturedComment.getContent()).isEqualTo(content);
@@ -483,7 +485,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         assertThat(capturedComment.getPost()).isEqualTo(testPost);
         assertThat(capturedComment.isDeleted()).isFalse();
 
-        verify(commentSaveAdapter).saveAll(any());
+        verify(commentClosureRepository).saveAll(any());
         verify(eventPublisher).publishEvent(any(CommentCreatedEvent.class));
     }
 
@@ -498,14 +500,14 @@ class CommentCommandServiceTest extends BaseUnitTest {
         TestFixtures.setFieldValue(savedComment, "id", TEST_COMMENT_ID);
 
         given(globalPostQueryAdapter.findById(postId)).willReturn(testPost);
-        given(commentSaveAdapter.save(any(Comment.class))).willReturn(savedComment);
+        given(commentRepository.save(any(Comment.class))).willReturn(savedComment);
 
         // When
         commentCommandService.writeComment(null, postId, null, content, password);
 
         // Then
         ArgumentCaptor<Comment> commentCaptor = ArgumentCaptor.forClass(Comment.class);
-        verify(commentSaveAdapter).save(commentCaptor.capture());
+        verify(commentRepository).save(commentCaptor.capture());
 
         Comment capturedComment = commentCaptor.getValue();
         assertThat(capturedComment.getContent()).isEqualTo(content);
@@ -514,7 +516,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         assertThat(capturedComment.getPost()).isEqualTo(testPost);
         assertThat(capturedComment.isDeleted()).isFalse();
 
-        verify(commentSaveAdapter).saveAll(any());
+        verify(commentClosureRepository).saveAll(any());
         // testPost에 user가 있으므로 이벤트가 발행되어야 함
         verify(eventPublisher).publishEvent(any(CommentCreatedEvent.class));
     }
@@ -537,15 +539,15 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         given(globalPostQueryAdapter.findById(postId)).willReturn(testPost);
         given(globalMemberQueryAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
-        given(commentSaveAdapter.save(any(Comment.class))).willReturn(savedComment);
-        given(commentSaveAdapter.getParentClosures(parentId)).willReturn(Optional.of(parentClosures));
+        given(commentRepository.save(any(Comment.class))).willReturn(savedComment);
+        given(commentClosureRepository.findByDescendantId(parentId)).willReturn(Optional.of(parentClosures));
 
         // When
         commentCommandService.writeComment(getTestMember().getId(), postId, parentId, content, null);
 
         // Then
         ArgumentCaptor<List> closureCaptor = ArgumentCaptor.forClass(List.class);
-        verify(commentSaveAdapter).saveAll(closureCaptor.capture());
+        verify(commentClosureRepository).saveAll(closureCaptor.capture());
 
         List capturedClosures = closureCaptor.getValue();
         assertThat(capturedClosures).hasSize(2); // 자기 자신 + 부모와의 관계
@@ -566,7 +568,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_WRITE_FAILED);
 
         verify(globalPostQueryAdapter).findById(postId);
-        verify(commentSaveAdapter, never()).save(any(Comment.class));
+        verify(commentRepository, never()).save(any(Comment.class));
         verify(eventPublisher, never()).publishEvent(any());
     }
 
@@ -581,8 +583,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         given(globalPostQueryAdapter.findById(postId)).willReturn(testPost);
         given(globalMemberQueryAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
-        given(commentSaveAdapter.save(any(Comment.class))).willReturn(savedComment);
-        given(commentSaveAdapter.getParentClosures(parentId)).willReturn(Optional.empty());
+        given(commentRepository.save(any(Comment.class))).willReturn(savedComment);
+        given(commentClosureRepository.findByDescendantId(parentId)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.writeComment(getTestMember().getId(), postId, parentId, "대댓글", null))
@@ -590,8 +592,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_WRITE_FAILED);
 
         verify(globalPostQueryAdapter).findById(postId);
-        verify(commentSaveAdapter).save(any(Comment.class));
-        verify(commentSaveAdapter).getParentClosures(parentId);
+        verify(commentRepository).save(any(Comment.class));
+        verify(commentClosureRepository).findByDescendantId(parentId);
         verify(eventPublisher, never()).publishEvent(any());
     }
 
@@ -624,15 +626,15 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         given(globalPostQueryAdapter.findById(postId)).willReturn(testPost);
         given(globalMemberQueryAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
-        given(commentSaveAdapter.save(any(Comment.class))).willReturn(savedComment);
-        given(commentSaveAdapter.getParentClosures(parentId)).willReturn(Optional.of(parentClosures));
+        given(commentRepository.save(any(Comment.class))).willReturn(savedComment);
+        given(commentClosureRepository.findByDescendantId(parentId)).willReturn(Optional.of(parentClosures));
 
         // When
         commentCommandService.writeComment(getTestMember().getId(), postId, parentId, content, null);
 
         // Then
         ArgumentCaptor<List<CommentClosure>> closureCaptor = ArgumentCaptor.forClass(List.class);
-        verify(commentSaveAdapter).saveAll(closureCaptor.capture());
+        verify(commentClosureRepository).saveAll(closureCaptor.capture());
 
         List<CommentClosure> capturedClosures = closureCaptor.getValue();
         // depth가 2인 관계가 포함되어야 함 (조부모와의 관계)

@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.comment.controller;
 
-import jaeik.bimillog.domain.comment.dto.CommentDTO;
 import jaeik.bimillog.domain.comment.entity.CommentInfo;
 import jaeik.bimillog.domain.comment.service.CommentQueryService;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
@@ -8,6 +7,7 @@ import jaeik.bimillog.infrastructure.log.Log;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -43,24 +43,22 @@ public class CommentQueryController {
 
     /**
      * <h3>댓글 조회 API</h3>
-     * <p>지정된 게시글의 모든 댓글을 오래된 순서로 정렬하여 페이지별로 반환합니다.</p>
+     * <p>지정된 게시글의 모든 댓글을 인기 댓글을 추출하고</p>
+     * <p>일반댓글을 페이지별로 반환합니다.</p>
      *
      * @param userDetails 현재 로그인한 사용자 정보 (좋아요 상태 확인용, 선택사항)
      * @param postId 댓글을 조회할 게시글 ID
-     * @param page 페이지 번호 (기본값 0, 20개씩 페이징)
      * @return HTTP 응답 엔티티 (댓글 목록 페이지 데이터)
      * @author Jaeik
      * @since 2.0.0
      */
     @GetMapping("/{postId}")
-    public ResponseEntity<Page<CommentDTO>> getComments(
+    public ResponseEntity<Page<CommentInfo>> getComments(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable Long postId,
-            @RequestParam(defaultValue = "0") int page) {
-        Pageable pageable = Pageable.ofSize(20).withPage(page);
-        Page<CommentInfo> commentInfoPage = CommentQueryService.getCommentsOldestOrder(postId, pageable, userDetails);
-        Page<CommentDTO> commentDtoPage = commentInfoPage.map(CommentDTO::convertToCommentDTO);
-        return ResponseEntity.ok(commentDtoPage);
+            @PageableDefault(size = 20) Pageable pageable) {
+        Page<CommentInfo> commentInfoPage = CommentQueryService.findComments(postId, pageable, userDetails);
+        return ResponseEntity.ok(commentInfoPage);
     }
 
     /**
@@ -75,13 +73,9 @@ public class CommentQueryController {
      * @since 2.0.0
      */
     @GetMapping("/{postId}/popular")
-    public ResponseEntity<List<CommentDTO>> getPopularComments(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable Long postId) {
+    public ResponseEntity<List<CommentInfo>> getPopularComments(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                                                @PathVariable Long postId) {
         List<CommentInfo> commentInfoList = CommentQueryService.getPopularComments(postId, userDetails);
-        List<CommentDTO> commentDtoList = commentInfoList.stream()
-                .map(CommentDTO::convertToCommentDTO)
-                .toList();
-        return ResponseEntity.ok(commentDtoList);
+        return ResponseEntity.ok(commentInfoList);
     }
 }

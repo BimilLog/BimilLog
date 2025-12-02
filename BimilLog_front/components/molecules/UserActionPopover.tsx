@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { Popover } from "flowbite-react";
 import { User, ExternalLink, UserX, UserCheck, UserPlus, UserMinus, X } from "lucide-react";
@@ -35,8 +35,14 @@ export const UserActionPopover: React.FC<UserActionPopoverProps> = ({
   const { showToast } = useToast();
   const { confirm, ConfirmModalComponent } = useConfirmModal();
 
+  // 팝오버 열림 상태 관리
+  const [isOpen, setIsOpen] = useState(false);
+
+  // 팝오버가 열리고 로그인된 경우에만 API 호출
+  const shouldFetchData = isOpen && isAuthenticated;
+
   // 블랙리스트 상태
-  const { isBlacklisted, blacklistId } = useBlacklistCheck(memberName);
+  const { isBlacklisted, blacklistId } = useBlacklistCheck(memberName, shouldFetchData);
 
   // 친구 관계 상태
   const {
@@ -47,7 +53,7 @@ export const UserActionPopover: React.FC<UserActionPopoverProps> = ({
     receivedRequestId,
     targetMemberId,
     isLoading: isLoadingRelationship,
-  } = useFriendRelationshipCheck(memberName);
+  } = useFriendRelationshipCheck(memberName, shouldFetchData);
 
   // 친구 요청 Mutations
   const sendMutation = useSendFriendRequest();
@@ -273,7 +279,13 @@ export const UserActionPopover: React.FC<UserActionPopoverProps> = ({
 
   return (
     <>
-      <Popover trigger="click" placement={placement} content={popoverContent}>
+      <Popover
+        trigger="click"
+        placement={placement}
+        content={popoverContent}
+        open={isOpen}
+        onOpenChange={setIsOpen}
+      >
         {trigger}
       </Popover>
       <ConfirmModalComponent />

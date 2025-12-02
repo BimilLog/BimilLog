@@ -5,21 +5,8 @@ import dynamic from "next/dynamic";
 import { Modal, ModalHeader, ModalBody, ModalFooter } from "flowbite-react";
 import { Button, Spinner } from "@/components";
 import { useBrowserGuide } from "@/hooks";
-import { CheckCircle, Link, Smartphone, Globe } from "lucide-react";
-import { copyToClipboard } from "@/lib/utils/clipboard";
-
-// PWA 설치 버튼을 Dynamic import로 로딩 (번들 크기 최적화)
-const PWAInstallButton = dynamic(
-  () => import("@/components/molecules/pwa-install-button").then((mod) => ({ default: mod.PWAInstallButton })),
-  {
-    ssr: false, // 클라이언트에서만 렌더링 (브라우저 API 사용)
-    loading: () => (
-      <div className="w-full h-10 bg-gray-100 rounded-lg animate-pulse flex items-center justify-center">
-        <Spinner size="sm" />
-      </div>
-    )
-  }
-);
+import { Smartphone } from "lucide-react";
+import { APP_LINKS } from "@/lib/constants/app";
 
 interface BrowserGuideModalProps {
   isOpen: boolean;
@@ -46,7 +33,6 @@ function BrowserGuideModalContent({
   onOpenChange,
 }: BrowserGuideModalProps) {
   const { showGuide, hideGuide, getBrowserInfo } = useBrowserGuide();
-  const [copiedToClipboard, setCopiedToClipboard] = useState(false);
 
   // 브라우저 정보 가져오기
   const browserInfo = getBrowserInfo();
@@ -57,37 +43,42 @@ function BrowserGuideModalContent({
     /iPad|iPhone|iPod/.test(navigator.userAgent) &&
     !(window as unknown as { MSStream?: unknown }).MSStream;
 
-  // 설치 링크 클립보드 복사 처리
-  const handleCopyToClipboard = async () => {
-    const success = await copyToClipboard("https://grow-farm.com/install", {
-      showToast: false,
-      toastTitle: "설치 링크 복사 완료",
-      toastDescription: "설치 링크가 클립보드에 복사되었습니다!"
-    });
+  // Android 기기 감지
+  const isAndroidDevice =
+    typeof navigator !== "undefined" &&
+    /android/i.test(navigator.userAgent);
 
-    if (success) {
-      setCopiedToClipboard(true);
-      // 2초 후 복사 상태 초기화
-      setTimeout(() => setCopiedToClipboard(false), 2000);
-    }
-  };
+  // 데스크톱 사용자는 모달 표시하지 않음
+  const isMobileDevice = isIOS || isAndroidDevice;
 
   // 모달 표시 조건: props로 받은 isOpen 또는 hook의 showGuide
   const effectiveShow = isOpen || showGuide;
 
-  if (!effectiveShow) return null;
+  // 데스크톱이면 모달 표시 안 함
+  if (!effectiveShow || !isMobileDevice) return null;
 
-  // 모달 닫기: 외부에서 제어하는 경우와 hook으로 제어하는 경우 분기 처리
-  const handleClose = () => {
+  // 모달 닫기: duration 파라미터 추가
+  const handleClose = (duration: "session" | "7d" = "session") => {
     if (isOpen) {
       onOpenChange(false);
     } else {
-      hideGuide();
+      hideGuide(duration);
+    }
+  };
+
+  // 확인 버튼 핸들러
+  const handleConfirm = () => {
+    if (isAndroidDevice) {
+      // Android: 플레이스토어로 이동
+      window.location.href = APP_LINKS.PLAY_STORE;
+    } else if (isIOS) {
+      // iOS: /install 페이지로 이동
+      window.location.href = "/install";
     }
   };
 
   return (
-    <Modal show={effectiveShow} onClose={handleClose} size="md">
+    <Modal show={effectiveShow} onClose={() => handleClose("session")} size="md">
       <ModalHeader className="text-center">
         <div className="flex flex-col items-center">
           <Smartphone className="w-10 h-10 mb-3 text-indigo-600" />
@@ -101,73 +92,39 @@ function BrowserGuideModalContent({
           비밀로그를 앱으로 설치하면 더 빠르고 편리하게 이용할 수 있어요.
         </p>
 
-        <div className="space-y-4 mb-6">
-          {/* 플랫폼별 설치 가이드 분기 처리 */}
-          {isIOS ? (
-            // iOS: Safari 브라우저에서 "홈 화면에 추가" 방법 안내
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <h3 className="font-semibold text-blue-800 mb-2 flex items-center">
-                iPhone/iPad에서 홈 화면에 추가하기
-              </h3>
-              <ol className="text-sm text-blue-700 space-y-1">
-                <li>1. Safari 브라우저에서 이 페이지를 여세요.</li>
-                <li>
-                  2. 하단 메뉴의 <span className="font-bold">[공유]</span>{" "}
-                  버튼을 누르세요.
-                </li>
-                <li>
-                  3. <span className="font-bold">[홈 화면에 추가]</span>를
-                  선택하면 설치 완료!
-                </li>
-              </ol>
-            </div>
-          ) : (
-            // 안드로이드/데스크톱: PWA 설치 버튼 또는 링크 복사 방법 제공
-            <>
-              {/* PWA 설치 버튼 (지원 브라우저에서만 표시) */}
-              <div className="text-center">
-                <PWAInstallButton className="w-full" />
-              </div>
-
-              {/* 브라우저 여는 방법 안내 */}
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h3 className="font-semibold text-blue-800 mb-2 flex items-center">
-                  <span className="flex items-center gap-2"><Globe className="w-4 h-4 text-purple-500" /> 브라우저에서 열기</span>
-                </h3>
-                <ol className="text-sm text-blue-700 space-y-1">
-                  <li>1. 아래 버튼으로 링크를 복사하세요</li>
-                  <li>2. Chrome, Edge 등 브라우저 앱에서 붙여넣기</li>
-                  <li>3. 주소창의 설치 버튼을 눌러 설치하세요!</li>
-                </ol>
-              </div>
-
-              {/* 링크 복사 버튼: 복사 상태에 따라 UI 변경 */}
-              <Button
-                onClick={handleCopyToClipboard}
-                variant="outline"
-                className="w-full"
-              >
-                {copiedToClipboard ? (
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="w-4 h-4" />
-                    <span>링크 복사됨!</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center space-x-2">
-                    <Link className="w-4 h-4" />
-                    <span>링크 복사하기</span>
-                  </div>
-                )}
-              </Button>
-            </>
-          )}
-        </div>
+        {/* 플랫폼별 홍보 문구 */}
+        {isIOS ? (
+          // iOS: PWA 앱 홍보
+          <div className="bg-blue-50 p-6 rounded-lg text-center">
+            <Smartphone className="w-16 h-16 mx-auto mb-4 text-blue-600" />
+            <h3 className="font-bold text-blue-900 mb-2 text-lg">
+              iPhone/iPad 전용 앱
+            </h3>
+            <p className="text-sm text-blue-700 leading-relaxed">
+              Safari 브라우저에서 홈 화면에 추가하여<br />
+              네이티브 앱처럼 사용할 수 있습니다.
+            </p>
+          </div>
+        ) : isAndroidDevice ? (
+          // Android: 플레이스토어 앱 홍보
+          <div className="bg-green-50 p-6 rounded-lg text-center">
+            <Smartphone className="w-16 h-16 mx-auto mb-4 text-green-600" />
+            <h3 className="font-bold text-green-900 mb-2 text-lg">
+              비밀로그 공식 앱
+            </h3>
+            <p className="text-sm text-green-700 leading-relaxed">
+              플레이스토어에서 공식 앱을 다운로드하여<br />
+              더 빠르고 안정적으로 이용하세요!
+            </p>
+          </div>
+        ) : null}
 
         {/* 디버깅 정보 (개발 환경에서만) */}
         {process.env.NODE_ENV === "development" && (
           <div className="mt-4 p-3 bg-gray-100 rounded text-xs">
             <p>브라우저: {browserInfo.name}</p>
             <p>iOS: {isIOS ? "Yes" : "No"}</p>
+            <p>Android: {isAndroidDevice ? "Yes" : "No"}</p>
             <p>
               User Agent:{" "}
               {typeof navigator !== "undefined" ? navigator.userAgent : "N/A"}
@@ -175,10 +132,32 @@ function BrowserGuideModalContent({
           </div>
         )}
       </ModalBody>
-      <ModalFooter>
-        <Button onClick={handleClose} variant="outline" className="w-full">
-          닫기
+      <ModalFooter className="flex flex-col gap-3">
+        {/* 메인 액션 버튼 (확인) */}
+        <Button
+          onClick={handleConfirm}
+          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
+        >
+          {isIOS ? "앱 설치 방법 보기" : "플레이스토어에서 다운로드"}
         </Button>
+
+        {/* 보조 버튼들 (가로 2개) */}
+        <div className="flex gap-2 w-full">
+          <Button
+            onClick={() => handleClose("session")}
+            variant="outline"
+            className="flex-1"
+          >
+            닫기
+          </Button>
+          <Button
+            onClick={() => handleClose("7d")}
+            variant="outline"
+            className="flex-1"
+          >
+            일주일동안 안보기
+          </Button>
+        </div>
       </ModalFooter>
     </Modal>
   );

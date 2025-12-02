@@ -46,58 +46,7 @@ public class MemberActivityComment extends CommentInfo {
         private Instant createdAt;
 
         /**
-         * <h3>간편 댓글 정보 생성</h3>
-         * <p>댓글 엔티티와 메타 정보로부터 간편 댓글 정보를 생성합니다.</p>
-         *
-         * @param comment 댓글 엔티티
-         * @param likeCount 추천수
-         * @param isUserLike 사용자 추천 여부
-         * @return SimpleCommentInfo 값 객체
-         * @author Jaeik
-         * @since 2.0.0
-         */
-        public static SimpleCommentInfo of(Comment comment, Integer likeCount, boolean isUserLike) {
-            return SimpleCommentInfo.builder()
-                    .id(comment.getId())
-                    .postId(comment.getPost().getId())
-                    .memberName(comment.getMember() != null ? comment.getMember().getMemberName() : "익명")
-                    .content(comment.getContent())
-                    .likeCount(likeCount != null ? likeCount : 0)
-                    .userLike(isUserLike)
-                    .createdAt(comment.getCreatedAt())
-                    .build();
-        }
-
-        /**
-         * <h3>추천 여부 없는 간편 댓글 정보 생성</h3>
-         * <p>로그인하지 않은 사용자용 간편 댓글 정보를 생성합니다.</p>
-         *
-         * @param comment 댓글 엔티티
-         * @param likeCount 추천수
-         * @return SimpleCommentInfo 값 객체 (userLike = false)
-         * @author Jaeik
-         * @since 2.0.0
-         */
-        public static SimpleCommentInfo of(Comment comment, Integer likeCount) {
-            return of(comment, likeCount, false);
-        }
-
-        /**
-         * <h3>기본 간편 댓글 정보 생성</h3>
-         * <p>기본값으로 간편 댓글 정보를 생성합니다.</p>
-         *
-         * @param comment 댓글 엔티티
-         * @return SimpleCommentInfo 값 객체
-         * @author Jaeik
-         * @since 2.0.0
-         */
-        public static SimpleCommentInfo of(Comment comment) {
-            return of(comment, 0, false);
-        }
-
-        /**
-         * <h3>QueryDSL Projection용 생성자</h3>
-         * <p>QueryDSL Projections.constructor를 위한 생성자</p>
+         * <h3>생성자</h3>
          *
          * @param id 댓글 ID
          * @param postId 게시글 ID

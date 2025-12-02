@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
+import jaeik.bimillog.domain.paper.out.MessageRepository;
 import jaeik.bimillog.domain.paper.out.PaperQueryRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
@@ -35,7 +36,7 @@ import static org.mockito.Mockito.*;
 class PaperCommandServiceTest extends BaseUnitTest {
 
     @Mock
-    private PaperCommandRepository paperCommandRepository;
+    private MessageRepository messageRepository;
 
     @Mock
     private PaperQueryRepository paperQueryRepository;
@@ -63,8 +64,8 @@ class PaperCommandServiceTest extends BaseUnitTest {
 
         // Then
         verify(paperQueryRepository, times(1)).findOwnerIdByMessageId(messageId);
-        verify(paperCommandRepository, times(1)).deleteMessage(memberId, messageId);
-        verifyNoMoreInteractions(paperQueryRepository, paperCommandRepository);
+        verify(messageRepository, times(1)).deleteById(messageId);
+        verify(eventPublisher, times(1)).publishEvent(any());
     }
 
     @Test
@@ -82,7 +83,7 @@ class PaperCommandServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PAPER_MESSAGE_NOT_FOUND);
 
         verify(paperQueryRepository, times(1)).findOwnerIdByMessageId(messageId);
-        verify(paperCommandRepository, never()).deleteMessage(any(), any());
+        verify(messageRepository, never()).deleteById(any());
     }
 
     @Test
@@ -101,7 +102,7 @@ class PaperCommandServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PAPER_MESSAGE_DELETE_FORBIDDEN);
 
         verify(paperQueryRepository, times(1)).findOwnerIdByMessageId(messageId);
-        verify(paperCommandRepository, never()).deleteMessage(any(), any());
+        verify(messageRepository, never()).deleteById(any());
     }
 
     @Test
@@ -124,9 +125,9 @@ class PaperCommandServiceTest extends BaseUnitTest {
 
         // Then
         verify(globalMemberQueryAdapter, times(1)).findByMemberName(memberName);
-        verify(paperCommandRepository, times(1)).save(any(Message.class));
+        verify(messageRepository, times(1)).save(any(Message.class));
         verify(eventPublisher, times(1)).publishEvent(any(RollingPaperEvent.class));
-        verifyNoMoreInteractions(globalMemberQueryAdapter, paperCommandRepository, eventPublisher);
+        verifyNoMoreInteractions(globalMemberQueryAdapter, messageRepository, eventPublisher);
     }
 
     @Test
@@ -149,7 +150,7 @@ class PaperCommandServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PAPER_USERNAME_NOT_FOUND);
 
         verify(globalMemberQueryAdapter, times(1)).findByMemberName(memberName);
-        verify(paperCommandRepository, never()).save(any());
+        verify(messageRepository, never()).save(any());
         verify(eventPublisher, never()).publishEvent(any());
     }
 
@@ -179,7 +180,7 @@ class PaperCommandServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PAPER_INVALID_INPUT_VALUE);
 
         verify(globalMemberQueryAdapter, never()).findByMemberName(any());
-        verify(paperCommandRepository, never()).save(any());
+        verify(messageRepository, never()).save(any());
         verify(eventPublisher, never()).publishEvent(any());
     }
 

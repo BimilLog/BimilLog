@@ -121,13 +121,13 @@ const nextConfig = withPWA(pwaConfig)({
                             // 스크립트 소스 허용 (개발환경에서만 unsafe-eval 허용)
                             "script-src 'self' 'unsafe-inline'" +
                             (process.env.NODE_ENV === "development" ? " 'unsafe-eval'" : "") +
-                            " https://cdn.jsdelivr.net https://*.kakao.com https://accounts.kakao.com https://dapi.kakao.com https://display.ad.daum.net https://t1.kakaocdn.net https://t1.daumcdn.net https://postfiles.pstatic.net https://aem-kakao-collector.onkakao.net https://www.gstatic.com https://www.gstatic.com/firebasejs/ https://www.googletagmanager.com https://accounts.google.com http://clients2.google.com https://ssl.pstatic.net",
+                            " https://cdn.jsdelivr.net https://*.kakao.com https://accounts.kakao.com https://dapi.kakao.com https://display.ad.daum.net https://*.kakaocdn.net https://t1.daumcdn.net https://postfiles.pstatic.net https://aem-kakao-collector.onkakao.net https://www.gstatic.com https://www.gstatic.com/firebasejs/ https://www.googletagmanager.com https://accounts.google.com http://clients2.google.com https://ssl.pstatic.net",
                             // 스타일시트 허용
                             "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
                             // 이미지 소스 허용 (구체적 도메인만 명시)
-                            "img-src 'self' data: https://p.kakaocdn.net https://k.kakaocdn.net https://t1.kakaocdn.net https://chat.kakaocdn.net https://postfiles.pstatic.net https://t1.daumcdn.net https://display.ad.daum.net https://kaat.daum.net https://serv.ds.kakao.com https://tr.ad.daum.net https://ssl.pstatic.net https://lh3.googleusercontent.com" +
+                            "img-src 'self' data: https://*.kakaocdn.net https://postfiles.pstatic.net https://t1.daumcdn.net https://display.ad.daum.net https://kaat.daum.net https://serv.ds.kakao.com https://tr.ad.daum.net https://ssl.pstatic.net https://lh3.googleusercontent.com" +
                             (process.env.NODE_ENV === "development"
-                                ? " http://p.kakaocdn.net http://k.kakaocdn.net http://t1.kakaocdn.net http://chat.kakaocdn.net"
+                                ? " http://*.kakaocdn.net"
                                 : ""),
                             // 폰트 소스 허용
                             "font-src 'self' data: https://cdn.jsdelivr.net",
@@ -143,7 +143,7 @@ const nextConfig = withPWA(pwaConfig)({
                             // 클릭재킹 방지 (X-Frame-Options와 중복이지만 더 정확한 제어)
                             "frame-ancestors 'self'",
                             // 미디어 소스 허용
-                            "media-src 'self' https://t1.kakaocdn.net https://t1.daumcdn.net https://postfiles.pstatic.net",
+                            "media-src 'self' https://*.kakaocdn.net https://t1.daumcdn.net https://postfiles.pstatic.net",
                             // 카카오 공유 팝업 허용
                             "child-src 'self' https://*.kakao.com https://accounts.kakao.com https://display.ad.daum.net about: chrome-extension:",
                         ].join('; '),
@@ -178,19 +178,7 @@ const nextConfig = withPWA(pwaConfig)({
         remotePatterns: [
             {
                 protocol: 'https',
-                hostname: 'k.kakaocdn.net',
-            },
-            {
-                protocol: 'https',
-                hostname: 'p.kakaocdn.net',
-            },
-            {
-                protocol: 'https',
-                hostname: 't1.kakaocdn.net',
-            },
-            {
-                protocol: 'https',
-                hostname: 'chat.kakaocdn.net',
+                hostname: '*.kakaocdn.net',
             },
             {
                 protocol: 'https',

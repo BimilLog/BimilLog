@@ -11,16 +11,17 @@ import {
  * 특정 사용자와의 친구 관계 상태를 확인하는 hook
  *
  * @param memberName - 확인할 사용자 이름
+ * @param enabled - API 호출 활성화 여부 (기본값: true)
  * @returns 친구 관계 상태 정보
  *
  * @example
- * const { isFriend, hasSentRequest, targetMemberId } = useFriendRelationshipCheck("홍길동");
+ * const { isFriend, hasSentRequest, targetMemberId } = useFriendRelationshipCheck("홍길동", true);
  */
-export const useFriendRelationshipCheck = (memberName: string) => {
+export const useFriendRelationshipCheck = (memberName: string, enabled: boolean = true) => {
   // 3개 API 동시 조회 (TanStack Query 캐싱으로 최적화)
-  const { data: friendsResponse, isLoading: isLoadingFriends } = useMyFriends(0, 100);
-  const { data: sentResponse, isLoading: isLoadingSent } = useSentFriendRequests(0, 100);
-  const { data: receivedResponse, isLoading: isLoadingReceived } = useReceivedFriendRequests(0, 100);
+  const { data: friendsResponse, isLoading: isLoadingFriends } = useMyFriends(0, 100, enabled);
+  const { data: sentResponse, isLoading: isLoadingSent } = useSentFriendRequests(0, 100, enabled);
+  const { data: receivedResponse, isLoading: isLoadingReceived } = useReceivedFriendRequests(0, 100, enabled);
 
   // useMemo로 memberName 검색 및 관계 상태 계산
   const result = useMemo(() => {
