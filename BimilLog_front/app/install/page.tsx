@@ -16,8 +16,9 @@ import Link from "next/link";
 import { PWAInstallButton } from "@/components/molecules/pwa-install-button";
 import { useBrowserGuide } from "@/hooks";
 import { useState, useEffect } from "react";
-import { isIOS } from "@/lib/utils";
+import { isIOS, isAndroid, isSafari } from "@/lib/utils";
 import { CleanLayout } from "@/components/organisms/layout/BaseLayout";
+import { APP_LINKS } from "@/lib/constants/app";
 
 // Style constants
 const GRADIENTS = {
@@ -132,6 +133,9 @@ export default function InstallPage() {
 
   const browserInfo = isClient ? getBrowserInfo() : { name: "브라우저", isInApp: false };
   const isIOSDevice = isClient ? isIOS() : false;
+  const isAndroidDevice = isClient ? isAndroid() : false;
+  const isSafariBrowser = isClient ? isSafari() : false;
+  const isIOSChrome = isClient && isIOSDevice && !isSafariBrowser;
 
   useEffect(() => {
     setIsClient(true);
@@ -187,12 +191,14 @@ export default function InstallPage() {
             더 빠르고 편리한 앱 경험으로 언제 어디서나 마음을 전해보세요
           </p>
 
-          {/* PWA Install Button */}
+          {/* PWA Install Button - iOS만 표시 */}
           <div className="flex flex-col gap-6 items-center mb-16">
-            <PWAInstallButton
-              size="lg"
-              className={`${GRADIENTS.button} px-16 py-5 text-xl font-bold shadow-brand-xl transform transition-all duration-300 hover:scale-105 hover:shadow-brand-2xl rounded-2xl`}
-            />
+            {isIOSDevice && (
+              <PWAInstallButton
+                size="lg"
+                className={`${GRADIENTS.button} px-16 py-5 text-xl font-bold shadow-brand-xl transform transition-all duration-300 hover:scale-105 hover:shadow-brand-2xl rounded-2xl`}
+              />
+            )}
             <div className="flex items-center gap-2 text-sm text-brand-secondary bg-white/60 backdrop-blur-sm px-4 py-2 rounded-full">
               <div className="w-3 h-3 bg-green-500 rounded-full"></div>
               현재 브라우저: {browserInfo.name}
@@ -201,50 +207,77 @@ export default function InstallPage() {
 
           {/* Device-specific Install Guide */}
           {isIOSDevice ? (
-            <InstallGuideCard
-              title="iPhone/iPad 설치 방법"
-              icon={Smartphone}
-              bgGradient="bg-gradient-to-r from-blue-50 to-cyan-50"
-              borderColor="border-2 border-blue-200"
-              textColor="text-blue-700"
-              stepBgColor="bg-blue-100"
-            >
-              <InstallStep step={1} bgColor="bg-blue-100">
-                Safari 브라우저에서 이 페이지를 여세요
-              </InstallStep>
-              <InstallStep step={2} bgColor="bg-blue-100">
-                하단 메뉴의{" "}
-                <span className="font-bold bg-blue-100 px-2 py-1 rounded">[공유]</span>{" "}
-                버튼을 누르세요
-              </InstallStep>
-              <InstallStep step={3} bgColor="bg-blue-100">
-                <span className="font-bold bg-blue-100 px-2 py-1 rounded">[홈 화면에 추가]</span>
-                를 선택하면 설치 완료!
-              </InstallStep>
-            </InstallGuideCard>
+            isSafariBrowser ? (
+              // iOS Safari PWA 가이드
+              <InstallGuideCard
+                title="iPhone/iPad Safari 설치 방법"
+                icon={Smartphone}
+                bgGradient="bg-gradient-to-r from-blue-50 to-cyan-50"
+                borderColor="border-2 border-blue-200"
+                textColor="text-blue-700"
+                stepBgColor="bg-blue-100"
+              >
+                <InstallStep step={1} bgColor="bg-blue-100">
+                  Safari 브라우저에서 이 페이지를 여세요
+                </InstallStep>
+                <InstallStep step={2} bgColor="bg-blue-100">
+                  하단 메뉴의{" "}
+                  <span className="font-bold bg-blue-100 px-2 py-1 rounded">[공유]</span>{" "}
+                  버튼을 누르세요
+                </InstallStep>
+                <InstallStep step={3} bgColor="bg-blue-100">
+                  <span className="font-bold bg-blue-100 px-2 py-1 rounded">[홈 화면에 추가]</span>
+                  를 선택하면 설치 완료!
+                </InstallStep>
+              </InstallGuideCard>
+            ) : (
+              // iOS Chrome PWA 가이드
+              <InstallGuideCard
+                title="iPhone/iPad Chrome 설치 방법"
+                icon={Smartphone}
+                bgGradient="bg-gradient-to-r from-purple-50 to-indigo-50"
+                borderColor="border-2 border-purple-200"
+                textColor="text-purple-700"
+                stepBgColor="bg-purple-100"
+              >
+                <InstallStep step={1} bgColor="bg-purple-100">
+                  Chrome 앱에서 이 페이지를 여세요
+                </InstallStep>
+                <InstallStep step={2} bgColor="bg-purple-100">
+                  오른쪽 상단{" "}
+                  <span className="font-bold bg-purple-100 px-2 py-1 rounded">[메뉴 ⋯]</span>{" "}
+                  버튼을 탭하세요
+                </InstallStep>
+                <InstallStep step={3} bgColor="bg-purple-100">
+                  <span className="font-bold bg-purple-100 px-2 py-1 rounded">[홈 화면에 추가]</span>
+                  를 선택하면 설치 완료!
+                </InstallStep>
+              </InstallGuideCard>
+            )
           ) : (
-            <InstallGuideCard
-              title="Android/PC 설치 방법"
-              icon={Monitor}
-              bgGradient="bg-gradient-to-r from-green-50 to-emerald-50"
-              borderColor="border-2 border-green-200"
-              textColor="text-green-700"
-              stepBgColor="bg-green-100"
-            >
-              <InstallStep step={1} bgColor="bg-green-100">
-                Chrome 브라우저에서 이 페이지를 여세요
-              </InstallStep>
-              <InstallStep step={2} bgColor="bg-green-100">
-                위의{" "}
-                <span className="font-bold bg-green-100 px-2 py-1 rounded">&quot;앱 설치&quot;</span>{" "}
-                버튼을 클릭하세요
-              </InstallStep>
-              <InstallStep step={3} bgColor="bg-green-100">
-                설치 확인 창에서{" "}
-                <span className="font-bold bg-green-100 px-2 py-1 rounded">&quot;설치&quot;</span>
-                를 누르면 완료!
-              </InstallStep>
-            </InstallGuideCard>
+            // Android: 플레이스토어 다운로드 카드로 변경
+            <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 w-full max-w-4xl mx-auto shadow-brand-xl">
+              <CardContent className="p-6 sm:p-8 md:p-10 text-center">
+                <div className="flex flex-col items-center">
+                  <Smartphone className="w-20 h-20 mb-6 text-green-600 stroke-[1.5]" />
+                  <h3 className="font-bold text-green-900 mb-4 text-2xl">
+                    비밀로그 공식 앱
+                  </h3>
+                  <p className="text-lg text-green-700 leading-relaxed mb-8 max-w-lg">
+                    플레이스토어에서 공식 앱을 다운로드하여<br />
+                    더 빠르고 안정적으로 이용하세요!
+                  </p>
+
+                  <Button
+                    onClick={() => window.location.href = APP_LINKS.PLAY_STORE}
+                    size="lg"
+                    className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-12 py-5 text-xl font-bold shadow-brand-xl transform transition-all duration-300 hover:scale-105 rounded-2xl"
+                  >
+                    플레이스토어에서 다운로드
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           )}
         </div>
       </section>
@@ -273,10 +306,22 @@ export default function InstallPage() {
             </span>
           </h2>
           <p className="text-xl text-brand-muted mb-8">더 나은 비밀로그 경험이 기다리고 있습니다</p>
-          <PWAInstallButton
-            size="lg"
-            className={`${GRADIENTS.button} px-12 py-4 text-lg font-bold shadow-brand-xl transform transition-all duration-300 hover:scale-105`}
-          />
+
+          {/* 플랫폼별 버튼 분기 */}
+          {isIOSDevice ? (
+            <PWAInstallButton
+              size="lg"
+              className={`${GRADIENTS.button} px-12 py-4 text-lg font-bold shadow-brand-xl transform transition-all duration-300 hover:scale-105`}
+            />
+          ) : (
+            <Button
+              onClick={() => window.location.href = APP_LINKS.PLAY_STORE}
+              size="lg"
+              className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-12 py-4 text-lg font-bold shadow-brand-xl transform transition-all duration-300 hover:scale-105"
+            >
+              플레이스토어에서 다운로드
+            </Button>
+          )}
         </div>
       </section>
     </CleanLayout>

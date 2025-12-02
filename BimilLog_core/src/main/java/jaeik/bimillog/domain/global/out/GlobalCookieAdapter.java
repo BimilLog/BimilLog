@@ -21,7 +21,7 @@ public class GlobalCookieAdapter {
     public static final String ACCESS_TOKEN_COOKIE = "jwt_access_token";
     public static final String REFRESH_TOKEN_COOKIE = "jwt_refresh_token";
     public static final String TEMP_USER_ID_COOKIE = "temp_user_id";
-    public static final boolean SECURE = false;
+    public static final boolean SECURE = true;
     private static final int MAX_AGE = 3600;
 
     /**
