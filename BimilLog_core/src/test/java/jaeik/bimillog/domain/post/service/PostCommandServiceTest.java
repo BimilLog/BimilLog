@@ -48,6 +48,9 @@ class PostCommandServiceTest extends BaseUnitTest {
     @Mock
     private PostQueryRepository postQueryRepository;
 
+    @Mock
+    private jaeik.bimillog.domain.post.out.PostRepository postRepository;
+
     @InjectMocks
     private PostCommandService postCommandService;
 
@@ -64,7 +67,7 @@ class PostCommandServiceTest extends BaseUnitTest {
         Post createdPost = PostTestDataBuilder.withId(expectedPostId, PostTestDataBuilder.createPost(getTestMember(), title, content));
 
         given(globalMemberQueryAdapter.getReferenceById(memberId)).willReturn(getTestMember());
-        given(postCommandAdapter.create(any(Post.class))).willReturn(createdPost);
+        given(postRepository.save(any(Post.class))).willReturn(createdPost);
 
         // When
         Long result = postCommandService.writePost(memberId, title, content, password);
@@ -73,8 +76,8 @@ class PostCommandServiceTest extends BaseUnitTest {
         assertThat(result).isEqualTo(expectedPostId);
 
         verify(globalMemberQueryAdapter, times(1)).getReferenceById(memberId);
-        verify(postCommandAdapter, times(1)).create(any(Post.class));
-        verifyNoMoreInteractions(globalMemberQueryAdapter, postCommandAdapter);
+        verify(postRepository, times(1)).save(any(Post.class));
+        verifyNoMoreInteractions(globalMemberQueryAdapter, postRepository);
     }
 
     @Test
@@ -98,7 +101,7 @@ class PostCommandServiceTest extends BaseUnitTest {
         verify(existingPost, times(1)).updatePost("수정된 제목", "수정된 내용");
         verify(redisPostDeleteAdapter, times(1)).deleteSinglePostCache(postId);
         verify(redisPostDeleteAdapter, times(1)).removePostFromListCache(postId);
-        verifyNoMoreInteractions(globalPostQueryAdapter, postCommandAdapter, redisPostDeleteAdapter);
+        verifyNoMoreInteractions(globalPostQueryAdapter, postRepository, redisPostDeleteAdapter);
     }
 
     @Test
@@ -163,12 +166,12 @@ class PostCommandServiceTest extends BaseUnitTest {
         verify(globalPostQueryAdapter, times(1)).findById(postId);
         verify(postToDelete, times(1)).isAuthor(memberId, null);
         // CASCADE로 Comment와 PostLike 자동 삭제되므로 명시적 호출 없음
-        verify(postCommandAdapter, times(1)).delete(postToDelete);
+        verify(postRepository, times(1)).delete(postToDelete);
         verify(redisPostDeleteAdapter, times(1)).deleteSinglePostCache(postId);
         verify(redisPostDeleteAdapter, times(1)).removePostIdFromRealtimeScore(postId);
         verify(redisPostDeleteAdapter, times(1)).removePostFromListCache(postId);
         verify(redisPostDeleteAdapter, times(1)).removePostIdFromStorage(postId);
-        verifyNoMoreInteractions(globalPostQueryAdapter, postCommandAdapter, redisPostDeleteAdapter);
+        verifyNoMoreInteractions(globalPostQueryAdapter, postRepository, redisPostDeleteAdapter);
     }
 
     @Test
@@ -186,7 +189,7 @@ class PostCommandServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
         verify(globalPostQueryAdapter, times(1)).findById(postId);
-        verify(postCommandAdapter, never()).delete(any());
+        verify(postRepository, never()).delete(any());
         verify(redisPostDeleteAdapter, never()).deleteSinglePostCache(any());
     }
 
@@ -209,7 +212,7 @@ class PostCommandServiceTest extends BaseUnitTest {
 
         verify(globalPostQueryAdapter, times(1)).findById(postId);
         verify(otherUserPost, times(1)).isAuthor(memberId, null);
-        verify(postCommandAdapter, never()).delete(any());
+        verify(postRepository, never()).delete(any());
         verify(redisPostDeleteAdapter, never()).deleteSinglePostCache(any());
     }
 
@@ -229,8 +232,8 @@ class PostCommandServiceTest extends BaseUnitTest {
         verify(postQueryRepository, times(1)).findPostIdsMemberId(memberId);
         verify(redisPostDeleteAdapter, times(1)).deleteSinglePostCache(postId1);
         verify(redisPostDeleteAdapter, times(1)).deleteSinglePostCache(postId2);
-        verify(postCommandAdapter, times(1)).deleteAllByMemberId(memberId);
-        verifyNoMoreInteractions(postQueryRepository, postCommandAdapter, redisPostDeleteAdapter);
+        verify(postRepository, times(1)).deleteAllByMemberId(memberId);
+        verifyNoMoreInteractions(postQueryRepository, postRepository, redisPostDeleteAdapter);
     }
 
     @Test
@@ -245,9 +248,9 @@ class PostCommandServiceTest extends BaseUnitTest {
 
         // Then
         verify(postQueryRepository, times(1)).findPostIdsMemberId(memberId);
-        verify(postCommandAdapter, times(1)).deleteAllByMemberId(memberId);
+        verify(postRepository, times(1)).deleteAllByMemberId(memberId);
         verify(redisPostDeleteAdapter, never()).deleteSinglePostCache(any());
-        verifyNoMoreInteractions(postQueryRepository, postCommandAdapter, redisPostDeleteAdapter);
+        verifyNoMoreInteractions(postQueryRepository, postRepository, redisPostDeleteAdapter);
     }
 
 

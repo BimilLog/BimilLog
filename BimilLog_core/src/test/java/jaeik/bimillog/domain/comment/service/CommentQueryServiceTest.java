@@ -82,7 +82,7 @@ class CommentQueryServiceTest {
         given(commentQueryRepository.findComments(postId, pageable, memberId)).willReturn(expected);
 
         // When
-        Page<CommentInfo> result = commentQueryService.getPostComments(postId, pageable, userDetails);
+        Page<CommentInfo> result = commentQueryService.findComments(postId, pageable, userDetails);
 
         // Then
         assertThat(result).isEqualTo(expected);
@@ -99,7 +99,7 @@ class CommentQueryServiceTest {
         given(commentQueryRepository.findComments(postId, pageable, null)).willReturn(expected);
 
         // When
-        Page<CommentInfo> result = commentQueryService.getPostComments(postId, pageable, null);
+        Page<CommentInfo> result = commentQueryService.findComments(postId, pageable, null);
 
         // Then
         assertThat(result).isEqualTo(expected);

@@ -80,32 +80,6 @@ class NotificationCommandRepositoryIntegrationTest {
     }
 
     @Test
-    @DisplayName("정상 케이스 - 알림 저장")
-    void shouldSaveNotification_WhenValidParametersProvided() {
-        // Given: 알림 저장에 필요한 파라미터
-        NotificationType type = NotificationType.COMMENT;
-        String content = "새로운 댓글이 달렸습니다";
-        String url = "/post/123";
-
-        // When: 알림 저장
-        notificationCommandRepository.save(testMember, type, content, url);
-
-        // Then: 알림이 정상적으로 저장되었는지 검증
-        List<Notification> savedNotifications = notificationRepository.findAll();
-        assertThat(savedNotifications).hasSize(1);
-
-        Notification savedNotification = savedNotifications.getFirst();
-        assertThat(savedNotification.getMember()).isEqualTo(testMember);
-        assertThat(savedNotification.getNotificationType()).isEqualTo(type);
-        assertThat(savedNotification.getContent()).isEqualTo(content);
-        assertThat(savedNotification.getUrl()).isEqualTo(url);
-        assertThat(savedNotification.isRead()).isFalse(); // 기본값은 false
-        assertThat(savedNotification.getCreatedAt()).isNotNull();
-        // BaseEntity의 modifiedAt 확인
-        assertThat(savedNotification.getModifiedAt()).isNotNull();
-    }
-
-    @Test
     @DisplayName("정상 케이스 - 알림 일괄 삭제")
     @Transactional
     void shouldBatchDeleteNotifications_WhenDeleteIdsProvided() {

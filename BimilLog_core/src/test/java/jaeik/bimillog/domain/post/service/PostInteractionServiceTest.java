@@ -48,6 +48,12 @@ class PostInteractionServiceTest extends BaseUnitTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
+    @Mock
+    private jaeik.bimillog.domain.post.out.PostLikeRepository postLikeRepository;
+
+    @Mock
+    private jaeik.bimillog.domain.post.out.PostRepository postRepository;
+
     @InjectMocks
     private PostInteractionService postInteractionService;
 
@@ -73,12 +79,12 @@ class PostInteractionServiceTest extends BaseUnitTest {
 
         // ArgumentCaptor로 PostLike 객체 검증
         ArgumentCaptor<PostLike> postLikeCaptor = ArgumentCaptor.forClass(PostLike.class);
-        verify(postLikeCommandAdapter).savePostLike(postLikeCaptor.capture());
+        verify(postLikeRepository).save(postLikeCaptor.capture());
         PostLike savedPostLike = postLikeCaptor.getValue();
         assertThat(savedPostLike.getMember()).isEqualTo(getTestMember());
         assertThat(savedPostLike.getPost()).isEqualTo(post);
 
-        verify(postLikeCommandAdapter, never()).deletePostLike(any(), any());
+        verify(postLikeRepository, never()).deleteByMemberAndPost(any(), any());
     }
 
     @Test
@@ -100,8 +106,8 @@ class PostInteractionServiceTest extends BaseUnitTest {
         verify(postLikeQueryRepository).existsByPostIdAndUserId(postId, memberId);
         verify(globalMemberQueryAdapter).getReferenceById(memberId);
         verify(globalPostQueryAdapter).findById(postId);
-        verify(postLikeCommandAdapter).deletePostLike(getTestMember(), post);
-        verify(postLikeCommandAdapter, never()).savePostLike(any());
+        verify(postLikeRepository).deleteByMemberAndPost(getTestMember(), post);
+        verify(postLikeRepository, never()).save(any());
     }
 
     @Test
@@ -123,8 +129,8 @@ class PostInteractionServiceTest extends BaseUnitTest {
         verify(postLikeQueryRepository).existsByPostIdAndUserId(postId, memberId);
         verify(globalMemberQueryAdapter).getReferenceById(memberId);
         verify(globalPostQueryAdapter).findById(postId);
-        verify(postLikeCommandAdapter, never()).savePostLike(any());
-        verify(postLikeCommandAdapter, never()).deletePostLike(any(), any());
+        verify(postLikeRepository, never()).save(any());
+        verify(postLikeRepository, never()).deleteByMemberAndPost(any(), any());
     }
 
     @Test
@@ -137,7 +143,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
         postInteractionService.incrementViewCount(postId);
 
         // Then
-        verify(postCommandAdapter).incrementViewByPostId(postId);
+        verify(postRepository).incrementViewsByPostId(postId);
     }
 
 }

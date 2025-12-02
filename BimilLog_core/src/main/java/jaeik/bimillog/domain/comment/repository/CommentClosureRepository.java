@@ -40,12 +40,13 @@ public interface CommentClosureRepository extends JpaRepository<CommentClosure, 
      * <p>클로저 테이블에서 depth > 0이고 ancestor가 해당 댓글인 경우가 있는지 확인합니다.</p>
      * <p>{@link CommentCommandService}에서 댓글 삭제 시 하드/소프트 삭제 결정을 위해 호출됩니다.</p>
      *
-     * @param commentId 확인할 댓글 ID
+     * @param ancestorId 확인할 조상 댓글 ID
+     * @param depth 비교할 depth 값 (일반적으로 0, depth > 0인 경우를 찾음)
      * @return boolean 자손 댓글이 있으면 true, 없으면 false
      * @author Jaeik
      * @since 2.0.0
      */
-    boolean existsByAncestor_IdAndDepthGreaterThan(Long commentId);
+    boolean existsByAncestor_IdAndDepthGreaterThan(Long ancestorId, Integer depth);
 
 
 }

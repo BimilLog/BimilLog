@@ -468,7 +468,7 @@ class CommentQueryRepositoryIntegrationTest {
         commentRepository.save(comment3);
 
         // When: 특정 사용자의 모든 댓글 조회
-        List<Comment> memberComments = commentQueryRepository.findAllByMemberId(testMember.getId());
+        List<Comment> memberComments = commentRepository.findByMember_Id(testMember.getId());
 
         // Then: 해당 사용자의 댓글만 조회됨
         assertThat(memberComments).isNotNull();
