@@ -51,6 +51,7 @@ public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
     private final LogFilter LogFilter;
+    private final boolean COOKIE_SECURE = false;
 
     @Value("${url}")
     private String url;
@@ -140,7 +141,7 @@ public class SecurityConfig {
         CookieCsrfTokenRepository repository = CookieCsrfTokenRepository.withHttpOnlyFalse();
         repository.setCookieName("XSRF-TOKEN");
         repository.setCookiePath("/");
-        repository.setCookieCustomizer(cookie -> cookie.secure(true).sameSite("LAX"));
+        repository.setCookieCustomizer(cookie -> cookie.secure(COOKIE_SECURE).sameSite("LAX"));
         return repository;
     }
 

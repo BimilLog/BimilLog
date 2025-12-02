@@ -43,12 +43,12 @@ public class CommentQueryRepository {
 
     /**
      * <h3>댓글 조회</h3>
-     * <p>주어진 게시글의 댓글을 최신순 페이지네이션하여 조회합니다.</p>
+     * <p>주어진 게시글의 댓글을 과거순 페이지네이션하여 조회합니다.</p>
      *
      * @param postId   게시글 ID
      * @param pageable 페이지 정보
      * @param memberId 사용자 ID (추천 여부 확인용, null 가능)
-     * @return Page<CommentInfo> 최신순 댓글 페이지
+     * @return Page<CommentInfo> 과거순 댓글 페이지
      * @author Jaeik
      * @since 2.0.0
      */
@@ -64,7 +64,7 @@ public class CommentQueryRepository {
                 .where(applyBlacklistFilter(comment.post.id.eq(postId), memberId))
                 .groupBy(comment.id, member.memberName, comment.createdAt,
                         parentClosure.ancestor.id, userCommentLike.id)
-                .orderBy(comment.createdAt.desc())
+                .orderBy(comment.createdAt.asc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();

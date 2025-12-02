@@ -140,7 +140,7 @@ public class CommentCommandService {
         Comment comment = validateComment(commentId, memberId, password);
         Long postId = comment.getPost().getId();
 
-        if (commentClosureRepository.existsByAncestor_IdAndDepthGreaterThan(commentId)) {
+        if (commentClosureRepository.existsByAncestor_IdAndDepthGreaterThan(commentId, 0)) {
             comment.softDelete(); // 더티 체킹으로 자동 업데이트
         } else {
             commentDeleteRepository.deleteComment(commentId); // 어댑터 직접 호출로 하드 삭제
@@ -204,7 +204,7 @@ public class CommentCommandService {
         List<Comment> userComments = commentRepository.findByMember_Id(memberId);
 
         for (Comment comment : userComments) {
-            if (commentClosureRepository.existsByAncestor_IdAndDepthGreaterThan(comment.getId())) {
+            if (commentClosureRepository.existsByAncestor_IdAndDepthGreaterThan(comment.getId(), 0)) {
                 comment.anonymize(); // 더티 체킹으로 자동 업데이트
             } else {
                 commentDeleteRepository.deleteComment(comment.getId()); // 어댑터 직접 호출로 하드 삭제

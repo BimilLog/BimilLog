@@ -54,12 +54,12 @@ public class CommentQueryService {
     }
 
     /**
-     * <h3>최신순 댓글 조회</h3>
+     * <h3>댓글 조회</h3>
      *
      * @param postId      게시글 ID
      * @param pageable    페이지 정보
      * @param userDetails 사용자 인증 정보
-     * @return Page<CommentInfo> 최신순 댓글 페이지
+     * @return Page<CommentInfo> 과거순 댓글 페이지
      * @author Jaeik
      * @since 2.0.0
      */

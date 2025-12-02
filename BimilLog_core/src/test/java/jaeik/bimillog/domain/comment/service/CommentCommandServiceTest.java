@@ -282,7 +282,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         // Given
         Long memberId = 100L;
         given(globalCommentQueryAdapter.findById(200L)).willReturn(testComment);
-        given(commentClosureRepository.existsByAncestor_IdAndDepthGreaterThan(200L)).willReturn(false);
+        given(commentClosureRepository.existsByAncestor_IdAndDepthGreaterThan(200L, 0)).willReturn(false);
 
         // When
         commentCommandService.deleteComment(200L, memberId, null);
@@ -298,14 +298,14 @@ class CommentCommandServiceTest extends BaseUnitTest {
         // Given
         Long memberId = 100L;
         given(globalCommentQueryAdapter.findById(200L)).willReturn(testComment);
-        given(commentClosureRepository.existsByAncestor_IdAndDepthGreaterThan(200L)).willReturn(true);
+        given(commentClosureRepository.existsByAncestor_IdAndDepthGreaterThan(200L, 0)).willReturn(true);
 
         // When
         commentCommandService.deleteComment(200L, memberId, null);
 
         // Then
         verify(globalCommentQueryAdapter).findById(200L);
-        verify(commentClosureRepository).existsByAncestor_IdAndDepthGreaterThan(200L);
+        verify(commentClosureRepository).existsByAncestor_IdAndDepthGreaterThan(200L, 0);
         verify(commentDeleteRepository, never()).deleteComment(any());
     }
 
@@ -369,7 +369,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         TestFixtures.setFieldValue(anonymousComment, "id", 300L);
 
         given(globalCommentQueryAdapter.findById(300L)).willReturn(anonymousComment);
-        given(commentClosureRepository.existsByAncestor_IdAndDepthGreaterThan(300L)).willReturn(false);
+        given(commentClosureRepository.existsByAncestor_IdAndDepthGreaterThan(300L, 0)).willReturn(false);
 
         // When
         commentCommandService.deleteComment(300L, null, 1234);
@@ -406,14 +406,14 @@ class CommentCommandServiceTest extends BaseUnitTest {
         TestFixtures.setFieldValue(parentComment, "id", 400L);
 
         given(globalCommentQueryAdapter.findById(400L)).willReturn(parentComment);
-        given(commentClosureRepository.existsByAncestor_IdAndDepthGreaterThan(400L)).willReturn(true);
+        given(commentClosureRepository.existsByAncestor_IdAndDepthGreaterThan(400L, 0)).willReturn(true);
 
         // When
         commentCommandService.deleteComment(400L, memberId, null);
 
         // Then
         verify(globalCommentQueryAdapter).findById(400L);
-        verify(commentClosureRepository).existsByAncestor_IdAndDepthGreaterThan(400L);
+        verify(commentClosureRepository).existsByAncestor_IdAndDepthGreaterThan(400L, 0);
         verify(commentDeleteRepository, never()).deleteComment(any());
     }
 
@@ -425,14 +425,14 @@ class CommentCommandServiceTest extends BaseUnitTest {
         TestFixtures.setFieldValue(anonymousParentComment, "id", 500L);
 
         given(globalCommentQueryAdapter.findById(500L)).willReturn(anonymousParentComment);
-        given(commentClosureRepository.existsByAncestor_IdAndDepthGreaterThan(500L)).willReturn(true);
+        given(commentClosureRepository.existsByAncestor_IdAndDepthGreaterThan(500L, 0)).willReturn(true);
 
         // When
         commentCommandService.deleteComment(500L, null, 5678);
 
         // Then
         verify(globalCommentQueryAdapter).findById(500L);
-        verify(commentClosureRepository).existsByAncestor_IdAndDepthGreaterThan(500L);
+        verify(commentClosureRepository).existsByAncestor_IdAndDepthGreaterThan(500L, 0);
         verify(commentDeleteRepository, never()).deleteComment(any());
     }
 
