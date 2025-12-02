@@ -62,8 +62,9 @@ public class CommentQueryRepository {
         // 쿼리 실행
         List<CommentInfo> content = query
                 .where(applyBlacklistFilter(comment.post.id.eq(postId), memberId))
-                .groupBy(comment.id, member.memberName, comment.createdAt,
-                        parentClosure.ancestor.id, userCommentLike.id)
+                .groupBy(comment.id, comment.post.id, comment.member.id,
+                        member.memberName, comment.content, comment.deleted,
+                        comment.createdAt, parentClosure.ancestor.id, userCommentLike.id)
                 .orderBy(comment.createdAt.asc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -94,8 +95,9 @@ public class CommentQueryRepository {
         // 쿼리 실행
         List<CommentInfo> popularComments = query
                 .where(applyBlacklistFilter(comment.post.id.eq(postId), memberId))
-                .groupBy(comment.id, member.memberName, comment.createdAt,
-                        parentClosure.ancestor.id, userCommentLike.id)
+                .groupBy(comment.id, comment.post.id, comment.member.id,
+                        member.memberName, comment.content, comment.deleted,
+                        comment.createdAt, parentClosure.ancestor.id, userCommentLike.id)
                 .having(commentLike.countDistinct().goe(3)) // 추천 3개 이상
                 .orderBy(commentLike.countDistinct().desc())
                 .limit(3)
@@ -120,7 +122,6 @@ public class CommentQueryRepository {
                         commentLike.countDistinct().coalesce(0L).intValue(),
                         userCommentLike.id.isNotNull()
                 ))
-                .distinct()
                 .from(comment)
                 .leftJoin(comment.member, member)
                 .leftJoin(commentLike).on(comment.id.eq(commentLike.comment.id))

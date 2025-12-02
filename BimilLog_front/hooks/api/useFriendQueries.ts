@@ -11,12 +11,14 @@ import { queryKeys } from '@/lib/tanstack-query/keys';
  * 내 친구 목록 조회
  * @param page 페이지 번호 (0부터 시작)
  * @param size 페이지 크기
+ * @param enabled API 호출 활성화 여부 (기본값: true)
  */
-export const useMyFriends = (page: number = 0, size: number = 20) => {
+export const useMyFriends = (page: number = 0, size: number = 20, enabled: boolean = true) => {
   return useQuery({
     queryKey: queryKeys.friend.lists(),
     queryFn: () => friendQuery.getMyFriends(page, size),
     staleTime: 5 * 60 * 1000, // 5분 - 친구 목록은 자주 변하지 않음
+    enabled, // 조건부 쿼리 활성화
   });
 };
 
@@ -24,12 +26,14 @@ export const useMyFriends = (page: number = 0, size: number = 20) => {
  * 받은 친구 요청 조회
  * @param page 페이지 번호
  * @param size 페이지 크기
+ * @param enabled API 호출 활성화 여부 (기본값: true)
  */
-export const useReceivedFriendRequests = (page: number = 0, size: number = 20) => {
+export const useReceivedFriendRequests = (page: number = 0, size: number = 20, enabled: boolean = true) => {
   return useQuery({
     queryKey: queryKeys.friend.receivedRequests(page, size),
     queryFn: () => friendQuery.getReceivedRequests(page, size),
     staleTime: 1 * 60 * 1000, // 1분 - 실시간성이 중요함
+    enabled, // 조건부 쿼리 활성화
   });
 };
 
@@ -37,12 +41,14 @@ export const useReceivedFriendRequests = (page: number = 0, size: number = 20) =
  * 보낸 친구 요청 조회
  * @param page 페이지 번호
  * @param size 페이지 크기
+ * @param enabled API 호출 활성화 여부 (기본값: true)
  */
-export const useSentFriendRequests = (page: number = 0, size: number = 20) => {
+export const useSentFriendRequests = (page: number = 0, size: number = 20, enabled: boolean = true) => {
   return useQuery({
     queryKey: queryKeys.friend.sentRequests(page, size),
     queryFn: () => friendQuery.getSentRequests(page, size),
     staleTime: 1 * 60 * 1000, // 1분
+    enabled, // 조건부 쿼리 활성화
   });
 };
 
