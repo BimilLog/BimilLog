@@ -67,9 +67,9 @@ export const RecentVisits: React.FC = () => {
             >
               <Link
                 href={`/rolling-paper/${visit.nickname}`}
-                className="flex items-center justify-between flex-1 min-w-0 hover:text-blue-600 transition-colors"
+                className="flex items-center justify-between flex-1 min-w-0 text-gray-900 hover:text-blue-600 transition-colors"
               >
-                <p className="font-semibold text-brand-primary text-sm truncate">
+                <p className="font-semibold text-gray-900 text-sm truncate">
                   {visit.displayName}님의 롤링페이퍼
                 </p>
                 <TimeBadge dateString={visit.visitedAt} size="xs" />
