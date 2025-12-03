@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.out.PostLikeQueryRepository;
+import jaeik.bimillog.domain.post.out.PostLikeRepository;
 import jaeik.bimillog.domain.post.out.PostQueryRepository;
 import jaeik.bimillog.domain.post.out.PostRepository;
 import jaeik.bimillog.domain.post.out.PostToCommentAdapter;
@@ -55,7 +55,7 @@ class PostQueryServiceTest extends BaseUnitTest {
     private PostQueryRepository postQueryRepository;
 
     @Mock
-    private PostLikeQueryRepository postLikeQueryRepository;
+    private PostLikeRepository postLikeRepository;
 
     @Mock
     private RedisPostQueryAdapter redisPostQueryAdapter;
@@ -133,7 +133,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result).isNotNull();
         verify(redisPostQueryAdapter).getCachedPostIfExists(postId); // 1회 Redis 호출
         verify(postQueryRepository).findPostDetailWithCounts(postId, memberId); // 1회 DB 쿼리
-        verify(postLikeQueryRepository, never()).existsByPostIdAndUserId(any(), any());
+        verify(postLikeRepository, never()).existsByPostIdAndMemberId(any(), any());
     }
 
     @Test
@@ -160,7 +160,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         given(redisPostQueryAdapter.getCachedPostIfExists(postId)).willReturn(cachedFullPost);
 
         // 좋아요 정보만 추가 확인 (Post 엔티티 로드 없이 ID로만 확인)
-        given(postLikeQueryRepository.existsByPostIdAndUserId(postId, memberId)).willReturn(false);
+        given(postLikeRepository.existsByPostIdAndMemberId(postId, memberId)).willReturn(false);
 
         // When
         PostDetail result = postQueryService.getPost(postId, memberId);
@@ -170,7 +170,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.isLiked()).isFalse();
 
         verify(redisPostQueryAdapter).getCachedPostIfExists(postId); // 1회 Redis 호출 (최적화)
-        verify(postLikeQueryRepository).existsByPostIdAndUserId(postId, memberId);
+        verify(postLikeRepository).existsByPostIdAndMemberId(postId, memberId);
         verify(postQueryRepository, never()).findPostDetailWithCounts(any(), any()); // JOIN 쿼리도 호출 안함
     }
 
@@ -209,7 +209,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         verify(postQueryRepository).findPostDetailWithCounts(postId, memberId); // 1회 DB JOIN 쿼리 (최적화)
 
         // 기존 개별 쿼리들은 호출되지 않음을 검증
-        verify(postLikeQueryRepository, never()).existsByPostIdAndUserId(any(), any());
+        verify(postLikeRepository, never()).existsByPostIdAndMemberId(any(), any());
     }
 
     @Test
@@ -249,7 +249,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         verify(postQueryRepository).findPostDetailWithCounts(postId, memberId); // 1회 JOIN 쿼리
 
         // 기존 개별 쿼리들은 호출되지 않음
-        verify(postLikeQueryRepository, never()).existsByPostIdAndUserId(any(), any());
+        verify(postLikeRepository, never()).existsByPostIdAndMemberId(any(), any());
     }
 
     @Test

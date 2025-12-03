@@ -27,7 +27,6 @@ import java.util.List;
 @Slf4j
 public class MemberFriendService {
 
-    private final MemberRepository memberRepository;
     private final MemberQueryRepository memberQueryRepository;
     private final MemberToAuthAdapter memberToAuthAdapter;
     private final KakaoFriendClient kakaoFriendClient;
@@ -36,7 +35,7 @@ public class MemberFriendService {
      * 친구 추가 정보 조회
      */
     public List<Friend.FriendInfo> addMyFriendInfo(List<Long> friendIds) {
-        return memberRepository.findFriendInfoByIdIn(friendIds);
+        return memberQueryRepository.getMyFriendPages(friendIds);
     }
 
     /**

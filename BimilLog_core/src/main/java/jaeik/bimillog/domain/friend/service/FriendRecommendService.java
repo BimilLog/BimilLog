@@ -37,6 +37,7 @@ public class FriendRecommendService {
     private final RedisFriendshipRepository redisFriendshipRepository;
     private final RedisInteractionScoreRepository redisInteractionScoreRepository;
     private final MemberBlacklistRepository memberBlacklistRepository;
+    private final MemberQueryRepository memberQueryRepository;
     private final MemberRepository memberRepository;
     private final BreadthFirstSearch breadthFirstSearch;
     private final FriendRecommendScorer scorer;
@@ -236,9 +237,9 @@ public class FriendRecommendService {
         }
 
         List<RecommendedFriend.RecommendedFriendInfo> friendInfos =
-                memberRepository.findRecommendedFriendInfoByIdIn(candidateIds);
+                memberQueryRepository.addRecommendedFriendInfo(candidateIds);
         List<RecommendedFriend.AcquaintanceInfo> acquaintanceInfos =
-                memberRepository.findAcquaintanceInfoByIdIn(new ArrayList<>(acquaintanceIds));
+                memberQueryRepository.addAcquaintanceInfo(new ArrayList<>(acquaintanceIds));
 
         Map<Long, RecommendedFriend.RecommendedFriendInfo> friendInfoMap = friendInfos.stream()
                 .collect(Collectors.toMap(RecommendedFriend.RecommendedFriendInfo::friendMemberId, info -> info));

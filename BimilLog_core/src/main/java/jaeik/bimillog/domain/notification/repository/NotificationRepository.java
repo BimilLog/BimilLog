@@ -30,7 +30,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
      * @author Jaeik
      * @since 2.0.0
      */
-    List<Notification> findAllByIdInAndMemberId(List<Long> ids, Long memberId);
+    List<Notification> findAllByIdInAndMember_Id(List<Long> ids, Long memberId);
 
     /**
      * <h3>사용자 ID와 알림 ID 목록으로 알림 삭제</h3>
@@ -41,7 +41,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteAllByIdInAndMemberId(List<Long> ids, Long memberId);
+    void deleteAllByIdInAndMember_Id(List<Long> ids, Long memberId);
 
     /**
      * <h3>사용자 ID로 모든 알림 삭제</h3>

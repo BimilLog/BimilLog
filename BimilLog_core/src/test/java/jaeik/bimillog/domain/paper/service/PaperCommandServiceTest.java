@@ -57,13 +57,13 @@ class PaperCommandServiceTest extends BaseUnitTest {
         Long memberId = 1L;
         Long messageId = 123L;
 
-        given(paperQueryRepository.findOwnerIdByMessageId(messageId)).willReturn(Optional.of(memberId));
+        given(messageRepository.findOwnerIdByMessageId(messageId)).willReturn(Optional.of(memberId));
 
         // When
         paperCommandService.deleteMessageInMyPaper(memberId, messageId);
 
         // Then
-        verify(paperQueryRepository, times(1)).findOwnerIdByMessageId(messageId);
+        verify(messageRepository, times(1)).findOwnerIdByMessageId(messageId);
         verify(messageRepository, times(1)).deleteById(messageId);
         verify(eventPublisher, times(1)).publishEvent(any());
     }
@@ -75,14 +75,14 @@ class PaperCommandServiceTest extends BaseUnitTest {
         Long memberId = 999L;
         Long messageId = 999L;
 
-        given(paperQueryRepository.findOwnerIdByMessageId(messageId)).willReturn(Optional.empty());
+        given(messageRepository.findOwnerIdByMessageId(messageId)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(memberId, messageId))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PAPER_MESSAGE_NOT_FOUND);
 
-        verify(paperQueryRepository, times(1)).findOwnerIdByMessageId(messageId);
+        verify(messageRepository, times(1)).findOwnerIdByMessageId(messageId);
         verify(messageRepository, never()).deleteById(any());
     }
 
@@ -94,14 +94,14 @@ class PaperCommandServiceTest extends BaseUnitTest {
         Long ownerId = 2L; // 다른 사용자
         Long messageId = 123L;
 
-        given(paperQueryRepository.findOwnerIdByMessageId(messageId)).willReturn(Optional.of(ownerId));
+        given(messageRepository.findOwnerIdByMessageId(messageId)).willReturn(Optional.of(ownerId));
 
         // When & Then
         assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(memberId, messageId))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PAPER_MESSAGE_DELETE_FORBIDDEN);
 
-        verify(paperQueryRepository, times(1)).findOwnerIdByMessageId(messageId);
+        verify(messageRepository, times(1)).findOwnerIdByMessageId(messageId);
         verify(messageRepository, never()).deleteById(any());
     }
 

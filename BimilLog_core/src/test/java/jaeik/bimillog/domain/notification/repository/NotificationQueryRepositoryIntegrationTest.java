@@ -26,7 +26,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * <h2>NotificationQueryAdapter 통합 테스트</h2>
+ * <h2>NotificationRepository 통합 테스트 - 알림 조회</h2>
  * <p>알림 조회 쿼리의 정렬 및 사용자 필터링 동작을 검증합니다.</p>
  */
 @DataJpaTest(
@@ -36,13 +36,13 @@ import static org.assertj.core.api.Assertions.assertThat;
         )
 )
 @ActiveProfiles("h2test")
-@Import({NotificationQueryRepository.class, H2TestConfiguration.class})
+@Import({H2TestConfiguration.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Tag("integration")
 class NotificationQueryRepositoryIntegrationTest {
 
     @Autowired
-    private NotificationQueryRepository notificationQueryRepository;
+    private NotificationRepository notificationRepository;
 
     @Autowired
     private TestEntityManager testEntityManager;
@@ -105,7 +105,7 @@ class NotificationQueryRepositoryIntegrationTest {
         testEntityManager.flush();
         testEntityManager.clear();
 
-        List<Notification> notifications = notificationQueryRepository.getNotificationList(targetMember.getId());
+        List<Notification> notifications = notificationRepository.getNotificationList(targetMember.getId());
 
         assertThat(notifications)
                 .extracting(Notification::getNotificationType)
@@ -122,7 +122,7 @@ class NotificationQueryRepositoryIntegrationTest {
         testEntityManager.flush();
         testEntityManager.clear();
 
-        List<Notification> notifications = notificationQueryRepository.getNotificationList(otherMember.getId());
+        List<Notification> notifications = notificationRepository.getNotificationList(otherMember.getId());
 
         assertThat(notifications).isEmpty();
     }

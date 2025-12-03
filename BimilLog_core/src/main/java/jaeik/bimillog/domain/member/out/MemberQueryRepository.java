@@ -99,4 +99,49 @@ public class MemberQueryRepository {
                         (existing, replacement) -> existing
                 ));
     }
+
+    /**
+     * 여러 사용자 ID로 친구 추가 정보 조회
+     * 친구 조회시 사용
+     */
+    public List<Friend.FriendInfo> getMyFriendPages (List<Long> friendIds) {
+        return jpaQueryFactory
+                .select(Projections.constructor(Friend.FriendInfo.class,
+                        member.id,
+                        member.memberName,
+                        member.thumbnailImage
+                ))
+                .from(member)
+                .where(member.id.in(friendIds))
+                .fetch();
+    }
+
+    /**
+     * 여러 사용자 ID로 추천 친구 추가 정보 조회
+     */
+    public List<RecommendedFriend.RecommendedFriendInfo> addRecommendedFriendInfo(List<Long> friendIds) {
+        return jpaQueryFactory
+                .select(Projections.constructor(RecommendedFriend.RecommendedFriendInfo.class,
+                        member.id,
+                        member.memberName
+                ))
+                .from(member)
+                .where(member.id.in(friendIds))
+                .fetch();
+    }
+
+    /**
+     * 여러 사용자 ID로 추천 친구 아는 사람 추가 정보 조회
+     */
+    public List<RecommendedFriend.AcquaintanceInfo> addAcquaintanceInfo(List<Long> acquaintanceIds) {
+        return jpaQueryFactory
+                .select(Projections.constructor(RecommendedFriend.AcquaintanceInfo.class,
+                        member.id,
+                        member.memberName
+                ))
+                .from(member)
+                .where(member.id.in(acquaintanceIds))
+                .fetch();
+    }
+
 }

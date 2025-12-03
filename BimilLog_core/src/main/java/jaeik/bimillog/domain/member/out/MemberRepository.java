@@ -77,22 +77,6 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     Optional<Member> findByIdWithSetting(@Param("id") Long id);
 
     /**
-     * 여러 사용자 ID로 친구 추가 정보 조회
-     * 친구 조회시 사용
-     */
-    List<Friend.FriendInfo> findFriendInfoByIdIn(List<Long> id);
-
-    /**
-     * 여러 사용자 ID로 추천 친구 추가 정보 조회
-     */
-    List<RecommendedFriend.RecommendedFriendInfo> findRecommendedFriendInfoByIdIn(List<Long> id);
-
-    /**
-     * 여러 사용자 ID로 추천 친구 아는 사람 추가 정보 조회
-     */
-    List<RecommendedFriend.AcquaintanceInfo> findAcquaintanceInfoByIdIn(List<Long> id);
-
-    /**
      * <h3>접두사 검색 (인덱스 활용)</h3>
      * <p>LIKE 'query%' 조건으로 멤버명을 검색하여 인덱스를 활용합니다.</p>
      * <p>{@link MemberQueryService}에서 검색 전략에 따라 호출됩니다.</p>
@@ -125,5 +109,6 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
      * @author Jaeik
      * @since 2.0.0
      */
-    List<Long> findIdByIdNotInOrderByCreatedAtDesc(Set<Long> id, Pageable pageable);
+    @Query("SELECT m.id FROM Member m WHERE m.id NOT IN :excludeIds ORDER BY m.createdAt DESC")
+    List<Long> findIdByIdNotInOrderByCreatedAtDesc(@Param("excludeIds") Set<Long> id, Pageable pageable);
 }

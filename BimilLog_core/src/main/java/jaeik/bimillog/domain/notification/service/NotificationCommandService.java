@@ -45,11 +45,11 @@ public class NotificationCommandService {
         List<Long> readIds = updateCommand.readIds();
 
         if (deleteIds != null && !deleteIds.isEmpty()) {
-            notificationRepository.deleteAllByIdInAndMemberId(deleteIds, memberId);
+            notificationRepository.deleteAllByIdInAndMember_Id(deleteIds, memberId);
         }
 
         if (readIds != null && !readIds.isEmpty()) {
-            List<Notification> notifications = notificationRepository.findAllByIdInAndMemberId(readIds, memberId);
+            List<Notification> notifications = notificationRepository.findAllByIdInAndMember_Id(readIds, memberId);
             notifications.forEach(Notification::markAsRead);
         }
     }

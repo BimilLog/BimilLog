@@ -41,7 +41,7 @@ public class PaperQueryService {
      * @since 2.0.0
      */
     public List<Message> getMyPaper(Long memberId) {
-        return messageRepository.findByMemberIdOrderByCreatedAtDesc(memberId);
+        return messageRepository.findByMember_IdOrderByCreatedAtDesc(memberId);
     }
 
     /**

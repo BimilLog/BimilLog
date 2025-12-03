@@ -35,7 +35,7 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
      * @param memberId 롤링페이퍼 소유자의 사용자 ID (Message.member.id)
      * @return 해당 사용자의 메시지 목록 (List<Message>)
      */
-    List<Message> findByMemberIdOrderByCreatedAtDesc(Long memberId);
+    List<Message> findByMember_IdOrderByCreatedAtDesc(Long memberId);
 
     /**
      * 특정 사용자명(롤링페이퍼 소유자)을 기준으로
