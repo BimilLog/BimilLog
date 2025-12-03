@@ -84,19 +84,19 @@ export function VisitClient() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       {/* Auth Header */}
       <AuthHeader />
 
       {/* Page Header - 모바일 최적화 */}
-      <header data-toast-anchor className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b">
+      <header data-toast-anchor className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-gray-200 dark:border-slate-700">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center flex-shrink-0">
                 <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-              <h1 className="text-base sm:text-xl font-bold text-brand-primary whitespace-nowrap">
+              <h1 className="text-base sm:text-xl font-bold text-gray-900 dark:text-gray-100 whitespace-nowrap">
                 롤링페이퍼 방문
               </h1>
             </div>
@@ -138,10 +138,10 @@ export function VisitClient() {
 
         {/* Info Section */}
         <div className="mt-8 text-center">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="bg-blue-50 dark:bg-slate-800 border border-blue-200 dark:border-slate-600 rounded-lg p-4">
             <div className="flex items-start space-x-2">
-              <Heart className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-              <div className="text-sm text-blue-800">
+              <Heart className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+              <div className="text-sm text-blue-800 dark:text-blue-200">
                 <p className="font-medium mb-1 flex items-center space-x-2">
                   <Mail className="w-4 h-4" />
                   <span>익명으로 메시지를 남겨보세요!</span>
