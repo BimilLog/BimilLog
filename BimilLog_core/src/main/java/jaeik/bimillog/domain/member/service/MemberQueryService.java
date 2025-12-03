@@ -150,9 +150,9 @@ public class MemberQueryService {
     @Transactional(readOnly = true)
     public Page<SimpleMemberDTO> searchMembers(String query, Pageable pageable) {
         if (query.length() >= 4) {
-            return memberQueryRepository.findByPrefixMatch(query, pageable);
+            return memberRepository.findByMemberNameStartingWithOrderByMemberNameAsc(query, pageable);
         }
-        return memberQueryRepository.findByPartialMatch(query, pageable);
+        return memberRepository.findByMemberNameContainingOrderByMemberNameAsc(query, pageable);
     }
 
     /**

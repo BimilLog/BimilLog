@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.notification.out;
+package jaeik.bimillog.domain.notification.repository;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
@@ -22,7 +22,7 @@ import java.util.List;
  */
 @Component
 @RequiredArgsConstructor
-public class NotificationUtilAdapter {
+public class NotificationUtilRepository {
 
     private final JPAQueryFactory queryFactory;
 

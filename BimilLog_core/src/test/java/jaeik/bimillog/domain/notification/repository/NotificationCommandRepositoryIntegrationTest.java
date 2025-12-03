@@ -1,9 +1,8 @@
-package jaeik.bimillog.domain.notification.out;
+package jaeik.bimillog.domain.notification.repository;
 
 import jaeik.bimillog.BimilLogApplication;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.notification.entity.Notification;
-import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
 import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.builder.NotificationTestDataBuilder;

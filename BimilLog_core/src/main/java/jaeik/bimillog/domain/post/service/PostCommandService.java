@@ -38,9 +38,7 @@ public class PostCommandService {
     private final GlobalPostQueryAdapter globalPostQueryAdapter;
     private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
     private final RedisPostDeleteAdapter redisPostDeleteAdapter;
-    private final PostQueryRepository postQueryRepository;
     private final CommentCommandService commentCommandService;
-
 
     /**
      * <h3>게시글 작성</h3>
@@ -141,7 +139,7 @@ public class PostCommandService {
      */
     @Transactional
     public void deleteAllPostsByMemberId(Long memberId) {
-        List<Long> postIds = postQueryRepository.findPostIdsMemberId(memberId);
+        List<Long> postIds = postRepository.findIdsWithCacheFlagByMemberId(memberId);;
         for (Long postId : postIds) {
             // FK 제약 조건 위반 방지: 게시글의 모든 댓글 먼저 삭제 (CommentClosure 포함)
             commentCommandService.deleteCommentsByPost(postId);

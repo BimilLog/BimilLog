@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.out.PostQueryRepository;
+import jaeik.bimillog.domain.post.out.PostRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostDeleteAdapter;
@@ -49,7 +50,7 @@ class PostCommandServiceTest extends BaseUnitTest {
     private PostQueryRepository postQueryRepository;
 
     @Mock
-    private jaeik.bimillog.domain.post.out.PostRepository postRepository;
+    private PostRepository postRepository;
 
     @InjectMocks
     private PostCommandService postCommandService;
@@ -224,12 +225,12 @@ class PostCommandServiceTest extends BaseUnitTest {
         Long postId1 = 10L;
         Long postId2 = 11L;
 
-        given(postQueryRepository.findPostIdsMemberId(memberId)).willReturn(List.of(postId1, postId2));
+        given(postRepository.findIdsWithCacheFlagByMemberId(memberId)).willReturn(List.of(postId1, postId2));
         // When
         postCommandService.deleteAllPostsByMemberId(memberId);
 
         // Then
-        verify(postQueryRepository, times(1)).findPostIdsMemberId(memberId);
+        verify(postRepository, times(1)).findIdsWithCacheFlagByMemberId(memberId);
         verify(redisPostDeleteAdapter, times(1)).deleteSinglePostCache(postId1);
         verify(redisPostDeleteAdapter, times(1)).deleteSinglePostCache(postId2);
         verify(postRepository, times(1)).deleteAllByMemberId(memberId);
@@ -241,13 +242,13 @@ class PostCommandServiceTest extends BaseUnitTest {
     void shouldSkipDeletingPosts_WhenNoPostsExist() {
         // Given
         Long memberId = 1L;
-        given(postQueryRepository.findPostIdsMemberId(memberId)).willReturn(List.of());
+        given(postRepository.findIdsWithCacheFlagByMemberId(memberId)).willReturn(List.of());
 
         // When
         postCommandService.deleteAllPostsByMemberId(memberId);
 
         // Then
-        verify(postQueryRepository, times(1)).findPostIdsMemberId(memberId);
+        verify(postRepository, times(1)).findIdsWithCacheFlagByMemberId(memberId);
         verify(postRepository, times(1)).deleteAllByMemberId(memberId);
         verify(redisPostDeleteAdapter, never()).deleteSinglePostCache(any());
         verifyNoMoreInteractions(postQueryRepository, postRepository, redisPostDeleteAdapter);

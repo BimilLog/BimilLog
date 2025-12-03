@@ -24,5 +24,14 @@ public interface PostLikeRepository extends JpaRepository<PostLike, Long> {
      * @since 2.0.0
      */
     void deleteByMemberAndPost(Member member, Post post);
+
+    /**
+     * PostLike 엔티티가 주어진 postId와 memberId에 대해 존재하는지 확인합니다.
+     *
+     * @param postId 게시글 ID (PostLike.post.id)
+     * @param memberId 사용자 ID (PostLike.member.id)
+     * @return 추천 관계가 존재하면 true, 아니면 false
+     */
+    boolean existsByPostIdAndMemberId(Long postId, Long memberId);
 }
 

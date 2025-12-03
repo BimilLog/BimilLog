@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.notification.out;
+package jaeik.bimillog.domain.notification.repository;
 
 import jaeik.bimillog.BimilLogApplication;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
@@ -40,13 +40,13 @@ import static org.assertj.core.api.Assertions.assertThat;
         )
 )
 @ActiveProfiles("h2test")
-@Import({NotificationUtilAdapter.class, H2TestConfiguration.class})
+@Import({NotificationUtilRepository.class, H2TestConfiguration.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Tag("integration")
-class NotificationUtilAdapterIntegrationTest {
+class NotificationUtilRepositoryIntegrationTest {
 
     @Autowired
-    private NotificationUtilAdapter notificationUtilAdapter;
+    private NotificationUtilRepository notificationUtilRepository;
 
     @Autowired
     private TestEntityManager testEntityManager;
@@ -100,7 +100,7 @@ class NotificationUtilAdapterIntegrationTest {
     @Transactional
     void shouldReturnTrue_WhenMemberEligibleForPaperNotification() {
         // When: PAPER 알림 수신 자격 확인
-        boolean result = notificationUtilAdapter.SseEligibleForNotification(enabledMemberId, NotificationType.MESSAGE);
+        boolean result = notificationUtilRepository.SseEligibleForNotification(enabledMemberId, NotificationType.MESSAGE);
 
         // Then: 활성화된 사용자는 수신 가능해야 함
         assertThat(result).isTrue();
@@ -111,7 +111,7 @@ class NotificationUtilAdapterIntegrationTest {
     @Transactional
     void shouldReturnTrue_WhenMemberEligibleForCommentNotification() {
         // When: COMMENT 알림 수신 자격 확인
-        boolean result = notificationUtilAdapter.SseEligibleForNotification(enabledMemberId, NotificationType.COMMENT);
+        boolean result = notificationUtilRepository.SseEligibleForNotification(enabledMemberId, NotificationType.COMMENT);
 
         // Then: 활성화된 사용자는 수신 가능해야 함
         assertThat(result).isTrue();
@@ -122,7 +122,7 @@ class NotificationUtilAdapterIntegrationTest {
     @Transactional
     void shouldReturnTrue_WhenMemberEligibleForPostFeaturedNotification() {
         // When: POST_FEATURED 알림 수신 자격 확인
-        boolean result = notificationUtilAdapter.SseEligibleForNotification(enabledMemberId, NotificationType.POST_FEATURED);
+        boolean result = notificationUtilRepository.SseEligibleForNotification(enabledMemberId, NotificationType.POST_FEATURED);
 
         // Then: 활성화된 사용자는 수신 가능해야 함
         assertThat(result).isTrue();
@@ -133,7 +133,7 @@ class NotificationUtilAdapterIntegrationTest {
     @Transactional
     void shouldReturnFalse_WhenMemberNotEligibleForPaperNotification() {
         // When: PAPER 알림 수신 자격 확인
-        boolean result = notificationUtilAdapter.SseEligibleForNotification(disabledMemberId, NotificationType.MESSAGE);
+        boolean result = notificationUtilRepository.SseEligibleForNotification(disabledMemberId, NotificationType.MESSAGE);
 
         // Then: 비활성화된 사용자는 수신 불가능해야 함
         assertThat(result).isFalse();
@@ -144,8 +144,8 @@ class NotificationUtilAdapterIntegrationTest {
     @Transactional
     void shouldAlwaysReturnTrue_WhenAdminNotification() {
         // When: ADMIN 알림 수신 자격 확인 (비활성화된 사용자도)
-        boolean enabledMemberResult = notificationUtilAdapter.SseEligibleForNotification(enabledMemberId, NotificationType.ADMIN);
-        boolean disabledMemberResult = notificationUtilAdapter.SseEligibleForNotification(disabledMemberId, NotificationType.ADMIN);
+        boolean enabledMemberResult = notificationUtilRepository.SseEligibleForNotification(enabledMemberId, NotificationType.ADMIN);
+        boolean disabledMemberResult = notificationUtilRepository.SseEligibleForNotification(disabledMemberId, NotificationType.ADMIN);
 
         // Then: 설정과 관계없이 모든 사용자가 수신 가능해야 함
         assertThat(enabledMemberResult).isTrue();
@@ -157,8 +157,8 @@ class NotificationUtilAdapterIntegrationTest {
     @Transactional
     void shouldAlwaysReturnTrue_WhenInitiateNotification() {
         // When: INITIATE 알림 수신 자격 확인 (비활성화된 사용자도)
-        boolean enabledMemberResult = notificationUtilAdapter.SseEligibleForNotification(enabledMemberId, NotificationType.INITIATE);
-        boolean disabledMemberResult = notificationUtilAdapter.SseEligibleForNotification(disabledMemberId, NotificationType.INITIATE);
+        boolean enabledMemberResult = notificationUtilRepository.SseEligibleForNotification(enabledMemberId, NotificationType.INITIATE);
+        boolean disabledMemberResult = notificationUtilRepository.SseEligibleForNotification(disabledMemberId, NotificationType.INITIATE);
 
         // Then: 설정과 관계없이 모든 사용자가 수신 가능해야 함
         assertThat(enabledMemberResult).isTrue();
@@ -189,7 +189,7 @@ class NotificationUtilAdapterIntegrationTest {
         testEntityManager.clear();
 
         // When: FCM 토큰 조회 (PAPER 알림 타입)
-        List<String> result = notificationUtilAdapter.FcmEligibleFcmTokens(enabledMemberId, NotificationType.MESSAGE);
+        List<String> result = notificationUtilRepository.FcmEligibleFcmTokens(enabledMemberId, NotificationType.MESSAGE);
 
         // Then: FCM 토큰들이 조회되어야 함
         assertThat(result).hasSize(2);
@@ -212,7 +212,7 @@ class NotificationUtilAdapterIntegrationTest {
         testEntityManager.clear();
 
         // When: FCM 토큰 조회 (PAPER 알림 타입)
-        List<String> result = notificationUtilAdapter.FcmEligibleFcmTokens(disabledMemberId, NotificationType.MESSAGE);
+        List<String> result = notificationUtilRepository.FcmEligibleFcmTokens(disabledMemberId, NotificationType.MESSAGE);
 
         // Then: 빈 목록이 반환되어야 함 (알림 설정이 비활성화됨)
         assertThat(result).isEmpty();
@@ -226,7 +226,7 @@ class NotificationUtilAdapterIntegrationTest {
         Long nonExistentMemberId = 999999L;
 
         // When: 알림 수신 자격 확인
-        boolean result = notificationUtilAdapter.SseEligibleForNotification(nonExistentMemberId, NotificationType.MESSAGE);
+        boolean result = notificationUtilRepository.SseEligibleForNotification(nonExistentMemberId, NotificationType.MESSAGE);
 
         // Then: 수신 불가능해야 함
         assertThat(result).isFalse();
@@ -237,7 +237,7 @@ class NotificationUtilAdapterIntegrationTest {
     @Transactional
     void shouldReturnEmptyList_WhenMemberHasNoFcmTokens() {
         // When: FCM 토큰 조회 (토큰이 없는 활성화된 사용자)
-        List<String> result = notificationUtilAdapter.FcmEligibleFcmTokens(enabledMemberId, NotificationType.MESSAGE);
+        List<String> result = notificationUtilRepository.FcmEligibleFcmTokens(enabledMemberId, NotificationType.MESSAGE);
 
         // Then: 빈 목록이 반환되어야 함
         assertThat(result).isEmpty();

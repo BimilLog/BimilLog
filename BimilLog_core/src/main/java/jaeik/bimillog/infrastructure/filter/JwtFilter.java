@@ -9,6 +9,7 @@ import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
 import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.out.MemberQueryRepository;
+import jaeik.bimillog.domain.member.out.MemberRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jakarta.servlet.FilterChain;
@@ -39,7 +40,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
     private final GlobalAuthTokenQueryAdapter globalAuthTokenQueryAdapter;
-    private final MemberQueryRepository memberQueryRepository;
+    private final MemberRepository memberRepository;
     private final GlobalJwtAdapter globalJwtAdapter;
     private final GlobalCookieAdapter globalCookieAdapter;
     private final BlacklistService blacklistService;
@@ -138,7 +139,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 }
 
                 // 2-6. 유저 정보 조회
-                Member member = memberQueryRepository.findByIdWithSetting(authToken.getMember().getId())
+                Member member = memberRepository.findByIdWithSetting(authToken.getMember().getId())
                         .orElseThrow(() -> new CustomException(ErrorCode.TOKEN_NOT_FOUND));
                 CustomUserDetails userDetails = CustomUserDetails.ofExisting(member, tokenId);
 

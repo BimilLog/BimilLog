@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.notification.service;
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.listener.NotificationGenerateListener;
-import jaeik.bimillog.domain.notification.out.NotificationUtilAdapter;
+import jaeik.bimillog.domain.notification.repository.NotificationUtilRepository;
 import jaeik.bimillog.infrastructure.api.fcm.FcmAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +25,7 @@ import java.util.List;
 public class FcmCommandService {
 
     private final FcmAdapter fcmAdapter;
-    private final NotificationUtilAdapter notificationUtilAdapter;
+    private final NotificationUtilRepository notificationUtilRepository;
 
     /**
      * <h3>댓글 알림 FCM 전송</h3>
@@ -40,7 +40,7 @@ public class FcmCommandService {
      */
     public void sendCommentNotification(Long postUserId, String commenterName) {
         try {
-            List<String> tokens = notificationUtilAdapter.FcmEligibleFcmTokens(postUserId, NotificationType.COMMENT);
+            List<String> tokens = notificationUtilRepository.FcmEligibleFcmTokens(postUserId, NotificationType.COMMENT);
             String title = commenterName + "님이 댓글을 남겼습니다!";
             String body = "지금 확인해보세요!";
             boolean sent = sendNotifications(tokens, title, body);
@@ -64,7 +64,7 @@ public class FcmCommandService {
      */
     public void sendPaperPlantNotification(Long farmOwnerId) {
         try {
-            List<String> tokens = notificationUtilAdapter.FcmEligibleFcmTokens(farmOwnerId, NotificationType.MESSAGE);
+            List<String> tokens = notificationUtilRepository.FcmEligibleFcmTokens(farmOwnerId, NotificationType.MESSAGE);
             String title = "롤링페이퍼에 메시지가 작성되었어요!";
             String body = "지금 확인해보세요!";
             boolean sent = sendNotifications(tokens, title, body);
@@ -89,7 +89,7 @@ public class FcmCommandService {
      */
     public void sendPostFeaturedNotification(Long memberId, String title, String body) {
         try {
-            List<String> tokens = notificationUtilAdapter.FcmEligibleFcmTokens(memberId, NotificationType.POST_FEATURED);
+            List<String> tokens = notificationUtilRepository.FcmEligibleFcmTokens(memberId, NotificationType.POST_FEATURED);
             boolean sent = sendNotifications(tokens, title, body);
             if (sent) {
                 log.info("인기글 등극 알림 FCM 전송 완료: 사용자 ID={}, 토큰 수={}", memberId, tokens.size());
@@ -112,7 +112,7 @@ public class FcmCommandService {
      */
     public void sendFriendNotification(Long memberId, String title, String body) {
         try {
-            List<String> tokens = notificationUtilAdapter.FcmEligibleFcmTokens(memberId, NotificationType.FRIEND);
+            List<String> tokens = notificationUtilRepository.FcmEligibleFcmTokens(memberId, NotificationType.FRIEND);
             boolean sent = sendNotifications(tokens, title, body);
             if (sent) {
                 log.info("친구 요청 알림 FCM 전송 완료: 사용자 ID={}, 토큰 수={}", memberId, tokens.size());

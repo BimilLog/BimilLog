@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.notification.service;
 
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.notification.out.NotificationUtilAdapter;
+import jaeik.bimillog.domain.notification.repository.NotificationUtilRepository;
 import jaeik.bimillog.infrastructure.api.fcm.FcmAdapter;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -30,7 +30,7 @@ import static org.mockito.Mockito.*;
 class FcmCommandServiceTest {
 
     @Mock private FcmAdapter fcmAdapter;
-    @Mock private NotificationUtilAdapter notificationUtilAdapter;
+    @Mock private NotificationUtilRepository notificationUtilRepository;
 
     @InjectMocks private FcmCommandService fcmCommandService;
 
@@ -38,42 +38,42 @@ class FcmCommandServiceTest {
     @DisplayName("댓글 알림 전송 - 토큰 있음")
     void shouldSendCommentNotificationWhenTokensPresent() throws IOException {
         List<String> tokens = List.of("token-1", "token-2");
-        when(notificationUtilAdapter.FcmEligibleFcmTokens(1L, NotificationType.COMMENT)).thenReturn(tokens);
+        when(notificationUtilRepository.FcmEligibleFcmTokens(1L, NotificationType.COMMENT)).thenReturn(tokens);
 
         fcmCommandService.sendCommentNotification(1L, "commenter");
 
-        verify(notificationUtilAdapter).FcmEligibleFcmTokens(1L, NotificationType.COMMENT);
+        verify(notificationUtilRepository).FcmEligibleFcmTokens(1L, NotificationType.COMMENT);
         verify(fcmAdapter, times(2)).sendMessageTo(any(FcmMessage.class));
     }
 
     @Test
     @DisplayName("댓글 알림 전송 - 토큰 없음")
     void shouldSkipCommentNotificationWhenNoTokens() throws IOException {
-        when(notificationUtilAdapter.FcmEligibleFcmTokens(1L, NotificationType.COMMENT)).thenReturn(Collections.emptyList());
+        when(notificationUtilRepository.FcmEligibleFcmTokens(1L, NotificationType.COMMENT)).thenReturn(Collections.emptyList());
 
         fcmCommandService.sendCommentNotification(1L, "commenter");
 
-        verify(notificationUtilAdapter).FcmEligibleFcmTokens(1L, NotificationType.COMMENT);
+        verify(notificationUtilRepository).FcmEligibleFcmTokens(1L, NotificationType.COMMENT);
         verify(fcmAdapter, never()).sendMessageTo(any());
     }
 
     @Test
     @DisplayName("FCM 전송 실패 시 로깅 후 계속 진행")
     void shouldLogWhenSendFails() throws IOException {
-        when(notificationUtilAdapter.FcmEligibleFcmTokens(1L, NotificationType.COMMENT)).thenReturn(List.of("token-1"));
+        when(notificationUtilRepository.FcmEligibleFcmTokens(1L, NotificationType.COMMENT)).thenReturn(List.of("token-1"));
         doThrow(new IOException("fail"))
                 .when(fcmAdapter).sendMessageTo(any(FcmMessage.class));
 
         fcmCommandService.sendCommentNotification(1L, "commenter");
 
-        verify(notificationUtilAdapter).FcmEligibleFcmTokens(1L, NotificationType.COMMENT);
+        verify(notificationUtilRepository).FcmEligibleFcmTokens(1L, NotificationType.COMMENT);
         verify(fcmAdapter).sendMessageTo(any(FcmMessage.class));
     }
 
     @Test
     @DisplayName("알림 전송 시 메시지 내용 구성 검증")
     void shouldBuildMessageWithTitleAndBody() throws IOException {
-        when(notificationUtilAdapter.FcmEligibleFcmTokens(1L, NotificationType.POST_FEATURED)).thenReturn(List.of("token-1"));
+        when(notificationUtilRepository.FcmEligibleFcmTokens(1L, NotificationType.POST_FEATURED)).thenReturn(List.of("token-1"));
 
         ArgumentCaptor<FcmMessage> messageCaptor = ArgumentCaptor.forClass(FcmMessage.class);
 

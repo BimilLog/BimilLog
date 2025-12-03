@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.notification.controller.NotificationSseController;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.SseMessage;
 import jaeik.bimillog.domain.notification.listener.NotificationGenerateListener;
-import jaeik.bimillog.domain.notification.out.SseAdapter;
+import jaeik.bimillog.domain.notification.repository.SseRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -21,7 +21,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @RequiredArgsConstructor
 public class SseService {
 
-    private final SseAdapter sseAdapter;
+    private final SseRepository sseRepository;
     private final UrlGenerator urlGenerator;
 
     /**
@@ -37,7 +37,7 @@ public class SseService {
      * @since 2.0.0
      */
     public SseEmitter subscribe(Long memberId, Long tokenId) {
-        return sseAdapter.subscribe(memberId, tokenId);
+        return sseRepository.subscribe(memberId, tokenId);
     }
 
     /**
@@ -52,7 +52,7 @@ public class SseService {
      * @since 2.0.0
      */
     public void deleteEmitters(Long memberId, Long tokenId) {
-        sseAdapter.deleteEmitters(memberId, tokenId);
+        sseRepository.deleteEmitters(memberId, tokenId);
     }
 
     /**
@@ -71,7 +71,7 @@ public class SseService {
         String message = commenterName + "님이 댓글을 남겼습니다!";
         String url = urlGenerator.generatePostUrl(postId);
         SseMessage sseMessage = SseMessage.of(postUserId, NotificationType.COMMENT, message, url);
-        sseAdapter.send(sseMessage);
+        sseRepository.send(sseMessage);
     }
 
     /**
@@ -89,7 +89,7 @@ public class SseService {
         String message = "롤링페이퍼에 메시지가 작성되었어요!";
         String url = urlGenerator.generateRollingPaperUrl(memberName);
         SseMessage sseMessage = SseMessage.of(farmOwnerId, NotificationType.MESSAGE, message, url);
-        sseAdapter.send(sseMessage);
+        sseRepository.send(sseMessage);
     }
 
     /**
@@ -107,7 +107,7 @@ public class SseService {
     public void sendPostFeaturedNotification(Long memberId, String message, Long postId) {
         String url = urlGenerator.generatePostUrl(postId);
         SseMessage sseMessage = SseMessage.of(memberId, NotificationType.POST_FEATURED, message, url);
-        sseAdapter.send(sseMessage);
+        sseRepository.send(sseMessage);
     }
 
     /**
@@ -116,6 +116,6 @@ public class SseService {
     public void sendFriendNotification(Long receiveMemberId, String message) {
         String url = urlGenerator.generateFriendRequestUrl();
         SseMessage sseMessage = SseMessage.of(receiveMemberId, NotificationType.FRIEND, message, url);
-        sseAdapter.send(sseMessage);
+        sseRepository.send(sseMessage);
     }
 }
