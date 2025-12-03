@@ -1,6 +1,8 @@
 package jaeik.bimillog.domain.friend.service;
 
 import jaeik.bimillog.domain.friend.entity.jpa.Friendship;
+import jaeik.bimillog.domain.friend.event.FriendshipCreatedEvent;
+import jaeik.bimillog.domain.friend.event.FriendshipDeletedEvent;
 import jaeik.bimillog.domain.friend.repository.FriendRequestRepository;
 import jaeik.bimillog.domain.friend.repository.FriendshipRepository;
 import jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter;
@@ -17,6 +19,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
 
@@ -46,6 +49,7 @@ class FriendshipCommandServiceTest extends BaseUnitTest {
     @Mock private GlobalMemberQueryAdapter globalMemberQueryAdapter;
     @Mock private FriendshipRepository friendshipRepository;
     @Mock private FriendRequestRepository friendRequestRepository;
+    @Mock private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private FriendshipCommandService friendshipCommandService;
@@ -84,6 +88,7 @@ class FriendshipCommandServiceTest extends BaseUnitTest {
         // Then
         verify(friendshipRepository, times(1)).save(any(Friendship.class));
         verify(friendRequestRepository, times(1)).deleteById(FRIEND_REQUEST_ID);
+        verify(eventPublisher, times(1)).publishEvent(any(FriendshipCreatedEvent.class));
     }
 
     @Test
@@ -99,6 +104,7 @@ class FriendshipCommandServiceTest extends BaseUnitTest {
 
         verify(friendshipRepository, never()).save(any(Friendship.class));
         verify(friendRequestRepository, never()).deleteById(any());
+        verify(eventPublisher, never()).publishEvent(any());
     }
 
     @Test
@@ -115,6 +121,7 @@ class FriendshipCommandServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.BLACKLIST_MEMBER_PAPER_FORBIDDEN);
 
         verify(friendshipRepository, never()).save(any(Friendship.class));
+        verify(eventPublisher, never()).publishEvent(any());
     }
 
     @Test
@@ -131,6 +138,7 @@ class FriendshipCommandServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FRIEND_SHIP_ALREADY_EXIST);
 
         verify(friendshipRepository, never()).save(any(Friendship.class));
+        verify(eventPublisher, never()).publishEvent(any());
     }
 
     @Test
@@ -148,6 +156,7 @@ class FriendshipCommandServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FRIEND_SHIP_ALREADY_EXIST);
 
         verify(friendshipRepository, never()).save(any(Friendship.class));
+        verify(eventPublisher, never()).publishEvent(any());
     }
 
     @Test
@@ -166,6 +175,7 @@ class FriendshipCommandServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MEMBER_USER_NOT_FOUND);
 
         verify(friendshipRepository, never()).save(any(Friendship.class));
+        verify(eventPublisher, never()).publishEvent(any());
     }
 
     // ==================== deleteFriendship ====================
@@ -181,6 +191,7 @@ class FriendshipCommandServiceTest extends BaseUnitTest {
 
         // Then
         verify(friendshipRepository, times(1)).delete(friendship);
+        verify(eventPublisher, times(1)).publishEvent(any(FriendshipDeletedEvent.class));
     }
 
     @Test
@@ -194,6 +205,7 @@ class FriendshipCommandServiceTest extends BaseUnitTest {
 
         // Then
         verify(friendshipRepository, times(1)).delete(friendship);
+        verify(eventPublisher, times(1)).publishEvent(any(FriendshipDeletedEvent.class));
     }
 
     @Test
@@ -208,6 +220,7 @@ class FriendshipCommandServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FRIEND_SHIP_NOT_FOUND);
 
         verify(friendshipRepository, never()).delete(any());
+        verify(eventPublisher, never()).publishEvent(any());
     }
 
     @Test
@@ -223,5 +236,6 @@ class FriendshipCommandServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FRIEND_SHIP_DELETE_FORBIDDEN);
 
         verify(friendshipRepository, never()).delete(any());
+        verify(eventPublisher, never()).publishEvent(any());
     }
 }

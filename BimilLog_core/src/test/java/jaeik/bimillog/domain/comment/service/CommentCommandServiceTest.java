@@ -8,9 +8,9 @@ import jaeik.bimillog.domain.comment.repository.CommentClosureRepository;
 import jaeik.bimillog.domain.comment.repository.CommentDeleteRepository;
 import jaeik.bimillog.domain.comment.repository.CommentLikeRepository;
 import jaeik.bimillog.domain.comment.repository.CommentRepository;
-import jaeik.bimillog.domain.global.out.GlobalCommentQueryAdapter;
+import jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter;
 import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
-import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
+import jaeik.bimillog.domain.post.out.PostRepository;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -60,8 +60,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
     @Mock private CommentClosureRepository commentClosureRepository;
     @Mock private CommentLikeRepository commentLikeRepository;
     @Mock private GlobalMemberQueryAdapter globalMemberQueryAdapter;
-    @Mock private GlobalPostQueryAdapter globalPostQueryAdapter;
-    @Mock private GlobalCommentQueryAdapter globalCommentQueryAdapter;
+    @Mock private GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
+    @Mock private PostRepository postRepository;
     @Mock private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
@@ -83,7 +83,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
     @DisplayName("댓글 좋아요 추가 성공")
     void shouldAddLike_WhenMemberHasNotLikedComment() {
         // Given
-        given(globalCommentQueryAdapter.findById(TEST_COMMENT_ID)).willReturn(testComment);
+        given(commentRepository.findById(TEST_COMMENT_ID)).willReturn(Optional.of(testComment));
         given(globalMemberQueryAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
         given(commentLikeRepository.existsByCommentIdAndMemberId(TEST_COMMENT_ID, getTestMember().getId())).willReturn(false);
 
@@ -105,7 +105,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
     @DisplayName("댓글 좋아요 취소 성공")
     void shouldRemoveLike_WhenMemberHasAlreadyLikedComment() {
         // Given
-        given(globalCommentQueryAdapter.findById(TEST_COMMENT_ID)).willReturn(testComment);
+        given(commentRepository.findById(TEST_COMMENT_ID)).willReturn(Optional.of(testComment));
         given(globalMemberQueryAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
         given(commentLikeRepository.existsByCommentIdAndMemberId(TEST_COMMENT_ID, getTestMember().getId())).willReturn(true);
 
@@ -121,14 +121,14 @@ class CommentCommandServiceTest extends BaseUnitTest {
     @DisplayName("존재하지 않는 댓글에 좋아요 시 COMMENT_NOT_FOUND 예외 발생")
     void shouldThrowException_WhenCommentNotFound() {
         // Given
-        given(globalCommentQueryAdapter.findById(TEST_COMMENT_ID)).willThrow(new CustomException(ErrorCode.COMMENT_NOT_FOUND));
+        given(commentRepository.findById(TEST_COMMENT_ID)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.likeComment(getTestMember().getId(), TEST_COMMENT_ID))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_NOT_FOUND);
 
-        verify(globalCommentQueryAdapter).findById(TEST_COMMENT_ID);
+        verify(commentRepository).findById(TEST_COMMENT_ID);
         verify(globalMemberQueryAdapter, never()).findById(any());
         verify(commentLikeRepository, never()).existsByCommentIdAndMemberId(anyLong(), anyLong());
         verify(commentLikeRepository, never()).save(any());
@@ -139,7 +139,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
     @DisplayName("존재하지 않는 사용자가 좋아요 시 USER_NOT_FOUND 예외 발생")
     void shouldThrowException_WhenUserNotFound() {
         // Given
-        given(globalCommentQueryAdapter.findById(TEST_COMMENT_ID)).willReturn(testComment);
+        given(commentRepository.findById(TEST_COMMENT_ID)).willReturn(Optional.of(testComment));
         given(globalMemberQueryAdapter.findById(getTestMember().getId())).willReturn(Optional.empty());
 
         // When & Then
@@ -147,7 +147,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MEMBER_USER_NOT_FOUND);
 
-        verify(globalCommentQueryAdapter).findById(TEST_COMMENT_ID);
+        verify(commentRepository).findById(TEST_COMMENT_ID);
         verify(globalMemberQueryAdapter).findById(getTestMember().getId());
         verify(commentLikeRepository, never()).existsByCommentIdAndMemberId(anyLong(), anyLong());
         verify(commentLikeRepository, never()).save(any());
@@ -158,7 +158,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
     @DisplayName("익명 사용자(null memberId)가 좋아요 시 예외 발생")
     void shouldThrowException_WhenUserIdIsNull() {
         // Given
-        given(globalCommentQueryAdapter.findById(TEST_COMMENT_ID)).willReturn(testComment);
+        given(commentRepository.findById(TEST_COMMENT_ID)).willReturn(Optional.of(testComment));
         given(globalMemberQueryAdapter.findById(null)).willReturn(Optional.empty());
 
         // When & Then
@@ -166,7 +166,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MEMBER_USER_NOT_FOUND);
 
-        verify(globalCommentQueryAdapter).findById(TEST_COMMENT_ID);
+        verify(commentRepository).findById(TEST_COMMENT_ID);
         verify(globalMemberQueryAdapter).findById(null);
         verify(commentLikeRepository, never()).existsByCommentIdAndMemberId(anyLong(), anyLong());
         verify(commentLikeRepository, never()).save(any());
@@ -180,7 +180,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         Comment ownComment = CommentTestDataBuilder.createComment(testPost, getTestMember(), "내가 작성한 댓글");
         TestFixtures.setFieldValue(ownComment, "id", 200L);
 
-        given(globalCommentQueryAdapter.findById(TEST_COMMENT_ID)).willReturn(ownComment);
+        given(commentRepository.findById(TEST_COMMENT_ID)).willReturn(Optional.of(ownComment));
         given(globalMemberQueryAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
         given(commentLikeRepository.existsByCommentIdAndMemberId(TEST_COMMENT_ID, getTestMember().getId())).willReturn(false);
 
@@ -200,13 +200,13 @@ class CommentCommandServiceTest extends BaseUnitTest {
     @DisplayName("인증된 사용자의 댓글 수정 성공")
     void shouldUpdateComment_WhenAuthenticatedMemberOwnsComment() {
         // Given
-        given(globalCommentQueryAdapter.findById(TEST_COMMENT_ID)).willReturn(testComment);
+        given(commentRepository.findById(TEST_COMMENT_ID)).willReturn(Optional.of(testComment));
 
         // When
         commentCommandService.updateComment(TEST_COMMENT_ID, getTestMember().getId(), TEST_UPDATED_CONTENT, null);
 
         // Then
-        verify(globalCommentQueryAdapter).findById(TEST_COMMENT_ID);
+        verify(commentRepository).findById(TEST_COMMENT_ID);
     }
 
     @Test
@@ -216,27 +216,27 @@ class CommentCommandServiceTest extends BaseUnitTest {
         Comment anonymousComment = Comment.createComment(testPost, null, "익명 댓글", TEST_PASSWORD);
         TestFixtures.setFieldValue(anonymousComment, "id", TEST_COMMENT_ID);
 
-        given(globalCommentQueryAdapter.findById(TEST_COMMENT_ID)).willReturn(anonymousComment);
+        given(commentRepository.findById(TEST_COMMENT_ID)).willReturn(Optional.of(anonymousComment));
 
         // When
         commentCommandService.updateComment(TEST_COMMENT_ID, null, "수정된 익명 댓글", TEST_PASSWORD);
 
         // Then
-        verify(globalCommentQueryAdapter).findById(TEST_COMMENT_ID);
+        verify(commentRepository).findById(TEST_COMMENT_ID);
     }
 
     @Test
     @DisplayName("존재하지 않는 댓글 수정 시 COMMENT_NOT_FOUND 예외 발생")
     void shouldThrowException_WhenCommentNotFoundForUpdate() {
         // Given
-        given(globalCommentQueryAdapter.findById(TEST_COMMENT_ID)).willThrow(new CustomException(ErrorCode.COMMENT_NOT_FOUND));
+        given(commentRepository.findById(TEST_COMMENT_ID)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.updateComment(TEST_COMMENT_ID, getTestMember().getId(), TEST_UPDATED_CONTENT, null))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_NOT_FOUND);
 
-        verify(globalCommentQueryAdapter).findById(TEST_COMMENT_ID);
+        verify(commentRepository).findById(TEST_COMMENT_ID);
     }
 
     @Test
@@ -246,14 +246,14 @@ class CommentCommandServiceTest extends BaseUnitTest {
         Comment passwordComment = Comment.createComment(testPost, null, "패스워드 댓글", TEST_PASSWORD);
         TestFixtures.setFieldValue(passwordComment, "id", TEST_COMMENT_ID);
 
-        given(globalCommentQueryAdapter.findById(TEST_COMMENT_ID)).willReturn(passwordComment);
+        given(commentRepository.findById(TEST_COMMENT_ID)).willReturn(Optional.of(passwordComment));
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.updateComment(TEST_COMMENT_ID, null, TEST_UPDATED_CONTENT, 9999))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_UNAUTHORIZED);
 
-        verify(globalCommentQueryAdapter).findById(TEST_COMMENT_ID);
+        verify(commentRepository).findById(TEST_COMMENT_ID);
     }
 
     @Test
@@ -266,14 +266,14 @@ class CommentCommandServiceTest extends BaseUnitTest {
         Comment anotherMemberComment = CommentTestDataBuilder.createComment(testPost, anotherMember, "다른 사용자 댓글");
         TestFixtures.setFieldValue(anotherMemberComment, "id", 200L);
 
-        given(globalCommentQueryAdapter.findById(200L)).willReturn(anotherMemberComment);
+        given(commentRepository.findById(200L)).willReturn(Optional.of(anotherMemberComment));
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.updateComment(200L, memberId, TEST_UPDATED_CONTENT, null))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_UNAUTHORIZED);
 
-        verify(globalCommentQueryAdapter).findById(200L);
+        verify(commentRepository).findById(200L);
     }
 
     @Test
@@ -281,14 +281,14 @@ class CommentCommandServiceTest extends BaseUnitTest {
     void shouldDeleteComment_WhenNoDescendants() {
         // Given
         Long memberId = 100L;
-        given(globalCommentQueryAdapter.findById(200L)).willReturn(testComment);
+        given(commentRepository.findById(200L)).willReturn(Optional.of(testComment));
         given(commentClosureRepository.existsByAncestor_IdAndDepthGreaterThan(200L, 0)).willReturn(false);
 
         // When
         commentCommandService.deleteComment(200L, memberId, null);
 
         // Then
-        verify(globalCommentQueryAdapter).findById(200L);
+        verify(commentRepository).findById(200L);
         verify(commentDeleteRepository).deleteComment(200L);
     }
 
@@ -297,14 +297,14 @@ class CommentCommandServiceTest extends BaseUnitTest {
     void shouldSoftDeleteComment_WhenHasDescendants() {
         // Given
         Long memberId = 100L;
-        given(globalCommentQueryAdapter.findById(200L)).willReturn(testComment);
+        given(commentRepository.findById(200L)).willReturn(Optional.of(testComment));
         given(commentClosureRepository.existsByAncestor_IdAndDepthGreaterThan(200L, 0)).willReturn(true);
 
         // When
         commentCommandService.deleteComment(200L, memberId, null);
 
         // Then
-        verify(globalCommentQueryAdapter).findById(200L);
+        verify(commentRepository).findById(200L);
         verify(commentClosureRepository).existsByAncestor_IdAndDepthGreaterThan(200L, 0);
         verify(commentDeleteRepository, never()).deleteComment(any());
     }
@@ -314,14 +314,14 @@ class CommentCommandServiceTest extends BaseUnitTest {
     @DisplayName("인증 정보가 null인 상태에서 패스워드 없는 댓글 수정 시 예외 발생")
     void shouldThrowException_WhenNullMemberDetailsWithoutPassword() {
         // Given
-        given(globalCommentQueryAdapter.findById(200L)).willReturn(testComment);
+        given(commentRepository.findById(200L)).willReturn(Optional.of(testComment));
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.updateComment(200L, null, TEST_UPDATED_CONTENT, null))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_UNAUTHORIZED);
 
-        verify(globalCommentQueryAdapter).findById(200L);
+        verify(commentRepository).findById(200L);
     }
 
     @Test
@@ -333,13 +333,13 @@ class CommentCommandServiceTest extends BaseUnitTest {
         TestFixtures.setFieldValue(deletedComment, "id", 200L);
         TestFixtures.setFieldValue(deletedComment, "deleted", true);
 
-        given(globalCommentQueryAdapter.findById(200L)).willReturn(deletedComment);
+        given(commentRepository.findById(200L)).willReturn(Optional.of(deletedComment));
 
         // When
         commentCommandService.updateComment(200L, memberId, TEST_UPDATED_CONTENT, null);
 
         // Then
-        verify(globalCommentQueryAdapter).findById(200L);
+        verify(commentRepository).findById(200L);
     }
 
     @Test
@@ -349,14 +349,14 @@ class CommentCommandServiceTest extends BaseUnitTest {
         Comment emptyPasswordComment = Comment.createComment(testPost, null, "빈 패스워드 댓글", null);
         TestFixtures.setFieldValue(emptyPasswordComment, "id", 200L);
 
-        given(globalCommentQueryAdapter.findById(200L)).willReturn(emptyPasswordComment);
+        given(commentRepository.findById(200L)).willReturn(Optional.of(emptyPasswordComment));
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.updateComment(200L, null, "수정된 댓글", null))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_UNAUTHORIZED);
 
-        verify(globalCommentQueryAdapter).findById(200L);
+        verify(commentRepository).findById(200L);
     }
 
     // === 누락된 댓글 삭제 테스트 케이스들 ===
@@ -368,14 +368,14 @@ class CommentCommandServiceTest extends BaseUnitTest {
         Comment anonymousComment = Comment.createComment(testPost, null, "익명 댓글", 1234);
         TestFixtures.setFieldValue(anonymousComment, "id", 300L);
 
-        given(globalCommentQueryAdapter.findById(300L)).willReturn(anonymousComment);
+        given(commentRepository.findById(300L)).willReturn(Optional.of(anonymousComment));
         given(commentClosureRepository.existsByAncestor_IdAndDepthGreaterThan(300L, 0)).willReturn(false);
 
         // When
         commentCommandService.deleteComment(300L, null, 1234);
 
         // Then
-        verify(globalCommentQueryAdapter).findById(300L);
+        verify(commentRepository).findById(300L);
         verify(commentDeleteRepository).deleteComment(300L);
     }
 
@@ -386,14 +386,14 @@ class CommentCommandServiceTest extends BaseUnitTest {
         Comment anonymousComment = Comment.createComment(testPost, null, "익명 댓글", 1234);
         TestFixtures.setFieldValue(anonymousComment, "id", 300L);
 
-        given(globalCommentQueryAdapter.findById(300L)).willReturn(anonymousComment);
+        given(commentRepository.findById(300L)).willReturn(Optional.of(anonymousComment));
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.deleteComment(300L, null, 9999))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_UNAUTHORIZED);
 
-        verify(globalCommentQueryAdapter).findById(300L);
+        verify(commentRepository).findById(300L);
         verify(commentDeleteRepository, never()).deleteComment(any());
     }
 
@@ -405,14 +405,14 @@ class CommentCommandServiceTest extends BaseUnitTest {
         Comment parentComment = CommentTestDataBuilder.createComment(testPost, getTestMember(), "부모 댓글");
         TestFixtures.setFieldValue(parentComment, "id", 400L);
 
-        given(globalCommentQueryAdapter.findById(400L)).willReturn(parentComment);
+        given(commentRepository.findById(400L)).willReturn(Optional.of(parentComment));
         given(commentClosureRepository.existsByAncestor_IdAndDepthGreaterThan(400L, 0)).willReturn(true);
 
         // When
         commentCommandService.deleteComment(400L, memberId, null);
 
         // Then
-        verify(globalCommentQueryAdapter).findById(400L);
+        verify(commentRepository).findById(400L);
         verify(commentClosureRepository).existsByAncestor_IdAndDepthGreaterThan(400L, 0);
         verify(commentDeleteRepository, never()).deleteComment(any());
     }
@@ -424,14 +424,14 @@ class CommentCommandServiceTest extends BaseUnitTest {
         Comment anonymousParentComment = Comment.createComment(testPost, null, "익명 부모 댓글", 5678);
         TestFixtures.setFieldValue(anonymousParentComment, "id", 500L);
 
-        given(globalCommentQueryAdapter.findById(500L)).willReturn(anonymousParentComment);
+        given(commentRepository.findById(500L)).willReturn(Optional.of(anonymousParentComment));
         given(commentClosureRepository.existsByAncestor_IdAndDepthGreaterThan(500L, 0)).willReturn(true);
 
         // When
         commentCommandService.deleteComment(500L, null, 5678);
 
         // Then
-        verify(globalCommentQueryAdapter).findById(500L);
+        verify(commentRepository).findById(500L);
         verify(commentClosureRepository).existsByAncestor_IdAndDepthGreaterThan(500L, 0);
         verify(commentDeleteRepository, never()).deleteComment(any());
     }
@@ -446,14 +446,14 @@ class CommentCommandServiceTest extends BaseUnitTest {
         Comment anotherMemberComment = CommentTestDataBuilder.createComment(testPost, anotherMember, "다른 사용자 댓글");
         TestFixtures.setFieldValue(anotherMemberComment, "id", 600L);
 
-        given(globalCommentQueryAdapter.findById(600L)).willReturn(anotherMemberComment);
+        given(commentRepository.findById(600L)).willReturn(Optional.of(anotherMemberComment));
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.deleteComment(600L, requestMemberId, null))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_UNAUTHORIZED);
 
-        verify(globalCommentQueryAdapter).findById(600L);
+        verify(commentRepository).findById(600L);
         verify(commentDeleteRepository, never()).deleteComment(any());
     }
 
@@ -468,7 +468,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         Comment savedComment = CommentTestDataBuilder.createComment(testPost, getTestMember(), content);
         TestFixtures.setFieldValue(savedComment, "id", TEST_COMMENT_ID);
 
-        given(globalPostQueryAdapter.findById(postId)).willReturn(testPost);
+        given(postRepository.findById(postId)).willReturn(Optional.of(testPost));
         given(globalMemberQueryAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
         given(commentRepository.save(any(Comment.class))).willReturn(savedComment);
 
@@ -499,7 +499,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         Comment savedComment = Comment.createComment(testPost, null, content, password);
         TestFixtures.setFieldValue(savedComment, "id", TEST_COMMENT_ID);
 
-        given(globalPostQueryAdapter.findById(postId)).willReturn(testPost);
+        given(postRepository.findById(postId)).willReturn(Optional.of(testPost));
         given(commentRepository.save(any(Comment.class))).willReturn(savedComment);
 
         // When
@@ -537,7 +537,8 @@ class CommentCommandServiceTest extends BaseUnitTest {
         CommentClosure parentClosure = CommentClosure.createCommentClosure(parentComment, parentComment, 0);
         List<CommentClosure> parentClosures = Collections.singletonList(parentClosure);
 
-        given(globalPostQueryAdapter.findById(postId)).willReturn(testPost);
+        given(postRepository.findById(postId)).willReturn(Optional.of(testPost));
+        given(commentRepository.findById(parentId)).willReturn(Optional.of(parentComment));
         given(globalMemberQueryAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
         given(commentRepository.save(any(Comment.class))).willReturn(savedComment);
         given(commentClosureRepository.findByDescendantId(parentId)).willReturn(Optional.of(parentClosures));
@@ -560,14 +561,14 @@ class CommentCommandServiceTest extends BaseUnitTest {
     void shouldThrowException_WhenPostNotFound() {
         // Given
         Long postId = 999L;
-        given(globalPostQueryAdapter.findById(postId)).willThrow(new RuntimeException("게시글을 찾을 수 없습니다."));
+        given(postRepository.findById(postId)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.writeComment(getTestMember().getId(), postId, null, "댓글", null))
                 .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_WRITE_FAILED);
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
-        verify(globalPostQueryAdapter).findById(postId);
+        verify(postRepository).findById(postId);
         verify(commentRepository, never()).save(any(Comment.class));
         verify(eventPublisher, never()).publishEvent(any());
     }
@@ -578,22 +579,17 @@ class CommentCommandServiceTest extends BaseUnitTest {
         // Given
         Long postId = 300L;
         Long parentId = 999L;
-        Comment savedComment = CommentTestDataBuilder.createComment(testPost, getTestMember(), "대댓글");
-        TestFixtures.setFieldValue(savedComment, "id", TEST_COMMENT_ID);
 
-        given(globalPostQueryAdapter.findById(postId)).willReturn(testPost);
-        given(globalMemberQueryAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
-        given(commentRepository.save(any(Comment.class))).willReturn(savedComment);
-        given(commentClosureRepository.findByDescendantId(parentId)).willReturn(Optional.empty());
+        given(postRepository.findById(postId)).willReturn(Optional.of(testPost));
+        given(commentRepository.findById(parentId)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.writeComment(getTestMember().getId(), postId, parentId, "대댓글", null))
                 .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_WRITE_FAILED);
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_NOT_FOUND);
 
-        verify(globalPostQueryAdapter).findById(postId);
-        verify(commentRepository).save(any(Comment.class));
-        verify(commentClosureRepository).findByDescendantId(parentId);
+        verify(postRepository).findById(postId);
+        verify(commentRepository).findById(parentId);
         verify(eventPublisher, never()).publishEvent(any());
     }
 
@@ -607,13 +603,13 @@ class CommentCommandServiceTest extends BaseUnitTest {
         Long parentId = 100L;
         Long grandParentId = 50L;
         String content = "대댓글의 대댓글";
-        
+
         Comment savedComment = CommentTestDataBuilder.createComment(testPost, getTestMember(), content);
         TestFixtures.setFieldValue(savedComment, "id", TEST_COMMENT_ID);
 
         Comment parentComment = CommentTestDataBuilder.createComment(testPost, getTestMember(), "부모 댓글");
         TestFixtures.setFieldValue(parentComment, "id", parentId);
-        
+
         Comment grandParentComment = CommentTestDataBuilder.createComment(testPost, getTestMember(), "조부모 댓글");
         TestFixtures.setFieldValue(grandParentComment, "id", grandParentId);
 
@@ -621,10 +617,11 @@ class CommentCommandServiceTest extends BaseUnitTest {
         CommentClosure grandParentClosure = CommentClosure.createCommentClosure(grandParentComment, grandParentComment, 0);
         CommentClosure parentToGrandParent = CommentClosure.createCommentClosure(grandParentComment, parentComment, 1);
         CommentClosure parentClosure = CommentClosure.createCommentClosure(parentComment, parentComment, 0);
-        
+
         List<CommentClosure> parentClosures = List.of(parentToGrandParent, parentClosure);
 
-        given(globalPostQueryAdapter.findById(postId)).willReturn(testPost);
+        given(postRepository.findById(postId)).willReturn(Optional.of(testPost));
+        given(commentRepository.findById(parentId)).willReturn(Optional.of(parentComment));
         given(globalMemberQueryAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
         given(commentRepository.save(any(Comment.class))).willReturn(savedComment);
         given(commentClosureRepository.findByDescendantId(parentId)).willReturn(Optional.of(parentClosures));
@@ -639,7 +636,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         List<CommentClosure> capturedClosures = closureCaptor.getValue();
         // depth가 2인 관계가 포함되어야 함 (조부모와의 관계)
         assertThat(capturedClosures).hasSize(3); // 자기 자신 + 부모와의 관계 + 조부모와의 관계
-        
+
         verify(eventPublisher).publishEvent(any(CommentCreatedEvent.class));
     }
 }
