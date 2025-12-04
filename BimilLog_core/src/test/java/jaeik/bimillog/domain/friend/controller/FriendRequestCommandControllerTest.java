@@ -55,7 +55,7 @@ class FriendRequestCommandControllerTest extends BaseIntegrationTest {
     // ==================== POST /api/friend/send ====================
 
     @Test
-    @DisplayName("친구 요청 전송 성공 - 201 OK 및 보낸 요청 목록 반환")
+    @DisplayName("친구 요청 전송 성공 - 200 OK 및 보낸 요청 목록 반환")
     void shouldSendFriendRequest_AndReturnSentRequests() throws Exception {
         // Given
         Member newReceiver = saveMember(TestMembers.createUniqueWithPrefix("newReceiver"));
@@ -71,12 +71,13 @@ class FriendRequestCommandControllerTest extends BaseIntegrationTest {
                         .param("size", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.totalElements").value(1))
                 .andExpect(jsonPath("$.content[0].receiverMemberId").value(newReceiver.getId()));
     }
 
     @Test
-    @DisplayName("친구 요청 전송 실패 - 자기 자신에게 요청 (400 Bad Request)")
-    void shouldReturn400_WhenSendingToSelf() throws Exception {
+    @DisplayName("친구 요청 전송 실패 - 자기 자신에게 요청 (403 Forbidden)")
+    void shouldReturn403_WhenSendingToSelf() throws Exception {
         // Given
         FriendSenderRequest request = new FriendSenderRequest(null, testMember.getId(), null);
 
@@ -88,7 +89,7 @@ class FriendRequestCommandControllerTest extends BaseIntegrationTest {
                         .content(objectMapper.writeValueAsString(request))
                         .param("page", "0")
                         .param("size", "10"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -126,8 +127,8 @@ class FriendRequestCommandControllerTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("보낸 친구 요청 취소 실패 - 존재하지 않는 요청 (404 Not Found)")
-    void shouldReturn404_WhenCancelingNonExistentRequest() throws Exception {
+    @DisplayName("보낸 친구 요청 취소 실패 - 존재하지 않는 요청 (400 Bad Request)")
+    void shouldReturn400_WhenCancelingNonExistentRequest() throws Exception {
         // Given
         Long nonExistentId = 999999L;
 
@@ -137,7 +138,7 @@ class FriendRequestCommandControllerTest extends BaseIntegrationTest {
                         .with(csrf())
                         .param("page", "0")
                         .param("size", "10"))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -174,8 +175,8 @@ class FriendRequestCommandControllerTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("받은 친구 요청 거절 실패 - 존재하지 않는 요청 (404 Not Found)")
-    void shouldReturn404_WhenRejectingNonExistentRequest() throws Exception {
+    @DisplayName("받은 친구 요청 거절 실패 - 존재하지 않는 요청 (400 Bad Request)")
+    void shouldReturn400_WhenRejectingNonExistentRequest() throws Exception {
         // Given
         Long nonExistentId = 999999L;
         var receiverUserDetails = createCustomUserDetails(receiver);
@@ -186,7 +187,7 @@ class FriendRequestCommandControllerTest extends BaseIntegrationTest {
                         .with(csrf())
                         .param("page", "0")
                         .param("size", "10"))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -224,8 +225,8 @@ class FriendRequestCommandControllerTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("받은 친구 요청 수락 실패 - 존재하지 않는 요청 (404 Not Found)")
-    void shouldReturn404_WhenAcceptingNonExistentRequest() throws Exception {
+    @DisplayName("받은 친구 요청 수락 실패 - 존재하지 않는 요청 (400 Bad Request)")
+    void shouldReturn400_WhenAcceptingNonExistentRequest() throws Exception {
         // Given
         Long nonExistentId = 999999L;
         var receiverUserDetails = createCustomUserDetails(receiver);
@@ -236,7 +237,7 @@ class FriendRequestCommandControllerTest extends BaseIntegrationTest {
                         .with(csrf())
                         .param("page", "0")
                         .param("size", "10"))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
