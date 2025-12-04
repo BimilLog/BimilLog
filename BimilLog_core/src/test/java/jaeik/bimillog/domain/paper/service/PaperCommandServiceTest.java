@@ -47,6 +47,12 @@ class PaperCommandServiceTest extends BaseUnitTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
+    @Mock
+    private jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
+
+    @Mock
+    private jaeik.bimillog.infrastructure.redis.paper.RedisPaperDeleteAdapter redisPaperDeleteAdapter;
+
     @InjectMocks
     private PaperCommandService paperCommandService;
 

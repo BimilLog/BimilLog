@@ -51,6 +51,12 @@ class PostInteractionServiceTest extends BaseUnitTest {
     @Mock
     private jaeik.bimillog.domain.post.out.PostRepository postRepository;
 
+    @Mock
+    private jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
+
+    @Mock
+    private jaeik.bimillog.domain.post.out.PostLikeQueryRepository postLikeQueryRepository;
+
     @InjectMocks
     private PostInteractionService postInteractionService;
 
