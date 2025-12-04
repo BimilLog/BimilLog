@@ -71,8 +71,8 @@ class FriendRequestCommandControllerTest extends BaseIntegrationTest {
                         .param("size", "10"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())
-                .andExpect(jsonPath("$.totalElements").value(1))
-                .andExpect(jsonPath("$.content[0].receiverMemberId").value(newReceiver.getId()));
+                .andExpect(jsonPath("$.totalElements").value(2))  // setUpChild()에서 1개 + 테스트에서 1개 = 총 2개
+                .andExpect(jsonPath("$.content[0].receiverMemberId").value(newReceiver.getId()));  // 최신순 정렬로 새 요청이 첫 번째
     }
 
     @Test
@@ -93,8 +93,8 @@ class FriendRequestCommandControllerTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("친구 요청 전송 실패 - 인증되지 않은 사용자 (401 Unauthorized)")
-    void shouldReturn401_WhenUnauthorized() throws Exception {
+    @DisplayName("친구 요청 전송 실패 - 인증되지 않은 사용자 (403 Forbidden)")
+    void shouldReturn403_WhenUnauthorized() throws Exception {
         // Given
         FriendSenderRequest request = new FriendSenderRequest(null, receiver.getId(), null);
 
@@ -105,7 +105,7 @@ class FriendRequestCommandControllerTest extends BaseIntegrationTest {
                         .content(objectMapper.writeValueAsString(request))
                         .param("page", "0")
                         .param("size", "10"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());  // Spring Security 기본 동작: 인증 없이 인증 필요 엔드포인트 접근 시 403 반환
     }
 
     // ==================== DELETE /api/friend/send/{id} ====================
