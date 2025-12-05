@@ -75,7 +75,7 @@ export const HomeFooter: React.FC = () => {
             </p>
           </div>
 
-          <hr data-testid="footer-divider" className="w-full sm:mx-auto lg:my-6 dark:border-gray-700 border-gray-200 my-6" />
+          <hr data-testid="footer-divider" className="w-full sm:mx-auto lg:my-6 border-border my-6" />
 
           {/* Links Grid - All sections in one row */}
           <div className="grid grid-cols-5 gap-4 sm:gap-6">

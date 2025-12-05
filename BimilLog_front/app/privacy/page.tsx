@@ -7,13 +7,13 @@ export default function PrivacyPage() {
   return (
     <CleanLayout className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-[#121327] dark:via-[#1a1030] dark:to-[#0b0c1c]">
       <main className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-brand-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <div className="bg-card rounded-2xl shadow-brand-xl border border-border overflow-hidden">
           <LegalDocumentHeader title="개인정보 처리방침" />
 
-          <div className="px-8 py-6 dark:text-gray-100">
+          <div className="px-8 py-6 text-foreground">
             <div className="prose prose-lg max-w-none dark:prose-invert">
               <section className="mb-8">
-                <h2 className="text-xl font-semibold text-brand-primary dark:text-gray-100 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                <h2 className="text-xl font-semibold text-foreground mb-4 border-b border-border pb-2">
                   [1. 총 칙]
                 </h2>
                 <p className="text-brand-primary leading-relaxed">
@@ -37,7 +37,7 @@ export default function PrivacyPage() {
               </section>
 
               <section className="mb-8">
-                <h2 className="text-xl font-semibold text-brand-primary dark:text-gray-100 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                <h2 className="text-xl font-semibold text-foreground mb-4 border-b border-border pb-2">
                   [2. 개인정보 수집에 대한 동의]
                 </h2>
                 <p className="text-brand-primary leading-relaxed">
@@ -49,7 +49,7 @@ export default function PrivacyPage() {
               </section>
 
               <section className="mb-8">
-                <h2 className="text-xl font-semibold text-brand-primary dark:text-gray-100 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                <h2 className="text-xl font-semibold text-foreground mb-4 border-b border-border pb-2">
                   [3. 개인정보의 수집 및 이용목적]
                 </h2>
                 <p className="text-brand-primary leading-relaxed mb-4">
@@ -71,7 +71,7 @@ export default function PrivacyPage() {
               </section>
 
               <section className="mb-8">
-                <h2 className="text-xl font-semibold text-brand-primary dark:text-gray-100 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                <h2 className="text-xl font-semibold text-foreground mb-4 border-b border-border pb-2">
                   [4. 수집하는 개인정보의 수집방법]
                 </h2>
                 <p className="text-brand-primary leading-relaxed mb-4">
@@ -97,7 +97,7 @@ export default function PrivacyPage() {
               </section>
 
               <section className="mb-8">
-                <h2 className="text-xl font-semibold text-brand-primary dark:text-gray-100 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                <h2 className="text-xl font-semibold text-foreground mb-4 border-b border-border pb-2">
                   [5. 개인정보의 보유 및 이용기간]
                 </h2>
                 <p className="text-brand-primary leading-relaxed mb-4">
@@ -126,7 +126,7 @@ export default function PrivacyPage() {
               </section>
 
               <section className="mb-8">
-                <h2 className="text-xl font-semibold text-brand-primary dark:text-gray-100 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                <h2 className="text-xl font-semibold text-foreground mb-4 border-b border-border pb-2">
                   [6. 개인정보 파기절차 및 방법]
                 </h2>
                 <p className="text-brand-primary leading-relaxed mb-4">
@@ -151,7 +151,7 @@ export default function PrivacyPage() {
               </section>
 
               <section className="mb-8">
-                <h2 className="text-xl font-semibold text-brand-primary dark:text-gray-100 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                <h2 className="text-xl font-semibold text-foreground mb-4 border-b border-border pb-2">
                   [7. 수집한 개인정보의 공유 및 제공]
                 </h2>
                 <p className="text-brand-primary leading-relaxed mb-4">
@@ -206,7 +206,7 @@ export default function PrivacyPage() {
               </section>
 
               <section className="mb-8">
-                <h2 className="text-xl font-semibold text-brand-primary dark:text-gray-100 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                <h2 className="text-xl font-semibold text-foreground mb-4 border-b border-border pb-2">
                   [8. 이용자 자신의 개인정보 관리(열람,정정,삭제 등)에 관한
                   사항]
                 </h2>
@@ -226,7 +226,7 @@ export default function PrivacyPage() {
               </section>
 
               <section className="mb-8">
-                <h2 className="text-xl font-semibold text-brand-primary dark:text-gray-100 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                <h2 className="text-xl font-semibold text-foreground mb-4 border-b border-border pb-2">
                   [9. 개인정보 자동 수집 장치의 설치∙운영 및 그 거부에 관한
                   사항]
                 </h2>
@@ -247,7 +247,7 @@ export default function PrivacyPage() {
               </section>
 
               <section className="mb-8">
-                <h2 className="text-xl font-semibold text-brand-primary dark:text-gray-100 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                <h2 className="text-xl font-semibold text-foreground mb-4 border-b border-border pb-2">
                   [10. 개인정보관련 의견수렴 및 불만처리]
                 </h2>
                 <p className="text-brand-primary leading-relaxed mb-4">
@@ -264,7 +264,7 @@ export default function PrivacyPage() {
               </section>
 
               <section className="mb-8">
-                <h2 className="text-xl font-semibold text-brand-primary dark:text-gray-100 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                <h2 className="text-xl font-semibold text-foreground mb-4 border-b border-border pb-2">
                   [11. 아동의 개인정보 보호]
                 </h2>
                 <p className="text-brand-primary leading-relaxed mb-4">
@@ -297,7 +297,7 @@ export default function PrivacyPage() {
               </section>
 
               <section className="mb-8">
-                <h2 className="text-xl font-semibold text-brand-primary dark:text-gray-100 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                <h2 className="text-xl font-semibold text-foreground mb-4 border-b border-border pb-2">
                   [12. 이용자의 권리와 의무]
                 </h2>
                 <p className="text-brand-primary leading-relaxed mb-4">
@@ -320,7 +320,7 @@ export default function PrivacyPage() {
               </section>
 
               <section className="mb-8">
-                <h2 className="text-xl font-semibold text-brand-primary dark:text-gray-100 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                <h2 className="text-xl font-semibold text-foreground mb-4 border-b border-border pb-2">
                   [13. 의견수렴 및 불만처리]
                 </h2>
                 <p className="text-brand-primary leading-relaxed mb-4">
@@ -338,7 +338,7 @@ export default function PrivacyPage() {
               </section>
 
               <section className="mb-8">
-                <h2 className="text-xl font-semibold text-brand-primary dark:text-gray-100 mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                <h2 className="text-xl font-semibold text-foreground mb-4 border-b border-border pb-2">
                   [14. 개인정보보호 책임자 및 담당자]
                 </h2>
                 <p className="text-brand-primary leading-relaxed mb-4">

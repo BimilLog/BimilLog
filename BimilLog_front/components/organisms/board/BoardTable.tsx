@@ -69,9 +69,9 @@ const BoardTableRow = memo<TableRowProps>(({
   enablePopover
 }) => {
   return (
-    <TableRow className="bg-white transition-colors hover:bg-gray-50 dark:bg-slate-900/70 dark:hover:bg-slate-800/80">
+    <TableRow className="bg-card transition-colors hover:bg-accent">
       {/* 순위 또는 번호 */}
-      <TableCell className="text-center font-medium text-brand-primary dark:text-gray-100">
+      <TableCell className="text-center font-medium text-foreground">
         {showRanking ? (
           <span className="text-lg font-bold text-purple-600">
             {index + 1}
@@ -87,8 +87,8 @@ const BoardTableRow = memo<TableRowProps>(({
           href={`/board/post/${post.id}`}
           className={`block line-clamp-2 font-semibold transition-colors ${
             isRead
-              ? 'text-gray-500 dark:text-gray-400'
-              : 'text-gray-900 hover:text-purple-600 dark:text-gray-100 dark:hover:text-purple-300'
+              ? 'text-muted-foreground'
+              : 'text-foreground hover:text-purple-600 dark:hover:text-purple-300'
           }`}
         >
           {post.title}
@@ -101,13 +101,13 @@ const BoardTableRow = memo<TableRowProps>(({
       </TableCell>
 
       {/* 작성자 */}
-      <TableCell className="text-brand-primary dark:text-gray-100">
+      <TableCell className="text-foreground">
         {post.memberName && post.memberName !== "익명" ? (
           <UserActionPopover
             memberName={post.memberName}
             memberId={post.memberId}
             trigger={
-              <button className="inline-flex max-w-20 items-center space-x-1 truncate transition-colors hover:text-purple-600 hover:underline dark:text-gray-200 dark:hover:text-purple-300">
+              <button className="inline-flex max-w-20 items-center space-x-1 truncate transition-colors hover:text-purple-600 hover:underline dark:hover:text-purple-300">
                 <User className="w-3 h-3" />
                 <span>{post.memberName}</span>
               </button>
@@ -115,7 +115,7 @@ const BoardTableRow = memo<TableRowProps>(({
             placement="bottom"
           />
         ) : (
-          <span className="inline-flex max-w-20 items-center space-x-1 truncate text-gray-500 dark:text-gray-400">
+          <span className="inline-flex max-w-20 items-center space-x-1 truncate text-muted-foreground">
             <User className="w-3 h-3" />
             <span>{post.memberName || "익명"}</span>
           </span>
@@ -123,12 +123,12 @@ const BoardTableRow = memo<TableRowProps>(({
       </TableCell>
 
       {/* 작성일 */}
-      <TableCell className="hidden text-sm text-brand-secondary dark:text-gray-300 sm:table-cell">
+      <TableCell className="hidden text-sm text-muted-foreground sm:table-cell">
         {formatDate(post.createdAt)}
       </TableCell>
 
       {/* 추천 */}
-      <TableCell className="text-center text-brand-secondary dark:text-gray-300">
+      <TableCell className="text-center text-muted-foreground">
         {enablePopover ? (
           <Popover
             trigger="hover"
@@ -137,16 +137,16 @@ const BoardTableRow = memo<TableRowProps>(({
               <div className="p-3 min-w-[180px]">
                 <div className="mb-2 flex items-center gap-2">
                   <ThumbsUp className="w-4 h-4 text-purple-600 dark:text-purple-300" />
-                  <span className="text-sm font-semibold text-brand-primary dark:text-gray-100">좋아요 통계</span>
+                  <span className="text-sm font-semibold text-foreground">좋아요 통계</span>
                 </div>
-                <div className="space-y-1 text-xs text-brand-secondary dark:text-gray-300">
+                <div className="space-y-1 text-xs text-muted-foreground">
                   <div className="flex justify-between">
-                    <span className="text-gray-500 dark:text-gray-400">현재 좋아요:</span>
-                    <span className="font-medium text-brand-primary dark:text-gray-100">{post.likeCount}개</span>
+                    <span className="text-muted-foreground">현재 좋아요:</span>
+                    <span className="font-medium text-foreground">{post.likeCount}개</span>
                   </div>
                   {showRanking && (
                     <div className="flex justify-between">
-                      <span className="text-gray-500 dark:text-gray-400">순위:</span>
+                      <span className="text-muted-foreground">순위:</span>
                       <span className="font-medium text-purple-600 dark:text-purple-300">#{index + 1}</span>
                     </div>
                   )}
@@ -154,13 +154,13 @@ const BoardTableRow = memo<TableRowProps>(({
               </div>
             }
           >
-            <div className="flex items-center justify-center gap-1 px-2 py-1 text-xs text-gray-600 dark:text-gray-300">
+            <div className="flex items-center justify-center gap-1 px-2 py-1 text-xs text-muted-foreground">
               <ThumbsUp className="w-3 h-3" />
               {post.likeCount}
             </div>
           </Popover>
         ) : (
-          <div className="flex items-center justify-center gap-1 text-xs text-gray-600 dark:text-gray-300">
+          <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
             <ThumbsUp className="w-3 h-3" />
             {post.likeCount}
           </div>
@@ -168,7 +168,7 @@ const BoardTableRow = memo<TableRowProps>(({
       </TableCell>
 
       {/* 조회수 */}
-      <TableCell className="text-center text-brand-secondary dark:text-gray-300">
+      <TableCell className="text-center text-muted-foreground">
         {post.viewCount}
       </TableCell>
     </TableRow>
@@ -201,8 +201,8 @@ const BoardMobileCard = memo<TableRowProps>(({
               href={`/board/post/${post.id}`}
               className={`block text-sm font-semibold transition-colors line-clamp-2 ${
                 isRead
-                  ? 'text-gray-500 dark:text-gray-400'
-                  : 'text-brand-primary hover:text-purple-600 dark:text-gray-100 dark:hover:text-purple-300'
+                  ? 'text-muted-foreground'
+                  : 'text-foreground hover:text-purple-600 dark:hover:text-purple-300'
               }`}
             >
               {post.title}
@@ -216,7 +216,7 @@ const BoardMobileCard = memo<TableRowProps>(({
         </div>
 
         {/* 하단 정보 */}
-        <div className="flex items-center justify-between text-xs text-brand-secondary dark:text-gray-300">
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
           <div className="flex items-center gap-2">
             {post.memberName && post.memberName !== "익명" ? (
               <UserActionPopover

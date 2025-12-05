@@ -21,7 +21,7 @@ export const PopularPapersSection: React.FC = () => {
           <div className="w-8 h-8 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full flex items-center justify-center">
             <TrendingUp className="w-5 h-5 text-white" />
           </div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+          <h2 className="text-xl font-bold text-foreground">
             실시간 인기 롤링페이퍼
           </h2>
         </div>
@@ -29,7 +29,7 @@ export const PopularPapersSection: React.FC = () => {
         {isLoading && (
           <div className="flex flex-col items-center justify-center py-10 gap-3">
             <Spinner size="xl" color="purple" />
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <p className="text-sm text-muted-foreground">
               실시간 인기 롤링페이퍼를 불러오는 중입니다
             </p>
           </div>
@@ -37,7 +37,7 @@ export const PopularPapersSection: React.FC = () => {
 
         {isError && (
           <div className="text-center py-8">
-            <p className="text-gray-500 dark:text-gray-400">
+            <p className="text-muted-foreground">
               인기 롤링페이퍼를 불러올 수 없습니다
             </p>
           </div>
@@ -47,14 +47,14 @@ export const PopularPapersSection: React.FC = () => {
           <div className="space-y-2">
             {data.content.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-gray-500 dark:text-gray-400">
+                <p className="text-muted-foreground">
                   아직 인기 롤링페이퍼가 없습니다
                 </p>
               </div>
             ) : (
               data.content.map((paper) => (
                 <div key={paper.memberId} className="space-y-2">
-                  <div className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                  <div className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
                     <div
                       className={cn(
                         "w-10 h-10 rounded-full flex items-center justify-center text-base font-bold flex-shrink-0",
@@ -68,7 +68,7 @@ export const PopularPapersSection: React.FC = () => {
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                      <p className="text-sm font-semibold text-foreground truncate">
                         {paper.memberName}님의 롤링페이퍼
                       </p>
                     </div>
@@ -85,7 +85,7 @@ export const PopularPapersSection: React.FC = () => {
                   </div>
 
                   <div className="flex items-center gap-2 pl-3">
-                    <div className="flex items-center gap-1 px-1.5 py-1 bg-gray-100 dark:bg-gray-600 rounded text-xs text-gray-700 dark:text-gray-200">
+                    <div className="flex items-center gap-1 px-1.5 py-1 bg-muted rounded text-xs text-foreground">
                       <MessageSquare className="w-3.5 h-3.5" />
                       <span>최근 메시지 수: {paper.recentMessageCount}개</span>
                     </div>

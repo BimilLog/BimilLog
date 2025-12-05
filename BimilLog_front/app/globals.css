@@ -86,6 +86,17 @@
   --touch-target-min: 44px;
   --touch-target-comfortable: 48px;
   --touch-target-large: 56px;
+
+  /* 시맨틱 색상 (다크모드 자동 전환) */
+  --color-bg-default: var(--background);
+  --color-bg-card: var(--card);
+  --color-bg-hover: oklch(0.97 0 0);
+  --color-bg-secondary: var(--secondary);
+
+  --color-text-default: var(--foreground);
+  --color-text-secondary: var(--muted-foreground);
+
+  --color-border-default: var(--border);
 }
 
 :root {
@@ -155,6 +166,17 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+
+  /* 시맨틱 색상 오버라이드 (다크모드) */
+  --color-bg-default: oklch(0.145 0 0);
+  --color-bg-card: oklch(0.205 0 0);
+  --color-bg-hover: oklch(0.269 0 0);
+  --color-bg-secondary: oklch(0.269 0 0);
+
+  --color-text-default: oklch(0.985 0 0);
+  --color-text-secondary: oklch(0.708 0 0);
+
+  --color-border-default: oklch(1 0 0 / 10%);
 }
 
 @layer base {
@@ -314,32 +336,12 @@
 }
 
 /* 다크모드 Switch 스타일 */
-[data-theme="dark"] .switch-root[data-state="unchecked"] {
+.dark .switch-root[data-state="unchecked"] {
   background-color: #4b5563; /* gray-600 */
 }
 
-[data-theme="dark"] .switch-root:focus-visible {
+.dark .switch-root:focus-visible {
   box-shadow: 0 0 0 2px #1f2937, 0 0 0 4px #a855f7;
-}
-
-/* 다크모드 스타일 */
-[data-theme="dark"] {
-  /* 텍스트 컬러 시스템 (다크모드) */
-  --color-text-primary: oklch(0.95 0 0);
-  --color-text-secondary: oklch(0.75 0 0);
-  --color-text-muted: oklch(0.55 0 0);
-  --color-text-inverse: oklch(0.15 0 0);
-
-  /* Gray 색상 시스템 (다크모드) */
-  --color-gray-300: #4b5563;
-  --color-gray-400: #6b7280;
-  --color-gray-600: #9ca3af;
-  --color-gray-800: #e5e7eb;
-
-  /* 배경 그라디언트 (다크모드) */
-  --gradient-brand: linear-gradient(135deg, #1b1030 0%, #221a47 50%, #090f1e 100%);
-  --gradient-brand-button: linear-gradient(135deg, #7c3aed 0%, #4338ca 100%);
-  --gradient-brand-hover: linear-gradient(135deg, #6d28d9 0%, #3730a3 100%);
 }
 
 /* 귀여운 로딩 스피너 애니메이션 */

@@ -79,7 +79,7 @@ export default function LoginPage() {
         { title: "로그인", href: "/login" },
       ]}
     >
-      <Card className="max-w-sm mx-auto bg-cyan-50 dark:bg-gray-800 border-cyan-200 dark:border-gray-700">
+      <Card className="max-w-sm mx-auto bg-cyan-50 dark:bg-cyan-950 border-cyan-200 dark:border-cyan-800">
         {/* URL 파라미터로 전달된 에러가 있을 경우에만 에러 메시지 표시 */}
         {errorMessage && (
           <div className="mb-4">
@@ -102,7 +102,7 @@ export default function LoginPage() {
           <div className="inline-flex items-center justify-center rounded-2xl border border-cyan-100 bg-white/90 px-6 py-3 text-xl font-semibold text-gray-900 shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white">
             비밀로그 시작하기
           </div>
-          <p className="mt-3 text-gray-500 dark:text-gray-400">나만의 롤링페이퍼를 만들어 보세요</p>
+          <p className="mt-3 text-muted-foreground">나만의 롤링페이퍼를 만들어 보세요</p>
         </div>
 
         <ul className="my-7 space-y-5">
@@ -119,7 +119,7 @@ export default function LoginPage() {
                 clipRule="evenodd"
               />
             </svg>
-            <span className="text-base font-normal leading-tight text-gray-500 dark:text-gray-400">롤링페이퍼 개설하기</span>
+            <span className="text-base font-normal leading-tight text-muted-foreground">롤링페이퍼 개설하기</span>
           </li>
           <li className="flex space-x-3">
             <svg
@@ -134,7 +134,7 @@ export default function LoginPage() {
                 clipRule="evenodd"
               />
             </svg>
-            <span className="text-base font-normal leading-tight text-gray-500 dark:text-gray-400">친구로부터 비밀메시지를 받기</span>
+            <span className="text-base font-normal leading-tight text-muted-foreground">친구로부터 비밀메시지를 받기</span>
           </li>
           <li className="flex space-x-3">
             <svg
@@ -149,7 +149,7 @@ export default function LoginPage() {
                 clipRule="evenodd"
               />
             </svg>
-            <span className="text-base font-normal leading-tight text-gray-500 dark:text-gray-400">마이페이지에서 활동점수를 확인</span>
+            <span className="text-base font-normal leading-tight text-muted-foreground">마이페이지에서 활동점수를 확인</span>
           </li>
           <li className="flex space-x-3">
             <svg
@@ -164,7 +164,7 @@ export default function LoginPage() {
                 clipRule="evenodd"
               />
             </svg>
-            <span className="text-base font-normal leading-tight text-gray-500 dark:text-gray-400">실시간 알림 받기</span>
+            <span className="text-base font-normal leading-tight text-muted-foreground">실시간 알림 받기</span>
           </li>
           <li className="flex space-x-3">
             <svg
@@ -179,7 +179,7 @@ export default function LoginPage() {
                 clipRule="evenodd"
               />
             </svg>
-            <span className="text-base font-normal leading-tight text-gray-500 dark:text-gray-400">글과 댓글에 추천</span>
+            <span className="text-base font-normal leading-tight text-muted-foreground">글과 댓글에 추천</span>
           </li>
         </ul>
 

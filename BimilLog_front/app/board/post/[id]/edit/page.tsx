@@ -30,7 +30,7 @@ export default function EditPostPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 dark:from-[#121327] dark:via-[#1a1030] dark:to-[#0b0c1c]">
         <AuthHeader />
         <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
           <div className="text-center">
@@ -43,7 +43,7 @@ export default function EditPostPage() {
   
   if (!post) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 dark:from-[#121327] dark:via-[#1a1030] dark:to-[#0b0c1c]">
         <AuthHeader />
         <div className="flex items-center justify-center min-h-[calc(100vh-80px)]">
           <p className="text-brand-muted">게시글 정보를 찾을 수 없습니다.</p>
@@ -66,7 +66,7 @@ export default function EditPostPage() {
 
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50">
+      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 dark:from-[#121327] dark:via-[#1a1030] dark:to-[#0b0c1c]">
         <AuthHeader />
         
         {/* Header (모바일 최적화) */}
