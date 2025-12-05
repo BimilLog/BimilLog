@@ -3,11 +3,11 @@ package jaeik.bimillog.domain.admin.service;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
-import jaeik.bimillog.domain.admin.repository.AdminQueryRepository;
-import jaeik.bimillog.domain.admin.repository.ReportRepository;
+import jaeik.bimillog.domain.admin.out.AdminQueryRepository;
+import jaeik.bimillog.domain.admin.out.ReportRepository;
 import jaeik.bimillog.domain.auth.service.BlacklistService;
 import jaeik.bimillog.domain.comment.entity.Comment;
-import jaeik.bimillog.domain.global.out.GlobalCommentQueryAdapter;
+import jaeik.bimillog.domain.admin.out.AdminToCommentAdapter;
 import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
@@ -62,7 +62,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
     private GlobalPostQueryAdapter globalPostQueryAdapter;
 
     @Mock
-    private GlobalCommentQueryAdapter globalCommentQueryAdapter;
+    private AdminToCommentAdapter adminToCommentAdapter;
 
     @Mock
     private BlacklistService blacklistService;
@@ -82,7 +82,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
                 adminQueryRepository,
                 memberRepository,
                 globalPostQueryAdapter,
-                globalCommentQueryAdapter,
+                adminToCommentAdapter,
                 blacklistService
         );
     }
@@ -149,7 +149,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
                 .id(300L)
                 .member(memberWithId)
                 .build();
-        given(globalCommentQueryAdapter.findById(300L)).willReturn(testComment);
+        given(adminToCommentAdapter.findById(300L)).willReturn(testComment);
 
         // When
         adminCommandService.banUser(commentReportType, commentTargetId);
@@ -178,7 +178,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
                 .member(mockMember)
                 .build();
         
-        given(globalCommentQueryAdapter.findById(commentId)).willReturn(mockComment);
+        given(adminToCommentAdapter.findById(commentId)).willReturn(mockComment);
 
         // When
         adminCommandService.forceWithdrawUser(reportType, commentId);

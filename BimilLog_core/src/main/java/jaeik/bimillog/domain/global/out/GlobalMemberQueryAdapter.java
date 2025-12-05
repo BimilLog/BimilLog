@@ -22,7 +22,6 @@ import java.util.Optional;
 public class GlobalMemberQueryAdapter {
 
     private final MemberQueryService memberQueryService;
-    private final MemberRepository memberRepository;
 
     /**
      * <h3>사용자 ID로 사용자 조회</h3>

@@ -3,7 +3,6 @@ package jaeik.bimillog.domain.auth.service;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.BlackList;
 import jaeik.bimillog.domain.global.out.GlobalAuthTokenQueryAdapter;
-import jaeik.bimillog.domain.global.out.GlobalBlacklistAdapter;
 import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.redis.blacklist.RedisJwtBlacklistAdapter;
@@ -47,9 +46,6 @@ class BlacklistServiceTest extends BaseUnitTest {
 
     @Mock
     private GlobalAuthTokenQueryAdapter globalAuthTokenQueryAdapter;
-
-    @Mock
-    private GlobalBlacklistAdapter blacklistPort;
 
     @InjectMocks
     private BlacklistService blacklistService;
