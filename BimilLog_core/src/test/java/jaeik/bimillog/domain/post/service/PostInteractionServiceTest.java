@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.post.service;
 
+import jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter;
 import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.post.entity.Post;
@@ -52,7 +53,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
     private jaeik.bimillog.domain.post.out.PostRepository postRepository;
 
     @Mock
-    private jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
+    private GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
 
     @Mock
     private jaeik.bimillog.domain.post.out.PostLikeQueryRepository postLikeQueryRepository;

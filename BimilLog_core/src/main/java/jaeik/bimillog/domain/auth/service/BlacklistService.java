@@ -3,8 +3,8 @@ package jaeik.bimillog.domain.auth.service;
 import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.BlackList;
+import jaeik.bimillog.domain.auth.out.BlackListRepository;
 import jaeik.bimillog.domain.global.out.GlobalAuthTokenQueryAdapter;
-import jaeik.bimillog.domain.global.out.GlobalBlacklistAdapter;
 import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
@@ -39,7 +39,7 @@ public class BlacklistService {
     private final GlobalJwtAdapter globalJwtAdapter;
     private final RedisJwtBlacklistAdapter redisJwtBlacklistAdapter;
     private final GlobalAuthTokenQueryAdapter globalAuthTokenQueryAdapter;
-    private final GlobalBlacklistAdapter blacklistPort;
+    private final BlackListRepository blackListRepository;
 
     /**
      * <h3>JWT 토큰 블랙리스트 검증</h3>
@@ -125,7 +125,7 @@ public class BlacklistService {
     public void addToBlacklist(Long memberId, String socialId, SocialProvider provider) {
         BlackList blackList = BlackList.createBlackList(socialId, provider);
         try {
-            blacklistPort.saveBlackList(blackList);
+            blackListRepository.save(blackList);
             log.info("사용자 블랙리스트 추가 완료 - memberId: {}, socialId: {}, provider: {}",
                     memberId, socialId, provider);
         } catch (DataIntegrityViolationException e) {

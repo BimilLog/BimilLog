@@ -4,10 +4,10 @@ import jaeik.bimillog.domain.admin.controller.AdminCommandController;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
-import jaeik.bimillog.domain.admin.repository.AdminQueryRepository;
-import jaeik.bimillog.domain.admin.repository.ReportRepository;
+import jaeik.bimillog.domain.admin.out.AdminQueryRepository;
+import jaeik.bimillog.domain.admin.out.ReportRepository;
 import jaeik.bimillog.domain.auth.service.BlacklistService;
-import jaeik.bimillog.domain.global.out.GlobalCommentQueryAdapter;
+import jaeik.bimillog.domain.admin.out.AdminToCommentAdapter;
 import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
@@ -41,7 +41,7 @@ public class AdminCommandService {
     private final AdminQueryRepository adminQueryRepository;
     private final MemberRepository memberRepository;
     private final GlobalPostQueryAdapter globalPostQueryAdapter;
-    private final GlobalCommentQueryAdapter globalCommentQueryAdapter;
+    private final AdminToCommentAdapter adminToCommentAdapter;
     private final BlacklistService blacklistService;
 
     /**
@@ -146,7 +146,7 @@ public class AdminCommandService {
             }
             case COMMENT -> {
                 try {
-                    yield globalCommentQueryAdapter.findById(targetId).getMember();
+                    yield adminToCommentAdapter.findById(targetId).getMember();
                 } catch (Exception e) {
                     throw new CustomException(ErrorCode.ADMIN_COMMENT_ALREADY_DELETED);
                 }

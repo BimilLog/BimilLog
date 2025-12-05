@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.admin.repository;
+package jaeik.bimillog.domain.admin.out;
 
 import jaeik.bimillog.domain.admin.entity.Report;
 import org.springframework.data.jpa.repository.JpaRepository;

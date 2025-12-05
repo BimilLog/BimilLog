@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.auth.out.AuthToMemberAdapter;
+import jaeik.bimillog.domain.auth.out.BlackListRepository;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.global.out.*;
 import jaeik.bimillog.domain.member.entity.Member;
@@ -34,7 +35,7 @@ import java.util.UUID;
 public class SocialLoginTransactionalService {
 
     private final AuthToMemberAdapter authToMemberAdapter;
-    private final GlobalBlacklistAdapter globalBlacklistAdapter;
+    private final BlackListRepository blackListRepository;
     private final GlobalCookieAdapter globalCookieAdapter;
     private final GlobalJwtAdapter globalJwtAdapter;
     private final GlobalAuthTokenSaveAdapter globalAuthTokenSaveAdapter;
@@ -55,7 +56,7 @@ public class SocialLoginTransactionalService {
     public LoginResult finishLogin(SocialProvider provider, SocialMemberProfile socialMemberProfile) {
 
         // 블랙리스트 사용자 확인
-        if (globalBlacklistAdapter.existsByProviderAndSocialId(provider, socialMemberProfile.getSocialId())) {
+        if (blackListRepository.existsByProviderAndSocialId(provider, socialMemberProfile.getSocialId())) {
             throw new CustomException(ErrorCode.AUTH_BLACKLIST_USER);
         }
 

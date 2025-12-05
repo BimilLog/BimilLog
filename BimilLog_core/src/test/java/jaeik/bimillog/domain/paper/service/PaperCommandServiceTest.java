@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.paper.service;
 
+import jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter;
 import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.paper.entity.DecoType;
@@ -49,7 +50,7 @@ class PaperCommandServiceTest extends BaseUnitTest {
     private ApplicationEventPublisher eventPublisher;
 
     @Mock
-    private jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
+    private GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
 
     @Mock
     private jaeik.bimillog.infrastructure.redis.paper.RedisPaperDeleteAdapter redisPaperDeleteAdapter;
