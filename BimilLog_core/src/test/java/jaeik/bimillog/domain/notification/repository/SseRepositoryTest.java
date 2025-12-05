@@ -40,9 +40,6 @@ import static org.mockito.Mockito.*;
 class SseRepositoryTest extends BaseUnitTest {
 
     @Mock
-    private NotificationUtilRepository notificationUtilRepository;
-
-    @Mock
     private MemberQueryService memberQueryService;
 
     @Mock
@@ -103,7 +100,6 @@ class SseRepositoryTest extends BaseUnitTest {
         Map<String, SseEmitter> emitters = getEmittersMap();
         emitters.put(emitterId, mockEmitter);
 
-        given(notificationUtilRepository.SseEligibleForNotification(memberId, NotificationType.COMMENT)).willReturn(true);
         given(memberQueryService.findById(memberId)).willReturn(Optional.of(getTestMember()));
 
         // When
@@ -112,7 +108,6 @@ class SseRepositoryTest extends BaseUnitTest {
         sseRepository.send(sseMessage);
 
         // Then
-        verify(notificationUtilRepository).SseEligibleForNotification(memberId, NotificationType.COMMENT);
         verify(memberQueryService).findById(memberId);
         verify(notificationRepository).save(any(Notification.class));
 
@@ -124,7 +119,6 @@ class SseRepositoryTest extends BaseUnitTest {
     @DisplayName("SSE 알림 전송 - 사용자 없음 예외")
     void shouldThrowException_WhenMemberNotFound() {
         // Given
-        given(notificationUtilRepository.SseEligibleForNotification(memberId, NotificationType.COMMENT)).willReturn(true);
         given(memberQueryService.findById(memberId)).willReturn(Optional.empty());
 
         // When & Then
@@ -133,7 +127,6 @@ class SseRepositoryTest extends BaseUnitTest {
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.NOTIFICATION_INVALID_USER_CONTEXT);
 
-        verify(notificationUtilRepository).SseEligibleForNotification(memberId, NotificationType.COMMENT);
         verify(memberQueryService).findById(memberId);
         verify(notificationRepository, never()).save(any(Notification.class));
     }
@@ -142,7 +135,6 @@ class SseRepositoryTest extends BaseUnitTest {
     @DisplayName("SSE 알림 전송 - 알림 저장 실패 시 예외")
     void shouldThrowException_WhenNotificationSaveFails() {
         // Given
-        given(notificationUtilRepository.SseEligibleForNotification(memberId, NotificationType.COMMENT)).willReturn(true);
         given(memberQueryService.findById(memberId)).willReturn(Optional.of(getTestMember()));
         doThrow(new RuntimeException("DB 저장 실패"))
                 .when(notificationRepository).save(any(Notification.class));
@@ -153,7 +145,6 @@ class SseRepositoryTest extends BaseUnitTest {
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.NOTIFICATION_SEND_ERROR);
 
-        verify(notificationUtilRepository).SseEligibleForNotification(memberId, NotificationType.COMMENT);
         verify(memberQueryService).findById(memberId);
         verify(notificationRepository).save(any(Notification.class));
     }
@@ -162,7 +153,6 @@ class SseRepositoryTest extends BaseUnitTest {
     @DisplayName("SSE 알림 전송 - Emitter가 없는 경우 정상 처리")
     void shouldHandleEmptyEmitters_WhenNoEmittersExist() throws Exception {
         // Given
-        given(notificationUtilRepository.SseEligibleForNotification(memberId, NotificationType.COMMENT)).willReturn(true);
         given(memberQueryService.findById(memberId)).willReturn(Optional.of(getTestMember()));
 
         // emitters Map이 비어있는 상태 확인
@@ -174,7 +164,6 @@ class SseRepositoryTest extends BaseUnitTest {
         sseRepository.send(sseMessage);
 
         // Then
-        verify(notificationUtilRepository).SseEligibleForNotification(memberId, NotificationType.COMMENT);
         verify(memberQueryService).findById(memberId);
         verify(notificationRepository).save(any(Notification.class));
         // Emitter가 없어도 예외가 발생하지 않아야 함
@@ -227,7 +216,6 @@ class SseRepositoryTest extends BaseUnitTest {
         emitters.put(memberId + "_100_1234567890", mockEmitter1);
         emitters.put(memberId + "_101_1234567891", mockEmitter2);
 
-        given(notificationUtilRepository.SseEligibleForNotification(memberId, NotificationType.COMMENT)).willReturn(true);
         given(memberQueryService.findById(memberId)).willReturn(Optional.of(getTestMember()));
 
         // When
@@ -235,29 +223,12 @@ class SseRepositoryTest extends BaseUnitTest {
         sseRepository.send(sseMessage);
 
         // Then
-        verify(notificationUtilRepository).SseEligibleForNotification(memberId, NotificationType.COMMENT);
         verify(memberQueryService).findById(memberId);
         verify(notificationRepository).save(any(Notification.class));
 
         // 두 Emitter 모두에게 전송 확인
         verify(mockEmitter1, times(1)).send(any(SseEmitter.SseEventBuilder.class));
         verify(mockEmitter2, times(1)).send(any(SseEmitter.SseEventBuilder.class));
-    }
-
-    @Test
-    @DisplayName("SSE 알림 전송 - 알림 설정 비활성화 시 조기 리턴")
-    void shouldNotSend_WhenNotificationDisabled() {
-        // Given
-        given(notificationUtilRepository.SseEligibleForNotification(memberId, NotificationType.COMMENT)).willReturn(false);
-
-        // When
-        SseMessage sseMessage = SseMessage.of(memberId, NotificationType.COMMENT, "테스트 메시지", "/test/url");
-        sseRepository.send(sseMessage);
-
-        // Then: 알림 설정 확인만 하고 나머지는 호출되지 않아야 함
-        verify(notificationUtilRepository).SseEligibleForNotification(memberId, NotificationType.COMMENT);
-        verify(memberQueryService, never()).findById(any());
-        verify(notificationRepository, never()).save(any(Notification.class));
     }
 
     @Test
@@ -274,7 +245,6 @@ class SseRepositoryTest extends BaseUnitTest {
         doThrow(new IOException("Connection lost"))
                 .when(mockEmitter).send(any(SseEmitter.SseEventBuilder.class));
 
-        given(notificationUtilRepository.SseEligibleForNotification(memberId, NotificationType.COMMENT)).willReturn(true);
         given(memberQueryService.findById(memberId)).willReturn(Optional.of(getTestMember()));
 
         // When

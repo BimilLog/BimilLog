@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.entity.Message;
+import jaeik.bimillog.domain.paper.event.MessageDeletedEvent;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.paper.out.MessageRepository;
 import jaeik.bimillog.domain.paper.out.PaperQueryRepository;
@@ -71,7 +72,7 @@ class PaperCommandServiceTest extends BaseUnitTest {
         // Then
         verify(messageRepository, times(1)).findOwnerIdByMessageId(messageId);
         verify(messageRepository, times(1)).deleteById(messageId);
-        verify(eventPublisher, times(1)).publishEvent(any());
+        verify(eventPublisher, times(1)).publishEvent(any(MessageDeletedEvent.class));
     }
 
     @Test
