@@ -84,12 +84,12 @@ class AdminCommandControllerIntegrationTest extends BaseIntegrationTest {
         performPost("/api/admin/withdraw", forceWithdrawDTO, adminUserDetails)
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().string("관리자 권한으로 사용자 탈퇴가 완료되었습니다."));
+                .andExpect(content().string("사용자 탈퇴 처리를 시작했습니다. 백그라운드에서 처리됩니다."));
     }
 
     @Test
     @DisplayName("존재하지 않는 게시글로 사용자 강제 탈퇴 - 실패")
-    void forceWithdrawUser_UserNotFound_NotFound() throws Exception {
+    void forceWithdrawUser_PostNotFound_BadRequest() throws Exception {
         // Given
         Long nonExistentPostId = 99999L;
 
@@ -99,8 +99,9 @@ class AdminCommandControllerIntegrationTest extends BaseIntegrationTest {
                 .build();
 
         // When & Then
+        // 존재하지 않는 게시글 조회 실패 시 ADMIN_POST_ALREADY_DELETED 에러 반환 (400 BAD_REQUEST)
         performPost("/api/admin/withdraw", forceWithdrawDTO, adminUserDetails)
                 .andDo(print())
-                .andExpect(status().isNotFound());
+                .andExpect(status().isBadRequest());
     }
 }

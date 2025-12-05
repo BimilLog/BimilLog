@@ -1,9 +1,11 @@
 package jaeik.bimillog.domain.post.service;
 
+import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.out.PostQueryRepository;
+import jaeik.bimillog.domain.post.out.PostRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostDeleteAdapter;
@@ -49,7 +51,10 @@ class PostCommandServiceTest extends BaseUnitTest {
     private PostQueryRepository postQueryRepository;
 
     @Mock
-    private jaeik.bimillog.domain.post.out.PostRepository postRepository;
+    private PostRepository postRepository;
+
+    @Mock
+    private CommentCommandService commentCommandService;
 
     @InjectMocks
     private PostCommandService postCommandService;
@@ -224,16 +229,26 @@ class PostCommandServiceTest extends BaseUnitTest {
         Long postId1 = 10L;
         Long postId2 = 11L;
 
-        given(postQueryRepository.findPostIdsMemberId(memberId)).willReturn(List.of(postId1, postId2));
+        given(postRepository.findIdsWithCacheFlagByMemberId(memberId)).willReturn(List.of(postId1, postId2));
+
         // When
         postCommandService.deleteAllPostsByMemberId(memberId);
 
         // Then
-        verify(postQueryRepository, times(1)).findPostIdsMemberId(memberId);
+        verify(postRepository, times(1)).findIdsWithCacheFlagByMemberId(memberId);
+
+        // 각 게시글의 댓글 삭제 확인 (FK 제약 조건 위반 방지)
+        verify(commentCommandService, times(1)).deleteCommentsByPost(postId1);
+        verify(commentCommandService, times(1)).deleteCommentsByPost(postId2);
+
+        // 캐시 삭제 확인
         verify(redisPostDeleteAdapter, times(1)).deleteSinglePostCache(postId1);
         verify(redisPostDeleteAdapter, times(1)).deleteSinglePostCache(postId2);
+
+        // 게시글 일괄 삭제 확인
         verify(postRepository, times(1)).deleteAllByMemberId(memberId);
-        verifyNoMoreInteractions(postQueryRepository, postRepository, redisPostDeleteAdapter);
+
+        verifyNoMoreInteractions(postQueryRepository, postRepository, redisPostDeleteAdapter, commentCommandService);
     }
 
     @Test
@@ -241,16 +256,20 @@ class PostCommandServiceTest extends BaseUnitTest {
     void shouldSkipDeletingPosts_WhenNoPostsExist() {
         // Given
         Long memberId = 1L;
-        given(postQueryRepository.findPostIdsMemberId(memberId)).willReturn(List.of());
+        given(postRepository.findIdsWithCacheFlagByMemberId(memberId)).willReturn(List.of());
 
         // When
         postCommandService.deleteAllPostsByMemberId(memberId);
 
         // Then
-        verify(postQueryRepository, times(1)).findPostIdsMemberId(memberId);
+        verify(postRepository, times(1)).findIdsWithCacheFlagByMemberId(memberId);
         verify(postRepository, times(1)).deleteAllByMemberId(memberId);
+
+        // 게시글이 없으므로 댓글 삭제와 캐시 삭제가 호출되지 않아야 함
+        verify(commentCommandService, never()).deleteCommentsByPost(any());
         verify(redisPostDeleteAdapter, never()).deleteSinglePostCache(any());
-        verifyNoMoreInteractions(postQueryRepository, postRepository, redisPostDeleteAdapter);
+
+        verifyNoMoreInteractions(postQueryRepository, postRepository, redisPostDeleteAdapter, commentCommandService);
     }
 
 

@@ -1,7 +1,8 @@
 package jaeik.bimillog.domain.notification.service;
 
+import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
-import jaeik.bimillog.domain.notification.out.NotificationCommandRepository;
+import jaeik.bimillog.domain.notification.repository.NotificationRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -11,9 +12,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
-import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
 
 /**
  * <h2>NotificationCommandService 테스트</h2>
@@ -29,7 +34,7 @@ import static org.mockito.Mockito.verify;
 class NotificationCommandServiceTest {
 
     @Mock
-    private NotificationCommandRepository notificationCommandRepository;
+    private NotificationRepository notificationRepository;
 
     @InjectMocks
     private NotificationCommandService notificationCommandService;
@@ -40,12 +45,14 @@ class NotificationCommandServiceTest {
         // Given
         Long nullUserId = null;
         NotificationUpdateVO updateCommand = NotificationUpdateVO.of(Arrays.asList(1L, 2L), List.of(3L));
+        given(notificationRepository.findAllByIdInAndMember_Id(anyList(), anyLong())).willReturn(Collections.emptyList());
 
         // When
         notificationCommandService.batchUpdate(nullUserId, updateCommand);
 
         // Then
-        verify(notificationCommandRepository).batchUpdate(nullUserId, updateCommand);
+        verify(notificationRepository).deleteAllByIdInAndMember_Id(anyList(), anyLong());
+        verify(notificationRepository).findAllByIdInAndMember_Id(anyList(), anyLong());
     }
 
     @Test
@@ -54,11 +61,15 @@ class NotificationCommandServiceTest {
         // Given
         Long memberId = 42L;
         NotificationUpdateVO updateCommand = NotificationUpdateVO.of(List.of(10L), List.of(20L));
+        Notification notification = mock(Notification.class);
+        given(notificationRepository.findAllByIdInAndMember_Id(anyList(), anyLong())).willReturn(List.of(notification));
 
         // When
         notificationCommandService.batchUpdate(memberId, updateCommand);
 
         // Then
-        verify(notificationCommandRepository).batchUpdate(memberId, updateCommand);
+        verify(notificationRepository).deleteAllByIdInAndMember_Id(anyList(), anyLong());
+        verify(notificationRepository).findAllByIdInAndMember_Id(anyList(), anyLong());
+        verify(notification).markAsRead();
     }
 }

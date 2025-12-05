@@ -1,7 +1,9 @@
-package jaeik.bimillog.domain.notification.out;
+package jaeik.bimillog.domain.notification.repository;
 
 import jaeik.bimillog.domain.notification.entity.Notification;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -28,7 +30,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
      * @author Jaeik
      * @since 2.0.0
      */
-    List<Notification> findAllByIdInAndMemberId(List<Long> ids, Long memberId);
+    List<Notification> findAllByIdInAndMember_Id(List<Long> ids, Long memberId);
 
     /**
      * <h3>사용자 ID와 알림 ID 목록으로 알림 삭제</h3>
@@ -39,7 +41,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
      * @author Jaeik
      * @since 2.0.0
      */
-    void deleteAllByIdInAndMemberId(List<Long> ids, Long memberId);
+    void deleteAllByIdInAndMember_Id(List<Long> ids, Long memberId);
 
     /**
      * <h3>사용자 ID로 모든 알림 삭제</h3>
@@ -51,4 +53,16 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
      * @since 2.0.0
      */
     void deleteAllByMemberId(Long memberId);
+
+    /**
+     * <h3>알림 목록 조회</h3>
+     * <p>지정된 사용자의 알림 목록을 최신순으로 조회합니다.</p>
+     *
+     * @param memberId 사용자 ID
+     * @return 알림 엔티티 목록
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Query("SELECT n FROM Notification n JOIN FETCH n.member m WHERE m.id = :memberId ORDER BY n.createdAt DESC")
+    List<Notification> getNotificationList(@Param("memberId") Long memberId);
 }

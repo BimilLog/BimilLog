@@ -51,7 +51,7 @@ public class PostInteractionService {
     @Transactional
     public void likePost(Long memberId, Long postId) {
         // 1. ID 기반으로 좋아요 존재 여부 확인 (엔티티 로딩 최소화)
-        boolean isAlreadyLiked = postLikeQueryRepository.existsByPostIdAndUserId(postId, memberId);
+        boolean isAlreadyLiked = postLikeRepository.existsByPostIdAndMemberId(postId, memberId);
         
         // 2. 좋아요 토글을 위해 필요한 엔티티만 로딩
         Member member = globalMemberQueryAdapter.getReferenceById(memberId);

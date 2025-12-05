@@ -24,7 +24,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * <h2>PostLikeQueryAdapter 통합 테스트</h2>
+ * <h2>PostLikeRepository 통합 테스트</h2>
  * <p>추천수 집계 및 존재 여부 조회 로직을 검증합니다.</p>
  */
 @DataJpaTest(
@@ -41,6 +41,9 @@ class PostLikeQueryRepositoryIntegrationTest {
 
     @Autowired
     private PostLikeQueryRepository postLikeQueryRepository;
+
+    @Autowired
+    private PostLikeRepository postLikeRepository;
 
     @Autowired
     private TestEntityManager testEntityManager;
@@ -135,8 +138,8 @@ class PostLikeQueryRepositoryIntegrationTest {
         testEntityManager.flush();
         testEntityManager.clear();
 
-        boolean exists = postLikeQueryRepository.existsByPostIdAndUserId(post.getId(), likerOne.getId());
-        boolean notExists = postLikeQueryRepository.existsByPostIdAndUserId(post.getId(), likerTwo.getId());
+        boolean exists = postLikeRepository.existsByPostIdAndMemberId(post.getId(), likerOne.getId());
+        boolean notExists = postLikeRepository.existsByPostIdAndMemberId(post.getId(), likerTwo.getId());
 
         assertThat(exists).isTrue();
         assertThat(notExists).isFalse();

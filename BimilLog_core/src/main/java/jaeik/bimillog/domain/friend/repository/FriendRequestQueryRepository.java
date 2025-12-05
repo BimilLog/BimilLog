@@ -31,6 +31,7 @@ public class FriendRequestQueryRepository {
                 .from(friendRequest)
                 .join(friendRequest.receiver, member)
                 .where(friendRequest.sender.id.eq(memberId))
+                .orderBy(friendRequest.createdAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
@@ -54,6 +55,7 @@ public class FriendRequestQueryRepository {
                 .from(friendRequest)
                 .join(friendRequest.sender, member)
                 .where(friendRequest.receiver.id.eq(memberId))
+                .orderBy(friendRequest.createdAt.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();

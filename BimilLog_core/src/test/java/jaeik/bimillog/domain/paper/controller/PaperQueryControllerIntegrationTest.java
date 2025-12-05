@@ -95,13 +95,14 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(2))
-                .andExpect(jsonPath("$[0].x").value(1))
-                .andExpect(jsonPath("$[0].y").value(1))
-                .andExpect(jsonPath("$[0].decoType").value("POTATO"))
-                .andExpect(jsonPath("$[1].x").value(2))
-                .andExpect(jsonPath("$[1].y").value(2));
+                .andExpect(jsonPath("$.messages").isArray())
+                .andExpect(jsonPath("$.messages.length()").value(2))
+                .andExpect(jsonPath("$.messages[0].x").value(1))
+                .andExpect(jsonPath("$.messages[0].y").value(1))
+                .andExpect(jsonPath("$.messages[0].decoType").value("POTATO"))
+                .andExpect(jsonPath("$.messages[1].x").value(2))
+                .andExpect(jsonPath("$.messages[1].y").value(2))
+                .andExpect(jsonPath("$.ownerId").value(otherMember.getId()));
     }
     
     @Test
@@ -115,8 +116,9 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(0));
+                .andExpect(jsonPath("$.messages").isArray())
+                .andExpect(jsonPath("$.messages.length()").value(0))
+                .andExpect(jsonPath("$.ownerId").value(emptyMember.getId()));
     }
     
     @Test
@@ -140,11 +142,12 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].x").value(1))
-                .andExpect(jsonPath("$[0].y").value(2))
-                .andExpect(jsonPath("$[0].decoType").value("POTATO"));
+                .andExpect(jsonPath("$.messages").isArray())
+                .andExpect(jsonPath("$.messages.length()").value(1))
+                .andExpect(jsonPath("$.messages[0].x").value(1))
+                .andExpect(jsonPath("$.messages[0].y").value(2))
+                .andExpect(jsonPath("$.messages[0].decoType").value("POTATO"))
+                .andExpect(jsonPath("$.ownerId").value(otherMember.getId()));
     }
     
     @Test
@@ -160,9 +163,10 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json"))
-                .andExpect(jsonPath("$").isArray())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].x").value(3))
-                .andExpect(jsonPath("$[0].y").value(1));
+                .andExpect(jsonPath("$.messages").isArray())
+                .andExpect(jsonPath("$.messages.length()").value(1))
+                .andExpect(jsonPath("$.messages[0].x").value(3))
+                .andExpect(jsonPath("$.messages[0].y").value(1))
+                .andExpect(jsonPath("$.ownerId").value(testMember.getId()));
     }
 }

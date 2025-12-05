@@ -5,13 +5,16 @@ import jaeik.bimillog.domain.friend.algorithm.FriendRecommendScorer;
 import jaeik.bimillog.domain.friend.algorithm.RecommendCandidate;
 import jaeik.bimillog.domain.friend.entity.FriendRelation;
 import jaeik.bimillog.domain.friend.entity.RecommendedFriend;
+import jaeik.bimillog.domain.member.out.MemberBlacklistRepository;
 import jaeik.bimillog.domain.member.out.MemberQueryRepository;
+import jaeik.bimillog.domain.member.out.MemberRepository;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
 import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,7 +36,9 @@ import java.util.stream.Collectors;
 public class FriendRecommendService {
     private final RedisFriendshipRepository redisFriendshipRepository;
     private final RedisInteractionScoreRepository redisInteractionScoreRepository;
+    private final MemberBlacklistRepository memberBlacklistRepository;
     private final MemberQueryRepository memberQueryRepository;
+    private final MemberRepository memberRepository;
     private final BreadthFirstSearch breadthFirstSearch;
     private final FriendRecommendScorer scorer;
 
@@ -113,8 +118,8 @@ public class FriendRecommendService {
         excludeIds.addAll(firstDegree);
         excludeIds.addAll(blacklist);
         topCandidates.forEach(c -> excludeIds.add(c.getMemberId()));
-
-        List<Long> recentMembers = memberQueryRepository.findRecentMembers(excludeIds, remaining);
+        Pageable pageable = PageRequest.of(0, remaining); // 또는 Pageable.of(0, limit);
+        List<Long> recentMembers = memberRepository.findIdByIdNotInOrderByCreatedAtDesc(excludeIds, pageable);
 
         // 최근 가입자들에 대해 상호작용 점수 조회
         Set<Long> recentIds = new HashSet<>(recentMembers);
@@ -215,7 +220,7 @@ public class FriendRecommendService {
      * @return 블랙리스트 회원 ID 집합
      */
     private Set<Long> getBlacklistIds(Long memberId) {
-        return memberQueryRepository.findBlacklistIdsByRequestMemberId(memberId);
+        return memberBlacklistRepository.findBlacklistIdsByRequestMemberId(memberId);
     }
 
     private List<RecommendedFriend> convertToRecommendedFriends(List<RecommendCandidate> candidates) {

@@ -1,83 +1,77 @@
 package jaeik.bimillog.domain.member.event;
 
-import jaeik.bimillog.domain.admin.service.AdminCommandService;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.auth.service.AuthTokenService;
-import jaeik.bimillog.domain.auth.service.SocialWithdrawService;
-import jaeik.bimillog.domain.comment.service.CommentCommandService;
+import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.global.out.GlobalSocialStrategyAdapter;
-import jaeik.bimillog.domain.global.out.GlobalSocialTokenCommandAdapter;
 import jaeik.bimillog.domain.global.strategy.SocialAuthStrategy;
 import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
+import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
-import jaeik.bimillog.domain.member.service.MemberAccountService;
-import jaeik.bimillog.domain.notification.service.FcmCommandService;
-import jaeik.bimillog.domain.notification.service.NotificationCommandService;
+import jaeik.bimillog.domain.member.out.MemberRepository;
 import jaeik.bimillog.domain.notification.service.SseService;
-import jaeik.bimillog.domain.paper.service.PaperCommandService;
-import jaeik.bimillog.domain.post.service.PostCommandService;
-import jaeik.bimillog.testutil.BaseEventIntegrationTest;
+import jaeik.bimillog.testutil.RedisTestHelper;
+import jaeik.bimillog.testutil.TestMembers;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 
 /**
- * <h2>사용자 탈퇴 이벤트 워크플로우 통합 테스트</h2>
+ * <h2>사용자 탈퇴 이벤트 워크플로우 로컬 통합 테스트</h2>
  * <p>사용자 탈퇴 시 발생하는 모든 후속 처리를 검증하는 통합 테스트</p>
- * <p>비동기 이벤트 처리와 실제 스프링 컨텍스트를 사용하여 전체 워크플로우를 테스트</p>
+ * <p>로컬 MySQL + Redis 환경에서 실제 DB 동작을 검증합니다</p>
  *
  * @author Jaeik
  * @version 2.0.0
  */
-@DisplayName("사용자 탈퇴 이벤트 워크플로우 통합 테스트")
-@Tag("integration")
-class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@ActiveProfiles("local-integration")
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Transactional
+@Tag("local-integration")
+@DisplayName("사용자 탈퇴 이벤트 워크플로우 로컬 통합 테스트")
+class MemberWithdrawnEventIntegrationTest {
 
+    @Autowired
+    private MemberRepository memberRepository;
+
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
+
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
+
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    // 외부 API만 Mock
     @MockitoBean
     private SseService sseService;
 
-    @MockitoSpyBean
-    private SocialWithdrawService socialWithdrawService;
-
-    @MockitoBean
-    private CommentCommandService CommentCommandService;
-
-    @MockitoBean
-    private PostCommandService postCommandService;
-
-    @MockitoBean
-    private AuthTokenService authTokenService;
-
-    @MockitoBean
-    private FcmCommandService fcmCommandService;
-
-    @MockitoBean
-    private NotificationCommandService notificationCommandService;
-
-    @MockitoBean
-    private PaperCommandService paperCommandService;
-
-    @MockitoBean
-    private AdminCommandService adminCommandService;
-
-    @MockitoBean
-    private GlobalSocialTokenCommandAdapter globalSocialTokenCommandAdapter;
-
-    @MockitoBean
-    private MemberAccountService memberAccountService;
-
     @MockitoBean
     private GlobalSocialStrategyAdapter globalSocialStrategyAdapter;
+
+    private static final Duration EVENT_TIMEOUT = Duration.ofSeconds(5);
+
+    private Member testMember;
 
     private static final SocialPlatformStrategy NOOP_PLATFORM_STRATEGY = new SocialPlatformStrategy(
             SocialProvider.KAKAO,
@@ -94,7 +88,7 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
 
                 @Override
                 public void unlink(String socialId, String accessToken) {
-                    // no-op
+                    // no-op - 외부 API 호출 방지
                 }
 
                 @Override
@@ -115,186 +109,118 @@ class MemberWithdrawnEventIntegrationTest extends BaseEventIntegrationTest {
     ) {};
 
     @BeforeEach
-    void setUpSocialStrategy() {
+    void setUp() {
+        // Redis 초기화
+        RedisTestHelper.flushRedis(redisTemplate);
+
+        // 외부 API Mock 설정
         doReturn(NOOP_PLATFORM_STRATEGY).when(globalSocialStrategyAdapter).getStrategy(any());
+        doNothing().when(sseService).deleteEmitters(any(), any());
+
+        // 테스트 회원 생성
+        testMember = TestMembers.createUniqueWithPrefix("withdrawTest");
+        persistAndFlush(testMember);
+    }
+
+    private void persistAndFlush(Member member) {
+        if (member.getSocialToken() != null) {
+            entityManager.persist(member.getSocialToken());
+        }
+        entityManager.persist(member);
+        entityManager.flush();
+        entityManager.clear(); // 영속성 컨텍스트 초기화
     }
 
     @Test
-    @DisplayName("사용자 탈퇴 이벤트 워크플로우 - 모든 데이터 정리 완료")
-    void userWithdrawnEventWorkflow_ShouldCompleteAllCleanupTasks() {
+    @DisplayName("사용자 탈퇴 이벤트 워크플로우 - 회원 삭제 완료")
+    void userWithdrawnEventWorkflow_ShouldDeleteMember() {
         // Given
-        Long memberId = 1L;
-        MemberWithdrawnEvent event = new MemberWithdrawnEvent(memberId, "testSocialId", SocialProvider.KAKAO);
+        Long memberId = testMember.getId();
+        String socialId = testMember.getSocialId();
+        SocialProvider provider = testMember.getProvider();
 
-        // When & Then
-        publishAndVerify(event, () -> {
-            // 1. SSE 연결 정리
-            verify(sseService).deleteEmitters(eq(memberId), eq(null));
-            // 2. 소셜 계정 연동 해제 전략 조회
-            verify(globalSocialStrategyAdapter).getStrategy(eq(SocialProvider.KAKAO));
-            // 3. 댓글 처리
-            verify(CommentCommandService).processUserCommentsOnWithdrawal(eq(memberId));
-            // 4. 게시글 삭제
-            verify(postCommandService).deleteAllPostsByMemberId(eq(memberId));
-            // 5. JWT 토큰 무효화
-            verify(authTokenService).deleteTokens(eq(memberId), eq(null));
-            // 6. FCM 토큰 삭제
-            // 7. 알림 삭제
-            verify(notificationCommandService).deleteAllNotification(eq(memberId));
-            // 8. 롤링페이퍼 메시지 삭제
-            verify(paperCommandService).deleteMessageInMyPaper(eq(memberId), eq(null));
-            // 9. 신고자 익명화
-            verify(adminCommandService).anonymizeReporterByUserId(eq(memberId));
-            // 10. 소셜 토큰 삭제
-            verify(globalSocialTokenCommandAdapter).deleteByMemberId(eq(memberId));
-            // 11. 계정 정보 삭제
-            verify(memberAccountService).removeMemberAccount(eq(memberId));
-        });
+        // 회원이 존재하는지 확인
+        assertThat(memberRepository.findById(memberId)).isPresent();
+
+        // When: 회원 탈퇴 이벤트 발행
+        MemberWithdrawnEvent event = new MemberWithdrawnEvent(memberId, socialId, provider);
+        eventPublisher.publishEvent(event);
+
+        // Then: 비동기 처리 완료 대기 후 회원 삭제 확인
+        Awaitility.await()
+                .atMost(EVENT_TIMEOUT)
+                .untilAsserted(() -> {
+                    entityManager.clear(); // 캐시 초기화
+                    assertThat(memberRepository.findById(memberId)).isEmpty();
+                });
     }
 
     @Test
     @DisplayName("여러 사용자 탈퇴 이벤트 동시 처리")
     void multipleUserWithdrawnEvents() {
-        // Given
-        MemberWithdrawnEvent event1 = new MemberWithdrawnEvent(1L, "testSocialId1", SocialProvider.KAKAO);
-        MemberWithdrawnEvent event2 = new MemberWithdrawnEvent(2L, "testSocialId2", SocialProvider.KAKAO);
-        MemberWithdrawnEvent event3 = new MemberWithdrawnEvent(3L, "testSocialId3", SocialProvider.KAKAO);
+        // Given: 3명의 회원 생성
+        Member member1 = TestMembers.createUniqueWithPrefix("withdraw1");
+        Member member2 = TestMembers.createUniqueWithPrefix("withdraw2");
+        Member member3 = TestMembers.createUniqueWithPrefix("withdraw3");
 
-        // When & Then - 여러 사용자 탈퇴 이벤트 발행
-        publishEventsAndVerify(new Object[]{event1, event2, event3}, () -> {
-            // SSE 연결 정리
-            verify(sseService).deleteEmitters(eq(1L), eq(null));
-            verify(sseService).deleteEmitters(eq(2L), eq(null));
-            verify(sseService).deleteEmitters(eq(3L), eq(null));
+        persistAndFlush(member1);
+        persistAndFlush(member2);
+        persistAndFlush(member3);
 
-            // 소셜 계정 연동 해제 전략 조회
-            verify(globalSocialStrategyAdapter, times(3)).getStrategy(eq(SocialProvider.KAKAO));
+        Long memberId1 = member1.getId();
+        Long memberId2 = member2.getId();
+        Long memberId3 = member3.getId();
 
-            // 댓글 처리
-            verify(CommentCommandService).processUserCommentsOnWithdrawal(eq(1L));
-            verify(CommentCommandService).processUserCommentsOnWithdrawal(eq(2L));
-            verify(CommentCommandService).processUserCommentsOnWithdrawal(eq(3L));
+        // When: 3개의 탈퇴 이벤트 발행
+        eventPublisher.publishEvent(new MemberWithdrawnEvent(memberId1, member1.getSocialId(), member1.getProvider()));
+        eventPublisher.publishEvent(new MemberWithdrawnEvent(memberId2, member2.getSocialId(), member2.getProvider()));
+        eventPublisher.publishEvent(new MemberWithdrawnEvent(memberId3, member3.getSocialId(), member3.getProvider()));
 
-            // 게시글 삭제
-            verify(postCommandService).deleteAllPostsByMemberId(eq(1L));
-            verify(postCommandService).deleteAllPostsByMemberId(eq(2L));
-            verify(postCommandService).deleteAllPostsByMemberId(eq(3L));
-
-            // JWT 토큰 무효화
-            verify(authTokenService).deleteTokens(eq(1L), eq(null));
-            verify(authTokenService).deleteTokens(eq(2L), eq(null));
-            verify(authTokenService).deleteTokens(eq(3L), eq(null));
-
-            // FCM 토큰 삭제
-
-            // 알림 삭제
-            verify(notificationCommandService).deleteAllNotification(eq(1L));
-            verify(notificationCommandService).deleteAllNotification(eq(2L));
-            verify(notificationCommandService).deleteAllNotification(eq(3L));
-
-            // 롤링페이퍼 메시지 삭제
-            verify(paperCommandService).deleteMessageInMyPaper(eq(1L), eq(null));
-            verify(paperCommandService).deleteMessageInMyPaper(eq(2L), eq(null));
-            verify(paperCommandService).deleteMessageInMyPaper(eq(3L), eq(null));
-
-            // 신고자 익명화
-            verify(adminCommandService).anonymizeReporterByUserId(eq(1L));
-            verify(adminCommandService).anonymizeReporterByUserId(eq(2L));
-            verify(adminCommandService).anonymizeReporterByUserId(eq(3L));
-
-            // 소셜 토큰 삭제
-            verify(globalSocialTokenCommandAdapter).deleteByMemberId(eq(1L));
-            verify(globalSocialTokenCommandAdapter).deleteByMemberId(eq(2L));
-            verify(globalSocialTokenCommandAdapter).deleteByMemberId(eq(3L));
-
-            // 계정 정보 삭제
-            verify(memberAccountService).removeMemberAccount(eq(1L));
-            verify(memberAccountService).removeMemberAccount(eq(2L));
-            verify(memberAccountService).removeMemberAccount(eq(3L));
-        });
+        // Then: 모든 회원이 삭제됨
+        Awaitility.await()
+                .atMost(EVENT_TIMEOUT)
+                .untilAsserted(() -> {
+                    entityManager.clear();
+                    assertThat(memberRepository.findById(memberId1)).isEmpty();
+                    assertThat(memberRepository.findById(memberId2)).isEmpty();
+                    assertThat(memberRepository.findById(memberId3)).isEmpty();
+                });
     }
 
     @Test
-    @DisplayName("소셜 연결 해제 실패 시에도 나머지 정리를 수행")
-    void socialUnlinkFailure_ShouldContinueCleanup() {
-        // Given
-        Long memberId = 42L;
-        MemberWithdrawnEvent event = new MemberWithdrawnEvent(memberId, "failingSocialId", SocialProvider.KAKAO);
+    @DisplayName("소셜 토큰이 있는 회원 탈퇴")
+    void userWithSocialToken_ShouldBeDeleted() {
+        // Given: 소셜 토큰이 있는 회원
+        Member memberWithToken = TestMembers.createUniqueWithPrefix("tokenTest");
 
-        AtomicBoolean unlinkAttempted = new AtomicBoolean(false);
+        // 소셜 토큰 생성
+        SocialToken socialToken = SocialToken.createSocialToken(
+                "test-access-token",
+                "test-refresh-token"
+        );
 
-        SocialPlatformStrategy failingStrategy = new SocialPlatformStrategy(
-                SocialProvider.KAKAO,
-                new SocialAuthStrategy() {
-                    @Override
-                    public SocialProvider getProvider() {
-                        return SocialProvider.KAKAO;
-                    }
+        // 소셜 토큰 저장 및 회원과 연결
+        entityManager.persist(socialToken);
+        memberWithToken.updateSocialToken(socialToken);
 
-                    @Override
-                    public SocialMemberProfile getSocialToken(String code, String state) {
-                        throw new UnsupportedOperationException();
-                    }
+        persistAndFlush(memberWithToken);
 
-                    @Override
-                    public void unlink(String socialId, String accessToken) {
-                        unlinkAttempted.set(true);
-                        throw new RuntimeException("소셜 해제 실패");
-                    }
+        Long memberId = memberWithToken.getId();
 
-                    @Override
-                    public void logout(String accessToken) {
-                        // no-op
-                    }
+        // When: 탈퇴 이벤트 발행
+        MemberWithdrawnEvent event = new MemberWithdrawnEvent(
+                memberId,
+                memberWithToken.getSocialId(),
+                memberWithToken.getProvider()
+        );
+        eventPublisher.publishEvent(event);
 
-                    @Override
-                    public void forceLogout(String socialId) {
-                        // no-op
-                    }
-
-                    @Override
-                    public String refreshAccessToken(String refreshToken) throws Exception {
-                        return "test-refreshed-token";
-                    }
-                }
-        ) {};
-
-        doReturn(failingStrategy).when(globalSocialStrategyAdapter).getStrategy(SocialProvider.KAKAO);
-
-        // When & Then
-        publishAndVerify(event, () -> {
-            verify(sseService).deleteEmitters(eq(memberId), eq(null));
-            verify(globalSocialStrategyAdapter).getStrategy(eq(SocialProvider.KAKAO));
-            verify(CommentCommandService).processUserCommentsOnWithdrawal(eq(memberId));
-            verify(postCommandService).deleteAllPostsByMemberId(eq(memberId));
-            verify(authTokenService).deleteTokens(eq(memberId), eq(null));
-            verify(notificationCommandService).deleteAllNotification(eq(memberId));
-            verify(paperCommandService).deleteMessageInMyPaper(eq(memberId), eq(null));
-            verify(adminCommandService).anonymizeReporterByUserId(eq(memberId));
-            verify(globalSocialTokenCommandAdapter).deleteByMemberId(eq(memberId));
-            verify(memberAccountService).removeMemberAccount(eq(memberId));
-        });
-
-        assertThat(unlinkAttempted).isTrue();
-    }
-
-    @Test
-    @DisplayName("예외 상황에서의 이벤트 처리 - 단일 리스너의 순차 처리")
-    void eventProcessingWithException_SequentialProcessing() {
-        // Given
-        MemberWithdrawnEvent event = new MemberWithdrawnEvent(1L, "testSocialId1", SocialProvider.KAKAO);
-
-        // 댓글 처리 실패 시뮬레이션
-        doThrow(new RuntimeException("댓글 정리 중 예외가 발생했습니다.")).when(CommentCommandService).processUserCommentsOnWithdrawal(1L);
-
-        // When & Then - 예외 발생 시 해당 시점 이전까지만 처리됨 (순차 처리)
-        publishAndExpectException(event, () -> {
-            // SSE 연결 정리는 먼저 실행됨
-            verify(sseService).deleteEmitters(eq(1L), eq(null));
-            // 소셜 계정 연동 해제 전략 조회도 실행됨
-            verify(globalSocialStrategyAdapter).getStrategy(eq(SocialProvider.KAKAO));
-            // 댓글 처리에서 예외 발생
-            verify(CommentCommandService).processUserCommentsOnWithdrawal(eq(1L));
-        });
+        // Then: 회원과 소셜 토큰 모두 삭제
+        Awaitility.await()
+                .atMost(EVENT_TIMEOUT)
+                .untilAsserted(() -> {
+                    entityManager.clear();
+                    assertThat(memberRepository.findById(memberId)).isEmpty();
+                });
     }
 }

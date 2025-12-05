@@ -6,6 +6,7 @@ import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.out.PostQueryRepository;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostQueryAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostSaveAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -47,6 +48,9 @@ class PostCacheServiceTest {
 
     @Mock
     private RedisPostQueryAdapter redisPostQueryAdapter;
+
+    @Mock
+    private RedisPostUpdateAdapter redisPostUpdateAdapter;
 
     @InjectMocks
     private PostCacheService postCacheService;
@@ -107,6 +111,7 @@ class PostCacheServiceTest {
             PostTestDataBuilder.createPostSearchResult(2L, "주간 인기글 2")
         );
 
+        given(redisPostQueryAdapter.getPostListCacheTTL(PostCacheFlag.WEEKLY)).willReturn(300L);  // 충분한 TTL (5분) → asyncRefreshCache 호출 안 됨
         given(redisPostQueryAdapter.getCachedPostList(PostCacheFlag.WEEKLY)).willReturn(weeklyPosts);
 
         // When

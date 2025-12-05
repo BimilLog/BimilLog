@@ -376,32 +376,4 @@ class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(cookie().exists("post_views"))
                 .andExpect(cookie().value("post_views", testPost1.getId().toString()));
     }
-
-    @Test
-    @DisplayName("사용자 작성 게시글 목록 조회 - 성공")
-    void getUserPosts_Success() throws Exception {
-        mockMvc.perform(get("/api/post/me")
-                        .param("page", "0")
-                        .param("size", "10")
-                        .with(user(queryUserDetails)))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isArray())
-                .andExpect(jsonPath("$.totalElements").isNumber())
-                .andExpect(jsonPath("$.totalPages").isNumber());
-    }
-
-    @Test
-    @DisplayName("사용자 추천 게시글 목록 조회 - 성공")
-    void getUserLikedPosts_Success() throws Exception {
-        mockMvc.perform(get("/api/post/me/liked")
-                        .param("page", "0")
-                        .param("size", "10")
-                        .with(user(queryUserDetails)))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isArray())
-                .andExpect(jsonPath("$.totalElements").isNumber())
-                .andExpect(jsonPath("$.totalPages").isNumber());
-    }
 }

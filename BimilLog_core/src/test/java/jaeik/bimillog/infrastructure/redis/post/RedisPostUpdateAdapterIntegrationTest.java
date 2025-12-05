@@ -90,9 +90,9 @@ class RedisPostUpdateAdapterIntegrationTest {
         Double score2 = redisTemplate.opsForZSet().score(scoreKey, "2");
         Double score3 = redisTemplate.opsForZSet().score(scoreKey, "3");
 
-        assertThat(score1).isEqualTo(9.0);  // 10 * 0.9
-        assertThat(score2).isEqualTo(4.5);  // 5 * 0.9
-        assertThat(score3).isEqualTo(1.8);  // 2 * 0.9
+        assertThat(score1).isEqualTo(9.7);  // 10 * 0.97
+        assertThat(score2).isEqualTo(4.85);  // 5 * 0.97
+        assertThat(score3).isEqualTo(1.94);  // 2 * 0.97
     }
 
     @Test
@@ -101,8 +101,8 @@ class RedisPostUpdateAdapterIntegrationTest {
         // Given: 임계값(1.0) 근처의 점수 설정
         String scoreKey = RedisPostKeys.REALTIME_POST_SCORE_KEY;
         redisTemplate.opsForZSet().add(scoreKey, "1", 10.0);
-        redisTemplate.opsForZSet().add(scoreKey, "2", 1.5);  // 감쇠 후 1.35 (유지)
-        redisTemplate.opsForZSet().add(scoreKey, "3", 1.1);  // 감쇠 후 0.99 (제거)
+        redisTemplate.opsForZSet().add(scoreKey, "2", 1.5);  // 감쇠 후(유지)
+        redisTemplate.opsForZSet().add(scoreKey, "3", 1.02);  // 감쇠 후 (제거)
         redisTemplate.opsForZSet().add(scoreKey, "4", 0.8);  // 감쇠 후 0.72 (제거)
 
         // 초기 크기 확인
@@ -123,8 +123,8 @@ class RedisPostUpdateAdapterIntegrationTest {
         // 점수 확인
         Double score1 = redisTemplate.opsForZSet().score(scoreKey, "1");
         Double score2 = redisTemplate.opsForZSet().score(scoreKey, "2");
-        assertThat(score1).isEqualTo(9.0);   // 10 * 0.9
-        assertThat(score2).isEqualTo(1.35);  // 1.5 * 0.9
+        assertThat(score1).isEqualTo(9.7);   // 10 * 0.97
+        assertThat(score2).isEqualTo(1.455);  // 1.5 * 0.97
 
         // 제거된 게시글 확인
         assertThat(redisTemplate.opsForZSet().score(scoreKey, "3")).isNull();

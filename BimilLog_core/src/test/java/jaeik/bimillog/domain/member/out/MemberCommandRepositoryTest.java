@@ -21,9 +21,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 /**
- * <h2>MemberCommandAdapter 통합 테스트</h2>
- * <p>사용자 명령 어댑터의 핵심 비즈니스 로직을 테스트합니다.</p>
- * <p>Native Query를 사용한 사용자와 설정 동시 삭제 검증</p>
+ * <h2>MemberRepository 통합 테스트</h2>
+ * <p>사용자 Repository의 핵심 비즈니스 로직을 테스트합니다.</p>
+ * <p>JPA Cascade를 사용한 사용자와 설정 동시 삭제 검증</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -35,13 +35,13 @@ import static org.assertj.core.api.Assertions.assertThatCode;
         )
 )
 @ActiveProfiles("h2test")
-@Import({MemberCommandRepository.class, H2TestConfiguration.class})
+@Import({H2TestConfiguration.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Tag("integration")
 class MemberCommandRepositoryTest {
 
     @Autowired
-    private MemberCommandRepository memberCommandRepository;
+    private MemberRepository memberRepository;
 
     @Autowired
     private TestEntityManager testEntityManager;
@@ -84,7 +84,7 @@ class MemberCommandRepositoryTest {
         assertThat(testEntityManager.find(Setting.class, settingId)).isNotNull();
 
         // When
-        memberCommandRepository.deleteMemberAndSetting(memberId);
+        memberRepository.deleteById(memberId);
         testEntityManager.flush();
         testEntityManager.clear();
 
@@ -100,7 +100,7 @@ class MemberCommandRepositoryTest {
         Long nonExistentMemberId = 99999L;
 
         // When & Then
-        assertThatCode(() -> memberCommandRepository.deleteMemberAndSetting(nonExistentMemberId))
+        assertThatCode(() -> memberRepository.deleteById(nonExistentMemberId))
                 .doesNotThrowAnyException();
     }
 
@@ -111,13 +111,13 @@ class MemberCommandRepositoryTest {
         Long memberId = testMember.getId();
 
         // 첫 번째 삭제
-        memberCommandRepository.deleteMemberAndSetting(memberId);
+        memberRepository.deleteById(memberId);
         testEntityManager.flush();
         testEntityManager.clear();
 
         // When & Then - 두 번째 삭제
         assertThatCode(() -> {
-            memberCommandRepository.deleteMemberAndSetting(memberId);
+            memberRepository.deleteById(memberId);
             testEntityManager.flush();
         }).doesNotThrowAnyException();
 
@@ -153,7 +153,7 @@ class MemberCommandRepositoryTest {
         Long otherSettingId = otherSetting.getId();
 
         // When
-        memberCommandRepository.deleteMemberAndSetting(targetMemberId);
+        memberRepository.deleteById(targetMemberId);
         testEntityManager.flush();
         testEntityManager.clear();
 

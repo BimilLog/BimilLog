@@ -6,6 +6,7 @@ import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.entity.VisitPaperResult;
 import jaeik.bimillog.domain.paper.event.PaperViewedEvent;
+import jaeik.bimillog.domain.paper.out.MessageRepository;
 import jaeik.bimillog.domain.paper.out.PaperQueryRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
@@ -27,6 +28,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PaperQueryService {
     private final PaperQueryRepository paperQueryRepository;
+    private final MessageRepository messageRepository;
     private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
     private final ApplicationEventPublisher eventPublisher;
     private final GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
@@ -39,7 +41,7 @@ public class PaperQueryService {
      * @since 2.0.0
      */
     public List<Message> getMyPaper(Long memberId) {
-        return paperQueryRepository.findMessagesByUserId(memberId);
+        return messageRepository.findByMember_IdOrderByCreatedAtDesc(memberId);
     }
 
     /**
@@ -65,7 +67,7 @@ public class PaperQueryService {
             globalMemberBlacklistAdapter.checkMemberBlacklist(memberId, member.getId());
         }
 
-        List<Message> messages = paperQueryRepository.findMessagesByMemberName(memberName);
+        List<Message> messages = messageRepository.findByMemberMemberName(memberName);
 
         //
         List<VisitPaperResult.VisitMessage> visitMessages = messages.stream()

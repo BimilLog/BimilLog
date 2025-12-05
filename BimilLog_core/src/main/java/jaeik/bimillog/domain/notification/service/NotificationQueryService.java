@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.notification.service;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.notification.controller.NotificationQueryController;
 import jaeik.bimillog.domain.notification.entity.Notification;
-import jaeik.bimillog.domain.notification.out.NotificationQueryRepository;
+import jaeik.bimillog.domain.notification.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +23,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class NotificationQueryService {
 
-    private final NotificationQueryRepository notificationQueryRepository;
+    private final NotificationRepository notificationRepository;
 
     /**
      * <h3>알림 목록 조회</h3>
@@ -42,7 +42,7 @@ public class NotificationQueryService {
             return Collections.emptyList();
         }
 
-        List<Notification> notifications = notificationQueryRepository.getNotificationList(userDetails.getMemberId());
+        List<Notification> notifications = notificationRepository.getNotificationList(userDetails.getMemberId());
 
         return notifications != null ? notifications : Collections.emptyList();
     }

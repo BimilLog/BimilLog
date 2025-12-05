@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.notification.controller;
 
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.notification.out.NotificationRepository;
+import jaeik.bimillog.domain.notification.repository.NotificationRepository;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.builder.NotificationTestDataBuilder;

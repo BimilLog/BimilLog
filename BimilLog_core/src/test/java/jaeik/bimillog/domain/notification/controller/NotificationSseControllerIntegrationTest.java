@@ -41,7 +41,7 @@ class NotificationSseControllerIntegrationTest extends BaseIntegrationTest {
                 .with(user(testUserDetails)))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.TEXT_EVENT_STREAM_VALUE));
+                .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_EVENT_STREAM));
     }
     
     @Test
@@ -76,19 +76,19 @@ class NotificationSseControllerIntegrationTest extends BaseIntegrationTest {
                 .with(user(testUserDetails)))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.TEXT_EVENT_STREAM_VALUE));
+                .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_EVENT_STREAM));
 
         mockMvc.perform(get("/api/notification/subscribe")
                 .with(user(otherUserDetails)))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.TEXT_EVENT_STREAM_VALUE));
+                .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_EVENT_STREAM));
 
         mockMvc.perform(get("/api/notification/subscribe")
                 .with(user(additionalUserDetails)))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.TEXT_EVENT_STREAM_VALUE));
+                .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_EVENT_STREAM));
     }
     
     @Test
@@ -100,7 +100,7 @@ class NotificationSseControllerIntegrationTest extends BaseIntegrationTest {
                 .with(user(testUserDetails)))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.TEXT_EVENT_STREAM_VALUE));
+                .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_EVENT_STREAM));
     }
 
 }

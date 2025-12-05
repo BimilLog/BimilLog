@@ -637,26 +637,47 @@ class CommentQueryRepositoryIntegrationTest {
         comment3 = commentRepository.save(comment3);
 
         // otherMember가 시간 간격을 두고 순차적으로 추천 (comment1 → comment2 → comment3)
-        CommentLike like1 = CommentLike.builder()
-                .comment(comment1)
-                .member(otherMember)
-                .build();
-        CommentLike like2 = CommentLike.builder()
-                .comment(comment2)
-                .member(otherMember)
-                .build();
-        CommentLike like3 = CommentLike.builder()
-                .comment(comment3)
-                .member(otherMember)
-                .build();
-
-        Instant baseTime = Instant.parse("2024-01-02T00:00:00Z");
-        setCreatedAt(like1, baseTime);
-        setCreatedAt(like2, baseTime.plusSeconds(1));
-        setCreatedAt(like3, baseTime.plusSeconds(2));
-
-        commentLikeRepository.saveAll(List.of(like1, like2, like3));
+        // 1. 먼저 저장 (JPA Auditing이 createdAt 설정)
+        CommentLike like1 = commentLikeRepository.save(
+                CommentLike.builder()
+                        .comment(comment1)
+                        .member(otherMember)
+                        .build()
+        );
+        CommentLike like2 = commentLikeRepository.save(
+                CommentLike.builder()
+                        .comment(comment2)
+                        .member(otherMember)
+                        .build()
+        );
+        CommentLike like3 = commentLikeRepository.save(
+                CommentLike.builder()
+                        .comment(comment3)
+                        .member(otherMember)
+                        .build()
+        );
         commentLikeRepository.flush();
+
+        // 2. 저장 후 JPQL UPDATE로 createdAt 직접 업데이트 (JPA Auditing 우회)
+        Instant baseTime = Instant.parse("2024-01-02T00:00:00Z");
+        entityManager.createQuery("UPDATE CommentLike cl SET cl.createdAt = :time WHERE cl.id = :id")
+                .setParameter("time", baseTime)
+                .setParameter("id", like1.getId())
+                .executeUpdate();
+
+        entityManager.createQuery("UPDATE CommentLike cl SET cl.createdAt = :time WHERE cl.id = :id")
+                .setParameter("time", baseTime.plusSeconds(1))
+                .setParameter("id", like2.getId())
+                .executeUpdate();
+
+        entityManager.createQuery("UPDATE CommentLike cl SET cl.createdAt = :time WHERE cl.id = :id")
+                .setParameter("time", baseTime.plusSeconds(2))
+                .setParameter("id", like3.getId())
+                .executeUpdate();
+
+        // 3. EntityManager flush & clear로 1차 캐시 초기화
+        entityManager.flush();
+        entityManager.clear();
 
         Pageable pageable = PageRequest.of(0, 10);
 

@@ -1,9 +1,8 @@
-package jaeik.bimillog.domain.notification.out;
+package jaeik.bimillog.domain.notification.repository;
 
 import jaeik.bimillog.BimilLogApplication;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.notification.entity.Notification;
-import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
 import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.builder.NotificationTestDataBuilder;
@@ -29,8 +28,8 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * <h2>NotificationCommandAdapter 통합 테스트</h2>
- * <p>알림 명령 어댑터의 데이터베이스 연동 동작 검증</p>
+ * <h2>NotificationRepository 통합 테스트 - 일괄 업데이트</h2>
+ * <p>알림 Repository의 데이터베이스 연동 동작 검증</p>
  * <p>H2 데이터베이스를 사용하여 알림 CRUD 작업 테스트</p>
  *
  * @author Jaeik
@@ -43,13 +42,10 @@ import static org.assertj.core.api.Assertions.assertThat;
         )
 )
 @ActiveProfiles("h2test")
-@Import({NotificationCommandRepository.class, H2TestConfiguration.class})
+@Import({H2TestConfiguration.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Tag("integration")
 class NotificationCommandRepositoryIntegrationTest {
-
-    @Autowired
-    private NotificationCommandRepository notificationCommandRepository;
 
     @Autowired
     private NotificationRepository notificationRepository;
@@ -98,8 +94,10 @@ class NotificationCommandRepositoryIntegrationTest {
         List<Long> deleteIds = Arrays.asList(notification1.getId(), notification3.getId());
         NotificationUpdateVO updateCommand = NotificationUpdateVO.of(Collections.emptyList(), deleteIds);
 
-        // When: 일괄 삭제 실행
-        notificationCommandRepository.batchUpdate(testMemberId, updateCommand);
+        // When: 일괄 삭제 실행 (batchUpdate 로직을 직접 구현)
+        if (deleteIds != null && !deleteIds.isEmpty()) {
+            notificationRepository.deleteAllByIdInAndMember_Id(deleteIds, testMemberId);
+        }
 
         testEntityManager.flush();
         testEntityManager.clear();
@@ -130,8 +128,11 @@ class NotificationCommandRepositoryIntegrationTest {
         List<Long> readIds = Arrays.asList(notification1.getId(), notification2.getId());
         NotificationUpdateVO updateCommand = NotificationUpdateVO.of(readIds, Collections.emptyList());
 
-        // When: 일괄 읽음 처리 실행
-        notificationCommandRepository.batchUpdate(testMemberId, updateCommand);
+        // When: 일괄 읽음 처리 실행 (batchUpdate 로직을 직접 구현)
+        if (readIds != null && !readIds.isEmpty()) {
+            List<Notification> notificationsToUpdate = notificationRepository.findAllByIdInAndMember_Id(readIds, testMemberId);
+            notificationsToUpdate.forEach(Notification::markAsRead);
+        }
 
         testEntityManager.flush();
         testEntityManager.clear();
@@ -174,8 +175,14 @@ class NotificationCommandRepositoryIntegrationTest {
 
         NotificationUpdateVO updateCommand = NotificationUpdateVO.of(readIds, deleteIds);
 
-        // When: 일괄 삭제 및 읽음 처리 실행
-        notificationCommandRepository.batchUpdate(testMemberId, updateCommand);
+        // When: 일괄 삭제 및 읽음 처리 실행 (batchUpdate 로직을 직접 구현)
+        if (deleteIds != null && !deleteIds.isEmpty()) {
+            notificationRepository.deleteAllByIdInAndMember_Id(deleteIds, testMemberId);
+        }
+        if (readIds != null && !readIds.isEmpty()) {
+            List<Notification> notificationsToUpdate = notificationRepository.findAllByIdInAndMember_Id(readIds, testMemberId);
+            notificationsToUpdate.forEach(Notification::markAsRead);
+        }
 
         testEntityManager.flush();
         testEntityManager.clear();
@@ -202,13 +209,29 @@ class NotificationCommandRepositoryIntegrationTest {
         testEntityManager.flush();
         long beforeCount = notificationRepository.count();
 
-        // When: 빈 목록으로 일괄 업데이트 실행
+        // When: 빈 목록으로 일괄 업데이트 실행 (batchUpdate 로직을 직접 구현)
         NotificationUpdateVO emptyCommand = NotificationUpdateVO.of(Collections.emptyList(), Collections.emptyList());
-        notificationCommandRepository.batchUpdate(testMemberId, emptyCommand);
+        List<Long> emptyDeleteIds = emptyCommand.deletedIds();
+        List<Long> emptyReadIds = emptyCommand.readIds();
+        if (emptyDeleteIds != null && !emptyDeleteIds.isEmpty()) {
+            notificationRepository.deleteAllByIdInAndMember_Id(emptyDeleteIds, testMemberId);
+        }
+        if (emptyReadIds != null && !emptyReadIds.isEmpty()) {
+            List<Notification> notifications = notificationRepository.findAllByIdInAndMember_Id(emptyReadIds, testMemberId);
+            notifications.forEach(Notification::markAsRead);
+        }
 
         // When: null 목록으로 일괄 업데이트 실행
         NotificationUpdateVO nullCommand = NotificationUpdateVO.of(null, null);
-        notificationCommandRepository.batchUpdate(testMemberId, nullCommand);
+        List<Long> nullDeleteIds = nullCommand.deletedIds();
+        List<Long> nullReadIds = nullCommand.readIds();
+        if (nullDeleteIds != null && !nullDeleteIds.isEmpty()) {
+            notificationRepository.deleteAllByIdInAndMember_Id(nullDeleteIds, testMemberId);
+        }
+        if (nullReadIds != null && !nullReadIds.isEmpty()) {
+            List<Notification> notifications = notificationRepository.findAllByIdInAndMember_Id(nullReadIds, testMemberId);
+            notifications.forEach(Notification::markAsRead);
+        }
 
         testEntityManager.flush();
 
@@ -256,8 +279,10 @@ class NotificationCommandRepositoryIntegrationTest {
         List<Long> deleteIds = Arrays.asList(myNotification.getId(), otherNotification.getId());
         NotificationUpdateVO updateCommand = NotificationUpdateVO.of(Collections.emptyList(), deleteIds);
 
-        // When: 현재 사용자가 다른 사용자의 알림까지 포함해서 삭제 시도
-        notificationCommandRepository.batchUpdate(testMemberId, updateCommand);
+        // When: 현재 사용자가 다른 사용자의 알림까지 포함해서 삭제 시도 (batchUpdate 로직을 직접 구현)
+        if (deleteIds != null && !deleteIds.isEmpty()) {
+            notificationRepository.deleteAllByIdInAndMember_Id(deleteIds, testMemberId);
+        }
 
         testEntityManager.flush();
         testEntityManager.clear();

@@ -31,7 +31,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PaperCommandService {
     private final MessageRepository messageRepository;
-    private final PaperQueryRepository paperQueryRepository;
     private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
     private final ApplicationEventPublisher eventPublisher;
     private final RedisPaperDeleteAdapter redisPaperDeleteAdapter;
@@ -93,7 +92,7 @@ public class PaperCommandService {
         }
 
         // 메시지 삭제의 경우
-        Long ownerId = paperQueryRepository.findOwnerIdByMessageId(messageId)
+        Long ownerId = messageRepository.findOwnerIdByMessageId(messageId)
                 .orElseThrow(() -> new CustomException(ErrorCode.PAPER_MESSAGE_NOT_FOUND));
 
         if (!ownerId.equals(memberId)) {

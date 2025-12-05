@@ -127,15 +127,15 @@ class PostQueryRepositoryIntegrationTest {
         // Then: 공지사항이 제외된 일반 게시글만 조회됨
         assertThat(result).isNotNull();
         assertThat(result.getContent()).hasSize(2); // 요청한 크기만큼
-        assertThat(result.getTotalElements()).isEqualTo(3L); // 전체 일반 게시글 수
-        assertThat(result.getTotalPages()).isEqualTo(2); // 전체 페이지 수
+        assertThat(result.getTotalElements()).isEqualTo(3L); // 전체 일반 게시글 수 (공지사항 1개 제외)
+        assertThat(result.getTotalPages()).isEqualTo(2); // 전체 페이지 수 (3 / 2 = 2페이지)
 
         // 공지사항은 제외되어야 함
         List<String> titles = result.getContent().stream()
                 .map(PostSimpleDetail::getTitle)
                 .toList();
         assertThat(titles).doesNotContain("공지사항 제목");
-        
+
         // 댓글 수와 추천 수가 설정되어 있는지 확인
         assertThat(result.getContent().getFirst().getCommentCount()).isNotNull();
         assertThat(result.getContent().getFirst().getLikeCount()).isNotNull();
@@ -280,7 +280,14 @@ class PostQueryRepositoryIntegrationTest {
         Page<PostSimpleDetail> result = postQueryRepository.findByPage(pageable, null);
 
         // Then: 공지사항은 제외되고 일반 게시글만 조회됨
-        assertThat(result.getContent()).hasSize(3); // 일반 게시글 3개만 조회 (공지사항 2개 제외)
+        assertThat(result.getContent()).hasSize(3); // 일반 게시글 3개만 조회 (공지사항 1개 제외)
+        assertThat(result.getTotalElements()).isEqualTo(3L); // 총 3개의 일반 게시글
+
+        // 공지사항이 포함되어 있지 않음을 검증
+        List<String> titles = result.getContent().stream()
+                .map(PostSimpleDetail::getTitle)
+                .toList();
+        assertThat(titles).doesNotContain("공지사항 제목");
     }
 
     @Test

@@ -4,10 +4,7 @@ package jaeik.bimillog.domain.post.service;
 import jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter;
 import jaeik.bimillog.domain.post.controller.PostQueryController;
 import jaeik.bimillog.domain.post.entity.*;
-import jaeik.bimillog.domain.post.out.PostLikeQueryRepository;
-import jaeik.bimillog.domain.post.out.PostQueryRepository;
-import jaeik.bimillog.domain.post.out.PostRepository;
-import jaeik.bimillog.domain.post.out.PostToCommentAdapter;
+import jaeik.bimillog.domain.post.out.*;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostQueryAdapter;
@@ -34,7 +31,7 @@ import java.util.Optional;
 public class PostQueryService {
 
     private final PostQueryRepository postQueryRepository;
-    private final PostLikeQueryRepository postLikeQueryRepository;
+    private final PostLikeRepository postLikeRepository;
     private final RedisPostQueryAdapter redisPostQueryAdapter;
     private final RedisPostSaveAdapter redisPostSaveAdapter;
     private final PostRepository postRepository;
@@ -83,7 +80,7 @@ public class PostQueryService {
             }
              // 캐시 히트: 사용자 좋아요 정보만 추가 확인
              if (memberId != null) {
-                 boolean isLiked = postLikeQueryRepository.existsByPostIdAndUserId(postId, memberId);
+                 boolean isLiked = postLikeRepository.existsByPostIdAndMemberId(postId, memberId);
                  return cachedPost.withIsLiked(isLiked);
              }
             return cachedPost;

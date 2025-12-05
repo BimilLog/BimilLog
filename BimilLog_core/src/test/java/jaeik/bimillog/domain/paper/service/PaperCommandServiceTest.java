@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.entity.Message;
+import jaeik.bimillog.domain.paper.event.MessageDeletedEvent;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.paper.out.MessageRepository;
 import jaeik.bimillog.domain.paper.out.PaperQueryRepository;
@@ -47,6 +48,12 @@ class PaperCommandServiceTest extends BaseUnitTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
+    @Mock
+    private jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
+
+    @Mock
+    private jaeik.bimillog.infrastructure.redis.paper.RedisPaperDeleteAdapter redisPaperDeleteAdapter;
+
     @InjectMocks
     private PaperCommandService paperCommandService;
 
@@ -57,15 +64,15 @@ class PaperCommandServiceTest extends BaseUnitTest {
         Long memberId = 1L;
         Long messageId = 123L;
 
-        given(paperQueryRepository.findOwnerIdByMessageId(messageId)).willReturn(Optional.of(memberId));
+        given(messageRepository.findOwnerIdByMessageId(messageId)).willReturn(Optional.of(memberId));
 
         // When
         paperCommandService.deleteMessageInMyPaper(memberId, messageId);
 
         // Then
-        verify(paperQueryRepository, times(1)).findOwnerIdByMessageId(messageId);
+        verify(messageRepository, times(1)).findOwnerIdByMessageId(messageId);
         verify(messageRepository, times(1)).deleteById(messageId);
-        verify(eventPublisher, times(1)).publishEvent(any());
+        verify(eventPublisher, times(1)).publishEvent(any(MessageDeletedEvent.class));
     }
 
     @Test
@@ -75,14 +82,14 @@ class PaperCommandServiceTest extends BaseUnitTest {
         Long memberId = 999L;
         Long messageId = 999L;
 
-        given(paperQueryRepository.findOwnerIdByMessageId(messageId)).willReturn(Optional.empty());
+        given(messageRepository.findOwnerIdByMessageId(messageId)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(memberId, messageId))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PAPER_MESSAGE_NOT_FOUND);
 
-        verify(paperQueryRepository, times(1)).findOwnerIdByMessageId(messageId);
+        verify(messageRepository, times(1)).findOwnerIdByMessageId(messageId);
         verify(messageRepository, never()).deleteById(any());
     }
 
@@ -94,14 +101,14 @@ class PaperCommandServiceTest extends BaseUnitTest {
         Long ownerId = 2L; // 다른 사용자
         Long messageId = 123L;
 
-        given(paperQueryRepository.findOwnerIdByMessageId(messageId)).willReturn(Optional.of(ownerId));
+        given(messageRepository.findOwnerIdByMessageId(messageId)).willReturn(Optional.of(ownerId));
 
         // When & Then
         assertThatThrownBy(() -> paperCommandService.deleteMessageInMyPaper(memberId, messageId))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PAPER_MESSAGE_DELETE_FORBIDDEN);
 
-        verify(paperQueryRepository, times(1)).findOwnerIdByMessageId(messageId);
+        verify(messageRepository, times(1)).findOwnerIdByMessageId(messageId);
         verify(messageRepository, never()).deleteById(any());
     }
 

@@ -2,13 +2,15 @@ package jaeik.bimillog.domain.notification.service;
 
 import jaeik.bimillog.domain.global.listener.MemberWithdrawListener;
 import jaeik.bimillog.domain.notification.controller.NotificationCommandController;
+import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
-import jaeik.bimillog.domain.notification.out.NotificationCommandRepository;
-import jaeik.bimillog.domain.notification.out.NotificationRepository;
+import jaeik.bimillog.domain.notification.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * <h2>알림 명령 서비스</h2>
@@ -22,8 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class NotificationCommandService {
-
-    private final NotificationCommandRepository notificationCommandRepository;
     private final NotificationRepository notificationRepository;
 
     /**
@@ -41,12 +41,17 @@ public class NotificationCommandService {
     @Transactional
     public void batchUpdate(Long memberId, NotificationUpdateVO updateCommand) {
 
-        notificationCommandRepository.batchUpdate(memberId, updateCommand);
+        List<Long> deleteIds = updateCommand.deletedIds();
+        List<Long> readIds = updateCommand.readIds();
 
-        log.info("사용자 {}의 알림 업데이트 완료: {} 개 읽음 처리, {} 개 삭제",
-                memberId,
-                updateCommand.readIds().size(),
-                updateCommand.deletedIds().size());
+        if (deleteIds != null && !deleteIds.isEmpty()) {
+            notificationRepository.deleteAllByIdInAndMember_Id(deleteIds, memberId);
+        }
+
+        if (readIds != null && !readIds.isEmpty()) {
+            List<Notification> notifications = notificationRepository.findAllByIdInAndMember_Id(readIds, memberId);
+            notifications.forEach(Notification::markAsRead);
+        }
     }
 
     /**

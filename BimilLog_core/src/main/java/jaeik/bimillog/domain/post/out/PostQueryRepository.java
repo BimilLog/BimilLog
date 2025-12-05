@@ -53,17 +53,6 @@ public class PostQueryRepository {
     private static final QMemberBlacklist memberBlacklist = QMemberBlacklist.memberBlacklist;
 
     /**
-     * <h3>사용자가 작성한 글의 postId 목록 조회</h3>
-     * <p>사용자가 작성한 글의 postId 목록을 조회합니다.</p>
-     *
-     * @param memberId 게시글을 조회할 사용자 ID
-     * @return List<Long> 사용자의 게시글 ID 목록
-     */
-    public List<Long> findPostIdsMemberId(Long memberId) {
-        return postRepository.findIdsWithCacheFlagByMemberId(memberId);
-    }
-
-    /**
      * <h3>게시판 조회</h3>
      * <p>페이지 정보에 따라 게시글 목록을 조회합니다.</p>
      * <p>공지사항은 제외하고 일반 게시글만 조회</p>

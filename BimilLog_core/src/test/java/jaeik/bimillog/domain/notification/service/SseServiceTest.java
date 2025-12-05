@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.notification.service;
 
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.SseMessage;
-import jaeik.bimillog.domain.notification.out.SseAdapter;
+import jaeik.bimillog.domain.notification.repository.SseRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -27,7 +27,7 @@ import static org.mockito.Mockito.verify;
 class SseServiceTest {
 
     @Mock
-    private SseAdapter sseAdapter;
+    private SseRepository sseRepository;
 
     @Mock
     private UrlGenerator urlGenerator;
@@ -42,14 +42,14 @@ class SseServiceTest {
         Long memberId = 1L;
         Long tokenId = 2L;
         SseEmitter emitter = new SseEmitter(1000L);
-        given(sseAdapter.subscribe(memberId, tokenId)).willReturn(emitter);
+        given(sseRepository.subscribe(memberId, tokenId)).willReturn(emitter);
 
         // When
         SseEmitter result = notificationSseService.subscribe(memberId, tokenId);
 
         // Then
         assertThat(result).isEqualTo(emitter);
-        verify(sseAdapter).subscribe(memberId, tokenId);
+        verify(sseRepository).subscribe(memberId, tokenId);
     }
 
     @Test
@@ -62,7 +62,7 @@ class SseServiceTest {
         notificationSseService.deleteEmitters(memberId, null);
 
         // Then
-        verify(sseAdapter).deleteEmitters(memberId, null);
+        verify(sseRepository).deleteEmitters(memberId, null);
     }
 
     @Test
@@ -76,7 +76,7 @@ class SseServiceTest {
         notificationSseService.deleteEmitters(memberId, tokenId);
 
         // Then
-        verify(sseAdapter).deleteEmitters(memberId, tokenId);
+        verify(sseRepository).deleteEmitters(memberId, tokenId);
     }
 
     @Test
@@ -94,7 +94,7 @@ class SseServiceTest {
 
         // Then
         verify(urlGenerator).generatePostUrl(postId);
-        verify(sseAdapter).send(argThat(message ->
+        verify(sseRepository).send(argThat(message ->
                 matchesMessage(message, postUserId, NotificationType.COMMENT,
                         commenterName + "님이 댓글을 남겼습니다!", expectedUrl)
         ));
@@ -114,7 +114,7 @@ class SseServiceTest {
 
         // Then
         verify(urlGenerator).generateRollingPaperUrl(userName);
-        verify(sseAdapter).send(argThat(message ->
+        verify(sseRepository).send(argThat(message ->
                 matchesMessage(message, farmOwnerId, NotificationType.MESSAGE,
                         "롤링페이퍼에 메시지가 작성되었어요!", expectedUrl)
         ));
@@ -135,7 +135,7 @@ class SseServiceTest {
 
         // Then
         verify(urlGenerator).generatePostUrl(postId);
-        verify(sseAdapter).send(argThat(sseMessage ->
+        verify(sseRepository).send(argThat(sseMessage ->
                 matchesMessage(sseMessage, memberId, NotificationType.POST_FEATURED, message, expectedUrl)
         ));
     }
