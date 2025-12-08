@@ -62,7 +62,6 @@ public class PostSearchRepository {
             }
 
             List<PostSimpleDetail> content = postFullTextUtil.mapFullTextRows(rows);
-            postQueryRepository.batchLikeCount(content);
             return new PageImpl<>(content, pageable, total);
         } catch (DataAccessException e) {
             log.warn("FULLTEXT 검색 중 데이터베이스 오류 - type: {}, query: {}, error: {}", type, query, e.getMessage());

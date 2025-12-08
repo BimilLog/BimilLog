@@ -3,7 +3,9 @@ package jaeik.bimillog.domain.post.out;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.JPAExpressions;
+import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.comment.entity.QComment;
@@ -43,7 +45,6 @@ import java.util.function.Consumer;
 @RequiredArgsConstructor
 public class PostQueryRepository {
     private final JPAQueryFactory jpaQueryFactory;
-    private final PostLikeQueryRepository postLikeQueryRepository;
 
     private static final QPost post = QPost.post;
     private static final QMember member = QMember.member;
@@ -96,35 +97,37 @@ public class PostQueryRepository {
      * @since 2.0.0
      */
     public Page<PostSimpleDetail> findLikedPostsByMemberId(Long memberId, Pageable pageable) {
-        // Content 쿼리: 추천한 게시글 조회 (postLike.createdAt 기준 정렬)
-        List<PostSimpleDetail> content = jpaQueryFactory
-            .select(new QPostSimpleDetail(
-                post.id,
-                post.title,
-                post.views,
-                Expressions.constant(0),  // likeCount는 배치 조회로 채움
-                post.createdAt,
-                member.id,
-                Expressions.stringTemplate("COALESCE({0}, {1})", member.memberName, "익명"),
-                Expressions.constant(0)  // commentCount는 배치 조회로 채움
-            ))
-            .from(post)
-            .join(postLike).on(post.id.eq(postLike.post.id).and(postLike.member.id.eq(memberId)))
-            .leftJoin(post.member, member)
-            .orderBy(postLike.createdAt.desc())  // 추천일 기준 정렬
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize())
-            .fetch();
+        QPostLike subPostLike = new QPostLike("subPostLike");
+        JPQLQuery<Integer> likeCountSubQuery = JPAExpressions
+                .select(subPostLike.count().intValue())
+                .from(subPostLike)
+                .where(subPostLike.post.id.eq(post.id));
 
-        // 배치 조회로 추천 수 설정
-        batchLikeCount(content);
+        List<PostSimpleDetail> content = jpaQueryFactory
+                .select(new QPostSimpleDetail(
+                        post.id,
+                        post.title,
+                        post.views,
+                        likeCountSubQuery,
+                        post.createdAt,
+                        member.id,
+                        Expressions.stringTemplate("COALESCE({0}, {1})", member.memberName, "익명"),
+                        Expressions.constant(0)  // commentCount는 배치 조회로 채움
+                ))
+                .from(post)
+                .join(postLike).on(post.id.eq(postLike.post.id).and(postLike.member.id.eq(memberId)))
+                .leftJoin(post.member, member)
+                .orderBy(postLike.createdAt.desc())  // 추천일 기준 정렬
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
 
         // Count 쿼리
         Long total = jpaQueryFactory
-            .select(post.countDistinct())
-            .from(post)
-            .join(postLike).on(post.id.eq(postLike.post.id).and(postLike.member.id.eq(memberId)))
-            .fetchOne();
+                .select(post.countDistinct())
+                .from(post)
+                .join(postLike).on(post.id.eq(postLike.post.id).and(postLike.member.id.eq(memberId)))
+                .fetchOne();
 
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
@@ -142,17 +145,17 @@ public class PostQueryRepository {
         BooleanExpression weeklyCondition = post.createdAt.after(Instant.now().minus(7, ChronoUnit.DAYS));
 
         Consumer<JPAQuery<?>> contentCustomizer = query -> query
-            .leftJoin(postLike).on(post.id.eq(postLike.post.id))
-            .where(weeklyCondition)
-            .groupBy(post.id, member.id, post.title)
-            .having(postLike.countDistinct().goe(1))
-            .orderBy(postLike.countDistinct().desc());
+                .leftJoin(postLike).on(post.id.eq(postLike.post.id))
+                .where(weeklyCondition)
+                .groupBy(post.id, member.id, post.title)
+                .having(postLike.countDistinct().goe(1))
+                .orderBy(postLike.countDistinct().desc());
 
         Consumer<JPAQuery<?>> countCustomizer = query -> query
-            .leftJoin(postLike).on(post.id.eq(postLike.post.id))
-            .where(weeklyCondition)
-            .groupBy(post.id)
-            .having(postLike.countDistinct().goe(1));
+                .leftJoin(postLike).on(post.id.eq(postLike.post.id))
+                .where(weeklyCondition)
+                .groupBy(post.id)
+                .having(postLike.countDistinct().goe(1));
 
         return findPostsWithQuery(contentCustomizer, countCustomizer, PageRequest.of(0, 5)).getContent();
     }
@@ -168,15 +171,15 @@ public class PostQueryRepository {
     @Transactional(readOnly = true)
     public List<PostSimpleDetail> findLegendaryPosts() {
         Consumer<JPAQuery<?>> contentCustomizer = query -> query
-            .leftJoin(postLike).on(post.id.eq(postLike.post.id))
-            .groupBy(post.id, member.id, post.title)
-            .having(postLike.countDistinct().goe(20))
-            .orderBy(postLike.countDistinct().desc());
+                .leftJoin(postLike).on(post.id.eq(postLike.post.id))
+                .groupBy(post.id, member.id, post.title)
+                .having(postLike.countDistinct().goe(20))
+                .orderBy(postLike.countDistinct().desc());
 
         Consumer<JPAQuery<?>> countCustomizer = query -> query
-            .leftJoin(postLike).on(post.id.eq(postLike.post.id))
-            .groupBy(post.id)
-            .having(postLike.countDistinct().goe(20));
+                .leftJoin(postLike).on(post.id.eq(postLike.post.id))
+                .groupBy(post.id)
+                .having(postLike.countDistinct().goe(20));
 
         return findPostsWithQuery(contentCustomizer, countCustomizer, PageRequest.of(0, 50)).getContent();
     }
@@ -226,9 +229,10 @@ public class PostQueryRepository {
         return Optional.ofNullable(result);
     }
 
-    // PostId 목록으로 Post 리스트 반환
+    /**
+     * <h3>PostId 목록으로 Post 리스트 반환</h3>
+     */
     public List<Post> findAllByIds(List<Long> postIds) {
-
         return jpaQueryFactory
                 .select(post)
                 .from(post)
@@ -236,8 +240,6 @@ public class PostQueryRepository {
                 .where(post.id.in(postIds))
                 .fetch();
     }
-
-
 
     /**
      * <h3>게시글 목록 조회</h3>
@@ -251,14 +253,19 @@ public class PostQueryRepository {
      * @since 2.0.0
      */
     public Page<PostSimpleDetail> findPostsWithQuery(Consumer<JPAQuery<?>> contentQueryCustomizer,
-                                                     Consumer<JPAQuery<?>> countQueryCustomizer,
-                                                     Pageable pageable) {
+                                                     Consumer<JPAQuery<?>> countQueryCustomizer, Pageable pageable) {
+        QPostLike subPostLike = new QPostLike("subPostLike");
+        JPQLQuery<Integer> likeCountSubQuery = JPAExpressions
+                .select(subPostLike.count().intValue())
+                .from(subPostLike)
+                .where(subPostLike.post.id.eq(post.id));
+
         JPAQuery<PostSimpleDetail> contentQuery = jpaQueryFactory
                 .select(new QPostSimpleDetail(
                         post.id,
                         post.title,
                         post.views,
-                        Expressions.constant(0),
+                        likeCountSubQuery,
                         post.createdAt,
                         member.id,
                         Expressions.stringTemplate("COALESCE({0}, {1})", member.memberName, "익명"),
@@ -276,9 +283,6 @@ public class PostQueryRepository {
                 .limit(pageable.getPageSize())
                 .fetch();
 
-        // 배치 조회로 추천 수 설정
-        batchLikeCount(content);
-
         // Count 쿼리 빌딩
         JPAQuery<Long> countQuery = jpaQueryFactory
                 .select(post.countDistinct())
@@ -295,29 +299,9 @@ public class PostQueryRepository {
     }
 
     /**
-     * <h3>게시글 목록에 추천 수 주입</h3>
-     * <p>게시글 목록의 좋아요 수를 배치로 조회하여 주입.</p>
-     *
-     * @param posts 좋아요 수를 채울 게시글 목록
-     * @author Jaeik
-     * @since 2.0.0
+     * <h3>블랙리스트 필터링</h3>
+     * 조회자의 블랙리스트 관계를 조회하여 블랙리스트의 게시글을 보이지 않게 함
      */
-    public void batchLikeCount(List<PostSimpleDetail> posts) {
-        if (posts.isEmpty()) {
-            return;
-        }
-
-        List<Long> postIds = posts.stream()
-                .map(PostSimpleDetail::getId)
-                .toList();
-
-        Map<Long, Integer> likeCounts = postLikeQueryRepository.findLikeCountsByPostIds(postIds);
-
-        posts.forEach(post -> {
-            post.setLikeCount(likeCounts.getOrDefault(post.getId(), 0));
-        });
-    }
-
     public BooleanExpression applyBlacklistFilter(BooleanExpression baseCondition, Long viewerId) {
         if (viewerId == null) {
             return baseCondition;

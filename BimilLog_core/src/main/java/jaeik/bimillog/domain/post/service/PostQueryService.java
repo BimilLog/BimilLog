@@ -51,7 +51,7 @@ public class PostQueryService {
      */
     public Page<PostSimpleDetail> getBoard(Pageable pageable, Long memberId) {
         Page<PostSimpleDetail> posts = postQueryRepository.findByPage(pageable, memberId);
-        enrichPostsWithCounts(posts.getContent());
+        enrichPostsCommentCount(posts.getContent());
         return posts;
     }
 
@@ -129,8 +129,8 @@ public class PostQueryService {
     public MemberActivityPost getMemberActivityPosts(Long memberId, Pageable pageable) {
         Page<PostSimpleDetail> writePosts = postQueryRepository.findPostsByMemberId(memberId, pageable, memberId);
         Page<PostSimpleDetail> likedPosts = postQueryRepository.findLikedPostsByMemberId(memberId, pageable);
-        enrichPostsWithCounts(writePosts.getContent());
-        enrichPostsWithCounts(likedPosts.getContent());
+        enrichPostsCommentCount(writePosts.getContent());
+        enrichPostsCommentCount(likedPosts.getContent());
         return new MemberActivityPost(writePosts, likedPosts);
     }
 
@@ -144,7 +144,7 @@ public class PostQueryService {
      */
     public List<PostSimpleDetail> getWeeklyPopularPosts() {
         List<PostSimpleDetail> posts = postQueryRepository.findWeeklyPopularPosts();
-        enrichPostsWithCounts(posts);
+        enrichPostsCommentCount(posts);
         return posts;
     }
 
@@ -156,7 +156,7 @@ public class PostQueryService {
      */
     public List<PostSimpleDetail> getLegendaryPosts() {
         List<PostSimpleDetail> posts = postQueryRepository.findLegendaryPosts();
-        enrichPostsWithCounts(posts);
+        enrichPostsCommentCount(posts);
         return posts;
     }
 
@@ -194,7 +194,7 @@ public class PostQueryService {
             posts = postSearchRepository.findByPartialMatch(type, query, pageable, memberId);
         }
 
-        enrichPostsWithCounts(posts.getContent());
+        enrichPostsCommentCount(posts.getContent());
         return posts;
     }
 
@@ -207,7 +207,7 @@ public class PostQueryService {
      * @author Jaeik
      * @since 2.0.0
      */
-    private void enrichPostsWithCounts(List<PostSimpleDetail> posts) {
+    private void enrichPostsCommentCount(List<PostSimpleDetail> posts) {
         if (posts.isEmpty()) {
             return;
         }
