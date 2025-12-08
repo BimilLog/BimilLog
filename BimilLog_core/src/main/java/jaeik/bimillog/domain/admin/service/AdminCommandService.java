@@ -35,7 +35,6 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class AdminCommandService {
-
     private final ApplicationEventPublisher eventPublisher;
     private final ReportRepository reportRepository;
     private final AdminQueryRepository adminQueryRepository;

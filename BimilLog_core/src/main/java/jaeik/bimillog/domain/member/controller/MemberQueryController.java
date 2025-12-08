@@ -78,8 +78,7 @@ public class MemberQueryController {
      * @author Jaeik
      */
     @GetMapping("/friendlist")
-    public ResponseEntity<KakaoFriendsDTO> getKakaoFriendList(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                                              Pageable pageable) {
+    public ResponseEntity<KakaoFriendsDTO> getKakaoFriendList(@AuthenticationPrincipal CustomUserDetails userDetails, Pageable pageable) {
         KakaoFriendsDTO friendsResponse = memberFriendService.getKakaoFriendList(
                 userDetails.getMemberId(),
                 userDetails.getSocialProvider(),

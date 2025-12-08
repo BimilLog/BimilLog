@@ -29,7 +29,6 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class PostQueryService {
-
     private final PostQueryRepository postQueryRepository;
     private final PostLikeRepository postLikeRepository;
     private final RedisPostQueryAdapter redisPostQueryAdapter;
@@ -37,6 +36,7 @@ public class PostQueryService {
     private final PostRepository postRepository;
     private final PostToCommentAdapter postToCommentAdapter;
     private final GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
+    private final PostSearchRepository postSearchRepository;
 
     /**
      * <h3>게시판 목록 조회</h3>
@@ -183,15 +183,15 @@ public class PostQueryService {
 
         // 전략 1: 3글자 이상 + 작성자 검색 아님 → 전문 검색 시도
         if (query.length() >= 3 && type != PostSearchType.WRITER) {
-            posts = postQueryRepository.findByFullTextSearch(type, query, pageable, memberId);
+            posts = postSearchRepository.findByFullTextSearch(type, query, pageable, memberId);
         }
         // 전략 2: 작성자 검색 + 4글자 이상 → 접두사 검색 (인덱스 활용)
         else if (type == PostSearchType.WRITER && query.length() >= 4) {
-            posts = postQueryRepository.findByPrefixMatch(type, query, pageable, memberId);
+            posts = postSearchRepository.findByPrefixMatch(type, query, pageable, memberId);
         }
         // 전략 3: 그 외 → 부분 검색
         else {
-            posts = postQueryRepository.findByPartialMatch(type, query, pageable, memberId);
+            posts = postSearchRepository.findByPartialMatch(type, query, pageable, memberId);
         }
 
         enrichPostsWithCounts(posts.getContent());

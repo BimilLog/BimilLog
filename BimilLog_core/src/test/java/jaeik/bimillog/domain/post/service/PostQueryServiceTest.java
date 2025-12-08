@@ -6,10 +6,7 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSearchType;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.out.PostLikeRepository;
-import jaeik.bimillog.domain.post.out.PostQueryRepository;
-import jaeik.bimillog.domain.post.out.PostRepository;
-import jaeik.bimillog.domain.post.out.PostToCommentAdapter;
+import jaeik.bimillog.domain.post.out.*;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostQueryAdapter;
@@ -56,13 +53,13 @@ class PostQueryServiceTest extends BaseUnitTest {
     private PostQueryRepository postQueryRepository;
 
     @Mock
+    private PostSearchRepository postSearchRepository;
+
+    @Mock
     private PostLikeRepository postLikeRepository;
 
     @Mock
     private RedisPostQueryAdapter redisPostQueryAdapter;
-
-    @Mock
-    private RedisPostSaveAdapter redisPostSaveAdapter;
 
     @Mock
     private PostRepository postRepository;
@@ -300,7 +297,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         PostSimpleDetail searchResult = PostTestDataBuilder.createPostSearchResult(1L, "검색 결과");
         Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(searchResult), pageable, 1);
 
-        given(postQueryRepository.findByFullTextSearch(type, query, pageable, null)).willReturn(expectedPage);
+        given(postSearchRepository.findByFullTextSearch(type, query, pageable, null)).willReturn(expectedPage);
 
         // When
         Page<PostSimpleDetail> result = postQueryService.searchPost(type, query, pageable, null);
@@ -309,9 +306,9 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result).isEqualTo(expectedPage);
         assertThat(result.getContent()).hasSize(1);
 
-        verify(postQueryRepository).findByFullTextSearch(type, query, pageable, null);
-        verify(postQueryRepository, never()).findByPartialMatch(any(), any(), any(), any());
-        verify(postQueryRepository, never()).findByPrefixMatch(any(), any(), any(), any());
+        verify(postSearchRepository).findByFullTextSearch(type, query, pageable, null);
+        verify(postSearchRepository, never()).findByPartialMatch(any(), any(), any(), any());
+        verify(postSearchRepository, never()).findByPrefixMatch(any(), any(), any(), any());
     }
 
     @Test
@@ -324,7 +321,7 @@ class PostQueryServiceTest extends BaseUnitTest {
 
         Page<PostSimpleDetail> emptyPage = Page.empty(pageable);
 
-        given(postQueryRepository.findByFullTextSearch(type, query, pageable, null)).willReturn(emptyPage);
+        given(postSearchRepository.findByFullTextSearch(type, query, pageable, null)).willReturn(emptyPage);
 
         // When
         Page<PostSimpleDetail> result = postQueryService.searchPost(type, query, pageable, null);
@@ -332,8 +329,8 @@ class PostQueryServiceTest extends BaseUnitTest {
         // Then
         assertThat(result).isEqualTo(emptyPage);
 
-        verify(postQueryRepository).findByFullTextSearch(type, query, pageable, null);
-        verify(postQueryRepository, never()).findByPartialMatch(type, query, pageable, null);
+        verify(postSearchRepository).findByFullTextSearch(type, query, pageable, null);
+        verify(postSearchRepository, never()).findByPartialMatch(type, query, pageable, null);
     }
 
     @Test
@@ -347,7 +344,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         PostSimpleDetail searchResult = PostTestDataBuilder.createPostSearchResult(1L, "작성자 검색 결과");
         Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(searchResult), pageable, 1);
 
-        given(postQueryRepository.findByPrefixMatch(type, query, pageable, null)).willReturn(expectedPage);
+        given(postSearchRepository.findByPrefixMatch(type, query, pageable, null)).willReturn(expectedPage);
 
         // When
         Page<PostSimpleDetail> result = postQueryService.searchPost(type, query, pageable, null);
@@ -356,9 +353,9 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result).isEqualTo(expectedPage);
         assertThat(result.getContent()).hasSize(1);
 
-        verify(postQueryRepository).findByPrefixMatch(type, query, pageable, null);
-        verify(postQueryRepository, never()).findByFullTextSearch(any(), any(), any(), any());
-        verify(postQueryRepository, never()).findByPartialMatch(any(), any(), any(), any());
+        verify(postSearchRepository).findByPrefixMatch(type, query, pageable, null);
+        verify(postSearchRepository, never()).findByFullTextSearch(any(), any(), any(), any());
+        verify(postSearchRepository, never()).findByPartialMatch(any(), any(), any(), any());
     }
 
     @Test
@@ -372,7 +369,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         PostSimpleDetail searchResult = PostTestDataBuilder.createPostSearchResult(1L, "부분 검색 결과");
         Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(searchResult), pageable, 1);
 
-        given(postQueryRepository.findByPartialMatch(type, query, pageable, null)).willReturn(expectedPage);
+        given(postSearchRepository.findByPartialMatch(type, query, pageable, null)).willReturn(expectedPage);
 
         // When
         Page<PostSimpleDetail> result = postQueryService.searchPost(type, query, pageable, null);
@@ -381,9 +378,9 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result).isEqualTo(expectedPage);
         assertThat(result.getContent()).hasSize(1);
 
-        verify(postQueryRepository).findByPartialMatch(type, query, pageable, null);
-        verify(postQueryRepository, never()).findByFullTextSearch(any(), any(), any(), any());
-        verify(postQueryRepository, never()).findByPrefixMatch(any(), any(), any(), any());
+        verify(postSearchRepository).findByPartialMatch(type, query, pageable, null);
+        verify(postSearchRepository, never()).findByFullTextSearch(any(), any(), any(), any());
+        verify(postSearchRepository, never()).findByPrefixMatch(any(), any(), any(), any());
     }
 
     @Test
@@ -397,7 +394,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         PostSimpleDetail searchResult = PostTestDataBuilder.createPostSearchResult(1L, "부분 검색 결과");
         Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(searchResult), pageable, 1);
 
-        given(postQueryRepository.findByPartialMatch(type, query, pageable, null)).willReturn(expectedPage);
+        given(postSearchRepository.findByPartialMatch(type, query, pageable, null)).willReturn(expectedPage);
 
         // When
         Page<PostSimpleDetail> result = postQueryService.searchPost(type, query, pageable, null);
@@ -406,9 +403,9 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result).isEqualTo(expectedPage);
         assertThat(result.getContent()).hasSize(1);
 
-        verify(postQueryRepository).findByPartialMatch(type, query, pageable, null);
-        verify(postQueryRepository, never()).findByFullTextSearch(any(), any(), any(), any());
-        verify(postQueryRepository, never()).findByPrefixMatch(any(), any(), any(), any());
+        verify(postSearchRepository).findByPartialMatch(type, query, pageable, null);
+        verify(postSearchRepository, never()).findByFullTextSearch(any(), any(), any(), any());
+        verify(postSearchRepository, never()).findByPrefixMatch(any(), any(), any(), any());
     }
 
 

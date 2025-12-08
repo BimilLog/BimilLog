@@ -70,7 +70,7 @@ public class Member extends BaseEntity {
     @Column(name = "social_nickname") // 소셜 프로필 닉네임
     private String socialNickname;
 
-    @Column(name = "thumbnail_image") // 카카오 프로필 이미지
+    @Column(name = "thumbnail_image") // 소셜 프로필 이미지
     private String thumbnailImage;
 
     /**

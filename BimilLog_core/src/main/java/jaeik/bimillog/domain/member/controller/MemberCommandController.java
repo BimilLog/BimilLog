@@ -35,7 +35,6 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/api/member")
 public class MemberCommandController {
-
     private final MemberProfileCommandService memberProfileCommandService;
     private final MemberOnboardingService memberOnboardingService;
     private final ApplicationEventPublisher eventPublisher;

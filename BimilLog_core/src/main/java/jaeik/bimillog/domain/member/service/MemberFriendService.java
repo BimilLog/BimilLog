@@ -26,7 +26,6 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class MemberFriendService {
-
     private final MemberQueryRepository memberQueryRepository;
     private final MemberToAuthAdapter memberToAuthAdapter;
     private final KakaoFriendClient kakaoFriendClient;

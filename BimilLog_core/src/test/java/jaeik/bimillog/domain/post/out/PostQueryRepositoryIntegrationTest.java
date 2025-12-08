@@ -46,17 +46,20 @@ import static org.mockito.BDDMockito.given;
 @DataJpaTest(
         includeFilters = @ComponentScan.Filter(
                 type = FilterType.ASSIGNABLE_TYPE,
-                classes = {PostQueryRepository.class, PostQueryHelper.class}
+                classes = {PostQueryRepository.class, PostFulltextUtil.class}
         )
 )
 @ActiveProfiles("local-integration")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({PostQueryRepository.class, PostQueryHelper.class, QueryDSLConfig.class, LocalIntegrationTestSupportConfig.class})
+@Import({PostQueryRepository.class, PostFulltextUtil.class, QueryDSLConfig.class, LocalIntegrationTestSupportConfig.class})
 @Tag("local-integration")
 class PostQueryRepositoryIntegrationTest {
 
     @Autowired
     private PostQueryRepository postQueryRepository;
+
+    @Autowired
+    private PostSearchRepository postSearchRepository;
 
     @Autowired
     private TestEntityManager entityManager;
@@ -226,7 +229,7 @@ class PostQueryRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 부분 검색
-        Page<PostSimpleDetail> result = postQueryRepository.findByPartialMatch(searchType, query, pageable, null);
+        Page<PostSimpleDetail> result = postSearchRepository.findByPartialMatch(searchType, query, pageable, null);
 
         // Then: 해당 제목이 포함된 게시글 조회됨
         assertThat(result).isNotNull();
@@ -243,7 +246,7 @@ class PostQueryRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 접두사 검색
-        Page<PostSimpleDetail> result = postQueryRepository.findByPrefixMatch(searchType, query, pageable, null);
+        Page<PostSimpleDetail> result = postSearchRepository.findByPrefixMatch(searchType, query, pageable, null);
 
         // Then: 해당 접두사로 시작하는 작성자의 게시글들이 조회됨
         assertThat(result).isNotNull();
@@ -261,7 +264,7 @@ class PostQueryRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 전문 검색
-        Page<PostSimpleDetail> result = postQueryRepository.findByFullTextSearch(searchType, query, pageable, null);
+        Page<PostSimpleDetail> result = postSearchRepository.findByFullTextSearch(searchType, query, pageable, null);
 
         // Then: FULLTEXT 인덱스를 사용하여 검색됨
         assertThat(result).isNotNull();
