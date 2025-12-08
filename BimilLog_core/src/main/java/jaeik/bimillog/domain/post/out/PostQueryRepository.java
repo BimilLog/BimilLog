@@ -243,7 +243,7 @@ public class PostQueryRepository {
 
     /**
      * <h3>게시글 목록 조회</h3>
-     * <p>배치 조회로 댓글 수와 추천 수 조회</p>
+     * <p>배치 조회로 댓글 수는 별도 조회</p>
      *
      * @param contentQueryCustomizer Content 쿼리 커스터마이징 로직 (JOIN, WHERE 등)
      * @param countQueryCustomizer   Count 쿼리 커스터마이징 로직 (JOIN, WHERE 등)
@@ -310,10 +310,8 @@ public class PostQueryRepository {
         BooleanExpression blacklistBlock = JPAExpressions
                 .selectOne()
                 .from(memberBlacklist)
-                .where(
-                        memberBlacklist.requestMember.id.eq(viewerId).and(memberBlacklist.blackMember.id.eq(member.id))
-                                .or(memberBlacklist.requestMember.id.eq(member.id).and(memberBlacklist.blackMember.id.eq(viewerId)))
-                )
+                .where(memberBlacklist.requestMember.id.eq(viewerId).and(memberBlacklist.blackMember.id.eq(member.id))
+                                .or(memberBlacklist.requestMember.id.eq(member.id).and(memberBlacklist.blackMember.id.eq(viewerId))))
                 .notExists();
 
         return baseCondition.and(blacklistBlock);

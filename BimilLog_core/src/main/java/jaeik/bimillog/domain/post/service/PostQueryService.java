@@ -55,7 +55,6 @@ public class PostQueryService {
         return posts;
     }
 
-
     /**
      * <h3>게시글 상세 조회</h3>
      * <p>모든 게시글에 대해 Redis 캐시를 우선 확인하고, 캐시 미스 시 DB 조회 후 캐시에 저장합니다.</p>
@@ -111,7 +110,9 @@ public class PostQueryService {
         return postRepository.findById(postId);
     }
 
-    // PostId 목록으로 Post 리스트 반환
+    /**
+     * <h3>게시글 ID 목록으로 게시글 리스트 반환</h3>
+     */
     public List<Post> findAllByIds(List<Long> postIds) {
         return postQueryRepository.findAllByIds(postIds);
     }
@@ -221,5 +222,15 @@ public class PostQueryService {
         posts.forEach(post -> {
             post.setCommentCount(commentCounts.getOrDefault(post.getId(), 0));
         });
+    }
+
+    // TODO 구현 예정 : 현재 DB에서 블랙리스트와 조인을하여 필터링하는 것을
+    //  DB에서 조회된 게시글 목록 엔티티로 서비스레벨에서 탐색하여 제거할 것으로 변경
+    //  이유 1 : 글 레포에서 블랙리스트 DB까지 조인
+    //  이유 2 : 페이징 되지 않은 전체 데이터를 상대로 불 필요하게 블랙리스트 필터링 함
+    //  따라서 완성된 데이터를 대상으로 순회하며 제거하는 것이 성능상 더 좋을 것이라는 판단.
+    private void removePostsWithBlacklist(Long memberId, Page<PostSimpleDetail> posts) {
+        List<Long> blacklistIds = globalMemberBlacklistAdapter.getMyBlacklist(memberId);
+
     }
 }

@@ -28,7 +28,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Slf4j
 public class PostInteractionService {
-
     private final PostRepository postRepository;
     private final GlobalPostQueryAdapter globalPostQueryAdapter;
     private final PostLikeRepository postLikeRepository;
