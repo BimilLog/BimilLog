@@ -62,6 +62,9 @@ class PostQueryServiceTest extends BaseUnitTest {
     private RedisPostQueryAdapter redisPostQueryAdapter;
 
     @Mock
+    private RedisPostSaveAdapter redisPostSaveAdapter;
+
+    @Mock
     private PostRepository postRepository;
 
     @Mock

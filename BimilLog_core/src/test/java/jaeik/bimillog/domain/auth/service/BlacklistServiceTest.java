@@ -2,12 +2,14 @@ package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.BlackList;
+import jaeik.bimillog.domain.auth.out.BlackListRepository;
 import jaeik.bimillog.domain.global.out.GlobalAuthTokenQueryAdapter;
 import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.redis.blacklist.RedisJwtBlacklistAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -46,6 +48,9 @@ class BlacklistServiceTest extends BaseUnitTest {
 
     @Mock
     private GlobalAuthTokenQueryAdapter globalAuthTokenQueryAdapter;
+
+    @Mock
+    private BlackListRepository blackListRepository;
 
     @InjectMocks
     private BlacklistService blacklistService;
@@ -289,7 +294,7 @@ class BlacklistServiceTest extends BaseUnitTest {
 
         // Then
         ArgumentCaptor<BlackList> blackListCaptor = ArgumentCaptor.forClass(BlackList.class);
-        verify(blacklistPort).saveBlackList(blackListCaptor.capture());
+        verify(blackListRepository).save(blackListCaptor.capture());
 
         BlackList capturedBlackList = blackListCaptor.getValue();
         assertThat(capturedBlackList).isNotNull();
@@ -306,13 +311,13 @@ class BlacklistServiceTest extends BaseUnitTest {
         SocialProvider provider = SocialProvider.KAKAO;
 
         doThrow(new DataIntegrityViolationException("Duplicate entry"))
-                .when(blacklistPort).saveBlackList(any(BlackList.class));
+                .when(blackListRepository).save(any(BlackList.class));
 
         // When - 예외가 발생해도 메서드가 정상 종료되어야 함 (로그만 출력)
         blacklistService.addToBlacklist(memberId, socialId, provider);
 
         // Then
-        verify(blacklistPort).saveBlackList(any(BlackList.class));
+        verify(blackListRepository).save(any(BlackList.class));
     }
 
     @Test
@@ -328,7 +333,7 @@ class BlacklistServiceTest extends BaseUnitTest {
 
         // Then
         ArgumentCaptor<BlackList> blackListCaptor = ArgumentCaptor.forClass(BlackList.class);
-        verify(blacklistPort).saveBlackList(blackListCaptor.capture());
+        verify(blackListRepository).save(blackListCaptor.capture());
 
         BlackList capturedBlackList = blackListCaptor.getValue();
         assertThat(capturedBlackList).isNotNull();
@@ -349,7 +354,7 @@ class BlacklistServiceTest extends BaseUnitTest {
 
         // Then
         ArgumentCaptor<BlackList> blackListCaptor = ArgumentCaptor.forClass(BlackList.class);
-        verify(blacklistPort).saveBlackList(blackListCaptor.capture());
+        verify(blackListRepository).save(blackListCaptor.capture());
 
         BlackList capturedBlackList = blackListCaptor.getValue();
         assertThat(capturedBlackList.getProvider()).isEqualTo(SocialProvider.KAKAO);

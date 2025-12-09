@@ -64,9 +64,6 @@ class PostQueryRepositoryIntegrationTest {
     @Autowired
     private TestEntityManager entityManager;
 
-    @MockitoBean
-    private PostLikeQueryRepository postLikeQueryRepository;
-
     private Member testMember;
     private Post testPost1, testPost2, testPost3, noticePost;
 
@@ -84,15 +81,19 @@ class PostQueryRepositoryIntegrationTest {
 
         // 테스트용 게시글들 생성
         createTestPosts();
-        // 추천 수 Mock 설정 (기본값)
+
+        // 추천 수는 이제 서브쿼리로 직접 조회되므로 Mock 제거
+        // PostLikeQueryRepository가 삭제되었음
+        /*
         Map<Long, Integer> likeCounts = new HashMap<>();
         likeCounts.put(testPost1.getId(), 5);
         likeCounts.put(testPost2.getId(), 3);
         likeCounts.put(testPost3.getId(), 1);
         likeCounts.put(noticePost.getId(), 8);
-        
+
         given(postLikeQueryRepository.findLikeCountsByPostIds(any(List.class)))
                 .willReturn(likeCounts);
+        */
     }
 
     private void createTestPosts() {

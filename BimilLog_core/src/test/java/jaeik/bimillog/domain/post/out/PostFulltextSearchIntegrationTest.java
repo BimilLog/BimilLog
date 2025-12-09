@@ -64,8 +64,8 @@ class PostFulltextSearchIntegrationTest {
     @MockitoBean
     private PostToCommentAdapter postToCommentAdapter;
 
-    @MockitoBean
-    private PostLikeQueryRepository postLikeQueryRepository;
+    // PostLikeQueryRepository는 삭제되었으므로 Mock 제거
+    // 추천수는 이제 서브쿼리로 직접 조회됨
 
     private Member testMember;
     private Post koreanPost1, koreanPost2, koreanPost3, noticePost, englishPost;
@@ -93,18 +93,11 @@ class PostFulltextSearchIntegrationTest {
         commentCounts.put(noticePost.getId(), 3);
         commentCounts.put(englishPost.getId(), 1);
 
-        // 추천 수 Mock 설정
-        Map<Long, Integer> likeCounts = new HashMap<>();
-        likeCounts.put(koreanPost1.getId(), 5);
-        likeCounts.put(koreanPost2.getId(), 3);
-        likeCounts.put(koreanPost3.getId(), 1);
-        likeCounts.put(noticePost.getId(), 8);
-        likeCounts.put(englishPost.getId(), 2);
-
         given(postToCommentAdapter.findCommentCountsByPostIds(any(List.class)))
                 .willReturn(commentCounts);
-        given(postLikeQueryRepository.findLikeCountsByPostIds(any(List.class)))
-                .willReturn(likeCounts);
+
+        // 추천 수는 이제 서브쿼리로 직접 조회되므로 Mock 제거
+        // PostLikeQueryRepository가 삭제되었음
     }
 
     private void createTestPosts() {

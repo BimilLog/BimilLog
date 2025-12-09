@@ -67,12 +67,12 @@ class PopularPostQueryRepositoryIntegrationTest {
         // Redis 초기화
         RedisTestHelper.flushRedis(redisTemplate);
 
-        // DB 초기화
+        // DB 초기화 (배치 삭제로 OptimisticLockException 방지)
         try {
-            postLikeRepository.deleteAll();
-            postRepository.deleteAll();
+            postLikeRepository.deleteAllInBatch();
+            postRepository.deleteAllInBatch();
             entityManager.flush();
-            // clear() 제거: 테스트에서 엔티티를 계속 사용하므로 분리하지 않음
+            entityManager.clear(); // 영속성 컨텍스트 초기화
         } catch (Exception e) {
             System.err.println("데이터베이스 초기화 경고: " + e.getMessage());
         }
@@ -203,7 +203,7 @@ class PopularPostQueryRepositoryIntegrationTest {
     @DisplayName("경계값 - 존재하지 않는 게시글 ID로 상세 조회 시 null 반환")
     void shouldReturnNull_WhenNonExistentPostIdProvidedForDetail() {
         // Given
-        Long nonExistentPostId = 999L;
+        Long nonExistentPostId = 999999L; // 확실히 존재하지 않는 큰 ID 사용
 
         // When
         PostDetail postDetail = postQueryRepository.findPostDetailWithCounts(nonExistentPostId, null).orElse(null);
