@@ -51,7 +51,7 @@ import static org.mockito.BDDMockito.given;
 )
 @ActiveProfiles("local-integration")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({PostQueryRepository.class, PostFulltextUtil.class, QueryDSLConfig.class, LocalIntegrationTestSupportConfig.class})
+@Import({PostSearchRepository.class, PostQueryRepository.class, PostFulltextUtil.class, QueryDSLConfig.class, LocalIntegrationTestSupportConfig.class})
 @Tag("local-integration")
 class PostQueryRepositoryIntegrationTest {
 
@@ -81,19 +81,6 @@ class PostQueryRepositoryIntegrationTest {
 
         // 테스트용 게시글들 생성
         createTestPosts();
-
-        // 추천 수는 이제 서브쿼리로 직접 조회되므로 Mock 제거
-        // PostLikeQueryRepository가 삭제되었음
-        /*
-        Map<Long, Integer> likeCounts = new HashMap<>();
-        likeCounts.put(testPost1.getId(), 5);
-        likeCounts.put(testPost2.getId(), 3);
-        likeCounts.put(testPost3.getId(), 1);
-        likeCounts.put(noticePost.getId(), 8);
-
-        given(postLikeQueryRepository.findLikeCountsByPostIds(any(List.class)))
-                .willReturn(likeCounts);
-        */
     }
 
     private void createTestPosts() {
