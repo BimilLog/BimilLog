@@ -282,7 +282,7 @@ export const AuthHeader = React.memo(() => {
         <NavbarToggle className="md:hidden" />
       </div>
 
-      <NavbarCollapse className="basis-full md:basis-auto md:order-1 md:mr-3 md:flex md:items-center md:gap-6">
+      <NavbarCollapse className="basis-full md:basis-auto md:order-1 md:flex md:items-center md:gap-6 md:mx-auto">
         <div className="md:relative">
           <Dropdown
             arrowIcon={false}
