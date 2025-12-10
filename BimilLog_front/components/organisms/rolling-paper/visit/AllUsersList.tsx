@@ -84,7 +84,7 @@ export const AllUsersList = ({ searchKeyword = "" }: AllUsersListProps) => {
         <select
           value={pageSize}
           onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-          className="text-sm border border-gray-300 rounded-md px-3 py-2 pr-10 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer appearance-none"
+          className="text-sm border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 pr-10 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer appearance-none"
           style={{
             backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E")`,
             backgroundPosition: 'right 0.5rem center',
@@ -103,10 +103,10 @@ export const AllUsersList = ({ searchKeyword = "" }: AllUsersListProps) => {
           {[...Array(5)].map((_, i) => (
             <div
               key={i}
-              className="animate-pulse flex items-center justify-between p-3 bg-gray-100 rounded"
+              className="animate-pulse flex items-center justify-between p-3 bg-gray-100 dark:bg-gray-800 rounded"
             >
-              <div className="h-4 w-32 bg-gray-300 rounded" />
-              <div className="h-9 w-20 bg-gray-300 rounded" />
+              <div className="h-4 w-32 bg-gray-300 dark:bg-gray-600 rounded" />
+              <div className="h-9 w-20 bg-gray-300 dark:bg-gray-600 rounded" />
             </div>
           ))}
         </div>
@@ -117,29 +117,29 @@ export const AllUsersList = ({ searchKeyword = "" }: AllUsersListProps) => {
       ) : (
         <div className="overflow-x-auto">
           <Table hoverable className="w-full">
-            <TableHead className="!bg-gray-50">
-              <TableRow className="border-b-2 border-gray-300">
-                <TableHeadCell className="py-3 font-semibold !text-gray-700 text-sm !bg-gray-50">
+            <TableHead className="!bg-gray-50 dark:!bg-gray-800">
+              <TableRow className="border-b-2 border-gray-300 dark:border-gray-600">
+                <TableHeadCell className="py-3 font-semibold !text-gray-700 dark:!text-gray-200 text-sm !bg-gray-50 dark:!bg-gray-800">
                   닉네임
                 </TableHeadCell>
-                <TableHeadCell className="py-3 text-center font-semibold !text-gray-700 text-sm w-40 !bg-gray-50">
+                <TableHeadCell className="py-3 text-center font-semibold !text-gray-700 dark:!text-gray-200 text-sm w-40 !bg-gray-50 dark:!bg-gray-800">
                   롤링페이퍼
                 </TableHeadCell>
               </TableRow>
             </TableHead>
-            <TableBody className="divide-y divide-gray-200">
+            <TableBody className="divide-y divide-gray-200 dark:divide-gray-700">
               {memberRows.map((member, index) => (
                 <TableRow
                   key={member.key}
-                  className={index % 2 === 0 ? "!bg-white" : "!bg-gray-50"}
+                  className={index % 2 === 0 ? "!bg-white dark:!bg-gray-900" : "!bg-gray-50 dark:!bg-gray-800/50"}
                 >
-                                    <TableCell className="py-3 text-gray-900">
+                                    <TableCell className="py-3 text-gray-900 dark:text-gray-100">
                     {member.memberName && member.memberName !== "익명" ? (
                       <UserActionPopover
                         memberName={member.memberName}
                         memberId={member.memberId}
                         trigger={
-                          <button className="font-medium text-gray-900 hover:text-purple-600 hover:underline transition-colors inline-flex items-center space-x-1">
+                          <button className="font-medium text-gray-900 dark:text-gray-100 hover:text-purple-600 dark:hover:text-purple-400 hover:underline transition-colors inline-flex items-center space-x-1">
                             <User className="w-3 h-3" />
                             <span>{member.memberName}</span>
                           </button>
@@ -147,7 +147,7 @@ export const AllUsersList = ({ searchKeyword = "" }: AllUsersListProps) => {
                         placement="bottom"
                       />
                     ) : (
-                      <span className="font-medium inline-flex items-center space-x-1 text-gray-500">
+                      <span className="font-medium inline-flex items-center space-x-1 text-gray-500 dark:text-gray-400">
                         <User className="w-3 h-3" />
                         <span>{member.memberName || "익명"}</span>
                       </span>

@@ -494,6 +494,54 @@
     outline: none !important;
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
   }
+
+  /* 다크모드 스타일 */
+  .dark .ql-toolbar {
+    background: #374151 !important;
+    border-top: 1px solid #4b5563 !important;
+    border-left: 1px solid #4b5563 !important;
+    border-right: 1px solid #4b5563 !important;
+  }
+
+  .dark .ql-container {
+    border-bottom: 1px solid #4b5563 !important;
+    border-left: 1px solid #4b5563 !important;
+    border-right: 1px solid #4b5563 !important;
+    background: #1f2937 !important;
+  }
+
+  .dark .ql-editor {
+    background: #1f2937 !important;
+    color: #e5e7eb !important;
+  }
+
+  .dark .ql-editor.ql-blank::before {
+    color: #9ca3af !important;
+  }
+
+  .dark .ql-toolbar button {
+    color: #e5e7eb !important;
+  }
+
+  .dark .ql-toolbar button:hover {
+    background-color: #4b5563 !important;
+  }
+
+  .dark .ql-toolbar button.ql-active {
+    background-color: #3b82f6 !important;
+  }
+
+  .dark .ql-toolbar .ql-stroke {
+    stroke: #e5e7eb !important;
+  }
+
+  .dark .ql-toolbar .ql-fill {
+    fill: #e5e7eb !important;
+  }
+
+  .dark .ql-editor:focus {
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4) !important;
+  }
 }
 
 /* 이모지 폰트 스타일링 */

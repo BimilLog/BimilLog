@@ -226,7 +226,7 @@ const DialogTitle = React.memo(({
 }: React.ComponentProps<"h3">) => {
   return (
     <h3
-      className={cn("text-lg leading-6 font-semibold text-gray-900", className)}
+      className={cn("text-lg leading-6 font-semibold text-gray-900 dark:text-gray-100", className)}
       {...props}
     />
   );
@@ -240,7 +240,7 @@ const DialogDescription = React.memo(({
 }: React.ComponentProps<"p">) => {
   return (
     <p
-      className={cn("text-sm text-gray-500", className)}
+      className={cn("text-sm text-gray-500 dark:text-gray-400", className)}
       {...props}
     />
   );
