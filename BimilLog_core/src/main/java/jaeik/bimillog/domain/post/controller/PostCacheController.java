@@ -33,7 +33,6 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/api/post")
 public class PostCacheController {
-
     private final PostCacheService postCacheService;
 
     /**

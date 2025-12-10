@@ -34,7 +34,6 @@ import java.net.URI;
 @RequiredArgsConstructor
 @RequestMapping("/api/post")
 public class PostCommandController {
-
     private final PostCommandService postCommandService;
     private final PostInteractionService postInteractionService;
 

@@ -51,7 +51,7 @@ public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
     private final LogFilter LogFilter;
-    private final boolean COOKIE_SECURE = true;
+    private final boolean COOKIE_SECURE = false;
 
     @Value("${url}")
     private String url;

@@ -38,7 +38,6 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RequestMapping("/api/post")
 public class PostQueryController {
-
     private final PostQueryService postQueryService;
     private final ApplicationEventPublisher eventPublisher;
     private final PostViewCookieUtil postViewCookieUtil;
