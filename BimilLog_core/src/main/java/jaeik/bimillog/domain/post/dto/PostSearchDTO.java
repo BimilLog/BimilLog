@@ -9,7 +9,6 @@ import lombok.*;
  * <h2>게시글 검색 요청 DTO</h2>
  * <p>게시글 검색 API의 요청 데이터를 검증하는 DTO입니다.</p>
  * <p>검색 타입별 검증 처리</p>
- * <p>PostQueryController의 검색 API에서 사용됩니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
