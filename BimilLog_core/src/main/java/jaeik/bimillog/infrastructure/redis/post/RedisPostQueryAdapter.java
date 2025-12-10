@@ -116,21 +116,7 @@ public class RedisPostQueryAdapter {
                 return Collections.emptyList();
             }
 
-            if (type == PostCacheFlag.REALTIME) {
-                List<PostSimpleDetail> cachedPosts = hashEntries.values().stream()
-                        .filter(PostSimpleDetail.class::isInstance)
-                        .map(PostSimpleDetail.class::cast)
-                        .toList();
-                if (cachedPosts.isEmpty()) {
-                    CacheMetricsLogger.miss(log, "post:list:realtime",
-                            metadata.key(), "realtime_entries_empty");
-                } else {
-                    CacheMetricsLogger.hit(log, "post:list:realtime",
-                            metadata.key(), cachedPosts.size());
-                }
-                return cachedPosts;
-            }
-
+            // 모든 타입에 대해 정렬된 순서 사용 (REALTIME 포함)
             List<Long> orderedIds = getStoredPostIds(type);
             if (orderedIds.isEmpty()) {
                 CacheMetricsLogger.miss(log, "post:list:" + type.name().toLowerCase(),

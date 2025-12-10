@@ -7,6 +7,8 @@ import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.testutil.fixtures.TestFixtures;
 
+import java.util.UUID;
+
 /**
  * <h2>미리 정의된 테스트 회원 인스턴스</h2>
  * <p>테스트에서 바로 사용할 수 있는 사전 정의된 회원 객체들</p>
@@ -104,13 +106,13 @@ public class TestMembers {
      */
     public static Member withRole(MemberRole role) {
         if (role == MemberRole.ADMIN) {
-            String timestamp = String.valueOf(System.currentTimeMillis());
+            String uniqueId = UUID.randomUUID().toString().substring(0, 8);
             Member admin = Member.createMember(
-                    "kakao_admin_" + timestamp,
+                    "kakao_admin_" + uniqueId,
                     SocialProvider.KAKAO,
-                    "관리자_" + timestamp,
+                    "관리자_" + uniqueId,
                     "http://example.com/admin.jpg",
-                    "adminMember_" + timestamp,
+                    "adminMember_" + uniqueId,
                     createAllDisabledSetting(),
                     createTestSocialToken()
             );
@@ -122,28 +124,28 @@ public class TestMembers {
     }
 
     /**
-     * 고유한 회원 생성 (타임스탬프 기반)
+     * 고유한 회원 생성 (UUID 기반)
      * 통합 테스트에서 고유한 회원이 필요한 경우 사용
      */
     public static Member createUnique() {
-        String timestamp = String.valueOf(System.currentTimeMillis());
+        String uniqueId = UUID.randomUUID().toString().substring(0, 8);
         return createMember(
-                "user_" + timestamp,
-                "user_" + timestamp,
-                "테스트회원_" + timestamp
+                "user_" + uniqueId,
+                "user_" + uniqueId,
+                "테스트회원_" + uniqueId
         );
     }
 
     /**
-     * 고유한 회원 생성 (접두사 지정)
+     * 고유한 회원 생성 (접두사 지정, UUID 기반)
      * @param prefix 회원 식별 접두사
      */
     public static Member createUniqueWithPrefix(String prefix) {
-        String timestamp = String.valueOf(System.currentTimeMillis());
+        String uniqueId = UUID.randomUUID().toString().substring(0, 8);
         return createMember(
-                prefix + "_" + timestamp,
-                prefix + "_" + timestamp,
-                prefix + "_소셜닉네임"
+                prefix + "_" + uniqueId,
+                prefix + "_" + uniqueId,
+                prefix + "_소셜닉네임_" + uniqueId
         );
     }
 

@@ -45,14 +45,14 @@ class NotificationCommandServiceTest {
         // Given
         Long nullUserId = null;
         NotificationUpdateVO updateCommand = NotificationUpdateVO.of(Arrays.asList(1L, 2L), List.of(3L));
-        given(notificationRepository.findAllByIdInAndMember_Id(anyList(), anyLong())).willReturn(Collections.emptyList());
+        given(notificationRepository.findAllByIdInAndMember_Id(anyList(), any())).willReturn(Collections.emptyList());
 
         // When
         notificationCommandService.batchUpdate(nullUserId, updateCommand);
 
         // Then
-        verify(notificationRepository).deleteAllByIdInAndMember_Id(anyList(), anyLong());
-        verify(notificationRepository).findAllByIdInAndMember_Id(anyList(), anyLong());
+        verify(notificationRepository).deleteAllByIdInAndMember_Id(anyList(), any());
+        verify(notificationRepository).findAllByIdInAndMember_Id(anyList(), any());
     }
 
     @Test

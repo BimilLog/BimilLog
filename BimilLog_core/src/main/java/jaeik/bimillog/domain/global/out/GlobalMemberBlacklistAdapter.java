@@ -6,18 +6,30 @@ import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 /**
- * 글, 댓글 상호작용시 블랙리스트에 서로가 있는지 조회하는 용도
+ * <h2>여러도메인에서 멤버 블랙리스트를 조회하는 어댑터</h2>
  */
 @Component
 @RequiredArgsConstructor
 public class GlobalMemberBlacklistAdapter {
     private final MemberBlacklistService memberBlacklistService;
 
+    /**
+     * <h3>두 멤버가 블랙리스트 관계인지 체크</h3>
+     */
     public void checkMemberBlacklist(Long memberId, Long targetMemberId) {
         boolean isBlacklisted = memberBlacklistService.checkMemberBlacklist(memberId, targetMemberId);
         if (isBlacklisted) {
             throw new CustomException(ErrorCode.BLACKLIST_MEMBER_PAPER_FORBIDDEN);
         }
+    }
+
+    /**
+     * <h3>자신의 블랙리스트 ID를 조회</h3>
+     */
+    public List<Long> getMyBlacklist(Long memberId) {
+        return memberBlacklistService.getMyBlacklist(memberId);
     }
 }

@@ -38,7 +38,7 @@ public final class RedisPaperKeys {
 
     /**
      * 실시간 인기 롤링페이퍼 점수 감쇠를 위한 Lua 스크립트
-     * <p>Redis Sorted Set의 모든 롤링페이퍼 점수에 SCORE_DECAY_RATE(0.95)를 곱합니다.</p>
+     * <p>Redis Sorted Set의 모든 롤링페이퍼 점수에 SCORE_DECAY_RATE(0.97)를 곱합니다.</p>
      */
     public static final RedisScript<Long> SCORE_DECAY_SCRIPT;
 

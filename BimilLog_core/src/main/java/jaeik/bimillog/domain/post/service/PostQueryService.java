@@ -29,7 +29,6 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class PostQueryService {
-
     private final PostQueryRepository postQueryRepository;
     private final PostLikeRepository postLikeRepository;
     private final RedisPostQueryAdapter redisPostQueryAdapter;
@@ -37,6 +36,7 @@ public class PostQueryService {
     private final PostRepository postRepository;
     private final PostToCommentAdapter postToCommentAdapter;
     private final GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
+    private final PostSearchRepository postSearchRepository;
 
     /**
      * <h3>게시판 목록 조회</h3>
@@ -51,10 +51,9 @@ public class PostQueryService {
      */
     public Page<PostSimpleDetail> getBoard(Pageable pageable, Long memberId) {
         Page<PostSimpleDetail> posts = postQueryRepository.findByPage(pageable, memberId);
-        enrichPostsWithCounts(posts.getContent());
+        enrichPostsCommentCount(posts.getContent());
         return posts;
     }
-
 
     /**
      * <h3>게시글 상세 조회</h3>
@@ -111,7 +110,9 @@ public class PostQueryService {
         return postRepository.findById(postId);
     }
 
-    // PostId 목록으로 Post 리스트 반환
+    /**
+     * <h3>게시글 ID 목록으로 게시글 리스트 반환</h3>
+     */
     public List<Post> findAllByIds(List<Long> postIds) {
         return postQueryRepository.findAllByIds(postIds);
     }
@@ -129,8 +130,8 @@ public class PostQueryService {
     public MemberActivityPost getMemberActivityPosts(Long memberId, Pageable pageable) {
         Page<PostSimpleDetail> writePosts = postQueryRepository.findPostsByMemberId(memberId, pageable, memberId);
         Page<PostSimpleDetail> likedPosts = postQueryRepository.findLikedPostsByMemberId(memberId, pageable);
-        enrichPostsWithCounts(writePosts.getContent());
-        enrichPostsWithCounts(likedPosts.getContent());
+        enrichPostsCommentCount(writePosts.getContent());
+        enrichPostsCommentCount(likedPosts.getContent());
         return new MemberActivityPost(writePosts, likedPosts);
     }
 
@@ -144,7 +145,7 @@ public class PostQueryService {
      */
     public List<PostSimpleDetail> getWeeklyPopularPosts() {
         List<PostSimpleDetail> posts = postQueryRepository.findWeeklyPopularPosts();
-        enrichPostsWithCounts(posts);
+        enrichPostsCommentCount(posts);
         return posts;
     }
 
@@ -156,7 +157,7 @@ public class PostQueryService {
      */
     public List<PostSimpleDetail> getLegendaryPosts() {
         List<PostSimpleDetail> posts = postQueryRepository.findLegendaryPosts();
-        enrichPostsWithCounts(posts);
+        enrichPostsCommentCount(posts);
         return posts;
     }
 
@@ -183,18 +184,18 @@ public class PostQueryService {
 
         // 전략 1: 3글자 이상 + 작성자 검색 아님 → 전문 검색 시도
         if (query.length() >= 3 && type != PostSearchType.WRITER) {
-            posts = postQueryRepository.findByFullTextSearch(type, query, pageable, memberId);
+            posts = postSearchRepository.findByFullTextSearch(type, query, pageable, memberId);
         }
         // 전략 2: 작성자 검색 + 4글자 이상 → 접두사 검색 (인덱스 활용)
         else if (type == PostSearchType.WRITER && query.length() >= 4) {
-            posts = postQueryRepository.findByPrefixMatch(type, query, pageable, memberId);
+            posts = postSearchRepository.findByPrefixMatch(type, query, pageable, memberId);
         }
         // 전략 3: 그 외 → 부분 검색
         else {
-            posts = postQueryRepository.findByPartialMatch(type, query, pageable, memberId);
+            posts = postSearchRepository.findByPartialMatch(type, query, pageable, memberId);
         }
 
-        enrichPostsWithCounts(posts.getContent());
+        enrichPostsCommentCount(posts.getContent());
         return posts;
     }
 
@@ -207,7 +208,7 @@ public class PostQueryService {
      * @author Jaeik
      * @since 2.0.0
      */
-    private void enrichPostsWithCounts(List<PostSimpleDetail> posts) {
+    private void enrichPostsCommentCount(List<PostSimpleDetail> posts) {
         if (posts.isEmpty()) {
             return;
         }
@@ -221,5 +222,15 @@ public class PostQueryService {
         posts.forEach(post -> {
             post.setCommentCount(commentCounts.getOrDefault(post.getId(), 0));
         });
+    }
+
+    // TODO 구현 예정 : 현재 DB에서 블랙리스트와 조인을하여 필터링하는 것을
+    //  DB에서 조회된 게시글 목록 엔티티로 서비스레벨에서 탐색하여 제거할 것으로 변경
+    //  이유 1 : 글 레포에서 블랙리스트 DB까지 조인
+    //  이유 2 : 페이징 되지 않은 전체 데이터를 상대로 불 필요하게 블랙리스트 필터링 함
+    //  따라서 완성된 데이터를 대상으로 순회하며 제거하는 것이 성능상 더 좋을 것이라는 판단.
+    private void removePostsWithBlacklist(Long memberId, Page<PostSimpleDetail> posts) {
+        List<Long> blacklistIds = globalMemberBlacklistAdapter.getMyBlacklist(memberId);
+
     }
 }

@@ -1,10 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
-import { ThemeModeScript } from "flowbite-react";
 import "./globals.css";
 import { ClientProviders } from "@/providers/client-providers";
 import { QueryProvider } from "@/providers/query-provider";
+import { ThemeProvider } from "@/providers/theme-provider";
 import { WebVitalsReporter } from "@/components/analytics/web-vitals";
 import { ErrorInitializer } from "@/components/error-initializer";
 import { TestCrashButton } from "@/components/test-crash-button";
@@ -121,7 +121,6 @@ export default function RootLayout({
   return (
     <html lang="ko" suppressHydrationWarning>
       <head>
-        <ThemeModeScript />
         {/* Preconnect & DNS Prefetch */}
         <link rel="preconnect" href="https://grow-farm.com" />
         <link rel="dns-prefetch" href="https://grow-farm.com" />
@@ -175,9 +174,11 @@ export default function RootLayout({
         {/* 전역 에러 핸들러 초기화 */}
         <ErrorInitializer />
 
-        <QueryProvider>
-          <ClientProviders>{children}</ClientProviders>
-        </QueryProvider>
+        <ThemeProvider>
+          <QueryProvider>
+            <ClientProviders>{children}</ClientProviders>
+          </QueryProvider>
+        </ThemeProvider>
 
         {/* 개발 모드 전용 테스트 크래시 버튼 */}
         <TestCrashButton />

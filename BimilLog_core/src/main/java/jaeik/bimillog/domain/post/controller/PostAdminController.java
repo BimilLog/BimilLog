@@ -29,7 +29,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/post")
 @Slf4j
 public class PostAdminController {
-
     private final PostAdminService postAdminService;
 
     /**

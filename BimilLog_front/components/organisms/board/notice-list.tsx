@@ -47,7 +47,7 @@ export const NoticeList = ({ posts }: NoticeListProps) => {
                 return (
                   <tr
                     key={notice.id}
-                    className="border-b border-gray-100 bg-white transition-colors hover:bg-purple-50/60 dark:border-slate-800 dark:bg-slate-900/70 dark:hover:bg-[#201b3d]"
+                    className="border-b border-border bg-card transition-colors hover:bg-purple-50/60 dark:hover:bg-[#201b3d]"
                   >
                     <td className="px-4 py-3 text-center">
                       <Badge
@@ -61,7 +61,7 @@ export const NoticeList = ({ posts }: NoticeListProps) => {
                     <td className="px-4 py-3 align-middle">
                       <Link
                         href={`/board/post/${notice.id}`}
-                        className="group flex items-center gap-2 font-semibold text-slate-900 hover:text-purple-600 dark:text-gray-100 dark:hover:text-purple-300"
+                        className="group flex items-center gap-2 font-semibold text-foreground hover:text-purple-600 dark:hover:text-purple-300"
                       >
                         <span className="line-clamp-1">
                           {notice.title}
@@ -73,33 +73,33 @@ export const NoticeList = ({ posts }: NoticeListProps) => {
                         </span>
                       </Link>
                     </td>
-                    <td className="hidden px-4 py-3 text-center text-sm text-slate-500 dark:text-gray-400 sm:table-cell">
+                    <td className="hidden px-4 py-3 text-center text-sm text-muted-foreground sm:table-cell">
                       {formatKoreanDate(notice.createdAt)}
                     </td>
                     <td className="pl-10 pr-4 py-3 text-left">
                       {hasAuthorLink ? (
                         <Link
                           href={`/rolling-paper/${encodeURIComponent(authorName)}`}
-                          className="inline-flex items-center gap-1 whitespace-nowrap text-sm text-slate-600 hover:text-purple-600 hover:underline dark:text-gray-300 dark:hover:text-purple-300"
+                          className="inline-flex items-center gap-1 whitespace-nowrap text-sm text-muted-foreground hover:text-purple-600 hover:underline dark:hover:text-purple-300"
                           title={`${authorName}님의 롤링페이퍼 보기`}
                         >
                           <User className="h-4 w-4" />
                           {authorName}
                         </Link>
                       ) : (
-                        <span className="inline-flex items-center gap-1 whitespace-nowrap text-sm text-slate-500 dark:text-gray-400">
+                        <span className="inline-flex items-center gap-1 whitespace-nowrap text-sm text-muted-foreground">
                           <User className="h-4 w-4" />
                           익명
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-center text-slate-600 dark:text-gray-300">
+                    <td className="px-4 py-3 text-center text-muted-foreground">
                       <span className="inline-flex items-center justify-center gap-1 whitespace-nowrap">
                         <ThumbsUp className="h-4 w-4" />
                         {numberFormatter.format(notice.likeCount)}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-center text-slate-600 dark:text-gray-300">
+                    <td className="px-4 py-3 text-center text-muted-foreground">
                       <span className="flex items-center justify-center gap-1">
                         <Eye className="h-4 w-4" />
                         {numberFormatter.format(notice.viewCount)}
@@ -128,7 +128,7 @@ export const NoticeList = ({ posts }: NoticeListProps) => {
           >
             <Card
               variant="elevated"
-              className="relative p-3 gap-1 overflow-visible shadow-sm isolation-auto dark:shadow-none"
+              className="relative p-3 gap-1 overflow-visible shadow-sm isolation-auto"
             >
               <div className="flex items-center justify-between text-xs text-purple-500 dark:text-purple-300">
                 <Badge variant="info" icon={Megaphone}>
@@ -138,7 +138,7 @@ export const NoticeList = ({ posts }: NoticeListProps) => {
               </div>
               <Link
                 href={`/board/post/${notice.id}`}
-                className="mt-2 block text-base font-semibold text-slate-900 hover:text-purple-600 dark:text-gray-100 dark:hover:text-purple-300"
+                className="mt-2 block text-base font-semibold text-foreground hover:text-purple-600 dark:hover:text-purple-300"
               >
                 {notice.title}
                 {notice.commentCount > 0 && (
@@ -147,7 +147,7 @@ export const NoticeList = ({ posts }: NoticeListProps) => {
                   </span>
                 )}
               </Link>
-              <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-slate-600 dark:text-gray-300">
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
                 {hasAuthorLink ? (
                   <Popover
                     trigger="click"
@@ -174,7 +174,7 @@ export const NoticeList = ({ posts }: NoticeListProps) => {
                   >
                     <button
                       type="button"
-                      className="inline-flex items-center gap-1 text-left transition-colors hover:text-purple-600 hover:underline dark:text-gray-200 dark:hover:text-purple-300"
+                      className="inline-flex items-center gap-1 text-left transition-colors text-foreground hover:text-purple-600 hover:underline dark:hover:text-purple-300"
                       title={`${authorName}님의 롤링페이퍼 보기`}
                     >
                       <User className="h-4 w-4" />
@@ -182,7 +182,7 @@ export const NoticeList = ({ posts }: NoticeListProps) => {
                     </button>
                   </Popover>
                 ) : (
-                  <span className="inline-flex items-center gap-1 text-slate-500 dark:text-gray-400">
+                  <span className="inline-flex items-center gap-1 text-muted-foreground">
                     <User className="h-4 w-4" />
                     익명
                   </span>

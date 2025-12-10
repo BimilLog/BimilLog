@@ -8,7 +8,6 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
 import jaeik.bimillog.domain.post.event.PostLikeEvent;
 import jaeik.bimillog.domain.post.event.PostUnlikeEvent;
-import jaeik.bimillog.domain.post.out.PostLikeQueryRepository;
 import jaeik.bimillog.domain.post.out.PostLikeRepository;
 import jaeik.bimillog.domain.post.out.PostRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,11 +28,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Slf4j
 public class PostInteractionService {
-
     private final PostRepository postRepository;
     private final GlobalPostQueryAdapter globalPostQueryAdapter;
     private final PostLikeRepository postLikeRepository;
-    private final PostLikeQueryRepository postLikeQueryRepository;
     private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
     private final ApplicationEventPublisher eventPublisher;
     private final GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;

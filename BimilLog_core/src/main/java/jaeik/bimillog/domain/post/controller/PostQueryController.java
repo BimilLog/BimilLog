@@ -56,10 +56,14 @@ public class PostQueryController {
     @Log(level = LogLevel.DEBUG,
          message = "게시판 목록 조회",
          logResult = false)
-    public ResponseEntity<Page<PostSimpleDetail>> getBoard(Pageable pageable,
-                                                        @AuthenticationPrincipal CustomUserDetails userDetails) {
-        Long memberId = userDetails != null ? userDetails.getMemberId() : null;
-        Page<PostSimpleDetail> postList = postQueryService.getBoard(pageable, memberId);
+    public ResponseEntity<Page<PostSimpleDetail>> getBoard(@AuthenticationPrincipal CustomUserDetails userDetails, Pageable pageable) {
+
+        if (userDetails == null) { // 비회원
+            Page<PostSimpleDetail> postList = postQueryService.getBoard(pageable, null);
+            return ResponseEntity.ok(postList);
+        }
+
+        Page<PostSimpleDetail> postList = postQueryService.getBoard(pageable, userDetails.getMemberId()); // 회원
         return ResponseEntity.ok(postList);
     }
 

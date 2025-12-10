@@ -17,14 +17,14 @@ export const metadata: Metadata = {
 export default function FriendsPage() {
   return (
     <MainLayout
-      className="bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50"
+      className="bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 dark:from-[#121327] dark:via-[#1a1030] dark:to-[#0b0c1c]"
       containerClassName="container mx-auto px-4"
     >
       <div className="py-8 max-w-4xl mx-auto">
         {/* 페이지 헤더 */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">친구</h1>
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-3xl font-bold text-foreground">친구</h1>
+          <p className="text-muted-foreground mt-2">
             친구를 관리하고 새로운 친구를 추천받아보세요
           </p>
         </div>

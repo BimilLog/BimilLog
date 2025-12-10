@@ -69,7 +69,7 @@ class AuthQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.memberId").value(savedAdmin.getId()))
                 .andExpect(jsonPath("$.role").value("ADMIN"))
-                .andExpect(jsonPath("$.memberName").value("관리자"));
+                .andExpect(jsonPath("$.memberName").value(savedAdmin.getMemberName()));
     }
 
     @Test

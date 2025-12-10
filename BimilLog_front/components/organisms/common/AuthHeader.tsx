@@ -6,7 +6,7 @@ import Image from "next/image";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/hooks";
-import { useTheme } from "@/hooks/features/useTheme";
+import { useTheme } from "next-themes";
 import {
   Settings,
   Moon,
@@ -49,7 +49,7 @@ export const AuthHeader = React.memo(() => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { user, isAuthenticated, isLoading } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
   const { confirm, ConfirmModalComponent } = useConfirmModal();
 
@@ -60,8 +60,8 @@ export const AuthHeader = React.memo(() => {
 
   const getThemeIcon = () => {
     if (!mounted) return <Monitor className="w-5 h-5 stroke-slate-600 fill-slate-100" />;
-    if (theme === 'dark') return <Moon className="w-5 h-5 stroke-slate-600 fill-slate-100" />;
-    if (theme === 'light') return <Sun className="w-5 h-5 stroke-slate-600 fill-slate-100" />;
+    if (resolvedTheme === 'dark') return <Moon className="w-5 h-5 stroke-slate-600 fill-slate-100" />;
+    if (resolvedTheme === 'light') return <Sun className="w-5 h-5 stroke-slate-600 fill-slate-100" />;
     return <Monitor className="w-5 h-5 stroke-slate-600 fill-slate-100" />;
   };
 
@@ -100,7 +100,7 @@ export const AuthHeader = React.memo(() => {
       <Navbar
       data-toast-anchor
       fluid
-      className="sticky top-0 z-50 border-b border-gray-200 bg-white/80 backdrop-blur-sm transition-colors duration-300 dark:border-slate-800 dark:bg-slate-900/80"
+      className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-sm transition-colors duration-300"
       theme={{
         root: {
           base: "px-4 sm:px-6 lg:px-8 py-3 sm:py-4",
@@ -162,8 +162,12 @@ export const AuthHeader = React.memo(() => {
       <div className="flex items-center gap-2 sm:gap-3 md:ml-auto md:order-2">
         {/* 테마 토글 버튼 - 모든 사용자에게 표시 */}
         <button
-          onClick={toggleTheme}
-          className="min-h-[44px] min-w-[44px] touch-manipulation rounded-lg p-2 text-brand-muted transition-colors hover:bg-gray-100 hover:text-brand-primary dark:text-gray-300 dark:hover:bg-slate-800"
+          onClick={() => {
+            if (theme === 'light') setTheme('dark');
+            else if (theme === 'dark') setTheme('system');
+            else setTheme('light');
+          }}
+          className="min-h-[44px] min-w-[44px] touch-manipulation rounded-lg p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-primary"
           title={mounted ? `테마 변경 (현재: ${theme === 'dark' ? '다크' : theme === 'light' ? '라이트' : '시스템'})` : '테마 변경'}
         >
           {getThemeIcon()}
@@ -278,7 +282,7 @@ export const AuthHeader = React.memo(() => {
         <NavbarToggle className="md:hidden" />
       </div>
 
-      <NavbarCollapse className="basis-full md:basis-auto md:order-1 md:mr-3 md:flex md:items-center md:gap-6">
+      <NavbarCollapse className="basis-full md:basis-auto md:order-1 md:flex md:items-center md:gap-6 md:mx-auto">
         <div className="md:relative">
           <Dropdown
             arrowIcon={false}

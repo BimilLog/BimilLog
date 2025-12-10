@@ -31,7 +31,8 @@ public interface PostFulltextRepository extends JpaRepository<Post, Long> {
      * @since 2.0.0
      */
     @Query(value = """
-            SELECT p.post_id, p.title, p.views, p.is_notice, p.created_at, p.member_id, m.member_name
+            SELECT p.post_id, p.title, p.views, p.is_notice, p.created_at, p.member_id, m.member_name,
+            (SELECT COUNT(pl.id) FROM post_like pl WHERE pl.post_id = p.post_id) AS like_count
             FROM post p
             LEFT JOIN member m ON p.member_id = m.member_id
             WHERE p.is_notice = false
@@ -57,7 +58,8 @@ public interface PostFulltextRepository extends JpaRepository<Post, Long> {
      * @since 2.0.0
      */
     @Query(value = """
-            SELECT p.post_id, p.title, p.views, p.is_notice, p.created_at, p.member_id, m.member_name
+            SELECT p.post_id, p.title, p.views, p.is_notice, p.created_at, p.member_id, m.member_name,
+            (SELECT COUNT(pl.id) FROM post_like pl WHERE pl.post_id = p.post_id) AS like_count
             FROM post p
             LEFT JOIN member m ON p.member_id = m.member_id
             WHERE p.is_notice = false

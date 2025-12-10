@@ -46,12 +46,12 @@ import static org.mockito.BDDMockito.given;
 @DataJpaTest(
         includeFilters = @ComponentScan.Filter(
                 type = FilterType.ASSIGNABLE_TYPE,
-                classes = {PostQueryRepository.class, PostQueryHelper.class}
+                classes = {PostQueryRepository.class, PostFulltextUtil.class}
         )
 )
 @ActiveProfiles("local-integration")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Import({PostQueryRepository.class, PostQueryHelper.class, QueryDSLConfig.class, LocalIntegrationTestSupportConfig.class})
+@Import({PostSearchRepository.class, PostQueryRepository.class, PostFulltextUtil.class, QueryDSLConfig.class, LocalIntegrationTestSupportConfig.class})
 @Tag("local-integration")
 class PostQueryRepositoryIntegrationTest {
 
@@ -59,16 +59,19 @@ class PostQueryRepositoryIntegrationTest {
     private PostQueryRepository postQueryRepository;
 
     @Autowired
-    private TestEntityManager entityManager;
+    private PostSearchRepository postSearchRepository;
 
-    @MockitoBean
-    private PostLikeQueryRepository postLikeQueryRepository;
+    @Autowired
+    private TestEntityManager entityManager;
 
     private Member testMember;
     private Post testPost1, testPost2, testPost3, noticePost;
 
     @BeforeEach
     void setUp() {
+        // 로컬 MySQL 데이터베이스의 기존 데이터 정리
+        cleanUpDatabase();
+
         // 테스트용 사용자 생성
         testMember = TestMembers.copyWithId(TestMembers.MEMBER_1, null);
         if (testMember.getSetting() != null) {
@@ -81,15 +84,19 @@ class PostQueryRepositoryIntegrationTest {
 
         // 테스트용 게시글들 생성
         createTestPosts();
-        // 추천 수 Mock 설정 (기본값)
-        Map<Long, Integer> likeCounts = new HashMap<>();
-        likeCounts.put(testPost1.getId(), 5);
-        likeCounts.put(testPost2.getId(), 3);
-        likeCounts.put(testPost3.getId(), 1);
-        likeCounts.put(noticePost.getId(), 8);
-        
-        given(postLikeQueryRepository.findLikeCountsByPostIds(any(List.class)))
-                .willReturn(likeCounts);
+    }
+
+    /**
+     * 로컬 MySQL 데이터베이스의 기존 데이터 정리
+     * local-integration 테스트는 실제 MySQL을 사용하므로 기존 데이터가 있을 수 있음
+     */
+    private void cleanUpDatabase() {
+        // 외래키 제약으로 인해 순서대로 삭제
+        entityManager.getEntityManager().createNativeQuery("DELETE FROM post_like").executeUpdate();
+        entityManager.getEntityManager().createNativeQuery("DELETE FROM comment_closure").executeUpdate();
+        entityManager.getEntityManager().createNativeQuery("DELETE FROM comment").executeUpdate();
+        entityManager.getEntityManager().createNativeQuery("DELETE FROM post").executeUpdate();
+        entityManager.flush();
     }
 
     private void createTestPosts() {
@@ -226,7 +233,7 @@ class PostQueryRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 부분 검색
-        Page<PostSimpleDetail> result = postQueryRepository.findByPartialMatch(searchType, query, pageable, null);
+        Page<PostSimpleDetail> result = postSearchRepository.findByPartialMatch(searchType, query, pageable, null);
 
         // Then: 해당 제목이 포함된 게시글 조회됨
         assertThat(result).isNotNull();
@@ -243,7 +250,7 @@ class PostQueryRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 접두사 검색
-        Page<PostSimpleDetail> result = postQueryRepository.findByPrefixMatch(searchType, query, pageable, null);
+        Page<PostSimpleDetail> result = postSearchRepository.findByPrefixMatch(searchType, query, pageable, null);
 
         // Then: 해당 접두사로 시작하는 작성자의 게시글들이 조회됨
         assertThat(result).isNotNull();
@@ -261,7 +268,7 @@ class PostQueryRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 전문 검색
-        Page<PostSimpleDetail> result = postQueryRepository.findByFullTextSearch(searchType, query, pageable, null);
+        Page<PostSimpleDetail> result = postSearchRepository.findByFullTextSearch(searchType, query, pageable, null);
 
         // Then: FULLTEXT 인덱스를 사용하여 검색됨
         assertThat(result).isNotNull();

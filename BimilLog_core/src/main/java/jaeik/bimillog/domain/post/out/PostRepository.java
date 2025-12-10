@@ -43,7 +43,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     void deleteAllByMemberId(Long memberId);
 
     /**
-     * <h3>조회수 직접 증가 (최적화)</h3>
+     * <h3>조회수 증가</h3>
      * <p>게시글 ID를 통해 조회수를 1 증가시킵니다.</p>
      * <p>SELECT 없이 바로 UPDATE만 실행하여 성능을 최적화합니다.</p>
      *

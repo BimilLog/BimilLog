@@ -6,6 +6,7 @@ import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
 import jaeik.bimillog.domain.post.out.PostLikeRepository;
+import jaeik.bimillog.domain.post.out.PostRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.testutil.BaseUnitTest;
@@ -50,13 +51,10 @@ class PostInteractionServiceTest extends BaseUnitTest {
     private ApplicationEventPublisher eventPublisher;
 
     @Mock
-    private jaeik.bimillog.domain.post.out.PostRepository postRepository;
+    private PostRepository postRepository;
 
     @Mock
     private GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
-
-    @Mock
-    private jaeik.bimillog.domain.post.out.PostLikeQueryRepository postLikeQueryRepository;
 
     @InjectMocks
     private PostInteractionService postInteractionService;

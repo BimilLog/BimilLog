@@ -3,7 +3,9 @@ package jaeik.bimillog.domain.post.out;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.JPAExpressions;
+import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.comment.entity.QComment;
@@ -24,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -42,9 +45,6 @@ import java.util.function.Consumer;
 @RequiredArgsConstructor
 public class PostQueryRepository {
     private final JPAQueryFactory jpaQueryFactory;
-    private final PostFulltextRepository postFullTextRepository;
-    private final PostQueryHelper postQueryHelper;
-    private final PostRepository postRepository;
 
     private static final QPost post = QPost.post;
     private static final QMember member = QMember.member;
@@ -63,9 +63,9 @@ public class PostQueryRepository {
      * @author Jaeik
      * @since 2.0.0
      */
-    public Page<PostSimpleDetail> findByPage(Pageable pageable, Long viewerId) {
-        Consumer<JPAQuery<?>> customizer = query -> query.where(applyBlacklistFilter(post.isNotice.isFalse(), viewerId));
-        return postQueryHelper.findPostsWithQuery(customizer, customizer, pageable);
+    public Page<PostSimpleDetail> findByPage(Pageable pageable, Long memberId) {
+        Consumer<JPAQuery<?>> customizer = query -> query.where(applyBlacklistFilter(post.isNotice.isFalse(), memberId));
+        return findPostsWithQuery(customizer, customizer, pageable);
     }
 
     /**
@@ -81,7 +81,7 @@ public class PostQueryRepository {
      */
     public Page<PostSimpleDetail> findPostsByMemberId(Long memberId, Pageable pageable, Long viewerId) {
         Consumer<JPAQuery<?>> customizer = query -> query.where(applyBlacklistFilter(member.id.eq(memberId), viewerId));
-        return postQueryHelper.findPostsWithQuery(customizer, customizer, pageable);
+        return findPostsWithQuery(customizer, customizer, pageable);
     }
 
     /**
@@ -97,35 +97,37 @@ public class PostQueryRepository {
      * @since 2.0.0
      */
     public Page<PostSimpleDetail> findLikedPostsByMemberId(Long memberId, Pageable pageable) {
-        // Content 쿼리: 추천한 게시글 조회 (postLike.createdAt 기준 정렬)
-        List<PostSimpleDetail> content = jpaQueryFactory
-            .select(new QPostSimpleDetail(
-                post.id,
-                post.title,
-                post.views,
-                Expressions.constant(0),  // likeCount는 배치 조회로 채움
-                post.createdAt,
-                member.id,
-                Expressions.stringTemplate("COALESCE({0}, {1})", member.memberName, "익명"),
-                Expressions.constant(0)  // commentCount는 배치 조회로 채움
-            ))
-            .from(post)
-            .join(postLike).on(post.id.eq(postLike.post.id).and(postLike.member.id.eq(memberId)))
-            .leftJoin(post.member, member)
-            .orderBy(postLike.createdAt.desc())  // 추천일 기준 정렬
-            .offset(pageable.getOffset())
-            .limit(pageable.getPageSize())
-            .fetch();
+        QPostLike subPostLike = new QPostLike("subPostLike");
+        JPQLQuery<Integer> likeCountSubQuery = JPAExpressions
+                .select(subPostLike.count().intValue())
+                .from(subPostLike)
+                .where(subPostLike.post.id.eq(post.id));
 
-        // 배치 조회로 추천 수 설정
-        postQueryHelper.batchLikeCount(content);
+        List<PostSimpleDetail> content = jpaQueryFactory
+                .select(new QPostSimpleDetail(
+                        post.id,
+                        post.title,
+                        post.views,
+                        likeCountSubQuery,
+                        post.createdAt,
+                        member.id,
+                        Expressions.stringTemplate("COALESCE({0}, {1})", member.memberName, "익명"),
+                        Expressions.constant(0)  // commentCount는 배치 조회로 채움
+                ))
+                .from(post)
+                .join(postLike).on(post.id.eq(postLike.post.id).and(postLike.member.id.eq(memberId)))
+                .leftJoin(post.member, member)
+                .orderBy(postLike.createdAt.desc())  // 추천일 기준 정렬
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
 
         // Count 쿼리
         Long total = jpaQueryFactory
-            .select(post.countDistinct())
-            .from(post)
-            .join(postLike).on(post.id.eq(postLike.post.id).and(postLike.member.id.eq(memberId)))
-            .fetchOne();
+                .select(post.countDistinct())
+                .from(post)
+                .join(postLike).on(post.id.eq(postLike.post.id).and(postLike.member.id.eq(memberId)))
+                .fetchOne();
 
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
@@ -143,20 +145,19 @@ public class PostQueryRepository {
         BooleanExpression weeklyCondition = post.createdAt.after(Instant.now().minus(7, ChronoUnit.DAYS));
 
         Consumer<JPAQuery<?>> contentCustomizer = query -> query
-            .leftJoin(postLike).on(post.id.eq(postLike.post.id))
-            .where(weeklyCondition)
-            .groupBy(post.id, member.id, post.title)
-            .having(postLike.countDistinct().goe(1))
-            .orderBy(postLike.countDistinct().desc());
+                .leftJoin(postLike).on(post.id.eq(postLike.post.id))
+                .where(weeklyCondition)
+                .groupBy(post.id, member.id, post.title)
+                .having(postLike.countDistinct().goe(1))
+                .orderBy(postLike.countDistinct().desc());
 
         Consumer<JPAQuery<?>> countCustomizer = query -> query
-            .leftJoin(postLike).on(post.id.eq(postLike.post.id))
-            .where(weeklyCondition)
-            .groupBy(post.id)
-            .having(postLike.countDistinct().goe(1));
+                .leftJoin(postLike).on(post.id.eq(postLike.post.id))
+                .where(weeklyCondition)
+                .groupBy(post.id)
+                .having(postLike.countDistinct().goe(1));
 
-        return postQueryHelper.findPostsWithQuery(contentCustomizer, countCustomizer, PageRequest.of(0, 5))
-            .getContent();
+        return findPostsWithQuery(contentCustomizer, countCustomizer, PageRequest.of(0, 5)).getContent();
     }
 
     /**
@@ -170,18 +171,17 @@ public class PostQueryRepository {
     @Transactional(readOnly = true)
     public List<PostSimpleDetail> findLegendaryPosts() {
         Consumer<JPAQuery<?>> contentCustomizer = query -> query
-            .leftJoin(postLike).on(post.id.eq(postLike.post.id))
-            .groupBy(post.id, member.id, post.title)
-            .having(postLike.countDistinct().goe(20))
-            .orderBy(postLike.countDistinct().desc());
+                .leftJoin(postLike).on(post.id.eq(postLike.post.id))
+                .groupBy(post.id, member.id, post.title)
+                .having(postLike.countDistinct().goe(20))
+                .orderBy(postLike.countDistinct().desc());
 
         Consumer<JPAQuery<?>> countCustomizer = query -> query
-            .leftJoin(postLike).on(post.id.eq(postLike.post.id))
-            .groupBy(post.id)
-            .having(postLike.countDistinct().goe(20));
+                .leftJoin(postLike).on(post.id.eq(postLike.post.id))
+                .groupBy(post.id)
+                .having(postLike.countDistinct().goe(20));
 
-        return postQueryHelper.findPostsWithQuery(contentCustomizer, countCustomizer, PageRequest.of(0, 50))
-            .getContent();
+        return findPostsWithQuery(contentCustomizer, countCustomizer, PageRequest.of(0, 50)).getContent();
     }
 
     /**
@@ -229,9 +229,10 @@ public class PostQueryRepository {
         return Optional.ofNullable(result);
     }
 
-    // PostId 목록으로 Post 리스트 반환
+    /**
+     * <h3>PostId 목록으로 Post 리스트 반환</h3>
+     */
     public List<Post> findAllByIds(List<Long> postIds) {
-
         return jpaQueryFactory
                 .select(post)
                 .from(post)
@@ -241,99 +242,67 @@ public class PostQueryRepository {
     }
 
     /**
-     * <h3>MySQL FULLTEXT 전문 검색</h3>
-     * <p>MySQL FULLTEXT 인덱스를 사용하여 게시글을 검색합니다.</p>
-     * <p>검색 실패 시 빈 페이지를 반환하며, 에러는 로그로 기록됩니다.</p>
-     * <p>{@link PostQueryService}에서 검색 전략에 따라 호출됩니다.</p>
+     * <h3>게시글 목록 조회</h3>
+     * <p>배치 조회로 댓글 수는 별도 조회</p>
      *
-     * @param type     검색 유형 (TITLE, TITLE_CONTENT)
-     * @param query    검색어
-     * @param pageable 페이지 정보
-     * @return 검색된 게시글 페이지
+     * @param contentQueryCustomizer Content 쿼리 커스터마이징 로직 (JOIN, WHERE 등)
+     * @param countQueryCustomizer   Count 쿼리 커스터마이징 로직 (JOIN, WHERE 등)
+     * @param pageable               페이지 정보
+     * @return 게시글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    public Page<PostSimpleDetail> findByFullTextSearch(PostSearchType type, String query, Pageable pageable, Long viewerId) {
-        String searchTerm = query + "*";
-        try {
-            List<Object[]> rows = switch (type) {
-                case TITLE -> postFullTextRepository.findByTitleFullText(searchTerm, pageable, viewerId);
-                case TITLE_CONTENT -> postFullTextRepository.findByTitleContentFullText(searchTerm, pageable, viewerId);
-                case WRITER -> List.of();
-            };
+    public Page<PostSimpleDetail> findPostsWithQuery(Consumer<JPAQuery<?>> contentQueryCustomizer,
+                                                     Consumer<JPAQuery<?>> countQueryCustomizer, Pageable pageable) {
+        QPostLike subPostLike = new QPostLike("subPostLike");
+        JPQLQuery<Integer> likeCountSubQuery = JPAExpressions
+                .select(subPostLike.count().intValue())
+                .from(subPostLike)
+                .where(subPostLike.post.id.eq(post.id));
 
-            long total = switch (type) {
-                case TITLE -> postFullTextRepository.countByTitleFullText(searchTerm, viewerId);
-                case TITLE_CONTENT -> postFullTextRepository.countByTitleContentFullText(searchTerm, viewerId);
-                case WRITER -> 0L;
-            };
+        JPAQuery<PostSimpleDetail> contentQuery = jpaQueryFactory
+                .select(new QPostSimpleDetail(
+                        post.id,
+                        post.title,
+                        post.views,
+                        likeCountSubQuery,
+                        post.createdAt,
+                        member.id,
+                        Expressions.stringTemplate("COALESCE({0}, {1})", member.memberName, "익명"),
+                        Expressions.constant(0)))
+                .from(post)
+                .leftJoin(post.member, member);
 
-            if (rows.isEmpty()) {
-                return new PageImpl<>(List.of(), pageable, total);
-            }
+        // 커스터마이징 적용 (JOIN, WHERE 등)
+        contentQueryCustomizer.accept(contentQuery);
 
-            List<PostSimpleDetail> content = postQueryHelper.mapFullTextRows(rows);
-            postQueryHelper.batchLikeCount(content);
+        // 페이징 및 정렬
+        List<PostSimpleDetail> content = contentQuery
+                .orderBy(post.createdAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
 
-            return new PageImpl<>(content, pageable, total);
-        } catch (DataAccessException e) {
-            log.warn("FULLTEXT 검색 중 데이터베이스 오류 - type: {}, query: {}, error: {}", type, query, e.getMessage());
-            return Page.empty(pageable);
-        } catch (IllegalArgumentException e) {
-            log.debug("FULLTEXT 검색 파라미터 오류 - type: {}, query: {}, error: {}", type, query, e.getMessage());
-            return Page.empty(pageable);
-        }
+        // Count 쿼리 빌딩
+        JPAQuery<Long> countQuery = jpaQueryFactory
+                .select(post.countDistinct())
+                .from(post)
+                .leftJoin(post.member, member);
+
+
+        // 커스터마이징 적용 (JOIN, WHERE 등)
+        countQueryCustomizer.accept(countQuery);
+
+        Long total = countQuery.fetchOne();
+
+        return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
 
     /**
-     * <h3>접두사 검색 (인덱스 활용)</h3>
-     * <p>LIKE 'query%' 조건으로 검색하여 인덱스를 활용합니다.</p>
-     * <p>{@link PostQueryService}에서 검색 전략에 따라 호출됩니다.</p>
-     *
-     * @param type     검색 유형
-     * @param query    검색어
-     * @param pageable 페이지 정보
-     * @return 검색된 게시글 페이지
-     * @author Jaeik
-     * @since 2.0.0
+     * <h3>블랙리스트 필터링</h3>
+     * 조회자의 블랙리스트 관계를 조회하여 블랙리스트의 게시글을 보이지 않게 함
      */
-    public Page<PostSimpleDetail> findByPrefixMatch(PostSearchType type, String query, Pageable pageable, Long viewerId) {
-        BooleanExpression condition = switch (type) {
-            case WRITER -> member.memberName.startsWith(query);
-            case TITLE -> post.title.startsWith(query);
-            case TITLE_CONTENT -> post.title.startsWith(query).or(post.content.startsWith(query));
-        };
-
-        BooleanExpression finalCondition = applyBlacklistFilter(condition.and(post.isNotice.isFalse()), viewerId);
-        Consumer<JPAQuery<?>> customizer = q -> q.where(finalCondition);
-        return postQueryHelper.findPostsWithQuery(customizer, customizer, pageable);
-    }
-
-    /**
-     * <h3>부분 문자열 검색 (인덱스 미활용)</h3>
-     * <p>LIKE '%query%' 조건으로 부분 검색을 수행합니다.</p>
-     * <p>{@link PostQueryService}에서 검색 전략에 따라 호출됩니다.</p>
-     *
-     * @param type     검색 유형
-     * @param query    검색어
-     * @param pageable 페이지 정보
-     * @return 검색된 게시글 페이지
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public Page<PostSimpleDetail> findByPartialMatch(PostSearchType type, String query, Pageable pageable, Long viewerId) {
-        BooleanExpression condition = switch (type) {
-            case TITLE -> post.title.contains(query);
-            case WRITER -> member.memberName.contains(query);
-            case TITLE_CONTENT -> post.title.contains(query).or(post.content.contains(query));
-        };
-
-        BooleanExpression finalCondition = applyBlacklistFilter(condition.and(post.isNotice.isFalse()), viewerId);
-        Consumer<JPAQuery<?>> customizer = q -> q.where(finalCondition);
-        return postQueryHelper.findPostsWithQuery(customizer, customizer, pageable);
-    }
-
-    private BooleanExpression applyBlacklistFilter(BooleanExpression baseCondition, Long viewerId) {
+    public BooleanExpression applyBlacklistFilter(BooleanExpression baseCondition, Long viewerId) {
         if (viewerId == null) {
             return baseCondition;
         }
@@ -341,10 +310,8 @@ public class PostQueryRepository {
         BooleanExpression blacklistBlock = JPAExpressions
                 .selectOne()
                 .from(memberBlacklist)
-                .where(
-                        memberBlacklist.requestMember.id.eq(viewerId).and(memberBlacklist.blackMember.id.eq(member.id))
-                                .or(memberBlacklist.requestMember.id.eq(member.id).and(memberBlacklist.blackMember.id.eq(viewerId)))
-                )
+                .where(memberBlacklist.requestMember.id.eq(viewerId).and(memberBlacklist.blackMember.id.eq(member.id))
+                                .or(memberBlacklist.requestMember.id.eq(member.id).and(memberBlacklist.blackMember.id.eq(viewerId))))
                 .notExists();
 
         return baseCondition.and(blacklistBlock);

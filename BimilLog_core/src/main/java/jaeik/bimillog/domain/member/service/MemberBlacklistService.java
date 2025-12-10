@@ -15,13 +15,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class MemberBlacklistService {
-
     private final MemberBlacklistQueryRepository memberBlacklistQueryRepository;
     private final MemberBlacklistRepository memberBlacklistRepository;
     private final MemberRepository memberRepository;
@@ -29,6 +29,11 @@ public class MemberBlacklistService {
     @Transactional(readOnly = true)
     public Page<BlacklistDTO> getMyBlacklist(Long memberId, Pageable pageable) {
         return memberBlacklistQueryRepository.getMyBlacklist(memberId, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Long> getMyBlacklist(Long memberId) {
+        return memberBlacklistQueryRepository.getMyBlacklist(memberId);
     }
 
     @Transactional
@@ -58,9 +63,7 @@ public class MemberBlacklistService {
 
     public boolean checkMemberBlacklist(Long memberId, Long targetMemberId) {
         boolean aBlockedB = memberBlacklistRepository.existsByRequestMemberIdAndBlackMemberId(memberId, targetMemberId);
-
         boolean bBlockedA = memberBlacklistRepository.existsByRequestMemberIdAndBlackMemberId(targetMemberId, memberId);
-
         return aBlockedB || bBlockedA;
     }
 }

@@ -41,4 +41,9 @@ public class MemberBlacklistQueryRepository {
 
         return new PageImpl<>(content, pageable, total != null ? total : 0);
     }
+
+    // TODO : 구현 예정
+    public List<Long> getMyBlacklist(Long memberId) {
+        return null;
+    }
 }

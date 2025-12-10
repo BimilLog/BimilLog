@@ -50,9 +50,9 @@ const UserActivityTableRow = memo<TableRowProps>(({
   if (contentType === "posts" && isPost(item)) {
     const post = item;
     return (
-      <TableRow className="bg-white transition-colors hover:bg-gray-50 dark:bg-slate-900/70 dark:hover:bg-slate-800/80">
+      <TableRow className="bg-card transition-colors hover:bg-accent">
         {/* 번호 */}
-        <TableCell className="w-20 text-center font-medium text-brand-primary dark:text-gray-100">
+        <TableCell className="w-20 text-center font-medium text-foreground">
           {post.id}
         </TableCell>
 
@@ -62,8 +62,8 @@ const UserActivityTableRow = memo<TableRowProps>(({
             href={`/board/post/${post.id}`}
             className={`block line-clamp-2 font-semibold transition-colors ${
               isRead
-                ? 'text-gray-500 dark:text-gray-400'
-                : 'text-gray-900 hover:text-purple-600 dark:text-gray-100 dark:hover:text-purple-300'
+                ? 'text-muted-foreground'
+                : 'text-foreground hover:text-purple-600 dark:hover:text-purple-300'
             }`}
           >
             {post.title}
@@ -76,29 +76,29 @@ const UserActivityTableRow = memo<TableRowProps>(({
         </TableCell>
 
         {/* 작성일 */}
-        <TableCell className="hidden w-28 text-sm text-brand-secondary dark:text-gray-300 sm:table-cell">
+        <TableCell className="hidden w-28 text-sm text-muted-foreground sm:table-cell">
           {formatDate(post.createdAt)}
         </TableCell>
 
         {/* 추천 */}
-        <TableCell className="w-20 text-center text-brand-secondary dark:text-gray-300">
-          <div className="flex items-center justify-center gap-1 text-xs text-gray-600 dark:text-gray-300">
+        <TableCell className="w-20 text-center text-muted-foreground">
+          <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
             <ThumbsUp className="w-3 h-3" />
             {post.likeCount}
           </div>
         </TableCell>
 
         {/* 조회수 */}
-        <TableCell className="w-20 text-center text-brand-secondary dark:text-gray-300">
-          <div className="flex items-center justify-center gap-1 text-xs text-gray-600 dark:text-gray-300">
+        <TableCell className="w-20 text-center text-muted-foreground">
+          <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
             <Eye className="w-3 h-3" />
             {post.viewCount}
           </div>
         </TableCell>
 
         {/* 댓글수 */}
-        <TableCell className="w-20 text-center text-brand-secondary dark:text-gray-300">
-          <div className="flex items-center justify-center gap-1 text-xs text-gray-600 dark:text-gray-300">
+        <TableCell className="w-20 text-center text-muted-foreground">
+          <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
             <MessageCircle className="w-3 h-3" />
             {post.commentCount}
           </div>
@@ -110,25 +110,25 @@ const UserActivityTableRow = memo<TableRowProps>(({
   // 댓글인 경우
   const comment = item as SimpleComment;
   return (
-    <TableRow className="bg-white transition-colors hover:bg-gray-50 dark:bg-slate-900/70 dark:hover:bg-slate-800/80">
+    <TableRow className="bg-card transition-colors hover:bg-accent">
       {/* 번호 */}
-      <TableCell className="w-20 text-center font-medium text-brand-primary dark:text-gray-100">
+      <TableCell className="w-20 text-center font-medium text-foreground">
         {comment.id}
       </TableCell>
 
       {/* 댓글 내용 */}
       <TableCell>
-        <SafeHTML html={comment.content} className="line-clamp-2 text-gray-900 dark:text-gray-100" />
+        <SafeHTML html={comment.content} className="line-clamp-2 text-foreground" />
       </TableCell>
 
       {/* 작성일 */}
-      <TableCell className="hidden w-28 text-sm text-brand-secondary dark:text-gray-300 sm:table-cell">
+      <TableCell className="hidden w-28 text-sm text-muted-foreground sm:table-cell">
         {formatDate(comment.createdAt)}
       </TableCell>
 
       {/* 추천 */}
-      <TableCell className="w-20 text-center text-brand-secondary dark:text-gray-300">
-        <div className="flex items-center justify-center gap-1 text-xs text-gray-600 dark:text-gray-300">
+      <TableCell className="w-20 text-center text-muted-foreground">
+        <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
           <ThumbsUp className="w-3 h-3" />
           {comment.likeCount}
         </div>
@@ -166,8 +166,8 @@ const UserActivityMobileCard = memo<TableRowProps>(({
                 href={`/board/post/${post.id}`}
                 className={`block text-sm font-semibold transition-colors line-clamp-2 ${
                   isRead
-                    ? 'text-gray-500 dark:text-gray-400'
-                    : 'text-brand-primary hover:text-purple-600 dark:text-gray-100 dark:hover:text-purple-300'
+                    ? 'text-muted-foreground'
+                    : 'text-foreground hover:text-purple-600 dark:hover:text-purple-300'
                 }`}
               >
                 {post.title}
@@ -181,7 +181,7 @@ const UserActivityMobileCard = memo<TableRowProps>(({
           </div>
 
           {/* 하단 정보 */}
-          <div className="flex items-center justify-between text-xs text-brand-secondary dark:text-gray-300">
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>{formatDate(post.createdAt)}</span>
             <div className="flex items-center gap-2">
               <span className="flex items-center gap-1">
@@ -209,11 +209,11 @@ const UserActivityMobileCard = memo<TableRowProps>(({
     <Card variant="elevated" className="transition-all hover:shadow-brand-md">
       <div className="p-3">
         <div className="mb-1.5">
-          <SafeHTML html={comment.content} className="text-sm line-clamp-2 text-brand-primary dark:text-gray-100" />
+          <SafeHTML html={comment.content} className="text-sm line-clamp-2 text-foreground" />
         </div>
 
         {/* 하단 정보 */}
-        <div className="flex items-center justify-between text-xs text-brand-secondary dark:text-gray-300">
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>{formatDate(comment.createdAt)}</span>
           <div className="flex items-center gap-2">
             <span className="flex items-center gap-1">
@@ -347,8 +347,8 @@ export const UserActivityTable = memo<UserActivityTableProps>(({
     <>
       {/* 데스크톱 테이블 */}
       <div className="hidden overflow-x-auto sm:block">
-        <Table hoverable className="min-w-full text-brand-primary dark:text-gray-100">
-          <TableHead className="bg-gray-50 text-brand-secondary dark:bg-slate-900/80 dark:text-gray-300">
+        <Table hoverable className="min-w-full text-foreground">
+          <TableHead className="bg-muted text-muted-foreground">
             <TableRow>
               <TableHeadCell className="w-20 text-center">번호</TableHeadCell>
               <TableHeadCell className="text-left">
@@ -366,7 +366,7 @@ export const UserActivityTable = memo<UserActivityTableProps>(({
               )}
             </TableRow>
           </TableHead>
-          <TableBody className="divide-y divide-gray-100 dark:divide-slate-800">
+          <TableBody className="divide-y divide-border">
             {items.length > 0 ? (
               items.map((item) => (
                 <UserActivityTableRow
@@ -377,12 +377,12 @@ export const UserActivityTable = memo<UserActivityTableProps>(({
                 />
               ))
             ) : (
-              <TableRow className="bg-white dark:bg-slate-900/70">
+              <TableRow className="bg-card">
                 <TableCell
                   colSpan={contentType === "posts" ? 6 : 5}
                   className="py-12 text-center"
                 >
-                  <span className="text-gray-500 dark:text-gray-400">
+                  <span className="text-muted-foreground">
                     {contentType === "posts" ? "작성한 게시글이 없습니다." : "작성한 댓글이 없습니다."}
                   </span>
                 </TableCell>
@@ -405,7 +405,7 @@ export const UserActivityTable = memo<UserActivityTableProps>(({
           ))
         ) : (
           <Card variant="elevated">
-            <div className="p-8 text-center text-brand-secondary dark:text-gray-300">
+            <div className="p-8 text-center text-muted-foreground">
               <span>
                 {contentType === "posts" ? "작성한 게시글이 없습니다." : "작성한 댓글이 없습니다."}
               </span>

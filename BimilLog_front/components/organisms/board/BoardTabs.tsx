@@ -85,10 +85,10 @@ const BoardTabsComponent: React.FC<BoardTabsProps> = ({
     tablist: {
       base: "flex text-center",
       variant: {
-        default: "flex-wrap border-b border-gray-200 dark:border-gray-700",
-        underline: "-mb-px flex-wrap border-b border-gray-200 dark:border-gray-700",
-        pills: "flex-wrap space-x-2 text-sm font-medium text-gray-500 dark:text-gray-400",
-        fullWidth: "grid w-full grid-cols-4 divide-x divide-gray-200 rounded-lg shadow-sm border border-gray-200 dark:divide-gray-700 dark:border-gray-700"
+        default: "flex-wrap border-b border-border",
+        underline: "-mb-px flex-wrap border-b border-border",
+        pills: "flex-wrap space-x-2 text-sm font-medium text-muted-foreground",
+        fullWidth: "grid w-full grid-cols-4 divide-x divide-border rounded-lg shadow-sm border border-border"
       },
       tabitem: {
         base: "flex items-center justify-center p-4 text-sm font-medium first:ml-0 focus:outline-none disabled:cursor-not-allowed disabled:text-gray-400 disabled:dark:text-gray-500",
