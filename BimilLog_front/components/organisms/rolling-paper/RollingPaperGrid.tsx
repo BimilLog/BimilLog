@@ -161,7 +161,7 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
     <div className={`relative max-w-5xl mx-auto mb-6 md:mb-8 ${className}`}>
       {/* 종이 배경 */}
       <div
-        className="relative min-h-[600px] md:min-h-[700px] bg-gradient-to-br from-cyan-50 via-blue-50 to-teal-50 rounded-2xl md:rounded-3xl shadow-xl md:shadow-2xl border-2 md:border-4 border-cyan-200"
+        className="relative min-h-[600px] md:min-h-[700px] bg-gradient-to-br from-cyan-50 via-blue-50 to-teal-50 dark:from-gray-800 dark:via-gray-900 dark:to-gray-800 rounded-2xl md:rounded-3xl shadow-xl md:shadow-2xl border-2 md:border-4 border-cyan-200 dark:border-gray-700"
         style={{
           backgroundImage: `
             radial-gradient(circle at 15px 15px, rgba(91,192,222,0.3) 1px, transparent 1px),
@@ -177,20 +177,20 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
         <div className="pt-6 md:pt-8 pb-4 md:pb-6 px-12 md:px-20 text-center">
           <div className="relative">
             {/* 예쁜 제목 카드 */}
-            <div className="bg-gradient-to-r from-cyan-100/90 via-blue-100/90 to-indigo-100/90 rounded-3xl p-6 md:p-8 shadow-xl border-2 border-white/80 backdrop-blur-md mb-6 relative overflow-hidden">
+            <div className="bg-gradient-to-r from-cyan-100/90 via-blue-100/90 to-indigo-100/90 dark:from-gray-700/90 dark:via-gray-800/90 dark:to-gray-700/90 rounded-3xl p-6 md:p-8 shadow-xl border-2 border-white/80 dark:border-gray-600/80 backdrop-blur-md mb-6 relative overflow-hidden">
               {/* 배경 장식 */}
               <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent pointer-events-none"></div>
 
               <h1 className="text-xl md:text-4xl font-extrabold mb-4 flex items-center justify-center gap-3 relative z-10">
-                <span className="text-cyan-700 font-extrabold transform hover:scale-105 transition-transform duration-300 drop-shadow-sm">
+                <span className="text-cyan-700 dark:text-cyan-300 font-extrabold transform hover:scale-105 transition-transform duration-300 drop-shadow-sm">
                   {nickname}님의 롤링페이퍼
                 </span>
               </h1>
 
               {/* 메시지 수 카드 */}
-              <div className="inline-flex items-center gap-3 bg-white/80 px-5 py-3 rounded-full shadow-lg border-2 border-cyan-200 relative z-10 backdrop-blur-sm">
-                <Mail className="w-4 h-4 md:w-6 md:h-6 stroke-blue-500 fill-blue-200 animate-bounce drop-shadow-sm" />
-                <span className="text-cyan-800 text-sm md:text-lg font-bold tracking-wide">
+              <div className="inline-flex items-center gap-3 bg-white/80 dark:bg-gray-800/80 px-5 py-3 rounded-full shadow-lg border-2 border-cyan-200 dark:border-gray-600 relative z-10 backdrop-blur-sm">
+                <Mail className="w-4 h-4 md:w-6 md:h-6 stroke-blue-500 dark:stroke-blue-400 fill-blue-200 dark:fill-blue-900 animate-bounce drop-shadow-sm" />
+                <span className="text-cyan-800 dark:text-cyan-300 text-sm md:text-lg font-bold tracking-wide">
                   총 {messages.length}개의 메시지
                 </span>
                 <Sparkles className="w-4 h-4 md:w-6 md:h-6 stroke-yellow-500 fill-yellow-100 animate-pulse drop-shadow-sm" />
@@ -210,12 +210,12 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
                 size="sm"
                 onClick={handlePreviousPage}
                 disabled={currentPage === 1}
-                className="bg-white/80"
+                className="bg-white/80 dark:bg-gray-800/80"
               >
                 <ChevronLeft className="w-4 h-4" />
               </Button>
 
-              <span className="text-sm font-medium text-cyan-700">
+              <span className="text-sm font-medium text-cyan-700 dark:text-cyan-300">
                 {currentPage} / {totalPages}
               </span>
 
@@ -224,7 +224,7 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
                 size="sm"
                 onClick={handleNextPage}
                 disabled={currentPage === totalPages}
-                className="bg-white/80"
+                className="bg-white/80 dark:bg-gray-800/80"
               >
                 <ChevronRight className="w-4 h-4" />
               </Button>
@@ -233,7 +233,7 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
 
           {/* 좌표 기반 그리드 */}
           <div
-            className="grid gap-2 md:gap-3 bg-white/30 p-3 md:p-6 rounded-xl md:rounded-2xl border border-dashed md:border-2 border-cyan-300"
+            className="grid gap-2 md:gap-3 bg-white/30 dark:bg-gray-800/30 p-3 md:p-6 rounded-xl md:rounded-2xl border border-dashed md:border-2 border-cyan-300 dark:border-gray-600"
             style={{ gridTemplateColumns: `repeat(${pageWidth}, 1fr)` }}
           >
             {Array.from({ length: totalSlots }, (_, i) => {
@@ -271,10 +271,10 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
                           isHighlighted // 하이라이트된 셀 (최근 작성 메시지 등)
                             ? "border-4 border-green-400 bg-gradient-to-br from-green-100 to-emerald-100 animate-pulse shadow-xl shadow-green-200 cursor-pointer"
                             : messageAtPosition // 메시지가 있는 셀
-                            ? `bg-gradient-to-br ${typeof decoInfo?.color === 'string' ? decoInfo.color : ''} border-white shadow-md md:shadow-lg cursor-pointer hover:scale-105 md:hover:scale-110 hover:rotate-1 md:hover:rotate-3`
+                            ? `bg-gradient-to-br ${typeof decoInfo?.color === 'string' ? decoInfo.color : ''} border-white dark:border-gray-600 shadow-md md:shadow-lg cursor-pointer hover:scale-105 md:hover:scale-110 hover:rotate-1 md:hover:rotate-3`
                             : isOwner // 롤링페이퍼 소유자인 경우 메시지 작성 불가
-                            ? "border-dashed border-gray-300 cursor-not-allowed opacity-50"
-                            : "border-dashed border-cyan-300 hover:border-cyan-500 hover:bg-cyan-50 cursor-pointer hover:scale-105 hover:rotate-1" // 빈 셀, 메시지 작성 가능
+                            ? "border-dashed border-gray-300 dark:border-gray-600 cursor-not-allowed opacity-50"
+                            : "border-dashed border-cyan-300 dark:border-gray-600 hover:border-cyan-500 dark:hover:border-cyan-400 hover:bg-cyan-50 dark:hover:bg-gray-700 cursor-pointer hover:scale-105 hover:rotate-1" // 빈 셀, 메시지 작성 가능
                         }
                       `}
                       style={{
@@ -299,11 +299,11 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
                           )}
                         </div>
                       ) : isOwner ? ( // 소유자인 경우: 빈 공간 (메시지 작성 불가)
-                        <div className="text-gray-400 text-xs md:text-sm text-center leading-tight opacity-0"></div>
+                        <div className="text-gray-400 dark:text-gray-600 text-xs md:text-sm text-center leading-tight opacity-0"></div>
                       ) : ( // 방문자인 경우: + 아이콘으로 메시지 작성 유도
                         <div className="relative group">
                           <Plus
-                            className={`w-4 h-4 md:w-5 md:h-5 transition-colors text-cyan-400 group-hover:text-cyan-600`}
+                            className={`w-4 h-4 md:w-5 md:h-5 transition-colors text-cyan-400 dark:text-cyan-500 group-hover:text-cyan-600 dark:group-hover:text-cyan-400`}
                           />
                           {/* 호버 시 배경 효과 */}
                           <div
@@ -333,7 +333,7 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
         >
           <ModalHeader
             theme={{
-              base: "flex items-center justify-between p-5 rounded-t bg-gradient-to-br from-pink-50 to-pink-100 border-b border-pink-200"
+              base: "flex items-center justify-between p-5 rounded-t bg-gradient-to-br from-pink-50 to-pink-100 dark:from-gray-700 dark:to-gray-800 border-b border-pink-200 dark:border-gray-600"
             }}
           >
             <div className="flex items-center space-x-2 ">
@@ -353,7 +353,7 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
 
           <ModalBody
             theme={{
-              base: "p-6 bg-gradient-to-br from-pink-50 to-pink-100"
+              base: "p-6 bg-gradient-to-br from-pink-50 to-pink-100 dark:from-gray-800 dark:to-gray-900"
             }}
           >
             <div className="p-0">
@@ -387,8 +387,8 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
 
                       {/* 추천 위치 표시 */}
                       {recommendedPositions.length > 0 && (
-                        <div className="mt-4 p-4 bg-blue-50 rounded-xl border-2 border-blue-200">
-                          <p className="text-sm font-semibold text-blue-800 mb-3 flex items-center gap-2">
+                        <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border-2 border-blue-200 dark:border-blue-700">
+                          <p className="text-sm font-semibold text-blue-800 dark:text-blue-400 mb-3 flex items-center gap-2">
                             <Sparkles className="w-4 h-4" />
                             가까운 빈 위치
                           </p>
@@ -401,7 +401,7 @@ export const RollingPaperGrid: React.FC<RollingPaperGridProps> = memo(({
                                   variant="outline"
                                   size="sm"
                                   onClick={() => handleMoveToRecommended(pos)}
-                                  className="bg-white hover:bg-blue-100 border-blue-300 text-blue-700 font-medium"
+                                  className="bg-white dark:bg-gray-800 hover:bg-blue-100 dark:hover:bg-blue-900/30 border-blue-300 dark:border-blue-600 text-blue-700 dark:text-blue-400 font-medium"
                                 >
                                   페이지 {page}, {gridY + 1}줄 {gridX + 1}번째
                                 </Button>

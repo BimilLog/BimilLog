@@ -26,14 +26,14 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       <ModalHeader />
       <ModalBody>
         <div className="text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-100">
-            <PartyPopper className="h-8 w-8 stroke-purple-500 fill-purple-100" />
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
+            <PartyPopper className="h-8 w-8 stroke-purple-500 dark:stroke-purple-400 fill-purple-100 dark:fill-purple-900" />
           </div>
-          <h3 className="mb-5 text-lg font-bold text-gray-900 flex items-center justify-center gap-2">
-            <CheckCircle className="w-5 h-5 text-blue-600" />
+          <h3 className="mb-5 text-lg font-bold text-gray-900 dark:text-gray-100 flex items-center justify-center gap-2">
+            <CheckCircle className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             내 롤링페이퍼 발견!
           </h3>
-          <p className="mb-5 text-sm text-gray-500">
+          <p className="mb-5 text-sm text-gray-500 dark:text-gray-400">
             입력하신 닉네임은 본인의 롤링페이퍼입니다!
             <br />내 롤링페이퍼로 이동하시겠어요?
           </p>
@@ -51,7 +51,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             <Button
               variant="outline"
               onClick={onClose}
-              className="border-gray-300 text-gray-700 hover:bg-gray-50"
+              className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800"
             >
               다른 롤링페이퍼 찾기
             </Button>

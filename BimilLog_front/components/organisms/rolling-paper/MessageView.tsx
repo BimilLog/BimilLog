@@ -63,15 +63,7 @@ export const MessageView: React.FC<MessageViewProps> = ({
   return (
     <>
       <div
-        className="p-4 sm:p-6 rounded-2xl border-2 border-white shadow-brand-lg relative overflow-hidden"
-        style={{
-          background: `
-            radial-gradient(circle at 8px 8px, rgba(255,255,255,0.3) 1px, transparent 1px),
-            radial-gradient(circle at 24px 24px, rgba(255,255,255,0.2) 1px, transparent 1px),
-            linear-gradient(to bottom right, #fce7f3, #fbcfe8)
-          `,
-          backgroundSize: "16px 16px, 48px 48px, 100% 100%",
-        }}
+        className="p-4 sm:p-6 rounded-2xl border-2 border-white dark:border-gray-700 shadow-brand-lg relative overflow-hidden bg-gradient-to-br from-pink-100 to-pink-200 dark:from-gray-800 dark:to-gray-900"
       >
         <div className="flex items-center gap-3 mb-4">
           <DecoIcon decoType={message.decoType} size="xl" showBackground={false} animate="bounce" />
@@ -79,10 +71,10 @@ export const MessageView: React.FC<MessageViewProps> = ({
             {/* 익명 닉네임 배지: RollingPaperMessage만 표시, 비어있으면 '익명' 기본값 */}
             {isRollingPaperMessage(message) && (
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-brand-primary">작성자 :</span>
+                <span className="text-sm font-medium text-brand-primary dark:text-gray-200">작성자 :</span>
                 <Badge
                   variant="outline"
-                  className="bg-white/60 text-brand-primary border-gray-300 font-semibold text-sm w-fit"
+                  className="bg-white/60 dark:bg-gray-700/60 text-brand-primary dark:text-gray-200 border-gray-300 dark:border-gray-600 font-semibold text-sm w-fit"
                 >
                   {message.anonymity && message.anonymity !== ""
                     ? message.anonymity
@@ -94,11 +86,11 @@ export const MessageView: React.FC<MessageViewProps> = ({
         </div>
         {/* 메시지 내용 표시: RollingPaperMessage는 내용 표시, VisitMessage는 잠금 메시지 */}
         {isRollingPaperMessage(message) ? (
-          <p className="text-brand-primary leading-relaxed font-medium text-sm sm:text-base break-words">
+          <p className="text-brand-primary dark:text-gray-200 leading-relaxed font-medium text-sm sm:text-base break-words">
             {message.content}
           </p>
         ) : (
-          <p className="text-brand-muted leading-relaxed font-medium italic flex items-center gap-2 text-sm sm:text-base">
+          <p className="text-brand-muted dark:text-gray-400 leading-relaxed font-medium italic flex items-center gap-2 text-sm sm:text-base">
             <Lock className="w-4 h-4 flex-shrink-0" />
             <span className="break-words">메시지 내용은 롤링페이퍼 주인만 볼 수 있습니다</span>
           </p>
@@ -110,7 +102,7 @@ export const MessageView: React.FC<MessageViewProps> = ({
 
         {/* 삭제 버튼: 롤링페이퍼 소유자에게만 표시 */}
         {isOwner && (
-          <div className="flex justify-end pt-4 border-t border-white/30">
+          <div className="flex justify-end pt-4 border-t border-white/30 dark:border-gray-700/30">
             <Button
               size="sm"
               onClick={handleDeleteClick}

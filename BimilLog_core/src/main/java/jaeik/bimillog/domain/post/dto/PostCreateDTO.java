@@ -10,7 +10,6 @@ import lombok.*;
  * <h2>게시글 작성 요청 DTO</h2>
  * <p>게시글 작성 시 필요한 정보를 담는 요청 DTO입니다.</p>
  * <p>익명 게시글과 회원 게시글을 위한 검증 규칙 포함</p>
- * <p>PostCommandController의 게시글 작성 API에서 요청 바디로 사용됩니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0

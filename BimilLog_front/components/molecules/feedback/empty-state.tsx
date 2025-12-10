@@ -148,8 +148,8 @@ export const EmptyState = React.memo<EmptyStateProps>(({
       >
         {/* 메인 일러스트레이션 */}
         <div className="mb-8 relative">
-          <div className="w-24 h-24 mx-auto mb-6 bg-brand-button rounded-3xl flex items-center justify-center shadow-brand-lg animate-pulse-cute">
-            <div className="text-white text-2xl">{icon}</div>
+          <div className="w-24 h-24 mx-auto mb-6 bg-brand-button dark:bg-purple-600 rounded-3xl flex items-center justify-center shadow-brand-lg animate-pulse-cute">
+            <div className="text-white dark:text-gray-100 text-2xl">{icon}</div>
           </div>
 
           {/* 귀여운 장식 도트들 */}
@@ -162,11 +162,11 @@ export const EmptyState = React.memo<EmptyStateProps>(({
 
         {/* 텍스트 영역 */}
         <div className="max-w-md mx-auto mb-8">
-          <h3 className="text-xl md:text-2xl font-bold text-brand-primary mb-4">
+          <h3 className="text-xl md:text-2xl font-bold text-brand-primary dark:text-gray-100 mb-4">
             {title}
           </h3>
           {description && (
-            <p className="text-brand-secondary leading-relaxed text-sm md:text-base">
+            <p className="text-brand-secondary dark:text-gray-300 leading-relaxed text-sm md:text-base">
               {description}
             </p>
           )}
@@ -216,8 +216,8 @@ export const EmptyState = React.memo<EmptyStateProps>(({
     >
       {/* 일러스트레이션 영역 */}
       <div className="mb-6">
-        <div className="w-20 h-20 mx-auto mb-4 bg-brand-gradient rounded-full flex items-center justify-center shadow-brand-lg">
-          <div className="text-brand-primary">{icon}</div>
+        <div className="w-20 h-20 mx-auto mb-4 bg-brand-gradient dark:bg-gradient-to-br dark:from-purple-600 dark:to-pink-600 rounded-full flex items-center justify-center shadow-brand-lg">
+          <div className="text-brand-primary dark:text-gray-100">{icon}</div>
         </div>
         {/* 장식용 도트들 (모바일에서는 숨김) */}
         <div className="hidden md:flex items-center justify-center space-x-1">
@@ -229,11 +229,11 @@ export const EmptyState = React.memo<EmptyStateProps>(({
 
       {/* 텍스트 영역 */}
       <div className="max-w-md mx-auto mb-8">
-        <h3 className="text-xl md:text-2xl font-bold text-brand-primary mb-3">
+        <h3 className="text-xl md:text-2xl font-bold text-brand-primary dark:text-gray-100 mb-3">
           {title}
         </h3>
         {description && (
-          <p className="text-brand-secondary leading-relaxed">{description}</p>
+          <p className="text-brand-secondary dark:text-gray-300 leading-relaxed">{description}</p>
         )}
       </div>
 

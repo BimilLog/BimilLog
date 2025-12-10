@@ -31,7 +31,7 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({
 }) => {
   return (
     <div
-      className={`min-h-screen bg-brand-gradient text-brand-primary transition-colors duration-300 ${className}`}
+      className={`min-h-screen bg-brand-gradient dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 text-brand-primary dark:text-gray-100 transition-colors duration-300 ${className}`}
     >
       {/* Header */}
       {showHeader && <AuthHeader />}
@@ -74,7 +74,7 @@ export const BaseLayout: React.FC<BaseLayoutProps> = ({
       {/* Footer */}
       {showFooter && (
         <>
-          <div className="border-t-2 border-black"></div>
+          <div className="border-t-2 border-black dark:border-gray-700"></div>
           <HomeFooter />
         </>
       )}

@@ -156,15 +156,15 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
     <div
       id={`comment-${comment.id}`}
       className={`${
-        depth > 0 ? "border-l-2 border-purple-300 pl-2" : ""
+        depth > 0 ? "border-l-2 border-purple-300 dark:border-purple-600 pl-2" : ""
       } transition-colors duration-500`}
       style={{ marginLeft: `${marginLeft}px` }}
       aria-label={depth > 0 ? "답글" : "댓글"}
     >
-      <div className={`p-3 sm:p-4 ${depth > 0 ? "bg-gray-100" : "bg-gray-50"} rounded-lg mb-3 comment-content`}>
+      <div className={`p-3 sm:p-4 ${depth > 0 ? "bg-gray-100 dark:bg-gray-800/50" : "bg-gray-50 dark:bg-gray-800"} rounded-lg mb-3 comment-content`}>
         {/* 댓글 수정 모드: 현재 수정 중인 댓글과 일치할 때 수정 폼 표시 */}
         {editingComment?.id === comment.id ? (
-          <div className="p-3 sm:p-4 bg-gray-100 rounded-lg space-y-3">
+          <div className="p-3 sm:p-4 bg-gray-100 dark:bg-gray-800/70 rounded-lg space-y-3">
             <LazyEditor
               value={editContent}
               onChange={setEditContent}
@@ -260,7 +260,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
 
             {/* 부모 댓글 작성자 표시 (대댓글인 경우) */}
             {depth > 0 && parentUserName && (
-              <div className="text-sm text-purple-600 mb-2">
+              <div className="text-sm text-purple-600 dark:text-purple-400 mb-2">
                 @{parentUserName}
               </div>
             )}
@@ -341,8 +341,8 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
 
             {/* 답글 작성 폼: 해당 댓글에 답글을 작성 중일 때만 표시 */}
             {replyingTo?.id === comment.id && (
-              <div className="mt-4 p-3 sm:p-4 bg-blue-50 rounded-lg border border-blue-200 space-y-3">
-                <h4 className="text-sm font-semibold text-blue-700">
+              <div className="mt-4 p-3 sm:p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700 space-y-3">
+                <h4 className="text-sm font-semibold text-blue-700 dark:text-blue-400">
                   {comment.memberName}님에게 답글 작성
                 </h4>
                 {/* 비로그인 사용자는 비밀번호 입력 필요 */}
@@ -446,7 +446,7 @@ export const CommentItem: React.FC<CommentItemProps> = React.memo(({
               variant="ghost"
               size="sm"
               onClick={() => setIsRepliesExpanded(!isRepliesExpanded)}
-              className="w-full text-purple-600 hover:text-purple-700 hover:bg-purple-50 flex items-center justify-center gap-2"
+              className="w-full text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/30 flex items-center justify-center gap-2"
             >
               {isRepliesExpanded ? (
                 <>
