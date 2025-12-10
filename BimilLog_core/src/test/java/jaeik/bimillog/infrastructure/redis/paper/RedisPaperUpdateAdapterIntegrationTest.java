@@ -122,9 +122,9 @@ class RedisPaperUpdateAdapterIntegrationTest {
         Double score2 = redisTemplate.opsForZSet().score(SCORE_KEY, "2");
         Double score3 = redisTemplate.opsForZSet().score(SCORE_KEY, "3");
 
-        assertThat(score1).isEqualTo(9.5);  // 10 * 0.95
-        assertThat(score2).isEqualTo(4.75); // 5 * 0.95
-        assertThat(score3).isEqualTo(1.9);  // 2 * 0.95
+        assertThat(score1).isEqualTo(9.7);  // 10 * 0.97
+        assertThat(score2).isEqualTo(4.85); // 5 * 0.97
+        assertThat(score3).isEqualTo(1.94);  // 2 * 0.97
     }
 
     @Test
@@ -132,9 +132,9 @@ class RedisPaperUpdateAdapterIntegrationTest {
     void shouldRemovePapersBelowThreshold_WhenScoreDecayApplied() {
         // Given: 임계값(1.0) 근처의 점수 설정
         redisTemplate.opsForZSet().add(SCORE_KEY, "1", 10.0);
-        redisTemplate.opsForZSet().add(SCORE_KEY, "2", 1.5);  // 감쇠 후 1.425 (유지)
-        redisTemplate.opsForZSet().add(SCORE_KEY, "3", 1.05); // 감쇠 후 0.9975 (제거)
-        redisTemplate.opsForZSet().add(SCORE_KEY, "4", 0.8);  // 감쇠 후 0.76 (제거)
+        redisTemplate.opsForZSet().add(SCORE_KEY, "2", 1.5);  // 감쇠 후 1.455 (유지)
+        redisTemplate.opsForZSet().add(SCORE_KEY, "3", 1.03); // 감쇠 후 0.9991 (제거)
+        redisTemplate.opsForZSet().add(SCORE_KEY, "4", 0.8);  // 감쇠 후 0.776 (제거)
 
         // 초기 크기 확인
         Long initialSize = redisTemplate.opsForZSet().size(SCORE_KEY);
@@ -154,8 +154,8 @@ class RedisPaperUpdateAdapterIntegrationTest {
         // 점수 확인
         Double score1 = redisTemplate.opsForZSet().score(SCORE_KEY, "1");
         Double score2 = redisTemplate.opsForZSet().score(SCORE_KEY, "2");
-        assertThat(score1).isEqualTo(9.5);    // 10 * 0.95
-        assertThat(score2).isEqualTo(1.425);  // 1.5 * 0.95
+        assertThat(score1).isEqualTo(9.7);    // 10 * 0.97
+        assertThat(score2).isEqualTo(1.455);  // 1.5 * 0.97
 
         // 제거된 롤링페이퍼 확인
         assertThat(redisTemplate.opsForZSet().score(SCORE_KEY, "3")).isNull();
@@ -166,9 +166,9 @@ class RedisPaperUpdateAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 감쇠 후 모든 항목이 임계값 이하인 경우")
     void shouldRemoveAllPapers_WhenAllScoresAreBelowThreshold() {
         // Given: 모든 점수가 임계값 근처
-        redisTemplate.opsForZSet().add(SCORE_KEY, "1", 1.05); // 감쇠 후 0.9975 (제거)
-        redisTemplate.opsForZSet().add(SCORE_KEY, "2", 0.9);  // 감쇠 후 0.855 (제거)
-        redisTemplate.opsForZSet().add(SCORE_KEY, "3", 0.8);  // 감쇠 후 0.76 (제거)
+        redisTemplate.opsForZSet().add(SCORE_KEY, "1", 1.03); // 감쇠 후 0.9991 (제거)
+        redisTemplate.opsForZSet().add(SCORE_KEY, "2", 0.9);  // 감쇠 후 0.873 (제거)
+        redisTemplate.opsForZSet().add(SCORE_KEY, "3", 0.8);  // 감쇠 후 0.776 (제거)
 
         // When: 감쇠 적용
         redisPaperUpdateAdapter.applyRealtimePopularPaperScoreDecay();
@@ -197,10 +197,10 @@ class RedisPaperUpdateAdapterIntegrationTest {
         // Given: 점수가 정확히 1.0
         redisTemplate.opsForZSet().add(SCORE_KEY, "1", 1.0);
 
-        // When: 감쇠 적용 (1.0 * 0.95 = 0.95)
+        // When: 감쇠 적용 (1.0 * 0.97 = 0.97)
         redisPaperUpdateAdapter.applyRealtimePopularPaperScoreDecay();
 
-        // Then: 0.95 < 1.0 이므로 제거됨
+        // Then: 0.97 < 1.0 이므로 제거됨
         Long finalSize = redisTemplate.opsForZSet().size(SCORE_KEY);
         assertThat(finalSize).isZero();
         assertThat(redisTemplate.opsForZSet().score(SCORE_KEY, "1")).isNull();
@@ -213,13 +213,13 @@ class RedisPaperUpdateAdapterIntegrationTest {
         redisTemplate.opsForZSet().add(SCORE_KEY, "1", 100.0);
 
         // When: 3번 감쇠 적용
-        redisPaperUpdateAdapter.applyRealtimePopularPaperScoreDecay(); // 100 * 0.95 = 95
-        redisPaperUpdateAdapter.applyRealtimePopularPaperScoreDecay(); // 95 * 0.95 = 90.25
-        redisPaperUpdateAdapter.applyRealtimePopularPaperScoreDecay(); // 90.25 * 0.95 = 85.7375
+        redisPaperUpdateAdapter.applyRealtimePopularPaperScoreDecay(); // 100 * 0.97 = 97
+        redisPaperUpdateAdapter.applyRealtimePopularPaperScoreDecay(); // 97 * 0.97 = 94.09
+        redisPaperUpdateAdapter.applyRealtimePopularPaperScoreDecay(); // 94.09 * 0.97 = 91.2673
 
         // Then: 점수가 지속적으로 감소
         Double finalScore = redisTemplate.opsForZSet().score(SCORE_KEY, "1");
-        assertThat(finalScore).isCloseTo(85.7375, org.assertj.core.data.Offset.offset(0.0001));
+        assertThat(finalScore).isCloseTo(91.2673, org.assertj.core.data.Offset.offset(0.0001));
     }
 
     @Test

@@ -69,6 +69,9 @@ class PostQueryRepositoryIntegrationTest {
 
     @BeforeEach
     void setUp() {
+        // 로컬 MySQL 데이터베이스의 기존 데이터 정리
+        cleanUpDatabase();
+
         // 테스트용 사용자 생성
         testMember = TestMembers.copyWithId(TestMembers.MEMBER_1, null);
         if (testMember.getSetting() != null) {
@@ -81,6 +84,19 @@ class PostQueryRepositoryIntegrationTest {
 
         // 테스트용 게시글들 생성
         createTestPosts();
+    }
+
+    /**
+     * 로컬 MySQL 데이터베이스의 기존 데이터 정리
+     * local-integration 테스트는 실제 MySQL을 사용하므로 기존 데이터가 있을 수 있음
+     */
+    private void cleanUpDatabase() {
+        // 외래키 제약으로 인해 순서대로 삭제
+        entityManager.getEntityManager().createNativeQuery("DELETE FROM post_like").executeUpdate();
+        entityManager.getEntityManager().createNativeQuery("DELETE FROM comment_closure").executeUpdate();
+        entityManager.getEntityManager().createNativeQuery("DELETE FROM comment").executeUpdate();
+        entityManager.getEntityManager().createNativeQuery("DELETE FROM post").executeUpdate();
+        entityManager.flush();
     }
 
     private void createTestPosts() {

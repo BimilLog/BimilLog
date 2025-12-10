@@ -70,12 +70,9 @@ public abstract class BaseEventIntegrationTest extends BaseIntegrationTest {
     protected static final Duration SLOW_TIMEOUT = Duration.ofSeconds(10);
 
     /**
-     * 각 테스트 메서드 실행 전 설정 초기화
+     * BaseIntegrationTest의 setUpBase()가 자동 호출되므로
+     * 추가 설정이 필요한 경우 setUpChild()를 오버라이드하세요
      */
-    @BeforeEach
-    protected void setUpEventTest() {
-        super.setUpBase();
-    }
 
     /**
      * 단일 이벤트 발행
