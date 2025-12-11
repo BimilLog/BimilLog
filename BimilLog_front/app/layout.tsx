@@ -27,6 +27,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: "#000000",
+  viewportFit: "cover", // Android 15 edge-to-edge 지원
 };
 
 export const metadata: Metadata = {

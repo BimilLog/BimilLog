@@ -52,16 +52,6 @@
                 android:name="android.support.customtabs.trusted.DEFAULT_URL"
                 android:value="https://grow-farm.com" />
 
-            <!-- 상태바 색상 (manifest.json의 theme_color와 동일) -->
-            <meta-data
-                android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR"
-                android:resource="@color/colorPrimary" />
-
-            <!-- 네비게이션 바 색상 -->
-            <meta-data
-                android:name="android.support.customtabs.trusted.NAVIGATION_BAR_COLOR"
-                android:resource="@color/colorPrimary" />
-
             <!-- 스플래시 화면 설정 (선택사항) -->
             <meta-data
                 android:name="android.support.customtabs.trusted.SPLASH_IMAGE_DRAWABLE"
