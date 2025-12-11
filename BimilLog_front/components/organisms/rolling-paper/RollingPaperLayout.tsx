@@ -10,7 +10,7 @@ export const RollingPaperLayout: React.FC<RollingPaperLayoutProps> = ({
   children,
 }) => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-teal-50">
+    <div className="min-h-screen bg-brand-gradient">
       {/* Auth Header */}
       <AuthHeader />
       {children}

@@ -60,6 +60,8 @@ android {
 
 dependencies {
     // TWA (Trusted Web Activity) 핵심 라이브러리
+    // Note: 2.6.x는 androidx.browser 1.9.x (SDK 36 필요)를 사용하므로 2.5.0 유지
+    // https://github.com/GoogleChrome/android-browser-helper/issues/538
     implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0'
 
     // Firebase BoM (Bill of Materials) - 모든 Firebase 라이브러리 버전 관리
