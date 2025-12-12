@@ -24,6 +24,8 @@
 BimilLog/
 ├── BimilLog_core/     # 메인 백엔드 (Spring Boot)
 ├── BimilLog_front/    # 프론트엔드 (Next.js)
+├── BimilLog_android/  # 플레이스토어 (TWA 래핑)
+├── BimilLog_alarm/    # 알림 서버 (Spring Boot)
 └── BimilLog_chat/     # 채팅 서비스 (Spring Boot)
 ```
 
