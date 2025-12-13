@@ -40,28 +40,27 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(CustomException.class)
     public ResponseEntity<ErrorResponse> handleCustomException(CustomException e) {
         ErrorResponse response = new ErrorResponse(
-                e.getStatus().value(),
-                e.getTarget(),
+                e.getErrorCode().getStatus().value(),
                 e.getMessage());
 
         // ErrorCode의 LogLevel에 따라 적절한 로그 레벨로 기록
         if (e.getErrorCode() != null) {
-            String logMessage = "CustomException: 코드: {}, 타겟: {}, 메시지: {}";
+            String logMessage = "CustomException: 코드: {}, 메시지: {}";
             ErrorCode.LogLevel logLevel = e.getErrorCode().getLogLevel();
 
             switch (logLevel) {
-                case INFO -> log.info(logMessage, e.getErrorCode().name(), e.getTarget(), e.getMessage());
-                case WARN -> log.warn(logMessage, e.getErrorCode().name(), e.getTarget(), e.getMessage());
-                case ERROR -> log.error(logMessage, e.getErrorCode().name(), e.getTarget(), e.getMessage());
+                case INFO -> log.info(logMessage, e.getErrorCode().name(), e.getMessage(), e);
+                case WARN -> log.warn(logMessage, e.getErrorCode().name(), e.getMessage(), e);
+                case ERROR -> log.error(logMessage, e.getErrorCode().name(), e.getMessage(), e);
                 case FATAL ->
-                    log.error("FATAL - " + logMessage, e.getErrorCode().name(), e.getTarget(), e.getMessage());
+                    log.error("FATAL - " + logMessage, e.getErrorCode().name(), e.getMessage(), e);
             }
         } else {
             // ErrorCode가 없는 경우 기본적으로 ERROR 레벨로 로깅
-            log.error("CustomException: 타겟: {}, 메시지: {}", e.getTarget(), e.getMessage());
+            log.error("CustomException: 메시지: {}", e.getMessage(), e);
         }
 
-        return new ResponseEntity<>(response, e.getStatus());
+        return new ResponseEntity<>(response, e.getErrorCode().getStatus());
     }
 
     /**
@@ -98,7 +97,6 @@ public class GlobalExceptionHandler {
 
         ErrorResponse response = new ErrorResponse(
                 status.value(),
-                "SystemError",
                 userMessage);
 
         // 실제 에러 정보는 로그에만 기록 (보안상 사용자에게 노출하지 않음)
@@ -178,7 +176,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException e) {
         ErrorResponse response = new ErrorResponse(
                 HttpStatus.FORBIDDEN.value(),
-                e.getClass().getSimpleName(),
                 e.getMessage()
         );
         log.warn("AccessDeniedException: {}", e.getMessage());
@@ -193,7 +190,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleAuthenticationException(AuthenticationException e) {
         ErrorResponse response = new ErrorResponse(
                 HttpStatus.UNAUTHORIZED.value(),
-                e.getClass().getSimpleName(),
                 e.getMessage()
         );
         log.warn("AuthenticationException: {}", e.getMessage());
@@ -216,10 +212,9 @@ public class GlobalExceptionHandler {
 
         ErrorResponse response = new ErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
-                e.getClass().getSimpleName(),
                 errorMessage
         );
-        
+
         log.warn("ValidationException: {}", errorMessage);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
@@ -232,7 +227,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException e) {
         ErrorResponse response = new ErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
-                e.getClass().getSimpleName(),
                 e.getMessage()
         );
 

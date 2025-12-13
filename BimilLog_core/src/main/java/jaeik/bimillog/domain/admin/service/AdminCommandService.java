@@ -140,14 +140,14 @@ public class AdminCommandService {
                 try {
                     yield globalPostQueryAdapter.findById(targetId).getMember();
                 } catch (Exception e) {
-                    throw new CustomException(ErrorCode.ADMIN_POST_ALREADY_DELETED);
+                    throw new CustomException(ErrorCode.ADMIN_POST_ALREADY_DELETED, e);
                 }
             }
             case COMMENT -> {
                 try {
                     yield adminToCommentAdapter.findById(targetId).getMember();
                 } catch (Exception e) {
-                    throw new CustomException(ErrorCode.ADMIN_COMMENT_ALREADY_DELETED);
+                    throw new CustomException(ErrorCode.ADMIN_COMMENT_ALREADY_DELETED, e);
                 }
             }
             default -> throw new CustomException(ErrorCode.ADMIN_INVALID_REPORT_TARGET);

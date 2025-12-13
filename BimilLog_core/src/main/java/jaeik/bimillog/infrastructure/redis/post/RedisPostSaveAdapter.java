@@ -44,7 +44,7 @@ public class RedisPostSaveAdapter {
     private RedisPostKeys.CacheMetadata getCacheMetadata(PostCacheFlag type) {
         RedisPostKeys.CacheMetadata metadata = cacheMetadataMap.get(type);
         if (metadata == null) {
-            throw new CustomException(ErrorCode.POST_REDIS_READ_ERROR, "Unknown PostCacheFlag type: " + type);
+            throw new CustomException(ErrorCode.POST_REDIS_READ_ERROR);
         }
         return metadata;
     }

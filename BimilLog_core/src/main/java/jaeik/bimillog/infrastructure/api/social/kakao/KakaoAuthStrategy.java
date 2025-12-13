@@ -89,8 +89,7 @@ public class KakaoAuthStrategy implements SocialAuthStrategy {
                     refreshToken
             );
         } catch (Exception e) {
-            log.error("카카오 토큰 요청 실패: {}", e.getMessage(), e);
-            throw new CustomException(ErrorCode.AUTH_SOCIAL_TOKEN_REQUEST_FAILED);
+            throw new CustomException(ErrorCode.AUTH_SOCIAL_TOKEN_REQUEST_FAILED, e);
         }
     }
 
