@@ -9,6 +9,4 @@ public interface FriendRequestRepository extends JpaRepository<FriendRequest, Lo
 
     boolean existsBySenderIdAndReceiverId(Long requestMemberId, Long blackMemberId);
 
-
-
 }

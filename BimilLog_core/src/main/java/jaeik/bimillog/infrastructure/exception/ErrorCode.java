@@ -27,7 +27,6 @@ public enum ErrorCode {
 
     // ===== Auth 도메인 에러 코드 =====
     AUTH_NULL_SECURITY_CONTEXT(HttpStatus.UNAUTHORIZED, "유저 인증 정보가 없습니다. 다시 로그인 해주세요", LogLevel.WARN),
-    AUTH_ALREADY_LOGIN(HttpStatus.FORBIDDEN, "이미 로그인 된 유저 입니다.", LogLevel.WARN),
     AUTH_BLACKLIST_USER(HttpStatus.FORBIDDEN, "차단된 회원은 회원가입이 불가능합니다", LogLevel.INFO),
     AUTH_SOCIAL_TOKEN_REQUEST_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "소셜 로그인 토큰 발급에 실패했습니다. 다시 시도해주세요.", LogLevel.ERROR),
     AUTH_SOCIAL_TOKEN_REFRESH_FAILED(HttpStatus.UNAUTHORIZED, "소셜 로그인 토큰 갱신에 실패했습니다. 다시 로그인해주세요.", LogLevel.WARN),
@@ -41,15 +40,12 @@ public enum ErrorCode {
 
     // ===== Comment 도메인 에러 코드 =====
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 댓글을 찾을 수 없습니다.", LogLevel.INFO),
-    COMMENT_PARENT_NOT_FOUND(HttpStatus.NOT_FOUND, "부모 댓글이 존재하지 않습니다.", LogLevel.INFO),
-    COMMENT_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 조회에 실패했습니다.", LogLevel.ERROR),
     COMMENT_WRITE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 작성에 실패했습니다.", LogLevel.ERROR),
     COMMENT_UNAUTHORIZED(HttpStatus.FORBIDDEN, "댓글 수정/삭제 권한이 없습니다.", LogLevel.INFO),
 
     // ===== Member 도메인 에러 코드 =====
     MEMBER_USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다.", LogLevel.INFO),
     MEMBER_SETTINGS_NOT_FOUND(HttpStatus.NOT_FOUND, "설정 정보를 찾을 수 없습니다.", LogLevel.INFO),
-    MEMBER_INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "유효하지 않은 입력 값입니다.", LogLevel.WARN),
     MEMBER_EXISTED_NICKNAME(HttpStatus.BAD_REQUEST, "이미 존재하는 닉네임입니다.", LogLevel.INFO),
     MEMBER_KAKAO_FRIEND_CONSENT_FAIL(HttpStatus.INTERNAL_SERVER_ERROR, "카카오 친구 추가 동의를 해야 합니다.", LogLevel.INFO),
     MEMBER_KAKAO_FRIEND_API_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "카카오 친구 API 호출 실패", LogLevel.ERROR),
@@ -61,7 +57,6 @@ public enum ErrorCode {
     NOTIFICATION_SEND_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "알림 전송 중 오류가 발생했습니다.", LogLevel.ERROR),
     NOTIFICATION_INVALID_USER_CONTEXT(HttpStatus.BAD_REQUEST, "유효하지 않은 사용자 컨텍스트입니다.", LogLevel.WARN),
     NOTIFICATION_NO_SEND_FCM_TOKEN(HttpStatus.BAD_REQUEST, "fcm토큰이 없습니다.", LogLevel.WARN),
-    NOTIFICATION_NO_MEMBER_FCM_TOKEN(HttpStatus.INTERNAL_SERVER_ERROR, "사용자가 존재하지 않습니다.", LogLevel.WARN),
     NOTIFICATION_FCM_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "FCM 토큰을 등록할 AuthToken을 찾을 수 없습니다.", LogLevel.WARN),
     NOTIFICATION_INVALID_AUTH_TOKEN(HttpStatus.FORBIDDEN, "본인의 AuthToken에만 FCM 토큰을 등록할 수 있습니다.", LogLevel.WARN),
 
@@ -99,8 +94,6 @@ public enum ErrorCode {
     FRIEND_REDIS_SHIP_WRITE_ERROR(HttpStatus.FORBIDDEN, "레디스 친구 증가가 실패했습니다.", LogLevel.WARN),
     FRIEND_REDIS_SHIP_DELETE_ERROR(HttpStatus.FORBIDDEN, "레디스 친구 삭제가 실패했습니다.", LogLevel.WARN),
     FRIEND_REDIS_SHIP_QUERY_ERROR(HttpStatus.FORBIDDEN, "레디스 친구 조회가 실패했습니다.", LogLevel.WARN);
-
-
 
     private final HttpStatus status;
     private final String message;
