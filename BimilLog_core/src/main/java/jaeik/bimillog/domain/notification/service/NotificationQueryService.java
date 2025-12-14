@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.notification.service;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.notification.controller.NotificationQueryController;
 import jaeik.bimillog.domain.notification.entity.Notification;
-import jaeik.bimillog.domain.notification.repository.NotificationRepository;
+import jaeik.bimillog.domain.notification.out.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

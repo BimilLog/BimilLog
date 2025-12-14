@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.notification.service;
 
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.listener.NotificationSendListener;
-import jaeik.bimillog.domain.notification.repository.NotificationQueryRepository;
+import jaeik.bimillog.domain.notification.out.NotificationToMemberAdapter;
 import jaeik.bimillog.infrastructure.api.fcm.FcmAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FcmPushService {
     private final FcmAdapter fcmAdapter;
-    private final NotificationQueryRepository notificationQueryRepository;
+    private final NotificationToMemberAdapter notificationToMemberAdapter;
 
     /**
      * <h3>FCM 푸시 알림 전송</h3>
@@ -34,7 +34,7 @@ public class FcmPushService {
      * @since 2.3.0
      */
     public void sendNotification(NotificationType type, Long memberId, String relatedMemberName, String postTitle) {
-        List<String> tokens = notificationQueryRepository.fcmEligibleFcmTokens(memberId, type);
+        List<String> tokens = notificationToMemberAdapter.fcmEligibleFcmTokens(memberId, type);
         if (tokens.isEmpty()) {
             log.debug("전송할 토큰이 없습니다.");
             return;

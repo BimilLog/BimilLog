@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.notification.repository;
+package jaeik.bimillog.domain.notification.out;
 
 import jaeik.bimillog.domain.member.service.MemberQueryService;
 import jaeik.bimillog.domain.notification.entity.Notification;

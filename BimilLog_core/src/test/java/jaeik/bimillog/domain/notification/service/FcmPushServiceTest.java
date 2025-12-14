@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.notification.service;
 
 import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.notification.repository.NotificationQueryRepository;
 import jaeik.bimillog.infrastructure.api.fcm.FcmAdapter;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;

@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.notification.repository;
+package jaeik.bimillog.domain.notification.out;
 
 import jaeik.bimillog.BimilLogApplication;
 import jaeik.bimillog.domain.auth.entity.AuthToken;

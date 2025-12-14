@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.notification.service;
 
-import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.global.listener.MemberWithdrawListener;
 import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
@@ -8,9 +7,8 @@ import jaeik.bimillog.domain.notification.controller.NotificationCommandControll
 import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
-import jaeik.bimillog.domain.notification.entity.SseMessage;
 import jaeik.bimillog.domain.notification.event.AlarmSendEvent;
-import jaeik.bimillog.domain.notification.repository.NotificationRepository;
+import jaeik.bimillog.domain.notification.out.NotificationRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
