@@ -65,7 +65,7 @@ class SseMessageTest {
         // Given
         SseMessage sseMessage = SseMessage.of(
                 1L,
-                NotificationType.POST_FEATURED,
+                NotificationType.POST_FEATURED_WEEKLY,
                 "축하합니다! 인기글에 선정되었습니다!",
                 "/board/post/456"
         );
@@ -133,8 +133,8 @@ class SseMessageTest {
         SseMessage paperMessage = SseMessage.of(2L, NotificationType.MESSAGE, "페이퍼 알림", "/paper/member");
         assertThat(paperMessage.type()).isEqualTo(NotificationType.MESSAGE);
 
-        SseMessage featuredMessage = SseMessage.of(3L, NotificationType.POST_FEATURED, "인기글 알림", "/post/3");
-        assertThat(featuredMessage.type()).isEqualTo(NotificationType.POST_FEATURED);
+        SseMessage featuredMessage = SseMessage.of(3L, NotificationType.POST_FEATURED_WEEKLY, "인기글 알림", "/post/3");
+        assertThat(featuredMessage.type()).isEqualTo(NotificationType.POST_FEATURED_WEEKLY);
 
         SseMessage initiateMessage = SseMessage.of(4L, NotificationType.INITIATE, "초기화 알림", "");
         assertThat(initiateMessage.type()).isEqualTo(NotificationType.INITIATE);
@@ -150,7 +150,7 @@ class SseMessageTest {
         // When
         SseMessage sseMessage = SseMessage.of(
                 1L,
-                NotificationType.POST_FEATURED,
+                NotificationType.POST_FEATURED_WEEKLY,
                 messageWithSpecialChars,
                 urlWithSpecialChars
         );

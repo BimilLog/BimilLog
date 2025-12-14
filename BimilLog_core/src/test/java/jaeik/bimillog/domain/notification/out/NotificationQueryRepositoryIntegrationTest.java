@@ -111,7 +111,7 @@ class NotificationQueryRepositoryIntegrationTest {
                 .extracting(Notification::getNotificationType)
                 .containsExactly(
                         NotificationType.MESSAGE,
-                        NotificationType.POST_FEATURED,
+                        NotificationType.POST_FEATURED_WEEKLY,
                         NotificationType.COMMENT
                 );
     }

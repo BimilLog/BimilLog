@@ -29,9 +29,6 @@ class SseServiceTest {
     @Mock
     private SseRepository sseRepository;
 
-    @Mock
-    private UrlGenerator urlGenerator;
-
     @InjectMocks
     private SseService notificationSseService;
 
@@ -81,22 +78,18 @@ class SseServiceTest {
 
     @Test
     @DisplayName("댓글 알림 SSE 메시지를 보낸다")
-    void shouldSendNotification() {
+    void shouldSendCommentNotification() {
         // Given
         Long postUserId = 50L;
-        Long postId = 77L;
-        String commenterName = "댓글러";
-        String expectedUrl = "/posts/" + postId;
-        given(urlGenerator.generatePostUrl(postId)).willReturn(expectedUrl);
+        String message = "댓글러님이 댓글을 남겼습니다!";
+        String url = "http://localhost:3000/board/post/77";
 
         // When
-        notificationSseService.sendNotification(postUserId, commenterName, postId);
+        notificationSseService.sendNotification(postUserId, NotificationType.COMMENT, message, url);
 
         // Then
-        verify(urlGenerator).generatePostUrl(postId);
-        verify(sseRepository).send(argThat(message ->
-                matchesMessage(message, postUserId, NotificationType.COMMENT,
-                        commenterName + "님이 댓글을 남겼습니다!", expectedUrl)
+        verify(sseRepository).send(argThat(sseMessage ->
+                matchesMessage(sseMessage, postUserId, NotificationType.COMMENT, message, url)
         ));
     }
 
@@ -105,37 +98,49 @@ class SseServiceTest {
     void shouldSendPaperNotification() {
         // Given
         Long farmOwnerId = 99L;
-        String userName = "롤링페이퍼";
-        String expectedUrl = "/paper/" + userName;
-        given(urlGenerator.generateRollingPaperUrl(userName)).willReturn(expectedUrl);
+        String message = "롤링페이퍼에 메시지가 작성되었어요!";
+        String url = "http://localhost:3000/paper/롤링페이퍼";
 
         // When
-        notificationSseService.sendPaperPlantNotification(farmOwnerId, userName);
+        notificationSseService.sendNotification(farmOwnerId, NotificationType.MESSAGE, message, url);
 
         // Then
-        verify(urlGenerator).generateRollingPaperUrl(userName);
-        verify(sseRepository).send(argThat(message ->
-                matchesMessage(message, farmOwnerId, NotificationType.MESSAGE,
-                        "롤링페이퍼에 메시지가 작성되었어요!", expectedUrl)
+        verify(sseRepository).send(argThat(sseMessage ->
+                matchesMessage(sseMessage, farmOwnerId, NotificationType.MESSAGE, message, url)
         ));
     }
 
     @Test
-    @DisplayName("인기글 알림 SSE 메시지를 보낸다")
-    void shouldSendPostFeaturedNotification() {
+    @DisplayName("주간 인기글 알림 SSE 메시지를 보낸다")
+    void shouldSendPostFeaturedWeeklyNotification() {
         // Given
         Long memberId = 7L;
-        Long postId = 31L;
-        String message = "인기글 축하";
-        String expectedUrl = "/posts/" + postId;
-        given(urlGenerator.generatePostUrl(postId)).willReturn(expectedUrl);
+        String message = "축하합니다! 주간 인기글에 선정되었습니다!";
+        String url = "http://localhost:3000/board/post/31";
 
         // When
-        notificationSseService.sendNotification(memberId, NotificationType.POST_FEATURED_WEEKLY, message, expectedUrl);
+        notificationSseService.sendNotification(memberId, NotificationType.POST_FEATURED_WEEKLY, message, url);
 
         // Then
         verify(sseRepository).send(argThat(sseMessage ->
-                matchesMessage(sseMessage, memberId, NotificationType.POST_FEATURED_WEEKLY, message, expectedUrl)
+                matchesMessage(sseMessage, memberId, NotificationType.POST_FEATURED_WEEKLY, message, url)
+        ));
+    }
+
+    @Test
+    @DisplayName("친구 요청 알림 SSE 메시지를 보낸다")
+    void shouldSendFriendNotification() {
+        // Given
+        Long memberId = 5L;
+        String message = "새로운 친구 요청이 도착했어요!";
+        String url = "http://localhost:3000/friends";
+
+        // When
+        notificationSseService.sendNotification(memberId, NotificationType.FRIEND, message, url);
+
+        // Then
+        verify(sseRepository).send(argThat(sseMessage ->
+                matchesMessage(sseMessage, memberId, NotificationType.FRIEND, message, url)
         ));
     }
 

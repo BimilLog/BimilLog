@@ -34,7 +34,9 @@ class FcmAdapterTest extends BaseUnitTest {
     @Test
     @DisplayName("FCM 메시지 전송 - 성공")
     void shouldSendMessageTo() throws IOException {
-        FcmMessage message = FcmMessage.of("token-1", "제목", "내용");
+        String token = "token-1";
+        String title = "제목";
+        String body = "내용";
         doNothing().when(fcmApiClient).sendMessage(anyString(), anyString(), any());
 
         try (MockedStatic<GoogleCredentials> mockedCredentials = Mockito.mockStatic(GoogleCredentials.class)) {
@@ -46,7 +48,7 @@ class FcmAdapterTest extends BaseUnitTest {
             doNothing().when(credentials).refreshIfExpired();
             given(credentials.getAccessToken()).willReturn(accessToken);
 
-            fcmAdapter.sendMessageTo(message);
+            fcmAdapter.sendMessageTo(token, title, body);
 
             ArgumentCaptor<String> authHeaderCaptor = ArgumentCaptor.forClass(String.class);
             verify(fcmApiClient).sendMessage(authHeaderCaptor.capture(), Mockito.eq(MediaType.APPLICATION_JSON_VALUE), any());
@@ -54,10 +56,4 @@ class FcmAdapterTest extends BaseUnitTest {
         }
     }
 
-    @Test
-    @DisplayName("FCM 메시지 전송 - null 메시지 예외")
-    void shouldThrowWhenMessageNull() {
-        assertThatThrownBy(() -> fcmAdapter.sendMessageTo(null))
-                .isInstanceOf(NullPointerException.class);
-    }
 }

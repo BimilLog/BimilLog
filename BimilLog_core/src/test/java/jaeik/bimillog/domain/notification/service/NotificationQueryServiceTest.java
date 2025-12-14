@@ -3,17 +3,18 @@ package jaeik.bimillog.domain.notification.service;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.out.NotificationRepository;
+import jaeik.bimillog.testutil.BaseUnitTest;
+import jaeik.bimillog.testutil.fixtures.AuthTestFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
@@ -25,10 +26,9 @@ import static org.mockito.Mockito.*;
  * @author Jaeik
  * @version 2.0.0
  */
-@ExtendWith(MockitoExtension.class)
 @DisplayName("NotificationQueryService 테스트")
 @Tag("unit")
-class NotificationQueryServiceTest {
+class NotificationQueryServiceTest extends BaseUnitTest {
 
     @Mock
     private NotificationRepository notificationRepository;
@@ -37,27 +37,25 @@ class NotificationQueryServiceTest {
     private NotificationQueryService notificationQueryService;
 
     @Test
-    @DisplayName("알림 목록 조회 - null 사용자 안전 처리")
-    void shouldReturnEmptyList_WhenNullUser() {
+    @DisplayName("알림 목록 조회 - null 사용자 예외 발생")
+    void shouldThrowException_WhenNullUser() {
         // Given
         CustomUserDetails nullUserDetails = null;
 
-        // When
-        List<Notification> result = notificationQueryService.getNotificationList(nullUserDetails);
+        // When & Then
+        assertThatThrownBy(() -> notificationQueryService.getNotificationList(nullUserDetails))
+                .isInstanceOf(NullPointerException.class);
 
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result).isEmpty();
         verifyNoInteractions(notificationRepository);
     }
 
     @Test
-    @DisplayName("알림 목록 조회 - 포트가 null 반환시 빈 리스트 반환")
-    void shouldReturnEmptyList_WhenPortReturnsNull() {
+    @DisplayName("알림 목록 조회 - Repository가 빈 리스트 반환")
+    void shouldReturnEmptyList_WhenRepositoryReturnsEmptyList() {
         // Given
-        CustomUserDetails userDetails = mock(CustomUserDetails.class);
-        given(userDetails.getMemberId()).willReturn(1L);
-        given(notificationRepository.getNotificationList(1L)).willReturn(null);
+        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(getTestMember());
+        given(notificationRepository.getNotificationList(userDetails.getMemberId()))
+                .willReturn(List.of());
 
         // When
         List<Notification> result = notificationQueryService.getNotificationList(userDetails);
@@ -65,6 +63,6 @@ class NotificationQueryServiceTest {
         // Then
         assertThat(result).isNotNull();
         assertThat(result).isEmpty();
-        verify(notificationRepository).getNotificationList(1L);
+        verify(notificationRepository).getNotificationList(userDetails.getMemberId());
     }
 }

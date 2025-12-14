@@ -91,7 +91,6 @@ class NotificationCommandRepositoryIntegrationTest {
         testEntityManager.clear();
 
         List<Long> deleteIds = Arrays.asList(notification1.getId(), notification3.getId());
-        NotificationUpdateVO updateCommand = NotificationUpdateVO.of(Collections.emptyList(), deleteIds);
 
         // When: 일괄 삭제 실행 (batchUpdate 로직을 직접 구현)
         if (deleteIds != null && !deleteIds.isEmpty()) {
@@ -125,7 +124,6 @@ class NotificationCommandRepositoryIntegrationTest {
         testEntityManager.clear();
 
         List<Long> readIds = Arrays.asList(notification1.getId(), notification2.getId());
-        NotificationUpdateVO updateCommand = NotificationUpdateVO.of(readIds, Collections.emptyList());
 
         // When: 일괄 읽음 처리 실행 (batchUpdate 로직을 직접 구현)
         if (readIds != null && !readIds.isEmpty()) {
@@ -172,8 +170,6 @@ class NotificationCommandRepositoryIntegrationTest {
         List<Long> deleteIds = Arrays.asList(notification1.getId(), notification2.getId());
         List<Long> readIds = Arrays.asList(notification3.getId(), notification4.getId());
 
-        NotificationUpdateVO updateCommand = NotificationUpdateVO.of(readIds, deleteIds);
-
         // When: 일괄 삭제 및 읽음 처리 실행 (batchUpdate 로직을 직접 구현)
         if (deleteIds != null && !deleteIds.isEmpty()) {
             notificationRepository.deleteAllByIdInAndMember_Id(deleteIds, testMemberId);
@@ -209,9 +205,8 @@ class NotificationCommandRepositoryIntegrationTest {
         long beforeCount = notificationRepository.count();
 
         // When: 빈 목록으로 일괄 업데이트 실행 (batchUpdate 로직을 직접 구현)
-        NotificationUpdateVO emptyCommand = NotificationUpdateVO.of(Collections.emptyList(), Collections.emptyList());
-        List<Long> emptyDeleteIds = emptyCommand.deletedIds();
-        List<Long> emptyReadIds = emptyCommand.readIds();
+        List<Long> emptyDeleteIds = Collections.emptyList();
+        List<Long> emptyReadIds = Collections.emptyList();
         if (emptyDeleteIds != null && !emptyDeleteIds.isEmpty()) {
             notificationRepository.deleteAllByIdInAndMember_Id(emptyDeleteIds, testMemberId);
         }
@@ -221,9 +216,8 @@ class NotificationCommandRepositoryIntegrationTest {
         }
 
         // When: null 목록으로 일괄 업데이트 실행
-        NotificationUpdateVO nullCommand = NotificationUpdateVO.of(null, null);
-        List<Long> nullDeleteIds = nullCommand.deletedIds();
-        List<Long> nullReadIds = nullCommand.readIds();
+        List<Long> nullDeleteIds = null;
+        List<Long> nullReadIds = null;
         if (nullDeleteIds != null && !nullDeleteIds.isEmpty()) {
             notificationRepository.deleteAllByIdInAndMember_Id(nullDeleteIds, testMemberId);
         }
@@ -276,7 +270,6 @@ class NotificationCommandRepositoryIntegrationTest {
         testEntityManager.clear();
 
         List<Long> deleteIds = Arrays.asList(myNotification.getId(), otherNotification.getId());
-        NotificationUpdateVO updateCommand = NotificationUpdateVO.of(Collections.emptyList(), deleteIds);
 
         // When: 현재 사용자가 다른 사용자의 알림까지 포함해서 삭제 시도 (batchUpdate 로직을 직접 구현)
         if (deleteIds != null && !deleteIds.isEmpty()) {
