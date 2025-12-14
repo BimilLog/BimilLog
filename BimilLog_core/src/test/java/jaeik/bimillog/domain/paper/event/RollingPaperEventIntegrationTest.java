@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.paper.event;
 
+import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.service.FcmCommandService;
 import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
@@ -8,7 +9,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 
@@ -40,8 +41,16 @@ public class RollingPaperEventIntegrationTest extends BaseEventIntegrationTest {
 
         // When & Then
         publishAndVerify(event, () -> {
-            verify(sseService).sendPaperPlantNotification(eq(paperOwnerId), eq(memberName));
-            verify(fcmCommandService).sendPaperPlantNotification(eq(paperOwnerId));
+            verify(sseService).sendNotification(
+                    eq(paperOwnerId),
+                    eq(NotificationType.MESSAGE),
+                    eq("롤링페이퍼에 메시지가 작성되었어요!"),
+                    anyString());
+            verify(fcmCommandService).sendNotification(
+                    eq(NotificationType.MESSAGE),
+                    eq(paperOwnerId),
+                    isNull(),
+                    isNull());
         });
     }
 
@@ -54,10 +63,15 @@ public class RollingPaperEventIntegrationTest extends BaseEventIntegrationTest {
         RollingPaperEvent event = new RollingPaperEvent(paperOwnerId, memberName);
 
         // SSE 알림 실패 시뮬레이션
-        doThrow(new RuntimeException("SSE 알림 실패")).when(sseService).sendPaperPlantNotification(paperOwnerId, memberName);
+        doThrow(new RuntimeException("SSE 알림 실패"))
+                .when(sseService).sendNotification(anyLong(), any(), anyString(), anyString());
 
-        // When & Then - SSE 실패 시 FCM은 호출되지 않음 (순차 실행이므로)
-        publishAndExpectException(event, () -> verify(sseService).sendPaperPlantNotification(eq(paperOwnerId), eq(memberName)));
+        // When & Then - SSE 실패 시에도 비동기로 실행되므로 예외가 전파되지 않을 수 있음
+        publishAndExpectException(event, () -> verify(sseService).sendNotification(
+                eq(paperOwnerId),
+                eq(NotificationType.MESSAGE),
+                anyString(),
+                anyString()));
     }
 
     @Test
@@ -69,12 +83,21 @@ public class RollingPaperEventIntegrationTest extends BaseEventIntegrationTest {
         RollingPaperEvent event = new RollingPaperEvent(paperOwnerId, memberName);
 
         // FCM 알림 실패 시뮬레이션
-        doThrow(new RuntimeException("FCM 알림 실패")).when(fcmCommandService).sendPaperPlantNotification(paperOwnerId);
+        doThrow(new RuntimeException("FCM 알림 실패"))
+                .when(fcmCommandService).sendNotification(any(), anyLong(), any(), any());
 
-        // When & Then - SSE는 성공하고 FCM 실패 시에도 둘 다 호출됨
+        // When & Then - FCM 실패 시에도 비동기로 실행되므로 SSE는 독립적으로 동작
         publishAndExpectException(event, () -> {
-            verify(sseService).sendPaperPlantNotification(eq(paperOwnerId), eq(memberName));
-            verify(fcmCommandService).sendPaperPlantNotification(eq(paperOwnerId));
+            verify(sseService).sendNotification(
+                    eq(paperOwnerId),
+                    eq(NotificationType.MESSAGE),
+                    eq("롤링페이퍼에 메시지가 작성되었어요!"),
+                    anyString());
+            verify(fcmCommandService).sendNotification(
+                    eq(NotificationType.MESSAGE),
+                    eq(paperOwnerId),
+                    isNull(),
+                    isNull());
         });
     }
 

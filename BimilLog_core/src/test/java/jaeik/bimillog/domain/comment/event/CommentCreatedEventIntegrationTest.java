@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.comment.event;
 
+import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.service.FcmCommandService;
 import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
@@ -9,7 +10,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -45,9 +46,15 @@ class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
         // When & Then
         publishAndVerify(event, () -> {
             verify(sseService).sendNotification(
-                    eq(1L), eq("댓글작성자"), eq(100L));
-            verify(fcmCommandService).sendCommentNotification(
-                    eq(1L), eq("댓글작성자"));
+                    eq(1L),
+                    eq(NotificationType.COMMENT),
+                    eq("댓글작성자님이 댓글을 남겼습니다!"),
+                    anyString());
+            verify(fcmCommandService).sendNotification(
+                    eq(NotificationType.COMMENT),
+                    eq(1L),
+                    eq("댓글작성자"),
+                    isNull());
             verify(redisPostUpdateAdapter).incrementRealtimePopularScore(
                     eq(100L), eq(COMMENT_SCORE));
         });
@@ -67,21 +74,39 @@ class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
         verifyAsyncSlow(() -> {
             // 첫 번째 이벤트
             verify(sseService).sendNotification(
-                    eq(1L), eq("댓글작성자1"), eq(100L));
-            verify(fcmCommandService).sendCommentNotification(
-                    eq(1L), eq("댓글작성자1"));
+                    eq(1L),
+                    eq(NotificationType.COMMENT),
+                    eq("댓글작성자1님이 댓글을 남겼습니다!"),
+                    anyString());
+            verify(fcmCommandService).sendNotification(
+                    eq(NotificationType.COMMENT),
+                    eq(1L),
+                    eq("댓글작성자1"),
+                    isNull());
 
             // 두 번째 이벤트
             verify(sseService).sendNotification(
-                    eq(1L), eq("댓글작성자2"), eq(100L));
-            verify(fcmCommandService).sendCommentNotification(
-                    eq(1L), eq("댓글작성자2"));
+                    eq(1L),
+                    eq(NotificationType.COMMENT),
+                    eq("댓글작성자2님이 댓글을 남겼습니다!"),
+                    anyString());
+            verify(fcmCommandService).sendNotification(
+                    eq(NotificationType.COMMENT),
+                    eq(1L),
+                    eq("댓글작성자2"),
+                    isNull());
 
             // 세 번째 이벤트
             verify(sseService).sendNotification(
-                    eq(2L), eq("댓글작성자3"), eq(101L));
-            verify(fcmCommandService).sendCommentNotification(
-                    eq(2L), eq("댓글작성자3"));
+                    eq(2L),
+                    eq(NotificationType.COMMENT),
+                    eq("댓글작성자3님이 댓글을 남겼습니다!"),
+                    anyString());
+            verify(fcmCommandService).sendNotification(
+                    eq(NotificationType.COMMENT),
+                    eq(2L),
+                    eq("댓글작성자3"),
+                    isNull());
 
             // 실시간 인기글 점수 증가 검증
             verify(redisPostUpdateAdapter, times(2)).incrementRealtimePopularScore(

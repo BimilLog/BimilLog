@@ -131,12 +131,11 @@ class SseServiceTest {
         given(urlGenerator.generatePostUrl(postId)).willReturn(expectedUrl);
 
         // When
-        notificationSseService.sendPostFeaturedNotification(memberId, message, postId);
+        notificationSseService.sendNotification(memberId, NotificationType.POST_FEATURED_WEEKLY, message, expectedUrl);
 
         // Then
-        verify(urlGenerator).generatePostUrl(postId);
         verify(sseRepository).send(argThat(sseMessage ->
-                matchesMessage(sseMessage, memberId, NotificationType.POST_FEATURED, message, expectedUrl)
+                matchesMessage(sseMessage, memberId, NotificationType.POST_FEATURED_WEEKLY, message, expectedUrl)
         ));
     }
 

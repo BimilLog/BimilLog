@@ -69,7 +69,7 @@ public class NotificationTestDataBuilder {
     public static NotificationTestDataBuilder aLikeNotification(Member receiver, Long postId) {
         return new NotificationTestDataBuilder()
                 .withReceiver(receiver)
-                .withType(NotificationType.POST_FEATURED)
+                .withType(NotificationType.POST_FEATURED_WEEKLY)
                 .withRelatedId(postId)
                 .withMessage("게시글이 추천되었습니다.");
     }
