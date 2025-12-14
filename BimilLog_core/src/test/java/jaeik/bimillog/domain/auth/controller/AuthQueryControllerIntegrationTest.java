@@ -87,6 +87,6 @@ class AuthQueryControllerIntegrationTest extends BaseIntegrationTest {
     void getCurrentUser_Unauthenticated_IntegrationTest() throws Exception {
         mockMvc.perform(get("/api/auth/me"))
                 .andDo(print())
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());
     }
 }
