@@ -20,7 +20,6 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @RequiredArgsConstructor
 public class SseService {
     private final SseRepository sseRepository;
-    private final UrlGenerator urlGenerator;
 
     /**
      * <h3>SSE 구독</h3>
