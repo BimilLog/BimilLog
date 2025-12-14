@@ -99,7 +99,7 @@ public class NotificationUtilRepository {
         return switch (type) {
             case MESSAGE -> qSetting.messageNotification.isTrue();
             case COMMENT -> qSetting.commentNotification.isTrue();
-            case POST_FEATURED -> qSetting.postFeaturedNotification.isTrue();
+            case POST_FEATURED_WEEKLY, POST_FEATURED_LEGEND, POST_FEATURED_REALTIME -> qSetting.postFeaturedNotification.isTrue();
             case FRIEND -> qSetting.friendSendNotification.isTrue();
             default -> Expressions.FALSE;
         };

@@ -53,9 +53,6 @@ public class SseRepository {
      */
     private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
 
-    private final MemberQueryService memberQueryService;
-    private final NotificationRepository notificationRepository;
-
     /**
      * <h3>SSE 구독 - 실시간 알림 채널 생성</h3>
      * <p>새로운 SSE 연결을 생성하고 초기화 메시지를 전송합니다.</p>
@@ -128,15 +125,7 @@ public class SseRepository {
      */
     public void send(SseMessage sseMessage) {
         try {
-            Member member = memberQueryService.findById(sseMessage.memberId())
-                    .orElseThrow(() -> new CustomException(ErrorCode.NOTIFICATION_INVALID_USER_CONTEXT));
-
-            Notification notification = Notification.create(member, sseMessage.type(), sseMessage.message(), sseMessage.url());
-            // DB에 저장 (알림 히스토리용)
-            notificationRepository.save(notification);
-
             Map<String, SseEmitter> emitters = findAllEmitterByMemberId(sseMessage.memberId());
-
             emitters.forEach(
                     (emitterId, emitter) -> {
                         sendNotification(emitter, emitterId, sseMessage);

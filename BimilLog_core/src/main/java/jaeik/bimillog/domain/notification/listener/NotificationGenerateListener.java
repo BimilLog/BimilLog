@@ -1,16 +1,13 @@
 package jaeik.bimillog.domain.notification.listener;
 
-import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
-import jaeik.bimillog.domain.friend.event.FriendEvent;
+import jaeik.bimillog.domain.notification.event.AlarmSendEvent;
 import jaeik.bimillog.domain.notification.service.FcmCommandService;
 import jaeik.bimillog.domain.notification.service.SseService;
-import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
-import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
  * <h2>알림 생성 이벤트 리스너</h2>
@@ -25,100 +22,40 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Slf4j
 public class NotificationGenerateListener {
-
     private final SseService sseService;
     private final FcmCommandService fcmCommandService;
 
     /**
-     * <h3>댓글 작성 알림 전송</h3>
-     * <p>댓글 작성 완료 시 게시글 작성자에게 SSE와 FCM 알림을 전송합니다.</p>
-     * <p>{@link CommentCreatedEvent} 이벤트 발생시 댓글 작성 알림 전송 흐름에서 호출됩니다.</p>
-     * 
-     * @param event 댓글 생성 완료 이벤트
-     * @author Jaeik
-     * @since 2.0.0
+     * <h3>SSE 실시간 알림 전송</h3>
+     * <p>AlarmSendEvent를 수신하여 SSE 알림을 전송합니다.</p>
+     *
+     * @param event 알림 전송 이벤트
      */
-    @EventListener(CommentCreatedEvent.class)
     @Async("sseNotificationExecutor")
-    public void handleCommentCreatedEvent(CommentCreatedEvent event) {
-        // SSE 알림 전송
-        sseService.sendCommentNotification(
-                event.postUserId(),
+    @TransactionalEventListener(AlarmSendEvent.class)
+    public void sendSSENotification(AlarmSendEvent event) {
+        sseService.sendNotification(
+                event.memberId(),
+                event.type(),
+                event.message(),
+                event.url()
+        );
+    }
+
+    /**
+     * <h3>FCM 푸시 알림 전송</h3>
+     * <p>AlarmSendEvent를 수신하여 FCM 알림을 전송합니다.</p>
+     * <p>FCM 메시지 조립은 FcmCommandService에서 처리합니다.</p>
+     *
+     * @param event 알림 전송 이벤트
+     */
+    @Async("fcmNotificationExecutor")
+    @TransactionalEventListener(AlarmSendEvent.class)
+    public void sendFCMNotification(AlarmSendEvent event) {
+        fcmCommandService.sendNotification(
+                event.type(),
+                event.memberId(),
                 event.commenterName(),
-                event.postId());
-        
-        // FCM 알림 전송
-        fcmCommandService.sendCommentNotification(
-                event.postUserId(),
-                event.commenterName());
-    }
-
-    /**
-     * <h3>롤링페이퍼 메시지 알림 전송</h3>
-     * <p>롤링페이퍼 메시지 작성 완료 시 소유자에게 SSE와 FCM 알림을 전송합니다.</p>
-     * <p>{@link RollingPaperEvent} 이벤트 발생시 롤링페이퍼 메시지 작성 알림 전송 흐름에서 호출됩니다.</p>
-     * 
-     * @param event 롤링페이퍼 메시지 생성 완료 이벤트
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @EventListener(RollingPaperEvent.class)
-    @Async("sseNotificationExecutor")
-    public void handleRollingPaperEvent(RollingPaperEvent event) {
-        // SSE 알림 전송
-        sseService.sendPaperPlantNotification(
-                event.paperOwnerId(),
-                event.memberName());
-        
-        // FCM 알림 전송
-        fcmCommandService.sendPaperPlantNotification(
-                event.paperOwnerId());
-    }
-
-    /**
-     * <h3>인기글 등극 알림 전송</h3>
-     * <p>게시글 인기글 선정 시 작성자에게 SSE와 FCM 알림을 전송합니다.</p>
-     * <p>{@link PostFeaturedEvent} 이벤트 발생시 인기글 등극 알림 전송 흐름에서 호출됩니다.</p>
-     * 
-     * @param event 인기글 선정 완료 이벤트
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @EventListener(PostFeaturedEvent.class)
-    @Async("sseNotificationExecutor")
-    public void handlePostFeaturedEvent(PostFeaturedEvent event) {
-        // SSE 알림 전송
-        sseService.sendPostFeaturedNotification(
-                event.memberId(),
-                event.sseMessage(),
-                event.postId());
-        
-        // FCM 알림 전송
-        fcmCommandService.sendPostFeaturedNotification(
-                event.memberId(),
-                event.fcmTitle(),
-                event.fcmBody());
-    }
-
-    /**
-     * 친구 요청 받을시 알림 전송
-     */
-    @EventListener(FriendEvent.class)
-    @Async("sseNotificationExecutor")
-    public void handleFriendEvent(FriendEvent event) {
-        // SSE 알림 전송
-        sseService.sendFriendNotification(
-                event.getReceiveMemberId(),
-                event.getSseMessage()
-        );
-
-        // FCM 알림 전송
-        fcmCommandService.sendFriendNotification(
-                event.getReceiveMemberId(),
-                event.getFcmTitle(),
-                event.getFcmBody()
-        );
-
-
+                event.postTitle());
     }
 }

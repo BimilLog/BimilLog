@@ -81,7 +81,7 @@ class SseServiceTest {
 
     @Test
     @DisplayName("댓글 알림 SSE 메시지를 보낸다")
-    void shouldSendCommentNotification() {
+    void shouldSendNotification() {
         // Given
         Long postUserId = 50L;
         Long postId = 77L;
@@ -90,7 +90,7 @@ class SseServiceTest {
         given(urlGenerator.generatePostUrl(postId)).willReturn(expectedUrl);
 
         // When
-        notificationSseService.sendCommentNotification(postUserId, commenterName, postId);
+        notificationSseService.sendNotification(postUserId, commenterName, postId);
 
         // Then
         verify(urlGenerator).generatePostUrl(postId);

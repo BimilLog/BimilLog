@@ -44,7 +44,7 @@ class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
 
         // When & Then
         publishAndVerify(event, () -> {
-            verify(sseService).sendCommentNotification(
+            verify(sseService).sendNotification(
                     eq(1L), eq("댓글작성자"), eq(100L));
             verify(fcmCommandService).sendCommentNotification(
                     eq(1L), eq("댓글작성자"));
@@ -66,19 +66,19 @@ class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
         publishEvents(events);
         verifyAsyncSlow(() -> {
             // 첫 번째 이벤트
-            verify(sseService).sendCommentNotification(
+            verify(sseService).sendNotification(
                     eq(1L), eq("댓글작성자1"), eq(100L));
             verify(fcmCommandService).sendCommentNotification(
                     eq(1L), eq("댓글작성자1"));
 
             // 두 번째 이벤트
-            verify(sseService).sendCommentNotification(
+            verify(sseService).sendNotification(
                     eq(1L), eq("댓글작성자2"), eq(100L));
             verify(fcmCommandService).sendCommentNotification(
                     eq(1L), eq("댓글작성자2"));
 
             // 세 번째 이벤트
-            verify(sseService).sendCommentNotification(
+            verify(sseService).sendNotification(
                     eq(2L), eq("댓글작성자3"), eq(101L));
             verify(fcmCommandService).sendCommentNotification(
                     eq(2L), eq("댓글작성자3"));

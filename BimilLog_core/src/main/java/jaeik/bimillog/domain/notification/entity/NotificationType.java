@@ -12,7 +12,9 @@ package jaeik.bimillog.domain.notification.entity;
 public enum NotificationType {
     MESSAGE, // 롤링페이퍼에 메시지가 달렸을 때 (Setting.messageNotification과 연결)
     COMMENT, // 게시글에 댓글이 달렸을 때 (Setting.commentNotification과 연결)
-    POST_FEATURED, // 주간, 전설 인기글이 되었을 때 (Setting.postFeaturedNotification과 연결)
+    POST_FEATURED_WEEKLY, // 주간 인기글에 선정되었을 때 (Setting.postFeaturedNotification과 연결)
+    POST_FEATURED_LEGEND, // 전설 게시글(명예의 전당)에 등극했을 때 (Setting.postFeaturedNotification과 연결)
+    POST_FEATURED_REALTIME, // 실시간 인기글에 선정되었을 때 (Setting.postFeaturedNotification과 연결)
     ADMIN, // 관리자 알림 (설정 연동 없음)
     INITIATE, // SSE 초기화 용도 (설정 연동 없음)
     FRIEND // 친구 요청

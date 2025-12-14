@@ -1,7 +1,9 @@
 package jaeik.bimillog.domain.notification.service;
 
 import jaeik.bimillog.domain.notification.entity.FcmMessage;
+import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
+import jaeik.bimillog.domain.notification.event.AlarmSendEvent;
 import jaeik.bimillog.domain.notification.listener.NotificationGenerateListener;
 import jaeik.bimillog.domain.notification.repository.NotificationUtilRepository;
 import jaeik.bimillog.infrastructure.api.fcm.FcmAdapter;
@@ -14,7 +16,7 @@ import java.util.List;
 /**
  * <h2>FCM 푸시 알림 서비스</h2>
  * <p>FCM 토큰 관리와 푸시 알림 전송을 담당하는 서비스입니다.</p>
- * <p>FCM 토큰 등록/삭제, 댓글 알림, 롤링페이퍼 알림, 인기글 알림</p>
+ * <p>알림 타입별로 적절한 제목과 내용을 조립하여 FCM 푸시 알림을 전송합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -23,102 +25,64 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class FcmCommandService {
-
     private final FcmAdapter fcmAdapter;
     private final NotificationUtilRepository notificationUtilRepository;
 
     /**
-     * <h3>댓글 알림 FCM 전송</h3>
-     * <p>댓글 작성 완료 시 게시글 작성자에게 FCM 푸시 알림을 전송합니다.</p>
+     * <h3>FCM 푸시 알림 전송 (범용)</h3>
+     * <p>알림 타입별로 적절한 제목과 내용을 조립하여 FCM 푸시 알림을 전송합니다.</p>
      * <p>알림 수신 자격 검증을 거쳐 유효한 FCM 토큰에만 알림을 발송하며, 전송 실패 시에도 예외를 발생시키지 않습니다.</p>
-     * <p>CommentNotificationListener에서 댓글 작성 이벤트 발생 시 호출됩니다.</p>
      *
-     * @param postUserId    게시글 작성자 ID
-     * @param commenterName 댓글 작성자 이름
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public void sendCommentNotification(Long postUserId, String commenterName) {
-        try {
-            List<String> tokens = notificationUtilRepository.FcmEligibleFcmTokens(postUserId, NotificationType.COMMENT);
-            String title = commenterName + "님이 댓글을 남겼습니다!";
-            String body = "지금 확인해보세요!";
-            boolean sent = sendNotifications(tokens, title, body);
-            if (sent) {
-                log.info("댓글 알림 FCM 전송 완료: 사용자 ID={}, 토큰 수={}", postUserId, tokens.size());
-            }
-        } catch (Exception e) {
-            log.error("FCM 댓글 알림 전송 실패: 사용자 ID={}, 댓글작성자={}", postUserId, commenterName, e);
-        }
-    }
-
-    /**
-     * <h3>롤링페이퍼 메시지 알림 FCM 전송</h3>
-     * <p>롤링페이퍼에 새 메시지 작성 완료 시 롤링페이퍼 소유자에게 FCM 푸시 알림을 전송합니다.</p>
-     * <p>알림 수신 자격 검증을 거쳐 유효한 FCM 토큰에만 알림을 발송하며, 전송 실패 시에도 예외를 발생시키지 않습니다.</p>
-     * <p>PaperNotificationListener에서 롤링페이퍼 메시지 작성 이벤트 발생 시 호출됩니다.</p>
-     *
-     * @param farmOwnerId 롤링페이퍼 주인 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public void sendPaperPlantNotification(Long farmOwnerId) {
-        try {
-            List<String> tokens = notificationUtilRepository.FcmEligibleFcmTokens(farmOwnerId, NotificationType.MESSAGE);
-            String title = "롤링페이퍼에 메시지가 작성되었어요!";
-            String body = "지금 확인해보세요!";
-            boolean sent = sendNotifications(tokens, title, body);
-            if (sent) {
-                log.info("롤링페이퍼 메시지 알림 FCM 전송 완료: 사용자 ID={}, 토큰 수={}", farmOwnerId, tokens.size());
-            }
-        } catch (Exception e) {
-            log.error("FCM 롤링페이퍼 알림 전송 실패: 롤링페이퍼 주인 ID={}", farmOwnerId, e);
-        }
-    }
-
-    /**
-     * <h3>인기글 등극 알림 FCM 전송</h3>
-     * <p>게시글이 인기글로 선정되었을 때 게시글 작성자에게 FCM 푸시 알림을 전송합니다.</p>
-     *
-     * @param memberId 사용자 ID
-     * @param title  알림 제목
-     * @param body   알림 내용
      * @see NotificationGenerateListener
      * @author Jaeik
      * @since 2.0.0
      */
-    public void sendPostFeaturedNotification(Long memberId, String title, String body) {
+    public void sendNotification(NotificationType type, Long memberId, String commenterName, String postTitle) {
         try {
-            List<String> tokens = notificationUtilRepository.FcmEligibleFcmTokens(memberId, NotificationType.POST_FEATURED);
-            boolean sent = sendNotifications(tokens, title, body);
-            if (sent) {
-                log.info("인기글 등극 알림 FCM 전송 완료: 사용자 ID={}, 토큰 수={}", memberId, tokens.size());
-            }
-        } catch (Exception e) {
-            log.error("FCM 인기글 등극 알림 전송 실패: 사용자 ID={}, 제목={}", memberId, title, e);
-        }
-    }
+            String title = "";
+            String body = "";
 
-    /**
-     * <h3>친구 요청 FCM 전송</h3>
-     * <p>친구 요청 관련 알림을 FCM으로 전송합니다.</p>
-     * <p>친구 알림은 사용자 설정과 무관하게 항상 전송됩니다.</p>
-     *
-     * @param memberId 알림을 받을 사용자 ID
-     * @param title 알림 제목
-     * @param body 알림 내용
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public void sendFriendNotification(Long memberId, String title, String body) {
-        try {
-            List<String> tokens = notificationUtilRepository.FcmEligibleFcmTokens(memberId, NotificationType.FRIEND);
+            // 알림 타입별 FCM 메시지 조립
+            switch (type) {
+                case COMMENT -> {
+                    title = commenterName + "님이 댓글을 남겼습니다!";
+                    body = "지금 확인해보세요!";
+                }
+                case MESSAGE -> {
+                    title = "롤링페이퍼에 메시지가 작성되었어요!";
+                    body = "지금 확인해보세요!";
+                }
+                case POST_FEATURED_WEEKLY -> {
+                    title = "축하합니다! 주간 인기글에 선정되었습니다!";
+                    body = String.format("회원님의 게시글 %s 이 주간 인기 게시글로 선정되었습니다.", postTitle);
+                }
+                case POST_FEATURED_LEGEND -> {
+                    title = "축하합니다! 명예의 전당에 등극했습니다!";
+                    body = String.format("회원님의 게시글 %s 이 명예의 전당에 등극했습니다.", postTitle);
+                }
+                case POST_FEATURED_REALTIME -> {
+                    title = "축하합니다! 실시간 인기글에 선정되었습니다!";
+                    body = String.format("회원님의 게시글 %s 이 실시간 인기글로 선정되었습니다.", postTitle);
+                }
+                case FRIEND -> {
+                    title = "새로운 친구 요청이 도착했어요!";
+                    body = String.format("%s님 에게서 친구 요청이 도착했습니다.", commenterName);
+                }
+            }
+
+            List<String> tokens = notificationUtilRepository.FcmEligibleFcmTokens(
+                    memberId,
+                    type
+            );
+
             boolean sent = sendNotifications(tokens, title, body);
             if (sent) {
-                log.info("친구 요청 알림 FCM 전송 완료: 사용자 ID={}, 토큰 수={}", memberId, tokens.size());
+                log.info("{} 알림 FCM 전송 완료: 사용자 ID={}, 토큰 수={}",
+                        type, memberId, tokens.size());
             }
         } catch (Exception e) {
-            log.error("친구 요청 알림 전송 실패: 사용자 ID={}, 제목={}", memberId, title, e);
+            log.error("FCM {} 알림 전송 실패: 사용자 ID={}",
+                    type, memberId, e);
         }
     }
 
