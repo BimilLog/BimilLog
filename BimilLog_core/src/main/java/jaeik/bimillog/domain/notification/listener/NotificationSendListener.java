@@ -21,7 +21,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class NotificationGenerateListener {
+public class NotificationSendListener {
     private final SseService sseService;
     private final FcmCommandService fcmCommandService;
 
@@ -55,7 +55,7 @@ public class NotificationGenerateListener {
         fcmCommandService.sendNotification(
                 event.type(),
                 event.memberId(),
-                event.commenterName(),
+                event.relatedMemberName(),
                 event.postTitle());
     }
 }

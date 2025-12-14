@@ -22,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Slf4j
 public class FcmSaveService {
-
     private final AuthTokenRepository authTokenRepository;
     private final GlobalAuthTokenSaveAdapter globalAuthTokenSaveAdapter;
 

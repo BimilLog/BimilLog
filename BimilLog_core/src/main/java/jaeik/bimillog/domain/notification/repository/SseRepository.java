@@ -1,12 +1,9 @@
 package jaeik.bimillog.domain.notification.repository;
 
-import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.member.service.MemberQueryService;
 import jaeik.bimillog.domain.notification.controller.NotificationSseController;
-import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.SseMessage;
-import jaeik.bimillog.domain.notification.listener.NotificationGenerateListener;
+import jaeik.bimillog.domain.notification.listener.NotificationSendListener;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +32,7 @@ import java.util.stream.Collectors;
  *
  ** <ul>
  *   <li>{@link NotificationSseController} - SSE 구독 요청</li>
- *   <li>{@link NotificationGenerateListener} - 알림 이벤트 발생 시 전송</li>
+ *   <li>{@link NotificationSendListener} - 알림 이벤트 발생 시 전송</li>
  *   <li>로그아웃, 회원 제재, 회원 탈퇴 시 연결 정리</li>
  * </ul>
  *

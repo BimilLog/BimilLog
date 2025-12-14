@@ -30,22 +30,22 @@ public class FcmMessageDTO {
     @AllArgsConstructor
     @Getter
     public static class Message {
-        @NotNull(message = "알림 정보는 필수입니다.")
+
         @Valid
+        @NotNull(message = "알림 정보는 필수입니다.")
         private FcmMessageDTO.Notification notification;
         
         @NotBlank(message = "FCM 토큰은 필수입니다.")
-        @Pattern(regexp = "^[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+$|^[a-zA-Z0-9_-]{152}$", 
-                message = "올바르지 않은 FCM 토큰 형식입니다.")
+        @Pattern(regexp = "^[a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+$|^[a-zA-Z0-9_-]{152}$", message = "올바르지 않은 FCM 토큰 형식입니다.")
         private String token;
     }
 
     @Builder
     @Getter
     public static class Notification {
+
         @NotBlank(message = "알림 제목은 필수입니다.")
         private String title;
-        
         private String body;
         private String image;
         

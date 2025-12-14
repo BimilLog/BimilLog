@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.comment.event;
 
-import jaeik.bimillog.domain.notification.listener.NotificationGenerateListener;
+import jaeik.bimillog.domain.notification.listener.NotificationSendListener;
 
 /**
  * <h2>댓글 작성 이벤트</h2>
@@ -13,7 +13,7 @@ import jaeik.bimillog.domain.notification.listener.NotificationGenerateListener;
  * @param postId 게시글 ID
  * @author Jaeik
  * @version 2.0.0
- * {@link NotificationGenerateListener} SSE/FCM 알림 발송
+ * {@link NotificationSendListener} SSE/FCM 알림 발송
  */
 public record CommentCreatedEvent(
         Long postUserId,

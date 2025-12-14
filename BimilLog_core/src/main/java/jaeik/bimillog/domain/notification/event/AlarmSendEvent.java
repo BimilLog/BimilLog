@@ -11,7 +11,7 @@ import jaeik.bimillog.domain.notification.entity.NotificationType;
  * @param type 알림 타입
  * @param message SSE 메시지
  * @param url SSE 이동 URL
- * @param commenterName 댓글 작성자 이름 또는 친구 요청 보낸 사람 이름 (COMMENT, FRIEND 타입만 사용, optional)
+ * @param relatedMemberName 댓글 작성자 이름 또는 친구 요청 보낸 사람 이름 (COMMENT, FRIEND 타입만 사용, optional)
  * @param postTitle 게시글 제목 (POST_FEATURED 타입들만 사용, optional)
  * @author Jaeik
  * @since 2.0.0
@@ -21,7 +21,7 @@ public record AlarmSendEvent(
         NotificationType type,
         String message,
         String url,
-        String commenterName,
+        String relatedMemberName,
         String postTitle
 ) {
     /**

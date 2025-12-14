@@ -13,48 +13,20 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 /**
- * <h2>알림 유틸리티 어댑터</h2>
- * <p>알림 전송 자격 확인과 FCM 토큰 조회를 담당하는 어댑터입니다.</p>
+ * <h2>알림 쿼리 레포지터리</h2>
  * <p>FCM 전송 자격 토큰 조회</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.3.0
  */
 @Component
 @RequiredArgsConstructor
-public class NotificationUtilRepository {
-
+public class NotificationQueryRepository {
     private final JPAQueryFactory queryFactory;
-
-    /**
-     * <h3>알림 수신 자격 확인</h3>
-     * <p>주어진 사용자 ID와 알림 유형에 따라 사용자가 알림을 수신할 자격이 있는지 확인합니다.</p>
-     *
-     * @param memberId 확인할 사용자의 ID
-     * @param type 확인할 알림 유형
-     * @return 알림 수신이 가능하면 true, 그렇지 않으면 false
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public boolean SseEligibleForNotification(Long memberId, NotificationType type) {
-        QMember qMember = QMember.member;
-        QSetting qSetting = QSetting.setting;
-        
-        return queryFactory
-            .select(qMember)
-            .from(qMember)
-            .join(qMember.setting, qSetting)
-            .where(
-                qMember.id.eq(memberId),
-                notificationTypeCondition(type, qSetting)
-            )
-            .fetchFirst() != null;
-    }
 
     /**
      * <h3>알림 수신 자격이 있는 FCM 토큰 조회</h3>
      * <p>사용자가 특정 타입의 알림을 받을 수 있는 경우 해당 사용자의 모든 FCM 토큰 문자열을 조회합니다.</p>
-     * <p>v2.4: AuthToken 테이블에서 fcmRegistrationToken 컬럼 조회 (fcm_token 테이블 통합)</p>
      *
      * @param memberId 사용자 ID
      * @param type   알림 타입
@@ -62,7 +34,7 @@ public class NotificationUtilRepository {
      * @author Jaeik
      * @since 2.1.0
      */
-    public List<String> FcmEligibleFcmTokens(Long memberId, NotificationType type) {
+    public List<String> fcmEligibleFcmTokens(Long memberId, NotificationType type) {
         QMember qMember = QMember.member;
         QSetting qSetting = QSetting.setting;
         QAuthToken qAuthToken = QAuthToken.authToken;

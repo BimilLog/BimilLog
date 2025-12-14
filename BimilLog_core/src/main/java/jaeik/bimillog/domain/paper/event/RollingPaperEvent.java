@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.paper.event;
 
-import jaeik.bimillog.domain.notification.listener.NotificationGenerateListener;
+import jaeik.bimillog.domain.notification.listener.NotificationSendListener;
 
 /**
  * <h2>롤링페이퍼 메시지 작성 이벤트</h2>
@@ -15,7 +15,7 @@ import jaeik.bimillog.domain.notification.listener.NotificationGenerateListener;
  * @param memberName 닉네임
  * @author Jaeik
  * @version 2.0.0
- * {@link NotificationGenerateListener} 롤링페이퍼 메시지 알림 발송
+ * {@link NotificationSendListener} 롤링페이퍼 메시지 알림 발송
  */
 public record RollingPaperEvent(
         Long paperOwnerId,
