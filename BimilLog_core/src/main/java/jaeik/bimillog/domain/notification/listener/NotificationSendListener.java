@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.notification.listener;
 
 import jaeik.bimillog.domain.notification.event.AlarmSendEvent;
-import jaeik.bimillog.domain.notification.service.FcmCommandService;
+import jaeik.bimillog.domain.notification.service.FcmPushService;
 import jaeik.bimillog.domain.notification.service.SseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +23,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Slf4j
 public class NotificationSendListener {
     private final SseService sseService;
-    private final FcmCommandService fcmCommandService;
+    private final FcmPushService fcmPushService;
 
     /**
      * <h3>SSE 실시간 알림 전송</h3>
@@ -52,7 +52,7 @@ public class NotificationSendListener {
     @Async("fcmNotificationExecutor")
     @TransactionalEventListener(AlarmSendEvent.class)
     public void sendFCMNotification(AlarmSendEvent event) {
-        fcmCommandService.sendNotification(
+        fcmPushService.sendNotification(
                 event.type(),
                 event.memberId(),
                 event.relatedMemberName(),

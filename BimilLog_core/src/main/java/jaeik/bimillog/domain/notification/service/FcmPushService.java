@@ -20,7 +20,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class FcmCommandService {
+public class FcmPushService {
     private final FcmAdapter fcmAdapter;
     private final NotificationQueryRepository notificationQueryRepository;
 

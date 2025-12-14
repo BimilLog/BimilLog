@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.auth.service.AuthTokenService;
 import jaeik.bimillog.domain.auth.service.SocialLogoutService;
 import jaeik.bimillog.domain.global.out.GlobalSocialTokenCommandAdapter;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
-import jaeik.bimillog.domain.notification.service.FcmCommandService;
+import jaeik.bimillog.domain.notification.service.FcmPushService;
 import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
@@ -37,7 +37,7 @@ public class MemberLoggedOutEventIntegrationTest extends BaseEventIntegrationTes
     private SseService sseService;
 
     @MockitoBean
-    private FcmCommandService fcmCommandService;
+    private FcmPushService fcmPushService;
 
     @MockitoBean
     private GlobalSocialTokenCommandAdapter globalSocialTokenCommandAdapter;

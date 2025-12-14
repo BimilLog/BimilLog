@@ -26,12 +26,12 @@ import static org.mockito.Mockito.*;
  */
 @ExtendWith(MockitoExtension.class)
 @Tag("unit")
-class FcmCommandServiceTest {
+class FcmPushServiceTest {
 
     @Mock private FcmAdapter fcmAdapter;
     @Mock private NotificationQueryRepository notificationUtilRepository;
 
-    @InjectMocks private FcmCommandService fcmCommandService;
+    @InjectMocks private FcmPushService fcmPushService;
 
     @Test
     @DisplayName("댓글 알림 전송 - 토큰 있음")
@@ -39,7 +39,7 @@ class FcmCommandServiceTest {
         List<String> tokens = List.of("token-1", "token-2");
         when(notificationUtilRepository.fcmEligibleFcmTokens(1L, NotificationType.COMMENT)).thenReturn(tokens);
 
-        fcmCommandService.sendCommentNotification(1L, "commenter");
+        fcmPushService.sendCommentNotification(1L, "commenter");
 
         verify(notificationUtilRepository).fcmEligibleFcmTokens(1L, NotificationType.COMMENT);
         verify(fcmAdapter, times(2)).sendMessageTo(any(FcmMessage.class));
@@ -50,7 +50,7 @@ class FcmCommandServiceTest {
     void shouldSkipCommentNotificationWhenNoTokens() throws IOException {
         when(notificationUtilRepository.fcmEligibleFcmTokens(1L, NotificationType.COMMENT)).thenReturn(Collections.emptyList());
 
-        fcmCommandService.sendCommentNotification(1L, "commenter");
+        fcmPushService.sendCommentNotification(1L, "commenter");
 
         verify(notificationUtilRepository).fcmEligibleFcmTokens(1L, NotificationType.COMMENT);
         verify(fcmAdapter, never()).sendMessageTo(any());
@@ -63,7 +63,7 @@ class FcmCommandServiceTest {
         doThrow(new IOException("fail"))
                 .when(fcmAdapter).sendMessageTo(any(FcmMessage.class));
 
-        fcmCommandService.sendCommentNotification(1L, "commenter");
+        fcmPushService.sendCommentNotification(1L, "commenter");
 
         verify(notificationUtilRepository).fcmEligibleFcmTokens(1L, NotificationType.COMMENT);
         verify(fcmAdapter).sendMessageTo(any(FcmMessage.class));
@@ -76,7 +76,7 @@ class FcmCommandServiceTest {
 
         ArgumentCaptor<FcmMessage> messageCaptor = ArgumentCaptor.forClass(FcmMessage.class);
 
-        fcmCommandService.sendPostFeaturedNotification(1L, "title", "body");
+        fcmPushService.sendPostFeaturedNotification(1L, "title", "body");
 
         verify(fcmAdapter).sendMessageTo(messageCaptor.capture());
         FcmMessage captured = messageCaptor.getValue();

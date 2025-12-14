@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.comment.event;
 
 import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.notification.service.FcmCommandService;
+import jaeik.bimillog.domain.notification.service.FcmPushService;
 import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
@@ -30,7 +30,7 @@ class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
     private SseService sseService;
 
     @MockitoBean
-    private FcmCommandService fcmCommandService;
+    private FcmPushService fcmPushService;
 
     @MockitoBean
     private RedisPostUpdateAdapter redisPostUpdateAdapter;
@@ -50,7 +50,7 @@ class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
                     eq(NotificationType.COMMENT),
                     eq("댓글작성자님이 댓글을 남겼습니다!"),
                     anyString());
-            verify(fcmCommandService).sendNotification(
+            verify(fcmPushService).sendNotification(
                     eq(NotificationType.COMMENT),
                     eq(1L),
                     eq("댓글작성자"),
@@ -78,7 +78,7 @@ class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
                     eq(NotificationType.COMMENT),
                     eq("댓글작성자1님이 댓글을 남겼습니다!"),
                     anyString());
-            verify(fcmCommandService).sendNotification(
+            verify(fcmPushService).sendNotification(
                     eq(NotificationType.COMMENT),
                     eq(1L),
                     eq("댓글작성자1"),
@@ -90,7 +90,7 @@ class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
                     eq(NotificationType.COMMENT),
                     eq("댓글작성자2님이 댓글을 남겼습니다!"),
                     anyString());
-            verify(fcmCommandService).sendNotification(
+            verify(fcmPushService).sendNotification(
                     eq(NotificationType.COMMENT),
                     eq(1L),
                     eq("댓글작성자2"),
@@ -102,7 +102,7 @@ class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
                     eq(NotificationType.COMMENT),
                     eq("댓글작성자3님이 댓글을 남겼습니다!"),
                     anyString());
-            verify(fcmCommandService).sendNotification(
+            verify(fcmPushService).sendNotification(
                     eq(NotificationType.COMMENT),
                     eq(2L),
                     eq("댓글작성자3"),

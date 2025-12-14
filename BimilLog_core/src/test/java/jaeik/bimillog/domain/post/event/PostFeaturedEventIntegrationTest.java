@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.post.event;
 
 import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.notification.service.FcmCommandService;
+import jaeik.bimillog.domain.notification.service.FcmPushService;
 import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
@@ -29,7 +29,7 @@ public class PostFeaturedEventIntegrationTest extends BaseEventIntegrationTest {
     private SseService sseService;
 
     @MockitoBean
-    private FcmCommandService fcmCommandService;
+    private FcmPushService fcmPushService;
 
     @Test
     @DisplayName("인기글 등극 이벤트 워크플로우 - SSE와 FCM 알림까지 완료")
@@ -50,12 +50,12 @@ public class PostFeaturedEventIntegrationTest extends BaseEventIntegrationTest {
                     eq(NotificationType.POST_FEATURED_WEEKLY),
                     eq(sseMessage),
                     anyString());
-            verify(fcmCommandService).sendNotification(
+            verify(fcmPushService).sendNotification(
                     eq(NotificationType.POST_FEATURED_WEEKLY),
                     eq(memberId),
                     isNull(),
                     eq(postTitle));
-            verifyNoMoreInteractions(sseService, fcmCommandService);
+            verifyNoMoreInteractions(sseService, fcmPushService);
         });
     }
 
@@ -91,16 +91,16 @@ public class PostFeaturedEventIntegrationTest extends BaseEventIntegrationTest {
                     eq("실시간 인기 게시글로 선정되었어요!"),
                     anyString());
 
-            verify(fcmCommandService).sendNotification(
+            verify(fcmPushService).sendNotification(
                     eq(NotificationType.POST_FEATURED_WEEKLY),
                     eq(1L), isNull(), eq("게시글 1 제목"));
-            verify(fcmCommandService).sendNotification(
+            verify(fcmPushService).sendNotification(
                     eq(NotificationType.POST_FEATURED_LEGEND),
                     eq(2L), isNull(), eq("게시글 2 제목"));
-            verify(fcmCommandService).sendNotification(
+            verify(fcmPushService).sendNotification(
                     eq(NotificationType.POST_FEATURED_REALTIME),
                     eq(3L), isNull(), eq("게시글 3 제목"));
-            verifyNoMoreInteractions(sseService, fcmCommandService);
+            verifyNoMoreInteractions(sseService, fcmPushService);
         });
     }
 
@@ -137,16 +137,16 @@ public class PostFeaturedEventIntegrationTest extends BaseEventIntegrationTest {
                     eq("실시간 인기 게시글로 선정되었어요!"),
                     anyString());
 
-            verify(fcmCommandService).sendNotification(
+            verify(fcmPushService).sendNotification(
                     eq(NotificationType.POST_FEATURED_WEEKLY),
                     eq(memberId), isNull(), eq("첫 번째 게시글"));
-            verify(fcmCommandService).sendNotification(
+            verify(fcmPushService).sendNotification(
                     eq(NotificationType.POST_FEATURED_LEGEND),
                     eq(memberId), isNull(), eq("두 번째 게시글"));
-            verify(fcmCommandService).sendNotification(
+            verify(fcmPushService).sendNotification(
                     eq(NotificationType.POST_FEATURED_REALTIME),
                     eq(memberId), isNull(), eq("세 번째 게시글"));
-            verifyNoMoreInteractions(sseService, fcmCommandService);
+            verifyNoMoreInteractions(sseService, fcmPushService);
         });
     }
 
