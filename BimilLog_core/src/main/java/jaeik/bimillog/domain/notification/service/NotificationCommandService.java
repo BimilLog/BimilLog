@@ -45,10 +45,8 @@ public class NotificationCommandService {
      * <p>여러 알림에 대해 읽음 처리 또는 삭제를 일괄 수행합니다.</p>
      * <p>읽음 처리: isRead 상태를 true로 변경</p>
      * <p>삭제: 알림을 완전 제거</p>
-     * <p>{@link NotificationCommandController}에서 사용자의 알림 관리 API 요청 시 호출됩니다.</p>
      *
      * @param memberId      현재 로그인한 사용자 ID
-     * @param updateCommand 알림 업데이트 명령 객체
      * @author Jaeik
      * @since 2.0.0
      */

@@ -11,6 +11,7 @@ import jaeik.bimillog.domain.global.out.GlobalSocialTokenCommandAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.out.MemberRepository;
+import jaeik.bimillog.domain.member.out.MemberToAuthAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.member.RedisMemberDataAdapter;
@@ -33,6 +34,7 @@ public class MemberOnboardingService {
 
     private final RedisMemberDataAdapter redisMemberDataAdapter;
     private final MemberRepository memberRepository;
+    private final MemberToAuthAdapter memberToAuthAdapter;
     private final GlobalCookieAdapter globalCookieAdapter;
     private final GlobalJwtAdapter globalJwtAdapter;
     private final GlobalAuthTokenSaveAdapter globalAuthTokenSaveAdapter;
@@ -88,7 +90,7 @@ public class MemberOnboardingService {
             Member persistedMember = memberRepository.save(member);
 
             AuthToken initialAuthToken = AuthToken.createToken("", persistedMember);
-            AuthToken persistedAuthToken = globalAuthTokenSaveAdapter.save(initialAuthToken);
+            AuthToken persistedAuthToken = memberToAuthAdapter.saveAuthToken(initialAuthToken);
 
             CustomUserDetails userDetails = CustomUserDetails.ofExisting(persistedMember, persistedAuthToken.getId());
             String accessToken = globalJwtAdapter.generateAccessToken(userDetails);
