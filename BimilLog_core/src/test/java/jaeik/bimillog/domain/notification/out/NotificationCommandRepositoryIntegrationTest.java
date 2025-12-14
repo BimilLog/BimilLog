@@ -3,7 +3,6 @@ package jaeik.bimillog.domain.notification.out;
 import jaeik.bimillog.BimilLogApplication;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.notification.entity.Notification;
-import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
 import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.builder.NotificationTestDataBuilder;
 import jaeik.bimillog.testutil.config.H2TestConfiguration;

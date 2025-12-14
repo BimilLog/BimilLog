@@ -24,13 +24,14 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @Log(level = LogLevel.INFO,
         logExecutionTime = true,
+        message = "FCM 토큰 등록",
+        excludeParams = {"fcmToken"},
         logParams = false)
 @Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/notification")
 public class NotificationFcmController {
-
     private final FcmSaveService fcmSaveService;
 
     /**
@@ -45,16 +46,9 @@ public class NotificationFcmController {
      * @since 2.1.0
      */
     @PostMapping("/fcm")
-    @Log(level = LogLevel.INFO,
-         message = "FCM 토큰 등록",
-         excludeParams = {"fcmToken"})
     public ResponseEntity<Void> registerFcmToken(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                                  @Valid @RequestBody FcmTokenRegisterRequestDTO request) {
-        fcmSaveService.registerFcmToken(
-            userDetails.getMemberId(),
-            userDetails.getAuthTokenId(),
-            request.getFcmToken()
-        );
+                                                 @Valid @RequestBody FcmTokenRegisterRequestDTO request) {
+        fcmSaveService.registerFcmToken(userDetails.getMemberId(), userDetails.getAuthTokenId(), request.getFcmToken());
         return ResponseEntity.ok().build();
     }
 }

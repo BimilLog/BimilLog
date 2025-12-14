@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import({H2TestConfiguration.class, TestSocialLoginAdapterConfig.class})
 @DisplayName("알림 Query 컨트롤러 통합 테스트")
 @Tag("integration")
-class NotificationQueryControllerIntegrationTest extends BaseIntegrationTest {
+class NotificationControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private NotificationRepository notificationRepository;

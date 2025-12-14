@@ -39,10 +39,6 @@ public class AuthQueryController {
      */
     @GetMapping("/me")
     public ResponseEntity<MemberInfoResponseDTO> getCurrentUser(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        if (userDetails == null) {
-            throw new CustomException(ErrorCode.AUTH_NULL_SECURITY_CONTEXT);
-        }
-
         MemberInfoResponseDTO response = MemberInfoResponseDTO.from(userDetails);
         return ResponseEntity.ok(response);
     }

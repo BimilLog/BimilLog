@@ -18,26 +18,19 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
- * <h2>SSE 어댑터</h2>
+ * <h2>SSE 저장소</h2>
  * <p>SSE의 연결 관리와 알림 전송을 담당합니다.</p>
  * <p>다중 기기 지원을 위해 사용자별, 토큰별로 복수의 SSE 연결을 관리합니다.</p>
- *
- * <h3>주요 기능</h3>
- * <ul>
- *   <li>SSE 연결 구독 및 초기화 메시지 전송</li>
- *   <li>사용자별 다중 Emitter 관리 (멀티 디바이스 지원)</li>
- *   <li>알림 메시지 브로드캐스팅</li>
- *   <li>연결 실패 시 자동 정리</li>
- * </ul>
- *
- ** <ul>
- *   <li>{@link NotificationSseController} - SSE 구독 요청</li>
- *   <li>{@link NotificationSendListener} - 알림 이벤트 발생 시 전송</li>
- *   <li>로그아웃, 회원 제재, 회원 탈퇴 시 연결 정리</li>
- * </ul>
+ * <p>SSE 연결 구독 및 초기화 메시지 전송</p>
+ * <p>사용자별 다중 Emitter 관리 (멀티 디바이스 지원)</p>
+ * <p>알림 메시지 브로드캐스팅</p>
+ * <p>연결 실패 시 자동 정리</p>
+ * <p>{@link NotificationSseController} - SSE 구독 요청</p>
+ * <p>{@link NotificationSendListener} - 알림 이벤트 발생 시 전송</p>
+ * <p>로그아웃, 회원 제재, 회원 탈퇴 시 연결 정리</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.3.0
  */
 @Slf4j
 @Component
@@ -51,254 +44,112 @@ public class SseRepository {
     private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
 
     /**
-     * <h3>SSE 구독 - 실시간 알림 채널 생성</h3>
+     * <h3>SSE 구독</h3>
      * <p>새로운 SSE 연결을 생성하고 초기화 메시지를 전송합니다.</p>
-     *
-     * <p>연결 생명주기 관리:</p>
-     * <ul>
-     *   <li>onCompletion: 클라이언트 정상 종료 시 {@link #deleteById} 호출</li>
-     *   <li>onTimeout: 연결 타임아웃 시 {@link #deleteById} 호출</li>
-     * </ul>
+     * <p>onCompletion: 클라이언트 정상 종료 시 삭제</p>
+     * <p>onTimeout: 연결 타임아웃 시 삭제</p>
      *
      * @param memberId 구독할 사용자의 ID
      * @param tokenId FCM 토큰 ID (멀티 디바이스 구분용)
      * @return 생성된 SseEmitter 객체 (무제한 타임아웃, 로그아웃 시 명시적으로 종료)
      * @author Jaeik
-     * @since 2.0.0
+     * @since 2.3.0
      */
     public SseEmitter subscribe(Long memberId, Long tokenId) {
-        String emitterId = makeTimeIncludeId(memberId, tokenId);
-        log.info("SSE subscribe requested - memberId={}, tokenId={}, emitterId={}", memberId, tokenId, emitterId);
-        SseEmitter emitter = save(emitterId, new SseEmitter(0L));
+        String emitterId = memberId + "_" + tokenId + "_" + System.currentTimeMillis();
+        log.info("SSE 구독 요청됨 - 멤버id={}, 토큰ID={}, 이미터ID={}", memberId, tokenId, emitterId);
+        SseEmitter sseEmitter = new SseEmitter(0L);
+        emitters.put(emitterId, sseEmitter);
 
-        emitter.onCompletion(() -> {
-            log.info("SSE connection completed - emitterId={}", emitterId);
-            deleteById(emitterId);
+        sseEmitter.onCompletion(() -> {
+            log.info("SSE 연결 완료 - 이미터ID={}", emitterId);
+            emitters.remove(emitterId);
         });
-        emitter.onTimeout(() -> {
-            log.warn("SSE connection timed out - emitterId={}", emitterId);
-            deleteById(emitterId);
+        sseEmitter.onTimeout(() -> {
+            log.warn("SSE 타임아웃 - 이미터ID={}", emitterId);
+            emitters.remove(emitterId);
         });
-        emitter.onError(throwable -> {
-            log.warn("SSE connection error - emitterId={}, message={}", emitterId,
-                    throwable != null ? throwable.getMessage() : "unknown", throwable);
-            deleteById(emitterId);
+        sseEmitter.onError(throwable -> {
+            log.warn("SSE 연결 오류 - 이미터ID={}, 메시지={}", emitterId,
+                    throwable != null ? throwable.getMessage() : "원인불명", throwable);
+            emitters.remove(emitterId);
         });
 
         SseMessage initMessage = SseMessage.of(memberId, NotificationType.INITIATE,
-                "이벤트 스트림이 생성되었습니다. [emitterId=%s]".formatted(emitterId), "");
+                "이벤트 스트림이 생성되었습니다. [이미터ID=%s]".formatted(emitterId), "");
 
         // 초기 메시지는 retry 간격을 포함하여 전송 (클라이언트 재연결 간격 5초)
         try {
-            emitter.send(SseEmitter.event()
+            sseEmitter.send(SseEmitter.event()
                     .id(emitterId)
                     .name(initMessage.type().toString())
                     .data(initMessage.toJsonData())
                     .reconnectTime(5000L)); // 5초 후 재연결 시도
         } catch (IOException e) {
-            log.warn("Failed to send initial SSE message - emitterId={}, reason={}", emitterId, e.getMessage(), e);
-            deleteById(emitterId);
+            log.warn("SSE 초기화 전송 실패 - 이미터ID={}, 이유={}", emitterId, e.getMessage(), e);
+            emitters.remove(emitterId);
         }
 
-        return emitter;
+        return sseEmitter;
     }
 
     /**
-     * <h3>SSE 알림 전송 - 실시간 이벤트 브로드캐스팅</h3>
-     * <p>지정된 사용자의 모든 활성 연결에 알림을 전송하고 DB에 저장합니다.</p>
-     * <p>NotificationEventHandler와 각종 도메인 이벤트 핸들러에서 호출됨</p>
-     *
-     * <p>처리 흐름:</p>
-     * <ol>
-     *   <li>알림 설정 확인 ({@link
-     *   <li>사용자 정보 조회 및 검증</li>
-     *   <li>알림 데이터베이스 저장 (히스토리 관리용)</li>
-     *   <li>해당 사용자의 모든 Emitter에 SSE 메시지 브로드캐스팅</li>
-     * </ol>
+     * <h3>SSE 알림 전송</h3>
+     * <p>해당 사용자의 모든 Emitter에 SSE 전송</p>
      *
      * @param sseMessage SSE 메시지 (사용자ID, 타입, 내용, URL 포함)
      * @author Jaeik
-     * @since 2.0.0
+     * @since 2.3.0
      */
     public void send(SseMessage sseMessage) {
         try {
-            Map<String, SseEmitter> emitters = findAllEmitterByMemberId(sseMessage.memberId());
-            emitters.forEach(
+            Map<String, SseEmitter> activeEmitters = emitters.entrySet().stream()
+                    .filter(entry -> entry.getKey().startsWith(sseMessage.memberId() + "_"))
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+            activeEmitters.forEach(
                     (emitterId, emitter) -> {
-                        sendNotification(emitter, emitterId, sseMessage);
+                        try {
+                            emitter.send(SseEmitter.event()
+                                    .name(sseMessage.type().toString())
+                                    .data(sseMessage.toJsonData()));
+                        } catch (IOException e) {
+                            log.warn("SSE 전송 실패 - 이미터ID={}, 타입={}, 이유={}", emitterId,
+                                    sseMessage.type(), e.getMessage(), e);
+                            emitters.remove(emitterId);
+                        }
                     });
-        } catch (CustomException e) {
-            throw e; // 비즈니스 예외는 그대로 전파
         } catch (Exception e) {
             throw new CustomException(ErrorCode.NOTIFICATION_SEND_ERROR, e);
         }
     }
 
     /**
-     * <h3>단일 SSE 알림 전송 - 개별 연결 처리</h3>
-     * <p>특정 Emitter를 통해 클라이언트에게 알림을 전송합니다.</p>
-     * <p>{@link #subscribe}의 초기 메시지와 {@link #send}의 실제 알림 전송에서 호출됨</p>
-     *
-     * <p>IOException 발생 시 해당 Emitter를 자동으로 정리합니다.</p>
-     * <p>이는 클라이언트 연결이 끊어진 경우를 처리하기 위함입니다.</p>
-     *
-     * @param emitter 전송에 사용할 SseEmitter 객체
-     * @param emitterId Emitter의 고유 ID (삭제 시 사용)
-     * @param sseMessage SSE 메시지 (타입별 이벤트명과 JSON 데이터)
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private void sendNotification(SseEmitter emitter, String emitterId, SseMessage sseMessage) {
-        try {
-            emitter.send(SseEmitter.event()
-                    .name(sseMessage.type().toString())
-                    .data(sseMessage.toJsonData()));
-        } catch (IOException e) {
-            log.warn("SSE 전송 실패 - emitterId={}, type={}, reason={}", emitterId,
-                    sseMessage.type(), e.getMessage(), e);
-            deleteById(emitterId);
-        }
-    }
-
-    /**
-     * <h3>SSE 연결 정리</h3>
+     * <h3>SSE 연결 삭제</h3>
      * <p>사용자의 SSE 연결을 정리합니다. 로그아웃, 회원탈퇴 시 호출됩니다.</p>
      * <p>AuthEventHandler.handleLogout, UserEventHandler.handleWithdraw에서 호출됨</p>
-     *
-     * <p>동작 방식:</p>
-     * <ul>
-     *   <li>authTokenId == null: 사용자의 모든 연결 제거 (완전 로그아웃)</li>
-     *   <li>authTokenId != null: 특정 기기의 연결만 제거 (단일 기기 로그아웃)</li>
-     * </ul>
+     * <p>authTokenId == null: 사용자의 모든 연결 제거 (완전 로그아웃)</p>
+     * <p>authTokenId != null: 특정 기기의 연결만 제거 (단일 기기 로그아웃)</p>
      *
      * @param memberId 사용자 ID
      * @param tokenId FCM 토큰 ID (null 허용, null이면 모든 연결 제거)
-     * @see #deleteAllEmitterByUserId(Long)
-     * @see #deleteEmitterByUserIdAndTokenId(Long, Long)
      * @author Jaeik
-     * @since 2.0.0
+     * @since 2.3.0
      */
     public void deleteEmitters(Long memberId, Long tokenId) {
         if (tokenId != null) {
-            deleteEmitterByUserIdAndTokenId(memberId, tokenId);
+            emitters.entrySet().removeIf(entry -> entry.getKey().startsWith(memberId + "_" + tokenId + "_"));
         } else {
-            deleteAllEmitterByUserId(memberId);
+            emitters.entrySet().removeIf(entry -> entry.getKey().startsWith(memberId + "_"));
         }
-    }
-
-    /**
-     * <h3>시간 기반 고유 Emitter ID 생성</h3>
-     * <p>동일한 사용자/기기에서도 시간으로 구분되는 고유 ID를 생성합니다.</p>
-     *
-     * @param memberId 사용자 ID
-     * @param tokenId FCM 토큰 ID
-     * @return 생성된 고유 Emitter ID (시간 기반으로 중복 불가)
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private String makeTimeIncludeId(Long memberId, Long tokenId) {
-        return memberId + "_" + tokenId + "_" + System.currentTimeMillis();
-    }
-
-    /**
-     * <h3>Emitter 저장 - Map에 연결 등록</h3>
-     * <p>새로운 SSE 연결을 내부 저장소에 등록합니다.</p>
-     * <p>{@link #subscribe}에서 새 연결 생성 시 호출됨</p>
-     *
-     * @param emitterId  고유 Emitter ID (memberId_tokenId_timestamp)
-     * @param sseEmitter 저장할 SseEmitter 객체
-     * @return 저장된 SseEmitter 객체 (체이닝용)
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private SseEmitter save(String emitterId, SseEmitter sseEmitter) {
-        emitters.put(emitterId, sseEmitter);
-        return sseEmitter;
-    }
-
-    /**
-     * <h3>사용자의 모든 Emitter 조회 - 멀티 디바이스 지원</h3>
-     * <p>특정 사용자의 모든 활성 SSE 연결을 조회합니다.</p>
-     *
-     * <p>memberId로 시작하는 모든 emitterId를 필터링합니다.</p>
-     *
-     * @param memberId 조회할 사용자 ID
-     * @return 해당 사용자의 모든 Emitter Map (비어있을 수 있음)
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private Map<String, SseEmitter> findAllEmitterByMemberId(Long memberId) {
-        String memberIdPrefix = memberId + "_";
-        return emitters.entrySet().stream()
-                .filter(entry -> entry.getKey().startsWith(memberIdPrefix))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    }
-
-    /**
-     * <h3>단일 Emitter 삭제 - 연결 정리</h3>
-     * <p>특정 Emitter를 Map에서 제거합니다.</p>
-     * <p>다음 상황에서 호출됨:</p>
-     * <ul>
-     *   <li>{@link #subscribe}의 onCompletion/onTimeout 콜백</li>
-     *   <li>{@link #sendNotification}의 IOException 발생 시</li>
-     * </ul>
-     *
-     * @param emitterId 삭제할 Emitter ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private void deleteById(String emitterId) {
-        emitters.remove(emitterId);
-    }
-
-    /**
-     * <h3>사용자의 모든 Emitter 일괄 삭제 - 완전 로그아웃</h3>
-     * <p>특정 사용자의 모든 SSE 연결을 한 번에 제거합니다.</p>
-     * <p>{@link #deleteEmitters}에서 tokenId가 null일 때 호출됨</p>
-     *
-     * <p>removeIf를 사용하여 원자적으로 삭제를 수행합니다.</p>
-     * <p>회원탈퇴 등 사용자의 모든 연결을 정리할 때 사용됩니다.</p>
-     *
-     * @param memberId 삭제할 사용자 ID
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private void deleteAllEmitterByUserId(Long memberId) {
-        String memberIdPrefix = memberId + "_";
-        emitters.entrySet().removeIf(entry -> entry.getKey().startsWith(memberIdPrefix));
-    }
-
-    /**
-     * <h3>특정 기기 Emitter 삭제 - 선택적 로그아웃</h3>
-     * <p>사용자의 특정 기기(토큰)에 해당하는 연결만 제거합니다.</p>
-     * <p>{@link #deleteEmitters}에서 tokenId가 지정됐을 때 호출됨</p>
-     *
-     * <p>멀티 디바이스 환경에서 하나의 기기만 로그아웃할 때 사용됩니다.</p>
-     * <p>같은 기기의 여러 연결(재접속 등)을 모두 정리합니다.</p>
-     *
-     * @param memberId 사용자 ID
-     * @param tokenId FCM 토큰 ID (기기 식별자)
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private void deleteEmitterByUserIdAndTokenId(Long memberId, Long tokenId) {
-        String memberTokenPrefix = memberId + "_" + tokenId + "_";
-        emitters.entrySet().removeIf(entry -> entry.getKey().startsWith(memberTokenPrefix));
     }
 
     /**
      * <h3>Heartbeat 전송 - 연결 활성 유지</h3>
      * <p>주기적으로 모든 활성 SSE 연결에 Heartbeat 메시지를 전송합니다.</p>
      *
-     * <p>주요 목적:</p>
-     * <ul>
-     *   <li>프록시/로드밸런서의 Idle Timeout 방지 (대부분 60초 기본값)</li>
-     *   <li>클라이언트 연결 끊김 조기 감지 (전송 실패 시 자동 정리)</li>
-     *   <li>장기 연결 안정성 향상</li>
-     * </ul>
-     *
      * <p>Heartbeat는 SSE comment 형태로 전송되며, 클라이언트에서 별도 처리 불필요합니다.</p>
-     * <p>전송 실패 시 해당 Emitter를 자동으로 정리하여 메모리 누수를 방지합니다.</p>
+     * <p>전송 실패 시 해당 Emitter를 자동으로 정리</p>
      *
      * @author Jaeik
      * @since 2.0.0
@@ -316,10 +167,10 @@ public class SseRepository {
                 emitter.send(SseEmitter.event().comment("heartbeat"));
             } catch (IOException e) {
                 log.warn("Heartbeat 전송 실패, Emitter 정리: {}", emitterId);
-                deleteById(emitterId);
+                emitters.remove(emitterId);
             } catch (Exception e) {
                 log.error("Heartbeat 전송 중 알 수 없는 오류: {}", emitterId, e);
-                deleteById(emitterId);
+                emitters.remove(emitterId);
             }
         });
     }

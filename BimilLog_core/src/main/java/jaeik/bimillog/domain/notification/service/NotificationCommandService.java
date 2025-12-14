@@ -3,16 +3,15 @@ package jaeik.bimillog.domain.notification.service;
 import jaeik.bimillog.domain.global.listener.MemberWithdrawListener;
 import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.notification.controller.NotificationCommandController;
 import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
 import jaeik.bimillog.domain.notification.event.AlarmSendEvent;
 import jaeik.bimillog.domain.notification.out.NotificationRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,8 +32,13 @@ import java.util.List;
 public class NotificationCommandService {
     private final NotificationRepository notificationRepository;
     private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
-    private final UrlGenerator urlGenerator;
     private final ApplicationEventPublisher eventPublisher;
+
+    @Value("${url}")
+    private String baseUrl;
+    private static final String POST_URL = "/board/post/";
+    private static final String PAPER_URL = "/rolling-paper/";
+    private static final String FRIEND_URL = "/friends?tab=received";
 
     /**
      * <h3>알림 일괄 업데이트</h3>
@@ -49,13 +53,10 @@ public class NotificationCommandService {
      * @since 2.0.0
      */
     @Transactional
-    public void batchUpdate(Long memberId, NotificationUpdateVO updateCommand) {
+    public void batchUpdate(Long memberId, List<Long> readIds, List<Long> deletedIds) {
 
-        List<Long> deleteIds = updateCommand.deletedIds();
-        List<Long> readIds = updateCommand.readIds();
-
-        if (deleteIds != null && !deleteIds.isEmpty()) {
-            notificationRepository.deleteAllByIdInAndMember_Id(deleteIds, memberId);
+        if (deletedIds != null && !deletedIds.isEmpty()) {
+            notificationRepository.deleteAllByIdInAndMember_Id(deletedIds, memberId);
         }
 
         if (readIds != null && !readIds.isEmpty()) {
@@ -89,7 +90,7 @@ public class NotificationCommandService {
      */
     public void saveCommentNotification(Long postOwnerId, String commenterName, Long postId) {
         String message = commenterName + "님이 댓글을 남겼습니다!";
-        String url = urlGenerator.generatePostUrl(postId);
+        String url = baseUrl + POST_URL + postId;
         Member member = globalMemberQueryAdapter.findById(postOwnerId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOTIFICATION_INVALID_USER_CONTEXT));
 
@@ -110,7 +111,7 @@ public class NotificationCommandService {
      */
     public void saveMessageNotification(Long paperOwnerId, String memberName) {
         String message = "롤링페이퍼에 메시지가 작성되었어요!";
-        String url = urlGenerator.generateRollingPaperUrl(memberName);
+        String url = baseUrl + PAPER_URL + memberName;
         Member member = globalMemberQueryAdapter.findById(paperOwnerId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOTIFICATION_INVALID_USER_CONTEXT));
 
@@ -133,7 +134,7 @@ public class NotificationCommandService {
      * @param postTitle 게시글 제목 (FCM 알림 본문에 사용)
      */
     public void savePopularNotification(Long memberId, String message, Long postId, NotificationType notificationType, String postTitle) {
-        String url = urlGenerator.generatePostUrl(postId);
+        String url = baseUrl + POST_URL + postId;
         Member member = globalMemberQueryAdapter.findById(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOTIFICATION_INVALID_USER_CONTEXT));
 
@@ -154,7 +155,7 @@ public class NotificationCommandService {
      * @param senderName 친구 요청 보낸 사람 이름 (FCM 알림에 사용)
      */
     public void saveFriendNotification(Long receiveMemberId, String message, String senderName) {
-        String url = urlGenerator.generateFriendRequestUrl();
+        String url = baseUrl +FRIEND_URL;
         Member member = globalMemberQueryAdapter.findById(receiveMemberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOTIFICATION_INVALID_USER_CONTEXT));
 

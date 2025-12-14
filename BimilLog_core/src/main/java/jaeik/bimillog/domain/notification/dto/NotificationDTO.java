@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.notification.dto;
 
+import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,7 +17,7 @@ import java.time.Instant;
  * </p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.3.0
  */
 @Getter
 @Builder
@@ -30,4 +31,23 @@ public class NotificationDTO {
     private boolean read;
     private Instant createdAt;
 
+    /**
+     * <h3>도메인 엔티티를 DTO로 변환</h3>
+     * <p>Notification을 NotificationDTO로 변환합니다.</p>
+     *
+     * @param notification 도메인 알림 엔티티
+     * @return NotificationDTO
+     * @author Jaeik
+     * @since 2.3.0
+     */
+    public static NotificationDTO from(Notification notification) {
+        return NotificationDTO.builder()
+                .id(notification.getId())
+                .content(notification.getContent())
+                .url(notification.getUrl())
+                .notificationType(notification.getNotificationType())
+                .read(notification.isRead())
+                .createdAt(notification.getCreatedAt())
+                .build();
+    }
 }
