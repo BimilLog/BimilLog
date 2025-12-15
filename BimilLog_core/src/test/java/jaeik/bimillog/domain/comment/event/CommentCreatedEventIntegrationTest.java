@@ -1,8 +1,6 @@
 package jaeik.bimillog.domain.comment.event;
 
-import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.notification.service.FcmPushService;
-import jaeik.bimillog.domain.notification.service.SseService;
+import jaeik.bimillog.domain.notification.service.NotificationCommandService;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
@@ -16,21 +14,18 @@ import static org.mockito.Mockito.verify;
 
 /**
  * <h2>댓글 생성 이벤트 워크플로우 통합 테스트</h2>
- * <p>댓글 생성 시 NotificationGenerateListener가 SSE와 FCM 알림을 전송하는 워크플로우를 검증</p>
- * <p>이벤트 리스너의 책임: 이벤트 수신 → 적절한 유스케이스 호출 검증</p>
+ * <p>댓글 생성 시 실시간 인기글 점수 증가를 검증하는 통합 테스트</p>
+ * <p>CommentCreatedEvent 발생 시 비동기로 실시간 인기글 점수가 3점 증가하는지 검증합니다.</p>
  *
  * @author Jaeik
- * @version 2.1.0
+ * @version 2.3.0
  */
 @DisplayName("댓글 생성 이벤트 워크플로우 통합 테스트")
 @Tag("integration")
 class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
 
     @MockitoBean
-    private SseService sseService;
-
-    @MockitoBean
-    private FcmPushService fcmPushService;
+    private NotificationCommandService notificationCommandService;
 
     @MockitoBean
     private RedisPostUpdateAdapter redisPostUpdateAdapter;
@@ -38,23 +33,14 @@ class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
     private static final double COMMENT_SCORE = 3.0;
 
     @Test
-    @DisplayName("댓글 생성 이벤트 발생 시 SSE와 FCM 알림 및 실시간 인기글 점수 증가 검증")
-    void commentCreatedEventWorkflow_ShouldCompleteNotificationsAndScoreIncrement() {
+    @DisplayName("댓글 생성 이벤트 발생 시 실시간 인기글 점수 증가 검증")
+    void commentCreatedEventWorkflow_ShouldIncrementScore() {
         // Given
-        var event = new CommentCreatedEvent(1L, "댓글작성자", 1L, 100L);
+        var event = new CommentCreatedEvent(testMember.getId(), testMember.getMemberName(), 1L, 100L);
 
         // When & Then
         publishAndVerify(event, () -> {
-            verify(sseService).sendNotification(
-                    eq(1L),
-                    eq(NotificationType.COMMENT),
-                    eq("댓글작성자님이 댓글을 남겼습니다!"),
-                    anyString());
-            verify(fcmPushService).sendNotification(
-                    eq(NotificationType.COMMENT),
-                    eq(1L),
-                    eq("댓글작성자"),
-                    isNull());
+            // Redis 실시간 인기글 점수 증가 검증
             verify(redisPostUpdateAdapter).incrementRealtimePopularScore(
                     eq(100L), eq(COMMENT_SCORE));
         });
@@ -65,49 +51,13 @@ class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
     void multipleCommentCreatedEvents_ShouldProcessIndependently() {
         // Given - 다양한 댓글 이벤트 생성
         var events = new java.util.ArrayList<CommentCreatedEvent>();
-        events.add(new CommentCreatedEvent(1L, "댓글작성자1", 1L, 100L));  // 동일 게시글
-        events.add(new CommentCreatedEvent(1L, "댓글작성자2", 1L, 100L));  // 동일 게시글
-        events.add(new CommentCreatedEvent(2L, "댓글작성자3", 2L, 101L));  // 다른 게시글
+        events.add(new CommentCreatedEvent(testMember.getId(), "댓글작성자1", 1L, 100L));  // 동일 게시글
+        events.add(new CommentCreatedEvent(testMember.getId(), "댓글작성자2", 1L, 100L));  // 동일 게시글
+        events.add(new CommentCreatedEvent(otherMember.getId(), "댓글작성자3", 2L, 101L));  // 다른 게시글
 
         // When & Then - 각 이벤트가 모두 처리되는지 검증
         publishEvents(events);
         verifyAsyncSlow(() -> {
-            // 첫 번째 이벤트
-            verify(sseService).sendNotification(
-                    eq(1L),
-                    eq(NotificationType.COMMENT),
-                    eq("댓글작성자1님이 댓글을 남겼습니다!"),
-                    anyString());
-            verify(fcmPushService).sendNotification(
-                    eq(NotificationType.COMMENT),
-                    eq(1L),
-                    eq("댓글작성자1"),
-                    isNull());
-
-            // 두 번째 이벤트
-            verify(sseService).sendNotification(
-                    eq(1L),
-                    eq(NotificationType.COMMENT),
-                    eq("댓글작성자2님이 댓글을 남겼습니다!"),
-                    anyString());
-            verify(fcmPushService).sendNotification(
-                    eq(NotificationType.COMMENT),
-                    eq(1L),
-                    eq("댓글작성자2"),
-                    isNull());
-
-            // 세 번째 이벤트
-            verify(sseService).sendNotification(
-                    eq(2L),
-                    eq(NotificationType.COMMENT),
-                    eq("댓글작성자3님이 댓글을 남겼습니다!"),
-                    anyString());
-            verify(fcmPushService).sendNotification(
-                    eq(NotificationType.COMMENT),
-                    eq(2L),
-                    eq("댓글작성자3"),
-                    isNull());
-
             // 실시간 인기글 점수 증가 검증
             verify(redisPostUpdateAdapter, times(2)).incrementRealtimePopularScore(
                     eq(100L), eq(COMMENT_SCORE));

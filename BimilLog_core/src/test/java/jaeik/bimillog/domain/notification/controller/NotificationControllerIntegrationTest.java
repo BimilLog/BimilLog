@@ -97,7 +97,7 @@ class NotificationControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$[?(@.notificationType == 'MESSAGE')]").exists())
                 .andExpect(jsonPath("$[?(@.notificationType == 'COMMENT')]").exists())
-                .andExpect(jsonPath("$[?(@.notificationType == 'POST_FEATURED')]").exists())
+                .andExpect(jsonPath("$[?(@.notificationType == 'POST_FEATURED_WEEKLY')]").exists())
                 .andExpect(jsonPath("$[?(@.notificationType == 'ADMIN')]").exists())
                 .andExpect(jsonPath("$[?(@.notificationType == 'INITIATE')]").exists());
     }
