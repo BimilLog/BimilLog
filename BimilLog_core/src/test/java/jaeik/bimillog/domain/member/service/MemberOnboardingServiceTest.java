@@ -11,6 +11,7 @@ import jaeik.bimillog.domain.global.out.GlobalSocialTokenCommandAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.out.MemberRepository;
+import jaeik.bimillog.domain.member.out.MemberToAuthAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.member.RedisMemberDataAdapter;
@@ -45,6 +46,7 @@ class MemberOnboardingServiceTest extends BaseUnitTest {
     @Mock private GlobalCookieAdapter globalCookieAdapter;
     @Mock private GlobalJwtAdapter globalJwtAdapter;
     @Mock private GlobalAuthTokenSaveAdapter globalAuthTokenSaveAdapter;
+    @Mock private MemberToAuthAdapter memberToAuthAdapter;
     @Mock private GlobalSocialTokenCommandAdapter globalSocialTokenCommandAdapter;
 
     @InjectMocks private MemberOnboardingService onboardingService;
@@ -100,7 +102,7 @@ class MemberOnboardingServiceTest extends BaseUnitTest {
         given(globalSocialTokenCommandAdapter.save(any(SocialToken.class)))
                 .willReturn(SocialToken.createSocialToken("access-token", "refresh-token"));
         given(memberRepository.save(any(Member.class))).willReturn(persistedMember);
-        given(globalAuthTokenSaveAdapter.save(any(AuthToken.class))).willReturn(persistedAuthToken);
+        given(memberToAuthAdapter.saveAuthToken(any(AuthToken.class))).willReturn(persistedAuthToken);
         given(globalJwtAdapter.generateAccessToken(any(CustomUserDetails.class))).willReturn("access-jwt");
         given(globalJwtAdapter.generateRefreshToken(any(CustomUserDetails.class))).willReturn("refresh-jwt");
         given(globalCookieAdapter.generateJwtCookie("access-jwt", "refresh-jwt")).willReturn(jwtCookies);
@@ -111,7 +113,7 @@ class MemberOnboardingServiceTest extends BaseUnitTest {
         verify(redisMemberDataAdapter).getTempData("uuid-123");
         verify(globalSocialTokenCommandAdapter).save(any(SocialToken.class));
         verify(memberRepository).save(any(Member.class));
-        verify(globalAuthTokenSaveAdapter).save(any(AuthToken.class));
+        verify(memberToAuthAdapter).saveAuthToken(any(AuthToken.class));
 
         ArgumentCaptor<CustomUserDetails> detailCaptor = ArgumentCaptor.forClass(CustomUserDetails.class);
         verify(globalJwtAdapter).generateAccessToken(detailCaptor.capture());
@@ -145,7 +147,7 @@ class MemberOnboardingServiceTest extends BaseUnitTest {
         given(globalSocialTokenCommandAdapter.save(any(SocialToken.class)))
                 .willReturn(SocialToken.createSocialToken("access-token", "refresh-token"));
         given(memberRepository.save(any(Member.class))).willReturn(persistedMember);
-        given(globalAuthTokenSaveAdapter.save(any(AuthToken.class))).willReturn(persistedAuthToken);
+        given(memberToAuthAdapter.saveAuthToken(any(AuthToken.class))).willReturn(persistedAuthToken);
         given(globalJwtAdapter.generateAccessToken(any(CustomUserDetails.class))).willReturn("access-jwt");
         given(globalJwtAdapter.generateRefreshToken(any(CustomUserDetails.class))).willReturn("refresh-jwt");
         given(globalCookieAdapter.generateJwtCookie("access-jwt", "refresh-jwt")).willReturn(jwtCookies);

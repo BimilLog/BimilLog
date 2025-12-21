@@ -90,8 +90,6 @@ class FriendRequestCommandServiceTest extends BaseUnitTest {
 
         FriendEvent publishedEvent = eventCaptor.getValue();
         assertThat(publishedEvent.getReceiveMemberId()).isEqualTo(RECEIVER_ID);
-        assertThat(publishedEvent.getFcmTitle()).contains(sender.getMemberName());
-        assertThat(publishedEvent.getFcmTitle()).contains("친구 요청");
     }
 
     @Test

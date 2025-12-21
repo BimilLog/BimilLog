@@ -5,7 +5,6 @@ import jaeik.bimillog.domain.friend.entity.Friend;
 import jaeik.bimillog.domain.member.dto.KakaoFriendsDTO;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.out.MemberQueryRepository;
-import jaeik.bimillog.domain.member.out.MemberRepository;
 import jaeik.bimillog.domain.member.out.MemberToAuthAdapter;
 import jaeik.bimillog.infrastructure.api.social.kakao.KakaoFriendClient;
 import jaeik.bimillog.infrastructure.exception.CustomException;

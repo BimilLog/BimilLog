@@ -5,9 +5,13 @@ import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.auth.out.AuthToMemberAdapter;
+import jaeik.bimillog.domain.auth.out.AuthTokenRepository;
 import jaeik.bimillog.domain.auth.out.BlackListRepository;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.domain.global.out.*;
+import jaeik.bimillog.domain.global.out.GlobalAuthTokenSaveAdapter;
+import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
+import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
+import jaeik.bimillog.domain.global.out.GlobalSocialTokenCommandAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -38,6 +42,7 @@ public class SocialLoginTransactionalService {
     private final BlackListRepository blackListRepository;
     private final GlobalCookieAdapter globalCookieAdapter;
     private final GlobalJwtAdapter globalJwtAdapter;
+    private final AuthTokenRepository authTokenRepository;
     private final GlobalAuthTokenSaveAdapter globalAuthTokenSaveAdapter;
     private final GlobalSocialTokenCommandAdapter globalSocialTokenCommandAdapter;
 
@@ -101,7 +106,7 @@ public class SocialLoginTransactionalService {
 
         // 3. AuthToken 생성
         AuthToken initialAuthToken = AuthToken.createToken("", updateMember);
-        AuthToken persistedAuthToken = globalAuthTokenSaveAdapter.save(initialAuthToken);
+        AuthToken persistedAuthToken = authTokenRepository.save(initialAuthToken);
 
         // 5. CustomUserDetails 생성
         CustomUserDetails userDetails = CustomUserDetails.ofExisting(updateMember, persistedAuthToken.getId());

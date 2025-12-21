@@ -148,7 +148,4 @@ public class TestSocialLoginAdapterConfig {
             );
         }
     }
-
-    // Note: GlobalJwtAdapter, GlobalCookieAdapter, and BlacklistAdapter are now concrete classes.
-    // Tests should use @MockitoBean to mock them directly when needed.
 }

@@ -11,8 +11,6 @@ import java.util.Optional;
 /**
  * <h2>JWT 토큰 조회 공용 어댑터</h2>
  * <p>여러 도메인에서 공통으로 사용하는 JWT 토큰 조회 기능을 구현하는 어댑터입니다.</p>
- * <p>GlobalTokenQueryPort를 구현하여 도메인 간 JWT 토큰 조회 기능을 통합 제공합니다.</p>
- * <p>JwtTokenRepository를 통해 실제 JWT 토큰 데이터에 접근합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -20,7 +18,6 @@ import java.util.Optional;
 @Component
 @RequiredArgsConstructor
 public class GlobalAuthTokenQueryAdapter {
-
     private final AuthTokenRepository authTokenRepository;
 
     /**

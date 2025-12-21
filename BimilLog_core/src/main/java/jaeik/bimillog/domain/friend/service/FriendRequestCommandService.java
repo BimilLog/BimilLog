@@ -91,8 +91,7 @@ public class FriendRequestCommandService {
         eventPublisher.publishEvent(new FriendEvent(
                 receiveMemberId,
                 sender.getMemberName() + "님 에게서 친구 요청이 도착했습니다.",
-                sender.getMemberName() + "님 에게서 친구 요청이 도착했습니다.",
-                "비밀로그에서 확인해보세요!"
+                sender.getMemberName()
         ));
     }
 

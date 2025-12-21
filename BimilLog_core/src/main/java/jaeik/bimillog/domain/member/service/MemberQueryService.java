@@ -8,6 +8,7 @@ import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.out.MemberQueryRepository;
 import jaeik.bimillog.domain.member.out.MemberRepository;
 import jaeik.bimillog.domain.member.out.SettingRepository;
+import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -165,5 +166,9 @@ public class MemberQueryService {
      */
     public Optional<Member> findByProviderAndSocialId(SocialProvider provider, String socialId) {
         return memberRepository.findByProviderAndSocialId(provider, socialId);
+    }
+
+    public List<String> fcmEligibleFcmTokens(Long memberId, NotificationType type) {
+        return memberQueryRepository.fcmEligibleFcmTokens(memberId, type);
     }
 }

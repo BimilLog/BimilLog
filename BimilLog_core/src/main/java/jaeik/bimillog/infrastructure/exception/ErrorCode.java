@@ -37,6 +37,8 @@ public enum ErrorCode {
     AUTH_INVALID_USER_DATA(HttpStatus.BAD_REQUEST, "사용자 데이터가 유효하지 않습니다.", LogLevel.WARN),
     AUTH_INVALID_TOKEN_DATA(HttpStatus.BAD_REQUEST, "토큰 데이터가 유효하지 않습니다.", LogLevel.WARN),
     SOCIAL_TOKEN_NOT_FOUNT(HttpStatus.FORBIDDEN, "소셜 토큰을 찾을 수 없습니다", LogLevel.ERROR),
+    NOTIFICATION_NO_SEND_FCM_TOKEN(HttpStatus.BAD_REQUEST, "fcm토큰이 없습니다.", LogLevel.WARN),
+    NOTIFICATION_INVALID_AUTH_TOKEN(HttpStatus.FORBIDDEN, "본인의 AuthToken에만 FCM 토큰을 등록할 수 있습니다.", LogLevel.WARN),
 
     // ===== Comment 도메인 에러 코드 =====
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 댓글을 찾을 수 없습니다.", LogLevel.INFO),
@@ -56,9 +58,7 @@ public enum ErrorCode {
     // ===== Notification 도메인 에러 코드 =====
     NOTIFICATION_SEND_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "알림 전송 중 오류가 발생했습니다.", LogLevel.ERROR),
     NOTIFICATION_INVALID_USER_CONTEXT(HttpStatus.BAD_REQUEST, "유효하지 않은 사용자 컨텍스트입니다.", LogLevel.WARN),
-    NOTIFICATION_NO_SEND_FCM_TOKEN(HttpStatus.BAD_REQUEST, "fcm토큰이 없습니다.", LogLevel.WARN),
     NOTIFICATION_FCM_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "FCM 토큰을 등록할 AuthToken을 찾을 수 없습니다.", LogLevel.WARN),
-    NOTIFICATION_INVALID_AUTH_TOKEN(HttpStatus.FORBIDDEN, "본인의 AuthToken에만 FCM 토큰을 등록할 수 있습니다.", LogLevel.WARN),
 
     // ===== Paper 도메인 에러 코드 =====
     PAPER_USERNAME_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 닉네임의 롤링페이퍼를 찾을 수 없습니다.", LogLevel.INFO),

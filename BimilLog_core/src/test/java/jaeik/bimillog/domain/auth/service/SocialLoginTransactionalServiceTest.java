@@ -5,9 +5,13 @@ import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.auth.out.AuthToMemberAdapter;
+import jaeik.bimillog.domain.auth.out.AuthTokenRepository;
 import jaeik.bimillog.domain.auth.out.BlackListRepository;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.domain.global.out.*;
+import jaeik.bimillog.domain.global.out.GlobalAuthTokenSaveAdapter;
+import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
+import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
+import jaeik.bimillog.domain.global.out.GlobalSocialTokenCommandAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
@@ -51,6 +55,7 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
     @Mock private GlobalJwtAdapter globalJwtAdapter;
     @Mock private GlobalAuthTokenSaveAdapter globalAuthTokenSaveAdapter;
     @Mock private GlobalSocialTokenCommandAdapter globalSocialTokenCommandAdapter;
+    @Mock private AuthTokenRepository authTokenRepository;
 
     @InjectMocks
     private SocialLoginTransactionalService socialLoginTransactionalService;
@@ -83,7 +88,7 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
                 .member(existingMember)
                 .useCount(0)
                 .build();
-        given(globalAuthTokenSaveAdapter.save(any(AuthToken.class))).willReturn(persistedAuthToken);
+        given(authTokenRepository.save(any(AuthToken.class))).willReturn(persistedAuthToken);
 
         given(globalJwtAdapter.generateAccessToken(any(CustomUserDetails.class))).willReturn("generated-access-token");
         given(globalJwtAdapter.generateRefreshToken(any(CustomUserDetails.class))).willReturn("generated-refresh-token");

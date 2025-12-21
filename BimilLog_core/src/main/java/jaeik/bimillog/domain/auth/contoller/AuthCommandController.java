@@ -3,9 +3,11 @@ package jaeik.bimillog.domain.auth.contoller;
 import jaeik.bimillog.domain.auth.dto.SocialLoginRequestDTO;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.event.MemberLoggedOutEvent;
+import jaeik.bimillog.domain.auth.service.AuthTokenService;
 import jaeik.bimillog.domain.auth.service.SocialLoginService;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
+import jaeik.bimillog.domain.notification.dto.FcmTokenRegisterRequestDTO;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.log.Log.LogLevel;
 import jakarta.validation.Valid;
@@ -35,11 +37,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/auth")
 @Validated
 public class AuthCommandController {
-
     private final SocialLoginService socialLoginService;
     private final GlobalCookieAdapter globalCookieAdapter;
     private final ApplicationEventPublisher eventPublisher;
-
+    private final AuthTokenService authTokenService;
 
     /**
      * <h3>소셜 로그인</h3>
@@ -50,11 +51,11 @@ public class AuthCommandController {
      * @author Jaeik
      * @since 2.0.0
      */
-    @PostMapping("/login")
     @Log(level = LogLevel.INFO,
-         logExecutionTime = true,
-         excludeParams = {"code", "state"},
-         message = "소셜 로그인 요청")
+            logExecutionTime = true,
+            excludeParams = {"code", "state"},
+            message = "소셜 로그인 요청")
+    @PostMapping("/login")
     public ResponseEntity<String> socialLogin(@Valid @RequestBody SocialLoginRequestDTO request) {
         LoginResult loginResult = socialLoginService.processSocialLogin(
                 request.getSocialProvider(),
@@ -72,7 +73,6 @@ public class AuthCommandController {
         };
     }
 
-
     /**
      * <h3>로그아웃</h3>
      * <p>사용자의 로그아웃 요청을 처리합니다.</p>
@@ -82,15 +82,38 @@ public class AuthCommandController {
      * @author Jaeik
      * @since 2.0.0
      */
-    @PostMapping("/logout")
     @Log(level = LogLevel.INFO,
-         message = "로그아웃 요청",
-         logParams = false)
+            message = "로그아웃 요청",
+            logParams = false)
+    @PostMapping("/logout")
     public ResponseEntity<Void> logout(@AuthenticationPrincipal CustomUserDetails userDetails) {
         eventPublisher.publishEvent(new MemberLoggedOutEvent(userDetails.getMemberId(), userDetails.getAuthTokenId(), userDetails.getSocialProvider()));
         return ResponseEntity.ok()
                 .headers(headers -> globalCookieAdapter.getLogoutCookies().forEach(cookie ->
                         headers.add("Set-Cookie", cookie.toString())))
                 .build();
+    }
+
+    /**
+     * <h3>FCM 토큰 등록</h3>
+     * <p>사용자의 FCM 푸시 알림 토큰을 해당 기기의 AuthToken에 등록합니다.</p>
+     * <p>로그인 또는 회원가입 완료 후 클라이언트가 별도로 호출합니다.</p>
+     *
+     * @param userDetails 인증된 사용자 정보 (memberId, authTokenId 포함)
+     * @param request     FCM 토큰 등록 요청 DTO
+     * @return 등록 성공 응답
+     * @author Jaeik
+     * @since 2.1.0
+     */
+    @Log(level = LogLevel.INFO,
+            logExecutionTime = true,
+            message = "FCM 토큰 등록",
+            excludeParams = {"fcmToken"},
+            logParams = false)
+    @PostMapping("/fcm")
+    public ResponseEntity<Void> registerFcmToken(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                                 @Valid @RequestBody FcmTokenRegisterRequestDTO request) {
+        authTokenService.registerFcmToken(userDetails.getMemberId(), userDetails.getAuthTokenId(), request.getFcmToken());
+        return ResponseEntity.ok().build();
     }
 }

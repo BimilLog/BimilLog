@@ -1,7 +1,6 @@
 package jaeik.bimillog.infrastructure.api.fcm;
 
 import com.google.auth.oauth2.GoogleCredentials;
-import jaeik.bimillog.domain.notification.entity.FcmMessage;
 import jaeik.bimillog.infrastructure.api.dto.FcmMessageDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +23,6 @@ import java.util.List;
 @Repository
 @RequiredArgsConstructor
 public class FcmAdapter {
-
     private final FcmApiClient fcmApiClient;
 
     private static final String FIREBASE_CONFIG_PATH = "firebase/growfarm-6cd79-firebase-adminsdk-fbsvc-ad2bc92194.json";
@@ -36,13 +34,12 @@ public class FcmAdapter {
      * <p>Firebase Cloud Messaging API를 통해 모바일 기기로 푸시 알림을 전송합니다.</p>
      * <p>NotificationGenerateListener에서 도메인 이벤트 처리 시 호출되어 실시간 알림을 제공합니다.</p>
      *
-     * @param fcmMessage 전송할 FCM 메시지 정보 (토큰, 제목, 내용 포함)
      * @throws IOException Firebase API 호출 중 발생할 수 있는 IO 예외
      * @author Jaeik
      * @since 2.0.0
      */
-    public void sendMessageTo(FcmMessage fcmMessage) throws IOException {
-        FcmMessageDTO fcmMessageDto = createFcmMessageDTO(fcmMessage);
+    public void sendMessageTo(String token, String title, String body) throws IOException {
+        FcmMessageDTO fcmMessageDto = createFcmMessageDTO(token, title, body);
         String accessToken = getAccessToken();
         
         fcmApiClient.sendMessage(
@@ -51,7 +48,7 @@ public class FcmAdapter {
                 fcmMessageDto
         );
 
-        log.info("fcmMessage.token() = {}, accessToken = {}", fcmMessage.token(), accessToken);
+        log.info("fcmMessage.token() = {}, accessToken = {}", token, accessToken);
     }
 
     /**
@@ -77,22 +74,20 @@ public class FcmAdapter {
      * <p>FCM 전송 DTO를 생성합니다.</p>
      * <p>DTO에서 필드 검증 및 기본값 처리가 완료되므로 단순 변환 작업만 수행합니다.</p>
      *
-     * @param fcmMessage FCM 객체
      * @return FcmMessageDTO FCM API로 전송할 메시지 DTO
      * @author Jaeik
      * @since 2.0.0
      */
-    private FcmMessageDTO createFcmMessageDTO(FcmMessage fcmMessage) {
+    private FcmMessageDTO createFcmMessageDTO(String token, String title, String body) {
         return FcmMessageDTO.builder()
                 .message(FcmMessageDTO.Message.builder()
-                        .token(fcmMessage.token())
+                        .token(token)
                         .notification(FcmMessageDTO.Notification.of(
-                                fcmMessage.title(),
-                                fcmMessage.body(),
+                                title,
+                                body,
                                 null))
                         .build())
                 .validateOnly(false)
                 .build();
     }
-
 }

@@ -1,49 +1,36 @@
-package jaeik.bimillog.domain.notification.repository;
+package jaeik.bimillog.domain.notification.out;
 
-import jaeik.bimillog.domain.member.service.MemberQueryService;
-import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.SseMessage;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.Map;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.given;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**
- * <h2>SseAdapter 단위 테스트</h2>
+ * <h2>SseRepository 단위 테스트</h2>
  * <p>SSE(Server-Sent Events) 연결 관리 및 알림 전송 기능을 검증합니다.</p>
  * <p>ConcurrentHashMap 기반 Emitter 관리와 동시성 처리를 테스트합니다.</p>
+ * <p>리팩토링 후: DB 저장은 NotificationSaveListener에서 수행하므로, SSE 전송만 테스트</p>
  *
  * @author Jaeik
  * @version 2.0.0
  * @see SseRepository
  */
 @Tag("unit")
-@DisplayName("SseAdapter 단위 테스트")
+@DisplayName("SseRepository 단위 테스트")
 class SseRepositoryTest extends BaseUnitTest {
-
-    @Mock
-    private MemberQueryService memberQueryService;
-
-    @Mock
-    private NotificationRepository notificationRepository;
 
     @InjectMocks
     private SseRepository sseRepository;
@@ -100,62 +87,19 @@ class SseRepositoryTest extends BaseUnitTest {
         Map<String, SseEmitter> emitters = getEmittersMap();
         emitters.put(emitterId, mockEmitter);
 
-        given(memberQueryService.findById(memberId)).willReturn(Optional.of(getTestMember()));
-
         // When
         SseMessage sseMessage = SseMessage.of(memberId, NotificationType.COMMENT,
                 "테스터님이 댓글을 남겼습니다!", "/board/post/100");
         sseRepository.send(sseMessage);
 
-        // Then
-        verify(memberQueryService).findById(memberId);
-        verify(notificationRepository).save(any(Notification.class));
-
-        // SseEmitter로 실제 전송 시도 확인
+        // Then: SseEmitter로 실제 전송 시도 확인 (DB 저장 검증 제거)
         verify(mockEmitter, times(1)).send(any(SseEmitter.SseEventBuilder.class));
-    }
-
-    @Test
-    @DisplayName("SSE 알림 전송 - 사용자 없음 예외")
-    void shouldThrowException_WhenMemberNotFound() {
-        // Given
-        given(memberQueryService.findById(memberId)).willReturn(Optional.empty());
-
-        // When & Then
-        SseMessage sseMessage = SseMessage.of(memberId, NotificationType.COMMENT, "테스트 메시지", "/test/url");
-        assertThatThrownBy(() -> sseRepository.send(sseMessage))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.NOTIFICATION_INVALID_USER_CONTEXT);
-
-        verify(memberQueryService).findById(memberId);
-        verify(notificationRepository, never()).save(any(Notification.class));
-    }
-
-    @Test
-    @DisplayName("SSE 알림 전송 - 알림 저장 실패 시 예외")
-    void shouldThrowException_WhenNotificationSaveFails() {
-        // Given
-        given(memberQueryService.findById(memberId)).willReturn(Optional.of(getTestMember()));
-        doThrow(new RuntimeException("DB 저장 실패"))
-                .when(notificationRepository).save(any(Notification.class));
-
-        // When & Then
-        SseMessage sseMessage = SseMessage.of(memberId, NotificationType.COMMENT, "테스트 메시지", "/test/url");
-        assertThatThrownBy(() -> sseRepository.send(sseMessage))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.NOTIFICATION_SEND_ERROR);
-
-        verify(memberQueryService).findById(memberId);
-        verify(notificationRepository).save(any(Notification.class));
     }
 
     @Test
     @DisplayName("SSE 알림 전송 - Emitter가 없는 경우 정상 처리")
     void shouldHandleEmptyEmitters_WhenNoEmittersExist() throws Exception {
-        // Given
-        given(memberQueryService.findById(memberId)).willReturn(Optional.of(getTestMember()));
-
-        // emitters Map이 비어있는 상태 확인
+        // Given: emitters Map이 비어있는 상태 확인
         Map<String, SseEmitter> emitters = getEmittersMap();
         emitters.clear();
 
@@ -163,10 +107,8 @@ class SseRepositoryTest extends BaseUnitTest {
         SseMessage sseMessage = SseMessage.of(memberId, NotificationType.COMMENT, "테스트 메시지", "/test/url");
         sseRepository.send(sseMessage);
 
-        // Then
-        verify(memberQueryService).findById(memberId);
-        verify(notificationRepository).save(any(Notification.class));
-        // Emitter가 없어도 예외가 발생하지 않아야 함
+        // Then: Emitter가 없어도 예외가 발생하지 않아야 함
+        assertThat(emitters).isEmpty();
     }
 
     @Test
@@ -216,17 +158,11 @@ class SseRepositoryTest extends BaseUnitTest {
         emitters.put(memberId + "_100_1234567890", mockEmitter1);
         emitters.put(memberId + "_101_1234567891", mockEmitter2);
 
-        given(memberQueryService.findById(memberId)).willReturn(Optional.of(getTestMember()));
-
         // When
         SseMessage sseMessage = SseMessage.of(memberId, NotificationType.COMMENT, "테스트 메시지", "/test/url");
         sseRepository.send(sseMessage);
 
-        // Then
-        verify(memberQueryService).findById(memberId);
-        verify(notificationRepository).save(any(Notification.class));
-
-        // 두 Emitter 모두에게 전송 확인
+        // Then: 두 Emitter 모두에게 전송 확인 (DB 저장 검증 제거)
         verify(mockEmitter1, times(1)).send(any(SseEmitter.SseEventBuilder.class));
         verify(mockEmitter2, times(1)).send(any(SseEmitter.SseEventBuilder.class));
     }
@@ -245,16 +181,11 @@ class SseRepositoryTest extends BaseUnitTest {
         doThrow(new IOException("Connection lost"))
                 .when(mockEmitter).send(any(SseEmitter.SseEventBuilder.class));
 
-        given(memberQueryService.findById(memberId)).willReturn(Optional.of(getTestMember()));
-
         // When
         SseMessage sseMessage = SseMessage.of(memberId, NotificationType.COMMENT, "테스트 메시지", "/test/url");
         sseRepository.send(sseMessage);
 
-        // Then: IOException이 발생해도 전체 프로세스는 정상 완료
-        verify(notificationRepository).save(any(Notification.class));
-
-        // Emitter가 Map에서 제거되었는지 확인
+        // Then: IOException이 발생해도 전체 프로세스는 정상 완료, Emitter가 Map에서 제거됨
         Map<String, SseEmitter> remainingEmitters = getEmittersMap();
         assertThat(remainingEmitters).doesNotContainKey(emitterId);
     }

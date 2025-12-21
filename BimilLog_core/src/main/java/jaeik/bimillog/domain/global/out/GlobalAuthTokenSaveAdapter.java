@@ -16,22 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 @RequiredArgsConstructor
 public class GlobalAuthTokenSaveAdapter {
-
     private final AuthTokenRepository authTokenRepository;
-
-    /**
-     * <h3>토큰 저장</h3>
-     * <p>토큰 정보를 저장하거나 업데이트합니다.</p>
-     * <p>TokenRepository를 통해 데이터베이스에 토큰을 저장합니다.</p>
-     *
-     * @param authToken 저장할 토큰 엔티티
-     * @return AuthToken 저장된 토큰 엔티티
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public AuthToken save(AuthToken authToken) {
-        return authTokenRepository.save(authToken);
-    }
 
     /**
      * <h3>JWT 리프레시 토큰 업데이트</h3>

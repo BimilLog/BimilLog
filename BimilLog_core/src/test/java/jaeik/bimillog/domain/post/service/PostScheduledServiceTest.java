@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.post.service;
 
+import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
@@ -152,8 +153,8 @@ class PostScheduledServiceTest {
         PostFeaturedEvent event = eventCaptor.getValue();
         assertThat(event.memberId()).isEqualTo(1L);
         assertThat(event.sseMessage()).isEqualTo("명예의 전당에 등극했어요!");
-        assertThat(event.fcmTitle()).isEqualTo("명예의 전당 등극");
-        assertThat(event.fcmBody()).contains("명예의 전당에 등극했습니다");
+        assertThat(event.notificationType()).isEqualTo(NotificationType.POST_FEATURED_LEGEND);
+        assertThat(event.postTitle()).isNotNull();
     }
 
     @Test

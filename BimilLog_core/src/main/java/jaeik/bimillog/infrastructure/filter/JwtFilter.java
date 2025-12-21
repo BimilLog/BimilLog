@@ -8,7 +8,6 @@ import jaeik.bimillog.domain.global.out.GlobalAuthTokenSaveAdapter;
 import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
 import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.member.out.MemberQueryRepository;
 import jaeik.bimillog.domain.member.out.MemberRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;

@@ -1,7 +1,5 @@
 package jaeik.bimillog.domain.member.out;
 
-import jaeik.bimillog.domain.friend.entity.Friend;
-import jaeik.bimillog.domain.friend.entity.RecommendedFriend;
 import jaeik.bimillog.domain.member.dto.SimpleMemberDTO;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;

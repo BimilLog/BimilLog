@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.out.AuthTokenRepository;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.notification.dto.FcmTokenRegisterRequestDTO;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.annotation.IntegrationTest;
@@ -16,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -138,5 +140,198 @@ class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andDo(print())
                 .andExpect(status().isForbidden());
+    }
+
+    // ==================== FCM 토큰 등록 테스트 ====================
+
+    @Test
+    @DisplayName("FCM 토큰 등록 통합 테스트 - 성공")
+    void registerFcmToken_IntegrationTest_Success() throws Exception {
+        // Given: AuthToken 생성
+        AuthToken authToken = AuthToken.createToken("refresh-token-123", testMember);
+        authToken = authTokenRepository.save(authToken);
+
+        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(
+                testMember,
+                authToken.getId()
+        );
+
+        FcmTokenRegisterRequestDTO request = new FcmTokenRegisterRequestDTO(
+                "fcm-test-token-abcdefg1234567890"
+        );
+
+        // When: POST /api/auth/fcm
+        mockMvc.perform(post("/api/auth/fcm")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(user(userDetails))
+                        .with(csrf()))
+                .andDo(print())
+                // Then: 200 OK
+                .andExpect(status().isOk());
+
+        // Then: DB 확인
+        AuthToken updatedToken = authTokenRepository.findById(authToken.getId())
+                .orElseThrow();
+        assertThat(updatedToken.getFcmRegistrationToken())
+                .isEqualTo("fcm-test-token-abcdefg1234567890");
+    }
+
+    @Test
+    @DisplayName("FCM 토큰 등록 - 빈 토큰 - 400 Bad Request")
+    void registerFcmToken_EmptyToken_BadRequest() throws Exception {
+        // Given: AuthToken 생성
+        AuthToken authToken = AuthToken.createToken("refresh-token-456", testMember);
+        authToken = authTokenRepository.save(authToken);
+
+        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(
+                testMember,
+                authToken.getId()
+        );
+
+        FcmTokenRegisterRequestDTO request = new FcmTokenRegisterRequestDTO("");
+
+        // When & Then: 400 Bad Request
+        mockMvc.perform(post("/api/auth/fcm")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(user(userDetails))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("FCM 토큰 등록 - null 토큰 - 400 Bad Request")
+    void registerFcmToken_NullToken_BadRequest() throws Exception {
+        // Given: AuthToken 생성
+        AuthToken authToken = AuthToken.createToken("refresh-token-789", testMember);
+        authToken = authTokenRepository.save(authToken);
+
+        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(
+                testMember,
+                authToken.getId()
+        );
+
+        String requestJson = "{\"fcmToken\": null}";
+
+        // When & Then: 400 Bad Request
+        mockMvc.perform(post("/api/auth/fcm")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requestJson)
+                        .with(user(userDetails))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("FCM 토큰 등록 - 존재하지 않는 AuthToken ID - 404 Not Found")
+    void registerFcmToken_InvalidAuthTokenId_NotFound() throws Exception {
+        // Given: 존재하지 않는 authTokenId 사용
+        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(
+                testMember,
+                999999L  // 존재하지 않는 ID
+        );
+
+        FcmTokenRegisterRequestDTO request = new FcmTokenRegisterRequestDTO(
+                "fcm-test-token-xyz"
+        );
+
+        // When & Then: 404 Not Found
+        mockMvc.perform(post("/api/auth/fcm")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(user(userDetails))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message")
+                        .value("FCM 토큰을 등록할 AuthToken을 찾을 수 없습니다."));
+    }
+
+    @Test
+    @DisplayName("FCM 토큰 등록 - 다른 사용자의 AuthToken - 403 Forbidden")
+    void registerFcmToken_MemberIdMismatch_Forbidden() throws Exception {
+        // Given: testMember의 AuthToken 생성
+        AuthToken authToken = AuthToken.createToken("refresh-token-test", testMember);
+        authToken = authTokenRepository.save(authToken);
+
+        // otherMember가 testMember의 authTokenId를 사용하려고 시도
+        CustomUserDetails otherUserDetails = AuthTestFixtures.createCustomUserDetails(
+                otherMember,
+                authToken.getId()
+        );
+
+        FcmTokenRegisterRequestDTO request = new FcmTokenRegisterRequestDTO(
+                "fcm-malicious-token"
+        );
+
+        // When & Then: 403 Forbidden
+        mockMvc.perform(post("/api/auth/fcm")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(user(otherUserDetails))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message")
+                        .value("본인의 AuthToken에만 FCM 토큰을 등록할 수 있습니다."));
+    }
+
+    @Test
+    @DisplayName("FCM 토큰 등록 - 인증 없이 요청 - 403 Forbidden")
+    void registerFcmToken_Unauthenticated_Forbidden() throws Exception {
+        // Given: Request without authentication
+        FcmTokenRegisterRequestDTO request = new FcmTokenRegisterRequestDTO(
+                "fcm-unauthorized-token"
+        );
+
+        // When & Then: 403 Forbidden (Spring Security blocks)
+        mockMvc.perform(post("/api/auth/fcm")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(csrf()))
+                .andDo(print())
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("FCM 토큰 등록 - 기존 토큰 업데이트 - 성공")
+    void registerFcmToken_UpdateExistingToken_Success() throws Exception {
+        // Given: 이미 FCM 토큰이 등록된 AuthToken
+        AuthToken authToken = AuthToken.createToken("refresh-token-update", testMember);
+        authToken = authTokenRepository.save(authToken);
+
+        // 기존 FCM 토큰 등록
+        authToken.updateFcmToken("old-fcm-token");
+        authToken = authTokenRepository.save(authToken);
+
+        CustomUserDetails userDetails = AuthTestFixtures.createCustomUserDetails(
+                testMember,
+                authToken.getId()
+        );
+
+        // 새로운 FCM 토큰
+        FcmTokenRegisterRequestDTO request = new FcmTokenRegisterRequestDTO(
+                "new-fcm-token-updated"
+        );
+
+        // When: POST /api/auth/fcm (업데이트)
+        mockMvc.perform(post("/api/auth/fcm")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(user(userDetails))
+                        .with(csrf()))
+                .andDo(print())
+                // Then: 200 OK
+                .andExpect(status().isOk());
+
+        // Then: DB 확인 - 새 토큰으로 업데이트되었는지
+        AuthToken updatedToken = authTokenRepository.findById(authToken.getId())
+                .orElseThrow();
+        assertThat(updatedToken.getFcmRegistrationToken())
+                .isEqualTo("new-fcm-token-updated")
+                .isNotEqualTo("old-fcm-token");
     }
 }

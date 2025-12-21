@@ -1,8 +1,7 @@
 package jaeik.bimillog.domain.notification.service;
 
 import jaeik.bimillog.domain.notification.entity.Notification;
-import jaeik.bimillog.domain.notification.entity.NotificationUpdateVO;
-import jaeik.bimillog.domain.notification.repository.NotificationRepository;
+import jaeik.bimillog.domain.notification.out.NotificationRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -44,11 +43,12 @@ class NotificationCommandServiceTest {
     void shouldDelegateToPort_WhenNullUser() {
         // Given
         Long nullUserId = null;
-        NotificationUpdateVO updateCommand = NotificationUpdateVO.of(Arrays.asList(1L, 2L), List.of(3L));
+        List<Long> readIds = Arrays.asList(1L, 2L);
+        List<Long> deletedIds = List.of(3L);
         given(notificationRepository.findAllByIdInAndMember_Id(anyList(), any())).willReturn(Collections.emptyList());
 
         // When
-        notificationCommandService.batchUpdate(nullUserId, updateCommand);
+        notificationCommandService.batchUpdate(nullUserId, readIds, deletedIds);
 
         // Then
         verify(notificationRepository).deleteAllByIdInAndMember_Id(anyList(), any());
@@ -60,12 +60,13 @@ class NotificationCommandServiceTest {
     void shouldDelegateToPort_WhenUserPresent() {
         // Given
         Long memberId = 42L;
-        NotificationUpdateVO updateCommand = NotificationUpdateVO.of(List.of(10L), List.of(20L));
+        List<Long> readIds = List.of(10L);
+        List<Long> deletedIds = List.of(20L);
         Notification notification = mock(Notification.class);
         given(notificationRepository.findAllByIdInAndMember_Id(anyList(), anyLong())).willReturn(List.of(notification));
 
         // When
-        notificationCommandService.batchUpdate(memberId, updateCommand);
+        notificationCommandService.batchUpdate(memberId, readIds, deletedIds);
 
         // Then
         verify(notificationRepository).deleteAllByIdInAndMember_Id(anyList(), anyLong());

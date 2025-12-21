@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-// 로컬 테스트를 위해 쿠키의 HTTPS해제
 /**
  * <h2>공용 쿠키 어댑터</h2>
  *

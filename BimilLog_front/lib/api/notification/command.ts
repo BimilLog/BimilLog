@@ -13,6 +13,6 @@ export const notificationCommand = {
 
   registerFcmToken: (fcmToken: string) => {
     const requestBody = { fcmToken };
-    return apiClient.post('/api/notification/fcm', requestBody);
+    return apiClient.post('/api/auth/fcm', requestBody);
   },
 }

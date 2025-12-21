@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.post.service;
 
+import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
@@ -80,8 +81,7 @@ public class PostScheduledService {
 
         publishFeaturedEventFromSimpleDetails(posts,
             "주간 인기 게시글로 선정되었어요!",
-            "주간 인기 게시글 선정",
-            "회원님의 게시글 %s 이 주간 인기 게시글로 선정되었습니다.");
+            NotificationType.POST_FEATURED_WEEKLY);
     }
 
     /**
@@ -112,38 +112,35 @@ public class PostScheduledService {
 
         publishFeaturedEventFromSimpleDetails(posts,
             "명예의 전당에 등극했어요!",
-            "명예의 전당 등극",
-            "회원님의 게시글 %s 이 명예의 전당에 등극했습니다.");
+            NotificationType.POST_FEATURED_LEGEND);
     }
 
     /**
      * <h3>인기 게시글 알림 이벤트 발행</h3>
      * <p>인기 게시글로 선정된 사용자에게 알림 이벤트를 발행합니다.</p>
+     * <p>FCM 푸시 알림의 title과 body는 FcmCommandService에서 NotificationType에 따라 작성됩니다.</p>
      *
      * @param posts 알림을 보낼 게시글 목록
-     * @param notiTitle 알림 제목
-     * @param eventTitle 이벤트 제목
-     * @param eventBodyFormat 이벤트 본문 포맷 문자열 (게시글 제목을 %s로 사용)
+     * @param sseMessage SSE 알림 메시지
+     * @param notificationType 인기글 유형 (WEEKLY/LEGEND/REALTIME)
      */
     private void publishFeaturedEventFromSimpleDetails(
         List<PostSimpleDetail> posts,
-        String notiTitle,
-        String eventTitle,
-        String eventBodyFormat
+        String sseMessage,
+        NotificationType notificationType
     ) {
         posts.stream()
                 .filter(post -> post.getMemberId() != null)
                 .forEach(post -> {
-                    String eventBody = String.format(eventBodyFormat, post.getTitle());
                     eventPublisher.publishEvent(new PostFeaturedEvent(
                             post.getMemberId(),
-                            notiTitle,
+                            sseMessage,
                             post.getId(),
-                            eventTitle,
-                            eventBody
+                            notificationType,
+                            post.getTitle()
                     ));
-                    log.info("게시글 ID {}에 대한 인기글 알림 이벤트 발행: 회원 ID={}",
-                        post.getId(), post.getMemberId());
+                    log.info("게시글 ID {}에 대한 {} 알림 이벤트 발행: 회원 ID={}",
+                        post.getId(), notificationType, post.getMemberId());
                 });
     }
 }

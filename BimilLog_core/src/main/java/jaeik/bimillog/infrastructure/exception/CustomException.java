@@ -1,8 +1,6 @@
 package jaeik.bimillog.infrastructure.exception;
 
 import lombok.Getter;
-import lombok.Setter;
-import org.springframework.http.HttpStatus;
 
 /**
  * <h2>커스텀 예외 클래스</h2>

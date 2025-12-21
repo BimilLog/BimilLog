@@ -13,6 +13,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -24,16 +26,13 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
 
 /**
  * <h2>PostQueryAdapter 통합 테스트</h2>
@@ -53,6 +52,7 @@ import static org.mockito.BDDMockito.given;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import({PostSearchRepository.class, PostQueryRepository.class, PostFulltextUtil.class, QueryDSLConfig.class, LocalIntegrationTestSupportConfig.class})
 @Tag("local-integration")
+@Execution(ExecutionMode.SAME_THREAD)
 class PostQueryRepositoryIntegrationTest {
 
     @Autowired
@@ -318,7 +318,7 @@ class PostQueryRepositoryIntegrationTest {
 
     @Test
     @DisplayName("정렬 검증 - 추천한 게시글이 추천 날짜 기준 최신순으로 정렬됨")
-    void shouldSortLikedPostsByLikeDateDesc_WhenMultipleLikesExist() {
+    void shouldSortLikedPostsByLikeDateDesc_WhenMultipleLikesExist() throws InterruptedException {
         // Given: 사용자가 여러 게시글에 시간 간격을 두고 추천
         Member likeMember = TestMembers.copyWithId(TestMembers.MEMBER_2, null);
         if (likeMember.getSetting() != null) {
@@ -329,32 +329,29 @@ class PostQueryRepositoryIntegrationTest {
         }
         entityManager.persistAndFlush(likeMember);
 
-        Instant baseTime = Instant.parse("2024-02-01T00:00:00Z");
-
         // 첫 번째 게시글에 추천 (가장 오래된 추천)
         PostLike postLike1 = PostLike.builder()
                 .post(testPost1)
                 .member(likeMember)
                 .build();
-        setCreatedAt(postLike1, baseTime);
         entityManager.persist(postLike1);
         entityManager.flush();
+        Thread.sleep(100); // 100ms 대기
 
         // 두 번째 게시글에 추천
         PostLike postLike2 = PostLike.builder()
                 .post(testPost2)
                 .member(likeMember)
                 .build();
-        setCreatedAt(postLike2, baseTime.plusSeconds(1));
         entityManager.persist(postLike2);
         entityManager.flush();
+        Thread.sleep(100); // 100ms 대기
 
         // 세 번째 게시글에 추천 (가장 최근 추천)
         PostLike postLike3 = PostLike.builder()
                 .post(testPost3)
                 .member(likeMember)
                 .build();
-        setCreatedAt(postLike3, baseTime.plusSeconds(2));
         entityManager.persist(postLike3);
         entityManager.flush();
 
@@ -374,10 +371,5 @@ class PostQueryRepositoryIntegrationTest {
         assertThat(likedPostTitles.get(0)).isEqualTo("세 번째 게시글"); // 가장 최근 추천
         assertThat(likedPostTitles.get(1)).isEqualTo("두 번째 게시글");
         assertThat(likedPostTitles.get(2)).isEqualTo("첫 번째 게시글"); // 가장 오래된 추천
-    }
-
-
-    private void setCreatedAt(Object entity, Instant instant) {
-        TestFixtures.setFieldValue(entity, "createdAt", instant);
     }
 }

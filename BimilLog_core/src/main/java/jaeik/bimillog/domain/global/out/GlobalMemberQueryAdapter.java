@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.global.out;
 
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.member.out.MemberRepository;
 import jaeik.bimillog.domain.member.service.MemberQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

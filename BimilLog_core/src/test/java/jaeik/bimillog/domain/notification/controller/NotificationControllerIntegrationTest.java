@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.notification.controller;
 
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.notification.repository.NotificationRepository;
+import jaeik.bimillog.domain.notification.out.NotificationRepository;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.builder.NotificationTestDataBuilder;
@@ -21,7 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * <h2>알림 Query 컨트롤러 통합 테스트</h2>
+ * <h2>알림 컨트롤러 통합 테스트</h2>
  * <p>@SpringBootTest + H2 인메모리 데이터베이스 환경에서 알림 조회 API를 검증합니다.</p>
  *
  * @author Jaeik
@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import({H2TestConfiguration.class, TestSocialLoginAdapterConfig.class})
 @DisplayName("알림 Query 컨트롤러 통합 테스트")
 @Tag("integration")
-class NotificationQueryControllerIntegrationTest extends BaseIntegrationTest {
+class NotificationControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private NotificationRepository notificationRepository;
@@ -97,7 +97,7 @@ class NotificationQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$[?(@.notificationType == 'MESSAGE')]").exists())
                 .andExpect(jsonPath("$[?(@.notificationType == 'COMMENT')]").exists())
-                .andExpect(jsonPath("$[?(@.notificationType == 'POST_FEATURED')]").exists())
+                .andExpect(jsonPath("$[?(@.notificationType == 'POST_FEATURED_WEEKLY')]").exists())
                 .andExpect(jsonPath("$[?(@.notificationType == 'ADMIN')]").exists())
                 .andExpect(jsonPath("$[?(@.notificationType == 'INITIATE')]").exists());
     }
