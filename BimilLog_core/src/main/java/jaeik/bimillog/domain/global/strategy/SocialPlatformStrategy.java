@@ -9,12 +9,10 @@ import java.util.Objects;
  * <p>플랫폼별 인증 전략 묶음을 캡슐화합니다.</p>
  */
 public abstract class SocialPlatformStrategy {
-
     private final SocialProvider provider;
     private final SocialAuthStrategy authStrategy;
 
-    protected SocialPlatformStrategy(SocialProvider provider,
-                                     SocialAuthStrategy authStrategy) {
+    protected SocialPlatformStrategy(SocialProvider provider, SocialAuthStrategy authStrategy) {
         this.provider = Objects.requireNonNull(provider, "provider must not be null");
         this.authStrategy = Objects.requireNonNull(authStrategy, "authStrategy must not be null");
         if (!authStrategy.getProvider().equals(provider)) {

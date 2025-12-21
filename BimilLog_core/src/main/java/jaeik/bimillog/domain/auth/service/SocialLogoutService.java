@@ -24,7 +24,6 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class SocialLogoutService {
-
     private final GlobalSocialStrategyAdapter globalSocialStrategyAdapter;
     private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
 

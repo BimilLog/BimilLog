@@ -42,8 +42,7 @@ public class PaperCommandService {
      * @since 2.0.0
      */
     @Transactional
-    public void writeMessage(Long memberId, String memberName, DecoType decoType, String anonymity,
-                             String content, int x, int y) {
+    public void writeMessage(Long memberId, String memberName, DecoType decoType, String anonymity, String content, int x, int y) {
 
         if (memberName == null || memberName.trim().isEmpty()) { // 입력 닉네임 검증
             throw new CustomException(ErrorCode.PAPER_INVALID_INPUT_VALUE);

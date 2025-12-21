@@ -27,13 +27,9 @@ import lombok.Setter;
 @Getter
 @Setter
 public class CommentReqDTO {
-
     private Long id;
-
     private Long parentId;
-
     private Long postId;
-
     private Long memberId;
 
     @Size(max = 1000, message = "글 내용은 최대 1000자 까지 입력 가능합니다.")

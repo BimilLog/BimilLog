@@ -18,7 +18,6 @@ import java.util.Objects;
  */
 @Component
 public class PostViewCookieUtil {
-
     private static final String COOKIE_NAME = "post_views";
     private static final int MAX_VIEWS = 100;
     private static final int COOKIE_MAX_AGE = 24 * 60 * 60; // 24시간

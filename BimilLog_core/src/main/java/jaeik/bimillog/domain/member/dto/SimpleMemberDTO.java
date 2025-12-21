@@ -16,7 +16,6 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class SimpleMemberDTO {
-
     private Long memberId;
     private String memberName;
 

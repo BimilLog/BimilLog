@@ -27,7 +27,6 @@ public class LogService {
      * @since 2.0.0
      */
     public void logClientError(ClientErrorLogDTO errorLog) {
-        // 구조화된 로그 메시지 생성
         StringBuilder logMessage = new StringBuilder();
         logMessage.append("[CLIENT-ERROR] ");
         logMessage.append("[").append(errorLog.getPlatform()).append("] ");

@@ -24,7 +24,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Slf4j
 public class PostViewIncreaseListener {
-
     private final PostInteractionService postInteractionService;
 
     /**

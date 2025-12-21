@@ -33,7 +33,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class BlacklistService {
-
     private static final Duration DEFAULT_TTL = Duration.ofHours(1);
 
     private final GlobalJwtAdapter globalJwtAdapter;

@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RequestMapping("/api/paper")
 public class PaperCommandController {
-
     private final PaperCommandService paperCommandService;
 
     /**

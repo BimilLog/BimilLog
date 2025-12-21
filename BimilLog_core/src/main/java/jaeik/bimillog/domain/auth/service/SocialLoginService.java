@@ -23,7 +23,6 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @RequiredArgsConstructor
 public class SocialLoginService {
-
     private final GlobalSocialStrategyAdapter globalSocialStrategyAdapter;
     private final SocialLoginTransactionalService socialLoginTransactionalService;
 

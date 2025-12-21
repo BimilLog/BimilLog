@@ -32,7 +32,6 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class PostCommandService {
-
     private final PostRepository postRepository;
     private final GlobalPostQueryAdapter globalPostQueryAdapter;
     private final GlobalMemberQueryAdapter globalMemberQueryAdapter;

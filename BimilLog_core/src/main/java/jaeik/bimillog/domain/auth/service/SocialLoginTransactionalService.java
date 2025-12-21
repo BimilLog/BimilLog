@@ -37,7 +37,6 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class SocialLoginTransactionalService {
-
     private final AuthToMemberAdapter authToMemberAdapter;
     private final BlackListRepository blackListRepository;
     private final GlobalCookieAdapter globalCookieAdapter;

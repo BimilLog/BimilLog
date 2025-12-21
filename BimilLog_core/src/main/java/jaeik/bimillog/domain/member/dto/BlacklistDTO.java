@@ -27,6 +27,7 @@ public class BlacklistDTO {
      */
     @Size(min = 1, max = 8, message = "사용자 이름은 1자 이상 8자 이하여야 합니다.")
     private String memberName;
+
     /**
      * 차단한 날짜
      */

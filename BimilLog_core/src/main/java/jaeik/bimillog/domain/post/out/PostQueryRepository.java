@@ -287,10 +287,7 @@ public class PostQueryRepository {
 
         // 커스터마이징 적용 (JOIN, WHERE 등)
         countQueryCustomizer.accept(countQuery);
-
         Long total = countQuery.fetchOne();
-
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
     }
-
 }

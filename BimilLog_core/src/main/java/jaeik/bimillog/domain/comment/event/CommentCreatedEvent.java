@@ -15,12 +15,8 @@ import jaeik.bimillog.domain.notification.listener.NotificationSendListener;
  * @version 2.0.0
  * {@link NotificationSendListener} SSE/FCM 알림 발송
  */
-public record CommentCreatedEvent(
-        Long postUserId,
-        String commenterName,
-        Long commenterId,
-        Long postId
-) {
+public record CommentCreatedEvent(Long postUserId, String commenterName, Long commenterId, Long postId) {
+
     public CommentCreatedEvent {
         if (postUserId == null) {
             throw new IllegalArgumentException("게시글 작성자 ID는 null일 수 없습니다.");

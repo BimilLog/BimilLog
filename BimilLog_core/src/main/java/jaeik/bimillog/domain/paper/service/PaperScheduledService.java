@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 public class PaperScheduledService {
     private final RedisPaperUpdateAdapter redisPaperUpdateAdapter;
 
-    @Scheduled(fixedRate = 60000 * 5) // 5분
+    @Scheduled(fixedRate = 60000 * 10) // 10분
     public void applyRealtimeScoreDecay() {
         try {
             redisPaperUpdateAdapter.applyRealtimePopularPaperScoreDecay();

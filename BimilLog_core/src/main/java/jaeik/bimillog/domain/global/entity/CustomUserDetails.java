@@ -16,22 +16,16 @@ import java.util.List;
 
 /**
  * <h2>커스텀 사용자 상세 정보 클래스</h2>
- * <p>
- * UserDetails 인터페이스를 구현하여 Spring Security에서 사용자 정보를 처리하는 클래스
- * </p>
- * <p>
- * JWT 토큰 생성/파싱과 Spring Security 인증에 모두 사용되는 통합 사용자 정보 객체
- * </p>
+ * <p>UserDetails 인터페이스를 구현하여 Spring Security에서 사용자 정보를 처리하는 클래스</p>
+ * <p>JWT 토큰 생성/파싱과 Spring Security 인증에 모두 사용되는 통합 사용자 정보 객체</p>
  *
  * @author Jaeik
- * @version 3.0.0
  * @since 2.0.0
  */
 @Getter
 @Builder
 @AllArgsConstructor
 public class CustomUserDetails implements UserDetails {
-
     private final Long memberId;
     private final String socialId;
     private final SocialProvider provider;

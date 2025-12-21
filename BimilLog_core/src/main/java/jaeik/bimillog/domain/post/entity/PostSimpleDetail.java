@@ -35,17 +35,9 @@ public class PostSimpleDetail implements Serializable {
     private String memberName;
     private Integer commentCount;
 
-    /**
-     * <h3>생성자</h3>
-     * <p>QueryDSL Projection 지원</p>
-     *
-     * @since 2.0.0
-     * @author Jaeik
-     */
     @Builder
     @QueryProjection
-    public PostSimpleDetail(Long id, String title, Integer viewCount,
-                            Integer likeCount, Instant createdAt,
+    public PostSimpleDetail(Long id, String title, Integer viewCount, Integer likeCount, Instant createdAt,
                             Long memberId, String memberName, Integer commentCount) {
         this.id = id;
         this.title = title;

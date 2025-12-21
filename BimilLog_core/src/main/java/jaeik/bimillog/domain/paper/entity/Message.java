@@ -11,9 +11,7 @@ import lombok.experimental.SuperBuilder;
 
 /**
  * <h2>메시지 엔티티</h2>
- * <p>
- * 롤링페이퍼의 메시지 정보를 담당하는 엔티티
- * </p>
+ * <p>롤링페이퍼의 메시지 정보를 담당하는 엔티티</p>
  * <p>롤링페이퍼에 작성되는 익명 메시지의 모든 정보를 저장</p>
  * <p>메시지 내용은 AES-256으로 암호화되어 저장됨</p>
  * <p>그리드 좌표(x, y)를 통해 롤링페이퍼 상의 위치 관리</p>
@@ -69,8 +67,7 @@ public class Message extends BaseEntity {
      * @author Jaeik
      * @since 2.0.0
      */
-    public static Message createMessage(Member member, DecoType decoType, String anonymity,
-                                        String content, int x, int y) {
+    public static Message createMessage(Member member, DecoType decoType, String anonymity, String content, int x, int y) {
         return Message.builder()
                 .member(member)
                 .decoType(decoType)
