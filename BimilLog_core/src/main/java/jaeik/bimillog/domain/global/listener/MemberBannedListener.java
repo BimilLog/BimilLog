@@ -49,7 +49,6 @@ public class MemberBannedListener {
 
         sseService.deleteEmitters(memberId, null);
         socialLogoutService.forceLogout(socialId, provider);
-        // AuthToken 삭제 시 fcmRegistrationToken도 함께 삭제됨 (테이블 통합)
         authTokenService.deleteTokens(memberId, null);
         globalSocialTokenCommandAdapter.deleteByMemberId(memberId);
     }

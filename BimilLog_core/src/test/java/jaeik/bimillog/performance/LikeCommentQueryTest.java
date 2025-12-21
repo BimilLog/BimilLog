@@ -13,6 +13,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.ScheduledAnnotationBeanPostProcessor;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.util.StopWatch;
 
 // bimillogTest-seed.sql의 상황을 기반으로한다
@@ -23,6 +24,7 @@ import org.springframework.util.StopWatch;
 @ActiveProfiles("local-integration")
 @Tag("integration")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@Sql(scripts = "/bimillogTest-seed.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
 class LikeCommentQueryTest {
 
     private static final Logger log = LoggerFactory.getLogger(LikeCommentQueryTest.class);
