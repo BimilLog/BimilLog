@@ -54,6 +54,22 @@ public class AsyncConfig {
     }
 
     /**
+     * 알림 저장 전용 스레드 풀
+     */
+    @Bean(name = "saveNotificationExecutor")
+    public Executor saveNotificationExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(3); // 기본 스레드 수
+        executor.setMaxPoolSize(10); // 최대 스레드 수
+        executor.setQueueCapacity(50); // 대기열 크기
+        executor.setThreadNamePrefix("save-notification-");
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(30);
+        executor.initialize();
+        return executor;
+    }
+
+    /**
      * 캐시 갱신 전용 스레드 풀
      * <p>확률적 선계산(Probabilistic Early Expiration) 기법에서 비동기 캐시 갱신에 사용됩니다.</p>
      */

@@ -1,10 +1,12 @@
 package jaeik.bimillog.domain.paper.event;
 
+import jaeik.bimillog.domain.paper.service.PaperScheduledService;
 import jaeik.bimillog.infrastructure.redis.paper.RedisPaperUpdateAdapter;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import static org.mockito.ArgumentMatchers.eq;
@@ -20,7 +22,14 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("메시지 삭제 이벤트 워크플로우 통합 테스트")
 @Tag("integration")
+@SpringBootTest(properties = {
+        "spring.task.scheduling.enabled=false",
+        "spring.scheduling.enabled=false"
+})
 public class MessageDeletedEventIntegrationTest extends BaseEventIntegrationTest {
+
+    @MockitoBean // 실제 빈 대신 가짜 빈을 주입하여 스케줄러 동작을 차단
+    private PaperScheduledService paperScheduledService;
 
     @MockitoBean
     private RedisPaperUpdateAdapter redisPaperUpdateAdapter;

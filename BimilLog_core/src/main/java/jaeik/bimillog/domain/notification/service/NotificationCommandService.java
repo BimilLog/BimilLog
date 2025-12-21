@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -86,6 +87,7 @@ public class NotificationCommandService {
      * @param commenterName 댓글 작성자 이름
      * @param postId 게시글 ID
      */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void saveCommentNotification(Long postOwnerId, String commenterName, Long postId) {
         String message = commenterName + "님이 댓글을 남겼습니다!";
         String url = baseUrl + POST_URL + postId;
@@ -107,6 +109,7 @@ public class NotificationCommandService {
      * @param paperOwnerId 롤링페이퍼 주인 ID
      * @param memberName 작성자 이름
      */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void saveMessageNotification(Long paperOwnerId, String memberName) {
         String message = "롤링페이퍼에 메시지가 작성되었어요!";
         String url = baseUrl + PAPER_URL + memberName;
@@ -131,6 +134,7 @@ public class NotificationCommandService {
      * @param notificationType 인기글 유형 (WEEKLY/LEGEND/REALTIME)
      * @param postTitle 게시글 제목 (FCM 알림 본문에 사용)
      */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void savePopularNotification(Long memberId, String message, Long postId, NotificationType notificationType, String postTitle) {
         String url = baseUrl + POST_URL + postId;
         Member member = globalMemberQueryAdapter.findById(memberId)
@@ -152,6 +156,7 @@ public class NotificationCommandService {
      * @param message SSE 메시지
      * @param senderName 친구 요청 보낸 사람 이름 (FCM 알림에 사용)
      */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void saveFriendNotification(Long receiveMemberId, String message, String senderName) {
         String url = baseUrl +FRIEND_URL;
         Member member = globalMemberQueryAdapter.findById(receiveMemberId)

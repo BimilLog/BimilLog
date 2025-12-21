@@ -8,21 +8,18 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.auth.entity.QAuthToken;
 import jaeik.bimillog.domain.friend.entity.Friend;
 import jaeik.bimillog.domain.friend.entity.RecommendedFriend;
-import jaeik.bimillog.domain.member.dto.SimpleMemberDTO;
-import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.QMember;
-import jaeik.bimillog.domain.member.entity.QMemberBlacklist;
 import jaeik.bimillog.domain.member.entity.QSetting;
 import jaeik.bimillog.domain.member.service.MemberQueryService;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**

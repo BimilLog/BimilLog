@@ -8,9 +8,6 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.verify;
-
 /**
  * <h2>게시글 인기글 등극 이벤트 워크플로우 통합 테스트</h2>
  * <p>게시글이 인기글로 선정될 때 알림 저장을 검증하는 통합 테스트</p>

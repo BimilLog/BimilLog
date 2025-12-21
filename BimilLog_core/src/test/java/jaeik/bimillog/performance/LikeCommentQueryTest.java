@@ -1,7 +1,6 @@
 package jaeik.bimillog.performance;
 
 import jaeik.bimillog.domain.comment.entity.MemberActivityComment;
-import jaeik.bimillog.domain.comment.entity.MemberActivityComment.SimpleCommentInfo;
 import jaeik.bimillog.domain.comment.repository.CommentQueryRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.*;

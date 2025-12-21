@@ -16,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 @RequiredArgsConstructor
 public class GlobalAuthTokenSaveAdapter {
-
     private final AuthTokenRepository authTokenRepository;
 
     /**

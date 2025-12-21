@@ -7,6 +7,7 @@ import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -17,6 +18,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 public class NotificationSaveListener {
     private final NotificationCommandService notificationCommandService;
 
+    @Async("saveNotificationExecutor")
     @TransactionalEventListener(value = CommentCreatedEvent.class, phase = TransactionPhase.AFTER_COMMIT)
     public void handleCommentCreatedEvent(CommentCreatedEvent event) {
         notificationCommandService.saveCommentNotification(
@@ -26,6 +28,7 @@ public class NotificationSaveListener {
         );
     }
 
+    @Async("saveNotificationExecutor")
     @TransactionalEventListener(value = RollingPaperEvent.class, phase = TransactionPhase.AFTER_COMMIT)
     public void handleRollingPaperEvent(RollingPaperEvent event) {
         notificationCommandService.saveMessageNotification(
@@ -34,6 +37,7 @@ public class NotificationSaveListener {
         );
     }
 
+    @Async("saveNotificationExecutor")
     @TransactionalEventListener(value = PostFeaturedEvent.class, phase = TransactionPhase.AFTER_COMMIT)
     public void handlePostFeaturedEvent(PostFeaturedEvent event) {
         notificationCommandService.savePopularNotification(
@@ -45,6 +49,7 @@ public class NotificationSaveListener {
         );
     }
 
+    @Async("saveNotificationExecutor")
     @TransactionalEventListener(value = FriendEvent.class, phase = TransactionPhase.AFTER_COMMIT)
     public void handleFriendEvent(FriendEvent event) {
         notificationCommandService.saveFriendNotification(

@@ -1,7 +1,5 @@
 package jaeik.bimillog.domain.comment.event;
 
-import jaeik.bimillog.domain.paper.service.PaperScheduledService;
-import jaeik.bimillog.domain.post.service.PostScheduledService;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostKeys;
 import jaeik.bimillog.testutil.RedisTestHelper;
 import org.awaitility.Awaitility;

@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.auth.contoller;
 
 import jaeik.bimillog.domain.auth.dto.SocialLoginRequestDTO;
-import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.event.MemberLoggedOutEvent;
 import jaeik.bimillog.domain.auth.service.AuthTokenService;
