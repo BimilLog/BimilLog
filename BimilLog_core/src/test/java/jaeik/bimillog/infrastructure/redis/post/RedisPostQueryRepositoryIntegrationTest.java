@@ -17,6 +17,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 
@@ -60,6 +61,8 @@ class RedisPostQueryRepositoryIntegrationTest {
                 .memberName(detail.getMemberName())
                 .build();
     }
+
+
 
     @BeforeEach
     void setUp() {
@@ -112,7 +115,7 @@ class RedisPostQueryRepositoryIntegrationTest {
     void shouldReturnPostDetail_WhenCachedPostExists() {
         // Given: RedisTemplate로 직접 저장 (CommandAdapter 의존성 제거)
         String cacheKey = RedisTestHelper.RedisKeys.postDetail(1L);
-        redisTemplate.opsForValue().set(cacheKey, testPostDetail1, java.time.Duration.ofMinutes(5));
+        redisTemplate.opsForValue().set(cacheKey, testPostDetail1, Duration.ofMinutes(5));
 
         // When: QueryAdapter로 조회
         PostDetail result = redisPostQueryAdapter.getCachedPostIfExists(1L);
@@ -145,7 +148,7 @@ class RedisPostQueryRepositoryIntegrationTest {
         redisTemplate.opsForHash().put(hashKey, "1", simple1);
         redisTemplate.opsForHash().put(hashKey, "2", simple2);
         redisTemplate.opsForHash().put(hashKey, "3", simple3);
-        redisTemplate.expire(hashKey, java.time.Duration.ofMinutes(5));
+        redisTemplate.expire(hashKey, Duration.ofMinutes(5));
 
         // postIds 저장소에 순서 저장 (REALTIME은 Sorted Set 사용 - NOTICE가 아니므로)
         redisTemplate.opsForZSet().add(postIdsKey, "1", 1.0);
@@ -175,7 +178,7 @@ class RedisPostQueryRepositoryIntegrationTest {
 
         // Hash에 데이터 저장 (hasPopularPostsCache는 Hash 키 존재 여부만 확인)
         redisTemplate.opsForHash().put(hashKey, "1", toSimpleDetail(testPostDetail1));
-        redisTemplate.expire(hashKey, java.time.Duration.ofMinutes(5));
+        redisTemplate.expire(hashKey, Duration.ofMinutes(5));
 
         // When: 캐시 존재 여부 확인
         boolean result = redisPostQueryAdapter.hasPopularPostsCache(cacheType);
@@ -234,7 +237,7 @@ class RedisPostQueryRepositoryIntegrationTest {
         // Hash에 PostSimpleDetail 2개만 저장 (3번은 저장하지 않음)
         redisTemplate.opsForHash().put(hashKey, "1", toSimpleDetail(testPostDetail1));
         redisTemplate.opsForHash().put(hashKey, "2", toSimpleDetail(testPostDetail2));
-        redisTemplate.expire(hashKey, java.time.Duration.ofMinutes(5));
+        redisTemplate.expire(hashKey, Duration.ofMinutes(5));
 
         // postIds 저장소에는 3개 모두 저장 (WEEKLY는 Sorted Set)
         redisTemplate.opsForZSet().add(postIdsKey, "1", 1.0);
@@ -277,7 +280,7 @@ class RedisPostQueryRepositoryIntegrationTest {
             // postIds 저장소에 순서 저장 (LEGEND는 Sorted Set)
             redisTemplate.opsForZSet().add(postIdsKey, String.valueOf(i), (double) i);
         }
-        redisTemplate.expire(hashKey, java.time.Duration.ofMinutes(5));
+        redisTemplate.expire(hashKey, Duration.ofMinutes(5));
 
         // When: 첫 페이지 조회 (페이지 0, 사이즈 10)
         Pageable pageable = PageRequest.of(0, 10);
@@ -297,6 +300,7 @@ class RedisPostQueryRepositoryIntegrationTest {
     @Test
     @DisplayName("정상 케이스 - 레전드 게시글 목록 페이지네이션 조회 (두 번째 페이지)")
     void shouldReturnSecondPage_WhenPageTwoRequested() {
+        RedisTestHelper.flushRedis(redisTemplate);
         // Given: RedisTemplate로 직접 20개의 레전드 게시글 저장 (CommandAdapter 의존성 제거)
         String hashKey = RedisPostKeys.CACHE_METADATA_MAP.get(PostCacheFlag.LEGEND).key();
         String postIdsKey = RedisPostKeys.getPostIdsStorageKey(PostCacheFlag.LEGEND);
@@ -322,7 +326,7 @@ class RedisPostQueryRepositoryIntegrationTest {
             // postIds 저장소에 순서 저장 (LEGEND는 Sorted Set)
             redisTemplate.opsForZSet().add(postIdsKey, String.valueOf(i), (double) i);
         }
-        redisTemplate.expire(hashKey, java.time.Duration.ofMinutes(5));
+        redisTemplate.expire(hashKey, Duration.ofMinutes(5));
 
         // When: 두 번째 페이지 조회 (페이지 1, 사이즈 10)
         Pageable pageable = PageRequest.of(1, 10);

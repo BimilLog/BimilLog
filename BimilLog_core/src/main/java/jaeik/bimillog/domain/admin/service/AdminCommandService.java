@@ -56,10 +56,7 @@ public class AdminCommandService {
      */
     @Transactional
     public void createReport(Long memberId, ReportType reportType, Long targetId, String content) {
-        Member reporter = Optional.ofNullable(memberId)
-                .flatMap(memberRepository::findById)
-                .orElse(null);
-
+        Member reporter = Optional.ofNullable(memberId).flatMap(memberRepository::findById).orElse(null);
         Report report = Report.createReport(reportType, targetId, content, reporter);
         reportRepository.save(report);
     }

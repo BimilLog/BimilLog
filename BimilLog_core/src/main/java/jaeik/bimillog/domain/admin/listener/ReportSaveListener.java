@@ -40,13 +40,7 @@ public class ReportSaveListener {
     public void handleReportSubmitted(ReportSubmittedEvent event) {
         try {
             adminCommandService.createReport(event.reporterId(), event.reportType(), event.targetId(), event.content());
-            log.info("신고/건의사항 처리 완료 - 신고자: {}, 유형: {}, targetId: {}", 
-                    event.reporterName(), event.reportType(), event.targetId());
-            
-        } catch (CustomException e) {
-            log.warn("신고/건의사항 비즈니스 검증 실패 - 신고자: {}, 유형: {}, targetId: {}, 오류: {}",
-                    event.reporterName(), event.reportType(), 
-                    event.targetId(), e.getMessage());
+            log.info("신고/건의사항 처리 완료 - 신고자: {}, 유형: {}, targetId: {}", event.reporterName(), event.reportType(), event.targetId());
         } catch (Exception e) {
             log.error("신고/건의사항 처리 중 시스템 오류 발생 - 신고자: {}, 유형: {}, targetId: {}, 오류: {}", 
                     event.reporterName(), event.reportType(), 

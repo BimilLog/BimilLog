@@ -32,7 +32,7 @@ public class MemberBlackController {
      */
     @GetMapping("/blacklist")
     public ResponseEntity<Page<BlacklistDTO>> getBlacklist(@AuthenticationPrincipal CustomUserDetails userDetails, Pageable pageable) {
-        Page<BlacklistDTO> myBlacklist = memberBlacklistService.getMyBlacklist(userDetails.getMemberId(), pageable);
+        Page<BlacklistDTO> myBlacklist = memberBlacklistService.getInterActionBlacklist(userDetails.getMemberId(), pageable);
         return ResponseEntity.ok(myBlacklist);
     }
 
@@ -61,7 +61,7 @@ public class MemberBlackController {
                                                                         @AuthenticationPrincipal CustomUserDetails userDetails,
                                                                         Pageable pageable) {
         memberBlacklistService.deleteMemberFromMyBlacklist(id, userDetails.getMemberId());
-        Page<BlacklistDTO> myBlacklist = memberBlacklistService.getMyBlacklist(userDetails.getMemberId(), pageable);
+        Page<BlacklistDTO> myBlacklist = memberBlacklistService.getInterActionBlacklist(userDetails.getMemberId(), pageable);
         return ResponseEntity.ok(myBlacklist);
     }
 }

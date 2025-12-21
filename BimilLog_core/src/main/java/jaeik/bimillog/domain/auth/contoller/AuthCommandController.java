@@ -68,8 +68,7 @@ public class AuthCommandController {
                     .body("NEW_USER");
             case LoginResult.ExistingUser(var cookies) -> ResponseEntity.ok()
                     .headers(headers -> cookies.forEach(cookie ->
-                            headers.add("Set-Cookie", cookie.toString())))
-                    .body("EXISTING_USER");
+                            headers.add("Set-Cookie", cookie.toString()))).body("EXISTING_USER");
         };
     }
 
@@ -82,16 +81,13 @@ public class AuthCommandController {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Log(level = LogLevel.INFO,
-            message = "로그아웃 요청",
-            logParams = false)
+    @Log(level = LogLevel.INFO, message = "로그아웃 요청", logParams = false)
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@AuthenticationPrincipal CustomUserDetails userDetails) {
         eventPublisher.publishEvent(new MemberLoggedOutEvent(userDetails.getMemberId(), userDetails.getAuthTokenId(), userDetails.getSocialProvider()));
         return ResponseEntity.ok()
                 .headers(headers -> globalCookieAdapter.getLogoutCookies().forEach(cookie ->
-                        headers.add("Set-Cookie", cookie.toString())))
-                .build();
+                        headers.add("Set-Cookie", cookie.toString()))).build();
     }
 
     /**

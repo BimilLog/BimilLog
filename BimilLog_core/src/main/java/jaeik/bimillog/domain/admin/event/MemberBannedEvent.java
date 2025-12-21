@@ -13,7 +13,4 @@ import jaeik.bimillog.domain.member.entity.SocialProvider;
  * @author Jaeik
  * @version 2.0.0
  */
-public record MemberBannedEvent(Long memberId,
-                                String socialId,
-                                SocialProvider provider
-) {}
+public record MemberBannedEvent(Long memberId, String socialId, SocialProvider provider) {}

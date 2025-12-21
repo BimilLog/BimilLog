@@ -82,7 +82,7 @@ public class PostSearchRepository {
      * @param pageable 페이지 정보
      * @return 검색된 게시글 페이지
      * @author Jaeik
-     * @since 2.0.0
+     * @since 2.3.0
      */
     public Page<PostSimpleDetail> findByPrefixMatch(PostSearchType type, String query, Pageable pageable, Long viewerId) {
         BooleanExpression condition = switch (type) {
@@ -91,7 +91,7 @@ public class PostSearchRepository {
             case TITLE_CONTENT -> post.title.startsWith(query).or(post.content.startsWith(query));
         };
 
-        BooleanExpression finalCondition = postQueryRepository.applyBlacklistFilter(condition.and(post.isNotice.isFalse()), viewerId);
+        BooleanExpression finalCondition = condition.and(post.isNotice.isFalse());
         Consumer<JPAQuery<?>> customizer = q -> q.where(finalCondition);
         return postQueryRepository.findPostsWithQuery(customizer, customizer, pageable);
     }
@@ -115,7 +115,7 @@ public class PostSearchRepository {
             case TITLE_CONTENT -> post.title.contains(query).or(post.content.contains(query));
         };
 
-        BooleanExpression finalCondition = postQueryRepository.applyBlacklistFilter(condition.and(post.isNotice.isFalse()), viewerId);
+        BooleanExpression finalCondition = condition.and(post.isNotice.isFalse());
         Consumer<JPAQuery<?>> customizer = q -> q.where(finalCondition);
         return postQueryRepository.findPostsWithQuery(customizer, customizer, pageable);
     }

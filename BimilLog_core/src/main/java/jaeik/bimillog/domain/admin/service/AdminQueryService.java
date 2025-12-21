@@ -33,7 +33,6 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class AdminQueryService {
-
     private final AdminQueryRepository adminQueryRepository;
     private final GlobalPostQueryAdapter globalPostQueryAdapter;
     private final AdminToCommentAdapter adminToCommentAdapter;

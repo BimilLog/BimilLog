@@ -52,7 +52,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Import({PostSearchRepository.class, PostQueryRepository.class, PostFulltextUtil.class, QueryDSLConfig.class, LocalIntegrationTestSupportConfig.class})
 @Tag("local-integration")
-@Execution(ExecutionMode.SAME_THREAD)
 class PostQueryRepositoryIntegrationTest {
 
     @Autowired
