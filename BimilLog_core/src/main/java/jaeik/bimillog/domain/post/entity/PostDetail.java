@@ -112,5 +112,4 @@ public class PostDetail implements Serializable {
                 .commentCount(this.commentCount)
                 .build();
     }
-
 }

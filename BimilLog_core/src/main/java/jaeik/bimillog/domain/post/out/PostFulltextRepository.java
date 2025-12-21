@@ -36,11 +36,6 @@ public interface PostFulltextRepository extends JpaRepository<Post, Long> {
             FROM post p
             LEFT JOIN member m ON p.member_id = m.member_id
             WHERE p.is_notice = false
-            AND (:viewerId IS NULL OR NOT EXISTS (
-                SELECT 1 FROM member_blacklist mb
-                WHERE (mb.request_member_id = :viewerId AND mb.black_member_id = p.member_id)
-                   OR (mb.request_member_id = p.member_id AND mb.black_member_id = :viewerId)
-            ))
             AND MATCH(p.title) AGAINST(:keyword IN BOOLEAN MODE)
             ORDER BY p.created_at DESC
             LIMIT :#{#pageable.pageSize} OFFSET :#{#pageable.offset}
@@ -63,11 +58,6 @@ public interface PostFulltextRepository extends JpaRepository<Post, Long> {
             FROM post p
             LEFT JOIN member m ON p.member_id = m.member_id
             WHERE p.is_notice = false
-            AND (:viewerId IS NULL OR NOT EXISTS (
-                SELECT 1 FROM member_blacklist mb
-                WHERE (mb.request_member_id = :viewerId AND mb.black_member_id = p.member_id)
-                   OR (mb.request_member_id = p.member_id AND mb.black_member_id = :viewerId)
-            ))
             AND MATCH(p.title, p.content) AGAINST(:keyword IN BOOLEAN MODE)
             ORDER BY p.created_at DESC
             LIMIT :#{#pageable.pageSize} OFFSET :#{#pageable.offset}
@@ -87,11 +77,6 @@ public interface PostFulltextRepository extends JpaRepository<Post, Long> {
             SELECT COUNT(*)
             FROM post p
             WHERE p.is_notice = false
-            AND (:viewerId IS NULL OR NOT EXISTS (
-                SELECT 1 FROM member_blacklist mb
-                WHERE (mb.request_member_id = :viewerId AND mb.black_member_id = p.member_id)
-                   OR (mb.request_member_id = p.member_id AND mb.black_member_id = :viewerId)
-            ))
             AND MATCH(p.title) AGAINST(:keyword IN BOOLEAN MODE)
             """, nativeQuery = true)
     long countByTitleFullText(@Param("keyword") String keyword, @Param("viewerId") Long viewerId);
@@ -109,11 +94,6 @@ public interface PostFulltextRepository extends JpaRepository<Post, Long> {
             SELECT COUNT(*)
             FROM post p
             WHERE p.is_notice = false
-            AND (:viewerId IS NULL OR NOT EXISTS (
-                SELECT 1 FROM member_blacklist mb
-                WHERE (mb.request_member_id = :viewerId AND mb.black_member_id = p.member_id)
-                   OR (mb.request_member_id = p.member_id AND mb.black_member_id = :viewerId)
-            ))
             AND MATCH(p.title, p.content) AGAINST(:keyword IN BOOLEAN MODE)
             """, nativeQuery = true)
     long countByTitleContentFullText(@Param("keyword") String keyword, @Param("viewerId") Long viewerId);

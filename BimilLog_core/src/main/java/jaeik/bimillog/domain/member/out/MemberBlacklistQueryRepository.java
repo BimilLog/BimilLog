@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.member.out;
 
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.member.dto.BlacklistDTO;
 import jaeik.bimillog.domain.member.entity.QMember;
@@ -20,7 +21,7 @@ public class MemberBlacklistQueryRepository {
     private final QMember member = QMember.member;
     private final QMemberBlacklist memberBlacklist = QMemberBlacklist.memberBlacklist;
 
-    public Page<BlacklistDTO> getMyBlacklist(Long memberId, Pageable pageable) {
+    public Page<BlacklistDTO> getInterActionBlacklist(Long memberId, Pageable pageable) {
         List<BlacklistDTO> content = jpaQueryFactory
                 .select(Projections.constructor(BlacklistDTO.class,
                         memberBlacklist.id,
@@ -42,8 +43,17 @@ public class MemberBlacklistQueryRepository {
         return new PageImpl<>(content, pageable, total != null ? total : 0);
     }
 
-    // TODO : 구현 예정
-    public List<Long> getMyBlacklist(Long memberId) {
-        return null;
+    /**
+     * <h3>자신의 블랙리스트한 사람의 ID와 나를 블랙리스트로 한 사람의 ID 조회</h3>
+     */
+    public List<Long> getInterActionBlacklist(Long memberId) {
+        return jpaQueryFactory
+                .select(new CaseBuilder()
+                        .when(memberBlacklist.requestMember.id.eq(memberId))
+                        .then(memberBlacklist.blackMember.id)
+                        .otherwise(memberBlacklist.requestMember.id)).distinct()
+                .from(memberBlacklist)
+                .where(memberBlacklist.requestMember.id.eq(memberId).or(memberBlacklist.blackMember.id.eq(memberId)))
+                .fetch();
     }
 }

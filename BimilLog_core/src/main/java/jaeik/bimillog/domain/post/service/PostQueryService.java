@@ -11,12 +11,12 @@ import jaeik.bimillog.infrastructure.redis.post.RedisPostQueryAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostSaveAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * <h2>게시글 조회 서비스</h2>
@@ -47,12 +47,15 @@ public class PostQueryService {
      * @param pageable 페이지 정보 (크기, 페이지 번호, 정렬 기준)
      * @return Page&lt;PostSimpleDetail&gt; 페이지네이션된 게시글 목록
      * @author Jaeik
-     * @since 2.0.0
+     * @since 2.3.0
      */
     public Page<PostSimpleDetail> getBoard(Pageable pageable, Long memberId) {
         Page<PostSimpleDetail> posts = postQueryRepository.findByPage(pageable, memberId);
-        enrichPostsCommentCount(posts.getContent());
-        return posts;
+        List<PostSimpleDetail> blackListFilterPosts = removePostsWithBlacklist(memberId, posts.getContent());
+        enrichPostsCommentCount(blackListFilterPosts);
+
+        return new PageImpl<>(blackListFilterPosts, posts.getPageable(),
+                posts.getTotalElements() - (posts.getContent().size() - blackListFilterPosts.size()));
     }
 
     /**
@@ -195,8 +198,11 @@ public class PostQueryService {
             posts = postSearchRepository.findByPartialMatch(type, query, pageable, memberId);
         }
 
-        enrichPostsCommentCount(posts.getContent());
-        return posts;
+        List<PostSimpleDetail> blackListFilterPosts = removePostsWithBlacklist(memberId, posts.getContent());
+        enrichPostsCommentCount(blackListFilterPosts);
+
+        return new PageImpl<>(blackListFilterPosts, posts.getPageable(),
+                posts.getTotalElements() - (posts.getContent().size() - blackListFilterPosts.size()));
     }
 
     /**
@@ -224,13 +230,16 @@ public class PostQueryService {
         });
     }
 
-    // TODO 구현 예정 : 현재 DB에서 블랙리스트와 조인을하여 필터링하는 것을
-    //  DB에서 조회된 게시글 목록 엔티티로 서비스레벨에서 탐색하여 제거할 것으로 변경
-    //  이유 1 : 글 레포에서 블랙리스트 DB까지 조인
-    //  이유 2 : 페이징 되지 않은 전체 데이터를 상대로 불 필요하게 블랙리스트 필터링 함
-    //  따라서 완성된 데이터를 대상으로 순회하며 제거하는 것이 성능상 더 좋을 것이라는 판단.
-    private void removePostsWithBlacklist(Long memberId, Page<PostSimpleDetail> posts) {
-        List<Long> blacklistIds = globalMemberBlacklistAdapter.getMyBlacklist(memberId);
+    /**
+     * <h3>게시글에서 블랙리스트 제거</h3>
+     */
+    private List<PostSimpleDetail> removePostsWithBlacklist(Long memberId, List<PostSimpleDetail> posts) {
+        if (memberId == null || posts.isEmpty()) {
+            return posts;
+        }
 
+        List<Long> blacklistIds = globalMemberBlacklistAdapter.getInterActionBlacklist(memberId);
+        Set<Long> blacklistSet = new HashSet<>(blacklistIds);
+        return posts.stream().filter(post -> !blacklistSet.contains(post.getMemberId())).collect(Collectors.toList());
     }
 }

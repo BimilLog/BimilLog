@@ -9,7 +9,6 @@ import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.comment.entity.QComment;
 import jaeik.bimillog.domain.member.entity.QMember;
-import jaeik.bimillog.domain.member.entity.QMemberBlacklist;
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.service.PostQueryService;
 import lombok.RequiredArgsConstructor;
@@ -47,7 +46,6 @@ public class PostQueryRepository {
     private static final QMember member = QMember.member;
     private static final QPostLike postLike = QPostLike.postLike;
     private static final QComment comment = QComment.comment;
-    private static final QMemberBlacklist memberBlacklist = QMemberBlacklist.memberBlacklist;
 
     /**
      * <h3>게시판 조회</h3>
@@ -61,7 +59,7 @@ public class PostQueryRepository {
      * @since 2.0.0
      */
     public Page<PostSimpleDetail> findByPage(Pageable pageable, Long memberId) {
-        Consumer<JPAQuery<?>> customizer = query -> query.where(applyBlacklistFilter(post.isNotice.isFalse(), memberId));
+        Consumer<JPAQuery<?>> customizer = query -> query.where(post.isNotice.isFalse());
         return findPostsWithQuery(customizer, customizer, pageable);
     }
 
@@ -77,7 +75,7 @@ public class PostQueryRepository {
      * @since 2.0.0
      */
     public Page<PostSimpleDetail> findPostsByMemberId(Long memberId, Pageable pageable, Long viewerId) {
-        Consumer<JPAQuery<?>> customizer = query -> query.where(applyBlacklistFilter(member.id.eq(memberId), viewerId));
+        Consumer<JPAQuery<?>> customizer = query -> query.where(member.id.eq(memberId));
         return findPostsWithQuery(customizer, customizer, pageable);
     }
 
@@ -293,25 +291,6 @@ public class PostQueryRepository {
         Long total = countQuery.fetchOne();
 
         return new PageImpl<>(content, pageable, total != null ? total : 0L);
-    }
-
-    /**
-     * <h3>블랙리스트 필터링</h3>
-     * 조회자의 블랙리스트 관계를 조회하여 블랙리스트의 게시글을 보이지 않게 함
-     */
-    public BooleanExpression applyBlacklistFilter(BooleanExpression baseCondition, Long viewerId) {
-        if (viewerId == null) {
-            return baseCondition;
-        }
-
-        BooleanExpression blacklistBlock = JPAExpressions
-                .selectOne()
-                .from(memberBlacklist)
-                .where(memberBlacklist.requestMember.id.eq(viewerId).and(memberBlacklist.blackMember.id.eq(member.id))
-                                .or(memberBlacklist.requestMember.id.eq(member.id).and(memberBlacklist.blackMember.id.eq(viewerId))))
-                .notExists();
-
-        return baseCondition.and(blacklistBlock);
     }
 
 }

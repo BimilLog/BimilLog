@@ -27,13 +27,13 @@ public class MemberBlacklistService {
     private final MemberRepository memberRepository;
 
     @Transactional(readOnly = true)
-    public Page<BlacklistDTO> getMyBlacklist(Long memberId, Pageable pageable) {
-        return memberBlacklistQueryRepository.getMyBlacklist(memberId, pageable);
+    public Page<BlacklistDTO> getInterActionBlacklist(Long memberId, Pageable pageable) {
+        return memberBlacklistQueryRepository.getInterActionBlacklist(memberId, pageable);
     }
 
     @Transactional(readOnly = true)
-    public List<Long> getMyBlacklist(Long memberId) {
-        return memberBlacklistQueryRepository.getMyBlacklist(memberId);
+    public List<Long> getInterActionBlacklist(Long memberId) {
+        return memberBlacklistQueryRepository.getInterActionBlacklist(memberId);
     }
 
     @Transactional

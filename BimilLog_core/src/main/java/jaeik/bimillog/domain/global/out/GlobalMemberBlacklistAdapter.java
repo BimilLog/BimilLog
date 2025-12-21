@@ -27,9 +27,9 @@ public class GlobalMemberBlacklistAdapter {
     }
 
     /**
-     * <h3>자신의 블랙리스트 ID를 조회</h3>
+     * <h3>자신의 블랙리스트한 사람의 ID와 나를 블랙리스트로 한 사람의 ID 조회</h3>
      */
-    public List<Long> getMyBlacklist(Long memberId) {
-        return memberBlacklistService.getMyBlacklist(memberId);
+    public List<Long> getInterActionBlacklist(Long memberId) {
+        return memberBlacklistService.getInterActionBlacklist(memberId);
     }
 }

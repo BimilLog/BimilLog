@@ -112,10 +112,6 @@ sourceSets {
     main.java.srcDirs += [ generated ]
 }
 
-tasks.withType(JavaCompile).configureEach {
-    options.generatedSourceOutputDirectory = file(generated)
-}
-
 clean.doLast {
     file(generated).deleteDir()
 }
