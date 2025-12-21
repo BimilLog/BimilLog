@@ -15,8 +15,4 @@ import jaeik.bimillog.domain.member.entity.SocialProvider;
  * @version 2.0.0
  *
  */
-public record MemberLoggedOutEvent(Long memberId,
-                                   Long authTokenId,
-                                   SocialProvider provider){
-
-}
+public record MemberLoggedOutEvent(Long memberId, Long authTokenId, SocialProvider provider){}

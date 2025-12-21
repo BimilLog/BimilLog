@@ -17,7 +17,6 @@ import java.time.Instant;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CommentInfo {
-
     private Long id;
     private Long parentId;
     private Long postId;

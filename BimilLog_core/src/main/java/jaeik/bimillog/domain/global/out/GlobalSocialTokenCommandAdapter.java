@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
  * <h2>소셜 토큰 명령 어댑터</h2>
  * <p>소셜 플랫폼 OAuth 토큰 쓰기 기능을 구현하는 어댑터입니다.</p>
  * <p>SocialTokenRepository를 통해 실제 데이터베이스 작업을 수행합니다.</p>
- * <p>카카오, 네이버 등 모든 소셜 플랫폼의 토큰 저장/삭제를 통합 관리합니다.</p>
+ * <p>모든 소셜 플랫폼의 토큰 저장/삭제를 통합 관리합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -18,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Component
 @RequiredArgsConstructor
 public class GlobalSocialTokenCommandAdapter {
-
     private final SocialTokenRepository socialTokenRepository;
 
     /**

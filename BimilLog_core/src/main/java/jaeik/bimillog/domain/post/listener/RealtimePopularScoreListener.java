@@ -26,7 +26,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Slf4j
 public class RealtimePopularScoreListener {
-
     private final RedisPostUpdateAdapter redisPostUpdateAdapter;
     private final RedisPostDeleteAdapter redisPostDeleteAdapter;
 

@@ -20,12 +20,7 @@ import java.util.Map;
  * @author Jaeik
  * @version 2.0.0
  */
-public record SseMessage(
-        Long memberId,
-        NotificationType type,
-        String message,
-        String url
-) {
+public record SseMessage(Long memberId, NotificationType type, String message, String url) {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 

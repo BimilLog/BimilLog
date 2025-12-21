@@ -23,9 +23,8 @@ import java.util.stream.Collectors;
 
 /**
  * <h2>PostCacheService</h2>
- * <p>게시글 캐시 관리 관련 UseCase 인터페이스의 구현체로서 캐시 조회 및 동기화 비즈니스 로직을 오케스트레이션합니다.</p>
+ * <p>캐시 조회 및 동기화 비즈니스 로직을 오케스트레이션합니다.</p>
  * <p>실시간, 주간, 레전드 인기글 조회</p>
- * <p>공지사항 조회 및 상태 변경에 따른 Redis 캐시 동기화와 데이터 무결성 보장을 위한 비즈니스 규칙을 관리합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -36,8 +35,8 @@ import java.util.stream.Collectors;
 public class PostCacheService {
 
     /**
-     * 확률적 선계산(Probabilistic Early Expiration) 기법의 expiry gap (초 단위)
-     * <p>TTL 마지막 120초(2분) 동안 확률적으로 캐시를 갱신합니다.</p>
+     * PER의 expiry gap (초 단위)
+     * <p>TTL 마지막 120초 동안 확률적으로 캐시를 갱신합니다.</p>
      */
     private static final int EXPIRY_GAP_SECONDS = 120;
 
@@ -117,7 +116,7 @@ public class PostCacheService {
     /**
      * <h3>주간 인기 게시글 조회 (확률적 선계산 적용)</h3>
      * <p>Redis 캐시에서 주간 인기글 목록을 조회합니다.</p>
-     * <p>확률적 선계산(Probabilistic Early Expiration) 기법을 적용하여 캐시 스탬피드를 방지합니다.</p>
+     * <p>PER 기법을 적용하여 캐시 스탬피드를 방지합니다.</p>
      * <p>TTL 마지막 2분 동안 랜덤 확률로 비동기 갱신을 트리거하며, 사용자는 기존 캐시를 즉시 반환받습니다.</p>
      *
      * @return Redis에서 조회된 주간 인기 게시글 목록

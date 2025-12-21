@@ -33,7 +33,6 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/api/paper")
 public class PaperQueryController {
-
     private final PaperQueryService paperQueryService;
 
     /**
@@ -49,9 +48,7 @@ public class PaperQueryController {
     public ResponseEntity<List<MyMessage>> myPaper(@AuthenticationPrincipal CustomUserDetails userDetails) {
         Long memberId = userDetails.getMemberId();
         List<Message> messageDetails = paperQueryService.getMyPaper(memberId);
-        List<MyMessage> myMessages = messageDetails.stream()
-                .map(MyMessage::from)
-                .toList();
+        List<MyMessage> myMessages = messageDetails.stream().map(MyMessage::from).toList();
         return ResponseEntity.ok(myMessages);
     }
 
@@ -66,8 +63,7 @@ public class PaperQueryController {
      * @since 2.0.0
      */
     @GetMapping("/{memberName}")
-    public ResponseEntity<VisitPaperResult> visitPaper(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                                       @PathVariable String memberName) {
+    public ResponseEntity<VisitPaperResult> visitPaper(@AuthenticationPrincipal CustomUserDetails userDetails, @PathVariable String memberName) {
         Long memberId = userDetails == null ? null : userDetails.getMemberId();
         VisitPaperResult result = paperQueryService.visitPaper(memberId, memberName);
         return ResponseEntity.ok(result);

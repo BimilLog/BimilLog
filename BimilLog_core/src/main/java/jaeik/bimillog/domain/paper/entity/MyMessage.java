@@ -9,8 +9,7 @@ import lombok.Setter;
 import java.time.Instant;
 
 /**
- * <h2>롤링페이퍼 메시지 DTO</h2>
- * <p>클라이언트와 서버 간 롤링페이퍼 메시지 데이터 전송을 위한 데이터 전송 객체입니다.</p>
+ * <h2>자신의 롤링페이퍼 메시지 엔티티</h2>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -19,27 +18,19 @@ import java.time.Instant;
 @Setter
 @AllArgsConstructor
 public class MyMessage {
-
     private Long id;
-
     private Long memberId;
-
     private DecoType decoType;
-
     @Size(max = 8, message = "익명 이름은 최대 8글자 까지 입력 가능합니다.")
     private String anonymity;
-
     @Size(max = 255, message = "내용은 최대 255자 까지 입력 가능합니다.")
     private String content;
-
     private int x;
-
     private int y;
-
     private Instant createdAt;
 
     /**
-     * <h3>Message 엔티티에서 MessageDTO 변환</h3>
+     * <h3>Message 엔티티에서 MyMessage 변환</h3>
      *
      * @param message 변환할 엔티티
      * @return MessageDTO 변환된 메시지 DTO

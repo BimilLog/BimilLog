@@ -23,7 +23,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Slf4j
 public class RealtimePaperPopularScoreListener {
-
     private final RedisPaperUpdateAdapter redisPaperUpdateAdapter;
 
     private static final double VIEW_SCORE = 2.0;

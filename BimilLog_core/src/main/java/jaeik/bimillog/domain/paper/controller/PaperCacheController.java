@@ -27,7 +27,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/api/paper")
 public class PaperCacheController {
-
     private final PaperCacheService paperCacheService;
 
     /**

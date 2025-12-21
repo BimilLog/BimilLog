@@ -14,7 +14,7 @@ import lombok.experimental.SuperBuilder;
  * <p>카카오, 네이버 등 모든 소셜 플랫폼의 토큰을 하나의 테이블로 관리합니다.</p>
  *
  * @author Jaeik
- * @since 2.0.0
+ * @version 2.0.0
  */
 @Entity
 @SuperBuilder

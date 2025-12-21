@@ -28,7 +28,6 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class PostScheduledService {
-
     private final RedisPostSaveAdapter redisPostSaveAdapter;
     private final RedisPostUpdateAdapter redisPostUpdateAdapter;
     private final RedisPostDeleteAdapter redisPostDeleteAdapter;
@@ -42,7 +41,7 @@ public class PostScheduledService {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Scheduled(fixedRate = 60000 * 5) // 5분마다
+    @Scheduled(fixedRate = 60000 * 10) // 10분마다
     public void applyRealtimeScoreDecay() {
         try {
             redisPostUpdateAdapter.applyRealtimePopularScoreDecay();
@@ -124,13 +123,9 @@ public class PostScheduledService {
      * @param sseMessage SSE 알림 메시지
      * @param notificationType 인기글 유형 (WEEKLY/LEGEND/REALTIME)
      */
-    private void publishFeaturedEventFromSimpleDetails(
-        List<PostSimpleDetail> posts,
-        String sseMessage,
-        NotificationType notificationType
-    ) {
-        posts.stream()
-                .filter(post -> post.getMemberId() != null)
+    private void publishFeaturedEventFromSimpleDetails(List<PostSimpleDetail> posts, String sseMessage,
+                                                       NotificationType notificationType) {
+        posts.stream().filter(post -> post.getMemberId() != null)
                 .forEach(post -> {
                     eventPublisher.publishEvent(new PostFeaturedEvent(
                             post.getMemberId(),

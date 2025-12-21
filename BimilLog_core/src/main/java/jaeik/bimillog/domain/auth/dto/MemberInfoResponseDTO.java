@@ -10,7 +10,7 @@ import lombok.Builder;
  * <p>클라이언트에게 노출되어도 안전한 사용자 정보만을 포함합니다.</p>
  *
  * @author Jaeik
- * @version 3.0.0
+ * @version 2.3.0
  */
 @Builder
 public record MemberInfoResponseDTO(Long memberId, Long settingId, String socialNickname, String thumbnailImage,
@@ -22,7 +22,7 @@ public record MemberInfoResponseDTO(Long memberId, Long settingId, String social
      *
      * @param userDetails CustomUserDetails 객체
      * @return 변환된 MemberInfoResponseDTO 객체
-     * @since 3.0.0
+     * @since 2.3.0
      * @author Jaeik
      */
     public static MemberInfoResponseDTO from(CustomUserDetails userDetails) {

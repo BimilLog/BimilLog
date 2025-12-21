@@ -24,15 +24,10 @@ public record VisitPaperResult(List<VisitMessage> messages, Long ownerId) {
     @Setter
     @AllArgsConstructor
     public static class VisitMessage {
-
         private Long id;
-
         private Long memberId;
-
         private DecoType decoType;
-
         private int x;
-
         private int y;
 
         /**

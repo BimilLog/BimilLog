@@ -27,7 +27,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class PaperQueryService {
-    private final PaperQueryRepository paperQueryRepository;
     private final MessageRepository messageRepository;
     private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
     private final ApplicationEventPublisher eventPublisher;
@@ -69,7 +68,6 @@ public class PaperQueryService {
 
         List<Message> messages = messageRepository.findByMemberMemberName(memberName);
 
-        //
         List<VisitPaperResult.VisitMessage> visitMessages = messages.stream()
                 .map(VisitPaperResult.VisitMessage::from)
                 .toList();
