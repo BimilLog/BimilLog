@@ -57,15 +57,11 @@ public class AuthCommandController {
             message = "소셜 로그인 요청")
     @PostMapping("/login")
     public ResponseEntity<String> socialLogin(@Valid @RequestBody SocialLoginRequestDTO request) {
-        LoginResult loginResult = socialLoginService.processSocialLogin(
-                request.getProvider(),
-                request.getCode(),
-                request.getState());
+        LoginResult loginResult = socialLoginService.processSocialLogin(request.getProvider(), request.getCode(), request.getState());
 
         return switch (loginResult) {
             case LoginResult.NewUser(var tempCookie) -> ResponseEntity.ok()
-                    .header("Set-Cookie", tempCookie.toString())
-                    .body("NEW_USER");
+                    .header("Set-Cookie", tempCookie.toString()).body("NEW_USER");
             case LoginResult.ExistingUser(var cookies) -> ResponseEntity.ok()
                     .headers(headers -> cookies.forEach(cookie ->
                             headers.add("Set-Cookie", cookie.toString()))).body("EXISTING_USER");
@@ -85,9 +81,8 @@ public class AuthCommandController {
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@AuthenticationPrincipal CustomUserDetails userDetails) {
         eventPublisher.publishEvent(new MemberLoggedOutEvent(userDetails.getMemberId(), userDetails.getAuthTokenId(), userDetails.getSocialProvider()));
-        return ResponseEntity.ok()
-                .headers(headers -> globalCookieAdapter.getLogoutCookies().forEach(cookie ->
-                        headers.add("Set-Cookie", cookie.toString()))).build();
+        return ResponseEntity.ok().headers(headers -> globalCookieAdapter.getLogoutCookies()
+                .forEach(cookie -> headers.add("Set-Cookie", cookie.toString()))).build();
     }
 
     /**

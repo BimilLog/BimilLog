@@ -3,6 +3,7 @@ package jaeik.bimillog.domain.auth.dto;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,7 +21,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class SocialLoginRequestDTO {
 
-    @NotBlank(message = "소셜 제공자는 필수입니다.")
+    @NotNull(message = "소셜 제공자는 필수입니다.")
     private SocialProvider provider;
 
     @NotBlank(message = "인증 코드는 필수입니다.")
