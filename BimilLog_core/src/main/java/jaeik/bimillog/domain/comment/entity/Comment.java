@@ -34,7 +34,6 @@ public class Comment extends BaseEntity {
     @Column(name = "comment_id")
     private Long id;
 
-
     // DB 레벨 CASCADE: Post 삭제 시 Comment 자동 삭제
     // JPA cascade 없음: ManyToOne 관계로 Post가 Comment 생명주기 관리하지 않음
     @ManyToOne(fetch = FetchType.LAZY)
@@ -158,13 +157,10 @@ public class Comment extends BaseEntity {
      * @since 2.0.0
      */
     public boolean canModify(Long userId, Integer password) {
-        // 댓글이 원래 익명 댓글인지 회원 댓글인지 먼저 확인
         if (this.member == null) {
-            // 익명 댓글: 비밀번호 검증
-            return isPasswordMatch(password);
+            return isPasswordMatch(password); // 익명 댓글: 비밀번호 검증
         } else {
-            // 회원 댓글: 소유자 검증
-            return isOwner(userId);
+            return isOwner(userId); // 회원 댓글: 소유자 검증
         }
     }
 }

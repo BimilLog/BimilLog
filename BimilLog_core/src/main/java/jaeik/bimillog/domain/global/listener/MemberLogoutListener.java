@@ -56,7 +56,7 @@ public class MemberLogoutListener {
         } catch (Exception ex) {
             log.warn("소셜 로그아웃 실패 - provider: {}, memberId: {}. 이후 정리 작업은 계속 진행합니다.", provider, memberId, ex);
         }
-        // AuthToken 삭제 시 fcmRegistrationToken도 함께 삭제됨 (테이블 통합)
+
         authTokenService.deleteTokens(memberId, AuthTokenId);
         globalSocialTokenCommandAdapter.deleteByMemberId(memberId);
         SecurityContextHolder.clearContext();

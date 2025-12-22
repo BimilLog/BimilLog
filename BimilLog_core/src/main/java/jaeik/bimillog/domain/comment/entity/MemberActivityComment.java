@@ -36,7 +36,6 @@ public class MemberActivityComment extends CommentInfo {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class SimpleCommentInfo {
-
         private Long id;
         private Long postId;
         private String memberName;
