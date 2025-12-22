@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
-import jaeik.bimillog.domain.global.out.GlobalSocialStrategyAdapter;
+import jaeik.bimillog.domain.auth.out.SocialStrategyAdapter;
 import jaeik.bimillog.domain.global.strategy.SocialAuthStrategy;
 import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
 import jaeik.bimillog.domain.member.entity.Member;
@@ -34,7 +34,7 @@ import static org.mockito.Mockito.*;
 class SocialLogoutServiceTest extends BaseUnitTest {
 
     @Mock
-    private GlobalSocialStrategyAdapter strategyRegistry;
+    private SocialStrategyAdapter strategyRegistry;
 
     @Mock
     private SocialPlatformStrategy kakaoPlatformStrategy;

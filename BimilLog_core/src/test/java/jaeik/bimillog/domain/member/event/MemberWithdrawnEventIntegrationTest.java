@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.member.event;
 
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
-import jaeik.bimillog.domain.global.out.GlobalSocialStrategyAdapter;
+import jaeik.bimillog.domain.auth.out.SocialStrategyAdapter;
 import jaeik.bimillog.domain.global.strategy.SocialAuthStrategy;
 import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
 import jaeik.bimillog.domain.member.entity.Member;
@@ -67,7 +67,7 @@ class MemberWithdrawnEventIntegrationTest {
     private SseService sseService;
 
     @MockitoBean
-    private GlobalSocialStrategyAdapter globalSocialStrategyAdapter;
+    private SocialStrategyAdapter socialStrategyAdapter;
 
     private static final Duration EVENT_TIMEOUT = Duration.ofSeconds(5);
 
@@ -114,7 +114,7 @@ class MemberWithdrawnEventIntegrationTest {
         RedisTestHelper.flushRedis(redisTemplate);
 
         // 외부 API Mock 설정
-        doReturn(NOOP_PLATFORM_STRATEGY).when(globalSocialStrategyAdapter).getStrategy(any());
+        doReturn(NOOP_PLATFORM_STRATEGY).when(socialStrategyAdapter).getStrategy(any());
         doNothing().when(sseService).deleteEmitters(any(), any());
 
         // 테스트 회원 생성

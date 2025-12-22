@@ -13,11 +13,8 @@ public abstract class SocialPlatformStrategy {
     private final SocialAuthStrategy authStrategy;
 
     protected SocialPlatformStrategy(SocialProvider provider, SocialAuthStrategy authStrategy) {
-        this.provider = Objects.requireNonNull(provider, "provider must not be null");
-        this.authStrategy = Objects.requireNonNull(authStrategy, "authStrategy must not be null");
-        if (!authStrategy.getProvider().equals(provider)) {
-            throw new IllegalArgumentException("인증 전략 제공자와 플랫폼 제공자가 일치하지 않습니다.");
-        }
+        this.provider = provider;
+        this.authStrategy = authStrategy;
     }
 
     /**
@@ -44,5 +41,4 @@ public abstract class SocialPlatformStrategy {
     public SocialAuthStrategy auth() {
         return authStrategy;
     }
-
 }

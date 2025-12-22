@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
-import jaeik.bimillog.domain.global.out.GlobalSocialStrategyAdapter;
+import jaeik.bimillog.domain.auth.out.SocialStrategyAdapter;
 import jaeik.bimillog.domain.global.strategy.SocialAuthStrategy;
 import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
 import jaeik.bimillog.domain.member.entity.Member;
@@ -30,7 +30,7 @@ import static org.mockito.Mockito.verify;
 class SocialWithdrawServiceTest {
 
     @Mock
-    private GlobalSocialStrategyAdapter strategyRegistryAdapter;
+    private SocialStrategyAdapter strategyRegistryAdapter;
 
     @Mock
     private GlobalMemberQueryAdapter globalMemberQueryAdapter;

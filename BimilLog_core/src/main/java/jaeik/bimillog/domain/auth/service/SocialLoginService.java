@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.global.out.GlobalSocialStrategyAdapter;
+import jaeik.bimillog.domain.auth.out.SocialStrategyAdapter;
 import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @RequiredArgsConstructor
 public class SocialLoginService {
-    private final GlobalSocialStrategyAdapter globalSocialStrategyAdapter;
+    private final SocialStrategyAdapter socialStrategyAdapter;
     private final SocialLoginTransactionalService socialLoginTransactionalService;
 
     /**
@@ -40,7 +40,7 @@ public class SocialLoginService {
      * @since 2.0.0
      */
     public LoginResult processSocialLogin(SocialProvider provider, String code, String state) {
-        SocialPlatformStrategy strategy = globalSocialStrategyAdapter.getStrategy(provider);
+        SocialPlatformStrategy strategy = socialStrategyAdapter.getStrategy(provider);
         SocialMemberProfile socialUserProfile = strategy.auth().getSocialToken(code, state);
         return socialLoginTransactionalService.finishLogin(provider, socialUserProfile);
     }

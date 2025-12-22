@@ -58,7 +58,7 @@ public class AuthCommandController {
     @PostMapping("/login")
     public ResponseEntity<String> socialLogin(@Valid @RequestBody SocialLoginRequestDTO request) {
         LoginResult loginResult = socialLoginService.processSocialLogin(
-                request.getSocialProvider(),
+                request.getProvider(),
                 request.getCode(),
                 request.getState());
 

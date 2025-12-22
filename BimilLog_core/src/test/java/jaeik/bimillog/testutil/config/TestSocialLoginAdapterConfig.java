@@ -1,7 +1,7 @@
 package jaeik.bimillog.testutil.config;
 
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.global.out.GlobalSocialStrategyAdapter;
+import jaeik.bimillog.domain.auth.out.SocialStrategyAdapter;
 import jaeik.bimillog.domain.global.strategy.SocialAuthStrategy;
 import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
 import jaeik.bimillog.domain.member.dto.KakaoFriendsDTO;
@@ -31,8 +31,8 @@ public class TestSocialLoginAdapterConfig {
 
     @Bean
     @Primary
-    public GlobalSocialStrategyAdapter testGlobalSocialStrategyAdapter() {
-        return new GlobalSocialStrategyAdapter(Collections.singletonList(TEST_PLATFORM_STRATEGY));
+    public SocialStrategyAdapter testGlobalSocialStrategyAdapter() {
+        return new SocialStrategyAdapter(Collections.singletonList(TEST_PLATFORM_STRATEGY));
     }
 
     @Bean

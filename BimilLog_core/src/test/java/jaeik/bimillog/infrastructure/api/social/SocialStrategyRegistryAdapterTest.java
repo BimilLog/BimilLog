@@ -1,6 +1,6 @@
 package jaeik.bimillog.infrastructure.api.social;
 
-import jaeik.bimillog.domain.global.out.GlobalSocialStrategyAdapter;
+import jaeik.bimillog.domain.auth.out.SocialStrategyAdapter;
 import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.testutil.BaseUnitTest;
@@ -42,7 +42,7 @@ class SocialStrategyRegistryAdapterTest extends BaseUnitTest {
         given(naverStrategy.getSupportedProvider()).willReturn(SocialProvider.NAVER);
 
         List<SocialPlatformStrategy> strategies = Arrays.asList(kakaoStrategy, googleStrategy, naverStrategy);
-        GlobalSocialStrategyAdapter registry = new GlobalSocialStrategyAdapter(strategies);
+        SocialStrategyAdapter registry = new SocialStrategyAdapter(strategies);
 
         assertThat(registry.getStrategy(SocialProvider.KAKAO)).isEqualTo(kakaoStrategy);
         assertThat(registry.getStrategy(SocialProvider.GOOGLE)).isEqualTo(googleStrategy);
@@ -59,7 +59,7 @@ class SocialStrategyRegistryAdapterTest extends BaseUnitTest {
         given(duplicateKakaoStrategy.getSupportedProvider()).willReturn(SocialProvider.KAKAO);
 
         List<SocialPlatformStrategy> strategies = Arrays.asList(firstKakaoStrategy, duplicateKakaoStrategy);
-        GlobalSocialStrategyAdapter registry = new GlobalSocialStrategyAdapter(strategies);
+        SocialStrategyAdapter registry = new SocialStrategyAdapter(strategies);
 
         assertThat(registry.getStrategy(SocialProvider.KAKAO)).isEqualTo(firstKakaoStrategy);
         assertThat(registry.getStrategy(SocialProvider.KAKAO)).isNotEqualTo(duplicateKakaoStrategy);
@@ -71,7 +71,7 @@ class SocialStrategyRegistryAdapterTest extends BaseUnitTest {
         given(kakaoStrategy.getSupportedProvider()).willReturn(SocialProvider.KAKAO);
 
         List<SocialPlatformStrategy> strategies = Collections.singletonList(kakaoStrategy);
-        GlobalSocialStrategyAdapter registry = new GlobalSocialStrategyAdapter(strategies);
+        SocialStrategyAdapter registry = new SocialStrategyAdapter(strategies);
 
         assertThatThrownBy(() -> registry.getStrategy(SocialProvider.GOOGLE))
             .isInstanceOf(IllegalArgumentException.class)
@@ -82,7 +82,7 @@ class SocialStrategyRegistryAdapterTest extends BaseUnitTest {
     @Test
     @DisplayName("빈 전략 목록 - 전략이 없을 때 모든 Provider 요청에 예외 발생")
     void shouldThrowExceptionForAnyProviderWhenNoStrategiesRegistered() {
-        GlobalSocialStrategyAdapter registry = new GlobalSocialStrategyAdapter(Collections.emptyList());
+        SocialStrategyAdapter registry = new SocialStrategyAdapter(Collections.emptyList());
 
         for (SocialProvider provider : SocialProvider.values()) {
             assertThatThrownBy(() -> registry.getStrategy(provider))
@@ -97,7 +97,7 @@ class SocialStrategyRegistryAdapterTest extends BaseUnitTest {
     void shouldWorkWithSingleStrategy() {
         given(kakaoStrategy.getSupportedProvider()).willReturn(SocialProvider.KAKAO);
 
-        GlobalSocialStrategyAdapter registry = new GlobalSocialStrategyAdapter(Collections.singletonList(kakaoStrategy));
+        SocialStrategyAdapter registry = new SocialStrategyAdapter(Collections.singletonList(kakaoStrategy));
 
         assertThat(registry.getStrategy(SocialProvider.KAKAO)).isEqualTo(kakaoStrategy);
         assertThatThrownBy(() -> registry.getStrategy(SocialProvider.GOOGLE)).isInstanceOf(IllegalArgumentException.class);
@@ -108,7 +108,7 @@ class SocialStrategyRegistryAdapterTest extends BaseUnitTest {
     @DisplayName("전략 교체 불가 - 한 번 등록된 전략은 변경되지 않음을 검증")
     void shouldNotReplaceOnceRegisteredStrategy() {
         given(kakaoStrategy.getSupportedProvider()).willReturn(SocialProvider.KAKAO);
-        GlobalSocialStrategyAdapter registry = new GlobalSocialStrategyAdapter(Collections.singletonList(kakaoStrategy));
+        SocialStrategyAdapter registry = new SocialStrategyAdapter(Collections.singletonList(kakaoStrategy));
 
         SocialPlatformStrategy firstStrategy = registry.getStrategy(SocialProvider.KAKAO);
         SocialPlatformStrategy secondStrategy = registry.getStrategy(SocialProvider.KAKAO);

@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.auth.service;
 import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
-import jaeik.bimillog.domain.global.out.GlobalSocialStrategyAdapter;
+import jaeik.bimillog.domain.auth.out.SocialStrategyAdapter;
 import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class SocialWithdrawService {
 
-    private final GlobalSocialStrategyAdapter globalSocialStrategyAdapter;
+    private final SocialStrategyAdapter socialStrategyAdapter;
     private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
 
 
@@ -42,7 +42,7 @@ public class SocialWithdrawService {
         SocialToken socialToken = member.getSocialToken();
         String accessToken = socialToken != null ? socialToken.getAccessToken() : null;
 
-        SocialPlatformStrategy strategy = globalSocialStrategyAdapter.getStrategy(provider);
+        SocialPlatformStrategy strategy = socialStrategyAdapter.getStrategy(provider);
         strategy.auth().unlink(socialId, accessToken);
 
         log.info("소셜 연결 해제 완료 - 제공자: {}, 소셜 ID: {}", provider, socialId);
