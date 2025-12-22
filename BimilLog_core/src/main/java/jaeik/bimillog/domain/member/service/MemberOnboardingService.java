@@ -101,10 +101,7 @@ public class MemberOnboardingService {
 
             return globalCookieAdapter.generateJwtCookie(accessToken, refreshToken);
         } catch (DataIntegrityViolationException e) {
-            if (e.getMessage() != null && e.getMessage().contains("member_name")) {
-                throw new CustomException(ErrorCode.MEMBER_EXISTED_NICKNAME);
-            }
-            throw e;
+            throw new CustomException(ErrorCode.MEMBER_EXISTED_NICKNAME, e);
         }
     }
 }

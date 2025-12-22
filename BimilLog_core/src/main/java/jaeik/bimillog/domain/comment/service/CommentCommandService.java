@@ -43,7 +43,6 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class CommentCommandService {
-
     private final ApplicationEventPublisher eventPublisher;
     private final PostRepository postRepository;
     private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
@@ -100,8 +99,6 @@ public class CommentCommandService {
                         memberId,
                         postId));
             }
-        } catch (CustomException e) {
-            throw e;
         } catch (Exception e) {
             throw new CustomException(ErrorCode.COMMENT_WRITE_FAILED, e);
         }
@@ -276,13 +273,12 @@ public class CommentCommandService {
         Comment comment = Comment.createComment(post, member, content, password);
         Comment savedComment = commentRepository.save(comment);
 
-
         List<CommentClosure> closuresToSave = new ArrayList<>();
         closuresToSave.add(CommentClosure.createCommentClosure(savedComment, savedComment, 0));
 
         if (parentId != null) {
             List<CommentClosure> parentClosures = commentClosureRepository.findByDescendantId(parentId)
-                    .orElseThrow(() -> new RuntimeException("부모 댓글을 찾을 수 없습니다."));
+                    .orElseThrow(() -> new RuntimeException("기존 댓글을 찾을 수 없습니다."));
 
             for (CommentClosure parentClosure : parentClosures) {
                 closuresToSave.add(CommentClosure.createCommentClosure(
@@ -293,5 +289,4 @@ public class CommentCommandService {
         }
         commentClosureRepository.saveAll(closuresToSave);
     }
-
 }

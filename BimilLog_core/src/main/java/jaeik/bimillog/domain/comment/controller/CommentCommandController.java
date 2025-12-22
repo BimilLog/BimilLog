@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * <h2>댓글 Command 컨트롤러</h2>
- * <p>댓글 도메인의 쓰기 작업을 처리하는 REST API 어댑터입니다.</p>
+ * <p>댓글 도메인의 명령 작업을 수신</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -28,7 +28,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 @RequestMapping("/api/comment")
 public class CommentCommandController {
-
     private final CommentCommandService commentCommandService;
 
     /**
@@ -42,17 +41,15 @@ public class CommentCommandController {
      * @since 2.0.0
      */
     @PostMapping("/write")
-    public ResponseEntity<String> writeComment(
-            @Valid @RequestBody CommentReqDTO commentReqDto,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<String> writeComment(@Valid @RequestBody CommentReqDTO commentReqDto,
+                                               @AuthenticationPrincipal CustomUserDetails userDetails) {
         commentReqDto.setMemberId(userDetails != null ? userDetails.getMemberId() : null);
         commentCommandService.writeComment(
                 commentReqDto.getMemberId(),
                 commentReqDto.getPostId(),
                 commentReqDto.getParentId(),
                 commentReqDto.getContent(),
-                commentReqDto.getPassword()
-        );
+                commentReqDto.getPassword());
         return ResponseEntity.ok("댓글 작성 완료");
     }
 
@@ -67,16 +64,14 @@ public class CommentCommandController {
      * @since 2.0.0
      */
     @PostMapping("/update")
-    public ResponseEntity<String> updateComment(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestBody @Valid CommentReqDTO commentReqDto) {
+    public ResponseEntity<String> updateComment(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                                @RequestBody @Valid CommentReqDTO commentReqDto) {
         commentReqDto.setMemberId(userDetails != null ? userDetails.getMemberId() : null);
         commentCommandService.updateComment(
                 commentReqDto.getId(),
                 commentReqDto.getMemberId(),
                 commentReqDto.getContent(),
-                commentReqDto.getPassword()
-        );
+                commentReqDto.getPassword());
         return ResponseEntity.ok("댓글 수정 완료");
     }
 
@@ -92,15 +87,13 @@ public class CommentCommandController {
      * @since 2.0.0
      */
     @PostMapping("/delete")
-    public ResponseEntity<String> deleteComment(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestBody @Valid CommentReqDTO commentReqDto) {
+    public ResponseEntity<String> deleteComment(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                                @RequestBody @Valid CommentReqDTO commentReqDto) {
         commentReqDto.setMemberId(userDetails != null ? userDetails.getMemberId() : null);
         commentCommandService.deleteComment(
                 commentReqDto.getId(),
                 commentReqDto.getMemberId(),
-                commentReqDto.getPassword()
-        );
+                commentReqDto.getPassword());
         return ResponseEntity.ok("댓글 삭제 완료");
     }
 
@@ -116,12 +109,10 @@ public class CommentCommandController {
      * @since 2.0.0
      */
     @PostMapping("/like")
-    public ResponseEntity<String> likeComment(
-            @RequestBody @Valid CommentLikeReqDTO commentLikeReqDto,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
+    public ResponseEntity<String> likeComment(@RequestBody @Valid CommentLikeReqDTO commentLikeReqDto,
+                                              @AuthenticationPrincipal CustomUserDetails userDetails) {
         Long memberId = userDetails.getMemberId();
         commentCommandService.likeComment(memberId, commentLikeReqDto.getCommentId());
         return ResponseEntity.ok("추천 처리 완료");
     }
-
 }

@@ -41,7 +41,6 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/api/comment")
 public class CommentQueryController {
-
     private final CommentQueryService CommentQueryService;
 
     /**
@@ -56,10 +55,8 @@ public class CommentQueryController {
      * @since 2.0.0
      */
     @GetMapping("/{postId}")
-    public ResponseEntity<Page<CommentInfo>> getComments(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @PathVariable Long postId,
-            @PageableDefault(size = 20) Pageable pageable) {
+    public ResponseEntity<Page<CommentInfo>> getComments(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                                         @PathVariable Long postId, @PageableDefault(size = 20) Pageable pageable) {
         Page<CommentInfo> commentInfoPage = CommentQueryService.findComments(postId, pageable, userDetails);
         return ResponseEntity.ok(commentInfoPage);
     }

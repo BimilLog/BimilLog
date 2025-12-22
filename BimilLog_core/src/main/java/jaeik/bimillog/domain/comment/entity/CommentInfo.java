@@ -29,7 +29,6 @@ public class CommentInfo {
     private Instant createdAt;
     private boolean userLike;
 
-
     // 생성자
     public CommentInfo(Long id, Long postId, Long memberId, String memberName, String content,
                        Boolean deleted, Instant createdAt, Long parentId, Integer likeCount, Boolean userLike) {
