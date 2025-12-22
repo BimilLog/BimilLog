@@ -3,8 +3,7 @@ package jaeik.bimillog.domain.member.event;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.auth.out.SocialStrategyAdapter;
-import jaeik.bimillog.domain.global.strategy.SocialAuthStrategy;
-import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
+import jaeik.bimillog.infrastructure.api.social.SocialStrategy;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.out.MemberRepository;
@@ -73,40 +72,37 @@ class MemberWithdrawnEventIntegrationTest {
 
     private Member testMember;
 
-    private static final SocialPlatformStrategy NOOP_PLATFORM_STRATEGY = new SocialPlatformStrategy(
-            SocialProvider.KAKAO,
-            new SocialAuthStrategy() {
-                @Override
-                public SocialProvider getProvider() {
-                    return SocialProvider.KAKAO;
-                }
+    private static final SocialStrategy NOOP_STRATEGY = new SocialStrategy() {
+        @Override
+        public SocialProvider getProvider() {
+            return SocialProvider.KAKAO;
+        }
 
-                @Override
-                public SocialMemberProfile getSocialToken(String code, String state) {
-                    throw new UnsupportedOperationException("테스트 전략에서는 소셜 토큰 발급을 지원하지 않습니다.");
-                }
+        @Override
+        public SocialMemberProfile getSocialToken(String code, String state) {
+            throw new UnsupportedOperationException("테스트 전략에서는 소셜 토큰 발급을 지원하지 않습니다.");
+        }
 
-                @Override
-                public void unlink(String socialId, String accessToken) {
-                    // no-op - 외부 API 호출 방지
-                }
+        @Override
+        public void unlink(String socialId, String accessToken) {
+            // no-op - 외부 API 호출 방지
+        }
 
-                @Override
-                public void logout(String accessToken) {
-                    // no-op
-                }
+        @Override
+        public void logout(String accessToken) {
+            // no-op
+        }
 
-                @Override
-                public void forceLogout(String socialId) {
-                    // no-op
-                }
+        @Override
+        public void forceLogout(String socialId) {
+            // no-op
+        }
 
-                @Override
-                public String refreshAccessToken(String refreshToken) throws Exception {
-                    return "test-refreshed-token";
-                }
-            }
-    ) {};
+        @Override
+        public String refreshAccessToken(String refreshToken) throws Exception {
+            return "test-refreshed-token";
+        }
+    };
 
     @BeforeEach
     void setUp() {
@@ -114,7 +110,7 @@ class MemberWithdrawnEventIntegrationTest {
         RedisTestHelper.flushRedis(redisTemplate);
 
         // 외부 API Mock 설정
-        doReturn(NOOP_PLATFORM_STRATEGY).when(socialStrategyAdapter).getStrategy(any());
+        doReturn(NOOP_STRATEGY).when(socialStrategyAdapter).getStrategy(any());
         doNothing().when(sseService).deleteEmitters(any(), any());
 
         // 테스트 회원 생성

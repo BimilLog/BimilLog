@@ -2,8 +2,7 @@ package jaeik.bimillog.testutil.config;
 
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.out.SocialStrategyAdapter;
-import jaeik.bimillog.domain.global.strategy.SocialAuthStrategy;
-import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
+import jaeik.bimillog.infrastructure.api.social.SocialStrategy;
 import jaeik.bimillog.domain.member.dto.KakaoFriendsDTO;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.api.social.kakao.KakaoApiClient;
@@ -25,14 +24,13 @@ import java.util.Map;
 @TestConfiguration
 public class TestSocialLoginAdapterConfig {
 
-    private static final TestSocialPlatformStrategy TEST_PLATFORM_STRATEGY =
-            new TestSocialPlatformStrategy();
+    private static final TestSocialStrategy TEST_STRATEGY = new TestSocialStrategy();
     private static final TestKakaoApiClient TEST_KAKAO_API_CLIENT = new TestKakaoApiClient();
 
     @Bean
     @Primary
     public SocialStrategyAdapter testGlobalSocialStrategyAdapter() {
-        return new SocialStrategyAdapter(Collections.singletonList(TEST_PLATFORM_STRATEGY));
+        return new SocialStrategyAdapter(Collections.singletonList(TEST_STRATEGY));
     }
 
     @Bean
@@ -45,14 +43,7 @@ public class TestSocialLoginAdapterConfig {
         TEST_KAKAO_API_CLIENT.setConsentRequired(required);
     }
 
-    private static final class TestSocialPlatformStrategy extends SocialPlatformStrategy {
-
-        TestSocialPlatformStrategy() {
-            super(SocialProvider.KAKAO, new TestSocialAuthStrategy());
-        }
-    }
-
-    private static final class TestSocialAuthStrategy implements SocialAuthStrategy {
+    private static final class TestSocialStrategy implements SocialStrategy {
 
         @Override
         public SocialProvider getProvider() {

@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.out.AuthTokenRepository;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.notification.dto.FcmTokenRegisterRequestDTO;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.TestMembers;
@@ -46,7 +47,7 @@ class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
     @DisplayName("소셜 로그인 통합 테스트 - 신규 사용자")
     void socialLogin_NewUser_IntegrationTest() throws Exception {
         SocialLoginRequestDTO request = new SocialLoginRequestDTO(
-                "KAKAO",
+                SocialProvider.KAKAO,
                 "new_user_code",
                 "test-state"
         );
@@ -71,7 +72,7 @@ class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
         );
         saveMember(existingMember);
 
-        SocialLoginRequestDTO request = new SocialLoginRequestDTO("KAKAO", "existing-member-code", "test-state");
+        SocialLoginRequestDTO request = new SocialLoginRequestDTO(SocialProvider.KAKAO, "existing-member-code", "test-state");
 
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)

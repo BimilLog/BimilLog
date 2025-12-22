@@ -2,8 +2,7 @@ package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.auth.out.SocialStrategyAdapter;
-import jaeik.bimillog.domain.global.strategy.SocialAuthStrategy;
-import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
+import jaeik.bimillog.infrastructure.api.social.SocialStrategy;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.testutil.TestMembers;
@@ -36,10 +35,7 @@ class SocialWithdrawServiceTest {
     private GlobalMemberQueryAdapter globalMemberQueryAdapter;
 
     @Mock
-    private SocialPlatformStrategy socialPlatformStrategy;
-
-    @Mock
-    private SocialAuthStrategy socialAuthStrategy;
+    private SocialStrategy socialStrategy;
 
     @InjectMocks
     private SocialWithdrawService socialWithdrawService;
@@ -55,8 +51,7 @@ class SocialWithdrawServiceTest {
         String accessToken = testMember.getSocialToken().getAccessToken();
 
         given(globalMemberQueryAdapter.findById(memberId)).willReturn(Optional.of(testMember));
-        given(strategyRegistryAdapter.getStrategy(provider)).willReturn(socialPlatformStrategy);
-        given(socialPlatformStrategy.auth()).willReturn(socialAuthStrategy);
+        given(strategyRegistryAdapter.getStrategy(provider)).willReturn(socialStrategy);
 
         // When
         socialWithdrawService.unlinkSocialAccount(provider, socialId, memberId);
@@ -64,7 +59,6 @@ class SocialWithdrawServiceTest {
         // Then
         verify(globalMemberQueryAdapter).findById(memberId);
         verify(strategyRegistryAdapter).getStrategy(provider);
-        verify(socialPlatformStrategy).auth();
-        verify(socialAuthStrategy).unlink(socialId, accessToken);
+        verify(socialStrategy).unlink(socialId, accessToken);
     }
 }

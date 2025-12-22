@@ -1,6 +1,6 @@
 package jaeik.bimillog.domain.auth.out;
 
-import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
+import jaeik.bimillog.infrastructure.api.social.SocialStrategy;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -20,7 +20,7 @@ import java.util.Map;
 @Component
 @Slf4j
 public class SocialStrategyAdapter {
-    private final Map<SocialProvider, SocialPlatformStrategy> strategies;
+    private final Map<SocialProvider, SocialStrategy> strategies;
 
     /**
      * <h3>전략 레지스트리 생성자</h3>
@@ -31,10 +31,10 @@ public class SocialStrategyAdapter {
      * @author Jaeik
      * @since 2.0.0
      */
-    public SocialStrategyAdapter(List<SocialPlatformStrategy> strategyList) {
+    public SocialStrategyAdapter(List<SocialStrategy> strategyList) {
         this.strategies = new EnumMap<>(SocialProvider.class);
-        for (SocialPlatformStrategy strategy : strategyList) {
-            SocialProvider provider = strategy.getSupportedProvider();
+        for (SocialStrategy strategy : strategyList) {
+            SocialProvider provider = strategy.getProvider();
             strategies.putIfAbsent(provider, strategy);
         }
     }
@@ -47,7 +47,7 @@ public class SocialStrategyAdapter {
      * @author Jaeik
      * @since 2.4.0
      */
-    public SocialPlatformStrategy getStrategy(SocialProvider provider) {
+    public SocialStrategy getStrategy(SocialProvider provider) {
         return strategies.get(provider);
     }
 }

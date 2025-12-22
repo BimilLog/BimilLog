@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.global.strategy;
+package jaeik.bimillog.infrastructure.api.social;
 
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
@@ -7,7 +7,7 @@ import jaeik.bimillog.domain.member.entity.SocialProvider;
  * <h2>소셜 인증 전략</h2>
  * <p>플랫폼별 OAuth 인증 흐름을 캡슐화합니다.</p>
  */
-public interface SocialAuthStrategy {
+public interface SocialStrategy {
 
     /**
      * 지원하는 소셜 제공자를 반환합니다.
