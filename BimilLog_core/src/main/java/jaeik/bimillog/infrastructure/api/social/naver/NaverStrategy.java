@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.api.social.naver;
 
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.global.strategy.SocialAuthStrategy;
+import jaeik.bimillog.infrastructure.api.social.SocialStrategy;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
@@ -22,7 +22,7 @@ import java.util.Map;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class NaverAuthStrategy implements SocialAuthStrategy {
+public class NaverStrategy implements SocialStrategy {
 
     private final NaverKeyVO naverKeyVO;
     private final NaverAuthClient naverAuthClient;

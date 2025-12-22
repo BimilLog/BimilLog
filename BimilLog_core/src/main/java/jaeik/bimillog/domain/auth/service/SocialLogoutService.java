@@ -2,8 +2,8 @@ package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
-import jaeik.bimillog.domain.global.out.GlobalSocialStrategyAdapter;
-import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
+import jaeik.bimillog.domain.auth.out.SocialStrategyAdapter;
+import jaeik.bimillog.infrastructure.api.social.SocialStrategy;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -24,7 +24,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class SocialLogoutService {
-    private final GlobalSocialStrategyAdapter globalSocialStrategyAdapter;
+    private final SocialStrategyAdapter socialStrategyAdapter;
     private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
 
 
@@ -46,8 +46,8 @@ public class SocialLogoutService {
         if (socialToken == null) {
             throw new CustomException(ErrorCode.AUTH_NOT_FIND_TOKEN);
         }
-        SocialPlatformStrategy strategy = globalSocialStrategyAdapter.getStrategy(provider);
-        strategy.auth().logout(socialToken.getAccessToken());
+        SocialStrategy strategy = socialStrategyAdapter.getStrategy(provider);
+        strategy.logout(socialToken.getAccessToken());
     }
 
     /**
@@ -60,7 +60,7 @@ public class SocialLogoutService {
      * @since 2.0.0
      */
     public void forceLogout(String socialId, SocialProvider provider) {
-        SocialPlatformStrategy strategy = globalSocialStrategyAdapter.getStrategy(provider);
-        strategy.auth().forceLogout(socialId);
+        SocialStrategy strategy = socialStrategyAdapter.getStrategy(provider);
+        strategy.forceLogout(socialId);
     }
 }

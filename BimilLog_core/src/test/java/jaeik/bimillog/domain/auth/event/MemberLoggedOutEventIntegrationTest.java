@@ -7,9 +7,11 @@ import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.notification.service.FcmPushService;
 import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import static org.mockito.ArgumentMatchers.eq;
@@ -41,6 +43,12 @@ public class MemberLoggedOutEventIntegrationTest extends BaseEventIntegrationTes
 
     @MockitoBean
     private GlobalSocialTokenCommandAdapter globalSocialTokenCommandAdapter;
+
+    @BeforeEach
+    void setUp() {
+        // 각 테스트 전에 Mock 리셋 (이전 테스트의 호출 기록 제거)
+        Mockito.reset(socialLogoutService, authTokenService, sseService, fcmPushService, globalSocialTokenCommandAdapter);
+    }
 
     @Test
     @DisplayName("사용자 로그아웃 이벤트 워크플로우 - 토큰 정리와 SSE 정리까지 완료")

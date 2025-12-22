@@ -1,7 +1,6 @@
-package jaeik.bimillog.domain.global.out;
+package jaeik.bimillog.domain.auth.out;
 
-import jaeik.bimillog.domain.auth.service.SocialLoginService;
-import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
+import jaeik.bimillog.infrastructure.api.social.SocialStrategy;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -9,7 +8,6 @@ import org.springframework.stereotype.Component;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * <h2>소셜 로그인 전략 레지스트리 구현체</h2>
@@ -21,9 +19,8 @@ import java.util.Optional;
  */
 @Component
 @Slf4j
-public class GlobalSocialStrategyAdapter {
-
-    private final Map<SocialProvider, SocialPlatformStrategy> strategies;
+public class SocialStrategyAdapter {
+    private final Map<SocialProvider, SocialStrategy> strategies;
 
     /**
      * <h3>전략 레지스트리 생성자</h3>
@@ -34,10 +31,10 @@ public class GlobalSocialStrategyAdapter {
      * @author Jaeik
      * @since 2.0.0
      */
-    public GlobalSocialStrategyAdapter(List<SocialPlatformStrategy> strategyList) {
+    public SocialStrategyAdapter(List<SocialStrategy> strategyList) {
         this.strategies = new EnumMap<>(SocialProvider.class);
-        for (SocialPlatformStrategy strategy : strategyList) {
-            SocialProvider provider = strategy.getSupportedProvider();
+        for (SocialStrategy strategy : strategyList) {
+            SocialProvider provider = strategy.getProvider();
             strategies.putIfAbsent(provider, strategy);
         }
     }
@@ -45,19 +42,12 @@ public class GlobalSocialStrategyAdapter {
     /**
      * <h3>제공자별 전략 조회</h3>
      * <p>소셜 제공자에 해당하는 로그인 전략 구현체를 반환합니다.</p>
-     * <p>{@link SocialLoginService}에서 소셜 로그인 처리 시 전략 선택을 위해 호출됩니다.</p>
      *
      * @param provider 소셜 로그인 제공자 (KAKAO, GOOGLE, NAVER 등)
-     * @return 해당 제공자의 로그인 전략 구현체
-     * @throws IllegalArgumentException 지원하지 않는 제공자인 경우
      * @author Jaeik
-     * @since 2.0.0
+     * @since 2.4.0
      */
-    public SocialPlatformStrategy getStrategy(SocialProvider provider) {
-        return Optional.ofNullable(strategies.get(provider))
-            .orElseThrow(() -> new IllegalArgumentException(
-                "지원하지 않는 소셜 제공자: " + provider +
-                ". 지원 제공자: " + strategies.keySet()
-            ));
+    public SocialStrategy getStrategy(SocialProvider provider) {
+        return strategies.get(provider);
     }
 }

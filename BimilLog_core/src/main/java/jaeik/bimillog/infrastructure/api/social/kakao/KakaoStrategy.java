@@ -3,7 +3,7 @@ package jaeik.bimillog.infrastructure.api.social.kakao;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.global.strategy.SocialAuthStrategy;
+import jaeik.bimillog.infrastructure.api.social.SocialStrategy;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
@@ -22,7 +22,7 @@ import java.util.Map;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class KakaoAuthStrategy implements SocialAuthStrategy {
+public class KakaoStrategy implements SocialStrategy {
 
     private final KakaoKeyVO kakaoKeyVO;
     private final KakaoAuthClient kakaoAuthClient;

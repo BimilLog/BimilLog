@@ -32,7 +32,6 @@ import java.util.Optional;
 @Component
 @RequiredArgsConstructor
 public class AuthToMemberAdapter {
-
     private final MemberOnboardingService memberOnboardingService;
     private final MemberQueryService memberQueryService;
 

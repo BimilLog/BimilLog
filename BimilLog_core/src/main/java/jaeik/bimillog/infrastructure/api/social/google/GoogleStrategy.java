@@ -1,7 +1,7 @@
 package jaeik.bimillog.infrastructure.api.social.google;
 
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.global.strategy.SocialAuthStrategy;
+import jaeik.bimillog.infrastructure.api.social.SocialStrategy;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
@@ -19,7 +19,7 @@ import org.springframework.util.StringUtils;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class GoogleAuthStrategy implements SocialAuthStrategy {
+public class GoogleStrategy implements SocialStrategy {
 
     private final GoogleKeyVO googleKeyVO;
     private final GoogleAuthClient googleAuthClient;

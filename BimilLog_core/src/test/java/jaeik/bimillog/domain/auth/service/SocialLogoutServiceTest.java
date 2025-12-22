@@ -2,10 +2,9 @@ package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
-import jaeik.bimillog.domain.global.out.GlobalSocialStrategyAdapter;
-import jaeik.bimillog.domain.global.strategy.SocialAuthStrategy;
-import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
+import jaeik.bimillog.domain.auth.out.SocialStrategyAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
+import jaeik.bimillog.infrastructure.api.social.SocialStrategy;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.testutil.BaseUnitTest;
@@ -34,13 +33,10 @@ import static org.mockito.Mockito.*;
 class SocialLogoutServiceTest extends BaseUnitTest {
 
     @Mock
-    private GlobalSocialStrategyAdapter strategyRegistry;
+    private SocialStrategyAdapter strategyRegistry;
 
     @Mock
-    private SocialPlatformStrategy kakaoPlatformStrategy;
-
-    @Mock
-    private SocialAuthStrategy kakaoAuthStrategy;
+    private SocialStrategy kakaoStrategy;
 
     @Mock
     private GlobalMemberQueryAdapter globalMemberQueryAdapter;
@@ -57,8 +53,7 @@ class SocialLogoutServiceTest extends BaseUnitTest {
         Member member = TestMembers.copyWithId(TestMembers.MEMBER_1, memberId);
 
         given(globalMemberQueryAdapter.findById(memberId)).willReturn(Optional.of(member));
-        given(strategyRegistry.getStrategy(TEST_PROVIDER)).willReturn(kakaoPlatformStrategy);
-        given(kakaoPlatformStrategy.auth()).willReturn(kakaoAuthStrategy);
+        given(strategyRegistry.getStrategy(TEST_PROVIDER)).willReturn(kakaoStrategy);
 
         // when
         socialLogoutService.socialLogout(memberId, TEST_PROVIDER);
@@ -66,8 +61,7 @@ class SocialLogoutServiceTest extends BaseUnitTest {
         // then
         ArgumentCaptor<String> tokenCaptor = ArgumentCaptor.forClass(String.class);
         verify(strategyRegistry).getStrategy(TEST_PROVIDER);
-        verify(kakaoPlatformStrategy).auth();
-        verify(kakaoAuthStrategy).logout(tokenCaptor.capture());
+        verify(kakaoStrategy).logout(tokenCaptor.capture());
         assertThat(tokenCaptor.getValue()).isNotNull();
     }
 
@@ -93,9 +87,8 @@ class SocialLogoutServiceTest extends BaseUnitTest {
         Member member = TestMembers.copyWithId(TestMembers.MEMBER_1, memberId);
 
         given(globalMemberQueryAdapter.findById(memberId)).willReturn(Optional.of(member));
-        given(strategyRegistry.getStrategy(TEST_PROVIDER)).willReturn(kakaoPlatformStrategy);
-        given(kakaoPlatformStrategy.auth()).willReturn(kakaoAuthStrategy);
-        doThrow(new RuntimeException("logout failed")).when(kakaoAuthStrategy).logout(anyString());
+        given(strategyRegistry.getStrategy(TEST_PROVIDER)).willReturn(kakaoStrategy);
+        doThrow(new RuntimeException("logout failed")).when(kakaoStrategy).logout(anyString());
 
         // when
         assertThatThrownBy(() -> socialLogoutService.socialLogout(memberId, TEST_PROVIDER))
@@ -103,8 +96,7 @@ class SocialLogoutServiceTest extends BaseUnitTest {
                 .hasMessageContaining("logout failed");
 
         verify(strategyRegistry).getStrategy(TEST_PROVIDER);
-        verify(kakaoPlatformStrategy).auth();
-        verify(kakaoAuthStrategy).logout(anyString());
+        verify(kakaoStrategy).logout(anyString());
     }
 
     @Test
@@ -115,13 +107,12 @@ class SocialLogoutServiceTest extends BaseUnitTest {
         Member adminMember = TestMembers.copyWithId(TestMembers.MEMBER_1, adminMemberId);
 
         given(globalMemberQueryAdapter.findById(adminMemberId)).willReturn(Optional.of(adminMember));
-        given(strategyRegistry.getStrategy(TEST_PROVIDER)).willReturn(kakaoPlatformStrategy);
-        given(kakaoPlatformStrategy.auth()).willReturn(kakaoAuthStrategy);
+        given(strategyRegistry.getStrategy(TEST_PROVIDER)).willReturn(kakaoStrategy);
 
         // when
         socialLogoutService.socialLogout(adminMemberId, TEST_PROVIDER);
 
         // then
-        verify(kakaoAuthStrategy).logout(anyString());
+        verify(kakaoStrategy).logout(anyString());
     }
 }

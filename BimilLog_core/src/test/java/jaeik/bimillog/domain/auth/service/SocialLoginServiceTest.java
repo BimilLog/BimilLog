@@ -2,9 +2,8 @@ package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.global.out.GlobalSocialStrategyAdapter;
-import jaeik.bimillog.domain.global.strategy.SocialAuthStrategy;
-import jaeik.bimillog.domain.global.strategy.SocialPlatformStrategy;
+import jaeik.bimillog.domain.auth.out.SocialStrategyAdapter;
+import jaeik.bimillog.infrastructure.api.social.SocialStrategy;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.testutil.BaseUnitTest;
@@ -38,9 +37,8 @@ import static org.mockito.Mockito.*;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class SocialLoginServiceTest extends BaseUnitTest {
 
-    @Mock private GlobalSocialStrategyAdapter strategyRegistryAdapter;
-    @Mock private SocialPlatformStrategy kakaoPlatformStrategy;
-    @Mock private SocialAuthStrategy kakaoAuthStrategy;
+    @Mock private SocialStrategyAdapter strategyRegistryAdapter;
+    @Mock private SocialStrategy kakaoStrategy;
     @Mock private SocialLoginTransactionalService socialLoginTransactionalService;
 
     @InjectMocks
@@ -56,9 +54,8 @@ class SocialLoginServiceTest extends BaseUnitTest {
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             mockAnonymousAuthentication(mockedSecurityContext);
 
-            given(strategyRegistryAdapter.getStrategy(TEST_PROVIDER)).willReturn(kakaoPlatformStrategy);
-            given(kakaoPlatformStrategy.auth()).willReturn(kakaoAuthStrategy);
-            given(kakaoAuthStrategy.getSocialToken(TEST_AUTH_CODE, null)).willReturn(testMemberProfile);
+            given(strategyRegistryAdapter.getStrategy(TEST_PROVIDER)).willReturn(kakaoStrategy);
+            given(kakaoStrategy.getSocialToken(TEST_AUTH_CODE, null)).willReturn(testMemberProfile);
             given(socialLoginTransactionalService.finishLogin(eq(TEST_PROVIDER), any(SocialMemberProfile.class)))
                     .willReturn(expectedResult);
 
@@ -70,8 +67,7 @@ class SocialLoginServiceTest extends BaseUnitTest {
 
             verify(socialLoginTransactionalService).finishLogin(eq(TEST_PROVIDER), any(SocialMemberProfile.class));
             verify(strategyRegistryAdapter).getStrategy(TEST_PROVIDER);
-            verify(kakaoPlatformStrategy).auth();
-            verify(kakaoAuthStrategy).getSocialToken(TEST_AUTH_CODE, null);
+            verify(kakaoStrategy).getSocialToken(TEST_AUTH_CODE, null);
         }
     }
 
@@ -85,9 +81,8 @@ class SocialLoginServiceTest extends BaseUnitTest {
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             mockAnonymousAuthentication(mockedSecurityContext);
 
-            given(strategyRegistryAdapter.getStrategy(TEST_PROVIDER)).willReturn(kakaoPlatformStrategy);
-            given(kakaoPlatformStrategy.auth()).willReturn(kakaoAuthStrategy);
-            given(kakaoAuthStrategy.getSocialToken(TEST_AUTH_CODE, null)).willReturn(testMemberProfile);
+            given(strategyRegistryAdapter.getStrategy(TEST_PROVIDER)).willReturn(kakaoStrategy);
+            given(kakaoStrategy.getSocialToken(TEST_AUTH_CODE, null)).willReturn(testMemberProfile);
             given(socialLoginTransactionalService.finishLogin(TEST_PROVIDER, testMemberProfile))
                     .willThrow(expectedException);
 
@@ -96,8 +91,7 @@ class SocialLoginServiceTest extends BaseUnitTest {
                     .isSameAs(expectedException);
 
             verify(strategyRegistryAdapter).getStrategy(TEST_PROVIDER);
-            verify(kakaoPlatformStrategy).auth();
-            verify(kakaoAuthStrategy).getSocialToken(TEST_AUTH_CODE, null);
+            verify(kakaoStrategy).getSocialToken(TEST_AUTH_CODE, null);
             verify(socialLoginTransactionalService).finishLogin(TEST_PROVIDER, testMemberProfile);
         }
     }
@@ -112,17 +106,15 @@ class SocialLoginServiceTest extends BaseUnitTest {
         try (MockedStatic<SecurityContextHolder> mockedSecurityContext = mockStatic(SecurityContextHolder.class)) {
             mockAnonymousAuthentication(mockedSecurityContext);
 
-            given(strategyRegistryAdapter.getStrategy(TEST_PROVIDER)).willReturn(kakaoPlatformStrategy);
-            given(kakaoPlatformStrategy.auth()).willReturn(kakaoAuthStrategy);
-            given(kakaoAuthStrategy.getSocialToken(TEST_AUTH_CODE, null)).willThrow(authException);
+            given(strategyRegistryAdapter.getStrategy(TEST_PROVIDER)).willReturn(kakaoStrategy);
+            given(kakaoStrategy.getSocialToken(TEST_AUTH_CODE, null)).willThrow(authException);
 
             // When & Then
             assertThatThrownBy(() -> socialLoginService.processSocialLogin(TEST_PROVIDER, TEST_AUTH_CODE, null))
                     .isSameAs(authException);
 
             verify(strategyRegistryAdapter).getStrategy(TEST_PROVIDER);
-            verify(kakaoPlatformStrategy).auth();
-            verify(kakaoAuthStrategy).getSocialToken(TEST_AUTH_CODE, null);
+            verify(kakaoStrategy).getSocialToken(TEST_AUTH_CODE, null);
             verify(socialLoginTransactionalService, never()).finishLogin(any(), any());
         }
     }
