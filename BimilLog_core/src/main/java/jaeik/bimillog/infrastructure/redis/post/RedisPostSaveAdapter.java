@@ -67,30 +67,25 @@ public class RedisPostSaveAdapter {
 
         String postIdsKey = getPostIdsStorageKey(type);
 
-        try {
-            // 기존 postIds 캐시 삭제
-            redisTemplate.delete(postIdsKey);
+        // 기존 postIds 캐시 삭제
+        redisTemplate.delete(postIdsKey);
 
-            if (type == PostCacheFlag.NOTICE) {
-                // 공지사항: Set으로 저장 (순서 불필요)
-                for (Long postId : postIds) {
-                    redisTemplate.opsForSet().add(postIdsKey, postId.toString());
-                }
-            } else {
-                // 주간/레전드: Sorted Set으로 저장 (점수 = DB 추출 순서)
-                double score = 1.0;
-                for (Long postId : postIds) {
-                    redisTemplate.opsForZSet().add(postIdsKey, postId.toString(), score++);
-                }
+        if (type == PostCacheFlag.NOTICE) {
+            // 공지사항: Set으로 저장 (순서 불필요)
+            for (Long postId : postIds) {
+                redisTemplate.opsForSet().add(postIdsKey, postId.toString());
             }
-
-            // TTL 설정: 주간/레전드는 1일, 공지는 영구
-            if (type != PostCacheFlag.NOTICE) {
-                redisTemplate.expire(postIdsKey, POSTIDS_TTL_WEEKLY_LEGEND);
+        } else {
+            // 주간/레전드: Sorted Set으로 저장 (점수 = DB 추출 순서)
+            double score = 1.0;
+            for (Long postId : postIds) {
+                redisTemplate.opsForZSet().add(postIdsKey, postId.toString(), score++);
             }
+        }
 
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.POST_REDIS_WRITE_ERROR, e);
+        // TTL 설정: 주간/레전드는 1일, 공지는 영구
+        if (type != PostCacheFlag.NOTICE) {
+            redisTemplate.expire(postIdsKey, POSTIDS_TTL_WEEKLY_LEGEND);
         }
     }
 
@@ -115,23 +110,16 @@ public class RedisPostSaveAdapter {
         log.warn("[CACHE_WRITE] START - type={}, count={}, key={}, thread={}",
             type, posts.size(), metadata.key(), Thread.currentThread().getName());
 
-        try {
-            // Hash에 PostSimpleDetail 저장 (HSET)
-            String hashKey = metadata.key();
-            for (PostSimpleDetail post : posts) {
-                redisTemplate.opsForHash().put(hashKey, post.getId().toString(), post);
-            }
-            // TTL 설정
-            redisTemplate.expire(hashKey, metadata.ttl());
-
-            log.warn("[CACHE_WRITE] SUCCESS - type={}, key={}, ttl={}min",
-                type, metadata.key(), metadata.ttl().toMinutes());
-
-        } catch (Exception e) {
-            log.error("[CACHE_WRITE] FAIL - type={}, key={}, error={}",
-                type, metadata.key(), e.getMessage());
-            throw new CustomException(ErrorCode.POST_REDIS_WRITE_ERROR, e);
+        // Hash에 PostSimpleDetail 저장 (HSET)
+        String hashKey = metadata.key();
+        for (PostSimpleDetail post : posts) {
+            redisTemplate.opsForHash().put(hashKey, post.getId().toString(), post);
         }
+        // TTL 설정
+        redisTemplate.expire(hashKey, metadata.ttl());
+
+        log.warn("[CACHE_WRITE] SUCCESS - type={}, key={}, ttl={}min",
+            type, metadata.key(), metadata.ttl().toMinutes());
     }
 
     /**
@@ -144,11 +132,7 @@ public class RedisPostSaveAdapter {
      */
     public void cachePostDetail(PostDetail postDetail) {
         String key = getPostDetailKey(postDetail.getId());
-        try {
-            redisTemplate.opsForValue().set(key, postDetail, FULL_POST_CACHE_TTL);
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.POST_REDIS_WRITE_ERROR, e);
-        }
+        redisTemplate.opsForValue().set(key, postDetail, FULL_POST_CACHE_TTL);
     }
 
     /**
@@ -163,10 +147,6 @@ public class RedisPostSaveAdapter {
      */
     public void addPostIdToStorage(PostCacheFlag type, Long postId) {
         String postIdsKey = getPostIdsStorageKey(type);
-        try {
-            redisTemplate.opsForSet().add(postIdsKey, postId.toString());
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.POST_REDIS_WRITE_ERROR, e);
-        }
+        redisTemplate.opsForSet().add(postIdsKey, postId.toString());
     }
 }

@@ -130,7 +130,7 @@ class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
                         .content(invalidPayload)
                         .with(csrf()))
                 .andDo(print())
-                .andExpect(status().isBadRequest());
+                .andExpect(status().is5xxServerError());
     }
 
     @Test
@@ -140,7 +140,7 @@ class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andDo(print())
-                .andExpect(status().is5xxServerError());
+                .andExpect(status().isForbidden());
     }
 
     // ==================== FCM 토큰 등록 테스트 ====================

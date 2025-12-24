@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.*;
 
@@ -79,18 +80,44 @@ public class RedisPostQueryAdapter {
      */
     public boolean hasPopularPostsCache(PostCacheFlag type) {
         CacheMetadata metadata = getCacheMetadata(type);
-        try {
-            boolean exists = redisTemplate.hasKey(metadata.key());
-            String cacheName = "post:popular:" + type.name().toLowerCase();
-            if (exists) {
-                CacheMetricsLogger.hit(log, cacheName, metadata.key());
-            } else {
-                CacheMetricsLogger.miss(log, cacheName, metadata.key(), "key_not_found");
-            }
-            return exists;
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.POST_REDIS_READ_ERROR, e);
+        boolean exists = redisTemplate.hasKey(metadata.key());
+        String cacheName = "post:popular:" + type.name().toLowerCase();
+        if (exists) {
+            CacheMetricsLogger.hit(log, cacheName, metadata.key());
+        } else {
+            CacheMetricsLogger.miss(log, cacheName, metadata.key(), "key_not_found");
         }
+        return exists;
+    }
+
+    /**
+     * <h3>캐시된 게시글 Map 조회 (Hash 구조)</h3>
+     * <p>Redis Hash에서 PostSimpleDetail을 Map으로 조회합니다.</p>
+     * <p>순서 정보 없이 순수하게 캐시 데이터만 반환합니다.</p>
+     *
+     * @param type 조회할 캐시 유형
+     * @return 캐시된 게시글 Map (postId -> PostSimpleDetail)
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @SuppressWarnings("unchecked")
+    public Map<Long, PostSimpleDetail> getCachedPostMap(PostCacheFlag type) {
+        CacheMetadata metadata = getCacheMetadata(type);
+        Map<Object, Object> hashEntries = redisTemplate.opsForHash().entries(metadata.key());
+
+        if (hashEntries.isEmpty()) {
+            CacheMetricsLogger.miss(log, "post:map:" + type.name().toLowerCase(), metadata.key(), "hash_empty");
+            return Collections.emptyMap();
+        }
+
+        Map<Long, PostSimpleDetail> cachedMap = hashEntries.entrySet().stream()
+                .collect(Collectors.toMap(
+                        e -> Long.valueOf(e.getKey().toString()),
+                        e -> (PostSimpleDetail) e.getValue()
+                ));
+
+        CacheMetricsLogger.hit(log, "post:map:" + type.name().toLowerCase(), metadata.key(), cachedMap.size());
+        return cachedMap;
     }
 
     /**
@@ -98,46 +125,91 @@ public class RedisPostQueryAdapter {
      * <p>Redis Hash에서 PostSimpleDetail 목록을 조회합니다.</p>
      * <p>postIds 저장소의 순서를 사용하여 정렬합니다.</p>
      *
-     * @param type 조회할 캐시 유형
+     * @param type 조회할 캐시 유형 (WEEKLY, LEGEND, NOTICE)
      * @return 캐시된 게시글 목록
      * @author Jaeik
      * @since 2.0.0
      */
     @SuppressWarnings("unchecked")
     public List<PostSimpleDetail> getCachedPostList(PostCacheFlag type) {
-        CacheMetadata metadata = getCacheMetadata(type);
-        try {
-            Map<Object, Object> hashEntries = redisTemplate.opsForHash().entries(metadata.key());
-
-            if (hashEntries.isEmpty()) {
-                CacheMetricsLogger.miss(log, "post:list:" + type.name().toLowerCase(),
-                        metadata.key(), "hash_empty");
-                return Collections.emptyList();
-            }
-
-            // 모든 타입에 대해 정렬된 순서 사용 (REALTIME 포함)
-            List<Long> orderedIds = getStoredPostIds(type);
-            if (orderedIds.isEmpty()) {
-                CacheMetricsLogger.miss(log, "post:list:" + type.name().toLowerCase(),
-                        metadata.key(), "ordered_ids_empty");
-                return Collections.emptyList();
-            }
-
-            List<PostSimpleDetail> cachedPosts = orderedIds.stream()
-                    .map(id -> (PostSimpleDetail) hashEntries.get(id.toString()))
-                    .filter(java.util.Objects::nonNull)
-                    .toList();
-            if (cachedPosts.isEmpty()) {
-                CacheMetricsLogger.miss(log, "post:list:" + type.name().toLowerCase(),
-                        metadata.key(), "resolved_entries_empty");
-            } else {
-                CacheMetricsLogger.hit(log, "post:list:" + type.name().toLowerCase(),
-                        metadata.key(), cachedPosts.size());
-            }
-            return cachedPosts;
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.POST_REDIS_READ_ERROR, e);
+        Map<Long, PostSimpleDetail> cachedMap = getCachedPostMap(type);
+        if (cachedMap.isEmpty()) {
+            return Collections.emptyList();
         }
+
+        // postIds 저장소에서 순서 가져오기
+        List<Long> orderedIds = getStoredPostIds(type);
+        if (orderedIds.isEmpty()) {
+            CacheMetricsLogger.miss(log, "post:list:" + type.name().toLowerCase(),
+                    getCacheMetadata(type).key(), "ordered_ids_empty");
+            return Collections.emptyList();
+        }
+
+        List<PostSimpleDetail> cachedPosts = orderedIds.stream()
+                .map(cachedMap::get)
+                .filter(java.util.Objects::nonNull)
+                .toList();
+
+        if (cachedPosts.isEmpty()) {
+            CacheMetricsLogger.miss(log, "post:list:" + type.name().toLowerCase(),
+                    getCacheMetadata(type).key(), "resolved_entries_empty");
+        } else {
+            CacheMetricsLogger.hit(log, "post:list:" + type.name().toLowerCase(),
+                    getCacheMetadata(type).key(), cachedPosts.size());
+        }
+        return cachedPosts;
+    }
+
+    /**
+     * <h3>레전드 게시글 목록 페이지네이션 조회 (Hash 구조)</h3>
+     * <p>레전드 게시글 목록을 페이지네이션으로 조회합니다.</p>
+     * <p>postIds 저장소의 순서를 사용하여 페이징 및 정렬합니다.</p>
+     *
+     * @param pageable 페이지 정보
+     * @return 캐시된 레전드 게시글 목록 페이지
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public Page<PostSimpleDetail> getCachedPostListPaged(Pageable pageable) {
+        CacheMetadata metadata = getCacheMetadata(PostCacheFlag.LEGEND);
+        // 1. Hash에서 모든 PostSimpleDetail 조회
+        Map<Object, Object> hashEntries = redisTemplate.opsForHash().entries(metadata.key());
+        if (hashEntries.isEmpty()) {
+            CacheMetricsLogger.miss(log, "post:legend:list", metadata.key(), "hash_empty");
+            return new PageImpl<>(Collections.emptyList(), pageable, 0);
+        }
+
+        // 2. postIds 저장소에서 전체 순서 가져오기
+        List<Long> orderedIds = getStoredPostIds(PostCacheFlag.LEGEND);
+        if (orderedIds.isEmpty()) {
+            CacheMetricsLogger.miss(log, "post:legend:list", metadata.key(), "ordered_ids_empty");
+            return new PageImpl<>(Collections.emptyList(), pageable, 0);
+        }
+
+        // 3. 페이징 처리
+        int page = pageable.getPageNumber();
+        int size = pageable.getPageSize();
+        int start = page * size;
+        int end = Math.min(start + size, orderedIds.size());
+
+        if (start >= orderedIds.size()) {
+            CacheMetricsLogger.miss(log, "post:legend:list", metadata.key(), "page_out_of_range");
+            return new PageImpl<>(Collections.emptyList(), pageable, orderedIds.size());
+        }
+
+        // 4. 페이징된 ID 목록으로 PostSimpleDetail 조회
+        List<PostSimpleDetail> pagedPosts = orderedIds.subList(start, end).stream()
+                .map(id -> (PostSimpleDetail) hashEntries.get(id.toString()))
+                .filter(java.util.Objects::nonNull)
+                .toList();
+
+        if (pagedPosts.isEmpty()) {
+            CacheMetricsLogger.miss(log, "post:legend:list", metadata.key(), "resolved_entries_empty");
+        } else {
+            CacheMetricsLogger.hit(log, "post:legend:list", metadata.key(), pagedPosts.size());
+        }
+
+        return new PageImpl<>(pagedPosts, pageable, orderedIds.size());
     }
 
 
@@ -153,33 +225,29 @@ public class RedisPostQueryAdapter {
      */
     public List<Long> getStoredPostIds(PostCacheFlag type) {
         String postIdsKey = getPostIdsStorageKey(type);
-        try {
-            Set<Object> postIds;
+        Set<Object> postIds;
 
-            if (type == PostCacheFlag.NOTICE) {
-                // 공지사항: Set에서 조회
-                postIds = redisTemplate.opsForSet().members(postIdsKey);
-            } else {
-                // 주간/레전드: Sorted Set에서 조회 (점수 오름차순 = DB 추출 순서)
-                postIds = redisTemplate.opsForZSet().range(postIdsKey, 0, -1);
-            }
-
-            if (postIds == null || postIds.isEmpty()) {
-                CacheMetricsLogger.miss(log, "post:ids:" + type.name().toLowerCase(),
-                        postIdsKey, "post_ids_empty");
-                return Collections.emptyList();
-            }
-
-            List<Long> ids = postIds.stream()
-                    .map(Object::toString)
-                    .map(Long::valueOf)
-                    .toList();
-            CacheMetricsLogger.hit(log, "post:ids:" + type.name().toLowerCase(),
-                    postIdsKey, ids.size());
-            return ids;
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.POST_REDIS_READ_ERROR, e);
+        if (type == PostCacheFlag.NOTICE) {
+            // 공지사항: Set에서 조회
+            postIds = redisTemplate.opsForSet().members(postIdsKey);
+        } else {
+            // 주간/레전드: Sorted Set에서 조회 (점수 오름차순 = DB 추출 순서)
+            postIds = redisTemplate.opsForZSet().range(postIdsKey, 0, -1);
         }
+
+        if (postIds == null || postIds.isEmpty()) {
+            CacheMetricsLogger.miss(log, "post:ids:" + type.name().toLowerCase(),
+                    postIdsKey, "post_ids_empty");
+            return Collections.emptyList();
+        }
+
+        List<Long> ids = postIds.stream()
+                .map(Object::toString)
+                .map(Long::valueOf)
+                .toList();
+        CacheMetricsLogger.hit(log, "post:ids:" + type.name().toLowerCase(),
+                postIdsKey, ids.size());
+        return ids;
     }
 
     /**
@@ -193,75 +261,16 @@ public class RedisPostQueryAdapter {
      */
     public PostDetail getCachedPostIfExists(Long postId) {
         String key = getPostDetailKey(postId);
-        try {
-            Object cached = redisTemplate.opsForValue().get(key);
-            if (cached instanceof PostDetail postDetail) {
-                CacheMetricsLogger.hit(log, "post:detail", postId);
-                return postDetail;
-            }
-            CacheMetricsLogger.miss(log, "post:detail", postId, "value_not_found");
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.POST_REDIS_READ_ERROR, e);
+        Object cached = redisTemplate.opsForValue().get(key);
+        if (cached instanceof PostDetail postDetail) {
+            CacheMetricsLogger.hit(log, "post:detail", postId);
+            return postDetail;
         }
+        CacheMetricsLogger.miss(log, "post:detail", postId, "value_not_found");
         return null;
     }
 
-    /**
-     * <h3>레전드 게시글 목록 페이지네이션 조회 (Hash 구조)</h3>
-     * <p>레전드 게시글 목록을 페이지네이션으로 조회합니다.</p>
-     * <p>postIds 저장소의 순서를 사용하여 페이징 및 정렬합니다.</p>
-     *
-     * @param pageable 페이지 정보
-     * @return 캐시된 레전드 게시글 목록 페이지
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public Page<PostSimpleDetail> getCachedPostListPaged(Pageable pageable) {
-        CacheMetadata metadata = getCacheMetadata(PostCacheFlag.LEGEND);
-        try {
-            // 1. Hash에서 모든 PostSimpleDetail 조회
-            Map<Object, Object> hashEntries = redisTemplate.opsForHash().entries(metadata.key());
-            if (hashEntries.isEmpty()) {
-                CacheMetricsLogger.miss(log, "post:legend:list", metadata.key(), "hash_empty");
-                return new PageImpl<>(Collections.emptyList(), pageable, 0);
-            }
 
-            // 2. postIds 저장소에서 전체 순서 가져오기
-            List<Long> orderedIds = getStoredPostIds(PostCacheFlag.LEGEND);
-            if (orderedIds.isEmpty()) {
-                CacheMetricsLogger.miss(log, "post:legend:list", metadata.key(), "ordered_ids_empty");
-                return new PageImpl<>(Collections.emptyList(), pageable, 0);
-            }
-
-            // 3. 페이징 처리
-            int page = pageable.getPageNumber();
-            int size = pageable.getPageSize();
-            int start = page * size;
-            int end = Math.min(start + size, orderedIds.size());
-
-            if (start >= orderedIds.size()) {
-                CacheMetricsLogger.miss(log, "post:legend:list", metadata.key(), "page_out_of_range");
-                return new PageImpl<>(Collections.emptyList(), pageable, orderedIds.size());
-            }
-
-            // 4. 페이징된 ID 목록으로 PostSimpleDetail 조회
-            List<PostSimpleDetail> pagedPosts = orderedIds.subList(start, end).stream()
-                    .map(id -> (PostSimpleDetail) hashEntries.get(id.toString()))
-                    .filter(java.util.Objects::nonNull)
-                    .toList();
-
-            if (pagedPosts.isEmpty()) {
-                CacheMetricsLogger.miss(log, "post:legend:list", metadata.key(), "resolved_entries_empty");
-            } else {
-                CacheMetricsLogger.hit(log, "post:legend:list", metadata.key(), pagedPosts.size());
-            }
-
-            return new PageImpl<>(pagedPosts, pageable, orderedIds.size());
-
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.POST_REDIS_READ_ERROR, e);
-        }
-    }
 
     /**
      * <h3>실시간 인기글 postId 목록 조회</h3>
@@ -273,23 +282,19 @@ public class RedisPostQueryAdapter {
      * @since 2.0.0
      */
     public List<Long> getRealtimePopularPostIds() {
-        try {
-            // Sorted Set에서 점수 높은 순으로 상위 5개 조회
-            Set<Object> postIds = redisTemplate.opsForZSet().reverseRange(REALTIME_POST_SCORE_KEY, 0, 4);
-            if (postIds == null || postIds.isEmpty()) {
-                CacheMetricsLogger.miss(log, "post:realtime", REALTIME_POST_SCORE_KEY, "sorted_set_empty");
-                return Collections.emptyList();
-            }
-
-            List<Long> ids = postIds.stream()
-                    .map(Object::toString)
-                    .map(Long::valueOf)
-                    .toList();
-            CacheMetricsLogger.hit(log, "post:realtime", REALTIME_POST_SCORE_KEY, ids.size());
-            return ids;
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.POST_REDIS_READ_ERROR, e);
+        Set<Object> postIds = redisTemplate.opsForZSet().reverseRange(REALTIME_POST_SCORE_KEY, 0, 4);
+        if (postIds == null || postIds.isEmpty()) {
+            CacheMetricsLogger.miss(log, "post:realtime", REALTIME_POST_SCORE_KEY, "sorted_set_empty");
+            return Collections.emptyList();
         }
+
+        List<Long> ids = postIds.stream()
+                .map(Object::toString)
+                .map(Long::valueOf)
+                .toList();
+        CacheMetricsLogger.hit(log, "post:realtime", REALTIME_POST_SCORE_KEY, ids.size());
+        return ids;
+
     }
 
     /**
@@ -304,10 +309,6 @@ public class RedisPostQueryAdapter {
      */
     public Long getPostListCacheTTL(PostCacheFlag type) {
         CacheMetadata metadata = getCacheMetadata(type);
-        try {
-            return redisTemplate.getExpire(metadata.key(), TimeUnit.SECONDS);
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.POST_REDIS_READ_ERROR, e);
-        }
+        return redisTemplate.getExpire(metadata.key(), TimeUnit.SECONDS);
     }
 }

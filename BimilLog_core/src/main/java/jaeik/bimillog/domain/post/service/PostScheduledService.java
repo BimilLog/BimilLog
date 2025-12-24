@@ -72,11 +72,14 @@ public class PostScheduledService {
 
         List<Long> postIds = posts.stream().map(PostSimpleDetail::getId).toList();
 
-        redisPostDeleteAdapter.clearPostListCache(PostCacheFlag.WEEKLY);
-        redisPostSaveAdapter.cachePostIdsOnly(PostCacheFlag.WEEKLY, postIds);
-        redisPostSaveAdapter.cachePostList(PostCacheFlag.WEEKLY, posts);
-
-        log.info("WEEKLY 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
+        try {
+            redisPostDeleteAdapter.clearPostListCache(PostCacheFlag.WEEKLY);
+            redisPostSaveAdapter.cachePostIdsOnly(PostCacheFlag.WEEKLY, postIds);
+            redisPostSaveAdapter.cachePostList(PostCacheFlag.WEEKLY, posts);
+            log.info("WEEKLY 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
+        } catch (Exception e) {
+            log.error("WEEKLY 캐시 업데이트 실패: {}", e.getMessage(), e);
+        }
 
         publishFeaturedEventFromSimpleDetails(posts,
             "주간 인기 게시글로 선정되었어요!",
@@ -103,11 +106,14 @@ public class PostScheduledService {
 
         List<Long> postIds = posts.stream().map(PostSimpleDetail::getId).toList();
 
-        redisPostDeleteAdapter.clearPostListCache(PostCacheFlag.LEGEND);
-        redisPostSaveAdapter.cachePostIdsOnly(PostCacheFlag.LEGEND, postIds);
-        redisPostSaveAdapter.cachePostList(PostCacheFlag.LEGEND, posts);
-
-        log.info("LEGEND 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
+        try {
+            redisPostDeleteAdapter.clearPostListCache(PostCacheFlag.LEGEND);
+            redisPostSaveAdapter.cachePostIdsOnly(PostCacheFlag.LEGEND, postIds);
+            redisPostSaveAdapter.cachePostList(PostCacheFlag.LEGEND, posts);
+            log.info("LEGEND 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
+        } catch (Exception e) {
+            log.error("LEGEND 캐시 업데이트 실패: {}", e.getMessage(), e);
+        }
 
         publishFeaturedEventFromSimpleDetails(posts,
             "명예의 전당에 등극했어요!",

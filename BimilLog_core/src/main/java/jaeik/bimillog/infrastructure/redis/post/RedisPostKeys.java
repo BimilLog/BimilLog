@@ -19,27 +19,23 @@ public final class RedisPostKeys {
 
     // ===================== 1. PREFIXES (접두사 및 고정 키) =====================
 
+
     /**
-     * 단일 게시글 상세 정보 캐시 키 접두사
-     * <p>Value Type: String (PostDetail)</p>
-     * <p>전체 키 형식: post:{postId}:detail</p>
+     * 게시글 캐시 접두사
      */
-    public static final String FULL_POST_CACHE_PREFIX = "post:";
+    public static final String POST_PREFIX = "post:";
 
     /**
      * 단일 게시글 상세 정보 캐시 키 접미사
+     * <p>Value Type: String (PostDetail)</p>
+     * <p>전체 키 형식: post:{postId}:detail</p>
      */
     public static final String FULL_POST_CACHE_SUFFIX = ":detail";
 
     /**
-     * postId 목록 영구 저장소 키 접두사
+     * postId 목록 영구 저장소 키 접미사
      * <p>Value Type: Sorted Set (주간/레전드), Set (공지)</p>
      * <p>전체 키 형식: post:{type}:postids</p>
-     */
-    public static final String POSTIDS_PREFIX = "post:";
-
-    /**
-     * postId 목록 영구 저장소 키 접미사
      */
     public static final String POSTIDS_SUFFIX = ":postids";
 
@@ -105,14 +101,10 @@ public final class RedisPostKeys {
      */
     private static Map<PostCacheFlag, CacheMetadata> initializeCacheMetadata() {
         Map<PostCacheFlag, CacheMetadata> map = new EnumMap<>(PostCacheFlag.class);
-        map.put(PostCacheFlag.REALTIME, new CacheMetadata(
-                "post:realtime:list", Duration.ofMinutes(5)));
-        map.put(PostCacheFlag.WEEKLY, new CacheMetadata(
-                "post:weekly:list", Duration.ofMinutes(5)));
-        map.put(PostCacheFlag.LEGEND, new CacheMetadata(
-                "post:legend:list", Duration.ofMinutes(5)));
-        map.put(PostCacheFlag.NOTICE, new CacheMetadata(
-                "post:notice:list", Duration.ofMinutes(5)));
+        map.put(PostCacheFlag.REALTIME, new CacheMetadata("post:realtime:list", Duration.ofMinutes(5)));
+        map.put(PostCacheFlag.WEEKLY, new CacheMetadata("post:weekly:list", Duration.ofMinutes(5)));
+        map.put(PostCacheFlag.LEGEND, new CacheMetadata("post:legend:list", Duration.ofMinutes(5)));
+        map.put(PostCacheFlag.NOTICE, new CacheMetadata("post:notice:list", Duration.ofMinutes(5)));
         return map;
     }
 
@@ -153,7 +145,7 @@ public final class RedisPostKeys {
      * @since 2.0.0
      */
     public static String getPostDetailKey(Long postId) {
-        return FULL_POST_CACHE_PREFIX + postId + FULL_POST_CACHE_SUFFIX;
+        return POST_PREFIX + postId + FULL_POST_CACHE_SUFFIX;
     }
 
     /**
@@ -166,6 +158,6 @@ public final class RedisPostKeys {
      * @since 2.0.0
      */
     public static String getPostIdsStorageKey(PostCacheFlag type) {
-        return POSTIDS_PREFIX + type.name().toLowerCase() + POSTIDS_SUFFIX;
+        return POST_PREFIX + type.name().toLowerCase() + POSTIDS_SUFFIX;
     }
 }

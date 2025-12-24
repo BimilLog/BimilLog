@@ -274,7 +274,7 @@ class PostCommandServiceTest extends BaseUnitTest {
 
 
     @Test
-    @DisplayName("게시글 수정 - 캐시 삭제 실패")
+    @DisplayName("게시글 수정 - 캐시 삭제 실패해도 정상 완료")
     void shouldUpdatePostEvenWhenCacheDeleteFails() {
         // Given
         Long memberId = 1L;
@@ -286,12 +286,10 @@ class PostCommandServiceTest extends BaseUnitTest {
         given(existingPost.isAuthor(memberId, null)).willReturn(true);
         doThrow(new RuntimeException("Cache delete failed")).when(redisPostDeleteAdapter).deleteSinglePostCache(postId);
 
-        // When & Then
-        assertThatThrownBy(() -> postCommandService.updatePost(memberId, postId, "title", "content", null))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("Cache delete failed");
+        // When - 예외가 발생하지 않고 정상 완료되어야 함
+        postCommandService.updatePost(memberId, postId, "title", "content", null);
 
-        // 게시글 수정은 완료되지만 캐시 삭제에서 실패
+        // Then - 게시글 수정은 완료되고, 캐시 삭제도 시도됨
         verify(existingPost, times(1)).updatePost("title", "content");
         verify(redisPostDeleteAdapter, times(1)).deleteSinglePostCache(postId);
     }

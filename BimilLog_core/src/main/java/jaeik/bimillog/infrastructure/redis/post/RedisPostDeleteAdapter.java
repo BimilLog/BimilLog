@@ -25,22 +25,18 @@ public class RedisPostDeleteAdapter {
      * @since 2.0.0
      */
     public void removePostIdFromStorage(Long postId) {
-        try {
-            for (PostCacheFlag type : PostCacheFlag.values()) {
-                if (type == PostCacheFlag.REALTIME) {
-                    continue;
-                }
-                String postIdsKey = getPostIdsStorageKey(type);
-                if (type == PostCacheFlag.NOTICE) {
-                    // 공지사항: Set에서 제거
-                    redisTemplate.opsForSet().remove(postIdsKey, postId.toString());
-                } else {
-                    // 주간/레전드: Sorted Set에서 제거
-                    redisTemplate.opsForZSet().remove(postIdsKey, postId.toString());
-                }
+        for (PostCacheFlag type : PostCacheFlag.values()) {
+            if (type == PostCacheFlag.REALTIME) {
+                continue;
             }
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.POST_REDIS_WRITE_ERROR, e);
+            String postIdsKey = getPostIdsStorageKey(type);
+            if (type == PostCacheFlag.NOTICE) {
+                // 공지사항: Set에서 제거
+                redisTemplate.opsForSet().remove(postIdsKey, postId.toString());
+            } else {
+                // 주간/레전드: Sorted Set에서 제거
+                redisTemplate.opsForZSet().remove(postIdsKey, postId.toString());
+            }
         }
     }
 
@@ -54,11 +50,7 @@ public class RedisPostDeleteAdapter {
      */
     public void deleteSinglePostCache(Long postId) {
         String detailKey = getPostDetailKey(postId);
-        try {
-            redisTemplate.delete(detailKey);
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.POST_REDIS_DELETE_ERROR, e);
-        }
+        redisTemplate.delete(detailKey);
     }
 
     /**
@@ -72,13 +64,9 @@ public class RedisPostDeleteAdapter {
      * @since 2.0.0
      */
     public void removePostFromListCache(Long postId) {
-        try {
-            for (PostCacheFlag type : PostCacheFlag.values()) {
-                String hashKey = RedisPostKeys.CACHE_METADATA_MAP.get(type).key();
-                redisTemplate.opsForHash().delete(hashKey, postId.toString());
-            }
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.POST_REDIS_DELETE_ERROR, e);
+        for (PostCacheFlag type : PostCacheFlag.values()) {
+            String hashKey = RedisPostKeys.CACHE_METADATA_MAP.get(type).key();
+            redisTemplate.opsForHash().delete(hashKey, postId.toString());
         }
     }
 
@@ -92,11 +80,7 @@ public class RedisPostDeleteAdapter {
      * @since 2.0.0
      */
     public void removePostIdFromRealtimeScore(Long postId) {
-        try {
-            redisTemplate.opsForZSet().remove(REALTIME_POST_SCORE_KEY, postId.toString());
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.POST_REDIS_DELETE_ERROR, e);
-        }
+        redisTemplate.opsForZSet().remove(REALTIME_POST_SCORE_KEY, postId.toString());
     }
 
     /**
@@ -110,10 +94,6 @@ public class RedisPostDeleteAdapter {
      */
     public void clearPostListCache(PostCacheFlag type) {
         String hashKey = RedisPostKeys.CACHE_METADATA_MAP.get(type).key();
-        try {
-            redisTemplate.delete(hashKey);
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.POST_REDIS_DELETE_ERROR, e);
-        }
+        redisTemplate.delete(hashKey);
     }
 }

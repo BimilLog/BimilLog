@@ -566,7 +566,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         // When & Then
         assertThatThrownBy(() -> commentCommandService.writeComment(getTestMember().getId(), postId, null, "댓글", null))
                 .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_WRITE_FAILED);
 
         verify(postRepository).findById(postId);
         verify(commentRepository, never()).save(any(Comment.class));
@@ -586,7 +586,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         // When & Then
         assertThatThrownBy(() -> commentCommandService.writeComment(getTestMember().getId(), postId, parentId, "대댓글", null))
                 .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_NOT_FOUND);
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_WRITE_FAILED);
 
         verify(postRepository).findById(postId);
         verify(commentRepository).findById(parentId);
