@@ -64,64 +64,106 @@ public class PostCacheService {
     public List<PostSimpleDetail> getRealtimePosts() {
         List<Long> realtimePostIds;
         List<PostSimpleDetail> cachedList;
-        // 1. score:realtime에서 상위 5개 postId 조회
         try {
+            // 1. score:realtime에서 상위 5개 postId 조회
             realtimePostIds = redisPostQueryAdapter.getRealtimePopularPostIds();
+
             if (realtimePostIds.isEmpty()) {
                 return List.of();
             }
 
             // 2. TTL 조회 및 확률적 조기 만료 체크
             Long ttl = redisPostQueryAdapter.getPostListCacheTTL(PostCacheFlag.REALTIME);
-            boolean shouldRefresh = false;
 
             if (ttl != null && ttl > 0) {
                 double randomFactor = ThreadLocalRandom.current().nextDouble();
                 if (ttl - (randomFactor * EXPIRY_GAP_SECONDS) <= 0) {
-                    shouldRefresh = true;
+                    asyncRefreshCache(PostCacheFlag.REALTIME);
                 }
             }
 
-            // 3. posts:realtime Hash에서 PostSimpleDetail 조회
             cachedList = redisPostQueryAdapter.getCachedPostList(PostCacheFlag.REALTIME);
-
-            // 4. 비동기 갱신 트리거
-            if (shouldRefresh && !cachedList.isEmpty()) {
-                asyncRefreshCache(PostCacheFlag.REALTIME);
-            }
-
         } catch (Exception e) {
             throw new CustomException(ErrorCode.POST_REDIS_REALTIME_ERROR, e);
         }
 
-        // 5. 캐시된 데이터를 Map으로 변환
         Map<Long, PostSimpleDetail> cachedMap = cachedList.stream()
                 .collect(Collectors.toMap(PostSimpleDetail::getId, detail -> detail));
 
-        List<PostSimpleDetail> resultPosts = new ArrayList<>();
-
         for (Long postId : realtimePostIds) {
-            // 우선 캐시 맵에서 확인
-            PostSimpleDetail detail = cachedMap.get(postId);
+            PostSimpleDetail detail = cachedMap.get(postId); // 우선 캐시 맵에서 확인
             if (detail == null) {
-                // 캐시 미스 시 DB 조회
-                Optional<PostDetail> postDetailOpt = postQueryRepository.findPostDetailWithCounts(postId, null);
+                Optional<PostDetail> postDetailOpt = postQueryRepository.findPostDetailWithCounts(postId, null); // 캐시 미스 시 DB 조회
                 if (postDetailOpt.isPresent()) {
-                    // DB 데이터를 DTO로 변환
-                    detail = postDetailOpt.get().toSimpleDetail();
-
-                    // 조회한 데이터를 캐시에 다시 저장 (개별 캐싱)
-                    redisPostSaveAdapter.cachePostList(PostCacheFlag.REALTIME, List.of(detail));
+                    detail = postDetailOpt.get().toSimpleDetail(); // DB 데이터를 DTO로 변환
+                    redisPostSaveAdapter.cachePostList(PostCacheFlag.REALTIME, List.of(detail)); // 조회한 데이터를 캐시에 다시 저장 (개별 캐싱)
                 }
-            }
-
-            // 최종적으로 데이터가 존재하는 경우에만 리스트에 추가
-            if (detail != null) {
-                resultPosts.add(detail);
             }
         }
 
-        return resultPosts;
+        return redisPostQueryAdapter.getCachedPostList(PostCacheFlag.REALTIME);
+    }
+
+    /**
+     * <h3>비동기 캐시 갱신 (분산 락 기반)</h3>
+     * <p>확률적 선계산 기법에서 TTL 임계값 이하일 때 호출되는 비동기 캐시 갱신 메서드입니다.</p>
+     * <p>분산 락을 사용하여 여러 요청이 동시에 갱신을 시도해도 1회만 실행되도록 보장합니다.</p>
+     * <p>백그라운드에서 실행되므로 사용자 요청은 블로킹되지 않습니다.</p>
+     *
+     * @param type 갱신할 캐시 유형 (REALTIME, WEEKLY, LEGEND, NOTICE)
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @Async("cacheRefreshExecutor")
+    public void asyncRefreshCache(PostCacheFlag type) {
+        // Step 1: 분산 락 획득 시도 (10초 타임아웃)
+        Boolean acquired = redisPostUpdateAdapter.acquireCacheRefreshLock(type, LOCK_TIMEOUT);
+
+        if (Boolean.FALSE.equals(acquired)) {
+            log.info("다른 스레드가 갱신 캐시 중: type={}", type);
+            return;
+        }
+
+        try {
+            List<Long> storedPostIds;
+            log.info("캐시 갱신 시작: 타입={}, 스레드={}", type, Thread.currentThread().getName());
+
+            // Step 2: Tier 2 PostIds로부터 복구 실시간은 실시간 점수 Redis 저장소에서 복구
+            if (type == PostCacheFlag.REALTIME) {
+                storedPostIds = redisPostQueryAdapter.getRealtimePopularPostIds();
+            } else {
+                storedPostIds = redisPostQueryAdapter.getStoredPostIds(type);
+            }
+
+            if (storedPostIds.isEmpty()) {
+                log.warn("캐시 갱신 실패 - 타입={}, 이유 = 2티어 저장소 비어있음", type);
+                return;
+            }
+
+            // DB에서 PostDetail 조회 후 PostSimpleDetail 변환
+            List<PostSimpleDetail> refreshed = storedPostIds.stream()
+                    .map(postId -> postQueryRepository.findPostDetailWithCounts(postId, null).orElse(null))
+                    .filter(Objects::nonNull)
+                    .map(PostDetail::toSimpleDetail)
+                    .toList();
+
+            log.warn("DB로부터 응답반환 - 타입={}, 결과 사이즈={}, 스레드={}", type, refreshed.size(), Thread.currentThread().getName());
+
+            if (refreshed.isEmpty()) {
+                log.warn("캐시 갱신 실패: 타입={} DB 조회 결과가 없음", type);
+                return;
+            }
+
+            // Step 3: 캐시 갱신
+            redisPostSaveAdapter.cachePostList(type, refreshed);
+            log.info("캐시 갱신 완료: 타입={}, count={}", type, refreshed.size());
+
+        } catch (Exception e) {
+            log.error("캐시 갱신 에러: 타입={}", type, e);
+        } finally {
+            // Step 4: 락 해제
+            redisPostUpdateAdapter.releaseCacheRefreshLock(type);
+        }
     }
 
     /**
@@ -153,6 +195,7 @@ public class PostCacheService {
             throw new CustomException(ErrorCode.POST_REDIS_WEEKLY_ERROR, e);
         }
     }
+
 
     /**
      * <h3>레전드 인기 게시글 목록 조회 (페이징, 확률적 선계산 적용)</h3>
@@ -214,59 +257,4 @@ public class PostCacheService {
         }
     }
 
-    /**
-     * <h3>비동기 캐시 갱신 (분산 락 기반)</h3>
-     * <p>확률적 선계산 기법에서 TTL 임계값 이하일 때 호출되는 비동기 캐시 갱신 메서드입니다.</p>
-     * <p>분산 락을 사용하여 여러 요청이 동시에 갱신을 시도해도 1회만 실행되도록 보장합니다.</p>
-     * <p>백그라운드에서 실행되므로 사용자 요청은 블로킹되지 않습니다.</p>
-     *
-     * @param type 갱신할 캐시 유형 (REALTIME, WEEKLY, LEGEND, NOTICE)
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Async("cacheRefreshExecutor")
-    public void asyncRefreshCache(PostCacheFlag type) {
-        // Step 1: 분산 락 획득 시도 (10초 타임아웃)
-        Boolean acquired = redisPostUpdateAdapter.acquireCacheRefreshLock(type, LOCK_TIMEOUT);
-
-        if (Boolean.FALSE.equals(acquired)) {
-            log.info("다른 스레드가 갱신 캐시 중: type={}", type);
-            return;
-        }
-
-        try {
-            log.info("캐시 갱신 시작: 타입={}, 스레드={}", type, Thread.currentThread().getName());
-            List<Long> storedPostIds = redisPostQueryAdapter.getStoredPostIds(type); // 2티어 저장소에서 ID목록 가져옴
-
-            // Step 2: Tier 2 PostIds로부터 복구
-            if (storedPostIds.isEmpty()) {
-                log.warn("캐시 갱신 실패 - 타입={}, 이유 = 2티어 저장소 비어있음", type);
-                return;
-            }
-
-            // DB에서 PostDetail 조회 후 PostSimpleDetail 변환
-            List<PostSimpleDetail> refreshed = storedPostIds.stream()
-                    .map(postId -> postQueryRepository.findPostDetailWithCounts(postId, null).orElse(null))
-                    .filter(Objects::nonNull)
-                    .map(PostDetail::toSimpleDetail)
-                    .toList();
-
-            log.warn("DB로부터 응답반환 - 타입={}, 결과 사이즈={}, 스레드={}", type, refreshed.size(), Thread.currentThread().getName());
-
-            if (refreshed.isEmpty()) {
-                log.warn("캐시 갱신 실패: 타입={} DB 조회 결과가 없음", type);
-                return;
-            }
-
-            // Step 3: 캐시 갱신
-            redisPostSaveAdapter.cachePostList(type, refreshed);
-            log.info("캐시 갱신 완료: 타입={}, count={}", type, refreshed.size());
-
-        } catch (Exception e) {
-            log.error("캐시 갱신 에러: 타입={}", type, e);
-        } finally {
-            // Step 4: 락 해제
-            redisPostUpdateAdapter.releaseCacheRefreshLock(type);
-        }
-    }
 }

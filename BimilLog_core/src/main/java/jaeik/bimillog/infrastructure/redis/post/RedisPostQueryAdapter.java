@@ -105,16 +105,14 @@ public class RedisPostQueryAdapter {
         Map<Object, Object> hashEntries = redisTemplate.opsForHash().entries(metadata.key());
 
         if (hashEntries.isEmpty()) {
-            CacheMetricsLogger.miss(log, "post:list:" + type.name().toLowerCase(),
-                    metadata.key(), "hash_empty");
+            CacheMetricsLogger.miss(log, "post:list:" + type.name().toLowerCase(), metadata.key(), "hash_empty");
             return Collections.emptyList();
         }
 
         // 모든 타입에 대해 정렬된 순서 사용 (REALTIME 포함)
         List<Long> orderedIds = getStoredPostIds(type);
         if (orderedIds.isEmpty()) {
-            CacheMetricsLogger.miss(log, "post:list:" + type.name().toLowerCase(),
-                    metadata.key(), "ordered_ids_empty");
+            CacheMetricsLogger.miss(log, "post:list:" + type.name().toLowerCase(), metadata.key(), "ordered_ids_empty");
             return Collections.emptyList();
         }
 
