@@ -77,6 +77,10 @@ public enum ErrorCode {
     POST_REDIS_WRITE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "레디스 작성 중 오류가 발생했습니다.", LogLevel.ERROR),
     POST_REDIS_READ_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "레디스 읽기 중 오류가 발생했습니다.", LogLevel.ERROR),
     POST_REDIS_DELETE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "레디스 삭제 중 오류가 발생했습니다.", LogLevel.ERROR),
+    POST_REDIS_REALTIME_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "실시간 인기 조회 중 오류가 발생했습니다.", LogLevel.ERROR),
+    POST_REDIS_WEEKLY_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "주간 인기 조회 중 오류가 발생했습니다.", LogLevel.ERROR),
+    POST_REDIS_LEGEND_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "레전드 인기 조회 중 오류가 발생했습니다.", LogLevel.ERROR),
+    POST_REDIS_NOTICE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "공지사항 조회 중 오류가 발생했습니다.", LogLevel.ERROR),
 
     // ===== Friend 도메인 에러 코드 =====
     FRIEND_REQUEST_NOT_FOUND(HttpStatus.BAD_REQUEST, "존재하지 않는 친구 요청입니다.", LogLevel.ERROR),

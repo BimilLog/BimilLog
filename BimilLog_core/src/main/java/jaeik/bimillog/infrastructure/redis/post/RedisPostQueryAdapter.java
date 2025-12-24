@@ -273,23 +273,20 @@ public class RedisPostQueryAdapter {
      * @since 2.0.0
      */
     public List<Long> getRealtimePopularPostIds() {
-        try {
-            // Sorted Set에서 점수 높은 순으로 상위 5개 조회
-            Set<Object> postIds = redisTemplate.opsForZSet().reverseRange(REALTIME_POST_SCORE_KEY, 0, 4);
-            if (postIds == null || postIds.isEmpty()) {
-                CacheMetricsLogger.miss(log, "post:realtime", REALTIME_POST_SCORE_KEY, "sorted_set_empty");
-                return Collections.emptyList();
-            }
 
-            List<Long> ids = postIds.stream()
-                    .map(Object::toString)
-                    .map(Long::valueOf)
-                    .toList();
-            CacheMetricsLogger.hit(log, "post:realtime", REALTIME_POST_SCORE_KEY, ids.size());
-            return ids;
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.POST_REDIS_READ_ERROR, e);
+        Set<Object> postIds = redisTemplate.opsForZSet().reverseRange(REALTIME_POST_SCORE_KEY, 0, 4);
+        if (postIds == null || postIds.isEmpty()) {
+            CacheMetricsLogger.miss(log, "post:realtime", REALTIME_POST_SCORE_KEY, "sorted_set_empty");
+            return Collections.emptyList();
         }
+
+        List<Long> ids = postIds.stream()
+                .map(Object::toString)
+                .map(Long::valueOf)
+                .toList();
+        CacheMetricsLogger.hit(log, "post:realtime", REALTIME_POST_SCORE_KEY, ids.size());
+        return ids;
+
     }
 
     /**
@@ -304,10 +301,6 @@ public class RedisPostQueryAdapter {
      */
     public Long getPostListCacheTTL(PostCacheFlag type) {
         CacheMetadata metadata = getCacheMetadata(type);
-        try {
-            return redisTemplate.getExpire(metadata.key(), TimeUnit.SECONDS);
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.POST_REDIS_READ_ERROR, e);
-        }
+        return redisTemplate.getExpire(metadata.key(), TimeUnit.SECONDS);
     }
 }

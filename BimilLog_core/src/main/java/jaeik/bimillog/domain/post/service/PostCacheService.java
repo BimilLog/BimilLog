@@ -4,6 +4,8 @@ import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.out.PostQueryRepository;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostQueryAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostSaveAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
@@ -15,9 +17,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
@@ -62,55 +62,70 @@ public class PostCacheService {
      * @since 2.0.0
      */
     public List<PostSimpleDetail> getRealtimePosts() {
+        List<Long> realtimePostIds = List.of();
+        List<PostSimpleDetail> cachedList = List.of();
         // 1. score:realtime에서 상위 5개 postId 조회
-        List<Long> realtimePostIds = redisPostQueryAdapter.getRealtimePopularPostIds();
-        if (realtimePostIds.isEmpty()) {
-            return List.of();
-        }
-
-        // 2. TTL 조회 및 확률적 조기 만료 체크
-        Long ttl = redisPostQueryAdapter.getPostListCacheTTL(PostCacheFlag.REALTIME);
-        boolean shouldRefresh = false;
-
-        if (ttl != null && ttl > 0) {
-            double randomFactor = ThreadLocalRandom.current().nextDouble();
-            if (ttl - (randomFactor * EXPIRY_GAP_SECONDS) <= 0) {
-                shouldRefresh = true;
+        try {
+            realtimePostIds = redisPostQueryAdapter.getRealtimePopularPostIds();
+            if (realtimePostIds.isEmpty()) {
+                return List.of();
             }
+
+            // 2. TTL 조회 및 확률적 조기 만료 체크
+            Long ttl = redisPostQueryAdapter.getPostListCacheTTL(PostCacheFlag.REALTIME);
+            boolean shouldRefresh = false;
+
+            if (ttl != null && ttl > 0) {
+                double randomFactor = ThreadLocalRandom.current().nextDouble();
+                if (ttl - (randomFactor * EXPIRY_GAP_SECONDS) <= 0) {
+                    shouldRefresh = true;
+                }
+            }
+
+            // 3. posts:realtime Hash에서 PostSimpleDetail 조회
+            cachedList = redisPostQueryAdapter.getCachedPostList(PostCacheFlag.REALTIME);
+
+            // 4. 비동기 갱신 트리거
+            if (shouldRefresh && !cachedList.isEmpty()) {
+                asyncRefreshCache(PostCacheFlag.REALTIME);
+            }
+        }  catch (Exception e) {
+            throw new CustomException(ErrorCode.POST_REDIS_REALTIME_ERROR, e);
         }
 
-        // 3. posts:realtime Hash에서 PostSimpleDetail 조회
-        List<PostSimpleDetail> cachedList = redisPostQueryAdapter.getCachedPostList(PostCacheFlag.REALTIME);
 
-        // 4. 비동기 갱신 트리거 (TTL 임계값 이하이고 캐시가 있을 때)
-        if (shouldRefresh && !cachedList.isEmpty()) {
-            asyncRefreshCache(PostCacheFlag.REALTIME);
-        }
-
-        // 5. 캐시된 데이터를 Map으로 변환 (빠른 조회)
+        // 5. 캐시된 데이터를 Map으로 변환
         Map<Long, PostSimpleDetail> cachedMap = cachedList.stream()
                 .collect(Collectors.toMap(PostSimpleDetail::getId, detail -> detail));
 
-        // 6. postId 순서대로 조회하며 캐시 미스 시 DB 조회 후 추가
-        return realtimePostIds.stream()
-                .map(postId -> {
-                    PostSimpleDetail cached = cachedMap.get(postId);
-                    if (cached != null) {
-                        return cached;
-                    }
 
-                    // 캐시 미스: DB 조회 후 posts:realtime에 추가
-                    PostDetail postDetail = postQueryRepository.findPostDetailWithCounts(postId, null).orElse(null);
-                    if (postDetail == null) {
-                        return null;
-                    }
+        List<PostSimpleDetail> resultPosts = new ArrayList<>();
 
-                    PostSimpleDetail simpleDetail = postDetail.toSimpleDetail();
-                    redisPostSaveAdapter.cachePostList(PostCacheFlag.REALTIME, List.of(simpleDetail));
-                    return simpleDetail;
-                })
-                .filter(Objects::nonNull)
-                .toList();
+        for (Long postId : realtimePostIds) {
+            // 우선 캐시 맵에서 확인
+            PostSimpleDetail detail = cachedMap.get(postId);
+
+            if (detail == null) {
+                // 캐시 미스 시 DB 조회
+                Optional<PostDetail> postDetailOpt = postQueryRepository.findPostDetailWithCounts(postId, null);
+
+                if (postDetailOpt.isPresent()) {
+                    // DB 데이터를 DTO로 변환
+                    detail = postDetailOpt.get().toSimpleDetail();
+
+                    // 조회한 데이터를 캐시에 다시 저장 (개별 캐싱)
+                    redisPostSaveAdapter.cachePostList(PostCacheFlag.REALTIME, List.of(detail));
+                }
+            }
+
+
+            // 최종적으로 데이터가 존재하는 경우에만 리스트에 추가
+            if (detail != null) {
+                resultPosts.add(detail);
+            }
+        }
+
+        return resultPosts;
     }
 
     /**
@@ -159,7 +174,7 @@ public class PostCacheService {
      * <p>확률적 선계산 기법을 적용하여 캐시 스탬피드를 방지합니다.</p>
      * <p>TTL 마지막 2분 동안 랜덤 확률로 비동기 갱신을 트리거합니다.</p>
      *
-     * @param type 조회할 인기 게시글 유형 (PostCacheFlag.LEGEND만 지원)
+     * @param type     조회할 인기 게시글 유형 (PostCacheFlag.LEGEND만 지원)
      * @param pageable 페이지 정보
      * @return 인기 게시글 목록 페이지
      * @author Jaeik
