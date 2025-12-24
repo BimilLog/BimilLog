@@ -132,6 +132,58 @@ public class RedisPostQueryAdapter {
         return cachedPosts;
     }
 
+    /**
+     * <h3>레전드 게시글 목록 페이지네이션 조회 (Hash 구조)</h3>
+     * <p>레전드 게시글 목록을 페이지네이션으로 조회합니다.</p>
+     * <p>postIds 저장소의 순서를 사용하여 페이징 및 정렬합니다.</p>
+     *
+     * @param pageable 페이지 정보
+     * @return 캐시된 레전드 게시글 목록 페이지
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    public Page<PostSimpleDetail> getCachedPostListPaged(Pageable pageable) {
+        CacheMetadata metadata = getCacheMetadata(PostCacheFlag.LEGEND);
+        // 1. Hash에서 모든 PostSimpleDetail 조회
+        Map<Object, Object> hashEntries = redisTemplate.opsForHash().entries(metadata.key());
+        if (hashEntries.isEmpty()) {
+            CacheMetricsLogger.miss(log, "post:legend:list", metadata.key(), "hash_empty");
+            return new PageImpl<>(Collections.emptyList(), pageable, 0);
+        }
+
+        // 2. postIds 저장소에서 전체 순서 가져오기
+        List<Long> orderedIds = getStoredPostIds(PostCacheFlag.LEGEND);
+        if (orderedIds.isEmpty()) {
+            CacheMetricsLogger.miss(log, "post:legend:list", metadata.key(), "ordered_ids_empty");
+            return new PageImpl<>(Collections.emptyList(), pageable, 0);
+        }
+
+        // 3. 페이징 처리
+        int page = pageable.getPageNumber();
+        int size = pageable.getPageSize();
+        int start = page * size;
+        int end = Math.min(start + size, orderedIds.size());
+
+        if (start >= orderedIds.size()) {
+            CacheMetricsLogger.miss(log, "post:legend:list", metadata.key(), "page_out_of_range");
+            return new PageImpl<>(Collections.emptyList(), pageable, orderedIds.size());
+        }
+
+        // 4. 페이징된 ID 목록으로 PostSimpleDetail 조회
+        List<PostSimpleDetail> pagedPosts = orderedIds.subList(start, end).stream()
+                .map(id -> (PostSimpleDetail) hashEntries.get(id.toString()))
+                .filter(java.util.Objects::nonNull)
+                .toList();
+
+        if (pagedPosts.isEmpty()) {
+            CacheMetricsLogger.miss(log, "post:legend:list", metadata.key(), "resolved_entries_empty");
+        } else {
+            CacheMetricsLogger.hit(log, "post:legend:list", metadata.key(), pagedPosts.size());
+        }
+
+        return new PageImpl<>(pagedPosts, pageable, orderedIds.size());
+    }
+
 
     /**
      * <h3>postIds 영구 저장소에서 ID 목록 조회</h3>
@@ -190,57 +242,7 @@ public class RedisPostQueryAdapter {
         return null;
     }
 
-    /**
-     * <h3>레전드 게시글 목록 페이지네이션 조회 (Hash 구조)</h3>
-     * <p>레전드 게시글 목록을 페이지네이션으로 조회합니다.</p>
-     * <p>postIds 저장소의 순서를 사용하여 페이징 및 정렬합니다.</p>
-     *
-     * @param pageable 페이지 정보
-     * @return 캐시된 레전드 게시글 목록 페이지
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public Page<PostSimpleDetail> getCachedPostListPaged(Pageable pageable) {
-        CacheMetadata metadata = getCacheMetadata(PostCacheFlag.LEGEND);
-        // 1. Hash에서 모든 PostSimpleDetail 조회
-        Map<Object, Object> hashEntries = redisTemplate.opsForHash().entries(metadata.key());
-        if (hashEntries.isEmpty()) {
-            CacheMetricsLogger.miss(log, "post:legend:list", metadata.key(), "hash_empty");
-            return new PageImpl<>(Collections.emptyList(), pageable, 0);
-        }
 
-        // 2. postIds 저장소에서 전체 순서 가져오기
-        List<Long> orderedIds = getStoredPostIds(PostCacheFlag.LEGEND);
-        if (orderedIds.isEmpty()) {
-            CacheMetricsLogger.miss(log, "post:legend:list", metadata.key(), "ordered_ids_empty");
-            return new PageImpl<>(Collections.emptyList(), pageable, 0);
-        }
-
-        // 3. 페이징 처리
-        int page = pageable.getPageNumber();
-        int size = pageable.getPageSize();
-        int start = page * size;
-        int end = Math.min(start + size, orderedIds.size());
-
-        if (start >= orderedIds.size()) {
-            CacheMetricsLogger.miss(log, "post:legend:list", metadata.key(), "page_out_of_range");
-            return new PageImpl<>(Collections.emptyList(), pageable, orderedIds.size());
-        }
-
-        // 4. 페이징된 ID 목록으로 PostSimpleDetail 조회
-        List<PostSimpleDetail> pagedPosts = orderedIds.subList(start, end).stream()
-                .map(id -> (PostSimpleDetail) hashEntries.get(id.toString()))
-                .filter(java.util.Objects::nonNull)
-                .toList();
-
-        if (pagedPosts.isEmpty()) {
-            CacheMetricsLogger.miss(log, "post:legend:list", metadata.key(), "resolved_entries_empty");
-        } else {
-            CacheMetricsLogger.hit(log, "post:legend:list", metadata.key(), pagedPosts.size());
-        }
-
-        return new PageImpl<>(pagedPosts, pageable, orderedIds.size());
-    }
 
     /**
      * <h3>실시간 인기글 postId 목록 조회</h3>

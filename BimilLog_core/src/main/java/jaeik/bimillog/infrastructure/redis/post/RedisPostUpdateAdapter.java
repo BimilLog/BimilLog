@@ -74,7 +74,7 @@ public class RedisPostUpdateAdapter {
     }
 
     /**
-     * <h3>캐시 갱신 분산 락 획득 (안전하게 수정됨)</h3>
+     * <h3>캐시 갱신 분산 락 획득</h3>
      * 락 획득 시 고유 ID를 값으로 저장하고, 획득에 성공하면 ThreadLocal에 해당 ID를 저장합니다.
      * SET key value NX PX timeout 명령어를 사용하여 획득과 만료 설정을 원자적으로 처리합니다.
      */
