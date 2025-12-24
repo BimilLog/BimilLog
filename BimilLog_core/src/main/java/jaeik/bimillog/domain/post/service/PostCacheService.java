@@ -62,11 +62,9 @@ public class PostCacheService {
      * @since 2.0.0
      */
     public List<PostSimpleDetail> getRealtimePosts() {
-        List<Long> realtimePostIds;
-        List<PostSimpleDetail> cachedList;
         try {
-            // 1. score:realtime에서 상위 5개 postId 조회
-            realtimePostIds = redisPostQueryAdapter.getRealtimePopularPostIds();
+            // 1. score:realtime에서 상위 5개 postId 조회 (순서 포함)
+            List<Long> realtimePostIds = redisPostQueryAdapter.getRealtimePopularPostIds();
 
             if (realtimePostIds.isEmpty()) {
                 return List.of();
@@ -82,26 +80,33 @@ public class PostCacheService {
                 }
             }
 
-            cachedList = redisPostQueryAdapter.getCachedPostList(PostCacheFlag.REALTIME);
+            // 3. 1차 캐시에서 Map으로 조회 (순서 정보 없음)
+            Map<Long, PostSimpleDetail> cachedMap = redisPostQueryAdapter.getCachedPostMap(PostCacheFlag.REALTIME);
+
+            // 4. realtimePostIds 순서대로 결과 구성
+            List<PostSimpleDetail> resultPosts = new ArrayList<>();
+
+            for (Long postId : realtimePostIds) {
+                PostSimpleDetail detail = cachedMap.get(postId);
+
+                if (detail == null) {
+                    // 캐시 미스 시 DB 조회
+                    Optional<PostDetail> postDetailOpt = postQueryRepository.findPostDetailWithCounts(postId, null);
+                    if (postDetailOpt.isPresent()) {
+                        detail = postDetailOpt.get().toSimpleDetail();
+                        redisPostSaveAdapter.cachePostList(PostCacheFlag.REALTIME, List.of(detail));
+                    }
+                }
+
+                if (detail != null) {
+                    resultPosts.add(detail);
+                }
+            }
+
+            return resultPosts;
         } catch (Exception e) {
             throw new CustomException(ErrorCode.POST_REDIS_REALTIME_ERROR, e);
         }
-
-        Map<Long, PostSimpleDetail> cachedMap = cachedList.stream()
-                .collect(Collectors.toMap(PostSimpleDetail::getId, detail -> detail));
-
-        for (Long postId : realtimePostIds) {
-            PostSimpleDetail detail = cachedMap.get(postId); // 우선 캐시 맵에서 확인
-            if (detail == null) {
-                Optional<PostDetail> postDetailOpt = postQueryRepository.findPostDetailWithCounts(postId, null); // 캐시 미스 시 DB 조회
-                if (postDetailOpt.isPresent()) {
-                    detail = postDetailOpt.get().toSimpleDetail(); // DB 데이터를 DTO로 변환
-                    redisPostSaveAdapter.cachePostList(PostCacheFlag.REALTIME, List.of(detail)); // 조회한 데이터를 캐시에 다시 저장 (개별 캐싱)
-                }
-            }
-        }
-
-        return redisPostQueryAdapter.getCachedPostList(PostCacheFlag.REALTIME);
     }
 
     /**

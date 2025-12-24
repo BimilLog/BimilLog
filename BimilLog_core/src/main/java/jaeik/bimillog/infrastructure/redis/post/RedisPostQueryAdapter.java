@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.*;
 
@@ -90,42 +91,71 @@ public class RedisPostQueryAdapter {
     }
 
     /**
+     * <h3>캐시된 게시글 Map 조회 (Hash 구조)</h3>
+     * <p>Redis Hash에서 PostSimpleDetail을 Map으로 조회합니다.</p>
+     * <p>순서 정보 없이 순수하게 캐시 데이터만 반환합니다.</p>
+     *
+     * @param type 조회할 캐시 유형
+     * @return 캐시된 게시글 Map (postId -> PostSimpleDetail)
+     * @author Jaeik
+     * @since 2.0.0
+     */
+    @SuppressWarnings("unchecked")
+    public Map<Long, PostSimpleDetail> getCachedPostMap(PostCacheFlag type) {
+        CacheMetadata metadata = getCacheMetadata(type);
+        Map<Object, Object> hashEntries = redisTemplate.opsForHash().entries(metadata.key());
+
+        if (hashEntries.isEmpty()) {
+            CacheMetricsLogger.miss(log, "post:map:" + type.name().toLowerCase(), metadata.key(), "hash_empty");
+            return Collections.emptyMap();
+        }
+
+        Map<Long, PostSimpleDetail> cachedMap = hashEntries.entrySet().stream()
+                .collect(Collectors.toMap(
+                        e -> Long.valueOf(e.getKey().toString()),
+                        e -> (PostSimpleDetail) e.getValue()
+                ));
+
+        CacheMetricsLogger.hit(log, "post:map:" + type.name().toLowerCase(), metadata.key(), cachedMap.size());
+        return cachedMap;
+    }
+
+    /**
      * <h3>캐시된 게시글 목록 조회 (Hash 구조)</h3>
      * <p>Redis Hash에서 PostSimpleDetail 목록을 조회합니다.</p>
      * <p>postIds 저장소의 순서를 사용하여 정렬합니다.</p>
      *
-     * @param type 조회할 캐시 유형
+     * @param type 조회할 캐시 유형 (WEEKLY, LEGEND, NOTICE)
      * @return 캐시된 게시글 목록
      * @author Jaeik
      * @since 2.0.0
      */
     @SuppressWarnings("unchecked")
     public List<PostSimpleDetail> getCachedPostList(PostCacheFlag type) {
-        CacheMetadata metadata = getCacheMetadata(type);
-        Map<Object, Object> hashEntries = redisTemplate.opsForHash().entries(metadata.key());
-
-        if (hashEntries.isEmpty()) {
-            CacheMetricsLogger.miss(log, "post:list:" + type.name().toLowerCase(), metadata.key(), "hash_empty");
+        Map<Long, PostSimpleDetail> cachedMap = getCachedPostMap(type);
+        if (cachedMap.isEmpty()) {
             return Collections.emptyList();
         }
 
-        // 모든 타입에 대해 정렬된 순서 사용 (REALTIME 포함)
+        // postIds 저장소에서 순서 가져오기
         List<Long> orderedIds = getStoredPostIds(type);
         if (orderedIds.isEmpty()) {
-            CacheMetricsLogger.miss(log, "post:list:" + type.name().toLowerCase(), metadata.key(), "ordered_ids_empty");
+            CacheMetricsLogger.miss(log, "post:list:" + type.name().toLowerCase(),
+                    getCacheMetadata(type).key(), "ordered_ids_empty");
             return Collections.emptyList();
         }
 
         List<PostSimpleDetail> cachedPosts = orderedIds.stream()
-                .map(id -> (PostSimpleDetail) hashEntries.get(id.toString()))
+                .map(cachedMap::get)
                 .filter(java.util.Objects::nonNull)
                 .toList();
+
         if (cachedPosts.isEmpty()) {
             CacheMetricsLogger.miss(log, "post:list:" + type.name().toLowerCase(),
-                    metadata.key(), "resolved_entries_empty");
+                    getCacheMetadata(type).key(), "resolved_entries_empty");
         } else {
             CacheMetricsLogger.hit(log, "post:list:" + type.name().toLowerCase(),
-                    metadata.key(), cachedPosts.size());
+                    getCacheMetadata(type).key(), cachedPosts.size());
         }
         return cachedPosts;
     }
