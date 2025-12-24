@@ -10,6 +10,7 @@ import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostQueryAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostSaveAdapter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PostQueryService {
     private final PostQueryRepository postQueryRepository;
     private final PostLikeRepository postLikeRepository;
@@ -72,23 +74,28 @@ public class PostQueryService {
      * @since 2.0.0
      */
     public PostDetail getPost(Long postId, Long memberId) {
-        // 1. 캐시 확인 (Cache-Aside Read)
-        PostDetail cachedPost = redisPostQueryAdapter.getCachedPostIfExists(postId);
-        if (cachedPost != null) {
-            // 비회원 확인
-            if (memberId != null) {
-                // 블랙리스트 확인
-                globalMemberBlacklistAdapter.checkMemberBlacklist(memberId, cachedPost.getMemberId());
+        try {
+            // 1. 캐시 확인 (Cache-Aside Read)
+            PostDetail cachedPost = redisPostQueryAdapter.getCachedPostIfExists(postId);
+            if (cachedPost != null) {
+                // 비회원 확인
+                if (memberId != null) {
+                    // 블랙리스트 확인
+                    globalMemberBlacklistAdapter.checkMemberBlacklist(memberId, cachedPost.getMemberId());
+                }
+                 // 캐시 히트: 사용자 좋아요 정보만 추가 확인
+                 if (memberId != null) {
+                     boolean isLiked = postLikeRepository.existsByPostIdAndMemberId(postId, memberId);
+                     return cachedPost.withIsLiked(isLiked);
+                 }
+                return cachedPost;
             }
-             // 캐시 히트: 사용자 좋아요 정보만 추가 확인
-             if (memberId != null) {
-                 boolean isLiked = postLikeRepository.existsByPostIdAndMemberId(postId, memberId);
-                 return cachedPost.withIsLiked(isLiked);
-             }
-            return cachedPost;
+        } catch (Exception e) {
+            // 캐시 조회 실패 시 로그만 남기고 DB 조회로 진행
+            log.warn("게시글 {} 캐시 조회 실패, DB 조회로 진행: {}", postId, e.getMessage());
         }
 
-        // 2. 캐시 미스: DB 조회 후 캐시 저장
+        // 2. 캐시 미스 또는 캐시 조회 실패: DB 조회 후 캐시 저장
         PostDetail postDetail = postQueryRepository.findPostDetailWithCounts(postId, memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
         // 비회원 확인
@@ -96,7 +103,14 @@ public class PostQueryService {
             // 블랙리스트 확인
             globalMemberBlacklistAdapter.checkMemberBlacklist(memberId, postDetail.getMemberId());
         }
-        redisPostSaveAdapter.cachePostDetail(postDetail);
+
+        try {
+            redisPostSaveAdapter.cachePostDetail(postDetail);
+        } catch (Exception e) {
+            // 캐시 저장 실패 시 로그만 남기고 계속 진행
+            log.warn("게시글 {} 캐시 저장 실패: {}", postId, e.getMessage());
+        }
+
         return postDetail;
     }
 

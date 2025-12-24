@@ -42,12 +42,20 @@ public class PostAdminService {
 
         if (post.isNotice()) {
             post.unsetAsNotice();
-            redisPostDeleteAdapter.removePostIdFromStorage(postId);
-            redisPostDeleteAdapter.removePostFromListCache(postId);
+            try {
+                redisPostDeleteAdapter.removePostIdFromStorage(postId);
+                redisPostDeleteAdapter.removePostFromListCache(postId);
+            } catch (Exception e) {
+                log.warn("공지사항 해제 캐시 무효화 실패: postId={}, error={}", postId, e.getMessage());
+            }
             log.info("공지사항 해제: postId={}, title={}", postId, post.getTitle());
         } else {
             post.setAsNotice();
-            redisPostSaveAdapter.addPostIdToStorage(PostCacheFlag.NOTICE, postId);
+            try {
+                redisPostSaveAdapter.addPostIdToStorage(PostCacheFlag.NOTICE, postId);
+            } catch (Exception e) {
+                log.warn("공지사항 설정 캐시 저장 실패: postId={}, error={}", postId, e.getMessage());
+            }
             log.info("공지사항 설정: postId={}, title={}", postId, post.getTitle());
         }
     }

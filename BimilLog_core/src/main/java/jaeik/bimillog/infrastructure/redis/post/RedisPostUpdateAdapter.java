@@ -32,11 +32,7 @@ public class RedisPostUpdateAdapter {
      * @since 2.0.0
      */
     public void incrementRealtimePopularScore(Long postId, double score) {
-        try {
-            redisTemplate.opsForZSet().incrementScore(REALTIME_POST_SCORE_KEY, postId.toString(), score);
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.POST_REDIS_WRITE_ERROR, e);
-        }
+        redisTemplate.opsForZSet().incrementScore(REALTIME_POST_SCORE_KEY, postId.toString(), score);
     }
 
     /**
@@ -48,20 +44,15 @@ public class RedisPostUpdateAdapter {
      * @since 2.0.0
      */
     public void applyRealtimePopularScoreDecay() {
-        try {
-            // 1. 모든 항목의 점수에 0.9 곱하기 (Lua 스크립트 사용)
-            redisTemplate.execute(
-                    SCORE_DECAY_SCRIPT,
-                    List.of(REALTIME_POST_SCORE_KEY),
-                    REALTIME_POST_SCORE_DECAY_RATE
-            );
+        // 1. 모든 항목의 점수에 0.9 곱하기 (Lua 스크립트 사용)
+        redisTemplate.execute(
+                SCORE_DECAY_SCRIPT,
+                List.of(REALTIME_POST_SCORE_KEY),
+                REALTIME_POST_SCORE_DECAY_RATE
+        );
 
-            // 2. 임계값(1점) 이하의 게시글 제거
-            redisTemplate.opsForZSet().removeRangeByScore(REALTIME_POST_SCORE_KEY, 0, REALTIME_POST_SCORE_THRESHOLD);
-
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.POST_REDIS_WRITE_ERROR, e);
-        }
+        // 2. 임계값(1점) 이하의 게시글 제거
+        redisTemplate.opsForZSet().removeRangeByScore(REALTIME_POST_SCORE_KEY, 0, REALTIME_POST_SCORE_THRESHOLD);
     }
 
     // 락 해제 시 소유권을 확인하고 삭제하는 Lua Script
@@ -92,24 +83,19 @@ public class RedisPostUpdateAdapter {
         // 락의 값으로 사용할 고유 ID 생성
         String uniqueId = UUID.randomUUID().toString();
 
-        try {
-            // SETNX + EX 원자적 실행 (Spring Data Redis의 setIfAbsent는 이를 보장합니다.)
-            Boolean acquired = redisTemplate.opsForValue().setIfAbsent(
-                    lockKey,
-                    uniqueId,
-                    timeout
-            );
+        // SETNX + EX 원자적 실행 (Spring Data Redis의 setIfAbsent는 이를 보장합니다.)
+        Boolean acquired = redisTemplate.opsForValue().setIfAbsent(
+                lockKey,
+                uniqueId,
+                timeout
+        );
 
-            if (Boolean.TRUE.equals(acquired)) {
-                // 락 획득 성공 시, 현재 스레드에 고유 ID 저장
-                lockValueHolder.set(uniqueId);
-                return true;
-            }
-            return false;
-        } catch (Exception e) {
-            // 커스텀 예외 처리 (PostCustomException)는 생략하고 RuntimeException으로 대체했습니다.
-            throw new RuntimeException("REDIS_WRITE_ERROR", e);
+        if (Boolean.TRUE.equals(acquired)) {
+            // 락 획득 성공 시, 현재 스레드에 고유 ID 저장
+            lockValueHolder.set(uniqueId);
+            return true;
         }
+        return false;
     }
 
     /**
@@ -136,8 +122,6 @@ public class RedisPostUpdateAdapter {
                     expectedValue // ARGV[1]
             );
 
-        } catch (Exception e) {
-            throw new RuntimeException("REDIS_WRITE_ERROR", e);
         } finally {
             // 락 해제 후 ThreadLocal 값 제거 (메모리 누수 방지)
             lockValueHolder.remove();

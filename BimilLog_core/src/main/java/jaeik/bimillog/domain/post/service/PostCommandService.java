@@ -85,8 +85,12 @@ public class PostCommandService {
         post.updatePost(title, content);
 
         // 모든 관련 캐시 무효화
-        redisPostDeleteAdapter.deleteSinglePostCache(postId);
-        redisPostDeleteAdapter.removePostFromListCache(postId);
+        try {
+            redisPostDeleteAdapter.deleteSinglePostCache(postId);
+            redisPostDeleteAdapter.removePostFromListCache(postId);
+        } catch (Exception e) {
+            log.warn("게시글 {} 캐시 무효화 실패: {}", postId, e.getMessage());
+        }
 
         log.info("게시글 수정 완료: postId={}, memberId={}, title={}", postId, memberId, title);
     }
@@ -117,10 +121,14 @@ public class PostCommandService {
         postRepository.delete(post);
 
         // 모든 관련 캐시 무효화
-        redisPostDeleteAdapter.deleteSinglePostCache(postId);
-        redisPostDeleteAdapter.removePostIdFromRealtimeScore(postId);
-        redisPostDeleteAdapter.removePostFromListCache(postId);
-        redisPostDeleteAdapter.removePostIdFromStorage(postId);
+        try {
+            redisPostDeleteAdapter.deleteSinglePostCache(postId);
+            redisPostDeleteAdapter.removePostIdFromRealtimeScore(postId);
+            redisPostDeleteAdapter.removePostFromListCache(postId);
+            redisPostDeleteAdapter.removePostIdFromStorage(postId);
+        } catch (Exception e) {
+            log.warn("게시글 {} 캐시 무효화 실패: {}", postId, e.getMessage());
+        }
 
         log.info("게시글 삭제 완료: postId={}, memberId={}, title={}", postId, memberId, postTitle);
     }
@@ -142,7 +150,11 @@ public class PostCommandService {
             // FK 제약 조건 위반 방지: 게시글의 모든 댓글 먼저 삭제 (CommentClosure 포함)
             commentCommandService.deleteCommentsByPost(postId);
             // 캐시 무효화
-            redisPostDeleteAdapter.deleteSinglePostCache(postId);
+            try {
+                redisPostDeleteAdapter.deleteSinglePostCache(postId);
+            } catch (Exception e) {
+                log.warn("게시글 {} 캐시 무효화 실패: {}", postId, e.getMessage());
+            }
         }
         // 게시글 일괄 삭제
         postRepository.deleteAllByMemberId(memberId);

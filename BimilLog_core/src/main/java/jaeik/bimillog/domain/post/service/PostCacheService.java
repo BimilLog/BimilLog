@@ -139,32 +139,38 @@ public class PostCacheService {
      * @since 2.0.0
      */
     public List<PostSimpleDetail> getWeeklyPosts() {
-        // Step 1: TTL 조회
-        Long ttl = redisPostQueryAdapter.getPostListCacheTTL(PostCacheFlag.WEEKLY);
+        List<PostSimpleDetail> currentCache = List.of();
 
-        // Step 2: 확률적 조기 만료 체크 (TTL - random * EXPIRY_GAP)
-        if (ttl != null && ttl > 0) {
-            double randomFactor = ThreadLocalRandom.current().nextDouble();
-            if (ttl - (randomFactor * EXPIRY_GAP_SECONDS) > 0) {
-                // TTL 충분: 캐시 반환
-                return redisPostQueryAdapter.getCachedPostList(PostCacheFlag.WEEKLY);
+        try {
+            // Step 1: TTL 조회
+            Long ttl = redisPostQueryAdapter.getPostListCacheTTL(PostCacheFlag.WEEKLY);
+
+            // Step 2: 확률적 조기 만료 체크 (TTL - random * EXPIRY_GAP)
+            if (ttl != null && ttl > 0) {
+                double randomFactor = ThreadLocalRandom.current().nextDouble();
+                if (ttl - (randomFactor * EXPIRY_GAP_SECONDS) > 0) {
+                    // TTL 충분: 캐시 반환
+                    return redisPostQueryAdapter.getCachedPostList(PostCacheFlag.WEEKLY);
+                }
             }
-        }
 
-        // Step 3: TTL 임계값 이하 or 캐시 없음
-        List<PostSimpleDetail> currentCache = redisPostQueryAdapter.getCachedPostList(PostCacheFlag.WEEKLY);
+            // Step 3: TTL 임계값 이하 or 캐시 없음
+            currentCache = redisPostQueryAdapter.getCachedPostList(PostCacheFlag.WEEKLY);
 
-        if (!currentCache.isEmpty()) {
-            // 기존 캐시 있음: 비동기 갱신 트리거 + 즉시 반환
-            asyncRefreshCache(PostCacheFlag.WEEKLY);
-            return currentCache;
-        } else {
-            // 캐시 완전 없음 (cold start): 동기 복구
-            List<PostSimpleDetail> recovered = recoverFromStoredPostIds(PostCacheFlag.WEEKLY);
-            if (!recovered.isEmpty()) {
-                redisPostSaveAdapter.cachePostList(PostCacheFlag.WEEKLY, recovered);
+            if (!currentCache.isEmpty()) {
+                // 기존 캐시 있음: 비동기 갱신 트리거 + 즉시 반환
+                asyncRefreshCache(PostCacheFlag.WEEKLY);
+                return currentCache;
+            } else {
+                // 캐시 완전 없음 (cold start): 동기 복구
+                List<PostSimpleDetail> recovered = recoverFromStoredPostIds(PostCacheFlag.WEEKLY);
+                if (!recovered.isEmpty()) {
+                    redisPostSaveAdapter.cachePostList(PostCacheFlag.WEEKLY, recovered);
+                }
+                return recovered;
             }
-            return recovered;
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.POST_REDIS_WEEKLY_ERROR, e);
         }
     }
 
@@ -181,35 +187,39 @@ public class PostCacheService {
      * @since 2.0.0
      */
     public Page<PostSimpleDetail> getPopularPostLegend(PostCacheFlag type, Pageable pageable) {
-        // Step 1: TTL 조회 및 확률적 조기 만료 체크
-        Long ttl = redisPostQueryAdapter.getPostListCacheTTL(PostCacheFlag.LEGEND);
-        boolean shouldRefresh = false;
+        try {
+            // Step 1: TTL 조회 및 확률적 조기 만료 체크
+            Long ttl = redisPostQueryAdapter.getPostListCacheTTL(PostCacheFlag.LEGEND);
+            boolean shouldRefresh = false;
 
-        if (ttl != null && ttl > 0) {
-            double randomFactor = ThreadLocalRandom.current().nextDouble();
-            if (ttl - (randomFactor * EXPIRY_GAP_SECONDS) <= 0) {
-                shouldRefresh = true;
+            if (ttl != null && ttl > 0) {
+                double randomFactor = ThreadLocalRandom.current().nextDouble();
+                if (ttl - (randomFactor * EXPIRY_GAP_SECONDS) <= 0) {
+                    shouldRefresh = true;
+                }
             }
-        }
 
-        // Step 2: 캐시된 페이지 조회
-        Page<PostSimpleDetail> cachedPage = redisPostQueryAdapter.getCachedPostListPaged(pageable);
+            // Step 2: 캐시된 페이지 조회
+            Page<PostSimpleDetail> cachedPage = redisPostQueryAdapter.getCachedPostListPaged(pageable);
 
-        // Step 3: 비동기 갱신 트리거 (TTL 임계값 이하이고 캐시가 있을 때)
-        if (shouldRefresh && !cachedPage.isEmpty()) {
-            asyncRefreshCache(PostCacheFlag.LEGEND);
-        }
-
-        // Step 4: 캐시 미스 시 동기 복구
-        if (cachedPage.isEmpty()) {
-            List<PostSimpleDetail> recovered = recoverFromStoredPostIds(PostCacheFlag.LEGEND);
-            if (!recovered.isEmpty()) {
-                redisPostSaveAdapter.cachePostList(PostCacheFlag.LEGEND, recovered);
-                cachedPage = redisPostQueryAdapter.getCachedPostListPaged(pageable);
+            // Step 3: 비동기 갱신 트리거 (TTL 임계값 이하이고 캐시가 있을 때)
+            if (shouldRefresh && !cachedPage.isEmpty()) {
+                asyncRefreshCache(PostCacheFlag.LEGEND);
             }
-        }
 
-        return cachedPage;
+            // Step 4: 캐시 미스 시 동기 복구
+            if (cachedPage.isEmpty()) {
+                List<PostSimpleDetail> recovered = recoverFromStoredPostIds(PostCacheFlag.LEGEND);
+                if (!recovered.isEmpty()) {
+                    redisPostSaveAdapter.cachePostList(PostCacheFlag.LEGEND, recovered);
+                    cachedPage = redisPostQueryAdapter.getCachedPostListPaged(pageable);
+                }
+            }
+
+            return cachedPage;
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.POST_REDIS_LEGEND_ERROR, e);
+        }
     }
 
     /**
@@ -223,18 +233,22 @@ public class PostCacheService {
      * @since 2.0.0
      */
     public List<PostSimpleDetail> getNoticePosts() {
-        // 1. postIds:notice Set에서 실제 공지 ID 목록 조회
-        List<Long> storedPostIds = redisPostQueryAdapter.getStoredPostIds(PostCacheFlag.NOTICE);
+        try {
+            // 1. postIds:notice Set에서 실제 공지 ID 목록 조회
+            List<Long> storedPostIds = redisPostQueryAdapter.getStoredPostIds(PostCacheFlag.NOTICE);
 
-        // 2. posts:notice Hash에서 캐시된 목록 조회
-        List<PostSimpleDetail> cachedList = redisPostQueryAdapter.getCachedPostList(PostCacheFlag.NOTICE);
+            // 2. posts:notice Hash에서 캐시된 목록 조회
+            List<PostSimpleDetail> cachedList = redisPostQueryAdapter.getCachedPostList(PostCacheFlag.NOTICE);
 
-        // 3. 개수 비교: 저장소 ID 개수 != 캐시 목록 개수 → 캐시 미스
-        if (cachedList.size() != storedPostIds.size()) {
-            return recoverFromStoredPostIds(PostCacheFlag.NOTICE);
+            // 3. 개수 비교: 저장소 ID 개수 != 캐시 목록 개수 → 캐시 미스
+            if (cachedList.size() != storedPostIds.size()) {
+                return recoverFromStoredPostIds(PostCacheFlag.NOTICE);
+            }
+
+            return cachedList;
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.POST_REDIS_NOTICE_ERROR, e);
         }
-
-        return cachedList;
     }
 
     /**
