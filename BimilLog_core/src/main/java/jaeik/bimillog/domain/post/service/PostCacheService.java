@@ -56,14 +56,9 @@ public class PostCacheService {
 
             // 2. TTL 체크: TTL이 없거나 만료되었으면 비동기 갱신
             Long ttl = redisPostQueryAdapter.getPostListCacheTTL(PostCacheFlag.REALTIME);
+            // TTL 체크: TTL이 없거나 만료되었으면 비동기 갱신
             if (ttl == null || ttl <= 0) {
-                boolean acquired = redisPostUpdateAdapter.tryAcquireCacheRefreshLock(PostCacheFlag.REALTIME);
-
-                if (acquired) {
-                    cacheRefreshService.asyncRefreshCache(PostCacheFlag.REALTIME);
-                } else {
-                    log.info("다른 스레드가 캐시 갱신 중: type={}", PostCacheFlag.REALTIME);
-                }
+                cacheRefreshService.asyncRefreshCache(PostCacheFlag.REALTIME);
             }
 
             // 3. 1차 캐시에서 Map으로 조회 (순서 정보 없음)
@@ -111,13 +106,7 @@ public class PostCacheService {
 
             // TTL 체크: TTL이 없거나 만료되었으면 비동기 갱신
             if (ttl == null || ttl <= 0) {
-                boolean acquired = redisPostUpdateAdapter.tryAcquireCacheRefreshLock(PostCacheFlag.WEEKLY);
-
-                if (acquired) {
-                    cacheRefreshService.asyncRefreshCache(PostCacheFlag.WEEKLY);
-                } else {
-                    log.info("다른 스레드가 캐시 갱신 중: type={}", PostCacheFlag.WEEKLY);
-                }
+                cacheRefreshService.asyncRefreshCache(PostCacheFlag.WEEKLY);
             }
 
             return currentCache;
@@ -143,14 +132,9 @@ public class PostCacheService {
             Long ttl = redisPostQueryAdapter.getPostListCacheTTL(PostCacheFlag.LEGEND);
             Page<PostSimpleDetail> cachedPage = redisPostQueryAdapter.getCachedPostListPaged(pageable);
 
+            // TTL 체크: TTL이 없거나 만료되었으면 비동기 갱신
             if (ttl == null || ttl <= 0) {
-                boolean acquired = redisPostUpdateAdapter.tryAcquireCacheRefreshLock(PostCacheFlag.LEGEND);
-
-                if (acquired) {
-                    cacheRefreshService.asyncRefreshCache(PostCacheFlag.LEGEND);
-                } else {
-                    log.info("다른 스레드가 캐시 갱신 중: type={}", PostCacheFlag.LEGEND);
-                }
+                cacheRefreshService.asyncRefreshCache(PostCacheFlag.LEGEND);
             }
 
             return cachedPage;

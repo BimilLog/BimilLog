@@ -46,6 +46,13 @@ public class PostCacheRefreshService {
     @Async("cacheRefreshExecutor")
     public void asyncRefreshCache(PostCacheFlag type) {
         // Step 1: 분산 락 획득 시도 (waitTime=3초, leaseTime=5초)
+
+        boolean acquired = redisPostUpdateAdapter.tryAcquireCacheRefreshLock(PostCacheFlag.WEEKLY);
+
+        if (!acquired) {
+            log.info("다른 스레드가 캐시 갱신 중: type={}", PostCacheFlag.WEEKLY);
+            return;
+        }
         try {
             List<Long> storedPostIds;
             log.info("캐시 갱신 시작: 타입={}, 스레드={}", type, Thread.currentThread().getName());
