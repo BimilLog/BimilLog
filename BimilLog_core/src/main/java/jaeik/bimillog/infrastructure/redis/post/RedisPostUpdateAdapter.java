@@ -1,25 +1,25 @@
 package jaeik.bimillog.infrastructure.redis.post;
 
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
-import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.*;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class RedisPostUpdateAdapter {
 
     private final RedisTemplate<String, Object> redisTemplate;
+    private final RedissonClient redissonClient;
 
     /**
      * <h3>실시간 인기글 점수 증가</h3>
@@ -55,76 +55,65 @@ public class RedisPostUpdateAdapter {
         redisTemplate.opsForZSet().removeRangeByScore(REALTIME_POST_SCORE_KEY, 0, REALTIME_POST_SCORE_THRESHOLD);
     }
 
-    // 락 해제 시 소유권을 확인하고 삭제하는 Lua Script
-    private static final String RELEASE_LOCK_LUA_SCRIPT = """
-        if redis.call('get', KEYS[1]) == ARGV[1] then
-            return redis.call('del', KEYS[1])
-        else
-            return 0
-        end
-        """;
-
-    // 락 획득 시 사용될 고유 ID를 ThreadLocal에 저장합니다.
-    // 이렇게 해야 비즈니스 로직(asyncRefreshCache) 내에서 락 해제 시 고유 ID를 사용할 수 있습니다.
-    private final ThreadLocal<String> lockValueHolder = new ThreadLocal<>();
-
-
-    private String getCacheRefreshLockKey(PostCacheFlag type) {
-        return "lock:cache:refresh:" + type.name();
-    }
-
     /**
-     * <h3>캐시 갱신 분산 락 획득</h3>
-     * 락 획득 시 고유 ID를 값으로 저장하고, 획득에 성공하면 ThreadLocal에 해당 ID를 저장합니다.
-     * SET key value NX PX timeout 명령어를 사용하여 획득과 만료 설정을 원자적으로 처리합니다.
+     * <h3>캐시 갱신 분산 락 획득 (Redisson RLock)</h3>
+     * <p>waitTime=0초, leaseTime=5초</p>
+     * <p>⚠️ 문제 재현: leaseTime이 5초인데 캐시 갱신이 5초 이상 걸리면 락 해제됨 (캐시 스탬피드)</p>
+     * <p>RLock은 내부적으로 스레드 ID와 UUID를 관리하여 소유권을 검증합니다.</p>
+     *
+     * @param type 캐시 유형
+     * @return 락 획득 성공 여부
+     * @author Jaeik
+     * @since 2.0.0
      */
-    public Boolean acquireCacheRefreshLock(PostCacheFlag type, Duration timeout) {
+    public boolean tryAcquireCacheRefreshLock(PostCacheFlag type) {
         String lockKey = getCacheRefreshLockKey(type);
-        // 락의 값으로 사용할 고유 ID 생성
-        String uniqueId = UUID.randomUUID().toString();
+        RLock lock = redissonClient.getLock(lockKey);
 
-        // SETNX + EX 원자적 실행 (Spring Data Redis의 setIfAbsent는 이를 보장합니다.)
-        Boolean acquired = redisTemplate.opsForValue().setIfAbsent(
-                lockKey,
-                uniqueId,
-                timeout
-        );
+        try {
+            boolean acquired = lock.tryLock(0, 5, TimeUnit.SECONDS);
 
-        if (Boolean.TRUE.equals(acquired)) {
-            // 락 획득 성공 시, 현재 스레드에 고유 ID 저장
-            lockValueHolder.set(uniqueId);
-            return true;
+            if (acquired) {
+                log.debug("캐시 갱신 락 획득 성공: type={}, lockKey={}", type, lockKey);
+            } else {
+                log.debug("캐시 갱신 락 획득 실패 : type={}", type);
+            }
+
+            return acquired;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.warn("캐시 갱신 락 획득 중 인터럽트 발생: type={}", type, e);
+            return false;
         }
-        return false;
     }
 
     /**
-     * <h3>캐시 갱신 분산 락 해제 (안전하게 수정됨)</h3>
-     * Lua Script를 사용하여 저장된 값(획득 시 사용된 고유 ID)을 확인하고 락을 해제합니다.
+     * <h3>캐시 갱신 분산 락 해제 (Redisson RLock)</h3>
+     * <p>RLock.unlock()은 내부적으로 소유권을 검증하므로 별도 Lua Script 불필요.</p>
+     *
+     * @param type 캐시 유형
+     * @author Jaeik
+     * @since 2.0.0
      */
     public void releaseCacheRefreshLock(PostCacheFlag type) {
         String lockKey = getCacheRefreshLockKey(type);
-        String expectedValue = lockValueHolder.get();
+        RLock lock = redissonClient.getLock(lockKey);
 
-        // 락 획득에 실패했거나, ThreadLocal에 값이 없으면 해제 시도 자체를 건너뜁니다.
-        if (expectedValue == null) {
-            // 이미 락이 만료되었거나, acquireCacheRefreshLock에서 실패한 경우일 수 있습니다.
-            return;
+        // isHeldByCurrentThread(): 현재 스레드가 락을 보유 중인지 확인
+        if (lock.isHeldByCurrentThread()) {
+            try {
+                lock.unlock();
+                log.debug("캐시 갱신 락 해제 성공: type={}, lockKey={}", type, lockKey);
+            } catch (IllegalMonitorStateException e) {
+                // 락이 이미 만료되었거나 다른 스레드가 해제한 경우
+                log.warn("캐시 갱신 락 해제 실패 (이미 만료됨): type={}", type, e);
+            }
+        } else {
+            log.debug("캐시 갱신 락 해제 스킵 (현재 스레드 미보유): type={}", type);
         }
+    }
 
-        try {
-            // Lua Script를 실행하여 값 확인 및 삭제를 원자적으로 처리
-            DefaultRedisScript<Long> redisScript = new DefaultRedisScript<>(RELEASE_LOCK_LUA_SCRIPT, Long.class);
-
-            redisTemplate.execute(
-                    redisScript,
-                    Collections.singletonList(lockKey), // KEYS[1]
-                    expectedValue // ARGV[1]
-            );
-
-        } finally {
-            // 락 해제 후 ThreadLocal 값 제거 (메모리 누수 방지)
-            lockValueHolder.remove();
-        }
+    private String getCacheRefreshLockKey(PostCacheFlag type) {
+        return "lock:cache:refresh:" + type.name();
     }
 }

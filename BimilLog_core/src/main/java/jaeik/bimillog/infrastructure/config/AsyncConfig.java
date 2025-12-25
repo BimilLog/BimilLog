@@ -1,11 +1,12 @@
 package jaeik.bimillog.infrastructure.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-import java.util.concurrent.Executor;
+import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 
 /**
@@ -19,13 +20,14 @@ import java.util.concurrent.ThreadPoolExecutor;
  */
 @Configuration
 @EnableAsync
+@Slf4j
 public class AsyncConfig {
 
     /**
      * SSE 알림 전용 스레드 풀
      */
     @Bean(name = "sseNotificationExecutor")
-    public Executor sseNotificationExecutor() {
+    public ThreadPoolTaskExecutor sseNotificationExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(3); // 기본 스레드 수
         executor.setMaxPoolSize(10); // 최대 스레드 수
@@ -41,7 +43,7 @@ public class AsyncConfig {
      * FCM 알림 전용 스레드 풀
      */
     @Bean(name = "fcmNotificationExecutor")
-    public Executor fcmNotificationExecutor() {
+    public ThreadPoolTaskExecutor fcmNotificationExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(2); // 기본 스레드 수 (FCM은 외부 API 호출이므로 적게)
         executor.setMaxPoolSize(8); // 최대 스레드 수
@@ -57,7 +59,7 @@ public class AsyncConfig {
      * 알림 저장 전용 스레드 풀
      */
     @Bean(name = "saveNotificationExecutor")
-    public Executor saveNotificationExecutor() {
+    public ThreadPoolTaskExecutor saveNotificationExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(3); // 기본 스레드 수
         executor.setMaxPoolSize(10); // 최대 스레드 수
@@ -74,13 +76,12 @@ public class AsyncConfig {
      * <p>확률적 선계산(Probabilistic Early Expiration) 기법에서 비동기 캐시 갱신에 사용됩니다.</p>
      */
     @Bean(name = "cacheRefreshExecutor")
-    public Executor cacheRefreshExecutor() {
+    public ThreadPoolTaskExecutor cacheRefreshExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(2); // 기본 스레드 수
-        executor.setMaxPoolSize(4); // 최대 스레드 수
+        executor.setMaxPoolSize(8); // 최대 스레드 수
         executor.setQueueCapacity(50); // 대기열 크기
         executor.setThreadNamePrefix("cache-refresh-");
-        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy()); // 대기열 가득 차면 호출 스레드에서 실행
         executor.initialize();
         return executor;
     }
