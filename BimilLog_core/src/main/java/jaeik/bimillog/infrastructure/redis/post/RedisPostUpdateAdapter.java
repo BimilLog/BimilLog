@@ -67,11 +67,11 @@ public class RedisPostUpdateAdapter {
      * @since 2.0.0
      */
     public boolean tryAcquireCacheRefreshLock(PostCacheFlag type) {
-        String lockKey = getCacheRefreshLockKey(type);
+        String lockKey = "lock:cache:refresh:" + type.name();
         RLock lock = redissonClient.getLock(lockKey);
 
         try {
-            boolean acquired = lock.tryLock(0, 5, TimeUnit.SECONDS);
+            boolean acquired = lock.tryLock(3, 5, TimeUnit.SECONDS);
 
             if (acquired) {
                 log.debug("캐시 갱신 락 획득 성공: type={}, lockKey={}", type, lockKey);
@@ -96,7 +96,7 @@ public class RedisPostUpdateAdapter {
      * @since 2.0.0
      */
     public void releaseCacheRefreshLock(PostCacheFlag type) {
-        String lockKey = getCacheRefreshLockKey(type);
+        String lockKey = "lock:cache:refresh:" + type.name();
         RLock lock = redissonClient.getLock(lockKey);
 
         // isHeldByCurrentThread(): 현재 스레드가 락을 보유 중인지 확인
@@ -111,9 +111,5 @@ public class RedisPostUpdateAdapter {
         } else {
             log.debug("캐시 갱신 락 해제 스킵 (현재 스레드 미보유): type={}", type);
         }
-    }
-
-    private String getCacheRefreshLockKey(PostCacheFlag type) {
-        return "lock:cache:refresh:" + type.name();
     }
 }
