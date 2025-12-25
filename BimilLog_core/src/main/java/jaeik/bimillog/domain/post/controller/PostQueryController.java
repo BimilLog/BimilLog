@@ -93,13 +93,13 @@ public class PostQueryController {
         PostDetail postDetail = postQueryService.getPost(postId, memberId);
         FullPostDTO fullPostDTO = FullPostDTO.convertToFullPostResDTO(postDetail);
         
-        // 중복 조회 검증 후 조회수 증가 이벤트 발행
-         if (!postViewCookieUtil.hasViewed(request.getCookies(), postId)) {
-             eventPublisher.publishEvent(new PostViewedEvent(postId));
-             response.addCookie(postViewCookieUtil.createViewCookie(request.getCookies(), postId));
-         } else {
-             response.addCookie(postViewCookieUtil.createViewCookie(request.getCookies(), postId));
-         }
+//        // 중복 조회 검증 후 조회수 증가 이벤트 발행
+//         if (!postViewCookieUtil.hasViewed(request.getCookies(), postId)) {
+//             eventPublisher.publishEvent(new PostViewedEvent(postId));
+//             response.addCookie(postViewCookieUtil.createViewCookie(request.getCookies(), postId));
+//         } else {
+//             response.addCookie(postViewCookieUtil.createViewCookie(request.getCookies(), postId));
+//         }
         
         return ResponseEntity.ok(fullPostDTO);
     }

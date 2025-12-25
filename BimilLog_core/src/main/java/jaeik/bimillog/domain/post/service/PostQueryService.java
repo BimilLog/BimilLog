@@ -77,19 +77,22 @@ public class PostQueryService {
         try {
             // 1. 캐시 확인 (Cache-Aside Read)
             PostDetail cachedPost = redisPostQueryAdapter.getCachedPostIfExists(postId);
+//            if (cachedPost != null) {
+//                // 비회원 확인
+//                if (memberId != null) {
+//                    // 블랙리스트 확인
+//                    globalMemberBlacklistAdapter.checkMemberBlacklist(memberId, cachedPost.getMemberId());
+//                }
+//                 // 캐시 히트: 사용자 좋아요 정보만 추가 확인
+//                 if (memberId != null) {
+//                     boolean isLiked = postLikeRepository.existsByPostIdAndMemberId(postId, memberId);
+//                     return cachedPost.withIsLiked(isLiked);
+//                 }
             if (cachedPost != null) {
-                // 비회원 확인
-                if (memberId != null) {
-                    // 블랙리스트 확인
-                    globalMemberBlacklistAdapter.checkMemberBlacklist(memberId, cachedPost.getMemberId());
-                }
-                 // 캐시 히트: 사용자 좋아요 정보만 추가 확인
-                 if (memberId != null) {
-                     boolean isLiked = postLikeRepository.existsByPostIdAndMemberId(postId, memberId);
-                     return cachedPost.withIsLiked(isLiked);
-                 }
-                return cachedPost;
+                return cachedPost;  // ✅ null이면 DB 조회로 진행
             }
+
+//            }
         } catch (Exception e) {
             // 캐시 조회 실패 시 로그만 남기고 DB 조회로 진행
             log.warn("게시글 {} 캐시 조회 실패, DB 조회로 진행: {}", postId, e.getMessage());
@@ -99,10 +102,10 @@ public class PostQueryService {
         PostDetail postDetail = postQueryRepository.findPostDetailWithCounts(postId, memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
         // 비회원 확인
-        if (memberId != null) {
-            // 블랙리스트 확인
-            globalMemberBlacklistAdapter.checkMemberBlacklist(memberId, postDetail.getMemberId());
-        }
+//        if (memberId != null) {
+//            // 블랙리스트 확인
+//            globalMemberBlacklistAdapter.checkMemberBlacklist(memberId, postDetail.getMemberId());
+//        }
 
         try {
             redisPostSaveAdapter.cachePostDetail(postDetail);
