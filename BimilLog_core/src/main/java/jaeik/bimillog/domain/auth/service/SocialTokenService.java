@@ -24,8 +24,6 @@ public class SocialTokenService {
      * <p>회원 탈퇴 시 소셜 토큰을 삭제합니다.</p>
      *
      * @param memberId 사용자 ID
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Transactional
     public void deleteByMemberId(Long memberId) {
@@ -39,8 +37,6 @@ public class SocialTokenService {
      *
      * @param socialToken 저장할 소셜 토큰 엔티티
      * @return SocialToken 저장된 소셜 토큰 엔티티
-     * @author Jaeik
-     * @since 2.0.0
      */
     public SocialToken save(SocialToken socialToken) {
         return socialTokenRepository.save(socialToken);

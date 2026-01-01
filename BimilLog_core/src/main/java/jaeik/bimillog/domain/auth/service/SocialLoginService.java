@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
  * <h2>소셜 로그인 서비스</h2>
  * <p>소셜 플랫폼 인증 결과를 조립하여 우리 시스템의 로그인 플로우를 시작합니다.</p>
  * <p>외부 OAuth 호출은 트랜잭션 밖에서 수행하며, 실제 DB 작업 및 토큰 발급은 {@link SocialLoginTransactionalService}로 위임합니다.</p>
- * <p>중복 로그인 검증 → 소셜 전략 실행 → 트랜잭션 서비스 위임 순으로 진행됩니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -36,8 +35,6 @@ public class SocialLoginService {
      * @param code     OAuth 인가 코드
      * @param state    OAuth state 파라미터 (CSRF 방지용, 일부 제공자에서 필수)
      * @return 기존 회원은 {@link LoginResult.ExistingUser}, 신규 회원은 {@link LoginResult.NewUser}
-     * @author Jaeik
-     * @since 2.0.0
      */
     public LoginResult processSocialLogin(SocialProvider provider, String code, String state) {
         SocialStrategy strategy = socialStrategyAdapter.getStrategy(provider);

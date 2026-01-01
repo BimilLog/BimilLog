@@ -35,10 +35,7 @@ public class CommentCommandController {
      * <p>익명/로그인 사용자 모두 댓글 작성이 가능하며, 계층형 댓글 구조를 지원합니다.</p>
      *
      * @param commentReqDto  댓글 요청 DTO (내용, 게시글 ID, 부모 댓글 ID, 비밀번호 등)
-     * @param userDetails 현재 로그인한 사용자 정보 (익명일 경우 null)
      * @return HTTP 응답 엔티티 (작성 완료 메시지)
-     * @author Jaeik
-     * @since 2.0.0
      */
     @PostMapping("/write")
     public ResponseEntity<String> writeComment(@Valid @RequestBody CommentReqDTO commentReqDto,
@@ -57,11 +54,8 @@ public class CommentCommandController {
      * <h3>댓글 수정 API</h3>
      * <p>작성자 본인 확인 로직을 통해 권한을 검증하며, 익명 댓글의 경우 비밀번호를 확인합니다.</p>
      *
-     * @param userDetails 현재 로그인한 사용자 정보 (권한 확인용)
      * @param commentReqDto  수정할 댓글 요청 DTO (댓글 ID, 새로운 내용, 비밀번호 등)
      * @return HTTP 응답 엔티티 (수정 완료 메시지)
-     * @author Jaeik
-     * @since 2.0.0
      */
     @PostMapping("/update")
     public ResponseEntity<String> updateComment(@AuthenticationPrincipal CustomUserDetails userDetails,
@@ -80,11 +74,8 @@ public class CommentCommandController {
      * <p>작성자 본인 확인 로직을 통해 삭제 권한을 검증하며, 익명 댓글의 경우 비밀번호를 확인합니다.</p>
      * <p>하위 댓글이 있는 경우 내용만 삭제하고, 없는 경우 완전 삭제를 처리합니다.</p>
      *
-     * @param userDetails 현재 로그인한 사용자 정보 (권한 확인용)
      * @param commentReqDto  삭제할 댓글 요청 DTO (댓글 ID, 비밀번호 등)
      * @return HTTP 응답 엔티티 (삭제 완료 메시지)
-     * @author Jaeik
-     * @since 2.0.0
      */
     @PostMapping("/delete")
     public ResponseEntity<String> deleteComment(@AuthenticationPrincipal CustomUserDetails userDetails,

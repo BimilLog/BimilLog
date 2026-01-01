@@ -51,8 +51,6 @@ public class SocialLoginTransactionalService {
      * @param provider             소셜 플랫폼 제공자 (KAKAO 등)
      * @param socialMemberProfile  소셜 플랫폼에서 받은 사용자 프로필
      * @return 기존 회원은 {@link LoginResult.ExistingUser}, 신규 회원은 {@link LoginResult.NewUser}
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Transactional
     public LoginResult finishLogin(SocialProvider provider, SocialMemberProfile socialMemberProfile) {
@@ -123,8 +121,6 @@ public class SocialLoginTransactionalService {
      *
      * @param socialMemberProfile  소셜 플랫폼에서 받은 사용자 프로필
      * @return 임시 쿠키를 포함한 {@link LoginResult.NewUser}
-     * @author Jaeik
-     * @since 2.0.0
      */
     private LoginResult handleNewMember(SocialMemberProfile socialMemberProfile) {
         String uuid = UUID.randomUUID().toString();
