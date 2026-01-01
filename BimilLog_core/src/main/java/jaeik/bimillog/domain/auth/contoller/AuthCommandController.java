@@ -29,9 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Jaeik
  * @version 2.0.0
  */
-@Log(level = LogLevel.INFO,
-        logExecutionTime = true,
-        logParams = false)
+@Log(level = LogLevel.INFO, logExecutionTime = true, logParams = false)
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/auth")
@@ -48,13 +46,8 @@ public class AuthCommandController {
      *
      * @param request 소셜 로그인 요청 DTO (provider, code)
      * @return 로그인 응답
-     * @author Jaeik
-     * @since 2.0.0
      */
-    @Log(level = LogLevel.INFO,
-            logExecutionTime = true,
-            excludeParams = {"code", "state"},
-            message = "소셜 로그인 요청")
+    @Log(level = LogLevel.INFO, logExecutionTime = true, excludeParams = {"code", "state"}, message = "소셜 로그인 요청")
     @PostMapping("/login")
     public ResponseEntity<String> socialLogin(@Valid @RequestBody SocialLoginRequestDTO request) {
         LoginResult loginResult = socialLoginService.processSocialLogin(request.getProvider(), request.getCode(), request.getState());
@@ -74,8 +67,6 @@ public class AuthCommandController {
      *
      * @param userDetails 인증된 사용자 정보
      * @return 로그아웃 성공 응답
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Log(level = LogLevel.INFO, message = "로그아웃 요청", logParams = false)
     @PostMapping("/logout")
@@ -93,18 +84,12 @@ public class AuthCommandController {
      * @param userDetails 인증된 사용자 정보 (memberId, authTokenId 포함)
      * @param request     FCM 토큰 등록 요청 DTO
      * @return 등록 성공 응답
-     * @author Jaeik
-     * @since 2.1.0
      */
-    @Log(level = LogLevel.INFO,
-            logExecutionTime = true,
-            message = "FCM 토큰 등록",
-            excludeParams = {"fcmToken"},
-            logParams = false)
+    @Log(level = LogLevel.INFO, logExecutionTime = true, message = "FCM 토큰 등록", excludeParams = {"fcmToken"}, logParams = false)
     @PostMapping("/fcm")
     public ResponseEntity<Void> registerFcmToken(@AuthenticationPrincipal CustomUserDetails userDetails,
                                                  @Valid @RequestBody FcmTokenRegisterRequestDTO request) {
-        authTokenService.registerFcmToken(userDetails.getMemberId(), userDetails.getAuthTokenId(), request.getFcmToken());
+        authTokenService.registerFcmToken(userDetails.getAuthTokenId(), request.getFcmToken());
         return ResponseEntity.ok().build();
     }
 }

@@ -16,10 +16,8 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @RequiredArgsConstructor
 public class SocialWithdrawService {
-
     private final SocialStrategyAdapter socialStrategyAdapter;
     private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
-
 
     /**
      * <h3>소셜 계정 연동 해제</h3>

@@ -12,15 +12,12 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * <h2>인증 조회 컨트롤러</h2>
- * <p>사용자 정보 조회 등 인증 관련 조회 요청을 처리합니다.</p>
- * <p>현재 로그인 사용자 정보 조회</p>
+ * <p>사용자 정보 조회 등 인증 관련 조회 요청을 처리.</p>
  *
  * @author Jaeik
  * @version 2.0.0
  */
-@Log(level = Log.LogLevel.INFO,
-        logExecutionTime = true,
-        message = "사용자 정보 조회 요청")
+@Log(level = Log.LogLevel.INFO, logExecutionTime = true, message = "사용자 정보 조회 요청")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/auth")
@@ -32,8 +29,6 @@ public class AuthQueryController {
      *
      * @param userDetails 인증된 사용자 정보
      * @return 현재 로그인한 사용자 정보
-     * @author Jaeik
-     * @since 3.0.0
      */
     @GetMapping("/me")
     public ResponseEntity<MemberInfoResponseDTO> getCurrentUser(@AuthenticationPrincipal CustomUserDetails userDetails) {

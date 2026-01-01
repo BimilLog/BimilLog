@@ -38,8 +38,6 @@ public class SocialMemberProfile {
      * @param accessToken 소셜 플랫폼 액세스 토큰
      * @param refreshToken 소셜 플랫폼 리프레시 토큰
      * @return 생성된 소셜 회원 프로필 객체
-     * @author Jaeik
-     * @since 2.0.0
      */
     public static SocialMemberProfile of(String socialId, String email, SocialProvider provider, String nickname, String profileImageUrl, String accessToken, String refreshToken) {
         return new SocialMemberProfile(socialId, email, provider, nickname, profileImageUrl, accessToken, refreshToken);
