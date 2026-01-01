@@ -36,7 +36,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @IntegrationTest
 @Import(TestSocialLoginAdapterConfig.class)
 @DisplayName("게시글 Query 컨트롤러 통합 테스트")
-@Execution(ExecutionMode.SAME_THREAD)
 class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
