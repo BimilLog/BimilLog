@@ -255,6 +255,7 @@ class RedisPostQueryRepositoryIntegrationTest {
     @Test
     @DisplayName("정상 케이스 - 레전드 게시글 목록 페이지네이션 조회 (첫 페이지)")
     void shouldReturnPagedList_WhenPageableProvided() {
+        RedisTestHelper.flushRedis(redisTemplate);
         // Given: RedisTemplate로 직접 20개의 레전드 게시글 저장 (CommandAdapter 의존성 제거)
         String hashKey = RedisPostKeys.CACHE_METADATA_MAP.get(PostCacheFlag.LEGEND).key();
         String postIdsKey = RedisPostKeys.getPostIdsStorageKey(PostCacheFlag.LEGEND);

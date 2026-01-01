@@ -81,16 +81,4 @@ class MemberQueryServiceTest extends BaseUnitTest {
 
         verify(settingRepository).findById(settingId);
     }
-
-    /*
-     * 단순 위임 메서드들은 CLAUDE.md 테스트 철학에 따라 제외:
-     * - findByProviderAndSocialId(): 단순 포트 호출 후 반환
-     * - findById(): 단순 포트 호출 후 반환
-     * - existsByUserName(): 단순 포트 호출 후 반환
-     * - findByUserName(): 단순 포트 호출 후 반환
-     * - getReferenceById(): 단순 포트 호출 후 반환
-     *
-     * 이러한 메서드들은 프레임워크가 검증하는 기본 기능이며,
-     * 오류 발생 시 메인 로직만으로 쉽게 해결 가능합니다.
-     */
 }

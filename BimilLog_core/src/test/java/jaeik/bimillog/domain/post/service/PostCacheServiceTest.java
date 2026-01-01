@@ -54,6 +54,9 @@ class PostCacheServiceTest {
     @Mock
     private RedisPostUpdateAdapter redisPostUpdateAdapter;
 
+    @Mock
+    private PostRefreshCache postRefreshCache;
+
     @InjectMocks
     private PostCacheService postCacheService;
 
