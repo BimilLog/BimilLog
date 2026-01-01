@@ -40,16 +40,10 @@ public class PostCacheService {
      */
     private static final int EXPIRY_GAP_SECONDS = 120;
 
-    /**
-     * 분산 락 타임아웃 (초 단위)
-     * <p>캐시 갱신 작업은 10초 안에 완료되어야 합니다.</p>
-     */
-    private static final Duration LOCK_TIMEOUT = Duration.ofSeconds(10);
-
     private final RedisPostSaveAdapter redisPostSaveAdapter;
     private final PostQueryRepository postQueryRepository;
     private final RedisPostQueryAdapter redisPostQueryAdapter;
-    private final RedisPostUpdateAdapter redisPostUpdateAdapter;
+    private final PostRefreshCache postRefreshCache;
 
     /**
      * <h3>실시간 인기 게시글 조회 (확률적 선계산 적용)</h3>
@@ -76,7 +70,7 @@ public class PostCacheService {
             if (ttl != null && ttl > 0) {
                 double randomFactor = ThreadLocalRandom.current().nextDouble();
                 if (ttl - (randomFactor * EXPIRY_GAP_SECONDS) <= 0) {
-                    asyncRefreshCache(PostCacheFlag.REALTIME);
+                    postRefreshCache.asyncRefreshCache(PostCacheFlag.REALTIME);
                 }
             }
 
@@ -110,68 +104,6 @@ public class PostCacheService {
     }
 
     /**
-     * <h3>비동기 캐시 갱신 (분산 락 기반)</h3>
-     * <p>확률적 선계산 기법에서 TTL 임계값 이하일 때 호출되는 비동기 캐시 갱신 메서드입니다.</p>
-     * <p>분산 락을 사용하여 여러 요청이 동시에 갱신을 시도해도 1회만 실행되도록 보장합니다.</p>
-     * <p>백그라운드에서 실행되므로 사용자 요청은 블로킹되지 않습니다.</p>
-     *
-     * @param type 갱신할 캐시 유형 (REALTIME, WEEKLY, LEGEND, NOTICE)
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    @Async("cacheRefreshExecutor")
-    public void asyncRefreshCache(PostCacheFlag type) {
-        // Step 1: 분산 락 획득 시도 (10초 타임아웃)
-        Boolean acquired = redisPostUpdateAdapter.acquireCacheRefreshLock(type, LOCK_TIMEOUT);
-
-        if (Boolean.FALSE.equals(acquired)) {
-            log.info("다른 스레드가 갱신 캐시 중: type={}", type);
-            return;
-        }
-
-        try {
-            List<Long> storedPostIds;
-            log.info("캐시 갱신 시작: 타입={}, 스레드={}", type, Thread.currentThread().getName());
-
-            // Step 2: Tier 2 PostIds로부터 복구 실시간은 실시간 점수 Redis 저장소에서 복구
-            if (type == PostCacheFlag.REALTIME) {
-                storedPostIds = redisPostQueryAdapter.getRealtimePopularPostIds();
-            } else {
-                storedPostIds = redisPostQueryAdapter.getStoredPostIds(type);
-            }
-
-            if (storedPostIds.isEmpty()) {
-                log.warn("캐시 갱신 실패 - 타입={}, 이유 = 2티어 저장소 비어있음", type);
-                return;
-            }
-
-            // DB에서 PostDetail 조회 후 PostSimpleDetail 변환
-            List<PostSimpleDetail> refreshed = storedPostIds.stream()
-                    .map(postId -> postQueryRepository.findPostDetailWithCounts(postId, null).orElse(null))
-                    .filter(Objects::nonNull)
-                    .map(PostDetail::toSimpleDetail)
-                    .toList();
-
-            log.warn("DB로부터 응답반환 - 타입={}, 결과 사이즈={}, 스레드={}", type, refreshed.size(), Thread.currentThread().getName());
-
-            if (refreshed.isEmpty()) {
-                log.warn("캐시 갱신 실패: 타입={} DB 조회 결과가 없음", type);
-                return;
-            }
-
-            // Step 3: 캐시 갱신
-            redisPostSaveAdapter.cachePostList(type, refreshed);
-            log.info("캐시 갱신 완료: 타입={}, count={}", type, refreshed.size());
-
-        } catch (Exception e) {
-            log.error("캐시 갱신 에러: 타입={}", type, e);
-        } finally {
-            // Step 4: 락 해제
-            redisPostUpdateAdapter.releaseCacheRefreshLock(type);
-        }
-    }
-
-    /**
      * <h3>주간 인기 게시글 조회 (확률적 선계산 적용)</h3>
      * <p>Redis 캐시에서 주간 인기글 목록을 조회합니다.</p>
      * <p>PER 기법을 적용하여 캐시 스탬피드를 방지합니다.</p>
@@ -191,7 +123,7 @@ public class PostCacheService {
             if (ttl != null && ttl > 0) {
                 double randomFactor = ThreadLocalRandom.current().nextDouble();
                 if (ttl - (randomFactor * EXPIRY_GAP_SECONDS) <= 0) {
-                    asyncRefreshCache(PostCacheFlag.WEEKLY);
+                    postRefreshCache.asyncRefreshCache(PostCacheFlag.WEEKLY);
                 }
             }
 
@@ -223,7 +155,7 @@ public class PostCacheService {
             if (ttl != null && ttl > 0) {
                 double randomFactor = ThreadLocalRandom.current().nextDouble();
                 if (ttl - (randomFactor * EXPIRY_GAP_SECONDS) <= 0) {
-                    asyncRefreshCache(PostCacheFlag.LEGEND);
+                    postRefreshCache.asyncRefreshCache(PostCacheFlag.LEGEND);
                 }
             }
 
@@ -253,7 +185,7 @@ public class PostCacheService {
 
             // 3. 개수 비교: 저장소 ID 개수 != 캐시 목록 개수 → 캐시 미스
             if (cachedList.size() != storedPostIds.size()) {
-                asyncRefreshCache(PostCacheFlag.NOTICE);
+                postRefreshCache.asyncRefreshCache(PostCacheFlag.NOTICE);
             }
 
             return cachedList;
