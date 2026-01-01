@@ -8,18 +8,14 @@ import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostQueryAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisPostSaveAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
 
 /**
  * <h2>PostCacheService</h2>
@@ -33,6 +29,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class PostCacheService {
+    private final RedisPostSaveAdapter redisPostSaveAdapter;
+    private final PostQueryRepository postQueryRepository;
+    private final RedisPostQueryAdapter redisPostQueryAdapter;
+    private final PostCacheRefresh postCacheRefresh;
 
     /**
      * PER의 expiry gap (초 단위)
@@ -40,13 +40,8 @@ public class PostCacheService {
      */
     private static final int EXPIRY_GAP_SECONDS = 120;
 
-    private final RedisPostSaveAdapter redisPostSaveAdapter;
-    private final PostQueryRepository postQueryRepository;
-    private final RedisPostQueryAdapter redisPostQueryAdapter;
-    private final PostRefreshCache postRefreshCache;
-
     /**
-     * <h3>실시간 인기 게시글 조회 (확률적 선계산 적용)</h3>
+     * <h3>실시간 인기 게시글 조회</h3>
      * <p>Redis Sorted Set에서 postId 목록을 조회하고 posts:realtime Hash에서 상세 정보를 획득합니다.</p>
      * <p>확률적 선계산 기법을 적용하여 캐시 스탬피드를 방지합니다.</p>
      * <p>TTL 마지막 2분 동안 랜덤 확률로 비동기 갱신을 트리거합니다.</p>
@@ -65,14 +60,7 @@ public class PostCacheService {
             }
 
             // 2. TTL 조회 및 확률적 조기 만료 체크
-            Long ttl = redisPostQueryAdapter.getPostListCacheTTL(PostCacheFlag.REALTIME);
-
-            if (ttl != null && ttl > 0) {
-                double randomFactor = ThreadLocalRandom.current().nextDouble();
-                if (ttl - (randomFactor * EXPIRY_GAP_SECONDS) <= 0) {
-                    postRefreshCache.asyncRefreshCache(PostCacheFlag.REALTIME);
-                }
-            }
+            checkAndRefreshCache(PostCacheFlag.REALTIME);
 
             // 3. 1차 캐시에서 Map으로 조회 (순서 정보 없음)
             Map<Long, PostSimpleDetail> cachedMap = redisPostQueryAdapter.getCachedPostMap(PostCacheFlag.REALTIME);
@@ -82,16 +70,13 @@ public class PostCacheService {
 
             for (Long postId : realtimePostIds) {
                 PostSimpleDetail detail = cachedMap.get(postId);
-
-                if (detail == null) {
-                    // 캐시 미스 시 DB 조회
+                if (detail == null) { // 캐시 미스 시 DB 조회
                     Optional<PostDetail> postDetailOpt = postQueryRepository.findPostDetailWithCounts(postId, null);
                     if (postDetailOpt.isPresent()) {
                         detail = postDetailOpt.get().toSimpleDetail();
                         redisPostSaveAdapter.cachePostList(PostCacheFlag.REALTIME, List.of(detail));
                     }
                 }
-
                 if (detail != null) {
                     resultPosts.add(detail);
                 }
@@ -104,7 +89,7 @@ public class PostCacheService {
     }
 
     /**
-     * <h3>주간 인기 게시글 조회 (확률적 선계산 적용)</h3>
+     * <h3>주간 인기 게시글 조회</h3>
      * <p>Redis 캐시에서 주간 인기글 목록을 조회합니다.</p>
      * <p>PER 기법을 적용하여 캐시 스탬피드를 방지합니다.</p>
      * <p>TTL 마지막 2분 동안 랜덤 확률로 비동기 갱신을 트리거하며, 사용자는 기존 캐시를 즉시 반환받습니다.</p>
@@ -115,19 +100,9 @@ public class PostCacheService {
      */
     public List<PostSimpleDetail> getWeeklyPosts() {
         try {
-            // Step 1: TTL 조회
-            Long ttl = redisPostQueryAdapter.getPostListCacheTTL(PostCacheFlag.WEEKLY);
-            List<PostSimpleDetail> currentCache = redisPostQueryAdapter.getCachedPostList(PostCacheFlag.WEEKLY);
-
-            // Step 2: 확률적 조기 만료 체크 (TTL - random * EXPIRY_GAP)
-            if (ttl != null && ttl > 0) {
-                double randomFactor = ThreadLocalRandom.current().nextDouble();
-                if (ttl - (randomFactor * EXPIRY_GAP_SECONDS) <= 0) {
-                    postRefreshCache.asyncRefreshCache(PostCacheFlag.WEEKLY);
-                }
-            }
-
-            return currentCache;
+            // TTL 조회 및 확률적 조기 만료 체크
+            checkAndRefreshCache(PostCacheFlag.WEEKLY);
+            return redisPostQueryAdapter.getCachedPostList(PostCacheFlag.WEEKLY);
         } catch (Exception e) {
             throw new CustomException(ErrorCode.POST_REDIS_WEEKLY_ERROR, e);
         }
@@ -135,31 +110,21 @@ public class PostCacheService {
 
 
     /**
-     * <h3>레전드 인기 게시글 목록 조회 (페이징, 확률적 선계산 적용)</h3>
+     * <h3>레전드 인기 게시글 목록 조회</h3>
      * <p>캐시된 레전드 게시글을 페이지네이션으로 조회합니다.</p>
      * <p>확률적 선계산 기법을 적용하여 캐시 스탬피드를 방지합니다.</p>
      * <p>TTL 마지막 2분 동안 랜덤 확률로 비동기 갱신을 트리거합니다.</p>
      *
-     * @param type     조회할 인기 게시글 유형 (PostCacheFlag.LEGEND만 지원)
      * @param pageable 페이지 정보
      * @return 인기 게시글 목록 페이지
      * @author Jaeik
      * @since 2.0.0
      */
-    public Page<PostSimpleDetail> getPopularPostLegend(PostCacheFlag type, Pageable pageable) {
+    public Page<PostSimpleDetail> getPopularPostLegend(Pageable pageable) {
         try {
-            // Step 1: TTL 조회 및 확률적 조기 만료 체크
-            Long ttl = redisPostQueryAdapter.getPostListCacheTTL(PostCacheFlag.LEGEND);
-            Page<PostSimpleDetail> cachedPage = redisPostQueryAdapter.getCachedPostListPaged(pageable);
-
-            if (ttl != null && ttl > 0) {
-                double randomFactor = ThreadLocalRandom.current().nextDouble();
-                if (ttl - (randomFactor * EXPIRY_GAP_SECONDS) <= 0) {
-                    postRefreshCache.asyncRefreshCache(PostCacheFlag.LEGEND);
-                }
-            }
-
-            return cachedPage;
+            // TTL 조회 및 확률적 조기 만료 체크
+            checkAndRefreshCache(PostCacheFlag.LEGEND);
+            return redisPostQueryAdapter.getCachedPostListPaged(pageable);
         } catch (Exception e) {
             throw new CustomException(ErrorCode.POST_REDIS_LEGEND_ERROR, e);
         }
@@ -185,7 +150,7 @@ public class PostCacheService {
 
             // 3. 개수 비교: 저장소 ID 개수 != 캐시 목록 개수 → 캐시 미스
             if (cachedList.size() != storedPostIds.size()) {
-                postRefreshCache.asyncRefreshCache(PostCacheFlag.NOTICE);
+                postCacheRefresh.asyncRefreshCache(PostCacheFlag.NOTICE);
             }
 
             return cachedList;
@@ -194,4 +159,20 @@ public class PostCacheService {
         }
     }
 
+    /**
+     * <h3>PER</h3>
+     * <p>TTL 조회 및 갱신 시작</p>
+     * @param flag 조회할 인기 게시글 유형
+     * @author Jaeik
+     * @since 2.4.0
+     */
+    private void checkAndRefreshCache(PostCacheFlag flag) {
+        Long ttl = redisPostQueryAdapter.getPostListCacheTTL(flag);
+        if (ttl != null && ttl > 0) {
+            double randomFactor = ThreadLocalRandom.current().nextDouble();
+            if (ttl - (randomFactor * EXPIRY_GAP_SECONDS) <= 0) {
+                postCacheRefresh.asyncRefreshCache(flag);
+            }
+        }
+    }
 }
