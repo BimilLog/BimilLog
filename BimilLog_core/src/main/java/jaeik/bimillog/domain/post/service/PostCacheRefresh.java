@@ -17,7 +17,7 @@ import java.util.Objects;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class PostRefreshCache {
+public class PostCacheRefresh {
 
     private final RedisPostSaveAdapter redisPostSaveAdapter;
     private final PostQueryRepository postQueryRepository;

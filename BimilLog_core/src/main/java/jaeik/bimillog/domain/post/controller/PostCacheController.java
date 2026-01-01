@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.post.controller;
 
-import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.service.PostCacheService;
 import jaeik.bimillog.infrastructure.log.Log;
@@ -83,7 +82,7 @@ public class PostCacheController {
      */
     @GetMapping("/legend")
     public ResponseEntity<Page<PostSimpleDetail>> getLegendBoard(Pageable pageable) {
-        Page<PostSimpleDetail> legendPopularPosts = postCacheService.getPopularPostLegend(PostCacheFlag.LEGEND, pageable);
+        Page<PostSimpleDetail> legendPopularPosts = postCacheService.getPopularPostLegend(pageable);
         return ResponseEntity.ok(legendPopularPosts);
     }
 

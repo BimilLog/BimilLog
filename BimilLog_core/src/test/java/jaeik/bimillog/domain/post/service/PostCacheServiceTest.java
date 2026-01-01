@@ -30,7 +30,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 /**
@@ -55,7 +54,7 @@ class PostCacheServiceTest {
     private RedisPostUpdateAdapter redisPostUpdateAdapter;
 
     @Mock
-    private PostRefreshCache postRefreshCache;
+    private PostCacheRefresh postCacheRefresh;
 
     @InjectMocks
     private PostCacheService postCacheService;
@@ -141,7 +140,6 @@ class PostCacheServiceTest {
     @DisplayName("레전드 인기 게시글 페이징 조회")
     void shouldGetPopularPostLegend() {
         // Given
-        PostCacheFlag type = PostCacheFlag.LEGEND;
         Pageable pageable = PageRequest.of(0, 10);
 
         PostSimpleDetail legendPost1 = PostTestDataBuilder.createPostSearchResult(1L, "레전드 게시글 1");
@@ -151,7 +149,7 @@ class PostCacheServiceTest {
         given(redisPostQueryAdapter.getCachedPostListPaged(pageable)).willReturn(expectedPage);
 
         // When
-        Page<PostSimpleDetail> result = postCacheService.getPopularPostLegend(type, pageable);
+        Page<PostSimpleDetail> result = postCacheService.getPopularPostLegend(pageable);
 
         // Then
         assertThat(result).isEqualTo(expectedPage);
@@ -166,14 +164,13 @@ class PostCacheServiceTest {
     @DisplayName("레전드 인기 게시글 페이징 조회 - 캐시 미스 (빈 페이지 반환)")
     void shouldGetPopularPostLegend_WhenCacheMiss() {
         // Given
-        PostCacheFlag type = PostCacheFlag.LEGEND;
         Pageable pageable = PageRequest.of(0, 10);
         Page<PostSimpleDetail> emptyPage = new PageImpl<>(List.of(), pageable, 0);
 
         given(redisPostQueryAdapter.getCachedPostListPaged(pageable)).willReturn(emptyPage);
 
         // When
-        Page<PostSimpleDetail> result = postCacheService.getPopularPostLegend(type, pageable);
+        Page<PostSimpleDetail> result = postCacheService.getPopularPostLegend(pageable);
 
         // Then
         assertThat(result.getContent()).isEmpty();
