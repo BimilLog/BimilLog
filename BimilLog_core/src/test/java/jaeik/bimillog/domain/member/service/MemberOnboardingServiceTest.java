@@ -7,7 +7,6 @@ import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.global.out.GlobalAuthTokenSaveAdapter;
 import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
 import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
-import jaeik.bimillog.domain.global.out.GlobalSocialTokenCommandAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.out.MemberRepository;

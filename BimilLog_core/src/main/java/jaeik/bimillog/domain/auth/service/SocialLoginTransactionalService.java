@@ -11,7 +11,6 @@ import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.global.out.GlobalAuthTokenSaveAdapter;
 import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
 import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
-import jaeik.bimillog.domain.global.out.GlobalSocialTokenCommandAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -43,7 +42,6 @@ public class SocialLoginTransactionalService {
     private final GlobalJwtAdapter globalJwtAdapter;
     private final AuthTokenRepository authTokenRepository;
     private final GlobalAuthTokenSaveAdapter globalAuthTokenSaveAdapter;
-    private final GlobalSocialTokenCommandAdapter globalSocialTokenCommandAdapter;
 
     /**
      * <h3>소셜 로그인 최종 처리</h3>
@@ -75,7 +73,7 @@ public class SocialLoginTransactionalService {
      * <h3>기존 회원 로그인 처리</h3>
      * <p>기존 회원의 로그인 요청을 처리하며, 다음 작업을 순차적으로 수행합니다:</p>
      * <ol>
-     *   <li>소셜 토큰 저장</li>
+     *   <li>소셜 토큰 업데이트</li>
      *   <li>회원 프로필 업데이트 (닉네임, 프로필 이미지)</li>
      *   <li>AuthToken 생성 및 저장</li>
      *   <li>FCM 토큰 등록</li>
@@ -87,8 +85,6 @@ public class SocialLoginTransactionalService {
      * @param existingMember       DB에 존재하는 기존 회원 엔티티
      * @param socialMemberProfile  소셜 플랫폼에서 받은 사용자 프로필
      * @return JWT 쿠키를 포함한 {@link LoginResult.ExistingUser}
-     * @author Jaeik
-     * @since 2.0.0
      */
     private LoginResult handleExistingMember(Member existingMember, SocialMemberProfile socialMemberProfile) {
         String accessToken = socialMemberProfile.getAccessToken();
@@ -96,12 +92,12 @@ public class SocialLoginTransactionalService {
         String nickname = socialMemberProfile.getNickname();
         String profileImageUrl = socialMemberProfile.getProfileImageUrl();
 
-        // 1. 소셜 토큰 생성
-        SocialToken initialSocialToken = SocialToken.createSocialToken(accessToken, refreshToken);
-        SocialToken persistedSocialToken = globalSocialTokenCommandAdapter.save(initialSocialToken);
+        // 1. 소셜 토큰 업데이트
+        SocialToken socialToken = existingMember.getSocialToken();
+        socialToken.updateTokens(accessToken, refreshToken);
 
         // 2. 멤버 정보 업데이트
-        Member updateMember = authToMemberAdapter.handleExistingMember(existingMember, nickname, profileImageUrl, persistedSocialToken);
+        Member updateMember = authToMemberAdapter.handleExistingMember(existingMember, nickname, profileImageUrl, socialToken);
 
         // 3. AuthToken 생성
         AuthToken initialAuthToken = AuthToken.createToken("", updateMember);

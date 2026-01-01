@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.auth.event;
 
 import jaeik.bimillog.domain.auth.service.AuthTokenService;
 import jaeik.bimillog.domain.auth.service.SocialLogoutService;
-import jaeik.bimillog.domain.global.out.GlobalSocialTokenCommandAdapter;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.notification.service.FcmPushService;
 import jaeik.bimillog.domain.notification.service.SseService;
