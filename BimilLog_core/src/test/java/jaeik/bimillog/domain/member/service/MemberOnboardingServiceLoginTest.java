@@ -29,7 +29,6 @@ class MemberOnboardingServiceLoginTest extends BaseUnitTest {
     @Mock private GlobalCookieAdapter globalCookieAdapter;
     @Mock private GlobalJwtAdapter globalJwtAdapter;
     @Mock private GlobalAuthTokenSaveAdapter globalAuthTokenSaveAdapter;
-    @Mock private GlobalSocialTokenCommandAdapter globalSocialTokenCommandAdapter;
 
     @InjectMocks private MemberOnboardingService onboardingService;
 
@@ -52,7 +51,7 @@ class MemberOnboardingServiceLoginTest extends BaseUnitTest {
         assertThat(member.getSocialToken()).isEqualTo(socialToken);
 
         verifyNoInteractions(redisMemberDataAdapter, globalCookieAdapter,
-                globalJwtAdapter, globalAuthTokenSaveAdapter, globalSocialTokenCommandAdapter);
+                globalJwtAdapter, globalAuthTokenSaveAdapter);
     }
 
     @Test

@@ -40,13 +40,10 @@ public class MemberLoggedOutEventIntegrationTest extends BaseEventIntegrationTes
     @MockitoBean
     private FcmPushService fcmPushService;
 
-    @MockitoBean
-    private GlobalSocialTokenCommandAdapter globalSocialTokenCommandAdapter;
-
     @BeforeEach
     void setUp() {
         // 각 테스트 전에 Mock 리셋 (이전 테스트의 호출 기록 제거)
-        Mockito.reset(socialLogoutService, authTokenService, sseService, fcmPushService, globalSocialTokenCommandAdapter);
+        Mockito.reset(socialLogoutService, authTokenService, sseService, fcmPushService);
     }
 
     @Test
@@ -65,8 +62,6 @@ public class MemberLoggedOutEventIntegrationTest extends BaseEventIntegrationTes
             verifySocialLogout(memberId, tokenId);
             // AuthToken 삭제 (FCM 토큰도 함께 삭제됨)
             verify(authTokenService).deleteTokens(eq(memberId), eq(tokenId));
-            // 소셜 토큰 삭제
-            verify(globalSocialTokenCommandAdapter).deleteByMemberId(eq(memberId));
         });
     }
 
@@ -102,11 +97,6 @@ public class MemberLoggedOutEventIntegrationTest extends BaseEventIntegrationTes
             verify(authTokenService).deleteTokens(eq(1L), eq(101L));
             verify(authTokenService).deleteTokens(eq(2L), eq(102L));
             verify(authTokenService).deleteTokens(eq(3L), eq(103L));
-
-            // 소셜 토큰 삭제
-            verify(globalSocialTokenCommandAdapter).deleteByMemberId(eq(1L));
-            verify(globalSocialTokenCommandAdapter).deleteByMemberId(eq(2L));
-            verify(globalSocialTokenCommandAdapter).deleteByMemberId(eq(3L));
         });
     }
 

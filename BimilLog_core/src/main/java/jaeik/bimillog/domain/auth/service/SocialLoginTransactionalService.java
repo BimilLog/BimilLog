@@ -7,6 +7,7 @@ import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.auth.out.AuthToMemberAdapter;
 import jaeik.bimillog.domain.auth.out.AuthTokenRepository;
 import jaeik.bimillog.domain.auth.out.BlackListRepository;
+import jaeik.bimillog.domain.auth.out.SocialTokenRepository;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.global.out.GlobalAuthTokenSaveAdapter;
 import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
@@ -42,6 +43,7 @@ public class SocialLoginTransactionalService {
     private final GlobalJwtAdapter globalJwtAdapter;
     private final AuthTokenRepository authTokenRepository;
     private final GlobalAuthTokenSaveAdapter globalAuthTokenSaveAdapter;
+    private final SocialTokenRepository socialTokenRepository;
 
     /**
      * <h3>소셜 로그인 최종 처리</h3>
@@ -71,7 +73,7 @@ public class SocialLoginTransactionalService {
      * <h3>기존 회원 로그인 처리</h3>
      * <p>기존 회원의 로그인 요청을 처리하며, 다음 작업을 순차적으로 수행합니다:</p>
      * <ol>
-     *   <li>소셜 토큰 업데이트</li>
+     *   <li>소셜 토큰 업데이트 또는 생성</li>
      *   <li>회원 프로필 업데이트 (닉네임, 프로필 이미지)</li>
      *   <li>AuthToken 생성 및 저장</li>
      *   <li>FCM 토큰 등록</li>
@@ -90,9 +92,16 @@ public class SocialLoginTransactionalService {
         String nickname = socialMemberProfile.getNickname();
         String profileImageUrl = socialMemberProfile.getProfileImageUrl();
 
-        // 1. 소셜 토큰 업데이트
+        // 1. 소셜 토큰 업데이트 또는 생성
         SocialToken socialToken = existingMember.getSocialToken();
-        socialToken.updateTokens(accessToken, refreshToken);
+        if (socialToken == null) {
+            // 소셜 토큰이 없으면 새로 생성 (이전 버전에서 로그아웃으로 삭제된 경우)
+            socialToken = SocialToken.createSocialToken(accessToken, refreshToken);
+            socialToken = socialTokenRepository.save(socialToken);
+        } else {
+            // 소셜 토큰이 있으면 업데이트
+            socialToken.updateTokens(accessToken, refreshToken);
+        }
 
         // 2. 멤버 정보 업데이트
         Member updateMember = authToMemberAdapter.handleExistingMember(existingMember, nickname, profileImageUrl, socialToken);
