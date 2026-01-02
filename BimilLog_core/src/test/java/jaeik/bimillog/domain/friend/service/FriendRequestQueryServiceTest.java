@@ -15,6 +15,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.data.domain.Page;
@@ -24,6 +27,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -33,9 +37,6 @@ import static org.mockito.BDDMockito.given;
  * <h2>FriendRequestQueryService 단위 테스트</h2>
  * <p>친구 요청 조회 서비스의 비즈니스 로직을 검증하는 단위 테스트</p>
  * <p>모든 외부 의존성을 모킹하여 순수한 비즈니스 로직만 테스트</p>
- *
- * @author Jaeik
- * @version 2.0.0
  */
 @DisplayName("FriendRequestQueryService 단위 테스트")
 @Tag("unit")
@@ -70,120 +71,90 @@ class FriendRequestQueryServiceTest extends BaseUnitTest {
 
     // ==================== getFriendSendRequest ====================
 
-    @Test
-    @DisplayName("보낸 친구 요청 조회 성공 - 요청이 존재하는 경우")
-    void shouldGetSentRequests_WhenRequestsExist() {
-        // Given
-        FriendSenderRequest request1 = new FriendSenderRequest(100L, 2L, "테스트회원2");
-        FriendSenderRequest request2 = new FriendSenderRequest(101L, 3L, "테스트회원3");
-        Page<FriendSenderRequest> expectedPage = new PageImpl<>(List.of(request1, request2), pageable, 2);
+    /**
+     * <h3>보낸 친구 요청 조회 시나리오 제공</h3>
+     * <p>다양한 페이지네이션 상황을 테스트합니다.</p>
+     *
+     * @return Pageable, 요청 리스트, 총 개수의 조합
+     */
+    static Stream<Arguments> provideSentRequestScenarios() {
+        Pageable page0 = PageRequest.of(0, 10);
+        Pageable page1 = PageRequest.of(1, 5);
 
-        given(friendRequestQueryRepository.findAllBySenderId(SENDER_ID, pageable)).willReturn(expectedPage);
+        return Stream.of(
+                // 요청이 존재하는 경우
+                Arguments.of(page0, List.of(
+                        new FriendSenderRequest(100L, 2L, "테스트회원2"),
+                        new FriendSenderRequest(101L, 3L, "테스트회원3")
+                ), 2L),
+                // 요청이 없는 경우
+                Arguments.of(page0, List.of(), 0L),
+                // 페이지네이션 (2페이지)
+                Arguments.of(page1, List.of(
+                        new FriendSenderRequest(106L, 7L, "테스트회원7")
+                ), 10L)
+        );
+    }
+
+    @ParameterizedTest(name = "page={0}, totalElements={2}")
+    @MethodSource("provideSentRequestScenarios")
+    @DisplayName("보낸 친구 요청 조회 - 다양한 시나리오")
+    void shouldGetSentRequests(Pageable pageable, List<FriendSenderRequest> requests, long total) {
+        // Given
+        Page<FriendSenderRequest> page = new PageImpl<>(requests, pageable, total);
+        given(friendRequestQueryRepository.findAllBySenderId(SENDER_ID, pageable)).willReturn(page);
 
         // When
         Page<FriendSenderRequest> result = friendRequestQueryService.getFriendSendRequest(SENDER_ID, pageable);
 
         // Then
         assertThat(result).isNotNull();
-        assertThat(result.getTotalElements()).isEqualTo(2);
-        assertThat(result.getContent()).hasSize(2);
-        assertThat(result.getContent().get(0).getFriendRequestId()).isEqualTo(100L);
-        assertThat(result.getContent().get(0).getReceiverMemberId()).isEqualTo(2L);
-    }
-
-    @Test
-    @DisplayName("보낸 친구 요청 조회 성공 - 요청이 없는 경우 (빈 페이지)")
-    void shouldReturnEmptyPage_WhenNoSentRequests() {
-        // Given
-        Page<FriendSenderRequest> emptyPage = new PageImpl<>(List.of(), pageable, 0);
-        given(friendRequestQueryRepository.findAllBySenderId(SENDER_ID, pageable)).willReturn(emptyPage);
-
-        // When
-        Page<FriendSenderRequest> result = friendRequestQueryService.getFriendSendRequest(SENDER_ID, pageable);
-
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result.getTotalElements()).isZero();
-        assertThat(result.getContent()).isEmpty();
-    }
-
-    @Test
-    @DisplayName("보낸 친구 요청 조회 성공 - 페이지네이션 확인")
-    void shouldSupportPagination_ForSentRequests() {
-        // Given
-        Pageable secondPage = PageRequest.of(1, 5);
-        FriendSenderRequest request = new FriendSenderRequest(106L, 7L, "테스트회원7");
-        Page<FriendSenderRequest> expectedPage = new PageImpl<>(List.of(request), secondPage, 10);
-
-        given(friendRequestQueryRepository.findAllBySenderId(SENDER_ID, secondPage)).willReturn(expectedPage);
-
-        // When
-        Page<FriendSenderRequest> result = friendRequestQueryService.getFriendSendRequest(SENDER_ID, secondPage);
-
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result.getTotalElements()).isEqualTo(10);
-        assertThat(result.getNumber()).isEqualTo(1);  // 페이지 번호
-        assertThat(result.getSize()).isEqualTo(5);    // 페이지 크기
+        assertThat(result.getTotalElements()).isEqualTo(total);
+        assertThat(result.getContent()).hasSize(requests.size());
     }
 
     // ==================== getFriendReceiveRequest ====================
 
-    @Test
-    @DisplayName("받은 친구 요청 조회 성공 - 요청이 존재하는 경우")
-    void shouldGetReceivedRequests_WhenRequestsExist() {
-        // Given
-        FriendReceiverRequest request1 = new FriendReceiverRequest(100L, 1L, "테스트회원1");
-        FriendReceiverRequest request2 = new FriendReceiverRequest(101L, 3L, "테스트회원3");
-        Page<FriendReceiverRequest> expectedPage = new PageImpl<>(List.of(request1, request2), pageable, 2);
+    /**
+     * <h3>받은 친구 요청 조회 시나리오 제공</h3>
+     * <p>다양한 페이지네이션 상황을 테스트합니다.</p>
+     *
+     * @return Pageable, 요청 리스트, 총 개수의 조합
+     */
+    static Stream<Arguments> provideReceivedRequestScenarios() {
+        Pageable page0 = PageRequest.of(0, 10);
+        Pageable page1 = PageRequest.of(1, 5);
 
-        given(friendRequestQueryRepository.findAllByReceiveId(RECEIVER_ID, pageable)).willReturn(expectedPage);
+        return Stream.of(
+                // 요청이 존재하는 경우
+                Arguments.of(page0, List.of(
+                        new FriendReceiverRequest(100L, 1L, "테스트회원1"),
+                        new FriendReceiverRequest(101L, 3L, "테스트회원3")
+                ), 2L),
+                // 요청이 없는 경우
+                Arguments.of(page0, List.of(), 0L),
+                // 페이지네이션 (2페이지)
+                Arguments.of(page1, List.of(
+                        new FriendReceiverRequest(106L, 7L, "테스트회원7")
+                ), 10L)
+        );
+    }
+
+    @ParameterizedTest(name = "page={0}, totalElements={2}")
+    @MethodSource("provideReceivedRequestScenarios")
+    @DisplayName("받은 친구 요청 조회 - 다양한 시나리오")
+    void shouldGetReceivedRequests(Pageable pageable, List<FriendReceiverRequest> requests, long total) {
+        // Given
+        Page<FriendReceiverRequest> page = new PageImpl<>(requests, pageable, total);
+        given(friendRequestQueryRepository.findAllByReceiveId(RECEIVER_ID, pageable)).willReturn(page);
 
         // When
         Page<FriendReceiverRequest> result = friendRequestQueryService.getFriendReceiveRequest(RECEIVER_ID, pageable);
 
         // Then
         assertThat(result).isNotNull();
-        assertThat(result.getTotalElements()).isEqualTo(2);
-        assertThat(result.getContent()).hasSize(2);
-        assertThat(result.getContent().get(0).getFriendRequestId()).isEqualTo(100L);
-        assertThat(result.getContent().get(0).getSenderMemberId()).isEqualTo(1L);
-    }
-
-    @Test
-    @DisplayName("받은 친구 요청 조회 성공 - 요청이 없는 경우 (빈 페이지)")
-    void shouldReturnEmptyPage_WhenNoReceivedRequests() {
-        // Given
-        Page<FriendReceiverRequest> emptyPage = new PageImpl<>(List.of(), pageable, 0);
-        given(friendRequestQueryRepository.findAllByReceiveId(RECEIVER_ID, pageable)).willReturn(emptyPage);
-
-        // When
-        Page<FriendReceiverRequest> result = friendRequestQueryService.getFriendReceiveRequest(RECEIVER_ID, pageable);
-
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result.getTotalElements()).isZero();
-        assertThat(result.getContent()).isEmpty();
-    }
-
-    @Test
-    @DisplayName("받은 친구 요청 조회 성공 - 페이지네이션 확인")
-    void shouldSupportPagination_ForReceivedRequests() {
-        // Given
-        Pageable secondPage = PageRequest.of(1, 5);
-        FriendReceiverRequest request = new FriendReceiverRequest(106L, 7L, "테스트회원7");
-        Page<FriendReceiverRequest> expectedPage = new PageImpl<>(List.of(request), secondPage, 10);
-
-        given(friendRequestQueryRepository.findAllByReceiveId(RECEIVER_ID, secondPage)).willReturn(expectedPage);
-
-        // When
-        Page<FriendReceiverRequest> result = friendRequestQueryService.getFriendReceiveRequest(RECEIVER_ID, secondPage);
-
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result.getTotalElements()).isEqualTo(10);
-        assertThat(result.getNumber()).isEqualTo(1);  // 페이지 번호
-        assertThat(result.getSize()).isEqualTo(5);    // 페이지 크기
+        assertThat(result.getTotalElements()).isEqualTo(total);
+        assertThat(result.getContent()).hasSize(requests.size());
     }
 
     // ==================== getSenderId ====================

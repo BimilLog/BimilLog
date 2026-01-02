@@ -6,6 +6,10 @@ import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Set;
 
@@ -15,9 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <h2>SocialLoginRequestDTO 검증 테스트</h2>
  * <p>소셜 로그인 요청 DTO의 유효성 검증 로직을 테스트합니다.</p>
  * <p>SocialProvider enum 사용으로 타입 안전성 확보</p>
- *
- * @author Jaeik
- * @version 2.1.0
  */
 @DisplayName("SocialLoginRequestDTO 검증 테스트")
 @Tag("unit")
@@ -35,46 +36,20 @@ class SocialLoginRequestDTOTest {
     @DisplayName("유효한 요청 테스트")
     class ValidRequestTests {
 
-        @Test
-        @DisplayName("모든 필드가 유효한 경우 - KAKAO")
-        void shouldPass_WhenAllFieldsValid_KAKAO() {
+        @ParameterizedTest(name = "제공자: {0}")
+        @EnumSource(SocialProvider.class)
+        @DisplayName("모든 소셜 제공자 - 유효한 요청")
+        void shouldPass_WhenValidProvider(SocialProvider provider) {
             // Given
-            SocialLoginRequestDTO request = new SocialLoginRequestDTO(SocialProvider.KAKAO, "valid-code", null);
+            String state = provider == SocialProvider.NAVER ? "state" : null;
+            SocialLoginRequestDTO request = new SocialLoginRequestDTO(provider, "valid-code", state);
 
             // When
             Set<ConstraintViolation<SocialLoginRequestDTO>> violations = validator.validate(request);
 
             // Then
             assertThat(violations).isEmpty();
-            assertThat(request.getProvider()).isEqualTo(SocialProvider.KAKAO);
-        }
-
-        @Test
-        @DisplayName("모든 필드가 유효한 경우 - NAVER")
-        void shouldPass_WhenAllFieldsValid_NAVER() {
-            // Given
-            SocialLoginRequestDTO request = new SocialLoginRequestDTO(SocialProvider.NAVER, "valid-code", "state");
-
-            // When
-            Set<ConstraintViolation<SocialLoginRequestDTO>> violations = validator.validate(request);
-
-            // Then
-            assertThat(violations).isEmpty();
-            assertThat(request.getProvider()).isEqualTo(SocialProvider.NAVER);
-        }
-
-        @Test
-        @DisplayName("모든 필드가 유효한 경우 - GOOGLE")
-        void shouldPass_WhenAllFieldsValid_GOOGLE() {
-            // Given
-            SocialLoginRequestDTO request = new SocialLoginRequestDTO(SocialProvider.GOOGLE, "valid-code", null);
-
-            // When
-            Set<ConstraintViolation<SocialLoginRequestDTO>> violations = validator.validate(request);
-
-            // Then
-            assertThat(violations).isEmpty();
-            assertThat(request.getProvider()).isEqualTo(SocialProvider.GOOGLE);
+            assertThat(request.getProvider()).isEqualTo(provider);
         }
     }
 
@@ -103,43 +78,13 @@ class SocialLoginRequestDTOTest {
     @DisplayName("Code 검증 테스트")
     class CodeValidationTests {
 
-        @Test
-        @DisplayName("code가 null인 경우 - @NotBlank 검증 실패")
-        void shouldFail_WhenCodeIsNull() {
+        @ParameterizedTest(name = "code: [{0}]")
+        @NullAndEmptySource
+        @ValueSource(strings = {"   "})
+        @DisplayName("유효하지 않은 인증 코드 - 검증 실패")
+        void shouldFail_WhenInvalidCode(String code) {
             // Given
-            SocialLoginRequestDTO request = new SocialLoginRequestDTO(SocialProvider.KAKAO, null, null);
-
-            // When
-            Set<ConstraintViolation<SocialLoginRequestDTO>> violations = validator.validate(request);
-
-            // Then
-            assertThat(violations).hasSize(1);
-            assertThat(violations)
-                    .extracting(ConstraintViolation::getMessage)
-                    .contains("인증 코드는 필수입니다.");
-        }
-
-        @Test
-        @DisplayName("code가 빈 문자열인 경우 - @NotBlank 검증 실패")
-        void shouldFail_WhenCodeIsEmpty() {
-            // Given
-            SocialLoginRequestDTO request = new SocialLoginRequestDTO(SocialProvider.KAKAO, "", null);
-
-            // When
-            Set<ConstraintViolation<SocialLoginRequestDTO>> violations = validator.validate(request);
-
-            // Then
-            assertThat(violations).hasSize(1);
-            assertThat(violations)
-                    .extracting(ConstraintViolation::getMessage)
-                    .contains("인증 코드는 필수입니다.");
-        }
-
-        @Test
-        @DisplayName("code가 공백으로만 구성된 경우 - @NotBlank 검증 실패")
-        void shouldFail_WhenCodeIsBlank() {
-            // Given
-            SocialLoginRequestDTO request = new SocialLoginRequestDTO(SocialProvider.KAKAO, "   ", null);
+            SocialLoginRequestDTO request = new SocialLoginRequestDTO(SocialProvider.KAKAO, code, null);
 
             // When
             Set<ConstraintViolation<SocialLoginRequestDTO>> violations = validator.validate(request);

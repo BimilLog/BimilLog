@@ -7,10 +7,15 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -76,71 +81,31 @@ class SseServiceTest {
         verify(sseRepository).deleteEmitters(memberId, tokenId);
     }
 
-    @Test
-    @DisplayName("댓글 알림 SSE 메시지를 보낸다")
-    void shouldSendCommentNotification() {
-        // Given
-        Long postUserId = 50L;
-        String message = "댓글러님이 댓글을 남겼습니다!";
-        String url = "http://localhost:3000/board/post/77";
-
-        // When
-        notificationSseService.sendNotification(postUserId, NotificationType.COMMENT, message, url);
-
-        // Then
-        verify(sseRepository).send(argThat(sseMessage ->
-                matchesMessage(sseMessage, postUserId, NotificationType.COMMENT, message, url)
-        ));
+    /**
+     * <h3>다양한 타입의 SSE 알림 시나리오 제공</h3>
+     * <p>각 알림 타입별 테스트 데이터를 제공합니다.</p>
+     *
+     * @return memberId, 알림 타입, 메시지, URL의 조합
+     */
+    static Stream<Arguments> provideNotificationScenarios() {
+        return Stream.of(
+                Arguments.of(50L, NotificationType.COMMENT, "댓글러님이 댓글을 남겼습니다!", "http://localhost:3000/board/post/77"),
+                Arguments.of(99L, NotificationType.MESSAGE, "롤링페이퍼에 메시지가 작성되었어요!", "http://localhost:3000/paper/롤링페이퍼"),
+                Arguments.of(7L, NotificationType.POST_FEATURED_WEEKLY, "축하합니다! 주간 인기글에 선정되었습니다!", "http://localhost:3000/board/post/31"),
+                Arguments.of(5L, NotificationType.FRIEND, "새로운 친구 요청이 도착했어요!", "http://localhost:3000/friends")
+        );
     }
 
-    @Test
-    @DisplayName("롤링페이퍼 알림 SSE 메시지를 보낸다")
-    void shouldSendPaperNotification() {
-        // Given
-        Long farmOwnerId = 99L;
-        String message = "롤링페이퍼에 메시지가 작성되었어요!";
-        String url = "http://localhost:3000/paper/롤링페이퍼";
-
+    @ParameterizedTest(name = "{1} 알림")
+    @MethodSource("provideNotificationScenarios")
+    @DisplayName("다양한 타입의 SSE 알림 전송")
+    void shouldSendNotification(Long memberId, NotificationType type, String message, String url) {
         // When
-        notificationSseService.sendNotification(farmOwnerId, NotificationType.MESSAGE, message, url);
+        notificationSseService.sendNotification(memberId, type, message, url);
 
         // Then
         verify(sseRepository).send(argThat(sseMessage ->
-                matchesMessage(sseMessage, farmOwnerId, NotificationType.MESSAGE, message, url)
-        ));
-    }
-
-    @Test
-    @DisplayName("주간 인기글 알림 SSE 메시지를 보낸다")
-    void shouldSendPostFeaturedWeeklyNotification() {
-        // Given
-        Long memberId = 7L;
-        String message = "축하합니다! 주간 인기글에 선정되었습니다!";
-        String url = "http://localhost:3000/board/post/31";
-
-        // When
-        notificationSseService.sendNotification(memberId, NotificationType.POST_FEATURED_WEEKLY, message, url);
-
-        // Then
-        verify(sseRepository).send(argThat(sseMessage ->
-                matchesMessage(sseMessage, memberId, NotificationType.POST_FEATURED_WEEKLY, message, url)
-        ));
-    }
-
-    @Test
-    @DisplayName("친구 요청 알림 SSE 메시지를 보낸다")
-    void shouldSendFriendNotification() {
-        // Given
-        Long memberId = 5L;
-        String message = "새로운 친구 요청이 도착했어요!";
-        String url = "http://localhost:3000/friends";
-
-        // When
-        notificationSseService.sendNotification(memberId, NotificationType.FRIEND, message, url);
-
-        // Then
-        verify(sseRepository).send(argThat(sseMessage ->
-                matchesMessage(sseMessage, memberId, NotificationType.FRIEND, message, url)
+                matchesMessage(sseMessage, memberId, type, message, url)
         ));
     }
 
