@@ -6,6 +6,8 @@ import jaeik.bimillog.testutil.TestMembers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -13,9 +15,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <h2>Comment 엔티티 단위 테스트</h2>
  * <p>댓글 엔티티의 비즈니스 로직을 검증하는 단위 테스트</p>
  * <p>특히 수정/삭제 권한 검증 로직을 중점적으로 테스트</p>
- *
- * @author Jaeik
- * @version 2.0.0
  */
 @DisplayName("Comment 엔티티 단위 테스트")
 @Tag("unit")
@@ -34,73 +33,46 @@ class CommentTest {
                 .build();
     }
 
-    @Test
-    @DisplayName("회원 댓글 수정/삭제 권한 검증 - 댓글 작성자가 맞는 경우")
-    void canModify_MemberComment_Owner_ReturnsTrue() {
+    @ParameterizedTest(name = "userId={0}, password={1} → {2}")
+    @CsvSource({
+            "1, , true",   // 소유자
+            "2, , false",  // 다른 사용자
+            ", 1234, false" // 익명 사용자
+    })
+    @DisplayName("회원 댓글 수정/삭제 권한 검증")
+    void shouldValidateMemberCommentPermission(Long userId, Integer password, boolean expected) {
         // Given
         Member member = createTestUser(1L);
         Post post = createTestPost(member);
-        
-        Comment comment = Comment.builder()
-                .id(1L)
-                .post(post)
-                .member(member) // 회원 댓글
-                .content("회원 댓글입니다.")
-                .deleted(false)
-                .password(null) // 회원 댓글은 비밀번호 없음
-                .build();
-        
-        // When & Then
-        assertThat(comment.canModify(1L, null)).isTrue();
-    }
 
-    @Test
-    @DisplayName("회원 댓글 수정/삭제 권한 검증 - 다른 사용자가 시도하는 경우")
-    void canModify_MemberComment_NotOwner_ReturnsFalse() {
-        // Given
-        Member member = createTestUser(1L);
-        Post post = createTestPost(member);
-        
         Comment comment = Comment.builder()
                 .id(1L)
                 .post(post)
                 .member(member) // 회원 댓글 (member ID = 1L)
                 .content("회원 댓글입니다.")
                 .deleted(false)
-                .password(null)
+                .password(null) // 회원 댓글은 비밀번호 없음
                 .build();
-        
-        // When & Then - 다른 사용자 (ID = 2L)가 시도
-        assertThat(comment.canModify(2L, null)).isFalse();
+
+        // When
+        boolean result = comment.canModify(userId, password);
+
+        // Then
+        assertThat(result).isEqualTo(expected);
     }
 
-    @Test
-    @DisplayName("회원 댓글 수정/삭제 권한 검증 - userId가 null인 경우")
-    void canModify_MemberComment_NullUserId_ReturnsFalse() {
+    @ParameterizedTest(name = "password={0} → {1}")
+    @CsvSource({
+            "1234, true",  // 올바른 비밀번호
+            "9999, false", // 잘못된 비밀번호
+            ", false"      // null 비밀번호
+    })
+    @DisplayName("익명 댓글 수정/삭제 권한 검증")
+    void shouldValidateAnonymousCommentPermission(Integer password, boolean expected) {
         // Given
         Member member = createTestUser(1L);
         Post post = createTestPost(member);
-        
-        Comment comment = Comment.builder()
-                .id(1L)
-                .post(post)
-                .member(member) // 회원 댓글
-                .content("회원 댓글입니다.")
-                .deleted(false)
-                .password(null)
-                .build();
-        
-        // When & Then - 익명 사용자가 회원 댓글 수정 시도
-        assertThat(comment.canModify(null, 1234)).isFalse();
-    }
 
-    @Test
-    @DisplayName("익명 댓글 수정/삭제 권한 검증 - 올바른 비밀번호")
-    void canModify_AnonymousComment_CorrectPassword_ReturnsTrue() {
-        // Given
-        Member member = createTestUser(1L);
-        Post post = createTestPost(member);
-        
         Comment comment = Comment.builder()
                 .id(1L)
                 .post(post)
@@ -109,49 +81,12 @@ class CommentTest {
                 .deleted(false)
                 .password(1234) // 익명 댓글 비밀번호
                 .build();
-        
-        // When & Then
-        assertThat(comment.canModify(null, 1234)).isTrue();
-    }
 
-    @Test
-    @DisplayName("익명 댓글 수정/삭제 권한 검증 - 잘못된 비밀번호")
-    void canModify_AnonymousComment_WrongPassword_ReturnsFalse() {
-        // Given
-        Member member = createTestUser(1L);
-        Post post = createTestPost(member);
-        
-        Comment comment = Comment.builder()
-                .id(1L)
-                .post(post)
-                .member(null) // 익명 댓글
-                .content("익명 댓글입니다.")
-                .deleted(false)
-                .password(1234)
-                .build();
-        
-        // When & Then - 잘못된 비밀번호
-        assertThat(comment.canModify(null, 9999)).isFalse();
-    }
+        // When
+        boolean result = comment.canModify(null, password);
 
-    @Test
-    @DisplayName("익명 댓글 수정/삭제 권한 검증 - 비밀번호가 null인 경우")
-    void canModify_AnonymousComment_NullPassword_ReturnsFalse() {
-        // Given
-        Member member = createTestUser(1L);
-        Post post = createTestPost(member);
-        
-        Comment comment = Comment.builder()
-                .id(1L)
-                .post(post)
-                .member(null) // 익명 댓글
-                .content("익명 댓글입니다.")
-                .deleted(false)
-                .password(1234)
-                .build();
-        
-        // When & Then - 비밀번호 없이 시도
-        assertThat(comment.canModify(null, null)).isFalse();
+        // Then
+        assertThat(result).isEqualTo(expected);
     }
 
     @Test

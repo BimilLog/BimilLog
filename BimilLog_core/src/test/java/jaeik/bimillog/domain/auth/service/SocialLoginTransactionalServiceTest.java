@@ -7,11 +7,11 @@ import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.auth.out.AuthToMemberAdapter;
 import jaeik.bimillog.domain.auth.out.AuthTokenRepository;
 import jaeik.bimillog.domain.auth.out.BlackListRepository;
+import jaeik.bimillog.domain.auth.out.SocialTokenRepository;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.global.out.GlobalAuthTokenSaveAdapter;
 import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
 import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
-import jaeik.bimillog.domain.global.out.GlobalSocialTokenCommandAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
@@ -54,15 +54,15 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
     @Mock private GlobalCookieAdapter globalCookieAdapter;
     @Mock private GlobalJwtAdapter globalJwtAdapter;
     @Mock private GlobalAuthTokenSaveAdapter globalAuthTokenSaveAdapter;
-    @Mock private GlobalSocialTokenCommandAdapter globalSocialTokenCommandAdapter;
+    @Mock private SocialTokenRepository socialTokenRepository;
     @Mock private AuthTokenRepository authTokenRepository;
 
     @InjectMocks
     private SocialLoginTransactionalService socialLoginTransactionalService;
 
     @Test
-    @DisplayName("기존 회원 로그인 처리 성공")
-    void shouldFinishLoginForExistingMember() {
+    @DisplayName("기존 회원 로그인 처리 성공 - 소셜 토큰이 있는 경우")
+    void shouldFinishLoginForExistingMemberWithSocialToken() {
         // Given
         SocialMemberProfile profile = getTestMemberProfile();
         Member existingMember = TestMembers.createMember(TEST_SOCIAL_ID, "memberName", TEST_SOCIAL_NICKNAME);
@@ -71,15 +71,16 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
             TestFixtures.setFieldValue(existingMember.getSetting(), "id", 10L);
         }
 
+        // 기존 소셜 토큰 설정
+        SocialToken existingSocialToken = SocialToken.createSocialToken("old-access-token", "old-refresh-token");
+        TestFixtures.setFieldValue(existingMember, "socialToken", existingSocialToken);
+
         CustomUserDetails userDetails = CustomUserDetails.ofExisting(existingMember, 99L);
         List<ResponseCookie> jwtCookies = getJwtCookies();
 
         given(blackListRepository.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
         given(authToMemberAdapter.findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(Optional.of(existingMember));
-
-        SocialToken persistedSocialToken = SocialToken.createSocialToken(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
-        given(globalSocialTokenCommandAdapter.save(any(SocialToken.class))).willReturn(persistedSocialToken);
-        given(authToMemberAdapter.handleExistingMember(eq(existingMember), anyString(), anyString(), eq(persistedSocialToken)))
+        given(authToMemberAdapter.handleExistingMember(eq(existingMember), anyString(), anyString(), eq(existingSocialToken)))
                 .willReturn(existingMember);
 
         AuthToken persistedAuthToken = AuthToken.builder()
@@ -104,8 +105,59 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
 
         verify(blackListRepository).existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID);
         verify(authToMemberAdapter).findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID);
-        verify(globalSocialTokenCommandAdapter).save(any(SocialToken.class));
-        verify(authToMemberAdapter).handleExistingMember(eq(existingMember), eq(profile.getNickname()), eq(profile.getProfileImageUrl()), eq(persistedSocialToken));
+        verify(authToMemberAdapter).handleExistingMember(eq(existingMember), eq(profile.getNickname()), eq(profile.getProfileImageUrl()), eq(existingSocialToken));
+        verify(globalAuthTokenSaveAdapter).updateJwtRefreshToken(userDetails.getAuthTokenId(), "generated-refresh-token");
+        verify(globalCookieAdapter).generateJwtCookie("generated-access-token", "generated-refresh-token");
+    }
+
+    @Test
+    @DisplayName("기존 회원 로그인 처리 성공 - 소셜 토큰이 없는 경우 (이전 버전에서 로그아웃)")
+    void shouldFinishLoginForExistingMemberWithoutSocialToken() {
+        // Given
+        SocialMemberProfile profile = getTestMemberProfile();
+        Member existingMember = TestMembers.createMember(TEST_SOCIAL_ID, "memberName", TEST_SOCIAL_NICKNAME);
+        TestFixtures.setFieldValue(existingMember, "id", 1L);
+        if (existingMember.getSetting() != null) {
+            TestFixtures.setFieldValue(existingMember.getSetting(), "id", 10L);
+        }
+
+        // 소셜 토큰이 null인 상태 (이전 버전에서 로그아웃으로 삭제된 경우)
+        TestFixtures.setFieldValue(existingMember, "socialToken", null);
+
+        SocialToken newSocialToken = SocialToken.createSocialToken(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
+        CustomUserDetails userDetails = CustomUserDetails.ofExisting(existingMember, 99L);
+        List<ResponseCookie> jwtCookies = getJwtCookies();
+
+        given(blackListRepository.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
+        given(authToMemberAdapter.findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(Optional.of(existingMember));
+        given(socialTokenRepository.save(any(SocialToken.class))).willReturn(newSocialToken);
+        given(authToMemberAdapter.handleExistingMember(eq(existingMember), anyString(), anyString(), eq(newSocialToken)))
+                .willReturn(existingMember);
+
+        AuthToken persistedAuthToken = AuthToken.builder()
+                .id(userDetails.getAuthTokenId())
+                .refreshToken("")
+                .member(existingMember)
+                .useCount(0)
+                .build();
+        given(authTokenRepository.save(any(AuthToken.class))).willReturn(persistedAuthToken);
+
+        given(globalJwtAdapter.generateAccessToken(any(CustomUserDetails.class))).willReturn("generated-access-token");
+        given(globalJwtAdapter.generateRefreshToken(any(CustomUserDetails.class))).willReturn("generated-refresh-token");
+        given(globalCookieAdapter.generateJwtCookie(anyString(), anyString())).willReturn(jwtCookies);
+
+        // When
+        LoginResult result = socialLoginTransactionalService.finishLogin(TEST_PROVIDER, profile);
+
+        // Then
+        assertThat(result).isInstanceOf(LoginResult.ExistingUser.class);
+        LoginResult.ExistingUser existingUser = (LoginResult.ExistingUser) result;
+        assertThat(existingUser.cookies()).isEqualTo(jwtCookies);
+
+        verify(blackListRepository).existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID);
+        verify(authToMemberAdapter).findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID);
+        verify(socialTokenRepository).save(any(SocialToken.class));
+        verify(authToMemberAdapter).handleExistingMember(eq(existingMember), eq(profile.getNickname()), eq(profile.getProfileImageUrl()), eq(newSocialToken));
         verify(globalAuthTokenSaveAdapter).updateJwtRefreshToken(userDetails.getAuthTokenId(), "generated-refresh-token");
         verify(globalCookieAdapter).generateJwtCookie("generated-access-token", "generated-refresh-token");
     }

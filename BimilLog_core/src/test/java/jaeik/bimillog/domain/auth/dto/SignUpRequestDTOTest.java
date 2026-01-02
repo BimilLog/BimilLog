@@ -6,6 +6,8 @@ import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Set;
 
@@ -16,9 +18,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>회원가입 요청 DTO의 유효성 검증 로직을 테스트합니다.</p>
  * <p>Bean Validation과 @AssertTrue 커스텀 검증 테스트</p>
  * <p>UUID는 HttpOnly 쿠키로 전달되어 요청 본문에 포함하지 않음</p>
- *
- * @author Jaeik
- * @version 3.0.0
  */
 @DisplayName("SignUpRequestDTO 검증 테스트")
 @Tag("unit")
@@ -36,63 +35,12 @@ class SignUpRequestDTOTest {
     @DisplayName("유효한 요청 테스트")
     class ValidRequestTests {
 
-        @Test
-        @DisplayName("모든 필드가 유효한 경우 - 검증 통과")
-        void shouldPass_WhenAllFieldsValid() {
+        @ParameterizedTest(name = "사용자명: {0}")
+        @ValueSource(strings = {"테스트사용자", "TestUser", "사용자123", "사용자1234", "홍길"})
+        @DisplayName("유효한 사용자 이름 - 검증 통과")
+        void shouldPass_WhenValidUserName(String userName) {
             // Given
-            SignUpRequestDTO request = new SignUpRequestDTO("테스트사용자");
-
-            // When
-            Set<ConstraintViolation<SignUpRequestDTO>> violations = validator.validate(request);
-
-            // Then
-            assertThat(violations).isEmpty();
-        }
-
-        @Test
-        @DisplayName("영문 사용자 이름 - 검증 통과")
-        void shouldPass_WhenUserNameIsEnglish() {
-            // Given
-            SignUpRequestDTO request = new SignUpRequestDTO("TestUser");
-
-            // When
-            Set<ConstraintViolation<SignUpRequestDTO>> violations = validator.validate(request);
-
-            // Then
-            assertThat(violations).isEmpty();
-        }
-
-        @Test
-        @DisplayName("숫자가 포함된 사용자 이름 - 검증 통과")
-        void shouldPass_WhenUserNameContainsNumbers() {
-            // Given
-            SignUpRequestDTO request = new SignUpRequestDTO("사용자123");
-
-            // When
-            Set<ConstraintViolation<SignUpRequestDTO>> violations = validator.validate(request);
-
-            // Then
-            assertThat(violations).isEmpty();
-        }
-
-        @Test
-        @DisplayName("8자 사용자 이름 - 검증 통과")
-        void shouldPass_WhenUserNameIs8Characters() {
-            // Given
-            SignUpRequestDTO request = new SignUpRequestDTO("사용자1234");
-
-            // When
-            Set<ConstraintViolation<SignUpRequestDTO>> violations = validator.validate(request);
-
-            // Then
-            assertThat(violations).isEmpty();
-        }
-
-        @Test
-        @DisplayName("2자 사용자 이름 - 검증 통과")
-        void shouldPass_WhenUserNameIs2Characters() {
-            // Given
-            SignUpRequestDTO request = new SignUpRequestDTO("홍길");
+            SignUpRequestDTO request = new SignUpRequestDTO(userName);
 
             // When
             Set<ConstraintViolation<SignUpRequestDTO>> violations = validator.validate(request);

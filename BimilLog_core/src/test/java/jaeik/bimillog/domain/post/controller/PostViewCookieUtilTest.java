@@ -7,6 +7,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -15,9 +17,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * <h2>PostViewCookieUtil 테스트</h2>
  * <p>게시글 조회 쿠키 유틸리티의 중복 검증 로직을 검증하는 단위 테스트</p>
- *
- * @author Jaeik
- * @version 2.0.0
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PostViewCookieUtil 테스트")
@@ -38,30 +37,15 @@ class PostViewCookieUtilTest {
         };
     }
 
-    @Test
-    @DisplayName("조회 여부 확인 - 처음 조회하는 게시글")
-    void shouldReturnFalse_WhenPostNotViewed() {
-        // Given
-        Long postId = 999L;
-
+    @ParameterizedTest(name = "postId={0} → viewed={1}")
+    @CsvSource({"999, false", "123, true"})
+    @DisplayName("조회 여부 확인")
+    void shouldCheckViewStatus(Long postId, boolean expected) {
         // When
         boolean result = postViewCookieUtil.hasViewed(cookies, postId);
 
         // Then
-        assertThat(result).isFalse();
-    }
-
-    @Test
-    @DisplayName("조회 여부 확인 - 이미 조회한 게시글")
-    void shouldReturnTrue_WhenPostAlreadyViewed() {
-        // Given
-        Long postId = 123L;
-
-        // When
-        boolean result = postViewCookieUtil.hasViewed(cookies, postId);
-
-        // Then
-        assertThat(result).isTrue();
+        assertThat(result).isEqualTo(expected);
     }
 
 

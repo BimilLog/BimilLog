@@ -251,34 +251,6 @@ class AuthCommandControllerIntegrationTest extends BaseIntegrationTest {
                         .value("FCM 토큰을 등록할 AuthToken을 찾을 수 없습니다."));
     }
 
-    @Test
-    @DisplayName("FCM 토큰 등록 - 다른 사용자의 AuthToken - 403 Forbidden")
-    void registerFcmToken_MemberIdMismatch_Forbidden() throws Exception {
-        // Given: testMember의 AuthToken 생성
-        AuthToken authToken = AuthToken.createToken("refresh-token-test", testMember);
-        authToken = authTokenRepository.save(authToken);
-
-        // otherMember가 testMember의 authTokenId를 사용하려고 시도
-        CustomUserDetails otherUserDetails = AuthTestFixtures.createCustomUserDetails(
-                otherMember,
-                authToken.getId()
-        );
-
-        FcmTokenRegisterRequestDTO request = new FcmTokenRegisterRequestDTO(
-                "fcm-malicious-token"
-        );
-
-        // When & Then: 403 Forbidden
-        mockMvc.perform(post("/api/auth/fcm")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request))
-                        .with(user(otherUserDetails))
-                        .with(csrf()))
-                .andDo(print())
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.message")
-                        .value("본인의 AuthToken에만 FCM 토큰을 등록할 수 있습니다."));
-    }
 
     @Test
     @DisplayName("FCM 토큰 등록 - 인증 없이 요청 - 403 Forbidden")

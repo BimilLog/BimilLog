@@ -9,8 +9,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -34,14 +38,45 @@ class ReportDTOTest {
         validator = factory.getValidator();
     }
 
-    @Test
-    @DisplayName("POST 타입 신고 시 targetId 필수 - 성공")
-    void postReport_WithTargetId_Success() {
+    /**
+     * <h3>신고 타입별 targetId 검증 성공 케이스 제공</h3>
+     * <p>각 신고 타입에 따라 올바른 targetId 조합을 제공합니다.</p>
+     *
+     * @return 신고 타입, targetId, 내용의 조합
+     */
+    static Stream<Arguments> provideValidReportScenarios() {
+        return Stream.of(
+                Arguments.of(ReportType.POST, 123L, "부적절한 게시글입니다."),
+                Arguments.of(ReportType.COMMENT, 456L, "부적절한 댓글입니다."),
+                Arguments.of(ReportType.ERROR, null, "시스템 오류가 발생했습니다."),
+                Arguments.of(ReportType.IMPROVEMENT, null, "새로운 기능을 제안합니다.")
+        );
+    }
+
+    /**
+     * <h3>신고 타입별 targetId 검증 실패 케이스 제공</h3>
+     * <p>각 신고 타입에 따라 잘못된 targetId 조합을 제공합니다.</p>
+     *
+     * @return 신고 타입, targetId, 예상 에러 메시지의 조합
+     */
+    static Stream<Arguments> provideInvalidReportScenarios() {
+        return Stream.of(
+                Arguments.of(ReportType.POST, null, "글, 댓글 신고는 신고대상이 필수입니다"),
+                Arguments.of(ReportType.COMMENT, null, "글, 댓글 신고는 신고대상이 필수입니다"),
+                Arguments.of(ReportType.ERROR, 123L, "에러, 개선 신고는 신고대상이 없어야 합니다"),
+                Arguments.of(ReportType.IMPROVEMENT, 123L, "에러, 개선 신고는 신고대상이 없어야 합니다")
+        );
+    }
+
+    @ParameterizedTest(name = "{0} 타입: targetId={1}")
+    @MethodSource("provideValidReportScenarios")
+    @DisplayName("신고 타입별 targetId 검증 - 성공")
+    void shouldValidateTargetIdByReportType_Success(ReportType reportType, Long targetId, String content) {
         // Given
         ReportDTO reportDTO = ReportDTO.builder()
-                .reportType(ReportType.POST)
-                .targetId(123L)
-                .content("부적절한 게시글입니다.")
+                .reportType(reportType)
+                .targetId(targetId)
+                .content(content)
                 .build();
 
         // When
@@ -51,14 +86,15 @@ class ReportDTOTest {
         assertThat(violations).isEmpty();
     }
 
-    @Test
-    @DisplayName("POST 타입 신고 시 targetId null - 검증 실패")
-    void postReport_WithoutTargetId_ValidationFailure() {
+    @ParameterizedTest(name = "{0} 타입: 잘못된 targetId={1}")
+    @MethodSource("provideInvalidReportScenarios")
+    @DisplayName("신고 타입별 targetId 검증 - 실패")
+    void shouldValidateTargetIdByReportType_Failure(ReportType reportType, Long targetId, String expectedMessage) {
         // Given
         ReportDTO reportDTO = ReportDTO.builder()
-                .reportType(ReportType.POST)
-                .targetId(null)
-                .content("부적절한 게시글입니다.")
+                .reportType(reportType)
+                .targetId(targetId)
+                .content("신고 내용입니다. 최소 10자 이상")
                 .build();
 
         // When
@@ -67,115 +103,7 @@ class ReportDTOTest {
         // Then
         assertThat(violations).hasSize(1);
         ConstraintViolation<ReportDTO> violation = violations.iterator().next();
-        assertThat(violation.getMessage()).isEqualTo("글, 댓글 신고는 신고대상이 필수입니다");
-    }
-
-    @Test
-    @DisplayName("COMMENT 타입 신고 시 targetId 필수 - 성공")
-    void commentReport_WithTargetId_Success() {
-        // Given
-        ReportDTO reportDTO = ReportDTO.builder()
-                .reportType(ReportType.COMMENT)
-                .targetId(456L)
-                .content("부적절한 댓글입니다.")
-                .build();
-
-        // When
-        Set<ConstraintViolation<ReportDTO>> violations = validator.validate(reportDTO);
-
-        // Then
-        assertThat(violations).isEmpty();
-    }
-
-    @Test
-    @DisplayName("COMMENT 타입 신고 시 targetId null - 검증 실패")
-    void commentReport_WithoutTargetId_ValidationFailure() {
-        // Given
-        ReportDTO reportDTO = ReportDTO.builder()
-                .reportType(ReportType.COMMENT)
-                .targetId(null)
-                .content("부적절한 댓글입니다.")
-                .build();
-
-        // When
-        Set<ConstraintViolation<ReportDTO>> violations = validator.validate(reportDTO);
-
-        // Then
-        assertThat(violations).hasSize(1);
-        ConstraintViolation<ReportDTO> violation = violations.iterator().next();
-        assertThat(violation.getMessage()).isEqualTo("글, 댓글 신고는 신고대상이 필수입니다");
-    }
-
-    @Test
-    @DisplayName("ERROR 타입 신고 시 targetId null - 성공")
-    void errorReport_WithoutTargetId_Success() {
-        // Given
-        ReportDTO reportDTO = ReportDTO.builder()
-                .reportType(ReportType.ERROR)
-                .targetId(null)
-                .content("시스템 오류가 발생했습니다.")
-                .build();
-
-        // When
-        Set<ConstraintViolation<ReportDTO>> violations = validator.validate(reportDTO);
-
-        // Then
-        assertThat(violations).isEmpty();
-    }
-
-    @Test
-    @DisplayName("ERROR 타입 신고 시 targetId 존재 - 검증 실패")
-    void errorReport_WithTargetId_ValidationFailure() {
-        // Given
-        ReportDTO reportDTO = ReportDTO.builder()
-                .reportType(ReportType.ERROR)
-                .targetId(123L)
-                .content("시스템 오류가 발생했습니다.")
-                .build();
-
-        // When
-        Set<ConstraintViolation<ReportDTO>> violations = validator.validate(reportDTO);
-
-        // Then
-        assertThat(violations).hasSize(1);
-        ConstraintViolation<ReportDTO> violation = violations.iterator().next();
-        assertThat(violation.getMessage()).isEqualTo("에러, 개선 신고는 신고대상이 없어야 합니다");
-    }
-
-    @Test
-    @DisplayName("IMPROVEMENT 타입 신고 시 targetId null - 성공")
-    void improvementReport_WithoutTargetId_Success() {
-        // Given
-        ReportDTO reportDTO = ReportDTO.builder()
-                .reportType(ReportType.IMPROVEMENT)
-                .targetId(null)
-                .content("새로운 기능을 제안합니다.")
-                .build();
-
-        // When
-        Set<ConstraintViolation<ReportDTO>> violations = validator.validate(reportDTO);
-
-        // Then
-        assertThat(violations).isEmpty();
-    }
-
-    @Test
-    @DisplayName("IMPROVEMENT 타입 신고 시 targetId 존재 - 검증 실패")
-    void improvementReport_WithTargetId_ValidationFailure() {
-        // Given
-        ReportDTO reportDTO = ReportDTO.builder()
-                .reportType(ReportType.IMPROVEMENT)
-                .targetId(123L)
-                .content("새로운 기능을 제안합니다.")
-                .build();
-
-        // When
-        Set<ConstraintViolation<ReportDTO>> violations = validator.validate(reportDTO);
-
-        // Then
-        assertThat(violations).hasSize(1);
-        ConstraintViolation<ReportDTO> violation = violations.iterator().next();
-        assertThat(violation.getMessage()).isEqualTo("에러, 개선 신고는 신고대상이 없어야 합니다");
+        assertThat(violation.getMessage()).isEqualTo(expectedMessage);
     }
 
 

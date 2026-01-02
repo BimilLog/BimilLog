@@ -7,7 +7,6 @@ import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.global.out.GlobalAuthTokenSaveAdapter;
 import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
 import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
-import jaeik.bimillog.domain.global.out.GlobalSocialTokenCommandAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.out.MemberRepository;
@@ -47,7 +46,6 @@ class MemberOnboardingServiceTest extends BaseUnitTest {
     @Mock private GlobalJwtAdapter globalJwtAdapter;
     @Mock private GlobalAuthTokenSaveAdapter globalAuthTokenSaveAdapter;
     @Mock private MemberToAuthAdapter memberToAuthAdapter;
-    @Mock private GlobalSocialTokenCommandAdapter globalSocialTokenCommandAdapter;
 
     @InjectMocks private MemberOnboardingService onboardingService;
 
@@ -99,7 +97,7 @@ class MemberOnboardingServiceTest extends BaseUnitTest {
     @DisplayName("유효한 임시 데이터로 가입 성공") // "signup succeeds with valid temporary data"
     void shouldSignupWithValidTemporaryData() {
         given(redisMemberDataAdapter.getTempData("uuid-123")).willReturn(Optional.of(socialProfile));
-        given(globalSocialTokenCommandAdapter.save(any(SocialToken.class)))
+        given(memberToAuthAdapter.saveSocialToken(any(SocialToken.class)))
                 .willReturn(SocialToken.createSocialToken("access-token", "refresh-token"));
         given(memberRepository.save(any(Member.class))).willReturn(persistedMember);
         given(memberToAuthAdapter.saveAuthToken(any(AuthToken.class))).willReturn(persistedAuthToken);
@@ -111,7 +109,7 @@ class MemberOnboardingServiceTest extends BaseUnitTest {
 
         assertThat(result).isEqualTo(jwtCookies);
         verify(redisMemberDataAdapter).getTempData("uuid-123");
-        verify(globalSocialTokenCommandAdapter).save(any(SocialToken.class));
+        verify(memberToAuthAdapter).saveSocialToken(any(SocialToken.class));
         verify(memberRepository).save(any(Member.class));
         verify(memberToAuthAdapter).saveAuthToken(any(AuthToken.class));
 
@@ -144,7 +142,7 @@ class MemberOnboardingServiceTest extends BaseUnitTest {
     @DisplayName("가입 시 JWT 토큰 및 쿠키 발급") // "signup issues jwt tokens and cookies"
     void shouldGenerateJwtTokensAndCookiesOnSignup() {
         given(redisMemberDataAdapter.getTempData("uuid-123")).willReturn(Optional.of(socialProfile));
-        given(globalSocialTokenCommandAdapter.save(any(SocialToken.class)))
+        given(memberToAuthAdapter.saveSocialToken(any(SocialToken.class)))
                 .willReturn(SocialToken.createSocialToken("access-token", "refresh-token"));
         given(memberRepository.save(any(Member.class))).willReturn(persistedMember);
         given(memberToAuthAdapter.saveAuthToken(any(AuthToken.class))).willReturn(persistedAuthToken);

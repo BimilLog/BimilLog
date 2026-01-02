@@ -7,7 +7,6 @@ import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.global.out.GlobalAuthTokenSaveAdapter;
 import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
 import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
-import jaeik.bimillog.domain.global.out.GlobalSocialTokenCommandAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.out.MemberRepository;
@@ -31,14 +30,12 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class MemberOnboardingService {
-
     private final RedisMemberDataAdapter redisMemberDataAdapter;
     private final MemberRepository memberRepository;
     private final MemberToAuthAdapter memberToAuthAdapter;
     private final GlobalCookieAdapter globalCookieAdapter;
     private final GlobalJwtAdapter globalJwtAdapter;
     private final GlobalAuthTokenSaveAdapter globalAuthTokenSaveAdapter;
-    private final GlobalSocialTokenCommandAdapter globalSocialTokenCommandAdapter;
 
     /**
      * <h3>온보딩 대기 데이터 저장</h3>
@@ -74,7 +71,7 @@ public class MemberOnboardingService {
                     memberProfile.getAccessToken(),
                     memberProfile.getRefreshToken()
             );
-            SocialToken persistedSocialToken = globalSocialTokenCommandAdapter.save(initialSocialToken);
+            SocialToken persistedSocialToken = memberToAuthAdapter.saveSocialToken(initialSocialToken);
 
             Setting setting = Setting.createSetting();
             Member member = Member.createMember(

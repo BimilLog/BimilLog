@@ -7,6 +7,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -36,14 +39,17 @@ class CommentQueryServiceTest {
     @InjectMocks
     private CommentQueryService commentQueryService;
 
-    @Test
-    @DisplayName("인기 댓글 조회 - 사용자 정보가 있으면 ID 전달")
-    void shouldPassMemberIdForPopularComments() {
+    @ParameterizedTest(name = "memberId={0}")
+    @NullSource
+    @ValueSource(longs = {10L})
+    @DisplayName("인기 댓글 조회 - 로그인/비로그인")
+    void shouldHandlePopularComments(Long memberId) {
         // Given
         Long postId = 1L;
-        Long memberId = 10L;
-        CustomUserDetails userDetails = mock(CustomUserDetails.class);
-        given(userDetails.getMemberId()).willReturn(memberId);
+        CustomUserDetails userDetails = memberId != null ? mock(CustomUserDetails.class) : null;
+        if (userDetails != null) {
+            given(userDetails.getMemberId()).willReturn(memberId);
+        }
         given(commentQueryRepository.findPopularComments(postId, memberId)).willReturn(List.of());
 
         // When
@@ -54,30 +60,18 @@ class CommentQueryServiceTest {
         verify(commentQueryRepository).findPopularComments(postId, memberId);
     }
 
-    @Test
-    @DisplayName("인기 댓글 조회 - 사용자 정보가 없으면 null 전달")
-    void shouldPassNullForPopularCommentsWhenAnonymous() {
-        // Given
-        Long postId = 2L;
-        given(commentQueryRepository.findPopularComments(postId, null)).willReturn(List.of());
-
-        // When
-        List<CommentInfo> result = commentQueryService.getPopularComments(postId, null);
-
-        // Then
-        assertThat(result).isEmpty();
-        verify(commentQueryRepository).findPopularComments(postId, null);
-    }
-
-    @Test
-    @DisplayName("댓글 목록 조회 - 사용자 정보에 따라 ID 전달")
-    void shouldHandleOldestCommentsWithMemberId() {
+    @ParameterizedTest(name = "memberId={0}")
+    @NullSource
+    @ValueSource(longs = {20L})
+    @DisplayName("댓글 목록 조회 - 로그인/비로그인")
+    void shouldHandleComments(Long memberId) {
         // Given
         Long postId = 3L;
         PageRequest pageable = PageRequest.of(0, 10);
-        Long memberId = 20L;
-        CustomUserDetails userDetails = mock(CustomUserDetails.class);
-        given(userDetails.getMemberId()).willReturn(memberId);
+        CustomUserDetails userDetails = memberId != null ? mock(CustomUserDetails.class) : null;
+        if (userDetails != null) {
+            given(userDetails.getMemberId()).willReturn(memberId);
+        }
         Page<CommentInfo> expected = new PageImpl<>(List.of());
         given(commentQueryRepository.findComments(postId, pageable, memberId)).willReturn(expected);
 
@@ -87,22 +81,5 @@ class CommentQueryServiceTest {
         // Then
         assertThat(result).isEqualTo(expected);
         verify(commentQueryRepository).findComments(postId, pageable, memberId);
-    }
-
-    @Test
-    @DisplayName("댓글 목록 조회 - 사용자 정보 없으면 null 전달")
-    void shouldHandleOldestCommentsWithoutMemberId() {
-        // Given
-        Long postId = 4L;
-        PageRequest pageable = PageRequest.of(0, 5);
-        Page<CommentInfo> expected = Page.empty();
-        given(commentQueryRepository.findComments(postId, pageable, null)).willReturn(expected);
-
-        // When
-        Page<CommentInfo> result = commentQueryService.findComments(postId, pageable, null);
-
-        // Then
-        assertThat(result).isEqualTo(expected);
-        verify(commentQueryRepository).findComments(postId, pageable, null);
     }
 }

@@ -22,4 +22,8 @@ public class MemberToAuthAdapter {
     public AuthToken saveAuthToken(AuthToken authToken) {
         return authTokenService.save(authToken);
     }
+
+    public SocialToken saveSocialToken(SocialToken socialToken) {
+        return socialTokenService.save(socialToken);
+    }
 }

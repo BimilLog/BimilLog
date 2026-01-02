@@ -2,10 +2,9 @@ package jaeik.bimillog.domain.global.listener;
 
 import jaeik.bimillog.domain.admin.service.AdminCommandService;
 import jaeik.bimillog.domain.auth.service.AuthTokenService;
+import jaeik.bimillog.domain.auth.service.SocialTokenService;
 import jaeik.bimillog.domain.auth.service.SocialWithdrawService;
 import jaeik.bimillog.domain.comment.service.CommentCommandService;
-import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
-import jaeik.bimillog.domain.global.out.GlobalSocialTokenCommandAdapter;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.domain.member.service.MemberAccountService;
@@ -35,7 +34,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Slf4j
 public class MemberWithdrawListener {
-
     private final SocialWithdrawService socialWithdrawService;
     private final SseService sseService;
     private final NotificationCommandService notificationCommandUseCase;
@@ -45,10 +43,9 @@ public class MemberWithdrawListener {
     private final PaperCommandService paperCommandService;
     private final AdminCommandService adminCommandService;
     private final MemberAccountService memberAccountService;
-    private final GlobalSocialTokenCommandAdapter globalSocialTokenCommandAdapter;
+    private final SocialTokenService socialTokenService;
     private final RedisInteractionScoreRepository redisInteractionScoreRepository;
     private final RedisFriendshipRepository redisFriendshipRepository;
-    private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
 
     /**
      * <h3>사용자 탈퇴 이벤트 처리</h3>
@@ -99,7 +96,7 @@ public class MemberWithdrawListener {
         adminCommandService.anonymizeReporterByUserId(memberId);
 
         // 소셜 토큰 제거
-        globalSocialTokenCommandAdapter.deleteByMemberId(memberId);
+        socialTokenService.deleteByMemberId(memberId);
 
         // Redis 상호작용 테이블 정리 (SCAN 패턴 매칭 사용)
         try {

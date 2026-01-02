@@ -12,6 +12,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -31,9 +33,6 @@ import static org.mockito.Mockito.*;
  * <h2>BlacklistService 단위 테스트</h2>
  * <p>토큰 블랙리스트 서비스의 비즈니스 로직을 검증하는 단위 테스트</p>
  * <p>모든 외부 의존성을 모킹하여 순수한 비즈니스 로직만 테스트</p>
- *
- * @author Jaeik
- * @version 2.0.0
  */
 @DisplayName("BlacklistService 단위 테스트")
 @Tag("unit")
@@ -67,34 +66,19 @@ class BlacklistServiceTest extends BaseUnitTest {
         testAuthTokenList = createMultipleTokens(2);
     }
 
-    @Test
-    @DisplayName("토큰이 블랙리스트에 있는 경우 true 반환")
-    void shouldReturnTrue_WhenTokenIsBlacklisted() {
+    @ParameterizedTest(name = "블랙리스트={0}")
+    @ValueSource(booleans = {true, false})
+    @DisplayName("토큰 블랙리스트 여부 확인")
+    void shouldCheckBlacklist(boolean isBlacklisted) {
         // Given
         given(globalJwtAdapter.generateTokenHash(testTokenString)).willReturn(testTokenHash);
-        given(redisJwtBlacklistAdapter.isBlacklisted(testTokenHash)).willReturn(true);
+        given(redisJwtBlacklistAdapter.isBlacklisted(testTokenHash)).willReturn(isBlacklisted);
 
         // When
         boolean result = blacklistService.isBlacklisted(testTokenString);
 
         // Then
-        assertThat(result).isTrue();
-        verify(globalJwtAdapter).generateTokenHash(testTokenString);
-        verify(redisJwtBlacklistAdapter).isBlacklisted(testTokenHash);
-    }
-
-    @Test
-    @DisplayName("토큰이 블랙리스트에 없는 경우 false 반환")
-    void shouldReturnFalse_WhenTokenIsNotBlacklisted() {
-        // Given
-        given(globalJwtAdapter.generateTokenHash(testTokenString)).willReturn(testTokenHash);
-        given(redisJwtBlacklistAdapter.isBlacklisted(testTokenHash)).willReturn(false);
-
-        // When
-        boolean result = blacklistService.isBlacklisted(testTokenString);
-
-        // Then
-        assertThat(result).isFalse();
+        assertThat(result).isEqualTo(isBlacklisted);
         verify(globalJwtAdapter).generateTokenHash(testTokenString);
         verify(redisJwtBlacklistAdapter).isBlacklisted(testTokenHash);
     }

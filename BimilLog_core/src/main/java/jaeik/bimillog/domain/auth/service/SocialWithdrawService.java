@@ -16,10 +16,8 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @RequiredArgsConstructor
 public class SocialWithdrawService {
-
     private final SocialStrategyAdapter socialStrategyAdapter;
     private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
-
 
     /**
      * <h3>소셜 계정 연동 해제</h3>
@@ -30,8 +28,6 @@ public class SocialWithdrawService {
      * @param provider 연동 해제할 소셜 플랫폼 제공자
      * @param socialId 소셜 플랫폼에서의 사용자 고유 ID
      * @param memberId 사용자 ID (소셜 토큰 조회용)
-     * @author Jaeik
-     * @since 2.0.0
      */
     public void unlinkSocialAccount(SocialProvider provider, String socialId, Long memberId) {
         log.info("소셜 연결 해제 시작 - 제공자: {}, 소셜 ID: {}, 회원 ID: {}", provider, socialId, memberId);

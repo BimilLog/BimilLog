@@ -42,8 +42,6 @@ public class SocialToken extends BaseEntity {
      * @param accessToken 소셜 플랫폼 액세스 토큰
      * @param refreshToken 소셜 플랫폼 리프레시 토큰
      * @return 생성된 SocialToken 엔티티
-     * @author Jaeik
-     * @since 2.0.0
      */
     public static SocialToken createSocialToken(String accessToken, String refreshToken) {
         return SocialToken.builder()

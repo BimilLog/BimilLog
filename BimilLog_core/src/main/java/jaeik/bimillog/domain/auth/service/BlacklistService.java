@@ -33,12 +33,12 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class BlacklistService {
-    private static final Duration DEFAULT_TTL = Duration.ofHours(1);
-
     private final GlobalJwtAdapter globalJwtAdapter;
     private final RedisJwtBlacklistAdapter redisJwtBlacklistAdapter;
     private final GlobalAuthTokenQueryAdapter globalAuthTokenQueryAdapter;
     private final BlackListRepository blackListRepository;
+
+    private static final Duration DEFAULT_TTL = Duration.ofHours(1);
 
     /**
      * <h3>JWT 토큰 블랙리스트 검증</h3>
@@ -48,8 +48,6 @@ public class BlacklistService {
      *
      * @param token 검증할 JWT 토큰 문자열
      * @return 블랙리스트에 등록된 토큰이면 true, 정상 토큰이면 false
-     * @author Jaeik
-     * @since 2.0.0
      */
     public boolean isBlacklisted(String token) {
         try {
@@ -69,13 +67,11 @@ public class BlacklistService {
 
     /**
      * <h3>사용자 전체 토큰 블랙리스트 등록</h3>
-     * <p>특정 사용자가 보유한 모든 활성 JWT 토큰을 블랙리스트에 등록합니다.</p>
+     * <p>특정 사용자가 보유한 모든 AuthToken 토큰을 블랙리스트에 등록합니다.</p>
      * <p>사용자 계정 정지, 보안 위반, 강제 로그아웃 처리 시 모든 세션을 무효화합니다.</p>
      * <p>{@link MemberWithdrawnEvent}, {@link MemberBannedEvent} 이벤트 발생 시 토큰 무효화를 위해 호출됩니다.</p>
      *
      * @param memberId 토큰을 차단할 사용자 ID
-     * @author Jaeik
-     * @since 2.0.0
      */
     public void blacklistAllUserTokens(Long memberId) {
         try {
@@ -117,8 +113,6 @@ public class BlacklistService {
      * <p>사용자 ID를 기반으로 사용자를 조회하고 해당 사용자의 소셜 정보로 블랙리스트에 추가합니다.</p>
      *
      * @param memberId 블랙리스트에 추가할 사용자 ID
-     * @since 2.0.0
-     * @author Jaeik
      */
     @Transactional
     public void addToBlacklist(Long memberId, String socialId, SocialProvider provider) {
@@ -132,8 +126,4 @@ public class BlacklistService {
                     memberId, socialId);
         }
     }
-
-
-
-
 }

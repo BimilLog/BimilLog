@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
  *
  *
  * @author Jaeik
- * @since 2.1.0
+ * @version  2.1.0
  */
 @Entity
 @SuperBuilder
@@ -54,15 +54,12 @@ public class AuthToken extends BaseEntity {
     private String fcmRegistrationToken;
 
     /**
-     * <h3>JWT 토큰 생성</h3>
-     * <p>사용자와 JWT 리프레시 토큰으로 AuthToken 엔티티를 생성합니다.</p>
+     * <h3>AuthToken 생성</h3>
      * <p>사용 횟수는 0으로 초기화됩니다.</p>
      *
      * @param jwtRefreshToken JWT 리프레시 토큰
      * @param member 사용자 엔티티
      * @return 생성된 AuthToken 엔티티
-     * @author Jaeik
-     * @since 2.0.0
      */
     public static AuthToken createToken(String jwtRefreshToken, Member member) {
         return AuthToken.builder()
@@ -78,8 +75,6 @@ public class AuthToken extends BaseEntity {
      * <p>사용 횟수를 0으로 초기화하고 마지막 사용 시각을 현재 시각으로 업데이트합니다.</p>
      *
      * @param newJwtRefreshToken 새로운 JWT 리프레시 토큰
-     * @author Jaeik
-     * @since 2.0.0
      */
     public void updateJwtRefreshToken(String newJwtRefreshToken) {
         this.refreshToken = newJwtRefreshToken;
@@ -90,11 +85,9 @@ public class AuthToken extends BaseEntity {
     /**
      * <h3>FCM Registration Token 업데이트</h3>
      * <p>사용자가 알림 권한을 허용한 후 FCM 토큰을 등록할 때 호출됩니다.</p>
-     * <p>NULL 설정 가능: 알림 권한 거부 또는 FCM 미지원 환경에서 NULL로 설정 가능</p>
+     * <p>FCM 미지원 환경에서 NULL로 설정 가능</p>
      *
      * @param fcmToken Firebase Cloud Messaging Registration Token (NULL 허용)
-     * @author Jaeik
-     * @since 2.1.0
      */
     public void updateFcmToken(String fcmToken) {
         this.fcmRegistrationToken = fcmToken;
