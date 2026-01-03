@@ -34,7 +34,6 @@ jobs:
           wget https://github.com/scouter-project/scouter/releases/download/v2.20.0/scouter-all-2.20.0.tar.gz
           tar -xzf scouter-all-2.20.0.tar.gz
           cp scouter/agent.java/scouter.agent.jar ./
-          cp scouter/agent.java/scouter.min.jar ./
           rm -rf scouter scouter-all-2.20.0.tar.gz
           sed -i "s/net_collector_ip=127.0.0.1/net_collector_ip=${{ secrets.BASTION_HOST }}/" conf/scouter.conf
 
