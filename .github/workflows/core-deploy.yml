@@ -28,6 +28,16 @@ jobs:
           mkdir -p BimilLog_core/src/main/resources/firebase
           echo "${{ secrets.FIREBASE_ADMIN_JSON }}" | base64 -d > BimilLog_core/src/main/resources/firebase/growfarm-6cd79-firebase-adminsdk-fbsvc-ad2bc92194.json
 
+      - name: Download and setup Scouter Agent
+        run: |
+          cd BimilLog_core/scouter-agent
+          wget https://github.com/scouter-project/scouter/releases/download/v2.20.0/scouter-all-2.20.0.tar.gz
+          tar -xzf scouter-all-2.20.0.tar.gz
+          cp scouter/agent.java/scouter.agent.jar ./
+          cp scouter/agent.java/scouter.min.jar ./
+          rm -rf scouter scouter-all-2.20.0.tar.gz
+          sed -i "s/net_collector_ip=127.0.0.1/net_collector_ip=${{ secrets.BASTION_HOST }}/" conf/scouter.conf
+
       - name: Log in to Docker Hub
         run: echo "${DOCKERHUB_PASSWORD}" | docker login -u "${DOCKERHUB_USERNAME}" --password-stdin
 
