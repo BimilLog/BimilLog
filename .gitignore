@@ -59,6 +59,9 @@ BimilLog_core/report.html
 BimilLog_core/report.json
 BimilLog_core/flyway.toml
 
+# Scouter Agent (binary files)
+BimilLog_core/scouter-agent/*.jar
+
 # ====================
 # BimilLog_front (Frontend)
 # ====================
