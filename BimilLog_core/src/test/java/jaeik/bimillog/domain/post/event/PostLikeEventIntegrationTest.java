@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.post.event;
 
+import jaeik.bimillog.infrastructure.redis.post.RedisDetailPostStoreAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostStoreAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostStoreAdapter;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -24,7 +24,7 @@ import static org.mockito.Mockito.*;
 public class PostLikeEventIntegrationTest extends BaseEventIntegrationTest {
 
     @MockitoBean
-    private RedisTier2PostStoreAdapter redisTier2PostStoreAdapter;
+    private RedisDetailPostStoreAdapter redisDetailPostStoreAdapter;
 
     @MockitoBean
     private RedisRealTimePostStoreAdapter redisRealTimePostStoreAdapter;
@@ -40,7 +40,7 @@ public class PostLikeEventIntegrationTest extends BaseEventIntegrationTest {
         // When & Then
         publishAndVerify(event, () -> {
             verify(redisRealTimePostStoreAdapter).incrementRealtimePopularScore(eq(1L), eq(LIKE_SCORE));
-            verifyNoMoreInteractions(redisRealTimePostStoreAdapter);
+            verify(redisDetailPostStoreAdapter).deleteSinglePostCache(eq(1L));
         });
     }
 
@@ -60,7 +60,9 @@ public class PostLikeEventIntegrationTest extends BaseEventIntegrationTest {
             verify(redisRealTimePostStoreAdapter).incrementRealtimePopularScore(eq(1L), eq(LIKE_SCORE));
             verify(redisRealTimePostStoreAdapter).incrementRealtimePopularScore(eq(2L), eq(LIKE_SCORE));
             verify(redisRealTimePostStoreAdapter).incrementRealtimePopularScore(eq(3L), eq(LIKE_SCORE));
-            verifyNoMoreInteractions(redisRealTimePostStoreAdapter);
+            verify(redisDetailPostStoreAdapter).deleteSinglePostCache(eq(1L));
+            verify(redisDetailPostStoreAdapter).deleteSinglePostCache(eq(2L));
+            verify(redisDetailPostStoreAdapter).deleteSinglePostCache(eq(3L));
         });
     }
 
@@ -77,7 +79,7 @@ public class PostLikeEventIntegrationTest extends BaseEventIntegrationTest {
         publishEvents(events);
         verifyAsync(() -> {
             verify(redisRealTimePostStoreAdapter, times(3)).incrementRealtimePopularScore(eq(1L), eq(LIKE_SCORE));
-            verifyNoMoreInteractions(redisRealTimePostStoreAdapter);
+            verify(redisDetailPostStoreAdapter, times(3)).deleteSinglePostCache(eq(1L));
         });
     }
 

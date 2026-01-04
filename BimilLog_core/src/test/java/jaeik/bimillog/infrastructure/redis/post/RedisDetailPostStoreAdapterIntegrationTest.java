@@ -1,6 +1,5 @@
 package jaeik.bimillog.infrastructure.redis.post;
 
-import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.testutil.RedisTestHelper;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,15 +12,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.time.Duration;
 import java.time.Instant;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * <h2>RedisPostSaveAdapter 통합 테스트</h2>
- * <p>로컬 Redis 환경에서 게시글 캐시 저장 어댑터의 핵심 기능을 검증합니다.</p>
+ * <h2>RedisDetailPostStoreAdapter 통합 테스트</h2>
+ * <p>로컬 Redis 환경에서 게시글 상세 캐시 어댑터의 핵심 기능을 검증합니다.</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -30,10 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ActiveProfiles("local-integration")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Tag("local-integration")
-class RedisPostSaveAdapterIntegrationTest {
-
-    @Autowired
-    private RedisTier2PostStoreAdapter redisTier2PostStoreAdapter;
+class RedisDetailPostStoreAdapterIntegrationTest {
 
     @Autowired
     private RedisDetailPostStoreAdapter redisDetailPostStoreAdapter;
@@ -64,26 +60,37 @@ class RedisPostSaveAdapterIntegrationTest {
     }
 
     @Test
-    @DisplayName("정상 케이스 - 인기글 postId 영구 저장소 저장 (post:weekly:postids)")
-    void shouldCachePostIdsOnly_WhenValidPostsProvided() {
-        // Given
-        List<Long> postIds = List.of(1L, 2L, 3L);
-        PostCacheFlag cacheType = PostCacheFlag.WEEKLY;
-        String storageKey = RedisPostKeys.getPostIdsStorageKey(cacheType);  // postId 영구 저장소 (Sorted Set)
+    @DisplayName("정상 케이스 - 캐시된 게시글 상세 조회")
+    void shouldReturnPostDetail_WhenCachedPostExists() {
+        // Given: RedisTemplate로 직접 저장
+        String cacheKey = RedisTestHelper.RedisKeys.postDetail(1L);
+        redisTemplate.opsForValue().set(cacheKey, testPostDetail, Duration.ofMinutes(5));
 
-        // When
-        redisTier2PostStoreAdapter.cachePostIdsOnly(cacheType, postIds);
+        // When: 상세 캐시 조회
+        PostDetail result = redisDetailPostStoreAdapter.getCachedPostIfExists(1L);
 
-        // Then: Sorted Set에 실제로 저장되었는지 확인
-        Long size = redisTemplate.opsForZSet().size(storageKey);
-        assertThat(size).isEqualTo(3);
-        assertThat(redisTemplate.opsForZSet().score(storageKey, "1")).isNotNull();
-        assertThat(redisTemplate.opsForZSet().score(storageKey, "2")).isNotNull();
-        assertThat(redisTemplate.opsForZSet().score(storageKey, "3")).isNotNull();
+        // Then: 저장한 데이터와 동일한 데이터 조회됨
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(1L);
+        assertThat(result.getTitle()).isEqualTo("캐시된 게시글");
+        assertThat(result.getContent()).isEqualTo("캐시된 내용");
+        assertThat(result.getViewCount()).isEqualTo(100);
+        assertThat(result.getLikeCount()).isEqualTo(50);
+        assertThat(result.getCommentCount()).isEqualTo(10);
+        assertThat(result.getMemberName()).isEqualTo("testMember");
+    }
 
-        // TTL 확인 (1일 = 86400초)
-        Long ttl = redisTemplate.getExpire(storageKey, TimeUnit.SECONDS);
-        assertThat(ttl).isBetween(86390L, 86400L);
+    @Test
+    @DisplayName("경계값 - 캐시되지 않은 게시글 조회 시 null 반환")
+    void shouldReturnNull_WhenPostNotCached() {
+        // Given: 캐시되지 않은 게시글 ID
+        Long nonExistentPostId = 999L;
+
+        // When: 조회 시도
+        PostDetail result = redisDetailPostStoreAdapter.getCachedPostIfExists(nonExistentPostId);
+
+        // Then: null 반환
+        assertThat(result).isNull();
     }
 
     @Test
@@ -92,7 +99,7 @@ class RedisPostSaveAdapterIntegrationTest {
         // Given
         String cacheKey = RedisTestHelper.RedisKeys.postDetail(testPostDetail.getId());
 
-        // When
+        // When: 상세 캐시 저장
         redisDetailPostStoreAdapter.cachePostDetail(testPostDetail);
 
         // Then: 캐시 키가 존재하는지 확인
@@ -103,7 +110,7 @@ class RedisPostSaveAdapterIntegrationTest {
         Long ttl = redisTemplate.getExpire(cacheKey, TimeUnit.SECONDS);
         assertThat(ttl).isBetween(290L, 300L);
 
-        // RedisTemplate로 직접 조회하여 검증 (QueryAdapter 의존성 제거)
+        // RedisTemplate로 직접 조회하여 검증
         Object cached = redisTemplate.opsForValue().get(cacheKey);
         assertThat(cached).isNotNull();
         assertThat(cached).isInstanceOf(PostDetail.class);
@@ -117,17 +124,17 @@ class RedisPostSaveAdapterIntegrationTest {
     }
 
     @Test
-    @DisplayName("경계값 - 빈 목록으로 postId 저장 시도")
-    void shouldHandleEmptyList_WhenCachingPostIdsOnly() {
-        // Given
-        List<Long> emptyPostIds = List.of();
-        PostCacheFlag cacheType = PostCacheFlag.WEEKLY;
-        String storageKey = RedisPostKeys.getPostIdsStorageKey(cacheType);
+    @DisplayName("정상 케이스 - 단일 게시글 캐시 삭제")
+    void shouldDeleteSinglePostCache_WhenPostIdProvided() {
+        // Given: 게시글 상세 캐시 저장
+        redisDetailPostStoreAdapter.cachePostDetail(testPostDetail);
+        String cacheKey = RedisTestHelper.RedisKeys.postDetail(testPostDetail.getId());
+        assertThat(redisTemplate.hasKey(cacheKey)).isTrue();
 
-        // When: 빈 목록으로 저장 (아무 동작도 하지 않아야 함)
-        redisTier2PostStoreAdapter.cachePostIdsOnly(cacheType, emptyPostIds);
+        // When: 단일 게시글 캐시 삭제
+        redisDetailPostStoreAdapter.deleteSinglePostCache(testPostDetail.getId());
 
-        // Then: 저장소 키가 생성되지 않음
-        assertThat(redisTemplate.hasKey(storageKey)).isFalse();
+        // Then: 캐시가 삭제됨
+        assertThat(redisTemplate.hasKey(cacheKey)).isFalse();
     }
 }

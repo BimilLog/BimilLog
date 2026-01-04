@@ -15,6 +15,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * <h2>마이페이지 컨트롤러</h2>
+ * <p>BFF방식의 컨트롤러</p>
+ * @author Jaeik
+ * @version 2.3.0
+ */
 @Log(level = Log.LogLevel.INFO,
         logExecutionTime = true,
         logParams = false,
@@ -26,13 +32,14 @@ public class MyPageController {
     private final CommentQueryService commentQueryService;
     private final PostQueryService postQueryService;
 
+    /**
+     * <h3>마이페이지 조회 API</h3>
+     * <p>BFF방식의 API로 기존 4개의 API를 하나로 합쳤습니다.</p>
+     */
     @GetMapping("/")
-    public ResponseEntity<MyPageDTO> getMyPageInfo(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                                   Pageable pageable) {
-
+    public ResponseEntity<MyPageDTO> getMyPageInfo(@AuthenticationPrincipal CustomUserDetails userDetails, Pageable pageable) {
         MemberActivityComment memberActivityComment = commentQueryService.getMemberActivityComments(userDetails.getMemberId(), pageable);
         MemberActivityPost memberActivityPost = postQueryService.getMemberActivityPosts(userDetails.getMemberId(), pageable);
-
         MyPageDTO myPageDTO = MyPageDTO.from(memberActivityComment, memberActivityPost);
         return ResponseEntity.ok(myPageDTO);
     }

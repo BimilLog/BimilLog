@@ -35,20 +35,12 @@ public class FcmAdapter {
      * <p>NotificationGenerateListener에서 도메인 이벤트 처리 시 호출되어 실시간 알림을 제공합니다.</p>
      *
      * @throws IOException Firebase API 호출 중 발생할 수 있는 IO 예외
-     * @author Jaeik
-     * @since 2.0.0
      */
     public void sendMessageTo(String token, String title, String body) throws IOException {
         FcmMessageDTO fcmMessageDto = createFcmMessageDTO(token, title, body);
         String accessToken = getAccessToken();
         
-        fcmApiClient.sendMessage(
-                BEARER_PREFIX + accessToken,
-                MediaType.APPLICATION_JSON_VALUE,
-                fcmMessageDto
-        );
-
-        log.info("fcmMessage.token() = {}, accessToken = {}", token, accessToken);
+        fcmApiClient.sendMessage(BEARER_PREFIX + accessToken, MediaType.APPLICATION_JSON_VALUE, fcmMessageDto);
     }
 
     /**
@@ -57,8 +49,6 @@ public class FcmAdapter {
      *
      * @return FCM API 호출에 사용될 액세스 토큰
      * @throws IOException Firebase 구성 파일 읽기 중 발생할 수 있는 IO 예외
-     * @author Jaeik
-     * @since 2.0.0
      */
     private String getAccessToken() throws IOException {
         GoogleCredentials googleCredentials = GoogleCredentials
@@ -75,17 +65,12 @@ public class FcmAdapter {
      * <p>DTO에서 필드 검증 및 기본값 처리가 완료되므로 단순 변환 작업만 수행합니다.</p>
      *
      * @return FcmMessageDTO FCM API로 전송할 메시지 DTO
-     * @author Jaeik
-     * @since 2.0.0
      */
     private FcmMessageDTO createFcmMessageDTO(String token, String title, String body) {
         return FcmMessageDTO.builder()
                 .message(FcmMessageDTO.Message.builder()
                         .token(token)
-                        .notification(FcmMessageDTO.Notification.of(
-                                title,
-                                body,
-                                null))
+                        .notification(FcmMessageDTO.Notification.of(title, body, null))
                         .build())
                 .validateOnly(false)
                 .build();

@@ -37,8 +37,6 @@ public enum ErrorCode {
     AUTH_INVALID_USER_DATA(HttpStatus.BAD_REQUEST, "사용자 데이터가 유효하지 않습니다.", LogLevel.WARN),
     AUTH_INVALID_TOKEN_DATA(HttpStatus.BAD_REQUEST, "토큰 데이터가 유효하지 않습니다.", LogLevel.WARN),
     SOCIAL_TOKEN_NOT_FOUNT(HttpStatus.FORBIDDEN, "소셜 토큰을 찾을 수 없습니다", LogLevel.ERROR),
-    NOTIFICATION_NO_SEND_FCM_TOKEN(HttpStatus.BAD_REQUEST, "fcm토큰이 없습니다.", LogLevel.WARN),
-    NOTIFICATION_INVALID_AUTH_TOKEN(HttpStatus.FORBIDDEN, "본인의 AuthToken에만 FCM 토큰을 등록할 수 있습니다.", LogLevel.WARN),
 
     // ===== Comment 도메인 에러 코드 =====
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 댓글을 찾을 수 없습니다.", LogLevel.INFO),
@@ -74,7 +72,6 @@ public enum ErrorCode {
     POST_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 게시글이 존재하지 않습니다.", LogLevel.INFO),
     POST_BLANK_PASSWORD(HttpStatus.BAD_REQUEST, "비회원은 글을 수정/삭제 할 시 비밀번호를 입력해야 합니다.", LogLevel.WARN),
     POST_FORBIDDEN(HttpStatus.FORBIDDEN, "권한이 없습니다.", LogLevel.WARN),
-    POST_REDIS_WRITE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "레디스 작성 중 오류가 발생했습니다.", LogLevel.ERROR),
     POST_REDIS_READ_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "레디스 읽기 중 오류가 발생했습니다.", LogLevel.ERROR),
     POST_REDIS_DELETE_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "레디스 삭제 중 오류가 발생했습니다.", LogLevel.ERROR),
     POST_REDIS_REALTIME_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "실시간 인기 조회 중 오류가 발생했습니다.", LogLevel.ERROR),

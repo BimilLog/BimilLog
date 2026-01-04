@@ -4,6 +4,8 @@ import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
+import jaeik.bimillog.domain.post.out.PostQueryRepository;
+import jaeik.bimillog.domain.post.out.PostToCommentAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostStoreAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisTier1PostStoreAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostStoreAdapter;
@@ -20,9 +22,11 @@ import org.springframework.context.ApplicationEventPublisher;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
@@ -48,9 +52,11 @@ class PostScheduledServiceTest {
     @Mock
     private RedisRealTimePostStoreAdapter redisRealTimePostStoreAdapter;
 
+    @Mock
+    private PostQueryRepository postQueryRepository;
 
     @Mock
-    private PostQueryService postQueryService;
+    private PostToCommentAdapter postToCommentAdapter;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -81,7 +87,8 @@ class PostScheduledServiceTest {
         PostSimpleDetail post2 = createPostSimpleDetail(2L, "주간인기글2", 2L);
         List<PostSimpleDetail> posts = List.of(post1, post2);
 
-        given(postQueryService.getWeeklyPopularPosts()).willReturn(posts);
+        given(postQueryRepository.findWeeklyPopularPosts()).willReturn(posts);
+        given(postToCommentAdapter.findCommentCountsByPostIds(List.of(1L, 2L))).willReturn(Map.of(1L, 0, 2L, 0));
 
         // When
         postScheduledService.updateWeeklyPopularPosts();
@@ -111,7 +118,8 @@ class PostScheduledServiceTest {
         PostSimpleDetail userPost = createPostSimpleDetail(2L, "회원글", 2L);
         List<PostSimpleDetail> posts = List.of(anonymousPost, userPost);
 
-        given(postQueryService.getWeeklyPopularPosts()).willReturn(posts);
+        given(postQueryRepository.findWeeklyPopularPosts()).willReturn(posts);
+        given(postToCommentAdapter.findCommentCountsByPostIds(List.of(1L, 2L))).willReturn(Map.of(1L, 0, 2L, 0));
 
         // When
         postScheduledService.updateWeeklyPopularPosts();
@@ -137,7 +145,8 @@ class PostScheduledServiceTest {
         PostSimpleDetail legendPost = createPostSimpleDetail(1L, "전설의글", 1L);
         List<PostSimpleDetail> posts = List.of(legendPost);
 
-        given(postQueryService.getLegendaryPosts()).willReturn(posts);
+        given(postQueryRepository.findLegendaryPosts()).willReturn(posts);
+        given(postToCommentAdapter.findCommentCountsByPostIds(List.of(1L))).willReturn(Map.of(1L, 0));
 
         // When
         postScheduledService.updateLegendaryPosts();
@@ -162,13 +171,13 @@ class PostScheduledServiceTest {
     @DisplayName("전설의 게시글 업데이트 - 게시글 목록 비어있는 경우")
     void shouldUpdateLegendaryPosts_WhenPostListIsEmpty() {
         // Given
-        given(postQueryService.getLegendaryPosts()).willReturn(Collections.emptyList());
+        given(postQueryRepository.findLegendaryPosts()).willReturn(Collections.emptyList());
 
         // When
         postScheduledService.updateLegendaryPosts();
 
         // Then
-        verify(postQueryService).getLegendaryPosts();
+        verify(postQueryRepository).findLegendaryPosts();
 
         // 게시글이 없으면 캐시 및 이벤트 발행 안함
         verify(redisTier1PostStoreAdapter, never()).clearPostListCache(any());
@@ -182,8 +191,8 @@ class PostScheduledServiceTest {
     @DisplayName("스케줄링 메서드들의 트랜잭션 동작 검증")
     void shouldVerifyTransactionalBehavior() {
         // Given
-        given(postQueryService.getWeeklyPopularPosts()).willReturn(Collections.emptyList());
-        given(postQueryService.getLegendaryPosts()).willReturn(Collections.emptyList());
+        given(postQueryRepository.findWeeklyPopularPosts()).willReturn(Collections.emptyList());
+        given(postQueryRepository.findLegendaryPosts()).willReturn(Collections.emptyList());
 
         // When - 모든 스케줄링 메서드 호출
         postScheduledService.applyRealtimeScoreDecay();
@@ -192,8 +201,8 @@ class PostScheduledServiceTest {
 
         // Then - @Transactional 동작을 위한 port 호출 검증
         verify(redisRealTimePostStoreAdapter).applyRealtimePopularScoreDecay();
-        verify(postQueryService).getWeeklyPopularPosts();
-        verify(postQueryService).getLegendaryPosts();
+        verify(postQueryRepository).findWeeklyPopularPosts();
+        verify(postQueryRepository).findLegendaryPosts();
     }
 
     @Test
@@ -202,7 +211,8 @@ class PostScheduledServiceTest {
         // Given - 대량의 게시글 생성 (100개)
         List<PostSimpleDetail> largePosts = createLargePostList(100);
 
-        given(postQueryService.getWeeklyPopularPosts()).willReturn(largePosts);
+        given(postQueryRepository.findWeeklyPopularPosts()).willReturn(largePosts);
+        given(postToCommentAdapter.findCommentCountsByPostIds(anyList())).willReturn(Collections.emptyMap());
 
         // When
         postScheduledService.updateWeeklyPopularPosts();

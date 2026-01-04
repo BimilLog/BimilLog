@@ -41,7 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <p>DB: bimillogTest (local-integration 프로파일)</p>
  *
  * @author Jaeik
- * @version 1.0.0
+ * @version 2.2.0
  */
 // 추천 친구 조회는 원래 이벤트로 발생되어 미리 저장된 레디스의 친구목록테이블과 상호작용테이블을 활용한다.
 // 따라서 테스트전 이벤트를 발생시키거나 레디스에 저장하여 레디스에 데이터를 만들어두어야한다.

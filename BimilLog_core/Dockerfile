@@ -1,3 +1,4 @@
+# 로컬 테스트용 도커 파일
 # Stage 1: Build
 FROM gradle:8.5-jdk21 AS builder
 

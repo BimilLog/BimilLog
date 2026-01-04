@@ -52,8 +52,6 @@ public class GlobalExceptionHandler {
                 case INFO -> log.info(logMessage, e.getErrorCode().name(), e.getMessage(), e);
                 case WARN -> log.warn(logMessage, e.getErrorCode().name(), e.getMessage(), e);
                 case ERROR -> log.error(logMessage, e.getErrorCode().name(), e.getMessage(), e);
-                case FATAL ->
-                    log.error("FATAL - " + logMessage, e.getErrorCode().name(), e.getMessage(), e);
             }
         } else {
             // ErrorCode가 없는 경우 기본적으로 ERROR 레벨로 로깅

@@ -487,40 +487,4 @@ class PostQueryServiceTest extends BaseUnitTest {
         verify(postQueryRepository).findLikedPostsByMemberId(memberId, pageable);
     }
 
-    @Test
-    @DisplayName("주간 인기 게시글 조회 시 댓글 수가 주입된다")
-    void shouldInjectCommentCountsForWeeklyPosts() {
-        // Given
-        PostSimpleDetail weeklyPost = PostTestDataBuilder.createPostSearchResult(1L, "주간 인기");
-        given(postQueryRepository.findWeeklyPopularPosts()).willReturn(List.of(weeklyPost));
-        given(postToCommentAdapter.findCommentCountsByPostIds(List.of(1L)))
-                .willReturn(Map.of(1L, 7));
-
-        // When
-        List<PostSimpleDetail> result = postQueryService.getWeeklyPopularPosts();
-
-        // Then
-        assertThat(result).hasSize(1);
-        assertThat(result.getFirst().getCommentCount()).isEqualTo(7);
-        verify(postToCommentAdapter).findCommentCountsByPostIds(List.of(1L));
-    }
-
-    @Test
-    @DisplayName("레전드 게시글 조회 시 댓글 수가 주입된다")
-    void shouldInjectCommentCountsForLegendaryPosts() {
-        // Given
-        PostSimpleDetail legendaryPost = PostTestDataBuilder.createPostSearchResult(10L, "레전드");
-        given(postQueryRepository.findLegendaryPosts()).willReturn(List.of(legendaryPost));
-        given(postToCommentAdapter.findCommentCountsByPostIds(List.of(10L)))
-                .willReturn(Map.of(10L, 3));
-
-        // When
-        List<PostSimpleDetail> result = postQueryService.getLegendaryPosts();
-
-        // Then
-        assertThat(result).hasSize(1);
-        assertThat(result.getFirst().getCommentCount()).isEqualTo(3);
-        verify(postToCommentAdapter).findCommentCountsByPostIds(List.of(10L));
-    }
-
 }

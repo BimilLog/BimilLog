@@ -28,9 +28,6 @@ public class PostViewedEventIntegrationTest extends BaseEventIntegrationTest {
     private PostInteractionService postInteractionService;
 
     @MockitoBean
-    private RedisTier2PostStoreAdapter redisTier2PostStoreAdapter;
-
-    @MockitoBean
     private RedisRealTimePostStoreAdapter redisRealTimePostStoreAdapter;
 
     private static final double VIEW_SCORE = 2.0;

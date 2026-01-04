@@ -25,8 +25,6 @@ public interface FcmApiClient {
      * @param authorization Bearer 토큰 (형식: "Bearer {accessToken}")
      * @param contentType   Content-Type 헤더 (application/json)
      * @param message       FCM 메시지 DTO
-     * @author Jaeik
-     * @since 2.0.0
      */
     @PostMapping(value = "/v1/projects/growfarm-6cd79/messages:send", 
                  consumes = MediaType.APPLICATION_JSON_VALUE,
