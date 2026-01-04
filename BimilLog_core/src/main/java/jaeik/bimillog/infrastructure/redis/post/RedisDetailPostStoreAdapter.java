@@ -20,7 +20,7 @@ import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.getPostDeta
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class RedisPostDetailStoreAdapter {
+public class RedisDetailPostStoreAdapter {
     private final RedisTemplate<String, Object> redisTemplate;
 
     /**

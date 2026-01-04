@@ -32,16 +32,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 class RedisPostDeleteAdapterIntegrationTest {
 
     @Autowired
-    private RedisPostTier1StoreAdapter redisPostTier1StoreAdapter;
+    private RedisTier1PostStoreAdapter redisTier1PostStoreAdapter;
 
     @Autowired
-    private RedisPostDetailStoreAdapter redisPostDetailStoreAdapter;
+    private RedisDetailPostStoreAdapter redisDetailPostStoreAdapter;
 
     @Autowired
-    private RedisPostTier2StoreAdapter redisPostTier2StoreAdapter;
+    private RedisTier2PostStoreAdapter redisTier2PostStoreAdapter;
 
     @Autowired
-    private RealTimePostStoreAdapter realTimePostStoreAdapter;
+    private RedisRealTimePostStoreAdapter redisRealTimePostStoreAdapter;
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
@@ -72,12 +72,12 @@ class RedisPostDeleteAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 단일 게시글 캐시 삭제")
     void shouldDeleteSinglePostCache_WhenPostIdProvided() {
         // Given: 게시글 상세 캐시 저장
-        redisPostDetailStoreAdapter.cachePostDetail(testPostDetail);
+        redisDetailPostStoreAdapter.cachePostDetail(testPostDetail);
         String cacheKey = RedisTestHelper.RedisKeys.postDetail(testPostDetail.getId());
         assertThat(redisTemplate.hasKey(cacheKey)).isTrue();
 
         // When: 단일 게시글 캐시 삭제
-        redisPostDetailStoreAdapter.deleteSinglePostCache(testPostDetail.getId());
+        redisDetailPostStoreAdapter.deleteSinglePostCache(testPostDetail.getId());
 
         // Then: 캐시가 삭제됨
         assertThat(redisTemplate.hasKey(cacheKey)).isFalse();
@@ -97,7 +97,7 @@ class RedisPostDeleteAdapterIntegrationTest {
         assertThat(score).isEqualTo(100.0);
 
         // When: removePostIdFromRealtimeScore() 호출
-        realTimePostStoreAdapter.removePostIdFromRealtimeScore(postId);
+        redisRealTimePostStoreAdapter.removePostIdFromRealtimeScore(postId);
 
         // Then: Sorted Set에서 제거됨 확인
         Double scoreAfter = redisTemplate.opsForZSet().score(scoreKey, postId.toString());
@@ -119,7 +119,7 @@ class RedisPostDeleteAdapterIntegrationTest {
         assertThat(redisTemplate.opsForHash().size(hashKey)).isEqualTo(2);
 
         // When: clearPostListCache() 호출
-        redisPostTier1StoreAdapter.clearPostListCache(type);
+        redisTier1PostStoreAdapter.clearPostListCache(type);
 
         // Then: Hash 전체가 삭제됨 확인
         assertThat(redisTemplate.hasKey(hashKey)).isFalse();
@@ -147,7 +147,7 @@ class RedisPostDeleteAdapterIntegrationTest {
         assertThat(redisTemplate.opsForHash().hasKey(weeklyKey, postId.toString())).isTrue();
 
         // When: removePostFromListCache() 호출 (모든 타입에서 제거)
-        redisPostTier1StoreAdapter.removePostFromListCache(postId);
+        redisTier1PostStoreAdapter.removePostFromListCache(postId);
 
         // Then: 모든 Hash에서 필드가 삭제됨 확인
         assertThat(redisTemplate.opsForHash().hasKey(realtimeKey, postId.toString())).isFalse();
@@ -178,7 +178,7 @@ class RedisPostDeleteAdapterIntegrationTest {
         assertThat(redisTemplate.opsForZSet().score(legendStorageKey, postId.toString())).isNotNull();
 
         // When: removePostIdFromStorage() 호출 (REALTIME 제외한 모든 타입에서 제거)
-        redisPostTier2StoreAdapter.removePostIdFromStorage(postId);
+        redisTier2PostStoreAdapter.removePostIdFromStorage(postId);
 
         // Then: 모든 저장소에서 제거됨 확인
         assertThat(redisTemplate.opsForSet().isMember(noticeStorageKey, postId.toString())).isFalse();

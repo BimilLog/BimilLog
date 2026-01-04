@@ -5,8 +5,8 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostTier1StoreAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostTier2StoreAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisTier1PostStoreAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostStoreAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -35,10 +35,10 @@ class PostAdminServiceTest extends BaseUnitTest {
     private GlobalPostQueryAdapter globalPostQueryAdapter;
 
     @Mock
-    private RedisPostTier1StoreAdapter redisPostTier1StoreAdapter;
+    private RedisTier1PostStoreAdapter redisTier1PostStoreAdapter;
 
     @Mock
-    private RedisPostTier2StoreAdapter redisPostTier2StoreAdapter;
+    private RedisTier2PostStoreAdapter redisTier2PostStoreAdapter;
 
     @Mock
     private Post post;
@@ -64,7 +64,7 @@ class PostAdminServiceTest extends BaseUnitTest {
         verify(globalPostQueryAdapter).findById(postId);
         verify(post).isNotice(); // 상태 확인 (if문)
         verify(post).setAsNotice();
-        verify(redisPostTier2StoreAdapter).addPostIdToStorage(PostCacheFlag.NOTICE, postId);
+        verify(redisTier2PostStoreAdapter).addPostIdToStorage(PostCacheFlag.NOTICE, postId);
     }
 
     @Test
@@ -120,8 +120,8 @@ class PostAdminServiceTest extends BaseUnitTest {
         verify(globalPostQueryAdapter).findById(postId);
         verify(post).isNotice(); // 상태 확인 (if문)
         verify(post).unsetAsNotice();
-        verify(redisPostTier2StoreAdapter).removePostIdFromStorage(postId);
-        verify(redisPostTier1StoreAdapter).removePostFromListCache(postId);
+        verify(redisTier2PostStoreAdapter).removePostIdFromStorage(postId);
+        verify(redisTier1PostStoreAdapter).removePostFromListCache(postId);
     }
 
 

@@ -29,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class RedisPostUpdateAdapterIntegrationTest {
 
     @Autowired
-    private RealTimePostStoreAdapter realTimePostStoreAdapter;
+    private RedisRealTimePostStoreAdapter redisRealTimePostStoreAdapter;
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
@@ -49,7 +49,7 @@ class RedisPostUpdateAdapterIntegrationTest {
         String scoreKey = RedisPostKeys.REALTIME_POST_SCORE_KEY;
 
         // When: 점수 증가
-        realTimePostStoreAdapter.incrementRealtimePopularScore(postId, score);
+        redisRealTimePostStoreAdapter.incrementRealtimePopularScore(postId, score);
 
         // Then: Sorted Set에서 점수 확인
         Double currentScore = redisTemplate.opsForZSet().score(scoreKey, postId.toString());
@@ -64,9 +64,9 @@ class RedisPostUpdateAdapterIntegrationTest {
         String scoreKey = RedisPostKeys.REALTIME_POST_SCORE_KEY;
 
         // When: 여러 번 점수 증가 (조회 2점 + 댓글 3점 + 추천 4점)
-        realTimePostStoreAdapter.incrementRealtimePopularScore(postId, 2.0); // 조회
-        realTimePostStoreAdapter.incrementRealtimePopularScore(postId, 3.0); // 댓글
-        realTimePostStoreAdapter.incrementRealtimePopularScore(postId, 4.0); // 추천
+        redisRealTimePostStoreAdapter.incrementRealtimePopularScore(postId, 2.0); // 조회
+        redisRealTimePostStoreAdapter.incrementRealtimePopularScore(postId, 3.0); // 댓글
+        redisRealTimePostStoreAdapter.incrementRealtimePopularScore(postId, 4.0); // 추천
 
         // Then: 누적 점수 확인
         Double currentScore = redisTemplate.opsForZSet().score(scoreKey, postId.toString());
@@ -83,7 +83,7 @@ class RedisPostUpdateAdapterIntegrationTest {
         redisTemplate.opsForZSet().add(scoreKey, "3", 2.0);
 
         // When: 감쇠 적용 (0.9배)
-        realTimePostStoreAdapter.applyRealtimePopularScoreDecay();
+        redisRealTimePostStoreAdapter.applyRealtimePopularScoreDecay();
 
         // Then: 점수가 0.9배로 감소
         Double score1 = redisTemplate.opsForZSet().score(scoreKey, "1");
@@ -110,7 +110,7 @@ class RedisPostUpdateAdapterIntegrationTest {
         assertThat(initialSize).isEqualTo(4);
 
         // When: 감쇠 적용
-        realTimePostStoreAdapter.applyRealtimePopularScoreDecay();
+        redisRealTimePostStoreAdapter.applyRealtimePopularScoreDecay();
 
         // Then: 임계값(1.0) 이하의 게시글은 제거됨
         Long finalSize = redisTemplate.opsForZSet().size(scoreKey);

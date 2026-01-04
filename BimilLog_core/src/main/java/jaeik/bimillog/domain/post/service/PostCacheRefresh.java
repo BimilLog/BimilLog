@@ -4,9 +4,9 @@ import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.out.PostQueryRepository;
-import jaeik.bimillog.infrastructure.redis.post.RealTimePostStoreAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostTier1StoreAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostTier2StoreAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostStoreAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisTier1PostStoreAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostStoreAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -20,9 +20,9 @@ import java.util.Objects;
 @Slf4j
 public class PostCacheRefresh {
     private final PostQueryRepository postQueryRepository;
-    private final RedisPostTier1StoreAdapter redisPostTier1StoreAdapter;
-    private final RedisPostTier2StoreAdapter redisPostTier2StoreAdapter;
-    private final RealTimePostStoreAdapter realTimePostStoreAdapter;
+    private final RedisTier1PostStoreAdapter redisTier1PostStoreAdapter;
+    private final RedisTier2PostStoreAdapter redisTier2PostStoreAdapter;
+    private final RedisRealTimePostStoreAdapter redisRealTimePostStoreAdapter;
 
     /**
      * <h3>비동기 캐시 갱신 (PER 기반)</h3>
@@ -39,9 +39,9 @@ public class PostCacheRefresh {
 
             // Step 1: Tier 2 PostIds로부터 복구 (실시간은 실시간 점수 Redis 저장소에서 복구)
             if (type == PostCacheFlag.REALTIME) {
-                storedPostIds = realTimePostStoreAdapter.getRealtimePopularPostIds();
+                storedPostIds = redisRealTimePostStoreAdapter.getRealtimePopularPostIds();
             } else {
-                storedPostIds = redisPostTier2StoreAdapter.getStoredPostIds(type);
+                storedPostIds = redisTier2PostStoreAdapter.getStoredPostIds(type);
             }
 
             if (storedPostIds.isEmpty()) {
@@ -64,7 +64,7 @@ public class PostCacheRefresh {
             }
 
             // Step 3: 캐시 갱신
-            redisPostTier1StoreAdapter.cachePostList(type, refreshed);
+            redisTier1PostStoreAdapter.cachePostList(type, refreshed);
             log.info("캐시 갱신 완료: 타입={}, count={}", type, refreshed.size());
 
         } catch (Exception e) {

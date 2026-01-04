@@ -33,10 +33,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 class RedisPostSaveAdapterIntegrationTest {
 
     @Autowired
-    private RedisPostTier2StoreAdapter redisPostTier2StoreAdapter;
+    private RedisTier2PostStoreAdapter redisTier2PostStoreAdapter;
 
     @Autowired
-    private RedisPostDetailStoreAdapter redisPostDetailStoreAdapter;
+    private RedisDetailPostStoreAdapter redisDetailPostStoreAdapter;
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
@@ -72,7 +72,7 @@ class RedisPostSaveAdapterIntegrationTest {
         String storageKey = RedisPostKeys.getPostIdsStorageKey(cacheType);  // postId 영구 저장소 (Sorted Set)
 
         // When
-        redisPostTier2StoreAdapter.cachePostIdsOnly(cacheType, postIds);
+        redisTier2PostStoreAdapter.cachePostIdsOnly(cacheType, postIds);
 
         // Then: Sorted Set에 실제로 저장되었는지 확인
         Long size = redisTemplate.opsForZSet().size(storageKey);
@@ -93,7 +93,7 @@ class RedisPostSaveAdapterIntegrationTest {
         String cacheKey = RedisTestHelper.RedisKeys.postDetail(testPostDetail.getId());
 
         // When
-        redisPostDetailStoreAdapter.cachePostDetail(testPostDetail);
+        redisDetailPostStoreAdapter.cachePostDetail(testPostDetail);
 
         // Then: 캐시 키가 존재하는지 확인
         Boolean keyExists = redisTemplate.hasKey(cacheKey);
@@ -125,7 +125,7 @@ class RedisPostSaveAdapterIntegrationTest {
         String storageKey = RedisPostKeys.getPostIdsStorageKey(cacheType);
 
         // When: 빈 목록으로 저장 (아무 동작도 하지 않아야 함)
-        redisPostTier2StoreAdapter.cachePostIdsOnly(cacheType, emptyPostIds);
+        redisTier2PostStoreAdapter.cachePostIdsOnly(cacheType, emptyPostIds);
 
         // Then: 저장소 키가 생성되지 않음
         assertThat(redisTemplate.hasKey(storageKey)).isFalse();

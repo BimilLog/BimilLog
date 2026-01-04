@@ -22,7 +22,7 @@ import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.*;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class RealTimePostStoreAdapter {
+public class RedisRealTimePostStoreAdapter {
     private final RedisTemplate<String, Object> redisTemplate;
 
     /**

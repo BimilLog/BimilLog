@@ -33,9 +33,9 @@ import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.CacheMetada
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class RedisPostTier1StoreAdapter {
+public class RedisTier1PostStoreAdapter {
     private final RedisTemplate<String, Object> redisTemplate;
-    private final RedisPostTier2StoreAdapter redisPostTier2StoreAdapter;
+    private final RedisTier2PostStoreAdapter redisTier2PostStoreAdapter;
     private final Map<PostCacheFlag, CacheMetadata> cacheMetadataMap = CACHE_METADATA_MAP;
 
     /**
@@ -94,7 +94,7 @@ public class RedisPostTier1StoreAdapter {
         }
 
         // postIds 저장소에서 순서 가져오기
-        List<Long> orderedIds = redisPostTier2StoreAdapter.getStoredPostIds(type);
+        List<Long> orderedIds = redisTier2PostStoreAdapter.getStoredPostIds(type);
         if (orderedIds.isEmpty()) {
             CacheMetricsLogger.miss(log, "post:list:" + type.name().toLowerCase(),
                     getCacheMetadata(type).key(), "ordered_ids_empty");
@@ -134,7 +134,7 @@ public class RedisPostTier1StoreAdapter {
         }
 
         // 2. postIds 저장소에서 전체 순서 가져오기
-        List<Long> orderedIds = redisPostTier2StoreAdapter.getStoredPostIds(PostCacheFlag.LEGEND);
+        List<Long> orderedIds = redisTier2PostStoreAdapter.getStoredPostIds(PostCacheFlag.LEGEND);
         if (orderedIds.isEmpty()) {
             CacheMetricsLogger.miss(log, "post:legend:list", metadata.key(), "ordered_ids_empty");
             return new PageImpl<>(Collections.emptyList(), pageable, 0);
@@ -222,7 +222,6 @@ public class RedisPostTier1StoreAdapter {
         String hashKey = RedisPostKeys.CACHE_METADATA_MAP.get(type).key();
         redisTemplate.delete(hashKey);
     }
-
 
     /**
      * <h3>캐시 메타데이터 조회</h3>

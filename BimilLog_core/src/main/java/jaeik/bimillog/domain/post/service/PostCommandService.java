@@ -9,10 +9,10 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.out.PostRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.redis.post.RealTimePostStoreAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostDetailStoreAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostTier1StoreAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostTier2StoreAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostStoreAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisDetailPostStoreAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisTier1PostStoreAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostStoreAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -38,11 +38,11 @@ public class PostCommandService {
     private final PostRepository postRepository;
     private final GlobalPostQueryAdapter globalPostQueryAdapter;
     private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
-    private final RedisPostDetailStoreAdapter redisPostDetailStoreAdapter;
-    private final RedisPostTier1StoreAdapter redisPostTier1StoreAdapter;
-    private final RedisPostTier2StoreAdapter redisPostTier2StoreAdapter;
+    private final RedisDetailPostStoreAdapter redisDetailPostStoreAdapter;
+    private final RedisTier1PostStoreAdapter redisTier1PostStoreAdapter;
+    private final RedisTier2PostStoreAdapter redisTier2PostStoreAdapter;
     private final CommentCommandService commentCommandService;
-    private final RealTimePostStoreAdapter realTimePostStoreAdapter;
+    private final RedisRealTimePostStoreAdapter redisRealTimePostStoreAdapter;
 
     /**
      * <h3>게시글 작성</h3>
@@ -92,8 +92,8 @@ public class PostCommandService {
 
         // 모든 관련 캐시 무효화
         try {
-            redisPostDetailStoreAdapter.deleteSinglePostCache(postId);
-            redisPostTier1StoreAdapter.removePostFromListCache(postId);
+            redisDetailPostStoreAdapter.deleteSinglePostCache(postId);
+            redisTier1PostStoreAdapter.removePostFromListCache(postId);
         } catch (Exception e) {
             log.warn("게시글 {} 캐시 무효화 실패: {}", postId, e.getMessage());
         }
@@ -128,10 +128,10 @@ public class PostCommandService {
 
         // 모든 관련 캐시 무효화
         try {
-            redisPostDetailStoreAdapter.deleteSinglePostCache(postId);
-            realTimePostStoreAdapter.removePostIdFromRealtimeScore(postId);
-            redisPostTier1StoreAdapter.removePostFromListCache(postId);
-            redisPostTier2StoreAdapter.removePostIdFromStorage(postId);
+            redisDetailPostStoreAdapter.deleteSinglePostCache(postId);
+            redisRealTimePostStoreAdapter.removePostIdFromRealtimeScore(postId);
+            redisTier1PostStoreAdapter.removePostFromListCache(postId);
+            redisTier2PostStoreAdapter.removePostIdFromStorage(postId);
         } catch (Exception e) {
             log.warn("게시글 {} 캐시 무효화 실패: {}", postId, e.getMessage());
         }
@@ -157,7 +157,7 @@ public class PostCommandService {
             commentCommandService.deleteCommentsByPost(postId);
             // 캐시 무효화
             try {
-                redisPostDetailStoreAdapter.deleteSinglePostCache(postId);
+                redisDetailPostStoreAdapter.deleteSinglePostCache(postId);
             } catch (Exception e) {
                 log.warn("게시글 {} 캐시 무효화 실패: {}", postId, e.getMessage());
             }

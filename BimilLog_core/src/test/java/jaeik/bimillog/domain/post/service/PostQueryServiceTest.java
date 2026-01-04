@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.out.*;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostDetailStoreAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisDetailPostStoreAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,7 +54,7 @@ class PostQueryServiceTest extends BaseUnitTest {
     private PostLikeRepository postLikeRepository;
 
     @Mock
-    private RedisPostDetailStoreAdapter redisPostDetailStoreAdapter;
+    private RedisDetailPostStoreAdapter redisDetailPostStoreAdapter;
 
     @Mock
     private PostRepository postRepository;
@@ -105,7 +105,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         Long postAuthorId = 1L; // 게시글 작성자 ID
 
         // 캐시에 없음 (인기글이 아님)
-        given(redisPostDetailStoreAdapter.getCachedPostIfExists(postId)).willReturn(null);
+        given(redisDetailPostStoreAdapter.getCachedPostIfExists(postId)).willReturn(null);
 
         // 최적화된 JOIN 쿼리 결과
         PostDetail mockPostDetail = PostDetail.builder()
@@ -129,7 +129,7 @@ class PostQueryServiceTest extends BaseUnitTest {
 
         // Then
         assertThat(result).isNotNull();
-        verify(redisPostDetailStoreAdapter).getCachedPostIfExists(postId); // 1회 Redis 호출
+        verify(redisDetailPostStoreAdapter).getCachedPostIfExists(postId); // 1회 Redis 호출
         verify(postQueryRepository).findPostDetailWithCounts(postId, memberId); // 1회 DB 쿼리
         verify(globalMemberBlacklistAdapter).checkMemberBlacklist(memberId, postAuthorId); // 블랙리스트 확인
         verify(postLikeRepository, never()).existsByPostIdAndMemberId(any(), any());
@@ -158,7 +158,7 @@ class PostQueryServiceTest extends BaseUnitTest {
                 .build();
 
         // 최적화: 한번의 호출로 캐시 존재 여부와 데이터를 함께 확인
-        given(redisPostDetailStoreAdapter.getCachedPostIfExists(postId)).willReturn(cachedFullPost);
+        given(redisDetailPostStoreAdapter.getCachedPostIfExists(postId)).willReturn(cachedFullPost);
 
         // 좋아요 정보만 추가 확인 (Post 엔티티 로드 없이 ID로만 확인)
         given(postLikeRepository.existsByPostIdAndMemberId(postId, memberId)).willReturn(false);
@@ -170,7 +170,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result).isNotNull();
         assertThat(result.isLiked()).isFalse();
 
-        verify(redisPostDetailStoreAdapter).getCachedPostIfExists(postId); // 1회 Redis 호출 (최적화)
+        verify(redisDetailPostStoreAdapter).getCachedPostIfExists(postId); // 1회 Redis 호출 (최적화)
         verify(globalMemberBlacklistAdapter).checkMemberBlacklist(memberId, postAuthorId); // 블랙리스트 확인
         verify(postLikeRepository).existsByPostIdAndMemberId(postId, memberId);
         verify(postQueryRepository, never()).findPostDetailWithCounts(any(), any()); // JOIN 쿼리도 호출 안함
@@ -185,7 +185,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         Long postAuthorId = 1L; // 게시글 작성자 ID
 
         // 캐시에 상세 정보가 없음 (인기글이 아니거나 캐시 만료)
-        given(redisPostDetailStoreAdapter.getCachedPostIfExists(postId)).willReturn(null);
+        given(redisDetailPostStoreAdapter.getCachedPostIfExists(postId)).willReturn(null);
 
         // 최적화된 JOIN 쿼리로 DB에서 조회
         PostDetail mockPostDetail = PostDetail.builder()
@@ -209,7 +209,7 @@ class PostQueryServiceTest extends BaseUnitTest {
 
         // Then
         assertThat(result).isNotNull();
-        verify(redisPostDetailStoreAdapter).getCachedPostIfExists(postId); // 1회 Redis 호출 (최적화)
+        verify(redisDetailPostStoreAdapter).getCachedPostIfExists(postId); // 1회 Redis 호출 (최적화)
         verify(postQueryRepository).findPostDetailWithCounts(postId, memberId); // 1회 DB JOIN 쿼리 (최적화)
         verify(globalMemberBlacklistAdapter).checkMemberBlacklist(memberId, postAuthorId); // 블랙리스트 확인
 
@@ -226,7 +226,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         Long postAuthorId = 1L; // 게시글 작성자 ID
 
         // 캐시에 없음 (인기글이 아니거나 캐시 만료)
-        given(redisPostDetailStoreAdapter.getCachedPostIfExists(postId)).willReturn(null);
+        given(redisDetailPostStoreAdapter.getCachedPostIfExists(postId)).willReturn(null);
 
         // 최적화된 JOIN 쿼리로 DB에서 조회 (익명 사용자이므로 isLiked는 false)
         PostDetail mockPostDetail = PostDetail.builder()
@@ -252,7 +252,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result).isNotNull();
         assertThat(result.isLiked()).isFalse(); // 익명 사용자는 항상 false
 
-        verify(redisPostDetailStoreAdapter).getCachedPostIfExists(postId); // 1회 Redis 호출
+        verify(redisDetailPostStoreAdapter).getCachedPostIfExists(postId); // 1회 Redis 호출
         verify(postQueryRepository).findPostDetailWithCounts(postId, memberId); // 1회 JOIN 쿼리
         verify(globalMemberBlacklistAdapter, never()).checkMemberBlacklist(any(), any()); // 익명 사용자는 블랙리스트 체크 안함
 
@@ -268,7 +268,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         Long memberId = 1L;
 
         // 캐시에도 없고 DB에도 없는 경우
-        given(redisPostDetailStoreAdapter.getCachedPostIfExists(postId)).willReturn(null);
+        given(redisDetailPostStoreAdapter.getCachedPostIfExists(postId)).willReturn(null);
         given(postQueryRepository.findPostDetailWithCounts(postId, memberId)).willReturn(Optional.empty());
 
         // When & Then
@@ -276,7 +276,7 @@ class PostQueryServiceTest extends BaseUnitTest {
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
-        verify(redisPostDetailStoreAdapter).getCachedPostIfExists(postId);
+        verify(redisDetailPostStoreAdapter).getCachedPostIfExists(postId);
         verify(postQueryRepository).findPostDetailWithCounts(postId, memberId);
         // 기존 개별 쿼리는 호출되지 않음
     }

@@ -24,7 +24,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * <h2>RedisPostTier1StoreAdapter 통합 테스트</h2>
+ * <h2>RedisTier1PostStoreAdapter 통합 테스트</h2>
  * <p>로컬 Redis 환경에서 게시글 캐시 조회 어댑터의 핵심 기능을 검증합니다.</p>
  *
  * @author Jaeik
@@ -37,13 +37,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 class RedisPostQueryRepositoryIntegrationTest {
 
     @Autowired
-    private RedisPostTier1StoreAdapter redisPostTier1StoreAdapter;
+    private RedisTier1PostStoreAdapter redisTier1PostStoreAdapter;
 
     @Autowired
-    private RedisPostDetailStoreAdapter redisPostDetailStoreAdapter;
+    private RedisDetailPostStoreAdapter redisDetailPostStoreAdapter;
 
     @Autowired
-    private RealTimePostStoreAdapter realTimePostStoreAdapter;
+    private RedisRealTimePostStoreAdapter redisRealTimePostStoreAdapter;
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
@@ -124,7 +124,7 @@ class RedisPostQueryRepositoryIntegrationTest {
         redisTemplate.opsForValue().set(cacheKey, testPostDetail1, Duration.ofMinutes(5));
 
         // When: QueryAdapter로 조회
-        PostDetail result = redisPostDetailStoreAdapter.getCachedPostIfExists(1L);
+        PostDetail result = redisDetailPostStoreAdapter.getCachedPostIfExists(1L);
 
         // Then: 저장한 데이터와 동일한 데이터 조회됨
         assertThat(result).isNotNull();
@@ -162,7 +162,7 @@ class RedisPostQueryRepositoryIntegrationTest {
         redisTemplate.opsForZSet().add(postIdsKey, "3", 3.0);
 
         // When: 목록 조회
-        List<PostSimpleDetail> result = redisPostTier1StoreAdapter.getCachedPostList(cacheType);
+        List<PostSimpleDetail> result = redisTier1PostStoreAdapter.getCachedPostList(cacheType);
 
         // Then: 3개의 게시글이 순서대로 조회됨
         assertThat(result).hasSize(3);
@@ -182,7 +182,7 @@ class RedisPostQueryRepositoryIntegrationTest {
         PostCacheFlag cacheType = PostCacheFlag.REALTIME;
 
         // When: 목록 조회
-        List<PostSimpleDetail> result = redisPostTier1StoreAdapter.getCachedPostList(cacheType);
+        List<PostSimpleDetail> result = redisTier1PostStoreAdapter.getCachedPostList(cacheType);
 
         // Then: 빈 목록 반환
         assertThat(result).isEmpty();
@@ -195,7 +195,7 @@ class RedisPostQueryRepositoryIntegrationTest {
         Long nonExistentPostId = 999L;
 
         // When: 조회 시도
-        PostDetail result = redisPostDetailStoreAdapter.getCachedPostIfExists(nonExistentPostId);
+        PostDetail result = redisDetailPostStoreAdapter.getCachedPostIfExists(nonExistentPostId);
 
         // Then: null 반환
         assertThat(result).isNull();
@@ -220,7 +220,7 @@ class RedisPostQueryRepositoryIntegrationTest {
         redisTemplate.opsForZSet().add(postIdsKey, "3", 3.0);
 
         // When: 목록 조회
-        List<PostSimpleDetail> result = redisPostTier1StoreAdapter.getCachedPostList(cacheType);
+        List<PostSimpleDetail> result = redisTier1PostStoreAdapter.getCachedPostList(cacheType);
 
         // Then: Hash에 있는 2개만 반환 (필터링됨)
         assertThat(result).hasSize(2);
@@ -261,7 +261,7 @@ class RedisPostQueryRepositoryIntegrationTest {
 
         // When & Then - 케이스 1: 첫 페이지 조회 (페이지 0, 사이즈 10)
         Pageable firstPage = PageRequest.of(0, 10);
-        Page<PostSimpleDetail> firstResult = redisPostTier1StoreAdapter.getCachedPostListPaged(firstPage);
+        Page<PostSimpleDetail> firstResult = redisTier1PostStoreAdapter.getCachedPostListPaged(firstPage);
 
         assertThat(firstResult.getContent()).hasSize(10);
         assertThat(firstResult.getTotalElements()).isEqualTo(20);
@@ -272,7 +272,7 @@ class RedisPostQueryRepositoryIntegrationTest {
 
         // When & Then - 케이스 2: 두 번째 페이지 조회 (페이지 1, 사이즈 10)
         Pageable secondPage = PageRequest.of(1, 10);
-        Page<PostSimpleDetail> secondResult = redisPostTier1StoreAdapter.getCachedPostListPaged(secondPage);
+        Page<PostSimpleDetail> secondResult = redisTier1PostStoreAdapter.getCachedPostListPaged(secondPage);
 
         assertThat(secondResult.getContent()).hasSize(10);
         assertThat(secondResult.getTotalElements()).isEqualTo(20);
@@ -288,7 +288,7 @@ class RedisPostQueryRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 페이지네이션 조회
-        Page<PostSimpleDetail> result = redisPostTier1StoreAdapter.getCachedPostListPaged(pageable);
+        Page<PostSimpleDetail> result = redisTier1PostStoreAdapter.getCachedPostListPaged(pageable);
 
         // Then: 빈 페이지 반환
         assertThat(result.getContent()).isEmpty();
@@ -307,7 +307,7 @@ class RedisPostQueryRepositoryIntegrationTest {
         }
 
         // When: 실시간 인기글 ID 조회 (상위 5개)
-        List<Long> result = realTimePostStoreAdapter.getRealtimePopularPostIds();
+        List<Long> result = redisRealTimePostStoreAdapter.getRealtimePopularPostIds();
 
         // Then: 점수가 높은 상위 5개만 반환
         assertThat(result).hasSize(5);
@@ -326,7 +326,7 @@ class RedisPostQueryRepositoryIntegrationTest {
         redisTemplate.opsForZSet().add(scoreKey, "500", 20.0);
 
         // When: 실시간 인기글 ID 조회
-        List<Long> result = realTimePostStoreAdapter.getRealtimePopularPostIds();
+        List<Long> result = redisRealTimePostStoreAdapter.getRealtimePopularPostIds();
 
         // Then: 점수 내림차순으로 정렬됨
         assertThat(result).containsExactly(400L, 200L, 500L, 100L, 300L); // 30, 25, 20, 15, 10
@@ -342,7 +342,7 @@ class RedisPostQueryRepositoryIntegrationTest {
         redisTemplate.opsForZSet().add(scoreKey, "3", 6.0);
 
         // When: 실시간 인기글 ID 조회
-        List<Long> result = realTimePostStoreAdapter.getRealtimePopularPostIds();
+        List<Long> result = redisRealTimePostStoreAdapter.getRealtimePopularPostIds();
 
         // Then: 존재하는 3개만 반환
         assertThat(result).hasSize(3);
@@ -355,7 +355,7 @@ class RedisPostQueryRepositoryIntegrationTest {
         // Given: 실시간 인기글 점수가 없는 상태
 
         // When: 실시간 인기글 ID 조회
-        List<Long> result = realTimePostStoreAdapter.getRealtimePopularPostIds();
+        List<Long> result = redisRealTimePostStoreAdapter.getRealtimePopularPostIds();
 
         // Then: 빈 목록 반환
         assertThat(result).isEmpty();

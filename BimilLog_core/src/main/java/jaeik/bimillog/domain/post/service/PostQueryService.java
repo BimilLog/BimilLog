@@ -7,7 +7,7 @@ import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.out.*;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostDetailStoreAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisDetailPostStoreAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 public class PostQueryService {
     private final PostQueryRepository postQueryRepository;
     private final PostLikeRepository postLikeRepository;
-    private final RedisPostDetailStoreAdapter redisPostDetailStoreAdapter;
+    private final RedisDetailPostStoreAdapter redisDetailPostStoreAdapter;
     private final PostRepository postRepository;
     private final PostToCommentAdapter postToCommentAdapter;
     private final GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
@@ -74,7 +74,7 @@ public class PostQueryService {
     public PostDetail getPost(Long postId, Long memberId) {
         try {
             // 1. 캐시 확인 (Cache-Aside Read)
-            PostDetail cachedPost = redisPostDetailStoreAdapter.getCachedPostIfExists(postId);
+            PostDetail cachedPost = redisDetailPostStoreAdapter.getCachedPostIfExists(postId);
             if (cachedPost != null) {
                 // 비회원 확인
                 if (memberId != null) {
@@ -103,7 +103,7 @@ public class PostQueryService {
         }
 
         try {
-            redisPostDetailStoreAdapter.cachePostDetail(postDetail);
+            redisDetailPostStoreAdapter.cachePostDetail(postDetail);
         } catch (Exception e) {
             // 캐시 저장 실패 시 로그만 남기고 계속 진행
             log.warn("게시글 {} 캐시 저장 실패: {}", postId, e.getMessage());
