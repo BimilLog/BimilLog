@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @Log(level = Log.LogLevel.INFO,
         logExecutionTime = true,
-        excludeParams = {"messageDTO"},
+        excludeParams = {"myMessage"},
         message = "롤링페이퍼 메시지 작성 요청")
 @RestController
 @RequiredArgsConstructor
@@ -34,9 +34,6 @@ public class PaperCommandController {
      *
      * @param memberName   메시지를 작성할 롤링페이퍼 소유자의 사용자명
      * @param myMessage 작성할 메시지 정보
-     * @return HTTP 응답 엔티티
-     * @author Jaeik
-     * @since 2.0.0
      */
     @PostMapping("/{memberName}")
     public ResponseEntity<String> writeMessage(@AuthenticationPrincipal CustomUserDetails userDetails,
@@ -54,9 +51,6 @@ public class PaperCommandController {
      *
      * @param userDetails 현재 로그인한 사용자 정보
      * @param myMessage  삭제할 메시지 정보
-     * @return HTTP 응답 엔티티
-     * @author Jaeik
-     * @since 2.0.0
      */
     @PostMapping("/delete")
     public ResponseEntity<String> deleteMessage(@AuthenticationPrincipal CustomUserDetails userDetails,
