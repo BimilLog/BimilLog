@@ -4,6 +4,8 @@ import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
+import jaeik.bimillog.domain.post.out.PostQueryRepository;
+import jaeik.bimillog.domain.post.out.PostToCommentAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostStoreAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisTier1PostStoreAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostStoreAdapter;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * <h2>PostScheduledService</h2>
@@ -32,14 +35,12 @@ public class PostScheduledService {
     private final RedisTier2PostStoreAdapter redisTier2PostStoreAdapter;
     private final RedisRealTimePostStoreAdapter redisRealTimePostStoreAdapter;
     private final ApplicationEventPublisher eventPublisher;
-    private final PostQueryService postQueryService;
+    private final PostQueryRepository postQueryRepository;
+    private final PostToCommentAdapter postToCommentAdapter;
 
     /**
      * <h3>실시간 인기 게시글 점수 지수감쇠 적용</h3>
      * <p>스프링 스케줄러를 통해 5분마다 실시간 인기글 점수에 0.97를 곱하고, 1점 이하 게시글을 제거합니다.</p>
-     *
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Scheduled(fixedRate = 60000 * 10) // 10분마다
     public void applyRealtimeScoreDecay() {
@@ -56,14 +57,12 @@ public class PostScheduledService {
      * <p>1일마다 주간 인기 게시글을 갱신하고 PostSimpleDetail을 Redis Hash에 저장합니다.</p>
      * <p>지난 7일간의 조회수와 좋아요 종합 점수를 기반으로 주간 인기 게시글을 선정합니다.</p>
      * <p>인기 게시글로 선정된 작성자에게 PostFeaturedEvent를 발행하여 알림을 전송합니다.</p>
-     *
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Scheduled(fixedRate = 60000 * 1440) // 1일마다
     @Transactional
     public void updateWeeklyPopularPosts() {
-        List<PostSimpleDetail> posts = postQueryService.getWeeklyPopularPosts();
+        List<PostSimpleDetail> posts = postQueryRepository.findWeeklyPopularPosts();
+        enrichPostsCommentCount(posts);
 
         if (posts.isEmpty()) {
             log.info("WEEKLY에 대한 인기 게시글이 없어 캐시 업데이트를 건너뜁니다.");
@@ -90,14 +89,12 @@ public class PostScheduledService {
      * <h3>전설 게시글 스케줄링 갱신 및 명예의 전당 알림 발행</h3>
      * <p>PostSimpleDetail을 Redis Hash에 저장</p>
      * <p>전설 게시글로 선정된 작성자에게 PostFeaturedEvent를 발행하여 알림을 전송합니다.</p>
-     *
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Scheduled(fixedRate = 60000 * 1440) // 1일마다
     @Transactional
     public void updateLegendaryPosts() {
-        List<PostSimpleDetail> posts = postQueryService.getLegendaryPosts();
+        List<PostSimpleDetail> posts = postQueryRepository.findLegendaryPosts();
+        enrichPostsCommentCount(posts);
 
         if (posts.isEmpty()) {
             log.info("LEGEND에 대한 인기 게시글이 없어 캐시 업데이트를 건너뜁니다.");
@@ -143,5 +140,28 @@ public class PostScheduledService {
                     log.info("게시글 ID {}에 대한 {} 알림 이벤트 발행: 회원 ID={}",
                         post.getId(), notificationType, post.getMemberId());
                 });
+    }
+
+    /**
+     * <h3>게시글 목록에 댓글 수 주입</h3>
+     * <p>게시글 목록의 댓글 수를 배치로 조회하여 주입합니다.</p>
+     * <p>좋아요 수는 PostQueryHelper에서 이미 처리되므로, 여기서는 댓글 수만 처리합니다.</p>
+     *
+     * @param posts 댓글 수를 채울 게시글 목록
+     */
+    private void enrichPostsCommentCount(List<PostSimpleDetail> posts) {
+        if (posts.isEmpty()) {
+            return;
+        }
+
+        List<Long> postIds = posts.stream()
+                .map(PostSimpleDetail::getId)
+                .toList();
+
+        Map<Long, Integer> commentCounts = postToCommentAdapter.findCommentCountsByPostIds(postIds);
+
+        posts.forEach(post -> {
+            post.setCommentCount(commentCounts.getOrDefault(post.getId(), 0));
+        });
     }
 }

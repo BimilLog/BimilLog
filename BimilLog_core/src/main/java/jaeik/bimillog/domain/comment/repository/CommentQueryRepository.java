@@ -9,8 +9,6 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import jaeik.bimillog.domain.comment.entity.CommentInfo;
 import jaeik.bimillog.domain.comment.entity.MemberActivityComment;
 import jaeik.bimillog.domain.comment.service.CommentQueryService;
-import jaeik.bimillog.domain.member.entity.QMember;
-import jaeik.bimillog.domain.member.entity.QMemberBlacklist;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
