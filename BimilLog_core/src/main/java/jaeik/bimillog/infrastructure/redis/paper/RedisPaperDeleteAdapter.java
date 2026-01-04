@@ -28,9 +28,6 @@ public class RedisPaperDeleteAdapter {
      * <p>회원 탈퇴 또는 롤링페이퍼 삭제 시 호출됩니다.</p>
      *
      * @param memberId 제거할 회원 ID
-     * @throws PaperCustomException Redis 삭제 중 오류가 발생한 경우
-     * @author Jaeik
-     * @since 2.0.0
      */
     public void removeMemberIdFromRealtimeScore(Long memberId) {
         try {

@@ -39,6 +39,23 @@ public class PostQueryService {
     private final PostSearchRepository postSearchRepository;
 
     /**
+     * <h3>게시글 엔티티 조회 </h3>
+     *
+     * @param postId 게시글 ID
+     * @return Post 게시글 엔티티
+     */
+    public Optional<Post> findById(Long postId) {
+        return postRepository.findById(postId);
+    }
+
+    /**
+     * <h3>게시글 ID 목록으로 게시글 리스트 반환</h3>
+     */
+    public List<Post> findAllByIds(List<Long> postIds) {
+        return postQueryRepository.findAllByIds(postIds);
+    }
+
+    /**
      * <h3>게시판 목록 조회</h3>
      * <p>전체 게시글을 최신순으로 정렬하여 페이지 단위로 조회합니다.</p>
      * <p>공지사항은 제외하고 일반 게시글만 조회</p>
@@ -108,29 +125,9 @@ public class PostQueryService {
             // 캐시 저장 실패 시 로그만 남기고 계속 진행
             log.warn("게시글 {} 캐시 저장 실패: {}", postId, e.getMessage());
         }
-
         return postDetail;
     }
 
-    /**
-     * <h3>게시글 엔티티 조회 </h3>
-     * <p>PostQueryUseCase 인터페이스의 엔티티 조회 기능을 구현 Post 엔티티가 필요한 경우 사용</p>
-     *
-     * @param postId 게시글 ID
-     * @return Post 게시글 엔티티
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public Optional<Post> findById(Long postId) {
-        return postRepository.findById(postId);
-    }
-
-    /**
-     * <h3>게시글 ID 목록으로 게시글 리스트 반환</h3>
-     */
-    public List<Post> findAllByIds(List<Long> postIds) {
-        return postQueryRepository.findAllByIds(postIds);
-    }
 
     /**
      * <h3>사용자 작성, 추천 글 목록 조회</h3>
@@ -139,8 +136,6 @@ public class PostQueryService {
      * @param memberId   사용자 ID
      * @param pageable 페이지 정보
      * @return MemberActivityPost 마이페이지 글 정보
-     * @author Jaeik
-     * @since 2.0.0
      */
     public MemberActivityPost getMemberActivityPosts(Long memberId, Pageable pageable) {
         Page<PostSimpleDetail> writePosts = postQueryRepository.findPostsByMemberId(memberId, pageable, memberId);
@@ -165,8 +160,6 @@ public class PostQueryService {
      * @param query    검색어
      * @param pageable 페이지 정보
      * @return Page&lt;PostSimpleDetail&gt; 검색된 게시글 목록 페이지
-     * @author Jaeik
-     * @since 2.0.0
      */
     public Page<PostSimpleDetail> searchPost(PostSearchType type, String query, Pageable pageable, Long memberId) {
         Page<PostSimpleDetail> posts;
@@ -197,8 +190,6 @@ public class PostQueryService {
      * <p>좋아요 수는 PostQueryHelper에서 이미 처리되므로, 여기서는 댓글 수만 처리합니다.</p>
      *
      * @param posts 댓글 수를 채울 게시글 목록
-     * @author Jaeik
-     * @since 2.0.0
      */
     private void enrichPostsCommentCount(List<PostSimpleDetail> posts) {
         if (posts.isEmpty()) {

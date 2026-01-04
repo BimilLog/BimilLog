@@ -55,8 +55,6 @@ public class PostCommandService {
      * @param content  게시글 내용
      * @param password 게시글 비밀번호 (익명 게시글인 경우)
      * @return 저장된 게시글 ID
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Transactional
     public Long writePost(Long memberId, String title, String content, Integer password) {
@@ -77,8 +75,6 @@ public class PostCommandService {
      * @param postId  수정할 게시글 ID
      * @param title   새로운 제목
      * @param content 새로운 내용
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Transactional
     public void updatePost(Long memberId, Long postId, String title, String content, Integer password) {
@@ -110,8 +106,6 @@ public class PostCommandService {
      *
      * @param memberId 현재 로그인 사용자 ID
      * @param postId 삭제할 게시글 ID
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Transactional
     public void deletePost(Long memberId, Long postId, Integer password) {
@@ -146,8 +140,6 @@ public class PostCommandService {
      * <p>삭제 순서: 댓글 삭제 → 캐시 무효화 → 게시글 삭제</p>
      *
      * @param memberId 게시글을 삭제할 사용자 ID
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Transactional
     public void deleteAllPostsByMemberId(Long memberId) {

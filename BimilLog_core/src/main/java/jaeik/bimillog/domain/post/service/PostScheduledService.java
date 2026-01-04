@@ -46,7 +46,6 @@ public class PostScheduledService {
     public void applyRealtimeScoreDecay() {
         try {
             redisRealTimePostStoreAdapter.applyRealtimePopularScoreDecay();
-            log.info("실시간 인기글 점수 지수감쇠 적용 완료 (0.97 곱하기, 1점 이하 제거)");
         } catch (Exception e) {
             log.error("실시간 인기글 점수 지수감쇠 적용 실패", e);
         }

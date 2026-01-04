@@ -42,8 +42,6 @@ public class PostInteractionService {
      *
      * @param memberId 현재 로그인한 사용자 ID
      * @param postId 좋아요 대상 게시글 ID
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Transactional
     public void likePost(Long memberId, Long postId) {
@@ -79,8 +77,6 @@ public class PostInteractionService {
      * <p>PostQueryController에서 게시글 상세 조회 완료 후 호출됩니다.</p>
      *
      * @param postId 조회수를 증가시킬 게시글 ID
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Transactional
     public void incrementViewCount(Long postId) {

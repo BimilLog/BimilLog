@@ -41,9 +41,6 @@ public class RedisPaperQueryAdapter {
      * @param start 시작 인덱스 (0부터 시작)
      * @param end 종료 인덱스 (포함)
      * @return List<PopularPaperInfo> 지정된 범위의 롤링페이퍼 정보 (memberId, rank, popularityScore만 설정됨)
-     * @throws PaperCustomException Redis 읽기 중 오류가 발생한 경우
-     * @author Jaeik
-     * @since 2.0.0
      */
     public List<PopularPaperInfo> getRealtimePopularPapersWithRankAndScore(int start, int end) {
         try {

@@ -15,6 +15,11 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * <h2>글 캐시 갱신 클래스</h2>
+ * @author Jaeik
+ * @version 2.4.0
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -45,7 +50,7 @@ public class PostCacheRefresh {
             }
 
             if (storedPostIds.isEmpty()) {
-                log.warn("캐시 갱신 실패 - 타입={}, 이유=2티어 저장소 비어있음", type);
+                log.warn("캐시 갱신 실패 - 타입={}, 이유=티어2 저장소 비어있음", type);
                 return;
             }
 

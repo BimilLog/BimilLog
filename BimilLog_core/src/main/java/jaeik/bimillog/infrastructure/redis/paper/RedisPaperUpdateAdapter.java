@@ -33,9 +33,6 @@ public class RedisPaperUpdateAdapter {
      *
      * @param memberId 점수를 증가시킬 회원 ID (롤링페이퍼 소유자)
      * @param score    증가시킬 점수
-     * @throws PaperCustomException Redis 쓰기 중 오류가 발생한 경우
-     * @author Jaeik
-     * @since 2.0.0
      */
     public void incrementRealtimePopularPaperScore(Long memberId, double score) {
         try {
@@ -51,10 +48,6 @@ public class RedisPaperUpdateAdapter {
      * <h3>실시간 인기 롤링페이퍼 전체 점수 지수감쇠 적용</h3>
      * <p>Redis Sorted Set의 모든 롤링페이퍼 점수에 0.97를 곱하고, 임계값(1점) 이하의 롤링페이퍼를 제거합니다.</p>
      * <p>PaperScheduledService 스케줄러에서 주기적으로 호출됩니다.</p>
-     *
-     * @throws PaperCustomException Redis 쓰기 중 오류가 발생한 경우
-     * @author Jaeik
-     * @since 2.0.0
      */
     public void applyRealtimePopularPaperScoreDecay() {
         try {

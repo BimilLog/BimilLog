@@ -138,7 +138,6 @@ public class RedisMemberDataAdapter {
      *
      * @param operation 실행할 Redis 작업
      * @param uuid 작업 대상 UUID (로깅용)
-     * @throws AuthCustomException Redis 작업 실패 시
      * @author Jaeik
      * @since 2.0.0
      */
@@ -176,7 +175,6 @@ public class RedisMemberDataAdapter {
      *
      * @param uuid 임시 사용자 식별 UUID
      * @param userProfile 소셜 사용자 프로필 (토큰 포함)
-     * @throws AuthCustomException 유효하지 않은 데이터가 있는 경우
      * @author Jaeik
      * @since 2.0.0
      */
@@ -217,7 +215,6 @@ public class RedisMemberDataAdapter {
      * @param uuid 작업 대상 UUID (로깅용)
      * @param data Redis에서 조회한 원시 데이터
      * @return 변환된 도메인 모델 (Optional로 래핑)
-     * @throws AuthCustomException 데이터 변환 실패 시
      * @author Jaeik
      * @since 2.0.0
      */
@@ -246,7 +243,6 @@ public class RedisMemberDataAdapter {
      * @param uuid 작업 대상 UUID (로깅용)
      * @param data Redis에서 조회한 원시 데이터 (SocialMemberProfile 또는 LinkedHashMap)
      * @return 변환된 SocialMemberProfile 객체
-     * @throws AuthCustomException 예상되지 않은 타입이거나 변환 실패 시
      * @author Jaeik
      * @since 2.0.0
      */
@@ -271,7 +267,6 @@ public class RedisMemberDataAdapter {
      *
      * @param map LinkedHashMap 형태의 Redis 데이터
      * @return 변환된 SocialMemberProfile 객체
-     * @throws AuthCustomException Map 구조 파싱이나 변환 실패 시
      * @author Jaeik
      * @since 2.0.0
      */

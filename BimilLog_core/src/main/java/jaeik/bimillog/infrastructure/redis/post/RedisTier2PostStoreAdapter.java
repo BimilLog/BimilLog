@@ -97,10 +97,10 @@ public class RedisTier2PostStoreAdapter {
     }
 
     /**
-     * <h3>공지사항 ID 저장</h3>
-     * <p>postIds 영구 저장소에 게시글 ID를 추가합니다 (Set 사용).</p>
-     *
-     * @param type 캐시 유형 (NOTICE만 사용)
+     * <h3>단일 글 ID 저장</h3>
+     * <p>postIds 영구 저장소에 게시글 ID를 추가합니다</p>
+     * <p>현재는 공지사항만 사용 중</p>
+     * @param type 캐시 유형
      * @param postId 추가할 게시글 ID
      */
     public void addPostIdToStorage(PostCacheFlag type, Long postId) {
