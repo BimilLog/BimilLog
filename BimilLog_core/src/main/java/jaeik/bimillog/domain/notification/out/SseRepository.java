@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
@@ -102,26 +103,19 @@ public class SseRepository {
      * @since 2.3.0
      */
     public void send(SseMessage sseMessage) {
-        try {
-            Map<String, SseEmitter> activeEmitters = emitters.entrySet().stream()
-                    .filter(entry -> entry.getKey().startsWith(sseMessage.memberId() + "_"))
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-            activeEmitters.forEach(
-                    (emitterId, emitter) -> {
-                        try {
-                            emitter.send(SseEmitter.event()
-                                    .name(sseMessage.type().toString())
-                                    .data(sseMessage.toJsonData()));
-                        } catch (IOException e) {
-                            log.warn("SSE 전송 실패 - 이미터ID={}, 타입={}, 이유={}", emitterId,
-                                    sseMessage.type(), e.getMessage(), e);
-                            emitters.remove(emitterId);
-                        }
-                    });
-        } catch (Exception e) {
-            throw new CustomException(ErrorCode.NOTIFICATION_SEND_ERROR, e);
-        }
+        String prefix = sseMessage.memberId() + "_";
+        emitters.forEach((emitterId, emitter) -> {
+            if (emitterId.startsWith(prefix)) {
+                try {
+                    emitter.send(SseEmitter.event()
+                            .name(sseMessage.type().toString())
+                            .data(sseMessage.toJsonData()));
+                } catch (IOException | IllegalStateException e) {
+                    log.warn("SSE 전송 실패, Emitter 정리: {} (이유: {})", emitterId, e.getMessage());
+                    cleanup(emitterId, emitter);
+                }
+            }
+        });
     }
 
     /**
@@ -156,22 +150,31 @@ public class SseRepository {
      */
     @Scheduled(fixedDelay = 30000L)
     public void sendHeartbeat() {
-        if (emitters.isEmpty()) {
-            return; // 활성 연결이 없으면 로깅 생략
-        }
+        if (emitters.isEmpty()) return;
 
         log.debug("SSE Heartbeat 전송 시작. 활성 Emitter 수: {}", emitters.size());
 
         emitters.forEach((emitterId, emitter) -> {
             try {
                 emitter.send(SseEmitter.event().comment("heartbeat"));
-            } catch (IOException e) {
-                log.warn("Heartbeat 전송 실패, Emitter 정리: {}", emitterId);
-                emitters.remove(emitterId);
+            } catch (IOException | IllegalStateException e) {
+                // 클라이언트가 이미 나갔거나 연결이 사용 불가능한 경우 (정상적인 끊김 상황)
+                log.warn("Heartbeat 전송 실패, Emitter 정리: {} (이유: {})", emitterId, e.getMessage());
+                cleanup(emitterId, emitter);
             } catch (Exception e) {
+                // 그 외 진짜 예상치 못한 심각한 에러
                 log.error("Heartbeat 전송 중 알 수 없는 오류: {}", emitterId, e);
-                emitters.remove(emitterId);
+                cleanup(emitterId, emitter);
             }
         });
+    }
+
+    private void cleanup(String emitterId, SseEmitter emitter) {
+        emitters.remove(emitterId);
+        try {
+            emitter.complete(); // 명시적으로 종료하여 서블릿 컨테이너에 알림
+        } catch (Exception e) {
+            // 이미 종료된 경우 무시
+        }
     }
 }
