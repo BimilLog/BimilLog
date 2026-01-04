@@ -24,7 +24,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * <h2>RedisPostQueryAdapter 통합 테스트</h2>
+ * <h2>RedisPostTier1StoreAdapter 통합 테스트</h2>
  * <p>로컬 Redis 환경에서 게시글 캐시 조회 어댑터의 핵심 기능을 검증합니다.</p>
  *
  * @author Jaeik
@@ -37,7 +37,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 class RedisPostQueryRepositoryIntegrationTest {
 
     @Autowired
-    private RedisPostQueryAdapter redisPostQueryAdapter;
+    private RedisPostTier1StoreAdapter redisPostTier1StoreAdapter;
+
+    @Autowired
+    private RedisPostDetailStoreAdapter redisPostDetailStoreAdapter;
+
+    @Autowired
+    private RealTimePostStoreAdapter realTimePostStoreAdapter;
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
@@ -118,7 +124,7 @@ class RedisPostQueryRepositoryIntegrationTest {
         redisTemplate.opsForValue().set(cacheKey, testPostDetail1, Duration.ofMinutes(5));
 
         // When: QueryAdapter로 조회
-        PostDetail result = redisPostQueryAdapter.getCachedPostIfExists(1L);
+        PostDetail result = redisPostDetailStoreAdapter.getCachedPostIfExists(1L);
 
         // Then: 저장한 데이터와 동일한 데이터 조회됨
         assertThat(result).isNotNull();
@@ -156,7 +162,7 @@ class RedisPostQueryRepositoryIntegrationTest {
         redisTemplate.opsForZSet().add(postIdsKey, "3", 3.0);
 
         // When: 목록 조회
-        List<PostSimpleDetail> result = redisPostQueryAdapter.getCachedPostList(cacheType);
+        List<PostSimpleDetail> result = redisPostTier1StoreAdapter.getCachedPostList(cacheType);
 
         // Then: 3개의 게시글이 순서대로 조회됨
         assertThat(result).hasSize(3);
@@ -170,44 +176,13 @@ class RedisPostQueryRepositoryIntegrationTest {
     }
 
     @Test
-    @DisplayName("정상 케이스 - 캐시 존재 여부 확인")
-    void shouldReturnTrue_WhenCacheKeyExists() {
-        // Given: RedisTemplate로 직접 저장 (CommandAdapter 의존성 제거)
-        PostCacheFlag cacheType = PostCacheFlag.WEEKLY;
-        String hashKey = RedisPostKeys.CACHE_METADATA_MAP.get(cacheType).key();
-
-        // Hash에 데이터 저장 (hasPopularPostsCache는 Hash 키 존재 여부만 확인)
-        redisTemplate.opsForHash().put(hashKey, "1", toSimpleDetail(testPostDetail1));
-        redisTemplate.expire(hashKey, Duration.ofMinutes(5));
-
-        // When: 캐시 존재 여부 확인
-        boolean result = redisPostQueryAdapter.hasPopularPostsCache(cacheType);
-
-        // Then: 캐시가 존재함
-        assertThat(result).isTrue();
-    }
-
-    @Test
-    @DisplayName("정상 케이스 - 캐시가 없을 때 존재 여부 확인")
-    void shouldReturnFalse_WhenCacheKeyNotExists() {
-        // Given: 캐시가 없는 상태
-        PostCacheFlag cacheType = PostCacheFlag.LEGEND;
-
-        // When: 캐시 존재 여부 확인
-        boolean result = redisPostQueryAdapter.hasPopularPostsCache(cacheType);
-
-        // Then: 캐시가 존재하지 않음
-        assertThat(result).isFalse();
-    }
-
-    @Test
     @DisplayName("정상 케이스 - 빈 캐시 목록 조회")
     void shouldReturnEmptyList_WhenNoCachedPostsExist() {
         // Given: 캐시가 없는 상태
         PostCacheFlag cacheType = PostCacheFlag.REALTIME;
 
         // When: 목록 조회
-        List<PostSimpleDetail> result = redisPostQueryAdapter.getCachedPostList(cacheType);
+        List<PostSimpleDetail> result = redisPostTier1StoreAdapter.getCachedPostList(cacheType);
 
         // Then: 빈 목록 반환
         assertThat(result).isEmpty();
@@ -220,7 +195,7 @@ class RedisPostQueryRepositoryIntegrationTest {
         Long nonExistentPostId = 999L;
 
         // When: 조회 시도
-        PostDetail result = redisPostQueryAdapter.getCachedPostIfExists(nonExistentPostId);
+        PostDetail result = redisPostDetailStoreAdapter.getCachedPostIfExists(nonExistentPostId);
 
         // Then: null 반환
         assertThat(result).isNull();
@@ -245,7 +220,7 @@ class RedisPostQueryRepositoryIntegrationTest {
         redisTemplate.opsForZSet().add(postIdsKey, "3", 3.0);
 
         // When: 목록 조회
-        List<PostSimpleDetail> result = redisPostQueryAdapter.getCachedPostList(cacheType);
+        List<PostSimpleDetail> result = redisPostTier1StoreAdapter.getCachedPostList(cacheType);
 
         // Then: Hash에 있는 2개만 반환 (필터링됨)
         assertThat(result).hasSize(2);
@@ -253,9 +228,10 @@ class RedisPostQueryRepositoryIntegrationTest {
     }
 
     @Test
-    @DisplayName("정상 케이스 - 레전드 게시글 목록 페이지네이션 조회 (첫 페이지)")
-    void shouldReturnPagedList_WhenPageableProvided() {
+    @DisplayName("정상 케이스 - 레전드 게시글 목록 페이지네이션 조회 (첫 페이지와 두 번째 페이지)")
+    void shouldReturnPagedLists_FirstAndSecondPage() {
         RedisTestHelper.flushRedis(redisTemplate);
+
         // Given: RedisTemplate로 직접 20개의 레전드 게시글 저장 (CommandAdapter 의존성 제거)
         String hashKey = RedisPostKeys.CACHE_METADATA_MAP.get(PostCacheFlag.LEGEND).key();
         String postIdsKey = RedisPostKeys.getPostIdsStorageKey(PostCacheFlag.LEGEND);
@@ -283,64 +259,26 @@ class RedisPostQueryRepositoryIntegrationTest {
         }
         redisTemplate.expire(hashKey, Duration.ofMinutes(5));
 
-        // When: 첫 페이지 조회 (페이지 0, 사이즈 10)
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<PostSimpleDetail> result = redisPostQueryAdapter.getCachedPostListPaged(pageable);
+        // When & Then - 케이스 1: 첫 페이지 조회 (페이지 0, 사이즈 10)
+        Pageable firstPage = PageRequest.of(0, 10);
+        Page<PostSimpleDetail> firstResult = redisPostTier1StoreAdapter.getCachedPostListPaged(firstPage);
 
-        // Then: 10개 반환, 전체 20개
-        assertThat(result.getContent()).hasSize(10);
-        assertThat(result.getTotalElements()).isEqualTo(20);
-        assertThat(result.getTotalPages()).isEqualTo(2);
-        assertThat(result.getNumber()).isEqualTo(0); // 현재 페이지 번호
+        assertThat(firstResult.getContent()).hasSize(10);
+        assertThat(firstResult.getTotalElements()).isEqualTo(20);
+        assertThat(firstResult.getTotalPages()).isEqualTo(2);
+        assertThat(firstResult.getNumber()).isEqualTo(0); // 현재 페이지 번호
+        assertThat(firstResult.getContent().get(0).getId()).isEqualTo(1L);
+        assertThat(firstResult.getContent().get(9).getId()).isEqualTo(10L);
 
-        // 첫 번째 페이지이므로 1~10번 게시글
-        assertThat(result.getContent().get(0).getId()).isEqualTo(1L);
-        assertThat(result.getContent().get(9).getId()).isEqualTo(10L);
-    }
+        // When & Then - 케이스 2: 두 번째 페이지 조회 (페이지 1, 사이즈 10)
+        Pageable secondPage = PageRequest.of(1, 10);
+        Page<PostSimpleDetail> secondResult = redisPostTier1StoreAdapter.getCachedPostListPaged(secondPage);
 
-    @Test
-    @DisplayName("정상 케이스 - 레전드 게시글 목록 페이지네이션 조회 (두 번째 페이지)")
-    void shouldReturnSecondPage_WhenPageTwoRequested() {
-        RedisTestHelper.flushRedis(redisTemplate);
-        // Given: RedisTemplate로 직접 20개의 레전드 게시글 저장 (CommandAdapter 의존성 제거)
-        String hashKey = RedisPostKeys.CACHE_METADATA_MAP.get(PostCacheFlag.LEGEND).key();
-        String postIdsKey = RedisPostKeys.getPostIdsStorageKey(PostCacheFlag.LEGEND);
-
-        for (long i = 1; i <= 20; i++) {
-            // PostDetail 생성
-            PostDetail detail = PostDetail.builder()
-                    .id(i)
-                    .title("게시글 " + i)
-                    .content("내용 " + i)
-                    .viewCount((int) (i * 10))
-                    .likeCount((int) (i * 5))
-                    .commentCount((int) i)
-                    .isLiked(false)
-                    .createdAt(Instant.now())
-                    .memberId(i)
-                    .memberName("member" + i)
-                    .build();
-
-            // Hash에 PostSimpleDetail 저장
-            redisTemplate.opsForHash().put(hashKey, String.valueOf(i), toSimpleDetail(detail));
-
-            // postIds 저장소에 순서 저장 (LEGEND는 Sorted Set)
-            redisTemplate.opsForZSet().add(postIdsKey, String.valueOf(i), (double) i);
-        }
-        redisTemplate.expire(hashKey, Duration.ofMinutes(5));
-
-        // When: 두 번째 페이지 조회 (페이지 1, 사이즈 10)
-        Pageable pageable = PageRequest.of(1, 10);
-        Page<PostSimpleDetail> result = redisPostQueryAdapter.getCachedPostListPaged(pageable);
-
-        // Then: 10개 반환
-        assertThat(result.getContent()).hasSize(10);
-        assertThat(result.getTotalElements()).isEqualTo(20);
-        assertThat(result.getNumber()).isEqualTo(1); // 두 번째 페이지
-
-        // 두 번째 페이지이므로 11~20번 게시글
-        assertThat(result.getContent().get(0).getId()).isEqualTo(11L);
-        assertThat(result.getContent().get(9).getId()).isEqualTo(20L);
+        assertThat(secondResult.getContent()).hasSize(10);
+        assertThat(secondResult.getTotalElements()).isEqualTo(20);
+        assertThat(secondResult.getNumber()).isEqualTo(1); // 두 번째 페이지
+        assertThat(secondResult.getContent().get(0).getId()).isEqualTo(11L);
+        assertThat(secondResult.getContent().get(9).getId()).isEqualTo(20L);
     }
 
     @Test
@@ -350,7 +288,7 @@ class RedisPostQueryRepositoryIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 페이지네이션 조회
-        Page<PostSimpleDetail> result = redisPostQueryAdapter.getCachedPostListPaged(pageable);
+        Page<PostSimpleDetail> result = redisPostTier1StoreAdapter.getCachedPostListPaged(pageable);
 
         // Then: 빈 페이지 반환
         assertThat(result.getContent()).isEmpty();
@@ -369,7 +307,7 @@ class RedisPostQueryRepositoryIntegrationTest {
         }
 
         // When: 실시간 인기글 ID 조회 (상위 5개)
-        List<Long> result = redisPostQueryAdapter.getRealtimePopularPostIds();
+        List<Long> result = realTimePostStoreAdapter.getRealtimePopularPostIds();
 
         // Then: 점수가 높은 상위 5개만 반환
         assertThat(result).hasSize(5);
@@ -388,7 +326,7 @@ class RedisPostQueryRepositoryIntegrationTest {
         redisTemplate.opsForZSet().add(scoreKey, "500", 20.0);
 
         // When: 실시간 인기글 ID 조회
-        List<Long> result = redisPostQueryAdapter.getRealtimePopularPostIds();
+        List<Long> result = realTimePostStoreAdapter.getRealtimePopularPostIds();
 
         // Then: 점수 내림차순으로 정렬됨
         assertThat(result).containsExactly(400L, 200L, 500L, 100L, 300L); // 30, 25, 20, 15, 10
@@ -404,7 +342,7 @@ class RedisPostQueryRepositoryIntegrationTest {
         redisTemplate.opsForZSet().add(scoreKey, "3", 6.0);
 
         // When: 실시간 인기글 ID 조회
-        List<Long> result = redisPostQueryAdapter.getRealtimePopularPostIds();
+        List<Long> result = realTimePostStoreAdapter.getRealtimePopularPostIds();
 
         // Then: 존재하는 3개만 반환
         assertThat(result).hasSize(3);
@@ -417,7 +355,7 @@ class RedisPostQueryRepositoryIntegrationTest {
         // Given: 실시간 인기글 점수가 없는 상태
 
         // When: 실시간 인기글 ID 조회
-        List<Long> result = redisPostQueryAdapter.getRealtimePopularPostIds();
+        List<Long> result = realTimePostStoreAdapter.getRealtimePopularPostIds();
 
         // Then: 빈 목록 반환
         assertThat(result).isEmpty();

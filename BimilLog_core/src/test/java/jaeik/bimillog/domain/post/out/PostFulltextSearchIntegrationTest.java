@@ -53,9 +53,6 @@ import static org.mockito.BDDMockito.given;
 class PostFulltextSearchIntegrationTest {
 
     @Autowired
-    private PostQueryRepository postQueryRepository;
-
-    @Autowired
     private PostSearchRepository postSearchRepository;
 
     @Autowired

@@ -34,9 +34,9 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
     private MessageRepository messageRepository;
     
     @Test
-    @DisplayName("내 롤링페이퍼 조회 - 성공 (메시지 있음)")
-    void myPaper_WithMessages_Success() throws Exception {
-        // Given
+    @DisplayName("내 롤링페이퍼 조회 - 메시지 있음/없음 모두 성공")
+    void myPaper_ReturnsMessagesOrEmptyArray_Success() throws Exception {
+        // Given - 케이스 1: 메시지가 있는 사용자
         messageRepository.save(PaperTestDataBuilder.createRollingPaper(
                 testMember, "생일 축하해!", 1, 1));
         messageRepository.save(PaperTestDataBuilder.createRollingPaper(
@@ -44,7 +44,7 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
         messageRepository.save(PaperTestDataBuilder.createRollingPaper(
                 testMember, "응원합니다", 3, 1));
 
-        // When & Then - 순서에 의존하지 않고 내용 존재 여부만 확인
+        // When & Then - 케이스 1: 메시지 있음
         performGet("/api/paper", testUserDetails)
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -55,15 +55,11 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$[*].x").exists())
                 .andExpect(jsonPath("$[*].y").exists())
                 .andExpect(jsonPath("$[*].decoType").exists());
-    }
-    
-    @Test
-    @DisplayName("내 롤링페이퍼 조회 - 성공 (메시지 없음)")
-    void myPaper_WithoutMessages_Success() throws Exception {
-        // Given - 새로운 사용자 생성 (메시지 없음)
+
+        // Given - 케이스 2: 메시지가 없는 사용자
         Member emptyMember = saveMember(TestMembers.createUnique());
 
-        // When & Then
+        // When & Then - 케이스 2: 메시지 없음
         performGet("/api/paper", createCustomUserDetails(emptyMember))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -82,15 +78,15 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
     }
     
     @Test
-    @DisplayName("다른 사용자 롤링페이퍼 방문 - 성공 (메시지 있음)")
-    void visitPaper_WithMessages_Success() throws Exception {
-        // Given
+    @DisplayName("다른 사용자 롤링페이퍼 방문 - 메시지 있음/없음 모두 성공")
+    void visitPaper_ReturnsMessagesOrEmptyArray_Success() throws Exception {
+        // Given - 케이스 1: 메시지가 있는 사용자
         messageRepository.save(PaperTestDataBuilder.createRollingPaper(
                 otherMember, "좋은 메시지", 1, 1));
         messageRepository.save(PaperTestDataBuilder.createRollingPaper(
                 otherMember, "또 다른 메시지", 2, 2));
 
-        // When & Then
+        // When & Then - 케이스 1: 메시지 있음
         performGet("/api/paper/" + otherMember.getMemberName())
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -103,15 +99,11 @@ class PaperQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.messages[1].x").value(2))
                 .andExpect(jsonPath("$.messages[1].y").value(2))
                 .andExpect(jsonPath("$.ownerId").value(otherMember.getId()));
-    }
-    
-    @Test
-    @DisplayName("다른 사용자 롤링페이퍼 방문 - 성공 (메시지 없음)")
-    void visitPaper_WithoutMessages_Success() throws Exception {
-        // Given
+
+        // Given - 케이스 2: 메시지가 없는 사용자
         Member emptyMember = saveMember(TestMembers.createUnique());
 
-        // When & Then
+        // When & Then - 케이스 2: 메시지 없음
         performGet("/api/paper/" + emptyMember.getMemberName())
                 .andDo(print())
                 .andExpect(status().isOk())

@@ -1,7 +1,8 @@
 package jaeik.bimillog.domain.comment.event;
 
 import jaeik.bimillog.domain.notification.service.NotificationCommandService;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RealTimePostStoreAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostTier2StoreAdapter;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -28,7 +29,10 @@ class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
     private NotificationCommandService notificationCommandService;
 
     @MockitoBean
-    private RedisPostUpdateAdapter redisPostUpdateAdapter;
+    private RealTimePostStoreAdapter realTimePostStoreAdapter;
+
+    @MockitoBean
+    private RedisPostTier2StoreAdapter redisPostTier2StoreAdapter;
 
     private static final double COMMENT_SCORE = 3.0;
 
@@ -41,7 +45,7 @@ class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
         // When & Then
         publishAndVerify(event, () -> {
             // Redis 실시간 인기글 점수 증가 검증
-            verify(redisPostUpdateAdapter).incrementRealtimePopularScore(
+            verify(realTimePostStoreAdapter).incrementRealtimePopularScore(
                     eq(100L), eq(COMMENT_SCORE));
         });
     }
@@ -59,9 +63,9 @@ class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
         publishEvents(events);
         verifyAsyncSlow(() -> {
             // 실시간 인기글 점수 증가 검증
-            verify(redisPostUpdateAdapter, times(2)).incrementRealtimePopularScore(
+            verify(realTimePostStoreAdapter, times(2)).incrementRealtimePopularScore(
                     eq(100L), eq(COMMENT_SCORE));
-            verify(redisPostUpdateAdapter).incrementRealtimePopularScore(
+            verify(realTimePostStoreAdapter).incrementRealtimePopularScore(
                     eq(101L), eq(COMMENT_SCORE));
         });
     }

@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.auth.out;
 
-import jaeik.bimillog.infrastructure.api.social.SocialStrategy;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
+import jaeik.bimillog.infrastructure.api.social.SocialStrategy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

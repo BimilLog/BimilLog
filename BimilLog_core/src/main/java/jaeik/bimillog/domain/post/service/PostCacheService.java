@@ -6,15 +6,19 @@ import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.out.PostQueryRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostQueryAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostSaveAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RealTimePostStoreAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostTier1StoreAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostTier2StoreAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -29,9 +33,10 @@ import java.util.concurrent.ThreadLocalRandom;
 @RequiredArgsConstructor
 @Slf4j
 public class PostCacheService {
-    private final RedisPostSaveAdapter redisPostSaveAdapter;
     private final PostQueryRepository postQueryRepository;
-    private final RedisPostQueryAdapter redisPostQueryAdapter;
+    private final RedisPostTier1StoreAdapter redisPostTier1StoreAdapter;
+    private final RedisPostTier2StoreAdapter redisPostTier2StoreAdapter;
+    private final RealTimePostStoreAdapter realTimePostStoreAdapter;
     private final PostCacheRefresh postCacheRefresh;
 
     /**
@@ -53,7 +58,7 @@ public class PostCacheService {
     public List<PostSimpleDetail> getRealtimePosts() {
         try {
             // 1. score:realtime에서 상위 5개 postId 조회 (순서 포함)
-            List<Long> realtimePostIds = redisPostQueryAdapter.getRealtimePopularPostIds();
+            List<Long> realtimePostIds = realTimePostStoreAdapter.getRealtimePopularPostIds();
 
             if (realtimePostIds.isEmpty()) {
                 return List.of();
@@ -63,7 +68,7 @@ public class PostCacheService {
             checkAndRefreshCache(PostCacheFlag.REALTIME);
 
             // 3. 1차 캐시에서 Map으로 조회 (순서 정보 없음)
-            Map<Long, PostSimpleDetail> cachedMap = redisPostQueryAdapter.getCachedPostMap(PostCacheFlag.REALTIME);
+            Map<Long, PostSimpleDetail> cachedMap = redisPostTier1StoreAdapter.getCachedPostMap(PostCacheFlag.REALTIME);
 
             // 4. realtimePostIds 순서대로 결과 구성
             List<PostSimpleDetail> resultPosts = new ArrayList<>();
@@ -74,7 +79,7 @@ public class PostCacheService {
                     Optional<PostDetail> postDetailOpt = postQueryRepository.findPostDetailWithCounts(postId, null);
                     if (postDetailOpt.isPresent()) {
                         detail = postDetailOpt.get().toSimpleDetail();
-                        redisPostSaveAdapter.cachePostList(PostCacheFlag.REALTIME, List.of(detail));
+                        redisPostTier1StoreAdapter.cachePostList(PostCacheFlag.REALTIME, List.of(detail));
                     }
                 }
                 if (detail != null) {
@@ -102,7 +107,7 @@ public class PostCacheService {
         try {
             // TTL 조회 및 확률적 조기 만료 체크
             checkAndRefreshCache(PostCacheFlag.WEEKLY);
-            return redisPostQueryAdapter.getCachedPostList(PostCacheFlag.WEEKLY);
+            return redisPostTier1StoreAdapter.getCachedPostList(PostCacheFlag.WEEKLY);
         } catch (Exception e) {
             throw new CustomException(ErrorCode.POST_REDIS_WEEKLY_ERROR, e);
         }
@@ -124,7 +129,7 @@ public class PostCacheService {
         try {
             // TTL 조회 및 확률적 조기 만료 체크
             checkAndRefreshCache(PostCacheFlag.LEGEND);
-            return redisPostQueryAdapter.getCachedPostListPaged(pageable);
+            return redisPostTier1StoreAdapter.getCachedPostListPaged(pageable);
         } catch (Exception e) {
             throw new CustomException(ErrorCode.POST_REDIS_LEGEND_ERROR, e);
         }
@@ -143,10 +148,10 @@ public class PostCacheService {
     public List<PostSimpleDetail> getNoticePosts() {
         try {
             // 1. postIds:notice Set에서 실제 공지 ID 목록 조회
-            List<Long> storedPostIds = redisPostQueryAdapter.getStoredPostIds(PostCacheFlag.NOTICE);
+            List<Long> storedPostIds = redisPostTier2StoreAdapter.getStoredPostIds(PostCacheFlag.NOTICE);
 
             // 2. posts:notice Hash에서 캐시된 목록 조회
-            List<PostSimpleDetail> cachedList = redisPostQueryAdapter.getCachedPostList(PostCacheFlag.NOTICE);
+            List<PostSimpleDetail> cachedList = redisPostTier1StoreAdapter.getCachedPostList(PostCacheFlag.NOTICE);
 
             // 3. 개수 비교: 저장소 ID 개수 != 캐시 목록 개수 → 캐시 미스
             if (cachedList.size() != storedPostIds.size()) {
@@ -167,7 +172,7 @@ public class PostCacheService {
      * @since 2.4.0
      */
     private void checkAndRefreshCache(PostCacheFlag flag) {
-        Long ttl = redisPostQueryAdapter.getPostListCacheTTL(flag);
+        Long ttl = redisPostTier1StoreAdapter.getPostListCacheTTL(flag);
         if (ttl != null && ttl > 0) {
             double randomFactor = ThreadLocalRandom.current().nextDouble();
             if (ttl - (randomFactor * EXPIRY_GAP_SECONDS) <= 0) {

@@ -4,8 +4,9 @@ import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.out.PostQueryRepository;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostQueryAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostSaveAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RealTimePostStoreAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostTier1StoreAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostTier2StoreAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
@@ -18,20 +19,17 @@ import java.util.Objects;
 @RequiredArgsConstructor
 @Slf4j
 public class PostCacheRefresh {
-
-    private final RedisPostSaveAdapter redisPostSaveAdapter;
     private final PostQueryRepository postQueryRepository;
-    private final RedisPostQueryAdapter redisPostQueryAdapter;
+    private final RedisPostTier1StoreAdapter redisPostTier1StoreAdapter;
+    private final RedisPostTier2StoreAdapter redisPostTier2StoreAdapter;
+    private final RealTimePostStoreAdapter realTimePostStoreAdapter;
 
     /**
      * <h3>비동기 캐시 갱신 (PER 기반)</h3>
      * <p>확률적 선계산 기법에서 TTL 임계값 이하일 때 호출되는 비동기 캐시 갱신 메서드입니다.</p>
-     * <p>PER(Probabilistic Early Recomputation) 기법으로 동시 갱신 요청을 확률적으로 분산시킵니다.</p>
      * <p>백그라운드에서 실행되므로 사용자 요청은 블로킹되지 않습니다.</p>
      *
      * @param type 갱신할 캐시 유형 (REALTIME, WEEKLY, LEGEND, NOTICE)
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Async("cacheRefreshExecutor")
     public void asyncRefreshCache(PostCacheFlag type) {
@@ -41,9 +39,9 @@ public class PostCacheRefresh {
 
             // Step 1: Tier 2 PostIds로부터 복구 (실시간은 실시간 점수 Redis 저장소에서 복구)
             if (type == PostCacheFlag.REALTIME) {
-                storedPostIds = redisPostQueryAdapter.getRealtimePopularPostIds();
+                storedPostIds = realTimePostStoreAdapter.getRealtimePopularPostIds();
             } else {
-                storedPostIds = redisPostQueryAdapter.getStoredPostIds(type);
+                storedPostIds = redisPostTier2StoreAdapter.getStoredPostIds(type);
             }
 
             if (storedPostIds.isEmpty()) {
@@ -66,7 +64,7 @@ public class PostCacheRefresh {
             }
 
             // Step 3: 캐시 갱신
-            redisPostSaveAdapter.cachePostList(type, refreshed);
+            redisPostTier1StoreAdapter.cachePostList(type, refreshed);
             log.info("캐시 갱신 완료: 타입={}, count={}", type, refreshed.size());
 
         } catch (Exception e) {

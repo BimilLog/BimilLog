@@ -57,11 +57,6 @@ class PopularPostQueryRepositoryIntegrationTest {
 
     private Member testMember;
 
-    private void persistAndFlush(Object entity) {
-        entityManager.persist(entity);
-        entityManager.flush();
-    }
-
     @BeforeEach
     void setUp() {
         // Redis 초기화

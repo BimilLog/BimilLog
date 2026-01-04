@@ -60,11 +60,9 @@ class CommentQueryControllerIntegrationTest extends BaseIntegrationTest {
     }
     
     @Test
-    @DisplayName("댓글 조회 통합 테스트 - 첫 번째 페이지")
-    void getComments_FirstPage_IntegrationTest() throws Exception {
-        // Given - testUserDetails는 BaseIntegrationTest에서 이미 생성됨
-        
-        // When & Then
+    @DisplayName("댓글 조회 통합 테스트 - 댓글 있음/없음 모두 검증")
+    void getComments_WithAndWithoutData_IntegrationTest() throws Exception {
+        // When & Then - 케이스 1: 댓글 있음 (testPost, setUpChild()에서 5개 생성)
         mockMvc.perform(get("/api/comment/{postId}", testPost.getId())
                 .param("page", "0")
                 .with(user(testUserDetails)))
@@ -75,18 +73,12 @@ class CommentQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.totalElements").value(5))
                 .andExpect(jsonPath("$.first").value(true))
                 .andExpect(jsonPath("$.last").value(true));
-    }
-    
-    @Test
-    @DisplayName("댓글 조회 통합 테스트 - 빈 페이지")
-    void getComments_EmptyPage_IntegrationTest() throws Exception {
-        // Given - 댓글이 없는 새로운 게시글
+
+        // Given - 케이스 2: 댓글이 없는 게시글
         Post emptyPost = PostTestDataBuilder.createPost(testMember, "빈 게시글", "댓글이 없는 게시글입니다.");
         postRepository.save(emptyPost);
-        
 
-        
-        // When & Then
+        // When & Then - 케이스 2: 댓글 없음
         mockMvc.perform(get("/api/comment/{postId}", emptyPost.getId())
                 .param("page", "0")
                 .with(user(testUserDetails)))

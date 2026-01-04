@@ -44,27 +44,23 @@ class MemberQueryControllerIntegrationTest extends BaseIntegrationTest {
     private AuthTokenRepository authTokenRepository;
 
     @Test
-    @DisplayName("닉네임 중복 확인 통합 테스트 - 사용 가능한 닉네임")
-    void checkUserName_Available_IntegrationTest() throws Exception {
-        // Given
+    @DisplayName("닉네임 중복 확인 통합 테스트 - 사용 가능/중복 모두 검증")
+    void checkUserName_AvailableAndDuplicate_IntegrationTest() throws Exception {
+        // Given - 케이스 1: 사용 가능한 닉네임
         String availableUserName = "사용가능한닉네임";
 
-        // When & Then
+        // When & Then - 케이스 1: 사용 가능
         mockMvc.perform(get("/api/member/username/check")
                         .param("memberName", availableUserName))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().string("true"));
-    }
 
-    @Test
-    @DisplayName("닉네임 중복 확인 통합 테스트 - 중복된 닉네임")
-    void checkUserName_Duplicate_IntegrationTest() throws Exception {
-        // Given - 기존 사용자 생성 및 저장
+        // Given - 케이스 2: 중복된 닉네임 (사용자 생성)
         Member existingMember = TestMembers.createUnique();
         saveMember(existingMember);
 
-        // When & Then
+        // When & Then - 케이스 2: 중복됨
         mockMvc.perform(get("/api/member/username/check")
                         .param("memberName", existingMember.getMemberName()))
                 .andDo(print())

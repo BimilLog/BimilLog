@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.admin.listener;
 
 import jaeik.bimillog.domain.admin.service.AdminCommandService;
 import jaeik.bimillog.domain.member.event.ReportSubmittedEvent;
-import jaeik.bimillog.infrastructure.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;

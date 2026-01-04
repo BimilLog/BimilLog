@@ -43,9 +43,9 @@ class NotificationControllerIntegrationTest extends BaseIntegrationTest {
     }
 
     @Test
-    @DisplayName("로그인된 사용자의 알림 목록 조회 - 성공")
-    void getNotifications_AuthenticatedUser_Success() throws Exception {
-        // When & Then
+    @DisplayName("로그인된 사용자의 알림 목록 조회 - 알림 있음/없음 모두 성공")
+    void getNotifications_WithAndWithoutData_Success() throws Exception {
+        // When & Then - 케이스 1: 알림 있음 (testMember, setUpChild()에서 5개 생성)
         mockMvc.perform(get("/api/notification/list")
                         .with(user(testUserDetails)))
                 .andDo(print())
@@ -58,16 +58,12 @@ class NotificationControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$[0].notificationType").exists())
                 .andExpect(jsonPath("$[0].read").exists())
                 .andExpect(jsonPath("$[0].createdAt").exists());
-    }
 
-    @Test
-    @DisplayName("로그인된 사용자의 알림 목록 조회 - 알림 없음")
-    void getNotifications_NoNotifications_Success() throws Exception {
-        // Given - 알림이 없는 새로운 사용자
+        // Given - 케이스 2: 알림이 없는 사용자
         Member memberWithoutNotifications = TestMembers.createUniqueWithPrefix("anotheruser");
         saveMember(memberWithoutNotifications);
 
-        // When & Then - otherUser를 사용하는 것이 더 적절하지만, 새 사용자가 필요한 경우
+        // When & Then - 케이스 2: 알림 없음
         mockMvc.perform(get("/api/notification/list")
                         .with(user(createCustomUserDetails(memberWithoutNotifications))))
                 .andDo(print())

@@ -4,9 +4,9 @@ import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.out.PostQueryRepository;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostQueryAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostSaveAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostUpdateAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RealTimePostStoreAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostTier1StoreAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisPostTier2StoreAdapter;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -41,20 +41,19 @@ import static org.mockito.Mockito.verify;
 @Tag("unit")
 class PostCacheServiceTest {
 
-    @Mock
-    private RedisPostSaveAdapter redisPostSaveAdapter;
 
     @Mock
     private PostQueryRepository postQueryRepository;
 
     @Mock
-    private RedisPostQueryAdapter redisPostQueryAdapter;
+    private RedisPostTier1StoreAdapter redisPostTier1StoreAdapter;
 
     @Mock
-    private RedisPostUpdateAdapter redisPostUpdateAdapter;
+    private RedisPostTier2StoreAdapter redisPostTier2StoreAdapter;
 
     @Mock
-    private PostCacheRefresh postCacheRefresh;
+    private RealTimePostStoreAdapter realTimePostStoreAdapter;
+
 
     @InjectMocks
     private PostCacheService postCacheService;
@@ -70,8 +69,8 @@ class PostCacheServiceTest {
         cachedMap.put(1L, simpleDetail1);
         cachedMap.put(2L, simpleDetail2);
 
-        given(redisPostQueryAdapter.getRealtimePopularPostIds()).willReturn(List.of(1L, 2L));
-        given(redisPostQueryAdapter.getCachedPostMap(PostCacheFlag.REALTIME)).willReturn(cachedMap);
+        given(realTimePostStoreAdapter.getRealtimePopularPostIds()).willReturn(List.of(1L, 2L));
+        given(redisPostTier1StoreAdapter.getCachedPostMap(PostCacheFlag.REALTIME)).willReturn(cachedMap);
 
         // When
         List<PostSimpleDetail> result = postCacheService.getRealtimePosts();
@@ -81,8 +80,8 @@ class PostCacheServiceTest {
         assertThat(result.get(0).getTitle()).isEqualTo("실시간 인기글 1");
         assertThat(result.get(1).getTitle()).isEqualTo("실시간 인기글 2");
 
-        verify(redisPostQueryAdapter).getRealtimePopularPostIds();
-        verify(redisPostQueryAdapter).getCachedPostMap(PostCacheFlag.REALTIME);
+        verify(realTimePostStoreAdapter).getRealtimePopularPostIds();
+        verify(redisPostTier1StoreAdapter).getCachedPostMap(PostCacheFlag.REALTIME);
     }
 
     @Test
@@ -95,8 +94,8 @@ class PostCacheServiceTest {
         Map<Long, PostSimpleDetail> cachedMap = new HashMap<>();
         cachedMap.put(2L, simpleDetail2); // postId=1은 캐시 미스
 
-        given(redisPostQueryAdapter.getRealtimePopularPostIds()).willReturn(List.of(1L, 2L));
-        given(redisPostQueryAdapter.getCachedPostMap(PostCacheFlag.REALTIME)).willReturn(cachedMap);
+        given(realTimePostStoreAdapter.getRealtimePopularPostIds()).willReturn(List.of(1L, 2L));
+        given(redisPostTier1StoreAdapter.getCachedPostMap(PostCacheFlag.REALTIME)).willReturn(cachedMap);
         given(postQueryRepository.findPostDetailWithCounts(1L, null)).willReturn(Optional.of(realtimePost1)); // DB fallback
 
         // When
@@ -107,10 +106,10 @@ class PostCacheServiceTest {
         assertThat(result.get(0).getTitle()).isEqualTo("DB에서 조회된 게시글");
         assertThat(result.get(1).getTitle()).isEqualTo("캐시된 게시글");
 
-        verify(redisPostQueryAdapter).getRealtimePopularPostIds();
-        verify(redisPostQueryAdapter).getCachedPostMap(PostCacheFlag.REALTIME);
+        verify(realTimePostStoreAdapter).getRealtimePopularPostIds();
+        verify(redisPostTier1StoreAdapter).getCachedPostMap(PostCacheFlag.REALTIME);
         verify(postQueryRepository).findPostDetailWithCounts(1L, null);
-        verify(redisPostSaveAdapter).cachePostList(eq(PostCacheFlag.REALTIME), any());
+        verify(redisPostTier1StoreAdapter).cachePostList(eq(PostCacheFlag.REALTIME), any());
     }
 
     @Test
@@ -122,8 +121,8 @@ class PostCacheServiceTest {
             PostTestDataBuilder.createPostSearchResult(2L, "주간 인기글 2")
         );
 
-        given(redisPostQueryAdapter.getPostListCacheTTL(PostCacheFlag.WEEKLY)).willReturn(300L);  // 충분한 TTL (5분) → asyncRefreshCache 호출 안 됨
-        given(redisPostQueryAdapter.getCachedPostList(PostCacheFlag.WEEKLY)).willReturn(weeklyPosts);
+        given(redisPostTier1StoreAdapter.getPostListCacheTTL(PostCacheFlag.WEEKLY)).willReturn(300L);  // 충분한 TTL (5분) → asyncRefreshCache 호출 안 됨
+        given(redisPostTier1StoreAdapter.getCachedPostList(PostCacheFlag.WEEKLY)).willReturn(weeklyPosts);
 
         // When
         List<PostSimpleDetail> result = postCacheService.getWeeklyPosts();
@@ -133,7 +132,7 @@ class PostCacheServiceTest {
         assertThat(result.get(0).getTitle()).isEqualTo("주간 인기글 1");
         assertThat(result.get(1).getTitle()).isEqualTo("주간 인기글 2");
 
-        verify(redisPostQueryAdapter).getCachedPostList(PostCacheFlag.WEEKLY);
+        verify(redisPostTier1StoreAdapter).getCachedPostList(PostCacheFlag.WEEKLY);
     }
 
     @Test
@@ -146,7 +145,7 @@ class PostCacheServiceTest {
         PostSimpleDetail legendPost2 = PostTestDataBuilder.createPostSearchResult(2L, "레전드 게시글 2");
         Page<PostSimpleDetail> expectedPage = new PageImpl<>(List.of(legendPost1, legendPost2), pageable, 2);
 
-        given(redisPostQueryAdapter.getCachedPostListPaged(pageable)).willReturn(expectedPage);
+        given(redisPostTier1StoreAdapter.getCachedPostListPaged(pageable)).willReturn(expectedPage);
 
         // When
         Page<PostSimpleDetail> result = postCacheService.getPopularPostLegend(pageable);
@@ -157,7 +156,7 @@ class PostCacheServiceTest {
         assertThat(result.getContent().get(0).getTitle()).isEqualTo("레전드 게시글 1");
         assertThat(result.getContent().get(1).getTitle()).isEqualTo("레전드 게시글 2");
 
-        verify(redisPostQueryAdapter).getCachedPostListPaged(pageable);
+        verify(redisPostTier1StoreAdapter).getCachedPostListPaged(pageable);
     }
 
     @Test
@@ -167,14 +166,14 @@ class PostCacheServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<PostSimpleDetail> emptyPage = new PageImpl<>(List.of(), pageable, 0);
 
-        given(redisPostQueryAdapter.getCachedPostListPaged(pageable)).willReturn(emptyPage);
+        given(redisPostTier1StoreAdapter.getCachedPostListPaged(pageable)).willReturn(emptyPage);
 
         // When
         Page<PostSimpleDetail> result = postCacheService.getPopularPostLegend(pageable);
 
         // Then
         assertThat(result.getContent()).isEmpty();
-        verify(redisPostQueryAdapter).getCachedPostListPaged(pageable);
+        verify(redisPostTier1StoreAdapter).getCachedPostListPaged(pageable);
     }
 
     @Test
@@ -184,8 +183,8 @@ class PostCacheServiceTest {
         PostSimpleDetail noticePost = PostTestDataBuilder.createPostSearchResult(1L, "공지사항");
         List<PostSimpleDetail> noticePosts = List.of(noticePost);
 
-        given(redisPostQueryAdapter.getStoredPostIds(PostCacheFlag.NOTICE)).willReturn(List.of(1L));
-        given(redisPostQueryAdapter.getCachedPostList(PostCacheFlag.NOTICE)).willReturn(noticePosts);
+        given(redisPostTier2StoreAdapter.getStoredPostIds(PostCacheFlag.NOTICE)).willReturn(List.of(1L));
+        given(redisPostTier1StoreAdapter.getCachedPostList(PostCacheFlag.NOTICE)).willReturn(noticePosts);
 
         // When
         List<PostSimpleDetail> result = postCacheService.getNoticePosts();
@@ -194,39 +193,39 @@ class PostCacheServiceTest {
         assertThat(result).isEqualTo(noticePosts);
         assertThat(result).hasSize(1);
 
-        verify(redisPostQueryAdapter).getStoredPostIds(PostCacheFlag.NOTICE);
-        verify(redisPostQueryAdapter).getCachedPostList(PostCacheFlag.NOTICE);
+        verify(redisPostTier2StoreAdapter).getStoredPostIds(PostCacheFlag.NOTICE);
+        verify(redisPostTier1StoreAdapter).getCachedPostList(PostCacheFlag.NOTICE);
     }
 
     @Test
     @DisplayName("주간 인기글 조회 - 캐시 미스 (빈 리스트 반환)")
     void shouldGetWeeklyPosts_WhenCacheMiss() {
         // Given
-        given(redisPostQueryAdapter.getPostListCacheTTL(PostCacheFlag.WEEKLY)).willReturn(300L);
-        given(redisPostQueryAdapter.getCachedPostList(PostCacheFlag.WEEKLY)).willReturn(List.of());
+        given(redisPostTier1StoreAdapter.getPostListCacheTTL(PostCacheFlag.WEEKLY)).willReturn(300L);
+        given(redisPostTier1StoreAdapter.getCachedPostList(PostCacheFlag.WEEKLY)).willReturn(List.of());
 
         // When
         List<PostSimpleDetail> result = postCacheService.getWeeklyPosts();
 
         // Then
         assertThat(result).isEmpty();
-        verify(redisPostQueryAdapter).getCachedPostList(PostCacheFlag.WEEKLY);
+        verify(redisPostTier1StoreAdapter).getCachedPostList(PostCacheFlag.WEEKLY);
     }
 
     @Test
     @DisplayName("공지사항 조회 - 캐시 미스 (빈 리스트 반환, asyncRefreshCache 호출)")
     void shouldGetNoticePosts_WhenCacheMiss() {
         // Given
-        given(redisPostQueryAdapter.getStoredPostIds(PostCacheFlag.NOTICE)).willReturn(List.of(1L));
-        given(redisPostQueryAdapter.getCachedPostList(PostCacheFlag.NOTICE)).willReturn(List.of());  // 캐시 미스 (size 불일치)
+        given(redisPostTier2StoreAdapter.getStoredPostIds(PostCacheFlag.NOTICE)).willReturn(List.of(1L));
+        given(redisPostTier1StoreAdapter.getCachedPostList(PostCacheFlag.NOTICE)).willReturn(List.of());  // 캐시 미스 (size 불일치)
 
         // When
         List<PostSimpleDetail> result = postCacheService.getNoticePosts();
 
         // Then
         assertThat(result).isEmpty();  // 빈 캐시 반환 (asyncRefreshCache는 백그라운드 실행)
-        verify(redisPostQueryAdapter).getStoredPostIds(PostCacheFlag.NOTICE);
-        verify(redisPostQueryAdapter).getCachedPostList(PostCacheFlag.NOTICE);
+        verify(redisPostTier2StoreAdapter).getStoredPostIds(PostCacheFlag.NOTICE);
+        verify(redisPostTier1StoreAdapter).getCachedPostList(PostCacheFlag.NOTICE);
     }
 
     // Helper method for creating PostDetail test data
