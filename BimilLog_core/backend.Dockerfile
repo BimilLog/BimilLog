@@ -34,7 +34,9 @@ RUN mkdir -p /app/logs
 
 # 애플리케이션 실행 (운영 환경 최적화 옵션 포함)
 ENTRYPOINT ["java", \
-    "-Dobj_name=BimilLog", \
+    "-javaagent:/app/scouter-agent/scouter.agent.jar", \
+    "-Dscouter.config=/app/scouter-agent/conf/scouter.conf", \
+    "-Dobj_name=BimilLog-Backend", \
     "-Dfile.encoding=UTF-8", \
     "-Duser.timezone=Asia/Seoul", \
     "-XX:+HeapDumpOnOutOfMemoryError", \
