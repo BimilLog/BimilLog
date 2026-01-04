@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
  * <h2>관리자 명령 컨트롤러</h2>
  * <p>관리자 도메인의 명령 작업을 담당하는 컨트롤러</p>
  * <p>사용자 제재, 강제 탈퇴 처리</p>
- * <p>ADMIN 권한 필요</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -37,8 +36,6 @@ public class AdminCommandController {
      *
      * @param banUserDTO 사용자 제재 DTO (신고 유형, 대상 ID 포함)
      * @return ResponseEntity<String> 제재 완료 응답 메시지
-     * @author Jaeik
-     * @since 2.0.0
      */
     @PostMapping("/ban")
     @PreAuthorize("hasRole('ADMIN')")
@@ -53,8 +50,6 @@ public class AdminCommandController {
      *
      * @param forceWithdrawDTO 강제 탈퇴 DTO (신고 유형, 대상 ID 포함)
      * @return ResponseEntity<String> 강제 탈퇴 완료 응답 메시지
-     * @author Jaeik
-     * @since 2.0.0
      */
     @PostMapping("/withdraw")
     @PreAuthorize("hasRole('ADMIN')")
