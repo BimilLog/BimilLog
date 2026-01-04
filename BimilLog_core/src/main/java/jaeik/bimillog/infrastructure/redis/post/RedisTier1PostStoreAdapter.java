@@ -35,7 +35,7 @@ import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.CacheMetada
 @RequiredArgsConstructor
 public class RedisTier1PostStoreAdapter {
     private final RedisTemplate<String, Object> redisTemplate;
-    private final RedisTier2PostStoreAdapter redisTier2PostStoreAdapter;
+    private final RedisTier2PostStoreAdapter redisTier2PostStoreAdapter; //TODO 티어2 의존 제거해야 함
     private final Map<PostCacheFlag, CacheMetadata> cacheMetadataMap = CACHE_METADATA_MAP;
 
     /**
@@ -71,8 +71,7 @@ public class RedisTier1PostStoreAdapter {
         Map<Long, PostSimpleDetail> cachedMap = hashEntries.entrySet().stream()
                 .collect(Collectors.toMap(
                         e -> Long.valueOf(e.getKey().toString()),
-                        e -> (PostSimpleDetail) e.getValue()
-                ));
+                        e -> (PostSimpleDetail) e.getValue()));
 
         CacheMetricsLogger.hit(log, "post:map:" + type.name().toLowerCase(), metadata.key(), cachedMap.size());
         return cachedMap;
@@ -106,13 +105,7 @@ public class RedisTier1PostStoreAdapter {
                 .filter(Objects::nonNull)
                 .toList();
 
-        if (cachedPosts.isEmpty()) {
-            CacheMetricsLogger.miss(log, "post:list:" + type.name().toLowerCase(),
-                    getCacheMetadata(type).key(), "resolved_entries_empty");
-        } else {
-            CacheMetricsLogger.hit(log, "post:list:" + type.name().toLowerCase(),
-                    getCacheMetadata(type).key(), cachedPosts.size());
-        }
+        CacheMetricsLogger.hit(log, "post:list:" + type.name().toLowerCase(), getCacheMetadata(type).key(), cachedPosts.size());
         return cachedPosts;
     }
 
@@ -136,7 +129,6 @@ public class RedisTier1PostStoreAdapter {
         // 2. postIds 저장소에서 전체 순서 가져오기
         List<Long> orderedIds = redisTier2PostStoreAdapter.getStoredPostIds(PostCacheFlag.LEGEND);
         if (orderedIds.isEmpty()) {
-            CacheMetricsLogger.miss(log, "post:legend:list", metadata.key(), "ordered_ids_empty");
             return new PageImpl<>(Collections.emptyList(), pageable, 0);
         }
 
@@ -147,7 +139,6 @@ public class RedisTier1PostStoreAdapter {
         int end = Math.min(start + size, orderedIds.size());
 
         if (start >= orderedIds.size()) {
-            CacheMetricsLogger.miss(log, "post:legend:list", metadata.key(), "page_out_of_range");
             return new PageImpl<>(Collections.emptyList(), pageable, orderedIds.size());
         }
 
@@ -157,12 +148,7 @@ public class RedisTier1PostStoreAdapter {
                 .filter(Objects::nonNull)
                 .toList();
 
-        if (pagedPosts.isEmpty()) {
-            CacheMetricsLogger.miss(log, "post:legend:list", metadata.key(), "resolved_entries_empty");
-        } else {
-            CacheMetricsLogger.hit(log, "post:legend:list", metadata.key(), pagedPosts.size());
-        }
-
+        CacheMetricsLogger.hit(log, "post:legend:list", metadata.key(), pagedPosts.size());
         return new PageImpl<>(pagedPosts, pageable, orderedIds.size());
     }
 
@@ -181,8 +167,7 @@ public class RedisTier1PostStoreAdapter {
         }
 
         RedisPostKeys.CacheMetadata metadata = getCacheMetadata(type);
-        log.warn("[CACHE_WRITE] START - type={}, count={}, key={}, thread={}",
-                type, posts.size(), metadata.key(), Thread.currentThread().getName());
+        log.info("[CACHE_WRITE] START - type={}, count={}", type, posts.size());
 
         // Hash에 PostSimpleDetail 저장 (HSET)
         String hashKey = metadata.key();
@@ -191,9 +176,7 @@ public class RedisTier1PostStoreAdapter {
         }
         // TTL 설정
         redisTemplate.expire(hashKey, metadata.ttl());
-
-        log.warn("[CACHE_WRITE] SUCCESS - type={}, key={}, ttl={}min",
-                type, metadata.key(), metadata.ttl().toMinutes());
+        log.info("[CACHE_WRITE] SUCCESS - type={}, ttl={}min", type, metadata.ttl().toMinutes());
     }
 
     /**
