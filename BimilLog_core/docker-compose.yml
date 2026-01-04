@@ -10,6 +10,7 @@ services:
       - bimillog-network
     volumes:
       - /home/ubuntu/logs:/app/logs
+      - /home/ubuntu/scouter/agent.java:/app/scouter-agent
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - PROD_MYSQL_URL=${PROD_MYSQL_URL}
