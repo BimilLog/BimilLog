@@ -18,22 +18,20 @@ import java.util.Map;
 public final class RedisPostKeys {
 
     // ===================== 1. PREFIXES (접두사 및 고정 키) =====================
-
-
     /**
      * 게시글 캐시 접두사
      */
     public static final String POST_PREFIX = "post:";
 
     /**
-     * 단일 게시글 상세 정보 캐시 키 접미사
+     * 게시글 상세 정보 캐시 키 접미사
      * <p>Value Type: String (PostDetail)</p>
      * <p>전체 키 형식: post:{postId}:detail</p>
      */
     public static final String FULL_POST_CACHE_SUFFIX = ":detail";
 
     /**
-     * postId 목록 영구 저장소 키 접미사
+     * 티어2 저장소 키 접미사
      * <p>Value Type: Sorted Set (주간/레전드), Set (공지)</p>
      * <p>전체 키 형식: post:{type}:postids</p>
      */
