@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
  * <h2>관리자 조회 컨트롤러</h2>
  * <p>관리자 도메인의 조회 작업을 담당하는 컨트롤러입니다.</p>
  * <p>신고 목록 페이지네이션 조회</p>
- * <p>ADMIN 권한 필요</p>
  *
  * @author Jaeik
  * @version 2.0.0
@@ -39,8 +38,6 @@ public class AdminQueryController {
      * @param size 페이지당 신고 수 (기본값: 20, 최대 100)
      * @param reportType 필터링할 신고 유형 (POST, COMMENT, ERROR, IMPROVEMENT 중 선택, null이면 전체)
      * @return ResponseEntity<Page<ReportDTO>> 페이지네이션된 신고 목록과 메타데이터
-     * @author Jaeik
-     * @since 2.0.0
      */
     @GetMapping("/reports")
     @PreAuthorize("hasRole('ADMIN')")
