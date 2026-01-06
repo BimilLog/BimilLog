@@ -26,20 +26,17 @@ WORKDIR /app
 # 빌드 단계(builder)에서 생성된 JAR 파일만 복사 (와일드카드로 버전 독립적)
 COPY --from=builder /app/build/libs/*.jar app.jar
 
-# Scouter Agent 복사
-COPY scouter-agent /app/scouter-agent
-
 # 운영 환경 프로파일 활성화 (필요시 외부에서 변경 가능)
 ENV SPRING_PROFILES_ACTIVE=prod
 
 # 로그 디렉토리 생성
 RUN mkdir -p /app/logs
 
-# 애플리케이션 실행 (Scouter Agent 포함)
+# 애플리케이션 실행 (운영 환경 최적화 옵션 포함)
 ENTRYPOINT ["java", \
     "-javaagent:/app/scouter-agent/scouter.agent.jar", \
     "-Dscouter.config=/app/scouter-agent/conf/scouter.conf", \
-    "-Dobj_name=BimilLog", \
+    "-Dobj_name=BimilLog-Backend", \
     "-Dfile.encoding=UTF-8", \
     "-Duser.timezone=Asia/Seoul", \
     "-XX:+HeapDumpOnOutOfMemoryError", \
