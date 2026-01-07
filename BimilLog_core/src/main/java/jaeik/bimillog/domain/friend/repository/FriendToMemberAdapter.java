@@ -21,7 +21,13 @@ public class FriendToMemberAdapter {
     private final MemberQueryService memberQueryService;
     private final MemberBlacklistService memberBlacklistService;
 
-    // 친구 추가 정보 조회
+    /**
+     * <h3>친구 추가 정보 조회</h3>
+     * <p>친구 ID 목록을 받아서 각 친구의 상세 정보를 조회합니다.</p>
+     *
+     * @param friendIds 조회할 친구 ID 목록
+     * @return List&lt;Friend.FriendInfo&gt; 친구 정보 리스트
+     */
     public List<Friend.FriendInfo> addMyFriendInfo(List<Long> friendIds) {
         return memberFriendService.addMyFriendInfo(friendIds);
     }
@@ -37,6 +43,15 @@ public class FriendToMemberAdapter {
         return memberQueryService.findById(memberId);
     }
 
+    /**
+     * <h3>블랙리스트 관계 검증</h3>
+     * <p>두 사용자 간 블랙리스트 관계가 있는지 확인하고, 존재하면 예외를 발생시킵니다.</p>
+     * <p>양방향 블랙리스트를 확인하여 어느 한 쪽이라도 상대방을 차단한 경우 예외를 발생시킵니다.</p>
+     *
+     * @param memberId 요청 사용자 ID
+     * @param targetMemberId 대상 사용자 ID
+     * @throws CustomException 블랙리스트 관계인 경우 (ErrorCode.BLACKLIST_MEMBER_PAPER_FORBIDDEN)
+     */
     public void checkMemberBlacklist(Long memberId, Long targetMemberId) {
         boolean isBlacklisted = memberBlacklistService.checkMemberBlacklist(memberId, targetMemberId);
         if (isBlacklisted) {
