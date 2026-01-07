@@ -8,8 +8,7 @@ import jaeik.bimillog.domain.comment.repository.CommentClosureRepository;
 import jaeik.bimillog.domain.comment.repository.CommentDeleteRepository;
 import jaeik.bimillog.domain.comment.repository.CommentLikeRepository;
 import jaeik.bimillog.domain.comment.repository.CommentRepository;
-import jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter;
-import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
+import jaeik.bimillog.domain.comment.repository.CommentToMemberAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.out.PostRepository;
@@ -59,8 +58,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
     @Mock private CommentDeleteRepository commentDeleteRepository;
     @Mock private CommentClosureRepository commentClosureRepository;
     @Mock private CommentLikeRepository commentLikeRepository;
-    @Mock private GlobalMemberQueryAdapter globalMemberQueryAdapter;
-    @Mock private GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
+    @Mock private CommentToMemberAdapter commentToMemberAdapter;
     @Mock private PostRepository postRepository;
     @Mock private ApplicationEventPublisher eventPublisher;
 
@@ -84,7 +82,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
     void shouldAddLike_WhenMemberHasNotLikedComment() {
         // Given
         given(commentRepository.findById(TEST_COMMENT_ID)).willReturn(Optional.of(testComment));
-        given(globalMemberQueryAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
+        given(commentToMemberAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
         given(commentLikeRepository.existsByCommentIdAndMemberId(TEST_COMMENT_ID, getTestMember().getId())).willReturn(false);
 
         // When
@@ -106,7 +104,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
     void shouldRemoveLike_WhenMemberHasAlreadyLikedComment() {
         // Given
         given(commentRepository.findById(TEST_COMMENT_ID)).willReturn(Optional.of(testComment));
-        given(globalMemberQueryAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
+        given(commentToMemberAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
         given(commentLikeRepository.existsByCommentIdAndMemberId(TEST_COMMENT_ID, getTestMember().getId())).willReturn(true);
 
         // When
@@ -129,7 +127,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_NOT_FOUND);
 
         verify(commentRepository).findById(TEST_COMMENT_ID);
-        verify(globalMemberQueryAdapter, never()).findById(any());
+        verify(commentToMemberAdapter, never()).findById(any());
         verify(commentLikeRepository, never()).existsByCommentIdAndMemberId(anyLong(), anyLong());
         verify(commentLikeRepository, never()).save(any());
         verify(commentLikeRepository, never()).deleteByCommentIdAndMemberId(anyLong(), anyLong());
@@ -140,7 +138,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
     void shouldThrowException_WhenUserNotFound() {
         // Given
         given(commentRepository.findById(TEST_COMMENT_ID)).willReturn(Optional.of(testComment));
-        given(globalMemberQueryAdapter.findById(getTestMember().getId())).willReturn(Optional.empty());
+        given(commentToMemberAdapter.findById(getTestMember().getId())).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.likeComment(getTestMember().getId(), TEST_COMMENT_ID))
@@ -148,7 +146,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MEMBER_USER_NOT_FOUND);
 
         verify(commentRepository).findById(TEST_COMMENT_ID);
-        verify(globalMemberQueryAdapter).findById(getTestMember().getId());
+        verify(commentToMemberAdapter).findById(getTestMember().getId());
         verify(commentLikeRepository, never()).existsByCommentIdAndMemberId(anyLong(), anyLong());
         verify(commentLikeRepository, never()).save(any());
         verify(commentLikeRepository, never()).deleteByCommentIdAndMemberId(anyLong(), anyLong());
@@ -159,7 +157,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
     void shouldThrowException_WhenUserIdIsNull() {
         // Given
         given(commentRepository.findById(TEST_COMMENT_ID)).willReturn(Optional.of(testComment));
-        given(globalMemberQueryAdapter.findById(null)).willReturn(Optional.empty());
+        given(commentToMemberAdapter.findById(null)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.likeComment(null, TEST_COMMENT_ID))
@@ -167,7 +165,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MEMBER_USER_NOT_FOUND);
 
         verify(commentRepository).findById(TEST_COMMENT_ID);
-        verify(globalMemberQueryAdapter).findById(null);
+        verify(commentToMemberAdapter).findById(null);
         verify(commentLikeRepository, never()).existsByCommentIdAndMemberId(anyLong(), anyLong());
         verify(commentLikeRepository, never()).save(any());
         verify(commentLikeRepository, never()).deleteByCommentIdAndMemberId(anyLong(), anyLong());
@@ -181,7 +179,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         TestFixtures.setFieldValue(ownComment, "id", 200L);
 
         given(commentRepository.findById(TEST_COMMENT_ID)).willReturn(Optional.of(ownComment));
-        given(globalMemberQueryAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
+        given(commentToMemberAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
         given(commentLikeRepository.existsByCommentIdAndMemberId(TEST_COMMENT_ID, getTestMember().getId())).willReturn(false);
 
         // When
@@ -469,7 +467,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         TestFixtures.setFieldValue(savedComment, "id", TEST_COMMENT_ID);
 
         given(postRepository.findById(postId)).willReturn(Optional.of(testPost));
-        given(globalMemberQueryAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
+        given(commentToMemberAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
         given(commentRepository.save(any(Comment.class))).willReturn(savedComment);
 
         // When
@@ -539,7 +537,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         given(postRepository.findById(postId)).willReturn(Optional.of(testPost));
         given(commentRepository.findById(parentId)).willReturn(Optional.of(parentComment));
-        given(globalMemberQueryAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
+        given(commentToMemberAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
         given(commentRepository.save(any(Comment.class))).willReturn(savedComment);
         given(commentClosureRepository.findByDescendantId(parentId)).willReturn(Optional.of(parentClosures));
 
@@ -622,7 +620,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         given(postRepository.findById(postId)).willReturn(Optional.of(testPost));
         given(commentRepository.findById(parentId)).willReturn(Optional.of(parentComment));
-        given(globalMemberQueryAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
+        given(commentToMemberAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
         given(commentRepository.save(any(Comment.class))).willReturn(savedComment);
         given(commentClosureRepository.findByDescendantId(parentId)).willReturn(Optional.of(parentClosures));
 
