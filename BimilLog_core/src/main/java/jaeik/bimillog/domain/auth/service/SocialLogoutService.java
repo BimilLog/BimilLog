@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.entity.SocialToken;
+import jaeik.bimillog.domain.auth.out.AuthToMemberAdapter;
 import jaeik.bimillog.domain.auth.out.SocialStrategyAdapter;
-import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.api.social.SocialStrategy;
@@ -25,7 +25,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class SocialLogoutService {
     private final SocialStrategyAdapter socialStrategyAdapter;
-    private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
+    private final AuthToMemberAdapter authToMemberAdapter;
 
     /**
      * <h3>소셜 플랫폼 로그아웃</h3>
@@ -37,7 +37,7 @@ public class SocialLogoutService {
      * @throws Exception 소셜 플랫폼 로그아웃 처리 중 예외 발생 시
      */
     public void socialLogout(Long memberId, SocialProvider provider) throws Exception {
-        Member member = globalMemberQueryAdapter.findById(memberId)
+        Member member = authToMemberAdapter.findById(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.AUTH_NOT_FIND_TOKEN));
         SocialToken socialToken = member.getSocialToken();
         if (socialToken == null) {
