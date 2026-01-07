@@ -18,6 +18,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationEventPublisher;
 
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -36,9 +38,6 @@ import static org.mockito.Mockito.verify;
 @DisplayName("PostInteractionService 테스트")
 @Tag("unit")
 class PostInteractionServiceTest extends BaseUnitTest {
-
-    @Mock
-    private GlobalPostQueryAdapter globalPostQueryAdapter;
 
     @Mock
     private PostLikeRepository postLikeRepository;
@@ -68,7 +67,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
 
         given(postLikeRepository.existsByPostIdAndMemberId(postId, memberId)).willReturn(false);
         given(globalMemberQueryAdapter.getReferenceById(memberId)).willReturn(getTestMember());
-        given(globalPostQueryAdapter.findById(postId)).willReturn(post);
+        given(postRepository.findById(postId)).willReturn(Optional.of(post));
 
         // When
         postInteractionService.likePost(memberId, postId);
@@ -76,7 +75,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
         // Then
         verify(postLikeRepository).existsByPostIdAndMemberId(postId, memberId);
         verify(globalMemberQueryAdapter).getReferenceById(memberId);
-        verify(globalPostQueryAdapter).findById(postId);
+        verify(postRepository).findById(postId);
 
         // ArgumentCaptor로 PostLike 객체 검증
         ArgumentCaptor<PostLike> postLikeCaptor = ArgumentCaptor.forClass(PostLike.class);
@@ -98,7 +97,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
 
         given(postLikeRepository.existsByPostIdAndMemberId(postId, memberId)).willReturn(true);
         given(globalMemberQueryAdapter.getReferenceById(memberId)).willReturn(getTestMember());
-        given(globalPostQueryAdapter.findById(postId)).willReturn(post);
+        given(postRepository.findById(postId)).willReturn(Optional.of(post));
 
         // When
         postInteractionService.likePost(memberId, postId);
@@ -106,7 +105,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
         // Then
         verify(postLikeRepository).existsByPostIdAndMemberId(postId, memberId);
         verify(globalMemberQueryAdapter).getReferenceById(memberId);
-        verify(globalPostQueryAdapter).findById(postId);
+        verify(postRepository).findById(postId);
         verify(postLikeRepository).deleteByMemberAndPost(getTestMember(), post);
         verify(postLikeRepository, never()).save(any());
     }
@@ -120,7 +119,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
 
         given(postLikeRepository.existsByPostIdAndMemberId(postId, memberId)).willReturn(false);
         given(globalMemberQueryAdapter.getReferenceById(memberId)).willReturn(getTestMember());
-        given(globalPostQueryAdapter.findById(postId)).willThrow(new CustomException(ErrorCode.POST_NOT_FOUND));
+        given(postRepository.findById(postId)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> postInteractionService.likePost(memberId, postId))
@@ -129,7 +128,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
 
         verify(postLikeRepository).existsByPostIdAndMemberId(postId, memberId);
         verify(globalMemberQueryAdapter).getReferenceById(memberId);
-        verify(globalPostQueryAdapter).findById(postId);
+        verify(postRepository).findById(postId);
         verify(postLikeRepository, never()).save(any());
         verify(postLikeRepository, never()).deleteByMemberAndPost(any(), any());
     }

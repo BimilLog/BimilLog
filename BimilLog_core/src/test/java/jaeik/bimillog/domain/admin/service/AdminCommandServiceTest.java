@@ -5,6 +5,7 @@ import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
 import jaeik.bimillog.domain.admin.out.AdminQueryRepository;
 import jaeik.bimillog.domain.admin.out.AdminToCommentAdapter;
+import jaeik.bimillog.domain.admin.out.AdminToPostAdapter;
 import jaeik.bimillog.domain.admin.out.ReportRepository;
 import jaeik.bimillog.domain.auth.service.BlacklistService;
 import jaeik.bimillog.domain.comment.entity.Comment;
@@ -58,7 +59,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
     private MemberRepository memberRepository;
 
     @Mock
-    private GlobalPostQueryAdapter globalPostQueryAdapter;
+    private AdminToPostAdapter adminToPostAdapter;
 
     @Mock
     private AdminToCommentAdapter adminToCommentAdapter;
@@ -80,7 +81,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
                 reportRepository,
                 adminQueryRepository,
                 memberRepository,
-                globalPostQueryAdapter,
+                adminToPostAdapter,
                 adminToCommentAdapter,
                 blacklistService
         );
@@ -92,7 +93,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
         // Given
         Member memberWithId = createTestMemberWithId(200L);
         Post testPost = PostTestDataBuilder.withId(200L, PostTestDataBuilder.createPost(memberWithId, "테스트 제목", "테스트 내용"));
-        given(globalPostQueryAdapter.findById(200L)).willReturn(testPost);
+        given(adminToPostAdapter.findById(200L)).willReturn(testPost);
 
         // When
         adminCommandService.banUser(testReportType, testTargetId);
@@ -126,7 +127,7 @@ class AdminCommandServiceTest extends BaseUnitTest {
     @DisplayName("게시글이 존재하지 않는 경우 POST_NOT_FOUND 예외 발생")
     void shouldThrowException_WhenPostNotFound() {
         // Given
-        given(globalPostQueryAdapter.findById(200L)).willThrow(new CustomException(ErrorCode.POST_NOT_FOUND));
+        given(adminToPostAdapter.findById(200L)).willThrow(new CustomException(ErrorCode.POST_NOT_FOUND));
 
         // When & Then
         assertThatThrownBy(() -> adminCommandService.banUser(testReportType, testTargetId))

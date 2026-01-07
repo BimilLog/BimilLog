@@ -20,6 +20,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -39,9 +40,6 @@ import static org.mockito.Mockito.*;
 @DisplayName("PostCommandService 테스트")
 @Tag("unit")
 class PostCommandServiceTest extends BaseUnitTest {
-
-    @Mock
-    private GlobalPostQueryAdapter globalPostQueryAdapter;
 
     @Mock
     private GlobalMemberQueryAdapter globalMemberQueryAdapter;
@@ -105,19 +103,19 @@ class PostCommandServiceTest extends BaseUnitTest {
 
         Post existingPost = spy(PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestMember(), "기존 제목", "기존 내용")));
 
-        given(globalPostQueryAdapter.findById(postId)).willReturn(existingPost);
+        given(postRepository.findById(postId)).willReturn(Optional.of(existingPost));
         given(existingPost.isAuthor(memberId, null)).willReturn(true);
 
         // When
         postCommandService.updatePost(memberId, postId, "수정된 제목", "수정된 내용", null);
 
         // Then
-        verify(globalPostQueryAdapter, times(1)).findById(postId);
+        verify(postRepository, times(1)).findById(postId);
         verify(existingPost, times(1)).isAuthor(memberId, null);
         verify(existingPost, times(1)).updatePost("수정된 제목", "수정된 내용");
         verify(redisDetailPostStoreAdapter, times(1)).deleteSinglePostCache(postId);
         verify(redisTier1PostStoreAdapter, times(1)).removePostFromListCache(postId);
-        verifyNoMoreInteractions(globalPostQueryAdapter, postRepository, redisDetailPostStoreAdapter);
+        verifyNoMoreInteractions(postRepository, redisDetailPostStoreAdapter);
     }
 
     @Test
@@ -127,14 +125,14 @@ class PostCommandServiceTest extends BaseUnitTest {
         Long memberId = 1L;
         Long postId = 999L;
 
-        given(globalPostQueryAdapter.findById(postId)).willThrow(new CustomException(ErrorCode.POST_NOT_FOUND));
+        given(postRepository.findById(postId)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.updatePost(memberId, postId, "title", "content", null))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
-        verify(globalPostQueryAdapter, times(1)).findById(postId);
+        verify(postRepository, times(1)).findById(postId);
         verify(redisDetailPostStoreAdapter, never()).deleteSinglePostCache(any());
     }
 
@@ -147,7 +145,7 @@ class PostCommandServiceTest extends BaseUnitTest {
 
         Post otherUserPost = spy(PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getOtherMember(), "다른 사용자 게시글", "내용")));
 
-        given(globalPostQueryAdapter.findById(postId)).willReturn(otherUserPost);
+        given(postRepository.findById(postId)).willReturn(Optional.of(otherUserPost));
         given(otherUserPost.isAuthor(memberId, null)).willReturn(false);
 
         // When & Then
@@ -155,7 +153,7 @@ class PostCommandServiceTest extends BaseUnitTest {
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_FORBIDDEN);
 
-        verify(globalPostQueryAdapter, times(1)).findById(postId);
+        verify(postRepository, times(1)).findById(postId);
         verify(otherUserPost, times(1)).isAuthor(memberId, null);
         verify(otherUserPost, never()).updatePost(anyString(), anyString());
         verify(redisDetailPostStoreAdapter, never()).deleteSinglePostCache(any());
@@ -171,7 +169,7 @@ class PostCommandServiceTest extends BaseUnitTest {
 
         Post postToDelete = spy(PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestMember(), postTitle, "내용")));
 
-        given(globalPostQueryAdapter.findById(postId)).willReturn(postToDelete);
+        given(postRepository.findById(postId)).willReturn(Optional.of(postToDelete));
         given(postToDelete.isAuthor(memberId, null)).willReturn(true);
         given(postToDelete.getTitle()).willReturn(postTitle);
 
@@ -179,7 +177,7 @@ class PostCommandServiceTest extends BaseUnitTest {
         postCommandService.deletePost(memberId, postId, null);
 
         // Then
-        verify(globalPostQueryAdapter, times(1)).findById(postId);
+        verify(postRepository, times(1)).findById(postId);
         verify(postToDelete, times(1)).isAuthor(memberId, null);
         // CASCADE로 Comment와 PostLike 자동 삭제되므로 명시적 호출 없음
         verify(postRepository, times(1)).delete(postToDelete);
@@ -187,7 +185,7 @@ class PostCommandServiceTest extends BaseUnitTest {
         verify(redisRealTimePostStoreAdapter, times(1)).removePostIdFromRealtimeScore(postId);
         verify(redisTier1PostStoreAdapter, times(1)).removePostFromListCache(postId);
         verify(redisTier2PostStoreAdapter, times(1)).removePostIdFromStorage(postId);
-        verifyNoMoreInteractions(globalPostQueryAdapter, postRepository, redisDetailPostStoreAdapter);
+        verifyNoMoreInteractions(postRepository, redisDetailPostStoreAdapter);
     }
 
     @Test
@@ -197,14 +195,14 @@ class PostCommandServiceTest extends BaseUnitTest {
         Long memberId = 1L;
         Long postId = 999L;
 
-        given(globalPostQueryAdapter.findById(postId)).willThrow(new CustomException(ErrorCode.POST_NOT_FOUND));
+        given(postRepository.findById(postId)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.deletePost(memberId, postId, null))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
-        verify(globalPostQueryAdapter, times(1)).findById(postId);
+        verify(postRepository, times(1)).findById(postId);
         verify(postRepository, never()).delete(any());
         verify(redisDetailPostStoreAdapter, never()).deleteSinglePostCache(any());
     }
@@ -218,7 +216,7 @@ class PostCommandServiceTest extends BaseUnitTest {
 
         Post otherUserPost = spy(PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getOtherMember(), "다른 사용자 게시글", "내용")));
 
-        given(globalPostQueryAdapter.findById(postId)).willReturn(otherUserPost);
+        given(postRepository.findById(postId)).willReturn(Optional.of(otherUserPost));
         given(otherUserPost.isAuthor(memberId, null)).willReturn(false);
 
         // When & Then
@@ -226,7 +224,7 @@ class PostCommandServiceTest extends BaseUnitTest {
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_FORBIDDEN);
 
-        verify(globalPostQueryAdapter, times(1)).findById(postId);
+        verify(postRepository, times(1)).findById(postId);
         verify(otherUserPost, times(1)).isAuthor(memberId, null);
         verify(postRepository, never()).delete(any());
         verify(redisDetailPostStoreAdapter, never()).deleteSinglePostCache(any());
@@ -293,7 +291,7 @@ class PostCommandServiceTest extends BaseUnitTest {
 
         Post existingPost = spy(PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestMember(), "제목", "내용")));
 
-        given(globalPostQueryAdapter.findById(postId)).willReturn(existingPost);
+        given(postRepository.findById(postId)).willReturn(Optional.of(existingPost));
         given(existingPost.isAuthor(memberId, null)).willReturn(true);
         doThrow(new RuntimeException("Cache delete failed")).when(redisDetailPostStoreAdapter).deleteSinglePostCache(postId);
 
