@@ -1,10 +1,10 @@
 package jaeik.bimillog.domain.member.service;
 
 import jaeik.bimillog.domain.auth.entity.AuthToken;
+import jaeik.bimillog.domain.auth.entity.AuthTokens;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.infrastructure.web.HTTPCookie;
 import jaeik.bimillog.infrastructure.web.JwtUtil;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.Setting;
@@ -15,11 +15,9 @@ import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.member.RedisMemberDataAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -32,7 +30,6 @@ public class MemberOnboardingService {
     private final RedisMemberDataAdapter redisMemberDataAdapter;
     private final MemberRepository memberRepository;
     private final MemberToAuthAdapter memberToAuthAdapter;
-    private final HTTPCookie HTTPCookie;
     private final JwtUtil jwtUtil;
 
     /**
@@ -57,7 +54,7 @@ public class MemberOnboardingService {
      * <h3>신규 가입 처리</h3>
      */
     @Transactional
-    public List<ResponseCookie> signup(String memberName, String uuid) {
+    public AuthTokens signup(String memberName, String uuid) {
         try {
             Optional<SocialMemberProfile> socialMemberProfile = redisMemberDataAdapter.getTempData(uuid);
             if (socialMemberProfile.isEmpty()) {
@@ -94,7 +91,7 @@ public class MemberOnboardingService {
 
             redisMemberDataAdapter.removeTempData(uuid);
 
-            return HTTPCookie.generateJwtCookie(accessToken, refreshToken);
+            return new AuthTokens(accessToken, refreshToken);
         } catch (DataIntegrityViolationException e) {
             throw new CustomException(ErrorCode.MEMBER_EXISTED_NICKNAME, e);
         }

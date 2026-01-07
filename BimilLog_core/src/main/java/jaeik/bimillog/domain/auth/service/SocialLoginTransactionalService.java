@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.entity.AuthToken;
+import jaeik.bimillog.domain.auth.entity.AuthTokens;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
@@ -9,25 +10,22 @@ import jaeik.bimillog.domain.auth.out.AuthTokenRepository;
 import jaeik.bimillog.domain.auth.out.BlackListRepository;
 import jaeik.bimillog.domain.auth.out.SocialTokenRepository;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.infrastructure.web.HTTPCookie;
 import jaeik.bimillog.infrastructure.web.JwtUtil;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 /**
  * <h2>소셜 로그인 트랜잭션 서비스</h2>
  * <p>소셜 로그인 흐름에서 데이터베이스 트랜잭션이 필요한 작업을 처리합니다.</p>
- * <p>기존 회원은 프로필·토큰을 갱신하고 JWT 쿠키를 발급하며, 신규 회원은 Redis에 임시 정보를 저장합니다.</p>
+ * <p>기존 회원은 프로필·토큰을 갱신하고 JWT 토큰을 생성하며, 신규 회원은 Redis에 임시 정보를 저장합니다.</p>
  * <p>{@link SocialLoginService}로부터 소셜 인증 결과를 받아 트랜잭션 내에서 최종 로그인을 완료합니다.</p>
  *
  * @author Jaeik
@@ -38,7 +36,6 @@ import java.util.UUID;
 public class SocialLoginTransactionalService {
     private final AuthToMemberAdapter authToMemberAdapter;
     private final BlackListRepository blackListRepository;
-    private final HTTPCookie HTTPCookie;
     private final JwtUtil jwtUtil;
     private final AuthTokenRepository authTokenRepository;
     private final SocialTokenRepository socialTokenRepository;
@@ -77,12 +74,12 @@ public class SocialLoginTransactionalService {
      *   <li>FCM 토큰 등록</li>
      *   <li>MemberDetail 생성</li>
      *   <li>JWT Access/Refresh 토큰 생성</li>
-     *   <li>JWT 쿠키 생성 및 반환</li>
+     *   <li>JWT 토큰 값 반환</li>
      * </ol>
      *
      * @param existingMember       DB에 존재하는 기존 회원 엔티티
      * @param socialMemberProfile  소셜 플랫폼에서 받은 사용자 프로필
-     * @return JWT 쿠키를 포함한 {@link LoginResult.ExistingUser}
+     * @return JWT 토큰 값을 포함한 {@link LoginResult.ExistingUser}
      */
     private LoginResult handleExistingMember(Member existingMember, SocialMemberProfile socialMemberProfile) {
         String accessToken = socialMemberProfile.getAccessToken();
@@ -116,9 +113,8 @@ public class SocialLoginTransactionalService {
         String jwtRefreshToken = jwtUtil.generateRefreshToken(userDetails);
         persistedAuthToken.updateJwtRefreshToken(jwtRefreshToken);
 
-        // 7. JWT 쿠키 생성 및 반환
-        List<ResponseCookie> cookies = HTTPCookie.generateJwtCookie(jwtAccessToken, jwtRefreshToken);
-        return new LoginResult.ExistingUser(cookies);
+        // 7. JWT 토큰 값 반환
+        return new LoginResult.ExistingUser(new AuthTokens(jwtAccessToken, jwtRefreshToken));
     }
 
     /**
@@ -127,12 +123,11 @@ public class SocialLoginTransactionalService {
      * <p>UUID 기반 임시 쿠키를 통해 회원가입 페이지에서 소셜 프로필 정보를 조회할 수 있습니다.</p>
      *
      * @param socialMemberProfile  소셜 플랫폼에서 받은 사용자 프로필
-     * @return 임시 쿠키를 포함한 {@link LoginResult.NewUser}
+     * @return 임시 UUID를 포함한 {@link LoginResult.NewUser}
      */
     private LoginResult handleNewMember(SocialMemberProfile socialMemberProfile) {
         String uuid = UUID.randomUUID().toString();
         authToMemberAdapter.handleNewUser(socialMemberProfile, uuid);
-        ResponseCookie tempCookie = HTTPCookie.createTempCookie(uuid);
-        return new LoginResult.NewUser(tempCookie);
+        return new LoginResult.NewUser(uuid);
     }
 }

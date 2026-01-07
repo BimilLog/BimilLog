@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.member.controller;
 
 import jaeik.bimillog.domain.admin.dto.ReportDTO;
+import jaeik.bimillog.domain.auth.entity.AuthTokens;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.infrastructure.web.HTTPCookie;
 import jaeik.bimillog.domain.member.dto.MemberNameDTO;
@@ -60,8 +61,9 @@ public class MemberCommandController {
             @Valid @RequestBody SignUpRequestDTO request,
             @CookieValue(name = "temp_user_id") String uuid) {
 
-        // 회원가입 로직 실행 후 쿠키 리스트 받기
-        List<ResponseCookie> cookies = memberOnboardingService.signup(request.getMemberName(), uuid);
+        // 회원가입 로직 실행 후 토큰 값 받기
+        AuthTokens tokens = memberOnboardingService.signup(request.getMemberName(), uuid);
+        List<ResponseCookie> cookies = HTTPCookie.generateJwtCookie(tokens.accessToken(), tokens.refreshToken());
 
         // ResponseEntity builder 생성
         ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.ok();

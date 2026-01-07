@@ -53,11 +53,14 @@ public class AuthCommandController {
         LoginResult loginResult = socialLoginService.processSocialLogin(request.getProvider(), request.getCode(), request.getState());
 
         return switch (loginResult) {
-            case LoginResult.NewUser(var tempCookie) -> ResponseEntity.ok()
-                    .header("Set-Cookie", tempCookie.toString()).body("NEW_USER");
-            case LoginResult.ExistingUser(var cookies) -> ResponseEntity.ok()
-                    .headers(headers -> cookies.forEach(cookie ->
-                            headers.add("Set-Cookie", cookie.toString()))).body("EXISTING_USER");
+            case LoginResult.NewUser(var tempUserId) -> ResponseEntity.ok()
+                    .header("Set-Cookie", HTTPCookie.createTempCookie(tempUserId).toString())
+                    .body("NEW_USER");
+            case LoginResult.ExistingUser(var tokens) -> ResponseEntity.ok()
+                    .headers(headers -> HTTPCookie
+                            .generateJwtCookie(tokens.accessToken(), tokens.refreshToken())
+                            .forEach(cookie -> headers.add("Set-Cookie", cookie.toString())))
+                    .body("EXISTING_USER");
         };
     }
 
