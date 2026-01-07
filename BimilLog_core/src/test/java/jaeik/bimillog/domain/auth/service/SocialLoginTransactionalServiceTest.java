@@ -6,6 +6,7 @@ import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.auth.adapter.AuthToJwtAdapter;
 import jaeik.bimillog.domain.auth.adapter.AuthToMemberAdapter;
+import jaeik.bimillog.domain.auth.event.NewMemberLoginEvent;
 import jaeik.bimillog.domain.auth.repository.AuthTokenRepository;
 import jaeik.bimillog.domain.auth.repository.BlackListRepository;
 import jaeik.bimillog.domain.auth.repository.SocialTokenRepository;
@@ -24,6 +25,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.context.ApplicationEventPublisher;
+
 import java.util.Optional;
 
 import static jaeik.bimillog.testutil.fixtures.AuthTestFixtures.*;
@@ -47,6 +50,7 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
     @Mock private AuthToJwtAdapter authToJwtAdapter;
     @Mock private SocialTokenRepository socialTokenRepository;
     @Mock private AuthTokenRepository authTokenRepository;
+    @Mock private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private SocialLoginTransactionalService socialLoginTransactionalService;
@@ -164,7 +168,7 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
         LoginResult.NewUser newUser = (LoginResult.NewUser) result;
         assertThat(newUser.tempUserId()).isNotBlank();
 
-        verify(authToMemberAdapter).handleNewUser(eq(profile), eq(newUser.tempUserId()));
+        verify(eventPublisher).publishEvent(any(NewMemberLoginEvent.class));
     }
 
     @Test
