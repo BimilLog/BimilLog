@@ -2,9 +2,9 @@ package jaeik.bimillog.domain.member.service;
 
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.MemberBlacklist;
-import jaeik.bimillog.domain.member.out.MemberBlacklistQueryRepository;
-import jaeik.bimillog.domain.member.out.MemberBlacklistRepository;
-import jaeik.bimillog.domain.member.out.MemberRepository;
+import jaeik.bimillog.domain.member.repository.MemberBlacklistQueryRepository;
+import jaeik.bimillog.domain.member.repository.MemberBlacklistRepository;
+import jaeik.bimillog.domain.member.repository.MemberRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.testutil.BaseUnitTest;

@@ -2,10 +2,10 @@ package jaeik.bimillog.domain.member.event;
 
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
-import jaeik.bimillog.domain.auth.out.SocialStrategyAdapter;
+import jaeik.bimillog.domain.auth.adapter.SocialStrategyAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
-import jaeik.bimillog.domain.member.out.MemberRepository;
+import jaeik.bimillog.domain.member.repository.MemberRepository;
 import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.infrastructure.api.social.SocialStrategy;
 import jaeik.bimillog.testutil.RedisTestHelper;

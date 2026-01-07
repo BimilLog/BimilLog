@@ -1,16 +1,14 @@
 package jaeik.bimillog.domain.auth.service;
 
+import jaeik.bimillog.domain.auth.adapter.AuthToJwtAdapter;
+import jaeik.bimillog.domain.auth.adapter.AuthToMemberAdapter;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.AuthTokens;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
-import jaeik.bimillog.domain.auth.out.AuthToMemberAdapter;
-import jaeik.bimillog.domain.auth.out.AuthTokenRepository;
-import jaeik.bimillog.domain.auth.out.BlackListRepository;
-import jaeik.bimillog.domain.auth.out.SocialTokenRepository;
+import jaeik.bimillog.domain.auth.repository.*;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.infrastructure.web.JwtUtil;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -36,7 +34,7 @@ import java.util.UUID;
 public class SocialLoginTransactionalService {
     private final AuthToMemberAdapter authToMemberAdapter;
     private final BlackListRepository blackListRepository;
-    private final JwtUtil jwtUtil;
+    private final AuthToJwtAdapter authToJwtAdapter;
     private final AuthTokenRepository authTokenRepository;
     private final SocialTokenRepository socialTokenRepository;
 
@@ -109,8 +107,8 @@ public class SocialLoginTransactionalService {
         CustomUserDetails userDetails = CustomUserDetails.ofExisting(updateMember, persistedAuthToken.getId());
 
         // 6. 액세스 토큰 및 리프레시 토큰 생성 및 업데이트
-        String jwtAccessToken = jwtUtil.generateAccessToken(userDetails);
-        String jwtRefreshToken = jwtUtil.generateRefreshToken(userDetails);
+        String jwtAccessToken = authToJwtAdapter.generateAccessToken(userDetails);
+        String jwtRefreshToken = authToJwtAdapter.generateRefreshToken(userDetails);
         persistedAuthToken.updateJwtRefreshToken(jwtRefreshToken);
 
         // 7. JWT 토큰 값 반환

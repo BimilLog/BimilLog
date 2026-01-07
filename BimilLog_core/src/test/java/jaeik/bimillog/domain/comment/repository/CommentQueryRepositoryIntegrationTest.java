@@ -5,9 +5,9 @@ import jaeik.bimillog.domain.comment.entity.CommentInfo;
 import jaeik.bimillog.domain.comment.entity.CommentLike;
 import jaeik.bimillog.domain.comment.entity.MemberActivityComment;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.member.out.MemberRepository;
+import jaeik.bimillog.domain.member.repository.MemberRepository;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.post.out.PostRepository;
+import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.builder.CommentTestDataBuilder;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
@@ -67,10 +67,10 @@ class CommentQueryRepositoryIntegrationTest {
     private EntityManager entityManager;
 
     @Autowired
-    private jaeik.bimillog.domain.member.out.SettingRepository settingRepository;
+    private jaeik.bimillog.domain.member.repository.SettingRepository settingRepository;
 
     @Autowired
-    private jaeik.bimillog.domain.auth.out.SocialTokenRepository socialTokenRepository;
+    private jaeik.bimillog.domain.auth.repository.SocialTokenRepository socialTokenRepository;
 
     private Member testMember;
     private Member otherMember;

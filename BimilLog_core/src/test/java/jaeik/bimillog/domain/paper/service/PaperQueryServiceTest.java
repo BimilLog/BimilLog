@@ -2,9 +2,9 @@ package jaeik.bimillog.domain.paper.service;
 
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.entity.VisitPaperResult;
-import jaeik.bimillog.domain.paper.out.MessageRepository;
-import jaeik.bimillog.domain.paper.out.PaperQueryRepository;
-import jaeik.bimillog.domain.paper.out.PaperToMemberAdapter;
+import jaeik.bimillog.domain.paper.repository.MessageRepository;
+import jaeik.bimillog.domain.paper.repository.PaperQueryRepository;
+import jaeik.bimillog.domain.paper.adapter.PaperToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.testutil.BaseUnitTest;

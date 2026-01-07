@@ -5,11 +5,11 @@ import jaeik.bimillog.domain.auth.entity.AuthTokens;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.infrastructure.web.JwtUtil;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
-import jaeik.bimillog.domain.member.out.MemberRepository;
-import jaeik.bimillog.domain.member.out.MemberToAuthAdapter;
+import jaeik.bimillog.domain.member.repository.MemberRepository;
+import jaeik.bimillog.domain.member.adapter.MemberToAuthAdapter;
+import jaeik.bimillog.domain.member.adapter.MemberToJwtAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.member.RedisMemberDataAdapter;
@@ -39,7 +39,7 @@ class MemberOnboardingServiceTest extends BaseUnitTest {
 
     @Mock private RedisMemberDataAdapter redisMemberDataAdapter;
     @Mock private MemberRepository memberRepository;
-    @Mock private JwtUtil jwtUtil;
+    @Mock private MemberToJwtAdapter memberToJwtAdapter;
     @Mock private MemberToAuthAdapter memberToAuthAdapter;
 
     @InjectMocks private MemberOnboardingService onboardingService;
@@ -83,8 +83,8 @@ class MemberOnboardingServiceTest extends BaseUnitTest {
                 .willReturn(SocialToken.createSocialToken("access-token", "refresh-token"));
         given(memberRepository.save(any(Member.class))).willReturn(persistedMember);
         given(memberToAuthAdapter.saveAuthToken(any(AuthToken.class))).willReturn(persistedAuthToken);
-        given(jwtUtil.generateAccessToken(any(CustomUserDetails.class))).willReturn("access-jwt");
-        given(jwtUtil.generateRefreshToken(any(CustomUserDetails.class))).willReturn("refresh-jwt");
+        given(memberToJwtAdapter.generateAccessToken(any(CustomUserDetails.class))).willReturn("access-jwt");
+        given(memberToJwtAdapter.generateRefreshToken(any(CustomUserDetails.class))).willReturn("refresh-jwt");
 
         AuthTokens result = onboardingService.signup("tester", "uuid-123");
 
@@ -96,8 +96,8 @@ class MemberOnboardingServiceTest extends BaseUnitTest {
         verify(memberToAuthAdapter).saveAuthToken(any(AuthToken.class));
 
         ArgumentCaptor<CustomUserDetails> detailCaptor = ArgumentCaptor.forClass(CustomUserDetails.class);
-        verify(jwtUtil).generateAccessToken(detailCaptor.capture());
-        verify(jwtUtil).generateRefreshToken(detailCaptor.getValue());
+        verify(memberToJwtAdapter).generateAccessToken(detailCaptor.capture());
+        verify(memberToJwtAdapter).generateRefreshToken(detailCaptor.getValue());
 
         verify(memberToAuthAdapter).updateJwtRefreshToken(persistedAuthToken.getId(), "refresh-jwt");
         verify(redisMemberDataAdapter).removeTempData("uuid-123");
@@ -127,8 +127,8 @@ class MemberOnboardingServiceTest extends BaseUnitTest {
                 .willReturn(SocialToken.createSocialToken("access-token", "refresh-token"));
         given(memberRepository.save(any(Member.class))).willReturn(persistedMember);
         given(memberToAuthAdapter.saveAuthToken(any(AuthToken.class))).willReturn(persistedAuthToken);
-        given(jwtUtil.generateAccessToken(any(CustomUserDetails.class))).willReturn("access-jwt");
-        given(jwtUtil.generateRefreshToken(any(CustomUserDetails.class))).willReturn("refresh-jwt");
+        given(memberToJwtAdapter.generateAccessToken(any(CustomUserDetails.class))).willReturn("access-jwt");
+        given(memberToJwtAdapter.generateRefreshToken(any(CustomUserDetails.class))).willReturn("refresh-jwt");
 
         AuthTokens result = onboardingService.signup("tester", "uuid-123");
 
@@ -136,8 +136,8 @@ class MemberOnboardingServiceTest extends BaseUnitTest {
         assertThat(result.refreshToken()).isEqualTo("refresh-jwt");
 
         ArgumentCaptor<CustomUserDetails> detailCaptor = ArgumentCaptor.forClass(CustomUserDetails.class);
-        verify(jwtUtil).generateAccessToken(detailCaptor.capture());
-        verify(jwtUtil).generateRefreshToken(detailCaptor.getValue());
+        verify(memberToJwtAdapter).generateAccessToken(detailCaptor.capture());
+        verify(memberToJwtAdapter).generateRefreshToken(detailCaptor.getValue());
 
         CustomUserDetails capturedDetail = detailCaptor.getValue();
         assertThat(capturedDetail.getAuthTokenId()).isEqualTo(persistedAuthToken.getId());

@@ -5,11 +5,11 @@ import jaeik.bimillog.domain.auth.entity.AuthTokens;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.infrastructure.web.JwtUtil;
+import jaeik.bimillog.domain.member.adapter.MemberToJwtAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.Setting;
-import jaeik.bimillog.domain.member.out.MemberRepository;
-import jaeik.bimillog.domain.member.out.MemberToAuthAdapter;
+import jaeik.bimillog.domain.member.repository.MemberRepository;
+import jaeik.bimillog.domain.member.adapter.MemberToAuthAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.member.RedisMemberDataAdapter;
@@ -30,7 +30,7 @@ public class MemberOnboardingService {
     private final RedisMemberDataAdapter redisMemberDataAdapter;
     private final MemberRepository memberRepository;
     private final MemberToAuthAdapter memberToAuthAdapter;
-    private final JwtUtil jwtUtil;
+    private final MemberToJwtAdapter memberToJwtAdapter;
 
     /**
      * <h3>온보딩 대기 데이터 저장</h3>
@@ -85,8 +85,8 @@ public class MemberOnboardingService {
             AuthToken persistedAuthToken = memberToAuthAdapter.saveAuthToken(initialAuthToken);
 
             CustomUserDetails userDetails = CustomUserDetails.ofExisting(persistedMember, persistedAuthToken.getId());
-            String accessToken = jwtUtil.generateAccessToken(userDetails);
-            String refreshToken = jwtUtil.generateRefreshToken(userDetails);
+            String accessToken = memberToJwtAdapter.generateAccessToken(userDetails);
+            String refreshToken = memberToJwtAdapter.generateRefreshToken(userDetails);
             memberToAuthAdapter.updateJwtRefreshToken(persistedAuthToken.getId(), refreshToken);
 
             redisMemberDataAdapter.removeTempData(uuid);

@@ -1,8 +1,9 @@
 package jaeik.bimillog.domain.post.service;
 
+import jaeik.bimillog.domain.post.adapter.PostToCommentAdapter;
 import jaeik.bimillog.domain.post.entity.*;
-import jaeik.bimillog.domain.post.out.*;
-import jaeik.bimillog.domain.post.out.PostToMemberAdapter;
+import jaeik.bimillog.domain.post.repository.*;
+import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.post.RedisDetailPostStoreAdapter;

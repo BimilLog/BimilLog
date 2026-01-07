@@ -2,9 +2,9 @@ package jaeik.bimillog.domain.member.service;
 
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
-import jaeik.bimillog.infrastructure.web.JwtUtil;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
+import jaeik.bimillog.domain.member.adapter.MemberToJwtAdapter;
 import jaeik.bimillog.infrastructure.redis.member.RedisMemberDataAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.TestMembers;
@@ -24,7 +24,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 class MemberOnboardingServiceLoginTest extends BaseUnitTest {
 
     @Mock private RedisMemberDataAdapter redisMemberDataAdapter;
-    @Mock private JwtUtil jwtUtil;
+    @Mock private MemberToJwtAdapter memberToJwtAdapter;
 
     @InjectMocks private MemberOnboardingService onboardingService;
 
@@ -46,7 +46,7 @@ class MemberOnboardingServiceLoginTest extends BaseUnitTest {
         assertThat(member.getThumbnailImage()).isEqualTo("http://image/new.jpg");
         assertThat(member.getSocialToken()).isEqualTo(socialToken);
 
-        verifyNoInteractions(redisMemberDataAdapter, jwtUtil);
+        verifyNoInteractions(redisMemberDataAdapter, memberToJwtAdapter);
     }
 
     @Test

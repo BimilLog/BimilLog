@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.friend.service;
 import jaeik.bimillog.domain.friend.entity.jpa.FriendRequest;
 import jaeik.bimillog.domain.friend.event.FriendEvent;
 import jaeik.bimillog.domain.friend.repository.FriendRequestRepository;
-import jaeik.bimillog.domain.friend.repository.FriendToMemberAdapter;
+import jaeik.bimillog.domain.friend.adapter.FriendToMemberAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;

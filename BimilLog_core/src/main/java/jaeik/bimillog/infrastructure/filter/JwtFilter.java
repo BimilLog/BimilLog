@@ -7,7 +7,7 @@ import jaeik.bimillog.infrastructure.adapter.AuthTokenAdapter;
 import jaeik.bimillog.infrastructure.web.HTTPCookie;
 import jaeik.bimillog.infrastructure.web.JwtUtil;
 import jaeik.bimillog.domain.member.entity.Member;
-import jaeik.bimillog.domain.member.out.MemberRepository;
+import jaeik.bimillog.domain.member.repository.MemberRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jakarta.servlet.FilterChain;

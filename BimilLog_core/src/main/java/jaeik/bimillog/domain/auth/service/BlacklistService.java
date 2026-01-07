@@ -3,9 +3,9 @@ package jaeik.bimillog.domain.auth.service;
 import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.BlackList;
-import jaeik.bimillog.domain.auth.out.AuthTokenRepository;
-import jaeik.bimillog.domain.auth.out.BlackListRepository;
-import jaeik.bimillog.infrastructure.web.JwtUtil;
+import jaeik.bimillog.domain.auth.adapter.AuthToJwtAdapter;
+import jaeik.bimillog.domain.auth.repository.AuthTokenRepository;
+import jaeik.bimillog.domain.auth.repository.BlackListRepository;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.infrastructure.filter.JwtFilter;
@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class BlacklistService {
-    private final JwtUtil jwtUtil;
+    private final AuthToJwtAdapter authToJwtAdapter;
     private final RedisJwtBlacklistAdapter redisJwtBlacklistAdapter;
     private final AuthTokenRepository authTokenRepository;
     private final BlackListRepository blackListRepository;
@@ -51,7 +51,7 @@ public class BlacklistService {
      */
     public boolean isBlacklisted(String token) {
         try {
-            String tokenHash = jwtUtil.generateTokenHash(token);
+            String tokenHash = authToJwtAdapter.generateTokenHash(token);
             boolean isBlacklisted = redisJwtBlacklistAdapter.isBlacklisted(tokenHash);
 
             if (isBlacklisted) {
@@ -87,7 +87,7 @@ public class BlacklistService {
                     .filter(token -> token.getRefreshToken() != null && !token.getRefreshToken().isEmpty())
                     .map(token -> {
                         try {
-                            return jwtUtil.generateTokenHash(token.getRefreshToken());
+                            return authToJwtAdapter.generateTokenHash(token.getRefreshToken());
                         } catch (Exception e) {
                             log.warn("토큰 ID {}의 해시 생성 실패: {}", token.getId(), e.getMessage());
                             return null;

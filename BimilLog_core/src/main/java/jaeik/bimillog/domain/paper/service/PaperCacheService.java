@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.paper.service;
 
 import jaeik.bimillog.domain.paper.entity.PopularPaperInfo;
-import jaeik.bimillog.domain.paper.out.PaperQueryRepository;
-import jaeik.bimillog.domain.paper.out.PaperToMemberAdapter;
+import jaeik.bimillog.domain.paper.repository.PaperQueryRepository;
+import jaeik.bimillog.domain.paper.adapter.PaperToMemberAdapter;
 import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
 import jaeik.bimillog.infrastructure.redis.paper.RedisPaperQueryAdapter;
 import lombok.RequiredArgsConstructor;

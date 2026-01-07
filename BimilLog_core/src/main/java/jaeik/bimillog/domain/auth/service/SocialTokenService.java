@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.entity.SocialToken;
-import jaeik.bimillog.domain.auth.out.SocialTokenQueryRepository;
-import jaeik.bimillog.domain.auth.out.SocialTokenRepository;
+import jaeik.bimillog.domain.auth.repository.SocialTokenQueryRepository;
+import jaeik.bimillog.domain.auth.repository.SocialTokenRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

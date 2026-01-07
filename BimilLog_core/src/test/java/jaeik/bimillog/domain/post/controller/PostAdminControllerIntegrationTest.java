@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.post.controller;
 
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.post.out.PostRepository;
+import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.annotation.IntegrationTest;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;

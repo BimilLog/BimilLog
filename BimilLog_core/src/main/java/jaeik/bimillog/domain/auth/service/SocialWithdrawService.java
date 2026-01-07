@@ -2,8 +2,8 @@ package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
-import jaeik.bimillog.domain.auth.out.AuthToMemberAdapter;
-import jaeik.bimillog.domain.auth.out.SocialStrategyAdapter;
+import jaeik.bimillog.domain.auth.adapter.AuthToMemberAdapter;
+import jaeik.bimillog.domain.auth.adapter.SocialStrategyAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;

@@ -4,12 +4,12 @@ import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
-import jaeik.bimillog.domain.auth.out.AuthToMemberAdapter;
-import jaeik.bimillog.domain.auth.out.AuthTokenRepository;
-import jaeik.bimillog.domain.auth.out.BlackListRepository;
-import jaeik.bimillog.domain.auth.out.SocialTokenRepository;
+import jaeik.bimillog.domain.auth.adapter.AuthToJwtAdapter;
+import jaeik.bimillog.domain.auth.adapter.AuthToMemberAdapter;
+import jaeik.bimillog.domain.auth.repository.AuthTokenRepository;
+import jaeik.bimillog.domain.auth.repository.BlackListRepository;
+import jaeik.bimillog.domain.auth.repository.SocialTokenRepository;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.infrastructure.web.JwtUtil;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
@@ -44,7 +44,7 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
 
     @Mock private AuthToMemberAdapter authToMemberAdapter;
     @Mock private BlackListRepository blackListRepository;
-    @Mock private JwtUtil jwtUtil;
+    @Mock private AuthToJwtAdapter authToJwtAdapter;
     @Mock private SocialTokenRepository socialTokenRepository;
     @Mock private AuthTokenRepository authTokenRepository;
 
@@ -81,8 +81,8 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
                 .build();
         given(authTokenRepository.save(any(AuthToken.class))).willReturn(persistedAuthToken);
 
-        given(jwtUtil.generateAccessToken(any(CustomUserDetails.class))).willReturn("generated-access-token");
-        given(jwtUtil.generateRefreshToken(any(CustomUserDetails.class))).willReturn("generated-refresh-token");
+        given(authToJwtAdapter.generateAccessToken(any(CustomUserDetails.class))).willReturn("generated-access-token");
+        given(authToJwtAdapter.generateRefreshToken(any(CustomUserDetails.class))).willReturn("generated-refresh-token");
 
         // When
         LoginResult result = socialLoginTransactionalService.finishLogin(TEST_PROVIDER, profile);
@@ -129,8 +129,8 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
                 .build();
         given(authTokenRepository.save(any(AuthToken.class))).willReturn(persistedAuthToken);
 
-        given(jwtUtil.generateAccessToken(any(CustomUserDetails.class))).willReturn("generated-access-token");
-        given(jwtUtil.generateRefreshToken(any(CustomUserDetails.class))).willReturn("generated-refresh-token");
+        given(authToJwtAdapter.generateAccessToken(any(CustomUserDetails.class))).willReturn("generated-access-token");
+        given(authToJwtAdapter.generateRefreshToken(any(CustomUserDetails.class))).willReturn("generated-refresh-token");
 
         // When
         LoginResult result = socialLoginTransactionalService.finishLogin(TEST_PROVIDER, profile);

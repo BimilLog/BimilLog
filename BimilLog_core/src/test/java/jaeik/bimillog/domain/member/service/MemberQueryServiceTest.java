@@ -1,9 +1,9 @@
 package jaeik.bimillog.domain.member.service;
 
 import jaeik.bimillog.domain.member.entity.Setting;
-import jaeik.bimillog.domain.member.out.MemberQueryRepository;
-import jaeik.bimillog.domain.member.out.MemberRepository;
-import jaeik.bimillog.domain.member.out.SettingRepository;
+import jaeik.bimillog.domain.member.repository.MemberQueryRepository;
+import jaeik.bimillog.domain.member.repository.MemberRepository;
+import jaeik.bimillog.domain.member.repository.SettingRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.testutil.BaseUnitTest;

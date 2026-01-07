@@ -57,8 +57,6 @@ public class JwtUtil {
      *
      * @param userDetails 사용자 상세 정보
      * @return JWT 액세스 토큰
-     * @author Jaeik
-     * @since 3.0.0
      */
     public String generateAccessToken(CustomUserDetails userDetails) {
         long now = (new Date()).getTime();
@@ -220,12 +218,10 @@ public class JwtUtil {
      * <h3>JWT 토큰 해시값 생성</h3>
      * <p>JWT 토큰을 SHA-256 알고리즘으로 해시하여 블랙리스트 키로 사용할 해시값을 생성합니다.</p>
      * <p>토큰 블랙리스트 등록 전에 원본 JWT 토큰을 안전한 해시값으로 변환하기 위해 블랙리스트 등록 플로우에서 호출합니다.</p>
-     * <p>전체 토큰을 Redis에 저장하지 않고 해시값만 저장하여 보안성과 메모리 효율성을 향상시킵니다.</p>
+     * <p>전체 토큰을 Redis에 저장하지 않고 해시값만 저장.</p>
      *
      * @param token 해시할 JWT 토큰 문자열
      * @return SHA-256 해시값 (16진수 문자열)
-     * @author Jaeik
-     * @since 2.0.0
      */
     public String generateTokenHash(String token) {
         try {
@@ -263,7 +259,5 @@ public class JwtUtil {
                 .parseClaimsJws(token)
                 .getBody();
     }
-
-
 }
 
