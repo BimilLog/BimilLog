@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.out.PostQueryRepository;
 import jaeik.bimillog.domain.post.out.PostRepository;
+import jaeik.bimillog.domain.post.out.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostStoreAdapter;
@@ -41,7 +42,7 @@ import static org.mockito.Mockito.*;
 class PostCommandServiceTest extends BaseUnitTest {
 
     @Mock
-    private GlobalMemberQueryAdapter globalMemberQueryAdapter;
+    private PostToMemberAdapter postToMemberAdapter;
 
     @Mock
     private RedisDetailPostStoreAdapter redisDetailPostStoreAdapter;
@@ -79,7 +80,7 @@ class PostCommandServiceTest extends BaseUnitTest {
 
         Post createdPost = PostTestDataBuilder.withId(expectedPostId, PostTestDataBuilder.createPost(getTestMember(), title, content));
 
-        given(globalMemberQueryAdapter.getReferenceById(memberId)).willReturn(getTestMember());
+        given(postToMemberAdapter.getReferenceById(memberId)).willReturn(getTestMember());
         given(postRepository.save(any(Post.class))).willReturn(createdPost);
 
         // When
@@ -88,9 +89,9 @@ class PostCommandServiceTest extends BaseUnitTest {
         // Then
         assertThat(result).isEqualTo(expectedPostId);
 
-        verify(globalMemberQueryAdapter, times(1)).getReferenceById(memberId);
+        verify(postToMemberAdapter, times(1)).getReferenceById(memberId);
         verify(postRepository, times(1)).save(any(Post.class));
-        verifyNoMoreInteractions(globalMemberQueryAdapter, postRepository);
+        verifyNoMoreInteractions(postToMemberAdapter, postRepository);
     }
 
     @Test

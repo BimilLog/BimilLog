@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
 import jaeik.bimillog.domain.post.out.PostLikeRepository;
 import jaeik.bimillog.domain.post.out.PostRepository;
+import jaeik.bimillog.domain.post.out.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.testutil.BaseUnitTest;
@@ -41,16 +42,13 @@ class PostInteractionServiceTest extends BaseUnitTest {
     private PostLikeRepository postLikeRepository;
 
     @Mock
-    private GlobalMemberQueryAdapter globalMemberQueryAdapter;
+    private PostToMemberAdapter postToMemberAdapter;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
     @Mock
     private PostRepository postRepository;
-
-    @Mock
-    private GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
 
     @InjectMocks
     private PostInteractionService postInteractionService;
@@ -64,7 +62,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
         Post post = PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestMember(), "테스트 게시글", "내용"));
 
         given(postLikeRepository.existsByPostIdAndMemberId(postId, memberId)).willReturn(false);
-        given(globalMemberQueryAdapter.getReferenceById(memberId)).willReturn(getTestMember());
+        given(postToMemberAdapter.getReferenceById(memberId)).willReturn(getTestMember());
         given(postRepository.findById(postId)).willReturn(Optional.of(post));
 
         // When
@@ -72,7 +70,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
 
         // Then
         verify(postLikeRepository).existsByPostIdAndMemberId(postId, memberId);
-        verify(globalMemberQueryAdapter).getReferenceById(memberId);
+        verify(postToMemberAdapter).getReferenceById(memberId);
         verify(postRepository).findById(postId);
 
         // ArgumentCaptor로 PostLike 객체 검증
@@ -94,7 +92,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
         Post post = PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestMember(), "테스트 게시글", "내용"));
 
         given(postLikeRepository.existsByPostIdAndMemberId(postId, memberId)).willReturn(true);
-        given(globalMemberQueryAdapter.getReferenceById(memberId)).willReturn(getTestMember());
+        given(postToMemberAdapter.getReferenceById(memberId)).willReturn(getTestMember());
         given(postRepository.findById(postId)).willReturn(Optional.of(post));
 
         // When
@@ -102,7 +100,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
 
         // Then
         verify(postLikeRepository).existsByPostIdAndMemberId(postId, memberId);
-        verify(globalMemberQueryAdapter).getReferenceById(memberId);
+        verify(postToMemberAdapter).getReferenceById(memberId);
         verify(postRepository).findById(postId);
         verify(postLikeRepository).deleteByMemberAndPost(getTestMember(), post);
         verify(postLikeRepository, never()).save(any());
@@ -116,7 +114,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
         Long postId = 999L;
 
         given(postLikeRepository.existsByPostIdAndMemberId(postId, memberId)).willReturn(false);
-        given(globalMemberQueryAdapter.getReferenceById(memberId)).willReturn(getTestMember());
+        given(postToMemberAdapter.getReferenceById(memberId)).willReturn(getTestMember());
         given(postRepository.findById(postId)).willReturn(Optional.empty());
 
         // When & Then
@@ -125,7 +123,7 @@ class PostInteractionServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
         verify(postLikeRepository).existsByPostIdAndMemberId(postId, memberId);
-        verify(globalMemberQueryAdapter).getReferenceById(memberId);
+        verify(postToMemberAdapter).getReferenceById(memberId);
         verify(postRepository).findById(postId);
         verify(postLikeRepository, never()).save(any());
         verify(postLikeRepository, never()).deleteByMemberAndPost(any(), any());

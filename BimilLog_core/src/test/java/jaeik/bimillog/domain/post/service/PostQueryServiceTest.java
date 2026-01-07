@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.out.*;
+import jaeik.bimillog.domain.post.out.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.post.RedisDetailPostStoreAdapter;
@@ -62,7 +63,7 @@ class PostQueryServiceTest extends BaseUnitTest {
     private PostToCommentAdapter postToCommentAdapter;
 
     @Mock
-    private GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
+    private PostToMemberAdapter postToMemberAdapter;
 
     @InjectMocks
     private PostQueryService postQueryService;
@@ -130,7 +131,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result).isNotNull();
         verify(redisDetailPostStoreAdapter).getCachedPostIfExists(postId); // 1회 Redis 호출
         verify(postQueryRepository).findPostDetailWithCounts(postId, memberId); // 1회 DB 쿼리
-        verify(globalMemberBlacklistAdapter).checkMemberBlacklist(memberId, postAuthorId); // 블랙리스트 확인
+        verify(postToMemberAdapter).checkMemberBlacklist(memberId, postAuthorId); // 블랙리스트 확인
         verify(postLikeRepository, never()).existsByPostIdAndMemberId(any(), any());
     }
 
@@ -170,7 +171,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.isLiked()).isFalse();
 
         verify(redisDetailPostStoreAdapter).getCachedPostIfExists(postId); // 1회 Redis 호출 (최적화)
-        verify(globalMemberBlacklistAdapter).checkMemberBlacklist(memberId, postAuthorId); // 블랙리스트 확인
+        verify(postToMemberAdapter).checkMemberBlacklist(memberId, postAuthorId); // 블랙리스트 확인
         verify(postLikeRepository).existsByPostIdAndMemberId(postId, memberId);
         verify(postQueryRepository, never()).findPostDetailWithCounts(any(), any()); // JOIN 쿼리도 호출 안함
     }
@@ -210,7 +211,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result).isNotNull();
         verify(redisDetailPostStoreAdapter).getCachedPostIfExists(postId); // 1회 Redis 호출 (최적화)
         verify(postQueryRepository).findPostDetailWithCounts(postId, memberId); // 1회 DB JOIN 쿼리 (최적화)
-        verify(globalMemberBlacklistAdapter).checkMemberBlacklist(memberId, postAuthorId); // 블랙리스트 확인
+        verify(postToMemberAdapter).checkMemberBlacklist(memberId, postAuthorId); // 블랙리스트 확인
 
         // 기존 개별 쿼리들은 호출되지 않음을 검증
         verify(postLikeRepository, never()).existsByPostIdAndMemberId(any(), any());
@@ -253,7 +254,7 @@ class PostQueryServiceTest extends BaseUnitTest {
 
         verify(redisDetailPostStoreAdapter).getCachedPostIfExists(postId); // 1회 Redis 호출
         verify(postQueryRepository).findPostDetailWithCounts(postId, memberId); // 1회 JOIN 쿼리
-        verify(globalMemberBlacklistAdapter, never()).checkMemberBlacklist(any(), any()); // 익명 사용자는 블랙리스트 체크 안함
+        verify(postToMemberAdapter, never()).checkMemberBlacklist(any(), any()); // 익명 사용자는 블랙리스트 체크 안함
 
         // 기존 개별 쿼리들은 호출되지 않음
         verify(postLikeRepository, never()).existsByPostIdAndMemberId(any(), any());
