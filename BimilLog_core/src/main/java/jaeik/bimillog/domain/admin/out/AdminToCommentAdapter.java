@@ -10,8 +10,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 /**
- * <h2>전역 댓글 조회 어댑터</h2>
- * <p>여러 도메인에서 공통으로 필요한 댓글 조회 기능을 제공합니다.</p>
+ * <h2>관리자 댓글 조회 어댑터</h2>
  *
  * @author Jaeik
  * @version 2.0.0

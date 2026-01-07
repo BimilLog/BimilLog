@@ -1,8 +1,10 @@
 package jaeik.bimillog.domain.post.service;
 
-import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
+import jaeik.bimillog.domain.post.out.PostRepository;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.post.RedisTier1PostStoreAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostStoreAdapter;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Slf4j
 public class PostAdminService {
-    private final GlobalPostQueryAdapter globalPostQueryAdapter;
+    private final PostRepository postRepository;
     private final RedisTier1PostStoreAdapter redisTier1PostStoreAdapter;
     private final RedisTier2PostStoreAdapter redisTier2PostStoreAdapter;
 
@@ -36,7 +38,8 @@ public class PostAdminService {
      */
     @Transactional
     public void togglePostNotice(Long postId) {
-        Post post = globalPostQueryAdapter.findById(postId);
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         if (post.isNotice()) {
             post.unsetAsNotice();

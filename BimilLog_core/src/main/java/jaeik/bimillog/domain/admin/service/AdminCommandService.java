@@ -6,9 +6,9 @@ import jaeik.bimillog.domain.admin.entity.ReportType;
 import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
 import jaeik.bimillog.domain.admin.out.AdminQueryRepository;
 import jaeik.bimillog.domain.admin.out.AdminToCommentAdapter;
+import jaeik.bimillog.domain.admin.out.AdminToPostAdapter;
 import jaeik.bimillog.domain.admin.out.ReportRepository;
 import jaeik.bimillog.domain.auth.service.BlacklistService;
-import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.domain.member.out.MemberRepository;
@@ -39,7 +39,7 @@ public class AdminCommandService {
     private final ReportRepository reportRepository;
     private final AdminQueryRepository adminQueryRepository;
     private final MemberRepository memberRepository;
-    private final GlobalPostQueryAdapter globalPostQueryAdapter;
+    private final AdminToPostAdapter adminToPostAdapter;
     private final AdminToCommentAdapter adminToCommentAdapter;
     private final BlacklistService blacklistService;
 
@@ -135,7 +135,7 @@ public class AdminCommandService {
         Member member = switch (reportType) {
             case POST -> {
                 try {
-                    yield globalPostQueryAdapter.findById(targetId).getMember();
+                    yield adminToPostAdapter.findById(targetId).getMember();
                 } catch (Exception e) {
                     throw new CustomException(ErrorCode.ADMIN_POST_ALREADY_DELETED, e);
                 }

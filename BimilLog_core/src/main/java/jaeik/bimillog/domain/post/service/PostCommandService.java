@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.comment.service.CommentCommandService;
 import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
-import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.controller.PostCommandController;
 import jaeik.bimillog.domain.post.entity.Post;
@@ -36,7 +35,6 @@ import java.util.List;
 @Slf4j
 public class PostCommandService {
     private final PostRepository postRepository;
-    private final GlobalPostQueryAdapter globalPostQueryAdapter;
     private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
     private final RedisDetailPostStoreAdapter redisDetailPostStoreAdapter;
     private final RedisTier1PostStoreAdapter redisTier1PostStoreAdapter;
@@ -78,7 +76,8 @@ public class PostCommandService {
      */
     @Transactional
     public void updatePost(Long memberId, Long postId, String title, String content, Integer password) {
-        Post post = globalPostQueryAdapter.findById(postId);
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         if (!post.isAuthor(memberId, password)) {
             throw new CustomException(ErrorCode.POST_FORBIDDEN);
@@ -109,7 +108,8 @@ public class PostCommandService {
      */
     @Transactional
     public void deletePost(Long memberId, Long postId, Integer password) {
-        Post post = globalPostQueryAdapter.findById(postId);
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         if (!post.isAuthor(memberId, password)) {
             throw new CustomException(ErrorCode.POST_FORBIDDEN);
