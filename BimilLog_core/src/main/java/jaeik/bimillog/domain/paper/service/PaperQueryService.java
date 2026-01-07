@@ -1,12 +1,11 @@
 package jaeik.bimillog.domain.paper.service;
 
-import jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter;
-import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.entity.VisitPaperResult;
 import jaeik.bimillog.domain.paper.event.PaperViewedEvent;
 import jaeik.bimillog.domain.paper.out.MessageRepository;
+import jaeik.bimillog.domain.paper.out.PaperToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -27,9 +26,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PaperQueryService {
     private final MessageRepository messageRepository;
-    private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
     private final ApplicationEventPublisher eventPublisher;
-    private final GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
+    private final PaperToMemberAdapter paperToMemberAdapter;
 
     /**
      * <h3>내 롤링페이퍼 조회</h3>
@@ -56,13 +54,13 @@ public class PaperQueryService {
         }
 
         // 사용자 존재 여부 확인 (존재하지 않으면 USERNAME_NOT_FOUND 예외 발생)
-        Member member = globalMemberQueryAdapter.findByMemberName(memberName)
+        Member member = paperToMemberAdapter.findByMemberName(memberName)
                 .orElseThrow(() -> new CustomException(ErrorCode.PAPER_USERNAME_NOT_FOUND));
 
         // 비회원 확인
         if (memberId != null) {
             // 블랙리스트 확인
-            globalMemberBlacklistAdapter.checkMemberBlacklist(memberId, member.getId());
+            paperToMemberAdapter.checkMemberBlacklist(memberId, member.getId());
         }
 
         List<Message> messages = messageRepository.findByMemberMemberName(memberName);

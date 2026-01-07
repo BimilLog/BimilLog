@@ -2,7 +2,6 @@ package jaeik.bimillog.domain.paper.service;
 
 import jaeik.bimillog.domain.global.listener.MemberWithdrawListener;
 import jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter;
-import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.paper.controller.PaperCommandController;
 import jaeik.bimillog.domain.paper.entity.DecoType;
@@ -10,6 +9,7 @@ import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.event.MessageDeletedEvent;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.paper.out.MessageRepository;
+import jaeik.bimillog.domain.paper.out.PaperToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.paper.RedisPaperDeleteAdapter;
@@ -30,7 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PaperCommandService {
     private final MessageRepository messageRepository;
-    private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
+    private final PaperToMemberAdapter paperToMemberAdapter;
     private final ApplicationEventPublisher eventPublisher;
     private final RedisPaperDeleteAdapter redisPaperDeleteAdapter;
     private final GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
@@ -48,7 +48,7 @@ public class PaperCommandService {
             throw new CustomException(ErrorCode.PAPER_INVALID_INPUT_VALUE);
         }
 
-        Member member = globalMemberQueryAdapter.findByMemberName(memberName) // 입력 닉네임 존재 검증
+        Member member = paperToMemberAdapter.findByMemberName(memberName) // 입력 닉네임 존재 검증
                 .orElseThrow(() -> new CustomException(ErrorCode.PAPER_USERNAME_NOT_FOUND));
 
         // 비회원 확인

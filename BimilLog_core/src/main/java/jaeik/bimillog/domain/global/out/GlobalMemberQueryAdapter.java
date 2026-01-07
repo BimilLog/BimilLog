@@ -32,16 +32,6 @@ public class GlobalMemberQueryAdapter {
         return memberQueryService.findById(memberId);
     }
 
-    /**
-     * <h3>사용자명으로 사용자 조회</h3>
-     * <p>특정 사용자명에 해당하는 사용자 엔티티를 조회합니다.</p>
-     *
-     * @param memberName 조회할 사용자명
-     * @return Optional&lt;Member&gt; 조회된 사용자 객체 (존재하지 않으면 Optional.empty())
-     */
-    public Optional<Member> findByMemberName(String memberName) {
-        return memberQueryService.findByMemberName(memberName);
-    }
 
     /**
      * <h3>사용자 ID로 JPA 프록시 참조 조회</h3>
@@ -54,14 +44,5 @@ public class GlobalMemberQueryAdapter {
         return memberQueryService.getReferenceById(memberId);
     }
 
-    /**
-     * <h3>여러 사용자 ID로 사용자명 배치 조회</h3>
-     * <p>여러 사용자 ID에 해당하는 사용자명을 한 번에 조회합니다.</p>
-     *
-     * @param memberIds 조회할 사용자 ID 목록
-     * @return Map&lt;Long, String&gt; 사용자 ID를 키로, 사용자명을 값으로 하는 맵
-     */
-    public Map<Long, String> findMemberNamesByIds(List<Long> memberIds) {
-        return memberQueryService.findMemberNamesByIds(memberIds);
-    }
+
 }

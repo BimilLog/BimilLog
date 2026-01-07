@@ -10,7 +10,7 @@ import java.util.Map;
 /**
  * <h2>PostToCommentAdapter</h2>
  * <p>
- * Post 도메인에서 Comment 도메인으로의 크로스 도메인 어댑터입니다.
+ * Post 도메인에서 Comment 도메인으로의 어댑터입니다.
  * </p>
  *
  * @author Jaeik
