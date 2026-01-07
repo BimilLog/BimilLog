@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.post.service;
 
 
-import jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter;
 import jaeik.bimillog.domain.post.controller.PostQueryController;
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.out.*;
@@ -35,7 +34,7 @@ public class PostQueryService {
     private final RedisDetailPostStoreAdapter redisDetailPostStoreAdapter;
     private final PostRepository postRepository;
     private final PostToCommentAdapter postToCommentAdapter;
-    private final GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
+    private final PostToMemberAdapter postToMemberAdapter;
     private final PostSearchRepository postSearchRepository;
 
     /**
@@ -96,7 +95,7 @@ public class PostQueryService {
                 // 비회원 확인
                 if (memberId != null) {
                     // 블랙리스트 확인
-                    globalMemberBlacklistAdapter.checkMemberBlacklist(memberId, cachedPost.getMemberId());
+                    postToMemberAdapter.checkMemberBlacklist(memberId, cachedPost.getMemberId());
                 }
                  // 캐시 히트: 사용자 좋아요 정보만 추가 확인
                  if (memberId != null) {
@@ -116,7 +115,7 @@ public class PostQueryService {
         // 비회원 확인
         if (memberId != null) {
             // 블랙리스트 확인
-            globalMemberBlacklistAdapter.checkMemberBlacklist(memberId, postDetail.getMemberId());
+            postToMemberAdapter.checkMemberBlacklist(memberId, postDetail.getMemberId());
         }
 
         try {
@@ -215,7 +214,7 @@ public class PostQueryService {
             return posts;
         }
 
-        List<Long> blacklistIds = globalMemberBlacklistAdapter.getInterActionBlacklist(memberId);
+        List<Long> blacklistIds = postToMemberAdapter.getInterActionBlacklist(memberId);
         Set<Long> blacklistSet = new HashSet<>(blacklistIds);
         return posts.stream().filter(post -> !blacklistSet.contains(post.getMemberId())).collect(Collectors.toList());
     }

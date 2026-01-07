@@ -1,11 +1,11 @@
 package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.comment.service.CommentCommandService;
-import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.controller.PostCommandController;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.out.PostRepository;
+import jaeik.bimillog.domain.post.out.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostStoreAdapter;
@@ -35,7 +35,7 @@ import java.util.List;
 @Slf4j
 public class PostCommandService {
     private final PostRepository postRepository;
-    private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
+    private final PostToMemberAdapter postToMemberAdapter;
     private final RedisDetailPostStoreAdapter redisDetailPostStoreAdapter;
     private final RedisTier1PostStoreAdapter redisTier1PostStoreAdapter;
     private final RedisTier2PostStoreAdapter redisTier2PostStoreAdapter;
@@ -56,7 +56,7 @@ public class PostCommandService {
      */
     @Transactional
     public Long writePost(Long memberId, String title, String content, Integer password) {
-        Member member = (memberId != null) ? globalMemberQueryAdapter.getReferenceById(memberId) : null;
+        Member member = (memberId != null) ? postToMemberAdapter.getReferenceById(memberId) : null;
         Post newPost = Post.createPost(member, title, content, password);
         Post savedPost = postRepository.save(newPost);
         return savedPost.getId();

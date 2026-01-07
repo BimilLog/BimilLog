@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.post.service;
 
-import jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter;
 import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.out.*;
 import jaeik.bimillog.infrastructure.exception.CustomException;

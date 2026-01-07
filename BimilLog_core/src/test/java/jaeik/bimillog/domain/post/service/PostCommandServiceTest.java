@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.comment.service.CommentCommandService;
-import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.out.PostQueryRepository;
 import jaeik.bimillog.domain.post.out.PostRepository;
