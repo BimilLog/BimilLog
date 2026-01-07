@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.entity.SocialToken;
+import jaeik.bimillog.domain.auth.out.AuthToMemberAdapter;
 import jaeik.bimillog.domain.auth.out.SocialStrategyAdapter;
-import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.infrastructure.api.social.SocialStrategy;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -39,7 +39,7 @@ class SocialLogoutServiceTest extends BaseUnitTest {
     private SocialStrategy kakaoStrategy;
 
     @Mock
-    private GlobalMemberQueryAdapter globalMemberQueryAdapter;
+    private AuthToMemberAdapter authToMemberAdapter;
 
     @InjectMocks
     private SocialLogoutService socialLogoutService;
@@ -52,7 +52,7 @@ class SocialLogoutServiceTest extends BaseUnitTest {
         SocialToken socialToken = SocialToken.createSocialToken(TEST_ACCESS_TOKEN, "kakao-refresh-token");
         Member member = TestMembers.copyWithId(TestMembers.MEMBER_1, memberId);
 
-        given(globalMemberQueryAdapter.findById(memberId)).willReturn(Optional.of(member));
+        given(authToMemberAdapter.findById(memberId)).willReturn(Optional.of(member));
         given(strategyRegistry.getStrategy(TEST_PROVIDER)).willReturn(kakaoStrategy);
 
         // when
@@ -69,7 +69,7 @@ class SocialLogoutServiceTest extends BaseUnitTest {
     @DisplayName("토큰이 존재하지 않는 경우 예외 발생")
     void shouldThrowException_WhenTokenNotFound() {
         // given
-        given(globalMemberQueryAdapter.findById(100L)).willReturn(Optional.empty());
+        given(authToMemberAdapter.findById(100L)).willReturn(Optional.empty());
 
         // expect
         assertThatThrownBy(() -> socialLogoutService.socialLogout(100L, TEST_PROVIDER))
@@ -86,7 +86,7 @@ class SocialLogoutServiceTest extends BaseUnitTest {
         Long memberId = 100L;
         Member member = TestMembers.copyWithId(TestMembers.MEMBER_1, memberId);
 
-        given(globalMemberQueryAdapter.findById(memberId)).willReturn(Optional.of(member));
+        given(authToMemberAdapter.findById(memberId)).willReturn(Optional.of(member));
         given(strategyRegistry.getStrategy(TEST_PROVIDER)).willReturn(kakaoStrategy);
         doThrow(new RuntimeException("logout failed")).when(kakaoStrategy).logout(anyString());
 
@@ -106,7 +106,7 @@ class SocialLogoutServiceTest extends BaseUnitTest {
         Long adminMemberId = 999L;
         Member adminMember = TestMembers.copyWithId(TestMembers.MEMBER_1, adminMemberId);
 
-        given(globalMemberQueryAdapter.findById(adminMemberId)).willReturn(Optional.of(adminMember));
+        given(authToMemberAdapter.findById(adminMemberId)).willReturn(Optional.of(adminMember));
         given(strategyRegistry.getStrategy(TEST_PROVIDER)).willReturn(kakaoStrategy);
 
         // when
