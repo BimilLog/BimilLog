@@ -9,7 +9,6 @@ import jaeik.bimillog.domain.auth.out.AuthTokenRepository;
 import jaeik.bimillog.domain.auth.out.BlackListRepository;
 import jaeik.bimillog.domain.auth.out.SocialTokenRepository;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.domain.global.out.GlobalAuthTokenSaveAdapter;
 import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
 import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
@@ -42,7 +41,6 @@ public class SocialLoginTransactionalService {
     private final GlobalCookieAdapter globalCookieAdapter;
     private final GlobalJwtAdapter globalJwtAdapter;
     private final AuthTokenRepository authTokenRepository;
-    private final GlobalAuthTokenSaveAdapter globalAuthTokenSaveAdapter;
     private final SocialTokenRepository socialTokenRepository;
 
     /**
@@ -116,7 +114,9 @@ public class SocialLoginTransactionalService {
         // 6. 액세스 토큰 및 리프레시 토큰 생성 및 업데이트
         String jwtAccessToken = globalJwtAdapter.generateAccessToken(userDetails);
         String jwtRefreshToken = globalJwtAdapter.generateRefreshToken(userDetails);
-        globalAuthTokenSaveAdapter.updateJwtRefreshToken(persistedAuthToken.getId(), jwtRefreshToken);
+        AuthToken authToken = authTokenRepository.findById(persistedAuthToken.getId())
+                .orElseThrow(() -> new CustomException(ErrorCode.AUTH_TOKEN_NOT_FOUND));
+        authToken.updateJwtRefreshToken(jwtRefreshToken);
 
         // 7. JWT 쿠키 생성 및 반환
         List<ResponseCookie> cookies = globalCookieAdapter.generateJwtCookie(jwtAccessToken, jwtRefreshToken);

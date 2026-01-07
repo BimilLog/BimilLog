@@ -119,7 +119,7 @@ class MemberKakaoFriendServiceTest extends BaseUnitTest {
 
         assertThatThrownBy(() -> memberFriendService.getKakaoFriendList(MEMBER_ID, SocialProvider.KAKAO, DEFAULT_OFFSET, DEFAULT_LIMIT))
                 .isInstanceOf(CustomException.class)
-                .hasMessage(ErrorCode.SOCIAL_TOKEN_NOT_FOUNT.getMessage());
+                .hasMessage(ErrorCode.SOCIAL_TOKEN_NOT_FOUND.getMessage());
     }
 
     @Test

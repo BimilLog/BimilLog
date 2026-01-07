@@ -2,6 +2,8 @@ package jaeik.bimillog.domain.global.out;
 
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.out.AuthTokenRepository;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,7 +33,7 @@ public class GlobalAuthTokenSaveAdapter {
     @Transactional
     public void updateJwtRefreshToken(Long tokenId, String newJwtRefreshToken) {
         AuthToken authToken = authTokenRepository.findById(tokenId)
-                .orElseThrow(() -> new RuntimeException("AuthToken not found"));
+                .orElseThrow(() -> new CustomException(ErrorCode.AUTH_TOKEN_NOT_FOUND));
         authToken.updateJwtRefreshToken(newJwtRefreshToken);
     }
 }

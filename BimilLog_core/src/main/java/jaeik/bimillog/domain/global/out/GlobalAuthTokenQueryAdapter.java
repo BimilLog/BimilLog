@@ -33,18 +33,4 @@ public class GlobalAuthTokenQueryAdapter {
     public Optional<AuthToken> findById(Long tokenId) {
         return authTokenRepository.findById(tokenId);
     }
-
-    /**
-     * <h3>사용자의 모든 토큰 조회</h3>
-     * <p>특정 사용자가 소유한 모든 토큰을 조회합니다.</p>
-     * <p>TokenRepository를 통해 해당 사용자의 모든 토큰을 조회합니다.</p>
-     *
-     * @param memberId 토큰을 조회할 사용자 ID
-     * @return List&lt;AuthToken&gt; 해당 사용자의 모든 토큰 목록
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    public List<AuthToken> findAllByMemberId(Long memberId) {
-        return authTokenRepository.findByMemberId(memberId);
-    }
 }

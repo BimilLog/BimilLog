@@ -50,7 +50,7 @@ public class MemberFriendService {
             }
 
             SocialToken socialToken = memberToAuthAdapter.getSocialToken(memberId)
-                    .orElseThrow(() -> new CustomException(ErrorCode.SOCIAL_TOKEN_NOT_FOUNT));
+                    .orElseThrow(() -> new CustomException(ErrorCode.SOCIAL_TOKEN_NOT_FOUND));
 
             KakaoFriendsDTO response = kakaoFriendClient.getFriendList(
                     socialToken.getAccessToken(), (int) offset, actualLimit
