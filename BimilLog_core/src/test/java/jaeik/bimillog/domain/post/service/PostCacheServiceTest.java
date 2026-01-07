@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
+import jaeik.bimillog.domain.post.service.PostCacheRefresh;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostStoreAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisTier1PostStoreAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostStoreAdapter;
@@ -54,6 +55,8 @@ class PostCacheServiceTest {
     @Mock
     private RedisRealTimePostStoreAdapter redisRealTimePostStoreAdapter;
 
+    @Mock
+    private PostCacheRefresh postCacheRefresh;
 
     @InjectMocks
     private PostCacheService postCacheService;
@@ -226,6 +229,7 @@ class PostCacheServiceTest {
         assertThat(result).isEmpty();  // 빈 캐시 반환 (asyncRefreshCache는 백그라운드 실행)
         verify(redisTier2PostStoreAdapter).getStoredPostIds(PostCacheFlag.NOTICE);
         verify(redisTier1PostStoreAdapter).getCachedPostList(PostCacheFlag.NOTICE);
+        verify(postCacheRefresh).asyncRefreshCache(PostCacheFlag.NOTICE);
     }
 
     // Helper method for creating PostDetail test data
