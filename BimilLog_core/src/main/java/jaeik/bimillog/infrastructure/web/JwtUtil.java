@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.global.out;
+package jaeik.bimillog.infrastructure.web;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
@@ -31,7 +31,7 @@ import java.util.List;
  */
 @Component
 @RequiredArgsConstructor
-public class GlobalJwtAdapter {
+public class JwtUtil {
 
     @Value("${jwt.secret}")
     private String secretKey;

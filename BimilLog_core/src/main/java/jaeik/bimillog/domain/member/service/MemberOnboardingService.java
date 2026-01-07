@@ -4,8 +4,8 @@ import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
-import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
+import jaeik.bimillog.infrastructure.web.HTTPCookie;
+import jaeik.bimillog.infrastructure.web.JwtUtil;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.Setting;
 import jaeik.bimillog.domain.member.out.MemberRepository;
@@ -32,8 +32,8 @@ public class MemberOnboardingService {
     private final RedisMemberDataAdapter redisMemberDataAdapter;
     private final MemberRepository memberRepository;
     private final MemberToAuthAdapter memberToAuthAdapter;
-    private final GlobalCookieAdapter globalCookieAdapter;
-    private final GlobalJwtAdapter globalJwtAdapter;
+    private final HTTPCookie HTTPCookie;
+    private final JwtUtil jwtUtil;
 
     /**
      * <h3>온보딩 대기 데이터 저장</h3>
@@ -88,13 +88,13 @@ public class MemberOnboardingService {
             AuthToken persistedAuthToken = memberToAuthAdapter.saveAuthToken(initialAuthToken);
 
             CustomUserDetails userDetails = CustomUserDetails.ofExisting(persistedMember, persistedAuthToken.getId());
-            String accessToken = globalJwtAdapter.generateAccessToken(userDetails);
-            String refreshToken = globalJwtAdapter.generateRefreshToken(userDetails);
+            String accessToken = jwtUtil.generateAccessToken(userDetails);
+            String refreshToken = jwtUtil.generateRefreshToken(userDetails);
             memberToAuthAdapter.updateJwtRefreshToken(persistedAuthToken.getId(), refreshToken);
 
             redisMemberDataAdapter.removeTempData(uuid);
 
-            return globalCookieAdapter.generateJwtCookie(accessToken, refreshToken);
+            return HTTPCookie.generateJwtCookie(accessToken, refreshToken);
         } catch (DataIntegrityViolationException e) {
             throw new CustomException(ErrorCode.MEMBER_EXISTED_NICKNAME, e);
         }

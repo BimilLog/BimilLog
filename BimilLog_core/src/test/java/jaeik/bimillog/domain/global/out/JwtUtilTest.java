@@ -5,6 +5,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.member.entity.MemberRole;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
+import jaeik.bimillog.infrastructure.web.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -24,23 +25,23 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * <h2>GlobalJwtAdapter 단위 테스트</h2>
+ * <h2>JwtUtil 단위 테스트</h2>
  * <p>JWT 생성과 파싱, 해시 생성 로직을 검증한다.</p>
  */
 @Tag("unit")
-class GlobalJwtAdapterTest {
+class JwtUtilTest {
 
     private static final String RAW_SECRET = "0123456789abcdef0123456789abcdef";
 
-    private GlobalJwtAdapter globalJwtAdapter;
+    private JwtUtil jwtUtil;
     private CustomUserDetails userDetails;
 
     @BeforeEach
     void setUp() {
-        globalJwtAdapter = new GlobalJwtAdapter();
+        jwtUtil = new JwtUtil();
         String secret = Base64.getEncoder().encodeToString(RAW_SECRET.getBytes(StandardCharsets.UTF_8));
-        ReflectionTestUtils.setField(globalJwtAdapter, "secretKey", secret);
-        globalJwtAdapter.init();
+        ReflectionTestUtils.setField(jwtUtil, "secretKey", secret);
+        jwtUtil.init();
 
         List<GrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
@@ -62,12 +63,12 @@ class GlobalJwtAdapterTest {
     @Test
     @DisplayName("액세스 토큰 생성 후 사용자 정보를 역직렬화한다")
     void shouldGenerateAndParseAccessToken() {
-        String accessToken = globalJwtAdapter.generateAccessToken(userDetails);
+        String accessToken = jwtUtil.generateAccessToken(userDetails);
 
         assertThat(accessToken).isNotBlank();
-        assertThat(globalJwtAdapter.validateToken(accessToken)).isTrue();
+        assertThat(jwtUtil.validateToken(accessToken)).isTrue();
 
-        CustomUserDetails parsed = globalJwtAdapter.getUserInfoFromToken(accessToken);
+        CustomUserDetails parsed = jwtUtil.getUserInfoFromToken(accessToken);
 
         assertThat(parsed.getMemberId()).isEqualTo(userDetails.getMemberId());
         assertThat(parsed.getAuthTokenId()).isEqualTo(userDetails.getAuthTokenId());
@@ -78,16 +79,16 @@ class GlobalJwtAdapterTest {
     @Test
     @DisplayName("리프레시 토큰에서 토큰 ID를 추출한다")
     void shouldGenerateRefreshTokenAndExtractTokenId() {
-        String refreshToken = globalJwtAdapter.generateRefreshToken(userDetails);
+        String refreshToken = jwtUtil.generateRefreshToken(userDetails);
 
         assertThat(refreshToken).isNotBlank();
-        assertThat(globalJwtAdapter.getTokenIdFromToken(refreshToken)).isEqualTo(userDetails.getAuthTokenId());
+        assertThat(jwtUtil.getTokenIdFromToken(refreshToken)).isEqualTo(userDetails.getAuthTokenId());
     }
 
     @Test
     @DisplayName("만료 임계값 이하의 토큰은 갱신 대상으로 간주한다")
     void shouldRecommendRefreshWhenRemainingDaysBelowThreshold() {
-        Key key = (Key) ReflectionTestUtils.getField(globalJwtAdapter, "key");
+        Key key = (Key) ReflectionTestUtils.getField(jwtUtil, "key");
         long now = System.currentTimeMillis();
 
         String shortLivedToken = Jwts.builder()
@@ -104,8 +105,8 @@ class GlobalJwtAdapterTest {
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
 
-        assertThat(globalJwtAdapter.shouldRefreshToken(shortLivedToken, 15)).isTrue();
-        assertThat(globalJwtAdapter.shouldRefreshToken(longLivedToken, 15)).isFalse();
+        assertThat(jwtUtil.shouldRefreshToken(shortLivedToken, 15)).isTrue();
+        assertThat(jwtUtil.shouldRefreshToken(longLivedToken, 15)).isFalse();
     }
 
     @Test
@@ -113,8 +114,8 @@ class GlobalJwtAdapterTest {
     void shouldGenerateStableTokenHash() {
         String token = "sample-token";
 
-        String hash1 = globalJwtAdapter.generateTokenHash(token);
-        String hash2 = globalJwtAdapter.generateTokenHash(token);
+        String hash1 = jwtUtil.generateTokenHash(token);
+        String hash2 = jwtUtil.generateTokenHash(token);
 
         assertThat(hash1).isEqualTo(hash2);
         assertThat(hash1).hasSize(64);

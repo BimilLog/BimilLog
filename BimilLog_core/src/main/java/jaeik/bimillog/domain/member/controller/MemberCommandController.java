@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.member.controller;
 
 import jaeik.bimillog.domain.admin.dto.ReportDTO;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
+import jaeik.bimillog.infrastructure.web.HTTPCookie;
 import jaeik.bimillog.domain.member.dto.MemberNameDTO;
 import jaeik.bimillog.domain.member.dto.SettingDTO;
 import jaeik.bimillog.domain.member.dto.SignUpRequestDTO;
@@ -38,7 +38,7 @@ public class MemberCommandController {
     private final MemberProfileCommandService memberProfileCommandService;
     private final MemberOnboardingService memberOnboardingService;
     private final ApplicationEventPublisher eventPublisher;
-    private final GlobalCookieAdapter globalCookieAdapter;
+    private final HTTPCookie HTTPCookie;
 
     /**
      * <h3>회원가입</h3>
@@ -71,7 +71,7 @@ public class MemberCommandController {
             responseBuilder.header("Set-Cookie", cookie.toString());
         }
 
-        ResponseCookie expiredTempCookie = globalCookieAdapter.expireTempCookie();
+        ResponseCookie expiredTempCookie = HTTPCookie.expireTempCookie();
         responseBuilder.header("Set-Cookie", expiredTempCookie.toString());
 
         // Body 설정 후 ResponseEntity 반환
@@ -158,7 +158,7 @@ public class MemberCommandController {
         eventPublisher.publishEvent(new MemberWithdrawnEvent(userDetails.getMemberId(), userDetails.getSocialId(), userDetails.getSocialProvider()));
 
         return ResponseEntity.ok()
-                .headers(headers -> globalCookieAdapter.getLogoutCookies().forEach(cookie ->
+                .headers(headers -> HTTPCookie.getLogoutCookies().forEach(cookie ->
                         headers.add("Set-Cookie", cookie.toString())))
                 .build();
     }

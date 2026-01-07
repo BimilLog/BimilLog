@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.BlackList;
 import jaeik.bimillog.domain.auth.out.AuthTokenRepository;
 import jaeik.bimillog.domain.auth.out.BlackListRepository;
-import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
+import jaeik.bimillog.infrastructure.web.JwtUtil;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.infrastructure.filter.JwtFilter;
@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class BlacklistService {
-    private final GlobalJwtAdapter globalJwtAdapter;
+    private final JwtUtil jwtUtil;
     private final RedisJwtBlacklistAdapter redisJwtBlacklistAdapter;
     private final AuthTokenRepository authTokenRepository;
     private final BlackListRepository blackListRepository;
@@ -51,7 +51,7 @@ public class BlacklistService {
      */
     public boolean isBlacklisted(String token) {
         try {
-            String tokenHash = globalJwtAdapter.generateTokenHash(token);
+            String tokenHash = jwtUtil.generateTokenHash(token);
             boolean isBlacklisted = redisJwtBlacklistAdapter.isBlacklisted(tokenHash);
 
             if (isBlacklisted) {
@@ -87,7 +87,7 @@ public class BlacklistService {
                     .filter(token -> token.getRefreshToken() != null && !token.getRefreshToken().isEmpty())
                     .map(token -> {
                         try {
-                            return globalJwtAdapter.generateTokenHash(token.getRefreshToken());
+                            return jwtUtil.generateTokenHash(token.getRefreshToken());
                         } catch (Exception e) {
                             log.warn("토큰 ID {}의 해시 생성 실패: {}", token.getId(), e.getMessage());
                             return null;

@@ -29,6 +29,7 @@ public class AuthTokenService {
      * @param tokenId 조회할 토큰 ID
      * @return Optional&lt;AuthToken&gt; 조회된 토큰 객체 (존재하지 않으면 Optional.empty())
      */
+    @Transactional(readOnly = true)
     public Optional<AuthToken> findById(Long tokenId) {
         return authTokenRepository.findById(tokenId);
     }
@@ -41,6 +42,7 @@ public class AuthTokenService {
      * @param memberId 사용자 ID
      * @param tokenId 삭제할 토큰 ID (null인 경우 모든 토큰 삭제 - 회원탈퇴용)
      */
+    @Transactional
     public void deleteTokens(Long memberId, Long tokenId) {
         if (tokenId != null) {
             authTokenRepository.deleteById(tokenId);

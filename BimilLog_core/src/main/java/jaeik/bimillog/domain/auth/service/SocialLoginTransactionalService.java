@@ -9,8 +9,8 @@ import jaeik.bimillog.domain.auth.out.AuthTokenRepository;
 import jaeik.bimillog.domain.auth.out.BlackListRepository;
 import jaeik.bimillog.domain.auth.out.SocialTokenRepository;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
-import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
+import jaeik.bimillog.infrastructure.web.HTTPCookie;
+import jaeik.bimillog.infrastructure.web.JwtUtil;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -38,8 +38,8 @@ import java.util.UUID;
 public class SocialLoginTransactionalService {
     private final AuthToMemberAdapter authToMemberAdapter;
     private final BlackListRepository blackListRepository;
-    private final GlobalCookieAdapter globalCookieAdapter;
-    private final GlobalJwtAdapter globalJwtAdapter;
+    private final HTTPCookie HTTPCookie;
+    private final JwtUtil jwtUtil;
     private final AuthTokenRepository authTokenRepository;
     private final SocialTokenRepository socialTokenRepository;
 
@@ -112,12 +112,12 @@ public class SocialLoginTransactionalService {
         CustomUserDetails userDetails = CustomUserDetails.ofExisting(updateMember, persistedAuthToken.getId());
 
         // 6. 액세스 토큰 및 리프레시 토큰 생성 및 업데이트
-        String jwtAccessToken = globalJwtAdapter.generateAccessToken(userDetails);
-        String jwtRefreshToken = globalJwtAdapter.generateRefreshToken(userDetails);
+        String jwtAccessToken = jwtUtil.generateAccessToken(userDetails);
+        String jwtRefreshToken = jwtUtil.generateRefreshToken(userDetails);
         persistedAuthToken.updateJwtRefreshToken(jwtRefreshToken);
 
         // 7. JWT 쿠키 생성 및 반환
-        List<ResponseCookie> cookies = globalCookieAdapter.generateJwtCookie(jwtAccessToken, jwtRefreshToken);
+        List<ResponseCookie> cookies = HTTPCookie.generateJwtCookie(jwtAccessToken, jwtRefreshToken);
         return new LoginResult.ExistingUser(cookies);
     }
 
@@ -132,7 +132,7 @@ public class SocialLoginTransactionalService {
     private LoginResult handleNewMember(SocialMemberProfile socialMemberProfile) {
         String uuid = UUID.randomUUID().toString();
         authToMemberAdapter.handleNewUser(socialMemberProfile, uuid);
-        ResponseCookie tempCookie = globalCookieAdapter.createTempCookie(uuid);
+        ResponseCookie tempCookie = HTTPCookie.createTempCookie(uuid);
         return new LoginResult.NewUser(tempCookie);
     }
 }

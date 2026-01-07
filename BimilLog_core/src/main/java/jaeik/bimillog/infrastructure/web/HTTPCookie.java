@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.global.out;
+package jaeik.bimillog.infrastructure.web;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
@@ -16,7 +16,7 @@ import java.util.List;
  */
 @Component
 @RequiredArgsConstructor
-public class GlobalCookieAdapter {
+public class HTTPCookie {
     public static final String ACCESS_TOKEN_COOKIE = "jwt_access_token";
     public static final String REFRESH_TOKEN_COOKIE = "jwt_refresh_token";
     public static final String TEMP_USER_ID_COOKIE = "temp_user_id";

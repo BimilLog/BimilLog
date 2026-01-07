@@ -2,8 +2,8 @@ package jaeik.bimillog.domain.member.service;
 
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
-import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
-import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
+import jaeik.bimillog.infrastructure.web.HTTPCookie;
+import jaeik.bimillog.infrastructure.web.JwtUtil;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.redis.member.RedisMemberDataAdapter;
@@ -25,9 +25,8 @@ import static org.mockito.Mockito.verifyNoInteractions;
 class MemberOnboardingServiceLoginTest extends BaseUnitTest {
 
     @Mock private RedisMemberDataAdapter redisMemberDataAdapter;
-    @Mock private GlobalCookieAdapter globalCookieAdapter;
-    @Mock private GlobalJwtAdapter globalJwtAdapter;
-    @Mock private GlobalAuthTokenSaveAdapter globalAuthTokenSaveAdapter;
+    @Mock private HTTPCookie HTTPCookie;
+    @Mock private JwtUtil jwtUtil;
 
     @InjectMocks private MemberOnboardingService onboardingService;
 
@@ -49,8 +48,7 @@ class MemberOnboardingServiceLoginTest extends BaseUnitTest {
         assertThat(member.getThumbnailImage()).isEqualTo("http://image/new.jpg");
         assertThat(member.getSocialToken()).isEqualTo(socialToken);
 
-        verifyNoInteractions(redisMemberDataAdapter, globalCookieAdapter,
-                globalJwtAdapter, globalAuthTokenSaveAdapter);
+        verifyNoInteractions(redisMemberDataAdapter, HTTPCookie, jwtUtil);
     }
 
     @Test

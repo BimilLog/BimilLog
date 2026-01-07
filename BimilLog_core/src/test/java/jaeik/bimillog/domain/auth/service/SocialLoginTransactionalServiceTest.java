@@ -9,8 +9,8 @@ import jaeik.bimillog.domain.auth.out.AuthTokenRepository;
 import jaeik.bimillog.domain.auth.out.BlackListRepository;
 import jaeik.bimillog.domain.auth.out.SocialTokenRepository;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
-import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
+import jaeik.bimillog.infrastructure.web.HTTPCookie;
+import jaeik.bimillog.infrastructure.web.JwtUtil;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
@@ -50,8 +50,8 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
 
     @Mock private AuthToMemberAdapter authToMemberAdapter;
     @Mock private BlackListRepository blackListRepository;
-    @Mock private GlobalCookieAdapter globalCookieAdapter;
-    @Mock private GlobalJwtAdapter globalJwtAdapter;
+    @Mock private HTTPCookie HTTPCookie;
+    @Mock private JwtUtil jwtUtil;
     @Mock private SocialTokenRepository socialTokenRepository;
     @Mock private AuthTokenRepository authTokenRepository;
 
@@ -89,9 +89,9 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
                 .build();
         given(authTokenRepository.save(any(AuthToken.class))).willReturn(persistedAuthToken);
 
-        given(globalJwtAdapter.generateAccessToken(any(CustomUserDetails.class))).willReturn("generated-access-token");
-        given(globalJwtAdapter.generateRefreshToken(any(CustomUserDetails.class))).willReturn("generated-refresh-token");
-        given(globalCookieAdapter.generateJwtCookie(anyString(), anyString())).willReturn(jwtCookies);
+        given(jwtUtil.generateAccessToken(any(CustomUserDetails.class))).willReturn("generated-access-token");
+        given(jwtUtil.generateRefreshToken(any(CustomUserDetails.class))).willReturn("generated-refresh-token");
+        given(HTTPCookie.generateJwtCookie(anyString(), anyString())).willReturn(jwtCookies);
 
         // When
         LoginResult result = socialLoginTransactionalService.finishLogin(TEST_PROVIDER, profile);
@@ -104,7 +104,7 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
         verify(blackListRepository).existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID);
         verify(authToMemberAdapter).findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID);
         verify(authToMemberAdapter).handleExistingMember(eq(existingMember), eq(profile.getNickname()), eq(profile.getProfileImageUrl()), eq(existingSocialToken));
-        verify(globalCookieAdapter).generateJwtCookie("generated-access-token", "generated-refresh-token");
+        verify(HTTPCookie).generateJwtCookie("generated-access-token", "generated-refresh-token");
     }
 
     @Test
@@ -139,9 +139,9 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
                 .build();
         given(authTokenRepository.save(any(AuthToken.class))).willReturn(persistedAuthToken);
 
-        given(globalJwtAdapter.generateAccessToken(any(CustomUserDetails.class))).willReturn("generated-access-token");
-        given(globalJwtAdapter.generateRefreshToken(any(CustomUserDetails.class))).willReturn("generated-refresh-token");
-        given(globalCookieAdapter.generateJwtCookie(anyString(), anyString())).willReturn(jwtCookies);
+        given(jwtUtil.generateAccessToken(any(CustomUserDetails.class))).willReturn("generated-access-token");
+        given(jwtUtil.generateRefreshToken(any(CustomUserDetails.class))).willReturn("generated-refresh-token");
+        given(HTTPCookie.generateJwtCookie(anyString(), anyString())).willReturn(jwtCookies);
 
         // When
         LoginResult result = socialLoginTransactionalService.finishLogin(TEST_PROVIDER, profile);
@@ -155,7 +155,7 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
         verify(authToMemberAdapter).findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID);
         verify(socialTokenRepository).save(any(SocialToken.class));
         verify(authToMemberAdapter).handleExistingMember(eq(existingMember), eq(profile.getNickname()), eq(profile.getProfileImageUrl()), eq(newSocialToken));
-        verify(globalCookieAdapter).generateJwtCookie("generated-access-token", "generated-refresh-token");
+        verify(HTTPCookie).generateJwtCookie("generated-access-token", "generated-refresh-token");
     }
 
     @Test
@@ -166,7 +166,7 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
 
         given(blackListRepository.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
         given(authToMemberAdapter.findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(Optional.empty());
-        given(globalCookieAdapter.createTempCookie(anyString())).willAnswer(invocation -> {
+        given(HTTPCookie.createTempCookie(anyString())).willAnswer(invocation -> {
             String generatedUuid = invocation.getArgument(0);
             return ResponseCookie.from("temp", generatedUuid)
                     .path("/")
@@ -187,7 +187,7 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
         assertThat(newUser.tempCookie().getValue()).isNotBlank();
 
         verify(authToMemberAdapter).handleNewUser(eq(profile), eq(newUser.tempCookie().getValue()));
-        verify(globalCookieAdapter).createTempCookie(newUser.tempCookie().getValue());
+        verify(HTTPCookie).createTempCookie(newUser.tempCookie().getValue());
     }
 
     @Test

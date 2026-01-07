@@ -6,7 +6,7 @@ import jaeik.bimillog.domain.auth.event.MemberLoggedOutEvent;
 import jaeik.bimillog.domain.auth.service.AuthTokenService;
 import jaeik.bimillog.domain.auth.service.SocialLoginService;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
+import jaeik.bimillog.infrastructure.web.HTTPCookie;
 import jaeik.bimillog.domain.notification.dto.FcmTokenRegisterRequestDTO;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.log.Log.LogLevel;
@@ -36,7 +36,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 public class AuthCommandController {
     private final SocialLoginService socialLoginService;
-    private final GlobalCookieAdapter globalCookieAdapter;
+    private final HTTPCookie HTTPCookie;
     private final ApplicationEventPublisher eventPublisher;
     private final AuthTokenService authTokenService;
 
@@ -72,7 +72,7 @@ public class AuthCommandController {
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@AuthenticationPrincipal CustomUserDetails userDetails) {
         eventPublisher.publishEvent(new MemberLoggedOutEvent(userDetails.getMemberId(), userDetails.getAuthTokenId(), userDetails.getSocialProvider()));
-        return ResponseEntity.ok().headers(headers -> globalCookieAdapter.getLogoutCookies()
+        return ResponseEntity.ok().headers(headers -> HTTPCookie.getLogoutCookies()
                 .forEach(cookie -> headers.add("Set-Cookie", cookie.toString()))).build();
     }
 

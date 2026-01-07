@@ -1,18 +1,14 @@
-package jaeik.bimillog.domain.global.out;
+package jaeik.bimillog.infrastructure.adapter;
 
 import jaeik.bimillog.domain.auth.entity.AuthToken;
-import jaeik.bimillog.domain.auth.out.AuthTokenRepository;
 import jaeik.bimillog.domain.auth.service.AuthTokenService;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
 /**
- * <h2>GlobalAuthTokenAdapter</h2>
+ * <h2>AuthTokenAdapter</h2>
  * <p>외부에서 접근하는 AuthToken을 담당하는 어댑터입니다.</p>
  *
  * @author Jaeik
@@ -20,7 +16,7 @@ import java.util.Optional;
  */
 @Component
 @RequiredArgsConstructor
-public class GlobalAuthTokenAdapter {
+public class AuthTokenAdapter {
     private final AuthTokenService authTokenService;
 
     /**
@@ -41,7 +37,6 @@ public class GlobalAuthTokenAdapter {
      * @param tokenId 토큰 ID
      * @param newJwtRefreshToken 새로운 JWT 리프레시 토큰
      */
-    @Transactional
     public void updateJwtRefreshToken(Long tokenId, String newJwtRefreshToken) {
         authTokenService.updateJwtRefreshToken(tokenId, newJwtRefreshToken);
     }
