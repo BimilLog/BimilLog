@@ -4,7 +4,6 @@ import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.domain.global.out.GlobalAuthTokenSaveAdapter;
 import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
 import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
@@ -35,7 +34,6 @@ public class MemberOnboardingService {
     private final MemberToAuthAdapter memberToAuthAdapter;
     private final GlobalCookieAdapter globalCookieAdapter;
     private final GlobalJwtAdapter globalJwtAdapter;
-    private final GlobalAuthTokenSaveAdapter globalAuthTokenSaveAdapter;
 
     /**
      * <h3>온보딩 대기 데이터 저장</h3>
@@ -92,7 +90,7 @@ public class MemberOnboardingService {
             CustomUserDetails userDetails = CustomUserDetails.ofExisting(persistedMember, persistedAuthToken.getId());
             String accessToken = globalJwtAdapter.generateAccessToken(userDetails);
             String refreshToken = globalJwtAdapter.generateRefreshToken(userDetails);
-            globalAuthTokenSaveAdapter.updateJwtRefreshToken(persistedAuthToken.getId(), refreshToken);
+            memberToAuthAdapter.updateJwtRefreshToken(persistedAuthToken.getId(), refreshToken);
 
             redisMemberDataAdapter.removeTempData(uuid);
 

@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 /**
  * <h2>인증 토큰 서비스</h2>
  * <p>authToken의 관리를 담당하는 서비스입니다.</p>
@@ -19,6 +21,17 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class AuthTokenService {
     private final AuthTokenRepository authTokenRepository;
+
+    /**
+     * <h3>토큰 ID로 토큰 조회</h3>
+     * <p>특정 ID에 해당하는 토큰 엔티티를 조회합니다.</p>
+     *
+     * @param tokenId 조회할 토큰 ID
+     * @return Optional&lt;AuthToken&gt; 조회된 토큰 객체 (존재하지 않으면 Optional.empty())
+     */
+    public Optional<AuthToken> findById(Long tokenId) {
+        return authTokenRepository.findById(tokenId);
+    }
 
     /**
      * <h3>토큰 삭제</h3>
@@ -58,5 +71,19 @@ public class AuthTokenService {
     @Transactional
     public AuthToken save(AuthToken authToken) {
         return authTokenRepository.save(authToken);
+    }
+
+    /**
+     * <h3>JWT 리프레시 토큰 업데이트</h3>
+     * <p>JWT 리프레시 토큰을 갱신합니다.</p>
+     *
+     * @param tokenId 토큰 ID
+     * @param newJwtRefreshToken 새로운 JWT 리프레시 토큰
+     */
+    @Transactional
+    public void updateJwtRefreshToken(Long tokenId, String newJwtRefreshToken) {
+        AuthToken authToken = authTokenRepository.findById(tokenId)
+                .orElseThrow(() -> new CustomException(ErrorCode.AUTH_TOKEN_NOT_FOUND));
+        authToken.updateJwtRefreshToken(newJwtRefreshToken);
     }
 }

@@ -4,7 +4,7 @@ import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.domain.global.out.GlobalAuthTokenSaveAdapter;
+import jaeik.bimillog.domain.global.out.GlobalAuthTokenAdapter;
 import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
 import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
@@ -44,7 +44,7 @@ class MemberOnboardingServiceTest extends BaseUnitTest {
     @Mock private MemberRepository memberRepository;
     @Mock private GlobalCookieAdapter globalCookieAdapter;
     @Mock private GlobalJwtAdapter globalJwtAdapter;
-    @Mock private GlobalAuthTokenSaveAdapter globalAuthTokenSaveAdapter;
+    @Mock private GlobalAuthTokenAdapter globalAuthTokenAdapter;
     @Mock private MemberToAuthAdapter memberToAuthAdapter;
 
     @InjectMocks private MemberOnboardingService onboardingService;
@@ -117,7 +117,7 @@ class MemberOnboardingServiceTest extends BaseUnitTest {
         verify(globalJwtAdapter).generateAccessToken(detailCaptor.capture());
         verify(globalJwtAdapter).generateRefreshToken(detailCaptor.getValue());
 
-        verify(globalAuthTokenSaveAdapter).updateJwtRefreshToken(persistedAuthToken.getId(), "refresh-jwt");
+        verify(globalAuthTokenAdapter).updateJwtRefreshToken(persistedAuthToken.getId(), "refresh-jwt");
         verify(globalCookieAdapter).generateJwtCookie("access-jwt", "refresh-jwt");
         verify(redisMemberDataAdapter).removeTempData("uuid-123");
 

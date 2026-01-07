@@ -3,8 +3,7 @@ package jaeik.bimillog.infrastructure.filter;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.service.BlacklistService;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.domain.global.out.GlobalAuthTokenQueryAdapter;
-import jaeik.bimillog.domain.global.out.GlobalAuthTokenSaveAdapter;
+import jaeik.bimillog.domain.global.out.GlobalAuthTokenAdapter;
 import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
 import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
@@ -38,12 +37,11 @@ import java.io.IOException;
 @Component
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
-    private final GlobalAuthTokenQueryAdapter globalAuthTokenQueryAdapter;
+    private final GlobalAuthTokenAdapter globalAuthTokenAdapter;
     private final MemberRepository memberRepository;
     private final GlobalJwtAdapter globalJwtAdapter;
     private final GlobalCookieAdapter globalCookieAdapter;
     private final BlacklistService blacklistService;
-    private final GlobalAuthTokenSaveAdapter globalAuthTokenSaveAdapter;
 
     /**
      * <h3>필터 제외 경로 설정</h3>
@@ -129,7 +127,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 Long tokenId = globalJwtAdapter.getTokenIdFromToken(refreshToken);
 
                 // 2-4. DB에서 AuthToken 엔티티 조회
-                AuthToken authToken = globalAuthTokenQueryAdapter.findById(tokenId)
+                AuthToken authToken = globalAuthTokenAdapter.findById(tokenId)
                         .orElseThrow(() -> new CustomException(ErrorCode.TOKEN_NOT_FOUND));
 
                 // 2-5. DB 저장 토큰과 클라이언트 토큰 비교 검증
@@ -152,7 +150,7 @@ public class JwtFilter extends OncePerRequestFilter {
                     String newRefreshToken = globalJwtAdapter.generateRefreshToken(userDetails);
 
                     // DB 업데이트
-                    globalAuthTokenSaveAdapter.updateJwtRefreshToken(tokenId, newRefreshToken);
+                    globalAuthTokenAdapter.updateJwtRefreshToken(tokenId, newRefreshToken);
 
                     // 새 리프레시 토큰 쿠키 발급
                     ResponseCookie refreshCookie = globalCookieAdapter.generateJwtRefreshCookie(newRefreshToken);
