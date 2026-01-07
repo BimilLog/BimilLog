@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.paper.service;
 
 import jaeik.bimillog.domain.global.listener.MemberWithdrawListener;
-import jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.paper.controller.PaperCommandController;
 import jaeik.bimillog.domain.paper.entity.DecoType;
@@ -33,7 +32,6 @@ public class PaperCommandService {
     private final PaperToMemberAdapter paperToMemberAdapter;
     private final ApplicationEventPublisher eventPublisher;
     private final RedisPaperDeleteAdapter redisPaperDeleteAdapter;
-    private final GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
 
     /**
      * <h3>롤링페이퍼 메시지 작성</h3>
@@ -54,7 +52,7 @@ public class PaperCommandService {
         // 비회원 확인
         if (memberId != null) {
             // 블랙리스트 확인
-            globalMemberBlacklistAdapter.checkMemberBlacklist(memberId, member.getId());
+            paperToMemberAdapter.checkMemberBlacklist(memberId, member.getId());
         }
 
         Message message = Message.createMessage(member, decoType, anonymity, content, x, y);

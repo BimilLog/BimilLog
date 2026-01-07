@@ -43,6 +43,4 @@ public class GlobalMemberQueryAdapter {
     public Member getReferenceById(Long memberId) {
         return memberQueryService.getReferenceById(memberId);
     }
-
-
 }
