@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.auth.adapter;
 
-import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
@@ -14,16 +13,6 @@ import java.util.Optional;
 /**
  * <h2>인증-사용자 도메인 연결 어댑터</h2>
  * <p>Auth 도메인과 Member 도메인을 연결하는 어댑터입니다.</p>
- * <p>인증 도메인에서 사용자 도메인의 기능을 호출하는 중개 역할을 수행합니다.</p>
- *
- * <h3>주요 책임:</h3>
- * <ul>
- *   <li>Auth 도메인의 사용자 처리 요청을 Member 도메인으로 전달</li>
- *   <li>Member 도메인의 처리 결과를 LoginResult로 변환</li>
- *   <li>기존 사용자에 대한 JWT 쿠키 생성</li>
- *   <li>신규 사용자에 대한 임시 쿠키 생성</li>
- * </ul>
- *
  *
  * @author Jaeik
  * @version 2.0.0

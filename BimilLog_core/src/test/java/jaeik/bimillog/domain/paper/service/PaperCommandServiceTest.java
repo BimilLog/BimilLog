@@ -207,12 +207,14 @@ class PaperCommandServiceTest extends BaseUnitTest {
         // When
         paperCommandService.writeMessage(memberId, memberName, decoType, anonymity, content, x, y);
 
-        // Then
+        // Then - RollingPaperEvent 발행 확인
         ArgumentCaptor<Object> eventCaptor = ArgumentCaptor.forClass(Object.class);
         verify(eventPublisher, atLeastOnce()).publishEvent(eventCaptor.capture());
 
         boolean foundRollingPaperEvent = eventCaptor.getAllValues().stream()
                 .anyMatch(event -> event instanceof RollingPaperEvent);
         assertThat(foundRollingPaperEvent).isTrue();
+
+        verify(messageRepository, times(1)).save(any(Message.class));
     }
 }

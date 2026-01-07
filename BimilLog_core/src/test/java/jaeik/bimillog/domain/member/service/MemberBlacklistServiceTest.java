@@ -142,10 +142,9 @@ class MemberBlacklistServiceTest extends BaseUnitTest {
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.BLACKLIST_MEMBER_PAPER_FORBIDDEN);
 
-        verify(memberBlacklistRepository, times(1))
-                .existsByRequestMemberIdAndBlackMemberId(memberId, targetMemberId);
-        verify(memberBlacklistRepository, times(1))
-                .existsByRequestMemberIdAndBlackMemberId(targetMemberId, memberId);
+        // 실제 구현은 항상 두 번 모두 호출하므로 둘 다 검증
+        verify(memberBlacklistRepository).existsByRequestMemberIdAndBlackMemberId(memberId, targetMemberId);
+        verify(memberBlacklistRepository).existsByRequestMemberIdAndBlackMemberId(targetMemberId, memberId);
     }
 
     @Test
