@@ -10,6 +10,10 @@ import java.util.List;
 
 /**
  * <h2>여러도메인에서 멤버 블랙리스트를 조회하는 어댑터</h2>
+ * <p>여러 도메인에서 공통으로 사용하는 사용자 블랙리스트 조회 기능을 구현하는 어댑터입니다.</p>
+ *
+ * @author Jaeik
+ * @version 2.4.0
  */
 @Component
 @RequiredArgsConstructor

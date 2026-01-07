@@ -38,8 +38,6 @@ public class GlobalMemberQueryAdapter {
      *
      * @param memberName 조회할 사용자명
      * @return Optional&lt;Member&gt; 조회된 사용자 객체 (존재하지 않으면 Optional.empty())
-     * @author Jaeik
-     * @since 2.0.0
      */
     public Optional<Member> findByMemberName(String memberName) {
         return memberQueryService.findByMemberName(memberName);
@@ -48,12 +46,9 @@ public class GlobalMemberQueryAdapter {
     /**
      * <h3>사용자 ID로 JPA 프록시 참조 조회</h3>
      * <p>실제 데이터베이스 조회 없이 사용자 ID를 가진 Member 프록시 객체를 반환합니다.</p>
-     * <p>Member 도메인의 UserQueryUseCase를 통해 프록시 객체를 생성합니다.</p>
      *
      * @param memberId 참조할 사용자 ID
      * @return Member 프록시 객체 (실제 데이터는 지연 로딩)
-     * @author Jaeik
-     * @since 2.0.0
      */
     public Member getReferenceById(Long memberId) {
         return memberQueryService.getReferenceById(memberId);
