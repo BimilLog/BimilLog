@@ -3,8 +3,7 @@ package jaeik.bimillog.domain.friend.service;
 import jaeik.bimillog.domain.friend.entity.jpa.FriendRequest;
 import jaeik.bimillog.domain.friend.event.FriendEvent;
 import jaeik.bimillog.domain.friend.repository.FriendRequestRepository;
-import jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter;
-import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
+import jaeik.bimillog.domain.friend.repository.FriendToMemberAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
@@ -19,8 +18,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class FriendRequestCommandService {
     private final FriendRequestRepository friendRequestRepository;
-    private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
-    private final GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
+    private final FriendToMemberAdapter friendToMemberAdapter;
     private final ApplicationEventPublisher eventPublisher;
 
     /**
@@ -71,16 +69,16 @@ public class FriendRequestCommandService {
         }
 
         // 요청 받는 사람이 실존하는지 확인
-        Member receiver = globalMemberQueryAdapter.findById(receiveMemberId)
+        Member receiver = friendToMemberAdapter.findById(receiveMemberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_USER_NOT_FOUND));
 
         // 요청 받는 사람과 블랙리스트 관계인지 확인
-        globalMemberBlacklistAdapter.checkMemberBlacklist(memberId, receiveMemberId);
+        friendToMemberAdapter.checkMemberBlacklist(memberId, receiveMemberId);
 
         // 이미 요청이 존재 하는지 확인 (1,10)이 있으면 (10,1)도 있으면 안된다.
         checkFriendRequest(memberId, receiveMemberId);
 
-        Member sender = globalMemberQueryAdapter.findById(memberId)
+        Member sender = friendToMemberAdapter.findById(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_USER_NOT_FOUND));
 
         FriendRequest friendRequest = FriendRequest.createFriendRequest(sender, receiver);
