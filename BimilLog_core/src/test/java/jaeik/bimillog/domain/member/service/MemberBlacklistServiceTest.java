@@ -103,4 +103,71 @@ class MemberBlacklistServiceTest extends BaseUnitTest {
         verify(memberBlacklistRepository, times(1)).findById(BLACKLIST_ID);
         verify(memberBlacklistRepository, never()).deleteById(any());
     }
+
+    @Test
+    @DisplayName("블랙리스트 체크 - 블랙리스트 관계가 아닌 경우 정상 처리")
+    void shouldCheckMemberBlacklist_WhenNotBlacklisted() {
+        // Given
+        Long memberId = 1L;
+        Long targetMemberId = 2L;
+
+        given(memberBlacklistRepository.existsByRequestMemberIdAndBlackMemberId(memberId, targetMemberId))
+                .willReturn(false);
+        given(memberBlacklistRepository.existsByRequestMemberIdAndBlackMemberId(targetMemberId, memberId))
+                .willReturn(false);
+
+        // When & Then - 예외가 발생하지 않아야 함
+        memberBlacklistService.checkMemberBlacklist(memberId, targetMemberId);
+
+        verify(memberBlacklistRepository, times(1))
+                .existsByRequestMemberIdAndBlackMemberId(memberId, targetMemberId);
+        verify(memberBlacklistRepository, times(1))
+                .existsByRequestMemberIdAndBlackMemberId(targetMemberId, memberId);
+    }
+
+    @Test
+    @DisplayName("블랙리스트 체크 - A가 B를 차단한 경우 예외 발생")
+    void shouldThrowException_WhenABlockedB() {
+        // Given
+        Long memberId = 1L;
+        Long targetMemberId = 2L;
+
+        given(memberBlacklistRepository.existsByRequestMemberIdAndBlackMemberId(memberId, targetMemberId))
+                .willReturn(true);
+        given(memberBlacklistRepository.existsByRequestMemberIdAndBlackMemberId(targetMemberId, memberId))
+                .willReturn(false);
+
+        // When & Then
+        assertThatThrownBy(() -> memberBlacklistService.checkMemberBlacklist(memberId, targetMemberId))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.BLACKLIST_MEMBER_PAPER_FORBIDDEN);
+
+        verify(memberBlacklistRepository, times(1))
+                .existsByRequestMemberIdAndBlackMemberId(memberId, targetMemberId);
+        verify(memberBlacklistRepository, times(1))
+                .existsByRequestMemberIdAndBlackMemberId(targetMemberId, memberId);
+    }
+
+    @Test
+    @DisplayName("블랙리스트 체크 - B가 A를 차단한 경우 예외 발생")
+    void shouldThrowException_WhenBBlockedA() {
+        // Given
+        Long memberId = 1L;
+        Long targetMemberId = 2L;
+
+        given(memberBlacklistRepository.existsByRequestMemberIdAndBlackMemberId(memberId, targetMemberId))
+                .willReturn(false);
+        given(memberBlacklistRepository.existsByRequestMemberIdAndBlackMemberId(targetMemberId, memberId))
+                .willReturn(true);
+
+        // When & Then
+        assertThatThrownBy(() -> memberBlacklistService.checkMemberBlacklist(memberId, targetMemberId))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.BLACKLIST_MEMBER_PAPER_FORBIDDEN);
+
+        verify(memberBlacklistRepository, times(1))
+                .existsByRequestMemberIdAndBlackMemberId(memberId, targetMemberId);
+        verify(memberBlacklistRepository, times(1))
+                .existsByRequestMemberIdAndBlackMemberId(targetMemberId, memberId);
+    }
 }

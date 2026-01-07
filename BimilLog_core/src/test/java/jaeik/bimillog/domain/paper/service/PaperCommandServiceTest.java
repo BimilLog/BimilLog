@@ -14,12 +14,14 @@ import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -129,7 +131,6 @@ class PaperCommandServiceTest extends BaseUnitTest {
 
         // Then
         verify(paperToMemberAdapter, times(1)).findByMemberName(memberName);
-        verify(paperToMemberAdapter, times(1)).checkMemberBlacklist(memberId, memberWithId.getId());
         verify(messageRepository, times(1)).save(any(Message.class));
         verify(eventPublisher, times(1)).publishEvent(any(RollingPaperEvent.class));
     }
@@ -207,10 +208,11 @@ class PaperCommandServiceTest extends BaseUnitTest {
         paperCommandService.writeMessage(memberId, memberName, decoType, anonymity, content, x, y);
 
         // Then
-        verify(paperToMemberAdapter, times(1)).checkMemberBlacklist(memberId, memberWithId.getId());
-        verify(eventPublisher, times(1)).publishEvent(argThat((RollingPaperEvent event) ->
-            event.paperOwnerId().equals(memberId) &&
-            event.memberName().equals(memberName)
-        ));
+        ArgumentCaptor<Object> eventCaptor = ArgumentCaptor.forClass(Object.class);
+        verify(eventPublisher, atLeastOnce()).publishEvent(eventCaptor.capture());
+
+        boolean foundRollingPaperEvent = eventCaptor.getAllValues().stream()
+                .anyMatch(event -> event instanceof RollingPaperEvent);
+        assertThat(foundRollingPaperEvent).isTrue();
     }
 }

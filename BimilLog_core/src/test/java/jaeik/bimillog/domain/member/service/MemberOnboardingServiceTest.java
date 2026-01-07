@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
 
@@ -30,8 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @DisplayName("회원 온보딩 서비스 가입 흐름")
 @Tag("unit")
@@ -41,6 +41,7 @@ class MemberOnboardingServiceTest extends BaseUnitTest {
     @Mock private MemberRepository memberRepository;
     @Mock private MemberToJwtAdapter memberToJwtAdapter;
     @Mock private MemberToAuthAdapter memberToAuthAdapter;
+    @Mock private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks private MemberOnboardingService onboardingService;
 
@@ -99,7 +100,13 @@ class MemberOnboardingServiceTest extends BaseUnitTest {
         verify(memberToJwtAdapter).generateAccessToken(detailCaptor.capture());
         verify(memberToJwtAdapter).generateRefreshToken(detailCaptor.getValue());
 
-        verify(memberToAuthAdapter).updateJwtRefreshToken(persistedAuthToken.getId(), "refresh-jwt");
+        // MemberTokenUpdateEvent 발행 검증
+        ArgumentCaptor<Object> eventCaptor = ArgumentCaptor.forClass(Object.class);
+        verify(eventPublisher, atLeastOnce()).publishEvent(eventCaptor.capture());
+
+        boolean foundEvent = eventCaptor.getAllValues().stream()
+                .anyMatch(event -> event instanceof jaeik.bimillog.domain.member.event.MemberTokenUpdateEvent);
+        assertThat(foundEvent).isTrue();
         verify(redisMemberDataAdapter).removeTempData("uuid-123");
 
         CustomUserDetails capturedDetail = detailCaptor.getValue();

@@ -8,12 +8,14 @@ import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.member.adapter.MemberToJwtAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.Setting;
+import jaeik.bimillog.domain.member.event.MemberTokenUpdateEvent;
 import jaeik.bimillog.domain.member.repository.MemberRepository;
 import jaeik.bimillog.domain.member.adapter.MemberToAuthAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.member.RedisMemberDataAdapter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +33,7 @@ public class MemberOnboardingService {
     private final MemberRepository memberRepository;
     private final MemberToAuthAdapter memberToAuthAdapter;
     private final MemberToJwtAdapter memberToJwtAdapter;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * <h3>온보딩 대기 데이터 저장</h3>
@@ -87,10 +90,8 @@ public class MemberOnboardingService {
             CustomUserDetails userDetails = CustomUserDetails.ofExisting(persistedMember, persistedAuthToken.getId());
             String accessToken = memberToJwtAdapter.generateAccessToken(userDetails);
             String refreshToken = memberToJwtAdapter.generateRefreshToken(userDetails);
-            memberToAuthAdapter.updateJwtRefreshToken(persistedAuthToken.getId(), refreshToken);
-
+            eventPublisher.publishEvent(new MemberTokenUpdateEvent(persistedAuthToken.getId(), refreshToken));
             redisMemberDataAdapter.removeTempData(uuid);
-
             return new AuthTokens(accessToken, refreshToken);
         } catch (DataIntegrityViolationException e) {
             throw new CustomException(ErrorCode.MEMBER_EXISTED_NICKNAME, e);

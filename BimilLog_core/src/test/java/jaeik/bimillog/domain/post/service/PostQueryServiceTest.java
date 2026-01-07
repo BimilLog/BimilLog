@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -65,6 +66,9 @@ class PostQueryServiceTest extends BaseUnitTest {
 
     @Mock
     private PostToMemberAdapter postToMemberAdapter;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private PostQueryService postQueryService;
@@ -132,7 +136,6 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result).isNotNull();
         verify(redisDetailPostStoreAdapter).getCachedPostIfExists(postId); // 1회 Redis 호출
         verify(postQueryRepository).findPostDetailWithCounts(postId, memberId); // 1회 DB 쿼리
-        verify(postToMemberAdapter).checkMemberBlacklist(memberId, postAuthorId); // 블랙리스트 확인
         verify(postLikeRepository, never()).existsByPostIdAndMemberId(any(), any());
     }
 
@@ -172,7 +175,6 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.isLiked()).isFalse();
 
         verify(redisDetailPostStoreAdapter).getCachedPostIfExists(postId); // 1회 Redis 호출 (최적화)
-        verify(postToMemberAdapter).checkMemberBlacklist(memberId, postAuthorId); // 블랙리스트 확인
         verify(postLikeRepository).existsByPostIdAndMemberId(postId, memberId);
         verify(postQueryRepository, never()).findPostDetailWithCounts(any(), any()); // JOIN 쿼리도 호출 안함
     }
@@ -212,7 +214,6 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result).isNotNull();
         verify(redisDetailPostStoreAdapter).getCachedPostIfExists(postId); // 1회 Redis 호출 (최적화)
         verify(postQueryRepository).findPostDetailWithCounts(postId, memberId); // 1회 DB JOIN 쿼리 (최적화)
-        verify(postToMemberAdapter).checkMemberBlacklist(memberId, postAuthorId); // 블랙리스트 확인
 
         // 기존 개별 쿼리들은 호출되지 않음을 검증
         verify(postLikeRepository, never()).existsByPostIdAndMemberId(any(), any());
@@ -255,7 +256,6 @@ class PostQueryServiceTest extends BaseUnitTest {
 
         verify(redisDetailPostStoreAdapter).getCachedPostIfExists(postId); // 1회 Redis 호출
         verify(postQueryRepository).findPostDetailWithCounts(postId, memberId); // 1회 JOIN 쿼리
-        verify(postToMemberAdapter, never()).checkMemberBlacklist(any(), any()); // 익명 사용자는 블랙리스트 체크 안함
 
         // 기존 개별 쿼리들은 호출되지 않음
         verify(postLikeRepository, never()).existsByPostIdAndMemberId(any(), any());

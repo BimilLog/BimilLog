@@ -19,7 +19,6 @@ import java.util.Optional;
 public class FriendToMemberAdapter {
     private final MemberFriendService memberFriendService;
     private final MemberQueryService memberQueryService;
-    private final MemberBlacklistService memberBlacklistService;
 
     /**
      * <h3>친구 추가 정보 조회</h3>

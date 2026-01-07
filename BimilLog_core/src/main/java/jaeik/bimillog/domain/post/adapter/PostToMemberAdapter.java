@@ -22,13 +22,13 @@ import java.util.List;
 public class PostToMemberAdapter {
     private final MemberQueryService memberQueryService;
     private final MemberBlacklistService memberBlacklistService;
+
     /**
      * <h3>자신의 블랙리스트한 사람의 ID와 나를 블랙리스트로 한 사람의 ID 조회</h3>
      */
     public List<Long> getInterActionBlacklist(Long memberId) {
         return memberBlacklistService.getInterActionBlacklist(memberId);
     }
-
 
     /**
      * <h3>사용자 ID로 JPA 프록시 참조 조회</h3>

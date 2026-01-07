@@ -73,7 +73,6 @@ class FriendRequestCommandServiceTest extends BaseUnitTest {
         // Given
         given(friendToMemberAdapter.findById(RECEIVER_ID)).willReturn(Optional.of(receiver));
         given(friendToMemberAdapter.findById(SENDER_ID)).willReturn(Optional.of(sender));
-        doNothing().when(friendToMemberAdapter).checkMemberBlacklist(SENDER_ID, RECEIVER_ID);
         given(friendRequestRepository.existsBySenderIdAndReceiverId(SENDER_ID, RECEIVER_ID)).willReturn(false);
         given(friendRequestRepository.existsBySenderIdAndReceiverId(RECEIVER_ID, SENDER_ID)).willReturn(false);
         given(friendRequestRepository.save(any(FriendRequest.class))).willReturn(friendRequest);
@@ -117,19 +116,26 @@ class FriendRequestCommandServiceTest extends BaseUnitTest {
     }
 
     @Test
-    @DisplayName("친구 요청 전송 실패 - 블랙리스트 관계")
-    void shouldThrowException_WhenBlacklisted() {
+    @DisplayName("친구 요청 전송 - 블랙리스트 체크 이벤트 발행")
+    void shouldPublishCheckBlacklistEvent_WhenSendingFriendRequest() {
         // Given
         given(friendToMemberAdapter.findById(RECEIVER_ID)).willReturn(Optional.of(receiver));
-        doThrow(new CustomException(ErrorCode.BLACKLIST_MEMBER_PAPER_FORBIDDEN))
-                .when(friendToMemberAdapter).checkMemberBlacklist(SENDER_ID, RECEIVER_ID);
+        given(friendToMemberAdapter.findById(SENDER_ID)).willReturn(Optional.of(sender));
+        given(friendRequestRepository.existsBySenderIdAndReceiverId(SENDER_ID, RECEIVER_ID)).willReturn(false);
+        given(friendRequestRepository.existsBySenderIdAndReceiverId(RECEIVER_ID, SENDER_ID)).willReturn(false);
+        given(friendRequestRepository.save(any(FriendRequest.class))).willReturn(friendRequest);
 
-        // When & Then
-        assertThatThrownBy(() -> friendRequestCommandService.sendFriendRequest(SENDER_ID, RECEIVER_ID))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.BLACKLIST_MEMBER_PAPER_FORBIDDEN);
+        // When
+        friendRequestCommandService.sendFriendRequest(SENDER_ID, RECEIVER_ID);
 
-        verify(friendRequestRepository, never()).save(any(FriendRequest.class));
+        // Then - CheckBlacklistEvent 발행 확인
+        ArgumentCaptor<Object> eventCaptor = ArgumentCaptor.forClass(Object.class);
+        verify(eventPublisher, atLeastOnce()).publishEvent(eventCaptor.capture());
+
+        boolean foundEvent = eventCaptor.getAllValues().stream()
+                .anyMatch(event -> event instanceof jaeik.bimillog.domain.global.event.CheckBlacklistEvent);
+        assertThat(foundEvent).isTrue();
+        verify(friendRequestRepository, times(1)).save(any(FriendRequest.class));
     }
 
     @Test
@@ -137,7 +143,6 @@ class FriendRequestCommandServiceTest extends BaseUnitTest {
     void shouldThrowException_WhenRequestAlreadySent() {
         // Given
         given(friendToMemberAdapter.findById(RECEIVER_ID)).willReturn(Optional.of(receiver));
-        doNothing().when(friendToMemberAdapter).checkMemberBlacklist(SENDER_ID, RECEIVER_ID);
         given(friendRequestRepository.existsBySenderIdAndReceiverId(SENDER_ID, RECEIVER_ID)).willReturn(true);
 
         // When & Then
@@ -153,7 +158,6 @@ class FriendRequestCommandServiceTest extends BaseUnitTest {
     void shouldThrowException_WhenReverseRequestExists() {
         // Given
         given(friendToMemberAdapter.findById(RECEIVER_ID)).willReturn(Optional.of(receiver));
-        doNothing().when(friendToMemberAdapter).checkMemberBlacklist(SENDER_ID, RECEIVER_ID);
         given(friendRequestRepository.existsBySenderIdAndReceiverId(SENDER_ID, RECEIVER_ID)).willReturn(false);
         given(friendRequestRepository.existsBySenderIdAndReceiverId(RECEIVER_ID, SENDER_ID)).willReturn(true);
 
