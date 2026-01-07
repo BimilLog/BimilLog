@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.paper.service;
 
+import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.paper.entity.PopularPaperInfo;
 import jaeik.bimillog.domain.paper.out.PaperQueryRepository;
-import jaeik.bimillog.domain.paper.out.PaperToMemberAdapter;
 import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
 import jaeik.bimillog.infrastructure.redis.paper.RedisPaperQueryAdapter;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +34,7 @@ import static jaeik.bimillog.infrastructure.redis.paper.RedisPaperKeys.REALTIME_
 public class PaperCacheService {
     private final RedisPaperQueryAdapter redisPaperQueryAdapter;
     private final PaperQueryRepository paperQueryRepository;
-    private final PaperToMemberAdapter paperToMemberAdapter;
+    private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
     private final RedisTemplate<String, Object> redisTemplate;
 
     /**
@@ -76,7 +76,7 @@ public class PaperCacheService {
                 .map(PopularPaperInfo::getMemberId)
                 .collect(Collectors.toList());
 
-        Map<Long, String> memberNameMap = paperToMemberAdapter.findMemberNamesByIds(memberIds);
+        Map<Long, String> memberNameMap = globalMemberQueryAdapter.findMemberNamesByIds(memberIds);
 
         popularPapers.forEach(info ->
                 info.setMemberName(memberNameMap.getOrDefault(info.getMemberId(), ""))
