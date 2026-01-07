@@ -9,6 +9,7 @@ import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
 import jaeik.bimillog.domain.comment.event.CommentLikeEvent;
 import jaeik.bimillog.domain.comment.repository.*;
+import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.repository.PostRepository;
@@ -74,11 +75,11 @@ public class CommentCommandService {
             if (memberId != null) {
                 // 블랙리스트 확인
                 if (post.getMember() != null) {
-                    commentToMemberAdapter.checkMemberBlacklist(memberId, post.getMember().getId());
+                    eventPublisher.publishEvent(new CheckBlacklistEvent(memberId, post.getMember().getId()));
                 }
 
                 if (parentComment != null && parentComment.getMember() != null) {
-                    commentToMemberAdapter.checkMemberBlacklist(memberId, parentComment.getMember().getId());
+                    eventPublisher.publishEvent(new CheckBlacklistEvent(memberId, parentComment.getMember().getId()));
                 }
             }
 
@@ -165,7 +166,7 @@ public class CommentCommandService {
 
         // 블랙리스트 확인 (익명 댓글이 아닌 경우에만)
         if (comment.getMember() != null) {
-            commentToMemberAdapter.checkMemberBlacklist(memberId, comment.getMember().getId());
+            eventPublisher.publishEvent(new CheckBlacklistEvent(memberId, comment.getMember().getId()));
         }
 
         if (commentLikeRepository.existsByCommentIdAndMemberId(commentId, memberId)) {

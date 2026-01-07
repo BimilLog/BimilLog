@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.paper.service;
 
+import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
 import jaeik.bimillog.domain.global.listener.MemberWithdrawListener;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.paper.controller.PaperCommandController;
@@ -52,7 +53,7 @@ public class PaperCommandService {
         // 비회원 확인
         if (memberId != null) {
             // 블랙리스트 확인
-            paperToMemberAdapter.checkMemberBlacklist(memberId, member.getId());
+            eventPublisher.publishEvent(new CheckBlacklistEvent(memberId, member.getId()));
         }
 
         Message message = Message.createMessage(member, decoType, anonymity, content, x, y);

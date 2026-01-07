@@ -21,8 +21,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CommentToMemberAdapter {
     private final MemberQueryService memberQueryService;
-    private final MemberBlacklistService memberBlacklistService;
-
 
     /**
      * <h3>사용자 ID로 사용자 조회</h3>
@@ -33,15 +31,5 @@ public class CommentToMemberAdapter {
      */
     public Optional<Member> findById(Long memberId) {
         return memberQueryService.findById(memberId);
-    }
-
-    /**
-     * <h3>두 멤버가 블랙리스트 관계인지 체크</h3>
-     */
-    public void checkMemberBlacklist(Long memberId, Long targetMemberId) {
-        boolean isBlacklisted = memberBlacklistService.checkMemberBlacklist(memberId, targetMemberId);
-        if (isBlacklisted) {
-            throw new CustomException(ErrorCode.BLACKLIST_MEMBER_PAPER_FORBIDDEN);
-        }
     }
 }

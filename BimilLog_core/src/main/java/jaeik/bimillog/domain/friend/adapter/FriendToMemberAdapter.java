@@ -42,20 +42,4 @@ public class FriendToMemberAdapter {
     public Optional<Member> findById(Long memberId) {
         return memberQueryService.findById(memberId);
     }
-
-    /**
-     * <h3>블랙리스트 관계 검증</h3>
-     * <p>두 사용자 간 블랙리스트 관계가 있는지 확인하고, 존재하면 예외를 발생시킵니다.</p>
-     * <p>양방향 블랙리스트를 확인하여 어느 한 쪽이라도 상대방을 차단한 경우 예외를 발생시킵니다.</p>
-     *
-     * @param memberId 요청 사용자 ID
-     * @param targetMemberId 대상 사용자 ID
-     * @throws CustomException 블랙리스트 관계인 경우 (ErrorCode.BLACKLIST_MEMBER_PAPER_FORBIDDEN)
-     */
-    public void checkMemberBlacklist(Long memberId, Long targetMemberId) {
-        boolean isBlacklisted = memberBlacklistService.checkMemberBlacklist(memberId, targetMemberId);
-        if (isBlacklisted) {
-            throw new CustomException(ErrorCode.BLACKLIST_MEMBER_PAPER_FORBIDDEN);
-        }
-    }
 }

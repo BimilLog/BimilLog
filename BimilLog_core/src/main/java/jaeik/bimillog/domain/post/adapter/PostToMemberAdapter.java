@@ -22,17 +22,6 @@ import java.util.List;
 public class PostToMemberAdapter {
     private final MemberQueryService memberQueryService;
     private final MemberBlacklistService memberBlacklistService;
-
-    /**
-     * <h3>두 멤버가 블랙리스트 관계인지 체크</h3>
-     */
-    public void checkMemberBlacklist(Long memberId, Long targetMemberId) {
-        boolean isBlacklisted = memberBlacklistService.checkMemberBlacklist(memberId, targetMemberId);
-        if (isBlacklisted) {
-            throw new CustomException(ErrorCode.BLACKLIST_MEMBER_PAPER_FORBIDDEN);
-        }
-    }
-
     /**
      * <h3>자신의 블랙리스트한 사람의 ID와 나를 블랙리스트로 한 사람의 ID 조회</h3>
      */

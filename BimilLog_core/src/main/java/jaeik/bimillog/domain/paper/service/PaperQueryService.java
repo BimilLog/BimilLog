@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.paper.service;
 
+import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.entity.VisitPaperResult;
@@ -60,7 +61,7 @@ public class PaperQueryService {
         // 비회원 확인
         if (memberId != null) {
             // 블랙리스트 확인
-            paperToMemberAdapter.checkMemberBlacklist(memberId, member.getId());
+            eventPublisher.publishEvent(new CheckBlacklistEvent(memberId, member.getId()));
         }
 
         List<Message> messages = messageRepository.findByMemberMemberName(memberName);

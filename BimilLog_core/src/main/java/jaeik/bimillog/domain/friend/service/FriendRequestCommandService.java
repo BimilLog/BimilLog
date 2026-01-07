@@ -4,6 +4,7 @@ import jaeik.bimillog.domain.friend.entity.jpa.FriendRequest;
 import jaeik.bimillog.domain.friend.event.FriendEvent;
 import jaeik.bimillog.domain.friend.repository.FriendRequestRepository;
 import jaeik.bimillog.domain.friend.adapter.FriendToMemberAdapter;
+import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
@@ -73,7 +74,7 @@ public class FriendRequestCommandService {
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_USER_NOT_FOUND));
 
         // 요청 받는 사람과 블랙리스트 관계인지 확인
-        friendToMemberAdapter.checkMemberBlacklist(memberId, receiveMemberId);
+        eventPublisher.publishEvent(new CheckBlacklistEvent(memberId, receiveMemberId));
 
         // 이미 요청이 존재 하는지 확인 (1,10)이 있으면 (10,1)도 있으면 안된다.
         checkFriendRequest(memberId, receiveMemberId);

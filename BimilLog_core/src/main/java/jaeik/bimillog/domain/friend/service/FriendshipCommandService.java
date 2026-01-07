@@ -6,6 +6,7 @@ import jaeik.bimillog.domain.friend.event.FriendshipDeletedEvent;
 import jaeik.bimillog.domain.friend.repository.FriendRequestRepository;
 import jaeik.bimillog.domain.friend.adapter.FriendToMemberAdapter;
 import jaeik.bimillog.domain.friend.repository.FriendshipRepository;
+import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
@@ -35,7 +36,7 @@ public class FriendshipCommandService {
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_USER_NOT_FOUND));
 
         // 요청 받는 사람과 블랙리스트 관계인지 확인
-        friendToMemberAdapter.checkMemberBlacklist(memberId, friendId);
+        eventPublisher.publishEvent(new CheckBlacklistEvent(memberId, friendId));
 
         // 이미 친구가 되어잇는지 확인 (1,10)이 있으면 (10,1)도 있으면 안된다.
         checkFriendship(memberId, friendId);

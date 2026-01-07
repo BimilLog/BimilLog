@@ -1,6 +1,7 @@
 package jaeik.bimillog.domain.post.service;
 
 
+import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
 import jaeik.bimillog.domain.post.adapter.PostToCommentAdapter;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.domain.post.controller.PostQueryController;
@@ -11,6 +12,7 @@ import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.post.RedisDetailPostStoreAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -38,6 +40,8 @@ public class PostQueryService {
     private final PostToCommentAdapter postToCommentAdapter;
     private final PostToMemberAdapter postToMemberAdapter;
     private final PostSearchRepository postSearchRepository;
+    private final ApplicationEventPublisher eventPublisher;
+
 
     /**
      * <h3>게시글 엔티티 조회 </h3>
@@ -97,7 +101,7 @@ public class PostQueryService {
                 // 비회원 확인
                 if (memberId != null) {
                     // 블랙리스트 확인
-                    postToMemberAdapter.checkMemberBlacklist(memberId, cachedPost.getMemberId());
+                    eventPublisher.publishEvent(new CheckBlacklistEvent(memberId, cachedPost.getMemberId()));
                 }
                  // 캐시 히트: 사용자 좋아요 정보만 추가 확인
                  if (memberId != null) {
@@ -117,7 +121,7 @@ public class PostQueryService {
         // 비회원 확인
         if (memberId != null) {
             // 블랙리스트 확인
-            postToMemberAdapter.checkMemberBlacklist(memberId, postDetail.getMemberId());
+            eventPublisher.publishEvent(new CheckBlacklistEvent(memberId, postDetail.getMemberId()));
         }
 
         try {

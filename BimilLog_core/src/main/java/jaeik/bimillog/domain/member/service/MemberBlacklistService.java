@@ -61,9 +61,11 @@ public class MemberBlacklistService {
         memberBlacklistRepository.deleteById(blacklistId);
     }
 
-    public boolean checkMemberBlacklist(Long memberId, Long targetMemberId) {
+    public void checkMemberBlacklist(Long memberId, Long targetMemberId) {
         boolean aBlockedB = memberBlacklistRepository.existsByRequestMemberIdAndBlackMemberId(memberId, targetMemberId);
         boolean bBlockedA = memberBlacklistRepository.existsByRequestMemberIdAndBlackMemberId(targetMemberId, memberId);
-        return aBlockedB || bBlockedA;
+        if (aBlockedB || bBlockedA) {
+            throw new CustomException(ErrorCode.BLACKLIST_MEMBER_PAPER_FORBIDDEN);
+        }
     }
 }

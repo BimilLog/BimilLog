@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.post.service;
 
+import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
@@ -52,7 +53,7 @@ public class PostInteractionService {
 
         // 블랙리스트 확인 (익명 게시글이 아닌 경우에만)
         if (post.getMember() != null) {
-            postToMemberAdapter.checkMemberBlacklist(memberId, post.getMember().getId());
+            eventPublisher.publishEvent(new CheckBlacklistEvent(memberId, post.getMember().getId()));
         }
 
         if (isAlreadyLiked) {
