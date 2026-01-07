@@ -9,7 +9,6 @@ import jaeik.bimillog.domain.auth.out.AuthTokenRepository;
 import jaeik.bimillog.domain.auth.out.BlackListRepository;
 import jaeik.bimillog.domain.auth.out.SocialTokenRepository;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.domain.global.out.GlobalAuthTokenSaveAdapter;
 import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
 import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
@@ -53,7 +52,6 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
     @Mock private BlackListRepository blackListRepository;
     @Mock private GlobalCookieAdapter globalCookieAdapter;
     @Mock private GlobalJwtAdapter globalJwtAdapter;
-    @Mock private GlobalAuthTokenSaveAdapter globalAuthTokenSaveAdapter;
     @Mock private SocialTokenRepository socialTokenRepository;
     @Mock private AuthTokenRepository authTokenRepository;
 
@@ -106,7 +104,6 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
         verify(blackListRepository).existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID);
         verify(authToMemberAdapter).findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID);
         verify(authToMemberAdapter).handleExistingMember(eq(existingMember), eq(profile.getNickname()), eq(profile.getProfileImageUrl()), eq(existingSocialToken));
-        verify(globalAuthTokenSaveAdapter).updateJwtRefreshToken(userDetails.getAuthTokenId(), "generated-refresh-token");
         verify(globalCookieAdapter).generateJwtCookie("generated-access-token", "generated-refresh-token");
     }
 
@@ -158,7 +155,6 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
         verify(authToMemberAdapter).findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID);
         verify(socialTokenRepository).save(any(SocialToken.class));
         verify(authToMemberAdapter).handleExistingMember(eq(existingMember), eq(profile.getNickname()), eq(profile.getProfileImageUrl()), eq(newSocialToken));
-        verify(globalAuthTokenSaveAdapter).updateJwtRefreshToken(userDetails.getAuthTokenId(), "generated-refresh-token");
         verify(globalCookieAdapter).generateJwtCookie("generated-access-token", "generated-refresh-token");
     }
 

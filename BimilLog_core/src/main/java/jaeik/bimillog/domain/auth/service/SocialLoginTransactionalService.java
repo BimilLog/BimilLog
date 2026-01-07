@@ -114,9 +114,7 @@ public class SocialLoginTransactionalService {
         // 6. 액세스 토큰 및 리프레시 토큰 생성 및 업데이트
         String jwtAccessToken = globalJwtAdapter.generateAccessToken(userDetails);
         String jwtRefreshToken = globalJwtAdapter.generateRefreshToken(userDetails);
-        AuthToken authToken = authTokenRepository.findById(persistedAuthToken.getId())
-                .orElseThrow(() -> new CustomException(ErrorCode.AUTH_TOKEN_NOT_FOUND));
-        authToken.updateJwtRefreshToken(jwtRefreshToken);
+        persistedAuthToken.updateJwtRefreshToken(jwtRefreshToken);
 
         // 7. JWT 쿠키 생성 및 반환
         List<ResponseCookie> cookies = globalCookieAdapter.generateJwtCookie(jwtAccessToken, jwtRefreshToken);
