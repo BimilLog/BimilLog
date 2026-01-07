@@ -49,17 +49,6 @@ public class AuthToMemberAdapter {
     }
 
     /**
-     * <h3>신규 회원 임시 정보 저장</h3>
-     * <p>회원가입 전 단계로, 소셜 프로필 정보를 UUID 키와 함께 Redis에 임시 저장합니다.</p>
-     *
-     * @param memberProfile 소셜 플랫폼에서 가져온 프로필 정보
-     * @param uuid 임시 저장소 키 (클라이언트 쿠키와 매칭)
-     */
-    public void handleNewUser(SocialMemberProfile memberProfile, String uuid) {
-        memberOnboardingService.storePendingMember(memberProfile, uuid);
-    }
-
-    /**
      * <h3>소셜 제공자와 ID로 사용자 조회</h3>
      */
     public Optional<Member> findByProviderAndSocialId(SocialProvider provider, String socialId) {

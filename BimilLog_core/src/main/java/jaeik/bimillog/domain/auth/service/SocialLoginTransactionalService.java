@@ -7,6 +7,7 @@ import jaeik.bimillog.domain.auth.entity.AuthTokens;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
+import jaeik.bimillog.domain.auth.event.NewMemberLoginEvent;
 import jaeik.bimillog.domain.auth.repository.*;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.member.entity.Member;
@@ -14,6 +15,7 @@ import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +39,7 @@ public class SocialLoginTransactionalService {
     private final AuthToJwtAdapter authToJwtAdapter;
     private final AuthTokenRepository authTokenRepository;
     private final SocialTokenRepository socialTokenRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * <h3>소셜 로그인 최종 처리</h3>
@@ -125,7 +128,7 @@ public class SocialLoginTransactionalService {
      */
     private LoginResult handleNewMember(SocialMemberProfile socialMemberProfile) {
         String uuid = UUID.randomUUID().toString();
-        authToMemberAdapter.handleNewUser(socialMemberProfile, uuid);
+        eventPublisher.publishEvent(new NewMemberLoginEvent(socialMemberProfile, uuid));
         return new LoginResult.NewUser(uuid);
     }
 }
