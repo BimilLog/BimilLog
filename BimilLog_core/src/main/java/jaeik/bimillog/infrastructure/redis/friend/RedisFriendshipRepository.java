@@ -2,7 +2,9 @@ package jaeik.bimillog.infrastructure.redis.friend;
 
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.redis.event.RedisFailureEvent;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -26,6 +28,7 @@ import static jaeik.bimillog.infrastructure.redis.friend.RedisFriendKeys.FRIEND_
 public class RedisFriendshipRepository {
 
     private final RedisTemplate<String, Object> redisTemplate;
+    private final ApplicationEventPublisher eventPublisher;
     private static final int FRIEND_SCAN_COUNT = 500;
     private static final int PIPELINE_BATCH_SIZE = 500;
 
@@ -45,7 +48,8 @@ public class RedisFriendshipRepository {
             }
             return friendIds;
         } catch (Exception e) {
-            throw new CustomException(ErrorCode.FRIEND_REDIS_SHIP_DELETE_ERROR, e);
+            // 조회 실패는 DB fallback으로 처리 (이벤트 발행하지 않음)
+            throw new CustomException(ErrorCode.FRIEND_REDIS_SHIP_QUERY_ERROR, e);
         }
     }
 
@@ -101,6 +105,7 @@ public class RedisFriendshipRepository {
             }
             return resultMap;
         } catch (Exception e) {
+            // 조회 실패는 DB fallback으로 처리 (이벤트 발행하지 않음)
             throw new CustomException(ErrorCode.FRIEND_REDIS_SHIP_QUERY_ERROR, e);
         }
     }
@@ -115,6 +120,13 @@ public class RedisFriendshipRepository {
             redisTemplate.opsForSet().add(key1, friendId);
             redisTemplate.opsForSet().add(key2, memberId);
         } catch (Exception e) {
+            // 쓰기 실패 시 DB-Redis 정합성 문제 발생 → 자동 재구성 트리거
+            eventPublisher.publishEvent(RedisFailureEvent.of(
+                    "RedisFriendshipRepository.addFriend",
+                    "WRITE",
+                    "친구 추가 실패: memberId=" + memberId + ", friendId=" + friendId,
+                    e
+            ));
             throw new CustomException(ErrorCode.FRIEND_REDIS_SHIP_WRITE_ERROR, e);
         }
     }
@@ -129,6 +141,13 @@ public class RedisFriendshipRepository {
             redisTemplate.opsForSet().remove(key1, friendId);
             redisTemplate.opsForSet().remove(key2, memberId);
         } catch (Exception e) {
+            // 삭제 실패 시 DB-Redis 정합성 문제 발생 → 자동 재구성 트리거
+            eventPublisher.publishEvent(RedisFailureEvent.of(
+                    "RedisFriendshipRepository.deleteFriend",
+                    "DELETE",
+                    "친구 삭제 실패: memberId=" + memberId + ", friendId=" + friendId,
+                    e
+            ));
             throw new CustomException(ErrorCode.FRIEND_REDIS_SHIP_DELETE_ERROR, e);
         }
     }
@@ -158,6 +177,53 @@ public class RedisFriendshipRepository {
 
             String withdrawKey = FRIEND_SHIP_PREFIX + withdrawFriendId;
             redisTemplate.delete(withdrawKey);
+        } catch (Exception e) {
+            // 탈퇴 회원 삭제 실패 시 DB-Redis 정합성 문제 발생 → 자동 재구성 트리거
+            eventPublisher.publishEvent(RedisFailureEvent.of(
+                    "RedisFriendshipRepository.deleteWithdrawFriendTargeted",
+                    "DELETE",
+                    "탈퇴 회원 삭제 실패: withdrawFriendId=" + withdrawFriendId,
+                    e
+            ));
+            throw new CustomException(ErrorCode.FRIEND_REDIS_SHIP_DELETE_ERROR, e);
+        }
+    }
+
+    /**
+     * Redis 친구 관계 캐시를 전체 정리한다.
+     * <p>Redis 재구성 시 사용됩니다.</p>
+     * <p>SCAN으로 키를 수집한 후 UNLINK로 비블로킹 삭제합니다.</p>
+     */
+    public void clearAllFriendshipKeys() {
+        try {
+            String pattern = FRIEND_SHIP_PREFIX + "*";
+
+            // 1. SCAN으로 삭제할 키 수집
+            List<byte[]> keysToDelete = new ArrayList<>();
+            redisTemplate.execute((RedisConnection connection) -> {
+                connection.keyCommands().scan(ScanOptions.scanOptions()
+                                .match(pattern)
+                                .count(500)
+                                .build())
+                        .forEachRemaining(keysToDelete::add);
+                return null;
+            });
+
+            // 2. Pipeline으로 일괄 삭제 (UNLINK 사용 - 비블로킹)
+            if (!keysToDelete.isEmpty()) {
+                int batchSize = 500;
+                for (int i = 0; i < keysToDelete.size(); i += batchSize) {
+                    int end = Math.min(i + batchSize, keysToDelete.size());
+                    List<byte[]> batch = keysToDelete.subList(i, end);
+
+                    redisTemplate.executePipelined((RedisConnection connection) -> {
+                        for (byte[] key : batch) {
+                            connection.keyCommands().unlink(key);
+                        }
+                        return null;
+                    });
+                }
+            }
         } catch (Exception e) {
             throw new CustomException(ErrorCode.FRIEND_REDIS_SHIP_DELETE_ERROR, e);
         }
