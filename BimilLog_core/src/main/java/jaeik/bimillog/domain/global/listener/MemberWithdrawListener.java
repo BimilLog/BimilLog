@@ -108,7 +108,7 @@ public class MemberWithdrawListener {
 
         // Redis 친구 관계 테이블 정리 (SCAN 패턴 매칭 사용)
         try {
-            redisFriendshipRepository.deleteWithdrawFriendByScan(memberId);
+            redisFriendshipRepository.deleteWithdrawFriendTargeted(memberId);
             log.debug("Redis 친구 관계 테이블 정리 완료: memberId={}", memberId);
         } catch (Exception e) {
             log.error("Redis 친구 관계 테이블 정리 실패: memberId={}. 탈퇴 후속 처리를 계속 진행합니다.", memberId, e);

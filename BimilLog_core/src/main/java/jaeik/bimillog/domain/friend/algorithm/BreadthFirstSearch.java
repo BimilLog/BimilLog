@@ -6,10 +6,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 /**
  * <h2>BFS 알고리즘</h2>
@@ -33,6 +32,7 @@ import java.util.Set;
 public class BreadthFirstSearch {
 
     private final RedisFriendshipRepository redisFriendshipRepository;
+    private static final int FIRST_DEGREE_SAMPLE_LIMIT = 200;
 
     /**
      * <h3>친구 관계 탐색 (FriendRelation 반환)</h3>
@@ -43,10 +43,11 @@ public class BreadthFirstSearch {
      * @return FriendRelation 객체 (2촌 정보 포함)
      */
     public FriendRelation findFriendRelation(Long memberId, Set<Long> firstDegree) {
-        FriendRelation relation = new FriendRelation(memberId, firstDegree);
+        Set<Long> sampledFirstDegree = sampleFirstDegree(firstDegree);
+        FriendRelation relation = new FriendRelation(memberId, sampledFirstDegree);
 
         // 1. 2촌 Map 생성
-        Map<Long, Set<Long>> secondDegreeMap = findSecondDegreeMap(memberId, firstDegree);
+        Map<Long, Set<Long>> secondDegreeMap = findSecondDegreeMap(memberId, sampledFirstDegree);
 
         // 2. Map을 CandidateInfo로 변환하여 FriendRelation에 추가
         for (Map.Entry<Long, Set<Long>> entry : secondDegreeMap.entrySet()) {
@@ -92,6 +93,22 @@ public class BreadthFirstSearch {
         log.debug("3촌 탐색 완료: 3촌 수={}", relation.getThirdDegreeCandidates().size());
 
         return relation;
+    }
+
+    private Set<Long> sampleFirstDegree(Set<Long> firstDegree) {
+        if (firstDegree == null || firstDegree.isEmpty()) {
+            return new HashSet<>();
+        }
+        if (firstDegree.size() <= FIRST_DEGREE_SAMPLE_LIMIT) {
+            return firstDegree;
+        }
+
+        // 랜덤 샘플링으로 공정성 확보
+        List<Long> list = new ArrayList<>(firstDegree);
+        Collections.shuffle(list, ThreadLocalRandom.current());
+        return list.stream()
+                .limit(FIRST_DEGREE_SAMPLE_LIMIT)
+                .collect(Collectors.toSet());
     }
 
     /**
