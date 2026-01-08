@@ -44,14 +44,14 @@ public class RedisInteractionScoreRepository {
             local increment = ARGV[3]
             local maxScore = tonumber(ARGV[4])
             
-            local current1 = redis.call('ZSCORE', key1, member1)
+            local current1 = redis.call('HGET', key1, member1)
             if not current1 or tonumber(current1) <= maxScore then
-                redis.call('ZINCRBY', key1, increment, member1)
+                redis.call('HINCRBYFLOAT', key1, member1, increment)
             end
-            
-            local current2 = redis.call('ZSCORE', key2, member2)
+
+            local current2 = redis.call('HGET', key2, member2)
             if not current2 or tonumber(current2) <= maxScore then
-                redis.call('ZINCRBY', key2, increment, member2)
+                redis.call('HINCRBYFLOAT', key2, member2, increment)
             end
             
             return 1
@@ -83,7 +83,7 @@ public class RedisInteractionScoreRepository {
                 byte[] keyBytes = key.getBytes(StandardCharsets.UTF_8);
                 for (Long targetId : targetIdList) {
                     String member = INTERACTION_SUFFIX + targetId;
-                    connection.zSetCommands().zScore(keyBytes, member.getBytes(StandardCharsets.UTF_8));
+                    connection.hashCommands().hGet(keyBytes, member.getBytes(StandardCharsets.UTF_8));
                 }
                 return null;
             });
@@ -91,7 +91,13 @@ public class RedisInteractionScoreRepository {
             for (int i = 0; i < targetIdList.size(); i++) {
                 Object scoreObj = results.get(i);
                 if (scoreObj != null) {
-                    Double score = Double.valueOf(scoreObj.toString());
+                    String scoreValue;
+                    if (scoreObj instanceof byte[] bytes) {
+                        scoreValue = new String(bytes, StandardCharsets.UTF_8);
+                    } else {
+                        scoreValue = scoreObj.toString();
+                    }
+                    Double score = Double.valueOf(scoreValue);
                     resultMap.put(targetIdList.get(i), score);
                 }
             }
@@ -104,7 +110,7 @@ public class RedisInteractionScoreRepository {
 
     /**
      * 상호작용 점수 추가
-     * ZSCORE로 기존 점수가 10점이상인지 확인 후 아닌 경우에만 작동
+     * HGET으로 기존 점수가 10점이상인지 확인 후 아닌 경우에만 작동
      * Lua 스크립트로 원자적 진행
      */
     public void addInteractionScore(Long memberId, Long interactionMemberId) {
@@ -151,7 +157,7 @@ public class RedisInteractionScoreRepository {
                         .build())
                         .forEachRemaining(key -> {
                             // 각 키에서 탈퇴 회원 제거
-                            connection.zSetCommands().zRem(key, deleteMemberBytes);
+                            connection.hashCommands().hDel(key, deleteMemberBytes);
                         });
                 return null;
             });

@@ -5,10 +5,10 @@ public class RedisFriendKeys {
     // 친구 관계 테이블 (Set) 키
     public static final String FRIEND_SHIP_PREFIX = "friend:";
 
-    // 상호 작용 점수 테이블(Sorted Set) 키 접두사
+    // 상호 작용 점수 테이블(Hash) 키 접두사
     public static final String INTERACTION_PREFIX = "interaction:";
 
-    // 상호 작용 점수 테이블(Sorted Set) 값 접두사
+    // 상호 작용 점수 테이블(Hash) 필드 접두사
     public static final String INTERACTION_SUFFIX = "member:";
 
     // 상호 작용 점수 증가 가능 최대값 (최대값은 10점)
