@@ -55,6 +55,20 @@ services:
       - redis-data:/data
     restart: unless-stopped
 
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: bimillog-redis-exporter
+    ports:
+      - "9121:9121"
+    networks:
+      - bimillog-network
+    environment:
+      - REDIS_ADDR=redis:6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    depends_on:
+      - redis
+    restart: unless-stopped
+
   prometheus:
     image: prom/prometheus:latest
     container_name: bimillog-prometheus

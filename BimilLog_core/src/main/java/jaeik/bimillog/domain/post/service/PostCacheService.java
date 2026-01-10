@@ -43,7 +43,7 @@ public class PostCacheService {
      * PER의 expiry gap (초 단위)
      * <p>TTL 마지막 120초 동안 확률적으로 캐시를 갱신합니다.</p>
      */
-    private static final int EXPIRY_GAP_SECONDS = 120;
+    private static final int EXPIRY_GAP_SECONDS = 60;
 
     /**
      * <h3>실시간 인기 게시글 조회</h3>
