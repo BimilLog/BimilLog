@@ -69,7 +69,6 @@ public class JwtFilter extends OncePerRequestFilter {
                 path.equals("/api/auth/signup") ||
                 path.equals("/api/global/health") ||
                 path.equals("/api/member/username/check") ||
-                path.equals("/api/member/suggestion") ||
                 path.equals("/api/member/report");
     }
 
@@ -86,6 +85,12 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String accessToken = extractTokenFromCookie(request, "jwt_access_token");
         String refreshToken = extractTokenFromCookie(request, "jwt_refresh_token");
+
+        // 비회원 통과
+        if (accessToken == null && refreshToken == null) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         // 리프레시 토큰 블랙리스트 검사
         if (blacklistService.isBlacklisted(refreshToken)) {
