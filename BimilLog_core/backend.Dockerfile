@@ -1,5 +1,5 @@
 # 1. 빌드 단계 (Build Stage)
-FROM eclipse-temurin:21-jdk AS builder
+FROM amazoncorretto:21-alpine-jdk AS builder
 WORKDIR /app
 
 # Gradle 파일 먼저 복사 (의존성 캐싱 활용)
@@ -20,7 +20,7 @@ RUN ./gradlew assemble --no-daemon
 # ---
 
 # 2. 실행 단계 (Production Stage)
-FROM amazoncorretto:21-alpine-jdk
+FROM amazoncorretto:21-alpine-jre
 WORKDIR /app
 
 # 빌드 단계(builder)에서 생성된 JAR 파일만 복사 (와일드카드로 버전 독립적)
