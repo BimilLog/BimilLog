@@ -27,7 +27,6 @@ import java.util.UUID;
  */
 @Component
 public class LogFilter extends OncePerRequestFilter {
-
     private static final Logger log = LoggerFactory.getLogger(LogFilter.class);
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
     private static final List<String> WHITELIST = List.of(
@@ -56,7 +55,7 @@ public class LogFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-        boolean isAdminAttempt = uri.startsWith("/dto");
+        boolean isAdminAttempt = uri.startsWith("/api/admin");
 
         long startTime = System.currentTimeMillis();
         String referer = request.getHeader("Referer");

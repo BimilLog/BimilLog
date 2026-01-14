@@ -1,14 +1,14 @@
 package jaeik.bimillog.domain.auth.adapter;
 
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.infrastructure.web.JwtUtil;
+import jaeik.bimillog.infrastructure.web.JwtFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 public class AuthToJwtAdapter {
-    private final JwtUtil jwtUtil;
+    private final JwtFactory jwtFactory;
 
     /**
      * <h3>JWT 액세스 토큰 생성</h3>
@@ -19,7 +19,7 @@ public class AuthToJwtAdapter {
      * @return JWT 액세스 토큰
      */
     public String generateAccessToken(CustomUserDetails userDetails) {
-        return jwtUtil.generateAccessToken(userDetails);
+        return jwtFactory.generateAccessToken(userDetails);
     }
 
     /**
@@ -31,7 +31,7 @@ public class AuthToJwtAdapter {
      * @return JWT 리프레시 토큰
      */
     public String generateRefreshToken(CustomUserDetails userDetails) {
-        return jwtUtil.generateRefreshToken(userDetails);
+        return jwtFactory.generateRefreshToken(userDetails);
     }
 
     /**
@@ -42,6 +42,6 @@ public class AuthToJwtAdapter {
      * @return SHA-256 해시값 (16진수 문자열)
      */
     public String generateTokenHash(String token) {
-        return jwtUtil.generateTokenHash(token);
+        return jwtFactory.generateTokenHash(token);
     }
 }

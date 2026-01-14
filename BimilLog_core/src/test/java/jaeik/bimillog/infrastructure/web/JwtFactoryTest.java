@@ -24,23 +24,23 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * <h2>JwtUtil 단위 테스트</h2>
+ * <h2>JwtFactory 단위 테스트</h2>
  * <p>JWT 생성과 파싱, 해시 생성 로직을 검증한다.</p>
  */
 @Tag("unit")
-class JwtUtilTest {
+class JwtFactoryTest {
 
     private static final String RAW_SECRET = "0123456789abcdef0123456789abcdef";
 
-    private JwtUtil jwtUtil;
+    private JwtFactory jwtFactory;
     private CustomUserDetails userDetails;
 
     @BeforeEach
     void setUp() {
-        jwtUtil = new JwtUtil();
+        jwtFactory = new JwtFactory();
         String secret = Base64.getEncoder().encodeToString(RAW_SECRET.getBytes(StandardCharsets.UTF_8));
-        ReflectionTestUtils.setField(jwtUtil, "secretKey", secret);
-        jwtUtil.init();
+        ReflectionTestUtils.setField(jwtFactory, "secretKey", secret);
+        jwtFactory.init();
 
         List<GrantedAuthority> authorities = new ArrayList<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
@@ -62,12 +62,12 @@ class JwtUtilTest {
     @Test
     @DisplayName("액세스 토큰 생성 후 사용자 정보를 역직렬화한다")
     void shouldGenerateAndParseAccessToken() {
-        String accessToken = jwtUtil.generateAccessToken(userDetails);
+        String accessToken = jwtFactory.generateAccessToken(userDetails);
 
         assertThat(accessToken).isNotBlank();
-        assertThat(jwtUtil.validateToken(accessToken)).isTrue();
+        assertThat(jwtFactory.validateToken(accessToken)).isTrue();
 
-        CustomUserDetails parsed = jwtUtil.getUserInfoFromToken(accessToken);
+        CustomUserDetails parsed = jwtFactory.getUserInfoFromToken(accessToken);
 
         assertThat(parsed.getMemberId()).isEqualTo(userDetails.getMemberId());
         assertThat(parsed.getAuthTokenId()).isEqualTo(userDetails.getAuthTokenId());
@@ -78,16 +78,16 @@ class JwtUtilTest {
     @Test
     @DisplayName("리프레시 토큰에서 토큰 ID를 추출한다")
     void shouldGenerateRefreshTokenAndExtractTokenId() {
-        String refreshToken = jwtUtil.generateRefreshToken(userDetails);
+        String refreshToken = jwtFactory.generateRefreshToken(userDetails);
 
         assertThat(refreshToken).isNotBlank();
-        assertThat(jwtUtil.getTokenIdFromToken(refreshToken)).isEqualTo(userDetails.getAuthTokenId());
+        assertThat(jwtFactory.getTokenIdFromToken(refreshToken)).isEqualTo(userDetails.getAuthTokenId());
     }
 
     @Test
     @DisplayName("만료 임계값 이하의 토큰은 갱신 대상으로 간주한다")
     void shouldRecommendRefreshWhenRemainingDaysBelowThreshold() {
-        Key key = (Key) ReflectionTestUtils.getField(jwtUtil, "key");
+        Key key = (Key) ReflectionTestUtils.getField(jwtFactory, "key");
         long now = System.currentTimeMillis();
 
         String shortLivedToken = Jwts.builder()
@@ -104,8 +104,8 @@ class JwtUtilTest {
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
 
-        assertThat(jwtUtil.shouldRefreshToken(shortLivedToken, 15)).isTrue();
-        assertThat(jwtUtil.shouldRefreshToken(longLivedToken, 15)).isFalse();
+        assertThat(jwtFactory.shouldRefreshToken(shortLivedToken, 15)).isTrue();
+        assertThat(jwtFactory.shouldRefreshToken(longLivedToken, 15)).isFalse();
     }
 
     @Test
@@ -113,8 +113,8 @@ class JwtUtilTest {
     void shouldGenerateStableTokenHash() {
         String token = "sample-token";
 
-        String hash1 = jwtUtil.generateTokenHash(token);
-        String hash2 = jwtUtil.generateTokenHash(token);
+        String hash1 = jwtFactory.generateTokenHash(token);
+        String hash2 = jwtFactory.generateTokenHash(token);
 
         assertThat(hash1).isEqualTo(hash2);
         assertThat(hash1).hasSize(64);

@@ -5,7 +5,7 @@ import jaeik.bimillog.domain.auth.service.BlacklistService;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.AuthTokenAdapter;
 import jaeik.bimillog.infrastructure.web.HTTPCookie;
-import jaeik.bimillog.infrastructure.web.JwtUtil;
+import jaeik.bimillog.infrastructure.web.JwtFactory;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.repository.MemberRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
@@ -39,7 +39,7 @@ import java.io.IOException;
 public class JwtFilter extends OncePerRequestFilter {
     private final AuthTokenAdapter authTokenAdapter;
     private final MemberRepository memberRepository;
-    private final JwtUtil jwtUtil;
+    private final JwtFactory jwtFactory;
     private final HTTPCookie HTTPCookie;
     private final BlacklistService blacklistService;
 
@@ -104,14 +104,14 @@ public class JwtFilter extends OncePerRequestFilter {
         String accessToken = extractTokenFromCookie(request, "jwt_access_token");
 
         // 1. Access Token이 유효하고 블랙리스트에 없을 때
-        if (accessToken != null && jwtUtil.validateToken(accessToken) && !blacklistService.isBlacklisted(accessToken)) {
+        if (accessToken != null && jwtFactory.validateToken(accessToken) && !blacklistService.isBlacklisted(accessToken)) {
             setAuthentication(accessToken);
         } else {
             // 2. Access Token이 만료되었을 때 리프레시 플로우
             String refreshToken = extractTokenFromCookie(request, "jwt_refresh_token");
 
             // 2-1. 리프레시 토큰 존재 여부 및 JWT 유효성 검증
-            if (refreshToken == null || !jwtUtil.validateToken(refreshToken)) {
+            if (refreshToken == null || !jwtFactory.validateToken(refreshToken)) {
                 filterChain.doFilter(request, response);
                 return;
             }
@@ -124,7 +124,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
             try {
                 // 2-3. 리프레시 토큰에서 authTokenId 추출
-                Long tokenId = jwtUtil.getTokenIdFromToken(refreshToken);
+                Long tokenId = jwtFactory.getTokenIdFromToken(refreshToken);
 
                 // 2-4. DB에서 AuthToken 엔티티 조회
                 AuthToken authToken = authTokenAdapter.findById(tokenId)
@@ -141,13 +141,13 @@ public class JwtFilter extends OncePerRequestFilter {
                 CustomUserDetails userDetails = CustomUserDetails.ofExisting(member, tokenId);
 
                 // 2-7. 새 액세스 토큰 발급
-                String newAccessToken = jwtUtil.generateAccessToken(userDetails);
+                String newAccessToken = jwtFactory.generateAccessToken(userDetails);
                 ResponseCookie accessCookie = HTTPCookie.generateJwtAccessCookie(newAccessToken);
                 response.setHeader("Set-Cookie", accessCookie.toString());
 
                 // 2-8. Refresh AuthToken Rotation (15일 이하 남았을 때)
-                if (jwtUtil.shouldRefreshToken(refreshToken, 15)) {
-                    String newRefreshToken = jwtUtil.generateRefreshToken(userDetails);
+                if (jwtFactory.shouldRefreshToken(refreshToken, 15)) {
+                    String newRefreshToken = jwtFactory.generateRefreshToken(userDetails);
 
                     // DB 업데이트
                     authTokenAdapter.updateJwtRefreshToken(tokenId, newRefreshToken);
@@ -181,7 +181,7 @@ public class JwtFilter extends OncePerRequestFilter {
      * @param jwtAccessToken JWT 엑세스 토큰
      */
     private void setAuthentication(String jwtAccessToken) {
-        CustomUserDetails userDetails = jwtUtil.getUserInfoFromToken(jwtAccessToken);
+        CustomUserDetails userDetails = jwtFactory.getUserInfoFromToken(jwtAccessToken);
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 userDetails,
                 null,

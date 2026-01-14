@@ -31,7 +31,7 @@ import java.util.List;
  */
 @Component
 @RequiredArgsConstructor
-public class JwtUtil {
+public class JwtFactory {
 
     @Value("${jwt.secret}")
     private String secretKey;
