@@ -20,7 +20,7 @@ RUN ./gradlew assemble --no-daemon
 # ---
 
 # 2. 실행 단계 (Production Stage)
-FROM eclipse-temurin:21-jre-alpine
+FROM amazoncorretto:21-alpine-jdk
 WORKDIR /app
 
 # 빌드 단계(builder)에서 생성된 JAR 파일만 복사 (와일드카드로 버전 독립적)
