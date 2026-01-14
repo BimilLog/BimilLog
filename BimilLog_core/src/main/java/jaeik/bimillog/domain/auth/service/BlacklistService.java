@@ -38,7 +38,7 @@ public class BlacklistService {
     private final AuthTokenRepository authTokenRepository;
     private final BlackListRepository blackListRepository;
 
-    private static final Duration DEFAULT_TTL = Duration.ofHours(1);
+    private static final Duration DEFAULT_TTL = Duration.ofDays(30);
 
     /**
      * <h3>JWT 토큰 블랙리스트 검증</h3>

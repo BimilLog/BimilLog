@@ -41,7 +41,7 @@ public class MemberLogoutListener {
     @Async
     @EventListener
     @Transactional
-    public void memberLogout(MemberLoggedOutEvent memberLoggedOutEvent) throws Exception {
+    public void memberLogout(MemberLoggedOutEvent memberLoggedOutEvent) {
         Long memberId = memberLoggedOutEvent.memberId();
         Long AuthTokenId = memberLoggedOutEvent.authTokenId();
         SocialProvider provider = memberLoggedOutEvent.provider();

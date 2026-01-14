@@ -16,7 +16,6 @@ import org.springframework.http.HttpStatus;
 public enum ErrorCode {
 
     // ===== 기존 글로벌 에러 코드 =====
-    TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "토큰을 찾을 수 없습니다", LogLevel.WARN),
     TOKEN_MISMATCH(HttpStatus.UNAUTHORIZED, "토큰 불일치 - 보안 위협 감지", LogLevel.ERROR),
 
     // ===== Admin 도메인 에러 코드 =====

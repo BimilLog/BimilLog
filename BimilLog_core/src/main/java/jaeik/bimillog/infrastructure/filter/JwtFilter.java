@@ -1,9 +1,11 @@
 package jaeik.bimillog.infrastructure.filter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.service.BlacklistService;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.infrastructure.adapter.AuthTokenAdapter;
+import jaeik.bimillog.infrastructure.exception.ErrorResponse;
 import jaeik.bimillog.infrastructure.web.HTTPCookie;
 import jaeik.bimillog.infrastructure.web.JwtFactory;
 import jaeik.bimillog.domain.member.entity.Member;
@@ -24,15 +26,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Optional;
 
 /**
  * <h2>JWT 필터</h2>
- * <p>
- * JWT 토큰을 검증하고 인증 정보를 설정하는 필터
- * </p>
+ * <p>JWT 토큰을 검증하고 인증 정보를 설정하는 필터</p>
  *
  * @author Jaeik
- * @version 1.0.9
+ * @version 2.5.0
  */
 @Component
 @RequiredArgsConstructor
@@ -42,6 +43,7 @@ public class JwtFilter extends OncePerRequestFilter {
     private final JwtFactory jwtFactory;
     private final HTTPCookie HTTPCookie;
     private final BlacklistService blacklistService;
+    private final ObjectMapper objectMapper;
 
     /**
      * <h3>필터 제외 경로 설정</h3>
@@ -52,8 +54,6 @@ public class JwtFilter extends OncePerRequestFilter {
      *
      * @param request HTTP 요청 객체
      * @return 필터를 적용하지 않을 경우 true, 적용할 경우 false
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
@@ -65,9 +65,9 @@ public class JwtFilter extends OncePerRequestFilter {
             return true;
         }
 
-        return path.equals("/api/auth/login") || 
-               path.equals("/api/auth/signup") || 
-               path.equals("/api/global/health") ||
+        return path.equals("/api/auth/login") ||
+                path.equals("/api/auth/signup") ||
+                path.equals("/api/global/health") ||
                 path.equals("/api/member/username/check") ||
                 path.equals("/api/member/suggestion") ||
                 path.equals("/api/member/report");
@@ -76,100 +76,103 @@ public class JwtFilter extends OncePerRequestFilter {
     /**
      * <h3>필터 내부 처리</h3>
      *
-     * <p>
-     * Security Filter Chain중 사용자인증필터앞에 삽입되어 JWT토큰에 관한 처리를 하는 필터입니다.
-     * </p>
-     * <p>
-     * 로그인이 필요한 요청은 엑세스 토큰과 리프레시 토큰이 모두 유효한 경우만 통과 가능합니다.
-     * </p>
-     * <p>
-     * 엑세스 토큰이 유효하지 않은 경우 리프레시 토큰을 검증하여 새로운 엑세스 토큰을 발급합니다.
-     * </p>
-     * <p>
-     * 리프레시 토큰이 유효하지 않는 경우 401에러가 반환되며 재 로그인을 해야합니다.
-     * </p>
-     *
      * @param request     HTTP 요청 객체
      * @param response    HTTP 응답 객체
      * @param filterChain 필터 체인
      * @throws ServletException 서블릿 예외
      * @throws IOException      입출력 예외
-     * @author Jaeik
-     * @since 1.0.20
      */
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
-
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String accessToken = extractTokenFromCookie(request, "jwt_access_token");
+        String refreshToken = extractTokenFromCookie(request, "jwt_refresh_token");
 
-        // 1. Access Token이 유효하고 블랙리스트에 없을 때
-        if (accessToken != null && jwtFactory.validateToken(accessToken) && !blacklistService.isBlacklisted(accessToken)) {
-            setAuthentication(accessToken);
-        } else {
-            // 2. Access Token이 만료되었을 때 리프레시 플로우
-            String refreshToken = extractTokenFromCookie(request, "jwt_refresh_token");
-
-            // 2-1. 리프레시 토큰 존재 여부 및 JWT 유효성 검증
-            if (refreshToken == null || !jwtFactory.validateToken(refreshToken)) {
-                filterChain.doFilter(request, response);
-                return;
-            }
-
-            // 2-2. 블랙리스트 확인
-            if (blacklistService.isBlacklisted(refreshToken)) {
-                filterChain.doFilter(request, response);
-                return;
-            }
-
-            try {
-                // 2-3. 리프레시 토큰에서 authTokenId 추출
-                Long tokenId = jwtFactory.getTokenIdFromToken(refreshToken);
-
-                // 2-4. DB에서 AuthToken 엔티티 조회
-                AuthToken authToken = authTokenAdapter.findById(tokenId)
-                        .orElseThrow(() -> new CustomException(ErrorCode.TOKEN_NOT_FOUND));
-
-                // 2-5. DB 저장 토큰과 클라이언트 토큰 비교 검증
-                if (!refreshToken.equals(authToken.getRefreshToken())) {
-                    throw new CustomException(ErrorCode.TOKEN_MISMATCH);
-                }
-
-                // 2-6. 유저 정보 조회
-                Member member = memberRepository.findByIdWithSetting(authToken.getMember().getId())
-                        .orElseThrow(() -> new CustomException(ErrorCode.TOKEN_NOT_FOUND));
-                CustomUserDetails userDetails = CustomUserDetails.ofExisting(member, tokenId);
-
-                // 2-7. 새 액세스 토큰 발급
-                String newAccessToken = jwtFactory.generateAccessToken(userDetails);
-                ResponseCookie accessCookie = HTTPCookie.generateJwtAccessCookie(newAccessToken);
-                response.setHeader("Set-Cookie", accessCookie.toString());
-
-                // 2-8. Refresh AuthToken Rotation (15일 이하 남았을 때)
-                if (jwtFactory.shouldRefreshToken(refreshToken, 15)) {
-                    String newRefreshToken = jwtFactory.generateRefreshToken(userDetails);
-
-                    // DB 업데이트
-                    authTokenAdapter.updateJwtRefreshToken(tokenId, newRefreshToken);
-
-                    // 새 리프레시 토큰 쿠키 발급
-                    ResponseCookie refreshCookie = HTTPCookie.generateJwtRefreshCookie(newRefreshToken);
-                    response.addHeader("Set-Cookie", refreshCookie.toString());
-                }
-
-                // 2-9. 인증 정보 설정
-                setAuthentication(newAccessToken);
-
-            } catch (CustomException e) {
-                // 보안 예외 발생 시 필터 체인 중단
-                SecurityContextHolder.clearContext(); // 인증 정보 초기화
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.setContentType("application/json;charset=UTF-8");
-                response.getWriter().write("{\"error\": \"" + e.getErrorCode().name() + "\"}");
-                return;
-            }
+        // 리프레시 토큰 블랙리스트 검사
+        if (blacklistService.isBlacklisted(refreshToken)) {
+            setErrorResponse(response, "정지되거나 차단된 회원입니다.");
+            return;
         }
+
+        // 리프레시 토큰 미유효
+        if (!jwtFactory.validateToken(refreshToken)) {
+            setErrorResponse(response, "다시 로그인 해주세요.");
+            return;
+        }
+
+        // 액세스 토큰 유효
+        if (jwtFactory.validateToken(accessToken)) {
+            setAuthentication(accessToken);
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // 액세스 토큰 미유효 그리고 리프레시 토큰 유효만 남음
+        // 리프레시 토큰에서 authTokenId 추출
+        Long authTokenId = jwtFactory.getTokenIdFromToken(refreshToken);
+
+        // DB에서 AuthToken 엔티티 조회
+        Optional<AuthToken> optionalAuthToken = authTokenAdapter.findById(authTokenId);
+
+        if (optionalAuthToken.isEmpty()) {
+            setErrorResponse(response, "토큰 정보를 조회할 수 없습니다.");
+            return;
+        }
+
+        AuthToken authToken = optionalAuthToken.get();
+
+        // DB 저장 토큰과 클라이언트 토큰 비교 검증
+        if (!refreshToken.equals(authToken.getRefreshToken())) {
+            setErrorResponse(response, "다시 로그인 해주세요.");
+            return;
+        }
+
+        // 유저 정보 조회
+        Optional<Member> optionalMember = memberRepository.findByIdWithSetting(authToken.getMember().getId());
+
+        if (optionalMember.isEmpty()) {
+            setErrorResponse(response, "유저 정보를 조회할 수 없습니다.");
+            return;
+        }
+
+        Member member = optionalMember.get();
+        CustomUserDetails userDetails = CustomUserDetails.ofExisting(member, authTokenId);
+
+        // 새 액세스 토큰 발급
+        String newAccessToken = jwtFactory.generateAccessToken(userDetails);
+        ResponseCookie accessCookie = HTTPCookie.generateJwtAccessCookie(newAccessToken);
+        response.setHeader("Set-Cookie", accessCookie.toString());
+
+        // 리프레시토큰 로테이션
+        rotateRefreshToken(response, refreshToken, userDetails, authTokenId);
+
+        // 인증 정보 설정
+        setAuthentication(newAccessToken);
         filterChain.doFilter(request, response);
+    }
+
+    private void setErrorResponse(HttpServletResponse response, String message) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json;charset=UTF-8");
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpServletResponse.SC_UNAUTHORIZED,
+                message
+        );
+        String result = objectMapper.writeValueAsString(errorResponse);
+        response.getWriter().write(result);
+    }
+
+    // RefreshToken Rotation (15일 이하 남았을 때)
+    private void rotateRefreshToken(HttpServletResponse response, String refreshToken, CustomUserDetails userDetails, Long authTokenId) {
+        if (jwtFactory.shouldRefreshToken(refreshToken, 15)) {
+            String newRefreshToken = jwtFactory.generateRefreshToken(userDetails);
+
+            // DB 업데이트
+            authTokenAdapter.updateJwtRefreshToken(authTokenId, newRefreshToken);
+
+            // 새 리프레시 토큰 쿠키 발급
+            ResponseCookie refreshCookie = HTTPCookie.generateJwtRefreshCookie(newRefreshToken);
+            response.addHeader("Set-Cookie", refreshCookie.toString());
+        }
     }
 
     /**
