@@ -80,7 +80,6 @@ public class LoggingAspect {
                 logMethodError(logger, className, methodName, e, stopWatch);
             }
             throw e;
-            
         }
     }
     

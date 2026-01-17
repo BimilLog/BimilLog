@@ -33,6 +33,7 @@ public class AsyncConfig {
         executor.setThreadNamePrefix("sse-notification-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(30);
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy()); // 대기열 가득 차면 호출 스레드에서 실행
         executor.initialize();
         return executor;
     }
@@ -49,6 +50,7 @@ public class AsyncConfig {
         executor.setThreadNamePrefix("fcm-notification-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(60); // FCM은 시간이 오래 걸릴 수 있으므로 길게
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy()); // 대기열 가득 차면 호출 스레드에서 실행
         executor.initialize();
         return executor;
     }
@@ -59,10 +61,11 @@ public class AsyncConfig {
     @Bean(name = "saveNotificationExecutor")
     public Executor saveNotificationExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(3); // 기본 스레드 수
-        executor.setMaxPoolSize(10); // 최대 스레드 수
-        executor.setQueueCapacity(50); // 대기열 크기
+        executor.setCorePoolSize(10); // 기본 스레드 수
+        executor.setMaxPoolSize(30); // 최대 스레드 수
+        executor.setQueueCapacity(70); // 대기열 크기
         executor.setThreadNamePrefix("save-notification-");
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy()); // 대기열 가득 차면 호출 스레드에서 실행
         executor.setWaitForTasksToCompleteOnShutdown(true);
         executor.setAwaitTerminationSeconds(30);
         executor.initialize();
@@ -77,7 +80,7 @@ public class AsyncConfig {
     public Executor cacheRefreshExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(2); // 기본 스레드 수
-        executor.setMaxPoolSize(4); // 최대 스레드 수
+        executor.setMaxPoolSize(5); // 최대 스레드 수
         executor.setQueueCapacity(50); // 대기열 크기
         executor.setThreadNamePrefix("cache-refresh-");
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy()); // 대기열 가득 차면 호출 스레드에서 실행

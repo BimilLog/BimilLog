@@ -52,8 +52,6 @@ public class RedisMemberDataAdapter {
      * @param uuid 임시 사용자 식별 UUID 키
      * @param userProfile 소셜 사용자 프로필 (OAuth 액세스/리프레시 토큰 포함)
      * @throws CustomException UUID, userProfile이 유효하지 않은 경우
-     * @author Jaeik
-     * @since 2.0.0
      */
     public void saveTempData(String uuid, SocialMemberProfile userProfile) {
         validateTempDataInputs(uuid, userProfile);
@@ -72,8 +70,6 @@ public class RedisMemberDataAdapter {
      *
      * @param uuid 임시 사용자 식별 UUID 키
      * @return Optional<SocialMemberProfile> Optional로 감싼 소셜 사용자 프로필
-     * @author Jaeik
-     * @since 2.0.0
      */
     public Optional<SocialMemberProfile> getTempData(String uuid) {
         if (uuid == null) {
