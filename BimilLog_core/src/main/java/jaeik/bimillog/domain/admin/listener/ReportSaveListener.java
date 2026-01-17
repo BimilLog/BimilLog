@@ -8,6 +8,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import jaeik.bimillog.infrastructure.log.Log;
+
 /**
  * <h2>신고 저장 리스너</h2>
  * <p>신고 제출 이벤트를 처리하는 리스너입니다.</p>
@@ -15,8 +17,9 @@ import org.springframework.stereotype.Component;
  * <p>비동기 처리로 응답 시간 단축</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.5.0
  */
+@Log(logResult = false, message = "신고 저장 이벤트")
 @Slf4j
 @Component
 @RequiredArgsConstructor

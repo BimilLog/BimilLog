@@ -11,14 +11,17 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jaeik.bimillog.infrastructure.log.Log;
+
 /**
  * <h2>사용자 차단 이벤트 리스너</h2>
  * <p>관리자에 의한 사용자 차단 시 발생하는 {@link MemberBannedEvent}를 처리합니다.</p>
  * <p>SSE 연결 종료, 소셜 계정 강제 로그아웃, JWT 토큰 삭제, 소셜 토큰 삭제를 수행합니다.</p>
  *
  * @author Jaeik
- * @version 2.1.0
+ * @version 2.5.0
  */
+@Log(logResult = false, message = "회원 차단 이벤트")
 @Service
 @RequiredArgsConstructor
 public class MemberBannedListener {

@@ -9,6 +9,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import jaeik.bimillog.infrastructure.log.Log;
+
 /**
  * <h2>친구 관계 Redis 동기화 리스너</h2>
  * <p>친구 요청 수락, 친구 삭제 이벤트를 수신하여 Redis 친구 관계 테이블을 동기화합니다.</p>
@@ -17,8 +19,9 @@ import org.springframework.stereotype.Component;
  * <p>Value: Set&lt;friendId&gt;</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.5.0
  */
+@Log(logResult = false, message = "친구 관계 Redis 동기화")
 @Component
 @RequiredArgsConstructor
 @Slf4j

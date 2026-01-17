@@ -13,14 +13,17 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jaeik.bimillog.infrastructure.log.Log;
+
 /**
  * <h2>사용자 로그아웃 이벤트 리스너</h2>
  * <p>사용자 로그아웃 시 발생하는 {@link MemberLoggedOutEvent}를 비동기로 처리합니다.</p>
  * <p>SSE 연결 종료, 소셜 플랫폼 로그아웃, FCM/JWT 토큰 삭제, 소셜 토큰 삭제를 수행합니다.</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.5.0
  */
+@Log(logResult = false, message = "로그아웃 이벤트")
 @Slf4j
 @Service
 @RequiredArgsConstructor

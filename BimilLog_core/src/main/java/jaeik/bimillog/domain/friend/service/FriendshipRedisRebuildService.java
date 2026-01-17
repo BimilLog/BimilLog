@@ -13,6 +13,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jaeik.bimillog.infrastructure.log.Log;
+
 import java.time.LocalDateTime;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -22,8 +24,9 @@ import java.util.concurrent.atomic.AtomicReference;
  * <p>Redis 친구 관계 캐시를 DB 기준으로 전체 재구성합니다.</p>
  *
  * @author Jaeik
- * @version 2.4.0
+ * @version 2.5.0
  */
+@Log(logResult = false, message = "Redis 친구 캐시 재구성")
 @Service
 @RequiredArgsConstructor
 @Slf4j

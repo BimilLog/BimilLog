@@ -13,13 +13,16 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import jaeik.bimillog.infrastructure.log.Log;
+
 import java.util.Objects;
 
 /**
  * <h2>글 캐시 갱신 클래스</h2>
  * @author Jaeik
- * @version 2.4.0
+ * @version 2.5.0
  */
+@Log(logResult = false, message = "캐시 갱신")
 @Service
 @RequiredArgsConstructor
 @Slf4j

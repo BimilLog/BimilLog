@@ -9,6 +9,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import jaeik.bimillog.infrastructure.log.Log;
+
 /**
  * <h2>알림 생성 이벤트 리스너</h2>
  * <p>다양한 도메인에서 발행하는 비즈니스 이벤트를 수신합니다.</p>
@@ -16,8 +18,9 @@ import org.springframework.transaction.event.TransactionalEventListener;
  * <p>SSE 실시간 알림과 FCM 푸시 알림을 병렬 전송</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.5.0
  */
+@Log(logResult = false, message = "알림 전송 이벤트")
 @Component
 @RequiredArgsConstructor
 @Slf4j

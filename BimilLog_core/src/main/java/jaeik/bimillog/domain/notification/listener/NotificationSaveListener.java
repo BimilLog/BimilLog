@@ -12,6 +12,16 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import jaeik.bimillog.infrastructure.log.Log;
+
+/**
+ * <h2>알림 저장 이벤트 리스너</h2>
+ * <p>다양한 도메인 이벤트를 수신하여 알림을 저장합니다.</p>
+ *
+ * @author Jaeik
+ * @version 2.5.0
+ */
+@Log(logResult = false, message = "알림 저장 이벤트")
 @Component
 @RequiredArgsConstructor
 @Slf4j

@@ -10,6 +10,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import jaeik.bimillog.infrastructure.log.Log;
+
 /**
  * <h2>실시간 인기 롤링페이퍼 점수 업데이트 리스너</h2>
  * <p>롤링페이퍼 조회, 메시지 작성, 메시지 삭제 이벤트를 수신하여 실시간 인기 롤링페이퍼 점수를 업데이트합니다.</p>
@@ -17,8 +19,9 @@ import org.springframework.stereotype.Component;
  * <p>비동기 처리를 통해 이벤트 발행자와 독립적으로 실행됩니다.</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.5.0
  */
+@Log(logResult = false, level = Log.LogLevel.DEBUG, message = "실시간 롤링페이퍼 점수")
 @Component
 @RequiredArgsConstructor
 @Slf4j

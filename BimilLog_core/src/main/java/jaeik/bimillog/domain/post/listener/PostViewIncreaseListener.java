@@ -8,6 +8,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import jaeik.bimillog.infrastructure.log.Log;
+
 /**
  * <h2>PostViewIncreaseListener</h2>
  * <p>
@@ -18,8 +20,9 @@ import org.springframework.stereotype.Component;
  * </p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.5.0
  */
+@Log(logResult = false, message = "조회수 증가 이벤트")
 @Component
 @RequiredArgsConstructor
 @Slf4j

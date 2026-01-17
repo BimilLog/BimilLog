@@ -10,6 +10,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
+import jaeik.bimillog.infrastructure.log.Log;
+
 /**
  * <h2>친구 상호작용 점수 관리 리스너</h2>
  * <p>게시글 좋아요, 댓글 작성, 댓글 좋아요 이벤트를 수신하여 Redis에 상호작용 점수를 기록합니다.</p>
@@ -18,8 +20,9 @@ import org.springframework.stereotype.Component;
  * <p>각 상호작용당 +0.5점, 최대 9.5점까지 증가합니다.</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.5.0
  */
+@Log(logResult = false, level = Log.LogLevel.DEBUG, message = "친구 상호작용 점수")
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -34,8 +37,6 @@ public class FriendInteractionListener {
      * <p>{@link PostLikeEvent} 발행 시 비동기로 호출됩니다.</p>
      *
      * @param event 게시글 좋아요 이벤트
-     * @author Jaeik
-     * @since 2.0.0
      */
     @EventListener
     @Async
@@ -69,8 +70,6 @@ public class FriendInteractionListener {
      * <p>{@link CommentCreatedEvent} 발행 시 비동기로 호출됩니다.</p>
      *
      * @param event 댓글 작성 이벤트
-     * @author Jaeik
-     * @since 2.0.0
      */
     @EventListener
     @Async
@@ -104,8 +103,6 @@ public class FriendInteractionListener {
      * <p>{@link CommentLikeEvent} 발행 시 비동기로 호출됩니다.</p>
      *
      * @param event 댓글 좋아요 이벤트
-     * @author Jaeik
-     * @since 2.0.0
      */
     @EventListener
     @Async
