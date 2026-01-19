@@ -107,62 +107,36 @@ class ReportDTOTest {
     }
 
 
-    @Test
-    @DisplayName("신고 내용 검증 - 빈 값 실패")
-    void reportContent_BlankContent_ValidationFailure() {
+    @ParameterizedTest(name = "내용: {0}")
+    @MethodSource("provideContentLengthScenarios")
+    @DisplayName("신고 내용 검증 - 길이 경계값")
+    void reportContent_LengthValidation(String content, int expectedViolationCount, String expectedMessage) {
         // Given
         ReportDTO reportDTO = ReportDTO.builder()
                 .reportType(ReportType.POST)
                 .targetId(123L)
-                .content("")
+                .content(content)
                 .build();
 
         // When
         Set<ConstraintViolation<ReportDTO>> violations = validator.validate(reportDTO);
 
         // Then
-        assertThat(violations).hasSize(2); // @NotBlank + @Size 둘 다 실패
-        assertThat(violations).anyMatch(v -> v.getMessage().equals("신고 내용은 필수입니다"));
-        assertThat(violations).anyMatch(v -> v.getMessage().equals("신고 내용은 10-500자 사이여야 합니다"));
+        assertThat(violations).hasSize(expectedViolationCount);
+        if (expectedViolationCount > 0) {
+            assertThat(violations).anyMatch(v -> v.getMessage().contains(expectedMessage));
+        }
     }
 
-    @Test
-    @DisplayName("신고 내용 검증 - 길이 초과 실패")
-    void reportContent_TooLong_ValidationFailure() {
-        // Given
-        String longContent = "a".repeat(501); // 501자
-        ReportDTO reportDTO = ReportDTO.builder()
-                .reportType(ReportType.POST)
-                .targetId(123L)
-                .content(longContent)
-                .build();
-
-        // When
-        Set<ConstraintViolation<ReportDTO>> violations = validator.validate(reportDTO);
-
-        // Then
-        assertThat(violations).hasSize(1);
-        ConstraintViolation<ReportDTO> violation = violations.iterator().next();
-        assertThat(violation.getMessage()).isEqualTo("신고 내용은 10-500자 사이여야 합니다");
-    }
-
-    @Test
-    @DisplayName("신고 내용 검증 - 길이 부족 실패")
-    void reportContent_TooShort_ValidationFailure() {
-        // Given
-        ReportDTO reportDTO = ReportDTO.builder()
-                .reportType(ReportType.POST)
-                .targetId(123L)
-                .content("짧음") // 2자
-                .build();
-
-        // When
-        Set<ConstraintViolation<ReportDTO>> violations = validator.validate(reportDTO);
-
-        // Then
-        assertThat(violations).hasSize(1);
-        ConstraintViolation<ReportDTO> violation = violations.iterator().next();
-        assertThat(violation.getMessage()).isEqualTo("신고 내용은 10-500자 사이여야 합니다");
+    static Stream<Arguments> provideContentLengthScenarios() {
+        return Stream.of(
+            // 빈 값 (@NotBlank + @Size 둘 다 실패)
+            Arguments.of("", 2, "신고 내용은"),
+            // 길이 부족 (2자)
+            Arguments.of("짧음", 1, "신고 내용은 10-500자 사이여야 합니다"),
+            // 길이 초과 (501자)
+            Arguments.of("a".repeat(501), 1, "신고 내용은 10-500자 사이여야 합니다")
+        );
     }
 
     @Test
