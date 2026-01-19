@@ -5,8 +5,8 @@ import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.redis.post.RedisTier1PostStoreAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostStoreAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,8 +26,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class PostAdminService {
     private final PostRepository postRepository;
-    private final RedisTier1PostStoreAdapter redisTier1PostStoreAdapter;
-    private final RedisTier2PostStoreAdapter redisTier2PostStoreAdapter;
+    private final RedisSimplePostAdapter redisSimplePostAdapter;
+    private final RedisTier2PostAdapter redisTier2PostAdapter;
 
     /**
      * <h3>게시글 공지사항 상태 토글</h3>
@@ -44,8 +44,8 @@ public class PostAdminService {
         if (post.isNotice()) {
             post.unsetAsNotice();
             try {
-                redisTier2PostStoreAdapter.removePostIdFromStorage(postId);
-                redisTier1PostStoreAdapter.removePostFromCache(PostCacheFlag.NOTICE, postId);
+                redisTier2PostAdapter.removePostIdFromStorage(postId);
+                redisSimplePostAdapter.removePostFromCache(PostCacheFlag.NOTICE, postId);
             } catch (Exception e) {
                 log.warn("공지사항 해제 캐시 무효화 실패: postId={}, error={}", postId, e.getMessage());
             }
@@ -53,7 +53,7 @@ public class PostAdminService {
         } else {
             post.setAsNotice();
             try {
-                redisTier2PostStoreAdapter.addPostIdToStorage(PostCacheFlag.NOTICE, postId);
+                redisTier2PostAdapter.addPostIdToStorage(PostCacheFlag.NOTICE, postId);
             } catch (Exception e) {
                 log.warn("공지사항 설정 캐시 저장 실패: postId={}, error={}", postId, e.getMessage());
             }

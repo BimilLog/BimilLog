@@ -6,9 +6,9 @@ import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.domain.post.adapter.PostToCommentAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostStoreAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisTier1PostStoreAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostStoreAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -31,9 +31,9 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Slf4j
 public class PostScheduledService {
-    private final RedisTier1PostStoreAdapter redisTier1PostStoreAdapter;
-    private final RedisTier2PostStoreAdapter redisTier2PostStoreAdapter;
-    private final RedisRealTimePostStoreAdapter redisRealTimePostStoreAdapter;
+    private final RedisSimplePostAdapter redisSimplePostAdapter;
+    private final RedisTier2PostAdapter redisTier2PostAdapter;
+    private final RedisRealTimePostAdapter redisRealTimePostAdapter;
     private final ApplicationEventPublisher eventPublisher;
     private final PostQueryRepository postQueryRepository;
     private final PostToCommentAdapter postToCommentAdapter;
@@ -45,7 +45,7 @@ public class PostScheduledService {
     @Scheduled(fixedRate = 60000 * 10) // 10분마다
     public void applyRealtimeScoreDecay() {
         try {
-            redisRealTimePostStoreAdapter.applyRealtimePopularScoreDecay();
+            redisRealTimePostAdapter.applyRealtimePopularScoreDecay();
         } catch (Exception e) {
             log.error("실시간 인기글 점수 지수감쇠 적용 실패", e);
         }
@@ -71,8 +71,8 @@ public class PostScheduledService {
         List<Long> postIds = posts.stream().map(PostSimpleDetail::getId).toList();
 
         try {
-            redisTier2PostStoreAdapter.cachePostIdsOnly(PostCacheFlag.WEEKLY, postIds);
-            redisTier1PostStoreAdapter.cachePosts(PostCacheFlag.WEEKLY, posts);
+            redisTier2PostAdapter.cachePostIdsOnly(PostCacheFlag.WEEKLY, postIds);
+            redisSimplePostAdapter.cachePosts(PostCacheFlag.WEEKLY, posts);
             log.info("WEEKLY 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
         } catch (Exception e) {
             log.error("WEEKLY 캐시 업데이트 실패: {}", e.getMessage(), e);
@@ -102,8 +102,8 @@ public class PostScheduledService {
         List<Long> postIds = posts.stream().map(PostSimpleDetail::getId).toList();
 
         try {
-            redisTier2PostStoreAdapter.cachePostIdsOnly(PostCacheFlag.LEGEND, postIds);
-            redisTier1PostStoreAdapter.cachePosts(PostCacheFlag.LEGEND, posts);
+            redisTier2PostAdapter.cachePostIdsOnly(PostCacheFlag.LEGEND, postIds);
+            redisSimplePostAdapter.cachePosts(PostCacheFlag.LEGEND, posts);
             log.info("LEGEND 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
         } catch (Exception e) {
             log.error("LEGEND 캐시 업데이트 실패: {}", e.getMessage(), e);

@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * <h2>RedisTier2PostStoreAdapter 통합 테스트</h2>
+ * <h2>RedisTier2PostAdapter 통합 테스트</h2>
  * <p>로컬 Redis 환경에서 게시글 ID 목록 영구 저장소 어댑터의 핵심 기능을 검증합니다.</p>
  *
  * @author Jaeik
@@ -28,10 +28,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ActiveProfiles("local-integration")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Tag("local-integration")
-class RedisTier2PostStoreAdapterIntegrationTest {
+class RedisTier2PostAdapterIntegrationTest {
 
     @Autowired
-    private RedisTier2PostStoreAdapter redisTier2PostStoreAdapter;
+    private RedisTier2PostAdapter redisTier2PostAdapter;
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
@@ -54,7 +54,7 @@ class RedisTier2PostStoreAdapterIntegrationTest {
         redisTemplate.opsForZSet().add(postIdsKey, "3", 3.0);
 
         // When: ID 목록 조회
-        List<Long> result = redisTier2PostStoreAdapter.getStoredPostIds(type);
+        List<Long> result = redisTier2PostAdapter.getStoredPostIds(type);
 
         // Then: 순서대로 반환
         assertThat(result).hasSize(3);
@@ -68,7 +68,7 @@ class RedisTier2PostStoreAdapterIntegrationTest {
         PostCacheFlag type = PostCacheFlag.WEEKLY;
 
         // When: ID 목록 조회
-        List<Long> result = redisTier2PostStoreAdapter.getStoredPostIds(type);
+        List<Long> result = redisTier2PostAdapter.getStoredPostIds(type);
 
         // Then: 빈 리스트 반환
         assertThat(result).isEmpty();
@@ -83,7 +83,7 @@ class RedisTier2PostStoreAdapterIntegrationTest {
         String storageKey = RedisPostKeys.getPostIdsStorageKey(cacheType);  // postId 영구 저장소 (Sorted Set)
 
         // When
-        redisTier2PostStoreAdapter.cachePostIdsOnly(cacheType, postIds);
+        redisTier2PostAdapter.cachePostIdsOnly(cacheType, postIds);
 
         // Then: Sorted Set에 실제로 저장되었는지 확인
         Long size = redisTemplate.opsForZSet().size(storageKey);
@@ -106,7 +106,7 @@ class RedisTier2PostStoreAdapterIntegrationTest {
         String storageKey = RedisPostKeys.getPostIdsStorageKey(cacheType);
 
         // When: 빈 목록으로 저장 (아무 동작도 하지 않아야 함)
-        redisTier2PostStoreAdapter.cachePostIdsOnly(cacheType, emptyPostIds);
+        redisTier2PostAdapter.cachePostIdsOnly(cacheType, emptyPostIds);
 
         // Then: 저장소 키가 생성되지 않음
         assertThat(redisTemplate.hasKey(storageKey)).isFalse();
@@ -121,7 +121,7 @@ class RedisTier2PostStoreAdapterIntegrationTest {
         String postIdsKey = RedisPostKeys.getPostIdsStorageKey(type);
 
         // When: 단일 ID 추가
-        redisTier2PostStoreAdapter.addPostIdToStorage(type, postId);
+        redisTier2PostAdapter.addPostIdToStorage(type, postId);
 
         // Then: Set에 추가 확인 (NOTICE는 Set 사용)
         assertThat(redisTemplate.opsForSet().isMember(postIdsKey, "10")).isTrue();
@@ -149,7 +149,7 @@ class RedisTier2PostStoreAdapterIntegrationTest {
         assertThat(redisTemplate.opsForZSet().score(legendStorageKey, postId.toString())).isNotNull();
 
         // When: removePostIdFromStorage() 호출 (REALTIME 제외한 모든 타입에서 제거)
-        redisTier2PostStoreAdapter.removePostIdFromStorage(postId);
+        redisTier2PostAdapter.removePostIdFromStorage(postId);
 
         // Then: 모든 저장소에서 제거됨 확인
         assertThat(redisTemplate.opsForSet().isMember(noticeStorageKey, postId.toString())).isFalse();

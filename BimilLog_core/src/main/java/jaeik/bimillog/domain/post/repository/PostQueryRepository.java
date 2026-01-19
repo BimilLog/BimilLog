@@ -231,6 +231,19 @@ public class PostQueryRepository {
     }
 
     /**
+     * <h3>공지사항 목록 조회</h3>
+     * <p>공지사항 게시글 목록을 최신순으로 조회합니다.</p>
+     * <p>Redis 장애 시 DB fallback용으로 사용됩니다.</p>
+     *
+     * @return 공지사항 게시글 목록 (PostSimpleDetail)
+     */
+    @Transactional(readOnly = true)
+    public List<PostSimpleDetail> findNoticePosts() {
+        Consumer<JPAQuery<?>> customizer = query -> query.where(post.isNotice.isTrue());
+        return findPostsWithQuery(customizer, customizer, PageRequest.of(0, 100)).getContent();
+    }
+
+    /**
      * <h3>PostId 목록으로 Post 리스트 반환</h3>
      */
     public List<Post> findAllByIds(List<Long> postIds) {

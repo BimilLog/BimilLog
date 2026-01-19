@@ -5,8 +5,8 @@ import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
 import jaeik.bimillog.domain.post.event.PostLikeEvent;
 import jaeik.bimillog.domain.post.event.PostUnlikeEvent;
 import jaeik.bimillog.domain.post.event.PostViewedEvent;
-import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostStoreAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisDetailPostStoreAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisDetailPostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -29,8 +29,8 @@ import jaeik.bimillog.infrastructure.log.Log;
 @RequiredArgsConstructor
 @Slf4j
 public class RealtimePopularScoreListener {
-    private final RedisDetailPostStoreAdapter redisDetailPostStoreAdapter;
-    private final RedisRealTimePostStoreAdapter redisRealTimePostStoreAdapter;
+    private final RedisDetailPostAdapter redisDetailPostAdapter;
+    private final RedisRealTimePostAdapter redisRealTimePostAdapter;
 
     private static final double VIEW_SCORE = 2.0;
     private static final double COMMENT_SCORE = 3.0;
@@ -49,7 +49,7 @@ public class RealtimePopularScoreListener {
     @Async
     public void handlePostViewed(PostViewedEvent event) {
         try {
-            redisRealTimePostStoreAdapter.incrementRealtimePopularScore(event.postId(), VIEW_SCORE);
+            redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), VIEW_SCORE);
             log.debug("실시간 인기글 점수 증가 (조회): postId={}, score=+{}", event.postId(), VIEW_SCORE);
         } catch (Exception e) {
             log.error("실시간 인기글 점수 증가 실패 (조회): postId={}", event.postId(), e);
@@ -69,7 +69,7 @@ public class RealtimePopularScoreListener {
     @Async
     public void handleCommentCreated(CommentCreatedEvent event) {
         try {
-            redisRealTimePostStoreAdapter.incrementRealtimePopularScore(event.postId(), COMMENT_SCORE);
+            redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), COMMENT_SCORE);
             log.debug("실시간 인기글 점수 증가 (댓글): postId={}, score=+{}", event.postId(), COMMENT_SCORE);
         } catch (Exception e) {
             log.error("실시간 인기글 점수 증가 실패 (댓글): postId={}", event.postId(), e);
@@ -89,8 +89,8 @@ public class RealtimePopularScoreListener {
     @Async
     public void handlePostLiked(PostLikeEvent event) {
         try {
-            redisRealTimePostStoreAdapter.incrementRealtimePopularScore(event.postId(), LIKE_SCORE);
-            redisDetailPostStoreAdapter.deleteCachePost(event.postId());
+            redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), LIKE_SCORE);
+            redisDetailPostAdapter.deleteCachePost(event.postId());
             log.debug("실시간 인기글 점수 증가 및 캐시 무효화 (추천): postId={}, score=+{}", event.postId(), LIKE_SCORE);
         } catch (Exception e) {
             log.error("실시간 인기글 점수 증가 실패 (추천): postId={}", event.postId(), e);
@@ -110,8 +110,8 @@ public class RealtimePopularScoreListener {
     @Async
     public void handlePostUnliked(PostUnlikeEvent event) {
         try {
-            redisRealTimePostStoreAdapter.incrementRealtimePopularScore(event.postId(), -LIKE_SCORE);
-            redisDetailPostStoreAdapter.deleteCachePost(event.postId());
+            redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), -LIKE_SCORE);
+            redisDetailPostAdapter.deleteCachePost(event.postId());
             log.debug("실시간 인기글 점수 감소 및 캐시 무효화 (추천 취소): postId={}, score=-{}", event.postId(), LIKE_SCORE);
         } catch (Exception e) {
             log.error("실시간 인기글 점수 감소 실패 (추천 취소): postId={}", event.postId(), e);
@@ -131,7 +131,7 @@ public class RealtimePopularScoreListener {
     @Async
     public void handleCommentDeleted(CommentDeletedEvent event) {
         try {
-            redisRealTimePostStoreAdapter.incrementRealtimePopularScore(event.postId(), -COMMENT_SCORE);
+            redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), -COMMENT_SCORE);
             log.debug("실시간 인기글 점수 감소 (댓글 삭제): postId={}, score=-{}", event.postId(), COMMENT_SCORE);
         } catch (Exception e) {
             log.error("실시간 인기글 점수 감소 실패 (댓글 삭제): postId={}", event.postId(), e);

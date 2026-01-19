@@ -1,6 +1,5 @@
 package jaeik.bimillog.infrastructure.redis.post;
 
-import jaeik.bimillog.domain.post.entity.CachedPost;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
@@ -15,7 +14,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * <h2>RedisTier1PostStoreAdapter 통합 테스트</h2>
+ * <h2>RedisSimplePostAdapter 통합 테스트</h2>
  * <p>로컬 Redis 환경에서 개별 String 기반 게시글 캐시 어댑터의 핵심 기능을 검증합니다.</p>
  *
  * @author Jaeik
@@ -34,10 +32,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ActiveProfiles("local-integration")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Tag("local-integration")
-class RedisTier1PostStoreAdapterIntegrationTest {
+class RedisSimplePostAdapterIntegrationTest {
 
     @Autowired
-    private RedisTier1PostStoreAdapter redisTier1PostStoreAdapter;
+    private RedisSimplePostAdapter redisSimplePostAdapter;
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
@@ -116,16 +114,16 @@ class RedisTier1PostStoreAdapterIntegrationTest {
         PostSimpleDetail post1 = toSimpleDetail(testPostDetail1);
         PostSimpleDetail post2 = toSimpleDetail(testPostDetail2);
 
-        redisTier1PostStoreAdapter.cachePost(type, post1);
-        redisTier1PostStoreAdapter.cachePost(type, post2);
+        redisSimplePostAdapter.cachePost(type, post1);
+        redisSimplePostAdapter.cachePost(type, post2);
 
         // When: MGET으로 조회
-        Map<Long, CachedPost> result = redisTier1PostStoreAdapter.getCachedPosts(type, List.of(1L, 2L));
+        Map<Long, PostSimpleDetail> result = redisSimplePostAdapter.getCachedPosts(type, List.of(1L, 2L));
 
         // Then
         assertThat(result).hasSize(2);
-        assertThat(result.get(1L).getData().getTitle()).isEqualTo("첫 번째 게시글");
-        assertThat(result.get(2L).getData().getTitle()).isEqualTo("두 번째 게시글");
+        assertThat(result.get(1L).getTitle()).isEqualTo("첫 번째 게시글");
+        assertThat(result.get(2L).getTitle()).isEqualTo("두 번째 게시글");
     }
 
     @Test
@@ -134,12 +132,12 @@ class RedisTier1PostStoreAdapterIntegrationTest {
         // Given: 일부만 캐시됨
         PostCacheFlag type = PostCacheFlag.WEEKLY;
         PostSimpleDetail post1 = toSimpleDetail(testPostDetail1);
-        redisTier1PostStoreAdapter.cachePost(type, post1);
+        redisSimplePostAdapter.cachePost(type, post1);
 
-        Map<Long, CachedPost> cachedPosts = redisTier1PostStoreAdapter.getCachedPosts(type, List.of(1L, 2L, 3L));
+        Map<Long, PostSimpleDetail> cachedPosts = redisSimplePostAdapter.getCachedPosts(type, List.of(1L, 2L, 3L));
 
         // When: 캐시 미스 ID 필터링
-        List<Long> missedIds = redisTier1PostStoreAdapter.filterMissedIds(List.of(1L, 2L, 3L), cachedPosts);
+        List<Long> missedIds = redisSimplePostAdapter.filterMissedIds(List.of(1L, 2L, 3L), cachedPosts);
 
         // Then
         assertThat(missedIds).containsExactlyInAnyOrder(2L, 3L);
@@ -153,7 +151,7 @@ class RedisTier1PostStoreAdapterIntegrationTest {
         PostSimpleDetail post = toSimpleDetail(testPostDetail1);
 
         // When: 개별 저장
-        redisTier1PostStoreAdapter.cachePost(type, post);
+        redisSimplePostAdapter.cachePost(type, post);
 
         // Then: 캐시 키 존재 및 TTL 확인
         String key = RedisPostKeys.getSimplePostKey(type, post.getId());
@@ -175,7 +173,7 @@ class RedisTier1PostStoreAdapterIntegrationTest {
         );
 
         // When: 여러 개 저장
-        redisTier1PostStoreAdapter.cachePosts(type, posts);
+        redisSimplePostAdapter.cachePosts(type, posts);
 
         // Then: 모든 키 존재 확인
         for (PostSimpleDetail post : posts) {
@@ -192,7 +190,7 @@ class RedisTier1PostStoreAdapterIntegrationTest {
         PostSimpleDetail post = toSimpleDetail(testPostDetail1);
 
         for (PostCacheFlag type : PostCacheFlag.values()) {
-            redisTier1PostStoreAdapter.cachePost(type, post);
+            redisSimplePostAdapter.cachePost(type, post);
         }
 
         // 저장 확인
@@ -202,7 +200,7 @@ class RedisTier1PostStoreAdapterIntegrationTest {
         }
 
         // When: 삭제
-        redisTier1PostStoreAdapter.removePostFromCache(postId);
+        redisSimplePostAdapter.removePostFromCache(postId);
 
         // Then: 모든 타입에서 삭제됨
         for (PostCacheFlag type : PostCacheFlag.values()) {
@@ -218,11 +216,11 @@ class RedisTier1PostStoreAdapterIntegrationTest {
         Long postId = 1L;
         PostSimpleDetail post = toSimpleDetail(testPostDetail1);
 
-        redisTier1PostStoreAdapter.cachePost(PostCacheFlag.WEEKLY, post);
-        redisTier1PostStoreAdapter.cachePost(PostCacheFlag.LEGEND, post);
+        redisSimplePostAdapter.cachePost(PostCacheFlag.WEEKLY, post);
+        redisSimplePostAdapter.cachePost(PostCacheFlag.LEGEND, post);
 
         // When: WEEKLY만 삭제
-        redisTier1PostStoreAdapter.removePostFromCache(PostCacheFlag.WEEKLY, postId);
+        redisSimplePostAdapter.removePostFromCache(PostCacheFlag.WEEKLY, postId);
 
         // Then: WEEKLY는 삭제, LEGEND는 유지
         assertThat(redisTemplate.hasKey(RedisPostKeys.getSimplePostKey(PostCacheFlag.WEEKLY, postId))).isFalse();
@@ -238,13 +236,13 @@ class RedisTier1PostStoreAdapterIntegrationTest {
         PostSimpleDetail post2 = toSimpleDetail(testPostDetail2);
         PostSimpleDetail post3 = toSimpleDetail(testPostDetail3);
 
-        redisTier1PostStoreAdapter.cachePosts(type, List.of(post1, post2, post3));
+        redisSimplePostAdapter.cachePosts(type, List.of(post1, post2, post3));
 
-        Map<Long, CachedPost> cachedPosts = redisTier1PostStoreAdapter.getCachedPosts(type, List.of(1L, 2L, 3L));
+        Map<Long, PostSimpleDetail> cachedPosts = redisSimplePostAdapter.getCachedPosts(type, List.of(1L, 2L, 3L));
 
         // When: 역순으로 정렬 요청
         List<Long> orderedIds = List.of(3L, 1L, 2L);
-        List<PostSimpleDetail> result = redisTier1PostStoreAdapter.toOrderedList(orderedIds, cachedPosts);
+        List<PostSimpleDetail> result = redisSimplePostAdapter.toOrderedList(orderedIds, cachedPosts);
 
         // Then: 요청된 순서대로 반환
         assertThat(result).hasSize(3);
@@ -260,7 +258,7 @@ class RedisTier1PostStoreAdapterIntegrationTest {
         PostCacheFlag type = PostCacheFlag.WEEKLY;
 
         // When
-        Map<Long, CachedPost> result = redisTier1PostStoreAdapter.getCachedPosts(type, List.of());
+        Map<Long, PostSimpleDetail> result = redisSimplePostAdapter.getCachedPosts(type, List.of());
 
         // Then
         assertThat(result).isEmpty();
@@ -273,7 +271,7 @@ class RedisTier1PostStoreAdapterIntegrationTest {
         PostCacheFlag type = PostCacheFlag.WEEKLY;
 
         // When
-        Map<Long, CachedPost> result = redisTier1PostStoreAdapter.getCachedPosts(type, null);
+        Map<Long, PostSimpleDetail> result = redisSimplePostAdapter.getCachedPosts(type, null);
 
         // Then
         assertThat(result).isEmpty();

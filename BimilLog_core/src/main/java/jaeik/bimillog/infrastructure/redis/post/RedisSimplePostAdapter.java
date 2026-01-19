@@ -1,6 +1,5 @@
 package jaeik.bimillog.infrastructure.redis.post;
 
-import jaeik.bimillog.domain.post.entity.CachedPost;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
@@ -10,6 +9,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.*;
@@ -18,16 +18,22 @@ import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.*;
  * <h2>레디스 게시글 캐시 티어1 저장소 어댑터</h2>
  * <p>게시글 목록 캐시를 개별 String 구조로 관리합니다.</p>
  * <p>각 게시글은 개별 TTL을 가지며, MGET으로 한 번에 조회합니다.</p>
- * <p>Redis 클러스터 환경에서 Hash Tag를 사용하여 같은 슬롯에 배치됩니다.</p>
+ * <p>Redis TTL 기반 PER(Probabilistic Early Refresh)을 지원합니다.</p>
  *
  * @author Jaeik
- * @version 2.5.0
+ * @version 2.6.0
  */
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class RedisTier1PostStoreAdapter {
+public class RedisSimplePostAdapter {
     private final RedisTemplate<String, Object> redisTemplate;
+
+    /**
+     * PER의 expiry gap (초 단위)
+     * <p>TTL 마지막 60초 동안 확률적으로 캐시를 갱신합니다.</p>
+     */
+    private static final long PER_EXPIRY_GAP_SECONDS = 60;
 
     /**
      * <h3>MGET으로 캐시된 게시글 조회</h3>
@@ -35,9 +41,9 @@ public class RedisTier1PostStoreAdapter {
      *
      * @param type    캐시 유형
      * @param postIds 조회할 게시글 ID 목록
-     * @return postId를 키로, CachedPost를 값으로 하는 Map (캐시 미스는 포함되지 않음)
+     * @return postId를 키로, PostSimpleDetail을 값으로 하는 Map (캐시 미스는 포함되지 않음)
      */
-    public Map<Long, CachedPost> getCachedPosts(PostCacheFlag type, List<Long> postIds) {
+    public Map<Long, PostSimpleDetail> getCachedPosts(PostCacheFlag type, List<Long> postIds) {
         if (postIds == null || postIds.isEmpty()) {
             return Collections.emptyMap();
         }
@@ -51,13 +57,13 @@ public class RedisTier1PostStoreAdapter {
             return Collections.emptyMap();
         }
 
-        Map<Long, CachedPost> result = new HashMap<>();
+        Map<Long, PostSimpleDetail> result = new HashMap<>();
         int hitCount = 0;
 
         for (int i = 0; i < postIds.size(); i++) {
             Object value = values.get(i);
-            if (value instanceof CachedPost cachedPost) {
-                result.put(postIds.get(i), cachedPost);
+            if (value instanceof PostSimpleDetail post) {
+                result.put(postIds.get(i), post);
                 hitCount++;
             }
         }
@@ -73,17 +79,48 @@ public class RedisTier1PostStoreAdapter {
     }
 
     /**
-     * <h3>PER 대상 게시글 ID 필터링</h3>
-     * <p>캐시된 게시글 중 갱신이 필요한 게시글 ID를 반환합니다.</p>
+     * <h3>PER 대상 게시글 ID 필터링 (Redis TTL 기반)</h3>
+     * <p>캐시된 게시글 중 TTL이 60초 미만인 게시글 ID를 확률적으로 반환합니다.</p>
      *
-     * @param cachedPosts 캐시된 게시글 Map
+     * @param type      캐시 유형
+     * @param postIds   캐시된 게시글 ID 목록
      * @return 갱신이 필요한 게시글 ID 목록
      */
-    public List<Long> filterRefreshNeeded(Map<Long, CachedPost> cachedPosts) {
-        return cachedPosts.entrySet().stream()
-                .filter(entry -> entry.getValue().shouldRefresh())
-                .map(Map.Entry::getKey)
-                .toList();
+    public List<Long> filterRefreshNeeded(PostCacheFlag type, List<Long> postIds) {
+        if (postIds == null || postIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<Long> refreshNeeded = new ArrayList<>();
+
+        for (Long postId : postIds) {
+            String key = getSimplePostKey(type, postId);
+            long ttl = redisTemplate.getExpire(key, TimeUnit.SECONDS);
+
+            if (ttl > 0 && shouldRefresh(ttl)) {
+                refreshNeeded.add(postId);
+            }
+        }
+
+        return refreshNeeded;
+    }
+
+    /**
+     * <h3>PER 기반 갱신 필요 여부 판단</h3>
+     * <p>TTL 마지막 60초 동안 확률적으로 true를 반환합니다.</p>
+     *
+     * @param ttlSeconds 남은 TTL (초)
+     * @return 갱신이 필요하면 true
+     */
+    private boolean shouldRefresh(long ttlSeconds) {
+        if (ttlSeconds <= 0) {
+            return true;
+        }
+        if (ttlSeconds < PER_EXPIRY_GAP_SECONDS) {
+            double randomFactor = ThreadLocalRandom.current().nextDouble();
+            return ttlSeconds - (randomFactor * PER_EXPIRY_GAP_SECONDS) <= 0;
+        }
+        return false;
     }
 
     /**
@@ -94,7 +131,7 @@ public class RedisTier1PostStoreAdapter {
      * @param cachedPosts  캐시된 게시글 Map
      * @return 캐시 미스된 게시글 ID 목록
      */
-    public List<Long> filterMissedIds(List<Long> requestedIds, Map<Long, CachedPost> cachedPosts) {
+    public List<Long> filterMissedIds(List<Long> requestedIds, Map<Long, PostSimpleDetail> cachedPosts) {
         return requestedIds.stream()
                 .filter(id -> !cachedPosts.containsKey(id))
                 .toList();
@@ -102,7 +139,6 @@ public class RedisTier1PostStoreAdapter {
 
     /**
      * <h3>개별 게시글 캐시 저장</h3>
-     * <p>단일 게시글을 CachedPost로 감싸서 저장합니다.</p>
      *
      * @param type 캐시 유형
      * @param post 저장할 게시글
@@ -113,15 +149,12 @@ public class RedisTier1PostStoreAdapter {
         }
 
         String key = getSimplePostKey(type, post.getId());
-        CachedPost cachedPost = new CachedPost(post, POST_CACHE_TTL);
-
-        redisTemplate.opsForValue().set(key, cachedPost, POST_CACHE_TTL.toSeconds(), TimeUnit.SECONDS);
+        redisTemplate.opsForValue().set(key, post, POST_CACHE_TTL.toSeconds(), TimeUnit.SECONDS);
         log.debug("[CACHE_WRITE] key={}, postId={}", key, post.getId());
     }
 
     /**
      * <h3>여러 게시글 캐시 저장</h3>
-     * <p>Pipeline을 사용하여 여러 게시글을 효율적으로 저장합니다.</p>
      *
      * @param type  캐시 유형
      * @param posts 저장할 게시글 목록
@@ -133,12 +166,10 @@ public class RedisTier1PostStoreAdapter {
 
         log.info("[CACHE_WRITE] START - type={}, count={}", type, posts.size());
 
-        // 개별 저장 (각 키에 TTL 적용)
         for (PostSimpleDetail post : posts) {
             if (post != null && post.getId() != null) {
                 String key = getSimplePostKey(type, post.getId());
-                CachedPost cachedPost = new CachedPost(post, POST_CACHE_TTL);
-                redisTemplate.opsForValue().set(key, cachedPost, POST_CACHE_TTL.toSeconds(), TimeUnit.SECONDS);
+                redisTemplate.opsForValue().set(key, post, POST_CACHE_TTL.toSeconds(), TimeUnit.SECONDS);
             }
         }
 
@@ -181,20 +212,17 @@ public class RedisTier1PostStoreAdapter {
     }
 
     /**
-     * <h3>CachedPost Map을 PostSimpleDetail 리스트로 변환</h3>
+     * <h3>PostSimpleDetail Map을 리스트로 변환</h3>
      * <p>요청된 순서를 유지하며 변환합니다.</p>
      *
      * @param orderedIds  정렬 순서를 가진 ID 목록
      * @param cachedPosts 캐시된 게시글 Map
      * @return 정렬된 PostSimpleDetail 목록
      */
-    public List<PostSimpleDetail> toOrderedList(List<Long> orderedIds, Map<Long, CachedPost> cachedPosts) {
+    public List<PostSimpleDetail> toOrderedList(List<Long> orderedIds, Map<Long, PostSimpleDetail> cachedPosts) {
         return orderedIds.stream()
                 .map(cachedPosts::get)
                 .filter(Objects::nonNull)
-                .map(CachedPost::getData)
-                .filter(Objects::nonNull)
                 .toList();
     }
-
 }

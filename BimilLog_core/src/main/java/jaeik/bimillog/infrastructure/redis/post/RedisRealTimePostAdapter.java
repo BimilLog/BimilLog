@@ -22,7 +22,7 @@ import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.*;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class RedisRealTimePostStoreAdapter {
+public class RedisRealTimePostAdapter {
     private final RedisTemplate<String, Object> redisTemplate;
 
     /**
@@ -81,6 +81,22 @@ public class RedisRealTimePostStoreAdapter {
     public long getRealtimePopularPostCount() {
         Long count = redisTemplate.opsForZSet().zCard(REALTIME_POST_SCORE_KEY);
         return count != null ? count : 0;
+    }
+
+    /**
+     * <h3>실시간 인기글 여부 확인</h3>
+     * <p>특정 postId가 실시간 인기글 점수 Sorted Set에 존재하는지 확인합니다.</p>
+     * <p>O(1) 연산으로 효율적으로 확인합니다.</p>
+     *
+     * @param postId 확인할 게시글 ID
+     * @return 실시간 인기글이면 true
+     */
+    public boolean isRealtimePopularPost(Long postId) {
+        if (postId == null) {
+            return false;
+        }
+        Double score = redisTemplate.opsForZSet().score(REALTIME_POST_SCORE_KEY, postId.toString());
+        return score != null;
     }
 
     /**

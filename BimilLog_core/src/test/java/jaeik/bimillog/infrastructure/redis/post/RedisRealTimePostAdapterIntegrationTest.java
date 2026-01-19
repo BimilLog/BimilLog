@@ -17,7 +17,7 @@ import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * <h2>RedisRealTimePostStoreAdapter 통합 테스트</h2>
+ * <h2>RedisRealTimePostAdapter 통합 테스트</h2>
  * <p>로컬 Redis 환경에서 실시간 인기글 점수 관리 어댑터의 핵심 기능을 검증합니다.</p>
  *
  * @author Jaeik
@@ -27,10 +27,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ActiveProfiles("local-integration")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Tag("local-integration")
-class RedisRealTimePostStoreAdapterIntegrationTest {
+class RedisRealTimePostAdapterIntegrationTest {
 
     @Autowired
-    private RedisRealTimePostStoreAdapter redisRealTimePostStoreAdapter;
+    private RedisRealTimePostAdapter redisRealTimePostAdapter;
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
@@ -52,7 +52,7 @@ class RedisRealTimePostStoreAdapterIntegrationTest {
         }
 
         // When: 실시간 인기글 ID 조회 (상위 5개)
-        List<Long> result = redisRealTimePostStoreAdapter.getRealtimePopularPostIds();
+        List<Long> result = redisRealTimePostAdapter.getRealtimePopularPostIds();
 
         // Then: 점수가 높은 상위 5개만 반환
         assertThat(result).hasSize(5);
@@ -71,7 +71,7 @@ class RedisRealTimePostStoreAdapterIntegrationTest {
         redisTemplate.opsForZSet().add(scoreKey, "500", 20.0);
 
         // When: 실시간 인기글 ID 조회
-        List<Long> result = redisRealTimePostStoreAdapter.getRealtimePopularPostIds();
+        List<Long> result = redisRealTimePostAdapter.getRealtimePopularPostIds();
 
         // Then: 점수 내림차순으로 정렬됨
         assertThat(result).containsExactly(400L, 200L, 500L, 100L, 300L); // 30, 25, 20, 15, 10
@@ -87,7 +87,7 @@ class RedisRealTimePostStoreAdapterIntegrationTest {
         redisTemplate.opsForZSet().add(scoreKey, "3", 6.0);
 
         // When: 실시간 인기글 ID 조회
-        List<Long> result = redisRealTimePostStoreAdapter.getRealtimePopularPostIds();
+        List<Long> result = redisRealTimePostAdapter.getRealtimePopularPostIds();
 
         // Then: 존재하는 3개만 반환
         assertThat(result).hasSize(3);
@@ -100,7 +100,7 @@ class RedisRealTimePostStoreAdapterIntegrationTest {
         // Given: 실시간 인기글 점수가 없는 상태
 
         // When: 실시간 인기글 ID 조회
-        List<Long> result = redisRealTimePostStoreAdapter.getRealtimePopularPostIds();
+        List<Long> result = redisRealTimePostAdapter.getRealtimePopularPostIds();
 
         // Then: 빈 목록 반환
         assertThat(result).isEmpty();
@@ -115,7 +115,7 @@ class RedisRealTimePostStoreAdapterIntegrationTest {
         String scoreKey = RedisPostKeys.REALTIME_POST_SCORE_KEY;
 
         // When: 점수 증가
-        redisRealTimePostStoreAdapter.incrementRealtimePopularScore(postId, score);
+        redisRealTimePostAdapter.incrementRealtimePopularScore(postId, score);
 
         // Then: Sorted Set에서 점수 확인
         Double currentScore = redisTemplate.opsForZSet().score(scoreKey, postId.toString());
@@ -130,9 +130,9 @@ class RedisRealTimePostStoreAdapterIntegrationTest {
         String scoreKey = RedisPostKeys.REALTIME_POST_SCORE_KEY;
 
         // When: 여러 번 점수 증가 (조회 2점 + 댓글 3점 + 추천 4점)
-        redisRealTimePostStoreAdapter.incrementRealtimePopularScore(postId, 2.0); // 조회
-        redisRealTimePostStoreAdapter.incrementRealtimePopularScore(postId, 3.0); // 댓글
-        redisRealTimePostStoreAdapter.incrementRealtimePopularScore(postId, 4.0); // 추천
+        redisRealTimePostAdapter.incrementRealtimePopularScore(postId, 2.0); // 조회
+        redisRealTimePostAdapter.incrementRealtimePopularScore(postId, 3.0); // 댓글
+        redisRealTimePostAdapter.incrementRealtimePopularScore(postId, 4.0); // 추천
 
         // Then: 누적 점수 확인
         Double currentScore = redisTemplate.opsForZSet().score(scoreKey, postId.toString());
@@ -149,7 +149,7 @@ class RedisRealTimePostStoreAdapterIntegrationTest {
         redisTemplate.opsForZSet().add(scoreKey, "3", 2.0);
 
         // When: 감쇠 적용 (0.97배)
-        redisRealTimePostStoreAdapter.applyRealtimePopularScoreDecay();
+        redisRealTimePostAdapter.applyRealtimePopularScoreDecay();
 
         // Then: 점수가 0.97배로 감소
         Double score1 = redisTemplate.opsForZSet().score(scoreKey, "1");
@@ -176,7 +176,7 @@ class RedisRealTimePostStoreAdapterIntegrationTest {
         assertThat(initialSize).isEqualTo(4);
 
         // When: 감쇠 적용
-        redisRealTimePostStoreAdapter.applyRealtimePopularScoreDecay();
+        redisRealTimePostAdapter.applyRealtimePopularScoreDecay();
 
         // Then: 임계값(1.0) 이하의 게시글은 제거됨
         Long finalSize = redisTemplate.opsForZSet().size(scoreKey);
@@ -211,7 +211,7 @@ class RedisRealTimePostStoreAdapterIntegrationTest {
         assertThat(score).isEqualTo(100.0);
 
         // When: removePostIdFromRealtimeScore() 호출
-        redisRealTimePostStoreAdapter.removePostIdFromRealtimeScore(postId);
+        redisRealTimePostAdapter.removePostIdFromRealtimeScore(postId);
 
         // Then: Sorted Set에서 제거됨 확인
         Double scoreAfter = redisTemplate.opsForZSet().score(scoreKey, postId.toString());

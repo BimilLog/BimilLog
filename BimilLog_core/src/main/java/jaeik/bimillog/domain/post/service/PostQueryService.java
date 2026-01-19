@@ -10,7 +10,9 @@ import jaeik.bimillog.domain.post.repository.*;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.log.Log;
-import jaeik.bimillog.infrastructure.redis.post.RedisDetailPostStoreAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisDetailPostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -37,7 +39,10 @@ import java.util.stream.Collectors;
 public class PostQueryService {
     private final PostQueryRepository postQueryRepository;
     private final PostLikeRepository postLikeRepository;
-    private final RedisDetailPostStoreAdapter redisDetailPostStoreAdapter;
+    private final RedisDetailPostAdapter redisDetailPostAdapter;
+    private final RedisTier2PostAdapter redisTier2PostAdapter;
+    private final RedisRealTimePostAdapter redisRealTimePostAdapter;
+    private final PostCacheRefresh postCacheRefresh;
     private final PostRepository postRepository;
     private final PostToCommentAdapter postToCommentAdapter;
     private final PostToMemberAdapter postToMemberAdapter;
@@ -64,43 +69,103 @@ public class PostQueryService {
 
     /**
      * <h3>게시글 상세 조회</h3>
-     * <p>캐시 조회 후 캐시가 없거나 조회 실패시 DB조회 후 캐시 저장</p>
-     * <p>회원일 경우 블랙리스트 조사 및 좋아요 확인 후 주입하여 반환</p>
+     * <p>인기글(2티어 또는 실시간)만 캐시를 사용하고, 일반글은 DB에서 직접 조회합니다.</p>
+     * <p>인기글의 경우 PER(Probabilistic Early Refresh)을 적용하여 캐시 만료 전 갱신합니다.</p>
+     * <p>회원일 경우 블랙리스트 조사 및 좋아요 확인 후 주입하여 반환합니다.</p>
      *
      * @param postId   게시글 ID
      * @param memberId 현재 로그인한 사용자 ID (추천 여부 확인용, null 허용)
      * @return PostDetail 게시글 상세 정보 (좋아요 수, 댓글 수, 사용자 좋아요 여부 포함)
      */
     public PostDetail getPost(Long postId, Long memberId) {
-        PostDetail result = null;
+        PostDetail result;
 
-        // 캐시를 조회한다.
-        try {
-            result = redisDetailPostStoreAdapter.getCachedPostIfExists(postId);
-        } catch (Exception e) {
-            log.error("게시글 {} 캐시 조회 실패, DB 조회로 진행: {}", postId, e.getMessage());
+        // 1. 인기글 여부 확인 (2티어 또는 실시간)
+        boolean isPopularPost = isPopularPost(postId);
+
+        if (isPopularPost) {
+            // 2-1. 인기글: 캐시 조회 → 캐시 미스 시 DB 조회 후 캐시 저장
+            result = getPopularPostDetail(postId);
+        } else {
+            // 2-2. 일반글: DB 직접 조회 (캐시 사용 안함)
+            result = postQueryRepository.findPostDetail(postId, null)
+                    .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
         }
 
-        // 캐시조회에 실패하거나 캐시가 없다는 뜻 캐시가져오고 저장
-        if (result == null) {
-            // 멤버ID를 null로 한뒤에 결과를 저장한다.
-            result = postQueryRepository.findPostDetail(postId, null).orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
-            try {
-                redisDetailPostStoreAdapter.saveCachePost(result);
-            } catch (Exception e) {
-                log.error("게시글 {} 캐시 저장 실패: {}", postId, e.getMessage());
-            }
-        }
-
-        // 비회원이면
+        // 3. 비회원이면 바로 반환
         if (memberId == null) {
             return result;
         }
 
-        // 회원이면
+        // 4. 회원이면 좋아요 여부 확인 및 블랙리스트 체크
         boolean isLiked = postLikeRepository.existsByPostIdAndMemberId(postId, memberId);
         result = result.withIsLiked(isLiked);
         eventPublisher.publishEvent(new CheckBlacklistEvent(memberId, result.getMemberId()));
+        return result;
+    }
+
+    /**
+     * <h3>인기글 여부 확인</h3>
+     * <p>2티어(주간/레전드/공지) 또는 실시간 인기글에 포함되어 있는지 확인합니다.</p>
+     *
+     * @param postId 확인할 게시글 ID
+     * @return 인기글이면 true
+     */
+    private boolean isPopularPost(Long postId) {
+        try {
+            // 2티어(주간/레전드/공지) 확인
+            if (redisTier2PostAdapter.isPopularPost(postId)) {
+                return true;
+            }
+            // 실시간 인기글 확인
+            return redisRealTimePostAdapter.isRealtimePopularPost(postId);
+        } catch (Exception e) {
+            log.warn("인기글 여부 확인 실패, 일반글로 처리: postId={}, error={}", postId, e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * <h3>인기글 상세 조회 (캐시 사용)</h3>
+     * <p>상세 캐시에서 조회하고, 캐시 미스 시 DB 조회 후 캐시 저장합니다.</p>
+     * <p>캐시 히트 시 PER 조건을 확인하여 만료 임박 시 비동기 갱신을 트리거합니다.</p>
+     *
+     * @param postId 게시글 ID
+     * @return PostDetail 게시글 상세 정보
+     */
+    private PostDetail getPopularPostDetail(Long postId) {
+        PostDetail result = null;
+
+        // 1. 상세 캐시 조회
+        try {
+            result = redisDetailPostAdapter.getCachedPostIfExists(postId);
+        } catch (Exception e) {
+            log.error("게시글 {} 캐시 조회 실패, DB 조회로 진행: {}", postId, e.getMessage());
+        }
+
+        // 2. 캐시 히트 시 PER 체크
+        if (result != null) {
+            try {
+                if (redisDetailPostAdapter.shouldRefresh(postId)) {
+                    log.info("[PER] 상세 캐시 갱신 트리거 - postId={}", postId);
+                    postCacheRefresh.asyncRefreshDetailPost(postId);
+                }
+            } catch (Exception e) {
+                log.warn("PER 체크 실패: postId={}, error={}", postId, e.getMessage());
+            }
+            return result;
+        }
+
+        // 3. 캐시 미스: DB 조회 후 캐시 저장
+        result = postQueryRepository.findPostDetail(postId, null)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+
+        try {
+            redisDetailPostAdapter.saveCachePost(result);
+        } catch (Exception e) {
+            log.error("게시글 {} 상세 캐시 저장 실패: {}", postId, e.getMessage());
+        }
+
         return result;
     }
 

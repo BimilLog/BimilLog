@@ -24,7 +24,7 @@ import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.getPostIdsS
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class RedisTier2PostStoreAdapter {
+public class RedisTier2PostAdapter {
     private final RedisTemplate<String, Object> redisTemplate;
 
     /**
@@ -106,6 +106,41 @@ public class RedisTier2PostStoreAdapter {
     public void addPostIdToStorage(PostCacheFlag type, Long postId) {
         String postIdsKey = getPostIdsStorageKey(type);
         redisTemplate.opsForSet().add(postIdsKey, postId.toString());
+    }
+
+    /**
+     * <h3>인기글 여부 확인</h3>
+     * <p>특정 postId가 2티어(주간/레전드/공지) 저장소에 존재하는지 확인합니다.</p>
+     * <p>O(1) 연산으로 효율적으로 확인합니다.</p>
+     *
+     * @param postId 확인할 게시글 ID
+     * @return 인기글이면 true
+     */
+    public boolean isPopularPost(Long postId) {
+        if (postId == null) {
+            return false;
+        }
+
+        String postIdStr = postId.toString();
+
+        // NOTICE: Set에서 확인
+        Boolean inNotice = redisTemplate.opsForSet()
+                .isMember(getPostIdsStorageKey(PostCacheFlag.NOTICE), postIdStr);
+        if (Boolean.TRUE.equals(inNotice)) {
+            return true;
+        }
+
+        // WEEKLY: Sorted Set에서 확인
+        Double weeklyScore = redisTemplate.opsForZSet()
+                .score(getPostIdsStorageKey(PostCacheFlag.WEEKLY), postIdStr);
+        if (weeklyScore != null) {
+            return true;
+        }
+
+        // LEGEND: Sorted Set에서 확인
+        Double legendScore = redisTemplate.opsForZSet()
+                .score(getPostIdsStorageKey(PostCacheFlag.LEGEND), postIdStr);
+        return legendScore != null;
     }
 
     /**

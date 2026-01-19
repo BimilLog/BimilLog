@@ -1,14 +1,12 @@
 package jaeik.bimillog.domain.post.service;
 
-import jaeik.bimillog.domain.post.entity.CachedPost;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
-import jaeik.bimillog.infrastructure.redis.post.RedisPostKeys;
-import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostStoreAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisTier1PostStoreAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostStoreAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostAdapter;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -36,7 +34,7 @@ import static org.mockito.Mockito.verify;
 
 /**
  * <h2>PostCacheService 테스트</h2>
- * <p>MGET 기반 개별 캐시 조회 및 PER 로직을 검증합니다.</p>
+ * <p>MGET 기반 개별 캐시 조회 및 Redis TTL 기반 PER 로직을 검증합니다.</p>
  */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PostCacheService 테스트")
@@ -47,13 +45,13 @@ class PostCacheServiceTest {
     private PostQueryRepository postQueryRepository;
 
     @Mock
-    private RedisTier1PostStoreAdapter redisTier1PostStoreAdapter;
+    private RedisSimplePostAdapter redisSimplePostAdapter;
 
     @Mock
-    private RedisTier2PostStoreAdapter redisTier2PostStoreAdapter;
+    private RedisTier2PostAdapter redisTier2PostAdapter;
 
     @Mock
-    private RedisRealTimePostStoreAdapter redisRealTimePostStoreAdapter;
+    private RedisRealTimePostAdapter redisRealTimePostAdapter;
 
     @Mock
     private PostCacheRefresh postCacheRefresh;
@@ -69,16 +67,16 @@ class PostCacheServiceTest {
         PostSimpleDetail simpleDetail1 = PostTestDataBuilder.createPostSearchResult(1L, "실시간 인기글 1");
         PostSimpleDetail simpleDetail2 = PostTestDataBuilder.createPostSearchResult(2L, "실시간 인기글 2");
 
-        Map<Long, CachedPost> cachedPosts = new HashMap<>();
-        cachedPosts.put(1L, new CachedPost(simpleDetail1, RedisPostKeys.POST_CACHE_TTL));
-        cachedPosts.put(2L, new CachedPost(simpleDetail2, RedisPostKeys.POST_CACHE_TTL));
+        Map<Long, PostSimpleDetail> cachedPosts = new HashMap<>();
+        cachedPosts.put(1L, simpleDetail1);
+        cachedPosts.put(2L, simpleDetail2);
 
-        given(redisRealTimePostStoreAdapter.getRealtimePopularPostCount()).willReturn(2L);
-        given(redisRealTimePostStoreAdapter.getRealtimePopularPostIds(0L, 5)).willReturn(List.of(1L, 2L));
-        given(redisTier1PostStoreAdapter.getCachedPosts(PostCacheFlag.REALTIME, List.of(1L, 2L))).willReturn(cachedPosts);
-        given(redisTier1PostStoreAdapter.filterRefreshNeeded(cachedPosts)).willReturn(List.of());
-        given(redisTier1PostStoreAdapter.filterMissedIds(List.of(1L, 2L), cachedPosts)).willReturn(List.of());
-        given(redisTier1PostStoreAdapter.toOrderedList(List.of(1L, 2L), cachedPosts)).willReturn(List.of(simpleDetail1, simpleDetail2));
+        given(redisRealTimePostAdapter.getRealtimePopularPostCount()).willReturn(2L);
+        given(redisRealTimePostAdapter.getRealtimePopularPostIds(0L, 5)).willReturn(List.of(1L, 2L));
+        given(redisSimplePostAdapter.getCachedPosts(PostCacheFlag.REALTIME, List.of(1L, 2L))).willReturn(cachedPosts);
+        given(redisSimplePostAdapter.filterRefreshNeeded(PostCacheFlag.REALTIME, List.of(1L, 2L))).willReturn(List.of());
+        given(redisSimplePostAdapter.filterMissedIds(List.of(1L, 2L), cachedPosts)).willReturn(List.of());
+        given(redisSimplePostAdapter.toOrderedList(List.of(1L, 2L), cachedPosts)).willReturn(List.of(simpleDetail1, simpleDetail2));
 
         // When
         Page<PostSimpleDetail> result = postCacheService.getRealtimePosts(pageable);
@@ -89,7 +87,7 @@ class PostCacheServiceTest {
         assertThat(result.getContent().get(1).getTitle()).isEqualTo("실시간 인기글 2");
         assertThat(result.getTotalElements()).isEqualTo(2);
 
-        verify(redisTier1PostStoreAdapter).getCachedPosts(PostCacheFlag.REALTIME, List.of(1L, 2L));
+        verify(redisSimplePostAdapter).getCachedPosts(PostCacheFlag.REALTIME, List.of(1L, 2L));
         verify(postCacheRefresh, never()).asyncRefreshPosts(any(), any());
     }
 
@@ -101,19 +99,19 @@ class PostCacheServiceTest {
         PostSimpleDetail simpleDetail2 = PostTestDataBuilder.createPostSearchResult(2L, "캐시된 게시글");
         PostDetail realtimePost1 = createPostDetail(1L, "DB에서 조회된 게시글");
 
-        Map<Long, CachedPost> cachedPosts = new HashMap<>();
-        cachedPosts.put(2L, new CachedPost(simpleDetail2, RedisPostKeys.POST_CACHE_TTL));
+        Map<Long, PostSimpleDetail> cachedPosts = new HashMap<>();
+        cachedPosts.put(2L, simpleDetail2);
 
-        given(redisRealTimePostStoreAdapter.getRealtimePopularPostCount()).willReturn(2L);
-        given(redisRealTimePostStoreAdapter.getRealtimePopularPostIds(0L, 5)).willReturn(List.of(1L, 2L));
-        given(redisTier1PostStoreAdapter.getCachedPosts(PostCacheFlag.REALTIME, List.of(1L, 2L))).willReturn(cachedPosts);
-        given(redisTier1PostStoreAdapter.filterRefreshNeeded(cachedPosts)).willReturn(List.of());
-        given(redisTier1PostStoreAdapter.filterMissedIds(List.of(1L, 2L), cachedPosts)).willReturn(List.of(1L));
+        given(redisRealTimePostAdapter.getRealtimePopularPostCount()).willReturn(2L);
+        given(redisRealTimePostAdapter.getRealtimePopularPostIds(0L, 5)).willReturn(List.of(1L, 2L));
+        given(redisSimplePostAdapter.getCachedPosts(PostCacheFlag.REALTIME, List.of(1L, 2L))).willReturn(cachedPosts);
+        given(redisSimplePostAdapter.filterRefreshNeeded(PostCacheFlag.REALTIME, List.of(2L))).willReturn(List.of());
+        given(redisSimplePostAdapter.filterMissedIds(List.of(1L, 2L), cachedPosts)).willReturn(List.of(1L));
         given(postQueryRepository.findPostDetail(1L, null)).willReturn(Optional.of(realtimePost1));
 
         // toOrderedList는 cachedPosts가 업데이트된 후 호출됨
         PostSimpleDetail simpleDetail1 = realtimePost1.toSimpleDetail();
-        given(redisTier1PostStoreAdapter.toOrderedList(eq(List.of(1L, 2L)), any())).willReturn(List.of(simpleDetail1, simpleDetail2));
+        given(redisSimplePostAdapter.toOrderedList(eq(List.of(1L, 2L)), any())).willReturn(List.of(simpleDetail1, simpleDetail2));
 
         // When
         Page<PostSimpleDetail> result = postCacheService.getRealtimePosts(pageable);
@@ -121,7 +119,7 @@ class PostCacheServiceTest {
         // Then
         assertThat(result.getContent()).hasSize(2);
         verify(postQueryRepository).findPostDetail(1L, null);
-        verify(redisTier1PostStoreAdapter).cachePost(eq(PostCacheFlag.REALTIME), any());
+        verify(redisSimplePostAdapter).cachePost(eq(PostCacheFlag.REALTIME), any());
     }
 
     @Test
@@ -131,15 +129,15 @@ class PostCacheServiceTest {
         Pageable pageable = PageRequest.of(0, 5);
         PostSimpleDetail simpleDetail1 = PostTestDataBuilder.createPostSearchResult(1L, "실시간 인기글 1");
 
-        Map<Long, CachedPost> cachedPosts = new HashMap<>();
-        cachedPosts.put(1L, new CachedPost(simpleDetail1, RedisPostKeys.POST_CACHE_TTL));
+        Map<Long, PostSimpleDetail> cachedPosts = new HashMap<>();
+        cachedPosts.put(1L, simpleDetail1);
 
-        given(redisRealTimePostStoreAdapter.getRealtimePopularPostCount()).willReturn(1L);
-        given(redisRealTimePostStoreAdapter.getRealtimePopularPostIds(0L, 5)).willReturn(List.of(1L));
-        given(redisTier1PostStoreAdapter.getCachedPosts(PostCacheFlag.REALTIME, List.of(1L))).willReturn(cachedPosts);
-        given(redisTier1PostStoreAdapter.filterRefreshNeeded(cachedPosts)).willReturn(List.of(1L)); // PER 대상
-        given(redisTier1PostStoreAdapter.filterMissedIds(List.of(1L), cachedPosts)).willReturn(List.of());
-        given(redisTier1PostStoreAdapter.toOrderedList(List.of(1L), cachedPosts)).willReturn(List.of(simpleDetail1));
+        given(redisRealTimePostAdapter.getRealtimePopularPostCount()).willReturn(1L);
+        given(redisRealTimePostAdapter.getRealtimePopularPostIds(0L, 5)).willReturn(List.of(1L));
+        given(redisSimplePostAdapter.getCachedPosts(PostCacheFlag.REALTIME, List.of(1L))).willReturn(cachedPosts);
+        given(redisSimplePostAdapter.filterRefreshNeeded(PostCacheFlag.REALTIME, List.of(1L))).willReturn(List.of(1L)); // PER 대상
+        given(redisSimplePostAdapter.filterMissedIds(List.of(1L), cachedPosts)).willReturn(List.of());
+        given(redisSimplePostAdapter.toOrderedList(List.of(1L), cachedPosts)).willReturn(List.of(simpleDetail1));
 
         // When
         Page<PostSimpleDetail> result = postCacheService.getRealtimePosts(pageable);
@@ -157,15 +155,15 @@ class PostCacheServiceTest {
         PostSimpleDetail weeklyPost1 = PostTestDataBuilder.createPostSearchResult(1L, "주간 인기글 1");
         PostSimpleDetail weeklyPost2 = PostTestDataBuilder.createPostSearchResult(2L, "주간 인기글 2");
 
-        Map<Long, CachedPost> cachedPosts = new HashMap<>();
-        cachedPosts.put(1L, new CachedPost(weeklyPost1, RedisPostKeys.POST_CACHE_TTL));
-        cachedPosts.put(2L, new CachedPost(weeklyPost2, RedisPostKeys.POST_CACHE_TTL));
+        Map<Long, PostSimpleDetail> cachedPosts = new HashMap<>();
+        cachedPosts.put(1L, weeklyPost1);
+        cachedPosts.put(2L, weeklyPost2);
 
-        given(redisTier2PostStoreAdapter.getStoredPostIds(PostCacheFlag.WEEKLY)).willReturn(List.of(1L, 2L));
-        given(redisTier1PostStoreAdapter.getCachedPosts(PostCacheFlag.WEEKLY, List.of(1L, 2L))).willReturn(cachedPosts);
-        given(redisTier1PostStoreAdapter.filterRefreshNeeded(cachedPosts)).willReturn(List.of());
-        given(redisTier1PostStoreAdapter.filterMissedIds(List.of(1L, 2L), cachedPosts)).willReturn(List.of());
-        given(redisTier1PostStoreAdapter.toOrderedList(List.of(1L, 2L), cachedPosts)).willReturn(List.of(weeklyPost1, weeklyPost2));
+        given(redisTier2PostAdapter.getStoredPostIds(PostCacheFlag.WEEKLY)).willReturn(List.of(1L, 2L));
+        given(redisSimplePostAdapter.getCachedPosts(PostCacheFlag.WEEKLY, List.of(1L, 2L))).willReturn(cachedPosts);
+        given(redisSimplePostAdapter.filterRefreshNeeded(PostCacheFlag.WEEKLY, List.of(1L, 2L))).willReturn(List.of());
+        given(redisSimplePostAdapter.filterMissedIds(List.of(1L, 2L), cachedPosts)).willReturn(List.of());
+        given(redisSimplePostAdapter.toOrderedList(List.of(1L, 2L), cachedPosts)).willReturn(List.of(weeklyPost1, weeklyPost2));
 
         // When
         Page<PostSimpleDetail> result = postCacheService.getWeeklyPosts(pageable);
@@ -181,7 +179,7 @@ class PostCacheServiceTest {
     void shouldGetWeeklyPosts_EmptyTier2() {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
-        given(redisTier2PostStoreAdapter.getStoredPostIds(PostCacheFlag.WEEKLY)).willReturn(List.of());
+        given(redisTier2PostAdapter.getStoredPostIds(PostCacheFlag.WEEKLY)).willReturn(List.of());
 
         // When
         Page<PostSimpleDetail> result = postCacheService.getWeeklyPosts(pageable);
@@ -199,15 +197,15 @@ class PostCacheServiceTest {
         PostSimpleDetail legendPost1 = PostTestDataBuilder.createPostSearchResult(1L, "레전드 게시글 1");
         PostSimpleDetail legendPost2 = PostTestDataBuilder.createPostSearchResult(2L, "레전드 게시글 2");
 
-        Map<Long, CachedPost> cachedPosts = new HashMap<>();
-        cachedPosts.put(1L, new CachedPost(legendPost1, RedisPostKeys.POST_CACHE_TTL));
-        cachedPosts.put(2L, new CachedPost(legendPost2, RedisPostKeys.POST_CACHE_TTL));
+        Map<Long, PostSimpleDetail> cachedPosts = new HashMap<>();
+        cachedPosts.put(1L, legendPost1);
+        cachedPosts.put(2L, legendPost2);
 
-        given(redisTier2PostStoreAdapter.getStoredPostIds(PostCacheFlag.LEGEND)).willReturn(List.of(1L, 2L));
-        given(redisTier1PostStoreAdapter.getCachedPosts(PostCacheFlag.LEGEND, List.of(1L, 2L))).willReturn(cachedPosts);
-        given(redisTier1PostStoreAdapter.filterRefreshNeeded(cachedPosts)).willReturn(List.of());
-        given(redisTier1PostStoreAdapter.filterMissedIds(List.of(1L, 2L), cachedPosts)).willReturn(List.of());
-        given(redisTier1PostStoreAdapter.toOrderedList(List.of(1L, 2L), cachedPosts)).willReturn(List.of(legendPost1, legendPost2));
+        given(redisTier2PostAdapter.getStoredPostIds(PostCacheFlag.LEGEND)).willReturn(List.of(1L, 2L));
+        given(redisSimplePostAdapter.getCachedPosts(PostCacheFlag.LEGEND, List.of(1L, 2L))).willReturn(cachedPosts);
+        given(redisSimplePostAdapter.filterRefreshNeeded(PostCacheFlag.LEGEND, List.of(1L, 2L))).willReturn(List.of());
+        given(redisSimplePostAdapter.filterMissedIds(List.of(1L, 2L), cachedPosts)).willReturn(List.of());
+        given(redisSimplePostAdapter.toOrderedList(List.of(1L, 2L), cachedPosts)).willReturn(List.of(legendPost1, legendPost2));
 
         // When
         Page<PostSimpleDetail> result = postCacheService.getPopularPostLegend(pageable);
@@ -223,7 +221,7 @@ class PostCacheServiceTest {
     void shouldGetPopularPostLegend_EmptyTier2() {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
-        given(redisTier2PostStoreAdapter.getStoredPostIds(PostCacheFlag.LEGEND)).willReturn(List.of());
+        given(redisTier2PostAdapter.getStoredPostIds(PostCacheFlag.LEGEND)).willReturn(List.of());
 
         // When
         Page<PostSimpleDetail> result = postCacheService.getPopularPostLegend(pageable);
@@ -239,14 +237,14 @@ class PostCacheServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         PostSimpleDetail noticePost = PostTestDataBuilder.createPostSearchResult(1L, "공지사항");
 
-        Map<Long, CachedPost> cachedPosts = new HashMap<>();
-        cachedPosts.put(1L, new CachedPost(noticePost, RedisPostKeys.POST_CACHE_TTL));
+        Map<Long, PostSimpleDetail> cachedPosts = new HashMap<>();
+        cachedPosts.put(1L, noticePost);
 
-        given(redisTier2PostStoreAdapter.getStoredPostIds(PostCacheFlag.NOTICE)).willReturn(List.of(1L));
-        given(redisTier1PostStoreAdapter.getCachedPosts(PostCacheFlag.NOTICE, List.of(1L))).willReturn(cachedPosts);
-        given(redisTier1PostStoreAdapter.filterRefreshNeeded(cachedPosts)).willReturn(List.of());
-        given(redisTier1PostStoreAdapter.filterMissedIds(List.of(1L), cachedPosts)).willReturn(List.of());
-        given(redisTier1PostStoreAdapter.toOrderedList(List.of(1L), cachedPosts)).willReturn(List.of(noticePost));
+        given(redisTier2PostAdapter.getStoredPostIds(PostCacheFlag.NOTICE)).willReturn(List.of(1L));
+        given(redisSimplePostAdapter.getCachedPosts(PostCacheFlag.NOTICE, List.of(1L))).willReturn(cachedPosts);
+        given(redisSimplePostAdapter.filterRefreshNeeded(PostCacheFlag.NOTICE, List.of(1L))).willReturn(List.of());
+        given(redisSimplePostAdapter.filterMissedIds(List.of(1L), cachedPosts)).willReturn(List.of());
+        given(redisSimplePostAdapter.toOrderedList(List.of(1L), cachedPosts)).willReturn(List.of(noticePost));
 
         // When
         Page<PostSimpleDetail> result = postCacheService.getNoticePosts(pageable);
@@ -261,7 +259,7 @@ class PostCacheServiceTest {
     void shouldGetNoticePosts_EmptyTier2() {
         // Given
         Pageable pageable = PageRequest.of(0, 10);
-        given(redisTier2PostStoreAdapter.getStoredPostIds(PostCacheFlag.NOTICE)).willReturn(List.of());
+        given(redisTier2PostAdapter.getStoredPostIds(PostCacheFlag.NOTICE)).willReturn(List.of());
 
         // When
         Page<PostSimpleDetail> result = postCacheService.getNoticePosts(pageable);
@@ -275,7 +273,7 @@ class PostCacheServiceTest {
     void shouldReturnEmptyPage_WhenOffsetExceedsTotalSize() {
         // Given
         Pageable pageable = PageRequest.of(10, 10); // offset = 100
-        given(redisTier2PostStoreAdapter.getStoredPostIds(PostCacheFlag.WEEKLY)).willReturn(List.of(1L, 2L)); // 총 2개
+        given(redisTier2PostAdapter.getStoredPostIds(PostCacheFlag.WEEKLY)).willReturn(List.of(1L, 2L)); // 총 2개
 
         // When
         Page<PostSimpleDetail> result = postCacheService.getWeeklyPosts(pageable);
@@ -283,6 +281,91 @@ class PostCacheServiceTest {
         // Then
         assertThat(result.getContent()).isEmpty();
         assertThat(result.getTotalElements()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("주간 인기글 조회 - Redis 장애 시 DB fallback")
+    void shouldGetWeeklyPosts_RedisFallbackToDb() {
+        // Given
+        Pageable pageable = PageRequest.of(0, 10);
+        PostSimpleDetail weeklyPost = PostTestDataBuilder.createPostSearchResult(1L, "주간 인기글");
+
+        given(redisTier2PostAdapter.getStoredPostIds(PostCacheFlag.WEEKLY))
+                .willThrow(new RuntimeException("Redis connection failed"));
+        given(postQueryRepository.findWeeklyPopularPosts()).willReturn(List.of(weeklyPost));
+
+        // When
+        Page<PostSimpleDetail> result = postCacheService.getWeeklyPosts(pageable);
+
+        // Then
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getTitle()).isEqualTo("주간 인기글");
+        verify(postQueryRepository).findWeeklyPopularPosts();
+    }
+
+    @Test
+    @DisplayName("레전드 인기글 조회 - Redis 장애 시 DB fallback")
+    void shouldGetPopularPostLegend_RedisFallbackToDb() {
+        // Given
+        Pageable pageable = PageRequest.of(0, 10);
+        PostSimpleDetail legendPost = PostTestDataBuilder.createPostSearchResult(1L, "레전드 게시글");
+
+        given(redisTier2PostAdapter.getStoredPostIds(PostCacheFlag.LEGEND))
+                .willThrow(new RuntimeException("Redis connection failed"));
+        given(postQueryRepository.findLegendaryPosts()).willReturn(List.of(legendPost));
+
+        // When
+        Page<PostSimpleDetail> result = postCacheService.getPopularPostLegend(pageable);
+
+        // Then
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getTitle()).isEqualTo("레전드 게시글");
+        verify(postQueryRepository).findLegendaryPosts();
+    }
+
+    @Test
+    @DisplayName("공지사항 조회 - Redis 장애 시 DB fallback")
+    void shouldGetNoticePosts_RedisFallbackToDb() {
+        // Given
+        Pageable pageable = PageRequest.of(0, 10);
+        PostSimpleDetail noticePost = PostTestDataBuilder.createPostSearchResult(1L, "공지사항");
+
+        given(redisTier2PostAdapter.getStoredPostIds(PostCacheFlag.NOTICE))
+                .willThrow(new RuntimeException("Redis connection failed"));
+        given(postQueryRepository.findNoticePosts()).willReturn(List.of(noticePost));
+
+        // When
+        Page<PostSimpleDetail> result = postCacheService.getNoticePosts(pageable);
+
+        // Then
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getTitle()).isEqualTo("공지사항");
+        verify(postQueryRepository).findNoticePosts();
+    }
+
+    @Test
+    @DisplayName("Redis 장애 시 DB fallback - 페이징 처리")
+    void shouldGetWeeklyPosts_RedisFallbackToDb_WithPaging() {
+        // Given
+        Pageable pageable = PageRequest.of(1, 2); // 두 번째 페이지, 2개씩
+        PostSimpleDetail post1 = PostTestDataBuilder.createPostSearchResult(1L, "게시글 1");
+        PostSimpleDetail post2 = PostTestDataBuilder.createPostSearchResult(2L, "게시글 2");
+        PostSimpleDetail post3 = PostTestDataBuilder.createPostSearchResult(3L, "게시글 3");
+        PostSimpleDetail post4 = PostTestDataBuilder.createPostSearchResult(4L, "게시글 4");
+
+        given(redisTier2PostAdapter.getStoredPostIds(PostCacheFlag.WEEKLY))
+                .willThrow(new RuntimeException("Redis connection failed"));
+        given(postQueryRepository.findWeeklyPopularPosts()).willReturn(List.of(post1, post2, post3, post4));
+
+        // When
+        Page<PostSimpleDetail> result = postCacheService.getWeeklyPosts(pageable);
+
+        // Then
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getContent().get(0).getTitle()).isEqualTo("게시글 3");
+        assertThat(result.getContent().get(1).getTitle()).isEqualTo("게시글 4");
+        assertThat(result.getTotalElements()).isEqualTo(4);
+        assertThat(result.getTotalPages()).isEqualTo(2);
     }
 
     // Helper method for creating PostDetail test data

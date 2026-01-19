@@ -1,8 +1,7 @@
 package jaeik.bimillog.domain.post.event;
 
 import jaeik.bimillog.domain.post.service.PostInteractionService;
-import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostStoreAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostStoreAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -28,7 +27,7 @@ public class PostViewedEventIntegrationTest extends BaseEventIntegrationTest {
     private PostInteractionService postInteractionService;
 
     @MockitoBean
-    private RedisRealTimePostStoreAdapter redisRealTimePostStoreAdapter;
+    private RedisRealTimePostAdapter redisRealTimePostAdapter;
 
     private static final double VIEW_SCORE = 2.0;
 
@@ -41,7 +40,7 @@ public class PostViewedEventIntegrationTest extends BaseEventIntegrationTest {
         // When & Then
         publishAndVerify(event, () -> {
             verify(postInteractionService).incrementViewCount(eq(1L));
-            verify(redisRealTimePostStoreAdapter).incrementRealtimePopularScore(eq(1L), eq(VIEW_SCORE));
+            verify(redisRealTimePostAdapter).incrementRealtimePopularScore(eq(1L), eq(VIEW_SCORE));
             verifyNoMoreInteractions(postInteractionService);
         });
     }
@@ -62,9 +61,9 @@ public class PostViewedEventIntegrationTest extends BaseEventIntegrationTest {
             verify(postInteractionService).incrementViewCount(eq(1L));
             verify(postInteractionService).incrementViewCount(eq(2L));
             verify(postInteractionService).incrementViewCount(eq(3L));
-            verify(redisRealTimePostStoreAdapter).incrementRealtimePopularScore(eq(1L), eq(VIEW_SCORE));
-            verify(redisRealTimePostStoreAdapter).incrementRealtimePopularScore(eq(2L), eq(VIEW_SCORE));
-            verify(redisRealTimePostStoreAdapter).incrementRealtimePopularScore(eq(3L), eq(VIEW_SCORE));
+            verify(redisRealTimePostAdapter).incrementRealtimePopularScore(eq(1L), eq(VIEW_SCORE));
+            verify(redisRealTimePostAdapter).incrementRealtimePopularScore(eq(2L), eq(VIEW_SCORE));
+            verify(redisRealTimePostAdapter).incrementRealtimePopularScore(eq(3L), eq(VIEW_SCORE));
             verifyNoMoreInteractions(postInteractionService);
         });
     }
@@ -82,7 +81,7 @@ public class PostViewedEventIntegrationTest extends BaseEventIntegrationTest {
         publishEvents(events);
         verifyAsync(() -> {
             verify(postInteractionService, times(3)).incrementViewCount(eq(1L));
-            verify(redisRealTimePostStoreAdapter, times(3)).incrementRealtimePopularScore(eq(1L), eq(VIEW_SCORE));
+            verify(redisRealTimePostAdapter, times(3)).incrementRealtimePopularScore(eq(1L), eq(VIEW_SCORE));
             verifyNoMoreInteractions(postInteractionService);
         });
     }
@@ -100,7 +99,7 @@ public class PostViewedEventIntegrationTest extends BaseEventIntegrationTest {
         // When & Then - 예외가 발생해도 시스템은 정상 작동
         publishAndVerify(event, () -> {
             verify(postInteractionService).incrementViewCount(eq(1L));
-            verify(redisRealTimePostStoreAdapter).incrementRealtimePopularScore(eq(1L), eq(VIEW_SCORE));
+            verify(redisRealTimePostAdapter).incrementRealtimePopularScore(eq(1L), eq(VIEW_SCORE));
             verifyNoMoreInteractions(postInteractionService);
         });
     }

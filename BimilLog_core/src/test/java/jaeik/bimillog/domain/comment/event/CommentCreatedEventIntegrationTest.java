@@ -1,8 +1,8 @@
 package jaeik.bimillog.domain.comment.event;
 
 import jaeik.bimillog.domain.notification.service.NotificationCommandService;
-import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostStoreAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostStoreAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostAdapter;
 import jaeik.bimillog.testutil.BaseEventIntegrationTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -29,10 +29,10 @@ class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
     private NotificationCommandService notificationCommandService;
 
     @MockitoBean
-    private RedisRealTimePostStoreAdapter redisRealTimePostStoreAdapter;
+    private RedisRealTimePostAdapter redisRealTimePostAdapter;
 
     @MockitoBean
-    private RedisTier2PostStoreAdapter redisTier2PostStoreAdapter;
+    private RedisTier2PostAdapter redisTier2PostAdapter;
 
     private static final double COMMENT_SCORE = 3.0;
 
@@ -45,7 +45,7 @@ class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
         // When & Then
         publishAndVerify(event, () -> {
             // Redis 실시간 인기글 점수 증가 검증
-            verify(redisRealTimePostStoreAdapter).incrementRealtimePopularScore(
+            verify(redisRealTimePostAdapter).incrementRealtimePopularScore(
                     eq(100L), eq(COMMENT_SCORE));
         });
     }
@@ -63,9 +63,9 @@ class CommentCreatedEventIntegrationTest extends BaseEventIntegrationTest {
         publishEvents(events);
         verifyAsyncSlow(() -> {
             // 실시간 인기글 점수 증가 검증
-            verify(redisRealTimePostStoreAdapter, times(2)).incrementRealtimePopularScore(
+            verify(redisRealTimePostAdapter, times(2)).incrementRealtimePopularScore(
                     eq(100L), eq(COMMENT_SCORE));
-            verify(redisRealTimePostStoreAdapter).incrementRealtimePopularScore(
+            verify(redisRealTimePostAdapter).incrementRealtimePopularScore(
                     eq(101L), eq(COMMENT_SCORE));
         });
     }
