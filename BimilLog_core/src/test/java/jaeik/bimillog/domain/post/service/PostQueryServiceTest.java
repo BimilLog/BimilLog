@@ -126,7 +126,7 @@ class PostQueryServiceTest extends BaseUnitTest {
                 .commentCount(3)
                 .isNotice(false)
                 .build();
-        given(postQueryRepository.findPostDetailWithCounts(postId, memberId))
+        given(postQueryRepository.findPostDetail(postId, memberId))
                 .willReturn(Optional.of(mockPostDetail));
 
         // When
@@ -135,7 +135,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         // Then
         assertThat(result).isNotNull();
         verify(redisDetailPostStoreAdapter).getCachedPostIfExists(postId); // 1회 Redis 호출
-        verify(postQueryRepository).findPostDetailWithCounts(postId, memberId); // 1회 DB 쿼리
+        verify(postQueryRepository).findPostDetail(postId, memberId); // 1회 DB 쿼리
         verify(postLikeRepository, never()).existsByPostIdAndMemberId(any(), any());
     }
 
@@ -176,7 +176,7 @@ class PostQueryServiceTest extends BaseUnitTest {
 
         verify(redisDetailPostStoreAdapter).getCachedPostIfExists(postId); // 1회 Redis 호출 (최적화)
         verify(postLikeRepository).existsByPostIdAndMemberId(postId, memberId);
-        verify(postQueryRepository, never()).findPostDetailWithCounts(any(), any()); // JOIN 쿼리도 호출 안함
+        verify(postQueryRepository, never()).findPostDetail(any(), any()); // JOIN 쿼리도 호출 안함
     }
 
     @Test
@@ -204,7 +204,7 @@ class PostQueryServiceTest extends BaseUnitTest {
                 .commentCount(3)
                 .isNotice(false)
                 .build();
-        given(postQueryRepository.findPostDetailWithCounts(postId, memberId))
+        given(postQueryRepository.findPostDetail(postId, memberId))
                 .willReturn(Optional.of(mockPostDetail));
 
         // When
@@ -213,7 +213,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         // Then
         assertThat(result).isNotNull();
         verify(redisDetailPostStoreAdapter).getCachedPostIfExists(postId); // 1회 Redis 호출 (최적화)
-        verify(postQueryRepository).findPostDetailWithCounts(postId, memberId); // 1회 DB JOIN 쿼리 (최적화)
+        verify(postQueryRepository).findPostDetail(postId, memberId); // 1회 DB JOIN 쿼리 (최적화)
 
         // 기존 개별 쿼리들은 호출되지 않음을 검증
         verify(postLikeRepository, never()).existsByPostIdAndMemberId(any(), any());
@@ -244,7 +244,7 @@ class PostQueryServiceTest extends BaseUnitTest {
                 .commentCount(3)
                 .isNotice(false)
                 .build();
-        given(postQueryRepository.findPostDetailWithCounts(postId, memberId))
+        given(postQueryRepository.findPostDetail(postId, memberId))
                 .willReturn(Optional.of(mockPostDetail));
 
         // When
@@ -255,7 +255,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result.isLiked()).isFalse(); // 익명 사용자는 항상 false
 
         verify(redisDetailPostStoreAdapter).getCachedPostIfExists(postId); // 1회 Redis 호출
-        verify(postQueryRepository).findPostDetailWithCounts(postId, memberId); // 1회 JOIN 쿼리
+        verify(postQueryRepository).findPostDetail(postId, memberId); // 1회 JOIN 쿼리
 
         // 기존 개별 쿼리들은 호출되지 않음
         verify(postLikeRepository, never()).existsByPostIdAndMemberId(any(), any());
@@ -270,7 +270,7 @@ class PostQueryServiceTest extends BaseUnitTest {
 
         // 캐시에도 없고 DB에도 없는 경우
         given(redisDetailPostStoreAdapter.getCachedPostIfExists(postId)).willReturn(null);
-        given(postQueryRepository.findPostDetailWithCounts(postId, memberId)).willReturn(Optional.empty());
+        given(postQueryRepository.findPostDetail(postId, memberId)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> postQueryService.getPost(postId, memberId))
@@ -278,7 +278,7 @@ class PostQueryServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
         verify(redisDetailPostStoreAdapter).getCachedPostIfExists(postId);
-        verify(postQueryRepository).findPostDetailWithCounts(postId, memberId);
+        verify(postQueryRepository).findPostDetail(postId, memberId);
         // 기존 개별 쿼리는 호출되지 않음
     }
 

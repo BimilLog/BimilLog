@@ -195,7 +195,7 @@ public class PostQueryRepository {
      * @author Jaeik
      * @since 2.0.0
      */
-    public Optional<PostDetail> findPostDetailWithCounts(Long postId, Long memberId) {
+    public Optional<PostDetail> findPostDetail(Long postId, Long memberId) {
         QPostLike userPostLike = new QPostLike("userPostLike");
 
         PostDetail result = jpaQueryFactory.select(new QPostDetail(

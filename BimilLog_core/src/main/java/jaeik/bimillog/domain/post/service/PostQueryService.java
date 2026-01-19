@@ -9,6 +9,7 @@ import jaeik.bimillog.domain.post.entity.*;
 import jaeik.bimillog.domain.post.repository.*;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.post.RedisDetailPostStoreAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +33,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Log
 public class PostQueryService {
     private final PostQueryRepository postQueryRepository;
     private final PostLikeRepository postLikeRepository;
@@ -42,24 +44,6 @@ public class PostQueryService {
     private final PostSearchRepository postSearchRepository;
     private final ApplicationEventPublisher eventPublisher;
 
-
-    /**
-     * <h3>게시글 엔티티 조회 </h3>
-     *
-     * @param postId 게시글 ID
-     * @return Post 게시글 엔티티
-     */
-    public Optional<Post> findById(Long postId) {
-        return postRepository.findById(postId);
-    }
-
-    /**
-     * <h3>게시글 ID 목록으로 게시글 리스트 반환</h3>
-     */
-    public List<Post> findAllByIds(List<Long> postIds) {
-        return postQueryRepository.findAllByIds(postIds);
-    }
-
     /**
      * <h3>게시판 목록 조회</h3>
      * <p>전체 게시글을 최신순으로 정렬하여 페이지 단위로 조회합니다.</p>
@@ -68,8 +52,6 @@ public class PostQueryService {
      *
      * @param pageable 페이지 정보 (크기, 페이지 번호, 정렬 기준)
      * @return Page&lt;PostSimpleDetail&gt; 페이지네이션된 게시글 목록
-     * @author Jaeik
-     * @since 2.3.0
      */
     public Page<PostSimpleDetail> getBoard(Pageable pageable, Long memberId) {
         Page<PostSimpleDetail> posts = postQueryRepository.findByPage(pageable, memberId);
@@ -82,61 +64,51 @@ public class PostQueryService {
 
     /**
      * <h3>게시글 상세 조회</h3>
-     * <p>모든 게시글에 대해 Redis 캐시를 우선 확인하고, 캐시 미스 시 DB 조회 후 캐시에 저장합니다.</p>
-     * <p>캐시 히트: 사용자 좋아요 정보만 추가 확인</p>
-     * <p>캐시 미스: DB 조회 → 캐시 저장 → 반환</p>
-     * <p>{@link PostQueryController}에서 게시글 상세 조회 요청 시 호출됩니다.</p>
+     * <p>캐시 조회 후 캐시가 없거나 조회 실패시 DB조회 후 캐시 저장</p>
+     * <p>회원일 경우 블랙리스트 조사 및 좋아요 확인 후 주입하여 반환</p>
      *
-     * @param postId 게시글 ID
+     * @param postId   게시글 ID
      * @param memberId 현재 로그인한 사용자 ID (추천 여부 확인용, null 허용)
      * @return PostDetail 게시글 상세 정보 (좋아요 수, 댓글 수, 사용자 좋아요 여부 포함)
      */
     public PostDetail getPost(Long postId, Long memberId) {
+        PostDetail result = null;
+
+        // 캐시를 조회한다.
         try {
-            // 1. 캐시 확인 (Cache-Aside Read)
-            PostDetail cachedPost = redisDetailPostStoreAdapter.getCachedPostIfExists(postId);
-            if (cachedPost != null) {
-                // 비회원 확인
-                if (memberId != null) {
-                    // 블랙리스트 확인
-                    eventPublisher.publishEvent(new CheckBlacklistEvent(memberId, cachedPost.getMemberId()));
-                }
-                 // 캐시 히트: 사용자 좋아요 정보만 추가 확인
-                 if (memberId != null) {
-                     boolean isLiked = postLikeRepository.existsByPostIdAndMemberId(postId, memberId);
-                     return cachedPost.withIsLiked(isLiked);
-                 }
-                return cachedPost;
+            result = redisDetailPostStoreAdapter.getCachedPostIfExists(postId);
+        } catch (Exception e) {
+            log.error("게시글 {} 캐시 조회 실패, DB 조회로 진행: {}", postId, e.getMessage());
+        }
+
+        // 캐시조회에 실패하거나 캐시가 없다는 뜻 캐시가져오고 저장
+        if (result == null) {
+            // 멤버ID를 null로 한뒤에 결과를 저장한다.
+            result = postQueryRepository.findPostDetail(postId, null).orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+            try {
+                redisDetailPostStoreAdapter.saveCachePost(result);
+            } catch (Exception e) {
+                log.error("게시글 {} 캐시 저장 실패: {}", postId, e.getMessage());
             }
-        } catch (Exception e) {
-            // 캐시 조회 실패 시 로그만 남기고 DB 조회로 진행
-            log.warn("게시글 {} 캐시 조회 실패, DB 조회로 진행: {}", postId, e.getMessage());
         }
 
-        // 2. 캐시 미스 또는 캐시 조회 실패: DB 조회 후 캐시 저장
-        PostDetail postDetail = postQueryRepository.findPostDetailWithCounts(postId, memberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
-        // 비회원 확인
-        if (memberId != null) {
-            // 블랙리스트 확인
-            eventPublisher.publishEvent(new CheckBlacklistEvent(memberId, postDetail.getMemberId()));
+        // 비회원이면
+        if (memberId == null) {
+            return result;
         }
 
-        try {
-            redisDetailPostStoreAdapter.cachePostDetail(postDetail);
-        } catch (Exception e) {
-            // 캐시 저장 실패 시 로그만 남기고 계속 진행
-            log.warn("게시글 {} 캐시 저장 실패: {}", postId, e.getMessage());
-        }
-        return postDetail;
+        // 회원이면
+        boolean isLiked = postLikeRepository.existsByPostIdAndMemberId(postId, memberId);
+        result = result.withIsLiked(isLiked);
+        eventPublisher.publishEvent(new CheckBlacklistEvent(memberId, result.getMemberId()));
+        return result;
     }
-
 
     /**
      * <h3>사용자 작성, 추천 글 목록 조회</h3>
      * <p>특정 사용자가 작성, 추천한 글 목록을 페이지네이션으로 조회합니다.</p>
      *
-     * @param memberId   사용자 ID
+     * @param memberId 사용자 ID
      * @param pageable 페이지 정보
      * @return MemberActivityPost 마이페이지 글 정보
      */
@@ -185,6 +157,23 @@ public class PostQueryService {
 
         return new PageImpl<>(blackListFilterPosts, posts.getPageable(),
                 posts.getTotalElements() - (posts.getContent().size() - blackListFilterPosts.size()));
+    }
+
+    /**
+     * <h3>게시글 엔티티 조회 </h3>
+     *
+     * @param postId 게시글 ID
+     * @return Post 게시글 엔티티
+     */
+    public Optional<Post> findById(Long postId) {
+        return postRepository.findById(postId);
+    }
+
+    /**
+     * <h3>게시글 ID 목록으로 게시글 리스트 반환</h3>
+     */
+    public List<Post> findAllByIds(List<Long> postIds) {
+        return postQueryRepository.findAllByIds(postIds);
     }
 
     /**

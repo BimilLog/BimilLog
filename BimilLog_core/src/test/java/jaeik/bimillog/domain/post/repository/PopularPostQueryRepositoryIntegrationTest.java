@@ -184,7 +184,7 @@ class PopularPostQueryRepositoryIntegrationTest {
         entityManager.clear();
 
         // When
-        PostDetail postDetail = postQueryRepository.findPostDetailWithCounts(post.getId(), null).orElse(null);
+        PostDetail postDetail = postQueryRepository.findPostDetail(post.getId(), null).orElse(null);
 
         // Then
         assertThat(postDetail).isNotNull();
@@ -201,7 +201,7 @@ class PopularPostQueryRepositoryIntegrationTest {
         Long nonExistentPostId = 999999L; // 확실히 존재하지 않는 큰 ID 사용
 
         // When
-        PostDetail postDetail = postQueryRepository.findPostDetailWithCounts(nonExistentPostId, null).orElse(null);
+        PostDetail postDetail = postQueryRepository.findPostDetail(nonExistentPostId, null).orElse(null);
 
         // Then
         assertNull(postDetail);

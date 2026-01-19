@@ -11,7 +11,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.POSTIDS_TTL_WEEKLY_LEGEND;
+import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.POST_IDS_TTL_WEEKLY_LEGEND;
 import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.getPostIdsStorageKey;
 
 /**
@@ -92,7 +92,7 @@ public class RedisTier2PostStoreAdapter {
 
         // TTL 설정: 주간/레전드는 1일, 공지는 영구
         if (type != PostCacheFlag.NOTICE) {
-            redisTemplate.expire(postIdsKey, POSTIDS_TTL_WEEKLY_LEGEND);
+            redisTemplate.expire(postIdsKey, POST_IDS_TTL_WEEKLY_LEGEND);
         }
     }
 

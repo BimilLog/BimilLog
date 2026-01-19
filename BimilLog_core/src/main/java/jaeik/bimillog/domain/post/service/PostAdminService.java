@@ -45,7 +45,7 @@ public class PostAdminService {
             post.unsetAsNotice();
             try {
                 redisTier2PostStoreAdapter.removePostIdFromStorage(postId);
-                redisTier1PostStoreAdapter.removePostFromListCache(postId);
+                redisTier1PostStoreAdapter.removePostFromCache(PostCacheFlag.NOTICE, postId);
             } catch (Exception e) {
                 log.warn("공지사항 해제 캐시 무효화 실패: postId={}, error={}", postId, e.getMessage());
             }

@@ -90,7 +90,7 @@ public class RealtimePopularScoreListener {
     public void handlePostLiked(PostLikeEvent event) {
         try {
             redisRealTimePostStoreAdapter.incrementRealtimePopularScore(event.postId(), LIKE_SCORE);
-            redisDetailPostStoreAdapter.deleteSinglePostCache(event.postId());
+            redisDetailPostStoreAdapter.deleteCachePost(event.postId());
             log.debug("실시간 인기글 점수 증가 및 캐시 무효화 (추천): postId={}, score=+{}", event.postId(), LIKE_SCORE);
         } catch (Exception e) {
             log.error("실시간 인기글 점수 증가 실패 (추천): postId={}", event.postId(), e);
@@ -111,7 +111,7 @@ public class RealtimePopularScoreListener {
     public void handlePostUnliked(PostUnlikeEvent event) {
         try {
             redisRealTimePostStoreAdapter.incrementRealtimePopularScore(event.postId(), -LIKE_SCORE);
-            redisDetailPostStoreAdapter.deleteSinglePostCache(event.postId());
+            redisDetailPostStoreAdapter.deleteCachePost(event.postId());
             log.debug("실시간 인기글 점수 감소 및 캐시 무효화 (추천 취소): postId={}, score=-{}", event.postId(), LIKE_SCORE);
         } catch (Exception e) {
             log.error("실시간 인기글 점수 감소 실패 (추천 취소): postId={}", event.postId(), e);

@@ -13,12 +13,15 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import jaeik.bimillog.infrastructure.log.Log;
-
 import java.util.Objects;
+
+import jaeik.bimillog.infrastructure.log.Log;
 
 /**
  * <h2>글 캐시 갱신 클래스</h2>
+ * <p>개별 게시글 캐시의 비동기 갱신을 담당합니다.</p>
+ * <p>PER(Probabilistic Early Refresh) 기반으로 호출됩니다.</p>
+ *
  * @author Jaeik
  * @version 2.5.0
  */
@@ -33,9 +36,45 @@ public class PostCacheRefresh {
     private final RedisRealTimePostStoreAdapter redisRealTimePostStoreAdapter;
 
     /**
-     * <h3>비동기 캐시 갱신 (PER 기반)</h3>
-     * <p>확률적 선계산 기법에서 TTL 임계값 이하일 때 호출되는 비동기 캐시 갱신 메서드입니다.</p>
+     * <h3>특정 게시글들의 캐시 비동기 갱신 (PER 기반)</h3>
+     * <p>개별 게시글 캐시가 만료 임박 시 호출됩니다.</p>
      * <p>백그라운드에서 실행되므로 사용자 요청은 블로킹되지 않습니다.</p>
+     *
+     * @param type    캐시 유형
+     * @param postIds 갱신할 게시글 ID 목록
+     */
+    @Async("cacheRefreshExecutor")
+    public void asyncRefreshPosts(PostCacheFlag type, List<Long> postIds) {
+        try {
+            log.info("[PER_REFRESH] 시작 - type={}, count={}, thread={}",
+                    type, postIds.size(), Thread.currentThread().getName());
+
+            // DB에서 조회 후 개별 캐시 저장
+            List<PostSimpleDetail> refreshed = postIds.stream()
+                    .map(postId -> postQueryRepository.findPostDetail(postId, null).orElse(null))
+                    .filter(Objects::nonNull)
+                    .map(PostDetail::toSimpleDetail)
+                    .toList();
+
+            if (refreshed.isEmpty()) {
+                log.warn("[PER_REFRESH] 실패 - type={}, 이유=DB 조회 결과 없음", type);
+                return;
+            }
+
+            // Pipeline으로 캐시 저장
+            redisTier1PostStoreAdapter.cachePosts(type, refreshed);
+
+            log.info("[PER_REFRESH] 완료 - type={}, count={}", type, refreshed.size());
+
+        } catch (Exception e) {
+            log.error("[PER_REFRESH] 에러 - type={}", type, e);
+        }
+    }
+
+    /**
+     * <h3>전체 캐시 비동기 갱신 (스케줄러용)</h3>
+     * <p>Tier2 저장소의 모든 postId에 대해 캐시를 갱신합니다.</p>
+     * <p>스케줄러에서 주기적으로 호출되거나, 초기화 시 호출됩니다.</p>
      *
      * @param type 갱신할 캐시 유형 (REALTIME, WEEKLY, LEGEND, NOTICE)
      */
@@ -43,7 +82,7 @@ public class PostCacheRefresh {
     public void asyncRefreshCache(PostCacheFlag type) {
         try {
             List<Long> storedPostIds;
-            log.info("캐시 갱신 시작: 타입={}, 스레드={}", type, Thread.currentThread().getName());
+            log.info("[FULL_REFRESH] 시작 - type={}, thread={}", type, Thread.currentThread().getName());
 
             // Step 1: Tier 2 PostIds로부터 복구 (실시간은 실시간 점수 Redis 저장소에서 복구)
             if (type == PostCacheFlag.REALTIME) {
@@ -53,30 +92,30 @@ public class PostCacheRefresh {
             }
 
             if (storedPostIds.isEmpty()) {
-                log.warn("캐시 갱신 실패 - 타입={}, 이유=티어2 저장소 비어있음", type);
+                log.warn("[FULL_REFRESH] 실패 - type={}, 이유=Tier2 저장소 비어있음", type);
                 return;
             }
 
             // Step 2: DB에서 PostDetail 조회 후 PostSimpleDetail 변환
             List<PostSimpleDetail> refreshed = storedPostIds.stream()
-                    .map(postId -> postQueryRepository.findPostDetailWithCounts(postId, null).orElse(null))
+                    .map(postId -> postQueryRepository.findPostDetail(postId, null).orElse(null))
                     .filter(Objects::nonNull)
                     .map(PostDetail::toSimpleDetail)
                     .toList();
 
-            log.info("DB로부터 응답 반환 - 타입={}, 결과 사이즈={}, 스레드={}", type, refreshed.size(), Thread.currentThread().getName());
+            log.info("[FULL_REFRESH] DB 조회 완료 - type={}, count={}", type, refreshed.size());
 
             if (refreshed.isEmpty()) {
-                log.warn("캐시 갱신 실패: 타입={}, 이유=DB 조회 결과 없음", type);
+                log.warn("[FULL_REFRESH] 실패 - type={}, 이유=DB 조회 결과 없음", type);
                 return;
             }
 
-            // Step 3: 캐시 갱신
-            redisTier1PostStoreAdapter.cachePostList(type, refreshed);
-            log.info("캐시 갱신 완료: 타입={}, count={}", type, refreshed.size());
+            // Step 3: 개별 캐시 저장 (Pipeline)
+            redisTier1PostStoreAdapter.cachePosts(type, refreshed);
+            log.info("[FULL_REFRESH] 완료 - type={}, count={}", type, refreshed.size());
 
         } catch (Exception e) {
-            log.error("캐시 갱신 에러: 타입={}", type, e);
+            log.error("[FULL_REFRESH] 에러 - type={}", type, e);
         }
     }
 }

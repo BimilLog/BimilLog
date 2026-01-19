@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.FULL_POST_CACHE_TTL;
+import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.POST_CACHE_TTL;
 import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.getPostDetailKey;
 
 /**
@@ -49,9 +49,9 @@ public class RedisDetailPostStoreAdapter {
      * @author Jaeik
      * @since 2.0.0
      */
-    public void cachePostDetail(PostDetail postDetail) {
+    public void saveCachePost(PostDetail postDetail) {
         String key = getPostDetailKey(postDetail.getId());
-        redisTemplate.opsForValue().set(key, postDetail, FULL_POST_CACHE_TTL);
+        redisTemplate.opsForValue().set(key, postDetail, POST_CACHE_TTL);
     }
 
     /**
@@ -59,10 +59,8 @@ public class RedisDetailPostStoreAdapter {
      * <p>특정 게시글의 캐시 데이터를 Redis에서 삭제합니다 (라이트 어라운드 패턴).</p>
      *
      * @param postId 캐시를 삭제할 게시글 ID
-     * @author Jaeik
-     * @since 2.0.0
      */
-    public void deleteSinglePostCache(Long postId) {
+    public void deleteCachePost(Long postId) {
         String detailKey = getPostDetailKey(postId);
         redisTemplate.delete(detailKey);
     }

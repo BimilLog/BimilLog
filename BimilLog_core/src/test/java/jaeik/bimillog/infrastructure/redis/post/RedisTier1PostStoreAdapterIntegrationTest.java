@@ -1,5 +1,6 @@
 package jaeik.bimillog.infrastructure.redis.post;
 
+import jaeik.bimillog.domain.post.entity.CachedPost;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
@@ -11,9 +12,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -27,10 +25,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * <h2>RedisTier1PostStoreAdapter 통합 테스트</h2>
- * <p>로컬 Redis 환경에서 게시글 목록 캐시 어댑터의 핵심 기능을 검증합니다.</p>
+ * <p>로컬 Redis 환경에서 개별 String 기반 게시글 캐시 어댑터의 핵심 기능을 검증합니다.</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.5.0
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @ActiveProfiles("local-integration")
@@ -111,251 +109,204 @@ class RedisTier1PostStoreAdapterIntegrationTest {
     }
 
     @Test
-    @DisplayName("정상 케이스 - 캐시 TTL 조회")
-    void shouldReturnCacheTTL_WhenCacheExists() {
-        // Given: WEEKLY 캐시 저장 (TTL 5분)
+    @DisplayName("정상 케이스 - MGET으로 캐시된 게시글 조회")
+    void shouldReturnCachedPosts_WhenCacheExists() {
+        // Given: 개별 String 캐시로 저장
         PostCacheFlag type = PostCacheFlag.WEEKLY;
-        String hashKey = RedisPostKeys.CACHE_METADATA_MAP.get(type).key();
-
-        PostSimpleDetail post = toSimpleDetail(testPostDetail1);
-        redisTemplate.opsForHash().put(hashKey, "1", post);
-        redisTemplate.expire(hashKey, Duration.ofMinutes(5));
-
-        // When: TTL 조회
-        Long ttl = redisTier1PostStoreAdapter.getPostListCacheTTL(type);
-
-        // Then: 290~300초 사이
-        assertThat(ttl).isBetween(290L, 300L);
-    }
-
-    @Test
-    @DisplayName("정상 케이스 - 캐시 Map 조회")
-    void shouldReturnCachedPostMap_WhenHashExists() {
-        // Given: Hash에 PostSimpleDetail 저장
-        PostCacheFlag type = PostCacheFlag.WEEKLY;
-        String hashKey = RedisPostKeys.CACHE_METADATA_MAP.get(type).key();
-
         PostSimpleDetail post1 = toSimpleDetail(testPostDetail1);
         PostSimpleDetail post2 = toSimpleDetail(testPostDetail2);
 
-        redisTemplate.opsForHash().put(hashKey, "1", post1);
-        redisTemplate.opsForHash().put(hashKey, "2", post2);
+        redisTier1PostStoreAdapter.cachePost(type, post1);
+        redisTier1PostStoreAdapter.cachePost(type, post2);
 
-        // When: Map 조회
-        Map<Long, PostSimpleDetail> result = redisTier1PostStoreAdapter.getCachedPostMap(type);
+        // When: MGET으로 조회
+        Map<Long, CachedPost> result = redisTier1PostStoreAdapter.getCachedPosts(type, List.of(1L, 2L));
 
-        // Then: Map 반환 확인
+        // Then
         assertThat(result).hasSize(2);
-        assertThat(result.get(1L).getTitle()).isEqualTo("첫 번째 게시글");
-        assertThat(result.get(2L).getTitle()).isEqualTo("두 번째 게시글");
+        assertThat(result.get(1L).getData().getTitle()).isEqualTo("첫 번째 게시글");
+        assertThat(result.get(2L).getData().getTitle()).isEqualTo("두 번째 게시글");
     }
 
     @Test
-    @DisplayName("정상 케이스 - 캐시된 게시글 개수 조회")
-    void shouldReturnCachedPostCount_WhenHashExists() {
-        // Given: RedisTemplate로 직접 저장
-        PostCacheFlag cacheType = PostCacheFlag.REALTIME;
-        String hashKey = RedisPostKeys.CACHE_METADATA_MAP.get(cacheType).key();
+    @DisplayName("정상 케이스 - 캐시 미스 ID 필터링")
+    void shouldFilterMissedIds_WhenSomePostsNotCached() {
+        // Given: 일부만 캐시됨
+        PostCacheFlag type = PostCacheFlag.WEEKLY;
+        PostSimpleDetail post1 = toSimpleDetail(testPostDetail1);
+        redisTier1PostStoreAdapter.cachePost(type, post1);
 
-        // PostSimpleDetail 생성 (PostDetail에서 변환)
-        PostSimpleDetail simple1 = toSimpleDetail(testPostDetail1);
-        PostSimpleDetail simple2 = toSimpleDetail(testPostDetail2);
-        PostSimpleDetail simple3 = toSimpleDetail(testPostDetail3);
+        Map<Long, CachedPost> cachedPosts = redisTier1PostStoreAdapter.getCachedPosts(type, List.of(1L, 2L, 3L));
 
-        // Hash에 PostSimpleDetail 저장 (Field: postId, Value: PostSimpleDetail)
-        redisTemplate.opsForHash().put(hashKey, "1", simple1);
-        redisTemplate.opsForHash().put(hashKey, "2", simple2);
-        redisTemplate.opsForHash().put(hashKey, "3", simple3);
-        redisTemplate.expire(hashKey, Duration.ofMinutes(5));
+        // When: 캐시 미스 ID 필터링
+        List<Long> missedIds = redisTier1PostStoreAdapter.filterMissedIds(List.of(1L, 2L, 3L), cachedPosts);
 
-        // When: 개수 조회
-        long count = redisTier1PostStoreAdapter.getCachedPostCount(cacheType);
-
-        // Then: 3개의 게시글 개수 확인
-        assertThat(count).isEqualTo(3);
+        // Then
+        assertThat(missedIds).containsExactlyInAnyOrder(2L, 3L);
     }
 
     @Test
-    @DisplayName("정상 케이스 - 빈 캐시 개수 조회")
-    void shouldReturnZeroCount_WhenNoCachedPostsExist() {
-        // Given: 캐시가 없는 상태
-        PostCacheFlag cacheType = PostCacheFlag.REALTIME;
-
-        // When: 개수 조회
-        long count = redisTier1PostStoreAdapter.getCachedPostCount(cacheType);
-
-        // Then: 0 반환
-        assertThat(count).isEqualTo(0);
-    }
-
-    @Test
-    @DisplayName("정상 케이스 - 페이징 조회 시 일부 게시글만 캐시된 경우 존재하는 것만 조회")
-    void shouldReturnOnlyCachedPosts_WhenSomePostsAreMissing() {
-        // Given: RedisTemplate로 직접 저장 (postIds는 3개, Hash에는 2개만 저장)
-        PostCacheFlag cacheType = PostCacheFlag.WEEKLY;
-        String hashKey = RedisPostKeys.CACHE_METADATA_MAP.get(cacheType).key();
-        String postIdsKey = RedisPostKeys.getPostIdsStorageKey(cacheType);
-
-        // Hash에 PostSimpleDetail 2개만 저장 (3번은 저장하지 않음)
-        redisTemplate.opsForHash().put(hashKey, "1", toSimpleDetail(testPostDetail1));
-        redisTemplate.opsForHash().put(hashKey, "2", toSimpleDetail(testPostDetail2));
-        redisTemplate.expire(hashKey, Duration.ofMinutes(5));
-
-        // postIds 저장소에는 3개 모두 저장 (WEEKLY는 Sorted Set)
-        redisTemplate.opsForZSet().add(postIdsKey, "1", 1.0);
-        redisTemplate.opsForZSet().add(postIdsKey, "2", 2.0);
-        redisTemplate.opsForZSet().add(postIdsKey, "3", 3.0);
-
-        // When: 페이징 목록 조회
-        Pageable pageable = PageRequest.of(0, 10);
-        Page<PostSimpleDetail> result = redisTier1PostStoreAdapter.getCachedPostListPaged(cacheType, pageable);
-
-        // Then: Hash에 있는 2개만 반환 (필터링됨)
-        assertThat(result.getContent()).hasSize(2);
-        assertThat(result.getContent()).extracting("id").containsExactly(1L, 2L);
-    }
-
-    @Test
-    @DisplayName("정상 케이스 - 레전드 게시글 목록 페이지네이션 조회 (첫 페이지와 두 번째 페이지)")
-    void shouldReturnPagedLists_FirstAndSecondPage() {
-        RedisTestHelper.flushRedis(redisTemplate);
-
-        // Given: RedisTemplate로 직접 20개의 레전드 게시글 저장
-        String hashKey = RedisPostKeys.CACHE_METADATA_MAP.get(PostCacheFlag.LEGEND).key();
-        String postIdsKey = RedisPostKeys.getPostIdsStorageKey(PostCacheFlag.LEGEND);
-
-        for (long i = 1; i <= 20; i++) {
-            // PostDetail 생성
-            PostDetail detail = PostDetail.builder()
-                    .id(i)
-                    .title("게시글 " + i)
-                    .content("내용 " + i)
-                    .viewCount((int) (i * 10))
-                    .likeCount((int) (i * 5))
-                    .commentCount((int) i)
-                    .isLiked(false)
-                    .createdAt(Instant.now())
-                    .memberId(i)
-                    .memberName("member" + i)
-                    .build();
-
-            // Hash에 PostSimpleDetail 저장
-            redisTemplate.opsForHash().put(hashKey, String.valueOf(i), toSimpleDetail(detail));
-
-            // postIds 저장소에 순서 저장 (LEGEND는 Sorted Set)
-            redisTemplate.opsForZSet().add(postIdsKey, String.valueOf(i), (double) i);
-        }
-        redisTemplate.expire(hashKey, Duration.ofMinutes(5));
-
-        // When & Then - 케이스 1: 첫 페이지 조회 (페이지 0, 사이즈 10)
-        Pageable firstPage = PageRequest.of(0, 10);
-        Page<PostSimpleDetail> firstResult = redisTier1PostStoreAdapter.getCachedPostListPaged(PostCacheFlag.LEGEND, firstPage);
-
-        assertThat(firstResult.getContent()).hasSize(10);
-        assertThat(firstResult.getTotalElements()).isEqualTo(20);
-        assertThat(firstResult.getTotalPages()).isEqualTo(2);
-        assertThat(firstResult.getNumber()).isEqualTo(0); // 현재 페이지 번호
-        assertThat(firstResult.getContent().get(0).getId()).isEqualTo(1L);
-        assertThat(firstResult.getContent().get(9).getId()).isEqualTo(10L);
-
-        // When & Then - 케이스 2: 두 번째 페이지 조회 (페이지 1, 사이즈 10)
-        Pageable secondPage = PageRequest.of(1, 10);
-        Page<PostSimpleDetail> secondResult = redisTier1PostStoreAdapter.getCachedPostListPaged(PostCacheFlag.LEGEND, secondPage);
-
-        assertThat(secondResult.getContent()).hasSize(10);
-        assertThat(secondResult.getTotalElements()).isEqualTo(20);
-        assertThat(secondResult.getNumber()).isEqualTo(1); // 두 번째 페이지
-        assertThat(secondResult.getContent().get(0).getId()).isEqualTo(11L);
-        assertThat(secondResult.getContent().get(9).getId()).isEqualTo(20L);
-    }
-
-    @Test
-    @DisplayName("경계값 - 빈 레전드 목록 페이지네이션 조회")
-    void shouldReturnEmptyPage_WhenNoLegendPostsExist() {
-        // Given: 레전드 게시글이 없는 상태
-        Pageable pageable = PageRequest.of(0, 10);
-
-        // When: 페이지네이션 조회
-        Page<PostSimpleDetail> result = redisTier1PostStoreAdapter.getCachedPostListPaged(PostCacheFlag.LEGEND, pageable);
-
-        // Then: 빈 페이지 반환
-        assertThat(result.getContent()).isEmpty();
-        assertThat(result.getTotalElements()).isEqualTo(0);
-        assertThat(result.getTotalPages()).isEqualTo(0);
-    }
-
-    @Test
-    @DisplayName("정상 케이스 - 게시글 목록 캐시 저장")
-    void shouldCachePostList_WhenValidPostsProvided() {
+    @DisplayName("정상 케이스 - 개별 게시글 캐시 저장 및 TTL 확인")
+    void shouldCachePost_WithCorrectTTL() {
         // Given
         PostCacheFlag type = PostCacheFlag.WEEKLY;
+        PostSimpleDetail post = toSimpleDetail(testPostDetail1);
+
+        // When: 개별 저장
+        redisTier1PostStoreAdapter.cachePost(type, post);
+
+        // Then: 캐시 키 존재 및 TTL 확인
+        String key = RedisPostKeys.getSimplePostKey(type, post.getId());
+        assertThat(redisTemplate.hasKey(key)).isTrue();
+
+        Long ttl = redisTemplate.getExpire(key, TimeUnit.SECONDS);
+        assertThat(ttl).isBetween(290L, 300L); // 5분 TTL
+    }
+
+    @Test
+    @DisplayName("정상 케이스 - 여러 게시글 캐시 저장")
+    void shouldCachePosts_WhenMultiplePostsProvided() {
+        // Given
+        PostCacheFlag type = PostCacheFlag.REALTIME;
         List<PostSimpleDetail> posts = List.of(
                 toSimpleDetail(testPostDetail1),
-                toSimpleDetail(testPostDetail2)
+                toSimpleDetail(testPostDetail2),
+                toSimpleDetail(testPostDetail3)
         );
 
-        // When: 목록 저장
-        redisTier1PostStoreAdapter.cachePostList(type, posts);
+        // When: 여러 개 저장
+        redisTier1PostStoreAdapter.cachePosts(type, posts);
 
-        // Then: Hash에 저장 확인
-        String hashKey = RedisPostKeys.CACHE_METADATA_MAP.get(type).key();
-        assertThat(redisTemplate.hasKey(hashKey)).isTrue();
-        assertThat(redisTemplate.opsForHash().size(hashKey)).isEqualTo(2);
-
-        // TTL 확인 (5분)
-        Long ttl = redisTemplate.getExpire(hashKey, TimeUnit.SECONDS);
-        assertThat(ttl).isBetween(290L, 300L);
+        // Then: 모든 키 존재 확인
+        for (PostSimpleDetail post : posts) {
+            String key = RedisPostKeys.getSimplePostKey(type, post.getId());
+            assertThat(redisTemplate.hasKey(key)).isTrue();
+        }
     }
 
     @Test
-    @DisplayName("정상 케이스 - 게시글 목록 캐시 전체 삭제")
-    void shouldClearPostListCache() {
-        // Given: post:weekly:list Hash에 여러 게시글 추가
-        PostCacheFlag type = PostCacheFlag.WEEKLY;
-        String hashKey = RedisPostKeys.CACHE_METADATA_MAP.get(type).key();
-
-        redisTemplate.opsForHash().put(hashKey, "1", testPostDetail1);
-        redisTemplate.opsForHash().put(hashKey, "2", testPostDetail2);
-
-        // 저장 확인
-        assertThat(redisTemplate.hasKey(hashKey)).isTrue();
-        assertThat(redisTemplate.opsForHash().size(hashKey)).isEqualTo(2);
-
-        // When: clearPostListCache() 호출
-        redisTier1PostStoreAdapter.clearPostListCache(type);
-
-        // Then: Hash 전체가 삭제됨 확인
-        assertThat(redisTemplate.hasKey(hashKey)).isFalse();
-    }
-
-    @Test
-    @DisplayName("정상 케이스 - 목록 캐시에서 단일 게시글 제거 (모든 Hash 필드 삭제)")
-    void shouldRemovePostFromListCache() {
-        // Given: 모든 타입의 Hash에 게시글 추가
+    @DisplayName("정상 케이스 - 단일 캐시 삭제")
+    void shouldRemovePostFromCache() {
+        // Given: 모든 타입에 게시글 캐시 저장
         Long postId = 1L;
+        PostSimpleDetail post = toSimpleDetail(testPostDetail1);
 
-        // 모든 캐시 타입에 게시글 추가
-        String realtimeKey = RedisPostKeys.CACHE_METADATA_MAP.get(PostCacheFlag.REALTIME).key();
-        String weeklyKey = RedisPostKeys.CACHE_METADATA_MAP.get(PostCacheFlag.WEEKLY).key();
-        String legendKey = RedisPostKeys.CACHE_METADATA_MAP.get(PostCacheFlag.LEGEND).key();
-        String noticeKey = RedisPostKeys.CACHE_METADATA_MAP.get(PostCacheFlag.NOTICE).key();
-
-        redisTemplate.opsForHash().put(realtimeKey, postId.toString(), testPostDetail1);
-        redisTemplate.opsForHash().put(weeklyKey, postId.toString(), testPostDetail1);
-        redisTemplate.opsForHash().put(legendKey, postId.toString(), testPostDetail1);
-        redisTemplate.opsForHash().put(noticeKey, postId.toString(), testPostDetail1);
+        for (PostCacheFlag type : PostCacheFlag.values()) {
+            redisTier1PostStoreAdapter.cachePost(type, post);
+        }
 
         // 저장 확인
-        assertThat(redisTemplate.opsForHash().hasKey(realtimeKey, postId.toString())).isTrue();
-        assertThat(redisTemplate.opsForHash().hasKey(weeklyKey, postId.toString())).isTrue();
+        for (PostCacheFlag type : PostCacheFlag.values()) {
+            String key = RedisPostKeys.getSimplePostKey(type, postId);
+            assertThat(redisTemplate.hasKey(key)).isTrue();
+        }
 
-        // When: removePostFromListCache() 호출 (모든 타입에서 제거)
-        redisTier1PostStoreAdapter.removePostFromListCache(postId);
+        // When: 삭제
+        redisTier1PostStoreAdapter.removePostFromCache(postId);
 
-        // Then: 모든 Hash에서 필드가 삭제됨 확인
-        assertThat(redisTemplate.opsForHash().hasKey(realtimeKey, postId.toString())).isFalse();
-        assertThat(redisTemplate.opsForHash().hasKey(weeklyKey, postId.toString())).isFalse();
-        assertThat(redisTemplate.opsForHash().hasKey(legendKey, postId.toString())).isFalse();
-        assertThat(redisTemplate.opsForHash().hasKey(noticeKey, postId.toString())).isFalse();
+        // Then: 모든 타입에서 삭제됨
+        for (PostCacheFlag type : PostCacheFlag.values()) {
+            String key = RedisPostKeys.getSimplePostKey(type, postId);
+            assertThat(redisTemplate.hasKey(key)).isFalse();
+        }
+    }
+
+    @Test
+    @DisplayName("정상 케이스 - 특정 타입의 캐시만 삭제")
+    void shouldRemovePostFromCache_SpecificType() {
+        // Given: WEEKLY와 LEGEND에 게시글 캐시 저장
+        Long postId = 1L;
+        PostSimpleDetail post = toSimpleDetail(testPostDetail1);
+
+        redisTier1PostStoreAdapter.cachePost(PostCacheFlag.WEEKLY, post);
+        redisTier1PostStoreAdapter.cachePost(PostCacheFlag.LEGEND, post);
+
+        // When: WEEKLY만 삭제
+        redisTier1PostStoreAdapter.removePostFromCache(PostCacheFlag.WEEKLY, postId);
+
+        // Then: WEEKLY는 삭제, LEGEND는 유지
+        assertThat(redisTemplate.hasKey(RedisPostKeys.getSimplePostKey(PostCacheFlag.WEEKLY, postId))).isFalse();
+        assertThat(redisTemplate.hasKey(RedisPostKeys.getSimplePostKey(PostCacheFlag.LEGEND, postId))).isTrue();
+    }
+
+    @Test
+    @DisplayName("정상 케이스 - 순서 유지된 리스트 변환")
+    void shouldConvertToOrderedList() {
+        // Given
+        PostCacheFlag type = PostCacheFlag.REALTIME;
+        PostSimpleDetail post1 = toSimpleDetail(testPostDetail1);
+        PostSimpleDetail post2 = toSimpleDetail(testPostDetail2);
+        PostSimpleDetail post3 = toSimpleDetail(testPostDetail3);
+
+        redisTier1PostStoreAdapter.cachePosts(type, List.of(post1, post2, post3));
+
+        Map<Long, CachedPost> cachedPosts = redisTier1PostStoreAdapter.getCachedPosts(type, List.of(1L, 2L, 3L));
+
+        // When: 역순으로 정렬 요청
+        List<Long> orderedIds = List.of(3L, 1L, 2L);
+        List<PostSimpleDetail> result = redisTier1PostStoreAdapter.toOrderedList(orderedIds, cachedPosts);
+
+        // Then: 요청된 순서대로 반환
+        assertThat(result).hasSize(3);
+        assertThat(result.get(0).getId()).isEqualTo(3L);
+        assertThat(result.get(1).getId()).isEqualTo(1L);
+        assertThat(result.get(2).getId()).isEqualTo(2L);
+    }
+
+    @Test
+    @DisplayName("경계값 - 빈 리스트로 MGET 조회 시 빈 Map 반환")
+    void shouldReturnEmptyMap_WhenEmptyListProvided() {
+        // Given
+        PostCacheFlag type = PostCacheFlag.WEEKLY;
+
+        // When
+        Map<Long, CachedPost> result = redisTier1PostStoreAdapter.getCachedPosts(type, List.of());
+
+        // Then
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("경계값 - null 리스트로 MGET 조회 시 빈 Map 반환")
+    void shouldReturnEmptyMap_WhenNullListProvided() {
+        // Given
+        PostCacheFlag type = PostCacheFlag.WEEKLY;
+
+        // When
+        Map<Long, CachedPost> result = redisTier1PostStoreAdapter.getCachedPosts(type, null);
+
+        // Then
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("정상 케이스 - Hash Tag가 포함된 키 생성 확인")
+    void shouldGenerateKeyWithHashTag() {
+        // Given
+        PostCacheFlag type = PostCacheFlag.REALTIME;
+        Long postId = 123L;
+
+        // When
+        String key = RedisPostKeys.getSimplePostKey(type, postId);
+
+        // Then: Hash Tag 포함 확인
+        assertThat(key).contains("{realtime}");
+        assertThat(key).isEqualTo("post:{realtime}:simple:123");
+    }
+
+    @Test
+    @DisplayName("정상 케이스 - 여러 키 생성 시 모두 같은 Hash Tag")
+    void shouldGenerateKeysWithSameHashTag() {
+        // Given
+        PostCacheFlag type = PostCacheFlag.WEEKLY;
+        List<Long> postIds = List.of(1L, 2L, 3L);
+
+        // When
+        List<String> keys = RedisPostKeys.getSimplePostKeys(type, postIds);
+
+        // Then: 모든 키가 같은 Hash Tag 포함
+        for (String key : keys) {
+            assertThat(key).contains("{weekly}");
+        }
     }
 }

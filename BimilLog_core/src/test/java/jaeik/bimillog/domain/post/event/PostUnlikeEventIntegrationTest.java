@@ -41,7 +41,7 @@ public class PostUnlikeEventIntegrationTest extends BaseEventIntegrationTest {
         // When & Then
         publishAndVerify(event, () -> {
             verify(redisRealTimePostStoreAdapter).incrementRealtimePopularScore(eq(1L), eq(UNLIKE_SCORE));
-            verify(redisDetailPostStoreAdapter).deleteSinglePostCache(eq(1L));
+            verify(redisDetailPostStoreAdapter).deleteCachePost(eq(1L));
         });
     }
 
@@ -61,9 +61,9 @@ public class PostUnlikeEventIntegrationTest extends BaseEventIntegrationTest {
             verify(redisRealTimePostStoreAdapter).incrementRealtimePopularScore(eq(1L), eq(UNLIKE_SCORE));
             verify(redisRealTimePostStoreAdapter).incrementRealtimePopularScore(eq(2L), eq(UNLIKE_SCORE));
             verify(redisRealTimePostStoreAdapter).incrementRealtimePopularScore(eq(3L), eq(UNLIKE_SCORE));
-            verify(redisDetailPostStoreAdapter).deleteSinglePostCache(eq(1L));
-            verify(redisDetailPostStoreAdapter).deleteSinglePostCache(eq(2L));
-            verify(redisDetailPostStoreAdapter).deleteSinglePostCache(eq(3L));
+            verify(redisDetailPostStoreAdapter).deleteCachePost(eq(1L));
+            verify(redisDetailPostStoreAdapter).deleteCachePost(eq(2L));
+            verify(redisDetailPostStoreAdapter).deleteCachePost(eq(3L));
         });
     }
 
@@ -80,7 +80,7 @@ public class PostUnlikeEventIntegrationTest extends BaseEventIntegrationTest {
         publishEvents(events);
         verifyAsync(() -> {
             verify(redisRealTimePostStoreAdapter, times(3)).incrementRealtimePopularScore(eq(1L), eq(UNLIKE_SCORE));
-            verify(redisDetailPostStoreAdapter, times(3)).deleteSinglePostCache(eq(1L));
+            verify(redisDetailPostStoreAdapter, times(3)).deleteCachePost(eq(1L));
         });
     }
 

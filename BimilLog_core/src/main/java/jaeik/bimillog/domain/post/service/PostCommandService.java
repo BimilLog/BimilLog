@@ -8,6 +8,7 @@ import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostStoreAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisDetailPostStoreAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisTier1PostStoreAdapter;
@@ -33,6 +34,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Log
 public class PostCommandService {
     private final PostRepository postRepository;
     private final PostToMemberAdapter postToMemberAdapter;
@@ -76,24 +78,29 @@ public class PostCommandService {
      */
     @Transactional
     public void updatePost(Long memberId, Long postId, String title, String content, Integer password) {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+        // 비회원은 비밀번호를 입력해야만 한다.
+        if (memberId == null && password == null) {
+            throw new CustomException(ErrorCode.POST_BLANK_PASSWORD);
+        }
 
+        // 글 조회
+        Post post = postRepository.findById(postId).orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+
+        // 비밀번호 검증 회원은 비밀번호가 null이기 때문에 통과한다.
         if (!post.isAuthor(memberId, password)) {
             throw new CustomException(ErrorCode.POST_FORBIDDEN);
         }
 
+        // 글 수정
         post.updatePost(title, content);
 
         // 모든 관련 캐시 무효화
         try {
-            redisDetailPostStoreAdapter.deleteSinglePostCache(postId);
-            redisTier1PostStoreAdapter.removePostFromListCache(postId);
+            redisDetailPostStoreAdapter.deleteCachePost(postId);
+            redisTier1PostStoreAdapter.removePostFromCache(postId);
         } catch (Exception e) {
             log.warn("게시글 {} 캐시 무효화 실패: {}", postId, e.getMessage());
         }
-
-        log.info("게시글 수정 완료: postId={}, memberId={}, title={}", postId, memberId, title);
     }
 
     /**
@@ -108,29 +115,24 @@ public class PostCommandService {
      */
     @Transactional
     public void deletePost(Long memberId, Long postId, Integer password) {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+        Post post = postRepository.findById(postId).orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         if (!post.isAuthor(memberId, password)) {
             throw new CustomException(ErrorCode.POST_FORBIDDEN);
         }
-
-        String postTitle = post.getTitle();
 
         // CASCADE로 Comment와 PostLike 자동 삭제
         postRepository.delete(post);
 
         // 모든 관련 캐시 무효화
         try {
-            redisDetailPostStoreAdapter.deleteSinglePostCache(postId);
+            redisDetailPostStoreAdapter.deleteCachePost(postId);
             redisRealTimePostStoreAdapter.removePostIdFromRealtimeScore(postId);
-            redisTier1PostStoreAdapter.removePostFromListCache(postId);
+            redisTier1PostStoreAdapter.removePostFromCache(postId);
             redisTier2PostStoreAdapter.removePostIdFromStorage(postId);
         } catch (Exception e) {
             log.warn("게시글 {} 캐시 무효화 실패: {}", postId, e.getMessage());
         }
-
-        log.info("게시글 삭제 완료: postId={}, memberId={}, title={}", postId, memberId, postTitle);
     }
 
     /**
@@ -149,7 +151,7 @@ public class PostCommandService {
             commentCommandService.deleteCommentsByPost(postId);
             // 캐시 무효화
             try {
-                redisDetailPostStoreAdapter.deleteSinglePostCache(postId);
+                redisDetailPostStoreAdapter.deleteCachePost(postId);
             } catch (Exception e) {
                 log.warn("게시글 {} 캐시 무효화 실패: {}", postId, e.getMessage());
             }

@@ -95,12 +95,12 @@ class RedisDetailPostStoreAdapterIntegrationTest {
 
     @Test
     @DisplayName("정상 케이스 - 게시글 상세 캐시 저장")
-    void shouldCachePostDetail_WhenValidPostDetailProvided() {
+    void shouldSaveCachePostDetail_WhenValidPostProvided() {
         // Given
         String cacheKey = RedisTestHelper.RedisKeys.postDetail(testPostDetail.getId());
 
         // When: 상세 캐시 저장
-        redisDetailPostStoreAdapter.cachePostDetail(testPostDetail);
+        redisDetailPostStoreAdapter.saveCachePost(testPostDetail);
 
         // Then: 캐시 키가 존재하는지 확인
         Boolean keyExists = redisTemplate.hasKey(cacheKey);
@@ -125,14 +125,14 @@ class RedisDetailPostStoreAdapterIntegrationTest {
 
     @Test
     @DisplayName("정상 케이스 - 단일 게시글 캐시 삭제")
-    void shouldDeleteSinglePostCache_WhenPostIdProvided() {
+    void shouldDeleteIdProvidedPost() {
         // Given: 게시글 상세 캐시 저장
-        redisDetailPostStoreAdapter.cachePostDetail(testPostDetail);
+        redisDetailPostStoreAdapter.saveCachePost(testPostDetail);
         String cacheKey = RedisTestHelper.RedisKeys.postDetail(testPostDetail.getId());
         assertThat(redisTemplate.hasKey(cacheKey)).isTrue();
 
         // When: 단일 게시글 캐시 삭제
-        redisDetailPostStoreAdapter.deleteSinglePostCache(testPostDetail.getId());
+        redisDetailPostStoreAdapter.deleteCachePost(testPostDetail.getId());
 
         // Then: 캐시가 삭제됨
         assertThat(redisTemplate.hasKey(cacheKey)).isFalse();

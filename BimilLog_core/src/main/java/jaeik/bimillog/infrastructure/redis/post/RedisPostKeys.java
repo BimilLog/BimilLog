@@ -11,9 +11,10 @@ import java.util.Map;
 /**
  * <h2>게시글 Redis 키</h2>
  * <p>게시글 관련 모든 Redis 키 정의, TTL, 스코어링 상수 및 캐시 메타데이터를 관리합니다.</p>
+ * <p>Redis 클러스터 환경을 위해 Hash Tag를 사용하여 같은 타입의 키들이 동일 슬롯에 배치됩니다.</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.5.0
  */
 public final class RedisPostKeys {
 
@@ -22,6 +23,12 @@ public final class RedisPostKeys {
      * 게시글 캐시 접두사
      */
     public static final String POST_PREFIX = "post:";
+
+    /**
+     * 개별 게시글 캐시 접두사 (Hash Tag 포함)
+     * <p>Redis 클러스터에서 같은 타입의 게시글이 동일 슬롯에 배치됩니다.</p>
+     */
+    public static final String SIMPLE_POST_PREFIX = "post:{%s}:simple:";
 
     /**
      * 게시글 상세 정보 캐시 키 접미사
@@ -35,7 +42,7 @@ public final class RedisPostKeys {
      * <p>Value Type: Sorted Set (주간/레전드), Set (공지)</p>
      * <p>전체 키 형식: post:{type}:postids</p>
      */
-    public static final String POSTIDS_SUFFIX = ":postids";
+    public static final String POST_IDS_SUFFIX = ":postids";
 
     /**
      * 실시간 인기글 점수 Sorted Set 키
@@ -46,14 +53,14 @@ public final class RedisPostKeys {
     // ===================== 2. TTL (Time To Live, 만료 시간) =====================
 
     /**
-     * 단일 게시글 상세 정보 캐시 TTL (5분)
+     * 게시글 기본 캐시 TTL (5분)
      */
-    public static final Duration FULL_POST_CACHE_TTL = Duration.ofMinutes(5);
+    public static final Duration POST_CACHE_TTL = Duration.ofMinutes(5);
 
     /**
      * 주간/레전드 postId 저장소 TTL (1일)
      */
-    public static final Duration POSTIDS_TTL_WEEKLY_LEGEND = Duration.ofDays(1);
+    public static final Duration POST_IDS_TTL_WEEKLY_LEGEND = Duration.ofDays(1);
 
     // ===================== 3. SCORE CONSTANTS (점수 관련 상수) =====================
 
@@ -99,10 +106,10 @@ public final class RedisPostKeys {
      */
     private static Map<PostCacheFlag, CacheMetadata> initializeCacheMetadata() {
         Map<PostCacheFlag, CacheMetadata> map = new EnumMap<>(PostCacheFlag.class);
-        map.put(PostCacheFlag.REALTIME, new CacheMetadata("post:realtime:list", Duration.ofMinutes(5)));
-        map.put(PostCacheFlag.WEEKLY, new CacheMetadata("post:weekly:list", Duration.ofMinutes(5)));
-        map.put(PostCacheFlag.LEGEND, new CacheMetadata("post:legend:list", Duration.ofMinutes(5)));
-        map.put(PostCacheFlag.NOTICE, new CacheMetadata("post:notice:list", Duration.ofMinutes(5)));
+        map.put(PostCacheFlag.REALTIME, new CacheMetadata("post:realtime:list", POST_CACHE_TTL));
+        map.put(PostCacheFlag.WEEKLY, new CacheMetadata("post:weekly:list", POST_CACHE_TTL));
+        map.put(PostCacheFlag.LEGEND, new CacheMetadata("post:legend:list", POST_CACHE_TTL));
+        map.put(PostCacheFlag.NOTICE, new CacheMetadata("post:notice:list", POST_CACHE_TTL));
         return map;
     }
 
@@ -152,10 +159,36 @@ public final class RedisPostKeys {
      *
      * @param type 게시글 캐시 유형 (WEEKLY, LEGEND, NOTICE)
      * @return 생성된 Redis 키 (형식: post:{type}:postids)
-     * @author Jaeik
-     * @since 2.0.0
      */
     public static String getPostIdsStorageKey(PostCacheFlag type) {
-        return POST_PREFIX + type.name().toLowerCase() + POSTIDS_SUFFIX;
+        return POST_PREFIX + type.name().toLowerCase() + POST_IDS_SUFFIX;
+    }
+
+    /**
+     * <h3>개별 게시글 캐시 키 생성 (Hash Tag 포함)</h3>
+     * <p>Redis 클러스터에서 같은 타입의 게시글이 동일 슬롯에 배치됩니다.</p>
+     * <p>예: post:{realtime}:simple:123</p>
+     *
+     * @param type   게시글 캐시 유형
+     * @param postId 게시글 ID
+     * @return 생성된 Redis 키
+     */
+    public static String getSimplePostKey(PostCacheFlag type, Long postId) {
+        String typeTag = type.name().toLowerCase();
+        return String.format(SIMPLE_POST_PREFIX, typeTag) + postId;
+    }
+
+    /**
+     * <h3>개별 게시글 캐시 키 목록 생성</h3>
+     * <p>여러 postId에 대한 캐시 키 목록을 생성합니다.</p>
+     *
+     * @param type    게시글 캐시 유형
+     * @param postIds 게시글 ID 목록
+     * @return 캐시 키 목록
+     */
+    public static java.util.List<String> getSimplePostKeys(PostCacheFlag type, java.util.List<Long> postIds) {
+        return postIds.stream()
+                .map(id -> getSimplePostKey(type, id))
+                .toList();
     }
 }

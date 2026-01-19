@@ -71,9 +71,8 @@ public class PostScheduledService {
         List<Long> postIds = posts.stream().map(PostSimpleDetail::getId).toList();
 
         try {
-            redisTier1PostStoreAdapter.clearPostListCache(PostCacheFlag.WEEKLY);
             redisTier2PostStoreAdapter.cachePostIdsOnly(PostCacheFlag.WEEKLY, postIds);
-            redisTier1PostStoreAdapter.cachePostList(PostCacheFlag.WEEKLY, posts);
+            redisTier1PostStoreAdapter.cachePosts(PostCacheFlag.WEEKLY, posts);
             log.info("WEEKLY 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
         } catch (Exception e) {
             log.error("WEEKLY 캐시 업데이트 실패: {}", e.getMessage(), e);
@@ -103,9 +102,8 @@ public class PostScheduledService {
         List<Long> postIds = posts.stream().map(PostSimpleDetail::getId).toList();
 
         try {
-            redisTier1PostStoreAdapter.clearPostListCache(PostCacheFlag.LEGEND);
             redisTier2PostStoreAdapter.cachePostIdsOnly(PostCacheFlag.LEGEND, postIds);
-            redisTier1PostStoreAdapter.cachePostList(PostCacheFlag.LEGEND, posts);
+            redisTier1PostStoreAdapter.cachePosts(PostCacheFlag.LEGEND, posts);
             log.info("LEGEND 캐시 업데이트 완료. {}개의 게시글이 처리됨", posts.size());
         } catch (Exception e) {
             log.error("LEGEND 캐시 업데이트 실패: {}", e.getMessage(), e);

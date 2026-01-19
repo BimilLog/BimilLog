@@ -1,207 +1,200 @@
 package jaeik.bimillog.infrastructure.redis.post;
 
+import jaeik.bimillog.domain.post.entity.CachedPost;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
-import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.CACHE_METADATA_MAP;
-import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.CacheMetadata;
+import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.*;
 
 /**
  * <h2>레디스 게시글 캐시 티어1 저장소 어댑터</h2>
- * <p>게시글 상세를 제외한 실시간, 주간, 전설인기글과 공지사항의 글 목록 리스트를 관리한다.</p>
+ * <p>게시글 목록 캐시를 개별 String 구조로 관리합니다.</p>
+ * <p>각 게시글은 개별 TTL을 가지며, MGET으로 한 번에 조회합니다.</p>
+ * <p>Redis 클러스터 환경에서 Hash Tag를 사용하여 같은 슬롯에 배치됩니다.</p>
  *
  * @author Jaeik
- * @version 2.4.0
+ * @version 2.5.0
  */
 @Component
 @Slf4j
 @RequiredArgsConstructor
 public class RedisTier1PostStoreAdapter {
     private final RedisTemplate<String, Object> redisTemplate;
-    private final RedisTier2PostStoreAdapter redisTier2PostStoreAdapter; //TODO 티어2 의존 제거해야 함
-    private final Map<PostCacheFlag, CacheMetadata> cacheMetadataMap = CACHE_METADATA_MAP;
 
     /**
-     * <h3>TTL 조회</h3>
-     * <p>특정 캐시 유형의 남은 TTL을 초 단위로 조회합니다.</p>
+     * <h3>MGET으로 캐시된 게시글 조회</h3>
+     * <p>여러 postId에 대한 캐시를 한 번의 요청으로 조회합니다.</p>
      *
-     * @param type 조회할 인기글 캐시 유형 (REALTIME, WEEKLY, LEGEND, NOTICE)
-     * @return Long 남은 TTL (초 단위), 키가 없으면 -2, 만료 시간이 없으면 -1
+     * @param type    캐시 유형
+     * @param postIds 조회할 게시글 ID 목록
+     * @return postId를 키로, CachedPost를 값으로 하는 Map (캐시 미스는 포함되지 않음)
      */
-    public Long getPostListCacheTTL(PostCacheFlag type) {
-        CacheMetadata metadata = getCacheMetadata(type);
-        return redisTemplate.getExpire(metadata.key(), TimeUnit.SECONDS);
-    }
-
-    /**
-     * <h3>캐시 목록 맵 조회</h3>
-     * <p>Redis Hash에서 PostSimpleDetail을 Map으로 조회합니다.</p>
-     * <p>순서 정보 없이 순수하게 캐시 데이터만 반환합니다.</p>
-     *
-     * @param type 조회할 캐시 유형
-     * @return 캐시된 게시글 Map (postId -> PostSimpleDetail)
-     */
-    @SuppressWarnings("unchecked")
-    public Map<Long, PostSimpleDetail> getCachedPostMap(PostCacheFlag type) {
-        CacheMetadata metadata = getCacheMetadata(type);
-        Map<Object, Object> hashEntries = redisTemplate.opsForHash().entries(metadata.key());
-
-        if (hashEntries.isEmpty()) {
-            CacheMetricsLogger.miss(log, "post:map:" + type.name().toLowerCase(), metadata.key(), "hash_empty");
+    public Map<Long, CachedPost> getCachedPosts(PostCacheFlag type, List<Long> postIds) {
+        if (postIds == null || postIds.isEmpty()) {
             return Collections.emptyMap();
         }
 
-        Map<Long, PostSimpleDetail> cachedMap = hashEntries.entrySet().stream()
-                .collect(Collectors.toMap(
-                        e -> Long.valueOf(e.getKey().toString()),
-                        e -> (PostSimpleDetail) e.getValue()));
+        List<String> keys = getSimplePostKeys(type, postIds);
+        String logPrefix = "post:" + type.name().toLowerCase() + ":simple";
 
-        CacheMetricsLogger.hit(log, "post:map:" + type.name().toLowerCase(), metadata.key(), cachedMap.size());
-        return cachedMap;
+        List<Object> values = redisTemplate.opsForValue().multiGet(keys);
+        if (values == null) {
+            CacheMetricsLogger.miss(log, logPrefix, "mget", "null_response");
+            return Collections.emptyMap();
+        }
+
+        Map<Long, CachedPost> result = new HashMap<>();
+        int hitCount = 0;
+
+        for (int i = 0; i < postIds.size(); i++) {
+            Object value = values.get(i);
+            if (value instanceof CachedPost cachedPost) {
+                result.put(postIds.get(i), cachedPost);
+                hitCount++;
+            }
+        }
+
+        if (hitCount > 0) {
+            CacheMetricsLogger.hit(log, logPrefix, "mget", hitCount);
+        }
+        if (hitCount < postIds.size()) {
+            CacheMetricsLogger.miss(log, logPrefix, "mget", "partial_miss:" + (postIds.size() - hitCount));
+        }
+
+        return result;
     }
 
     /**
-     * <h3>캐시된 게시글 개수 조회</h3>
-     * <p>Redis Hash에 캐시된 게시글의 개수를 조회합니다.</p>
+     * <h3>PER 대상 게시글 ID 필터링</h3>
+     * <p>캐시된 게시글 중 갱신이 필요한 게시글 ID를 반환합니다.</p>
      *
-     * @param type 조회할 캐시 유형
-     * @return 캐시된 게시글 개수
+     * @param cachedPosts 캐시된 게시글 Map
+     * @return 갱신이 필요한 게시글 ID 목록
      */
-    public long getCachedPostCount(PostCacheFlag type) {
-        CacheMetadata metadata = getCacheMetadata(type);
-        return redisTemplate.opsForHash().size(metadata.key());
-    }
-
-    /**
-     * <h3>인기글 목록 페이징 조회</h3>
-     * <p>지정된 타입의 게시글 목록을 페이지네이션으로 조회합니다.</p>
-     * <p>postIds 저장소의 순서를 사용하여 페이징 및 정렬합니다.</p>
-     *
-     * @param type 조회할 캐시 유형 (WEEKLY, LEGEND, NOTICE)
-     * @param pageable 페이지 정보
-     * @return 캐시된 게시글 목록 페이지
-     */
-    public Page<PostSimpleDetail> getCachedPostListPaged(PostCacheFlag type, Pageable pageable) {
-        CacheMetadata metadata = getCacheMetadata(type);
-        String logPrefix = "post:" + type.name().toLowerCase() + ":list";
-
-        // 1. Hash에서 모든 PostSimpleDetail 조회
-        Map<Object, Object> hashEntries = redisTemplate.opsForHash().entries(metadata.key());
-        if (hashEntries.isEmpty()) {
-            CacheMetricsLogger.miss(log, logPrefix, metadata.key(), "hash_empty");
-            return new PageImpl<>(Collections.emptyList(), pageable, 0);
-        }
-
-        // 2. postIds 저장소에서 전체 순서 가져오기
-        List<Long> orderedIds = redisTier2PostStoreAdapter.getStoredPostIds(type);
-        if (orderedIds.isEmpty()) {
-            return new PageImpl<>(Collections.emptyList(), pageable, 0);
-        }
-
-        // 3. 페이징 처리
-        int page = pageable.getPageNumber();
-        int size = pageable.getPageSize();
-        int start = page * size;
-        int end = Math.min(start + size, orderedIds.size());
-
-        if (start >= orderedIds.size()) {
-            return new PageImpl<>(Collections.emptyList(), pageable, orderedIds.size());
-        }
-
-        // 4. 페이징된 ID 목록으로 PostSimpleDetail 조회
-        List<PostSimpleDetail> pagedPosts = orderedIds.subList(start, end).stream()
-                .map(id -> (PostSimpleDetail) hashEntries.get(id.toString()))
-                .filter(Objects::nonNull)
+    public List<Long> filterRefreshNeeded(Map<Long, CachedPost> cachedPosts) {
+        return cachedPosts.entrySet().stream()
+                .filter(entry -> entry.getValue().shouldRefresh())
+                .map(Map.Entry::getKey)
                 .toList();
-
-        CacheMetricsLogger.hit(log, logPrefix, metadata.key(), pagedPosts.size());
-        return new PageImpl<>(pagedPosts, pageable, orderedIds.size());
     }
 
     /**
-     * <h3>캐시 목록 저장</h3>
-     * <p>인기글 목록을 Redis Hash에 저장합니다 (TTL 5분)</p>
-     * <p>Hash 구조: Field는 postId, Value는 PostSimpleDetail 객체</p>
-     * <p>조회 시 postIds 저장소의 순서를 사용하여 정렬합니다.</p>
+     * <h3>캐시 미스 게시글 ID 필터링</h3>
+     * <p>요청한 postId 중 캐시에 없는 ID를 반환합니다.</p>
      *
-     * @param type  캐시할 게시글 유형 (REALTIME, WEEKLY, LEGEND, NOTICE)
-     * @param posts 캐시할 게시글 목록 (PostSimpleDetail)
+     * @param requestedIds 요청한 게시글 ID 목록
+     * @param cachedPosts  캐시된 게시글 Map
+     * @return 캐시 미스된 게시글 ID 목록
      */
-    public void cachePostList(PostCacheFlag type, List<PostSimpleDetail> posts) {
+    public List<Long> filterMissedIds(List<Long> requestedIds, Map<Long, CachedPost> cachedPosts) {
+        return requestedIds.stream()
+                .filter(id -> !cachedPosts.containsKey(id))
+                .toList();
+    }
+
+    /**
+     * <h3>개별 게시글 캐시 저장</h3>
+     * <p>단일 게시글을 CachedPost로 감싸서 저장합니다.</p>
+     *
+     * @param type 캐시 유형
+     * @param post 저장할 게시글
+     */
+    public void cachePost(PostCacheFlag type, PostSimpleDetail post) {
+        if (post == null || post.getId() == null) {
+            return;
+        }
+
+        String key = getSimplePostKey(type, post.getId());
+        CachedPost cachedPost = new CachedPost(post, POST_CACHE_TTL);
+
+        redisTemplate.opsForValue().set(key, cachedPost, POST_CACHE_TTL.toSeconds(), TimeUnit.SECONDS);
+        log.debug("[CACHE_WRITE] key={}, postId={}", key, post.getId());
+    }
+
+    /**
+     * <h3>여러 게시글 캐시 저장</h3>
+     * <p>Pipeline을 사용하여 여러 게시글을 효율적으로 저장합니다.</p>
+     *
+     * @param type  캐시 유형
+     * @param posts 저장할 게시글 목록
+     */
+    public void cachePosts(PostCacheFlag type, List<PostSimpleDetail> posts) {
         if (posts == null || posts.isEmpty()) {
             return;
         }
 
-        RedisPostKeys.CacheMetadata metadata = getCacheMetadata(type);
         log.info("[CACHE_WRITE] START - type={}, count={}", type, posts.size());
 
-        // Hash에 PostSimpleDetail 저장 (HSET)
-        String hashKey = metadata.key();
+        // 개별 저장 (각 키에 TTL 적용)
         for (PostSimpleDetail post : posts) {
-            redisTemplate.opsForHash().put(hashKey, post.getId().toString(), post);
+            if (post != null && post.getId() != null) {
+                String key = getSimplePostKey(type, post.getId());
+                CachedPost cachedPost = new CachedPost(post, POST_CACHE_TTL);
+                redisTemplate.opsForValue().set(key, cachedPost, POST_CACHE_TTL.toSeconds(), TimeUnit.SECONDS);
+            }
         }
-        // TTL 설정
-        redisTemplate.expire(hashKey, metadata.ttl());
-        log.info("[CACHE_WRITE] SUCCESS - type={}, ttl={}min", type, metadata.ttl().toMinutes());
+
+        log.info("[CACHE_WRITE] SUCCESS - type={}, count={}, ttl={}min", type, posts.size(), POST_CACHE_TTL.toMinutes());
     }
 
     /**
      * <h3>단일 캐시 삭제</h3>
-     * <p>모든 Redis Hash에서 특정 postId의 PostSimpleDetail을 삭제합니다.</p>
-     * <p>모든 PostCacheFlag를 순회하며 각 타입의 목록 캐시에서 제거합니다.</p>
-     * <p>게시글 수정/삭제 시 목록 캐시 무효화를 위해 호출됩니다.</p>
+     * <p>모든 캐시 유형에서 특정 postId의 캐시를 삭제합니다.</p>
      *
      * @param postId 제거할 게시글 ID
      */
-    public void removePostFromListCache(Long postId) {
-        for (PostCacheFlag type : PostCacheFlag.values()) {
-            String hashKey = RedisPostKeys.CACHE_METADATA_MAP.get(type).key();
-            redisTemplate.opsForHash().delete(hashKey, postId.toString());
+    public void removePostFromCache(Long postId) {
+        if (postId == null) {
+            return;
         }
+
+        List<String> keysToDelete = Arrays.stream(PostCacheFlag.values())
+                .map(type -> getSimplePostKey(type, postId))
+                .toList();
+
+        redisTemplate.delete(keysToDelete);
+        log.debug("[CACHE_DELETE] postId={}, keys={}", postId, keysToDelete.size());
     }
 
     /**
-     * <h3>캐시 삭제</h3>
-     * <p>특정 캐시 유형의 posts:{type} Hash 전체를 삭제합니다.</p>
-     * <p>스케줄러 재실행 시 기존 목록 캐시를 초기화하기 위해 호출됩니다.</p>
+     * <h3>특정 타입의 단일 캐시 삭제</h3>
      *
-     * @param type 삭제할 캐시 유형 (REALTIME, WEEKLY, LEGEND, NOTICE)
+     * @param type   캐시 유형
+     * @param postId 제거할 게시글 ID
      */
-    public void clearPostListCache(PostCacheFlag type) {
-        String hashKey = RedisPostKeys.CACHE_METADATA_MAP.get(type).key();
-        redisTemplate.delete(hashKey);
+    public void removePostFromCache(PostCacheFlag type, Long postId) {
+        if (postId == null) {
+            return;
+        }
+
+        String key = getSimplePostKey(type, postId);
+        redisTemplate.delete(key);
+        log.debug("[CACHE_DELETE] type={}, postId={}", type, postId);
     }
 
     /**
-     * <h3>캐시 메타데이터 조회</h3>
-     * <p>주어진 캐시 유형에 해당하는 메타데이터를 조회합니다.</p>
+     * <h3>CachedPost Map을 PostSimpleDetail 리스트로 변환</h3>
+     * <p>요청된 순서를 유지하며 변환합니다.</p>
      *
-     * @param type 게시글 캐시 유형
-     * @return 캐시 메타데이터
-     * @throws CustomException 알 수 없는 PostCacheFlag 유형인 경우
+     * @param orderedIds  정렬 순서를 가진 ID 목록
+     * @param cachedPosts 캐시된 게시글 Map
+     * @return 정렬된 PostSimpleDetail 목록
      */
-    private CacheMetadata getCacheMetadata(PostCacheFlag type) {
-        CacheMetadata metadata = cacheMetadataMap.get(type);
-        if (metadata == null) {
-            throw new CustomException(ErrorCode.POST_REDIS_READ_ERROR);
-        }
-        return metadata;
+    public List<PostSimpleDetail> toOrderedList(List<Long> orderedIds, Map<Long, CachedPost> cachedPosts) {
+        return orderedIds.stream()
+                .map(cachedPosts::get)
+                .filter(Objects::nonNull)
+                .map(CachedPost::getData)
+                .filter(Objects::nonNull)
+                .toList();
     }
+
 }

@@ -81,15 +81,8 @@ public class PostCommandController {
     public ResponseEntity<Void> updatePost(@PathVariable Long postId,
                                            @AuthenticationPrincipal CustomUserDetails userDetails,
                                            @RequestBody @Valid PostUpdateDTO postUpdateDTO) {
-
         Long memberId = (userDetails != null) ? userDetails.getMemberId() : null;
-        Integer password = postUpdateDTO.getPassword();
-
-        if (memberId == null && password == null) {
-            throw new CustomException(ErrorCode.POST_BLANK_PASSWORD);
-        }
-
-        postCommandService.updatePost(memberId, postId, postUpdateDTO.getTitle(), postUpdateDTO.getContent(), password);
+        postCommandService.updatePost(memberId, postId, postUpdateDTO.getTitle(), postUpdateDTO.getContent(), postUpdateDTO.getPassword());
         return ResponseEntity.ok().build();
     }
 
