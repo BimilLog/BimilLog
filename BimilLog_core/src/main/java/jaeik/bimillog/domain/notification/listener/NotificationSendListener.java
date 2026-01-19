@@ -5,6 +5,12 @@ import jaeik.bimillog.domain.notification.service.FcmPushService;
 import jaeik.bimillog.domain.notification.service.SseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.dao.QueryTimeoutException;
+import org.springframework.dao.TransientDataAccessException;
+import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -36,6 +42,16 @@ public class NotificationSendListener {
      */
     @Async("sseNotificationExecutor")
     @TransactionalEventListener(AlarmSendEvent.class)
+    @Retryable(
+            retryFor = {
+                    TransientDataAccessException.class,
+                    DataAccessResourceFailureException.class,
+                    RedisConnectionFailureException.class,
+                    QueryTimeoutException.class
+            },
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 2)
+    )
     public void sendSSENotification(AlarmSendEvent event) {
         sseService.sendNotification(
                 event.memberId(),
@@ -54,6 +70,16 @@ public class NotificationSendListener {
      */
     @Async("fcmNotificationExecutor")
     @TransactionalEventListener(AlarmSendEvent.class)
+    @Retryable(
+            retryFor = {
+                    TransientDataAccessException.class,
+                    DataAccessResourceFailureException.class,
+                    RedisConnectionFailureException.class,
+                    QueryTimeoutException.class
+            },
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 2)
+    )
     public void sendFCMNotification(AlarmSendEvent event) {
         fcmPushService.sendNotification(
                 event.type(),

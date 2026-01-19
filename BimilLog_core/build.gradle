@@ -46,6 +46,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation "org.springframework.cloud:spring-cloud-starter-openfeign" // 외부 API 호출용
+    implementation 'org.springframework.retry:spring-retry' // 재시도 로직 지원
 
     // ==== 데이터베이스 관련 ====
     runtimeOnly 'com.mysql:mysql-connector-j' // MySQL JDBC 드라이버

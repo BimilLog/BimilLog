@@ -7,6 +7,12 @@ import jaeik.bimillog.infrastructure.redis.paper.RedisPaperUpdateAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.dao.QueryTimeoutException;
+import org.springframework.dao.TransientDataAccessException;
+import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
@@ -42,6 +48,16 @@ public class RealtimePaperPopularScoreListener {
      */
     @EventListener
     @Async
+    @Retryable(
+            retryFor = {
+                    TransientDataAccessException.class,
+                    DataAccessResourceFailureException.class,
+                    RedisConnectionFailureException.class,
+                    QueryTimeoutException.class
+            },
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 2)
+    )
     public void handlePaperViewed(PaperViewedEvent event) {
         try {
             redisPaperUpdateAdapter.incrementRealtimePopularPaperScore(event.memberId(), VIEW_SCORE);
@@ -62,6 +78,16 @@ public class RealtimePaperPopularScoreListener {
      */
     @EventListener
     @Async
+    @Retryable(
+            retryFor = {
+                    TransientDataAccessException.class,
+                    DataAccessResourceFailureException.class,
+                    RedisConnectionFailureException.class,
+                    QueryTimeoutException.class
+            },
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 2)
+    )
     public void handleMessageCreated(RollingPaperEvent event) {
         try {
             redisPaperUpdateAdapter.incrementRealtimePopularPaperScore(event.paperOwnerId(), MESSAGE_SCORE);
@@ -82,6 +108,16 @@ public class RealtimePaperPopularScoreListener {
      */
     @EventListener
     @Async
+    @Retryable(
+            retryFor = {
+                    TransientDataAccessException.class,
+                    DataAccessResourceFailureException.class,
+                    RedisConnectionFailureException.class,
+                    QueryTimeoutException.class
+            },
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 2)
+    )
     public void handleMessageDeleted(MessageDeletedEvent event) {
         try {
             redisPaperUpdateAdapter.incrementRealtimePopularPaperScore(event.paperOwnerId(), -MESSAGE_SCORE);
