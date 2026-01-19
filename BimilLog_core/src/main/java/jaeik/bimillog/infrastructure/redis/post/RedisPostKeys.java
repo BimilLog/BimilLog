@@ -6,6 +6,7 @@ import org.springframework.data.redis.core.script.RedisScript;
 
 import java.time.Duration;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -76,44 +77,7 @@ public final class RedisPostKeys {
      */
     public static final double REALTIME_POST_SCORE_THRESHOLD = 1.0;
 
-    // ===================== 4. METADATA STRUCTURE (메타데이터 구조) =====================
-
-    /**
-     * 인기글 목록 캐시 메타데이터를 위한 내부 레코드
-     * <p>각 PostCacheFlag 타입별로 Redis 키와 TTL을 관리합니다.</p>
-     *
-     * @param key Redis 키
-     * @param ttl 캐시 만료 시간
-     */
-    public record CacheMetadata(String key, Duration ttl) {}
-
-    // ===================== 5. CACHE METADATA MAP (캐시 타입별 메타데이터 맵) =====================
-
-    /**
-     * PostCacheFlag 유형별 목록 캐시 키와 TTL을 저장하는 맵
-     * <p>REALTIME, WEEKLY, LEGEND, NOTICE 각 타입에 대한 캐시 메타데이터를 제공합니다.</p>
-     */
-    public static final Map<PostCacheFlag, CacheMetadata> CACHE_METADATA_MAP = initializeCacheMetadata();
-
-    /**
-     * <h3>캐시 메타데이터 맵 초기화</h3>
-     * <p>각 PostCacheFlag 타입에 대한 Redis 키와 TTL을 설정합니다.</p>
-     * <p>목록 캐시는 Hash 구조로 저장되며, Field는 postId, Value는 PostSimpleDetail입니다.</p>
-     *
-     * @return PostCacheFlag별 캐시 메타데이터 맵
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private static Map<PostCacheFlag, CacheMetadata> initializeCacheMetadata() {
-        Map<PostCacheFlag, CacheMetadata> map = new EnumMap<>(PostCacheFlag.class);
-        map.put(PostCacheFlag.REALTIME, new CacheMetadata("post:realtime:list", POST_CACHE_TTL));
-        map.put(PostCacheFlag.WEEKLY, new CacheMetadata("post:weekly:list", POST_CACHE_TTL));
-        map.put(PostCacheFlag.LEGEND, new CacheMetadata("post:legend:list", POST_CACHE_TTL));
-        map.put(PostCacheFlag.NOTICE, new CacheMetadata("post:notice:list", POST_CACHE_TTL));
-        return map;
-    }
-
-    // ===================== 6. LUA SCRIPT (Redis 스크립트) =====================
+    // ===================== 5. LUA SCRIPT (Redis 스크립트) =====================
 
     /**
      * 실시간 인기글 점수 감쇠를 위한 Lua 스크립트
@@ -138,7 +102,7 @@ public final class RedisPostKeys {
         SCORE_DECAY_SCRIPT = script;
     }
 
-    // ===================== 7. KEY GENERATION METHODS (키 생성 유틸리티) =====================
+    // ===================== 6. KEY GENERATION METHODS (키 생성 유틸리티) =====================
 
     /**
      * <h3>게시글 상세 캐시 키 생성</h3>
@@ -186,7 +150,7 @@ public final class RedisPostKeys {
      * @param postIds 게시글 ID 목록
      * @return 캐시 키 목록
      */
-    public static java.util.List<String> getSimplePostKeys(PostCacheFlag type, java.util.List<Long> postIds) {
+    public static List<String> getSimplePostKeys(PostCacheFlag type, List<Long> postIds) {
         return postIds.stream()
                 .map(id -> getSimplePostKey(type, id))
                 .toList();

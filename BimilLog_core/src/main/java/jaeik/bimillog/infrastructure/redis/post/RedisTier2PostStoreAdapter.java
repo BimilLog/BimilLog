@@ -109,24 +109,6 @@ public class RedisTier2PostStoreAdapter {
     }
 
     /**
-     * <h3>저장된 postIds 개수 조회</h3>
-     * <p>postIds 영구 저장소의 총 개수를 조회합니다.</p>
-     *
-     * @param type 조회할 캐시 유형 (WEEKLY, LEGEND, NOTICE)
-     * @return 저장된 postIds 총 개수
-     */
-    public long getStoredPostIdsCount(PostCacheFlag type) {
-        String postIdsKey = getPostIdsStorageKey(type);
-        if (type == PostCacheFlag.NOTICE) {
-            Long count = redisTemplate.opsForSet().size(postIdsKey);
-            return count != null ? count : 0;
-        } else {
-            Long count = redisTemplate.opsForZSet().zCard(postIdsKey);
-            return count != null ? count : 0;
-        }
-    }
-
-    /**
      * <h3>캐시 삭제</h3>
      * <p>모든 postIds 영구 저장소에서 게시글 ID를 제거합니다 (Sorted Set 또는 Set).</p>
      * <p>REALTIME을 제외한 모든 PostCacheFlag를 순회하며 저장소에서 제거합니다.</p>
