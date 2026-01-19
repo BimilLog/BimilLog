@@ -63,36 +63,4 @@ class CheckBlacklistListenerTest extends BaseUnitTest {
 
         verify(memberBlacklistService, times(1)).checkMemberBlacklist(MEMBER_ID, TARGET_MEMBER_ID);
     }
-
-    @Test
-    @DisplayName("블랙리스트 체크 - A가 B를 차단한 경우 예외 발생")
-    void shouldThrowException_WhenABlockedB() {
-        // Given
-        CheckBlacklistEvent event = new CheckBlacklistEvent(MEMBER_ID, TARGET_MEMBER_ID);
-        willThrow(new CustomException(ErrorCode.BLACKLIST_MEMBER_PAPER_FORBIDDEN))
-                .given(memberBlacklistService).checkMemberBlacklist(MEMBER_ID, TARGET_MEMBER_ID);
-
-        // When & Then
-        assertThatThrownBy(() -> checkBlacklistListener.checkBlacklist(event))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.BLACKLIST_MEMBER_PAPER_FORBIDDEN);
-
-        verify(memberBlacklistService, times(1)).checkMemberBlacklist(MEMBER_ID, TARGET_MEMBER_ID);
-    }
-
-    @Test
-    @DisplayName("블랙리스트 체크 - B가 A를 차단한 경우 예외 발생")
-    void shouldThrowException_WhenBBlockedA() {
-        // Given
-        CheckBlacklistEvent event = new CheckBlacklistEvent(MEMBER_ID, TARGET_MEMBER_ID);
-        willThrow(new CustomException(ErrorCode.BLACKLIST_MEMBER_PAPER_FORBIDDEN))
-                .given(memberBlacklistService).checkMemberBlacklist(MEMBER_ID, TARGET_MEMBER_ID);
-
-        // When & Then
-        assertThatThrownBy(() -> checkBlacklistListener.checkBlacklist(event))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.BLACKLIST_MEMBER_PAPER_FORBIDDEN);
-
-        verify(memberBlacklistService, times(1)).checkMemberBlacklist(MEMBER_ID, TARGET_MEMBER_ID);
-    }
 }

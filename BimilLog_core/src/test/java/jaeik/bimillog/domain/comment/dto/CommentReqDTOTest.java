@@ -3,6 +3,11 @@ package jaeik.bimillog.domain.comment.dto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -30,28 +35,24 @@ class CommentReqDTOTest {
         assertThat(dto.isWriteValid()).isTrue();
     }
 
-    @Test
-    @DisplayName("댓글 작성 검증 - 내용이 없는 경우")
-    void isWriteValid_EmptyContent_ReturnsFalse() {
+    @ParameterizedTest
+    @MethodSource("provideEmptyContentScenarios")
+    @DisplayName("댓글 작성 검증 - 내용이 없거나 공백인 경우")
+    void isWriteValid_EmptyOrBlankContent_ReturnsFalse(String content) {
         // Given
         CommentReqDTO dto = new CommentReqDTO();
         dto.setPostId(1L);
-        dto.setContent("");
-        
+        dto.setContent(content);
+
         // When & Then
         assertThat(dto.isWriteValid()).isFalse();
     }
 
-    @Test
-    @DisplayName("댓글 작성 검증 - 내용이 공백인 경우")
-    void isWriteValid_BlankContent_ReturnsFalse() {
-        // Given
-        CommentReqDTO dto = new CommentReqDTO();
-        dto.setPostId(1L);
-        dto.setContent("   ");
-        
-        // When & Then
-        assertThat(dto.isWriteValid()).isFalse();
+    static Stream<Arguments> provideEmptyContentScenarios() {
+        return Stream.of(
+            Arguments.of(""),      // 빈 문자열
+            Arguments.of("   ")    // 공백
+        );
     }
 
     @Test
@@ -78,14 +79,15 @@ class CommentReqDTOTest {
         assertThat(dto.isUpdateValid()).isTrue();
     }
 
-    @Test
-    @DisplayName("댓글 수정 검증 - 내용이 없는 경우")
-    void isUpdateValid_EmptyContent_ReturnsFalse() {
+    @ParameterizedTest
+    @MethodSource("provideEmptyContentScenarios")
+    @DisplayName("댓글 수정 검증 - 내용이 없거나 공백인 경우")
+    void isUpdateValid_EmptyOrBlankContent_ReturnsFalse(String content) {
         // Given
         CommentReqDTO dto = new CommentReqDTO();
         dto.setId(1L);
-        dto.setContent("");
-        
+        dto.setContent(content);
+
         // When & Then
         assertThat(dto.isUpdateValid()).isFalse();
     }
@@ -161,15 +163,16 @@ class CommentReqDTOTest {
         assertThat(dto.isReplyValid()).isFalse();
     }
 
-    @Test
-    @DisplayName("대댓글 작성 검증 - 내용이 없는 경우")
-    void isReplyValid_EmptyContent_ReturnsFalse() {
+    @ParameterizedTest
+    @MethodSource("provideEmptyContentScenarios")
+    @DisplayName("대댓글 작성 검증 - 내용이 없거나 공백인 경우")
+    void isReplyValid_EmptyOrBlankContent_ReturnsFalse(String content) {
         // Given
         CommentReqDTO dto = new CommentReqDTO();
         dto.setPostId(1L);
         dto.setParentId(2L);
-        dto.setContent("");
-        
+        dto.setContent(content);
+
         // When & Then
         assertThat(dto.isReplyValid()).isFalse();
     }
