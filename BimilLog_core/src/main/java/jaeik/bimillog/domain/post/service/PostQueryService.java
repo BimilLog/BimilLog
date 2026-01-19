@@ -90,8 +90,6 @@ public class PostQueryService {
      * @param postId 게시글 ID
      * @param memberId 현재 로그인한 사용자 ID (추천 여부 확인용, null 허용)
      * @return PostDetail 게시글 상세 정보 (좋아요 수, 댓글 수, 사용자 좋아요 여부 포함)
-     * @author Jaeik
-     * @since 2.0.0
      */
     public PostDetail getPost(Long postId, Long memberId) {
         try {

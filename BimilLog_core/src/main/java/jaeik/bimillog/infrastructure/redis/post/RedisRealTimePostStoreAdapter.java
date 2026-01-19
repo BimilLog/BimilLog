@@ -48,6 +48,42 @@ public class RedisRealTimePostStoreAdapter {
     }
 
     /**
+     * <h3>페이징된 글 ID 목록 조회</h3>
+     * <p>Redis Sorted Set에서 점수가 높은 게시글 ID를 페이징하여 조회합니다.</p>
+     *
+     * @param offset 시작 위치
+     * @param limit 조회 개수
+     * @return List<Long> 페이징된 게시글 ID 목록 (점수 내림차순)
+     */
+    public List<Long> getRealtimePopularPostIds(long offset, long limit) {
+        Set<Object> postIds = redisTemplate.opsForZSet()
+                .reverseRange(REALTIME_POST_SCORE_KEY, offset, offset + limit - 1);
+        if (postIds == null || postIds.isEmpty()) {
+            CacheMetricsLogger.miss(log, "post:realtime:paged", REALTIME_POST_SCORE_KEY, "sorted_set_empty");
+            return Collections.emptyList();
+        }
+
+        List<Long> ids = postIds.stream()
+                .map(Object::toString)
+                .map(Long::valueOf)
+                .toList();
+
+        CacheMetricsLogger.hit(log, "post:realtime:paged", REALTIME_POST_SCORE_KEY, ids.size());
+        return ids;
+    }
+
+    /**
+     * <h3>실시간 인기글 총 개수 조회</h3>
+     * <p>Redis Sorted Set에 저장된 실시간 인기글의 총 개수를 조회합니다.</p>
+     *
+     * @return 실시간 인기글 총 개수
+     */
+    public long getRealtimePopularPostCount() {
+        Long count = redisTemplate.opsForZSet().zCard(REALTIME_POST_SCORE_KEY);
+        return count != null ? count : 0;
+    }
+
+    /**
      * <h3>점수 증가</h3>
      * <p>Redis Sorted Set에서 특정 게시글의 점수를 증가시킵니다.</p>
      * <p>이벤트 리스너에서 조회/댓글/추천 이벤트 발생 시 호출됩니다.</p>

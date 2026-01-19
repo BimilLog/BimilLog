@@ -151,12 +151,11 @@ class RedisTier1PostStoreAdapterIntegrationTest {
     }
 
     @Test
-    @DisplayName("정상 케이스 - 캐시된 게시글 목록 조회")
-    void shouldReturnPostList_WhenCachedListExists() {
+    @DisplayName("정상 케이스 - 캐시된 게시글 개수 조회")
+    void shouldReturnCachedPostCount_WhenHashExists() {
         // Given: RedisTemplate로 직접 저장
         PostCacheFlag cacheType = PostCacheFlag.REALTIME;
         String hashKey = RedisPostKeys.CACHE_METADATA_MAP.get(cacheType).key();
-        String postIdsKey = RedisPostKeys.getPostIdsStorageKey(cacheType);
 
         // PostSimpleDetail 생성 (PostDetail에서 변환)
         PostSimpleDetail simple1 = toSimpleDetail(testPostDetail1);
@@ -169,40 +168,28 @@ class RedisTier1PostStoreAdapterIntegrationTest {
         redisTemplate.opsForHash().put(hashKey, "3", simple3);
         redisTemplate.expire(hashKey, Duration.ofMinutes(5));
 
-        // postIds 저장소에 순서 저장 (REALTIME은 Sorted Set 사용)
-        redisTemplate.opsForZSet().add(postIdsKey, "1", 1.0);
-        redisTemplate.opsForZSet().add(postIdsKey, "2", 2.0);
-        redisTemplate.opsForZSet().add(postIdsKey, "3", 3.0);
+        // When: 개수 조회
+        long count = redisTier1PostStoreAdapter.getCachedPostCount(cacheType);
 
-        // When: 목록 조회
-        List<PostSimpleDetail> result = redisTier1PostStoreAdapter.getCachedPostList(cacheType);
-
-        // Then: 3개의 게시글이 순서대로 조회됨
-        assertThat(result).hasSize(3);
-        assertThat(result.get(0).getId()).isEqualTo(1L);
-        assertThat(result.get(1).getId()).isEqualTo(2L);
-        assertThat(result.get(2).getId()).isEqualTo(3L);
-
-        // PostSimpleDetail로 변환되었는지 확인
-        assertThat(result.get(0).getTitle()).isEqualTo("첫 번째 게시글");
-        assertThat(result.get(0).getViewCount()).isEqualTo(100);
+        // Then: 3개의 게시글 개수 확인
+        assertThat(count).isEqualTo(3);
     }
 
     @Test
-    @DisplayName("정상 케이스 - 빈 캐시 목록 조회")
-    void shouldReturnEmptyList_WhenNoCachedPostsExist() {
+    @DisplayName("정상 케이스 - 빈 캐시 개수 조회")
+    void shouldReturnZeroCount_WhenNoCachedPostsExist() {
         // Given: 캐시가 없는 상태
         PostCacheFlag cacheType = PostCacheFlag.REALTIME;
 
-        // When: 목록 조회
-        List<PostSimpleDetail> result = redisTier1PostStoreAdapter.getCachedPostList(cacheType);
+        // When: 개수 조회
+        long count = redisTier1PostStoreAdapter.getCachedPostCount(cacheType);
 
-        // Then: 빈 목록 반환
-        assertThat(result).isEmpty();
+        // Then: 0 반환
+        assertThat(count).isEqualTo(0);
     }
 
     @Test
-    @DisplayName("정상 케이스 - 일부 게시글만 캐시된 경우 존재하는 것만 조회")
+    @DisplayName("정상 케이스 - 페이징 조회 시 일부 게시글만 캐시된 경우 존재하는 것만 조회")
     void shouldReturnOnlyCachedPosts_WhenSomePostsAreMissing() {
         // Given: RedisTemplate로 직접 저장 (postIds는 3개, Hash에는 2개만 저장)
         PostCacheFlag cacheType = PostCacheFlag.WEEKLY;
@@ -219,12 +206,13 @@ class RedisTier1PostStoreAdapterIntegrationTest {
         redisTemplate.opsForZSet().add(postIdsKey, "2", 2.0);
         redisTemplate.opsForZSet().add(postIdsKey, "3", 3.0);
 
-        // When: 목록 조회
-        List<PostSimpleDetail> result = redisTier1PostStoreAdapter.getCachedPostList(cacheType);
+        // When: 페이징 목록 조회
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<PostSimpleDetail> result = redisTier1PostStoreAdapter.getCachedPostListPaged(cacheType, pageable);
 
         // Then: Hash에 있는 2개만 반환 (필터링됨)
-        assertThat(result).hasSize(2);
-        assertThat(result).extracting("id").containsExactly(1L, 2L);
+        assertThat(result.getContent()).hasSize(2);
+        assertThat(result.getContent()).extracting("id").containsExactly(1L, 2L);
     }
 
     @Test
@@ -261,7 +249,7 @@ class RedisTier1PostStoreAdapterIntegrationTest {
 
         // When & Then - 케이스 1: 첫 페이지 조회 (페이지 0, 사이즈 10)
         Pageable firstPage = PageRequest.of(0, 10);
-        Page<PostSimpleDetail> firstResult = redisTier1PostStoreAdapter.getCachedPostListPaged(firstPage);
+        Page<PostSimpleDetail> firstResult = redisTier1PostStoreAdapter.getCachedPostListPaged(PostCacheFlag.LEGEND, firstPage);
 
         assertThat(firstResult.getContent()).hasSize(10);
         assertThat(firstResult.getTotalElements()).isEqualTo(20);
@@ -272,7 +260,7 @@ class RedisTier1PostStoreAdapterIntegrationTest {
 
         // When & Then - 케이스 2: 두 번째 페이지 조회 (페이지 1, 사이즈 10)
         Pageable secondPage = PageRequest.of(1, 10);
-        Page<PostSimpleDetail> secondResult = redisTier1PostStoreAdapter.getCachedPostListPaged(secondPage);
+        Page<PostSimpleDetail> secondResult = redisTier1PostStoreAdapter.getCachedPostListPaged(PostCacheFlag.LEGEND, secondPage);
 
         assertThat(secondResult.getContent()).hasSize(10);
         assertThat(secondResult.getTotalElements()).isEqualTo(20);
@@ -288,7 +276,7 @@ class RedisTier1PostStoreAdapterIntegrationTest {
         Pageable pageable = PageRequest.of(0, 10);
 
         // When: 페이지네이션 조회
-        Page<PostSimpleDetail> result = redisTier1PostStoreAdapter.getCachedPostListPaged(pageable);
+        Page<PostSimpleDetail> result = redisTier1PostStoreAdapter.getCachedPostListPaged(PostCacheFlag.LEGEND, pageable);
 
         // Then: 빈 페이지 반환
         assertThat(result.getContent()).isEmpty();

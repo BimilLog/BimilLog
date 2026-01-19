@@ -11,8 +11,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 /**
  * <h2>게시글 캐시 컨트롤러</h2>
  * <p>Post 도메인의 캐시 기반 조회를 담당하는 웹 어댑터입니다.</p>
@@ -36,35 +34,27 @@ public class PostCacheController {
 
     /**
      * <h3>실시간 인기글 조회 API</h3>
+     * <p>실시간 인기글로 선정된 게시글 목록을 페이징으로 조회한다.</p>
      *
-     * <p>
-     * 실시간 인기글로 선정된 게시글 목록을 조회한다.
-     * </p>
-     *
-     * @since 2.0.0
-     * @author Jaeik
-     * @return 실시간 인기글 목록
+     * @param pageable 페이지 정보
+     * @return 실시간 인기글 페이지
      */
     @GetMapping("/realtime")
-    public ResponseEntity<List<PostSimpleDetail>> getRealtimePopularPosts() {
-        List<PostSimpleDetail> realtimePosts = postCacheService.getRealtimePosts();
+    public ResponseEntity<Page<PostSimpleDetail>> getRealtimePopularPosts(Pageable pageable) {
+        Page<PostSimpleDetail> realtimePosts = postCacheService.getRealtimePosts(pageable);
         return ResponseEntity.ok(realtimePosts);
     }
 
     /**
      * <h3>주간 인기글 조회 API</h3>
+     * <p>주간 인기글로 선정된 게시글 목록을 페이징으로 조회한다.</p>
      *
-     * <p>
-     * 주간 인기글로 선정된 게시글 목록을 조회한다.
-     * </p>
-     *
-     * @since 2.0.0
-     * @author Jaeik
-     * @return 주간 인기글 목록
+     * @param pageable 페이지 정보
+     * @return 주간 인기글 페이지
      */
     @GetMapping("/weekly")
-    public ResponseEntity<List<PostSimpleDetail>> getWeeklyPopularPosts() {
-        List<PostSimpleDetail> weeklyPosts = postCacheService.getWeeklyPosts();
+    public ResponseEntity<Page<PostSimpleDetail>> getWeeklyPopularPosts(Pageable pageable) {
+        Page<PostSimpleDetail> weeklyPosts = postCacheService.getWeeklyPosts(pageable);
         return ResponseEntity.ok(weeklyPosts);
     }
 
@@ -88,18 +78,14 @@ public class PostCacheController {
 
     /**
      * <h3>공지사항 조회 API</h3>
+     * <p>공지사항으로 등록된 게시글 목록을 페이징으로 조회한다.</p>
      *
-     * <p>
-     * 공지사항으로 등록된 게시글 목록을 조회한다.
-     * </p>
-     *
-     * @since 2.0.0
-     * @author Jaeik
-     * @return 공지사항 게시글 목록
+     * @param pageable 페이지 정보
+     * @return 공지사항 게시글 페이지
      */
     @GetMapping("/notice")
-    public ResponseEntity<List<PostSimpleDetail>> getNoticeBoard() {
-        List<PostSimpleDetail> noticePosts = postCacheService.getNoticePosts();
+    public ResponseEntity<Page<PostSimpleDetail>> getNoticeBoard(Pageable pageable) {
+        Page<PostSimpleDetail> noticePosts = postCacheService.getNoticePosts(pageable);
         return ResponseEntity.ok(noticePosts);
     }
 }

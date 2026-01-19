@@ -79,23 +79,37 @@ export function usePostList(pageSize = 30) {
 export function usePopularPostsTabs() {
   const [activeTab, setActiveTab] = useState<'realtime' | 'weekly' | 'legend'>('realtime');
 
-  // 레전드 탭용 페이지네이션
+  // 각 탭별 페이지네이션
+  const realtimePagination = usePagination({ pageSize: 5 });
+  const weeklyPagination = usePagination({ pageSize: 10 });
   const legendPagination = usePagination({ pageSize: 10 });
 
-  // 실시간 인기글 조회 - 이전 데이터 유지
+  // 실시간 인기글 조회 - 페이징 적용
   const { data: realtimeData, isLoading: realtimeLoading, error: realtimeError } = useQuery({
-    queryKey: queryKeys.post.realtimePopular(),
-    queryFn: postQuery.getRealtimePosts,
+    queryKey: queryKeys.post.realtimePopular({
+      page: realtimePagination.currentPage,
+      size: realtimePagination.pageSize
+    }),
+    queryFn: () => postQuery.getRealtimePosts(
+      realtimePagination.currentPage,
+      realtimePagination.pageSize
+    ),
     enabled: activeTab === 'realtime',
     placeholderData: (previousData) => previousData, // 탭 전환 시 이전 데이터 유지
     staleTime: 2 * 60 * 1000, // 2분 (실시간성 강화)
     gcTime: 10 * 60 * 1000,
   });
 
-  // 주간 인기글 조회 - 이전 데이터 유지
+  // 주간 인기글 조회 - 페이징 적용
   const { data: weeklyData, isLoading: weeklyLoading, error: weeklyError } = useQuery({
-    queryKey: queryKeys.post.weeklyPopular(),
-    queryFn: postQuery.getWeeklyPosts,
+    queryKey: queryKeys.post.weeklyPopular({
+      page: weeklyPagination.currentPage,
+      size: weeklyPagination.pageSize
+    }),
+    queryFn: () => postQuery.getWeeklyPosts(
+      weeklyPagination.currentPage,
+      weeklyPagination.pageSize
+    ),
     enabled: activeTab === 'weekly',
     placeholderData: (previousData) => previousData, // 탭 전환 시 이전 데이터 유지
     staleTime: 5 * 60 * 1000, // 5분
@@ -115,6 +129,20 @@ export function usePopularPostsTabs() {
     gcTime: 10 * 60 * 1000,
   });
 
+  // 실시간 데이터 변경 시 페이지네이션 업데이트
+  useEffect(() => {
+    if (realtimeData?.data?.totalElements !== undefined) {
+      realtimePagination.setTotalItems(realtimeData.data.totalElements);
+    }
+  }, [realtimeData?.data?.totalElements, realtimePagination.setTotalItems]);
+
+  // 주간 데이터 변경 시 페이지네이션 업데이트
+  useEffect(() => {
+    if (weeklyData?.data?.totalElements !== undefined) {
+      weeklyPagination.setTotalItems(weeklyData.data.totalElements);
+    }
+  }, [weeklyData?.data?.totalElements, weeklyPagination.setTotalItems]);
+
   // 레전드 데이터 변경 시 페이지네이션 업데이트
   useEffect(() => {
     if (legendData?.data?.totalElements !== undefined) {
@@ -122,9 +150,9 @@ export function usePopularPostsTabs() {
     }
   }, [legendData?.data?.totalElements, legendPagination.setTotalItems]);
 
-  // 각 탭의 실제 데이터 반환 (빈 배열 대신 캐시된 데이터 유지)
-  const realtimePosts = useMemo(() => realtimeData?.data || [], [realtimeData]);
-  const weeklyPosts = useMemo(() => weeklyData?.data || [], [weeklyData]);
+  // 각 탭의 실제 데이터 반환 (Page 응답의 content 사용)
+  const realtimePosts = useMemo(() => realtimeData?.data?.content || [], [realtimeData]);
+  const weeklyPosts = useMemo(() => weeklyData?.data?.content || [], [weeklyData]);
   const legendPosts = useMemo(() => legendData?.data?.content || [], [legendData]);
 
   // 현재 활성 탭의 로딩/에러 상태 반환
@@ -142,30 +170,57 @@ export function usePopularPostsTabs() {
     return null;
   }, [activeTab, realtimeError, weeklyError, legendError]);
 
+  // 현재 활성 탭의 페이지네이션 반환
+  const currentPagination = useMemo(() => {
+    if (activeTab === 'realtime') return realtimePagination;
+    if (activeTab === 'weekly') return weeklyPagination;
+    if (activeTab === 'legend') return legendPagination;
+    return null;
+  }, [activeTab, realtimePagination, weeklyPagination, legendPagination]);
+
   return {
     realtimePosts,
     weeklyPosts,
     legendPosts,
     activeTab,
     setActiveTab,
+    realtimePagination: activeTab === 'realtime' ? realtimePagination : null,
+    weeklyPagination: activeTab === 'weekly' ? weeklyPagination : null,
     legendPagination: activeTab === 'legend' ? legendPagination : null,
+    currentPagination,
     isLoading,
     error,
   };
 }
 
-// 공지사항 조회
+// 공지사항 조회 - 페이징 적용
 export function useNoticePosts(enabled = true) {
+  const pagination = usePagination({ pageSize: 10 });
+
   const { data, isLoading, refetch } = useQuery({
-    queryKey: queryKeys.post.notices(),
-    queryFn: postQuery.getNoticePosts,
+    queryKey: queryKeys.post.notices({
+      page: pagination.currentPage,
+      size: pagination.pageSize
+    }),
+    queryFn: () => postQuery.getNoticePosts(
+      pagination.currentPage,
+      pagination.pageSize
+    ),
     enabled, // 조건부 조회 (기본값: true)
     staleTime: 5 * 60 * 1000, // 5분
     gcTime: 10 * 60 * 1000, // 10분
   });
 
+  // 데이터 변경 시 페이지네이션 업데이트
+  useEffect(() => {
+    if (data?.data?.totalElements !== undefined) {
+      pagination.setTotalItems(data.data.totalElements);
+    }
+  }, [data?.data?.totalElements, pagination.setTotalItems]);
+
   return {
-    noticePosts: data?.data || [],
+    noticePosts: data?.data?.content || [],
+    pagination,
     isLoading,
     refetch,
   };

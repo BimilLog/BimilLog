@@ -78,56 +78,39 @@ public class RedisTier1PostStoreAdapter {
     }
 
     /**
-     * <h3>캐시 목록 리스트 조회</h3>
-     * <p>Redis Hash에서 PostSimpleDetail 목록을 조회합니다.</p>
-     * <p>postIds 저장소의 순서를 사용하여 정렬합니다.</p>
+     * <h3>캐시된 게시글 개수 조회</h3>
+     * <p>Redis Hash에 캐시된 게시글의 개수를 조회합니다.</p>
      *
-     * @param type 조회할 캐시 유형 (WEEKLY, LEGEND, NOTICE)
-     * @return 캐시된 게시글 목록
+     * @param type 조회할 캐시 유형
+     * @return 캐시된 게시글 개수
      */
-    @SuppressWarnings("unchecked")
-    public List<PostSimpleDetail> getCachedPostList(PostCacheFlag type) {
-        Map<Long, PostSimpleDetail> cachedMap = getCachedPostMap(type);
-        if (cachedMap.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        // postIds 저장소에서 순서 가져오기
-        List<Long> orderedIds = redisTier2PostStoreAdapter.getStoredPostIds(type);
-        if (orderedIds.isEmpty()) {
-            CacheMetricsLogger.miss(log, "post:list:" + type.name().toLowerCase(),
-                    getCacheMetadata(type).key(), "ordered_ids_empty");
-            return Collections.emptyList();
-        }
-
-        List<PostSimpleDetail> cachedPosts = orderedIds.stream()
-                .map(cachedMap::get)
-                .filter(Objects::nonNull)
-                .toList();
-
-        CacheMetricsLogger.hit(log, "post:list:" + type.name().toLowerCase(), getCacheMetadata(type).key(), cachedPosts.size());
-        return cachedPosts;
+    public long getCachedPostCount(PostCacheFlag type) {
+        CacheMetadata metadata = getCacheMetadata(type);
+        return redisTemplate.opsForHash().size(metadata.key());
     }
 
     /**
-     * <h3>전설 인기글 목록 조회</h3>
-     * <p>레전드 게시글 목록을 페이지네이션으로 조회합니다.</p>
+     * <h3>인기글 목록 페이징 조회</h3>
+     * <p>지정된 타입의 게시글 목록을 페이지네이션으로 조회합니다.</p>
      * <p>postIds 저장소의 순서를 사용하여 페이징 및 정렬합니다.</p>
      *
+     * @param type 조회할 캐시 유형 (WEEKLY, LEGEND, NOTICE)
      * @param pageable 페이지 정보
-     * @return 캐시된 레전드 게시글 목록 페이지
+     * @return 캐시된 게시글 목록 페이지
      */
-    public Page<PostSimpleDetail> getCachedPostListPaged(Pageable pageable) {
-        CacheMetadata metadata = getCacheMetadata(PostCacheFlag.LEGEND);
+    public Page<PostSimpleDetail> getCachedPostListPaged(PostCacheFlag type, Pageable pageable) {
+        CacheMetadata metadata = getCacheMetadata(type);
+        String logPrefix = "post:" + type.name().toLowerCase() + ":list";
+
         // 1. Hash에서 모든 PostSimpleDetail 조회
         Map<Object, Object> hashEntries = redisTemplate.opsForHash().entries(metadata.key());
         if (hashEntries.isEmpty()) {
-            CacheMetricsLogger.miss(log, "post:legend:list", metadata.key(), "hash_empty");
+            CacheMetricsLogger.miss(log, logPrefix, metadata.key(), "hash_empty");
             return new PageImpl<>(Collections.emptyList(), pageable, 0);
         }
 
         // 2. postIds 저장소에서 전체 순서 가져오기
-        List<Long> orderedIds = redisTier2PostStoreAdapter.getStoredPostIds(PostCacheFlag.LEGEND);
+        List<Long> orderedIds = redisTier2PostStoreAdapter.getStoredPostIds(type);
         if (orderedIds.isEmpty()) {
             return new PageImpl<>(Collections.emptyList(), pageable, 0);
         }
@@ -148,7 +131,7 @@ public class RedisTier1PostStoreAdapter {
                 .filter(Objects::nonNull)
                 .toList();
 
-        CacheMetricsLogger.hit(log, "post:legend:list", metadata.key(), pagedPosts.size());
+        CacheMetricsLogger.hit(log, logPrefix, metadata.key(), pagedPosts.size());
         return new PageImpl<>(pagedPosts, pageable, orderedIds.size());
     }
 
