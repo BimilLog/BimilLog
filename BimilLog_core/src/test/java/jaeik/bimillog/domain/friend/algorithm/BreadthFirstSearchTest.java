@@ -26,32 +26,11 @@ class BreadthFirstSearchTest {
     private RedisFriendshipRepository redisFriendshipRepository;
 
     @Test
-    @DisplayName("1촌이 200명을 초과하면 샘플링 후 BFS 수행")
-    void shouldSampleFirstDegreeWhenExceedingLimit() {
-        BreadthFirstSearch bfs = new BreadthFirstSearch(redisFriendshipRepository);
-        Set<Long> firstDegree = new HashSet<>();
-        for (long i = 1; i <= 250; i++) {
-            firstDegree.add(i);
-        }
-
-        given(redisFriendshipRepository.getFriendsBatch(org.mockito.ArgumentMatchers.anySet()))
-                .willReturn(Map.of());
-
-        bfs.findFriendRelation(0L, firstDegree);
-
-        ArgumentCaptor<Set<Long>> captor = ArgumentCaptor.forClass(Set.class);
-        verify(redisFriendshipRepository).getFriendsBatch(captor.capture());
-
-        Set<Long> sampled = captor.getValue();
-        assertThat(sampled).hasSize(200);
-    }
-
-    @Test
-    @DisplayName("샘플링 후 2촌 계산 정확성 검증")
-    void shouldCalculateSecondDegreeCorrectlyAfterSampling() {
+    @DisplayName("1촌이 200명을 초과하면 샘플링 후 BFS 수행 및 2촌 계산 정확성 검증")
+    void shouldSampleFirstDegreeAndCalculateSecondDegreeCorrectly() {
         BreadthFirstSearch bfs = new BreadthFirstSearch(redisFriendshipRepository);
 
-        // given: 250명의 1촌
+        // Given: 250명의 1촌 (샘플링 임계값 200 초과)
         Set<Long> firstDegree = new HashSet<>();
         for (long i = 1; i <= 250; i++) {
             firstDegree.add(i);
@@ -76,19 +55,25 @@ class BreadthFirstSearchTest {
                     return result;
                 });
 
-        // when: 친구 관계 탐색 (샘플링으로 200명만 사용됨)
+        // When: 친구 관계 탐색 (샘플링으로 200명만 사용됨)
         var relation = bfs.findFriendRelation(0L, firstDegree);
 
-        // then: 2촌 후보가 존재해야 함
+        // Then 1: 샘플링이 정확히 200명으로 제한되었는지 검증
+        ArgumentCaptor<Set<Long>> captor = ArgumentCaptor.forClass(Set.class);
+        verify(redisFriendshipRepository).getFriendsBatch(captor.capture());
+        Set<Long> sampled = captor.getValue();
+        assertThat(sampled).hasSize(200);
+
+        // Then 2: 2촌 후보가 존재해야 함
         assertThat(relation.getSecondDegreeCandidates()).isNotEmpty();
 
-        // 2촌 후보는 1001, 1002, 2001, 2002 중 일부
+        // Then 3: 2촌 후보는 1001, 1002, 2001, 2002 중 일부
         Set<Long> secondDegreeIds = relation.getSecondDegreeIds();
         assertThat(secondDegreeIds).allMatch(id ->
             id == 1001L || id == 1002L || id == 2001L || id == 2002L
         );
 
-        // 각 2촌 후보는 최소 1명 이상의 중개 친구를 가져야 함
+        // Then 4: 각 2촌 후보는 최소 1명 이상의 중개 친구를 가져야 함
         for (var candidate : relation.getSecondDegreeCandidates()) {
             assertThat(candidate.getBridgeFriendIds()).isNotEmpty();
         }

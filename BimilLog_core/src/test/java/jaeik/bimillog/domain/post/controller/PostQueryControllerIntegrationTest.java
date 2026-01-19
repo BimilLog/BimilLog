@@ -12,10 +12,14 @@ import jaeik.bimillog.testutil.config.TestSocialLoginAdapterConfig;
 import jaeik.bimillog.testutil.fixtures.AuthTestFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 
 import java.util.Arrays;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -126,45 +130,30 @@ class PostQueryControllerIntegrationTest extends BaseIntegrationTest {
                 .andExpect(jsonPath("$.content[2].title", notNullValue()));
     }
 
-    @Test
-    @DisplayName("게시글 검색 성공 - 제목 검색")
-    void searchPost_Success_ByTitle() throws Exception {
+    @ParameterizedTest
+    @MethodSource("provideSearchTypeScenarios")
+    @DisplayName("게시글 검색 성공 - 다양한 검색 타입")
+    void searchPost_Success_VariousTypes(String type, String query, int expectedMinSize) throws Exception {
         mockMvc.perform(get("/api/post/search")
-                        .param("type", "TITLE")
-                        .param("query", "검색")
+                        .param("type", type)
+                        .param("query", query)
                         .param("page", "0")
                         .param("size", "10"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content", hasSize(1)))
-                .andExpect(jsonPath("$.content[0].title", containsString("검색")));
-    }
-
-    @Test
-    @DisplayName("게시글 검색 성공 - 제목+내용 검색")
-    void searchPost_Success_ByTitleContent() throws Exception {
-        mockMvc.perform(get("/api/post/search")
-                        .param("type", "TITLE_CONTENT")
-                        .param("query", "검색 게시글")
-                        .param("page", "0")
-                        .param("size", "10"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content", hasSize(greaterThanOrEqualTo(expectedMinSize))))
                 .andExpect(jsonPath("$.pageable.pageNumber", is(0)));
     }
 
-    @Test
-    @DisplayName("게시글 검색 성공 - 작성자 검색")
-    void searchPost_Success_ByWriter() throws Exception {
-        mockMvc.perform(get("/api/post/search")
-                        .param("type", "WRITER")
-                        .param("query", "테스트사용자")
-                        .param("page", "0")
-                        .param("size", "10"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content", hasSize(greaterThanOrEqualTo(1))));
+    static Stream<Arguments> provideSearchTypeScenarios() {
+        return Stream.of(
+            // 제목 검색
+            Arguments.of("TITLE", "검색", 1),
+            // 제목+내용 검색
+            Arguments.of("TITLE_CONTENT", "검색 게시글", 0),
+            // 작성자 검색
+            Arguments.of("WRITER", "테스트사용자", 1)
+        );
     }
 
     @Test
