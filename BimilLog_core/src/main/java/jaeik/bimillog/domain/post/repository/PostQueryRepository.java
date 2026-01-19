@@ -244,6 +244,70 @@ public class PostQueryRepository {
     }
 
     /**
+     * <h3>최근 인기 게시글 조회 (실시간 인기글 폴백용)</h3>
+     * <p>최근 1시간 이내 생성된 게시글 중 (조회수 + 추천수*30) 기준 상위 5개를 조회합니다.</p>
+     * <p>Redis 장애 시 실시간 인기글의 Graceful Degradation 폴백으로 사용됩니다.</p>
+     *
+     * @param pageable 페이지 정보
+     * @return 최근 인기 게시글 페이지 (PostSimpleDetail, 최대 5개)
+     */
+    @Transactional(readOnly = true)
+    public Page<PostSimpleDetail> findRecentPopularPosts(Pageable pageable) {
+        QPostLike subPostLike = new QPostLike("subPostLike");
+        JPQLQuery<Integer> likeCountSubQuery = JPAExpressions
+                .select(subPostLike.count().intValue())
+                .from(subPostLike)
+                .where(subPostLike.post.id.eq(post.id));
+
+        // 1시간 이내 생성된 게시글
+        BooleanExpression recentCondition = post.createdAt.after(Instant.now().minus(1, ChronoUnit.HOURS));
+
+        // 인기도 점수: 조회수 + (추천수 * 30)
+        var popularityScore = post.views.add(Expressions.asNumber(likeCountSubQuery).multiply(30));
+
+        // 상위 5개로 제한
+        int maxResults = 5;
+        int offset = (int) Math.min(pageable.getOffset(), maxResults);
+        int limit = Math.min(pageable.getPageSize(), maxResults - offset);
+
+        if (offset >= maxResults) {
+            return new PageImpl<>(List.of(), pageable, maxResults);
+        }
+
+        List<PostSimpleDetail> content = jpaQueryFactory
+                .select(new QPostSimpleDetail(
+                        post.id,
+                        post.title,
+                        post.views,
+                        likeCountSubQuery,
+                        post.createdAt,
+                        member.id,
+                        Expressions.stringTemplate("COALESCE({0}, {1})", member.memberName, "익명"),
+                        Expressions.constant(0)  // commentCount는 배치 조회로 채움
+                ))
+                .from(post)
+                .leftJoin(post.member, member)
+                .where(recentCondition)
+                .where(post.isNotice.isFalse())
+                .orderBy(popularityScore.desc(), post.createdAt.desc())
+                .offset(offset)
+                .limit(limit)
+                .fetch();
+
+        // 전체 개수는 최대 5개로 제한
+        Long actualTotal = jpaQueryFactory
+                .select(post.count())
+                .from(post)
+                .where(recentCondition)
+                .where(post.isNotice.isFalse())
+                .fetchOne();
+
+        long total = Math.min(actualTotal != null ? actualTotal : 0L, maxResults);
+
+        return new PageImpl<>(content, pageable, total);
+    }
+
+    /**
      * <h3>PostId 목록으로 Post 리스트 반환</h3>
      */
     public List<Post> findAllByIds(List<Long> postIds) {

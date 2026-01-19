@@ -171,7 +171,6 @@ class PostCommandServiceTest extends BaseUnitTest {
 
         given(postRepository.findById(postId)).willReturn(Optional.of(postToDelete));
         given(postToDelete.isAuthor(memberId, null)).willReturn(true);
-        given(postToDelete.getTitle()).willReturn(postTitle);
 
         // When
         postCommandService.deletePost(memberId, postId, null);

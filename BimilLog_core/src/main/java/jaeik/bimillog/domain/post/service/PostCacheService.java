@@ -4,8 +4,6 @@ import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
-import jaeik.bimillog.infrastructure.exception.CustomException;
-import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostAdapter;
@@ -41,6 +39,7 @@ public class PostCacheService {
      * <h3>실시간 인기 게시글 조회</h3>
      * <p>Redis Sorted Set에서 postId 목록을 조회하고 개별 캐시에서 상세 정보를 획득합니다.</p>
      * <p>MGET으로 한 번에 조회하며, Redis TTL 기반 PER을 적용합니다.</p>
+     * <p>Redis 장애 시 최근 1시간 이내 인기글로 Graceful Degradation 폴백합니다.</p>
      *
      * @param pageable 페이지 정보
      * @return Redis에서 조회된 실시간 인기 게시글 페이지
@@ -66,8 +65,17 @@ public class PostCacheService {
 
             return new PageImpl<>(resultPosts, pageable, totalCount);
         } catch (Exception e) {
-            throw new CustomException(ErrorCode.POST_REDIS_REALTIME_ERROR, e);
+            log.warn("[REDIS_FALLBACK] 실시간 인기글 Redis 장애, 최근 인기글로 대체: {}", e.getMessage());
+            return getRealtimePostsFromDb(pageable);
         }
+    }
+
+    /**
+     * <h3>실시간 인기 게시글 DB Fallback</h3>
+     * <p>Redis 장애 시 최근 1시간 이내 (조회수 + 추천수*3) 기준 인기글로 대체합니다.</p>
+     */
+    private Page<PostSimpleDetail> getRealtimePostsFromDb(Pageable pageable) {
+        return postQueryRepository.findRecentPopularPosts(pageable);
     }
 
     /**

@@ -123,7 +123,7 @@ class PostAdminServiceTest extends BaseUnitTest {
         verify(post).isNotice(); // 상태 확인 (if문)
         verify(post).unsetAsNotice();
         verify(redisTier2PostAdapter).removePostIdFromStorage(postId);
-        verify(redisSimplePostAdapter).removePostFromCache(postId);
+        verify(redisSimplePostAdapter).removePostFromCache(PostCacheFlag.NOTICE, postId);
     }
 
 
