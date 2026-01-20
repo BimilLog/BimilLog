@@ -15,7 +15,12 @@ public class RedisFriendKeys {
     public static final Double INTERACTION_SCORE_LIMIT = 9.5;
 
     // 상호 작용 점수 증가 기본 값
-    public static final Double INTERACTION_SCORE_DEFAULT= 0.5;
+    public static final Double INTERACTION_SCORE_DEFAULT = 0.5;
 
+    // 멱등성 보장을 위한 처리된 이벤트 Set 키
+    public static final String IDEMPOTENCY_PREFIX = "idempotency:interaction:";
+
+    // 멱등성 키 TTL (7일, 초 단위)
+    public static final Long IDEMPOTENCY_TTL_SECONDS = 7 * 24 * 60 * 60L;
 
 }

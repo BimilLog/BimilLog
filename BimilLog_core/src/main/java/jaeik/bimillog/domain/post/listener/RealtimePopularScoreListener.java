@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
  * <h2>실시간 인기글 점수 업데이트 리스너</h2>
@@ -42,7 +43,7 @@ public class RealtimePopularScoreListener {
      *
      * @param event 게시글 조회 이벤트
      */
-    @EventListener
+    @TransactionalEventListener
     @Async("realtimeEventExecutor")
     public void handlePostViewed(PostViewedEvent event) {
         redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), VIEW_SCORE);
@@ -54,7 +55,7 @@ public class RealtimePopularScoreListener {
      *
      * @param event 댓글 작성 이벤트
      */
-    @EventListener
+    @TransactionalEventListener
     @Async("realtimeEventExecutor")
     public void handleCommentCreated(CommentCreatedEvent event) {
         redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), COMMENT_SCORE);
@@ -66,7 +67,7 @@ public class RealtimePopularScoreListener {
      *
      * @param event 게시글 추천 이벤트
      */
-    @EventListener
+    @TransactionalEventListener
     @Async("realtimeEventExecutor")
     public void handlePostLiked(PostLikeEvent event) {
         redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), LIKE_SCORE);
@@ -83,7 +84,7 @@ public class RealtimePopularScoreListener {
      *
      * @param event 게시글 추천 취소 이벤트
      */
-    @EventListener
+    @TransactionalEventListener
     @Async("realtimeEventExecutor")
     public void handlePostUnliked(PostUnlikeEvent event) {
         redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), -LIKE_SCORE);
@@ -100,7 +101,7 @@ public class RealtimePopularScoreListener {
      *
      * @param event 댓글 삭제 이벤트
      */
-    @EventListener
+    @TransactionalEventListener
     @Async("realtimeEventExecutor")
     public void handleCommentDeleted(CommentDeletedEvent event) {
         redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), -COMMENT_SCORE);

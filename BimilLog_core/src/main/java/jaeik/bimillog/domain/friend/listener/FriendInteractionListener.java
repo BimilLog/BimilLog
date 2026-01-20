@@ -71,9 +71,16 @@ public class FriendInteractionListener {
             return;
         }
 
-        redisInteractionScoreRepository.addInteractionScore(event.postAuthorId(), event.likerId());
-        log.debug("게시글 좋아요 상호작용 점수 증가: postId={}, authorId={}, likerId={}",
-                event.postId(), event.postAuthorId(), event.likerId());
+        boolean processed = redisInteractionScoreRepository.addInteractionScore(
+                event.postAuthorId(), event.likerId(), event.getIdempotencyKey());
+
+        if (processed) {
+            log.debug("게시글 좋아요 상호작용 점수 증가: postId={}, authorId={}, likerId={}",
+                    event.postId(), event.postAuthorId(), event.likerId());
+        } else {
+            log.debug("이미 처리된 게시글 좋아요 이벤트 (멱등성 스킵): postId={}, idempotencyKey={}",
+                    event.postId(), event.getIdempotencyKey());
+        }
     }
 
     @Recover
@@ -118,9 +125,16 @@ public class FriendInteractionListener {
             return;
         }
 
-        redisInteractionScoreRepository.addInteractionScore(event.postUserId(), event.commenterId());
-        log.debug("댓글 작성 상호작용 점수 증가: postId={}, postUserId={}, commenterId={}",
-                event.postId(), event.postUserId(), event.commenterId());
+        boolean processed = redisInteractionScoreRepository.addInteractionScore(
+                event.postUserId(), event.commenterId(), event.getIdempotencyKey());
+
+        if (processed) {
+            log.debug("댓글 작성 상호작용 점수 증가: postId={}, postUserId={}, commenterId={}",
+                    event.postId(), event.postUserId(), event.commenterId());
+        } else {
+            log.debug("이미 처리된 댓글 작성 이벤트 (멱등성 스킵): postId={}, idempotencyKey={}",
+                    event.postId(), event.getIdempotencyKey());
+        }
     }
 
     @Recover
@@ -165,9 +179,16 @@ public class FriendInteractionListener {
             return;
         }
 
-        redisInteractionScoreRepository.addInteractionScore(event.commentAuthorId(), event.likerId());
-        log.debug("댓글 좋아요 상호작용 점수 증가: commentId={}, authorId={}, likerId={}",
-                event.commentId(), event.commentAuthorId(), event.likerId());
+        boolean processed = redisInteractionScoreRepository.addInteractionScore(
+                event.commentAuthorId(), event.likerId(), event.getIdempotencyKey());
+
+        if (processed) {
+            log.debug("댓글 좋아요 상호작용 점수 증가: commentId={}, authorId={}, likerId={}",
+                    event.commentId(), event.commentAuthorId(), event.likerId());
+        } else {
+            log.debug("이미 처리된 댓글 좋아요 이벤트 (멱등성 스킵): commentId={}, idempotencyKey={}",
+                    event.commentId(), event.getIdempotencyKey());
+        }
     }
 
     @Recover

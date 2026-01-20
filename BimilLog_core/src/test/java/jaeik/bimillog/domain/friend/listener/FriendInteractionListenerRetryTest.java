@@ -23,9 +23,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import java.time.Duration;
 
 import static jaeik.bimillog.infrastructure.redis.friend.RedisFriendKeys.INTERACTION_SCORE_DEFAULT;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.BDDMockito.willReturn;
 import static org.mockito.Mockito.*;
 
 /**
@@ -67,7 +67,7 @@ class FriendInteractionListenerRetryTest {
         // Given
         PostLikeEvent event = new PostLikeEvent(1L, 2L, 3L);
         willThrow(new RedisConnectionFailureException("Redis 연결 실패"))
-                .given(redisInteractionScoreRepository).addInteractionScore(anyLong(), anyLong());
+                .given(redisInteractionScoreRepository).addInteractionScore(anyLong(), anyLong(), anyString());
 
         // When
         listener.handlePostLiked(event);
@@ -76,7 +76,7 @@ class FriendInteractionListenerRetryTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> verify(redisInteractionScoreRepository, times(MAX_ATTEMPTS))
-                        .addInteractionScore(2L, 3L));
+                        .addInteractionScore(eq(2L), eq(3L), eq(event.getIdempotencyKey())));
     }
 
     @Test
@@ -85,7 +85,7 @@ class FriendInteractionListenerRetryTest {
         // Given
         PostLikeEvent event = new PostLikeEvent(1L, 2L, 3L);
         willThrow(new RedisConnectionFailureException("Redis 연결 실패"))
-                .given(redisInteractionScoreRepository).addInteractionScore(anyLong(), anyLong());
+                .given(redisInteractionScoreRepository).addInteractionScore(anyLong(), anyLong(), anyString());
 
         // When
         listener.handlePostLiked(event);
@@ -110,7 +110,7 @@ class FriendInteractionListenerRetryTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
-                    verify(redisInteractionScoreRepository, never()).addInteractionScore(anyLong(), anyLong());
+                    verify(redisInteractionScoreRepository, never()).addInteractionScore(anyLong(), anyLong(), anyString());
                     verify(friendEventDlqService, never()).saveScoreUp(anyLong(), anyLong(), anyDouble());
                 });
     }
@@ -121,7 +121,7 @@ class FriendInteractionListenerRetryTest {
         // Given
         CommentCreatedEvent event = new CommentCreatedEvent(1L, "작성자", 2L, 100L);
         willThrow(new RedisConnectionFailureException("Redis 연결 실패"))
-                .given(redisInteractionScoreRepository).addInteractionScore(anyLong(), anyLong());
+                .given(redisInteractionScoreRepository).addInteractionScore(anyLong(), anyLong(), anyString());
 
         // When
         listener.handleCommentCreated(event);
@@ -130,7 +130,7 @@ class FriendInteractionListenerRetryTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> verify(redisInteractionScoreRepository, times(MAX_ATTEMPTS))
-                        .addInteractionScore(1L, 2L));
+                        .addInteractionScore(eq(1L), eq(2L), eq(event.getIdempotencyKey())));
     }
 
     @Test
@@ -139,7 +139,7 @@ class FriendInteractionListenerRetryTest {
         // Given
         CommentCreatedEvent event = new CommentCreatedEvent(1L, "작성자", 2L, 100L);
         willThrow(new RedisConnectionFailureException("Redis 연결 실패"))
-                .given(redisInteractionScoreRepository).addInteractionScore(anyLong(), anyLong());
+                .given(redisInteractionScoreRepository).addInteractionScore(anyLong(), anyLong(), anyString());
 
         // When
         listener.handleCommentCreated(event);
@@ -164,7 +164,7 @@ class FriendInteractionListenerRetryTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
-                    verify(redisInteractionScoreRepository, never()).addInteractionScore(anyLong(), anyLong());
+                    verify(redisInteractionScoreRepository, never()).addInteractionScore(anyLong(), anyLong(), anyString());
                     verify(friendEventDlqService, never()).saveScoreUp(anyLong(), anyLong(), anyDouble());
                 });
     }
@@ -175,7 +175,7 @@ class FriendInteractionListenerRetryTest {
         // Given
         CommentLikeEvent event = new CommentLikeEvent(1L, 2L, 3L);
         willThrow(new RedisConnectionFailureException("Redis 연결 실패"))
-                .given(redisInteractionScoreRepository).addInteractionScore(anyLong(), anyLong());
+                .given(redisInteractionScoreRepository).addInteractionScore(anyLong(), anyLong(), anyString());
 
         // When
         listener.handleCommentLiked(event);
@@ -184,7 +184,7 @@ class FriendInteractionListenerRetryTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> verify(redisInteractionScoreRepository, times(MAX_ATTEMPTS))
-                        .addInteractionScore(2L, 3L));
+                        .addInteractionScore(eq(2L), eq(3L), eq(event.getIdempotencyKey())));
     }
 
     @Test
@@ -193,7 +193,7 @@ class FriendInteractionListenerRetryTest {
         // Given
         CommentLikeEvent event = new CommentLikeEvent(1L, 2L, 3L);
         willThrow(new RedisConnectionFailureException("Redis 연결 실패"))
-                .given(redisInteractionScoreRepository).addInteractionScore(anyLong(), anyLong());
+                .given(redisInteractionScoreRepository).addInteractionScore(anyLong(), anyLong(), anyString());
 
         // When
         listener.handleCommentLiked(event);
@@ -218,7 +218,7 @@ class FriendInteractionListenerRetryTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
-                    verify(redisInteractionScoreRepository, never()).addInteractionScore(anyLong(), anyLong());
+                    verify(redisInteractionScoreRepository, never()).addInteractionScore(anyLong(), anyLong(), anyString());
                     verify(friendEventDlqService, never()).saveScoreUp(anyLong(), anyLong(), anyDouble());
                 });
     }
@@ -230,8 +230,8 @@ class FriendInteractionListenerRetryTest {
         PostLikeEvent event = new PostLikeEvent(1L, 2L, 3L);
         willThrow(new RedisConnectionFailureException("실패"))
                 .willThrow(new RedisConnectionFailureException("실패"))
-                .willDoNothing()
-                .given(redisInteractionScoreRepository).addInteractionScore(2L, 3L);
+                .willReturn(true)
+                .given(redisInteractionScoreRepository).addInteractionScore(eq(2L), eq(3L), eq(event.getIdempotencyKey()));
 
         // When
         listener.handlePostLiked(event);
@@ -240,7 +240,7 @@ class FriendInteractionListenerRetryTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
-                    verify(redisInteractionScoreRepository, times(3)).addInteractionScore(2L, 3L);
+                    verify(redisInteractionScoreRepository, times(3)).addInteractionScore(eq(2L), eq(3L), eq(event.getIdempotencyKey()));
                     verify(friendEventDlqService, never()).saveScoreUp(anyLong(), anyLong(), anyDouble());
                 });
     }

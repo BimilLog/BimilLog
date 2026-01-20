@@ -17,7 +17,11 @@ import java.time.LocalDateTime;
  */
 @Entity
 @Table(name = "friend_event_dlq",
-        indexes = @Index(name = "idx_dlq_status_created", columnList = "status, created_at"))
+        indexes = @Index(name = "idx_dlq_status_created", columnList = "status, created_at"),
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_dlq_pending_event",
+                columnNames = {"type", "member_id", "target_id", "status"}
+        ))
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class FriendEventDlq {
