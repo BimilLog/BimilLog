@@ -39,26 +39,51 @@ public class PostCacheRefresh {
 
     /**
      * <h3>타입별 전체 Hash 캐시 비동기 갱신 (PER 기반)</h3>
-     * <p>Hash 전체 TTL 만료 임박 시 호출됩니다.</p>
-     * <p>Tier2에서 전체 postId 목록을 조회하여 Hash 전체를 갱신합니다.</p>
-     * <p>백그라운드에서 실행되므로 사용자 요청은 블로킹되지 않습니다.</p>
+     * <p>TTL 만료 임박 시 확률적으로 호출됩니다.</p>
+     * <p>PER은 이미 확률적으로 분산되어 있어 락을 사용하지 않습니다.</p>
      *
      * @param type 캐시 유형
      */
     @Async("cacheRefreshExecutor")
     public void asyncRefreshAllPosts(PostCacheFlag type) {
-        try {
-            log.info("[PER_HASH_REFRESH] 시작 - type={}, thread={}",
-                    type, Thread.currentThread().getName());
+        refreshInternal(type, "PER");
+    }
 
-            // 1. Tier2에서 전체 postId 목록 조회
+    /**
+     * <h3>타입별 전체 Hash 캐시 비동기 갱신 (개수 불일치 시)</h3>
+     * <p>Tier1/Tier2 개수 불일치 시 호출됩니다.</p>
+     * <p>캐시 스탬피드 방지를 위해 SETNX 락을 사용합니다.</p>
+     *
+     * @param type 캐시 유형
+     */
+    @Async("cacheRefreshExecutor")
+    public void asyncRefreshWithLock(PostCacheFlag type) {
+        if (!redisSimplePostAdapter.tryAcquireRefreshLock(type)) {
+            log.debug("[HASH_REFRESH] 스킵 - type={}, 이유=다른 스레드가 갱신 중", type);
+            return;
+        }
+
+        try {
+            refreshInternal(type, "COUNT_MISMATCH");
+        } finally {
+            redisSimplePostAdapter.releaseRefreshLock(type);
+        }
+    }
+
+    /**
+     * <h3>캐시 갱신 내부 로직</h3>
+     */
+    private void refreshInternal(PostCacheFlag type, String reason) {
+        try {
+            log.info("[HASH_REFRESH] 시작 - type={}, reason={}, thread={}",
+                    type, reason, Thread.currentThread().getName());
+
             List<Long> allPostIds = getPostIdsByType(type);
             if (allPostIds.isEmpty()) {
-                log.warn("[PER_HASH_REFRESH] 실패 - type={}, 이유=Tier2에 postId 없음", type);
+                log.warn("[HASH_REFRESH] 실패 - type={}, 이유=Tier2에 postId 없음", type);
                 return;
             }
 
-            // 2. DB에서 PostDetail 조회 후 PostSimpleDetail 변환
             List<PostSimpleDetail> refreshed = allPostIds.stream()
                     .map(postId -> postQueryRepository.findPostDetail(postId, null).orElse(null))
                     .filter(Objects::nonNull)
@@ -66,17 +91,15 @@ public class PostCacheRefresh {
                     .toList();
 
             if (refreshed.isEmpty()) {
-                log.warn("[PER_HASH_REFRESH] 실패 - type={}, 이유=DB 조회 결과 없음", type);
+                log.warn("[HASH_REFRESH] 실패 - type={}, 이유=DB 조회 결과 없음", type);
                 return;
             }
 
-            // 3. Hash 캐시 전체 저장 (HMSET 1회)
             redisSimplePostAdapter.cachePosts(type, refreshed);
-
-            log.info("[PER_HASH_REFRESH] 완료 - type={}, count={}", type, refreshed.size());
+            log.info("[HASH_REFRESH] 완료 - type={}, reason={}, count={}", type, reason, refreshed.size());
 
         } catch (Exception e) {
-            log.error("[PER_HASH_REFRESH] 에러 - type={}", type, e);
+            log.error("[HASH_REFRESH] 에러 - type={}, reason={}", type, reason, e);
         }
     }
 

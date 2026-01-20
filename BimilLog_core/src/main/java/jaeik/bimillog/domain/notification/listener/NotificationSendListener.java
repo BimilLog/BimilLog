@@ -1,19 +1,20 @@
 package jaeik.bimillog.domain.notification.listener;
 
+import com.google.firebase.messaging.FirebaseMessagingException;
 import jaeik.bimillog.domain.notification.event.AlarmSendEvent;
 import jaeik.bimillog.domain.notification.service.FcmPushService;
 import jaeik.bimillog.domain.notification.service.SseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataAccessResourceFailureException;
-import org.springframework.dao.QueryTimeoutException;
-import org.springframework.dao.TransientDataAccessException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
+
+import java.io.IOException;
+import java.net.SocketTimeoutException;
 
 import jaeik.bimillog.infrastructure.log.Log;
 
@@ -44,9 +45,8 @@ public class NotificationSendListener {
     @TransactionalEventListener(AlarmSendEvent.class)
     @Retryable(
             retryFor = {
-                    TransientDataAccessException.class,
-                    DataAccessResourceFailureException.class,
-                    QueryTimeoutException.class
+                    IOException.class,
+                    SocketTimeoutException.class
             },
             maxAttemptsExpression = "${retry.max-attempts}",
             backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
@@ -71,9 +71,8 @@ public class NotificationSendListener {
     @TransactionalEventListener(AlarmSendEvent.class)
     @Retryable(
             retryFor = {
-                    TransientDataAccessException.class,
-                    DataAccessResourceFailureException.class,
-                    QueryTimeoutException.class
+                    FirebaseMessagingException.class,
+                    IOException.class
             },
             maxAttemptsExpression = "${retry.max-attempts}",
             backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")

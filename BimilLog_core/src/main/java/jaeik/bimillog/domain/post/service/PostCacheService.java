@@ -187,13 +187,13 @@ public class PostCacheService {
         // 2. Tier2 전체 개수 조회
         int tier2Count = getTier2Count(type);
 
-        // 3. 개수 비교: 불일치 시 캐시 미스 → 전체 갱신
+        // 3. 개수 비교: 불일치 시 캐시 미스 → 락 기반 전체 갱신
         if (cachedPosts.size() != tier2Count) {
             log.info("[CACHE_MISS] 개수 불일치 - type={}, tier1={}, tier2={}",
                     type, cachedPosts.size(), tier2Count);
-            postCacheRefresh.asyncRefreshAllPosts(type);
+            postCacheRefresh.asyncRefreshWithLock(type);
         } else {
-            // 4. 개수 일치 시 TTL 기반 PER 처리
+            // 4. 개수 일치 시 TTL 기반 PER 처리 (락 없음, 확률 분산)
             if (redisSimplePostAdapter.shouldRefreshHash(type)) {
                 log.info("[PER] Hash 비동기 갱신 트리거 - type={}", type);
                 postCacheRefresh.asyncRefreshAllPosts(type);

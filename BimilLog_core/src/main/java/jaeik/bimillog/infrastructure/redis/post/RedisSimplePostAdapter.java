@@ -187,4 +187,40 @@ public class RedisSimplePostAdapter {
                 .filter(Objects::nonNull)
                 .toList();
     }
+
+    // ===================== 캐시 스탬피드 방지 락 =====================
+
+    /**
+     * <h3>캐시 갱신 락 획득 시도 (SETNX)</h3>
+     * <p>캐시 스탬피드를 방지하기 위해 분산 락을 사용합니다.</p>
+     * <p>락 획득에 성공하면 true, 이미 다른 스레드가 갱신 중이면 false를 반환합니다.</p>
+     *
+     * @param type 캐시 유형
+     * @return 락 획득 성공 여부
+     */
+    public boolean tryAcquireRefreshLock(PostCacheFlag type) {
+        String lockKey = getRefreshLockKey(type);
+        Boolean acquired = redisTemplate.opsForValue()
+                .setIfAbsent(lockKey, "1", REFRESH_LOCK_TTL);
+
+        if (Boolean.TRUE.equals(acquired)) {
+            log.debug("[LOCK_ACQUIRED] type={}", type);
+            return true;
+        }
+
+        log.debug("[LOCK_ALREADY_HELD] type={}", type);
+        return false;
+    }
+
+    /**
+     * <h3>캐시 갱신 락 해제</h3>
+     * <p>갱신 작업 완료 후 락을 해제합니다.</p>
+     *
+     * @param type 캐시 유형
+     */
+    public void releaseRefreshLock(PostCacheFlag type) {
+        String lockKey = getRefreshLockKey(type);
+        redisTemplate.delete(lockKey);
+        log.debug("[LOCK_RELEASED] type={}", type);
+    }
 }
