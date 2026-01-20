@@ -36,6 +36,9 @@ jobs:
           mkdir -p BimilLog_core/src/main/resources/firebase
           echo "${{ secrets.FIREBASE_ADMIN_JSON }}" | base64 -d > BimilLog_core/src/main/resources/firebase/growfarm-6cd79-firebase-adminsdk-fbsvc-ad2bc92194.json
 
+      - name: Grant execute permission for gradlew
+        run: chmod +x BimilLog_core/gradlew
+
       - name: Run tests
         working-directory: BimilLog_core
         run: ./gradlew test --no-daemon
