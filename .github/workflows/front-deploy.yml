@@ -78,6 +78,13 @@ jobs:
               # Save env file
               echo "${{ secrets.FRONTEND_ENV }}" | base64 -d > /home/ubuntu/bimillog-frontend.env
 
+              # Stop legacy container from previous deployment method (first Blue-Green deploy only)
+              if docker ps --format '{{.Names}}' | grep -q "^bimillog-frontend$"; then
+                echo "Stopping legacy bimillog-frontend container..."
+                docker stop bimillog-frontend 2>/dev/null || true
+                docker rm bimillog-frontend 2>/dev/null || true
+              fi
+
               # Determine current active container and ports
               if docker ps --format '{{.Names}}' | grep -q "^${BLUE_CONTAINER}$"; then
                 CURRENT_CONTAINER=$BLUE_CONTAINER

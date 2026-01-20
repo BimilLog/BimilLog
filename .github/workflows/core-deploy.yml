@@ -139,6 +139,10 @@ jobs:
               export REDIS_PASSWORD="${{ secrets.REDIS_PASSWORD }}"
               echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
               cd /home/ubuntu
+
+              # Create network if not exists
+              docker network create bimillog-network 2>/dev/null || true
+
               docker compose up -d redis redis-exporter prometheus node-exporter
             ENDSSH
 
@@ -190,6 +194,13 @@ jobs:
 
               echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
               docker pull $IMAGE
+
+              # Stop legacy container from previous deployment method (first Blue-Green deploy only)
+              if docker ps --format '{{.Names}}' | grep -q "^bimillog-backend$"; then
+                echo "Stopping legacy bimillog-backend container..."
+                docker stop bimillog-backend 2>/dev/null || true
+                docker rm bimillog-backend 2>/dev/null || true
+              fi
 
               # Determine current active container and ports
               if docker ps --format '{{.Names}}' | grep -q "^${BLUE_CONTAINER}$"; then
