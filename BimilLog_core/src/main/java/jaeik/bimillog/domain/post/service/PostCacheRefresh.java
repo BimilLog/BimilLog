@@ -59,7 +59,6 @@ public class PostCacheRefresh {
     @Async("cacheRefreshExecutor")
     public void asyncRefreshWithLock(PostCacheFlag type) {
         if (!redisSimplePostAdapter.tryAcquireRefreshLock(type)) {
-            log.debug("[HASH_REFRESH] 스킵 - type={}, 이유=다른 스레드가 갱신 중", type);
             return;
         }
 
@@ -74,13 +73,8 @@ public class PostCacheRefresh {
      * <h3>캐시 갱신 내부 로직</h3>
      */
     private void refreshInternal(PostCacheFlag type, String reason) {
-        try {
-            log.info("[HASH_REFRESH] 시작 - type={}, reason={}, thread={}",
-                    type, reason, Thread.currentThread().getName());
-
             List<Long> allPostIds = getPostIdsByType(type);
             if (allPostIds.isEmpty()) {
-                log.warn("[HASH_REFRESH] 실패 - type={}, 이유=Tier2에 postId 없음", type);
                 return;
             }
 
@@ -91,16 +85,11 @@ public class PostCacheRefresh {
                     .toList();
 
             if (refreshed.isEmpty()) {
-                log.warn("[HASH_REFRESH] 실패 - type={}, 이유=DB 조회 결과 없음", type);
                 return;
             }
 
             redisSimplePostAdapter.cachePosts(type, refreshed);
-            log.info("[HASH_REFRESH] 완료 - type={}, reason={}, count={}", type, reason, refreshed.size());
 
-        } catch (Exception e) {
-            log.error("[HASH_REFRESH] 에러 - type={}, reason={}", type, reason, e);
-        }
     }
 
     /**
@@ -126,21 +115,10 @@ public class PostCacheRefresh {
      */
     @Async("cacheRefreshExecutor")
     public void asyncRefreshDetailPost(Long postId) {
-        try {
-            log.info("[PER_DETAIL_REFRESH] 시작 - postId={}, thread={}",
-                    postId, Thread.currentThread().getName());
-
             PostDetail postDetail = postQueryRepository.findPostDetail(postId, null).orElse(null);
             if (postDetail == null) {
-                log.warn("[PER_DETAIL_REFRESH] 실패 - postId={}, 이유=DB 조회 결과 없음", postId);
                 return;
             }
-
             redisDetailPostAdapter.saveCachePost(postDetail);
-            log.info("[PER_DETAIL_REFRESH] 완료 - postId={}", postId);
-
-        } catch (Exception e) {
-            log.error("[PER_DETAIL_REFRESH] 에러 - postId={}", postId, e);
-        }
     }
 }

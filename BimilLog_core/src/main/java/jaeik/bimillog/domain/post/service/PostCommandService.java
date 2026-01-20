@@ -125,14 +125,10 @@ public class PostCommandService {
         postRepository.delete(post);
 
         // 모든 관련 캐시 무효화
-        try {
             redisDetailPostAdapter.deleteCachePost(postId);
             redisRealTimePostAdapter.removePostIdFromRealtimeScore(postId);
             redisSimplePostAdapter.removePostFromCache(postId);
             redisTier2PostAdapter.removePostIdFromStorage(postId);
-        } catch (Exception e) {
-            log.warn("게시글 {} 캐시 무효화 실패: {}", postId, e.getMessage());
-        }
     }
 
     /**
@@ -150,11 +146,7 @@ public class PostCommandService {
             // FK 제약 조건 위반 방지: 게시글의 모든 댓글 먼저 삭제 (CommentClosure 포함)
             commentCommandService.deleteCommentsByPost(postId);
             // 캐시 무효화
-            try {
-                redisDetailPostAdapter.deleteCachePost(postId);
-            } catch (Exception e) {
-                log.warn("게시글 {} 캐시 무효화 실패: {}", postId, e.getMessage());
-            }
+            redisDetailPostAdapter.deleteCachePost(postId);
         }
         // 게시글 일괄 삭제
         postRepository.deleteAllByMemberId(memberId);

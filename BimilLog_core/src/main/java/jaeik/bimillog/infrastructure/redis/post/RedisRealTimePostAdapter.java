@@ -1,7 +1,9 @@
 package jaeik.bimillog.infrastructure.redis.post;
 
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
+import jaeik.bimillog.infrastructure.resilience.RealtimeScoreFallbackStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -27,6 +29,7 @@ public class RedisRealTimePostAdapter {
     private static final String REALTIME_SCORE_KEY = getScoreStorageKey(PostCacheFlag.REALTIME);
 
     private final RedisTemplate<String, Object> redisTemplate;
+    private final RealtimeScoreFallbackStore fallbackStore;
 
     /**
      * <h3>페이징된 글 ID 목록 조회</h3>
@@ -84,12 +87,29 @@ public class RedisRealTimePostAdapter {
      * <h3>점수 증가</h3>
      * <p>Redis Sorted Set에서 특정 게시글의 점수를 증가시킵니다.</p>
      * <p>이벤트 리스너에서 조회/댓글/추천 이벤트 발생 시 호출됩니다.</p>
+     * <p>Redis 장애 시 CircuitBreaker가 자동으로 fallbackMethod를 호출합니다.</p>
      *
      * @param postId 점수를 증가시킬 게시글 ID
      * @param score  증가시킬 점수 (조회: 2점, 댓글: 3점, 추천: 4점)
      */
+    @CircuitBreaker(name = "realtimeRedis", fallbackMethod = "incrementScoreFallback")
     public void incrementRealtimePopularScore(Long postId, double score) {
         redisTemplate.opsForZSet().incrementScore(REALTIME_SCORE_KEY, postId.toString(), score);
+    }
+
+    /**
+     * <h3>점수 증가 폴백</h3>
+     * <p>서킷 OPEN 또는 Redis 실패 시 ConcurrentHashMap에 점수를 저장합니다.</p>
+     *
+     * @param postId 게시글 ID
+     * @param score  증가시킬 점수
+     * @param t      발생한 예외
+     */
+    @SuppressWarnings("unused")
+    private void incrementScoreFallback(Long postId, double score, Throwable t) {
+        log.warn("[CIRCUIT_FALLBACK] Redis 실패, 폴백 저장소 사용: postId={}, error={}",
+                postId, t.getMessage());
+        fallbackStore.incrementScore(postId, score);
     }
 
     /**

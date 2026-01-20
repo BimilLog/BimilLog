@@ -8,6 +8,7 @@ import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostAdapter;
 import jaeik.bimillog.infrastructure.resilience.DbFallbackGateway;
 import jaeik.bimillog.infrastructure.resilience.FallbackType;
+import jaeik.bimillog.infrastructure.resilience.RealtimeScoreFallbackStore;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -67,6 +68,9 @@ class PostCacheServiceTest {
     @Mock
     private DbFallbackGateway dbFallbackGateway;
 
+    @Mock
+    private RealtimeScoreFallbackStore fallbackStore;
+
     @InjectMocks
     private PostCacheService postCacheService;
 
@@ -102,7 +106,7 @@ class PostCacheServiceTest {
     }
 
     @Test
-    @DisplayName("실시간 인기글 조회 - 캐시 미스 (개수 불일치 시 전체 갱신 트리거)")
+    @DisplayName("실시간 인기글 조회 - 캐시 미스 (개수 불일치 시 락 기반 전체 갱신 트리거)")
     void shouldGetRealtimePosts_CacheMiss_CountMismatch() {
         // Given
         Pageable pageable = PageRequest.of(0, 5);
@@ -122,7 +126,7 @@ class PostCacheServiceTest {
 
         // Then
         assertThat(result.getContent()).hasSize(1);
-        verify(postCacheRefresh).asyncRefreshAllPosts(PostCacheFlag.REALTIME);
+        verify(postCacheRefresh).asyncRefreshWithLock(PostCacheFlag.REALTIME);
     }
 
     @Test
@@ -311,11 +315,12 @@ class PostCacheServiceTest {
     }
 
     @Test
-    @DisplayName("실시간 인기글 조회 - 총 개수 0이면 빈 페이지 반환")
+    @DisplayName("실시간 인기글 조회 - 총 개수 0이고 폴백 저장소 비어있으면 빈 페이지 반환")
     void shouldReturnEmptyPage_WhenRealtimeCountIsZero() {
         // Given
         Pageable pageable = PageRequest.of(0, 5);
         given(redisRealTimePostAdapter.getRealtimePopularPostCount()).willReturn(0L);
+        given(fallbackStore.hasData()).willReturn(false);
 
         // When
         Page<PostSimpleDetail> result = postCacheService.getRealtimePosts(pageable);

@@ -5,28 +5,24 @@ import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
 import jaeik.bimillog.domain.post.event.PostLikeEvent;
 import jaeik.bimillog.domain.post.event.PostUnlikeEvent;
 import jaeik.bimillog.domain.post.event.PostViewedEvent;
+import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.post.RedisDetailPostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
-import org.springframework.data.redis.RedisConnectionFailureException;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Recover;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-
-import jaeik.bimillog.infrastructure.log.Log;
 
 /**
  * <h2>실시간 인기글 점수 업데이트 리스너</h2>
  * <p>게시글 조회, 댓글 작성, 추천 이벤트를 수신하여 실시간 인기글 점수를 업데이트합니다.</p>
  * <p>조회: +2점, 댓글: +3점, 추천: +4점</p>
  * <p>비동기 처리를 통해 이벤트 발행자와 독립적으로 실행됩니다.</p>
+ * <p>Redis 장애 시 @CircuitBreaker가 자동으로 ConcurrentHashMap 폴백을 처리합니다.</p>
  *
  * @author Jaeik
- * @version 2.5.0
+ * @version 2.5.1
  */
 @Log(logResult = false, level = Log.LogLevel.DEBUG, message = "실시간 인기글 점수")
 @Component
@@ -43,132 +39,70 @@ public class RealtimePopularScoreListener {
     /**
      * <h3>게시글 조회 이벤트 처리</h3>
      * <p>게시글 조회 시 실시간 인기글 점수를 2점 증가시킵니다.</p>
-     * <p>PostViewedEvent 발행 시 비동기로 호출됩니다.</p>
      *
      * @param event 게시글 조회 이벤트
-     * @author Jaeik
-     * @since 2.0.0
      */
     @EventListener
     @Async("realtimeEventExecutor")
-    @Retryable(
-            retryFor = RedisConnectionFailureException.class,
-            maxAttemptsExpression = "${retry.max-attempts}",
-            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
-    )
     public void handlePostViewed(PostViewedEvent event) {
         redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), VIEW_SCORE);
-        log.debug("실시간 인기글 점수 증가 (조회): postId={}, score=+{}", event.postId(), VIEW_SCORE);
-    }
-
-    @Recover
-    public void recoverPostViewed(Exception e, PostViewedEvent event) {
-        log.error("실시간 인기글 점수 증가 최종 실패 (조회): postId={}", event.postId(), e);
     }
 
     /**
      * <h3>댓글 작성 이벤트 처리</h3>
      * <p>댓글 작성 시 해당 게시글의 실시간 인기글 점수를 3점 증가시킵니다.</p>
-     * <p>CommentCreatedEvent 발행 시 비동기로 호출됩니다.</p>
      *
      * @param event 댓글 작성 이벤트
-     * @author Jaeik
-     * @since 2.0.0
      */
     @EventListener
     @Async("realtimeEventExecutor")
-    @Retryable(
-            retryFor = RedisConnectionFailureException.class,
-            maxAttemptsExpression = "${retry.max-attempts}",
-            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
-    )
     public void handleCommentCreated(CommentCreatedEvent event) {
         redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), COMMENT_SCORE);
-        log.debug("실시간 인기글 점수 증가 (댓글): postId={}, score=+{}", event.postId(), COMMENT_SCORE);
-    }
-
-    @Recover
-    public void recoverCommentCreated(Exception e, CommentCreatedEvent event) {
-        log.error("실시간 인기글 점수 증가 최종 실패 (댓글): postId={}", event.postId(), e);
     }
 
     /**
      * <h3>게시글 추천 이벤트 처리</h3>
      * <p>게시글 추천 시 실시간 인기글 점수를 4점 증가시키고 캐시를 무효화합니다.</p>
-     * <p>PostLikeEvent 발행 시 비동기로 호출됩니다.</p>
      *
      * @param event 게시글 추천 이벤트
-     * @author Jaeik
-     * @since 2.0.0
      */
     @EventListener
     @Async("realtimeEventExecutor")
-    @Retryable(
-            retryFor = RedisConnectionFailureException.class,
-            maxAttemptsExpression = "${retry.max-attempts}",
-            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
-    )
     public void handlePostLiked(PostLikeEvent event) {
         redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), LIKE_SCORE);
-        redisDetailPostAdapter.deleteCachePost(event.postId());
-        log.debug("실시간 인기글 점수 증가 및 캐시 무효화 (추천): postId={}, score=+{}", event.postId(), LIKE_SCORE);
-    }
-
-    @Recover
-    public void recoverPostLiked(Exception e, PostLikeEvent event) {
-        log.error("실시간 인기글 점수 증가 최종 실패 (추천): postId={}", event.postId(), e);
+        try {
+            redisDetailPostAdapter.deleteCachePost(event.postId());
+        } catch (Exception ignored) {
+            // 캐시 삭제 실패는 무시
+        }
     }
 
     /**
      * <h3>게시글 추천 취소 이벤트 처리</h3>
      * <p>게시글 추천 취소 시 실시간 인기글 점수를 4점 감소시키고 캐시를 무효화합니다.</p>
-     * <p>PostUnlikeEvent 발행 시 비동기로 호출됩니다.</p>
      *
      * @param event 게시글 추천 취소 이벤트
-     * @author Jaeik
-     * @since 2.0.0
      */
     @EventListener
     @Async("realtimeEventExecutor")
-    @Retryable(
-            retryFor = RedisConnectionFailureException.class,
-            maxAttemptsExpression = "${retry.max-attempts}",
-            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
-    )
     public void handlePostUnliked(PostUnlikeEvent event) {
         redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), -LIKE_SCORE);
-        redisDetailPostAdapter.deleteCachePost(event.postId());
-        log.debug("실시간 인기글 점수 감소 및 캐시 무효화 (추천 취소): postId={}, score=-{}", event.postId(), LIKE_SCORE);
-    }
-
-    @Recover
-    public void recoverPostUnliked(Exception e, PostUnlikeEvent event) {
-        log.error("실시간 인기글 점수 감소 최종 실패 (추천 취소): postId={}", event.postId(), e);
+        try {
+            redisDetailPostAdapter.deleteCachePost(event.postId());
+        } catch (Exception ignored) {
+            // 캐시 삭제 실패는 무시
+        }
     }
 
     /**
      * <h3>댓글 삭제 이벤트 처리</h3>
      * <p>댓글 삭제 시 해당 게시글의 실시간 인기글 점수를 3점 감소시킵니다.</p>
-     * <p>CommentDeletedEvent 발행 시 비동기로 호출됩니다.</p>
      *
      * @param event 댓글 삭제 이벤트
-     * @author Jaeik
-     * @since 2.0.0
      */
     @EventListener
     @Async("realtimeEventExecutor")
-    @Retryable(
-            retryFor = RedisConnectionFailureException.class,
-            maxAttemptsExpression = "${retry.max-attempts}",
-            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
-    )
     public void handleCommentDeleted(CommentDeletedEvent event) {
         redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), -COMMENT_SCORE);
-        log.debug("실시간 인기글 점수 감소 (댓글 삭제): postId={}, score=-{}", event.postId(), COMMENT_SCORE);
-    }
-
-    @Recover
-    public void recoverCommentDeleted(Exception e, CommentDeletedEvent event) {
-        log.error("실시간 인기글 점수 감소 최종 실패 (댓글 삭제): postId={}", event.postId(), e);
     }
 }

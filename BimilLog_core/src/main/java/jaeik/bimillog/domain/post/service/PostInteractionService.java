@@ -80,6 +80,5 @@ public class PostInteractionService {
     @Transactional
     public void incrementViewCount(Long postId) {
         postRepository.incrementViewsByPostId(postId);
-        log.debug("게시글 조회수 증가됨: postId={}", postId);
     }
 }

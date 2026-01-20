@@ -123,7 +123,6 @@ public class PostQueryService {
             // 실시간 인기글 확인
             return redisRealTimePostAdapter.isRealtimePopularPost(postId);
         } catch (Exception e) {
-            log.warn("인기글 여부 확인 실패, 일반글로 처리: postId={}, error={}", postId, e.getMessage());
             return false;
         }
     }
@@ -140,22 +139,14 @@ public class PostQueryService {
         PostDetail result = null;
 
         // 1. 상세 캐시 조회
-        try {
-            result = redisDetailPostAdapter.getCachedPostIfExists(postId);
-        } catch (Exception e) {
-            log.error("게시글 {} 캐시 조회 실패, DB 조회로 진행: {}", postId, e.getMessage());
-        }
+        result = redisDetailPostAdapter.getCachedPostIfExists(postId);
+
 
         // 2. 캐시 히트 시 PER 체크
         if (result != null) {
-            try {
                 if (redisDetailPostAdapter.shouldRefresh(postId)) {
-                    log.info("[PER] 상세 캐시 갱신 트리거 - postId={}", postId);
                     postCacheRefresh.asyncRefreshDetailPost(postId);
                 }
-            } catch (Exception e) {
-                log.warn("PER 체크 실패: postId={}, error={}", postId, e.getMessage());
-            }
             return result;
         }
 
@@ -166,11 +157,7 @@ public class PostQueryService {
                 () -> postQueryRepository.findPostDetail(postId, null)
         ).orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
-        try {
             redisDetailPostAdapter.saveCachePost(result);
-        } catch (Exception e) {
-            log.error("게시글 {} 상세 캐시 저장 실패: {}", postId, e.getMessage());
-        }
 
         return result;
     }

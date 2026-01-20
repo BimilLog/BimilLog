@@ -29,8 +29,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * <h2>게시글 조회 어댑터</h2>
@@ -348,6 +351,51 @@ public class PostQueryRepository {
                 .leftJoin(post.member, member).fetchJoin()
                 .where(post.id.in(postIds))
                 .fetch();
+    }
+
+    /**
+     * <h3>PostId 목록으로 PostSimpleDetail 리스트 반환</h3>
+     * <p>폴백 저장소에서 조회한 postId 목록으로 게시글 상세 정보를 조회합니다.</p>
+     * <p>입력 순서를 유지하여 반환합니다.</p>
+     *
+     * @param postIds 조회할 게시글 ID 목록
+     * @return PostSimpleDetail 목록 (입력 순서 유지)
+     */
+    @Transactional(readOnly = true)
+    public List<PostSimpleDetail> findPostSimpleDetailsByIds(List<Long> postIds) {
+        if (postIds == null || postIds.isEmpty()) {
+            return List.of();
+        }
+
+        QPostLike subPostLike = new QPostLike("subPostLike");
+        JPQLQuery<Integer> likeCountSubQuery = JPAExpressions
+                .select(subPostLike.count().intValue())
+                .from(subPostLike)
+                .where(subPostLike.post.id.eq(post.id));
+
+        List<PostSimpleDetail> results = jpaQueryFactory
+                .select(new QPostSimpleDetail(
+                        post.id,
+                        post.title,
+                        post.views,
+                        likeCountSubQuery,
+                        post.createdAt,
+                        member.id,
+                        Expressions.stringTemplate("COALESCE({0}, {1})", member.memberName, "익명"),
+                        Expressions.constant(0)))
+                .from(post)
+                .leftJoin(post.member, member)
+                .where(post.id.in(postIds))
+                .fetch();
+
+        // 입력 순서대로 정렬
+        Map<Long, PostSimpleDetail> resultMap = results.stream()
+                .collect(Collectors.toMap(PostSimpleDetail::getId, p -> p));
+
+        return postIds.stream()
+                .map(resultMap::get)
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     /**
