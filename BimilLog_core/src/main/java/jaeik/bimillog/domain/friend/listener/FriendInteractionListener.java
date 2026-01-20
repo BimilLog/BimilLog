@@ -1,13 +1,16 @@
 package jaeik.bimillog.domain.friend.listener;
 
+import io.lettuce.core.RedisCommandTimeoutException;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentLikeEvent;
+import jaeik.bimillog.domain.friend.service.FriendEventDlqService;
 import jaeik.bimillog.domain.post.event.PostLikeEvent;
 import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
@@ -15,6 +18,8 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import jaeik.bimillog.infrastructure.log.Log;
+
+import static jaeik.bimillog.infrastructure.redis.friend.RedisFriendKeys.INTERACTION_SCORE_DEFAULT;
 
 /**
  * <h2>친구 상호작용 점수 관리 리스너</h2>
@@ -32,6 +37,7 @@ import jaeik.bimillog.infrastructure.log.Log;
 @Slf4j
 public class FriendInteractionListener {
     private final RedisInteractionScoreRepository redisInteractionScoreRepository;
+    private final FriendEventDlqService friendEventDlqService;
 
     /**
      * <h3>게시글 좋아요 상호작용 점수 증가</h3>
@@ -44,7 +50,11 @@ public class FriendInteractionListener {
     @EventListener
     @Async("realtimeEventExecutor")
     @Retryable(
-            retryFor = RedisConnectionFailureException.class,
+            retryFor = {
+                    RedisConnectionFailureException.class,
+                    RedisSystemException.class,
+                    RedisCommandTimeoutException.class
+            },
             maxAttemptsExpression = "${retry.max-attempts}",
             backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
     )
@@ -70,6 +80,10 @@ public class FriendInteractionListener {
     public void recoverPostLiked(Exception e, PostLikeEvent event) {
         log.error("게시글 좋아요 상호작용 점수 증가 최종 실패: postId={}, authorId={}, likerId={}",
                 event.postId(), event.postAuthorId(), event.likerId(), e);
+
+        if (event.postAuthorId() != null && !event.postAuthorId().equals(event.likerId())) {
+            friendEventDlqService.saveScoreUp(event.postAuthorId(), event.likerId(), INTERACTION_SCORE_DEFAULT);
+        }
     }
 
     /**
@@ -83,7 +97,11 @@ public class FriendInteractionListener {
     @EventListener
     @Async("realtimeEventExecutor")
     @Retryable(
-            retryFor = RedisConnectionFailureException.class,
+            retryFor = {
+                    RedisConnectionFailureException.class,
+                    RedisSystemException.class,
+                    RedisCommandTimeoutException.class
+            },
             maxAttemptsExpression = "${retry.max-attempts}",
             backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
     )
@@ -109,6 +127,10 @@ public class FriendInteractionListener {
     public void recoverCommentCreated(Exception e, CommentCreatedEvent event) {
         log.error("댓글 작성 상호작용 점수 증가 최종 실패: postId={}, postUserId={}, commenterId={}",
                 event.postId(), event.postUserId(), event.commenterId(), e);
+
+        if (event.commenterId() != null && !event.postUserId().equals(event.commenterId())) {
+            friendEventDlqService.saveScoreUp(event.postUserId(), event.commenterId(), INTERACTION_SCORE_DEFAULT);
+        }
     }
 
     /**
@@ -122,7 +144,11 @@ public class FriendInteractionListener {
     @EventListener
     @Async("realtimeEventExecutor")
     @Retryable(
-            retryFor = RedisConnectionFailureException.class,
+            retryFor = {
+                    RedisConnectionFailureException.class,
+                    RedisSystemException.class,
+                    RedisCommandTimeoutException.class
+            },
             maxAttemptsExpression = "${retry.max-attempts}",
             backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
     )
@@ -148,5 +174,9 @@ public class FriendInteractionListener {
     public void recoverCommentLiked(Exception e, CommentLikeEvent event) {
         log.error("댓글 좋아요 상호작용 점수 증가 최종 실패: commentId={}, authorId={}, likerId={}",
                 event.commentId(), event.commentAuthorId(), event.likerId(), e);
+
+        if (event.commentAuthorId() != null && !event.commentAuthorId().equals(event.likerId())) {
+            friendEventDlqService.saveScoreUp(event.commentAuthorId(), event.likerId(), INTERACTION_SCORE_DEFAULT);
+        }
     }
 }

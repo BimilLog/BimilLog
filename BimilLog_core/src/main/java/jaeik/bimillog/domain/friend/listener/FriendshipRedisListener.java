@@ -1,12 +1,15 @@
 package jaeik.bimillog.domain.friend.listener;
 
+import io.lettuce.core.RedisCommandTimeoutException;
 import jaeik.bimillog.domain.friend.event.FriendshipCreatedEvent;
 import jaeik.bimillog.domain.friend.event.FriendshipDeletedEvent;
+import jaeik.bimillog.domain.friend.service.FriendEventDlqService;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
@@ -32,6 +35,7 @@ import jaeik.bimillog.infrastructure.log.Log;
 public class FriendshipRedisListener {
 
     private final RedisFriendshipRepository redisFriendshipRepository;
+    private final FriendEventDlqService friendEventDlqService;
 
     /**
      * <h3>친구 관계 생성 이벤트 처리</h3>
@@ -45,7 +49,11 @@ public class FriendshipRedisListener {
     @EventListener
     @Async("realtimeEventExecutor")
     @Retryable(
-            retryFor = RedisConnectionFailureException.class,
+            retryFor = {
+                    RedisConnectionFailureException.class,
+                    RedisSystemException.class,
+                    RedisCommandTimeoutException.class
+            },
             maxAttemptsExpression = "${retry.max-attempts}",
             backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
     )
@@ -57,6 +65,7 @@ public class FriendshipRedisListener {
     @Recover
     public void recoverFriendshipCreated(Exception e, FriendshipCreatedEvent event) {
         log.error("Redis 친구 관계 추가 최종 실패: memberId={}, friendId={}", event.memberId(), event.friendId(), e);
+        friendEventDlqService.saveFriendAdd(event.memberId(), event.friendId());
     }
 
     /**
@@ -71,7 +80,11 @@ public class FriendshipRedisListener {
     @EventListener
     @Async("realtimeEventExecutor")
     @Retryable(
-            retryFor = RedisConnectionFailureException.class,
+            retryFor = {
+                    RedisConnectionFailureException.class,
+                    RedisSystemException.class,
+                    RedisCommandTimeoutException.class
+            },
             maxAttemptsExpression = "${retry.max-attempts}",
             backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
     )
@@ -83,5 +96,6 @@ public class FriendshipRedisListener {
     @Recover
     public void recoverFriendshipDeleted(Exception e, FriendshipDeletedEvent event) {
         log.error("Redis 친구 관계 삭제 최종 실패: memberId={}, friendId={}", event.memberId(), event.friendId(), e);
+        friendEventDlqService.saveFriendRemove(event.memberId(), event.friendId());
     }
 }
