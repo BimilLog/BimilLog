@@ -83,9 +83,9 @@ public class RedisDetailPostAdapter {
      */
     public boolean shouldRefresh(Long postId) {
         String key = getPostDetailKey(postId);
-        Long ttl = redisTemplate.getExpire(key, TimeUnit.SECONDS);
+        long ttl = redisTemplate.getExpire(key, TimeUnit.SECONDS);
 
-        if (ttl == null || ttl <= 0) {
+        if (ttl <= 0) {
             return true;
         }
 

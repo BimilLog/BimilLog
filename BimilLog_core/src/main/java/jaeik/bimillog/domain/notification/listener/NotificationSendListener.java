@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.QueryTimeoutException;
 import org.springframework.dao.TransientDataAccessException;
-import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
@@ -46,11 +45,10 @@ public class NotificationSendListener {
             retryFor = {
                     TransientDataAccessException.class,
                     DataAccessResourceFailureException.class,
-                    RedisConnectionFailureException.class,
                     QueryTimeoutException.class
             },
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 1000, multiplier = 2)
+            maxAttemptsExpression = "${retry.max-attempts}",
+            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
     )
     public void sendSSENotification(AlarmSendEvent event) {
         sseService.sendNotification(
@@ -74,11 +72,10 @@ public class NotificationSendListener {
             retryFor = {
                     TransientDataAccessException.class,
                     DataAccessResourceFailureException.class,
-                    RedisConnectionFailureException.class,
                     QueryTimeoutException.class
             },
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 1000, multiplier = 2)
+            maxAttemptsExpression = "${retry.max-attempts}",
+            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
     )
     public void sendFCMNotification(AlarmSendEvent event) {
         fcmPushService.sendNotification(

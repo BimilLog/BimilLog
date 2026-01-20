@@ -10,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.QueryTimeoutException;
 import org.springframework.dao.TransientDataAccessException;
-import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
@@ -40,11 +39,10 @@ public class NotificationSaveListener {
             retryFor = {
                     TransientDataAccessException.class,
                     DataAccessResourceFailureException.class,
-                    RedisConnectionFailureException.class,
                     QueryTimeoutException.class
             },
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 1000, multiplier = 2)
+            maxAttemptsExpression = "${retry.max-attempts}",
+            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
     )
     public void handleCommentCreatedEvent(CommentCreatedEvent event) {
         notificationCommandService.saveCommentNotification(
@@ -60,11 +58,10 @@ public class NotificationSaveListener {
             retryFor = {
                     TransientDataAccessException.class,
                     DataAccessResourceFailureException.class,
-                    RedisConnectionFailureException.class,
                     QueryTimeoutException.class
             },
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 1000, multiplier = 2)
+            maxAttemptsExpression = "${retry.max-attempts}",
+            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
     )
     public void handleRollingPaperEvent(RollingPaperEvent event) {
         notificationCommandService.saveMessageNotification(
@@ -79,11 +76,10 @@ public class NotificationSaveListener {
             retryFor = {
                     TransientDataAccessException.class,
                     DataAccessResourceFailureException.class,
-                    RedisConnectionFailureException.class,
                     QueryTimeoutException.class
             },
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 1000, multiplier = 2)
+            maxAttemptsExpression = "${retry.max-attempts}",
+            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
     )
     public void handlePostFeaturedEvent(PostFeaturedEvent event) {
         notificationCommandService.savePopularNotification(
@@ -101,11 +97,10 @@ public class NotificationSaveListener {
             retryFor = {
                     TransientDataAccessException.class,
                     DataAccessResourceFailureException.class,
-                    RedisConnectionFailureException.class,
                     QueryTimeoutException.class
             },
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 1000, multiplier = 2)
+            maxAttemptsExpression = "${retry.max-attempts}",
+            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
     )
     public void handleFriendEvent(FriendEvent event) {
         notificationCommandService.saveFriendNotification(

@@ -1,6 +1,7 @@
 package jaeik.bimillog.infrastructure.config;
 
 import org.springframework.context.annotation.Configuration;
+import org.springframework.retry.annotation.EnableRetry;
 
 /**
  * <h2>재시도 정책 설정</h2>
@@ -26,42 +27,11 @@ import org.springframework.context.annotation.Configuration;
  *     <li><b>backoff multiplier</b>: 2배 (1초 → 2초 → 4초)</li>
  * </ul>
  *
- * <h3>사용 예시</h3>
- * <pre>
- * &#64;EventListener
- * &#64;Async
- * &#64;Retryable(
- *     retryFor = {
- *         TransientDataAccessException.class,
- *         DataAccessResourceFailureException.class,
- *         RedisConnectionFailureException.class
- *     },
- *     maxAttempts = 3,
- *     backoff = &#64;Backoff(delay = 1000, multiplier = 2)
- * )
- * public void handleEvent(Event event) {
- *     // 이벤트 처리 로직
- * }
- * </pre>
  *
  * @author Jaeik
  * @since 2.5.0
  */
 @Configuration
+@EnableRetry
 public class RetryConfig {
-
-    /**
-     * 기본 재시도 횟수
-     */
-    public static final int DEFAULT_MAX_ATTEMPTS = 3;
-
-    /**
-     * 기본 백오프 지연 시간 (밀리초)
-     */
-    public static final long DEFAULT_BACKOFF_DELAY = 1000L;
-
-    /**
-     * 기본 백오프 승수
-     */
-    public static final double DEFAULT_BACKOFF_MULTIPLIER = 2.0;
 }

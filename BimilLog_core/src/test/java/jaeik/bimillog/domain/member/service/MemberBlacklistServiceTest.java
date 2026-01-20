@@ -12,8 +12,13 @@ import jaeik.bimillog.testutil.fixtures.TestFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+
+import java.util.stream.Stream;
 
 import java.util.Optional;
 
@@ -125,48 +130,32 @@ class MemberBlacklistServiceTest extends BaseUnitTest {
                 .existsByRequestMemberIdAndBlackMemberId(targetMemberId, memberId);
     }
 
-    @Test
-    @DisplayName("블랙리스트 체크 - A가 B를 차단한 경우 예외 발생")
-    void shouldThrowException_WhenABlockedB() {
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("provideBlacklistScenarios")
+    @DisplayName("블랙리스트 체크 - 양방향 차단 예외 발생")
+    void shouldThrowException_WhenBlacklistExists(String scenario, boolean aBlocksB, boolean bBlocksA) {
         // Given
         Long memberId = 1L;
         Long targetMemberId = 2L;
 
         given(memberBlacklistRepository.existsByRequestMemberIdAndBlackMemberId(memberId, targetMemberId))
-                .willReturn(true);
+                .willReturn(aBlocksB);
         given(memberBlacklistRepository.existsByRequestMemberIdAndBlackMemberId(targetMemberId, memberId))
-                .willReturn(false);
+                .willReturn(bBlocksA);
 
         // When & Then
         assertThatThrownBy(() -> memberBlacklistService.checkMemberBlacklist(memberId, targetMemberId))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.BLACKLIST_MEMBER_PAPER_FORBIDDEN);
 
-        // 실제 구현은 항상 두 번 모두 호출하므로 둘 다 검증
         verify(memberBlacklistRepository).existsByRequestMemberIdAndBlackMemberId(memberId, targetMemberId);
         verify(memberBlacklistRepository).existsByRequestMemberIdAndBlackMemberId(targetMemberId, memberId);
     }
 
-    @Test
-    @DisplayName("블랙리스트 체크 - B가 A를 차단한 경우 예외 발생")
-    void shouldThrowException_WhenBBlockedA() {
-        // Given
-        Long memberId = 1L;
-        Long targetMemberId = 2L;
-
-        given(memberBlacklistRepository.existsByRequestMemberIdAndBlackMemberId(memberId, targetMemberId))
-                .willReturn(false);
-        given(memberBlacklistRepository.existsByRequestMemberIdAndBlackMemberId(targetMemberId, memberId))
-                .willReturn(true);
-
-        // When & Then
-        assertThatThrownBy(() -> memberBlacklistService.checkMemberBlacklist(memberId, targetMemberId))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.BLACKLIST_MEMBER_PAPER_FORBIDDEN);
-
-        verify(memberBlacklistRepository, times(1))
-                .existsByRequestMemberIdAndBlackMemberId(memberId, targetMemberId);
-        verify(memberBlacklistRepository, times(1))
-                .existsByRequestMemberIdAndBlackMemberId(targetMemberId, memberId);
+    static Stream<Arguments> provideBlacklistScenarios() {
+        return Stream.of(
+                Arguments.of("A가 B를 차단", true, false),
+                Arguments.of("B가 A를 차단", false, true)
+        );
     }
 }

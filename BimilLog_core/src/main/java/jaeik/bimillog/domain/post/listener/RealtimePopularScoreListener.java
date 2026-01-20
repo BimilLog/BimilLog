@@ -10,11 +10,9 @@ import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
-import org.springframework.dao.DataAccessResourceFailureException;
-import org.springframework.dao.QueryTimeoutException;
-import org.springframework.dao.TransientDataAccessException;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -54,22 +52,18 @@ public class RealtimePopularScoreListener {
     @EventListener
     @Async
     @Retryable(
-            retryFor = {
-                    TransientDataAccessException.class,
-                    DataAccessResourceFailureException.class,
-                    RedisConnectionFailureException.class,
-                    QueryTimeoutException.class
-            },
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 1000, multiplier = 2)
+            retryFor = RedisConnectionFailureException.class,
+            maxAttemptsExpression = "${retry.max-attempts}",
+            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
     )
     public void handlePostViewed(PostViewedEvent event) {
-        try {
-            redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), VIEW_SCORE);
-            log.debug("실시간 인기글 점수 증가 (조회): postId={}, score=+{}", event.postId(), VIEW_SCORE);
-        } catch (Exception e) {
-            log.error("실시간 인기글 점수 증가 실패 (조회): postId={}", event.postId(), e);
-        }
+        redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), VIEW_SCORE);
+        log.debug("실시간 인기글 점수 증가 (조회): postId={}, score=+{}", event.postId(), VIEW_SCORE);
+    }
+
+    @Recover
+    public void recoverPostViewed(Exception e, PostViewedEvent event) {
+        log.error("실시간 인기글 점수 증가 최종 실패 (조회): postId={}", event.postId(), e);
     }
 
     /**
@@ -84,22 +78,18 @@ public class RealtimePopularScoreListener {
     @EventListener
     @Async
     @Retryable(
-            retryFor = {
-                    TransientDataAccessException.class,
-                    DataAccessResourceFailureException.class,
-                    RedisConnectionFailureException.class,
-                    QueryTimeoutException.class
-            },
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 1000, multiplier = 2)
+            retryFor = RedisConnectionFailureException.class,
+            maxAttemptsExpression = "${retry.max-attempts}",
+            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
     )
     public void handleCommentCreated(CommentCreatedEvent event) {
-        try {
-            redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), COMMENT_SCORE);
-            log.debug("실시간 인기글 점수 증가 (댓글): postId={}, score=+{}", event.postId(), COMMENT_SCORE);
-        } catch (Exception e) {
-            log.error("실시간 인기글 점수 증가 실패 (댓글): postId={}", event.postId(), e);
-        }
+        redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), COMMENT_SCORE);
+        log.debug("실시간 인기글 점수 증가 (댓글): postId={}, score=+{}", event.postId(), COMMENT_SCORE);
+    }
+
+    @Recover
+    public void recoverCommentCreated(Exception e, CommentCreatedEvent event) {
+        log.error("실시간 인기글 점수 증가 최종 실패 (댓글): postId={}", event.postId(), e);
     }
 
     /**
@@ -114,23 +104,19 @@ public class RealtimePopularScoreListener {
     @EventListener
     @Async
     @Retryable(
-            retryFor = {
-                    TransientDataAccessException.class,
-                    DataAccessResourceFailureException.class,
-                    RedisConnectionFailureException.class,
-                    QueryTimeoutException.class
-            },
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 1000, multiplier = 2)
+            retryFor = RedisConnectionFailureException.class,
+            maxAttemptsExpression = "${retry.max-attempts}",
+            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
     )
     public void handlePostLiked(PostLikeEvent event) {
-        try {
-            redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), LIKE_SCORE);
-            redisDetailPostAdapter.deleteCachePost(event.postId());
-            log.debug("실시간 인기글 점수 증가 및 캐시 무효화 (추천): postId={}, score=+{}", event.postId(), LIKE_SCORE);
-        } catch (Exception e) {
-            log.error("실시간 인기글 점수 증가 실패 (추천): postId={}", event.postId(), e);
-        }
+        redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), LIKE_SCORE);
+        redisDetailPostAdapter.deleteCachePost(event.postId());
+        log.debug("실시간 인기글 점수 증가 및 캐시 무효화 (추천): postId={}, score=+{}", event.postId(), LIKE_SCORE);
+    }
+
+    @Recover
+    public void recoverPostLiked(Exception e, PostLikeEvent event) {
+        log.error("실시간 인기글 점수 증가 최종 실패 (추천): postId={}", event.postId(), e);
     }
 
     /**
@@ -145,23 +131,19 @@ public class RealtimePopularScoreListener {
     @EventListener
     @Async
     @Retryable(
-            retryFor = {
-                    TransientDataAccessException.class,
-                    DataAccessResourceFailureException.class,
-                    RedisConnectionFailureException.class,
-                    QueryTimeoutException.class
-            },
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 1000, multiplier = 2)
+            retryFor = RedisConnectionFailureException.class,
+            maxAttemptsExpression = "${retry.max-attempts}",
+            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
     )
     public void handlePostUnliked(PostUnlikeEvent event) {
-        try {
-            redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), -LIKE_SCORE);
-            redisDetailPostAdapter.deleteCachePost(event.postId());
-            log.debug("실시간 인기글 점수 감소 및 캐시 무효화 (추천 취소): postId={}, score=-{}", event.postId(), LIKE_SCORE);
-        } catch (Exception e) {
-            log.error("실시간 인기글 점수 감소 실패 (추천 취소): postId={}", event.postId(), e);
-        }
+        redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), -LIKE_SCORE);
+        redisDetailPostAdapter.deleteCachePost(event.postId());
+        log.debug("실시간 인기글 점수 감소 및 캐시 무효화 (추천 취소): postId={}, score=-{}", event.postId(), LIKE_SCORE);
+    }
+
+    @Recover
+    public void recoverPostUnliked(Exception e, PostUnlikeEvent event) {
+        log.error("실시간 인기글 점수 감소 최종 실패 (추천 취소): postId={}", event.postId(), e);
     }
 
     /**
@@ -176,21 +158,17 @@ public class RealtimePopularScoreListener {
     @EventListener
     @Async
     @Retryable(
-            retryFor = {
-                    TransientDataAccessException.class,
-                    DataAccessResourceFailureException.class,
-                    RedisConnectionFailureException.class,
-                    QueryTimeoutException.class
-            },
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 1000, multiplier = 2)
+            retryFor = RedisConnectionFailureException.class,
+            maxAttemptsExpression = "${retry.max-attempts}",
+            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
     )
     public void handleCommentDeleted(CommentDeletedEvent event) {
-        try {
-            redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), -COMMENT_SCORE);
-            log.debug("실시간 인기글 점수 감소 (댓글 삭제): postId={}, score=-{}", event.postId(), COMMENT_SCORE);
-        } catch (Exception e) {
-            log.error("실시간 인기글 점수 감소 실패 (댓글 삭제): postId={}", event.postId(), e);
-        }
+        redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), -COMMENT_SCORE);
+        log.debug("실시간 인기글 점수 감소 (댓글 삭제): postId={}, score=-{}", event.postId(), COMMENT_SCORE);
+    }
+
+    @Recover
+    public void recoverCommentDeleted(Exception e, CommentDeletedEvent event) {
+        log.error("실시간 인기글 점수 감소 최종 실패 (댓글 삭제): postId={}", event.postId(), e);
     }
 }

@@ -151,8 +151,8 @@ class PostCacheControllerIntegrationTest extends BaseIntegrationTest {
         mockMvc.perform(get("/api/post/realtime"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", notNullValue()))
-                .andExpect(jsonPath("$", isA(List.class)));
+                .andExpect(jsonPath("$.content", notNullValue()))
+                .andExpect(jsonPath("$.content", isA(List.class)));
     }
 
     @Test
@@ -161,8 +161,8 @@ class PostCacheControllerIntegrationTest extends BaseIntegrationTest {
         mockMvc.perform(get("/api/post/weekly"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", notNullValue()))
-                .andExpect(jsonPath("$", isA(List.class)));
+                .andExpect(jsonPath("$.content", notNullValue()))
+                .andExpect(jsonPath("$.content", isA(List.class)));
     }
 
     @Test

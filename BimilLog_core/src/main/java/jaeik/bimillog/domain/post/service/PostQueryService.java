@@ -13,6 +13,8 @@ import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.post.RedisDetailPostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostAdapter;
+import jaeik.bimillog.infrastructure.resilience.DbFallbackGateway;
+import jaeik.bimillog.infrastructure.resilience.FallbackType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -48,6 +50,7 @@ public class PostQueryService {
     private final PostToMemberAdapter postToMemberAdapter;
     private final PostSearchRepository postSearchRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final DbFallbackGateway dbFallbackGateway;
 
     /**
      * <h3>게시판 목록 조회</h3>
@@ -156,9 +159,12 @@ public class PostQueryService {
             return result;
         }
 
-        // 3. 캐시 미스: DB 조회 후 캐시 저장
-        result = postQueryRepository.findPostDetail(postId, null)
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+        // 3. 캐시 미스: DB 조회 후 캐시 저장 (Bulkhead + Circuit Breaker 적용)
+        result = dbFallbackGateway.executeDetail(
+                FallbackType.DETAIL,
+                postId,
+                () -> postQueryRepository.findPostDetail(postId, null)
+        ).orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         try {
             redisDetailPostAdapter.saveCachePost(result);

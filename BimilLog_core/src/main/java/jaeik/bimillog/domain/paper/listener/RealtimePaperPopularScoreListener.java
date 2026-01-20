@@ -7,11 +7,9 @@ import jaeik.bimillog.infrastructure.redis.paper.RedisPaperUpdateAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
-import org.springframework.dao.DataAccessResourceFailureException;
-import org.springframework.dao.QueryTimeoutException;
-import org.springframework.dao.TransientDataAccessException;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -49,22 +47,18 @@ public class RealtimePaperPopularScoreListener {
     @EventListener
     @Async
     @Retryable(
-            retryFor = {
-                    TransientDataAccessException.class,
-                    DataAccessResourceFailureException.class,
-                    RedisConnectionFailureException.class,
-                    QueryTimeoutException.class
-            },
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 1000, multiplier = 2)
+            retryFor = RedisConnectionFailureException.class,
+            maxAttemptsExpression = "${retry.max-attempts}",
+            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
     )
     public void handlePaperViewed(PaperViewedEvent event) {
-        try {
-            redisPaperUpdateAdapter.incrementRealtimePopularPaperScore(event.memberId(), VIEW_SCORE);
-            log.debug("실시간 인기 롤링페이퍼 점수 증가 (조회): memberId={}, score=+{}", event.memberId(), VIEW_SCORE);
-        } catch (Exception e) {
-            log.error("실시간 인기 롤링페이퍼 점수 증가 실패 (조회): memberId={}", event.memberId(), e);
-        }
+        redisPaperUpdateAdapter.incrementRealtimePopularPaperScore(event.memberId(), VIEW_SCORE);
+        log.debug("실시간 인기 롤링페이퍼 점수 증가 (조회): memberId={}, score=+{}", event.memberId(), VIEW_SCORE);
+    }
+
+    @Recover
+    public void recoverPaperViewed(Exception e, PaperViewedEvent event) {
+        log.error("실시간 인기 롤링페이퍼 점수 증가 최종 실패 (조회): memberId={}", event.memberId(), e);
     }
 
     /**
@@ -79,22 +73,18 @@ public class RealtimePaperPopularScoreListener {
     @EventListener
     @Async
     @Retryable(
-            retryFor = {
-                    TransientDataAccessException.class,
-                    DataAccessResourceFailureException.class,
-                    RedisConnectionFailureException.class,
-                    QueryTimeoutException.class
-            },
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 1000, multiplier = 2)
+            retryFor = RedisConnectionFailureException.class,
+            maxAttemptsExpression = "${retry.max-attempts}",
+            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
     )
     public void handleMessageCreated(RollingPaperEvent event) {
-        try {
-            redisPaperUpdateAdapter.incrementRealtimePopularPaperScore(event.paperOwnerId(), MESSAGE_SCORE);
-            log.debug("실시간 인기 롤링페이퍼 점수 증가 (메시지 작성): memberId={}, score=+{}", event.paperOwnerId(), MESSAGE_SCORE);
-        } catch (Exception e) {
-            log.error("실시간 인기 롤링페이퍼 점수 증가 실패 (메시지 작성): memberId={}", event.paperOwnerId(), e);
-        }
+        redisPaperUpdateAdapter.incrementRealtimePopularPaperScore(event.paperOwnerId(), MESSAGE_SCORE);
+        log.debug("실시간 인기 롤링페이퍼 점수 증가 (메시지 작성): memberId={}, score=+{}", event.paperOwnerId(), MESSAGE_SCORE);
+    }
+
+    @Recover
+    public void recoverMessageCreated(Exception e, RollingPaperEvent event) {
+        log.error("실시간 인기 롤링페이퍼 점수 증가 최종 실패 (메시지 작성): memberId={}", event.paperOwnerId(), e);
     }
 
     /**
@@ -109,21 +99,17 @@ public class RealtimePaperPopularScoreListener {
     @EventListener
     @Async
     @Retryable(
-            retryFor = {
-                    TransientDataAccessException.class,
-                    DataAccessResourceFailureException.class,
-                    RedisConnectionFailureException.class,
-                    QueryTimeoutException.class
-            },
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 1000, multiplier = 2)
+            retryFor = RedisConnectionFailureException.class,
+            maxAttemptsExpression = "${retry.max-attempts}",
+            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
     )
     public void handleMessageDeleted(MessageDeletedEvent event) {
-        try {
-            redisPaperUpdateAdapter.incrementRealtimePopularPaperScore(event.paperOwnerId(), -MESSAGE_SCORE);
-            log.debug("실시간 인기 롤링페이퍼 점수 감소 (메시지 삭제): memberId={}, score=-{}", event.paperOwnerId(), MESSAGE_SCORE);
-        } catch (Exception e) {
-            log.error("실시간 인기 롤링페이퍼 점수 감소 실패 (메시지 삭제): memberId={}", event.paperOwnerId(), e);
-        }
+        redisPaperUpdateAdapter.incrementRealtimePopularPaperScore(event.paperOwnerId(), -MESSAGE_SCORE);
+        log.debug("실시간 인기 롤링페이퍼 점수 감소 (메시지 삭제): memberId={}, score=-{}", event.paperOwnerId(), MESSAGE_SCORE);
+    }
+
+    @Recover
+    public void recoverMessageDeleted(Exception e, MessageDeletedEvent event) {
+        log.error("실시간 인기 롤링페이퍼 점수 감소 최종 실패 (메시지 삭제): memberId={}", event.paperOwnerId(), e);
     }
 }

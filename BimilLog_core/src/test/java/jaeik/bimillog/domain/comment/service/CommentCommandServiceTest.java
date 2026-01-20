@@ -23,6 +23,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -77,42 +79,32 @@ class CommentCommandServiceTest extends BaseUnitTest {
         testComment = CommentTestDataBuilder.withId(TEST_COMMENT_ID, CommentTestDataBuilder.createComment(testPost, member, TEST_ORIGINAL_CONTENT));
     }
 
-    @Test
-    @DisplayName("댓글 좋아요 추가 성공")
-    void shouldAddLike_WhenMemberHasNotLikedComment() {
+    @ParameterizedTest(name = "이미 좋아요 여부: {0}")
+    @ValueSource(booleans = {false, true})
+    @DisplayName("댓글 좋아요 토글 - 추가/취소")
+    void shouldToggleLike_WhenLikeComment(boolean alreadyLiked) {
         // Given
         given(commentRepository.findById(TEST_COMMENT_ID)).willReturn(Optional.of(testComment));
         given(commentToMemberAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
-        given(commentLikeRepository.existsByCommentIdAndMemberId(TEST_COMMENT_ID, getTestMember().getId())).willReturn(false);
+        given(commentLikeRepository.existsByCommentIdAndMemberId(TEST_COMMENT_ID, getTestMember().getId())).willReturn(alreadyLiked);
 
         // When
         commentCommandService.likeComment(getTestMember().getId(), TEST_COMMENT_ID);
 
         // Then
-        ArgumentCaptor<CommentLike> likeCaptor = ArgumentCaptor.forClass(CommentLike.class);
-        verify(commentLikeRepository).save(likeCaptor.capture());
+        if (alreadyLiked) {
+            verify(commentLikeRepository).deleteByCommentIdAndMemberId(TEST_COMMENT_ID, getTestMember().getId());
+            verify(commentLikeRepository, never()).save(any());
+        } else {
+            ArgumentCaptor<CommentLike> likeCaptor = ArgumentCaptor.forClass(CommentLike.class);
+            verify(commentLikeRepository).save(likeCaptor.capture());
 
-        CommentLike capturedLike = likeCaptor.getValue();
-        assertThat(capturedLike.getComment()).isEqualTo(testComment);
-        assertThat(capturedLike.getMember()).isEqualTo(getTestMember());
+            CommentLike capturedLike = likeCaptor.getValue();
+            assertThat(capturedLike.getComment()).isEqualTo(testComment);
+            assertThat(capturedLike.getMember()).isEqualTo(getTestMember());
 
-        verify(commentLikeRepository, never()).deleteByCommentIdAndMemberId(anyLong(), anyLong());
-    }
-
-    @Test
-    @DisplayName("댓글 좋아요 취소 성공")
-    void shouldRemoveLike_WhenMemberHasAlreadyLikedComment() {
-        // Given
-        given(commentRepository.findById(TEST_COMMENT_ID)).willReturn(Optional.of(testComment));
-        given(commentToMemberAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
-        given(commentLikeRepository.existsByCommentIdAndMemberId(TEST_COMMENT_ID, getTestMember().getId())).willReturn(true);
-
-        // When
-        commentCommandService.likeComment(getTestMember().getId(), TEST_COMMENT_ID);
-
-        // Then
-        verify(commentLikeRepository).deleteByCommentIdAndMemberId(TEST_COMMENT_ID, getTestMember().getId());
-        verify(commentLikeRepository, never()).save(any());
+            verify(commentLikeRepository, never()).deleteByCommentIdAndMemberId(anyLong(), anyLong());
+        }
     }
 
     @Test

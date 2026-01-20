@@ -76,8 +76,8 @@ public class MemberWithdrawListener {
                     RedisConnectionFailureException.class,
                     QueryTimeoutException.class
             },
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 1000, multiplier = 2)
+            maxAttemptsExpression = "${retry.max-attempts}",
+            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
     )
     public void memberWithdraw(MemberWithdrawnEvent userWithdrawnEvent) {
         Long memberId = userWithdrawnEvent.memberId();

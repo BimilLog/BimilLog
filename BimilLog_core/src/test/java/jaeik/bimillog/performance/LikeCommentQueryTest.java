@@ -24,7 +24,6 @@ import org.springframework.util.StopWatch;
 @ActiveProfiles("local-integration")
 @Tag("local-integration")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-@Sql(scripts = "/bimillogTest-seed.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
 class LikeCommentQueryTest {
 
     private static final Logger log = LoggerFactory.getLogger(LikeCommentQueryTest.class);

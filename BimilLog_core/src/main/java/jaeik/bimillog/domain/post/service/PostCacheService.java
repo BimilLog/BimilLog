@@ -7,6 +7,8 @@ import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostAdapter;
+import jaeik.bimillog.infrastructure.resilience.DbFallbackGateway;
+import jaeik.bimillog.infrastructure.resilience.FallbackType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -34,6 +36,7 @@ public class PostCacheService {
     private final RedisTier2PostAdapter redisTier2PostAdapter;
     private final RedisRealTimePostAdapter redisRealTimePostAdapter;
     private final PostCacheRefresh postCacheRefresh;
+    private final DbFallbackGateway dbFallbackGateway;
 
     /**
      * <h3>실시간 인기 게시글 조회</h3>
@@ -66,16 +69,9 @@ public class PostCacheService {
             return new PageImpl<>(resultPosts, pageable, totalCount);
         } catch (Exception e) {
             log.warn("[REDIS_FALLBACK] 실시간 인기글 Redis 장애, 최근 인기글로 대체: {}", e.getMessage());
-            return getRealtimePostsFromDb(pageable);
+            return dbFallbackGateway.execute(FallbackType.REALTIME, pageable,
+                    () -> postQueryRepository.findRecentPopularPosts(pageable));
         }
-    }
-
-    /**
-     * <h3>실시간 인기 게시글 DB Fallback</h3>
-     * <p>Redis 장애 시 최근 1시간 이내 (조회수 + 추천수*3) 기준 인기글로 대체합니다.</p>
-     */
-    private Page<PostSimpleDetail> getRealtimePostsFromDb(Pageable pageable) {
-        return postQueryRepository.findRecentPopularPosts(pageable);
     }
 
     /**
@@ -110,17 +106,9 @@ public class PostCacheService {
             return new PageImpl<>(resultPosts, pageable, allPostIds.size());
         } catch (Exception e) {
             log.warn("[REDIS_FALLBACK] 주간 인기글 Redis 장애, DB 조회로 전환: {}", e.getMessage());
-            return getWeeklyPostsFromDb(pageable);
+            return dbFallbackGateway.execute(FallbackType.WEEKLY, pageable,
+                    () -> paginateList(postQueryRepository.findWeeklyPopularPosts(), pageable));
         }
-    }
-
-    /**
-     * <h3>주간 인기 게시글 DB Fallback</h3>
-     * <p>Redis 장애 시 DB에서 직접 조회합니다.</p>
-     */
-    private Page<PostSimpleDetail> getWeeklyPostsFromDb(Pageable pageable) {
-        List<PostSimpleDetail> allPosts = postQueryRepository.findWeeklyPopularPosts();
-        return paginateList(allPosts, pageable);
     }
 
     /**
@@ -155,17 +143,9 @@ public class PostCacheService {
             return new PageImpl<>(resultPosts, pageable, allPostIds.size());
         } catch (Exception e) {
             log.warn("[REDIS_FALLBACK] 레전드 인기글 Redis 장애, DB 조회로 전환: {}", e.getMessage());
-            return getLegendPostsFromDb(pageable);
+            return dbFallbackGateway.execute(FallbackType.LEGEND, pageable,
+                    () -> paginateList(postQueryRepository.findLegendaryPosts(), pageable));
         }
-    }
-
-    /**
-     * <h3>레전드 인기 게시글 DB Fallback</h3>
-     * <p>Redis 장애 시 DB에서 직접 조회합니다.</p>
-     */
-    private Page<PostSimpleDetail> getLegendPostsFromDb(Pageable pageable) {
-        List<PostSimpleDetail> allPosts = postQueryRepository.findLegendaryPosts();
-        return paginateList(allPosts, pageable);
     }
 
     /**
@@ -200,17 +180,9 @@ public class PostCacheService {
             return new PageImpl<>(resultPosts, pageable, allPostIds.size());
         } catch (Exception e) {
             log.warn("[REDIS_FALLBACK] 공지사항 Redis 장애, DB 조회로 전환: {}", e.getMessage());
-            return getNoticePostsFromDb(pageable);
+            return dbFallbackGateway.execute(FallbackType.NOTICE, pageable,
+                    () -> paginateList(postQueryRepository.findNoticePosts(), pageable));
         }
-    }
-
-    /**
-     * <h3>공지사항 DB Fallback</h3>
-     * <p>Redis 장애 시 DB에서 직접 조회합니다.</p>
-     */
-    private Page<PostSimpleDetail> getNoticePostsFromDb(Pageable pageable) {
-        List<PostSimpleDetail> allPosts = postQueryRepository.findNoticePosts();
-        return paginateList(allPosts, pageable);
     }
 
     /**

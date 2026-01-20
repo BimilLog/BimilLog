@@ -8,8 +8,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.QueryTimeoutException;
 import org.springframework.dao.TransientDataAccessException;
-import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -49,20 +49,19 @@ public class ReportSaveListener {
             retryFor = {
                     TransientDataAccessException.class,
                     DataAccessResourceFailureException.class,
-                    RedisConnectionFailureException.class,
                     QueryTimeoutException.class
             },
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 1000, multiplier = 2)
+            maxAttemptsExpression = "${retry.max-attempts}",
+            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
     )
     public void handleReportSubmitted(ReportSubmittedEvent event) {
-        try {
-            adminCommandService.createReport(event.reporterId(), event.reportType(), event.targetId(), event.content());
-            log.info("신고/건의사항 처리 완료 - 신고자: {}, 유형: {}, targetId: {}", event.reporterName(), event.reportType(), event.targetId());
-        } catch (Exception e) {
-            log.error("신고/건의사항 처리 중 시스템 오류 발생 - 신고자: {}, 유형: {}, targetId: {}, 오류: {}", 
-                    event.reporterName(), event.reportType(), 
-                    event.targetId(), e.getMessage(), e);
-        }
+        adminCommandService.createReport(event.reporterId(), event.reportType(), event.targetId(), event.content());
+        log.info("신고/건의사항 처리 완료 - 신고자: {}, 유형: {}, targetId: {}", event.reporterName(), event.reportType(), event.targetId());
+    }
+
+    @Recover
+    public void recoverReportSubmitted(Exception e, ReportSubmittedEvent event) {
+        log.error("신고/건의사항 처리 최종 실패 - 신고자: {}, 유형: {}, targetId: {}",
+                event.reporterName(), event.reportType(), event.targetId(), e);
     }
 }

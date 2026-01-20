@@ -8,8 +8,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.QueryTimeoutException;
 import org.springframework.dao.TransientDataAccessException;
-import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -48,24 +48,24 @@ public class PostViewIncreaseListener {
             retryFor = {
                     TransientDataAccessException.class,
                     DataAccessResourceFailureException.class,
-                    RedisConnectionFailureException.class,
                     QueryTimeoutException.class
             },
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 1000, multiplier = 2)
+            maxAttemptsExpression = "${retry.max-attempts}",
+            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
     )
     public void handlePostViewedEvent(PostViewedEvent event) {
         Long postId = event.postId();
-        
+
         if (postId == null) {
             log.warn("게시글 조회 이벤트 처리 실패: postId가 null입니다");
             return;
         }
-        
-        try {
-            postInteractionService.incrementViewCount(postId);
-        } catch (Exception e) {
-            log.error("게시글 조회수 증가 실패: postId={}", postId, e);
-        }
+
+        postInteractionService.incrementViewCount(postId);
+    }
+
+    @Recover
+    public void recoverPostViewedEvent(Exception e, PostViewedEvent event) {
+        log.error("게시글 조회수 증가 최종 실패: postId={}", event.postId(), e);
     }
 }

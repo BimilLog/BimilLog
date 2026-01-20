@@ -7,11 +7,9 @@ import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepositor
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
-import org.springframework.dao.DataAccessResourceFailureException;
-import org.springframework.dao.QueryTimeoutException;
-import org.springframework.dao.TransientDataAccessException;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -33,7 +31,6 @@ import jaeik.bimillog.infrastructure.log.Log;
 @RequiredArgsConstructor
 @Slf4j
 public class FriendInteractionListener {
-
     private final RedisInteractionScoreRepository redisInteractionScoreRepository;
 
     /**
@@ -47,36 +44,32 @@ public class FriendInteractionListener {
     @EventListener
     @Async
     @Retryable(
-            retryFor = {
-                    TransientDataAccessException.class,
-                    DataAccessResourceFailureException.class,
-                    RedisConnectionFailureException.class,
-                    QueryTimeoutException.class
-            },
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 1000, multiplier = 2)
+            retryFor = RedisConnectionFailureException.class,
+            maxAttemptsExpression = "${retry.max-attempts}",
+            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
     )
     public void handlePostLiked(PostLikeEvent event) {
-        try {
-            // 익명 게시글은 상호작용 점수에 반영하지 않음
-            if (event.postAuthorId() == null) {
-                log.debug("익명 게시글 좋아요는 상호작용 점수에 반영되지 않습니다: postId={}", event.postId());
-                return;
-            }
-
-            // 자기 자신의 게시글에 좋아요한 경우 제외 (이미 블랙리스트 체크로 방지됨)
-            if (event.postAuthorId().equals(event.likerId())) {
-                log.debug("자기 자신의 게시글 좋아요는 상호작용 점수에 반영되지 않습니다: postId={}", event.postId());
-                return;
-            }
-
-            redisInteractionScoreRepository.addInteractionScore(event.postAuthorId(), event.likerId());
-            log.debug("게시글 좋아요 상호작용 점수 증가: postId={}, authorId={}, likerId={}",
-                    event.postId(), event.postAuthorId(), event.likerId());
-        } catch (Exception e) {
-            log.error("게시글 좋아요 상호작용 점수 증가 실패: postId={}, authorId={}, likerId={}",
-                    event.postId(), event.postAuthorId(), event.likerId(), e);
+        // 익명 게시글은 상호작용 점수에 반영하지 않음
+        if (event.postAuthorId() == null) {
+            log.debug("익명 게시글 좋아요는 상호작용 점수에 반영되지 않습니다: postId={}", event.postId());
+            return;
         }
+
+        // 자기 자신의 게시글에 좋아요한 경우 제외 (이미 블랙리스트 체크로 방지됨)
+        if (event.postAuthorId().equals(event.likerId())) {
+            log.debug("자기 자신의 게시글 좋아요는 상호작용 점수에 반영되지 않습니다: postId={}", event.postId());
+            return;
+        }
+
+        redisInteractionScoreRepository.addInteractionScore(event.postAuthorId(), event.likerId());
+        log.debug("게시글 좋아요 상호작용 점수 증가: postId={}, authorId={}, likerId={}",
+                event.postId(), event.postAuthorId(), event.likerId());
+    }
+
+    @Recover
+    public void recoverPostLiked(Exception e, PostLikeEvent event) {
+        log.error("게시글 좋아요 상호작용 점수 증가 최종 실패: postId={}, authorId={}, likerId={}",
+                event.postId(), event.postAuthorId(), event.likerId(), e);
     }
 
     /**
@@ -90,36 +83,32 @@ public class FriendInteractionListener {
     @EventListener
     @Async
     @Retryable(
-            retryFor = {
-                    TransientDataAccessException.class,
-                    DataAccessResourceFailureException.class,
-                    RedisConnectionFailureException.class,
-                    QueryTimeoutException.class
-            },
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 1000, multiplier = 2)
+            retryFor = RedisConnectionFailureException.class,
+            maxAttemptsExpression = "${retry.max-attempts}",
+            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
     )
     public void handleCommentCreated(CommentCreatedEvent event) {
-        try {
-            // 익명 댓글은 상호작용 점수에 반영하지 않음
-            if (event.commenterId() == null) {
-                log.debug("익명 댓글 작성은 상호작용 점수에 반영되지 않습니다: postId={}", event.postId());
-                return;
-            }
-
-            // 자기 자신의 게시글에 댓글 작성한 경우 제외
-            if (event.postUserId().equals(event.commenterId())) {
-                log.debug("자기 자신의 게시글에 댓글 작성은 상호작용 점수에 반영되지 않습니다: postId={}", event.postId());
-                return;
-            }
-
-            redisInteractionScoreRepository.addInteractionScore(event.postUserId(), event.commenterId());
-            log.debug("댓글 작성 상호작용 점수 증가: postId={}, postUserId={}, commenterId={}",
-                    event.postId(), event.postUserId(), event.commenterId());
-        } catch (Exception e) {
-            log.error("댓글 작성 상호작용 점수 증가 실패: postId={}, postUserId={}, commenterId={}",
-                    event.postId(), event.postUserId(), event.commenterId(), e);
+        // 익명 댓글은 상호작용 점수에 반영하지 않음
+        if (event.commenterId() == null) {
+            log.debug("익명 댓글 작성은 상호작용 점수에 반영되지 않습니다: postId={}", event.postId());
+            return;
         }
+
+        // 자기 자신의 게시글에 댓글 작성한 경우 제외
+        if (event.postUserId().equals(event.commenterId())) {
+            log.debug("자기 자신의 게시글에 댓글 작성은 상호작용 점수에 반영되지 않습니다: postId={}", event.postId());
+            return;
+        }
+
+        redisInteractionScoreRepository.addInteractionScore(event.postUserId(), event.commenterId());
+        log.debug("댓글 작성 상호작용 점수 증가: postId={}, postUserId={}, commenterId={}",
+                event.postId(), event.postUserId(), event.commenterId());
+    }
+
+    @Recover
+    public void recoverCommentCreated(Exception e, CommentCreatedEvent event) {
+        log.error("댓글 작성 상호작용 점수 증가 최종 실패: postId={}, postUserId={}, commenterId={}",
+                event.postId(), event.postUserId(), event.commenterId(), e);
     }
 
     /**
@@ -133,35 +122,31 @@ public class FriendInteractionListener {
     @EventListener
     @Async
     @Retryable(
-            retryFor = {
-                    TransientDataAccessException.class,
-                    DataAccessResourceFailureException.class,
-                    RedisConnectionFailureException.class,
-                    QueryTimeoutException.class
-            },
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 1000, multiplier = 2)
+            retryFor = RedisConnectionFailureException.class,
+            maxAttemptsExpression = "${retry.max-attempts}",
+            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
     )
     public void handleCommentLiked(CommentLikeEvent event) {
-        try {
-            // 익명 댓글은 상호작용 점수에 반영하지 않음
-            if (event.commentAuthorId() == null) {
-                log.debug("익명 댓글 좋아요는 상호작용 점수에 반영되지 않습니다: commentId={}", event.commentId());
-                return;
-            }
-
-            // 자기 자신의 댓글에 좋아요한 경우 제외 (이미 블랙리스트 체크로 방지됨)
-            if (event.commentAuthorId().equals(event.likerId())) {
-                log.debug("자기 자신의 댓글 좋아요는 상호작용 점수에 반영되지 않습니다: commentId={}", event.commentId());
-                return;
-            }
-
-            redisInteractionScoreRepository.addInteractionScore(event.commentAuthorId(), event.likerId());
-            log.debug("댓글 좋아요 상호작용 점수 증가: commentId={}, authorId={}, likerId={}",
-                    event.commentId(), event.commentAuthorId(), event.likerId());
-        } catch (Exception e) {
-            log.error("댓글 좋아요 상호작용 점수 증가 실패: commentId={}, authorId={}, likerId={}",
-                    event.commentId(), event.commentAuthorId(), event.likerId(), e);
+        // 익명 댓글은 상호작용 점수에 반영하지 않음
+        if (event.commentAuthorId() == null) {
+            log.debug("익명 댓글 좋아요는 상호작용 점수에 반영되지 않습니다: commentId={}", event.commentId());
+            return;
         }
+
+        // 자기 자신의 댓글에 좋아요한 경우 제외 (이미 블랙리스트 체크로 방지됨)
+        if (event.commentAuthorId().equals(event.likerId())) {
+            log.debug("자기 자신의 댓글 좋아요는 상호작용 점수에 반영되지 않습니다: commentId={}", event.commentId());
+            return;
+        }
+
+        redisInteractionScoreRepository.addInteractionScore(event.commentAuthorId(), event.likerId());
+        log.debug("댓글 좋아요 상호작용 점수 증가: commentId={}, authorId={}, likerId={}",
+                event.commentId(), event.commentAuthorId(), event.likerId());
+    }
+
+    @Recover
+    public void recoverCommentLiked(Exception e, CommentLikeEvent event) {
+        log.error("댓글 좋아요 상호작용 점수 증가 최종 실패: commentId={}, authorId={}, likerId={}",
+                event.commentId(), event.commentAuthorId(), event.likerId(), e);
     }
 }

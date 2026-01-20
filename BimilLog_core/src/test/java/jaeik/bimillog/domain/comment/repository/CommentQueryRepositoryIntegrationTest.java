@@ -18,7 +18,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.stream.Stream;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
@@ -363,32 +368,23 @@ class CommentQueryRepositoryIntegrationTest {
         assertThat(commentCounts.get(post3.getId())).isNull(); // 댓글이 없는 게시글은 맵에 포함되지 않음
     }
 
-    @Test
-    @DisplayName("정상 케이스 - 빈 게시글 ID 목록으로 댓글 수 조회")
-    void shouldReturnEmptyMap_WhenEmptyPostIdsProvided() {
-        // Given: 빈 게시글 ID 목록
-        List<Long> emptyPostIds = List.of();
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("provideEmptyResultPostIdCases")
+    @DisplayName("댓글 수 조회 - 빈 결과 케이스")
+    void shouldReturnEmptyMap_WhenInvalidPostIds(String description, List<Long> postIds) {
+        // When
+        Map<Long, Integer> commentCounts = commentQueryRepository.findCommentCountsByPostIds(postIds);
 
-        // When: 빈 목록으로 댓글 수 조회
-        Map<Long, Integer> commentCounts = commentQueryRepository.findCommentCountsByPostIds(emptyPostIds);
-
-        // Then: 빈 맵이 반환되어야 함
+        // Then
         assertThat(commentCounts).isNotNull();
         assertThat(commentCounts).isEmpty();
     }
 
-    @Test
-    @DisplayName("정상 케이스 - 존재하지 않는 게시글 ID로 댓글 수 조회")
-    void shouldReturnEmptyMap_WhenNonExistentPostIdsProvided() {
-        // Given: 존재하지 않는 게시글 ID들
-        List<Long> nonExistentPostIds = List.of(999L, 998L, 997L);
-
-        // When: 존재하지 않는 게시글 ID로 댓글 수 조회
-        Map<Long, Integer> commentCounts = commentQueryRepository.findCommentCountsByPostIds(nonExistentPostIds);
-
-        // Then: 빈 맵이 반환되어야 함
-        assertThat(commentCounts).isNotNull();
-        assertThat(commentCounts).isEmpty();
+    static Stream<Arguments> provideEmptyResultPostIdCases() {
+        return Stream.of(
+                Arguments.of("빈 게시글 ID 목록", List.of()),
+                Arguments.of("존재하지 않는 게시글 ID", List.of(999L, 998L, 997L))
+        );
     }
 
 

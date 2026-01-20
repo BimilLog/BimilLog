@@ -6,11 +6,9 @@ import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
-import org.springframework.dao.DataAccessResourceFailureException;
-import org.springframework.dao.QueryTimeoutException;
-import org.springframework.dao.TransientDataAccessException;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -47,22 +45,18 @@ public class FriendshipRedisListener {
     @EventListener
     @Async
     @Retryable(
-            retryFor = {
-                    TransientDataAccessException.class,
-                    DataAccessResourceFailureException.class,
-                    RedisConnectionFailureException.class,
-                    QueryTimeoutException.class
-            },
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 1000, multiplier = 2)
+            retryFor = RedisConnectionFailureException.class,
+            maxAttemptsExpression = "${retry.max-attempts}",
+            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
     )
     public void handleFriendshipCreated(FriendshipCreatedEvent event) {
-        try {
-            redisFriendshipRepository.addFriend(event.memberId(), event.friendId());
-            log.debug("Redis 친구 관계 추가 완료: memberId={}, friendId={}", event.memberId(), event.friendId());
-        } catch (Exception e) {
-            log.error("Redis 친구 관계 추가 실패: memberId={}, friendId={}", event.memberId(), event.friendId(), e);
-        }
+        redisFriendshipRepository.addFriend(event.memberId(), event.friendId());
+        log.debug("Redis 친구 관계 추가 완료: memberId={}, friendId={}", event.memberId(), event.friendId());
+    }
+
+    @Recover
+    public void recoverFriendshipCreated(Exception e, FriendshipCreatedEvent event) {
+        log.error("Redis 친구 관계 추가 최종 실패: memberId={}, friendId={}", event.memberId(), event.friendId(), e);
     }
 
     /**
@@ -77,21 +71,17 @@ public class FriendshipRedisListener {
     @EventListener
     @Async
     @Retryable(
-            retryFor = {
-                    TransientDataAccessException.class,
-                    DataAccessResourceFailureException.class,
-                    RedisConnectionFailureException.class,
-                    QueryTimeoutException.class
-            },
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 1000, multiplier = 2)
+            retryFor = RedisConnectionFailureException.class,
+            maxAttemptsExpression = "${retry.max-attempts}",
+            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
     )
     public void handleFriendshipDeleted(FriendshipDeletedEvent event) {
-        try {
-            redisFriendshipRepository.deleteFriend(event.memberId(), event.friendId());
-            log.debug("Redis 친구 관계 삭제 완료: memberId={}, friendId={}", event.memberId(), event.friendId());
-        } catch (Exception e) {
-            log.error("Redis 친구 관계 삭제 실패: memberId={}, friendId={}", event.memberId(), event.friendId(), e);
-        }
+        redisFriendshipRepository.deleteFriend(event.memberId(), event.friendId());
+        log.debug("Redis 친구 관계 삭제 완료: memberId={}, friendId={}", event.memberId(), event.friendId());
+    }
+
+    @Recover
+    public void recoverFriendshipDeleted(Exception e, FriendshipDeletedEvent event) {
+        log.error("Redis 친구 관계 삭제 최종 실패: memberId={}, friendId={}", event.memberId(), event.friendId(), e);
     }
 }

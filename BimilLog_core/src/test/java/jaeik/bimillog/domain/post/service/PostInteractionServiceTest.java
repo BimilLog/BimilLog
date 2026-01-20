@@ -12,6 +12,8 @@ import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -53,15 +55,16 @@ class PostInteractionServiceTest extends BaseUnitTest {
     @InjectMocks
     private PostInteractionService postInteractionService;
 
-    @Test
-    @DisplayName("게시글 추천 - 처음 추천하는 경우")
-    void shouldAddLike_WhenFirstTimeLiking() {
+    @ParameterizedTest(name = "이미 추천 여부: {0}")
+    @ValueSource(booleans = {false, true})
+    @DisplayName("게시글 추천 토글 - 추가/취소")
+    void shouldToggleLike_WhenLikePost(boolean alreadyLiked) {
         // Given
         Long memberId = 1L;
         Long postId = 123L;
         Post post = PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestMember(), "테스트 게시글", "내용"));
 
-        given(postLikeRepository.existsByPostIdAndMemberId(postId, memberId)).willReturn(false);
+        given(postLikeRepository.existsByPostIdAndMemberId(postId, memberId)).willReturn(alreadyLiked);
         given(postToMemberAdapter.getReferenceById(memberId)).willReturn(getTestMember());
         given(postRepository.findById(postId)).willReturn(Optional.of(post));
 
@@ -73,37 +76,18 @@ class PostInteractionServiceTest extends BaseUnitTest {
         verify(postToMemberAdapter).getReferenceById(memberId);
         verify(postRepository).findById(postId);
 
-        // ArgumentCaptor로 PostLike 객체 검증
-        ArgumentCaptor<PostLike> postLikeCaptor = ArgumentCaptor.forClass(PostLike.class);
-        verify(postLikeRepository).save(postLikeCaptor.capture());
-        PostLike savedPostLike = postLikeCaptor.getValue();
-        assertThat(savedPostLike.getMember()).isEqualTo(getTestMember());
-        assertThat(savedPostLike.getPost()).isEqualTo(post);
+        if (alreadyLiked) {
+            verify(postLikeRepository).deleteByMemberAndPost(getTestMember(), post);
+            verify(postLikeRepository, never()).save(any());
+        } else {
+            ArgumentCaptor<PostLike> postLikeCaptor = ArgumentCaptor.forClass(PostLike.class);
+            verify(postLikeRepository).save(postLikeCaptor.capture());
+            PostLike savedPostLike = postLikeCaptor.getValue();
+            assertThat(savedPostLike.getMember()).isEqualTo(getTestMember());
+            assertThat(savedPostLike.getPost()).isEqualTo(post);
 
-        verify(postLikeRepository, never()).deleteByMemberAndPost(any(), any());
-    }
-
-    @Test
-    @DisplayName("게시글 추천 - 이미 추천한 경우 (추천 취소)")
-    void shouldRemoveLike_WhenAlreadyLiked() {
-        // Given
-        Long memberId = 1L;
-        Long postId = 123L;
-        Post post = PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestMember(), "테스트 게시글", "내용"));
-
-        given(postLikeRepository.existsByPostIdAndMemberId(postId, memberId)).willReturn(true);
-        given(postToMemberAdapter.getReferenceById(memberId)).willReturn(getTestMember());
-        given(postRepository.findById(postId)).willReturn(Optional.of(post));
-
-        // When
-        postInteractionService.likePost(memberId, postId);
-
-        // Then
-        verify(postLikeRepository).existsByPostIdAndMemberId(postId, memberId);
-        verify(postToMemberAdapter).getReferenceById(memberId);
-        verify(postRepository).findById(postId);
-        verify(postLikeRepository).deleteByMemberAndPost(getTestMember(), post);
-        verify(postLikeRepository, never()).save(any());
+            verify(postLikeRepository, never()).deleteByMemberAndPost(any(), any());
+        }
     }
 
     @Test

@@ -137,7 +137,7 @@ class PopularPostQueryRepositoryIntegrationTest {
 
         // Then
         assertThat(popularPosts).hasSize(2);
-        assertThat(popularPosts.get(0).getTitle()).isEqualTo("주간 인기 게시글2"); // 좋아요 12개
+        assertThat(popularPosts.getFirst().getTitle()).isEqualTo("주간 인기 게시글2"); // 좋아요 12개
         assertThat(popularPosts.get(0).getId()).isNotNull();
         assertThat(popularPosts.get(0).getMemberId()).isEqualTo(testMember.getId());
         assertThat(popularPosts.get(1).getTitle()).isEqualTo("주간 인기 게시글1"); // 좋아요 10개
