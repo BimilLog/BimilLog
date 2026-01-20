@@ -53,10 +53,8 @@ class PostAdminServiceTest extends BaseUnitTest {
     void shouldTogglePostNotice_WhenNormalPostToNotice() {
         // Given
         Long postId = 123L;
-        String postTitle = "중요한 공지사항";
 
         given(postRepository.findById(postId)).willReturn(Optional.of(post));
-        given(post.getTitle()).willReturn(postTitle);
         given(post.isNotice()).willReturn(false); // 현재 공지 아님
 
         // When
@@ -106,13 +104,12 @@ class PostAdminServiceTest extends BaseUnitTest {
 
     @Test
     @DisplayName("게시글 공지 토글 - 공지 게시글을 일반 게시글로 해제")
-    void shouldTogglePostNotice_WhenNoticePostToNormal() {
+    void
+    shouldTogglePostNotice_WhenNoticePostToNormal() {
         // Given
         Long postId = 123L;
-        String postTitle = "공지 해제될 게시글";
 
         given(postRepository.findById(postId)).willReturn(Optional.of(post));
-        given(post.getTitle()).willReturn(postTitle);
         given(post.isNotice()).willReturn(true); // 현재 공지임
 
         // When

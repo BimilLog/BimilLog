@@ -6,6 +6,7 @@ import jaeik.bimillog.domain.notification.service.FcmPushService;
 import jaeik.bimillog.domain.notification.service.SseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
@@ -46,7 +47,8 @@ public class NotificationSendListener {
     @Retryable(
             retryFor = {
                     IOException.class,
-                    SocketTimeoutException.class
+                    SocketTimeoutException.class,
+                    DataAccessException.class
             },
             maxAttemptsExpression = "${retry.max-attempts}",
             backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
@@ -72,7 +74,8 @@ public class NotificationSendListener {
     @Retryable(
             retryFor = {
                     FirebaseMessagingException.class,
-                    IOException.class
+                    IOException.class,
+                    DataAccessException.class
             },
             maxAttemptsExpression = "${retry.max-attempts}",
             backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")

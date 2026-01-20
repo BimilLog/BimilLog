@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.post.service;
+package jaeik.bimillog.domain.post.scheduler;
 
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;

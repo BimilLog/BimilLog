@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.friend.listener;
 
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentLikeEvent;
+import jaeik.bimillog.domain.friend.service.FriendEventDlqService;
 import jaeik.bimillog.domain.post.event.PostLikeEvent;
 import jaeik.bimillog.infrastructure.config.AsyncConfig;
 import jaeik.bimillog.infrastructure.config.RetryConfig;
@@ -15,12 +16,15 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.Duration;
 
+import static jaeik.bimillog.infrastructure.redis.friend.RedisFriendKeys.INTERACTION_SCORE_DEFAULT;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.*;
 
@@ -31,6 +35,7 @@ import static org.mockito.Mockito.*;
  */
 @DisplayName("FriendInteractionListener 재시도 테스트")
 @Tag("integration")
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @SpringBootTest(classes = {FriendInteractionListener.class, RetryConfig.class, AsyncConfig.class})
 @TestPropertySource(properties = {
         "retry.max-attempts=3",
@@ -45,11 +50,15 @@ class FriendInteractionListenerRetryTest {
     @MockitoBean
     private RedisInteractionScoreRepository redisInteractionScoreRepository;
 
+    @MockitoBean
+    private FriendEventDlqService friendEventDlqService;
+
     private static final int MAX_ATTEMPTS = 3;
 
     @BeforeEach
     void setUp() {
-        Mockito.reset(redisInteractionScoreRepository);
+        Mockito.reset(redisInteractionScoreRepository, friendEventDlqService);
+        Mockito.clearInvocations(redisInteractionScoreRepository, friendEventDlqService);
     }
 
     @Test
@@ -71,6 +80,24 @@ class FriendInteractionListenerRetryTest {
     }
 
     @Test
+    @DisplayName("게시글 좋아요 - 3회 재시도 실패 후 DLQ 저장")
+    void handlePostLiked_shouldSaveToDlqAfterMaxRetries() {
+        // Given
+        PostLikeEvent event = new PostLikeEvent(1L, 2L, 3L);
+        willThrow(new RedisConnectionFailureException("Redis 연결 실패"))
+                .given(redisInteractionScoreRepository).addInteractionScore(anyLong(), anyLong());
+
+        // When
+        listener.handlePostLiked(event);
+
+        // Then: DLQ 저장 호출 검증
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> verify(friendEventDlqService, times(1))
+                        .saveScoreUp(eq(2L), eq(3L), eq(INTERACTION_SCORE_DEFAULT)));
+    }
+
+    @Test
     @DisplayName("게시글 좋아요 - 익명 게시글은 재시도 없이 즉시 반환")
     void handlePostLiked_shouldSkipAnonymousPost() {
         // Given - postAuthorId가 null인 익명 게시글
@@ -82,8 +109,10 @@ class FriendInteractionListenerRetryTest {
         // Then: 비동기 완료 대기 - 상호작용 점수 저장 호출 없음
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
-                .untilAsserted(() -> verify(redisInteractionScoreRepository, never())
-                        .addInteractionScore(anyLong(), anyLong()));
+                .untilAsserted(() -> {
+                    verify(redisInteractionScoreRepository, never()).addInteractionScore(anyLong(), anyLong());
+                    verify(friendEventDlqService, never()).saveScoreUp(anyLong(), anyLong(), anyDouble());
+                });
     }
 
     @Test
@@ -105,6 +134,24 @@ class FriendInteractionListenerRetryTest {
     }
 
     @Test
+    @DisplayName("댓글 작성 - 3회 재시도 실패 후 DLQ 저장")
+    void handleCommentCreated_shouldSaveToDlqAfterMaxRetries() {
+        // Given
+        CommentCreatedEvent event = new CommentCreatedEvent(1L, "작성자", 2L, 100L);
+        willThrow(new RedisConnectionFailureException("Redis 연결 실패"))
+                .given(redisInteractionScoreRepository).addInteractionScore(anyLong(), anyLong());
+
+        // When
+        listener.handleCommentCreated(event);
+
+        // Then: DLQ 저장 호출 검증
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> verify(friendEventDlqService, times(1))
+                        .saveScoreUp(eq(1L), eq(2L), eq(INTERACTION_SCORE_DEFAULT)));
+    }
+
+    @Test
     @DisplayName("댓글 작성 - 익명 댓글은 재시도 없이 즉시 반환")
     void handleCommentCreated_shouldSkipAnonymousComment() {
         // Given - commenterId가 null인 익명 댓글
@@ -116,8 +163,10 @@ class FriendInteractionListenerRetryTest {
         // Then: 비동기 완료 대기 - 상호작용 점수 저장 호출 없음
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
-                .untilAsserted(() -> verify(redisInteractionScoreRepository, never())
-                        .addInteractionScore(anyLong(), anyLong()));
+                .untilAsserted(() -> {
+                    verify(redisInteractionScoreRepository, never()).addInteractionScore(anyLong(), anyLong());
+                    verify(friendEventDlqService, never()).saveScoreUp(anyLong(), anyLong(), anyDouble());
+                });
     }
 
     @Test
@@ -139,6 +188,24 @@ class FriendInteractionListenerRetryTest {
     }
 
     @Test
+    @DisplayName("댓글 좋아요 - 3회 재시도 실패 후 DLQ 저장")
+    void handleCommentLiked_shouldSaveToDlqAfterMaxRetries() {
+        // Given
+        CommentLikeEvent event = new CommentLikeEvent(1L, 2L, 3L);
+        willThrow(new RedisConnectionFailureException("Redis 연결 실패"))
+                .given(redisInteractionScoreRepository).addInteractionScore(anyLong(), anyLong());
+
+        // When
+        listener.handleCommentLiked(event);
+
+        // Then: DLQ 저장 호출 검증
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> verify(friendEventDlqService, times(1))
+                        .saveScoreUp(eq(2L), eq(3L), eq(INTERACTION_SCORE_DEFAULT)));
+    }
+
+    @Test
     @DisplayName("댓글 좋아요 - 익명 댓글은 재시도 없이 즉시 반환")
     void handleCommentLiked_shouldSkipAnonymousComment() {
         // Given - commentAuthorId가 null인 익명 댓글
@@ -150,13 +217,15 @@ class FriendInteractionListenerRetryTest {
         // Then: 비동기 완료 대기 - 상호작용 점수 저장 호출 없음
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
-                .untilAsserted(() -> verify(redisInteractionScoreRepository, never())
-                        .addInteractionScore(anyLong(), anyLong()));
+                .untilAsserted(() -> {
+                    verify(redisInteractionScoreRepository, never()).addInteractionScore(anyLong(), anyLong());
+                    verify(friendEventDlqService, never()).saveScoreUp(anyLong(), anyLong(), anyDouble());
+                });
     }
 
     @Test
-    @DisplayName("2회 실패 후 3회차에 성공")
-    void shouldSucceedAfterTwoFailures() {
+    @DisplayName("2회 실패 후 3회차에 성공 - DLQ 저장 안함")
+    void shouldSucceedAfterTwoFailures_noDlqSave() {
         // Given
         PostLikeEvent event = new PostLikeEvent(1L, 2L, 3L);
         willThrow(new RedisConnectionFailureException("실패"))
@@ -167,10 +236,12 @@ class FriendInteractionListenerRetryTest {
         // When
         listener.handlePostLiked(event);
 
-        // Then: 비동기 완료 대기
+        // Then: 비동기 완료 대기 - DLQ 저장 호출 없음
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
-                .untilAsserted(() -> verify(redisInteractionScoreRepository, times(3))
-                        .addInteractionScore(2L, 3L));
+                .untilAsserted(() -> {
+                    verify(redisInteractionScoreRepository, times(3)).addInteractionScore(2L, 3L);
+                    verify(friendEventDlqService, never()).saveScoreUp(anyLong(), anyLong(), anyDouble());
+                });
     }
 }
