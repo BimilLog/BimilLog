@@ -9,8 +9,40 @@ on:
       - '.github/workflows/core-deploy.yml'
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Restore firebase-adminsdk json
+        run: |
+          mkdir -p BimilLog_core/src/main/resources/firebase
+          echo "${{ secrets.FIREBASE_ADMIN_JSON }}" | base64 -d > BimilLog_core/src/main/resources/firebase/growfarm-6cd79-firebase-adminsdk-fbsvc-ad2bc92194.json
+
+      - name: Run tests
+        working-directory: BimilLog_core
+        run: ./gradlew test --no-daemon
+
   build-and-deploy:
     runs-on: ubuntu-latest
+    needs: test
     env:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
