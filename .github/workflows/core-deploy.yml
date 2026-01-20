@@ -11,6 +11,31 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: testpassword
+          MYSQL_DATABASE: bimillogTest
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+      redis:
+        image: redis:8-alpine
+        ports:
+          - 6380:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -39,9 +64,28 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x BimilLog_core/gradlew
 
-      - name: Run tests
+      - name: Run unit tests
         working-directory: BimilLog_core
-        run: ./gradlew test --no-daemon
+        run: ./gradlew unitTest --no-daemon
+
+      - name: Run integration tests (H2)
+        working-directory: BimilLog_core
+        run: ./gradlew integrationTest --no-daemon
+
+      - name: Run local integration tests (MySQL + Redis)
+        working-directory: BimilLog_core
+        env:
+          LOCAL_MYSQL_PASSWORD: testpassword
+          KAKAO_CLIENT_ID: test
+          KAKAO_CLIENT_SECRET: test
+          KAKAO_ADMIN_KEY: test
+          NAVER_CLIENT_ID: test
+          NAVER_CLIENT_SECRET: test
+          GOOGLE_CLIENT_ID: test
+          GOOGLE_CLIENT_SECRET: test
+          JWT_SECRET: testsecret12345678901234567890123456789012
+          MESSAGE_SECRET: testsecret1234567890123456789012
+        run: ./gradlew localIntegrationTest --no-daemon
 
   build-and-deploy:
     runs-on: ubuntu-latest
