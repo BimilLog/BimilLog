@@ -94,13 +94,6 @@ jobs:
       - name: Set up Docker
         uses: docker/setup-buildx-action@v2
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
       - name: Restore firebase-adminsdk json
         run: |
           mkdir -p BimilLog_core/src/main/resources/firebase
@@ -125,210 +118,49 @@ jobs:
           source: "BimilLog_core/docker-compose.yml,BimilLog_core/prometheus"
           target: "/tmp/"
 
-      - name: Deploy infrastructure (Redis, Prometheus) via Bastion Host
+      - name: Deploy Backend and Redis via Bastion Host
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.BASTION_HOST }}
           username: ${{ secrets.BASTION_USER }}
           key: ${{ secrets.BASTION_SSH_KEY }}
           script: |
+            # Copy docker-compose.yml and prometheus config to backend server via bastion
             scp -i ~/growfarm-backend-server-key.pem -o StrictHostKeyChecking=no /tmp/BimilLog_core/docker-compose.yml ${{ secrets.SERVER_USER }}@${{ secrets.BACKEND_SERVER_IP }}:/home/ubuntu/
             scp -r -i ~/growfarm-backend-server-key.pem -o StrictHostKeyChecking=no /tmp/BimilLog_core/prometheus ${{ secrets.SERVER_USER }}@${{ secrets.BACKEND_SERVER_IP }}:/home/ubuntu/
 
+            # SSH to backend server and deploy
             ssh -i ~/growfarm-backend-server-key.pem -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.BACKEND_SERVER_IP }} << 'ENDSSH'
+              # Export all required environment variables
+              export PROD_MYSQL_URL="${{ secrets.PROD_MYSQL_URL }}"
+              export PROD_MYSQL_USERNAME="${{ secrets.PROD_MYSQL_USERNAME }}"
+              export PROD_MYSQL_PASSWORD="${{ secrets.PROD_MYSQL_PASSWORD }}"
+              export PROD_REDIS_HOST="${{ secrets.PROD_REDIS_HOST }}"
+              export PROD_REDIS_PORT="${{ secrets.PROD_REDIS_PORT }}"
               export REDIS_PASSWORD="${{ secrets.REDIS_PASSWORD }}"
+              export KAKAO_CLIENT_ID="${{ secrets.KAKAO_CLIENT_ID }}"
+              export KAKAO_CLIENT_SECRET="${{ secrets.KAKAO_CLIENT_SECRET }}"
+              export KAKAO_ADMIN_KEY="${{ secrets.KAKAO_ADMIN_KEY }}"
+              export PROD_KAKAO_REDIRECT_URL="${{ secrets.PROD_KAKAO_REDIRECT_URL }}"
+              export NAVER_CLIENT_ID="${{ secrets.NAVER_CLIENT_ID }}"
+              export NAVER_CLIENT_SECRET="${{ secrets.NAVER_CLIENT_SECRET }}"
+              export PROD_NAVER_REDIRECT_URL="${{ secrets.PROD_NAVER_REDIRECT_URL }}"
+              export GOOGLE_CLIENT_SECRET="${{ secrets.GOOGLE_CLIENT_SECRET }}"
+              export GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}"
+              export PROD_GOOGLE_REDIRECT_URL="${{ secrets.PROD_GOOGLE_REDIRECT_URL }}"
+              export JWT_SECRET="${{ secrets.JWT_SECRET }}"
+              export MESSAGE_SECRET="${{ secrets.MESSAGE_SECRET }}"
+              export PROD_SERVER_SSE_URL="${{ secrets.PROD_SERVER_SSE_URL }}"
+              export PROD_SERVER_PORT="${{ secrets.PROD_SERVER_PORT }}"
+              export PROD_FLYWAY_LOCATIONS="${{ secrets.PROD_FLYWAY_LOCATIONS }}"
+
+              # Login to Docker Hub
               echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+              # Deploy using docker-compose with environment variables
               cd /home/ubuntu
-
-              # Create network if not exists
-              docker network create bimillog-network 2>/dev/null || true
-
-              docker compose up -d redis redis-exporter prometheus node-exporter
-            ENDSSH
-
-      - name: Blue-Green Deploy Backend via Bastion Host
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.BASTION_HOST }}
-          username: ${{ secrets.BASTION_USER }}
-          key: ${{ secrets.BASTION_SSH_KEY }}
-          script: |
-            ssh -i ~/growfarm-backend-server-key.pem -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.BACKEND_SERVER_IP }} << 'ENDSSH'
-              set -e
-
-              # Configuration
-              BLUE_PORT=8080
-              GREEN_PORT=8081
-              BLUE_CONTAINER="bimillog-backend-blue"
-              GREEN_CONTAINER="bimillog-backend-green"
-              IMAGE="jaeikjeong/bimillog:backend"
-              HEALTH_CHECK_PATH="/actuator/health"
-              MAX_HEALTH_RETRIES=60
-              HEALTH_CHECK_INTERVAL=3
-
-              # Environment variables for backend
-              ENV_VARS="-e SPRING_PROFILES_ACTIVE=prod \
-                -e PROD_MYSQL_URL=${{ secrets.PROD_MYSQL_URL }} \
-                -e PROD_MYSQL_USERNAME=${{ secrets.PROD_MYSQL_USERNAME }} \
-                -e PROD_MYSQL_PASSWORD=${{ secrets.PROD_MYSQL_PASSWORD }} \
-                -e PROD_REDIS_HOST=${{ secrets.PROD_REDIS_HOST }} \
-                -e PROD_REDIS_PORT=${{ secrets.PROD_REDIS_PORT }} \
-                -e REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }} \
-                -e KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }} \
-                -e KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }} \
-                -e KAKAO_ADMIN_KEY=${{ secrets.KAKAO_ADMIN_KEY }} \
-                -e PROD_KAKAO_REDIRECT_URL=${{ secrets.PROD_KAKAO_REDIRECT_URL }} \
-                -e NAVER_CLIENT_ID=${{ secrets.NAVER_CLIENT_ID }} \
-                -e NAVER_CLIENT_SECRET=${{ secrets.NAVER_CLIENT_SECRET }} \
-                -e PROD_NAVER_REDIRECT_URL=${{ secrets.PROD_NAVER_REDIRECT_URL }} \
-                -e GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }} \
-                -e GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }} \
-                -e PROD_GOOGLE_REDIRECT_URL=${{ secrets.PROD_GOOGLE_REDIRECT_URL }} \
-                -e JWT_SECRET=${{ secrets.JWT_SECRET }} \
-                -e MESSAGE_SECRET=${{ secrets.MESSAGE_SECRET }} \
-                -e PROD_SERVER_SSE_URL=${{ secrets.PROD_SERVER_SSE_URL }} \
-                -e PROD_SERVER_PORT=${{ secrets.PROD_SERVER_PORT }} \
-                -e PROD_FLYWAY_LOCATIONS=${{ secrets.PROD_FLYWAY_LOCATIONS }}"
-
-              VOLUMES="-v /home/ubuntu/logs:/app/logs -v /home/ubuntu/scouter/agent.java:/app/scouter-agent"
-
-              echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-              docker pull $IMAGE
-
-              # Determine current active container and ports
-              # Check for legacy container first (first Blue-Green deploy)
-              if docker ps --format '{{.Names}}' | grep -q "^bimillog-backend$"; then
-                echo "Legacy bimillog-backend found on port 8080. Deploying to green (8081)..."
-                CURRENT_CONTAINER="bimillog-backend"
-                CURRENT_PORT=$BLUE_PORT
-                NEW_CONTAINER=$GREEN_CONTAINER
-                NEW_PORT=$GREEN_PORT
-              elif docker ps --format '{{.Names}}' | grep -q "^${BLUE_CONTAINER}$"; then
-                CURRENT_CONTAINER=$BLUE_CONTAINER
-                CURRENT_PORT=$BLUE_PORT
-                NEW_CONTAINER=$GREEN_CONTAINER
-                NEW_PORT=$GREEN_PORT
-              elif docker ps --format '{{.Names}}' | grep -q "^${GREEN_CONTAINER}$"; then
-                CURRENT_CONTAINER=$GREEN_CONTAINER
-                CURRENT_PORT=$GREEN_PORT
-                NEW_CONTAINER=$BLUE_CONTAINER
-                NEW_PORT=$BLUE_PORT
-              else
-                echo "No backend container running. Starting blue container..."
-                CURRENT_CONTAINER=""
-                CURRENT_PORT=""
-                NEW_CONTAINER=$BLUE_CONTAINER
-                NEW_PORT=$BLUE_PORT
-              fi
-
-              echo "Current: $CURRENT_CONTAINER:$CURRENT_PORT"
-              echo "New: $NEW_CONTAINER:$NEW_PORT"
-
-              # Remove new container if exists (from previous failed deployment)
-              docker rm -f $NEW_CONTAINER 2>/dev/null || true
-
-              # Start new container
-              echo "Starting new container: $NEW_CONTAINER on port $NEW_PORT"
-              docker run -d \
-                --name $NEW_CONTAINER \
-                --network bimillog-network \
-                -p ${NEW_PORT}:8080 \
-                $ENV_VARS \
-                $VOLUMES \
-                --restart unless-stopped \
-                $IMAGE
-
-              # Wait for new container to be healthy
-              echo "Waiting for new container health check..."
-              for i in $(seq 1 $MAX_HEALTH_RETRIES); do
-                if curl -sf http://localhost:${NEW_PORT}${HEALTH_CHECK_PATH} > /dev/null 2>&1; then
-                  echo "Health check passed on attempt $i"
-                  break
-                fi
-                if [ $i -eq $MAX_HEALTH_RETRIES ]; then
-                  echo "Health check failed after $MAX_HEALTH_RETRIES attempts"
-                  docker logs $NEW_CONTAINER --tail 50
-                  docker rm -f $NEW_CONTAINER
-                  exit 1
-                fi
-                echo "Health check attempt $i failed, retrying in ${HEALTH_CHECK_INTERVAL}s..."
-                sleep $HEALTH_CHECK_INTERVAL
-              done
-
-              # Save new active port for ALB registration
-              echo $NEW_PORT > /home/ubuntu/.active_backend_port
-              echo $CURRENT_PORT > /home/ubuntu/.old_backend_port
-              echo $NEW_CONTAINER > /home/ubuntu/.active_backend_container
-              echo $CURRENT_CONTAINER > /home/ubuntu/.old_backend_container
-
-              echo "New container is healthy: $NEW_CONTAINER on port $NEW_PORT"
-            ENDSSH
-
-      - name: Switch ALB Target Group
-        run: |
-          # Save SSH key to temp file
-          echo "${{ secrets.BASTION_SSH_KEY }}" > /tmp/bastion_key
-          chmod 600 /tmp/bastion_key
-
-          NEW_PORT=$(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-            -i /tmp/bastion_key \
-            ${{ secrets.BASTION_USER }}@${{ secrets.BASTION_HOST }} \
-            "ssh -o StrictHostKeyChecking=no -i ~/growfarm-backend-server-key.pem ${{ secrets.SERVER_USER }}@${{ secrets.BACKEND_SERVER_IP }} 'cat /home/ubuntu/.active_backend_port'")
-
-          OLD_PORT=$(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-            -i /tmp/bastion_key \
-            ${{ secrets.BASTION_USER }}@${{ secrets.BASTION_HOST }} \
-            "ssh -o StrictHostKeyChecking=no -i ~/growfarm-backend-server-key.pem ${{ secrets.SERVER_USER }}@${{ secrets.BACKEND_SERVER_IP }} 'cat /home/ubuntu/.old_backend_port 2>/dev/null || echo \"\"'")
-
-          # Cleanup SSH key
-          rm -f /tmp/bastion_key
-
-          echo "New port: $NEW_PORT, Old port: $OLD_PORT"
-
-          # Register new target
-          echo "Registering new target: ${{ secrets.BACKEND_INSTANCE_ID }}:${NEW_PORT}"
-          aws elbv2 register-targets \
-            --target-group-arn ${{ secrets.BACKEND_TARGET_GROUP_ARN }} \
-            --targets Id=${{ secrets.BACKEND_INSTANCE_ID }},Port=${NEW_PORT}
-
-          # Wait for new target to be healthy
-          echo "Waiting for new target to be healthy..."
-          aws elbv2 wait target-in-service \
-            --target-group-arn ${{ secrets.BACKEND_TARGET_GROUP_ARN }} \
-            --targets Id=${{ secrets.BACKEND_INSTANCE_ID }},Port=${NEW_PORT}
-
-          # Deregister old target if exists
-          if [ -n "$OLD_PORT" ]; then
-            echo "Deregistering old target: ${{ secrets.BACKEND_INSTANCE_ID }}:${OLD_PORT}"
-            aws elbv2 deregister-targets \
-              --target-group-arn ${{ secrets.BACKEND_TARGET_GROUP_ARN }} \
-              --targets Id=${{ secrets.BACKEND_INSTANCE_ID }},Port=${OLD_PORT} || true
-          fi
-
-          echo "ALB target switch completed!"
-
-      - name: Cleanup old container via Bastion Host
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.BASTION_HOST }}
-          username: ${{ secrets.BASTION_USER }}
-          key: ${{ secrets.BASTION_SSH_KEY }}
-          script: |
-            ssh -i ~/growfarm-backend-server-key.pem -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.BACKEND_SERVER_IP }} << 'ENDSSH'
-              OLD_CONTAINER=$(cat /home/ubuntu/.old_backend_container 2>/dev/null || echo "")
-              if [ -n "$OLD_CONTAINER" ]; then
-                echo "Stopping old container: $OLD_CONTAINER"
-                docker stop $OLD_CONTAINER 2>/dev/null || true
-                docker rm $OLD_CONTAINER 2>/dev/null || true
-              fi
-
-              # Also cleanup legacy container if exists (first Blue-Green deploy)
-              if docker ps -a --format '{{.Names}}' | grep -q "^bimillog-backend$"; then
-                echo "Stopping legacy bimillog-backend container..."
-                docker stop bimillog-backend 2>/dev/null || true
-                docker rm bimillog-backend 2>/dev/null || true
-              fi
-
+              docker compose down || true
+              docker compose pull
+              docker compose up -d
               docker image prune -f
-              echo "Cleanup completed!"
             ENDSSH
