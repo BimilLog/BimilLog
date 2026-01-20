@@ -121,4 +121,34 @@ class RealtimePaperPopularScoreListenerRetryTest {
         verify(redisPaperUpdateAdapter, times(1))
                 .incrementRealtimePopularPaperScore(1L, 5.0);
     }
+
+    @Test
+    @DisplayName("롤링페이퍼 조회 - 성공 시 실시간 인기 점수 증가")
+    void handlePaperViewed_shouldIncrementScoreOnSuccess() {
+        // Given
+        PaperViewedEvent event = new PaperViewedEvent(1L);
+        doNothing().when(redisPaperUpdateAdapter).incrementRealtimePopularPaperScore(anyLong(), anyDouble());
+
+        // When
+        listener.handlePaperViewed(event);
+
+        // Then
+        verify(redisPaperUpdateAdapter, times(1))
+                .incrementRealtimePopularPaperScore(1L, 2.0);
+    }
+
+    @Test
+    @DisplayName("메시지 삭제 - 성공 시 실시간 인기 점수 감소")
+    void handleMessageDeleted_shouldDecrementScoreOnSuccess() {
+        // Given
+        MessageDeletedEvent event = new MessageDeletedEvent(1L);
+        doNothing().when(redisPaperUpdateAdapter).incrementRealtimePopularPaperScore(anyLong(), anyDouble());
+
+        // When
+        listener.handleMessageDeleted(event);
+
+        // Then
+        verify(redisPaperUpdateAdapter, times(1))
+                .incrementRealtimePopularPaperScore(1L, -5.0);
+    }
 }

@@ -163,4 +163,78 @@ class RealtimePopularScoreListenerRetryTest {
                 )
         );
     }
+
+    @Test
+    @DisplayName("댓글 생성 이벤트 - 성공 시 실시간 인기글 점수 증가")
+    void handleCommentCreated_shouldIncrementScoreOnSuccess() {
+        // Given
+        CommentCreatedEvent event = new CommentCreatedEvent(1L, "작성자", 2L, 100L);
+        doNothing().when(redisRealTimePostAdapter).incrementRealtimePopularScore(anyLong(), anyDouble());
+
+        // When
+        listener.handleCommentCreated(event);
+
+        // Then
+        verify(redisRealTimePostAdapter, times(1)).incrementRealtimePopularScore(100L, 3.0);
+    }
+
+    @Test
+    @DisplayName("댓글 삭제 이벤트 - 성공 시 실시간 인기글 점수 감소")
+    void handleCommentDeleted_shouldDecrementScoreOnSuccess() {
+        // Given
+        CommentDeletedEvent event = new CommentDeletedEvent(100L);
+        doNothing().when(redisRealTimePostAdapter).incrementRealtimePopularScore(anyLong(), anyDouble());
+
+        // When
+        listener.handleCommentDeleted(event);
+
+        // Then
+        verify(redisRealTimePostAdapter, times(1)).incrementRealtimePopularScore(100L, -3.0);
+    }
+
+    @Test
+    @DisplayName("게시글 조회 이벤트 - 성공 시 실시간 인기글 점수 증가")
+    void handlePostViewed_shouldIncrementScoreOnSuccess() {
+        // Given
+        PostViewedEvent event = new PostViewedEvent(1L);
+        doNothing().when(redisRealTimePostAdapter).incrementRealtimePopularScore(anyLong(), anyDouble());
+
+        // When
+        listener.handlePostViewed(event);
+
+        // Then
+        verify(redisRealTimePostAdapter, times(1)).incrementRealtimePopularScore(1L, 2.0);
+    }
+
+    @Test
+    @DisplayName("게시글 추천 이벤트 - 성공 시 점수 증가 및 캐시 삭제")
+    void handlePostLiked_shouldIncrementScoreAndDeleteCacheOnSuccess() {
+        // Given
+        PostLikeEvent event = new PostLikeEvent(1L, 2L, 3L);
+        doNothing().when(redisRealTimePostAdapter).incrementRealtimePopularScore(anyLong(), anyDouble());
+        doNothing().when(redisDetailPostAdapter).deleteCachePost(anyLong());
+
+        // When
+        listener.handlePostLiked(event);
+
+        // Then
+        verify(redisRealTimePostAdapter, times(1)).incrementRealtimePopularScore(1L, 4.0);
+        verify(redisDetailPostAdapter, times(1)).deleteCachePost(1L);
+    }
+
+    @Test
+    @DisplayName("게시글 추천 취소 이벤트 - 성공 시 점수 감소 및 캐시 삭제")
+    void handlePostUnliked_shouldDecrementScoreAndDeleteCacheOnSuccess() {
+        // Given
+        PostUnlikeEvent event = new PostUnlikeEvent(1L);
+        doNothing().when(redisRealTimePostAdapter).incrementRealtimePopularScore(anyLong(), anyDouble());
+        doNothing().when(redisDetailPostAdapter).deleteCachePost(anyLong());
+
+        // When
+        listener.handlePostUnliked(event);
+
+        // Then
+        verify(redisRealTimePostAdapter, times(1)).incrementRealtimePopularScore(1L, -4.0);
+        verify(redisDetailPostAdapter, times(1)).deleteCachePost(1L);
+    }
 }

@@ -105,11 +105,12 @@ class MemberBannedListenerRetryTest {
                 .deleteEmitters(1L, null);
     }
 
-    @Test
-    @DisplayName("1회 성공 시 재시도 없음")
-    void shouldNotRetryOnSuccess() {
+    @ParameterizedTest(name = "{0} 제공자로 1회 성공 시 재시도 없음")
+    @MethodSource("provideSocialProviders")
+    @DisplayName("다양한 소셜 제공자에서 1회 성공 시 재시도 없음")
+    void shouldNotRetryOnSuccess(String providerName, SocialProvider provider) {
         // Given
-        MemberBannedEvent event = new MemberBannedEvent(1L, "social123", SocialProvider.GOOGLE);
+        MemberBannedEvent event = new MemberBannedEvent(1L, "social123", provider);
         doNothing().when(sseService).deleteEmitters(anyLong(), any());
         doNothing().when(socialLogoutService).forceLogout(anyString(), any(SocialProvider.class));
         doNothing().when(authTokenService).deleteTokens(anyLong(), any());
@@ -117,9 +118,17 @@ class MemberBannedListenerRetryTest {
         // When
         listener.memberBanned(event);
 
-        // Then
+        // Then: SSE 연결 정리, 소셜 로그아웃, 토큰 무효화 검증
         verify(sseService, times(1)).deleteEmitters(1L, null);
-        verify(socialLogoutService, times(1)).forceLogout("social123", SocialProvider.GOOGLE);
+        verify(socialLogoutService, times(1)).forceLogout("social123", provider);
         verify(authTokenService, times(1)).deleteTokens(1L, null);
+    }
+
+    private static Stream<Arguments> provideSocialProviders() {
+        return Stream.of(
+                Arguments.of("KAKAO", SocialProvider.KAKAO),
+                Arguments.of("NAVER", SocialProvider.NAVER),
+                Arguments.of("GOOGLE", SocialProvider.GOOGLE)
+        );
     }
 }

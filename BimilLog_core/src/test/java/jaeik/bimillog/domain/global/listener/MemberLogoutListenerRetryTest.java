@@ -105,11 +105,12 @@ class MemberLogoutListenerRetryTest {
                 .deleteEmitters(1L, 100L);
     }
 
-    @Test
-    @DisplayName("1회 성공 시 재시도 없음")
-    void shouldNotRetryOnSuccess() throws Exception {
+    @ParameterizedTest(name = "{0} 제공자로 1회 성공 시 재시도 없음")
+    @MethodSource("provideSocialProviders")
+    @DisplayName("다양한 소셜 제공자에서 1회 성공 시 재시도 없음")
+    void shouldNotRetryOnSuccess(String providerName, SocialProvider provider) throws Exception {
         // Given
-        MemberLoggedOutEvent event = new MemberLoggedOutEvent(1L, 100L, SocialProvider.GOOGLE);
+        MemberLoggedOutEvent event = new MemberLoggedOutEvent(1L, 100L, provider);
         doNothing().when(sseService).deleteEmitters(anyLong(), anyLong());
         doNothing().when(socialLogoutService).socialLogout(anyLong(), any(SocialProvider.class));
         doNothing().when(authTokenService).deleteTokens(anyLong(), anyLong());
@@ -117,8 +118,17 @@ class MemberLogoutListenerRetryTest {
         // When
         listener.memberLogout(event);
 
-        // Then
+        // Then: SSE 연결 정리, 소셜 로그아웃, 토큰 삭제 검증
         verify(sseService, times(1)).deleteEmitters(1L, 100L);
+        verify(socialLogoutService, times(1)).socialLogout(1L, provider);
         verify(authTokenService, times(1)).deleteTokens(1L, 100L);
+    }
+
+    private static Stream<Arguments> provideSocialProviders() {
+        return Stream.of(
+                Arguments.of("KAKAO", SocialProvider.KAKAO),
+                Arguments.of("NAVER", SocialProvider.NAVER),
+                Arguments.of("GOOGLE", SocialProvider.GOOGLE)
+        );
     }
 }

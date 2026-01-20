@@ -153,8 +153,8 @@ class NotificationSaveListenerRetryTest {
     }
 
     @Test
-    @DisplayName("1회 성공 시 재시도 없음")
-    void shouldNotRetryOnSuccess() {
+    @DisplayName("댓글 알림 - 1회 성공 시 재시도 없음")
+    void handleCommentCreatedEvent_shouldNotRetryOnSuccess() {
         // Given
         CommentCreatedEvent event = new CommentCreatedEvent(1L, "작성자", 2L, 100L);
         doNothing().when(notificationCommandService).saveCommentNotification(anyLong(), anyString(), anyLong());
@@ -165,5 +165,35 @@ class NotificationSaveListenerRetryTest {
         // Then
         verify(notificationCommandService, times(1))
                 .saveCommentNotification(1L, "작성자", 100L);
+    }
+
+    @Test
+    @DisplayName("롤링페이퍼 알림 - 1회 성공 시 재시도 없음")
+    void handleRollingPaperEvent_shouldNotRetryOnSuccess() {
+        // Given
+        RollingPaperEvent event = new RollingPaperEvent(1L, "작성자");
+        doNothing().when(notificationCommandService).saveMessageNotification(anyLong(), anyString());
+
+        // When
+        listener.handleRollingPaperEvent(event);
+
+        // Then
+        verify(notificationCommandService, times(1))
+                .saveMessageNotification(1L, "작성자");
+    }
+
+    @Test
+    @DisplayName("인기글 알림 - 1회 성공 시 재시도 없음")
+    void handlePostFeaturedEvent_shouldNotRetryOnSuccess() {
+        // Given
+        PostFeaturedEvent event = new PostFeaturedEvent(1L, "주간 인기글!", 100L, NotificationType.POST_FEATURED_WEEKLY, "테스트 게시글");
+        doNothing().when(notificationCommandService).savePopularNotification(anyLong(), anyString(), anyLong(), any(NotificationType.class), anyString());
+
+        // When
+        listener.handlePostFeaturedEvent(event);
+
+        // Then
+        verify(notificationCommandService, times(1))
+                .savePopularNotification(1L, "주간 인기글!", 100L, NotificationType.POST_FEATURED_WEEKLY, "테스트 게시글");
     }
 }
