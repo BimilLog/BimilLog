@@ -17,6 +17,12 @@ import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepositor
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.dao.QueryTimeoutException;
+import org.springframework.dao.TransientDataAccessException;
+import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -63,6 +69,16 @@ public class MemberWithdrawListener {
     @Async
     @EventListener
     @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Retryable(
+            retryFor = {
+                    TransientDataAccessException.class,
+                    DataAccessResourceFailureException.class,
+                    RedisConnectionFailureException.class,
+                    QueryTimeoutException.class
+            },
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 2)
+    )
     public void memberWithdraw(MemberWithdrawnEvent userWithdrawnEvent) {
         Long memberId = userWithdrawnEvent.memberId();
         String socialId = userWithdrawnEvent.socialId();

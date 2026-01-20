@@ -7,6 +7,12 @@ import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.dao.QueryTimeoutException;
+import org.springframework.dao.TransientDataAccessException;
+import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
@@ -30,6 +36,16 @@ public class NotificationSaveListener {
 
     @Async("saveNotificationExecutor")
     @TransactionalEventListener(value = CommentCreatedEvent.class, phase = TransactionPhase.AFTER_COMMIT)
+    @Retryable(
+            retryFor = {
+                    TransientDataAccessException.class,
+                    DataAccessResourceFailureException.class,
+                    RedisConnectionFailureException.class,
+                    QueryTimeoutException.class
+            },
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 2)
+    )
     public void handleCommentCreatedEvent(CommentCreatedEvent event) {
         notificationCommandService.saveCommentNotification(
                 event.postUserId(),
@@ -40,6 +56,16 @@ public class NotificationSaveListener {
 
     @Async("saveNotificationExecutor")
     @TransactionalEventListener(value = RollingPaperEvent.class, phase = TransactionPhase.AFTER_COMMIT)
+    @Retryable(
+            retryFor = {
+                    TransientDataAccessException.class,
+                    DataAccessResourceFailureException.class,
+                    RedisConnectionFailureException.class,
+                    QueryTimeoutException.class
+            },
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 2)
+    )
     public void handleRollingPaperEvent(RollingPaperEvent event) {
         notificationCommandService.saveMessageNotification(
                 event.paperOwnerId(),
@@ -49,6 +75,16 @@ public class NotificationSaveListener {
 
     @Async("saveNotificationExecutor")
     @TransactionalEventListener(value = PostFeaturedEvent.class, phase = TransactionPhase.AFTER_COMMIT)
+    @Retryable(
+            retryFor = {
+                    TransientDataAccessException.class,
+                    DataAccessResourceFailureException.class,
+                    RedisConnectionFailureException.class,
+                    QueryTimeoutException.class
+            },
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 2)
+    )
     public void handlePostFeaturedEvent(PostFeaturedEvent event) {
         notificationCommandService.savePopularNotification(
                 event.memberId(),
@@ -61,6 +97,16 @@ public class NotificationSaveListener {
 
     @Async("saveNotificationExecutor")
     @TransactionalEventListener(value = FriendEvent.class, phase = TransactionPhase.AFTER_COMMIT)
+    @Retryable(
+            retryFor = {
+                    TransientDataAccessException.class,
+                    DataAccessResourceFailureException.class,
+                    RedisConnectionFailureException.class,
+                    QueryTimeoutException.class
+            },
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 2)
+    )
     public void handleFriendEvent(FriendEvent event) {
         notificationCommandService.saveFriendNotification(
                 event.getReceiveMemberId(),

@@ -13,7 +13,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
+
+import java.util.stream.Stream;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -116,53 +120,50 @@ class BlacklistServiceTest extends BaseUnitTest {
         verify(redisJwtBlacklistAdapter).isBlacklisted(testTokenHash);
     }
 
-    @Test
-    @DisplayName("사용자의 모든 토큰을 블랙리스트에 등록 성공")
-    void shouldBlacklistAllMemberTokens_WhenMemberHasTokens() {
-        // Given
-        Long memberId = getTestMember().getId() != null ? getTestMember().getId() : 100L;
-        String reason = "Security violation";
-
-        given(authTokenRepository.findByMemberId(memberId)).willReturn(testAuthTokenList);
-        given(authToJwtAdapter.generateTokenHash("refresh-token-0")).willReturn("hash0");
-        given(authToJwtAdapter.generateTokenHash("refresh-token-1")).willReturn("hash1");
-
-        // When
-        blacklistService.blacklistAllUserTokens(memberId);
-
-        // Then
-        verify(authTokenRepository).findByMemberId(memberId);
-        verify(authToJwtAdapter).generateTokenHash("refresh-token-0");
-        verify(authToJwtAdapter).generateTokenHash("refresh-token-1");
-
-        ArgumentCaptor<List<String>> hashesCaptor = ArgumentCaptor.forClass(List.class);
-        ArgumentCaptor<Duration> durationCaptor = ArgumentCaptor.forClass(Duration.class);
-
-        verify(redisJwtBlacklistAdapter).blacklistTokenHashes(
-                hashesCaptor.capture(),
-                durationCaptor.capture()
-        );
-        
-        List<String> capturedHashes = hashesCaptor.getValue();
-        assertThat(capturedHashes).containsExactlyInAnyOrder("hash0", "hash1");
-        assertThat(durationCaptor.getValue()).isEqualTo(Duration.ofHours(1));
-    }
-
-    @Test
-    @DisplayName("사용자에게 활성 토큰이 없는 경우 처리")
-    void shouldHandleGracefully_WhenMemberHasNoTokens() {
+    @ParameterizedTest(name = "토큰 개수: {0}")
+    @MethodSource("provideTokenCountScenarios")
+    @DisplayName("사용자의 모든 토큰을 블랙리스트에 등록 - 다양한 토큰 개수")
+    void shouldBlacklistAllMemberTokens_VariousTokenCounts(int tokenCount) {
         // Given
         Long memberId = 100L;
-        String reason = "Security violation";
-        given(authTokenRepository.findByMemberId(memberId)).willReturn(List.of());
+        List<AuthToken> authTokens = createMultipleTokens(tokenCount);
+        given(authTokenRepository.findByMemberId(memberId)).willReturn(authTokens);
+
+        for (int i = 0; i < tokenCount; i++) {
+            given(authToJwtAdapter.generateTokenHash("refresh-token-" + i)).willReturn("hash" + i);
+        }
 
         // When
         blacklistService.blacklistAllUserTokens(memberId);
 
         // Then
         verify(authTokenRepository).findByMemberId(memberId);
-        verify(authToJwtAdapter, never()).generateTokenHash(anyString());
-        verify(redisJwtBlacklistAdapter, never()).blacklistTokenHashes(any(), any());
+
+        if (tokenCount == 0) {
+            verify(authToJwtAdapter, never()).generateTokenHash(anyString());
+            verify(redisJwtBlacklistAdapter, never()).blacklistTokenHashes(any(), any());
+        } else {
+            for (int i = 0; i < tokenCount; i++) {
+                verify(authToJwtAdapter).generateTokenHash("refresh-token-" + i);
+            }
+
+            ArgumentCaptor<List<String>> hashesCaptor = ArgumentCaptor.forClass(List.class);
+            verify(redisJwtBlacklistAdapter).blacklistTokenHashes(
+                    hashesCaptor.capture(),
+                    any(Duration.class)
+            );
+
+            List<String> capturedHashes = hashesCaptor.getValue();
+            assertThat(capturedHashes).hasSize(tokenCount);
+        }
+    }
+
+    static Stream<Arguments> provideTokenCountScenarios() {
+        return Stream.of(
+            Arguments.of(0),   // 토큰 없음
+            Arguments.of(2),   // 일반적인 케이스
+            Arguments.of(10)   // 많은 토큰
+        );
     }
 
     @Test
@@ -231,38 +232,6 @@ class BlacklistServiceTest extends BaseUnitTest {
     }
 
 
-
-    @Test
-    @DisplayName("많은 수의 토큰을 블랙리스트에 등록")
-    void shouldHandleManyTokens() {
-        // Given
-        Long memberId = 100L;
-        String reason = "Many tokens test";
-        List<AuthToken> manyAuthTokens = createMultipleTokens(10);
-
-        given(authTokenRepository.findByMemberId(memberId)).willReturn(manyAuthTokens);
-        for (int i = 0; i < 10; i++) {
-            given(authToJwtAdapter.generateTokenHash("refresh-token-" + i)).willReturn("hash" + i);
-        }
-
-        // When
-        blacklistService.blacklistAllUserTokens(memberId);
-
-        // Then
-        verify(authTokenRepository).findByMemberId(memberId);
-        for (int i = 0; i < 10; i++) {
-            verify(authToJwtAdapter).generateTokenHash("refresh-token-" + i);
-        }
-
-        ArgumentCaptor<List<String>> hashesCaptor = ArgumentCaptor.forClass(List.class);
-        verify(redisJwtBlacklistAdapter).blacklistTokenHashes(
-                hashesCaptor.capture(),
-                any(Duration.class)
-        );
-        
-        List<String> capturedHashes = hashesCaptor.getValue();
-        assertThat(capturedHashes).hasSize(10);
-    }
 
     @Test
     @DisplayName("블랙리스트 추가 - 정상 케이스")

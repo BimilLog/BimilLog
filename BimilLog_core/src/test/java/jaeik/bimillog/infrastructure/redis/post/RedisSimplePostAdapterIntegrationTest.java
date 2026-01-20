@@ -8,6 +8,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,6 +21,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -251,30 +255,27 @@ class RedisSimplePostAdapterIntegrationTest {
         assertThat(result.get(2).getId()).isEqualTo(2L);
     }
 
-    @Test
-    @DisplayName("경계값 - 빈 리스트로 MGET 조회 시 빈 Map 반환")
-    void shouldReturnEmptyMap_WhenEmptyListProvided() {
+    @ParameterizedTest
+    @MethodSource("provideEmptyListScenarios")
+    @DisplayName("경계값 - 빈/null 리스트로 MGET 조회 시 빈 Map 반환")
+    void shouldReturnEmptyMap_WhenEmptyOrNullListProvided(List<Long> postIds) {
         // Given
         PostCacheFlag type = PostCacheFlag.WEEKLY;
 
         // When
-        Map<Long, PostSimpleDetail> result = redisSimplePostAdapter.getCachedPosts(type, List.of());
+        Map<Long, PostSimpleDetail> result = redisSimplePostAdapter.getCachedPosts(type, postIds);
 
         // Then
         assertThat(result).isEmpty();
     }
 
-    @Test
-    @DisplayName("경계값 - null 리스트로 MGET 조회 시 빈 Map 반환")
-    void shouldReturnEmptyMap_WhenNullListProvided() {
-        // Given
-        PostCacheFlag type = PostCacheFlag.WEEKLY;
-
-        // When
-        Map<Long, PostSimpleDetail> result = redisSimplePostAdapter.getCachedPosts(type, null);
-
-        // Then
-        assertThat(result).isEmpty();
+    static Stream<Arguments> provideEmptyListScenarios() {
+        return Stream.of(
+            // 빈 리스트
+            Arguments.of(List.of()),
+            // null 리스트
+            Arguments.of((List<Long>) null)
+        );
     }
 
     @Test

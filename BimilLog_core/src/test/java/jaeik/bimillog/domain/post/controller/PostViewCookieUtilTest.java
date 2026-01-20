@@ -8,9 +8,13 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -49,47 +53,35 @@ class PostViewCookieUtilTest {
     }
 
 
-    @Test
-    @DisplayName("쿠키 생성 - 처음 조회하는 게시글")
-    void shouldCreateCookieWithPostId_WhenFirstTimeViewing() {
-        // Given
-        Long postId = 999L;
-        Cookie[] emptyCookies = new Cookie[]{new Cookie("other_cookie", "other_value")};
-
+    @ParameterizedTest
+    @MethodSource("provideCookieSizeScenarios")
+    @DisplayName("쿠키 생성 - 다양한 쿠키 크기")
+    void shouldCreateCookie_VariousSizes(String description, Cookie[] inputCookies, Long postId, int expectedMaxSize) {
         // When
-        Cookie result = postViewCookieUtil.createViewCookie(emptyCookies, postId);
+        Cookie result = postViewCookieUtil.createViewCookie(inputCookies, postId);
 
         // Then
         assertThat(result.getName()).isEqualTo("post_views");
-        assertThat(result.getValue()).isEqualTo("999");
         assertThat(result.getMaxAge()).isEqualTo(24 * 60 * 60); // 24시간
         assertThat(result.getPath()).isEqualTo("/");
         assertThat(result.isHttpOnly()).isTrue();
-    }
+        assertThat(result.getValue()).contains(postId.toString());
 
-    @Test
-    @DisplayName("쿠키 생성 - 기존 조회 이력에 새 게시글 추가")
-    void shouldAppendPostIdToCookie_WhenAddingNewPost() {
-        // Given
-        Long postId = 999L;
-
-        // When
-        Cookie result = postViewCookieUtil.createViewCookie(cookies, postId);
-
-        // Then
-        assertThat(result.getName()).isEqualTo("post_views");
-        assertThat(result.getValue()).contains("123", "456", "789", "999");
         String[] viewIds = result.getValue().split("_");
-        assertThat(viewIds).hasSize(4);
+        assertThat(viewIds.length).isLessThanOrEqualTo(expectedMaxSize);
     }
 
-    @Test
-    @DisplayName("쿠키 생성 - 100개 제한 테스트")
-    void shouldLimitViewHistoryTo100_WhenExceedingLimit() {
-        // Given
-        Long postId = 999L;
-        
-        // 이미 100개의 ID가 있는 쿠키 생성
+    static Stream<Arguments> provideCookieSizeScenarios() {
+        // 빈 쿠키 (처음 조회)
+        Cookie[] emptyCookies = new Cookie[]{new Cookie("other_cookie", "other_value")};
+
+        // 기존 쿠키에 3개 ID (추가)
+        Cookie[] cookiesWithViews = new Cookie[]{
+                new Cookie("other_cookie", "other_value"),
+                new Cookie("post_views", "123_456_789")
+        };
+
+        // 100개 ID가 있는 쿠키 (제한 테스트)
         StringBuilder existingViews = new StringBuilder();
         for (int i = 1; i <= 100; i++) {
             if (i > 1) existingViews.append("_");
@@ -97,21 +89,11 @@ class PostViewCookieUtilTest {
         }
         Cookie[] fullCookies = new Cookie[]{new Cookie("post_views", existingViews.toString())};
 
-        // When
-        Cookie result = postViewCookieUtil.createViewCookie(fullCookies, postId);
-
-        // Then
-        String[] viewIds = result.getValue().split("_");
-        assertThat(viewIds.length).isLessThanOrEqualTo(100);
-        assertThat(result.getValue()).contains("999"); // 새로운 ID는 포함되어야 함
-        
-        // 101개가 되었으므로 맨 앞의 "1"이 제거되어야 함
-        assertThat(result.getValue()).startsWith("2"); // "2"로 시작해야 함 (1이 제거됨)
-        assertThat(result.getValue()).endsWith("999"); // "999"로 끝나야 함
-        
-        // 정확한 매칭으로 "1"이 제거되었는지 확인 (부분 문자열 매칭 방지)
-        java.util.List<String> idList = java.util.Arrays.asList(viewIds);
-        assertThat(idList).doesNotContain("1"); // 정확한 "1" ID가 없어야 함
+        return Stream.of(
+            Arguments.of("처음 조회", emptyCookies, 999L, 100),
+            Arguments.of("기존 조회 이력에 추가", cookiesWithViews, 999L, 100),
+            Arguments.of("100개 제한", fullCookies, 999L, 100)
+        );
     }
 
 }

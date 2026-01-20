@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -123,21 +125,23 @@ class SseMessageTest {
         assertThat(stringRepresentation).contains("message=이벤트 스트림이 생성되었습니다.");
     }
 
-    @Test
+    @ParameterizedTest(name = "알림 타입: {0}")
+    @EnumSource(NotificationType.class)
     @DisplayName("다양한 알림 타입 테스트")
-    void shouldSupportDifferentNotificationTypes() {
-        // Given & When & Then
-        SseMessage commentMessage = SseMessage.of(1L, NotificationType.COMMENT, "댓글 알림", "/post/1");
-        assertThat(commentMessage.type()).isEqualTo(NotificationType.COMMENT);
+    void shouldSupportDifferentNotificationTypes(NotificationType type) {
+        // Given
+        Long memberId = 1L;
+        String message = "테스트 알림 메시지";
+        String url = "/test/url";
 
-        SseMessage paperMessage = SseMessage.of(2L, NotificationType.MESSAGE, "페이퍼 알림", "/paper/member");
-        assertThat(paperMessage.type()).isEqualTo(NotificationType.MESSAGE);
+        // When
+        SseMessage sseMessage = SseMessage.of(memberId, type, message, url);
 
-        SseMessage featuredMessage = SseMessage.of(3L, NotificationType.POST_FEATURED_WEEKLY, "인기글 알림", "/post/3");
-        assertThat(featuredMessage.type()).isEqualTo(NotificationType.POST_FEATURED_WEEKLY);
-
-        SseMessage initiateMessage = SseMessage.of(4L, NotificationType.INITIATE, "초기화 알림", "");
-        assertThat(initiateMessage.type()).isEqualTo(NotificationType.INITIATE);
+        // Then
+        assertThat(sseMessage.type()).isEqualTo(type);
+        assertThat(sseMessage.memberId()).isEqualTo(memberId);
+        assertThat(sseMessage.message()).isEqualTo(message);
+        assertThat(sseMessage.url()).isEqualTo(url);
     }
 
     @Test

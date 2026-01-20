@@ -5,6 +5,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,6 +16,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -41,22 +45,36 @@ class RedisRealTimePostAdapterIntegrationTest {
         RedisTestHelper.flushRedis(redisTemplate);
     }
 
-    @Test
-    @DisplayName("정상 케이스 - 실시간 인기글 ID 목록 조회 (상위 5개)")
-    void shouldReturnTop5PostIds_WhenRealtimeScoresExist() {
-        // Given: 10개의 게시글에 점수 설정 (높은 점수부터)
+    @ParameterizedTest
+    @MethodSource("provideTopPostsScenarios")
+    @DisplayName("정상/경계값 - 실시간 인기글 ID 목록 조회 (다양한 데이터 크기)")
+    void shouldReturnTopPostIds_VariousScenarios(int totalPosts, int expectedSize, List<Long> expectedIds) {
+        // Given: N개의 게시글에 점수 설정 (높은 점수부터)
         String scoreKey = RedisPostKeys.REALTIME_POST_SCORE_KEY;
-        for (long i = 1; i <= 10; i++) {
-            double score = 11.0 - i; // 10, 9, 8, 7, 6, 5, 4, 3, 2, 1
+        for (long i = 1; i <= totalPosts; i++) {
+            double score = totalPosts + 1.0 - i; // 높은 점수부터 (10, 9, 8, ...)
             redisTemplate.opsForZSet().add(scoreKey, String.valueOf(i), score);
         }
 
-        // When: 실시간 인기글 ID 조회 (상위 5개)
+        // When: 실시간 인기글 ID 조회
         List<Long> result = redisRealTimePostAdapter.getRealtimePopularPostIds();
 
-        // Then: 점수가 높은 상위 5개만 반환
-        assertThat(result).hasSize(5);
-        assertThat(result).containsExactly(1L, 2L, 3L, 4L, 5L); // 점수: 10, 9, 8, 7, 6
+        // Then: 예상된 크기와 ID 확인
+        assertThat(result).hasSize(expectedSize);
+        if (!expectedIds.isEmpty()) {
+            assertThat(result).containsExactlyElementsOf(expectedIds);
+        }
+    }
+
+    static Stream<Arguments> provideTopPostsScenarios() {
+        return Stream.of(
+            // 10개 게시글, 상위 5개 반환
+            Arguments.of(10, 5, List.of(1L, 2L, 3L, 4L, 5L)),
+            // 3개 게시글, 3개 전체 반환
+            Arguments.of(3, 3, List.of(1L, 2L, 3L)),
+            // 0개 게시글, 빈 목록 반환
+            Arguments.of(0, 0, List.of())
+        );
     }
 
     @Test
@@ -75,35 +93,6 @@ class RedisRealTimePostAdapterIntegrationTest {
 
         // Then: 점수 내림차순으로 정렬됨
         assertThat(result).containsExactly(400L, 200L, 500L, 100L, 300L); // 30, 25, 20, 15, 10
-    }
-
-    @Test
-    @DisplayName("경계값 - 실시간 인기글이 5개 미만인 경우")
-    void shouldReturnLessThan5_WhenFewerPostsExist() {
-        // Given: 3개의 게시글만 점수 설정
-        String scoreKey = RedisPostKeys.REALTIME_POST_SCORE_KEY;
-        redisTemplate.opsForZSet().add(scoreKey, "1", 10.0);
-        redisTemplate.opsForZSet().add(scoreKey, "2", 8.0);
-        redisTemplate.opsForZSet().add(scoreKey, "3", 6.0);
-
-        // When: 실시간 인기글 ID 조회
-        List<Long> result = redisRealTimePostAdapter.getRealtimePopularPostIds();
-
-        // Then: 존재하는 3개만 반환
-        assertThat(result).hasSize(3);
-        assertThat(result).containsExactly(1L, 2L, 3L);
-    }
-
-    @Test
-    @DisplayName("경계값 - 실시간 인기글이 없는 경우")
-    void shouldReturnEmptyList_WhenNoRealtimePostsExist() {
-        // Given: 실시간 인기글 점수가 없는 상태
-
-        // When: 실시간 인기글 ID 조회
-        List<Long> result = redisRealTimePostAdapter.getRealtimePopularPostIds();
-
-        // Then: 빈 목록 반환
-        assertThat(result).isEmpty();
     }
 
     @Test

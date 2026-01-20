@@ -10,6 +10,12 @@ import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.dao.QueryTimeoutException;
+import org.springframework.dao.TransientDataAccessException;
+import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
@@ -47,6 +53,16 @@ public class RealtimePopularScoreListener {
      */
     @EventListener
     @Async
+    @Retryable(
+            retryFor = {
+                    TransientDataAccessException.class,
+                    DataAccessResourceFailureException.class,
+                    RedisConnectionFailureException.class,
+                    QueryTimeoutException.class
+            },
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 2)
+    )
     public void handlePostViewed(PostViewedEvent event) {
         try {
             redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), VIEW_SCORE);
@@ -67,6 +83,16 @@ public class RealtimePopularScoreListener {
      */
     @EventListener
     @Async
+    @Retryable(
+            retryFor = {
+                    TransientDataAccessException.class,
+                    DataAccessResourceFailureException.class,
+                    RedisConnectionFailureException.class,
+                    QueryTimeoutException.class
+            },
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 2)
+    )
     public void handleCommentCreated(CommentCreatedEvent event) {
         try {
             redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), COMMENT_SCORE);
@@ -87,6 +113,16 @@ public class RealtimePopularScoreListener {
      */
     @EventListener
     @Async
+    @Retryable(
+            retryFor = {
+                    TransientDataAccessException.class,
+                    DataAccessResourceFailureException.class,
+                    RedisConnectionFailureException.class,
+                    QueryTimeoutException.class
+            },
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 2)
+    )
     public void handlePostLiked(PostLikeEvent event) {
         try {
             redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), LIKE_SCORE);
@@ -108,6 +144,16 @@ public class RealtimePopularScoreListener {
      */
     @EventListener
     @Async
+    @Retryable(
+            retryFor = {
+                    TransientDataAccessException.class,
+                    DataAccessResourceFailureException.class,
+                    RedisConnectionFailureException.class,
+                    QueryTimeoutException.class
+            },
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 2)
+    )
     public void handlePostUnliked(PostUnlikeEvent event) {
         try {
             redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), -LIKE_SCORE);
@@ -129,6 +175,16 @@ public class RealtimePopularScoreListener {
      */
     @EventListener
     @Async
+    @Retryable(
+            retryFor = {
+                    TransientDataAccessException.class,
+                    DataAccessResourceFailureException.class,
+                    RedisConnectionFailureException.class,
+                    QueryTimeoutException.class
+            },
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 1000, multiplier = 2)
+    )
     public void handleCommentDeleted(CommentDeletedEvent event) {
         try {
             redisRealTimePostAdapter.incrementRealtimePopularScore(event.postId(), -COMMENT_SCORE);

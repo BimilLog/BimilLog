@@ -5,13 +5,18 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -127,55 +132,61 @@ class RedisPaperUpdateAdapterIntegrationTest {
         assertThat(score3).isEqualTo(1.94);  // 2 * 0.97
     }
 
-    @Test
-    @DisplayName("정상 케이스 - 실시간 인기 롤링페이퍼 점수 감쇠 시 임계값 이하 제거")
-    void shouldRemovePapersBelowThreshold_WhenScoreDecayApplied() {
-        // Given: 임계값(1.0) 근처의 점수 설정
-        redisTemplate.opsForZSet().add(SCORE_KEY, "1", 10.0);
-        redisTemplate.opsForZSet().add(SCORE_KEY, "2", 1.5);  // 감쇠 후 1.455 (유지)
-        redisTemplate.opsForZSet().add(SCORE_KEY, "3", 1.03); // 감쇠 후 0.9991 (제거)
-        redisTemplate.opsForZSet().add(SCORE_KEY, "4", 0.8);  // 감쇠 후 0.776 (제거)
+    @ParameterizedTest
+    @MethodSource("provideDecayScenarios")
+    @DisplayName("정상 케이스 - 점수 감쇠 후 임계값 검증 (다양한 데이터 크기)")
+    void shouldHandleDecay_VariousScenarios(Map<String, Double> initialScores, int expectedRemaining, Set<String> expectedRemainingIds) {
+        // Given: 초기 점수 설정
+        initialScores.forEach((id, score) ->
+            redisTemplate.opsForZSet().add(SCORE_KEY, id, score)
+        );
 
         // 초기 크기 확인
         Long initialSize = redisTemplate.opsForZSet().size(SCORE_KEY);
-        assertThat(initialSize).isEqualTo(4);
+        assertThat(initialSize).isEqualTo(initialScores.size());
 
         // When: 감쇠 적용
         redisPaperUpdateAdapter.applyRealtimePopularPaperScoreDecay();
 
-        // Then: 임계값(1.0) 이하의 롤링페이퍼는 제거됨
+        // Then: 예상된 수만큼 남아있음
         Long finalSize = redisTemplate.opsForZSet().size(SCORE_KEY);
-        assertThat(finalSize).isEqualTo(2); // 1번과 2번만 남음
+        assertThat(finalSize).isEqualTo(expectedRemaining);
 
-        // 남아있는 롤링페이퍼 확인
-        Set<Object> remainingPapers = redisTemplate.opsForZSet().range(SCORE_KEY, 0, -1);
-        assertThat(remainingPapers).containsExactlyInAnyOrder("1", "2");
+        // 남아있는 항목 확인
+        if (expectedRemaining > 0) {
+            Set<Object> remainingPapers = redisTemplate.opsForZSet().range(SCORE_KEY, 0, -1);
+            assertThat(remainingPapers).containsExactlyInAnyOrderElementsOf(expectedRemainingIds);
+        }
 
-        // 점수 확인
-        Double score1 = redisTemplate.opsForZSet().score(SCORE_KEY, "1");
-        Double score2 = redisTemplate.opsForZSet().score(SCORE_KEY, "2");
-        assertThat(score1).isEqualTo(9.7);    // 10 * 0.97
-        assertThat(score2).isEqualTo(1.455);  // 1.5 * 0.97
-
-        // 제거된 롤링페이퍼 확인
-        assertThat(redisTemplate.opsForZSet().score(SCORE_KEY, "3")).isNull();
-        assertThat(redisTemplate.opsForZSet().score(SCORE_KEY, "4")).isNull();
+        // 제거된 항목 확인
+        initialScores.keySet().stream()
+            .filter(id -> !expectedRemainingIds.contains(id))
+            .forEach(removedId ->
+                assertThat(redisTemplate.opsForZSet().score(SCORE_KEY, removedId)).isNull()
+            );
     }
 
-    @Test
-    @DisplayName("정상 케이스 - 감쇠 후 모든 항목이 임계값 이하인 경우")
-    void shouldRemoveAllPapers_WhenAllScoresAreBelowThreshold() {
-        // Given: 모든 점수가 임계값 근처
-        redisTemplate.opsForZSet().add(SCORE_KEY, "1", 1.03); // 감쇠 후 0.9991 (제거)
-        redisTemplate.opsForZSet().add(SCORE_KEY, "2", 0.9);  // 감쇠 후 0.873 (제거)
-        redisTemplate.opsForZSet().add(SCORE_KEY, "3", 0.8);  // 감쇠 후 0.776 (제거)
-
-        // When: 감쇠 적용
-        redisPaperUpdateAdapter.applyRealtimePopularPaperScoreDecay();
-
-        // Then: 모든 항목 제거
-        Long finalSize = redisTemplate.opsForZSet().size(SCORE_KEY);
-        assertThat(finalSize).isZero();
+    static Stream<Arguments> provideDecayScenarios() {
+        return Stream.of(
+            // 4개 점수, 2개 남음 (10.0, 1.5 유지)
+            Arguments.of(
+                Map.of("1", 10.0, "2", 1.5, "3", 1.03, "4", 0.8),
+                2,
+                Set.of("1", "2")
+            ),
+            // 3개 점수, 모두 제거
+            Arguments.of(
+                Map.of("1", 1.03, "2", 0.9, "3", 0.8),
+                0,
+                Set.of()
+            ),
+            // 1개 점수 (정확히 임계값), 제거됨
+            Arguments.of(
+                Map.of("1", 1.0),
+                0,
+                Set.of()
+            )
+        );
     }
 
     @Test
@@ -189,21 +200,6 @@ class RedisPaperUpdateAdapterIntegrationTest {
         // Then: 에러 없이 정상 처리
         Long finalSize = redisTemplate.opsForZSet().size(SCORE_KEY);
         assertThat(finalSize).isZero();
-    }
-
-    @Test
-    @DisplayName("정상 케이스 - 점수가 정확히 임계값인 경우")
-    void shouldRemovePaper_WhenScoreEqualsThreshold() {
-        // Given: 점수가 정확히 1.0
-        redisTemplate.opsForZSet().add(SCORE_KEY, "1", 1.0);
-
-        // When: 감쇠 적용 (1.0 * 0.97 = 0.97)
-        redisPaperUpdateAdapter.applyRealtimePopularPaperScoreDecay();
-
-        // Then: 0.97 < 1.0 이므로 제거됨
-        Long finalSize = redisTemplate.opsForZSet().size(SCORE_KEY);
-        assertThat(finalSize).isZero();
-        assertThat(redisTemplate.opsForZSet().score(SCORE_KEY, "1")).isNull();
     }
 
     @Test
