@@ -23,6 +23,13 @@ jobs:
       - name: Set up Docker
         uses: docker/setup-buildx-action@v2
 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
       - name: Restore .env
         run: |
           echo "${{ secrets.FRONTEND_ENV }}" | base64 -d > BimilLog_front/.env
@@ -45,7 +52,7 @@ jobs:
         if: always()
         run: rm -f BimilLog_front/public/firebase-messaging-sw.js
 
-      - name: Deploy Frontend via Bastion Host
+      - name: Blue-Green Deploy Frontend via Bastion Host
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.BASTION_HOST }}
@@ -53,11 +60,134 @@ jobs:
           key: ${{ secrets.BASTION_SSH_KEY }}
           script: |
             ssh -i ~/growfarm-frontend-server-key.pem -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.FRONTEND_SERVER_IP }} << 'ENDSSH'
-            echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-            docker pull jaeikjeong/bimillog:frontend
-            docker stop bimillog-frontend || true
-            docker rm bimillog-frontend || true
-            echo "${{ secrets.FRONTEND_ENV }}" | base64 -d > /home/ubuntu/bimillog-frontend.env
-            docker run -d --name bimillog-frontend --env-file /home/ubuntu/bimillog-frontend.env -p 3000:3000 jaeikjeong/bimillog:frontend
-            docker image prune -f
+              set -e
+
+              # Configuration
+              BLUE_PORT=3000
+              GREEN_PORT=3001
+              BLUE_CONTAINER="bimillog-frontend-blue"
+              GREEN_CONTAINER="bimillog-frontend-green"
+              IMAGE="jaeikjeong/bimillog:frontend"
+              HEALTH_CHECK_PATH="/"
+              MAX_HEALTH_RETRIES=30
+              HEALTH_CHECK_INTERVAL=2
+
+              echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+              docker pull $IMAGE
+
+              # Save env file
+              echo "${{ secrets.FRONTEND_ENV }}" | base64 -d > /home/ubuntu/bimillog-frontend.env
+
+              # Determine current active container and ports
+              if docker ps --format '{{.Names}}' | grep -q "^${BLUE_CONTAINER}$"; then
+                CURRENT_CONTAINER=$BLUE_CONTAINER
+                CURRENT_PORT=$BLUE_PORT
+                NEW_CONTAINER=$GREEN_CONTAINER
+                NEW_PORT=$GREEN_PORT
+              elif docker ps --format '{{.Names}}' | grep -q "^${GREEN_CONTAINER}$"; then
+                CURRENT_CONTAINER=$GREEN_CONTAINER
+                CURRENT_PORT=$GREEN_PORT
+                NEW_CONTAINER=$BLUE_CONTAINER
+                NEW_PORT=$BLUE_PORT
+              else
+                echo "No frontend container running. Starting blue container..."
+                CURRENT_CONTAINER=""
+                CURRENT_PORT=""
+                NEW_CONTAINER=$BLUE_CONTAINER
+                NEW_PORT=$BLUE_PORT
+              fi
+
+              echo "Current: $CURRENT_CONTAINER:$CURRENT_PORT"
+              echo "New: $NEW_CONTAINER:$NEW_PORT"
+
+              # Remove new container if exists (from previous failed deployment)
+              docker rm -f $NEW_CONTAINER 2>/dev/null || true
+
+              # Start new container
+              echo "Starting new container: $NEW_CONTAINER on port $NEW_PORT"
+              docker run -d \
+                --name $NEW_CONTAINER \
+                --env-file /home/ubuntu/bimillog-frontend.env \
+                -p ${NEW_PORT}:3000 \
+                --restart unless-stopped \
+                $IMAGE
+
+              # Wait for new container to be healthy
+              echo "Waiting for new container health check..."
+              for i in $(seq 1 $MAX_HEALTH_RETRIES); do
+                if curl -sf http://localhost:${NEW_PORT}${HEALTH_CHECK_PATH} > /dev/null 2>&1; then
+                  echo "Health check passed on attempt $i"
+                  break
+                fi
+                if [ $i -eq $MAX_HEALTH_RETRIES ]; then
+                  echo "Health check failed after $MAX_HEALTH_RETRIES attempts"
+                  docker logs $NEW_CONTAINER --tail 50
+                  docker rm -f $NEW_CONTAINER
+                  exit 1
+                fi
+                echo "Health check attempt $i failed, retrying in ${HEALTH_CHECK_INTERVAL}s..."
+                sleep $HEALTH_CHECK_INTERVAL
+              done
+
+              # Save new active port for ALB registration
+              echo $NEW_PORT > /home/ubuntu/.active_frontend_port
+              echo $CURRENT_PORT > /home/ubuntu/.old_frontend_port
+              echo $NEW_CONTAINER > /home/ubuntu/.active_frontend_container
+              echo $CURRENT_CONTAINER > /home/ubuntu/.old_frontend_container
+
+              echo "New container is healthy: $NEW_CONTAINER on port $NEW_PORT"
+            ENDSSH
+
+      - name: Switch ALB Target Group
+        run: |
+          NEW_PORT=$(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+            -i <(echo "${{ secrets.BASTION_SSH_KEY }}") \
+            ${{ secrets.BASTION_USER }}@${{ secrets.BASTION_HOST }} \
+            "ssh -o StrictHostKeyChecking=no -i ~/growfarm-frontend-server-key.pem ${{ secrets.SERVER_USER }}@${{ secrets.FRONTEND_SERVER_IP }} 'cat /home/ubuntu/.active_frontend_port'")
+
+          OLD_PORT=$(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+            -i <(echo "${{ secrets.BASTION_SSH_KEY }}") \
+            ${{ secrets.BASTION_USER }}@${{ secrets.BASTION_HOST }} \
+            "ssh -o StrictHostKeyChecking=no -i ~/growfarm-frontend-server-key.pem ${{ secrets.SERVER_USER }}@${{ secrets.FRONTEND_SERVER_IP }} 'cat /home/ubuntu/.old_frontend_port 2>/dev/null || echo \"\"'")
+
+          echo "New port: $NEW_PORT, Old port: $OLD_PORT"
+
+          # Register new target
+          echo "Registering new target: ${{ secrets.FRONTEND_INSTANCE_ID }}:${NEW_PORT}"
+          aws elbv2 register-targets \
+            --target-group-arn ${{ secrets.FRONTEND_TARGET_GROUP_ARN }} \
+            --targets Id=${{ secrets.FRONTEND_INSTANCE_ID }},Port=${NEW_PORT}
+
+          # Wait for new target to be healthy
+          echo "Waiting for new target to be healthy..."
+          aws elbv2 wait target-in-service \
+            --target-group-arn ${{ secrets.FRONTEND_TARGET_GROUP_ARN }} \
+            --targets Id=${{ secrets.FRONTEND_INSTANCE_ID }},Port=${NEW_PORT}
+
+          # Deregister old target if exists
+          if [ -n "$OLD_PORT" ]; then
+            echo "Deregistering old target: ${{ secrets.FRONTEND_INSTANCE_ID }}:${OLD_PORT}"
+            aws elbv2 deregister-targets \
+              --target-group-arn ${{ secrets.FRONTEND_TARGET_GROUP_ARN }} \
+              --targets Id=${{ secrets.FRONTEND_INSTANCE_ID }},Port=${OLD_PORT} || true
+          fi
+
+          echo "ALB target switch completed!"
+
+      - name: Cleanup old container via Bastion Host
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.BASTION_HOST }}
+          username: ${{ secrets.BASTION_USER }}
+          key: ${{ secrets.BASTION_SSH_KEY }}
+          script: |
+            ssh -i ~/growfarm-frontend-server-key.pem -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.FRONTEND_SERVER_IP }} << 'ENDSSH'
+              OLD_CONTAINER=$(cat /home/ubuntu/.old_frontend_container 2>/dev/null || echo "")
+              if [ -n "$OLD_CONTAINER" ]; then
+                echo "Stopping old container: $OLD_CONTAINER"
+                docker stop $OLD_CONTAINER 2>/dev/null || true
+                docker rm $OLD_CONTAINER 2>/dev/null || true
+              fi
+              docker image prune -f
+              echo "Cleanup completed!"
             ENDSSH
