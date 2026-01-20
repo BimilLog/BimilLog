@@ -1,5 +1,6 @@
 package jaeik.bimillog.infrastructure.redis.post;
 
+import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,35 +18,15 @@ import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.*;
  * <p>티어2 이자 실시간 인기글 ID를 관리한다.</p>
  *
  * @author Jaeik
- * @version 2.4.0
+ * @version 2.5.1
  */
 @Component
 @Slf4j
 @RequiredArgsConstructor
 public class RedisRealTimePostAdapter {
+    private static final String REALTIME_SCORE_KEY = getScoreStorageKey(PostCacheFlag.REALTIME);
+
     private final RedisTemplate<String, Object> redisTemplate;
-
-    /**
-     * <h3>상위 5개 글 ID 목록 조회</h3>
-     * <p>Redis Sorted Set에서 점수가 높은 상위 5개의 게시글 ID를 조회합니다.</p>
-     *
-     * @return List<Long> 상위 5개 게시글 ID 목록 (점수 내림차순)
-     */
-    public List<Long> getRealtimePopularPostIds() {
-        Set<Object> postIds = redisTemplate.opsForZSet().reverseRange(REALTIME_POST_SCORE_KEY, 0, 4);
-        if (postIds == null || postIds.isEmpty()) {
-            CacheMetricsLogger.miss(log, "post:realtime", REALTIME_POST_SCORE_KEY, "sorted_set_empty");
-            return Collections.emptyList();
-        }
-
-        List<Long> ids =  postIds.stream()
-                .map(Object::toString)
-                .map(Long::valueOf)
-                .toList();;
-
-        CacheMetricsLogger.hit(log, "post:realtime", REALTIME_POST_SCORE_KEY, ids.size());
-        return ids;
-    }
 
     /**
      * <h3>페이징된 글 ID 목록 조회</h3>
@@ -57,9 +38,9 @@ public class RedisRealTimePostAdapter {
      */
     public List<Long> getRealtimePopularPostIds(long offset, long limit) {
         Set<Object> postIds = redisTemplate.opsForZSet()
-                .reverseRange(REALTIME_POST_SCORE_KEY, offset, offset + limit - 1);
+                .reverseRange(REALTIME_SCORE_KEY, offset, offset + limit - 1);
         if (postIds == null || postIds.isEmpty()) {
-            CacheMetricsLogger.miss(log, "post:realtime:paged", REALTIME_POST_SCORE_KEY, "sorted_set_empty");
+            CacheMetricsLogger.miss(log, "post:realtime:paged", REALTIME_SCORE_KEY, "sorted_set_empty");
             return Collections.emptyList();
         }
 
@@ -68,7 +49,7 @@ public class RedisRealTimePostAdapter {
                 .map(Long::valueOf)
                 .toList();
 
-        CacheMetricsLogger.hit(log, "post:realtime:paged", REALTIME_POST_SCORE_KEY, ids.size());
+        CacheMetricsLogger.hit(log, "post:realtime:paged", REALTIME_SCORE_KEY, ids.size());
         return ids;
     }
 
@@ -79,7 +60,7 @@ public class RedisRealTimePostAdapter {
      * @return 실시간 인기글 총 개수
      */
     public long getRealtimePopularPostCount() {
-        Long count = redisTemplate.opsForZSet().zCard(REALTIME_POST_SCORE_KEY);
+        Long count = redisTemplate.opsForZSet().zCard(REALTIME_SCORE_KEY);
         return count != null ? count : 0;
     }
 
@@ -95,7 +76,7 @@ public class RedisRealTimePostAdapter {
         if (postId == null) {
             return false;
         }
-        Double score = redisTemplate.opsForZSet().score(REALTIME_POST_SCORE_KEY, postId.toString());
+        Double score = redisTemplate.opsForZSet().score(REALTIME_SCORE_KEY, postId.toString());
         return score != null;
     }
 
@@ -108,7 +89,7 @@ public class RedisRealTimePostAdapter {
      * @param score  증가시킬 점수 (조회: 2점, 댓글: 3점, 추천: 4점)
      */
     public void incrementRealtimePopularScore(Long postId, double score) {
-        redisTemplate.opsForZSet().incrementScore(REALTIME_POST_SCORE_KEY, postId.toString(), score);
+        redisTemplate.opsForZSet().incrementScore(REALTIME_SCORE_KEY, postId.toString(), score);
     }
 
     /**
@@ -120,12 +101,12 @@ public class RedisRealTimePostAdapter {
         // 1. 모든 항목의 점수에 0.9 곱하기 (Lua 스크립트 사용)
         redisTemplate.execute(
                 SCORE_DECAY_SCRIPT,
-                List.of(REALTIME_POST_SCORE_KEY),
+                List.of(REALTIME_SCORE_KEY),
                 REALTIME_POST_SCORE_DECAY_RATE
         );
 
         // 2. 임계값(1점) 이하의 게시글 제거
-        redisTemplate.opsForZSet().removeRangeByScore(REALTIME_POST_SCORE_KEY, 0, REALTIME_POST_SCORE_THRESHOLD);
+        redisTemplate.opsForZSet().removeRangeByScore(REALTIME_SCORE_KEY, 0, REALTIME_POST_SCORE_THRESHOLD);
     }
 
     /**
@@ -136,6 +117,6 @@ public class RedisRealTimePostAdapter {
      * @param postId 제거할 게시글 ID
      */
     public void removePostIdFromRealtimeScore(Long postId) {
-        redisTemplate.opsForZSet().remove(REALTIME_POST_SCORE_KEY, postId.toString());
+        redisTemplate.opsForZSet().remove(REALTIME_SCORE_KEY, postId.toString());
     }
 }

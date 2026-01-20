@@ -5,12 +5,17 @@ import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
 import jaeik.bimillog.domain.post.event.PostLikeEvent;
 import jaeik.bimillog.domain.post.event.PostUnlikeEvent;
 import jaeik.bimillog.domain.post.event.PostViewedEvent;
+import jaeik.bimillog.infrastructure.config.AsyncConfig;
 import jaeik.bimillog.infrastructure.config.RetryConfig;
 import jaeik.bimillog.infrastructure.redis.post.RedisDetailPostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
+import org.awaitility.Awaitility;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.mockito.Mockito;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -20,9 +25,9 @@ import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.time.Duration;
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.willThrow;
@@ -31,10 +36,12 @@ import static org.mockito.Mockito.*;
 /**
  * <h2>RealtimePopularScoreListener 재시도 테스트</h2>
  * <p>Redis 연결 실패 시 재시도 로직이 정상 동작하는지 검증</p>
+ * <p>AsyncConfig를 포함하여 실제 비동기 환경에서 재시도를 검증</p>
  */
 @DisplayName("RealtimePopularScoreListener 재시도 테스트")
 @Tag("integration")
-@SpringBootTest(classes = {RealtimePopularScoreListener.class, RetryConfig.class})
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@SpringBootTest(classes = {RealtimePopularScoreListener.class, RetryConfig.class, AsyncConfig.class})
 @TestPropertySource(properties = {
         "retry.max-attempts=3",
         "retry.backoff.delay=10",
@@ -53,6 +60,11 @@ class RealtimePopularScoreListenerRetryTest {
 
     private static final int MAX_ATTEMPTS = 3;
 
+    @BeforeEach
+    void setUp() {
+        Mockito.reset(redisRealTimePostAdapter, redisDetailPostAdapter);
+    }
+
     @Test
     @DisplayName("게시글 조회 이벤트 - RedisConnectionFailureException 발생 시 3회 재시도 후 @Recover 호출")
     void handlePostViewed_shouldRetryOnRedisConnectionFailure() {
@@ -64,8 +76,10 @@ class RealtimePopularScoreListenerRetryTest {
         // When
         listener.handlePostViewed(event);
 
-        // Then
-        verify(redisRealTimePostAdapter, times(MAX_ATTEMPTS)).incrementRealtimePopularScore(1L, 2.0);
+        // Then: 비동기 완료 대기
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> verify(redisRealTimePostAdapter, times(MAX_ATTEMPTS)).incrementRealtimePopularScore(1L, 2.0));
     }
 
     @Test
@@ -79,8 +93,10 @@ class RealtimePopularScoreListenerRetryTest {
         // When
         listener.handleCommentCreated(event);
 
-        // Then
-        verify(redisRealTimePostAdapter, times(MAX_ATTEMPTS)).incrementRealtimePopularScore(100L, 3.0);
+        // Then: 비동기 완료 대기
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> verify(redisRealTimePostAdapter, times(MAX_ATTEMPTS)).incrementRealtimePopularScore(100L, 3.0));
     }
 
     @Test
@@ -94,8 +110,10 @@ class RealtimePopularScoreListenerRetryTest {
         // When
         listener.handlePostLiked(event);
 
-        // Then
-        verify(redisRealTimePostAdapter, times(MAX_ATTEMPTS)).incrementRealtimePopularScore(1L, 4.0);
+        // Then: 비동기 완료 대기
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> verify(redisRealTimePostAdapter, times(MAX_ATTEMPTS)).incrementRealtimePopularScore(1L, 4.0));
     }
 
     @Test
@@ -109,8 +127,10 @@ class RealtimePopularScoreListenerRetryTest {
         // When
         listener.handlePostUnliked(event);
 
-        // Then
-        verify(redisRealTimePostAdapter, times(MAX_ATTEMPTS)).incrementRealtimePopularScore(1L, -4.0);
+        // Then: 비동기 완료 대기
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> verify(redisRealTimePostAdapter, times(MAX_ATTEMPTS)).incrementRealtimePopularScore(1L, -4.0));
     }
 
     @Test
@@ -124,8 +144,10 @@ class RealtimePopularScoreListenerRetryTest {
         // When
         listener.handleCommentDeleted(event);
 
-        // Then
-        verify(redisRealTimePostAdapter, times(MAX_ATTEMPTS)).incrementRealtimePopularScore(1L, -3.0);
+        // Then: 비동기 완료 대기
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> verify(redisRealTimePostAdapter, times(MAX_ATTEMPTS)).incrementRealtimePopularScore(1L, -3.0));
     }
 
     @ParameterizedTest(name = "{0}")
@@ -138,8 +160,10 @@ class RealtimePopularScoreListenerRetryTest {
         // When
         executeListener.run();
 
-        // Then
-        verifyMock.run();
+        // Then: 비동기 완료 대기
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(verifyMock::run);
     }
 
     private Stream<Arguments> provideRetryScenarios() {
@@ -174,8 +198,10 @@ class RealtimePopularScoreListenerRetryTest {
         // When
         listener.handleCommentCreated(event);
 
-        // Then
-        verify(redisRealTimePostAdapter, times(1)).incrementRealtimePopularScore(100L, 3.0);
+        // Then: 비동기 완료 대기
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> verify(redisRealTimePostAdapter, times(1)).incrementRealtimePopularScore(100L, 3.0));
     }
 
     @Test
@@ -188,8 +214,10 @@ class RealtimePopularScoreListenerRetryTest {
         // When
         listener.handleCommentDeleted(event);
 
-        // Then
-        verify(redisRealTimePostAdapter, times(1)).incrementRealtimePopularScore(100L, -3.0);
+        // Then: 비동기 완료 대기
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> verify(redisRealTimePostAdapter, times(1)).incrementRealtimePopularScore(100L, -3.0));
     }
 
     @Test
@@ -202,8 +230,10 @@ class RealtimePopularScoreListenerRetryTest {
         // When
         listener.handlePostViewed(event);
 
-        // Then
-        verify(redisRealTimePostAdapter, times(1)).incrementRealtimePopularScore(1L, 2.0);
+        // Then: 비동기 완료 대기
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> verify(redisRealTimePostAdapter, times(1)).incrementRealtimePopularScore(1L, 2.0));
     }
 
     @Test
@@ -217,9 +247,13 @@ class RealtimePopularScoreListenerRetryTest {
         // When
         listener.handlePostLiked(event);
 
-        // Then
-        verify(redisRealTimePostAdapter, times(1)).incrementRealtimePopularScore(1L, 4.0);
-        verify(redisDetailPostAdapter, times(1)).deleteCachePost(1L);
+        // Then: 비동기 완료 대기
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> {
+                    verify(redisRealTimePostAdapter, times(1)).incrementRealtimePopularScore(1L, 4.0);
+                    verify(redisDetailPostAdapter, times(1)).deleteCachePost(1L);
+                });
     }
 
     @Test
@@ -233,8 +267,12 @@ class RealtimePopularScoreListenerRetryTest {
         // When
         listener.handlePostUnliked(event);
 
-        // Then
-        verify(redisRealTimePostAdapter, times(1)).incrementRealtimePopularScore(1L, -4.0);
-        verify(redisDetailPostAdapter, times(1)).deleteCachePost(1L);
+        // Then: 비동기 완료 대기
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> {
+                    verify(redisRealTimePostAdapter, times(1)).incrementRealtimePopularScore(1L, -4.0);
+                    verify(redisDetailPostAdapter, times(1)).deleteCachePost(1L);
+                });
     }
 }

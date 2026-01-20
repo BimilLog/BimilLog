@@ -9,6 +9,7 @@ import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.QueryTimeoutException;
 import org.springframework.dao.TransientDataAccessException;
 import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -83,5 +84,31 @@ public class NotificationSendListener {
                 event.memberId(),
                 event.relatedMemberName(),
                 event.postTitle());
+    }
+
+    /**
+     * <h3>SSE 알림 전송 최종 실패 복구</h3>
+     * <p>모든 재시도가 실패한 후 호출됩니다.</p>
+     *
+     * @param e 발생한 예외
+     * @param event 알림 전송 이벤트
+     */
+    @Recover
+    public void recoverSendSSENotification(Exception e, AlarmSendEvent event) {
+        log.error("SSE 알림 전송 최종 실패: memberId={}, type={}",
+                event.memberId(), event.type(), e);
+    }
+
+    /**
+     * <h3>FCM 알림 전송 최종 실패 복구</h3>
+     * <p>모든 재시도가 실패한 후 호출됩니다.</p>
+     *
+     * @param e 발생한 예외
+     * @param event 알림 전송 이벤트
+     */
+    @Recover
+    public void recoverSendFCMNotification(Exception e, AlarmSendEvent event) {
+        log.error("FCM 알림 전송 최종 실패: memberId={}, type={}",
+                event.memberId(), event.type(), e);
     }
 }

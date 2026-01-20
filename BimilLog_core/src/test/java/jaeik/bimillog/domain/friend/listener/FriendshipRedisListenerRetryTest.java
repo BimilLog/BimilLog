@@ -2,17 +2,22 @@ package jaeik.bimillog.domain.friend.listener;
 
 import jaeik.bimillog.domain.friend.event.FriendshipCreatedEvent;
 import jaeik.bimillog.domain.friend.event.FriendshipDeletedEvent;
+import jaeik.bimillog.infrastructure.config.AsyncConfig;
+import jaeik.bimillog.infrastructure.config.RetryConfig;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import java.time.Duration;
+
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.*;
@@ -20,10 +25,12 @@ import static org.mockito.Mockito.*;
 /**
  * <h2>FriendshipRedisListener 재시도 테스트</h2>
  * <p>Redis 연결 실패 시 재시도 로직이 정상 동작하는지 검증</p>
+ * <p>AsyncConfig를 포함하여 실제 비동기 환경에서 재시도를 검증</p>
  */
 @DisplayName("FriendshipRedisListener 재시도 테스트")
 @Tag("integration")
-@SpringBootTest(classes = {FriendshipRedisListener.class, jaeik.bimillog.infrastructure.config.RetryConfig.class})
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
+@SpringBootTest(classes = {FriendshipRedisListener.class, RetryConfig.class, AsyncConfig.class})
 @TestPropertySource(properties = {
         "retry.max-attempts=3",
         "retry.backoff.delay=10",
@@ -50,9 +57,11 @@ class FriendshipRedisListenerRetryTest {
         // When
         listener.handleFriendshipCreated(event);
 
-        // Then
-        verify(redisFriendshipRepository, times(MAX_ATTEMPTS))
-                .addFriend(1L, 2L);
+        // Then: 비동기 완료 대기
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> verify(redisFriendshipRepository, times(MAX_ATTEMPTS))
+                        .addFriend(1L, 2L));
     }
 
     @Test
@@ -66,9 +75,11 @@ class FriendshipRedisListenerRetryTest {
         // When
         listener.handleFriendshipDeleted(event);
 
-        // Then
-        verify(redisFriendshipRepository, times(MAX_ATTEMPTS))
-                .deleteFriend(1L, 2L);
+        // Then: 비동기 완료 대기
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> verify(redisFriendshipRepository, times(MAX_ATTEMPTS))
+                        .deleteFriend(1L, 2L));
     }
 
     @Test
@@ -84,9 +95,11 @@ class FriendshipRedisListenerRetryTest {
         // When
         listener.handleFriendshipCreated(event);
 
-        // Then
-        verify(redisFriendshipRepository, times(3))
-                .addFriend(1L, 2L);
+        // Then: 비동기 완료 대기
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> verify(redisFriendshipRepository, times(3))
+                        .addFriend(1L, 2L));
     }
 
     @Test
@@ -99,8 +112,10 @@ class FriendshipRedisListenerRetryTest {
         // When
         listener.handleFriendshipDeleted(event);
 
-        // Then
-        verify(redisFriendshipRepository, times(1))
-                .deleteFriend(1L, 2L);
+        // Then: 비동기 완료 대기
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> verify(redisFriendshipRepository, times(1))
+                        .deleteFriend(1L, 2L));
     }
 }

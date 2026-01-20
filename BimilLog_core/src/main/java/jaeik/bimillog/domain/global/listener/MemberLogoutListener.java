@@ -13,6 +13,7 @@ import org.springframework.dao.QueryTimeoutException;
 import org.springframework.dao.TransientDataAccessException;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -47,7 +48,7 @@ public class MemberLogoutListener {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Async
+    @Async("memberEventExecutor")
     @EventListener
     @Transactional
     @Retryable(
@@ -74,5 +75,17 @@ public class MemberLogoutListener {
 
         authTokenService.deleteTokens(memberId, AuthTokenId);
         SecurityContextHolder.clearContext();
+    }
+
+    /**
+     * <h3>회원 로그아웃 처리 최종 실패 복구</h3>
+     * <p>모든 재시도가 실패한 후 호출됩니다.</p>
+     *
+     * @param e 발생한 예외
+     * @param event 회원 로그아웃 이벤트
+     */
+    @Recover
+    public void recoverMemberLogout(Exception e, MemberLoggedOutEvent event) {
+        log.error("회원 로그아웃 처리 최종 실패: memberId={}", event.memberId(), e);
     }
 }

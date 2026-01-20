@@ -42,7 +42,7 @@ public class FriendInteractionListener {
      * @param event 게시글 좋아요 이벤트
      */
     @EventListener
-    @Async
+    @Async("realtimeEventExecutor")
     @Retryable(
             retryFor = RedisConnectionFailureException.class,
             maxAttemptsExpression = "${retry.max-attempts}",
@@ -81,7 +81,7 @@ public class FriendInteractionListener {
      * @param event 댓글 작성 이벤트
      */
     @EventListener
-    @Async
+    @Async("realtimeEventExecutor")
     @Retryable(
             retryFor = RedisConnectionFailureException.class,
             maxAttemptsExpression = "${retry.max-attempts}",
@@ -120,7 +120,7 @@ public class FriendInteractionListener {
      * @param event 댓글 좋아요 이벤트
      */
     @EventListener
-    @Async
+    @Async("realtimeEventExecutor")
     @Retryable(
             retryFor = RedisConnectionFailureException.class,
             maxAttemptsExpression = "${retry.max-attempts}",

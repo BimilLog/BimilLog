@@ -134,15 +134,25 @@ public class PostQueryRepository {
     }
 
     /**
-     * <h3>주간 인기 게시글 조회</h3>
+     * <h3>주간 인기 게시글 조회 (스케줄러용)</h3>
      * <p>지난 7일간의 인기 게시글 목록을 조회합니다.</p>
      *
      * @return 주간 인기 게시글 목록 (최대 5개, PostSimpleDetail)
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Transactional(readOnly = true)
     public List<PostSimpleDetail> findWeeklyPopularPosts() {
+        return findWeeklyPopularPosts(PageRequest.of(0, 5)).getContent();
+    }
+
+    /**
+     * <h3>주간 인기 게시글 조회 (페이징)</h3>
+     * <p>지난 7일간의 인기 게시글 목록을 페이징으로 조회합니다.</p>
+     *
+     * @param pageable 페이지 정보
+     * @return 주간 인기 게시글 페이지
+     */
+    @Transactional(readOnly = true)
+    public Page<PostSimpleDetail> findWeeklyPopularPosts(Pageable pageable) {
         BooleanExpression weeklyCondition = post.createdAt.after(Instant.now().minus(7, ChronoUnit.DAYS));
 
         Consumer<JPAQuery<?>> contentCustomizer = query -> query
@@ -158,19 +168,29 @@ public class PostQueryRepository {
                 .groupBy(post.id)
                 .having(postLike.countDistinct().goe(1));
 
-        return findPostsWithQuery(contentCustomizer, countCustomizer, PageRequest.of(0, 5)).getContent();
+        return findPostsWithQuery(contentCustomizer, countCustomizer, pageable);
     }
 
     /**
-     * <h3>레전드 게시글 조회</h3>
+     * <h3>레전드 게시글 조회 (스케줄러용)</h3>
      * <p>추천 수가 20개 이상인 게시글 중 가장 추천 수가 많은 상위 50개 게시글을 조회합니다.</p>
      *
      * @return 전설의 게시글 목록 (최대 50개, PostSimpleDetail)
-     * @author Jaeik
-     * @since 2.0.0
      */
     @Transactional(readOnly = true)
     public List<PostSimpleDetail> findLegendaryPosts() {
+        return findLegendaryPosts(PageRequest.of(0, 50)).getContent();
+    }
+
+    /**
+     * <h3>레전드 게시글 조회 (페이징)</h3>
+     * <p>추천 수가 20개 이상인 게시글을 페이징으로 조회합니다.</p>
+     *
+     * @param pageable 페이지 정보
+     * @return 레전드 게시글 페이지
+     */
+    @Transactional(readOnly = true)
+    public Page<PostSimpleDetail> findLegendaryPosts(Pageable pageable) {
         Consumer<JPAQuery<?>> contentCustomizer = query -> query
                 .leftJoin(postLike).on(post.id.eq(postLike.post.id))
                 .groupBy(post.id, member.id, post.title)
@@ -182,7 +202,7 @@ public class PostQueryRepository {
                 .groupBy(post.id)
                 .having(postLike.countDistinct().goe(20));
 
-        return findPostsWithQuery(contentCustomizer, countCustomizer, PageRequest.of(0, 50)).getContent();
+        return findPostsWithQuery(contentCustomizer, countCustomizer, pageable);
     }
 
     /**
@@ -231,16 +251,27 @@ public class PostQueryRepository {
     }
 
     /**
-     * <h3>공지사항 목록 조회</h3>
+     * <h3>공지사항 목록 조회 (스케줄러용)</h3>
      * <p>공지사항 게시글 목록을 최신순으로 조회합니다.</p>
-     * <p>Redis 장애 시 DB fallback용으로 사용됩니다.</p>
      *
-     * @return 공지사항 게시글 목록 (PostSimpleDetail)
+     * @return 공지사항 게시글 목록 (최대 100개, PostSimpleDetail)
      */
     @Transactional(readOnly = true)
     public List<PostSimpleDetail> findNoticePosts() {
+        return findNoticePosts(PageRequest.of(0, 100)).getContent();
+    }
+
+    /**
+     * <h3>공지사항 목록 조회 (페이징)</h3>
+     * <p>공지사항 게시글 목록을 페이징으로 조회합니다.</p>
+     *
+     * @param pageable 페이지 정보
+     * @return 공지사항 페이지
+     */
+    @Transactional(readOnly = true)
+    public Page<PostSimpleDetail> findNoticePosts(Pageable pageable) {
         Consumer<JPAQuery<?>> customizer = query -> query.where(post.isNotice.isTrue());
-        return findPostsWithQuery(customizer, customizer, PageRequest.of(0, 100)).getContent();
+        return findPostsWithQuery(customizer, customizer, pageable);
     }
 
     /**

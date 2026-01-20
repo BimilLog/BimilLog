@@ -50,7 +50,7 @@ public class RealtimePopularScoreListener {
      * @since 2.0.0
      */
     @EventListener
-    @Async
+    @Async("realtimeEventExecutor")
     @Retryable(
             retryFor = RedisConnectionFailureException.class,
             maxAttemptsExpression = "${retry.max-attempts}",
@@ -76,7 +76,7 @@ public class RealtimePopularScoreListener {
      * @since 2.0.0
      */
     @EventListener
-    @Async
+    @Async("realtimeEventExecutor")
     @Retryable(
             retryFor = RedisConnectionFailureException.class,
             maxAttemptsExpression = "${retry.max-attempts}",
@@ -102,7 +102,7 @@ public class RealtimePopularScoreListener {
      * @since 2.0.0
      */
     @EventListener
-    @Async
+    @Async("realtimeEventExecutor")
     @Retryable(
             retryFor = RedisConnectionFailureException.class,
             maxAttemptsExpression = "${retry.max-attempts}",
@@ -129,7 +129,7 @@ public class RealtimePopularScoreListener {
      * @since 2.0.0
      */
     @EventListener
-    @Async
+    @Async("realtimeEventExecutor")
     @Retryable(
             retryFor = RedisConnectionFailureException.class,
             maxAttemptsExpression = "${retry.max-attempts}",
@@ -156,7 +156,7 @@ public class RealtimePopularScoreListener {
      * @since 2.0.0
      */
     @EventListener
-    @Async
+    @Async("realtimeEventExecutor")
     @Retryable(
             retryFor = RedisConnectionFailureException.class,
             maxAttemptsExpression = "${retry.max-attempts}",

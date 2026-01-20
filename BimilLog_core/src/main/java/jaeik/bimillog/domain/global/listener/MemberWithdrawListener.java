@@ -22,6 +22,7 @@ import org.springframework.dao.QueryTimeoutException;
 import org.springframework.dao.TransientDataAccessException;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -66,7 +67,7 @@ public class MemberWithdrawListener {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Async
+    @Async("memberEventExecutor")
     @EventListener
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Retryable(
@@ -135,5 +136,17 @@ public class MemberWithdrawListener {
 
         // 사용자 정보 삭제 Cascade로 설정도 함께 삭제
         memberAccountService.removeMemberAccount(memberId);
+    }
+
+    /**
+     * <h3>회원 탈퇴 처리 최종 실패 복구</h3>
+     * <p>모든 재시도가 실패한 후 호출됩니다.</p>
+     *
+     * @param e 발생한 예외
+     * @param event 회원 탈퇴 이벤트
+     */
+    @Recover
+    public void recoverMemberWithdraw(Exception e, MemberWithdrawnEvent event) {
+        log.error("회원 탈퇴 처리 최종 실패: memberId={}", event.memberId(), e);
     }
 }

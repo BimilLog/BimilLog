@@ -3,17 +3,23 @@ package jaeik.bimillog.domain.friend.listener;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentLikeEvent;
 import jaeik.bimillog.domain.post.event.PostLikeEvent;
+import jaeik.bimillog.infrastructure.config.AsyncConfig;
+import jaeik.bimillog.infrastructure.config.RetryConfig;
 import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository;
+import org.awaitility.Awaitility;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import java.time.Duration;
+
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.*;
@@ -21,10 +27,11 @@ import static org.mockito.Mockito.*;
 /**
  * <h2>FriendInteractionListener 재시도 테스트</h2>
  * <p>Redis 연결 실패 시 재시도 로직이 정상 동작하는지 검증</p>
+ * <p>AsyncConfig를 포함하여 실제 비동기 환경에서 재시도를 검증</p>
  */
 @DisplayName("FriendInteractionListener 재시도 테스트")
 @Tag("integration")
-@SpringBootTest(classes = {FriendInteractionListener.class, jaeik.bimillog.infrastructure.config.RetryConfig.class})
+@SpringBootTest(classes = {FriendInteractionListener.class, RetryConfig.class, AsyncConfig.class})
 @TestPropertySource(properties = {
         "retry.max-attempts=3",
         "retry.backoff.delay=10",
@@ -40,6 +47,11 @@ class FriendInteractionListenerRetryTest {
 
     private static final int MAX_ATTEMPTS = 3;
 
+    @BeforeEach
+    void setUp() {
+        Mockito.reset(redisInteractionScoreRepository);
+    }
+
     @Test
     @DisplayName("게시글 좋아요 - RedisConnectionFailureException 발생 시 3회 재시도")
     void handlePostLiked_shouldRetryOnRedisConnectionFailure() {
@@ -51,9 +63,11 @@ class FriendInteractionListenerRetryTest {
         // When
         listener.handlePostLiked(event);
 
-        // Then
-        verify(redisInteractionScoreRepository, times(MAX_ATTEMPTS))
-                .addInteractionScore(2L, 3L);
+        // Then: 비동기 완료 대기
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> verify(redisInteractionScoreRepository, times(MAX_ATTEMPTS))
+                        .addInteractionScore(2L, 3L));
     }
 
     @Test
@@ -65,9 +79,11 @@ class FriendInteractionListenerRetryTest {
         // When
         listener.handlePostLiked(event);
 
-        // Then - 상호작용 점수 저장 호출 없음
-        verify(redisInteractionScoreRepository, never())
-                .addInteractionScore(anyLong(), anyLong());
+        // Then: 비동기 완료 대기 - 상호작용 점수 저장 호출 없음
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> verify(redisInteractionScoreRepository, never())
+                        .addInteractionScore(anyLong(), anyLong()));
     }
 
     @Test
@@ -81,9 +97,11 @@ class FriendInteractionListenerRetryTest {
         // When
         listener.handleCommentCreated(event);
 
-        // Then
-        verify(redisInteractionScoreRepository, times(MAX_ATTEMPTS))
-                .addInteractionScore(1L, 2L);
+        // Then: 비동기 완료 대기
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> verify(redisInteractionScoreRepository, times(MAX_ATTEMPTS))
+                        .addInteractionScore(1L, 2L));
     }
 
     @Test
@@ -95,9 +113,11 @@ class FriendInteractionListenerRetryTest {
         // When
         listener.handleCommentCreated(event);
 
-        // Then - 상호작용 점수 저장 호출 없음
-        verify(redisInteractionScoreRepository, never())
-                .addInteractionScore(anyLong(), anyLong());
+        // Then: 비동기 완료 대기 - 상호작용 점수 저장 호출 없음
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> verify(redisInteractionScoreRepository, never())
+                        .addInteractionScore(anyLong(), anyLong()));
     }
 
     @Test
@@ -111,9 +131,11 @@ class FriendInteractionListenerRetryTest {
         // When
         listener.handleCommentLiked(event);
 
-        // Then
-        verify(redisInteractionScoreRepository, times(MAX_ATTEMPTS))
-                .addInteractionScore(2L, 3L);
+        // Then: 비동기 완료 대기
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> verify(redisInteractionScoreRepository, times(MAX_ATTEMPTS))
+                        .addInteractionScore(2L, 3L));
     }
 
     @Test
@@ -125,9 +147,11 @@ class FriendInteractionListenerRetryTest {
         // When
         listener.handleCommentLiked(event);
 
-        // Then - 상호작용 점수 저장 호출 없음
-        verify(redisInteractionScoreRepository, never())
-                .addInteractionScore(anyLong(), anyLong());
+        // Then: 비동기 완료 대기 - 상호작용 점수 저장 호출 없음
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> verify(redisInteractionScoreRepository, never())
+                        .addInteractionScore(anyLong(), anyLong()));
     }
 
     @Test
@@ -143,8 +167,10 @@ class FriendInteractionListenerRetryTest {
         // When
         listener.handlePostLiked(event);
 
-        // Then
-        verify(redisInteractionScoreRepository, times(3))
-                .addInteractionScore(2L, 3L);
+        // Then: 비동기 완료 대기
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> verify(redisInteractionScoreRepository, times(3))
+                        .addInteractionScore(2L, 3L));
     }
 }

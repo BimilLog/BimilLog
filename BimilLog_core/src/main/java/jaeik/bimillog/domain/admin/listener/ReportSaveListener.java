@@ -43,7 +43,7 @@ public class ReportSaveListener {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Async
+    @Async("reportEventExecutor")
     @EventListener
     @Retryable(
             retryFor = {

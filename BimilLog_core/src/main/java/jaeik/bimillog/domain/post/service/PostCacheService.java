@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
-import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
@@ -16,16 +15,18 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
 
 /**
  * <h2>PostCacheService</h2>
  * <p>인기글(공지/실시간/주간/레전드) 목록 캐시 조회 및 동기화 비즈니스 로직을 오케스트레이션합니다.</p>
- * <p>MGET 기반 개별 캐시 조회와 Redis TTL 기반 PER(Probabilistic Early Refresh)을 지원합니다.</p>
+ * <p>Hash 기반 캐시와 개수 비교를 통한 캐시 미스 감지, Redis TTL 기반 PER을 지원합니다.</p>
  * <p>목록 캐시만 관리하며, 상세 캐시는 PostQueryService에서 관리합니다.</p>
  *
  * @author Jaeik
- * @version 2.6.0
+ * @version 2.7.0
  */
 @Service
 @RequiredArgsConstructor
@@ -40,8 +41,7 @@ public class PostCacheService {
 
     /**
      * <h3>실시간 인기 게시글 조회</h3>
-     * <p>Redis Sorted Set에서 postId 목록을 조회하고 개별 캐시에서 상세 정보를 획득합니다.</p>
-     * <p>MGET으로 한 번에 조회하며, Redis TTL 기반 PER을 적용합니다.</p>
+     * <p>Redis Sorted Set에서 postId 목록을 조회하고 Hash 캐시에서 상세 정보를 획득합니다.</p>
      * <p>Redis 장애 시 최근 1시간 이내 인기글로 Graceful Degradation 폴백합니다.</p>
      *
      * @param pageable 페이지 정보
@@ -63,7 +63,7 @@ public class PostCacheService {
                 return new PageImpl<>(List.of(), pageable, totalCount);
             }
 
-            // 3. MGET으로 캐시 조회 + PER 처리 + 캐시 미스 처리
+            // 3. Hash 캐시 조회 + 개수 비교 + PER 처리
             List<PostSimpleDetail> resultPosts = fetchPostsWithCache(PostCacheFlag.REALTIME, postIds);
 
             return new PageImpl<>(resultPosts, pageable, totalCount);
@@ -83,32 +83,12 @@ public class PostCacheService {
      * @return 주간 인기 게시글 페이지
      */
     public Page<PostSimpleDetail> getWeeklyPosts(Pageable pageable) {
-        try {
-            // 1. Tier2에서 전체 postIds 조회
-            List<Long> allPostIds = redisTier2PostAdapter.getStoredPostIds(PostCacheFlag.WEEKLY);
-            if (allPostIds.isEmpty()) {
-                return new PageImpl<>(List.of(), pageable, 0);
-            }
-
-            // 2. 페이징 처리
-            int start = (int) pageable.getOffset();
-            int end = Math.min(start + pageable.getPageSize(), allPostIds.size());
-
-            if (start >= allPostIds.size()) {
-                return new PageImpl<>(List.of(), pageable, allPostIds.size());
-            }
-
-            List<Long> pagedPostIds = allPostIds.subList(start, end);
-
-            // 3. MGET으로 캐시 조회 + PER 처리 + 캐시 미스 처리
-            List<PostSimpleDetail> resultPosts = fetchPostsWithCache(PostCacheFlag.WEEKLY, pagedPostIds);
-
-            return new PageImpl<>(resultPosts, pageable, allPostIds.size());
-        } catch (Exception e) {
-            log.warn("[REDIS_FALLBACK] 주간 인기글 Redis 장애, DB 조회로 전환: {}", e.getMessage());
-            return dbFallbackGateway.execute(FallbackType.WEEKLY, pageable,
-                    () -> paginateList(postQueryRepository.findWeeklyPopularPosts(), pageable));
-        }
+        return getTier2CachedPosts(
+                PostCacheFlag.WEEKLY,
+                FallbackType.WEEKLY,
+                pageable,
+                () -> postQueryRepository.findWeeklyPopularPosts(pageable)
+        );
     }
 
     /**
@@ -120,32 +100,12 @@ public class PostCacheService {
      * @return 인기 게시글 목록 페이지
      */
     public Page<PostSimpleDetail> getPopularPostLegend(Pageable pageable) {
-        try {
-            // 1. Tier2에서 전체 postIds 조회
-            List<Long> allPostIds = redisTier2PostAdapter.getStoredPostIds(PostCacheFlag.LEGEND);
-            if (allPostIds.isEmpty()) {
-                return new PageImpl<>(List.of(), pageable, 0);
-            }
-
-            // 2. 페이징 처리
-            int start = (int) pageable.getOffset();
-            int end = Math.min(start + pageable.getPageSize(), allPostIds.size());
-
-            if (start >= allPostIds.size()) {
-                return new PageImpl<>(List.of(), pageable, allPostIds.size());
-            }
-
-            List<Long> pagedPostIds = allPostIds.subList(start, end);
-
-            // 3. MGET으로 캐시 조회 + PER 처리 + 캐시 미스 처리
-            List<PostSimpleDetail> resultPosts = fetchPostsWithCache(PostCacheFlag.LEGEND, pagedPostIds);
-
-            return new PageImpl<>(resultPosts, pageable, allPostIds.size());
-        } catch (Exception e) {
-            log.warn("[REDIS_FALLBACK] 레전드 인기글 Redis 장애, DB 조회로 전환: {}", e.getMessage());
-            return dbFallbackGateway.execute(FallbackType.LEGEND, pageable,
-                    () -> paginateList(postQueryRepository.findLegendaryPosts(), pageable));
-        }
+        return getTier2CachedPosts(
+                PostCacheFlag.LEGEND,
+                FallbackType.LEGEND,
+                pageable,
+                () -> postQueryRepository.findLegendaryPosts(pageable)
+        );
     }
 
     /**
@@ -157,9 +117,34 @@ public class PostCacheService {
      * @return 공지사항 페이지
      */
     public Page<PostSimpleDetail> getNoticePosts(Pageable pageable) {
+        return getTier2CachedPosts(
+                PostCacheFlag.NOTICE,
+                FallbackType.NOTICE,
+                pageable,
+                () -> postQueryRepository.findNoticePosts(pageable)
+        );
+    }
+
+    /**
+     * <h3>Tier2 기반 캐시 조회 공통 로직</h3>
+     * <p>Tier2(Set)에서 postId 목록을 조회하고 Tier1(Hash)에서 상세 정보를 획득합니다.</p>
+     * <p>Redis 장애 시 fallbackSupplier를 통해 DB에서 직접 조회합니다.</p>
+     *
+     * @param cacheFlag        캐시 유형
+     * @param fallbackType     폴백 유형
+     * @param pageable         페이지 정보
+     * @param fallbackSupplier 폴백 시 호출할 DB 조회 로직
+     * @return 게시글 페이지
+     */
+    private Page<PostSimpleDetail> getTier2CachedPosts(
+            PostCacheFlag cacheFlag,
+            FallbackType fallbackType,
+            Pageable pageable,
+            Supplier<Page<PostSimpleDetail>> fallbackSupplier
+    ) {
         try {
             // 1. Tier2에서 전체 postIds 조회
-            List<Long> allPostIds = redisTier2PostAdapter.getStoredPostIds(PostCacheFlag.NOTICE);
+            List<Long> allPostIds = redisTier2PostAdapter.getStoredPostIds(cacheFlag);
             if (allPostIds.isEmpty()) {
                 return new PageImpl<>(List.of(), pageable, 0);
             }
@@ -174,103 +159,61 @@ public class PostCacheService {
 
             List<Long> pagedPostIds = allPostIds.subList(start, end);
 
-            // 3. MGET으로 캐시 조회 + PER 처리 + 캐시 미스 처리
-            List<PostSimpleDetail> resultPosts = fetchPostsWithCache(PostCacheFlag.NOTICE, pagedPostIds);
+            // 3. Hash 캐시 조회 + 개수 비교 + PER 처리
+            List<PostSimpleDetail> resultPosts = fetchPostsWithCache(cacheFlag, pagedPostIds);
 
             return new PageImpl<>(resultPosts, pageable, allPostIds.size());
         } catch (Exception e) {
-            log.warn("[REDIS_FALLBACK] 공지사항 Redis 장애, DB 조회로 전환: {}", e.getMessage());
-            return dbFallbackGateway.execute(FallbackType.NOTICE, pageable,
-                    () -> paginateList(postQueryRepository.findNoticePosts(), pageable));
+            log.warn("[REDIS_FALLBACK] {} Redis 장애, DB 조회로 전환: {}", cacheFlag, e.getMessage());
+            return dbFallbackGateway.execute(fallbackType, pageable, fallbackSupplier);
         }
     }
 
     /**
-     * <h3>MGET 기반 캐시 조회 + PER + 캐시 미스 처리</h3>
-     * <p>1. MGET으로 캐시 조회</p>
-     * <p>2. Redis TTL 기반 PER 대상 게시글 비동기 갱신</p>
-     * <p>3. 캐시 미스 게시글 DB 조회 후 목록 캐시 저장</p>
-     * <p>4. 요청 순서대로 결과 반환</p>
+     * <h3>Hash 캐시 조회 + 개수 비교 + PER 처리</h3>
+     * <p>1. HGETALL로 Hash 전체 조회</p>
+     * <p>2. 개수 비교: Tier1 개수 != Tier2 개수 → 캐시 미스, 전체 갱신</p>
+     * <p>3. 개수 일치 시 TTL 기반 PER 처리</p>
+     * <p>4. Tier2 순서대로 결과 반환</p>
      *
      * @param type    캐시 유형
-     * @param postIds 조회할 게시글 ID 목록 (순서 유지)
+     * @param orderedPostIds Tier2에서 조회한 postId 목록 (순서 유지)
      * @return 순서가 유지된 게시글 목록
      */
-    private List<PostSimpleDetail> fetchPostsWithCache(PostCacheFlag type, List<Long> postIds) {
-        // 1. MGET으로 캐시 조회
-        Map<Long, PostSimpleDetail> cachedPosts = redisSimplePostAdapter.getCachedPosts(type, postIds);
+    private List<PostSimpleDetail> fetchPostsWithCache(PostCacheFlag type, List<Long> orderedPostIds) {
+        // 1. HGETALL로 Hash 전체 조회
+        Map<Long, PostSimpleDetail> cachedPosts = redisSimplePostAdapter.getAllCachedPosts(type);
 
-        // 2. Redis TTL 기반 PER 대상 필터링 및 비동기 갱신
-        List<Long> cachedIds = new ArrayList<>(cachedPosts.keySet());
-        List<Long> refreshIds = redisSimplePostAdapter.filterRefreshNeeded(type, cachedIds);
-        if (!refreshIds.isEmpty()) {
-            log.info("[PER] 비동기 갱신 트리거 - type={}, count={}", type, refreshIds.size());
-            postCacheRefresh.asyncRefreshPosts(type, refreshIds);
-        }
+        // 2. Tier2 전체 개수 조회
+        int tier2Count = getTier2Count(type);
 
-        // 3. 캐시 미스 처리 (목록 캐시만 저장)
-        List<Long> missedIds = redisSimplePostAdapter.filterMissedIds(postIds, cachedPosts);
-        if (!missedIds.isEmpty()) {
-            log.info("[CACHE_MISS] DB 조회 시작 - type={}, count={}", type, missedIds.size());
-            List<PostSimpleDetail> fromDb = fetchFromDbAndCache(type, missedIds);
-
-            // 조회 결과를 cachedPosts에 추가
-            for (PostSimpleDetail post : fromDb) {
-                cachedPosts.put(post.getId(), post);
+        // 3. 개수 비교: 불일치 시 캐시 미스 → 전체 갱신
+        if (cachedPosts.size() != tier2Count) {
+            log.info("[CACHE_MISS] 개수 불일치 - type={}, tier1={}, tier2={}",
+                    type, cachedPosts.size(), tier2Count);
+            postCacheRefresh.asyncRefreshAllPosts(type);
+        } else {
+            // 4. 개수 일치 시 TTL 기반 PER 처리
+            if (redisSimplePostAdapter.shouldRefreshHash(type)) {
+                log.info("[PER] Hash 비동기 갱신 트리거 - type={}", type);
+                postCacheRefresh.asyncRefreshAllPosts(type);
             }
         }
 
-        // 4. 요청 순서대로 결과 구성
-        return redisSimplePostAdapter.toOrderedList(postIds, cachedPosts);
+        // 5. Tier2 순서대로 결과 반환
+        return redisSimplePostAdapter.toOrderedList(orderedPostIds, cachedPosts);
     }
 
     /**
-     * <h3>DB에서 조회 후 목록 캐시 저장</h3>
-     * <p>캐시 미스 발생 시 DB에서 조회하고 목록 캐시만 저장합니다.</p>
-     * <p>상세 캐시는 PostQueryService에서 별도로 관리합니다.</p>
+     * <h3>Tier2 전체 개수 조회</h3>
      *
-     * @param type    캐시 유형
-     * @param postIds 조회할 게시글 ID 목록
-     * @return 조회된 게시글 목록
+     * @param type 캐시 유형
+     * @return Tier2에 저장된 postId 개수
      */
-    private List<PostSimpleDetail> fetchFromDbAndCache(PostCacheFlag type, List<Long> postIds) {
-        List<PostSimpleDetail> posts = new ArrayList<>();
-
-        for (Long postId : postIds) {
-            Optional<PostDetail> postDetailOpt = postQueryRepository.findPostDetail(postId, null);
-            if (postDetailOpt.isPresent()) {
-                PostSimpleDetail simpleDetail = postDetailOpt.get().toSimpleDetail();
-                posts.add(simpleDetail);
-
-                // 목록 캐시만 저장 (post:{type}:simple:{postId})
-                redisSimplePostAdapter.cachePost(type, simpleDetail);
-            }
+    private int getTier2Count(PostCacheFlag type) {
+        if (type == PostCacheFlag.REALTIME) {
+            return (int) redisRealTimePostAdapter.getRealtimePopularPostCount();
         }
-
-        return posts;
-    }
-
-    /**
-     * <h3>리스트를 Page로 변환</h3>
-     * <p>DB fallback 시 조회된 리스트를 페이징 처리합니다.</p>
-     *
-     * @param list     전체 리스트
-     * @param pageable 페이지 정보
-     * @return 페이징된 결과
-     */
-    private Page<PostSimpleDetail> paginateList(List<PostSimpleDetail> list, Pageable pageable) {
-        if (list.isEmpty()) {
-            return new PageImpl<>(List.of(), pageable, 0);
-        }
-
-        int start = (int) pageable.getOffset();
-        int end = Math.min(start + pageable.getPageSize(), list.size());
-
-        if (start >= list.size()) {
-            return new PageImpl<>(List.of(), pageable, list.size());
-        }
-
-        List<PostSimpleDetail> pagedContent = list.subList(start, end);
-        return new PageImpl<>(pagedContent, pageable, list.size());
+        return redisTier2PostAdapter.getStoredPostIds(type).size();
     }
 }

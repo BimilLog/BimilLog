@@ -12,11 +12,16 @@ import jaeik.bimillog.domain.notification.service.NotificationCommandService;
 import jaeik.bimillog.domain.notification.service.SseService;
 import jaeik.bimillog.domain.paper.service.PaperCommandService;
 import jaeik.bimillog.domain.post.service.PostCommandService;
+import jaeik.bimillog.infrastructure.config.AsyncConfig;
+import jaeik.bimillog.infrastructure.config.RetryConfig;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
 import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository;
+import org.awaitility.Awaitility;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -29,9 +34,9 @@ import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.time.Duration;
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.willThrow;
@@ -40,10 +45,11 @@ import static org.mockito.Mockito.*;
 /**
  * <h2>MemberWithdrawListener 재시도 테스트</h2>
  * <p>DB/Redis 관련 예외 발생 시 재시도 로직이 정상 동작하는지 검증</p>
+ * <p>AsyncConfig를 포함하여 실제 비동기 환경에서 재시도를 검증</p>
  */
 @DisplayName("MemberWithdrawListener 재시도 테스트")
 @Tag("integration")
-@SpringBootTest(classes = {MemberWithdrawListener.class, jaeik.bimillog.infrastructure.config.RetryConfig.class})
+@SpringBootTest(classes = {MemberWithdrawListener.class, RetryConfig.class, AsyncConfig.class})
 @TestPropertySource(properties = {
         "retry.max-attempts=3",
         "retry.backoff.delay=10",
@@ -92,6 +98,14 @@ class MemberWithdrawListenerRetryTest {
 
     private static final int MAX_ATTEMPTS = 3;
 
+    @BeforeEach
+    void setUp() {
+        Mockito.reset(socialWithdrawService, sseService, notificationCommandUseCase,
+                commentCommandService, postCommandService, authTokenService,
+                paperCommandService, adminCommandService, memberAccountService,
+                socialTokenService, redisInteractionScoreRepository, redisFriendshipRepository);
+    }
+
     @ParameterizedTest(name = "{0} 발생 시 3회 재시도")
     @MethodSource("provideRetryableExceptions")
     @DisplayName("재시도 대상 예외 발생 시 재시도")
@@ -101,13 +115,14 @@ class MemberWithdrawListenerRetryTest {
         willThrow(exception)
                 .given(sseService).deleteEmitters(anyLong(), any());
 
-        // When & Then: 예외가 발생하는 것을 확인하면서 실행
-        assertThatThrownBy(() -> listener.memberWithdraw(event))
-                .isInstanceOf(exception.getClass());
+        // When: 비동기로 실행되며 @Recover 메서드가 있으므로 예외가 외부로 전파되지 않음
+        listener.memberWithdraw(event);
 
-        // Then: 예외 발생 후 재시도 횟수만큼 호출되었는지 검증
-        verify(sseService, times(MAX_ATTEMPTS))
-                .deleteEmitters(1L, null);
+        // Then: 비동기 완료 대기 후 재시도 횟수만큼 호출되었는지 검증
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> verify(sseService, times(MAX_ATTEMPTS))
+                        .deleteEmitters(1L, null));
     }
 
     private static Stream<Arguments> provideRetryableExceptions() {
@@ -136,9 +151,11 @@ class MemberWithdrawListenerRetryTest {
         // When
         listener.memberWithdraw(event);
 
-        // Then
-        verify(sseService, times(3))
-                .deleteEmitters(1L, null);
+        // Then: 비동기 완료 대기
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> verify(sseService, times(3))
+                        .deleteEmitters(1L, null));
     }
 
     @Test
@@ -150,15 +167,19 @@ class MemberWithdrawListenerRetryTest {
         // When
         listener.memberWithdraw(event);
 
-        // Then
-        verify(sseService, times(1)).deleteEmitters(1L, null);
-        verify(postCommandService, times(1)).deleteAllPostsByMemberId(1L);
-        verify(commentCommandService, times(1)).processUserCommentsOnWithdrawal(1L);
-        verify(paperCommandService, times(1)).deleteMessageInMyPaper(1L, null);
-        verify(notificationCommandUseCase, times(1)).deleteAllNotification(1L);
-        verify(authTokenService, times(1)).deleteTokens(1L, null);
-        verify(adminCommandService, times(1)).anonymizeReporterByUserId(1L);
-        verify(socialTokenService, times(1)).deleteByMemberId(1L);
-        verify(memberAccountService, times(1)).removeMemberAccount(1L);
+        // Then: 비동기 완료 대기
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> {
+                    verify(sseService, times(1)).deleteEmitters(1L, null);
+                    verify(postCommandService, times(1)).deleteAllPostsByMemberId(1L);
+                    verify(commentCommandService, times(1)).processUserCommentsOnWithdrawal(1L);
+                    verify(paperCommandService, times(1)).deleteMessageInMyPaper(1L, null);
+                    verify(notificationCommandUseCase, times(1)).deleteAllNotification(1L);
+                    verify(authTokenService, times(1)).deleteTokens(1L, null);
+                    verify(adminCommandService, times(1)).anonymizeReporterByUserId(1L);
+                    verify(socialTokenService, times(1)).deleteByMemberId(1L);
+                    verify(memberAccountService, times(1)).removeMemberAccount(1L);
+                });
     }
 }

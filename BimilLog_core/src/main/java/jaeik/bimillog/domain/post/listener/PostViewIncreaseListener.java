@@ -43,7 +43,7 @@ public class PostViewIncreaseListener {
      * @since 2.0.0
      */
     @EventListener
-    @Async
+    @Async("viewCountExecutor")
     @Retryable(
             retryFor = {
                     TransientDataAccessException.class,

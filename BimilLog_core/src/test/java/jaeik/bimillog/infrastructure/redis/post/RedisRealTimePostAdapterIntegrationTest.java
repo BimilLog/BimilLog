@@ -48,7 +48,7 @@ class RedisRealTimePostAdapterIntegrationTest {
     @ParameterizedTest
     @MethodSource("provideTopPostsScenarios")
     @DisplayName("정상/경계값 - 실시간 인기글 ID 목록 조회 (다양한 데이터 크기)")
-    void shouldReturnTopPostIds_VariousScenarios(int totalPosts, int expectedSize, List<Long> expectedIds) {
+    void shouldReturnTopPostIds_VariousScenarios(int totalPosts, int limit, int expectedSize, List<Long> expectedIds) {
         // Given: N개의 게시글에 점수 설정 (높은 점수부터)
         String scoreKey = RedisPostKeys.REALTIME_POST_SCORE_KEY;
         for (long i = 1; i <= totalPosts; i++) {
@@ -56,8 +56,8 @@ class RedisRealTimePostAdapterIntegrationTest {
             redisTemplate.opsForZSet().add(scoreKey, String.valueOf(i), score);
         }
 
-        // When: 실시간 인기글 ID 조회
-        List<Long> result = redisRealTimePostAdapter.getRealtimePopularPostIds();
+        // When: 실시간 인기글 ID 조회 (페이징)
+        List<Long> result = redisRealTimePostAdapter.getRealtimePopularPostIds(0, limit);
 
         // Then: 예상된 크기와 ID 확인
         assertThat(result).hasSize(expectedSize);
@@ -68,12 +68,12 @@ class RedisRealTimePostAdapterIntegrationTest {
 
     static Stream<Arguments> provideTopPostsScenarios() {
         return Stream.of(
-            // 10개 게시글, 상위 5개 반환
-            Arguments.of(10, 5, List.of(1L, 2L, 3L, 4L, 5L)),
-            // 3개 게시글, 3개 전체 반환
-            Arguments.of(3, 3, List.of(1L, 2L, 3L)),
-            // 0개 게시글, 빈 목록 반환
-            Arguments.of(0, 0, List.of())
+            // 10개 게시글, 상위 5개 요청, 5개 반환
+            Arguments.of(10, 5, 5, List.of(1L, 2L, 3L, 4L, 5L)),
+            // 3개 게시글, 5개 요청, 3개 전체 반환
+            Arguments.of(3, 5, 3, List.of(1L, 2L, 3L)),
+            // 0개 게시글, 5개 요청, 빈 목록 반환
+            Arguments.of(0, 5, 0, List.of())
         );
     }
 
@@ -88,8 +88,8 @@ class RedisRealTimePostAdapterIntegrationTest {
         redisTemplate.opsForZSet().add(scoreKey, "400", 30.0);
         redisTemplate.opsForZSet().add(scoreKey, "500", 20.0);
 
-        // When: 실시간 인기글 ID 조회
-        List<Long> result = redisRealTimePostAdapter.getRealtimePopularPostIds();
+        // When: 실시간 인기글 ID 조회 (페이징)
+        List<Long> result = redisRealTimePostAdapter.getRealtimePopularPostIds(0, 5);
 
         // Then: 점수 내림차순으로 정렬됨
         assertThat(result).containsExactly(400L, 200L, 500L, 100L, 300L); // 30, 25, 20, 15, 10

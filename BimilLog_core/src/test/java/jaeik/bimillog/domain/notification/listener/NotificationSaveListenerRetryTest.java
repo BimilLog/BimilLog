@@ -6,9 +6,14 @@ import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.service.NotificationCommandService;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
 import jaeik.bimillog.domain.post.event.PostFeaturedEvent;
+import jaeik.bimillog.infrastructure.config.AsyncConfig;
+import jaeik.bimillog.infrastructure.config.RetryConfig;
+import org.awaitility.Awaitility;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -20,9 +25,9 @@ import org.springframework.dao.TransientDataAccessException;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import java.time.Duration;
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -32,10 +37,11 @@ import static org.mockito.Mockito.*;
 /**
  * <h2>NotificationSaveListener 재시도 테스트</h2>
  * <p>DB 관련 예외 발생 시 재시도 로직이 정상 동작하는지 검증</p>
+ * <p>AsyncConfig를 포함하여 실제 비동기 환경에서 재시도를 검증</p>
  */
 @DisplayName("NotificationSaveListener 재시도 테스트")
 @Tag("integration")
-@SpringBootTest(classes = {NotificationSaveListener.class, jaeik.bimillog.infrastructure.config.RetryConfig.class})
+@SpringBootTest(classes = {NotificationSaveListener.class, RetryConfig.class, AsyncConfig.class})
 @TestPropertySource(properties = {
         "retry.max-attempts=3",
         "retry.backoff.delay=10",
@@ -51,6 +57,11 @@ class NotificationSaveListenerRetryTest {
 
     private static final int MAX_ATTEMPTS = 3;
 
+    @BeforeEach
+    void setUp() {
+        Mockito.reset(notificationCommandService);
+    }
+
     @ParameterizedTest(name = "{0} 발생 시 3회 재시도 - 댓글 알림")
     @MethodSource("provideRetryableExceptions")
     @DisplayName("댓글 작성 알림 저장 - DB 예외 발생 시 재시도")
@@ -60,13 +71,14 @@ class NotificationSaveListenerRetryTest {
         willThrow(exception)
                 .given(notificationCommandService).saveCommentNotification(anyLong(), anyString(), anyLong());
 
-        // When & Then: 예외가 발생하는 것을 확인하면서 실행
-        assertThatThrownBy(() -> listener.handleCommentCreatedEvent(event))
-                .isInstanceOf(exception.getClass());
+        // When: 비동기로 실행되며 @Recover 메서드가 있으므로 예외가 외부로 전파되지 않음
+        listener.handleCommentCreatedEvent(event);
 
-        // Then: 예외 발생 후 재시도 횟수만큼 호출되었는지 검증
-        verify(notificationCommandService, times(MAX_ATTEMPTS))
-                .saveCommentNotification(1L, "작성자", 100L);
+        // Then: 비동기 완료 대기 후 재시도 횟수만큼 호출되었는지 검증
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> verify(notificationCommandService, times(MAX_ATTEMPTS))
+                        .saveCommentNotification(1L, "작성자", 100L));
     }
 
     @ParameterizedTest(name = "{0} 발생 시 3회 재시도 - 롤링페이퍼 알림")
@@ -78,13 +90,14 @@ class NotificationSaveListenerRetryTest {
         willThrow(exception)
                 .given(notificationCommandService).saveMessageNotification(anyLong(), anyString());
 
-        // When & Then: 예외가 발생하는 것을 확인하면서 실행
-        assertThatThrownBy(() -> listener.handleRollingPaperEvent(event))
-                .isInstanceOf(exception.getClass());
+        // When: 비동기로 실행되며 @Recover 메서드가 있으므로 예외가 외부로 전파되지 않음
+        listener.handleRollingPaperEvent(event);
 
-        // Then: 예외 발생 후 재시도 횟수만큼 호출되었는지 검증
-        verify(notificationCommandService, times(MAX_ATTEMPTS))
-                .saveMessageNotification(1L, "작성자");
+        // Then: 비동기 완료 대기 후 재시도 횟수만큼 호출되었는지 검증
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> verify(notificationCommandService, times(MAX_ATTEMPTS))
+                        .saveMessageNotification(1L, "작성자"));
     }
 
     @ParameterizedTest(name = "{0} 발생 시 3회 재시도 - 인기글 알림")
@@ -96,13 +109,14 @@ class NotificationSaveListenerRetryTest {
         willThrow(exception)
                 .given(notificationCommandService).savePopularNotification(anyLong(), anyString(), anyLong(), any(NotificationType.class), anyString());
 
-        // When & Then: 예외가 발생하는 것을 확인하면서 실행
-        assertThatThrownBy(() -> listener.handlePostFeaturedEvent(event))
-                .isInstanceOf(exception.getClass());
+        // When: 비동기로 실행되며 @Recover 메서드가 있으므로 예외가 외부로 전파되지 않음
+        listener.handlePostFeaturedEvent(event);
 
-        // Then: 예외 발생 후 재시도 횟수만큼 호출되었는지 검증
-        verify(notificationCommandService, times(MAX_ATTEMPTS))
-                .savePopularNotification(1L, "인기글 등극!", 100L, NotificationType.POST_FEATURED_WEEKLY, "테스트 게시글");
+        // Then: 비동기 완료 대기 후 재시도 횟수만큼 호출되었는지 검증
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> verify(notificationCommandService, times(MAX_ATTEMPTS))
+                        .savePopularNotification(1L, "인기글 등극!", 100L, NotificationType.POST_FEATURED_WEEKLY, "테스트 게시글"));
     }
 
     @ParameterizedTest(name = "{0} 발생 시 3회 재시도 - 친구 알림")
@@ -114,13 +128,14 @@ class NotificationSaveListenerRetryTest {
         willThrow(exception)
                 .given(notificationCommandService).saveFriendNotification(anyLong(), anyString(), anyString());
 
-        // When & Then: 예외가 발생하는 것을 확인하면서 실행
-        assertThatThrownBy(() -> listener.handleFriendEvent(event))
-                .isInstanceOf(exception.getClass());
+        // When: 비동기로 실행되며 @Recover 메서드가 있으므로 예외가 외부로 전파되지 않음
+        listener.handleFriendEvent(event);
 
-        // Then: 예외 발생 후 재시도 횟수만큼 호출되었는지 검증
-        verify(notificationCommandService, times(MAX_ATTEMPTS))
-                .saveFriendNotification(1L, "친구 요청이 도착했습니다!", "친구이름");
+        // Then: 비동기 완료 대기 후 재시도 횟수만큼 호출되었는지 검증
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> verify(notificationCommandService, times(MAX_ATTEMPTS))
+                        .saveFriendNotification(1L, "친구 요청이 도착했습니다!", "친구이름"));
     }
 
     private static Stream<Arguments> provideRetryableExceptions() {
@@ -147,9 +162,11 @@ class NotificationSaveListenerRetryTest {
         // When
         listener.handleCommentCreatedEvent(event);
 
-        // Then
-        verify(notificationCommandService, times(3))
-                .saveCommentNotification(1L, "작성자", 100L);
+        // Then: 비동기 완료 대기
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> verify(notificationCommandService, times(3))
+                        .saveCommentNotification(1L, "작성자", 100L));
     }
 
     @Test
@@ -162,9 +179,11 @@ class NotificationSaveListenerRetryTest {
         // When
         listener.handleCommentCreatedEvent(event);
 
-        // Then
-        verify(notificationCommandService, times(1))
-                .saveCommentNotification(1L, "작성자", 100L);
+        // Then: 비동기 완료 대기
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> verify(notificationCommandService, times(1))
+                        .saveCommentNotification(1L, "작성자", 100L));
     }
 
     @Test
@@ -177,9 +196,11 @@ class NotificationSaveListenerRetryTest {
         // When
         listener.handleRollingPaperEvent(event);
 
-        // Then
-        verify(notificationCommandService, times(1))
-                .saveMessageNotification(1L, "작성자");
+        // Then: 비동기 완료 대기
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> verify(notificationCommandService, times(1))
+                        .saveMessageNotification(1L, "작성자"));
     }
 
     @Test
@@ -192,8 +213,10 @@ class NotificationSaveListenerRetryTest {
         // When
         listener.handlePostFeaturedEvent(event);
 
-        // Then
-        verify(notificationCommandService, times(1))
-                .savePopularNotification(1L, "주간 인기글!", 100L, NotificationType.POST_FEATURED_WEEKLY, "테스트 게시글");
+        // Then: 비동기 완료 대기
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .untilAsserted(() -> verify(notificationCommandService, times(1))
+                        .savePopularNotification(1L, "주간 인기글!", 100L, NotificationType.POST_FEATURED_WEEKLY, "테스트 게시글"));
     }
 }

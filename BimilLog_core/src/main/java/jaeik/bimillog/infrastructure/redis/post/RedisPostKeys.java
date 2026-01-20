@@ -5,9 +5,6 @@ import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
 
 import java.time.Duration;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * <h2>게시글 Redis 키</h2>
@@ -26,10 +23,11 @@ public final class RedisPostKeys {
     public static final String POST_PREFIX = "post:";
 
     /**
-     * 개별 게시글 캐시 접두사 (Hash Tag 포함)
-     * <p>Redis 클러스터에서 같은 타입의 게시글이 동일 슬롯에 배치됩니다.</p>
+     * 게시글 목록 캐시 Hash 키 접미사
+     * <p>Value Type: Hash (field=postId, value=PostSimpleDetail)</p>
+     * <p>전체 키 형식: post:{type}:simple</p>
      */
-    public static final String SIMPLE_POST_PREFIX = "post:{%s}:simple:";
+    public static final String SIMPLE_POST_HASH_SUFFIX = ":simple";
 
     /**
      * 게시글 상세 정보 캐시 키 접미사
@@ -44,6 +42,13 @@ public final class RedisPostKeys {
      * <p>전체 키 형식: post:{type}:postids</p>
      */
     public static final String POST_IDS_SUFFIX = ":postids";
+
+    /**
+     * 점수 저장소 키 접미사
+     * <p>Value Type: Sorted Set (postId, score)</p>
+     * <p>전체 키 형식: post:{type}:score</p>
+     */
+    public static final String SCORE_SUFFIX = ":score";
 
     /**
      * 실시간 인기글 점수 Sorted Set 키
@@ -129,30 +134,29 @@ public final class RedisPostKeys {
     }
 
     /**
-     * <h3>개별 게시글 캐시 키 생성 (Hash Tag 포함)</h3>
-     * <p>Redis 클러스터에서 같은 타입의 게시글이 동일 슬롯에 배치됩니다.</p>
-     * <p>예: post:{realtime}:simple:123</p>
+     * <h3>점수 저장소 키 생성</h3>
+     * <p>실시간 인기글 점수를 저장하기 위한 Redis Sorted Set 키를 생성합니다.</p>
      *
-     * @param type   게시글 캐시 유형
-     * @param postId 게시글 ID
-     * @return 생성된 Redis 키
+     * @param type 게시글 캐시 유형 (REALTIME만 지원)
+     * @return 생성된 Redis 키 (형식: post:realtime:score)
+     * @throws IllegalArgumentException REALTIME 이외의 타입이 전달된 경우
      */
-    public static String getSimplePostKey(PostCacheFlag type, Long postId) {
-        String typeTag = type.name().toLowerCase();
-        return String.format(SIMPLE_POST_PREFIX, typeTag) + postId;
+    public static String getScoreStorageKey(PostCacheFlag type) {
+        if (type != PostCacheFlag.REALTIME) {
+            throw new IllegalArgumentException("점수 저장소는 REALTIME 타입만 지원합니다: " + type);
+        }
+        return POST_PREFIX + type.name().toLowerCase() + SCORE_SUFFIX;
     }
 
     /**
-     * <h3>개별 게시글 캐시 키 목록 생성</h3>
-     * <p>여러 postId에 대한 캐시 키 목록을 생성합니다.</p>
+     * <h3>게시글 목록 캐시 Hash 키 생성</h3>
+     * <p>타입별로 하나의 Hash 키를 생성합니다.</p>
+     * <p>예: post:weekly:simple, post:realtime:simple</p>
      *
-     * @param type    게시글 캐시 유형
-     * @param postIds 게시글 ID 목록
-     * @return 캐시 키 목록
+     * @param type 게시글 캐시 유형
+     * @return 생성된 Hash 키 (형식: post:{type}:simple)
      */
-    public static List<String> getSimplePostKeys(PostCacheFlag type, List<Long> postIds) {
-        return postIds.stream()
-                .map(id -> getSimplePostKey(type, id))
-                .toList();
+    public static String getSimplePostHashKey(PostCacheFlag type) {
+        return POST_PREFIX + type.name().toLowerCase() + SIMPLE_POST_HASH_SUFFIX;
     }
 }

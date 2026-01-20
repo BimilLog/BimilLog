@@ -11,6 +11,7 @@ import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.QueryTimeoutException;
 import org.springframework.dao.TransientDataAccessException;
 import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -108,5 +109,53 @@ public class NotificationSaveListener {
                 event.getSseMessage(),
                 event.getSenderName()
         );
+    }
+
+    /**
+     * <h3>댓글 알림 저장 최종 실패 복구</h3>
+     *
+     * @param e 발생한 예외
+     * @param event 댓글 생성 이벤트
+     */
+    @Recover
+    public void recoverHandleCommentCreatedEvent(Exception e, CommentCreatedEvent event) {
+        log.error("댓글 알림 저장 최종 실패: postUserId={}, postId={}",
+                event.postUserId(), event.postId(), e);
+    }
+
+    /**
+     * <h3>롤링페이퍼 알림 저장 최종 실패 복구</h3>
+     *
+     * @param e 발생한 예외
+     * @param event 롤링페이퍼 이벤트
+     */
+    @Recover
+    public void recoverHandleRollingPaperEvent(Exception e, RollingPaperEvent event) {
+        log.error("롤링페이퍼 알림 저장 최종 실패: paperOwnerId={}",
+                event.paperOwnerId(), e);
+    }
+
+    /**
+     * <h3>인기글 알림 저장 최종 실패 복구</h3>
+     *
+     * @param e 발생한 예외
+     * @param event 인기글 선정 이벤트
+     */
+    @Recover
+    public void recoverHandlePostFeaturedEvent(Exception e, PostFeaturedEvent event) {
+        log.error("인기글 알림 저장 최종 실패: memberId={}, postId={}",
+                event.memberId(), event.postId(), e);
+    }
+
+    /**
+     * <h3>친구 알림 저장 최종 실패 복구</h3>
+     *
+     * @param e 발생한 예외
+     * @param event 친구 이벤트
+     */
+    @Recover
+    public void recoverHandleFriendEvent(Exception e, FriendEvent event) {
+        log.error("친구 알림 저장 최종 실패: receiveMemberId={}",
+                event.getReceiveMemberId(), e);
     }
 }
