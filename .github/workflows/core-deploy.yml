@@ -163,8 +163,8 @@ jobs:
               GREEN_CONTAINER="bimillog-backend-green"
               IMAGE="jaeikjeong/bimillog:backend"
               HEALTH_CHECK_PATH="/actuator/health"
-              MAX_HEALTH_RETRIES=30
-              HEALTH_CHECK_INTERVAL=2
+              MAX_HEALTH_RETRIES=60
+              HEALTH_CHECK_INTERVAL=3
 
               # Environment variables for backend
               ENV_VARS="-e SPRING_PROFILES_ACTIVE=prod \
@@ -195,15 +195,15 @@ jobs:
               echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
               docker pull $IMAGE
 
-              # Stop legacy container from previous deployment method (first Blue-Green deploy only)
-              if docker ps --format '{{.Names}}' | grep -q "^bimillog-backend$"; then
-                echo "Stopping legacy bimillog-backend container..."
-                docker stop bimillog-backend 2>/dev/null || true
-                docker rm bimillog-backend 2>/dev/null || true
-              fi
-
               # Determine current active container and ports
-              if docker ps --format '{{.Names}}' | grep -q "^${BLUE_CONTAINER}$"; then
+              # Check for legacy container first (first Blue-Green deploy)
+              if docker ps --format '{{.Names}}' | grep -q "^bimillog-backend$"; then
+                echo "Legacy bimillog-backend found on port 8080. Deploying to green (8081)..."
+                CURRENT_CONTAINER="bimillog-backend"
+                CURRENT_PORT=$BLUE_PORT
+                NEW_CONTAINER=$GREEN_CONTAINER
+                NEW_PORT=$GREEN_PORT
+              elif docker ps --format '{{.Names}}' | grep -q "^${BLUE_CONTAINER}$"; then
                 CURRENT_CONTAINER=$BLUE_CONTAINER
                 CURRENT_PORT=$BLUE_PORT
                 NEW_CONTAINER=$GREEN_CONTAINER
@@ -266,22 +266,22 @@ jobs:
 
       - name: Switch ALB Target Group
         run: |
-          NEW_PORT=$(aws ssm send-command \
-            --instance-ids ${{ secrets.BACKEND_INSTANCE_ID }} \
-            --document-name "AWS-RunShellScript" \
-            --parameters 'commands=["cat /home/ubuntu/.active_backend_port"]' \
-            --output text --query "Command.CommandId" 2>/dev/null || echo "")
+          # Save SSH key to temp file
+          echo "${{ secrets.BASTION_SSH_KEY }}" > /tmp/bastion_key
+          chmod 600 /tmp/bastion_key
 
-          # Fallback: use SSH via bastion to get the port
           NEW_PORT=$(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-            -i <(echo "${{ secrets.BASTION_SSH_KEY }}") \
+            -i /tmp/bastion_key \
             ${{ secrets.BASTION_USER }}@${{ secrets.BASTION_HOST }} \
             "ssh -o StrictHostKeyChecking=no -i ~/growfarm-backend-server-key.pem ${{ secrets.SERVER_USER }}@${{ secrets.BACKEND_SERVER_IP }} 'cat /home/ubuntu/.active_backend_port'")
 
           OLD_PORT=$(ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-            -i <(echo "${{ secrets.BASTION_SSH_KEY }}") \
+            -i /tmp/bastion_key \
             ${{ secrets.BASTION_USER }}@${{ secrets.BASTION_HOST }} \
             "ssh -o StrictHostKeyChecking=no -i ~/growfarm-backend-server-key.pem ${{ secrets.SERVER_USER }}@${{ secrets.BACKEND_SERVER_IP }} 'cat /home/ubuntu/.old_backend_port 2>/dev/null || echo \"\"'")
+
+          # Cleanup SSH key
+          rm -f /tmp/bastion_key
 
           echo "New port: $NEW_PORT, Old port: $OLD_PORT"
 
@@ -321,6 +321,14 @@ jobs:
                 docker stop $OLD_CONTAINER 2>/dev/null || true
                 docker rm $OLD_CONTAINER 2>/dev/null || true
               fi
+
+              # Also cleanup legacy container if exists (first Blue-Green deploy)
+              if docker ps -a --format '{{.Names}}' | grep -q "^bimillog-backend$"; then
+                echo "Stopping legacy bimillog-backend container..."
+                docker stop bimillog-backend 2>/dev/null || true
+                docker rm bimillog-backend 2>/dev/null || true
+              fi
+
               docker image prune -f
               echo "Cleanup completed!"
             ENDSSH
