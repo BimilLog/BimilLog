@@ -26,7 +26,9 @@ import static jaeik.bimillog.infrastructure.redis.friend.RedisFriendKeys.FRIEND_
 public class RedisFriendshipRepository {
 
     private final RedisTemplate<String, Long> redisTemplate;
-    private static final int PIPELINE_BATCH_SIZE = 500;
+    private static final int PIPELINE_BATCH_SIZE = 1000;
+    private static final int SECOND_DEGREE_SAMPLE_SIZE = 100;
+    private static final int THIRD_DEGREE_SAMPLE_SIZE = 50;
 
     /**
      * 특정 회원의 1촌 친구 목록 조회
@@ -38,7 +40,7 @@ public class RedisFriendshipRepository {
     }
 
     /**
-     * 여러 회원의 친구 목록을 파이프라인으로 일괄 조회
+     * 여러 회원의 친구 목록을 파이프라인으로 일괄 조회 (랜덤 100명씩)
      *
      * @param memberIds 조회할 회원 ID 목록
      * @return Map<회원ID, 친구ID_Set>
@@ -52,11 +54,11 @@ public class RedisFriendshipRepository {
                 int batchEnd = Math.min(batchStart + PIPELINE_BATCH_SIZE, memberIdList.size());
                 List<Long> batch = memberIdList.subList(batchStart, batchEnd);
 
-                // Pipeline 실행
+                // Pipeline 실행 (랜덤 100명씩 조회)
                 List<Object> results = redisTemplate.executePipelined((RedisConnection connection) -> {
                     for (Long memberId : batch) {
                         String key = FRIEND_SHIP_PREFIX + memberId;
-                        connection.setCommands().sMembers(key.getBytes(StandardCharsets.UTF_8));
+                        connection.setCommands().sRandMember(key.getBytes(StandardCharsets.UTF_8), SECOND_DEGREE_SAMPLE_SIZE);
                     }
                     return null;
                 });
@@ -68,9 +70,8 @@ public class RedisFriendshipRepository {
 
                     Set<Long> friendIds = new HashSet<>();
 
-                    if (result instanceof Set<?> setResult) {
-                        // 내부 멤버를 Object로 안전하게 처리
-                        for (Object member : setResult) {
+                    if (result instanceof List<?> listResult) {
+                        for (Object member : listResult) {
                             try {
                                 friendIds.add(Long.valueOf(member.toString()));
                             } catch (NumberFormatException e) {
@@ -85,11 +86,53 @@ public class RedisFriendshipRepository {
             }
             return resultMap;
         } catch (Exception e) {
-            // 조회 실패는 DB fallback으로 처리 (이벤트 발행하지 않음)
             throw new CustomException(ErrorCode.FRIEND_REDIS_SHIP_QUERY_ERROR, e);
         }
     }
 
+    /**
+     * 3촌 탐색용: 여러 회원의 친구 목록을 파이프라인으로 일괄 조회 (랜덤 50명씩, 배치 없이 한 번에)
+     *
+     * @param memberIds 조회할 회원 ID 목록
+     * @return Map<회원ID, 친구ID_Set>
+     */
+    public Map<Long, Set<Long>> getFriendsBatchForThirdDegree(Set<Long> memberIds) {
+        List<Long> memberIdList = new ArrayList<>(memberIds);
+        Map<Long, Set<Long>> resultMap = new HashMap<>();
+
+        try {
+            List<Object> results = redisTemplate.executePipelined((RedisConnection connection) -> {
+                for (Long memberId : memberIdList) {
+                    String key = FRIEND_SHIP_PREFIX + memberId;
+                    connection.setCommands().sRandMember(key.getBytes(StandardCharsets.UTF_8), THIRD_DEGREE_SAMPLE_SIZE);
+                }
+                return null;
+            });
+
+            for (int i = 0; i < memberIdList.size(); i++) {
+                Long memberId = memberIdList.get(i);
+                Object result = results.get(i);
+
+                Set<Long> friendIds = new HashSet<>();
+
+                if (result instanceof List<?> listResult) {
+                    for (Object member : listResult) {
+                        try {
+                            friendIds.add(Long.valueOf(member.toString()));
+                        } catch (NumberFormatException e) {
+                            System.err.println("[WARN] Redis Set 멤버 Long 변환 실패. MemberId: " + memberId + ", Value: " + member);
+                        }
+                    }
+                } else if (result != null) {
+                    System.err.println("[ERROR] Redis 조회 결과 예상 타입 아님: " + result.getClass().getName() + ", MemberId: " + memberId);
+                }
+                resultMap.put(memberId, friendIds);
+            }
+            return resultMap;
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.FRIEND_REDIS_SHIP_QUERY_ERROR, e);
+        }
+    }
 
     // 레디스 친구관계 테이블에 친구를 증가시킨다.
     public void addFriend(Long memberId, Long friendId) {

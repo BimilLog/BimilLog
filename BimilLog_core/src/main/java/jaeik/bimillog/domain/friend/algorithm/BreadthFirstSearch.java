@@ -29,9 +29,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class BreadthFirstSearch {
-
     private final RedisFriendshipRepository redisFriendshipRepository;
-    private static final int FIRST_DEGREE_SAMPLE_LIMIT = 200;
 
     /**
      * <h3>친구 관계 탐색 (FriendRelation 반환)</h3>
@@ -42,11 +40,10 @@ public class BreadthFirstSearch {
      * @return FriendRelation 객체 (2촌 정보 포함)
      */
     public FriendRelation findFriendRelation(Long memberId, Set<Long> firstDegree) {
-        Set<Long> sampledFirstDegree = (firstDegree == null) ? new HashSet<>() : firstDegree;
-        FriendRelation relation = new FriendRelation(memberId, sampledFirstDegree);
+        FriendRelation relation = new FriendRelation(memberId, firstDegree);
 
         // 2. 2촌 Map 생성
-        Map<Long, Set<Long>> secondDegreeMap = findSecondDegreeMap(memberId, sampledFirstDegree);
+        Map<Long, Set<Long>> secondDegreeMap = findSecondDegreeMap(memberId, firstDegree);
 
         // 3. Map을 CandidateInfo로 변환하여 FriendRelation에 추가
         for (Map.Entry<Long, Set<Long>> entry : secondDegreeMap.entrySet()) {
@@ -130,8 +127,8 @@ public class BreadthFirstSearch {
      * <h3>3촌 Map 생성</h3>
      */
     private Map<Long, Set<Long>> findThirdDegreeMap(Long memberId, Set<Long> firstDegree, Set<Long> secondDegreeIds) {
-        // 1. 2촌들의 친구 목록을 한 번에 조회 (Pipeline)
-        Map<Long, Set<Long>> friendsOfSecondDegreeMap = redisFriendshipRepository.getFriendsBatch(secondDegreeIds);
+        // 1. 2촌들의 친구 목록을 한 번에 조회 (Pipeline, 50명 샘플링)
+        Map<Long, Set<Long>> friendsOfSecondDegreeMap = redisFriendshipRepository.getFriendsBatchForThirdDegree(secondDegreeIds);
         Map<Long, Set<Long>> thirdDegreeMap = new HashMap<>();
 
         // 2. 결과 처리

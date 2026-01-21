@@ -54,7 +54,10 @@ public class FriendRecommendScorer {
     public double calculateTotalScore(RecommendCandidate candidate) {
         double baseScore = getBaseScore(candidate.getDepth());
         double commonFriendScore = getCommonFriendScore(candidate.getCommonFriendCount(), candidate.getDepth());
-        double interactionScore = getInteractionScore(candidate.getInteractionScore());
+
+        // 상호작용 점수 (최대 10점)
+        Double rawInteractionScore = candidate.getInteractionScore();
+        double interactionScore = (rawInteractionScore == null) ? 0.0 : Math.min(rawInteractionScore, INTERACTION_SCORE_MAX);
 
         double totalScore = baseScore + commonFriendScore + interactionScore;
 
@@ -109,22 +112,6 @@ public class FriendRecommendScorer {
             return count * COMMON_FRIEND_SCORE_PER_PERSON_3RD;
         }
         return 0.0;
-    }
-
-    /**
-     * <h3>상호작용 점수 조회</h3>
-     * <p>최대 10점까지 적용됩니다.</p>
-     *
-     * @param score Redis에서 조회한 상호작용 점수
-     * @return 제한된 상호작용 점수 (최대 10점)
-     */
-    public double getInteractionScore(Double score) {
-        if (score == null) {
-            return 0.0;
-        }
-
-        // 최대 10점
-        return Math.min(score, INTERACTION_SCORE_MAX);
     }
 
     /**
