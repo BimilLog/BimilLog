@@ -52,19 +52,17 @@ public class RedisRealTimePostAdapter implements RedisTier2CachePort {
     @Override
     @CircuitBreaker(name = "realtimeRedis", fallbackMethod = "getRealtimePopularPostIdsFallback")
     public List<Long> getRangePostId(PostCacheFlag type, long start, long end) {
-        Set<Long> set = redisTemplate.opsForZSet().reverseRange(REALTIME_SCORE_KEY, start, start + end - 1);
+        Set<Long> set = redisTemplate.opsForZSet().reverseRange(REALTIME_SCORE_KEY, 0, 4);
         return new ArrayList<>(Optional.ofNullable(set).orElseGet(Collections::emptySet));
     }
-
-
 
     /**
      * <h3>실시간 인기글 조회 폴백</h3>
      * <p>실시간과 점수 증가와 같은 서킷을 공유한다.</p>
      * <p>폴백시 메모리에서 실시간 인기글을 조회한다.</p>
      */
-    private List<Long> getRealtimePopularPostIdsFallback(long start, long end) {
-        log.warn("[CIRCUIT_FALLBACK] 실시간 인기글 조회 실패, 폴백 저장소 사용");
+    private List<Long> getRealtimePopularPostIdsFallback(PostCacheFlag type, long start, long end, Throwable t) {
+        log.warn("[CIRCUIT_FALLBACK] 실시간 인기글 조회 실패. 사유: {}, 폴백 저장소 사용", t.getMessage());
         return fallbackStore.getTopPostIds(start, end);
     }
 

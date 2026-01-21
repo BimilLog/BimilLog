@@ -87,24 +87,27 @@ public class PostCacheService {
         try {
             RedisTier2CachePort adapter = adapterMap.get(type);
 
-            // 1. 범위 내 postId 목록 조회
+            // 범위 내 postId 목록 조회
             List<Long> postIds = adapter.getRangePostId(type, pageable.getOffset(), pageable.getPageSize());
 
-            // 2. 전체 카운트 결정 (실시간은 고정값 5, 나머지는 전체 ID 개수)
-            long totalCount = REALTIME_LIMIT;
-
+            // 전체 postId 목록 조회 (실시간은 0 반환) (실시간은 양이 많을 것을 우려해서 범위를 5로 제한한 범위 내 postId를 기준으로 사용)
             List<Long> allPostIds = adapter.getAllPostId(type);
 
+            // 전체 카운트 결정 범위 내 ID 값으로 설정
+            long totalCount = postIds.size();
+
+            // 실시간 제외하고 페이징 토탈 카운트를 전체 postId로 설정 이렇게하면 실시간은 범위 내 값으로 설정 됨
             if (type != PostCacheFlag.REALTIME) {
                 totalCount = allPostIds.size();
             }
 
-            if (allPostIds.isEmpty()) {
+            // 전체 카운트가 0이면 빈 페이지 반환
+            if (totalCount == 0){
                 return new PageImpl<>(List.of(), pageable, totalCount);
             }
 
-            List<PostSimpleDetail> resultPosts;
 
+            List<PostSimpleDetail> resultPosts;
             // 3. 실시간 전용 서킷 브레이커 로직 처리
             if (type == PostCacheFlag.REALTIME && circuitBreakerRegistry.circuitBreaker("realtimeRedis").getState() == OPEN) {
                 // 서킷이 열려있으면 DB에서 상세 정보 조회
