@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * <h2>글 캐시 갱신 클래스</h2>
@@ -45,8 +46,8 @@ public class PostCacheRefresh {
      * @param type 캐시 유형
      */
     @Async("cacheRefreshExecutor")
-    public void asyncRefreshAllPosts(PostCacheFlag type) {
-        refreshInternal(type, "PER");
+    public void asyncRefreshAllPosts(PostCacheFlag type, List<Long> allPostIds) {
+        refreshInternal(type, allPostIds);
     }
 
     /**
@@ -57,13 +58,13 @@ public class PostCacheRefresh {
      * @param type 캐시 유형
      */
     @Async("cacheRefreshExecutor")
-    public void asyncRefreshWithLock(PostCacheFlag type) {
+    public void asyncRefreshWithLock(PostCacheFlag type, List<Long> allPostIds) {
         if (!redisSimplePostAdapter.tryAcquireRefreshLock(type)) {
             return;
         }
 
         try {
-            refreshInternal(type, "COUNT_MISMATCH");
+            refreshInternal(type, allPostIds);
         } finally {
             redisSimplePostAdapter.releaseRefreshLock(type);
         }
@@ -72,11 +73,7 @@ public class PostCacheRefresh {
     /**
      * <h3>캐시 갱신 내부 로직</h3>
      */
-    private void refreshInternal(PostCacheFlag type, String reason) {
-            List<Long> allPostIds = getPostIdsByType(type);
-            if (allPostIds.isEmpty()) {
-                return;
-            }
+    private void refreshInternal(PostCacheFlag type, List<Long> allPostIds) {
 
             List<PostSimpleDetail> refreshed = allPostIds.stream()
                     .map(postId -> postQueryRepository.findPostDetail(postId, null).orElse(null))
@@ -92,19 +89,6 @@ public class PostCacheRefresh {
 
     }
 
-    /**
-     * <h3>타입별 postId 목록 조회</h3>
-     * <p>캐시 유형에 따라 적절한 저장소에서 postId 목록을 가져옵니다.</p>
-     *
-     * @param type 캐시 유형
-     * @return postId 목록
-     */
-    private List<Long> getPostIdsByType(PostCacheFlag type) {
-        if (type == PostCacheFlag.REALTIME) {
-            return redisRealTimePostAdapter.getRealtimePopularPostIds(0, 100);
-        }
-        return redisTier2PostAdapter.getStoredPostIds(type);
-    }
 
     /**
      * <h3>상세 캐시 비동기 갱신 (PER 기반)</h3>

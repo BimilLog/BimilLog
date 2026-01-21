@@ -2,6 +2,7 @@ package jaeik.bimillog.infrastructure.redis.post;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
+import jaeik.bimillog.domain.post.port.RedisTier2CachePort;
 import jaeik.bimillog.infrastructure.resilience.RealtimeScoreFallbackStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,11 +25,21 @@ import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.*;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class RedisRealTimePostAdapter {
+public class RedisRealTimePostAdapter implements RedisTier2CachePort {
     private static final String REALTIME_SCORE_KEY = getScoreStorageKey(PostCacheFlag.REALTIME);
 
     private final RedisTemplate<String, Long> redisTemplate;
     private final RealtimeScoreFallbackStore fallbackStore;
+
+    @Override
+    public List<PostCacheFlag> getSupportedTypes() {
+        return List.of(PostCacheFlag.REALTIME);
+    }
+
+    @Override
+    public List<Long> getAllPostId(PostCacheFlag type) {
+        return List.of();
+    }
 
     /**
      * <h3>실시간 인기글 조회</h3>
@@ -38,11 +49,14 @@ public class RedisRealTimePostAdapter {
      * @param end 조회 개수
      * @return List<Long> 게시글 ID 목록 (점수 내림차순)
      */
+    @Override
     @CircuitBreaker(name = "realtimeRedis", fallbackMethod = "getRealtimePopularPostIdsFallback")
-    public List<Long> getRealtimePopularPostIds(long start, long end) {
+    public List<Long> getRangePostId(PostCacheFlag type, long start, long end) {
         Set<Long> set = redisTemplate.opsForZSet().reverseRange(REALTIME_SCORE_KEY, start, start + end - 1);
         return new ArrayList<>(Optional.ofNullable(set).orElseGet(Collections::emptySet));
     }
+
+
 
     /**
      * <h3>실시간 인기글 조회 폴백</h3>
@@ -148,4 +162,6 @@ public class RedisRealTimePostAdapter {
     public void removePostIdFromRealtimeScore(Long postId) {
         redisTemplate.opsForZSet().remove(REALTIME_SCORE_KEY, postId);
     }
+
+
 }

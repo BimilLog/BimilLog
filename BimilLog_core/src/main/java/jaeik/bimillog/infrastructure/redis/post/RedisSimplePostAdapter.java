@@ -30,6 +30,8 @@ import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.*;
 public class RedisSimplePostAdapter {
     private final RedisTemplate<String, Object> redisTemplate;
 
+
+
     /**
      * PER의 expiry gap (초 단위)
      * <p>TTL 마지막 60초 동안 확률적으로 캐시를 갱신합니다.</p>
@@ -64,6 +66,8 @@ public class RedisSimplePostAdapter {
         CacheMetricsLogger.hit(log, logPrefix, "hgetall", result.size());
         return result;
     }
+
+
 
     /**
      * <h3>Hash 전체 TTL 기반 PER 갱신 필요 여부 판단</h3>
@@ -154,21 +158,6 @@ public class RedisSimplePostAdapter {
         redisTemplate.opsForHash().delete(hashKey, field);
 
         log.debug("[CACHE_DELETE] hashKey={}, field={}", hashKey, field);
-    }
-
-    /**
-     * <h3>PostSimpleDetail Map을 리스트로 변환</h3>
-     * <p>요청된 순서를 유지하며 변환합니다.</p>
-     *
-     * @param orderedIds  정렬 순서를 가진 ID 목록
-     * @param cachedPosts 캐시된 게시글 Map
-     * @return 정렬된 PostSimpleDetail 목록
-     */
-    public List<PostSimpleDetail> toOrderedList(List<Long> orderedIds, Map<Long, PostSimpleDetail> cachedPosts) {
-        return orderedIds.stream()
-                .map(cachedPosts::get)
-                .filter(Objects::nonNull)
-                .toList();
     }
 
     // ===================== 캐시 스탬피드 방지 락 =====================

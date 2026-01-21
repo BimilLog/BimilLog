@@ -1,15 +1,14 @@
 package jaeik.bimillog.infrastructure.redis.post;
 
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
+import jaeik.bimillog.domain.post.port.RedisTier2CachePort;
 import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.POST_IDS_TTL_WEEKLY_LEGEND;
 import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.getPostIdsStorageKey;
@@ -24,8 +23,30 @@ import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.getPostIdsS
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class RedisTier2PostAdapter {
-    private final RedisTemplate<String, Object> redisTemplate;
+public class RedisTier2PostAdapter implements RedisTier2CachePort {
+    private final RedisTemplate<String, Long> redisTemplate;
+
+    @Override
+    public List<Long> getRangePostId(PostCacheFlag type, long start, long end) {
+        String IDS_KEY = getPostIdsStorageKey(type);
+
+        Set<Long> set;
+        if (type == PostCacheFlag.NOTICE) {
+            set = redisTemplate.opsForSet().members(IDS_KEY);
+        } else {
+            set = redisTemplate.opsForZSet().reverseRange(IDS_KEY, start, start + end - 1);
+        }
+        return new ArrayList<>(Optional.ofNullable(set).orElseGet(Collections::emptySet));
+    }
+
+    @Override
+    public List<PostCacheFlag> getSupportedTypes() {
+        return List.of(
+                PostCacheFlag.NOTICE,
+                PostCacheFlag.WEEKLY,
+                PostCacheFlag.LEGEND
+        );
+    }
 
     /**
      * <h3>글 ID 목록 조회</h3>
@@ -34,9 +55,10 @@ public class RedisTier2PostAdapter {
      * @param type 조회할 인기글 캐시 유형 (WEEKLY, LEGEND, NOTICE)
      * @return 저장된 게시글 ID 목록 (없으면 빈 리스트)
      */
-    public List<Long> getStoredPostIds(PostCacheFlag type) {
+    @Override
+    public List<Long> getAllPostId(PostCacheFlag type) {
         String postIdsKey = getPostIdsStorageKey(type);
-        Set<Object> postIds;
+        Set<Long> postIds;
 
         if (type == PostCacheFlag.NOTICE) {
             postIds = redisTemplate.opsForSet().members(postIdsKey); // 공지사항: Set에서 조회
@@ -80,13 +102,13 @@ public class RedisTier2PostAdapter {
         if (type == PostCacheFlag.NOTICE) {
             // 공지사항: Set으로 저장 (순서 불필요)
             for (Long postId : postIds) {
-                redisTemplate.opsForSet().add(postIdsKey, postId.toString());
+                redisTemplate.opsForSet().add(postIdsKey, postId);
             }
         } else {
             // 주간/레전드: Sorted Set으로 저장 (점수 = DB 추출 순서)
             double score = 1.0;
             for (Long postId : postIds) {
-                redisTemplate.opsForZSet().add(postIdsKey, postId.toString(), score++);
+                redisTemplate.opsForZSet().add(postIdsKey, postId, score++);
             }
         }
 
@@ -105,7 +127,7 @@ public class RedisTier2PostAdapter {
      */
     public void addPostIdToStorage(PostCacheFlag type, Long postId) {
         String postIdsKey = getPostIdsStorageKey(type);
-        redisTemplate.opsForSet().add(postIdsKey, postId.toString());
+        redisTemplate.opsForSet().add(postIdsKey, postId);
     }
 
     /**
@@ -165,4 +187,6 @@ public class RedisTier2PostAdapter {
             }
         }
     }
+
+
 }
