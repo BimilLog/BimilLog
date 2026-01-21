@@ -1,6 +1,5 @@
 package jaeik.bimillog.domain.post.service;
 
-import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
@@ -39,9 +38,6 @@ public class PostCacheService {
     private final CircuitBreakerRegistry circuitBreakerRegistry;
     private final Map<PostCacheFlag, RedisTier2CachePort> adapterMap;
 
-    // 현재 실시간 인기글의 전체글은 5로 간주한다 향후 변경가능
-    private static final long REALTIME_LIMIT = 5;
-
     public PostCacheService(PostQueryRepository postQueryRepository, RedisSimplePostAdapter redisSimplePostAdapter,
                             PostCacheRefresh postCacheRefresh, DbFallbackGateway dbFallbackGateway,
                             CircuitBreakerRegistry circuitBreakerRegistry, List<RedisTier2CachePort> adapters) {
@@ -59,28 +55,40 @@ public class PostCacheService {
         }
     }
 
+    /**
+     * 실시간 인기글 목록 조회
+     */
     public Page<PostSimpleDetail> getRealtimePosts(Pageable pageable) {
         return getCachedPosts(PostCacheFlag.REALTIME, FallbackType.REALTIME, pageable,
                 () -> postQueryRepository.findRecentPopularPosts(pageable));
     }
 
+    /**
+     * 주간 인기글 목록 조회
+     */
     public Page<PostSimpleDetail> getWeeklyPosts(Pageable pageable) {
         return getCachedPosts(PostCacheFlag.WEEKLY, FallbackType.WEEKLY, pageable,
                 () -> postQueryRepository.findWeeklyPopularPosts(pageable));
     }
 
+    /**
+     * 전설 인기글 목록 조회
+     */
     public Page<PostSimpleDetail> getPopularPostLegend(Pageable pageable) {
         return getCachedPosts(PostCacheFlag.LEGEND, FallbackType.LEGEND, pageable,
                 () -> postQueryRepository.findLegendaryPosts(pageable));
     }
 
+    /**
+     * 공지사항 목록 조회
+     */
     public Page<PostSimpleDetail> getNoticePosts(Pageable pageable) {
         return getCachedPosts(PostCacheFlag.NOTICE, FallbackType.NOTICE, pageable,
                 () -> postQueryRepository.findNoticePosts(pageable));
     }
 
     /**
-     * 인기글 목록 조회
+     * 목록 캐시 조회 공통 메서드
      */
     private Page<PostSimpleDetail> getCachedPosts(PostCacheFlag type, FallbackType fallbackType,
                                                   Pageable pageable, Supplier<Page<PostSimpleDetail>> fallbackSupplier) {
@@ -106,16 +114,21 @@ public class PostCacheService {
                 return new PageImpl<>(List.of(), pageable, totalCount);
             }
 
-
             List<PostSimpleDetail> resultPosts;
-            // 3. 실시간 전용 서킷 브레이커 로직 처리
+            // 실시간 전용 서킷 브레이커 로직 처리
             if (type == PostCacheFlag.REALTIME && circuitBreakerRegistry.circuitBreaker("realtimeRedis").getState() == OPEN) {
                 // 서킷이 열려있으면 DB에서 상세 정보 조회
                 resultPosts = postQueryRepository.findPostSimpleDetailsByIds(postIds);
             } else {
-                // 서킷이 닫혀있거나 실시간이 아닌 경우
+                // 타입별 모든 인기글 목록 캐시 조회
                 Map<Long, PostSimpleDetail> cachedPosts = redisSimplePostAdapter.getAllCachedPosts(type);
-                handleCacheSync(type, cachedPosts.size(), totalCount, allPostIds);
+
+                // 서킷이 닫혀있는 실시간
+                if (type == PostCacheFlag.REALTIME) {
+                    handleCacheSync(type, cachedPosts.size(), totalCount, postIds);
+                } else {
+                    handleCacheSync(type, cachedPosts.size(), totalCount, allPostIds);
+                }
                 resultPosts = postIds.stream().map(cachedPosts::get).filter(Objects::nonNull).toList();
             }
 
@@ -127,6 +140,9 @@ public class PostCacheService {
         }
     }
 
+    /**
+     * 캐시갱신 메서드
+     */
     private void handleCacheSync(PostCacheFlag flag, int cachedSize, long totalCount, List<Long> allPostIds) {
         if (cachedSize != totalCount) {
             postCacheRefresh.asyncRefreshWithLock(flag, allPostIds);
