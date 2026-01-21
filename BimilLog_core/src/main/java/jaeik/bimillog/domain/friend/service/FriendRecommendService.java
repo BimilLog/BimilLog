@@ -43,13 +43,16 @@ public class FriendRecommendService {
     public static final int RECOMMEND_LIMIT = 10;
     public static final int DEPTH_SECOND = 2;
     public static final int DEPTH_THIRD = 3;
+    public static final int FIRST_FRIEND_COUNT = 200;
 
     @Transactional(readOnly = true)
     public Page<RecommendedFriend> getRecommendFriendList(Long memberId, Pageable pageable) {
         log.info("친구 추천 시작: memberId={}", memberId);
-
-        // 1. Redis에서 1촌 목록 및 블랙리스트 조회
-        Set<Long> firstDegree = redisFriendshipRepository.getFriends(memberId);
+        Set<Long> firstDegree = redisFriendshipRepository.getFriends(memberId, FIRST_FRIEND_COUNT);
+        if (firstDegree.isEmpty()) {
+            // TODO 1촌이 없으므로 2촌 3촌 탐색을 거치지 않고 상호작용 점수로 채워놓고
+            //  10명이 안되면 최근가입자넣기 블랙리스트마지막에 삭제하기 꼭 10명 아니어도 됨
+        }
 
         // 2. BFS로 2촌 관계 탐색 (Redis Pipeline 활용)
         FriendRelation relation = breadthFirstSearch.findFriendRelation(memberId, firstDegree);

@@ -26,16 +26,15 @@ import static jaeik.bimillog.infrastructure.redis.friend.RedisFriendKeys.FRIEND_
 public class RedisFriendshipRepository {
 
     private final RedisTemplate<String, Long> redisTemplate;
-    private static final int FRIEND_SCAN_COUNT = 200;
     private static final int PIPELINE_BATCH_SIZE = 500;
 
     /**
      * 특정 회원의 1촌 친구 목록 조회
      * 랜덤 200명 추출
      */
-    public Set<Long> getFriends(Long memberId) {
+    public Set<Long> getFriends(Long memberId, int count) {
         String key = FRIEND_SHIP_PREFIX + memberId;
-        return redisTemplate.opsForSet().distinctRandomMembers(key, FRIEND_SCAN_COUNT);
+        return redisTemplate.opsForSet().distinctRandomMembers(key, count);
     }
 
     /**
@@ -45,10 +44,6 @@ public class RedisFriendshipRepository {
      * @return Map<회원ID, 친구ID_Set>
      */
     public Map<Long, Set<Long>> getFriendsBatch(Set<Long> memberIds) {
-        if (memberIds.isEmpty()) {
-            return new HashMap<>();
-        }
-
         List<Long> memberIdList = new ArrayList<>(memberIds);
         Map<Long, Set<Long>> resultMap = new HashMap<>();
 
@@ -128,7 +123,7 @@ public class RedisFriendshipRepository {
 // 탈퇴 회원의 친구 목록을 기반으로 타겟 키만 정리한다.
     public void deleteWithdrawFriendTargeted(Long withdrawFriendId) {
         try {
-            Set<Long> friendIds = getFriends(withdrawFriendId);
+            Set<Long> friendIds = getFriends(withdrawFriendId, PIPELINE_BATCH_SIZE);
             if (friendIds != null && !friendIds.isEmpty()) {
                 byte[] withdrawMemberIdBytes = String.valueOf(withdrawFriendId).getBytes(StandardCharsets.UTF_8);
                 List<Long> friendIdList = new ArrayList<>(friendIds);
