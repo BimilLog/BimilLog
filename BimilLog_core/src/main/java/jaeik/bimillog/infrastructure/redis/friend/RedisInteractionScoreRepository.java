@@ -74,6 +74,32 @@ public class RedisInteractionScoreRepository {
     }
 
     /**
+     * 회원의 모든 상호작용 점수 조회 (1촌이 없을 때 사용)
+     *
+     * @param memberId 기준 회원 ID
+     * @return Map<대상ID, 점수> (점수가 있는 모든 대상)
+     */
+    public Map<Long, Double> getAllInteractionScores(Long memberId) {
+        String key = INTERACTION_PREFIX + memberId;
+        Map<Long, Double> resultMap = new HashMap<>();
+
+        try {
+            Map<Object, Object> entries = redisTemplate.opsForHash().entries(key);
+            for (Map.Entry<Object, Object> entry : entries.entrySet()) {
+                String field = entry.getKey().toString();
+                if (field.startsWith(INTERACTION_SUFFIX)) {
+                    Long targetId = Long.valueOf(field.substring(INTERACTION_SUFFIX.length()));
+                    String scoreValue = entry.getValue().toString();
+                    resultMap.put(targetId, Double.valueOf(scoreValue));
+                }
+            }
+            return resultMap;
+        } catch (Exception e) {
+            throw new CustomException(ErrorCode.FRIEND_REDIS_INTERACTION_QUERY_ERROR, e);
+        }
+    }
+
+    /**
      * 후보자들의 상호작용 점수만 파이프라인으로 일괄 조회
      *
      * @param memberId 기준 회원 ID

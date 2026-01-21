@@ -3,7 +3,7 @@ package jaeik.bimillog.performance;
 import jaeik.bimillog.domain.friend.entity.jpa.Friendship;
 import jaeik.bimillog.domain.friend.event.FriendshipCreatedEvent;
 import jaeik.bimillog.domain.friend.repository.FriendshipRepository;
-import jaeik.bimillog.domain.friend.service.FriendRecommendService;
+import jaeik.bimillog.domain.friend.recommend.FriendRecommendService;
 import jaeik.bimillog.domain.post.event.PostLikeEvent;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
 import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository;
@@ -205,7 +205,7 @@ public class FriendRecommendPerformanceTest {
         Long sampleMemberId = friendships.getFirst().getMember().getId();
         Awaitility.await()
                 .atMost(SEED_TIMEOUT)
-                .untilAsserted(() -> assertThat(redisFriendshipRepository.getFriends(sampleMemberId)).isNotEmpty());
+                .untilAsserted(() -> assertThat(redisFriendshipRepository.getFriends(sampleMemberId, 200)).isNotEmpty());
     }
 
     private void seedInteractionScores(List<Friendship> friendships) {
@@ -215,7 +215,7 @@ public class FriendRecommendPerformanceTest {
         ));
 
         Long sampleMemberId = friendships.getFirst().getMember().getId();
-        Set<Long> sampleTargets = redisFriendshipRepository.getFriends(sampleMemberId);
+        Set<Long> sampleTargets = redisFriendshipRepository.getFriends(sampleMemberId, 200);
 
         if (!sampleTargets.isEmpty()) {
             Awaitility.await()

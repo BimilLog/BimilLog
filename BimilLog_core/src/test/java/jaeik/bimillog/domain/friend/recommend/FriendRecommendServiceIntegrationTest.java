@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.friend.service;
+package jaeik.bimillog.domain.friend.recommend;
 
 import jaeik.bimillog.domain.friend.entity.RecommendedFriend;
 import jaeik.bimillog.domain.friend.event.FriendshipCreatedEvent;
@@ -142,13 +142,13 @@ class FriendRecommendServiceIntegrationTest {
         Awaitility.await()
                 .atMost(EVENT_TIMEOUT)
                 .untilAsserted(() -> {
-                    assertThat(redisFriendshipRepository.getFriends(member1.getId()))
+                    assertThat(redisFriendshipRepository.getFriends(member1.getId(), 200))
                             .containsExactlyInAnyOrder(member2.getId(), member3.getId());
-                    assertThat(redisFriendshipRepository.getFriends(member2.getId()))
+                    assertThat(redisFriendshipRepository.getFriends(member2.getId(), 200))
                             .containsExactlyInAnyOrder(member1.getId(), member4.getId());
-                    assertThat(redisFriendshipRepository.getFriends(member3.getId()))
+                    assertThat(redisFriendshipRepository.getFriends(member3.getId(), 200))
                             .containsExactlyInAnyOrder(member1.getId(), member5.getId(), member7.getId());
-                    assertThat(redisFriendshipRepository.getFriends(member4.getId()))
+                    assertThat(redisFriendshipRepository.getFriends(member4.getId(), 200))
                             .containsExactlyInAnyOrder(member2.getId(), member6.getId());
                 });
     }
@@ -323,16 +323,16 @@ class FriendRecommendServiceIntegrationTest {
         // Then
         assertThat(result.getContent()).isNotEmpty();
 
-        // 최근 가입자가 추천되어야 함 (depth = null - 2촌/3촌이 아닌 경우)
+        // 최근 가입자가 추천되어야 함 (depth = 0 - 2촌/3촌이 아닌 경우)
         RecommendedFriend recentRecommendation = result.getContent().get(0);
-        assertThat(recentRecommendation.getDepth()).isNull();
+        assertThat(recentRecommendation.getDepth()).isEqualTo(0);
     }
 
     @Test
     @DisplayName("Redis 캐시 동작 검증 - getFriends 호출 시 데이터 반환")
     void shouldReturnFriendsFromRedisCache() {
         // When
-        var friends = redisFriendshipRepository.getFriends(member1.getId());
+        var friends = redisFriendshipRepository.getFriends(member1.getId(), 200);
 
         // Then
         assertThat(friends).contains(member2.getId(), member3.getId());

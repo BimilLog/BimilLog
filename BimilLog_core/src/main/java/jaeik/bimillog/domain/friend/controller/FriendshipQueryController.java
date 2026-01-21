@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.friend.controller;
 
 import jaeik.bimillog.domain.friend.entity.Friend;
 import jaeik.bimillog.domain.friend.entity.RecommendedFriend;
-import jaeik.bimillog.domain.friend.service.FriendRecommendService;
+import jaeik.bimillog.domain.friend.recommend.FriendRecommendService;
 import jaeik.bimillog.domain.friend.service.FriendshipQueryService;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.infrastructure.log.Log;
