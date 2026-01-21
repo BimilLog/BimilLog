@@ -2,6 +2,7 @@ package jaeik.bimillog.domain.friend.service;
 
 import jaeik.bimillog.domain.friend.entity.RecommendedFriend;
 import jaeik.bimillog.domain.friend.event.FriendshipCreatedEvent;
+import jaeik.bimillog.domain.friend.recommend.FriendRecommendService;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.MemberBlacklist;
 import jaeik.bimillog.domain.member.repository.MemberBlacklistRepository;

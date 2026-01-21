@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.friend.algorithm;
+package jaeik.bimillog.domain.friend.recommend;
 
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
 import org.junit.jupiter.api.DisplayName;

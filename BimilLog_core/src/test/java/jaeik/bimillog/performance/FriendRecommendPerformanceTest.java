@@ -3,7 +3,7 @@ package jaeik.bimillog.performance;
 import jaeik.bimillog.domain.friend.entity.jpa.Friendship;
 import jaeik.bimillog.domain.friend.event.FriendshipCreatedEvent;
 import jaeik.bimillog.domain.friend.repository.FriendshipRepository;
-import jaeik.bimillog.domain.friend.service.FriendRecommendService;
+import jaeik.bimillog.domain.friend.recommend.FriendRecommendService;
 import jaeik.bimillog.domain.post.event.PostLikeEvent;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
 import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepository;

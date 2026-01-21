@@ -1,14 +1,11 @@
-package jaeik.bimillog.domain.friend.algorithm;
+package jaeik.bimillog.domain.friend.recommend;
 
-import jaeik.bimillog.domain.friend.entity.FriendRelation;
 import jaeik.bimillog.infrastructure.redis.friend.RedisFriendshipRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
 
 /**
  * <h2>BFS 알고리즘</h2>

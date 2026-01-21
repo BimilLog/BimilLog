@@ -1,4 +1,4 @@
-package jaeik.bimillog.domain.friend.algorithm;
+package jaeik.bimillog.domain.friend.recommend;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
