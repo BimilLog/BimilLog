@@ -123,7 +123,7 @@ export class ApiClient {
             }
           }
 
-          const needsRelogin = extractedMessage.includes("다른기기에서 로그아웃 하셨습니다")
+          const needsRelogin = extractedMessage.includes("다시 로그인 해주세요")
 
           if (needsRelogin && typeof window !== 'undefined') {
             const event = new CustomEvent('needsRelogin', {

@@ -4,8 +4,8 @@ import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.friend.entity.Friend;
 import jaeik.bimillog.domain.member.dto.KakaoFriendsDTO;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
-import jaeik.bimillog.domain.member.out.MemberQueryRepository;
-import jaeik.bimillog.domain.member.out.MemberToAuthAdapter;
+import jaeik.bimillog.domain.member.repository.MemberQueryRepository;
+import jaeik.bimillog.domain.member.adapter.MemberToAuthAdapter;
 import jaeik.bimillog.infrastructure.api.social.kakao.KakaoFriendClient;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
@@ -50,7 +50,7 @@ public class MemberFriendService {
             }
 
             SocialToken socialToken = memberToAuthAdapter.getSocialToken(memberId)
-                    .orElseThrow(() -> new CustomException(ErrorCode.SOCIAL_TOKEN_NOT_FOUNT));
+                    .orElseThrow(() -> new CustomException(ErrorCode.SOCIAL_TOKEN_NOT_FOUND));
 
             KakaoFriendsDTO response = kakaoFriendClient.getFriendList(
                     socialToken.getAccessToken(), (int) offset, actualLimit

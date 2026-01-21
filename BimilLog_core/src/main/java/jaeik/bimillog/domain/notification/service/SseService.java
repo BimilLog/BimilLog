@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.notification.service;
 import jaeik.bimillog.domain.notification.controller.NotificationSseController;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.entity.SseMessage;
-import jaeik.bimillog.domain.notification.out.SseRepository;
+import jaeik.bimillog.domain.notification.repository.SseRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;

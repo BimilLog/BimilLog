@@ -3,9 +3,9 @@ package jaeik.bimillog.domain.member.service;
 import jaeik.bimillog.domain.member.dto.BlacklistDTO;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.MemberBlacklist;
-import jaeik.bimillog.domain.member.out.MemberBlacklistQueryRepository;
-import jaeik.bimillog.domain.member.out.MemberBlacklistRepository;
-import jaeik.bimillog.domain.member.out.MemberRepository;
+import jaeik.bimillog.domain.member.repository.MemberBlacklistQueryRepository;
+import jaeik.bimillog.domain.member.repository.MemberBlacklistRepository;
+import jaeik.bimillog.domain.member.repository.MemberRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -61,9 +61,11 @@ public class MemberBlacklistService {
         memberBlacklistRepository.deleteById(blacklistId);
     }
 
-    public boolean checkMemberBlacklist(Long memberId, Long targetMemberId) {
+    public void checkMemberBlacklist(Long memberId, Long targetMemberId) {
         boolean aBlockedB = memberBlacklistRepository.existsByRequestMemberIdAndBlackMemberId(memberId, targetMemberId);
         boolean bBlockedA = memberBlacklistRepository.existsByRequestMemberIdAndBlackMemberId(targetMemberId, memberId);
-        return aBlockedB || bBlockedA;
+        if (aBlockedB || bBlockedA) {
+            throw new CustomException(ErrorCode.BLACKLIST_MEMBER_PAPER_FORBIDDEN);
+        }
     }
 }

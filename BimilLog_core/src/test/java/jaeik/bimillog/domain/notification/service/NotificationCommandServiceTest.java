@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.notification.service;
 
 import jaeik.bimillog.domain.notification.entity.Notification;
-import jaeik.bimillog.domain.notification.out.NotificationRepository;
+import jaeik.bimillog.domain.notification.repository.NotificationRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -22,7 +22,6 @@ import static org.mockito.Mockito.*;
 /**
  * <h2>NotificationCommandService 테스트</h2>
  * <p>알림 명령 서비스의 핵심 비즈니스 규칙을 검증하는 단위 테스트</p>
- * <p>CLAUDE.md 가이드라인: 단순 위임이 아닌 핵심 비즈니스 검증만 테스트</p>
  *
  * @author Jaeik
  * @version 2.0.0

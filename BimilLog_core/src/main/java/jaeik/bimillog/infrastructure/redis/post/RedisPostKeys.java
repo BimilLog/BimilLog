@@ -5,15 +5,14 @@ import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
 
 import java.time.Duration;
-import java.util.EnumMap;
-import java.util.Map;
 
 /**
  * <h2>게시글 Redis 키</h2>
  * <p>게시글 관련 모든 Redis 키 정의, TTL, 스코어링 상수 및 캐시 메타데이터를 관리합니다.</p>
+ * <p>Redis 클러스터 환경을 위해 Hash Tag를 사용하여 같은 타입의 키들이 동일 슬롯에 배치됩니다.</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.5.0
  */
 public final class RedisPostKeys {
 
@@ -22,6 +21,13 @@ public final class RedisPostKeys {
      * 게시글 캐시 접두사
      */
     public static final String POST_PREFIX = "post:";
+
+    /**
+     * 게시글 목록 캐시 Hash 키 접미사
+     * <p>Value Type: Hash (field=postId, value=PostSimpleDetail)</p>
+     * <p>전체 키 형식: post:{type}:simple</p>
+     */
+    public static final String SIMPLE_POST_HASH_SUFFIX = ":simple";
 
     /**
      * 게시글 상세 정보 캐시 키 접미사
@@ -35,7 +41,14 @@ public final class RedisPostKeys {
      * <p>Value Type: Sorted Set (주간/레전드), Set (공지)</p>
      * <p>전체 키 형식: post:{type}:postids</p>
      */
-    public static final String POSTIDS_SUFFIX = ":postids";
+    public static final String POST_IDS_SUFFIX = ":postids";
+
+    /**
+     * 점수 저장소 키 접미사
+     * <p>Value Type: Sorted Set (postId, score)</p>
+     * <p>전체 키 형식: post:{type}:score</p>
+     */
+    public static final String SCORE_SUFFIX = ":score";
 
     /**
      * 실시간 인기글 점수 Sorted Set 키
@@ -46,14 +59,26 @@ public final class RedisPostKeys {
     // ===================== 2. TTL (Time To Live, 만료 시간) =====================
 
     /**
-     * 단일 게시글 상세 정보 캐시 TTL (5분)
+     * 게시글 기본 캐시 TTL (5분)
      */
-    public static final Duration FULL_POST_CACHE_TTL = Duration.ofMinutes(5);
+    public static final Duration POST_CACHE_TTL = Duration.ofMinutes(5);
 
     /**
      * 주간/레전드 postId 저장소 TTL (1일)
      */
-    public static final Duration POSTIDS_TTL_WEEKLY_LEGEND = Duration.ofDays(1);
+    public static final Duration POST_IDS_TTL_WEEKLY_LEGEND = Duration.ofDays(1);
+
+    /**
+     * 캐시 갱신 락 TTL (30초)
+     * <p>캐시 스탬피드 방지를 위한 분산 락의 만료 시간입니다.</p>
+     */
+    public static final Duration REFRESH_LOCK_TTL = Duration.ofSeconds(30);
+
+    /**
+     * 캐시 갱신 락 키 접두사
+     * <p>전체 키 형식: lock:refresh:{type}</p>
+     */
+    public static final String REFRESH_LOCK_PREFIX = "lock:refresh:";
 
     // ===================== 3. SCORE CONSTANTS (점수 관련 상수) =====================
 
@@ -69,69 +94,8 @@ public final class RedisPostKeys {
      */
     public static final double REALTIME_POST_SCORE_THRESHOLD = 1.0;
 
-    // ===================== 4. METADATA STRUCTURE (메타데이터 구조) =====================
 
-    /**
-     * 인기글 목록 캐시 메타데이터를 위한 내부 레코드
-     * <p>각 PostCacheFlag 타입별로 Redis 키와 TTL을 관리합니다.</p>
-     *
-     * @param key Redis 키
-     * @param ttl 캐시 만료 시간
-     */
-    public record CacheMetadata(String key, Duration ttl) {}
-
-    // ===================== 5. CACHE METADATA MAP (캐시 타입별 메타데이터 맵) =====================
-
-    /**
-     * PostCacheFlag 유형별 목록 캐시 키와 TTL을 저장하는 맵
-     * <p>REALTIME, WEEKLY, LEGEND, NOTICE 각 타입에 대한 캐시 메타데이터를 제공합니다.</p>
-     */
-    public static final Map<PostCacheFlag, CacheMetadata> CACHE_METADATA_MAP = initializeCacheMetadata();
-
-    /**
-     * <h3>캐시 메타데이터 맵 초기화</h3>
-     * <p>각 PostCacheFlag 타입에 대한 Redis 키와 TTL을 설정합니다.</p>
-     * <p>목록 캐시는 Hash 구조로 저장되며, Field는 postId, Value는 PostSimpleDetail입니다.</p>
-     *
-     * @return PostCacheFlag별 캐시 메타데이터 맵
-     * @author Jaeik
-     * @since 2.0.0
-     */
-    private static Map<PostCacheFlag, CacheMetadata> initializeCacheMetadata() {
-        Map<PostCacheFlag, CacheMetadata> map = new EnumMap<>(PostCacheFlag.class);
-        map.put(PostCacheFlag.REALTIME, new CacheMetadata("post:realtime:list", Duration.ofMinutes(5)));
-        map.put(PostCacheFlag.WEEKLY, new CacheMetadata("post:weekly:list", Duration.ofMinutes(5)));
-        map.put(PostCacheFlag.LEGEND, new CacheMetadata("post:legend:list", Duration.ofMinutes(5)));
-        map.put(PostCacheFlag.NOTICE, new CacheMetadata("post:notice:list", Duration.ofMinutes(5)));
-        return map;
-    }
-
-    // ===================== 6. LUA SCRIPT (Redis 스크립트) =====================
-
-    /**
-     * 실시간 인기글 점수 감쇠를 위한 Lua 스크립트
-     * <p>Redis Sorted Set의 모든 게시글 점수에 SCORE_DECAY_RATE(0.9)를 곱합니다.</p>
-     */
-    public static final RedisScript<Long> SCORE_DECAY_SCRIPT;
-
-    static {
-        String luaScript =
-            "local members = redis.call('ZRANGE', KEYS[1], 0, -1, 'WITHSCORES') " +
-            "for i = 1, #members, 2 do " +
-            "    local member = members[i] " +
-            "    local score = tonumber(members[i + 1]) " +
-            "    local newScore = score * tonumber(ARGV[1]) " +
-            "    redis.call('ZADD', KEYS[1], newScore, member) " +
-            "end " +
-            "return redis.call('ZCARD', KEYS[1])";
-
-        DefaultRedisScript<Long> script = new DefaultRedisScript<>();
-        script.setScriptText(luaScript);
-        script.setResultType(Long.class);
-        SCORE_DECAY_SCRIPT = script;
-    }
-
-    // ===================== 7. KEY GENERATION METHODS (키 생성 유틸리티) =====================
+    // ===================== 6. KEY GENERATION METHODS (키 생성 유틸리티) =====================
 
     /**
      * <h3>게시글 상세 캐시 키 생성</h3>
@@ -152,10 +116,46 @@ public final class RedisPostKeys {
      *
      * @param type 게시글 캐시 유형 (WEEKLY, LEGEND, NOTICE)
      * @return 생성된 Redis 키 (형식: post:{type}:postids)
-     * @author Jaeik
-     * @since 2.0.0
      */
     public static String getPostIdsStorageKey(PostCacheFlag type) {
-        return POST_PREFIX + type.name().toLowerCase() + POSTIDS_SUFFIX;
+        return POST_PREFIX + type.name().toLowerCase() + POST_IDS_SUFFIX;
+    }
+
+    /**
+     * <h3>점수 저장소 키 생성</h3>
+     * <p>실시간 인기글 점수를 저장하기 위한 Redis Sorted Set 키를 생성합니다.</p>
+     *
+     * @param type 게시글 캐시 유형 (REALTIME만 지원)
+     * @return 생성된 Redis 키 (형식: post:realtime:score)
+     * @throws IllegalArgumentException REALTIME 이외의 타입이 전달된 경우
+     */
+    public static String getScoreStorageKey(PostCacheFlag type) {
+        if (type != PostCacheFlag.REALTIME) {
+            throw new IllegalArgumentException("점수 저장소는 REALTIME 타입만 지원합니다: " + type);
+        }
+        return POST_PREFIX + type.name().toLowerCase() + SCORE_SUFFIX;
+    }
+
+    /**
+     * <h3>게시글 목록 캐시 Hash 키 생성</h3>
+     * <p>타입별로 하나의 Hash 키를 생성합니다.</p>
+     * <p>예: post:weekly:simple, post:realtime:simple</p>
+     *
+     * @param type 게시글 캐시 유형
+     * @return 생성된 Hash 키 (형식: post:{type}:simple)
+     */
+    public static String getSimplePostHashKey(PostCacheFlag type) {
+        return POST_PREFIX + type.name().toLowerCase() + SIMPLE_POST_HASH_SUFFIX;
+    }
+
+    /**
+     * <h3>캐시 갱신 락 키 생성</h3>
+     * <p>캐시 스탬피드 방지를 위한 분산 락 키를 생성합니다.</p>
+     *
+     * @param type 게시글 캐시 유형
+     * @return 생성된 락 키 (형식: lock:refresh:{type})
+     */
+    public static String getRefreshLockKey(PostCacheFlag type) {
+        return REFRESH_LOCK_PREFIX + type.name().toLowerCase();
     }
 }

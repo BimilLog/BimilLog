@@ -1,8 +1,9 @@
 package jaeik.bimillog.domain.member.controller;
 
 import jaeik.bimillog.domain.admin.dto.ReportDTO;
+import jaeik.bimillog.domain.auth.entity.AuthTokens;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
+import jaeik.bimillog.infrastructure.web.HTTPCookie;
 import jaeik.bimillog.domain.member.dto.MemberNameDTO;
 import jaeik.bimillog.domain.member.dto.SettingDTO;
 import jaeik.bimillog.domain.member.dto.SignUpRequestDTO;
@@ -38,7 +39,7 @@ public class MemberCommandController {
     private final MemberProfileCommandService memberProfileCommandService;
     private final MemberOnboardingService memberOnboardingService;
     private final ApplicationEventPublisher eventPublisher;
-    private final GlobalCookieAdapter globalCookieAdapter;
+    private final HTTPCookie HTTPCookie;
 
     /**
      * <h3>회원가입</h3>
@@ -60,8 +61,9 @@ public class MemberCommandController {
             @Valid @RequestBody SignUpRequestDTO request,
             @CookieValue(name = "temp_user_id") String uuid) {
 
-        // 회원가입 로직 실행 후 쿠키 리스트 받기
-        List<ResponseCookie> cookies = memberOnboardingService.signup(request.getMemberName(), uuid);
+        // 회원가입 로직 실행 후 토큰 값 받기
+        AuthTokens tokens = memberOnboardingService.signup(request.getMemberName(), uuid);
+        List<ResponseCookie> cookies = HTTPCookie.generateJwtCookie(tokens.accessToken(), tokens.refreshToken());
 
         // ResponseEntity builder 생성
         ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.ok();
@@ -71,7 +73,7 @@ public class MemberCommandController {
             responseBuilder.header("Set-Cookie", cookie.toString());
         }
 
-        ResponseCookie expiredTempCookie = globalCookieAdapter.expireTempCookie();
+        ResponseCookie expiredTempCookie = HTTPCookie.expireTempCookie();
         responseBuilder.header("Set-Cookie", expiredTempCookie.toString());
 
         // Body 설정 후 ResponseEntity 반환
@@ -158,7 +160,7 @@ public class MemberCommandController {
         eventPublisher.publishEvent(new MemberWithdrawnEvent(userDetails.getMemberId(), userDetails.getSocialId(), userDetails.getSocialProvider()));
 
         return ResponseEntity.ok()
-                .headers(headers -> globalCookieAdapter.getLogoutCookies().forEach(cookie ->
+                .headers(headers -> HTTPCookie.getLogoutCookies().forEach(cookie ->
                         headers.add("Set-Cookie", cookie.toString())))
                 .build();
     }

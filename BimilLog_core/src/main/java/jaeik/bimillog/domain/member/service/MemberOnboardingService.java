@@ -1,26 +1,25 @@
 package jaeik.bimillog.domain.member.service;
 
 import jaeik.bimillog.domain.auth.entity.AuthToken;
+import jaeik.bimillog.domain.auth.entity.AuthTokens;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.domain.global.out.GlobalAuthTokenSaveAdapter;
-import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
-import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
+import jaeik.bimillog.domain.member.adapter.MemberToJwtAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.Setting;
-import jaeik.bimillog.domain.member.out.MemberRepository;
-import jaeik.bimillog.domain.member.out.MemberToAuthAdapter;
+import jaeik.bimillog.domain.member.event.MemberTokenUpdateEvent;
+import jaeik.bimillog.domain.member.repository.MemberRepository;
+import jaeik.bimillog.domain.member.adapter.MemberToAuthAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.member.RedisMemberDataAdapter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -33,9 +32,8 @@ public class MemberOnboardingService {
     private final RedisMemberDataAdapter redisMemberDataAdapter;
     private final MemberRepository memberRepository;
     private final MemberToAuthAdapter memberToAuthAdapter;
-    private final GlobalCookieAdapter globalCookieAdapter;
-    private final GlobalJwtAdapter globalJwtAdapter;
-    private final GlobalAuthTokenSaveAdapter globalAuthTokenSaveAdapter;
+    private final MemberToJwtAdapter memberToJwtAdapter;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * <h3>온보딩 대기 데이터 저장</h3>
@@ -59,7 +57,7 @@ public class MemberOnboardingService {
      * <h3>신규 가입 처리</h3>
      */
     @Transactional
-    public List<ResponseCookie> signup(String memberName, String uuid) {
+    public AuthTokens signup(String memberName, String uuid) {
         try {
             Optional<SocialMemberProfile> socialMemberProfile = redisMemberDataAdapter.getTempData(uuid);
             if (socialMemberProfile.isEmpty()) {
@@ -90,13 +88,11 @@ public class MemberOnboardingService {
             AuthToken persistedAuthToken = memberToAuthAdapter.saveAuthToken(initialAuthToken);
 
             CustomUserDetails userDetails = CustomUserDetails.ofExisting(persistedMember, persistedAuthToken.getId());
-            String accessToken = globalJwtAdapter.generateAccessToken(userDetails);
-            String refreshToken = globalJwtAdapter.generateRefreshToken(userDetails);
-            globalAuthTokenSaveAdapter.updateJwtRefreshToken(persistedAuthToken.getId(), refreshToken);
-
+            String accessToken = memberToJwtAdapter.generateAccessToken(userDetails);
+            String refreshToken = memberToJwtAdapter.generateRefreshToken(userDetails);
+            eventPublisher.publishEvent(new MemberTokenUpdateEvent(persistedAuthToken.getId(), refreshToken));
             redisMemberDataAdapter.removeTempData(uuid);
-
-            return globalCookieAdapter.generateJwtCookie(accessToken, refreshToken);
+            return new AuthTokens(accessToken, refreshToken);
         } catch (DataIntegrityViolationException e) {
             throw new CustomException(ErrorCode.MEMBER_EXISTED_NICKNAME, e);
         }

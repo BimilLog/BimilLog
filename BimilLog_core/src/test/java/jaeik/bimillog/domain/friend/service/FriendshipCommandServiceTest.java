@@ -4,9 +4,8 @@ import jaeik.bimillog.domain.friend.entity.jpa.Friendship;
 import jaeik.bimillog.domain.friend.event.FriendshipCreatedEvent;
 import jaeik.bimillog.domain.friend.event.FriendshipDeletedEvent;
 import jaeik.bimillog.domain.friend.repository.FriendRequestRepository;
+import jaeik.bimillog.domain.friend.adapter.FriendToMemberAdapter;
 import jaeik.bimillog.domain.friend.repository.FriendshipRepository;
-import jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter;
-import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
@@ -17,12 +16,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -45,8 +46,7 @@ class FriendshipCommandServiceTest extends BaseUnitTest {
     private static final Long FRIEND_REQUEST_ID = 100L;
     private static final Long FRIENDSHIP_ID = 200L;
 
-    @Mock private GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
-    @Mock private GlobalMemberQueryAdapter globalMemberQueryAdapter;
+    @Mock private FriendToMemberAdapter friendToMemberAdapter;
     @Mock private FriendshipRepository friendshipRepository;
     @Mock private FriendRequestRepository friendRequestRepository;
     @Mock private ApplicationEventPublisher eventPublisher;
@@ -75,9 +75,8 @@ class FriendshipCommandServiceTest extends BaseUnitTest {
     @DisplayName("친구 관계 생성 성공 - 정상적인 요청 수락")
     void shouldCreateFriendship_WhenValidRequest() {
         // Given
-        given(globalMemberQueryAdapter.findById(FRIEND_ID)).willReturn(Optional.of(friend));
-        given(globalMemberQueryAdapter.findById(MEMBER_ID)).willReturn(Optional.of(member));
-        doNothing().when(globalMemberBlacklistAdapter).checkMemberBlacklist(MEMBER_ID, FRIEND_ID);
+        given(friendToMemberAdapter.findById(FRIEND_ID)).willReturn(Optional.of(friend));
+        given(friendToMemberAdapter.findById(MEMBER_ID)).willReturn(Optional.of(member));
         given(friendshipRepository.existsByMemberIdAndFriendId(MEMBER_ID, FRIEND_ID)).willReturn(false);
         given(friendshipRepository.existsByMemberIdAndFriendId(FRIEND_ID, MEMBER_ID)).willReturn(false);
         given(friendshipRepository.save(any(Friendship.class))).willReturn(friendship);
@@ -95,7 +94,7 @@ class FriendshipCommandServiceTest extends BaseUnitTest {
     @DisplayName("친구 관계 생성 실패 - 친구가 존재하지 않음")
     void shouldThrowException_WhenFriendNotFound() {
         // Given
-        given(globalMemberQueryAdapter.findById(FRIEND_ID)).willReturn(Optional.empty());
+        given(friendToMemberAdapter.findById(FRIEND_ID)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> friendshipCommandService.createFriendship(MEMBER_ID, FRIEND_ID, FRIEND_REQUEST_ID))
@@ -108,28 +107,33 @@ class FriendshipCommandServiceTest extends BaseUnitTest {
     }
 
     @Test
-    @DisplayName("친구 관계 생성 실패 - 블랙리스트 관계")
-    void shouldThrowException_WhenBlacklisted() {
+    @DisplayName("친구 관계 생성 - 블랙리스트 체크 이벤트 발행")
+    void shouldPublishCheckBlacklistEvent_WhenCreatingFriendship() {
         // Given
-        given(globalMemberQueryAdapter.findById(FRIEND_ID)).willReturn(Optional.of(friend));
-        doThrow(new CustomException(ErrorCode.BLACKLIST_MEMBER_PAPER_FORBIDDEN))
-                .when(globalMemberBlacklistAdapter).checkMemberBlacklist(MEMBER_ID, FRIEND_ID);
+        given(friendToMemberAdapter.findById(FRIEND_ID)).willReturn(Optional.of(friend));
+        given(friendToMemberAdapter.findById(MEMBER_ID)).willReturn(Optional.of(member));
+        given(friendshipRepository.existsByMemberIdAndFriendId(MEMBER_ID, FRIEND_ID)).willReturn(false);
+        given(friendshipRepository.existsByMemberIdAndFriendId(FRIEND_ID, MEMBER_ID)).willReturn(false);
+        given(friendshipRepository.save(any(Friendship.class))).willReturn(friendship);
 
-        // When & Then
-        assertThatThrownBy(() -> friendshipCommandService.createFriendship(MEMBER_ID, FRIEND_ID, FRIEND_REQUEST_ID))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.BLACKLIST_MEMBER_PAPER_FORBIDDEN);
+        // When
+        friendshipCommandService.createFriendship(MEMBER_ID, FRIEND_ID, FRIEND_REQUEST_ID);
 
-        verify(friendshipRepository, never()).save(any(Friendship.class));
-        verify(eventPublisher, never()).publishEvent(any());
+        // Then - CheckBlacklistEvent 발행 확인
+        ArgumentCaptor<Object> eventCaptor = ArgumentCaptor.forClass(Object.class);
+        verify(eventPublisher, atLeastOnce()).publishEvent(eventCaptor.capture());
+
+        boolean foundEvent = eventCaptor.getAllValues().stream()
+                .anyMatch(event -> event instanceof jaeik.bimillog.domain.global.event.CheckBlacklistEvent);
+        assertThat(foundEvent).isTrue();
+        verify(friendshipRepository, times(1)).save(any(Friendship.class));
     }
 
     @Test
     @DisplayName("친구 관계 생성 실패 - 이미 친구 관계 존재 (member -> friend)")
     void shouldThrowException_WhenFriendshipAlreadyExists() {
         // Given
-        given(globalMemberQueryAdapter.findById(FRIEND_ID)).willReturn(Optional.of(friend));
-        doNothing().when(globalMemberBlacklistAdapter).checkMemberBlacklist(MEMBER_ID, FRIEND_ID);
+        given(friendToMemberAdapter.findById(FRIEND_ID)).willReturn(Optional.of(friend));
         given(friendshipRepository.existsByMemberIdAndFriendId(MEMBER_ID, FRIEND_ID)).willReturn(true);
 
         // When & Then
@@ -138,15 +142,13 @@ class FriendshipCommandServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FRIEND_SHIP_ALREADY_EXIST);
 
         verify(friendshipRepository, never()).save(any(Friendship.class));
-        verify(eventPublisher, never()).publishEvent(any());
     }
 
     @Test
     @DisplayName("친구 관계 생성 실패 - 이미 친구 관계 존재 (friend -> member)")
     void shouldThrowException_WhenReverseFriendshipExists() {
         // Given
-        given(globalMemberQueryAdapter.findById(FRIEND_ID)).willReturn(Optional.of(friend));
-        doNothing().when(globalMemberBlacklistAdapter).checkMemberBlacklist(MEMBER_ID, FRIEND_ID);
+        given(friendToMemberAdapter.findById(FRIEND_ID)).willReturn(Optional.of(friend));
         given(friendshipRepository.existsByMemberIdAndFriendId(MEMBER_ID, FRIEND_ID)).willReturn(false);
         given(friendshipRepository.existsByMemberIdAndFriendId(FRIEND_ID, MEMBER_ID)).willReturn(true);
 
@@ -156,18 +158,16 @@ class FriendshipCommandServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FRIEND_SHIP_ALREADY_EXIST);
 
         verify(friendshipRepository, never()).save(any(Friendship.class));
-        verify(eventPublisher, never()).publishEvent(any());
     }
 
     @Test
     @DisplayName("친구 관계 생성 실패 - 회원이 존재하지 않음")
     void shouldThrowException_WhenMemberNotFound() {
         // Given
-        given(globalMemberQueryAdapter.findById(FRIEND_ID)).willReturn(Optional.of(friend));
-        doNothing().when(globalMemberBlacklistAdapter).checkMemberBlacklist(MEMBER_ID, FRIEND_ID);
+        given(friendToMemberAdapter.findById(FRIEND_ID)).willReturn(Optional.of(friend));
         given(friendshipRepository.existsByMemberIdAndFriendId(MEMBER_ID, FRIEND_ID)).willReturn(false);
         given(friendshipRepository.existsByMemberIdAndFriendId(FRIEND_ID, MEMBER_ID)).willReturn(false);
-        given(globalMemberQueryAdapter.findById(MEMBER_ID)).willReturn(Optional.empty());
+        given(friendToMemberAdapter.findById(MEMBER_ID)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> friendshipCommandService.createFriendship(MEMBER_ID, FRIEND_ID, FRIEND_REQUEST_ID))
@@ -175,7 +175,6 @@ class FriendshipCommandServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MEMBER_USER_NOT_FOUND);
 
         verify(friendshipRepository, never()).save(any(Friendship.class));
-        verify(eventPublisher, never()).publishEvent(any());
     }
 
     // ==================== deleteFriendship ====================

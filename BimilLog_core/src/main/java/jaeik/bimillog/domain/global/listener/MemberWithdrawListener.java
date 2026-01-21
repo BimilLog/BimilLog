@@ -17,10 +17,19 @@ import jaeik.bimillog.infrastructure.redis.friend.RedisInteractionScoreRepositor
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.dao.QueryTimeoutException;
+import org.springframework.dao.TransientDataAccessException;
+import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import jaeik.bimillog.infrastructure.log.Log;
 
 /**
  * <h2>사용자 탈퇴 이벤트 리스너</h2>
@@ -28,8 +37,9 @@ import org.springframework.transaction.annotation.Transactional;
  * <p>소셜 계정 연동 해제, 댓글/게시글 삭제, 토큰 무효화, 알림/메시지/신고 기록 삭제, 계정 정보 삭제를 수행합니다.</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.5.0
  */
+@Log(logResult = false, message = "회원 탈퇴 이벤트")
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -57,9 +67,19 @@ public class MemberWithdrawListener {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Async
+    @Async("memberEventExecutor")
     @EventListener
     @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Retryable(
+            retryFor = {
+                    TransientDataAccessException.class,
+                    DataAccessResourceFailureException.class,
+                    RedisConnectionFailureException.class,
+                    QueryTimeoutException.class
+            },
+            maxAttemptsExpression = "${retry.max-attempts}",
+            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
+    )
     public void memberWithdraw(MemberWithdrawnEvent userWithdrawnEvent) {
         Long memberId = userWithdrawnEvent.memberId();
         String socialId = userWithdrawnEvent.socialId();
@@ -108,7 +128,7 @@ public class MemberWithdrawListener {
 
         // Redis 친구 관계 테이블 정리 (SCAN 패턴 매칭 사용)
         try {
-            redisFriendshipRepository.deleteWithdrawFriendByScan(memberId);
+            redisFriendshipRepository.deleteWithdrawFriendTargeted(memberId);
             log.debug("Redis 친구 관계 테이블 정리 완료: memberId={}", memberId);
         } catch (Exception e) {
             log.error("Redis 친구 관계 테이블 정리 실패: memberId={}. 탈퇴 후속 처리를 계속 진행합니다.", memberId, e);
@@ -116,5 +136,17 @@ public class MemberWithdrawListener {
 
         // 사용자 정보 삭제 Cascade로 설정도 함께 삭제
         memberAccountService.removeMemberAccount(memberId);
+    }
+
+    /**
+     * <h3>회원 탈퇴 처리 최종 실패 복구</h3>
+     * <p>모든 재시도가 실패한 후 호출됩니다.</p>
+     *
+     * @param e 발생한 예외
+     * @param event 회원 탈퇴 이벤트
+     */
+    @Recover
+    public void recoverMemberWithdraw(Exception e, MemberWithdrawnEvent event) {
+        log.error("회원 탈퇴 처리 최종 실패: memberId={}", event.memberId(), e);
     }
 }

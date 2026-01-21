@@ -30,30 +30,41 @@ public class RedisInteractionScoreRepository {
     private final RedisTemplate<String, Object> redisTemplate;
     private final StringRedisTemplate stringRedisTemplate;
 
-    // 상호 작용 점수 증가 Lua Script
+    // 상호 작용 점수 증가 Lua Script (멱등성 보장)
     public static final RedisScript<Long> INTERACTION_SCORE_ADD_SCRIPT;
     static {
         String luaScript = """
             local key1 = KEYS[1]
             local key2 = KEYS[2]
-            
-            -- Argument는 String으로 넘어오지만, 명시적으로 tostring을 사용합니다.
-            local member1 = tostring(ARGV[1]) 
-            local member2 = tostring(ARGV[2]) 
-            
+            local idempotencyKey = KEYS[3]
+
+            local member1 = tostring(ARGV[1])
+            local member2 = tostring(ARGV[2])
             local increment = ARGV[3]
             local maxScore = tonumber(ARGV[4])
-            
-            local current1 = redis.call('ZSCORE', key1, member1)
+            local eventId = tostring(ARGV[5])
+            local ttl = tonumber(ARGV[6])
+
+            -- 이미 처리된 이벤트인지 확인
+            if redis.call('SISMEMBER', idempotencyKey, eventId) == 1 then
+                return 0  -- 이미 처리됨
+            end
+
+            -- 점수 증가
+            local current1 = redis.call('HGET', key1, member1)
             if not current1 or tonumber(current1) <= maxScore then
-                redis.call('ZINCRBY', key1, increment, member1)
+                redis.call('HINCRBYFLOAT', key1, member1, increment)
             end
-            
-            local current2 = redis.call('ZSCORE', key2, member2)
+
+            local current2 = redis.call('HGET', key2, member2)
             if not current2 or tonumber(current2) <= maxScore then
-                redis.call('ZINCRBY', key2, increment, member2)
+                redis.call('HINCRBYFLOAT', key2, member2, increment)
             end
-            
+
+            -- 이벤트 ID를 처리 완료로 저장
+            redis.call('SADD', idempotencyKey, eventId)
+            redis.call('EXPIRE', idempotencyKey, ttl)
+
             return 1
         """;
         DefaultRedisScript<Long> script = new DefaultRedisScript<>();
@@ -83,7 +94,7 @@ public class RedisInteractionScoreRepository {
                 byte[] keyBytes = key.getBytes(StandardCharsets.UTF_8);
                 for (Long targetId : targetIdList) {
                     String member = INTERACTION_SUFFIX + targetId;
-                    connection.zSetCommands().zScore(keyBytes, member.getBytes(StandardCharsets.UTF_8));
+                    connection.hashCommands().hGet(keyBytes, member.getBytes(StandardCharsets.UTF_8));
                 }
                 return null;
             });
@@ -91,7 +102,13 @@ public class RedisInteractionScoreRepository {
             for (int i = 0; i < targetIdList.size(); i++) {
                 Object scoreObj = results.get(i);
                 if (scoreObj != null) {
-                    Double score = Double.valueOf(scoreObj.toString());
+                    String scoreValue;
+                    if (scoreObj instanceof byte[] bytes) {
+                        scoreValue = new String(bytes, StandardCharsets.UTF_8);
+                    } else {
+                        scoreValue = scoreObj.toString();
+                    }
+                    Double score = Double.valueOf(scoreValue);
                     resultMap.put(targetIdList.get(i), score);
                 }
             }
@@ -103,28 +120,34 @@ public class RedisInteractionScoreRepository {
     }
 
     /**
-     * 상호작용 점수 추가
-     * ZSCORE로 기존 점수가 10점이상인지 확인 후 아닌 경우에만 작동
-     * Lua 스크립트로 원자적 진행
+     * 상호작용 점수 추가 (멱등성 보장)
+     * <p>비즈니스 키 기반 이벤트 ID를 사용하여 중복 처리를 방지합니다.</p>
+     * <p>동일한 이벤트가 여러 번 호출되어도 점수는 한 번만 증가합니다.</p>
+     *
+     * @param memberId 회원 ID
+     * @param interactionMemberId 상호작용 대상 회원 ID
+     * @param idempotencyKey 멱등성 보장을 위한 비즈니스 키 (예: POST_LIKE:postId:likerId)
+     * @return true: 점수 증가됨, false: 이미 처리된 이벤트
      */
-    public void addInteractionScore(Long memberId, Long interactionMemberId) {
+    public boolean addInteractionScore(Long memberId, Long interactionMemberId, String idempotencyKey) {
         String key1 = INTERACTION_PREFIX + memberId;
         String key2 = INTERACTION_PREFIX + interactionMemberId;
         String member1 = INTERACTION_SUFFIX + interactionMemberId;
         String member2 = INTERACTION_SUFFIX + memberId;
+        String idempotencySetKey = IDEMPOTENCY_PREFIX + memberId;
         try {
-            // 일반 문자열로 직렬화되도록 보장합니다.
-            stringRedisTemplate.execute(
+            Long result = stringRedisTemplate.execute(
                     INTERACTION_SCORE_ADD_SCRIPT,
-                    List.of(key1, key2),
+                    List.of(key1, key2, idempotencySetKey),
                     member1,
                     member2,
                     String.valueOf(INTERACTION_SCORE_DEFAULT),
-                    String.valueOf(INTERACTION_SCORE_LIMIT)
+                    String.valueOf(INTERACTION_SCORE_LIMIT),
+                    idempotencyKey,
+                    String.valueOf(IDEMPOTENCY_TTL_SECONDS)
             );
-
+            return result == 1;
         } catch (Exception e) {
-            // Exception은 여전히 RedisSystemException일 수 있으므로 CustomException으로 감쌉니다.
             throw new CustomException(ErrorCode.FRIEND_REDIS_INTERACTION_WRITE_ERROR, e);
         }
     }
@@ -151,7 +174,7 @@ public class RedisInteractionScoreRepository {
                         .build())
                         .forEachRemaining(key -> {
                             // 각 키에서 탈퇴 회원 제거
-                            connection.zSetCommands().zRem(key, deleteMemberBytes);
+                            connection.hashCommands().hDel(key, deleteMemberBytes);
                         });
                 return null;
             });
@@ -159,6 +182,4 @@ public class RedisInteractionScoreRepository {
             throw new CustomException(ErrorCode.FRIEND_REDIS_INTERACTION_DELETE_ERROR, e);
         }
     }
-
-
 }

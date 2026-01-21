@@ -1,11 +1,10 @@
 package jaeik.bimillog.domain.paper.service;
 
-import jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter;
-import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.entity.VisitPaperResult;
-import jaeik.bimillog.domain.paper.out.MessageRepository;
-import jaeik.bimillog.domain.paper.out.PaperQueryRepository;
+import jaeik.bimillog.domain.paper.repository.MessageRepository;
+import jaeik.bimillog.domain.paper.repository.PaperQueryRepository;
+import jaeik.bimillog.domain.paper.adapter.PaperToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.testutil.BaseUnitTest;
@@ -45,10 +44,7 @@ class PaperQueryServiceTest extends BaseUnitTest {
     private MessageRepository messageRepository;
 
     @Mock
-    private GlobalMemberQueryAdapter globalMemberQueryAdapter;
-
-    @Mock
-    private GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
+    private PaperToMemberAdapter paperToMemberAdapter;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -67,7 +63,7 @@ class PaperQueryServiceTest extends BaseUnitTest {
                 PaperTestDataBuilder.createRollingPaper(getOtherMember(), "메시지2", 10, 10)
         );
 
-        given(globalMemberQueryAdapter.findByMemberName(memberName)).willReturn(Optional.of(getTestMember()));
+        given(paperToMemberAdapter.findByMemberName(memberName)).willReturn(Optional.of(getTestMember()));
         given(messageRepository.findByMemberMemberName(memberName)).willReturn(messages);
 
         // When
@@ -79,7 +75,7 @@ class PaperQueryServiceTest extends BaseUnitTest {
         assertThat(result.messages().get(0).getMemberId()).isEqualTo(getTestMember().getId());
         assertThat(result.messages().get(1).getMemberId()).isEqualTo(getOtherMember().getId());
 
-        verify(globalMemberQueryAdapter, times(1)).findByMemberName(memberName);
+        verify(paperToMemberAdapter, times(1)).findByMemberName(memberName);
         verify(messageRepository, times(1)).findByMemberMemberName(memberName);
     }
 
@@ -89,7 +85,7 @@ class PaperQueryServiceTest extends BaseUnitTest {
         // Given
         String memberName = "userWithNoMessages";
 
-        given(globalMemberQueryAdapter.findByMemberName(memberName)).willReturn(Optional.of(getTestMember()));
+        given(paperToMemberAdapter.findByMemberName(memberName)).willReturn(Optional.of(getTestMember()));
         given(messageRepository.findByMemberMemberName(memberName)).willReturn(Collections.emptyList());
 
         // When
@@ -99,7 +95,7 @@ class PaperQueryServiceTest extends BaseUnitTest {
         assertThat(result).isNotNull();
         assertThat(result.messages()).isEmpty();
 
-        verify(globalMemberQueryAdapter, times(1)).findByMemberName(memberName);
+        verify(paperToMemberAdapter, times(1)).findByMemberName(memberName);
         verify(messageRepository, times(1)).findByMemberMemberName(memberName);
     }
 

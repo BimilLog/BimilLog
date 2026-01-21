@@ -27,4 +27,14 @@ public record PostLikeEvent(
         }
         // postAuthorId는 익명 게시글의 경우 null일 수 있음
     }
+
+    /**
+     * 상호작용 점수 증가의 멱등성 보장을 위한 키를 반환합니다.
+     * 같은 게시글 좋아요에 대해서는 항상 동일한 키가 생성됩니다.
+     *
+     * @return 멱등성 키 (POST_LIKE:postId:likerId)
+     */
+    public String getIdempotencyKey() {
+        return "POST_LIKE:" + postId + ":" + likerId;
+    }
 }

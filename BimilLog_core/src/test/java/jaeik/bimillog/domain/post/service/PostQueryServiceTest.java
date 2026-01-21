@@ -1,11 +1,16 @@
 package jaeik.bimillog.domain.post.service;
 
-import jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter;
+import jaeik.bimillog.domain.post.adapter.PostToCommentAdapter;
 import jaeik.bimillog.domain.post.entity.*;
-import jaeik.bimillog.domain.post.out.*;
+import jaeik.bimillog.domain.post.repository.*;
+import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.redis.post.RedisDetailPostStoreAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisDetailPostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostAdapter;
+import jaeik.bimillog.infrastructure.resilience.DbFallbackGateway;
+import jaeik.bimillog.infrastructure.resilience.FallbackType;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,6 +19,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -24,11 +30,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
@@ -38,7 +47,7 @@ import static org.mockito.Mockito.*;
  * <p>게시판 조회, 인기글 조회, 검색, 캐시 처리 등의 복잡한 시나리오를 테스트합니다.</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.5.0
  */
 @DisplayName("PostQueryService 테스트")
 @Tag("unit")
@@ -54,7 +63,16 @@ class PostQueryServiceTest extends BaseUnitTest {
     private PostLikeRepository postLikeRepository;
 
     @Mock
-    private RedisDetailPostStoreAdapter redisDetailPostStoreAdapter;
+    private RedisDetailPostAdapter redisDetailPostAdapter;
+
+    @Mock
+    private RedisTier2PostAdapter redisTier2PostAdapter;
+
+    @Mock
+    private RedisRealTimePostAdapter redisRealTimePostAdapter;
+
+    @Mock
+    private PostCacheRefresh postCacheRefresh;
 
     @Mock
     private PostRepository postRepository;
@@ -63,7 +81,13 @@ class PostQueryServiceTest extends BaseUnitTest {
     private PostToCommentAdapter postToCommentAdapter;
 
     @Mock
-    private GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
+    private PostToMemberAdapter postToMemberAdapter;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+
+    @Mock
+    private DbFallbackGateway dbFallbackGateway;
 
     @InjectMocks
     private PostQueryService postQueryService;
@@ -97,71 +121,137 @@ class PostQueryServiceTest extends BaseUnitTest {
 
 
     @Test
-    @DisplayName("게시글 상세 조회 - 일반 게시글 (최적화된 JOIN 쿼리 사용)")
-    void shouldGetPost_WhenNotPopularPost_WithOptimizedQuery() {
+    @DisplayName("인기글 상세 조회 - 캐시 미스 후 DB 조회 및 캐시 저장 (회원)")
+    @SuppressWarnings("unchecked")
+    void shouldGetPopularPost_WhenCacheMiss_SaveToCache_Member() {
         // Given
         Long postId = 1L;
         Long memberId = 2L;
-        Long postAuthorId = 1L; // 게시글 작성자 ID
+        Long postAuthorId = 1L;
 
-        // 캐시에 없음 (인기글이 아님)
-        given(redisDetailPostStoreAdapter.getCachedPostIfExists(postId)).willReturn(null);
+        // 인기글 여부 확인 - 2티어에 존재
+        given(redisTier2PostAdapter.isPopularPost(postId)).willReturn(true);
 
-        // 최적화된 JOIN 쿼리 결과
+        // 캐시 미스
+        given(redisDetailPostAdapter.getCachedPostIfExists(postId)).willReturn(null);
+
+        // DB 조회
         PostDetail mockPostDetail = PostDetail.builder()
                 .id(postId)
-                .title("Test Title")
-                .content("Test Content")
-                .memberId(postAuthorId) // 게시글 작성자 ID
-                .isLiked(memberId != null)
-                .viewCount(10)
-                .likeCount(5)
+                .title("인기글 제목")
+                .content("인기글 내용")
+                .memberId(postAuthorId)
+                .isLiked(false)
+                .viewCount(100)
+                .likeCount(50)
                 .createdAt(Instant.now())
                 .memberName("testMember")
-                .commentCount(3)
+                .commentCount(10)
                 .isNotice(false)
                 .build();
-        given(postQueryRepository.findPostDetailWithCounts(postId, memberId))
+        given(postQueryRepository.findPostDetail(postId, null))
                 .willReturn(Optional.of(mockPostDetail));
+
+        // DbFallbackGateway가 Supplier를 실행하도록 Mock 설정
+        given(dbFallbackGateway.executeDetail(eq(FallbackType.DETAIL), eq(postId), any(Supplier.class)))
+                .willAnswer(invocation -> {
+                    Supplier<Optional<PostDetail>> supplier = invocation.getArgument(2);
+                    return supplier.get();
+                });
+
+        // 회원이므로 isLiked 조회
+        given(postLikeRepository.existsByPostIdAndMemberId(postId, memberId)).willReturn(true);
 
         // When
         PostDetail result = postQueryService.getPost(postId, memberId);
 
         // Then
         assertThat(result).isNotNull();
-        verify(redisDetailPostStoreAdapter).getCachedPostIfExists(postId); // 1회 Redis 호출
-        verify(postQueryRepository).findPostDetailWithCounts(postId, memberId); // 1회 DB 쿼리
-        verify(globalMemberBlacklistAdapter).checkMemberBlacklist(memberId, postAuthorId); // 블랙리스트 확인
-        verify(postLikeRepository, never()).existsByPostIdAndMemberId(any(), any());
+        assertThat(result.isLiked()).isTrue();
+
+        verify(redisTier2PostAdapter).isPopularPost(postId);
+        verify(redisDetailPostAdapter).getCachedPostIfExists(postId);
+        verify(dbFallbackGateway).executeDetail(eq(FallbackType.DETAIL), eq(postId), any(Supplier.class));
+        verify(redisDetailPostAdapter).saveCachePost(any(PostDetail.class)); // 인기글이므로 캐시 저장
+        verify(postLikeRepository).existsByPostIdAndMemberId(postId, memberId);
     }
 
     @Test
-    @DisplayName("게시글 상세 조회 - 인기글인 경우 (캐시에서 조회, 최적화)")
-    void shouldGetPost_WhenPopularPostFromCache_Optimized() {
+    @DisplayName("인기글 상세 조회 - 캐시 히트 (회원, isLiked 주입)")
+    void shouldGetPopularPost_WhenCacheHit_InjectIsLiked() {
         // Given
         Long postId = 1L;
         Long memberId = 2L;
-        Long postAuthorId = 1L; // 게시글 작성자 ID
+        Long postAuthorId = 1L;
+
+        // 인기글 여부 확인 - 실시간 인기글
+        given(redisTier2PostAdapter.isPopularPost(postId)).willReturn(false);
+        given(redisRealTimePostAdapter.isRealtimePopularPost(postId)).willReturn(true);
 
         PostDetail cachedFullPost = PostDetail.builder()
                 .id(postId)
                 .title("캐시된 인기글")
                 .content("캐시된 내용")
-                .viewCount(10)
-                .likeCount(5)
+                .viewCount(100)
+                .likeCount(50)
                 .createdAt(Instant.now())
-                .memberId(postAuthorId) // 게시글 작성자 ID
+                .memberId(postAuthorId)
                 .memberName("testMember")
-                .commentCount(3)
+                .commentCount(10)
                 .isLiked(false)
                 .isNotice(false)
                 .build();
 
-        // 최적화: 한번의 호출로 캐시 존재 여부와 데이터를 함께 확인
-        given(redisDetailPostStoreAdapter.getCachedPostIfExists(postId)).willReturn(cachedFullPost);
+        // 캐시 히트
+        given(redisDetailPostAdapter.getCachedPostIfExists(postId)).willReturn(cachedFullPost);
+        given(redisDetailPostAdapter.shouldRefresh(postId)).willReturn(false);
 
-        // 좋아요 정보만 추가 확인 (Post 엔티티 로드 없이 ID로만 확인)
-        given(postLikeRepository.existsByPostIdAndMemberId(postId, memberId)).willReturn(false);
+        // 회원이므로 isLiked 조회
+        given(postLikeRepository.existsByPostIdAndMemberId(postId, memberId)).willReturn(true);
+
+        // When
+        PostDetail result = postQueryService.getPost(postId, memberId);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.isLiked()).isTrue();
+
+        verify(redisTier2PostAdapter).isPopularPost(postId);
+        verify(redisRealTimePostAdapter).isRealtimePopularPost(postId);
+        verify(redisDetailPostAdapter).getCachedPostIfExists(postId);
+        verify(postLikeRepository).existsByPostIdAndMemberId(postId, memberId);
+        verify(postQueryRepository, never()).findPostDetail(any(), any()); // DB 조회 없음
+        verify(redisDetailPostAdapter, never()).saveCachePost(any()); // 캐시 저장 없음
+    }
+
+    @Test
+    @DisplayName("일반글 상세 조회 - DB 직접 조회 (캐시 사용 안함, 비회원)")
+    void shouldGetNormalPost_DirectDbQuery_Anonymous() {
+        // Given
+        Long postId = 1L;
+        Long memberId = null;
+        Long postAuthorId = 1L;
+
+        // 인기글 아님
+        given(redisTier2PostAdapter.isPopularPost(postId)).willReturn(false);
+        given(redisRealTimePostAdapter.isRealtimePopularPost(postId)).willReturn(false);
+
+        // DB 조회
+        PostDetail mockPostDetail = PostDetail.builder()
+                .id(postId)
+                .title("일반 게시글")
+                .content("일반 내용")
+                .memberId(postAuthorId)
+                .isLiked(false)
+                .viewCount(10)
+                .likeCount(5)
+                .createdAt(Instant.now())
+                .memberName("testMember")
+                .commentCount(3)
+                .isNotice(false)
+                .build();
+        given(postQueryRepository.findPostDetail(postId, null))
+                .willReturn(Optional.of(mockPostDetail));
 
         // When
         PostDetail result = postQueryService.getPost(postId, memberId);
@@ -170,115 +260,109 @@ class PostQueryServiceTest extends BaseUnitTest {
         assertThat(result).isNotNull();
         assertThat(result.isLiked()).isFalse();
 
-        verify(redisDetailPostStoreAdapter).getCachedPostIfExists(postId); // 1회 Redis 호출 (최적화)
-        verify(globalMemberBlacklistAdapter).checkMemberBlacklist(memberId, postAuthorId); // 블랙리스트 확인
-        verify(postLikeRepository).existsByPostIdAndMemberId(postId, memberId);
-        verify(postQueryRepository, never()).findPostDetailWithCounts(any(), any()); // JOIN 쿼리도 호출 안함
-    }
-
-    @Test
-    @DisplayName("게시글 상세 조회 - 캐시 miss (최적화된 JOIN 쿼리 사용)")
-    void shouldGetPost_WhenCacheMiss_WithOptimizedQuery() {
-        // Given
-        Long postId = 1L;
-        Long memberId = 2L;
-        Long postAuthorId = 1L; // 게시글 작성자 ID
-
-        // 캐시에 상세 정보가 없음 (인기글이 아니거나 캐시 만료)
-        given(redisDetailPostStoreAdapter.getCachedPostIfExists(postId)).willReturn(null);
-
-        // 최적화된 JOIN 쿼리로 DB에서 조회
-        PostDetail mockPostDetail = PostDetail.builder()
-                .id(postId)
-                .title("Test Title")
-                .content("Test Content")
-                .memberId(postAuthorId) // 게시글 작성자 ID
-                .isLiked(memberId != null)
-                .viewCount(10)
-                .likeCount(5)
-                .createdAt(Instant.now())
-                .memberName("testMember")
-                .commentCount(3)
-                .isNotice(false)
-                .build();
-        given(postQueryRepository.findPostDetailWithCounts(postId, memberId))
-                .willReturn(Optional.of(mockPostDetail));
-
-        // When
-        PostDetail result = postQueryService.getPost(postId, memberId);
-
-        // Then
-        assertThat(result).isNotNull();
-        verify(redisDetailPostStoreAdapter).getCachedPostIfExists(postId); // 1회 Redis 호출 (최적화)
-        verify(postQueryRepository).findPostDetailWithCounts(postId, memberId); // 1회 DB JOIN 쿼리 (최적화)
-        verify(globalMemberBlacklistAdapter).checkMemberBlacklist(memberId, postAuthorId); // 블랙리스트 확인
-
-        // 기존 개별 쿼리들은 호출되지 않음을 검증
+        verify(redisTier2PostAdapter).isPopularPost(postId);
+        verify(redisRealTimePostAdapter).isRealtimePopularPost(postId);
+        verify(redisDetailPostAdapter, never()).getCachedPostIfExists(any()); // 캐시 조회 안함
+        verify(postQueryRepository).findPostDetail(postId, null);
+        verify(redisDetailPostAdapter, never()).saveCachePost(any()); // 캐시 저장 안함
         verify(postLikeRepository, never()).existsByPostIdAndMemberId(any(), any());
     }
 
     @Test
-    @DisplayName("게시글 상세 조회 - 익명 사용자 (memberId null, 최적화)")
-    void shouldGetPost_WhenAnonymousUser() {
+    @DisplayName("인기글 상세 조회 - 캐시 히트 시 PER 트리거")
+    void shouldGetPopularPost_TriggerPER_WhenCacheHit() {
         // Given
         Long postId = 1L;
         Long memberId = null;
-        Long postAuthorId = 1L; // 게시글 작성자 ID
+        Long postAuthorId = 1L;
 
-        // 캐시에 없음 (인기글이 아니거나 캐시 만료)
-        given(redisDetailPostStoreAdapter.getCachedPostIfExists(postId)).willReturn(null);
+        // 인기글 여부 확인
+        given(redisTier2PostAdapter.isPopularPost(postId)).willReturn(true);
 
-        // 최적화된 JOIN 쿼리로 DB에서 조회 (익명 사용자이므로 isLiked는 false)
-        PostDetail mockPostDetail = PostDetail.builder()
+        PostDetail cachedFullPost = PostDetail.builder()
                 .id(postId)
-                .title("Test Title")
-                .content("Test Content")
-                .memberId(postAuthorId) // 게시글 작성자 ID
-                .isLiked(false) // 익명 사용자는 항상 false
-                .viewCount(10)
-                .likeCount(5)
+                .title("캐시된 인기글")
+                .content("캐시된 내용")
+                .viewCount(100)
+                .likeCount(50)
                 .createdAt(Instant.now())
+                .memberId(postAuthorId)
                 .memberName("testMember")
-                .commentCount(3)
+                .commentCount(10)
+                .isLiked(false)
                 .isNotice(false)
                 .build();
-        given(postQueryRepository.findPostDetailWithCounts(postId, memberId))
-                .willReturn(Optional.of(mockPostDetail));
+
+        // 캐시 히트
+        given(redisDetailPostAdapter.getCachedPostIfExists(postId)).willReturn(cachedFullPost);
+        // PER 조건 만족
+        given(redisDetailPostAdapter.shouldRefresh(postId)).willReturn(true);
 
         // When
         PostDetail result = postQueryService.getPost(postId, memberId);
 
         // Then
         assertThat(result).isNotNull();
-        assertThat(result.isLiked()).isFalse(); // 익명 사용자는 항상 false
 
-        verify(redisDetailPostStoreAdapter).getCachedPostIfExists(postId); // 1회 Redis 호출
-        verify(postQueryRepository).findPostDetailWithCounts(postId, memberId); // 1회 JOIN 쿼리
-        verify(globalMemberBlacklistAdapter, never()).checkMemberBlacklist(any(), any()); // 익명 사용자는 블랙리스트 체크 안함
-
-        // 기존 개별 쿼리들은 호출되지 않음
-        verify(postLikeRepository, never()).existsByPostIdAndMemberId(any(), any());
+        verify(redisDetailPostAdapter).shouldRefresh(postId);
+        verify(postCacheRefresh).asyncRefreshDetailPost(postId); // PER 비동기 갱신 호출
     }
 
     @Test
-    @DisplayName("게시글 상세 조회 - 존재하지 않는 게시글 (최적화)")
-    void shouldThrowException_WhenPostNotFound_Optimized() {
+    @DisplayName("게시글 상세 조회 - 존재하지 않는 게시글 (일반글)")
+    void shouldThrowException_WhenNormalPostNotFound() {
         // Given
         Long postId = 999L;
         Long memberId = 1L;
 
-        // 캐시에도 없고 DB에도 없는 경우
-        given(redisDetailPostStoreAdapter.getCachedPostIfExists(postId)).willReturn(null);
-        given(postQueryRepository.findPostDetailWithCounts(postId, memberId)).willReturn(Optional.empty());
+        // 인기글 아님
+        given(redisTier2PostAdapter.isPopularPost(postId)).willReturn(false);
+        given(redisRealTimePostAdapter.isRealtimePopularPost(postId)).willReturn(false);
+
+        // DB에도 없음
+        given(postQueryRepository.findPostDetail(postId, null)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> postQueryService.getPost(postId, memberId))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
-        verify(redisDetailPostStoreAdapter).getCachedPostIfExists(postId);
-        verify(postQueryRepository).findPostDetailWithCounts(postId, memberId);
-        // 기존 개별 쿼리는 호출되지 않음
+        verify(postQueryRepository).findPostDetail(postId, null);
+        verify(redisDetailPostAdapter, never()).saveCachePost(any());
+    }
+
+    @Test
+    @DisplayName("게시글 상세 조회 - 존재하지 않는 게시글 (인기글)")
+    @SuppressWarnings("unchecked")
+    void shouldThrowException_WhenPopularPostNotFound() {
+        // Given
+        Long postId = 999L;
+        Long memberId = 1L;
+
+        // 인기글 여부 확인
+        given(redisTier2PostAdapter.isPopularPost(postId)).willReturn(true);
+
+        // 캐시 미스
+        given(redisDetailPostAdapter.getCachedPostIfExists(postId)).willReturn(null);
+
+        // DB에도 없음
+        given(postQueryRepository.findPostDetail(postId, null)).willReturn(Optional.empty());
+
+        // DbFallbackGateway가 Supplier를 실행하도록 Mock 설정
+        given(dbFallbackGateway.executeDetail(eq(FallbackType.DETAIL), eq(postId), any(Supplier.class)))
+                .willAnswer(invocation -> {
+                    Supplier<Optional<PostDetail>> supplier = invocation.getArgument(2);
+                    return supplier.get();
+                });
+
+        // When & Then
+        assertThatThrownBy(() -> postQueryService.getPost(postId, memberId))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
+
+        verify(redisDetailPostAdapter).getCachedPostIfExists(postId);
+        verify(dbFallbackGateway).executeDetail(eq(FallbackType.DETAIL), eq(postId), any(Supplier.class));
+        verify(redisDetailPostAdapter, never()).saveCachePost(any());
     }
 
     @Test

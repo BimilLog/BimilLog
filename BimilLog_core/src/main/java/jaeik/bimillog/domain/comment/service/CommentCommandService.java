@@ -1,5 +1,6 @@
 package jaeik.bimillog.domain.comment.service;
 
+import jaeik.bimillog.domain.comment.adapter.CommentToMemberAdapter;
 import jaeik.bimillog.domain.comment.controller.CommentCommandController;
 import jaeik.bimillog.domain.comment.entity.Comment;
 import jaeik.bimillog.domain.comment.entity.CommentClosure;
@@ -7,16 +8,12 @@ import jaeik.bimillog.domain.comment.entity.CommentLike;
 import jaeik.bimillog.domain.comment.event.CommentCreatedEvent;
 import jaeik.bimillog.domain.comment.event.CommentDeletedEvent;
 import jaeik.bimillog.domain.comment.event.CommentLikeEvent;
-import jaeik.bimillog.domain.comment.repository.CommentClosureRepository;
-import jaeik.bimillog.domain.comment.repository.CommentDeleteRepository;
-import jaeik.bimillog.domain.comment.repository.CommentLikeRepository;
-import jaeik.bimillog.domain.comment.repository.CommentRepository;
-import jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter;
-import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
+import jaeik.bimillog.domain.comment.repository.*;
+import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.post.out.PostRepository;
-import jaeik.bimillog.domain.post.out.PostToCommentAdapter;
+import jaeik.bimillog.domain.post.repository.PostRepository;
+import jaeik.bimillog.domain.post.adapter.PostToCommentAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -45,8 +42,7 @@ import java.util.List;
 public class CommentCommandService {
     private final ApplicationEventPublisher eventPublisher;
     private final PostRepository postRepository;
-    private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
-    private final GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
+    private final CommentToMemberAdapter commentToMemberAdapter;
     private final CommentRepository commentRepository;
     private final CommentDeleteRepository commentDeleteRepository;
     private final CommentLikeRepository commentLikeRepository;
@@ -79,15 +75,15 @@ public class CommentCommandService {
             if (memberId != null) {
                 // 블랙리스트 확인
                 if (post.getMember() != null) {
-                    globalMemberBlacklistAdapter.checkMemberBlacklist(memberId, post.getMember().getId());
+                    eventPublisher.publishEvent(new CheckBlacklistEvent(memberId, post.getMember().getId()));
                 }
 
                 if (parentComment != null && parentComment.getMember() != null) {
-                    globalMemberBlacklistAdapter.checkMemberBlacklist(memberId, parentComment.getMember().getId());
+                    eventPublisher.publishEvent(new CheckBlacklistEvent(memberId, parentComment.getMember().getId()));
                 }
             }
 
-            Member member = memberId != null ? globalMemberQueryAdapter.findById(memberId).orElse(null) : null;
+            Member member = memberId != null ? commentToMemberAdapter.findById(memberId).orElse(null) : null;
             String memberName = member != null ? member.getMemberName() : "익명";
 
             saveCommentWithClosure(post, member, content, password, parentId);
@@ -165,12 +161,12 @@ public class CommentCommandService {
     public void likeComment(Long memberId, Long commentId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
-        Member member = globalMemberQueryAdapter.findById(memberId)
+        Member member = commentToMemberAdapter.findById(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_USER_NOT_FOUND));
 
         // 블랙리스트 확인 (익명 댓글이 아닌 경우에만)
         if (comment.getMember() != null) {
-            globalMemberBlacklistAdapter.checkMemberBlacklist(memberId, comment.getMember().getId());
+            eventPublisher.publishEvent(new CheckBlacklistEvent(memberId, comment.getMember().getId()));
         }
 
         if (commentLikeRepository.existsByCommentIdAndMemberId(commentId, memberId)) {

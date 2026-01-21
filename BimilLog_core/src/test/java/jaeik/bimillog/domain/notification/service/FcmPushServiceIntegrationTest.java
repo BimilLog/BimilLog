@@ -2,13 +2,13 @@ package jaeik.bimillog.domain.notification.service;
 
 import jaeik.bimillog.BimilLogApplication;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
-import jaeik.bimillog.domain.auth.out.AuthTokenRepository;
+import jaeik.bimillog.domain.auth.repository.AuthTokenRepository;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.Setting;
-import jaeik.bimillog.domain.member.out.MemberQueryRepository;
+import jaeik.bimillog.domain.member.repository.MemberQueryRepository;
 import jaeik.bimillog.domain.member.service.MemberQueryService;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
-import jaeik.bimillog.domain.notification.out.NotificationToMemberAdapter;
+import jaeik.bimillog.domain.notification.adapter.NotificationToMemberAdapter;
 import jaeik.bimillog.infrastructure.api.fcm.FcmAdapter;
 import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.config.H2TestConfiguration;

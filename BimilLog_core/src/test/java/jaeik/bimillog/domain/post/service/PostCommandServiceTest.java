@@ -1,17 +1,16 @@
 package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.comment.service.CommentCommandService;
-import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
-import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.post.out.PostQueryRepository;
-import jaeik.bimillog.domain.post.out.PostRepository;
+import jaeik.bimillog.domain.post.repository.PostQueryRepository;
+import jaeik.bimillog.domain.post.repository.PostRepository;
+import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostStoreAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisDetailPostStoreAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisTier1PostStoreAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostStoreAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisDetailPostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
@@ -21,6 +20,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -42,22 +42,19 @@ import static org.mockito.Mockito.*;
 class PostCommandServiceTest extends BaseUnitTest {
 
     @Mock
-    private GlobalPostQueryAdapter globalPostQueryAdapter;
+    private PostToMemberAdapter postToMemberAdapter;
 
     @Mock
-    private GlobalMemberQueryAdapter globalMemberQueryAdapter;
+    private RedisDetailPostAdapter redisDetailPostAdapter;
 
     @Mock
-    private RedisDetailPostStoreAdapter redisDetailPostStoreAdapter;
+    private RedisTier2PostAdapter redisTier2PostAdapter;
 
     @Mock
-    private RedisTier2PostStoreAdapter redisTier2PostStoreAdapter;
+    private RedisRealTimePostAdapter redisRealTimePostAdapter;
 
     @Mock
-    private RedisRealTimePostStoreAdapter redisRealTimePostStoreAdapter;
-
-    @Mock
-    private RedisTier1PostStoreAdapter redisTier1PostStoreAdapter;
+    private RedisSimplePostAdapter redisSimplePostAdapter;
 
     @Mock
     private PostQueryRepository postQueryRepository;
@@ -83,7 +80,7 @@ class PostCommandServiceTest extends BaseUnitTest {
 
         Post createdPost = PostTestDataBuilder.withId(expectedPostId, PostTestDataBuilder.createPost(getTestMember(), title, content));
 
-        given(globalMemberQueryAdapter.getReferenceById(memberId)).willReturn(getTestMember());
+        given(postToMemberAdapter.getReferenceById(memberId)).willReturn(getTestMember());
         given(postRepository.save(any(Post.class))).willReturn(createdPost);
 
         // When
@@ -92,9 +89,9 @@ class PostCommandServiceTest extends BaseUnitTest {
         // Then
         assertThat(result).isEqualTo(expectedPostId);
 
-        verify(globalMemberQueryAdapter, times(1)).getReferenceById(memberId);
+        verify(postToMemberAdapter, times(1)).getReferenceById(memberId);
         verify(postRepository, times(1)).save(any(Post.class));
-        verifyNoMoreInteractions(globalMemberQueryAdapter, postRepository);
+        verifyNoMoreInteractions(postToMemberAdapter, postRepository);
     }
 
     @Test
@@ -106,19 +103,19 @@ class PostCommandServiceTest extends BaseUnitTest {
 
         Post existingPost = spy(PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestMember(), "기존 제목", "기존 내용")));
 
-        given(globalPostQueryAdapter.findById(postId)).willReturn(existingPost);
+        given(postRepository.findById(postId)).willReturn(Optional.of(existingPost));
         given(existingPost.isAuthor(memberId, null)).willReturn(true);
 
         // When
         postCommandService.updatePost(memberId, postId, "수정된 제목", "수정된 내용", null);
 
         // Then
-        verify(globalPostQueryAdapter, times(1)).findById(postId);
+        verify(postRepository, times(1)).findById(postId);
         verify(existingPost, times(1)).isAuthor(memberId, null);
         verify(existingPost, times(1)).updatePost("수정된 제목", "수정된 내용");
-        verify(redisDetailPostStoreAdapter, times(1)).deleteSinglePostCache(postId);
-        verify(redisTier1PostStoreAdapter, times(1)).removePostFromListCache(postId);
-        verifyNoMoreInteractions(globalPostQueryAdapter, postRepository, redisDetailPostStoreAdapter);
+        verify(redisDetailPostAdapter, times(1)).deleteCachePost(postId);
+        verify(redisSimplePostAdapter, times(1)).removePostFromCache(postId);
+        verifyNoMoreInteractions(postRepository, redisDetailPostAdapter);
     }
 
     @Test
@@ -128,15 +125,15 @@ class PostCommandServiceTest extends BaseUnitTest {
         Long memberId = 1L;
         Long postId = 999L;
 
-        given(globalPostQueryAdapter.findById(postId)).willThrow(new CustomException(ErrorCode.POST_NOT_FOUND));
+        given(postRepository.findById(postId)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.updatePost(memberId, postId, "title", "content", null))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
-        verify(globalPostQueryAdapter, times(1)).findById(postId);
-        verify(redisDetailPostStoreAdapter, never()).deleteSinglePostCache(any());
+        verify(postRepository, times(1)).findById(postId);
+        verify(redisDetailPostAdapter, never()).deleteCachePost(any());
     }
 
     @Test
@@ -148,7 +145,7 @@ class PostCommandServiceTest extends BaseUnitTest {
 
         Post otherUserPost = spy(PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getOtherMember(), "다른 사용자 게시글", "내용")));
 
-        given(globalPostQueryAdapter.findById(postId)).willReturn(otherUserPost);
+        given(postRepository.findById(postId)).willReturn(Optional.of(otherUserPost));
         given(otherUserPost.isAuthor(memberId, null)).willReturn(false);
 
         // When & Then
@@ -156,10 +153,10 @@ class PostCommandServiceTest extends BaseUnitTest {
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_FORBIDDEN);
 
-        verify(globalPostQueryAdapter, times(1)).findById(postId);
+        verify(postRepository, times(1)).findById(postId);
         verify(otherUserPost, times(1)).isAuthor(memberId, null);
         verify(otherUserPost, never()).updatePost(anyString(), anyString());
-        verify(redisDetailPostStoreAdapter, never()).deleteSinglePostCache(any());
+        verify(redisDetailPostAdapter, never()).deleteCachePost(any());
     }
 
     @Test
@@ -172,23 +169,22 @@ class PostCommandServiceTest extends BaseUnitTest {
 
         Post postToDelete = spy(PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestMember(), postTitle, "내용")));
 
-        given(globalPostQueryAdapter.findById(postId)).willReturn(postToDelete);
+        given(postRepository.findById(postId)).willReturn(Optional.of(postToDelete));
         given(postToDelete.isAuthor(memberId, null)).willReturn(true);
-        given(postToDelete.getTitle()).willReturn(postTitle);
 
         // When
         postCommandService.deletePost(memberId, postId, null);
 
         // Then
-        verify(globalPostQueryAdapter, times(1)).findById(postId);
+        verify(postRepository, times(1)).findById(postId);
         verify(postToDelete, times(1)).isAuthor(memberId, null);
         // CASCADE로 Comment와 PostLike 자동 삭제되므로 명시적 호출 없음
         verify(postRepository, times(1)).delete(postToDelete);
-        verify(redisDetailPostStoreAdapter, times(1)).deleteSinglePostCache(postId);
-        verify(redisRealTimePostStoreAdapter, times(1)).removePostIdFromRealtimeScore(postId);
-        verify(redisTier1PostStoreAdapter, times(1)).removePostFromListCache(postId);
-        verify(redisTier2PostStoreAdapter, times(1)).removePostIdFromStorage(postId);
-        verifyNoMoreInteractions(globalPostQueryAdapter, postRepository, redisDetailPostStoreAdapter);
+        verify(redisDetailPostAdapter, times(1)).deleteCachePost(postId);
+        verify(redisRealTimePostAdapter, times(1)).removePostIdFromRealtimeScore(postId);
+        verify(redisSimplePostAdapter, times(1)).removePostFromCache(postId);
+        verify(redisTier2PostAdapter, times(1)).removePostIdFromStorage(postId);
+        verifyNoMoreInteractions(postRepository, redisDetailPostAdapter);
     }
 
     @Test
@@ -198,16 +194,16 @@ class PostCommandServiceTest extends BaseUnitTest {
         Long memberId = 1L;
         Long postId = 999L;
 
-        given(globalPostQueryAdapter.findById(postId)).willThrow(new CustomException(ErrorCode.POST_NOT_FOUND));
+        given(postRepository.findById(postId)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> postCommandService.deletePost(memberId, postId, null))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
-        verify(globalPostQueryAdapter, times(1)).findById(postId);
+        verify(postRepository, times(1)).findById(postId);
         verify(postRepository, never()).delete(any());
-        verify(redisDetailPostStoreAdapter, never()).deleteSinglePostCache(any());
+        verify(redisDetailPostAdapter, never()).deleteCachePost(any());
     }
 
     @Test
@@ -219,7 +215,7 @@ class PostCommandServiceTest extends BaseUnitTest {
 
         Post otherUserPost = spy(PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getOtherMember(), "다른 사용자 게시글", "내용")));
 
-        given(globalPostQueryAdapter.findById(postId)).willReturn(otherUserPost);
+        given(postRepository.findById(postId)).willReturn(Optional.of(otherUserPost));
         given(otherUserPost.isAuthor(memberId, null)).willReturn(false);
 
         // When & Then
@@ -227,10 +223,10 @@ class PostCommandServiceTest extends BaseUnitTest {
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_FORBIDDEN);
 
-        verify(globalPostQueryAdapter, times(1)).findById(postId);
+        verify(postRepository, times(1)).findById(postId);
         verify(otherUserPost, times(1)).isAuthor(memberId, null);
         verify(postRepository, never()).delete(any());
-        verify(redisDetailPostStoreAdapter, never()).deleteSinglePostCache(any());
+        verify(redisDetailPostAdapter, never()).deleteCachePost(any());
     }
 
     @Test
@@ -254,13 +250,13 @@ class PostCommandServiceTest extends BaseUnitTest {
         verify(commentCommandService, times(1)).deleteCommentsByPost(postId2);
 
         // 캐시 삭제 확인
-        verify(redisDetailPostStoreAdapter, times(1)).deleteSinglePostCache(postId1);
-        verify(redisDetailPostStoreAdapter, times(1)).deleteSinglePostCache(postId2);
+        verify(redisDetailPostAdapter, times(1)).deleteCachePost(postId1);
+        verify(redisDetailPostAdapter, times(1)).deleteCachePost(postId2);
 
         // 게시글 일괄 삭제 확인
         verify(postRepository, times(1)).deleteAllByMemberId(memberId);
 
-        verifyNoMoreInteractions(postQueryRepository, postRepository, redisDetailPostStoreAdapter, commentCommandService);
+        verifyNoMoreInteractions(postQueryRepository, postRepository, redisDetailPostAdapter, commentCommandService);
     }
 
     @Test
@@ -279,9 +275,9 @@ class PostCommandServiceTest extends BaseUnitTest {
 
         // 게시글이 없으므로 댓글 삭제와 캐시 삭제가 호출되지 않아야 함
         verify(commentCommandService, never()).deleteCommentsByPost(any());
-        verify(redisDetailPostStoreAdapter, never()).deleteSinglePostCache(any());
+        verify(redisDetailPostAdapter, never()).deleteCachePost(any());
 
-        verifyNoMoreInteractions(postQueryRepository, postRepository, redisDetailPostStoreAdapter, commentCommandService);
+        verifyNoMoreInteractions(postQueryRepository, postRepository, redisDetailPostAdapter, commentCommandService);
     }
 
 
@@ -294,15 +290,15 @@ class PostCommandServiceTest extends BaseUnitTest {
 
         Post existingPost = spy(PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestMember(), "제목", "내용")));
 
-        given(globalPostQueryAdapter.findById(postId)).willReturn(existingPost);
+        given(postRepository.findById(postId)).willReturn(Optional.of(existingPost));
         given(existingPost.isAuthor(memberId, null)).willReturn(true);
-        doThrow(new RuntimeException("Cache delete failed")).when(redisDetailPostStoreAdapter).deleteSinglePostCache(postId);
+        doThrow(new RuntimeException("Cache delete failed")).when(redisDetailPostAdapter).deleteCachePost(postId);
 
         // When - 예외가 발생하지 않고 정상 완료되어야 함
         postCommandService.updatePost(memberId, postId, "title", "content", null);
 
         // Then - 게시글 수정은 완료되고, 캐시 삭제도 시도됨
         verify(existingPost, times(1)).updatePost("title", "content");
-        verify(redisDetailPostStoreAdapter, times(1)).deleteSinglePostCache(postId);
+        verify(redisDetailPostAdapter, times(1)).deleteCachePost(postId);
     }
 }

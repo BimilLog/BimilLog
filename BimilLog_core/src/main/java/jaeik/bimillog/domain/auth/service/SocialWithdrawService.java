@@ -2,8 +2,8 @@ package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
-import jaeik.bimillog.domain.auth.out.SocialStrategyAdapter;
-import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
+import jaeik.bimillog.domain.auth.adapter.AuthToMemberAdapter;
+import jaeik.bimillog.domain.auth.adapter.SocialStrategyAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class SocialWithdrawService {
     private final SocialStrategyAdapter socialStrategyAdapter;
-    private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
+    private final AuthToMemberAdapter authToMemberAdapter;
 
     /**
      * <h3>소셜 계정 연동 해제</h3>
@@ -33,7 +33,7 @@ public class SocialWithdrawService {
         log.info("소셜 연결 해제 시작 - 제공자: {}, 소셜 ID: {}, 회원 ID: {}", provider, socialId, memberId);
 
         // Member 조회 및 accessToken 추출
-        Member member = globalMemberQueryAdapter.findById(memberId)
+        Member member = authToMemberAdapter.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다: " + memberId));
         SocialToken socialToken = member.getSocialToken();
         String accessToken = socialToken != null ? socialToken.getAccessToken() : null;

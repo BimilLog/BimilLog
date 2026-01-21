@@ -8,11 +8,10 @@ import jaeik.bimillog.domain.comment.repository.CommentClosureRepository;
 import jaeik.bimillog.domain.comment.repository.CommentDeleteRepository;
 import jaeik.bimillog.domain.comment.repository.CommentLikeRepository;
 import jaeik.bimillog.domain.comment.repository.CommentRepository;
-import jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter;
-import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
+import jaeik.bimillog.domain.comment.adapter.CommentToMemberAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.post.out.PostRepository;
+import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.testutil.BaseUnitTest;
@@ -24,6 +23,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -59,8 +60,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
     @Mock private CommentDeleteRepository commentDeleteRepository;
     @Mock private CommentClosureRepository commentClosureRepository;
     @Mock private CommentLikeRepository commentLikeRepository;
-    @Mock private GlobalMemberQueryAdapter globalMemberQueryAdapter;
-    @Mock private GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
+    @Mock private CommentToMemberAdapter commentToMemberAdapter;
     @Mock private PostRepository postRepository;
     @Mock private ApplicationEventPublisher eventPublisher;
 
@@ -79,42 +79,32 @@ class CommentCommandServiceTest extends BaseUnitTest {
         testComment = CommentTestDataBuilder.withId(TEST_COMMENT_ID, CommentTestDataBuilder.createComment(testPost, member, TEST_ORIGINAL_CONTENT));
     }
 
-    @Test
-    @DisplayName("댓글 좋아요 추가 성공")
-    void shouldAddLike_WhenMemberHasNotLikedComment() {
+    @ParameterizedTest(name = "이미 좋아요 여부: {0}")
+    @ValueSource(booleans = {false, true})
+    @DisplayName("댓글 좋아요 토글 - 추가/취소")
+    void shouldToggleLike_WhenLikeComment(boolean alreadyLiked) {
         // Given
         given(commentRepository.findById(TEST_COMMENT_ID)).willReturn(Optional.of(testComment));
-        given(globalMemberQueryAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
-        given(commentLikeRepository.existsByCommentIdAndMemberId(TEST_COMMENT_ID, getTestMember().getId())).willReturn(false);
+        given(commentToMemberAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
+        given(commentLikeRepository.existsByCommentIdAndMemberId(TEST_COMMENT_ID, getTestMember().getId())).willReturn(alreadyLiked);
 
         // When
         commentCommandService.likeComment(getTestMember().getId(), TEST_COMMENT_ID);
 
         // Then
-        ArgumentCaptor<CommentLike> likeCaptor = ArgumentCaptor.forClass(CommentLike.class);
-        verify(commentLikeRepository).save(likeCaptor.capture());
+        if (alreadyLiked) {
+            verify(commentLikeRepository).deleteByCommentIdAndMemberId(TEST_COMMENT_ID, getTestMember().getId());
+            verify(commentLikeRepository, never()).save(any());
+        } else {
+            ArgumentCaptor<CommentLike> likeCaptor = ArgumentCaptor.forClass(CommentLike.class);
+            verify(commentLikeRepository).save(likeCaptor.capture());
 
-        CommentLike capturedLike = likeCaptor.getValue();
-        assertThat(capturedLike.getComment()).isEqualTo(testComment);
-        assertThat(capturedLike.getMember()).isEqualTo(getTestMember());
+            CommentLike capturedLike = likeCaptor.getValue();
+            assertThat(capturedLike.getComment()).isEqualTo(testComment);
+            assertThat(capturedLike.getMember()).isEqualTo(getTestMember());
 
-        verify(commentLikeRepository, never()).deleteByCommentIdAndMemberId(anyLong(), anyLong());
-    }
-
-    @Test
-    @DisplayName("댓글 좋아요 취소 성공")
-    void shouldRemoveLike_WhenMemberHasAlreadyLikedComment() {
-        // Given
-        given(commentRepository.findById(TEST_COMMENT_ID)).willReturn(Optional.of(testComment));
-        given(globalMemberQueryAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
-        given(commentLikeRepository.existsByCommentIdAndMemberId(TEST_COMMENT_ID, getTestMember().getId())).willReturn(true);
-
-        // When
-        commentCommandService.likeComment(getTestMember().getId(), TEST_COMMENT_ID);
-
-        // Then
-        verify(commentLikeRepository).deleteByCommentIdAndMemberId(TEST_COMMENT_ID, getTestMember().getId());
-        verify(commentLikeRepository, never()).save(any());
+            verify(commentLikeRepository, never()).deleteByCommentIdAndMemberId(anyLong(), anyLong());
+        }
     }
 
     @Test
@@ -129,7 +119,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.COMMENT_NOT_FOUND);
 
         verify(commentRepository).findById(TEST_COMMENT_ID);
-        verify(globalMemberQueryAdapter, never()).findById(any());
+        verify(commentToMemberAdapter, never()).findById(any());
         verify(commentLikeRepository, never()).existsByCommentIdAndMemberId(anyLong(), anyLong());
         verify(commentLikeRepository, never()).save(any());
         verify(commentLikeRepository, never()).deleteByCommentIdAndMemberId(anyLong(), anyLong());
@@ -140,7 +130,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
     void shouldThrowException_WhenUserNotFound() {
         // Given
         given(commentRepository.findById(TEST_COMMENT_ID)).willReturn(Optional.of(testComment));
-        given(globalMemberQueryAdapter.findById(getTestMember().getId())).willReturn(Optional.empty());
+        given(commentToMemberAdapter.findById(getTestMember().getId())).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.likeComment(getTestMember().getId(), TEST_COMMENT_ID))
@@ -148,7 +138,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MEMBER_USER_NOT_FOUND);
 
         verify(commentRepository).findById(TEST_COMMENT_ID);
-        verify(globalMemberQueryAdapter).findById(getTestMember().getId());
+        verify(commentToMemberAdapter).findById(getTestMember().getId());
         verify(commentLikeRepository, never()).existsByCommentIdAndMemberId(anyLong(), anyLong());
         verify(commentLikeRepository, never()).save(any());
         verify(commentLikeRepository, never()).deleteByCommentIdAndMemberId(anyLong(), anyLong());
@@ -159,7 +149,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
     void shouldThrowException_WhenUserIdIsNull() {
         // Given
         given(commentRepository.findById(TEST_COMMENT_ID)).willReturn(Optional.of(testComment));
-        given(globalMemberQueryAdapter.findById(null)).willReturn(Optional.empty());
+        given(commentToMemberAdapter.findById(null)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> commentCommandService.likeComment(null, TEST_COMMENT_ID))
@@ -167,7 +157,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.MEMBER_USER_NOT_FOUND);
 
         verify(commentRepository).findById(TEST_COMMENT_ID);
-        verify(globalMemberQueryAdapter).findById(null);
+        verify(commentToMemberAdapter).findById(null);
         verify(commentLikeRepository, never()).existsByCommentIdAndMemberId(anyLong(), anyLong());
         verify(commentLikeRepository, never()).save(any());
         verify(commentLikeRepository, never()).deleteByCommentIdAndMemberId(anyLong(), anyLong());
@@ -181,7 +171,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         TestFixtures.setFieldValue(ownComment, "id", 200L);
 
         given(commentRepository.findById(TEST_COMMENT_ID)).willReturn(Optional.of(ownComment));
-        given(globalMemberQueryAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
+        given(commentToMemberAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
         given(commentLikeRepository.existsByCommentIdAndMemberId(TEST_COMMENT_ID, getTestMember().getId())).willReturn(false);
 
         // When
@@ -469,7 +459,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
         TestFixtures.setFieldValue(savedComment, "id", TEST_COMMENT_ID);
 
         given(postRepository.findById(postId)).willReturn(Optional.of(testPost));
-        given(globalMemberQueryAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
+        given(commentToMemberAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
         given(commentRepository.save(any(Comment.class))).willReturn(savedComment);
 
         // When
@@ -539,7 +529,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         given(postRepository.findById(postId)).willReturn(Optional.of(testPost));
         given(commentRepository.findById(parentId)).willReturn(Optional.of(parentComment));
-        given(globalMemberQueryAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
+        given(commentToMemberAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
         given(commentRepository.save(any(Comment.class))).willReturn(savedComment);
         given(commentClosureRepository.findByDescendantId(parentId)).willReturn(Optional.of(parentClosures));
 
@@ -622,7 +612,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
 
         given(postRepository.findById(postId)).willReturn(Optional.of(testPost));
         given(commentRepository.findById(parentId)).willReturn(Optional.of(parentComment));
-        given(globalMemberQueryAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
+        given(commentToMemberAdapter.findById(getTestMember().getId())).willReturn(Optional.of(getTestMember()));
         given(commentRepository.save(any(Comment.class))).willReturn(savedComment);
         given(commentClosureRepository.findByDescendantId(parentId)).willReturn(Optional.of(parentClosures));
 

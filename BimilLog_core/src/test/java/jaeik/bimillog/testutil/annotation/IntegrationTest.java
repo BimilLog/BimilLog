@@ -24,29 +24,6 @@ import java.lang.annotation.*;
  *   <li>@Tag("local-integration") - 로컬 통합 테스트 태그</li>
  *   <li>@ActiveProfiles("local-integration") - 로컬 통합 테스트용 프로파일 활성화</li>
  * </ul>
- * 
- * <h3>사용 예시:</h3>
- * <pre>
- * {@literal @}IntegrationTest
- * {@literal @}DisplayName("MemberController 통합 테스트")
- * class MemberControllerIntegrationTest extends BaseIntegrationTest {
- *
- *     {@literal @}Test
- *     void test() throws Exception {
- *         performGet("/api/member/me", testUserDetails)
- *             .andExpect(status().isOk());
- *     }
- * }
- * </pre>
- * 
- * <h3>선택적 실행:</h3>
- * <pre>
- * # 통합 테스트만 실행
- * ./gradlew test -Dgroups=integration
- * 
- * # 통합 테스트 제외하고 실행
- * ./gradlew test -DexcludedGroups=integration
- * </pre>
  *
  * @author Jaeik
  * @version 2.0.0

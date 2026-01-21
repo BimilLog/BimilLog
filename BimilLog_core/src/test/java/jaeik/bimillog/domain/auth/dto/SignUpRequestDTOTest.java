@@ -148,43 +148,12 @@ class SignUpRequestDTOTest {
             assertThat(violations).isEmpty();
         }
 
-        @Test
+        @ParameterizedTest(name = "사용자명: {0}")
+        @ValueSource(strings = {"사용자@#$%", "사용자 이름", "사용자._-"})
         @DisplayName("memberName에 특수문자가 포함된 경우 - @AssertTrue 검증 실패")
-        void shouldFail_WhenUserNameContainsSpecialChars() {
+        void shouldFail_WhenUserNameContainsSpecialChars(String userName) {
             // Given
-            SignUpRequestDTO request = new SignUpRequestDTO("사용자@#$%");
-
-            // When
-            Set<ConstraintViolation<SignUpRequestDTO>> violations = validator.validate(request);
-
-            // Then
-            assertThat(violations).hasSize(1);
-            assertThat(violations)
-                    .extracting(ConstraintViolation::getMessage)
-                    .contains("특수문자는 사용할 수 없습니다.");
-        }
-
-        @Test
-        @DisplayName("memberName에 공백이 포함된 경우 - @AssertTrue 검증 실패")
-        void shouldFail_WhenUserNameContainsSpaces() {
-            // Given
-            SignUpRequestDTO request = new SignUpRequestDTO("사용자 이름");
-
-            // When
-            Set<ConstraintViolation<SignUpRequestDTO>> violations = validator.validate(request);
-
-            // Then
-            assertThat(violations).hasSize(1);
-            assertThat(violations)
-                    .extracting(ConstraintViolation::getMessage)
-                    .contains("특수문자는 사용할 수 없습니다.");
-        }
-
-        @Test
-        @DisplayName("memberName에 점, 밑줄, 하이픈이 포함된 경우 - @AssertTrue 검증 실패")
-        void shouldFail_WhenUserNameContainsDotUnderscoreHyphen() {
-            // Given
-            SignUpRequestDTO request = new SignUpRequestDTO("사용자._-");
+            SignUpRequestDTO request = new SignUpRequestDTO(userName);
 
             // When
             Set<ConstraintViolation<SignUpRequestDTO>> violations = validator.validate(request);

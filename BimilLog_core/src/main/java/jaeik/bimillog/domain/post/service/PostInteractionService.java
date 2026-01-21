@@ -1,15 +1,16 @@
 package jaeik.bimillog.domain.post.service;
 
-import jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter;
-import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
-import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
+import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
 import jaeik.bimillog.domain.post.event.PostLikeEvent;
 import jaeik.bimillog.domain.post.event.PostUnlikeEvent;
-import jaeik.bimillog.domain.post.out.PostLikeRepository;
-import jaeik.bimillog.domain.post.out.PostRepository;
+import jaeik.bimillog.domain.post.repository.PostLikeRepository;
+import jaeik.bimillog.domain.post.repository.PostRepository;
+import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -29,12 +30,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class PostInteractionService {
     private final PostRepository postRepository;
-    private final GlobalPostQueryAdapter globalPostQueryAdapter;
     private final PostLikeRepository postLikeRepository;
-    private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
+    private final PostToMemberAdapter postToMemberAdapter;
     private final ApplicationEventPublisher eventPublisher;
-    private final GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
-
     /**
      * <h3>게시글 좋아요 토글 비즈니스 로직 실행</h3>
      * <p>사용자별 좋아요 상태 토글 규칙을 적용합니다.</p>
@@ -49,12 +47,13 @@ public class PostInteractionService {
         boolean isAlreadyLiked = postLikeRepository.existsByPostIdAndMemberId(postId, memberId);
         
         // 2. 좋아요 토글을 위해 필요한 엔티티만 로딩
-        Member member = globalMemberQueryAdapter.getReferenceById(memberId);
-        Post post = globalPostQueryAdapter.findById(postId);
+        Member member = postToMemberAdapter.getReferenceById(memberId);
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         // 블랙리스트 확인 (익명 게시글이 아닌 경우에만)
         if (post.getMember() != null) {
-            globalMemberBlacklistAdapter.checkMemberBlacklist(memberId, post.getMember().getId());
+            eventPublisher.publishEvent(new CheckBlacklistEvent(memberId, post.getMember().getId()));
         }
 
         if (isAlreadyLiked) {
@@ -81,6 +80,5 @@ public class PostInteractionService {
     @Transactional
     public void incrementViewCount(Long postId) {
         postRepository.incrementViewsByPostId(postId);
-        log.debug("게시글 조회수 증가됨: postId={}", postId);
     }
 }

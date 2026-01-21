@@ -1,12 +1,12 @@
 package jaeik.bimillog.domain.notification.service;
 
 import jaeik.bimillog.domain.global.listener.MemberWithdrawListener;
-import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.notification.entity.Notification;
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.event.AlarmSendEvent;
-import jaeik.bimillog.domain.notification.out.NotificationRepository;
+import jaeik.bimillog.domain.notification.repository.NotificationRepository;
+import jaeik.bimillog.domain.notification.adapter.NotificationToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class NotificationCommandService {
     private final NotificationRepository notificationRepository;
-    private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
+    private final NotificationToMemberAdapter notificationToMemberAdapter;
     private final ApplicationEventPublisher eventPublisher;
 
     @Value("${url}")
@@ -91,7 +91,7 @@ public class NotificationCommandService {
     public void saveCommentNotification(Long postOwnerId, String commenterName, Long postId) {
         String message = commenterName + "님이 댓글을 남겼습니다!";
         String url = baseUrl + POST_URL + postId;
-        Member member = globalMemberQueryAdapter.findById(postOwnerId)
+        Member member = notificationToMemberAdapter.findById(postOwnerId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOTIFICATION_INVALID_USER_CONTEXT));
 
         Notification notification = Notification.create(member, NotificationType.COMMENT, message, url);
@@ -113,7 +113,7 @@ public class NotificationCommandService {
     public void saveMessageNotification(Long paperOwnerId, String memberName) {
         String message = "롤링페이퍼에 메시지가 작성되었어요!";
         String url = baseUrl + PAPER_URL + memberName;
-        Member member = globalMemberQueryAdapter.findById(paperOwnerId)
+        Member member = notificationToMemberAdapter.findById(paperOwnerId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOTIFICATION_INVALID_USER_CONTEXT));
 
         Notification notification = Notification.create(member, NotificationType.MESSAGE, message, url);
@@ -137,7 +137,7 @@ public class NotificationCommandService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void savePopularNotification(Long memberId, String message, Long postId, NotificationType notificationType, String postTitle) {
         String url = baseUrl + POST_URL + postId;
-        Member member = globalMemberQueryAdapter.findById(memberId)
+        Member member = notificationToMemberAdapter.findById(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOTIFICATION_INVALID_USER_CONTEXT));
 
         Notification notification = Notification.create(member, notificationType, message, url);
@@ -159,7 +159,7 @@ public class NotificationCommandService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void saveFriendNotification(Long receiveMemberId, String message, String senderName) {
         String url = baseUrl +FRIEND_URL;
-        Member member = globalMemberQueryAdapter.findById(receiveMemberId)
+        Member member = notificationToMemberAdapter.findById(receiveMemberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOTIFICATION_INVALID_USER_CONTEXT));
 
         Notification notification = Notification.create(member, NotificationType.FRIEND, message, url);

@@ -8,10 +8,19 @@ import jaeik.bimillog.domain.notification.service.SseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.dao.QueryTimeoutException;
+import org.springframework.dao.TransientDataAccessException;
+import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import jaeik.bimillog.infrastructure.log.Log;
 
 /**
  * <h2>사용자 로그아웃 이벤트 리스너</h2>
@@ -19,8 +28,9 @@ import org.springframework.transaction.annotation.Transactional;
  * <p>SSE 연결 종료, 소셜 플랫폼 로그아웃, FCM/JWT 토큰 삭제, 소셜 토큰 삭제를 수행합니다.</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.5.0
  */
+@Log(logResult = false, message = "로그아웃 이벤트")
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -38,10 +48,20 @@ public class MemberLogoutListener {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Async
+    @Async("memberEventExecutor")
     @EventListener
     @Transactional
-    public void memberLogout(MemberLoggedOutEvent memberLoggedOutEvent) throws Exception {
+    @Retryable(
+            retryFor = {
+                    TransientDataAccessException.class,
+                    DataAccessResourceFailureException.class,
+                    RedisConnectionFailureException.class,
+                    QueryTimeoutException.class
+            },
+            maxAttemptsExpression = "${retry.max-attempts}",
+            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
+    )
+    public void memberLogout(MemberLoggedOutEvent memberLoggedOutEvent) {
         Long memberId = memberLoggedOutEvent.memberId();
         Long AuthTokenId = memberLoggedOutEvent.authTokenId();
         SocialProvider provider = memberLoggedOutEvent.provider();
@@ -55,5 +75,17 @@ public class MemberLogoutListener {
 
         authTokenService.deleteTokens(memberId, AuthTokenId);
         SecurityContextHolder.clearContext();
+    }
+
+    /**
+     * <h3>회원 로그아웃 처리 최종 실패 복구</h3>
+     * <p>모든 재시도가 실패한 후 호출됩니다.</p>
+     *
+     * @param e 발생한 예외
+     * @param event 회원 로그아웃 이벤트
+     */
+    @Recover
+    public void recoverMemberLogout(Exception e, MemberLoggedOutEvent event) {
+        log.error("회원 로그아웃 처리 최종 실패: memberId={}", event.memberId(), e);
     }
 }

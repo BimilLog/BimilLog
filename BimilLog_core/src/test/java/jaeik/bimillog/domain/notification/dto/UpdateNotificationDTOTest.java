@@ -4,9 +4,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -62,42 +66,49 @@ class UpdateNotificationDTOTest {
         assertThat(dto.getDeletedIds()).containsExactlyInAnyOrder(2L, 3L, 4L);
     }
 
-    @Test
-    @DisplayName("빈 리스트 처리")
-    void shouldHandleEmptyLists_WhenDeserializing() throws Exception {
-        // Given
-        String json = """
+    @ParameterizedTest
+    @MethodSource("provideEdgeCaseScenarios")
+    @DisplayName("다양한 입력 처리 - 빈 리스트, null, 대량 데이터")
+    void shouldHandleVariousInputs_WhenDeserializing(String json, int expectedReadSize, int expectedDeletedSize) throws Exception {
+        // When
+        UpdateNotificationDTO dto = objectMapper.readValue(json, UpdateNotificationDTO.class);
+
+        // Then
+        assertThat(dto.getReadIds()).hasSize(expectedReadSize);
+        assertThat(dto.getDeletedIds()).hasSize(expectedDeletedSize);
+    }
+
+    static Stream<Arguments> provideEdgeCaseScenarios() {
+        String emptyListJson = """
                 {
                     "readIds": [],
                     "deletedIds": []
                 }
                 """;
 
-        // When
-        UpdateNotificationDTO dto = objectMapper.readValue(json, UpdateNotificationDTO.class);
-
-        // Then
-        assertThat(dto.getReadIds()).isEmpty();
-        assertThat(dto.getDeletedIds()).isEmpty();
-    }
-
-    @Test
-    @DisplayName("null 필드 처리")
-    void shouldHandleNullFields_WhenDeserializing() throws Exception {
-        // Given
-        String json = """
+        String nullFieldsJson = """
                 {
                     "readIds": null,
                     "deletedIds": null
                 }
                 """;
 
-        // When
-        UpdateNotificationDTO dto = objectMapper.readValue(json, UpdateNotificationDTO.class);
+        List<Long> largeReadIds = Arrays.asList(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L);
+        List<Long> largeDeletedIds = Arrays.asList(11L, 12L, 13L, 14L, 15L, 16L, 17L, 18L, 19L, 20L);
+        String largeDataJson = String.format("""
+                {
+                    "readIds": [%s],
+                    "deletedIds": [%s]
+                }
+                """,
+                String.join(", ", largeReadIds.stream().map(String::valueOf).toArray(String[]::new)),
+                String.join(", ", largeDeletedIds.stream().map(String::valueOf).toArray(String[]::new)));
 
-        // Then
-        assertThat(dto.getReadIds()).isEmpty();
-        assertThat(dto.getDeletedIds()).isEmpty();
+        return Stream.of(
+            Arguments.of(emptyListJson, 0, 0),      // 빈 리스트
+            Arguments.of(nullFieldsJson, 0, 0),     // null 필드
+            Arguments.of(largeDataJson, 10, 10)     // 대량 데이터
+        );
     }
 
     @Test
@@ -122,31 +133,5 @@ class UpdateNotificationDTOTest {
 
         // When & Then
         assertThat(dto.isAtLeastOneOperationRequested()).isFalse();
-    }
-
-    @Test
-    @DisplayName("대량 데이터 처리")
-    void shouldHandleLargeDataSet() throws Exception {
-        // Given
-        List<Long> largeReadIds = Arrays.asList(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 10L);
-        List<Long> largeDeletedIds = Arrays.asList(11L, 12L, 13L, 14L, 15L, 16L, 17L, 18L, 19L, 20L);
-        
-        String json = String.format("""
-                {
-                    "readIds": [%s],
-                    "deletedIds": [%s]
-                }
-                """, 
-                String.join(", ", largeReadIds.stream().map(String::valueOf).toArray(String[]::new)),
-                String.join(", ", largeDeletedIds.stream().map(String::valueOf).toArray(String[]::new)));
-
-        // When
-        UpdateNotificationDTO dto = objectMapper.readValue(json, UpdateNotificationDTO.class);
-
-        // Then
-        assertThat(dto.getReadIds()).hasSize(10);
-        assertThat(dto.getDeletedIds()).hasSize(10);
-        assertThat(dto.getReadIds()).containsExactlyInAnyOrderElementsOf(largeReadIds);
-        assertThat(dto.getDeletedIds()).containsExactlyInAnyOrderElementsOf(largeDeletedIds);
     }
 }

@@ -4,9 +4,9 @@ import jaeik.bimillog.domain.friend.entity.jpa.Friendship;
 import jaeik.bimillog.domain.friend.event.FriendshipCreatedEvent;
 import jaeik.bimillog.domain.friend.event.FriendshipDeletedEvent;
 import jaeik.bimillog.domain.friend.repository.FriendRequestRepository;
+import jaeik.bimillog.domain.friend.adapter.FriendToMemberAdapter;
 import jaeik.bimillog.domain.friend.repository.FriendshipRepository;
-import jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter;
-import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
+import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
@@ -20,11 +20,10 @@ import java.util.Objects;
 @Service
 @RequiredArgsConstructor
 public class FriendshipCommandService {
-    private final GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
-    private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
     private final FriendshipRepository friendshipRepository;
     private final FriendRequestRepository friendRequestRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final FriendToMemberAdapter friendToMemberAdapter;
 
     /**
      * 친구 생성
@@ -33,16 +32,16 @@ public class FriendshipCommandService {
     public void createFriendship(Long memberId, Long friendId, Long friendRequestId) {
 
         // 친구가 실존하는지 확인
-        Member friend = globalMemberQueryAdapter.findById(friendId)
+        Member friend = friendToMemberAdapter.findById(friendId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_USER_NOT_FOUND));
 
         // 요청 받는 사람과 블랙리스트 관계인지 확인
-        globalMemberBlacklistAdapter.checkMemberBlacklist(memberId, friendId);
+        eventPublisher.publishEvent(new CheckBlacklistEvent(memberId, friendId));
 
         // 이미 친구가 되어잇는지 확인 (1,10)이 있으면 (10,1)도 있으면 안된다.
         checkFriendship(memberId, friendId);
 
-        Member member = globalMemberQueryAdapter.findById(memberId)
+        Member member = friendToMemberAdapter.findById(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_USER_NOT_FOUND));
 
         Friendship friendship = Friendship.createFriendship(member, friend);

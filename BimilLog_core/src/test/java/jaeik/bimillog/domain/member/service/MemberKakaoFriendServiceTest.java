@@ -4,8 +4,8 @@ import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.member.dto.KakaoFriendsDTO;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
-import jaeik.bimillog.domain.member.out.MemberQueryRepository;
-import jaeik.bimillog.domain.member.out.MemberToAuthAdapter;
+import jaeik.bimillog.domain.member.repository.MemberQueryRepository;
+import jaeik.bimillog.domain.member.adapter.MemberToAuthAdapter;
 import jaeik.bimillog.infrastructure.api.social.kakao.KakaoFriendClient;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
@@ -119,7 +119,7 @@ class MemberKakaoFriendServiceTest extends BaseUnitTest {
 
         assertThatThrownBy(() -> memberFriendService.getKakaoFriendList(MEMBER_ID, SocialProvider.KAKAO, DEFAULT_OFFSET, DEFAULT_LIMIT))
                 .isInstanceOf(CustomException.class)
-                .hasMessage(ErrorCode.SOCIAL_TOKEN_NOT_FOUNT.getMessage());
+                .hasMessage(ErrorCode.SOCIAL_TOKEN_NOT_FOUND.getMessage());
     }
 
     @Test

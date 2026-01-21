@@ -1,13 +1,23 @@
 package jaeik.bimillog.domain.notification.listener;
 
+import com.google.firebase.messaging.FirebaseMessagingException;
 import jaeik.bimillog.domain.notification.event.AlarmSendEvent;
 import jaeik.bimillog.domain.notification.service.FcmPushService;
 import jaeik.bimillog.domain.notification.service.SseService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
+
+import java.io.IOException;
+import java.net.SocketTimeoutException;
+
+import jaeik.bimillog.infrastructure.log.Log;
 
 /**
  * <h2>알림 생성 이벤트 리스너</h2>
@@ -16,8 +26,9 @@ import org.springframework.transaction.event.TransactionalEventListener;
  * <p>SSE 실시간 알림과 FCM 푸시 알림을 병렬 전송</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.5.0
  */
+@Log(logResult = false, message = "알림 전송 이벤트")
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -33,6 +44,15 @@ public class NotificationSendListener {
      */
     @Async("sseNotificationExecutor")
     @TransactionalEventListener(AlarmSendEvent.class)
+    @Retryable(
+            retryFor = {
+                    IOException.class,
+                    SocketTimeoutException.class,
+                    DataAccessException.class
+            },
+            maxAttemptsExpression = "${retry.max-attempts}",
+            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
+    )
     public void sendSSENotification(AlarmSendEvent event) {
         sseService.sendNotification(
                 event.memberId(),
@@ -51,11 +71,46 @@ public class NotificationSendListener {
      */
     @Async("fcmNotificationExecutor")
     @TransactionalEventListener(AlarmSendEvent.class)
+    @Retryable(
+            retryFor = {
+                    FirebaseMessagingException.class,
+                    IOException.class,
+                    DataAccessException.class
+            },
+            maxAttemptsExpression = "${retry.max-attempts}",
+            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
+    )
     public void sendFCMNotification(AlarmSendEvent event) {
         fcmPushService.sendNotification(
                 event.type(),
                 event.memberId(),
                 event.relatedMemberName(),
                 event.postTitle());
+    }
+
+    /**
+     * <h3>SSE 알림 전송 최종 실패 복구</h3>
+     * <p>모든 재시도가 실패한 후 호출됩니다.</p>
+     *
+     * @param e 발생한 예외
+     * @param event 알림 전송 이벤트
+     */
+    @Recover
+    public void recoverSendSSENotification(Exception e, AlarmSendEvent event) {
+        log.error("SSE 알림 전송 최종 실패: memberId={}, type={}",
+                event.memberId(), event.type(), e);
+    }
+
+    /**
+     * <h3>FCM 알림 전송 최종 실패 복구</h3>
+     * <p>모든 재시도가 실패한 후 호출됩니다.</p>
+     *
+     * @param e 발생한 예외
+     * @param event 알림 전송 이벤트
+     */
+    @Recover
+    public void recoverSendFCMNotification(Exception e, AlarmSendEvent event) {
+        log.error("FCM 알림 전송 최종 실패: memberId={}, type={}",
+                event.memberId(), event.type(), e);
     }
 }

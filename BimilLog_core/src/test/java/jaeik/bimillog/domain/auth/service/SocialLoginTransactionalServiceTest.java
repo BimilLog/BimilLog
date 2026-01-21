@@ -4,14 +4,13 @@ import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
-import jaeik.bimillog.domain.auth.out.AuthToMemberAdapter;
-import jaeik.bimillog.domain.auth.out.AuthTokenRepository;
-import jaeik.bimillog.domain.auth.out.BlackListRepository;
-import jaeik.bimillog.domain.auth.out.SocialTokenRepository;
+import jaeik.bimillog.domain.auth.adapter.AuthToJwtAdapter;
+import jaeik.bimillog.domain.auth.adapter.AuthToMemberAdapter;
+import jaeik.bimillog.domain.auth.event.NewMemberLoginEvent;
+import jaeik.bimillog.domain.auth.repository.AuthTokenRepository;
+import jaeik.bimillog.domain.auth.repository.BlackListRepository;
+import jaeik.bimillog.domain.auth.repository.SocialTokenRepository;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.domain.global.out.GlobalAuthTokenSaveAdapter;
-import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
-import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
@@ -26,11 +25,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.http.ResponseCookie;
+import org.springframework.context.ApplicationEventPublisher;
 
-import java.time.Duration;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
 import static jaeik.bimillog.testutil.fixtures.AuthTestFixtures.*;
@@ -51,11 +47,10 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
 
     @Mock private AuthToMemberAdapter authToMemberAdapter;
     @Mock private BlackListRepository blackListRepository;
-    @Mock private GlobalCookieAdapter globalCookieAdapter;
-    @Mock private GlobalJwtAdapter globalJwtAdapter;
-    @Mock private GlobalAuthTokenSaveAdapter globalAuthTokenSaveAdapter;
+    @Mock private AuthToJwtAdapter authToJwtAdapter;
     @Mock private SocialTokenRepository socialTokenRepository;
     @Mock private AuthTokenRepository authTokenRepository;
+    @Mock private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private SocialLoginTransactionalService socialLoginTransactionalService;
@@ -76,7 +71,6 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
         TestFixtures.setFieldValue(existingMember, "socialToken", existingSocialToken);
 
         CustomUserDetails userDetails = CustomUserDetails.ofExisting(existingMember, 99L);
-        List<ResponseCookie> jwtCookies = getJwtCookies();
 
         given(blackListRepository.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
         given(authToMemberAdapter.findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(Optional.of(existingMember));
@@ -91,9 +85,8 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
                 .build();
         given(authTokenRepository.save(any(AuthToken.class))).willReturn(persistedAuthToken);
 
-        given(globalJwtAdapter.generateAccessToken(any(CustomUserDetails.class))).willReturn("generated-access-token");
-        given(globalJwtAdapter.generateRefreshToken(any(CustomUserDetails.class))).willReturn("generated-refresh-token");
-        given(globalCookieAdapter.generateJwtCookie(anyString(), anyString())).willReturn(jwtCookies);
+        given(authToJwtAdapter.generateAccessToken(any(CustomUserDetails.class))).willReturn("generated-access-token");
+        given(authToJwtAdapter.generateRefreshToken(any(CustomUserDetails.class))).willReturn("generated-refresh-token");
 
         // When
         LoginResult result = socialLoginTransactionalService.finishLogin(TEST_PROVIDER, profile);
@@ -101,13 +94,12 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
         // Then
         assertThat(result).isInstanceOf(LoginResult.ExistingUser.class);
         LoginResult.ExistingUser existingUser = (LoginResult.ExistingUser) result;
-        assertThat(existingUser.cookies()).isEqualTo(jwtCookies);
+        assertThat(existingUser.tokens().accessToken()).isEqualTo("generated-access-token");
+        assertThat(existingUser.tokens().refreshToken()).isEqualTo("generated-refresh-token");
 
         verify(blackListRepository).existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID);
         verify(authToMemberAdapter).findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID);
         verify(authToMemberAdapter).handleExistingMember(eq(existingMember), eq(profile.getNickname()), eq(profile.getProfileImageUrl()), eq(existingSocialToken));
-        verify(globalAuthTokenSaveAdapter).updateJwtRefreshToken(userDetails.getAuthTokenId(), "generated-refresh-token");
-        verify(globalCookieAdapter).generateJwtCookie("generated-access-token", "generated-refresh-token");
     }
 
     @Test
@@ -126,7 +118,6 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
 
         SocialToken newSocialToken = SocialToken.createSocialToken(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
         CustomUserDetails userDetails = CustomUserDetails.ofExisting(existingMember, 99L);
-        List<ResponseCookie> jwtCookies = getJwtCookies();
 
         given(blackListRepository.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
         given(authToMemberAdapter.findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(Optional.of(existingMember));
@@ -142,9 +133,8 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
                 .build();
         given(authTokenRepository.save(any(AuthToken.class))).willReturn(persistedAuthToken);
 
-        given(globalJwtAdapter.generateAccessToken(any(CustomUserDetails.class))).willReturn("generated-access-token");
-        given(globalJwtAdapter.generateRefreshToken(any(CustomUserDetails.class))).willReturn("generated-refresh-token");
-        given(globalCookieAdapter.generateJwtCookie(anyString(), anyString())).willReturn(jwtCookies);
+        given(authToJwtAdapter.generateAccessToken(any(CustomUserDetails.class))).willReturn("generated-access-token");
+        given(authToJwtAdapter.generateRefreshToken(any(CustomUserDetails.class))).willReturn("generated-refresh-token");
 
         // When
         LoginResult result = socialLoginTransactionalService.finishLogin(TEST_PROVIDER, profile);
@@ -152,14 +142,13 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
         // Then
         assertThat(result).isInstanceOf(LoginResult.ExistingUser.class);
         LoginResult.ExistingUser existingUser = (LoginResult.ExistingUser) result;
-        assertThat(existingUser.cookies()).isEqualTo(jwtCookies);
+        assertThat(existingUser.tokens().accessToken()).isEqualTo("generated-access-token");
+        assertThat(existingUser.tokens().refreshToken()).isEqualTo("generated-refresh-token");
 
         verify(blackListRepository).existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID);
         verify(authToMemberAdapter).findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID);
         verify(socialTokenRepository).save(any(SocialToken.class));
         verify(authToMemberAdapter).handleExistingMember(eq(existingMember), eq(profile.getNickname()), eq(profile.getProfileImageUrl()), eq(newSocialToken));
-        verify(globalAuthTokenSaveAdapter).updateJwtRefreshToken(userDetails.getAuthTokenId(), "generated-refresh-token");
-        verify(globalCookieAdapter).generateJwtCookie("generated-access-token", "generated-refresh-token");
     }
 
     @Test
@@ -170,16 +159,6 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
 
         given(blackListRepository.existsByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(false);
         given(authToMemberAdapter.findByProviderAndSocialId(TEST_PROVIDER, TEST_SOCIAL_ID)).willReturn(Optional.empty());
-        given(globalCookieAdapter.createTempCookie(anyString())).willAnswer(invocation -> {
-            String generatedUuid = invocation.getArgument(0);
-            return ResponseCookie.from("temp", generatedUuid)
-                    .path("/")
-                    .maxAge(Duration.ofMinutes(10))
-                    .httpOnly(true)
-                    .secure(true)
-                    .sameSite("Lax")
-                    .build();
-        });
 
         // When
         LoginResult result = socialLoginTransactionalService.finishLogin(TEST_PROVIDER, profile);
@@ -187,11 +166,9 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
         // Then
         assertThat(result).isInstanceOf(LoginResult.NewUser.class);
         LoginResult.NewUser newUser = (LoginResult.NewUser) result;
-        assertThat(newUser.tempCookie()).isNotNull();
-        assertThat(newUser.tempCookie().getValue()).isNotBlank();
+        assertThat(newUser.tempUserId()).isNotBlank();
 
-        verify(authToMemberAdapter).handleNewUser(eq(profile), eq(newUser.tempCookie().getValue()));
-        verify(globalCookieAdapter).createTempCookie(newUser.tempCookie().getValue());
+        verify(eventPublisher).publishEvent(any(NewMemberLoginEvent.class));
     }
 
     @Test
@@ -207,24 +184,6 @@ class SocialLoginTransactionalServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.AUTH_BLACKLIST_USER);
     }
 
-    private List<ResponseCookie> getJwtCookies() {
-        return Arrays.asList(
-                ResponseCookie.from("accessToken", "test-access-token")
-                        .maxAge(3600)
-                        .path("/")
-                        .secure(true)
-                        .httpOnly(true)
-                        .sameSite("Strict")
-                        .build(),
-                ResponseCookie.from("refreshToken", "test-refresh-token")
-                        .maxAge(86400)
-                        .path("/")
-                        .secure(true)
-                        .httpOnly(true)
-                        .sameSite("Strict")
-                        .build()
-        );
-    }
 
     private SocialMemberProfile getTestMemberProfile() {
         return SocialMemberProfile.of(

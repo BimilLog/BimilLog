@@ -1,16 +1,15 @@
 package jaeik.bimillog.domain.member.service;
 
 import jaeik.bimillog.domain.auth.entity.AuthToken;
+import jaeik.bimillog.domain.auth.entity.AuthTokens;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
 import jaeik.bimillog.domain.auth.entity.SocialToken;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
-import jaeik.bimillog.domain.global.out.GlobalAuthTokenSaveAdapter;
-import jaeik.bimillog.domain.global.out.GlobalCookieAdapter;
-import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
-import jaeik.bimillog.domain.member.out.MemberRepository;
-import jaeik.bimillog.domain.member.out.MemberToAuthAdapter;
+import jaeik.bimillog.domain.member.repository.MemberRepository;
+import jaeik.bimillog.domain.member.adapter.MemberToAuthAdapter;
+import jaeik.bimillog.domain.member.adapter.MemberToJwtAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.infrastructure.redis.member.RedisMemberDataAdapter;
@@ -24,17 +23,15 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.http.ResponseCookie;
+import org.springframework.context.ApplicationEventPublisher;
 
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @DisplayName("회원 온보딩 서비스 가입 흐름")
 @Tag("unit")
@@ -42,17 +39,15 @@ class MemberOnboardingServiceTest extends BaseUnitTest {
 
     @Mock private RedisMemberDataAdapter redisMemberDataAdapter;
     @Mock private MemberRepository memberRepository;
-    @Mock private GlobalCookieAdapter globalCookieAdapter;
-    @Mock private GlobalJwtAdapter globalJwtAdapter;
-    @Mock private GlobalAuthTokenSaveAdapter globalAuthTokenSaveAdapter;
+    @Mock private MemberToJwtAdapter memberToJwtAdapter;
     @Mock private MemberToAuthAdapter memberToAuthAdapter;
+    @Mock private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks private MemberOnboardingService onboardingService;
 
     private SocialMemberProfile socialProfile;
     private Member persistedMember;
     private AuthToken persistedAuthToken;
-    private List<ResponseCookie> jwtCookies;
 
     @BeforeEach
     void setUp() {
@@ -79,18 +74,6 @@ class MemberOnboardingServiceTest extends BaseUnitTest {
                 .useCount(0)
                 .build();
 
-        jwtCookies = List.of(
-                ResponseCookie.from("access_token", "access")
-                        .httpOnly(true)
-                        .secure(true)
-                        .path("/")
-                        .build(),
-                ResponseCookie.from("refresh_token", "refresh")
-                        .httpOnly(true)
-                        .secure(true)
-                        .path("/")
-                        .build()
-        );
     }
 
     @Test
@@ -101,24 +84,29 @@ class MemberOnboardingServiceTest extends BaseUnitTest {
                 .willReturn(SocialToken.createSocialToken("access-token", "refresh-token"));
         given(memberRepository.save(any(Member.class))).willReturn(persistedMember);
         given(memberToAuthAdapter.saveAuthToken(any(AuthToken.class))).willReturn(persistedAuthToken);
-        given(globalJwtAdapter.generateAccessToken(any(CustomUserDetails.class))).willReturn("access-jwt");
-        given(globalJwtAdapter.generateRefreshToken(any(CustomUserDetails.class))).willReturn("refresh-jwt");
-        given(globalCookieAdapter.generateJwtCookie("access-jwt", "refresh-jwt")).willReturn(jwtCookies);
+        given(memberToJwtAdapter.generateAccessToken(any(CustomUserDetails.class))).willReturn("access-jwt");
+        given(memberToJwtAdapter.generateRefreshToken(any(CustomUserDetails.class))).willReturn("refresh-jwt");
 
-        List<ResponseCookie> result = onboardingService.signup("tester", "uuid-123");
+        AuthTokens result = onboardingService.signup("tester", "uuid-123");
 
-        assertThat(result).isEqualTo(jwtCookies);
+        assertThat(result.accessToken()).isEqualTo("access-jwt");
+        assertThat(result.refreshToken()).isEqualTo("refresh-jwt");
         verify(redisMemberDataAdapter).getTempData("uuid-123");
         verify(memberToAuthAdapter).saveSocialToken(any(SocialToken.class));
         verify(memberRepository).save(any(Member.class));
         verify(memberToAuthAdapter).saveAuthToken(any(AuthToken.class));
 
         ArgumentCaptor<CustomUserDetails> detailCaptor = ArgumentCaptor.forClass(CustomUserDetails.class);
-        verify(globalJwtAdapter).generateAccessToken(detailCaptor.capture());
-        verify(globalJwtAdapter).generateRefreshToken(detailCaptor.getValue());
+        verify(memberToJwtAdapter).generateAccessToken(detailCaptor.capture());
+        verify(memberToJwtAdapter).generateRefreshToken(detailCaptor.getValue());
 
-        verify(globalAuthTokenSaveAdapter).updateJwtRefreshToken(persistedAuthToken.getId(), "refresh-jwt");
-        verify(globalCookieAdapter).generateJwtCookie("access-jwt", "refresh-jwt");
+        // MemberTokenUpdateEvent 발행 검증
+        ArgumentCaptor<Object> eventCaptor = ArgumentCaptor.forClass(Object.class);
+        verify(eventPublisher, atLeastOnce()).publishEvent(eventCaptor.capture());
+
+        boolean foundEvent = eventCaptor.getAllValues().stream()
+                .anyMatch(event -> event instanceof jaeik.bimillog.domain.member.event.MemberTokenUpdateEvent);
+        assertThat(foundEvent).isTrue();
         verify(redisMemberDataAdapter).removeTempData("uuid-123");
 
         CustomUserDetails capturedDetail = detailCaptor.getValue();
@@ -139,24 +127,24 @@ class MemberOnboardingServiceTest extends BaseUnitTest {
     }
 
     @Test
-    @DisplayName("가입 시 JWT 토큰 및 쿠키 발급") // "signup issues jwt tokens and cookies"
+    @DisplayName("가입 시 JWT 토큰 발급") // "signup issues jwt tokens"
     void shouldGenerateJwtTokensAndCookiesOnSignup() {
         given(redisMemberDataAdapter.getTempData("uuid-123")).willReturn(Optional.of(socialProfile));
         given(memberToAuthAdapter.saveSocialToken(any(SocialToken.class)))
                 .willReturn(SocialToken.createSocialToken("access-token", "refresh-token"));
         given(memberRepository.save(any(Member.class))).willReturn(persistedMember);
         given(memberToAuthAdapter.saveAuthToken(any(AuthToken.class))).willReturn(persistedAuthToken);
-        given(globalJwtAdapter.generateAccessToken(any(CustomUserDetails.class))).willReturn("access-jwt");
-        given(globalJwtAdapter.generateRefreshToken(any(CustomUserDetails.class))).willReturn("refresh-jwt");
-        given(globalCookieAdapter.generateJwtCookie("access-jwt", "refresh-jwt")).willReturn(jwtCookies);
+        given(memberToJwtAdapter.generateAccessToken(any(CustomUserDetails.class))).willReturn("access-jwt");
+        given(memberToJwtAdapter.generateRefreshToken(any(CustomUserDetails.class))).willReturn("refresh-jwt");
 
-        List<ResponseCookie> result = onboardingService.signup("tester", "uuid-123");
+        AuthTokens result = onboardingService.signup("tester", "uuid-123");
 
-        assertThat(result).isEqualTo(jwtCookies);
+        assertThat(result.accessToken()).isEqualTo("access-jwt");
+        assertThat(result.refreshToken()).isEqualTo("refresh-jwt");
 
         ArgumentCaptor<CustomUserDetails> detailCaptor = ArgumentCaptor.forClass(CustomUserDetails.class);
-        verify(globalJwtAdapter).generateAccessToken(detailCaptor.capture());
-        verify(globalJwtAdapter).generateRefreshToken(detailCaptor.getValue());
+        verify(memberToJwtAdapter).generateAccessToken(detailCaptor.capture());
+        verify(memberToJwtAdapter).generateRefreshToken(detailCaptor.getValue());
 
         CustomUserDetails capturedDetail = detailCaptor.getValue();
         assertThat(capturedDetail.getAuthTokenId()).isEqualTo(persistedAuthToken.getId());

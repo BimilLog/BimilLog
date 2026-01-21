@@ -1,26 +1,27 @@
 package jaeik.bimillog.domain.paper.service;
 
-import jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter;
-import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.event.MessageDeletedEvent;
 import jaeik.bimillog.domain.paper.event.RollingPaperEvent;
-import jaeik.bimillog.domain.paper.out.MessageRepository;
-import jaeik.bimillog.domain.paper.out.PaperQueryRepository;
+import jaeik.bimillog.domain.paper.repository.MessageRepository;
+import jaeik.bimillog.domain.paper.repository.PaperQueryRepository;
+import jaeik.bimillog.domain.paper.adapter.PaperToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -44,13 +45,10 @@ class PaperCommandServiceTest extends BaseUnitTest {
     private PaperQueryRepository paperQueryRepository;
 
     @Mock
-    private GlobalMemberQueryAdapter globalMemberQueryAdapter;
+    private PaperToMemberAdapter paperToMemberAdapter;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
-
-    @Mock
-    private GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
 
     @Mock
     private jaeik.bimillog.infrastructure.redis.paper.RedisPaperDeleteAdapter redisPaperDeleteAdapter;
@@ -126,16 +124,15 @@ class PaperCommandServiceTest extends BaseUnitTest {
         int x = 2;
         int y = 2;
 
-        given(globalMemberQueryAdapter.findByMemberName(memberName)).willReturn(Optional.of(memberWithId));
+        given(paperToMemberAdapter.findByMemberName(memberName)).willReturn(Optional.of(memberWithId));
 
         // When
         paperCommandService.writeMessage(memberId, memberName, decoType, anonymity, content, x, y);
 
         // Then
-        verify(globalMemberQueryAdapter, times(1)).findByMemberName(memberName);
+        verify(paperToMemberAdapter, times(1)).findByMemberName(memberName);
         verify(messageRepository, times(1)).save(any(Message.class));
         verify(eventPublisher, times(1)).publishEvent(any(RollingPaperEvent.class));
-        verifyNoMoreInteractions(globalMemberQueryAdapter, messageRepository, eventPublisher);
     }
 
     @Test
@@ -150,14 +147,14 @@ class PaperCommandServiceTest extends BaseUnitTest {
         int x = 2;
         int y = 2;
 
-        given(globalMemberQueryAdapter.findByMemberName(memberName)).willReturn(Optional.empty());
+        given(paperToMemberAdapter.findByMemberName(memberName)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> paperCommandService.writeMessage(memberId, memberName, decoType, anonymity, content, x, y))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PAPER_USERNAME_NOT_FOUND);
 
-        verify(globalMemberQueryAdapter, times(1)).findByMemberName(memberName);
+        verify(paperToMemberAdapter, times(1)).findByMemberName(memberName);
         verify(messageRepository, never()).save(any());
         verify(eventPublisher, never()).publishEvent(any());
     }
@@ -187,7 +184,7 @@ class PaperCommandServiceTest extends BaseUnitTest {
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.PAPER_INVALID_INPUT_VALUE);
 
-        verify(globalMemberQueryAdapter, never()).findByMemberName(any());
+        verify(paperToMemberAdapter, never()).findByMemberName(any());
         verify(messageRepository, never()).save(any());
         verify(eventPublisher, never()).publishEvent(any());
     }
@@ -205,15 +202,19 @@ class PaperCommandServiceTest extends BaseUnitTest {
         int x = 2;
         int y = 2;
 
-        given(globalMemberQueryAdapter.findByMemberName(memberName)).willReturn(Optional.of(memberWithId));
+        given(paperToMemberAdapter.findByMemberName(memberName)).willReturn(Optional.of(memberWithId));
 
         // When
         paperCommandService.writeMessage(memberId, memberName, decoType, anonymity, content, x, y);
 
-        // Then
-        verify(eventPublisher, times(1)).publishEvent(argThat((RollingPaperEvent event) ->
-            event.paperOwnerId().equals(memberId) &&
-            event.memberName().equals(memberName)
-        ));
+        // Then - RollingPaperEvent 발행 확인
+        ArgumentCaptor<Object> eventCaptor = ArgumentCaptor.forClass(Object.class);
+        verify(eventPublisher, atLeastOnce()).publishEvent(eventCaptor.capture());
+
+        boolean foundRollingPaperEvent = eventCaptor.getAllValues().stream()
+                .anyMatch(event -> event instanceof RollingPaperEvent);
+        assertThat(foundRollingPaperEvent).isTrue();
+
+        verify(messageRepository, times(1)).save(any(Message.class));
     }
 }

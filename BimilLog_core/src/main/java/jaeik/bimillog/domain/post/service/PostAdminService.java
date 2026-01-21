@@ -1,10 +1,12 @@
 package jaeik.bimillog.domain.post.service;
 
-import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
-import jaeik.bimillog.infrastructure.redis.post.RedisTier1PostStoreAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostStoreAdapter;
+import jaeik.bimillog.domain.post.repository.PostRepository;
+import jaeik.bimillog.infrastructure.exception.CustomException;
+import jaeik.bimillog.infrastructure.exception.ErrorCode;
+import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,9 +25,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Slf4j
 public class PostAdminService {
-    private final GlobalPostQueryAdapter globalPostQueryAdapter;
-    private final RedisTier1PostStoreAdapter redisTier1PostStoreAdapter;
-    private final RedisTier2PostStoreAdapter redisTier2PostStoreAdapter;
+    private final PostRepository postRepository;
+    private final RedisSimplePostAdapter redisSimplePostAdapter;
+    private final RedisTier2PostAdapter redisTier2PostAdapter;
 
     /**
      * <h3>게시글 공지사항 상태 토글</h3>
@@ -36,25 +38,17 @@ public class PostAdminService {
      */
     @Transactional
     public void togglePostNotice(Long postId) {
-        Post post = globalPostQueryAdapter.findById(postId);
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         if (post.isNotice()) {
             post.unsetAsNotice();
-            try {
-                redisTier2PostStoreAdapter.removePostIdFromStorage(postId);
-                redisTier1PostStoreAdapter.removePostFromListCache(postId);
-            } catch (Exception e) {
-                log.warn("공지사항 해제 캐시 무효화 실패: postId={}, error={}", postId, e.getMessage());
-            }
-            log.info("공지사항 해제: postId={}, title={}", postId, post.getTitle());
+                redisTier2PostAdapter.removePostIdFromStorage(postId);
+                redisSimplePostAdapter.removePostFromCache(PostCacheFlag.NOTICE, postId);
         } else {
             post.setAsNotice();
-            try {
-                redisTier2PostStoreAdapter.addPostIdToStorage(PostCacheFlag.NOTICE, postId);
-            } catch (Exception e) {
-                log.warn("공지사항 설정 캐시 저장 실패: postId={}, error={}", postId, e.getMessage());
-            }
-            log.info("공지사항 설정: postId={}, title={}", postId, post.getTitle());
+            redisTier2PostAdapter.addPostIdToStorage(PostCacheFlag.NOTICE, postId);
+
         }
     }
 }

@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.notification.service;
 
 import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.domain.notification.listener.NotificationSendListener;
-import jaeik.bimillog.domain.notification.out.NotificationToMemberAdapter;
+import jaeik.bimillog.domain.notification.adapter.NotificationToMemberAdapter;
 import jaeik.bimillog.infrastructure.api.fcm.FcmAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

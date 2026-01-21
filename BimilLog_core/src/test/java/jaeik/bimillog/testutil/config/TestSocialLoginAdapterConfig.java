@@ -1,7 +1,7 @@
 package jaeik.bimillog.testutil.config;
 
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.auth.out.SocialStrategyAdapter;
+import jaeik.bimillog.domain.auth.adapter.SocialStrategyAdapter;
 import jaeik.bimillog.domain.member.dto.KakaoFriendsDTO;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.api.social.SocialStrategy;

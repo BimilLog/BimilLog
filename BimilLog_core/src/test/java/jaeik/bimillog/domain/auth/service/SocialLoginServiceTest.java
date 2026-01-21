@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.auth.service;
 
 import jaeik.bimillog.domain.auth.entity.LoginResult;
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
-import jaeik.bimillog.domain.auth.out.SocialStrategyAdapter;
+import jaeik.bimillog.domain.auth.adapter.SocialStrategyAdapter;
 import jaeik.bimillog.infrastructure.api.social.SocialStrategy;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;

@@ -16,4 +16,15 @@ import jaeik.bimillog.domain.notification.listener.NotificationSendListener;
  * @version 2.0.0
  * {@link NotificationSendListener} SSE/FCM 알림 발송
  */
-public record CommentCreatedEvent(Long postUserId, String commenterName, Long commenterId, Long postId) {}
+public record CommentCreatedEvent(Long postUserId, String commenterName, Long commenterId, Long postId) {
+
+    /**
+     * 상호작용 점수 증가의 멱등성 보장을 위한 키를 반환합니다.
+     * 같은 댓글 작성에 대해서는 항상 동일한 키가 생성됩니다.
+     *
+     * @return 멱등성 키 (COMMENT_CREATED:postId:commenterId)
+     */
+    public String getIdempotencyKey() {
+        return "COMMENT_CREATED:" + postId + ":" + commenterId;
+    }
+}

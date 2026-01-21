@@ -1,18 +1,18 @@
 package jaeik.bimillog.domain.post.service;
 
 import jaeik.bimillog.domain.comment.service.CommentCommandService;
-import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
-import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.controller.PostCommandController;
 import jaeik.bimillog.domain.post.entity.Post;
-import jaeik.bimillog.domain.post.out.PostRepository;
+import jaeik.bimillog.domain.post.repository.PostRepository;
+import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostStoreAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisDetailPostStoreAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisTier1PostStoreAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostStoreAdapter;
+import jaeik.bimillog.infrastructure.log.Log;
+import jaeik.bimillog.infrastructure.redis.post.RedisDetailPostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,15 +34,15 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Log
 public class PostCommandService {
     private final PostRepository postRepository;
-    private final GlobalPostQueryAdapter globalPostQueryAdapter;
-    private final GlobalMemberQueryAdapter globalMemberQueryAdapter;
-    private final RedisDetailPostStoreAdapter redisDetailPostStoreAdapter;
-    private final RedisTier1PostStoreAdapter redisTier1PostStoreAdapter;
-    private final RedisTier2PostStoreAdapter redisTier2PostStoreAdapter;
+    private final PostToMemberAdapter postToMemberAdapter;
+    private final RedisDetailPostAdapter redisDetailPostAdapter;
+    private final RedisSimplePostAdapter redisSimplePostAdapter;
+    private final RedisTier2PostAdapter redisTier2PostAdapter;
     private final CommentCommandService commentCommandService;
-    private final RedisRealTimePostStoreAdapter redisRealTimePostStoreAdapter;
+    private final RedisRealTimePostAdapter redisRealTimePostAdapter;
 
     /**
      * <h3>게시글 작성</h3>
@@ -58,7 +58,7 @@ public class PostCommandService {
      */
     @Transactional
     public Long writePost(Long memberId, String title, String content, Integer password) {
-        Member member = (memberId != null) ? globalMemberQueryAdapter.getReferenceById(memberId) : null;
+        Member member = (memberId != null) ? postToMemberAdapter.getReferenceById(memberId) : null;
         Post newPost = Post.createPost(member, title, content, password);
         Post savedPost = postRepository.save(newPost);
         return savedPost.getId();
@@ -78,23 +78,29 @@ public class PostCommandService {
      */
     @Transactional
     public void updatePost(Long memberId, Long postId, String title, String content, Integer password) {
-        Post post = globalPostQueryAdapter.findById(postId);
+        // 비회원은 비밀번호를 입력해야만 한다.
+        if (memberId == null && password == null) {
+            throw new CustomException(ErrorCode.POST_BLANK_PASSWORD);
+        }
 
+        // 글 조회
+        Post post = postRepository.findById(postId).orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+
+        // 비밀번호 검증 회원은 비밀번호가 null이기 때문에 통과한다.
         if (!post.isAuthor(memberId, password)) {
             throw new CustomException(ErrorCode.POST_FORBIDDEN);
         }
 
+        // 글 수정
         post.updatePost(title, content);
 
         // 모든 관련 캐시 무효화
         try {
-            redisDetailPostStoreAdapter.deleteSinglePostCache(postId);
-            redisTier1PostStoreAdapter.removePostFromListCache(postId);
+            redisDetailPostAdapter.deleteCachePost(postId);
+            redisSimplePostAdapter.removePostFromCache(postId);
         } catch (Exception e) {
             log.warn("게시글 {} 캐시 무효화 실패: {}", postId, e.getMessage());
         }
-
-        log.info("게시글 수정 완료: postId={}, memberId={}, title={}", postId, memberId, title);
     }
 
     /**
@@ -109,28 +115,20 @@ public class PostCommandService {
      */
     @Transactional
     public void deletePost(Long memberId, Long postId, Integer password) {
-        Post post = globalPostQueryAdapter.findById(postId);
+        Post post = postRepository.findById(postId).orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
 
         if (!post.isAuthor(memberId, password)) {
             throw new CustomException(ErrorCode.POST_FORBIDDEN);
         }
 
-        String postTitle = post.getTitle();
-
         // CASCADE로 Comment와 PostLike 자동 삭제
         postRepository.delete(post);
 
         // 모든 관련 캐시 무효화
-        try {
-            redisDetailPostStoreAdapter.deleteSinglePostCache(postId);
-            redisRealTimePostStoreAdapter.removePostIdFromRealtimeScore(postId);
-            redisTier1PostStoreAdapter.removePostFromListCache(postId);
-            redisTier2PostStoreAdapter.removePostIdFromStorage(postId);
-        } catch (Exception e) {
-            log.warn("게시글 {} 캐시 무효화 실패: {}", postId, e.getMessage());
-        }
-
-        log.info("게시글 삭제 완료: postId={}, memberId={}, title={}", postId, memberId, postTitle);
+            redisDetailPostAdapter.deleteCachePost(postId);
+            redisRealTimePostAdapter.removePostIdFromRealtimeScore(postId);
+            redisSimplePostAdapter.removePostFromCache(postId);
+            redisTier2PostAdapter.removePostIdFromStorage(postId);
     }
 
     /**
@@ -148,11 +146,7 @@ public class PostCommandService {
             // FK 제약 조건 위반 방지: 게시글의 모든 댓글 먼저 삭제 (CommentClosure 포함)
             commentCommandService.deleteCommentsByPost(postId);
             // 캐시 무효화
-            try {
-                redisDetailPostStoreAdapter.deleteSinglePostCache(postId);
-            } catch (Exception e) {
-                log.warn("게시글 {} 캐시 무효화 실패: {}", postId, e.getMessage());
-            }
+            redisDetailPostAdapter.deleteCachePost(postId);
         }
         // 게시글 일괄 삭제
         postRepository.deleteAllByMemberId(memberId);

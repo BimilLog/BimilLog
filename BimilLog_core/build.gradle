@@ -14,7 +14,7 @@ plugins {
 }
 
 group = 'BimilLog_core'
-version = '2.4.0'
+version = '2.5.0'
 
 java {
     toolchain {
@@ -46,6 +46,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation "org.springframework.cloud:spring-cloud-starter-openfeign" // 외부 API 호출용
+    implementation 'org.springframework.retry:spring-retry' // 재시도 로직 지원
 
     // ==== 데이터베이스 관련 ====
     runtimeOnly 'com.mysql:mysql-connector-j' // MySQL JDBC 드라이버
@@ -98,6 +99,16 @@ dependencies {
     // ==== 모니터링 ====
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'io.micrometer:micrometer-registry-prometheus'
+
+
+    // ===== resilience4j =====
+    implementation platform('io.github.resilience4j:resilience4j-bom:2.3.0')
+    // 핵심 스타터 및 누락된 브릿지 모듈 명시적 추가
+    implementation 'io.github.resilience4j:resilience4j-spring-boot3'
+    implementation 'io.github.resilience4j:resilience4j-spring6'
+    // 클래스로더를 만족시키기 위한 타입들
+    implementation 'io.github.resilience4j:resilience4j-reactor'
+    implementation 'io.github.resilience4j:resilience4j-rxjava3'
 
 
     // ==== Commons Logging 충돌 해결 ====
@@ -191,7 +202,7 @@ dependencyManagement {
 }
 
 flyway {
-    url = 'jdbc:mysql://localhost:3306/bimillog?allowPublicKeyRetrieval=true&useSSL=false'
+    url = 'jdbc:mysql://localhost:3306/bimillogTest?allowPublicKeyRetrieval=true&useSSL=false'
     user = 'root'
     password = System.getenv('LOCAL_MYSQL_PASSWORD')
     driver = 'com.mysql.cj.jdbc.Driver'

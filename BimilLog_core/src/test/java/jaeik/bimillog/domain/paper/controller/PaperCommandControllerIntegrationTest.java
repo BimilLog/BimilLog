@@ -3,7 +3,7 @@ package jaeik.bimillog.domain.paper.controller;
 import jaeik.bimillog.domain.paper.entity.DecoType;
 import jaeik.bimillog.domain.paper.entity.Message;
 import jaeik.bimillog.domain.paper.entity.MyMessage;
-import jaeik.bimillog.domain.paper.out.MessageRepository;
+import jaeik.bimillog.domain.paper.repository.MessageRepository;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.builder.PaperTestDataBuilder;
 import jaeik.bimillog.testutil.config.H2TestConfiguration;

@@ -5,8 +5,16 @@ import jaeik.bimillog.domain.member.event.ReportSubmittedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.dao.QueryTimeoutException;
+import org.springframework.dao.TransientDataAccessException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+
+import jaeik.bimillog.infrastructure.log.Log;
 
 /**
  * <h2>신고 저장 리스너</h2>
@@ -15,8 +23,9 @@ import org.springframework.stereotype.Component;
  * <p>비동기 처리로 응답 시간 단축</p>
  *
  * @author Jaeik
- * @version 2.0.0
+ * @version 2.5.0
  */
+@Log(logResult = false, message = "신고 저장 이벤트")
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -34,16 +43,25 @@ public class ReportSaveListener {
      * @author Jaeik
      * @since 2.0.0
      */
-    @Async
+    @Async("reportEventExecutor")
     @EventListener
+    @Retryable(
+            retryFor = {
+                    TransientDataAccessException.class,
+                    DataAccessResourceFailureException.class,
+                    QueryTimeoutException.class
+            },
+            maxAttemptsExpression = "${retry.max-attempts}",
+            backoff = @Backoff(delayExpression = "${retry.backoff.delay}", multiplierExpression = "${retry.backoff.multiplier}")
+    )
     public void handleReportSubmitted(ReportSubmittedEvent event) {
-        try {
-            adminCommandService.createReport(event.reporterId(), event.reportType(), event.targetId(), event.content());
-            log.info("신고/건의사항 처리 완료 - 신고자: {}, 유형: {}, targetId: {}", event.reporterName(), event.reportType(), event.targetId());
-        } catch (Exception e) {
-            log.error("신고/건의사항 처리 중 시스템 오류 발생 - 신고자: {}, 유형: {}, targetId: {}, 오류: {}", 
-                    event.reporterName(), event.reportType(), 
-                    event.targetId(), e.getMessage(), e);
-        }
+        adminCommandService.createReport(event.reporterId(), event.reportType(), event.targetId(), event.content());
+        log.info("신고/건의사항 처리 완료 - 신고자: {}, 유형: {}, targetId: {}", event.reporterName(), event.reportType(), event.targetId());
+    }
+
+    @Recover
+    public void recoverReportSubmitted(Exception e, ReportSubmittedEvent event) {
+        log.error("신고/건의사항 처리 최종 실패 - 신고자: {}, 유형: {}, targetId: {}",
+                event.reporterName(), event.reportType(), event.targetId(), e);
     }
 }

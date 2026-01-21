@@ -1,12 +1,10 @@
 package jaeik.bimillog.domain.post.service;
 
-import jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter;
-import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
-import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
-import jaeik.bimillog.domain.post.out.PostLikeRepository;
-import jaeik.bimillog.domain.post.out.PostRepository;
+import jaeik.bimillog.domain.post.repository.PostLikeRepository;
+import jaeik.bimillog.domain.post.repository.PostRepository;
+import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.testutil.BaseUnitTest;
@@ -14,10 +12,14 @@ import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationEventPublisher;
+
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -39,13 +41,10 @@ import static org.mockito.Mockito.verify;
 class PostInteractionServiceTest extends BaseUnitTest {
 
     @Mock
-    private GlobalPostQueryAdapter globalPostQueryAdapter;
-
-    @Mock
     private PostLikeRepository postLikeRepository;
 
     @Mock
-    private GlobalMemberQueryAdapter globalMemberQueryAdapter;
+    private PostToMemberAdapter postToMemberAdapter;
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -53,63 +52,42 @@ class PostInteractionServiceTest extends BaseUnitTest {
     @Mock
     private PostRepository postRepository;
 
-    @Mock
-    private GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
-
     @InjectMocks
     private PostInteractionService postInteractionService;
 
-    @Test
-    @DisplayName("게시글 추천 - 처음 추천하는 경우")
-    void shouldAddLike_WhenFirstTimeLiking() {
+    @ParameterizedTest(name = "이미 추천 여부: {0}")
+    @ValueSource(booleans = {false, true})
+    @DisplayName("게시글 추천 토글 - 추가/취소")
+    void shouldToggleLike_WhenLikePost(boolean alreadyLiked) {
         // Given
         Long memberId = 1L;
         Long postId = 123L;
         Post post = PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestMember(), "테스트 게시글", "내용"));
 
-        given(postLikeRepository.existsByPostIdAndMemberId(postId, memberId)).willReturn(false);
-        given(globalMemberQueryAdapter.getReferenceById(memberId)).willReturn(getTestMember());
-        given(globalPostQueryAdapter.findById(postId)).willReturn(post);
+        given(postLikeRepository.existsByPostIdAndMemberId(postId, memberId)).willReturn(alreadyLiked);
+        given(postToMemberAdapter.getReferenceById(memberId)).willReturn(getTestMember());
+        given(postRepository.findById(postId)).willReturn(Optional.of(post));
 
         // When
         postInteractionService.likePost(memberId, postId);
 
         // Then
         verify(postLikeRepository).existsByPostIdAndMemberId(postId, memberId);
-        verify(globalMemberQueryAdapter).getReferenceById(memberId);
-        verify(globalPostQueryAdapter).findById(postId);
+        verify(postToMemberAdapter).getReferenceById(memberId);
+        verify(postRepository).findById(postId);
 
-        // ArgumentCaptor로 PostLike 객체 검증
-        ArgumentCaptor<PostLike> postLikeCaptor = ArgumentCaptor.forClass(PostLike.class);
-        verify(postLikeRepository).save(postLikeCaptor.capture());
-        PostLike savedPostLike = postLikeCaptor.getValue();
-        assertThat(savedPostLike.getMember()).isEqualTo(getTestMember());
-        assertThat(savedPostLike.getPost()).isEqualTo(post);
+        if (alreadyLiked) {
+            verify(postLikeRepository).deleteByMemberAndPost(getTestMember(), post);
+            verify(postLikeRepository, never()).save(any());
+        } else {
+            ArgumentCaptor<PostLike> postLikeCaptor = ArgumentCaptor.forClass(PostLike.class);
+            verify(postLikeRepository).save(postLikeCaptor.capture());
+            PostLike savedPostLike = postLikeCaptor.getValue();
+            assertThat(savedPostLike.getMember()).isEqualTo(getTestMember());
+            assertThat(savedPostLike.getPost()).isEqualTo(post);
 
-        verify(postLikeRepository, never()).deleteByMemberAndPost(any(), any());
-    }
-
-    @Test
-    @DisplayName("게시글 추천 - 이미 추천한 경우 (추천 취소)")
-    void shouldRemoveLike_WhenAlreadyLiked() {
-        // Given
-        Long memberId = 1L;
-        Long postId = 123L;
-        Post post = PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getTestMember(), "테스트 게시글", "내용"));
-
-        given(postLikeRepository.existsByPostIdAndMemberId(postId, memberId)).willReturn(true);
-        given(globalMemberQueryAdapter.getReferenceById(memberId)).willReturn(getTestMember());
-        given(globalPostQueryAdapter.findById(postId)).willReturn(post);
-
-        // When
-        postInteractionService.likePost(memberId, postId);
-
-        // Then
-        verify(postLikeRepository).existsByPostIdAndMemberId(postId, memberId);
-        verify(globalMemberQueryAdapter).getReferenceById(memberId);
-        verify(globalPostQueryAdapter).findById(postId);
-        verify(postLikeRepository).deleteByMemberAndPost(getTestMember(), post);
-        verify(postLikeRepository, never()).save(any());
+            verify(postLikeRepository, never()).deleteByMemberAndPost(any(), any());
+        }
     }
 
     @Test
@@ -120,8 +98,8 @@ class PostInteractionServiceTest extends BaseUnitTest {
         Long postId = 999L;
 
         given(postLikeRepository.existsByPostIdAndMemberId(postId, memberId)).willReturn(false);
-        given(globalMemberQueryAdapter.getReferenceById(memberId)).willReturn(getTestMember());
-        given(globalPostQueryAdapter.findById(postId)).willThrow(new CustomException(ErrorCode.POST_NOT_FOUND));
+        given(postToMemberAdapter.getReferenceById(memberId)).willReturn(getTestMember());
+        given(postRepository.findById(postId)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> postInteractionService.likePost(memberId, postId))
@@ -129,8 +107,8 @@ class PostInteractionServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
         verify(postLikeRepository).existsByPostIdAndMemberId(postId, memberId);
-        verify(globalMemberQueryAdapter).getReferenceById(memberId);
-        verify(globalPostQueryAdapter).findById(postId);
+        verify(postToMemberAdapter).getReferenceById(memberId);
+        verify(postRepository).findById(postId);
         verify(postLikeRepository, never()).save(any());
         verify(postLikeRepository, never()).deleteByMemberAndPost(any(), any());
     }

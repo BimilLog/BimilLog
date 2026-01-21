@@ -3,8 +3,7 @@ package jaeik.bimillog.domain.friend.service;
 import jaeik.bimillog.domain.friend.entity.jpa.FriendRequest;
 import jaeik.bimillog.domain.friend.event.FriendEvent;
 import jaeik.bimillog.domain.friend.repository.FriendRequestRepository;
-import jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter;
-import jaeik.bimillog.domain.global.out.GlobalMemberQueryAdapter;
+import jaeik.bimillog.domain.friend.adapter.FriendToMemberAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
@@ -45,8 +44,7 @@ class FriendRequestCommandServiceTest extends BaseUnitTest {
     private static final Long FRIEND_REQUEST_ID = 100L;
 
     @Mock private FriendRequestRepository friendRequestRepository;
-    @Mock private GlobalMemberQueryAdapter globalMemberQueryAdapter;
-    @Mock private GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
+    @Mock private FriendToMemberAdapter friendToMemberAdapter;
     @Mock private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
@@ -73,9 +71,8 @@ class FriendRequestCommandServiceTest extends BaseUnitTest {
     @DisplayName("친구 요청 전송 성공 - 정상적인 요청")
     void shouldSendFriendRequest_WhenValidInput() {
         // Given
-        given(globalMemberQueryAdapter.findById(RECEIVER_ID)).willReturn(Optional.of(receiver));
-        given(globalMemberQueryAdapter.findById(SENDER_ID)).willReturn(Optional.of(sender));
-        doNothing().when(globalMemberBlacklistAdapter).checkMemberBlacklist(SENDER_ID, RECEIVER_ID);
+        given(friendToMemberAdapter.findById(RECEIVER_ID)).willReturn(Optional.of(receiver));
+        given(friendToMemberAdapter.findById(SENDER_ID)).willReturn(Optional.of(sender));
         given(friendRequestRepository.existsBySenderIdAndReceiverId(SENDER_ID, RECEIVER_ID)).willReturn(false);
         given(friendRequestRepository.existsBySenderIdAndReceiverId(RECEIVER_ID, SENDER_ID)).willReturn(false);
         given(friendRequestRepository.save(any(FriendRequest.class))).willReturn(friendRequest);
@@ -108,7 +105,7 @@ class FriendRequestCommandServiceTest extends BaseUnitTest {
     @DisplayName("친구 요청 전송 실패 - 존재하지 않는 수신자")
     void shouldThrowException_WhenReceiverNotFound() {
         // Given
-        given(globalMemberQueryAdapter.findById(RECEIVER_ID)).willReturn(Optional.empty());
+        given(friendToMemberAdapter.findById(RECEIVER_ID)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> friendRequestCommandService.sendFriendRequest(SENDER_ID, RECEIVER_ID))
@@ -119,27 +116,33 @@ class FriendRequestCommandServiceTest extends BaseUnitTest {
     }
 
     @Test
-    @DisplayName("친구 요청 전송 실패 - 블랙리스트 관계")
-    void shouldThrowException_WhenBlacklisted() {
+    @DisplayName("친구 요청 전송 - 블랙리스트 체크 이벤트 발행")
+    void shouldPublishCheckBlacklistEvent_WhenSendingFriendRequest() {
         // Given
-        given(globalMemberQueryAdapter.findById(RECEIVER_ID)).willReturn(Optional.of(receiver));
-        doThrow(new CustomException(ErrorCode.BLACKLIST_MEMBER_PAPER_FORBIDDEN))
-                .when(globalMemberBlacklistAdapter).checkMemberBlacklist(SENDER_ID, RECEIVER_ID);
+        given(friendToMemberAdapter.findById(RECEIVER_ID)).willReturn(Optional.of(receiver));
+        given(friendToMemberAdapter.findById(SENDER_ID)).willReturn(Optional.of(sender));
+        given(friendRequestRepository.existsBySenderIdAndReceiverId(SENDER_ID, RECEIVER_ID)).willReturn(false);
+        given(friendRequestRepository.existsBySenderIdAndReceiverId(RECEIVER_ID, SENDER_ID)).willReturn(false);
+        given(friendRequestRepository.save(any(FriendRequest.class))).willReturn(friendRequest);
 
-        // When & Then
-        assertThatThrownBy(() -> friendRequestCommandService.sendFriendRequest(SENDER_ID, RECEIVER_ID))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.BLACKLIST_MEMBER_PAPER_FORBIDDEN);
+        // When
+        friendRequestCommandService.sendFriendRequest(SENDER_ID, RECEIVER_ID);
 
-        verify(friendRequestRepository, never()).save(any(FriendRequest.class));
+        // Then - CheckBlacklistEvent 발행 확인
+        ArgumentCaptor<Object> eventCaptor = ArgumentCaptor.forClass(Object.class);
+        verify(eventPublisher, atLeastOnce()).publishEvent(eventCaptor.capture());
+
+        boolean foundEvent = eventCaptor.getAllValues().stream()
+                .anyMatch(event -> event instanceof jaeik.bimillog.domain.global.event.CheckBlacklistEvent);
+        assertThat(foundEvent).isTrue();
+        verify(friendRequestRepository, times(1)).save(any(FriendRequest.class));
     }
 
     @Test
     @DisplayName("친구 요청 전송 실패 - 이미 보낸 요청 존재 (sender -> receiver)")
     void shouldThrowException_WhenRequestAlreadySent() {
         // Given
-        given(globalMemberQueryAdapter.findById(RECEIVER_ID)).willReturn(Optional.of(receiver));
-        doNothing().when(globalMemberBlacklistAdapter).checkMemberBlacklist(SENDER_ID, RECEIVER_ID);
+        given(friendToMemberAdapter.findById(RECEIVER_ID)).willReturn(Optional.of(receiver));
         given(friendRequestRepository.existsBySenderIdAndReceiverId(SENDER_ID, RECEIVER_ID)).willReturn(true);
 
         // When & Then
@@ -154,8 +157,7 @@ class FriendRequestCommandServiceTest extends BaseUnitTest {
     @DisplayName("친구 요청 전송 실패 - 이미 받은 요청 존재 (receiver -> sender)")
     void shouldThrowException_WhenReverseRequestExists() {
         // Given
-        given(globalMemberQueryAdapter.findById(RECEIVER_ID)).willReturn(Optional.of(receiver));
-        doNothing().when(globalMemberBlacklistAdapter).checkMemberBlacklist(SENDER_ID, RECEIVER_ID);
+        given(friendToMemberAdapter.findById(RECEIVER_ID)).willReturn(Optional.of(receiver));
         given(friendRequestRepository.existsBySenderIdAndReceiverId(SENDER_ID, RECEIVER_ID)).willReturn(false);
         given(friendRequestRepository.existsBySenderIdAndReceiverId(RECEIVER_ID, SENDER_ID)).willReturn(true);
 

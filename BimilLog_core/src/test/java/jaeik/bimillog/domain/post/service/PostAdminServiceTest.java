@@ -1,18 +1,20 @@
 package jaeik.bimillog.domain.post.service;
 
-import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
+import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.redis.post.RedisTier1PostStoreAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostStoreAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostAdapter;
 import jaeik.bimillog.testutil.BaseUnitTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
@@ -32,13 +34,13 @@ import static org.mockito.Mockito.verify;
 class PostAdminServiceTest extends BaseUnitTest {
 
     @Mock
-    private GlobalPostQueryAdapter globalPostQueryAdapter;
+    private PostRepository postRepository;
 
     @Mock
-    private RedisTier1PostStoreAdapter redisTier1PostStoreAdapter;
+    private RedisSimplePostAdapter redisSimplePostAdapter;
 
     @Mock
-    private RedisTier2PostStoreAdapter redisTier2PostStoreAdapter;
+    private RedisTier2PostAdapter redisTier2PostAdapter;
 
     @Mock
     private Post post;
@@ -51,20 +53,18 @@ class PostAdminServiceTest extends BaseUnitTest {
     void shouldTogglePostNotice_WhenNormalPostToNotice() {
         // Given
         Long postId = 123L;
-        String postTitle = "중요한 공지사항";
 
-        given(globalPostQueryAdapter.findById(postId)).willReturn(post);
-        given(post.getTitle()).willReturn(postTitle);
+        given(postRepository.findById(postId)).willReturn(Optional.of(post));
         given(post.isNotice()).willReturn(false); // 현재 공지 아님
 
         // When
         postAdminService.togglePostNotice(postId);
 
         // Then
-        verify(globalPostQueryAdapter).findById(postId);
+        verify(postRepository).findById(postId);
         verify(post).isNotice(); // 상태 확인 (if문)
         verify(post).setAsNotice();
-        verify(redisTier2PostStoreAdapter).addPostIdToStorage(PostCacheFlag.NOTICE, postId);
+        verify(redisTier2PostAdapter).addPostIdToStorage(PostCacheFlag.NOTICE, postId);
     }
 
     @Test
@@ -73,14 +73,14 @@ class PostAdminServiceTest extends BaseUnitTest {
         // Given
         Long postId = 999L;
 
-        given(globalPostQueryAdapter.findById(postId)).willThrow(new CustomException(ErrorCode.POST_NOT_FOUND));
+        given(postRepository.findById(postId)).willReturn(Optional.empty());
 
         // When & Then
         assertThatThrownBy(() -> postAdminService.togglePostNotice(postId))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
-        verify(globalPostQueryAdapter).findById(postId);
+        verify(postRepository).findById(postId);
         verify(post, never()).isNotice();
         verify(post, never()).setAsNotice();
         verify(post, never()).unsetAsNotice();
@@ -96,7 +96,7 @@ class PostAdminServiceTest extends BaseUnitTest {
         assertThatThrownBy(() -> postAdminService.togglePostNotice(postId))
                 .isInstanceOf(Exception.class);
 
-        verify(globalPostQueryAdapter).findById(postId);
+        verify(postRepository).findById(postId);
         verify(post, never()).isNotice();
         verify(post, never()).setAsNotice();
         verify(post, never()).unsetAsNotice();
@@ -104,24 +104,23 @@ class PostAdminServiceTest extends BaseUnitTest {
 
     @Test
     @DisplayName("게시글 공지 토글 - 공지 게시글을 일반 게시글로 해제")
-    void shouldTogglePostNotice_WhenNoticePostToNormal() {
+    void
+    shouldTogglePostNotice_WhenNoticePostToNormal() {
         // Given
         Long postId = 123L;
-        String postTitle = "공지 해제될 게시글";
 
-        given(globalPostQueryAdapter.findById(postId)).willReturn(post);
-        given(post.getTitle()).willReturn(postTitle);
+        given(postRepository.findById(postId)).willReturn(Optional.of(post));
         given(post.isNotice()).willReturn(true); // 현재 공지임
 
         // When
         postAdminService.togglePostNotice(postId);
 
         // Then
-        verify(globalPostQueryAdapter).findById(postId);
+        verify(postRepository).findById(postId);
         verify(post).isNotice(); // 상태 확인 (if문)
         verify(post).unsetAsNotice();
-        verify(redisTier2PostStoreAdapter).removePostIdFromStorage(postId);
-        verify(redisTier1PostStoreAdapter).removePostFromListCache(postId);
+        verify(redisTier2PostAdapter).removePostIdFromStorage(postId);
+        verify(redisSimplePostAdapter).removePostFromCache(PostCacheFlag.NOTICE, postId);
     }
 
 

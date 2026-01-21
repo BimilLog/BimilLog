@@ -2,9 +2,9 @@ package jaeik.bimillog.domain.member.service;
 
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.MemberBlacklist;
-import jaeik.bimillog.domain.member.out.MemberBlacklistQueryRepository;
-import jaeik.bimillog.domain.member.out.MemberBlacklistRepository;
-import jaeik.bimillog.domain.member.out.MemberRepository;
+import jaeik.bimillog.domain.member.repository.MemberBlacklistQueryRepository;
+import jaeik.bimillog.domain.member.repository.MemberBlacklistRepository;
+import jaeik.bimillog.domain.member.repository.MemberRepository;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.testutil.BaseUnitTest;
@@ -12,8 +12,13 @@ import jaeik.bimillog.testutil.fixtures.TestFixtures;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+
+import java.util.stream.Stream;
 
 import java.util.Optional;
 
@@ -102,5 +107,55 @@ class MemberBlacklistServiceTest extends BaseUnitTest {
 
         verify(memberBlacklistRepository, times(1)).findById(BLACKLIST_ID);
         verify(memberBlacklistRepository, never()).deleteById(any());
+    }
+
+    @Test
+    @DisplayName("블랙리스트 체크 - 블랙리스트 관계가 아닌 경우 정상 처리")
+    void shouldCheckMemberBlacklist_WhenNotBlacklisted() {
+        // Given
+        Long memberId = 1L;
+        Long targetMemberId = 2L;
+
+        given(memberBlacklistRepository.existsByRequestMemberIdAndBlackMemberId(memberId, targetMemberId))
+                .willReturn(false);
+        given(memberBlacklistRepository.existsByRequestMemberIdAndBlackMemberId(targetMemberId, memberId))
+                .willReturn(false);
+
+        // When & Then - 예외가 발생하지 않아야 함
+        memberBlacklistService.checkMemberBlacklist(memberId, targetMemberId);
+
+        verify(memberBlacklistRepository, times(1))
+                .existsByRequestMemberIdAndBlackMemberId(memberId, targetMemberId);
+        verify(memberBlacklistRepository, times(1))
+                .existsByRequestMemberIdAndBlackMemberId(targetMemberId, memberId);
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("provideBlacklistScenarios")
+    @DisplayName("블랙리스트 체크 - 양방향 차단 예외 발생")
+    void shouldThrowException_WhenBlacklistExists(String scenario, boolean aBlocksB, boolean bBlocksA) {
+        // Given
+        Long memberId = 1L;
+        Long targetMemberId = 2L;
+
+        given(memberBlacklistRepository.existsByRequestMemberIdAndBlackMemberId(memberId, targetMemberId))
+                .willReturn(aBlocksB);
+        given(memberBlacklistRepository.existsByRequestMemberIdAndBlackMemberId(targetMemberId, memberId))
+                .willReturn(bBlocksA);
+
+        // When & Then
+        assertThatThrownBy(() -> memberBlacklistService.checkMemberBlacklist(memberId, targetMemberId))
+                .isInstanceOf(CustomException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.BLACKLIST_MEMBER_PAPER_FORBIDDEN);
+
+        verify(memberBlacklistRepository).existsByRequestMemberIdAndBlackMemberId(memberId, targetMemberId);
+        verify(memberBlacklistRepository).existsByRequestMemberIdAndBlackMemberId(targetMemberId, memberId);
+    }
+
+    static Stream<Arguments> provideBlacklistScenarios() {
+        return Stream.of(
+                Arguments.of("A가 B를 차단", true, false),
+                Arguments.of("B가 A를 차단", false, true)
+        );
     }
 }

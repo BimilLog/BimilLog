@@ -3,8 +3,8 @@ package jaeik.bimillog.domain.post.controller;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.Post;
 import jaeik.bimillog.domain.post.entity.PostLike;
-import jaeik.bimillog.domain.post.out.PostLikeRepository;
-import jaeik.bimillog.domain.post.out.PostRepository;
+import jaeik.bimillog.domain.post.repository.PostLikeRepository;
+import jaeik.bimillog.domain.post.repository.PostRepository;
 import jaeik.bimillog.testutil.BaseIntegrationTest;
 import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.annotation.IntegrationTest;
@@ -151,8 +151,8 @@ class PostCacheControllerIntegrationTest extends BaseIntegrationTest {
         mockMvc.perform(get("/api/post/realtime"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", notNullValue()))
-                .andExpect(jsonPath("$", isA(List.class)));
+                .andExpect(jsonPath("$.content", notNullValue()))
+                .andExpect(jsonPath("$.content", isA(List.class)));
     }
 
     @Test
@@ -161,8 +161,8 @@ class PostCacheControllerIntegrationTest extends BaseIntegrationTest {
         mockMvc.perform(get("/api/post/weekly"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", notNullValue()))
-                .andExpect(jsonPath("$", isA(List.class)));
+                .andExpect(jsonPath("$.content", notNullValue()))
+                .andExpect(jsonPath("$.content", isA(List.class)));
     }
 
     @Test

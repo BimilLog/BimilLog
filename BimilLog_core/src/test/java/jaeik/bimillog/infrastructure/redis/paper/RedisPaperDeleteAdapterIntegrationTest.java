@@ -5,11 +5,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
+
+import java.util.Arrays;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -102,35 +107,40 @@ class RedisPaperDeleteAdapterIntegrationTest {
         assertThat(finalSize).isZero();
     }
 
-    @Test
-    @DisplayName("정상 케이스 - 여러 회원 순차적으로 제거")
-    void shouldRemoveMultipleMembers_WhenCalledSequentially() {
-        // Given: Redis Sorted Set에 5명의 회원 데이터 설정
-        for (int i = 1; i <= 5; i++) {
+    @ParameterizedTest
+    @CsvSource({
+        "1, '1', 0",           // 1명 전체 제거 (마지막 회원)
+        "5, '1;3;5', 2",       // 5명 중 3명 제거
+        "10, '1;2;3;4;5;6;7;8;9;10', 0"  // 10명 전체 제거
+    })
+    @DisplayName("정상 케이스 - 회원 제거 (다양한 데이터 크기)")
+    void shouldRemoveMembers_VariousScenarios(int totalMembers, String toRemoveStr, int expectedRemaining) {
+        // Given: Redis Sorted Set에 N명의 회원 데이터 설정
+        for (int i = 1; i <= totalMembers; i++) {
             redisTemplate.opsForZSet().add(SCORE_KEY, String.valueOf(i), i * 10.0);
         }
 
         // 초기 크기 확인
         Long initialSize = redisTemplate.opsForZSet().size(SCORE_KEY);
-        assertThat(initialSize).isEqualTo(5);
+        assertThat(initialSize).isEqualTo(totalMembers);
 
-        // When: 회원 1, 3, 5번 제거
-        redisPaperDeleteAdapter.removeMemberIdFromRealtimeScore(1L);
-        redisPaperDeleteAdapter.removeMemberIdFromRealtimeScore(3L);
-        redisPaperDeleteAdapter.removeMemberIdFromRealtimeScore(5L);
+        // When: 지정된 회원들 제거
+        List<Long> toRemove = Arrays.stream(toRemoveStr.split(";"))
+                .map(Long::parseLong)
+                .toList();
 
-        // Then: 3명 제거, 2명 남음
+        for (Long memberId : toRemove) {
+            redisPaperDeleteAdapter.removeMemberIdFromRealtimeScore(memberId);
+        }
+
+        // Then: 예상된 수만큼 남아있음
         Long finalSize = redisTemplate.opsForZSet().size(SCORE_KEY);
-        assertThat(finalSize).isEqualTo(2);
+        assertThat(finalSize).isEqualTo(expectedRemaining);
 
         // 제거된 회원 확인
-        assertThat(redisTemplate.opsForZSet().score(SCORE_KEY, "1")).isNull();
-        assertThat(redisTemplate.opsForZSet().score(SCORE_KEY, "3")).isNull();
-        assertThat(redisTemplate.opsForZSet().score(SCORE_KEY, "5")).isNull();
-
-        // 남아있는 회원 확인
-        assertThat(redisTemplate.opsForZSet().score(SCORE_KEY, "2")).isEqualTo(20.0);
-        assertThat(redisTemplate.opsForZSet().score(SCORE_KEY, "4")).isEqualTo(40.0);
+        for (Long removedId : toRemove) {
+            assertThat(redisTemplate.opsForZSet().score(SCORE_KEY, String.valueOf(removedId))).isNull();
+        }
     }
 
     @Test
@@ -153,39 +163,6 @@ class RedisPaperDeleteAdapterIntegrationTest {
 
         // 회원 2번 남아있음 확인
         assertThat(redisTemplate.opsForZSet().score(SCORE_KEY, "2")).isEqualTo(80.0);
-    }
-
-    @Test
-    @DisplayName("정상 케이스 - 마지막 회원 제거")
-    void shouldRemoveLastMember_WhenOnlyOneMemberExists() {
-        // Given: 회원 1명만 존재
-        redisTemplate.opsForZSet().add(SCORE_KEY, "1", 100.0);
-
-        // When: 마지막 회원 제거
-        redisPaperDeleteAdapter.removeMemberIdFromRealtimeScore(1L);
-
-        // Then: Sorted Set이 비어있음
-        Long finalSize = redisTemplate.opsForZSet().size(SCORE_KEY);
-        assertThat(finalSize).isZero();
-        assertThat(redisTemplate.opsForZSet().score(SCORE_KEY, "1")).isNull();
-    }
-
-    @Test
-    @DisplayName("정상 케이스 - 모든 회원 제거")
-    void shouldRemoveAllMembers_WhenAllMembersRemoved() {
-        // Given: Redis Sorted Set에 10명의 회원 데이터 설정
-        for (int i = 1; i <= 10; i++) {
-            redisTemplate.opsForZSet().add(SCORE_KEY, String.valueOf(i), i * 10.0);
-        }
-
-        // When: 모든 회원 제거
-        for (int i = 1; i <= 10; i++) {
-            redisPaperDeleteAdapter.removeMemberIdFromRealtimeScore((long) i);
-        }
-
-        // Then: Sorted Set이 비어있음
-        Long finalSize = redisTemplate.opsForZSet().size(SCORE_KEY);
-        assertThat(finalSize).isZero();
     }
 
     @Test

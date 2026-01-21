@@ -3,9 +3,9 @@ package jaeik.bimillog.domain.auth.service;
 import jaeik.bimillog.domain.admin.event.MemberBannedEvent;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
 import jaeik.bimillog.domain.auth.entity.BlackList;
-import jaeik.bimillog.domain.auth.out.BlackListRepository;
-import jaeik.bimillog.domain.global.out.GlobalAuthTokenQueryAdapter;
-import jaeik.bimillog.domain.global.out.GlobalJwtAdapter;
+import jaeik.bimillog.domain.auth.adapter.AuthToJwtAdapter;
+import jaeik.bimillog.domain.auth.repository.AuthTokenRepository;
+import jaeik.bimillog.domain.auth.repository.BlackListRepository;
 import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.domain.member.event.MemberWithdrawnEvent;
 import jaeik.bimillog.infrastructure.filter.JwtFilter;
@@ -33,12 +33,12 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class BlacklistService {
-    private final GlobalJwtAdapter globalJwtAdapter;
+    private final AuthToJwtAdapter authToJwtAdapter;
     private final RedisJwtBlacklistAdapter redisJwtBlacklistAdapter;
-    private final GlobalAuthTokenQueryAdapter globalAuthTokenQueryAdapter;
+    private final AuthTokenRepository authTokenRepository;
     private final BlackListRepository blackListRepository;
 
-    private static final Duration DEFAULT_TTL = Duration.ofHours(1);
+    private static final Duration DEFAULT_TTL = Duration.ofDays(30);
 
     /**
      * <h3>JWT 토큰 블랙리스트 검증</h3>
@@ -51,7 +51,7 @@ public class BlacklistService {
      */
     public boolean isBlacklisted(String token) {
         try {
-            String tokenHash = globalJwtAdapter.generateTokenHash(token);
+            String tokenHash = authToJwtAdapter.generateTokenHash(token);
             boolean isBlacklisted = redisJwtBlacklistAdapter.isBlacklisted(tokenHash);
 
             if (isBlacklisted) {
@@ -75,7 +75,7 @@ public class BlacklistService {
      */
     public void blacklistAllUserTokens(Long memberId) {
         try {
-            List<AuthToken> userAuthTokens = globalAuthTokenQueryAdapter.findAllByMemberId(memberId);
+            List<AuthToken> userAuthTokens = authTokenRepository.findByMemberId(memberId);
 
             if (userAuthTokens.isEmpty()) {
                 log.info("사용자 {}의 활성 토큰을 찾을 수 없음", memberId);
@@ -87,7 +87,7 @@ public class BlacklistService {
                     .filter(token -> token.getRefreshToken() != null && !token.getRefreshToken().isEmpty())
                     .map(token -> {
                         try {
-                            return globalJwtAdapter.generateTokenHash(token.getRefreshToken());
+                            return authToJwtAdapter.generateTokenHash(token.getRefreshToken());
                         } catch (Exception e) {
                             log.warn("토큰 ID {}의 해시 생성 실패: {}", token.getId(), e.getMessage());
                             return null;

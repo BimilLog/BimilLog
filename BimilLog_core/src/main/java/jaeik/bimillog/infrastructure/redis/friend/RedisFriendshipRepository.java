@@ -4,7 +4,9 @@ import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.stereotype.Repository;
 
 import java.nio.charset.StandardCharsets;
@@ -24,6 +26,8 @@ import static jaeik.bimillog.infrastructure.redis.friend.RedisFriendKeys.FRIEND_
 public class RedisFriendshipRepository {
 
     private final RedisTemplate<String, Object> redisTemplate;
+    private static final int FRIEND_SCAN_COUNT = 500;
+    private static final int PIPELINE_BATCH_SIZE = 500;
 
     /**
      * 특정 회원의 친구 목록 조회
@@ -31,17 +35,18 @@ public class RedisFriendshipRepository {
     public Set<Long> getFriends(Long memberId) {
         String key = FRIEND_SHIP_PREFIX + memberId;
         try {
-            Set<Object> friends = redisTemplate.opsForSet().members(key);
-            if (friends == null || friends.isEmpty()) {
-                return new HashSet<>();
-            }
             Set<Long> friendIds = new HashSet<>();
-            for (Object friend : friends) {
-                friendIds.add(Long.valueOf(friend.toString()));
+            try (Cursor<Object> cursor = redisTemplate.opsForSet()
+                    .scan(key, ScanOptions.scanOptions().count(FRIEND_SCAN_COUNT).build())) {
+                while (cursor.hasNext()) {
+                    Object friend = cursor.next();
+                    friendIds.add(Long.valueOf(friend.toString()));
+                }
             }
             return friendIds;
         } catch (Exception e) {
-            throw new CustomException(ErrorCode.FRIEND_REDIS_SHIP_DELETE_ERROR, e);
+            // 조회 실패는 DB fallback으로 처리 (이벤트 발행하지 않음)
+            throw new CustomException(ErrorCode.FRIEND_REDIS_SHIP_QUERY_ERROR, e);
         }
     }
 
@@ -60,38 +65,44 @@ public class RedisFriendshipRepository {
         Map<Long, Set<Long>> resultMap = new HashMap<>();
 
         try {
-            // Pipeline 실행
-            List<Object> results = redisTemplate.executePipelined((RedisConnection connection) -> {
-                for (Long memberId : memberIdList) {
-                    String key = FRIEND_SHIP_PREFIX + memberId;
-                    connection.setCommands().sMembers(key.getBytes(StandardCharsets.UTF_8));
-                }
-                return null;
-            });
+            for (int batchStart = 0; batchStart < memberIdList.size(); batchStart += PIPELINE_BATCH_SIZE) {
+                int batchEnd = Math.min(batchStart + PIPELINE_BATCH_SIZE, memberIdList.size());
+                List<Long> batch = memberIdList.subList(batchStart, batchEnd);
 
-            // 결과 매핑
-            for (int i = 0; i < memberIdList.size(); i++) {
-                Long memberId = memberIdList.get(i);
-                Object result = results.get(i);
-
-                Set<Long> friendIds = new HashSet<>();
-
-                if (result instanceof Set<?> setResult) {
-                    // 내부 멤버를 Object로 안전하게 처리
-                    for (Object member : setResult) {
-                        try {
-                            friendIds.add(Long.valueOf(member.toString()));
-                        } catch (NumberFormatException e) {
-                            System.err.println("[WARN] Redis Set 멤버 Long 변환 실패. MemberId: " + memberId + ", Value: " + member);
-                        }
+                // Pipeline 실행
+                List<Object> results = redisTemplate.executePipelined((RedisConnection connection) -> {
+                    for (Long memberId : batch) {
+                        String key = FRIEND_SHIP_PREFIX + memberId;
+                        connection.setCommands().sMembers(key.getBytes(StandardCharsets.UTF_8));
                     }
-                } else if (result != null) {
-                    System.err.println("[ERROR] Redis 조회 결과 예상 타입 아님: " + result.getClass().getName() + ", MemberId: " + memberId);
+                    return null;
+                });
+
+                // 결과 매핑
+                for (int i = 0; i < batch.size(); i++) {
+                    Long memberId = batch.get(i);
+                    Object result = results.get(i);
+
+                    Set<Long> friendIds = new HashSet<>();
+
+                    if (result instanceof Set<?> setResult) {
+                        // 내부 멤버를 Object로 안전하게 처리
+                        for (Object member : setResult) {
+                            try {
+                                friendIds.add(Long.valueOf(member.toString()));
+                            } catch (NumberFormatException e) {
+                                System.err.println("[WARN] Redis Set 멤버 Long 변환 실패. MemberId: " + memberId + ", Value: " + member);
+                            }
+                        }
+                    } else if (result != null) {
+                        System.err.println("[ERROR] Redis 조회 결과 예상 타입 아님: " + result.getClass().getName() + ", MemberId: " + memberId);
+                    }
+                    resultMap.put(memberId, friendIds);
                 }
-                resultMap.put(memberId, friendIds);
             }
             return resultMap;
         } catch (Exception e) {
+            // 조회 실패는 DB fallback으로 처리 (이벤트 발행하지 않음)
             throw new CustomException(ErrorCode.FRIEND_REDIS_SHIP_QUERY_ERROR, e);
         }
     }
@@ -126,29 +137,29 @@ public class RedisFriendshipRepository {
 
     // 레디스 친구관계 테이블에서 탈퇴한 회원을 삭제한다.
     // 회원탈퇴 상황에서 발생한다.
-    // SCAN 패턴 매칭으로 탈퇴한 회원 데이터 삭제
-    public void deleteWithdrawFriendByScan(Long withdrawFriendId) {
+    // 탈퇴 회원의 친구 목록을 기반으로 타겟 키만 정리한다.
+    public void deleteWithdrawFriendTargeted(Long withdrawFriendId) {
         try {
-            // 1. 탈퇴 회원의 친구 관계 테이블 삭제
+            Set<Long> friendIds = getFriends(withdrawFriendId);
+            if (friendIds != null && !friendIds.isEmpty()) {
+                byte[] withdrawMemberIdBytes = String.valueOf(withdrawFriendId).getBytes(StandardCharsets.UTF_8);
+                List<Long> friendIdList = new ArrayList<>(friendIds);
+                int batchSize = 500;
+                for (int i = 0; i < friendIdList.size(); i += batchSize) {
+                    int end = Math.min(i + batchSize, friendIdList.size());
+                    List<Long> batch = friendIdList.subList(i, end);
+                    redisTemplate.executePipelined((RedisConnection connection) -> {
+                        for (Long friendId : batch) {
+                            String friendKey = FRIEND_SHIP_PREFIX + friendId;
+                            connection.setCommands().sRem(friendKey.getBytes(StandardCharsets.UTF_8), withdrawMemberIdBytes);
+                        }
+                        return null;
+                    });
+                }
+            }
+
             String withdrawKey = FRIEND_SHIP_PREFIX + withdrawFriendId;
             redisTemplate.delete(withdrawKey);
-
-            // 2. SCAN으로 모든 friend 키 조회 후, 탈퇴 회원 데이터 제거
-            String pattern = FRIEND_SHIP_PREFIX + "*";
-            byte[] withdrawMemberIdBytes = String.valueOf(withdrawFriendId).getBytes(StandardCharsets.UTF_8);
-
-            redisTemplate.execute((RedisConnection connection) -> {
-                // SCAN으로 패턴 매칭 키 조회
-                connection.scan(org.springframework.data.redis.core.ScanOptions.scanOptions()
-                        .match(pattern)
-                        .count(100)
-                        .build())
-                        .forEachRemaining(key -> {
-                            // 각 키에서 탈퇴 회원 제거
-                            connection.setCommands().sRem(key, withdrawMemberIdBytes);
-                        });
-                return null;
-            });
         } catch (Exception e) {
             throw new CustomException(ErrorCode.FRIEND_REDIS_SHIP_DELETE_ERROR, e);
         }

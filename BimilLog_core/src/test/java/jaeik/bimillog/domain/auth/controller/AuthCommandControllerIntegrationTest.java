@@ -2,7 +2,7 @@ package jaeik.bimillog.domain.auth.controller;
 
 import jaeik.bimillog.domain.auth.dto.SocialLoginRequestDTO;
 import jaeik.bimillog.domain.auth.entity.AuthToken;
-import jaeik.bimillog.domain.auth.out.AuthTokenRepository;
+import jaeik.bimillog.domain.auth.repository.AuthTokenRepository;
 import jaeik.bimillog.domain.global.entity.CustomUserDetails;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.member.entity.SocialProvider;

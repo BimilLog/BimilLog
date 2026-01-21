@@ -1,15 +1,23 @@
 package jaeik.bimillog.domain.post.service;
 
 
-import jaeik.bimillog.domain.global.out.GlobalMemberBlacklistAdapter;
+import jaeik.bimillog.domain.global.event.CheckBlacklistEvent;
+import jaeik.bimillog.domain.post.adapter.PostToCommentAdapter;
+import jaeik.bimillog.domain.post.adapter.PostToMemberAdapter;
 import jaeik.bimillog.domain.post.controller.PostQueryController;
 import jaeik.bimillog.domain.post.entity.*;
-import jaeik.bimillog.domain.post.out.*;
+import jaeik.bimillog.domain.post.repository.*;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
-import jaeik.bimillog.infrastructure.redis.post.RedisDetailPostStoreAdapter;
+import jaeik.bimillog.infrastructure.log.Log;
+import jaeik.bimillog.infrastructure.redis.post.RedisDetailPostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostAdapter;
+import jaeik.bimillog.infrastructure.resilience.DbFallbackGateway;
+import jaeik.bimillog.infrastructure.resilience.FallbackType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -29,31 +37,20 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Log
 public class PostQueryService {
     private final PostQueryRepository postQueryRepository;
     private final PostLikeRepository postLikeRepository;
-    private final RedisDetailPostStoreAdapter redisDetailPostStoreAdapter;
+    private final RedisDetailPostAdapter redisDetailPostAdapter;
+    private final RedisTier2PostAdapter redisTier2PostAdapter;
+    private final RedisRealTimePostAdapter redisRealTimePostAdapter;
+    private final PostCacheRefresh postCacheRefresh;
     private final PostRepository postRepository;
     private final PostToCommentAdapter postToCommentAdapter;
-    private final GlobalMemberBlacklistAdapter globalMemberBlacklistAdapter;
+    private final PostToMemberAdapter postToMemberAdapter;
     private final PostSearchRepository postSearchRepository;
-
-    /**
-     * <h3>게시글 엔티티 조회 </h3>
-     *
-     * @param postId 게시글 ID
-     * @return Post 게시글 엔티티
-     */
-    public Optional<Post> findById(Long postId) {
-        return postRepository.findById(postId);
-    }
-
-    /**
-     * <h3>게시글 ID 목록으로 게시글 리스트 반환</h3>
-     */
-    public List<Post> findAllByIds(List<Long> postIds) {
-        return postQueryRepository.findAllByIds(postIds);
-    }
+    private final ApplicationEventPublisher eventPublisher;
+    private final DbFallbackGateway dbFallbackGateway;
 
     /**
      * <h3>게시판 목록 조회</h3>
@@ -63,8 +60,6 @@ public class PostQueryService {
      *
      * @param pageable 페이지 정보 (크기, 페이지 번호, 정렬 기준)
      * @return Page&lt;PostSimpleDetail&gt; 페이지네이션된 게시글 목록
-     * @author Jaeik
-     * @since 2.3.0
      */
     public Page<PostSimpleDetail> getBoard(Pageable pageable, Long memberId) {
         Page<PostSimpleDetail> posts = postQueryRepository.findByPage(pageable, memberId);
@@ -77,63 +72,101 @@ public class PostQueryService {
 
     /**
      * <h3>게시글 상세 조회</h3>
-     * <p>모든 게시글에 대해 Redis 캐시를 우선 확인하고, 캐시 미스 시 DB 조회 후 캐시에 저장합니다.</p>
-     * <p>캐시 히트: 사용자 좋아요 정보만 추가 확인</p>
-     * <p>캐시 미스: DB 조회 → 캐시 저장 → 반환</p>
-     * <p>{@link PostQueryController}에서 게시글 상세 조회 요청 시 호출됩니다.</p>
+     * <p>인기글(2티어 또는 실시간)만 캐시를 사용하고, 일반글은 DB에서 직접 조회합니다.</p>
+     * <p>인기글의 경우 PER(Probabilistic Early Refresh)을 적용하여 캐시 만료 전 갱신합니다.</p>
+     * <p>회원일 경우 블랙리스트 조사 및 좋아요 확인 후 주입하여 반환합니다.</p>
      *
-     * @param postId 게시글 ID
+     * @param postId   게시글 ID
      * @param memberId 현재 로그인한 사용자 ID (추천 여부 확인용, null 허용)
      * @return PostDetail 게시글 상세 정보 (좋아요 수, 댓글 수, 사용자 좋아요 여부 포함)
-     * @author Jaeik
-     * @since 2.0.0
      */
     public PostDetail getPost(Long postId, Long memberId) {
-        try {
-            // 1. 캐시 확인 (Cache-Aside Read)
-            PostDetail cachedPost = redisDetailPostStoreAdapter.getCachedPostIfExists(postId);
-            if (cachedPost != null) {
-                // 비회원 확인
-                if (memberId != null) {
-                    // 블랙리스트 확인
-                    globalMemberBlacklistAdapter.checkMemberBlacklist(memberId, cachedPost.getMemberId());
-                }
-                 // 캐시 히트: 사용자 좋아요 정보만 추가 확인
-                 if (memberId != null) {
-                     boolean isLiked = postLikeRepository.existsByPostIdAndMemberId(postId, memberId);
-                     return cachedPost.withIsLiked(isLiked);
-                 }
-                return cachedPost;
-            }
-        } catch (Exception e) {
-            // 캐시 조회 실패 시 로그만 남기고 DB 조회로 진행
-            log.warn("게시글 {} 캐시 조회 실패, DB 조회로 진행: {}", postId, e.getMessage());
+        PostDetail result;
+
+        // 1. 인기글 여부 확인 (2티어 또는 실시간)
+        boolean isPopularPost = isPopularPost(postId);
+
+        if (isPopularPost) {
+            // 2-1. 인기글: 캐시 조회 → 캐시 미스 시 DB 조회 후 캐시 저장
+            result = getPopularPostDetail(postId);
+        } else {
+            // 2-2. 일반글: DB 직접 조회 (캐시 사용 안함)
+            result = postQueryRepository.findPostDetail(postId, null)
+                    .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
         }
 
-        // 2. 캐시 미스 또는 캐시 조회 실패: DB 조회 후 캐시 저장
-        PostDetail postDetail = postQueryRepository.findPostDetailWithCounts(postId, memberId)
-                .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
-        // 비회원 확인
-        if (memberId != null) {
-            // 블랙리스트 확인
-            globalMemberBlacklistAdapter.checkMemberBlacklist(memberId, postDetail.getMemberId());
+        // 3. 비회원이면 바로 반환
+        if (memberId == null) {
+            return result;
         }
 
-        try {
-            redisDetailPostStoreAdapter.cachePostDetail(postDetail);
-        } catch (Exception e) {
-            // 캐시 저장 실패 시 로그만 남기고 계속 진행
-            log.warn("게시글 {} 캐시 저장 실패: {}", postId, e.getMessage());
-        }
-        return postDetail;
+        // 4. 회원이면 좋아요 여부 확인 및 블랙리스트 체크
+        boolean isLiked = postLikeRepository.existsByPostIdAndMemberId(postId, memberId);
+        result = result.withIsLiked(isLiked);
+        eventPublisher.publishEvent(new CheckBlacklistEvent(memberId, result.getMemberId()));
+        return result;
     }
 
+    /**
+     * <h3>인기글 여부 확인</h3>
+     * <p>2티어(주간/레전드/공지) 또는 실시간 인기글에 포함되어 있는지 확인합니다.</p>
+     *
+     * @param postId 확인할 게시글 ID
+     * @return 인기글이면 true
+     */
+    private boolean isPopularPost(Long postId) {
+        try {
+            // 2티어(주간/레전드/공지) 확인
+            if (redisTier2PostAdapter.isPopularPost(postId)) {
+                return true;
+            }
+            // 실시간 인기글 확인
+            return redisRealTimePostAdapter.isRealtimePopularPost(postId);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * <h3>인기글 상세 조회 (캐시 사용)</h3>
+     * <p>상세 캐시에서 조회하고, 캐시 미스 시 DB 조회 후 캐시 저장합니다.</p>
+     * <p>캐시 히트 시 PER 조건을 확인하여 만료 임박 시 비동기 갱신을 트리거합니다.</p>
+     *
+     * @param postId 게시글 ID
+     * @return PostDetail 게시글 상세 정보
+     */
+    private PostDetail getPopularPostDetail(Long postId) {
+        PostDetail result = null;
+
+        // 1. 상세 캐시 조회
+        result = redisDetailPostAdapter.getCachedPostIfExists(postId);
+
+
+        // 2. 캐시 히트 시 PER 체크
+        if (result != null) {
+                if (redisDetailPostAdapter.shouldRefresh(postId)) {
+                    postCacheRefresh.asyncRefreshDetailPost(postId);
+                }
+            return result;
+        }
+
+        // 3. 캐시 미스: DB 조회 후 캐시 저장 (Bulkhead + Circuit Breaker 적용)
+        result = dbFallbackGateway.executeDetail(
+                FallbackType.DETAIL,
+                postId,
+                () -> postQueryRepository.findPostDetail(postId, null)
+        ).orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+
+            redisDetailPostAdapter.saveCachePost(result);
+
+        return result;
+    }
 
     /**
      * <h3>사용자 작성, 추천 글 목록 조회</h3>
      * <p>특정 사용자가 작성, 추천한 글 목록을 페이지네이션으로 조회합니다.</p>
      *
-     * @param memberId   사용자 ID
+     * @param memberId 사용자 ID
      * @param pageable 페이지 정보
      * @return MemberActivityPost 마이페이지 글 정보
      */
@@ -185,6 +218,23 @@ public class PostQueryService {
     }
 
     /**
+     * <h3>게시글 엔티티 조회 </h3>
+     *
+     * @param postId 게시글 ID
+     * @return Post 게시글 엔티티
+     */
+    public Optional<Post> findById(Long postId) {
+        return postRepository.findById(postId);
+    }
+
+    /**
+     * <h3>게시글 ID 목록으로 게시글 리스트 반환</h3>
+     */
+    public List<Post> findAllByIds(List<Long> postIds) {
+        return postQueryRepository.findAllByIds(postIds);
+    }
+
+    /**
      * <h3>게시글 목록에 댓글 수 주입</h3>
      * <p>게시글 목록의 댓글 수를 배치로 조회하여 주입합니다.</p>
      * <p>좋아요 수는 PostQueryHelper에서 이미 처리되므로, 여기서는 댓글 수만 처리합니다.</p>
@@ -215,7 +265,7 @@ public class PostQueryService {
             return posts;
         }
 
-        List<Long> blacklistIds = globalMemberBlacklistAdapter.getInterActionBlacklist(memberId);
+        List<Long> blacklistIds = postToMemberAdapter.getInterActionBlacklist(memberId);
         Set<Long> blacklistSet = new HashSet<>(blacklistIds);
         return posts.stream().filter(post -> !blacklistSet.contains(post.getMemberId())).collect(Collectors.toList());
     }

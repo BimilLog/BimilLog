@@ -4,10 +4,10 @@ package jaeik.bimillog.domain.admin.service;
 import jaeik.bimillog.domain.admin.dto.ReportDTO;
 import jaeik.bimillog.domain.admin.entity.Report;
 import jaeik.bimillog.domain.admin.entity.ReportType;
-import jaeik.bimillog.domain.admin.out.AdminQueryRepository;
-import jaeik.bimillog.domain.admin.out.AdminToCommentAdapter;
+import jaeik.bimillog.domain.admin.repository.AdminQueryRepository;
+import jaeik.bimillog.domain.admin.adapter.AdminToCommentAdapter;
+import jaeik.bimillog.domain.admin.adapter.AdminToPostAdapter;
 import jaeik.bimillog.domain.comment.entity.Comment;
-import jaeik.bimillog.domain.global.out.GlobalPostQueryAdapter;
 import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.domain.post.entity.Post;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AdminQueryService {
     private final AdminQueryRepository adminQueryRepository;
-    private final GlobalPostQueryAdapter globalPostQueryAdapter;
+    private final AdminToPostAdapter adminToPostAdapter;
     private final AdminToCommentAdapter adminToCommentAdapter;
 
     /**
@@ -59,7 +59,7 @@ public class AdminQueryService {
                 .filter(r -> r.getReportType() == ReportType.COMMENT)
                 .map(Report::getTargetId).toList();
 
-        List<Post> posts = globalPostQueryAdapter.findAllByIds(postIds);
+        List<Post> posts = adminToPostAdapter.findAllByIds(postIds);
         List<Comment> comments = adminToCommentAdapter.findAllByIds(commentIds);
 
         Map<Long, Member> postMaps = posts.stream().collect(Collectors.toMap(
