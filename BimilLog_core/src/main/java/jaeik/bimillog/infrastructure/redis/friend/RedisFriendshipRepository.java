@@ -24,7 +24,6 @@ import static jaeik.bimillog.infrastructure.redis.friend.RedisFriendKeys.FRIEND_
 @Repository
 @RequiredArgsConstructor
 public class RedisFriendshipRepository {
-
     private final RedisTemplate<String, Long> redisTemplate;
     private static final int PIPELINE_BATCH_SIZE = 1000;
     private static final int SECOND_DEGREE_SAMPLE_SIZE = 100;

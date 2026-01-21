@@ -205,7 +205,7 @@ public class FriendRecommendPerformanceTest {
         Long sampleMemberId = friendships.getFirst().getMember().getId();
         Awaitility.await()
                 .atMost(SEED_TIMEOUT)
-                .untilAsserted(() -> assertThat(redisFriendshipRepository.getFriends(sampleMemberId)).isNotEmpty());
+                .untilAsserted(() -> assertThat(redisFriendshipRepository.getFriends(sampleMemberId, 200)).isNotEmpty());
     }
 
     private void seedInteractionScores(List<Friendship> friendships) {
@@ -215,7 +215,7 @@ public class FriendRecommendPerformanceTest {
         ));
 
         Long sampleMemberId = friendships.getFirst().getMember().getId();
-        Set<Long> sampleTargets = redisFriendshipRepository.getFriends(sampleMemberId);
+        Set<Long> sampleTargets = redisFriendshipRepository.getFriends(sampleMemberId, 200);
 
         if (!sampleTargets.isEmpty()) {
             Awaitility.await()
