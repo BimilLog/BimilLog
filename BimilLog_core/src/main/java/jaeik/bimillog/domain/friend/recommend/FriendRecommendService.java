@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class FriendRecommendService {
-
     private final RedisFriendshipRepository redisFriendshipRepository;
     private final RedisInteractionScoreRepository redisInteractionScoreRepository;
     private final MemberQueryRepository memberQueryRepository;
@@ -108,10 +107,6 @@ public class FriendRecommendService {
     }
 
     private void fillAndFilter(Long memberId, Set<Long> myFriends, List<RecommendCandidate> candidates) {
-        // 블랙리스트 제거
-        Set<Long> blacklist = memberBlacklistRepository.findBlacklistIdsByRequestMemberId(memberId);
-        candidates.removeIf(c -> blacklist.contains(c.getMemberId()));
-
         // 부족하면 최근 가입자 or 상호작용 점수 높은 사람으로 채우기
         if (candidates.size() < RECOMMEND_LIMIT) {
             Set<Long> excludeIds = new HashSet<>(myFriends);
@@ -139,6 +134,10 @@ public class FriendRecommendService {
                 newMembers.forEach(id -> candidates.add(RecommendCandidate.of(id, 0)));
             }
         }
+
+        // 블랙리스트 제거 (마지막에 처리)
+        Set<Long> blacklist = memberBlacklistRepository.findBlacklistIdsByRequestMemberId(memberId);
+        candidates.removeIf(c -> blacklist.contains(c.getMemberId()));
     }
 
     private Page<RecommendedFriend> toResponsePage(List<RecommendCandidate> candidates, Pageable pageable) {
