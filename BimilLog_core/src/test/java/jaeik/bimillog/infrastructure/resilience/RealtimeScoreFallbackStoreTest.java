@@ -55,7 +55,7 @@ class RealtimeScoreFallbackStoreTest {
         fallbackStore.incrementScore(postId, 4.0);
 
         // Then: 상위 1개 조회하면 해당 postId가 있어야 함
-        List<Long> topIds = fallbackStore.getTopPostIds(1);
+        List<Long> topIds = fallbackStore.getTopPostIds(0, 1);
         assertThat(topIds).containsExactly(postId);
     }
 
@@ -70,7 +70,7 @@ class RealtimeScoreFallbackStoreTest {
         fallbackStore.incrementScore(5L, 25.0);
 
         // When
-        List<Long> topIds = fallbackStore.getTopPostIds(5);
+        List<Long> topIds = fallbackStore.getTopPostIds(0, 5);
 
         // Then: 점수 내림차순으로 정렬 (30, 25, 20, 10, 5)
         assertThat(topIds).containsExactly(2L, 5L, 3L, 1L, 4L);
@@ -85,7 +85,7 @@ class RealtimeScoreFallbackStoreTest {
         fallbackStore.incrementScore(3L, 15.0);
 
         // When: 5개 요청
-        List<Long> topIds = fallbackStore.getTopPostIds(5);
+        List<Long> topIds = fallbackStore.getTopPostIds(0, 5);
 
         // Then: 3개만 반환
         assertThat(topIds).hasSize(3);
@@ -96,7 +96,7 @@ class RealtimeScoreFallbackStoreTest {
     @DisplayName("빈 저장소 조회 - 빈 리스트 반환")
     void shouldReturnEmptyList_WhenStoreIsEmpty() {
         // When
-        List<Long> topIds = fallbackStore.getTopPostIds(10);
+        List<Long> topIds = fallbackStore.getTopPostIds(0, 10);
 
         // Then
         assertThat(topIds).isEmpty();
@@ -114,7 +114,7 @@ class RealtimeScoreFallbackStoreTest {
         fallbackStore.incrementScore(3L, -5.0);  // 3L의 합계는 0
 
         // When
-        List<Long> topIds = fallbackStore.getTopPostIds(10);
+        List<Long> topIds = fallbackStore.getTopPostIds(0, 10);
 
         // Then: 양수 점수만 반환
         assertThat(topIds).containsExactly(1L);
@@ -134,7 +134,7 @@ class RealtimeScoreFallbackStoreTest {
         // Then
         assertThat(fallbackStore.size()).isZero();
         assertThat(fallbackStore.hasData()).isFalse();
-        assertThat(fallbackStore.getTopPostIds(10)).isEmpty();
+        assertThat(fallbackStore.getTopPostIds(0, 10)).isEmpty();
     }
 
     @Test
@@ -162,7 +162,7 @@ class RealtimeScoreFallbackStoreTest {
         executor.shutdown();
 
         // Then: 모든 점수가 누적되어야 함
-        List<Long> topIds = fallbackStore.getTopPostIds(1);
+        List<Long> topIds = fallbackStore.getTopPostIds(0, 1);
         assertThat(topIds).containsExactly(postId);
         assertThat(fallbackStore.size()).isEqualTo(1);
     }
@@ -194,7 +194,7 @@ class RealtimeScoreFallbackStoreTest {
         assertThat(fallbackStore.size()).isEqualTo(10);
 
         // 각 게시글당 10회씩 증가 (100 / 10 = 10)
-        List<Long> topIds = fallbackStore.getTopPostIds(10);
+        List<Long> topIds = fallbackStore.getTopPostIds(0, 10);
         assertThat(topIds).hasSize(10);
     }
 }
