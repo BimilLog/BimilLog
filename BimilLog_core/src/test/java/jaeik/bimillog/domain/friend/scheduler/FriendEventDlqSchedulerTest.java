@@ -1,7 +1,6 @@
 package jaeik.bimillog.domain.friend.scheduler;
 
-import jaeik.bimillog.domain.friend.entity.FriendEventDlq;
-import jaeik.bimillog.domain.friend.entity.FriendEventType;
+import jaeik.bimillog.domain.friend.entity.jpa.FriendEventDlq;
 import jaeik.bimillog.domain.friend.repository.FriendEventDlqRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -13,7 +12,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthEndpoint;
-import org.springframework.boot.actuate.health.Status;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SetOperations;
@@ -21,7 +19,6 @@ import org.springframework.data.redis.core.HashOperations;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;

@@ -1,5 +1,6 @@
-package jaeik.bimillog.domain.friend.entity;
+package jaeik.bimillog.domain.friend.entity.jpa;
 
+import jaeik.bimillog.domain.friend.entity.FriendEventType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;

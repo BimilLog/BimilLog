@@ -35,8 +35,6 @@ public class PostCacheRefresh {
     private final PostQueryRepository postQueryRepository;
     private final RedisSimplePostAdapter redisSimplePostAdapter;
     private final RedisDetailPostAdapter redisDetailPostAdapter;
-    private final RedisTier2PostAdapter redisTier2PostAdapter;
-    private final RedisRealTimePostAdapter redisRealTimePostAdapter;
 
     /**
      * <h3>타입별 전체 Hash 캐시 비동기 갱신 (PER 기반)</h3>

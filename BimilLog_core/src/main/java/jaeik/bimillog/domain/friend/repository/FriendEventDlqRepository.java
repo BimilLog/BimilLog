@@ -1,7 +1,7 @@
 package jaeik.bimillog.domain.friend.repository;
 
-import jaeik.bimillog.domain.friend.entity.FriendEventDlq;
-import jaeik.bimillog.domain.friend.entity.FriendEventDlq.DlqStatus;
+import jaeik.bimillog.domain.friend.entity.jpa.FriendEventDlq;
+import jaeik.bimillog.domain.friend.entity.jpa.FriendEventDlq.DlqStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

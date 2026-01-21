@@ -23,9 +23,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * <h2>친구 추천 서비스 (최적화 버전)</h2>
- * <p>Redis Pipelining 및 Lazy Loading을 적용하여 성능을 개선했습니다.</p>
- * <p>FriendRelation.CandidateInfo 내부 클래스를 활용하여 타입 안전성을 향상시켰습니다.</p>
+ * <h2>친구 추천 서비스</h2>
  *
  * @author Jaeik
  * @version 2.2.0
