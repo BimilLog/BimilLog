@@ -76,30 +76,13 @@ public class RedisSimplePostAdapter {
         String hashKey = getSimplePostHashKey(type);
         long ttl = redisTemplate.getExpire(hashKey, TimeUnit.SECONDS);
 
-        if (ttl < 0) {
-            return false; // 키가 없거나 TTL이 없음
-        }
-
-        return shouldRefresh(ttl);
-    }
-
-    /**
-     * <h3>PER 기반 갱신 필요 여부 판단</h3>
-     * <p>TTL 마지막 60초 동안 확률적으로 true를 반환합니다.</p>
-     *
-     * @param ttlSeconds 남은 TTL (초)
-     * @return 갱신이 필요하면 true
-     */
-    private boolean shouldRefresh(long ttlSeconds) {
-        if (ttlSeconds <= 0) {
-            return true;
-        }
-        if (ttlSeconds < PER_EXPIRY_GAP_SECONDS) {
+        if (ttl < PER_EXPIRY_GAP_SECONDS) {
             double randomFactor = ThreadLocalRandom.current().nextDouble();
-            return ttlSeconds - (randomFactor * PER_EXPIRY_GAP_SECONDS) <= 0;
+            return ttl - (randomFactor * PER_EXPIRY_GAP_SECONDS) <= 0;
         }
         return false;
     }
+
 
     /**
      * <h3>여러 게시글 Hash 캐시 저장 (HMSET 1회)</h3>

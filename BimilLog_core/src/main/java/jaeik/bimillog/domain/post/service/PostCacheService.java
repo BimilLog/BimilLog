@@ -1,5 +1,7 @@
 package jaeik.bimillog.domain.post.service;
 
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
@@ -39,7 +41,12 @@ public class PostCacheService {
     private final RedisRealTimePostAdapter redisRealTimePostAdapter;
     private final PostCacheRefresh postCacheRefresh;
     private final DbFallbackGateway dbFallbackGateway;
-    private final RealtimeScoreFallbackStore fallbackStore;
+    private final CircuitBreakerRegistry circuitBreakerRegistry;
+
+
+    // 현재 페이지의 전체글은 5로 간주한다 향 후 변경가능
+    private static final long REALTIME_LIMIT = 5;
+
 
     /**
      * <h3>실시간 인기 게시글 조회</h3>
@@ -51,71 +58,30 @@ public class PostCacheService {
      */
     public Page<PostSimpleDetail> getRealtimePosts(Pageable pageable) {
         try {
-            // 1. 총 개수 조회
-            long totalCount = redisRealTimePostAdapter.getRealtimePopularPostCount();
-
-            // Redis가 비어있고 폴백 저장소에 데이터가 있으면 폴백 저장소 사용
-            if (totalCount == 0 && fallbackStore.hasData()) {
-                return getRealtimePostsFromFallbackStore(pageable);
-            }
-
-            if (totalCount == 0) {
-                return new PageImpl<>(List.of(), pageable, 0);
-            }
-
-            // 2. score:realtime에서 페이징된 postId 조회 (순서 포함)
-            List<Long> postIds = redisRealTimePostAdapter
-                    .getRealtimePopularPostIds(pageable.getOffset(), pageable.getPageSize());
+            // 범위 내의 실시간 인기글 postId 조회
+            List<Long> postIds = redisRealTimePostAdapter.getRealtimePopularPostIds(pageable.getOffset(), pageable.getPageSize());
 
             if (postIds.isEmpty()) {
-                return new PageImpl<>(List.of(), pageable, totalCount);
+                return new PageImpl<>(List.of(), pageable, REALTIME_LIMIT);
             }
 
-            // 3. Hash 캐시 조회 + 개수 비교 + PER 처리
-            List<PostSimpleDetail> resultPosts = fetchPostsWithCache(PostCacheFlag.REALTIME, postIds);
+            List<PostSimpleDetail> resultPosts;
 
-            return new PageImpl<>(resultPosts, pageable, totalCount);
+            CircuitBreaker cb = circuitBreakerRegistry.circuitBreaker("realtimeRedis");
+            if (cb.getState() == CircuitBreaker.State.OPEN) {
+                resultPosts = postQueryRepository.findPostSimpleDetailsByIds(postIds);
+            } else {
+                resultPosts = fetchPostsWithCache(PostCacheFlag.REALTIME, postIds);
+            }
+
+            return new PageImpl<>(resultPosts, pageable, REALTIME_LIMIT);
         } catch (Exception e) {
-            log.warn("[REDIS_FALLBACK] 실시간 인기글 Redis 장애: {}", e.getMessage());
-
-            // 폴백 순서: ConcurrentHashMap → DB
-            if (fallbackStore.hasData()) {
-                return getRealtimePostsFromFallbackStore(pageable);
-            }
+            log.warn("[REDIS_FALLBACK] 실시간 인기글 Redis 장애 및 메모리 스토어 장애: {}", e.getMessage());
 
             // DB 폴백
             return dbFallbackGateway.execute(FallbackType.REALTIME, pageable,
                     () -> postQueryRepository.findRecentPopularPosts(pageable));
         }
-    }
-
-    /**
-     * <h3>폴백 저장소에서 실시간 인기글 조회</h3>
-     * <p>ConcurrentHashMap에 저장된 점수를 기반으로 게시글을 조회합니다.</p>
-     *
-     * @param pageable 페이지 정보
-     * @return 폴백 저장소 기반 실시간 인기 게시글 페이지
-     */
-    private Page<PostSimpleDetail> getRealtimePostsFromFallbackStore(Pageable pageable) {
-        int totalSize = fallbackStore.size();
-
-        // 페이징된 postId 목록 조회
-        List<Long> topPostIds = fallbackStore.getTopPostIds(
-                (int) pageable.getOffset() + pageable.getPageSize());
-
-        int start = (int) pageable.getOffset();
-        int end = Math.min(start + pageable.getPageSize(), topPostIds.size());
-
-        if (start >= topPostIds.size()) {
-            return new PageImpl<>(List.of(), pageable, totalSize);
-        }
-
-        List<Long> pagedPostIds = topPostIds.subList(start, end);
-
-        // DB에서 게시글 조회
-        List<PostSimpleDetail> posts = postQueryRepository.findPostSimpleDetailsByIds(pagedPostIds);
-
-        return new PageImpl<>(posts, pageable, totalSize);
     }
 
     /**
@@ -225,17 +191,22 @@ public class PostCacheService {
      * @return 순서가 유지된 게시글 목록
      */
     private List<PostSimpleDetail> fetchPostsWithCache(PostCacheFlag type, List<Long> orderedPostIds) {
-        // 1. HGETALL로 Hash 전체 조회
+
+        // 특정 타입 인기글의 Hash 전체 조회
         Map<Long, PostSimpleDetail> cachedPosts = redisSimplePostAdapter.getAllCachedPosts(type);
 
-        // 2. Tier2 전체 개수 조회
-        int tier2Count = getTier2Count(type);
+        // Tier2 전체 개수 조회
+        long tier2Count = REALTIME_LIMIT;
 
-        // 3. 개수 비교: 불일치 시 캐시 미스 → 락 기반 전체 갱신
+        if (type != PostCacheFlag.REALTIME) {
+            tier2Count = redisTier2PostAdapter.getStoredPostIds(type).size();
+        }
+
+        // 개수 비교: 불일치 시 캐시 미스 → 락 기반 전체 갱신
         if (cachedPosts.size() != tier2Count) {
             postCacheRefresh.asyncRefreshWithLock(type);
         } else {
-            // 4. 개수 일치 시 TTL 기반 PER 처리 (락 없음, 확률 분산)
+            // 개수 일치 시 TTL 기반 PER 처리 (락 없음, 확률 분산)
             if (redisSimplePostAdapter.shouldRefreshHash(type)) {
                 postCacheRefresh.asyncRefreshAllPosts(type);
             }
@@ -243,18 +214,5 @@ public class PostCacheService {
 
         // 5. Tier2 순서대로 결과 반환
         return redisSimplePostAdapter.toOrderedList(orderedPostIds, cachedPosts);
-    }
-
-    /**
-     * <h3>Tier2 전체 개수 조회</h3>
-     *
-     * @param type 캐시 유형
-     * @return Tier2에 저장된 postId 개수
-     */
-    private int getTier2Count(PostCacheFlag type) {
-        if (type == PostCacheFlag.REALTIME) {
-            return (int) redisRealTimePostAdapter.getRealtimePopularPostCount();
-        }
-        return redisTier2PostAdapter.getStoredPostIds(type).size();
     }
 }

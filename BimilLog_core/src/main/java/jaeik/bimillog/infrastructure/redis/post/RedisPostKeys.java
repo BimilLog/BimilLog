@@ -94,30 +94,6 @@ public final class RedisPostKeys {
      */
     public static final double REALTIME_POST_SCORE_THRESHOLD = 1.0;
 
-    // ===================== 5. LUA SCRIPT (Redis 스크립트) =====================
-
-    /**
-     * 실시간 인기글 점수 감쇠를 위한 Lua 스크립트
-     * <p>Redis Sorted Set의 모든 게시글 점수에 SCORE_DECAY_RATE(0.9)를 곱합니다.</p>
-     */
-    public static final RedisScript<Long> SCORE_DECAY_SCRIPT;
-
-    static {
-        String luaScript =
-            "local members = redis.call('ZRANGE', KEYS[1], 0, -1, 'WITHSCORES') " +
-            "for i = 1, #members, 2 do " +
-            "    local member = members[i] " +
-            "    local score = tonumber(members[i + 1]) " +
-            "    local newScore = score * tonumber(ARGV[1]) " +
-            "    redis.call('ZADD', KEYS[1], newScore, member) " +
-            "end " +
-            "return redis.call('ZCARD', KEYS[1])";
-
-        DefaultRedisScript<Long> script = new DefaultRedisScript<>();
-        script.setScriptText(luaScript);
-        script.setResultType(Long.class);
-        SCORE_DECAY_SCRIPT = script;
-    }
 
     // ===================== 6. KEY GENERATION METHODS (키 생성 유틸리티) =====================
 

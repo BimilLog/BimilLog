@@ -37,21 +37,24 @@ public class RealtimeScoreFallbackStore {
     }
 
     /**
-     * <h3>상위 N개 postId 조회</h3>
-     * <p>점수 내림차순으로 상위 N개의 게시글 ID를 반환합니다.</p>
+     * <h3>특정 범위 내 postId 조회</h3>
+     * <p>점수 내림차순으로 특정 범위 내 게시글 ID를 반환합니다.</p>
      *
-     * @param limit 조회할 최대 개수
+     * @param start 시작지점
+     * @param end 조회 개수
      * @return 점수 내림차순 정렬된 게시글 ID 목록
      */
-    public List<Long> getTopPostIds(int limit) {
+    public List<Long> getTopPostIds(long start, long end) {
         return scoreMap.entrySet().stream()
                 .filter(e -> e.getValue().sum() > 0)
                 .sorted(Map.Entry.<Long, DoubleAdder>comparingByValue(
                         Comparator.comparingDouble(DoubleAdder::sum)).reversed())
-                .limit(limit)
+                .skip(start)
+                .limit(end)
                 .map(Map.Entry::getKey)
                 .toList();
     }
+
 
     /**
      * <h3>저장된 게시글 개수 조회</h3>

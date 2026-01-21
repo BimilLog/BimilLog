@@ -2,16 +2,15 @@ package jaeik.bimillog.infrastructure.redis.post;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
-import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
 import jaeik.bimillog.infrastructure.resilience.RealtimeScoreFallbackStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.data.redis.core.script.RedisScript;
 import org.springframework.stereotype.Component;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.*;
 
@@ -28,43 +27,31 @@ import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.*;
 public class RedisRealTimePostAdapter {
     private static final String REALTIME_SCORE_KEY = getScoreStorageKey(PostCacheFlag.REALTIME);
 
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final RedisTemplate<String, Long> redisTemplate;
     private final RealtimeScoreFallbackStore fallbackStore;
 
     /**
-     * <h3>페이징된 글 ID 목록 조회</h3>
-     * <p>Redis Sorted Set에서 점수가 높은 게시글 ID를 페이징하여 조회합니다.</p>
+     * <h3>실시간 인기글 조회</h3>
+     * <p>실시간 인기글 에서 점수가 높은 게시글 ID순서대로 조회합니다.</p>
      *
-     * @param offset 시작 위치
-     * @param limit 조회 개수
-     * @return List<Long> 페이징된 게시글 ID 목록 (점수 내림차순)
+     * @param start 시작 위치
+     * @param end 조회 개수
+     * @return List<Long> 게시글 ID 목록 (점수 내림차순)
      */
-    public List<Long> getRealtimePopularPostIds(long offset, long limit) {
-        Set<Object> postIds = redisTemplate.opsForZSet()
-                .reverseRange(REALTIME_SCORE_KEY, offset, offset + limit - 1);
-        if (postIds == null || postIds.isEmpty()) {
-            CacheMetricsLogger.miss(log, "post:realtime:paged", REALTIME_SCORE_KEY, "sorted_set_empty");
-            return Collections.emptyList();
-        }
-
-        List<Long> ids = postIds.stream()
-                .map(Object::toString)
-                .map(Long::valueOf)
-                .toList();
-
-        CacheMetricsLogger.hit(log, "post:realtime:paged", REALTIME_SCORE_KEY, ids.size());
-        return ids;
+    @CircuitBreaker(name = "realtimeRedis", fallbackMethod = "getRealtimePopularPostIdsFallback")
+    public List<Long> getRealtimePopularPostIds(long start, long end) {
+        Set<Long> set = redisTemplate.opsForZSet().reverseRange(REALTIME_SCORE_KEY, start, start + end - 1);
+        return new ArrayList<>(Optional.ofNullable(set).orElseGet(Collections::emptySet));
     }
 
     /**
-     * <h3>실시간 인기글 총 개수 조회</h3>
-     * <p>Redis Sorted Set에 저장된 실시간 인기글의 총 개수를 조회합니다.</p>
-     *
-     * @return 실시간 인기글 총 개수
+     * <h3>실시간 인기글 조회 폴백</h3>
+     * <p>실시간과 점수 증가와 같은 서킷을 공유한다.</p>
+     * <p>폴백시 메모리에서 실시간 인기글을 조회한다.</p>
      */
-    public long getRealtimePopularPostCount() {
-        Long count = redisTemplate.opsForZSet().zCard(REALTIME_SCORE_KEY);
-        return count != null ? count : 0;
+    private List<Long> getRealtimePopularPostIdsFallback(long start, long end) {
+        log.warn("[CIRCUIT_FALLBACK] 실시간 인기글 조회 실패, 폴백 저장소 사용");
+        return fallbackStore.getTopPostIds(start, end);
     }
 
     /**
@@ -79,7 +66,7 @@ public class RedisRealTimePostAdapter {
         if (postId == null) {
             return false;
         }
-        Double score = redisTemplate.opsForZSet().score(REALTIME_SCORE_KEY, postId.toString());
+        Double score = redisTemplate.opsForZSet().score(REALTIME_SCORE_KEY, postId);
         return score != null;
     }
 
@@ -94,7 +81,7 @@ public class RedisRealTimePostAdapter {
      */
     @CircuitBreaker(name = "realtimeRedis", fallbackMethod = "incrementScoreFallback")
     public void incrementRealtimePopularScore(Long postId, double score) {
-        redisTemplate.opsForZSet().incrementScore(REALTIME_SCORE_KEY, postId.toString(), score);
+        redisTemplate.opsForZSet().incrementScore(REALTIME_SCORE_KEY, postId, score);
     }
 
     /**
@@ -107,9 +94,31 @@ public class RedisRealTimePostAdapter {
      */
     @SuppressWarnings("unused")
     private void incrementScoreFallback(Long postId, double score, Throwable t) {
-        log.warn("[CIRCUIT_FALLBACK] Redis 실패, 폴백 저장소 사용: postId={}, error={}",
-                postId, t.getMessage());
+        log.warn("[CIRCUIT_FALLBACK] Redis 실패, 폴백 저장소 사용: postId={}, error={}", postId, t.getMessage());
         fallbackStore.incrementScore(postId, score);
+    }
+
+    /**
+     * 실시간 인기글 점수 감쇠를 위한 Lua 스크립트
+     * <p>Redis Sorted Set의 모든 게시글 점수에 SCORE_DECAY_RATE(0.9)를 곱합니다.</p>
+     */
+    public static final RedisScript<Long> SCORE_DECAY_SCRIPT;
+
+    static {
+        String luaScript =
+                "local members = redis.call('ZRANGE', KEYS[1], 0, -1, 'WITHSCORES') " +
+                        "for i = 1, #members, 2 do " +
+                        "    local member = members[i] " +
+                        "    local score = tonumber(members[i + 1]) " +
+                        "    local newScore = score * tonumber(ARGV[1]) " +
+                        "    redis.call('ZADD', KEYS[1], newScore, member) " +
+                        "end " +
+                        "return redis.call('ZCARD', KEYS[1])";
+
+        DefaultRedisScript<Long> script = new DefaultRedisScript<>();
+        script.setScriptText(luaScript);
+        script.setResultType(Long.class);
+        SCORE_DECAY_SCRIPT = script;
     }
 
     /**
@@ -137,6 +146,6 @@ public class RedisRealTimePostAdapter {
      * @param postId 제거할 게시글 ID
      */
     public void removePostIdFromRealtimeScore(Long postId) {
-        redisTemplate.opsForZSet().remove(REALTIME_SCORE_KEY, postId.toString());
+        redisTemplate.opsForZSet().remove(REALTIME_SCORE_KEY, postId);
     }
 }
