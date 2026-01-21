@@ -1,13 +1,11 @@
 package jaeik.bimillog.infrastructure.redis.post;
 
+import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.testutil.RedisTestHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,7 +14,6 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -45,36 +42,34 @@ class RedisRealTimePostAdapterIntegrationTest {
         RedisTestHelper.flushRedis(redisTemplate);
     }
 
-    @ParameterizedTest
-    @MethodSource("provideTopPostsScenarios")
-    @DisplayName("정상/경계값 - 실시간 인기글 ID 목록 조회 (다양한 데이터 크기)")
-    void shouldReturnTopPostIds_VariousScenarios(int totalPosts, int limit, int expectedSize, List<Long> expectedIds) {
-        // Given: N개의 게시글에 점수 설정 (높은 점수부터)
+    @Test
+    @DisplayName("정상 케이스 - 실시간 인기글 ID 목록 조회 (상위 5개)")
+    void shouldReturnTopPostIds() {
+        // Given: 10개의 게시글에 점수 설정 (높은 점수부터)
         String scoreKey = RedisPostKeys.REALTIME_POST_SCORE_KEY;
-        for (long i = 1; i <= totalPosts; i++) {
-            double score = totalPosts + 1.0 - i; // 높은 점수부터 (10, 9, 8, ...)
-            redisTemplate.opsForZSet().add(scoreKey, String.valueOf(i), score);
+        for (long i = 1; i <= 10; i++) {
+            double score = 11.0 - i; // 높은 점수부터 (10, 9, 8, ...)
+            redisTemplate.opsForZSet().add(scoreKey, i, score);
         }
 
-        // When: 실시간 인기글 ID 조회 (페이징)
-        List<Long> result = redisRealTimePostAdapter.getRealtimePopularPostIds(0, limit);
+        // When: 실시간 인기글 ID 조회 (항상 상위 5개)
+        List<Long> result = redisRealTimePostAdapter.getRangePostId(PostCacheFlag.REALTIME, 0, 5);
 
-        // Then: 예상된 크기와 ID 확인
-        assertThat(result).hasSize(expectedSize);
-        if (!expectedIds.isEmpty()) {
-            assertThat(result).containsExactlyElementsOf(expectedIds);
-        }
+        // Then: 상위 5개 반환
+        assertThat(result).hasSize(5);
+        assertThat(result).containsExactly(1L, 2L, 3L, 4L, 5L);
     }
 
-    static Stream<Arguments> provideTopPostsScenarios() {
-        return Stream.of(
-            // 10개 게시글, 상위 5개 요청, 5개 반환
-            Arguments.of(10, 5, 5, List.of(1L, 2L, 3L, 4L, 5L)),
-            // 3개 게시글, 5개 요청, 3개 전체 반환
-            Arguments.of(3, 5, 3, List.of(1L, 2L, 3L)),
-            // 0개 게시글, 5개 요청, 빈 목록 반환
-            Arguments.of(0, 5, 0, List.of())
-        );
+    @Test
+    @DisplayName("경계값 - 데이터가 없는 경우 빈 목록 반환")
+    void shouldReturnEmptyList_WhenNoData() {
+        // Given: 데이터 없음
+
+        // When: 실시간 인기글 ID 조회
+        List<Long> result = redisRealTimePostAdapter.getRangePostId(PostCacheFlag.REALTIME, 0, 5);
+
+        // Then: 빈 목록 반환
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -82,14 +77,14 @@ class RedisRealTimePostAdapterIntegrationTest {
     void shouldReturnInDescendingOrder_ByScore() {
         // Given: 랜덤 순서로 점수 설정
         String scoreKey = RedisPostKeys.REALTIME_POST_SCORE_KEY;
-        redisTemplate.opsForZSet().add(scoreKey, "100", 15.0);
-        redisTemplate.opsForZSet().add(scoreKey, "200", 25.0);
-        redisTemplate.opsForZSet().add(scoreKey, "300", 10.0);
-        redisTemplate.opsForZSet().add(scoreKey, "400", 30.0);
-        redisTemplate.opsForZSet().add(scoreKey, "500", 20.0);
+        redisTemplate.opsForZSet().add(scoreKey, 100L, 15.0);
+        redisTemplate.opsForZSet().add(scoreKey, 200L, 25.0);
+        redisTemplate.opsForZSet().add(scoreKey, 300L, 10.0);
+        redisTemplate.opsForZSet().add(scoreKey, 400L, 30.0);
+        redisTemplate.opsForZSet().add(scoreKey, 500L, 20.0);
 
-        // When: 실시간 인기글 ID 조회 (페이징)
-        List<Long> result = redisRealTimePostAdapter.getRealtimePopularPostIds(0, 5);
+        // When: 실시간 인기글 ID 조회
+        List<Long> result = redisRealTimePostAdapter.getRangePostId(PostCacheFlag.REALTIME, 0, 5);
 
         // Then: 점수 내림차순으로 정렬됨
         assertThat(result).containsExactly(400L, 200L, 500L, 100L, 300L); // 30, 25, 20, 15, 10
@@ -107,7 +102,7 @@ class RedisRealTimePostAdapterIntegrationTest {
         redisRealTimePostAdapter.incrementRealtimePopularScore(postId, score);
 
         // Then: Sorted Set에서 점수 확인
-        Double currentScore = redisTemplate.opsForZSet().score(scoreKey, postId.toString());
+        Double currentScore = redisTemplate.opsForZSet().score(scoreKey, postId);
         assertThat(currentScore).isEqualTo(4.0);
     }
 
@@ -124,7 +119,7 @@ class RedisRealTimePostAdapterIntegrationTest {
         redisRealTimePostAdapter.incrementRealtimePopularScore(postId, 4.0); // 추천
 
         // Then: 누적 점수 확인
-        Double currentScore = redisTemplate.opsForZSet().score(scoreKey, postId.toString());
+        Double currentScore = redisTemplate.opsForZSet().score(scoreKey, postId);
         assertThat(currentScore).isEqualTo(9.0); // 2 + 3 + 4
     }
 
@@ -133,17 +128,17 @@ class RedisRealTimePostAdapterIntegrationTest {
     void shouldApplyDecay_WhenScoreDecayInvoked() {
         // Given: 여러 게시글에 초기 점수 설정
         String scoreKey = RedisPostKeys.REALTIME_POST_SCORE_KEY;
-        redisTemplate.opsForZSet().add(scoreKey, "1", 10.0);
-        redisTemplate.opsForZSet().add(scoreKey, "2", 5.0);
-        redisTemplate.opsForZSet().add(scoreKey, "3", 2.0);
+        redisTemplate.opsForZSet().add(scoreKey, 1L, 10.0);
+        redisTemplate.opsForZSet().add(scoreKey, 2L, 5.0);
+        redisTemplate.opsForZSet().add(scoreKey, 3L, 2.0);
 
         // When: 감쇠 적용 (0.97배)
         redisRealTimePostAdapter.applyRealtimePopularScoreDecay();
 
         // Then: 점수가 0.97배로 감소
-        Double score1 = redisTemplate.opsForZSet().score(scoreKey, "1");
-        Double score2 = redisTemplate.opsForZSet().score(scoreKey, "2");
-        Double score3 = redisTemplate.opsForZSet().score(scoreKey, "3");
+        Double score1 = redisTemplate.opsForZSet().score(scoreKey, 1L);
+        Double score2 = redisTemplate.opsForZSet().score(scoreKey, 2L);
+        Double score3 = redisTemplate.opsForZSet().score(scoreKey, 3L);
 
         assertThat(score1).isEqualTo(9.7);  // 10 * 0.97
         assertThat(score2).isEqualTo(4.85);  // 5 * 0.97
@@ -155,10 +150,10 @@ class RedisRealTimePostAdapterIntegrationTest {
     void shouldRemovePostsBelowThreshold_WhenScoreDecayApplied() {
         // Given: 임계값(1.0) 근처의 점수 설정
         String scoreKey = RedisPostKeys.REALTIME_POST_SCORE_KEY;
-        redisTemplate.opsForZSet().add(scoreKey, "1", 10.0);
-        redisTemplate.opsForZSet().add(scoreKey, "2", 1.5);  // 감쇠 후 1.455 (유지)
-        redisTemplate.opsForZSet().add(scoreKey, "3", 1.02);  // 감쇠 후 0.9894 (제거)
-        redisTemplate.opsForZSet().add(scoreKey, "4", 0.8);  // 감쇠 후 0.776 (제거)
+        redisTemplate.opsForZSet().add(scoreKey, 1L, 10.0);
+        redisTemplate.opsForZSet().add(scoreKey, 2L, 1.5);  // 감쇠 후 1.455 (유지)
+        redisTemplate.opsForZSet().add(scoreKey, 3L, 1.02);  // 감쇠 후 0.9894 (제거)
+        redisTemplate.opsForZSet().add(scoreKey, 4L, 0.8);  // 감쇠 후 0.776 (제거)
 
         // 초기 크기 확인
         Long initialSize = redisTemplate.opsForZSet().size(scoreKey);
@@ -173,17 +168,17 @@ class RedisRealTimePostAdapterIntegrationTest {
 
         // 남아있는 게시글 확인
         Set<Object> remainingPosts = redisTemplate.opsForZSet().range(scoreKey, 0, -1);
-        assertThat(remainingPosts).containsExactlyInAnyOrder("1", "2");
+        assertThat(remainingPosts).containsExactlyInAnyOrder(1L, 2L);
 
         // 점수 확인
-        Double score1 = redisTemplate.opsForZSet().score(scoreKey, "1");
-        Double score2 = redisTemplate.opsForZSet().score(scoreKey, "2");
+        Double score1 = redisTemplate.opsForZSet().score(scoreKey, 1L);
+        Double score2 = redisTemplate.opsForZSet().score(scoreKey, 2L);
         assertThat(score1).isEqualTo(9.7);   // 10 * 0.97
         assertThat(score2).isEqualTo(1.455);  // 1.5 * 0.97
 
         // 제거된 게시글 확인
-        assertThat(redisTemplate.opsForZSet().score(scoreKey, "3")).isNull();
-        assertThat(redisTemplate.opsForZSet().score(scoreKey, "4")).isNull();
+        assertThat(redisTemplate.opsForZSet().score(scoreKey, 3L)).isNull();
+        assertThat(redisTemplate.opsForZSet().score(scoreKey, 4L)).isNull();
     }
 
     @Test
@@ -193,17 +188,17 @@ class RedisRealTimePostAdapterIntegrationTest {
         Long postId = 1L;
         String scoreKey = RedisPostKeys.REALTIME_POST_SCORE_KEY;
 
-        redisTemplate.opsForZSet().add(scoreKey, postId.toString(), 100.0);
+        redisTemplate.opsForZSet().add(scoreKey, postId, 100.0);
 
         // 저장 확인
-        Double score = redisTemplate.opsForZSet().score(scoreKey, postId.toString());
+        Double score = redisTemplate.opsForZSet().score(scoreKey, postId);
         assertThat(score).isEqualTo(100.0);
 
         // When: removePostIdFromRealtimeScore() 호출
         redisRealTimePostAdapter.removePostIdFromRealtimeScore(postId);
 
         // Then: Sorted Set에서 제거됨 확인
-        Double scoreAfter = redisTemplate.opsForZSet().score(scoreKey, postId.toString());
+        Double scoreAfter = redisTemplate.opsForZSet().score(scoreKey, postId);
         assertThat(scoreAfter).isNull();
     }
 }

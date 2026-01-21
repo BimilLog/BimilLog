@@ -49,12 +49,12 @@ class RedisTier2PostAdapterIntegrationTest {
         PostCacheFlag type = PostCacheFlag.WEEKLY;
         String postIdsKey = RedisPostKeys.getPostIdsStorageKey(type);
 
-        redisTemplate.opsForZSet().add(postIdsKey, "1", 1.0);
-        redisTemplate.opsForZSet().add(postIdsKey, "2", 2.0);
-        redisTemplate.opsForZSet().add(postIdsKey, "3", 3.0);
+        redisTemplate.opsForZSet().add(postIdsKey, 1L, 1.0);
+        redisTemplate.opsForZSet().add(postIdsKey, 2L, 2.0);
+        redisTemplate.opsForZSet().add(postIdsKey, 3L, 3.0);
 
         // When: ID 목록 조회
-        List<Long> result = redisTier2PostAdapter.getStoredPostIds(type);
+        List<Long> result = redisTier2PostAdapter.getAllPostId(type);
 
         // Then: 순서대로 반환
         assertThat(result).hasSize(3);
@@ -68,7 +68,7 @@ class RedisTier2PostAdapterIntegrationTest {
         PostCacheFlag type = PostCacheFlag.WEEKLY;
 
         // When: ID 목록 조회
-        List<Long> result = redisTier2PostAdapter.getStoredPostIds(type);
+        List<Long> result = redisTier2PostAdapter.getAllPostId(type);
 
         // Then: 빈 리스트 반환
         assertThat(result).isEmpty();

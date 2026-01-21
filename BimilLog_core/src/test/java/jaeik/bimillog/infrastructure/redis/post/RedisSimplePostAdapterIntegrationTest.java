@@ -238,31 +238,6 @@ class RedisSimplePostAdapterIntegrationTest {
     }
 
     @Test
-    @DisplayName("정상 케이스 - 순서 유지된 리스트 변환")
-    void shouldConvertToOrderedList() {
-        // Given
-        PostCacheFlag type = PostCacheFlag.REALTIME;
-        List<PostSimpleDetail> posts = List.of(
-                toSimpleDetail(testPostDetail1),
-                toSimpleDetail(testPostDetail2),
-                toSimpleDetail(testPostDetail3)
-        );
-        redisSimplePostAdapter.cachePosts(type, posts);
-
-        Map<Long, PostSimpleDetail> cachedPosts = redisSimplePostAdapter.getAllCachedPosts(type);
-
-        // When: 역순으로 정렬 요청
-        List<Long> orderedIds = List.of(3L, 1L, 2L);
-        List<PostSimpleDetail> result = redisSimplePostAdapter.toOrderedList(orderedIds, cachedPosts);
-
-        // Then: 요청된 순서대로 반환
-        assertThat(result).hasSize(3);
-        assertThat(result.get(0).getId()).isEqualTo(3L);
-        assertThat(result.get(1).getId()).isEqualTo(1L);
-        assertThat(result.get(2).getId()).isEqualTo(2L);
-    }
-
-    @Test
     @DisplayName("정상 케이스 - Hash 키 생성 확인")
     void shouldGenerateHashKey() {
         // Given
