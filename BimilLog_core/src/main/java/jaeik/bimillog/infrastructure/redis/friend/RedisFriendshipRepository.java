@@ -25,29 +25,17 @@ import static jaeik.bimillog.infrastructure.redis.friend.RedisFriendKeys.FRIEND_
 @RequiredArgsConstructor
 public class RedisFriendshipRepository {
 
-    private final RedisTemplate<String, Object> redisTemplate;
-    private static final int FRIEND_SCAN_COUNT = 500;
+    private final RedisTemplate<String, Long> redisTemplate;
+    private static final int FRIEND_SCAN_COUNT = 200;
     private static final int PIPELINE_BATCH_SIZE = 500;
 
     /**
-     * 특정 회원의 친구 목록 조회
+     * 특정 회원의 1촌 친구 목록 조회
+     * 랜덤 200명 추출
      */
     public Set<Long> getFriends(Long memberId) {
         String key = FRIEND_SHIP_PREFIX + memberId;
-        try {
-            Set<Long> friendIds = new HashSet<>();
-            try (Cursor<Object> cursor = redisTemplate.opsForSet()
-                    .scan(key, ScanOptions.scanOptions().count(FRIEND_SCAN_COUNT).build())) {
-                while (cursor.hasNext()) {
-                    Object friend = cursor.next();
-                    friendIds.add(Long.valueOf(friend.toString()));
-                }
-            }
-            return friendIds;
-        } catch (Exception e) {
-            // 조회 실패는 DB fallback으로 처리 (이벤트 발행하지 않음)
-            throw new CustomException(ErrorCode.FRIEND_REDIS_SHIP_QUERY_ERROR, e);
-        }
+        return redisTemplate.opsForSet().distinctRandomMembers(key, FRIEND_SCAN_COUNT);
     }
 
     /**
@@ -122,7 +110,7 @@ public class RedisFriendshipRepository {
     }
 
     // 레디스 친구관계 테이블에서 서로를 삭제한다.
-    // 친구삭제 상황에서 발생한다.
+// 친구삭제 상황에서 발생한다.
     public void deleteFriend(Long memberId, Long friendId) {
         String key1 = FRIEND_SHIP_PREFIX + memberId;
         String key2 = FRIEND_SHIP_PREFIX + friendId;
@@ -136,8 +124,8 @@ public class RedisFriendshipRepository {
     }
 
     // 레디스 친구관계 테이블에서 탈퇴한 회원을 삭제한다.
-    // 회원탈퇴 상황에서 발생한다.
-    // 탈퇴 회원의 친구 목록을 기반으로 타겟 키만 정리한다.
+// 회원탈퇴 상황에서 발생한다.
+// 탈퇴 회원의 친구 목록을 기반으로 타겟 키만 정리한다.
     public void deleteWithdrawFriendTargeted(Long withdrawFriendId) {
         try {
             Set<Long> friendIds = getFriends(withdrawFriendId);

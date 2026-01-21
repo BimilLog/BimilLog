@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
  *   <li>필요시 3촌까지 확장 탐색</li>
  * </ol>
  *
- *
  * @author Jaeik
  * @version 2.3.0
  */
@@ -38,29 +37,29 @@ public class BreadthFirstSearch {
      * <h3>친구 관계 탐색 (FriendRelation 반환)</h3>
      * <p>1촌 목록을 기반으로 2촌 관계를 탐색하고 FriendRelation 객체로 반환합니다.</p>
      *
-     * @param memberId     본인 회원 ID
-     * @param firstDegree  1촌 ID 집합
+     * @param memberId    본인 회원 ID
+     * @param firstDegree 1촌 ID 집합
      * @return FriendRelation 객체 (2촌 정보 포함)
      */
     public FriendRelation findFriendRelation(Long memberId, Set<Long> firstDegree) {
-        Set<Long> sampledFirstDegree = sampleFirstDegree(firstDegree);
+        Set<Long> sampledFirstDegree = (firstDegree == null) ? new HashSet<>() : firstDegree;
         FriendRelation relation = new FriendRelation(memberId, sampledFirstDegree);
 
-        // 1. 2촌 Map 생성
+        // 2. 2촌 Map 생성
         Map<Long, Set<Long>> secondDegreeMap = findSecondDegreeMap(memberId, sampledFirstDegree);
 
-        // 2. Map을 CandidateInfo로 변환하여 FriendRelation에 추가
+        // 3. Map을 CandidateInfo로 변환하여 FriendRelation에 추가
         for (Map.Entry<Long, Set<Long>> entry : secondDegreeMap.entrySet()) {
-            FriendRelation.CandidateInfo candidate = FriendRelation.CandidateInfo.of(
+            relation.addSecondDegreeCandidate(FriendRelation.CandidateInfo.of(
                     entry.getKey(),
                     entry.getValue()
-            );
-            relation.addSecondDegreeCandidate(candidate);
+            ));
         }
 
         log.debug("2촌 탐색 완료: memberId={}, 2촌 수={}", memberId, relation.getSecondDegreeCandidates().size());
 
         return relation;
+
     }
 
     /**
@@ -95,21 +94,6 @@ public class BreadthFirstSearch {
         return relation;
     }
 
-    private Set<Long> sampleFirstDegree(Set<Long> firstDegree) {
-        if (firstDegree == null || firstDegree.isEmpty()) {
-            return new HashSet<>();
-        }
-        if (firstDegree.size() <= FIRST_DEGREE_SAMPLE_LIMIT) {
-            return firstDegree;
-        }
-
-        // 랜덤 샘플링으로 공정성 확보
-        List<Long> list = new ArrayList<>(firstDegree);
-        Collections.shuffle(list, ThreadLocalRandom.current());
-        return list.stream()
-                .limit(FIRST_DEGREE_SAMPLE_LIMIT)
-                .collect(Collectors.toSet());
-    }
 
     /**
      * <h3>2촌 Map 생성</h3>

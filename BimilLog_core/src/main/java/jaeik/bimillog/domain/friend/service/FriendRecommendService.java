@@ -50,7 +50,6 @@ public class FriendRecommendService {
 
         // 1. Redis에서 1촌 목록 및 블랙리스트 조회
         Set<Long> firstDegree = redisFriendshipRepository.getFriends(memberId);
-        Set<Long> blacklist = getBlacklistIds(memberId);
 
         // 2. BFS로 2촌 관계 탐색 (Redis Pipeline 활용)
         FriendRelation relation = breadthFirstSearch.findFriendRelation(memberId, firstDegree);
@@ -64,6 +63,7 @@ public class FriendRecommendService {
 
         // 4. 후보자 ID 수집 및 블랙리스트 제거
         Set<Long> allCandidateIds = relation.getAllCandidateIds();
+        Set<Long> blacklist = getBlacklistIds(memberId);
         allCandidateIds.removeAll(blacklist);
 
         // 5. Redis Pipeline으로 상호작용 점수 일괄 조회 (좋아요, 댓글 등)
