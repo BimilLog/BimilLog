@@ -89,7 +89,7 @@ public class FriendInteractionListener {
                 event.postId(), event.postAuthorId(), event.likerId(), e);
 
         if (event.postAuthorId() != null && !event.postAuthorId().equals(event.likerId())) {
-            friendEventDlqService.saveScoreUp(event.postAuthorId(), event.likerId(), INTERACTION_SCORE_DEFAULT);
+            friendEventDlqService.saveScoreUp(event.getIdempotencyKey(), event.postAuthorId(), event.likerId(), INTERACTION_SCORE_DEFAULT);
         }
     }
 
@@ -143,7 +143,7 @@ public class FriendInteractionListener {
                 event.postId(), event.postUserId(), event.commenterId(), e);
 
         if (event.commenterId() != null && !event.postUserId().equals(event.commenterId())) {
-            friendEventDlqService.saveScoreUp(event.postUserId(), event.commenterId(), INTERACTION_SCORE_DEFAULT);
+            friendEventDlqService.saveScoreUp(event.getIdempotencyKey(), event.postUserId(), event.commenterId(), INTERACTION_SCORE_DEFAULT);
         }
     }
 
@@ -197,7 +197,7 @@ public class FriendInteractionListener {
                 event.commentId(), event.commentAuthorId(), event.likerId(), e);
 
         if (event.commentAuthorId() != null && !event.commentAuthorId().equals(event.likerId())) {
-            friendEventDlqService.saveScoreUp(event.commentAuthorId(), event.likerId(), INTERACTION_SCORE_DEFAULT);
+            friendEventDlqService.saveScoreUp(event.getIdempotencyKey(), event.commentAuthorId(), event.likerId(), INTERACTION_SCORE_DEFAULT);
         }
     }
 }

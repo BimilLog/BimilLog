@@ -20,8 +20,8 @@ import java.time.LocalDateTime;
 @Table(name = "friend_event_dlq",
         indexes = @Index(name = "idx_dlq_status_created", columnList = "status, created_at"),
         uniqueConstraints = @UniqueConstraint(
-                name = "uk_dlq_pending_event",
-                columnNames = {"type", "member_id", "target_id", "status"}
+                name = "uk_dlq_event_status",
+                columnNames = {"event_id", "status"}
         ))
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -30,6 +30,9 @@ public class FriendEventDlq {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "event_id", nullable = false)
+    private String eventId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -61,7 +64,8 @@ public class FriendEventDlq {
     }
 
     @Builder
-    private FriendEventDlq(FriendEventType type, Long memberId, Long targetId, Double score) {
+    private FriendEventDlq(String eventId, FriendEventType type, Long memberId, Long targetId, Double score) {
+        this.eventId = eventId;
         this.type = type;
         this.memberId = memberId;
         this.targetId = targetId;
@@ -71,24 +75,39 @@ public class FriendEventDlq {
         this.createdAt = LocalDateTime.now();
     }
 
+    /**
+     * 친구 추가 이벤트용 DLQ 엔티티를 생성합니다.
+     * eventId는 deterministic하게 생성되어 동일한 친구 추가 이벤트의 중복 저장을 방지합니다.
+     */
     public static FriendEventDlq createFriendAdd(Long memberId, Long friendId) {
         return FriendEventDlq.builder()
+                .eventId("FRIEND_ADD:" + memberId + ":" + friendId)
                 .type(FriendEventType.FRIEND_ADD)
                 .memberId(memberId)
                 .targetId(friendId)
                 .build();
     }
 
+    /**
+     * 친구 삭제 이벤트용 DLQ 엔티티를 생성합니다.
+     * eventId는 deterministic하게 생성되어 동일한 친구 삭제 이벤트의 중복 저장을 방지합니다.
+     */
     public static FriendEventDlq createFriendRemove(Long memberId, Long friendId) {
         return FriendEventDlq.builder()
+                .eventId("FRIEND_REMOVE:" + memberId + ":" + friendId)
                 .type(FriendEventType.FRIEND_REMOVE)
                 .memberId(memberId)
                 .targetId(friendId)
                 .build();
     }
 
-    public static FriendEventDlq createScoreUp(Long memberId, Long targetId, Double score) {
+    /**
+     * 상호작용 점수 증가 이벤트용 DLQ 엔티티를 생성합니다.
+     * eventId는 호출자가 제공하여 각 이벤트를 개별적으로 추적합니다.
+     */
+    public static FriendEventDlq createScoreUp(String eventId, Long memberId, Long targetId, Double score) {
         return FriendEventDlq.builder()
+                .eventId(eventId)
                 .type(FriendEventType.SCORE_UP)
                 .memberId(memberId)
                 .targetId(targetId)

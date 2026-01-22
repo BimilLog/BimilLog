@@ -150,7 +150,7 @@ class FriendEventDlqSchedulerTest {
                 .build();
         given(healthEndpoint.health()).willReturn(compositeHealth);
 
-        FriendEventDlq event = FriendEventDlq.createScoreUp(1L, 2L, 0.5);
+        FriendEventDlq event = FriendEventDlq.createScoreUp("test-score-event-id", 1L, 2L, 0.5);
         given(repository.findPendingEvents(anyInt())).willReturn(List.of(event));
         given(redisTemplate.executePipelined(any(org.springframework.data.redis.core.RedisCallback.class))).willReturn(Collections.emptyList());
 
@@ -229,7 +229,7 @@ class FriendEventDlqSchedulerTest {
 
         FriendEventDlq addEvent = FriendEventDlq.createFriendAdd(1L, 2L);
         FriendEventDlq removeEvent = FriendEventDlq.createFriendRemove(3L, 4L);
-        FriendEventDlq scoreEvent = FriendEventDlq.createScoreUp(5L, 6L, 0.5);
+        FriendEventDlq scoreEvent = FriendEventDlq.createScoreUp("test-score-event-id-2", 5L, 6L, 0.5);
 
         given(repository.findPendingEvents(anyInt())).willReturn(List.of(addEvent, removeEvent, scoreEvent));
         given(redisTemplate.executePipelined(any(org.springframework.data.redis.core.RedisCallback.class))).willReturn(Collections.emptyList());

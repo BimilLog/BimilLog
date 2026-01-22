@@ -31,7 +31,7 @@ export const RecommendedFriendItem: React.FC<RecommendedFriendItemProps> = ({ fr
             <h3 className="font-medium text-gray-900 truncate">
               {friend.memberName}
             </h3>
-            {friend.depth !== null && (
+            {(friend.depth === 2 || friend.depth === 3) && (
               <Badge
                 color={friend.depth === 2 ? "info" : "gray"}
                 className="text-xs shrink-0"

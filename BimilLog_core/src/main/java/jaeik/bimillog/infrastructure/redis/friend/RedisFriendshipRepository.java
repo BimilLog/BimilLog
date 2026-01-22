@@ -26,8 +26,8 @@ import static jaeik.bimillog.infrastructure.redis.friend.RedisFriendKeys.FRIEND_
 public class RedisFriendshipRepository {
     private final RedisTemplate<String, Long> redisTemplate;
     private static final int PIPELINE_BATCH_SIZE = 1000;
-    private static final int SECOND_DEGREE_SAMPLE_SIZE = 100;
-    private static final int THIRD_DEGREE_SAMPLE_SIZE = 50;
+    private static final int SECOND_DEGREE_SAMPLE_SIZE = 30;
+    private static final int THIRD_DEGREE_SAMPLE_SIZE = 100;
 
     /**
      * 특정 회원의 1촌 친구 목록 조회

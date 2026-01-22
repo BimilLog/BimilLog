@@ -51,7 +51,7 @@ public class FriendRecommendService {
     private final MemberBlacklistRepository memberBlacklistRepository;
 
     // 1촌 조회 시 최대 스캔 수
-    private static final int FIRST_FRIEND_SCAN_LIMIT = 200;
+    private static final int FIRST_FRIEND_SCAN_LIMIT = 50;
 
     // 최종 추천 인원 수
     private static final int RECOMMEND_LIMIT = 10;

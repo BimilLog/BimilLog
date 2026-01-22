@@ -94,7 +94,7 @@ class FriendInteractionListenerRetryTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> verify(friendEventDlqService, times(1))
-                        .saveScoreUp(eq(2L), eq(3L), eq(INTERACTION_SCORE_DEFAULT)));
+                        .saveScoreUp(eq(event.getIdempotencyKey()), eq(2L), eq(3L), eq(INTERACTION_SCORE_DEFAULT)));
     }
 
     @Test
@@ -111,7 +111,7 @@ class FriendInteractionListenerRetryTest {
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
                     verify(redisInteractionScoreRepository, never()).addInteractionScore(anyLong(), anyLong(), anyString());
-                    verify(friendEventDlqService, never()).saveScoreUp(anyLong(), anyLong(), anyDouble());
+                    verify(friendEventDlqService, never()).saveScoreUp(anyString(), anyLong(), anyLong(), anyDouble());
                 });
     }
 
@@ -148,7 +148,7 @@ class FriendInteractionListenerRetryTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> verify(friendEventDlqService, times(1))
-                        .saveScoreUp(eq(1L), eq(2L), eq(INTERACTION_SCORE_DEFAULT)));
+                        .saveScoreUp(eq(event.getIdempotencyKey()), eq(1L), eq(2L), eq(INTERACTION_SCORE_DEFAULT)));
     }
 
     @Test
@@ -165,7 +165,7 @@ class FriendInteractionListenerRetryTest {
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
                     verify(redisInteractionScoreRepository, never()).addInteractionScore(anyLong(), anyLong(), anyString());
-                    verify(friendEventDlqService, never()).saveScoreUp(anyLong(), anyLong(), anyDouble());
+                    verify(friendEventDlqService, never()).saveScoreUp(anyString(), anyLong(), anyLong(), anyDouble());
                 });
     }
 
@@ -202,7 +202,7 @@ class FriendInteractionListenerRetryTest {
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> verify(friendEventDlqService, times(1))
-                        .saveScoreUp(eq(2L), eq(3L), eq(INTERACTION_SCORE_DEFAULT)));
+                        .saveScoreUp(eq(event.getIdempotencyKey()), eq(2L), eq(3L), eq(INTERACTION_SCORE_DEFAULT)));
     }
 
     @Test
@@ -219,7 +219,7 @@ class FriendInteractionListenerRetryTest {
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
                     verify(redisInteractionScoreRepository, never()).addInteractionScore(anyLong(), anyLong(), anyString());
-                    verify(friendEventDlqService, never()).saveScoreUp(anyLong(), anyLong(), anyDouble());
+                    verify(friendEventDlqService, never()).saveScoreUp(anyString(), anyLong(), anyLong(), anyDouble());
                 });
     }
 
@@ -241,7 +241,7 @@ class FriendInteractionListenerRetryTest {
                 .atMost(Duration.ofSeconds(5))
                 .untilAsserted(() -> {
                     verify(redisInteractionScoreRepository, times(3)).addInteractionScore(eq(2L), eq(3L), eq(event.getIdempotencyKey()));
-                    verify(friendEventDlqService, never()).saveScoreUp(anyLong(), anyLong(), anyDouble());
+                    verify(friendEventDlqService, never()).saveScoreUp(anyString(), anyLong(), anyLong(), anyDouble());
                 });
     }
 }

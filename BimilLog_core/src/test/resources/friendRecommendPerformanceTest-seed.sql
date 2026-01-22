@@ -1,7 +1,7 @@
 -- ========================================
 -- 친구 추천 성능 테스트 시드 데이터
 -- 총 회원: 1,000명
--- 평균 친구: 15명/회원
+-- 평균 친구: 300명/회원
 -- 평균 게시글: 1개/회원
 -- 평균 게시글 추천: 1개/회원
 -- 평균 댓글: 5개/회원
@@ -10,10 +10,27 @@
 
 SET FOREIGN_KEY_CHECKS = 0;
 SET autocommit = 0;
+SET SESSION cte_max_recursion_depth = 250000;
 START TRANSACTION;
 
 -- ========================================
--- 1. 시퀀스 테이블 생성 (1~10,000)
+-- 0. 기존 데이터 삭제
+-- ========================================
+TRUNCATE TABLE comment_like;
+TRUNCATE TABLE comment_closure;
+TRUNCATE TABLE comment;
+TRUNCATE TABLE post_like;
+TRUNCATE TABLE post;
+TRUNCATE TABLE member_blacklist;
+TRUNCATE TABLE friendship;
+TRUNCATE TABLE friend_request;
+TRUNCATE TABLE notification;
+TRUNCATE TABLE auth_token;
+TRUNCATE TABLE member;
+TRUNCATE TABLE setting;
+
+-- ========================================
+-- 1. 시퀀스 테이블 생성 (1~200,000)
 -- ========================================
 DROP TABLE IF EXISTS tmp_seq;
 CREATE TABLE tmp_seq (n INT PRIMARY KEY);
@@ -22,7 +39,7 @@ INSERT INTO tmp_seq (n)
 WITH RECURSIVE seq AS (
     SELECT 1 AS n
     UNION ALL
-    SELECT n + 1 FROM seq WHERE n < 10000
+    SELECT n + 1 FROM seq WHERE n < 200000
 )
 SELECT n FROM seq;
 
@@ -56,9 +73,10 @@ FROM tmp_seq
 WHERE n <= 1000;
 
 -- ========================================
--- 4. 친구 관계 생성 (15,000건, 양방향)
+-- 4. 친구 관계 생성 (150,000건, 양방향)
 -- ========================================
--- 각 회원당 평균 15명 친구 (클러스터링 적용)
+-- 각 회원당 평균 300명 친구 (클러스터링 적용)
+-- 1000명 × 300명 / 2 = 150,000 쌍
 INSERT INTO friendship (friendship_id, member_id, friend_id, created_at)
 SELECT
     ROW_NUMBER() OVER () AS id,
@@ -75,13 +93,15 @@ FROM (
       AND t2.n <= 1000
       AND t1.n < t2.n
       AND (
-          -- 클러스터링: 같은 그룹 내 친구 확률 높음 (그룹 크기: 50명)
-          (FLOOR((t1.n - 1) / 50) = FLOOR((t2.n - 1) / 50) AND RAND(t1.n * t2.n) < 0.55)
-          -- 다른 그룹 간 친구 확률 낮음
-          OR (FLOOR((t1.n - 1) / 50) != FLOOR((t2.n - 1) / 50) AND RAND(t1.n + t2.n) < 0.15)
+          -- 클러스터링: 같은 그룹 내 친구 확률 매우 높음 (그룹 크기: 100명)
+          (FLOOR((t1.n - 1) / 100) = FLOOR((t2.n - 1) / 100) AND RAND(t1.n * t2.n) < 0.85)
+          -- 인접 그룹 간 친구 확률 높음
+          OR (ABS(FLOOR((t1.n - 1) / 100) - FLOOR((t2.n - 1) / 100)) = 1 AND RAND(t1.n + t2.n) < 0.50)
+          -- 다른 그룹 간 친구 확률 중간
+          OR (ABS(FLOOR((t1.n - 1) / 100) - FLOOR((t2.n - 1) / 100)) > 1 AND RAND(t1.n + t2.n) < 0.25)
       )
     ORDER BY RAND(54321)
-    LIMIT 15000
+    LIMIT 150000
 ) friendship_data;
 
 -- ========================================
