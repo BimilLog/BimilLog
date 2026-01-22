@@ -38,9 +38,9 @@ public class RecommendCandidate {
     @Builder.Default
     private Set<Long> commonFriends = new HashSet<>();
 
-    // 3촌용 가상 점수 (연결 고리가 되는 2촌의 공통친구 수 기반)
+    // 3촌용 공통친구 점수 (연결 고리가 되는 2촌의 공통친구 수 기반)
     @Builder.Default
-    private double virtualScore = 0.0;
+    private double mutualThreeDegreeScore = 0.0;
 
     // 상호작용 점수 (롤링페이퍼, 좋아요 등 과거 활동 기반)
     @Builder.Default
@@ -91,7 +91,7 @@ public class RecommendCandidate {
      * @param score 연결 고리 2촌의 공통친구 수
      */
     public void addVirtualScore(int score) {
-        this.virtualScore += (score * 0.5);
+        this.mutualThreeDegreeScore += (score * 0.5);
     }
 
     /**
@@ -114,7 +114,7 @@ public class RecommendCandidate {
         double base = (depth == 2) ? 50 : (depth == 3) ? 20 : 0;
         double commonScore = (depth == 2)
                 ? Math.min(commonFriends.size(), 10) * 2
-                : Math.min(virtualScore, 5);
+                : Math.min(mutualThreeDegreeScore, 5);
         double interaction = Math.min(interactionScore, 10.0);
 
         return base + commonScore + interaction;

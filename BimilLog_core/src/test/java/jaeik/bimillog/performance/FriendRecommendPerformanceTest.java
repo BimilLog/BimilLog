@@ -38,7 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * <h2>친구 추천 API 성능 측정 테스트</h2>
  * <p>Hibernate Statistics를 사용하여 쿼리 성능을 측정합니다.</p>
  * <p>시드 데이터: 1,000명 회원, 평균 15명 친구</p>
- * <p>DB: bimillogTest (local-integration 프로파일)</p>
+ * <p>friendRecommendPerformanceTest-seed</p>
  *
  * @author Jaeik
  * @version 2.2.0
@@ -79,7 +79,7 @@ public class FriendRecommendPerformanceTest {
     private RedisTemplate<String, Object> redisTemplate;
 
     private Statistics statistics;
-    private static final int TEST_COUNT = 10;
+    private static final int TEST_COUNT = 100;
 
     private static final Duration SEED_TIMEOUT = Duration.ofSeconds(10);
 
