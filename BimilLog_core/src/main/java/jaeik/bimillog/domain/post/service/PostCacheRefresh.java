@@ -6,17 +6,18 @@ import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.post.RedisDetailPostAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
-import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostAdapter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * <h2>글 캐시 갱신 클래스</h2>
@@ -44,8 +45,18 @@ public class PostCacheRefresh {
      * @param type 캐시 유형
      */
     @Async("cacheRefreshExecutor")
+    @Retryable(
+            retryFor = RedisConnectionFailureException.class,
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 500, multiplier = 1)
+    )
     public void asyncRefreshAllPosts(PostCacheFlag type, List<Long> allPostIds) {
         refreshInternal(type, allPostIds);
+    }
+
+    @Recover
+    public void recoverRefreshAllPosts(RedisConnectionFailureException e, PostCacheFlag type, List<Long> allPostIds) {
+        log.debug("목록 캐시 갱신 스킵: type={}", type);
     }
 
     /**
@@ -56,6 +67,11 @@ public class PostCacheRefresh {
      * @param type 캐시 유형
      */
     @Async("cacheRefreshExecutor")
+    @Retryable(
+            retryFor = RedisConnectionFailureException.class,
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 500, multiplier = 1)
+    )
     public void asyncRefreshWithLock(PostCacheFlag type, List<Long> allPostIds) {
         if (!redisSimplePostAdapter.tryAcquireRefreshLock(type)) {
             return;
@@ -66,6 +82,11 @@ public class PostCacheRefresh {
         } finally {
             redisSimplePostAdapter.releaseRefreshLock(type);
         }
+    }
+
+    @Recover
+    public void recoverRefreshWithLock(RedisConnectionFailureException e, PostCacheFlag type, List<Long> allPostIds) {
+        log.debug("락 기반 캐시 갱신 스킵: type={}", type);
     }
 
     /**
@@ -96,11 +117,21 @@ public class PostCacheRefresh {
      * @param postId 갱신할 게시글 ID
      */
     @Async("cacheRefreshExecutor")
+    @Retryable(
+            retryFor = RedisConnectionFailureException.class,
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 500, multiplier = 1)
+    )
     public void asyncRefreshDetailPost(Long postId) {
-            PostDetail postDetail = postQueryRepository.findPostDetail(postId, null).orElse(null);
-            if (postDetail == null) {
-                return;
-            }
-            redisDetailPostAdapter.saveCachePost(postDetail);
+        PostDetail postDetail = postQueryRepository.findPostDetail(postId, null).orElse(null);
+        if (postDetail == null) {
+            return;
+        }
+        redisDetailPostAdapter.saveCachePost(postDetail);
+    }
+
+    @Recover
+    public void recoverRefreshDetailPost(RedisConnectionFailureException e, Long postId) {
+        log.debug("상세 캐시 갱신 스킵: postId={}", postId);
     }
 }
