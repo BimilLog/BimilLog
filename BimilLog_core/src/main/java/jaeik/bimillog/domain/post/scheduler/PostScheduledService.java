@@ -9,6 +9,7 @@ import jaeik.bimillog.domain.post.adapter.PostToCommentAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostAdapter;
+import jaeik.bimillog.infrastructure.resilience.RealtimeScoreFallbackStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -34,20 +35,28 @@ public class PostScheduledService {
     private final RedisSimplePostAdapter redisSimplePostAdapter;
     private final RedisTier2PostAdapter redisTier2PostAdapter;
     private final RedisRealTimePostAdapter redisRealTimePostAdapter;
+    private final RealtimeScoreFallbackStore realtimeScoreFallbackStore;
     private final ApplicationEventPublisher eventPublisher;
     private final PostQueryRepository postQueryRepository;
     private final PostToCommentAdapter postToCommentAdapter;
 
     /**
      * <h3>실시간 인기 게시글 점수 지수감쇠 적용</h3>
-     * <p>스프링 스케줄러를 통해 5분마다 실시간 인기글 점수에 0.97를 곱하고, 1점 이하 게시글을 제거합니다.</p>
+     * <p>스프링 스케줄러를 통해 10분마다 실시간 인기글 점수에 0.9를 곱하고, 1점 이하 게시글을 제거합니다.</p>
+     * <p>Redis와 Caffeine 폴백 저장소 모두에 감쇠를 적용합니다.</p>
      */
     @Scheduled(fixedRate = 60000 * 10) // 10분마다
     public void applyRealtimeScoreDecay() {
         try {
             redisRealTimePostAdapter.applyRealtimePopularScoreDecay();
         } catch (Exception e) {
-            log.error("실시간 인기글 점수 지수감쇠 적용 실패", e);
+            log.error("Redis 실시간 인기글 점수 지수감쇠 적용 실패", e);
+        }
+
+        try {
+            realtimeScoreFallbackStore.applyDecay();
+        } catch (Exception e) {
+            log.error("Fallback 저장소 지수감쇠 적용 실패", e);
         }
     }
 

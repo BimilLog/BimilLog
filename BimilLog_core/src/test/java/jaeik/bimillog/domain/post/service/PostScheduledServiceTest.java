@@ -10,6 +10,7 @@ import jaeik.bimillog.domain.post.scheduler.PostScheduledService;
 import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostAdapter;
+import jaeik.bimillog.infrastructure.resilience.RealtimeScoreFallbackStore;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -54,6 +55,9 @@ class PostScheduledServiceTest {
     private RedisRealTimePostAdapter redisRealTimePostAdapter;
 
     @Mock
+    private RealtimeScoreFallbackStore realtimeScoreFallbackStore;
+
+    @Mock
     private PostQueryRepository postQueryRepository;
 
     @Mock
@@ -70,13 +74,14 @@ class PostScheduledServiceTest {
     void shouldApplyRealtimeScoreDecay() {
         // Given
         doNothing().when(redisRealTimePostAdapter).applyRealtimePopularScoreDecay();
+        doNothing().when(realtimeScoreFallbackStore).applyDecay();
 
         // When
         postScheduledService.applyRealtimeScoreDecay();
 
         // Then
         verify(redisRealTimePostAdapter, times(1)).applyRealtimePopularScoreDecay();
-        verifyNoMoreInteractions(redisRealTimePostAdapter);
+        verify(realtimeScoreFallbackStore, times(1)).applyDecay();
         verifyNoInteractions(eventPublisher); // 실시간 감쇠는 이벤트 발행 안함
     }
 
@@ -198,6 +203,7 @@ class PostScheduledServiceTest {
 
         // Then - @Transactional 동작을 위한 port 호출 검증
         verify(redisRealTimePostAdapter).applyRealtimePopularScoreDecay();
+        verify(realtimeScoreFallbackStore).applyDecay();
         verify(postQueryRepository).findWeeklyPopularPosts();
         verify(postQueryRepository).findLegendaryPosts();
     }
