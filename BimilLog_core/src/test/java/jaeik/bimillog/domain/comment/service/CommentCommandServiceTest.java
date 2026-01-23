@@ -76,7 +76,24 @@ class CommentCommandServiceTest extends BaseUnitTest {
         Member member = getTestMember();
         TestFixtures.setFieldValue(member, "id", 100L);
         testPost = PostTestDataBuilder.withId(300L, PostTestDataBuilder.createPost(member, "테스트 게시글", "게시글 내용"));
-        testComment = CommentTestDataBuilder.withId(TEST_COMMENT_ID, CommentTestDataBuilder.createComment(testPost, member, TEST_ORIGINAL_CONTENT));
+        testComment = withCommentId(TEST_COMMENT_ID, CommentTestDataBuilder.createComment(testPost, member, TEST_ORIGINAL_CONTENT));
+    }
+
+    /**
+     * Comment 엔티티에 ID 설정 (이 클래스에서만 사용)
+     */
+    private Comment withCommentId(Long id, Comment comment) {
+        TestFixtures.setFieldValue(comment, "id", id);
+        return comment;
+    }
+
+    /**
+     * 다른 사용자 테스트용 Member 생성 (이 클래스에서만 사용)
+     */
+    private Member createAnotherMember(Long id) {
+        Member member = TestMembers.createMember("kakao_another_" + id, "anotherUser" + id, "다른회원" + id);
+        TestFixtures.setFieldValue(member, "id", id);
+        return member;
     }
 
     @ParameterizedTest(name = "이미 좋아요 여부: {0}")
@@ -251,7 +268,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
     void shouldThrowException_WhenNotCommentOwner() {
         // Given
         Long memberId = 100L;
-        Member anotherMember = TestMembers.copyWithId(TestMembers.MEMBER_3, 999L);
+        Member anotherMember = createAnotherMember(999L);
 
         Comment anotherMemberComment = CommentTestDataBuilder.createComment(testPost, anotherMember, "다른 사용자 댓글");
         TestFixtures.setFieldValue(anotherMemberComment, "id", 200L);
@@ -431,7 +448,7 @@ class CommentCommandServiceTest extends BaseUnitTest {
     void shouldThrowException_WhenNotOwnerTriesToDelete() {
         // Given
         Long requestMemberId = 100L;
-        Member anotherMember = TestMembers.copyWithId(TestMembers.MEMBER_3, 999L);
+        Member anotherMember = createAnotherMember(999L);
 
         Comment anotherMemberComment = CommentTestDataBuilder.createComment(testPost, anotherMember, "다른 사용자 댓글");
         TestFixtures.setFieldValue(anotherMemberComment, "id", 600L);

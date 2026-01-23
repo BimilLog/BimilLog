@@ -59,11 +59,18 @@ class RedisDetailPostAdapterIntegrationTest {
                 .build();
     }
 
+    /**
+     * 게시글 상세 캐시 키 생성 (이 테스트 클래스 전용)
+     */
+    private String postDetailKey(Long postId) {
+        return RedisPostKeys.getPostDetailKey(postId);
+    }
+
     @Test
     @DisplayName("정상 케이스 - 캐시된 게시글 상세 조회")
     void shouldReturnPostDetail_WhenCachedPostExists() {
         // Given: RedisTemplate로 직접 저장
-        String cacheKey = RedisTestHelper.RedisKeys.postDetail(1L);
+        String cacheKey = postDetailKey(1L);
         redisTemplate.opsForValue().set(cacheKey, testPostDetail, Duration.ofMinutes(5));
 
         // When: 상세 캐시 조회
@@ -97,7 +104,7 @@ class RedisDetailPostAdapterIntegrationTest {
     @DisplayName("정상 케이스 - 게시글 상세 캐시 저장")
     void shouldSaveCachePostDetail_WhenValidPostProvided() {
         // Given
-        String cacheKey = RedisTestHelper.RedisKeys.postDetail(testPostDetail.getId());
+        String cacheKey = postDetailKey(testPostDetail.getId());
 
         // When: 상세 캐시 저장
         redisDetailPostAdapter.saveCachePost(testPostDetail);
@@ -128,7 +135,7 @@ class RedisDetailPostAdapterIntegrationTest {
     void shouldDeleteIdProvidedPost() {
         // Given: 게시글 상세 캐시 저장
         redisDetailPostAdapter.saveCachePost(testPostDetail);
-        String cacheKey = RedisTestHelper.RedisKeys.postDetail(testPostDetail.getId());
+        String cacheKey = postDetailKey(testPostDetail.getId());
         assertThat(redisTemplate.hasKey(cacheKey)).isTrue();
 
         // When: 단일 게시글 캐시 삭제

@@ -10,18 +10,21 @@ import jaeik.bimillog.domain.member.entity.Member;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.exception.ErrorCode;
 import jaeik.bimillog.testutil.BaseUnitTest;
-import jaeik.bimillog.testutil.builder.FriendTestDataBuilder;
 import jaeik.bimillog.testutil.fixtures.TestFixtures;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -66,7 +69,17 @@ class FriendshipCommandServiceTest extends BaseUnitTest {
         friend = getOtherMember();
         TestFixtures.setFieldValue(friend, "id", FRIEND_ID);
 
-        friendship = FriendTestDataBuilder.createFriendshipWithId(FRIENDSHIP_ID, member, friend);
+        friendship = createFriendship(FRIENDSHIP_ID, member, friend);
+    }
+
+    // ==================== 테스트 헬퍼 메서드 ====================
+
+    private Friendship createFriendship(Long id, Member member, Member friend) {
+        Friendship friendship = Friendship.createFriendship(member, friend);
+        if (id != null) {
+            TestFixtures.setFieldValue(friendship, "id", id);
+        }
+        return friendship;
     }
 
     // ==================== createFriendship ====================
@@ -129,12 +142,16 @@ class FriendshipCommandServiceTest extends BaseUnitTest {
         verify(friendshipRepository, times(1)).save(any(Friendship.class));
     }
 
-    @Test
-    @DisplayName("친구 관계 생성 실패 - 이미 친구 관계 존재 (member -> friend)")
-    void shouldThrowException_WhenFriendshipAlreadyExists() {
+    @ParameterizedTest(name = "친구 관계 생성 실패 - 이미 존재 ({0})")
+    @MethodSource("provideFriendshipExistsScenarios")
+    @DisplayName("이미 친구 관계 존재 예외 - 정방향/역방향 공통")
+    void shouldThrowException_WhenFriendshipAlreadyExists(String direction, boolean memberToFriendExists, boolean friendToMemberExists) {
         // Given
         given(friendToMemberAdapter.findById(FRIEND_ID)).willReturn(Optional.of(friend));
-        given(friendshipRepository.existsByMemberIdAndFriendId(MEMBER_ID, FRIEND_ID)).willReturn(true);
+        given(friendshipRepository.existsByMemberIdAndFriendId(MEMBER_ID, FRIEND_ID)).willReturn(memberToFriendExists);
+        if (!memberToFriendExists) {
+            given(friendshipRepository.existsByMemberIdAndFriendId(FRIEND_ID, MEMBER_ID)).willReturn(friendToMemberExists);
+        }
 
         // When & Then
         assertThatThrownBy(() -> friendshipCommandService.createFriendship(MEMBER_ID, FRIEND_ID, FRIEND_REQUEST_ID))
@@ -144,20 +161,11 @@ class FriendshipCommandServiceTest extends BaseUnitTest {
         verify(friendshipRepository, never()).save(any(Friendship.class));
     }
 
-    @Test
-    @DisplayName("친구 관계 생성 실패 - 이미 친구 관계 존재 (friend -> member)")
-    void shouldThrowException_WhenReverseFriendshipExists() {
-        // Given
-        given(friendToMemberAdapter.findById(FRIEND_ID)).willReturn(Optional.of(friend));
-        given(friendshipRepository.existsByMemberIdAndFriendId(MEMBER_ID, FRIEND_ID)).willReturn(false);
-        given(friendshipRepository.existsByMemberIdAndFriendId(FRIEND_ID, MEMBER_ID)).willReturn(true);
-
-        // When & Then
-        assertThatThrownBy(() -> friendshipCommandService.createFriendship(MEMBER_ID, FRIEND_ID, FRIEND_REQUEST_ID))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FRIEND_SHIP_ALREADY_EXIST);
-
-        verify(friendshipRepository, never()).save(any(Friendship.class));
+    private static Stream<Arguments> provideFriendshipExistsScenarios() {
+        return Stream.of(
+                Arguments.of("member -> friend", true, false),
+                Arguments.of("friend -> member", false, true)
+        );
     }
 
     @Test
@@ -179,62 +187,52 @@ class FriendshipCommandServiceTest extends BaseUnitTest {
 
     // ==================== deleteFriendship ====================
 
-    @Test
-    @DisplayName("친구 관계 삭제 성공 - member가 삭제 요청")
-    void shouldDeleteFriendship_WhenMemberRequestsDelete() {
+    @ParameterizedTest(name = "친구 관계 삭제 성공 - {0}가 삭제 요청")
+    @MethodSource("provideFriendshipDeleteParticipants")
+    @DisplayName("친구 관계 삭제 성공 - 참여자별")
+    void shouldDeleteFriendship_WhenParticipantRequests(String role, Long requesterId) {
         // Given
         given(friendshipRepository.findById(FRIENDSHIP_ID)).willReturn(Optional.of(friendship));
 
         // When
-        friendshipCommandService.deleteFriendship(MEMBER_ID, FRIENDSHIP_ID);
+        friendshipCommandService.deleteFriendship(requesterId, FRIENDSHIP_ID);
 
         // Then
         verify(friendshipRepository, times(1)).delete(friendship);
         verify(eventPublisher, times(1)).publishEvent(any(FriendshipDeletedEvent.class));
     }
 
-    @Test
-    @DisplayName("친구 관계 삭제 성공 - friend가 삭제 요청")
-    void shouldDeleteFriendship_WhenFriendRequestsDelete() {
+    @ParameterizedTest(name = "친구 관계 삭제 실패 - {0}")
+    @MethodSource("provideFriendshipDeleteFailureScenarios")
+    @DisplayName("친구 관계 삭제 실패 - 예외 케이스")
+    void shouldThrowException_WhenDeleteFails(String scenario, Long requesterId, boolean friendshipExists, ErrorCode expectedErrorCode) {
         // Given
-        given(friendshipRepository.findById(FRIENDSHIP_ID)).willReturn(Optional.of(friendship));
-
-        // When
-        friendshipCommandService.deleteFriendship(FRIEND_ID, FRIENDSHIP_ID);
-
-        // Then
-        verify(friendshipRepository, times(1)).delete(friendship);
-        verify(eventPublisher, times(1)).publishEvent(any(FriendshipDeletedEvent.class));
-    }
-
-    @Test
-    @DisplayName("친구 관계 삭제 실패 - 존재하지 않는 친구 관계")
-    void shouldThrowException_WhenFriendshipNotFound() {
-        // Given
-        given(friendshipRepository.findById(FRIENDSHIP_ID)).willReturn(Optional.empty());
+        if (friendshipExists) {
+            given(friendshipRepository.findById(FRIENDSHIP_ID)).willReturn(Optional.of(friendship));
+        } else {
+            given(friendshipRepository.findById(FRIENDSHIP_ID)).willReturn(Optional.empty());
+        }
 
         // When & Then
-        assertThatThrownBy(() -> friendshipCommandService.deleteFriendship(MEMBER_ID, FRIENDSHIP_ID))
+        assertThatThrownBy(() -> friendshipCommandService.deleteFriendship(requesterId, FRIENDSHIP_ID))
                 .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FRIEND_SHIP_NOT_FOUND);
+                .hasFieldOrPropertyWithValue("errorCode", expectedErrorCode);
 
         verify(friendshipRepository, never()).delete(any());
         verify(eventPublisher, never()).publishEvent(any());
     }
 
-    @Test
-    @DisplayName("친구 관계 삭제 실패 - 친구 관계에 참여하지 않은 사용자")
-    void shouldThrowException_WhenNotParticipant() {
-        // Given
-        Long outsiderId = 999L;
-        given(friendshipRepository.findById(FRIENDSHIP_ID)).willReturn(Optional.of(friendship));
+    private static Stream<Arguments> provideFriendshipDeleteParticipants() {
+        return Stream.of(
+                Arguments.of("member", 1L),
+                Arguments.of("friend", 2L)
+        );
+    }
 
-        // When & Then
-        assertThatThrownBy(() -> friendshipCommandService.deleteFriendship(outsiderId, FRIENDSHIP_ID))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FRIEND_SHIP_DELETE_FORBIDDEN);
-
-        verify(friendshipRepository, never()).delete(any());
-        verify(eventPublisher, never()).publishEvent(any());
+    private static Stream<Arguments> provideFriendshipDeleteFailureScenarios() {
+        return Stream.of(
+                Arguments.of("존재하지 않는 친구 관계", 1L, false, ErrorCode.FRIEND_SHIP_NOT_FOUND),
+                Arguments.of("참여하지 않은 사용자", 999L, true, ErrorCode.FRIEND_SHIP_DELETE_FORBIDDEN)
+        );
     }
 }

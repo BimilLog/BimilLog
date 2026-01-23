@@ -48,7 +48,7 @@ class FriendRequestCommandControllerTest extends BaseIntegrationTest {
         receiver = saveMember(TestMembers.createUniqueWithPrefix("receiver"));
 
         // testMember → receiver로의 친구 요청 생성
-        friendRequest = FriendTestDataBuilder.createFriendRequest(testMember, receiver);
+        friendRequest = FriendTestDataBuilder.createFriendRequest(null, testMember, receiver);
         friendRequest = friendRequestRepository.save(friendRequest);
     }
 
