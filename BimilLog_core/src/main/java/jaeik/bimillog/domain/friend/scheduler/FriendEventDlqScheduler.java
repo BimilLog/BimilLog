@@ -4,11 +4,8 @@ import jaeik.bimillog.domain.friend.entity.jpa.FriendEventDlq;
 import jaeik.bimillog.domain.friend.repository.FriendEventDlqRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.actuate.health.Health;
-import org.springframework.boot.actuate.health.HealthComponent;
-import org.springframework.boot.actuate.health.HealthEndpoint;
-import org.springframework.boot.actuate.health.Status;
 import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -35,7 +32,6 @@ public class FriendEventDlqScheduler {
 
     private final FriendEventDlqRepository repository;
     private final RedisTemplate<String, Object> redisTemplate;
-    private final HealthEndpoint healthEndpoint;
 
     private static final int BATCH_SIZE = 100;
     private static final int MAX_RETRY = 3;
@@ -47,13 +43,15 @@ public class FriendEventDlqScheduler {
     @Scheduled(fixedRate = 300000)  // 5분마다
     @Transactional
     public void processDlq() {
-        if (!isRedisHealthy()) {
-            log.warn("[DLQ] Redis 비정상 상태, 재처리 건너뜀");
+
+        List<FriendEventDlq> events = repository.findPendingEvents(BATCH_SIZE);
+
+        if (events.isEmpty()) {
             return;
         }
 
-        List<FriendEventDlq> events = repository.findPendingEvents(BATCH_SIZE);
-        if (events.isEmpty()) {
+        if (!isRedisHealthy()) {
+            log.warn("[DLQ] Redis 비정상 상태, 재처리 건너뜀");
             return;
         }
 
@@ -172,16 +170,14 @@ public class FriendEventDlqScheduler {
 
     private boolean isRedisHealthy() {
         try {
-            HealthComponent health = healthEndpoint.health();
-            if (health instanceof Health compositeHealth) {
-                Object redisHealthObj = compositeHealth.getDetails().get("redis");
-                if (redisHealthObj instanceof Health redis) {
-                    return redis.getStatus() == Status.UP;
-                }
+            RedisConnectionFactory connectionFactory = redisTemplate.getConnectionFactory();
+            if (connectionFactory == null) {
+                return false;
             }
-            return false;
+            String pong = connectionFactory.getConnection().ping();
+            return "PONG".equals(pong);
         } catch (Exception e) {
-            log.warn("[DLQ] Redis 헬스체크 실패", e);
+            log.warn("[DLQ] Redis ping 실패", e);
             return false;
         }
     }
