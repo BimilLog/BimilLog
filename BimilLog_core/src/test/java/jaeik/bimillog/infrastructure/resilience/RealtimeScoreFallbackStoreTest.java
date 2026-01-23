@@ -197,4 +197,66 @@ class RealtimeScoreFallbackStoreTest {
         List<Long> topIds = fallbackStore.getTopPostIds(0, 10);
         assertThat(topIds).hasSize(10);
     }
+
+    @Test
+    @DisplayName("지수 감쇠 - 점수에 0.9 곱하기")
+    void shouldApplyDecay_WhenApplyDecayInvoked() {
+        // Given: 100점짜리 게시글
+        fallbackStore.incrementScore(1L, 100.0);
+
+        // When: 감쇠 적용
+        fallbackStore.applyDecay();
+
+        // Then: 90점으로 감소 (100 * 0.9)
+        List<Long> topIds = fallbackStore.getTopPostIds(0, 1);
+        assertThat(topIds).containsExactly(1L);
+    }
+
+    @Test
+    @DisplayName("지수 감쇠 - 임계값 이하 게시글 제거")
+    void shouldRemovePostBelowThreshold_WhenApplyDecayInvoked() {
+        // Given: 1점 이하로 떨어질 게시글
+        fallbackStore.incrementScore(1L, 1.0);  // 1.0 * 0.9 = 0.9 < 1.0 → 제거
+        fallbackStore.incrementScore(2L, 10.0); // 10.0 * 0.9 = 9.0 → 유지
+
+        // When
+        fallbackStore.applyDecay();
+
+        // Then: 1L은 제거되고 2L만 남음
+        List<Long> topIds = fallbackStore.getTopPostIds(0, 10);
+        assertThat(topIds).containsExactly(2L);
+        assertThat(fallbackStore.size()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("지수 감쇠 - 연속 적용 시 점수 지속 감소")
+    void shouldContinuouslyDecreaseScore_WhenMultipleDecaysApplied() {
+        // Given: 100점짜리 게시글
+        fallbackStore.incrementScore(1L, 100.0);
+
+        // When: 감쇠 10회 적용 (100 * 0.9^10 ≈ 34.87)
+        for (int i = 0; i < 10; i++) {
+            fallbackStore.applyDecay();
+        }
+
+        // Then: 여전히 임계값(1점) 이상이므로 유지
+        List<Long> topIds = fallbackStore.getTopPostIds(0, 1);
+        assertThat(topIds).containsExactly(1L);
+    }
+
+    @Test
+    @DisplayName("지수 감쇠 - 충분한 감쇠 후 완전 제거")
+    void shouldRemovePost_WhenDecayedBelowThreshold() {
+        // Given: 10점짜리 게시글
+        fallbackStore.incrementScore(1L, 10.0);
+
+        // When: 감쇠 25회 적용 (10 * 0.9^25 ≈ 0.72 < 1.0)
+        for (int i = 0; i < 25; i++) {
+            fallbackStore.applyDecay();
+        }
+
+        // Then: 임계값 이하로 떨어져서 제거됨
+        assertThat(fallbackStore.size()).isZero();
+        assertThat(fallbackStore.hasData()).isFalse();
+    }
 }
