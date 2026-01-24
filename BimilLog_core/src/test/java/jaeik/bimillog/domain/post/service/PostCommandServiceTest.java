@@ -16,11 +16,15 @@ import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -118,9 +122,10 @@ class PostCommandServiceTest extends BaseUnitTest {
         verifyNoMoreInteractions(postRepository, redisDetailPostAdapter);
     }
 
-    @Test
-    @DisplayName("게시글 수정 - 게시글 없음 예외")
-    void shouldThrowException_WhenPostNotFoundForUpdate() {
+    @ParameterizedTest(name = "게시글 {0} - 게시글 없음 예외")
+    @MethodSource("provideOperationTypes")
+    @DisplayName("게시글 없음 예외 - 수정/삭제 공통")
+    void shouldThrowException_WhenPostNotFound(String operationType) {
         // Given
         Long memberId = 1L;
         Long postId = 999L;
@@ -128,17 +133,24 @@ class PostCommandServiceTest extends BaseUnitTest {
         given(postRepository.findById(postId)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> postCommandService.updatePost(memberId, postId, "title", "content", null))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
+        if ("수정".equals(operationType)) {
+            assertThatThrownBy(() -> postCommandService.updatePost(memberId, postId, "title", "content", null))
+                    .isInstanceOf(CustomException.class)
+                    .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
+        } else {
+            assertThatThrownBy(() -> postCommandService.deletePost(memberId, postId, null))
+                    .isInstanceOf(CustomException.class)
+                    .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
+        }
 
         verify(postRepository, times(1)).findById(postId);
         verify(redisDetailPostAdapter, never()).deleteCachePost(any());
     }
 
-    @Test
-    @DisplayName("게시글 수정 - 권한 없음 예외")
-    void shouldThrowException_WhenNotAuthorForUpdate() {
+    @ParameterizedTest(name = "게시글 {0} - 권한 없음 예외")
+    @MethodSource("provideOperationTypes")
+    @DisplayName("권한 없음 예외 - 수정/삭제 공통")
+    void shouldThrowException_WhenNotAuthor(String operationType) {
         // Given
         Long memberId = 1L;
         Long postId = 123L;
@@ -149,14 +161,28 @@ class PostCommandServiceTest extends BaseUnitTest {
         given(otherUserPost.isAuthor(memberId, null)).willReturn(false);
 
         // When & Then
-        assertThatThrownBy(() -> postCommandService.updatePost(memberId, postId, "title", "content", null))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_FORBIDDEN);
+        if ("수정".equals(operationType)) {
+            assertThatThrownBy(() -> postCommandService.updatePost(memberId, postId, "title", "content", null))
+                    .isInstanceOf(CustomException.class)
+                    .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_FORBIDDEN);
+            verify(otherUserPost, never()).updatePost(anyString(), anyString());
+        } else {
+            assertThatThrownBy(() -> postCommandService.deletePost(memberId, postId, null))
+                    .isInstanceOf(CustomException.class)
+                    .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_FORBIDDEN);
+            verify(postRepository, never()).delete(any());
+        }
 
         verify(postRepository, times(1)).findById(postId);
         verify(otherUserPost, times(1)).isAuthor(memberId, null);
-        verify(otherUserPost, never()).updatePost(anyString(), anyString());
         verify(redisDetailPostAdapter, never()).deleteCachePost(any());
+    }
+
+    private static Stream<Arguments> provideOperationTypes() {
+        return Stream.of(
+                Arguments.of("수정"),
+                Arguments.of("삭제")
+        );
     }
 
     @Test
@@ -185,48 +211,6 @@ class PostCommandServiceTest extends BaseUnitTest {
         verify(redisSimplePostAdapter, times(1)).removePostFromCache(postId);
         verify(redisTier2PostAdapter, times(1)).removePostIdFromStorage(postId);
         verifyNoMoreInteractions(postRepository, redisDetailPostAdapter);
-    }
-
-    @Test
-    @DisplayName("게시글 삭제 - 게시글 없음 예외")
-    void shouldThrowException_WhenPostNotFoundForDelete() {
-        // Given
-        Long memberId = 1L;
-        Long postId = 999L;
-
-        given(postRepository.findById(postId)).willReturn(Optional.empty());
-
-        // When & Then
-        assertThatThrownBy(() -> postCommandService.deletePost(memberId, postId, null))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
-
-        verify(postRepository, times(1)).findById(postId);
-        verify(postRepository, never()).delete(any());
-        verify(redisDetailPostAdapter, never()).deleteCachePost(any());
-    }
-
-    @Test
-    @DisplayName("게시글 삭제 - 권한 없음 예외")
-    void shouldThrowException_WhenNotAuthorForDelete() {
-        // Given
-        Long memberId = 1L;
-        Long postId = 123L;
-
-        Post otherUserPost = spy(PostTestDataBuilder.withId(postId, PostTestDataBuilder.createPost(getOtherMember(), "다른 사용자 게시글", "내용")));
-
-        given(postRepository.findById(postId)).willReturn(Optional.of(otherUserPost));
-        given(otherUserPost.isAuthor(memberId, null)).willReturn(false);
-
-        // When & Then
-        assertThatThrownBy(() -> postCommandService.deletePost(memberId, postId, null))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_FORBIDDEN);
-
-        verify(postRepository, times(1)).findById(postId);
-        verify(otherUserPost, times(1)).isAuthor(memberId, null);
-        verify(postRepository, never()).delete(any());
-        verify(redisDetailPostAdapter, never()).deleteCachePost(any());
     }
 
     @Test

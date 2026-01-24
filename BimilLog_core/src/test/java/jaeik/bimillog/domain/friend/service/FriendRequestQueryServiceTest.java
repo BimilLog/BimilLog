@@ -65,7 +65,7 @@ class FriendRequestQueryServiceTest extends BaseUnitTest {
         receiver = getOtherMember();
         TestFixtures.setFieldValue(receiver, "id", RECEIVER_ID);
 
-        friendRequest = FriendTestDataBuilder.createFriendRequestWithId(FRIEND_REQUEST_ID, sender, receiver);
+        friendRequest = FriendTestDataBuilder.createFriendRequest(FRIEND_REQUEST_ID, sender, receiver);
         pageable = PageRequest.of(0, 10);
     }
 

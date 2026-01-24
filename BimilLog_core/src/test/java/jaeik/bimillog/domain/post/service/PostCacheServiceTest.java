@@ -4,9 +4,10 @@ import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.port.RedisTier2CachePort;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
+import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostAdapter;
 import jaeik.bimillog.infrastructure.resilience.DbFallbackGateway;
 import jaeik.bimillog.infrastructure.resilience.FallbackType;
 import jaeik.bimillog.testutil.builder.PostTestDataBuilder;
@@ -55,10 +56,10 @@ class PostCacheServiceTest {
     private RedisSimplePostAdapter redisSimplePostAdapter;
 
     @Mock
-    private RedisTier2CachePort realtimeAdapter;
+    private RedisRealTimePostAdapter realtimeAdapter;
 
     @Mock
-    private RedisTier2CachePort tier2Adapter;
+    private RedisTier2PostAdapter tier2Adapter;
 
     @Mock
     private PostCacheRefresh postCacheRefresh;
@@ -76,25 +77,14 @@ class PostCacheServiceTest {
 
     @BeforeEach
     void setUp() {
-        // REALTIME 어댑터 설정
-        given(realtimeAdapter.getSupportedTypes()).willReturn(List.of(PostCacheFlag.REALTIME));
-
-        // Tier2 어댑터 설정 (WEEKLY, LEGEND, NOTICE)
-        given(tier2Adapter.getSupportedTypes()).willReturn(List.of(
-                PostCacheFlag.WEEKLY,
-                PostCacheFlag.LEGEND,
-                PostCacheFlag.NOTICE
-        ));
-
-        List<RedisTier2CachePort> adapters = List.of(realtimeAdapter, tier2Adapter);
-
         postCacheService = new PostCacheService(
                 postQueryRepository,
                 redisSimplePostAdapter,
                 postCacheRefresh,
                 dbFallbackGateway,
                 circuitBreakerRegistry,
-                adapters
+                realtimeAdapter,
+                tier2Adapter
         );
     }
 

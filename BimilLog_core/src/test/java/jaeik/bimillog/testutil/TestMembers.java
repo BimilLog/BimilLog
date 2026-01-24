@@ -23,7 +23,6 @@ public class TestMembers {
     // 미리 정의된 회원 인스턴스들 (Setting 포함)
     public static final Member MEMBER_1;
     public static final Member MEMBER_2;
-    public static final Member MEMBER_3;
 
     static {
         MEMBER_1 = Member.createMember(
@@ -42,16 +41,6 @@ public class TestMembers {
                 "테스트회원2",
                 "http://example.com/profile2.jpg",
                 "testUser2",
-                createAllEnabledSetting(),
-                createTestSocialToken()
-        );
-
-        MEMBER_3 = Member.createMember(
-                "kakao345678",
-                SocialProvider.KAKAO,
-                "테스트회원3",
-                "http://example.com/profile3.jpg",
-                "testUser3",
                 createAllEnabledSetting(),
                 createTestSocialToken()
         );

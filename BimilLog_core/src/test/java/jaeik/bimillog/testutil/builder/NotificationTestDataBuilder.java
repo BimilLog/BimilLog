@@ -6,6 +6,7 @@ import jaeik.bimillog.domain.notification.entity.NotificationType;
 import jaeik.bimillog.testutil.TestMembers;
 import jaeik.bimillog.testutil.fixtures.TestFixtures;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 /**
  * <h2>Notification 도메인 테스트 데이터 빌더</h2>
@@ -109,7 +110,7 @@ public class NotificationTestDataBuilder {
         return this;
     }
 
-    public NotificationTestDataBuilder withRelatedId(Long relatedId) {
+    private NotificationTestDataBuilder withRelatedId(Long relatedId) {
         this.relatedId = relatedId;
         return this;
     }
@@ -162,11 +163,9 @@ public class NotificationTestDataBuilder {
         if (isRead) {
             TestFixtures.setFieldValue(notification, "isRead", isRead);
         }
-        if (createdAt != null) {
-            // LocalDateTime을 Instant로 변환
-            java.time.Instant instantCreatedAt = createdAt.toInstant(java.time.ZoneOffset.UTC);
-            TestFixtures.setFieldValue(notification, "createdAt", instantCreatedAt);
-        }
+        // LocalDateTime을 Instant로 변환
+        Instant instantCreatedAt = createdAt.toInstant(java.time.ZoneOffset.UTC);
+        TestFixtures.setFieldValue(notification, "createdAt", instantCreatedAt);
 
         return notification;
     }

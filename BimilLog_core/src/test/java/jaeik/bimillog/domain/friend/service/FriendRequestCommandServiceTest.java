@@ -14,12 +14,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -62,7 +66,7 @@ class FriendRequestCommandServiceTest extends BaseUnitTest {
         receiver = getOtherMember();
         TestFixtures.setFieldValue(receiver, "id", RECEIVER_ID);
 
-        friendRequest = FriendTestDataBuilder.createFriendRequestWithId(FRIEND_REQUEST_ID, sender, receiver);
+        friendRequest = FriendTestDataBuilder.createFriendRequest(FRIEND_REQUEST_ID, sender, receiver);
     }
 
     // ==================== sendFriendRequest ====================
@@ -184,33 +188,61 @@ class FriendRequestCommandServiceTest extends BaseUnitTest {
         verify(friendRequestRepository, times(1)).deleteById(FRIEND_REQUEST_ID);
     }
 
-    @Test
-    @DisplayName("보낸 친구 요청 취소 실패 - 존재하지 않는 요청")
-    void shouldThrowException_WhenCancelingNonExistentRequest() {
+    @ParameterizedTest(name = "친구 요청 {0} 실패 - 존재하지 않는 요청")
+    @MethodSource("provideFriendRequestOperations")
+    @DisplayName("친구 요청 없음 예외 - 취소/거절 공통")
+    void shouldThrowException_WhenRequestNotFound(String operation, Long memberId) {
         // Given
         given(friendRequestRepository.findById(FRIEND_REQUEST_ID)).willReturn(Optional.empty());
 
         // When & Then
-        assertThatThrownBy(() -> friendRequestCommandService.cancelFriendRequest(SENDER_ID, FRIEND_REQUEST_ID))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FRIEND_REQUEST_NOT_FOUND);
+        if ("취소".equals(operation)) {
+            assertThatThrownBy(() -> friendRequestCommandService.cancelFriendRequest(memberId, FRIEND_REQUEST_ID))
+                    .isInstanceOf(CustomException.class)
+                    .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FRIEND_REQUEST_NOT_FOUND);
+        } else {
+            assertThatThrownBy(() -> friendRequestCommandService.deleteFriendRequest(memberId, FRIEND_REQUEST_ID))
+                    .isInstanceOf(CustomException.class)
+                    .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FRIEND_REQUEST_NOT_FOUND);
+        }
 
         verify(friendRequestRepository, never()).deleteById(any());
     }
 
-    @Test
-    @DisplayName("보낸 친구 요청 취소 실패 - 요청 보낸 사람이 아님")
-    void shouldThrowException_WhenNotSender() {
+    @ParameterizedTest(name = "친구 요청 {0} 실패 - 권한 없음")
+    @MethodSource("provideUnauthorizedOperations")
+    @DisplayName("권한 없음 예외 - 취소/거절 공통")
+    void shouldThrowException_WhenUnauthorized(String operation, ErrorCode expectedErrorCode) {
         // Given
         Long wrongMemberId = 999L;
         given(friendRequestRepository.findById(FRIEND_REQUEST_ID)).willReturn(Optional.of(friendRequest));
 
         // When & Then
-        assertThatThrownBy(() -> friendRequestCommandService.cancelFriendRequest(wrongMemberId, FRIEND_REQUEST_ID))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FRIEND_REQUEST_CANCEL_FORBIDDEN);
+        if ("취소".equals(operation)) {
+            assertThatThrownBy(() -> friendRequestCommandService.cancelFriendRequest(wrongMemberId, FRIEND_REQUEST_ID))
+                    .isInstanceOf(CustomException.class)
+                    .hasFieldOrPropertyWithValue("errorCode", expectedErrorCode);
+        } else {
+            assertThatThrownBy(() -> friendRequestCommandService.deleteFriendRequest(wrongMemberId, FRIEND_REQUEST_ID))
+                    .isInstanceOf(CustomException.class)
+                    .hasFieldOrPropertyWithValue("errorCode", expectedErrorCode);
+        }
 
         verify(friendRequestRepository, never()).deleteById(any());
+    }
+
+    private static Stream<Arguments> provideFriendRequestOperations() {
+        return Stream.of(
+                Arguments.of("취소", 1L),
+                Arguments.of("거절", 2L)
+        );
+    }
+
+    private static Stream<Arguments> provideUnauthorizedOperations() {
+        return Stream.of(
+                Arguments.of("취소", ErrorCode.FRIEND_REQUEST_CANCEL_FORBIDDEN),
+                Arguments.of("거절", ErrorCode.FRIEND_REQUEST_REJECT_FORBIDDEN)
+        );
     }
 
     // ==================== deleteFriendRequest ====================
@@ -226,34 +258,5 @@ class FriendRequestCommandServiceTest extends BaseUnitTest {
 
         // Then
         verify(friendRequestRepository, times(1)).deleteById(FRIEND_REQUEST_ID);
-    }
-
-    @Test
-    @DisplayName("받은 친구 요청 거절 실패 - 존재하지 않는 요청")
-    void shouldThrowException_WhenDeletingNonExistentRequest() {
-        // Given
-        given(friendRequestRepository.findById(FRIEND_REQUEST_ID)).willReturn(Optional.empty());
-
-        // When & Then
-        assertThatThrownBy(() -> friendRequestCommandService.deleteFriendRequest(RECEIVER_ID, FRIEND_REQUEST_ID))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FRIEND_REQUEST_NOT_FOUND);
-
-        verify(friendRequestRepository, never()).deleteById(any());
-    }
-
-    @Test
-    @DisplayName("받은 친구 요청 거절 실패 - 요청 받은 사람이 아님")
-    void shouldThrowException_WhenNotReceiver() {
-        // Given
-        Long wrongMemberId = 999L;
-        given(friendRequestRepository.findById(FRIEND_REQUEST_ID)).willReturn(Optional.of(friendRequest));
-
-        // When & Then
-        assertThatThrownBy(() -> friendRequestCommandService.deleteFriendRequest(wrongMemberId, FRIEND_REQUEST_ID))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.FRIEND_REQUEST_REJECT_FORBIDDEN);
-
-        verify(friendRequestRepository, never()).deleteById(any());
     }
 }

@@ -1,6 +1,7 @@
 package jaeik.bimillog.infrastructure.redis;
 
 import jaeik.bimillog.domain.auth.entity.SocialMemberProfile;
+import jaeik.bimillog.domain.member.entity.SocialProvider;
 import jaeik.bimillog.infrastructure.exception.CustomException;
 import jaeik.bimillog.infrastructure.redis.member.RedisMemberDataAdapter;
 import jaeik.bimillog.testutil.RedisTestHelper;
@@ -36,7 +37,7 @@ class RedisMemberDataAdapterIntegrationTest {
 
     @Autowired
     private RedisMemberDataAdapter redisTempDataAdapter;
-    
+
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
 
@@ -50,14 +51,36 @@ class RedisMemberDataAdapterIntegrationTest {
 
         // 테스트 데이터 준비
         testUuid = "test-uuid-12345";
-        testMemberProfile = RedisTestHelper.defaultSocialMemberProfile();
+        testMemberProfile = defaultSocialMemberProfile();
+    }
+
+    // ==================== 이 테스트 클래스 전용 헬퍼 메서드 ====================
+
+    private SocialMemberProfile createTestSocialMemberProfile(String socialId, String email) {
+        return new SocialMemberProfile(
+                socialId,
+                email,
+                SocialProvider.KAKAO,
+                "testMember",
+                "https://example.com/profile.jpg",
+                "access-token",
+                "refresh-token"
+        );
+    }
+
+    private SocialMemberProfile defaultSocialMemberProfile() {
+        return createTestSocialMemberProfile("123456789", "test@example.com");
+    }
+
+    private String tempMemberDataKey(String uuid) {
+        return "temp:member:" + uuid;
     }
 
     @Test
     @DisplayName("정상 케이스 - 임시 데이터 저장 및 조회")
     void shouldSaveAndRetrieveTempData_WhenValidDataProvided() {
         // Given: FCM 토큰을 포함한 프로필
-        SocialMemberProfile profileWithFcm = RedisTestHelper.createTestSocialMemberProfile("123456789", "test@example.com");
+        SocialMemberProfile profileWithFcm = createTestSocialMemberProfile("123456789", "test@example.com");
 
         // When: 임시 데이터 저장
         redisTempDataAdapter.saveTempData(testUuid, profileWithFcm);
@@ -71,7 +94,7 @@ class RedisMemberDataAdapterIntegrationTest {
         assertThat(savedData.get().getAccessToken()).isEqualTo("access-token");
 
         // Redis에서 직접 확인
-        String key = RedisTestHelper.RedisKeys.tempMemberData(testUuid);
+        String key = tempMemberDataKey(testUuid);
         assertThat(redisTemplate.hasKey(key)).isTrue();
     }
 
@@ -81,7 +104,7 @@ class RedisMemberDataAdapterIntegrationTest {
         // When: 임시 데이터 저장
         redisTempDataAdapter.saveTempData(testUuid, testMemberProfile);
 
-        String key = RedisTestHelper.RedisKeys.tempMemberData(testUuid);
+        String key = tempMemberDataKey(testUuid);
 
         // Then: TTL이 설정되어 있음 (약 5분)
         Long ttl = redisTemplate.getExpire(key, TimeUnit.SECONDS);
@@ -132,7 +155,7 @@ class RedisMemberDataAdapterIntegrationTest {
         assertThat(result).isEmpty();
 
         // Redis에서도 삭제됨 확인
-        String key = RedisTestHelper.RedisKeys.tempMemberData(testUuid);
+        String key = tempMemberDataKey(testUuid);
         assertThat(redisTemplate.hasKey(key)).isFalse();
     }
 

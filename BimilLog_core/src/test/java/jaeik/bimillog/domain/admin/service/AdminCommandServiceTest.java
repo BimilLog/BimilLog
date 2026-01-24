@@ -21,6 +21,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -28,6 +31,7 @@ import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -194,32 +198,31 @@ class AdminCommandServiceTest extends BaseUnitTest {
         assertThat(capturedEvent.provider()).isEqualTo(mockMember.getProvider());
     }
 
-    @Test
-    @DisplayName("ERROR/IMPROVEMENT 타입 신고로 제재 시도 시 예외 발생")
-    void shouldThrowException_WhenInvalidReportType() {
-        // Given
-        ReportType errorReportType = ReportType.ERROR;
-        ReportType improvementReportType = ReportType.IMPROVEMENT;
-
-        // When & Then - banUser 테스트
-        assertThatThrownBy(() -> adminCommandService.banUser(errorReportType, null))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_INVALID_REPORT_TARGET);
-
-        assertThatThrownBy(() -> adminCommandService.banUser(improvementReportType, null))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_INVALID_REPORT_TARGET);
-
-        // When & Then - forceWithdrawUser 테스트
-        assertThatThrownBy(() -> adminCommandService.forceWithdrawUser(errorReportType, null))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_INVALID_REPORT_TARGET);
-
-        assertThatThrownBy(() -> adminCommandService.forceWithdrawUser(improvementReportType, null))
-                .isInstanceOf(CustomException.class)
-                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_INVALID_REPORT_TARGET);
+    @ParameterizedTest(name = "{0} - {1} 타입으로 제재 시도 시 예외 발생")
+    @MethodSource("provideInvalidReportTypeScenarios")
+    @DisplayName("유효하지 않은 신고 타입으로 제재 시도 시 예외 발생")
+    void shouldThrowException_WhenInvalidReportType(String operation, ReportType reportType) {
+        // When & Then
+        if ("banUser".equals(operation)) {
+            assertThatThrownBy(() -> adminCommandService.banUser(reportType, null))
+                    .isInstanceOf(CustomException.class)
+                    .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_INVALID_REPORT_TARGET);
+        } else {
+            assertThatThrownBy(() -> adminCommandService.forceWithdrawUser(reportType, null))
+                    .isInstanceOf(CustomException.class)
+                    .hasFieldOrPropertyWithValue("errorCode", ErrorCode.ADMIN_INVALID_REPORT_TARGET);
+        }
 
         verify(eventPublisher, never()).publishEvent(any());
+    }
+
+    private static Stream<Arguments> provideInvalidReportTypeScenarios() {
+        return Stream.of(
+                Arguments.of("banUser", ReportType.ERROR),
+                Arguments.of("banUser", ReportType.IMPROVEMENT),
+                Arguments.of("forceWithdrawUser", ReportType.ERROR),
+                Arguments.of("forceWithdrawUser", ReportType.IMPROVEMENT)
+        );
     }
 
     // ========== createReport 메서드 테스트 ==========
