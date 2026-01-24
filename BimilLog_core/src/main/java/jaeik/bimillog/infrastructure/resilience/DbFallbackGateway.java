@@ -76,6 +76,29 @@ public class DbFallbackGateway {
         return result;
     }
 
+    /**
+     * <h3>ID 목록 기반 조회용 DB 폴백 실행</h3>
+     * <p>Bulkhead + Circuit Breaker로 보호된 ID 목록 기반 조회를 실행합니다.</p>
+     * <p>실시간 인기글의 Redis 서킷 열림 시 DB 폴백에 사용됩니다.</p>
+     *
+     * @param type    폴백 유형 (로깅용)
+     * @param postIds 조회할 게시글 ID 목록 (로깅용)
+     * @param dbQuery DB 조회 쿼리 (Supplier)
+     * @return 조회된 게시글 목록
+     */
+    @Bulkhead(name = "dbFallback", fallbackMethod = "bulkheadListFallback")
+    @CircuitBreaker(name = "dbFallback", fallbackMethod = "circuitBreakerListFallback")
+    public List<PostSimpleDetail> executeList(
+            FallbackType type,
+            List<Long> postIds,
+            Supplier<List<PostSimpleDetail>> dbQuery
+    ) {
+        log.info("[DB_FALLBACK] ID 목록 조회 - type={}, count={}", type.getDescription(), postIds.size());
+        List<PostSimpleDetail> result = dbQuery.get();
+        log.info("[DB_FALLBACK] ID 목록 조회 완료 - type={}, count={}", type.getDescription(), result.size());
+        return result;
+    }
+
     // ========== Bulkhead Fallback Methods ==========
 
     /**
@@ -108,6 +131,21 @@ public class DbFallbackGateway {
         return Optional.empty();
     }
 
+    /**
+     * <h3>ID 목록 조회 Bulkhead 폴백</h3>
+     * <p>동시 요청 초과 시 빈 List를 반환합니다.</p>
+     */
+    @SuppressWarnings("unused")
+    private List<PostSimpleDetail> bulkheadListFallback(
+            FallbackType type,
+            List<Long> postIds,
+            Supplier<List<PostSimpleDetail>> dbQuery,
+            io.github.resilience4j.bulkhead.BulkheadFullException e
+    ) {
+        log.warn("[DB_FALLBACK] Bulkhead 초과 (ID 목록) - type={}, count={}, error={}", type.getDescription(), postIds.size(), e.getMessage());
+        return List.of();
+    }
+
     // ========== Circuit Breaker Fallback Methods ==========
 
     /**
@@ -138,5 +176,20 @@ public class DbFallbackGateway {
     ) {
         log.error("[DB_FALLBACK] Circuit Breaker OPEN (상세) - type={}, postId={}, error={}", type.getDescription(), postId, e.getMessage());
         return Optional.empty();
+    }
+
+    /**
+     * <h3>ID 목록 조회 Circuit Breaker 폴백</h3>
+     * <p>Circuit OPEN 상태 시 빈 List를 반환합니다.</p>
+     */
+    @SuppressWarnings("unused")
+    private List<PostSimpleDetail> circuitBreakerListFallback(
+            FallbackType type,
+            List<Long> postIds,
+            Supplier<List<PostSimpleDetail>> dbQuery,
+            Throwable e
+    ) {
+        log.error("[DB_FALLBACK] Circuit Breaker OPEN (ID 목록) - type={}, count={}, error={}", type.getDescription(), postIds.size(), e.getMessage());
+        return List.of();
     }
 }
