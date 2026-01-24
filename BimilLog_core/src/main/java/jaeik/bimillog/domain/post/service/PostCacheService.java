@@ -117,8 +117,12 @@ public class PostCacheService {
             List<PostSimpleDetail> resultPosts;
             // 실시간 전용 서킷 브레이커 로직 처리
             if (type == PostCacheFlag.REALTIME && circuitBreakerRegistry.circuitBreaker("realtimeRedis").getState() == OPEN) {
-                // 서킷이 열려있으면 DB에서 상세 정보 조회
-                resultPosts = postQueryRepository.findPostSimpleDetailsByIds(postIds);
+                // 서킷이 열려있으면 DB에서 상세 정보 조회 (DB 서킷 브레이커 적용)
+                resultPosts = dbFallbackGateway.executeList(
+                        FallbackType.REALTIME,
+                        postIds,
+                        () -> postQueryRepository.findPostSimpleDetailsByIds(postIds)
+                );
             } else {
                 // 타입별 모든 인기글 목록 캐시 조회
                 Map<Long, PostSimpleDetail> cachedPosts = redisSimplePostAdapter.getAllCachedPosts(type);
