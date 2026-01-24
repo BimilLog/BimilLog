@@ -3,11 +3,13 @@ package jaeik.bimillog.domain.post.service;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.port.RedisTier2CachePort;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
+import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostAdapter;
 import jaeik.bimillog.infrastructure.resilience.DbFallbackGateway;
 import jaeik.bimillog.infrastructure.resilience.FallbackType;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -30,30 +32,15 @@ import static io.github.resilience4j.circuitbreaker.CircuitBreaker.State.OPEN;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class PostCacheService {
     private final PostQueryRepository postQueryRepository;
     private final RedisSimplePostAdapter redisSimplePostAdapter;
+    private final RedisTier2PostAdapter redisTier2PostAdapter;
+    private final RedisRealTimePostAdapter redisRealTimePostAdapter;
     private final PostCacheRefresh postCacheRefresh;
     private final DbFallbackGateway dbFallbackGateway;
     private final CircuitBreakerRegistry circuitBreakerRegistry;
-    private final Map<PostCacheFlag, RedisTier2CachePort> adapterMap;
-
-    public PostCacheService(PostQueryRepository postQueryRepository, RedisSimplePostAdapter redisSimplePostAdapter,
-                            PostCacheRefresh postCacheRefresh, DbFallbackGateway dbFallbackGateway,
-                            CircuitBreakerRegistry circuitBreakerRegistry, List<RedisTier2CachePort> adapters) {
-        this.postQueryRepository = postQueryRepository;
-        this.redisSimplePostAdapter = redisSimplePostAdapter;
-        this.postCacheRefresh = postCacheRefresh;
-        this.dbFallbackGateway = dbFallbackGateway;
-        this.circuitBreakerRegistry = circuitBreakerRegistry;
-        this.adapterMap = new EnumMap<>(PostCacheFlag.class);
-        for (RedisTier2CachePort redisPort : adapters) {
-            List<PostCacheFlag> supportedTypes = redisPort.getSupportedTypes();
-            for (PostCacheFlag type : supportedTypes) {
-                adapterMap.putIfAbsent(type, redisPort);
-            }
-        }
-    }
 
     /**
      * 실시간 인기글 목록 조회
@@ -93,13 +80,11 @@ public class PostCacheService {
     private Page<PostSimpleDetail> getCachedPosts(PostCacheFlag type, FallbackType fallbackType,
                                                   Pageable pageable, Supplier<Page<PostSimpleDetail>> fallbackSupplier) {
         try {
-            RedisTier2CachePort adapter = adapterMap.get(type);
-
             // 범위 내 postId 목록 조회
-            List<Long> postIds = adapter.getRangePostId(type, pageable.getOffset(), pageable.getPageSize());
+            List<Long> postIds = getRangePostId(type, pageable.getOffset(), pageable.getPageSize());
 
             // 전체 postId 목록 조회 (실시간은 0 반환) (실시간은 양이 많을 것을 우려해서 범위를 5로 제한한 범위 내 postId를 기준으로 사용)
-            List<Long> allPostIds = adapter.getAllPostId(type);
+            List<Long> allPostIds = getAllPostId(type);
 
             // 전체 카운트 결정 범위 내 ID 값으로 설정
             long totalCount = postIds.size();
@@ -153,5 +138,25 @@ public class PostCacheService {
         } else if (redisSimplePostAdapter.shouldRefreshHash(flag)) {
             postCacheRefresh.asyncRefreshAllPosts(flag, allPostIds);
         }
+    }
+
+    /**
+     * 타입에 따라 적절한 어댑터에서 범위 내 postId 목록 조회
+     */
+    private List<Long> getRangePostId(PostCacheFlag type, long start, long end) {
+        if (type == PostCacheFlag.REALTIME) {
+            return redisRealTimePostAdapter.getRangePostId(type, start, end);
+        }
+        return redisTier2PostAdapter.getRangePostId(type, start, end);
+    }
+
+    /**
+     * 타입에 따라 적절한 어댑터에서 전체 postId 목록 조회
+     */
+    private List<Long> getAllPostId(PostCacheFlag type) {
+        if (type == PostCacheFlag.REALTIME) {
+            return redisRealTimePostAdapter.getAllPostId(type);
+        }
+        return redisTier2PostAdapter.getAllPostId(type);
     }
 }
