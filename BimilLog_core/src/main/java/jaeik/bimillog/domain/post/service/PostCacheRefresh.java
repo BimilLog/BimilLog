@@ -7,6 +7,8 @@ import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.post.RedisDetailPostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
+import jaeik.bimillog.infrastructure.resilience.DbFallbackGateway;
+import jaeik.bimillog.infrastructure.resilience.FallbackType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.RedisConnectionFailureException;
@@ -36,6 +38,7 @@ public class PostCacheRefresh {
     private final PostQueryRepository postQueryRepository;
     private final RedisSimplePostAdapter redisSimplePostAdapter;
     private final RedisDetailPostAdapter redisDetailPostAdapter;
+    private final DbFallbackGateway dbFallbackGateway;
 
     /**
      * <h3>타입별 전체 Hash 캐시 비동기 갱신 (PER 기반)</h3>
@@ -91,11 +94,16 @@ public class PostCacheRefresh {
 
     /**
      * <h3>캐시 갱신 내부 로직</h3>
+     * <p>Bulkhead + 서킷 브레이커를 통해 DB를 조회합니다.</p>
      */
     private void refreshInternal(PostCacheFlag type, List<Long> allPostIds) {
 
             List<PostSimpleDetail> refreshed = allPostIds.stream()
-                    .map(postId -> postQueryRepository.findPostDetail(postId, null).orElse(null))
+                    .map(postId -> dbFallbackGateway.executeDetail(
+                            FallbackType.DETAIL,
+                            postId,
+                            () -> postQueryRepository.findPostDetail(postId, null)
+                    ).orElse(null))
                     .filter(Objects::nonNull)
                     .map(PostDetail::toSimpleDetail)
                     .toList();
@@ -113,6 +121,7 @@ public class PostCacheRefresh {
      * <h3>상세 캐시 비동기 갱신 (PER 기반)</h3>
      * <p>상세 캐시 TTL이 임박했을 때 백그라운드에서 갱신합니다.</p>
      * <p>인기글의 상세 조회 시 PER 조건 만족 시 호출됩니다.</p>
+     * <p>Bulkhead + 서킷 브레이커를 통해 DB를 조회하며, 서킷 열림/Bulkhead 초과 시 갱신을 스킵합니다.</p>
      *
      * @param postId 갱신할 게시글 ID
      */
@@ -123,7 +132,11 @@ public class PostCacheRefresh {
             backoff = @Backoff(delay = 500, multiplier = 1)
     )
     public void asyncRefreshDetailPost(Long postId) {
-        PostDetail postDetail = postQueryRepository.findPostDetail(postId, null).orElse(null);
+        PostDetail postDetail = dbFallbackGateway.executeDetail(
+                FallbackType.DETAIL,
+                postId,
+                () -> postQueryRepository.findPostDetail(postId, null)
+        ).orElse(null);
         if (postDetail == null) {
             return;
         }
