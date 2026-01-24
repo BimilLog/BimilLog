@@ -80,11 +80,11 @@ class PostCacheServiceTest {
         postCacheService = new PostCacheService(
                 postQueryRepository,
                 redisSimplePostAdapter,
+                tier2Adapter,
+                realtimeAdapter,
                 postCacheRefresh,
                 dbFallbackGateway,
-                circuitBreakerRegistry,
-                realtimeAdapter,
-                tier2Adapter
+                circuitBreakerRegistry
         );
     }
 
