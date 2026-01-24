@@ -3,18 +3,22 @@ package jaeik.bimillog.domain.post.service;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
-import jaeik.bimillog.domain.post.port.RedisTier2CachePort;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
+import jaeik.bimillog.infrastructure.redis.post.RedisRealTimePostAdapter;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
+import jaeik.bimillog.infrastructure.redis.post.RedisTier2PostAdapter;
 import jaeik.bimillog.infrastructure.resilience.DbFallbackGateway;
 import jaeik.bimillog.infrastructure.resilience.FallbackType;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 import static io.github.resilience4j.circuitbreaker.CircuitBreaker.State.OPEN;
@@ -30,36 +34,21 @@ import static io.github.resilience4j.circuitbreaker.CircuitBreaker.State.OPEN;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class PostCacheService {
     private final PostQueryRepository postQueryRepository;
     private final RedisSimplePostAdapter redisSimplePostAdapter;
+    private final RedisRealTimePostAdapter redisRealTimePostAdapter;
+    private final RedisTier2PostAdapter redisTier2PostAdapter;
     private final PostCacheRefresh postCacheRefresh;
     private final DbFallbackGateway dbFallbackGateway;
     private final CircuitBreakerRegistry circuitBreakerRegistry;
-    private final Map<PostCacheFlag, RedisTier2CachePort> adapterMap;
-
-    public PostCacheService(PostQueryRepository postQueryRepository, RedisSimplePostAdapter redisSimplePostAdapter,
-                            PostCacheRefresh postCacheRefresh, DbFallbackGateway dbFallbackGateway,
-                            CircuitBreakerRegistry circuitBreakerRegistry, List<RedisTier2CachePort> adapters) {
-        this.postQueryRepository = postQueryRepository;
-        this.redisSimplePostAdapter = redisSimplePostAdapter;
-        this.postCacheRefresh = postCacheRefresh;
-        this.dbFallbackGateway = dbFallbackGateway;
-        this.circuitBreakerRegistry = circuitBreakerRegistry;
-        this.adapterMap = new EnumMap<>(PostCacheFlag.class);
-        for (RedisTier2CachePort redisPort : adapters) {
-            List<PostCacheFlag> supportedTypes = redisPort.getSupportedTypes();
-            for (PostCacheFlag type : supportedTypes) {
-                adapterMap.putIfAbsent(type, redisPort);
-            }
-        }
-    }
 
     /**
      * 실시간 인기글 목록 조회
      */
     public Page<PostSimpleDetail> getRealtimePosts(Pageable pageable) {
-        return getCachedPosts(PostCacheFlag.REALTIME, FallbackType.REALTIME, pageable,
+        return getCachedRealtimePosts(pageable,
                 () -> postQueryRepository.findRecentPopularPosts(pageable));
     }
 
@@ -67,7 +56,7 @@ public class PostCacheService {
      * 주간 인기글 목록 조회
      */
     public Page<PostSimpleDetail> getWeeklyPosts(Pageable pageable) {
-        return getCachedPosts(PostCacheFlag.WEEKLY, FallbackType.WEEKLY, pageable,
+        return getCachedTier2Posts(PostCacheFlag.WEEKLY, FallbackType.WEEKLY, pageable,
                 () -> postQueryRepository.findWeeklyPopularPosts(pageable));
     }
 
@@ -75,7 +64,7 @@ public class PostCacheService {
      * 전설 인기글 목록 조회
      */
     public Page<PostSimpleDetail> getPopularPostLegend(Pageable pageable) {
-        return getCachedPosts(PostCacheFlag.LEGEND, FallbackType.LEGEND, pageable,
+        return getCachedTier2Posts(PostCacheFlag.LEGEND, FallbackType.LEGEND, pageable,
                 () -> postQueryRepository.findLegendaryPosts(pageable));
     }
 
@@ -83,54 +72,72 @@ public class PostCacheService {
      * 공지사항 목록 조회
      */
     public Page<PostSimpleDetail> getNoticePosts(Pageable pageable) {
-        return getCachedPosts(PostCacheFlag.NOTICE, FallbackType.NOTICE, pageable,
+        return getCachedTier2Posts(PostCacheFlag.NOTICE, FallbackType.NOTICE, pageable,
                 () -> postQueryRepository.findNoticePosts(pageable));
     }
 
     /**
-     * 목록 캐시 조회 공통 메서드
+     * 실시간 인기글 캐시 조회 전용 메서드
      */
-    private Page<PostSimpleDetail> getCachedPosts(PostCacheFlag type, FallbackType fallbackType,
-                                                  Pageable pageable, Supplier<Page<PostSimpleDetail>> fallbackSupplier) {
+    private Page<PostSimpleDetail> getCachedRealtimePosts(Pageable pageable,
+                                                          Supplier<Page<PostSimpleDetail>> fallbackSupplier) {
         try {
-            RedisTier2CachePort adapter = adapterMap.get(type);
-
             // 범위 내 postId 목록 조회
-            List<Long> postIds = adapter.getRangePostId(type, pageable.getOffset(), pageable.getPageSize());
-
-            // 전체 postId 목록 조회 (실시간은 0 반환) (실시간은 양이 많을 것을 우려해서 범위를 5로 제한한 범위 내 postId를 기준으로 사용)
-            List<Long> allPostIds = adapter.getAllPostId(type);
+            List<Long> postIds = redisRealTimePostAdapter.getRangePostId(PostCacheFlag.REALTIME, pageable.getOffset(), pageable.getPageSize());
 
             // 전체 카운트 결정 범위 내 ID 값으로 설정
             long totalCount = postIds.size();
 
-            // 실시간 제외하고 페이징 토탈 카운트를 전체 postId로 설정 이렇게하면 실시간은 범위 내 값으로 설정 됨
-            if (type != PostCacheFlag.REALTIME) {
-                totalCount = allPostIds.size();
-            }
-
             // 전체 카운트가 0이면 빈 페이지 반환
-            if (totalCount == 0){
+            if (totalCount == 0) {
                 return new PageImpl<>(List.of(), pageable, totalCount);
             }
 
             List<PostSimpleDetail> resultPosts;
             // 실시간 전용 서킷 브레이커 로직 처리
-            if (type == PostCacheFlag.REALTIME && circuitBreakerRegistry.circuitBreaker("realtimeRedis").getState() == OPEN) {
+            if (circuitBreakerRegistry.circuitBreaker("realtimeRedis").getState() == OPEN) {
                 // 서킷이 열려있으면 DB에서 상세 정보 조회
                 resultPosts = postQueryRepository.findPostSimpleDetailsByIds(postIds);
             } else {
                 // 타입별 모든 인기글 목록 캐시 조회
-                Map<Long, PostSimpleDetail> cachedPosts = redisSimplePostAdapter.getAllCachedPosts(type);
-
-                // 서킷이 닫혀있는 실시간
-                if (type == PostCacheFlag.REALTIME) {
-                    handleCacheSync(type, cachedPosts.size(), totalCount, postIds);
-                } else {
-                    handleCacheSync(type, cachedPosts.size(), totalCount, allPostIds);
-                }
+                Map<Long, PostSimpleDetail> cachedPosts = redisSimplePostAdapter.getAllCachedPosts(PostCacheFlag.REALTIME);
+                handleCacheSync(PostCacheFlag.REALTIME, cachedPosts.size(), totalCount, postIds);
                 resultPosts = postIds.stream().map(cachedPosts::get).filter(Objects::nonNull).toList();
             }
+
+            return new PageImpl<>(resultPosts, pageable, totalCount);
+
+        } catch (Exception e) {
+            log.warn("[REDIS_FALLBACK] {} Redis 장애: {}", PostCacheFlag.REALTIME, e.getMessage());
+            return dbFallbackGateway.execute(FallbackType.REALTIME, pageable, fallbackSupplier);
+        }
+    }
+
+    /**
+     * 주간/레전드/공지 캐시 조회 전용 메서드
+     */
+    private Page<PostSimpleDetail> getCachedTier2Posts(PostCacheFlag type, FallbackType fallbackType,
+                                                       Pageable pageable, Supplier<Page<PostSimpleDetail>> fallbackSupplier) {
+        try {
+            // 범위 내 postId 목록 조회
+            List<Long> postIds = redisTier2PostAdapter.getRangePostId(type, pageable.getOffset(), pageable.getPageSize());
+
+            // 전체 postId 목록 조회
+            List<Long> allPostIds = redisTier2PostAdapter.getAllPostId(type);
+
+            // 전체 카운트 결정
+            long totalCount = allPostIds.size();
+
+            // 전체 카운트가 0이면 빈 페이지 반환
+            if (totalCount == 0) {
+                return new PageImpl<>(List.of(), pageable, totalCount);
+            }
+
+            // 타입별 모든 인기글 목록 캐시 조회
+            Map<Long, PostSimpleDetail> cachedPosts = redisSimplePostAdapter.getAllCachedPosts(type);
+
+            handleCacheSync(type, cachedPosts.size(), totalCount, allPostIds);
+            List<PostSimpleDetail> resultPosts = postIds.stream().map(cachedPosts::get).filter(Objects::nonNull).toList();
 
             return new PageImpl<>(resultPosts, pageable, totalCount);
 

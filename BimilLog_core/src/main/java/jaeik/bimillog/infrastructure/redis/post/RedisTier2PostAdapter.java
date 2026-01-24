@@ -1,7 +1,6 @@
 package jaeik.bimillog.infrastructure.redis.post;
 
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
-import jaeik.bimillog.domain.post.port.RedisTier2CachePort;
 import jaeik.bimillog.infrastructure.log.CacheMetricsLogger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,10 +22,9 @@ import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.getPostIdsS
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class RedisTier2PostAdapter implements RedisTier2CachePort {
+public class RedisTier2PostAdapter {
     private final RedisTemplate<String, Long> redisTemplate;
 
-    @Override
     public List<Long> getRangePostId(PostCacheFlag type, long start, long end) {
         String IDS_KEY = getPostIdsStorageKey(type);
 
@@ -39,15 +37,6 @@ public class RedisTier2PostAdapter implements RedisTier2CachePort {
         return new ArrayList<>(Optional.ofNullable(set).orElseGet(Collections::emptySet));
     }
 
-    @Override
-    public List<PostCacheFlag> getSupportedTypes() {
-        return List.of(
-                PostCacheFlag.NOTICE,
-                PostCacheFlag.WEEKLY,
-                PostCacheFlag.LEGEND
-        );
-    }
-
     /**
      * <h3>글 ID 목록 조회</h3>
      * <p>캐시 미스 발생 시 복구를 위해 영구 저장된 postId 목록을 조회합니다.</p>
@@ -55,7 +44,6 @@ public class RedisTier2PostAdapter implements RedisTier2CachePort {
      * @param type 조회할 인기글 캐시 유형 (WEEKLY, LEGEND, NOTICE)
      * @return 저장된 게시글 ID 목록 (없으면 빈 리스트)
      */
-    @Override
     public List<Long> getAllPostId(PostCacheFlag type) {
         String postIdsKey = getPostIdsStorageKey(type);
         Set<Long> postIds;
