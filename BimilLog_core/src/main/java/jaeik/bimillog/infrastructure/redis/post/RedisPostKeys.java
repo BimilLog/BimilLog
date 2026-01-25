@@ -68,18 +68,6 @@ public final class RedisPostKeys {
      */
     public static final Duration POST_IDS_TTL_WEEKLY_LEGEND = Duration.ofDays(1);
 
-    /**
-     * 캐시 갱신 락 TTL (30초)
-     * <p>캐시 스탬피드 방지를 위한 분산 락의 만료 시간입니다.</p>
-     */
-    public static final Duration REFRESH_LOCK_TTL = Duration.ofSeconds(30);
-
-    /**
-     * 캐시 갱신 락 키 접두사
-     * <p>전체 키 형식: lock:refresh:{type}</p>
-     */
-    public static final String REFRESH_LOCK_PREFIX = "lock:refresh:";
-
     // ===================== 3. SCORE CONSTANTS (점수 관련 상수) =====================
 
     /**
@@ -146,16 +134,5 @@ public final class RedisPostKeys {
      */
     public static String getSimplePostHashKey(PostCacheFlag type) {
         return POST_PREFIX + type.name().toLowerCase() + SIMPLE_POST_HASH_SUFFIX;
-    }
-
-    /**
-     * <h3>캐시 갱신 락 키 생성</h3>
-     * <p>캐시 스탬피드 방지를 위한 분산 락 키를 생성합니다.</p>
-     *
-     * @param type 게시글 캐시 유형
-     * @return 생성된 락 키 (형식: lock:refresh:{type})
-     */
-    public static String getRefreshLockKey(PostCacheFlag type) {
-        return REFRESH_LOCK_PREFIX + type.name().toLowerCase();
     }
 }

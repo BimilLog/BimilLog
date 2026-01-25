@@ -121,8 +121,8 @@ class PostCacheServiceTest {
     }
 
     @Test
-    @DisplayName("실시간 인기글 조회 - 캐시 미스 (개수 불일치 시 락 기반 전체 갱신 트리거)")
-    void shouldGetRealtimePosts_CacheMiss_CountMismatch() {
+    @DisplayName("실시간 인기글 조회 - 캐시 미스 (개수 불일치 + PER 충족 시 전체 갱신 트리거)")
+    void shouldGetRealtimePosts_CacheMiss_CountMismatch_PERTriggered() {
         // Given
         Pageable pageable = PageRequest.of(0, 5);
         PostSimpleDetail simpleDetail1 = PostTestDataBuilder.createPostSearchResult(1L, "실시간 인기글 1");
@@ -134,6 +134,7 @@ class PostCacheServiceTest {
         given(realtimeAdapter.getRangePostId(PostCacheFlag.REALTIME, 0L, 5)).willReturn(List.of(1L, 2L));
         given(realtimeAdapter.getAllPostId(PostCacheFlag.REALTIME)).willReturn(List.of());
         given(redisSimplePostAdapter.getAllCachedPosts(PostCacheFlag.REALTIME)).willReturn(cachedPosts);
+        given(redisSimplePostAdapter.shouldRefreshOnMismatch(PostCacheFlag.REALTIME)).willReturn(true);
         given(circuitBreakerRegistry.circuitBreaker("realtimeRedis")).willReturn(circuitBreaker);
         given(circuitBreaker.getState()).willReturn(CircuitBreaker.State.CLOSED);
 
@@ -142,7 +143,33 @@ class PostCacheServiceTest {
 
         // Then
         assertThat(result.getContent()).hasSize(1);
-        verify(postCacheRefresh).asyncRefreshWithLock(eq(PostCacheFlag.REALTIME), any());
+        verify(postCacheRefresh).asyncRefreshAllPosts(eq(PostCacheFlag.REALTIME), any());
+    }
+
+    @Test
+    @DisplayName("실시간 인기글 조회 - 캐시 미스 (개수 불일치 + PER 미충족 시 갱신 스킵)")
+    void shouldGetRealtimePosts_CacheMiss_CountMismatch_PERSkipped() {
+        // Given
+        Pageable pageable = PageRequest.of(0, 5);
+        PostSimpleDetail simpleDetail1 = PostTestDataBuilder.createPostSearchResult(1L, "실시간 인기글 1");
+
+        // Tier1에 1개, postIds에 2개 → 개수 불일치
+        Map<Long, PostSimpleDetail> cachedPosts = new HashMap<>();
+        cachedPosts.put(1L, simpleDetail1);
+
+        given(realtimeAdapter.getRangePostId(PostCacheFlag.REALTIME, 0L, 5)).willReturn(List.of(1L, 2L));
+        given(realtimeAdapter.getAllPostId(PostCacheFlag.REALTIME)).willReturn(List.of());
+        given(redisSimplePostAdapter.getAllCachedPosts(PostCacheFlag.REALTIME)).willReturn(cachedPosts);
+        given(redisSimplePostAdapter.shouldRefreshOnMismatch(PostCacheFlag.REALTIME)).willReturn(false);
+        given(circuitBreakerRegistry.circuitBreaker("realtimeRedis")).willReturn(circuitBreaker);
+        given(circuitBreaker.getState()).willReturn(CircuitBreaker.State.CLOSED);
+
+        // When
+        Page<PostSimpleDetail> result = postCacheService.getRealtimePosts(pageable);
+
+        // Then
+        assertThat(result.getContent()).hasSize(1);
+        verify(postCacheRefresh, never()).asyncRefreshAllPosts(any(), any());
     }
 
     @Test

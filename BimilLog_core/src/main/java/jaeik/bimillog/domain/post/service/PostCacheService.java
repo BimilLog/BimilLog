@@ -134,7 +134,9 @@ public class PostCacheService {
      */
     private void handleCacheSync(PostCacheFlag flag, int cachedSize, long totalCount, List<Long> allPostIds) {
         if (cachedSize != totalCount) {
-            postCacheRefresh.asyncRefreshWithLock(flag, allPostIds);
+            if (redisSimplePostAdapter.shouldRefreshOnMismatch(flag)) {
+                postCacheRefresh.asyncRefreshAllPosts(flag, allPostIds);
+            }
         } else if (redisSimplePostAdapter.shouldRefreshHash(flag)) {
             postCacheRefresh.asyncRefreshAllPosts(flag, allPostIds);
         }

@@ -63,36 +63,6 @@ public class PostCacheRefresh {
     }
 
     /**
-     * <h3>타입별 전체 Hash 캐시 비동기 갱신 (개수 불일치 시)</h3>
-     * <p>Tier1/Tier2 개수 불일치 시 호출됩니다.</p>
-     * <p>캐시 스탬피드 방지를 위해 SETNX 락을 사용합니다.</p>
-     *
-     * @param type 캐시 유형
-     */
-    @Async("cacheRefreshExecutor")
-    @Retryable(
-            retryFor = RedisConnectionFailureException.class,
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 500, multiplier = 1)
-    )
-    public void asyncRefreshWithLock(PostCacheFlag type, List<Long> allPostIds) {
-        if (!redisSimplePostAdapter.tryAcquireRefreshLock(type)) {
-            return;
-        }
-
-        try {
-            refreshInternal(type, allPostIds);
-        } finally {
-            redisSimplePostAdapter.releaseRefreshLock(type);
-        }
-    }
-
-    @Recover
-    public void recoverRefreshWithLock(RedisConnectionFailureException e, PostCacheFlag type, List<Long> allPostIds) {
-        log.debug("락 기반 캐시 갱신 스킵: type={}", type);
-    }
-
-    /**
      * <h3>캐시 갱신 내부 로직</h3>
      * <p>Bulkhead + 서킷 브레이커를 통해 DB를 조회합니다.</p>
      */

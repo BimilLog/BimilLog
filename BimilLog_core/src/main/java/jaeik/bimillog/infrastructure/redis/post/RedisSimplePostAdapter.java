@@ -39,6 +39,11 @@ public class RedisSimplePostAdapter {
     private static final long PER_EXPIRY_GAP_SECONDS = 60;
 
     /**
+     * 개수 불일치 시 갱신 확률 (20%)
+     */
+    private static final double MISMATCH_REFRESH_PROBABILITY = 0.20;
+
+    /**
      * <h3>HGETALL로 Hash 전체 캐시 조회</h3>
      * <p>타입별 Hash에서 모든 게시글을 한 번에 조회합니다.</p>
      *
@@ -83,6 +88,28 @@ public class RedisSimplePostAdapter {
         if (ttl < PER_EXPIRY_GAP_SECONDS) {
             double randomFactor = ThreadLocalRandom.current().nextDouble();
             return ttl - (randomFactor * PER_EXPIRY_GAP_SECONDS) <= 0;
+        }
+        return false;
+    }
+
+    /**
+     * <h3>개수 불일치 시 PER 기반 갱신 필요 여부 판단</h3>
+     * <p>기본 20% 확률로 갱신하며, TTL 임박 시 추가 확률을 적용합니다.</p>
+     *
+     * @param type 캐시 유형
+     * @return 갱신이 필요하면 true
+     */
+    public boolean shouldRefreshOnMismatch(PostCacheFlag type) {
+        double randomFactor = ThreadLocalRandom.current().nextDouble();
+        if (randomFactor < MISMATCH_REFRESH_PROBABILITY) {
+            return true;
+        }
+        // TTL 임박 시 추가 확률
+        String hashKey = getSimplePostHashKey(type);
+        long ttl = redisTemplate.getExpire(hashKey, TimeUnit.SECONDS);
+        if (ttl > 0 && ttl < PER_EXPIRY_GAP_SECONDS) {
+            double perFactor = ThreadLocalRandom.current().nextDouble();
+            return ttl - (perFactor * PER_EXPIRY_GAP_SECONDS) <= 0;
         }
         return false;
     }
@@ -158,41 +185,5 @@ public class RedisSimplePostAdapter {
         redisTemplate.opsForHash().delete(hashKey, field);
 
         log.debug("[CACHE_DELETE] hashKey={}, field={}", hashKey, field);
-    }
-
-    // ===================== 캐시 스탬피드 방지 락 =====================
-
-    /**
-     * <h3>캐시 갱신 락 획득 시도 (SETNX)</h3>
-     * <p>캐시 스탬피드를 방지하기 위해 분산 락을 사용합니다.</p>
-     * <p>락 획득에 성공하면 true, 이미 다른 스레드가 갱신 중이면 false를 반환합니다.</p>
-     *
-     * @param type 캐시 유형
-     * @return 락 획득 성공 여부
-     */
-    public boolean tryAcquireRefreshLock(PostCacheFlag type) {
-        String lockKey = getRefreshLockKey(type);
-        Boolean acquired = redisTemplate.opsForValue()
-                .setIfAbsent(lockKey, "1", REFRESH_LOCK_TTL);
-
-        if (Boolean.TRUE.equals(acquired)) {
-            log.debug("[LOCK_ACQUIRED] type={}", type);
-            return true;
-        }
-
-        log.debug("[LOCK_ALREADY_HELD] type={}", type);
-        return false;
-    }
-
-    /**
-     * <h3>캐시 갱신 락 해제</h3>
-     * <p>갱신 작업 완료 후 락을 해제합니다.</p>
-     *
-     * @param type 캐시 유형
-     */
-    public void releaseRefreshLock(PostCacheFlag type) {
-        String lockKey = getRefreshLockKey(type);
-        redisTemplate.delete(lockKey);
-        log.debug("[LOCK_RELEASED] type={}", type);
     }
 }
