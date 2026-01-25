@@ -199,6 +199,7 @@ class PostCacheServiceTest {
 
     @Test
     @DisplayName("실시간 인기글 조회 - 서킷 OPEN 시 DB 조회")
+    @SuppressWarnings("unchecked")
     void shouldGetRealtimePosts_CircuitOpen_FallbackToDb() {
         // Given
         Pageable pageable = PageRequest.of(0, 5);
@@ -210,6 +211,13 @@ class PostCacheServiceTest {
         given(circuitBreaker.getState()).willReturn(CircuitBreaker.State.OPEN);
         given(postQueryRepository.findPostSimpleDetailsByIds(List.of(1L))).willReturn(List.of(simpleDetail1));
 
+        // DbFallbackGateway가 Supplier를 실행하도록 Mock 설정
+        given(dbFallbackGateway.executeList(eq(FallbackType.REALTIME), eq(List.of(1L)), any(Supplier.class)))
+                .willAnswer(invocation -> {
+                    Supplier<List<PostSimpleDetail>> supplier = invocation.getArgument(2);
+                    return supplier.get();
+                });
+
         // When
         Page<PostSimpleDetail> result = postCacheService.getRealtimePosts(pageable);
 
@@ -217,6 +225,7 @@ class PostCacheServiceTest {
         assertThat(result.getContent()).hasSize(1);
         assertThat(result.getContent().get(0).getTitle()).isEqualTo("실시간 인기글 1");
         verify(redisSimplePostAdapter, never()).getAllCachedPosts(any());
+        verify(dbFallbackGateway).executeList(eq(FallbackType.REALTIME), eq(List.of(1L)), any(Supplier.class));
     }
 
     @Test

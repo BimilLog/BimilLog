@@ -153,7 +153,7 @@ class PostQueryServiceTest extends BaseUnitTest {
                 .willReturn(Optional.of(mockPostDetail));
 
         // DbFallbackGateway가 Supplier를 실행하도록 Mock 설정
-        given(dbFallbackGateway.executeDetail(eq(FallbackType.DETAIL), eq(postId), any(Supplier.class)))
+        given(dbFallbackGateway.executeDetail(eq(FallbackType.POPULAR_DETAIL), eq(postId), any(Supplier.class)))
                 .willAnswer(invocation -> {
                     Supplier<Optional<PostDetail>> supplier = invocation.getArgument(2);
                     return supplier.get();
@@ -171,7 +171,7 @@ class PostQueryServiceTest extends BaseUnitTest {
 
         verify(redisTier2PostAdapter).isPopularPost(postId);
         verify(redisDetailPostAdapter).getCachedPostIfExists(postId);
-        verify(dbFallbackGateway).executeDetail(eq(FallbackType.DETAIL), eq(postId), any(Supplier.class));
+        verify(dbFallbackGateway).executeDetail(eq(FallbackType.POPULAR_DETAIL), eq(postId), any(Supplier.class));
         verify(redisDetailPostAdapter).saveCachePost(any(PostDetail.class)); // 인기글이므로 캐시 저장
         verify(postLikeRepository).existsByPostIdAndMemberId(postId, memberId);
     }
@@ -253,6 +253,13 @@ class PostQueryServiceTest extends BaseUnitTest {
         given(postQueryRepository.findPostDetail(postId, null))
                 .willReturn(Optional.of(mockPostDetail));
 
+        // DbFallbackGateway가 Supplier를 실행하도록 Mock 설정
+        given(dbFallbackGateway.executeDetail(eq(FallbackType.NORMAL_DETAIL), eq(postId), any(Supplier.class)))
+                .willAnswer(invocation -> {
+                    Supplier<Optional<PostDetail>> supplier = invocation.getArgument(2);
+                    return supplier.get();
+                });
+
         // When
         PostDetail result = postQueryService.getPost(postId, memberId);
 
@@ -263,7 +270,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         verify(redisTier2PostAdapter).isPopularPost(postId);
         verify(redisRealTimePostAdapter).isRealtimePopularPost(postId);
         verify(redisDetailPostAdapter, never()).getCachedPostIfExists(any()); // 캐시 조회 안함
-        verify(postQueryRepository).findPostDetail(postId, null);
+        verify(dbFallbackGateway).executeDetail(eq(FallbackType.NORMAL_DETAIL), eq(postId), any(Supplier.class));
         verify(redisDetailPostAdapter, never()).saveCachePost(any()); // 캐시 저장 안함
         verify(postLikeRepository, never()).existsByPostIdAndMemberId(any(), any());
     }
@@ -310,6 +317,7 @@ class PostQueryServiceTest extends BaseUnitTest {
 
     @Test
     @DisplayName("게시글 상세 조회 - 존재하지 않는 게시글 (일반글)")
+    @SuppressWarnings("unchecked")
     void shouldThrowException_WhenNormalPostNotFound() {
         // Given
         Long postId = 999L;
@@ -322,12 +330,19 @@ class PostQueryServiceTest extends BaseUnitTest {
         // DB에도 없음
         given(postQueryRepository.findPostDetail(postId, null)).willReturn(Optional.empty());
 
+        // DbFallbackGateway가 Supplier를 실행하도록 Mock 설정
+        given(dbFallbackGateway.executeDetail(eq(FallbackType.NORMAL_DETAIL), eq(postId), any(Supplier.class)))
+                .willAnswer(invocation -> {
+                    Supplier<Optional<PostDetail>> supplier = invocation.getArgument(2);
+                    return supplier.get();
+                });
+
         // When & Then
         assertThatThrownBy(() -> postQueryService.getPost(postId, memberId))
                 .isInstanceOf(CustomException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
-        verify(postQueryRepository).findPostDetail(postId, null);
+        verify(dbFallbackGateway).executeDetail(eq(FallbackType.NORMAL_DETAIL), eq(postId), any(Supplier.class));
         verify(redisDetailPostAdapter, never()).saveCachePost(any());
     }
 
@@ -349,7 +364,7 @@ class PostQueryServiceTest extends BaseUnitTest {
         given(postQueryRepository.findPostDetail(postId, null)).willReturn(Optional.empty());
 
         // DbFallbackGateway가 Supplier를 실행하도록 Mock 설정
-        given(dbFallbackGateway.executeDetail(eq(FallbackType.DETAIL), eq(postId), any(Supplier.class)))
+        given(dbFallbackGateway.executeDetail(eq(FallbackType.POPULAR_DETAIL), eq(postId), any(Supplier.class)))
                 .willAnswer(invocation -> {
                     Supplier<Optional<PostDetail>> supplier = invocation.getArgument(2);
                     return supplier.get();
@@ -361,7 +376,7 @@ class PostQueryServiceTest extends BaseUnitTest {
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.POST_NOT_FOUND);
 
         verify(redisDetailPostAdapter).getCachedPostIfExists(postId);
-        verify(dbFallbackGateway).executeDetail(eq(FallbackType.DETAIL), eq(postId), any(Supplier.class));
+        verify(dbFallbackGateway).executeDetail(eq(FallbackType.POPULAR_DETAIL), eq(postId), any(Supplier.class));
         verify(redisDetailPostAdapter, never()).saveCachePost(any());
     }
 

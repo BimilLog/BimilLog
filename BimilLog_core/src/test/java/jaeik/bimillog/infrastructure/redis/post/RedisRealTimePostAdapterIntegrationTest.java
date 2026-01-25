@@ -166,9 +166,12 @@ class RedisRealTimePostAdapterIntegrationTest {
         Long finalSize = redisTemplate.opsForZSet().size(scoreKey);
         assertThat(finalSize).isEqualTo(2); // 1번과 2번만 남음
 
-        // 남아있는 게시글 확인
+        // 남아있는 게시글 확인 (Redis는 Integer로 역직렬화됨)
         Set<Object> remainingPosts = redisTemplate.opsForZSet().range(scoreKey, 0, -1);
-        assertThat(remainingPosts).containsExactlyInAnyOrder(1L, 2L);
+        Set<Long> remainingPostIds = remainingPosts.stream()
+                .map(obj -> ((Number) obj).longValue())
+                .collect(java.util.stream.Collectors.toSet());
+        assertThat(remainingPostIds).containsExactlyInAnyOrder(1L, 2L);
 
         // 점수 확인
         Double score1 = redisTemplate.opsForZSet().score(scoreKey, 1L);

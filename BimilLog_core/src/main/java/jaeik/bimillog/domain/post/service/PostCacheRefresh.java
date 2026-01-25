@@ -70,7 +70,7 @@ public class PostCacheRefresh {
 
             List<PostSimpleDetail> refreshed = allPostIds.stream()
                     .map(postId -> dbFallbackGateway.executeDetail(
-                            FallbackType.DETAIL,
+                            FallbackType.POPULAR_DETAIL,
                             postId,
                             () -> postQueryRepository.findPostDetail(postId, null)
                     ).orElse(null))
@@ -103,7 +103,7 @@ public class PostCacheRefresh {
     )
     public void asyncRefreshDetailPost(Long postId) {
         PostDetail postDetail = dbFallbackGateway.executeDetail(
-                FallbackType.DETAIL,
+                FallbackType.POPULAR_DETAIL,
                 postId,
                 () -> postQueryRepository.findPostDetail(postId, null)
         ).orElse(null);

@@ -90,9 +90,12 @@ public class PostQueryService {
             // 2-1. 인기글: 캐시 조회 → 캐시 미스 시 DB 조회 후 캐시 저장
             result = getPopularPostDetail(postId);
         } else {
-            // 2-2. 일반글: DB 직접 조회 (캐시 사용 안함)
-            result = postQueryRepository.findPostDetail(postId, null)
-                    .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
+            // 2-2. 일반글: DB 조회 (Bulkhead + Circuit Breaker 적용)
+            result = dbFallbackGateway.executeDetail(
+                    FallbackType.NORMAL_DETAIL,
+                    postId,
+                    () -> postQueryRepository.findPostDetail(postId, null)
+            ).orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
         }
 
         // 3. 비회원이면 바로 반환
@@ -123,6 +126,7 @@ public class PostQueryService {
             // 실시간 인기글 확인
             return redisRealTimePostAdapter.isRealtimePopularPost(postId);
         } catch (Exception e) {
+            log.warn("[REDIS_FALLBACK] 인기글 여부 확인 실패 - postId={}, error={}", postId, e.getMessage());
             return false;
         }
     }
@@ -152,7 +156,7 @@ public class PostQueryService {
 
         // 3. 캐시 미스: DB 조회 후 캐시 저장 (Bulkhead + Circuit Breaker 적용)
         result = dbFallbackGateway.executeDetail(
-                FallbackType.DETAIL,
+                FallbackType.POPULAR_DETAIL,
                 postId,
                 () -> postQueryRepository.findPostDetail(postId, null)
         ).orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
