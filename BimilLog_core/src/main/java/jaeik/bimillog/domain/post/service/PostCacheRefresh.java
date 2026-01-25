@@ -3,6 +3,7 @@ package jaeik.bimillog.domain.post.service;
 import jaeik.bimillog.domain.post.entity.PostCacheFlag;
 import jaeik.bimillog.domain.post.entity.PostDetail;
 import jaeik.bimillog.domain.post.entity.PostSimpleDetail;
+import jaeik.bimillog.domain.post.repository.FeaturedPostRepository;
 import jaeik.bimillog.domain.post.repository.PostQueryRepository;
 import jaeik.bimillog.infrastructure.log.Log;
 import jaeik.bimillog.infrastructure.redis.post.RedisSimplePostAdapter;
@@ -34,6 +35,7 @@ import java.util.Objects;
 @Slf4j
 public class PostCacheRefresh {
     private final PostQueryRepository postQueryRepository;
+    private final FeaturedPostRepository featuredPostRepository;
     private final RedisSimplePostAdapter redisSimplePostAdapter;
     private final DbFallbackGateway dbFallbackGateway;
 
@@ -89,25 +91,33 @@ public class PostCacheRefresh {
 
     /**
      * <h3>캐시 갱신 내부 로직</h3>
-     * <p>Bulkhead + 서킷 브레이커를 통해 DB를 조회합니다.</p>
+     * <p>REALTIME: 전달받은 postId 목록으로 갱신</p>
+     * <p>WEEKLY/LEGEND/NOTICE: featured_post 테이블에서 postId 조회 후 갱신</p>
      */
     private void refreshInternal(PostCacheFlag type, List<Long> allPostIds) {
+        // REALTIME이 아닌 경우 featured_post 테이블에서 postId 조회
+        List<Long> postIds = (type == PostCacheFlag.REALTIME)
+                ? allPostIds
+                : featuredPostRepository.findPostIdsByType(type);
 
-            List<PostSimpleDetail> refreshed = allPostIds.stream()
-                    .map(postId -> dbFallbackGateway.executeDetail(
-                            FallbackType.POPULAR_DETAIL,
-                            postId,
-                            () -> postQueryRepository.findPostDetail(postId, null)
-                    ).orElse(null))
-                    .filter(Objects::nonNull)
-                    .map(PostDetail::toSimpleDetail)
-                    .toList();
+        if (postIds.isEmpty()) {
+            return;
+        }
 
-            if (refreshed.isEmpty()) {
-                return;
-            }
+        List<PostSimpleDetail> refreshed = postIds.stream()
+                .map(postId -> dbFallbackGateway.executeDetail(
+                        FallbackType.POPULAR_DETAIL,
+                        postId,
+                        () -> postQueryRepository.findPostDetail(postId, null)
+                ).orElse(null))
+                .filter(Objects::nonNull)
+                .map(PostDetail::toSimpleDetail)
+                .toList();
 
-            redisSimplePostAdapter.cachePosts(type, refreshed);
+        if (refreshed.isEmpty()) {
+            return;
+        }
 
+        redisSimplePostAdapter.cachePosts(type, refreshed);
     }
 }
