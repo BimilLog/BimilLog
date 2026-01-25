@@ -60,6 +60,34 @@ public class PostCacheRefresh {
     }
 
     /**
+     * <h3>타입별 전체 Hash 캐시 비동기 갱신 (락 해제 포함)</h3>
+     * <p>ID 불일치 시 SET NX 락을 획득한 스레드가 호출합니다.</p>
+     * <p>갱신 완료 후 락을 해제하여 다음 불일치 시 다시 갱신할 수 있도록 합니다.</p>
+     *
+     * @param type       캐시 유형
+     * @param allPostIds 갱신할 postId 목록
+     */
+    @Async("cacheRefreshExecutor")
+    @Retryable(
+            retryFor = RedisConnectionFailureException.class,
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 500, multiplier = 1)
+    )
+    public void asyncRefreshAllPostsWithLock(PostCacheFlag type, List<Long> allPostIds) {
+        try {
+            refreshInternal(type, allPostIds);
+        } finally {
+            redisSimplePostAdapter.releaseRefreshLock();
+        }
+    }
+
+    @Recover
+    public void recoverRefreshAllPostsWithLock(RedisConnectionFailureException e, PostCacheFlag type, List<Long> allPostIds) {
+        log.debug("목록 캐시 갱신 스킵 (락 해제): type={}", type);
+        redisSimplePostAdapter.releaseRefreshLock();
+    }
+
+    /**
      * <h3>캐시 갱신 내부 로직</h3>
      * <p>Bulkhead + 서킷 브레이커를 통해 DB를 조회합니다.</p>
      */

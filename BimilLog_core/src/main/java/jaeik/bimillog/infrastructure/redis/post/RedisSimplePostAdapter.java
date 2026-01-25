@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import static jaeik.bimillog.infrastructure.redis.post.RedisPostKeys.*;
 
 import java.time.Duration;
+import java.util.HashSet;
 
 /**
  * <h2>레디스 게시글 캐시 티어1 저장소 어댑터</h2>
@@ -39,11 +40,6 @@ public class RedisSimplePostAdapter {
      * <p>TTL 마지막 60초 동안 확률적으로 캐시를 갱신합니다.</p>
      */
     private static final long PER_EXPIRY_GAP_SECONDS = 60;
-
-    /**
-     * 개수 불일치 시 갱신 확률 (20%)
-     */
-    private static final double MISMATCH_REFRESH_PROBABILITY = 0.20;
 
     /**
      * <h3>HGETALL로 Hash 전체 캐시 조회</h3>
@@ -93,28 +89,6 @@ public class RedisSimplePostAdapter {
         }
         return false;
     }
-
-    /**
-     * <h3>개수 일치 시 PER 기반 갱신 필요 여부 판단</h3>
-     *
-     * @param type 캐시 유형
-     * @return 갱신이 필요하면 true
-     */
-    public boolean shouldRefreshOnMismatch(PostCacheFlag type) {
-        double randomFactor = ThreadLocalRandom.current().nextDouble();
-        if (randomFactor < MISMATCH_REFRESH_PROBABILITY) {
-            return true;
-        }
-        // TTL 임박 시 추가 확률
-        String hashKey = getSimplePostHashKey(type);
-        long ttl = redisTemplate.getExpire(hashKey, TimeUnit.SECONDS);
-        if (ttl > 0 && ttl < PER_EXPIRY_GAP_SECONDS) {
-            double perFactor = ThreadLocalRandom.current().nextDouble();
-            return ttl - (perFactor * PER_EXPIRY_GAP_SECONDS) <= 0;
-        }
-        return false;
-    }
-
 
     /**
      * <h3>여러 게시글 Hash 캐시 저장 (HMSET 1회)</h3>
@@ -332,5 +306,60 @@ public class RedisSimplePostAdapter {
                 log.info("[CACHE_UPDATE] hashKey={}, postId={}", hashKey, postId);
             }
         }
+    }
+
+    // ===================== 실시간 캐시 동기화 관련 메서드 =====================
+
+    /**
+     * <h3>실시간 캐시 ID 일치 여부 확인</h3>
+     * <p>Tier2(ZSet)의 postId 목록과 Tier1(Hash)의 postId 목록이 일치하는지 확인합니다.</p>
+     * <p>개수가 같아도 ID가 다르면 불일치로 판단합니다.</p>
+     *
+     * @param tier2PostIds Tier2(ZSet)에서 조회한 postId 목록
+     * @param tier1PostIds Tier1(Hash)에서 조회한 postId Set
+     * @return ID가 일치하면 true
+     */
+    public boolean isCacheIdsMatch(List<Long> tier2PostIds, Set<Long> tier1PostIds) {
+        if (tier2PostIds == null || tier1PostIds == null) {
+            return false;
+        }
+
+        // 개수가 다르면 불일치
+        if (tier2PostIds.size() != tier1PostIds.size()) {
+            return false;
+        }
+
+        // Tier2의 모든 ID가 Tier1에 존재하는지 확인
+        Set<Long> tier2Set = new HashSet<>(tier2PostIds);
+        return tier1PostIds.containsAll(tier2Set);
+    }
+
+    /**
+     * <h3>실시간 캐시 갱신 락 획득 시도 (SET NX)</h3>
+     * <p>ID 불일치 시 중복 갱신을 방지하기 위해 분산 락을 획득합니다.</p>
+     * <p>락 TTL은 30초이며, 락 획득 실패 시 다른 스레드가 이미 갱신 중임을 의미합니다.</p>
+     *
+     * @return 락 획득 성공 시 true
+     */
+    public boolean tryAcquireRefreshLock() {
+        Boolean acquired = redisTemplate.opsForValue().setIfAbsent(
+                REALTIME_REFRESH_LOCK_KEY,
+                "1",
+                REALTIME_REFRESH_LOCK_TTL
+        );
+        boolean result = Boolean.TRUE.equals(acquired);
+        if (result) {
+            log.debug("[LOCK_ACQUIRED] 실시간 캐시 갱신 락 획득");
+        }
+        return result;
+    }
+
+    /**
+     * <h3>실시간 캐시 갱신 락 해제</h3>
+     * <p>갱신 완료 후 락을 해제합니다.</p>
+     */
+    public void releaseRefreshLock() {
+        redisTemplate.delete(REALTIME_REFRESH_LOCK_KEY);
+        log.debug("[LOCK_RELEASED] 실시간 캐시 갱신 락 해제");
     }
 }

@@ -148,8 +148,8 @@ public class PostCacheService {
                 // Tier1에서 상세 정보 조회
                 Map<Long, PostSimpleDetail> cachedPosts = redisSimplePostAdapter.getAllCachedPosts(PostCacheFlag.REALTIME);
 
-                // 개수 비교로 캐시 동기화 (실시간만 유지)
-                handleRealtimeCacheSync(cachedPosts.size(), totalCount, postIds);
+                // ID 비교로 캐시 동기화 (실시간만 유지)
+                handleRealtimeCacheSync(cachedPosts.keySet(), postIds);
 
                 resultPosts = postIds.stream().map(cachedPosts::get).filter(Objects::nonNull).toList();
             }
@@ -163,16 +163,32 @@ public class PostCacheService {
     }
 
     /**
-     * <h3>실시간 캐시 동기화</h3>
-     * <p>실시간만 개수 비교를 통한 캐시 동기화를 수행합니다.</p>
+     * <h3>실시간 캐시 동기화 (ID 기반)</h3>
+     * <p>Tier2(ZSet)의 postId와 Tier1(Hash)의 postId를 비교하여 캐시 동기화를 수행합니다.</p>
+     * <ul>
+     *   <li>ID 불일치: SET NX 락을 획득한 스레드만 비동기 갱신, 모든 스레드는 과거 캐시 반환</li>
+     *   <li>ID 일치: TTL 기반 PER로 갱신 여부 결정</li>
+     * </ul>
+     *
+     * @param tier1PostIds Tier1(Hash)에서 조회한 postId Set
+     * @param tier2PostIds Tier2(ZSet)에서 조회한 postId 목록
      */
-    private void handleRealtimeCacheSync(int cachedSize, long totalCount, List<Long> postIds) {
-        if (cachedSize != totalCount) {
-            if (redisSimplePostAdapter.shouldRefreshOnMismatch(PostCacheFlag.REALTIME)) {
-                postCacheRefresh.asyncRefreshAllPosts(PostCacheFlag.REALTIME, postIds);
+    private void handleRealtimeCacheSync(Set<Long> tier1PostIds, List<Long> tier2PostIds) {
+        boolean idsMatch = redisSimplePostAdapter.isCacheIdsMatch(tier2PostIds, tier1PostIds);
+
+        if (!idsMatch) {
+            // ID 불일치: SET NX 락을 획득한 스레드만 갱신
+            if (redisSimplePostAdapter.tryAcquireRefreshLock()) {
+                log.info("[CACHE_SYNC] 실시간 캐시 ID 불일치 - 갱신 시작 (tier1={}, tier2={})",
+                        tier1PostIds.size(), tier2PostIds.size());
+                postCacheRefresh.asyncRefreshAllPostsWithLock(PostCacheFlag.REALTIME, tier2PostIds);
+            } else {
+                log.debug("[CACHE_SYNC] 실시간 캐시 ID 불일치 - 다른 스레드가 갱신 중, 과거 캐시 반환");
             }
         } else if (redisSimplePostAdapter.shouldRefreshHash(PostCacheFlag.REALTIME)) {
-            postCacheRefresh.asyncRefreshAllPosts(PostCacheFlag.REALTIME, postIds);
+            // ID 일치 + TTL 임박: PER 기반 갱신
+            log.debug("[CACHE_SYNC] 실시간 캐시 TTL 임박 - PER 갱신");
+            postCacheRefresh.asyncRefreshAllPosts(PostCacheFlag.REALTIME, tier2PostIds);
         }
     }
 }

@@ -69,6 +69,18 @@ public final class RedisPostKeys {
      */
     public static final double REALTIME_POST_SCORE_THRESHOLD = 1.0;
 
+    // ===================== 4. LOCK (분산 락) =====================
+
+    /**
+     * 실시간 인기글 캐시 갱신 락 키
+     * <p>ID 불일치 시 중복 갱신을 방지하기 위한 분산 락</p>
+     */
+    public static final String REALTIME_REFRESH_LOCK_KEY = "post:realtime:refresh:lock";
+
+    /**
+     * 실시간 인기글 캐시 갱신 락 TTL (30초)
+     */
+    public static final Duration REALTIME_REFRESH_LOCK_TTL = Duration.ofSeconds(30);
 
     // ===================== 6. KEY GENERATION METHODS (키 생성 유틸리티) =====================
 
